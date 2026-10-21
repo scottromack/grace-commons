@@ -14,7 +14,7 @@
 \* reading, its disclosure instant, at any tick, and its transaction commits at any later
 \* tick, so the reading may stand far behind the intent (Term young record: "a record whose
 \* intent landed later than the edge allows"). The intent and the accounting record
-\* commit together (Execution Contract Store 1, Capability requirement 36; re-derived
+\* commit together (Execution Contract Database 1, Capability requirement 36; re-derived
 \* 2026-10-21): the record lands with the intent, or, where Selective Disclosure refused
 \* it and the substrate refused the refusal record, the intent commits alone and no record
 \* of X's ever lands. Its intent is closed, as Recoverable Invocation's contract has it,
@@ -51,7 +51,7 @@
 \*             record). An outside record may be found or not; it is never the
 \*             composition's.
 \*   Inv_R32   no run alerts an outcome event whose disclosure id the accounting store
-\*             carries (Reconciliation 7, 32; Execution Contract Store 2 and Store 3
+\*             carries (Reconciliation 7, 32; Execution Contract Database 2 and Database 3
 \*             through Capability requirement 36); every outcome's record is in the store
 \*             here, so no such alert is sound.
 \*   Inv_CR29  no escalation stands unsettled once its intent's horizon edge has come
@@ -66,7 +66,7 @@
 \* wrote. Measured then by controlled variation, only the edge less two allowances and the
 \* run bound, strict, held where the purge's clock may stand an allowance from the
 \* deadline's (PurgeSkew = A), and the page took that edge (Term aged record). Under
-\* Execution Contract Store 1 no write applies after its intent's transaction, so no
+\* Execution Contract Database 1 no write applies after its intent's transaction, so no
 \* record of the composition's is falsely closed, every one has an outcome before its
 \* intent can be purged (an escalation is settled within S, Capability requirement 29 and
 \* 31), and the aged edge carries none of Inv_R14: dropped term by term it holds — no run
@@ -119,7 +119,7 @@
 \* TWINS AND PROBES  Each is this module byte for byte below its header, with one
 \* constant or one invariant changed in its .cfg: -buggy-ledgerfirst, -buggy-storeearly,
 \* -buggy-emptyread, -buggy-settle; -probe-finding, -probe-inflight, -probe-lastlookup,
-\* -probe-collision. Retired 2026-10-21 under Store 1, which they no longer break:
+\* -probe-collision. Retired 2026-10-21 under Database 1, which they no longer break:
 \* -buggy-agededge, -buggy-agedstrict, -buggy-agedallowance and -probe-falseclosing.
 EXTENDS Naturals, FiniteSets
 
@@ -222,7 +222,7 @@ Seam ==
 \* X's transaction commits, at any tick after the seam's reading: the intent with the
 \* accounting record, or, where Selective Disclosure refused the record and the substrate
 \* the refusal record, the intent alone, after which no record of X's ever lands
-\* (Execution Contract Store 1).
+\* (Execution Contract Database 1).
 Intent ==
     /\ xPh = "seam"
     /\ xPh' = "intent"
@@ -252,7 +252,7 @@ Escalate ==
     /\ UNCHANGED <<xPh, xDA, xIA, xIP, xRec, delta, oW, RunVars, wo, r32>>
 
 \* An operator settles an escalation with an abandonment where the operator's probe shows
-\* no record; under Store 1 none lands after it.
+\* no record; under Database 1 none lands after it.
 Abandon ==
     /\ xPh = "intent"
     /\ xCl = "esc"
@@ -433,7 +433,7 @@ Probe_NeverFinding ==
     wo = {}
 
 \* No run ends reading a falsely closed record (Reconciliation 33's alert). HOLDS under
-\* Store 1, X never abandoned over a record of its own (see the header). Not a probe file.
+\* Database 1, X never abandoned over a record of its own (see the header). Not a probe file.
 Probe_NeverFalseClosing ==
     ~(rPh = "run" /\ rStep = 3 /\ ~rFail /\ Orphan("X") /\ rEnI /\ xCl = "aband")
 

@@ -80,7 +80,7 @@ Term active set: the units whose unit state EQUALS pending together with the uni
 
 ```
 Capability requirement 1: The deployment MUST supply now at the seam.
-Capability requirement 4: The deployment MUST supply the store PER Execution Contract Store 1 through 4.
+Capability requirement 4: The deployment MUST supply the database PER Execution Contract Database 1 through 4.
 Deleted: Capability requirement 2. Execution Contract Logic confinement 7 owns it.
 Deleted: Capability requirement 3. Execution Contract Logic confinement 7 owns it.
 Deleted: Clock semantics 1. Execution Contract Logic confinement 7 owns it.
@@ -116,8 +116,8 @@ Operation 1: [Add] MUST record EXACTLY ONE unit per successful call.
 Operation 2: [Add] MUST stand the unit in pending.
 Operation 3: [Add] MUST answer id.
 Operation 4: IF the normalized description matches a unit in the active set THEN [Add] MUST answer duplicate-active.
-Operation 5: IF the store refuses the write THEN [Add] MUST answer storage-failure.
-Deleted: Operation 6. Execution Contract Store 3 owns it.
+Operation 5: IF the database refuses the write THEN [Add] MUST answer storage-failure.
+Deleted: Operation 6. Execution Contract Database 3 owns it.
 Operation 7: IF no unit EXISTS for the id THEN [Edit] MUST answer not-known.
 Operation 8: IF the unit state EQUALS done THEN [Edit] MUST answer not-editable.
 Operation 9: IF the unit state EQUALS pending AND the normalized new description matches another unit in the active set THEN [Edit] MUST answer duplicate-active.
@@ -133,9 +133,9 @@ Operation 17: [Complete] MUST stand the unit in done.
 Operation 18: IF no unit EXISTS for the id THEN [Delete] MUST answer not-known.
 Operation 19: [Delete] MUST take a pending unit out of the list.
 Operation 20: [Delete] MUST take a done unit out of the list.
-Operation 21: IF the store refuses the write THEN [Edit] MUST answer storage-failure.
-Operation 22: IF the store refuses the write THEN [Complete] MUST answer storage-failure.
-Operation 23: IF the store refuses the write THEN [Delete] MUST answer storage-failure.
+Operation 21: IF the database refuses the write THEN [Edit] MUST answer storage-failure.
+Operation 22: IF the database refuses the write THEN [Complete] MUST answer storage-failure.
+Operation 23: IF the database refuses the write THEN [Delete] MUST answer storage-failure.
 Operation 24: A refused call MUST leave the unit as the call found the unit.
 Deleted: Operation 25. Capability requirement 1 owns it.
 Deleted: Operation 26. Execution Contract Logic confinement 3 owns it.
@@ -152,17 +152,17 @@ The case space, and the rule that owns each case:
 
 | Call | Case | Answer | Effect on the list |
 |---|---|---|---|
-| [Add] | description valid, no active match, store accepts | id | one unit lands in [Pending] (Operation 1, Operation 2) |
+| [Add] | description valid, no active match, database accepts | id | one unit lands in [Pending] (Operation 1, Operation 2) |
 | [Add] | description empty or over the cap | [Invalid Description] | none (Description 4, Description 5) |
 | [Add] | description matches a live unit | [Duplicate Active] | none (Operation 4) |
-| [Edit] | valid, different, no active match, store accepts | ok | description and last edit instant change (Operation 13, State 6) |
+| [Edit] | valid, different, no active match, database accepts | ok | description and last edit instant change (Operation 13, State 6) |
 | [Edit] | same normalized text | ok | none — no write, no stamp (Operation 10 through 12) |
 | [Edit] | unit is done | [Not Editable] | none (Operation 8) |
 | [Complete] | unit is pending | ok | [Pending] → [Done], completion instant stamped (Operation 17, State 7) |
 | [Complete] | unit is done | [Not Pending] | none (Operation 16) |
 | [Delete] | unit is pending or done | ok | the unit leaves; the id is retired (Operation 19, Operation 20, Identity 5) |
 | any | id names nothing | [Not Known] | none (Operation 7, Operation 15, Operation 18) |
-| any writing call | store refuses | [Storage Failure] | none (Operation 5, Operation 21 through 24) |
+| any writing call | database refuses | [Storage Failure] | none (Operation 5, Operation 21 through 24) |
 | [Read] | any | every unit, with its stored fields | none (Operation 28 through 31) |
 
 ### Invariants
@@ -286,8 +286,8 @@ NOTE: EVERY check names the rule the check tests.
 
 ```
 External check 1: An auditor needing the clock's monotonicity confirmed MUST read the deployment's own clock discipline (Invariant 7.1 through 7.3).
-Deleted: External check 2. Execution Contract Store 1 owns it.
-Deleted: External check 3. Execution Contract Store 2 owns it.
+Deleted: External check 2. Execution Contract Database 1 owns it.
+Deleted: External check 3. Execution Contract Database 2 owns it.
 ```
 
 ## Non-goals
@@ -299,7 +299,7 @@ Non-goal 3: The atom MUST NOT assign a unit to an actor.
 Non-goal 4: The atom MUST NOT remember a deleted description.
 Non-goal 5: A deployment needing a recency guard MUST compose Duplicate Prevention.
 Non-goal 6: The atom MUST NOT restore a deleted unit.
-Deleted: Non-goal 7. Execution Contract Store 5 owns it.
+Deleted: Non-goal 7. Execution Contract Database 5 owns it.
 Non-goal 8: The atom MUST NOT reopen a done unit.
 Non-goal 9: The atom MUST NOT regenerate a unit on a schedule.
 Non-goal 10: The atom MUST NOT order units.
@@ -311,7 +311,7 @@ Non-goal 15: The atom MUST NOT match descriptions case-insensitively.
 Non-goal 16: A deployment needing a defensible timeline MUST compose a trusted timestamping pattern.
 ```
 
-NOTE: the owners — [Shared Todo](../compositions/shared-todo.md) (Non-goal 1 through 3, Composition note 5); [Duplicate Prevention](./duplicate-prevention.md) and the composing pattern that answers [Duplicate Recent] (Non-goal 4, Non-goal 5, Composition note 2, Composition note 3; State 10); Execution Contract Store 5 (Non-goal 6); a history pattern (Non-goal 8, Non-goal 13; State 9); a recurrence pattern *(forthcoming)* (Non-goal 9); a priority and ordering pattern *(forthcoming)* (Non-goal 10); a due-date pattern *(forthcoming)* (Non-goal 11); a dependency pattern *(forthcoming)* (Non-goal 12); Execution Contract Store 2 (Non-goal 14); a wrapping pattern (Non-goal 15).
+NOTE: the owners — [Shared Todo](../compositions/shared-todo.md) (Non-goal 1 through 3, Composition note 5); [Duplicate Prevention](./duplicate-prevention.md) and the composing pattern that answers [Duplicate Recent] (Non-goal 4, Non-goal 5, Composition note 2, Composition note 3; State 10); Execution Contract Database 5 (Non-goal 6); a history pattern (Non-goal 8, Non-goal 13; State 9); a recurrence pattern *(forthcoming)* (Non-goal 9); a priority and ordering pattern *(forthcoming)* (Non-goal 10); a due-date pattern *(forthcoming)* (Non-goal 11); a dependency pattern *(forthcoming)* (Non-goal 12); Execution Contract Database 2 (Non-goal 14); a wrapping pattern (Non-goal 15).
 
 Where the atom breaks down: any system with more than one actor; a system where *finished* is not binary; a system where the description is not a property worth constraining; a host that cannot make a transition atomic.
 
@@ -321,8 +321,8 @@ Where the atom breaks down: any system with more than one actor; a system where 
 
 ```
 Concurrency 1: The atom MUST assume a linear sequence of calls from one actor.
-Deleted: Concurrency 2. Execution Contract Store 1 owns it.
-Deleted: Concurrency 3. Execution Contract Store 2 owns it.
+Deleted: Concurrency 2. Execution Contract Database 1 owns it.
+Deleted: Concurrency 3. Execution Contract Database 2 owns it.
 ```
 
 ### Re-adding a deleted description
@@ -338,7 +338,7 @@ Re-adding 2: [Add] MUST answer a fresh id for such a unit.
 Composition note 1: A composing pattern MUST own what this atom declines.
 Composition note 2: A composing pattern needing a recency guard MUST record a deleted description with Duplicate Prevention.
 Composition note 3: A composing pattern needing a recency guard MUST NOT call [Add] BEFORE a Duplicate Prevention check.
-Deleted: Composition note 4. Execution Contract Store 5 owns it.
+Deleted: Composition note 4. Execution Contract Database 5 owns it.
 Composition note 5: A composing pattern needing a shared list MUST compose Permissions and Assignment.
 ```
 
@@ -350,7 +350,7 @@ Each `[Term]` marker above links to its term entry here; a term entry states wha
 
 ### Vocabulary
 
-Term actors: the atom; the host; the transition; the implementation; the deployment; a composing pattern (also: a pattern); a business caller; a person; a unit; a call; the store; the list; an auditor.
+Term actors: the atom; the host; the transition; the implementation; the deployment; a composing pattern (also: a pattern); a business caller; a person; a unit; a call; the database; the list; an auditor.
 
 Term records: unit — one thing to do, carrying id, description, addition instant, a unit state and, once they land, last edit instant and completion instant.
 
@@ -392,7 +392,7 @@ Kind: Operation
 
 #### Read
 
-The read-only query answering every unit the store holds, pending and done, each with its stored fields. It changes nothing and refuses nothing.
+The read-only query answering every unit the database holds, pending and done, each with its stored fields. It changes nothing and refuses nothing.
 
 Kind: Operation
 
@@ -515,7 +515,7 @@ Projection: not-editable
 
 #### Storage Failure
 
-The refusal any writing action returns when the underlying store write fails after all preconditions pass. The unit is left in its prior state; the caller must retry.
+The refusal any writing action returns when the underlying database write fails after all preconditions pass. The unit is left in its prior state; the caller must retry.
 
 Kind:       Member
 Member of:  the action rejection

@@ -1,5 +1,5 @@
 ---- MODULE credential-buggy-toctou ----
-\* Grace Commons — Credential atom: BUGGY TWIN — Execution Contract Store 2.
+\* Grace Commons — Credential atom: BUGGY TWIN — Execution Contract Database 2.
 \* Mirrors credential.tla (re-derived 2026-09-29) with the pair's serialization
 \* removed: a register or rotate checks and commits with no section held, so two
 \* calls both pass the uniqueness check at their readings and both commit, each
@@ -129,7 +129,7 @@ Commit(i) ==
 
 \* A holder that loses the section at any moment, and its write then refused:
 \* no write commits against a state its checks did not see (Execution Contract
-\* Store 2).
+\* Database 2).
 Overdue(i) ==
     /\ holder = i
     /\ holder' = 0

@@ -6,14 +6,14 @@
 \* disagreement, diagnose per the entry *The conflict protocol* in pressure-testing.md.
 \*
 \* WHAT THIS MODEL CHECKS (comments re-pointed 2026-10-21 at Execution Contract
-\* Store 1, no logic change)
+\* Database 1, no logic change)
 \* Invariant 3 — revocation propagation completeness — as restated 2026-08-27
 \* (methodology debt #19, the atomicity class; third and last instance). The
 \* previous model committed the revoke, the propagation event and the scope-set
 \* completeness as ONE atomic action that always succeeded, and so could not
 \* represent the one partial the deployment actually reaches. A withdrawal's
 \* intent, Consent revoke and Audit Trail propagation event are store writes of
-\* one action, which Execution Contract Store 1 commits together; the partial
+\* one action, which Execution Contract Database 1 commits together; the partial
 \* the spec keeps is the one Audit Trail's refusal of the propagation event
 \* leaves (Audit arm 12, Audit arm 17): the revocation commits and its event is
 \* owed. This model reaches it.
@@ -33,7 +33,7 @@
 \*                      propagation set's boundary (Generation acceptance check 2).
 \*   RevokeAndPropagate  — the ordinary path: the revoke and the consent.revoked
 \*                      event, ordered after it and carrying the complete scope
-\*                      set, commit together (Execution Contract Store 1).
+\*                      set, commit together (Execution Contract Database 1).
 \*   RevokeUnpropagated — the revoke commits and Audit Trail refuses the event.
 \*                      Reachable AND surfaced in the same outcome that returns
 \*                      rejected(recording-failure(outcome)).
@@ -181,7 +181,7 @@ Inv3_NoUnsurfacedOrphan ==
 \* The intent event precedes the revocation. This is what makes the propagation
 \* set's boundary well-defined (Generation acceptance check 2): nothing can be
 \* registered between the step-4 read and this append, because both sit inside one
-\* transaction, which Execution Contract Store 2 serializes.
+\* transaction, which Execution Contract Database 2 serializes.
 Inv3_IntentPrecedesRevoke ==
     \A c \in Consents : revoked[c] => (intentState[c] = "present")
 

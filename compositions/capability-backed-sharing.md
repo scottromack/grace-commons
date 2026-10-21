@@ -88,11 +88,11 @@ Composition state 7: The composition MUST NOT rebuild the authorization event id
 Composition state 8: The composition MUST store the disclosure-to-redemption index.
 Composition state 9: The composition MUST key the disclosure-to-redemption index by disclosure id.
 Composition state 10: A disclosure-to-redemption entry MUST carry the capability token, the allocator reference, the intent event id, the invocation id, the seal marker AND the disclosure reading.
-Deleted: Composition state 11. Execution Contract Store 1 owns it.
+Deleted: Composition state 11. Execution Contract Database 1 owns it.
 Composition state 12: The composition MUST write a disclosure-to-redemption entry carrying pending as the seal marker.
 Composition state 13: The composition MUST set the seal marker to the disclosure event's id ONLY AFTER the disclosure event lands.
 Composition state 14: The composition MUST NOT carry a redeemer identity in either index.
-Deleted: Composition state 15. Execution Contract Store 3 owns it.
+Deleted: Composition state 15. Execution Contract Database 3 owns it.
 Composition state 16: The composition MUST rebuild a sealed disclosure-to-redemption entry from the disclosure events.
 ```
 
@@ -127,15 +127,15 @@ Capability requirement 6: A deployment MUST set the default max redemptions.
 Capability requirement 7: A deployment MUST set the compensation window.
 Capability requirement 8: A deployment MUST set the reconciliation cadence.
 Capability requirement 9: The reconciliation cadence MUST NOT EXCEED the compensation window.
-Deleted: Capability requirement 10. Execution Contract Store 1 owns it.
-Deleted: Capability requirement 11. Execution Contract Store 1 owns it.
+Deleted: Capability requirement 10. Execution Contract Database 1 owns it.
+Deleted: Capability requirement 11. Execution Contract Database 1 owns it.
 Capability requirement 12: IF the compensation window EQUALS blank THEN the composition MUST refuse to start.
-Deleted: Capability requirement 13. Execution Contract Store 1 owns it: the composition names no redemption completion bound for a deployment to leave blank.
+Deleted: Capability requirement 13. Execution Contract Database 1 owns it: the composition names no redemption completion bound for a deployment to leave blank.
 Capability requirement 14: A deployment MUST supply now AND the invocation id at the composition's seam.
 Capability requirement 15: The composition MUST take EXACTLY ONE now PER invocation.
 Capability requirement 16: The composition MUST NOT pass now to a constituent.
 Capability requirement 17: The composition MUST NOT mint an id.
-Capability requirement 18: The deployment MUST supply the store PER Execution Contract Store 1 through 4.
+Capability requirement 18: The deployment MUST supply the database PER Execution Contract Database 1 through 4.
 ```
 
 Term sharing scope grammar: the deployment-declared grammar that encodes a sharing descriptor as a capability scope and parses a capability scope back into the sharing descriptor — one grammar, read in both directions.
@@ -188,13 +188,13 @@ Term descriptor cap: the largest encoded descriptor whose events fit the substra
 ```
 Audit arm 1: IF Audit Trail answers invalid-credential at an intent record THEN the action MUST answer invalid-credential.
 Audit arm 2: IF Audit Trail answers recording-failure carrying a pre-append step at an intent record THEN the action MUST answer recording-failure carrying intent.
-Deleted: Audit arm 3. Execution Contract Store 1 owns it.
+Deleted: Audit arm 3. Execution Contract Database 1 owns it.
 Audit arm 4: IF the read-back finds the record THEN the composition MUST proceed as landed.
-Deleted: Audit arm 5. Execution Contract Store 1 owns it.
+Deleted: Audit arm 5. Execution Contract Database 1 owns it.
 Audit arm 6: IF Audit Trail answers invalid-request carrying a step below step-3 at an intent record THEN the action MUST answer invalid-request.
 Audit arm 7: The composition MUST NOT retry an invalid-request answer.
 Audit arm 8: IF Audit Trail answers recording-failure carrying a pre-append step at an outcome record THEN the action MUST answer recording-failure carrying outcome AND the orphan reference.
-Deleted: Audit arm 9. Execution Contract Store 2 owns it.
+Deleted: Audit arm 9. Execution Contract Database 2 owns it.
 Audit arm 10: IF Audit Trail answers invalid-credential at a service-attested record THEN the action MUST answer invalid-credential.
 Audit arm 11: The composition MUST NOT retry a service-attested record Audit Trail answered with invalid-credential.
 Audit arm 12: A caller MUST read recording-failure carrying intent as a committed nothing.
@@ -203,7 +203,7 @@ Audit arm 14: A caller MUST NOT re-run an action answering recording-failure car
 Audit arm 15: The read-back MUST match the record by the invocation's intent event id.
 Audit arm 16: The deployment MUST alert on an invalid-request from Audit Trail as a deployment fault.
 Audit arm 17: The deployment MUST alert on a service-attested invalid-credential as a deployment fault.
-Deleted: Audit arm 18. Execution Contract Store 1 owns it.
+Deleted: Audit arm 18. Execution Contract Database 1 owns it.
 Audit arm 19: IF Audit Trail answers invalid-request(step-3) at an intent record THEN the action MUST answer recording-failure carrying intent.
 Audit arm 20: IF Audit Trail answers invalid-request carrying a step below step-4 at an outcome record THEN the action MUST answer recording-failure carrying outcome AND the orphan reference.
 Audit arm 21: IF Audit Trail answers invalid-request(step-4) at a record THEN the composition MUST read the record's event id back.
@@ -265,7 +265,7 @@ Action wiring 5: IF Capability answers invalid-request for an allocate THEN [Aut
 Action wiring 6: IF Capability answers storage-failure for an allocate THEN [Authorize Sharing] MUST answer storage-failure.
 Action wiring 7: A refused allocate MUST NOT write beyond the authorization intent.
 Action wiring 8: An allocating authorization MUST record an authorization event carrying the intent event id, the capability token, the sharing descriptor, the effective max redemptions, the effective ttl AND the allocation reading under the allocator's credential ONLY AFTER Capability's allocate answers the capability token.
-Deleted: Action wiring 9. Execution Contract Store 1 owns it.
+Deleted: Action wiring 9. Execution Contract Database 1 owns it.
 Action wiring 10: The composition MUST NOT attest an authorization event under an actor other than the allocator.
 Action wiring 11: An attested authorization MUST answer the capability token AND the authorization event's id.
 Action wiring 12: [Redeem And Disclose] MUST NOT call Capability's redeem BEFORE resolving the sharing descriptor.
@@ -289,11 +289,11 @@ Action wiring 29: A consuming redemption MUST call Selective Disclosure's record
 Action wiring 30: A consuming redemption MUST NOT pass a disclosure instant to Selective Disclosure's record.
 Action wiring 31: IF Selective Disclosure answers invalid-request OR unknown-authority-type THEN the consuming redemption MUST record an unfulfilled event carrying the intent event id, the capability token, the allocator reference AND the refusal as the reason.
 Action wiring 32: IF Selective Disclosure answers invalid-request OR unknown-authority-type THEN [Redeem And Disclose] MUST answer redemption-unfulfilled.
-Deleted: Action wiring 33. Execution Contract Store 1 owns it.
+Deleted: Action wiring 33. Execution Contract Database 1 owns it.
 Action wiring 34: The composition MUST NOT record a disclosure event for an unfulfilled redemption.
 Action wiring 35: The deployment MUST alert on a foreclosed disclosure refusal as a conformance fault.
 Action wiring 36: A disclosing redemption MUST record a disclosure event carrying the intent event id, the invocation id, the disclosure id, the capability token, the allocator reference, the sharing descriptor, the authorization event id AND the disclosure reading under the service identity ONLY AFTER Selective Disclosure's record answers the disclosure id.
-Deleted: Action wiring 37. Execution Contract Store 1 owns it.
+Deleted: Action wiring 37. Execution Contract Database 1 owns it.
 Action wiring 38: A sealed redemption MUST answer the disclosure id, the disclosure event's id, the disclosed scope AND the allocator reference.
 Action wiring 39: [Revoke Sharing] MUST NOT call Capability's revoke BEFORE the revocation intent lands.
 Action wiring 40: A validated revocation MUST record a revocation intent carrying the capability token, the revocation reason AND the revocation reading under the revoker's credential.
@@ -359,8 +359,8 @@ Term revocation reading: the invocation's now at [Revoke Sharing], stamped on th
 ```
 Wiring decision 1: The composition MUST attach a disclosure's accountability to the allocator's authorization.
 Wiring decision 2: The composition MUST NOT attach a disclosure's accountability to the bearer.
-Deleted: Wiring decision 3. Execution Contract Store 1 owns it.
-Deleted: Wiring decision 4. Execution Contract Store 1 owns it.
+Deleted: Wiring decision 3. Execution Contract Database 1 owns it.
+Deleted: Wiring decision 4. Execution Contract Database 1 owns it.
 Wiring decision 5: The composition MUST NOT fabricate a disclosure record for a consumed use.
 ```
 
@@ -370,9 +370,9 @@ WHY:
 ### Reconciliation
 
 ```
-Deleted: Reconciliation 1. Execution Contract Store 1 and Execution Contract Store 3 own it.
+Deleted: Reconciliation 1. Execution Contract Database 1 and Execution Contract Database 3 own it.
 Reconciliation 2: The reconciliation MUST run every reconciliation cadence.
-Deleted: Reconciliation 3. Execution Contract Store 1 owns it.
+Deleted: Reconciliation 3. Execution Contract Database 1 owns it.
 Reconciliation 4: The reconciliation MUST attest EVERY write the reconciliation makes under the service identity.
 Reconciliation 5: The reconciliation MUST NOT write a compensating event BEFORE the reconciliation's recovery intent lands.
 Reconciliation 6: The reconciliation MUST record a recovery intent carrying the invocation id, the direction, the capability token, the disclosure id where one stands AND the intent reference.
@@ -500,7 +500,7 @@ Three scenarios the composition must survive in regulated contexts.
 
 ## Generation acceptance
 
-A derived implementation is acceptable when an external auditor, given the two indexes and the Capability, Selective Disclosure and Audit Trail stores, can clear the conformance checks below without recourse to source code, runbooks or developer narration; the external checks name what no record carries.
+A derived implementation is acceptable when an external auditor, given the two indexes and the Capability, Selective Disclosure and Audit Trail records, can clear the conformance checks below without recourse to source code, runbooks or developer narration; the external checks name what no record carries.
 
 ### Conformance checks
 
@@ -509,7 +509,7 @@ Check 1.1: An auditor MUST find EVERY disclosure event naming an allocator refer
 Check 1.2: An auditor MUST find no redeemer identity in any sharing record (Invariant 1.2).
 Check 1.3: An auditor MUST find EVERY disclosure record's recipient equal to the intended recipient the capability's authorization event names (Invariant 1.3).
 Check 1.4: An auditor MUST find EVERY disclosure record's authority equal to the authority the disclosure event names (Invariant 1.1).
-Check 2.1: An auditor MUST find EVERY disclosure event's disclosure id naming a disclosure record in the Selective Disclosure store (Invariant 2.1).
+Check 2.1: An auditor MUST find EVERY disclosure event's disclosure id naming a disclosure record in the Selective Disclosure records (Invariant 2.1).
 Check 2.2: An auditor MUST find no disclosure record carrying two disclosure events (Invariant 2.2).
 Check 2.3: An auditor MUST verify a disclosure event PER Audit Trail's verify record contract, presenting the event's original payload (Invariant 2.1).
 Check 2.4: An auditor MUST read an event in the substrate's unsealed tail as unsealed AND NOT as a failed verification (Invariant 2.1).
@@ -532,7 +532,7 @@ Check 6.2: An auditor MUST find no disclosure event sealed from a remainder (Rec
 Check 6.3: An auditor MUST find EVERY compensating disclosure event carrying the pending marker's disclosure id AND the disclosure intent's sharing descriptor (Reconciliation 10).
 Check 6.4: An auditor MUST find no allocated capability older than the compensation window standing unsettled AND unescalated (Invariant 3.4).
 Check 6.5: An auditor MUST measure a compensation's lateness between the intent's recording instant AND the compensating event's recording instant (Reconciliation 23).
-Deleted: Check 6.6. Execution Contract Store 1 owns it.
+Deleted: Check 6.6. Execution Contract Database 1 owns it.
 Check 6.7: An auditor MUST read the seal of a pending marker whose disclosure intent is an aged event as a finding (Reconciliation 25).
 ```
 
@@ -546,11 +546,11 @@ NOTE: EVERY check names the rule the check tests.
 
 ```
 External check 1: An auditor needing the redeemer's identity MUST read an identity-keyed access model's records (Non-goal 1).
-External check 2: An auditor needing the declared authority confirmed as legally valid MUST read the authority's own store (Non-goal 4).
+External check 2: An auditor needing the declared authority confirmed as legally valid MUST read the authority's own records (Non-goal 4).
 External check 3: An auditor needing the delivered bytes confirmed against the disclosed scope MUST read the host's delivery records (Non-goal 3).
 External check 4: An auditor needing the allocator's permission to share confirmed MUST read the composed Permissions instance's records (Non-goal 5).
 External check 5: An auditor needing the compensation window AND the reconciliation cadence confirmed MUST read the deployment's own configuration (Capability requirement 7).
-Deleted: External check 6. Execution Contract Store 3 owns it.
+Deleted: External check 6. Execution Contract Database 3 owns it.
 External check 7: An auditor needing the Capability instance's exclusivity confirmed MUST read the deployment's own wiring (Composes 8).
 External check 8: An auditor needing a constituent's own guarantee confirmed MUST read the constituent's own acceptance (Composes 5).
 ```
@@ -579,9 +579,9 @@ NOTE: the owners — [Permissions](../atoms/permissions.md) and [Session](../ato
 ### Atomic writes
 
 ```
-Deleted: Atomic writes 1. Execution Contract Store 1 owns it.
-Deleted: Atomic writes 2. Execution Contract Store 1 owns it.
-Deleted: Atomic writes 3. Execution Contract Store 1 owns it.
+Deleted: Atomic writes 1. Execution Contract Database 1 owns it.
+Deleted: Atomic writes 2. Execution Contract Database 1 owns it.
+Deleted: Atomic writes 3. Execution Contract Database 1 owns it.
 ```
 
 ### Clock semantics
@@ -594,13 +594,13 @@ Clock semantics 3: The composition MUST NOT compare the disclosure reading again
 
 Term composition reading: an allocation reading, a disclosure reading or a revocation reading.
 
-Term authority's own store: the Consent store, the Legal Hold store or the deployment's legal analysis — whichever the authority type names.
+Term authority's own records: the Consent records, the Legal Hold records or the deployment's legal analysis — whichever the authority type names.
 
 ### Concurrency
 
 ```
-Deleted: Concurrency 1. Execution Contract Store 2 owns it.
-Deleted: Concurrency 2. Execution Contract Store 2 owns it.
+Deleted: Concurrency 1. Execution Contract Database 2 owns it.
+Deleted: Concurrency 2. Execution Contract Database 2 owns it.
 ```
 
 ### Multi-use capabilities
@@ -632,7 +632,7 @@ Term cadences: reconciliation cadence (reconciliation_cadence).
 
 Term qualifiers: migrated — rewritten in GRACE lang v0.61 (2026-09-23).
 
-Term terms: composition, constituents, substrate, trail, capability-to-sharing index, disclosure-to-redemption index, seal marker, pending marker, allocation reading, disclosure reading, intended recipient, disclosed scope, sharing scope grammar, sharing descriptor, service identity, audit horizon, longest disclosure-accounting obligation, default max redemptions, compensation window, reconciliation cadence, invocation id, out-of-bounds envelope, revocation input, required descriptor field, descriptor cap, intent record, outcome record, pre-append step, position, orphan reference, human-attested outcome record, service-attested record, authorization result, disclosure result, revocation result, disclosure history, provenance, validated authorization, admitted authorization, allocating authorization, attested authorization, effective max redemptions, effective ttl, unparsed scope, unattested token, diverged entry, irreconcilable token, admitted redemption, diverged redemption, consuming redemption, foreclosed disclosure refusal, disclosing redemption, sealed redemption, validated revocation, admitted revocation, revoking revocation, landed revocation, revocation reading, reconciliation, recovery intent, intent reference, recovery flag, consumed count, remainder, pairing window, candidate reading, partial, overdue partial, aged event, substrate partial, settled capability, sharing record, revocation triage, composition reading, authority's own store, authorization intent, authorization event, disclosure intent, disclosure event, refusal event, unfulfilled event, revocation intent, revocation event, abandonment event, compensating event, redeemer identity, conformance fault, allocation, revocation, consumed use.
+Term terms: composition, constituents, substrate, trail, capability-to-sharing index, disclosure-to-redemption index, seal marker, pending marker, allocation reading, disclosure reading, intended recipient, disclosed scope, sharing scope grammar, sharing descriptor, service identity, audit horizon, longest disclosure-accounting obligation, default max redemptions, compensation window, reconciliation cadence, invocation id, out-of-bounds envelope, revocation input, required descriptor field, descriptor cap, intent record, outcome record, pre-append step, position, orphan reference, human-attested outcome record, service-attested record, authorization result, disclosure result, revocation result, disclosure history, provenance, validated authorization, admitted authorization, allocating authorization, attested authorization, effective max redemptions, effective ttl, unparsed scope, unattested token, diverged entry, irreconcilable token, admitted redemption, diverged redemption, consuming redemption, foreclosed disclosure refusal, disclosing redemption, sealed redemption, validated revocation, admitted revocation, revoking revocation, landed revocation, revocation reading, reconciliation, recovery intent, intent reference, recovery flag, consumed count, remainder, pairing window, candidate reading, partial, overdue partial, aged event, substrate partial, settled capability, sharing record, revocation triage, composition reading, authority's own records, authorization intent, authorization event, disclosure intent, disclosure event, refusal event, unfulfilled event, revocation intent, revocation event, abandonment event, compensating event, redeemer identity, conformance fault, allocation, revocation, consumed use.
 
 Term cited: Execution Contract Conformance 8 — the recursive inheritance of a constituent's guarantees. The section titled Substrate composition invocation in `execution-contract.md` — the substrate relation and its instance topology. The section titled Composition state in `execution-contract.md` — the derived-index, truth-bearing and extraction-pending classifications. record_action, verify_record, proceed as landed, compliance alert, payload cap, recording instant, event id, action reference: Audit Trail. capability token, allocator reference, scope, max redemptions, remaining redemptions, ttl, default capability ttl, expiry instant, status, revoked by reference, revocation reason, redemption failure, filter: Capability. disclosure record, disclosure id, subject reference, recipient, authority, authority type, authority types, authority reference, disclosure instant: Selective Disclosure.
 

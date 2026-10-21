@@ -65,7 +65,7 @@ Term under guard: an identity in the recorded set whose elapsed term is less tha
 
 ```
 Capability requirement 1: The deployment MUST supply now at the seam.
-Capability requirement 2: The deployment MUST supply the store PER Execution Contract Store 1 through 4.
+Capability requirement 2: The deployment MUST supply the database PER Execution Contract Database 1 through 4.
 ```
 
 ### Operations
@@ -102,7 +102,7 @@ The case space, and the rule that owns each case:
 | [Check] | yes | [Seen] | none — the call reads (Operation 6, Invariant 3.1) |
 | [Check] | no | [Not Seen] | none — the call reads (Operation 7, Invariant 3.1) |
 
-A failed store write sits outside the table: [Record] still answers ok, and the guard is missed rather than refused (Record failure 1 through 3).
+A failed database write sits outside the table: [Record] still answers ok, and the guard is missed rather than refused (Record failure 1 through 3).
 
 Term now: the wall-time reading the host takes at the seam and hands to the transition, as the section titled Logic Confinement Principle in `execution-contract.md` declares it; never read inside the transition, never supplied by the business caller.
 
@@ -183,8 +183,8 @@ NOTE: EVERY check names the rule the check tests.
 ```
 External check 1: An auditor needing the window duration confirmed MUST read the containing pattern's own declaration (Operation 11).
 External check 2: An auditor needing the matching rule confirmed MUST read the containing pattern's own declaration (Identity 5).
-External check 3: An auditor needing a guard miss confirmed MUST read the deployment's own store (Record failure 2).
-Deleted: External check 4. Execution Contract Store 3 owns it.
+External check 3: An auditor needing a guard miss confirmed MUST read the deployment's own database (Record failure 2).
+Deleted: External check 4. Execution Contract Database 3 owns it.
 External check 5: An auditor needing the unavailability policy confirmed MUST read the deployment's own declaration (Check unavailability 1).
 External check 6: An auditor needing the clock's honesty confirmed MUST read the deployment's own clock discipline (Non-goal 12).
 ```
@@ -193,8 +193,8 @@ External check 6: An auditor needing the clock's honesty confirmed MUST read the
 
 ```
 Non-goal 1: The atom MUST NOT decide the containing pattern's response to an answer.
-Deleted: Non-goal 2. Execution Contract Store 3 owns it.
-Deleted: Non-goal 3. Execution Contract Store 3 owns it.
+Deleted: Non-goal 2. Execution Contract Database 3 owns it.
+Deleted: Non-goal 3. Execution Contract Database 3 owns it.
 Non-goal 4: The atom MUST NOT reconcile two recorded sets.
 Non-goal 5: A pattern needing one guard across every node MUST compose a coordination pattern.
 Non-goal 6: The atom MUST NOT retain an identity that is not under guard.
@@ -221,7 +221,7 @@ Deleted: Clock semantics 2. Non-goal 12 owns it.
 Deleted: Clock semantics 3. Non-goal 13 owns it.
 ```
 
-### Check store unavailability
+### Check database unavailability
 
 ```
 Check unavailability 1: The deployment MUST declare EXACTLY ONE OF fail-open, fail-closed.
@@ -247,7 +247,7 @@ The atom claims behaviour and not storage, which is why the two host modes are i
 Record failure 1: [Record] MUST NOT refuse on a failed write.
 Record failure 2: The atom MUST treat a failed write as a guard miss.
 Record failure 3: The atom MUST NOT treat a failed write as a safety violation.
-Deleted: Record failure 4. Execution Contract Store 3 owns it.
+Deleted: Record failure 4. Execution Contract Database 3 owns it.
 ```
 
 ## Composition notes
@@ -266,7 +266,7 @@ Term records: recorded set — the identities under guard, one recording instant
 
 Term record verbs: identify, treat, interpret, normalize, supply, hold, derive, stamp, place, answer, refuse, read, own, stand, extend, preserve, open, drop, alter, decide, survive, reconcile, compose, retain, proceed, mandate, declare, anchor, correct, find.
 
-Term value sets: store policy = fail-open | fail-closed.
+Term value sets: database policy = fail-open | fail-closed.
 
 Term bounds: window duration (the length a containing pattern chooses for a guard; window is the lowering token the [Window Duration] term entry carries).
 

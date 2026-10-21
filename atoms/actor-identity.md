@@ -51,7 +51,7 @@ Term actor reference: the opaque reference naming who attested — an [Actor Ref
 
 Term seam: the atom's I/O boundary as the section titled Logic Confinement Principle in `execution-contract.md` declares it; the host injects the clock reading, the attestation id, the cryptographic material and the registry answer here.
 
-Term transition: the atom's evaluation of one call against the attestation store, as the section titled Logic Confinement Principle in `execution-contract.md` declares it.
+Term transition: the atom's evaluation of one call against the attestation records, as the section titled Logic Confinement Principle in `execution-contract.md` declares it.
 
 Term business caller: the party whose action the call carries, as the section titled Logic Confinement Principle in `execution-contract.md` declares it; never the source of an injected value.
 
@@ -87,7 +87,7 @@ Term attestation field: attestation id | action reference | actor reference | pr
 
 ```
 Capability requirement 1: The deployment MUST supply now at the seam.
-Capability requirement 2: The deployment MUST supply the attestation store PER Execution Contract Store 1, Execution Contract Store 3 and Execution Contract Store 4.
+Capability requirement 2: The deployment MUST supply the attestation records PER Execution Contract Database 1, Execution Contract Database 3 and Execution Contract Database 4.
 Capability requirement 3: The deployment MUST supply the registry answer at the seam.
 ```
 
@@ -119,12 +119,12 @@ Operation 6: IF action reference EQUALS blank THEN [Attest] MUST answer invalid-
 Operation 7: IF actor reference EQUALS blank THEN [Attest] MUST answer invalid-request.
 Operation 8: IF the credential EQUALS blank THEN [Attest] MUST answer invalid-request.
 Operation 9: IF registry answer EQUALS material AND the credential fails against the actor's current material THEN [Attest] MUST answer invalid-credential.
-Operation 10: IF the attestation store refuses the write THEN [Attest] MUST answer storage-failure.
-Deleted: Operation 11. Execution Contract Store 1 owns it.
+Operation 10: IF the database refuses the write THEN [Attest] MUST answer storage-failure.
+Deleted: Operation 11. Execution Contract Database 1 owns it.
 Deleted: Operation 12. Invariant 1.1 owns it.
 Operation 13: [Attest] MUST NOT read the action's content.
 Operation 14: [Verify] MUST answer EXACTLY ONE OF verified, failed-verification, not-known, state-unavailable.
-Operation 15: IF store read EQUALS answered AND no attestation EXISTS for the attestation id THEN [Verify] MUST answer not-known.
+Operation 15: IF database read EQUALS answered AND no attestation EXISTS for the attestation id THEN [Verify] MUST answer not-known.
 Operation 16: IF an attestation EXISTS for the attestation id AND registry answer EQUALS unknown-actor THEN [Verify] MUST answer actor-unknown-in-registry.
 Operation 17: IF an attestation EXISTS for the attestation id AND registry answer EQUALS unreachable THEN [Verify] MUST answer registry-unavailable.
 Operation 18: IF registry answer EQUALS material AND proof check EQUALS failed THEN [Verify] MUST answer proof-invalid.
@@ -136,14 +136,14 @@ Operation 23: The host MUST supply the cryptographic material at the atom's seam
 Deleted: Operation 24. Execution Contract Logic confinement 3 owns it.
 Deleted: Operation 25. Execution Contract Logic confinement 3 owns it.
 Operation 26: The business caller MUST NOT supply attestation instant.
-Operation 27: IF store read EQUALS answered THEN [Read] MUST answer EVERY attestation.
+Operation 27: IF database read EQUALS answered THEN [Read] MUST answer EVERY attestation.
 Operation 28: [Read] MUST answer an attestation's attestation id, action reference, actor reference, proof AND attestation instant.
 Operation 29: [Read] MUST NOT write.
-Operation 30: [Read] MUST answer state-unavailable ONLY IF store read EQUALS failed.
+Operation 30: [Read] MUST answer state-unavailable ONLY IF database read EQUALS failed.
 Operation 31: IF registry answer EQUALS unknown-actor THEN [Attest] MUST answer invalid-credential.
 Operation 32: [Verify] MUST answer verified ONLY IF proof check EQUALS held.
 Operation 33: IF registry answer EQUALS unreachable THEN [Attest] MUST answer registry-unavailable.
-Operation 34: IF store read EQUALS failed THEN the atom MUST answer state-unavailable.
+Operation 34: IF database read EQUALS failed THEN the atom MUST answer state-unavailable.
 Operation 35: [Attest] MUST NOT evaluate a rule of the attest refusal order BEFORE EVERY earlier rule of the attest refusal order has answered no refusal.
 ```
 
@@ -151,7 +151,7 @@ Term registry answer: material | unknown-actor | unreachable — what the actor 
 
 Term registry view: the registry answer for an actor reference and the public material the answer carries, taken together; a rotation, an outage or a removal from the registry changes the registry view.
 
-Term store read: answered | failed — the outcome of the read a call makes of the attestation store, failed being the failure the section titled Step 1 failure in `execution-contract.md` names.
+Term database read: answered | failed — the outcome of the read a call makes of the attestation records, failed being the failure the section titled Step 1 failure in `execution-contract.md` names.
 
 Term attest refusal order: Operation 34, Operation 6 through 8, Operation 33, Operation 31, Operation 9 — [Attest]'s refusal rules, earliest first; Operation 10 answers only at the write, which no refused call reaches.
 
@@ -161,23 +161,23 @@ Term verification set: the attestation's own fields together with the registry's
 
 The case space, and the rule that owns each case:
 
-| Call | Case | Answer | Effect on the attestation store |
+| Call | Case | Answer | Effect on the attestation records |
 |---|---|---|---|
-| [Attest] | refs and credential present, registry answers material, credential validates, store accepts | attestation id | one attestation lands in [Attested] (Operation 1, Operation 2) |
-| [Attest] | the attestation store read fails | [State Unavailable] | none (Operation 34) |
+| [Attest] | refs and credential present, registry answers material, credential validates, database accepts | attestation id | one attestation lands in [Attested] (Operation 1, Operation 2) |
+| [Attest] | the database read fails | [State Unavailable] | none (Operation 34) |
 | [Attest] | blank action reference, actor reference or credential | [Invalid Request] | none (Operation 6 through 8) |
 | [Attest] | registry unreachable | [Registry Unavailable] | none (Operation 33) |
 | [Attest] | registry holds no material for the actor | [Invalid Credential] | none (Operation 31) |
 | [Attest] | credential fails against the actor's current material | [Invalid Credential] | none (Operation 9) |
-| [Attest] | store refuses the write | [Storage Failure] | none (Operation 10) |
-| [Verify] | the attestation store read fails | [State Unavailable] | none (Operation 34) |
+| [Attest] | database refuses the write | [Storage Failure] | none (Operation 10) |
+| [Verify] | the database read fails | [State Unavailable] | none (Operation 34) |
 | [Verify] | no attestation under that id | [Not Known] | none — the call reads (Operation 15, Operation 20) |
 | [Verify] | attestation found, registry holds no material for the actor | [Actor Unknown In Registry] | none (Operation 16) |
 | [Verify] | attestation found, registry unreachable | [Registry Unavailable] | none (Operation 17) |
 | [Verify] | material in hand, proof does not hold, or a revocation status the proof carries names the credential revoked | [Proof Invalid] | none (Operation 18) |
 | [Verify] | material in hand, proof holds | [Verified] | none (Operation 19, Operation 32) |
-| [Read] | the attestation store read fails | [State Unavailable] | none (Operation 30, Operation 34) |
-| [Read] | the attestation store read answers | every attestation, with its stored fields | none (Operation 27 through 29) |
+| [Read] | the database read fails | [State Unavailable] | none (Operation 30, Operation 34) |
+| [Read] | the database read answers | every attestation, with its stored fields | none (Operation 27 through 29) |
 
 Where two [Attest] cases hold at once, the earlier rule of the attest refusal order answers (Operation 35).
 
@@ -225,7 +225,7 @@ Where two [Attest] cases hold at once, the earlier rule of the attest refusal or
   ```
   Invariant 9.1: The atom MUST NOT delete an attestation.
   Invariant 9.2: The attestation set MUST NOT shrink.
-  Deleted: Invariant 9.3. Execution Contract Store 1 owns it.
+  Deleted: Invariant 9.3. Execution Contract Database 1 owns it.
   ```
 
 Action binding and actor binding give the *attribution* property — *who authorized this?* answered structurally. Immutability and self-containment give *survivability* — an attestation stays verifiable independent of the system that recorded it. The non-repudiation contract names the bar the atom is built to clear, and its condition.
@@ -260,9 +260,9 @@ The mechanic is identical across all five. What differs: the credential mechanis
 
 **[Verify] → [Failed Verification] ([Proof Invalid]):** An auditor reviewing a batch of wire authorizations calls `verify(attestation_a17)`. The actor's key has been rotated since the [Attestation] was recorded, the registry kept no historical material, and the registry's current public material for `actor_ref: supervisor_s12` no longer matches the stored [Proof]. The atom returns `failed-verification(proof-invalid)`. The auditor notes the failure; the composing audit workflow escalates for manual review. The [Attestation] record is unchanged — Invariant 1 prevents modification; the failure is a verification-time result, not a record defect.
 
-**[Verify] → [Not Known]:** A composing pattern references an [Attestation Id] that was never written (a partial-failure scenario where [Attest] returned [Storage Failure] and the composing pattern cached the id before confirming success). `verify(attestation_a_unknown)` returns not-known — the id is not in the attestation store. This is structurally distinct from [Failed Verification]: the id does not reference any [Attestation]. The composing pattern must treat [Not Known] as a missing record (requiring re-attestation) rather than a verification failure.
+**[Verify] → [Not Known]:** A composing pattern references an [Attestation Id] that was never written (a partial-failure scenario where [Attest] returned [Storage Failure] and the composing pattern cached the id before confirming success). `verify(attestation_a_unknown)` returns not-known — the id is not in the attestation records. This is structurally distinct from [Failed Verification]: the id does not reference any [Attestation]. The composing pattern must treat [Not Known] as a missing record (requiring re-attestation) rather than a verification failure.
 
-**[Attest] → [Invalid Credential]:** A supervisor approves a high-value wire using a [Credential] that was rotated out earlier that day. `attest(wire_w55, supervisor_s12, rotated_credential)` → the [Credential] fails to validate against the registry's current public material for `supervisor_s12`; the atom returns invalid-credential. No [Attestation] is recorded — [Invalid Credential] is a guard rejection that fails before any store write (see Decision points); the composing workflow prompts re-attestation with the current [Credential].
+**[Attest] → [Invalid Credential]:** A supervisor approves a high-value wire using a [Credential] that was rotated out earlier that day. `attest(wire_w55, supervisor_s12, rotated_credential)` → the [Credential] fails to validate against the registry's current public material for `supervisor_s12`; the atom returns invalid-credential. No [Attestation] is recorded — [Invalid Credential] is a guard rejection that fails before any database write (see Decision points); the composing workflow prompts re-attestation with the current [Credential].
 
 ### Regulated adversarial scenarios
 
@@ -270,13 +270,13 @@ Three scenarios the atom must survive in regulated contexts:
 
 - **Regulator audit.** A regulator asks *"who confirmed commitment c41?"* The auditor follows the commitment record to its [Attestation Id], calls [Verify], and reads [Actor Reference] from the verified [Attestation]. The verification is performed against stored fields and registry public material — not against developer testimony, log integrity, or system trust. Invariants 2 and 3 are the structural answer.
 - **Disputed transaction.** An actor claims they did not authorize an action. The investigator retrieves the [Attestation] and calls [Verify]. If [Verified], the [Proof] binds the named actor to the named action at [Attestation Instant] (Invariant 8). The actor cannot plausibly deny it without claiming credential compromise — an out-of-band investigation governed by a separate Compromise Disclosure pattern. If [Failed Verification], the dispute is upheld and the system's record is corrected.
-- **Compromised credential discovered.** A [Credential] is later determined to have been compromised before some date. The atom does *not* retroactively invalidate attestations made with that [Credential] — Invariant 1 forbids modifying recorded attestations, and Invariant 8 is conditional on credential integrity. Reinterpretation of attestations made during the compromise window belongs to a Compromise Disclosure composing pattern, which produces *new* records that reframe the previously-verified attestations as untrustworthy. The atom's attestation store remains immutable; the meaning of its records changes via composition, not via mutation.
+- **Compromised credential discovered.** A [Credential] is later determined to have been compromised before some date. The atom does *not* retroactively invalidate attestations made with that [Credential] — Invariant 1 forbids modifying recorded attestations, and Invariant 8 is conditional on credential integrity. Reinterpretation of attestations made during the compromise window belongs to a Compromise Disclosure composing pattern, which produces *new* records that reframe the previously-verified attestations as untrustworthy. The atom's attestation records remain immutable; the meaning of its records changes via composition, not via mutation.
 
 ---
 
 ## Generation acceptance
 
-This atom's acceptance is what an external auditor can clear from the attestation store and the actor registry's public material, with no recourse to source code, runbooks or developer narration.
+This atom's acceptance is what an external auditor can clear from the attestation records and the actor registry's public material, with no recourse to source code, runbooks or developer narration.
 
 ### Conformance checks
 
@@ -311,8 +311,8 @@ Non-goal 6: A deployment needing permission MUST compose Permissions.
 Non-goal 7: The atom MUST NOT manage a credential.
 Non-goal 8: The atom MUST NOT record two actors on one attestation.
 Non-goal 9: The atom MUST NOT invalidate an attestation under a later compromise.
-Non-goal 10: The atom MUST NOT detect a rewrite of the attestation store.
-Non-goal 11: A deployment needing a tamper-evident store MUST compose Tamper Evidence.
+Non-goal 10: The atom MUST NOT detect a rewrite of the attestation records.
+Non-goal 11: A deployment needing tamper-evident records MUST compose Tamper Evidence.
 Non-goal 12: The atom MUST NOT vouch for the clock.
 Non-goal 13: The atom MUST NOT bind the action's content.
 Non-goal 14: A host whose action content is mutable MUST bind an immutable reference.
@@ -322,19 +322,19 @@ Non-goal 15: The atom MUST NOT carry an actor reference across trust domains.
 WHY:
 Binding a mutable action is the quiet failure: the proof stays valid while the content it was supposed to attest to changes underneath, which is why the host binds a content hash or composes a Content Lock pattern *(forthcoming)* (Non-goal 13, Non-goal 14).
 
-NOTE: witness signatures, m-of-n approvals and dual control compose a Witness pattern *(forthcoming)* (Non-goal 8); a tamper-evident store is what [Tamper Evidence](./tamper-evidence.md) supplies (Non-goal 10, Non-goal 11).
+NOTE: witness signatures, m-of-n approvals and dual control compose a Witness pattern *(forthcoming)* (Non-goal 8); tamper-evident records are what [Tamper Evidence](./tamper-evidence.md) supply (Non-goal 10, Non-goal 11).
 
 Where the atom breaks down: when authorization cannot be reduced to one actor — truly anonymous attestation in a regulated context is a contradiction; when the credential mechanism cannot produce a verifiable proof — a shared secret anyone holding it could forge with; when the deployment has no actor registry a verifier can consult.
 
 ## Edge cases
 
-### Attestation store durability
+### Attestation record durability
 
 ```
 Deleted: Attestation durability 1. Operation 2 owns it.
-Deleted: Attestation durability 2. Execution Contract Store 3 owns it.
-Deleted: Attestation durability 3. Execution Contract Store 3 owns it.
-Deleted: Attestation durability 4. Execution Contract Store 3 owns it.
+Deleted: Attestation durability 2. Execution Contract Database 3 owns it.
+Deleted: Attestation durability 3. Execution Contract Database 3 owns it.
+Deleted: Attestation durability 4. Execution Contract Database 3 owns it.
 ```
 
 ### Revocation status at verify time
@@ -379,13 +379,13 @@ Each `[Term]` marker above links to its term entry here; a term entry states wha
 
 ### Vocabulary
 
-Term actors: the atom; the host; the transition; the implementation; the deployment; a composing pattern (also: a pattern, a writer); a business caller; a verifier; an auditor; an actor; the actor registry; the attestation store; a credential mechanism (also: a mechanism); an attestation; a rotation; a proof.
+Term actors: the atom; the host; the transition; the implementation; the deployment; a composing pattern (also: a pattern, a writer); a business caller; a verifier; an auditor; an actor; the actor registry; the attestation records; a credential mechanism (also: a mechanism); an attestation; a rotation; a proof.
 
 Term records: attestation — one binding, carrying attestation id, action reference, actor reference, proof and attestation instant.
 
 Term record verbs: identify, allocate, supply, reuse, carry, stand, offer, store, hold, compute, record, stamp, answer, consume, alter, read, mint, write, verify, consult, set, change, share, bind, reinterpret, delete, shrink, register, retire, compose, authenticate, decide, manage, invalidate, detect, vouch, turn, own, retain, keep, rest, cache, reconstruct, need, confirm, declare, trust, renumber, add, fail, refuse, evaluate.
 
-Term value sets: registry answer = material | unknown-actor | unreachable. proof check = held | failed. store read = answered | failed. attestation field = attestation id | action reference | actor reference | proof | attestation instant.
+Term value sets: registry answer = material | unknown-actor | unreachable. proof check = held | failed. database read = answered | failed. attestation field = attestation id | action reference | actor reference | proof | attestation instant.
 
 Term bounds: empty.
 
@@ -393,7 +393,7 @@ Term cadences: empty.
 
 Term qualifiers: migrated — rewritten in GRACE lang v0.35 (2026-09-12); uncompromised — a credential no disclosure names as compromised at or before the instant in question.
 
-Term terms: now, verification set, attestation, attestation id, action reference, actor reference, seam, transition, business caller, attested, proof, attestation instant, credential, public material, current material, attestation field, registry answer, registry view, store read, attest refusal order, proof check, verification failure.
+Term terms: now, verification set, attestation, attestation id, action reference, actor reference, seam, transition, business caller, attested, proof, attestation instant, credential, public material, current material, attestation field, registry answer, registry view, database read, attest refusal order, proof check, verification failure.
 
 #### Attestation
 
@@ -409,13 +409,13 @@ Kind: Operation
 
 #### Verify
 
-The read-only behavior an auditor or composing pattern invokes to confirm a recorded [Attestation], by id. It re-checks the stored [Proof] against the recorded [Action Reference] and [Actor Reference] using the actor registry's public material, and returns [Verified], [Failed Verification], or [Not Known], or refuses with [State Unavailable] when the attestation store cannot be read. It changes nothing.
+The read-only behavior an auditor or composing pattern invokes to confirm a recorded [Attestation], by id. It re-checks the stored [Proof] against the recorded [Action Reference] and [Actor Reference] using the actor registry's public material, and returns [Verified], [Failed Verification], or [Not Known], or refuses with [State Unavailable] when the attestation records cannot be read. It changes nothing.
 
 Kind: Operation
 
 #### Read
 
-The read-only query answering every attestation the store holds, each with its stored fields. It keys nothing by action reference: a composing pattern that wants its own attestations enumerates this read and filters in its own code. It changes nothing, and refuses only with [State Unavailable], when the attestation store cannot be read.
+The read-only query answering every attestation the database holds, each with its stored fields. It keys nothing by action reference: a composing pattern that wants its own attestations enumerates this read and filters in its own code. It changes nothing, and refuses only with [State Unavailable], when the attestation records cannot be read.
 
 Kind: Operation
 
@@ -531,7 +531,7 @@ Projection: registry-unavailable
 
 #### Invalid Request
 
-The refusal [Attest] returns when [Action Reference], [Actor Reference], or [Credential] is null or empty. A guard rejection that fails before any store write; no [Attestation] is recorded.
+The refusal [Attest] returns when [Action Reference], [Actor Reference], or [Credential] is null or empty. A guard rejection that fails before any database write; no [Attestation] is recorded.
 
 Kind:       Member
 Member of:  the Attest rejection
@@ -540,7 +540,7 @@ Projection: invalid-request
 
 #### Invalid Credential
 
-The refusal [Attest] returns when the supplied [Credential] does not validate against the actor registry's current material for the [Actor Reference], or when the registry holds no public material for the [Actor Reference]. A guard rejection that fails before any store write; no [Attestation] is recorded.
+The refusal [Attest] returns when the supplied [Credential] does not validate against the actor registry's current material for the [Actor Reference], or when the registry holds no public material for the [Actor Reference]. A guard rejection that fails before any database write; no [Attestation] is recorded.
 
 Kind:       Member
 Member of:  the Attest rejection
@@ -549,7 +549,7 @@ Projection: invalid-credential
 
 #### Storage Failure
 
-The refusal [Attest] returns when the store write fails after the [Credential] validates; the caller re-attests with the current [Credential].
+The refusal [Attest] returns when the database write fails after the [Credential] validates; the caller re-attests with the current [Credential].
 
 Kind:       Member
 Member of:  the Attest rejection
@@ -558,7 +558,7 @@ Projection: storage-failure
 
 #### State Unavailable
 
-The refusal [Attest], [Verify] or [Read] returns when the read the call makes of the attestation store fails — the Execution Contract's Step 1 failure. Nothing is decided or written, the call may be retried, and the answer says nothing about whether an [Attestation] exists.
+The refusal [Attest], [Verify] or [Read] returns when the read the call makes of the database fails — the Execution Contract's Step 1 failure. Nothing is decided or written, the call may be retried, and the answer says nothing about whether an [Attestation] exists.
 
 Kind:       Member
 Member of:  the Attest, Verify and Read rejections

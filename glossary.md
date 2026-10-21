@@ -40,7 +40,7 @@ a different sense, it must say so locally.
 - **equivalent** — equal under a stated normalization, not necessarily the same id.
 - **matches** — satisfies a stated predicate; the predicate must be named.
 - **unique** — no two distinct entities share the value, across the stated scope
-  (name the scope: per-instance, per-store, system-wide, for-all-time).
+  (name the scope: per-instance, per-database, system-wide, for-all-time).
 
 ## Modality
 

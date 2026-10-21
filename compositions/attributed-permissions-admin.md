@@ -17,9 +17,9 @@ toc: true
 
 ## Summary
 
-Attributed Permissions Admin makes sure every access grant and every revocation comes with verifiable proof of who authorized it. It combines two patterns: one that records access grants and answers *is this allowed?* (Permissions) and one that records a verifiable attestation binding a named actor to an action (Actor Identity). Neither knows about the other — the permission store records grants and not who issued them, and the attestation store records who attested to an action and knows nothing about grants. The composition wires them so that issuing or revoking a grant always does both, in a fixed order, and records the pairing, so there is no way *through the composition* to create a grant without an attestation or revoke one without proof of authorization. That makes the regulator's question — *who granted this access, when, and under what credential?* — answerable from the records alone.
+Attributed Permissions Admin makes sure every access grant and every revocation comes with verifiable proof of who authorized it. It combines two patterns: one that records access grants and answers *is this allowed?* (Permissions) and one that records a verifiable attestation binding a named actor to an action (Actor Identity). Neither knows about the other — Permissions records grants and not who issued them, and Actor Identity records who attested to an action and knows nothing about grants. The composition wires them so that issuing or revoking a grant always does both, in a fixed order, and records the pairing, so there is no way *through the composition* to create a grant without an attestation or revoke one without proof of authorization. That makes the regulator's question — *who granted this access, when, and under what credential?* — answerable from the records alone.
 
-Combining the two produces guarantees neither has alone: no grant lacks attribution, every revocation is attributed, and given any grant you can recover who authorized it and the proof. One honest limit: someone with direct write access to the underlying grant store could still insert an unattributed grant, bypassing the composition entirely; closing that gap requires the separate Tamper Evidence pattern. A second: the composition administers grants and does not decide whether the grantor was *permitted* to issue one.
+Combining the two produces guarantees neither has alone: no grant lacks attribution, every revocation is attributed, and given any grant you can recover who authorized it and the proof. One honest limit: someone with direct write access to the underlying grant records could still insert an unattributed grant, bypassing the composition entirely; closing that gap requires the separate Tamper Evidence pattern. A second: the composition administers grants and does not decide whether the grantor was *permitted* to issue one.
 
 The composition also carries the action an administrative surface actually needs and a grant-keyed one cannot give it. Permissions answers *denied* only when **no** active grant matches a subject and a scope, and several active grants on one pair are lawful — two administrators may independently authorize the same access. Revoking one of them leaves the permission held. [Revoke Permission] is therefore pair-scoped: it revokes every active grant on the pair, each under its own attestation, and the caller's terminal signal is the evaluation query answering denied rather than a count of records removed.
 
@@ -29,11 +29,11 @@ The most common uses are administrative access-control panels in SOX (Sarbanes-O
 
 ## Intent
 
-Permissions alone records *that* a grant exists. Actor Identity alone records *that* an actor attested to an action. Neither tells the auditor *who issued this specific grant*, and neither prevents an unattested grant from being inserted into the permission store directly — by a database administrator, a misconfigured automation, or an attacker with write access to the grant table. The audit question the regulator actually asks — *who authorized this access, and can you prove they did?* — has no structural answer at the bare-atom layer.
+Permissions alone records *that* a grant exists. Actor Identity alone records *that* an actor attested to an action. Neither tells the auditor *who issued this specific grant*, and neither prevents an unattested grant from being inserted into the permission records directly — by a database administrator, a misconfigured automation, or an attacker with write access to the grant table. The audit question the regulator actually asks — *who authorized this access, and can you prove they did?* — has no structural answer at the bare-atom layer.
 
 This composition addresses that gap. Every [Issue Grant] call walks two atoms in a fixed order: Actor Identity records the grantor's attestation over a proposal naming the subject, the scope and the intent to grant, and then Permissions records the grant. The two records are paired in the composition's own state — the grant's handle bound to the attestation's — and the pairing is recoverable from either side. Revocations follow the same shape: the revoker attests, Permissions revokes, the pairing is recorded against the grant.
 
-The pattern matters because regulated systems consistently fail this audit question when the atoms are wired by hand at the calling layer. A developer who calls the grant surface without also calling the attest surface produces an unattributed grant — silent at the schema level, fatal at audit time. The composition makes the omission impossible through its exposed surface: there is no path through it that records a grant without attesting, or records a revocation without attesting. The bare atoms are unchanged; the composition is the wiring that turns *two separate records you can forget to coordinate* into *one administered action you cannot bypass through this surface*. An adversary with direct write access to the Permissions store can still insert unattributed grants, which is the exact tamper surface the breach-forensics scenario exposes and the Tamper Evidence composing pattern addresses.
+The pattern matters because regulated systems consistently fail this audit question when the atoms are wired by hand at the calling layer. A developer who calls the grant surface without also calling the attest surface produces an unattributed grant — silent at the schema level, fatal at audit time. The composition makes the omission impossible through its exposed surface: there is no path through it that records a grant without attesting, or records a revocation without attesting. The bare atoms are unchanged; the composition is the wiring that turns *two separate records you can forget to coordinate* into *one administered action you cannot bypass through this surface*. An adversary with direct write access to the Permissions records can still insert unattributed grants, which is the exact tamper surface the breach-forensics scenario exposes and the Tamper Evidence composing pattern addresses.
 
 There is a second gap, and it took two review rounds to name. The write surface is keyed by a grant's handle; the evaluation surface is keyed by the subject-and-scope pair; and nothing reconciled them. An administrator who meant *this actor should not have this permission* had no action to call, and an administrative surface that offered one grant's revocation as though it removed the permission misreported access. The repair is not to forbid several grants on one pair — that multiplicity is lawful and often intentional, and attributing exactly that case is why this composition exists — but to give the pair-scoped operation its own action.
 
@@ -43,7 +43,7 @@ This is not a Role-Based Access Control layer, not a delegation system, and not 
 
 ## Composes
 
-- **[Permissions](../atoms/permissions.md)** — the grant store and the evaluation surface.
+- **[Permissions](../atoms/permissions.md)** — the grant records and the evaluation surface.
 - **[Actor Identity](../atoms/actor-identity.md)** — the attestation surface the administration is attributed through.
 
 ```
@@ -52,7 +52,7 @@ Composes 2: EXACTLY ONE Actor Identity instance MUST serve the composition.
 Composes 3: The composition MUST NOT change a constituent's spec.
 Composes 4: The composition MUST inherit a constituent's invariants PER Execution Contract Conformance 8.
 Composes 5: The composition MUST reach a constituent through the constituent's declared surface.
-Composes 6: The composition MUST NOT read a constituent's store beside the constituent's declared read.
+Composes 6: The composition MUST NOT read a constituent's records beside the constituent's declared read.
 Composes 7: The composition MUST wrap Permissions' grant.
 Composes 8: The composition MUST wrap Permissions' revoke.
 Composes 9: The composition MUST pass Permissions' evaluation through unchanged.
@@ -77,7 +77,7 @@ Term composition: this pattern's wiring of [Permissions](../atoms/permissions.md
 
 Term constituents: [Permissions](../atoms/permissions.md), [Actor Identity](../atoms/actor-identity.md).
 
-Term administered grant: a grant this composition's own surface issued or revoked, as against one a direct store write produced.
+Term administered grant: a grant this composition's own surface issued or revoked, as against one a direct database write produced.
 
 Term administrative act: an issuance, a revocation, OR a pair-scoped revocation — the three state changes this composition exposes.
 
@@ -105,15 +105,15 @@ Composition state 14: The composition MUST NOT change an attribution entry.
 Composition state 15: The composition MUST NOT drop an attribution entry.
 Composition state 16: The composition MUST NOT change an orphan log entry.
 Composition state 17: The composition MUST NOT drop an orphan log entry.
-Composition state 18: The composition MUST NOT derive an attribution entry from a constituent store.
+Composition state 18: The composition MUST NOT derive an attribution entry from a constituent's records.
 Composition state 19: An orphan log entry MUST carry the attestation, the proposal, the request instant AND the underlying reason.
-Deleted: Composition state 20. Execution Contract Store 1 owns it.
-Deleted: Composition state 21. Execution Contract Store 1 owns it.
-Deleted: Composition state 22. Execution Contract Store 1 owns it: an administrative act's attestations, constituent writes and pairing entries commit together, and the composition names no unpaired grant for a stamp to join to an orphan log entry.
+Deleted: Composition state 20. Execution Contract Database 1 owns it.
+Deleted: Composition state 21. Execution Contract Database 1 owns it.
+Deleted: Composition state 22. Execution Contract Database 1 owns it: an administrative act's attestations, constituent writes and pairing entries commit together, and the composition names no unpaired grant for a stamp to join to an orphan log entry.
 Composition state 23: The composition MUST NOT read the orphan log as the orphan detection surface.
 Composition state 24: An auditor MUST detect an orphan against the constituents AND the attribution maps.
 Composition state 25: The composition MUST write an attribution entry ONLY AFTER the entry's constituent write.
-Composition state 26: An attribution entry MUST stand for the grant's lifetime in the Permissions store.
+Composition state 26: An attribution entry MUST stand for the grant's lifetime in the Permissions records.
 Composition state 27: A retention purge MUST cover a grant AND the grant's attestations AND the grant's attribution entries as one unit.
 Composition state 28: A retention purge MUST cover an orphan attestation under the orphan attestation's own retention.
 Composition state 29: The composition MUST NOT purge a record.
@@ -151,25 +151,25 @@ Capability requirement 12: The revocation proposal format MUST stand fixed.
 Capability requirement 13: The revocation proposal format MUST carry the namespace prefix.
 Capability requirement 14: A deployment MUST NOT set the revocation proposal format.
 Capability requirement 15: A deployment MUST serialize a proposal canonically.
-Deleted: Capability requirement 16. Execution Contract Store 1 owns it.
-Deleted: Capability requirement 17. Execution Contract Store 1 owns it.
-Deleted: Capability requirement 18. Execution Contract Store 1 owns it.
-Deleted: Capability requirement 19. Execution Contract Store 1 owns it.
+Deleted: Capability requirement 16. Execution Contract Database 1 owns it.
+Deleted: Capability requirement 17. Execution Contract Database 1 owns it.
+Deleted: Capability requirement 18. Execution Contract Database 1 owns it.
+Deleted: Capability requirement 19. Execution Contract Database 1 owns it.
 Capability requirement 20: The deployment MUST declare the clock offset allowance.
-Deleted: Capability requirement 21. Execution Contract Store 1 owns it.
-Deleted: Capability requirement 22. Execution Contract Store 1 owns it.
-Deleted: Capability requirement 23. Execution Contract Store 1 owns it.
-Deleted: Capability requirement 24. Execution Contract Store 1 owns it.
-Deleted: Capability requirement 25. Execution Contract Store 1 owns it: an administrative act's attestations, constituent writes and pairing entries commit together, and the composition names no pairing write atomicity for an instance to lack.
-Deleted: Capability requirement 26. Execution Contract Store 3 owns it.
+Deleted: Capability requirement 21. Execution Contract Database 1 owns it.
+Deleted: Capability requirement 22. Execution Contract Database 1 owns it.
+Deleted: Capability requirement 23. Execution Contract Database 1 owns it.
+Deleted: Capability requirement 24. Execution Contract Database 1 owns it.
+Deleted: Capability requirement 25. Execution Contract Database 1 owns it: an administrative act's attestations, constituent writes and pairing entries commit together, and the composition names no pairing write atomicity for an instance to lack.
+Deleted: Capability requirement 26. Execution Contract Database 3 owns it.
 Capability requirement 27: A deployment MUST declare the retention scope.
 Capability requirement 28: A deployment MUST serve a purge record PER purged attestation.
 Capability requirement 29: The composition's length cap MUST NOT EXCEED the Permissions instance's length cap.
 Capability requirement 30: A deployment MUST check the length caps at an instance's start.
-Deleted: Capability requirement 31. Execution Contract Store 2 owns it: a pair-scoped revocation's enumeration and the revocations it decides are one transaction, and the composition names no race for a critical section keyed by the pair to close.
+Deleted: Capability requirement 31. Execution Contract Database 2 owns it: a pair-scoped revocation's enumeration and the revocations it decides are one transaction, and the composition names no race for a critical section keyed by the pair to close.
 Capability requirement 32: The composition MUST NOT require a critical section keyed by the pair.
 Capability requirement 33: A deployment MUST NOT gate a grantor's authority at this composition.
-Capability requirement 34: The deployment MUST supply the store PER Execution Contract Store 1 through 4.
+Capability requirement 34: The deployment MUST supply the database PER Execution Contract Database 1 through 4.
 ```
 
 Term seam: the composition's I/O boundary as the section titled Logic Confinement Principle in `execution-contract.md` declares it; the host injects one clock reading and one nonce here.
@@ -181,9 +181,9 @@ Term grant proposal format: grant_proposal_format — the deployment's canonical
 
 Term revocation proposal format: the fixed canonical serialization of `{grant_id, requested_at}` behind the namespace prefix, which is what a revocation attestation binds the revoker's proof to.
 
-Term namespace prefix: the deployment's marker on every proposal this composition issues, by which an auditor tells this composition's attestations from a foreign composing system's in a shared Actor Identity store.
+Term namespace prefix: the deployment's marker on every proposal this composition issues, by which an auditor tells this composition's attestations from a foreign composing system's in a shared Actor Identity records.
 
-Term retention scope: the deployment's declaration of what a purge covers — the pair as one unit, or each store on its own.
+Term retention scope: the deployment's declaration of what a purge covers — the pair as one unit, or each record on its own.
 
 Term purge record: the retention layer's own record that a named attestation was lawfully destroyed.
 
@@ -281,12 +281,12 @@ Action wiring 5: IF Actor Identity answers storage-failure THEN [Issue Grant] MU
 Action wiring 6: IF Actor Identity refuses the attest THEN the invocation MUST NOT call Permissions' grant.
 Action wiring 7: An admitted issuance MUST call Permissions' grant with the subject AND the scope.
 Action wiring 8: IF Permissions answers invalid-request THEN [Issue Grant] MUST answer orphan-attestation carrying pre-grant.
-Deleted: Action wiring 9. Execution Contract Store 1 owns it.
+Deleted: Action wiring 9. Execution Contract Database 1 owns it.
 Action wiring 10: IF Permissions answers invalid-request THEN the invocation MUST log the orphan.
-Deleted: Action wiring 11. Execution Contract Store 1 owns it.
-Deleted: Action wiring 12. Execution Contract Store 3 owns it.
-Deleted: Action wiring 13. Execution Contract Store 1 owns it.
-Deleted: Action wiring 14. Execution Contract Store 1 owns it.
+Deleted: Action wiring 11. Execution Contract Database 1 owns it.
+Deleted: Action wiring 12. Execution Contract Database 3 owns it.
+Deleted: Action wiring 13. Execution Contract Database 1 owns it.
+Deleted: Action wiring 14. Execution Contract Database 1 owns it.
 Action wiring 15: An admitted issuance MUST answer the grant's handle AND the attestation.
 Action wiring 16: A revocation MUST assemble the proposal PER the revocation proposal format.
 Action wiring 17: A revocation MUST call Actor Identity's attest with the proposal, the revoker AND the revoker's credential.
@@ -297,18 +297,18 @@ Action wiring 21: IF Actor Identity refuses the attest THEN the invocation MUST 
 Action wiring 22: An admitted revocation MUST call Permissions' revoke with the grant's handle.
 Action wiring 23: IF Permissions answers not-known THEN [Revoke Grant] MUST answer not-known.
 Action wiring 24: IF Permissions answers not-active THEN [Revoke Grant] MUST answer not-active.
-Deleted: Action wiring 25. Execution Contract Store 1 owns it.
+Deleted: Action wiring 25. Execution Contract Database 1 owns it.
 Action wiring 26: IF Permissions answers not-known OR not-active THEN the invocation MUST log the orphan.
 Action wiring 27: A caller MUST read a not-known answer as a caller fault.
 Action wiring 28: A caller MUST read a not-active answer as a caller fault.
 Action wiring 29: A caller MUST read a not-known answer as an orphan the composition logged.
 Action wiring 30: A caller MUST read a not-active answer as an orphan the composition logged.
-Deleted: Action wiring 31. Execution Contract Store 1 owns it.
-Deleted: Action wiring 32. Execution Contract Store 1 owns it.
-Deleted: Action wiring 33. Execution Contract Store 1 owns it.
-Deleted: Action wiring 34. Execution Contract Store 1 owns it.
-Deleted: Action wiring 35. Execution Contract Store 1 owns it.
-Deleted: Action wiring 36. Execution Contract Store 1 owns it.
+Deleted: Action wiring 31. Execution Contract Database 1 owns it.
+Deleted: Action wiring 32. Execution Contract Database 1 owns it.
+Deleted: Action wiring 33. Execution Contract Database 1 owns it.
+Deleted: Action wiring 34. Execution Contract Database 1 owns it.
+Deleted: Action wiring 35. Execution Contract Database 1 owns it.
+Deleted: Action wiring 36. Execution Contract Database 1 owns it.
 Action wiring 37: A caller MAY retry a pre-grant landing.
 Action wiring 38: A retry MUST stand as a fresh administrative act.
 Action wiring 39: A retry MUST carry a fresh attestation.
@@ -319,13 +319,13 @@ Action wiring 43: IF the enumerated set stands empty THEN [Revoke Permission] MU
 Action wiring 44: IF the enumerated set stands empty THEN the invocation MUST NOT call Actor Identity's attest.
 Action wiring 45: The composition MUST NOT answer not-known for an empty enumerated set.
 Action wiring 46: A pair-scoped revocation MUST perform a revocation PER enumerated grant.
-Deleted: Action wiring 47. Execution Contract Store 2 owns it.
+Deleted: Action wiring 47. Execution Contract Database 2 owns it.
 Action wiring 48: IF EVERY enumerated grant reached a committed revocation THEN [Revoke Permission] MUST answer the revoked grants AND the attestations.
-Deleted: Action wiring 49. Execution Contract Store 1 and Execution Contract Store 2 own it.
-Deleted: Action wiring 50. Execution Contract Store 1 and Execution Contract Store 2 own it.
+Deleted: Action wiring 49. Execution Contract Database 1 and Execution Contract Database 2 own it.
+Deleted: Action wiring 50. Execution Contract Database 1 and Execution Contract Database 2 own it.
 Action wiring 51: A caller MUST read the evaluation answering denied as the terminal condition.
 Action wiring 52: A caller MUST NOT read a revoked count as the terminal condition.
-Deleted: Action wiring 53. Execution Contract Store 1 owns it.
+Deleted: Action wiring 53. Execution Contract Database 1 owns it.
 Action wiring 54: A post-enumeration grant MUST stand outside the invocation.
 Action wiring 55: The composition MUST read the grant through Permissions' declared read at [Verify Grant Attribution].
 Action wiring 56: IF no grant EXISTS for the grant id THEN [Verify Grant Attribution] MUST answer not-known.
@@ -358,7 +358,7 @@ Action wiring 82: The composition MUST NOT record an evaluation.
 Action wiring 83: The composition MUST NOT attribute an evaluation.
 Action wiring 84: The composition MUST NOT project an enumerating read of a subject's permissions.
 Action wiring 85: An administrative surface MUST project a permission list from the evaluation PER declared scope.
-Action wiring 86: An administrative surface MUST NOT project a permission list from the grant store.
+Action wiring 86: An administrative surface MUST NOT project a permission list from the grant records.
 ```
 
 Term admitted issuance: an [Issue Grant] call whose boundary predicate passed and whose attestation landed.
@@ -382,7 +382,7 @@ Term forensic finding: an outcome a caller logs and hands to the forensic proces
 ```
 Wiring decision 1: The composition MUST record an administrative act's state change ONLY AFTER the administrative act's landed attestation.
 Wiring decision 2: The composition MUST NOT record a state change BEFORE the administrative act's landed attestation.
-Deleted: Wiring decision 3. Execution Contract Store 1 owns it.
+Deleted: Wiring decision 3. Execution Contract Database 1 owns it.
 Wiring decision 4: The composition MUST NOT delete an orphan attestation.
 Wiring decision 5: The composition MUST read an orphan attestation as evidence of an attempted act.
 Wiring decision 6: The composition MUST expose a pair-scoped revocation.
@@ -391,7 +391,7 @@ Wiring decision 8: The composition MUST NOT forbid a second active grant on one 
 ```
 
 WHY:
-*Principle.* No grant exists in the Permissions store, through this composition's surface, without its attestation in Actor Identity. The attestation is a prerequisite and not a complement.
+*Principle.* No grant exists in the Permissions records, through this composition's surface, without its attestation in Actor Identity. The attestation is a prerequisite and not a complement.
 
 *Likely objection.* Attesting first creates an orphan-attestation risk if the grant write fails.
 
@@ -412,8 +412,8 @@ Housekeeping 7: The failed-grant leg MUST NOT repair an orphan.
 Housekeeping 8: The failed-grant leg MUST NOT complete an orphan's administrative act.
 Housekeeping 9: The failed-grant leg MUST NOT call a constituent's write.
 Housekeeping 10: The failed-grant leg MUST NOT promise a closure window.
-Deleted: Housekeeping 11. Execution Contract Store 1 owns it.
-Deleted: Housekeeping 12. Execution Contract Store 1 owns it.
+Deleted: Housekeeping 11. Execution Contract Database 1 owns it.
+Deleted: Housekeeping 12. Execution Contract Database 1 owns it.
 Housekeeping 13: The failed-grant leg MUST age an attestation by the request instant the attestation's proposal carries.
 Housekeeping 14: The failed-grant leg MUST widen the bound by the clock offset allowance ONLY IF the leg ages an attestation by a constituent's stamp.
 Housekeeping 15: The failed-grant leg MUST NOT report an aged-out attestation as an orphan.
@@ -444,12 +444,12 @@ Term non-conformant purge: an aged-out unpaired attestation carrying no orphan l
 
 ```
 Invariant 1.1: An administered grant MUST carry a grant attribution entry.
-Invariant 1.2: A grant attribution entry MUST name an attestation the Actor Identity store holds.
-Deleted: Invariant 1.3. Execution Contract Store 1 owns it.
-Invariant 1.4: The composition MUST NOT claim Invariant 1.1 over a grant a direct store write produced.
+Invariant 1.2: A grant attribution entry MUST name an attestation the Actor Identity records hold.
+Deleted: Invariant 1.3. Execution Contract Database 1 owns it.
+Invariant 1.4: The composition MUST NOT claim Invariant 1.1 over a grant a direct database write produced.
 Invariant 2.1: An administered revoked grant MUST carry a revocation attribution entry.
-Invariant 2.2: A revocation attribution entry MUST name an attestation the Actor Identity store holds.
-Deleted: Invariant 2.3. Execution Contract Store 1 owns it.
+Invariant 2.2: A revocation attribution entry MUST name an attestation the Actor Identity records hold.
+Deleted: Invariant 2.3. Execution Contract Database 1 owns it.
 Invariant 3.1: The composition MUST answer a grant's record, the grant's issuance attestation AND the issuance verification PER known grant.
 Invariant 3.2: The composition MUST answer a revoked grant's revocation attestation AND revocation verification.
 Invariant 3.3: The composition MUST answer a grant's attribution without a log.
@@ -465,7 +465,7 @@ Invariant 5.4: The composition MUST NOT count a constituent's invariants.
 Invariant 6.1: The composition MUST NOT change a written attribution entry.
 Invariant 6.2: The composition MUST NOT delete a written attribution entry.
 Invariant 6.3: The composition MUST NOT expose a surface that changes an attribution entry.
-Invariant 6.4: The composition MUST NOT claim Invariant 6.1 against a direct store write.
+Invariant 6.4: The composition MUST NOT claim Invariant 6.1 against a direct database write.
 Invariant 7.1: The grant attribution map MUST stand injective.
 Invariant 7.2: The revocation attribution map MUST stand injective.
 Invariant 7.3: The two attribution maps' attestations MUST stand disjoint.
@@ -478,10 +478,10 @@ Invariant 8.3: The composition MUST NOT expose a surface that changes an orphan 
 Invariant 9.1: EVERY grant of an enumerated set a pair-scoped revocation answered ok for MUST stand revoked.
 Invariant 9.2: EVERY grant of an enumerated set a pair-scoped revocation answered ok for MUST carry a revocation attribution entry.
 Invariant 9.3: The composition MUST NOT state Invariant 9.1 over the pair.
-Deleted: Invariant 9.4. Execution Contract Store 1 and Execution Contract Store 2 own it.
+Deleted: Invariant 9.4. Execution Contract Database 1 and Execution Contract Database 2 own it.
 ```
 
-Term known grant: a grant the Permissions store holds.
+Term known grant: a grant the Permissions records hold.
 
 ---
 
@@ -519,7 +519,7 @@ The deployment's Permissions instance was reconfigured to a length cap below the
 
 ### Failure path — a grant written around the composition
 
-A database administrator writes a grant straight into the Permissions store, outside this composition's surface, so no attestation and no grant attribution entry exist for it. [Verify Grant Attribution] on the grant's handle answers attribution-inconsistency, and the caller reads it as a forensic finding — never as a miss, and never as a cue to retry an administrative act against the grant — with the finding standing in the records.
+A database administrator writes a grant straight into the Permissions records, outside this composition's surface, so no attestation and no grant attribution entry exist for it. [Verify Grant Attribution] on the grant's handle answers attribution-inconsistency, and the caller reads it as a forensic finding — never as a miss, and never as a cue to retry an administrative act against the grant — with the finding standing in the records.
 
 ### Failure path — a lawfully purged attestation
 
@@ -531,20 +531,20 @@ A deployment declares a **per-store** retention scope rather than the pair-scope
 
 **Disputed grant — *I never authorized that.*** The named grantor disputes an issuance. The attestation binds that grantor to a proposal naming this subject, this scope and this request instant, and the verification either stands or does not. An [Attribution Storage Failure] is the other shape a constituent fault takes here, and it names the attestation write rather than the caller. A failed-verification under a rotated credential is a credential-history question rather than a forgery finding — the attribution record is stable, and what moves is whether the registry still holds the material that signed it. That is the Compromise Disclosure pattern's and External check 2's.
 
-**Breach forensics — *were any grants inserted without attribution?*** The investigator enumerates the Permissions store and, for each grant, looks for its attribution entry. A grant with none is **a write that bypassed this composition entirely**, the honest limit Intent states and Composes 19 makes a rule; closing that gap needs Tamper Evidence over the emergent state and over the grant store. What the composition *does* give the investigator is the complete orphan population from the other direction: every attestation this composition issued that no entry names.
+**Breach forensics — *were any grants inserted without attribution?*** The investigator enumerates the Permissions records and, for each grant, looks for its attribution entry. A grant with none is **a write that bypassed this composition entirely**, the honest limit Intent states and Composes 19 makes a rule; closing that gap needs Tamper Evidence over the emergent state and over the grant records. What the composition *does* give the investigator is the complete orphan population from the other direction: every attestation this composition issued that no entry names.
 
 ---
 
 ## Generation acceptance
 
-A derived implementation is *acceptable* — in the regulator-acceptance sense — when an external auditor, given the composition's two attribution maps plus the Permissions and Actor Identity stores, clears every check below without recourse to source code, runbooks or developer narration.
+A derived implementation is *acceptable* — in the regulator-acceptance sense — when an external auditor, given the composition's two attribution maps plus the Permissions and Actor Identity records, clears every check below without recourse to source code, runbooks or developer narration.
 
 ### Conformance checks
 
 ```
 Check 1.1: An auditor MUST find a grant attribution entry PER administered grant (Invariant 1.1).
 Check 1.2: An auditor MUST call Actor Identity's verify for the named attestation (Invariant 3.1).
-Deleted: Check 1.3. Execution Contract Store 1 owns it.
+Deleted: Check 1.3. Execution Contract Database 1 owns it.
 Check 1.4: An auditor MUST read an unpaired grant as an attribution inconsistency (Invariant 1.1).
 Check 1.5: An auditor MUST NOT read a purged grant as a population member (Composition state 27).
 Check 2.1: An auditor MUST find a revocation attribution entry PER administered revoked grant (Invariant 2.1).
@@ -559,8 +559,8 @@ Check 4.3: An auditor MUST NOT count a constituent's conformance checks (Invaria
 Check 5.1: An auditor MUST enumerate Actor Identity's declared read (Composes 20).
 Check 5.2: An auditor MUST filter the enumeration by the namespace prefix (Capability requirement 11).
 Check 5.3: An auditor MUST read a filtered attestation no attribution entry names as an orphan (Housekeeping 4).
-Deleted: Check 5.4. Execution Contract Store 1 owns it.
-Deleted: Check 5.5. Execution Contract Store 1 owns it.
+Deleted: Check 5.4. Execution Contract Database 1 owns it.
+Deleted: Check 5.5. Execution Contract Database 1 owns it.
 Check 5.6: An auditor MUST read an aged-out unpaired attestation carrying an orphan log entry as a purge-pending orphan (Housekeeping 16).
 Check 5.7: An auditor MUST read an aged-out unpaired attestation carrying no orphan log entry as a non-conformant purge (Housekeeping 17).
 Check 5.8: An auditor MUST NOT read an aged-out unpaired attestation as benign (Housekeeping 18).
@@ -579,8 +579,8 @@ Check 7.3: An auditor MUST NOT read a post-enumeration grant as the enumeration'
 ```
 External check 1: The deployment MUST establish the grantor's authority to issue the grant (Capability requirement 33).
 External check 2: The deployment MUST establish the grantor's credential integrity since the attestation (Invariant 3.1).
-Deleted: External check 3. Execution Contract Store 1 owns it.
-Deleted: External check 4. Execution Contract Store 3 owns it.
+Deleted: External check 3. Execution Contract Database 1 owns it.
+Deleted: External check 4. Execution Contract Database 3 owns it.
 External check 5: The deployment MUST establish tamper-evidence over the composition's own state (Invariant 6.4).
 External check 6: The deployment MUST establish that a grant's scope stood in the deployment's scope vocabulary (Capability requirement 9).
 External check 7: The deployment MUST establish the retention scope the purge ran under (Capability requirement 27).
@@ -602,7 +602,7 @@ Non-goal 7: The composition MUST NOT bound a grant by time.
 Non-goal 8: The composition MUST NOT revoke a grantor's issued grants on the grantor's deprovisioning.
 Non-goal 9: The composition MUST NOT modify a grant.
 Non-goal 10: The composition MUST NOT deduplicate a concurrent issuance.
-Non-goal 11: The composition MUST NOT own a pairing store as an atom.
+Non-goal 11: The composition MUST NOT own pairing records as an atom.
 Non-goal 12: The composition MUST NOT own an operational journal as an atom.
 Non-goal 13: The composition MUST NOT seal the composition's own state.
 Non-goal 14: The composition MUST NOT set a retention policy.
@@ -622,15 +622,15 @@ NOTE: the owners — the organization (Non-goal 8); a deduplication layer (Non-g
 ```
 Atomic writes 1: An invocation MUST attest ONLY AFTER the boundary predicate.
 Atomic writes 2: An invocation MUST call a constituent's write ONLY AFTER the invocation's landed attestation.
-Deleted: Atomic writes 3. Execution Contract Store 1 owns it.
+Deleted: Atomic writes 3. Execution Contract Database 1 owns it.
 Atomic writes 4: The composition MUST NOT withdraw a landed attestation.
 Atomic writes 5: An invocation MUST NOT retry a constituent write.
 Atomic writes 6: An invocation MUST answer on a constituent's first refusal.
 Atomic writes 7: A retry MUST stand outside the refused invocation.
 Atomic writes 8: The composition MUST log an orphan PER refused administrative act carrying a landed attestation.
-Deleted: Atomic writes 9. Execution Contract Store 1 owns it.
-Deleted: Atomic writes 10. Execution Contract Store 1 owns it.
-Deleted: Atomic writes 11. Execution Contract Store 1 owns it.
+Deleted: Atomic writes 9. Execution Contract Database 1 owns it.
+Deleted: Atomic writes 10. Execution Contract Database 1 owns it.
+Deleted: Atomic writes 11. Execution Contract Database 1 owns it.
 ```
 
 ### Clock dependence
@@ -661,12 +661,12 @@ Clock semantics 11: A check comparing two seams' stamps MUST run under the clock
 Concurrency 1: Two issuances over one pair MUST produce two grants.
 Concurrency 2: Two issuances over one pair MUST produce two attestations.
 Concurrency 3: The composition MUST NOT read a second grant on one pair as a defect.
-Deleted: Concurrency 4. Execution Contract Store 2 owns it.
-Deleted: Concurrency 5. Execution Contract Store 2 owns it.
+Deleted: Concurrency 4. Execution Contract Database 2 owns it.
+Deleted: Concurrency 5. Execution Contract Database 2 owns it.
 Concurrency 6: A pair-scoped revocation MUST NOT serialize over the pair.
 Concurrency 7: A post-enumeration grant MUST survive the enumeration's invocation.
 Concurrency 8: A caller MUST call a pair-scoped revocation again ONLY IF the evaluation answers permitted.
-Deleted: Concurrency 9. Execution Contract Store 2 owns it: a pair-scoped revocation's enumeration and the revocations it decides are one transaction, so no issuance commits inside the sweep for a critical section to keep out.
+Deleted: Concurrency 9. Execution Contract Database 2 owns it: a pair-scoped revocation's enumeration and the revocations it decides are one transaction, so no issuance commits inside the sweep for a critical section to keep out.
 ```
 
 ---
@@ -675,9 +675,9 @@ Deleted: Concurrency 9. Execution Contract Store 2 owns it: a pair-scoped revoca
 
 These are adjacent patterns, **not** constituents of Attributed Permissions Admin:
 
-- **Binding Registry** *(forthcoming)* — the write-once key-to-key pairing store the two attribution maps are extraction-pending against (Non-goal 12). The same shape recurs for a principal-to-actor bijection elsewhere in the corpus, which is the recurrence argument for the extraction.
+- **Binding Registry** *(forthcoming)* — the write-once key-to-key pairing records the two attribution maps are extraction-pending against (Non-goal 12). The same shape recurs for a principal-to-actor bijection elsewhere in the corpus, which is the recurrence argument for the extraction.
 - **Event Log** — the home the orphan log is re-house-pending against (Non-goal 13). This composition's cut has no Event Log constituent, so the log is composition-held under Invariant 8 until the re-housing lands.
-- **[Tamper Evidence](../atoms/tamper-evidence.md)** — what elevates the composition's own emergent state from trusted storage to a verifiable claim, and what closes the direct-store-write gap Composes 19 declares open.
+- **[Tamper Evidence](../atoms/tamper-evidence.md)** — what elevates the composition's own emergent state from trusted storage to a verifiable claim, and what closes the direct-database-write gap Composes 19 declares open.
 - **[Retention Window](../atoms/retention-window.md)** — the retention discipline Composition state 27 depends on and Capability requirement 27 makes the deployment declare. A per-store scope is what the query's purge branch exists for; a pair-scoped one is what makes an absent attestation evidence.
 - **Delegation** *(forthcoming)* — the meta-grant layer that answers whether a grantor was permitted to issue a scope (Non-goal 1, External check 1).
 - **Compromise Disclosure** *(forthcoming)* — what reinterprets an attestation whose credential was later compromised (External check 2).
@@ -713,7 +713,7 @@ Term composing patterns: Binding Registry *(forthcoming)*; Delegation *(forthcom
 
 #### Issue Grant
 
-The composition's attributed issuance: assemble a proposal naming the subject, the scope, a fresh nonce and the invocation's request instant; attest it under the grantor's credential; record the grant; and pair the two. The order is the composition's whole point — the grant's handle does not exist when the attestation is written, which is why the pairing is truth no constituent store replays.
+The composition's attributed issuance: assemble a proposal naming the subject, the scope, a fresh nonce and the invocation's request instant; attest it under the grantor's credential; record the grant; and pair the two. The order is the composition's whole point — the grant's handle does not exist when the attestation is written, which is why the pairing is truth no constituent's records replay.
 
 Kind: Operation
 

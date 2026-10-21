@@ -16,7 +16,7 @@
 \* (Capability requirement 23 through 25, Action wiring 3 and 6). A record's disclosure
 \* id is written here as the invocation whose commit wrote it.
 \*
-\* ONE TRANSACTION PER INVOCATION (Execution Contract Store 1, Capability requirement 36;
+\* ONE TRANSACTION PER INVOCATION (Execution Contract Database 1, Capability requirement 36;
 \* re-derived 2026-10-21). The intent, the accounting record and the outcome are store
 \* writes of one composition action, so an invocation is one step here, and a reader sees
 \* all of its writes or none. What the step commits is what the page answers:
@@ -32,7 +32,7 @@
 \*                answers a code it does not declare (Action wiring 51, 52).
 \* A step that commits nothing (a refused open, a storage failure, a crash) changes
 \* nothing and is not a step. With StoreOneTxn = FALSE an invocation may also end with
-\* its accounting write in flight, applying at any later step: the split Store 1 forbids,
+\* its accounting write in flight, applying at any later step: the split Database 1 forbids,
 \* and the model of 2026-10-19 (-buggy-split).
 \*
 \* THE CONSTITUENTS, as contracts. Nothing of their protocols is re-modelled.
@@ -70,7 +70,7 @@
 \*                   Invariant 5), read off the stores at the disclosure.
 \*   Inv_NoFalseClosing  no invocation stands closed by an abandonment over a record the
 \*                   store carries: an operator abandons only where the probe shows no
-\*                   record (Term settling closing), and under Store 1 no record lands
+\*                   record (Term settling closing), and under Database 1 no record lands
 \*                   after its invocation's step. The case of open line 2026-10-19-e, a
 \*                   write still in flight applying after the abandonment, is the
 \*                   -buggy-split twin, rejected.
@@ -86,7 +86,7 @@
 \* accounting store never losing a record (Retention asymmetry 1, Selective Disclosure
 \* Invariant 6.1). Inv4_1 rests on Action wiring 20 answering a landed disclosure, and
 \* CR34 on the caller who holds recording-failure carrying outcome waiting for the outcome
-\* by invocation id. Inv_NoFalseClosing rests on Store 1 (-buggy-split).
+\* by invocation id. Inv_NoFalseClosing rests on Database 1 (-buggy-split).
 \*
 \* THE PROBE'S FOUR ANSWERS  committed and not-committed are each reached here
 \* (Probe_NeverRecovered and Probe_NeverSettled are rejected; an operator settles an
@@ -140,7 +140,7 @@ EXTENDS Naturals, FiniteSets
 \*                    only once an outcome event carrying the disclosure id has landed
 \*                    (Capability requirement 34). FALSE: on the code.
 \* StoreOneTxn        TRUE: an invocation's writes commit in its one step (Execution
-\*                    Contract Store 1). FALSE: its accounting write may also be in flight
+\*                    Contract Database 1). FALSE: its accounting write may also be in flight
 \*                    at the step and apply at any later one.
 \* N                  invocations. MaxResolves: operator resolutions in all.
 CONSTANTS EqualNowBarred, ProbeKeyFields, ProbeOneInstant, StoreNeverRemoves,
@@ -458,7 +458,7 @@ CR34 ==
     \A i \in Inv : sentSt[i] # "bad"
 
 \* No invocation stands closed by an abandonment over a record the store carries (the
-\* false closing of open line 2026-10-19-e, dissolved by Store 1).
+\* false closing of open line 2026-10-19-e, dissolved by Database 1).
 Inv_NoFalseClosing ==
     ~(\E i \in Inv : cl[i] = "aband" /\ InStore(i))
 

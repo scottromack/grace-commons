@@ -52,8 +52,8 @@ Identity 9: The atom MUST NOT identify a pool by a pool's name.
 Identity 10: The atom MUST match a pool id exactly.
 Identity 11: The atom MUST NOT normalize a pool id.
 Identity 12: The atom MUST NOT order a pool id.
-Identity 13: [Declare Pool] MUST NOT write over a pool the store already holds.
-Identity 14: IF a colliding write EXISTS THEN the store MUST refuse the colliding write.
+Identity 13: [Declare Pool] MUST NOT write over a pool the database already holds.
+Identity 14: IF a colliding write EXISTS THEN the database MUST refuse the colliding write.
 Identity 15: The deployment MUST draw a pool id unique across the system's life.
 Identity 16: The deployment MUST draw an event id unique across the system's life.
 Identity 17: The deployment MUST NOT reuse an event id across the event classes.
@@ -72,7 +72,7 @@ Term event class: allocation | release | adjustment | state change — the four 
 
 Term seam: the atom's I/O boundary as the section titled Logic Confinement Principle in `execution-contract.md` declares it; the host injects the clock reading, the pool id and the event ids here.
 
-Term transition: the atom's evaluation of one call against the pool store, as the section titled Logic Confinement Principle in `execution-contract.md` declares it.
+Term transition: the atom's evaluation of one call against the pool records, as the section titled Logic Confinement Principle in `execution-contract.md` declares it.
 
 ### State
 
@@ -83,7 +83,7 @@ State 3: EVERY pool MUST carry an audit log.
 State 4: A pool MUST NOT carry available.
 State 5: The atom MUST NOT offer a transition out of closed.
 State 6: The atom MUST NOT offer a drained state.
-State 7: The atom MUST NOT remove a pool from the store.
+State 7: The atom MUST NOT remove a pool from the database.
 State 8: The atom MUST NOT remove an audit event from a pool's audit log.
 State 9: The atom MUST NOT re-order a pool's audit log.
 State 10: The atom MUST NOT insert an audit event BEFORE a prior audit event.
@@ -118,7 +118,7 @@ Term attribution surface: an audit event's actor reference ([Allocating Actor Re
 
 ```
 Capability requirement 1: The deployment MUST supply now at the seam.
-Capability requirement 5: The deployment MUST supply the pool store PER Execution Contract Store 1 through 4.
+Capability requirement 5: The deployment MUST supply the pool records PER Execution Contract Database 1 through 4.
 Deleted: Capability requirement 2. Execution Contract Logic confinement 7 owns it.
 Deleted: Capability requirement 3. Execution Contract Logic confinement 7 owns it.
 Deleted: Capability requirement 4. Execution Contract Logic confinement 7 owns it.
@@ -222,8 +222,8 @@ Operation 52: [Query] MUST NOT write.
 Operation 53: [Query] MUST NOT append an audit event.
 Operation 54: [Query] MUST admit a call in EVERY pool state.
 Operation 55: [Query] MUST NOT answer storage-failure.
-Operation 56: IF the store refuses a read THEN [Query] MUST NOT answer a stale pool snapshot.
-Operation 57: IF the store refuses a write THEN a writing action MUST answer storage-failure.
+Operation 56: IF the database refuses a read THEN [Query] MUST NOT answer a stale pool snapshot.
+Operation 57: IF the database refuses a write THEN a writing action MUST answer storage-failure.
 Operation 58: A refused action MUST leave the pool as the call found the pool.
 Operation 59: A refused action MUST NOT append an audit event.
 Operation 60: An action MUST answer storage-failure ONLY IF EVERY precondition passes.
@@ -271,7 +271,7 @@ The case space, and the rule that owns each case:
 
 | Call | Case | Answer | Effect on the pool |
 |---|---|---|---|
-| [Declare Pool] | capacity a whole count, fields valid, store accepts | the new pool id | pool lands in [Open], allocated zero (Operation 1 through 5) |
+| [Declare Pool] | capacity a whole count, fields valid, database accepts | the new pool id | pool lands in [Open], allocated zero (Operation 1 through 5) |
 | [Allocate] | [Open], count positive, requested total within capacity | the allocation event id | allocated rises, one event appended (Operation 15 through 17) |
 | [Allocate] | [Open], requested total past capacity | [Over Capacity] | none (Operation 13) |
 | [Allocate] | [Suspended] | [Suspended] | none (Operation 10) |
@@ -287,7 +287,7 @@ The case space, and the rule that owns each case:
 | [Close Pool] | [Open] or [Suspended] | the state change id | → [Closed] (Operation 46) |
 | any state change | already in the target state, or [Closed] | [Not Open], [Not Suspended], [Already Closed] | none (Operation 39 through 45) |
 | any addressed action | id names nothing | [Not Known] | none (Operation 8) |
-| any writing action | store refuses | [Storage Failure] | none (Operation 57 through 59) |
+| any writing action | database refuses | [Storage Failure] | none (Operation 57 through 59) |
 | [Query] | id names a pool, any state | the pool snapshot | none (Operation 51, Operation 54) |
 
 ### Invariants
@@ -296,7 +296,7 @@ The case space, and the rule that owns each case:
   ```
   Invariant 1.1: The atom MUST NOT offer an action that removes a pool.
   Invariant 1.2: The pool count MUST NOT fall under the atom's actions.
-  Deleted: Invariant 1.3. Execution Contract Store 1 owns it.
+  Deleted: Invariant 1.3. Execution Contract Database 1 owns it.
   ```
 - **Invariant 2 — State membership exclusivity.**
   ```
@@ -370,9 +370,9 @@ The case space, and the rule that owns each case:
   ```
 - **Invariant 14 — Action atomicity.**
   ```
-  Deleted: Invariant 14.1. Execution Contract Store 1 owns it.
-  Deleted: Invariant 14.2. Execution Contract Store 1 owns it.
-  Deleted: Invariant 14.3. Execution Contract Store 1 owns it: an action's writes commit together or not at all, and the atom names no host obligation left for the commit to rest on.
+  Deleted: Invariant 14.1. Execution Contract Database 1 owns it.
+  Deleted: Invariant 14.2. Execution Contract Database 1 owns it.
+  Deleted: Invariant 14.3. Execution Contract Database 1 owns it: an action's writes commit together or not at all, and the atom names no host obligation left for the commit to rest on.
   ```
 
 Invariants 4 and 5 together give the *bounded-arithmetic* property — at every reachable state the running total sits between zero and the bound, under the host obligations Invariant 4.4 names. That is what a composing pattern may treat as a precondition; without it every caller defends the bound at its own call site. Invariant 8 through 11 give the *successful-change-audit* property — every successful change to a pool's capacity, total or state is an attributed event in insertion order whose identifier surface nothing rewrites. *Rejected* calls produce no event here, deliberately (Non-goal 26, Non-goal 27). Invariant 3 gives *terminal closure* — a closed pool cannot be quietly reopened, and post-close unwinding through [Release] is the only mutation that survives it.
@@ -410,7 +410,7 @@ A primary pool of 200 connections, allocated on checkout and released on return.
 ### Regulated adversarial scenarios
 
 - **Regulator audit — was the cabin ever oversold?** The auditor walks the pool's allocation events and checks each one's own snapshot: closing balance equals opening balance plus count, and closing balance does not exceed the capacity in effect at that index. No replay from the beginning is required, because every event carries its own before and after — which is the whole reason the snapshots are on the record (Check 3.1, Check 3.2).
-- **Disputed drawdown — the customer says the line was cut without notice.** Every capacity change is an adjustment event naming prior capacity, new capacity, the acting reference and a stated reason (Invariant 11.2). What the store cannot show is the *rejected* draws the customer attempted, because rejections write nothing here; a deployment under PCI DSS (Payment Card Industry Data Security Standard) Requirement 10.2.4 wires [Event Log](./event-log.md) around the call surface for that (External check 1, Non-goal 26).
+- **Disputed drawdown — the customer says the line was cut without notice.** Every capacity change is an adjustment event naming prior capacity, new capacity, the acting reference and a stated reason (Invariant 11.2). What the database cannot show is the *rejected* draws the customer attempted, because rejections write nothing here; a deployment under PCI DSS (Payment Card Industry Data Security Standard) Requirement 10.2.4 wires [Event Log](./event-log.md) around the call surface for that (External check 1, Non-goal 26).
 - **Breach investigation — which pools were manipulated during the window?** The auditor filters audit events by recording instant inside the window and reads each one's actor reference. Two limits are stated rather than discovered: recording instant is advisory under clock skew and insertion order is authoritative (State 13), and where the deployment has scrubbed the attribution surface under a composed erasure the arithmetic still verifies while the actor no longer resolves (Invariant 8.4, Invariant 8.5).
 
 ---
@@ -497,9 +497,9 @@ Clock dependence 2: A rejection MUST NOT rest on now.
 ### Concurrency
 
 ```
-Deleted: Concurrency 1. Execution Contract Store 2 owns it.
-Deleted: Concurrency 2. Execution Contract Store 1 and Execution Contract Store 2 own it.
-Deleted: Concurrency 3. Execution Contract Store 2 owns it: the arithmetic guard and the write are one transaction, and the atom names no rule left for a compare-and-set to discharge.
+Deleted: Concurrency 1. Execution Contract Database 2 owns it.
+Deleted: Concurrency 2. Execution Contract Database 1 and Execution Contract Database 2 own it.
+Deleted: Concurrency 3. Execution Contract Database 2 owns it: the arithmetic guard and the write are one transaction, and the atom names no rule left for a compare-and-set to discharge.
 Concurrency 4: The atom MUST NOT order two contending calls fairly.
 Concurrency 5: The atom MUST NOT offer a multi-action transaction.
 ```
@@ -542,11 +542,11 @@ Arithmetic 3: IF the requested total EXCEEDS the integer width THEN the deployme
 ### Crash atomicity
 
 ```
-Deleted: Crash atomicity 1. Execution Contract Store 1 owns it.
-Deleted: Crash atomicity 2. Execution Contract Store 1 and Execution Contract Store 3 own it.
-Deleted: Crash atomicity 3. Execution Contract Store 1 and Execution Contract Store 3 own it.
-Deleted: Crash atomicity 5. Execution Contract Store 1 and Execution Contract Store 3 own it.
-Deleted: Crash atomicity 4. Execution Contract Store 3 owns it.
+Deleted: Crash atomicity 1. Execution Contract Database 1 owns it.
+Deleted: Crash atomicity 2. Execution Contract Database 1 and Execution Contract Database 3 own it.
+Deleted: Crash atomicity 3. Execution Contract Database 1 and Execution Contract Database 3 own it.
+Deleted: Crash atomicity 5. Execution Contract Database 1 and Execution Contract Database 3 own it.
+Deleted: Crash atomicity 4. Execution Contract Database 3 owns it.
 ```
 
 ## Composition notes
@@ -558,8 +558,8 @@ Composition note 3: A composing pattern MUST call [Release] when the pattern's o
 Composition note 4: A composing pattern MUST record the event id the atom answered.
 Composition note 5: A composing pattern MUST own the authority to call an action.
 Composition note 6: A composing pattern MUST own the refusal record.
-Composition note 7: A composing pattern MUST own the retention of the pool store.
-Composition note 8: A composing pattern reading the pool store MUST NOT write to the pool store.
+Composition note 7: A composing pattern MUST own the retention of the pool records.
+Composition note 8: A composing pattern reading the pool records MUST NOT write to the pool records.
 ```
 
 ## Terms
@@ -568,7 +568,7 @@ Each `[Term]` marker above links to its term entry here; a term entry states wha
 
 ### Vocabulary
 
-Term actors: the atom; the host; the transition; the deployment; a composing pattern (also: a pattern); a business caller; a caller; a guard; an operator; an auditor; a reader; the store; a pool; a pool state; an audit event; an audit log; a write; an action; a rejection; a string field; the pool count.
+Term actors: the atom; the host; the transition; the deployment; a composing pattern (also: a pattern); a business caller; a caller; a guard; an operator; an auditor; a reader; the database; a pool; a pool state; an audit event; an audit log; a write; an action; a rejection; a string field; the pool count.
 
 Term records: pool — one bounded resource, carrying pool id, capacity, allocated, a pool state, the declaration fields and an audit log; audit event — one entry on that log, carrying an event id, the pool id, an event class, a recording instant and the fields the event's class names.
 
@@ -931,7 +931,7 @@ Projection: already-closed
 
 #### Invalid Request
 
-The refusal any action returns when a required field is malformed — a null/empty/whitespace-only or control/zero-width/bidi-tainted string, a wrong-signed integer, or a no-op [Adjust Capacity] whose [New Capacity] equals the current [Capacity]. A field-format rejection before any arithmetic check or store write.
+The refusal any action returns when a required field is malformed — a null/empty/whitespace-only or control/zero-width/bidi-tainted string, a wrong-signed integer, or a no-op [Adjust Capacity] whose [New Capacity] equals the current [Capacity]. A field-format rejection before any arithmetic check or database write.
 
 Kind:       Member
 Member of:  the action rejection

@@ -11,8 +11,8 @@
 \* the page's count.
 \*
 \* THE JOURNAL  as in verified-repair-settle.tla: a call's read and its own record are
-\* one step (Execution Contract Store 2), and a record is readable once it is written,
-\* at the next position in the journal's order (Execution Contract Store 3), so a read
+\* one step (Execution Contract Database 2), and a record is readable once it is written,
+\* at the next position in the journal's order (Execution Contract Database 3), so a read
 \* shows every record written. With Store2 = FALSE a record becomes readable some time
 \* after it is written, and not in the journal's order: the store the page no longer
 \* meets, kept for the vacuity twin. No rule here reads the clock.

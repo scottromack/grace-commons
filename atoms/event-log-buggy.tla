@@ -4,7 +4,7 @@
 \* Identical to event-log.tla EXCEPT it adds the VolatileRestart action: a
 \* restart that loses the committed next_seq and starts it again at 1, which
 \* the store the spec's Capability requirement 2 supplies never does — a
-\* committed write survives a restart (Execution Contract Store 3, which owns
+\* committed write survives a restart (Execution Contract Database 3, which owns
 \* the deleted State 7). Resetting next_seq to 1 lets a later-appended event
 \* receive a sequence_number no larger than an earlier event's — breaking
 \* Invariant 4 (sequence-number monotonicity).
@@ -48,7 +48,7 @@ AppendStorageFail ==
     /\ next_seq' = next_seq + 1
     /\ UNCHANGED <<log, len, next_eid>>
 
-\* BUG: volatile restart resets the allocator to 1 — the restart Store 3 forbids.
+\* BUG: volatile restart resets the allocator to 1 — the restart Database 3 forbids.
 VolatileRestart ==
     /\ next_seq' = 1
     /\ UNCHANGED <<log, len, next_eid>>

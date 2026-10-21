@@ -37,7 +37,7 @@ The pattern addresses the form of multi-actor work that recurs across virtually 
 
 The shape is constant across all of them: actors see and act on tasks according to granted scopes (opaque permission tokens, such as `tasks:edit`, that the composition defines and Permissions enforces); one actor is responsible for each task at any given time; the full history of who held what permission and who was responsible for what task is recoverable from the records alone.
 
-This is a composition, not a new primitive. Personal Todo, Permissions, and Assignment are unchanged. The composition is the wiring that makes their three concepts coherent — a single multi-actor task surface rather than three separate record stores the caller has to coordinate by hand.
+This is a composition, not a new primitive. Personal Todo, Permissions, and Assignment are unchanged. The composition is the wiring that makes their three concepts coherent — a single multi-actor task surface rather than three separate record sets the caller has to coordinate by hand.
 
 ---
 
@@ -72,7 +72,7 @@ Term constituents: [Personal Todo](../atoms/personal-todo.md), [Permissions](../
 ```
 Composition state 1: The composition MUST NOT store a record.
 Composition state 2: The composition MUST derive the responsible actor from Assignment's active_for.
-Composition state 3: The composition MUST derive the visible tasks from Personal Todo's store.
+Composition state 3: The composition MUST derive the visible tasks from Personal Todo's records.
 Composition state 4: The composition MUST NOT materialize a derived query.
 ```
 
@@ -87,7 +87,7 @@ Term visible tasks: EVERY task of the Personal Todo instance, for an actor refer
 ### Capability requirement
 
 ```
-Capability requirement 1: The deployment MUST supply the constituents' store PER Execution Contract Store 1 and Execution Contract Store 2.
+Capability requirement 1: The deployment MUST supply the constituents' database PER Execution Contract Database 1 and Execution Contract Database 2.
 ```
 
 ### Action wiring
@@ -142,7 +142,7 @@ Action wiring 8: An admitted complete MUST NOT recall the task's active assignme
 Action wiring 9: An admitted delete MUST call Assignment's recall for the task's active assignment.
 Action wiring 10: An admitted delete MUST call Personal Todo's delete ONLY AFTER the recall answers ok.
 Action wiring 11: IF the recall answers storage-failure THEN an admitted delete MUST answer storage-failure.
-Deleted: Action wiring 12. Execution Contract Store 1 owns it.
+Deleted: Action wiring 12. Execution Contract Database 1 owns it.
 Action wiring 13: An admitted assign MUST answer not-known for a task id the Personal Todo instance does not carry.
 Action wiring 14: An admitted assign MUST call Assignment's assign ONLY AFTER the task id's existence check clears.
 Action wiring 15: An admitted assign MUST accept a task id whose unit state EQUALS done.
@@ -152,7 +152,7 @@ Action wiring 18: The composition MUST answer the constituent's answer.
 Action wiring 19: The composition MUST NOT answer an empty task set for a denied tasks:view.
 Action wiring 20: [Responsible Actor] MUST answer not-known for a task id the Personal Todo instance does not carry.
 Action wiring 21: [Responsible Actor] MUST answer unassigned for a task carrying no active assignment.
-Deleted: Action wiring 22. Execution Contract Store 2 owns it.
+Deleted: Action wiring 22. Execution Contract Database 2 owns it.
 ```
 
 Term admitted add: an [Add Task] call whose tasks:add check answered permitted.
@@ -173,8 +173,8 @@ Term admitted recall: a [Recall Assignment] call whose tasks:recall check answer
 
 ```
 Wiring decision 1: The composition MUST delete a task ONLY AFTER the task's active assignment is recalled.
-Deleted: Wiring decision 2. Execution Contract Store 1 owns it.
-Deleted: Wiring decision 3. Execution Contract Store 1 owns it.
+Deleted: Wiring decision 2. Execution Contract Database 1 owns it.
+Deleted: Wiring decision 3. Execution Contract Database 1 owns it.
 ```
 
 WHY:
@@ -262,7 +262,7 @@ A support team has tier-1 and tier-2 agents and a supervisor. Agents at both tie
 - Supervisor calls `reassign_task(supervisor, assignment_b5, agent_k_tier2) → assignment_b6`. Tier-2 is now responsible.
 - Tier-2 resolves: `complete_task(agent_k_tier2, ticket_t22) → ok`.
 
-The assignment store records: agent J held responsibility for 2 hours (Transferred); tier-2 agent K held it for 45 minutes (Active at completion). SLA (service-level agreement) analysis uses `assigned_at` and `transferred_at` per record.
+The Assignment records show: agent J held responsibility for 2 hours (Transferred); tier-2 agent K held it for 45 minutes (Active at completion). SLA (service-level agreement) analysis uses `assigned_at` and `transferred_at` per record.
 
 ### Clinical care plan — shared task list with role separation
 
@@ -280,20 +280,20 @@ The accountability record is complete at the responsibility level: which nurse h
 
 ## Generation acceptance
 
-The closing claim above is the acceptance bar and this section distributes it: *for any task and any actor, what the actor was allowed to do and who held the task is readable from the records alone.* Every check below clears from the three constituent stores; where a claim needs evidence the stores do not carry, it is an external check and says so.
+The closing claim above is the acceptance bar and this section distributes it: *for any task and any actor, what the actor was allowed to do and who held the task is readable from the records alone.* Every check below clears from the three constituent records; where a claim needs evidence the records do not carry, it is an external check and says so.
 
 ### Conformance checks
 
 ```
 Check 1.1: An auditor MUST find EVERY assignment of a deleted task whose status EQUALS EXACTLY ONE OF recalled, transferred (Invariant 3.1).
-Check 1.2: An auditor MUST find no active assignment naming a task id the Personal Todo store does not carry (Invariant 3.2).
-Check 2.1: An auditor MUST find no task id carrying two active assignments in the Assignment store (Invariant 2.1).
-Check 3.1: An auditor MUST find a task's responsible actor from the Assignment store (Invariant 4.1).
-Check 3.2: An auditor MUST find a task's responsibility sequence from the Assignment store (Invariant 4.2).
-Check 4.1: An auditor MUST find an actor reference's grant history in the Permissions store (Invariant 5.1).
+Check 1.2: An auditor MUST find no active assignment naming a task id the Personal Todo records do not carry (Invariant 3.2).
+Check 2.1: An auditor MUST find no task id carrying two active assignments in the Assignment records (Invariant 2.1).
+Check 3.1: An auditor MUST find a task's responsible actor from the Assignment records (Invariant 4.1).
+Check 3.2: An auditor MUST find a task's responsibility sequence from the Assignment records (Invariant 4.2).
+Check 4.1: An auditor MUST find an actor reference's grant history in the Permissions records (Invariant 5.1).
 Deleted: Check 4.2. External check 5 owns it.
 Check 5.1: An auditor MUST find [Responsible Actor] answering unassigned for a task carrying no active assignment (Action wiring 21).
-Check 5.2: An auditor MUST find [Responsible Actor] answering not-known for a task id the Personal Todo store does not carry (Action wiring 20).
+Check 5.2: An auditor MUST find [Responsible Actor] answering not-known for a task id the Personal Todo records do not carry (Action wiring 20).
 ```
 
 NOTE: EVERY check names the rule the check tests.
@@ -306,7 +306,7 @@ External check 2: An auditor needing a denied call confirmed unreached MUST read
 External check 3: An auditor needing an enumeration of authorization attempts MUST read a composed Audit Trail (Non-goal 7).
 External check 4: An auditor needing the actor reference bound to a caller MUST read the deployment's authentication layer (Non-goal 12).
 External check 5: An auditor needing a task's delete confirmed clear of the grants MUST read the deployment's own implementation (Invariant 5.2).
-Deleted: External check 6. Execution Contract Store 2 owns it.
+Deleted: External check 6. Execution Contract Database 2 owns it.
 ```
 
 ---
@@ -319,7 +319,7 @@ Non-goal 2: The composition MUST NOT grant tasks:view with an assignment.
 Non-goal 3: The composition MUST NOT refuse a self-assignment.
 Non-goal 4: The composition MUST NOT own whether a completed task's assignment is recalled.
 Non-goal 5: The composition MUST NOT offer an undo.
-Deleted: Non-goal 6. Execution Contract Store 5 owns it.
+Deleted: Non-goal 6. Execution Contract Database 5 owns it.
 Non-goal 7: The composition MUST NOT record an action.
 Non-goal 8: A deployment needing a tamper-evident record MUST compose Audit Trail.
 Non-goal 9: The composition MUST NOT carry a task's priority.
@@ -340,12 +340,12 @@ NOTE: the owners — [Audit Trail](./audit-trail.md) (Non-goal 7, Non-goal 8, Ex
 ### Concurrency
 
 ```
-Deleted: Concurrency 1. Execution Contract Store 2 owns it.
-Deleted: Concurrency 2. Execution Contract Store 2 owns it.
-Deleted: Concurrency 3. Execution Contract Store 2 owns it.
+Deleted: Concurrency 1. Execution Contract Database 2 owns it.
+Deleted: Concurrency 2. Execution Contract Database 2 owns it.
+Deleted: Concurrency 3. Execution Contract Database 2 owns it.
 Concurrency 4: The composition MUST check permitted at a call's start.
-Deleted: Concurrency 5. Execution Contract Store 2 owns it: an action's guard reads and the writes they decide are one transaction, so a revoke of the grant a gate read commits before the read or after the action's writes.
-Deleted: Concurrency 6. Execution Contract Store 2 owns it.
+Deleted: Concurrency 5. Execution Contract Database 2 owns it: an action's guard reads and the writes they decide are one transaction, so a revoke of the grant a gate read commits before the read or after the action's writes.
+Deleted: Concurrency 6. Execution Contract Database 2 owns it.
 ```
 
 ---
@@ -358,7 +358,7 @@ Composition note 2: A deployment MUST bind an actor reference to an authenticate
 Composition note 3: A deployment MUST own whether a completed task's assignment is recalled.
 Composition note 4: A deployment MUST administer the Permissions instance's grants.
 Composition note 5: A deployment MUST NOT wire a second Assignment instance over the task list.
-Deleted: Composition note 6. Execution Contract Store 2 owns it.
+Deleted: Composition note 6. Execution Contract Database 2 owns it.
 ```
 
 ---
@@ -423,7 +423,7 @@ Kind: Operation
 
 #### Responsible Actor
 
-The derived read query joining Personal Todo and Assignment — gates on [Tasks View], then returns the actor holding the active assignment for a task, unassigned for an existing task with none, or not-known for a task the store never held (the join's existence side). Neither constituent answers it alone.
+The derived read query joining Personal Todo and Assignment — gates on [Tasks View], then returns the actor holding the active assignment for a task, unassigned for an existing task with none, or not-known for a task the database never held (the join's existence side). Neither constituent answers it alone.
 
 Kind: Operation
 
@@ -549,7 +549,7 @@ open:
 - 2026-09-30-a · refining · Final Critique 7 · routed open, non-blocking: Action wiring 8 bars recall-on-complete that Non-goal 4 leaves to the deployment; the Summary's and Intent's overclaims (the list beyond granted permissions, owners-only editing, a query no single pattern answers); the unconditional Composition note 2 beside the conditional Non-goal 13; whether a finer scope replaces or adds to the canonical one; Assignment Composition note 3 and Permissions note 5 neither discharged nor declined, clock and ids absent from the deployment's notes; the delete with no active assignment unstated, Action wiring 14's arguments, Action wiring 1's wording; happy-path examples and the cascade recall's scope shown only in an example → one refining pass
 - 2026-09-30-b · refining · Final Critique 8 · routed open, non-blocking: Action wiring 13, 14 and 20's existence check is a filter the composition runs over Personal Todo's Read (Operation 28), which offers no lookup by id, and no rule names it; Composes 5's caller surface read against Composition note 4's grant administration, which needs a Permissions surface the literal replacement removes; the clinical Example 3 invokes a regulated domain and Regulated adversarial scenarios stand nowhere in the examples, beside Standards references calling the pattern not regulated; Example 1's Recalled-on-delete is no fact of any record, since Assignment stores recalled and no cause → one refining pass
 - 2026-09-30-c · rhetorical · Final Critique 8 · Term responsible actor says none where Action wiring 21 answers unassigned, and Tasks View promises the tasks and their assignees where Visible Tasks answers tasks only → one word for the absent answer; the term's promise cut to what the query returns
-- 2026-09-30-d · refining · Final Critique 9 · routed open, non-blocking: Action wiring 18 answers the constituent's answer where a delete makes two constituent calls and responsible_actor answers an assignee where active_for answers an assignment; the sentence before the invariants says none is available from one atom, false for Invariants 2, 4 and 5, and Invariant 5.1 pins a by-subject history on Permissions, whose only read is every grant; Check 1.1 names a deleted task no store holds and collapses into Check 1.2 → one refining pass
+- 2026-09-30-d · refining · Final Critique 9 · routed open, non-blocking: Action wiring 18 answers the constituent's answer where a delete makes two constituent calls and responsible_actor answers an assignee where active_for answers an assignment; the sentence before the invariants says none is available from one atom, false for Invariants 2, 4 and 5, and Invariant 5.1 pins a by-subject history on Permissions, whose only read is every grant; Check 1.1 names a deleted task no database holds and collapses into Check 1.2 → one refining pass
 - 2026-09-30-e · rhetorical · Final Critique 9 · Wiring decision 1 restates Action wiring 10; Example 3's which role level held which grants names roles Permissions does not hold → drop the restatement; say which actor reference held which grants
 ```
 

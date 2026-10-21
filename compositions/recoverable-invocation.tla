@@ -6,7 +6,7 @@
 \* the entry *The conflict protocol* in pressure-testing.md.
 \*
 \* VERSION 7 (2026-10-20) takes the journal fence out. The maintainer ruled
-\* 2026-10-20 that Execution Contract Store 2 covers a guard decided across a
+\* 2026-10-20 that Execution Contract Database 2 covers a guard decided across a
 \* lease check: a writer's re-read, its lease check and its append are one
 \* transaction, because the lease's grant and the journal live in the one
 \* store. A take is a write to the grant, so a journal write that has not
@@ -548,7 +548,7 @@ Preparing == invPhase \in {"prepared", "reading", "prepIntent"} \/ PreparedPhase
 
 \* v7. A TAKE IS A WRITE TO THE GRANT, AND THE STORE REFUSES WHAT IT
 \* OVERTAKES. A writer's re-read, lease check and append are one transaction
-\* (Execution Contract Store 2), the lease's grant living in the one store with
+\* (Execution Contract Database 2), the lease's grant living in the one store with
 \* the journal. So a journal write a writer issued and that has not returned,
 \* or one it passed its gate for and has not yet issued, is refused when
 \* another holder takes the section — the take committed against the grant
@@ -556,7 +556,7 @@ Preparing == invPhase \in {"prepared", "reading", "prepIntent"} \/ PreparedPhase
 \* invocation returns its position's arm and leaves the act to the sweep, a
 \* sweep run leaves the act for the next run, the operator may call again.
 \* Nothing is refused for time alone, and a write that has returned has
-\* committed and stays (Execution Contract Store 3).
+\* committed and stays (Execution Contract Database 3).
 Late(st) == TakeRefuses /\ st = "pending"
 InvOvertaken ==
     /\ TakeRefuses

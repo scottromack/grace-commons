@@ -59,7 +59,7 @@ Identity 13: The atom MUST NOT confirm that a document reference names a known d
 Identity 14: The atom MUST NOT confirm that an evidence reference names a known evidence record.
 Identity 15: The atom MUST NOT confirm that an acting reference names a known actor.
 Identity 16: The atom MUST NOT match two parties as one natural person.
-Identity 17: The deployment MUST route EVERY call to one store instance.
+Identity 17: The deployment MUST route EVERY call to one database instance.
 ```
 
 Term party: the record this atom holds — one external party's enrollment, verification history and state history.
@@ -78,11 +78,11 @@ Term acting reference: enrolling actor reference, verifying actor reference, sus
 
 Term reference: an assigned id, an acting reference, document reference OR evidence reference — every opaque reference this atom records.
 
-Term store instance: one named party store a call is routed to; assigned id uniqueness ranges over one instance.
+Term database instance: one named database a call is routed to; assigned id uniqueness ranges over one instance.
 
 Term seam: the atom's I/O boundary as the section titled Logic Confinement Principle in `execution-contract.md` declares it; the host injects the clock reading and the id material here.
 
-Term transition: the atom's evaluation of one call against the party store, as the section titled Logic Confinement Principle in `execution-contract.md` declares it.
+Term transition: the atom's evaluation of one call against the party records, as the section titled Logic Confinement Principle in `execution-contract.md` declares it.
 
 Term now: the wall-time reading the host takes at the seam and hands to the transition, as the section titled Logic Confinement Principle in `execution-contract.md` declares it; never read inside the transition, never supplied by the business caller.
 
@@ -103,12 +103,12 @@ State 7: EVERY state change event a reasoned action appended MUST carry a reason
 ```
 Capability requirement 1: The deployment MUST supply now at the seam.
 Capability requirement 2: The deployment MUST supply the id material at the seam.
-Deleted: Capability requirement 3. Execution Contract Store 2 owns it.
-Deleted: Capability requirement 4. Execution Contract Store 3 owns it.
-Deleted: Capability requirement 5. Execution Contract Store 1 owns it.
+Deleted: Capability requirement 3. Execution Contract Database 2 owns it.
+Deleted: Capability requirement 4. Execution Contract Database 3 owns it.
+Deleted: Capability requirement 5. Execution Contract Database 1 owns it.
 Capability requirement 6: The deployment MUST canonicalize an opaque reference.
 Capability requirement 7: The deployment MUST declare the length bound.
-Capability requirement 10: The deployment MUST supply the party store PER Execution Contract Store 1 through 4 and Execution Contract Order 1.
+Capability requirement 10: The deployment MUST supply the party records PER Execution Contract Database 1 through 4 and Execution Contract Order 1.
 Deleted: Capability requirement 8. Execution Contract Logic confinement 7 owns it.
 Deleted: Capability requirement 9. Execution Contract Logic confinement 7 owns it.
 ```
@@ -181,8 +181,8 @@ Operation 34: A transitioning action MUST record the prior state, the new state,
 Operation 35: A reasoned action MUST record reason on the state change event.
 Operation 36: An admitted verify MUST NOT record a reason on a state change event.
 Operation 37: A transitioning action MUST answer the state change id.
-Deleted: Operation 38. Execution Contract Store 1 owns it.
-Operation 39: IF the store refuses the write THEN an action MUST answer storage-failure.
+Deleted: Operation 38. Execution Contract Database 1 owns it.
+Operation 39: IF the database refuses the write THEN an action MUST answer storage-failure.
 Operation 40: An action MUST answer storage-failure ONLY IF EVERY precondition passes.
 Operation 41: A refused action MUST leave the party as the call found the party.
 Operation 42: A refused [Enroll] MUST NOT record a party.
@@ -221,23 +221,23 @@ Term required string input: name, document type, document reference, verificatio
 
 Term fresh verification: a verification event whose verification result EQUALS passed that follows the party's most recent suspend in insertion order, or that follows the enrollment where no suspend EXISTS.
 
-Term evidence reference: document reference OR evidence reference — every pointer this atom records into the composing document store.
+Term evidence reference: document reference OR evidence reference — every pointer this atom records into the composing pattern's document records.
 
 Term custody field: party id | enrollment instant | enrolling actor reference — the fields an erasure scrub leaves, so the chain of custody outlives the personal data.
 
-Term insertion order: the order a store instance appended its records; authoritative for this atom, where a recorded instant is advisory.
+Term insertion order: the order a database instance appended its records; authoritative for this atom, where a recorded instant is advisory.
 
 Term query axes: party id, state and a range over enrollment instant — every filter axis [Read] admits.
 
-Term admitted enroll: an [Enroll] call that passes every precondition and whose store write commits.
+Term admitted enroll: an [Enroll] call that passes every precondition and whose database write commits.
 
-Term admitted verify: a [Verify] call that passes every precondition and whose store write commits.
+Term admitted verify: a [Verify] call that passes every precondition and whose database write commits.
 
-Term admitted suspend: a [Suspend] call that passes every precondition and whose store write commits.
+Term admitted suspend: a [Suspend] call that passes every precondition and whose database write commits.
 
-Term admitted reinstate: a [Reinstate] call that passes every precondition and whose store write commits.
+Term admitted reinstate: a [Reinstate] call that passes every precondition and whose database write commits.
 
-Term admitted close: a [Close] call that passes every precondition and whose store write commits.
+Term admitted close: a [Close] call that passes every precondition and whose database write commits.
 
 Term admitted read: a [Read] call that answers.
 
@@ -245,9 +245,9 @@ Term admitted read: a [Read] call that answers.
 
 - **Invariant 1 — Party record permanence.**
   ```
-  Invariant 1.1: The atom MUST NOT remove a party from the store.
-  Deleted: Invariant 1.2. Execution Contract Store 1 owns it.
-  Invariant 1.3: The store instance's party count MUST NOT fall.
+  Invariant 1.1: The atom MUST NOT remove a party from the database.
+  Deleted: Invariant 1.2. Execution Contract Database 1 owns it.
+  Invariant 1.3: The database instance's party count MUST NOT fall.
   ```
 - **Invariant 2 — State membership exclusivity.**
   ```
@@ -284,8 +284,8 @@ Term admitted read: a [Read] call that answers.
   ```
 - **Invariant 11 — Action atomicity.**
   ```
-  Deleted: Invariant 11.1. Execution Contract Store 1 owns it.
-  Deleted: Invariant 11.2. Execution Contract Store 1 and Execution Contract Store 3 own it.
+  Deleted: Invariant 11.1. Execution Contract Database 1 owns it.
+  Deleted: Invariant 11.2. Execution Contract Database 1 and Execution Contract Database 3 own it.
   ```
 ### Ordering
 
@@ -320,7 +320,7 @@ A screening pattern flags `party_pk3`. `suspend(party_pk3, compliance_c4, "sanct
 
 ### Rejection paths
 
-`suspend(party_qh9, ...)` on the unverified party → not-verifiable — there is no verified standing to suspend. `reinstate(party_pk3, ...)` while verified → not-suspended. `verify(party_closed, ...)` → already-closed. `suspend("", ...)` → invalid-request, decided before the store is consulted; `suspend(party_unknown, ...)` → not-known, decided after. `close(party_zz1, officer_o7, "  ")` on the already-closed party → already-closed, not invalid-request: the state checks run first (Operation 20).
+`suspend(party_qh9, ...)` on the unverified party → not-verifiable — there is no verified standing to suspend. `reinstate(party_pk3, ...)` while verified → not-suspended. `verify(party_closed, ...)` → already-closed. `suspend("", ...)` → invalid-request, decided before the database is consulted; `suspend(party_unknown, ...)` → not-known, decided after. `close(party_zz1, officer_o7, "  ")` on the already-closed party → already-closed, not invalid-request: the state checks run first (Operation 20).
 
 ### Regulated adversarial scenarios
 
@@ -332,7 +332,7 @@ A screening pattern flags `party_pk3`. `suspend(party_pk3, compliance_c4, "sanct
 
 ## Generation acceptance
 
-This atom's acceptance is what an external auditor can clear from the party store alone, with no recourse to source code, runbooks or developer narration.
+This atom's acceptance is what an external auditor can clear from the party records alone, with no recourse to source code, runbooks or developer narration.
 
 ### Conformance checks
 
@@ -352,11 +352,11 @@ Check 5.1: An auditor MUST replay a party's state change log in insertion order 
 Check 5.2: An auditor MUST reconstruct EVERY party's enrollment, verification history and state history from one read (State 1, State 2, State 3).
 Check 6.1: An auditor MUST find a re-read party's enrollment fields unchanged (Invariant 7.1).
 Check 6.2: An auditor MUST find no party absent from a later read (Invariant 1.1).
-Check 6.3: An auditor MUST find the store instance's party count no lower on a later read (Invariant 1.3).
+Check 6.3: An auditor MUST find the database instance's party count no lower on a later read (Invariant 1.3).
 Check 7.1: An auditor MUST find no party id on two parties (Identity 7).
 Check 7.2: An auditor MUST find no verification id on two verification events (Identity 8).
 Check 7.3: An auditor MUST find no state change id on two state change events (Identity 9).
-Check 8.1: An auditor MUST partition the party store by state (State 1).
+Check 8.1: An auditor MUST partition the party records by state (State 1).
 ```
 
 NOTE: EVERY check names the rule the check tests.
@@ -369,7 +369,7 @@ External check 2: A deployment needing two parties resolved as one natural perso
 External check 3: A deployment needing an enrollment field scrubbed MUST read the composing erasure coordination (Invariant 7.1, Non-goal 12).
 External check 4: A deployment needing an acting reference bound to an actor MUST read the composing Actor Identity attestation (Identity 15, Non-goal 15).
 External check 5: A deployment needing a recorded instant anchored to wall time MUST read the composing trusted timestamping pattern (Ordering 5, Ordering 6).
-External check 6: A deployment needing an evidence reference resolved MUST read the composing document store (Identity 13, Identity 14).
+External check 6: A deployment needing an evidence reference resolved MUST read the composing pattern's document records (Identity 13, Identity 14).
 External check 7: A deployment needing a party's record retention bounded MUST read the composing Retention Window (Non-goal 13).
 External check 8: A deployment needing an answer observed MUST read the composing Event Log (Non-goal 19).
 
@@ -414,10 +414,10 @@ NOTE: the owners — an identity resolution pattern (Non-goal 1, Non-goal 2); an
 ### Atomic writes
 
 ```
-Deleted: Atomic writes 1. Execution Contract Store 1 owns it.
-Deleted: Atomic writes 2. Execution Contract Store 1 and Execution Contract Store 3 own it.
-Deleted: Atomic writes 3. Execution Contract Store 1 owns it.
-Deleted: Atomic writes 4. Execution Contract Store 1 owns it.
+Deleted: Atomic writes 1. Execution Contract Database 1 owns it.
+Deleted: Atomic writes 2. Execution Contract Database 1 and Execution Contract Database 3 own it.
+Deleted: Atomic writes 3. Execution Contract Database 1 owns it.
+Deleted: Atomic writes 4. Execution Contract Database 1 owns it.
 ```
 
 ### Clock semantics
@@ -433,9 +433,9 @@ Deleted: Clock semantics 4. Execution Contract Logic confinement 7 owns it.
 ### Concurrency
 
 ```
-Deleted: Concurrency 1. Execution Contract Store 1 and Execution Contract Store 2 own it.
-Deleted: Concurrency 2. Execution Contract Store 2 owns it.
-Deleted: Concurrency 3. Execution Contract Store 2 owns it.
+Deleted: Concurrency 1. Execution Contract Database 1 and Execution Contract Database 2 own it.
+Deleted: Concurrency 2. Execution Contract Database 2 owns it.
+Deleted: Concurrency 3. Execution Contract Database 2 owns it.
 ```
 
 ### Indeterminate outcome
@@ -443,7 +443,7 @@ Deleted: Concurrency 3. Execution Contract Store 2 owns it.
 ```
 Indeterminate outcome 1: A caller MUST NOT retry an action whose answer the caller lost BEFORE reading the party.
 Indeterminate outcome 2: A caller MUST NOT read a lost answer as a refusal.
-Indeterminate outcome 3: A caller MUST NOT retry a lost [Enroll] BEFORE reading the store.
+Indeterminate outcome 3: A caller MUST NOT retry a lost [Enroll] BEFORE reading the database.
 ```
 
 ### String policy
@@ -489,7 +489,7 @@ Each `[Term]` marker above links to its term entry here; a term entry states wha
 
 ### Vocabulary
 
-Term actors: the atom; the deployment; the store; the store instance; the seam; the transition; a composing pattern; a caller; an auditor; a regulator; an investigator; a party; a verification event; a state change event; an action; a party action; a transitioning action; a refused action; an assigned id; an opaque reference; a string input; a filter; a filter axis; a filter value; a query; the store instance's party count; a party's verification event list length; a party's state change log length.
+Term actors: the atom; the deployment; the database; the database instance; the seam; the transition; a composing pattern; a caller; an auditor; a regulator; an investigator; a party; a verification event; a state change event; an action; a party action; a transitioning action; a refused action; an assigned id; an opaque reference; a string input; a filter; a filter axis; a filter value; a query; the database instance's party count; a party's verification event list length; a party's state change log length.
 
 Term records: party — one external party, carrying party id, name, date of birth, document type, document reference, enrollment instant, enrolling actor reference, a state, a state change log and a verification event list. verification event — one identity check, carrying verification id, verifying actor reference, verification method, verification result, evidence reference and verification instant. state change event — one transition, carrying state change id, the prior state, the new state, an acting reference, an instant and, where the writer carries one, a reason.
 
@@ -503,11 +503,11 @@ Term cadences: empty.
 
 Term qualifiers: migrated — rewritten in GRACE lang v0.40 (2026-09-13).
 
-Term terms: party, verify answer, party id, verification event, state change event, assigned id, enrollment field, acting reference, reference, store instance, seam, transition, now, party action, transitioning action, state, state rejection, state check, required string input, fresh verification, insertion order, length bound, reasoned action, custody field, evidence reference, query axes, admitted enroll, admitted verify, admitted suspend, admitted reinstate, admitted close, admitted read, string input, blank, verification result.
+Term terms: party, verify answer, party id, verification event, state change event, assigned id, enrollment field, acting reference, reference, database instance, seam, transition, now, party action, transitioning action, state, state rejection, state check, required string input, fresh verification, insertion order, length bound, reasoned action, custody field, evidence reference, query axes, admitted enroll, admitted verify, admitted suspend, admitted reinstate, admitted close, admitted read, string input, blank, verification result.
 
 Term cited: the section titled Logic Confinement Principle in `execution-contract.md` — the seam and the transition.
 
-Term composing pattern: [Actor Identity](./actor-identity.md), [Consent](./consent.md), [Retention Window](./retention-window.md), [Event Log](./event-log.md), [Audit Trail](../compositions/audit-trail.md), [Customer Onboarding](../compositions/customer-onboarding.md), [External Onboarding](../compositions/external-onboarding.md), an identity resolution pattern, an attribute update pattern, an erasure coordination pattern, a trusted timestamping pattern, a document store.
+Term composing pattern: [Actor Identity](./actor-identity.md), [Consent](./consent.md), [Retention Window](./retention-window.md), [Event Log](./event-log.md), [Audit Trail](../compositions/audit-trail.md), [Customer Onboarding](../compositions/customer-onboarding.md), [External Onboarding](../compositions/external-onboarding.md), an identity resolution pattern, an attribute update pattern, an erasure coordination pattern, a trusted timestamping pattern, a document records pattern.
 
 #### Enroll
 
@@ -600,7 +600,7 @@ Projection: document_type
 
 #### Document Reference
 
-The opaque pointer to the identity document record in the composing document store. Never resolved here.
+The opaque pointer to the identity document record in the composing pattern's document records. Never resolved here.
 
 Kind:       Field
 Field of:   Party
@@ -775,7 +775,7 @@ Role:      Outcome
 
 #### Invalid Request
 
-The refusal returned when a required string input is blank, a [Date Of Birth] parses as no calendar date or exceeds [Now], a [Verification Result] is neither `passed` nor failed, or a string input exceeds the deployment's length bound. A blank [Party Id] earns it before the store is consulted, where a well-formed one naming no party earns [Not Known]; every other field fault earns it after every state check passes.
+The refusal returned when a required string input is blank, a [Date Of Birth] parses as no calendar date or exceeds [Now], a [Verification Result] is neither `passed` nor failed, or a string input exceeds the deployment's length bound. A blank [Party Id] earns it before the database is consulted, where a well-formed one naming no party earns [Not Known]; every other field fault earns it after every state check passes.
 
 Kind:       Member
 Member of:  the action rejection
@@ -847,7 +847,7 @@ Projection: invalid-query
 
 #### Storage Failure
 
-The refusal any writing action returns when the store refuses the write after every precondition passes. No record the action would have written is persisted. [Read] never returns it.
+The refusal any writing action returns when the database refuses the write after every precondition passes. No record the action would have written is persisted. [Read] never returns it.
 
 Kind:       Member
 Member of:  the action rejection

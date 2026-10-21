@@ -9,8 +9,8 @@
 \* Active or Suspended — preference record per principal), with a `set` for a
 \* principal who already has a currently-in-effect record creating the new
 \* record AND transitioning the prior to Deleted in one transaction, as Execution
-\* Contract Store 1 commits every action's writes: no reader ever sees the
-\* principal with two Active-or-Suspended records (Store 1 owns the deleted
+\* Contract Database 1 commits every action's writes: no reader ever sees the
+\* principal with two Active-or-Suspended records (Database 1 owns the deleted
 \* Invariant 4.1 and 4.2). Modeled for a single principal.
 \*
 \* MODELING CHOICES
@@ -69,7 +69,7 @@ Spec == Init /\ [][Next]_vars
 Inv3_AtMostOneInEffect == InEffectCount <= 1
 Safety == TypeOK /\ Inv3_AtMostOneInEffect
 
-\* NOTE Execution Contract Store 1 (one transaction per action) is what holds
+\* NOTE Execution Contract Database 1 (one transaction per action) is what holds
 \* Inv3 THROUGH a `set` over an existing record: SetSupersede is one step, so no
 \* reachable state shows two in-effect records. The buggy twin splits it and
 \* Inv3 catches the window.

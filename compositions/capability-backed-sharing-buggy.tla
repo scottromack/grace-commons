@@ -8,7 +8,7 @@
 \* stated, or it guards a claim the corpus no longer makes. The previous version of
 \* this twin split one transaction into three interleavable writes; that split was
 \* no bug then, because the repaired composition did exactly that on purpose. Since
-\* 2026-10-20 Execution Contract Store 1 commits the redemption, the record and the
+\* 2026-10-20 Execution Contract Database 1 commits the redemption, the record and the
 \* append together, and the unsealed state is reached only when Audit Trail refuses
 \* the append (Audit arm 20). What IS a bug is leaving that state silent.
 \*

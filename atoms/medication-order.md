@@ -46,7 +46,7 @@ Identity 1: The atom MUST identify an order by the order id.
 Identity 2: The atom MUST assign the order id from the id material the seam supplies.
 Identity 3: The atom MUST NOT generate an order id.
 Identity 4: The atom MUST NOT change an order's order id.
-Identity 5: Two orders in one store instance MUST NOT share an order id.
+Identity 5: Two orders in one database instance MUST NOT share an order id.
 Identity 6: The atom MUST NOT reuse a resolved order's order id.
 Identity 7: The atom MUST NOT identify an order by a core field.
 Identity 8: The atom MUST compare a reference byte-exactly.
@@ -55,15 +55,15 @@ Identity 10: The atom MUST NOT confirm that a patient reference names a known pa
 Identity 11: The atom MUST NOT confirm that a medication reference names a known medication.
 Identity 12: The atom MUST NOT confirm that an attribution reference names a known actor.
 Identity 13: The atom MUST NOT read a medication reference's clinical meaning.
-Identity 14: The deployment MUST route EVERY call to one store instance.
-Identity 15: The atom MUST NOT resolve an order id across two store instances.
+Identity 14: The deployment MUST route EVERY call to one database instance.
+Identity 15: The atom MUST NOT resolve an order id across two database instances.
 ```
 
 Term order: the record this atom holds — one prescription's whole life, from placement to its end.
 
-Term order id: the opaque value naming one order — an [Order Id]; assigned from the id material the seam supplies, unique within one store instance.
+Term order id: the opaque value naming one order — an [Order Id]; assigned from the id material the seam supplies, unique within one database instance.
 
-Term store instance: one named order store a call is routed to, named by a store_name; order id uniqueness ranges over one instance, and a patient reference may appear in several.
+Term database instance: one named database a call is routed to, named by a store_name; order id uniqueness ranges over one instance, and a patient reference may appear in several.
 
 Term core field: patient reference | prescriber reference | medication reference | dose | dose unit | route | frequency | duration | clinical evidence reference | order instant — what an order carries from placement and never changes.
 
@@ -75,7 +75,7 @@ Term reference: order id, patient reference, medication reference, clinical evid
 
 Term seam: the atom's I/O boundary as `execution-contract.md` Logic confinement declares it; the host injects the clock reading, the id material and the clock offset allowance here.
 
-Term transition: the atom's evaluation of one call against the order store, as `execution-contract.md` Logic confinement declares it.
+Term transition: the atom's evaluation of one call against the order records, as `execution-contract.md` Logic confinement declares it.
 
 Term now: the wall-time reading the host takes at the seam and hands to the transition, as the section titled Logic Confinement Principle in `execution-contract.md` declares it; never read inside the transition, never supplied by the business caller.
 
@@ -96,7 +96,7 @@ State 11: EVERY on-hold order MUST carry prior state, holding actor, hold reason
 State 12: EVERY reinstated order MUST carry reinstating actor and reinstatement instant.
 State 13: An order MUST carry EVERY field group a prior transition wrote.
 State 14: The atom MUST NOT offer a purged state.
-State 15: The store instance's order count MUST NOT fall.
+State 15: The database instance's order count MUST NOT fall.
 ```
 
 ### Capability requirement
@@ -106,15 +106,15 @@ Capability requirement 1: The deployment MUST supply now at the seam.
 Capability requirement 2: The deployment MUST supply the id material at the seam.
 Capability requirement 3: The deployment MUST declare the clock offset allowance.
 Capability requirement 4: The deployment MUST supply the clock offset allowance at the seam.
-Deleted: Capability requirement 5. Execution Contract Store 2 owns it.
-Deleted: Capability requirement 6. Execution Contract Store 2 owns it.
-Deleted: Capability requirement 7. Execution Contract Store 2 owns it: an order action's state check and state change are one transaction, and the atom names no section to release.
-Deleted: Capability requirement 8. Execution Contract Store 2 owns it: an order action's state check and state change are one transaction, and the atom names no section to release.
-Deleted: Capability requirement 9. Execution Contract Store 3 owns it.
-Deleted: Capability requirement 10. Execution Contract Store 1 owns it.
+Deleted: Capability requirement 5. Execution Contract Database 2 owns it.
+Deleted: Capability requirement 6. Execution Contract Database 2 owns it.
+Deleted: Capability requirement 7. Execution Contract Database 2 owns it: an order action's state check and state change are one transaction, and the atom names no section to release.
+Deleted: Capability requirement 8. Execution Contract Database 2 owns it: an order action's state check and state change are one transaction, and the atom names no section to release.
+Deleted: Capability requirement 9. Execution Contract Database 3 owns it.
+Deleted: Capability requirement 10. Execution Contract Database 1 owns it.
 Capability requirement 11: The deployment MUST canonicalize an opaque reference.
 Capability requirement 12: The deployment MUST declare the length bound.
-Capability requirement 15: The deployment MUST supply the order store PER Execution Contract Store 1 through 4.
+Capability requirement 15: The deployment MUST supply the order records PER Execution Contract Database 1 through 4.
 Deleted: Capability requirement 13. Execution Contract Logic confinement 7 owns it.
 Deleted: Capability requirement 14. Execution Contract Logic confinement 7 owns it.
 ```
@@ -208,7 +208,7 @@ Operation 37: An admitted amend MUST record the original's order id as the succe
 Operation 38: An admitted amend MUST stand the successor in ordered.
 Operation 39: An admitted amend MUST stand the original in amended.
 Operation 40: An admitted amend MUST record the successor's order id as the original's successor id.
-Deleted: Operation 41. Execution Contract Store 1 owns it.
+Deleted: Operation 41. Execution Contract Database 1 owns it.
 Operation 42: An admitted amend MUST answer the successor's order id.
 Operation 43: An admitted verify MUST record verifier reference and now as verification instant.
 Operation 44: An admitted verify MUST stand the order in verified.
@@ -228,8 +228,8 @@ Operation 57: An admitted cancel MUST record cancelling actor, reason as cancell
 Operation 58: An admitted cancel MUST stand the order in cancelled.
 Operation 59: An admitted discontinue MUST record discontinuing actor, reason as discontinuation reason and now as discontinuation instant.
 Operation 60: An admitted discontinue MUST stand the order in discontinued.
-Deleted: Operation 61. Execution Contract Store 1 owns it.
-Operation 62: IF the store refuses the write THEN an action MUST answer storage-failure.
+Deleted: Operation 61. Execution Contract Database 1 owns it.
+Operation 62: IF the database refuses the write THEN an action MUST answer storage-failure.
 Operation 63: An action MUST answer storage-failure ONLY IF EVERY precondition passes.
 Operation 64: A refused action MUST leave the order as the call found the order.
 Operation 65: A refused [Order] MUST NOT record an order.
@@ -283,25 +283,25 @@ Term query axes: order id, patient reference, medication reference, prescriber r
 
 Term field group: the fields one transition writes, carried on the order from that transition onward.
 
-Term admitted order: an [Order] call that passes every precondition and whose store write commits.
+Term admitted order: an [Order] call that passes every precondition and whose database write commits.
 
-Term admitted amend: an [Amend] call that passes every precondition and whose store writes commit.
+Term admitted amend: an [Amend] call that passes every precondition and whose database writes commit.
 
-Term admitted verify: a [Verify] call that passes every precondition and whose store write commits.
+Term admitted verify: a [Verify] call that passes every precondition and whose database write commits.
 
-Term admitted hold: a [Hold] call that passes every precondition and whose store write commits.
+Term admitted hold: a [Hold] call that passes every precondition and whose database write commits.
 
-Term admitted reinstate: a [Reinstate] call that passes every precondition and whose store write commits.
+Term admitted reinstate: a [Reinstate] call that passes every precondition and whose database write commits.
 
-Term admitted dispense: a [Dispense] call that passes every precondition and whose store write commits.
+Term admitted dispense: a [Dispense] call that passes every precondition and whose database write commits.
 
-Term admitted administer: an [Administer] call that passes every precondition and whose store write commits.
+Term admitted administer: an [Administer] call that passes every precondition and whose database write commits.
 
-Term admitted complete: a [Complete] call that passes every precondition and whose store write commits.
+Term admitted complete: a [Complete] call that passes every precondition and whose database write commits.
 
-Term admitted cancel: a [Cancel] call that passes every precondition and whose store write commits.
+Term admitted cancel: a [Cancel] call that passes every precondition and whose database write commits.
 
-Term admitted discontinue: a [Discontinue] call that passes every precondition and whose store write commits.
+Term admitted discontinue: a [Discontinue] call that passes every precondition and whose database write commits.
 
 Term admitted read: a [Read] call that answers.
 
@@ -364,11 +364,11 @@ Term admitted read: a [Read] call that answers.
   Invariant 13.1: An action MUST NOT change an order's order instant.
   Invariant 13.2: EVERY successor order MUST carry the successor's own order instant.
   ```
-- **Invariant 14 — Order store durability.**
+- **Invariant 14 — Order record durability.**
   ```
-  Invariant 14.1: The atom MUST NOT remove an order from the store.
-  Deleted: Invariant 14.2. Execution Contract Store 1 owns it.
-  Deleted: Invariant 14.3. Execution Contract Store 1 owns it.
+  Invariant 14.1: The atom MUST NOT remove an order from the database.
+  Deleted: Invariant 14.2. Execution Contract Database 1 owns it.
+  Deleted: Invariant 14.3. Execution Contract Database 1 owns it.
   ```
 
 ---
@@ -399,13 +399,13 @@ The dose is wrong. `amend(ord_a1, dr_osei, dose: 20, reason: "titration per 2026
 
 - **DEA controlled-substance audit.** *Account for every unit of this schedule II drug.* Filter by [Medication Reference] and read each order's terminal: a cancelled order means nothing was released, a discontinued one means something was and the course stopped, a completed one means the full course was given. Invariant 6.1 and Invariant 6.2 are what make that distinction structural rather than a matter of how the reason was worded.
 - **Wrong-medication dispute.** *The patient received the wrong drug.* medication reference is fixed at placement and inherited unchanged by every successor (Invariant 2.1), and [Amend] cannot take one, so no order in the chain can name a drug the prescriber did not order. The dispute resolves to whether the right order was acted on, not to whether the record was edited.
-- **Diversion investigation.** *Who touched this medication?* Every transition records its actor — the [Administerer Reference] on the dose, the [Dispenser Reference] on the release — no attribution may be blank (Invariant 10.1), and no record is removed (Invariant 14.1). The chain from prescriber to whoever closed the order is on one record, under one [Patient Reference]; what the atom cannot prove is that the store was not rewritten underneath it, which is [Tamper Evidence](./tamper-evidence.md)'s (External check 4).
+- **Diversion investigation.** *Who touched this medication?* Every transition records its actor — the [Administerer Reference] on the dose, the [Dispenser Reference] on the release — no attribution may be blank (Invariant 10.1), and no record is removed (Invariant 14.1). The chain from prescriber to whoever closed the order is on one record, under one [Patient Reference]; what the atom cannot prove is that the database was not rewritten underneath it, which is [Tamper Evidence](./tamper-evidence.md)'s (External check 4).
 
 ---
 
 ## Generation acceptance
 
-This atom's acceptance is what an external auditor can clear from the order store alone, with no recourse to source code, runbooks or developer narration.
+This atom's acceptance is what an external auditor can clear from the order records alone, with no recourse to source code, runbooks or developer narration.
 
 ### Conformance checks
 
@@ -430,9 +430,9 @@ Check 5.3: An auditor MUST find an administration field group on EVERY completed
 Check 5.4: An auditor MUST find EVERY field group a prior transition wrote on a re-read order (State 13, Invariant 12.1).
 Check 6.1: An auditor MUST find prior state, holding actor, hold reason and hold instant on EVERY on-hold order (State 11).
 Check 7.1: An auditor MUST find no order absent from a later read (Invariant 14.1).
-Check 7.2: An auditor MUST find the store instance's order count no lower on a later read (State 15).
-Deleted: Check 7.3. Execution Contract Store 1 owns it.
-Check 8.1: An auditor MUST find no order id on two orders of one store instance (Identity 5).
+Check 7.2: An auditor MUST find the database instance's order count no lower on a later read (State 15).
+Deleted: Check 7.3. Execution Contract Database 1 owns it.
+Check 8.1: An auditor MUST find no order id on two orders of one database instance (Identity 5).
 Check 8.2: An auditor MUST reconstruct EVERY order's chain of custody from one read (State 13).
 ```
 
@@ -444,7 +444,7 @@ NOTE: EVERY check names the rule the check tests.
 External check 1: A deployment needing an amendment chain's full hold history MUST read the composing Event Log (Invariant 12.2, Non-goal 20).
 External check 2: A deployment needing a second dose event recorded MUST read the composing dose-event pattern (Operation 69, Non-goal 12).
 External check 3: A deployment needing a caller authorized MUST read the composing Permissions (Non-goal 15).
-External check 4: A deployment needing the store confirmed free of a retroactive edit MUST read the composing Tamper Evidence (Non-goal 18).
+External check 4: A deployment needing the database confirmed free of a retroactive edit MUST read the composing Tamper Evidence (Non-goal 18).
 External check 5: A deployment needing a medication reference's controlled-substance schedule MUST read the composing formulary (Identity 13, Non-goal 17).
 External check 6: A deployment needing a duplicate order prevented MUST read the composing Duplicate Prevention (Non-goal 9).
 External check 7: A deployment needing an order's retention bounded MUST read the composing Retention Window (Non-goal 22).
@@ -473,7 +473,7 @@ Non-goal 14: A deployment needing a non-repudiable transition MUST compose Actor
 Non-goal 15: The atom MUST NOT decide who may call an action.
 Non-goal 16: A deployment needing an authorization decision MUST compose Permissions.
 Non-goal 17: The atom MUST NOT read a medication reference's regulatory schedule.
-Non-goal 18: The atom MUST NOT detect a rewrite under the store.
+Non-goal 18: The atom MUST NOT detect a rewrite under the database.
 Non-goal 19: The atom MUST NOT record a transition history.
 Non-goal 20: A deployment needing the full hold history MUST compose Event Log.
 Non-goal 21: The atom MUST NOT model a refill.
@@ -492,11 +492,11 @@ NOTE: the owners — a decision-support pattern (Non-goal 4 through 7); a dose-e
 ### Atomic writes
 
 ```
-Deleted: Atomic writes 1. Execution Contract Store 1 owns it.
-Deleted: Atomic writes 2. Execution Contract Store 1 and Execution Contract Store 3 own it.
-Deleted: Atomic writes 3. Execution Contract Store 1 owns it.
-Deleted: Atomic writes 4. Execution Contract Store 1 owns it.
-Deleted: Atomic writes 5. Operation 64 and Execution Contract Store 1 own it.
+Deleted: Atomic writes 1. Execution Contract Database 1 owns it.
+Deleted: Atomic writes 2. Execution Contract Database 1 and Execution Contract Database 3 own it.
+Deleted: Atomic writes 3. Execution Contract Database 1 owns it.
+Deleted: Atomic writes 4. Execution Contract Database 1 owns it.
+Deleted: Atomic writes 5. Operation 64 and Execution Contract Database 1 own it.
 ```
 
 ### Clock semantics
@@ -515,10 +515,10 @@ Deleted: Clock semantics 8. Non-goal 25 owns it.
 ### Concurrency
 
 ```
-Deleted: Concurrency 1. Execution Contract Store 2 owns it.
-Deleted: Concurrency 2. Execution Contract Store 2 owns it.
-Deleted: Concurrency 3. Execution Contract Store 2 owns it.
-Deleted: Concurrency 4. Execution Contract Store 2 owns it: an order action's state check and state change are one transaction, and the atom names no section for a race to fall outside.
+Deleted: Concurrency 1. Execution Contract Database 2 owns it.
+Deleted: Concurrency 2. Execution Contract Database 2 owns it.
+Deleted: Concurrency 3. Execution Contract Database 2 owns it.
+Deleted: Concurrency 4. Execution Contract Database 2 owns it: an order action's state check and state change are one transaction, and the atom names no section for a race to fall outside.
 ```
 
 ### Indeterminate outcome
@@ -555,7 +555,7 @@ Composition note 1: A composing Permissions MUST decide who may call an order ac
 Composition note 2: A composing Actor Identity MUST attest the actor behind EVERY state-changing action.
 Composition note 3: A composing Event Log MUST append an event on EVERY admitted action.
 Composition note 4: A composing Event Log MUST append an event on EVERY refused action.
-Composition note 5: A composing Tamper Evidence MUST cover EVERY order the store holds.
+Composition note 5: A composing Tamper Evidence MUST cover EVERY order the database holds.
 Composition note 6: A composing Retention Window MUST place an order under retention ONLY IF the order's state IS IN the terminal states.
 Composition note 7: A composing Legal Hold MUST block a composing retention's purge.
 Composition note 8: A composing Duplicate Prevention MUST map an idempotency token to the order id an admitted order answered.
@@ -573,7 +573,7 @@ Each `[Term]` marker above links to its term entry here; a term entry states wha
 
 ### Vocabulary
 
-Term actors: the atom; the deployment; the store; the store instance; the seam; the transition; a composing pattern; a caller; a prescriber; a pharmacist; a dispenser; an auditor; a regulator; an investigator; an order; a successor order; an original; an amended order; an on-hold order; a verified order; a dispensed order; an administered order; a completed order; a cancelled order; a discontinued order; a reinstated order; an action; an order action; a state-changing action; a held-refusing action; a refused action; a rejection; an opaque reference; a string input; a filter; a filter axis; a filter value; a field group; the store instance's order count.
+Term actors: the atom; the deployment; the database; the database instance; the seam; the transition; a composing pattern; a caller; a prescriber; a pharmacist; a dispenser; an auditor; a regulator; an investigator; an order; a successor order; an original; an amended order; an on-hold order; a verified order; a dispensed order; an administered order; a completed order; a cancelled order; a discontinued order; a reinstated order; an action; an order action; a state-changing action; a held-refusing action; a refused action; a rejection; an opaque reference; a string input; a filter; a filter axis; a filter value; a field group; the database instance's order count.
 
 Term records: order — one prescription's whole life, carrying order id, patient reference, prescriber reference, medication reference, dose, dose unit, route, frequency, order instant, a state, and — where a transition wrote them — duration, clinical evidence reference, verifier reference, verification instant, predecessor id, successor id, amending actor, amendment reason, prior state, holding actor, hold reason, hold instant, reinstating actor, reinstatement instant, dispenser reference, quantity, lot number, dispensing instant, administerer reference, administration instant, completing actor, completion instant, cancelling actor, cancellation reason, cancellation instant, discontinuing actor, discontinuation reason and discontinuation instant.
 
@@ -587,7 +587,7 @@ Term cadences: empty.
 
 Term qualifiers: migrated — rewritten in GRACE lang v0.40 (2026-09-13).
 
-Term terms: order, order id, store instance, core field, dosing parameter, attribution reference, reference, seam, transition, now, order action, state-changing action, held-refusing action, state, terminal state, inactive state, pre-dispensing state, post-dispensing state, actionable state, `inactive state's rejection`, state check, blank-input rejection, field fault, required string input, future bound, clock offset allowance, event instant, query axes, field group, reason field, admitted order, admitted amend, admitted verify, admitted hold, admitted reinstate, admitted dispense, admitted administer, admitted complete, admitted cancel, admitted discontinue, admitted read, string input, blank, length bound, resolved dispensing instant, resolved administration instant, resolved completion instant.
+Term terms: order, order id, database instance, core field, dosing parameter, attribution reference, reference, seam, transition, now, order action, state-changing action, held-refusing action, state, terminal state, inactive state, pre-dispensing state, post-dispensing state, actionable state, `inactive state's rejection`, state check, blank-input rejection, field fault, required string input, future bound, clock offset allowance, event instant, query axes, field group, reason field, admitted order, admitted amend, admitted verify, admitted hold, admitted reinstate, admitted dispense, admitted administer, admitted complete, admitted cancel, admitted discontinue, admitted read, string input, blank, length bound, resolved dispensing instant, resolved administration instant, resolved completion instant.
 
 Term cited: `execution-contract.md` Logic confinement — the seam and the transition.
 
@@ -677,7 +677,7 @@ Kind: Operation
 
 #### Order Id
 
-The opaque, immutable identity of an [Order], assigned from the id material the seam supplies and unique within one store instance. Never reused, and never the patient — two orders for one patient are two orders.
+The opaque, immutable identity of an [Order], assigned from the id material the seam supplies and unique within one database instance. Never reused, and never the patient — two orders for one patient are two orders.
 
 Kind:       Field
 Field of:   Order
@@ -685,7 +685,7 @@ Projection: order_id
 
 #### Patient Reference
 
-The opaque reference naming whose prescription this is. Set at placement, immutable, inherited unchanged by every successor, and scoped globally rather than per store instance.
+The opaque reference naming whose prescription this is. Set at placement, immutable, inherited unchanged by every successor, and scoped globally rather than per database instance.
 
 Kind:       Field
 Field of:   Order
@@ -1079,7 +1079,7 @@ Projection: invalid-request
 
 #### Not Known
 
-The refusal an order action returns when the [Order Id] names no order in this store instance, where a blank one earns [Invalid Request].
+The refusal an order action returns when the [Order Id] names no order in this database instance, where a blank one earns [Invalid Request].
 
 Kind:       Member
 Member of:  the order-action rejection
@@ -1115,7 +1115,7 @@ Projection: not-dispensed
 
 #### Storage Failure
 
-The refusal any writing action returns when the store refuses the write after every precondition passes. No partial record is left.
+The refusal any writing action returns when the database refuses the write after every precondition passes. No partial record is left.
 
 Kind:       Member
 Member of:  the action rejection
@@ -1208,7 +1208,7 @@ Projection: invalid-query
 
 - **HL7 FHIR (MedicationRequest / MedicationDispense / MedicationAdministration)** — the interoperability decomposition this atom deliberately does not follow. FHIR splits the lifecycle across three resources so independently operated systems can own separate pieces; this atom keeps one auditable chain inside a deployment, and the case for splitting arrives when a second pattern needs generic material-issuance semantics independent of a prescription.
 - **DEA controlled-substance requirements (21 CFR Part 1300 et seq.)** — the attribution chain and the cancel/discontinue boundary are what a reconciliation reads. What attaches to a *scheduled* substance — registration, EPCS two-factor prescribing, refill limits, quantity caps — is outside this atom, because medication reference is opaque to it (Identity 13, Non-goal 17).
-- **DEA EPCS non-alteration requirements** — met at the layer [Tamper Evidence](./tamper-evidence.md) provides. This atom's immutability is a property of its specified surface, not a cryptographic guarantee against a store administrator (External check 4).
+- **DEA EPCS non-alteration requirements** — met at the layer [Tamper Evidence](./tamper-evidence.md) provides. This atom's immutability is a property of its specified surface, not a cryptographic guarantee against a database administrator (External check 4).
 - **HIPAA (45 CFR 164.312)** — the audit-controls requirement applies to the composing [Event Log](./event-log.md) and [Audit Trail](../compositions/audit-trail.md) instances rather than to the order record; retention under HIPAA and state law is [Retention Window](./retention-window.md)'s (Non-goal 22).
 - **ISMP and Joint Commission medication-management standards** — the verification-gates-dispensing sequence and the requirement that every step be attributed are the structural correlates. What a pharmacist should look *for* at verification is clinical practice, not this atom's (Non-goal 4 through 7).
 

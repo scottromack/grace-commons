@@ -52,7 +52,7 @@ Term assignee reference: the opaque reference naming the responsible actor — a
 
 Term seam: the atom's I/O boundary as the section titled Logic Confinement Principle in `execution-contract.md` declares it; the host injects the clock reading and the assignment id here.
 
-Term transition: the atom's evaluation of one call against the assignment store, as the section titled Logic Confinement Principle in `execution-contract.md` declares it.
+Term transition: the atom's evaluation of one call against the assignment records, as the section titled Logic Confinement Principle in `execution-contract.md` declares it.
 
 Term business caller: the party whose action the call carries, as the section titled Logic Confinement Principle in `execution-contract.md` declares it; never the source of an injected value.
 
@@ -88,7 +88,7 @@ Term transfer instant: the instant the assignment was handed on — a [Transfer 
 
 ```
 Capability requirement 1: The deployment MUST supply now at the seam.
-Capability requirement 4: The deployment MUST supply the assignment store PER Execution Contract Store 1 through 4.
+Capability requirement 4: The deployment MUST supply the assignment records PER Execution Contract Database 1 through 4.
 Deleted: Capability requirement 2. Execution Contract Logic confinement 7 owns it.
 Deleted: Capability requirement 3. Execution Contract Logic confinement 7 owns it.
 Deleted: Clock semantics 1. Execution Contract Logic confinement 7 owns it.
@@ -125,24 +125,24 @@ Operation 3: [Assign] MUST answer assignment id.
 Operation 4: IF task reference EQUALS blank THEN [Assign] MUST answer invalid-request.
 Operation 5: IF assignee reference EQUALS blank THEN [Assign] MUST answer invalid-request.
 Operation 6: IF an active assignment EXISTS for the task reference THEN [Assign] MUST answer already-assigned.
-Operation 7: IF the store refuses the write THEN [Assign] MUST answer storage-failure.
+Operation 7: IF the database refuses the write THEN [Assign] MUST answer storage-failure.
 Operation 8: IF no assignment EXISTS for the assignment id THEN [Recall] MUST answer not-known.
 Operation 9: IF the assignment's status EQUALS recalled THEN [Recall] MUST answer not-active.
 Operation 10: IF the assignment's status EQUALS transferred THEN [Recall] MUST answer not-active.
 Operation 11: [Recall] MUST stand the assignment in recalled.
 Operation 12: [Recall] MUST leave the task reference with no active assignment.
-Operation 13: IF the store refuses the write THEN [Recall] MUST answer storage-failure.
+Operation 13: IF the database refuses the write THEN [Recall] MUST answer storage-failure.
 Operation 14: IF no assignment EXISTS for the assignment id THEN [Reassign] MUST answer not-known.
 Operation 15: IF the assignment's status EQUALS recalled THEN [Reassign] MUST answer not-active.
 Operation 16: IF the assignment's status EQUALS transferred THEN [Reassign] MUST answer not-active.
 Operation 17: IF new assignee reference EQUALS blank THEN [Reassign] MUST answer invalid-request.
 Operation 18: [Reassign] MUST stand the old assignment in transferred.
 Operation 19: [Reassign] MUST record EXACTLY ONE active assignment for the task reference.
-Deleted: Operation 20. Execution Contract Store 1 owns it.
+Deleted: Operation 20. Execution Contract Database 1 owns it.
 Operation 21: [Reassign] MUST answer the new assignment id.
-Operation 22: IF the store refuses either write THEN [Reassign] MUST answer storage-failure.
-Deleted: Operation 23. Execution Contract Store 1 and Execution Contract Store 3 own it.
-Operation 24: A refused call MUST leave the store as the call found the store.
+Operation 22: IF the database refuses either write THEN [Reassign] MUST answer storage-failure.
+Deleted: Operation 23. Execution Contract Database 1 and Execution Contract Database 3 own it.
+Operation 24: A refused call MUST leave the database as the call found the database.
 Operation 25: [Active For] MUST answer the active assignment for the task reference.
 Operation 26: [Active For] MUST answer none for a task reference with no active assignment.
 Operation 27: [History For] MUST answer EVERY assignment carrying the task reference.
@@ -160,14 +160,14 @@ Term new assignee reference: the opaque reference naming the successor a reassig
 
 The case space, and the rule that owns each case:
 
-| Call | Case | Answer | Effect on the assignment store |
+| Call | Case | Answer | Effect on the assignment records |
 |---|---|---|---|
-| [Assign] | refs present, task unassigned, store accepts | assignment id | one assignment lands in [Active] (Operation 1, Operation 2) |
+| [Assign] | refs present, task unassigned, database accepts | assignment id | one assignment lands in [Active] (Operation 1, Operation 2) |
 | [Assign] | blank task reference or assignee reference | [Invalid Request] | none (Operation 4, Operation 5) |
 | [Assign] | task already has a live assignment | [Already Assigned] | none (Operation 6) |
 | [Recall] | assignment is live | ok | [Active] → [Recalled]; the task is nobody's (Operation 11, Operation 12) |
 | [Recall] | assignment is recalled or transferred | [Not Active] | none (Operation 9, Operation 10) |
-| [Reassign] | assignment live, successor present, store accepts | the new assignment id | old → [Transferred] and a new [Active] one (Operation 18, Operation 19, Operation 21) |
+| [Reassign] | assignment live, successor present, database accepts | the new assignment id | old → [Transferred] and a new [Active] one (Operation 18, Operation 19, Operation 21) |
 | [Reassign] | blank new assignee reference | [Invalid Request] | none (Operation 17) |
 | [Reassign] | assignment is recalled or transferred | [Not Active] | none (Operation 15, Operation 16) |
 | [Reassign] | either write refused | [Storage Failure] | none — the old stays [Active] (Operation 22, Operation 24) |
@@ -209,8 +209,8 @@ The case space, and the rule that owns each case:
   ```
   Invariant 7.1: A task reference MUST carry EXACTLY ONE active assignment once [Reassign] lands.
   Invariant 7.2: The reassigned assignment MUST stand in transferred once [Reassign] lands.
-  Deleted: Invariant 7.3. Execution Contract Store 1 owns it.
-  Deleted: Invariant 7.4. Execution Contract Store 1 owns it.
+  Deleted: Invariant 7.3. Execution Contract Database 1 owns it.
+  Deleted: Invariant 7.4. Execution Contract Database 1 owns it.
   ```
 - **Invariant 8 — Timestamp ordering.**
   ```
@@ -224,13 +224,13 @@ The case space, and the rule that owns each case:
   Invariant 9.2: The assignments carrying one task reference MUST record when each holding began.
   Invariant 9.3: The assignments carrying one task reference MUST record how each holding ended.
   ```
-- **Invariant 10 — Assignment store durability.**
+- **Invariant 10 — Assignment record durability.**
   ```
   Invariant 10.1: The atom MUST NOT delete an assignment record.
   Invariant 10.2: The assignment set MUST NOT shrink.
   ```
 
-At-most-one and reassign atomicity give the *unambiguous accountability* property — *who is responsible for this task?* has one answer or none, never two. Immutability, the complete history and durability give *auditability* — the chain is the store, and nothing leaves it quietly.
+At-most-one and reassign atomicity give the *unambiguous accountability* property — *who is responsible for this task?* has one answer or none, never two. Immutability, the complete history and durability give *auditability* — the chain is the database, and nothing leaves it quietly.
 
 ## Examples
 
@@ -246,7 +246,7 @@ A support ticket is auto-assigned to a tier-1 agent: `assign(ticket_t99, agent_t
 
 ### Healthcare — patient-to-nurse assignment on a ward
 
-A patient is admitted and assigned to the on-call nurse: `assign(patient_p31, nurse_n7) → a12`. At shift change, the charge nurse reassigns: `reassign(a12, nurse_n14) → a13`. If a clinical incident occurs overnight, the investigation can determine which nurse held the assignment at what time. The assignment store is the accountability record; the clinical event log (Event Log atom) is the action record; both compose to answer the investigation's questions.
+A patient is admitted and assigned to the on-call nurse: `assign(patient_p31, nurse_n7) → a12`. At shift change, the charge nurse reassigns: `reassign(a12, nurse_n14) → a13`. If a clinical incident occurs overnight, the investigation can determine which nurse held the assignment at what time. The assignment records are the accountability record; the clinical event log (Event Log atom) is the action record; both compose to answer the investigation's questions.
 
 ### Rejection paths
 
@@ -260,7 +260,7 @@ A single sequence exercising all rejection reasons:
 - `reassign(a1, dev_c)` → rejected not-active (a1 is terminal).
 - `assign(task_t1, dev_b) → a2` — accepted; `task_t1` is now unassigned so a fresh [Assignment] is allowed.
 - `reassign(a2, "")` → rejected invalid-request (empty assignee).
-- `assign(task_t2, dev_c)` → rejected storage-failure (store write fails; no [Assignment] created; `task_t2` remains unassigned).
+- `assign(task_t2, dev_c)` → rejected storage-failure (database write fails; no [Assignment] created; `task_t2` remains unassigned).
 
 All five rejection reasons (invalid-request, already-assigned, not-known, not-active, storage-failure) exercised in one thread.
 
@@ -268,7 +268,7 @@ All five rejection reasons (invalid-request, already-assigned, not-known, not-ac
 
 ## Generation acceptance
 
-This atom's acceptance is what an external auditor can clear from the assignment store's stored fields, with no recourse to source code, runbooks or developer narration.
+This atom's acceptance is what an external auditor can clear from the assignment records' stored fields, with no recourse to source code, runbooks or developer narration.
 
 ### Conformance checks
 
@@ -288,10 +288,10 @@ Check 5.1: An auditor MUST identify which composing patterns a deployment wired 
 External check 1: An auditor MUST read the assigner's authority from the composing Permissions records (Non-goal 5).
 External check 2: An auditor MUST read who issued an assignment from the composing Actor Identity attestations (Non-goal 7).
 External check 3: An auditor MUST read a task's completion from the host's task system (Non-goal 11).
-Deleted: External check 4. Execution Contract Store 1 and Execution Contract Store 2 own it.
+Deleted: External check 4. Execution Contract Database 1 and Execution Contract Database 2 own it.
 ```
 
-NOTE: EVERY check names the rule the check tests. The assignment store answers *who holds this and who held it*; who was allowed to hand it over, and whether the work is done, are the composing patterns' records.
+NOTE: EVERY check names the rule the check tests. The assignment records answer *who holds this and who held it*; who was allowed to hand it over, and whether the work is done, are the composing patterns' records.
 
 ## Non-goals
 
@@ -319,18 +319,18 @@ Where the atom breaks down: when responsibility is genuinely shared at the same 
 ### Reassign atomicity
 
 ```
-Deleted: Reassign atomicity 1. Execution Contract Store 1 owns it.
-Deleted: Reassign atomicity 2. Execution Contract Store 1 and Execution Contract Store 3 own it.
-Deleted: Reassign atomicity 3. Execution Contract Store 1 and Execution Contract Store 3 own it.
-Deleted: Reassign atomicity 4. Execution Contract Store 1 owns it.
+Deleted: Reassign atomicity 1. Execution Contract Database 1 owns it.
+Deleted: Reassign atomicity 2. Execution Contract Database 1 and Execution Contract Database 3 own it.
+Deleted: Reassign atomicity 3. Execution Contract Database 1 and Execution Contract Database 3 own it.
+Deleted: Reassign atomicity 4. Execution Contract Database 1 owns it.
 ```
 
 ### The assign race
 
 ```
-Deleted: Assign race 1. Execution Contract Store 1 and Execution Contract Store 2 own it.
-Deleted: Assign race 2. Execution Contract Store 2 owns it.
-Deleted: Assign race 3. Execution Contract Store 2 owns it.
+Deleted: Assign race 1. Execution Contract Database 1 and Execution Contract Database 2 own it.
+Deleted: Assign race 2. Execution Contract Database 2 owns it.
+Deleted: Assign race 3. Execution Contract Database 2 owns it.
 ```
 
 ## Composition notes
@@ -351,7 +351,7 @@ Each `[Term]` marker above links to its term entry here; a term entry states wha
 
 ### Vocabulary
 
-Term actors: the atom; the host; the transition; the deployment; a composing pattern (also: a pattern); a business caller; an assigner; an assignee; an auditor; the store; an assignment; a task; a call.
+Term actors: the atom; the host; the transition; the deployment; a composing pattern (also: a pattern); a business caller; an assigner; an assignee; an auditor; the database; an assignment; a task; a call.
 
 Term records: assignment — one binding, carrying assignment id, task reference, assignee reference, assignment instant, status and, once it ends, recall instant or transfer instant.
 
@@ -501,7 +501,7 @@ Role:      Outcome
 
 #### Invalid Request
 
-The refusal [Assign] returns when [Task Reference] or [Assignee Reference] is not well-formed or is empty, and [Reassign] returns when [New Assignee Reference] is not well-formed or is empty. A guard rejection that fails before any store write; no [Assignment] is created or changed.
+The refusal [Assign] returns when [Task Reference] or [Assignee Reference] is not well-formed or is empty, and [Reassign] returns when [New Assignee Reference] is not well-formed or is empty. A guard rejection that fails before any database write; no [Assignment] is created or changed.
 
 Kind:       Member
 Member of:  the action rejection
@@ -537,7 +537,7 @@ Projection: not-active
 
 #### Storage Failure
 
-The refusal any action returns when the store write fails after the preconditions pass. No [Assignment] is created (for [Assign]), or the [Assignment] remains [Active] (for [Recall] and [Reassign]). The caller must treat it as definitive.
+The refusal any action returns when the database write fails after the preconditions pass. No [Assignment] is created (for [Assign]), or the [Assignment] remains [Active] (for [Recall] and [Reassign]). The caller must treat it as definitive.
 
 Kind:       Member
 Member of:  the action rejection
@@ -580,10 +580,10 @@ Projection: storage-failure
 Assignment is a productivity primitive with broad operational anchoring and lighter regulatory footprint than the compliance atoms:
 
 - **ITIL (IT Infrastructure Library)** — incident and request management define assignment as the binding of a work item to a responsible individual or group. ITIL's assignment and escalation mechanics are the operational reference for the support-queue examples.
-- **ISO/IEC 20000 (IT Service Management)** — formalizes incident assignment and reassignment as required process steps with audit-trail obligations. The assignment store satisfies the audit requirement.
+- **ISO/IEC 20000 (IT Service Management)** — formalizes incident assignment and reassignment as required process steps with audit-trail obligations. The assignment records satisfy the audit requirement.
 - **HL7 FHIR (Health Level Seven Fast Healthcare Interoperability Resources — the standard for exchanging healthcare data electronically) Task resource** — healthcare task management defines assignment as a `Task.owner` binding, with history of ownership tracked per task. The atom's responsibility-history invariant (Invariant 9) is the FHIR-compatible form.
 - **PMI PMBOK (Project Management Body of Knowledge)** — responsibility assignment matrices (RAM / RACI) are the structured form of the same mechanic: binding work packages to responsible individuals. The atom is the dynamic runtime form of a RACI row.
-- **GDPR (EU General Data Protection Regulation) Article 5(1)(f) and Article 32** — in systems processing personal data, assignment records establish who had access and responsibility for personal data at what time. The assignment store is part of the accountability trail.
+- **GDPR (EU General Data Protection Regulation) Article 5(1)(f) and Article 32** — in systems processing personal data, assignment records establish who had access and responsibility for personal data at what time. The assignment records are part of the accountability trail.
 
 It inherits from:
 

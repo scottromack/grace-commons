@@ -55,7 +55,7 @@ Identity 9: The atom MUST NOT normalize a reference.
 Identity 10: The atom MUST NOT confirm that a resource names a known registry entry.
 Identity 11: The atom MUST NOT confirm that a requester names a known actor.
 Identity 12: The atom MUST NOT hold the resource's content.
-Identity 13: The deployment MUST route EVERY call to one store instance.
+Identity 13: The deployment MUST route EVERY call to one database instance.
 ```
 
 Term commitment: the record this atom holds — one resource held for one requester for a bounded window, then resolved to exactly one terminal state.
@@ -68,11 +68,11 @@ Term reference: id, resource OR requester — every opaque reference this atom r
 
 Term registry: the deployment's owner of what a resource is and what availability means; outside this atom (Non-goal 11).
 
-Term store instance: one named commitment store a call is routed to; id uniqueness ranges over one instance.
+Term database instance: one named database a call is routed to; id uniqueness ranges over one instance.
 
 Term seam: the atom's I/O boundary as the section titled Logic Confinement Principle in `execution-contract.md` declares it; the host injects the clock reading, the id material and the registry's availability verdict here.
 
-Term transition: the atom's evaluation of one call against the commitment store, as the section titled Logic Confinement Principle in `execution-contract.md` declares it.
+Term transition: the atom's evaluation of one call against the commitment records, as the section titled Logic Confinement Principle in `execution-contract.md` declares it.
 
 Term now: the wall-time reading the host takes at the seam and hands to the transition, as the section titled Logic Confinement Principle in `execution-contract.md` declares it; never read inside the transition, never supplied by the business caller.
 
@@ -100,14 +100,14 @@ Capability requirement 2: The deployment MUST supply the id material at the seam
 Capability requirement 3: The registry MUST run the availability read and the hold write for one resource as one critical section.
 Capability requirement 4: The registry MUST release the critical section on the caller's return.
 Capability requirement 5: The registry MUST release the critical section on the caller's death.
-Deleted: Capability requirement 6. Execution Contract Store 3 owns it.
+Deleted: Capability requirement 6. Execution Contract Database 3 owns it.
 Capability requirement 7: A deployment firing [Expire] on a cadence MUST declare the cadence.
 Capability requirement 8: A deployment firing [Expire] on a cadence MUST declare the reclamation window the cadence falls inside.
 Capability requirement 9: The deployment MUST canonicalize an opaque reference.
 Capability requirement 10: The registry MUST return the resource to availability on a releasing action.
 Capability requirement 11: The registry MUST NOT return the resource to availability on an admitted confirm.
 Capability requirement 12: A deployment firing [Expire] on a cadence MUST resolve EVERY lapsed commitment WITHIN the reclamation window.
-Capability requirement 15: The deployment MUST supply the commitment store PER Execution Contract Store 1 through 4.
+Capability requirement 15: The deployment MUST supply the commitment records PER Execution Contract Database 1 through 4.
 Deleted: Capability requirement 13. Execution Contract Logic confinement 7 owns it.
 Deleted: Capability requirement 14. Execution Contract Logic confinement 7 owns it.
 Deleted: Clock semantics 4. Execution Contract Logic confinement 7 owns it.
@@ -168,8 +168,8 @@ Operation 23: An admitted expire MUST stand the commitment in expired.
 Operation 24: An admitted confirm MUST record now as confirmation instant.
 Operation 25: An admitted release MUST record now as release instant.
 Operation 26: An admitted expire MUST record now as lapse instant.
-Deleted: Operation 27. Execution Contract Store 1 owns it.
-Operation 28: IF the store refuses the write THEN an action MUST answer storage-failure.
+Deleted: Operation 27. Execution Contract Database 1 owns it.
+Operation 28: IF the database refuses the write THEN an action MUST answer storage-failure.
 Operation 29: An action MUST answer storage-failure ONLY IF EVERY precondition passes.
 Operation 30: A refused action MUST leave the commitment as the call found the commitment.
 Operation 31: A refused [Place Hold] MUST NOT record a commitment.
@@ -205,13 +205,13 @@ Term terminal state: confirmed | released | expired.
 
 Term terminal instant: confirmation instant | release instant | lapse instant.
 
-Term admitted place hold: a [Place Hold] call that passes every precondition and whose store write commits.
+Term admitted place hold: a [Place Hold] call that passes every precondition and whose database write commits.
 
-Term admitted confirm: a [Confirm] call that passes every precondition and whose store write commits.
+Term admitted confirm: a [Confirm] call that passes every precondition and whose database write commits.
 
-Term admitted release: a [Release] call that passes every precondition and whose store write commits.
+Term admitted release: a [Release] call that passes every precondition and whose database write commits.
 
-Term admitted expire: a [Expire] call that passes every precondition and whose store write commits.
+Term admitted expire: a [Expire] call that passes every precondition and whose database write commits.
 
 Term admitted resolving action: an admitted confirm, an admitted release OR an admitted expire.
 
@@ -242,12 +242,12 @@ Term reclamation lag: the span between a commitment's expiry instant and the adm
   ```
 - **Invariant 6 — Hold window monotonicity.**
   ```
-  Invariant 6.1: The store MUST NOT carry a degenerate window.
+  Invariant 6.1: The database MUST NOT carry a degenerate window.
   ```
 - **Invariant 7 — Honored window.**
   ```
-  Invariant 7.1: The store MUST NOT carry a late resolution.
-  Invariant 7.2: The store MUST NOT carry a premature expiry.
+  Invariant 7.1: The database MUST NOT carry a late resolution.
+  Invariant 7.2: The database MUST NOT carry a premature expiry.
   Invariant 7.3: EVERY held commitment MUST read EXACTLY ONE OF open, lapsed.
   ```
 - **Invariant 8 — Resolution instants follow placement.**
@@ -256,11 +256,11 @@ Term reclamation lag: the span between a commitment's expiry instant and the adm
   Invariant 8.2: A commitment's release instant MUST NOT PRECEDE the commitment's placement instant.
   Deleted: Invariant 9. Identity 5 owns id reuse for every id, resolved or not.
   ```
-- **Invariant 10 — Commitment store durability.**
+- **Invariant 10 — Commitment record durability.**
   ```
-  Invariant 10.1: The atom MUST NOT remove a commitment from the store.
-  Invariant 10.2: The store instance's commitment count MUST NOT fall.
-  Deleted: Invariant 10.3. Execution Contract Store 1 owns it.
+  Invariant 10.1: The atom MUST NOT remove a commitment from the database.
+  Invariant 10.2: The database instance's commitment count MUST NOT fall.
+  Deleted: Invariant 10.3. Execution Contract Database 1 owns it.
   ```
 
 Term degenerate window: a commitment whose expiry instant does not exceed the commitment's placement instant.
@@ -305,13 +305,13 @@ What differs across the five: resource semantics, window length, the regulatory 
 
 - **Regulator audit.** *Show me every hold confirmed or released after its declared window.* The query is Check 3.1 and returns the empty set by construction — Invariant 7.1 makes a late resolution unrecordable rather than merely unlikely.
 - **Data subject request.** Erasure against the personal data behind requester. The atom alone cannot satisfy it while keeping the trail; a composing Cryptographic Shredding or Erasure Tombstone pattern redacts the reference and leaves id, placement instant, expiry instant, the state and the terminal instant intact, so the lifecycle stays auditable and the personal data does not persist.
-- **Breach investigation.** The universe of resources committed between 02:00 and 04:00 UTC. Every commitment carries placement instant, so the answer is a filter over the store with no log replay behind it; the terminal state and its instant then say which holds resolved and which lapsed. This atom offers no read action of its own — the store is read by the deployment or by an auditor, not through a surface here — and ordering *within* the window needs the composing [Event Log](./event-log.md) (External check 2).
+- **Breach investigation.** The universe of resources committed between 02:00 and 04:00 UTC. Every commitment carries placement instant, so the answer is a filter over the database with no log replay behind it; the terminal state and its instant then say which holds resolved and which lapsed. This atom offers no read action of its own — the database is read by the deployment or by an auditor, not through a surface here — and ordering *within* the window needs the composing [Event Log](./event-log.md) (External check 2).
 
 ---
 
 ## Generation acceptance
 
-This atom's acceptance is what an external auditor can clear from the commitment store alone, with no recourse to source code, runbooks or developer narration.
+This atom's acceptance is what an external auditor can clear from the commitment records alone, with no recourse to source code, runbooks or developer narration.
 
 ### Conformance checks
 
@@ -321,15 +321,15 @@ Check 1.2: An auditor MUST find a terminal instant on EVERY commitment whose sta
 Check 1.3: An auditor MUST find no terminal instant on a held commitment (State 5).
 Check 2.1: An auditor MUST find no commitment carrying two terminal instants (Invariant 2.2).
 Check 2.2: An auditor MUST find no commitment whose state IS NOT IN the terminal states on a later read of a commitment a prior read found in that terminal state (Invariant 3.1).
-Check 3.1: An auditor MUST find no late resolution in the store (Invariant 7.1).
-Check 3.2: An auditor MUST find no premature expiry in the store (Invariant 7.2).
-Check 3.3: An auditor MUST find no degenerate window in the store (Invariant 6.1).
+Check 3.1: An auditor MUST find no late resolution in the database (Invariant 7.1).
+Check 3.2: An auditor MUST find no premature expiry in the database (Invariant 7.2).
+Check 3.3: An auditor MUST find no degenerate window in the database (Invariant 6.1).
 Check 4.1: An auditor MUST find no commitment's confirmation instant preceding the commitment's placement instant (Invariant 8.1).
 Check 4.2: An auditor MUST find no commitment's release instant preceding the commitment's placement instant (Invariant 8.2).
 Check 5.1: An auditor MUST find a re-read commitment's properties unchanged across an admitted resolving action (Invariant 5.1).
 Check 5.2: An auditor MUST find no id on two commitments (Identity 5).
 Check 6.1: An auditor MUST find no commitment absent from a later read (Invariant 10.1).
-Check 6.2: An auditor MUST find the store instance's commitment count no lower on a later read (Invariant 10.2).
+Check 6.2: An auditor MUST find the database instance's commitment count no lower on a later read (Invariant 10.2).
 Check 7.1: An auditor MUST find a resource and a requester on EVERY commitment (State 1).
 Check 7.2: An auditor MUST find a placement instant and an expiry instant on EVERY commitment (State 1).
 ```
@@ -389,17 +389,17 @@ NOTE: the owners — [Idempotent Reservation](../compositions/idempotent-reserva
 ### Atomic writes
 
 ```
-Deleted: Atomic writes 1. Execution Contract Store 1 owns it.
-Deleted: Atomic writes 2. Execution Contract Store 1 and Execution Contract Store 3 own it.
-Deleted: Atomic writes 3. Execution Contract Store 1 owns it.
-Deleted: Atomic writes 4. Execution Contract Store 1 owns it.
+Deleted: Atomic writes 1. Execution Contract Database 1 owns it.
+Deleted: Atomic writes 2. Execution Contract Database 1 and Execution Contract Database 3 own it.
+Deleted: Atomic writes 3. Execution Contract Database 1 owns it.
+Deleted: Atomic writes 4. Execution Contract Database 1 owns it.
 ```
 
 ### Concurrency
 
 ```
-Deleted: Concurrency 1. Execution Contract Store 1 and Execution Contract Store 2 own it.
-Deleted: Concurrency 2. Execution Contract Store 2 owns it.
+Deleted: Concurrency 1. Execution Contract Database 1 and Execution Contract Database 2 own it.
+Deleted: Concurrency 2. Execution Contract Database 2 owns it.
 Concurrency 3: A losing [Place Hold] racing on one resource MUST answer resource-unavailable.
 ```
 
@@ -446,7 +446,7 @@ Each `[Term]` marker above links to its term entry here; a term entry states wha
 
 ### Vocabulary
 
-Term actors: the atom; the deployment; the registry; the store; the seam; the transition; a composing pattern; a caller; an auditor; a regulator; a data subject; an investigator; a reader; a commitment; a held commitment; a confirmed commitment; a released commitment; an expired commitment; an action; a resolving action; a refused action; a losing [Place Hold]; a rejection; a crash; a re-hold; an opaque reference; the store instance's commitment count.
+Term actors: the atom; the deployment; the registry; the database; the seam; the transition; a composing pattern; a caller; an auditor; a regulator; a data subject; an investigator; a reader; a commitment; a held commitment; a confirmed commitment; a released commitment; an expired commitment; an action; a resolving action; a refused action; a losing [Place Hold]; a rejection; a crash; a re-hold; an opaque reference; the database instance's commitment count.
 
 Term records: commitment — one resource held for one requester for a bounded window, carrying id, resource, requester, placement instant, expiry instant, a state and, where set, confirmation instant, release instant or lapse instant.
 
@@ -460,7 +460,7 @@ Term cadences: empty.
 
 Term qualifiers: migrated — rewritten in GRACE lang v0.40 (2026-09-13).
 
-Term terms: commitment, id, property, reference, registry, store instance, seam, transition, now, resolving action, well-formedness check, duration bounds, window bound, window reading, open, lapsed, window rejection, terminal state, terminal instant, admitted place hold, admitted confirm, admitted release, admitted expire, admitted resolving action, releasing action, string input, blank, reclamation lag, capacity decision, degenerate window, late resolution, premature expiry, re-hold.
+Term terms: commitment, id, property, reference, registry, database instance, seam, transition, now, resolving action, well-formedness check, duration bounds, window bound, window reading, open, lapsed, window rejection, terminal state, terminal instant, admitted place hold, admitted confirm, admitted release, admitted expire, admitted resolving action, releasing action, string input, blank, reclamation lag, capacity decision, degenerate window, late resolution, premature expiry, re-hold.
 
 Term cited: sequence number: Event Log. The section titled Logic Confinement Principle in `execution-contract.md` — the seam and the transition.
 
@@ -492,7 +492,7 @@ Kind: Operation
 
 #### Read
 
-The read-only query answering every commitment the store holds, held and terminal, each with its stored fields. It changes nothing and refuses nothing.
+The read-only query answering every commitment the database holds, held and terminal, each with its stored fields. It changes nothing and refuses nothing.
 
 Kind: Operation
 
@@ -671,7 +671,7 @@ Projection: window-not-elapsed
 
 #### Storage Failure
 
-The refusal any action returns when the store refuses the write after every precondition passes. No commitment is recorded, or the commitment remains [Held]. Definitive, which rests on Capability requirement 15.
+The refusal any action returns when the database refuses the write after every precondition passes. No commitment is recorded, or the commitment remains [Held]. Definitive, which rests on Capability requirement 15.
 
 Kind:       Member
 Member of:  the action rejection

@@ -52,18 +52,18 @@ Identity 1: The atom MUST identify an observation by the observation id.
 Identity 2: The host MUST allocate an observation id at the seam.
 Identity 3: The transition MUST NOT allocate an observation id.
 Identity 4: The atom MUST NOT change an observation id.
-Identity 5: Two observations in one store instance MUST NOT share an observation id.
-Identity 6: The deployment MUST route EVERY call to one store instance.
+Identity 5: Two observations in one database instance MUST NOT share an observation id.
+Identity 6: The deployment MUST route EVERY call to one database instance.
 Identity 7: The atom MUST NOT identify an observation by the subject reference.
 Identity 8: The atom MUST admit a second observation carrying a recorded subject reference.
-Identity 9: A subject reference MUST carry one meaning across EVERY store instance.
-Identity 10: An observation id MUST carry one meaning within one store instance.
+Identity 9: A subject reference MUST carry one meaning across EVERY database instance.
+Identity 10: An observation id MUST carry one meaning within one database instance.
 Identity 11: The atom MUST compare a reference byte-exactly.
 Identity 12: The atom MUST NOT normalize a reference.
 Identity 13: The atom MUST NOT confirm that a subject reference names a known subject.
 Identity 14: The atom MUST NOT interpret an observation type.
 Identity 15: The atom MUST NOT interpret a unit.
-Identity 16: An action MUST NOT accept a store name.
+Identity 16: An action MUST NOT accept a database name.
 ```
 
 Term observation: one recorded measurement about one subject — a value, a unit, a type, an observer and an instant; the record this atom holds.
@@ -80,11 +80,11 @@ Term unit: the opaque string naming the measurement's unit — a [Unit].
 
 Term reference: subject reference, recording actor, amending actor OR retracting actor — every opaque reference this atom records.
 
-Term store instance: one named observation store a call is routed to — a [Store Name] identifies it; observation id uniqueness ranges over one instance.
+Term database instance: one named database a call is routed to — a [Database Name] identifies it; observation id uniqueness ranges over one instance.
 
 Term seam: the atom's I/O boundary as the section titled Logic Confinement Principle in `execution-contract.md` declares it; the host injects the clock reading and the observation id here.
 
-Term transition: the atom's evaluation of one call against the observation store, as the section titled Logic Confinement Principle in `execution-contract.md` declares it.
+Term transition: the atom's evaluation of one call against the observation records, as the section titled Logic Confinement Principle in `execution-contract.md` declares it.
 
 ### State
 
@@ -100,7 +100,7 @@ State 8: EVERY observation MUST carry observation id, subject reference, recordi
 State 9: EVERY amended observation MUST carry a successor id.
 State 10: EVERY successor observation MUST carry predecessor id, amending actor and amendment reason.
 State 11: EVERY retracted observation MUST carry retracting actor and retraction reason.
-State 12: The store instance's observation count MUST NOT fall.
+State 12: The database instance's observation count MUST NOT fall.
 State 13: The atom MUST store a resolved recording instant standing within the future bound as the call supplied the value.
 State 14: The atom MUST NOT normalize a recording instant's timezone.
 ```
@@ -113,7 +113,7 @@ Deleted: Capability requirement 2. Execution Contract Logic confinement 7 owns i
 Deleted: Capability requirement 3. Execution Contract Logic confinement 7 owns it.
 Deleted: Capability requirement 4. Execution Contract Logic confinement 7 owns it.
 Capability requirement 5: The deployment MUST declare the clock offset allowance.
-Capability requirement 6: The deployment MUST supply the observation store PER Execution Contract Store 1 through 4.
+Capability requirement 6: The deployment MUST supply the observation records PER Execution Contract Database 1 through 4.
 Deleted: Clock semantics 1. Execution Contract Logic confinement 7 owns it.
 Deleted: Clock semantics 2. Execution Contract Logic confinement 7 owns it.
 Deleted: Clock semantics 3. Execution Contract Logic confinement 7 owns it.
@@ -176,17 +176,17 @@ Operation 29: An admitted amend MUST set the successor's predecessor id to the o
 Operation 30: An admitted amend MUST record amending actor and reason as amendment reason on the successor.
 Operation 31: An admitted amend MUST stand the original in amended.
 Operation 32: An admitted amend MUST set the original's successor id to the successor's observation id.
-Deleted: Operation 33. Execution Contract Store 1 owns it.
+Deleted: Operation 33. Execution Contract Database 1 owns it.
 Operation 34: An admitted amend MUST answer the successor's observation id.
 Operation 35: An admitted retract MUST stand the observation in retracted.
 Operation 36: An admitted retract MUST record retracting actor and reason as retraction reason.
 Operation 37: An admitted retract MUST answer retracted.
 Operation 38: An observation whose state EQUALS amended MUST NOT refuse [Retract].
-Operation 39: IF the store refuses the write THEN a writing action MUST answer storage-failure.
+Operation 39: IF the database refuses the write THEN a writing action MUST answer storage-failure.
 Operation 40: An action MUST answer storage-failure ONLY IF EVERY precondition passes.
-Operation 41: A refused action MUST leave the store as the call found the store.
+Operation 41: A refused action MUST leave the database as the call found the database.
 Operation 42: An admitted read MUST answer the matching observations in recording instant ascending order.
-Operation 43: An admitted read MUST order two observations sharing a recording instant stably across two reads of one store state.
+Operation 43: An admitted read MUST order two observations sharing a recording instant stably across two reads of one database state.
 Operation 44: An admitted read MUST answer EVERY observation matching the supplied filters.
 Operation 45: An admitted read MUST NOT answer an observation failing a supplied filter.
 Operation 46: IF no observation matches THEN an admitted read MUST answer an empty observation sequence.
@@ -246,8 +246,8 @@ Term admitted read: a [Read] call whose every filter axis and filter value the g
 | 3 | [Amend], the observation stands in amended | [Already Amended] |
 | 4 | the state admits the action, a request field is blank | [Invalid Request] |
 | 5 | [Amend], the request is well-formed, value or unit fails the constraint | [Invalid Observation] |
-| 6 | every precondition passes, the store refuses the write | [Storage Failure] |
-| 7 | every precondition passes, the store accepts the write | the success answer |
+| 6 | every precondition passes, the database refuses the write | [Storage Failure] |
+| 7 | every precondition passes, the database accepts the write | the success answer |
 
 ### Invariants
 
@@ -277,11 +277,11 @@ Term admitted read: a [Read] call whose every filter axis and filter value the g
   ```
   Invariant 6.1: An observation whose state EQUALS retracted MUST NOT admit a chain action.
   ```
-- **Invariant 7 — Store durability.**
+- **Invariant 7 — Record durability.**
   ```
-  Invariant 7.1: The atom MUST NOT remove an observation from the store.
-  Deleted: Invariant 7.2. Execution Contract Store 1 owns it.
-  Deleted: Invariant 7.3. Execution Contract Store 1 and Execution Contract Store 3 own it.
+  Invariant 7.1: The atom MUST NOT remove an observation from the database.
+  Deleted: Invariant 7.2. Execution Contract Database 1 owns it.
+  Deleted: Invariant 7.3. Execution Contract Database 1 and Execution Contract Database 3 own it.
   ```
 - **Invariant 8 — Recording Instant is set once.**
   ```
@@ -331,15 +331,15 @@ An amended observation can still be retracted — retraction reaches any link in
 
 ### Regulated adversarial scenarios
 
-- **Regulator audit.** A HIPAA (US Health Insurance Portability and Accountability Act) auditor queries every observation for a patient across all states. The result carries the recorded, amended and retracted alike, and the chain is walkable in both directions — Check 2.1 through 2.4 are what make the amendment trail verifiable from the store rather than from a narrative about it.
+- **Regulator audit.** A HIPAA (US Health Insurance Portability and Accountability Act) auditor queries every observation for a patient across all states. The result carries the recorded, amended and retracted alike, and the chain is walkable in both directions — Check 2.1 through 2.4 are what make the amendment trail verifiable from the database rather than from a narrative about it.
 - **Disputed observation.** A patient disputes a glucose value. The original's value and clinician are immutable (Invariant 1.1); whether it was amended, by whom and why is on the successor (State 10); whether it was withdrawn and why is on the record itself (State 11). The dispute resolves against the chain, and what the chain cannot say is whether the measurement was *clinically* correct — that is a clinical judgment, not a record property.
-- **Breach investigation.** An investigator cross-references each observation's recording actor against the authorized staff list at the time it was recorded. Invariant 1.1 is why the reference can be trusted — it cannot have been changed since — and Invariant 7.1 is why the set is complete. What the store cannot supply is whether the named clinician was *authorized*, which is a composing [Permissions](./permissions.md) record (Non-goal 13, External check 2).
+- **Breach investigation.** An investigator cross-references each observation's recording actor against the authorized staff list at the time it was recorded. Invariant 1.1 is why the reference can be trusted — it cannot have been changed since — and Invariant 7.1 is why the set is complete. What the database cannot supply is whether the named clinician was *authorized*, which is a composing [Permissions](./permissions.md) record (Non-goal 13, External check 2).
 
 ---
 
 ## Generation acceptance
 
-This atom's acceptance is what an external auditor can clear from the observation store alone, with no recourse to source code, runbooks or developer narration.
+This atom's acceptance is what an external auditor can clear from the observation records alone, with no recourse to source code, runbooks or developer narration.
 
 ### Conformance checks
 
@@ -358,7 +358,7 @@ Check 5.1: An auditor MUST find EVERY observation's recording actor non-blank (O
 Check 5.2: An auditor MUST find EVERY retracted observation's retracting actor and retraction reason non-blank (Operation 17, Operation 18).
 Check 5.3: An auditor MUST find EVERY successor observation's amending actor and amendment reason non-blank (Operation 16, Operation 17).
 Check 5.4: An auditor MUST find a predecessor id, an amending actor and an amendment reason on EVERY successor observation (State 10).
-Check 6.1: An auditor MUST find two reads of one store state ordering two observations sharing a recording instant alike (Operation 43).
+Check 6.1: An auditor MUST find two reads of one database state ordering two observations sharing a recording instant alike (Operation 43).
 ```
 
 NOTE: EVERY check names the rule the check tests.
@@ -366,10 +366,10 @@ NOTE: EVERY check names the rule the check tests.
 ### External checks
 
 ```
-External check 1: A deployment needing EVERY issued observation id found in the store MUST capture the record answers (Invariant 7.1).
+External check 1: A deployment needing EVERY issued observation id found in the database MUST capture the record answers (Invariant 7.1).
 External check 2: A deployment needing a recording actor confirmed authorized MUST read the composing Permissions record (Non-goal 13).
 External check 3: A deployment needing a reference bound to an actor MUST read the composing Actor Identity attestation (Non-goal 11).
-External check 4: A deployment needing a value confirmed correct MUST read outside the observation store (Non-goal 5).
+External check 4: A deployment needing a value confirmed correct MUST read outside the observation records (Non-goal 5).
 ```
 
 ## Non-goals
@@ -391,12 +391,12 @@ Non-goal 13: A deployment needing an authorization decision MUST compose Permiss
 Non-goal 14: The atom MUST NOT bound an observation's retention.
 Non-goal 15: A deployment needing a retention bound MUST compose Retention Window.
 Non-goal 16: A deployment needing a preservation obligation MUST compose Legal Hold.
-Non-goal 17: The atom MUST NOT detect a rewrite under the store.
+Non-goal 17: The atom MUST NOT detect a rewrite under the database.
 Non-goal 18: A deployment needing a rewrite detected MUST compose Tamper Evidence.
 Non-goal 19: The atom MUST NOT read two [Record] calls carrying one field set as one observation.
 Non-goal 20: A deployment needing at-most-once recording MUST compose Duplicate Prevention.
 Non-goal 21: The atom MUST NOT derive a trend across two observations.
-Non-goal 22: The atom MUST NOT route a call across two store instances.
+Non-goal 22: The atom MUST NOT route a call across two database instances.
 Non-goal 23: A deployment needing a verifiable time anchor MUST compose a trusted timestamping pattern.
 ```
 
@@ -409,22 +409,22 @@ NOTE: the owners — [Actor Identity](./actor-identity.md) (Non-goal 10, Non-goa
 ### Atomic writes
 
 ```
-Deleted: Atomic writes 1. Execution Contract Store 1 owns it.
-Deleted: Atomic writes 2. Execution Contract Store 1 owns it.
-Deleted: Atomic writes 3. Execution Contract Store 1 and Execution Contract Store 3 own it.
-Deleted: Atomic writes 4. Execution Contract Store 1 owns it.
+Deleted: Atomic writes 1. Execution Contract Database 1 owns it.
+Deleted: Atomic writes 2. Execution Contract Database 1 owns it.
+Deleted: Atomic writes 3. Execution Contract Database 1 and Execution Contract Database 3 own it.
+Deleted: Atomic writes 4. Execution Contract Database 1 owns it.
 ```
 
 ### Concurrency
 
 ```
-Deleted: Concurrency 1. Execution Contract Store 2 owns it.
-Deleted: Concurrency 2. Execution Contract Store 2 owns it.
-Deleted: Concurrency 3. Execution Contract Store 2 owns it.
-Deleted: Concurrency 4. Execution Contract Store 2 owns it.
-Deleted: Concurrency 5. Execution Contract Store 2 owns it: a chain action's state check and transition are one transaction, and the atom names no section to release.
-Deleted: Concurrency 6. Execution Contract Store 2 owns it: a chain action's state check and transition are one transaction, and the atom names no section to lapse.
-Deleted: Concurrency 7. Execution Contract Store 2 owns it.
+Deleted: Concurrency 1. Execution Contract Database 2 owns it.
+Deleted: Concurrency 2. Execution Contract Database 2 owns it.
+Deleted: Concurrency 3. Execution Contract Database 2 owns it.
+Deleted: Concurrency 4. Execution Contract Database 2 owns it.
+Deleted: Concurrency 5. Execution Contract Database 2 owns it: a chain action's state check and transition are one transaction, and the atom names no section to release.
+Deleted: Concurrency 6. Execution Contract Database 2 owns it: a chain action's state check and transition are one transaction, and the atom names no section to lapse.
+Deleted: Concurrency 7. Execution Contract Database 2 owns it.
 Concurrency 8: The atom MUST admit two concurrent [Record] calls against one subject reference.
 ```
 
@@ -453,12 +453,12 @@ Composition note 1: A deployment MUST declare which composing patterns the deplo
 Composition note 2: A composing pattern MUST own the value constraint per observation type.
 Composition note 3: A composing pattern MUST own the authorization of a call.
 Composition note 4: A composing pattern MUST own the attestation binding a reference.
-Composition note 5: A composing pattern MUST own the tamper seal over the observation store.
-Composition note 6: A composing pattern MUST own the retention of the observation store.
+Composition note 5: A composing pattern MUST own the tamper seal over the observation records.
+Composition note 6: A composing pattern MUST own the retention of the observation records.
 Composition note 7: A composing pattern MUST own at-most-once recording.
 Composition note 8: A composing pattern MUST own a trend across two observations.
-Composition note 9: A composing pattern MUST own the routing across two store instances.
-Composition note 10: A composing pattern reading the observation store MUST NOT write to the observation store.
+Composition note 9: A composing pattern MUST own the routing across two database instances.
+Composition note 10: A composing pattern reading the observation records MUST NOT write to the observation records.
 ```
 
 ---
@@ -469,7 +469,7 @@ Each `[Term]` marker above links to its term entry here; a term entry states wha
 
 ### Vocabulary
 
-Term actors: the atom; the host; the transition; the deployment; a composing pattern; a business caller; a caller; a guard; an auditor; a regulator; an observer; a subject; an investigator; the store; an observation; a successor observation; an original; an amended observation; a retracted observation; a chain action; a content-checking action; a writing action; a refused action; an ordering rule; an action; a query; a filter; a reference filter; a state filter; a range filter; a state rejection; an amendment chain; a string input; an opaque reference; the store instance's observation count.
+Term actors: the atom; the host; the transition; the deployment; a composing pattern; a business caller; a caller; a guard; an auditor; a regulator; an observer; a subject; an investigator; the database; an observation; a successor observation; an original; an amended observation; a retracted observation; a chain action; a content-checking action; a writing action; a refused action; an ordering rule; an action; a query; a filter; a reference filter; a state filter; a range filter; a state rejection; an amendment chain; a string input; an opaque reference; the database instance's observation count.
 
 Term records: observation — one recorded measurement, carrying observation id, subject reference, recording actor, observation type, value, unit, recording instant and a state, plus the transition metadata a chain action writes.
 
@@ -483,7 +483,7 @@ Term cadences: empty.
 
 Term qualifiers: migrated — rewritten in GRACE lang v0.40 (2026-09-13).
 
-Term terms: observation, observation id, subject reference, recording actor, observation type, unit, reference, store instance, seam, transition, now, business caller, states, content field, chain action, content-checking action, writing action, state rejection, value constraint, clock offset allowance, future bound, resolved recording instant, transition metadata, amendment chain, filter axes, admitted record, admitted amend, admitted retract, admitted read, string input, blank.
+Term terms: observation, observation id, subject reference, recording actor, observation type, unit, reference, database instance, seam, transition, now, business caller, states, content field, chain action, content-checking action, writing action, state rejection, value constraint, clock offset allowance, future bound, resolved recording instant, transition metadata, amendment chain, filter axes, admitted record, admitted amend, admitted retract, admitted read, string input, blank.
 
 Term successor ids: successor_ids — the ids of the observations that succeed this one.
 
@@ -515,7 +515,7 @@ Kind: Operation
 
 #### Observation Id
 
-The opaque, immutable, system-generated identity of an observation, assigned on [Record], never reused or reassigned within the store instance. The clinical content is a property of the observation, not its identity.
+The opaque, immutable, system-generated identity of an observation, assigned on [Record], never reused or reassigned within the database instance. The clinical content is a property of the observation, not its identity.
 
 Kind:       Field
 Field of:   Observation
@@ -625,12 +625,12 @@ Kind:       Field
 Field of:   Observation
 Projection: retraction_reason
 
-#### Store Name
+#### Database Name
 
-The identifier of the store instance an observation belongs to. Multiple instances coexist; [Observation Id]s are unique within an instance, while [Subject Reference] is portable across instances. No action accepts it as a parameter — instance selection is handled at the deployment-routing layer.
+The identifier of the database instance an observation belongs to. Multiple instances coexist; [Observation Id]s are unique within an instance, while [Subject Reference] is portable across instances. No action accepts it as a parameter — instance selection is handled at the deployment-routing layer.
 
 Kind:       Field
-Field of:   the store instance
+Field of:   the database instance
 Projection: store_name
 
 #### Reason
@@ -693,7 +693,7 @@ Projection: storage-failure
 
 #### Not Known
 
-The refusal [Amend] or [Retract] returns when the named [Observation Id] references no record in this store instance — a lookup miss (a common cause is cross-instance referencing).
+The refusal [Amend] or [Retract] returns when the named [Observation Id] references no record in this database instance — a lookup miss (a common cause is cross-instance referencing).
 
 Kind:       Member
 Member of:  the action rejection
@@ -759,7 +759,7 @@ Projection: invalid-query
 [Amendment Reason]: #amendment-reason
 [Retracting Actor]: #retracting-actor
 [Retraction Reason]: #retraction-reason
-[Store Name]: #store-name
+[Database Name]: #database-name
 [Reason]: #reason
 [Query]: #query
 [Recorded]: #recorded

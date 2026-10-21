@@ -8,8 +8,8 @@
 \* Invariant 1 (at most one Active assignment per task) and the load-bearing
 \* Invariant 7 (reassign atomicity — after a reassign exactly one assignment is
 \* Active), with the reassign's two writes committed together as Execution
-\* Contract Store 1 commits every action's writes: there is no observable state
-\* in which both old and new are Active, or in which neither is (Store 1 owns the
+\* Contract Database 1 commits every action's writes: there is no observable state
+\* in which both old and new are Active, or in which neither is (Database 1 owns the
 \* deleted Invariant 7.3 and 7.4). Modeled for a single task: `reassign` must
 \* move the old assignment to Transferred and create the new Active assignment in
 \* ONE step.
@@ -69,7 +69,7 @@ Inv1_AtMostOneActive == ActiveCount <= 1
 
 Safety == TypeOK /\ Inv1_AtMostOneActive
 
-\* NOTE Execution Contract Store 1 (one transaction per action) is what makes
+\* NOTE Execution Contract Database 1 (one transaction per action) is what makes
 \* Inv1 hold THROUGH a reassign: because ReassignAtomic is a single step, no
 \* reachable state shows two Active assignments for the task. The buggy twin
 \* splits the step and Inv1 catches the resulting two-Active window.

@@ -5,11 +5,11 @@
 \* disagreement, diagnose per the entry *The conflict protocol* in pressure-testing.md.
 \*
 \* WHAT THIS MODEL CHECKS (revised 2026-06-11 — closes the Invariant-4 coverage-gap finding;
-\* comments re-pointed 2026-10-20 at Execution Contract Store 1, no logic change)
+\* comments re-pointed 2026-10-20 at Execution Contract Database 1, no logic change)
 \* The composition's load-bearing wiring decision is Invariant 4 (binding
 \* bijection / no dangling partial), restated as safety + liveness. A custody
 \* action's intent, Provenance custody entry and Audit Trail outcome event are
-\* store writes of one action, which Execution Contract Store 1 commits
+\* store writes of one action, which Execution Contract Database 1 commits
 \* together. The one partial the spec keeps is the ORPHAN Audit Trail's
 \* refusal of the outcome event leaves (a custody entry with no audit event,
 \* Audit arm 19 and Audit arm 26): the entry commits, the action answers
@@ -22,7 +22,7 @@
 \* closed by the Invariant-4 coverage-gap finding; immutable-transaction-ledger.tla, revised for
 \* the compensated-arm finding, is the worked template):
 \*   CommitClean(e)  — the custody action's writes commit together (Execution
-\*                     Contract Store 1).
+\*                     Contract Database 1).
 \*   FailPartial(e)  — the Provenance entry commits and Audit Trail refuses
 \*                     the outcome event; the orphan is reachable AND surfaced
 \*                     in the same outcome (the action's declared failure
@@ -66,7 +66,7 @@
 \* NOT MODELED (out of scope for the load-bearing property)
 \* - per-action orchestration, rejection guards, the acting-custodian rule.
 \* - the order of the writes inside one custody action (Execution Contract
-\*   Store 1 commits them together, and a crash inside the action leaves
+\*   Database 1 commits them together, and a crash inside the action leaves
 \*   nothing; the model's states are action OUTCOMES — clean commit, surfaced
 \*   partial failure).
 \* - the reconciliation's pairing, its recovery intent and the recovery
@@ -99,7 +99,7 @@ Init ==
     /\ surfaced   = [e \in Entries |-> FALSE]
 
 \* Happy path: the Provenance custody entry and the Audit Trail outcome event
-\* commit together (Execution Contract Store 1). The audit event is a CLEAN
+\* commit together (Execution Contract Database 1). The audit event is a CLEAN
 \* binding.
 \* The intent record: written before any Provenance call that commits. This is
 \* where the acting custodian's credential is validated (the substrate's
@@ -141,7 +141,7 @@ FailPartial(e) ==
 \* event names the entry, so an outcome whose lost append landed after all is
 \* bound, never doubled (the state where the audit event already landed
 \* disables this action). Two compensations of one entry are serialized by
-\* Execution Contract Store 2; the model's one-action-per-step semantics
+\* Execution Contract Database 2; the model's one-action-per-step semantics
 \* carries that for free.
 RetryAudit(e) ==
     /\ provState[e] = "present"

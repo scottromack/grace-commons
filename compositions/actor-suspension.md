@@ -31,7 +31,7 @@ Actor Suspension is the exact mirror of the Login pattern: Login wires up *check
 
 Every system that distinguishes actors eventually has to *un*-distinguish one. An employee leaves; a credential is found in a paste dump; a contractor's engagement ends; an account shows the signature of a takeover. The obligation that follows is deceptively simple to state and notoriously easy to botch: cut off *every* way that actor can still act, now, and be able to prove afterward that you did. The botch is always the same shape — access is revoked on one surface and not another. The session cookie is invalidated but the API (Application Programming Interface) token's permission grant is still active; the role is removed but a long-lived session keeps working; the login credential is disabled but a service grant the actor still holds quietly authorizes a scheduled job. Each gap is a half-open door, and a half-suspended actor is more dangerous than an un-suspended one, because the system and its operators believe the actor is locked out.
 
-This is the friction the composition exists to resolve, and naming it precisely keeps the composition honest: **Actor Suspension is not an account-deactivation feature; it is a multi-surface de-authorization, completed rather than undone, with a records-alone completeness proof.** An actor's ability to act is spread across two independent authorization surfaces that no single atom relates: **Permissions** holds the grants that say *what the actor may do*, and **Session** holds the live authenticated channels that say *the actor is currently acting*. Revoking one without the other leaves a door open. Worse, each surface has its own multiplicity — an actor may hold many grants, issued at different times by different grantors, and many sessions, one per device — so closure on each surface is itself an enumerate-then-revoke-each operation, exactly the mass-revocation pattern Permissions names as the composing system's responsibility and Session supports through its principal reference-queryable store. The structure that snapshots both surfaces, revokes every member of both, sets the actor's suspension state, and seals the whole act as one attributed, tamper-evident record belongs to no single constituent. It belongs to the composition, and this composition is that structure.
+This is the friction the composition exists to resolve, and naming it precisely keeps the composition honest: **Actor Suspension is not an account-deactivation feature; it is a multi-surface de-authorization, completed rather than undone, with a records-alone completeness proof.** An actor's ability to act is spread across two independent authorization surfaces that no single atom relates: **Permissions** holds the grants that say *what the actor may do*, and **Session** holds the live authenticated channels that say *the actor is currently acting*. Revoking one without the other leaves a door open. Worse, each surface has its own multiplicity — an actor may hold many grants, issued at different times by different grantors, and many sessions, one per device — so closure on each surface is itself an enumerate-then-revoke-each operation, exactly the mass-revocation pattern Permissions names as the composing system's responsibility and Session supports through its principal reference-queryable records. The structure that snapshots both surfaces, revokes every member of both, sets the actor's suspension state, and seals the whole act as one attributed, tamper-evident record belongs to no single constituent. It belongs to the composition, and this composition is that structure.
 
 Actor Suspension is Login's mirror image, and the symmetry is load-bearing. Login is the *inbound* wiring — `Credential.verify → Session.issue` — with the emergent cascade that revoking a credential terminates the derived sessions. This is the *outbound* wiring — suspend, then revoke every grant and every session — with the emergent guarantee that suspension closes all surfaces at once. Login's cascade walks an active-session set under a snapshot and tolerates partial completion, because partial revocation beats none. This composition makes a stronger choice, and the difference is deliberate: a suspension that half-completes leaves an ambiguous security state, so this composition never leaves one *ambiguous*. What it promises is **completion**: the intent is recorded before anything is revoked, every revocation that commits stands, an actor whose cascade stopped is visibly `Suspending` with the open doors named, and a mandated sweep closes them within a declared window. The same time-of-check-to-time-of-use (TOCTOU) race Login surfaced recurs here and is resolved the same way: a grant or session the cascade targets that another process already revoked is found already-terminal and counted, not re-revoked.
 
@@ -59,7 +59,7 @@ Composes 7: The composition MUST read Audit Trail as a substrate PER the section
 Composes 8: The composition MUST NOT hold an instance of a constituent Audit Trail reaches.
 Composes 9: The composition MUST reach Actor Identity through Audit Trail.
 Composes 10: The composition MUST reach a constituent through the constituent's declared surface.
-Composes 11: The composition MUST NOT read a constituent's store beside the constituent's declared read.
+Composes 11: The composition MUST NOT read a constituent's records beside the constituent's declared read.
 Composes 12: The composition MUST read the substrate's events by an open-ended sequence range.
 Composes 13: The composition MUST select an event in the composition's own code.
 Composes 14: The composition MUST NOT query the substrate by a payload predicate.
@@ -130,8 +130,8 @@ Composition state 26: The tail read MUST NOT select an event below the mark.
 Composition state 27: A reader MUST take the trail's answer ONLY IF the trail's answer stands later in the log than the entry's event.
 Composition state 28: A reader MUST write the entry the tail read resolved.
 Composition state 29: An absent suspension-state key carrying no open intent above the mark MUST stand as active.
-Deleted: Composition state 30. Execution Contract Store 3 and Execution Contract Store 4 own it.
-Deleted: Composition state 31. Execution Contract Store 3 and Execution Contract Store 4 own it.
+Deleted: Composition state 30. Execution Contract Database 3 and Execution Contract Database 4 own it.
+Deleted: Composition state 31. Execution Contract Database 3 and Execution Contract Database 4 own it.
 Composition state 32: The rebuild MUST select the composition's own events over an open-ended sequence range.
 Composition state 33: The rebuild MUST read a suspension intended event carrying no outcome under the intent's invocation id as suspending.
 Composition state 34: The rebuild MUST read a suspended event as suspended.
@@ -153,7 +153,7 @@ Composition state 49: The composition MUST NOT read the plan as the revoked set.
 Composition state 50: The composition MUST NOT read the revoked set as the plan.
 Composition state 51: A planned member absent from the revoked set MUST stand as an owed closure.
 Composition state 52: A revoked set member absent from the plan MUST stand as a conformance failure.
-Composition state 53: The composition MUST NOT duplicate a constituent's store.
+Composition state 53: The composition MUST NOT duplicate a constituent's records.
 ```
 
 Term suspension-state index: actor_suspension_state — the composition's index from an actor reference to the actor's lifecycle state and the record that put the actor there; the surface the issuance gate reads and [Suspension Report] answers from.
@@ -225,24 +225,24 @@ Capability requirement 25: A deployment MUST set the reconciliation cadence.
 Capability requirement 26: A deployment MUST disclose the outcome write latency.
 Capability requirement 27: A deployment MAY start an instance ONLY IF the completion window EXCEEDS the closure floor.
 Capability requirement 28: A deployment MUST NOT start an instance carrying an undeclared suspension completion bound.
-Deleted: Capability requirement 29. Execution Contract Store 2 owns it.
-Deleted: Capability requirement 30. Execution Contract Store 2 owns it: an action's reads of an actor's state and the writes they decide are one transaction, and the composition names no critical section to release.
-Deleted: Capability requirement 31. Execution Contract Store 2 owns it: an action's reads of an actor's state and the writes they decide are one transaction, and the composition names no critical section to release.
-Deleted: Capability requirement 32. Execution Contract Store 2 owns it: an action's reads of an actor's state and the writes they decide are one transaction, and the composition names no critical section to lease.
-Deleted: Capability requirement 33. Execution Contract Store 2 owns it: an action's reads of an actor's state and the writes they decide are one transaction, and the composition names no critical section to lease.
-Deleted: Capability requirement 34. Execution Contract Store 2 owns it: an action's reads of an actor's state and the writes they decide are one transaction, and the composition names no lease to expire.
-Deleted: Capability requirement 35. Execution Contract Store 2 owns it: an action's reads of an actor's state and the writes they decide are one transaction, and the composition names no critical section for a deployment to lack.
+Deleted: Capability requirement 29. Execution Contract Database 2 owns it.
+Deleted: Capability requirement 30. Execution Contract Database 2 owns it: an action's reads of an actor's state and the writes they decide are one transaction, and the composition names no critical section to release.
+Deleted: Capability requirement 31. Execution Contract Database 2 owns it: an action's reads of an actor's state and the writes they decide are one transaction, and the composition names no critical section to release.
+Deleted: Capability requirement 32. Execution Contract Database 2 owns it: an action's reads of an actor's state and the writes they decide are one transaction, and the composition names no critical section to lease.
+Deleted: Capability requirement 33. Execution Contract Database 2 owns it: an action's reads of an actor's state and the writes they decide are one transaction, and the composition names no critical section to lease.
+Deleted: Capability requirement 34. Execution Contract Database 2 owns it: an action's reads of an actor's state and the writes they decide are one transaction, and the composition names no lease to expire.
+Deleted: Capability requirement 35. Execution Contract Database 2 owns it: an action's reads of an actor's state and the writes they decide are one transaction, and the composition names no critical section for a deployment to lack.
 Capability requirement 36: A deployment MUST set the planned set cap.
 Capability requirement 37: The maximal outcome MUST NOT EXCEED the audit instance's payload cap.
 Capability requirement 38: The deployment MUST declare the clock offset allowance.
-Deleted: Capability requirement 39. Execution Contract Store 3 owns it.
+Deleted: Capability requirement 39. Execution Contract Database 3 owns it.
 Capability requirement 40: A deployment MUST gate an issuance on the suspension-state index.
 Capability requirement 41: A deployment MUST refuse an issuance for a suspending actor.
 Capability requirement 42: A deployment MUST refuse an issuance for a suspended actor.
 Capability requirement 43: The composition MUST NOT gate an issuance.
-Deleted: Capability requirement 44. Execution Contract Store 1 and Execution Contract Store 3 own it.
+Deleted: Capability requirement 44. Execution Contract Database 1 and Execution Contract Database 3 own it.
 Capability requirement 45: A deployment MUST run the sweep PER reconciliation cadence.
-Capability requirement 47: The deployment MUST supply the store PER Execution Contract Store 1 through 4.
+Capability requirement 47: The deployment MUST supply the database PER Execution Contract Database 1 through 4.
 Deleted: Capability requirement 46. Execution Contract Logic confinement 7 owns it.
 ```
 
@@ -359,16 +359,16 @@ Audit arm 3: IF Audit Trail answers invalid-credential at an intent THEN the act
 Audit arm 4: IF Audit Trail answers invalid-credential at an intent THEN the invocation MUST NOT make a committing call.
 Audit arm 5: IF Audit Trail answers recording-failure carrying the append step at an intent THEN the action MUST answer recording-failure carrying intent.
 Audit arm 6: IF Audit Trail answers recording-failure carrying the append step at an intent THEN the invocation MUST NOT make a committing call.
-Deleted: Audit arm 7. Execution Contract Store 1 owns it.
+Deleted: Audit arm 7. Execution Contract Database 1 owns it.
 Audit arm 8: IF the read-back finds the intent THEN the invocation MUST proceed on the intent as landed.
-Deleted: Audit arm 9. Execution Contract Store 1 owns it.
+Deleted: Audit arm 9. Execution Contract Database 1 owns it.
 Audit arm 10: IF Audit Trail answers invalid-request(step-4) at an intent THEN the invocation MUST read the intent back.
 Audit arm 11: The composition MUST alert on a retention step answer.
 Audit arm 12: The composition MUST NOT record a second intent for a read-back that found the intent.
 Audit arm 13: The read-back MUST select an event by the tail read.
 Audit arm 14: The read-back MUST select an event carrying the invocation's invocation id.
 Audit arm 15: IF Audit Trail answers invalid-credential at an outcome THEN the action MUST answer invalid-credential carrying outcome.
-Deleted: Audit arm 16. Execution Contract Store 1 owns it.
+Deleted: Audit arm 16. Execution Contract Database 1 owns it.
 Audit arm 17: IF Audit Trail answers recording-failure carrying the append step at an outcome THEN the action MUST answer recording-failure carrying outcome.
 Audit arm 18: IF Audit Trail answers invalid-request(step-4) at an outcome THEN the invocation MUST read the outcome back.
 Audit arm 19: A caller MUST read an arm carrying intent as a committed nothing.
@@ -423,9 +423,9 @@ Term position: intent | outcome — the record a write lands: the intent or the 
 Term not-suspended state: active | suspending — the actor states a reinstatement refuses.
 
 ```
-Deleted: Action wiring 1. Execution Contract Store 2 owns it.
-Deleted: Action wiring 2. Execution Contract Store 2 owns it.
-Deleted: Action wiring 3. Execution Contract Store 2 owns it.
+Deleted: Action wiring 1. Execution Contract Database 2 owns it.
+Deleted: Action wiring 2. Execution Contract Database 2 owns it.
+Deleted: Action wiring 3. Execution Contract Database 2 owns it.
 Action wiring 4: The composition MUST run the tail read at the state gate.
 Action wiring 5: IF the actor's lifecycle state EQUALS suspended THEN [Suspend Actor] MUST answer already-suspended.
 Action wiring 6: IF the actor's lifecycle state EQUALS suspended THEN [Suspend Actor] MUST NOT revoke a member.
@@ -444,9 +444,9 @@ Action wiring 18: An empty snapshot MUST stand as a valid plan.
 Action wiring 19: A fresh cascade MUST record a suspension intent carrying the plan.
 Action wiring 20: A fresh cascade MUST write the suspending entry ONLY AFTER the landed intent.
 Action wiring 21: A cascade MUST call the member's constituent revoke PER planned member standing open.
-Deleted: Action wiring 22. Execution Contract Store 2 owns it.
-Deleted: Action wiring 23. Execution Contract Store 2 owns it: an action's reads of an actor's state and the writes they decide are one transaction, and the composition names no critical section to lose.
-Deleted: Action wiring 24. Execution Contract Store 2 owns it: an action's reads of an actor's state and the writes they decide are one transaction, and the composition names no critical section to find unavailable.
+Deleted: Action wiring 22. Execution Contract Database 2 owns it.
+Deleted: Action wiring 23. Execution Contract Database 2 owns it: an action's reads of an actor's state and the writes they decide are one transaction, and the composition names no critical section to lose.
+Deleted: Action wiring 24. Execution Contract Database 2 owns it: an action's reads of an actor's state and the writes they decide are one transaction, and the composition names no critical section to find unavailable.
 Action wiring 25: IF Permissions answers ok THEN the cascade MUST add the grant to the revoked set.
 Action wiring 26: IF Permissions answers not-active THEN the cascade MUST add the grant to the revoked set.
 Action wiring 27: IF Session answers revoked THEN the cascade MUST add the session to the revoked set.
@@ -455,28 +455,28 @@ Action wiring 29: IF Credential answers revoked THEN the cascade MUST add the cr
 Action wiring 30: IF Credential answers already-terminal THEN the cascade MUST add the credential to the revoked set.
 Action wiring 31: A cascade MUST read a benign terminal answer as a closure.
 Action wiring 32: A cascade MUST NOT read a benign terminal answer as a refusal.
-Deleted: Action wiring 33. Execution Contract Store 1 owns it.
+Deleted: Action wiring 33. Execution Contract Database 1 owns it.
 Action wiring 34: IF a constituent answers not-known THEN the cascade MUST add the member to the unresolved members.
 Action wiring 35: IF Credential answers invalid-request THEN the cascade MUST add the credential to the unresolved members.
 Action wiring 36: A cascade MUST NOT add an unresolved member to the open members.
 Action wiring 37: A non-benign refusal MUST NOT abort a cascade.
 Action wiring 38: A cascade MUST NOT reverse a committed revocation.
 Action wiring 39: The composition MUST alert on an unresolved member.
-Deleted: Action wiring 40. Execution Contract Store 1 owns it.
-Deleted: Action wiring 41. Execution Contract Store 1 owns it.
-Deleted: Action wiring 42. Execution Contract Store 1 owns it.
-Deleted: Action wiring 43. Reconciliation 17 and Execution Contract Store 2 own it.
-Deleted: Action wiring 44. Reconciliation 17 and Execution Contract Store 2 own it.
+Deleted: Action wiring 40. Execution Contract Database 1 owns it.
+Deleted: Action wiring 41. Execution Contract Database 1 owns it.
+Deleted: Action wiring 42. Execution Contract Database 1 owns it.
+Deleted: Action wiring 43. Reconciliation 17 and Execution Contract Database 2 own it.
+Deleted: Action wiring 44. Reconciliation 17 and Execution Contract Database 2 own it.
 Action wiring 45: A cascade MUST record a suspended outcome ONLY AFTER the closed plan.
-Deleted: Action wiring 46. Reconciliation 16 and Execution Contract Store 2 own it.
-Deleted: Action wiring 47. Reconciliation 15 and Execution Contract Store 2 own it.
+Deleted: Action wiring 46. Reconciliation 16 and Execution Contract Database 2 own it.
+Deleted: Action wiring 47. Reconciliation 15 and Execution Contract Database 2 own it.
 Action wiring 48: A suspended outcome MUST carry the invocation id, the intent event id, the suspended actor, the operator, the revoked set, the unresolved members, the reason AND the injected now as suspension instant.
 Action wiring 49: A resumed cascade's outcome MUST carry the resumer, the resume event's id AND the recovery marker.
 Action wiring 50: A swept cascade's outcome MUST carry the recovery marker.
 Action wiring 51: A clean cascade's outcome MUST NOT carry the recovery marker.
 Action wiring 52: A cascade MUST write the suspended entry ONLY AFTER the landed outcome.
 Action wiring 53: The composition MUST append a suspension log entry PER [Suspend Actor] call.
-Deleted: Action wiring 54. Execution Contract Store 2 owns it: an action's reads of an actor's state and the writes they decide are one transaction, and the composition names no critical section to release.
+Deleted: Action wiring 54. Execution Contract Database 2 owns it: an action's reads of an actor's state and the writes they decide are one transaction, and the composition names no critical section to release.
 Action wiring 55: An admitted suspension MUST answer the revoked set, the unresolved members AND the outcome's event id.
 Action wiring 56: A resume MUST compute the open members as the plan less the members the constituents show closed.
 Action wiring 57: A resume MUST read a planned member by the member's own handle.
@@ -489,9 +489,9 @@ Action wiring 63: A resume MUST continue the cascade under the intent's invocati
 Action wiring 64: The composition MUST read the suspension-state index at [Suspension Report].
 Action wiring 65: The composition MUST run the tail read at [Suspension Report].
 Action wiring 66: [Suspension Report] MUST NOT transition a lifecycle state.
-Action wiring 67: [Suspension Report] MUST NOT write a constituent's store.
+Action wiring 67: [Suspension Report] MUST NOT write a constituent's records.
 Action wiring 68: [Suspension Report] MUST NOT record an audit event.
-Deleted: Action wiring 69. Execution Contract Store 2 owns it: an action's reads of an actor's state and the writes they decide are one transaction, and the composition names no critical section for [Suspension Report] to take.
+Deleted: Action wiring 69. Execution Contract Database 2 owns it: an action's reads of an actor's state and the writes they decide are one transaction, and the composition names no critical section for [Suspension Report] to take.
 Action wiring 70: IF the actor's lifecycle state EQUALS active THEN [Suspension Report] MUST answer active.
 Action wiring 71: IF the actor's lifecycle state EQUALS suspending THEN [Suspension Report] MUST answer the state, the intent event id, the operator, the reason AND the open members.
 Action wiring 72: A suspending answer's open members MUST derive from the plan against the constituents' declared reads.
@@ -546,7 +546,7 @@ Term enumeration availability: what [Suspension Report] answers in place of a re
 Wiring decision 1: The composition MUST close every authorization surface under one act.
 Wiring decision 2: The composition MUST NOT reverse a cascade.
 Wiring decision 3: The composition MUST complete a stopped cascade.
-Deleted: Wiring decision 4. Execution Contract Store 1 owns it.
+Deleted: Wiring decision 4. Execution Contract Database 1 owns it.
 Wiring decision 5: The composition MUST NOT claim a rollback.
 Wiring decision 6: The composition MUST open a fresh cascade ONLY IF the actor's lifecycle state EQUALS active.
 Wiring decision 7: The composition MUST NOT open a second cascade for one actor.
@@ -558,25 +558,25 @@ Wiring decision 10: The composition MUST NOT push the cascade into a constituent
 WHY:
 *Principle:* an actor's ability to act is spread across two independent surfaces, each with its own multiplicity, so closing the actor out means closing both completely — and a partial close is dangerous exactly when it is invisible. *Likely objection:* why not let an administrator call `Permissions.revoke` per grant and `Session.revoke` per session directly, rather than wrapping them in one composition action? *Mechanism that resolves it:* independent revocation has no completeness guarantee and no record of incompleteness — an administrator who revokes the grants and forgets a session, or whose session step fails midway, leaves a half-open actor and nothing saying the closure was partial. This composition snapshots both surfaces, records the plan under a verified credential, revokes every enumerated member, and seals what it closed. *Result:* after a successful call the actor provably holds none of the planned access — the completeness no single constituent provides.
 
-*Principle:* the suspension must be idempotent and its completeness must be provable from the records alone. *Likely objection:* does recording the whole revoked set not duplicate what the constituent stores already show, each revoked grant and session carrying its own revocation record? *Mechanism that resolves it:* the per-constituent records show *that* each member was revoked; only the composition knows they were revoked *as one act* and which set constituted the actor's access at suspension time — which is Wiring decision 9. The state gate makes the cascade start exactly once: a second call sees `Suspended` and refuses, or sees `Suspending` and resumes under the same intent. The plan is the second record the auditor reads, and the pair is what makes *complete* checkable rather than asserted: a member the plan named that the outcome accounts for nowhere is an owed closure. *Result:* the suspension is idempotent, its completeness is records-alone provable, and it rests on the substrate's seal, so a later attempt to shrink the recorded set to hide a missed surface breaks it.
+*Principle:* the suspension must be idempotent and its completeness must be provable from the records alone. *Likely objection:* does recording the whole revoked set not duplicate what the constituent records already show, each revoked grant and session carrying its own revocation record? *Mechanism that resolves it:* the per-constituent records show *that* each member was revoked; only the composition knows they were revoked *as one act* and which set constituted the actor's access at suspension time — which is Wiring decision 9. The state gate makes the cascade start exactly once: a second call sees `Suspended` and refuses, or sees `Suspending` and resumes under the same intent. The plan is the second record the auditor reads, and the pair is what makes *complete* checkable rather than asserted: a member the plan named that the outcome accounts for nowhere is an owed closure. *Result:* the suspension is idempotent, its completeness is records-alone provable, and it rests on the substrate's seal, so a later attempt to shrink the recorded set to hide a missed surface breaks it.
 
 ### Reconciliation
 
 ```
-Deleted: Reconciliation 1. Execution Contract Store 1 and Execution Contract Store 3 own it.
+Deleted: Reconciliation 1. Execution Contract Database 1 and Execution Contract Database 3 own it.
 Reconciliation 2: The composition MUST run the sweep PER reconciliation cadence.
 Reconciliation 3: The sweep's candidates MUST stand as the suspending entries taken with the open intents above the mark.
 Reconciliation 4: The sweep MUST index every event the sweep reads above the mark.
-Deleted: Reconciliation 5. Execution Contract Store 1 owns it.
+Deleted: Reconciliation 5. Execution Contract Database 1 owns it.
 Reconciliation 6: The sweep MUST advance the mark to the top of the range the sweep read.
 Reconciliation 7: The sweep MUST hold the mark below an event the sweep did not index.
-Deleted: Reconciliation 8. Execution Contract Store 1 owns it.
+Deleted: Reconciliation 8. Execution Contract Database 1 owns it.
 Reconciliation 9: The sweep MUST NOT read an aged-out intent's plan.
-Deleted: Reconciliation 10. Execution Contract Store 2 owns it.
-Deleted: Reconciliation 11. Execution Contract Store 2 owns it: an action's reads of an actor's state and the writes they decide are one transaction, and the composition names no critical section for another holder to hold.
-Deleted: Reconciliation 12. Execution Contract Store 2 owns it: an action's reads of an actor's state and the writes they decide are one transaction, so the sweep skips no candidate.
-Deleted: Reconciliation 13. Execution Contract Store 2 owns it.
-Deleted: Reconciliation 14. Execution Contract Store 2 owns it.
+Deleted: Reconciliation 10. Execution Contract Database 2 owns it.
+Deleted: Reconciliation 11. Execution Contract Database 2 owns it: an action's reads of an actor's state and the writes they decide are one transaction, and the composition names no critical section for another holder to hold.
+Deleted: Reconciliation 12. Execution Contract Database 2 owns it: an action's reads of an actor's state and the writes they decide are one transaction, so the sweep skips no candidate.
+Deleted: Reconciliation 13. Execution Contract Database 2 owns it.
+Deleted: Reconciliation 14. Execution Contract Database 2 owns it.
 Reconciliation 15: IF the pre-check finds an outcome THEN the sweep MUST NOT record an outcome.
 Reconciliation 16: IF the pre-check finds an outcome THEN the sweep MUST write the suspended entry.
 Reconciliation 17: The sweep MUST record a recovery intent ONLY AFTER the pre-check.
@@ -586,13 +586,13 @@ Reconciliation 20: The sweep MUST attest a record under the service identity.
 Reconciliation 21: The sweep MUST name the service identity as the revoker.
 Reconciliation 22: The sweep MUST name the operator on the outcome.
 Reconciliation 23: The sweep MUST derive the revoked set from the plan AND the constituents' declared reads.
-Deleted: Reconciliation 24. Execution Contract Store 1 and Execution Contract Store 3 own it.
+Deleted: Reconciliation 24. Execution Contract Database 1 and Execution Contract Database 3 own it.
 Reconciliation 25: IF the intent stands aged out THEN the sweep MUST snapshot the actor's active members.
 Reconciliation 26: IF the intent stands aged out THEN the sweep's outcome MUST carry the plan-unavailable marker.
 Reconciliation 27: The sweep MUST NOT close an unresolved member.
 Reconciliation 28: The sweep MUST close an open cascade WITHIN the completion window.
 Reconciliation 29: The sweep MUST escalate an open cascade outside the completion window.
-Deleted: Reconciliation 30. Execution Contract Store 2 owns it.
+Deleted: Reconciliation 30. Execution Contract Database 2 owns it.
 Reconciliation 31: The sweep MUST answer nothing to a caller.
 Reconciliation 32: A caller MUST NOT invoke the sweep.
 ```
@@ -635,11 +635,11 @@ Invariant 3.3: A [Suspend Actor] call against a suspending actor MUST resume the
 Invariant 3.4: A lifecycle state MUST stand monotonic on the suspend edge.
 Invariant 3.5: The composition MUST reverse a lifecycle state ONLY through [Reinstate Actor].
 Invariant 3.6: A cascade MUST count a benign terminal member toward the closure.
-Invariant 4.1: EVERY Permissions invariant MUST hold over the grant store.
-Invariant 4.2: EVERY Session invariant MUST hold over the session store.
-Invariant 4.3: EVERY Actor Identity invariant MUST hold over the attestation store.
+Invariant 4.1: EVERY Permissions invariant MUST hold over the grant records.
+Invariant 4.2: EVERY Session invariant MUST hold over the session records.
+Invariant 4.3: EVERY Actor Identity invariant MUST hold over the attestation records.
 Invariant 4.4: EVERY Audit Trail invariant MUST hold over the audit instance.
-Invariant 4.5: EVERY Credential invariant MUST hold over the credential store ONLY IF the credential arm stands composed.
+Invariant 4.5: EVERY Credential invariant MUST hold over the credential records ONLY IF the credential arm stands composed.
 Invariant 4.6: The composition MUST NOT weaken a constituent invariant.
 Invariant 4.7: The composition MUST NOT count a constituent's invariants.
 Invariant 5.1: The composition MUST NOT commit a revocation under an unvalidated credential.
@@ -659,7 +659,7 @@ Term admitted reinstatement: a [Reinstate Actor] call whose boundary predicate p
 
 Term accounted cascade: an open cascade standing suspending with the open members named, closed within the completion window, OR named by an escalated finding.
 
-Term accounted member: a planned member standing in the revoked set, standing in the unresolved members, OR standing terminal in the constituent's store before the outcome.
+Term accounted member: a planned member standing in the revoked set, standing in the unresolved members, OR standing terminal in the constituent's records before the outcome.
 
 Term escalated finding: an open cascade the composition has raised to the deployment as unresolved, past the point where the sweep's own closure was owed.
 
@@ -691,9 +691,9 @@ The deployment rewires the cap and the Security Operations Center (SOC) retries.
 - **Benign time-of-check-to-time-of-use race.** While the cascade runs, the employee's laptop fires its own logout. The cascade's `Session.revoke(tok_laptop)` then answers already-terminal — the session is terminal, which *is* the cascade's goal — so the member is counted in the revoked set and the cascade does not abort.
 - **A lapsed session in the plan.** `tok_phone` lapsed an hour before the suspension: it is stored-active, so it enters the plan, and the revoke answers already-terminal by Session's own derivation, writing nothing in the constituent and counting as closed here. Enumerating by derived status instead would have dropped it from the plan, and the record of what the suspension set out to close would have been quietly short by one.
 
-### Failure path — a member the store no longer knows
+### Failure path — a member the database no longer knows
 
-A planned grant answers `not-known` — a store inconsistency, since Permissions never deletes. The member joins the **unresolved** members rather than the open ones: no later cascade can close a handle the constituent has lost, and leaving it open would hold the actor in `Suspending` forever while the acceptance check demanded a closure nobody could make. The cascade finishes its remaining members, the outcome lands naming the unresolved member, the actor reaches `Suspended`, and the composition raises the inconsistency as a finding. An auditor reads the member as accounted for — named, not closed — which is the true state of it.
+A planned grant answers `not-known` — a database inconsistency, since Permissions never deletes. The member joins the **unresolved** members rather than the open ones: no later cascade can close a handle the constituent has lost, and leaving it open would hold the actor in `Suspending` forever while the acceptance check demanded a closure nobody could make. The cascade finishes its remaining members, the outcome lands naming the unresolved member, the actor reaches `Suspended`, and the composition raises the inconsistency as a finding. An auditor reads the member as accounted for — named, not closed — which is the true state of it.
 
 ### Failure path — a credential rotated mid-act
 
@@ -705,17 +705,17 @@ The intent's record_action answers invalid-request naming the substrate's retent
 
 ### Regulated adversarial scenarios
 
-**Regulator audit — prove this terminated employee's access was fully and promptly removed.** A Sarbanes-Oxley (SOX) auditor examines `emp_4821`. [Suspension Report] answers suspended with the instant, the operator and the enumerated revoked set. The auditor reads the sealed outcome event, confirms through `AuditTrail.verify_record` that the enumeration was not altered, and for each named member confirms the constituent's own store shows it revoked at suspension time — both credentials included, so no type re-authenticates. Invariant 1 is the structural answer and the examiner consults no source code.
+**Regulator audit — prove this terminated employee's access was fully and promptly removed.** A Sarbanes-Oxley (SOX) auditor examines `emp_4821`. [Suspension Report] answers suspended with the instant, the operator and the enumerated revoked set. The auditor reads the sealed outcome event, confirms through `AuditTrail.verify_record` that the enumeration was not altered, and for each named member confirms the constituent's own records show it revoked at suspension time — both credentials included, so no type re-authenticates. Invariant 1 is the structural answer and the examiner consults no source code.
 
 **Disputed action — this employee could not have done that; we suspended them.** An action attributed to `emp_4821` post-dates the suspension. The investigator reads the outcome: every planned member was closed before it was appended. If the action used a session, `Session.validate` answers invalid with a revocation instant at suspension time; if it used a grant, `Permissions.permitted` answers denied. The only way the action can post-date the suspension is access *issued after the snapshot* — which the issuance records show, and which is the named snapshot-scoped gap rather than a defect here.
 
-**Breach investigation — was any suspended actor's access incompletely closed during the incident?** The investigator walks the outcome events in the window and, for each, cross-checks that every named member is terminal in its store and that no stored-active member for that actor exists outside the accounted set as of the suspension instant. A half-closed actor is a `Suspending` one and the investigator reads it directly — the plan against the constituents and, once completed, the recovery marker on the outcome: the honest record of a surface that did not close on the first pass and of when it did. Because the enumeration sits in the sealed payload, shrinking it to hide a missed surface breaks the seal.
+**Breach investigation — was any suspended actor's access incompletely closed during the incident?** The investigator walks the outcome events in the window and, for each, cross-checks that every named member is terminal in its constituent's records and that no stored-active member for that actor exists outside the accounted set as of the suspension instant. A half-closed actor is a `Suspending` one and the investigator reads it directly — the plan against the constituents and, once completed, the recovery marker on the outcome: the honest record of a surface that did not close on the first pass and of when it did. Because the enumeration sits in the sealed payload, shrinking it to hide a missed surface breaks the seal.
 
 ---
 
 ## Generation acceptance
 
-A derived implementation is *acceptable* — in the regulator-acceptance sense — when an external auditor, given the composition's indexes plus the Permissions, Session, Credential and Audit Trail stores, clears every check below without recourse to source code, runbooks or developer narration. Every selection is made composition-side over the declared open-ended sequence range, never by asking the substrate for a payload predicate it does not serve. **A standing rule for every cross-seam comparison:** where a check compares a stamp this composition wrote at its seam with one a constituent wrote at its own, it runs under the clock offset allowance, and a member falling inside the allowance is reported *inconclusive by skew*, never as a pass and never as a failure.
+A derived implementation is *acceptable* — in the regulator-acceptance sense — when an external auditor, given the composition's indexes plus the Permissions, Session, Credential and Audit Trail records, clears every check below without recourse to source code, runbooks or developer narration. Every selection is made composition-side over the declared open-ended sequence range, never by asking the substrate for a payload predicate it does not serve. **A standing rule for every cross-seam comparison:** where a check compares a stamp this composition wrote at its seam with one a constituent wrote at its own, it runs under the clock offset allowance, and a member falling inside the allowance is reported *inconclusive by skew*, never as a pass and never as a failure.
 
 ### Conformance checks
 
@@ -739,7 +739,7 @@ Check 2.10: An auditor MUST read an aged-out outcome's enumeration as unavailabl
 Check 2.11: An auditor MUST NOT read an aged-out outcome's enumeration as a conformance failure (Composition state 14).
 Check 3.1: An auditor MUST find no second suspension intent PER cascade (Identity 13).
 Check 3.2: An auditor MUST compare the suspension-state index against the rebuild (Composition state 32).
-Deleted: Check 3.3. Execution Contract Store 3 and Execution Contract Store 4 own it.
+Deleted: Check 3.3. Execution Contract Database 3 and Execution Contract Database 4 own it.
 Check 3.4: An auditor MUST find a lifecycle transition bound to a landed record PER transition (Composition state 41).
 Check 3.5: An auditor MUST read a suspension log refusal entry as evidence of a refusal (Composition state 15).
 Check 3.6: An auditor MUST NOT read a suspension log refusal entry as evidence of an act (Composition state 15).
@@ -753,11 +753,11 @@ Check 4.6: An auditor MUST confirm a revoked record's named revoker matches the 
 Check 4.7: An auditor MUST read an outcome attested outside the operator, the resumer AND the service identity as a conformance failure (Invariant 5.2).
 Check 4.8: An auditor MUST confirm a resumed revocation's reason carries the resume prefix AND the intent event id (Primitive policy 13).
 Check 4.9: An auditor MUST confirm a swept revocation's reason carries the completion prefix AND the intent event id (Primitive policy 14).
-Check 5.1: An auditor MUST clear Permissions' conformance checks over the grant store (Invariant 4.1).
-Check 5.2: An auditor MUST clear Session's conformance checks over the session store (Invariant 4.2).
-Check 5.3: An auditor MUST clear Actor Identity's conformance checks over the attestation store (Invariant 4.3).
+Check 5.1: An auditor MUST clear Permissions' conformance checks over the grant records (Invariant 4.1).
+Check 5.2: An auditor MUST clear Session's conformance checks over the session records (Invariant 4.2).
+Check 5.3: An auditor MUST clear Actor Identity's conformance checks over the attestation records (Invariant 4.3).
 Check 5.4: An auditor MUST clear Audit Trail's conformance checks over the audit instance (Invariant 4.4).
-Check 5.5: An auditor MUST clear Credential's conformance checks over the credential store (Invariant 4.5).
+Check 5.5: An auditor MUST clear Credential's conformance checks over the credential records (Invariant 4.5).
 Check 5.6: An auditor MUST NOT count a constituent's conformance checks (Invariant 4.7).
 Check 6.1: An auditor MUST find the record that verified a revoker earlier in the log than every revocation the revoker made (Invariant 5.2).
 Check 6.2: An auditor MUST find EXACTLY ONE suspended outcome PER invocation id (Invariant 1.10).
@@ -767,7 +767,7 @@ Check 6.5: An auditor MUST confirm the completion window EXCEEDS the closure flo
 Check 6.6: An auditor MUST NOT confirm the closure floor's terms severally (Capability requirement 27).
 Check 6.7: An auditor MUST find an accounted cascade PER open cascade (Invariant 1.8).
 Check 6.8: An auditor MUST read an open cascade standing outside an accounted cascade as a conformance failure (Invariant 1.8).
-Deleted: Check 6.9. Execution Contract Store 1 owns it.
+Deleted: Check 6.9. Execution Contract Database 1 owns it.
 Check 6.10: An auditor MUST take an aged-out open cascade from the suspension-state index (Reconciliation 9).
 ```
 
@@ -780,9 +780,9 @@ External check 3: The deployment MUST establish that the credential principal na
 External check 4: The deployment MUST establish that the issuance layer gates on the suspension-state index (Capability requirement 40).
 External check 5: The deployment MUST establish the operator's authorization to suspend the actor (Invariant 5.9).
 External check 6: The deployment MUST establish that the re-authentication surface stands closed ONLY IF the credential arm stands uncomposed (Capability requirement 17).
-Deleted: External check 7. Execution Contract Store 2 owns it.
-Deleted: External check 8. Execution Contract Store 2 owns it.
-Deleted: External check 9. Execution Contract Store 3 owns it.
+Deleted: External check 7. Execution Contract Database 2 owns it.
+Deleted: External check 8. Execution Contract Database 2 owns it.
+Deleted: External check 9. Execution Contract Database 3 owns it.
 ```
 
 ---
@@ -823,12 +823,12 @@ NOTE: the owners — the issuance layer (Non-goal 1 through 3, Capability requir
 Atomic writes 1: An invocation MUST record an outcome ONLY AFTER the invocation's committing calls.
 Atomic writes 2: An invocation MUST populate an index ONLY AFTER the invocation's landed record.
 Atomic writes 3: The composition MUST NOT reverse a committed constituent write.
-Deleted: Atomic writes 4. Execution Contract Store 1 owns it.
-Deleted: Atomic writes 5. Execution Contract Store 1 owns it.
-Deleted: Atomic writes 6. Execution Contract Store 1 owns it.
-Deleted: Atomic writes 7. Execution Contract Store 1 owns it.
-Deleted: Atomic writes 8. Execution Contract Store 1 owns it.
-Deleted: Atomic writes 9. Execution Contract Store 1 owns it.
+Deleted: Atomic writes 4. Execution Contract Database 1 owns it.
+Deleted: Atomic writes 5. Execution Contract Database 1 owns it.
+Deleted: Atomic writes 6. Execution Contract Database 1 owns it.
+Deleted: Atomic writes 7. Execution Contract Database 1 owns it.
+Deleted: Atomic writes 8. Execution Contract Database 1 owns it.
+Deleted: Atomic writes 9. Execution Contract Database 1 owns it.
 Atomic writes 10: The composition MUST surface an orphan.
 Atomic writes 11: A deployment MUST treat an orphan as an alerting condition.
 Atomic writes 12: The composition MUST NOT repair an orphan by fabrication.
@@ -858,15 +858,15 @@ Deleted: Clock semantics 14. Non-goal 19 owns it.
 ### Concurrency
 
 ```
-Deleted: Concurrency 1. Execution Contract Store 2 owns it.
-Deleted: Concurrency 2. Execution Contract Store 2 owns it.
-Deleted: Concurrency 3. Execution Contract Store 2 owns it.
-Deleted: Concurrency 4. Execution Contract Store 2 owns it.
-Deleted: Concurrency 5. Execution Contract Store 2 owns it.
+Deleted: Concurrency 1. Execution Contract Database 2 owns it.
+Deleted: Concurrency 2. Execution Contract Database 2 owns it.
+Deleted: Concurrency 3. Execution Contract Database 2 owns it.
+Deleted: Concurrency 4. Execution Contract Database 2 owns it.
+Deleted: Concurrency 5. Execution Contract Database 2 owns it.
 Concurrency 6: A cascade MUST count a concurrent terminal transition as a closure.
 Concurrency 7: The composition MUST NOT abort a cascade on a concurrent terminal transition.
 Concurrency 8: A concurrent issuance MUST stand outside the plan.
-Deleted: Concurrency 9. Execution Contract Store 2 owns it: an action's reads of an actor's state and the writes they decide are one transaction, and the composition names no serialization obligation for [Suspension Report] to stand outside.
+Deleted: Concurrency 9. Execution Contract Database 2 owns it: an action's reads of an actor's state and the writes they decide are one transaction, and the composition names no serialization obligation for [Suspension Report] to stand outside.
 ```
 
 ---
@@ -885,7 +885,7 @@ These are adjacent patterns, **not** constituents of Actor Suspension:
 
 ## Terms
 
-The canonical concepts this spec refers to. Each `[Term]` marker in the prose above links to its term entry here. A term entry states what the concept *is*, in plain English, plus its **Kind**, the Type it is a **Member of** or **Field of**, the Operation it is a **Parameter of**, its **Role** where the domain assigns one, and one **Projection** line — the concept's single canonical lowering token. Everything else about casing is derived from that token by [`tools/harness/term-adapter.mjs`](../tools/harness/term-adapter.mjs), never hand-written. The composition's own concepts are the three actions it exposes, the enumerations its outcome carries, the suspension log's classification, and its own rejections. The actor lifecycle states are left uncarded because *active* is pervasively overloaded with the constituents' own grant and session statuses; the emergent stores, the `actor.*` event classes, the constituent calls and their answers, the relayed tokens and the deployment knobs stay backticked as wire values.
+The canonical concepts this spec refers to. Each `[Term]` marker in the prose above links to its term entry here. A term entry states what the concept *is*, in plain English, plus its **Kind**, the Type it is a **Member of** or **Field of**, the Operation it is a **Parameter of**, its **Role** where the domain assigns one, and one **Projection** line — the concept's single canonical lowering token. Everything else about casing is derived from that token by [`tools/harness/term-adapter.mjs`](../tools/harness/term-adapter.mjs), never hand-written. The composition's own concepts are the three actions it exposes, the enumerations its outcome carries, the suspension log's classification, and its own rejections. The actor lifecycle states are left uncarded because *active* is pervasively overloaded with the constituents' own grant and session statuses; the emergent records, the `actor.*` event classes, the constituent calls and their answers, the relayed tokens and the deployment knobs stay backticked as wire values.
 
 ### Vocabulary
 

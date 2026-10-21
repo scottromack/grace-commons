@@ -72,7 +72,7 @@ HostRelease ==
     /\ holder' = "none"
     /\ UNCHANGED <<now, ipc, exp, att, attAt, ev, evAt, plc, nO, cO, nU, cU, crashes, spc1, tgt1, lr1, spc2, tgt2, lr2>>
 
-\* [Record Action], one step under Execution Contract Store 1: the record lands whole; or a refusal at step 3 keeps
+\* [Record Action], one step under Execution Contract Database 1: the record lands whole; or a refusal at step 3 keeps
 \* the attestation and a refusal at step 4 the attestation and the event, written in the refusal's own transaction
 \* (record action step 7.11); or a storage failure or a crash commits nothing.
 IRecord ==
@@ -271,7 +271,7 @@ Spec == Init /\ [][Next]_vars
 Inv1_AttestFirst == ev => att
 Inv2_EventFirst == (plc > 0) => ev
 
-\* A compensated orphan never acquires an event afterwards (Second half 9-10; Execution Contract Store 1).
+\* A compensated orphan never acquires an event afterwards (Second half 9-10; Execution Contract Database 1).
 Inv1_NoLateEvent == (cO > 0) => ~ev
 
 \* One writer per act: one placement, one intent and one compensation per finding

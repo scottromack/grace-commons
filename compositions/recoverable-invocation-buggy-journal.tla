@@ -5,7 +5,7 @@
 \* (v7), with TakeRefuses = FALSE: a take does not refuse a journal write it
 \* overtakes, so a write issued under one grant lands after another holder
 \* has taken the section. That is the journal the page kept a fence for
-\* until 2026-10-20, when the maintainer ruled that Execution Contract Store 2
+\* until 2026-10-20, when the maintainer ruled that Execution Contract Database 2
 \* makes a writer's re-read, lease check and append one transaction, the
 \* lease's grant living in the one store with the journal; the refusal is
 \* what that ruling gives every deployment. Until v7 this twin was a copy of
@@ -241,7 +241,7 @@ Preparing == invPhase \in {"prepared", "reading", "prepIntent"} \/ PreparedPhase
 
 \* v7. A TAKE IS A WRITE TO THE GRANT, AND THE STORE REFUSES WHAT IT
 \* OVERTAKES. A writer's re-read, lease check and append are one transaction
-\* (Execution Contract Store 2), the lease's grant living in the one store with
+\* (Execution Contract Database 2), the lease's grant living in the one store with
 \* the journal. So a journal write a writer issued and that has not returned,
 \* or one it passed its gate for and has not yet issued, is refused when
 \* another holder takes the section — the take committed against the grant
@@ -249,7 +249,7 @@ Preparing == invPhase \in {"prepared", "reading", "prepIntent"} \/ PreparedPhase
 \* invocation returns its position's arm and leaves the act to the sweep, a
 \* sweep run leaves the act for the next run, the operator may call again.
 \* Nothing is refused for time alone, and a write that has returned has
-\* committed and stays (Execution Contract Store 3).
+\* committed and stays (Execution Contract Database 3).
 Late(st) == TakeRefuses /\ st = "pending"
 InvOvertaken ==
     /\ TakeRefuses

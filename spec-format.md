@@ -79,7 +79,7 @@ The table under the section titled *Atom headings* owns each heading's name, lev
 
    - **State** — the declared states and the rules over them: every state named, the terminal states named, what each record carries in each state. What changes a state, and under what condition, is stated by the Operations rules that change it. This is GRID's State node.
 
-   - **Capability requirement** — what the deployment supplies, such as the clock reading at the seam, an id source, a store or a settable bound, each with the rule the deployment sets it by.
+   - **Capability requirement** — what the deployment supplies, such as the clock reading at the seam, an id source, a database or a settable bound, each with the rule the deployment sets it by.
 
    - **Operations** — a signature block, one signature per action: its inputs, an `answers` line and a `refuses` line naming every rejection reason, in the signature form [`GRACE-lang.md`](./GRACE-lang.md) declares. Then the `Operation` rules: which condition answers which refusal, what each action records or changes, and what it answers. The six nodes the prose shape spread across six sections live here — inputs on the signature, with their validity in a policy family; outputs on the answers line; each decision as the rule that answers a refusal; behavior and feedback as the rules that record, change and answer. The prose shape stated one set of obligations six times, which is how a spec came to disagree with itself; a rewritten spec states each once (adopted 2026-09-11). A decision table may stand beside the rules as reader sugar, each row citing the rule that owns it — a table is a completeness argument, which a list of rules does not make on its own. This is GRID's Flow, Decision, Behavior and Feedback nodes.
 
@@ -168,7 +168,7 @@ The table under the section titled *Composition headings* owns each heading's na
 
 9. **Non-goals.** Same structure as atom shape — out-of-scope responsibilities named explicitly with the composing pattern or external mechanism that owns each.
 
-10. **Edge cases.** Same structure as atom shape. Cross-store consistency under partial failure (for compositions that write to multiple stores in sequence) is a canonical edge case every multi-step action addresses.
+10. **Edge cases.** Same structure as atom shape. Cross-record consistency under partial failure (for compositions that write several constituents' records in sequence) is a canonical edge case every multi-step action addresses.
 
 11. **Composition notes.** Present when another pattern composes this one; same form as atom shape.
 

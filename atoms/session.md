@@ -68,7 +68,7 @@ Term issued by reference: the opaque reference naming the mechanism that issued 
 
 Term seam: the atom's I/O boundary as the section titled Logic Confinement Principle in `execution-contract.md` declares it; the host injects the clock reading, the session token and the token's random material here.
 
-Term transition: the atom's evaluation of one call against the session store, as the section titled Logic Confinement Principle in `execution-contract.md` declares it.
+Term transition: the atom's evaluation of one call against the session records, as the section titled Logic Confinement Principle in `execution-contract.md` declares it.
 
 ### State
 
@@ -83,7 +83,7 @@ State 7: An active session MUST NOT carry revocation reason.
 State 8: A session MUST NOT carry a stored expired status.
 State 9: A session MUST NOT carry an expiry timestamp beside expiry instant.
 State 10: The atom MUST NOT offer a transition out of revoked.
-State 11: The atom MUST NOT remove a session from the store.
+State 11: The atom MUST NOT remove a session from the database.
 State 12: The atom MUST NOT hold a permission.
 State 13: The atom MUST NOT hold a device context.
 State 14: The atom MUST NOT hold a concurrency bound per principal reference.
@@ -112,8 +112,8 @@ Capability requirement 2: The deployment MUST configure a default session durati
 Capability requirement 3: The deployment MUST supply the session token's random material at the seam.
 Capability requirement 4: The session token's random material MUST NOT fall below the token entropy.
 Capability requirement 5: The deployment MUST own the session token's format.
-Capability requirement 6: The deployment MUST own whether the store holds a session token raw.
-Capability requirement 10: The deployment MUST supply the session store PER Execution Contract Store 1 through 4.
+Capability requirement 6: The deployment MUST own whether the database holds a session token raw.
+Capability requirement 10: The deployment MUST supply the session records PER Execution Contract Database 1 through 4.
 Deleted: Capability requirement 7. Execution Contract Logic confinement 7 owns it.
 Deleted: Capability requirement 8. Execution Contract Logic confinement 7 owns it.
 Deleted: Capability requirement 9. Execution Contract Logic confinement 7 owns it.
@@ -169,7 +169,7 @@ Operation 8: IF the session duration DOES NOT EXCEED the zero duration THEN [Iss
 Operation 9: [Issue] MUST stamp issuance instant from the injected now.
 Operation 10: [Issue] MUST stamp expiry instant from the expiry deadline.
 Operation 11: [Issue] MUST NOT recompute expiry instant from a later clock reading.
-Operation 12: IF the store refuses the write THEN [Issue] MUST answer storage-failure.
+Operation 12: IF the database refuses the write THEN [Issue] MUST answer storage-failure.
 Operation 13: [Validate] MUST answer EXACTLY ONE OF valid, expired, revoked, not-known.
 Operation 14: IF the session token names no session THEN [Validate] MUST answer not-known.
 Operation 15: IF the session's status EQUALS revoked THEN [Validate] MUST answer revoked.
@@ -189,10 +189,10 @@ Operation 28: [Revoke] MUST stand the session in revoked.
 Operation 29: [Revoke] MUST stamp revocation instant from the injected now.
 Operation 30: [Revoke] MUST record revoked by reference on the session.
 Operation 31: [Revoke] MUST record the reason as the revocation reason.
-Deleted: Operation 32. Execution Contract Store 1 owns it.
+Deleted: Operation 32. Execution Contract Database 1 owns it.
 Operation 33: [Revoke] MUST answer revoked.
-Operation 34: IF the store refuses the write THEN [Revoke] MUST answer storage-failure.
-Deleted: Operation 35. Execution Contract Store 3 owns it.
+Operation 34: IF the database refuses the write THEN [Revoke] MUST answer storage-failure.
+Deleted: Operation 35. Execution Contract Database 3 owns it.
 Operation 36: [Revoke] MUST accept the session token as the whole authorization.
 Operation 37: [Read] MUST answer EVERY session the filter matches.
 Operation 38: [Read] MUST carry the effective status on EVERY answered session.
@@ -241,9 +241,9 @@ Term liveness query: any query for the sessions in force — the administrative 
 
 The case space, and the rule that owns each case:
 
-| Call | Case | Answer | Effect on the store |
+| Call | Case | Answer | Effect on the database |
 |---|---|---|---|
-| [Issue] | both references present, duration positive or defaulted, store accepts | the new session token | one record lands in [Active], issuance instant and expiry instant stamped (Operation 1, Operation 9, Operation 10) |
+| [Issue] | both references present, duration positive or defaulted, database accepts | the new session token | one record lands in [Active], issuance instant and expiry instant stamped (Operation 1, Operation 9, Operation 10) |
 | [Issue] | a blank reference, a non-positive duration, or no configured default | [Invalid Request] | none (Operation 4, Operation 5, Operation 8, Operation 48) |
 | [Validate] | token names nothing | [Not Known] | none — the call reads (Operation 14, Operation 20) |
 | [Validate] | stored status is [Revoked] | [Invalid Revoked] | none — returned even where the window is still open (Operation 15) |
@@ -254,7 +254,7 @@ The case space, and the rule that owns each case:
 | [Revoke] | token names nothing | [Not Known] | none (Operation 22) |
 | [Revoke] | stored status is already [Revoked] | [Already Terminal] | none (Operation 23, Operation 24) |
 | [Revoke] | session in [Active], blank attribution | [Invalid Request] | none (Operation 25, Operation 26) |
-| either write | store refuses | [Storage Failure] | none (Operation 12, Operation 34) |
+| either write | database refuses | [Storage Failure] | none (Operation 12, Operation 34) |
 | *a window lapses* | now reaches expiry instant | nothing is called | **nothing written** — no action, no stamp, no scheduler (Expiry 1 through 5) |
 | [Read] | a filter | the matching sessions, each carrying its effective status | none (Operation 37, Operation 38) |
 
@@ -306,7 +306,7 @@ The case space, and the rule that owns each case:
   ```
   Invariant 9.1: The atom MUST NOT offer a removal surface.
   Invariant 9.2: An action the atom offers MUST NOT reduce the session count.
-  Deleted: Invariant 9.3. Execution Contract Store 1 owns it.
+  Deleted: Invariant 9.3. Execution Contract Database 1 owns it.
   ```
 - **Invariant 10 — Every session has a finite lifetime.**
   ```
@@ -358,7 +358,7 @@ The user closes the browser without logging out. The window passes at `11:00:00Z
 
 ### Regulated adversarial scenarios
 
-- **Regulator audit.** A HIPAA (Health Insurance Portability and Accountability Act) auditor asks whether access to a patient record at `14:32Z` on `2026-10-15` was under a valid, unrevoked session. The store yields `tok_abc123`: stored active, `issued_at: 14:00:00Z`, `expires_at: 15:00:00Z`, no revocation instant. Invariant 3.1 is the structural answer — at `14:32Z` the session was stored active and the deadline had not passed, so [Validate] would have answered [Valid]. The auditor confirms it from the record alone; there is no stored expiry flag to corroborate, only the immutable deadline (Check 3.1).
+- **Regulator audit.** A HIPAA (Health Insurance Portability and Accountability Act) auditor asks whether access to a patient record at `14:32Z` on `2026-10-15` was under a valid, unrevoked session. The database yields `tok_abc123`: stored active, `issued_at: 14:00:00Z`, `expires_at: 15:00:00Z`, no revocation instant. Invariant 3.1 is the structural answer — at `14:32Z` the session was stored active and the deadline had not passed, so [Validate] would have answered [Valid]. The auditor confirms it from the record alone; there is no stored expiry flag to corroborate, only the immutable deadline (Check 3.1).
 - **Disputed access.** A user denies access at `03:15` on `2026-11-20`. The investigator queries sessions for the principal live at that instant and finds `tok_abc123`: `issued_at: 2026-11-19T22:00:00Z`, `expires_at: 2026-11-20T06:00:00Z`, `issued_by_ref: login_svc_l01`. The session was in force. Whether the token was stolen is a separate investigation; what the records bound is the forensic window — issued through the Login service at 22:00, valid at 03:15, never revoked before the access. Who authenticated at 22:00 and against what credential is [Actor Identity](./actor-identity.md)'s record, wired by Login (Non-goal 1, Composition note 3).
 - **Breach investigation.** Session tokens are found in an exposed log file. The investigator queries every session with `issued_by_ref: api_gateway_g01` inside the exposure window — 47 sessions across 31 principals — and reads each effective status against the investigation clock: which are live, which lapsed, which were already revoked. The team then calls [Revoke] on every session not already revoked, *including the lapsed ones*, so that every closure is attributed (Operation 27). Invariant 8.1 through 8.3 is what lets an auditor six months later reconstruct which sessions were closed, by whom, when and why, with no recourse to the incident runbook.
 
@@ -366,7 +366,7 @@ The user closes the browser without logging out. The window passes at `11:00:00Z
 
 ## Generation acceptance
 
-This atom's acceptance is what an external auditor can clear from the session store and the read-time clock the [Validate] and [Read] surfaces use, with no recourse to source code, runbooks or developer narration.
+This atom's acceptance is what an external auditor can clear from the session records and the read-time clock the [Validate] and [Read] surfaces use, with no recourse to source code, runbooks or developer narration.
 
 ### Conformance checks
 
@@ -404,7 +404,7 @@ Non-goal 13: A deployment needing a concurrency bound MUST enforce the bound at 
 Non-goal 14: The atom MUST NOT propagate a revocation across a principal reference's other sessions.
 Non-goal 15: A deployment needing logout propagation MUST revoke the principal reference's sessions one by one.
 Non-goal 16: The atom MUST NOT define the session token's format.
-Non-goal 17: The atom MUST NOT define how the store holds a session token.
+Non-goal 17: The atom MUST NOT define how the database holds a session token.
 Non-goal 18: The atom MUST NOT enumerate a session token.
 Non-goal 19: The atom MUST NOT seal a session against modification.
 Non-goal 20: The atom MUST NOT bound how long a session is kept.
@@ -430,9 +430,9 @@ Clock dependence 2: A rejection MUST NOT rest on now.
 ### Concurrency
 
 ```
-Deleted: Concurrency 1. Execution Contract Store 2 owns it.
-Deleted: Concurrency 2. Execution Contract Store 2 owns it.
-Deleted: Concurrency 3. Execution Contract Store 2 owns it.
+Deleted: Concurrency 1. Execution Contract Database 2 owns it.
+Deleted: Concurrency 2. Execution Contract Database 2 owns it.
+Deleted: Concurrency 3. Execution Contract Database 2 owns it.
 Concurrency 4: Two concurrent [Issue] calls carrying one principal reference MUST record two sessions.
 ```
 
@@ -475,8 +475,8 @@ Composition note 5: A composing pattern MUST own the renewal policy.
 Composition note 6: A composing pattern MUST own the logout propagation across a principal reference's sessions.
 Composition note 7: A composing pattern MUST own the device binding.
 Composition note 8: A composing pattern MUST own the concurrency bound per principal reference.
-Composition note 9: A composing pattern MUST own the retention of the session store.
-Composition note 10: A composing pattern reading the session store MUST NOT write to the session store.
+Composition note 9: A composing pattern MUST own the retention of the session records.
+Composition note 10: A composing pattern reading the session records MUST NOT write to the session records.
 Composition note 11: The atom MUST NOT detect an authentication credential's revocation.
 ```
 
@@ -488,7 +488,7 @@ Each `[Term]` marker above links to its term entry here; a term entry states wha
 
 ### Vocabulary
 
-Term actors: the atom; the host; the transition; the implementation; the deployment; a composing pattern (also: a pattern); a business caller; a caller; a guard; a principal; an auditor; the store; a session; a status; a lapse; a liveness query; a rejection; a write; an action; a string input; an opaque reference; the session count; the session token's random material.
+Term actors: the atom; the host; the transition; the implementation; the deployment; a composing pattern (also: a pattern); a business caller; a caller; a guard; a principal; an auditor; the database; a session; a status; a lapse; a liveness query; a rejection; a write; an action; a string input; an opaque reference; the session count; the session token's random material.
 
 Term records: session — one bounded-lifetime attestation, carrying session token, principal reference, issued by reference, issuance instant, expiry instant, status and, once cancelled, revocation instant, revoked by reference and revocation reason.
 
@@ -726,7 +726,7 @@ Projection: already-terminal
 
 #### Storage Failure
 
-The rejection [Issue] or [Revoke] returns when the underlying store write fails. The caller must treat it as definitive.
+The rejection [Issue] or [Revoke] returns when the underlying database write fails. The caller must treat it as definitive.
 
 Kind:       Member
 Member of:  the action rejection

@@ -103,15 +103,15 @@ Capability requirement 9: A deployment MUST configure the Audit Trail instance w
 Capability requirement 10: The longest resume gap MUST NOT EXCEED the audit horizon.
 Capability requirement 11: A deployment MUST declare the minted-id width bounds.
 Capability requirement 12: The minted-id width bounds MUST agree with the widths the wired constituents allocate.
-Deleted: Capability requirement 13. Execution Contract Store 2 owns it.
-Deleted: Capability requirement 14. Execution Contract Store 2 owns it.
-Deleted: Capability requirement 15. Execution Contract Store 2 owns it: an arc's reads and the writes they decide are one transaction, and the composition names no critical section to release.
-Deleted: Capability requirement 16. Execution Contract Store 2 owns it: an arc's reads and the writes they decide are one transaction, and the composition names no critical section to release.
-Deleted: Capability requirement 17. Execution Contract Store 2 owns it: an arc's reads and the writes they decide are one transaction, and the composition names no critical section to lease.
+Deleted: Capability requirement 13. Execution Contract Database 2 owns it.
+Deleted: Capability requirement 14. Execution Contract Database 2 owns it.
+Deleted: Capability requirement 15. Execution Contract Database 2 owns it: an arc's reads and the writes they decide are one transaction, and the composition names no critical section to release.
+Deleted: Capability requirement 16. Execution Contract Database 2 owns it: an arc's reads and the writes they decide are one transaction, and the composition names no critical section to release.
+Deleted: Capability requirement 17. Execution Contract Database 2 owns it: an arc's reads and the writes they decide are one transaction, and the composition names no critical section to lease.
 Capability requirement 18: IF the onboarding completion bound EQUALS blank THEN the composition MUST refuse to start.
 Capability requirement 19: IF the clock offset allowance EQUALS blank THEN the composition MUST refuse to start.
-Deleted: Capability requirement 20. Execution Contract Store 2 owns it: an arc's reads and the writes they decide are one transaction, and the composition names no critical section for a deployment to leave blank.
-Capability requirement 21: The deployment MUST supply the store PER Execution Contract Store 1 through 4.
+Deleted: Capability requirement 20. Execution Contract Database 2 owns it: an arc's reads and the writes they decide are one transaction, and the composition names no critical section for a deployment to leave blank.
+Capability requirement 21: The deployment MUST supply the database PER Execution Contract Database 1 through 4.
 ```
 
 Term onboarding completion bound: the deployment's declared maximum for an [Onboard] or [Invite] invocation between the invocation's first constituent write and the invocation's last record — from Invitation's accept committing to the completion or interruption record landing, and from Invitation's initiate committing to the initiated record landing.
@@ -169,13 +169,13 @@ Audit arm 2: IF Audit Trail answers recording-failure at an attempt record THEN 
 Audit arm 3: IF Audit Trail answers invalid-request carrying a step below step-3 at an attempt record THEN the action MUST answer storage-failure carrying intent.
 Audit arm 4: A refused attempt record MUST stop the action.
 Audit arm 5: IF Audit Trail answers recording-failure carrying a pre-append step at a post-write record THEN the action MUST answer storage-failure carrying outcome.
-Deleted: Audit arm 6. Execution Contract Store 1 owns it.
-Deleted: Audit arm 7. Execution Contract Store 1 owns it.
+Deleted: Audit arm 6. Execution Contract Database 1 owns it.
+Deleted: Audit arm 7. Execution Contract Database 1 owns it.
 Audit arm 8: IF Audit Trail answers invalid-request(step-4) at a post-write record THEN the composition MUST read the record back.
 Audit arm 9: The read-back MUST run from the sequence number of the invocation's own attempt record to the open end.
 Audit arm 10: The read-back MUST match the post-write record by action reference AND invitation token.
 Audit arm 11: IF the read-back finds the post-write record THEN the action MUST proceed as landed.
-Deleted: Audit arm 12. Execution Contract Store 1 owns it.
+Deleted: Audit arm 12. Execution Contract Database 1 owns it.
 Audit arm 13: IF Audit Trail answers invalid-credential at a post-write record THEN the action MUST answer invalid-credential.
 Audit arm 14: IF Invitation answers storage-failure THEN the action MUST answer storage-failure carrying intent.
 Audit arm 15: IF Party Identity answers storage-failure THEN [Onboard] MUST answer storage-failure carrying outcome.
@@ -183,7 +183,7 @@ Audit arm 16: IF Credential answers storage-failure THEN [Onboard] MUST answer s
 Audit arm 17: A caller MUST read storage-failure carrying intent as a committed nothing.
 Audit arm 18: A caller MUST read storage-failure carrying outcome as a committed invitation write.
 Audit arm 19: The deployment MUST alert on an invalid-request from Audit Trail as a deployment fault.
-Deleted: Audit arm 20. Execution Contract Store 1 owns it.
+Deleted: Audit arm 20. Execution Contract Database 1 owns it.
 Audit arm 21: IF Audit Trail answers invalid-request carrying a step above step-2 at an attempt record THEN the action MUST answer storage-failure carrying intent.
 Audit arm 22: IF Audit Trail answers invalid-request carrying a step below step-4 at a post-write record THEN the action MUST answer storage-failure carrying outcome.
 ```
@@ -238,13 +238,13 @@ Action wiring 6: An admitted invite MUST record an initiated record carrying the
 Action wiring 7: A landed invite MUST answer the invitation token.
 Action wiring 8: A validated onboard MUST record an accept attempt carrying the invitation token, the accepting identity reference, the document type AND the document reference.
 Action wiring 9: An admitted onboard MUST call Invitation's accept with the invitation token AND the accepting identity reference.
-Deleted: Action wiring 10. Execution Contract Store 1 owns it.
-Deleted: Action wiring 11. Execution Contract Store 1 owns it: a fresh arc's writes commit together, and the composition names no critical section for the host to refuse.
-Deleted: Action wiring 12. Execution Contract Store 2 owns it.
-Deleted: Action wiring 13. Execution Contract Store 2 owns it: an arc's reads and the writes they decide are one transaction, and the composition names no lease to expire.
-Deleted: Action wiring 14. Execution Contract Store 2 owns it: an arc's reads and the writes they decide are one transaction, and the composition names no critical section to lose.
-Deleted: Action wiring 15. Execution Contract Store 1 owns it: a fresh arc's writes commit together, so no resumer re-enters an arc a fresh arc is still running.
-Deleted: Action wiring 16. Execution Contract Store 1 owns it: a fresh arc's writes commit together, so no resumer re-enters an arc a fresh arc is still running.
+Deleted: Action wiring 10. Execution Contract Database 1 owns it.
+Deleted: Action wiring 11. Execution Contract Database 1 owns it: a fresh arc's writes commit together, and the composition names no critical section for the host to refuse.
+Deleted: Action wiring 12. Execution Contract Database 2 owns it.
+Deleted: Action wiring 13. Execution Contract Database 2 owns it: an arc's reads and the writes they decide are one transaction, and the composition names no lease to expire.
+Deleted: Action wiring 14. Execution Contract Database 2 owns it: an arc's reads and the writes they decide are one transaction, and the composition names no critical section to lose.
+Deleted: Action wiring 15. Execution Contract Database 1 owns it: a fresh arc's writes commit together, so no resumer re-enters an arc a fresh arc is still running.
+Deleted: Action wiring 16. Execution Contract Database 1 owns it: a fresh arc's writes commit together, so no resumer re-enters an arc a fresh arc is still running.
 Action wiring 17: IF Invitation answers expired THEN [Onboard] MUST answer invitation-invalid carrying expired.
 Action wiring 18: IF Invitation answers not-known THEN [Onboard] MUST answer invitation-invalid carrying not-known.
 Action wiring 19: IF Invitation answers already-resolved AND the stored terminal DOES NOT EQUAL accepted THEN [Onboard] MUST answer invitation-invalid carrying already-resolved AND the stored terminal.
@@ -267,7 +267,7 @@ Action wiring 35: A resume arm reading the arc's credential back MUST discard th
 Action wiring 36: An interruption record's refusal MUST NOT change the arc's answer.
 Action wiring 37: An arc MUST record a completion record carrying the invitation token, the accepting identity reference, the party id AND the credential id ONLY AFTER the arc's credential stands.
 Action wiring 38: A completing arc MUST answer the party id AND the credential id.
-Deleted: Action wiring 39. Execution Contract Store 2 owns it: an arc's reads and the writes they decide are one transaction, and the composition names no critical section to release.
+Deleted: Action wiring 39. Execution Contract Database 2 owns it: an arc's reads and the writes they decide are one transaction, and the composition names no critical section to release.
 Action wiring 40: A validated decline MUST record a decline attempt carrying the invitation token under the service actor reference.
 Action wiring 41: An admitted decline MUST call Invitation's decline with the invitation token.
 Action wiring 42: IF Invitation answers expired for a decline THEN [Decline] MUST answer invitation-invalid carrying expired.
@@ -302,7 +302,7 @@ Term fresh arc: an admitted onboard whose accept Invitation answered accepted.
 
 Term resumable acceptance: an accepted invitation carrying the call's accepting identity reference whose `acceptance instant + widened bound` PRECEDES now.
 
-Term stage reading: the resume arm's establishment of an arc's stage and party from the trail and the Party Identity store, Resume 4 through 23.
+Term stage reading: the resume arm's establishment of an arc's stage and party from the trail and the Party Identity records, Resume 4 through 23.
 
 Term completing arc: an arc whose completion record lands or proceeds as landed.
 
@@ -342,9 +342,9 @@ The result: invitation-gates-enrollment (Invariant 1) and credential-follows-par
 ### Resume
 
 ```
-Deleted: Resume 1. Execution Contract Store 2 owns it.
-Deleted: Resume 2. Execution Contract Store 2 owns it: an arc's reads and the writes they decide are one transaction, and the composition names no critical section for the host to refuse.
-Deleted: Resume 3. Execution Contract Store 2 owns it: an arc's reads and the writes they decide are one transaction, and the composition names no critical section to release.
+Deleted: Resume 1. Execution Contract Database 2 owns it.
+Deleted: Resume 2. Execution Contract Database 2 owns it: an arc's reads and the writes they decide are one transaction, and the composition names no critical section for the host to refuse.
+Deleted: Resume 3. Execution Contract Database 2 owns it: an arc's reads and the writes they decide are one transaction, and the composition names no critical section to release.
 Resume 4: IF an aged acceptance EXISTS for the invitation token THEN the resume arm MUST answer invitation-invalid carrying already-resolved AND accepted.
 Resume 5: The resume arm MUST NOT read the trail BEFORE ruling out an aged acceptance.
 Resume 6: The resume arm MUST read the invitation token's events in sequence order.
@@ -368,18 +368,18 @@ Resume 23: IF the resume party id IS IN the party candidates THEN the resume arm
 Resume 24: The composition MUST NOT choose among the party candidates.
 Resume 25: IF Party Identity answers invalid-query THEN the resume arm MUST answer invalid-request.
 Resume 26: The deployment MUST alert on an invalid-query from Party Identity as the composition's own defect.
-Deleted: Resume 27. Execution Contract Store 1 owns it.
+Deleted: Resume 27. Execution Contract Database 1 owns it.
 Resume 28: The resume arm MUST record a resume record carrying the invitation token, the accepting identity reference, the document type, the document reference, the resumed stage AND the arc's party id where one stands.
 Resume 29: IF Audit Trail answers recording-failure carrying a pre-append step at the resume record THEN the resume arm MUST answer storage-failure carrying intent.
 Resume 30: IF the stage EQUALS acceptance-unrecorded THEN the resume arm MUST record the acceptance record from the Invitation record.
 Resume 31: IF no party id stands for the arc THEN the resume arm MUST call Party Identity's enroll PER Action wiring 26 through 28.
 Resume 32: IF a party id stands for the arc THEN the resume arm MUST NOT call Party Identity's enroll.
 Resume 33: A resume record MUST pair with the first outcome record following the resume record in sequence order.
-Deleted: Resume 34. Execution Contract Store 1 owns it.
+Deleted: Resume 34. Execution Contract Database 1 owns it.
 Resume 35: IF Audit Trail answers invalid-credential at the resume record THEN the resume arm MUST answer invalid-credential.
 Resume 36: IF Audit Trail answers invalid-request(step-4) at the resume record THEN the resume arm MUST read the resume record back PER Audit arm 9 through 10.
-Deleted: Resume 37. Execution Contract Store 1 owns it.
-Deleted: Resume 38. Execution Contract Store 2 owns it: an arc's reads and the writes they decide are one transaction, and the composition names no critical section to take again.
+Deleted: Resume 37. Execution Contract Database 1 owns it.
+Deleted: Resume 38. Execution Contract Database 2 owns it: an arc's reads and the writes they decide are one transaction, and the composition names no critical section to take again.
 Resume 39: The resume arm MUST read EVERY credential carrying the arc's party id as principal reference AND the call's credential type through Credential's read, in any status.
 Resume 40: The resume arm MUST keep a credential in the credential candidates ONLY IF the credential IS IN the chain roots AND the credential's registration instant IS IN the arc's window union.
 Resume 41: IF the credential reading EQUALS sole AND the call carries no resume credential id THEN the resume arm MUST continue with the credential candidate as the arc's credential.
@@ -590,8 +590,8 @@ External check 1: An auditor needing the onboarding completion bound confirmed M
 External check 2: An auditor needing the clock offset allowance confirmed MUST read the deployment's own configuration (Capability requirement 7).
 External check 3: An auditor needing the audit horizon confirmed MUST read the Audit Trail instance's retention policy (Capability requirement 9).
 External check 4: An auditor needing the minted-id width bounds confirmed MUST read the deployment's own declaration (Capability requirement 11).
-Deleted: External check 5. Execution Contract Store 2 owns it.
-Deleted: External check 6. Execution Contract Store 2 owns it.
+Deleted: External check 5. Execution Contract Database 2 owns it.
+Deleted: External check 6. Execution Contract Database 2 owns it.
 External check 7: An auditor needing the routing obligation confirmed MUST read the deployment's own wiring (Composes 9).
 External check 8: An auditor needing an actor reference's authorization confirmed MUST read the composed Permissions instance's records (Non-goal 2).
 External check 9: An auditor needing a constituent's own guarantee confirmed MUST read the constituent's own acceptance (Composes 6).
@@ -603,10 +603,10 @@ External check 9: An auditor needing a constituent's own guarantee confirmed MUS
 Standing rule 1: An auditor MUST read a payload-keyed query as an enumerate-and-filter over the substrate's sequence-range read.
 Standing rule 2: An auditor MUST compare two seams' stamps PER the clock offset allowance.
 Standing rule 3: An auditor MUST read a discrepancy inside the clock offset allowance as inconclusive.
-Standing rule 4: An auditor MUST quantify an Invitation-store check over the dedicated Invitation instance alone.
+Standing rule 4: An auditor MUST quantify an Invitation-record check over the dedicated Invitation instance alone.
 Standing rule 5: An auditor MUST quantify a trail-walking check over the arcs inside the horizon.
 Standing rule 6: An auditor MUST read a purged event as lawful destruction.
-Deleted: Standing rule 7. Execution Contract Store 1 owns it.
+Deleted: Standing rule 7. Execution Contract Database 1 owns it.
 Standing rule 8: An auditor MUST join records on the invitation token.
 Standing rule 9: An auditor MUST NOT pair an attempt record with an outcome.
 ```
@@ -651,8 +651,8 @@ Clock semantics 3: The composition MUST read a widened horizon comparison toward
 
 ```
 Concurrency 1: Two fresh accepts of one invitation token MUST resolve through Invitation's single resolution.
-Deleted: Concurrency 2. Execution Contract Store 2 owns it.
-Deleted: Concurrency 3. Execution Contract Store 2 owns it: an arc's reads and the writes they decide are one transaction, and the composition names no holder for a resumer to race.
+Deleted: Concurrency 2. Execution Contract Database 2 owns it.
+Deleted: Concurrency 3. Execution Contract Database 2 owns it: an arc's reads and the writes they decide are one transaction, and the composition names no holder for a resumer to race.
 ```
 
 ### Credential collision on a fresh arc
@@ -661,7 +661,7 @@ On a fresh arc the party id was minted at the enroll of this very call, so no ea
 
 ### Partial failure
 
-If Invitation's accept succeeds and a later step fails — the acceptance record, Party Identity's enroll, Credential's register or the completion record — the invitation is permanently accepted and cannot be accepted again. It **can be resumed**: a later [Onboard] with the same token and the same accepting identity reference, past the widened bound and inside the audit horizon, takes the resume arm, one resumer per token, establishes the stage from the trail and, where the trail is silent, from the Party Identity store over every window the arc's records anchor, and re-runs the remaining steps under the caller's own authenticated identity behind a resume record. The caller need not be the actor who began the arc. What the resume does **not** do is guess: where the store shows more than one party enrolled by the arc's actors under the arc's recorded documents inside the arc's windows, it refuses with onboarding-indeterminate and an administrator chooses. Manual completion outside the composition is not the recovery (Wiring decision 5); a deployment that performs it produces a party with no completion record — the regulator-audit scenario's failure, by its own hand. Check 5.1 through 5.3 surface the arcs awaiting resumption.
+If Invitation's accept succeeds and a later step fails — the acceptance record, Party Identity's enroll, Credential's register or the completion record — the invitation is permanently accepted and cannot be accepted again. It **can be resumed**: a later [Onboard] with the same token and the same accepting identity reference, past the widened bound and inside the audit horizon, takes the resume arm, one resumer per token, establishes the stage from the trail and, where the trail is silent, from the Party Identity records over every window the arc's records anchor, and re-runs the remaining steps under the caller's own authenticated identity behind a resume record. The caller need not be the actor who began the arc. What the resume does **not** do is guess: where the database shows more than one party enrolled by the arc's actors under the arc's recorded documents inside the arc's windows, it refuses with onboarding-indeterminate and an administrator chooses. Manual completion outside the composition is not the recovery (Wiring decision 5); a deployment that performs it produces a party with no completion record — the regulator-audit scenario's failure, by its own hand. Check 5.1 through 5.3 surface the arcs awaiting resumption.
 
 ---
 
@@ -681,7 +681,7 @@ If Invitation's accept succeeds and a later step fails — the acceptance record
 
 ## Terms
 
-Each `[Term]` marker above links to its term entry here; a term entry states what the concept *is*, in plain English, and its **Kind**, and — for a Field, a Parameter or a wire Member — carries the one **Projection** line where the concrete name stays visible on the page. The composition's own concepts are the four actions it exposes and the four composition-introduced Audit Trail events that record the arc. It owns no cross-atom state — the Audit Trail *is* the map — so no store carries a term entry. The deployment settings keep their wire spellings in configuration — `onboarding_completion_bound`, `clock_offset_allowance`, `audit_trail_retention_policy` — and the page names each in English where it declares it. *(annotation.md Terms registry; representational only — it changes no guarantee, invariant, or behavior of the composition above.)*
+Each `[Term]` marker above links to its term entry here; a term entry states what the concept *is*, in plain English, and its **Kind**, and — for a Field, a Parameter or a wire Member — carries the one **Projection** line where the concrete name stays visible on the page. The composition's own concepts are the four actions it exposes and the four composition-introduced Audit Trail events that record the arc. It owns no cross-atom state — the Audit Trail *is* the map — so no records of its own carry a term entry. The deployment settings keep their wire spellings in configuration — `onboarding_completion_bound`, `clock_offset_allowance`, `audit_trail_retention_policy` — and the page names each in English where it declares it. *(annotation.md Terms registry; representational only — it changes no guarantee, invariant, or behavior of the composition above.)*
 
 ### Vocabulary
 
@@ -753,7 +753,7 @@ Kind: Operation
 
 #### Onboarding Invitation Accepted
 
-The Audit Trail event [Onboard] records when Invitation's accept clears the gate — carrying the invitation token, the accepting identity reference, and the document type and document reference the arc enrolls under, which a resume matches the Party Identity store against. An accepted invitation with no such event is Check 5.1's gap signature.
+The Audit Trail event [Onboard] records when Invitation's accept clears the gate — carrying the invitation token, the accepting identity reference, and the document type and document reference the arc enrolls under, which a resume matches the Party Identity records against. An accepted invitation with no such event is Check 5.1's gap signature.
 
 Kind:       Member
 Member of:  the onboarding event

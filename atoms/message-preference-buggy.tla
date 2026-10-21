@@ -4,8 +4,8 @@
 \* Identical to message-preference.tla EXCEPT supersession is split into two steps with
 \* the new Active record created BEFORE the prior in-effect record is retired —
 \* the non-atomic `set` that opens the two-in-effect window Invariant 3 and
-\* Execution Contract Store 1 forbid (no reader ever sees some of an action's
-\* writes without the rest; Store 1 owns the deleted Invariant 4.1 and 4.2).
+\* Execution Contract Database 1 forbid (no reader ever sees some of an action's
+\* writes without the rest; Database 1 owns the deleted Invariant 4.1 and 4.2).
 \*
 \* Expected result: Inv3_AtMostOneInEffect VIOLATED. After SupersedeAddNew the
 \* principal has two in-effect records (the prior, not yet Deleted, and the new).

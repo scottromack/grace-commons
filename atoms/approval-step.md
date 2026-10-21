@@ -54,9 +54,9 @@ Identity 1: The atom MUST identify a step by the step id.
 Identity 2: The host MUST allocate a step id at the seam.
 Identity 3: The transition MUST NOT allocate a step id.
 Identity 4: The atom MUST NOT change a step id.
-Identity 5: Two steps in one store instance MUST NOT share a step id.
+Identity 5: Two steps in one database instance MUST NOT share a step id.
 Identity 6: The deployment MUST choose a step id format that sorts in lexicographic byte order.
-Identity 7: The deployment MUST route EVERY call to one store instance.
+Identity 7: The deployment MUST route EVERY call to one database instance.
 Identity 8: The atom MUST NOT identify a step by the subject reference.
 Identity 9: The atom MUST admit a second step carrying a recorded subject reference.
 Identity 10: The atom MUST compare a reference byte-exactly.
@@ -80,11 +80,11 @@ Term scope: the string naming the kind of approval requested — a [Scope]; reco
 
 Term reference: subject reference, approver reference, submitter reference, deciding actor, withdrawing actor OR scope — every string this atom compares for equality.
 
-Term store instance: one named step store a call is routed to; step id uniqueness ranges over one instance.
+Term database instance: one named database a call is routed to; step id uniqueness ranges over one instance.
 
 Term seam: the atom's I/O boundary as the section titled Logic Confinement Principle in `execution-contract.md` declares it; the host injects the clock reading and the step id here.
 
-Term transition: the atom's evaluation of one call against the step store, as the section titled Logic Confinement Principle in `execution-contract.md` declares it.
+Term transition: the atom's evaluation of one call against the step records, as the section titled Logic Confinement Principle in `execution-contract.md` declares it.
 
 ### State
 
@@ -102,7 +102,7 @@ State 10: EVERY rejected step MUST carry deciding actor, decision reason and dec
 State 11: EVERY withdrawn step MUST carry withdrawing actor, withdrawal reason and withdrawal instant.
 State 12: An approved step MAY carry decision reason.
 State 13: A pending step MUST NOT carry an attribution field.
-State 14: The store instance's step count MUST NOT fall.
+State 14: The database instance's step count MUST NOT fall.
 State 15: The atom MUST NOT record a receipt instant.
 ```
 
@@ -110,7 +110,7 @@ State 15: The atom MUST NOT record a receipt instant.
 
 ```
 Capability requirement 1: The deployment MUST supply now at the seam.
-Capability requirement 5: The deployment MUST supply the step store PER Execution Contract Store 1 through 4.
+Capability requirement 5: The deployment MUST supply the step records PER Execution Contract Database 1 through 4.
 Deleted: Capability requirement 2. Execution Contract Logic confinement 7 owns it.
 Deleted: Capability requirement 3. Execution Contract Logic confinement 7 owns it.
 Deleted: Capability requirement 4. Execution Contract Logic confinement 7 owns it.
@@ -176,10 +176,10 @@ Operation 27: An admitted approve MUST record deciding actor and the resolved de
 Operation 28: An admitted reject MUST record deciding actor, reason as decision reason and the resolved decision instant as decision instant.
 Operation 29: An admitted withdraw MUST record withdrawing actor, reason as withdrawal reason and the resolved decision instant as withdrawal instant.
 Operation 30: An admitted approve MUST record a supplied reason as decision reason.
-Deleted: Operation 31. Execution Contract Store 1 owns it.
+Deleted: Operation 31. Execution Contract Database 1 owns it.
 Operation 32: An admitted resolve MUST answer the action's success token.
 Operation 33: A resolving action MUST NOT change a submission field.
-Operation 34: IF the store refuses the write THEN a writing action MUST answer storage-failure.
+Operation 34: IF the database refuses the write THEN a writing action MUST answer storage-failure.
 Operation 35: An action MUST answer storage-failure ONLY IF EVERY precondition passes.
 Operation 36: A refused action MUST leave the step as the call found the step.
 Operation 37: A refused action MUST NOT record an attribution field.
@@ -249,8 +249,8 @@ Term admitted read: a [Read] call whose every filter axis and filter value the g
 | 3 | the step exists, it stands in a terminal state | [Not Pending] |
 | 4 | the step stands in pending, an attribution check fails | [Invalid Request] |
 | 5 | every attribution check passes, the deciding reference is not the anchor | [Unauthorized] |
-| 6 | every precondition passes, the store refuses the write | [Storage Failure] |
-| 7 | every precondition passes, the store accepts the write | the success token |
+| 6 | every precondition passes, the database refuses the write | [Storage Failure] |
+| 7 | every precondition passes, the database accepts the write | the success token |
 
 NOTE: watch condition negation — invalid-request occupies rows 1 and 4 of one precedence chain, so the answer alone does not say which guard refused. [State Machine](./state-machine.md) and [Audit Trail](../compositions/audit-trail.md) carry the same shape.
 
@@ -297,11 +297,11 @@ NOTE: watch condition negation — invalid-request occupies rows 1 and 4 of one 
   ```
   Invariant 9.1: A resolving action on one step MUST NOT change a second step's field.
   ```
-- **Invariant 10 — Store durability.**
+- **Invariant 10 — Record durability.**
   ```
-  Invariant 10.1: The atom MUST NOT remove a step from the store.
-  Deleted: Invariant 10.2. Execution Contract Store 1 owns it.
-  Deleted: Invariant 10.3. Execution Contract Store 3 owns it.
+  Invariant 10.1: The atom MUST NOT remove a step from the database.
+  Deleted: Invariant 10.2. Execution Contract Database 1 owns it.
+  Deleted: Invariant 10.3. Execution Contract Database 3 owns it.
   ```
 
 ---
@@ -328,7 +328,7 @@ Or the controller catches a routing error first: `withdraw("step-001", withdrawn
 
 `reject("step-002", decided_by: "tax_director", reason: "   ")` → invalid-request. A rejection with no stated reason is not an audit record (Operation 16, Invariant 6.3).
 
-`approve("", decided_by: "finance_director_chen")` → invalid-request, refused before any store lookup — a blank id is garbage, not a reference to a missing step (Operation 10, Operation 12).
+`approve("", decided_by: "finance_director_chen")` → invalid-request, refused before any database lookup — a blank id is garbage, not a reference to a missing step (Operation 10, Operation 12).
 
 `approve("step-003", decided_by: "finance_director_chen", decided_at: "2020-01-01")` against a step submitted in 2026 → invalid-request. A decision cannot predate its submission (Operation 19).
 
@@ -344,13 +344,13 @@ A cross-border entry needs both finance and tax sign-off. Two [Submit] calls pro
 
 - **Regulator audit.** A SOX section 404 examiner asks for evidence that the materiality control operated on a sample of entries. `read({scope: "financial:journal-entry:post", submitted_at: {after: …, before: …}})` answers the gates with full attribution, and Check 2.1 through 3.4 are what make each one usable. What the atom cannot answer is which entries *should* have had a gate and did not — that comparison needs the transaction set, which lives outside (Non-goal 18, External check 2).
 - **Disputed approval.** A director denies approving an entry under an FDA Part 11 signature challenge. The record shows deciding actor equal to approver reference, byte for byte, with the instant and the reason. That proves the call carried their reference and proves nothing about who made the call — the cryptographic binding is [Actor Identity](./actor-identity.md)'s, and the atom says so rather than letting the record be read as a signature (Non-goal 14, External check 3).
-- **Breach forensics.** An investigator examining unauthorized approval attempts finds that the store holds no record of them: a refused call writes nothing (Operation 36, Operation 37), so unauthorized attempts leave no trace here at all. The attempt log is the composing [Audit Trail](../compositions/audit-trail.md)'s, and this store's contribution is the negative evidence — every decision that *did* land, fully attributed (External check 4).
+- **Breach forensics.** An investigator examining unauthorized approval attempts finds that the database holds no record of them: a refused call writes nothing (Operation 36, Operation 37), so unauthorized attempts leave no trace here at all. The attempt log is the composing [Audit Trail](../compositions/audit-trail.md)'s, and these records' contribution is the negative evidence — every decision that *did* land, fully attributed (External check 4).
 
 ---
 
 ## Generation acceptance
 
-This atom's acceptance is what an external auditor can clear from the step store alone, with no recourse to source code, runbooks or developer narration.
+This atom's acceptance is what an external auditor can clear from the step records alone, with no recourse to source code, runbooks or developer narration.
 
 ### Conformance checks
 
@@ -377,8 +377,8 @@ NOTE: EVERY check names the rule the check tests.
 ### External checks
 
 ```
-Deleted: External check 1. Execution Contract Store 3 owns it.
-External check 2: A deployment needing the subjects carrying no step identified MUST read the subject set beside the step store (Non-goal 19).
+Deleted: External check 1. Execution Contract Database 3 owns it.
+External check 2: A deployment needing the subjects carrying no step identified MUST read the subject set beside the step records (Non-goal 19).
 External check 3: A deployment needing a deciding actor bound to an actor MUST read the composing Actor Identity attestation (Non-goal 14).
 External check 4: A deployment needing a refused call's attempt recorded MUST read the composing Audit Trail (Operation 37).
 ```
@@ -401,7 +401,7 @@ Non-goal 12: A deployment needing an approver notified MUST compose Notification
 Non-goal 13: The atom MUST NOT refuse a submitter reference matching the step's approver reference.
 Non-goal 14: The atom MUST NOT bind a deciding actor to an actor.
 Non-goal 15: A deployment needing a non-repudiable decision MUST compose Actor Identity.
-Non-goal 16: The atom MUST NOT detect a rewrite under the store.
+Non-goal 16: The atom MUST NOT detect a rewrite under the database.
 Non-goal 17: A deployment needing a rewrite detected MUST compose Tamper Evidence.
 Non-goal 18: The atom MUST NOT declare which gates a subject requires.
 Non-goal 19: The atom MUST NOT detect a subject carrying no step.
@@ -418,24 +418,24 @@ NOTE: the owners — [Duplicate Prevention](./duplicate-prevention.md) (Non-goal
 ### Atomic writes
 
 ```
-Deleted: Atomic writes 1. Execution Contract Store 1 owns it.
-Deleted: Atomic writes 2. Execution Contract Store 1 and Execution Contract Store 3 own it.
-Deleted: Atomic writes 3. Execution Contract Store 1 owns it.
-Deleted: Atomic writes 4. Execution Contract Store 1 owns it.
+Deleted: Atomic writes 1. Execution Contract Database 1 owns it.
+Deleted: Atomic writes 2. Execution Contract Database 1 and Execution Contract Database 3 own it.
+Deleted: Atomic writes 3. Execution Contract Database 1 owns it.
+Deleted: Atomic writes 4. Execution Contract Database 1 owns it.
 ```
 
 ### Concurrency
 
 ```
-Deleted: Concurrency 1. Execution Contract Store 2 owns it.
-Deleted: Concurrency 2. Execution Contract Store 2 owns it.
-Deleted: Concurrency 3. Execution Contract Store 2 owns it.
+Deleted: Concurrency 1. Execution Contract Database 2 owns it.
+Deleted: Concurrency 2. Execution Contract Database 2 owns it.
+Deleted: Concurrency 3. Execution Contract Database 2 owns it.
 ```
 
 ### Indeterminate outcome
 
 ```
-Indeterminate outcome 1: A caller receiving no answer MUST NOT retry BEFORE the caller reads the step store.
+Indeterminate outcome 1: A caller receiving no answer MUST NOT retry BEFORE the caller reads the step records.
 Indeterminate outcome 2: A caller MUST NOT read a transport fault as a storage-failure.
 Indeterminate outcome 3: A caller retrying a landed resolving action MUST read not-pending.
 ```
@@ -468,10 +468,10 @@ Composition note 4: A composing pattern MUST own the attestation binding a decid
 Composition note 5: A composing pattern MUST own the notification of an approver reference.
 Composition note 6: A composing pattern MUST own a quorum rule over two steps.
 Composition note 7: A composing pattern MUST own the delegation of an approver reference.
-Composition note 8: A composing pattern MUST own the tamper seal over the step store.
+Composition note 8: A composing pattern MUST own the tamper seal over the step records.
 Composition note 9: A composing pattern MUST own at-most-once submission.
 Composition note 10: A composing pattern MUST own the required gate mapping for a subject.
-Composition note 11: A composing pattern reading the step store MUST NOT write to the step store.
+Composition note 11: A composing pattern reading the step records MUST NOT write to the step records.
 ```
 
 NOTE: composing patterns — [Multi-Party Approval](../compositions/multi-party-approval.md), [Execute Gated Workflow](../compositions/execute-gated-workflow.md).
@@ -484,7 +484,7 @@ Each `[Term]` marker above links to its term entry here; a term entry states wha
 
 ### Vocabulary
 
-Term actors: the atom; the host; the transition; the deployment; a composing pattern; a business caller; a caller; a guard; an auditor; a regulator; an examiner; an investigator; an actor; an approver; a submitter; the store; a step; a pending step; a terminal step; an approved step; a rejected step; a withdrawn step; a resolving action; a deciding action; a writing action; a refused action; an action; a query; a filter; a reference filter; a state filter; a range filter; an instant-range filter; a string input; an opaque reference; the store instance's step count; an attribution check.
+Term actors: the atom; the host; the transition; the deployment; a composing pattern; a business caller; a caller; a guard; an auditor; a regulator; an examiner; an investigator; an actor; an approver; a submitter; the database; a step; a pending step; a terminal step; an approved step; a rejected step; a withdrawn step; a resolving action; a deciding action; a writing action; a refused action; an action; a query; a filter; a reference filter; a state filter; a range filter; an instant-range filter; a string input; an opaque reference; the database instance's step count; an attribution check.
 
 Term records: step — one authorization gate, carrying step id, subject reference, approver reference, submitter reference, scope, submission instant, a state and, where supplied or set, reason, deciding actor, decision reason, decision instant, withdrawing actor, withdrawal reason and withdrawal instant.
 
@@ -498,7 +498,7 @@ Term cadences: empty.
 
 Term qualifiers: migrated — rewritten in GRACE lang v0.40 (2026-09-12).
 
-Term terms: step, step id, subject reference, approver reference, submitter reference, scope, reference, store instance, seam, transition, now, business caller, states, terminal state, resolving action, deciding action, writing action, deciding reference, decision instant, resolved decision instant, resolved submission instant, submission field, attribution field, attribution check, filter axes, admitted submit, admitted resolve, admitted approve, admitted reject, admitted withdraw, admitted read, string input, blank.
+Term terms: step, step id, subject reference, approver reference, submitter reference, scope, reference, database instance, seam, transition, now, business caller, states, terminal state, resolving action, deciding action, writing action, deciding reference, decision instant, resolved decision instant, resolved submission instant, submission field, attribution field, attribution check, filter axes, admitted submit, admitted resolve, admitted approve, admitted reject, admitted withdraw, admitted read, string input, blank.
 
 #### Approval Step
 
@@ -538,7 +538,7 @@ Kind: Operation
 
 #### Step Id
 
-The opaque, immutable, system-generated identity of an approval step, assigned on [Submit], never reused or reassigned within the store instance. It must be a non-empty string sortable in lexicographic byte-order (for deterministic [Read] ordering). The subject, approver, scope, submitter, reason, and timestamps are properties of the step, not its identity.
+The opaque, immutable, system-generated identity of an approval step, assigned on [Submit], never reused or reassigned within the database instance. It must be a non-empty string sortable in lexicographic byte-order (for deterministic [Read] ordering). The subject, approver, scope, submitter, reason, and timestamps are properties of the step, not its identity.
 
 Kind:       Field
 Field of:   Approval Step
@@ -703,7 +703,7 @@ Projection: invalid-request
 
 #### Not Known
 
-The rejection a resolving action ([Approve], [Reject], [Withdraw]) returns when the supplied [Step Id] is well-formed but references no step in the store. Checked after the malformed-[Step Id] guard and before the state check.
+The rejection a resolving action ([Approve], [Reject], [Withdraw]) returns when the supplied [Step Id] is well-formed but references no step in the database. Checked after the malformed-[Step Id] guard and before the state check.
 
 Kind:       Member
 Member of:  the action rejection
@@ -730,7 +730,7 @@ Projection: unauthorized
 
 #### Storage Failure
 
-The rejection any write action returns when the underlying store write fails after all preconditions pass. No [Step Id] is issued on [Submit]; a resolving action leaves the step in [Pending]. The caller must retry.
+The rejection any write action returns when the underlying database write fails after all preconditions pass. No [Step Id] is issued on [Submit]; a resolving action leaves the step in [Pending]. The caller must retry.
 
 Kind:       Member
 Member of:  the action rejection

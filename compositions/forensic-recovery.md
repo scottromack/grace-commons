@@ -58,7 +58,7 @@ Composes 7: The composition MUST NOT share the Soft Delete instance with another
 Composes 8: The composition MUST call a Soft Delete write ONLY inside a lifecycle action.
 Composes 9: The composition MUST select the lifecycle events through the lifecycle enumeration.
 Composes 10: The composition MUST read an event's metadata ONLY through the record read.
-Composes 11: The composition MUST NOT read an Audit Trail store directly.
+Composes 11: The composition MUST NOT read Audit Trail records directly.
 Composes 12: IF the lifecycle enumeration answers invalid-query THEN the deployment MUST alert on a configuration fault.
 Composes 13: The composition MUST NOT answer invalid-query from the lifecycle enumeration to a caller.
 ```
@@ -99,16 +99,16 @@ Composition state 9: The composition MUST classify a live entry as a derived ind
 Composition state 10: The composition MUST rebuild a missing live entry PER the lifecycle rebuild.
 Composition state 11: The composition MUST classify a purged entry as extraction-pending against Erasure Tombstone.
 Composition state 12: A purged entry MUST keep the entry's intent position.
-Deleted: Composition state 13. Execution Contract Store 3 and Execution Contract Store 4 own it.
+Deleted: Composition state 13. Execution Contract Database 3 and Execution Contract Database 4 own it.
 Composition state 14: The composition MUST store the enumeration mark.
 Composition state 15: The composition MUST rebuild a missing enumeration mark as the greatest intent position the lifecycle index carries.
 Composition state 16: IF the lifecycle index carries no entry THEN the rebuilt enumeration mark MUST carry zero.
 Composition state 17: IF a read-back from the enumeration mark misses the event THEN the composition MUST re-read from the log's start.
 Composition state 18: The reconciliation MUST NOT read the enumeration mark.
-Composition state 19: The composition MUST NOT duplicate a constituent's store.
+Composition state 19: The composition MUST NOT duplicate a constituent's records.
 ```
 
-Term record id: the opaque byte-identity of a record in Soft Delete's store.
+Term record id: the opaque byte-identity of a record in Soft Delete's records.
 
 Term lifecycle index: the composition's map from a record id to the ordered lifecycle entries of the record — `record_to_events` in an implementation.
 
@@ -135,27 +135,27 @@ Capability requirement 5: The composition MUST NOT override the seal cadence.
 Capability requirement 6: A deployment MUST provision the recovery identity.
 Capability requirement 7: A deployment MUST set the transition completion bound.
 Capability requirement 8: IF the transition completion bound EQUALS blank THEN the composition MUST refuse to start.
-Deleted: Capability requirement 9. Execution Contract Store 1 owns it.
-Deleted: Capability requirement 10. Execution Contract Store 1 owns it.
-Deleted: Capability requirement 11. Execution Contract Store 2 owns it.
-Deleted: Capability requirement 12. Execution Contract Store 2 owns it: a lifecycle action's reads of a record and the writes they decide are one transaction, and the composition names no exclusion to release.
-Deleted: Capability requirement 13. Execution Contract Store 2 owns it: a lifecycle action's reads of a record and the writes they decide are one transaction, and the composition names no exclusion to release.
-Deleted: Capability requirement 14. Execution Contract Store 2 owns it: a lifecycle action's reads of a record and the writes they decide are one transaction, and the composition names no exclusion to lease.
-Deleted: Capability requirement 15. Execution Contract Store 2 owns it: a lifecycle action's reads of a record and the writes they decide are one transaction, and the composition names no lease to expire.
-Deleted: Capability requirement 16. Execution Contract Store 2 owns it: a lifecycle action's reads of a record and the writes they decide are one transaction, and the composition names no exclusion for a host to lack.
+Deleted: Capability requirement 9. Execution Contract Database 1 owns it.
+Deleted: Capability requirement 10. Execution Contract Database 1 owns it.
+Deleted: Capability requirement 11. Execution Contract Database 2 owns it.
+Deleted: Capability requirement 12. Execution Contract Database 2 owns it: a lifecycle action's reads of a record and the writes they decide are one transaction, and the composition names no exclusion to release.
+Deleted: Capability requirement 13. Execution Contract Database 2 owns it: a lifecycle action's reads of a record and the writes they decide are one transaction, and the composition names no exclusion to release.
+Deleted: Capability requirement 14. Execution Contract Database 2 owns it: a lifecycle action's reads of a record and the writes they decide are one transaction, and the composition names no exclusion to lease.
+Deleted: Capability requirement 15. Execution Contract Database 2 owns it: a lifecycle action's reads of a record and the writes they decide are one transaction, and the composition names no lease to expire.
+Deleted: Capability requirement 16. Execution Contract Database 2 owns it: a lifecycle action's reads of a record and the writes they decide are one transaction, and the composition names no exclusion for a host to lack.
 Capability requirement 17: A deployment MUST set the compensation window.
 Capability requirement 18: A deployment MUST set the reconciliation cadence.
 Capability requirement 19: A deployment MUST disclose the outcome write latency.
 Capability requirement 20: The composition MUST start ONLY IF the compensation window EXCEEDS the liveness sum.
 Capability requirement 21: A deployment MUST set the intent candidates cap.
-Deleted: Capability requirement 22. Execution Contract Store 3 and Execution Contract Store 4 own it.
-Deleted: Capability requirement 23. Execution Contract Store 3 and Execution Contract Store 4 own it.
+Deleted: Capability requirement 22. Execution Contract Database 3 and Execution Contract Database 4 own it.
+Deleted: Capability requirement 23. Execution Contract Database 3 and Execution Contract Database 4 own it.
 Capability requirement 24: The wired Audit Trail instance MUST expose the lifecycle enumeration.
 Capability requirement 25: A deployment MAY set the permissions scope prefix.
 Capability requirement 26: The composition MUST NOT gate an action on the permissions scope prefix.
 Capability requirement 27: The host MUST inject now at the seam once per invocation.
 Capability requirement 28: The host MUST inject the reconciliation's now at the reconciliation's own seam.
-Capability requirement 29: The deployment MUST supply the store PER Execution Contract Store 1 through 4.
+Capability requirement 29: The deployment MUST supply the database PER Execution Contract Database 1 through 4.
 ```
 
 Term audit retention policy: the policy reference configured on the composition's single Audit Trail instance, governing the lifetime of every lifecycle event — never the Soft Delete records themselves.
@@ -224,27 +224,27 @@ Term envelope: the serialized payload with the transition's action reference und
 ```
 Audit arm 1: IF Audit Trail answers invalid-credential at an intent record THEN the lifecycle action MUST answer invalid-credential.
 Audit arm 2: IF Audit Trail answers recording-failure carrying a pre-append step at an intent record THEN the lifecycle action MUST answer recording-failure carrying intent.
-Deleted: Audit arm 3. Execution Contract Store 1 owns it.
+Deleted: Audit arm 3. Execution Contract Database 1 owns it.
 Audit arm 4: IF Audit Trail answers invalid-request(step-4) at a record THEN the composition MUST read the record's event id back.
 Audit arm 5: IF the read-back finds the record THEN the composition MUST proceed as landed.
 Audit arm 6: The composition MUST name a record read back as landed in the unretained field.
 Audit arm 7: The composition MUST NOT retry a record the read-back finds.
 Audit arm 8: IF Audit Trail answers invalid-request carrying a step below step-4 at an intent record THEN the lifecycle action MUST answer invalid-request.
 Audit arm 9: The composition MUST NOT retry an intent record answered with invalid-request.
-Deleted: Audit arm 10. Execution Contract Store 1 owns it.
-Deleted: Audit arm 11. Execution Contract Store 1 owns it.
-Deleted: Audit arm 12. Execution Contract Store 2 owns it.
-Deleted: Audit arm 13. Execution Contract Store 2 owns it: a lifecycle action's attestations read the actor registry inside one transaction, so no invocation re-attests an outcome record.
-Deleted: Audit arm 14. Execution Contract Store 2 owns it: a lifecycle action's attestations read the actor registry inside one transaction, so no invocation re-attests an outcome record.
+Deleted: Audit arm 10. Execution Contract Database 1 owns it.
+Deleted: Audit arm 11. Execution Contract Database 1 owns it.
+Deleted: Audit arm 12. Execution Contract Database 2 owns it.
+Deleted: Audit arm 13. Execution Contract Database 2 owns it: a lifecycle action's attestations read the actor registry inside one transaction, so no invocation re-attests an outcome record.
+Deleted: Audit arm 14. Execution Contract Database 2 owns it: a lifecycle action's attestations read the actor registry inside one transaction, so no invocation re-attests an outcome record.
 Audit arm 15: IF no outcome record lands THEN the lifecycle action MUST answer recording-failure carrying outcome AND the finding.
 Audit arm 16: IF Audit Trail answers invalid-request carrying a step below step-4 at an outcome record THEN the finding MUST carry invalid-request as the cause.
 Audit arm 17: The composition MUST escalate an orphan whose cause EQUALS invalid-request.
-Deleted: Audit arm 18. Execution Contract Store 2 owns it: a lifecycle action's reads of a record and the writes they decide are one transaction, and the composition names no exclusion to release.
-Deleted: Audit arm 19. Reconciliation 5 and Execution Contract Store 1 own it.
-Deleted: Audit arm 20. Reconciliation 5 and Execution Contract Store 1 own it.
-Deleted: Audit arm 21. Execution Contract Store 2 owns it: a lifecycle action's reads of a record and the writes they decide are one transaction, and the composition names no lease to expire.
-Deleted: Audit arm 22. Execution Contract Store 2 owns it: a lifecycle action's reads of a record and the writes they decide are one transaction, and the composition names no lease to expire.
-Deleted: Audit arm 23. Execution Contract Store 2 owns it: a lifecycle action's reads of a record and the writes they decide are one transaction, and the composition names no lease to expire.
+Deleted: Audit arm 18. Execution Contract Database 2 owns it: a lifecycle action's reads of a record and the writes they decide are one transaction, and the composition names no exclusion to release.
+Deleted: Audit arm 19. Reconciliation 5 and Execution Contract Database 1 own it.
+Deleted: Audit arm 20. Reconciliation 5 and Execution Contract Database 1 own it.
+Deleted: Audit arm 21. Execution Contract Database 2 owns it: a lifecycle action's reads of a record and the writes they decide are one transaction, and the composition names no lease to expire.
+Deleted: Audit arm 22. Execution Contract Database 2 owns it: a lifecycle action's reads of a record and the writes they decide are one transaction, and the composition names no lease to expire.
+Deleted: Audit arm 23. Execution Contract Database 2 owns it: a lifecycle action's reads of a record and the writes they decide are one transaction, and the composition names no lease to expire.
 Audit arm 24: An intent read-back MUST match the kind's intent event carrying the record id, now as the intended instant AND the caller's actor reference.
 Audit arm 25: An outcome read-back MUST match the kind's outcome event carrying the intent event id.
 Audit arm 26: A read-back MUST read the lifecycle enumeration from the enumeration mark.
@@ -312,7 +312,7 @@ Term original event payloads: the caller's map from an audit-log sequence number
 Action wiring 1: A validated [Delete Record] MUST carry delete as the kind.
 Action wiring 2: A validated [Restore Record] MUST carry restore as the kind.
 Action wiring 3: A validated [Purge Record] MUST carry purge as the kind.
-Deleted: Action wiring 4. Execution Contract Store 2 owns it.
+Deleted: Action wiring 4. Execution Contract Database 2 owns it.
 Action wiring 5: The orphan pre-check MUST read the record's current attribution through Soft Delete's read.
 Action wiring 6: The orphan pre-check MUST read the record's unmatched intents through the lifecycle enumeration from the pre-check's start.
 Action wiring 7: IF the orphan pre-check finds a pending orphan THEN the lifecycle action MUST answer orphan-pending carrying the pending orphan's intent event id.
@@ -325,7 +325,7 @@ Action wiring 13: IF the Soft Delete write answers storage-failure THEN the life
 Action wiring 14: A refused Soft Delete write MUST NOT write beyond the intent record.
 Action wiring 15: A committed lifecycle action MUST record the kind's outcome event carrying the outcome payload under the caller's credential ONLY AFTER the Soft Delete write answers.
 Action wiring 16: A bound lifecycle action MUST insert the lifecycle entry carrying the outcome event id AND the intent position the record read answers for the intent event id.
-Deleted: Action wiring 17. Execution Contract Store 2 owns it: a lifecycle action's reads of a record and the writes they decide are one transaction, and the composition names no exclusion to release.
+Deleted: Action wiring 17. Execution Contract Database 2 owns it: a lifecycle action's reads of a record and the writes they decide are one transaction, and the composition names no exclusion to release.
 Action wiring 18: A bound lifecycle action MUST answer the lifecycle result.
 Action wiring 19: A validated history read MUST read the record's lifecycle record through Soft Delete's read.
 Action wiring 20: IF Soft Delete's read answers no lifecycle record THEN [Recover History] MUST answer not-known.
@@ -412,7 +412,7 @@ Term attempts: the record's unmatched intents — each carrying the intent event
 ```
 Wiring decision 1: The composition MUST follow EVERY Soft Delete transition with the kind's outcome event naming the record id.
 Wiring decision 2: The composition MUST attest EVERY outcome event under a credential Audit Trail validates.
-Deleted: Wiring decision 3. Execution Contract Store 1 owns it.
+Deleted: Wiring decision 3. Execution Contract Database 1 owns it.
 Wiring decision 4: The composition MUST bind EVERY outcome event into the lifecycle index at the outcome's intent position.
 ```
 
@@ -423,19 +423,19 @@ WHY:
 
 *Mechanism.* Soft Delete keeps only the *most recent* attribution per kind, immutable only by specification. The composition fills each gap at once through the substrate: Event Log keeps every transition in order, Tamper Evidence seals them cryptographically, Actor Identity verifies the actor rather than recording an opaque reference, and the lifecycle index makes all three available per transition and per record (Wiring decision 1, 2 and 4).
 
-*Result.* A records-alone-defensible, tamper-evident, fully recoverable deletion lifecycle neither constituent provides alone. An investigator holding the lifecycle index, the Soft Delete store and the Audit Trail substrate answers the regulator's questions — who deleted it, who restored it, who purged it, in what order, is the record intact, was it kept long enough — from the records alone, without developer narration, source code or runbooks.
+*Result.* A records-alone-defensible, tamper-evident, fully recoverable deletion lifecycle neither constituent provides alone. An investigator holding the lifecycle index, the Soft Delete records and the Audit Trail substrate answers the regulator's questions — who deleted it, who restored it, who purged it, in what order, is the record intact, was it kept long enough — from the records alone, without developer narration, source code or runbooks.
 
 ### Reconciliation
 
 ```
-Deleted: Reconciliation 1. Execution Contract Store 1 and Execution Contract Store 3 own it.
+Deleted: Reconciliation 1. Execution Contract Database 1 and Execution Contract Database 3 own it.
 Reconciliation 2: The reconciliation MUST run every reconciliation cadence.
-Deleted: Reconciliation 3. Execution Contract Store 1 owns it.
+Deleted: Reconciliation 3. Execution Contract Database 1 owns it.
 Reconciliation 4: The reconciliation MUST NOT write for an aged intent.
 Reconciliation 5: The orphan pre-check AND the reconciliation MUST read an unmatched intent as a pending orphan ONLY IF the intent pairs.
-Deleted: Reconciliation 6. Execution Contract Store 2 owns it.
-Deleted: Reconciliation 7. Execution Contract Store 2 owns it: the reconciliation's reads of a record and the writes they decide are one transaction, and the composition names no exclusion for another holder to hold.
-Deleted: Reconciliation 8. Execution Contract Store 2 owns it.
+Deleted: Reconciliation 6. Execution Contract Database 2 owns it.
+Deleted: Reconciliation 7. Execution Contract Database 2 owns it: the reconciliation's reads of a record and the writes they decide are one transaction, and the composition names no exclusion for another holder to hold.
+Deleted: Reconciliation 8. Execution Contract Database 2 owns it.
 Reconciliation 9: The reconciliation MUST NOT record a compensating event BEFORE the reconciliation's recovery intent lands.
 Reconciliation 10: The reconciliation MUST attest EVERY write the reconciliation makes under the recovery identity.
 Reconciliation 11: A compensating event MUST carry the recovery flag, the acting actor reference AND the intent reference.
@@ -586,11 +586,11 @@ A content moderation system uses this composition for post lifecycle management.
 
 ### Rejection path — purge of an Active record
 
-An automated purge job targets a record that was never soft-deleted: `purge_record(actor_ref="purge_job", record_id="doc-0099", credential=..., reason="scheduled purge")`. The action finds no pending orphan and writes the intent record `record.purge_intended` — the job's credential validates, so the attempt is authenticated and durable. The Soft Delete write `SoftDelete.purge("doc-0099", ...)` → `rejected(not-deleted)` (per Soft Delete Invariant 4 — Active → Purged direct path is prohibited). The composition returns `rejected(not-deleted)`. No Soft Delete state is written; no *outcome* event is recorded; `record_to_events` is unchanged. Invariant 4 (binding bijection) is preserved: no transition, no outcome event, no entry — the binding bijection is over transitions and outcome events, and an intent record is neither. **The intent record stands, and this is the point:** an automated job attempting to destroy a record it had no business destroying is exactly what a forensic trail should retain. It surfaces in [Recover History]'s attempts residue and is adjudicated by Check 5.3 against a Soft Delete store that shows the record was never deleted — an attempted destruction that the composition refused. Before the intent record existed, this attempt left no trace anywhere.
+An automated purge job targets a record that was never soft-deleted: `purge_record(actor_ref="purge_job", record_id="doc-0099", credential=..., reason="scheduled purge")`. The action finds no pending orphan and writes the intent record `record.purge_intended` — the job's credential validates, so the attempt is authenticated and durable. The Soft Delete write `SoftDelete.purge("doc-0099", ...)` → `rejected(not-deleted)` (per Soft Delete Invariant 4 — Active → Purged direct path is prohibited). The composition returns `rejected(not-deleted)`. No Soft Delete state is written; no *outcome* event is recorded; `record_to_events` is unchanged. Invariant 4 (binding bijection) is preserved: no transition, no outcome event, no entry — the binding bijection is over transitions and outcome events, and an intent record is neither. **The intent record stands, and this is the point:** an automated job attempting to destroy a record it had no business destroying is exactly what a forensic trail should retain. It surfaces in [Recover History]'s attempts residue and is adjudicated by Check 5.3 against Soft Delete records that show the record was never deleted — an attempted destruction that the composition refused. Before the intent record existed, this attempt left no trace anywhere.
 
 ### Rejection path — [Delete Record] on an already-Deleted record
 
-`delete_record(actor_ref="admin", record_id="profile-7723", credential=..., reason="duplicate delete")` where the record is already Deleted. The orphan pre-check finds no pending orphan (the record's current deletion is bound) and writes the intent record `record.soft_delete_intended`. The Soft Delete write `SoftDelete.soft_delete("profile-7723", ...)` → `rejected(already-deleted)`. The composition returns `rejected(already-deleted)`. No state is written; no *outcome* event is recorded. The intent record stands and appears in [Recover History]'s attempts residue — here the benign reading, a duplicate request against a record already in the state the caller wanted, which Check 5.3 resolves against the Soft Delete store.
+`delete_record(actor_ref="admin", record_id="profile-7723", credential=..., reason="duplicate delete")` where the record is already Deleted. The orphan pre-check finds no pending orphan (the record's current deletion is bound) and writes the intent record `record.soft_delete_intended`. The Soft Delete write `SoftDelete.soft_delete("profile-7723", ...)` → `rejected(already-deleted)`. The composition returns `rejected(already-deleted)`. No state is written; no *outcome* event is recorded. The intent record stands and appears in [Recover History]'s attempts residue — here the benign reading, a duplicate request against a record already in the state the caller wanted, which Check 5.3 resolves against the Soft Delete records.
 
 ### Regulated adversarial scenarios
 
@@ -628,7 +628,7 @@ An unexpected actor_ref on a `record.purged` event, or a `failed-verification` o
 
 ## Generation acceptance
 
-An implementation is acceptable — in the regulator-acceptance sense — when an external auditor, given the lifecycle index, the Soft Delete store and the Audit Trail substrate stores, can clear the checks below without recourse to source code, runbooks or developer narration.
+An implementation is acceptable — in the regulator-acceptance sense — when an external auditor, given the lifecycle index, the Soft Delete records and the Audit Trail substrate's records, can clear the checks below without recourse to source code, runbooks or developer narration.
 
 ### Conformance checks
 
@@ -657,7 +657,7 @@ Check 4.8: An auditor MUST find the compensation window exceeding the liveness s
 Check 4.9: An auditor MUST find no outcome event whose intent position falls between a pending orphan's intent position AND the orphan's compensating event (Invariant 4.6).
 Check 5.1: An auditor MUST find EVERY outcome event's intent event id naming an intent event of the matching kind that PRECEDES the outcome event (Invariant 6.1).
 Check 5.2: An auditor MUST find EVERY outcome event's acting actor matching the named intent event's actor reference (Invariant 6.1).
-Check 5.3: An auditor MUST classify EVERY unmatched intent against the Soft Delete store (Action wiring 40).
+Check 5.3: An auditor MUST classify EVERY unmatched intent against the Soft Delete records (Action wiring 40).
 Check 6.1: An auditor MUST clear Soft Delete's Generation acceptance over the Soft Delete instance (Composes 5).
 Check 6.2: An auditor MUST clear Audit Trail's Generation acceptance over the Audit Trail instance (Composes 5).
 ```
@@ -677,8 +677,8 @@ External check 1: An auditor needing purge eligibility confirmed MUST read Defen
 External check 2: An auditor needing the acting actor's authority confirmed MUST read the deployment's Permissions records (Non-goal 3).
 External check 3: An auditor needing content destruction confirmed MUST read the host system's destruction attestation (Non-goal 5).
 External check 4: An auditor needing the sole write path confirmed MUST read the deployment's attestation (Composes 7).
-Deleted: External check 5. Execution Contract Store 3 and Execution Contract Store 4 own it.
-Deleted: External check 6. Execution Contract Store 2 owns it.
+Deleted: External check 5. Execution Contract Database 3 and Execution Contract Database 4 own it.
+Deleted: External check 6. Execution Contract Database 2 owns it.
 ```
 
 ---
@@ -699,7 +699,7 @@ Non-goal 10: The composition MUST NOT dispose of a Soft Delete lifecycle record.
 Non-goal 11: A deployment needing a credential checked ahead of the intent record MUST wire an Actor Identity pre-check above the composition.
 ```
 
-NOTE: the owners — a composing [Permissions](../atoms/permissions.md) pattern at the calling layer, under the permissions scope prefix's scopes (Non-goal 3, Capability requirement 25, External check 2); legal counsel (Non-goal 4); the host system (Non-goal 5, External check 3); a Defensible Retention instance applied to the Soft Delete store directly (Non-goal 10, Retention asymmetry 1).
+NOTE: the owners — a composing [Permissions](../atoms/permissions.md) pattern at the calling layer, under the permissions scope prefix's scopes (Non-goal 3, Capability requirement 25, External check 2); legal counsel (Non-goal 4); the host system (Non-goal 5, External check 3); a Defensible Retention instance applied to the Soft Delete records directly (Non-goal 10, Retention asymmetry 1).
 
 ---
 
@@ -716,8 +716,8 @@ Clock semantics 3: IF the Soft Delete write refuses the transition instant THEN 
 ### Concurrency
 
 ```
-Deleted: Concurrency 1. Execution Contract Store 2 owns it.
-Deleted: Concurrency 2. Execution Contract Store 2 owns it.
+Deleted: Concurrency 1. Execution Contract Database 2 owns it.
+Deleted: Concurrency 2. Execution Contract Database 2 owns it.
 ```
 
 ### Retention asymmetry
@@ -731,7 +731,7 @@ Retention asymmetry 2: The composition MUST NOT read a Soft Delete record whose 
 
 ```
 Pre-composition transitions 1: The composition MUST read a transition predating the composition as a binding gap.
-Pre-composition transitions 2: A deployment migrating an existing Soft Delete store MUST take EXACTLY ONE OF a backfill of the lifecycle index and the matching audit events, a disclosed coverage boundary.
+Pre-composition transitions 2: A deployment migrating existing Soft Delete records MUST take EXACTLY ONE OF a backfill of the lifecycle index and the matching audit events, a disclosed coverage boundary.
 ```
 
 ---

@@ -1,5 +1,5 @@
 ---- MODULE credential-buggy-overdue ----
-\* Grace Commons — Credential atom: BUGGY TWIN — Execution Contract Store 2.
+\* Grace Commons — Credential atom: BUGGY TWIN — Execution Contract Database 2.
 \* Mirrors credential.tla (re-derived 2026-09-29) with one change: a call that
 \* lost the section still commits. A second register takes the section, passes
 \* its check and commits, and the first call's stale commit lands beside it,
@@ -129,7 +129,7 @@ Commit(i) ==
 
 \* A holder that loses the section at any moment, and its write then refused:
 \* no write commits against a state its checks did not see (Execution Contract
-\* Store 2).
+\* Database 2).
 Overdue(i) ==
     /\ holder = i
     /\ holder' = 0

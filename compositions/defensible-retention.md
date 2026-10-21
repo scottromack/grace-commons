@@ -23,7 +23,7 @@ The guarantee none of the three has alone is a gate that sits between checking f
 
 The gate is audited in both directions — an event when it allows a destruction, naming that no holds applied, and an event when it blocks one, naming which holds applied — so an auditor reads both halves of the gate's behaviour from the records rather than from a runbook.
 
-Every destroyed record leaves three things behind: a destruction event naming what the hold store held at gate time, a retention record standing purged, and a tamper-evident seal once the seal cadence covers the event. Together they prove the destruction was lawful, attributed and unaltered — for as long as the audit records themselves are kept, which is the deployment's own ordering obligation rather than this composition's guarantee.
+Every destroyed record leaves three things behind: a destruction event naming what the hold records held at gate time, a retention record standing purged, and a tamper-evident seal once the seal cadence covers the event. Together they prove the destruction was lawful, attributed and unaltered — for as long as the audit records themselves are kept, which is the deployment's own ordering obligation rather than this composition's guarantee.
 
 Its most common uses are financial records governance under SOX (Sarbanes-Oxley Act) section 802, patient records under HIPAA (US Health Insurance Portability and Accountability Act) section 164.530(j), electronically stored information subject to FRCP (Federal Rules of Civil Procedure) Rule 37(e) litigation holds, and broker-dealer communications under SEC (US Securities and Exchange Commission) Rule 17a-4. Any system that must prove it did not destroy records while a legal or regulatory hold was active — and that it did eventually destroy them once the hold was released and the retention window had closed — is a candidate for this composition.
 
@@ -57,7 +57,7 @@ Composes 6: The composition MUST read Audit Trail as a substrate PER the section
 Composes 7: The composition MUST NOT hold an instance of a constituent Audit Trail reaches.
 Composes 8: The business retention instance MUST NOT govern an audit event.
 Composes 9: The composition MUST reach a constituent through the constituent's declared surface.
-Composes 10: The composition MUST NOT read a constituent's store beside the constituent's declared read.
+Composes 10: The composition MUST NOT read a constituent's records beside the constituent's declared read.
 Composes 11: The composition MUST NOT call Audit Trail's purge_event.
 Composes 12: The composition MUST read the substrate's events by an open-ended sequence range.
 Composes 13: The composition MUST select an event in the composition's own code.
@@ -93,15 +93,15 @@ Composition state 7: A committed purge MUST leave a pending sibling in the recor
 Composition state 8: The composition MUST remove a record reference carrying no retention from the record-to-retentions index.
 Composition state 9: The record-to-retentions index MUST stand as a derived index PER the section titled Composition state in `execution-contract.md`.
 Composition state 10: The retention-to-record index MUST stand as a derived index PER the section titled Composition state in `execution-contract.md`.
-Composition state 11: The composition MUST NOT store a truth beside a constituent's store.
+Composition state 11: The composition MUST NOT store a truth beside a constituent's records.
 Composition state 12: The rebuild MUST read a surviving placement event for an index entry.
-Composition state 13: The rebuild MUST read Retention Window's store for an entry a purged placement event covers.
+Composition state 13: The rebuild MUST read Retention Window's records for an entry a purged placement event covers.
 Composition state 14: The rebuild MUST NOT read a purged placement event's payload.
 Composition state 15: The rebuild MUST NOT read a trail miss as an absent retention.
-Composition state 16: The store-sourced rebuild MUST admit a retention the composition did not place.
-Composition state 17: A refusal resting on the store-sourced rebuild MUST NOT stand as a scope statement.
+Composition state 16: The database-sourced rebuild MUST admit a retention the composition did not place.
+Composition state 17: A refusal resting on the database-sourced rebuild MUST NOT stand as a scope statement.
 Composition state 18: The composition MUST NOT rest a purge admission on an index.
-Composition state 19: The composition MUST read the sibling set from Retention Window's store.
+Composition state 19: The composition MUST read the sibling set from Retention Window's records.
 Composition state 20: An index MUST stand outside an action's atomicity set.
 Composition state 21: The composition MUST read a missing index entry as a rebuild trigger.
 Composition state 22: The composition MUST NOT claim a cross-constituent consistency for an index.
@@ -116,7 +116,7 @@ Composition state 30: A record MAY carry a hold beside another hold.
 Composition state 31: A record MAY carry no hold.
 Composition state 32: A hold MUST NOT rest on a retention.
 Composition state 33: The sweep MUST remove a retention the sweep purged from the record-to-retentions index AND the retention-to-record index.
-Deleted: Composition state 34. Execution Contract Store 1 owns it.
+Deleted: Composition state 34. Execution Contract Database 1 owns it.
 ```
 
 Term record-to-retentions index: record_to_retentions — the composition's index from a record reference to the retentions whose retention state EQUALS retained over the record — the auditor's first query surface and a read-path convenience, never the gate's input.
@@ -129,13 +129,13 @@ Term surviving placement event: a retention_placed event whose payload the audit
 
 Term purged placement event: a retention_placed event whose payload the audit instance has destroyed.
 
-Term rebuild: the composition's named regeneration of an index — select this composition's placement events over an open-ended sequence range, take a surviving event's record reference and retention id, read Retention Window's store for an entry a purged placement event covers, and drop every retention the store reports purged.
+Term rebuild: the composition's named regeneration of an index — select this composition's placement events over an open-ended sequence range, take a surviving event's record reference and retention id, read Retention Window's records for an entry a purged placement event covers, and drop every retention the database reports purged.
 
-Term sibling set: the retentions whose retention state EQUALS retained over one record beside the named retention, read from Retention Window's store.
+Term sibling set: the retentions whose retention state EQUALS retained over one record beside the named retention, read from Retention Window's records.
 
 Term pending sibling: a retention standing retained over a destroyed record — a sibling whose own purge has not landed.
 
-Term within the audit horizon: said of a placement, a release or a purge by the instant the constituent's store carries for it — the reader's now less that instant stands below the audit horizon by more than twice the clock offset allowance taken with the store's time resolution, so the act's own audit record cannot have aged out. Two allowances, because the substrate places a record's retention on one clock after the store stamped the act on another, and judges the record's purge on the first against a now the reader takes on a third. An act that does not stand within the audit horizon reads unknown wherever its record is missing (Check 6.4).
+Term within the audit horizon: said of a placement, a release or a purge by the instant the constituent's records carry for it — the reader's now less that instant stands below the audit horizon by more than twice the clock offset allowance taken with the database's time resolution, so the act's own audit record cannot have aged out. Two allowances, because the substrate places a record's retention on one clock after the database stamped the act on another, and judges the record's purge on the first against a now the reader takes on a third. An act that does not stand within the audit horizon reads unknown wherever its record is missing (Check 6.4).
 
 Term surviving destruction: a destroyed record whose earliest purge among the retentions over the record stands within the audit horizon — a destruction whose own record purged outcome cannot have aged out. The edge is the record's first purge and never a sibling's later one, which the sweep may land long after the outcome.
 
@@ -188,14 +188,14 @@ Capability requirement 43: A deployment MAY start an instance ONLY IF the sectio
 Capability requirement 44: The section term MUST NOT EXCEED the retention completion bound.
 Capability requirement 45: A deployment MUST place a retention of the business retention instance through [Place Record Under Retention] alone (Retention Window Simultaneous retention 5).
 Capability requirement 46: A deployment MUST purge a retention of the business retention instance through [Purge Record] alone (Retention Window Simultaneous retention 5).
-Capability requirement 47: A deployment MUST place a hold of the hold store through [Place Hold] alone.
-Capability requirement 48: A deployment MUST declare the hold store name.
-Deleted: Capability requirement 49. Execution Contract Store 3 owns it.
+Capability requirement 47: A deployment MUST place a hold of the hold records through [Place Hold] alone.
+Capability requirement 48: A deployment MUST declare the hold database name.
+Deleted: Capability requirement 49. Execution Contract Database 3 owns it.
 Capability requirement 50: A deployment MUST supply the alerting surface.
 Capability requirement 51: A deployment MUST supply the scheduler.
 Capability requirement 52: The scheduler MUST survive the loss of one process.
-Capability requirement 53: A deployment MUST release a hold of the hold store through [Release Hold] alone.
-Capability requirement 54: A deployment MUST supply a hold store, a business retention instance AND an audit instance bound by Lease Capability requirement 8 and 10 for EVERY call the composition issues under the record section.
+Capability requirement 53: A deployment MUST release a hold of the hold records through [Release Hold] alone.
+Capability requirement 54: A deployment MUST supply hold records, a business retention instance AND an audit instance bound by Lease Capability requirement 8 and 10 for EVERY call the composition issues under the record section.
 Capability requirement 55: A deployment MUST supply the business retention instance PER Retention Window Capability requirement 4 through 11.
 Capability requirement 56: The substrate's start margin MUST NOT EXCEED the audit write latency.
 Capability requirement 57: A deployment MUST set an audit retention policy that answers one policy for EVERY event of the audit instance.
@@ -206,7 +206,7 @@ Capability requirement 61: A deployment MUST declare the enumeration bound.
 Capability requirement 62: A field cap of a reference MUST NOT EXCEED the audit instance's reference length cap.
 Capability requirement 63: The host MUST NOT supply one invocation id to two invocations.
 Capability requirement 64: A deployment MUST NOT admit another writer of the composition's action references on the audit instance.
-Capability requirement 65: The deployment MUST supply the constituent instances' store PER Execution Contract Store 1 through 4.
+Capability requirement 65: The deployment MUST supply the constituent instances' database PER Execution Contract Database 1 through 4.
 ```
 
 Term seam: the composition's I/O boundary as the section titled Logic Confinement Principle in `execution-contract.md` declares it; the host injects one clock reading and one invocation id here.
@@ -218,7 +218,7 @@ Term intent instant: the instant an intent records (Action wiring 8).
 
 Term transition: the composition's evaluation of one call against the constituents, as the section titled Logic Confinement Principle in `execution-contract.md` declares it.
 
-Term evidence floor: `longest_retention_duration + longest_purge_delay + longest_hold_duration` — the longest retention policy in use on the business retention instance, the longest max purge delay and the longest hold the deployment admits, summed — what audit_trail_retention_policy must outlast. The sum is a floor under the policy and no bound on a record's life: a later sibling or a second hold carries a record past it, and what the trail has lost by then the rebuild reads from Retention Window's store (Composition state 13). Where the deployment admits an unbounded hold the hold term is zero: no horizon outlasts such a hold, and the horizon alert and the substrate's own hold placement carry what the sum cannot (Capability requirement 13, Non-goal 22, Non-goal 23).
+Term evidence floor: `longest_retention_duration + longest_purge_delay + longest_hold_duration` — the longest retention policy in use on the business retention instance, the longest max purge delay and the longest hold the deployment admits, summed — what audit_trail_retention_policy must outlast. The sum is a floor under the policy and no bound on a record's life: a later sibling or a second hold carries a record past it, and what the trail has lost by then the rebuild reads from Retention Window's records (Composition state 13). Where the deployment admits an unbounded hold the hold term is zero: no horizon outlasts such a hold, and the horizon alert and the substrate's own hold placement carry what the sum cannot (Capability requirement 13, Non-goal 22, Non-goal 23).
 
 Term closure floor: `retention_completion_bound + 2 * clock_offset_allowance + reconciliation_cadence + enumeration_bound + call_pause_bound + 2 * audit_write_latency` — the longest interval in which a run that takes the record section closes an open marker: the marker's age at the lower edge, read at a seam that may stand an allowance either side of the intent's; one cadence to the next run; that run's enumeration and its alerts; the leg's take; and the leg's two records. The floor is the first leg's: each leg a run works ahead of a marker's own adds a take and a grant, which no floor counts, so a backlog is alerted on before it is closed.
 
@@ -228,7 +228,7 @@ Term enumeration bound: enumeration_bound — the deployment's declared longest 
 
 Term overdue marker: an open marker whose intent instant stands older than the compensation window of the now a run is given at its start — a marker the compensation window did not close.
 
-Term constituent instance: the Legal Hold instance holding the hold store, the business retention instance, or the audit instance — the three Composes 1 through 3 give one instance of the composition. Two instances of the composition sharing one would each take a record section the other does not see, and each sweep would read the other's intents as its own.
+Term constituent instance: the Legal Hold instance holding the hold records, the business retention instance, or the audit instance — the three Composes 1 through 3 give one instance of the composition. Two instances of the composition sharing one would each take a record section the other does not see, and each sweep would read the other's intents as its own.
 
 Term retention completion bound: retention_completion_bound — the deployment's declared maximum duration between an invocation's intent record and the invocation's outcome record, read against the injected now the intent carries.
 
@@ -250,7 +250,7 @@ Term sibling floor: `record_start_floor + 2 * call_pause_bound` — the remainin
 
 Term lease reading: live | expired — what a [Remaining](../atoms/lease.md) reading of the record section says of the grant, as [Lease](../atoms/lease.md) declares the two (Lease Sizing 2, Lease Sizing 2a, Lease Sizing 7).
 
-Term hold store name: the deployment's declared name of the one Legal Hold store instance serving the composition (Composes 1), matched against the store name Legal Hold's read answers (Legal Hold Instance 5).
+Term hold database name: the deployment's declared name of the one Legal Hold database instance serving the composition (Composes 1), matched against the database name Legal Hold's read answers (Legal Hold Instance 5).
 
 Term alerting surface: the deployment's surface on which the composition alerts.
 
@@ -320,8 +320,8 @@ Identity 8: A deployment MAY canonicalize a record reference ahead of a call.
 ```
 Audit arm 1: IF the record start floor admits a further call THEN the composition MUST retry a recording-failure carrying step-2.
 Audit arm 2: The composition MUST NOT retry a recording-failure carrying step-3.
-Deleted: Audit arm 3. Execution Contract Store 1 owns it.
-Deleted: Audit arm 4. Execution Contract Store 1 owns it.
+Deleted: Audit arm 3. Execution Contract Database 1 owns it.
+Deleted: Audit arm 4. Execution Contract Database 1 owns it.
 Audit arm 5: The composition MUST read a landed record back by the invocation id.
 Audit arm 6: The composition MUST alert on a landed record carrying no retention.
 Audit arm 7: IF the substrate refuses an intent on a credential THEN the action MUST answer invalid-credential.
@@ -407,7 +407,7 @@ Action wiring 33: [Purge Eligible] MUST NOT answer a retention outside elapsed r
 Action wiring 34: [Purge Eligible] MUST call Legal Hold's read with the record reference AND the active state PER answered retention.
 Action wiring 35: [Purge Eligible] MUST answer the hold count PER answered retention.
 Action wiring 36: IF Legal Hold refuses the read THEN [Purge Eligible] MUST carry the unavailable sentinel as the hold count.
-Action wiring 37: [Purge Eligible] MUST NOT answer a zero hold count for an unreadable hold store.
+Action wiring 37: [Purge Eligible] MUST NOT answer a zero hold count for unreadable hold records.
 Action wiring 38: [Purge Eligible] MUST answer the retention deadline AND the purge deadline PER answered retention.
 Action wiring 39: [Purge Eligible] MUST order the answer by retention deadline, rising.
 Action wiring 40: [Purge Eligible] MUST order two retentions sharing a retention deadline by retention id, rising.
@@ -443,9 +443,9 @@ Action wiring 71: A yielded invocation MUST NOT retry an owed record.
 Action wiring 72: The sweep MUST own a yielded invocation's owed record.
 Action wiring 73: A caller MUST read a not-known on a re-invoked purge as a committed destruction.
 Action wiring 74: IF Legal Hold's read answers invalid-query THEN the composition MUST read the read as refused AND MUST alert.
-Action wiring 75: The composition MUST answer hold-check-unavailable for a hold store fault outside Legal Hold's read contract ahead of an act's first committing call.
+Action wiring 75: The composition MUST answer hold-check-unavailable for a hold-record fault outside Legal Hold's read contract ahead of an act's first committing call.
 Action wiring 76: A purge intent MUST carry the hold check result.
-Action wiring 77: IF the store name a read of Legal Hold answers DOES NOT EQUAL the hold store name THEN the composition MUST read the read as refused (Legal Hold Instance 7).
+Action wiring 77: IF the database name a read of Legal Hold answers DOES NOT EQUAL the hold database name THEN the composition MUST read the read as refused (Legal Hold Instance 7).
 Deleted: Action wiring 78. Action wiring 77 owns it.
 Action wiring 79: IF an act's first committing call answers no answer THEN the action MUST answer storage-failure.
 Action wiring 80: IF Retention Window's purge answers no answer for a sibling THEN a purge MUST mark the sibling pending.
@@ -470,12 +470,12 @@ Action wiring 98: IF a constituent answers state-unavailable to an act's first c
 Action wiring 99: IF a read a committed act makes for the act's outcome answers a refusal OR state-unavailable OR no answer THEN the composition MUST read the outcome as an owed record.
 Action wiring 100: A purge MUST NOT make the gate read BEFORE judging the not-known refusals of Action wiring 45 and Action wiring 94.
 Action wiring 101: [Purge Eligible] MUST NOT answer a retention whose retention state Retention Window's declared read answers purged.
-Deleted: Action wiring 102. Execution Contract Store 1 owns it.
-Deleted: Action wiring 103. Execution Contract Store 1 owns it.
-Deleted: Action wiring 104. Execution Contract Store 1 owns it: a hold placement's intent, hold and outcome commit together, and the composition names no read ahead of the intent for Legal Hold to refuse.
-Deleted: Action wiring 105. Execution Contract Store 1 owns it: a placement's intent, act and outcome commit together, and the composition names no id list for a placement intent to carry.
+Deleted: Action wiring 102. Execution Contract Database 1 owns it.
+Deleted: Action wiring 103. Execution Contract Database 1 owns it.
+Deleted: Action wiring 104. Execution Contract Database 1 owns it: a hold placement's intent, hold and outcome commit together, and the composition names no read ahead of the intent for Legal Hold to refuse.
+Deleted: Action wiring 105. Execution Contract Database 1 owns it: a placement's intent, act and outcome commit together, and the composition names no id list for a placement intent to carry.
 Action wiring 106: A committed purge MUST read the named retention's purge instant from Retention Window's declared read.
-Deleted: Action wiring 107. Execution Contract Store 1 owns it.
+Deleted: Action wiring 107. Execution Contract Database 1 owns it.
 Action wiring 108: A purge MUST NOT record an intent BEFORE judging the refusals of Action wiring 47, Action wiring 50, Action wiring 53 and Action wiring 57.
 Action wiring 109: IF Retention Window's declared read answers state-unavailable OR no answer ahead of an act's first committing call THEN the action MUST answer storage-failure.
 Action wiring 110: [Purge Eligible] MUST answer EVERY elapsed retention Retention Window's declared read answers, a retention Action wiring 95 covers AND a retention Action wiring 101 covers excepted.
@@ -530,7 +530,7 @@ Term entry instant: the recording instant of a hold placement's intent — when 
 
 Term quiescence: the state in which no invocation holds a record section, no open marker stands younger than the compensation window, and the sweep has no open marker and no pending sibling left to work. An invariant stated at quiescence is owed by then and not at every instant before it: an owed outcome and a pending sibling are states the rules reach and the sweep closes (Action wiring 70, Reconciliation 11, Reconciliation 19).
 
-Term unavailable sentinel: unavailable — the one non-integer value a hold count admits — what [Purge Eligible] answers for a retention whose hold store could not be read, and what a reader treats as hold-blocked rather than as zero.
+Term unavailable sentinel: unavailable — the one non-integer value a hold count admits — what [Purge Eligible] answers for a retention whose hold records could not be read, and what a reader treats as hold-blocked rather than as zero.
 
 Term purged retention ids: the named retention and every sibling set member a record purged outcome names, each marked purged or pending.
 
@@ -567,9 +567,9 @@ Reconciliation 4: The sweep MUST NOT examine a young marker.
 Reconciliation 5: The sweep MUST read an intent carrying no outcome AND no stand-in as an open marker.
 Reconciliation 6: The sweep MUST match an intent to an outcome by the invocation id.
 Reconciliation 7: The sweep MUST NOT match an intent to an outcome by an input.
-Reconciliation 8: The sweep MUST read the constituent store for the act an open marker names.
+Reconciliation 8: The sweep MUST read the constituent records for the act an open marker names.
 Reconciliation 9: IF the act did not commit THEN the sweep MUST close the open marker as intent abandoned.
-Deleted: Reconciliation 10. Execution Contract Store 1 owns it.
+Deleted: Reconciliation 10. Execution Contract Database 1 owns it.
 Reconciliation 11: The sweep MUST emit EXACTLY ONE recovery outcome PER committed act carrying no outcome.
 Deleted: Reconciliation 12. Reconciliation 9 owns it.
 Reconciliation 13: A recovery outcome MUST carry the candidate marker's invocation id.
@@ -580,13 +580,13 @@ Reconciliation 17: The sweep MUST NOT emit a recovery outcome BEFORE recording a
 Reconciliation 18: The sweep MUST NOT make a committing call BEFORE recording a recovery intent.
 Reconciliation 19: The sweep MUST call Retention Window's purge PER pending sibling.
 Reconciliation 20: The sweep MUST NOT close an open marker BEFORE taking the record section over the record the open marker names.
-Reconciliation 21: The sweep MUST read the constituent stores AND the open markers over the record again under the record section.
+Reconciliation 21: The sweep MUST read the constituent records AND the open markers over the record again under the record section.
 Reconciliation 22: The sweep MUST NOT emit a recovery outcome for an act already carrying an outcome.
 Reconciliation 23: The sweep MUST NOT examine an aged-out event.
-Reconciliation 24: The sweep MUST read a constituent store's own state for an act an aged-out event names.
+Reconciliation 24: The sweep MUST read a constituent's records' own state for an act an aged-out event names.
 Reconciliation 25: The sweep MUST alert on an open marker the compensation window did not close.
-Reconciliation 26: The sweep MUST NOT emit a datum no constituent store carries.
-Reconciliation 27: IF a constituent store carries no datum a recovery outcome needs THEN the sweep MUST close the open marker as intent abandoned.
+Reconciliation 26: The sweep MUST NOT emit a datum no constituent's records carry.
+Reconciliation 27: IF a constituent's records carry no datum a recovery outcome needs THEN the sweep MUST close the open marker as intent abandoned.
 Reconciliation 28: The sweep MUST read the record a hold release marker names from Legal Hold's read.
 Reconciliation 29: The sweep MUST read the record a purge marker names from Retention Window's declared read.
 Reconciliation 30: IF Lease's try_take answers held OR no answer THEN the sweep MUST leave the open marker to the next run.
@@ -645,7 +645,7 @@ Each emerges from the composition; none belongs to one constituent.
   ```
   Invariant 1.1: IF an active hold covers a record outside the destroyed records AND the hold check mode EQUALS strict THEN the composition MUST NOT call Retention Window's purge.
   Invariant 1.2: IF an active hold covers a record outside the destroyed records AND the hold check mode EQUALS strict THEN a purge MUST NOT answer ok.
-  Invariant 1.3: The composition MUST NOT read an unreadable hold store as an empty hold check result.
+  Invariant 1.3: The composition MUST NOT read unreadable hold records as an empty hold check result.
   Deleted: Invariant 1.4. Wiring decision 1 owns it.
   Invariant 1.5: IF an active hold covers a record outside the destroyed records AND the hold check mode EQUALS strict THEN a purge MUST NOT answer not-eligible.
   Invariant 1.6: IF an active hold covers a record outside the destroyed records AND the hold check mode EQUALS strict THEN a purge MUST NOT answer under-active-retention.
@@ -741,11 +741,11 @@ A multinational bank governs its general-ledger transaction records with this in
 
 5. **Purge proceeds.** `purge_eligible()` now answers `ret-0441` with `hold_count = 0`. `purge_record("ret-0441", "records_system", credential)`: the sibling set is empty, the gate reads no active hold, the named retention is elapsed, a purge_intended record lands carrying `inv-c2`, `RetentionWindow.purge` destroys the record, and a record_purged outcome lands carrying `inv-c2`, `purged_retention_ids: [{ret-0441, purged}]`, `hold_check_result: empty`, `hold_override: false` and `purged_at: 2033-05-15`. The two index entries are removed. Returns ok.
 
-6. **SOX section 404 audit.** The auditor walks `Check 1.1` through `Check 7.3` over the trail and the two constituent stores. The full arc reads: placement intent, placement, hold intent, hold, blocked purge, release intent, release, purge intent, purge. `verify_record` answers `verified` on each outcome the seal cadence covers. The auditor confirms that no destruction occurred while the hold was active, that the destruction landed inside the allowable window — retention deadline at or before `purged_at`, and `purged_at` below purge deadline — and that every act was attributed to a named actor whose credential the substrate verified before the act committed.
+6. **SOX section 404 audit.** The auditor walks `Check 1.1` through `Check 7.3` over the trail and the two constituent records. The full arc reads: placement intent, placement, hold intent, hold, blocked purge, release intent, release, purge intent, purge. `verify_record` answers `verified` on each outcome the seal cadence covers. The auditor confirms that no destruction occurred while the hold was active, that the destruction landed inside the allowable window — retention deadline at or before `purged_at`, and `purged_at` below purge deadline — and that every act was attributed to a named actor whose credential the substrate verified before the act committed.
 
 ### A sibling retention blocks, then travels with the destruction
 
-The same record acquires a second retention in 2030 under a policy transition: `place_record_under_retention("txn-2026-0441", "ledger_6_year", "records_system", credential)` → `ret-0441-b`, `retention_until = 2036-05-10`. In 2033, with the hold released, `purge_record("ret-0441", …)` reads the sibling set from Retention Window's store, finds `ret-0441-b` outside elapsed retention, and answers under-active-retention — nothing destroyed, no intent written. In 2036 the same call finds both elapsed, destroys the record once, purges `ret-0441-b` in the same invocation, and records `purged_retention_ids: [{ret-0441, purged}, {ret-0441-b, purged}]`. Had the second purge answered storage-failure, the outcome would name it pending, `Check 3.3` would read it as an open obligation rather than a finding, and `Reconciliation 19` would retry it until the store reports it purged.
+The same record acquires a second retention in 2030 under a policy transition: `place_record_under_retention("txn-2026-0441", "ledger_6_year", "records_system", credential)` → `ret-0441-b`, `retention_until = 2036-05-10`. In 2033, with the hold released, `purge_record("ret-0441", …)` reads the sibling set from Retention Window's records, finds `ret-0441-b` outside elapsed retention, and answers under-active-retention — nothing destroyed, no intent written. In 2036 the same call finds both elapsed, destroys the record once, purges `ret-0441-b` in the same invocation, and records `purged_retention_ids: [{ret-0441, purged}, {ret-0441-b, purged}]`. Had the second purge answered storage-failure, the outcome would name it pending, `Check 3.3` would read it as an open obligation rather than a finding, and `Reconciliation 19` would retry it until the database reports it purged.
 
 ### Banking — concurrent regulatory investigations under SOX
 
@@ -783,7 +783,7 @@ In all four branches the trail is the evidence of what the system decided and on
 
 **Regulator audit — *prove no record under hold was destroyed during the examination window*.** An SEC examiner reads every record_purged outcome in the period and confirms `hold_check_result: empty` on each (`Check 1.1`). The examiner then builds the historical hold set — Legal Hold's read unfiltered by state, so a hold released *after* an improper destruction is still visible, less any hold whose placement intent sits later in the log than the purge's intent (`Check 1.4`) and any released before it (`Check 1.8`) — and confirms the set is empty (`Check 1.3`). A current-state read would not do: the release-after-destruction sequence is precisely the spoliating history the check exists to catch.
 
-**Disputed destruction — the data subject challenges a deferral.** A subject's representative asks whether there was really a hold. Legal Hold's read answers the active hold with placing actor, `hold_reason`, placement instant and case reference, immutable under Legal Hold Invariant 1, and the deferral's trail entry names the hold id. `verify_record` confirms the entry is unaltered. Legal Hold Invariant 7 is why the hold cannot have been placed anonymously. Sustaining the challenge would require claiming the whole hold store was fabricated, at which point the seal reached through the substrate is the structural rebuttal.
+**Disputed destruction — the data subject challenges a deferral.** A subject's representative asks whether there was really a hold. Legal Hold's read answers the active hold with placing actor, `hold_reason`, placement instant and case reference, immutable under Legal Hold Invariant 1, and the deferral's trail entry names the hold id. `verify_record` confirms the entry is unaltered. Legal Hold Invariant 7 is why the hold cannot have been placed anonymously. Sustaining the challenge would require claiming the whole hold records were fabricated, at which point the seal reached through the substrate is the structural rebuttal.
 
 **Breach forensics — *was a preservation-deferred record improperly destroyed?*** The team reads the trail for record_purged outcomes naming the suspect record. None means the record was not destroyed through this composition, and the investigation moves to direct atom-level or storage-layer access — the bypass case `Check 3.4` signals. One means the `hold_check_result` and the historical hold predicate answer the question directly. The forensic window is bounded by the seal cadence below and by the audit horizon above, and `Invariant 8.6` is where that bound is stated rather than assumed.
 
@@ -791,7 +791,7 @@ In all four branches the trail is the evidence of what the system decided and on
 
 ## Generation acceptance
 
-An implementation is acceptable when an external auditor, given the two indexes, the hold store, the business retention instance and the substrate's trail, can clear the checks below without recourse to source code, runbooks or developer narration.
+An implementation is acceptable when an external auditor, given the two indexes, the hold records, the business retention instance and the substrate's trail, can clear the checks below without recourse to source code, runbooks or developer narration.
 
 ### Conformance checks
 
@@ -801,7 +801,7 @@ Check 1.2: An auditor MUST find EVERY record purged outcome carrying a non-empty
 Check 1.3: An auditor MUST find EVERY member of a destruction's historical hold set named in the destruction's hold check result (Invariant 1.1).
 Check 1.4: An auditor MUST read a post-destruction hold as outside the historical hold set (Invariant 6.3).
 Check 1.5: An auditor MUST find EVERY gate record carrying a non-empty hold check result (Invariant 4.5).
-Check 1.6: An auditor MUST find EVERY hold a gate record names in the hold store, released by no release whose own intent sits earlier in the log than the gate record (Invariant 4.5).
+Check 1.6: An auditor MUST find EVERY hold a gate record names in the hold records, released by no release whose own intent sits earlier in the log than the gate record (Invariant 4.5).
 Check 1.7: An auditor MUST read Legal Hold's read unfiltered by hold state for the historical hold set (Invariant 6.3).
 Check 1.8: An auditor MUST read a pre-destruction release as outside the historical hold set (Invariant 6.5).
 Check 1.9: An auditor MUST read a truncated hold check result's count as naming the members the list omits (Primitive policy 21).
@@ -834,7 +834,7 @@ Check 5.8: An auditor MUST read an outcome carrying the recovery marker as the s
 Check 5.9: An auditor MUST read an outcome missing under an open marker inside the compensation window as an open obligation (Invariant 5.3).
 Check 5.10: An auditor MUST find no two intents sharing one invocation id (Capability requirement 63).
 Check 6.1: An auditor MUST find the evidence floor not exceeding the audit horizon (Capability requirement 11).
-Check 6.2: An auditor MUST find the rebuild reading Retention Window's store for an entry a purged placement event covers (Composition state 13).
+Check 6.2: An auditor MUST find the rebuild reading Retention Window's records for an entry a purged placement event covers (Composition state 13).
 Check 6.3: An auditor MUST read an audit horizon below the evidence floor as a conformance failure (Capability requirement 11).
 Check 6.4: An auditor MUST read a record missing from the trail whose act does not stand within the audit horizon as unknown (Invariant 8.6).
 Check 6.5: An auditor MUST read an outcome carrying no intent AND a stand-in as unknown for Check 5.1 through 5.3 (Invariant 8.6).
@@ -842,7 +842,7 @@ Check 6.6: An auditor MUST read an intent carrying no outcome AND a stand-in as 
 Check 6.7: An auditor MUST read a hold's order against a destruction whose purge intent the trail does not carry as unknown for Check 1.3, Check 1.4 AND Check 1.8 (Invariant 8.6).
 Check 6.8: An auditor MUST find the audit horizon exceeding the alert floor (Capability requirement 58).
 Check 6.9: An auditor MUST read a hold's order against a destruction as unknown for Check 1.3, Check 1.4 AND Check 1.8 where the trail does not carry the intent of the hold's own outcome (Invariant 8.6).
-Check 7.1: An auditor MUST clear Legal Hold's own acceptance over the hold store (Composes 5).
+Check 7.1: An auditor MUST clear Legal Hold's own acceptance over the hold records (Composes 5).
 Check 7.2: An auditor MUST clear Retention Window's own acceptance over the business retention instance (Composes 5).
 Check 7.3: An auditor MUST clear Audit Trail's own acceptance over the audit instance (Composes 6).
 ```
@@ -860,10 +860,10 @@ External check 5: An auditor needing the service identity's provisioning confirm
 External check 6: An auditor needing a declared setting confirmed MUST read the deployment's own declaration (Capability requirement 10, Capability requirement 12, Capability requirement 14 through 16, Capability requirement 19 through 25, Capability requirement 27 through 30, Capability requirement 36, Capability requirement 38 through 44, Capability requirement 56 through 62, Capability requirement 64).
 External check 7: An auditor needing the serialization confirmed MUST read the deployment's own Lease host (Capability requirement 37).
 External check 8: An auditor needing a record's fate under an abandoned purge intent confirmed MUST read the deployment's own destruction records (Reconciliation 32, Capability requirement 55).
-External check 9: An auditor needing the single surface confirmed MUST read the deployment's own access control over the hold store and the business retention instance (Capability requirement 45 through 47, Capability requirement 53).
+External check 9: An auditor needing the single surface confirmed MUST read the deployment's own access control over the hold records and the business retention instance (Capability requirement 45 through 47, Capability requirement 53).
 External check 10: An auditor needing the call pause bound confirmed MUST read the deployment's own constituent clients (Capability requirement 38, Capability requirement 54).
-External check 11: An auditor needing the hold store name confirmed MUST read the deployment's own declaration (Capability requirement 48).
-Deleted: External check 12. Execution Contract Store 3 owns it.
+External check 11: An auditor needing the hold database name confirmed MUST read the deployment's own declaration (Capability requirement 48).
+Deleted: External check 12. Execution Contract Database 3 owns it.
 External check 13: An auditor needing the alerting surface confirmed MUST read the deployment's own alert records (Capability requirement 13, Capability requirement 50).
 External check 14: An auditor needing the scheduler confirmed MUST read the deployment's own schedule records (Capability requirement 51, Capability requirement 52).
 ```
@@ -877,7 +877,7 @@ Non-goal 1: The composition MUST NOT reconcile two retention policies.
 Non-goal 2: A deployment needing a reconciled policy MUST compose a Policy Reconciliation pattern.
 Non-goal 3: The composition MUST NOT destroy a record set in one call.
 Non-goal 4: A deployment needing an atomic batch destruction MUST compose a transaction wrapper.
-Non-goal 5: The composition MUST NOT judge a record reference against the retention store at a hold placement.
+Non-goal 5: The composition MUST NOT judge a record reference against the retention records at a hold placement.
 Non-goal 6: The composition MUST NOT adjudicate an erasure request.
 Non-goal 7: The composition MUST NOT adjudicate a hold's proportionality.
 Non-goal 8: The composition MUST NOT refuse a backdated placement instant.
@@ -911,10 +911,10 @@ NOTE: the owners — Policy Reconciliation *(forthcoming)* (Non-goal 1, Non-goal
 ### Atomic writes
 
 ```
-Deleted: Atomic writes 1. Execution Contract Store 1 owns it.
-Deleted: Atomic writes 2. Execution Contract Store 1 owns it.
-Deleted: Atomic writes 3. Execution Contract Store 1 owns it.
-Deleted: Atomic writes 4. Execution Contract Store 1 owns it.
+Deleted: Atomic writes 1. Execution Contract Database 1 owns it.
+Deleted: Atomic writes 2. Execution Contract Database 1 owns it.
+Deleted: Atomic writes 3. Execution Contract Database 1 owns it.
+Deleted: Atomic writes 4. Execution Contract Database 1 owns it.
 Atomic writes 5: An admitted purge MUST record the outcome ONLY AFTER the constituent commit.
 Atomic writes 6: The composition MUST NOT reverse Retention Window's purge.
 Atomic writes 7: A destroyed record carrying an owed record MUST stand as the composition's own partial.
@@ -946,7 +946,7 @@ Deleted: Clock semantics 17. Capability requirement 36 owns it.
 
 Term clock offset allowance: clock offset allowance — the deployment's declared envelope between two seams' readings of one moment — what this composition allows wherever a reading at its own seam is set against an instant another seam stamped (Term elapsed retention, Term young marker).
 
-Term constituent commit: the instant a committing call's write lands in the constituent's own store.
+Term constituent commit: the instant a committing call's write lands in the constituent's own records.
 
 Term gate read: the composition's read of a record's active holds at [Purge Record], taken before any destruction.
 
@@ -995,8 +995,8 @@ Concurrency 27: A purge MUST NOT record an intent BEFORE reading the retention s
 Concurrency 28: The composition MUST NOT record a hold release intent BEFORE reading the hold's hold state under the record section.
 Concurrency 29: The composition MUST issue a record_action call WITHIN the call pause bound of asking for the call's reading.
 Concurrency 30: The composition MUST namespace the record section's key apart from EVERY other key on the Lease host (Lease Composition note 4).
-Concurrency 31: The composition MUST read under the record section EVERY store state AND EVERY trail state the composition decides on, a call of [Purge Eligible] excepted.
-Concurrency 32: A read made ahead of the take MUST serve to name the record section's key alone, a not-known for an id no store carries AND the alert of Reconciliation 43 excepted.
+Concurrency 31: The composition MUST read under the record section EVERY database state AND EVERY trail state the composition decides on, a call of [Purge Eligible] excepted.
+Concurrency 32: A read made ahead of the take MUST serve to name the record section's key alone, a not-known for an id no database carries AND the alert of Reconciliation 43 excepted.
 Concurrency 33: An act whose EVERY call answered MUST release the record section, a call Concurrency 25 covers excepted.
 Concurrency 34: IF the record section admits no call of a committed act's outcome THEN the composition MUST read the outcome as an owed record.
 ```
@@ -1039,13 +1039,13 @@ Term qualifiers: migrated — rewritten in GRACE lang v0.40 (2026-09-14).
 
 Term value sets: hold check mode = strict | advisory. hold check result = empty | the blocking hold ids with the blocking count. intent = retention_placement_intended | hold_placement_intended | hold_release_intended | purge_intended. outcome = retention_placed | hold_placed | hold_released | record_purged | intent_abandoned. sibling disposition = purged | pending. lease reading = live | expired.
 
-Term terms: composition, constituents, business retention instance, service identity, record, record-to-retentions index, retention-to-record index, audit horizon, surviving placement event, purged placement event, rebuild, sibling set, pending sibling, seam, transition, evidence floor, closure floor, retention completion bound, hold check mode, now, boundary predicate, opaque input, landed record, owed record, intent, outcome, gate record, committing call, admitted placement, admitted hold placement, admitted hold release, admitted purge, elapsed retention, hold check result, hold override, unavailable sentinel, purged retention ids, sweep, open marker, young marker, aged-out event, recovery intent, recovery marker, recovery outcome, clock offset allowance, constituent commit, gate read, seal coverage, yielded invocation, post-destruction hold, pre-destruction release, aged-out hold, historical hold set, log order, destroyed record, committed placement, committed hold placement, committed hold release, committed purge, record section, call pause bound, section term, section work bound, audit write latency, record start floor, sibling floor, candidate marker, leg, plan, destroyed event, stand-in, within the audit horizon, quiescence, alert floor, enumeration bound, overdue marker, constituent instance, largest record, surviving destruction, hold count, horizon alert, entry instant, hold check admitted, hold-blocked, eligibility tuples, lease reading, hold store name, alerting surface, scheduler, compensation window, reconciliation cadence, field cap, hold ids cap, position, invocation id, intent instant, intent abandoned, attributed actors.
+Term terms: composition, constituents, business retention instance, service identity, record, record-to-retentions index, retention-to-record index, audit horizon, surviving placement event, purged placement event, rebuild, sibling set, pending sibling, seam, transition, evidence floor, closure floor, retention completion bound, hold check mode, now, boundary predicate, opaque input, landed record, owed record, intent, outcome, gate record, committing call, admitted placement, admitted hold placement, admitted hold release, admitted purge, elapsed retention, hold check result, hold override, unavailable sentinel, purged retention ids, sweep, open marker, young marker, aged-out event, recovery intent, recovery marker, recovery outcome, clock offset allowance, constituent commit, gate read, seal coverage, yielded invocation, post-destruction hold, pre-destruction release, aged-out hold, historical hold set, log order, destroyed record, committed placement, committed hold placement, committed hold release, committed purge, record section, call pause bound, section term, section work bound, audit write latency, record start floor, sibling floor, candidate marker, leg, plan, destroyed event, stand-in, within the audit horizon, quiescence, alert floor, enumeration bound, overdue marker, constituent instance, largest record, surviving destruction, hold count, horizon alert, entry instant, hold check admitted, hold-blocked, eligibility tuples, lease reading, hold database name, alerting surface, scheduler, compensation window, reconciliation cadence, field cap, hold ids cap, position, invocation id, intent instant, intent abandoned, attributed actors.
 
 Term cited: Execution Contract Conformance 8 — the recursive inheritance of a constituent's guarantees. The section titled Substrate composition invocation in `execution-contract.md` — the substrate relation and its instance topology. The section titled Composition state in `execution-contract.md` — the derived-index classification and its obligations. The section titled Logic Confinement Principle in `execution-contract.md` — the seam. verify_record, purge_event, event id, recording instant, start margin: Audit Trail. try_take, remaining, grant, holder value, remaining term, call in flight, no answer: Lease. storage layer: Retention Window.
 
 Term composing patterns: Policy Reconciliation *(forthcoming)*; Hold-Aware Audit Retention *(forthcoming)*; Override Authorization *(forthcoming)*; Reverse Index *(forthcoming)*; Failed-Attempt Log *(forthcoming)*; a cryptographic shredding pattern *(forthcoming)*; [Permissions](../atoms/permissions.md); [Duplicate Prevention](../atoms/duplicate-prevention.md).
 
-Term record: the host's business record this composition governs — named by a record reference, held in the host's own store, and destroyed by `RetentionWindow.purge`.
+Term record: the host's business record this composition governs — named by a record reference, held in the host's own records, and destroyed by `RetentionWindow.purge`.
 
 #### Place Record Under Retention
 
@@ -1067,13 +1067,13 @@ Kind: Operation
 
 #### Purge Eligible
 
-The read-only query answering every retention past its retention deadline, each with its active-hold count, so a dashboard tells *purge-ready* from *hold-blocked*. It writes nothing, refuses only where the retention store cannot be read (Action wiring 111), and states no sibling liveness — a tuple can look ready while an in-window sibling, excluded by construction, still covers its record (`Action wiring 43`).
+The read-only query answering every retention past its retention deadline, each with its active-hold count, so a dashboard tells *purge-ready* from *hold-blocked*. It writes nothing, refuses only where the retention records cannot be read (Action wiring 111), and states no sibling liveness — a tuple can look ready while an in-window sibling, excluded by construction, still covers its record (`Action wiring 43`).
 
 Kind: Operation
 
 #### Purge Record
 
-The composition's load-bearing action: destroy a record only after the gate passes. It reads the sibling set from the constituent's store, reads the record's active holds, refuses with [Under Legal Hold] and records the gate's firing under strict mode, and otherwise records the intent, destroys the record with every eligible sibling, and records the destruction with the [Hold Check Result]. Where the hold check admitted the destruction, refused [Not Eligible] while the named retention is still running and [Under Active Retention] while a sibling is; refused [Hold Check Unavailable] where the hold store cannot answer the gate's read, and [Section Unavailable] where the record section cannot carry the act.
+The composition's load-bearing action: destroy a record only after the gate passes. It reads the sibling set from the constituent's records, reads the record's active holds, refuses with [Under Legal Hold] and records the gate's firing under strict mode, and otherwise records the intent, destroys the record with every eligible sibling, and records the destruction with the [Hold Check Result]. Where the hold check admitted the destruction, refused [Not Eligible] while the named retention is still running and [Under Active Retention] while a sibling is; refused [Hold Check Unavailable] where the hold records cannot answer the gate's read, and [Section Unavailable] where the record section cannot carry the act.
 
 Kind: Operation
 
@@ -1124,7 +1124,7 @@ Projection: under-active-retention
 
 #### Hold Check Unavailable
 
-The fail-closed refusal when the hold store cannot answer the gate's read or the read a release makes of its own hold. An unreadable hold store is never read as no holds (`Invariant 1.3`), and nothing is destroyed on this arm.
+The fail-closed refusal when the hold records cannot answer the gate's read or the read a release makes of its own hold. Unreadable hold records are never read as no holds (`Invariant 1.3`), and nothing is destroyed on this arm.
 
 Kind:       Member
 Member of:  the purge rejection
@@ -1192,7 +1192,7 @@ open:
 - 2026-10-04-g · refining · Term within the audit horizon; Term aged-out hold; Check 1.10, 2.1, 2.2 · a hold's act is aged by the placement or release instant a caller may assert, so a hold backdated past the horizon reads aged-out the day it is entered → age it by its intent's recording instant where the intent survives
 - 2026-10-04-h · refining · Composition note 6 through 9; Identity 6; Non-goal 22, 23; Action wiring 73, 82, 96; Capability requirement 11, 15, 41, 44, 56 · deployment and caller obligations outside the capability list with no external check, and five requirements naming no supplier → move or cite each
 - 2026-10-04-j · refining · Capability requirement 37, 54, 55; Check 7.1 through 7.3 · Lease Capability requirement 9 is declined in a WHY alone, Retention Window Record divergence 1a, 2a and 2b sit outside the numbers passed down, and Lease's holder-side checks are cleared by no check here → state each
-- 2026-10-04-k · refining · Term recovery intent; Term plan; Reconciliation 3, 17, 18, 24, 38 · the recovery intent's invocation id and its own audit arms are unstated, a record owing both a re-emit and a sibling purge has no stated order, the sweep is said to store no record of its own beside the recovery intents it writes, and Reconciliation 24 reads a store without saying what follows → state or strike
+- 2026-10-04-k · refining · Term recovery intent; Term plan; Reconciliation 3, 17, 18, 24, 38 · the recovery intent's invocation id and its own audit arms are unstated, a record owing both a re-emit and a sibling purge has no stated order, the sweep is said to store no record of its own beside the recovery intents it writes, and Reconciliation 24 reads a database without saying what follows → state or strike
 - 2026-10-04-m · refining · Action wiring 60; Primitive policy 23 · nothing caps the retentions over a record, so one more can make its purge answer invalid-request until the caps change → a non-goal, or a cap at placement
 - 2026-10-04-p · refining · Check 1.6, 2.4; Invariant 2, 6.1, 6.2, 7, 8.2, 8.3, 10; Term cited · two checks cite a rule that does not say what they test, seven invariants are named by no check, and the constituent terms the rules use are missing from Term cited → re-cite; a check per invariant
 - 2026-10-04-q · refining · Composition state 24; Check 3.4; Term candidate marker; Term surviving destruction · an open purge marker a failed purge left masks a purge made outside the composition, which the sweep then recovers as that marker's act; it needs a breach of Capability requirement 46; and a bypass is judged on a now older than the read it rests on → say the detection excepts it; judge under the section
@@ -1200,13 +1200,13 @@ open:
 - 2026-10-04-s · rhetorical · Examples; Terms · nothing walks the sweep, a recording-failure or a take of the record section, two walkthrough payloads omit fields the rules require, Hold Check Unavailable is a member of the purge rejection alone, tombstones sit out of order, and ISO is not spelled out → rewrite on the next load-bearing touch
 - 2026-10-05-b · refining · Term stand-in; Check 5.4, 6.5 · the service-identity arm takes any earlier destroyed event, so an intent-less sweep outcome reads unknown for good once one event has aged out → bound the arm to one horizon before the outcome
 - 2026-10-05-d · refining · Composition state 3, 21, 24, 26, 33, 34; Invariant 2.2 · no action reads an index now, so the rebuild has no trigger and the bypass report no surface, the sweep removes only what it purged, the two indexes are said to agree with no qualifier, and placed-through-this-composition is tested by no rule → name the trigger, or make the index a convenience
-- 2026-10-05-e · refining · Term committed placement; Term committed hold placement; Term committed hold release; Term committed purge; Reconciliation 11; Action wiring 86 · committed is the call's answer in the Terms and the store's state in the sweep, so a call that landed without answering sits outside the invariants that quantify over the Terms; keying the Terms on the store collides with Action wiring 86, which forbids that invocation an outcome → a second Term for the sweep's reading
+- 2026-10-05-e · refining · Term committed placement; Term committed hold placement; Term committed hold release; Term committed purge; Reconciliation 11; Action wiring 86 · committed is the call's answer in the Terms and the database's state in the sweep, so a call that landed without answering sits outside the invariants that quantify over the Terms; keying the Terms on the database collides with Action wiring 86, which forbids that invocation an outcome → a second Term for the sweep's reading
 - 2026-10-05-g · refining · Primitive policy 18; Capability requirement 17 · the composition must not store a credential and the sweep presents one each run, with no named supplier → scope the rule to a caller's credential; name the supplier
 - 2026-10-05-h · refining · Capability requirement 55; Non-goal 15, 16; Term record · both of Retention Window's destruction branches are passed down and neither is pinned → pin the branch
 - 2026-10-05-i · refining · Action wiring 82, 96; Reconciliation 36; Concurrency 14 · a mandated retry has no terminus and each one leaves a young marker that parks every older marker over the record, and a first committing call needs only a live reading where its outcome needs a floor → a terminus; a commit floor
 - 2026-10-05-j · refining · Action wiring 47, 50, 57, 100, 108; Concurrency 5 through 9 · refusals and the take precede any check of the credential, so an unauthenticated caller holds a section and learns that no active hold exists → authenticate first, or name the non-goal
 - 2026-10-05-k · refining · Action wiring 53, 94; Atomic writes 9 · a purge re-invoked after a storage-failure that followed the storage layer's destruction can answer under-legal-hold over a record already gone → say what the answer then means
-- 2026-10-05-l · rhetorical · Terms; Composes 7, 12 · the gate, placement, audit instance, hold store, destruction record and eligible each carry two meanings or no entry, Composes 7's letter forbids the instances Composes 1 and 2 hold, and Composes 12 does not name Event Log's read → one term each; name the read
+- 2026-10-05-l · rhetorical · Terms; Composes 7, 12 · the gate, placement, audit instance, hold records, destruction record and eligible each carry two meanings or no entry, Composes 7's letter forbids the instances Composes 1 and 2 hold, and Composes 12 does not name Event Log's read → one term each; name the read
 - 2026-10-06-a · refining · Action wiring 59, 68, 80, 81 · a committed purge is to call the purge of every sibling where the sibling floor marks one pending uncalled, a sibling's purge that answers state-unavailable has no arm, and the order of the sibling purges is unstated → condition the call on the floor; add the arm; pin the order
 - 2026-10-06-b · refining · Check 1.3, 1.11, 5.9; Invariant 5.3 · a release that committed ahead of a purge and whose outcome is still owed past the compensation window leaves its hold in the historical hold set, and an open marker older than the window that carries no stand-in has no verdict → an open obligation while a release marker stands; a verdict
 - 2026-10-06-c · refining · Action wiring 16, 21, 31, 67, 79, 96 · storage-failure lands where nothing committed and where the call may still land, with nothing to tell the two apart, and only a purge has a caller's reading of the retry → carry the position, or a caller rule for each action
@@ -1214,7 +1214,7 @@ open:
 - 2026-10-06-e · refining · Term reconciliation cadence; Reconciliation 2; Term alert floor; Action wiring 110 · the cadence is not said to run start to start, so a backlog's legs can delay the next run's alerts, and the listing has no cap, no page and no collation for its tie → pin start to start; cap the listing
 - 2026-10-06-f · refining · Term overdue marker; Term young marker; Action wiring 8 · both edges of the sweep read the intent instant, the now an invocation stamps ahead of its take, so a host stalled between the seam and the take stamps an old instant on a fresh intent and the sweep reads a live invocation's marker as overdue; Resolve a Person's Data Rights now reads both of its edges on the log's recording instant → the log's stamp; found by that composition's round of 2026-10-06
 - 2026-10-06-g · refining · Term alert floor; Term enumeration bound · the floor and the bound count one cadence to a run that ends its enumeration and no run that dies part-way, which nothing alerts on and which an auditor reads as a failure → the scheduler's alert; an open-obligation reading; found by the same round, cured there as Resolve a Person's Data Rights Reconciliation 40
-- 2026-10-06-h · refining · Action wiring 73; Non-goal 5 · a caller MUST read a re-invoked not-known as a committed destruction, with no exception for a caller that asks the store instead, as Resolve a Person's Data Rights does; and a hold placed over a record under no retention is admitted, so a hold this composition's own store carries over a host-managed record fires no gate → admit the reading; say so where the hold guarantee is stated; reported by the same round
+- 2026-10-06-h · refining · Action wiring 73; Non-goal 5 · a caller MUST read a re-invoked not-known as a committed destruction, with no exception for a caller that asks the database instead, as Resolve a Person's Data Rights does; and a hold placed over a record under no retention is admitted, so a hold this composition's own records carry over a host-managed record fires no gate → admit the reading; say so where the hold guarantee is stated; reported by the same round
 ```
 
 ## Decisions

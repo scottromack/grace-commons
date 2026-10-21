@@ -23,7 +23,7 @@ Notification records whether a single piece of information was accepted by the t
 ## Intent
 
 WHY:
-A notification is a promise to tell somebody something, and the interesting part is not the telling — it is the record of whether it happened. Systems that skip this concept end up asking their transport layer what happened weeks ago, which is a question no transport layer can answer. The atom holds the delivery record: who it was for, what it said, when it was made, and exactly one outcome — reached, failed, or ran out of time. It sends nothing. It does not know what a webhook is, does not retry, does not decide whether a bounced email is a failure or an expiry. What it guarantees is that every attempt is one record with one terminal answer and a timestamp, so *did we tell them* is answered from the store rather than from a log nobody kept.
+A notification is a promise to tell somebody something, and the interesting part is not the telling — it is the record of whether it happened. Systems that skip this concept end up asking their transport layer what happened weeks ago, which is a question no transport layer can answer. The atom holds the delivery record: who it was for, what it said, when it was made, and exactly one outcome — reached, failed, or ran out of time. It sends nothing. It does not know what a webhook is, does not retry, does not decide whether a bounced email is a failure or an expiry. What it guarantees is that every attempt is one record with one terminal answer and a timestamp, so *did we tell them* is answered from the database rather than from a log nobody kept.
 
 ## Structure
 
@@ -49,7 +49,7 @@ Term payload: the opaque content the notification carries — a [Payload]; store
 
 Term seam: the atom's I/O boundary as the section titled Logic Confinement Principle in `execution-contract.md` declares it; the host injects the clock reading and the notification id here.
 
-Term transition: the atom's evaluation of one call against the notification store, as the section titled Logic Confinement Principle in `execution-contract.md` declares it.
+Term transition: the atom's evaluation of one call against the notification records, as the section titled Logic Confinement Principle in `execution-contract.md` declares it.
 
 Term business caller: the party whose action the call carries, as the section titled Logic Confinement Principle in `execution-contract.md` declares it; never the source of an injected value.
 
@@ -82,7 +82,7 @@ Term creation instant: the instant the notification was recorded — a [Creation
 
 ```
 Capability requirement 1: The deployment MUST supply now at the seam.
-Capability requirement 4: The deployment MUST supply the notification store PER Execution Contract Store 1 through 4.
+Capability requirement 4: The deployment MUST supply the notification records PER Execution Contract Database 1 through 4.
 Deleted: Capability requirement 2. Execution Contract Logic confinement 7 owns it.
 Deleted: Capability requirement 3. Execution Contract Logic confinement 7 owns it.
 Deleted: Clock semantics 1. Execution Contract Logic confinement 7 owns it.
@@ -123,7 +123,7 @@ Operation 3: [Create] MUST answer notification id.
 Operation 4: IF recipient reference is empty THEN [Create] MUST answer invalid-request.
 Operation 5: [Create] MUST accept an empty payload.
 Operation 6: The atom MUST NOT read a payload.
-Operation 7: IF the store refuses the write THEN [Create] MUST answer storage-failure.
+Operation 7: IF the database refuses the write THEN [Create] MUST answer storage-failure.
 Operation 8: IF no notification EXISTS for the notification id THEN a terminal transition MUST answer not-known.
 Operation 9: IF the notification's status DOES NOT EQUAL pending THEN a terminal transition MUST answer not-pending.
 Operation 10: [Deliver] MUST stand the notification in delivered.
@@ -133,7 +133,7 @@ Operation 13: [Expire] MUST NOT require a delivery attempt.
 Operation 14: The atom MUST NOT choose between fail and expire.
 Operation 14a: The atom MUST NOT hold a delivery window.
 Operation 14b: A composing pattern MUST own the delivery window an expiry answers to.
-Operation 15: IF the store refuses the write THEN a terminal transition MUST answer storage-failure.
+Operation 15: IF the database refuses the write THEN a terminal transition MUST answer storage-failure.
 Operation 16: A refused call MUST leave the notification as the call found the notification.
 Operation 17: [Status Of] MUST answer the notification's stored fields.
 Operation 18: IF no notification EXISTS for the notification id THEN [Status Of] MUST answer not-known.
@@ -153,9 +153,9 @@ Term pending at an instant: creation instant at or before the instant, and the t
 
 The case space, and the rule that owns each case:
 
-| Call | Case | Answer | Effect on the notification store |
+| Call | Case | Answer | Effect on the notification records |
 |---|---|---|---|
-| [Create] | recipient present, store accepts | notification id | one notification lands in [Pending] (Operation 1, Operation 2) |
+| [Create] | recipient present, database accepts | notification id | one notification lands in [Pending] (Operation 1, Operation 2) |
 | [Create] | empty or whitespace-only recipient, or over the cap | [Invalid Request] | none (Operation 4, String 5, String 6) |
 | [Create] | empty payload | notification id | one notification lands — the payload is the caller's business (Operation 5, Operation 6) |
 | [Deliver] | notification is pending | ok | [Pending] → [Delivered], delivery instant stamped (Operation 10, State 8) |
@@ -163,7 +163,7 @@ The case space, and the rule that owns each case:
 | [Expire] | notification is pending, attempted or not | ok | [Pending] → [Expired], lapse instant stamped (Operation 12, Operation 13) |
 | any terminal transition | notification already terminal | [Not Pending] | none — including a second [Deliver] (Operation 9) |
 | any terminal transition | id names nothing | [Not Known] | none (Operation 8) |
-| any write | store refuses | storage-failure | none (Operation 7, Operation 15, Operation 16) |
+| any write | database refuses | storage-failure | none (Operation 7, Operation 15, Operation 16) |
 | [Status Of] | id names a notification | its stored fields | none — the call reads (Operation 17, Operation 22) |
 | [Status Of] | id names nothing | not-known | none (Operation 18) |
 | [Pending For] | recipient has pending notifications | their ids, unordered | none (Operation 19, Operation 21) |
@@ -221,10 +221,10 @@ The case space, and the rule that owns each case:
   ```
   Invariant 9.1: The atom MUST NOT delete a notification record.
   Invariant 9.2: The notification set MUST NOT shrink.
-  Invariant 9.3: [Status Of] MUST answer a created notification's fields for the store's life.
+  Invariant 9.3: [Status Of] MUST answer a created notification's fields for the database's life.
   ```
 
-Immutability and durability give *auditability* — the delivery history is the store, with no gaps. Exclusivity and the status-stamp match give the *unambiguous record* property — one outcome per notification, with a stable time. Monotonicity and ordering make [Pending For] a deterministic snapshot of what is still unresolved.
+Immutability and durability give *auditability* — the delivery history is the database, with no gaps. Exclusivity and the status-stamp match give the *unambiguous record* property — one outcome per notification, with a stable time. Monotonicity and ordering make [Pending For] a deterministic snapshot of what is still unresolved.
 
 ## Examples
 
@@ -246,30 +246,30 @@ Supervisor_s later asks *"was I notified about the queue-9 escalation?"* — `pe
 
 ### Compliance system — policy change
 
-An administrator broadcasts a policy update. Three compliance officers each receive a notification: `create(officer_a, {type: "policy:updated", policy_id: p7}) → notif_101`, similarly for officers b and c. Officer_a's email bounces: `fail(notif_101)`. Officers b and c are delivered successfully. `status_of(notif_101)` shows [Failure Instant]; `status_of(notif_102)` and `status_of(notif_103)` show [Delivery Instant]. An operator queries pending_for for each officer — empty for all three. The notification store shows: two [Delivered], one [Failed]; the composing system creates a retry for officer_a or escalates to a secondary channel.
+An administrator broadcasts a policy update. Three compliance officers each receive a notification: `create(officer_a, {type: "policy:updated", policy_id: p7}) → notif_101`, similarly for officers b and c. Officer_a's email bounces: `fail(notif_101)`. Officers b and c are delivered successfully. `status_of(notif_101)` shows [Failure Instant]; `status_of(notif_102)` and `status_of(notif_103)` show [Delivery Instant]. An operator queries pending_for for each officer — empty for all three. The notification records show: two [Delivered], one [Failed]; the composing system creates a retry for officer_a or escalates to a secondary channel.
 
 ### Rejection path — invalid create
 
-A composing system attempts to create a notification with an empty recipient reference: `create(recipient_ref: "", payload: {type: "task:assigned", task_id: "t1"})` → invalid-request. No [Notification Id] is issued; no record enters the store. The composing system must supply a non-empty recipient reference before the notification can be created.
+A composing system attempts to create a notification with an empty recipient reference: `create(recipient_ref: "", payload: {type: "task:assigned", task_id: "t1"})` → invalid-request. No [Notification Id] is issued; no record enters the database. The composing system must supply a non-empty recipient reference before the notification can be created.
 
 ### Regulated adversarial scenarios
 
-Three scenarios the notification store must survive in regulated contexts:
+Three scenarios the notification records must survive in regulated contexts:
 
-- **Regulator audit — demonstrate all notifications for a compliance event.** A compliance auditor asks *"show all notifications created for the policy:updated event on 2025-03-14, and whether each was delivered."* The auditor queries the notification store for notifications where creation instant falls on 2025-03-14 and the payload references the relevant policy. [Status Of] for each returned id shows the delivery outcome — [Delivery Instant], [Failure Instant], or [Lapse Instant]. The notification store answers from stored fields alone; Invariants 1 and 3-4 guarantee the delivery record is complete and unambiguous.
-- **Disputed delivery — actor claims they were not notified.** Officer_a claims they received no notification of policy update p7. The investigator queries the notification store for notifications where `recipient_ref = officer_a` and the payload references `policy_id: p7`. If a record exists with [Delivery Instant] set, Invariant 1 (notification immutability) is the structural answer: the notification was created with that recipient and delivery was confirmed at that time. If the record shows [Failure Instant] or [Lapse Instant], the store confirms delivery was not completed and documents why. The notification store is the single source of truth; no external corroboration is required.
-- **Breach investigation — identify Pending notifications that may have exposed payload data.** A security incident requires identifying all notifications that were [Pending] at the time of breach (2025-06-01T03:00Z) and may have carried sensitive payload data. The investigator queries for notifications where `created_at ≤ 2025-06-01T03:00Z` and either `status = pending` (still unresolved now) or the applicable terminal timestamp falls after 2025-06-01T03:00Z (meaning the notification was [Pending] during the breach window but has since resolved). The reconstruction logic mirrors the Subscription pattern: `created_at ≤ T` and (`status = pending` or `delivered_at > T` or `failed_at > T` or `expired_at > T`). [Status Of] for each candidate returns the current record; creation instant confirms the exposure window. The notification store answers the exposure scope question from stored fields alone without recourse to logs or developer narration.
+- **Regulator audit — demonstrate all notifications for a compliance event.** A compliance auditor asks *"show all notifications created for the policy:updated event on 2025-03-14, and whether each was delivered."* The auditor queries the notification records for notifications where creation instant falls on 2025-03-14 and the payload references the relevant policy. [Status Of] for each returned id shows the delivery outcome — [Delivery Instant], [Failure Instant], or [Lapse Instant]. The notification records answer from stored fields alone; Invariants 1 and 3-4 guarantee the delivery record is complete and unambiguous.
+- **Disputed delivery — actor claims they were not notified.** Officer_a claims they received no notification of policy update p7. The investigator queries the notification records for notifications where `recipient_ref = officer_a` and the payload references `policy_id: p7`. If a record exists with [Delivery Instant] set, Invariant 1 (notification immutability) is the structural answer: the notification was created with that recipient and delivery was confirmed at that time. If the record shows [Failure Instant] or [Lapse Instant], the database confirms delivery was not completed and documents why. The notification records are the single source of truth; no external corroboration is required.
+- **Breach investigation — identify Pending notifications that may have exposed payload data.** A security incident requires identifying all notifications that were [Pending] at the time of breach (2025-06-01T03:00Z) and may have carried sensitive payload data. The investigator queries for notifications where `created_at ≤ 2025-06-01T03:00Z` and either `status = pending` (still unresolved now) or the applicable terminal timestamp falls after 2025-06-01T03:00Z (meaning the notification was [Pending] during the breach window but has since resolved). The reconstruction logic mirrors the Subscription pattern: `created_at ≤ T` and (`status = pending` or `delivered_at > T` or `failed_at > T` or `expired_at > T`). [Status Of] for each candidate returns the current record; creation instant confirms the exposure window. The notification records answer the exposure scope question from stored fields alone without recourse to logs or developer narration.
 
 ---
 
 ## Generation acceptance
 
-This atom's acceptance is what an external auditor can clear from the notification store's stored fields, with no recourse to source code, runbooks or developer narration. The audit surface is the store, not the action surface.
+This atom's acceptance is what an external auditor can clear from the notification records' stored fields, with no recourse to source code, runbooks or developer narration. The audit surface is the database, not the action surface.
 
 ### Conformance checks
 
 ```
-Check 1.1: An auditor MUST read EVERY notification's notification id, recipient reference, payload, creation instant and status from the store (State 2).
+Check 1.1: An auditor MUST read EVERY notification's notification id, recipient reference, payload, creation instant and status from the database (State 2).
 Check 2.1: An auditor MUST reconstruct a notification's status at a past instant from creation instant and the terminal stamp (Invariant 2.4).
 Check 2.2: An auditor MUST read the reconstruction as deterministic on stored fields (Invariant 1.2).
 Check 2.3: An auditor MUST read the reconstruction's wall-clock truth as best-effort (Invariant 8.1, Execution Contract Logic confinement 7).
@@ -337,10 +337,10 @@ Term string cap: the deployment's bound on a string input's length.
 ### Atomicity of a terminal transition
 
 ```
-Deleted: Terminal atomicity 1. Execution Contract Store 1 owns it.
-Deleted: Terminal atomicity 2. Execution Contract Store 1 and Execution Contract Store 3 own it.
-Deleted: Terminal atomicity 3. Execution Contract Store 1 and Execution Contract Store 3 own it.
-Deleted: Terminal atomicity 4. Execution Contract Store 2 owns it.
+Deleted: Terminal atomicity 1. Execution Contract Database 1 owns it.
+Deleted: Terminal atomicity 2. Execution Contract Database 1 and Execution Contract Database 3 own it.
+Deleted: Terminal atomicity 3. Execution Contract Database 1 and Execution Contract Database 3 own it.
+Deleted: Terminal atomicity 4. Execution Contract Database 2 owns it.
 ```
 
 ### Bulk expiry
@@ -363,7 +363,7 @@ Deliver persistence 4: A high-assurance deployment MUST raise an alert on storag
 ### Payload retention
 
 ```
-Payload retention 1: The atom MUST keep a payload for the store's life.
+Payload retention 1: The atom MUST keep a payload for the database's life.
 Payload retention 2: The atom MUST NOT offer a payload purge.
 Payload retention 3: A deployment whose payloads carry sensitive content MUST compose Retention Window.
 Payload retention 4: A composing pattern purging a payload MUST leave EVERY stored field as written.
@@ -393,7 +393,7 @@ Each `[Term]` marker above links to its term entry here; a term entry states wha
 
 ### Vocabulary
 
-Term actors: the atom; the host; the transition; the deployment; a composing pattern (also: a pattern); a business caller; a caller; a recipient; an auditor; the store; a notification; a status.
+Term actors: the atom; the host; the transition; the deployment; a composing pattern (also: a pattern); a business caller; a caller; a recipient; an auditor; the database; a notification; a status.
 
 Term records: notification — one delivery record, carrying notification id, recipient reference, payload, creation instant, status and, once it ends, one terminal stamp.
 
@@ -560,7 +560,7 @@ Projection: invalid-request
 
 #### Not Known
 
-The refusal [Deliver], [Fail], or [Expire] returns when the [Notification Id] references no notification in the store. Also the [Status Of] outcome for an unknown id.
+The refusal [Deliver], [Fail], or [Expire] returns when the [Notification Id] references no notification in the database. Also the [Status Of] outcome for an unknown id.
 
 Kind:       Member
 Member of:  the action rejection

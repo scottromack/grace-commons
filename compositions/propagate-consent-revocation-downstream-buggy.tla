@@ -5,10 +5,10 @@
 \*
 \* Rewritten 2026-08-27 alongside the correct model, when Invariant 3 was restated
 \* from one atomic commit to safety plus liveness (methodology debt #19, the
-\* atomicity class); comments re-pointed 2026-10-21 at Execution Contract Store 1,
+\* atomicity class); comments re-pointed 2026-10-21 at Execution Contract Database 1,
 \* no logic change. A twin has to break the invariant as it is NOW stated, or it
 \* guards a claim the corpus no longer makes. This twin splits the withdrawal into
-\* separate interleavable sub-steps — the split Execution Contract Store 1
+\* separate interleavable sub-steps — the split Execution Contract Database 1
 \* forbids — and the correct model reaches the same orphan only where Audit Trail
 \* refuses the propagation event. What the invariant catches is the silence.
 \*

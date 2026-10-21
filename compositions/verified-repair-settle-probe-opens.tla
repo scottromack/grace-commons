@@ -12,9 +12,9 @@
 \* settled, opens.
 \*
 \* THE JOURNAL  The store the page names (Capability requirement 28): a call's read and
-\* its own record are one step, the transaction Execution Contract Store 2 puts them in,
+\* its own record are one step, the transaction Execution Contract Database 2 puts them in,
 \* and a record is readable once it is written, at the next position in the journal's
-\* order (Execution Contract Store 3; the journal's appends are serialized), so a read
+\* order (Execution Contract Database 3; the journal's appends are serialized), so a read
 \* shows every record written. With Store2 = FALSE a record becomes readable some time
 \* after it is written, and not in the journal's order, so a read can show a record and
 \* miss one ahead of it: the store the page no longer meets, kept for the vacuity twin.
@@ -55,7 +55,7 @@
 \* reader's malformed verdict could be written after the round's settling record, and
 \* its finding was a counted finding no counted triage could reach: Check 5.1 failed on
 \* a council that kept every rule. The page now reads the counted findings up to the
-\* settling record; under Execution Contract Store 2 that verdict is refused
+\* settling record; under Execution Contract Database 2 that verdict is refused
 \* round-closed in its own transaction.
 \*
 \* NOT MODELED

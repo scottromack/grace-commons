@@ -9,11 +9,11 @@
 \* redemption-decrement, the Selective Disclosure record and the sharing.disclosed
 \* Audit Trail append "together or not at all" under the host transaction boundary,
 \* a claim no store Audit Trail then declared could honour. Since 2026-10-20
-\* Execution Contract Store 1 makes it the rule, and this twin is what Store 1 rules
+\* Execution Contract Database 1 makes it the rule, and this twin is what Database 1 rules
 \* out.
 \*
 \* BUG: the append lands, and the transaction holding it then aborts without it —
-\* a split write Execution Contract Store 1 forbids, under which the append commits
+\* a split write Execution Contract Database 1 forbids, under which the append commits
 \* with the redemption, the record and the marker or not at all. The trail is left
 \* asserting a disclosure that the canonical state says never happened.
 \*
@@ -58,7 +58,7 @@ WriteIntent(d) ==
     /\ UNCHANGED <<txState, auditState, surfaced>>
 
 \* BUG: the append is made durable while the transaction is still open, and
-\* survives the transaction's abort — the split Store 1 forbids.
+\* survives the transaction's abort — the split Database 1 forbids.
 WriteAuditInTx(d) ==
     /\ intentState[d] = "present"
     /\ txState[d] = "absent"
@@ -72,7 +72,7 @@ CommitTx(d) ==
     /\ txState' = [txState EXCEPT ![d] = "committed"]
     /\ UNCHANGED <<intentState, auditState, surfaced>>
 
-\* The abort that, under Store 1, would take the append with it.
+\* The abort that, under Database 1, would take the append with it.
 AbortTx(d) ==
     /\ auditState[d] = "clean"
     /\ txState[d] = "absent"

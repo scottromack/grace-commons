@@ -280,7 +280,7 @@ Term call: one invocation of an action, carrying the inputs the caller supplied.
 
 Term answer: what an action returns to a call — one arm of the action's signature.
 
-Term write: one change a system makes to a store.
+Term write: one change a system makes to a database.
 
 Term input: a value a call supplies to an action, named in the action's signature.
 
@@ -292,7 +292,7 @@ Term act: something an actor or a pattern does that its records account for — 
 
 Term clock: a source of instants — the deployment's, read at a specification's seam, or one an auditor supplies.
 
-Term instance: one deployed copy of a pattern, or of a store a pattern is routed to.
+Term instance: one deployed copy of a pattern, or of a database a pattern is routed to.
 
 Term section: a titled part of a document, cited as *the section titled X*.
 

@@ -56,10 +56,10 @@ Identity 5: The transition MUST NOT allocate an instance id.
 Identity 6: The transition MUST NOT allocate a transition id.
 Identity 7: The atom MUST NOT change an instance id.
 Identity 8: The atom MUST NOT change a transition id.
-Identity 9: Two workflows in one store instance MUST NOT share an instance id.
+Identity 9: Two workflows in one database instance MUST NOT share an instance id.
 Identity 10: Two history entries in one workflow MUST NOT share a transition id.
 Identity 11: The deployment MUST choose an instance id format that sorts in lexicographic byte order.
-Identity 12: The deployment MUST route EVERY call to one store instance.
+Identity 12: The deployment MUST route EVERY call to one database instance.
 Identity 13: The atom MUST NOT identify a workflow by the subject reference.
 Identity 14: The atom MUST admit a second workflow carrying a recorded subject reference.
 Identity 15: The atom MUST NOT confirm that a subject reference names a known subject.
@@ -78,11 +78,11 @@ Term subject reference: the opaque reference naming the entity whose lifecycle t
 
 Term instance metadata: the opaque payload the caller supplies at [Instantiate] for deployment context — a [Workflow Metadata]; recorded, never interpreted.
 
-Term store instance: one named workflow store a call is routed to; instance id uniqueness ranges over one store instance.
+Term database instance: one named database a call is routed to; instance id uniqueness ranges over one database instance.
 
 Term seam: the atom's I/O boundary as the section titled Logic Confinement Principle in `execution-contract.md` declares it; the host injects the clock reading, the instance id and the transition id here.
 
-Term transition: the atom's evaluation of one call against the workflow store, as the section titled Logic Confinement Principle in `execution-contract.md` declares it.
+Term transition: the atom's evaluation of one call against the workflow records, as the section titled Logic Confinement Principle in `execution-contract.md` declares it.
 
 Term declared transition: one from state, action, to state and optional guard in the declaration — a move the workflow may make. Distinct from the transition above, which is the atom's evaluation of a call.
 
@@ -100,16 +100,16 @@ State 8: The atom MUST NOT offer a history entry edit surface.
 State 9: The atom MUST NOT offer a reorder surface.
 State 10: The atom MUST NOT offer a transition out of a terminal state.
 State 11: The atom MUST NOT offer an action that stands a workflow in two states.
-State 12: The store instance's workflow count MUST NOT fall.
+State 12: The database instance's workflow count MUST NOT fall.
 State 13: A workflow's transition history MUST NOT shrink.
-Deleted: State 14. Execution Contract Store 3 owns it.
+Deleted: State 14. Execution Contract Database 3 owns it.
 ```
 
 ### Capability requirement
 
 ```
 Capability requirement 1: The deployment MUST supply now at the seam.
-Capability requirement 5: The deployment MUST supply the workflow store PER Execution Contract Store 1 through 4.
+Capability requirement 5: The deployment MUST supply the workflow records PER Execution Contract Database 1 through 4.
 Deleted: Capability requirement 2. Execution Contract Logic confinement 7 owns it.
 Deleted: Capability requirement 3. Execution Contract Logic confinement 7 owns it.
 Deleted: Capability requirement 4. Execution Contract Logic confinement 7 owns it.
@@ -166,13 +166,13 @@ Operation 23: An admitted fire MUST raise next sequence number by one.
 Operation 24: An admitted fire MUST set the history entry's from state to the current state the call found.
 Operation 25: An admitted fire MUST set the history entry's to state to the matched transition's to state.
 Operation 26: An admitted fire MUST stand the workflow in the matched transition's to state.
-Deleted: Operation 27. Execution Contract Store 1 owns it.
+Deleted: Operation 27. Execution Contract Database 1 owns it.
 Operation 28: An admitted fire MUST answer the matched transition's to state.
 Operation 29: An admitted fire over a guarded transition MUST record guard satisfied on the history entry.
 Operation 30: An admitted fire over an unguarded transition MUST NOT record guard satisfied on the history entry.
 Operation 31: [Fire] MUST NOT evaluate a guard.
 Operation 32: [Fire] MUST NOT offer a wildcard declared transition.
-Operation 33: IF the store refuses the write THEN a writing action MUST answer storage-failure.
+Operation 33: IF the database refuses the write THEN a writing action MUST answer storage-failure.
 Operation 34: An action MUST answer storage-failure ONLY IF EVERY precondition passes.
 Operation 35: A refused action MUST leave the workflow as the call found the workflow.
 Operation 36: A refused action MUST NOT append a history entry.
@@ -245,8 +245,8 @@ Term admitted history: a [History] call whose instance id names a workflow and w
 | 4 | the current state is not terminal, no declared transition matches | invalid-transition |
 | 5 | a declared transition matches, it carries a guard, the caller asserts none | guard-not-satisfied |
 | 6 | the gate clears, actor reference is blank or the resolved firing instant is out of bounds | invalid-request |
-| 7 | every precondition passes, the store refuses the write | storage-failure |
-| 8 | every precondition passes, the store accepts the write | new_state |
+| 7 | every precondition passes, the database refuses the write | storage-failure |
+| 8 | every precondition passes, the database accepts the write | new_state |
 
 NOTE: watch condition negation — invalid-request occupies two rows of one precedence chain (row 1 and row 6), so the answer alone does not say which guard refused. Audit Trail's 2026-08-30-a open line is the same shape with a worse consequence, its row 6 landing after a commitment.
 
@@ -298,11 +298,11 @@ NOTE: watch condition negation — invalid-request occupies two rows of one prec
   ```
   Invariant 9.1: A recorded actor reference MUST stand non-blank.
   ```
-- **Invariant 10 — Store durability.**
+- **Invariant 10 — Record durability.**
   ```
-  Invariant 10.1: The atom MUST NOT remove a workflow from the store.
+  Invariant 10.1: The atom MUST NOT remove a workflow from the database.
   Invariant 10.2: The atom MUST NOT remove a history entry from a workflow.
-  Deleted: Invariant 10.3. Execution Contract Store 1 owns it.
+  Deleted: Invariant 10.3. Execution Contract Database 1 owns it.
   ```
 
 ### The declaration
@@ -361,7 +361,7 @@ An inspector asks whether the batch moved only through the approved sequence. `r
 
 `fire("wf_01HQ…", "expedite")` against a live workflow in `tested` → invalid-transition. No declared transition matches, and there is no wildcard (Operation 15, Operation 32).
 
-`fire("wf_99999", "test")` → not-known. `fire("", "test")` → invalid-request, refused before any store lookup (Operation 9, Operation 12).
+`fire("wf_99999", "test")` → not-known. `fire("", "test")` → invalid-request, refused before any database lookup (Operation 9, Operation 12).
 
 `instantiate(declaration)` where two declared transitions both leave `tested` on `qualify` → invalid-declaration. The determinism constraint refuses the ambiguity at birth rather than inventing a tiebreak at fire time (Declaration 13).
 
@@ -385,7 +385,7 @@ Two batches run the same declaration as two workflows. Firing `test` on one move
 
 ## Generation acceptance
 
-This atom's acceptance is what an external auditor can clear from the workflow store and the declaration, with no recourse to source code, runbooks or developer narration.
+This atom's acceptance is what an external auditor can clear from the workflow records and the declaration, with no recourse to source code, runbooks or developer narration.
 
 ### Conformance checks
 
@@ -432,7 +432,7 @@ Non-goal 9: The atom MUST NOT version a declaration.
 Non-goal 10: A deployment needing a shared declaration template MUST compose a definition registry pattern.
 Non-goal 11: The atom MUST NOT bind an actor reference to an actor.
 Non-goal 12: A deployment needing a non-repudiable actor MUST compose Actor Identity.
-Non-goal 13: The atom MUST NOT detect a rewrite under the store.
+Non-goal 13: The atom MUST NOT detect a rewrite under the database.
 Non-goal 14: A deployment needing a rewrite detected MUST compose Tamper Evidence.
 Non-goal 15: The atom MUST NOT bound a workflow's retention.
 Non-goal 16: A deployment needing a retention bound MUST compose Retention Window.
@@ -453,11 +453,11 @@ NOTE: the owners — [Execute Gated Workflow](../compositions/execute-gated-work
 ### Atomic writes
 
 ```
-Deleted: Atomic writes 1. Execution Contract Store 1 owns it.
-Deleted: Atomic writes 2. Execution Contract Store 1 owns it.
-Deleted: Atomic writes 3. Execution Contract Store 1 and Execution Contract Store 3 own it.
-Deleted: Atomic writes 4. Execution Contract Store 1 owns it.
-Deleted: Atomic writes 5. Execution Contract Store 1 owns it.
+Deleted: Atomic writes 1. Execution Contract Database 1 owns it.
+Deleted: Atomic writes 2. Execution Contract Database 1 owns it.
+Deleted: Atomic writes 3. Execution Contract Database 1 and Execution Contract Database 3 own it.
+Deleted: Atomic writes 4. Execution Contract Database 1 owns it.
+Deleted: Atomic writes 5. Execution Contract Database 1 owns it.
 ```
 
 ### Clock semantics
@@ -473,8 +473,8 @@ Deleted: Clock semantics 5. Non-goal 22 owns it.
 ### Concurrency
 
 ```
-Deleted: Concurrency 1. Execution Contract Store 2 owns it.
-Deleted: Concurrency 2. Execution Contract Store 2 owns it.
+Deleted: Concurrency 1. Execution Contract Database 2 owns it.
+Deleted: Concurrency 2. Execution Contract Database 2 owns it.
 ```
 
 ### String policy
@@ -504,10 +504,10 @@ Composition note 3: A composing pattern asserting guard satisfied MUST own the e
 Composition note 4: A composing pattern MUST own the authorization of a call.
 Composition note 5: A composing pattern MUST own the attestation binding an actor reference.
 Composition note 6: A composing pattern MUST own the tamper seal over a transition history.
-Composition note 7: A composing pattern MUST own the retention of the workflow store.
+Composition note 7: A composing pattern MUST own the retention of the workflow records.
 Composition note 8: A composing pattern MUST own an idempotency key.
 Composition note 9: A composing pattern MUST own a declaration template.
-Composition note 10: A composing pattern reading the workflow store MUST NOT write to the workflow store.
+Composition note 10: A composing pattern reading the workflow records MUST NOT write to the workflow records.
 ```
 
 NOTE: composing patterns — [Execute Gated Workflow](../compositions/execute-gated-workflow.md).
@@ -520,7 +520,7 @@ Each `[Term]` marker above links to its term entry here; a term entry states wha
 
 ### Vocabulary
 
-Term actors: the atom; the host; the transition; the deployment; a composing pattern; a business caller; a caller; a guard; an auditor; a regulator; an inspector; an investigator; the store; a workflow; a history entry; a declaration; a declared transition; a matched transition; a guarded declared transition; an unguarded declared transition; an addressed action; a writing action; a reading action; a refused action; an ordering rule; an action; a query; a filter; a range filter; a string filter; a replay; a state name; a string input; an opaque reference; the store instance's workflow count; the workflow's history entry count; the workflow's admitted fire count.
+Term actors: the atom; the host; the transition; the deployment; a composing pattern; a business caller; a caller; a guard; an auditor; a regulator; an inspector; an investigator; the database; a workflow; a history entry; a declaration; a declared transition; a matched transition; a guarded declared transition; an unguarded declared transition; an addressed action; a writing action; a reading action; a refused action; an ordering rule; an action; a query; a filter; a range filter; a string filter; a replay; a state name; a string input; an opaque reference; the database instance's workflow count; the workflow's history entry count; the workflow's admitted fire count.
 
 Term records: workflow — one running workflow, carrying instance id, a declaration, a current state, a transition history, next sequence number and, where supplied, subject reference and instance metadata. history entry — one recorded transition, carrying transition id, sequence number, from state, to state, action, firing instant and, where supplied, actor reference and guard satisfied.
 
@@ -533,7 +533,7 @@ Term cadences: empty.
 
 Term qualifiers: migrated — rewritten in GRACE lang v0.40 (2026-09-12).
 
-Term terms: workflow, instance id, history entry, transition id, subject reference, instance metadata, store instance, seam, transition, declared transition, declaration, states, initial state, terminal states, well-formed declaration, now, business caller, addressed action, writing action, reading action, current state, next sequence number, sequence number, firing instant, instantiation instant, resolved firing instant, resolved instantiation instant, actor reference, guard, guard satisfied, matched transition, filter axes, admitted instantiate, admitted fire, admitted history, string input, blank.
+Term terms: workflow, instance id, history entry, transition id, subject reference, instance metadata, database instance, seam, transition, declared transition, declaration, states, initial state, terminal states, well-formed declaration, now, business caller, addressed action, writing action, reading action, current state, next sequence number, sequence number, firing instant, instantiation instant, resolved firing instant, resolved instantiation instant, actor reference, guard, guard satisfied, matched transition, filter axes, admitted instantiate, admitted fire, admitted history, string input, blank.
 
 #### Instantiate
 
@@ -753,7 +753,7 @@ Projection: invalid-request
 
 #### Storage Failure
 
-The rejection any write action returns when the store write fails after all preconditions pass; guarantees no partial record and an unchanged [Current State] / [Next Sequence Number] (Operation 35 through 37).
+The rejection any write action returns when the database write fails after all preconditions pass; guarantees no partial record and an unchanged [Current State] / [Next Sequence Number] (Operation 35 through 37).
 
 Kind:       Member
 Member of:  the action rejection
@@ -762,7 +762,7 @@ Projection: storage-failure
 
 #### Not Known
 
-The rejection [Fire], [Current], [History], or [Read Declaration] returns when the [Workflow Id] references no workflow in the store.
+The rejection [Fire], [Current], [History], or [Read Declaration] returns when the [Workflow Id] references no workflow in the database.
 
 Kind:       Member
 Member of:  the action rejection

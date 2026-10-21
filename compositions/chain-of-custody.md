@@ -52,7 +52,7 @@ Composes 5: The composition MUST inherit a constituent's invariants PER Executio
 Composes 6: The composition MUST NOT change a constituent's spec.
 Composes 7: The composition MUST select the custody events through the custody enumeration.
 Composes 8: The composition MUST read an event's metadata ONLY through the record read.
-Composes 9: The composition MUST NOT read an Audit Trail store directly.
+Composes 9: The composition MUST NOT read Audit Trail records directly.
 Composes 10: IF the custody enumeration answers invalid-query THEN the deployment MUST alert on a configuration fault.
 Composes 11: The composition MUST record two audit writes PER custody action.
 ```
@@ -93,9 +93,9 @@ Composition state 8: IF the binding rebuild finds two outcome events carrying on
 Composition state 9: IF the binding rebuild finds two outcome events carrying one entry id THEN the rebuild MUST open a binding-duplicate finding.
 Composition state 10: IF the binding rebuild finds no outcome event for an entry THEN the composition MUST read the entry as an orphan.
 Composition state 11: The composition MUST classify a purged binding as extraction-pending against Erasure Tombstone.
-Deleted: Composition state 12. Execution Contract Store 3 owns it.
+Deleted: Composition state 12. Execution Contract Database 3 owns it.
 Composition state 13: The composition MUST NOT read an intent as a binding.
-Composition state 14: The composition MUST NOT duplicate a constituent's store.
+Composition state 14: The composition MUST NOT duplicate a constituent's records.
 ```
 
 Term entry id: the opaque id Provenance mints for a custody entry.
@@ -124,27 +124,27 @@ Capability requirement 4: A deployment MUST set the seal cadence on the Audit Tr
 Capability requirement 5: The composition MUST NOT override the seal cadence.
 Capability requirement 6: A deployment MUST set the custody completion bound.
 Capability requirement 7: IF the custody completion bound EQUALS blank THEN the composition MUST refuse to start.
-Deleted: Capability requirement 8. Execution Contract Store 1 owns it.
+Deleted: Capability requirement 8. Execution Contract Database 1 owns it.
 Capability requirement 9: A deployment MUST set the custody compensation window.
 Capability requirement 10: A deployment MUST set the custody reconciliation cadence.
 Capability requirement 11: A deployment MUST disclose the outcome write latency.
 Capability requirement 12: The composition MUST start ONLY IF the custody compensation window EXCEEDS the liveness sum.
-Deleted: Capability requirement 13. Execution Contract Store 3 owns it.
-Deleted: Capability requirement 14. Execution Contract Store 3 owns it.
+Deleted: Capability requirement 13. Execution Contract Database 3 owns it.
+Deleted: Capability requirement 14. Execution Contract Database 3 owns it.
 Capability requirement 15: A deployment MUST provision the recovery identity.
-Deleted: Capability requirement 16. Execution Contract Store 2 owns it.
-Deleted: Capability requirement 17. Execution Contract Store 2 owns it: a custody action's reads of a chain and the writes they decide are one transaction, and the composition names no exclusion to release.
-Deleted: Capability requirement 18. Execution Contract Store 2 owns it: a custody action's reads of a chain and the writes they decide are one transaction, and the composition names no exclusion to release.
-Deleted: Capability requirement 19. Execution Contract Store 2 owns it: a custody action's reads of a chain and the writes they decide are one transaction, and the composition names no exclusion to lease.
-Deleted: Capability requirement 20. Execution Contract Store 2 owns it: a custody action's reads of a chain and the writes they decide are one transaction, and the composition names no lease to expire.
-Deleted: Capability requirement 21. Execution Contract Store 2 owns it: a custody action's reads of a chain and the writes they decide are one transaction, and the composition names no exclusion for a host to lack.
+Deleted: Capability requirement 16. Execution Contract Database 2 owns it.
+Deleted: Capability requirement 17. Execution Contract Database 2 owns it: a custody action's reads of a chain and the writes they decide are one transaction, and the composition names no exclusion to release.
+Deleted: Capability requirement 18. Execution Contract Database 2 owns it: a custody action's reads of a chain and the writes they decide are one transaction, and the composition names no exclusion to release.
+Deleted: Capability requirement 19. Execution Contract Database 2 owns it: a custody action's reads of a chain and the writes they decide are one transaction, and the composition names no exclusion to lease.
+Deleted: Capability requirement 20. Execution Contract Database 2 owns it: a custody action's reads of a chain and the writes they decide are one transaction, and the composition names no lease to expire.
+Deleted: Capability requirement 21. Execution Contract Database 2 owns it: a custody action's reads of a chain and the writes they decide are one transaction, and the composition names no exclusion for a host to lack.
 Capability requirement 22: A deployment MAY supply the genesis lookup.
 Capability requirement 23: A deployment MUST set the intent candidates cap.
 Capability requirement 24: A deployment MUST set the input caps so the largest outcome payload built from capped inputs fits Audit Trail's payload cap.
 Capability requirement 25: The wired Audit Trail instance MUST expose the custody enumeration.
 Capability requirement 26: The composition MUST NOT read a clock inside a custody action.
 Capability requirement 27: The host MUST inject the reconciliation's now at the reconciliation's own seam.
-Capability requirement 28: The deployment MUST supply the store PER Execution Contract Store 1 through 4.
+Capability requirement 28: The deployment MUST supply the database PER Execution Contract Database 1 through 4.
 ```
 
 Term audit retention policy: the policy reference configured on the composition's single Audit Trail instance, governing the lifetime of every custody event — never the Provenance chain itself.
@@ -216,24 +216,24 @@ Audit arm 1: IF Audit Trail answers invalid-credential at an intent THEN the cus
 Audit arm 2: IF Audit Trail answers invalid-request carrying a step below step-3 at an intent THEN the custody action MUST answer invalid-request.
 Audit arm 3: IF Audit Trail answers recording-failure at an intent THEN the custody action MUST answer recording-failure carrying intent.
 Audit arm 4: The composition MUST NOT retry an invalid-request answer.
-Deleted: Audit arm 5. Execution Contract Store 1 owns it.
+Deleted: Audit arm 5. Execution Contract Database 1 owns it.
 Audit arm 6: IF Audit Trail answers invalid-request(step-4) at an outcome THEN the invocation MUST read the outcome event back.
 Audit arm 7: The read-back MUST match the outcome event carrying the custody action's action reference AND the intent event id.
 Audit arm 8: The read-back MUST read the custody enumeration from the log's start.
 Audit arm 9: IF the read-back finds the outcome event THEN the invocation MUST proceed as landed.
 Audit arm 10: The deployment MUST alert on an outcome event read back as landed.
-Deleted: Audit arm 11. Execution Contract Store 1 owns it.
-Deleted: Audit arm 12. Execution Contract Store 1 owns it.
-Deleted: Audit arm 13. Execution Contract Store 1 owns it.
-Deleted: Audit arm 14. Reconciliation 25 and Execution Contract Store 1 own it.
-Deleted: Audit arm 15. Reconciliation 26 and Execution Contract Store 1 own it.
-Deleted: Audit arm 16. Execution Contract Store 2 owns it.
-Deleted: Audit arm 17. Execution Contract Store 2 owns it: a custody action's attestations read the actor registry inside one transaction, so no invocation re-attests an outcome.
-Deleted: Audit arm 18. Execution Contract Store 1 owns it: a custody action's writes commit together, so no invocation retries an outcome.
+Deleted: Audit arm 11. Execution Contract Database 1 owns it.
+Deleted: Audit arm 12. Execution Contract Database 1 owns it.
+Deleted: Audit arm 13. Execution Contract Database 1 owns it.
+Deleted: Audit arm 14. Reconciliation 25 and Execution Contract Database 1 own it.
+Deleted: Audit arm 15. Reconciliation 26 and Execution Contract Database 1 own it.
+Deleted: Audit arm 16. Execution Contract Database 2 owns it.
+Deleted: Audit arm 17. Execution Contract Database 2 owns it: a custody action's attestations read the actor registry inside one transaction, so no invocation re-attests an outcome.
+Deleted: Audit arm 18. Execution Contract Database 1 owns it: a custody action's writes commit together, so no invocation retries an outcome.
 Audit arm 19: IF no outcome lands THEN the custody action MUST answer recording-failure carrying outcome.
-Deleted: Audit arm 20. Execution Contract Store 2 owns it: a custody action's reads of a chain and the writes they decide are one transaction, and the composition names no exclusion to release.
-Deleted: Audit arm 21. Execution Contract Store 2 owns it: a custody action's reads of a chain and the writes they decide are one transaction, and the composition names no lease to expire.
-Deleted: Audit arm 22. Execution Contract Store 2 owns it: a custody action's reads of a chain and the writes they decide are one transaction, and the composition names no lease to expire.
+Deleted: Audit arm 20. Execution Contract Database 2 owns it: a custody action's reads of a chain and the writes they decide are one transaction, and the composition names no exclusion to release.
+Deleted: Audit arm 21. Execution Contract Database 2 owns it: a custody action's reads of a chain and the writes they decide are one transaction, and the composition names no lease to expire.
+Deleted: Audit arm 22. Execution Contract Database 2 owns it: a custody action's reads of a chain and the writes they decide are one transaction, and the composition names no lease to expire.
 Audit arm 23: A caller MUST read recording-failure carrying intent as a committed nothing.
 Audit arm 24: A caller MUST read recording-failure carrying outcome as a committed custody entry.
 Audit arm 25: IF Audit Trail answers invalid-request carrying a step above step-2 at an intent THEN the custody action MUST answer recording-failure carrying intent.
@@ -294,11 +294,11 @@ Action wiring 2: An intent MUST carry the invocation's parameters under the acti
 Action wiring 3: An intent MUST NOT carry a constituent-minted id.
 Action wiring 4: An audit write of the composition MUST NOT carry a timestamp.
 Action wiring 5: An outcome event MUST carry the chain id, the entry id, the intent event id AND the acting custodian.
-Deleted: Action wiring 6. Execution Contract Store 2 owns it.
+Deleted: Action wiring 6. Execution Contract Database 2 owns it.
 Action wiring 7: IF Provenance answers storage-failure THEN the custody action MUST answer recording-failure carrying intent.
 Action wiring 8: IF Provenance answers a Provenance refusal THEN the custody action MUST answer the Provenance refusal.
 Action wiring 9: A refused Provenance write MUST NOT write beyond the intent.
-Deleted: Action wiring 10. Execution Contract Store 1 owns it.
+Deleted: Action wiring 10. Execution Contract Database 1 owns it.
 Action wiring 11: A bound custody action MUST write the binding AND answer the custody result.
 Action wiring 12: A validated origination MUST record the originate intent carrying the artifact reference, the custodian reference AND the genesis type.
 Action wiring 13: An admitted origination MUST call Provenance's originate with the artifact reference, the custodian reference, the genesis type AND the metadata.
@@ -311,9 +311,9 @@ Action wiring 19: A transfer refused ahead of the transfer intent MUST NOT write
 Action wiring 20: A resolved transfer MUST record the transfer intent carrying the chain id, the resolved custodian as the outgoing custodian AND the incoming custodian under the resolved custodian as the actor reference.
 Action wiring 21: An admitted transfer MUST call Provenance's transfer with the chain id AND the incoming custodian.
 Action wiring 22: A committed transfer MUST read the committed entry's outgoing custodian through Provenance's read.
-Deleted: Action wiring 23. Execution Contract Store 2 owns it.
-Deleted: Action wiring 24. Execution Contract Store 2 owns it: a transfer's resolution read and its write are one transaction, so no transfer answers principal-divergence.
-Deleted: Action wiring 25. Execution Contract Store 2 owns it: a transfer's resolution read and its write are one transaction, so no transfer answers principal-divergence.
+Deleted: Action wiring 23. Execution Contract Database 2 owns it.
+Deleted: Action wiring 24. Execution Contract Database 2 owns it: a transfer's resolution read and its write are one transaction, so no transfer answers principal-divergence.
+Deleted: Action wiring 25. Execution Contract Database 2 owns it: a transfer's resolution read and its write are one transaction, so no transfer answers principal-divergence.
 Action wiring 26: A confirmed transfer MUST record custody.transferred under the committed entry's outgoing custodian as the actor reference.
 Action wiring 27: A validated transformation MUST record the transform intent carrying the chain id, the custodian reference AND the transformation descriptor.
 Action wiring 28: An admitted transformation MUST call Provenance's transform with the chain id, the custodian reference AND the transformation descriptor.
@@ -404,7 +404,7 @@ Term read passthrough: Provenance's read, passed through unchanged — the compo
 
 ```
 Wiring decision 1: The composition MUST follow EVERY Provenance custody entry with EXACTLY ONE outcome event naming the entry id.
-Deleted: Wiring decision 2. Execution Contract Store 1 owns it.
+Deleted: Wiring decision 2. Execution Contract Database 1 owns it.
 Wiring decision 3: A validated origination MUST attest under the genesis custodian.
 Wiring decision 4: A validated transfer MUST attest under the outgoing custodian.
 Wiring decision 5: [Transform Custody], [Disclose Custody] AND [Archive Custody] MUST attest under the current custodian.
@@ -412,7 +412,7 @@ Wiring decision 6: The composition MUST NOT attest a transfer under the incoming
 ```
 
 WHY:
-*Principle.* A court-admissible or regulator-acceptable chain of custody needs four properties at once: continuity (no gap, hand to hand), verified attribution (each custodian non-repudiably identified), tamper evidence (any rewrite detectable from the records alone), and retention governance (kept for its regulatory lifetime, lawfully destroyable with a defensible record). Provenance supplies continuity; Audit Trail supplies the other three. Without a per-entry link the two stores are parallel and unjoined — an auditor can verify continuity separately and attribution separately, but cannot prove all four *together for the same entry*.
+*Principle.* A court-admissible or regulator-acceptable chain of custody needs four properties at once: continuity (no gap, hand to hand), verified attribution (each custodian non-repudiably identified), tamper evidence (any rewrite detectable from the records alone), and retention governance (kept for its regulatory lifetime, lawfully destroyable with a defensible record). Provenance supplies continuity; Audit Trail supplies the other three. Without a per-entry link the two record sets are parallel and unjoined — an auditor can verify continuity separately and attribution separately, but cannot prove all four *together for the same entry*.
 
 *Likely objection.* Why not fold attribution, tamper evidence and retention into Provenance, so the chain itself carries all four?
 
@@ -425,10 +425,10 @@ WHY:
 ```
 Reconciliation 1: The reconciliation MUST run at EVERY process start.
 Reconciliation 2: The reconciliation MUST run every custody reconciliation cadence.
-Deleted: Reconciliation 3. Execution Contract Store 1 owns it.
+Deleted: Reconciliation 3. Execution Contract Database 1 owns it.
 Reconciliation 4: The reconciliation MUST NOT write for an aged intent.
-Deleted: Reconciliation 5. Execution Contract Store 2 owns it.
-Deleted: Reconciliation 6. Execution Contract Store 2 owns it: the reconciliation's reads of a chain and the writes they decide are one transaction, and the composition names no exclusion for another holder to hold.
+Deleted: Reconciliation 5. Execution Contract Database 2 owns it.
+Deleted: Reconciliation 6. Execution Contract Database 2 owns it: the reconciliation's reads of a chain and the writes they decide are one transaction, and the composition names no exclusion for another holder to hold.
 Reconciliation 7: The reconciliation MUST read EVERY Provenance entry against the outcome events.
 Reconciliation 8: The reconciliation MUST read EVERY unmatched intent against the Provenance chain.
 Reconciliation 9: IF an unmatched intent realizes no committed entry THEN the reconciliation MUST read the intent as a refused attempt.
@@ -633,7 +633,7 @@ The inspector's four questions — unbroken custody, verified attribution, tampe
 Defense counsel claims: (a) custody was broken (an unrecorded handler existed), or (b) a custodian was unverified (their identity was not attributable), or (c) the chain was tampered with (an entry was altered after the fact). The prosecution's [Verify Custody] result addresses each:
 - Claim (a): `continuity_check = continuous`, resting on Provenance Invariant 4. If there were a gap, a transfer would have been recorded with a `from_custodian_ref` that did not match the prior holder — structurally impossible because Provenance reads `from_custodian_ref` from chain state.
 - Claim (b): per-entry `attestation_verification = verified`, resting on Invariant 1 and Audit Trail Invariant 1. Each custodian's credential was verified by Actor Identity **before their custody step committed** — the intent record is the records-alone proof, and the outcome record's `intent_event_id` names it — so the claim is exact rather than approximate; the attestation is in the record.
-- Claim (c): per-entry `attestation_verification` seal check (Invariant 2, Audit Trail Invariant 3). Any rewrite of an audit event produces a `failed-verification(seal-proof-invalid)` result. A rewrite of the Provenance chain itself is caught by the per-entry field-match clause (`entry_payload_match`): the sealed audit payload's copies are the anchored values, so a rewritten transformation_descriptor or a consistently rewritten from/to pair reports entry-payload-mismatch, while a removed binding reports binding-gap. Direct cryptographic sealing of the chain store itself remains the composing Tamper-Evidence-on-Provenance concept the constituent's own edge case names.
+- Claim (c): per-entry `attestation_verification` seal check (Invariant 2, Audit Trail Invariant 3). Any rewrite of an audit event produces a `failed-verification(seal-proof-invalid)` result. A rewrite of the Provenance chain itself is caught by the per-entry field-match clause (`entry_payload_match`): the sealed audit payload's copies are the anchored values, so a rewritten transformation_descriptor or a consistently rewritten from/to pair reports entry-payload-mismatch, while a removed binding reports binding-gap. Direct cryptographic sealing of the chain records themselves remains the composing Tamper-Evidence-on-Provenance concept the constituent's own edge case names.
 
 **Breach or incident investigation: reconstruct custody during an anomaly window and bound the time of tampering via the Audit Trail seal cadence.**
 
@@ -647,7 +647,7 @@ Where seals carry `anchored_at` from a TSA (Time-Stamp Authority — a trusted t
 
 ## Generation acceptance
 
-An implementation is acceptable — in the regulator-acceptance sense — when an external auditor, given the binding index, the Provenance chain store and the Audit Trail substrate stores, can clear the checks below without recourse to source code, runbooks or developer narration.
+An implementation is acceptable — in the regulator-acceptance sense — when an external auditor, given the binding index, the Provenance chain records and the Audit Trail substrate's records, can clear the checks below without recourse to source code, runbooks or developer narration.
 
 ### Conformance checks
 
@@ -665,7 +665,7 @@ Check 4.2: An auditor MUST find EVERY Purged outcome event carrying a Purged ret
 Check 5.1: An auditor MUST enumerate the chain's outcome events through the custody enumeration AND find EXACTLY ONE outcome event naming each entry (Invariant 4.3).
 Check 5.2: An auditor MUST find EVERY outcome event naming an entry the chain carries (Invariant 4.4).
 Check 5.3: An auditor MUST find the binding index agreeing with the enumerated outcome events (Composition state 3).
-Deleted: Check 5.4. Execution Contract Store 3 and Execution Contract Store 4 own it.
+Deleted: Check 5.4. Execution Contract Database 3 and Execution Contract Database 4 own it.
 Check 5.5: An auditor MUST report a principal divergence under the class's own finding (Invariant 4.6).
 Check 5.6: An auditor MUST find the custody compensation window exceeding the liveness sum (Capability requirement 12).
 Check 5.7: IF an orphan entry realizing no aged intent carries no open finding THEN an auditor MUST find the orphan's compensating event WITHIN the custody compensation window (Invariant 4.2).
@@ -686,8 +686,8 @@ Term passing verification: verified | failed-verification carrying purged.
 External check 1: An auditor needing a custodian's authority confirmed MUST read the deployment's Permissions records (Non-goal 5).
 External check 2: An auditor needing an artifact reference's meaning confirmed MUST read the host's artifact registry (Non-goal 6).
 External check 3: An auditor needing a jurisdiction's substantive standard confirmed MUST read the evaluating authority's own determination (Non-goal 7).
-Deleted: External check 4. Execution Contract Store 2 owns it.
-Deleted: External check 5. Execution Contract Store 3 owns it.
+Deleted: External check 4. Execution Contract Database 2 owns it.
+Deleted: External check 5. Execution Contract Database 3 owns it.
 ```
 
 ---
@@ -724,8 +724,8 @@ Clock semantics 2: The composition MUST NOT claim a Provenance entry's recording
 ### Concurrency
 
 ```
-Deleted: Concurrency 1. Execution Contract Store 2 owns it.
-Deleted: Concurrency 2. Execution Contract Store 2 owns it.
+Deleted: Concurrency 1. Execution Contract Database 2 owns it.
+Deleted: Concurrency 2. Execution Contract Database 2 owns it.
 ```
 
 ### Retention asymmetry

@@ -5,14 +5,14 @@
 \* disagreement, diagnose per the entry *The conflict protocol* in pressure-testing.md.
 \*
 \* WHAT THIS MODEL CHECKS (revised 2026-06-11 — closes the Invariant-4 coverage-gap finding;
-\* comments re-pointed 2026-10-20 at Execution Contract Store 1, no logic change)
+\* comments re-pointed 2026-10-20 at Execution Contract Database 1, no logic change)
 \* The composition's load-bearing wiring decision is Invariant 4 (binding
 \* bijection / no dangling partial), restated as safety + liveness. The headline
 \* consequence is Invariant 2 (purge accountability): "no record reaches Purged
 \* without an attributed audit event" — and the most consequential partial
 \* failure is exactly a purge without its audit record. A lifecycle action's
 \* intent record, Soft Delete transition and Audit Trail outcome event are
-\* store writes of one action, which Execution Contract Store 1 commits
+\* store writes of one action, which Execution Contract Database 1 commits
 \* together. The one partial the spec keeps is the ORPHAN Audit Trail's
 \* refusal of the outcome record leaves (a lifecycle transition with no audit
 \* event, Audit arm 15 and Audit arm 16): the transition commits, the action
@@ -25,7 +25,7 @@
 \* closed by the Invariant-4 coverage-gap finding; immutable-transaction-ledger.tla, revised for
 \* the compensated-arm finding, is the worked template):
 \*   CommitClean(t)  — the lifecycle action's writes commit together
-\*                     (Execution Contract Store 1).
+\*                     (Execution Contract Database 1).
 \*   FailPartial(t)  — the Soft Delete transition commits and Audit Trail
 \*                     refuses the outcome record; the orphan is reachable AND
 \*                     surfaced in the same outcome (the action's declared
@@ -70,7 +70,7 @@
 \* NOT MODELED (out of scope for the load-bearing property)
 \* - the Active/Deleted/Purged state machine itself (Soft Delete's own model);
 \* - the order of the writes inside one lifecycle action (Execution Contract
-\*   Store 1 commits them together, and a crash inside the action leaves
+\*   Database 1 commits them together, and a crash inside the action leaves
 \*   nothing; the model's states are action OUTCOMES — clean commit, surfaced
 \*   partial failure).
 \* - the reconciliation's pairing, its recovery intent and the recovery
@@ -101,7 +101,7 @@ Init ==
     /\ surfaced   = [t \in Transitions |-> FALSE]
 
 \* Happy path: the Soft Delete lifecycle transition and the Audit Trail
-\* outcome event commit together (Execution Contract Store 1). The audit event
+\* outcome event commit together (Execution Contract Database 1). The audit event
 \* is a CLEAN binding.
 CommitClean(t) ==
     /\ softState[t] = "absent"
@@ -132,7 +132,7 @@ FailPartial(t) ==
 \* outcome event names, so an outcome whose lost append landed after all is
 \* bound, never doubled (the state where the audit event already landed
 \* disables this action). Two compensations of one record are serialized by
-\* Execution Contract Store 2; the model's one-action-per-step semantics
+\* Execution Contract Database 2; the model's one-action-per-step semantics
 \* carries that for free.
 RetryAudit(t) ==
     /\ softState[t] = "present"

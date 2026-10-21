@@ -701,7 +701,7 @@ def check_r_synthetic(problems: list[str]) -> None:
 
 
 # ── A spec's history file is no pattern ───────────────────────────────────── #
-# The Store-contract rewrite moves a spec's dated history beside it, as
+# The Database-contract rewrite moves a spec's dated history beside it, as
 # `<spec name>.hist.md`; a walk that read it as a pattern would hold it to the
 # spec checks it was moved out of the spec to escape.
 def check_history_file_synthetic(problems: list[str]) -> None:

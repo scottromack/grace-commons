@@ -56,9 +56,9 @@ Identity 11: The atom MUST match a custodian reference exactly.
 Identity 12: The atom MUST NOT normalize a custodian reference.
 Identity 13: The atom MUST NOT interpret an artifact reference.
 Identity 14: The atom MUST NOT confirm that an artifact reference names a known artifact.
-Identity 15: Two chains in one store instance MUST NOT share a chain id.
+Identity 15: Two chains in one database instance MUST NOT share a chain id.
 Identity 16: Two entries in one chain MUST NOT share an entry id.
-Identity 17: The deployment MUST route EVERY call to one store instance.
+Identity 17: The deployment MUST route EVERY call to one database instance.
 ```
 
 Term chain: one artifact's custody history for one episode, from a genesis entry to a terminal disposition — the record this atom holds.
@@ -73,11 +73,11 @@ Term entry id: the opaque value naming one entry — an [Entry Id]; host-allocat
 
 Term custodian reference: the opaque reference naming who holds the artifact — a [Custodian Reference]; compared by exact byte identity.
 
-Term store instance: one named chain store a call is routed to; chain id uniqueness ranges over one instance.
+Term database instance: one named database a call is routed to; chain id uniqueness ranges over one instance.
 
 Term seam: the atom's I/O boundary as the section titled Logic Confinement Principle in `execution-contract.md` declares it; the host injects the clock reading, the chain id and the entry id here.
 
-Term transition: the atom's evaluation of one call against the chain store, as the section titled Logic Confinement Principle in `execution-contract.md` declares it.
+Term transition: the atom's evaluation of one call against the chain records, as the section titled Logic Confinement Principle in `execution-contract.md` declares it.
 
 ### State
 
@@ -100,14 +100,14 @@ State 15: The atom MUST NOT offer a removal surface.
 State 16: The atom MUST NOT offer a reorder surface.
 State 17: The atom MUST NOT offer an edit surface.
 State 18: The entry chain MUST govern where the cached current custodian disagrees with a replay.
-Deleted: State 19. Execution Contract Store 3 owns it.
+Deleted: State 19. Execution Contract Database 3 owns it.
 ```
 
 ### Capability requirement
 
 ```
 Capability requirement 1: The deployment MUST supply now at the seam.
-Capability requirement 5: The deployment MUST supply the chain store PER Execution Contract Store 1 through 4.
+Capability requirement 5: The deployment MUST supply the chain records PER Execution Contract Database 1 through 4.
 Deleted: Capability requirement 2. Execution Contract Logic confinement 7 owns it.
 Deleted: Capability requirement 3. Execution Contract Logic confinement 7 owns it.
 Deleted: Capability requirement 4. Execution Contract Logic confinement 7 owns it.
@@ -179,10 +179,10 @@ Operation 34: An admitted disclose MUST NOT change the current custodian.
 Operation 35: An admitted disclose MUST NOT change the artifact's custody.
 Operation 36: An appending action MUST take the entry's sequence number from next sequence number.
 Operation 37: An appending action MUST raise next sequence number by one.
-Deleted: Operation 38. Execution Contract Store 1 owns it.
+Deleted: Operation 38. Execution Contract Database 1 owns it.
 Operation 39: An appending action MUST answer the entry id.
 Operation 40: An appending action MUST stamp recording instant from the injected now.
-Operation 41: IF the store refuses the write THEN an appending action MUST answer storage-failure.
+Operation 41: IF the database refuses the write THEN an appending action MUST answer storage-failure.
 Operation 42: A refused action MUST leave the chain as the call found the chain.
 Operation 43: A refused action MUST NOT append an entry.
 Operation 44: A refused action MUST NOT take a sequence number.
@@ -193,7 +193,7 @@ Operation 48: IF a query range's end PRECEDES the range's start THEN [Read] MUST
 Operation 49: IF a query's event type IS NOT IN the event types THEN [Read] MUST answer invalid-query.
 Operation 50: [Read] MUST NOT write.
 Operation 51: [Read] MUST NOT answer storage-failure.
-Operation 52: IF the store refuses a read THEN [Read] MUST NOT answer a partial entry sequence.
+Operation 52: IF the database refuses a read THEN [Read] MUST NOT answer a partial entry sequence.
 Operation 53: [Read] MUST NOT answer archived.
 Deleted: Operation 54. Capability requirement 1 owns it.
 Deleted: Operation 55. Execution Contract Logic confinement 3 owns it.
@@ -257,7 +257,7 @@ The case space, and the rule that owns each case:
 | [Archive] | chain is archived | [Already Archived] | none (Operation 15) |
 | custodian-guarded | custodian reference is not the current custodian | [Not Current Custodian] | none (Operation 26) |
 | any addressed action | id names nothing | [Not Known] | none (Operation 10) |
-| any appending action | store refuses | [Storage Failure] | none (Operation 41 through 44) |
+| any appending action | database refuses | [Storage Failure] | none (Operation 41 through 44) |
 | [Read] | a well-formed query, any chain state | the matching entries, oldest first | none (Operation 46, Operation 53) |
 | [Read] | an inverted range, or an unknown event type | [Invalid Query] | none (Operation 48, Operation 49) |
 
@@ -312,7 +312,7 @@ The case space, and the rule that owns each case:
   ```
   Deleted: Invariant 9. Identity 15 and Identity 16 own id uniqueness.
   Invariant 10.1: The chain count MUST NOT fall under the atom's actions.
-  Deleted: Invariant 10.2. Execution Contract Store 1 owns it.
+  Deleted: Invariant 10.2. Execution Contract Database 1 owns it.
   ```
 
 ---
@@ -351,7 +351,7 @@ The same call against the chain while it stood open, after custody had moved to 
 
 `read("chain-0041", {sequence_range: [5, 2]})` → invalid-query. The caller corrects the query rather than reading an empty answer as *no entries matched* (Operation 47, Operation 48).
 
-`transfer("chain-0107", "forensic-lab-12")` while the store's write path is down → storage-failure. Every precondition passed and the write did not; no entry is appended, no sequence number is taken, and the current custodian holds its prior value (Operation 41 through 45).
+`transfer("chain-0107", "forensic-lab-12")` while the database's write path is down → storage-failure. Every precondition passed and the write did not; no entry is appended, no sequence number is taken, and the current custodian holds its prior value (Operation 41 through 45).
 
 ### Regulated adversarial scenarios
 
@@ -363,7 +363,7 @@ The same call against the chain while it stood open, after custody had moved to 
 
 ## Generation acceptance
 
-This atom's acceptance is what an external auditor can clear from the chain store and its entries, with no recourse to source code, runbooks or developer narration.
+This atom's acceptance is what an external auditor can clear from the chain records and its entries, with no recourse to source code, runbooks or developer narration.
 
 ### Conformance checks
 
@@ -382,7 +382,7 @@ Check 6.1: An auditor MUST find a re-read entry's fields unchanged from the prio
 Check 7.1: An auditor MUST find EVERY entry whose event type IS IN the event types (Invariant 8.1).
 Check 7.2: An auditor MUST find EVERY archived chain's last entry standing at archived (Invariant 8.4).
 Check 7.3: An auditor MUST find no entry id repeated within a chain (Identity 16).
-Check 7.4: An auditor MUST find no chain id repeated within a store instance (Identity 15).
+Check 7.4: An auditor MUST find no chain id repeated within a database instance (Identity 15).
 ```
 
 NOTE: EVERY check names the rule the check tests.
@@ -401,7 +401,7 @@ Non-goal 8: The atom MUST NOT claim a custody the chain's entries do not record.
 Non-goal 9: The atom MUST NOT offer an amendment entry.
 Non-goal 10: The atom MUST NOT offer a supersedes link between two entries.
 Non-goal 11: The atom MUST NOT offer a view that resolves a correction.
-Non-goal 12: The atom MUST NOT detect a rewrite under the store.
+Non-goal 12: The atom MUST NOT detect a rewrite under the database.
 Non-goal 13: A deployment needing a rewrite detected MUST compose Tamper Evidence.
 Non-goal 14: The atom MUST NOT bound a chain's retention.
 Non-goal 15: A deployment needing a retention bound MUST compose Retention Window.
@@ -424,13 +424,13 @@ NOTE: the owners — [Actor Identity](./actor-identity.md) (Non-goal 1, Non-goal
 ### Atomic writes
 
 ```
-Deleted: Atomic writes 1. Execution Contract Store 1 owns it.
-Deleted: Atomic writes 2. Execution Contract Store 1 owns it.
-Deleted: Atomic writes 3. Execution Contract Store 1 owns it.
-Deleted: Atomic writes 4. Execution Contract Store 1 and Execution Contract Store 3 own it.
-Deleted: Atomic writes 5. Execution Contract Store 1 owns it.
-Deleted: Atomic writes 6. Execution Contract Store 1 owns it.
-Deleted: Atomic writes 7. Execution Contract Store 1 owns it.
+Deleted: Atomic writes 1. Execution Contract Database 1 owns it.
+Deleted: Atomic writes 2. Execution Contract Database 1 owns it.
+Deleted: Atomic writes 3. Execution Contract Database 1 owns it.
+Deleted: Atomic writes 4. Execution Contract Database 1 and Execution Contract Database 3 own it.
+Deleted: Atomic writes 5. Execution Contract Database 1 owns it.
+Deleted: Atomic writes 6. Execution Contract Database 1 owns it.
+Deleted: Atomic writes 7. Execution Contract Database 1 owns it.
 ```
 
 ### Clock dependence
@@ -454,9 +454,9 @@ Deleted: Clock semantics 6. Non-goal 23 owns it.
 ### Concurrency
 
 ```
-Deleted: Concurrency 1. Execution Contract Store 2 owns it.
+Deleted: Concurrency 1. Execution Contract Database 2 owns it.
 Concurrency 2: EVERY serialized transfer against one open chain MUST append.
-Deleted: Concurrency 3. Execution Contract Store 2 owns it.
+Deleted: Concurrency 3. Execution Contract Database 2 owns it.
 Concurrency 4: A host needing a transfer conditional on the current custodian MUST serialize the host's own calls.
 ```
 
@@ -499,10 +499,10 @@ Composition note 1: A deployment MUST declare which composing patterns the deplo
 Composition note 2: A composing pattern MUST own the authorization of a call.
 Composition note 3: A composing pattern MUST own the attestation binding a custodian reference to an actor.
 Composition note 4: A composing pattern MUST own the tamper seal over the entry chain.
-Composition note 5: A composing pattern MUST own the retention of the chain store.
+Composition note 5: A composing pattern MUST own the retention of the chain records.
 Composition note 6: A composing pattern MUST own a disclosure's scope and authority.
 Composition note 7: A composing pattern MUST own the relationship between two chains.
-Composition note 8: A composing pattern reading the chain store MUST NOT write to the chain store.
+Composition note 8: A composing pattern reading the chain records MUST NOT write to the chain records.
 ```
 
 NOTE: composing patterns — [Chain of Custody](../compositions/chain-of-custody.md).
@@ -515,7 +515,7 @@ Each `[Term]` marker above links to its term entry here; a term entry states wha
 
 ### Vocabulary
 
-Term actors: the atom; the host; the transition; the deployment; a composing pattern; a business caller; a caller; a guard; an auditor; a regulator; the store; a chain; an entry; a genesis entry; a transferred entry; a non-transferred entry; a transformed entry; a disclosed entry; an archived entry; a custodian-guarded entry; an addressed action; an appending action; a custodian-guarded action; a writer action; a refused action; an ordering rule; a query; a replay; a rejection; a correction; a string input; a reference; an opaque reference; the chain count; the entry count.
+Term actors: the atom; the host; the transition; the deployment; a composing pattern; a business caller; a caller; a guard; an auditor; a regulator; the database; a chain; an entry; a genesis entry; a transferred entry; a non-transferred entry; a transformed entry; a disclosed entry; an archived entry; a custodian-guarded entry; an addressed action; an appending action; a custodian-guarded action; a writer action; a refused action; an ordering rule; a query; a replay; a rejection; a correction; a string input; a reference; an opaque reference; the chain count; the entry count.
 
 Term records: chain — one artifact's custody history for one episode, carrying chain id, artifact reference, a chain state, a current custodian and next sequence number. entry — one appended event on a chain, carrying entry id, sequence number, event type, custodian reference and recording instant, and the per-type fields from custodian reference, to custodian reference, transformation descriptor, recipient reference and metadata.
 
@@ -529,7 +529,7 @@ Term cadences: empty.
 
 Term qualifiers: migrated — rewritten in GRACE lang v0.39 (2026-09-12).
 
-Term terms: chain, entry, chain id, artifact reference, entry id, custodian reference, store instance, seam, transition, now, business caller, genesis type, genesis types, event type, event types, chain state, current custodian, sequence number, next sequence number, recording instant, from custodian reference, to custodian reference, transformation descriptor, recipient reference, metadata, addressed action, custodian-guarded action, appending action, chain-state rejection, admitted originate, admitted transfer, admitted transform, admitted disclose, admitted archive, string input, reference, blank, maximum length.
+Term terms: chain, entry, chain id, artifact reference, entry id, custodian reference, database instance, seam, transition, now, business caller, genesis type, genesis types, event type, event types, chain state, current custodian, sequence number, next sequence number, recording instant, from custodian reference, to custodian reference, transformation descriptor, recipient reference, metadata, addressed action, custodian-guarded action, appending action, chain-state rejection, admitted originate, admitted transfer, admitted transform, admitted disclose, admitted archive, string input, reference, blank, maximum length.
 
 #### Originate
 
@@ -569,7 +569,7 @@ Kind: Operation
 
 #### Chain Id
 
-The opaque, immutable, system-generated identity of a chain — produced by [Originate], unique within a store, never reused (Identity 15). It is the chain's identity; [Artifact Reference] is a property, not the identity.
+The opaque, immutable, system-generated identity of a chain — produced by [Originate], unique within a database, never reused (Identity 15). It is the chain's identity; [Artifact Reference] is a property, not the identity.
 
 Kind:       Field
 Field of:   the chain
@@ -577,7 +577,7 @@ Projection: chain_id
 
 #### Artifact Reference
 
-The opaque reference to *what* the chain tracks. Set at genesis, immutable; the atom neither validates nor interprets it. The same reference may recur across store instances for genuinely different artifacts.
+The opaque reference to *what* the chain tracks. Set at genesis, immutable; the atom neither validates nor interprets it. The same reference may recur across database instances for genuinely different artifacts.
 
 Kind:       Field
 Field of:   the chain
@@ -732,7 +732,7 @@ Projection: invalid-genesis-type
 
 #### Storage Failure
 
-The rejection any action returns when its store write fails after all preconditions pass; guarantees no partial record is observable (Operation 42 through 44).
+The rejection any action returns when its database write fails after all preconditions pass; guarantees no partial record is observable (Operation 42 through 44).
 
 Kind:       Member
 Member of:  the action rejection

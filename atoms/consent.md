@@ -105,14 +105,14 @@ Expiry 7: The composing pattern MUST NOT poll for an elapsed consent record.
 Stored state 1: The implementation MAY write the stored state at the instant expiry instant elapses.
 Stored state 2: The implementation MAY write the stored state at the first evaluation past expiry instant.
 Stored state 3: The implementation MUST NOT answer a granted result for an elapsed consent record.
-Deleted: Stored state 4. Execution Contract Store 2 owns it.
+Deleted: Stored state 4. Execution Contract Database 2 owns it.
 ```
 
 ### Capability requirement
 
 ```
 Capability requirement 1: The deployment MUST supply now at the seam.
-Capability requirement 5: The deployment MUST supply the consent store PER Execution Contract Store 1 through 4.
+Capability requirement 5: The deployment MUST supply the consent records PER Execution Contract Database 1 through 4.
 Deleted: Capability requirement 2. Execution Contract Logic confinement 7 owns it.
 Deleted: Capability requirement 3. Execution Contract Logic confinement 7 owns it.
 Deleted: Capability requirement 4. Execution Contract Logic confinement 7 owns it.
@@ -150,7 +150,7 @@ Operation 9: IF expiry instant EQUALS now THEN [Grant] MUST answer invalid-reque
 Operation 10: [Grant] MUST stamp grant instant from the injected now.
 Operation 11: [Grant] MUST record metadata the call supplied.
 Operation 12: [Grant] MUST NOT interpret metadata.
-Operation 13: IF the store refuses the write THEN [Grant] MUST answer storage-failure.
+Operation 13: IF the database refuses the write THEN [Grant] MUST answer storage-failure.
 Operation 14: [Grant] MUST answer storage-failure ONLY IF EVERY grant guard passes.
 Operation 15: IF consent id EQUALS blank THEN [Revoke] MUST answer invalid-request.
 Operation 16: IF the consent id names no consent record THEN [Revoke] MUST answer not-known.
@@ -168,9 +168,9 @@ Operation 27: [Revoke] MUST record revoking actor on the consent record.
 Operation 28: [Revoke] MUST record the reason as the revocation reason.
 Operation 29: [Revoke] MUST record the resolved revocation instant on the consent record.
 Operation 30: [Revoke] MUST answer revoked.
-Operation 31: IF the store refuses the write THEN [Revoke] MUST answer storage-failure.
+Operation 31: IF the database refuses the write THEN [Revoke] MUST answer storage-failure.
 Operation 32: A refused [Revoke] MUST leave the consent record in granted.
-Deleted: Operation 33. Execution Contract Store 3 owns it.
+Deleted: Operation 33. Execution Contract Database 3 owns it.
 Operation 34: [Check] MUST answer EXACTLY ONE OF granted, revoked, expired, not-known.
 Operation 35: [Check] MUST NOT refuse a call.
 Operation 36: [Check] MUST NOT write.
@@ -243,18 +243,18 @@ Term reference filter: a consent id, subject reference, purpose or granting acto
 
 The case space, and the rule that owns each case:
 
-| Call | Case | Answer | Effect on the store |
+| Call | Case | Answer | Effect on the database |
 |---|---|---|---|
-| [Grant] | three references present, no expiry instant, store accepts | the new consent id | one record lands in [Granted] (Operation 1, Operation 2) |
+| [Grant] | three references present, no expiry instant, database accepts | the new consent id | one record lands in [Granted] (Operation 1, Operation 2) |
 | [Grant] | as above with an expiry instant after [Now] | the new consent id | as above, with [Expiry Instant] recorded (Operation 7) |
 | [Grant] | a blank reference, or an expiry instant at or before [Now] | [Invalid Request] | none (Operation 4 through 6, Operation 8, Operation 9) |
 | [Revoke] | id names a record in [Granted], attribution present, times ordered | revoked | [Granted] → [Revoked], three fields stamped (Operation 26 through 29) |
-| [Revoke] | blank consent id | [Invalid Request] | none — checked before the store is consulted (Operation 15, Operation 17) |
+| [Revoke] | blank consent id | [Invalid Request] | none — checked before the database is consulted (Operation 15, Operation 17) |
 | [Revoke] | id names nothing | [Not Known] | none (Operation 16) |
 | [Revoke] | id names a record in [Revoked] | [Already Revoked] | none (Operation 18) |
 | [Revoke] | id names a record in [Expired] | [Already Expired] | none (Operation 19) |
 | [Revoke] | record in [Granted], blank attribution or a time out of order | [Invalid Request] | none (Operation 22 through 25) |
-| either write | store refuses | [Storage Failure] | none (Operation 13, Operation 31, Operation 32) |
+| either write | database refuses | [Storage Failure] | none (Operation 13, Operation 31, Operation 32) |
 | [Check] | the candidate record is withdrawn by [At Time] | revoked | none — the call reads (Operation 41, Operation 36) |
 | [Check] | the candidate record is elapsed by [At Time], never withdrawn | expired | none (Operation 42, Operation 43) |
 | [Check] | the candidate record is neither | granted | none (Operation 44) |
@@ -302,11 +302,11 @@ The case space, and the rule that owns each case:
   Invariant 7.1: EVERY consent record's consent id, subject reference, purpose and granting actor MUST stand non-blank.
   Invariant 7.2: EVERY consent record MUST carry a grant instant.
   ```
-- **Invariant 8 — Consent store durability.**
+- **Invariant 8 — Consent record durability.**
   ```
-  Invariant 8.1: The atom MUST NOT remove a consent record from the store.
+  Invariant 8.1: The atom MUST NOT remove a consent record from the database.
   Invariant 8.2: The consent record count MUST NOT fall.
-  Deleted: Invariant 8.3. Execution Contract Store 1 owns it.
+  Deleted: Invariant 8.3. Execution Contract Database 1 owns it.
   ```
 - **Invariant 9 — Revocation non-retroactivity.**
   ```
@@ -321,25 +321,25 @@ The case space, and the rule that owns each case:
   Invariant 10.4: A repeated [Check] carrying one at time MUST answer alike.
   ```
 
-### Store instance model
+### Database instance model
 
 ```
-Instance 1: The deployment MUST route EVERY call to one store instance.
-Instance 2: Two consent records in one store instance MUST NOT share a consent id.
-Instance 3: A store name MUST name one store instance.
-Instance 4: The atom MUST NOT accept a store name as an input.
-Instance 5: A consent record MUST NOT carry a store name.
+Instance 1: The deployment MUST route EVERY call to one database instance.
+Instance 2: Two consent records in one database instance MUST NOT share a consent id.
+Instance 3: A database name MUST name one database instance.
+Instance 4: The atom MUST NOT accept a database name as an input.
+Instance 5: A consent record MUST NOT carry a database name.
 ```
 
 Term consent record: one data subject's agreement to one named processing purpose — the record this atom holds.
 
-Term store instance: one named consent store a call is routed to; consent id uniqueness ranges over one instance.
+Term database instance: one named database a call is routed to; consent id uniqueness ranges over one instance.
 
-Term store name: the identifier naming one store instance — a [Store Name]; deployment routing, never an input and never a stored field.
+Term database name: the identifier naming one database instance — a [Database Name]; deployment routing, never an input and never a stored field.
 
 Term seam: the atom's I/O boundary as the section titled Logic Confinement Principle in `execution-contract.md` declares it; the host injects the clock reading and the consent id here.
 
-Term transition: the atom's evaluation of one call against the consent store, as the section titled Logic Confinement Principle in `execution-contract.md` declares it.
+Term transition: the atom's evaluation of one call against the consent records, as the section titled Logic Confinement Principle in `execution-contract.md` declares it.
 
 ---
 
@@ -379,12 +379,12 @@ Before queuing a 30-day campaign: `check(subject_ref: user-4491, purpose: market
 
 ## Generation acceptance
 
-This atom's acceptance is what an external auditor can clear from the consent store's stored fields and its query surface, with no recourse to source code, runbooks or developer narration.
+This atom's acceptance is what an external auditor can clear from the consent records' stored fields and its query surface, with no recourse to source code, runbooks or developer narration.
 
 ### Conformance checks
 
 ```
-Check 1.1: An auditor MUST find EVERY issued consent id in the store through [Read] (Invariant 8.1, Invariant 8.2).
+Check 1.1: An auditor MUST find EVERY issued consent id in the database through [Read] (Invariant 8.1, Invariant 8.2).
 Check 2.1: An auditor MUST find EVERY consent record's consent id, subject reference, purpose and granting actor non-blank (Invariant 7.1).
 Check 2.2: An auditor MUST find a grant instant on EVERY consent record (Invariant 7.2).
 Check 3.1: An auditor MUST find EVERY revoked consent record's revoking actor and revocation reason non-blank (Invariant 4.1, Invariant 4.2).
@@ -429,7 +429,7 @@ Non-goal 18: The atom MUST NOT bound how long a consent record is kept.
 Non-goal 19: A deployment needing a retention bound MUST compose Retention Window.
 Non-goal 20: The atom MUST NOT record who called an action.
 Non-goal 21: A deployment needing attribution MUST compose Actor Identity.
-Non-goal 22: The atom MUST NOT guarantee a consent id unique across store instances.
+Non-goal 22: The atom MUST NOT guarantee a consent id unique across database instances.
 ```
 
 NOTE: the owners — [Duplicate Prevention](./duplicate-prevention.md) (Non-goal 1, Non-goal 2); the deployment (Non-goal 5, Non-goal 6, Non-goal 11); [Propagate Consent Revocation Downstream](../compositions/propagate-consent-revocation-downstream.md) (Non-goal 9, Non-goal 10); [Permissions](./permissions.md) (Non-goal 12, Non-goal 13); a guardian-relationship pattern *(forthcoming)* (Non-goal 14, Non-goal 15); [Tamper Evidence](./tamper-evidence.md) (Non-goal 16, Non-goal 17); [Retention Window](./retention-window.md) (Non-goal 18, Non-goal 19); [Legal Hold](./legal-hold.md) (Non-goal 18); [Audit Trail](../compositions/audit-trail.md) (Non-goal 20); [Actor Identity](./actor-identity.md) (Non-goal 20, Non-goal 21).
@@ -458,9 +458,9 @@ Clock semantics 8: [Revoke] MAY record a revocation instant earlier than now.
 ### Concurrency
 
 ```
-Deleted: Concurrency 1. Execution Contract Store 2 owns it.
-Deleted: Concurrency 2. Execution Contract Store 2 owns it.
-Deleted: Concurrency 3. Execution Contract Store 2 owns it.
+Deleted: Concurrency 1. Execution Contract Database 2 owns it.
+Deleted: Concurrency 2. Execution Contract Database 2 owns it.
+Deleted: Concurrency 3. Execution Contract Database 2 owns it.
 Concurrency 4: Two concurrent [Grant] calls carrying one subject reference and one purpose MUST record two consent records.
 ```
 
@@ -472,7 +472,7 @@ Composition note 2: A composing pattern MUST NOT run a processing act BEFORE cal
 Composition note 3: A composing pattern MUST own the suppression of a processing act.
 Composition note 4: A composing pattern MUST own the propagation of a withdrawal.
 Composition note 5: A composing pattern MUST own the purpose taxonomy.
-Composition note 6: A composing pattern MUST own the retention of the consent store.
+Composition note 6: A composing pattern MUST own the retention of the consent records.
 Composition note 7: A composing pattern MUST own the authority to grant for a data subject.
 Composition note 8: A composing pattern MUST NOT stand a consent record in any state.
 ```
@@ -485,7 +485,7 @@ Each `[Term]` marker above links to its term entry here; a term entry states wha
 
 ### Vocabulary
 
-Term actors: the atom; the host; the transition; the implementation; the deployment; a composing pattern (also: a pattern); a business caller; a caller; a guard; a data subject; an auditor; a reader; the store; a consent record; a state; a store name; a query; a time range; a reference filter; a later write; the consent record count; the stored state.
+Term actors: the atom; the host; the transition; the implementation; the deployment; a composing pattern (also: a pattern); a business caller; a caller; a guard; a data subject; an auditor; a reader; the database; a consent record; a state; a database name; a query; a time range; a reference filter; a later write; the consent record count; the stored state.
 
 Term records: consent record — one agreement to one purpose, carrying consent id, subject reference, purpose, granting actor, grant instant, state, the expiry instant and metadata supplied at grant, and, once withdrawn, revoking actor, revocation reason and revocation instant.
 
@@ -499,7 +499,7 @@ Term cadences: empty.
 
 Term qualifiers: migrated — rewritten in GRACE lang v0.35 (2026-09-12).
 
-Term terms: consent record, store instance, store name, seam, transition, consent id, subject reference, purpose, granting actor, blank, now, business caller, at time, grant guard, expiry instant, metadata, revoking actor, revocation reason, reason, revocation instant, grant instant, evaluation instant, withdrawn, elapsed, candidate record, later write, query, supported filter axes, reference filter, state, grant field.
+Term terms: consent record, database instance, database name, seam, transition, consent id, subject reference, purpose, granting actor, blank, now, business caller, at time, grant guard, expiry instant, metadata, revoking actor, revocation reason, reason, revocation instant, grant instant, evaluation instant, withdrawn, elapsed, candidate record, later write, query, supported filter axes, reference filter, state, grant field.
 
 #### Grant
 
@@ -527,7 +527,7 @@ Kind: Operation
 
 #### Consent Id
 
-The opaque, immutable, system-generated identity of a consent record, assigned on [Grant], never reused or reassigned within the store instance. A non-empty string sortable in lexicographic byte-order — required for deterministic [Read] ordering and [Check] tiebreaking. The subject, purpose, actor, and timestamps are properties of the record, not its identity.
+The opaque, immutable, system-generated identity of a consent record, assigned on [Grant], never reused or reassigned within the database instance. A non-empty string sortable in lexicographic byte-order — required for deterministic [Read] ordering and [Check] tiebreaking. The subject, purpose, actor, and timestamps are properties of the record, not its identity.
 
 Kind:       Field
 Field of:   the consent record
@@ -613,12 +613,12 @@ Kind:       Field
 Field of:   the consent record
 Projection: state
 
-#### Store Name
+#### Database Name
 
-The identifier of the store instance a consent record belongs to. Multiple instances coexist; [Consent Id]s are unique within an instance. No action accepts it as a parameter — instance selection is handled at the deployment-routing layer.
+The identifier of the database instance a consent record belongs to. Multiple instances coexist; [Consent Id]s are unique within an instance. No action accepts it as a parameter — instance selection is handled at the deployment-routing layer.
 
 Kind:       Field
-Field of:   the store instance
+Field of:   the database instance
 Projection: store_name
 
 #### Now
@@ -679,7 +679,7 @@ Role:      Outcome
 
 #### Not Known
 
-The outcome [Check] returns — and the refusal [Revoke] returns — when no record exists for the queried (subject, [Purpose]) pair, or when the named [Consent Id] references no record in this store instance. A first-class [Check] result, never an error there.
+The outcome [Check] returns — and the refusal [Revoke] returns — when no record exists for the queried (subject, [Purpose]) pair, or when the named [Consent Id] references no record in this database instance. A first-class [Check] result, never an error there.
 
 Kind:       Member
 Member of:  the action outcome
@@ -751,7 +751,7 @@ Projection: invalid-query
 [Revocation Reason]: #revocation-reason
 [Revocation Instant]: #revocation-instant
 [State]: #state
-[Store Name]: #store-name
+[Database Name]: #database-name
 [Now]: #now
 [At Time]: #at-time
 [Reason]: #reason
@@ -798,7 +798,7 @@ last gate: 2026-06-23 — Final Critique 5, fresh reader — clean
 open:
 - 2026-10-05-a · refining · Operation 36; Invariant 6.3; Stored state 2, 4 · [Check] must not write, and a lazy write of an elapsed record's stored state is required inside the operation that answers the caller → say which holds; reported by Resolve a Person's Data Rights' gate, whose Invariant 7 rests on Operation 36
 - 2026-10-05-b · refining · Invariant 10.4; Clock semantics 8 · a repeated [Check] carrying one at time is said to answer alike, and a revocation recorded later with an earlier instant changes the answer → qualify the invariant; reported by the same gate
-- 2026-10-06-a · refining · Non-goal 19; Invariant 8.1 · a retention bound is to be composed over a store the atom must never remove a record from → say who guarantees persistence; Resolve a Person's Data Rights now forbids the bound over its own Consent instance; reported by that composition's round of 2026-10-06
+- 2026-10-06-a · refining · Non-goal 19; Invariant 8.1 · a retention bound is to be composed over a database the atom must never remove a record from → say who guarantees persistence; Resolve a Person's Data Rights now forbids the bound over its own Consent instance; reported by that composition's round of 2026-10-06
 ```
 
 ## Decisions

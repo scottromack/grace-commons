@@ -1,5 +1,5 @@
 ---- MODULE audit-trail-record-buggy-split ----
-\* BUGGY TWIN (vacuity guard): [Record Action]'s writes split as if Execution Contract Store 1 did not hold, so a scan half compensates an attestation whose event then lands, or places a retention its record action then places again (Inv1_NoLateEvent, Inv_OneWriter violated).
+\* BUGGY TWIN (vacuity guard): [Record Action]'s writes split as if Execution Contract Database 1 did not hold, so a scan half compensates an attestation whose event then lands, or places a retention its record action then places again (Inv1_NoLateEvent, Inv_OneWriter violated).
 EXTENDS Naturals
 
 CONSTANTS RecBound, SweepLease, Cadence, MaxTime
@@ -74,7 +74,7 @@ HostRelease ==
     /\ holder' = "none"
     /\ UNCHANGED <<now, ipc, exp, att, attAt, ev, evAt, plc, nO, cO, nU, cU, crashes, spc1, tgt1, lr1, spc2, tgt2, lr2>>
 
-\* BUG: [Record Action]'s writes split, as if Execution Contract Store 1 did not hold — the attestation commits alone,
+\* BUG: [Record Action]'s writes split, as if Execution Contract Database 1 did not hold — the attestation commits alone,
 \* the append and the placement each later, under no section — so a scan run meets the act in flight.
 IAttest ==
     /\ ipc = "idle"
@@ -291,7 +291,7 @@ Spec == Init /\ [][Next]_vars
 Inv1_AttestFirst == ev => att
 Inv2_EventFirst == (plc > 0) => ev
 
-\* A compensated orphan never acquires an event afterwards (Second half 9-10; Execution Contract Store 1).
+\* A compensated orphan never acquires an event afterwards (Second half 9-10; Execution Contract Database 1).
 Inv1_NoLateEvent == (cO > 0) => ~ev
 
 \* One writer per act: one placement, one intent and one compensation per finding

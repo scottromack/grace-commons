@@ -55,7 +55,7 @@ Composes 6: The composition MUST read Audit Trail as a substrate PER the section
 Composes 7: The composition MUST NOT hold an instance of a constituent Audit Trail reaches.
 Composes 8: The party retention instance MUST NOT govern an audit event.
 Composes 9: The composition MUST reach a constituent through the constituent's declared surface.
-Composes 10: The composition MUST NOT read a constituent's store beside the constituent's declared read.
+Composes 10: The composition MUST NOT read a constituent's records beside the constituent's declared read.
 Composes 11: The composition MUST NOT call Retention Window's purge.
 Composes 12: The composition MUST read the substrate's events by an open-ended sequence range.
 Composes 13: The composition MUST select an event in the composition's own code.
@@ -142,7 +142,7 @@ Composition state 46: A case-to-monitoring entry MUST stand for a closed case.
 Composition state 47: The composition MUST NOT drop a case-to-monitoring entry.
 Composition state 48: The composition MUST NOT store a review due flag.
 Composition state 49: The composition MUST NOT store an overdue flag.
-Composition state 50: The composition MUST NOT duplicate a constituent's store.
+Composition state 50: The composition MUST NOT duplicate a constituent's records.
 ```
 
 Term case-to-monitoring index: case_to_monitoring — the composition's index from a case id to the case's party id, opening instant and [Next Review Due]; the auditor's first query surface for monitoring continuity.
@@ -229,7 +229,7 @@ Capability requirement 40: A deployment MUST run a review scheduler outside the 
 Capability requirement 41: The composition MUST NOT fire a review.
 Capability requirement 42: A deployment under the Bank Secrecy Act and Anti-Money Laundering rules MUST alert on an owed record.
 Capability requirement 43: A deployment MUST NOT set the monitoring interval PER party at this composition.
-Capability requirement 45: The deployment MUST supply the store PER Execution Contract Store 1 through 4.
+Capability requirement 45: The deployment MUST supply the database PER Execution Contract Database 1 through 4.
 Deleted: Capability requirement 44. Execution Contract Logic confinement 7 owns it.
 ```
 
@@ -360,20 +360,20 @@ Audit arm 1: An invocation MUST make a committing call ONLY AFTER the landed int
 Audit arm 2: IF Audit Trail answers invalid-credential at an intent THEN the action MUST answer invalid-credential.
 Audit arm 3: IF Audit Trail answers invalid-request carrying a step below step-3 at an intent THEN the action MUST answer invalid-request.
 Audit arm 4: IF Audit Trail answers recording-failure at an intent THEN the action MUST answer recording-failure carrying intent.
-Deleted: Audit arm 5. Execution Contract Store 1 owns it.
-Deleted: Audit arm 6. Execution Contract Store 1 owns it.
+Deleted: Audit arm 5. Execution Contract Database 1 owns it.
+Deleted: Audit arm 6. Execution Contract Database 1 owns it.
 Audit arm 7: The composition MUST leave an appended intent standing as an open marker.
-Deleted: Audit arm 8. Execution Contract Store 2 owns it.
+Deleted: Audit arm 8. Execution Contract Database 2 owns it.
 Audit arm 9: IF Audit Trail answers invalid-request carrying any step at an outcome THEN the action MUST answer recording-failure carrying outcome.
 Audit arm 10: IF Audit Trail answers recording-failure at an outcome THEN the action MUST answer recording-failure carrying outcome.
 Audit arm 11: A caller MUST read recording-failure carrying intent as a committed nothing.
 Audit arm 12: A caller MUST read recording-failure carrying outcome as a committed act.
 Audit arm 13: A caller MUST NOT retry an action answering recording-failure carrying outcome.
-Deleted: Audit arm 14. Execution Contract Store 1 owns it.
-Deleted: Audit arm 15. Execution Contract Store 1 owns it: an action's writes commit together, so no invocation retries an owed record.
-Deleted: Audit arm 16. Reconciliation 8 and Execution Contract Store 1 own it.
-Deleted: Audit arm 17. Execution Contract Store 1 owns it: an action's writes commit together, so no invocation retries an owed record.
-Deleted: Audit arm 18. Execution Contract Store 1 owns it.
+Deleted: Audit arm 14. Execution Contract Database 1 owns it.
+Deleted: Audit arm 15. Execution Contract Database 1 owns it: an action's writes commit together, so no invocation retries an owed record.
+Deleted: Audit arm 16. Reconciliation 8 and Execution Contract Database 1 own it.
+Deleted: Audit arm 17. Execution Contract Database 1 owns it: an action's writes commit together, so no invocation retries an owed record.
+Deleted: Audit arm 18. Execution Contract Database 1 owns it.
 Audit arm 19: The composition MUST alert on an owed record.
 Audit arm 20: The composition MUST NOT read an invalid-request answer as a transient fault.
 Audit arm 21: The composition MUST read an invalid-request answer as a deployment fault.
@@ -444,7 +444,7 @@ Action wiring 14: An admitted initiation MUST NOT substitute the active relation
 Action wiring 15: IF Retention Window answers invalid-policy for an initiation THEN [Initiate Onboarding] MUST answer invalid-request.
 Action wiring 16: IF Retention Window answers policy-not-found for an initiation THEN [Initiate Onboarding] MUST answer invalid-request.
 Action wiring 17: IF Retention Window answers storage-failure for an external path initiation THEN [Initiate Onboarding] MUST answer recording-failure carrying intent.
-Deleted: Action wiring 18. Execution Contract Store 1 owns it.
+Deleted: Action wiring 18. Execution Contract Database 1 owns it.
 Action wiring 19: An admitted initiation MUST record an initiated outcome carrying the case id, the party id, the enrollment path, the current placement, the opening instant AND the next review due.
 Action wiring 20: An admitted initiation MUST answer the case id.
 Action wiring 21: The composition MUST read the case-to-monitoring index at [Record Verification].
@@ -529,24 +529,24 @@ Action wiring 97: IF Party Identity answers not-suspended for a reinstate THEN [
 Action wiring 98: IF Party Identity answers already-closed for a reinstate THEN [Clear Review] MUST answer already-closed.
 Action wiring 99: IF Party Identity answers not-known for a reinstate THEN [Clear Review] MUST answer not-known.
 Action wiring 100: IF Party Identity answers invalid-request for a reinstate THEN [Clear Review] MUST answer invalid-request.
-Deleted: Action wiring 101. Execution Contract Store 1 owns it.
+Deleted: Action wiring 101. Execution Contract Database 1 owns it.
 Action wiring 102: An admitted clearance MUST record a party reinstated outcome carrying the case id, the party id, the state change id, the reinstatement instant AND the next review due.
 Action wiring 103: IF the party reinstated record fails THEN [Clear Review] MUST answer recording-failure carrying outcome.
 Action wiring 104: An admitted clearance MUST drop the closed triggers from the open-trigger set ONLY AFTER the landed party reinstated record.
 Action wiring 105: An admitted clearance MUST drop exactly the closed triggers the review cleared record names.
 Action wiring 106: An admitted clearance MUST NOT drop a trigger the review cleared record does not name.
 Action wiring 107: An admitted clearance MUST advance the next review due to the party reinstated record's next review due.
-Deleted: Action wiring 108. Execution Contract Store 1 owns it.
-Deleted: Action wiring 109. Execution Contract Store 1 owns it.
-Deleted: Action wiring 110. Execution Contract Store 1 and Execution Contract Store 3 own it.
+Deleted: Action wiring 108. Execution Contract Database 1 owns it.
+Deleted: Action wiring 109. Execution Contract Database 1 owns it.
+Deleted: Action wiring 110. Execution Contract Database 1 and Execution Contract Database 3 own it.
 Action wiring 111: An admitted clearance MUST answer cleared.
 Action wiring 112: The composition MUST read the case-to-monitoring index at [Close Party].
 Action wiring 113: IF no case EXISTS for the case id THEN [Close Party] MUST answer not-known.
 Action wiring 114: IF the case's active flag EQUALS false THEN [Close Party] MUST answer not-active.
 Action wiring 115: An admitted closure MUST record a closure intent.
 Action wiring 116: An admitted closure MUST call Party Identity's close with the party id, the closing actor reference AND the reason.
-Deleted: Action wiring 117. Reconciliation 8 and Execution Contract Store 1 own it.
-Deleted: Action wiring 118. Execution Contract Store 1 owns it: a closure's close, floor and record commit together, so no invocation completes an earlier closure.
+Deleted: Action wiring 117. Reconciliation 8 and Execution Contract Database 1 own it.
+Deleted: Action wiring 118. Execution Contract Database 1 owns it: a closure's close, floor and record commit together, so no invocation completes an earlier closure.
 Action wiring 119: IF Party Identity answers already-closed for a close AND a party closed event names the case THEN [Close Party] MUST answer not-active.
 Action wiring 120: IF Party Identity answers not-known for a close THEN [Close Party] MUST answer not-known.
 Action wiring 121: IF Party Identity answers invalid-request for a close THEN [Close Party] MUST answer invalid-request.
@@ -554,14 +554,14 @@ Action wiring 122: IF Party Identity answers storage-failure for a close THEN [C
 Action wiring 123: An admitted closure MUST call Retention Window's place_under_retention with the party id AND the post closure policy.
 Action wiring 124: IF Retention Window answers invalid-policy for a closure THEN [Close Party] MUST answer invalid-request.
 Action wiring 125: IF Retention Window answers policy-not-found for a closure THEN [Close Party] MUST answer invalid-request.
-Deleted: Action wiring 126. Execution Contract Store 1 owns it.
+Deleted: Action wiring 126. Execution Contract Database 1 owns it.
 Action wiring 127: An admitted closure MUST record a party closed outcome carrying the case id, the party id, the state change id, the post closure placement, the reason, the closure instant AND the open triggers at close.
 Action wiring 128: IF the party closed record fails THEN [Close Party] MUST answer recording-failure carrying outcome.
 Action wiring 129: An admitted closure MUST populate the case-to-retentions index's post closure placement ONLY AFTER the landed party closed record.
 Action wiring 130: An admitted closure MUST write the case's active flag set to false ONLY AFTER the landed party closed record.
 Action wiring 131: An admitted closure MUST empty the open-trigger set ONLY AFTER the landed party closed record.
 Action wiring 132: An admitted closure MUST answer closed.
-Deleted: Action wiring 133. Execution Contract Store 1 owns it.
+Deleted: Action wiring 133. Execution Contract Database 1 owns it.
 Action wiring 134: The composition MUST read the party-to-case index at [Activity Permitted].
 Action wiring 135: IF the party id IS NOT IN the party-to-case index THEN [Activity Permitted] MUST answer not-known.
 Action wiring 136: The composition MUST read the party through Party Identity's declared read at [Activity Permitted].
@@ -655,10 +655,10 @@ WHY:
 ### Reconciliation
 
 ```
-Deleted: Reconciliation 1. Execution Contract Store 1 and Execution Contract Store 3 own it.
+Deleted: Reconciliation 1. Execution Contract Database 1 and Execution Contract Database 3 own it.
 Reconciliation 2: The composition MUST run the reconciliation PER reconciliation cadence.
 Reconciliation 3: The reconciliation MUST select an open marker over an open-ended sequence range.
-Deleted: Reconciliation 4. Execution Contract Store 1 owns it.
+Deleted: Reconciliation 4. Execution Contract Database 1 owns it.
 Reconciliation 5: The reconciliation MUST NOT examine an aged-out event.
 Reconciliation 6: The reconciliation MUST resolve an open marker against the constituents' declared reads.
 Reconciliation 7: IF no committing call EXISTS for the open marker THEN the reconciliation MUST close the marker.
@@ -666,8 +666,8 @@ Reconciliation 8: IF a committing call EXISTS for the open marker THEN the recon
 Reconciliation 9: The reconciliation MUST emit a recovery outcome ONLY AFTER the landed recovery intent.
 Reconciliation 10: The reconciliation MUST record a recovery intent ONLY AFTER the outcome traversal.
 Reconciliation 11: The reconciliation MUST attest a recovery record under the service identity.
-Deleted: Reconciliation 12. Execution Contract Store 1 owns it.
-Deleted: Reconciliation 13. Execution Contract Store 1 owns it.
+Deleted: Reconciliation 12. Execution Contract Database 1 owns it.
+Deleted: Reconciliation 13. Execution Contract Database 1 owns it.
 Reconciliation 14: The reconciliation MUST NOT enroll a party.
 Reconciliation 15: The reconciliation MUST NOT verify a party.
 Reconciliation 16: The reconciliation MUST NOT suspend a party.
@@ -675,12 +675,12 @@ Reconciliation 17: The reconciliation MUST NOT reinstate a party.
 Reconciliation 18: The reconciliation MUST NOT close a party.
 Reconciliation 19: The reconciliation MUST close an open marker WITHIN the compensation window.
 Reconciliation 20: The reconciliation MUST escalate an open marker outside the compensation window.
-Deleted: Reconciliation 21. Execution Contract Store 1 owns it.
+Deleted: Reconciliation 21. Execution Contract Database 1 owns it.
 Reconciliation 22: The reconciliation MUST alert on an active case carrying an elapsed placement.
 Reconciliation 23: The reconciliation MUST alert on a suspended party carrying an empty open-trigger set.
 Reconciliation 24: The reconciliation MUST alert on a landed trigger carrying no outcome.
 Reconciliation 25: The reconciliation MUST alert on a verified party carrying no verification record.
-Deleted: Reconciliation 26. Execution Contract Store 2 owns it.
+Deleted: Reconciliation 26. Execution Contract Database 2 owns it.
 Reconciliation 27: The reconciliation MUST resolve a verification intent's commitment on the party id, the verifying actor reference, the evidence reference AND the intent's intent instant.
 Reconciliation 28: The reconciliation MUST resolve a placement intent's commitment on the party id, the policy reference AND the intent's intent instant.
 Reconciliation 29: The reconciliation MUST NOT resolve an enrolment intent's commitment.
@@ -830,7 +830,7 @@ A [Record Verification] call drives the `Unverified → Verified` transition and
 
 ## Generation acceptance
 
-A derived implementation is *acceptable* — in the regulator-acceptance sense — when an external auditor, given the composition's indexes plus the Party Identity, Retention Window and Audit Trail stores, clears every check below without recourse to source code, runbooks or developer narration. Every selection is made composition-side over the declared open-ended sequence range, never by asking the substrate for a payload predicate it does not serve.
+A derived implementation is *acceptable* — in the regulator-acceptance sense — when an external auditor, given the composition's indexes plus the Party Identity, Retention Window and Audit Trail records, clears every check below without recourse to source code, runbooks or developer narration. Every selection is made composition-side over the declared open-ended sequence range, never by asking the substrate for a payload predicate it does not serve.
 
 ### Conformance checks
 
@@ -839,15 +839,15 @@ Check 1.1: An auditor MUST find a verification recorded record carrying a state 
 Check 1.2: An auditor MUST confirm Audit Trail's verify_record answers verified for the found verification recorded record (Invariant 2.2).
 Check 1.3: An auditor MUST confirm the found verification recorded record stands earlier in the log than the party's first activity record (Invariant 1.3).
 Check 1.4: An auditor MUST read Check 1.3 as a wall-time comparison ONLY IF the deployment composes Trusted Timestamping (Clock semantics 8).
-Check 1.5: An auditor MUST read Check 1.3 against an activity store carrying no log anchor as best-effort (Clock semantics 8).
+Check 1.5: An auditor MUST read Check 1.3 against activity records carrying no log anchor as best-effort (Clock semantics 8).
 Check 1.6: An auditor MUST confirm the party-to-case index names EVERY party the gate answered permitted for (Invariant 1.1).
-Check 2.1: An auditor MUST find a verification recorded record naming the verification id AND the state change id PER transitioning verification in Party Identity's store (Invariant 2.1).
+Check 2.1: An auditor MUST find a verification recorded record naming the verification id AND the state change id PER transitioning verification in Party Identity's records (Invariant 2.1).
 Check 2.2: An auditor MUST find a verification recorded record PER quiescent verified party (Invariant 2.3).
 Check 2.3: An auditor MUST read a verified party carrying an owed verification recorded record inside the compensation window as a surfaced orphan (Invariant 2.4).
 Check 3.1: An auditor MUST find a monitoring triggered record carrying the same trigger id earlier in the log PER party suspended record (Invariant 3.1).
 Check 3.2: An auditor MUST find a monitoring triggered record carrying the same trigger id earlier in the log PER trigger on suspended party record (Invariant 3.2).
 Check 4.1: An auditor MUST find a review cleared record naming a verification id earlier in the log PER party reinstated record (Invariant 4.2).
-Check 4.2: An auditor MUST confirm the named verification stands passed in Party Identity's store (Invariant 4.1).
+Check 4.2: An auditor MUST confirm the named verification stands passed in Party Identity's records (Invariant 4.1).
 Check 4.3: An auditor MUST confirm the named verification stands later in the log than the party's most recent suspension (Invariant 4.1).
 Check 4.4: An auditor MUST confirm the review cleared record's attested actor reference matches the party reinstated record's attested actor reference (Invariant 4.3).
 Check 5.1: An auditor MUST find a post closure placement whose retention state EQUALS retained PER closed party outside lawful destruction (Invariant 5.3).
@@ -872,7 +872,7 @@ Check 8.3: An auditor MUST compare a recovery outcome against the human the outc
 Check 8.4: An auditor MUST NOT compare a recovery outcome against the outcome's attesting actor reference (Audit arm 23).
 Check 8.5: An auditor MUST NOT read an intent carrying no outcome as a conformance failure (Reconciliation 7).
 Check 8.6: An auditor MUST resolve an intent carrying no outcome against the constituents' declared reads (Reconciliation 6).
-Check 9.1: An auditor MUST clear Party Identity's conformance checks over the Party Identity store (Composes 5).
+Check 9.1: An auditor MUST clear Party Identity's conformance checks over the Party Identity records (Composes 5).
 Check 9.2: An auditor MUST clear Retention Window's conformance checks over the party retention instance (Composes 5).
 Check 9.3: An auditor MUST clear Audit Trail's conformance checks over the audit instance (Composes 5).
 Check 9.4: An auditor MUST recognize an aged-out event PER event through Audit Trail's read_record (Composition state 19).
@@ -934,13 +934,13 @@ NOTE: the owners — a Risk Tiering / EDD composing pattern *(forthcoming)* (Non
 ```
 Atomic writes 1: An invocation MUST record an outcome ONLY AFTER the invocation's committing call.
 Atomic writes 2: An invocation MUST populate an index ONLY AFTER the invocation's landed outcome.
-Deleted: Atomic writes 3. Execution Contract Store 1 owns it.
-Deleted: Atomic writes 4. Execution Contract Store 1 owns it.
-Deleted: Atomic writes 5. Execution Contract Store 1 owns it.
-Deleted: Atomic writes 6. Execution Contract Store 1 owns it.
-Deleted: Atomic writes 7. Execution Contract Store 1 owns it.
-Deleted: Atomic writes 8. Execution Contract Store 1 owns it.
-Deleted: Atomic writes 9. Execution Contract Store 1 owns it.
+Deleted: Atomic writes 3. Execution Contract Database 1 owns it.
+Deleted: Atomic writes 4. Execution Contract Database 1 owns it.
+Deleted: Atomic writes 5. Execution Contract Database 1 owns it.
+Deleted: Atomic writes 6. Execution Contract Database 1 owns it.
+Deleted: Atomic writes 7. Execution Contract Database 1 owns it.
+Deleted: Atomic writes 8. Execution Contract Database 1 owns it.
+Deleted: Atomic writes 9. Execution Contract Database 1 owns it.
 Atomic writes 10: The composition MUST NOT reverse a committed constituent write.
 Atomic writes 11: The composition MUST surface an orphan.
 Atomic writes 12: A deployment MUST treat an orphan as an alerting condition.
@@ -971,14 +971,14 @@ Term placement's cover: `the current placement's retention_until − scheduler_t
 ### Concurrency
 
 ```
-Deleted: Concurrency 1. Execution Contract Store 2 owns it.
+Deleted: Concurrency 1. Execution Contract Database 2 owns it.
 Concurrency 2: A deployment MUST NOT serialize [Activity Permitted].
 Concurrency 3: [Activity Permitted]'s two reads MUST NOT stand atomic.
 Concurrency 4: A skewed gate read MUST NOT answer permitted.
-Deleted: Concurrency 5. Execution Contract Store 2 owns it.
+Deleted: Concurrency 5. Execution Contract Database 2 owns it.
 Concurrency 6: The composition MUST read a state rejection the trigger pre-check forecloses as a serialization breach.
-Deleted: Concurrency 7. Execution Contract Store 2 owns it.
-Deleted: Concurrency 8. Execution Contract Store 2 owns it.
+Deleted: Concurrency 7. Execution Contract Database 2 owns it.
+Deleted: Concurrency 8. Execution Contract Database 2 owns it.
 ```
 
 ---
@@ -1081,7 +1081,7 @@ Projection: not-verified
 
 #### State Unavailable
 
-The [Activity Permitted] fail-closed refusal when the party's state read cannot be answered — an unanswered read at the seam, or a case entry whose party the store no longer answers for. The gate refuses rather than treating an unreadable identity store as `Verified`, because the cheapest-compliant reading — unavailable implies permit — is exactly the before-activity hole the gate exists to close. [Trigger Monitoring Review]'s pre-check mirrors it.
+The [Activity Permitted] fail-closed refusal when the party's state read cannot be answered — an unanswered read at the seam, or a case entry whose party the database no longer answers for. The gate refuses rather than treating an unreadable identity records as `Verified`, because the cheapest-compliant reading — unavailable implies permit — is exactly the before-activity hole the gate exists to close. [Trigger Monitoring Review]'s pre-check mirrors it.
 
 Kind:       Member
 Member of:  the gate rejection

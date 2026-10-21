@@ -23,7 +23,7 @@
 \*
 \* This CORRECT model performs the status-check and the attest commit as a SINGLE
 \* ATOMIC action (the gate read inside the transaction that writes the attestation,
-\* as Execution Contract Store 2 reads an action's guards; Store 2 and
+\* as Execution Contract Database 2 reads an action's guards; Database 2 and
 \* Action wiring 19 own the deleted Invariant 1.2): AttestAtomic is guarded on
 \* credStatus[p] = "Active" and computes
 \* signedAfterRevoke from the observed status in the same step, so the guard forces

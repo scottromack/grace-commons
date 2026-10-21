@@ -19,7 +19,7 @@
 \*         landing or failing by that bound (Concurrency 3 through 19, 21 and 22). A call may also answer
 \*         and stay in flight: a step-3 refusal, or no answer. The write behind it may still land, or
 \*         never: a store write until another party takes the section, which the store then refuses it
-\*         against (Execution Contract Store 2), and a purge's destruction, an act outside the store, by
+\*         against (Execution Contract Database 2), and a purge's destruction, an act outside the store, by
 \*         the call's bound whoever holds the section. A purge may answer storage-failure over a record
 \*         the storage layer already destroyed, and is then called once more.
 \*   w, v  a leg: takes the section, reads the request's events, the disclosure store and the plan's
@@ -46,7 +46,7 @@
 \*   -buggy                  LegTakes = FALSE          a leg closes an intent without the request section (Reconciliation 17).
 \*   -buggy-coverage         FromIntent = FALSE        a compensation built from the plan alone (Reconciliation 16).
 \*   -buggy-retry            Retry = TRUE              the fulfilled event issued a second time (Audit arm 21).
-\*   -buggy-release          Fence = FALSE             a store write still in flight lands after another party took the section (Execution Contract Store 2).
+\*   -buggy-release          Fence = FALSE             a store write still in flight lands after another party took the section (Execution Contract Database 2).
 \*   -buggy-abandon          AbandonUnanswered = TRUE  an abandonment over a disclosure write that did not answer (Action wiring 39).
 \*   -buggy-grant            Reads = FALSE             a call issued without a reading of the grant (Concurrency 9, 12, 13).
 \*   -buggy-unsettled        Unsettled = FALSE         a planned call that did not settle its record read as a refusal (Disposition 42).
@@ -119,7 +119,7 @@ Init ==
 
 Inc(n) == IF n < 2 THEN n + 1 ELSE 2
 
-\* Execution Contract Store 2: a store write's lease check and its commit are one transaction, so a take refuses
+\* Execution Contract Database 2: a store write's lease check and its commit are one transaction, so a take refuses
 \* every store write another party still has in flight. A purge's destruction is an act outside the store, and no
 \* take refuses it.
 StoreWrite(l) == l \in {"intent", "disc", "seal", "aband"}
@@ -161,7 +161,7 @@ FPre ==
                    vdest>>
 
 \* Concurrency 3: the request section, by try_take for the section term; the take refuses another party's store
-\* write still in flight (Execution Contract Store 2).
+\* write still in flight (Execution Contract Database 2).
 FTake ==
     /\ FOn /\ ((StateInside /\ fp = "idle") \/ fp = "pre")
     /\ Free
@@ -599,7 +599,7 @@ GPre ==
                    vdest>>
 
 \* Concurrency 3: the request section, by try_take for the section term; the take refuses another party's store
-\* write still in flight (Execution Contract Store 2).
+\* write still in flight (Execution Contract Database 2).
 GTake ==
     /\ GOn /\ ((StateInside /\ gp = "idle") \/ gp = "pre")
     /\ Free
@@ -1026,7 +1026,7 @@ GRelease ==
                    vp, vo, vc, vin, vby, vl, vlby, vdest>>
 
 \* Reconciliation 17: a leg closes nothing before it holds the request section; the take refuses another party's
-\* store write still in flight (Execution Contract Store 2).
+\* store write still in flight (Execution Contract Database 2).
 WTake ==
     /\ WOn /\ LegTakes /\ wp = "idle" /\ AnyOpen
     /\ Free
@@ -1260,7 +1260,7 @@ WRelease ==
                    vp, vo, vc, vin, vby, vl, vlby, vdest>>
 
 \* Reconciliation 17: a leg closes nothing before it holds the request section; the take refuses another party's
-\* store write still in flight (Execution Contract Store 2).
+\* store write still in flight (Execution Contract Database 2).
 VTake ==
     /\ VOn /\ LegTakes /\ vp = "idle" /\ AnyOpen
     /\ Free

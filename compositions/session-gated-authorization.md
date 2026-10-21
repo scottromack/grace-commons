@@ -29,7 +29,7 @@ This composition owns two rules and inherits a third. It owns the **principal bi
 
 ## Intent
 
-Every system that issues session tokens and enforces authorization policies faces the same ordering problem: the runtime check must verify that the session is still valid *before* consulting the permission store, not after. An expired or revoked session that reaches `Permissions.permitted` is an authentication gap masquerading as an authorization query.
+Every system that issues session tokens and enforces authorization policies faces the same ordering problem: the runtime check must verify that the session is still valid *before* consulting the permission records, not after. An expired or revoked session that reaches `Permissions.permitted` is an authentication gap masquerading as an authorization query.
 
 Session-Gated Authorization wires Session and Permissions into a single enforced boundary. `Session.validate` must return `valid` before `Permissions.permitted` is consulted. The gate is a pre-check at the composition boundary, not inside either constituent atom. Neither atom gains knowledge of the other; the sequencing constraint is owned entirely by the composition.
 

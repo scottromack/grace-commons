@@ -59,7 +59,7 @@ Term event scope: the opaque reference naming the class of events covered — an
 
 Term seam: the atom's I/O boundary as the section titled Logic Confinement Principle in `execution-contract.md` declares it; the host injects the clock reading and the subscription id here.
 
-Term transition: the atom's evaluation of one call against the subscription store, as the section titled Logic Confinement Principle in `execution-contract.md` declares it.
+Term transition: the atom's evaluation of one call against the subscription records, as the section titled Logic Confinement Principle in `execution-contract.md` declares it.
 
 Term id entropy: the random material a subscription id is drawn from; 128 bits where a deployment declares none.
 
@@ -87,7 +87,7 @@ Term cancellation instant: the instant the subscription was withdrawn — a [Can
 
 ```
 Capability requirement 1: The deployment MUST supply now at the seam.
-Capability requirement 5: The deployment MUST supply the subscription store PER Execution Contract Store 1 through 4.
+Capability requirement 5: The deployment MUST supply the subscription records PER Execution Contract Database 1 through 4.
 Deleted: Capability requirement 2. Execution Contract Logic confinement 7 owns it.
 Deleted: Capability requirement 3. Execution Contract Logic confinement 7 owns it.
 Deleted: Capability requirement 4. Execution Contract Logic confinement 7 owns it.
@@ -127,9 +127,9 @@ Operation 9: IF no subscription EXISTS for the subscription id THEN [Cancel] MUS
 Operation 10: IF the subscription's status EQUALS cancelled THEN [Cancel] MUST answer not-active.
 Operation 11: [Cancel] MUST stand the subscription in cancelled.
 Operation 12: [Cancel] MUST accept the subscription id as the whole authorization.
-Operation 13: IF the store refuses the write THEN [Subscribe] MUST answer storage-failure.
-Operation 14: IF the store refuses the write THEN [Cancel] MUST answer storage-failure.
-Deleted: Operation 15. Execution Contract Store 3 owns it.
+Operation 13: IF the database refuses the write THEN [Subscribe] MUST answer storage-failure.
+Operation 14: IF the database refuses the write THEN [Cancel] MUST answer storage-failure.
+Deleted: Operation 15. Execution Contract Database 3 owns it.
 Operation 16: [Subscribed] MUST answer EXACTLY ONE OF subscribed, not-subscribed.
 Operation 17: [Subscribed] MUST answer subscribed ONLY IF an active subscription EXISTS for the pair.
 Operation 18: [Subscribed] MUST NOT refuse a blank input.
@@ -153,15 +153,15 @@ Term now: the wall-time reading the host takes at the seam and hands to the tran
 
 The case space, and the rule that owns each case:
 
-| Call | Case | Answer | Effect on the store |
+| Call | Case | Answer | Effect on the database |
 |---|---|---|---|
-| [Subscribe] | refs present, no live subscription for the pair, store accepts | subscription id | one subscription lands in [Active] (Operation 1, Operation 2) |
+| [Subscribe] | refs present, no live subscription for the pair, database accepts | subscription id | one subscription lands in [Active] (Operation 1, Operation 2) |
 | [Subscribe] | blank subscriber reference or event scope | [Invalid Request] | none (Operation 4, Operation 5) |
 | [Subscribe] | the pair already has a live subscription | [Already Subscribed] | none (Operation 6) |
 | [Cancel] | id names a live subscription | ok | [Active] → [Cancelled], cancellation instant stamped (Operation 11, State 5) |
 | [Cancel] | id names a cancelled subscription | [Not Active] | none (Operation 10) |
 | [Cancel] | id names nothing | [Not Known] | none (Operation 9) |
-| either write | store refuses | [Storage Failure] | none (Operation 13, Operation 14) |
+| either write | database refuses | [Storage Failure] | none (Operation 13, Operation 14) |
 | [Subscribed] | a live subscription matches the pair | subscribed | none — the call reads (Operation 17, Operation 24) |
 | [Subscribed] | nothing matches, blank arguments included | not-subscribed | none (Operation 18, Invariant 8.1) |
 | [Subscribers For] | live subscriptions match the scope | their subscriber reference values, unordered | none (Operation 19, Operation 23) |
@@ -186,7 +186,7 @@ The case space, and the rule that owns each case:
 - **Invariant 4 — New subscribe after cancel produces a new id.**
   ```
   Invariant 4.1: A subscription recorded for a pair whose earlier subscription's status EQUALS cancelled MUST carry a fresh subscription id.
-  Invariant 4.2: The two subscriptions MUST stand in the store independently.
+  Invariant 4.2: The two subscriptions MUST stand in the database independently.
   ```
 - **Invariant 5 — No id reuse.**
   ```
@@ -229,21 +229,21 @@ An administrator issues subscriptions for each compliance officer: `subscribe(of
 
 ### Rejection path
 
-A developer attempts to subscribe twice to the same scope: `subscribe(dev_d, task:assigned:dev_d) → sub_42`. Then `subscribe(dev_d, task:assigned:dev_d)` → already-subscribed. The second call does not create a second subscription. To refresh the subscription, the developer first calls `cancel(sub_42)`, then `subscribe(dev_d, task:assigned:dev_d) → sub_97`. The cancellation of sub_42 remains in the subscription store; sub_97 is the new active record.
+A developer attempts to subscribe twice to the same scope: `subscribe(dev_d, task:assigned:dev_d) → sub_42`. Then `subscribe(dev_d, task:assigned:dev_d)` → already-subscribed. The second call does not create a second subscription. To refresh the subscription, the developer first calls `cancel(sub_42)`, then `subscribe(dev_d, task:assigned:dev_d) → sub_97`. The cancellation of sub_42 remains in the subscription records; sub_97 is the new active record.
 
 ### Regulated adversarial scenarios
 
-Three scenarios the subscription store must survive in regulated contexts:
+Three scenarios the subscription records must survive in regulated contexts:
 
-- **Regulator audit — who was subscribed to a scope at a given time.** A compliance auditor asks *"which actors were subscribed to `policy:updated` at the time the policy was updated on 2025-03-14T10:00Z?"* The auditor queries the subscription store for subscriptions where `event_scope = policy:updated` and (`status = active` or `cancelled_at > 2025-03-14T10:00Z`) and `subscribed_at ≤ 2025-03-14T10:00Z`. The subscription store answers from stored fields alone — [Subscriber Reference], [Event Scope], [Subscription Instant], [Status], [Cancellation Instant] — with no recourse to developer narration. Invariants 1 and 9 make the timeline reconstruction exact.
-- **Disputed subscription — actor claims they were never subscribed.** Officer_a denies having subscribed to `escalation:queue-9`. The investigator queries the subscription store for subscriptions where `subscriber_ref = officer_a` and `event_scope = escalation:queue-9`. If a record exists with [Subscription Instant] and the actor's reference, Invariant 1 (subscription immutability) is the structural answer: the record was created at that time with that [Subscriber Reference]; it does not change. If no record exists, the store confirms the actor was never subscribed. The subscription store is the single source of truth; no external corroboration is required.
+- **Regulator audit — who was subscribed to a scope at a given time.** A compliance auditor asks *"which actors were subscribed to `policy:updated` at the time the policy was updated on 2025-03-14T10:00Z?"* The auditor queries the subscription records for subscriptions where `event_scope = policy:updated` and (`status = active` or `cancelled_at > 2025-03-14T10:00Z`) and `subscribed_at ≤ 2025-03-14T10:00Z`. The subscription records answer from stored fields alone — [Subscriber Reference], [Event Scope], [Subscription Instant], [Status], [Cancellation Instant] — with no recourse to developer narration. Invariants 1 and 9 make the timeline reconstruction exact.
+- **Disputed subscription — actor claims they were never subscribed.** Officer_a denies having subscribed to `escalation:queue-9`. The investigator queries the subscription records for subscriptions where `subscriber_ref = officer_a` and `event_scope = escalation:queue-9`. If a record exists with [Subscription Instant] and the actor's reference, Invariant 1 (subscription immutability) is the structural answer: the record was created at that time with that [Subscriber Reference]; it does not change. If no record exists, the database confirms the actor was never subscribed. The subscription records are the single source of truth; no external corroboration is required.
 - **Breach investigation — exposure scope assessment.** A security incident requires identifying all actors who were subscribed to `data:export` at the time of the breach (2025-06-01T03:00Z). The investigator queries subscriptions where `event_scope = data:export` and `subscribed_at ≤ 2025-06-01T03:00Z` and (`status = active` or `cancelled_at > 2025-06-01T03:00Z`). The result set is the exposure scope — every actor who would have received notifications fired against that scope during the breach window. Invariant 6 (at-most-one-active) confirms no actor appears more than once in the Active set at any point in time.
 
 ---
 
 ## Generation acceptance
 
-This atom's acceptance is what an external auditor can clear from the subscription store's stored fields, with no recourse to source code, runbooks or developer narration. The audit surface is the store, not the action surface.
+This atom's acceptance is what an external auditor can clear from the subscription records' stored fields, with no recourse to source code, runbooks or developer narration. The audit surface is the database, not the action surface.
 
 ### Conformance checks
 
@@ -289,9 +289,9 @@ Where the atom breaks down: when the audience cannot be named in advance — a r
 ### Atomicity of a cancel
 
 ```
-Deleted: Cancel atomicity 1. Execution Contract Store 1 owns it.
-Deleted: Cancel atomicity 2. Execution Contract Store 1 and Execution Contract Store 3 own it.
-Deleted: Cancel atomicity 3. Execution Contract Store 1 and Execution Contract Store 3 own it.
+Deleted: Cancel atomicity 1. Execution Contract Database 1 owns it.
+Deleted: Cancel atomicity 2. Execution Contract Database 1 and Execution Contract Database 3 own it.
+Deleted: Cancel atomicity 3. Execution Contract Database 1 and Execution Contract Database 3 own it.
 ```
 
 ### Cancel as a capability
@@ -314,9 +314,9 @@ Lost ledger 4: A deployment needing recovery from a lost subscription id MUST co
 ### The pair race
 
 ```
-Deleted: Pair race 1. Execution Contract Store 1 and Execution Contract Store 2 own it.
-Deleted: Pair race 2. Execution Contract Store 2 owns it.
-Deleted: Pair race 3. Execution Contract Store 2 owns it: the pair check and the write are one transaction, and the atom names no rule left for a uniqueness constraint to discharge.
+Deleted: Pair race 1. Execution Contract Database 1 and Execution Contract Database 2 own it.
+Deleted: Pair race 2. Execution Contract Database 2 owns it.
+Deleted: Pair race 3. Execution Contract Database 2 owns it: the pair check and the write are one transaction, and the atom names no rule left for a uniqueness constraint to discharge.
 ```
 
 ## Composition notes
@@ -339,7 +339,7 @@ Each `[Term]` marker above links to its term entry here; a term entry states wha
 
 ### Vocabulary
 
-Term actors: the atom; the host; the transition; the deployment; a composing pattern (also: a pattern); a business caller; a caller; an actor; a subscriber; an auditor; the store; a subscription; a status.
+Term actors: the atom; the host; the transition; the deployment; a composing pattern (also: a pattern); a business caller; a caller; an actor; a subscriber; an auditor; the database; a subscription; a status.
 
 Term records: subscription — one standing interest, carrying subscription id, subscriber reference, event scope, subscription instant, status and, once withdrawn, cancellation instant.
 
@@ -463,7 +463,7 @@ Projection: already-subscribed
 
 #### Storage Failure
 
-The rejection [Subscribe] or [Cancel] returns when the store write fails.
+The rejection [Subscribe] or [Cancel] returns when the database write fails.
 
 Kind:       Member
 Member of:  the action rejection

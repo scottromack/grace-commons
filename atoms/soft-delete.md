@@ -50,9 +50,9 @@ Identity 1: The atom MUST identify a lifecycle record by the record id.
 Identity 2: The caller MUST supply the record id.
 Identity 3: The atom MUST NOT allocate a record id.
 Identity 4: The atom MUST NOT change a record id.
-Identity 5: Two lifecycle records in one store instance MUST NOT share a record id.
+Identity 5: Two lifecycle records in one database instance MUST NOT share a record id.
 Identity 6: The deployment MUST supply a record id that sorts in lexicographic byte order.
-Identity 7: The deployment MUST route EVERY call to one store instance.
+Identity 7: The deployment MUST route EVERY call to one database instance.
 Identity 8: The atom MUST compare a reference byte-exactly.
 Identity 9: The atom MUST NOT normalize a reference.
 Identity 10: The atom MUST NOT confirm that a record id names a known host record.
@@ -67,11 +67,11 @@ Term tracked record: a host record carrying a lifecycle record — one that has 
 
 Term reference: record id, deleting actor, restoring actor OR purging actor — every opaque reference this atom records.
 
-Term store instance: one named lifecycle store a call is routed to; record id uniqueness ranges over one instance.
+Term database instance: one named database a call is routed to; record id uniqueness ranges over one instance.
 
 Term seam: the atom's I/O boundary as the section titled Logic Confinement Principle in `execution-contract.md` declares it; the host injects the clock reading here.
 
-Term transition: the atom's evaluation of one call against the lifecycle store, as the section titled Logic Confinement Principle in `execution-contract.md` declares it.
+Term transition: the atom's evaluation of one call against the lifecycle records, as the section titled Logic Confinement Principle in `execution-contract.md` declares it.
 
 ### State
 
@@ -87,7 +87,7 @@ State 8: A lifecycle record MAY carry deletion reason.
 State 9: A lifecycle record MAY carry a restore field.
 State 10: EVERY purged lifecycle record MUST carry purging actor, purge reason and purge instant.
 State 11: A purged lifecycle record MUST carry the deletion fields the purge found.
-State 12: The store instance's lifecycle record count MUST NOT fall.
+State 12: The database instance's lifecycle record count MUST NOT fall.
 State 13: The atom MUST NOT record a receipt instant.
 ```
 
@@ -95,7 +95,7 @@ State 13: The atom MUST NOT record a receipt instant.
 
 ```
 Capability requirement 1: The deployment MUST supply now at the seam.
-Capability requirement 5: The deployment MUST supply the lifecycle store PER Execution Contract Store 1 through 4.
+Capability requirement 5: The deployment MUST supply the lifecycle records PER Execution Contract Database 1 through 4.
 Deleted: Capability requirement 2. Execution Contract Logic confinement 7 owns it.
 Deleted: Capability requirement 3. Execution Contract Logic confinement 7 owns it.
 Deleted: Capability requirement 4. Execution Contract Logic confinement 7 owns it.
@@ -155,8 +155,8 @@ Operation 25: An admitted restore MUST record a supplied reason as restoration r
 Operation 26: An admitted purge MUST record purging actor, reason as purge reason and the resolved purge instant.
 Operation 27: An admitted restore MUST replace the lifecycle record's restore fields.
 Operation 28: An admitted purge MUST NOT change a restore field.
-Deleted: Operation 29. Execution Contract Store 1 owns it.
-Operation 30: IF the store refuses the write THEN a transitioning action MUST answer storage-failure.
+Deleted: Operation 29. Execution Contract Database 1 owns it.
+Operation 30: IF the database refuses the write THEN a transitioning action MUST answer storage-failure.
 Operation 31: An action MUST answer storage-failure ONLY IF EVERY precondition passes.
 Operation 32: A refused action MUST leave the lifecycle record as the call found the lifecycle record.
 Operation 33: A refused [Soft Delete] MUST NOT record a lifecycle record.
@@ -220,8 +220,8 @@ Term admitted read: a [Read] call whose every filter axis and filter value the g
 | 2 | [Restore] or [Purge], record id names no lifecycle record | not-known |
 | 3 | the lifecycle record's state refuses the action | a state rejection |
 | 4 | the state admits the action, an attribution or temporal check fails | invalid-request |
-| 5 | every precondition passes, the store refuses the write | storage-failure |
-| 6 | every precondition passes, the store accepts the write | the success token |
+| 5 | every precondition passes, the database refuses the write | storage-failure |
+| 6 | every precondition passes, the database accepts the write | the success token |
 
 NOTE: watch condition negation — invalid-request occupies rows 1 and 4 of one precedence chain, so the answer alone does not say which guard refused. [Approval Step](./approval-step.md), [State Machine](./state-machine.md) and [Audit Trail](../compositions/audit-trail.md) carry the same shape.
 
@@ -260,8 +260,8 @@ NOTE: watch condition negation — invalid-request occupies rows 1 and 4 of one 
   ```
 - **Invariant 7 — Lifecycle record durability.**
   ```
-  Invariant 7.1: The atom MUST NOT remove a lifecycle record from the store.
-  Deleted: Invariant 7.2. Execution Contract Store 1 owns it.
+  Invariant 7.1: The atom MUST NOT remove a lifecycle record from the database.
+  Deleted: Invariant 7.2. Execution Contract Database 1 owns it.
   ```
 - **Invariant 8 — Deletion attribution is complete.**
   ```
@@ -307,19 +307,19 @@ A data subject submits an erasure request. The DSAR workflow calls `soft_delete(
 
 - **Regulator audit.** A GDPR supervisory authority asks for evidence that a data subject's erasure was completed. `read({record_id: "profile-4491"})` answers a purged lifecycle record with its actor, reason and instant, plus the deletion attribution from the step before. Invariant 5 and Invariant 7 together are the structural guarantee — the record exists, is fully attributed, and cannot have been removed after the fact. The same query answers HIPAA disposal audits and SOX (Sarbanes-Oxley Act) section 802 records-management reviews.
 - **Disputed erasure.** A data subject claims their profile was never erased, or erased without their request. The purged record names who deleted and why, and who purged and why, and Invariant 4 establishes the two-step chain. If the record still stands in deleted, the compliance team has evidence the erasure was *not* completed and a remediation path — which is a more useful answer than an absence would be.
-- **Breach investigation.** An incident responder asks which records were purged inside an anomaly window: `read({state: purged, purged_at: {after: …, before: …}})`. Every result carries its actor, and an actor outside the authorized set is a finding on sight. Invariant 7.1 is why the query can be trusted — a purge performed during the window cannot be erased from this store afterwards.
+- **Breach investigation.** An incident responder asks which records were purged inside an anomaly window: `read({state: purged, purged_at: {after: …, before: …}})`. Every result carries its actor, and an actor outside the authorized set is a finding on sight. Invariant 7.1 is why the query can be trusted — a purge performed during the window cannot be erased from these records afterwards.
 
 ---
 
 ## Generation acceptance
 
-This atom's acceptance is what an external auditor can clear from the lifecycle store alone, with no recourse to source code, runbooks or developer narration.
+This atom's acceptance is what an external auditor can clear from the lifecycle records alone, with no recourse to source code, runbooks or developer narration.
 
 ### Conformance checks
 
 ```
 Check 1.1: An auditor MUST find no lifecycle record absent from a later read (Invariant 7.1).
-Check 1.2: An auditor MUST find a purged lifecycle record in the store (Invariant 7.1, State 11).
+Check 1.2: An auditor MUST find a purged lifecycle record in the database (Invariant 7.1, State 11).
 Check 2.1: An auditor MUST find EVERY purged lifecycle record's purging actor non-blank (Invariant 5.1).
 Check 2.2: An auditor MUST find EVERY purged lifecycle record's purge reason non-blank (Invariant 5.2).
 Check 2.3: An auditor MUST find a purge instant on EVERY purged lifecycle record (Invariant 5.3).
@@ -363,7 +363,7 @@ Non-goal 12: The atom MUST NOT bind an acting reference to an actor.
 Non-goal 13: A deployment needing a non-repudiable purge MUST compose Actor Identity.
 Non-goal 14: The atom MUST NOT decide who may call an action.
 Non-goal 15: A deployment needing an authorization decision MUST compose Permissions.
-Non-goal 16: The atom MUST NOT detect a rewrite under the store.
+Non-goal 16: The atom MUST NOT detect a rewrite under the database.
 Non-goal 17: A deployment needing a rewrite detected MUST compose Tamper Evidence.
 Non-goal 18: The atom MUST NOT define which read surface a deleted record leaves.
 Non-goal 19: The atom MUST NOT bound a transition instant from below by anything beside the lifecycle record's own deletion instant.
@@ -379,20 +379,20 @@ NOTE: the owners — [Duplicate Prevention](./duplicate-prevention.md) (Non-goal
 ### Atomic writes
 
 ```
-Deleted: Atomic writes 1. Execution Contract Store 1 owns it.
-Deleted: Atomic writes 2. Execution Contract Store 1 and Execution Contract Store 3 own it.
-Deleted: Atomic writes 3. Execution Contract Store 1 owns it.
-Deleted: Atomic writes 4. Execution Contract Store 1 owns it.
+Deleted: Atomic writes 1. Execution Contract Database 1 owns it.
+Deleted: Atomic writes 2. Execution Contract Database 1 and Execution Contract Database 3 own it.
+Deleted: Atomic writes 3. Execution Contract Database 1 owns it.
+Deleted: Atomic writes 4. Execution Contract Database 1 owns it.
 ```
 
 ### Concurrency
 
 ```
-Deleted: Concurrency 1. Execution Contract Store 2 owns it.
-Deleted: Concurrency 2. Execution Contract Store 2 owns it.
-Deleted: Concurrency 3. Execution Contract Store 2 owns it.
-Deleted: Concurrency 4. Execution Contract Store 2 owns it.
-Deleted: Concurrency 5. Execution Contract Store 2 owns it.
+Deleted: Concurrency 1. Execution Contract Database 2 owns it.
+Deleted: Concurrency 2. Execution Contract Database 2 owns it.
+Deleted: Concurrency 3. Execution Contract Database 2 owns it.
+Deleted: Concurrency 4. Execution Contract Database 2 owns it.
+Deleted: Concurrency 5. Execution Contract Database 2 owns it.
 ```
 
 ### String policy
@@ -421,10 +421,10 @@ Composition note 2: A composing pattern MUST own the purge eligibility gate.
 Composition note 3: A composing pattern MUST own the authorization of a call.
 Composition note 4: A composing pattern MUST own the attestation binding an acting reference.
 Composition note 5: A composing pattern MUST own the full cycle history.
-Composition note 6: A composing pattern MUST own the tamper seal over the lifecycle store.
+Composition note 6: A composing pattern MUST own the tamper seal over the lifecycle records.
 Composition note 7: A composing pattern MUST own a batch transition.
 Composition note 8: A composing pattern MUST own the host record's content destruction.
-Composition note 9: A composing pattern reading the lifecycle store MUST NOT write to the lifecycle store.
+Composition note 9: A composing pattern reading the lifecycle records MUST NOT write to the lifecycle records.
 ```
 
 NOTE: composing patterns — [Forensic Recovery](../compositions/forensic-recovery.md).
@@ -437,7 +437,7 @@ Each `[Term]` marker above links to its term entry here; a term entry states wha
 
 ### Vocabulary
 
-Term actors: the atom; the host; the host system; the transition; the deployment; a composing pattern; a business caller; a caller; a guard; an auditor; a regulator; a data subject; an investigator; the store; a lifecycle record; a tracked record; a host record; a purged lifecycle record; a deleted lifecycle record; a transitioning action; a refused action; an action; a query; a filter; a reference filter; a state filter; a range filter; an instant-range filter; a state rejection; a deletion epoch; a string input; an opaque reference; the store instance's lifecycle record count.
+Term actors: the atom; the host; the host system; the transition; the deployment; a composing pattern; a business caller; a caller; a guard; an auditor; a regulator; a data subject; an investigator; the database; a lifecycle record; a tracked record; a host record; a purged lifecycle record; a deleted lifecycle record; a transitioning action; a refused action; an action; a query; a filter; a reference filter; a state filter; a range filter; an instant-range filter; a state rejection; a deletion epoch; a string input; an opaque reference; the database instance's lifecycle record count.
 
 Term records: lifecycle record — the state and attribution this atom holds for one host record, carrying record id, a state, deleting actor, deletion instant and, where supplied or set, deletion reason, restoring actor, restoration instant, restoration reason, purging actor, purge instant and purge reason.
 
@@ -451,7 +451,7 @@ Term cadences: empty.
 
 Term qualifiers: migrated — rewritten in GRACE lang v0.40 (2026-09-13).
 
-Term terms: lifecycle record, record id, tracked record, reference, store instance, seam, transition, now, business caller, states, transitioning action, acting reference, transition instant, resolved transition instant, state rejection, deletion field, restore field, purge field, deletion epoch, latest transition instant, filter axes, admitted soft delete, admitted restore, admitted purge, admitted read, string input, blank.
+Term terms: lifecycle record, record id, tracked record, reference, database instance, seam, transition, now, business caller, states, transitioning action, acting reference, transition instant, resolved transition instant, state rejection, deletion field, restore field, purge field, deletion epoch, latest transition instant, filter axes, admitted soft delete, admitted restore, admitted purge, admitted read, string input, blank.
 
 #### Soft Delete
 
@@ -479,7 +479,7 @@ Kind: Operation
 
 #### Record Id
 
-The opaque identity of the record in the host system — supplied by the caller on [Soft Delete] (the atom accepts ids, never generates them), immutable once a lifecycle record exists (Invariant 7). Unique within a store instance.
+The opaque identity of the record in the host system — supplied by the caller on [Soft Delete] (the atom accepts ids, never generates them), immutable once a lifecycle record exists (Invariant 7). Unique within a database instance.
 
 Kind:       Field
 Field of:   the lifecycle record
@@ -626,7 +626,7 @@ Projection: already-purged
 
 #### Storage Failure
 
-The rejection any write action returns when the store write fails after all preconditions pass; the record is left in its prior state (Operation 32, Operation 33).
+The rejection any write action returns when the database write fails after all preconditions pass; the record is left in its prior state (Operation 32, Operation 33).
 
 Kind:       Member
 Member of:  the action rejection
@@ -635,7 +635,7 @@ Projection: storage-failure
 
 #### Not Known
 
-The rejection [Restore] or [Purge] returns when the [Record Id] references no lifecycle record in the store.
+The rejection [Restore] or [Purge] returns when the [Record Id] references no lifecycle record in the database.
 
 Kind:       Member
 Member of:  the action rejection

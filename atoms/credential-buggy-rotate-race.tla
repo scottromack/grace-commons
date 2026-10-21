@@ -130,7 +130,7 @@ Commit(i) ==
 
 \* A holder that loses the section at any moment, and its write then refused:
 \* no write commits against a state its checks did not see (Execution Contract
-\* Store 2).
+\* Database 2).
 Overdue(i) ==
     /\ holder = i
     /\ holder' = 0

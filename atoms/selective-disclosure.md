@@ -20,7 +20,7 @@ Selective Disclosure keeps a permanent, add-only record of every time someone's 
 
 The pattern does not do the sharing — it does not fetch, redact, or transmit data. Instead, right after a disclosure happens, the system calls it to log the subject, the recipient, the scope of what was shared, and the authority for sharing, which must be one of exactly three kinds: consent (the person agreed), legal hold (a legal process compelled it), or regulatory (a regulation required it).
 
-Once written, a record can never be changed or deleted, and nothing is ever removed from the store — which is precisely what guarantees the sharing history is complete and cannot be quietly altered. The records can be queried by subject, recipient, authority type, or date, producing the disclosure accounting that privacy and securities regulations demand.
+Once written, a record can never be changed or deleted, and nothing is ever removed from the database — which is precisely what guarantees the sharing history is complete and cannot be quietly altered. The records can be queried by subject, recipient, authority type, or date, producing the disclosure accounting that privacy and securities regulations demand.
 
 A few questions need other patterns to answer — whether a referenced consent was actually valid at the time, whether every disclosure was in fact logged, and whether a backdated timestamp is honest — and those boundaries are spelled out in the Generation acceptance section.
 
@@ -37,7 +37,7 @@ This atom is the accountability layer that makes those answers possible, and the
 
 Four adjacent concepts are distinguished, and every distinction is load-bearing. [Audit Trail](../compositions/audit-trail.md) answers *what happened in this system* for any action, any actor, any subject; this atom answers *what was disclosed about this subject, to whom, under what authority* for one class of event. [Consent](./consent.md) governs authorization — *may I?* — and is a precondition check; this atom records *I did*, after the fact, whether the basis was consent, compulsion or regulation. [Legal Hold](./legal-hold.md) governs compelled *preservation*; this atom records compelled *disclosure*, and the two address opposite obligations on the same records. [Actor Identity](./actor-identity.md) answers *who authorized an action*; this atom answers *to whom was subject data disclosed*. Both carry attribution fields and they are different kinds of attribution — a disclosure to a regulator names the regulator here and may name the authorizing compliance officer in a composing attestation.
 
-The authority field is where the atom earns its name. Three types and no others — consent, legal-hold, regulatory — cover the complete space of legitimate disclosure bases: data-subject authorization, legal compulsion, regulatory mandate. Refusing a fourth value is a structural claim, not a validation convenience: a disclosure falling outside those three is not a legitimate disclosure, and the store must not be able to say otherwise. Splitting the field into a machine-queryable type and a human-readable reference is what keeps the accounting both filterable and readable by the regulator who has to act on it.
+The authority field is where the atom earns its name. Three types and no others — consent, legal-hold, regulatory — cover the complete space of legitimate disclosure bases: data-subject authorization, legal compulsion, regulatory mandate. Refusing a fourth value is a structural claim, not a validation convenience: a disclosure falling outside those three is not a legitimate disclosure, and the database must not be able to say otherwise. Splitting the field into a machine-queryable type and a human-readable reference is what keeps the accounting both filterable and readable by the regulator who has to act on it.
 
 ## Structure
 
@@ -48,8 +48,8 @@ Identity 1: The atom MUST identify a disclosure record by the disclosure id.
 Identity 2: The host MUST allocate a disclosure id at the seam.
 Identity 3: The transition MUST NOT allocate a disclosure id.
 Identity 4: The atom MUST NOT change a disclosure id.
-Identity 5: Two disclosure records in one store instance MUST NOT share a disclosure id.
-Identity 6: The deployment MUST route EVERY call to one store instance.
+Identity 5: Two disclosure records in one database instance MUST NOT share a disclosure id.
+Identity 6: The deployment MUST route EVERY call to one database instance.
 Identity 7: The atom MUST NOT identify a disclosure record by the subject reference.
 Identity 8: The atom MUST admit a second disclosure record carrying a recorded subject reference.
 Identity 9: The atom MUST match a subject reference exactly.
@@ -71,11 +71,11 @@ Term recipient: the opaque string naming the party the data reached — a [Recip
 
 Term scope: the opaque string naming what subset of the subject's data was disclosed — a [Scope]; recorded as the caller declares it.
 
-Term store instance: one named disclosure store a call is routed to; disclosure id uniqueness ranges over one instance.
+Term database instance: one named database a call is routed to; disclosure id uniqueness ranges over one instance.
 
 Term seam: the atom's I/O boundary as the section titled Logic Confinement Principle in `execution-contract.md` declares it; the host injects the clock reading and the disclosure id here.
 
-Term transition: the atom's evaluation of one call against the disclosure store, as the section titled Logic Confinement Principle in `execution-contract.md` declares it.
+Term transition: the atom's evaluation of one call against the disclosure records, as the section titled Logic Confinement Principle in `execution-contract.md` declares it.
 
 ### State
 
@@ -87,7 +87,7 @@ State 4: The atom MUST NOT offer an edit surface.
 State 5: The atom MUST NOT offer a removal surface.
 State 6: The atom MUST NOT offer a retraction surface.
 State 7: The atom MUST NOT offer a batch record surface.
-State 8: The store instance's record count MUST NOT fall.
+State 8: The database instance's record count MUST NOT fall.
 State 9: A later unfiltered [Read] MUST answer EVERY disclosure record an earlier unfiltered [Read] answered.
 State 10: The atom MUST NOT record a receipt instant.
 ```
@@ -96,7 +96,7 @@ State 10: The atom MUST NOT record a receipt instant.
 
 ```
 Capability requirement 1: The deployment MUST supply now at the seam.
-Capability requirement 5: The deployment MUST supply the disclosure store PER Execution Contract Store 1, Execution Contract Store 3 and Execution Contract Store 4.
+Capability requirement 5: The deployment MUST supply the disclosure records PER Execution Contract Database 1, Execution Contract Database 3 and Execution Contract Database 4.
 Deleted: Capability requirement 2. Execution Contract Logic confinement 7 owns it.
 Deleted: Capability requirement 3. Execution Contract Logic confinement 7 owns it.
 Deleted: Capability requirement 4. Execution Contract Logic confinement 7 owns it.
@@ -133,14 +133,14 @@ Operation 10: An admitted record MUST record EXACTLY ONE disclosure record.
 Operation 11: An admitted record MUST take the disclosure record's disclosure id from the injected disclosure id.
 Operation 12: An admitted record MUST stamp the disclosure record's disclosure instant from the resolved disclosure instant.
 Operation 13: An admitted record MUST answer the disclosure id.
-Operation 14: IF the store refuses the write THEN [Record] MUST answer storage-failure.
+Operation 14: IF the database refuses the write THEN [Record] MUST answer storage-failure.
 Operation 15: [Record] MUST answer storage-failure ONLY IF EVERY precondition passes.
 Operation 16: A refused [Record] MUST NOT record a disclosure record.
-Operation 17: A refused [Record] MUST leave the store as the call found the store.
+Operation 17: A refused [Record] MUST leave the database as the call found the database.
 Operation 18: An admitted read MUST answer the matching disclosure records in disclosure instant ascending order.
 Operation 19: An admitted read MUST order two disclosure records sharing a disclosure instant by disclosure id ascending.
 Operation 20: IF no disclosure record matches THEN an admitted read MUST answer an empty record sequence.
-Operation 21: An admitted read carrying no filter MUST answer EVERY disclosure record in the store instance.
+Operation 21: An admitted read carrying no filter MUST answer EVERY disclosure record in the database instance.
 Operation 22: IF a filter's axis IS NOT IN the filter axes THEN [Read] MUST answer invalid-query.
 Operation 23: IF a disclosure id, subject reference OR recipient filter's value EQUALS blank THEN [Read] MUST answer invalid-query.
 Operation 24: IF an authority type filter's value IS NOT IN the authority types THEN [Read] MUST answer invalid-query.
@@ -184,8 +184,8 @@ Term admitted read: a [Read] call whose every filter axis and filter value the g
 |---|---|---|
 | 1 | a field is blank, or the resolved disclosure instant follows now | invalid-request |
 | 2 | every field passes, authority type stands outside the authority types | unknown-authority-type |
-| 3 | every precondition passes, the store refuses the write | storage-failure |
-| 4 | every precondition passes, the store accepts the write | `recorded(disclosure_id)` |
+| 3 | every precondition passes, the database refuses the write | storage-failure |
+| 4 | every precondition passes, the database accepts the write | `recorded(disclosure_id)` |
 
 ### Invariants
 
@@ -213,11 +213,11 @@ Term admitted read: a [Read] call whose every filter axis and filter value the g
   Invariant 5.1: EVERY transmission of a subject's data to a party beside the subject MUST produce a disclosure record.
   Invariant 5.2: The atom MUST NOT detect a transmission the atom's caller does not record.
   ```
-- **Invariant 6 — Store durability and append-only nature.**
+- **Invariant 6 — Record durability and append-only nature.**
   ```
-  Invariant 6.1: The atom MUST NOT remove a disclosure record from the store.
-  Deleted: Invariant 6.2. Execution Contract Store 1 owns it.
-  Deleted: Invariant 6.3. Execution Contract Store 3 owns it.
+  Invariant 6.1: The atom MUST NOT remove a disclosure record from the database.
+  Deleted: Invariant 6.2. Execution Contract Database 1 owns it.
+  Deleted: Invariant 6.3. Execution Contract Database 3 owns it.
   ```
 
 ---
@@ -238,7 +238,7 @@ A communicable-disease report goes to a state health department under a reportin
 
 ### The Article 15 answer
 
-A data subject exercises their access right. `read({subject_ref: "patient-88213"})` answers three records in disclosure instant ascending order — the regulatory report first at 09:15, then the consent disclosure at 14:02, then the compelled one — each carrying its recipient, scope, authority type and authority reference. `read({subject_ref: "patient-88213", authority_type: "consent"})` narrows to one. The regulatory question is answered from the store alone.
+A data subject exercises their access right. `read({subject_ref: "patient-88213"})` answers three records in disclosure instant ascending order — the regulatory report first at 09:15, then the consent disclosure at 14:02, then the compelled one — each carrying its recipient, scope, authority type and authority reference. `read({subject_ref: "patient-88213", authority_type: "consent"})` narrows to one. The regulatory question is answered from the database alone.
 
 ### Rejection paths
 
@@ -259,14 +259,14 @@ A data subject exercises their access right. `read({subject_ref: "patient-88213"
 ### Regulated adversarial scenarios
 
 - **Regulator audit.** A GDPR supervisory authority reviewing an Article 15 complaint asks which recipients received the complainant's data in 2026. `read({subject_ref: X, disclosed_at: {after: "2026-01-01", before: "2026-12-31"}})` answers the complete set in order, each with its authority. Invariant 3 is what makes the answer usable — every field on every record, so no entry has to be explained (Check 2.1, Check 2.2).
-- **Disputed disclosure.** A data subject denies ever consenting to a research disclosure. The store yields the record and its `authority_reference: "consent-3301"`. That is where this atom's answer stops: it proves the calling system *claimed* that consent as the basis, and the [Consent](./consent.md) store is what proves the consent was granted, in scope and unrevoked at disclosure instant. The split is deliberate and it is named rather than hidden (External check 1, Non-goal 7).
-- **Breach forensics.** An investigator reconstructing what left the system during an exposure window reads the store unfiltered across the window and groups by recipient. The store is monotonic (State 8, State 9), so a second read during a long investigation can only add records — nothing an earlier read showed can have quietly left. What the investigator cannot learn here is whether a transmission happened that nobody recorded; that is Invariant 5's gap, cleared against egress logs rather than against this store (External check 2).
+- **Disputed disclosure.** A data subject denies ever consenting to a research disclosure. The database yields the record and its `authority_reference: "consent-3301"`. That is where this atom's answer stops: it proves the calling system *claimed* that consent as the basis, and the [Consent](./consent.md) records are what prove the consent was granted, in scope and unrevoked at disclosure instant. The split is deliberate and it is named rather than hidden (External check 1, Non-goal 7).
+- **Breach forensics.** An investigator reconstructing what left the system during an exposure window reads the database unfiltered across the window and groups by recipient. The database is monotonic (State 8, State 9), so a second read during a long investigation can only add records — nothing an earlier read showed can have quietly left. What the investigator cannot learn here is whether a transmission happened that nobody recorded; that is Invariant 5's gap, cleared against egress logs rather than against these records (External check 2).
 
 ---
 
 ## Generation acceptance
 
-This atom's acceptance is what an external auditor can clear from the disclosure store alone, with no recourse to source code, runbooks or developer narration.
+This atom's acceptance is what an external auditor can clear from the disclosure records alone, with no recourse to source code, runbooks or developer narration.
 
 ### Conformance checks
 
@@ -290,10 +290,10 @@ NOTE: EVERY check names the rule the check tests.
 ### External checks
 
 ```
-External check 1: A deployment needing a disclosure's authority legitimacy cleared MUST read the composing authority store (Non-goal 7, Non-goal 8).
-External check 2: A deployment needing Invariant 5.1 cleared MUST read the egress record beside the disclosure store.
+External check 1: A deployment needing a disclosure's authority legitimacy cleared MUST read the composing pattern's authority records (Non-goal 7, Non-goal 8).
+External check 2: A deployment needing Invariant 5.1 cleared MUST read the egress record beside the disclosure records.
 External check 3: A deployment needing a backdated disclosure instant detected MUST read the composing Event Log's receipt instant (State 10).
-Deleted: External check 4. Execution Contract Store 3 owns it.
+Deleted: External check 4. Execution Contract Database 3 owns it.
 ```
 
 ## Non-goals
@@ -314,7 +314,7 @@ Non-goal 12: The atom MUST NOT record who called [Record].
 Non-goal 13: A deployment needing the recording actor bound MUST compose Actor Identity.
 Non-goal 14: The atom MUST NOT read two [Record] calls carrying one field set as one disclosure.
 Non-goal 15: A deployment needing at-most-once recording MUST compose Duplicate Prevention.
-Non-goal 16: The atom MUST NOT detect a rewrite under the store.
+Non-goal 16: The atom MUST NOT detect a rewrite under the database.
 Non-goal 17: A deployment needing a rewrite detected MUST compose Tamper Evidence.
 Non-goal 18: The atom MUST NOT bound a disclosure record's retention.
 Non-goal 19: A deployment needing a retention bound MUST compose Retention Window.
@@ -374,11 +374,11 @@ Composition note 1: A deployment MUST declare which composing patterns the deplo
 Composition note 2: A composing pattern MUST own the authorization of a call.
 Composition note 3: A composing pattern MUST own the attestation binding the recording actor.
 Composition note 4: A composing pattern MUST own the legitimacy of an authority reference.
-Composition note 5: A composing pattern MUST own the tamper seal over the disclosure store.
-Composition note 6: A composing pattern MUST own the retention of the disclosure store.
+Composition note 5: A composing pattern MUST own the tamper seal over the disclosure records.
+Composition note 6: A composing pattern MUST own the retention of the disclosure records.
 Composition note 7: A composing pattern MUST own at-most-once recording.
 Composition note 8: A composing pattern closing Invariant 5.1 MUST own the only disclosure surface.
-Composition note 9: A composing pattern reading the disclosure store MUST NOT write to the disclosure store.
+Composition note 9: A composing pattern reading the disclosure records MUST NOT write to the disclosure records.
 ```
 
 WHY:
@@ -394,7 +394,7 @@ Each `[Term]` marker above links to its term entry here; a term entry states wha
 
 ### Vocabulary
 
-Term actors: the atom; the host; the transition; the implementation; the deployment; a composing pattern; a business caller; a caller; a guard; an auditor; a regulator; a data subject; the store; a disclosure record; a stored disclosure record; a correcting disclosure record; a refused [Record]; a query; a filter; a transmission; a string input; an opaque reference; the store instance's record count; a field-level precondition.
+Term actors: the atom; the host; the transition; the implementation; the deployment; a composing pattern; a business caller; a caller; a guard; an auditor; a regulator; a data subject; the database; a disclosure record; a stored disclosure record; a correcting disclosure record; a refused [Record]; a query; a filter; a transmission; a string input; an opaque reference; the database instance's record count; a field-level precondition.
 
 Term records: disclosure record — one recorded disclosure, carrying disclosure id, subject reference, recipient, scope, authority type, authority reference and disclosure instant.
 
@@ -408,7 +408,7 @@ Term cadences: empty.
 
 Term qualifiers: migrated — rewritten in GRACE lang v0.40 (2026-09-12).
 
-Term terms: disclosure record, disclosure id, subject reference, recipient, scope, store instance, seam, transition, now, business caller, authority, authority type, authority types, authority reference, disclosure instant, resolved disclosure instant, field-level precondition, filter axes, admitted record, string input, blank.
+Term terms: disclosure record, disclosure id, subject reference, recipient, scope, database instance, seam, transition, now, business caller, authority, authority type, authority types, authority reference, disclosure instant, resolved disclosure instant, field-level precondition, filter axes, admitted record, string input, blank.
 
 #### Record
 
@@ -506,7 +506,7 @@ Projection: unknown-authority-type
 
 #### Storage Failure
 
-The rejection [Record] returns when the store write fails after all preconditions pass; guarantees no partial record was persisted (Operation 16).
+The rejection [Record] returns when the database write fails after all preconditions pass; guarantees no partial record was persisted (Operation 16).
 
 Kind:       Member
 Member of:  the record rejection
@@ -565,8 +565,8 @@ formal: not applicable — vote no 2026-06-03
 last gate: 2026-06-23 — Final Critique 5, fresh reader — clean
 
 open:
-- 2026-10-05-a · refining · Composition note 9 · read to the letter it forbids a pattern that reads the disclosure store from writing to it at all, where the atom's own account of Resolve a Person's Data Rights has that composition read and record through the atom's surfaces → say no write beside [Record]; reported by that composition's gate
-- 2026-10-05-b · refining · Non-goal 19; Composition note 5, 6; Invariant 6.1 · a retention bound is to be composed over a store the atom must never remove a record from, and the owner of the seal and the retention is a composing pattern the notes do not let pass the duty down → say who guarantees persistence; reported by the same gate
+- 2026-10-05-a · refining · Composition note 9 · read to the letter it forbids a pattern that reads the disclosure records from writing to them at all, where the atom's own account of Resolve a Person's Data Rights has that composition read and record through the atom's surfaces → say no write beside [Record]; reported by that composition's gate
+- 2026-10-05-b · refining · Non-goal 19; Composition note 5, 6; Invariant 6.1 · a retention bound is to be composed over a database the atom must never remove a record from, and the owner of the seal and the retention is a composing pattern the notes do not let pass the duty down → say who guarantees persistence; reported by the same gate
 ```
 
 ## Decisions

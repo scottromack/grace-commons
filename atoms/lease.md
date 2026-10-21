@@ -13,7 +13,7 @@ A **lease** is a grant of exclusive standing over a key, to a named holder, unti
 
 The whole of the atom is one sentence and its consequences: **the grant ends at the instant, never at an event.** Nothing in a distributed system observes a holder's death, so a grant that ended on death would end on a fact no party holds. A lease therefore ends in exactly two ways — the holder returns and releases it, or the instant passes — and every other property here follows from that.
 
-The instant is a value, not a private timer. A holder may carry it to a third party as a **fence**: a deadline after which that party must refuse work submitted under the grant. That is what makes a lease more than a lock, and it is why a regulated protocol's fence on its store is this concept and not another.
+The instant is a value, not a private timer. A holder may carry it to a third party as a **fence**: a deadline after which that party must refuse work submitted under the grant. That is what makes a lease more than a lock, and it is why a regulated protocol's fence on its database is this concept and not another.
 
 ## Intent
 
@@ -253,7 +253,7 @@ Term fenced party: the third party a fence is handed to.
 
 **A critical section around a write.** A process takes the key for the act it is about to change and receives expires_at. Its write carries no fence, so it asks the host what remains, starts only on an answer above the start floor, does its work, and releases on return. A second process arriving mid-way waits at most the first's remaining term and then either takes the key, or is told unavailable because an earlier waiter took it first — and it writes only under a grant of its own.
 
-**A fence carried to a store.** The same process passes expires_at less the allowance into the store call as a deadline. The process pauses for longer than anyone budgeted; its term passes; the key goes to the next holder. The paused process wakes and issues its write anyway — and the store refuses it, because the deadline it was given has passed on the store's own clock. The next holder's read is therefore complete: nothing of the previous holder's can still land.
+**A fence carried to a database.** The same process passes expires_at less the allowance into the database call as a deadline. The process pauses for longer than anyone budgeted; its term passes; the key goes to the next holder. The paused process wakes and issues its write anyway — and the database refuses it, because the deadline it was given has passed on the database's own clock. The next holder's read is therefore complete: nothing of the previous holder's can still land.
 
 **A holder that dies.** A process takes the key and is killed. Nothing is notified. The key stays held until the instant passes, and the next take waits exactly that long. This is the case that motivates Invariant 3: a host that released the key on the death would hand it over while the dead process's last write was still in flight.
 

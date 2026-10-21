@@ -19,9 +19,9 @@ toc: true
 
 This composition is a regulated composition (a spec that wires two or more atoms — freestanding, self-contained pattern specs — together) that solves a problem none of its constituents solves alone: ensuring that a system processes personal data on a consent basis only while valid consent exists, that the people authorized to record and withdraw consent are themselves authorized to do so, that consent records survive for the regulator-mandated proof period, and — the property that defeats naive implementations — that withdrawing consent *propagates*: the act of revocation is followed, in a fixed order and tamper-evidently, by a record of the complete set of downstream processing activities that were relying on the now-withdrawn consent. It wires four constituents: Consent (the data subject's grant/revoke/expire lifecycle with its point-in-time `check`), Permissions (the inward authorization surface governing which internal actor may administer consent), the Audit Trail substrate (the shared regulated-audit layer the composition records on — tamper-evident, designed so unauthorized changes are detectable — which stamps every state-changing decision with the verified actor who made it and seals it, binding it into a hash a later change would break, and through which Event Log, Actor Identity, the audit-event Retention Window, and Tamper Evidence are reached transitively), and a consent-record Retention Window instance (the policy-bounded lifetime holding each consent record as demonstrability evidence, distinct from the substrate's audit-event instance).
 
-The composition's defining emergent guarantee (a property that appears only when atoms are combined — no single atom carries it) has two halves. *Consent-gates-processing:* a single read-only query, `processing_permitted(subject_ref, purpose)`, returns permitted if and only if Consent reports valid consent (`check` → granted) for that subject and purpose at the current time. Processing systems consume this query rather than reading Consent directly, so the gate is implemented exactly once instead of re-implemented — or skipped — per processing system. *Revocation propagates:* [Withdraw Consent] revokes the consent and then records a `consent.revoked` Audit Trail event whose `affected_scopes` set is exactly the downstream processing scopes registered against that consent. These two writes commit together, the event ordered after the revoke, which gives the guarantee an auditor needs without qualification, since a propagation record always has a real revocation behind it. Where the event cannot be recorded, the revocation stands without it — the one gap left, which is always visible, always repaired within a declared window, and never a processing-suppression gap, because the gate reads the consent store directly and is honest the instant the revoke commits — given the single-active-grant rule [Record Consent] enforces (Invariant 1.3), which is what makes the record revoked the record the gate evaluates for its subject and purpose.
+The composition's defining emergent guarantee (a property that appears only when atoms are combined — no single atom carries it) has two halves. *Consent-gates-processing:* a single read-only query, `processing_permitted(subject_ref, purpose)`, returns permitted if and only if Consent reports valid consent (`check` → granted) for that subject and purpose at the current time. Processing systems consume this query rather than reading Consent directly, so the gate is implemented exactly once instead of re-implemented — or skipped — per processing system. *Revocation propagates:* [Withdraw Consent] revokes the consent and then records a `consent.revoked` Audit Trail event whose `affected_scopes` set is exactly the downstream processing scopes registered against that consent. These two writes commit together, the event ordered after the revoke, which gives the guarantee an auditor needs without qualification, since a propagation record always has a real revocation behind it. Where the event cannot be recorded, the revocation stands without it — the one gap left, which is always visible, always repaired within a declared window, and never a processing-suppression gap, because the gate reads the consent records directly and is honest the instant the revoke commits — given the single-active-grant rule [Record Consent] enforces (Invariant 1.3), which is what makes the record revoked the record the gate evaluates for its subject and purpose.
 
-Beyond the gate and the propagation, the composition guarantees that every consent grant is attributed and tamper-evidently recorded, that consent records are held under a retention floor that survives revocation (a withdrawn consent is evidence, not garbage — it must outlive its own withdrawal for the regulator's proof period), that the complete consent lifecycle is reconstructable from the records alone, and that every consent-administration action passes a Permissions check before it touches the consent store.
+Beyond the gate and the propagation, the composition guarantees that every consent grant is attributed and tamper-evidently recorded, that consent records are held under a retention floor that survives revocation (a withdrawn consent is evidence, not garbage — it must outlive its own withdrawal for the regulator's proof period), that the complete consent lifecycle is reconstructable from the records alone, and that every consent-administration action passes a Permissions check before it touches the consent records.
 
  Its most common uses are advertising and marketing consent management under GDPR (the EU General Data Protection Regulation)/ePrivacy, health-app and research consent under HIPAA (the US Health Insurance Portability and Accountability Act) Authorization, cookie-consent backends under the ePrivacy Directive, and any system that must prove, from records alone, that consent-based processing was gated on valid consent and that every withdrawal's downstream impact was enumerated and sealed.
 
@@ -29,11 +29,11 @@ Beyond the gate and the propagation, the composition guarantees that every conse
 
 ## Intent
 
-Every system that processes personal data on the basis of consent faces the same regulated obligation, and it is the same whether the system is an advertising platform, a health app, an analytics pipeline, or a cookie-banner backend. Before processing for a consent-based purpose, the system must confirm a valid consent exists; the data subject must be able to withdraw that consent as easily as they gave it; and — the limb that defeats most real deployments — when consent is withdrawn, the systems that were relying on it must *stop*, which means the withdrawal cannot be a private fact buried in one consent store but must propagate to every downstream process that was acting on the basis now gone. GDPR Article 6(1)(a) names consent as a lawful basis; Article 7 fixes its conditions (freely given, specific, informed, demonstrable); Article 7(3) requires withdrawal be as easy as grant and, read with Article 17(1)(b), that withdrawal end the basis for future processing. The domain varies; the structural obligation is constant: gate processing on consent, and make withdrawal propagate provably.
+Every system that processes personal data on the basis of consent faces the same regulated obligation, and it is the same whether the system is an advertising platform, a health app, an analytics pipeline, or a cookie-banner backend. Before processing for a consent-based purpose, the system must confirm a valid consent exists; the data subject must be able to withdraw that consent as easily as they gave it; and — the limb that defeats most real deployments — when consent is withdrawn, the systems that were relying on it must *stop*, which means the withdrawal cannot be a private fact buried in the consent records but must propagate to every downstream process that was acting on the basis now gone. GDPR Article 6(1)(a) names consent as a lawful basis; Article 7 fixes its conditions (freely given, specific, informed, demonstrable); Article 7(3) requires withdrawal be as easy as grant and, read with Article 17(1)(b), that withdrawal end the basis for future processing. The domain varies; the structural obligation is constant: gate processing on consent, and make withdrawal propagate provably.
 
 No constituent, alone, enforces this arc. Consent owns the grant/revoke/expire lifecycle and the `check` query that answers *is there valid consent for this subject and purpose at this time?* — but it deliberately stops there: its own specification states *"the atom does not enforce processing suppression"* and names downstream propagation as out of scope, for a composing layer to handle — this one. Consent records that consent was withdrawn; it neither knows what downstream processing relied on it nor records which processes must now cease. Permissions owns inward authorization — *which internal actor may grant, revoke, or read a consent record on a data subject's behalf* — but it knows nothing of consent state. The Audit Trail substrate records attributed, tamper-evident, retention-bounded events but does not know which events constitute a consent's propagation history. The consent-record Retention Window instance holds each consent record for its proof period but knows nothing of consent semantics. The structure that makes the four coherent as a single consent-management surface — the gate that centralizes the consent precondition, the downstream-registration index that makes "what relied on this consent" a recorded fact, and the propagation event that follows revocation in a fixed order — belongs to no single constituent. It belongs to the composition, and this composition is that structure.
 
-This is a composition, not a new primitive. Consent, Permissions, Audit Trail, and Retention Window are unchanged; the composition is the wiring that makes them coherent as a single consent-management surface. It introduces emergent actions — [Record Consent], [Register Processing], [Withdraw Consent], [Read Consent History], [Processing Permitted] — that belong to no single constituent and exist only because the constituents are wired together. The [Withdraw Consent] action, in particular, wraps a Consent `revoke`, an enumeration of the consent's registered downstream scopes, and the tamper-evident propagation event into one named surface, ordered revoke-then-event, so that withdrawing consent is one auditable act whose downstream impact is recorded — not a Consent `revoke` whose consequences leak silently into whatever processing systems happen to re-check, or fail to re-check, the consent store.
+This is a composition, not a new primitive. Consent, Permissions, Audit Trail, and Retention Window are unchanged; the composition is the wiring that makes them coherent as a single consent-management surface. It introduces emergent actions — [Record Consent], [Register Processing], [Withdraw Consent], [Read Consent History], [Processing Permitted] — that belong to no single constituent and exist only because the constituents are wired together. The [Withdraw Consent] action, in particular, wraps a Consent `revoke`, an enumeration of the consent's registered downstream scopes, and the tamper-evident propagation event into one named surface, ordered revoke-then-event, so that withdrawing consent is one auditable act whose downstream impact is recorded — not a Consent `revoke` whose consequences leak silently into whatever processing systems happen to re-check, or fail to re-check, the consent records.
 
 What the composition is *not*: it is not the consent-collection UI (user interface — the banner, the form, the verbal-capture integration that produces the grant signal — that is upstream, producing the inputs [Record Consent] records); it is not the data-erasure engine (whether withdrawal triggers deletion of derived data under Article 17 is the downstream processor's obligation, signalled by the propagation event, not performed by this composition); it is not a lawful-basis adjudicator for non-consent bases (legitimate interest, contract necessity, legal obligation are GDPR Article 6 bases this composition does not model — a Customer Due Diligence obligation under Customer Onboarding rests on Article 6(1)(c), not consent, and is explicitly out of scope here); and it is not the access-control surface for internal operators beyond the consent-administration actions it gates. Each is named explicitly in Non-goals.
 
@@ -112,17 +112,17 @@ Composition state 7: The composition MUST NOT change a key entry.
 Composition state 8: The composition MUST classify a live index entry as a derived index.
 Composition state 9: The composition MUST rebuild the live downstream entries PER the downstream rebuild.
 Composition state 10: The composition MUST rebuild the live key entries PER the grant rebuild.
-Composition state 11: The composition MUST NOT rebuild an index entry from a constituent store.
-Composition state 12: The composition MUST read a constituent store's enumeration ONLY as a cross-check against a rebuild.
+Composition state 11: The composition MUST NOT rebuild an index entry from a constituent's records.
+Composition state 12: The composition MUST read the enumeration of a constituent's records ONLY as a cross-check against a rebuild.
 Composition state 13: The composition MUST classify a purged index entry as truth-bearing.
 Composition state 14: A rebuild MUST NOT remove a purged index entry.
-Deleted: Composition state 15. Execution Contract Store 3 owns it.
+Deleted: Composition state 15. Execution Contract Database 3 owns it.
 Composition state 16: The composition MUST classify a purged downstream entry as extraction-pending against Processing Register.
 Composition state 17: The composition MUST classify a purged key entry as extraction-pending against Erasure Tombstone.
 Composition state 18: The composition MUST decide a downstream entry's horizon by the record read on the entry's registration event.
 Composition state 19: The composition MUST NOT decide a downstream entry's horizon by an instant.
 Composition state 20: The composition MUST NOT store a consent validity flag.
-Composition state 21: The composition MUST NOT duplicate a constituent's store.
+Composition state 21: The composition MUST NOT duplicate a constituent's records.
 ```
 
 Term consent id: the opaque id Consent's grant mints for a consent record — consent_id.
@@ -182,28 +182,28 @@ Capability requirement 7: A deployment MUST set the reconciliation cadence.
 Capability requirement 8: A deployment MUST disclose the outcome write latency.
 Capability requirement 9: A deployment MUST set the administration completion bound.
 Capability requirement 10: The composition MUST start ONLY IF the compensation window EXCEEDS the liveness sum.
-Deleted: Capability requirement 11. Execution Contract Store 1 owns it.
-Deleted: Capability requirement 12. Execution Contract Store 1 owns it: the composition names no retry span for the administration completion bound to cover.
+Deleted: Capability requirement 11. Execution Contract Database 1 owns it.
+Deleted: Capability requirement 12. Execution Contract Database 1 owns it: the composition names no retry span for the administration completion bound to cover.
 Capability requirement 13: A deployment MUST set the field length cap, the registrations cap, the intent candidates cap AND the event id width.
 Capability requirement 14: The composition MUST start ONLY IF the maximal envelope DOES NOT EXCEED Audit Trail's payload cap.
 Capability requirement 15: A deployment MUST set the clock offset allowance.
-Deleted: Capability requirement 16. Execution Contract Store 2 owns it.
-Deleted: Capability requirement 17. Execution Contract Store 2 owns it.
-Deleted: Capability requirement 18. Execution Contract Store 2 owns it: an action's reads and the writes they decide are one transaction, and the composition names no exclusion to release.
-Deleted: Capability requirement 19. Execution Contract Store 2 owns it: an action's reads and the writes they decide are one transaction, and the composition names no exclusion to release.
-Deleted: Capability requirement 20. Execution Contract Store 2 owns it: an action's reads and the writes they decide are one transaction, and the composition names no exclusion to lease.
-Deleted: Capability requirement 21. Execution Contract Store 2 owns it: an action's reads and the writes they decide are one transaction, and the composition names no lease to expire.
-Deleted: Capability requirement 22. Execution Contract Store 2 owns it: an action's reads and the writes they decide are one transaction, and the composition names no exclusion for a host to lack.
+Deleted: Capability requirement 16. Execution Contract Database 2 owns it.
+Deleted: Capability requirement 17. Execution Contract Database 2 owns it.
+Deleted: Capability requirement 18. Execution Contract Database 2 owns it: an action's reads and the writes they decide are one transaction, and the composition names no exclusion to release.
+Deleted: Capability requirement 19. Execution Contract Database 2 owns it: an action's reads and the writes they decide are one transaction, and the composition names no exclusion to release.
+Deleted: Capability requirement 20. Execution Contract Database 2 owns it: an action's reads and the writes they decide are one transaction, and the composition names no exclusion to lease.
+Deleted: Capability requirement 21. Execution Contract Database 2 owns it: an action's reads and the writes they decide are one transaction, and the composition names no lease to expire.
+Deleted: Capability requirement 22. Execution Contract Database 2 owns it: an action's reads and the writes they decide are one transaction, and the composition names no exclusion for a host to lack.
 Capability requirement 23: A deployment MUST provision the recovery identity.
-Deleted: Capability requirement 24. Execution Contract Store 3 owns it.
-Deleted: Capability requirement 25. Execution Contract Store 3 owns it.
+Deleted: Capability requirement 24. Execution Contract Database 3 owns it.
+Deleted: Capability requirement 25. Execution Contract Database 3 owns it.
 Capability requirement 26: The wired Audit Trail instance MUST expose the log read.
 Capability requirement 27: The host MUST inject now at the seam once per invocation.
 Capability requirement 28: The composition MUST stamp EVERY instant one invocation writes from the invocation's now.
 Capability requirement 29: The host MUST inject the reconciliation's now at the reconciliation's own seam.
 Capability requirement 30: A deployment MUST expose [Processing Permitted] ONLY to processing systems.
 Capability requirement 31: A processing activity MUST NOT process on a consent basis BEFORE the activity's registration event lands.
-Capability requirement 32: The deployment MUST supply the store PER Execution Contract Store 1 through 4.
+Capability requirement 32: The deployment MUST supply the database PER Execution Contract Database 1 through 4.
 ```
 
 Term retention policy reference: the consent-record policy a caller passes to [Record Consent] — retention_policy_ref, required, resolved in Retention Window's Policy Registry; the deployment's recommended value is configured as `consent_record_retention_policy_ref`.
@@ -295,13 +295,13 @@ Audit arm 1: IF Audit Trail answers invalid-credential at an intent THEN the act
 Audit arm 2: IF Audit Trail answers invalid-request carrying any step at an intent THEN the action MUST answer invalid-request.
 Audit arm 3: IF Audit Trail answers recording-failure at an intent THEN the action MUST answer recording-failure carrying intent.
 Audit arm 4: The composition MUST NOT retry an invalid-request answer.
-Deleted: Audit arm 5. Execution Contract Store 1 owns it.
+Deleted: Audit arm 5. Execution Contract Database 1 owns it.
 Audit arm 6: The deployment MUST alert on EVERY later write landed with the retention step failed.
 Audit arm 7: IF Audit Trail answers invalid-credential at a later write THEN the action MUST answer invalid-credential.
 Audit arm 8: IF Audit Trail answers invalid-request carrying step-1, step-2 or step-3 at a single write THEN the action MUST answer invalid-request.
 Audit arm 9: The deployment MUST alert on EVERY invalid-request at a later write as a deployment fault.
-Deleted: Audit arm 10. Execution Contract Store 1 owns it.
-Deleted: Audit arm 11. Execution Contract Store 1 owns it: an action's writes commit together, so no invocation retries an outcome.
+Deleted: Audit arm 10. Execution Contract Database 1 owns it.
+Deleted: Audit arm 11. Execution Contract Database 1 owns it: an action's writes commit together, so no invocation retries an outcome.
 Audit arm 12: IF Audit Trail answers recording-failure carrying a pre-append step at an outcome THEN the action MUST answer recording-failure carrying outcome.
 Audit arm 13: IF Audit Trail answers recording-failure carrying a pre-append step at a single write THEN the action MUST answer recording-failure.
 Audit arm 14: A caller MUST read recording-failure carrying intent as a committed nothing.
@@ -362,7 +362,7 @@ Action wiring 2: IF the permission check answers denied THEN the administration 
 Action wiring 3: An administration action MUST NOT write BEFORE the permission check answers permitted.
 Action wiring 4: A validated grant MUST record the grant intent carrying the subject reference, the purpose, the retention policy reference, the expiry AND now as the intent instant.
 Action wiring 5: A grant intent MUST NOT carry a consent id.
-Deleted: Action wiring 6. Execution Contract Store 2 owns it.
+Deleted: Action wiring 6. Execution Contract Database 2 owns it.
 Action wiring 7: An admitted grant MUST call the consent check with the subject reference AND the purpose.
 Action wiring 8: IF the consent check answers granted THEN [Record Consent] MUST answer already-granted.
 Action wiring 9: A checked grant MUST call the grant write with the subject reference, the purpose, the actor reference as the grantor, the expiry AND the metadata.
@@ -371,19 +371,19 @@ Action wiring 11: IF the grant write answers storage-failure THEN [Record Consen
 Action wiring 12: IF the grant write answers invalid-request THEN [Record Consent] MUST answer invalid-request.
 Action wiring 13: A committed grant MUST call the retention placement with the consent id AND the retention policy reference.
 Action wiring 14: IF the retention placement answers a placement refusal THEN [Record Consent] MUST answer invalid-request.
-Deleted: Action wiring 15. Execution Contract Store 1 owns it.
-Deleted: Action wiring 16. Execution Contract Store 1 owns it.
+Deleted: Action wiring 15. Execution Contract Database 1 owns it.
+Deleted: Action wiring 16. Execution Contract Database 1 owns it.
 Action wiring 17: A placed grant MUST record the grant event carrying the intent event id, the consent id, the subject reference, the purpose, the expiry AND the retention id.
 Action wiring 18: A landed grant MUST write the retention entry AND the subject entry.
 Action wiring 19: A landed grant MUST answer the consent id.
-Deleted: Action wiring 20. Execution Contract Store 2 owns it.
+Deleted: Action wiring 20. Execution Contract Database 2 owns it.
 Action wiring 21: A validated registration MUST record the registration event carrying the consent id, the processing scope, the processor reference AND now as the registration instant.
 Action wiring 22: A landed registration MUST add the binding carrying the registration event's registration instant AND event id.
 Action wiring 23: A landed registration MUST answer registered.
 Action wiring 24: The composition MUST write an index entry for a consent id ONLY AFTER the consent id's grant event lands.
 Action wiring 25: The composition MUST add a binding ONLY AFTER the binding's registration event lands.
 Action wiring 26: [Register Processing] MUST NOT call the consent check.
-Deleted: Action wiring 27. Execution Contract Store 2 owns it.
+Deleted: Action wiring 27. Execution Contract Database 2 owns it.
 Action wiring 28: A resolved withdrawal MUST derive the propagation set.
 Action wiring 29: The composition MUST derive a propagation set from the registration events AND the purged downstream entries.
 Action wiring 30: The composition MUST NOT derive a propagation set from a live downstream entry.
@@ -399,11 +399,11 @@ Action wiring 39: IF the revoke write answers not-known THEN [Withdraw Consent] 
 Action wiring 40: IF the revoke write answers not-known THEN the composition MUST open an index-anomaly finding for the consent id.
 Action wiring 41: A committed withdrawal MUST record the propagation event carrying the intent event id, the consent id, the subject reference, the purpose, the reason, the propagation set AND the revocation instant.
 Action wiring 42: A landed withdrawal MUST answer withdrawn.
-Deleted: Action wiring 43. Reconciliation 9 and Execution Contract Store 1 own it.
-Deleted: Action wiring 44. Reconciliation 9 and Execution Contract Store 1 own it.
-Deleted: Action wiring 45. Execution Contract Store 2 owns it: an action's reads and the writes they decide are one transaction, and the composition names no lease to expire.
-Deleted: Action wiring 46. Execution Contract Store 2 owns it: an action's reads and the writes they decide are one transaction, and the composition names no lease to expire.
-Deleted: Action wiring 47. Execution Contract Store 2 owns it: an action's reads and the writes they decide are one transaction, and the composition names no exclusion to release.
+Deleted: Action wiring 43. Reconciliation 9 and Execution Contract Database 1 own it.
+Deleted: Action wiring 44. Reconciliation 9 and Execution Contract Database 1 own it.
+Deleted: Action wiring 45. Execution Contract Database 2 owns it: an action's reads and the writes they decide are one transaction, and the composition names no lease to expire.
+Deleted: Action wiring 46. Execution Contract Database 2 owns it: an action's reads and the writes they decide are one transaction, and the composition names no lease to expire.
+Deleted: Action wiring 47. Execution Contract Database 2 owns it: an action's reads and the writes they decide are one transaction, and the composition names no exclusion to release.
 Action wiring 48: A validated history read MUST call the consent read with the subject reference.
 Action wiring 49: IF the consent read answers invalid-query THEN [Read Consent History] MUST answer invalid-request.
 Action wiring 50: A fetched history read MUST record the access event carrying the subject reference AND the record count.
@@ -492,13 +492,13 @@ Term invocation: one call of a state-changing action, from its seam reading to i
 
 Term owed outcome: the outcome a consent's act owes — for a grant, or an ungranted record, a grant event carrying the consent id; for a withdrawal, or an unpropagated record, a propagation event carrying the consent id. A grant event and a propagation event carry one consent id, so a read keyed on the consent id alone would find the wrong one.
 
-Term index-anomaly finding: a finding that the subject index resolves a consent id the Consent store does not know.
+Term index-anomaly finding: a finding that the subject index resolves a consent id the Consent records do not know.
 
 ### Wiring decision
 
 ```
 Wiring decision 1: The composition MUST append a propagation event ONLY AFTER the revoke write answers revoked.
-Deleted: Wiring decision 2. Execution Contract Store 1 owns it.
+Deleted: Wiring decision 2. Execution Contract Database 1 owns it.
 Wiring decision 3: The composition MUST NOT expose a withdrawal surface other than [Withdraw Consent].
 Wiring decision 4: The composition MUST NOT expose a consent gate other than [Processing Permitted].
 ```
@@ -506,23 +506,23 @@ Wiring decision 4: The composition MUST NOT expose a consent gate other than [Pr
 WHY:
 *Principle.* GDPR Articles 6 and 7 require a valid consent at processing time, and Article 7(3), read with Article 17(1)(b), requires that withdrawal end the basis for future processing — which, operationally, means the systems relying on the consent must learn of the withdrawal. The system must prove, from the records alone, both that the gate was the single consent precondition and that every withdrawal's downstream impact was enumerated and sealed at the moment of revocation.
 
-*Likely objection.* Consent already owns the lifecycle and exposes its check. Why not let each processing system call it, and why a propagation event when the revocation is already in the Consent store?
+*Likely objection.* Consent already owns the lifecycle and exposes its check. Why not let each processing system call it, and why a propagation event when the revocation is already in the Consent records?
 
-*Mechanism.* Consent owns the state and exposes no gate and no propagation, by design. A check called per system is a gate re-implemented per system, and the first system that forgets it, caches a stale answer or treats expired as granted breaks the Article 6 basis silently (Wiring decision 4). And the Consent store records *that* a consent was revoked, never *what was relying on it* — importing downstream processing would break its freestanding status — so a revoke alone leaves the withdrawal's downstream impact unrecorded, and a system that never re-checks keeps processing with no record that it should have stopped. The composition closes this with the downstream index, populated by an audited act, and a propagation event carrying the complete set. The event follows the revoke (Wiring decision 1), so a propagation record always has a real revocation behind it — unconditionally, which is the direction an Article 7(3) dispute runs. The gap that remains runs the other way — a revocation whose propagation record has not landed — and it is a gap in the *accounting*, not the *suppression*: the gate reads Consent and answers not-permitted carrying revoked from the instant the revoke commits, given single-active-grant (Invariant 1.3). What would defeat the purpose is the mirror — an event asserting a withdrawal the store does not hold — and the order makes it unreachable.
+*Mechanism.* Consent owns the state and exposes no gate and no propagation, by design. A check called per system is a gate re-implemented per system, and the first system that forgets it, caches a stale answer or treats expired as granted breaks the Article 6 basis silently (Wiring decision 4). And Consent records *that* a consent was revoked, never *what was relying on it* — importing downstream processing would break its freestanding status — so a revoke alone leaves the withdrawal's downstream impact unrecorded, and a system that never re-checks keeps processing with no record that it should have stopped. The composition closes this with the downstream index, populated by an audited act, and a propagation event carrying the complete set. The event follows the revoke (Wiring decision 1), so a propagation record always has a real revocation behind it — unconditionally, which is the direction an Article 7(3) dispute runs. The gap that remains runs the other way — a revocation whose propagation record has not landed — and it is a gap in the *accounting*, not the *suppression*: the gate reads Consent and answers not-permitted carrying revoked from the instant the revoke commits, given single-active-grant (Invariant 1.3). What would defeat the purpose is the mirror — an event asserting a withdrawal the database does not hold — and the order makes it unreachable.
 
 *Result.* The gate is structural and single; the propagation is complete and sealed *over the registered set*. An auditor answers *when this person withdrew consent, what was supposed to stop, and is it recorded?* by reading one sealed event rather than interviewing every processing system. **What the records cannot prove is outward completeness**: the composition proves what was registered, never that every real processing activity registered — an unregistered one is invisible to the propagation exactly as a gate-bypassing one is invisible to the gate. The two single-surface obligations are paired and the deployment's (Capability requirement 30 and 31; Invariant 1.2).
 
 ### Reconciliation
 
 ```
-Deleted: Reconciliation 1. Execution Contract Store 1 and Execution Contract Store 3 own it.
+Deleted: Reconciliation 1. Execution Contract Database 1 and Execution Contract Database 3 own it.
 Reconciliation 2: The reconciliation MUST run every reconciliation cadence.
-Deleted: Reconciliation 3. Execution Contract Store 1 owns it.
+Deleted: Reconciliation 3. Execution Contract Database 1 owns it.
 Reconciliation 4: The reconciliation MUST NOT triage an aged record.
 Reconciliation 5: The reconciliation MUST report an aged unpropagated record as propagation history purged.
 Reconciliation 6: The reconciliation MUST read EVERY revoked Consent record against the propagation events.
-Deleted: Reconciliation 7. Execution Contract Store 2 owns it.
-Deleted: Reconciliation 8. Execution Contract Store 2 owns it: the reconciliation's reads of a record and the writes they decide are one transaction, and the composition names no exclusion for another holder to hold.
+Deleted: Reconciliation 7. Execution Contract Database 2 owns it.
+Deleted: Reconciliation 8. Execution Contract Database 2 owns it: the reconciliation's reads of a record and the writes they decide are one transaction, and the composition names no exclusion for another holder to hold.
 Reconciliation 9: The reconciliation MUST NOT compensate a record whose owed outcome exists.
 Reconciliation 10: The reconciliation MUST pair an unpropagated record to the withdrawal intents carrying the record's consent id whose intent instant EQUALS the record's revocation instant AND whose actor EQUALS the record's revoker.
 Reconciliation 11: IF the withdrawal candidate count EQUALS zero THEN the reconciliation MUST open a write-ownership finding for the record.
@@ -532,8 +532,8 @@ Reconciliation 14: The reconciliation MUST re-derive EVERY other field of a comp
 Reconciliation 15: The reconciliation MUST read EVERY Consent record against the grant events.
 Reconciliation 16: The reconciliation MUST NOT read a zero-candidate ungranted record as a write-ownership finding.
 Reconciliation 17: The reconciliation MUST pair an ungranted record to the grant intents carrying the record's grantor as the actor, the record's subject reference AND the record's purpose whose grant skew DOES NOT EXCEED the pairing window.
-Deleted: Reconciliation 18. Execution Contract Store 1 owns it.
-Deleted: Reconciliation 19. Execution Contract Store 1 owns it.
+Deleted: Reconciliation 18. Execution Contract Database 1 owns it.
+Deleted: Reconciliation 19. Execution Contract Database 1 owns it.
 Reconciliation 20: The reconciliation MUST write a compensated grant's index entries ONLY AFTER the compensating grant event lands.
 Reconciliation 21: IF the candidate count EXCEEDS one THEN the compensating event MUST carry the intent candidates.
 Reconciliation 22: IF a registration event's pair IS NOT IN the downstream index THEN the reconciliation MUST add the binding from the event's payload.
@@ -630,7 +630,7 @@ These emerge from the composition; none belongs to one constituent, and each nee
 
 - **Invariant 3 — Revocation propagation completeness.**
   ```
-  Invariant 3.1: EVERY propagation event MUST name a consent the Consent store holds in Revoked.
+  Invariant 3.1: EVERY propagation event MUST name a consent the Consent records hold in Revoked.
   Invariant 3.2: Two propagation events MUST NOT carry one consent id.
   Invariant 3.3: A propagation event's propagation set MUST EQUAL the registered set at the event's boundary.
   Invariant 3.4: IF an unpropagated record's surfacing bound PRECEDES now THEN the composition MUST NOT leave the unpropagated record unsurfaced.
@@ -651,7 +651,7 @@ These emerge from the composition; none belongs to one constituent, and each nee
   ```
 - **Invariant 5 — Records-alone consent lifecycle.**
   ```
-  Invariant 5.1: EVERY governed consent's lifecycle MUST resolve from the Consent store, the Audit Trail instance AND the indexes alone.
+  Invariant 5.1: EVERY governed consent's lifecycle MUST resolve from the Consent records, the Audit Trail instance AND the indexes alone.
   ```
   Term lifecycle: the grant intent and grant event with the Consent record; the registration events with the downstream entry; the withdrawal intent and propagation event with the Revoked record; and every access event.
 
@@ -738,7 +738,7 @@ A [Withdraw Consent] call passes its checks and its intent, revokes, and its pro
 
 ## Generation acceptance
 
-An implementation is acceptable — in the regulator-acceptance sense — when an external auditor, given the three indexes and the Consent, Permissions, consent retention and Audit Trail substrate stores, can clear the checks below without recourse to source code, runbooks or developer narration. Every enumeration of audit events below runs through the log read, never through a query the substrate routes to Reverse Index.
+An implementation is acceptable — in the regulator-acceptance sense — when an external auditor, given the three indexes and the Consent, Permissions, consent retention and Audit Trail substrate's records, can clear the checks below without recourse to source code, runbooks or developer narration. Every enumeration of audit events below runs through the log read, never through a query the substrate routes to Reverse Index.
 
 ### Conformance checks
 
@@ -765,7 +765,7 @@ Check 6.2: An auditor MUST NOT join an outcome to an intent by any key weaker th
 Check 6.3: An auditor MUST NOT order an intent AND the intent's outcome by instant (Clock semantics 1).
 Check 6.4: An auditor MUST NOT read an intent carrying no outcome as a conformance failure (Reconciliation 10).
 Check 7.1: An auditor MUST find the audit horizon exceeding EVERY consent retention period (Capability requirement 4).
-Check 7.2: An auditor MUST find no consent id resolved from the Consent store on a subject index miss (Composition state 11).
+Check 7.2: An auditor MUST find no consent id resolved from the Consent records on a subject index miss (Composition state 11).
 Check 7.3: An auditor MUST read a payload-dependent clause on an event the verification answers purged as unverifiable (Composition state 13).
 Check 7.4: An auditor MUST read failed-verification carrying unsealed as pending the next seal (Invariant 2.2).
 Check 8.1: An auditor MUST clear Consent's Generation acceptance over the Consent instance (Composes 5).
@@ -846,10 +846,10 @@ Clock semantics 3: A comparison of the composition's instant with another seam's
 ### Concurrency
 
 ```
-Deleted: Concurrency 1. Execution Contract Store 2 owns it.
-Deleted: Concurrency 2. Execution Contract Store 2 owns it.
-Deleted: Concurrency 3. Execution Contract Store 2 owns it.
-Deleted: Concurrency 4. Execution Contract Store 2 owns it: an action's reads and the writes they decide are one transaction, and the composition names no exclusion for [Processing Permitted] to take.
+Deleted: Concurrency 1. Execution Contract Database 2 owns it.
+Deleted: Concurrency 2. Execution Contract Database 2 owns it.
+Deleted: Concurrency 3. Execution Contract Database 2 owns it.
+Deleted: Concurrency 4. Execution Contract Database 2 owns it: an action's reads and the writes they decide are one transaction, and the composition names no exclusion for [Processing Permitted] to take.
 ```
 
 ### Retention asymmetry

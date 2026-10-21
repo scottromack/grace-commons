@@ -19,7 +19,7 @@
 \*   checker's supported fragment (Naturals/FiniteSets/functions).
 \* - AppendStorageFail consumes a sequence number without landing an event,
 \*   which the page rules out: a refused append writes nothing (Execution
-\*   Contract Store 1), and State 6 raises next_seq only for an append that
+\*   Contract Database 1), and State 6 raises next_seq only for an append that
 \*   answers event id (Final Critique 5, 2026-10-20, tombstoned the Sequence
 \*   gap rules). The model is more generous than the page, so the check still
 \*   confronts monotonicity over a gapped sequence; holding there, it holds
@@ -72,7 +72,7 @@ AppendOk ==
 
 \* append(data) storage-failure, more generous than the page: a sequence number
 \* is consumed and no event lands. The page leaves next_seq unchanged on a
-\* refused append (State 6, Execution Contract Store 1); the action is kept so
+\* refused append (State 6, Execution Contract Database 1); the action is kept so
 \* monotonicity is checked over gapped runs too.
 AppendStorageFail ==
     /\ next_seq <= MaxSeq

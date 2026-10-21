@@ -4,7 +4,7 @@
 \* spec is the single source of truth. On any disagreement, diagnose per the entry
 \* *The conflict protocol* in pressure-testing.md.
 \*
-\* ONE [Record Action], one step: Execution Contract Store 1 commits its attest, append and placement
+\* ONE [Record Action], one step: Execution Contract Database 1 commits its attest, append and placement
 \* together (Capability requirement 13), so the step lands the record whole, or the evidence its
 \* refusal keeps — the attestation alone at invalid-request(step-3), the attestation and the event at
 \* invalid-request(step-4) (record action step 7.11) — or nothing, a storage failure or a crash
@@ -17,7 +17,7 @@
 \* WHAT THIS MODEL CHECKS  Invariants 1 and 2 (attest first, event first, orphan- and
 \* unretained-event closure bounded by closure sum, which budgets one dead scan run), and the
 \* one-writer discipline between scan runs (one placement, one intent, one compensation per finding;
-\* a compensated orphan never acquires its event, which the twin -split shows rests on Store 1).
+\* a compensated orphan never acquires its event, which the twin -split shows rests on Database 1).
 \*
 \* NOT MODELED
 \* - The carried ids of record action step 7.15 and 7.16 and the two-call margin of Term lease are not modelled.
@@ -124,7 +124,7 @@ HostRelease ==
     /\ holder' = "none"
     /\ UNCHANGED <<now, ipc, exp, att, attAt, ev, evAt, plc, nO, cO, nU, cU, crashes, spc1, tgt1, lr1, spc2, tgt2, lr2>>
 
-\* [Record Action], one step under Execution Contract Store 1: the record lands whole; or a refusal at step 3 keeps
+\* [Record Action], one step under Execution Contract Database 1: the record lands whole; or a refusal at step 3 keeps
 \* the attestation and a refusal at step 4 the attestation and the event, written in the refusal's own transaction
 \* (record action step 7.11); or a storage failure or a crash commits nothing.
 IRecord ==
@@ -339,7 +339,7 @@ Spec == Init /\ [][Next]_vars
 Inv1_AttestFirst == ev => att
 Inv2_EventFirst == (plc > 0) => ev
 
-\* A compensated orphan never acquires an event afterwards (Second half 9-10; Execution Contract Store 1).
+\* A compensated orphan never acquires an event afterwards (Second half 9-10; Execution Contract Database 1).
 Inv1_NoLateEvent == (cO > 0) => ~ev
 
 \* One writer per act: one placement, one intent and one compensation per finding

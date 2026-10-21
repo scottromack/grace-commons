@@ -69,10 +69,10 @@ Term constituents: [Provisional Commitment](../atoms/provisional-commitment.md),
 Composition state 1: The composition MUST store a token results map.
 Composition state 2: The composition MUST key the token results map by idempotency token.
 Composition state 3: An entry MUST carry an action type, a parameters digest, a result, a pending instant AND a completed instant.
-Deleted: Composition state 4. Execution Contract Store 1 owns it.
-Deleted: Composition state 5. Execution Contract Store 1 owns it.
+Deleted: Composition state 4. Execution Contract Database 1 owns it.
+Deleted: Composition state 5. Execution Contract Database 1 owns it.
 Composition state 6: EXACTLY ONE invocation MUST write an entry per act.
-Deleted: Composition state 7. Execution Contract Store 1 owns it: an action's writes commit together, and the composition names no overwrite to keep the pending instant across.
+Deleted: Composition state 7. Execution Contract Database 1 owns it: an action's writes commit together, and the composition names no overwrite to keep the pending instant across.
 Composition state 9: The composition MUST take the parameters digest from the seam.
 Composition state 10: The transition MUST NOT compute a parameters digest.
 Deleted: Composition state 8. Housekeeping 5 owns it.
@@ -95,20 +95,20 @@ Capability requirement 1: A deployment MUST set the idempotency window.
 Capability requirement 2: A deployment MUST set the token max length.
 Capability requirement 3: A deployment MUST set the digest function.
 Capability requirement 4: A deployment MUST set the digest function alike across EVERY instance sharing the token results map.
-Deleted: Capability requirement 5. Execution Contract Store 2 owns it.
-Deleted: Capability requirement 6. Execution Contract Store 2 owns it.
-Deleted: Capability requirement 7. Execution Contract Store 2 owns it: an action's reads of a token and the writes they decide are one transaction, and the composition names no critical section to release.
-Deleted: Capability requirement 8. Execution Contract Store 2 owns it: an action's reads of a token and the writes they decide are one transaction, and the composition names no critical section to release.
-Deleted: Capability requirement 9. Execution Contract Store 1 and Execution Contract Store 2 own it.
-Deleted: Capability requirement 10. Execution Contract Store 1 and Execution Contract Store 2 own it: the composition names no reservation completion bound for the idempotency window to exceed.
-Deleted: Capability requirement 11. Execution Contract Store 1 and Execution Contract Store 2 own it: the composition names no reservation completion bound for the idempotency window to exceed.
-Deleted: Capability requirement 12. Execution Contract Store 3 owns it.
-Deleted: Capability requirement 13. Execution Contract Store 3 and Execution Contract Store 4 own it.
-Deleted: Capability requirement 14. Execution Contract Store 3 owns it.
-Deleted: Capability requirement 15. Execution Contract Store 3 owns it.
+Deleted: Capability requirement 5. Execution Contract Database 2 owns it.
+Deleted: Capability requirement 6. Execution Contract Database 2 owns it.
+Deleted: Capability requirement 7. Execution Contract Database 2 owns it: an action's reads of a token and the writes they decide are one transaction, and the composition names no critical section to release.
+Deleted: Capability requirement 8. Execution Contract Database 2 owns it: an action's reads of a token and the writes they decide are one transaction, and the composition names no critical section to release.
+Deleted: Capability requirement 9. Execution Contract Database 1 and Execution Contract Database 2 own it.
+Deleted: Capability requirement 10. Execution Contract Database 1 and Execution Contract Database 2 own it: the composition names no reservation completion bound for the idempotency window to exceed.
+Deleted: Capability requirement 11. Execution Contract Database 1 and Execution Contract Database 2 own it: the composition names no reservation completion bound for the idempotency window to exceed.
+Deleted: Capability requirement 12. Execution Contract Database 3 owns it.
+Deleted: Capability requirement 13. Execution Contract Database 3 and Execution Contract Database 4 own it.
+Deleted: Capability requirement 14. Execution Contract Database 3 owns it.
+Deleted: Capability requirement 15. Execution Contract Database 3 owns it.
 Capability requirement 16: A deployment MUST resolve Duplicate Prevention's check fail-closed.
-Deleted: Capability requirement 17. Execution Contract Store 3 owns it.
-Capability requirement 18: The deployment MUST supply the store PER Execution Contract Store 1 through 4.
+Deleted: Capability requirement 17. Execution Contract Database 3 owns it.
+Capability requirement 18: The deployment MUST supply the database PER Execution Contract Database 1 through 4.
 ```
 
 Term idempotency window: the duration the Duplicate Prevention instance guards a token — an idempotency window.
@@ -147,25 +147,25 @@ expire(id, idempotency_token)
 
 ```
 Action wiring 1: EVERY state-changing action MUST take an idempotency token.
-Deleted: Action wiring 2. Execution Contract Store 2 owns it.
-Deleted: Action wiring 3. Execution Contract Store 2 owns it.
-Deleted: Action wiring 4. Execution Contract Store 2 owns it.
-Deleted: Action wiring 5. Execution Contract Store 2 owns it: an action's reads of a token and the writes they decide are one transaction, and the composition names no critical section to release.
-Deleted: Action wiring 6. Execution Contract Store 2 owns it: an action's reads of a token and the writes they decide are one transaction, and the composition names no critical section to lapse.
+Deleted: Action wiring 2. Execution Contract Database 2 owns it.
+Deleted: Action wiring 3. Execution Contract Database 2 owns it.
+Deleted: Action wiring 4. Execution Contract Database 2 owns it.
+Deleted: Action wiring 5. Execution Contract Database 2 owns it: an action's reads of a token and the writes they decide are one transaction, and the composition names no critical section to release.
+Deleted: Action wiring 6. Execution Contract Database 2 owns it: an action's reads of a token and the writes they decide are one transaction, and the composition names no critical section to lapse.
 Action wiring 7: IF an entry's action type differs from the call's action type THEN the composition MUST answer token-collision.
 Action wiring 8: IF an entry's parameters digest differs from the call's parameters digest THEN the composition MUST answer token-collision.
 Action wiring 9: The composition MUST answer a matching complete entry's result.
 Action wiring 10: The composition MUST NOT call a constituent for a matching complete entry.
-Deleted: Action wiring 11. Execution Contract Store 1 owns it.
+Deleted: Action wiring 11. Execution Contract Database 1 owns it.
 Action wiring 12: The composition MUST evict a complete entry the idempotency window elapsed for AND Duplicate Prevention's check answers not-seen for.
-Deleted: Action wiring 13. Execution Contract Store 1 owns it.
-Deleted: Action wiring 14. Execution Contract Store 1 owns it.
-Deleted: Action wiring 15. Execution Contract Store 1 owns it.
-Deleted: Action wiring 16. Execution Contract Store 1 owns it.
-Deleted: Action wiring 17. Execution Contract Store 1 owns it.
-Deleted: Action wiring 18. Execution Contract Store 1 owns it.
-Deleted: Action wiring 19. Execution Contract Store 1 owns it: an action's writes commit together, so no recording failure names the outcome.
-Deleted: Action wiring 20. Execution Contract Store 1 owns it.
+Deleted: Action wiring 13. Execution Contract Database 1 owns it.
+Deleted: Action wiring 14. Execution Contract Database 1 owns it.
+Deleted: Action wiring 15. Execution Contract Database 1 owns it.
+Deleted: Action wiring 16. Execution Contract Database 1 owns it.
+Deleted: Action wiring 17. Execution Contract Database 1 owns it.
+Deleted: Action wiring 18. Execution Contract Database 1 owns it.
+Deleted: Action wiring 19. Execution Contract Database 1 owns it: an action's writes commit together, so no recording failure names the outcome.
+Deleted: Action wiring 20. Execution Contract Database 1 owns it.
 Action wiring 21: The composition MUST answer Provisional Commitment's answer to the caller.
 Action wiring 22: A read-only query MUST NOT take an idempotency token.
 Action wiring 23: A read-only query MUST NOT consult the token results map.
@@ -184,7 +184,7 @@ Wiring decision 1: The composition MUST record EVERY constituent answer against 
 Wiring decision 2: The composition MUST record a constituent's rejection against the token.
 Wiring decision 3: The composition MUST NOT record an answer for a malformed idempotency token.
 Wiring decision 4: The composition MUST NOT record a [Place Hold] answer the composition returned on a seen token carrying no entry.
-Deleted: Wiring decision 5. Execution Contract Store 1 owns it: an action's writes commit together, so the composition answers no recording failure to record.
+Deleted: Wiring decision 5. Execution Contract Database 1 owns it: an action's writes commit together, so the composition answers no recording failure to record.
 ```
 
 WHY:
@@ -195,9 +195,9 @@ The two exclusions share one reason: the composition did not act, so it holds no
 ### Housekeeping
 
 ```
-Deleted: Housekeeping 1. Execution Contract Store 2 owns it.
-Deleted: Housekeeping 2. Execution Contract Store 2 owns it: the eviction leg's reads of a token and the eviction they decide are one transaction, and the composition names no critical section for another holder to hold.
-Deleted: Housekeeping 3. Execution Contract Store 1 owns it.
+Deleted: Housekeeping 1. Execution Contract Database 2 owns it.
+Deleted: Housekeeping 2. Execution Contract Database 2 owns it: the eviction leg's reads of a token and the eviction they decide are one transaction, and the composition names no critical section for another holder to hold.
+Deleted: Housekeeping 3. Execution Contract Database 1 owns it.
 Housekeeping 4: The eviction leg MUST evict an entry ONLY IF Duplicate Prevention's check answers not-seen.
 Housekeeping 5: The eviction leg MUST evict an entry ONLY IF the idempotency window elapsed since the entry's pending instant.
 Housekeeping 6: The eviction leg MUST NOT evict a seen token's entry.
@@ -242,7 +242,7 @@ These emerge from the composition; none belongs to one constituent.
   ```
 - **Invariant 8 — Exactly-once effect within the window.**
   ```
-  Invariant 8.1: The composition MUST make the exactly-once claim ONLY IF the deployment declares Duplicate Prevention's store obligations.
+  Invariant 8.1: The composition MUST make the exactly-once claim ONLY IF the deployment declares Duplicate Prevention's database obligations.
   Invariant 8.2: An admitted first invocation MUST reach Provisional Commitment EXACTLY ONE time inside the idempotency window.
   ```
 
@@ -271,7 +271,7 @@ An emergency department coordinator clicks *Assign Bed* on the dashboard. The da
 
 ### Retail — inventory reservation with mobile retry
 
-A shopper on flaky mobile WiFi taps *Reserve* on a one-of-one luxury item. The app generates an idempotency token from the cart session id and the item sku, attaches it to the request, and retries on network failure with exponential backoff. The composition guarantees the shopper either reserves the item once and sees a successful reservation, or sees a single resource-unavailable rejection (someone else got there first) regardless of how many retries the network handler attempts — or, where the duplicate check fails closed on an unavailable store, `outcome-unknown(candidates)` naming the hold it can see but cannot pair, which the app resolves before trying again under a fresh token. No phantom *two reservations* state.
+A shopper on flaky mobile WiFi taps *Reserve* on a one-of-one luxury item. The app generates an idempotency token from the cart session id and the item sku, attaches it to the request, and retries on network failure with exponential backoff. The composition guarantees the shopper either reserves the item once and sees a successful reservation, or sees a single resource-unavailable rejection (someone else got there first) regardless of how many retries the network handler attempts — or, where the duplicate check fails closed on an unavailable database, `outcome-unknown(candidates)` naming the hold it can see but cannot pair, which the app resolves before trying again under a fresh token. No phantom *two reservations* state.
 
 ### Airline — seat hold with session replay
 
@@ -290,7 +290,7 @@ Three scenarios the composition must survive in regulated contexts, beyond happy
 
 ## Generation acceptance
 
-An implementation is acceptable when an external auditor, given the commitment store, the recorded set and the token results map, can clear the checks below without recourse to source code, runbooks or developer narration.
+An implementation is acceptable when an external auditor, given the commitment records, the recorded set and the token results map, can clear the checks below without recourse to source code, runbooks or developer narration.
 
 ### Conformance checks
 
@@ -299,11 +299,11 @@ Check 1.1: An auditor MUST find EVERY token results entry carrying one action ty
 Check 1.2: An auditor MUST find EVERY token results entry carrying one parameters digest (Invariant 4.2).
 Check 2.1: An auditor MUST find no idempotency token bound to two commitment ids inside the idempotency window (Invariant 3.1).
 Check 3.1: An auditor MUST find EVERY complete entry carrying the result the constituent answered (Wiring decision 1).
-Deleted: Check 3.2. Execution Contract Store 1 owns it.
+Deleted: Check 3.2. Execution Contract Database 1 owns it.
 Check 4.1: An auditor MUST find no evicted entry whose token Duplicate Prevention's check answers seen for (Housekeeping 6).
 Check 4.2: An auditor MUST find no evicted entry younger than the idempotency window (Housekeeping 5).
 Check 5.1: An auditor MUST find EVERY recovered entry marked (Indeterminate outcome 8).
-Deleted: Check 5.2. Execution Contract Store 1 owns it: an action's writes commit together, so no entry records outcome-unknown.
+Deleted: Check 5.2. Execution Contract Database 1 owns it: an action's writes commit together, so no entry records outcome-unknown.
 ```
 
 NOTE: EVERY check names the rule the check tests.
@@ -311,10 +311,10 @@ NOTE: EVERY check names the rule the check tests.
 ### External checks
 
 ```
-Deleted: External check 1. Execution Contract Store 2 owns it.
-Deleted: External check 2. Execution Contract Store 3 owns it.
+Deleted: External check 1. Execution Contract Database 2 owns it.
+Deleted: External check 2. Execution Contract Database 3 owns it.
 External check 3: An auditor needing Duplicate Prevention's fail-closed posture confirmed MUST read the deployment's own configuration (Capability requirement 16).
-Deleted: External check 4. Execution Contract Store 3 owns it.
+Deleted: External check 4. Execution Contract Database 3 owns it.
 External check 5: An auditor needing the exactly-once claim confirmed MUST read External check 3 (Invariant 8.1).
 External check 6: An auditor needing a constituent's own guarantee confirmed MUST read the constituent's own acceptance (Composes 5).
 External check 7: An auditor needing the idempotency window confirmed MUST read the deployment's own configuration (Capability requirement 1).
@@ -332,7 +332,7 @@ Non-goal 2: The composition MUST NOT bound the idempotency window.
 Non-goal 3: The composition MUST NOT mint an idempotency token.
 Non-goal 4: A caller MUST mint an idempotency token.
 Non-goal 5: The composition MUST NOT interpret an idempotency token.
-Deleted: Non-goal 6. Execution Contract Store 1 owns it.
+Deleted: Non-goal 6. Execution Contract Database 1 owns it.
 Non-goal 7: A deployment needing a multi-commitment transaction MUST compose a transaction pattern.
 Non-goal 8: The composition MUST NOT resolve the candidates.
 Non-goal 9: The composition MUST NOT record an authorization.
@@ -349,20 +349,20 @@ Non-goal 13: The composition MUST NOT promise a closure window for a stale entry
 ### Indeterminate outcome
 
 ```
-Deleted: Indeterminate outcome 1. Execution Contract Store 1 owns it.
-Deleted: Indeterminate outcome 2. Execution Contract Store 1 owns it: an action's writes commit together, so no call finds a pending entry.
+Deleted: Indeterminate outcome 1. Execution Contract Database 1 owns it.
+Deleted: Indeterminate outcome 2. Execution Contract Database 1 owns it: an action's writes commit together, so no call finds a pending entry.
 Indeterminate outcome 3: The composition MUST compute the candidates from Provisional Commitment's held commitments.
 Indeterminate outcome 4: The composition MUST keep a held commitment whose resource AND requester equal the call's in the candidates.
-Deleted: Indeterminate outcome 5. Execution Contract Store 1 owns it: an action's writes commit together, so no call finds a pending entry.
-Deleted: Indeterminate outcome 6. Execution Contract Store 1 owns it: an action's writes commit together, so no call finds a pending entry.
+Deleted: Indeterminate outcome 5. Execution Contract Database 1 owns it: an action's writes commit together, so no call finds a pending entry.
+Deleted: Indeterminate outcome 6. Execution Contract Database 1 owns it: an action's writes commit together, so no call finds a pending entry.
 Indeterminate outcome 7: An outcome-unknown answer MUST carry the candidates.
 Indeterminate outcome 8: The composition MUST mark a recovered entry.
-Deleted: Indeterminate outcome 9. Execution Contract Store 1 owns it: an action's writes commit together, so no call finds a pending entry.
+Deleted: Indeterminate outcome 9. Execution Contract Database 1 owns it: an action's writes commit together, so no call finds a pending entry.
 Indeterminate outcome 10: The composition MUST answer outcome-unknown for a [Place Hold] carrying a seen token AND no entry.
 Indeterminate outcome 11: A caller MUST resolve the candidates.
-Deleted: Indeterminate outcome 12. Execution Contract Store 1 owns it: an action's writes commit together, so no caller receives a recording failure naming the outcome.
+Deleted: Indeterminate outcome 12. Execution Contract Database 1 owns it: an action's writes commit together, so no caller receives a recording failure naming the outcome.
 Indeterminate outcome 13: A resolving action MUST run again for a seen token carrying no entry.
-Deleted: Indeterminate outcome 14. Execution Contract Store 3 owns it: the store acknowledges a write only once it commits, so no resolving action answers outcome-unknown.
+Deleted: Indeterminate outcome 14. Execution Contract Database 3 owns it: the database acknowledges a write only once it commits, so no resolving action answers outcome-unknown.
 ```
 
 Term candidates: for a [Place Hold], the held commitments of the Provisional Commitment instance whose resource and requester equal the call's — a candidates set; the composition's own filter over a constituent read, never a constituent's answer.
@@ -387,7 +387,7 @@ Composition note 5: A deployment MUST NOT expose a constituent's own caller surf
 
 ## Terms
 
-The canonical concepts this spec refers to. Each `term` marker in the prose above links to its term entry here. A term entry states what the concept *is*, in plain English, plus its **Kind** — one of five: **Type** (a thing or category), **Operation** (a behavior), **Member** (a value of an enumerated Type), or, for a named datum, **Field** (a datum a Type carries — *what does it carry?*) or **Parameter** (a value an Operation needs — *what does it need?*). A term entry also names the Type it is a **Member of** / **Field of**, the Operation it is a **Parameter of**, and its **Role** where the domain assigns one. A term entry carries one **Projection** line — the concept's single canonical lowering token, the one place the concrete name stays visible on the page — for every Field, Parameter, and pinned/wire Member. Everything else about casing (each target's snake / camel / pascal / const / wire form) is **derived** from that one token by [`tools/harness/term-adapter.mjs`](../tools/harness/term-adapter.mjs), never hand-written. This is a composition, so its own concepts are the retry-safe action-wirings it exposes ([Place Hold], [Confirm], [Release], [Expire]), the [Idempotency Token] it introduces on every call, and the fields of the recorded outcome it caches ([Action Type], [Parameters Digest], [Result]) plus its own [Token Collision] and [Outcome Unknown] rejections. It carries one piece of own state — the `token_results` map (classified extraction-pending, the proposed *Idempotency Result Memo* atom) — left as a backticked store token rather than carded as a Type, so its Fields are carded against the plain-noun recorded outcome. References to the constituent atoms and their operations — Provisional Commitment's place_hold/confirm/release/expire, Duplicate Prevention's `check`/`record` — the inherited rejection tokens (resource-unavailable, not-known, not-held, window-elapsed, window-not-elapsed, storage-failure, invalid-request), the entry states and stamps (`recovery`, `pending_at`, `completed_at`), and the deployment configuration knobs (`idempotency_window`, `token_max_length`, `digest_function`, `duplicate_prevention_store`) all remain qualified/backticked, not carded here. *(annotation.md Terms registry; representational only — it changes no guarantee, invariant, or behavior of the composition above.)*
+The canonical concepts this spec refers to. Each `term` marker in the prose above links to its term entry here. A term entry states what the concept *is*, in plain English, plus its **Kind** — one of five: **Type** (a thing or category), **Operation** (a behavior), **Member** (a value of an enumerated Type), or, for a named datum, **Field** (a datum a Type carries — *what does it carry?*) or **Parameter** (a value an Operation needs — *what does it need?*). A term entry also names the Type it is a **Member of** / **Field of**, the Operation it is a **Parameter of**, and its **Role** where the domain assigns one. A term entry carries one **Projection** line — the concept's single canonical lowering token, the one place the concrete name stays visible on the page — for every Field, Parameter, and pinned/wire Member. Everything else about casing (each target's snake / camel / pascal / const / wire form) is **derived** from that one token by [`tools/harness/term-adapter.mjs`](../tools/harness/term-adapter.mjs), never hand-written. This is a composition, so its own concepts are the retry-safe action-wirings it exposes ([Place Hold], [Confirm], [Release], [Expire]), the [Idempotency Token] it introduces on every call, and the fields of the recorded outcome it caches ([Action Type], [Parameters Digest], [Result]) plus its own [Token Collision] and [Outcome Unknown] rejections. It carries one piece of own state — the `token_results` map (classified extraction-pending, the proposed *Idempotency Result Memo* atom) — left as a backticked record token rather than carded as a Type, so its Fields are carded against the plain-noun recorded outcome. References to the constituent atoms and their operations — Provisional Commitment's place_hold/confirm/release/expire, Duplicate Prevention's `check`/`record` — the inherited rejection tokens (resource-unavailable, not-known, not-held, window-elapsed, window-not-elapsed, storage-failure, invalid-request), the entry states and stamps (`recovery`, `pending_at`, `completed_at`), and the deployment configuration knobs (`idempotency_window`, `token_max_length`, `digest_function`, `duplicate_prevention_store`) all remain qualified/backticked, not carded here. *(annotation.md Terms registry; representational only — it changes no guarantee, invariant, or behavior of the composition above.)*
 
 ### Vocabulary
 

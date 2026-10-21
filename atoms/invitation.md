@@ -48,7 +48,7 @@ Identity 2: The atom MUST assign the invitation token from the token material th
 Identity 3: The atom MUST NOT generate an invitation token.
 Identity 4: The atom MUST NOT change an invitation's invitation token.
 Identity 5: Two invitations MUST NOT share an invitation token.
-Identity 6: IF the store holds the invitation token THEN [Initiate] MUST answer storage-failure.
+Identity 6: IF the database holds the invitation token THEN [Initiate] MUST answer storage-failure.
 Identity 7: The atom MUST NOT identify an invitation by a property.
 Identity 8: The atom MUST compare a reference byte-exactly.
 Identity 9: The atom MUST NOT normalize a reference.
@@ -56,7 +56,7 @@ Identity 10: The atom MUST NOT confirm that an inviter reference names a known a
 Identity 11: The atom MUST NOT confirm that an invitee reference names a known actor.
 Identity 12: The atom MUST NOT confirm that an accepting identity reference names a known identity.
 Identity 13: The atom MUST NOT match an accepting identity reference against an invitee reference.
-Identity 14: The deployment MUST route EVERY call to one store instance.
+Identity 14: The deployment MUST route EVERY call to one database instance.
 ```
 
 Term invitation: the record this atom holds — one invitation issued by one inviter to join one context, resolving actor at most one write.
@@ -67,11 +67,11 @@ Term property: inviter reference | invitee reference | context | initiation inst
 
 Term reference: invitation token, inviter reference, invitee reference, accepting identity reference OR revoked by reference — every opaque reference this atom records.
 
-Term store instance: one named invitation store a call is routed to; invitation token uniqueness ranges over one instance.
+Term database instance: one named database a call is routed to; invitation token uniqueness ranges over one instance.
 
 Term seam: the atom's I/O boundary as the section titled Logic Confinement Principle in `execution-contract.md` declares it; the host injects the clock reading and the token material here.
 
-Term transition: the atom's evaluation of one call against the invitation store, as the section titled Logic Confinement Principle in `execution-contract.md` declares it.
+Term transition: the atom's evaluation of one call against the invitation records, as the section titled Logic Confinement Principle in `execution-contract.md` declares it.
 
 Term now: the wall-time reading the host takes at the seam and hands to the transition, as the section titled Logic Confinement Principle in `execution-contract.md` declares it; never read inside the transition, never supplied by the business caller.
 
@@ -90,7 +90,7 @@ State 9: The atom MUST NOT record the ttl under the ttl's own name.
 State 10: The atom MUST NOT offer a re-open surface.
 State 11: The atom MUST NOT offer a window extension surface.
 State 12: The atom MUST NOT offer an invitation removal surface.
-State 13: The store instance's invitation count MUST NOT fall.
+State 13: The database instance's invitation count MUST NOT fall.
 ```
 
 Term resolution field: accepting identity reference | acceptance instant | declination instant | revocation instant | revoked by reference | revocation reason — every field a resolving write records.
@@ -106,11 +106,11 @@ Capability requirement 2: The deployment MUST supply the token material at the s
 Capability requirement 3: The deployment MUST supply token material drawn from a cryptographically random source.
 Capability requirement 4: The deployment MUST declare the default ttl.
 Capability requirement 5: The deployment MUST declare the ttl bounds.
-Capability requirement 6: The store MUST refuse a write carrying an invitation token the store holds.
-Deleted: Capability requirement 7. Execution Contract Store 3 owns it.
+Capability requirement 6: The database MUST refuse a write carrying an invitation token the database holds.
+Deleted: Capability requirement 7. Execution Contract Database 3 owns it.
 Capability requirement 8: The deployment MUST canonicalize an opaque reference.
 Capability requirement 9: The deployment MUST deliver the invitation token to the invitee.
-Capability requirement 12: The deployment MUST supply the invitation store PER Execution Contract Store 1 through 4.
+Capability requirement 12: The deployment MUST supply the invitation records PER Execution Contract Database 1 through 4.
 Deleted: Capability requirement 10. Execution Contract Logic confinement 7 owns it.
 Deleted: Capability requirement 11. Execution Contract Logic confinement 7 owns it.
 Deleted: Clock semantics 4. Execution Contract Logic confinement 7 owns it.
@@ -179,8 +179,8 @@ Operation 30: An admitted decline MUST stand the invitation in declined.
 Operation 31: An admitted decline MUST record now as declination instant.
 Operation 32: An admitted revoke MUST stand the invitation in revoked.
 Operation 33: An admitted revoke MUST record revoked by reference, reason as revocation reason and now as revocation instant.
-Deleted: Operation 34. Execution Contract Store 1 owns it.
-Operation 35: IF the store refuses the write THEN an action MUST answer storage-failure.
+Deleted: Operation 34. Execution Contract Database 1 owns it.
+Operation 35: IF the database refuses the write THEN an action MUST answer storage-failure.
 Operation 36: An action MUST answer storage-failure ONLY IF EVERY precondition passes.
 Operation 37: A refused action MUST leave the invitation as the call found the invitation.
 Operation 38: A refused [Initiate] MUST NOT record an invitation.
@@ -218,13 +218,13 @@ Term effective status: expired where the invitation reads lapsed, and the stored
 
 Term acting reference: accepting identity reference OR revoked by reference — the reference a write records for who acted.
 
-Term admitted initiate: an [Initiate] call that passes every precondition and whose store write commits.
+Term admitted initiate: an [Initiate] call that passes every precondition and whose database write commits.
 
-Term admitted accept: an [Accept] call that passes every precondition and whose store write commits.
+Term admitted accept: an [Accept] call that passes every precondition and whose database write commits.
 
-Term admitted decline: a [Decline] call that passes every precondition and whose store write commits.
+Term admitted decline: a [Decline] call that passes every precondition and whose database write commits.
 
-Term admitted revoke: a [Revoke] call that passes every precondition and whose store write commits.
+Term admitted revoke: a [Revoke] call that passes every precondition and whose database write commits.
 
 Term admitted resolving write: an admitted accept, an admitted decline OR an admitted revoke.
 
@@ -245,7 +245,7 @@ Term admitted read: a [Read] call that answers.
 - **Invariant 3 — Acceptance binds identity.**
   ```
   Invariant 3.1: EVERY accepted invitation MUST carry a non-blank accepting identity reference.
-  Deleted: Invariant 3.2. Execution Contract Store 1 owns it.
+  Deleted: Invariant 3.2. Execution Contract Database 1 owns it.
   Deleted: Invariant 4. Identity 13, State 2 and Operation 6 own the opaque invitee.
   ```
 - **Invariant 5 — The stored terminals are structurally distinct.**
@@ -273,10 +273,10 @@ Term admitted read: a [Read] call that answers.
   ```
 - **Invariant 10 — Invitation durability.**
   ```
-  Invariant 10.1: The atom MUST NOT remove an invitation from the store.
-  Deleted: Invariant 10.2. Execution Contract Store 1 owns it.
+  Invariant 10.1: The atom MUST NOT remove an invitation from the database.
+  Deleted: Invariant 10.2. Execution Contract Database 1 owns it.
   ```
-- **Invariant 11 — Token uniqueness is store-enforced.**
+- **Invariant 11 — Token uniqueness is database-enforced.**
   ```
   Invariant 11.1: An invitation token MUST resolve to EXACTLY ONE invitation.
   ```
@@ -312,15 +312,15 @@ Term admitted read: a [Read] call that answers.
 
 ### Regulated adversarial scenarios
 
-- **Regulator audit.** *Prove that every user who reached patient records joined through a documented invitation from an authorized administrator.* Filter the store to accepted invitations whose context names that system; each record carries the administrator who invited (inviter reference), when the join committed (acceptance instant) and the identity bound (accepting identity reference). Invariant 3.1 is what makes the last of those never empty, so every current participant traces to one invitation and one administrator.
+- **Regulator audit.** *Prove that every user who reached patient records joined through a documented invitation from an authorized administrator.* Filter the database to accepted invitations whose context names that system; each record carries the administrator who invited (inviter reference), when the join committed (acceptance instant) and the identity bound (accepting identity reference). Invariant 3.1 is what makes the last of those never empty, so every current participant traces to one invitation and one administrator.
 - **Disputed onboarding.** *I never accepted an invitation — my account was made without me.* Filter by accepting identity reference; Invariant 2.1 means there is at most one resolved invitation bound to that identity, and it carries the instant the token was presented. Whether that person or someone holding their token made the call is outside this atom — the record says a bearer presented `tok_inv_e5f6g7` at that instant and supplied that identity, and the composing [Audit Trail](../compositions/audit-trail.md) carries the device, the address and the credential registered alongside.
-- **Breach investigation.** Tokens for a high-security context were exposed in a log over a week. Filter by initiation instant in that window and read each effective status against the investigation clock: the accepted ones are cross-checked against known staff, the still-live ones are revoked at once, and the lapsed ones need nothing — no write ever fired against them and an accept would answer expired. Invariant 5.1 and Invariant 12.2 are what make that triage possible from the store and a clock alone.
+- **Breach investigation.** Tokens for a high-security context were exposed in a log over a week. Filter by initiation instant in that window and read each effective status against the investigation clock: the accepted ones are cross-checked against known staff, the still-live ones are revoked at once, and the lapsed ones need nothing — no write ever fired against them and an accept would answer expired. Invariant 5.1 and Invariant 12.2 are what make that triage possible from the database and a clock alone.
 
 ---
 
 ## Generation acceptance
 
-This atom's acceptance is what an external auditor can clear from the invitation store and the read-time clock alone, with no recourse to source code, runbooks or developer narration.
+This atom's acceptance is what an external auditor can clear from the invitation records and the read-time clock alone, with no recourse to source code, runbooks or developer narration.
 
 ### Conformance checks
 
@@ -342,8 +342,8 @@ Check 6.2: An auditor MUST find no invitation's expiry instant changed across a 
 Check 7.1: An auditor MUST find no invitation token on two invitations (Identity 5, Invariant 11.1).
 Check 7.2: An auditor MUST find a re-read invitation's properties unchanged across an admitted resolving write (Invariant 1.1).
 Check 8.1: An auditor MUST find no invitation absent from a later read (Invariant 10.1).
-Check 8.2: An auditor MUST find the store instance's invitation count no lower on a later read (State 13).
-Check 9.1: An auditor MUST reconstruct EVERY invitation of one context from the store (State 1, State 13, Invariant 10.1).
+Check 8.2: An auditor MUST find the database instance's invitation count no lower on a later read (State 13).
+Check 9.1: An auditor MUST reconstruct EVERY invitation of one context from the database (State 1, State 13, Invariant 10.1).
 ```
 
 NOTE: EVERY check names the rule the check tests.
@@ -356,7 +356,7 @@ External check 2: A deployment needing an accepting identity reference matched t
 External check 3: A deployment needing the inviter's authority confirmed MUST read the composing policy layer (Non-goal 6).
 External check 4: A deployment needing the token's delivery to the invitee confirmed MUST read the delivery channel (Non-goal 4).
 External check 5: A deployment needing a declining actor identified MUST read the composing pattern's own record (Operation 27, Non-goal 12).
-External check 6: A deployment needing the store confirmed free of a retroactive edit MUST read the composing Tamper Evidence (Non-goal 20).
+External check 6: A deployment needing the database confirmed free of a retroactive edit MUST read the composing Tamper Evidence (Non-goal 20).
 External check 7: A deployment needing the accepting party's real-world identity confirmed MUST read the composing Party Identity proofing (Non-goal 18).
 ```
 
@@ -383,7 +383,7 @@ Non-goal 15: The atom MUST NOT bind an acting reference to an actor.
 Non-goal 16: A deployment needing a non-repudiable acceptance MUST compose Actor Identity.
 Non-goal 17: The atom MUST NOT verify an accepting party's real-world credentials.
 Non-goal 18: A deployment needing identity proofing MUST compose Party Identity.
-Non-goal 19: The atom MUST NOT detect a rewrite under the store.
+Non-goal 19: The atom MUST NOT detect a rewrite under the database.
 Non-goal 20: A deployment needing a rewrite detected MUST compose Tamper Evidence.
 Non-goal 21: The atom MUST NOT bound an invitation's retention.
 Non-goal 22: The atom MUST NOT record an answer the atom gave.
@@ -402,18 +402,18 @@ NOTE: the owners — [Capability](./capability.md) (Non-goal 11, Non-goal 23, Co
 ### Atomic writes
 
 ```
-Deleted: Atomic writes 1. Execution Contract Store 1 owns it.
-Deleted: Atomic writes 2. Execution Contract Store 1 and Execution Contract Store 3 own it.
-Deleted: Atomic writes 3. Execution Contract Store 1 owns it.
-Deleted: Atomic writes 4. Execution Contract Store 1 owns it.
+Deleted: Atomic writes 1. Execution Contract Database 1 owns it.
+Deleted: Atomic writes 2. Execution Contract Database 1 and Execution Contract Database 3 own it.
+Deleted: Atomic writes 3. Execution Contract Database 1 owns it.
+Deleted: Atomic writes 4. Execution Contract Database 1 owns it.
 ```
 
 ### Concurrency
 
 ```
-Deleted: Concurrency 1. Execution Contract Store 1 and Execution Contract Store 2 own it.
-Deleted: Concurrency 2. Execution Contract Store 2 owns it.
-Deleted: Concurrency 3. Execution Contract Store 2 owns it.
+Deleted: Concurrency 1. Execution Contract Database 1 and Execution Contract Database 2 own it.
+Deleted: Concurrency 2. Execution Contract Database 2 owns it.
+Deleted: Concurrency 3. Execution Contract Database 2 owns it.
 ```
 
 ### String policy
@@ -443,7 +443,7 @@ Composition note 4: A composing Event Log MUST append an event on EVERY admitted
 Composition note 5: A composing Event Log MUST append an event on EVERY refused action.
 Composition note 6: A composing Actor Identity MUST attest the actor behind an admitted accept.
 Composition note 7: A composing Actor Identity MUST attest the actor behind an admitted initiate.
-Composition note 8: A composing Tamper Evidence MUST cover EVERY reference the store holds.
+Composition note 8: A composing Tamper Evidence MUST cover EVERY reference the database holds.
 Composition note 9: A composing Capability MUST call [Initiate] PER redemption.
 ```
 
@@ -457,7 +457,7 @@ Each `[Term]` marker above links to its term entry here; a term entry states wha
 
 ### Vocabulary
 
-Term actors: the atom; the deployment; the store; the seam; the transition; a composing pattern; a caller; an auditor; a regulator; an investigator; a reader; an invitation; a pending invitation; an accepted invitation; a declined invitation; a revoked invitation; a lapsed invitation; an action; a resolving write; a refused action; an answer; a token holder; an opaque reference; a string input; a filter; the store instance's invitation count.
+Term actors: the atom; the deployment; the database; the seam; the transition; a composing pattern; a caller; an auditor; a regulator; an investigator; a reader; an invitation; a pending invitation; an accepted invitation; a declined invitation; a revoked invitation; a lapsed invitation; an action; a resolving write; a refused action; an answer; a token holder; an opaque reference; a string input; a filter; the database instance's invitation count.
 
 Term records: invitation — one invitation issued by one inviter to join one context, carrying invitation token, inviter reference, context, initiation instant, expiry instant, a status and, where supplied or set, invitee reference, accepting identity reference, acceptance instant, declination instant, revoked by reference, revocation reason and revocation instant.
 
@@ -471,7 +471,7 @@ Term cadences: empty.
 
 Term qualifiers: migrated — rewritten in GRACE lang v0.40 (2026-09-13).
 
-Term terms: invitation, invitation token, property, reference, store instance, seam, transition, now, resolving write, stored terminal, status, status check, ttl bounds, default ttl, expiry bound, window reading, live, lapsed, effective status, acting reference, admitted initiate, admitted accept, admitted decline, admitted revoke, admitted resolving write, admitted read, resolution field, resolution instant, string input, blank.
+Term terms: invitation, invitation token, property, reference, database instance, seam, transition, now, resolving write, stored terminal, status, status check, ttl bounds, default ttl, expiry bound, window reading, live, lapsed, effective status, acting reference, admitted initiate, admitted accept, admitted decline, admitted revoke, admitted resolving write, admitted read, resolution field, resolution instant, string input, blank.
 
 Term cited: the section titled Logic Confinement Principle in `execution-contract.md` — the seam and the transition.
 
@@ -518,7 +518,7 @@ Projection: status
 
 #### Invitation Token
 
-The opaque, immutable identity of an [Invitation] and the bearer credential a holder presents. Assigned on [Initiate] from the token material the seam supplies, drawn from a cryptographically random source, and unique by the store's refusal of a colliding write rather than by probability.
+The opaque, immutable identity of an [Invitation] and the bearer credential a holder presents. Assigned on [Initiate] from the token material the seam supplies, drawn from a cryptographically random source, and unique by the database's refusal of a colliding write rather than by probability.
 
 Kind:       Field
 Field of:   Invitation
@@ -730,7 +730,7 @@ Projection: expired
 
 #### Storage Failure
 
-The refusal any action returns when the store refuses the write after every precondition passes — including the store's refusal of a colliding [Invitation Token]. No invitation is recorded, or the invitation remains [Pending].
+The refusal any action returns when the database refuses the write after every precondition passes — including the database's refusal of a colliding [Invitation Token]. No invitation is recorded, or the invitation remains [Pending].
 
 Kind:       Member
 Member of:  the action rejection

@@ -37,7 +37,7 @@ Many regulated actions require more than one human approval before they may proc
 
 The composition addresses what the constituent atoms cannot answer alone. Approval Step records each gate but never asks *"is the chain done?"* Permissions records who may initiate a chain but never asks *"did the quorum's named approvers actually decide?"* Assignment binds work to actors but never asks *"is the work part of a multi-actor gate?"* Audit Trail records actions of consequence but never asks *"do these actions constitute a complete approval chain under the named rule?"* Stacked correctly, the four answer the auditor's actual question in one structure: a chain identity that names the required approvers and rule, N Approval Step records under that chain identity, an Assignment record per pending step, attestations and event-log entries for every chain-level and step-level action, and a deterministic chain-state evaluation that any reader can reproduce from the records.
 
-This is a composition, not a new primitive. The four constituents — three atoms and the Audit Trail substrate — are unchanged. The composition is the wiring that makes their concepts coherent — one consolidated multi-party-approval surface rather than four parallel record stores the auditor has to correlate by hand.
+This is a composition, not a new primitive. The four constituents — three atoms and the Audit Trail substrate — are unchanged. The composition is the wiring that makes their concepts coherent — one consolidated multi-party-approval surface rather than four parallel record sets the auditor has to correlate by hand.
 
 ---
 
@@ -90,7 +90,7 @@ Adjacent, **not** constituents: [Privileged Access Provisioning](./privileged-ac
 ### Composition state
 
 ```
-Composition state 1: The composition MUST store the chain store, the step list index, the step-chain index, the step-assignment index AND the event index.
+Composition state 1: The composition MUST store the chain records, the step list index, the step-chain index, the step-assignment index AND the event index.
 Composition state 2: A chain record MUST carry the declared fields, the chain state, the terminal instant, the quarantine flag AND the landed ids.
 Composition state 3: EVERY audit event other than an initiation intent MUST carry the chain id.
 Composition state 4: A chain-shape event MUST carry the chain shape.
@@ -101,18 +101,18 @@ Composition state 8: The composition MUST NOT remove a chain record.
 Composition state 9: The composition MUST classify a chain record in an open initiation window as truth-bearing.
 Composition state 10: The composition MUST classify a live index entry as a derived index.
 Composition state 11: The composition MUST classify a purged index entry as truth-bearing.
-Composition state 12: The composition MUST rebuild the chain store AND the step list index PER the chain rebuild.
+Composition state 12: The composition MUST rebuild the chain records AND the step list index PER the chain rebuild.
 Composition state 13: A rebuild MUST retain EVERY chain record the chain rebuild does not produce.
-Deleted: Composition state 14. Execution Contract Store 1 owns it.
-Deleted: Composition state 15. Execution Contract Store 1 owns it: an initiation's chain record and its chain-shape event commit together, and the composition names no record a rebuild hands to the initiation leg.
+Deleted: Composition state 14. Execution Contract Database 1 owns it.
+Deleted: Composition state 15. Execution Contract Database 1 owns it: an initiation's chain record and its chain-shape event commit together, and the composition names no record a rebuild hands to the initiation leg.
 Composition state 16: The composition MUST rebuild the step-chain index by inverting the step list index.
 Composition state 17: The composition MUST rebuild the step-assignment index through the assignment history of each step id.
 Composition state 18: The composition MUST rebuild the event index PER the event rebuild.
-Deleted: Composition state 19. Execution Contract Store 3 and Execution Contract Store 4 own it.
+Deleted: Composition state 19. Execution Contract Database 3 and Execution Contract Database 4 own it.
 Composition state 20: The composition MUST decide an index entry's horizon by the record read on the entry's source event.
 ```
 
-Term chain store: the set of chain records — `chain_store` in an implementation.
+Term chain records: the set of chain records — `chain_store` in an implementation.
 
 Term chain record: one approval chain's record.
 
@@ -136,7 +136,7 @@ Term step-assignment index: the map from a step id to its assignment id — `ste
 
 Term event index: the map from a chain id to the event ids recorded for the chain in recording order, each with the step id the event names — `chain_to_events` in an implementation, the declared chain-to-audit traversal.
 
-Term index entry: one key's value in one of the five stores above.
+Term index entry: one key's value in one of the five record sets above.
 
 Term chain-shape event: an initiation event or an initiation-failed record.
 
@@ -162,7 +162,7 @@ Term assignment history: Assignment's history_for on a step id as the task — e
 Capability requirement 1: A deployment MUST set the approver set minimum.
 Capability requirement 2: A deployment MUST set the approver set uniqueness.
 Capability requirement 3: A deployment MUST set the allowed quorum rules.
-Deleted: Capability requirement 4. Execution Contract Store 3 and Execution Contract Store 4 own it.
+Deleted: Capability requirement 4. Execution Contract Database 3 and Execution Contract Database 4 own it.
 Capability requirement 5: A deployment MUST set the audit retention policy on the Audit Trail instance.
 Capability requirement 6: The composition MUST NOT pass a retention input to the audit write.
 Capability requirement 7: A deployment MUST set the decision completion bound.
@@ -173,10 +173,10 @@ Capability requirement 11: The composition MUST start ONLY IF the compensation w
 Capability requirement 12: A deployment MUST provision the service identity.
 Capability requirement 13: The composition MUST NOT gate a service-identity write on a Permissions grant.
 Capability requirement 14: A deployment MUST retire a compromised service credential in the actor registry.
-Deleted: Capability requirement 15. Execution Contract Store 2 owns it.
-Deleted: Capability requirement 16. Execution Contract Store 2 owns it: an action's reads of a chain and the writes they decide are one transaction, and the composition names no exclusion to release.
-Deleted: Capability requirement 17. Execution Contract Store 2 owns it: an action's reads of a chain and the writes they decide are one transaction, and the composition names no exclusion to release.
-Deleted: Capability requirement 18. Execution Contract Store 2 owns it: an action's reads of a chain and the writes they decide are one transaction, and the composition names no exclusion for a host to lack.
+Deleted: Capability requirement 15. Execution Contract Database 2 owns it.
+Deleted: Capability requirement 16. Execution Contract Database 2 owns it: an action's reads of a chain and the writes they decide are one transaction, and the composition names no exclusion to release.
+Deleted: Capability requirement 17. Execution Contract Database 2 owns it: an action's reads of a chain and the writes they decide are one transaction, and the composition names no exclusion to release.
+Deleted: Capability requirement 18. Execution Contract Database 2 owns it: an action's reads of a chain and the writes they decide are one transaction, and the composition names no exclusion for a host to lack.
 Capability requirement 19: The host MUST inject now AND the invocation id at the seam once per invocation.
 Capability requirement 20: The host MUST inject the chain id at [Initiate Chain]'s seam.
 Capability requirement 21: The wired Audit Trail instance MUST expose the log read.
@@ -184,7 +184,7 @@ Capability requirement 22: A deployment MUST declare the id widths.
 Capability requirement 23: The composition MUST stamp EVERY instant one invocation writes from the invocation's now.
 Capability requirement 24: A deployment composing Legal Hold MUST place a subject's hold over the event ids the event index names for the subject's chains.
 Capability requirement 25: A deployment needing reader authentication MUST bind the actor reference to an authenticated caller above the composition.
-Capability requirement 26: The deployment MUST supply the store PER Execution Contract Store 1 through 4.
+Capability requirement 26: The deployment MUST supply the database PER Execution Contract Database 1 through 4.
 ```
 
 Term approver set minimum: the smallest approver set a chain may declare — `approver_set_minimum`, default one; a single-gate chain is degenerate and valid.
@@ -279,13 +279,13 @@ Audit arm 2: IF Audit Trail answers recording-failure at an intent THEN the acti
 Audit arm 3: IF Audit Trail answers invalid-request carrying any step at an intent THEN the action MUST answer invalid-request.
 Audit arm 4: The composition MUST NOT retry an invalid-request answer.
 Audit arm 5: The deployment MUST alert on EVERY invalid-request from the audit write as a deployment fault.
-Deleted: Audit arm 6. Execution Contract Store 1 owns it.
+Deleted: Audit arm 6. Execution Contract Database 1 owns it.
 Audit arm 7: IF Audit Trail answers invalid-request carrying the retention step at an outcome THEN the invocation MUST read the outcome back.
 Audit arm 8: A read-back MUST match the outcome carrying the invocation id.
 Audit arm 9: IF the read-back finds the outcome THEN the invocation MUST proceed as landed.
 Audit arm 10: IF Audit Trail answers recording-failure carrying a pre-append step at an outcome THEN the action MUST answer recording-failure carrying outcome.
 Audit arm 11: IF the read-back finds no outcome THEN the action MUST answer recording-failure carrying outcome.
-Deleted: Audit arm 12. Execution Contract Store 2 owns it.
+Deleted: Audit arm 12. Execution Contract Database 2 owns it.
 Audit arm 13: The composition MUST NOT retry an outcome inside the invocation.
 Audit arm 14: A caller MUST read recording-failure carrying intent as a committed nothing.
 Audit arm 15: A caller MUST read recording-failure carrying outcome as a committed act.
@@ -339,7 +339,7 @@ Action wiring 1: A validated initiation MUST call the permission check with the 
 Action wiring 2: IF the permission check answers denied THEN the action MUST answer permission-denied.
 Action wiring 3: A permitted initiation MUST record the initiation intent carrying the invocation id, the subject reference, the scope, the approver set, the quorum rule, the reason AND now as the intent instant.
 Action wiring 4: An initiation intent MUST NOT carry a minted id.
-Deleted: Action wiring 5. Execution Contract Store 1 owns it.
+Deleted: Action wiring 5. Execution Contract Database 1 owns it.
 Action wiring 6: An admitted initiation MUST write the chain record carrying Pending, the declared fields AND now as the initiated instant.
 Action wiring 7: An admitted initiation MUST call Approval Step's submit per approver slot in declaration order with the subject reference, the approver reference, the actor reference as the submitter, the scope AND the prefixed reason.
 Action wiring 8: An admitted initiation MUST append EVERY step id submit answers to the chain record's landed ids, the step list index AND the step-chain index.
@@ -361,13 +361,13 @@ Action wiring 23: IF the step write answers storage-failure THEN the decision ac
 Action wiring 24: A decided decision MUST call Assignment's recall on the step's assignment id.
 Action wiring 25: IF the step-assignment index names no assignment for the step THEN the decided decision MUST NOT call recall.
 Action wiring 26: IF recall answers not-active THEN the decided decision MUST proceed.
-Deleted: Action wiring 27. Execution Contract Store 1 owns it.
+Deleted: Action wiring 27. Execution Contract Database 1 owns it.
 Action wiring 28: IF recall OR withdraw answers not-known THEN the deployment MUST alert on the answer as an index anomaly.
 Action wiring 29: A decided decision MUST record the decision's outcome carrying the invocation id, the intent event id, the acting actor reference, the chain id, the step id, the reason, the trailing flag AND the cascade flag as false.
 Action wiring 30: IF the trailing flag EQUALS false THEN a decided decision MUST run the chain evaluation.
 Action wiring 31: IF the trailing flag EQUALS true THEN a decided decision MUST NOT change the chain record.
 Action wiring 32: A landed decision MUST answer the step write's answer.
-Deleted: Action wiring 33. Execution Contract Store 2 owns it.
+Deleted: Action wiring 33. Execution Contract Database 2 owns it.
 Action wiring 34: IF the chain state DOES NOT EQUAL Pending THEN the chain evaluation MUST NOT write.
 Action wiring 35: IF the quorum rule answers a terminal state on the routed vector THEN the chain evaluation MUST set the chain state to the terminal state AND the terminal instant to now.
 Action wiring 36: The chain evaluation MUST NOT run the cascade BEFORE setting the chain state.
@@ -375,9 +375,9 @@ Action wiring 37: A terminating evaluation MUST run the cascade with the rule re
 Action wiring 38: A terminating evaluation MUST record the resolution event carrying the invocation id, the chain id, the chain state, the terminal instant, the rule reason, the recalled step ids AND the partial flag where set under the service identity.
 Action wiring 39: A terminating evaluation MUST record the resolution event ONLY AFTER EVERY cascade call answers.
 Action wiring 40: A validated chain withdrawal MUST call the permission check with the actor reference AND [Chains Withdraw].
-Action wiring 41: IF the chain store carries no record for the chain id THEN [Withdraw Chain] MUST answer not-known.
-Deleted: Action wiring 42. Execution Contract Store 2 owns it.
-Deleted: Action wiring 43. Execution Contract Store 1 owns it.
+Action wiring 41: IF the chain records carry no record for the chain id THEN [Withdraw Chain] MUST answer not-known.
+Deleted: Action wiring 42. Execution Contract Database 2 owns it.
+Deleted: Action wiring 43. Execution Contract Database 1 owns it.
 Action wiring 44: IF the chain state DOES NOT EQUAL Pending THEN [Withdraw Chain] MUST answer not-pending.
 Action wiring 45: IF the chain's initiator reference DOES NOT EQUAL the actor reference THEN [Withdraw Chain] MUST answer unauthorized.
 Action wiring 46: An open chain withdrawal MUST record the withdrawal intent carrying the invocation id, the chain id, the reason AND now as the intent instant.
@@ -392,7 +392,7 @@ Action wiring 54: A permitted read MUST read a step's assignment records through
 Action wiring 55: A permitted read MUST order chains by initiated instant AND then by chain id byte order.
 Action wiring 56: [Read Chain] MUST NOT record an audit event.
 Action wiring 57: The composition MUST write EVERY landed event's id into the event index with the step id the event names.
-Deleted: Action wiring 58. Execution Contract Store 2 owns it: an action's reads of a chain and the writes they decide are one transaction, and the composition names no exclusion to release.
+Deleted: Action wiring 58. Execution Contract Database 2 owns it: an action's reads of a chain and the writes they decide are one transaction, and the composition names no exclusion to release.
 Action wiring 59: [Approve Step] MUST call Approval Step's approve as the decision's step write.
 Action wiring 60: [Reject Step] MUST call Approval Step's reject as the decision's step write.
 Action wiring 61: [Withdraw Step] MUST call Approval Step's withdraw as the decision's step write.
@@ -475,7 +475,7 @@ Term terminating evaluation: a chain evaluation whose quorum rule answered a ter
 
 Term validated chain withdrawal: a [Withdraw Chain] call whose inputs cleared Primitive policy.
 
-Term found chain withdrawal: a validated chain withdrawal whose permission check answered permitted and whose chain id the chain store carries.
+Term found chain withdrawal: a validated chain withdrawal whose permission check answered permitted and whose chain id the chain records carry.
 
 Term open chain withdrawal: a found chain withdrawal whose chain is Pending and whose initiator reference equals the actor reference.
 
@@ -517,7 +517,7 @@ Term open vectors: the vectors neither met nor lost.
 
 Term routed transition: a step decision a decision intent pairs — one naming the chain id and the step id whose actor equals the step record's decider — or, past the audit horizon, one whose event index entry names an event the record read answers Purged with a surviving action reference of step_decision_intended and a surviving actor equal to the decider; or a cascade withdrawal a cascade step withdrawal event or a closure record names.
 
-Term out-of-band transition: a step decision in the Approval Step store no routed transition covers — written around the composition.
+Term out-of-band transition: a step decision in the Approval Step records no routed transition covers — written around the composition.
 
 Term rule reason: the generated reason a chain evaluation carries — "quorum met: A of N approved under" and the rule, for Approved; "quorum unreachable:" and the rule, then "N − R − W remain achievable; rejections present", for Rejected; "chain withdrawn by cascade:" and the rule, then "quorum unreachable by withdrawal alone", for Withdrawn — non-blank by construction (2026-08-26-g, 2026-08-29-g, 2026-08-29-p).
 
@@ -533,18 +533,18 @@ WHY:
 ```
 Reconciliation 1: The sweep MUST run at EVERY process start.
 Reconciliation 2: The sweep MUST run every reconciliation cadence.
-Deleted: Reconciliation 3. Execution Contract Store 1 owns it.
-Deleted: Reconciliation 4. Execution Contract Store 1 owns it.
+Deleted: Reconciliation 3. Execution Contract Database 1 owns it.
+Deleted: Reconciliation 4. Execution Contract Database 1 owns it.
 Reconciliation 5: The sweep MUST NOT examine an aged chain.
-Deleted: Reconciliation 6. Execution Contract Store 2 owns it.
-Deleted: Reconciliation 7. Execution Contract Store 2 owns it: an action's reads of a chain and the writes they decide are one transaction, and the composition names no exclusion for another holder to hold.
+Deleted: Reconciliation 6. Execution Contract Database 2 owns it.
+Deleted: Reconciliation 7. Execution Contract Database 2 owns it: an action's reads of a chain and the writes they decide are one transaction, and the composition names no exclusion for another holder to hold.
 Reconciliation 8: IF a chain record inside the audit horizon carries no chain-shape event THEN the initiation leg MUST run the initiation recovery.
 Reconciliation 9: The initiation recovery MUST run the chain evaluation.
 Reconciliation 10: IF the chain state DOES NOT EQUAL Pending THEN the initiation recovery MUST record the initiation event carrying the chain shape from the chain record, disposition d AND the recovery flag.
 Reconciliation 11: IF the chain state EQUALS Pending THEN the initiation recovery MUST set the quarantine flag.
 Reconciliation 12: IF the chain state EQUALS Pending THEN the initiation recovery MUST record the initiation-failed record carrying the chain shape from the chain record, the disposition AND the initiator reference under the service identity.
 Reconciliation 13: IF the initiation-failed record lands THEN the initiation recovery MUST set the chain state to Withdrawn AND run the cascade with the recovery reason.
-Deleted: Reconciliation 14. Execution Contract Store 1 owns it.
+Deleted: Reconciliation 14. Execution Contract Database 1 owns it.
 Reconciliation 15: The initiation recovery MUST record the withdrawal event carrying the recovery flag AND the initiation-failed record's event id under the service identity.
 Reconciliation 16: The initiation recovery MUST clear the quarantine flag ONLY AFTER the chain-shape event lands.
 Reconciliation 17: IF a routed transition carries no outcome THEN the transition leg MUST re-emit the transition's outcome.
@@ -552,10 +552,10 @@ Reconciliation 18: The transition leg MUST match a transition ONLY to an audit r
 Reconciliation 19: The sweep MUST NOT re-emit an out-of-band transition's outcome.
 Reconciliation 20: The sweep MUST alert on EVERY out-of-band transition as a conformance fault.
 Reconciliation 21: A re-emitted outcome MUST carry the intent candidates, the acting actor reference from the step record AND the recovery flag under the service identity.
-Deleted: Reconciliation 22. Execution Contract Store 1 owns it.
-Deleted: Reconciliation 23. Execution Contract Store 1 owns it.
-Deleted: Reconciliation 24. Execution Contract Store 1 owns it.
-Deleted: Reconciliation 25. Execution Contract Store 1 owns it.
+Deleted: Reconciliation 22. Execution Contract Database 1 owns it.
+Deleted: Reconciliation 23. Execution Contract Database 1 owns it.
+Deleted: Reconciliation 24. Execution Contract Database 1 owns it.
+Deleted: Reconciliation 25. Execution Contract Database 1 owns it.
 Reconciliation 26: The sweep MUST retry a call a partial flag names on a transient arm at EVERY run.
 Reconciliation 27: The sweep MUST NOT retry a deterministic arm.
 Reconciliation 28: The sweep MUST NOT commit a closure BEFORE the sweep's recovery intent for the closure lands.
@@ -569,7 +569,7 @@ Reconciliation 34: A re-emitted resolution event MUST carry the sweep's recalls 
 
 Term sweep: the reconciliation the composition runs outside every invocation — two legs over the records, whose output an auditor awaits within the compensation window.
 
-Term initiation leg: the sweep's leg comparing the chain store against the chain-shape events.
+Term initiation leg: the sweep's leg comparing the chain records against the chain-shape events.
 
 Term transition leg: the sweep's leg comparing the committed step transitions and chain terminals against their audit records.
 
@@ -648,7 +648,7 @@ These emerge from the composition; none belongs to one constituent, and each nee
   Invariant 1.2: IF a chain IS IN the recovery-closed chains THEN the chain's step list MUST EQUAL the landed step ids the chain's initiation-failed record carries.
   Invariant 1.3: EVERY step id in a step list MUST name an Approval Step record.
   Invariant 1.4: The step-chain index MUST name EXACTLY ONE chain for EVERY step id in a step list.
-  Invariant 1.5: The Approval Step store MUST carry no chainless step of a quiescent chain.
+  Invariant 1.5: The Approval Step records MUST carry no chainless step of a quiescent chain.
   ```
   Term quiescent chains: the chains with no invocation in flight and no open marker.
 
@@ -680,12 +680,12 @@ These emerge from the composition; none belongs to one constituent, and each nee
 - **Invariant 5 — Audit completeness.**
   ```
   Invariant 5.1: IF a chain IS IN the quiescent chains THEN EVERY committed transition on the chain MUST carry EXACTLY ONE audit record.
-  Invariant 5.2: EVERY chain namespace event other than an intent MUST name a chain the chain store carries.
+  Invariant 5.2: EVERY chain namespace event other than an intent MUST name a chain the chain records carry.
   Invariant 5.3: The deployment MUST alert on EVERY orphan attestation carrying a chain namespace action reference.
   ```
   Term audit record: a committed transition's outcome, its cascade step withdrawal event, its closure record, its re-emitted outcome or its resolution or withdrawal event.
 
-  Term committed transition: a step's move out of Pending in the Approval Step store, or a chain's move out of Pending in the chain store.
+  Term committed transition: a step's move out of Pending in the Approval Step records, or a chain's move out of Pending in the chain records.
 
 - **Invariant 7 — Chain terminal absorption.**
   ```
@@ -701,7 +701,7 @@ These emerge from the composition; none belongs to one constituent, and each nee
   ```
 - **Invariant 9 — Chain reconstructibility, within the audit horizon.**
   ```
-  Invariant 9.1: EVERY chain's lifecycle MUST resolve from the chain store, the Approval Step store, the Assignment store AND the chain's events alone.
+  Invariant 9.1: EVERY chain's lifecycle MUST resolve from the chain records, the Approval Step records, the Assignment records AND the chain's events alone.
   ```
   Term lifecycle: the chain record; the ordered step records with each decision, decider, decision instant and reason; each step's assignment records; and the verified attestation of every chain-level and step-level act through the event index.
 
@@ -737,7 +737,7 @@ A pharmaceutical manufacturer's batch release system requires any two of three Q
 
 ### Happy path — ICH E6 GCP protocol deviation, one-of-N quorum across a delegated approver pool
 
-A clinical trial protocol deviation at a multi-site study can be approved by any one of the site principal investigators (PIs) on call. The trial coordinator initiates: `initiate_chain(actor_ref=coordinator_lee, credential=lee_credential, subject_ref="dev-2026-1057", scope="clinical-trial:protocol-deviation:non-substantive", approver_set=[pi_chen, pi_okafor, pi_müller, pi_singh], quorum_rule="one-of-N")`. PI Okafor approves: `A=1, M=1`; chain Approved. The other three steps remain Pending in the Approval Step store, their assignments recalled by the cascade. If a fifth approval is needed later (e.g., for a substantive deviation that requires escalation), a new chain is initiated with the appropriate quorum and approver set; the original chain is not modified.
+A clinical trial protocol deviation at a multi-site study can be approved by any one of the site principal investigators (PIs) on call. The trial coordinator initiates: `initiate_chain(actor_ref=coordinator_lee, credential=lee_credential, subject_ref="dev-2026-1057", scope="clinical-trial:protocol-deviation:non-substantive", approver_set=[pi_chen, pi_okafor, pi_müller, pi_singh], quorum_rule="one-of-N")`. PI Okafor approves: `A=1, M=1`; chain Approved. The other three steps remain Pending in the Approval Step records, their assignments recalled by the cascade. If a fifth approval is needed later (e.g., for a substantive deviation that requires escalation), a new chain is initiated with the appropriate quorum and approver set; the original chain is not modified.
 
 ### Rejection path — all-of-N quorum, one approver rejects
 
@@ -765,13 +765,13 @@ Three adversarial reads the composition must survive in regulated contexts:
 
 - **Disputed approval — FDA Part 11 electronic signature challenge against a chain participant.** An FDA investigator reviewing batch BR-2026-0412 challenges the authenticity of QP Lopez's approval: the actor claims they did not approve the batch. The investigator queries `read_chain({subject_ref: "br-2026-0412"})` and retrieves the chain plus its step records. Step `step-lopez-0412` shows `decided_by: "qp_lopez"`, `decided_at: "2026-04-15T16:04:00Z"`, `decision_reason: "Specification limits met; COA (Certificate of Analysis) reviewed"`. Approval Step Invariant 4 guarantees that the *value* `qp_lopez` was presented and matched `approver_ref` at decision time — that atom takes no credential, and its identity model is byte equality on the reference as supplied, so the record alone does not establish who presented it. What does is the `step_decision_intended` record that **preceded** the decision and the Actor Identity attestation on it: the principal Lopez presented material matching the registry's public material for that reference before the step could be decided (Invariant 10). The bound is the honest one — a stolen credential validates — so the records establish that Lopez's credential was used, not that Lopez was at the keyboard. The Audit Trail's Actor Identity attestation for the corresponding `step_approved` event is then verified against `qp_lopez`'s registered public material at the attestation's own `attested_at` — the substrate's stamp, not Approval Step's `decided_at`, which is another seam's reading. The denied-approval claim cannot be sustained against the structural record without claiming credential compromise; that reinterpretation is the **Compromise Disclosure** *(forthcoming)* composing pattern's responsibility, not the chain composition's.
 
-- **Breach or incident forensics — unauthorized chain initiation investigation.** During a security incident review, the incident response team needs to determine whether any chains were initiated by actors who should not have held `chains:initiate` during a window of suspected privilege escalation (2026-05-01T00:00:00Z through 2026-05-03T23:59:59Z). The team queries `read_chain({initiated_at: {after: ..., before: ...}})` and, for each chain in the window, walks the Audit Trail back to the `chain_initiated` event and verifies its Actor Identity attestation. The team also queries the Permissions store for grants of `chains:initiate` active during the same window; any initiator whose grant was not active at `initiated_at` is a finding — judged under the deployment's operating skew: the grant stamps and `initiated_at` are two seams' readings, so the audit condemns only violations wider than that skew and reads boundary-width discrepancies as inconclusive (Invariant 3's check-time enforcement is the gate; this audit reads its evidence trail). The chain composition's records faithfully document every initiation and outcome; the cross-store verification — initiator attestation vs. Permissions grant state at the initiation timestamp — is the audit operation that surfaces unauthorized chains.
+- **Breach or incident forensics — unauthorized chain initiation investigation.** During a security incident review, the incident response team needs to determine whether any chains were initiated by actors who should not have held `chains:initiate` during a window of suspected privilege escalation (2026-05-01T00:00:00Z through 2026-05-03T23:59:59Z). The team queries `read_chain({initiated_at: {after: ..., before: ...}})` and, for each chain in the window, walks the Audit Trail back to the `chain_initiated` event and verifies its Actor Identity attestation. The team also queries the Permissions records for grants of `chains:initiate` active during the same window; any initiator whose grant was not active at `initiated_at` is a finding — judged under the deployment's operating skew: the grant stamps and `initiated_at` are two seams' readings, so the audit condemns only violations wider than that skew and reads boundary-width discrepancies as inconclusive (Invariant 3's check-time enforcement is the gate; this audit reads its evidence trail). The chain composition's records faithfully document every initiation and outcome; the cross-record verification — initiator attestation vs. Permissions grant state at the initiation timestamp — is the audit operation that surfaces unauthorized chains.
 
 ---
 
 ## Generation acceptance
 
-An implementation is acceptable — in the regulator-acceptance sense — when an external auditor, given the composition's emergent state and the constituent stores, can clear the checks below without recourse to source code, runbooks or developer narration. Every enumeration of audit events runs through the log read; every check that walks events runs inside the audit horizon.
+An implementation is acceptable — in the regulator-acceptance sense — when an external auditor, given the composition's emergent state and the constituent records, can clear the checks below without recourse to source code, runbooks or developer narration. Every enumeration of audit events runs through the log read; every check that walks events runs inside the audit horizon.
 
 ### Conformance checks
 
@@ -786,7 +786,7 @@ Check 3.2: An auditor MUST find the actor of EVERY withdrawal event holding [Cha
 Check 4.1: An auditor MUST find EVERY quiescent chain's assignments PER Invariant 4.1 AND Invariant 4.2 (Invariant 4.1).
 Check 4.2: An auditor MUST read an Active assignment under an open partial flag as an open marker (Invariant 4.2).
 Check 5.1: An auditor MUST find EXACTLY ONE audit record for EVERY committed transition on a quiescent chain (Invariant 5.1).
-Check 5.2: An auditor MUST find EVERY chain namespace event other than an intent naming a chain the chain store carries (Invariant 5.2).
+Check 5.2: An auditor MUST find EVERY chain namespace event other than an intent naming a chain the chain records carry (Invariant 5.2).
 Check 5.3: An auditor MUST find the service identity attesting EVERY resolution event, closure record, initiation-failed record, recovery intent AND recovery-flagged event, AND nothing else (Capability requirement 12).
 Check 5.4: An auditor MUST find a closure record for EVERY call a partial flag names on a quiescent chain (Reconciliation 30).
 Check 6.1: An auditor MUST clear Approval Step's Generation acceptance over the Approval Step instance (Composes 5).
@@ -857,9 +857,9 @@ Clock semantics 3: The composition MUST NOT pass an instant to a constituent.
 ### Concurrency
 
 ```
-Deleted: Concurrency 1. Execution Contract Store 2 owns it.
-Deleted: Concurrency 2. Execution Contract Store 2 owns it.
-Deleted: Concurrency 3. Execution Contract Store 2 owns it: an action's reads of a chain and the writes they decide are one transaction, and the composition names no exclusion for a decision's step write to run outside.
+Deleted: Concurrency 1. Execution Contract Database 2 owns it.
+Deleted: Concurrency 2. Execution Contract Database 2 owns it.
+Deleted: Concurrency 3. Execution Contract Database 2 owns it: an action's reads of a chain and the writes they decide are one transaction, and the composition names no exclusion for a decision's step write to run outside.
 ```
 
 ### Retention asymmetry
@@ -873,7 +873,7 @@ Retention asymmetry 2: An auditor MUST read failed-verification carrying purged 
 
 ## Terms
 
-Each `[Term]` marker above links to its term entry here; a term entry states what the concept *is*, in plain English, and its **Kind**, and — for a Field, a Parameter or a wire Member — carries the one **Projection** line where the concrete name stays visible on the page. The composition's own concepts are its six actions — [Initiate Chain], the three step decisions [Approve Step], [Reject Step] and [Withdraw Step], [Withdraw Chain] and [Read Chain]; the [Trailing] flag; the three scopes it defines for its Permissions instance, [Chains Initiate], [Chains Withdraw] and [Chains Read]; the three quorum rules [All Of N], [M Of N] and [One Of N]; and the refusals it names, [Permission Denied] and [Recording Failure]. The chain states overload Approval Step's step states and are declared, not carded. The deployment settings keep their wire spellings in configuration — `approver_set_minimum`, `approver_set_uniqueness`, `quorum_rule_allowed`, `audit_trail_retention_policy`, `decision_completion_bound`, `compensation_window`, `reconciliation_cadence`, `application_actor_ref`, `application_credential` — and the stores their own in an implementation, `chain_store`, `chain_to_steps`, `step_to_chain`, `step_to_assignment`, `chain_to_events`; the page names each in English where it declares it. *(annotation.md Terms registry; representational only — it changes no guarantee, invariant, or behavior of the composition above.)*
+Each `[Term]` marker above links to its term entry here; a term entry states what the concept *is*, in plain English, and its **Kind**, and — for a Field, a Parameter or a wire Member — carries the one **Projection** line where the concrete name stays visible on the page. The composition's own concepts are its six actions — [Initiate Chain], the three step decisions [Approve Step], [Reject Step] and [Withdraw Step], [Withdraw Chain] and [Read Chain]; the [Trailing] flag; the three scopes it defines for its Permissions instance, [Chains Initiate], [Chains Withdraw] and [Chains Read]; the three quorum rules [All Of N], [M Of N] and [One Of N]; and the refusals it names, [Permission Denied] and [Recording Failure]. The chain states overload Approval Step's step states and are declared, not carded. The deployment settings keep their wire spellings in configuration — `approver_set_minimum`, `approver_set_uniqueness`, `quorum_rule_allowed`, `audit_trail_retention_policy`, `decision_completion_bound`, `compensation_window`, `reconciliation_cadence`, `application_actor_ref`, `application_credential` — and the record sets their own in an implementation, `chain_store`, `chain_to_steps`, `step_to_chain`, `step_to_assignment`, `chain_to_events`; the page names each in English where it declares it. *(annotation.md Terms registry; representational only — it changes no guarantee, invariant, or behavior of the composition above.)*
 
 ### Vocabulary
 
@@ -891,7 +891,7 @@ Term cadences: reconciliation cadence (reconciliation_cadence).
 
 Term qualifiers: migrated — rewritten in GRACE lang v0.61 (2026-09-24).
 
-Term terms: composition, constituents, transitive atoms, log read, record read, audit write, verification, step write, chain namespace, chain store, chain record, declared fields, chain id, chain state, terminal instant, quarantine flag, landed ids, step list index, step-chain index, step-assignment index, event index, index entry, chain-shape event, chain shape, open initiation window, source event, live index entry, purged index entry, chain rebuild, event rebuild, assignment history, approver set minimum, approver set uniqueness, allowed quorum rules, audit retention policy, audit horizon, decision completion bound, compensation window, reconciliation cadence, outcome write latency, liveness sum, service identity, invocation id, seam, now, id widths, reference, capped string, actor reference, subject reference, scope, approver set, approver reference, quorum rule, quorum count, valid quorum counts, reason, reason-bearing action, field length cap, larger payload, payload budget, credential, intent, outcome, pre-append step, retention step, position, chain results, query, minted id, prefixed reason, initiation intent, initiation event, decision intent, withdrawal intent, approval event, rejection event, step withdrawal event, withdrawal event, resolution event, decision's outcome, decision, decision's step write, step refusal, intent event id, intent instant, initiated instant, acting actor reference, trailing flag, cascade flag, partial flag, recovery flag, validated initiation, permitted initiation, admitted initiation, submitted initiation, staffed initiation, landed initiation, unlanded initiation, resolved decision, admitted decision, decided decision, landed decision, decision action, chain evaluation, terminating evaluation, validated chain withdrawal, found chain withdrawal, open chain withdrawal, admitted chain withdrawal, landed chain withdrawal, validated read, permitted read, routed vector, approved count, rejected count, withdrawn count, met vectors, lost vectors, open vectors, routed transition, out-of-band transition, rule reason, sweep, initiation leg, transition leg, aged chain, settled step, late-recalled steps, initiation recovery, disposition, initiation-failed record, chainless step, recovery reason, intent candidates, closure record, superseded mark, closure mark, recovery intent, open marker, escalation instant, transient arm, deterministic arm, cascade, cascade reason, recalled step ids, quiescent chains, quiescent chain, recovery-closed chains, pre-withdrawal vector, open steps, audit record, committed transition, lifecycle, resolution-terminated chain, withdrawal-terminated chain, pre-intent refusal.
+Term terms: composition, constituents, transitive atoms, log read, record read, audit write, verification, step write, chain namespace, chain records, chain record, declared fields, chain id, chain state, terminal instant, quarantine flag, landed ids, step list index, step-chain index, step-assignment index, event index, index entry, chain-shape event, chain shape, open initiation window, source event, live index entry, purged index entry, chain rebuild, event rebuild, assignment history, approver set minimum, approver set uniqueness, allowed quorum rules, audit retention policy, audit horizon, decision completion bound, compensation window, reconciliation cadence, outcome write latency, liveness sum, service identity, invocation id, seam, now, id widths, reference, capped string, actor reference, subject reference, scope, approver set, approver reference, quorum rule, quorum count, valid quorum counts, reason, reason-bearing action, field length cap, larger payload, payload budget, credential, intent, outcome, pre-append step, retention step, position, chain results, query, minted id, prefixed reason, initiation intent, initiation event, decision intent, withdrawal intent, approval event, rejection event, step withdrawal event, withdrawal event, resolution event, decision's outcome, decision, decision's step write, step refusal, intent event id, intent instant, initiated instant, acting actor reference, trailing flag, cascade flag, partial flag, recovery flag, validated initiation, permitted initiation, admitted initiation, submitted initiation, staffed initiation, landed initiation, unlanded initiation, resolved decision, admitted decision, decided decision, landed decision, decision action, chain evaluation, terminating evaluation, validated chain withdrawal, found chain withdrawal, open chain withdrawal, admitted chain withdrawal, landed chain withdrawal, validated read, permitted read, routed vector, approved count, rejected count, withdrawn count, met vectors, lost vectors, open vectors, routed transition, out-of-band transition, rule reason, sweep, initiation leg, transition leg, aged chain, settled step, late-recalled steps, initiation recovery, disposition, initiation-failed record, chainless step, recovery reason, intent candidates, closure record, superseded mark, closure mark, recovery intent, open marker, escalation instant, transient arm, deterministic arm, cascade, cascade reason, recalled step ids, quiescent chains, quiescent chain, recovery-closed chains, pre-withdrawal vector, open steps, audit record, committed transition, lifecycle, resolution-terminated chain, withdrawal-terminated chain, pre-intent refusal.
 
 Term cited: Execution Contract Conformance 8 — the recursive inheritance of a constituent's guarantees. Execution Contract Logic confinement 7 — the clock's guarantees are the deployment's. The section titled Composition state in `execution-contract.md` — the derived-index classification. The section titled Logic Confinement Principle in `execution-contract.md` — the seam. The section titled Compositions of compositions in `spec-format.md` — the transitive atoms. The section titled Structural-relation invariant templates in `spec-format.md` — the three relations. record_action, read_record, verify_record, payload cap, reference length cap, attestation id width, step-2, step-3, step-4, invalid-credential, invalid-request, recording-failure, verified, failed-verification, purged, Retained, Purged, Reverse Index, Failed-Attempt Log, Trusted Timestamping, Compromise Disclosure: Audit Trail. submit, approve, reject, withdraw, read, submitted_at, decided_by, withdrawn_by, approved, rejected_outcome, withdrawn, Pending, Approved, Rejected, Withdrawn, invalid-request, not-known, not-pending, unauthorized, storage-failure, invalid-query: Approval Step. assign, recall, active_for, history_for, ok, not-active, already-assigned, Active, Recalled: Assignment. permitted, denied: Permissions. read: Event Log. Sequenced Approval Chain, Delegation, Deadline Escalation: forthcoming.
 
