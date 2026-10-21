@@ -4,33 +4,36 @@
 \* Derived validator; the English spec is the single source of truth. On any
 \* disagreement, diagnose per the entry *The conflict protocol* in pressure-testing.md.
 \*
-\* WHAT THIS MODEL CHECKS (revised 2026-06-11 — closes the Invariant-4 coverage-gap finding)
+\* WHAT THIS MODEL CHECKS (revised 2026-06-11 — closes the Invariant-4 coverage-gap finding;
+\* comments re-pointed 2026-10-20 at Execution Contract Store 1, no logic change)
 \* The composition's load-bearing wiring decision is Invariant 4 (binding
 \* bijection / no dangling partial), restated as safety + liveness. The headline
 \* consequence is Invariant 2 (purge accountability): "no record reaches Purged
 \* without an attributed audit event" — and the most consequential partial
-\* failure is exactly a purge without its audit record. The design the spec
-\* mandates is SEQUENTIAL-WITH-COMPENSATION: the Soft Delete lifecycle
-\* transition writes first (not always reversible — Purged is terminal per Soft
-\* Delete Invariant 3, so synchronous rollback is not universally available),
-\* then the Audit Trail `record_action`; a failure between the two leaves an
-\* ORPHAN (a lifecycle transition with no audit event) that the implementation
-\* must surface immediately as a compliance finding and compensate by retrying
-\* the audit write, marking the compensating event `cascade_recovery = true`.
+\* failure is exactly a purge without its audit record. A lifecycle action's
+\* intent record, Soft Delete transition and Audit Trail outcome event are
+\* store writes of one action, which Execution Contract Store 1 commits
+\* together. The one partial the spec keeps is the ORPHAN Audit Trail's
+\* refusal of the outcome record leaves (a lifecycle transition with no audit
+\* event, Audit arm 15 and Audit arm 16): the transition commits, the action
+\* answers recording-failure carrying outcome and surfaces the orphan as a
+\* compliance finding, and the reconciliation compensates it, marking the
+\* compensating event `cascade_recovery = true`.
 \*
-\* This model covers BOTH arms of Invariant 4 — the atomic-commit arm and the
+\* This model covers BOTH arms of Invariant 4 — the one transaction and the
 \* compensated arm the earlier model idealized away (the coverage-matrix GAP
 \* closed by the Invariant-4 coverage-gap finding; immutable-transaction-ledger.tla, revised for
 \* the compensated-arm finding, is the worked template):
-\*   CommitClean(t)  — both truth-bearing writes land together (the
-\*                     transactional-boundary form).
-\*   FailPartial(t)  — the Soft Delete write lands, the audit write fails; the
-\*                     orphan is reachable AND surfaced in the same outcome
-\*                     (the action's declared failure path: rejected(recording-
-\*                     failure) plus the dashboard finding). The orphan is a
-\*                     real inter-action state other actions can observe.
-\*   RetryAudit(t)   — the compensation: the audit write retried until it
-\*                     lands, marked cascade_recovery; the bijection is
+\*   CommitClean(t)  — the lifecycle action's writes commit together
+\*                     (Execution Contract Store 1).
+\*   FailPartial(t)  — the Soft Delete transition commits and Audit Trail
+\*                     refuses the outcome record; the orphan is reachable AND
+\*                     surfaced in the same outcome (the action's declared
+\*                     failure path: rejected(recording-failure(outcome)) plus
+\*                     the dashboard finding). The orphan is a real
+\*                     inter-action state other actions can observe.
+\*   RetryAudit(t)   — the compensation: the reconciliation's compensating
+\*                     event, marked cascade_recovery; the bijection is
 \*                     restored and the recovered binding stays distinguishable
 \*                     from a clean one.
 \*
@@ -66,20 +69,14 @@
 \*
 \* NOT MODELED (out of scope for the load-bearing property)
 \* - the Active/Deleted/Purged state machine itself (Soft Delete's own model);
-\* - the within-invocation transient between the Soft Delete write and the
-\*   audit attempt (within-action atomicity, not an action-vs-action
-\*   interleaving; the model's states are action OUTCOMES — clean commit,
-\*   surfaced partial failure).
-\* - the crash-orphan (process death between the two truth-bearing writes: an
-\*   orphan with no returning outcome). Within-action process death is not an
-\*   action-vs-action interleaving; the English discharges it with the mandated
-\*   reconciliation scan (restart + fixed cadence), which bounds its silence —
-\*   see Invariant 4's safety arm and the partial-failure edge case.
-\* - the deterministic-rejection compensation arm (recovery-identity
-\*   re-attestation for invalid-credential / invalid-request, per the
-\*   partial-failure edge case): an attribution-semantics rule, not an
-\*   interleaving; RetryAudit abstracts both compensation attestations into the
-\*   one `recovered` outcome.
+\* - the order of the writes inside one lifecycle action (Execution Contract
+\*   Store 1 commits them together, and a crash inside the action leaves
+\*   nothing; the model's states are action OUTCOMES — clean commit, surfaced
+\*   partial failure).
+\* - the reconciliation's pairing, its recovery intent and the recovery
+\*   identity it attests under (Reconciliation 5, Reconciliation 9 through
+\*   17): attribution and pairing rules, not interleavings; RetryAudit
+\*   abstracts the compensating event into the one `recovered` outcome.
 \* - the record_to_events derived index (outside the atomicity surface per
 \*   execution-contract.md section Composition state; a lost entry is a rebuild
 \*   trigger, not data loss).
@@ -104,39 +101,39 @@ Init ==
     /\ surfaced   = [t \in Transitions |-> FALSE]
 
 \* Happy path: the Soft Delete lifecycle transition and the Audit Trail
-\* record_action land together (the transactional-boundary form of the
-\* atomic-commit arm). The audit event is a CLEAN binding.
+\* outcome event commit together (Execution Contract Store 1). The audit event
+\* is a CLEAN binding.
 CommitClean(t) ==
     /\ softState[t] = "absent"
     /\ softState'  = [softState  EXCEPT ![t] = "present"]
     /\ auditState' = [auditState EXCEPT ![t] = "clean"]
     /\ UNCHANGED surfaced
 
-\* Partial failure: the (not always reversible) Soft Delete write lands, the
-\* audit write fails. The action's declared failure path returns
-\* rejected(recording-failure) AND surfaces the orphan to the compliance
-\* dashboard in the same outcome — the orphan is reachable, durable until
-\* compensated, and never silent. For a purge transition this is Invariant 2's
-\* worst case: a destroyed record awaiting its compensating audit event,
-\* visible the whole time.
+\* Partial failure: the Soft Delete transition commits and Audit Trail
+\* refuses the outcome record (Audit arm 15, Audit arm 16). The action's
+\* declared failure path returns rejected(recording-failure(outcome)) AND
+\* surfaces the orphan to the compliance dashboard in the same outcome — the
+\* orphan is reachable, durable until compensated, and never silent. For a
+\* purge transition this is Invariant 2's worst case: a destroyed record
+\* awaiting its compensating audit event, visible the whole time.
 FailPartial(t) ==
     /\ softState[t] = "absent"
     /\ softState'  = [softState EXCEPT ![t] = "present"]
     /\ surfaced'   = [surfaced  EXCEPT ![t] = TRUE]
     /\ UNCHANGED auditState
 
-\* Compensation: the failed AuditTrail.record_action is retried until it lands;
-\* the compensating event carries cascade_recovery = true, so the recovered
-\* binding stays distinguishable from a clean one. Enabled in exactly the orphan
-\* configuration — no orphan state is a dead end (the liveness arm's
+\* Compensation: the reconciliation records the compensating event
+\* (Reconciliation 9 through 17); it carries cascade_recovery = true, so the
+\* recovered binding stays distinguishable from a clean one. Enabled in exactly
+\* the orphan configuration — no orphan state is a dead end (the liveness arm's
 \* enabledness half; eventuality is weak fairness on this action).
-\* The enabling condition auditState[t] = "absent" IS the spec's check-then-retry
-\* rule made structural: the retrier observes the records (the rebuild read) and
-\* appends only when no event names the transition, so a retry after a lost
-\* acknowledgment cannot double-append (the state where the audit event already
-\* landed disables this action). Per-record compensation is serialized in the
-\* spec (lifecycle actions on a record_id are serialized); the model's
-\* one-action-per-step semantics carries that for free.
+\* The enabling condition auditState[t] = "absent" IS the reconciliation's
+\* pairing made structural (Reconciliation 5): it appends only for an intent no
+\* outcome event names, so an outcome whose lost append landed after all is
+\* bound, never doubled (the state where the audit event already landed
+\* disables this action). Two compensations of one record are serialized by
+\* Execution Contract Store 2; the model's one-action-per-step semantics
+\* carries that for free.
 RetryAudit(t) ==
     /\ softState[t] = "present"
     /\ auditState[t] = "absent"

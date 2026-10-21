@@ -1,13 +1,12 @@
 ---- MODULE forensic-recovery-buggy ----
 \* BUGGY TWIN (vacuity guard) for forensic-recovery.tla.
 \*
-\* SEQUENTIAL-WITHOUT-COMPENSATION: the naive implementation the spec's
-\* *Cross-store consistency under partial failure* edge case and Invariant 4's
-\* safety arm warn against. The lifecycle commit is split into separate,
-\* interleavable sub-steps with NO surfacing and NO compensation — Soft Delete
-\* writes first (not always reversible; Purged is terminal), then the Audit
-\* Trail event may or may not follow:
-\*   WriteSoft   -> Soft Delete lifecycle transition lands
+\* THE SPLIT EXECUTION CONTRACT STORE 1 FORBIDS, WITHOUT COMPENSATION: the
+\* naive implementation Invariant 4's safety arm warns against. The lifecycle
+\* commit is split into separate, interleavable sub-steps with NO surfacing
+\* and NO compensation — the Soft Delete transition commits as its own step,
+\* then the Audit Trail event may or may not follow:
+\*   WriteSoft   -> Soft Delete lifecycle transition commits alone
 \*   WriteAudit  -> Audit Trail record_action event lands (maybe never)
 \* There is no FailPartial-with-surfacing outcome and no RetryAudit
 \* compensation action. TLC stops after WriteSoft(t) alone:
