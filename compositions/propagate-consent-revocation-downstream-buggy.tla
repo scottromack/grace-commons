@@ -5,11 +5,12 @@
 \*
 \* Rewritten 2026-08-27 alongside the correct model, when Invariant 3 was restated
 \* from one atomic commit to safety plus liveness (methodology debt #19, the
-\* atomicity class). A twin has to break the invariant as it is NOW stated, or it
-\* guards a claim the corpus no longer makes. The previous version of this twin
-\* split the withdrawal into separate interleavable sub-steps; that split is no
-\* longer a bug, because the repaired composition does exactly that on purpose —
-\* it has to, since neither write is reversible. What IS a bug is doing it silently.
+\* atomicity class); comments re-pointed 2026-10-21 at Execution Contract Store 1,
+\* no logic change. A twin has to break the invariant as it is NOW stated, or it
+\* guards a claim the corpus no longer makes. This twin splits the withdrawal into
+\* separate interleavable sub-steps — the split Execution Contract Store 1
+\* forbids — and the correct model reaches the same orphan only where Audit Trail
+\* refuses the propagation event. What the invariant catches is the silence.
 \*
 \* BUG: the revoke commits and the propagation event does not, with NO surfacing
 \* and NO compensation. The orphan is reachable here, but so it is in the CORRECT

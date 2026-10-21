@@ -5,17 +5,18 @@
 \* Derived validator; the English spec is the single source of truth. On any
 \* disagreement, diagnose per the entry *The conflict protocol* in pressure-testing.md.
 \*
-\* WHAT THIS MODEL CHECKS
+\* WHAT THIS MODEL CHECKS (comments re-pointed 2026-10-21 at Execution Contract
+\* Store 1, no logic change)
 \* Invariant 3 — revocation propagation completeness — as restated 2026-08-27
 \* (methodology debt #19, the atomicity class; third and last instance). The
 \* previous model committed the revoke, the propagation event and the scope-set
-\* completeness as ONE atomic action, which is the claim the English used to make
-\* and which neither store can honor: Consent's revocation is immutable once
-\* committed (Consent Invariants 3, 9) and the propagation event is appended
-\* through a substrate that declares an appended event cannot be withdrawn.
-\* NEITHER write is enlistable, so there was never a transaction to put them in.
-\* The old model asserted one, and so could not represent the one partial the
-\* deployment actually reaches. This model reaches it instead.
+\* completeness as ONE atomic action that always succeeded, and so could not
+\* represent the one partial the deployment actually reaches. A withdrawal's
+\* intent, Consent revoke and Audit Trail propagation event are store writes of
+\* one action, which Execution Contract Store 1 commits together; the partial
+\* the spec keeps is the one Audit Trail's refusal of the propagation event
+\* leaves (Audit arm 12, Audit arm 17): the revocation commits and its event is
+\* owed. This model reaches it.
 \*
 \* This pattern is the class's MANIFESTATION A — an impossible claim over an
 \* ordering that was already right — as distinct from Capability-Backed Sharing's
@@ -30,14 +31,15 @@
 \*                      before the revoke, never withdrawn. It is where the
 \*                      revoker's credential is verified AND it fixes the
 \*                      propagation set's boundary (Generation acceptance check 2).
-\*   RevokeAndPropagate  — the ordinary path: the revoke commits and the
-\*                      consent.revoked event lands after it, carrying the complete
-\*                      scope set.
-\*   RevokeUnpropagated — the revoke commits and the event does not. Reachable AND
-\*                      surfaced in the same outcome that returns
-\*                      rejected(recording-failure).
-\*   RetryPropagation — the compensation: the append retried until it lands, marking
-\*                      the event "recovered" (cascade_recovery = true).
+\*   RevokeAndPropagate  — the ordinary path: the revoke and the consent.revoked
+\*                      event, ordered after it and carrying the complete scope
+\*                      set, commit together (Execution Contract Store 1).
+\*   RevokeUnpropagated — the revoke commits and Audit Trail refuses the event.
+\*                      Reachable AND surfaced in the same outcome that returns
+\*                      rejected(recording-failure(outcome)).
+\*   RetryPropagation — the compensation: the reconciliation's compensating event
+\*                      (Reconciliation 24 through 27), marking the event
+\*                      "recovered" (cascade_recovery = true).
 \*
 \* The write ORDER is what makes the split favourable and is modeled directly: the
 \* event follows the revoke, and the revoke is terminal, so the reverse orphan — a
@@ -110,9 +112,10 @@ RevokeAndPropagate(c) ==
     /\ propagated' = [propagated EXCEPT ![c] = "clean"]
     /\ UNCHANGED <<intentState, surfaced>>
 
-\* UNPROPAGATED outcome: the revoke commits, the append does not. The revocation
-\* is real and terminal; its propagation record is missing. Surfaced in the same
-\* outcome that returns rejected(recording-failure). This is the state the previous
+\* UNPROPAGATED outcome: the revoke commits and Audit Trail refuses the
+\* propagation event (Audit arm 12, Audit arm 17). The revocation is real and
+\* terminal; its propagation record is missing. Surfaced in the same outcome that
+\* returns rejected(recording-failure(outcome)). This is the state the previous
 \* model could not represent, and the deployment reaches it.
 RevokeUnpropagated(c) ==
     /\ intentState[c] = "present"
@@ -121,11 +124,12 @@ RevokeUnpropagated(c) ==
     /\ surfaced' = [surfaced EXCEPT ![c] = TRUE]
     /\ UNCHANGED <<intentState, propagated>>
 
-\* COMPENSATION: the append retried until it lands. Enabled in exactly the
-\* unpropagated configuration — no orphan is a dead end, the enabledness half of
-\* the liveness arm. The propagated[c] = "absent" guard is the spec's (step)-aware
-\* pre-check made structural: once an event names this consent the action is
-\* disabled, so a retry cannot append a second one against Invariant 3's
+\* COMPENSATION: the reconciliation's compensating event (Reconciliation 24
+\* through 27). Enabled in exactly the unpropagated configuration — no orphan is
+\* a dead end, the enabledness half of the liveness arm. The propagated[c] =
+\* "absent" guard is the reconciliation's pre-check made structural
+\* (Reconciliation 9): once an event names this consent the action is disabled,
+\* so a compensation cannot append a second one against Invariant 3's
 \* exactly-one and check 2.
 RetryPropagation(c) ==
     /\ revoked[c]
@@ -177,7 +181,7 @@ Inv3_NoUnsurfacedOrphan ==
 \* The intent event precedes the revocation. This is what makes the propagation
 \* set's boundary well-defined (Generation acceptance check 2): nothing can be
 \* registered between the step-4 read and this append, because both sit inside one
-\* serialized invocation.
+\* transaction, which Execution Contract Store 2 serializes.
 Inv3_IntentPrecedesRevoke ==
     \A c \in Consents : revoked[c] => (intentState[c] = "present")
 
