@@ -528,7 +528,7 @@ S_SILENT = {"login", "chain-of-custody"}
 # in the same change and this set switched to `exact`; the regression coverage
 # lives in check_s_synthetic(), which needs no corpus positive to exist.
 S_FIRING: set[str] = set()
-T_SILENT = {"chain-of-custody", "forensic-recovery"}
+T_SILENT = {"chain-of-custody"}
 # EMPTY as of 2026-08-29, when Immutable Transaction Ledger's [Verify Ledger]
 # was re-keyed by sequence_number — the one site the check ever saw. T was
 # promoted to GATING in the same change and this set switched to `exact`, so

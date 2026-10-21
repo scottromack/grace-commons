@@ -210,7 +210,6 @@
    "defensible-retention",
    "execute-gated-workflow",
    "external-onboarding",
-   "forensic-recovery",
    "immutable-transaction-ledger",
    "login",
    "multi-party-approval",
@@ -649,36 +648,6 @@
    "audit-trail"
   ],
   "title": "External Onboarding"
- },
- "forensic-recovery": {
-  "composes": [
-   "soft-delete"
-  ],
-  "grounded": false,
-  "invariants": 5,
-  "kind": "composition",
-  "models": {
-   "als": false,
-   "tla": true,
-   "twins": 1
-  },
-  "regulated": true,
-  "standards": [
-   "21 CFR Part 11",
-   "FRCP 37(e)",
-   "GDPR",
-   "HIPAA",
-   "ISO 15489",
-   "ISO 27001",
-   "PCI DSS",
-   "SEC 17a-4",
-   "SOX"
-  ],
-  "status": "partially resolved",
-  "substrates": [
-   "audit-trail"
-  ],
-  "title": "Forensic Recovery"
  },
  "idempotent-reservation": {
   "composes": [
@@ -1464,37 +1433,6 @@
   "status": "partially resolved",
   "substrates": [],
   "title": "Shared Todo"
- },
- "soft-delete": {
-  "composed_by": [
-   "forensic-recovery"
-  ],
-  "domain": null,
-  "grounded": false,
-  "invariants": 8,
-  "kind": "atom",
-  "models": {
-   "als": false,
-   "tla": false,
-   "twins": 0
-  },
-  "regulated_by": [
-   "forensic-recovery"
-  ],
-  "security": false,
-  "standards": [
-   "21 CFR Part 11",
-   "FRCP 37(e)",
-   "GDPR",
-   "HIPAA",
-   "ISO 15489",
-   "ISO 27001",
-   "PCI DSS",
-   "SEC 17a-4",
-   "SOX"
-  ],
-  "status": "partially resolved",
-  "title": "Soft Delete"
  },
  "state-machine": {
   "composed_by": [

@@ -1069,8 +1069,8 @@ def check_recording_step(patterns: dict[Path, Pattern]) -> list[Finding]:
 # the acceptance check reports tampering on an intact log. Two shapes: a
 # subscript `original_event_payloads[<x>_id]`, and the phrase "keyed by
 # `<x>_id`" within a short distance after the map's name. Keying by `n`, `lo`,
-# `hi`, or `sequence_number` is the exemplar (Chain of Custody, Forensic
-# Recovery) and is silent.
+# `hi`, or `sequence_number` is the exemplar (Chain of Custody) and is
+# silent.
 SEAL_MAP_ID_SUBSCRIPT = re.compile(r"original_event_payloads\[\s*`?\w*_id`?\s*\]")
 SEAL_MAP_KEYED_BY_ID = re.compile(
     r"original_event_payloads`?[^.\n]{0,80}?keyed by (?:the )?`\w*_id`", re.I)
