@@ -56,11 +56,6 @@ Term composition: this pattern's wiring of [Session](../atoms/session.md) and [P
 
 Term constituents: [Session](../atoms/session.md), [Permissions](../atoms/permissions.md).
 
-WHY:
-Composes 5 is the enclosure the other rules rest on. A deployment that exposes `Session.validate` or `Permissions.permitted` beside [Check Permitted] gives a caller a route to the permission store that never passes the gate, and every guarantee below is a guarantee about the route through [Check Permitted] alone. Non-goal 9 states what a deployment owes when it exposes both anyway.
-
-Composes 6 and Composes 7 name the two constituent obligations this composition exists to discharge, and they are not the same kind of obligation. [Permissions](../atoms/permissions.md)'s `Composition note 3` **assigns** ownership — *a composing pattern MUST own the binding between the authenticated caller and the subject reference* — and Invariant 2 is this composition owning it, which is what a composition note is for. [Session](../atoms/session.md)'s `Composition note 4` **states the rule itself** — *IF Validate gives an invalid answer THEN a composing pattern MUST NOT call Permissions* — and Session's own WHY names this composition as the pattern that carries it. So the gate as stated is Session's and is cited here rather than restated (Authority 5, Authority 6); what this composition adds over it is the closure Invariant 1.1 carries — Permissions unreachable unless a validate answered at all, which Session never says. Atoms may bind compositions; a composition cites what the composition inherits and owns what the composition adds (the section titled Decisions, council read 53).
-
 ---
 
 ## Composition logic
@@ -73,9 +68,6 @@ Composition state 2: The composition MUST NOT derive an index.
 Composition state 3: The composition MUST evaluate the gate from the constituents' own surfaces.
 Composition state 4: A deployment needing a record of an authorization decision MUST compose Audit Trail.
 ```
-
-WHY:
-The contract classification is *conforming, no stored composition state* (the section titled Composition state in `execution-contract.md`). There is no index, map or log at the composition boundary, so nothing here can go stale and nothing needs a rebuild — the gate is a sequencing constraint over state the constituents already hold. Composition state 4 is the cost: without [Audit Trail](./audit-trail.md) there is no per-call record, and the forensic scenario below says plainly what that costs an investigator.
 
 ### Primitive policy
 
@@ -91,9 +83,6 @@ Primitive policy 8: [Check Permitted] MUST NOT normalize an input.
 Primitive policy 9: [Check Permitted] MUST NOT call a constituent for an input the boundary predicate refuses.
 Primitive policy 10: The length bound MUST NOT EXCEED the Permissions instance's string cap.
 ```
-
-WHY:
-invalid-request is composition-introduced: neither wired constituent operation declares it, and Primitive policy 9 is why neither is consulted when it fires. That matters for a reason the outcome set makes plain — [Permissions](../atoms/permissions.md) answers an empty `subject_ref` or action scope with denied under its own default-deny posture, so a composition that let a malformed argument through would report *the answer is no* where the truth is *the request was not well-formed enough to ask*. Primitive policy 2 through 4 keep the three outcome classes distinct, which is Invariant 3's discipline applied to inputs rather than to answers. Primitive policy 10 closes the one route around them: Permissions reads an over-length argument as matching nothing (Permissions String 7), so a bound above the Permissions instance's string cap would admit a scope the boundary should refuse and report it denied.
 
 ### Action wiring
 
@@ -132,15 +121,6 @@ Term invalid answer: Session's validate answer carrying expired, revoked OR not-
 
 Term admitted gate: a [Check Permitted] call whose inputs cleared the boundary predicate AND whose Session validate gave a valid answer.
 
-WHY:
-Action wiring 2 and Wiring decision 1 are the whole composition stated as order. The boundary check runs before either constituent, the gate runs before Permissions, and both are `ONLY AFTER` rather than `BEFORE` because the grammar admits the positive form only in that direction (Timing 6, Hard invariant 11).
-
-Action wiring 13 and Action wiring 14 are one rule split by polarity, and they are what the OWASP ASVS V3.3 claim in Standards rests on. A deployment caching a validate answer across calls satisfies neither: a session revoked between two calls reaches Permissions with validate never consulted, which is the gap this composition exists to close. Non-goal 8 says what such a deployment is building instead.
-
-Action wiring 7 and Action wiring 8 are the principal binding stated twice on purpose — once as an argument the action does not take, once as a value it does not forward. A composition that took the argument and ignored it would satisfy the second and break the first, and an implementation that forwarded a caller value under a different name would satisfy the first and break the second.
-
-Action wiring 12 keeps the gate binary. The `expires_at` reaches the composition and stops there: a caller that learns the deadline learns how long a stolen token remains useful, and no rule here needs the value.
-
 ### Wiring decision
 
 ```
@@ -148,7 +128,7 @@ Wiring decision 1: The composition MUST call Permissions' permitted ONLY AFTER S
 ```
 
 WHY:
-The decision the composition exists to make: the session gates the permission check, at the composition boundary, so neither atom learns the other's rules (the section titled Intent). The rule is Action wiring 4's words, moved to the heading that names what it is.
+The decision the composition exists to make: the session gates the permission check, at the composition boundary, so neither atom learns the other's rules (the section titled Intent).
 
 ---
 
@@ -161,26 +141,22 @@ The decision the composition exists to make: the session gates the permission ch
   Deleted: Invariant 1.3. Session Composition note 4 owns it.
   Deleted: Invariant 1.4. Session Composition note 4 owns it.
   ```
-  WHY: [Session](../atoms/session.md)'s `Composition note 4` already forbids a composing pattern to call Permissions on an invalid answer, and `Composes 7` cites it — so the three deleted rules, which enumerated that prohibition over `expired`, revoked and not-known, restated a rule this spec cites rather than owns (Authority 6). Invariant 1.1 is not that rule. `Composition note 4` fires on an invalid answer *given*; Invariant 1.1 fires on no valid answer *given*, which also covers the call that never asked. The two do not normalize identically (Authority 4), and the gap between them is exactly what this composition adds: Session forbids acting on a bad answer, and the closure forbids acting on no answer at all. A deployment that skipped `validate` entirely would satisfy `Composition note 4` and breach Invariant 1.1.
 - **Invariant 2 — Principal binding.**
   ```
   Invariant 2.1: EVERY subject reference Permissions' permitted receives MUST equal the valid answer's principal reference.
   Invariant 2.2: The composition MUST NOT query a principal reference beside the session's own.
   ```
-  WHY: this one is emergent in the sense the summary claims, and [Permissions](../atoms/permissions.md)'s `Composition note 3` is why — the atom assigns the binding to a composing pattern and declines to own it, so the rule exists here because no atom holds it. That is the shape Composes 6 discharges, and it is a different shape from Invariant 1's.
 - **Invariant 3 — Denial is not rejection.**
   ```
   Invariant 3.1: A denied answer MUST follow an admitted gate.
   Invariant 3.2: A session-invalid answer MUST NOT follow an admitted gate.
   Invariant 3.3: The composition MUST NOT answer denied for a session Session's validate gave an invalid answer for.
   ```
-  WHY: denied means the gate cleared and the answer is no; session-invalid means the gate did not clear and Permissions was never asked. A caller that collapses them reads an authentication failure as an authorization decision, and an auditor that collapses them cannot tell a revoked session from a missing grant.
 - **Invariant 4 — Default deny.**
   ```
   Invariant 4.1: An admitted gate MUST answer denied for a pair no active grant covers.
   Invariant 4.2: A valid session MUST NOT stand as sufficient for access.
   ```
-  WHY: session validity is necessary and never sufficient. The default-deny posture is [Permissions](../atoms/permissions.md)'s and passes through unmodified (Action wiring 10, Action wiring 11); what this composition adds is that it passes through at all rather than being softened by a valid session.
 
 ---
 
@@ -301,11 +277,6 @@ External check 4: An auditor needing a gate rejection's record MUST read a compo
 External check 5: An auditor needing the constituents' surfaces confirmed unexposed MUST read the deployment's own wiring (Composes 5).
 ```
 
-WHY:
-The split is not a matter of thoroughness — it is what the absent log costs. Check 1.1 through 2.2 clear from the constituents' stored state, because Session records a session's status over time and Permissions records a grant's. External check 1 and External check 2 cannot: the *order* of two calls and the *provenance* of an argument leave no trace in either store, so an auditor without [Audit Trail](./audit-trail.md) is reading an implementation rather than a record. That is the honest bar, and it is why the breach-forensics scenario above answers structurally rather than from records.
-
-External check 5 is the one a deployment can fail silently. Every guarantee here is a guarantee about calls that arrive through [Check Permitted]; a deployment that also exposes `Permissions.permitted` has a second door, and nothing in the composition's own records shows that the door exists.
-
 ---
 
 ## Non-goals
@@ -325,13 +296,6 @@ Non-goal 11: The composition MUST NOT distinguish a session that lapsed unused f
 Non-goal 12: The composition MUST NOT answer a storage failure.
 ```
 
-WHY:
-Non-goal 5 and Non-goal 6 are the scope contract: `invoice:read` does not match `invoice:*` or `invoice` unless those exact strings appear in active grants. Hierarchy, if a deployment needs it, lives outside both atoms — [Permissions](../atoms/permissions.md)'s `Composition note 2` assigns the scope vocabulary to the composing pattern, and this composition declines it rather than inventing one.
-
-Non-goal 12 is an absence with a reason. `Session.validate` and `Permissions.permitted` both answer a first-class result for every declared case and neither declares a failure arm, so there is no constituent failure to map. A grant store that cannot be read produces no conforming Permissions answer at all — an availability fault at the constituent — and this composition adds no arm for it rather than inventing a guarantee past the constituents' own surfaces.
-
-Non-goal 7 is worth stating because the opposite reads as helpful. A principal may hold several active sessions; [Check Permitted] answers on the presented token alone, and a composition that searched the principal's other sessions for a valid one would let a revoked token borrow a live one's standing.
-
 ---
 
 ## Edge cases
@@ -344,9 +308,6 @@ Concurrency 2: The composition MUST NOT detect a revocation that follows the val
 Concurrency 3: A deployment needing a bound on a revocation's effect MUST bound Session's session duration.
 ```
 
-WHY:
-The gate is point-in-time at the instant `Session.validate` runs. A revocation landing after that instant and before Permissions answers leaves a call that clears the gate and returns permitted or denied on a session that is revoked by the time the caller reads the answer. This is stated rather than cured: curing it would need a lock across two atoms that declare no such surface, and the honest bound is the session's own duration (Concurrency 3).
-
 ---
 
 ## Composition notes
@@ -357,11 +318,6 @@ Deleted: Composition note 2. Composition state 4 owns it.
 Composition note 3: A deployment MUST own the action scope vocabulary.
 Composition note 4: A deployment MUST NOT read this composition as a session lifecycle surface.
 ```
-
-WHY:
-[Login](./login.md) is this composition's lifecycle complement: Login wires `Credential.verify → Session.issue` and owns `revoke_sessions_for_credential`, and this composition wires `Session.validate → Permissions.permitted` at access time. The two need no coordination — a revocation Login cascades is visible to the next [Check Permitted] call because `Session.validate` reads the same store, which is the whole of the integration.
-
-[Privileged Access Provisioning](./privileged-access-provisioning.md) enforces the same gate at the head of `exercise_access` and is not a use of this composition. The library treats them as independent implementations of one principle at two lifecycle points; whether that duplication should be shared is a design question for a deployment building both surfaces.
 
 ---
 
@@ -465,9 +421,8 @@ open:
 
 ## Decisions
 
-Directional changes only — the turns a future reader must know the pattern took, and why. Everything smaller lives in the commit that made it: `git log -- compositions/session-gated-authorization.md`.
+Directional changes only — the turns a future reader must know the pattern took, and why. Everything smaller lives in the commit that made it: `git log -- compositions/session-gated-authorization.md`; the migration that got it here is in [its history](./session-gated-authorization.hist.md).
 
-- **2026-09-14 — Rewritten in GRACE lang v0.40; nothing but language changed.** *Chose:* the single action as a signature block with `Action wiring` carrying the two-step gate, `Primitive policy` carrying the boundary predicate, `Concurrency` carrying the revocation race, the four invariant numbers unchanged, and the acceptance section's two declared tiers split into `Check` and `External check` exactly as the prose divided them. *Over:* the prose spec. *Because:* the migration plan; nothing in the corpus cites this composition by label, so the rewrite is free of frozen-number risk. The families are the wiring surfaces this composition actually has — no `Event schema`, no `Replay`, because it stores nothing and rebuilds nothing.
 - **2026-09-14 — The gate is Session's, the closure is this composition's, and the Summary said both were emergent.** *Chose:* to cite the gate and own the closure — `Composes 7` names [Session](../atoms/session.md)'s `Composition note 4`, `Invariant 1.2` through `Invariant 1.4` are tombstoned to it, `Invariant 1.1` stands, and the Summary now claims exactly the two rules this composition holds. *Over:* carrying the prose's *emergent* claim unchanged, which the atom contradicts; and over deleting Invariant 1 entirely, which was the reviewer's counsel and cuts one rule too deep. *Because:* `Composition note 4` fires on an invalid answer *given* and `Invariant 1.1` fires on no valid answer *given*, so they do not normalize identically (Authority 4) — a deployment that skipped `validate` altogether would satisfy the note and breach the invariant. `Authority 6` forbids a citing spec to restate a rule, which is what the three enumerations did; it does not reach a rule that is strictly stronger. [Permissions](../atoms/permissions.md)'s `Composition note 3` is the third shape again: it assigns the caller-to-subject binding without stating it, so `Invariant 2` is owned here outright. The maintainer's ruling settles the row titled *Which direction a rule may point across a seam* in `open-questions.md`, open since council read 36: **atoms may bind compositions; a composition cites what the composition inherits and owns what the composition adds** (council read 53).
 
 - **2026-09-27 — The length bound sits under the Permissions string cap, and the page steps down to run the round that rule owes.** *Chose:* Primitive policy 10, and `partially resolved` until a three-pass round clears it. *Over:* a routed line on a grounded page. *Because:* a cold regeneration met the gap — Permissions answers an over-length argument denied, so a bound above its cap reports a malformed request as a refusal, the collapse Primitive policy 2 through 4 exist to prevent — and the entry *Touch triggers re-pass* in `pressure-testing.md` downgrades a grounded page for a load-bearing edit (council read 236).
