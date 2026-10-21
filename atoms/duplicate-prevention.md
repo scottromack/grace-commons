@@ -16,16 +16,16 @@ toc: true
 
 ## Summary
 
-Duplicate Prevention gives a system a short-term memory of things it has recently seen, so it can spot repeats. The way it works is simple. When something happens (an item is removed, a request is processed), the system records that identity; before accepting a new one, it checks whether that identity was recorded within a set time window. If it was, the check reports "seen" and the system can decide what to do — reject the repeat, ignore it, or return the earlier result. Once the window has passed, the same identity is fresh again. The pattern itself stays out of that decision and out of how identities are compared — those belong to the system using it — which is why the same mechanism works for a to-do list (a one-day window blocks accidental re-adds), a payment system (a few-minute window stops a retried charge from billing twice), a comment box (a one-minute window stops double-click double-posts), and a signup form. One firm guarantee: recording the same identity again does not push the window forward, so a flurry of repeats cannot extend the block indefinitely — the clock starts at the first sighting and runs out at a fixed time.
+Duplicate Prevention gives a system a short-term memory of things it has recently seen, so it can spot repeats. The way it works is simple. When something happens (an item is removed, a request is processed), the system records the thing's identity — a value that names it, such as the item's text or the request's key; before accepting a new one, it checks whether that identity was recorded within a set time window. If it was, the check reports "seen" and the system can decide what to do — reject the repeat, ignore it, or return the earlier result. Once the window has passed, the same identity is fresh again. The pattern itself stays out of that decision and out of how identities are compared — those belong to the system using it — which is why the same mechanism works for a to-do list (a one-day window blocks accidental re-adds), a payment system (a few-minute window stops a retried charge from billing twice), a comment box (a one-minute window stops double-click double-posts), and a signup form. One firm guarantee: recording the same identity again does not push the window forward, so a flurry of repeats cannot extend the block indefinitely — the clock starts at the first sighting and runs out at a fixed time.
 
-*Also known as: temporal idempotency, recency guard, cooldown window.*
+*Also known as: temporal idempotency (a repeat inside a stretch of time has no further effect), recency guard, cooldown window.*
 
 ---
 
 ## Intent
 
 WHY:
-Every system that accepts input from a person or another system meets the same class of problem: the double-submit, the rapid re-add, the replayed message, the retried charge, the double-posted comment, the redundant sign-up. The shape is constant — an action carries an identity, the action should be rejected, de-duplicated or replayed if that identity was seen recently, and *recently* is a wall-time window. The atom is that mechanic and nothing more: it remembers an identity for a bounded term and answers whether the identity is still under guard. It does not compare identities, does not decide what a repeat means, and does not act. The same literature names it three times — *idempotency window* in distributed systems, *cooldown* in user experience, *replay protection* in security — and the concept underneath is one concept.
+Every system that accepts input from a person or another system meets the same class of problem: the double-submit, the rapid re-add, the replayed message, the retried charge, the double-posted comment, the redundant sign-up. The shape is constant — an action carries an identity, the action should be rejected, de-duplicated or replayed if that identity was seen recently, and *recently* is a wall-time window. The atom is that mechanic and nothing more: it places an identity under guard for a bounded term and answers whether the identity is still under guard. It does not compare identities, does not decide what a repeat means, and does not act. The same literature names it three times — *idempotency window* in distributed systems, *cooldown* in user experience, *replay protection* in security — and the concept underneath is one concept.
 
 ## Structure
 
@@ -36,7 +36,7 @@ Identity 1: The atom MUST identify a guarded entry by the identity.
 Identity 2: The atom MUST treat an identity as opaque.
 Identity 3: The atom MUST NOT interpret an identity.
 Identity 4: The atom MUST NOT normalize an identity.
-Identity 5: The containing pattern MUST supply the matching rule.
+Identity 5: The containing pattern MUST supply the identity to [Record] and [Check] already reduced to the value the matching rule compares by.
 ```
 
 Term identity: the opaque value a containing pattern asks the atom to remember and recognize — an [Identity].
@@ -51,7 +51,7 @@ State 2: The host MUST derive under guard from the elapsed term at the moment a 
 State 3: The atom MUST NOT hold state beyond the recorded set.
 ```
 
-Term recorded set: the identities under guard, each held with the identity's recording instant — the [Recorded Set].
+Term recorded set: every identity a [Record] has placed under guard, each held with the identity's recording instant, whether or not the identity is still under guard — the [Recorded Set].
 
 Term recording instant: the instant an identity was placed under guard, stamped from the injected now — a [Recording Instant].
 
@@ -73,25 +73,33 @@ Capability requirement 2: The deployment MUST supply the database PER Execution 
 ```
 record(identity)
   answers ok
+  refuses state-unavailable | storage-failure
 
 check(identity)
   answers seen | not-seen
+  refuses state-unavailable
 ```
 
 ```
-Operation 1: [Record] MUST place an identity that is not under guard under guard.
-Operation 2: [Record] MUST stamp recording instant from the injected now.
-Operation 3: [Record] MUST answer ok.
-Operation 4: [Record] MUST NOT refuse.
-Operation 5: [Check] MUST answer EXACTLY ONE OF seen, not-seen.
-Operation 6: [Check] MUST answer seen for an identity under guard.
-Operation 7: [Check] MUST answer not-seen for an identity that is not under guard.
+Operation 1: A landed record MUST place an identity that is not under guard under guard.
+Operation 2: A landed record MUST stamp the recording instant of an identity that is not under guard from the injected now.
+Operation 3: A landed record MUST answer ok.
+Operation 4: [Record] MUST NOT refuse a call on the ground that the identity is under guard.
+Operation 5: [Check] MUST answer EXACTLY ONE OF seen, not-seen, state-unavailable.
+Operation 6: IF database read EQUALS answered THEN [Check] MUST answer seen for an identity under guard.
+Operation 7: IF database read EQUALS answered THEN [Check] MUST answer not-seen for an identity that is not under guard.
 Deleted: Operation 8. Capability requirement 1 owns it.
 Deleted: Operation 9. Execution Contract Logic confinement 3 owns it.
 Deleted: Operation 10. Execution Contract Logic confinement 3 owns it.
-Operation 11: The containing pattern MUST supply window duration.
+Operation 11: The containing pattern MUST supply EXACTLY ONE window duration per instance of the atom.
 Operation 12: The containing pattern MUST own the response to an answer.
+Operation 13: IF database read EQUALS failed THEN the atom MUST answer state-unavailable.
+Operation 14: IF the database refuses the write THEN [Record] MUST answer storage-failure.
 ```
+
+Term database read: answered | failed — the outcome of the read a call makes of the recorded set, failed being the failure the section titled Step 1 failure in `execution-contract.md` names.
+
+Term landed record: a [Record] call whose database read EQUALS answered and whose write, where the call makes one, the database commits.
 
 The case space, and the rule that owns each case:
 
@@ -99,10 +107,10 @@ The case space, and the rule that owns each case:
 |---|---|---|---|
 | [Record] | no | ok | enters under guard, recording instant from the injected now (Operation 1, Operation 2) |
 | [Record] | yes | ok | unchanged — the original recording instant stands (Invariant 2.1, Invariant 2.2) |
+| [Record] | either, and the database refuses the write | [Storage Failure] | unchanged — for an identity that was not under guard, the guard is missed (Operation 14, Record failure 2) |
 | [Check] | yes | [Seen] | none — the call reads (Operation 6, Invariant 3.1) |
 | [Check] | no | [Not Seen] | none — the call reads (Operation 7, Invariant 3.1) |
-
-A failed database write sits outside the table: [Record] still answers ok, and the guard is missed rather than refused (Record failure 1 through 3).
+| [Record], [Check] | either, and the database read fails | [State Unavailable] | none — nothing is decided (Operation 13) |
 
 Term now: the wall-time reading the host takes at the seam and hands to the transition, as the section titled Logic Confinement Principle in `execution-contract.md` declares it; never read inside the transition, never supplied by the business caller.
 
@@ -118,17 +126,17 @@ Term business caller: the party whose action the call carries, as the section ti
   ```
   Invariant 2.1: [Record] MUST NOT extend the guard of an identity under guard.
   Invariant 2.2: [Record] MUST preserve the recording instant of an identity under guard.
-  Invariant 2.3: [Record] MUST open a fresh guard for an identity that is not under guard.
+  Invariant 2.3: A landed record MUST open a fresh guard for an identity that is not under guard.
   Deleted: Invariant 1. Operation 6 and Operation 7 own it.
   ```
 - **Invariant 3 — Idempotency of check.**
   ```
   Invariant 3.1: [Check] MUST NOT alter the recorded set.
-  Invariant 3.2: Two checks of one identity under one now MUST answer alike.
+  Deleted: Invariant 3.2. Operation 6, Operation 7 and Invariant 3.1 own it.
   ```
-- **Invariant 4 — Eventual expiry.** NOTE: watch the modal's temporal scope — Invariant 4.1 reads as safety (*always dropped*) and is meant as liveness (*eventually dropped*), the reading Lazy expiry 1 and Lazy expiry 2 license, and the only word carrying the distinction is *Eventual* in this heading. GRACE's MUST has no temporal scope; the docket carries the class (council read 52).
+- **Invariant 4 — Eventual expiry.**
   ```
-  Invariant 4.1: The host MUST drop an identity that is not under guard from the recorded set.
+  Deleted: Invariant 4.1. Operation 7 and Execution Contract Database 4 own it.
   Deleted: Invariant 4.2. Operation 7 owns it.
   ```
 
@@ -146,11 +154,11 @@ A user submits a comment, the page hangs, they click submit again. The comment s
 
 ### Payment idempotency (5-minute window)
 
-A payment processor receives a charge request with an idempotency key. It calls [Check] with the key, receives [Not Seen], processes the charge, calls [Record] with the key and the response cached against it. A retry within five minutes triggers [Check] with the key, receives [Seen], returns the previously-cached result without re-processing.
+A payment processor receives a charge request with an idempotency key. It calls [Check] with the key, receives [Not Seen], processes the charge, caches the response against the key in its own records and calls [Record] with the key. A retry two minutes later triggers [Check] with the key, receives [Seen], and the processor returns its cached result without re-processing.
 
 ### Newsletter double-subscribe (1-hour window)
 
-A user submits the same email address to a newsletter form twice in quick succession (browser back button, double-click on submit). The first submission processes. Subsequent submissions within the hour trigger [Seen] and are silently absorbed-as-already-subscribed rather than producing duplicate confirmation emails.
+A user submits the same email address to a newsletter form twice in quick succession (browser back button, double-click on submit). The first submission processes. The second, a few seconds later, triggers [Seen] and is silently absorbed-as-already-subscribed rather than producing a duplicate confirmation email.
 
 The mechanic is identical across all four. What differs: the [Window Duration], the identity-matching rule, and the containing pattern's response on [Seen] (reject, return-cached, silently-absorb).
 
@@ -166,14 +174,14 @@ An implementation is acceptable when the checks below are provable to an externa
 Check 1.1: An auditor MUST find EXACTLY ONE recording instant PER identity the recorded set holds (State 1).
 Check 1.2: An auditor MUST find an identity's recording instant unchanged across a second record inside the identity's window (Invariant 2.2).
 Check 1.3: An auditor MUST find no guard extended by a second record (Invariant 2.1).
-Check 1.4: An auditor MUST find a fresh recording instant for a record against an identity that is not under guard (Invariant 2.3).
+Check 1.4: An auditor MUST find a fresh recording instant for a landed record against an identity that is not under guard (Invariant 2.3).
 Check 2.1: An auditor MUST find the recorded set unchanged across a check (Invariant 3.1).
-Check 2.2: An auditor MUST find two checks of one identity under one now answering alike (Invariant 3.2).
-Check 3.1: An auditor MUST find EVERY check answering EXACTLY ONE OF seen, not-seen (Operation 5).
+Deleted: Check 2.2. Check 2.1, Check 3.2 and Check 3.3 own it.
+Check 3.1: An auditor MUST find EVERY check answering EXACTLY ONE OF seen, not-seen, state-unavailable (Operation 5).
 Check 3.2: An auditor MUST find a check answering seen for an identity under guard (Operation 6).
 Check 3.3: An auditor MUST find a check answering not-seen for an identity that is not under guard (Operation 7).
-Check 3.4: An auditor MUST find a check answering not-seen for an identity a lazy host still holds (Lazy expiry 3).
-Check 4.1: An auditor MUST find EVERY record answering ok (Operation 4).
+Deleted: Check 3.4. Check 3.3 owns it.
+Check 4.1: An auditor MUST find EVERY landed record answering ok (Operation 3).
 ```
 
 NOTE: EVERY check names the rule the check tests.
@@ -185,7 +193,7 @@ External check 1: An auditor needing the window duration confirmed MUST read the
 External check 2: An auditor needing the matching rule confirmed MUST read the containing pattern's own declaration (Identity 5).
 External check 3: An auditor needing a guard miss confirmed MUST read the deployment's own database (Record failure 2).
 Deleted: External check 4. Execution Contract Database 3 owns it.
-External check 5: An auditor needing the unavailability policy confirmed MUST read the deployment's own declaration (Check unavailability 1).
+Deleted: External check 5. Operation 12 owns it.
 External check 6: An auditor needing the clock's honesty confirmed MUST read the deployment's own clock discipline (Non-goal 12).
 ```
 
@@ -197,7 +205,7 @@ Deleted: Non-goal 2. Execution Contract Database 3 owns it.
 Deleted: Non-goal 3. Execution Contract Database 3 owns it.
 Non-goal 4: The atom MUST NOT reconcile two recorded sets.
 Non-goal 5: A pattern needing one guard across every node MUST compose a coordination pattern.
-Non-goal 6: The atom MUST NOT retain an identity that is not under guard.
+Deleted: Non-goal 6. Operation 7 and Execution Contract Database 4 own it.
 Non-goal 7: A pattern needing long-term history MUST compose an audit pattern.
 Non-goal 8: The atom MUST NOT supply the matching rule.
 Non-goal 9: A pattern needing a guard that resets on every sighting MUST compose a sliding-window pattern.
@@ -207,7 +215,7 @@ Non-goal 12: The atom MUST NOT correct clock skew.
 Non-goal 13: A pattern needing a strictly monotonic guard MUST compose a logical-clock pattern.
 ```
 
-NOTE: the owners — the containing pattern (Non-goal 1, Operation 12; Non-goal 8, Identity 5); the deployment (Non-goal 4, Non-goal 5); a Coordination pattern *(forthcoming)* (Non-goal 4, Non-goal 5); an Audit pattern (Non-goal 6, Non-goal 7); Sliding Window *(forthcoming)* (Non-goal 9); a Calendar Day pattern *(forthcoming)* (Non-goal 10, Non-goal 11).
+NOTE: the owners — the containing pattern (Non-goal 1, Operation 12; Non-goal 8, Identity 5); the deployment (Non-goal 4, Non-goal 5); a Coordination pattern *(forthcoming)* (Non-goal 4, Non-goal 5); an Audit pattern (Non-goal 7); Sliding Window *(forthcoming)* (Non-goal 9); a Calendar Day pattern *(forthcoming)* (Non-goal 10, Non-goal 11).
 
 Where the pattern breaks down: when *recent* is measured by something other than wall-time elapsed. Number of intervening events, calendar-day boundaries and business-day boundaries each take a separate concept.
 
@@ -224,27 +232,27 @@ Deleted: Clock semantics 3. Non-goal 13 owns it.
 ### Check database unavailability
 
 ```
-Check unavailability 1: The deployment MUST declare EXACTLY ONE OF fail-open, fail-closed.
-Check unavailability 2: A fail-open implementation MUST proceed as not-seen.
-Check unavailability 3: A fail-closed implementation MUST proceed as seen.
-Check unavailability 4: The atom MUST NOT mandate the policy.
+Deleted: Check unavailability 1. Operation 12 and Operation 13 own it.
+Deleted: Check unavailability 2. Operation 12 and Operation 13 own it.
+Deleted: Check unavailability 3. Operation 12 and Operation 13 own it.
+Deleted: Check unavailability 4. Non-goal 1 owns it.
 ```
 
 ### Lazy expiry
 
 ```
-Lazy expiry 1: A host MAY drop an identity that is not under guard at the moment a question is asked.
-Lazy expiry 2: A host MAY drop an identity that is not under guard on a schedule.
-Lazy expiry 3: A lazy host MUST answer not-seen for an identity the lazy host still holds.
+Deleted: Lazy expiry 1. Execution Contract Database 4 owns it.
+Deleted: Lazy expiry 2. Execution Contract Database 4 owns it.
+Deleted: Lazy expiry 3. Operation 7 owns it.
 ```
 
 WHY:
-The atom claims behaviour and not storage, which is why the two host modes are indistinguishable to a caller: Operation 7 answers not-seen for an identity that is not under guard whether or not the host has physically dropped it, and Lazy expiry 3 says so for the entry a lazy host still holds.
+The atom claims behaviour and not storage: Operation 7 answers not-seen for an identity that is not under guard, and the identity's entry stays in the recorded set, since no action of the atom removes one and the database removes nothing on its own (Execution Contract Database 4).
 
 ### Record storage failure
 
 ```
-Record failure 1: [Record] MUST NOT refuse on a failed write.
+Deleted: Record failure 1. Operation 14 owns it.
 Record failure 2: The atom MUST treat a failed write as a guard miss.
 Record failure 3: The atom MUST NOT treat a failed write as a safety violation.
 Deleted: Record failure 4. Execution Contract Database 3 owns it.
@@ -260,13 +268,13 @@ Each `[Term]` marker above links to its term entry here; a term entry states wha
 
 ### Vocabulary
 
-Term actors: the atom; the host (also: a host, a lazy host); the transition; a containing pattern (also: the containing pattern, a pattern); a business caller; an implementation (also: a fail-open implementation, a fail-closed implementation); the deployment (also: a deployment); an identity; a guarded entry; an entry; a check; an auditor.
+Term actors: the atom; the host; the transition; a containing pattern (also: the containing pattern, a pattern); a business caller; the deployment (also: a deployment); the database; an identity; a guarded entry; an entry; a check; an auditor.
 
-Term records: recorded set — the identities under guard, one recording instant per entry.
+Term records: recorded set — every identity placed under guard, one recording instant per entry.
 
-Term record verbs: identify, treat, interpret, normalize, supply, hold, derive, stamp, place, answer, refuse, read, own, stand, extend, preserve, open, drop, alter, decide, survive, reconcile, compose, retain, proceed, mandate, declare, anchor, correct, find.
+Term record verbs: identify, treat, interpret, normalize, supply, hold, derive, stamp, place, answer, refuse, read, own, stand, extend, preserve, open, alter, decide, survive, reconcile, compose, anchor, correct, find.
 
-Term value sets: database policy = fail-open | fail-closed.
+Term value sets: database read = answered | failed.
 
 Term bounds: window duration (the length a containing pattern chooses for a guard; window is the lowering token the [Window Duration] term entry carries).
 
@@ -274,11 +282,11 @@ Term cadences: empty.
 
 Term qualifiers: migrated — rewritten in GRACE lang v0.35 (2026-09-11); under guard — recorded, and the guard's term not yet elapsed.
 
-Term terms: identity, matching rule, recorded set, recording instant, window duration, elapsed term, under guard, now, transition, seam, business caller.
+Term terms: identity, matching rule, recorded set, recording instant, window duration, elapsed term, under guard, now, transition, seam, business caller, database read, landed record.
 
 #### Identity
 
-The value a containing pattern asks Duplicate Prevention to remember and recognize — what counts as "the same thing seen again." The concept treats it as opaque: it stores and compares the value but never interprets it, and how two identities are judged equal is the containing pattern's matching rule, not this atom's.
+The value a containing pattern asks Duplicate Prevention to remember and recognize — what counts as "the same thing seen again." The concept treats it as opaque: it stores and compares the value but never interprets it, and how two identities are judged equal is the containing pattern's matching rule, which the containing pattern applies before the value reaches this atom.
 
 Kind: Type
 
@@ -290,20 +298,20 @@ Kind: Type
 
 #### Recorded Set
 
-The atom's short-term memory: the collection of identities currently under guard, each held together with the time it was recorded. An [Identity] enters on [Record] and leaves automatically once its [Window] has elapsed. It is an internal mechanism, queryable for diagnostics, not a user-facing surface.
+The atom's memory: every [Identity] a [Record] has placed under guard, each held together with the time its current guard opened. An [Identity] enters on [Record] and stays: once its [Window] has elapsed it is no longer under guard and [Check] answers [Not Seen] for it, but no action of the atom removes its entry. It is an internal mechanism, queryable for diagnostics, not a user-facing surface.
 
 Kind:       Type
 Projection: recorded
 
 #### Record
 
-The behavior a containing pattern invokes when it has just observed an [Identity] (for example, after removing an item) so that future repeats can be recognized. It places the [Identity] under guard, opening a [Window]. It always succeeds — it never refuses — and recording an [Identity] that is already under guard does not push its [Window] forward.
+The behavior a containing pattern invokes when it has just observed an [Identity] (for example, after removing an item) so that future repeats can be recognized. It places the [Identity] under guard, opening a [Window]. It never refuses an [Identity] for being under guard — recording one that is already under guard does not push its [Window] forward — and it answers [State Unavailable] when the [Recorded Set] cannot be read and [Storage Failure] when the database refuses its write.
 
 Kind: Operation
 
 #### Check
 
-The behavior a containing pattern invokes before accepting a new [Identity], to ask whether that [Identity] is currently under guard. It only reads — it changes nothing — and reports its answer as [Seen] or [Not Seen]. What to do with the answer is the containing pattern's decision.
+The behavior a containing pattern invokes before accepting a new [Identity], to ask whether that [Identity] is currently under guard. It only reads — it changes nothing — and reports its answer as [Seen] or [Not Seen], or [State Unavailable] when the [Recorded Set] cannot be read. What to do with the answer, an unavailable one included, is the containing pattern's decision.
 
 Kind: Operation
 
@@ -335,10 +343,10 @@ Projection: recorded_at
 
 #### Window Duration
 
-The length the containing pattern chooses for a [Window] — how long a recently-recorded [Identity] stays guarded. It is supplied by the containing pattern per use (24 hours for a to-do list, minutes for a payment), sizes the [Window] but is not itself part of the concept's state, and is the value the expiry comparison measures [Now] − [Recording Instant] against.
+The length the containing pattern chooses for a [Window] — how long a recently-recorded [Identity] stays guarded. It is supplied by the containing pattern, one for each instance of the atom (24 hours for a to-do list, minutes for a payment), sizes the [Window] but is not itself part of the concept's state, and is the value the expiry comparison measures [Now] − [Recording Instant] against.
 
 Kind:         Parameter
-Parameter of: Record
+Parameter of: Record and Check
 Projection:   window
 
 #### Now
@@ -348,6 +356,24 @@ The current wall-time reading the [Record] and [Check] behaviors evaluate agains
 Kind:         Parameter
 Parameter of: Check
 Projection:   now
+
+#### State Unavailable
+
+The refusal [Record] or [Check] returns when the read the call makes of the [Recorded Set] fails — the Execution Contract's Step 1 failure. Nothing is decided or written and the call may be retried; the answer says nothing about whether the [Identity] is under guard, and whether to proceed as [Not Seen] (fail-open) or as [Seen] (fail-closed) is the containing pattern's decision.
+
+Kind:       Member
+Member of:  the action rejection
+Role:       Outcome
+Projection: state-unavailable
+
+#### Storage Failure
+
+The refusal [Record] returns when the database refuses its write after the read answers — the Execution Contract's Step 3 failure. Nothing is written, so an [Identity] that was not under guard stays so and the guard is missed; what that means for an act already taken is the containing pattern's decision.
+
+Kind:       Member
+Member of:  the action rejection
+Role:       Outcome
+Projection: storage-failure
 
 <!-- Term registry — shortcut-reference definitions. These produce no visible
      output; each resolves a [Term] marker to its term entry heading above (kramdown
@@ -364,6 +390,8 @@ Projection:   now
 [Recording Instant]: #recording-instant
 [Window Duration]: #window-duration
 [Now]: #now
+[State Unavailable]: #state-unavailable
+[Storage Failure]: #storage-failure
 
 ---
 
@@ -379,7 +407,7 @@ It inherits from:
 
 - **Daniel Jackson, *The Essence of Software*** — the conception of a freestanding concept with state, actions, and operational principles, designed for composition rather than absorption.
 - **Distributed-systems idempotency literature** — the underlying mechanic appears as "idempotency window" or "exactly-once-within-window semantics" in message-queue and payment-processor designs.
-- **Linear temporal logic** (a formal notation for reasoning about sequences of states over time) — the eventual-expiry invariant expressed as a temporal property.
+- **Linear temporal logic** (a formal notation for reasoning about sequences of states over time) — a guard's expiry expressed as a temporal property.
 
 ---
 
@@ -392,14 +420,21 @@ It inherits from:
 ```
 status: partially resolved
 formal: verified — duplicate-prevention.tla + 1 twin, 2026-06-03
-last gate: 2026-06-18 — Final Critique 4, fresh reader — clean
+last gate: 2026-10-21 — Final Critique 5, the council's first round on the page and the first on its Store-contract rewrite (b683119), three fresh readers on free models (GRID Nemotron 3 Ultra, EOS MiniMax M3.1 Flash, Linus GLM-5.3 Flash), each handed only the round's reading set, three passes on one text (frozen at 3e955a5); the round rests on three counted passes — foundational count 6 after triage (17 reports: 9 standing, merged into 6; 4 sent down; 4 rejected), all Kind A: [Check]'s answers and [Record]'s ok were closed against the failed read and the refused write the Execution Contract answers, and a fail-open posture obliged not-seen for an identity under guard; a refused write was obliged to place the guard the page also called missed; the window duration reached the host by no stated route, so builds read it per call, per entry or at every read; the matching rule was handed to an atom forbidden to interpret an identity; a drop was obliged that no declared action can make, beside a lazy host the page licensed to keep the entry; and two checks under one now were said to answer alike across a [Record] between them; 11 refining reports, 5 rhetorical reports; not clean; every foundational finding cured in place; 2026-06-18 — Final Critique 4, fresh reader — clean
 
-open: none
+open:
+- 2026-10-21-a · refining · Term now; Now entry; Capability requirement 1 · Term now hands now to the transition, which the Execution Contract reads as the state-changing T, while [Check], a query, compares now too, and the Now entry gives Parameter of: Check alone though [Record] stamps from it → name every consumer of now, [Check]'s projection among them
+- 2026-10-21-b · refining · Examples; Operation 12; Composition notes · the payment and comment examples check, act and record in separate steps, so two first sightings at once both answer not-seen and both act; where [Record] stands against the act is the containing pattern's (Operation 12), and Execution Contract Database 1 and Database 2 serialize a containing action that checks, acts and records in one transaction → say so beside the examples or in the Composition notes
+- 2026-10-21-c · refining · Invariant 2.3; Operation 1; Non-goal 1; Operation 12; Clock semantics 1; Operation 2; Invariant 2.2 · three propositions each owned twice: a fresh guard for an identity not under guard, the response left to the containing pattern, and a guard anchored to the opening record's now → one owner each (GRACE-lang Authority 3)
+- 2026-10-21-d · refining · Term recorded set; Execution Contract Database 4 · no action erases an entry whose guard has elapsed, so the recorded set keeps every identity ever placed under guard and a pattern that needs the space back has nothing to call → a declared erasure the atom owns, or a Non-goal naming the composing pattern that purges
+- 2026-10-21-e · refining · External check 6; Non-goal 12 · External check 6 sends the auditor to Non-goal 12, which owns skew correction, for the clock's honesty, which Execution Contract Logic confinement 7 makes the deployment's → cite Logic confinement 7, or delete the check to it as Event Log's External check 3 was
 ```
 
 ## Decisions
 
 Directional changes only — the turns a future reader must know the pattern took, and why. Everything smaller lives in the commit that made it: `git log -- atoms/duplicate-prevention.md`; the rounds and the migration that got it here are in [its history](./duplicate-prevention.hist.md).
+
+- **2026-10-21 — A failed read and a refused write answer as the Execution Contract answers them; the window duration is one per instance and the matching rule is applied before the call; nothing drops an entry, so the recorded set holds every identity placed under guard; two checks answer alike by the rules that fix each answer.** *Chose:* state-unavailable on both actions where the read of the recorded set fails (Operation 13, Term database read) and storage-failure on [Record] where the database refuses its write (Operation 14), with [Check]'s answers held to an answered read (Operation 5 through 7) and [Record]'s placing, stamping, ok and fresh guard held to a landed record (Operation 1 through 3, Invariant 2.3, Term landed record); Operation 4 refusing nothing on the ground that the identity is under guard; Record failure 1 deleted to Operation 14, and Check unavailability 1 through 4 and External check 5 to Operation 12, Operation 13 and Non-goal 1, so proceeding as not-seen or as seen on an unavailable read is the containing pattern's response to an answer; one window duration for each instance of the atom (Operation 11); each identity supplied already reduced to the value the containing pattern's matching rule compares by (Identity 5); Invariant 4.1, Non-goal 6 and Lazy expiry 1 through 3 deleted to Operation 7 and Execution Contract Database 4, with Check 3.4 to Check 3.3, and the recorded set declared as every identity placed under guard, held whether or not its guard still runs; Invariant 3.2 deleted to Operation 6, Operation 7 and Invariant 3.1, and Check 2.2 to Check 2.1, Check 3.2 and Check 3.3. *Over:* a [Check] obliged to answer seen or not-seen and a [Record] obliged to answer ok where the contract answers state-unavailable and storage-failure, so a caller could be told a guard stood that the database never kept; a fail-open posture obliging not-seen for an identity under guard; a window duration two builds could take per call, per entry or at every read; a matching rule two builds could apply inside the atom or before the call; a drop obliged of a host that no declared action lets drop, beside a lazy host the page licensed to keep the entry; and two checks under one now said to answer alike across a [Record] between them. *Because:* Final Critique 5 found each a divergence between conforming builds or two rules no build can both obey, and the corpus held each cure: Actor Identity's, Permissions' and Capability's rounds answer the failed read and the refused write, the method's entry of 2026-10-08 deletes a broken rule to the rules that already hold its states, and Final Critique 4's own text configured the window per containing pattern. This turns three choices the 2026-10-20 entry kept — a failed write answering ok, the posture under an unavailable database declared by the deployment, and the host's drop as the atom's own — because the Database contract the atom takes (Capability requirement 2) and the contract's Step 1 and Step 3 failures leave no conforming build that can make them. What [Check] answers on a read that answers, and what [Record] does on a write that lands, are unchanged.
 
 - **2026-10-20 — The store's guarantees cited, not restated.** *Chose:* the store supplied under Execution Contract Store 1 through 4 (Capability requirement 2), and the four rules that set the recorded set's durability tombstoned to Store 3 — Non-goal 2 and Non-goal 3, the recorded set's survival across a restart not required of the atom and left to the deployment, Record failure 4, a durable recorded set where duplicate prevention is safety-critical, and External check 4, the auditor's check of that durability; rules 66 to 63. *Over:* a recorded set whose survival across a restart each deployment chose, a volatile set admitted wherever the guard was not safety-critical. *Because:* the maintainer ruled 2026-10-12 that the corpus takes a store's specification, never the store, and that the four Store rules hold for every specification; `execution-contract.md` writes them once as the Store contract, and Store 3 keeps every committed write across a restart. A failed write still answers ok and misses the guard (Record failure 1 through 3), the posture under an unavailable store stays the deployment's to declare (Check unavailability 1 through 4), and the host's drop of an identity that is not under guard stays the atom's own (Invariant 4.1, Lazy expiry 1, Lazy expiry 2). Under guard is derived from the recording instant each entry carries, so the atom cites neither History 1 nor Order 1; what the atom does for its domain is unchanged.
 
