@@ -38,7 +38,7 @@ Deleted: Identity 5. Invariant 5.1 owns it.
 Identity 6: The atom MUST NOT identify an attestation by the action reference.
 Identity 7: The atom MUST NOT identify an attestation by the actor reference.
 Identity 8: The atom MUST NOT identify an attestation by attestation instant.
-Identity 9: Two attestations over one action by one actor MUST carry two attestation ids.
+Deleted: Identity 9. Invariant 5.1 owns it.
 ```
 
 Term attestation: one recorded binding of an actor to an action — an [Attestation].
@@ -46,6 +46,8 @@ Term attestation: one recorded binding of an actor to an action — an [Attestat
 Term attestation id: the opaque value naming one attestation — an [Attestation Id].
 
 Term action reference: the opaque reference naming what was attested — an [Action Reference]; the host owns what an action is.
+
+Term action content: what the action an action reference names says or carries; the host owns it.
 
 Term actor reference: the opaque reference naming who attested — an [Actor Reference]; the actor registry is a separate concept.
 
@@ -56,6 +58,8 @@ Term transition: the atom's evaluation of one call against the attestation recor
 Term business caller: the party whose action the call carries, as the section titled Logic Confinement Principle in `execution-contract.md` declares it; never the source of an injected value.
 
 Term now: the wall-time reading the host takes at the seam and hands to the transition, as the section titled Logic Confinement Principle in `execution-contract.md` declares it; never read inside the transition, never supplied by the business caller.
+
+NOTE: open 2026-10-22-a — Term seam, Term transition, Term business caller and Term now cite the section titled Logic Confinement Principle in `execution-contract.md`, which declares none of them, and State 2 reads a transition as a move out of a state.
 
 ### State
 
@@ -89,7 +93,10 @@ Term attestation field: attestation id | action reference | actor reference | pr
 Capability requirement 1: The deployment MUST supply now at the seam.
 Capability requirement 2: The deployment MUST supply the attestation records PER Execution Contract Database 1, Execution Contract Database 3, Execution Contract Database 4, Execution Contract Read 1 through 3 and Execution Contract Refusal 1.
 Capability requirement 3: The deployment MUST supply the registry answer at the seam.
+Capability requirement 4: The deployment MUST supply the cryptographic material at the seam.
 ```
+
+NOTE: open 2026-10-20-a — the cryptographic material is declared nowhere, and where the proof is computed and the credential and proof checks run is not stated (Capability requirement 4, Operation 1, Operation 9).
 
 ### Operations
 
@@ -120,7 +127,7 @@ Operation 9: IF registry answer EQUALS material AND the credential fails against
 Operation 10: IF the database refuses the write THEN [Attest] MUST answer storage-failure.
 Deleted: Operation 11. Execution Contract Database 1 owns it.
 Deleted: Operation 12. Invariant 1.1 owns it.
-Operation 13: [Attest] MUST NOT read the action's content.
+Operation 13: [Attest] MUST NOT read the action content.
 Operation 14: [Verify] MUST answer EXACTLY ONE OF verified, failed-verification, not-known.
 Operation 15: IF no attestation EXISTS for the attestation id THEN [Verify] MUST answer not-known.
 Operation 16: IF an attestation EXISTS for the attestation id AND registry answer EQUALS unknown-actor THEN [Verify] MUST answer actor-unknown-in-registry.
@@ -128,9 +135,9 @@ Operation 17: IF an attestation EXISTS for the attestation id AND registry answe
 Operation 18: IF registry answer EQUALS material AND proof check EQUALS failed THEN [Verify] MUST answer proof-invalid.
 Operation 19: IF registry answer EQUALS material AND proof check EQUALS held THEN [Verify] MUST answer verified.
 Operation 20: [Verify] MUST NOT write.
-Operation 21: IF an attestation EXISTS for the attestation id THEN [Verify] MUST read the actor registry's public material for the attestation's actor reference.
+Operation 21: IF an attestation EXISTS for the attestation id THEN [Verify] MUST consult the public material the registry answer at the seam carries, for the attestation's actor reference.
 Deleted: Operation 22. Capability requirement 1 owns it.
-Operation 23: The host MUST supply the cryptographic material at the atom's seam.
+Deleted: Operation 23. Capability requirement 4 owns it.
 Deleted: Operation 24. Execution Contract Logic confinement 3 owns it.
 Deleted: Operation 25. Execution Contract Logic confinement 3 owns it.
 Operation 26: The business caller MUST NOT supply attestation instant.
@@ -157,7 +164,7 @@ The case space, and the rule that owns each case:
 
 | Call | Case | Answer | Effect on the attestation records |
 |---|---|---|---|
-| [Attest] | refs and credential present, registry answers material, credential validates, database accepts | attestation id | one attestation lands in [Attested] (Operation 1, Operation 2) |
+| [Attest] | action reference, actor reference and credential not blank, registry answers material, credential validates, database accepts | attestation id | one attestation lands in [Attested] (Operation 1, Operation 2) |
 | [Attest] | blank action reference, actor reference or credential | [Invalid Request] | none (Operation 6 through 8) |
 | [Attest] | registry unreachable | [Registry Unavailable] | none (Operation 33) |
 | [Attest] | registry holds no material for the actor | [Invalid Credential] | none (Operation 31) |
@@ -172,6 +179,8 @@ The case space, and the rule that owns each case:
 
 Where two [Attest] cases hold at once, the refusal listed first on [Attest]'s refuses line answers (Execution Contract Refusal 1).
 
+NOTE: open 2026-10-20-f — [Read] answers every attestation with no bound and no key (Operation 27, Term bounds).
+
 ### Invariants
 
 - **Invariant 1 — Attestation immutability.**
@@ -180,12 +189,12 @@ Where two [Attest] cases hold at once, the refusal listed first on [Attest]'s re
   ```
 - **Invariant 2 — Action binding.**
   ```
-  Invariant 2.1: A recorded proof MUST verify against the recorded action reference.
+  Invariant 2.1: A recorded proof MUST verify against the recorded action reference under the current material at attestation instant.
   Invariant 2.2: A proof produced for another action MUST NOT verify against the attestation.
   ```
 - **Invariant 3 — Actor binding.**
   ```
-  Invariant 3.1: A recorded proof MUST verify against the recorded actor reference under the registry's public material.
+  Invariant 3.1: A recorded proof MUST verify against the recorded actor reference under the current material at attestation instant.
   Invariant 3.2: A proof produced by another actor MUST NOT verify against the attestation.
   ```
 - **Invariant 4 — Id stability.**
@@ -215,9 +224,13 @@ Where two [Attest] cases hold at once, the refusal listed first on [Attest]'s re
 - **Invariant 9 — Attestation durability.**
   ```
   Invariant 9.1: The atom MUST NOT delete an attestation.
-  Invariant 9.2: The attestation set MUST NOT shrink.
+  Deleted: Invariant 9.2. Invariant 9.1 and Execution Contract Database 4 own it.
   Deleted: Invariant 9.3. Execution Contract Database 1 owns it.
   ```
+
+NOTE: watch the composed erasure (Invariant 9.1).
+
+NOTE: open 2026-10-20-c — the host's state is declared nowhere, and what Invariant 6.2 adds to Invariant 6.3 is not stated.
 
 Action binding and actor binding give the *attribution* property — *who authorized this?* answered structurally. Immutability and self-containment give *survivability* — an attestation stays verifiable independent of the system that recorded it. The non-repudiation contract names the bar the atom is built to clear, and its condition.
 
@@ -243,15 +256,15 @@ Two parties sign a contract via a qualified electronic signature service. Each i
 
 ### Source control — signed commits in regulated software
 
-A developer at an FDA-cleared (US Food and Drug Administration — the federal agency regulating drugs and medical devices) medical-device company pushes a commit signed with their hardware-key-backed credential. The version-control system records the attestation: `attest(commit_c44a, dev_smith, smith_credential) → attestation_a17`. CI (continuous integration — the automated build and test system) infrastructure calls `verify(a17)` before allowing merge into the release branch. During an FDA software-of-unknown-provenance audit, the auditor walks the release branch and re-verifies every commit's attestation. SOX (Sarbanes-Oxley Act — US financial reporting law)-scoped financial systems and Common Criteria evaluated products follow the same pattern.
+A developer at an FDA-cleared (US Food and Drug Administration — the federal agency regulating drugs and medical devices) medical-device company pushes a commit signed with their hardware-key-backed credential. The version-control system records the attestation: `attest(commit_c44a, dev_smith, smith_credential) → attestation_a17`. CI (continuous integration — the automated build and test system) infrastructure calls `verify(a17)` before allowing merge into the release branch. During an FDA software-of-unknown-provenance audit, the auditor walks the release branch and re-verifies every commit's attestation. SOX (Sarbanes-Oxley Act — US financial reporting law)-scoped financial systems and products evaluated under the Common Criteria (the international standard for evaluating the security of information-technology products) follow the same pattern.
 
 The mechanic is identical across all five. What differs: the credential mechanism (smart card, software key, qualified signature instrument, hardware token, chip-card secure element), the verification frequency (every action vs. on dispute vs. on audit), the regulatory consequence of [Failed Verification], and the composing patterns active around it (two-factor for prescriptions, witness signatures for some legal contracts, MFA — Multi-Factor Authentication, requiring two or more independent proofs of identity — for high-value wires).
 
 ### Rejection paths
 
-**[Verify] → [Failed Verification] ([Proof Invalid]):** An auditor reviewing a batch of wire authorizations calls `verify(attestation_a17)`. The actor's key has been rotated since the [Attestation] was recorded, the registry kept no historical material, and the registry's current public material for `actor_ref: supervisor_s12` no longer matches the stored [Proof]. The atom returns `failed-verification(proof-invalid)`. The auditor notes the failure; the composing audit workflow escalates for manual review. The [Attestation] record is unchanged — Invariant 1 prevents modification; the failure is a verification-time result, not a record defect.
+**[Verify] → [Failed Verification] ([Proof Invalid]):** An auditor reviewing a batch of wire authorizations calls `verify(attestation_a44)`. The actor's key has been rotated since the [Attestation] was recorded, the registry kept no historical material, and the registry's current public material for `actor_ref: supervisor_s12` no longer matches the stored [Proof]. The atom returns `failed-verification(proof-invalid)`. The auditor notes the failure; the composing audit workflow escalates for manual review. The [Attestation] record is unchanged — Invariant 1 prevents modification; the failure is a verification-time result, not a record defect.
 
-**[Verify] → [Not Known]:** A composing pattern references an [Attestation Id] that was never written (a partial-failure scenario where [Attest] returned [Storage Failure] and the composing pattern cached the id before confirming success). `verify(attestation_a_unknown)` returns not-known — the id is not in the attestation records. This is structurally distinct from [Failed Verification]: the id does not reference any [Attestation]. The composing pattern must treat [Not Known] as a missing record (requiring re-attestation) rather than a verification failure.
+**[Verify] → [Not Known]:** A composing pattern references an [Attestation Id] that was never written (a partial-failure scenario where the host allocated the id at the seam (Identity 2), [Attest] answered [Storage Failure], and the composing pattern, whose call crossed that seam, cached the id before confirming success). `verify(attestation_a_unknown)` returns not-known — the id is not in the attestation records. This is structurally distinct from [Failed Verification]: the id does not reference any [Attestation]. The composing pattern must treat [Not Known] as a missing record (requiring re-attestation) rather than a verification failure.
 
 **[Attest] → [Invalid Credential]:** A supervisor approves a high-value wire using a [Credential] that was rotated out earlier that day. `attest(wire_w55, supervisor_s12, rotated_credential)` → the [Credential] fails to validate against the registry's current public material for `supervisor_s12`; the atom returns invalid-credential. No [Attestation] is recorded — [Invalid Credential] is a guard rejection that fails before any database write (see Decision points); the composing workflow prompts re-attestation with the current [Credential].
 
@@ -306,15 +319,18 @@ Non-goal 9: The atom MUST NOT invalidate an attestation under a later compromise
 Non-goal 10: The atom MUST NOT detect a rewrite of the attestation records.
 Non-goal 11: A deployment needing tamper-evident records MUST compose Tamper Evidence.
 Non-goal 12: The atom MUST NOT vouch for the clock.
-Non-goal 13: The atom MUST NOT bind the action's content.
+Non-goal 13: The atom MUST NOT bind the action content.
 Non-goal 14: A host whose action content is mutable MUST bind an immutable reference.
 Non-goal 15: The atom MUST NOT carry an actor reference across trust domains.
+Non-goal 16: A deployment needing a retention bound MUST compose Retention Window.
 ```
 
 WHY:
 Binding a mutable action is the quiet failure: the proof stays valid while the content it was supposed to attest to changes underneath, which is why the host binds a content hash or composes a Content Lock pattern *(forthcoming)* (Non-goal 13, Non-goal 14).
 
-NOTE: witness signatures, m-of-n approvals and dual control compose a Witness pattern *(forthcoming)* (Non-goal 8); tamper-evident records are what [Tamper Evidence](./tamper-evidence.md) supply (Non-goal 10, Non-goal 11).
+NOTE: witness signatures, m-of-n approvals and dual control compose a Witness pattern *(forthcoming)* (Non-goal 8); tamper-evident records are what [Tamper Evidence](./tamper-evidence.md) supply (Non-goal 10, Non-goal 11); a retention bound is what [Retention Window](./retention-window.md) supplies, its purge included (Non-goal 16).
+
+NOTE: open 2026-10-20-e — Non-goal 15 names no owner for carrying an actor reference across trust domains.
 
 Where the atom breaks down: when authorization cannot be reduced to one actor — truly anonymous attestation in a regulated context is a contradiction; when the credential mechanism cannot produce a verifiable proof — a shared secret anyone holding it could forge with; when the deployment has no actor registry a verifier can consult.
 
@@ -353,6 +369,8 @@ Verification caching 1: An implementation MAY cache a verification result.
 Verification caching 2: An implementation MUST NOT cache a verification result across two registry views.
 ```
 
+NOTE: open 2026-10-20-b — a cached verification result is no part of the verification set, so whether a cache sits inside [Verify], against Invariant 6.3, or in front of it is not stated (Verification caching 1).
+
 ## Composition notes
 
 ```
@@ -375,7 +393,7 @@ Term actors: the atom; the host; the transition; the implementation; the deploym
 
 Term records: attestation — one binding, carrying attestation id, action reference, actor reference, proof and attestation instant.
 
-Term record verbs: identify, allocate, supply, reuse, carry, stand, offer, store, hold, compute, record, stamp, answer, consume, alter, read, mint, write, verify, consult, set, change, share, bind, reinterpret, delete, shrink, register, retire, compose, authenticate, decide, manage, invalidate, detect, vouch, turn, own, retain, keep, rest, cache, reconstruct, need, confirm, declare, trust, renumber, add, fail, refuse, evaluate.
+Term record verbs: identify, allocate, supply, reuse, carry, stand, offer, store, hold, compute, record, stamp, answer, consume, alter, read, mint, write, verify, consult, set, change, share, bind, reinterpret, delete, register, retire, compose, authenticate, decide, manage, invalidate, detect, vouch, turn, own, retain, keep, rest, cache, reconstruct, need, confirm, declare, trust, renumber, add, fail, refuse, evaluate.
 
 Term value sets: registry answer = material | unknown-actor | unreachable. proof check = held | failed. attestation field = attestation id | action reference | actor reference | proof | attestation instant.
 
@@ -385,7 +403,7 @@ Term cadences: empty.
 
 Term qualifiers: migrated — rewritten in GRACE lang v0.35 (2026-09-12); uncompromised — a credential no disclosure names as compromised at or before the instant in question.
 
-Term terms: now, verification set, attestation, attestation id, action reference, actor reference, seam, transition, business caller, attested, proof, attestation instant, credential, public material, current material, attestation field, registry answer, registry view, proof check, verification failure.
+Term terms: now, verification set, attestation, attestation id, action reference, action content, actor reference, seam, transition, business caller, attested, proof, attestation instant, credential, public material, current material, attestation field, registry answer, registry view, proof check, verification failure.
 
 #### Attestation
 
@@ -541,7 +559,7 @@ Projection: invalid-credential
 
 #### Storage Failure
 
-The refusal [Attest] returns when the database write fails after the [Credential] validates; the caller re-attests with the current [Credential].
+The refusal [Attest] returns when the database write fails after the [Credential] validates; the caller may attest again.
 
 Kind:       Member
 Member of:  the Attest rejection
@@ -609,20 +627,22 @@ It inherits from:
 ```
 status: partially resolved
 formal: not applicable — vote no 2026-06-03
-last gate: 2026-10-20 — Final Critique 5, the council's first round on the page and the first on its GRACE-lang text and the Store-contract rewrite (0d14baa), three fresh readers on free models (GRID Nemotron 3 Ultra, EOS MiniMax M3.1 Flash, Linus MiMo V2.6 Flash), each handed only the round's reading set, three passes on one text (frozen at 2bae6f5); the round rests on three counted passes — foundational count 7 after triage (22 reports, 5 sent down to refining, 7 rejected), all Kind A: [Verify] and [Read] were closed to the state-unavailable the Execution Contract gives a failed store read; [Attest] had no answer for an unreachable registry or an actor the registry does not know; Registry view 3's retained history met a proof check pinned to the registry's current material, and the registry view was declared nowhere; no rule obliged verified; [Attest]'s refusals co-fired with no stated order; a revocation status the proof carries had no consequence; and Check 5.1 read a declaration outside its bar's evidence; 17 refining reports, 7 rhetorical reports; not clean; every foundational finding cured in place; 2026-06-18 — Final Critique 4, fresh reader — clean
+last gate: 2026-10-22 — Final Critique 6, the council's second round on the page, three fresh readers on free models (GRID Nemotron 3 Ultra, EOS Beam, Linus GLM-5.3 Flash), each handed only the round's reading set, three passes on one text (frozen at efcdfbb); the round rests on three counted passes — foundational count 3 after triage (14 reports: 4 standing in 3 rows; 4 sent down; 6 rejected), all Kind A: the attestation set could never shrink beside the composing pattern that owns an attestation's retention; the binding invariants broke at a registry rotation the page calls lawful; and [Verify] read the registry apart from the registry answer the seam supplies, so two builds decided one call under two registry views; 18 refining reports, 7 rhetorical reports; not clean; every foundational finding cured, every refining finding cured, routed or answered; 2026-10-20 — Final Critique 5, the council's first round on the page — foundational count 7, all cured, not clean
 
 open:
-- 2026-10-20-a · refining · Term seam; Operation 23 · the cryptographic material the host injects is declared nowhere (GRACE-lang Closed vocabulary 4), and whether the host computes the proof and runs the credential and proof checks at the seam, or hands the transition a primitive the transition calls, is unstated against Execution Contract Logic confinement 1 and 3 → declare the cryptographic material; say where each computation runs
+- 2026-10-20-a · refining · Term seam; Capability requirement 4 · the cryptographic material the host injects is declared nowhere (GRACE-lang Closed vocabulary 4), and whether the host computes the proof and runs the credential and proof checks at the seam, or hands the transition a primitive the transition calls, is unstated against Execution Contract Logic confinement 1 and 3 → declare the cryptographic material; say where each computation runs
 - 2026-10-20-b · refining · Invariant 6.3; Verification caching 1 · a cached verification result is no part of the verification set, so a cache inside [Verify] consults a source Invariant 6.3 bounds, though a cached and a fresh answer agree under one registry view → name the cache in the verification set, or place the cache in front of [Verify]
 - 2026-10-20-c · refining · Invariant 6.2 · the host's state is declared nowhere and overlaps Invariant 6.3 → declare the host's state, or say what Invariant 6.2 adds to Invariant 6.3
-- 2026-10-20-d · refining · Composition note 4 · a composing pattern owns the retention of an attestation the atom never deletes (Invariant 9.1, 9.2; State 6), and what that retention may remove is unsaid → say what a composing pattern's retention covers
 - 2026-10-20-e · refining · Non-goal 15 · carrying an actor reference across trust domains is forbidden with no owner named, where the Non-goal family names who owns what the atom does not do → name the owner, or a forthcoming pattern
 - 2026-10-20-f · refining · [Read]; Term bounds · [Read] answers every attestation with no bound and no key → a bound, or a keyed read
+- 2026-10-22-a · refining · Term seam; Term transition; Term business caller; Term now; State 2 · each term cites the section titled Logic Confinement Principle in `execution-contract.md`, which declares none of them, and State 2 reads a transition as the contract's move out of a state where Term transition declares the evaluation of one call → settle the corpus's one seam wording where every specification carrying it can take the cure
 ```
 
 ## Decisions
 
 Directional changes only — the turns a future reader must know the pattern took, and why. Everything smaller lives in the commit that made it: `git log -- atoms/actor-identity.md`; the rounds and the migration that got it here are in [its history](./actor-identity.hist.md).
+
+- **2026-10-22 — A composed retention may purge an attestation, the binding holds under the material the proof was made under, and one registry answer decides a verification.** *Chose:* Invariant 9.2, the attestation set never shrinking, written with no actor, deleted to Invariant 9.1 and Execution Contract Database 4, with Non-goal 16 sending a retention bound to Retention Window, so the atom deletes no attestation and a composing pattern's retention may purge one; Invariant 2.1 and Invariant 3.1 held to the current material at attestation instant; Operation 21 consulting the public material the registry answer at the seam carries (Capability requirement 3); the cryptographic material supplied under Capability requirement 4, Operation 23 deleted to it, as the seam's other supplies are; rules 97 to 96. *Over:* a count that could never fall beside the composing pattern that owns retention; binding invariants that a rotation the registry keeps no history of, lawful under Registry view 1 and 2, breaks; a registry read beside the answer the seam supplies, which can decide one call under two registry views. *Because:* Final Critique 6 found each a divergence between conforming builds or a lawful state breaking an invariant, and the prose this page was migrated from said the first two: cascading deletion under a retention policy is the composing pattern's responsibility, and verification fails after a rotation unless the registry keeps historical material.
 
 - **2026-10-21 — Which refusal answers is the Execution Contract's.** *Chose:* [Attest]'s refuses line listing its refusals in the order the attest refusal order gave them — invalid-request, registry-unavailable, invalid-credential, then storage-failure, which answers only at the write — with the order cited from the Execution Contract (Capability requirement 2, Execution Contract Refusal 1); Operation 35, the rule evaluating the order, deleted to Refusal 1, and Term attest refusal order deleted with it; rules 98 to 97. *Over:* the page stating for itself which of [Attest]'s refusals answers when several apply. *Because:* the maintainer ruled on 2026-10-21 that the Execution Contract states once that the refusal listed first on an action's refuses line answers; this page's fifth Final Critique had made the cure one specification at a time. What [Attest] answers on every call is unchanged.
 
