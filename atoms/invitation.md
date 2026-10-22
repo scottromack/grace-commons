@@ -22,7 +22,7 @@ An invitation is issued before the invitee has an identity in the system, which 
 
 Resolving exactly once is the guarantee. After a write resolves an invitation, any further write is told which resolution stands — and two people accepting at once means one wins and the other is told. A write against a lapsed invitation is told it expired, which is a different answer from any of the three resolutions.
 
-The key moment is acceptance, where a concrete identity is bound to what may have begun as an invitation to an unknown party. Declined is what sets this apart from a plain bearer token: a refusal is a recorded human decision, distinct from never using the invitation at all. The credential setup, identity record and login that usually follow acceptance are separate patterns.
+The key moment is acceptance, where a concrete identity is bound to what may have begun as an invitation to an unknown party. Declined is what sets this apart from a plain bearer token (a code that works for whoever holds it): a refusal is a recorded human decision, distinct from never using the invitation at all. The credential setup, identity record and login that usually follow acceptance are separate patterns.
 
 ---
 
@@ -32,7 +32,7 @@ Systems that admit external parties face one structural problem: the invitation 
 
 This atom isolates that record from the machinery around it. It does not register the credential that follows acceptance ([Credential](./credential.md)), create the identity record the accepted invitee becomes ([Party Identity](./party-identity.md)), issue the session ([Session](./session.md)), or sequence those steps ([External Onboarding](../compositions/external-onboarding.md)). It answers one question, from the invitation record alone.
 
-The declined terminal is what separates Invitation from [Capability](./capability.md) at the EOS Pass 2 boundary. Both use bearer-token transport, both are time-bounded, both can be revoked. The difference is that a refusal is a deliberate act by a named party and matters to the audit record independently of whether the token was ever presented — a capability's bearer either redeems it or does not, and the non-use is not an outcome the system records.
+The declined terminal is what separates Invitation from [Capability](./capability.md) at the EOS (Essence of Software — Daniel Jackson's framework for freestanding, composable concepts) Pass 2 boundary. Both use bearer-token transport, both are time-bounded, both can be revoked. The difference is that a refusal is a deliberate act by a named party and matters to the audit record independently of whether the token was ever presented — a capability's bearer either redeems it or does not, and the non-use is not an outcome the system records.
 
 This is a freestanding atom in the EOS sense: its own state, its own four writes and one read, and its own operational principles — single-resolution, expiry-is-derived, opaque invitee at initiation, identity binding at acceptance.
 
@@ -59,7 +59,7 @@ Identity 13: The atom MUST NOT match an accepting identity reference against an 
 Identity 14: The deployment MUST route EVERY call to one database instance.
 ```
 
-Term invitation: the record this atom holds — one invitation issued by one inviter to join one context, resolving actor at most one write.
+Term invitation: the record this atom holds — one invitation issued by one inviter to join one context, resolved by at most one write.
 
 Term invitation token: the opaque value naming one invitation — an [Invitation Token]; assigned from the token material the seam supplies, and the bearer credential a holder presents.
 
@@ -85,7 +85,7 @@ State 4: EVERY declined invitation MUST carry declination instant.
 State 5: EVERY revoked invitation MUST carry revoked by reference, revocation reason and revocation instant.
 State 6: A pending invitation MUST NOT carry a resolution field.
 State 7: The atom MUST NOT store expired as a status.
-State 8: An invitation MUST NOT carry an expiry instant.
+Deleted: State 8. Invariant 12.1 owns it.
 State 9: The atom MUST NOT record the ttl under the ttl's own name.
 State 10: The atom MUST NOT offer a re-open surface.
 State 11: The atom MUST NOT offer a window extension surface.
@@ -93,10 +93,12 @@ State 12: The atom MUST NOT offer an invitation removal surface.
 State 13: The database instance's invitation count MUST NOT fall.
 ```
 
+NOTE: open 2026-10-22-b — whether a composed retention or a privacy erasure may ever remove an invitation is not stated: State 12, State 13 and Invariant 10.1 keep every invitation, and Non-goal 21 names no owner for a bound.
+
 Term resolution field: accepting identity reference | acceptance instant | declination instant | revocation instant | revoked by reference | revocation reason — every field a resolving write records.
 
 WHY:
-State 7 and State 8 are the derived-expiry posture on the record surface, and they are two rules rather than one because an implementation can breach each without the other: a stored expired status, and an `expired_at` column beside a status that stays pending.
+State 7 and Invariant 12.1 are the derived-expiry posture, and they are two rules rather than one because an implementation can breach each without the other: a stored expired status, and an `expired_at` column written beside a status that stays pending.
 
 ### Capability requirement
 
@@ -104,7 +106,7 @@ State 7 and State 8 are the derived-expiry posture on the record surface, and th
 Capability requirement 1: The deployment MUST supply now at the seam.
 Capability requirement 2: The deployment MUST supply the token material at the seam.
 Capability requirement 3: The deployment MUST supply token material drawn from a cryptographically random source.
-Capability requirement 4: The deployment MUST declare the default ttl.
+Capability requirement 4: The deployment MUST declare the default ttl inside the ttl bounds.
 Capability requirement 5: The deployment MUST declare the ttl bounds.
 Capability requirement 6: The database MUST refuse a write carrying an invitation token the database holds.
 Deleted: Capability requirement 7. Execution Contract Database 3 owns it.
@@ -148,14 +150,14 @@ read(filter)
 ```
 Operation 1: IF inviter reference EQUALS blank THEN [Initiate] MUST answer invalid-request.
 Operation 2: IF context EQUALS blank THEN [Initiate] MUST answer invalid-request.
-Operation 3: IF the ttl falls outside the ttl bounds THEN [Initiate] MUST answer invalid-request.
+Operation 3: IF ttl DOES NOT EQUAL blank AND the ttl falls outside the ttl bounds THEN [Initiate] MUST answer invalid-request.
 Operation 4: IF ttl EQUALS blank THEN [Initiate] MUST read the default ttl as the ttl.
 Operation 5: IF the default ttl EQUALS blank THEN [Initiate] MUST answer invalid-request.
 Operation 6: [Initiate] MUST NOT answer invalid-request on an absent invitee reference.
 Operation 7: [Initiate] MUST NOT answer not-known.
 Operation 8: An admitted initiate MUST assign a fresh invitation token.
 Operation 9: An admitted initiate MUST record inviter reference and context.
-Operation 10: An admitted initiate MUST record a supplied invitee reference.
+Operation 10: IF invitee reference DOES NOT EQUAL blank THEN an admitted initiate MUST record invitee reference.
 Operation 11: An admitted initiate MUST record now as initiation instant.
 Operation 12: An admitted initiate MUST record the expiry bound as expiry instant.
 Operation 13: An admitted initiate MUST stand the invitation in pending.
@@ -184,7 +186,7 @@ Operation 35: IF the database refuses the write THEN an action MUST answer stora
 Deleted: Operation 36. Execution Contract Refusal 1 owns it.
 Operation 37: A refused action MUST leave the invitation as the call found the invitation.
 Operation 38: A refused [Initiate] MUST NOT record an invitation.
-Operation 39: A refused resolving write MUST leave the invitation in pending.
+Deleted: Operation 39. Operation 37 owns it.
 Operation 40: The atom MUST NOT offer an expire action.
 Operation 41: An admitted read MUST answer EVERY matching invitation.
 Operation 42: An admitted read MUST answer the effective status PER matching invitation.
@@ -194,6 +196,10 @@ Deleted: Operation 45. Execution Contract Logic confinement 3 owns it.
 Deleted: Operation 46. Execution Contract Logic confinement 3 owns it.
 ```
 
+NOTE: watch the state a refusal leaves (Operation 37).
+
+NOTE: open 2026-10-22-a — which fields a filter names, how each matches, whether a status filter reads the stored or the effective status, and the order of [Read]'s answer are not stated (Operation 41, Operation 44).
+
 Term resolving write: [Accept] | [Decline] | [Revoke] — every write taking a pending invitation to a stored terminal.
 
 Term stored terminal: accepted | declined | revoked.
@@ -202,7 +208,7 @@ Term status: pending | accepted | declined | revoked — the value an invitation
 
 Term status check: Operation 15, Operation 16 and Operation 20 — every check a resolving write makes on the invitation's own standing before reading the call's inputs.
 
-Term ttl bounds: the deployment's admitted range for a ttl; every admitted value exceeds zero.
+Term ttl bounds: the deployment's admitted range for a ttl, the time to live an [Initiate] call supplies for the invitation's window; every admitted value exceeds zero.
 
 Term default ttl: the ttl the deployment declares for an [Initiate] carrying none.
 
@@ -210,9 +216,9 @@ Term expiry bound: initiation instant raised by the ttl — the value an admitte
 
 Term window reading: live | lapsed — how a pending invitation's window reads against now.
 
-Term live: the window reading of a pending invitation whose expiry instant exceeds now.
+Term live: the window reading of a pending invitation where now PRECEDES the invitation's expiry instant.
 
-Term lapsed: the window reading of a pending invitation whose expiry instant does not exceed now; the boundary instant — expiry instant equal to now — reads lapsed.
+Term lapsed: the window reading of a pending invitation where now DOES NOT PRECEDE the invitation's expiry instant; the boundary instant — expiry instant equal to now — reads lapsed.
 
 Term effective status: expired where the invitation reads lapsed, and the stored status otherwise — a projection over the invitation and now, never stored.
 
@@ -292,7 +298,7 @@ Term admitted read: a [Read] call that answers.
 
 ### New employee onboarding — accept
 
-`initiate(admin_a7, none, "org:northwind", 7-days)` → `tok_inv_c41`, standing pending. The token reaches the new hire out of band. Three days in, `accept(tok_inv_c41, user_u114)` → accepted, binding `user_u114` permanently. The invitee reference was absent at initiation because the hire had no system identity to name; the identity now recorded is the one that presented the token. [External Onboarding](../compositions/external-onboarding.md) proceeds from here to a party record, a credential and a session.
+`initiate(admin_a7, none, "org:northwind", 7-days)` → `tok_inv_c41`, standing pending. The token reaches the new hire out of band. Three days in, `accept(tok_inv_c41, user_u114)` → accepted, binding `user_u114` permanently. The invitee reference was absent at initiation because the hire had no system identity to name; the identity now recorded is the one the call presenting the token supplied. [External Onboarding](../compositions/external-onboarding.md) proceeds from here to a party record, a credential and a session.
 
 ### Workspace collaboration — decline
 
@@ -313,7 +319,7 @@ Term admitted read: a [Read] call that answers.
 ### Regulated adversarial scenarios
 
 - **Regulator audit.** *Prove that every user who reached patient records joined through a documented invitation from an authorized administrator.* Filter the database to accepted invitations whose context names that system; each record carries the administrator who invited (inviter reference), when the join committed (acceptance instant) and the identity bound (accepting identity reference). Invariant 3.1 is what makes the last of those never empty, so every current participant traces to one invitation and one administrator.
-- **Disputed onboarding.** *I never accepted an invitation — my account was made without me.* Filter by accepting identity reference; Invariant 2.1 means there is at most one resolved invitation bound to that identity, and it carries the instant the token was presented. Whether that person or someone holding their token made the call is outside this atom — the record says a bearer presented `tok_inv_e5f6g7` at that instant and supplied that identity, and the composing [Audit Trail](../compositions/audit-trail.md) carries the device, the address and the credential registered alongside.
+- **Disputed onboarding.** *I never accepted an invitation — my account was made without me.* Filter by accepting identity reference; the read answers every invitation accepted under that identity — Invariant 2.1 bounds each invitation to one resolution, and no rule bounds how many invitations one identity accepts — and each carries the instant its token was presented. Whether that person or someone holding their token made the call is outside this atom — the record says a bearer presented `tok_inv_e5f6g7` at that instant and supplied that identity, and the composing [Audit Trail](../compositions/audit-trail.md) carries the device, the address and the credential registered alongside.
 - **Breach investigation.** Tokens for a high-security context were exposed in a log over a week. Filter by initiation instant in that window and read each effective status against the investigation clock: the accepted ones are cross-checked against known staff, the still-live ones are revoked at once, and the lapsed ones need nothing — no write ever fired against them and an accept would answer expired. Invariant 5.1 and Invariant 12.2 are what make that triage possible from the database and a clock alone.
 
 ---
@@ -326,10 +332,10 @@ This atom's acceptance is provable: an external auditor clears it from the invit
 
 ```
 Check 1.1: An auditor MUST find no invitation carrying two resolution instants (Invariant 2.2).
-Check 1.2: An auditor MUST find EXACTLY ONE resolution instant on EVERY invitation whose status IS IN the stored terminals (State 3, State 4, State 5).
+Check 1.2: An auditor MUST find EXACTLY ONE resolution instant on EVERY invitation whose status IS IN the stored terminals (State 3 through 5).
 Check 1.3: An auditor MUST find no resolution field on a pending invitation (State 6).
 Check 2.1: An auditor MUST find no invitation storing expired as a status (State 7).
-Check 2.2: An auditor MUST find no invitation carrying an expiry instant (State 8).
+Deleted: Check 2.2. Invariant 12.1 owns it.
 Check 2.3: An auditor MUST reproduce an admitted read's effective status from the invitation's expiry instant and a clock the auditor supplies (Invariant 12.2).
 Check 3.1: An auditor MUST find a non-blank accepting identity reference on EVERY accepted invitation (Invariant 3.1).
 Check 3.2: An auditor MUST find an acceptance instant on EVERY accepted invitation (State 3).
@@ -391,6 +397,7 @@ Non-goal 23: The atom MUST NOT decide whether a token holder may pass the token 
 Non-goal 24: The atom MUST NOT guarantee that an invitation resolves.
 Non-goal 25: The atom MUST NOT bound two readers' effective status agreement.
 Non-goal 26: A deployment needing a verifiable time anchor MUST compose a trusted timestamping pattern.
+Non-goal 27: The atom MUST NOT decide who may call an action.
 ```
 
 NOTE: the owners — [Capability](./capability.md) (Non-goal 11, Non-goal 23, Composition note 9); the composing pattern (Non-goal 12, External check 5).
@@ -447,6 +454,8 @@ Composition note 8: A composing Tamper Evidence MUST cover EVERY reference the d
 Composition note 9: A composing Capability MUST call [Initiate] PER redemption.
 ```
 
+NOTE: open 2026-10-22-c — whether a composing Actor Identity attests the actor behind an admitted revoke is not stated; Composition note 6 and Composition note 7 attest the actors behind an admitted accept and an admitted initiate.
+
 NOTE: composing patterns — [External Onboarding](../compositions/external-onboarding.md).
 
 ---
@@ -463,7 +472,7 @@ Term records: invitation — one invitation issued by one inviter to join one co
 
 Term record verbs: identify, assign, generate, change, share, reuse, carry, stand, read, answer, record, leave, admit, offer, hold, refuse, write, find, resolve, name, compare, normalize, confirm, match, route, append, register, create, pass, attest, cover, call, fall, precede, sample, consume, supply, deliver, canonicalize, declare, compose, remove, bind, decide, define, bound, reach, accept, trim, case-fold, compute, reproduce, reconstruct, draw, verify, sequence, issue, detect, guarantee, take, store.
 
-Term value sets: status = pending | accepted | declined | revoked. stored terminal = accepted | declined | revoked. window reading = live | lapsed. property = inviter reference | invitee reference | context | initiation instant | expiry instant. resolution field = accepting identity reference | acceptance instant | declination instant | revocation instant | revoked by reference | revocation reason.
+Term value sets: status = pending | accepted | declined | revoked. effective status = pending | accepted | declined | revoked | expired. stored terminal = accepted | declined | revoked. window reading = live | lapsed. property = inviter reference | invitee reference | context | initiation instant | expiry instant. resolution field = accepting identity reference | acceptance instant | declination instant | revocation instant | revoked by reference | revocation reason.
 
 Term bounds: ttl bounds, default ttl, expiry bound.
 
@@ -511,7 +520,7 @@ Kind: Operation
 
 #### Invitation
 
-The record this atom defines: one invitation, issued by one inviter to join one context, resolving actor at most one write. Carries [Invitation Token], [Inviter Reference], an optional [Invitee Reference], [Context], [Initiation Instant], [Expiry Instant], [Status], and the resolution fields of whichever write settled it.
+The record this atom defines: one invitation, issued by one inviter to join one context, resolved by at most one write. Carries [Invitation Token], [Inviter Reference], an optional [Invitee Reference], [Context], [Initiation Instant], [Expiry Instant], [Status], and the resolution fields of whichever write settled it.
 
 Kind: Type
 Projection: status
@@ -646,10 +655,10 @@ Projection:   reason
 
 #### Now
 
-The wall-time reading the host takes at the seam and hands to the transition, as the section titled Logic Confinement Principle in `execution-contract.md` declares it — never read inside the transition and never supplied by the business caller. Consumed twice per call: by the window reading and by the write's stamps, and by [Read]'s [Effective Status] projection.
+The wall-time reading the host takes at the seam and hands to the transition, as the section titled Logic Confinement Principle in `execution-contract.md` declares it — never read inside the transition and never supplied by the business caller. Consumed by every action: by [Initiate]'s stamp, by a resolving write's window reading and stamp, and by [Read]'s [Effective Status] projection.
 
 Kind:         Parameter
-Parameter of: Initiate
+Parameter of: Initiate, Accept, Decline, Revoke and Read
 Projection:   now
 
 #### Pending
@@ -778,11 +787,11 @@ Projection: storage-failure
 
 ## Standards references
 
-- **GDPR Articles 6 and 7 (lawful basis and consent)** — [Initiate] creates a processing record: the system now holds an [Invitee Reference] and will process data about the invitee if they accept. [Initiation Instant] and [Inviter Reference] are the processing-event record; [Accepting Identity Reference] bound at [Accept] is the record of the data subject's active engagement.
-- **HIPAA section 164.312(a)(1) (access control)** — invitation-based provisioning is a covered access-granting mechanism. [Inviter Reference] is the authorized administrator who granted access and [Accepting Identity Reference] is the identity that gained it.
-- **SCIM 2.0 (RFC 7644)** — SCIM's `POST /Users` with an invite flow maps to the Invitation → [External Onboarding](../compositions/external-onboarding.md) arc. [Invitee Reference] corresponds to the external identity reference; [Accepting Identity Reference] to the provisioned user id.
-- **SOC 2 CC6.2 (users registered and authorized before credentials are issued)** — the invitation record *is* the registration and authorization event. [Inviter Reference] is the authorizing party; [Acceptance Instant] and [Accepting Identity Reference] are the registration.
-- **NIST SP 800-63A (enrollment and identity proofing)** — the enrollment event maps to the Invitation → accept arc. This atom models the enrollment record; proofing is [Party Identity](./party-identity.md)'s (Non-goal 17, Non-goal 18).
+- **GDPR (EU General Data Protection Regulation — the European Union's data-privacy law) Articles 6 and 7 (lawful basis and consent)** — [Initiate] creates a processing record: the system now holds an [Invitee Reference] and will process data about the invitee if they accept. [Initiation Instant] and [Inviter Reference] are the processing-event record; [Accepting Identity Reference] bound at [Accept] is the record of the data subject's active engagement.
+- **HIPAA (US Health Insurance Portability and Accountability Act) section 164.312(a)(1) (access control)** — invitation-based provisioning is a covered access-granting mechanism. [Inviter Reference] is the authorized administrator who granted access and [Accepting Identity Reference] is the identity that gained it.
+- **SCIM 2.0 (System for Cross-domain Identity Management) RFC 7644 (RFC — Request for Comments, the Internet's numbered standards series)** — SCIM's `POST /Users` with an invite flow maps to the Invitation → [External Onboarding](../compositions/external-onboarding.md) arc. [Invitee Reference] corresponds to the external identity reference; [Accepting Identity Reference] to the provisioned user id.
+- **SOC 2 (Service Organization Control 2 — an audit standard for service-provider security controls) CC6.2 (users registered and authorized before credentials are issued)** — the invitation record *is* the registration and authorization event. [Inviter Reference] is the authorizing party; [Acceptance Instant] and [Accepting Identity Reference] are the registration.
+- **NIST (National Institute of Standards and Technology) SP (Special Publication) 800-63A (enrollment and identity proofing)** — the enrollment event maps to the Invitation → accept arc. This atom models the enrollment record; proofing is [Party Identity](./party-identity.md)'s (Non-goal 17, Non-goal 18).
 
 Standards anchoring here is lighter than for [Credential](./credential.md), [Session](./session.md) or [Capability](./capability.md), and deliberately so: this atom earns its place on EOS Pass 2 conceptual independence rather than on regulatory surface — the declined terminal, single-resolution by write, and identity binding at acceptance are what make it a separate atom instead of a fold into Capability.
 
@@ -802,14 +811,19 @@ It inherits from:
 ```
 status: partially resolved
 formal: verified — invitation.tla + 2 twins, 2026-06-03
-last gate: 2026-06-23 — Final Critique 5, fresh reader — clean
+last gate: 2026-10-22 — Final Critique 6, the council's first round on the page and the first on its Store-contract rewrite (bfa0075) and the refusal-order sweep (c2f4e9a), three fresh readers on free models (GRID Nemotron 3 Ultra, EOS MiniMax M3.1 Flash, Linus GLM-5.3 Flash), each handed only the round's reading set, three passes on one text (frozen at c10ea0d); the round rests on three counted passes — foundational count 3 after triage (11 reports: 7 standing, merged into 3; 3 sent down; 1 rejected), all Kind A: a rule forbade the expiry instant every invitation carries, since a rename had given the stored deadline the name the rule used for a recorded lapse; a rule left a refused resolving write's invitation in pending, though an already-resolved refusal answers on a stored terminal; and the Disputed onboarding scenario, an acceptance test, read a bound on one invitation's terminals as one resolved invitation per identity; 24 refining reports, 4 rhetorical reports; not clean; every foundational finding cured, every refining finding cured, routed or answered; 2026-06-23 — Final Critique 5, fresh reader — clean
 
-open: none
+open:
+- 2026-10-22-a · refining · [Read]; Operation 41; Operation 44 · which fields a filter names and how each matches are unstated, so a filter naming the effective status answers the lapsed pending invitations in one build and nothing in another, and Operation 44 refuses neither; the answer has no order, so a caller paging it gets the database's → declare the filter over the fields the scenarios read (context, status, accepting identity reference, initiation instant), say whether a status filter reads the stored or the effective status, and state an order or declare none
+- 2026-10-22-b · refining · State 13; Non-goal 21 · State 12, State 13 and Invariant 10.1 keep every invitation from every remover, as Final Critique 5's text did, while Non-goal 21 says only that the atom bounds no retention and names no owner, so whether a composed Retention Window or a privacy erasure may remove an invitation is unstated → say the records are permanent, or name the pattern that may purge or erase them and give State 13 and the checks reading it (Check 8.1, Check 8.2, Check 9.1) the composed erasure's form
+- 2026-10-22-c · refining · Composition note 6; Composition note 7 · a composing Actor Identity attests the actor behind an admitted accept and behind an admitted initiate, and no note says whether it attests the actor behind an admitted revoke, which records a revoked by reference as an accept records an accepting identity reference → wire the revoke's attestation, or name the deployment as its owner
 ```
 
 ## Decisions
 
 Directional changes only — the turns a future reader must know the pattern took, and why. Everything smaller lives in the commit that made it: `git log -- atoms/invitation.md`; the migration that got it here is in [its history](./invitation.hist.md).
+
+- **2026-10-22 — A lapse is never written, so nothing forbids the deadline; a refused write leaves what it found; one identity may accept more than one invitation.** *Chose:* State 8 and Check 2.2 deleted to Invariant 12.1, under which the atom writes no field when an invitation lapses, with the State WHY naming State 7 and Invariant 12.1; Operation 39 deleted to Operation 37, a refused action leaving the invitation as the call found it; the Disputed onboarding scenario answering every invitation an identity accepted; Non-goal 27, the atom deciding no caller's authority; Operation 3 checking only a supplied ttl, and Capability requirement 4 obliging a default ttl inside the ttl bounds; Operation 10 recording an invitee reference only where one is not blank; the window readings compared with PRECEDES. *Over:* the noun-final pass's rename of `expires_at` to *expiry instant*, the noun State 8 and Check 2.2 had used for a recorded lapse, so that both forbade what State 1 and Check 6.1 require; a rule leaving every refused resolving write's invitation in pending, which an already-resolved refusal cannot; and a scenario reading Invariant 2.1, a bound on one invitation's terminals, as at most one resolved invitation per identity. *Because:* Final Critique 6 found each, and Final Critique 5's text decided the direction: no invitation record carries a stored expired status or an `expired_at` field, and no field is written when an invitation lapses; a refused write leaves the record as it stood; and its rules, like this page's, bound one invitation's resolution and not how many invitations one identity accepts, which its scenario misread the same way. Smaller fixes rode with it, none changing what a rule means: the Summary glosses a bearer token, and the Intent, Term ttl bounds and the Standards references their acronyms; Term invitation and the Invitation entry say resolved by at most one write again; Term value sets declares the effective status; the Now entry names every action that consumes now; Check 1.2 cites a range; and the New employee onboarding example says the record holds the identity the call supplied. Three questions no rule decides are open (2026-10-22-a through c). What each action answers on a well-formed call is unchanged; a blank ttl now reads the default without meeting the bounds check, and a whitespace-only invitee reference is no longer recorded.
 
 - **2026-10-21 — Which refusal answers is the Execution Contract's.** *Chose:* each refuses line kept as the page wrote it, already in the page's order — a resolving write answering not-known, already-resolved, expired, then invalid-request once every status check passes, and storage-failure last, answering only at the write — and the order cited from the Execution Contract (Capability requirement 12, Execution Contract Refusal 1); the pairs that only stated it deleted to Refusal 1: Operation 19 (already-resolved only for a token naming an invitation), Operation 21 (expired only on a pending invitation), Operation 26 (invalid-request only once every status check passes) and Operation 36 (storage-failure behind every precondition); rules 162 to 158. *Over:* the page stating for itself which of an action's refusals answers when several apply. *Because:* the maintainer ruled on 2026-10-21 that the Execution Contract states once that the refusal listed first on an action's refuses line answers. What each action answers on every call is unchanged.
 
