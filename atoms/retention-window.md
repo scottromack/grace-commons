@@ -113,7 +113,7 @@ Capability requirement 8: The deployment MUST supply EVERY placement a retention
 Capability requirement 9: The deployment MUST NOT supply the same retention id to two placements.
 Capability requirement 10: The deployment MUST supply EXACTLY ONE record reference per record AND MUST NOT reuse a record reference for another record.
 Capability requirement 11: The deployment MUST place EVERY retention over one record in one [Retention Window] instance.
-Capability requirement 12: The deployment MUST supply the retention records PER Execution Contract Database 1 through 4, Execution Contract Read 1 through 3 and Execution Contract Refusal 1.
+Capability requirement 12: The deployment MUST supply the retention records PER Execution Contract Database 1 through 4, Execution Contract Read 1 through 3, Execution Contract Refusal 1 and Execution Contract Conformance 9.
 Deleted: Capability requirement 2. Execution Contract Logic confinement 7 owns it.
 Deleted: Capability requirement 3. Execution Contract Logic confinement 7 owns it.
 ```
@@ -158,7 +158,7 @@ Operation 14: IF no retention EXISTS for the retention id THEN [Purge] MUST answ
 Operation 15: IF the retention state EQUALS purged THEN [Purge] MUST answer not-retained.
 Operation 16: IF the retention state EQUALS retained AND purge eligible EQUALS no THEN [Purge] MUST answer retention-period-not-elapsed.
 Operation 17: [Purge] MUST NOT write on retention-period-not-elapsed.
-Operation 18: [Purge] MUST NOT refuse a call on the ground that purge deadline has passed.
+Operation 18: [Purge] MUST NOT refuse a retention whose purge deadline has passed.
 Operation 19: IF the database refuses the write THEN [Purge] MUST answer storage-failure.
 Deleted: Operation 19a. Execution Contract Refusal 1 owns it.
 Operation 20: [Purge] MUST leave the retention in retained on storage-failure.
@@ -182,8 +182,6 @@ Deleted: Operation 34. Execution Contract Read 1 owns it.
 Deleted: Operation 35. Execution Contract Refusal 1 owns it.
 Deleted: Operation 36. Execution Contract Refusal 1 owns it.
 ```
-
-NOTE: watch the refusal ban (Operation 18).
 
 Term time resolution: the smallest span the deployment's clock and the database tell apart (Capability requirement 5); fixed for the life of the instance.
 
@@ -343,7 +341,7 @@ Check 3.2: An auditor MUST derive purge eligible from the retention state, reten
 Check 4.1: An auditor MUST compute a purged retention's overshoot from purge instant and purge deadline (Invariant 8.3).
 Check 4.2: An auditor MUST compute a retained retention's active overdue from purge deadline and the auditor's own clock (State 2).
 Check 5.1: An auditor MUST reconstruct a record's policy history from the retentions sharing the record reference (Identity 9).
-Deleted: Check 6.1. External check 6 owns it.
+Deleted: Check 6.1. Execution Contract Conformance 9 owns it.
 ```
 
 ### External checks
@@ -354,8 +352,7 @@ External check 2: An auditor MUST read the composing pattern's joint-enforcement
 External check 3: An auditor MUST read the deployment's declared time resolution (Capability requirement 5, State 6a).
 External check 4: An auditor MUST read EVERY standing record from the owning pattern's confirmations (Record divergence 5).
 External check 5: An auditor MUST confirm from the deployment's own destruction records that no destruction instant PRECEDES the retention deadline of a retention over the destroyed record whose retention instant PRECEDES the destruction instant (Capability requirement 6, Capability requirement 6a, Capability requirement 7, Simultaneous retention 4).
-External check 6: An auditor MUST identify from the deployment's own declaration which composing patterns the deployment wired in (Composition note 1).
-NOTE: watch the wiring declaration (External check 6).
+Deleted: External check 6. Execution Contract Conformance 9 owns it.
 ```
 
 NOTE: the atom cannot answer these from the retention records — Simultaneous retention 3 forecloses reading a sibling, so the evidence that joint enforcement happened lives in the composing pattern's records, not here (council read 11).
@@ -815,5 +812,7 @@ Directional changes only — the turns a future reader must know the pattern too
 - **2026-10-21 — A failed read answers as the Execution Contract says.** *Chose:* the failed read cited from the Execution Contract (Capability requirement 12, Execution Contract Read 1 through 3) and the two rules that restated it deleted to it: the atom-wide state-unavailable (Operation 34) to Read 1, and [Read]'s state-unavailable on a failed read alone (Operation 33) to Read 2 beside Operation 29; the read's condition off Operation 29, the read off the placement and purge refusal orders, Term database read deleted, and state-unavailable off every signature; rules 156 to 154. *Over:* the page stating for itself what every action answers when the retention records cannot be read. *Because:* the maintainer ruled on 2026-10-21 that the Execution Contract states the failed read once; this page's eighth Final Critique had made one of the cures the contract's Read family is written from. An unreadable policy registry keeps its own refusal, registry-unavailable: the registry is read at the seam, not from the database. What each action answers on an answered read is unchanged.
 
 - **2026-10-21 — Which refusal answers is the Execution Contract's.** *Chose:* [Place Under Retention]'s refuses line listing its refusals in the order the placement refusal order gave them — invalid-request, registry-unavailable, policy-not-found, invalid-policy, then storage-failure, which answers only at the write — [Purge]'s kept as the page wrote it, already in the purge refusal order's order, and the order cited from the Execution Contract (Capability requirement 12, Execution Contract Refusal 1); the rules that only stated it deleted to Refusal 1: Operation 35 and Operation 36, which evaluated the two refusal orders, with Term placement refusal order and Term purge refusal order, and the pairs Operation 6a (policy-not-found only once every well-formedness check passes), Operation 8a (invalid-policy only once they pass and the host read the policy registry), Operation 24c (registry-unavailable only once they pass), Operation 9a and Operation 19a (storage-failure only where no other refusal applies); rules 154 to 147. *Over:* the page stating for itself which of an action's refusals answers when several apply. *Because:* the maintainer ruled on 2026-10-21 that the Execution Contract states once that the refusal listed first on an action's refuses line answers; this page's eighth Final Critique had made the cure one specification at a time. What each action answers on every call is unchanged.
+
+- **2026-10-22 — The wiring is read outside the records, and a ban on refusing names its ground, as the Execution Contract says.** *Chose:* External check 6, the auditor reading which composing patterns a deployment wired in from the deployment's own declaration, deleted to Execution Contract Conformance 9, with Check 6.1's tombstone, which named it, now naming the contract, and the label cited on Capability requirement 12; Operation 18's ground clause retired, the rule written as *[Purge] MUST NOT refuse a retention whose purge deadline has passed*, which Execution Contract Refusal 1's second sentence reads as naming the ground, so an unknown, purged or ineligible retention still answers its refusal; rules 147 to 146. *Over:* the page stating for itself that the wiring is an external check, and Operation 18 carrying the ground clause a Final Critique wrote. *Because:* the maintainer ruled on 2026-10-22 that five repeated cures are each stated once, the wiring declaration and the refusal ban among them; this page's Final Critiques had made both cures one specification at a time. What each action does and answers is unchanged.
 
 NOTE: End of Retention Window.

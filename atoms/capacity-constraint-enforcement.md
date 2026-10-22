@@ -118,7 +118,7 @@ Term attribution surface: an audit event's actor reference ([Allocating Actor Re
 
 ```
 Capability requirement 1: The deployment MUST supply now at the seam.
-Capability requirement 5: The deployment MUST supply the pool records PER Execution Contract Database 1 through 4, Execution Contract Read 1 through 3 and Execution Contract Refusal 1.
+Capability requirement 5: The deployment MUST supply the pool records PER Execution Contract Database 1 through 4, Execution Contract Database 6, Execution Contract Read 1 through 3, Execution Contract Refusal 1 and Execution Contract Conformance 9.
 Deleted: Capability requirement 2. Execution Contract Logic confinement 7 owns it.
 Deleted: Capability requirement 3. Execution Contract Logic confinement 7 owns it.
 Deleted: Capability requirement 4. Execution Contract Logic confinement 7 owns it.
@@ -431,14 +431,14 @@ Check 3.1: An auditor MUST find EVERY allocation event's closing balance equal t
 Check 3.2: An auditor MUST find the closing balance of EVERY allocation event the replay reaches no higher than the capacity the replay holds at the audit event (Invariant 4.1, Check 2.1).
 Check 4.1: An auditor MUST find EVERY release event's closing balance equal to the released total (Invariant 5.2).
 Check 4.2: An auditor MUST find no release event's closing balance below zero (Invariant 5.1).
-Deleted: Check 5.1. External check 5 owns it.
-Deleted: Check 5.2. External check 5 owns it.
-Deleted: Check 5.3. External check 5 owns it.
-Deleted: Check 5.4. External check 5 owns it.
-Deleted: Check 6.1. External check 4 owns it.
+Deleted: Check 5.1. Execution Contract Database 6 owns it.
+Deleted: Check 5.2. Execution Contract Database 6 owns it.
+Deleted: Check 5.3. Execution Contract Database 6 owns it.
+Deleted: Check 5.4. Execution Contract Database 6 owns it.
+Deleted: Check 6.1. Execution Contract Conformance 9 owns it.
 ```
 
-NOTE: EVERY check names the rule the check tests. Which composing patterns a deployment wired in is the deployment's own declaration, not a stored field (External check 4). An attribution surface a composed erasure mechanism scrubbed, and the capacity at a purge boundary, are read beside the pool records, from the composed erasure mechanism's records and from the deployment's anchor (External check 5, External check 6).
+NOTE: EVERY check names the rule the check tests. The capacity at a purge boundary is read beside the pool records, from the deployment's anchor (External check 6).
 
 #### External checks
 
@@ -446,11 +446,9 @@ NOTE: EVERY check names the rule the check tests. Which composing patterns a dep
 External check 1: An auditor needing a refused call MUST read the refusal from a composing Event Log (Non-goal 26).
 External check 2: An auditor needing a per-unit history MUST read the history from a composing Provisional Commitment (Non-goal 1).
 External check 3: An auditor needing an attested actor MUST read the attestation from a composing Actor Identity (Non-goal 12).
-External check 4: An auditor MUST identify from the deployment's own declaration which composing patterns the deployment wired in (Composition note 1).
-NOTE: watch the wiring declaration (External check 4).
-External check 5: An auditor MUST find the attribution surface State 15 through 18 name on EVERY audit event outside the composed erasure mechanism's scrub records (Invariant 8.4).
+Deleted: External check 4. Execution Contract Conformance 9 owns it.
+Deleted: External check 5. Execution Contract Database 6 owns it.
 External check 6: An auditor needing Invariant 4.1 cleared across a purge MUST read the capacity at the purge boundary from the anchor Check 2.3 names (Invariant 9.4).
-NOTE: watch the composed erasure (External check 5, External check 6).
 ```
 
 ## Non-goals
@@ -1056,5 +1054,7 @@ Directional changes only — the turns a future reader must know the pattern too
 - **2026-10-21 — Which refusal answers is the Execution Contract's.** *Chose:* [Allocate]'s refuses line listing its refusals in the order the page states — not-known, the pool's state (suspended, closed) ahead of over-capacity as Operation 14 held it, state ahead of format as the Rejection paths say, then storage-failure, which answers only at the write — and the order cited from the Execution Contract (Capability requirement 5, Execution Contract Refusal 1); Operation 14 (over-capacity only on an open pool) and Operation 60 (storage-failure behind every precondition), which only stated the order, deleted to Refusal 1; rules 211 to 209. *Over:* the page stating for itself which of an action's refusals answers when several apply. *Because:* the maintainer ruled on 2026-10-21 that the Execution Contract states once that the refusal listed first on an action's refuses line answers. What each action answers on every call is unchanged.
 
 - **2026-10-22 — What the pool records cannot show is read beside them; an input past its bound is refused; format answers before arithmetic.** *Chose:* Check 6.1 deleted to External check 4, the auditor reading which composing patterns a deployment wired in from the deployment's own declaration; Check 5.1 through 5.4 deleted to External check 5, the attribution surface found on every audit event outside the composed erasure mechanism's scrub records; Check 3.2 held to the allocation events the replay reaches, and External check 6 reading the capacity across a purge from the anchor Check 2.3 names; Arithmetic 4 and 5 refusing a capacity and a new capacity past the integer width, and String 4 a reason past the reason cap, each with invalid-request; [Allocate], [Release] and [Adjust Capacity] listing invalid-request ahead of their arithmetic refusal; Non-goal 30 and 31 sending a retried call to Duplicate Prevention; Operation 55 and 56 deleted to Execution Contract Read 1, which Capability requirement 5 now cites. *Over:* conformance checks no pool record could clear once a deployment wired in, scrubbed or purged what the page admits (Composition note 1, Invariant 8.4, Invariant 9.4); inputs every build had to refuse with no refusal named; and arithmetic refusals answering ahead of a malformed input, against the page's own Invalid Request entry. *Because:* Final Critique 9 found each, and the corpus held the cures: the external checks to which eight atoms had moved the wiring declaration and three the composed erasure's checks, and Final Critique 8's own text, which answered an overflow and an over-long reason with invalid-request, answered format before any arithmetic check, read the capacity across a purge from the archival step's boundary snapshot, and gave idempotent allocation under retry to Duplicate Prevention. Smaller fixes rode with it, none changing what a rule means: the Summary, the Regulator audit scenario and the Closing Balance entry check the bound against the capacity the declaration and the adjustments set; the airline and banking examples read as their rules answer; and the Not Open and Not Suspended entries name the one state each answers. What each action does on a well-formed call is unchanged.
+
+- **2026-10-22 — The wiring and a composed scrub are read outside the pool records, as the Execution Contract says.** *Chose:* External check 4, the auditor reading which composing patterns a deployment wired in from the deployment's own declaration, deleted to Execution Contract Conformance 9, and External check 5, the attribution surface read outside the composed erasure mechanism's scrub records, deleted to Execution Contract Database 6, with the tombstones of Check 5.1 through 5.4 and Check 6.1, which named them, now naming the contract and the checks NOTE cut to External check 6; both labels cited on Capability requirement 5; rules 209 to 207. External check 6 is kept as the page's own: the capacity at a purge boundary is read from the anchor the page itself obliges (Check 2.3), not from the purging pattern's records. *Over:* the page stating for itself that the wiring is an external check and that a scrub another specification declares is answered outside the pool records. *Because:* the maintainer ruled on 2026-10-22 that five repeated cures are each stated once, the wiring declaration and the composed erasure among them; this page's ninth Final Critique had made both cures one specification at a time. What each action does and answers is unchanged.
 
 NOTE: End of Capacity Constraint Enforcement.

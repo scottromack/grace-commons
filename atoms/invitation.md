@@ -112,7 +112,7 @@ Capability requirement 6: The database MUST refuse a write carrying an invitatio
 Deleted: Capability requirement 7. Execution Contract Database 3 owns it.
 Capability requirement 8: The deployment MUST canonicalize an opaque reference.
 Capability requirement 9: The deployment MUST deliver the invitation token to the invitee.
-Capability requirement 12: The deployment MUST supply the invitation records PER Execution Contract Database 1 through 4 and Execution Contract Refusal 1.
+Capability requirement 12: The deployment MUST supply the invitation records PER Execution Contract Database 1 through 4, Execution Contract Read 4 and Execution Contract Refusal 1.
 Deleted: Capability requirement 10. Execution Contract Logic confinement 7 owns it.
 Deleted: Capability requirement 11. Execution Contract Logic confinement 7 owns it.
 Deleted: Clock semantics 4. Execution Contract Logic confinement 7 owns it.
@@ -224,13 +224,13 @@ Term effective status: expired where the invitation reads lapsed, and the stored
 
 Term acting reference: accepting identity reference OR revoked by reference — the reference a write records for who acted.
 
-Term admitted initiate: an [Initiate] call that passes every precondition and whose database write commits.
+Term admitted initiate: an [Initiate] call the action admits (Execution Contract Read 4).
 
-Term admitted accept: an [Accept] call that passes every precondition and whose database write commits.
+Term admitted accept: an [Accept] call the action admits (Execution Contract Read 4).
 
-Term admitted decline: a [Decline] call that passes every precondition and whose database write commits.
+Term admitted decline: a [Decline] call the action admits (Execution Contract Read 4).
 
-Term admitted revoke: a [Revoke] call that passes every precondition and whose database write commits.
+Term admitted revoke: a [Revoke] call the action admits (Execution Contract Read 4).
 
 Term admitted resolving write: an admitted accept, an admitted decline OR an admitted revoke.
 
@@ -822,6 +822,8 @@ open:
 ## Decisions
 
 Directional changes only — the turns a future reader must know the pattern took, and why. Everything smaller lives in the commit that made it: `git log -- atoms/invitation.md`; the migration that got it here is in [its history](./invitation.hist.md).
+
+- **2026-10-22 — An admitted call is the Execution Contract's.** *Chose:* the four admitted terms (initiate, accept, decline, revoke) citing Execution Contract Read 4 for what an action admits, in place of the commit clause each carried, so the admitted resolving write they make up reads as before; Read 4 cited on Capability requirement 12; the rule count stays at 156. *Over:* the page stating for itself which calls its effect rules reach. *Because:* the maintainer ruled on 2026-10-22 that five repeated cures are each stated once, the admitted effect among them, which seven atoms had written in one form, this page among them. What each action does and answers is unchanged.
 
 - **2026-10-22 — A lapse is never written, so nothing forbids the deadline; a refused write leaves what it found; one identity may accept more than one invitation.** *Chose:* State 8 and Check 2.2 deleted to Invariant 12.1, under which the atom writes no field when an invitation lapses, with the State WHY naming State 7 and Invariant 12.1; Operation 39 deleted to Operation 37, a refused action leaving the invitation as the call found it; the Disputed onboarding scenario answering every invitation an identity accepted; Non-goal 27, the atom deciding no caller's authority; Operation 3 checking only a supplied ttl, and Capability requirement 4 obliging a default ttl inside the ttl bounds; Operation 10 recording an invitee reference only where one is not blank; the window readings compared with PRECEDES. *Over:* the noun-final pass's rename of `expires_at` to *expiry instant*, the noun State 8 and Check 2.2 had used for a recorded lapse, so that both forbade what State 1 and Check 6.1 require; a rule leaving every refused resolving write's invitation in pending, which an already-resolved refusal cannot; and a scenario reading Invariant 2.1, a bound on one invitation's terminals, as at most one resolved invitation per identity. *Because:* Final Critique 6 found each, and Final Critique 5's text decided the direction: no invitation record carries a stored expired status or an `expired_at` field, and no field is written when an invitation lapses; a refused write leaves the record as it stood; and its rules, like this page's, bound one invitation's resolution and not how many invitations one identity accepts, which its scenario misread the same way. Smaller fixes rode with it, none changing what a rule means: the Summary glosses a bearer token, and the Intent, Term ttl bounds and the Standards references their acronyms; Term invitation and the Invitation entry say resolved by at most one write again; Term value sets declares the effective status; the Now entry names every action that consumes now; Check 1.2 cites a range; and the New employee onboarding example says the record holds the identity the call supplied. Three questions no rule decides are open (2026-10-22-a through c). What each action answers on a well-formed call is unchanged; a blank ttl now reads the default without meeting the bounds check, and a whitespace-only invitee reference is no longer recorded.
 

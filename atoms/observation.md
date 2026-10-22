@@ -113,7 +113,7 @@ Deleted: Capability requirement 2. Execution Contract Logic confinement 7 owns i
 Deleted: Capability requirement 3. Execution Contract Logic confinement 7 owns it.
 Deleted: Capability requirement 4. Execution Contract Logic confinement 7 owns it.
 Capability requirement 5: The deployment MUST declare the clock offset allowance.
-Capability requirement 6: The deployment MUST supply the observation records PER Execution Contract Database 1 through 4 and Execution Contract Refusal 1.
+Capability requirement 6: The deployment MUST supply the observation records PER Execution Contract Database 1 through 4, Execution Contract Database 6 and Execution Contract Refusal 1.
 Capability requirement 7: The deployment MUST declare a value constraint per observation type.
 Deleted: Clock semantics 1. Execution Contract Logic confinement 7 owns it.
 Deleted: Clock semantics 2. Execution Contract Logic confinement 7 owns it.
@@ -182,7 +182,7 @@ Operation 34: An admitted amend MUST answer the successor's observation id.
 Operation 35: An admitted retract MUST stand the observation in retracted.
 Operation 36: An admitted retract MUST record retracting actor and reason as retraction reason.
 Operation 37: An admitted retract MUST answer retracted.
-Operation 38: [Retract] MUST NOT refuse a call on the ground that the observation stands in amended.
+Operation 38: [Retract] MUST NOT refuse an observation whose state EQUALS amended.
 Operation 39: IF the database refuses the write THEN a writing action MUST answer storage-failure.
 Deleted: Operation 40. Execution Contract Refusal 1 owns it.
 Operation 41: A refused action MUST leave the database as the call found the database.
@@ -203,8 +203,6 @@ Operation 55: An ordering rule MUST NOT rest on a causal claim.
 Operation 56: An admitted amend MUST take the successor's recording actor from the original.
 Operation 57: An admitted amend MUST record value and unit on the successor.
 ```
-
-NOTE: watch the refusal ban (Operation 38).
 
 NOTE: open 2026-10-22-a — which key orders two observations sharing a recording instant is not stated; Operation 43 and Check 6.1 ask only that the order be stable.
 
@@ -362,7 +360,7 @@ Check 2.4: An auditor MUST find EVERY observation in one amendment chain sharing
 Check 2.5: An auditor MUST find no observation carrying two successor ids (Invariant 3.1).
 Check 2.6: An auditor MUST find no observation carrying two predecessor ids (Invariant 3.2).
 Check 3.1: An auditor MUST find no observation whose state DOES NOT EQUAL retracted on a later read of an observation a prior read found retracted (Invariant 6.1).
-Deleted: Check 4.1. External check 5 owns it.
+Deleted: Check 4.1. Execution Contract Database 6 owns it.
 Check 5.1: An auditor MUST find EVERY observation's recording actor non-blank (Operation 2, String 5).
 Check 5.2: An auditor MUST find EVERY retracted observation's retracting actor and retraction reason non-blank (Operation 17, Operation 18).
 Check 5.3: An auditor MUST find EVERY successor observation's amending actor and amendment reason non-blank (Operation 16, Operation 17).
@@ -379,10 +377,8 @@ External check 1: A deployment needing EVERY issued observation id found in the 
 External check 2: A deployment needing a recording actor confirmed authorized MUST read the composing Permissions record (Non-goal 13).
 External check 3: A deployment needing a reference bound to an actor MUST read the composing Actor Identity attestation (Non-goal 11).
 External check 4: A deployment needing a value confirmed correct MUST read outside the observation records (Non-goal 5).
-External check 5: A deployment needing Invariant 7.1 cleared MUST read the composing Retention Window's purge records beside two unfiltered reads of the observation records (Non-goal 15).
+Deleted: External check 5. Execution Contract Database 6 owns it.
 ```
-
-NOTE: watch the composed erasure (External check 5).
 
 ## Non-goals
 
@@ -828,5 +824,7 @@ Directional changes only — the turns a future reader must know the pattern too
 - **2026-10-21 — Which refusal answers is the Execution Contract's.** *Chose:* each refuses line kept as the page wrote it, already in the page's order — a chain action answering not-known, its state rejections, then invalid-request once every state check passes, [Amend] invalid-observation after that, and storage-failure last, answering only at the write — and the order cited from the Execution Contract (Capability requirement 6, Execution Contract Refusal 1); the pairs that only stated it deleted to Refusal 1: Operation 15 (a state rejection only for an observation id naming an observation), Operation 19 (invalid-request only once every state check passes), Operation 20 (invalid-observation only once every request check passes) and Operation 40 (storage-failure behind every precondition), with Term state rejection, which only Operation 15 read; rules 156 to 152. *Over:* the page stating for itself which of an action's refusals answers when several apply. *Because:* the maintainer ruled on 2026-10-21 that the Execution Contract states once that the refusal listed first on an action's refuses line answers. What each action answers on every call is unchanged.
 
 - **2026-10-22 — A composed retention may purge what the atom never removes; every field of a successor has a source; a refusal ban names its ground.** *Chose:* State 12 deleted to Invariant 7.1 and Execution Contract Database 4, and Check 4.1 to External check 5, which reads the composing Retention Window's purge records beside two unfiltered reads; Operation 56 and Operation 57, an admitted amend taking the successor's recording actor from the original and recording the call's value and unit on the successor; Operation 38 narrowed to the ground it meant, [Retract] refusing no call on the ground that the observation stands in amended; Non-goal 2 moved to Capability requirement 7, and Term seam naming the clock offset allowance and the value constraints the host injects; Operation 4 refusing a blank unit on [Amend] as on [Record], and Operation 48 a blank value on every filter. *Over:* the reading the 2026-10-20 entry recorded for the maintainer to overrule, under which State 12 and Check 4.1 also barred a purge another specification declares; a successor whose recording actor, value and unit no rule sourced; a ban that, read alone, kept [Retract] from every refusal on an amended observation; and the migration's narrowing of Final Critique 4's refusals to [Record]'s unit and a reference filter's value. *Because:* Final Critique 5 found each, and Final Critique 4's text decided the direction: the atom retains every observation indefinitely, and eventual destruction belongs to Retention Window and Legal Hold as composing patterns, as four Final Critiques read the same shape on their own pages; Medication Order carries the original's prescriber reference onto its successor beside the amending actor; Execution Contract Refusal 1 lets no refusal apply where a rule keeps the action from answering it, so a ban names its ground, as Retention Window, Permissions and Duplicate Prevention write theirs; and Final Critique 4 refused a blank unit on [Amend] and a blank observation id on [Read]. Smaller fixes rode with it, none changing what a rule means: Term content field, the Invalid Observation, Invalid Query, Recording Instant, Recording Actor, Unit and Amend entries, and the transcription example say what the rules say. What each action answers on a well-formed call is unchanged, and a successor now carries a stated recording actor, value and unit.
+
+- **2026-10-22 — A composed purge is answered by the purging pattern's records, and a ban on refusing names its ground, as the Execution Contract says.** *Chose:* External check 5, a composing Retention Window's purge records read beside two unfiltered reads of the observation records, deleted to Execution Contract Database 6, with Check 4.1's tombstone, which named it, now naming the contract, and the label cited on Capability requirement 6; Operation 38's ground clause retired, the rule written as *[Retract] MUST NOT refuse an observation whose state EQUALS amended*, which Execution Contract Refusal 1's second sentence reads as naming the ground, so a blank retracting actor on an amended observation still answers invalid-request; rules 153 to 152. *Over:* the page stating for itself that a purge another specification declares is answered outside the observation records, and Operation 38 carrying the ground clause its fifth Final Critique wrote. *Because:* the maintainer ruled on 2026-10-22 that five repeated cures are each stated once, the composed erasure and the refusal ban among them; this page's fifth Final Critique had made both cures one specification at a time. What each action does and answers is unchanged.
 
 NOTE: End of Observation.

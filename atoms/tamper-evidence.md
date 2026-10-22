@@ -82,7 +82,7 @@ Term evidence field: evidence id | record set reference | proof | sealing instan
 
 ```
 Capability requirement 1: The deployment MUST supply now at the seam.
-Capability requirement 2: The deployment MUST supply the seal records PER Execution Contract Database 1, Execution Contract Database 3, Execution Contract Database 4, Execution Contract Read 1 through 3 and Execution Contract Refusal 1.
+Capability requirement 2: The deployment MUST supply the seal records PER Execution Contract Database 1, Execution Contract Database 3, Execution Contract Database 4, Execution Contract Read 1 through 3, Execution Contract Refusal 1 and Execution Contract Conformance 9.
 Capability requirement 3: The deployment MUST declare the deployment's mechanism.
 ```
 
@@ -294,7 +294,7 @@ Check 4.1: An auditor MUST read verified, failed-verification and not-known as t
 Check 4.2: An auditor MUST read record-set-mismatch, proof-invalid and mechanism-verification-unavailable as three distinct reasons (Operation 16, Operation 17, Operation 18).
 Check 5.1: IF the mechanism anchors at seal time THEN an auditor MUST bound a detected tampering between two adjacent anchoring instant times (Invariant 2.1, Identity 8).
 Check 5.2: An auditor MUST read a bound between two adjacent sealing instant times as best-effort (Non-goal 8).
-Deleted: Check 6.1. External check 3 owns it.
+Deleted: Check 6.1. Execution Contract Conformance 9 owns it.
 Deleted: Check 6.2. External check 4 owns it.
 ```
 
@@ -303,12 +303,11 @@ Deleted: Check 6.2. External check 4 owns it.
 ```
 External check 1: An auditor MUST read the mechanism's health from the Mechanism Registry's evidence (Invariant 2.2, Invariant 2.3).
 External check 2: An auditor MUST read the anchor's trust from the anchoring authority's own records (Non-goal 1, Non-goal 2).
-External check 3: An auditor MUST identify from the deployment's own declaration which composing patterns the deployment wired in (Composition note 1).
-NOTE: watch the wiring declaration (External check 3).
+Deleted: External check 3. Execution Contract Conformance 9 owns it.
 External check 4: An auditor MUST read the deployment's mechanism from the deployment's own declaration (Operation 26, Capability requirement 3).
 ```
 
-NOTE: mechanism health, anchor trust, the composing patterns wired in and the mechanism itself are what the seal records do not carry — the External check family v0.35 declares exists for exactly this (council read 13).
+NOTE: mechanism health, anchor trust and the mechanism itself are what the seal records do not carry — the External check family v0.35 declares exists for exactly this (council read 13).
 
 NOTE: EVERY check names the rule the check tests. The bar is the regulator's question — *can you prove these records were not altered?* — answered provably.
 
@@ -667,5 +666,7 @@ Directional changes only — the turns a future reader must know the pattern too
 - **2026-10-21 — A failed read answers as the Execution Contract says.** *Chose:* the failed read cited from the Execution Contract (Capability requirement 2, Execution Contract Read 1 through 3) and the two rules that restated it deleted to it: the atom-wide state-unavailable (Operation 31) to Read 1, and [Read]'s state-unavailable on a failed read alone (Operation 30) to Read 2 beside Operation 27; the read's condition off the rules it held to an answered read (Operation 14, Operation 15, Operation 27), the failed read off the verifications Invariant 7.1 compares, which Read 2 holds to verifications whose reads answered, the read off the seal refusal order, Term database read deleted, state-unavailable off every signature and off the answers Check 4.1 tells apart; rules 106 to 104. *Over:* the page stating for itself what every action answers when the seal records cannot be read. *Because:* the maintainer ruled on 2026-10-21 that the Execution Contract states the failed read once; this page's fifth Final Critique had made one of the cures the contract's Read family is written from. A mechanism that cannot verify keeps its own answer, mechanism-verification-unavailable: the mechanism is no read of the database. What each action answers on an answered read is unchanged.
 
 - **2026-10-21 — Which refusal answers is the Execution Contract's.** *Chose:* [Seal]'s refuses line kept as the page wrote it, already in the order the seal refusal order gave — invalid-request, mechanism-failure, then storage-failure, which answers only at the write — and the order cited from the Execution Contract (Capability requirement 2, Execution Contract Refusal 1); Operation 32, which evaluated the seal refusal order, deleted to Refusal 1, and Term seal refusal order deleted with it; rules 104 to 103. *Over:* the page stating for itself which of [Seal]'s refusals answers when both apply. *Because:* the maintainer ruled on 2026-10-21 that the Execution Contract states once that the refusal listed first on an action's refuses line answers; this page's fifth Final Critique had made the cure one specification at a time. What each action answers on every call is unchanged.
+
+- **2026-10-22 — The wiring is read outside the records, as the Execution Contract says.** *Chose:* External check 3, the auditor reading which composing patterns a deployment wired in from the deployment's own declaration, deleted to Execution Contract Conformance 9, with Check 6.1's tombstone, which named it, now naming the contract, the wiring off the NOTE listing what the seal records do not carry, and the label cited on Capability requirement 2; rules 103 to 102. *Over:* the page stating for itself that the wiring is an external check. *Because:* the maintainer ruled on 2026-10-22 that five repeated cures are each stated once, the wiring declaration among them; this page's fifth Final Critique had made the cure one specification at a time. What each action does and answers is unchanged.
 
 NOTE: End of Tamper Evidence.

@@ -114,7 +114,7 @@ Deleted: Capability requirement 9. Execution Contract Database 3 owns it.
 Deleted: Capability requirement 10. Execution Contract Database 1 owns it.
 Capability requirement 11: The deployment MUST canonicalize an opaque reference.
 Capability requirement 12: The deployment MUST declare the length bound.
-Capability requirement 15: The deployment MUST supply the order records PER Execution Contract Database 1 through 4 and Execution Contract Refusal 1.
+Capability requirement 15: The deployment MUST supply the order records PER Execution Contract Database 1 through 4, Execution Contract Database 6, Execution Contract Read 4 and Execution Contract Refusal 1.
 Deleted: Capability requirement 13. Execution Contract Logic confinement 7 owns it.
 Deleted: Capability requirement 14. Execution Contract Logic confinement 7 owns it.
 ```
@@ -180,9 +180,9 @@ Operation 9: [Order] MUST NOT answer not-known.
 Operation 10: IF order id EQUALS blank THEN an order action MUST answer a blank-input rejection.
 Operation 11: IF the order id names no order THEN an order action MUST answer not-known.
 Operation 12: An order action MUST answer not-known ONLY IF order id DOES NOT EQUAL blank.
-Operation 13: IF the order's state EQUALS on-hold THEN a held-refusing action MUST answer on-hold.
-Operation 14: IF the order's state IS IN the inactive states THEN an inactive-refusing action MUST answer the inactive state's rejection.
-Operation 83: IF the order's state IS IN the inactive states AND the order's state DOES NOT EQUAL completed THEN [Amend] MUST answer the inactive state's rejection.
+Operation 13: IF the order's state EQUALS on-hold THEN an order action MUST answer on-hold.
+Operation 14: IF the order's state IS IN the inactive states THEN a state-changing action MUST answer the inactive state's rejection.
+Deleted: Operation 83. Operation 14 and GRACE-lang Closed vocabulary 29 own it.
 Deleted: Operation 15. Execution Contract Refusal 1 owns it.
 Operation 16: IF the order's state DOES NOT EQUAL ordered THEN [Verify] MUST answer not-in-ordered-state.
 Operation 17: IF the order's state IS NOT IN the pre-dispensing states THEN [Amend] MUST answer already-dispensed.
@@ -257,12 +257,6 @@ Term order action: [Amend] | [Verify] | [Hold] | [Reinstate] | [Dispense] | [Adm
 
 Term state-changing action: an order action that would change the order's state — every order action.
 
-Term held-refusing action: an order action beside [Hold] and [Reinstate] — every action that answers on-hold against an on-hold order.
-
-Term inactive-refusing action: an order action beside [Amend] and [Reinstate] — every action that answers the inactive state's rejection against every inactive order.
-
-NOTE: watch the category reach (Operation 13, Operation 14, Operation 83, Invariant 9.1).
-
 Term state: ordered | verified | amended | on-hold | dispensed | administered | completed | cancelled | discontinued.
 
 Term terminal state: completed | cancelled | discontinued.
@@ -277,7 +271,7 @@ Term actionable state: a pre-dispensing state OR a post-dispensing state — eve
 
 Term inactive state's rejection: already-amended for amended, already-completed for completed, already-cancelled for cancelled, already-discontinued for discontinued.
 
-Term state check: Operation 11, Operation 13, Operation 14, Operation 16 through 24, Operation 26 and Operation 83 — every check an order action makes on the order's own standing before reading the call's remaining inputs.
+Term state check: Operation 11, Operation 13, Operation 14, Operation 16 through 24 and Operation 26 — every check an order action makes on the order's own standing before reading the call's remaining inputs.
 
 Term blank-input rejection: invalid-order for [Order], invalid-request for an order action.
 
@@ -295,25 +289,25 @@ Term hold field: prior state | holding actor | hold reason | hold instant — th
 
 Term reinstate field: reinstating actor | reinstatement instant — the fields an admitted reinstate writes, replaced by each new hold cycle.
 
-Term admitted order: an [Order] call that passes every precondition and whose database write commits.
+Term admitted order: an [Order] call the action admits (Execution Contract Read 4).
 
-Term admitted amend: an [Amend] call that passes every precondition and whose database writes commit.
+Term admitted amend: an [Amend] call the action admits (Execution Contract Read 4).
 
-Term admitted verify: a [Verify] call that passes every precondition and whose database write commits.
+Term admitted verify: a [Verify] call the action admits (Execution Contract Read 4).
 
-Term admitted hold: a [Hold] call that passes every precondition and whose database write commits.
+Term admitted hold: a [Hold] call the action admits (Execution Contract Read 4).
 
-Term admitted reinstate: a [Reinstate] call that passes every precondition and whose database write commits.
+Term admitted reinstate: a [Reinstate] call the action admits (Execution Contract Read 4).
 
-Term admitted dispense: a [Dispense] call that passes every precondition and whose database write commits.
+Term admitted dispense: a [Dispense] call the action admits (Execution Contract Read 4).
 
-Term admitted administer: an [Administer] call that passes every precondition and whose database write commits.
+Term admitted administer: an [Administer] call the action admits (Execution Contract Read 4).
 
-Term admitted complete: a [Complete] call that passes every precondition and whose database write commits.
+Term admitted complete: a [Complete] call the action admits (Execution Contract Read 4).
 
-Term admitted cancel: a [Cancel] call that passes every precondition and whose database write commits.
+Term admitted cancel: a [Cancel] call the action admits (Execution Contract Read 4).
 
-Term admitted discontinue: a [Discontinue] call that passes every precondition and whose database write commits.
+Term admitted discontinue: a [Discontinue] call the action admits (Execution Contract Read 4).
 
 Term admitted read: a [Read] call that answers.
 
@@ -355,7 +349,7 @@ Term admitted read: a [Read] call that answers.
   ```
 - **Invariant 9 — An on-hold order admits only a reinstate.**
   ```
-  Invariant 9.1: A held-refusing action MUST answer on-hold against an order whose state EQUALS on-hold.
+  Invariant 9.1: An order action MUST answer on-hold against an order whose state EQUALS on-hold.
   ```
 - **Invariant 10 — Attribution is complete.**
   ```
@@ -382,8 +376,6 @@ Term admitted read: a [Read] call that answers.
   Deleted: Invariant 14.2. Execution Contract Database 1 owns it.
   Deleted: Invariant 14.3. Execution Contract Database 1 owns it.
   ```
-
-NOTE: watch the refusal ban (Invariant 3.1, Invariant 6.1, Invariant 6.2).
 
 ---
 
@@ -443,8 +435,8 @@ Check 5.2: An auditor MUST find a dispense field group on EVERY administered ord
 Check 5.3: An auditor MUST find an administration field group on EVERY completed order (State 5, State 13).
 Check 5.4: An auditor MUST find EVERY field group a prior transition wrote on a re-read order (State 13, Invariant 12.1).
 Check 6.1: An auditor MUST find prior state, holding actor, hold reason and hold instant on EVERY on-hold order (State 11).
-Deleted: Check 7.1. External check 9 owns it.
-Deleted: Check 7.2. External check 9 owns it.
+Deleted: Check 7.1. Execution Contract Database 6 owns it.
+Deleted: Check 7.2. Execution Contract Database 6 owns it.
 Deleted: Check 7.3. Execution Contract Database 1 owns it.
 Check 8.1: An auditor MUST find no order id on two orders of one database instance (Identity 5).
 Check 8.2: An auditor MUST reconstruct EVERY order's chain of custody from one read (State 13).
@@ -463,10 +455,8 @@ External check 5: A deployment needing a medication reference's controlled-subst
 External check 6: A deployment needing a duplicate order prevented MUST read the composing Duplicate Prevention (Non-goal 9).
 External check 7: A deployment needing an order's retention bounded MUST read the composing Retention Window (Non-goal 22).
 External check 8: A deployment needing an attribution reference bound to an actor MUST read the composing Actor Identity attestation (Identity 12, Non-goal 13).
-External check 9: A deployment needing Invariant 14.1 cleared MUST read the composing Retention Window's purge records beside two unfiltered reads of the order records (Non-goal 22).
+Deleted: External check 9. Execution Contract Database 6 owns it.
 ```
-
-NOTE: watch the composed erasure (External check 9).
 
 ---
 
@@ -555,8 +545,8 @@ String 3: The atom MUST NOT normalize a string input.
 String 4: The atom MUST NOT case-fold a string input.
 String 5: The atom MUST read a whitespace-only string input as blank.
 String 6: The atom MUST read an absent string input as blank.
-String 7: IF a string input EXCEEDS the length bound THEN [Order] MUST answer invalid-order.
-String 8: IF a string input EXCEEDS the length bound THEN an order action MUST answer invalid-request.
+String 7: IF a string input EXCEEDS the length bound THEN an action MUST answer a blank-input rejection.
+Deleted: String 8. String 7 and GRACE-lang Closed vocabulary 29 own it.
 ```
 
 Term string input: a required string input OR a filter value — every caller-supplied string this atom accepts.
@@ -564,9 +554,7 @@ Term string input: a required string input OR a filter value — every caller-su
 
 Term length bound: the maximum length the deployment declares for a string input.
 
-NOTE: watch host obligations — this atom refuses a string input over the length bound on [Order] and the order actions alone (String 7, String 8), [Read] meeting no length refusal, and obliges the deployment to declare the bound (Capability requirement 12), where [Duplicate Prevention](./duplicate-prevention.md) declares a cap and [Provenance](./provenance.md) obliges the deployment to set one; Final Critique 5 cured the bound's reach.
-
-NOTE: watch the category reach (String 7, String 8).
+NOTE: watch host obligations — this atom refuses a string input over the length bound on every action whose signature carries its blank-input rejection (String 7, GRACE-lang Closed vocabulary 29), [Read] meeting no length refusal, and obliges the deployment to declare the bound (Capability requirement 12), where [Duplicate Prevention](./duplicate-prevention.md) declares a cap and [Provenance](./provenance.md) obliges the deployment to set one; Final Critique 5 cured the bound's reach.
 
 ---
 
@@ -595,7 +583,7 @@ Each `[Term]` marker above links to its term entry here; a term entry states wha
 
 ### Vocabulary
 
-Term actors: the atom; the deployment; the database; the database instance; the seam; the transition; a composing pattern; a caller; a prescriber; a pharmacist; a dispenser; an auditor; a regulator; an investigator; an order; a successor order; an original; an amended order; an on-hold order; a verified order; a dispensed order; an administered order; a completed order; a cancelled order; a discontinued order; a reinstated order; an action; an order action; a state-changing action; a held-refusing action; an inactive-refusing action; a refused action; a rejection; an opaque reference; a string input; a filter; a filter axis; a filter value; a field group.
+Term actors: the atom; the deployment; the database; the database instance; the seam; the transition; a composing pattern; a caller; a prescriber; a pharmacist; a dispenser; an auditor; a regulator; an investigator; an order; a successor order; an original; an amended order; an on-hold order; a verified order; a dispensed order; an administered order; a completed order; a cancelled order; a discontinued order; a reinstated order; an action; an order action; a state-changing action; a refused action; a rejection; an opaque reference; a string input; a filter; a filter axis; a filter value; a field group.
 
 Term records: order — one prescription's whole life, carrying order id, patient reference, prescriber reference, medication reference, dose, dose unit, route, frequency, order instant, a state, and — where a transition wrote them — duration, clinical evidence reference, verifier reference, verification instant, predecessor id, successor id, amending actor, amendment reason, prior state, holding actor, hold reason, hold instant, reinstating actor, reinstatement instant, dispenser reference, quantity, lot number, dispensing instant, administerer reference, administration instant, completing actor, completion instant, cancelling actor, cancellation reason, cancellation instant, discontinuing actor, discontinuation reason and discontinuation instant.
 
@@ -609,7 +597,7 @@ Term cadences: empty.
 
 Term qualifiers: migrated — rewritten in GRACE lang v0.40 (2026-09-13).
 
-Term terms: order, order id, database instance, core field, dosing parameter, attribution reference, reference, seam, transition, now, order action, state-changing action, held-refusing action, inactive-refusing action, state, terminal state, inactive state, pre-dispensing state, post-dispensing state, actionable state, `inactive state's rejection`, state check, blank-input rejection, field fault, required string input, future bound, clock offset allowance, event instant, query axes, field group, hold field, reinstate field, reason field, admitted order, admitted amend, admitted verify, admitted hold, admitted reinstate, admitted dispense, admitted administer, admitted complete, admitted cancel, admitted discontinue, admitted read, string input, blank, length bound, resolved dispensing instant, resolved administration instant, resolved completion instant.
+Term terms: order, order id, database instance, core field, dosing parameter, attribution reference, reference, seam, transition, now, order action, state-changing action, state, terminal state, inactive state, pre-dispensing state, post-dispensing state, actionable state, `inactive state's rejection`, state check, blank-input rejection, field fault, required string input, future bound, clock offset allowance, event instant, query axes, field group, hold field, reinstate field, reason field, admitted order, admitted amend, admitted verify, admitted hold, admitted reinstate, admitted dispense, admitted administer, admitted complete, admitted cancel, admitted discontinue, admitted read, string input, blank, length bound, resolved dispensing instant, resolved administration instant, resolved completion instant.
 
 Term cited: `execution-contract.md` Logic confinement — the seam and the transition.
 
@@ -1106,7 +1094,7 @@ Projection: not-known
 
 #### On Hold Rejection
 
-The refusal a held-refusing action returns against an [On Hold] order. Answered before any rejection about the state underneath the hold, because the hold is what the caller must resolve first.
+The refusal an order action whose signature carries it returns against an [On Hold] order. Answered before any rejection about the state underneath the hold, because the hold is what the caller must resolve first.
 
 Kind:       Member
 Member of:  the order-action rejection
@@ -1360,5 +1348,7 @@ Directional changes only — the turns a future reader must know the pattern too
 - **2026-10-21 — Which refusal answers is the Execution Contract's.** *Chose:* each refuses line kept as the page wrote it, already in the page's order — not-known, the hold, the inactive states, the action's own state rejections, then a blank-input rejection on a field fault once every state check passes, and storage-failure last, answering only at the write — and the order cited from the Execution Contract (Capability requirement 15, Execution Contract Refusal 1); the pairs that only stated it deleted to Refusal 1: Operation 15 (an inactive-state rejection only on an order not on hold), Operation 28 (a field fault only once every state check passes) and Operation 63 (storage-failure behind every precondition), and Operation 15 taken off Term state check; rules 211 to 208. Operation 12 stays the page's own: a blank order id answers its blank-input rejection ahead of not-known, while every other field fault answers after the state checks, so the rejection holds two places in the order and no fixed line can carry both; Refusal 1 reads a refusal Operation 12 keeps from a call as not applying to it. *Over:* the page stating for itself which of an action's refusals answers when several apply. *Because:* the maintainer ruled on 2026-10-21 that the Execution Contract states once that the refusal listed first on an action's refuses line answers. What each action answers on every call is unchanged.
 
 - **2026-10-22 — Every refusal on a line is answered where it belongs, an amendment carries its evidence, and a composed retention may purge what the atom never removes.** *Chose:* Operation 19 through 21 answering not-verified on an ordered order, already-dispensed on a dispensed or administered one and not-dispensed on a pre-dispensing one, as Final Critique 4's text had them, so every arm of [Dispense]'s and [Administer]'s refuses lines answers some call; Invariant 3.1, Invariant 6.1 and Invariant 6.2 restated as what [Amend], [Cancel] and [Discontinue] may change (*MUST change an order ONLY IF the order's state IS IN …*); a successor inheriting the original's clinical evidence reference (Operation 33); State 15 deleted to Invariant 14.1 and Execution Contract Database 4, and Check 7.1 and Check 7.2 to External check 9, the page read as Final Critique 4's text read it: the atom never removes an order, and eventual destruction is a composing Retention Window's; String 7 and String 8 refusing an over-long string on [Order] and the order actions alone; Term held-refusing action and a new Term inactive-refusing action leaving out the actions whose signatures carry no on-hold or inactive-state refusal, with Operation 83 holding [Amend]'s inactive-state refusals to the three its line carries and Operation 25 deleted to Operation 14 and Operation 26; and Invariant 12.1 setting aside the hold and reinstate fields Invariant 12.2 and Invariant 12.3 replace each cycle, as Final Critique 4's Invariant 12 did. *Over:* the migration's guards, which answered not-verified on a dispensed order and not-dispensed on an administered one; ONLY IF tails that, read alone, kept each action from every refusal the operations oblige; a successor whose evidence reference no rule decided; the 2026-10-20 entry's reading that State 15, Operation 67 and Invariant 14.1 bar a purge another specification declares; rules over every action or every order action that landed refusals outside a member's signature; and a write-once rule that forbade the hold cycle. *Because:* Final Critique 5 found the seven, and each but the evidence reference stood soundly in Final Critique 4's text or is the corpus's own cure: Selective Disclosure, Party Identity, Provisional Commitment, Observation, Capacity Constraint Enforcement, Message Preference and State Machine cured the composed erasure the same way, and Session, Capability and Party Identity held their String 7 to the actions that refuse it. Smaller fixes rode with them: Operation 80 refuses a non-positive quantity, as Final Critique 4's text did; Operation 81 stamps a successor's order instant and Operation 82 orders two orders sharing an order instant by order id; the ten refusal entries Final Critique 4 carried are restored; the Summary glosses its four dosing terms and the acronyms are spelled out; Term successor ids and Term predecessor ids are gone; rules 208 to 210. What each action answers and writes on a call it admits is unchanged, but that a successor carries the original's clinical evidence reference and is stamped with now as its order instant.
+
+- **2026-10-22 — An admitted call, a composed purge, a ban's ground and an action set's reach are stated once.** *Chose:* the ten admitted terms citing Execution Contract Read 4 for what an action admits, in place of the commit clause each carried; External check 9, a composing Retention Window's purge records read beside the order records, deleted to Execution Contract Database 6, with the tombstones of Check 7.1 and Check 7.2, which named it, now naming the contract; Term held-refusing action and Term inactive-refusing action, the helper terms this page's fifth Final Critique wrote, deleted, with Operation 13 and Invariant 9.1 naming an order action, Operation 14 a state-changing action as the page first had it, and Operation 83, [Amend]'s split, deleted to Operation 14 and GRACE-lang Closed vocabulary 29, under which each rule binds an order action only where the action's signature carries the outcome: on-hold on every order action but [Hold] and [Reinstate], and the inactive state's rejection on every one but [Reinstate], [Amend] answering it on an amended, cancelled or discontinued order and not on a completed one, whose already-completed its signature does not carry; String 7 written again as the page first had it, an over-long string input answering an action's blank-input rejection, and String 8 deleted to String 7 and Closed vocabulary 29, which leaves [Read], whose signature carries invalid-query alone, outside it; Invariant 3.1, Invariant 6.1 and Invariant 6.2 stand as the fifth Final Critique restated them, rules of what an action may change; Database 6 and Read 4 cited on Capability requirement 15; rules 210 to 207. *Over:* the page stating for itself which calls its effect rules reach, that a purge another specification declares is answered outside the order records, and which order actions each state rejection reaches. *Because:* the maintainer ruled on 2026-10-22 that five repeated cures are each stated once, the admitted effect, the composed erasure, the refusal ban and the category reach among them; this page's fifth Final Critique had made all four one specification at a time. What each action does and answers is unchanged.
 
 NOTE: End of Medication Order.

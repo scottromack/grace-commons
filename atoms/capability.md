@@ -512,8 +512,6 @@ String 9: IF the capability is revocable AND revoked by reference EXCEEDS the ma
 String 10: IF the capability is revocable AND reason EXCEEDS the maximum length THEN [Revoke] MUST answer invalid-request.
 ```
 
-NOTE: watch the category reach (String 7, String 9, String 10).
-
 ## Composition notes
 
 ```
@@ -849,6 +847,8 @@ open:
 ## Decisions
 
 Directional changes only — the turns a future reader must know the pattern took, and why. Everything smaller lives in the commit that made it: `git log -- atoms/capability.md`; the migration that got it here is in [its history](./capability.hist.md).
+
+- **2026-10-22 — The length refusal's split stays the page's own.** *Chose:* String 7, String 9 and String 10 kept as written, the category reach's flag removed: GRACE-lang Closed vocabulary 29 now reads a rule over several actions as binding each only where its signature carries the outcome, so [Redeem] and [Read] would meet no length refusal under one rule over every action, but the split also refuses on [Revoke] only an over-long revoked by reference or reason, and only on a revocable capability, as Operation 39 and Operation 40 refuse a blank one; one rule over every action would also refuse an over-long capability token on a revocable capability, which the page leaves to the token's own lookup. *Over:* String 7 written again as one rule over every action, the page's form before its sixth Final Critique. *Because:* the maintainer ruled on 2026-10-22 that five repeated cures are each stated once, the category reach among them, and that a page keeps its own rule where its domain differs. What each action does and answers is unchanged.
 
 - **2026-10-21 — Which refusal answers is the Execution Contract's.** *Chose:* [Revoke]'s refuses line listing its refusals in the order the revoke refusal order gave them — not-known, already-terminal, invalid-request, then storage-failure, which answers only at the write — and the order cited from the Execution Contract (Capability requirement 5, Execution Contract Refusal 1); Operation 66, which evaluated the revoke refusal order, deleted to Refusal 1, and Term revoke refusal order deleted with it; rules 201 to 200. Operation 65 and Term redeem refusal order stay the page's own: they order the redemption failure [Redeem] answers inside invalid(redemption failure), an answer and no refusal, and Refusal 1 orders only a refuses line. *Over:* the page stating for itself which of [Revoke]'s refusals answers when several apply. *Because:* the maintainer ruled on 2026-10-21 that the Execution Contract states once that the refusal listed first on an action's refuses line answers; this page's sixth Final Critique had made the cure one specification at a time. What each action answers on every call is unchanged.
 

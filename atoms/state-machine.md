@@ -111,7 +111,7 @@ Deleted: State 14. Execution Contract Database 3 owns it.
 
 ```
 Capability requirement 1: The deployment MUST supply now at the seam.
-Capability requirement 5: The deployment MUST supply the workflow records PER Execution Contract Database 1 through 4 and Execution Contract Refusal 1.
+Capability requirement 5: The deployment MUST supply the workflow records PER Execution Contract Database 1 through 4, Execution Contract Database 6, Execution Contract Read 4, Execution Contract Refusal 1 and Execution Contract Conformance 9.
 Deleted: Capability requirement 2. Execution Contract Logic confinement 7 owns it.
 Deleted: Capability requirement 3. Execution Contract Logic confinement 7 owns it.
 Deleted: Capability requirement 4. Execution Contract Logic confinement 7 owns it.
@@ -236,13 +236,11 @@ Term matched transition: the one declared transition whose from state is the cur
 
 Term filter axes: transition id | sequence number | from state | to state | action | actor reference | firing instant — the seven axes [History] accepts, and no others.
 
-Term admitted instantiate: an [Instantiate] call that passes every precondition and whose database write commits.
+Term admitted instantiate: an [Instantiate] call the action admits (Execution Contract Read 4).
 
-Term admitted fire: a [Fire] call that passes every precondition and whose database writes commit.
+Term admitted fire: a [Fire] call the action admits (Execution Contract Read 4).
 
 Term admitted history: a [History] call whose instance id names a workflow and whose every filter axis and filter value the guards admit.
-
-NOTE: watch the admitted effect (Operation 4 through 8, Operation 21 through 30, Invariant 5.2).
 
 | # | Condition | [Fire] answers |
 |---|---|---|
@@ -313,8 +311,6 @@ NOTE: open 2026-10-21-a — the table answers a blank actor reference or an out-
   Invariant 10.2: The atom MUST NOT remove a history entry from a workflow.
   Deleted: Invariant 10.3. Execution Contract Database 1 owns it.
   ```
-
-NOTE: watch the composed erasure (Invariant 10.1, Invariant 10.2).
 
 ### The declaration
 
@@ -419,7 +415,7 @@ Check 8.1: An auditor MUST find transition id, sequence number, from state, to s
 Check 8.2: An auditor MUST find EVERY recorded actor reference non-blank (Invariant 9.1).
 ```
 
-NOTE: EVERY check names the rule the check tests. Which composing patterns a deployment wired in is the deployment's own declaration, not a stored field (External check 4).
+NOTE: EVERY check names the rule the check tests.
 
 ### External checks
 
@@ -427,8 +423,7 @@ NOTE: EVERY check names the rule the check tests. Which composing patterns a dep
 External check 1: A deployment needing a guard's condition confirmed MUST read the composing pattern that evaluates the guard (Invariant 8.2).
 External check 2: A deployment needing a workflow's history entry count matched against the workflow's admitted fire count MUST capture the fire answers (Invariant 5.2).
 External check 3: A deployment needing an actor reference bound to an actor MUST read the composing Actor Identity attestation (Non-goal 11).
-External check 4: An auditor MUST identify from the deployment's own declaration which composing patterns the deployment wired in (Composition note 1).
-NOTE: watch the wiring declaration (External check 4).
+Deleted: External check 4. Execution Contract Conformance 9 owns it.
 ```
 
 ## Non-goals
@@ -902,5 +897,7 @@ Directional changes only — the turns a future reader must know the pattern too
 - **2026-10-21 — Which refusal answers is the Execution Contract's.** *Chose:* each refuses line kept as the page wrote it, already in the order its pairs gave — [Instantiate] invalid-declaration ahead of invalid-request; [Fire] invalid-request on a blank instance id or action, then not-known, terminal, invalid-transition and guard-not-satisfied, the table's rows 1 through 5; [History] not-known ahead of invalid-query; storage-failure last, answering only at the write — and the order cited from the Execution Contract (Capability requirement 5, Execution Contract Refusal 1); the pairs that only stated it deleted to Refusal 1: Operation 1 (invalid-request only on a well-formed declaration), Operation 12 (not-known only for an instance id that is not blank), Operation 14 (terminal only for an instance id naming a workflow), Operation 16 (invalid-transition only off a terminal state), Operation 18 (guard-not-satisfied only where a declared transition matches), Operation 34 (storage-failure behind every precondition) and Operation 46 (invalid-query only for an instance id naming a workflow); rules 177 to 170. The table's row 6, an actor or instant fault answered only once the gate clears, stood in no rule and no fixed line can hold invalid-request in both rows, so it is routed as open line 2026-10-21-a. *Over:* the page stating for itself which of an action's refusals answers when several apply. *Because:* the maintainer ruled on 2026-10-21 that the Execution Contract states once that the refusal listed first on an action's refuses line answers.
 
 - **2026-10-22 — A guarded fire lands only on a true assertion, an admitted call is one whose writes commit, and a composed retention may purge what the atom never removes.** *Chose:* Operation 17 refusing a guarded fire whose guard satisfied is not true, with Term guard satisfied declaring true | false and Invariant 8.1 reading the same; the admitted instantiate and admitted fire written as a call that passes every precondition and whose database writes commit; [Instantiate] taking the optional subject reference State 2 and Term string input name, which Operation 56 records; and State 12 and State 13 deleted to Invariant 10.1, Invariant 10.2 and Execution Contract Database 4, the page read as Final Critique 4's text read it: the atom keeps every workflow and history entry, and time-bounded retention is a composing Retention Window's. *Over:* Operation 17 refusing only an absent assertion beside the term entries' true; admitted terms that stopped at the guards and took in a call the database refused; a subject reference no action took; and the 2026-10-20 entry's reading that State 6, State 7, State 12, State 13, Invariant 10.1 and Invariant 10.2 bar a purge another specification declares. *Because:* Final Critique 5 found the four, and the corpus already reads so: Medication Order, Credential, Provisional Commitment, Party Identity, Invitation and Provenance write their admitted calls in that form, and Selective Disclosure, Party Identity, Provisional Commitment, Observation, Capacity Constraint Enforcement and Message Preference cured the composed erasure the same way. Smaller fixes rode with them: State 1 carries the instantiation instant Operation 20 reads, and State 15 and State 16 the instantiating actor reference and guard satisfied; Declaration 18 refuses a terminal state outside states; External check 4 asks the deployment for the patterns it wired in (Composition note 1); Check 5.3 cites Invariant 5.1; the Workflow Id entry no longer names a consumer the page lacks; [History]'s query is routed as open line 2026-10-22-a; rules 170 to 173. What each action answers and writes on a call it admits is unchanged, but that a guarded fire asserting false is refused and the subject reference is taken and recorded.
+
+- **2026-10-22 — An admitted call, a composed purge and the wiring are the Execution Contract's.** *Chose:* the admitted instantiate and the admitted fire citing Execution Contract Read 4 for what an action admits, in place of the commit clause this page's fifth Final Critique wrote into each, so Operation 38, Operation 47 and Invariant 1.2, which name [Current] and [Read Declaration], hold under Read 4 for the calls those actions admit, as every other effect rule does; Invariant 10.1 and Invariant 10.2 read by Execution Contract Database 6, so the atom removes no workflow and no history entry and a purge a composing Retention Window declares is answered by that pattern's records; External check 4, the auditor reading which composing patterns a deployment wired in from the deployment's own declaration, deleted to Execution Contract Conformance 9, and the checks NOTE's sentence restating it removed; the three labels cited on Capability requirement 5; rules 173 to 172. *Over:* the page stating for itself which calls its effect rules reach, that its no-removal rules bind the atom alone, and that the wiring is an external check. *Because:* the maintainer ruled on 2026-10-22 that five repeated cures are each stated once, the admitted effect, the composed erasure and the wiring declaration among them; this page's fifth Final Critique had made all three one specification at a time. What each action does and answers is unchanged.
 
 NOTE: End of State Machine.

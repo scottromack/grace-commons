@@ -81,7 +81,7 @@ Term revocation instant: the instant the grant was withdrawn — a [Revocation I
 
 ```
 Capability requirement 1: The deployment MUST supply now at the seam.
-Capability requirement 4: The deployment MUST supply the grant records PER Execution Contract Database 1 through 4, Execution Contract Read 1 through 3 and Execution Contract Refusal 1.
+Capability requirement 4: The deployment MUST supply the grant records PER Execution Contract Database 1 through 4, Execution Contract Read 1 through 3, Execution Contract Refusal 1 and Execution Contract Conformance 9.
 Deleted: Capability requirement 2. Execution Contract Logic confinement 7 owns it.
 Deleted: Capability requirement 3. Execution Contract Logic confinement 7 owns it.
 Deleted: Clock semantics 1. Execution Contract Logic confinement 7 owns it.
@@ -113,7 +113,7 @@ Operation 2: [Grant] MUST stand the grant in active.
 Operation 3: [Grant] MUST answer grant id.
 Operation 4: IF subject reference is empty THEN [Grant] MUST answer invalid-request.
 Operation 5: IF action scope is empty THEN [Grant] MUST answer invalid-request.
-Operation 6: [Grant] MUST NOT refuse a call on the ground that an active grant already covers the pair.
+Operation 6: [Grant] MUST NOT refuse a pair an active grant already covers.
 Operation 7: IF the database refuses the write THEN [Grant] MUST answer storage-failure.
 Deleted: Operation 8. Execution Contract Database 1 owns it.
 Operation 9: IF no grant EXISTS for the grant id THEN [Revoke] MUST answer not-known.
@@ -141,8 +141,6 @@ Deleted: Operation 30. Execution Contract Read 1 owns it.
 Deleted: Operation 31. Execution Contract Read 1 owns it: after the read, every refusal rule of [Grant] answers invalid-request.
 Deleted: Operation 32. Execution Contract Refusal 1 owns it.
 ```
-
-NOTE: watch the refusal ban (Operation 6).
 
 Term pair: one subject reference with one action scope — what [Check] matches over.
 
@@ -270,7 +268,7 @@ Check 3.2: An auditor MUST find no permitted answer for which no matching active
 Check 3.3: An auditor MUST find permitted for a pair an active grant matches (Invariant 7.1).
 Check 4.1: An auditor MUST find no grant whose status moved out of revoked (Invariant 2.2, Operation 10).
 Check 5.1: An auditor MUST find the grant set never shrinking across two readings (Invariant 10.1, Invariant 10.2).
-Deleted: Check 6.1. External check 5 owns it.
+Deleted: Check 6.1. Execution Contract Conformance 9 owns it.
 ```
 
 ### External checks
@@ -279,12 +277,11 @@ Deleted: Check 6.1. External check 5 owns it.
 External check 1: An auditor MUST read who issued a grant from the composing Actor Identity attestations (Non-goal 9).
 External check 2: An auditor MUST read whether an access was attempted from the composing Event Log records (Non-goal 11).
 External check 3: An auditor MUST read a departing subject's full revocation from the composing pattern's deprovisioning records (Deprovisioning 2 through 5).
-External check 5: An auditor MUST identify from the deployment's own declaration which composing patterns the deployment wired in (Composition note 1).
-NOTE: watch the wiring declaration (External check 5).
+Deleted: External check 5. Execution Contract Conformance 9 owns it.
 Deleted: External check 4. Execution Contract Database 2 owns it.
 ```
 
-NOTE: EVERY check names the rule the check tests. The grant records answer *who could do what, and since when*; who authorized it, who tried, and whether a leaver's access was fully removed are the composing patterns' records, and which composing patterns a deployment wired in is the deployment's own declaration.
+NOTE: EVERY check names the rule the check tests. The grant records answer *who could do what, and since when*; who authorized it, who tried, and whether a leaver's access was fully removed are the composing patterns' records.
 
 ## Non-goals
 
@@ -623,5 +620,7 @@ Directional changes only — the turns a future reader must know the pattern too
 - **2026-10-21 — A failed read answers as the Execution Contract says.** *Chose:* the failed read cited from the Execution Contract (Capability requirement 4, Execution Contract Read 1 through 3) and the four rules that restated it deleted to it: the atom-wide state-unavailable (Operation 30) to Read 1; [Check]'s and [Read]'s state-unavailable on a failed read alone (Operation 19, Operation 29) to Read 2 beside the rules that close each action's answers; and the grant refusal order (Operation 31), whose rules after the read all answer invalid-request, to Read 1; the read's condition off the rules it held to an answered read (Operation 16, Operation 18, Operation 26), the read off the revoke refusal order, Term database read deleted, and state-unavailable off every signature; rules 109 to 105. *Over:* the page stating for itself what every action answers when the grant records cannot be read. *Because:* the maintainer ruled on 2026-10-21 that the Execution Contract states the failed read once; this page's fifth Final Critique had made the cure the contract's Read family is written from. What [Check] answers on an answered read is unchanged.
 
 - **2026-10-21 — Which refusal answers is the Execution Contract's.** *Chose:* [Revoke]'s refuses line kept as the page wrote it, already in the order the revoke refusal order gave — not-known, not-active, then storage-failure, which answers only at the write — and the order cited from the Execution Contract (Capability requirement 4, Execution Contract Refusal 1); Operation 32, which evaluated the revoke refusal order, deleted to Refusal 1, and Term revoke refusal order deleted with it; rules 105 to 104. *Over:* the page stating for itself which of [Revoke]'s refusals answers when both apply. *Because:* the maintainer ruled on 2026-10-21 that the Execution Contract states once that the refusal listed first on an action's refuses line answers; this page's fifth Final Critique had made the cure one specification at a time. What each action answers on every call is unchanged.
+
+- **2026-10-22 — The wiring is read outside the records, and a ban on refusing names its ground, as the Execution Contract says.** *Chose:* External check 5, the auditor reading which composing patterns a deployment wired in from the deployment's own declaration, deleted to Execution Contract Conformance 9, with Check 6.1's tombstone, which named it, now naming the contract, the checks NOTE's clause restating it removed, and the label cited on Capability requirement 4; Operation 6's ground clause retired, the rule written again as the page first had it, *[Grant] MUST NOT refuse a pair an active grant already covers*, which Execution Contract Refusal 1's second sentence reads as naming the ground, so a blank reference still answers invalid-request; rules 104 to 103. *Over:* the page stating for itself that the wiring is an external check, and Operation 6 carrying the ground clause its fifth Final Critique wrote. *Because:* the maintainer ruled on 2026-10-22 that five repeated cures are each stated once, the wiring declaration and the refusal ban among them; this page's fifth Final Critique had made both cures one specification at a time. What each action does and answers is unchanged.
 
 NOTE: End of Permissions.

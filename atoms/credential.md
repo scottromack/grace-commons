@@ -148,7 +148,7 @@ Capability requirement 33: The deployment MUST route EVERY call naming one pair 
 Capability requirement 34: The deployment MUST supply id material naming no credential of the database instance.
 Capability requirement 35: The deployment MUST NOT supply the same id material to two calls.
 Capability requirement 36: The deployment MUST route EVERY call naming a credential id to the database instance that assigned the credential id.
-Capability requirement 37: The deployment MUST supply the credential records PER Execution Contract Database 1 through 4, Execution Contract Read 1 through 3 and Execution Contract Refusal 1.
+Capability requirement 37: The deployment MUST supply the credential records PER Execution Contract Database 1 through 4, Execution Contract Read 1 through 4 and Execution Contract Refusal 1.
 Capability requirement 38: The deployment MUST NOT supply blank id material.
 Capability requirement 39: The credential id assigned from the id material MUST NOT EXCEED the length bound.
 ```
@@ -299,11 +299,11 @@ Term filter: principal reference, credential type, credential id, OR any combina
 
 Term terminal field: rotation instant | successor credential id | revocation instant | revoked by reference | revocation reason — every field a transitioning write records.
 
-Term admitted register: a [Register] call that passes every precondition and whose database write commits.
+Term admitted register: a [Register] call the action admits (Execution Contract Read 4).
 
-Term admitted rotate: a [Rotate] call that passes every precondition and whose database writes commit.
+Term admitted rotate: a [Rotate] call the action admits (Execution Contract Read 4).
 
-Term admitted revoke: a [Revoke] call that passes every precondition and whose database write commits.
+Term admitted revoke: a [Revoke] call the action admits (Execution Contract Read 4).
 
 ### Invariants
 
@@ -988,5 +988,7 @@ Directional changes only — the turns a future reader must know the pattern too
 - **2026-10-21 — A failed read answers as the Execution Contract says.** *Chose:* the failed read cited from the Execution Contract (Capability requirement 37, Execution Contract Read 1 through 3) and the two rules that restated it deleted to it: the atom-wide state-unavailable (Operation 74) to Read 1, and [Read]'s state-unavailable on a failed read alone (Operation 55) to Read 2 beside Operation 51; the read's condition off the rules and terms it held to an answered read (Operation 18, Concurrency 5, Term proceeding verify), and Term admitted read, which held only that condition, deleted, so its rules and checks name [Read] (Operation 51, Operation 52, Operation 69, Operation 73, Invariant 12.2, Check 2.3, Check 5.3, Check 5.4); the read off the register, rotate and revoke refusal orders, Term database read deleted, state-unavailable off every signature and off the Intent; rules 250 to 248. *Over:* the page stating for itself what every action answers when the credential records cannot be read. *Because:* the maintainer ruled on 2026-10-21 that the Execution Contract states the failed read once; this page's thirteenth Final Critique had made one of the cures the contract's Read family is written from, and Read 3 keeps what it said of [Verify]: a failed read is no failed verification. What each action answers on an answered read is unchanged.
 
 - **2026-10-21 — Which refusal answers is the Execution Contract's.** *Chose:* each writing action's refuses line kept as the page wrote it, already in the order its refusal order gave — [Register] invalid-request, duplicate-active-credential; [Rotate] not-known, not-active, invalid-request; [Revoke] not-known, already-terminal, invalid-request; storage-failure last on each, answering only at the write — and the order cited from the Execution Contract (Capability requirement 37, Execution Contract Refusal 1); the rules that only stated it deleted to Refusal 1: Operation 75, Operation 76 and Operation 77, which evaluated the three refusal orders, with Term register refusal order, Term rotate refusal order and Term revoke refusal order, and the pairs Operation 7 (duplicate-active-credential only once every well-formedness check passes), Operation 30 (a standing rejection only for a credential id naming a credential), Operation 34 (invalid-request only once every standing check passes) and Operation 46 (storage-failure behind every precondition), with Term standing check, Term standing rejection and Term well-formedness check, which only those pairs read; rules 248 to 241. *Over:* the page stating for itself which of an action's refusals answers when several apply. *Because:* the maintainer ruled on 2026-10-21 that the Execution Contract states once that the refusal listed first on an action's refuses line answers; this page's thirteenth Final Critique had made the cure one specification at a time. What each action answers on every call is unchanged.
+
+- **2026-10-22 — An admitted call and a ban's ground are the Execution Contract's.** *Chose:* the three admitted terms (register, rotate, revoke) citing Execution Contract Read 4 for what an action admits, in place of the commit clause each carried, and Read 4 cited on Capability requirement 37; Non-goal 37 kept as written and read by Execution Contract Refusal 1's second sentence, which the page already cites, so the ban names its ground, a rotate to the prior credential's material, and keeps [Rotate] from no refusal its line declares, an unknown or inactive credential and a blank input still answering theirs; the rule count stays at 241. *Over:* the page stating for itself which calls its effect rules reach; Non-goal 37 read alone, keeping [Rotate] from every refusal on such a call. *Because:* the maintainer ruled on 2026-10-22 that five repeated cures are each stated once, the admitted effect and the refusal ban among them; the 12:03Z escalation named Non-goal 37 among the refusal ban's uncured sites. What each action does and answers is unchanged.
 
 NOTE: End of Credential.

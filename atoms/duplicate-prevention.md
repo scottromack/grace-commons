@@ -65,7 +65,7 @@ Term under guard: an identity in the recorded set whose elapsed term is less tha
 
 ```
 Capability requirement 1: The deployment MUST supply now at the seam.
-Capability requirement 2: The deployment MUST supply the database PER Execution Contract Database 1 through 4 and Execution Contract Read 1 through 3.
+Capability requirement 2: The deployment MUST supply the database PER Execution Contract Database 1 through 4, Execution Contract Read 1 through 4 and Execution Contract Refusal 1.
 ```
 
 ### Operations
@@ -83,7 +83,7 @@ check(identity)
 Operation 1: A landed record MUST place an identity that is not under guard under guard.
 Operation 2: A landed record MUST stamp the recording instant of an identity that is not under guard from the injected now.
 Operation 3: A landed record MUST answer ok.
-Operation 4: [Record] MUST NOT refuse a call on the ground that the identity is under guard.
+Operation 4: [Record] MUST NOT refuse an identity under guard.
 Operation 5: [Check] MUST answer EXACTLY ONE OF seen, not-seen.
 Operation 6: [Check] MUST answer seen for an identity under guard.
 Operation 7: [Check] MUST answer not-seen for an identity that is not under guard.
@@ -96,11 +96,7 @@ Deleted: Operation 13. Execution Contract Read 1 owns it.
 Operation 14: IF the database refuses the write THEN [Record] MUST answer storage-failure.
 ```
 
-NOTE: watch the admitted effect (Operation 1 through 3, Invariant 2.3).
-
-NOTE: watch the refusal ban (Operation 4).
-
-Term landed record: a [Record] call whose write, where the call makes one, the database commits.
+Term landed record: a [Record] call the action admits (Execution Contract Read 4).
 
 The case space, and the rule that owns each case:
 
@@ -421,6 +417,8 @@ open:
 ## Decisions
 
 Directional changes only — the turns a future reader must know the pattern took, and why. Everything smaller lives in the commit that made it: `git log -- atoms/duplicate-prevention.md`; the rounds and the migration that got it here are in [its history](./duplicate-prevention.hist.md).
+
+- **2026-10-22 — An admitted call and a ban's ground are the Execution Contract's.** *Chose:* Term landed record citing Execution Contract Read 4 for what [Record] admits, in place of the commit clause this page's fifth Final Critique wrote, so Operation 1 through 3 and Invariant 2.3 hold for the calls [Record] admits, a write the database refuses answering storage-failure and changing nothing; Operation 4's ground clause retired, the rule written as *[Record] MUST NOT refuse an identity under guard*, which Execution Contract Refusal 1's second sentence reads as naming the ground, so a refused write still answers storage-failure; Read 4 and Refusal 1 cited on Capability requirement 2; the rule count stays at 50. *Over:* the page stating for itself which calls its effect rules reach, and Operation 4 carrying the ground clause its fifth Final Critique wrote. *Because:* the maintainer ruled on 2026-10-22 that five repeated cures are each stated once, the admitted effect and the refusal ban among them; this page's fifth Final Critique had made both cures one specification at a time. What each action does and answers is unchanged.
 
 - **2026-10-21 — A failed read answers as the Execution Contract says.** *Chose:* the failed read cited from the Execution Contract (Capability requirement 2, Execution Contract Read 1 through 3) and the rule that restated it, the atom-wide state-unavailable (Operation 13), deleted to Read 1; state-unavailable off [Check]'s answers (Operation 5, Check 3.1), the read's condition off the rules and the term it held to an answered read (Operation 6, Operation 7, Term landed record), Term database read deleted, and state-unavailable off both signatures and the case table; rules 51 to 50. *Over:* the page stating for itself what every action answers when the recorded set cannot be read. *Because:* the maintainer ruled on 2026-10-21 that the Execution Contract states the failed read once; this page's fifth Final Critique had made one of the cures the contract's Read family is written from. The response to a state-unavailable answer stays the containing pattern's (Operation 12): proceeding as not seen is fail-open, as seen fail-closed, and the atom decides neither.
 

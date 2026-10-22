@@ -298,7 +298,7 @@ Term boundary window: the interval the read latency bound and the clock offset a
 External check 1: An auditor needing create-time isolation confirmed MUST read the deployment's own transaction configuration (Invariant 3.1).
 External check 2: An auditor needing a fanout grouped MUST read a composed Event Log (Composition state 2).
 External check 3: An auditor needing the boundary window computed MUST read the deployment's disclosed bounds (Capability requirement 6, Capability requirement 7).
-External check 4: An auditor needing the composing patterns named MUST read the deployment's own declaration (Composition note 1).
+Deleted: External check 4. Execution Contract Conformance 9 owns it.
 External check 5: An auditor needing a notification record verified MUST read Notification's own acceptance (Composes 7).
 ```
 
@@ -383,7 +383,7 @@ Term record verbs: call, answer, take, read, write, record, validate, compare, n
 Term actors: the composition; the constituents; the host; the transition; a deployment; an auditor; a caller; a subscriber; a notification record; a subscription record.
 
 
-Term cited: Execution Contract Conformance 8 — recursive conformance and the inherited guarantee. The section titled Composition state in `execution-contract.md` — the no-stored-state classification and the record-coordination rule. The section titled Logic Confinement Principle in `execution-contract.md` — the seam and the transition. pending_for: Notification.
+Term cited: Execution Contract Conformance 8 — recursive conformance and the inherited guarantee. Execution Contract Conformance 9 — the wiring read from the deployment's own declaration. The section titled Composition state in `execution-contract.md` — the no-stored-state classification and the record-coordination rule. The section titled Logic Confinement Principle in `execution-contract.md` — the seam and the transition. pending_for: Notification.
 
 #### Fanout
 
@@ -508,6 +508,8 @@ open: none
 ## Decisions
 
 Directional changes only — the turns a future reader must know the pattern took, and why. Everything smaller lives in the commit that made it: `git log -- compositions/notification-fanout.md`; the migration, the council read's collapse, the two readings of the gate's open lines and the regeneration that got it here are in [its history](./notification-fanout.hist.md).
+
+- **2026-10-22 — The wiring is read outside the records, as the Execution Contract says.** *Chose:* External check 4, the auditor reading the composing patterns from the deployment's own declaration, deleted to Execution Contract Conformance 9, which the cited line now names beside Conformance 8; rules 109 to 108. *Over:* the page stating for itself that the wiring is an external check. *Because:* the maintainer ruled on 2026-10-22 that five repeated cures are each stated once, the wiring declaration among them; twelve atoms had moved the same check to their external checks one specification at a time, and this page carried it in the same place under other words. What each action does and answers is unchanged.
 
 - **2026-08-28 — A retry of an indeterminate create is at-least-once, and the page says so.** *Chose:* withdraw the `pending_for` reconciliation and the retry-side Duplicate Prevention claim; scope Invariant 4 to observed records; name Idempotent Reservation over `Notification.create` as the deployment's route to at-most-once. *Over:* keeping a reconciliation that read Pending-only ids and matched on payload. *Because:* `pending_for` cannot see a record the delivery layer has moved on, a payload is not a fanout identity, and a guard first consulted at retry never saw the original create — the reconciliation promised what no read of the bare atoms can deliver.
 - **2026-08-28 — firing instant is a lower bound on the instant the set was fixed.** *Chose:* the seam reading the invocation began under, with check 1's window widened by a disclosed `max_read_latency`. *Over:* a stamp "taken immediately before the query" described as the instant the set was fixed. *Because:* the store fixes the set when it executes the read, an instant the composition never observes; the earlier wording named a moment nothing on the page can see and let check 1 convict a subscribe that landed inside the read's latency.

@@ -99,7 +99,7 @@ def reserved_capitals(grammar_path=None):
     shaped: set[str] = set()
     for line in re.findall(r"^PROVISIONAL: (.*)$", g, re.M):
         shaped.update(re.findall(r"\b[A-Z]{2,}\b", line))
-    watch = re.search(r"^During the corpus rewrite.*$", g, re.M)
+    watch = re.search(r"^#### Watch list.*?(?=^---$)", g, re.M | re.S)
     if watch:
         shaped.update(re.findall(r"`([A-Z]{2,})`", watch.group(0)))
     return reserved, shaped - reserved
@@ -307,12 +307,11 @@ DEMONSTRATIVE = re.compile(r"\b(these|those)\b")
 COMPARATOR = re.compile(r"\b(past|longer than|shorter than|more than|fewer than|greater than|less than|short of|at most|at least|no longer|no earlier|no later|advance past)\b", re.I)
 # A modal outside the admitted three carries no obligation the parser can read.
 SOFT_MODAL = re.compile(r"\b(can|could|would|should|might)\b")
-# An action that rejects and also carries an unconditional effect rule says both
-# things about a refused call: the prose spec relied on case-order ("if we got
-# here, the guards passed") and Hard invariant 15 and Hard invariant 16 forbid
-# inferring it. The cure is a declared admitted-call term as the effect's
-# subject (council read 26).
-ACTION_RULE = re.compile(r"^(?:IF .*? THEN )?\[([A-Z][A-Za-z ]+)\] (MUST(?: NOT)?|MAY) (\w+)")
+# W-unconditional-effect, an action that rejects and also carries an unconditional
+# effect rule, advised from council read 26 to the repeats sweep (2026-10-22):
+# Execution Contract Read 4 now holds a rule saying what an action does to the
+# calls the action admits, so the effect no longer binds a refused call and the
+# advisory has nothing left to find.
 # The condition operators are the whole set a condition may carry; an English
 # comparison in an IF is a condition the normalizer cannot read (council read 26).
 COND_ENGLISH = re.compile(r"^IF .*?\b(is not|is no|are not|does not|do not|is a|are a|is negative|is positive|is zero)\b.*? THEN ")
@@ -405,7 +404,7 @@ def example_call(lines: list[str], k: int) -> bool:
     return ":" in args or '"' in args
 ADVISORY = {"W-or-word", "W-watch-word", "W-term-unused", "W-lowercase-after",
             "W-two-obligations", "W-demonstrative", "W-comparator", "W-modal",
-            "W-unconditional-effect", "W-condition-operator", "W-duplicate-proposition",
+            "W-condition-operator", "W-duplicate-proposition",
             "D-decl-modal", "D-decl-selfref", "D-decl-unresolved",
             "K-check-bare", "S-action-unused", "E-not-exclusive"}
 # D-tombstone-form gates: a tombstone in any other shape reserves nothing
@@ -1087,25 +1086,6 @@ def scan(path: Path) -> list[Finding]:
                     add(k, "D-decl-unresolved",
                         f"`Term {name}` computes over `{ident}`, which this spec declares nowhere "
                         f"(Closed vocabulary 4)")
-
-    # an action that rejects and also carries an unconditional effect rule
-    rejects, effects = {}, {}
-    for r in rules:
-        am = ACTION_RULE.match(r.text)
-        if not am:
-            continue
-        act, modal, verb = am.group(1), am.group(2), am.group(3)
-        if verb == "answer" and r.text.startswith("IF"):
-            rejects[act] = rejects.get(act, 0) + 1
-        elif modal == "MUST" and verb != "answer" and not r.text.startswith("IF") \
-                and " ONLY IF " not in r.text:
-            effects.setdefault(act, []).append(r)
-    for act, rs in effects.items():
-        if rejects.get(act):
-            for r in rs:
-                add(r.line, "W-unconditional-effect",
-                    f"{r.label}: [{act}] rejects elsewhere, so this effect also binds a "
-                    f"refused call — condition it on an admitted-call term (Hard invariant 16)")
 
     # one proposition owned twice inside one spec (Authority 3, widened v0.38).
     # A token-set prefilter keeps this linear enough for a 2800-rule corpus:

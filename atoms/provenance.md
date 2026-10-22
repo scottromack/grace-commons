@@ -107,7 +107,7 @@ Deleted: State 19. Execution Contract Database 3 owns it.
 
 ```
 Capability requirement 1: The deployment MUST supply now at the seam.
-Capability requirement 5: The deployment MUST supply the chain records PER Execution Contract Database 1 through 4, Execution Contract Read 1 through 3 and Execution Contract Refusal 1.
+Capability requirement 5: The deployment MUST supply the chain records PER Execution Contract Database 1 through 4, Execution Contract Read 1 through 4, Execution Contract Refusal 1 and Execution Contract Conformance 9.
 Deleted: Capability requirement 2. Execution Contract Logic confinement 7 owns it.
 Deleted: Capability requirement 3. Execution Contract Logic confinement 7 owns it.
 Deleted: Capability requirement 4. Execution Contract Logic confinement 7 owns it.
@@ -180,7 +180,7 @@ Operation 35: An admitted disclose MUST NOT change the artifact's custody.
 Operation 36: An appending action MUST take the entry's sequence number from next sequence number.
 Operation 37: An appending action MUST raise next sequence number by one.
 Deleted: Operation 38. Execution Contract Database 1 owns it.
-Operation 39: An admitted entry action MUST answer the entry id.
+Operation 39: An appending action MUST answer the entry id.
 Operation 40: An appending action MUST stamp recording instant from the injected now.
 Operation 41: IF the database refuses the write THEN an appending action MUST answer storage-failure.
 Operation 42: A refused action MUST leave the chain as the call found the chain.
@@ -203,8 +203,6 @@ Operation 58: An ordering rule MUST NOT rest on recording instant.
 ```
 
 NOTE: open 2026-10-22-a — [Read]'s query is declared nowhere: which filters it takes, whether a range holds its two ends, how two filters combine, and the operator for a sequence range's ends (Operation 47 through 49).
-
-NOTE: watch the category reach (Operation 39).
 
 Term now: the wall-time reading the host takes at the seam and hands to the transition, as the section titled Logic Confinement Principle in `execution-contract.md` declares it; never read inside the transition, never supplied by the business caller.
 
@@ -236,19 +234,15 @@ Term appending action: [Originate] | [Transfer] | [Transform] | [Disclose] | [Ar
 
 Term chain-state rejection: the archived answer a writer gives against a closed chain, and the already-archived answer [Archive] gives.
 
-Term admitted originate: an [Originate] call that passes every precondition and whose database writes commit.
+Term admitted originate: an [Originate] call the action admits (Execution Contract Read 4).
 
-Term admitted transfer: a [Transfer] call that passes every precondition and whose database writes commit.
+Term admitted transfer: a [Transfer] call the action admits (Execution Contract Read 4).
 
-Term admitted transform: a [Transform] call that passes every precondition and whose database writes commit.
+Term admitted transform: a [Transform] call the action admits (Execution Contract Read 4).
 
-Term admitted disclose: a [Disclose] call that passes every precondition and whose database writes commit.
+Term admitted disclose: a [Disclose] call the action admits (Execution Contract Read 4).
 
-Term admitted archive: an [Archive] call that passes every precondition and whose database writes commit.
-
-Term admitted entry action: an admitted transfer, an admitted transform, an admitted disclose OR an admitted archive.
-
-NOTE: watch the admitted effect (Operation 5 through 9, Operation 19 through 21, Operation 28 through 35, Operation 39).
+Term admitted archive: an [Archive] call the action admits (Execution Contract Read 4).
 
 The case space, and the rule that owns each case:
 
@@ -395,13 +389,12 @@ Check 7.3: An auditor MUST find no entry id repeated within a chain (Identity 16
 Check 7.4: An auditor MUST find no chain id repeated within a database instance (Identity 15).
 ```
 
-NOTE: EVERY check names the rule the check tests. Which composing patterns a deployment wired in is the deployment's own declaration, not a stored field (External check 1).
+NOTE: EVERY check names the rule the check tests.
 
 ### External checks
 
 ```
-External check 1: An auditor MUST identify from the deployment's own declaration which composing patterns the deployment wired in (Composition note 1).
-NOTE: watch the wiring declaration (External check 1).
+Deleted: External check 1. Execution Contract Conformance 9 owns it.
 ```
 
 ## Non-goals
@@ -546,7 +539,7 @@ Term cadences: empty.
 
 Term qualifiers: migrated — rewritten in GRACE lang v0.39 (2026-09-12).
 
-Term terms: chain, entry, chain id, artifact reference, entry id, custodian reference, database instance, seam, transition, now, business caller, genesis type, genesis types, event type, event types, chain state, current custodian, sequence number, next sequence number, recording instant, from custodian reference, to custodian reference, transformation descriptor, recipient reference, metadata, addressed action, custodian-guarded action, appending action, chain-state rejection, admitted originate, admitted transfer, admitted transform, admitted disclose, admitted archive, admitted entry action, string input, reference, blank, maximum length.
+Term terms: chain, entry, chain id, artifact reference, entry id, custodian reference, database instance, seam, transition, now, business caller, genesis type, genesis types, event type, event types, chain state, current custodian, sequence number, next sequence number, recording instant, from custodian reference, to custodian reference, transformation descriptor, recipient reference, metadata, addressed action, custodian-guarded action, appending action, chain-state rejection, admitted originate, admitted transfer, admitted transform, admitted disclose, admitted archive, string input, reference, blank, maximum length.
 
 #### Originate
 
@@ -893,5 +886,7 @@ Directional changes only — the turns a future reader must know the pattern too
 - **2026-10-21 — Which refusal answers is the Execution Contract's.** *Chose:* each refuses line kept as the page wrote it, already in the page's order — [Originate] invalid-ref ahead of invalid-genesis-type; an addressed action not-known ahead of its chain-state rejection, the chain's state ahead of the attribution guard, invalid-ref ahead of not-current-custodian; storage-failure last, answering only at the write — and the order cited from the Execution Contract (Capability requirement 5, Execution Contract Refusal 1); the pairs that only stated it deleted to Refusal 1: Operation 4 (invalid-genesis-type only once both references are supplied), Operation 16 (a chain-state rejection only for a chain id naming a chain), Operation 27 (not-current-custodian only once every supplied reference is present) and Operation 45 (storage-failure behind every precondition); rules 176 to 172. *Over:* the page stating for itself which of an action's refusals answers when several apply. *Because:* the maintainer ruled on 2026-10-21 that the Execution Contract states once that the refusal listed first on an action's refuses line answers. What each action answers on every call is unchanged.
 
 - **2026-10-22 — An action answers what its signature names, and an admitted call is one whose writes commit.** *Chose:* Operation 39 held to an admitted entry action — an admitted transfer, transform, disclose or archive — so [Originate] answers the chain id alone and the four answer the entry id only on a call that lands; the five admitted terms written as a call that passes every precondition and whose database writes commit, so no effect rule reads a call a length bound or the database refuses. *Over:* Operation 39 obliging every appending action, [Originate] among them, to answer the entry id beside Operation 9 and [Originate]'s signature, and every refused call beside its refusal; and admitted terms that stopped at a reference being supplied. *Because:* Final Critique 8 found the first, and the corpus's admitted calls (Medication Order, Credential, Provisional Commitment, Party Identity, Invitation) already read as the second does. Smaller fixes rode with them: Operation 52 deleted to Execution Contract Read 1, with Read 1 through 3 cited on Capability requirement 5; [Read]'s query marked optional, as every example calls it; Correction 4 names the transformed entry a correction rides on, as Final Critique 7's text did; External check 1 asks the deployment for the patterns it wired in (Composition note 1); the storage-failure example cites Refusal 1 for the tombstoned Operation 45; acronyms glossed at first use; an example opens a second custody episode with the received genesis type; rules 172 to 172. What each action answers and writes on a call it admits is unchanged; [Originate] answers what its signature always named.
+
+- **2026-10-22 — An admitted call, an action set's reach and the wiring are stated once.** *Chose:* the five admitted terms citing Execution Contract Read 4 for what an action admits, in place of the commit clause this page's eighth Final Critique wrote into each, so the appending-action rules Operation 36, Operation 37 and Operation 40 and Concurrency 2 hold under Read 4 for the calls each action admits, as every other effect rule does; Operation 39 written again as the page first had it, *An appending action MUST answer the entry id*, and Term admitted entry action, the helper term the eighth Final Critique wrote, deleted, since under GRACE-lang Closed vocabulary 29 the rule binds [Transfer], [Transform], [Disclose] and [Archive], whose signatures answer the entry id, and not [Originate], whose signature answers the chain id; External check 1, the auditor reading which composing patterns a deployment wired in from the deployment's own declaration, deleted to Execution Contract Conformance 9, and the checks NOTE's sentence restating it removed; Read 4 and Conformance 9 cited on Capability requirement 5; rules 172 to 171. *Over:* the page stating for itself which calls its effect rules reach, which appending actions answer the entry id, and that the wiring is an external check. *Because:* the maintainer ruled on 2026-10-22 that five repeated cures are each stated once, the admitted effect, the category reach and the wiring declaration among them; this page's eighth Final Critique had made all three one specification at a time. What each action does and answers is unchanged.
 
 NOTE: End of Provenance.

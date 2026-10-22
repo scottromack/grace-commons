@@ -82,7 +82,7 @@ Term creation instant: the instant the notification was recorded — a [Creation
 
 ```
 Capability requirement 1: The deployment MUST supply now at the seam.
-Capability requirement 4: The deployment MUST supply the notification records PER Execution Contract Database 1 through 4, Execution Contract Read 1 through 3 and Execution Contract Refusal 1.
+Capability requirement 4: The deployment MUST supply the notification records PER Execution Contract Database 1 through 4, Execution Contract Read 1 through 3, Execution Contract Refusal 1 and Execution Contract Conformance 9.
 Capability requirement 5: The deployment MUST supply the string cap.
 Deleted: Capability requirement 2. Execution Contract Logic confinement 7 owns it.
 Deleted: Capability requirement 3. Execution Contract Logic confinement 7 owns it.
@@ -281,7 +281,7 @@ Check 3.1: An auditor MUST find no notification carrying two terminal stamps (In
 Check 3.2: An auditor MUST find no pending notification carrying a terminal stamp (Invariant 3.2).
 Check 4.1: An auditor MUST find EVERY terminal stamp matching the notification's status (Invariant 4.2, Invariant 4.4, Invariant 4.6).
 Check 5.1: An auditor MUST find the notification set never shrinking across two readings (Invariant 9.1, Invariant 9.2).
-Deleted: Check 6.1. External check 5 owns it.
+Deleted: Check 6.1. Execution Contract Conformance 9 owns it.
 ```
 
 ### External checks
@@ -291,11 +291,10 @@ External check 1: An auditor MUST read the deployment's fail-versus-expire polic
 External check 2: An auditor MUST read a payload's retention from the composing Retention Window records (Non-goal 13).
 External check 3: An auditor MUST read who created a notification from the composing Actor Identity attestations (Non-goal 11).
 External check 4: An auditor MUST read the transport's own outcome from the deployment's delivery layer (Non-goal 5).
-External check 5: An auditor MUST identify from the deployment's own declaration which composing patterns the deployment wired in (Composition note 1).
-NOTE: watch the wiring declaration (External check 5).
+Deleted: External check 5. Execution Contract Conformance 9 owns it.
 ```
 
-NOTE: EVERY check names the rule the check tests. External check 1 is the one that makes cross-deployment audit possible: without the declared policy, one shop's failure instant and another's lapse instant record the same operational event and no reader can tell. Which composing patterns a deployment wired in is likewise the deployment's own declaration, not a stored field (External check 5).
+NOTE: EVERY check names the rule the check tests. External check 1 is the one that makes cross-deployment audit possible: without the declared policy, one shop's failure instant and another's lapse instant record the same operational event and no reader can tell.
 
 ## Non-goals
 
@@ -669,5 +668,7 @@ Directional changes only — the turns a future reader must know the pattern too
 - **2026-10-21 — A failed read answers as the Execution Contract says.** *Chose:* the failed read cited from the Execution Contract (Capability requirement 4, Execution Contract Read 1 through 3) and the two rules that restated it deleted to it: the atom-wide state-unavailable (Operation 27) to Read 1, and the create refusal order (Operation 28), whose rules after the read both answer invalid-request, to Read 1; the read's condition off the read answers it held to an answered read (Operation 17 through 19, Invariant 9.3), the read off the terminal refusal order, Term database read deleted, and state-unavailable off every signature and the case table; rules 131 to 129. *Over:* the page stating for itself what every action answers when the notification records cannot be read. *Because:* the maintainer ruled on 2026-10-21 that the Execution Contract states the failed read once; this page's fifth Final Critique had made one of the cures the contract's Read family is written from. What each action answers on an answered read is unchanged, and Invariant 9, which Notification Fanout cites, holds on every answered read as it did.
 
 - **2026-10-21 — Which refusal answers is the Execution Contract's.** *Chose:* each terminal transition's refuses line kept as the page wrote it, already in the order the terminal refusal order gave — not-known, not-pending, then storage-failure, which answers only at the write — and the order cited from the Execution Contract (Capability requirement 4, Execution Contract Refusal 1); Operation 29, which evaluated the terminal refusal order, deleted to Refusal 1, and Term terminal refusal order deleted with it; rules 129 to 128. *Over:* the page stating for itself which of a terminal transition's refusals answers when both apply. *Because:* the maintainer ruled on 2026-10-21 that the Execution Contract states once that the refusal listed first on an action's refuses line answers; this page's fifth Final Critique had made the cure one specification at a time. What each action answers on every call is unchanged.
+
+- **2026-10-22 — The wiring is read outside the records, as the Execution Contract says.** *Chose:* External check 5, the auditor reading which composing patterns a deployment wired in from the deployment's own declaration, deleted to Execution Contract Conformance 9, with Check 6.1's tombstone, which named it, now naming the contract, the checks NOTE's sentence restating it removed, and the label cited on Capability requirement 4; rules 128 to 127. *Over:* the page stating for itself that the wiring is an external check. *Because:* the maintainer ruled on 2026-10-22 that five repeated cures are each stated once, the wiring declaration among them; this page's fifth Final Critique had made the cure one specification at a time. What each action does and answers is unchanged, and Invariant 9, which Notification Fanout cites, stands as it was.
 
 NOTE: End of Notification.

@@ -91,7 +91,7 @@ Term attestation field: attestation id | action reference | actor reference | pr
 
 ```
 Capability requirement 1: The deployment MUST supply now at the seam.
-Capability requirement 2: The deployment MUST supply the attestation records PER Execution Contract Database 1, Execution Contract Database 3, Execution Contract Database 4, Execution Contract Read 1 through 3 and Execution Contract Refusal 1.
+Capability requirement 2: The deployment MUST supply the attestation records PER Execution Contract Database 1, Execution Contract Database 3, Execution Contract Database 4, Execution Contract Database 6, Execution Contract Read 1 through 3, Execution Contract Refusal 1 and Execution Contract Conformance 9.
 Capability requirement 3: The deployment MUST supply the registry answer at the seam.
 Capability requirement 4: The deployment MUST supply the cryptographic material at the seam.
 ```
@@ -228,8 +228,6 @@ NOTE: open 2026-10-20-f — [Read] answers every attestation with no bound and n
   Deleted: Invariant 9.3. Execution Contract Database 1 owns it.
   ```
 
-NOTE: watch the composed erasure (Invariant 9.1).
-
 NOTE: open 2026-10-20-c — the host's state is declared nowhere, and what Invariant 6.2 adds to Invariant 6.3 is not stated.
 
 Action binding and actor binding give the *attribution* property — *who authorized this?* answered structurally. Immutability and self-containment give *survivability* — an attestation stays verifiable independent of the system that recorded it. The non-repudiation contract names the bar the atom is built to clear, and its condition.
@@ -292,7 +290,7 @@ Check 3.1: An auditor MUST confirm that the proof holds against the recorded act
 Check 3.2: An auditor MUST confirm that the proof holds against the recorded actor reference and against no other actor (Invariant 3.1, Invariant 3.2).
 Check 4.1: An auditor MUST read verified, failed-verification and not-known as three distinct answers (Operation 14).
 Check 4.2: An auditor MUST read proof-invalid, actor-unknown-in-registry and registry-unavailable as three distinct reasons (Operation 16, Operation 17, Operation 18).
-Deleted: Check 5.1. External check 1 owns it.
+Deleted: Check 5.1. Execution Contract Conformance 9 owns it.
 ```
 
 NOTE: EVERY check names the rule the check tests. The bar is the regulator's question — *can you prove who authorized this action?* — never the developer's intuition.
@@ -300,8 +298,7 @@ NOTE: EVERY check names the rule the check tests. The bar is the regulator's que
 ### External checks
 
 ```
-External check 1: An auditor MUST identify from the deployment's own declaration which composing patterns the deployment wired in (Composition note 1).
-NOTE: watch the wiring declaration (External check 1).
+Deleted: External check 1. Execution Contract Conformance 9 owns it.
 ```
 
 ## Non-goals
@@ -641,6 +638,8 @@ open:
 ## Decisions
 
 Directional changes only — the turns a future reader must know the pattern took, and why. Everything smaller lives in the commit that made it: `git log -- atoms/actor-identity.md`; the rounds and the migration that got it here are in [its history](./actor-identity.hist.md).
+
+- **2026-10-22 — The wiring and a composed purge are the Execution Contract's.** *Chose:* External check 1, the auditor reading which composing patterns a deployment wired in from the deployment's own declaration, deleted to Execution Contract Conformance 9, with Check 5.1's tombstone, which named it, now naming the contract; Invariant 9.1 read by Execution Contract Database 6, so the atom deletes no attestation and a purge a composing Retention Window declares is answered by that pattern's records; both labels cited on Capability requirement 2; rules 96 to 95. *Over:* the page stating for itself that the wiring is read outside the records and that its no-removal rule binds the atom alone. *Because:* the maintainer ruled on 2026-10-22 that five repeated cures are each stated once, the wiring declaration and the composed erasure among them; this page's fifth and sixth Final Critiques had made those two cures one specification at a time. What each action does and answers is unchanged.
 
 - **2026-10-22 — A composed retention may purge an attestation, the binding holds under the material the proof was made under, and one registry answer decides a verification.** *Chose:* Invariant 9.2, the attestation set never shrinking, written with no actor, deleted to Invariant 9.1 and Execution Contract Database 4, with Non-goal 16 sending a retention bound to Retention Window, so the atom deletes no attestation and a composing pattern's retention may purge one; Invariant 2.1 and Invariant 3.1 held to the current material at attestation instant; Operation 21 consulting the public material the registry answer at the seam carries (Capability requirement 3); the cryptographic material supplied under Capability requirement 4, Operation 23 deleted to it, as the seam's other supplies are; rules 97 to 96. *Over:* a count that could never fall beside the composing pattern that owns retention; binding invariants that a rotation the registry keeps no history of, lawful under Registry view 1 and 2, breaks; a registry read beside the answer the seam supplies, which can decide one call under two registry views. *Because:* Final Critique 6 found each a divergence between conforming builds or a lawful state breaking an invariant, and the prose this page was migrated from said the first two: cascading deletion under a retention policy is the composing pattern's responsibility, and verification fails after a rotation unless the registry keeps historical material.
 

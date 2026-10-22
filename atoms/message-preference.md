@@ -84,8 +84,6 @@ State 19: The atom MUST NOT hold a topic subscription.
 State 20: The atom MUST NOT hold a legal permission.
 ```
 
-NOTE: watch the composed erasure (State 17).
-
 Term status: active | suspended | deleted — in force, paused, or retired and terminal.
 
 Term channel preferences: the optional map from a declared channel name to an opaque per-channel preference value — a [Channel Preferences].
@@ -114,7 +112,7 @@ Deleted: Capability requirement 2. Execution Contract Logic confinement 7 owns i
 Deleted: Capability requirement 3. Execution Contract Logic confinement 7 owns it.
 Deleted: Capability requirement 4. Execution Contract Logic confinement 7 owns it.
 Deleted: Capability requirement 5. State 11 and State 12 own it: one injected now stamps both instants of a supersession.
-Capability requirement 6: The deployment MUST supply the preference records PER Execution Contract Database 1 through 4 and Execution Contract Refusal 1.
+Capability requirement 6: The deployment MUST supply the preference records PER Execution Contract Database 1 through 4, Execution Contract Database 6, Execution Contract Refusal 1 and Execution Contract Conformance 9.
 Capability requirement 7: The deployment MUST disclose the fanout-on-no-record policy.
 Capability requirement 8: The deployment MUST supply the declared channel set at the seam.
 Deleted: Clock semantics 1. Execution Contract Logic confinement 7 owns it.
@@ -396,17 +394,16 @@ Deleted: Check 4.2. State 11 and State 12 own it: one injected now stamps both i
 Deleted: Check 4.3. Capability requirement 5 owns it; a deployment obligation is not an auditor's check.
 Check 5.1: An auditor MUST find EVERY channel preferences key in the preference record's own declared channels (Invariant 5.1, Invariant 10.1).
 Check 5.2: An auditor MUST mark an absent declared channels a conformance failure (Invariant 10.1, Invariant 10.2).
-Deleted: Check 6.1. External check 1 owns it.
+Deleted: Check 6.1. Execution Contract Conformance 9 owns it.
 Deleted: Check 6.2. Capability requirement 7 owns it; a deployment obligation is not an auditor's check.
 ```
 
-NOTE: EVERY check names the rule the check tests. Which composing patterns a deployment wired in is the deployment's own declaration, not a stored field (External check 1).
+NOTE: EVERY check names the rule the check tests.
 
 ### External checks
 
 ```
-External check 1: An auditor MUST identify from the deployment's own declaration which composing patterns the deployment wired in (Composition note 1).
-NOTE: watch the wiring declaration (External check 1).
+Deleted: External check 1. Execution Contract Conformance 9 owns it.
 ```
 
 ## Non-goals
@@ -852,5 +849,7 @@ Directional changes only — the turns a future reader must know the pattern too
 - **2026-10-21 — Which refusal answers is the Execution Contract's.** *Chose:* [Set]'s refuses line kept as the page wrote it, already in the page's order — invalid-request, undeclared-channel, then storage-failure, which answers only at the write — and the order cited from the Execution Contract (Capability requirement 6, Execution Contract Refusal 1); Operation 9 (undeclared-channel only once the principal reference and a preference field are supplied), which only stated it, deleted to Refusal 1; rules 196 to 195. *Over:* the page stating for itself which of [Set]'s refusals answers when both apply. *Because:* the maintainer ruled on 2026-10-21 that the Execution Contract states once that the refusal listed first on an action's refuses line answers. What each action answers on every call is unchanged.
 
 - **2026-10-22 — A composed retention may dispose of what the atom never removes, no check asks for what no record carries, and no rule moves a status no call moves.** *Chose:* Invariant 9.2, the count that never falls, deleted to State 17 and Execution Contract Database 4, with Check 1.1 citing Invariant 9.1 alone; Check 6.1 deleted to External check 1, the auditor reading which composing patterns a deployment wired in from the deployment's own declaration, and Check 6.2 to Capability requirement 7, the deployment disclosing the fanout-on-no-record policy; Invariant 2.1 and Invariant 2.2, each read as obliging a status to move, deleted to State 1 and Invariant 2.3. *Over:* a count no lawful disposal may lower beside a non-goal sending lawful disposal to Retention Window; two conformance checks no preference record can answer, under an acceptance an external auditor clears from the stored fields; and two rules that a record left suspended by a principal who never returns breaks. *Because:* Final Critique 9 found all three, and the corpus held each cure: the composed erasure's, made on five atoms; the wiring declaration's, made on nine; and the method's 2026-10-08 rule, under which a rule a lawful state breaks is deleted to a rule that already holds that state. Smaller fixes rode with them: the supersession gap bound, with Temporal property 4, Capability requirement 5 and Check 4.1 and 4.2, deleted to State 11 and State 12, since one injected now stamps both instants of a supersession and the atomicity the bound once checked is Execution Contract Database 1's; Temporal property 5 deleted to Execution Contract Logic confinement 7; Composition note 13 to Channel set evolution 1, the declared channel set's governance the deployment's, as Final Critique 8's text had it; Invariant 5.2 and Invariant 10.3 to Check 5.1; Capability requirement 8, the deployment supplying the declared channel set at the seam; rules 195 to 185. What each action answers and writes on every call is unchanged.
+
+- **2026-10-22 — The wiring and a composed retention's disposal are the Execution Contract's.** *Chose:* External check 1, the auditor reading which composing patterns a deployment wired in from the deployment's own declaration, deleted to Execution Contract Conformance 9, with Check 6.1's tombstone, which named it, now naming the contract and the checks NOTE's sentence restating it removed; State 17 read by Execution Contract Database 6, so the atom removes no preference record and a disposal a composing retention pattern declares is answered by that pattern's records; both labels cited on Capability requirement 6; rules 185 to 184. *Over:* the page stating for itself that the wiring is an external check and that its no-removal rule binds the atom alone. *Because:* the maintainer ruled on 2026-10-22 that five repeated cures are each stated once, the wiring declaration and the composed erasure among them; this page's ninth Final Critique had made both cures one specification at a time. What each action does and answers is unchanged.
 
 NOTE: End of Message Preference.

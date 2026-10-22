@@ -89,7 +89,7 @@ Term release instant: the instant the obligation was documented as ended — a [
 
 ```
 Capability requirement 1: The deployment MUST supply now at the seam.
-Capability requirement 4: The deployment MUST supply the hold records PER Execution Contract Database 1 through 4.
+Capability requirement 4: The deployment MUST supply the hold records PER Execution Contract Database 1 through 4, Execution Contract Refusal 1 and Execution Contract Conformance 9.
 Deleted: Capability requirement 2. Execution Contract Logic confinement 7 owns it.
 Deleted: Capability requirement 3. Execution Contract Logic confinement 7 owns it.
 Deleted: Clock semantics 1. Execution Contract Logic confinement 7 owns it.
@@ -317,7 +317,7 @@ Check 5.2: An auditor MUST find a released hold's fields unchanged by that refus
 Check 6.1: An auditor MUST find the hold set never shrinking across two readings (Invariant 8.2).
 Check 6.2: An auditor MUST find EVERY placement field unchanged across two readings (Invariant 1.1).
 Check 6.3: An auditor MUST read an active-to-released move between two readings as conformant (Invariant 2.1).
-Deleted: Check 7.1. External check 5 owns it.
+Deleted: Check 7.1. Execution Contract Conformance 9 owns it.
 ```
 
 ### External checks
@@ -327,11 +327,10 @@ External check 1: An auditor MUST read whether a held record was purged from the
 External check 2: An auditor MUST read who was permitted to place a hold from the composing Permissions records (Non-goal 7).
 External check 3: An auditor MUST read a hold record's integrity from the composing Tamper Evidence seals (Non-goal 11).
 External check 4: An auditor MUST read the matter a case reference names from the deployment's case-management system (Non-goal 9).
-External check 5: An auditor MUST identify from the deployment's own declaration which composing patterns the deployment wired in (Composition note 1).
-NOTE: watch the wiring declaration (External check 5).
+Deleted: External check 5. Execution Contract Conformance 9 owns it.
 ```
 
-NOTE: EVERY check names the rule the check tests. The hold records answer *what was preserved, by whom, and for how long*; whether the preservation was honoured at the purge surface is the composing pattern's record, because this atom deliberately enforces nothing (Non-goal 1), and which composing patterns a deployment wired in is the deployment's own declaration.
+NOTE: EVERY check names the rule the check tests. The hold records answer *what was preserved, by whom, and for how long*; whether the preservation was honoured at the purge surface is the composing pattern's record, because this atom deliberately enforces nothing (Non-goal 1).
 
 ## Non-goals
 
@@ -686,6 +685,8 @@ open:
 ## Decisions
 
 Directional changes only — the turns a future reader must know the pattern took, and why. Everything smaller lives in the commit that made it: `git log -- atoms/legal-hold.md`; the migration that got it here is in [its history](./legal-hold.hist.md).
+
+- **2026-10-22 — The wiring is read outside the records, and a ban on refusing names its ground, as the Execution Contract says.** *Chose:* External check 5, the auditor reading which composing patterns a deployment wired in from the deployment's own declaration, deleted to Execution Contract Conformance 9, with Check 7.1's tombstone, which named it, now naming the contract; Non-goal 4 kept as written and read by Execution Contract Refusal 1's second sentence, so the ban names its ground, a hold over a destroyed record, and keeps [Place] from no refusal its line declares, a blank or malformed input still answering invalid-request; both labels cited on Capability requirement 4; rules 132 to 131. *Over:* the page stating for itself that the wiring is an external check; Non-goal 4 read alone, keeping [Place] from every refusal on a hold over a destroyed record. *Because:* the maintainer ruled on 2026-10-22 that five repeated cures are each stated once, the wiring declaration and the refusal ban among them; this page's fifth Final Critique had made the first cure one specification at a time, and the 12:03Z escalation named Non-goal 4 among the refusal ban's uncured sites. What each action does and answers is unchanged.
 
 - **2026-10-21 — [Release]'s refusal order stays the page's own.** *Chose:* Operation 42 and Term release refusal order kept, and only their watch flag removed: [Release] answers invalid-request on a blank hold id ahead of not-known, and on a blank attribution or a time fault after not-known and already-released, so invalid-request holds two places in the order and no fixed refuses line can carry both; the Execution Contract reads a refusal Operation 42 keeps [Release] from answering as not applying to the call (Execution Contract Refusal 1). [Place] and [Read] each answer one refusal before the write, so the page cites nothing new; rules 132 unchanged. *Over:* deleting the order to the contract's rule, which would answer invalid-request ahead of not-known on every call. *Because:* the maintainer ruled on 2026-10-21 that the Execution Contract states once that the refusal listed first on an action's refuses line answers, and that a page keeps its own rule only where its order depends on a condition a fixed line cannot express.
 

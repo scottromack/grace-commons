@@ -87,7 +87,7 @@ Term cancellation instant: the instant the subscription was withdrawn — a [Can
 
 ```
 Capability requirement 1: The deployment MUST supply now at the seam.
-Capability requirement 5: The deployment MUST supply the subscription records PER Execution Contract Database 1 through 4.
+Capability requirement 5: The deployment MUST supply the subscription records PER Execution Contract Database 1 through 4 and Execution Contract Conformance 9.
 Deleted: Capability requirement 2. Execution Contract Logic confinement 7 owns it.
 Deleted: Capability requirement 3. Execution Contract Logic confinement 7 owns it.
 Deleted: Capability requirement 4. Execution Contract Logic confinement 7 owns it.
@@ -253,16 +253,15 @@ Check 2.1: An auditor MUST find no two active subscriptions sharing a pair (Inva
 Check 3.1: An auditor MUST find cancellation instant present on EVERY cancelled subscription (State 3).
 Check 3.2: An auditor MUST find no cancelled subscription in a [Subscribers For] answer (Invariant 3.2).
 Check 4.1: An auditor MUST find a fresh subscription id on EVERY re-subscription of a pair (Invariant 4.1, Invariant 5.1).
-Deleted: Check 5.1. External check 1 owns it.
+Deleted: Check 5.1. Execution Contract Conformance 9 owns it.
 ```
 
-NOTE: EVERY check names the rule the check tests. Which composing patterns a deployment wired in is the deployment's own declaration, not a stored field (External check 1).
+NOTE: EVERY check names the rule the check tests.
 
 ### External checks
 
 ```
-External check 1: An auditor MUST identify from the deployment's own declaration which composing patterns the deployment wired in (Composition note 1).
-NOTE: watch the wiring declaration (External check 1).
+Deleted: External check 1. Execution Contract Conformance 9 owns it.
 ```
 
 ## Non-goals
@@ -556,5 +555,7 @@ Directional changes only — the turns a future reader must know the pattern too
 - **2026-10-20 — The store's guarantees cited, not restated.** *Chose:* the subscription store supplied under Execution Contract Store 1 through 4 (Capability requirement 5), and the seven rules that restated them tombstoned to their owner — Cancel atomicity 1, a cancel changing status and cancellation instant together, to Store 1; Cancel atomicity 2 and 3, no crash inside [Cancel] leaving a cancelled status without its cancellation instant or a cancellation instant on an active subscription, to Store 1 and Store 3; Pair race 1, the pair check and the write one transition, to Store 1 and Store 2; Pair race 2, no two active subscriptions for one pair under concurrent calls, and Pair race 3, a store's uniqueness constraint discharging Pair race 1, to Store 2; Operation 15, a refused write leaving the store as the call found the store, to Store 3; rules 99 to 93. *Over:* the atom restating, for its own store, what every deployment's store guarantees. *Because:* the maintainer ruled 2026-10-12 that the corpus takes a store's specification, never the store, and `execution-contract.md` writes it once as the Store contract. At most one active subscription per pair stays the atom's own (Invariant 6.1, Operation 6), as do the atom deleting no subscription (State 7) and the recorded fields that never change (Invariant 1.1). The subscription ids a composing pattern recorded are that pattern's records, not this atom's, so their durability stays the composing pattern's to own (Lost ledger 2, Composition note 3a) and no Store rule the atom cites reaches them. A scope's audience at a past instant is read from the subscription and cancellation instants each subscription carries, and [Subscribers For] answers unordered, so the atom cites neither History 1 nor Order 1. What the atom does for its domain is unchanged.
 
 - **2026-10-21 — The wiring declaration is an external check.** *Chose:* Check 5.1 deleted to External check 1, the auditor reading which composing patterns a deployment wired in from the deployment's own declaration. *Over:* a conformance check no subscription record can answer, under an acceptance an external auditor clears from the subscription records' stored fields. *Because:* Final Critique 5 found that a conforming deployment fails it, and the corpus held the cure: the external check to which seven atoms had moved the same check. Smaller fixes rode with it, none changing what a rule means: Invariant 9.1 compares the two instants with PRECEDES (GRACE-lang Earned vocabulary 18), and the term entries no longer call the order best-effort, since it rests on a clock whose readings never go backward, which the deployment owns (Execution Contract Logic confinement 7, to which Clock semantics 1 through 3 were deleted); Identity 3 is deleted to Execution Contract Logic confinement 3, which it restated. What each action does on a call it admits is unchanged.
+
+- **2026-10-22 — The wiring is read outside the records, as the Execution Contract says.** *Chose:* External check 1, the auditor reading which composing patterns a deployment wired in from the deployment's own declaration, deleted to Execution Contract Conformance 9, with Check 5.1's tombstone, which named it, now naming the contract, the checks NOTE's sentence restating it removed, and the label cited on Capability requirement 5; rules 92 to 91. *Over:* the page stating for itself that the wiring is an external check. *Because:* the maintainer ruled on 2026-10-22 that five repeated cures are each stated once, the wiring declaration among them; this page's fifth Final Critique had made the cure one specification at a time. What each action does and answers is unchanged.
 
 NOTE: End of Subscription.

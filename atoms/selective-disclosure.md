@@ -96,7 +96,7 @@ State 10: The atom MUST NOT record a receipt instant.
 
 ```
 Capability requirement 1: The deployment MUST supply now at the seam.
-Capability requirement 5: The deployment MUST supply the disclosure records PER Execution Contract Database 1, Execution Contract Database 3, Execution Contract Database 4 and Execution Contract Refusal 1.
+Capability requirement 5: The deployment MUST supply the disclosure records PER Execution Contract Database 1, Execution Contract Database 3, Execution Contract Database 4, Execution Contract Database 6 and Execution Contract Refusal 1.
 Deleted: Capability requirement 2. Execution Contract Logic confinement 7 owns it.
 Deleted: Capability requirement 3. Execution Contract Logic confinement 7 owns it.
 Deleted: Capability requirement 4. Execution Contract Logic confinement 7 owns it.
@@ -274,7 +274,7 @@ Check 2.1: An auditor MUST find disclosure id, subject reference, recipient, sco
 Check 2.2: An auditor MUST find EVERY disclosure record's subject reference, recipient, scope and authority reference non-blank (Invariant 3.2).
 Check 2.3: An auditor MUST find EVERY disclosure record whose authority type IS IN the authority types (Invariant 2.1).
 Check 3.1: An auditor MUST find a re-read disclosure record's fields unchanged from the prior read (Invariant 1.1).
-Deleted: Check 3.2. External check 5 owns it.
+Deleted: Check 3.2. Execution Contract Database 6 owns it.
 Check 4.1: An auditor MUST find [Record] answering unknown-authority-type for an authority type that IS NOT IN the authority types (Operation 9).
 Check 4.2: An auditor MUST find no disclosure record recorded by a refused [Record] (Operation 16).
 Check 5.1: An auditor MUST find a subject reference query answering EVERY disclosure record carrying the subject reference (Operation 27).
@@ -293,10 +293,8 @@ External check 1: A deployment needing a disclosure's authority legitimacy clear
 External check 2: A deployment needing Invariant 5.1 cleared MUST read the egress record beside the disclosure records.
 External check 3: A deployment needing a backdated disclosure instant detected MUST read the composing Event Log's receipt instant (State 10).
 Deleted: External check 4. Execution Contract Database 3 owns it.
-External check 5: A deployment needing Invariant 6.1 cleared MUST read the composing pattern's purge records beside two unfiltered reads of the disclosure records.
+Deleted: External check 5. Execution Contract Database 6 owns it.
 ```
-
-NOTE: watch the composed erasure (External check 5).
 
 ## Non-goals
 
@@ -587,5 +585,7 @@ Directional changes only — the turns a future reader must know the pattern too
 - **2026-10-21 — A composed retention may purge what the atom never removes; [Record]'s refusals answer in one stated order.** *Chose:* State 8 and State 9, which held the record count and every unfiltered read's records for good, tombstoned to the rules that hold what is true — the atom removes no record (Invariant 6.1), the database removes none but by an action a specification declares (Execution Contract Database 4), and an unfiltered read answers what the database holds (Operation 21); Check 3.2 moved to External check 5, which reads the composing pattern's purge records beside two reads; Check 6.2 tombstoned to Check 6.1, which tests the guard that keeps Invariant 4.1; and one record refusal order over [Record]'s guard refusals (Operation 35), with Operation 8 and Operation 15 kept as its pairs. *Over:* a record count that may never fall beside Non-goal 19, which sends a deployment needing a retention bound to Retention Window, whose purge destroys the record, so a conforming deployment broke State 8 and State 9 and failed Check 3.2 at its first purge; a check comparing each record with a creation instant no record carries; and pairwise ONLY IF rules, Operation 8 read alone forbidding what Operation 9 obliges on a call carrying a blank field and an unknown type. *Because:* Final Critique 6 found each two rules no build could both obey, or a check a conforming deployment fails or a violating one passes; Final Critique 5's text already put the purge with Retention Window (*when (if ever) they may be purged — is a composing Retention Window concept*), so the method's entry of 2026-10-08 tombstones the broken rules to the rules that hold the lawful states rather than qualifying them, and Approval Step's sixth round gave the refusal order its form. What the atom does for its domain is unchanged: it records and reads as it did, refuses the same calls with the same codes, and never removes a record.
 
 - **2026-10-21 — Which refusal answers is the Execution Contract's.** *Chose:* [Record]'s refuses line kept as the page wrote it, already in the order the record refusal order gave — invalid-request, unknown-authority-type, then storage-failure, which answers only at the write — and the order cited from the Execution Contract (Capability requirement 5, Execution Contract Refusal 1); the rules that only stated it deleted to Refusal 1: Operation 35, which evaluated the record refusal order, with Term record refusal order, and the pairs Operation 8 (unknown-authority-type only once every field-level precondition passes) and Operation 15 (storage-failure only once they pass and the authority type is known), with Term field-level precondition, which only those pairs read; rules 126 to 123. *Over:* the page stating for itself which of [Record]'s refusals answers when several apply. *Because:* the maintainer ruled on 2026-10-21 that the Execution Contract states once that the refusal listed first on an action's refuses line answers; this page's sixth Final Critique had made the cure one specification at a time. What each action answers on every call is unchanged.
+
+- **2026-10-22 — A composed purge is answered by the purging pattern's records, as the Execution Contract says.** *Chose:* External check 5, a composing pattern's purge records read beside two unfiltered reads of the disclosure records, deleted to Execution Contract Database 6, with Check 3.2's tombstone, which named it, now naming the contract, and the label cited on Capability requirement 5; the atom's own no-removal rules stand as written and bind its own actions; rules 123 to 122. *Over:* the page stating for itself that a purge another specification declares is answered outside the disclosure records. *Because:* the maintainer ruled on 2026-10-22 that five repeated cures are each stated once, the composed erasure among them; this page's sixth Final Critique had made the cure first, one specification at a time. What each action does and answers is unchanged.
 
 NOTE: End of Selective Disclosure.

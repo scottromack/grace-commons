@@ -108,7 +108,7 @@ Deleted: Capability requirement 4. Execution Contract Database 3 owns it.
 Deleted: Capability requirement 5. Execution Contract Database 1 owns it.
 Capability requirement 6: The deployment MUST canonicalize an opaque reference.
 Capability requirement 7: The deployment MUST declare the length bound.
-Capability requirement 10: The deployment MUST supply the party records PER Execution Contract Database 1 through 4, Execution Contract Order 1 and Execution Contract Refusal 1.
+Capability requirement 10: The deployment MUST supply the party records PER Execution Contract Database 1 through 4, Execution Contract Database 6, Execution Contract Order 1, Execution Contract Read 4 and Execution Contract Refusal 1.
 Deleted: Capability requirement 8. Execution Contract Logic confinement 7 owns it.
 Deleted: Capability requirement 9. Execution Contract Logic confinement 7 owns it.
 ```
@@ -227,15 +227,15 @@ Term insertion order: the order a database instance appended its records; author
 
 Term query axes: party id, state and a range over enrollment instant — every filter axis [Read] admits.
 
-Term admitted enroll: an [Enroll] call that passes every precondition and whose database write commits.
+Term admitted enroll: an [Enroll] call the action admits (Execution Contract Read 4).
 
-Term admitted verify: a [Verify] call that passes every precondition and whose database write commits.
+Term admitted verify: a [Verify] call the action admits (Execution Contract Read 4).
 
-Term admitted suspend: a [Suspend] call that passes every precondition and whose database write commits.
+Term admitted suspend: a [Suspend] call the action admits (Execution Contract Read 4).
 
-Term admitted reinstate: a [Reinstate] call that passes every precondition and whose database write commits.
+Term admitted reinstate: a [Reinstate] call the action admits (Execution Contract Read 4).
 
-Term admitted close: a [Close] call that passes every precondition and whose database write commits.
+Term admitted close: a [Close] call the action admits (Execution Contract Read 4).
 
 Term admitted read: a [Read] call whose every filter axis and filter value the guards admit.
 
@@ -348,9 +348,9 @@ Check 4.3: An auditor MUST find a reason on EVERY state change event a reasoned 
 Check 4.4: An auditor MUST find a party's state change log no shorter on a later read (Invariant 8.2).
 Check 5.1: An auditor MUST replay a party's state change log in insertion order from unverified to the party's state (Invariant 8.1, Ordering 3).
 Check 5.2: An auditor MUST reconstruct EVERY party's enrollment, verification history and state history from one read (State 1, State 2, State 3).
-Deleted: Check 6.1. External check 9 owns it.
-Deleted: Check 6.2. External check 10 owns it.
-Deleted: Check 6.3. External check 10 owns it.
+Deleted: Check 6.1. Execution Contract Database 6 owns it.
+Deleted: Check 6.2. Execution Contract Database 6 owns it.
+Deleted: Check 6.3. Execution Contract Database 6 owns it.
 Check 7.1: An auditor MUST find no party id on two parties (Identity 7).
 Check 7.2: An auditor MUST find no verification id on two verification events (Identity 8).
 Check 7.3: An auditor MUST find no state change id on two state change events (Identity 9).
@@ -370,12 +370,10 @@ External check 5: A deployment needing a recorded instant anchored to wall time 
 External check 6: A deployment needing an evidence reference resolved MUST read the composing pattern's document records (Identity 13, Identity 14).
 External check 7: A deployment needing a party's record retention bounded MUST read the composing Retention Window (Non-goal 13).
 External check 8: A deployment needing an answer observed MUST read the composing Event Log (Non-goal 19).
-External check 9: A deployment needing Non-goal 3 cleared MUST read the composing erasure coordination's scrub events beside two reads of the party records (Composition note 9).
-External check 10: A deployment needing Invariant 1.1 cleared MUST read the composing Retention Window's purge records beside two unfiltered reads of the party records (Non-goal 14).
+Deleted: External check 9. Execution Contract Database 6 owns it.
+Deleted: External check 10. Execution Contract Database 6 owns it.
 
 ```
-
-NOTE: watch the composed erasure (External check 9, External check 10).
 
 ---
 
@@ -457,17 +455,15 @@ String 3: The atom MUST NOT normalize a string input.
 String 4: The atom MUST NOT case-fold a string input.
 String 5: The atom MUST read a whitespace-only string input as blank.
 String 6: The atom MUST read an absent string input as blank.
-String 7: IF a string input EXCEEDS the length bound THEN [Enroll] MUST answer invalid-request.
-String 8: IF a string input EXCEEDS the length bound THEN a party action MUST answer invalid-request.
+String 7: IF a string input EXCEEDS the length bound THEN an action MUST answer invalid-request.
+Deleted: String 8. String 7 and GRACE-lang Closed vocabulary 29 own it.
 ```
 
 Term string input: a required string input, date of birth OR a filter value — every caller-supplied string this atom accepts.
 
 Term length bound: the maximum length the deployment declares for a string input.
 
-NOTE: watch host obligations — this atom refuses a string input over the length bound on [Enroll] and the party actions alone (String 7, String 8), [Read] meeting no length refusal, and obliges the deployment to declare the bound (Capability requirement 7), where [Duplicate Prevention](./duplicate-prevention.md) declares a cap and [Provenance](./provenance.md) obliges the deployment to set one; Final Critique 6 cured the bound's reach.
-
-NOTE: watch the category reach (String 7, String 8).
+NOTE: watch host obligations — this atom refuses a string input over the length bound on every action whose signature carries invalid-request (String 7, GRACE-lang Closed vocabulary 29), [Read] meeting no length refusal, and obliges the deployment to declare the bound (Capability requirement 7), where [Duplicate Prevention](./duplicate-prevention.md) declares a cap and [Provenance](./provenance.md) obliges the deployment to set one; Final Critique 6 cured the bound's reach.
 
 ---
 
@@ -965,5 +961,7 @@ Directional changes only — the turns a future reader must know the pattern too
 - **2026-10-21 — Which refusal answers is the Execution Contract's.** *Chose:* each refuses line kept as the page wrote it, already in the page's order — a party action answering not-known, then its state rejections, [Reinstate]'s not-suspended ahead of no-passed-verification-since-suspend, then invalid-request on a field fault, and storage-failure last, answering only at the write — and the order cited from the Execution Contract (Capability requirement 10, Execution Contract Refusal 1); the pairs that only stated it deleted to Refusal 1: Operation 17 (a state rejection only for a party id naming a party), Operation 19 (no-passed-verification-since-suspend only on a suspended party), Operation 20 (a field fault only once every state check passes) and Operation 40 (storage-failure behind every precondition), with Term state rejection, which only Operation 17 read; rules 175 to 171. Operation 12 stays the page's own: a blank party id answers invalid-request ahead of not-known, while every other field fault answers after the state checks, so invalid-request holds two places in the order and no fixed line can carry both; Refusal 1 reads a refusal Operation 12 keeps from a call as not applying to it. *Over:* the page stating for itself which of an action's refusals answers when several apply. *Because:* the maintainer ruled on 2026-10-21 that the Execution Contract states once that the refusal listed first on an action's refuses line answers. What each action answers on every call is unchanged.
 
 - **2026-10-21 — The length bound refuses on the writes alone; the scrub and the purge belong to composing patterns; a range's bounds are no forbidden input.** *Chose:* String 7 and String 8 refusing an over-long string input on [Enroll] and the party actions, and [Read] meeting no length refusal; Invariant 7.1 deleted to Non-goal 3, so the atom never changes an enrollment field and a composing erasure coordination scrubs the fields the custody fields leave; Invariant 1.3 deleted to Invariant 1.1 and Execution Contract Database 4, so the atom never removes a party record and a composed Retention Window destroys one only as its own page says; Check 6.1 through 6.3, which cannot tell either act from a violation from the party records alone, moved to External check 9 and External check 10; and Operation 59 deleted to the rules that stamp every recorded instant from now (Operation 6, Operation 24, Operation 34). *Over:* a length rule on every action, which [Read]'s signature cannot answer; an immutability with no actor and a party count that may never fall, which break at the first scrub and the first purge the page itself sends to composing patterns; and a rule against every caller-supplied instant, which forbids the range [Read] admits. *Because:* Final Critique 6 found each a divergence between conforming builds, two rules no build can both obey, or a check a conforming deployment fails, and the page's own earlier text held each cure: Final Critique 5 capped write inputs alone, held the enrollment fields immutable under the atom's action contract with the scrub a composing Erasure Coordination pattern's, kept party records permanent from the atom's perspective while Retention Window decides when destruction becomes permitted, and refused caller timestamps only for the instants the atom stamps, beside a timestamp range filter. What each action answers on a call the guards admit is unchanged, save that [Read] no longer measures a filter value against the length bound.
+
+- **2026-10-22 — An admitted call, a composed scrub or purge, and the reach of a length refusal are stated once.** *Chose:* the five admitted terms (enroll, verify, suspend, reinstate, close) citing Execution Contract Read 4 for what an action admits, in place of the commit clause each carried; External check 9 and External check 10, a composing erasure coordination's scrub events and a composing Retention Window's purge records read beside the party records, deleted to Execution Contract Database 6, with the tombstones of Check 6.1 through 6.3, which named them, now naming the contract; String 7 written again as the page first had it, an over-long string input answering invalid-request on an action, and String 8, the per-action split this page's sixth Final Critique wrote, deleted to String 7 and GRACE-lang Closed vocabulary 29, under which the rule binds [Enroll] and the four party actions, whose signatures carry invalid-request, and not [Read], whose signature carries invalid-query alone; Database 6 and Read 4 cited on Capability requirement 10; rules 168 to 165. *Over:* the page stating for itself which calls its effect rules reach, that a scrub or purge another specification declares is answered outside the party records, and which actions the length refusal reaches. *Because:* the maintainer ruled on 2026-10-22 that five repeated cures are each stated once, the admitted effect, the composed erasure and the category reach among them; this page's sixth Final Critique had made them one specification at a time. What each action does and answers is unchanged.
 
 NOTE: End of Party Identity.

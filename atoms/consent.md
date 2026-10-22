@@ -112,7 +112,7 @@ Deleted: Stored state 4. Execution Contract Database 2 owns it.
 
 ```
 Capability requirement 1: The deployment MUST supply now at the seam.
-Capability requirement 5: The deployment MUST supply the consent records PER Execution Contract Database 1 through 4 and Execution Contract Refusal 1.
+Capability requirement 5: The deployment MUST supply the consent records PER Execution Contract Database 1 through 4, Execution Contract Database 6 and Execution Contract Refusal 1.
 Deleted: Capability requirement 2. Execution Contract Logic confinement 7 owns it.
 Deleted: Capability requirement 3. Execution Contract Logic confinement 7 owns it.
 Deleted: Capability requirement 4. Execution Contract Logic confinement 7 owns it.
@@ -308,7 +308,7 @@ The case space, and the rule that owns each case:
 - **Invariant 8 — Consent record durability.**
   ```
   Invariant 8.1: The atom MUST NOT remove a consent record from the database.
-  Invariant 8.2: The consent record count MUST NOT fall.
+  Deleted: Invariant 8.2. Invariant 8.1 and Execution Contract Database 6 own it.
   Deleted: Invariant 8.3. Execution Contract Database 1 owns it.
   ```
 - **Invariant 9 — Revocation non-retroactivity.**
@@ -387,7 +387,7 @@ This atom's acceptance is provable: an external auditor clears it from the conse
 ### Conformance checks
 
 ```
-Check 1.1: An auditor MUST find EVERY issued consent id in the database through [Read] (Invariant 8.1, Invariant 8.2).
+Check 1.1: An auditor MUST find EVERY issued consent id in the database through [Read] (Invariant 8.1).
 Check 2.1: An auditor MUST find EVERY consent record's consent id, subject reference, purpose and granting actor non-blank (Invariant 7.1).
 Check 2.2: An auditor MUST find a grant instant on EVERY consent record (Invariant 7.2).
 Check 3.1: An auditor MUST find EVERY revoked consent record's revoking actor and revocation reason non-blank (Invariant 4.1, Invariant 4.2).
@@ -799,7 +799,6 @@ formal: not applicable — vote no 2026-06-03
 last gate: 2026-10-21 — Final Critique 6, the council's first round on the page and the first on its Store-contract rewrite (5842367), three fresh readers on free models (GRID Nemotron 3 Ultra, EOS MiniMax M3.1 Flash, Linus GLM-5.3 Flash), each handed only the round's reading set, three passes on one text (frozen at 3f053f9); the round rests on three counted passes — foundational count 6 after triage (10 reports: 8 standing, merged into 5; 1 sent down; 1 rejected; 1 refining report raised), all Kind A: the stored state was a cache no conforming build could write, so an answered record's state could not equal it and a state filter read two ways; a refused [Revoke] was obliged to leave a revoked or expired record in granted; a record withdrawn and elapsed at once was obliged to stand, and to answer, both revoked and expired; a repeated [Check] was said to answer alike across a [Revoke] whose instant the at time does not precede; Term later write counted the expiry instant, so the record a [Check] answers from was a later write that must not change its answer; and an omitted revocation instant or at time resolved from the call, blank, with now named only by an ONLY IF; 16 refining reports, 5 rhetorical reports; not clean; every foundational finding cured in place; 2026-06-23 — Final Critique 5, fresh reader — clean
 
 open:
-- 2026-10-06-a · refining · Non-goal 19; Invariant 8.1 · a retention bound is to be composed over a database the atom must never remove a record from → say who guarantees persistence; Resolve a Person's Data Rights now forbids the bound over its own Consent instance; reported by that composition's round of 2026-10-06
 - 2026-10-21-a · refining · State 13; State 14; Expiry 7 · State 13 and State 14 say what the atom will not do, the Non-goals' kind, and Expiry 7 obliges a composing pattern from the Expiry family → move each to the section that holds its kind
 - 2026-10-21-b · refining · Non-goal 20; Non-goal 21; Operation 27; State 7 · Non-goal 20 says the atom records no caller and Non-goal 21 sends attribution to Actor Identity, while [Grant] and [Revoke] record a granting and a revoking actor → say the recorded actors are caller-declared references, not the authenticated caller
 - 2026-10-21-c · refining · Operation 7; State 4; Identity 8 · Operation 7 permits recording a supplied expiry instant that State 4 obliges, and Identity 8 binds a sort order every byte string already has → one form each: the obligation alone, and the consent id's comparable form or no rule
@@ -810,6 +809,8 @@ open:
 ## Decisions
 
 Directional changes only — the turns a future reader must know the pattern took, and why. Everything smaller lives in the commit that made it: `git log -- atoms/consent.md`; the migrations that got it here are in [its history](./consent.hist.md).
+
+- **2026-10-22 — A composed retention may dispose of what the atom never removes.** *Chose:* Invariant 8.2, the consent record count that never falls, written with no actor, deleted to Invariant 8.1 and Execution Contract Database 6, so the atom removes no consent record and a purge a composing Retention Window declares (Non-goal 19) is answered by that pattern's records, with Check 1.1 citing Invariant 8.1 alone and Database 6 cited on Capability requirement 5; open line 2026-10-06-a, which asked who guarantees persistence beside a composed retention bound, closed as dissolved by the maintainer's 2026-10-22 ruling: Database 6 says the atom's no-removal rule binds the atom's own actions; rules 170 to 169. *Over:* a count that never falls beside a non-goal sending the retention bound to a composing pattern, which read alone forbids that pattern's purge. *Because:* the maintainer ruled on 2026-10-22 that five repeated cures are each stated once, the composed erasure among them; the 06:36Z escalation named this rule among the composed erasure's uncured sites, and Message Preference's ninth Final Critique had made the same cure on its twin. What each action does and answers is unchanged.
 
 - **2026-10-21 — Which refusal answers is the Execution Contract's.** *Chose:* each refuses line kept as the page wrote it, already in the page's order — [Revoke] answering invalid-request on a blank consent id ahead of not-known, then already-revoked or already-expired, with its attribution and instant faults held to a granted record; storage-failure last, answering only at the write — and the order cited from the Execution Contract (Capability requirement 5, Execution Contract Refusal 1); Operation 14 (a [Grant] storage-failure only once every grant guard passes) and Operation 17 (not-known only for a consent id that is not blank), which only stated the order, deleted to Refusal 1, and Term grant guard, which only Operation 14 read, deleted with it; rules 172 to 170. *Over:* the page stating for itself which of an action's refusals answers when several apply. *Because:* the maintainer ruled on 2026-10-21 that the Execution Contract states once that the refusal listed first on an action's refuses line answers. What each action answers on every call is unchanged.
 

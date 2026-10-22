@@ -59,13 +59,11 @@ State 2: EVERY event MUST carry event id, sequence number, recording instant and
 State 3: The log MUST carry log name.
 State 4: The log MUST carry next sequence number.
 State 5: A fresh log instance MUST begin next sequence number at one.
-State 6: IF [Append] answers event id THEN [Append] MUST raise next sequence number by one.
+State 6: [Append] MUST raise next sequence number by one.
 Deleted: State 7. Execution Contract Database 3 owns it.
 State 8: The atom MUST NOT offer a delete surface.
 State 9: The atom MUST NOT offer an edit surface.
 ```
-
-NOTE: watch the admitted effect (State 6).
 
 Term event: one recorded fact in the log — an [Event]; fixed in place once landed.
 
@@ -87,7 +85,7 @@ Term event field: event id | sequence number | recording instant | data.
 
 ```
 Capability requirement 1: The deployment MUST supply now at the seam.
-Capability requirement 2: The deployment MUST supply the database PER Execution Contract Database 1 through 4.
+Capability requirement 2: The deployment MUST supply the database PER Execution Contract Database 1 through 4 and Execution Contract Read 4.
 ```
 
 ### Operations
@@ -514,6 +512,8 @@ open:
 ## Decisions
 
 Directional changes only — the turns a future reader must know the pattern took, and why. Everything smaller lives in the commit that made it: `git log -- atoms/event-log.md`; the rounds and the migration that got it here are in [its history](./event-log.hist.md).
+
+- **2026-10-22 — An admitted call is the Execution Contract's.** *Chose:* State 6 written again as the page first had it, *[Append] MUST raise next sequence number by one*, its condition on the append answering an event id, which this page's fifth Final Critique wrote, retired, since Execution Contract Read 4 holds a rule saying what an action does to the calls the action admits, so a refused or failed append raises nothing; Read 4 cited on Capability requirement 2; the rule count stays at 83. *Over:* the page stating for itself that a refused append leaves the counter. *Because:* the maintainer ruled on 2026-10-22 that five repeated cures are each stated once, the admitted effect among them; this page's fifth Final Critique had made the cure first, one specification at a time. What each action does and answers is unchanged.
 
 - **2026-10-20 — A refused append leaves the counter, a query never reads the payload, and wall time promises no order.** *Chose:* next sequence number raised only by an append that answers event id (State 6), so a refused append consumes no sequence number and the gap rules go to Execution Contract Store 1 (Sequence gap 1 through 4, Check 2.4, Invariant 5.3, Check 3.5); a query of sequence number and wall-time ranges alone (Term query), so a selection on the payload is malformed (Operation 15); recording instant an annotation that can fall in append order, its promise under a non-decreasing clock withdrawn to the sequence number's authority (Invariant 7.1 to Invariant 7.2, Check 5.1 to Check 5.2, External check 3 to Execution Contract Logic confinement 7). *Over:* a gap the store's one transaction per action rules out; a payload predicate the atom may not evaluate (Non-goal 11); a clock guarantee the store does not give, since two appends it serializes can land in the order opposite to their clock readings (Execution Contract Store 2, Logic confinement 3). *Because:* Final Critique 5 found each a divergence between conforming builds or a conforming run breaking a stated rule, and in each the page already held the answer — the store it cites, its own non-goals, and the sequence number it makes authoritative.
 

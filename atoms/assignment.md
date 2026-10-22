@@ -88,7 +88,7 @@ Term transfer instant: the instant the assignment was handed on — a [Transfer 
 
 ```
 Capability requirement 1: The deployment MUST supply now at the seam.
-Capability requirement 4: The deployment MUST supply the assignment records PER Execution Contract Database 1 through 4, Execution Contract Order 1, Execution Contract Read 1 through 3 and Execution Contract Refusal 1.
+Capability requirement 4: The deployment MUST supply the assignment records PER Execution Contract Database 1 through 4, Execution Contract Order 1, Execution Contract Read 1 through 3, Execution Contract Refusal 1 and Execution Contract Conformance 9.
 Deleted: Capability requirement 2. Execution Contract Logic confinement 7 owns it.
 Deleted: Capability requirement 3. Execution Contract Logic confinement 7 owns it.
 Deleted: Clock semantics 1. Execution Contract Logic confinement 7 owns it.
@@ -288,7 +288,7 @@ Check 2.2: An auditor MUST read a recalled assignment as the task standing unass
 Check 2.3: An auditor MUST read a transferred assignment as a successor whose status EQUALS active at transfer instant (Invariant 7.1, Invariant 7.2).
 Check 3.1: An auditor MUST find no assignment whose status moved out of a terminal status (Invariant 3.2, Invariant 4.1, Invariant 4.2).
 Check 4.1: An auditor MUST find no assignment whose terminal stamp PRECEDES the assignment's assignment instant (Invariant 8.1, Invariant 8.2).
-Deleted: Check 5.1. External check 5 owns it.
+Deleted: Check 5.1. Execution Contract Conformance 9 owns it.
 ```
 
 ### External checks
@@ -298,8 +298,7 @@ External check 1: An auditor MUST read the assigner's authority from the composi
 External check 2: An auditor MUST read who issued an assignment from the composing Actor Identity attestations (Non-goal 7).
 External check 3: An auditor MUST read a task's completion from the host's task system (Non-goal 11).
 Deleted: External check 4. Execution Contract Database 1 and Execution Contract Database 2 own it.
-External check 5: An auditor MUST identify from the deployment's own declaration which composing patterns the deployment wired in (Composition note 1).
-NOTE: watch the wiring declaration (External check 5).
+Deleted: External check 5. Execution Contract Conformance 9 owns it.
 ```
 
 NOTE: EVERY check names the rule the check tests. The assignment records answer *who holds this and who held it*; who was allowed to hand it over, and whether the work is done, are the composing patterns' records.
@@ -634,5 +633,7 @@ Directional changes only — the turns a future reader must know the pattern too
 - **2026-10-21 — A failed read answers as the Execution Contract says.** *Chose:* the failed read cited from the Execution Contract (Capability requirement 4, Execution Contract Read 1 through 3) and the rule that restated it, the atom-wide state-unavailable (Operation 34), deleted to Read 1; the read's condition off the read answers it held to an answered read (Operation 25 through 27), the read off the assign, recall and reassign refusal orders, Term database read deleted, state-unavailable off every signature, and the failed read off the case table and the rejection-path example, which now exercises five reasons; rules 103 to 102. *Over:* the page stating for itself what every action answers when the assignment records cannot be read. *Because:* the maintainer ruled on 2026-10-21 that the Execution Contract states the failed read once; this page's fifth Final Critique had made one of the cures the contract's Read family is written from. What each action answers on an answered read is unchanged.
 
 - **2026-10-21 — Which refusal answers is the Execution Contract's.** *Chose:* each writing action's refuses line kept as the page wrote it, already in the order its refusal order gave — [Assign] invalid-request, already-assigned; [Recall] not-known, not-active; [Reassign] not-known, not-active, invalid-request; storage-failure last on each, answering only at the write — and the order cited from the Execution Contract (Capability requirement 4, Execution Contract Refusal 1); Operation 35, Operation 36 and Operation 37, which evaluated the three refusal orders, deleted to Refusal 1, and Term assign refusal order, Term recall refusal order and Term reassign refusal order deleted with them; rules 102 to 99. *Over:* the page stating for itself which of an action's refusals answers when several apply. *Because:* the maintainer ruled on 2026-10-21 that the Execution Contract states once that the refusal listed first on an action's refuses line answers; this page's fifth Final Critique had made the cure one specification at a time. What each action answers on every call is unchanged.
+
+- **2026-10-22 — The wiring is read outside the records, as the Execution Contract says.** *Chose:* External check 5, the auditor reading which composing patterns a deployment wired in from the deployment's own declaration, deleted to Execution Contract Conformance 9, with Check 5.1's tombstone, which named it, now naming the contract, and the label cited on Capability requirement 4; rules 99 to 98. *Over:* the page stating for itself that the wiring is an external check. *Because:* the maintainer ruled on 2026-10-22 that five repeated cures are each stated once, the wiring declaration among them; this page's fifth Final Critique had made the cure one specification at a time. What each action does and answers is unchanged.
 
 NOTE: End of Assignment.
