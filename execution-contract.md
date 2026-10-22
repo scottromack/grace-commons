@@ -114,7 +114,7 @@ Step 4.  PROJECT OUTPUT      PF   output = R(state_{t+1}, event)
 
 ### Step 1 failure
 
-If the database read fails, the pipeline aborts before Step 2. The guard never evaluates; no transition fires. The caller receives `state-unavailable`. This is an infrastructure failure, not a guard failure.
+If the database read fails, the pipeline aborts before Step 2. The guard never evaluates; no transition fires. The caller receives `state-unavailable`. This is an infrastructure failure, not a guard failure. Read 1 through 3, in the section titled The Database contract, are the rules a specification cites for it.
 
 ---
 
@@ -372,6 +372,16 @@ One guarantee only some specifications need, and a specification that does not c
 
 On a database with no native version history, Database 5 is rendered as generated append-only version tables; on a database with no native commit order, Order 1 is rendered as a sequence assigned inside the commit (Database 1). Neither is a second database.
 
+### A family for every action: Read
+
+What an action answers when a read of the database fails is the same for every specification, so it is written once, here, and holds for every specification as the Database rules do: a specification that relies on one of these rules cites it by its label, `Execution Contract Read 1`, and does not restate it. The section titled Step 1 failure is the pipeline's view of the same rules. Ten atoms once stated them for themselves, each in the Final Critique that cured it. A composition's constituents answer their own failed reads by these rules, and a composition maps that answer as it maps any constituent rejection (the section titled Substrate composition invocation).
+
+**Read 1: A failed read answers state-unavailable.** Where a read an action makes of the database fails, the action answers `state-unavailable`, ahead of every refusal that read would have decided: every guard that runs after the read, which in an atom is every guard, since the read is Step 1. A specification whose domain answers a failed read otherwise states its own answer, and that answer stands in place of this one.
+
+**Read 2: Guards decide only on an answered read.** An action's guards decide only on a read the database answered. A rule of a specification saying what an action answers or writes holds only for a call whose read answered, and a rule comparing calls compares only such calls; where a call's read fails, Read 1 answers it.
+
+**Read 3: A state-unavailable answer writes nothing.** An action that answers `state-unavailable` writes nothing, and its answer says nothing about the records it could not read: whether a record exists, matches or stands in a state. The call may be retried.
+
 ---
 
 
@@ -472,7 +482,7 @@ A runtime implementation of a Grace Commons atom is conforming when all of the f
 - **Conformance 1:** Every transition executes the four-step pipeline in order (Read → Guard → Transition+Write → Project) with no additional steps and no reordering.
 - **Conformance 2:** `clock_t` is read as a direct effect at the top of Step 2 and injected into both G and T as a parameter; `id_t` is read as a direct effect at Step 3 and injected into T. Neither G nor T calls the clock or entropy source internally.
 - **Conformance 3:** No persistent state mutation occurs outside Step 3's `database.write`.
-- **Conformance 4:** Every rejection reason named on a refuses line in the atom's Operations is reachable and typed. No rejection reason exists that is not named in the spec.
+- **Conformance 4:** Every rejection reason named on a refuses line in the atom's Operations is reachable and typed. No rejection reason exists that is not named in the spec or in this contract.
 - **Conformance 5:** Every named invariant in I holds over the record set after any valid sequence of transitions, including sequences interleaved by other conforming callers under the implementation's serialization guarantees.
 - **Conformance 6:** Q returns results consistent with the record set produced by the state machine's transition history. A query that disagrees with the durable record set is a conformance failure.
 - **Conformance 7:** For regulated atoms: the Generation acceptance checks pass against the record set produced by any conforming run.

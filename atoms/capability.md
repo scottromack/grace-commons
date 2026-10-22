@@ -111,7 +111,7 @@ Deleted: Expiry 9. Operation 38 owns it.
 
 ```
 Capability requirement 1: The deployment MUST supply now at the seam.
-Capability requirement 5: The deployment MUST supply the capability records PER Execution Contract Database 1 through 4.
+Capability requirement 5: The deployment MUST supply the capability records PER Execution Contract Database 1 through 4 and Execution Contract Read 1 through 3.
 Capability requirement 6: The deployment MAY configure a default capability ttl ONLY IF the default capability ttl EXCEEDS the zero duration.
 Deleted: Capability requirement 2. Execution Contract Logic confinement 7 owns it.
 Deleted: Capability requirement 3. Execution Contract Logic confinement 7 owns it.
@@ -129,19 +129,18 @@ Deleted: Clock semantics 6. Non-goal 28 owns it.
 ```
 allocate(allocator_ref, scope, max_redemptions, ttl)
   answers capability_token
-  refuses invalid-request | state-unavailable | storage-failure
+  refuses invalid-request | storage-failure
 
 redeem(capability_token)
   answers redeemed(scope, allocator_ref) | invalid(redemption failure)
-  refuses state-unavailable | storage-failure
+  refuses storage-failure
 
 revoke(capability_token, revoked_by_ref, reason)
   answers revoked
-  refuses invalid-request | already-terminal | not-known | state-unavailable | storage-failure
+  refuses invalid-request | already-terminal | not-known | storage-failure
 
 read(filter)
   answers capability_records
-  refuses state-unavailable
 ```
 
 Term redemption failure: exhausted | expired | revoked | not-known — the reasons [Redeem] gives for an invalid capability.
@@ -165,7 +164,7 @@ Operation 15: [Allocate] MUST stamp expiry instant from the expiry deadline.
 Operation 16: [Allocate] MUST NOT recompute expiry instant from a later clock reading.
 Operation 17: [Allocate] MUST set remaining redemptions to the max redemptions.
 Operation 18: IF the database refuses the write THEN [Allocate] MUST answer storage-failure.
-Operation 19: [Redeem] MUST answer EXACTLY ONE OF redeemed, exhausted, expired, revoked, not-known, state-unavailable, storage-failure.
+Operation 19: [Redeem] MUST answer EXACTLY ONE OF redeemed, exhausted, expired, revoked, not-known, storage-failure.
 Operation 20: [Redeem] MUST accept the capability token as the whole call.
 Operation 21: [Redeem] MUST NOT accept an identity input.
 Operation 22: [Redeem] MUST NOT record a redeemer's identity.
@@ -196,7 +195,7 @@ Operation 46: [Revoke] MUST NOT lower remaining redemptions.
 Operation 47: [Revoke] MUST answer revoked.
 Operation 48: IF the database refuses the write THEN [Revoke] MUST answer storage-failure.
 Deleted: Operation 49. Execution Contract Database 3 owns it.
-Operation 50: IF database read EQUALS answered THEN [Read] MUST answer EVERY capability the filter matches.
+Operation 50: [Read] MUST answer EVERY capability the filter matches.
 Operation 51: [Read] MUST carry the effective status on EVERY answered capability.
 Operation 52: [Read] MUST NOT write.
 Operation 53: A liveness query MUST rest on the effective status.
@@ -208,12 +207,12 @@ Operation 58: The atom MUST NOT offer an expire action.
 Operation 59: The atom MUST NOT offer a re-scope action.
 Operation 60: The atom MUST NOT offer an extend action.
 Operation 61: IF max redemptions DOES NOT EQUAL blank AND max redemptions IS NOT IN the whole counts THEN [Allocate] MUST answer invalid-request.
-Operation 62: IF database read EQUALS failed THEN the atom MUST answer state-unavailable.
+Deleted: Operation 62. Execution Contract Read 1 owns it.
 Operation 63: IF the database refuses the write THEN [Redeem] MUST answer storage-failure.
-Operation 64: [Allocate] MUST NOT evaluate a rule of the allocate refusal order BEFORE EVERY earlier rule of the allocate refusal order has answered no refusal.
+Deleted: Operation 64. Execution Contract Read 1 owns it: after the read, every refusal rule of [Allocate] answers invalid-request.
 Operation 65: [Redeem] MUST NOT evaluate a rule of the redeem refusal order BEFORE EVERY earlier rule of the redeem refusal order has answered no refusal.
 Operation 66: [Revoke] MUST NOT evaluate a rule of the revoke refusal order BEFORE EVERY earlier rule of the revoke refusal order has answered no refusal.
-NOTE: watch the refusal order (Operation 64, Operation 65, Operation 66).
+NOTE: watch the refusal order (Operation 65, Operation 66).
 ```
 
 Term now: the wall-time reading the host takes at the seam and hands to the transition — a [Now], as the section titled Logic Confinement Principle in `execution-contract.md` declares it; never read inside the transition, never supplied by the business caller.
@@ -262,13 +261,9 @@ Term filter: the selection a [Read] call scopes the answer by; consumed per call
 
 Term liveness query: any query for the capabilities still redeemable — the administrative surfaces, and the auditor's triage.
 
-Term database read: answered | failed — the outcome of the read a call makes of the capability records, failed being the failure the section titled Step 1 failure in `execution-contract.md` names.
+Term redeem refusal order: Operation 23 through 26 — [Redeem]'s refusal rules, earliest first; Operation 63 answers only at the write, which no refused call reaches.
 
-Term allocate refusal order: Operation 62, Operation 4 through 5, Operation 8 through 9, Operation 61, Operation 11, Operation 13, String 7 — [Allocate]'s refusal rules, earliest first; Operation 18 answers only at the write, which no refused call reaches.
-
-Term redeem refusal order: Operation 62, Operation 23 through 26 — [Redeem]'s refusal rules, earliest first; Operation 63 answers only at the write, which no refused call reaches.
-
-Term revoke refusal order: Operation 62, Operation 35 through 40, String 9 through 10 — [Revoke]'s refusal rules, earliest first; Operation 48 answers only at the write, which no refused call reaches.
+Term revoke refusal order: Operation 35 through 40, String 9 through 10 — [Revoke]'s refusal rules, earliest first; Operation 48 answers only at the write, which no refused call reaches.
 
 The case space, and the rule that owns each case:
 
@@ -288,7 +283,6 @@ The case space, and the rule that owns each case:
 | [Revoke] | stored [Allocated] past its deadline | [Already Terminal] | none — derived, nothing written (Operation 38) |
 | [Revoke] | revocable, blank or over-long attribution | [Invalid Request] | none (Operation 39, Operation 40, String 9, String 10) |
 | [Allocate], [Redeem], [Revoke] | database refuses the write | [Storage Failure] | none (Operation 18, Operation 48, Operation 63) |
-| [Allocate], [Redeem], [Revoke], [Read] | the database read fails | [State Unavailable] | none — no guard ran (Operation 62) |
 | *a window lapses* | now reaches expiry instant | nothing is called | **nothing written** — no status, no stamp, no counter move (Expiry 1 through 5) |
 | [Read] | a filter | the matching capabilities, each carrying its effective status | none (Operation 50, Operation 51) |
 
@@ -413,7 +407,7 @@ The window closes with two redemptions unspent. **Nothing is called and nothing 
 
 `redeem(cap_tok_forged)` → `invalid(not-known)`. No record for the token — and after a composed retention purge, the same answer covers a capability that once existed (Invariant 12.4).
 
-`redeem(cap_tok_b81c)` while the capability records cannot be read → state-unavailable. No guard ran and nothing is written, so the counter stays where it was and the fetch may be retried (Operation 62). A fetch whose write the database refuses → storage-failure, and the counter is not lowered (Operation 63, Operation 31).
+`redeem(cap_tok_b81c)` whose write the database refuses → storage-failure, and the counter is not lowered (Operation 63, Operation 31).
 
 ### Regulated adversarial scenarios
 
@@ -548,7 +542,7 @@ Term records: capability — one bearer-token authorization, carrying capability
 
 Term record verbs: identify, serve, offer, supply, check, compare, allocate, reuse, change, carry, share, draw, refuse, interpret, confirm, apply, accept, record, stand, answer, stamp, recompute, set, lower, rise, fall, reach, leave, derive, surface, write, fire, schedule, read, rest, remove, evaluate, hold, merge, admit, infer, reduce, range, find, reproduce, own, gate, bind, narrow, deliver, protect, notify, purge, forbid, distinguish, guarantee, seal, compose, trim, normalize, case-fold, exceed, canonicalize, reconcile, attest, declare, call, configure.
 
-Term value sets: status = allocated | redeemed | revoked. database read = answered | failed.
+Term value sets: status = allocated | redeemed | revoked.
 
 Term bounds: default capability ttl (the validity duration [Allocate] applies where the call supplies none); single-use default (the max redemptions [Allocate] applies where the call supplies none); zero duration (the floor a ttl must exceed); zero (the floor a max redemptions must exceed); whole count (the whole numbers a supplied max redemptions is drawn from); maximum length (the deployment's cap per string input).
 
@@ -556,7 +550,7 @@ Term cadences: empty.
 
 Term qualifiers: migrated — rewritten in GRACE lang v0.35 (2026-09-12).
 
-Term terms: capability, capability token, allocator reference, scope, seam, transition, now, business caller, max redemptions, single-use default, remaining redemptions, ttl, default capability ttl, zero duration, zero, whole count, allocation instant, expiry deadline, expiry instant, lapsed, revocable, effective status, redemption instant, revocation instant, revoked by reference, revocation reason, reason, filter, liveness query, database read, allocate refusal order, redeem refusal order, revoke refusal order, status, revocation field, blank, maximum length, redemption failure.
+Term terms: capability, capability token, allocator reference, scope, seam, transition, now, business caller, max redemptions, single-use default, remaining redemptions, ttl, default capability ttl, zero duration, zero, whole count, allocation instant, expiry deadline, expiry instant, lapsed, revocable, effective status, redemption instant, revocation instant, revoked by reference, revocation reason, reason, filter, liveness query, redeem refusal order, revoke refusal order, status, revocation field, blank, maximum length, redemption failure.
 
 #### Allocate
 
@@ -566,7 +560,7 @@ Kind: Operation
 
 #### Redeem
 
-The behavior a bearer invokes to exercise a capability, presenting only the [Capability Token] — no identity argument. On a live capability it decrements [Remaining Redemptions] and returns `redeemed(scope, allocator_ref)`; the call that brings the counter to zero transitions the record to [Redeemed]. It is not idempotent and records no redeemer identity. Its five outcomes (redeemed, `invalid(exhausted | expired | revoked | not-known)`) are all first-class, and two refusals stand beside them: [State Unavailable] where the call's read of the capability records fails, and [Storage Failure] where the database refuses its write, which lowers nothing.
+The behavior a bearer invokes to exercise a capability, presenting only the [Capability Token] — no identity argument. On a live capability it decrements [Remaining Redemptions] and returns `redeemed(scope, allocator_ref)`; the call that brings the counter to zero transitions the record to [Redeemed]. It is not idempotent and records no redeemer identity. Its five outcomes (redeemed, `invalid(exhausted | expired | revoked | not-known)`) are all first-class, and one refusal stands beside them: [Storage Failure] where the database refuses its write, which lowers nothing.
 
 Kind: Operation
 
@@ -578,7 +572,7 @@ Kind: Operation
 
 #### Read
 
-The render-time behavior that returns the matching capability records, each carrying its derived [Effective Status]. It only reads; no record changes. It is the surface every liveness query applies, since a raw [Allocated] with [Expiry Instant] in the past reads [Expired], not live. A call whose read of the capability records fails is refused [State Unavailable].
+The render-time behavior that returns the matching capability records, each carrying its derived [Effective Status]. It only reads; no record changes. It is the surface every liveness query applies, since a raw [Allocated] with [Expiry Instant] in the past reads [Expired], not live.
 
 Kind: Operation
 
@@ -778,15 +772,6 @@ Member of:  the action rejection
 Role:       Outcome
 Projection: storage-failure
 
-#### State Unavailable
-
-The refusal any action ([Allocate], [Redeem], [Revoke], [Read]) returns when the read the call makes of the capability records fails — the Execution Contract's Step 1 failure (Operation 62). No guard ran and nothing is written, the call may be retried, and the answer says nothing about whether a capability exists or what status it stands in.
-
-Kind:       Member
-Member of:  the action rejection
-Role:       Outcome
-Projection: state-unavailable
-
 <!-- Term registry — shortcut-reference definitions. These produce no visible
      output; each resolves a [Term] marker to its term entry heading above (kramdown
      auto-generates the heading anchors on GitHub Pages). Standard CommonMark /
@@ -820,7 +805,6 @@ Projection: state-unavailable
 [Already Terminal]: #already-terminal
 [Invalid Request]: #invalid-request
 [Storage Failure]: #storage-failure
-[State Unavailable]: #state-unavailable
 
 ## Standards references
 
@@ -866,6 +850,8 @@ open:
 ## Decisions
 
 Directional changes only — the turns a future reader must know the pattern took, and why. Everything smaller lives in the commit that made it: `git log -- atoms/capability.md`; the migration that got it here is in [its history](./capability.hist.md).
+
+- **2026-10-21 — A failed read answers as the Execution Contract says.** *Chose:* the failed read cited from the Execution Contract (Capability requirement 5, Execution Contract Read 1 through 3) and the two rules that restated it deleted to it: the atom-wide state-unavailable (Operation 62) to Read 1, and the allocate refusal order (Operation 64), whose rules after the read all answer invalid-request, to Read 1; state-unavailable off [Redeem]'s answers (Operation 19) and the read's condition off [Read]'s (Operation 50), the read off the redeem and revoke refusal orders, Term database read deleted, state-unavailable off every signature, and the failed read off the case table and the redeem example; rules 203 to 201. *Over:* the page stating for itself what every action answers when the capability records cannot be read. *Because:* the maintainer ruled on 2026-10-21 that the Execution Contract states the failed read once; this page's sixth Final Critique had made one of the cures the contract's Read family is written from. What each action answers on an answered read is unchanged, [Redeem]'s storage failure included.
 
 - **2026-10-21 — A failed read and a refused write answer on every action, [Redeem] included; each writing action's refusals answer in one stated order; the effective status reads the stored status; the length cap refuses only the writes; a count is whole, and the default window positive.** *Chose:* state-unavailable on all four actions where the read of the capability records fails, the Execution Contract's Step 1 failure (Operation 62, Term database read), and storage-failure on [Redeem] where the database refuses its write, the contract's Step 3 failure (Operation 63), the arm the row titled *A mutating action with no write-failure outcome* in `open-questions.md` had parked; one refusal order for each writing action, the read first, since the pipeline reads at Step 1 before any guard (Operation 64 through 66), Expiry 8 and Expiry 9 deleted to Operation 26 and Operation 38, which the orders hold, and [Read]'s answer held to an answered read; Invariant 13.4 and Check 4.3 resting the effective status on the stored status, expiry instant and now, as Term effective status already did; String 7 naming [Allocate], and String 9 and String 10 refusing an over-long revoked by reference or reason only on a revocable capability, so [Redeem] and [Read], which refuse no length, meet none, and an over-long token names no capability; a supplied max redemptions held to the whole counts (Operation 61, Term whole count); the default capability ttl held above the zero duration (Capability requirement 6), and Operation 13's floor held to a supplied ttl. *Over:* a redeem whose refused write one build answers storage-failure, as the contract obliges, and another `invalid(exhausted)`; a failed read no signature names; a length refusal obliged on two actions whose signatures carry none; an invariant the page's own Term breaks on every revoked capability past its deadline; a fraction the first redeem lowers below zero; and a configured default of zero or less, which one build refuses and another allocates as a window already closed. *Because:* Final Critique 6 found each a divergence between conforming builds, or two rules no build can both obey, and the corpus already held each cure: Actor Identity's fifth round and the rounds after it answer the failed read on every action, Session's sixth round cured the effective status, the length cap and the default window on its twin mechanics, and Capacity Constraint Enforcement declares its whole counts. The write arm is the one cure the corpus leaves: the maintainer's Database contract, which the atom takes (Capability requirement 5), guarantees no write commits, so no host obligation could make the write unfailable. What the atom answers a well-formed call on a database that reads and writes is unchanged.
 

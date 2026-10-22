@@ -147,7 +147,7 @@ Term created list: the notification id of EVERY create the composition saw answe
 
 Term failed list: the subscriber reference of EVERY create the composition saw answer otherwise — a [Failed] list.
 
-Term unrecordable create: a create answering neither a notification id nor one of [Notification](../atoms/notification.md)'s declared refusals — a call that timed out, or came back unacknowledged; the outcome the composition names at the boundary. Notification's own storage-failure is declared, and records nothing (Notification Operation 7).
+Term unrecordable create: a create answering neither a notification id, nor one of [Notification](../atoms/notification.md)'s declared refusals, nor the state-unavailable a failed read answers (Execution Contract Read 1) — a call that timed out, or came back unacknowledged; the outcome the composition names at the boundary. Notification's own storage-failure is declared, and records nothing (Notification Operation 7), as a state-unavailable records nothing (Execution Contract Read 3).
 
 ### Wiring decision
 

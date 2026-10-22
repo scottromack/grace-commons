@@ -87,7 +87,7 @@ Term attestation field: attestation id | action reference | actor reference | pr
 
 ```
 Capability requirement 1: The deployment MUST supply now at the seam.
-Capability requirement 2: The deployment MUST supply the attestation records PER Execution Contract Database 1, Execution Contract Database 3 and Execution Contract Database 4.
+Capability requirement 2: The deployment MUST supply the attestation records PER Execution Contract Database 1, Execution Contract Database 3, Execution Contract Database 4 and Execution Contract Read 1 through 3.
 Capability requirement 3: The deployment MUST supply the registry answer at the seam.
 ```
 
@@ -96,15 +96,13 @@ Capability requirement 3: The deployment MUST supply the registry answer at the 
 ```
 attest(action_ref, actor_ref, credential)
   answers attestation_id
-  refuses invalid-request | invalid-credential | registry-unavailable | state-unavailable | storage-failure
+  refuses invalid-request | invalid-credential | registry-unavailable | storage-failure
 
 verify(attestation_id)
   answers verified | failed-verification(verification failure) | not-known
-  refuses state-unavailable
 
 read()
   answers every attestation
-  refuses state-unavailable
 ```
 
 Term verification failure: proof-invalid | actor-unknown-in-registry | registry-unavailable — the reasons [Verify] gives for a failed verification.
@@ -123,8 +121,8 @@ Operation 10: IF the database refuses the write THEN [Attest] MUST answer storag
 Deleted: Operation 11. Execution Contract Database 1 owns it.
 Deleted: Operation 12. Invariant 1.1 owns it.
 Operation 13: [Attest] MUST NOT read the action's content.
-Operation 14: [Verify] MUST answer EXACTLY ONE OF verified, failed-verification, not-known, state-unavailable.
-Operation 15: IF database read EQUALS answered AND no attestation EXISTS for the attestation id THEN [Verify] MUST answer not-known.
+Operation 14: [Verify] MUST answer EXACTLY ONE OF verified, failed-verification, not-known.
+Operation 15: IF no attestation EXISTS for the attestation id THEN [Verify] MUST answer not-known.
 Operation 16: IF an attestation EXISTS for the attestation id AND registry answer EQUALS unknown-actor THEN [Verify] MUST answer actor-unknown-in-registry.
 Operation 17: IF an attestation EXISTS for the attestation id AND registry answer EQUALS unreachable THEN [Verify] MUST answer registry-unavailable.
 Operation 18: IF registry answer EQUALS material AND proof check EQUALS failed THEN [Verify] MUST answer proof-invalid.
@@ -136,14 +134,14 @@ Operation 23: The host MUST supply the cryptographic material at the atom's seam
 Deleted: Operation 24. Execution Contract Logic confinement 3 owns it.
 Deleted: Operation 25. Execution Contract Logic confinement 3 owns it.
 Operation 26: The business caller MUST NOT supply attestation instant.
-Operation 27: IF database read EQUALS answered THEN [Read] MUST answer EVERY attestation.
+Operation 27: [Read] MUST answer EVERY attestation.
 Operation 28: [Read] MUST answer an attestation's attestation id, action reference, actor reference, proof AND attestation instant.
 Operation 29: [Read] MUST NOT write.
-Operation 30: [Read] MUST answer state-unavailable ONLY IF database read EQUALS failed.
+Deleted: Operation 30. Operation 27 and Execution Contract Read 2 own it.
 Operation 31: IF registry answer EQUALS unknown-actor THEN [Attest] MUST answer invalid-credential.
 Operation 32: [Verify] MUST answer verified ONLY IF proof check EQUALS held.
 Operation 33: IF registry answer EQUALS unreachable THEN [Attest] MUST answer registry-unavailable.
-Operation 34: IF database read EQUALS failed THEN the atom MUST answer state-unavailable.
+Deleted: Operation 34. Execution Contract Read 1 owns it.
 Operation 35: [Attest] MUST NOT evaluate a rule of the attest refusal order BEFORE EVERY earlier rule of the attest refusal order has answered no refusal.
 NOTE: watch the refusal order (Operation 35).
 ```
@@ -152,9 +150,7 @@ Term registry answer: material | unknown-actor | unreachable — what the actor 
 
 Term registry view: the registry answer for an actor reference and the public material the answer carries, taken together; a rotation, an outage or a removal from the registry changes the registry view.
 
-Term database read: answered | failed — the outcome of the read a call makes of the attestation records, failed being the failure the section titled Step 1 failure in `execution-contract.md` names.
-
-Term attest refusal order: Operation 34, Operation 6 through 8, Operation 33, Operation 31, Operation 9 — [Attest]'s refusal rules, earliest first; Operation 10 answers only at the write, which no refused call reaches.
+Term attest refusal order: Operation 6 through 8, Operation 33, Operation 31, Operation 9 — [Attest]'s refusal rules, earliest first; Operation 10 answers only at the write, which no refused call reaches.
 
 Term proof check: held | failed — the recorded proof run against the recorded action reference and actor reference under the public material; failed also where a revocation status the proof carries names the credential revoked (Revocation status 1).
 
@@ -165,20 +161,17 @@ The case space, and the rule that owns each case:
 | Call | Case | Answer | Effect on the attestation records |
 |---|---|---|---|
 | [Attest] | refs and credential present, registry answers material, credential validates, database accepts | attestation id | one attestation lands in [Attested] (Operation 1, Operation 2) |
-| [Attest] | the database read fails | [State Unavailable] | none (Operation 34) |
 | [Attest] | blank action reference, actor reference or credential | [Invalid Request] | none (Operation 6 through 8) |
 | [Attest] | registry unreachable | [Registry Unavailable] | none (Operation 33) |
 | [Attest] | registry holds no material for the actor | [Invalid Credential] | none (Operation 31) |
 | [Attest] | credential fails against the actor's current material | [Invalid Credential] | none (Operation 9) |
 | [Attest] | database refuses the write | [Storage Failure] | none (Operation 10) |
-| [Verify] | the database read fails | [State Unavailable] | none (Operation 34) |
 | [Verify] | no attestation under that id | [Not Known] | none — the call reads (Operation 15, Operation 20) |
 | [Verify] | attestation found, registry holds no material for the actor | [Actor Unknown In Registry] | none (Operation 16) |
 | [Verify] | attestation found, registry unreachable | [Registry Unavailable] | none (Operation 17) |
 | [Verify] | material in hand, proof does not hold, or a revocation status the proof carries names the credential revoked | [Proof Invalid] | none (Operation 18) |
 | [Verify] | material in hand, proof holds | [Verified] | none (Operation 19, Operation 32) |
-| [Read] | the database read fails | [State Unavailable] | none (Operation 30, Operation 34) |
-| [Read] | the database read answers | every attestation, with its stored fields | none (Operation 27 through 29) |
+| [Read] | any call | every attestation, with its stored fields | none (Operation 27 through 29) |
 
 Where two [Attest] cases hold at once, the earlier rule of the attest refusal order answers (Operation 35).
 
@@ -287,7 +280,7 @@ Check 1.2: An auditor MUST NOT need state beyond those fields and the registry's
 Check 2.1: An auditor MUST verify an attestation without privileged access to the system (Invariant 6.1, Operation 21).
 Check 3.1: An auditor MUST confirm that the proof holds against the recorded action reference and against no other action (Invariant 2.1, Invariant 2.2).
 Check 3.2: An auditor MUST confirm that the proof holds against the recorded actor reference and against no other actor (Invariant 3.1, Invariant 3.2).
-Check 4.1: An auditor MUST read verified, failed-verification, not-known and state-unavailable as four distinct answers (Operation 14).
+Check 4.1: An auditor MUST read verified, failed-verification and not-known as three distinct answers (Operation 14).
 Check 4.2: An auditor MUST read proof-invalid, actor-unknown-in-registry and registry-unavailable as three distinct reasons (Operation 16, Operation 17, Operation 18).
 Deleted: Check 5.1. External check 1 owns it.
 ```
@@ -387,7 +380,7 @@ Term records: attestation — one binding, carrying attestation id, action refer
 
 Term record verbs: identify, allocate, supply, reuse, carry, stand, offer, store, hold, compute, record, stamp, answer, consume, alter, read, mint, write, verify, consult, set, change, share, bind, reinterpret, delete, shrink, register, retire, compose, authenticate, decide, manage, invalidate, detect, vouch, turn, own, retain, keep, rest, cache, reconstruct, need, confirm, declare, trust, renumber, add, fail, refuse, evaluate.
 
-Term value sets: registry answer = material | unknown-actor | unreachable. proof check = held | failed. database read = answered | failed. attestation field = attestation id | action reference | actor reference | proof | attestation instant.
+Term value sets: registry answer = material | unknown-actor | unreachable. proof check = held | failed. attestation field = attestation id | action reference | actor reference | proof | attestation instant.
 
 Term bounds: empty.
 
@@ -395,7 +388,7 @@ Term cadences: empty.
 
 Term qualifiers: migrated — rewritten in GRACE lang v0.35 (2026-09-12); uncompromised — a credential no disclosure names as compromised at or before the instant in question.
 
-Term terms: now, verification set, attestation, attestation id, action reference, actor reference, seam, transition, business caller, attested, proof, attestation instant, credential, public material, current material, attestation field, registry answer, registry view, database read, attest refusal order, proof check, verification failure.
+Term terms: now, verification set, attestation, attestation id, action reference, actor reference, seam, transition, business caller, attested, proof, attestation instant, credential, public material, current material, attestation field, registry answer, registry view, attest refusal order, proof check, verification failure.
 
 #### Attestation
 
@@ -411,13 +404,13 @@ Kind: Operation
 
 #### Verify
 
-The read-only behavior an auditor or composing pattern invokes to confirm a recorded [Attestation], by id. It re-checks the stored [Proof] against the recorded [Action Reference] and [Actor Reference] using the actor registry's public material, and returns [Verified], [Failed Verification], or [Not Known], or refuses with [State Unavailable] when the attestation records cannot be read. It changes nothing.
+The read-only behavior an auditor or composing pattern invokes to confirm a recorded [Attestation], by id. It re-checks the stored [Proof] against the recorded [Action Reference] and [Actor Reference] using the actor registry's public material, and returns [Verified], [Failed Verification], or [Not Known]. It changes nothing.
 
 Kind: Operation
 
 #### Read
 
-The read-only query answering every attestation the database holds, each with its stored fields. It keys nothing by action reference: a composing pattern that wants its own attestations enumerates this read and filters in its own code. It changes nothing, and refuses only with [State Unavailable], when the attestation records cannot be read.
+The read-only query answering every attestation the database holds, each with its stored fields. It keys nothing by action reference: a composing pattern that wants its own attestations enumerates this read and filters in its own code. It changes nothing.
 
 Kind: Operation
 
@@ -558,15 +551,6 @@ Member of:  the Attest rejection
 Role:       Outcome
 Projection: storage-failure
 
-#### State Unavailable
-
-The refusal [Attest], [Verify] or [Read] returns when the read the call makes of the database fails — the Execution Contract's Step 1 failure. Nothing is decided or written, the call may be retried, and the answer says nothing about whether an [Attestation] exists.
-
-Kind:       Member
-Member of:  the Attest, Verify and Read rejections
-Role:       Outcome
-Projection: state-unavailable
-
 <!-- Term registry — shortcut-reference definitions. These produce no visible
      output; each resolves a [Term] marker to its term entry heading above (kramdown
      auto-generates the heading anchors on GitHub Pages). Standard CommonMark /
@@ -592,7 +576,6 @@ Projection: state-unavailable
 [Invalid Request]: #invalid-request
 [Invalid Credential]: #invalid-credential
 [Storage Failure]: #storage-failure
-[State Unavailable]: #state-unavailable
 
 ---
 
@@ -643,6 +626,8 @@ open:
 ## Decisions
 
 Directional changes only — the turns a future reader must know the pattern took, and why. Everything smaller lives in the commit that made it: `git log -- atoms/actor-identity.md`; the rounds and the migration that got it here are in [its history](./actor-identity.hist.md).
+
+- **2026-10-21 — A failed read answers as the Execution Contract says.** *Chose:* the failed read cited from the Execution Contract (Capability requirement 2, Execution Contract Read 1 through 3) and the two rules that restated it deleted to it: the atom-wide state-unavailable (Operation 34) to Read 1, and [Read]'s state-unavailable on a failed read alone (Operation 30) to Read 2 beside Operation 27; the read's condition off the rules it held to an answered read (Operation 14, Operation 15, Operation 27), the read off the attest refusal order, Term database read deleted, state-unavailable off every signature and off the answers Check 4.1 tells apart; rules 100 to 98. *Over:* the page stating for itself what every action answers when the attestation records cannot be read. *Because:* the maintainer ruled on 2026-10-21 that the Execution Contract states the failed read once; this page's fifth Final Critique had made the first of the cures the contract's Read family is written from. What each action answers on an answered read is unchanged.
 
 - **2026-10-20 — Verification follows the registry's own history, and the registry answer decides [Attest] as it decides [Verify].** *Chose:* the proof check run under the public material the actor registry holds, any historical material the registry keeps included, so a deployment whose old attestations must keep verifying composes a registry that keeps that history (Registry view 3); [Attest] reading the registry answer at the seam (Capability requirement 3), checking a credential against the current material alone, and refusing an unreachable registry with registry-unavailable and an actor the registry does not know with invalid-credential, under one stated order over [Attest]'s refusals (Operation 35); a failed read of the attestation store answering state-unavailable on every action (Operation 34). *Over:* a proof check pinned to the registry's current material beside a rule promising that retained history keeps old attestations verifying; the material in force at the attestation instant, which the registry answer does not carry; an [Attest] with no answer for the registry it reads. *Because:* Final Critique 5 found each a divergence between conforming builds, and the prose this page was migrated from had said it: verification follows the registry's current view, old attestations keep verifying exactly when the registry maintains historical material, and whether the registry does is the registry's.
 

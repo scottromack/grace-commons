@@ -113,7 +113,7 @@ Capability requirement 8: The deployment MUST supply EVERY placement a retention
 Capability requirement 9: The deployment MUST NOT supply the same retention id to two placements.
 Capability requirement 10: The deployment MUST supply EXACTLY ONE record reference per record AND MUST NOT reuse a record reference for another record.
 Capability requirement 11: The deployment MUST place EVERY retention over one record in one [Retention Window] instance.
-Capability requirement 12: The deployment MUST supply the retention records PER Execution Contract Database 1 through 4.
+Capability requirement 12: The deployment MUST supply the retention records PER Execution Contract Database 1 through 4 and Execution Contract Read 1 through 3.
 Deleted: Capability requirement 2. Execution Contract Logic confinement 7 owns it.
 Deleted: Capability requirement 3. Execution Contract Logic confinement 7 owns it.
 ```
@@ -123,15 +123,14 @@ Deleted: Capability requirement 3. Execution Contract Logic confinement 7 owns i
 ```
 place_under_retention(record_ref, policy_ref)
   answers retention_id
-  refuses invalid-request | invalid-policy | policy-not-found | registry-unavailable | state-unavailable | storage-failure
+  refuses invalid-request | invalid-policy | policy-not-found | registry-unavailable | storage-failure
 
 purge(retention_id)
   answers ok
-  refuses not-known | not-retained | retention-period-not-elapsed | state-unavailable | storage-failure
+  refuses not-known | not-retained | retention-period-not-elapsed | storage-failure
 
 read()
   answers every retention
-  refuses state-unavailable
 ```
 
 ```
@@ -174,12 +173,12 @@ Deleted: Operation 25. Execution Contract Logic confinement 3 owns it.
 Operation 26: The transition MUST NOT read the policy registry.
 Deleted: Operation 27. Execution Contract Logic confinement 3 owns it.
 Operation 28: A reader MUST derive purge eligible from the retention state, retention deadline and the injected now.
-Operation 29: IF database read EQUALS answered THEN [Read] MUST answer EVERY retention, retained AND purged.
+Operation 29: [Read] MUST answer EVERY retention, retained AND purged.
 Operation 30: [Read] MUST answer a retention's stored fields.
 Operation 31: [Read] MUST answer purge eligible PER retained retention.
 Operation 32: [Read] MUST NOT write.
-Operation 33: [Read] MUST answer state-unavailable ONLY IF database read EQUALS failed.
-Operation 34: IF database read EQUALS failed THEN the atom MUST answer state-unavailable.
+Deleted: Operation 33. Operation 29 and Execution Contract Read 2 own it.
+Deleted: Operation 34. Execution Contract Read 1 owns it.
 Operation 35: [Place Under Retention] MUST NOT evaluate a rule of the placement refusal order BEFORE EVERY earlier rule of the placement refusal order has answered no refusal.
 Operation 36: [Purge] MUST NOT evaluate a rule of the purge refusal order BEFORE EVERY earlier rule of the purge refusal order has answered no refusal.
 NOTE: watch the refusal order (Operation 35, Operation 36).
@@ -189,24 +188,20 @@ Term time resolution: the smallest span the deployment's clock and the database 
 
 Term well-formedness check: Operation 4 and Operation 5 — every check [Place Under Retention] makes on the call's own inputs.
 
-Term database read: answered | failed — the outcome of the read a call makes of the retention records, failed being the failure the section titled Step 1 failure in `execution-contract.md` names.
+Term placement refusal order: Operation 4, Operation 5, Operation 24b, Operation 6, Operation 7, Operation 7a, Operation 8, Operation 8b, Operation 8c — [Place Under Retention]'s refusal rules, earliest first; Operation 9 answers only at the write, which no refused call reaches.
 
-Term placement refusal order: Operation 34, Operation 4, Operation 5, Operation 24b, Operation 6, Operation 7, Operation 7a, Operation 8, Operation 8b, Operation 8c — [Place Under Retention]'s refusal rules, earliest first; Operation 9 answers only at the write, which no refused call reaches.
-
-Term purge refusal order: Operation 34, Operation 14, Operation 15, Operation 16 — [Purge]'s refusal rules, earliest first; Record divergence 2 answers only at the destruction and Operation 19 only at the write, which no refused call reaches.
+Term purge refusal order: Operation 14, Operation 15, Operation 16 — [Purge]'s refusal rules, earliest first; Record divergence 2 answers only at the destruction and Operation 19 only at the write, which no refused call reaches.
 
 The case space, and the rule that owns each case:
 
 | Call | Case | Answer | Effect on the retention records |
 |---|---|---|---|
 | [Place Under Retention] | refs well-formed, policy resolves and is valid, database accepts | retention id | one retention lands in [Retained] with its two deadlines (Operation 1, State 4 through 6) |
-| [Place Under Retention] | the database read fails | [State Unavailable] | none (Operation 34) |
 | [Place Under Retention] | blank record reference or policy reference | [Invalid Request] | none (Operation 4, Operation 5) |
 | [Place Under Retention] | policy reference resolves to nothing | [Policy Not Found] | none (Operation 6) |
 | [Place Under Retention] | the host cannot read the policy registry | [Registry Unavailable] | none — the well-formedness checks passed and no policy was read (Operation 24b, Operation 24c) |
 | [Place Under Retention] | the registry was read, then duration not positive or unresolved, delay negative or unresolved, or a deadline outside the instants the database holds | [Invalid Policy] | none (Operation 7, Operation 7a, Operation 8, Operation 8b, Operation 8c) |
 | [Place Under Retention] | database refuses the write | [Storage Failure] | none (Operation 9) |
-| [Purge] | the database read fails | [State Unavailable] | none (Operation 34) |
 | [Purge] | no retention under that id | [Not Known] | none (Operation 14) |
 | [Purge] | retention already purged | [Not Retained] | none (Operation 15) |
 | [Purge] | retention period not elapsed | [Retention Period Not Elapsed] | none — the guard writes nothing (Operation 16, Operation 17) |
@@ -216,8 +211,7 @@ The case space, and the rule that owns each case:
 | [Purge] | eligible, the storage layer does not confirm the destruction | [Storage Failure] | none — the retention stays [Retained] (Record divergence 2, Operation 20) |
 | [Purge] | eligible, a composing pattern owns the destruction, database accepts | ok | [Retained] → [Purged]; the record stands until the pattern confirms the destruction (Record divergence 4, Record divergence 5) |
 | *a retention crossing retention deadline* | — | *nothing* | nothing is written; eligibility is read (State 7, Operation 28) |
-| [Read] | the database read fails | [State Unavailable] | none (Operation 33, Operation 34) |
-| [Read] | the database read answers | every retention, with its stored fields and, while retained, purge eligible | none (Operation 29 through 32) |
+| [Read] | any call | every retention, with its stored fields and, while retained, purge eligible | none (Operation 29 through 32) |
 
 Where two [Place Under Retention] cases hold at once, the earlier rule of the placement refusal order answers (Operation 35); where two [Purge] cases hold at once, the earlier rule of the purge refusal order answers (Operation 36).
 
@@ -490,7 +484,7 @@ Term records: retention — one obligation, carrying retention id, record refere
 
 Term record verbs: identify, allocate, supply, reuse, compare, round, carry, stand, set, store, offer, hold, record, answer, read, resolve, stamp, judge, leave, refuse, write, derive, change, delete, shrink, share, admit, gate, destroy, retry, alert, coordinate, confirm, serialize, own, disagree, compose, place, define, version, retain, permit, purge, choose, suspend, renumber, add, find, compute, reconstruct, declare, exceed, bound, evaluate.
 
-Term value sets: retention state = retained | purged. purge eligible = yes | no. database read = answered | failed.
+Term value sets: retention state = retained | purged. purge eligible = yes | no.
 
 Term bounds: duration (the policy's retention period); max purge delay (the lag the policy allows); retention deadline; purge deadline.
 
@@ -498,7 +492,7 @@ Term cadences: empty — a purge cadence is the composing pattern's.
 
 Term qualifiers: migrated — rewritten in GRACE lang v0.35 (2026-09-12).
 
-Term terms: zero duration, degenerate duration, now, retention, retention id, record reference, policy reference, seam, transition, business caller, retention state, retention instant, retention deadline, purge deadline, purge instant, overshoot, active overdue, duration, max purge delay, purge eligible, time resolution, well-formedness check, storage layer, owns the destruction, standing record, withheld record, sibling retention, joint enforcement, database read, placement refusal order, purge refusal order.
+Term terms: zero duration, degenerate duration, now, retention, retention id, record reference, policy reference, seam, transition, business caller, retention state, retention instant, retention deadline, purge deadline, purge instant, overshoot, active overdue, duration, max purge delay, purge eligible, time resolution, well-formedness check, storage layer, owns the destruction, standing record, withheld record, sibling retention, joint enforcement, placement refusal order, purge refusal order.
 
 #### Retention Window
 
@@ -520,7 +514,7 @@ Kind: Operation
 
 #### Read
 
-The read-only query answering every retention the database holds, [Retained] and [Purged], each with its stored fields and, while [Retained], the [Purge Eligible] projection derived against the injected [Now]. It changes nothing, and refuses only a call whose read of the database fails, with [State Unavailable].
+The read-only query answering every retention the database holds, [Retained] and [Purged], each with its stored fields and, while [Retained], the [Purge Eligible] projection derived against the injected [Now]. It changes nothing.
 
 Kind: Operation
 
@@ -716,15 +710,6 @@ Member of:  the Place Under Retention / Purge rejection
 Role:       Outcome
 Projection: storage-failure
 
-#### State Unavailable
-
-The refusal [Place Under Retention], [Purge] or [Read] returns when the read the call makes of the database fails — the Execution Contract's Step 1 failure (Operation 34). Nothing is decided or written, and the call may be retried.
-
-Kind:       Member
-Member of:  the Place Under Retention / Purge / Read rejection
-Role:       Outcome
-Projection: state-unavailable
-
 <!-- Term registry — shortcut-reference definitions. These produce no visible
      output; each resolves a [Term] marker to its term entry heading above (kramdown
      auto-generates the heading anchors on GitHub Pages). Standard CommonMark /
@@ -757,7 +742,6 @@ Projection: state-unavailable
 [Not Known]: #not-known
 [Retention Period Not Elapsed]: #retention-period-not-elapsed
 [Storage Failure]: #storage-failure
-[State Unavailable]: #state-unavailable
 
 ---
 
@@ -830,5 +814,7 @@ Directional changes only — the turns a future reader must know the pattern too
 - **2026-10-19 — The store's guarantees cited, not restated.** *Chose:* the retention store supplied under Execution Contract Store 1 through 4 (Capability requirement 12), and the five rules that restated them tombstoned to their owner — Operation 10 and Invariant 10.3, no partial retention, to Store 1; Concurrency 1, every state transition atomic per retention id, to Store 1 and Store 2; Concurrency 2 and 3, two purges of one retention serialized and the second answering on what the first committed, to Store 2; rules 158 to 154. *Over:* the atom restating, for its own store, what every deployment's store guarantees. *Because:* the maintainer ruled 2026-10-12 that the corpus takes a store's specification, never the store, and `execution-contract.md` writes it once as the Store contract. The destruction, its confirmation, a caller's retry and the serialization over one record reference stay as they were (Record divergence, Purge persistence, Simultaneous retention 6): each reaches past one action's write to the retention store. What the atom does for its domain is unchanged.
 
 - **2026-10-20 — A failed read answers on every action, each writing action's refusals answer in one stated order, and a late confirmation breaks no rule.** *Chose:* state-unavailable on all three actions where the read of the retention store fails, the Execution Contract's Step 1 failure (Operation 34, Term store read), [Read] refusing nothing else and answering every retention only on an answered read (Operation 29, Operation 33); an unreadable policy registry answered by its own refusal, registry-unavailable, on [Place Under Retention]'s refuses line (Operation 24b, Operation 24c), and invalid-policy answered only on a registry the host read (Operation 8a); one stated order over the refusals of [Place Under Retention] and of [Purge], the store read first (Operation 35, Operation 36, Term placement refusal order, Term purge refusal order); Record divergence 2b deleted to Capability requirement 4a; the deployment retaining each destruction's recorded instant, not the destroyed record (Capability requirement 7); the auditor deriving purge eligible on the auditor's own clock (Check 3.2); both deadlines declared as State 6a rounds them. *Over:* a read forbidden to refuse a store it cannot read; a registry outage reported as the store's own failure, on no signature and beside invalid-policy; a storage layer forbidden a destruction whose confirmation it cannot know will arrive in time; an auditor's reproduction that the skewed clocks Clock semantics 3 allows make fail. *Because:* Final Critique 8 found each a divergence between conforming builds or a rule no conforming build could keep, and the corpus already held the cure for the first three: Actor Identity's fifth round answers a failed store read with state-unavailable on every action and an unreachable registry with its own refusal, and the maintainer's ruling of 2026-10-19 on Verified Repair answers each action's refusals in one stated order. Compositions affected: the pages that compose this atom route registry-unavailable and state-unavailable when their rounds read them.
+
+- **2026-10-21 — A failed read answers as the Execution Contract says.** *Chose:* the failed read cited from the Execution Contract (Capability requirement 12, Execution Contract Read 1 through 3) and the two rules that restated it deleted to it: the atom-wide state-unavailable (Operation 34) to Read 1, and [Read]'s state-unavailable on a failed read alone (Operation 33) to Read 2 beside Operation 29; the read's condition off Operation 29, the read off the placement and purge refusal orders, Term database read deleted, and state-unavailable off every signature; rules 156 to 154. *Over:* the page stating for itself what every action answers when the retention records cannot be read. *Because:* the maintainer ruled on 2026-10-21 that the Execution Contract states the failed read once; this page's eighth Final Critique had made one of the cures the contract's Read family is written from. An unreadable policy registry keeps its own refusal, registry-unavailable: the registry is read at the seam, not from the database. What each action answers on an answered read is unchanged.
 
 NOTE: End of Retention Window.

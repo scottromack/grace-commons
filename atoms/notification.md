@@ -82,7 +82,7 @@ Term creation instant: the instant the notification was recorded — a [Creation
 
 ```
 Capability requirement 1: The deployment MUST supply now at the seam.
-Capability requirement 4: The deployment MUST supply the notification records PER Execution Contract Database 1 through 4.
+Capability requirement 4: The deployment MUST supply the notification records PER Execution Contract Database 1 through 4 and Execution Contract Read 1 through 3.
 Capability requirement 5: The deployment MUST supply the string cap.
 Deleted: Capability requirement 2. Execution Contract Logic confinement 7 owns it.
 Deleted: Capability requirement 3. Execution Contract Logic confinement 7 owns it.
@@ -96,27 +96,25 @@ Deleted: Clock semantics 3. Non-goal 16 owns it.
 ```
 create(recipient_ref, payload)
   answers notification_id
-  refuses invalid-request | state-unavailable | storage-failure
+  refuses invalid-request | storage-failure
 
 deliver(notification_id)
   answers ok
-  refuses not-known | not-pending | state-unavailable | storage-failure
+  refuses not-known | not-pending | storage-failure
 
 fail(notification_id)
   answers ok
-  refuses not-known | not-pending | state-unavailable | storage-failure
+  refuses not-known | not-pending | storage-failure
 
 expire(notification_id)
   answers ok
-  refuses not-known | not-pending | state-unavailable | storage-failure
+  refuses not-known | not-pending | storage-failure
 
 status_of(notification_id)
   answers notification | not-known
-  refuses state-unavailable
 
 pending_for(recipient_ref)
   answers notification_ids
-  refuses state-unavailable
 ```
 
 ```
@@ -138,9 +136,9 @@ Operation 14a: The atom MUST NOT hold a delivery window.
 Operation 14b: A composing pattern MUST own the delivery window an expiry answers to.
 Operation 15: IF the database refuses the write THEN a terminal transition MUST answer storage-failure.
 Operation 16: A refused call MUST leave the notification as the call found the notification.
-Operation 17: IF database read EQUALS answered THEN [Status Of] MUST answer the notification's stored fields.
-Operation 18: IF database read EQUALS answered AND no notification EXISTS for the notification id THEN [Status Of] MUST answer not-known.
-Operation 19: IF database read EQUALS answered THEN [Pending For] MUST answer the notification id of EVERY pending notification carrying the recipient reference.
+Operation 17: [Status Of] MUST answer the notification's stored fields.
+Operation 18: IF no notification EXISTS for the notification id THEN [Status Of] MUST answer not-known.
+Operation 19: [Pending For] MUST answer the notification id of EVERY pending notification carrying the recipient reference.
 Operation 20: [Pending For] MUST NOT answer a terminal notification's notification id.
 Operation 21: [Pending For] MUST NOT order the answer.
 Operation 22: [Status Of] MUST NOT write.
@@ -148,21 +146,17 @@ Operation 23: [Pending For] MUST NOT write.
 Deleted: Operation 24. Capability requirement 1 owns it.
 Deleted: Operation 25. Execution Contract Logic confinement 3 owns it.
 Deleted: Operation 26. Execution Contract Logic confinement 3 owns it.
-Operation 27: IF database read EQUALS failed THEN the atom MUST answer state-unavailable.
-Operation 28: [Create] MUST NOT evaluate a rule of the create refusal order BEFORE EVERY earlier rule of the create refusal order has answered no refusal.
+Deleted: Operation 27. Execution Contract Read 1 owns it.
+Deleted: Operation 28. Execution Contract Read 1 owns it: after the read, every refusal rule of [Create] answers invalid-request.
 Operation 29: A terminal transition MUST NOT evaluate a rule of the terminal refusal order BEFORE EVERY earlier rule of the terminal refusal order has answered no refusal.
-NOTE: watch the refusal order (Operation 28, Operation 29).
+NOTE: watch the refusal order (Operation 29).
 ```
 
 Term terminal transition: a [Deliver], a [Fail] or an [Expire] call — the three that end a notification, sharing one precondition pair.
 
 Term pending at an instant: creation instant at or before the instant, and the terminal stamp either absent or after the instant — the reconstruction an auditor runs over stored fields, never over status, which carries the present rather than the past.
 
-Term database read: answered | failed — the outcome of the read a call makes of the notification records, failed being the failure the section titled Step 1 failure in `execution-contract.md` names.
-
-Term create refusal order: Operation 27, Operation 4, String 6 — [Create]'s refusal rules, earliest first; Operation 7 answers only at the write, which no refused call reaches.
-
-Term terminal refusal order: Operation 27, Operation 8 through 9 — a terminal transition's refusal rules, earliest first; Operation 15 answers only at the write, which no refused call reaches.
+Term terminal refusal order: Operation 8 through 9 — a terminal transition's refusal rules, earliest first; Operation 15 answers only at the write, which no refused call reaches.
 
 The case space, and the rule that owns each case:
 
@@ -176,7 +170,6 @@ The case space, and the rule that owns each case:
 | [Expire] | notification is pending, attempted or not | ok | [Pending] → [Expired], lapse instant stamped (Operation 12, Operation 13) |
 | any terminal transition | notification already terminal | [Not Pending] | none — including a second [Deliver] (Operation 9) |
 | any terminal transition | id names nothing | [Not Known] | none (Operation 8) |
-| any call | the database read fails | [State Unavailable] | none — no guard ran, whatever else the call carries (Operation 27, Operation 28, Operation 29) |
 | any write | database refuses | [Storage Failure] | none (Operation 7, Operation 15, Operation 16) |
 | [Status Of] | id names a notification | its stored fields | none — the call reads (Operation 17, Operation 22) |
 | [Status Of] | id names nothing | not-known | none (Operation 18) |
@@ -235,7 +228,7 @@ The case space, and the rule that owns each case:
   ```
   Invariant 9.1: The atom MUST NOT delete a notification record.
   Invariant 9.2: The notification set MUST NOT shrink.
-  Invariant 9.3: IF database read EQUALS answered THEN [Status Of] MUST answer a created notification's fields for the database's life.
+  Invariant 9.3: [Status Of] MUST answer a created notification's fields for the database's life.
   ```
 
 Immutability and durability give *auditability* — the delivery history is the database, with no gaps. Exclusivity and the status-stamp match give the *unambiguous record* property — one outcome per notification, with a stable time. Monotonicity and ordering make [Pending For] a deterministic snapshot of what is still unresolved.
@@ -417,7 +410,7 @@ Term records: notification — one delivery record, carrying notification id, re
 
 Term record verbs: identify, allocate, supply, reuse, carry, compare, trim, normalize, case-fold, read, stand, stamp, offer, delete, hold, record, answer, accept, leave, refuse, order, write, change, move, set, share, shrink, keep, own, evaluate, choose, retry, create, deliver, validate, deduplicate, purge, gate, expire, enumerate, call, compose, guard, declare, find, reconstruct, raise, require, precede.
 
-Term value sets: status = pending | delivered | failed | expired. terminal stamp = delivery instant | failure instant | lapse instant. database read = answered | failed.
+Term value sets: status = pending | delivered | failed | expired. terminal stamp = delivery instant | failure instant | lapse instant.
 
 Term bounds: string cap (the deployment's bound on the recipient reference's length).
 
@@ -425,17 +418,17 @@ Term cadences: empty — a delivery window is the composing pattern's (Operation
 
 Term qualifiers: migrated — rewritten in GRACE lang v0.35 (2026-09-12).
 
-Term terms: notification, notification id, recipient reference, payload, seam, transition, business caller, now, string cap, status, terminal stamp, creation instant, terminal transition, pending at an instant, database read, create refusal order, terminal refusal order.
+Term terms: notification, notification id, recipient reference, payload, seam, transition, business caller, now, string cap, status, terminal stamp, creation instant, terminal transition, pending at an instant, terminal refusal order.
 
 #### Create
 
-The behavior that records a new delivery record. It assigns a fresh [Notification Id] (host-allocated at the seam), records [Recipient Reference], [Payload], and [Creation Instant], and returns the [Notification Id] (or [Invalid Request]). The record enters [Pending]. A call whose read of the notification records fails is refused [State Unavailable] before its request fields are evaluated (Operation 28).
+The behavior that records a new delivery record. It assigns a fresh [Notification Id] (host-allocated at the seam), records [Recipient Reference], [Payload], and [Creation Instant], and returns the [Notification Id] (or [Invalid Request]). The record enters [Pending].
 
 Kind: Operation
 
 #### Deliver
 
-The behavior that records successful delivery, transitioning a [Pending] notification to terminal [Delivered] and stamping [Delivery Instant]. Rejected for an unknown id ([Not Known]) or a non-[Pending] notification ([Not Pending]). A call whose read of the notification records fails is refused [State Unavailable] before either is evaluated (Operation 29).
+The behavior that records successful delivery, transitioning a [Pending] notification to terminal [Delivered] and stamping [Delivery Instant]. Rejected for an unknown id ([Not Known]) or a non-[Pending] notification ([Not Pending]).
 
 Kind: Operation
 
@@ -453,13 +446,13 @@ Kind: Operation
 
 #### Status Of
 
-The read-only query returning the full record for a [Notification Id] in any state, or [Not Known] if no notification has that id. Never transitions. A call whose read of the notification records fails is refused [State Unavailable].
+The read-only query returning the full record for a [Notification Id] in any state, or [Not Known] if no notification has that id. Never transitions.
 
 Kind: Operation
 
 #### Pending For
 
-The read-only query returning the [Notification Id] values of all [Pending] notifications addressed to a [Recipient Reference] (unordered; excludes terminals, Invariant 7). Never transitions. A call whose read of the notification records fails is refused [State Unavailable].
+The read-only query returning the [Notification Id] values of all [Pending] notifications addressed to a [Recipient Reference] (unordered; excludes terminals, Invariant 7). Never transitions.
 
 Kind: Operation
 
@@ -603,15 +596,6 @@ Member of:  the action rejection
 Role:       Outcome
 Projection: storage-failure
 
-#### State Unavailable
-
-The refusal any action ([Create], [Deliver], [Fail], [Expire], [Status Of], [Pending For]) returns when the read the call makes of the notification records fails — the Execution Contract's Step 1 failure (Operation 27). No guard ran and nothing is written, the call may be retried, and the answer says nothing about whether a notification exists or what status it stands in.
-
-Kind:       Member
-Member of:  the action rejection
-Role:       Outcome
-Projection: state-unavailable
-
 <!-- Term registry — shortcut-reference definitions. These produce no visible
      output; each resolves a [Term] marker to its term entry heading above (kramdown
      auto-generates the heading anchors on GitHub Pages). Standard CommonMark /
@@ -640,7 +624,6 @@ Projection: state-unavailable
 [Not Known]: #not-known
 [Not Pending]: #not-pending
 [Storage Failure]: #storage-failure
-[State Unavailable]: #state-unavailable
 
 ---
 
@@ -685,5 +668,7 @@ Directional changes only — the turns a future reader must know the pattern too
 - **2026-10-20 — The store's guarantees cited, not restated.** *Chose:* the notification store supplied under Execution Contract Store 1 through 4 (Capability requirement 4), and the four rules that restated them tombstoned to their owner — Terminal atomicity 1, a terminal transition changing status and the terminal stamp together, to Store 1; Terminal atomicity 2 and 3, no crash inside a terminal transition leaving a terminal status without its stamp or a stamp on a pending notification, to Store 1 and Store 3; Terminal atomicity 4, two terminal transitions on one notification id serialized, to Store 2; rules 130 to 127. *Over:* the atom restating, for its own store, what every deployment's store guarantees. *Because:* the maintainer ruled 2026-10-12 that the corpus takes a store's specification, never the store, and `execution-contract.md` writes it once as the Store contract. A refused call leaving the notification as the call found it stays the atom's own (Operation 16), as do the caller's reading of a refused deliver (Deliver persistence 1 through 4), the payload kept for the store's life and a composed purge leaving every stored field as written (Payload retention 1 through 5), the recorded fields and a landed stamp that never change (Invariant 1.1, Invariant 1.2) and the atom's durability (State 10, Invariant 9.1 through 9.3). Pending at an instant is read from the creation instant and terminal stamp each notification carries, and [Pending For] answers unordered, so the atom cites neither History 1 nor Order 1. What the atom does for its domain is unchanged.
 
 - **2026-10-21 — The string cap bounds the recipient reference, and the deployment supplies it; a failed read answers on every action, each writing shape's refusals in one stated order; the wiring declaration is an external check.** *Chose:* String 6's cap on the recipient reference alone, the payload left unmeasured as Operation 6 and Non-goal 10 say (a payload too large to keep is the database's refusal, Operation 7), and Capability requirement 5 obliging the deployment to supply the cap; state-unavailable on all six actions where the read of the notification records fails, the Execution Contract's Step 1 failure (Operation 27, Term database read), [Create]'s refusals and a terminal transition's each evaluated in one order with the read first (Operation 28, Operation 29), and the reads' answer rules held to an answered read (Operation 17 through 19, Invariant 9.3); Check 6.1 deleted to External check 5, the auditor reading which composing patterns a deployment wired in from the deployment's own declaration. *Over:* a cap that reached a payload the atom may neither read nor validate, as Final Critique 4's String input policy had it reach both string inputs; a cap no rule obliged anyone to supply; six actions with no answer for a read that fails; and a conformance check no notification record can answer. *Because:* Final Critique 5 found each a divergence between conforming builds, two rules no build can both obey, or a check a conforming deployment fails, and the corpus held each cure: the page's own payload rules, which say four times that the atom never reads a payload; the requirement form Credential, Party Identity and Medication Order give a length bound; the failed-read form Actor Identity, Approval Step, Capability and Duplicate Prevention carry; and the external check to which six atoms moved the same check. What each action does on a call it admits is unchanged, save that a payload is no longer measured against the cap.
+
+- **2026-10-21 — A failed read answers as the Execution Contract says.** *Chose:* the failed read cited from the Execution Contract (Capability requirement 4, Execution Contract Read 1 through 3) and the two rules that restated it deleted to it: the atom-wide state-unavailable (Operation 27) to Read 1, and the create refusal order (Operation 28), whose rules after the read both answer invalid-request, to Read 1; the read's condition off the read answers it held to an answered read (Operation 17 through 19, Invariant 9.3), the read off the terminal refusal order, Term database read deleted, and state-unavailable off every signature and the case table; rules 131 to 129. *Over:* the page stating for itself what every action answers when the notification records cannot be read. *Because:* the maintainer ruled on 2026-10-21 that the Execution Contract states the failed read once; this page's fifth Final Critique had made one of the cures the contract's Read family is written from. What each action answers on an answered read is unchanged, and Invariant 9, which Notification Fanout cites, holds on every answered read as it did.
 
 NOTE: End of Notification.

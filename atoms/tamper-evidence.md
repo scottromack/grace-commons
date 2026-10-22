@@ -82,7 +82,7 @@ Term evidence field: evidence id | record set reference | proof | sealing instan
 
 ```
 Capability requirement 1: The deployment MUST supply now at the seam.
-Capability requirement 2: The deployment MUST supply the seal records PER Execution Contract Database 1, Execution Contract Database 3 and Execution Contract Database 4.
+Capability requirement 2: The deployment MUST supply the seal records PER Execution Contract Database 1, Execution Contract Database 3, Execution Contract Database 4 and Execution Contract Read 1 through 3.
 Capability requirement 3: The deployment MUST declare the deployment's mechanism.
 ```
 
@@ -91,15 +91,13 @@ Capability requirement 3: The deployment MUST declare the deployment's mechanism
 ```
 seal(record_set_ref, mechanism_credential)
   answers evidence_id
-  refuses invalid-request | mechanism-failure(mechanism failure reason) | state-unavailable | storage-failure
+  refuses invalid-request | mechanism-failure(mechanism failure reason) | storage-failure
 
 verify(evidence_id, original_record_set)
   answers verified | failed-verification(verification failure) | not-known
-  refuses state-unavailable
 
 read()
   answers every evidence
-  refuses state-unavailable
 ```
 
 Term mechanism failure reason: unreadable-records | keying-precondition | anchor-unreachable — the reasons [Seal] gives for a mechanism failure.
@@ -120,8 +118,8 @@ Operation 10: IF the database refuses the write THEN [Seal] MUST answer storage-
 Operation 11: [Seal] MUST discard the proof on storage-failure.
 Operation 12: [Seal] MUST NOT alter a recorded evidence.
 Operation 13: [Verify] MUST take the original record set.
-Operation 14: [Verify] MUST answer EXACTLY ONE OF verified, failed-verification, not-known, state-unavailable.
-Operation 15: IF database read EQUALS answered AND no evidence EXISTS for the evidence id THEN [Verify] MUST answer not-known.
+Operation 14: [Verify] MUST answer EXACTLY ONE OF verified, failed-verification, not-known.
+Operation 15: IF no evidence EXISTS for the evidence id THEN [Verify] MUST answer not-known.
 Operation 16: IF evidence EXISTS for the evidence id AND record set match EQUALS no THEN [Verify] MUST answer record-set-mismatch.
 Operation 17: IF record set match EQUALS yes AND seal check EQUALS unavailable THEN [Verify] MUST answer mechanism-verification-unavailable.
 Operation 18: IF record set match EQUALS yes AND seal check EQUALS failed THEN [Verify] MUST answer proof-invalid.
@@ -135,11 +133,11 @@ Deleted: Operation 23. Execution Contract Logic confinement 3 owns it.
 Deleted: Operation 24. Execution Contract Logic confinement 3 owns it.
 Operation 25: The business caller MUST NOT supply sealing instant.
 Operation 26: The implementation MUST own the mechanism.
-Operation 27: IF database read EQUALS answered THEN [Read] MUST answer EVERY evidence.
+Operation 27: [Read] MUST answer EVERY evidence.
 Operation 28: [Read] MUST answer an evidence's evidence id, record set reference, proof, sealing instant AND anchoring instant.
 Operation 29: [Read] MUST NOT write.
-Operation 30: [Read] MUST answer state-unavailable ONLY IF database read EQUALS failed.
-Operation 31: IF database read EQUALS failed THEN the atom MUST answer state-unavailable.
+Deleted: Operation 30. Operation 27 and Execution Contract Read 2 own it.
+Deleted: Operation 31. Execution Contract Read 1 owns it.
 Operation 32: [Seal] MUST NOT evaluate a rule of the seal refusal order BEFORE EVERY earlier rule of the seal refusal order has answered no refusal.
 NOTE: watch the refusal order (Operation 32).
 Operation 33: [Verify] MUST answer verified ONLY IF seal check EQUALS held.
@@ -153,27 +151,22 @@ Term original record set: the record set a verifier presents at [Verify] — an 
 
 Term verification set: the evidence's own fields, the presented original record set, the host-injected record set match, and, where the mechanism's verification function consults one, that mechanism's own external anchor; everything [Verify] is allowed to read, and nothing else.
 
-Term database read: answered | failed — the outcome of the read a call makes of the seal records, failed being the failure the section titled Step 1 failure in `execution-contract.md` names.
-
-Term seal refusal order: Operation 31, Operation 6 through 7, Operation 9 — [Seal]'s refusal rules, earliest first; Operation 10 answers only at the write, which no refused call reaches.
+Term seal refusal order: Operation 6 through 7, Operation 9 — [Seal]'s refusal rules, earliest first; Operation 10 answers only at the write, which no refused call reaches.
 
 The case space, and the rule that owns each case:
 
 | Call | Case | Answer | Effect on the seal records |
 |---|---|---|---|
 | [Seal] | credential and reference well-formed, mechanism computes, database accepts | evidence id | one evidence lands in [Sealed] (Operation 1, Operation 2) |
-| [Seal] | the database read fails | [State Unavailable] | none (Operation 31) |
 | [Seal] | blank reference, or absent credential | [Invalid Request] | none (Operation 6, Operation 7) |
 | [Seal] | mechanism cannot compute the proof | [Mechanism Failure] | none (Operation 9) |
 | [Seal] | database refuses the write | [Storage Failure] | none — the proof is discarded (Operation 10, Operation 11) |
-| [Verify] | the database read fails | [State Unavailable] | none (Operation 31) |
 | [Verify] | no evidence under that id | [Not Known] | none — the call reads (Operation 15, Operation 20) |
 | [Verify] | evidence found, wrong records presented | [Record Set Mismatch] | none (Operation 16) |
 | [Verify] | right records, verification service unreachable | [Mechanism Verification Unavailable] | none (Operation 17) |
 | [Verify] | right records, proof does not hold | [Proof Invalid] | none (Operation 18) |
 | [Verify] | right records, proof holds | [Verified] | none (Operation 19, Operation 33) |
-| [Read] | the database read fails | [State Unavailable] | none (Operation 30, Operation 31) |
-| [Read] | the database read answers | every evidence, with its stored fields | none (Operation 27 through 29) |
+| [Read] | any call | every evidence, with its stored fields | none (Operation 27 through 29) |
 
 Where two [Seal] cases hold at once, the earlier rule of the seal refusal order answers (Operation 32).
 
@@ -211,7 +204,7 @@ Where two [Seal] cases hold at once, the earlier rule of the seal refusal order 
   ```
 - **Invariant 7 — Verification consistency under a fixed record set.**
   ```
-  Invariant 7.1: IF no verification answering mechanism-verification-unavailable EXISTS among two verifications of one evidence against one record set AND no verification answering state-unavailable EXISTS among the two verifications THEN the two verifications MUST answer alike.
+  Invariant 7.1: IF no verification answering mechanism-verification-unavailable EXISTS among two verifications of one evidence against one record set THEN the two verifications MUST answer alike.
   ```
 - **Invariant 8 — Mechanism opacity.**
   ```
@@ -300,7 +293,7 @@ Check 1.2: An auditor MUST NOT need state beyond those fields and the originatin
 Check 2.1: An auditor MUST verify an evidence with the auditor's own implementation of the mechanism's verification function (Invariant 4.1, Operation 13).
 Check 2.2: An auditor MUST NOT need privileged access to the system to verify (Invariant 4.2).
 Check 3.1: An auditor MUST confirm that a single-byte change to the record set yields proof-invalid (Invariant 2.1, Operation 18).
-Check 4.1: An auditor MUST read verified, failed-verification, not-known and state-unavailable as four distinct answers (Operation 14).
+Check 4.1: An auditor MUST read verified, failed-verification and not-known as three distinct answers (Operation 14).
 Check 4.2: An auditor MUST read record-set-mismatch, proof-invalid and mechanism-verification-unavailable as three distinct reasons (Operation 16, Operation 17, Operation 18).
 Check 5.1: IF the mechanism anchors at seal time THEN an auditor MUST bound a detected tampering between two adjacent anchoring instant times (Invariant 2.1, Identity 8).
 Check 5.2: An auditor MUST read a bound between two adjacent sealing instant times as best-effort (Non-goal 8).
@@ -399,7 +392,7 @@ Term records: evidence — one commitment, carrying evidence id, record set refe
 
 Term record verbs: judge, identify, allocate, supply, reuse, carry, stand, order, offer, store, compute, record, stamp, consume, accept, answer, discard, alter, take, read, own, write, change, verify, consult, set, share, hold, delete, shrink, leave, reconstruct, need, confirm, bound, prevent, compose, anchor, choose, bind, vouch, purge, define, present, deduplicate, rest, re-seal, cache, declare, renumber, add, refuse, evaluate.
 
-Term value sets: record set match = yes | no. seal check = held | failed | unavailable. database read = answered | failed. evidence field = evidence id | record set reference | proof | sealing instant | anchoring instant. evidence state = sealed.
+Term value sets: record set match = yes | no. seal check = held | failed | unavailable. evidence field = evidence id | record set reference | proof | sealing instant | anchoring instant. evidence state = sealed.
 
 Term bounds: empty.
 
@@ -407,7 +400,7 @@ Term cadences: empty — a seal cadence is the composing pattern's (Composition 
 
 Term qualifiers: migrated — rewritten in GRACE lang v0.35 (2026-09-11); sound — a mechanism with no known practical collision or forgery attack.
 
-Term terms: now, evidence, evidence id, record set reference, seam, transition, business caller, sealed, proof, sealing instant, anchoring instant, mechanism credential, evidence field, record set match, seal check, original record set, verification set, database read, seal refusal order, mechanism failure reason, verification failure.
+Term terms: now, evidence, evidence id, record set reference, seam, transition, business caller, sealed, proof, sealing instant, anchoring instant, mechanism credential, evidence field, record set match, seal check, original record set, verification set, seal refusal order, mechanism failure reason, verification failure.
 
 #### Evidence
 
@@ -423,13 +416,13 @@ Kind: Operation
 
 #### Verify
 
-The read-only behavior an auditor or composing pattern invokes to confirm a recorded [Evidence], by id, against a presented record set. It re-runs the mechanism's verification function over the [Original Record Set] against the stored [Proof] and returns [Verified], [Failed Verification], or [Not Known], or refuses with [State Unavailable] when the seal records cannot be read. It changes nothing. Unlike Actor Identity's verify, it requires the originating record set as input, because the [Proof] commits to the records' content.
+The read-only behavior an auditor or composing pattern invokes to confirm a recorded [Evidence], by id, against a presented record set. It re-runs the mechanism's verification function over the [Original Record Set] against the stored [Proof] and returns [Verified], [Failed Verification], or [Not Known]. It changes nothing. Unlike Actor Identity's verify, it requires the originating record set as input, because the [Proof] commits to the records' content.
 
 Kind: Operation
 
 #### Read
 
-The read-only query answering every evidence the database holds, each with its stored fields. It changes nothing, and refuses only with [State Unavailable], when the seal records cannot be read.
+The read-only query answering every evidence the database holds, each with its stored fields. It changes nothing.
 
 Kind: Operation
 
@@ -586,15 +579,6 @@ Member of:  the Seal rejection
 Role:       Outcome
 Projection: storage-failure
 
-#### State Unavailable
-
-The refusal [Seal], [Verify] or [Read] returns when the read the call makes of the database fails — the Execution Contract's Step 1 failure. Nothing is decided or written, the call may be retried, and the answer says nothing about whether an [Evidence] exists.
-
-Kind:       Member
-Member of:  the Seal, Verify and Read rejections
-Role:       Outcome
-Projection: state-unavailable
-
 <!-- Term registry — shortcut-reference definitions. These produce no visible
      output; each resolves a [Term] marker to its term entry heading above (kramdown
      auto-generates the heading anchors on GitHub Pages). Standard CommonMark /
@@ -622,7 +606,6 @@ Projection: state-unavailable
 [Invalid Request]: #invalid-request
 [Mechanism Failure]: #mechanism-failure
 [Storage Failure]: #storage-failure
-[State Unavailable]: #state-unavailable
 
 ---
 
@@ -683,5 +666,7 @@ Directional changes only — the turns a future reader must know the pattern too
 - **2026-10-19 — The store's guarantees cited, not restated.** *Chose:* the seal store supplied under Execution Contract Store 1, Store 3 and Store 4 (Capability requirement 2), and the four rules that restated them tombstoned to their owner — Invariant 9.3, no partial evidence on a storage-failure, and Seal atomicity 1, a seal atomic, to Store 1; Seal atomicity 2, no evidence left by a crash with a proof the mechanism did not produce, to Store 1 and Store 3; Seal atomicity 3, the deployment owning the seal store's durability, to Store 3; rules 106 to 103. *Over:* the atom restating, for its own store, what every deployment's store guarantees. *Because:* the maintainer ruled 2026-10-12 that the corpus takes a store's specification, never the store, and `execution-contract.md` writes it once as the Store contract. Discarding the proof on a storage-failure stays (Operation 11): it binds the proof outside the store as well. What the atom does for its domain is unchanged.
 
 - **2026-10-21 — Record set match decides which record set and the seal check its content; the contract covers mechanisms checkable from the verification set; a failed read answers on every action.** *Chose:* record set match answering yes for the named record set whatever its content, the content left to the seal check (Term record set match), so a change is detected where the right records are presented and the check can run (Invariant 2.1), the proof is bound to the record set presented at [Seal] (Invariant 3.1), two verifications answer alike unless one answers mechanism-verification-unavailable or state-unavailable (Invariant 7.1), and the verification set names the record set match the verdict rules read; verified obliged for the right records under a seal check that holds (Operation 19, Operation 33); the contract held for every sound mechanism whose verification function consults no source outside the verification set, so a chain keyed by a shared secret is outside it and the payments example is a signed hash chain (Invariant 8.1); state-unavailable on all three actions where the read of the seal store fails, the Execution Contract's Step 1 failure (Operation 31, Term store read), with [Seal]'s refusals in one stated order, the store read first (Operation 32, Term seal refusal order); the composing patterns and the mechanism read from the deployment's own declaration (External check 3, External check 4, Capability requirement 3). *Over:* a match a host could decide by content, which reports tampering as a caller error; detectability and binding rules that the page's own wrong-record and altered-record examples break; no answer obliged for a proof that holds; a neutrality claim taking in mechanisms no auditor can check from the records; a read forbidden to refuse a store it cannot read; conformance checks reading what the records do not carry. *Because:* Final Critique 5 found each a divergence between conforming builds or a rule no conforming build could keep, and the page already held the line: its Summary rests the guarantee on what is detectable from the records alone, and its Intent names only mechanisms a verifier checks without a secret; Actor Identity's fifth round cured a failed store read, a one-way verified rule and a declaration-reading check the same way. Compositions affected: Audit Trail, which presents its seals to this atom, routes state-unavailable from [Verify] and [Read] when its round reads them.
+
+- **2026-10-21 — A failed read answers as the Execution Contract says.** *Chose:* the failed read cited from the Execution Contract (Capability requirement 2, Execution Contract Read 1 through 3) and the two rules that restated it deleted to it: the atom-wide state-unavailable (Operation 31) to Read 1, and [Read]'s state-unavailable on a failed read alone (Operation 30) to Read 2 beside Operation 27; the read's condition off the rules it held to an answered read (Operation 14, Operation 15, Operation 27), the failed read off the verifications Invariant 7.1 compares, which Read 2 holds to verifications whose reads answered, the read off the seal refusal order, Term database read deleted, state-unavailable off every signature and off the answers Check 4.1 tells apart; rules 106 to 104. *Over:* the page stating for itself what every action answers when the seal records cannot be read. *Because:* the maintainer ruled on 2026-10-21 that the Execution Contract states the failed read once; this page's fifth Final Critique had made one of the cures the contract's Read family is written from. A mechanism that cannot verify keeps its own answer, mechanism-verification-unavailable: the mechanism is no read of the database. What each action answers on an answered read is unchanged.
 
 NOTE: End of Tamper Evidence.

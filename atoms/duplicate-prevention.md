@@ -65,7 +65,7 @@ Term under guard: an identity in the recorded set whose elapsed term is less tha
 
 ```
 Capability requirement 1: The deployment MUST supply now at the seam.
-Capability requirement 2: The deployment MUST supply the database PER Execution Contract Database 1 through 4.
+Capability requirement 2: The deployment MUST supply the database PER Execution Contract Database 1 through 4 and Execution Contract Read 1 through 3.
 ```
 
 ### Operations
@@ -73,11 +73,10 @@ Capability requirement 2: The deployment MUST supply the database PER Execution 
 ```
 record(identity)
   answers ok
-  refuses state-unavailable | storage-failure
+  refuses storage-failure
 
 check(identity)
   answers seen | not-seen
-  refuses state-unavailable
 ```
 
 ```
@@ -85,21 +84,19 @@ Operation 1: A landed record MUST place an identity that is not under guard unde
 Operation 2: A landed record MUST stamp the recording instant of an identity that is not under guard from the injected now.
 Operation 3: A landed record MUST answer ok.
 Operation 4: [Record] MUST NOT refuse a call on the ground that the identity is under guard.
-Operation 5: [Check] MUST answer EXACTLY ONE OF seen, not-seen, state-unavailable.
-Operation 6: IF database read EQUALS answered THEN [Check] MUST answer seen for an identity under guard.
-Operation 7: IF database read EQUALS answered THEN [Check] MUST answer not-seen for an identity that is not under guard.
+Operation 5: [Check] MUST answer EXACTLY ONE OF seen, not-seen.
+Operation 6: [Check] MUST answer seen for an identity under guard.
+Operation 7: [Check] MUST answer not-seen for an identity that is not under guard.
 Deleted: Operation 8. Capability requirement 1 owns it.
 Deleted: Operation 9. Execution Contract Logic confinement 3 owns it.
 Deleted: Operation 10. Execution Contract Logic confinement 3 owns it.
 Operation 11: The containing pattern MUST supply EXACTLY ONE window duration per instance of the atom.
 Operation 12: The containing pattern MUST own the response to an answer.
-Operation 13: IF database read EQUALS failed THEN the atom MUST answer state-unavailable.
+Deleted: Operation 13. Execution Contract Read 1 owns it.
 Operation 14: IF the database refuses the write THEN [Record] MUST answer storage-failure.
 ```
 
-Term database read: answered | failed — the outcome of the read a call makes of the recorded set, failed being the failure the section titled Step 1 failure in `execution-contract.md` names.
-
-Term landed record: a [Record] call whose database read EQUALS answered and whose write, where the call makes one, the database commits.
+Term landed record: a [Record] call whose write, where the call makes one, the database commits.
 
 The case space, and the rule that owns each case:
 
@@ -110,7 +107,6 @@ The case space, and the rule that owns each case:
 | [Record] | either, and the database refuses the write | [Storage Failure] | unchanged — for an identity that was not under guard, the guard is missed (Operation 14, Record failure 2) |
 | [Check] | yes | [Seen] | none — the call reads (Operation 6, Invariant 3.1) |
 | [Check] | no | [Not Seen] | none — the call reads (Operation 7, Invariant 3.1) |
-| [Record], [Check] | either, and the database read fails | [State Unavailable] | none — nothing is decided (Operation 13) |
 
 Term now: the wall-time reading the host takes at the seam and hands to the transition, as the section titled Logic Confinement Principle in `execution-contract.md` declares it; never read inside the transition, never supplied by the business caller.
 
@@ -177,7 +173,7 @@ Check 1.3: An auditor MUST find no guard extended by a second record (Invariant 
 Check 1.4: An auditor MUST find a fresh recording instant for a landed record against an identity that is not under guard (Invariant 2.3).
 Check 2.1: An auditor MUST find the recorded set unchanged across a check (Invariant 3.1).
 Deleted: Check 2.2. Check 2.1, Check 3.2 and Check 3.3 own it.
-Check 3.1: An auditor MUST find EVERY check answering EXACTLY ONE OF seen, not-seen, state-unavailable (Operation 5).
+Check 3.1: An auditor MUST find EVERY check answering EXACTLY ONE OF seen, not-seen (Operation 5).
 Check 3.2: An auditor MUST find a check answering seen for an identity under guard (Operation 6).
 Check 3.3: An auditor MUST find a check answering not-seen for an identity that is not under guard (Operation 7).
 Deleted: Check 3.4. Check 3.3 owns it.
@@ -274,15 +270,13 @@ Term records: recorded set — every identity placed under guard, one recording 
 
 Term record verbs: identify, treat, interpret, normalize, supply, hold, derive, stamp, place, answer, refuse, read, own, stand, extend, preserve, open, alter, decide, survive, reconcile, compose, anchor, correct, find.
 
-Term value sets: database read = answered | failed.
-
 Term bounds: window duration (the length a containing pattern chooses for a guard; window is the lowering token the [Window Duration] term entry carries).
 
 Term cadences: empty.
 
 Term qualifiers: migrated — rewritten in GRACE lang v0.35 (2026-09-11); under guard — recorded, and the guard's term not yet elapsed.
 
-Term terms: identity, matching rule, recorded set, recording instant, window duration, elapsed term, under guard, now, transition, seam, business caller, database read, landed record.
+Term terms: identity, matching rule, recorded set, recording instant, window duration, elapsed term, under guard, now, transition, seam, business caller, landed record.
 
 #### Identity
 
@@ -305,13 +299,13 @@ Projection: recorded
 
 #### Record
 
-The behavior a containing pattern invokes when it has just observed an [Identity] (for example, after removing an item) so that future repeats can be recognized. It places the [Identity] under guard, opening a [Window]. It never refuses an [Identity] for being under guard — recording one that is already under guard does not push its [Window] forward — and it answers [State Unavailable] when the [Recorded Set] cannot be read and [Storage Failure] when the database refuses its write.
+The behavior a containing pattern invokes when it has just observed an [Identity] (for example, after removing an item) so that future repeats can be recognized. It places the [Identity] under guard, opening a [Window]. It never refuses an [Identity] for being under guard — recording one that is already under guard does not push its [Window] forward — and it answers [Storage Failure] when the database refuses its write.
 
 Kind: Operation
 
 #### Check
 
-The behavior a containing pattern invokes before accepting a new [Identity], to ask whether that [Identity] is currently under guard. It only reads — it changes nothing — and reports its answer as [Seen] or [Not Seen], or [State Unavailable] when the [Recorded Set] cannot be read. What to do with the answer, an unavailable one included, is the containing pattern's decision.
+The behavior a containing pattern invokes before accepting a new [Identity], to ask whether that [Identity] is currently under guard. It only reads — it changes nothing — and reports its answer as [Seen] or [Not Seen]. What to do with an answer is the containing pattern's decision (Operation 12), a state-unavailable one included: proceeding as [Not Seen] is fail-open, as [Seen] fail-closed.
 
 Kind: Operation
 
@@ -357,15 +351,6 @@ Kind:         Parameter
 Parameter of: Check
 Projection:   now
 
-#### State Unavailable
-
-The refusal [Record] or [Check] returns when the read the call makes of the [Recorded Set] fails — the Execution Contract's Step 1 failure. Nothing is decided or written and the call may be retried; the answer says nothing about whether the [Identity] is under guard, and whether to proceed as [Not Seen] (fail-open) or as [Seen] (fail-closed) is the containing pattern's decision.
-
-Kind:       Member
-Member of:  the action rejection
-Role:       Outcome
-Projection: state-unavailable
-
 #### Storage Failure
 
 The refusal [Record] returns when the database refuses its write after the read answers — the Execution Contract's Step 3 failure. Nothing is written, so an [Identity] that was not under guard stays so and the guard is missed; what that means for an act already taken is the containing pattern's decision.
@@ -390,7 +375,6 @@ Projection: storage-failure
 [Recording Instant]: #recording-instant
 [Window Duration]: #window-duration
 [Now]: #now
-[State Unavailable]: #state-unavailable
 [Storage Failure]: #storage-failure
 
 ---
@@ -433,6 +417,8 @@ open:
 ## Decisions
 
 Directional changes only — the turns a future reader must know the pattern took, and why. Everything smaller lives in the commit that made it: `git log -- atoms/duplicate-prevention.md`; the rounds and the migration that got it here are in [its history](./duplicate-prevention.hist.md).
+
+- **2026-10-21 — A failed read answers as the Execution Contract says.** *Chose:* the failed read cited from the Execution Contract (Capability requirement 2, Execution Contract Read 1 through 3) and the rule that restated it, the atom-wide state-unavailable (Operation 13), deleted to Read 1; state-unavailable off [Check]'s answers (Operation 5, Check 3.1), the read's condition off the rules and the term it held to an answered read (Operation 6, Operation 7, Term landed record), Term database read deleted, and state-unavailable off both signatures and the case table; rules 51 to 50. *Over:* the page stating for itself what every action answers when the recorded set cannot be read. *Because:* the maintainer ruled on 2026-10-21 that the Execution Contract states the failed read once; this page's fifth Final Critique had made one of the cures the contract's Read family is written from. The response to a state-unavailable answer stays the containing pattern's (Operation 12): proceeding as not seen is fail-open, as seen fail-closed, and the atom decides neither.
 
 - **2026-10-21 — A failed read and a refused write answer as the Execution Contract answers them; the window duration is one per instance and the matching rule is applied before the call; nothing drops an entry, so the recorded set holds every identity placed under guard; two checks answer alike by the rules that fix each answer.** *Chose:* state-unavailable on both actions where the read of the recorded set fails (Operation 13, Term database read) and storage-failure on [Record] where the database refuses its write (Operation 14), with [Check]'s answers held to an answered read (Operation 5 through 7) and [Record]'s placing, stamping, ok and fresh guard held to a landed record (Operation 1 through 3, Invariant 2.3, Term landed record); Operation 4 refusing nothing on the ground that the identity is under guard; Record failure 1 deleted to Operation 14, and Check unavailability 1 through 4 and External check 5 to Operation 12, Operation 13 and Non-goal 1, so proceeding as not-seen or as seen on an unavailable read is the containing pattern's response to an answer; one window duration for each instance of the atom (Operation 11); each identity supplied already reduced to the value the containing pattern's matching rule compares by (Identity 5); Invariant 4.1, Non-goal 6 and Lazy expiry 1 through 3 deleted to Operation 7 and Execution Contract Database 4, with Check 3.4 to Check 3.3, and the recorded set declared as every identity placed under guard, held whether or not its guard still runs; Invariant 3.2 deleted to Operation 6, Operation 7 and Invariant 3.1, and Check 2.2 to Check 2.1, Check 3.2 and Check 3.3. *Over:* a [Check] obliged to answer seen or not-seen and a [Record] obliged to answer ok where the contract answers state-unavailable and storage-failure, so a caller could be told a guard stood that the database never kept; a fail-open posture obliging not-seen for an identity under guard; a window duration two builds could take per call, per entry or at every read; a matching rule two builds could apply inside the atom or before the call; a drop obliged of a host that no declared action lets drop, beside a lazy host the page licensed to keep the entry; and two checks under one now said to answer alike across a [Record] between them. *Because:* Final Critique 5 found each a divergence between conforming builds or two rules no build can both obey, and the corpus held each cure: Actor Identity's, Permissions' and Capability's rounds answer the failed read and the refused write, the method's entry of 2026-10-08 deletes a broken rule to the rules that already hold its states, and Final Critique 4's own text configured the window per containing pattern. This turns three choices the 2026-10-20 entry kept — a failed write answering ok, the posture under an unavailable database declared by the deployment, and the host's drop as the atom's own — because the Database contract the atom takes (Capability requirement 2) and the contract's Step 1 and Step 3 failures leave no conforming build that can make them. What [Check] answers on a read that answers, and what [Record] does on a write that lands, are unchanged.
 
