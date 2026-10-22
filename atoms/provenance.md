@@ -107,7 +107,7 @@ Deleted: State 19. Execution Contract Database 3 owns it.
 
 ```
 Capability requirement 1: The deployment MUST supply now at the seam.
-Capability requirement 5: The deployment MUST supply the chain records PER Execution Contract Database 1 through 4 and Execution Contract Refusal 1.
+Capability requirement 5: The deployment MUST supply the chain records PER Execution Contract Database 1 through 4, Execution Contract Read 1 through 3 and Execution Contract Refusal 1.
 Deleted: Capability requirement 2. Execution Contract Logic confinement 7 owns it.
 Deleted: Capability requirement 3. Execution Contract Logic confinement 7 owns it.
 Deleted: Capability requirement 4. Execution Contract Logic confinement 7 owns it.
@@ -136,7 +136,7 @@ archive(chain_id, custodian_ref)
   answers entry_id
   refuses not-known | already-archived | invalid-ref | not-current-custodian | storage-failure
 
-read(chain_id, query)
+read(chain_id, optional query)
   answers entry_sequence
   refuses not-known | invalid-query
 ```
@@ -180,7 +180,7 @@ Operation 35: An admitted disclose MUST NOT change the artifact's custody.
 Operation 36: An appending action MUST take the entry's sequence number from next sequence number.
 Operation 37: An appending action MUST raise next sequence number by one.
 Deleted: Operation 38. Execution Contract Database 1 owns it.
-Operation 39: An appending action MUST answer the entry id.
+Operation 39: An admitted entry action MUST answer the entry id.
 Operation 40: An appending action MUST stamp recording instant from the injected now.
 Operation 41: IF the database refuses the write THEN an appending action MUST answer storage-failure.
 Operation 42: A refused action MUST leave the chain as the call found the chain.
@@ -193,7 +193,7 @@ Operation 48: IF a query range's end PRECEDES the range's start THEN [Read] MUST
 Operation 49: IF a query's event type IS NOT IN the event types THEN [Read] MUST answer invalid-query.
 Operation 50: [Read] MUST NOT write.
 Operation 51: [Read] MUST NOT answer storage-failure.
-Operation 52: IF the database refuses a read THEN [Read] MUST NOT answer a partial entry sequence.
+Deleted: Operation 52. Execution Contract Read 1 owns it.
 Operation 53: [Read] MUST NOT answer archived.
 Deleted: Operation 54. Capability requirement 1 owns it.
 Deleted: Operation 55. Execution Contract Logic confinement 3 owns it.
@@ -201,6 +201,8 @@ Deleted: Operation 56. Execution Contract Logic confinement 3 owns it.
 Deleted: Operation 57. Clock dependence 2 owns it.
 Operation 58: An ordering rule MUST NOT rest on recording instant.
 ```
+
+NOTE: open 2026-10-22-a — [Read]'s query is declared nowhere: which filters it takes, whether a range holds its two ends, how two filters combine, and the operator for a sequence range's ends (Operation 47 through 49).
 
 Term now: the wall-time reading the host takes at the seam and hands to the transition, as the section titled Logic Confinement Principle in `execution-contract.md` declares it; never read inside the transition, never supplied by the business caller.
 
@@ -232,15 +234,19 @@ Term appending action: [Originate] | [Transfer] | [Transform] | [Disclose] | [Ar
 
 Term chain-state rejection: the archived answer a writer gives against a closed chain, and the already-archived answer [Archive] gives.
 
-Term admitted originate: an [Originate] call whose artifact reference, custodian reference and genesis type the guards all admit.
+Term admitted originate: an [Originate] call that passes every precondition and whose database writes commit.
 
-Term admitted transfer: a [Transfer] call whose chain id names an open chain and whose to custodian reference exists.
+Term admitted transfer: a [Transfer] call that passes every precondition and whose database writes commit.
 
-Term admitted transform: a [Transform] call whose chain id names an open chain, whose references and descriptor exist, and whose custodian reference matches the current custodian.
+Term admitted transform: a [Transform] call that passes every precondition and whose database writes commit.
 
-Term admitted disclose: a [Disclose] call whose chain id names an open chain, whose references exist, and whose custodian reference matches the current custodian.
+Term admitted disclose: a [Disclose] call that passes every precondition and whose database writes commit.
 
-Term admitted archive: an [Archive] call whose chain id names an open chain, whose custodian reference exists and matches the current custodian.
+Term admitted archive: an [Archive] call that passes every precondition and whose database writes commit.
+
+Term admitted entry action: an admitted transfer, an admitted transform, an admitted disclose OR an admitted archive.
+
+NOTE: watch the admitted effect (Operation 5 through 9, Operation 19 through 21, Operation 28 through 35, Operation 39).
 
 The case space, and the rule that owns each case:
 
@@ -327,6 +333,8 @@ A manufacturer opens the chain: `originate(artifact_ref: "batch-x91", custodian_
 
 A regulator asks whether custody was unbroken. `read("chain-0041")` answers five entries in sequence order. Every transferred entry's from custodian reference equals the prior entry's to custodian reference, or the genesis custodian reference for the first transfer. Invariant 4 is the structural answer.
 
+Weeks later the hospital returns part of the batch for re-inspection, and the return opens a second chain for the same artifact rather than reopening the archived one (Identity 10, Invariant 6): `originate(artifact_ref: "batch-x91", custodian_ref: "qa-returns-2", genesis_type: received, metadata: "returned by pharm-hosp-9; earlier custody in chain-0041")` → `chain-0052`. Its genesis entry takes `sequence_number: 1` with event type received and `qa-returns-2` as the first custodian (Operation 5 through 9). The chain records custody from intake forward; what came before intake stays in `chain-0041`, which the genesis metadata names (State 9, Non-goal 8).
+
 ### Legal evidence — a physical exhibit
 
 `originate(artifact_ref: "exhibit-A", custodian_ref: "det-r.james", genesis_type: originated)` → `chain-0107`. The exhibit moves to the evidence room (`e2`), then the lab (`e3`). The lab records its work: `transform("chain-0107", "forensic-lab-12", "fingerprint-lifted; DNA-sample-taken; original-exhibit-intact")` → `e4`. It returns to the evidence room (`e5`). The chain stands open pending trial.
@@ -351,7 +359,7 @@ The same call against the chain while it stood open, after custody had moved to 
 
 `read("chain-0041", {sequence_range: [5, 2]})` → invalid-query. The caller corrects the query rather than reading an empty answer as *no entries matched* (Operation 47, Operation 48).
 
-`transfer("chain-0107", "forensic-lab-12")` while the database's write path is down → storage-failure. Every precondition passed and the write did not; no entry is appended, no sequence number is taken, and the current custodian holds its prior value (Operation 41 through 45).
+`transfer("chain-0107", "forensic-lab-12")` while the database's write path is down → storage-failure. Every precondition passed and the write did not; no entry is appended, no sequence number is taken, and the current custodian holds its prior value (Operation 41 through 44, Execution Contract Refusal 1).
 
 ### Regulated adversarial scenarios
 
@@ -385,7 +393,14 @@ Check 7.3: An auditor MUST find no entry id repeated within a chain (Identity 16
 Check 7.4: An auditor MUST find no chain id repeated within a database instance (Identity 15).
 ```
 
-NOTE: EVERY check names the rule the check tests.
+NOTE: EVERY check names the rule the check tests. Which composing patterns a deployment wired in is the deployment's own declaration, not a stored field (External check 1).
+
+### External checks
+
+```
+External check 1: An auditor MUST identify from the deployment's own declaration which composing patterns the deployment wired in (Composition note 1).
+NOTE: watch the wiring declaration (External check 1).
+```
 
 ## Non-goals
 
@@ -487,7 +502,7 @@ Term maximum length: the deployment's cap per string input.
 Correction 1: The atom MUST NOT edit an entry.
 Correction 2: The atom MUST NOT remove an entry.
 Correction 3: The current custodian MUST record a correction as a subsequent entry.
-Correction 4: A correcting entry MUST name the corrected entry's sequence number.
+Correction 4: A correcting entry MUST stand as a transformed entry whose transformation descriptor names the corrected entry's sequence number.
 ```
 
 ---
@@ -529,7 +544,7 @@ Term cadences: empty.
 
 Term qualifiers: migrated — rewritten in GRACE lang v0.39 (2026-09-12).
 
-Term terms: chain, entry, chain id, artifact reference, entry id, custodian reference, database instance, seam, transition, now, business caller, genesis type, genesis types, event type, event types, chain state, current custodian, sequence number, next sequence number, recording instant, from custodian reference, to custodian reference, transformation descriptor, recipient reference, metadata, addressed action, custodian-guarded action, appending action, chain-state rejection, admitted originate, admitted transfer, admitted transform, admitted disclose, admitted archive, string input, reference, blank, maximum length.
+Term terms: chain, entry, chain id, artifact reference, entry id, custodian reference, database instance, seam, transition, now, business caller, genesis type, genesis types, event type, event types, chain state, current custodian, sequence number, next sequence number, recording instant, from custodian reference, to custodian reference, transformation descriptor, recipient reference, metadata, addressed action, custodian-guarded action, appending action, chain-state rejection, admitted originate, admitted transfer, admitted transform, admitted disclose, admitted archive, admitted entry action, string input, reference, blank, maximum length.
 
 #### Originate
 
@@ -830,7 +845,7 @@ Provenance is an infrastructure primitive with regulatory anchoring across pharm
 
 - **ISO 23081 (Information and documentation — Managing metadata for records)** — the International Organization for Standardization's standard on records-management metadata. Provenance is a required element in ISO 23081-compliant records; the atom's chain-of-custody entries map directly to the origin, transfer, and transformation metadata elements ISO 23081 specifies.
 
-- **W3C PROV (Provenance Data Model — W3C's RDF-based standard for representing provenance)** — the atom models the linear single-artifact custody slice of PROV's entity/activity/agent framework. PROV expresses a DAG of provenance relationships; this atom is the linear spine of a single-entity PROV graph — the `wasGeneratedBy`, `used`, and `wasAttributedTo` relationships along a single entity's chain. The deliberate non-goal of `wasDerivedFrom` (DAG derivation) and artifact splitting (one entity split into several) are both out-of-scope relative to the full PROV model.
+- **W3C (the World Wide Web Consortium) PROV (Provenance Data Model — W3C's RDF (Resource Description Framework)-based standard for representing provenance)** — the atom models the linear single-artifact custody slice of PROV's entity/activity/agent framework. PROV expresses a DAG (directed acyclic graph) of provenance relationships; this atom is the linear spine of a single-entity PROV graph — the `wasGeneratedBy`, `used`, and `wasAttributedTo` relationships along a single entity's chain. The deliberate non-goal of `wasDerivedFrom` (DAG derivation) and artifact splitting (one entity split into several) are both out-of-scope relative to the full PROV model.
 
 - **FDA 21 CFR Part 211 (Current Good Manufacturing Practice — Finished Pharmaceuticals)** — US pharmaceutical manufacturing regulations requiring a chain-of-custody record for drug substances and products from manufacture through distribution. The atom's genesis + transfer + transformation + archive lifecycle is the operational form of Part 211's custodial recording requirements.
 
@@ -861,9 +876,10 @@ It inherits from:
 ```
 status: partially resolved
 formal: verified — provenance.als + 1 twin, 2026-06-04
-last gate: 2026-08-26 — Final Critique 7, fresh reader — clean
+last gate: 2026-10-22 — Final Critique 8, the council's first round on the page and the first since its GRACE-lang migration (21cf887) and its Store-contract rewrite (c95d16b), three fresh readers on free models (GRID Nemotron 3 Ultra, EOS Beam, Linus GLM-5.3 Flash), each handed only the round's reading set, three passes on one text (frozen at 0c1e8a8); the round rests on three counted passes — foundational count 1 after triage (7 reports: 1 standing; 6 sent down; 0 rejected), Kind A: Operation 39 obliged every appending action, [Originate] among them, to answer the entry id, where [Originate]'s signature and Operation 9 answer the chain id; 17 refining reports, 5 rhetorical reports; not clean; every foundational finding cured, every refining finding cured, routed or answered; 2026-08-26 — Final Critique 7, fresh reader — clean
 
-open: none
+open:
+- 2026-10-22-a · refining · Operation 47 through 49; the Examples · [Read]'s query is declared nowhere: its filters (the examples' sequence range and recording instant range, Operation 49's event type), whether a range holds its two ends, how two filters combine, and the operator for a sequence range's ends, which Operation 48 compares with PRECEDES, the instant operator (GRACE-lang Earned vocabulary 18) → declare the query and its filters as terms, and split Operation 48 by range
 ```
 
 ## Decisions
@@ -873,5 +889,7 @@ Directional changes only — the turns a future reader must know the pattern too
 - **2026-10-20 — The store's guarantees cited, not restated.** *Chose:* the chain store supplied under Execution Contract Store 1 through 4 (Capability requirement 5), and the twelve rules that restated them, or existed only for a store that could split an append, tombstoned to their owner — Operation 38, an append's entry and counter raise committed in one operation, Invariant 10.2, no partial record left by a storage-failure rejection, and Atomic writes 1 through 3, no reader observing an entry without its counter raise, a transferred entry without its custodian change or an archived entry without the chain's move to archived, to Store 1; Atomic writes 4, an uncommitted crash leaving the chain as the call found it, to Store 1 and Store 3; Atomic writes 5 through 7, the implementation resolving a dangling transition before the store serves a read or accepts an action, to Store 1, under which no append stands partly applied; State 19, next sequence number surviving a restart, to Store 3; Concurrency 1, two calls against one chain serialized, and Concurrency 3, the second serialized transfer reading the custodian the first set, to Store 2; rules 187 to 176. *Over:* the atom restating, for its own store, what every deployment's store guarantees, and keeping a crash-recovery protocol for a split append that no conforming store leaves. *Because:* the maintainer ruled 2026-10-12 that the corpus takes a store's specification, never the store, and `execution-contract.md` writes it once as the Store contract. What stays is the atom's own: a refused action leaving the chain as the call found it, appending no entry and taking no sequence number (Operation 42 through 44), the entry chain governing a cached current custodian that disagrees with a replay (State 18), every serialized transfer appending, since [Transfer] carries no custodian guard (Concurrency 2), the host serializing its own calls for a transfer conditional on the custodian (Concurrency 4), and the append-only chain the atom never edits (State 15 through 17, Invariant 1.1, Invariant 2.1, Invariant 2.2, Invariant 10.1, Correction 1, Correction 2). The sequence number is the chain's own dense order, taken inside the append, and no rule reads an earlier version of a record, so the atom cites neither History 1 nor Order 1. What the atom does for its domain is unchanged.
 
 - **2026-10-21 — Which refusal answers is the Execution Contract's.** *Chose:* each refuses line kept as the page wrote it, already in the page's order — [Originate] invalid-ref ahead of invalid-genesis-type; an addressed action not-known ahead of its chain-state rejection, the chain's state ahead of the attribution guard, invalid-ref ahead of not-current-custodian; storage-failure last, answering only at the write — and the order cited from the Execution Contract (Capability requirement 5, Execution Contract Refusal 1); the pairs that only stated it deleted to Refusal 1: Operation 4 (invalid-genesis-type only once both references are supplied), Operation 16 (a chain-state rejection only for a chain id naming a chain), Operation 27 (not-current-custodian only once every supplied reference is present) and Operation 45 (storage-failure behind every precondition); rules 176 to 172. *Over:* the page stating for itself which of an action's refusals answers when several apply. *Because:* the maintainer ruled on 2026-10-21 that the Execution Contract states once that the refusal listed first on an action's refuses line answers. What each action answers on every call is unchanged.
+
+- **2026-10-22 — An action answers what its signature names, and an admitted call is one whose writes commit.** *Chose:* Operation 39 held to an admitted entry action — an admitted transfer, transform, disclose or archive — so [Originate] answers the chain id alone and the four answer the entry id only on a call that lands; the five admitted terms written as a call that passes every precondition and whose database writes commit, so no effect rule reads a call a length bound or the database refuses. *Over:* Operation 39 obliging every appending action, [Originate] among them, to answer the entry id beside Operation 9 and [Originate]'s signature, and every refused call beside its refusal; and admitted terms that stopped at a reference being supplied. *Because:* Final Critique 8 found the first, and the corpus's admitted calls (Medication Order, Credential, Provisional Commitment, Party Identity, Invitation) already read as the second does. Smaller fixes rode with them: Operation 52 deleted to Execution Contract Read 1, with Read 1 through 3 cited on Capability requirement 5; [Read]'s query marked optional, as every example calls it; Correction 4 names the transformed entry a correction rides on, as Final Critique 7's text did; External check 1 asks the deployment for the patterns it wired in (Composition note 1); the storage-failure example cites Refusal 1 for the tombstoned Operation 45; acronyms glossed at first use; an example opens a second custody episode with the received genesis type; rules 172 to 172. What each action answers and writes on a call it admits is unchanged; [Originate] answers what its signature always named.
 
 NOTE: End of Provenance.
