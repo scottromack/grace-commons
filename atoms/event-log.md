@@ -145,7 +145,7 @@ The case space, and the rule that owns each case:
 | Call | Case | Answer | Effect on the log |
 |---|---|---|---|
 | [Append] | data within the cap, database accepts | event id | one event lands carrying next sequence number, and next sequence number rises (Operation 1, Operation 3, State 6) |
-| [Append] | data over the cap | [Invalid Payload] | none — the precondition failed before the write (Operation 5) |
+| [Append] | data over the cap | [Invalid Payload] | none — the precondition failed before the write (Operation 5, Execution Contract Read 4) |
 | [Append] | database refuses the write | [Storage Failure] | nothing lands; next sequence number is unchanged (Operation 9, Execution Contract Database 1) |
 | [Read] | query well-formed, events match | the events, ascending | none — the call reads (Invariant 5.1, Operation 17) |
 | [Read] | query well-formed, nothing matches | empty sequence | none (Operation 16) |
@@ -351,7 +351,7 @@ Term cadences: empty.
 
 Term qualifiers: migrated — rewritten in GRACE lang v0.35 (2026-09-11); landed — written by a successful append.
 
-Term terms: event id, seam, transition, business caller, event, sequence number, recording instant, data, log name, next sequence number, landed, event field, query, payload cap.
+Term terms: event id, seam, now, transition, business caller, event, sequence number, recording instant, data, log name, next sequence number, landed, event field, query, payload cap.
 
 #### Event Log
 
@@ -512,7 +512,7 @@ It inherits from:
 ```
 status: partially resolved
 formal: verified — event-log.tla + 1 twin, 2026-06-03
-last gate: 2026-10-22 — Final Critique 7, the council's third round on the page and the first on its text since Final Critique 6's settle (df5b550), three fresh readers on free models (GRID Nemotron 3 Ultra, EOS Beam, Linus GLM-5.3 Flash), each handed only the round's reading set, three passes on one text (frozen at 015e8dc); the round rests on three counted passes — foundational count 0 after the settle's triage (20 reports: 17 sent down onto seven of the page's eight flagged open lines; 3 rejected); 14 refining reports, 6 rhetorical reports; not recorded clean: a count that decides a clean round is triaged a second time, blind to the threshold, and that triage has not run (escalated 2026-10-22); every refining finding cured, routed or answered, open line 2026-10-20-f cured; 2026-10-22 — Final Critique 6, the council's second round on the page — foundational count 1, cured, not clean; 2026-10-20 — Final Critique 5, the council's first round on the page — foundational count 5, all cured, not clean; 2026-06-18 — Final Critique 4, fresh reader — clean
+last gate: 2026-10-22 — Final Critique 8, the council's fourth round on the page and the first on its text since Final Critique 7's settle (864dc7c), three fresh readers on free models (GRID Nemotron 3 Ultra, EOS Beam, Linus GLM-5.3 Flash), each handed only the round's reading set, three passes on one text (frozen at db94a93); the round rests on three counted passes — foundational count 0 after the settle's triage (18 reports: 14 sent down onto the page's seven flagged open lines; 4 rejected); 14 refining reports, 5 rhetorical reports; not recorded clean: a count that decides a clean round is triaged a second time, blind to the threshold, and that triage has not run (escalated 2026-10-22); every refining finding cured, routed or answered; 2026-10-22 — Final Critique 7, the council's third round on the page — foundational count 0 after the settle's triage, not recorded clean, its blind second triage not run; 2026-10-22 — Final Critique 6, the council's second round on the page — foundational count 1, cured, not clean; 2026-10-20 — Final Critique 5, the council's first round on the page — foundational count 5, all cured, not clean; 2026-06-18 — Final Critique 4, fresh reader — clean
 
 open:
 - 2026-10-20-a · refining · Term payload cap; External check 6 · the deployment's declaration of the payload cap is named (Term payload cap, External check 6) and declared by no Capability requirement → a Capability requirement naming the declaration and the default it falls back to
@@ -527,6 +527,8 @@ open:
 ## Decisions
 
 Directional changes only — the turns a future reader must know the pattern took, and why. Everything smaller lives in the commit that made it: `git log -- atoms/event-log.md`; the rounds and the migration that got it here are in [its history](./event-log.hist.md).
+
+- **2026-10-22 — A refused append writes nothing because the Execution Contract says so, and the page points there.** *Chose:* the case table's over-cap row citing Execution Contract Read 4 beside Operation 5, so the row a reader leans on for why an over-cap append writes nothing names the rule that says it, as the storage-failure row cites Database 1; Term terms naming now beside the page's other declared terms; the seven open lines kept as they stand, each flagged beside its rule; the rule count stays at 83. *Over:* Operation 1 conditioned on the payload cap, a caller rule reading invalid-payload as the event not landing, and Operation 4 conditioned on the event landing, each restating Read 4 on the page. *Because:* Final Critique 8's readers reported the admitted effect twice more, on Operation 1 and Operation 4, the third round running after Read 4 landed; Read 4 holds a rule saying what an action does only for a call the action admits, and this page's entry on the admitted call chose it over a condition of its own. What each action does and answers is unchanged.
 
 - **2026-10-22 — An append writes the event, and its sequence number places it.** *Chose:* Operation 1 obliges [Append] to write the event into the log and names no place for it, since the event carries next sequence number (Operation 3), which stands above every sequence number landed earlier (Invariant 4.1) and is authoritative for the log's order (Invariant 7.2); the case table and the [Append] entry follow it, and open line 2026-10-20-f is closed; the rule count stays at 83. *Over:* a place named *the tail*, the grammar's own word for the part a statement may end with, which names no place in a log (GRACE-lang Term tail, Closed vocabulary 4). *Because:* Final Critique 7's three readers each reported the undeclared tail, two of them as foundational, and the page already placed every event by its sequence number. A smaller fix rode with it, changing no rule: the Generation acceptance introduction no longer calls the atom the corpus's Start Here. What each action does and answers is unchanged.
 
