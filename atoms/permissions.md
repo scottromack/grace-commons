@@ -142,6 +142,8 @@ Deleted: Operation 31. Execution Contract Read 1 owns it: after the read, every 
 Deleted: Operation 32. Execution Contract Refusal 1 owns it.
 ```
 
+NOTE: watch the refusal ban (Operation 6).
+
 Term pair: one subject reference with one action scope — what [Check] matches over.
 
 Term live at an instant: grant instant at or before the instant, and revocation instant either absent or after the instant — the reconstruction an auditor runs over stored fields, never over status, which carries the present rather than the past.

@@ -82,7 +82,7 @@ Term reference: subject reference, recording actor, amending actor OR retracting
 
 Term database instance: one named database a call is routed to — a [Database Name] identifies it; observation id uniqueness ranges over one instance.
 
-Term seam: the atom's I/O boundary as the section titled Logic Confinement Principle in `execution-contract.md` declares it; the host injects the clock reading and the observation id here.
+Term seam: the atom's I/O boundary as the section titled Logic Confinement Principle in `execution-contract.md` declares it; the host injects the clock reading, the observation id, the clock offset allowance and the value constraints here.
 
 Term transition: the atom's evaluation of one call against the observation records, as the section titled Logic Confinement Principle in `execution-contract.md` declares it.
 
@@ -100,7 +100,7 @@ State 8: EVERY observation MUST carry observation id, subject reference, recordi
 State 9: EVERY amended observation MUST carry a successor id.
 State 10: EVERY successor observation MUST carry predecessor id, amending actor and amendment reason.
 State 11: EVERY retracted observation MUST carry retracting actor and retraction reason.
-State 12: The database instance's observation count MUST NOT fall.
+Deleted: State 12. Invariant 7.1 and Execution Contract Database 4 own it.
 State 13: The atom MUST store a resolved recording instant standing within the future bound as the call supplied the value.
 State 14: The atom MUST NOT normalize a recording instant's timezone.
 ```
@@ -114,6 +114,7 @@ Deleted: Capability requirement 3. Execution Contract Logic confinement 7 owns i
 Deleted: Capability requirement 4. Execution Contract Logic confinement 7 owns it.
 Capability requirement 5: The deployment MUST declare the clock offset allowance.
 Capability requirement 6: The deployment MUST supply the observation records PER Execution Contract Database 1 through 4 and Execution Contract Refusal 1.
+Capability requirement 7: The deployment MUST declare a value constraint per observation type.
 Deleted: Clock semantics 1. Execution Contract Logic confinement 7 owns it.
 Deleted: Clock semantics 2. Execution Contract Logic confinement 7 owns it.
 Deleted: Clock semantics 3. Execution Contract Logic confinement 7 owns it.
@@ -147,7 +148,7 @@ read(query)
 Operation 1: IF subject reference EQUALS blank THEN [Record] MUST answer invalid-observation.
 Operation 2: IF recording actor EQUALS blank THEN [Record] MUST answer invalid-observation.
 Operation 3: IF observation type EQUALS blank THEN [Record] MUST answer invalid-observation.
-Operation 4: IF unit EQUALS blank THEN [Record] MUST answer invalid-observation.
+Operation 4: IF unit EQUALS blank THEN a content-checking action MUST answer invalid-observation.
 Operation 5: IF the observation type carries no value constraint THEN a content-checking action MUST answer invalid-observation.
 Operation 6: IF value fails the observation type's value constraint THEN a content-checking action MUST answer invalid-observation.
 Operation 7: IF the future bound PRECEDES the resolved recording instant THEN [Record] MUST answer invalid-observation.
@@ -181,7 +182,7 @@ Operation 34: An admitted amend MUST answer the successor's observation id.
 Operation 35: An admitted retract MUST stand the observation in retracted.
 Operation 36: An admitted retract MUST record retracting actor and reason as retraction reason.
 Operation 37: An admitted retract MUST answer retracted.
-Operation 38: An observation whose state EQUALS amended MUST NOT refuse [Retract].
+Operation 38: [Retract] MUST NOT refuse a call on the ground that the observation stands in amended.
 Operation 39: IF the database refuses the write THEN a writing action MUST answer storage-failure.
 Deleted: Operation 40. Execution Contract Refusal 1 owns it.
 Operation 41: A refused action MUST leave the database as the call found the database.
@@ -191,7 +192,7 @@ Operation 44: An admitted read MUST answer EVERY observation matching the suppli
 Operation 45: An admitted read MUST NOT answer an observation failing a supplied filter.
 Operation 46: IF no observation matches THEN an admitted read MUST answer an empty observation sequence.
 Operation 47: IF a filter's axis IS NOT IN the filter axes THEN [Read] MUST answer invalid-query.
-Operation 48: IF a reference filter's value EQUALS blank THEN [Read] MUST answer invalid-query.
+Operation 48: IF a filter's value EQUALS blank THEN [Read] MUST answer invalid-query.
 Operation 49: IF a state filter's value IS NOT IN the states THEN [Read] MUST answer invalid-query.
 Operation 50: IF a range filter's end PRECEDES the range's start THEN [Read] MUST answer invalid-query.
 Operation 51: [Read] MUST NOT write.
@@ -199,7 +200,17 @@ Deleted: Operation 52. Capability requirement 1 owns it.
 Deleted: Operation 53. Execution Contract Logic confinement 3 owns it.
 Deleted: Operation 54. Execution Contract Logic confinement 3 owns it.
 Operation 55: An ordering rule MUST NOT rest on a causal claim.
+Operation 56: An admitted amend MUST take the successor's recording actor from the original.
+Operation 57: An admitted amend MUST record value and unit on the successor.
 ```
+
+NOTE: watch the refusal ban (Operation 38).
+
+NOTE: open 2026-10-22-a — which key orders two observations sharing a recording instant is not stated; Operation 43 and Check 6.1 ask only that the order be stable.
+
+NOTE: open 2026-10-22-b — whether a range filter's start and end lie inside the range, and what a range filter missing a bound answers, are not stated (Operation 44, Operation 50).
+
+NOTE: open 2026-10-22-c — an admitted retract records no instant (Operation 36), where an admitted amend stamps the successor's (Operation 27).
 
 Term now: the wall-time reading the host takes at the seam and hands to the transition, as the section titled Logic Confinement Principle in `execution-contract.md` declares it; never read inside the transition, never supplied by the business caller.
 
@@ -221,7 +232,7 @@ Term future bound: now raised by the clock offset allowance — the ceiling a re
 
 Term resolved recording instant: the recording instant the observation carries — the supplied value where one exists, and now otherwise.
 
-Term content field: observation id, subject reference, recording actor, observation type, value, unit OR recording instant — every field [Record] sets and nothing changes.
+Term content field: observation id, subject reference, recording actor, observation type, value, unit OR recording instant — every field an observation is recorded with but the state, and nothing changes.
 
 Term transition metadata: successor id, predecessor id, amending actor, amendment reason, retracting actor OR retraction reason — every field a chain action writes.
 
@@ -243,7 +254,7 @@ Term admitted read: a [Read] call whose every filter axis and filter value the g
 | 2 | the observation exists, it stands in retracted | [Already Retracted] |
 | 3 | [Amend], the observation stands in amended | [Already Amended] |
 | 4 | the state admits the action, a request field is blank | [Invalid Request] |
-| 5 | [Amend], the request is well-formed, value or unit fails the constraint | [Invalid Observation] |
+| 5 | [Amend], the request is well-formed, the unit is blank or the value fails the constraint | [Invalid Observation] |
 | 6 | every precondition passes, the database refuses the write | [Storage Failure] |
 | 7 | every precondition passes, the database accepts the write | the success answer |
 
@@ -301,9 +312,9 @@ A nurse charts a blood pressure: `record(subject_ref: "p42", recorded_by: "rn.ok
 
 ### Correcting a transcription error
 
-The nurse notices the chart reads 128 where the monitor read 148: `amend("obs-0441", amended_by: "rn.okafor", value: 148, unit: "mmHg", reason: "Transcription error — monitor read 148")` → `obs-0442`. The original stands in amended carrying `successor_id: obs-0442`; the successor stands in recorded carrying `predecessor_id: obs-0441`, the amending clinician and the reason (Operation 24 through 32, Operation 34). Both remain visible; a query for recorded observations answers only the successor.
+The nurse notices the chart reads 128 where the monitor read 148: `amend("obs-0441", amended_by: "rn.okafor", value: 148, unit: "mmHg", reason: "Transcription error — monitor read 148")` → `obs-0442`. The original stands in amended carrying `successor_id: obs-0442`; the successor stands in recorded carrying the corrected value 148 mmHg, the original's recording actor, `predecessor_id: obs-0441`, the amending clinician and the reason (Operation 24 through 32, Operation 34, Operation 56, Operation 57). Both remain visible; a query for recorded observations answers only the successor.
 
-The successor's subject reference and observation type came from the original and could not have come from anywhere else — [Amend] accepts neither (Operation 21, Operation 22, Invariant 4.1, Invariant 5.1). Its recording instant is the amendment's instant, not the measurement's (Operation 27, Invariant 8.2).
+The successor's subject reference, observation type and recording actor came from the original and could not have come from anywhere else — [Amend] accepts none of them (Operation 21, Operation 22, Operation 56, Invariant 4.1, Invariant 5.1). Its recording instant is the amendment's instant, not the measurement's (Operation 27, Invariant 8.2).
 
 ### Retracting a wrong-patient entry
 
@@ -331,7 +342,7 @@ An amended observation can still be retracted — retraction reaches any link in
 
 - **Regulator audit.** A HIPAA (US Health Insurance Portability and Accountability Act) auditor queries every observation for a patient across all states. The result carries the recorded, amended and retracted alike, and the chain is walkable in both directions — Check 2.1 through 2.4 are what make the amendment trail verifiable from the database rather than from a narrative about it.
 - **Disputed observation.** A patient disputes a glucose value. The original's value and clinician are immutable (Invariant 1.1); whether it was amended, by whom and why is on the successor (State 10); whether it was withdrawn and why is on the record itself (State 11). The dispute resolves against the chain, and what the chain cannot say is whether the measurement was *clinically* correct — that is a clinical judgment, not a record property.
-- **Breach investigation.** An investigator cross-references each observation's recording actor against the authorized staff list at the time it was recorded. Invariant 1.1 is why the reference can be trusted — it cannot have been changed since — and Invariant 7.1 is why the set is complete. What the database cannot supply is whether the named clinician was *authorized*, which is a composing [Permissions](./permissions.md) record (Non-goal 13, External check 2).
+- **Breach investigation.** An investigator cross-references each observation's recording actor against the authorized staff list at the time it was recorded. Invariant 1.1 is why the reference can be trusted — it cannot have been changed since — and Invariant 7.1 is why the set is complete, short of what a composed Retention Window purged, which its purge records name (External check 5). What the database cannot supply is whether the named clinician was *authorized*, which is a composing [Permissions](./permissions.md) record (Non-goal 13, External check 2).
 
 ---
 
@@ -351,7 +362,7 @@ Check 2.4: An auditor MUST find EVERY observation in one amendment chain sharing
 Check 2.5: An auditor MUST find no observation carrying two successor ids (Invariant 3.1).
 Check 2.6: An auditor MUST find no observation carrying two predecessor ids (Invariant 3.2).
 Check 3.1: An auditor MUST find no observation whose state DOES NOT EQUAL retracted on a later read of an observation a prior read found retracted (Invariant 6.1).
-Check 4.1: An auditor MUST find no observation absent from a later read (Invariant 7.1).
+Deleted: Check 4.1. External check 5 owns it.
 Check 5.1: An auditor MUST find EVERY observation's recording actor non-blank (Operation 2, String 5).
 Check 5.2: An auditor MUST find EVERY retracted observation's retracting actor and retraction reason non-blank (Operation 17, Operation 18).
 Check 5.3: An auditor MUST find EVERY successor observation's amending actor and amendment reason non-blank (Operation 16, Operation 17).
@@ -368,13 +379,16 @@ External check 1: A deployment needing EVERY issued observation id found in the 
 External check 2: A deployment needing a recording actor confirmed authorized MUST read the composing Permissions record (Non-goal 13).
 External check 3: A deployment needing a reference bound to an actor MUST read the composing Actor Identity attestation (Non-goal 11).
 External check 4: A deployment needing a value confirmed correct MUST read outside the observation records (Non-goal 5).
+External check 5: A deployment needing Invariant 7.1 cleared MUST read the composing Retention Window's purge records beside two unfiltered reads of the observation records (Non-goal 15).
 ```
+
+NOTE: watch the composed erasure (External check 5).
 
 ## Non-goals
 
 ```
 Non-goal 1: The atom MUST NOT define a value constraint.
-Non-goal 2: The deployment MUST declare a value constraint per observation type.
+Deleted: Non-goal 2. Capability requirement 7 owns it.
 Non-goal 3: The atom MUST NOT bound the look-back on a recording instant.
 Non-goal 4: The atom MUST NOT interpret a value.
 Non-goal 5: The atom MUST NOT confirm that a value stands correct.
@@ -398,7 +412,7 @@ Non-goal 22: The atom MUST NOT route a call across two database instances.
 Non-goal 23: A deployment needing a verifiable time anchor MUST compose a trusted timestamping pattern.
 ```
 
-NOTE: the owners — [Actor Identity](./actor-identity.md) (Non-goal 10, Non-goal 11, External check 3); [Permissions](./permissions.md) (Non-goal 12, Non-goal 13, External check 2); [Retention Window](./retention-window.md) and [Legal Hold](./legal-hold.md) (Non-goal 14 through 16; State 4); [Tamper Evidence](./tamper-evidence.md) (Non-goal 17, Non-goal 18); a composing pattern (Non-goal 21, Composition note 8; Non-goal 22, Composition note 9).
+NOTE: the owners — [Actor Identity](./actor-identity.md) (Non-goal 10, Non-goal 11, External check 3); [Permissions](./permissions.md) (Non-goal 12, Non-goal 13, External check 2); [Retention Window](./retention-window.md) and [Legal Hold](./legal-hold.md) (Non-goal 14 through 16; State 4; External check 5); [Tamper Evidence](./tamper-evidence.md) (Non-goal 17, Non-goal 18); a composing pattern (Non-goal 21, Composition note 8; Non-goal 22, Composition note 9).
 
 ---
 
@@ -467,11 +481,11 @@ Each `[Term]` marker above links to its term entry here; a term entry states wha
 
 ### Vocabulary
 
-Term actors: the atom; the host; the transition; the deployment; a composing pattern; a business caller; a caller; a guard; an auditor; a regulator; an observer; a subject; an investigator; the database; an observation; a successor observation; an original; an amended observation; a retracted observation; a chain action; a content-checking action; a writing action; a refused action; an ordering rule; an action; a query; a filter; a reference filter; a state filter; a range filter; an amendment chain; a string input; an opaque reference; the database instance's observation count.
+Term actors: the atom; the host; the transition; the deployment; a composing pattern; a business caller; a caller; a guard; an auditor; a regulator; an observer; a subject; an investigator; the database; an observation; a successor observation; an original; an amended observation; a retracted observation; a chain action; a content-checking action; a writing action; a refused action; an ordering rule; an action; a query; a filter; a state filter; a range filter; an amendment chain; a string input; an opaque reference.
 
 Term records: observation — one recorded measurement, carrying observation id, subject reference, recording actor, observation type, value, unit, recording instant and a state, plus the transition metadata a chain action writes.
 
-Term record verbs: identify, allocate, change, carry, stand, answer, record, set, take, stamp, leave, own, match, equal, normalize, interpret, confirm, admit, offer, detect, route, share, precede, follow, exceed, raise, compare, trim, case-fold, refuse, write, read, find, fall, bound, decide, declare, compose, wire, supply, remove, order, sort, name, bind, derive, map, define, apply, return, canonicalize, store, fail, accept, rest, capture.
+Term record verbs: identify, allocate, change, carry, stand, answer, record, set, take, stamp, leave, own, match, equal, normalize, interpret, confirm, admit, offer, detect, route, share, precede, follow, exceed, raise, compare, trim, case-fold, refuse, write, read, find, bound, decide, declare, compose, wire, supply, remove, order, sort, name, bind, derive, map, define, apply, return, canonicalize, store, fail, accept, rest, capture.
 
 Term value sets: state = recorded | amended | retracted.
 
@@ -495,7 +509,7 @@ Kind: Operation
 
 #### Amend
 
-The behavior that corrects a [Recorded] observation by creating a successor. The original transitions to [Amended] with a [Successor Id]; the successor is [Recorded] with a [Predecessor Id], [Amending Actor], and [Amendment Reason], inheriting [Subject Reference] and [Observation Type] by construction. It does not edit the original and does not accept [Subject Reference], [Observation Type], or [Recording Instant] as parameters.
+The behavior that corrects a [Recorded] observation by creating a successor. The original transitions to [Amended] with a [Successor Id]; the successor is [Recorded] with a [Predecessor Id], [Amending Actor], [Amendment Reason] and the supplied [Value] and [Unit], inheriting [Subject Reference], [Recording Actor] and [Observation Type] by construction. It does not edit the original and does not accept [Subject Reference], [Observation Type], or [Recording Instant] as parameters.
 
 Kind: Operation
 
@@ -529,7 +543,7 @@ Projection: subject_ref
 
 #### Recording Actor
 
-The opaque reference to the observer who performed the measurement. Set on [Record], immutable; an amendment carries its own [Amending Actor] and never changes the original [Recording Actor].
+The opaque reference to the observer who performed the measurement. Set on [Record], inherited unchanged by any successor, and immutable; an amendment carries its own [Amending Actor] and never changes the original [Recording Actor].
 
 Kind:       Field
 Field of:   Observation
@@ -553,7 +567,7 @@ Projection: value
 
 #### Unit
 
-The unit of measure for the [Value], a non-empty opaque string. Set on [Record], immutable on its record; terminology standardization to UCUM (Unified Code for Units of Measure) is a deployment convention.
+The unit of measure for the [Value], a non-empty opaque string. Set on [Record], or on a successor by the [Amend] that records it, and immutable on its record; terminology standardization to UCUM (Unified Code for Units of Measure) is a deployment convention.
 
 Kind:       Field
 Field of:   Observation
@@ -561,7 +575,7 @@ Projection: unit
 
 #### Recording Instant
 
-The wall-time the observation was recorded — supplied to [Record] or defaulted from the receiving node's wall clock; must not be future-dated. Set once (Invariant 8), immutable. A successor carries its own [Recording Instant] (when the correction was entered), not the original measurement time.
+The wall-time the observation was recorded — supplied to [Record], or now, the reading the host injects at the seam, where none is supplied; it never stands past the future bound (Operation 7). Set once (Invariant 8), immutable. A successor carries its own [Recording Instant] (when the correction was entered), not the original measurement time.
 
 Kind:       Field
 Field of:   Observation
@@ -673,7 +687,7 @@ Role:      Outcome
 
 #### Invalid Observation
 
-The refusal [Record] (or [Amend]) returns when observation content fails — an empty/whitespace [Subject Reference], [Recording Actor], [Observation Type], or [Unit]; a [Value] failing the per-type constraint; an [Observation Type] with no declared constraint; or a future-dated [Recording Instant].
+The refusal [Record] or [Amend] returns when observation content fails. Either answers it for an empty or whitespace-only [Unit], a [Value] failing the per-type constraint, or an [Observation Type] with no declared constraint; [Record] alone also answers it for an empty or whitespace-only [Subject Reference], [Recording Actor] or [Observation Type], or a [Recording Instant] past the future bound, since [Amend] accepts none of these.
 
 Kind:       Member
 Member of:  the action rejection
@@ -727,7 +741,7 @@ Projection: invalid-request
 
 #### Invalid Query
 
-The refusal [Read] returns when query parameters are malformed — a time range with end before start, an unrecognized state value, or a syntactically invalid [Observation Id].
+The refusal [Read] returns when query parameters are malformed — a filter axis outside the five, a blank filter value, an unrecognized state value, or a time range with end before start.
 
 Kind:       Member
 Member of:  the Read rejection
@@ -793,9 +807,12 @@ Projection: invalid-query
 ```
 status: partially resolved
 formal: verified — observation.als + 1 twin, 2026-06-03
-last gate: 2026-05-20 — Final Critique 4, fresh reader — clean
+last gate: 2026-10-22 — Final Critique 5, the council's first round on the page and the first on its Store-contract rewrite (0adcb33) and the refusal-order sweep (c2f4e9a), three fresh readers on free models (GRID Nemotron 3 Ultra, EOS MiniMax M3.1 Flash, Linus GLM-5.3 Flash), each handed only the round's reading set, three passes on one text (frozen at 78fe168); the round rests on three counted passes — foundational count 3 after triage (11 reports: 3 standing, merged into 2; 8 sent down; 0 rejected; 1 rhetorical report raised), all Kind A: a count that could never fall and a check that no observation goes missing broke at the first purge by the Retention Window the page composes; an admitted amend left the successor's recording actor, value and unit with no source; and a rule that an amended observation never refuses [Retract], read alone, kept [Retract] from every refusal on one; an outside read, not counted, found the first two again; 16 refining reports, 5 rhetorical reports; not clean; every foundational finding cured, every refining finding cured or routed; 2026-05-20 — Final Critique 4, fresh reader — clean
 
-open: none
+open:
+- 2026-10-22-a · refining · Operation 43; Check 6.1 · two observations sharing a recording instant are ordered stably across two reads of one database state, with no key named, so one build orders them by observation id and another by commit, each stable → name the key, or say the order is the build's
+- 2026-10-22-b · refining · Operation 44, Operation 50 · no rule says whether an observation whose recording instant equals a range filter's start or end matches the range, nor what a range filter missing its start or its end answers → say whether each bound lies inside the range, and what a range missing one answers
+- 2026-10-22-c · refining · Operation 36; State 11 · an admitted retract records the retracting actor and the reason and no instant, where an admitted amend stamps the successor's recording instant from now (Operation 27), so the records cannot say when an observation was withdrawn → stamp the retraction from now, or name the instant's owner in a non-goal
 ```
 
 ## Decisions
@@ -809,5 +826,7 @@ Directional changes only — the turns a future reader must know the pattern too
 - **2026-10-20 — The store's guarantees cited, not restated, the observation's critical section among them.** *Chose:* the observation store supplied under Execution Contract Store 1 through 4 (Capability requirement 6), and the fourteen rules that restated them, ran the atom's own critical section over an observation, or existed only for a store that could split an amend, tombstoned to their owner — Operation 33, an admitted amend's successor and the original's change committed in one operation, Invariant 7.2, no partial record left by a storage-failure rejection, Atomic writes 1 and 2, no reader observing either half of an amend without the other, and Atomic writes 4, no repair of a dangling amend, to Store 1, under which no amend stands half-written; Invariant 7.3, no partial record observed once a crash has landed, and Atomic writes 3, an uncommitted crash leaving the store as the call found it, to Store 1 and Store 3; Concurrency 1 through 4 and Concurrency 7, two chain actions on one observation serialized, the state precondition read and held inside the critical section across the check and the transition, a second serialized [Amend] answering already-amended, and no reconciliation leg, to Store 2, and with them the section's release on the invocation's return (Concurrency 5) and its lapse answered as storage-failure (Concurrency 6), since the atom names no section any more; rules 169 to 156. *Over:* the atom running its own critical section over an observation, released on return and lapsing to a storage failure, and forbidding a repair leg for a dangling amend and a reconciliation leg for a second writer that no conforming store leaves — the turns of 2026-08-30 and 2026-09-13, now in the history. *Because:* the maintainer ruled 2026-10-12 that the corpus takes a store's specification, never the store, and `execution-contract.md` writes it once as the Store contract: Store 2 reads the state a chain action's guards decide on inside the transaction that writes the action's effects, which is what the section was for, and Store 1 commits [Amend]'s successor and the original's change together or not at all, so no partial record is left to repair and no second writer to reconcile. A refused action leaving the store as the call found it stays the atom's own (Operation 41), as do the rules that keep an observation once it exists (State 5, State 12, Invariant 7.1, Check 4.1), since Store 4 alone neither keeps the atom from removing an observation nor bars a purge another specification declares, and the external check that holds Invariant 7.1 against the captured record answers (External check 1). Amendment chains are the atom's own records, linked by predecessor and successor ids, [Read] answers by recording instant, and the atom's checks compare an auditor's own reads, so it cites neither History 1 nor Order 1; what the atom does for its domain is unchanged.
 
 - **2026-10-21 — Which refusal answers is the Execution Contract's.** *Chose:* each refuses line kept as the page wrote it, already in the page's order — a chain action answering not-known, its state rejections, then invalid-request once every state check passes, [Amend] invalid-observation after that, and storage-failure last, answering only at the write — and the order cited from the Execution Contract (Capability requirement 6, Execution Contract Refusal 1); the pairs that only stated it deleted to Refusal 1: Operation 15 (a state rejection only for an observation id naming an observation), Operation 19 (invalid-request only once every state check passes), Operation 20 (invalid-observation only once every request check passes) and Operation 40 (storage-failure behind every precondition), with Term state rejection, which only Operation 15 read; rules 156 to 152. *Over:* the page stating for itself which of an action's refusals answers when several apply. *Because:* the maintainer ruled on 2026-10-21 that the Execution Contract states once that the refusal listed first on an action's refuses line answers. What each action answers on every call is unchanged.
+
+- **2026-10-22 — A composed retention may purge what the atom never removes; every field of a successor has a source; a refusal ban names its ground.** *Chose:* State 12 deleted to Invariant 7.1 and Execution Contract Database 4, and Check 4.1 to External check 5, which reads the composing Retention Window's purge records beside two unfiltered reads; Operation 56 and Operation 57, an admitted amend taking the successor's recording actor from the original and recording the call's value and unit on the successor; Operation 38 narrowed to the ground it meant, [Retract] refusing no call on the ground that the observation stands in amended; Non-goal 2 moved to Capability requirement 7, and Term seam naming the clock offset allowance and the value constraints the host injects; Operation 4 refusing a blank unit on [Amend] as on [Record], and Operation 48 a blank value on every filter. *Over:* the reading the 2026-10-20 entry recorded for the maintainer to overrule, under which State 12 and Check 4.1 also barred a purge another specification declares; a successor whose recording actor, value and unit no rule sourced; a ban that, read alone, kept [Retract] from every refusal on an amended observation; and the migration's narrowing of Final Critique 4's refusals to [Record]'s unit and a reference filter's value. *Because:* Final Critique 5 found each, and Final Critique 4's text decided the direction: the atom retains every observation indefinitely, and eventual destruction belongs to Retention Window and Legal Hold as composing patterns, as four Final Critiques read the same shape on their own pages; Medication Order carries the original's prescriber reference onto its successor beside the amending actor; Execution Contract Refusal 1 lets no refusal apply where a rule keeps the action from answering it, so a ban names its ground, as Retention Window, Permissions and Duplicate Prevention write theirs; and Final Critique 4 refused a blank unit on [Amend] and a blank observation id on [Read]. Smaller fixes rode with it, none changing what a rule means: Term content field, the Invalid Observation, Invalid Query, Recording Instant, Recording Actor, Unit and Amend entries, and the transcription example say what the rules say. What each action answers on a well-formed call is unchanged, and a successor now carries a stated recording actor, value and unit.
 
 NOTE: End of Observation.

@@ -183,6 +183,8 @@ Deleted: Operation 35. Execution Contract Refusal 1 owns it.
 Deleted: Operation 36. Execution Contract Refusal 1 owns it.
 ```
 
+NOTE: watch the refusal ban (Operation 18).
+
 Term time resolution: the smallest span the deployment's clock and the database tell apart (Capability requirement 5); fixed for the life of the instance.
 
 Term well-formedness check: Operation 4 and Operation 5 — every check [Place Under Retention] makes on the call's own inputs.
