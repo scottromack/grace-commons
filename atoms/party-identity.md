@@ -467,6 +467,8 @@ Term length bound: the maximum length the deployment declares for a string input
 
 NOTE: watch host obligations — this atom refuses a string input over the length bound on [Enroll] and the party actions alone (String 7, String 8), [Read] meeting no length refusal, and obliges the deployment to declare the bound (Capability requirement 7), where [Duplicate Prevention](./duplicate-prevention.md) declares a cap and [Provenance](./provenance.md) obliges the deployment to set one; Final Critique 6 cured the bound's reach.
 
+NOTE: watch the category reach (String 7, String 8).
+
 ---
 
 ## Composition notes

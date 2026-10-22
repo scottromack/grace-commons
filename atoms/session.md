@@ -452,6 +452,8 @@ String 9: IF the session's status EQUALS active AND revoked by reference EXCEEDS
 String 10: IF the session's status EQUALS active AND reason EXCEEDS the maximum length THEN [Revoke] MUST answer invalid-request.
 ```
 
+NOTE: watch the category reach (String 7, String 9, String 10).
+
 Term verified answer: the verified outcome [Credential](./credential.md)'s verification produces; cited from that atom, never restated here (Closed vocabulary 15).
 
 Term invalid answer: an answer of [Validate] that EQUALS expired, revoked OR not-known — every answer outside valid.

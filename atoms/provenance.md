@@ -204,6 +204,8 @@ Operation 58: An ordering rule MUST NOT rest on recording instant.
 
 NOTE: open 2026-10-22-a — [Read]'s query is declared nowhere: which filters it takes, whether a range holds its two ends, how two filters combine, and the operator for a sequence range's ends (Operation 47 through 49).
 
+NOTE: watch the category reach (Operation 39).
+
 Term now: the wall-time reading the host takes at the seam and hands to the transition, as the section titled Logic Confinement Principle in `execution-contract.md` declares it; never read inside the transition, never supplied by the business caller.
 
 Term business caller: the party whose action the call carries, as the section titled Logic Confinement Principle in `execution-contract.md` declares it; never the source of an injected value.

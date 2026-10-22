@@ -512,6 +512,8 @@ String 9: IF the capability is revocable AND revoked by reference EXCEEDS the ma
 String 10: IF the capability is revocable AND reason EXCEEDS the maximum length THEN [Revoke] MUST answer invalid-request.
 ```
 
+NOTE: watch the category reach (String 7, String 9, String 10).
+
 ## Composition notes
 
 ```
