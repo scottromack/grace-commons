@@ -213,6 +213,7 @@ Operation 63: IF the database refuses the write THEN [Redeem] MUST answer storag
 Operation 64: [Allocate] MUST NOT evaluate a rule of the allocate refusal order BEFORE EVERY earlier rule of the allocate refusal order has answered no refusal.
 Operation 65: [Redeem] MUST NOT evaluate a rule of the redeem refusal order BEFORE EVERY earlier rule of the redeem refusal order has answered no refusal.
 Operation 66: [Revoke] MUST NOT evaluate a rule of the revoke refusal order BEFORE EVERY earlier rule of the revoke refusal order has answered no refusal.
+NOTE: watch the refusal order (Operation 64, Operation 65, Operation 66).
 ```
 
 Term now: the wall-time reading the host takes at the seam and hands to the transition — a [Now], as the section titled Logic Confinement Principle in `execution-contract.md` declares it; never read inside the transition, never supplied by the business caller.

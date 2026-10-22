@@ -216,6 +216,7 @@ Action wiring 57: IF the page at the base commit DOES NOT EQUAL the page at the 
 Deleted: Action wiring 59. Action wiring 72 owns it: the budget is evaluated last, after Primitive policy and staleness.
 Deleted: Action wiring 67. Action wiring 72 owns it: staleness is evaluated after Primitive policy 2.
 Action wiring 72: [Freeze] MUST NOT evaluate a rule of the freeze refusal order BEFORE EVERY earlier rule of the freeze refusal order has answered no refusal.
+NOTE: watch the refusal order (Action wiring 72).
 ```
 
 Term freeze refusal order: Primitive policy 1, Primitive policy 10, Primitive policy 11, Primitive policy 2, Action wiring 57, Action wiring 34 — [Freeze]'s refusal rules, earliest first.
@@ -233,6 +234,7 @@ Action wiring 51: [Report] MUST NOT evaluate Action wiring 6 BEFORE EVERY rule o
 Deleted: Action wiring 58. Execution Contract Database 2 and Execution Contract Database 3 own it: every round ahead of the round's record committed ahead of it, so [Report] reads the round position with no round still landing.
 Action wiring 60: [Report] MUST NOT evaluate Action wiring 7 BEFORE Action wiring 6 has answered.
 Action wiring 73: [Report] MUST NOT evaluate a rule of the report refusal order BEFORE EVERY earlier rule of the report refusal order has answered no refusal.
+NOTE: watch the refusal order (Action wiring 73).
 ```
 
 Term sound verdict: a recorded verdict of a round carrying holds or counterexample — a reader's or a formal engine's.
@@ -268,6 +270,7 @@ Deleted: Action wiring 65. Action wiring 74 owns it: already-triaged is evaluate
 Deleted: Action wiring 70. Action wiring 74 owns it: round-closed is evaluated ahead of the rest of [Triage]'s Action wiring.
 Deleted: Action wiring 71. Action wiring 74 owns it: round-closed is evaluated after Primitive policy.
 Action wiring 74: [Triage] MUST NOT evaluate a rule of the triage refusal order BEFORE EVERY earlier rule of the triage refusal order has answered no refusal.
+NOTE: watch the refusal order (Action wiring 74).
 ```
 
 Term class: foundational | refining | rhetorical — as the section titled What "grounded" means in `pressure-testing.md` defines each.
@@ -309,6 +312,7 @@ Action wiring 38: IF the actor reference DOES NOT EQUAL the maintainer's actor r
 Action wiring 39: An admitted ruling MUST record the ruling with the page, the page's latest round AND, where given, the round AND the patch whole.
 Deleted: Action wiring 66. Action wiring 75 owns it: the maintainer's credential is evaluated after Primitive policy.
 Action wiring 75: [Rule] MUST NOT evaluate a rule of the ruling refusal order BEFORE EVERY earlier rule of the ruling refusal order has answered no refusal.
+NOTE: watch the refusal order (Action wiring 75).
 ```
 
 Term maintainer's ruling: a ruling record under the maintainer's actor reference — carrying a page, a round and a patch whole, it admits that patch, byte for byte, into the claim families in that round; naming a page alone, it admits the page's next round past its round budget.
@@ -356,6 +360,7 @@ Action wiring 62: IF a patch answers a finding AND the patch DOES NOT EQUAL, byt
 Action wiring 63: IF a records fragment removes a Ledger open line AND no maintainer's ruling carries the round AND the fragment's patch byte-exact THEN [Repair] MUST answer gated.
 Deleted: Action wiring 68. Action wiring 76 owns it: purged is evaluated before unsettled.
 Action wiring 76: [Repair] MUST NOT evaluate a rule of the repair refusal order BEFORE EVERY earlier rule of the repair refusal order has answered no refusal.
+NOTE: watch the refusal order (Action wiring 76).
 ```
 
 Term patch: a patch id, the finding it answers, and one fragment for each sentence the change touches — the rule or Term the finding sits in and every sentence on the page that restates it; a patch carrying the round's records answers no finding.

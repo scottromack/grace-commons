@@ -158,6 +158,7 @@ Operation 39: The business caller MAY supply release instant.
 Operation 40: The atom MUST judge a supplied placement instant against the injected now.
 Operation 41: The atom MUST judge a supplied release instant against the injected now.
 Operation 42: [Release] MUST NOT evaluate a rule of the release refusal order BEFORE EVERY earlier rule of the release refusal order has answered no refusal.
+NOTE: watch the refusal order (Operation 42).
 ```
 
 Term query: what a read asks for — a [Query]; any combination of the admitted axes, and a query carrying none matches every hold.
@@ -328,6 +329,7 @@ External check 2: An auditor MUST read who was permitted to place a hold from th
 External check 3: An auditor MUST read a hold record's integrity from the composing Tamper Evidence seals (Non-goal 11).
 External check 4: An auditor MUST read the matter a case reference names from the deployment's case-management system (Non-goal 9).
 External check 5: An auditor MUST identify from the deployment's own declaration which composing patterns the deployment wired in (Composition note 1).
+NOTE: watch the wiring declaration (External check 5).
 ```
 
 NOTE: EVERY check names the rule the check tests. The hold records answer *what was preserved, by whom, and for how long*; whether the preservation was honoured at the purge surface is the composing pattern's record, because this atom deliberately enforces nothing (Non-goal 1), and which composing patterns a deployment wired in is the deployment's own declaration.

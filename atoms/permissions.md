@@ -142,6 +142,7 @@ Operation 29: [Read] MUST answer state-unavailable ONLY IF database read EQUALS 
 Operation 30: IF database read EQUALS failed THEN the atom MUST answer state-unavailable.
 Operation 31: [Grant] MUST NOT evaluate a rule of the grant refusal order BEFORE EVERY earlier rule of the grant refusal order has answered no refusal.
 Operation 32: [Revoke] MUST NOT evaluate a rule of the revoke refusal order BEFORE EVERY earlier rule of the revoke refusal order has answered no refusal.
+NOTE: watch the refusal order (Operation 31, Operation 32).
 ```
 
 Term pair: one subject reference with one action scope — what [Check] matches over.
@@ -290,6 +291,7 @@ External check 1: An auditor MUST read who issued a grant from the composing Act
 External check 2: An auditor MUST read whether an access was attempted from the composing Event Log records (Non-goal 11).
 External check 3: An auditor MUST read a departing subject's full revocation from the composing pattern's deprovisioning records (Deprovisioning 2 through 5).
 External check 5: An auditor MUST identify from the deployment's own declaration which composing patterns the deployment wired in (Composition note 1).
+NOTE: watch the wiring declaration (External check 5).
 Deleted: External check 4. Execution Contract Database 2 owns it.
 ```
 

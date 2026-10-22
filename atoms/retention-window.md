@@ -182,6 +182,7 @@ Operation 33: [Read] MUST answer state-unavailable ONLY IF database read EQUALS 
 Operation 34: IF database read EQUALS failed THEN the atom MUST answer state-unavailable.
 Operation 35: [Place Under Retention] MUST NOT evaluate a rule of the placement refusal order BEFORE EVERY earlier rule of the placement refusal order has answered no refusal.
 Operation 36: [Purge] MUST NOT evaluate a rule of the purge refusal order BEFORE EVERY earlier rule of the purge refusal order has answered no refusal.
+NOTE: watch the refusal order (Operation 35, Operation 36).
 ```
 
 Term time resolution: the smallest span the deployment's clock and the database tell apart (Capability requirement 5); fixed for the life of the instance.
@@ -363,6 +364,7 @@ External check 3: An auditor MUST read the deployment's declared time resolution
 External check 4: An auditor MUST read EVERY standing record from the owning pattern's confirmations (Record divergence 5).
 External check 5: An auditor MUST confirm from the deployment's own destruction records that no destruction instant PRECEDES the retention deadline of a retention over the destroyed record whose retention instant PRECEDES the destruction instant (Capability requirement 6, Capability requirement 6a, Capability requirement 7, Simultaneous retention 4).
 External check 6: An auditor MUST identify from the deployment's own declaration which composing patterns the deployment wired in (Composition note 1).
+NOTE: watch the wiring declaration (External check 6).
 ```
 
 NOTE: the atom cannot answer these from the retention records — Simultaneous retention 3 forecloses reading a sibling, so the evidence that joint enforcement happened lives in the composing pattern's records, not here (council read 11).

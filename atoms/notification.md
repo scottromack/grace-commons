@@ -151,6 +151,7 @@ Deleted: Operation 26. Execution Contract Logic confinement 3 owns it.
 Operation 27: IF database read EQUALS failed THEN the atom MUST answer state-unavailable.
 Operation 28: [Create] MUST NOT evaluate a rule of the create refusal order BEFORE EVERY earlier rule of the create refusal order has answered no refusal.
 Operation 29: A terminal transition MUST NOT evaluate a rule of the terminal refusal order BEFORE EVERY earlier rule of the terminal refusal order has answered no refusal.
+NOTE: watch the refusal order (Operation 28, Operation 29).
 ```
 
 Term terminal transition: a [Deliver], a [Fail] or an [Expire] call — the three that end a notification, sharing one precondition pair.
@@ -301,6 +302,7 @@ External check 2: An auditor MUST read a payload's retention from the composing 
 External check 3: An auditor MUST read who created a notification from the composing Actor Identity attestations (Non-goal 11).
 External check 4: An auditor MUST read the transport's own outcome from the deployment's delivery layer (Non-goal 5).
 External check 5: An auditor MUST identify from the deployment's own declaration which composing patterns the deployment wired in (Composition note 1).
+NOTE: watch the wiring declaration (External check 5).
 ```
 
 NOTE: EVERY check names the rule the check tests. External check 1 is the one that makes cross-deployment audit possible: without the declared policy, one shop's failure instant and another's lapse instant record the same operational event and no reader can tell. Which composing patterns a deployment wired in is likewise the deployment's own declaration, not a stored field (External check 5).
@@ -347,6 +349,8 @@ String 9: [Pending For] MUST read a whitespace-only recipient reference as match
 ```
 
 Term string cap: the deployment's bound on the recipient reference's length.
+
+NOTE: watch host obligations — this atom caps the recipient reference alone and obliges the deployment to supply the cap (String 6, Capability requirement 5), leaving the payload unbounded, where [Duplicate Prevention](./duplicate-prevention.md) declares a cap and [Provenance](./provenance.md) obliges the deployment to set one; Final Critique 5 cured the cap's reach and its supplier.
 
 ### Atomicity of a terminal transition
 

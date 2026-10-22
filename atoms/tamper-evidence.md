@@ -141,6 +141,7 @@ Operation 29: [Read] MUST NOT write.
 Operation 30: [Read] MUST answer state-unavailable ONLY IF database read EQUALS failed.
 Operation 31: IF database read EQUALS failed THEN the atom MUST answer state-unavailable.
 Operation 32: [Seal] MUST NOT evaluate a rule of the seal refusal order BEFORE EVERY earlier rule of the seal refusal order has answered no refusal.
+NOTE: watch the refusal order (Operation 32).
 Operation 33: [Verify] MUST answer verified ONLY IF seal check EQUALS held.
 ```
 
@@ -313,6 +314,7 @@ Deleted: Check 6.2. External check 4 owns it.
 External check 1: An auditor MUST read the mechanism's health from the Mechanism Registry's evidence (Invariant 2.2, Invariant 2.3).
 External check 2: An auditor MUST read the anchor's trust from the anchoring authority's own records (Non-goal 1, Non-goal 2).
 External check 3: An auditor MUST identify from the deployment's own declaration which composing patterns the deployment wired in (Composition note 1).
+NOTE: watch the wiring declaration (External check 3).
 External check 4: An auditor MUST read the deployment's mechanism from the deployment's own declaration (Operation 26, Capability requirement 3).
 ```
 

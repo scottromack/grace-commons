@@ -161,6 +161,7 @@ Operation 34: IF database read EQUALS failed THEN the atom MUST answer state-una
 Operation 35: [Assign] MUST NOT evaluate a rule of the assign refusal order BEFORE EVERY earlier rule of the assign refusal order has answered no refusal.
 Operation 36: [Recall] MUST NOT evaluate a rule of the recall refusal order BEFORE EVERY earlier rule of the recall refusal order has answered no refusal.
 Operation 37: [Reassign] MUST NOT evaluate a rule of the reassign refusal order BEFORE EVERY earlier rule of the reassign refusal order has answered no refusal.
+NOTE: watch the refusal order (Operation 35, Operation 36, Operation 37).
 ```
 
 Term new assignee reference: the opaque reference naming the successor a reassignment hands the task to — a [New Assignee Reference].
@@ -315,6 +316,7 @@ External check 2: An auditor MUST read who issued an assignment from the composi
 External check 3: An auditor MUST read a task's completion from the host's task system (Non-goal 11).
 Deleted: External check 4. Execution Contract Database 1 and Execution Contract Database 2 own it.
 External check 5: An auditor MUST identify from the deployment's own declaration which composing patterns the deployment wired in (Composition note 1).
+NOTE: watch the wiring declaration (External check 5).
 ```
 
 NOTE: EVERY check names the rule the check tests. The assignment records answer *who holds this and who held it*; who was allowed to hand it over, and whether the work is done, are the composing patterns' records.

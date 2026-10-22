@@ -202,6 +202,7 @@ Operation 53: IF database read EQUALS failed THEN the atom MUST answer state-una
 Operation 54: [Submit] MUST NOT evaluate a rule of the submit refusal order BEFORE EVERY earlier rule of the submit refusal order has answered no refusal.
 Operation 55: A resolving action MUST NOT evaluate a rule of the resolve refusal order BEFORE EVERY earlier rule of the resolve refusal order has answered no refusal.
 Operation 56: [Read] MUST NOT evaluate a rule of the read refusal order BEFORE EVERY earlier rule of the read refusal order has answered no refusal.
+NOTE: watch the refusal order (Operation 54, Operation 55, Operation 56).
 ```
 
 Term now: the wall-time reading the host takes at the seam and hands to the transition, as the section titled Logic Confinement Principle in `execution-contract.md` declares it; never read inside the transition, never supplied by the business caller.

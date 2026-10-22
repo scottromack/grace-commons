@@ -155,6 +155,7 @@ Deleted: Operation 32. Execution Contract Logic confinement 3 owns it.
 Deleted: Operation 33. Execution Contract Logic confinement 3 owns it.
 Deleted: Operation 34. Execution Contract Logic confinement 3 owns it.
 Operation 35: [Record] MUST NOT evaluate a rule of the record refusal order BEFORE EVERY earlier rule of the record refusal order has answered no refusal.
+NOTE: watch the refusal order (Operation 35).
 ```
 
 Term now: the wall-time reading the host takes at the seam and hands to the transition, as the section titled Logic Confinement Principle in `execution-contract.md` declares it; never read inside the transition, never supplied by the business caller.

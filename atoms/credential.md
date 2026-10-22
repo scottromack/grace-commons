@@ -257,6 +257,7 @@ Operation 74: IF database read EQUALS failed THEN the atom MUST answer state-una
 Operation 75: [Register] MUST NOT evaluate a rule of the register refusal order BEFORE EVERY earlier rule of the register refusal order has answered no refusal.
 Operation 76: [Rotate] MUST NOT evaluate a rule of the rotate refusal order BEFORE EVERY earlier rule of the rotate refusal order has answered no refusal.
 Operation 77: [Revoke] MUST NOT evaluate a rule of the revoke refusal order BEFORE EVERY earlier rule of the revoke refusal order has answered no refusal.
+NOTE: watch the refusal order (Operation 75, Operation 76, Operation 77).
 ```
 
 Term transitioning write: [Rotate] | [Revoke] — every call that would take an effective-active credential to a stored terminal, including a refused one.

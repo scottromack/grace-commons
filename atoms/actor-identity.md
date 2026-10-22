@@ -145,6 +145,7 @@ Operation 32: [Verify] MUST answer verified ONLY IF proof check EQUALS held.
 Operation 33: IF registry answer EQUALS unreachable THEN [Attest] MUST answer registry-unavailable.
 Operation 34: IF database read EQUALS failed THEN the atom MUST answer state-unavailable.
 Operation 35: [Attest] MUST NOT evaluate a rule of the attest refusal order BEFORE EVERY earlier rule of the attest refusal order has answered no refusal.
+NOTE: watch the refusal order (Operation 35).
 ```
 
 Term registry answer: material | unknown-actor | unreachable — what the actor registry gives [Attest] or a verifier for an actor reference.
@@ -297,6 +298,7 @@ NOTE: EVERY check names the rule the check tests. The bar is the regulator's que
 
 ```
 External check 1: An auditor MUST identify from the deployment's own declaration which composing patterns the deployment wired in (Composition note 1).
+NOTE: watch the wiring declaration (External check 1).
 ```
 
 ## Non-goals
