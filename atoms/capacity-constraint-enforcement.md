@@ -20,7 +20,7 @@ Capacity Constraint Enforcement holds one number against another. A pool declare
 
 A pool is [Open], [Suspended] or [Closed]. Suspending halts new allocations without unwinding the existing ones; closing is terminal. [Release] is admitted in every state, including [Closed], so a composing pattern can unwind in-flight allocations after the pool is shut.
 
-Every successful change appends an attributed event carrying before-and-after snapshots, so an auditor can verify the bound held at any point from a single event rather than replaying the whole log. Rejections write nothing, which is a deliberate boundary rather than an omission.
+Every successful change appends an attributed event carrying before-and-after snapshots, so an auditor can check each event's arithmetic from that event alone rather than replaying the whole log, and the bound at an allocation against the capacity in force then, which the declaration and the adjustments before it set. Rejections write nothing, which is a deliberate boundary rather than an omission.
 
 This is the mechanism behind seat inventory, credit headroom, ward beds, connection pools and warehouse stock. It does not decide who may allocate, what a unit means, or what happens when the pool runs dry.
 
@@ -118,7 +118,7 @@ Term attribution surface: an audit event's actor reference ([Allocating Actor Re
 
 ```
 Capability requirement 1: The deployment MUST supply now at the seam.
-Capability requirement 5: The deployment MUST supply the pool records PER Execution Contract Database 1 through 4 and Execution Contract Refusal 1.
+Capability requirement 5: The deployment MUST supply the pool records PER Execution Contract Database 1 through 4, Execution Contract Read 1 through 3 and Execution Contract Refusal 1.
 Deleted: Capability requirement 2. Execution Contract Logic confinement 7 owns it.
 Deleted: Capability requirement 3. Execution Contract Logic confinement 7 owns it.
 Deleted: Capability requirement 4. Execution Contract Logic confinement 7 owns it.
@@ -139,15 +139,15 @@ declare_pool(capacity, declaring_actor_ref, reason)
 
 allocate(pool_id, count, allocating_actor_ref)
   answers allocation_event_id
-  refuses not-known | suspended | closed | over-capacity | invalid-request | storage-failure
+  refuses not-known | suspended | closed | invalid-request | over-capacity | storage-failure
 
 release(pool_id, count, releasing_actor_ref)
   answers release_event_id
-  refuses not-known | over-release | invalid-request | storage-failure
+  refuses not-known | invalid-request | over-release | storage-failure
 
 adjust_capacity(pool_id, new_capacity, adjusting_actor_ref, reason)
   answers adjustment_event_id
-  refuses not-known | closed | over-allocated | invalid-request | storage-failure
+  refuses not-known | closed | invalid-request | over-allocated | storage-failure
 
 suspend_pool(pool_id, suspending_actor_ref, reason)
   answers state_change_id
@@ -221,8 +221,8 @@ Operation 51: [Query] MUST answer the pool snapshot.
 Operation 52: [Query] MUST NOT write.
 Operation 53: [Query] MUST NOT append an audit event.
 Operation 54: [Query] MUST admit a call in EVERY pool state.
-Operation 55: [Query] MUST NOT answer storage-failure.
-Operation 56: IF the database refuses a read THEN [Query] MUST NOT answer a stale pool snapshot.
+Deleted: Operation 55. Operation 51 and Execution Contract Read 1 own it.
+Deleted: Operation 56. Execution Contract Read 1 owns it.
 Operation 57: IF the database refuses a write THEN a writing action MUST answer storage-failure.
 Operation 58: A refused action MUST leave the pool as the call found the pool.
 Operation 59: A refused action MUST NOT append an audit event.
@@ -271,16 +271,17 @@ The case space, and the rule that owns each case:
 
 | Call | Case | Answer | Effect on the pool |
 |---|---|---|---|
-| [Declare Pool] | capacity a whole count, fields valid, database accepts | the new pool id | pool lands in [Open], allocated zero (Operation 1 through 5) |
+| [Declare Pool] | capacity a whole count within the integer width, fields valid, database accepts | the new pool id | pool lands in [Open], allocated zero (Operation 1 through 5) |
 | [Allocate] | [Open], count positive, requested total within capacity | the allocation event id | allocated rises, one event appended (Operation 15 through 17) |
 | [Allocate] | [Open], requested total past capacity | [Over Capacity] | none (Operation 13) |
 | [Allocate] | [Suspended] | [Suspended] | none (Operation 10) |
 | [Allocate] | [Closed] | [Closed] | none (Operation 11) |
 | [Release] | any state, count positive and within allocated | the release event id | allocated falls, one event appended (Operation 20, Operation 23) |
 | [Release] | count past allocated | [Over Release] | none (Operation 22) |
-| [Adjust Capacity] | [Open] or [Suspended], new value differs and covers allocated | the adjustment event id | capacity replaced, one event appended (Operation 33, Operation 34) |
+| [Adjust Capacity] | [Open] or [Suspended], new value a whole count within the integer width that differs and covers allocated | the adjustment event id | capacity replaced, one event appended (Operation 33, Operation 34) |
 | [Adjust Capacity] | new value equals current | [Invalid Request] | none (Operation 31) |
-| [Adjust Capacity] | new value below allocated | [Over Allocated] | none (Operation 32) |
+| [Adjust Capacity] | new value not a whole count, or past the integer width | [Invalid Request] | none (Operation 30, Arithmetic 5) |
+| [Adjust Capacity] | new value a whole count below allocated | [Over Allocated] | none (Operation 32) |
 | [Adjust Capacity] | [Closed] | [Closed] | none (Operation 29) |
 | [Suspend Pool] | [Open] | the state change id | → [Suspended] (Operation 41) |
 | [Resume Pool] | [Suspended] | the state change id | → [Open] (Operation 44) |
@@ -383,11 +384,11 @@ Invariants 4 and 5 together give the *bounded-arithmetic* property — at every 
 
 ### Airline — non-overbooking seat pool
 
-A carrier declares a cabin: `declare_pool(capacity: 180, declaring_actor_ref: inventory_svc, reason: "NK1234 2026-05-14 main cabin")` → `pool_a1`. Each booking calls `allocate(pool_a1, count: 1, allocating_actor_ref: booking_svc)`; the 181st answers over-capacity and the cabin is not oversold. A cancellation calls `release(pool_a1, count: 1, ...)` and the seat returns to the pool. An equipment swap to a smaller aircraft with 174 seats sold calls `adjust_capacity(pool_a1, new_capacity: 174, ...)` → accepted; the same call against 170 answers over-allocated, because four passengers are already holding seats the smaller bound would not cover, and the carrier must release before it can adjust (Operation 32).
+A carrier declares a cabin: `declare_pool(capacity: 180, declaring_actor_ref: inventory_svc, reason: "NK1234 2026-05-14 main cabin")` → `pool_a1`. Each booking calls `allocate(pool_a1, count: 1, allocating_actor_ref: booking_svc)`; the 181st answers over-capacity and the cabin is not oversold. A cancellation calls `release(pool_a1, count: 1, ...)` and the seat returns to the pool. An equipment swap to a smaller aircraft with 174 seats sold calls `adjust_capacity(pool_a1, new_capacity: 174, ...)` → accepted, because the new bound covers every seat sold; a swap to 170 seats calls `adjust_capacity(pool_a1, new_capacity: 170, ...)` and answers over-allocated, because four passengers are already holding seats the smaller bound would not cover, and the carrier must release before it can adjust (Operation 32).
 
 ### Banking — credit-limit headroom
 
-A revolving line: `declare_pool(capacity: 25000, ...)` → `pool_c9`. Each draw allocates, each repayment releases, and a draw past the limit answers over-capacity. A credit review lowering the line to 10000 while 14000 is drawn answers over-allocated — the atom refuses to put the customer instantly over their new limit by arithmetic, and the reviewer must sequence the reduction against repayment explicitly (Operation 37).
+A revolving line: `declare_pool(capacity: 25000, ...)` → `pool_c9`. Each draw allocates, each repayment releases, and a draw past the limit answers over-capacity. A credit review lowering the line to 10000 while 14000 is drawn answers over-allocated — the atom refuses to put the customer instantly over their new limit by arithmetic, and the reviewer must sequence the reduction against repayment explicitly (Operation 32, Operation 37).
 
 ### Healthcare — ward bed pool
 
@@ -409,7 +410,7 @@ A primary pool of 200 connections, allocated on checkout and released on return.
 
 ### Regulated adversarial scenarios
 
-- **Regulator audit — was the cabin ever oversold?** The auditor walks the pool's allocation events and checks each one's own snapshot: closing balance equals opening balance plus count, and closing balance does not exceed the capacity in effect at that index. No replay from the beginning is required, because every event carries its own before and after — which is the whole reason the snapshots are on the record (Check 3.1, Check 3.2).
+- **Regulator audit — was the cabin ever oversold?** The auditor walks the pool's allocation events and checks each one's own snapshot, closing balance equal to opening balance plus count, and checks its closing balance against the capacity in effect at that index, which the declaration and the adjustment events before it set. The running total needs no replay from the beginning, because every event carries its own before and after — which is the whole reason the snapshots are on the record (Check 3.1, Check 3.2).
 - **Disputed drawdown — the customer says the line was cut without notice.** Every capacity change is an adjustment event naming prior capacity, new capacity, the acting reference and a stated reason (Invariant 11.2). What the database cannot show is the *rejected* draws the customer attempted, because rejections write nothing here; a deployment under PCI DSS (Payment Card Industry Data Security Standard) Requirement 10.2.4 wires [Event Log](./event-log.md) around the call surface for that (External check 1, Non-goal 26).
 - **Breach investigation — which pools were manipulated during the window?** The auditor filters audit events by recording instant inside the window and reads each one's actor reference. Two limits are stated rather than discovered: recording instant is advisory under clock skew and insertion order is authoritative (State 13), and where the deployment has scrubbed the attribution surface under a composed erasure the arithmetic still verifies while the actor no longer resolves (Invariant 8.4, Invariant 8.5).
 
@@ -427,17 +428,17 @@ Check 2.1: An auditor MUST reconstruct a pool's capacity, allocated and pool sta
 Check 2.2: An auditor MUST read a purged audit event as a break in the replay (Invariant 9.4).
 Check 2.3: A deployment needing a replay across a purge MUST retain an anchor carrying the capacity, the allocated and the pool state at the purge boundary (Invariant 9.4).
 Check 3.1: An auditor MUST find EVERY allocation event's closing balance equal to the requested total (Invariant 4.2).
-Check 3.2: An auditor MUST find EVERY allocation event's closing balance no higher than the capacity the replay holds at the audit event (Invariant 4.1, Check 2.1).
+Check 3.2: An auditor MUST find the closing balance of EVERY allocation event the replay reaches no higher than the capacity the replay holds at the audit event (Invariant 4.1, Check 2.1).
 Check 4.1: An auditor MUST find EVERY release event's closing balance equal to the released total (Invariant 5.2).
 Check 4.2: An auditor MUST find no release event's closing balance below zero (Invariant 5.1).
-Check 5.1: An auditor MUST find an acting actor reference and a reason on EVERY state-change event (Invariant 10.2).
-Check 5.2: An auditor MUST find an adjusting actor reference and a reason on EVERY adjustment event (Invariant 11.2).
-Check 5.3: An auditor MUST find an allocating actor reference on EVERY allocation event (State 15).
-Check 5.4: An auditor MUST find a releasing actor reference on EVERY release event (State 16).
-Check 6.1: An auditor MUST identify which composing patterns a deployment wired in (Composition note 1).
+Deleted: Check 5.1. External check 5 owns it.
+Deleted: Check 5.2. External check 5 owns it.
+Deleted: Check 5.3. External check 5 owns it.
+Deleted: Check 5.4. External check 5 owns it.
+Deleted: Check 6.1. External check 4 owns it.
 ```
 
-NOTE: EVERY check names the rule the check tests.
+NOTE: EVERY check names the rule the check tests. Which composing patterns a deployment wired in is the deployment's own declaration, not a stored field (External check 4). An attribution surface a composed erasure mechanism scrubbed, and the capacity at a purge boundary, are read beside the pool records, from the composed erasure mechanism's records and from the deployment's anchor (External check 5, External check 6).
 
 #### External checks
 
@@ -445,6 +446,11 @@ NOTE: EVERY check names the rule the check tests.
 External check 1: An auditor needing a refused call MUST read the refusal from a composing Event Log (Non-goal 26).
 External check 2: An auditor needing a per-unit history MUST read the history from a composing Provisional Commitment (Non-goal 1).
 External check 3: An auditor needing an attested actor MUST read the attestation from a composing Actor Identity (Non-goal 12).
+External check 4: An auditor MUST identify from the deployment's own declaration which composing patterns the deployment wired in (Composition note 1).
+NOTE: watch the wiring declaration (External check 4).
+External check 5: An auditor MUST find the attribution surface State 15 through 18 name on EVERY audit event outside the composed erasure mechanism's scrub records (Invariant 8.4).
+External check 6: An auditor needing Invariant 4.1 cleared across a purge MUST read the capacity at the purge boundary from the anchor Check 2.3 names (Invariant 9.4).
+NOTE: watch the composed erasure (External check 5, External check 6).
 ```
 
 ## Non-goals
@@ -479,9 +485,11 @@ Non-goal 26: The atom MUST NOT record a refused call.
 Non-goal 27: A deployment needing refusal visibility MUST compose Event Log.
 Non-goal 28: The atom MUST NOT hold a multi-dimensional capacity.
 Non-goal 29: A deployment needing verifiable wall-time order MUST compose a trusted timestamping pattern.
+Non-goal 30: The atom MUST NOT distinguish a retried call from a new call.
+Non-goal 31: A deployment needing a retried call answered once MUST compose Duplicate Prevention.
 ```
 
-NOTE: the owners — [Provisional Commitment](./provisional-commitment.md) (Non-goal 1, Non-goal 2, External check 2; Identity 18); a soft-limit pattern (Non-goal 8, Non-goal 9); [Actor Identity](./actor-identity.md) (Non-goal 12, Non-goal 13, External check 3); [Tamper Evidence](./tamper-evidence.md) (Non-goal 21, Non-goal 22); [Retention Window](./retention-window.md) (Non-goal 23, Non-goal 24); the deployment (Non-goal 25); [Event Log](./event-log.md) (Non-goal 26, Non-goal 27, External check 1); [Audit Trail](../compositions/audit-trail.md) (Non-goal 26, Composition note 6).
+NOTE: the owners — [Provisional Commitment](./provisional-commitment.md) (Non-goal 1, Non-goal 2, External check 2; Identity 18); a soft-limit pattern (Non-goal 8, Non-goal 9); [Actor Identity](./actor-identity.md) (Non-goal 12, Non-goal 13, External check 3); [Tamper Evidence](./tamper-evidence.md) (Non-goal 21, Non-goal 22); [Retention Window](./retention-window.md) (Non-goal 23, Non-goal 24); the deployment (Non-goal 25, External check 4, External check 6); [Event Log](./event-log.md) (Non-goal 26, Non-goal 27, External check 1); [Audit Trail](../compositions/audit-trail.md) (Non-goal 26, Composition note 6); a composed erasure mechanism (Invariant 8.4, External check 5); [Duplicate Prevention](./duplicate-prevention.md) (Non-goal 30, Non-goal 31).
 
 Where the atom breaks down is worth naming. When the resource is not fungible at any grain — every seat distinct by legroom or fare class — per-unit identity belongs at this layer too, which is a sign the deployment wants Provisional Commitment rather than this. When capacity is a vector rather than an integer — memory bytes *and* core count *and* disk — one running total cannot carry it, and a multi-dimensional pattern is a different atom (Non-goal 28).
 
@@ -510,7 +518,7 @@ Concurrency 5: The atom MUST NOT offer a multi-action transaction.
 String 1: EVERY required string field MUST carry a codepoint outside the whitespace category.
 String 2: IF a required string field EQUALS blank THEN the action MUST answer invalid-request.
 String 3: The deployment MUST set a maximum length for an actor reference.
-String 4: A reason MUST NOT EXCEED the reason cap.
+String 4: IF a reason EXCEEDS the reason cap THEN the action MUST answer invalid-request.
 String 5: IF a string field EXCEEDS the field's maximum length THEN the action MUST answer invalid-request.
 String 6: IF a string field carries a control character THEN the action MUST answer invalid-request.
 String 7: IF a string field carries a zero-width character THEN the action MUST answer invalid-request.
@@ -537,6 +545,8 @@ Term bidi-override character: a codepoint in `U+202A` to `U+202E`, or `U+2066` t
 Arithmetic 1: The deployment MUST compute the requested total without loss.
 Arithmetic 2: The deployment MUST own the integer width.
 Arithmetic 3: IF the requested total EXCEEDS the integer width THEN the deployment MUST NOT admit the call.
+Arithmetic 4: IF capacity EXCEEDS the integer width THEN [Declare Pool] MUST answer invalid-request.
+Arithmetic 5: IF new capacity EXCEEDS the integer width THEN [Adjust Capacity] MUST answer invalid-request.
 ```
 
 ### Crash atomicity
@@ -576,7 +586,7 @@ Term record verbs: identify, offer, share, re-order, retain, allocate, change, m
 
 Term value sets: pool state and event class are declared above and cited here (Closed vocabulary 15).
 
-Term bounds: reason cap (2000 codepoints); maximum length (the deployment's cap per string field); whole count and positive count (the integer floors); capacity (the pool's own declared bound).
+Term bounds: reason cap (2000 codepoints); maximum length (the deployment's cap per string field); whole count and positive count (the integer floors); integer width (the deployment's ceiling on capacity, new capacity and the requested total); capacity (the pool's own declared bound).
 
 Term cadences: empty.
 
@@ -642,7 +652,7 @@ Projection: pool_id
 
 #### Capacity
 
-The current declared maximum total allocation a pool admits — a non-negative integer. Set on [Declare Pool], modified only by [Adjust Capacity]. The load-bearing bound: [Allocated] ≤ [Capacity] always holds (Invariant 4).
+The current declared maximum total allocation a pool admits — a non-negative integer within the deployment's integer width (Arithmetic 4, Arithmetic 5). Set on [Declare Pool], modified only by [Adjust Capacity]. The load-bearing bound: [Allocated] ≤ [Capacity] always holds (Invariant 4).
 
 Kind:       Field
 Field of:   Pool
@@ -746,7 +756,7 @@ Projection: allocated_before
 
 #### Closing Balance
 
-The pool's [Allocated] value immediately after an allocation or release event ([Opening Balance] + [Count] for allocate, − [Count] for release) — the witness that lets an auditor verify Invariant 4 or 5 per-event.
+The pool's [Allocated] value immediately after an allocation or release event ([Opening Balance] + [Count] for allocate, − [Count] for release) — the witness that lets an auditor verify Invariant 5 per event, and Invariant 4 against the capacity in effect at the event (Check 3.2).
 
 Kind:       Field
 Field of:   the allocation/release event
@@ -762,7 +772,7 @@ Projection: prior_capacity
 
 #### New Capacity
 
-The revised [Capacity] supplied to [Adjust Capacity] and recorded on the adjustment event. Must be non-negative, differ from the current [Capacity], and be ≥ [Allocated].
+The revised [Capacity] supplied to [Adjust Capacity] and recorded on the adjustment event. Must be non-negative and within the deployment's integer width, differ from the current [Capacity], and be ≥ [Allocated].
 
 Kind:       Field
 Field of:   the capacity-adjustment event
@@ -904,7 +914,7 @@ Projection: not-known
 
 #### Not Open
 
-The refusal [Suspend Pool] returns when the pool is not in [Open] state (it is already [Suspended]).
+The refusal [Suspend Pool] returns when the pool is already [Suspended]; a closed pool answers [Already Closed].
 
 Kind:       Member
 Member of:  the Suspend Pool rejection
@@ -913,7 +923,7 @@ Projection: not-open
 
 #### Not Suspended
 
-The refusal [Resume Pool] returns when the pool is not in [Suspended] state (it is [Open]).
+The refusal [Resume Pool] returns when the pool is [Open]; a closed pool answers [Already Closed].
 
 Kind:       Member
 Member of:  the Resume Pool rejection
@@ -931,7 +941,7 @@ Projection: already-closed
 
 #### Invalid Request
 
-The refusal any action returns when a required field is malformed — a null/empty/whitespace-only or control/zero-width/bidi-tainted string, a wrong-signed integer, or a no-op [Adjust Capacity] whose [New Capacity] equals the current [Capacity]. A field-format rejection before any arithmetic check or database write.
+The refusal any action returns when a required field is malformed — a null/empty/whitespace-only, over-long or control/zero-width/bidi-tainted string, a wrong-signed integer or a capacity past the deployment's integer width, or a no-op [Adjust Capacity] whose [New Capacity] equals the current [Capacity]. A field-format rejection, answered after [Not Known] and the pool's state and before any arithmetic check or database write (Execution Contract Refusal 1).
 
 Kind:       Member
 Member of:  the action rejection
@@ -1032,7 +1042,7 @@ The atom inherits from:
 ```
 status: partially resolved
 formal: verified — capacity-constraint-enforcement.tla + 2 twins, 2026-06-04
-last gate: 2026-08-26 — Final Critique 8, fresh reader — clean
+last gate: 2026-10-22 — Final Critique 9, the council's first round on the page and the first on its Store-contract rewrite (ec7ffec) and the refusal-order sweep (c2f4e9a), three fresh readers on free models (GRID Nemotron 3 Ultra, EOS MiniMax M3.1 Flash, Linus GLM-5.3 Flash), each handed only the round's reading set, three passes on one text (frozen at 973e2e3); the round rests on three counted passes — foundational count 5 after triage (9 reports: 5 standing; 3 sent down; 1 rejected), Kind A: conformance checks no pool record could clear once a deployment wired in, scrubbed or purged what the page admits, and a capacity past the integer width and a reason past its cap, which every build had to refuse with no refusal named; 12 refining reports, 5 rhetorical reports; not clean; every foundational and refining finding cured in place; 2026-08-26 — Final Critique 8, fresh reader — clean
 
 open: none
 ```
@@ -1044,5 +1054,7 @@ Directional changes only — the turns a future reader must know the pattern too
 - **2026-10-20 — The store's guarantees cited, not restated.** *Chose:* the pool store supplied under Execution Contract Store 1 through 4 (Capability requirement 5), and the twelve rules that restated them tombstoned to their owner — Invariant 14.1 and Crash atomicity 1, an action's records committed in one operation, Invariant 1.3 and Invariant 14.2, no partial pool or record on storage-failure, and Invariant 14.3, that commit resting on a host obligation, to Store 1; Crash atomicity 2, 3 and 5, no crash inside a writing action leaving an audit event without its pool change, a pool change without its audit event, or a pool [Declare Pool] did not finish, to Store 1 and Store 3; Crash atomicity 4, a recovered store standing in no violation of Invariant 4.1, to Store 3; Concurrency 2, the arithmetic guard and the write one transition, to Store 1 and Store 2; Concurrency 1, concurrent calls on one pool serialized, and Concurrency 3, a compare-and-set on allocated discharging Concurrency 2, to Store 2; rules 222 to 211. *Over:* the atom restating, for its own store, what every deployment's store guarantees. *Because:* the maintainer ruled 2026-10-12 that the corpus takes a store's specification, never the store, and `execution-contract.md` writes it once as the Store contract. Invariant 4.1 and Invariant 5.1 now rest on the host obligations Capability requirement 5 and Arithmetic 1 name (Invariant 4.4, Invariant 5.3). The bound and its guards stay the atom's own (Invariant 4.1 through 4.3, Operation 13, Operation 22, Operation 32), as do a refused action leaving the pool as the call found it and appending no audit event (Operation 58, Operation 59), the store refusing a colliding pool id (Identity 14), and the records the atom never removes, re-orders or changes (State 7 through 10, State 19, State 20, Invariant 1.1, 1.2, 7.1, 8.1 through 8.3, 9.1 through 9.3, 12.1, 12.2). The audit log is carried on the pool record, ordered by insertion by the atom itself (State 3, State 11), and an auditor replays it forward rather than reading a record as it stood at a past commit (Check 2.1), so the atom cites neither History 1 nor Order 1. What the atom does for its domain is unchanged.
 
 - **2026-10-21 — Which refusal answers is the Execution Contract's.** *Chose:* [Allocate]'s refuses line listing its refusals in the order the page states — not-known, the pool's state (suspended, closed) ahead of over-capacity as Operation 14 held it, state ahead of format as the Rejection paths say, then storage-failure, which answers only at the write — and the order cited from the Execution Contract (Capability requirement 5, Execution Contract Refusal 1); Operation 14 (over-capacity only on an open pool) and Operation 60 (storage-failure behind every precondition), which only stated the order, deleted to Refusal 1; rules 211 to 209. *Over:* the page stating for itself which of an action's refusals answers when several apply. *Because:* the maintainer ruled on 2026-10-21 that the Execution Contract states once that the refusal listed first on an action's refuses line answers. What each action answers on every call is unchanged.
+
+- **2026-10-22 — What the pool records cannot show is read beside them; an input past its bound is refused; format answers before arithmetic.** *Chose:* Check 6.1 deleted to External check 4, the auditor reading which composing patterns a deployment wired in from the deployment's own declaration; Check 5.1 through 5.4 deleted to External check 5, the attribution surface found on every audit event outside the composed erasure mechanism's scrub records; Check 3.2 held to the allocation events the replay reaches, and External check 6 reading the capacity across a purge from the anchor Check 2.3 names; Arithmetic 4 and 5 refusing a capacity and a new capacity past the integer width, and String 4 a reason past the reason cap, each with invalid-request; [Allocate], [Release] and [Adjust Capacity] listing invalid-request ahead of their arithmetic refusal; Non-goal 30 and 31 sending a retried call to Duplicate Prevention; Operation 55 and 56 deleted to Execution Contract Read 1, which Capability requirement 5 now cites. *Over:* conformance checks no pool record could clear once a deployment wired in, scrubbed or purged what the page admits (Composition note 1, Invariant 8.4, Invariant 9.4); inputs every build had to refuse with no refusal named; and arithmetic refusals answering ahead of a malformed input, against the page's own Invalid Request entry. *Because:* Final Critique 9 found each, and the corpus held the cures: the external checks to which eight atoms had moved the wiring declaration and three the composed erasure's checks, and Final Critique 8's own text, which answered an overflow and an over-long reason with invalid-request, answered format before any arithmetic check, read the capacity across a purge from the archival step's boundary snapshot, and gave idempotent allocation under retry to Duplicate Prevention. Smaller fixes rode with it, none changing what a rule means: the Summary, the Regulator audit scenario and the Closing Balance entry check the bound against the capacity the declaration and the adjustments set; the airline and banking examples read as their rules answer; and the Not Open and Not Suspended entries name the one state each answers. What each action does on a well-formed call is unchanged.
 
 NOTE: End of Capacity Constraint Enforcement.
