@@ -30,11 +30,11 @@ The atom records the results of identity checks; it does not perform them — no
 
 Every regulated system that deals with external parties — banks onboarding customers, hospitals enrolling patients, broker-dealers establishing counterparties, employers verifying staff — must establish *who* the party is before regulated activity begins, and must keep that record through the party's whole lifecycle. The shape is constant: attributes are collected, identity is verified against external evidence, the party becomes verified, and downstream activity relies on that. When circumstances change — a sanctions match, an expired document, an investigation — the party is suspended, re-verified, and either reinstated or permanently closed.
 
-The compliance framing is consistent across regimes. FATF Recommendations 10–12 require customer due diligence before a business relationship begins. The BSA/AML Customer Identification Program (31 CFR Part 1020) sets minimum attributes and five-year retention past the relationship's end. GDPR Article 4(1) makes the attributes collected here personal data. HIPAA requires patient identity before clinical records exist. The domain varies; the structural obligation does not.
+The compliance framing is consistent across regimes. FATF (Financial Action Task Force — the international anti-money-laundering standard-setter) Recommendations 10–12 require customer due diligence before a business relationship begins. The BSA/AML (Bank Secrecy Act / Anti-Money Laundering) Customer Identification Program (31 CFR — the US Code of Federal Regulations — Part 1020) sets minimum attributes and five-year retention past the relationship's end. GDPR (General Data Protection Regulation — the European Union's data-protection law) Article 4(1) makes the attributes collected here personal data. HIPAA (the US Health Insurance Portability and Accountability Act) requires patient identity before clinical records exist. The domain varies; the structural obligation does not.
 
 This atom is distinct from [Actor Identity](./actor-identity.md), and not cosmetically. Actor Identity models *internal actors who authorize actions* — an employee or service account producing a proof that binds identity to a specific action. Party Identity models *external parties whose identity must be established* — the subject of the system's activity rather than its operator. Different obligations, different state machines, and they compose when one natural person is both.
 
-This is a freestanding atom in the EOS sense: its own state machine, its own five writes and one read, and its own invariants — records are never removed, verification events are immutable and append-only, closed is absorbing, and verified rests on recorded evidence. It does not implement the verification workflow, the document check, the sanctions screen, the monitoring schedule, risk scoring or enhanced due diligence.
+This is a freestanding atom in the EOS (Essence of Software — Daniel Jackson's framework for freestanding, composable concepts) sense: its own state machine, its own five writes and one read, and its own invariants — the atom never removes a record, verification events are immutable and append-only, closed is absorbing, and verified rests on recorded evidence. It does not implement the verification workflow, the document check, the sanctions screen, the monitoring schedule, risk scoring or enhanced due diligence.
 
 ---
 
@@ -72,7 +72,7 @@ Term state change event: the record of one transition — the prior state, the n
 
 Term assigned id: party id, verification id OR state change id — every opaque name this atom assigns.
 
-Term enrollment field: name | date of birth | document type | document reference | enrollment instant | enrolling actor reference — what a party carries from enrollment and never changes.
+Term enrollment field: name | date of birth | document type | document reference | enrollment instant | enrolling actor reference — what a party carries from enrollment and the atom never changes.
 
 Term acting reference: enrolling actor reference, verifying actor reference, suspending actor reference, reinstating_actor_ref OR closing_actor_ref — the reference an action records for who acted.
 
@@ -202,7 +202,7 @@ Operation 55: [Read] MUST NOT record a field.
 Operation 56: [Read] MUST NOT answer storage-failure.
 Deleted: Operation 57. Execution Contract Logic confinement 3 owns it.
 Deleted: Operation 58. Execution Contract Logic confinement 3 owns it.
-Operation 59: The atom MUST NOT accept a caller-supplied instant.
+Deleted: Operation 59. Operation 6, Operation 24 and Operation 34 own it.
 ```
 
 Term party action: [Verify] | [Suspend] | [Reinstate] | [Close] — every action naming a party by party id, including a refused one.
@@ -237,7 +237,7 @@ Term admitted reinstate: a [Reinstate] call that passes every precondition and w
 
 Term admitted close: a [Close] call that passes every precondition and whose database write commits.
 
-Term admitted read: a [Read] call that answers.
+Term admitted read: a [Read] call whose every filter axis and filter value the guards admit.
 
 ### Invariants
 
@@ -245,7 +245,7 @@ Term admitted read: a [Read] call that answers.
   ```
   Invariant 1.1: The atom MUST NOT remove a party from the database.
   Deleted: Invariant 1.2. Execution Contract Database 1 owns it.
-  Invariant 1.3: The database instance's party count MUST NOT fall.
+  Deleted: Invariant 1.3. Invariant 1.1 and Execution Contract Database 4 own it.
   ```
 - **Invariant 2 — State membership exclusivity.**
   ```
@@ -269,9 +269,9 @@ Term admitted read: a [Read] call that answers.
   Invariant 6.2: The atom MUST NOT append a verification event BEFORE a prior verification event.
   Invariant 6.3: A party's verification event list length MUST NOT fall.
   ```
-- **Invariant 7 — Enrollment fields are immutable.**
+- **Invariant 7 — Enrollment fields are immutable under the atom's actions.**
   ```
-  Invariant 7.1: An action MUST NOT change an enrollment field.
+  Deleted: Invariant 7.1. Non-goal 3 owns it.
   ```
 - **Invariant 8 — No transition is silent.**
   ```
@@ -318,7 +318,7 @@ A screening pattern flags `party_pk3`. `suspend(party_pk3, compliance_c4, "sanct
 
 ### Rejection paths
 
-`suspend(party_qh9, ...)` on the unverified party → not-verifiable — there is no verified standing to suspend. `reinstate(party_pk3, ...)` while verified → not-suspended. `verify(party_closed, ...)` → already-closed. `suspend("", ...)` → invalid-request, decided before the database is consulted; `suspend(party_unknown, ...)` → not-known, decided after. `close(party_zz1, officer_o7, "  ")` on the already-closed party → already-closed, not invalid-request: the state checks run first (Execution Contract Refusal 1).
+`suspend(party_qh9, ...)` on the unverified party → not-verifiable — there is no verified standing to suspend. `reinstate(party_pk3, ...)` while verified → not-suspended. `verify(party_closed, ...)` → already-closed. `suspend("", ...)` → invalid-request, answered ahead of not-known (Operation 10, Operation 12); `suspend(party_unknown, ...)` → not-known. `close(party_zz1, officer_o7, "  ")` on the already-closed party → already-closed, not invalid-request: the state checks run first (Execution Contract Refusal 1).
 
 ### Regulated adversarial scenarios
 
@@ -346,11 +346,11 @@ Check 4.1: An auditor MUST find a state change event for EVERY transition a part
 Check 4.2: An auditor MUST find the prior state, the new state, an acting reference and an instant on EVERY state change event (State 5).
 Check 4.3: An auditor MUST find a reason on EVERY state change event a reasoned action appended (State 7).
 Check 4.4: An auditor MUST find a party's state change log no shorter on a later read (Invariant 8.2).
-Check 5.1: An auditor MUST replay a party's state change log in insertion order to the party's state (Invariant 8.1, Ordering 3).
+Check 5.1: An auditor MUST replay a party's state change log in insertion order from unverified to the party's state (Invariant 8.1, Ordering 3).
 Check 5.2: An auditor MUST reconstruct EVERY party's enrollment, verification history and state history from one read (State 1, State 2, State 3).
-Check 6.1: An auditor MUST find a re-read party's enrollment fields unchanged (Invariant 7.1).
-Check 6.2: An auditor MUST find no party absent from a later read (Invariant 1.1).
-Check 6.3: An auditor MUST find the database instance's party count no lower on a later read (Invariant 1.3).
+Deleted: Check 6.1. External check 9 owns it.
+Deleted: Check 6.2. External check 10 owns it.
+Deleted: Check 6.3. External check 10 owns it.
 Check 7.1: An auditor MUST find no party id on two parties (Identity 7).
 Check 7.2: An auditor MUST find no verification id on two verification events (Identity 8).
 Check 7.3: An auditor MUST find no state change id on two state change events (Identity 9).
@@ -364,14 +364,18 @@ NOTE: EVERY check names the rule the check tests.
 ```
 External check 1: A deployment needing an identity check performed MUST read the composing verification workflow (Non-goal 7).
 External check 2: A deployment needing two parties resolved as one natural person MUST read the composing identity resolution (Identity 16, Non-goal 1).
-External check 3: A deployment needing an enrollment field scrubbed MUST read the composing erasure coordination (Invariant 7.1, Non-goal 12).
+External check 3: A deployment needing an enrollment field scrubbed MUST read the composing erasure coordination (Non-goal 3, Non-goal 12).
 External check 4: A deployment needing an acting reference bound to an actor MUST read the composing Actor Identity attestation (Identity 15, Non-goal 15).
 External check 5: A deployment needing a recorded instant anchored to wall time MUST read the composing trusted timestamping pattern (Ordering 5, Ordering 6).
 External check 6: A deployment needing an evidence reference resolved MUST read the composing pattern's document records (Identity 13, Identity 14).
 External check 7: A deployment needing a party's record retention bounded MUST read the composing Retention Window (Non-goal 13).
 External check 8: A deployment needing an answer observed MUST read the composing Event Log (Non-goal 19).
+External check 9: A deployment needing Non-goal 3 cleared MUST read the composing erasure coordination's scrub events beside two reads of the party records (Composition note 9).
+External check 10: A deployment needing Invariant 1.1 cleared MUST read the composing Retention Window's purge records beside two unfiltered reads of the party records (Non-goal 14).
 
 ```
+
+NOTE: watch the composed erasure (External check 9, External check 10).
 
 ---
 
@@ -453,12 +457,15 @@ String 3: The atom MUST NOT normalize a string input.
 String 4: The atom MUST NOT case-fold a string input.
 String 5: The atom MUST read a whitespace-only string input as blank.
 String 6: The atom MUST read an absent string input as blank.
-String 7: IF a string input EXCEEDS the length bound THEN an action MUST answer invalid-request.
+String 7: IF a string input EXCEEDS the length bound THEN [Enroll] MUST answer invalid-request.
+String 8: IF a string input EXCEEDS the length bound THEN a party action MUST answer invalid-request.
 ```
 
 Term string input: a required string input, date of birth OR a filter value — every caller-supplied string this atom accepts.
 
 Term length bound: the maximum length the deployment declares for a string input.
+
+NOTE: watch host obligations — this atom refuses a string input over the length bound on [Enroll] and the party actions alone (String 7, String 8), [Read] meeting no length refusal, and obliges the deployment to declare the bound (Capability requirement 7), where [Duplicate Prevention](./duplicate-prevention.md) declares a cap and [Provenance](./provenance.md) obliges the deployment to set one; Final Critique 6 cured the bound's reach.
 
 ---
 
@@ -487,7 +494,7 @@ Each `[Term]` marker above links to its term entry here; a term entry states wha
 
 ### Vocabulary
 
-Term actors: the atom; the deployment; the database; the database instance; the seam; the transition; a composing pattern; a caller; an auditor; a regulator; an investigator; a party; a verification event; a state change event; an action; a party action; a transitioning action; a refused action; an assigned id; an opaque reference; a string input; a filter; a filter axis; a filter value; a query; the database instance's party count; a party's verification event list length; a party's state change log length.
+Term actors: the atom; the deployment; the database; the database instance; the seam; the transition; a composing pattern; a caller; an auditor; a regulator; an investigator; a party; a verification event; a state change event; an action; a party action; a transitioning action; a refused action; an assigned id; an opaque reference; a string input; a filter; a filter axis; a filter value; a query; a party's verification event list length; a party's state change log length.
 
 Term records: party — one external party, carrying party id, name, date of birth, document type, document reference, enrollment instant, enrolling actor reference, a state, a state change log and a verification event list. verification event — one identity check, carrying verification id, verifying actor reference, verification method, verification result, evidence reference and verification instant. state change event — one transition, carrying state change id, the prior state, the new state, an acting reference, an instant and, where the writer carries one, a reason.
 
@@ -574,7 +581,7 @@ Projection: party_id
 
 #### Name
 
-The party's legal name at enrollment, stored as supplied — no normalization, no case folding, no transliteration. Immutable; a later legal name change is a composing pattern's event, not an edit here.
+The party's legal name at enrollment, stored as supplied — no normalization, no case folding, no transliteration. Immutable under the atom's actions; a later legal name change is a composing pattern's event, not an edit here.
 
 Kind:       Field
 Field of:   Party
@@ -582,7 +589,7 @@ Projection: name
 
 #### Date Of Birth
 
-The party's date of birth at enrollment, as a calendar date that does not exceed [Now]. Immutable.
+The party's date of birth at enrollment, as a calendar date that does not exceed [Now]. Immutable under the atom's actions.
 
 Kind:       Field
 Field of:   Party
@@ -773,7 +780,7 @@ Role:      Outcome
 
 #### Invalid Request
 
-The refusal returned when a required string input is blank, a [Date Of Birth] parses as no calendar date or exceeds [Now], a [Verification Result] is neither `passed` nor failed, or a string input exceeds the deployment's length bound. A blank [Party Id] earns it before the database is consulted, where a well-formed one naming no party earns [Not Known]; every other field fault earns it after every state check passes.
+The refusal returned when a required string input is blank, a [Date Of Birth] parses as no calendar date or exceeds [Now], a [Verification Result] is neither `passed` nor failed, or — on [Enroll] and a party action only — a string input exceeds the deployment's length bound. A blank [Party Id] earns it ahead of [Not Known], which a well-formed one naming no party earns (Operation 12); every other field fault earns it after every state check passes.
 
 Kind:       Member
 Member of:  the action rejection
@@ -905,12 +912,12 @@ Projection: storage-failure
 ## Standards references
 
 - **FATF Recommendations 10–12 (customer due diligence)** — identify the customer and verify identity using reliable independent sources; identify beneficial owners; conduct ongoing due diligence. The [Enroll] → [Verify] lifecycle is the structural form; the beneficial-ownership graph is a composing pattern's (Non-goal 11) and the monitoring schedule is too (Non-goal 8).
-- **BSA/AML — 31 CFR Part 1020 (FinCEN Customer Identification Program)** — minimum identity attributes, verification by documentary or non-documentary method, and five-year retention past the relationship's end. The enrollment fields are the attributes; [Verification Method] records which kind was used; retention is [Retention Window](./retention-window.md)'s (Non-goal 13).
+- **BSA/AML — 31 CFR Part 1020 (FinCEN — the Financial Crimes Enforcement Network — Customer Identification Program)** — minimum identity attributes, verification by documentary or non-documentary method, and five-year retention past the relationship's end. The enrollment fields are the attributes; [Verification Method] records which kind was used; retention is [Retention Window](./retention-window.md)'s (Non-goal 13).
 - **FinCEN Beneficial Ownership Rule — 31 CFR section 1010.230** — each beneficial owner is a party record in their own right; the ownership relationship is not.
-- **EU 5th Anti-Money Laundering Directive (AMLD5)** — enhanced due diligence and beneficial-ownership registries, aligned with FATF.
+- **EU (European Union) 5th Anti-Money Laundering Directive (AMLD5)** — enhanced due diligence and beneficial-ownership registries, aligned with FATF.
 - **GDPR Article 4(1)** — the enrollment fields are personal data, and this atom is the corpus's clearest case of an atom that holds some rather than opaque references alone.
 - **GDPR Articles 5–6** — lawful basis for processing, typically Article 6(1)(c) or 6(1)(b); processing *beyond* the regulatory obligation is [Consent](./consent.md)'s.
-- **GDPR Article 17 (right to erasure)** — in direct tension with the retention obligations above. This atom does not resolve it: Invariant 7.1 forbids changing an enrollment field, and the composing erasure pattern is the authorized scrub (External check 3, Non-goal 12).
+- **GDPR Article 17 (right to erasure)** — in direct tension with the retention obligations above. This atom does not resolve it: Non-goal 3 forbids the atom to change an enrollment field, and the composing erasure pattern is the authorized scrub (External check 3, Non-goal 12).
 - **HIPAA 45 CFR section 164.514** — patient identity must be established before protected health information records exist; the patient is a party here.
 
 It inherits from:
@@ -929,9 +936,20 @@ It inherits from:
 ```
 status: partially resolved
 formal: verified — party-identity.tla + 1 twin, 2026-06-03
-last gate: 2026-07-12 — Final Critique 5, fresh reader — clean
+last gate: 2026-10-21 — Final Critique 6, the council's first settled round on the page and the first on its Store-contract rewrite (2365141) and the refusal-order sweep (c2f4e9a), its first freeze (at 755814a) voided as snapshot drift, three fresh readers on free models (GRID Nemotron 3 Ultra, EOS MiniMax M3.1 Flash, Linus GLM-5.3 Flash), each handed only the round's reading set, three passes on one text (frozen at c2f4e9a); the round rests on three counted passes — foundational count 4 after triage (10 reports: 3 standing; 1 refining report raised; 3 sent down; 4 rejected), all Kind A: the length bound's refusal reached [Read], whose signature refuses only invalid-query; the enrollment fields' immutability, read with no actor, made the erasure scrub the page authorizes a violation, and a conformance check failed every deployment composing it; a rule against every caller-supplied instant forbade the range bounds [Read] admits; and a party count that could never fall broke at the first purge by the Retention Window the page composes, failing two checks; 16 refining reports, 5 rhetorical reports; not clean; every foundational finding cured in place; 2026-07-12 — Final Critique 5, fresh reader — clean
 
-open: none
+open:
+- 2026-10-21-a · refining · Capability requirement 6 · the deployment canonicalizes an opaque reference by a form the page never names, over references it never lists, so two deployments resolve one spelling two ways while each agrees with itself → name the form the deployment declares and the references it covers
+- 2026-10-21-b · refining · Check 3.1; State 4; Operation 21 · the check names four of State 4's six fields, leaving verification id and verification result unread, and no check reads Operation 21's value set → name all six, and test the result against its value set
+- 2026-10-21-c · refining · Operation 48, 49; Term query axes · a filter repeating an axis (party id twice, or a point and a range on enrollment instant) is outside neither the query axes nor an axis's admitted values, so intersection, invalid-query and last-wins are all readable → say which
+- 2026-10-21-d · refining · Indeterminate outcome 3; Term query axes · a caller who lost an [Enroll]'s answer must read the database before retrying, and no axis finds a party by its enrollment fields, so only an unfiltered read finds the enrollment → name how the caller finds it
+- 2026-10-21-e · refining · Term string input; String 1 through 6; Operation 21, 25 · the verification result is outside the string inputs, so no string rule says how it compares with passed and failed → bring it into the string policy, or say its comparison
+- 2026-10-21-f · refining · Operation 2, 3; Date Of Birth entry · the date of birth's format, and the instant of the day it stands for when Operation 3 compares it with now, are undeclared, so a date of birth of today can answer two ways → declare both
+- 2026-10-21-g · refining · Operation 49, 54 · an axis's admitted values are undeclared for the party id axis and the range, so a filter naming no party may answer invalid-query or an empty sequence → declare each axis's admitted values
+- 2026-10-21-h · refining · Term query axes; Query entry · the range's inclusivity and the timezone of its bounds are undeclared; Final Critique 5's text read both bounds inclusive, and the migration dropped it → declare both
+- 2026-10-21-i · refining · Check 4.1; Invariant 8.1 · the check finds an event for every transition the log records, which every log passes; a single silent transition shows only in Check 5.1's replay, and two that undo each other in no party record → test what the party records can show, and read the composing Event Log (Composition note 11) for the rest
+- 2026-10-21-j · refining · Composition note 4; External check 4 · the enrolling and verifying actor references have no route to attestation, Composition note 4 binding Actor Identity only to transitioning actions → say whether an enrollment and a check are attested, and by whom
+- 2026-10-21-k · refining · Term evidence reference · the term names itself among its members (document reference OR evidence reference), and only External check 6 reads it as the umbrella → one name for each meaning, each change checked against Term reference, Identity 14 and Term required string input
 ```
 
 ## Decisions
@@ -943,5 +961,7 @@ Directional changes only — the turns a future reader must know the pattern too
 - **2026-10-20 — The store's guarantees cited, not restated.** *Chose:* the party store supplied under Execution Contract Store 1 through 4 and Execution Contract Order 1 (Capability requirement 10), and the sixteen rules that restated them tombstoned to their owner — Capability requirement 5, Operation 38, Invariant 11.1 and Atomic writes 1, 3 and 4, an action's records committed whole in one transition, and Invariant 1.2, no partial party on storage-failure, to Store 1; Invariant 11.2, no record of a refused action on storage-failure, and Atomic writes 2, an uncommitted transition discarded whole, to Store 1 and Store 3; Capability requirement 4, a write acknowledged only once it commits, to Store 3; Concurrency 1, the state checks and the state change as one operation, to Store 1 and Store 2; Capability requirement 3 and Concurrency 2 and 3, two party actions on one party serialized and the later answering from what the earlier committed, to Store 2; Ordering 1 and 2, the store instance appending each event in its own insertion order, to Order 1; rules 190 to 175. *Over:* the atom restating, for its own store, what every deployment's store guarantees. *Because:* the maintainer ruled 2026-10-12 that the corpus takes a store's specification, never the store, and `execution-contract.md` writes it once as the Store contract. Insertion order stays the atom's authority and a recorded instant advisory (Ordering 3 through 6): a fresh verification is a passed verification event that follows the most recent suspend, a position across a party's two event lists, and [Read] answers parties in insertion order, and the atom carries no sequence of its own to order either, so it cites Order 1, the first specification to. Every check that compares reads compares the auditor's own reads, or reconstructs from one read (Check 5.2), so it cites no History 1. A refused action leaving the party as the call found it and writing nothing stays the atom's own (Operation 41 through 43), as do the records it never removes or changes and the counts and lengths that never fall (Invariant 1.1, 1.3, 5.1, 6.1 through 6.3, 8.2); what the atom does for its domain is unchanged.
 
 - **2026-10-21 — Which refusal answers is the Execution Contract's.** *Chose:* each refuses line kept as the page wrote it, already in the page's order — a party action answering not-known, then its state rejections, [Reinstate]'s not-suspended ahead of no-passed-verification-since-suspend, then invalid-request on a field fault, and storage-failure last, answering only at the write — and the order cited from the Execution Contract (Capability requirement 10, Execution Contract Refusal 1); the pairs that only stated it deleted to Refusal 1: Operation 17 (a state rejection only for a party id naming a party), Operation 19 (no-passed-verification-since-suspend only on a suspended party), Operation 20 (a field fault only once every state check passes) and Operation 40 (storage-failure behind every precondition), with Term state rejection, which only Operation 17 read; rules 175 to 171. Operation 12 stays the page's own: a blank party id answers invalid-request ahead of not-known, while every other field fault answers after the state checks, so invalid-request holds two places in the order and no fixed line can carry both; Refusal 1 reads a refusal Operation 12 keeps from a call as not applying to it. *Over:* the page stating for itself which of an action's refusals answers when several apply. *Because:* the maintainer ruled on 2026-10-21 that the Execution Contract states once that the refusal listed first on an action's refuses line answers. What each action answers on every call is unchanged.
+
+- **2026-10-21 — The length bound refuses on the writes alone; the scrub and the purge belong to composing patterns; a range's bounds are no forbidden input.** *Chose:* String 7 and String 8 refusing an over-long string input on [Enroll] and the party actions, and [Read] meeting no length refusal; Invariant 7.1 deleted to Non-goal 3, so the atom never changes an enrollment field and a composing erasure coordination scrubs the fields the custody fields leave; Invariant 1.3 deleted to Invariant 1.1 and Execution Contract Database 4, so the atom never removes a party record and a composed Retention Window destroys one only as its own page says; Check 6.1 through 6.3, which cannot tell either act from a violation from the party records alone, moved to External check 9 and External check 10; and Operation 59 deleted to the rules that stamp every recorded instant from now (Operation 6, Operation 24, Operation 34). *Over:* a length rule on every action, which [Read]'s signature cannot answer; an immutability with no actor and a party count that may never fall, which break at the first scrub and the first purge the page itself sends to composing patterns; and a rule against every caller-supplied instant, which forbids the range [Read] admits. *Because:* Final Critique 6 found each a divergence between conforming builds, two rules no build can both obey, or a check a conforming deployment fails, and the page's own earlier text held each cure: Final Critique 5 capped write inputs alone, held the enrollment fields immutable under the atom's action contract with the scrub a composing Erasure Coordination pattern's, kept party records permanent from the atom's perspective while Retention Window decides when destruction becomes permitted, and refused caller timestamps only for the instants the atom stamps, beside a timestamp range filter. What each action answers on a call the guards admit is unchanged, save that [Read] no longer measures a filter value against the length bound.
 
 NOTE: End of Party Identity.

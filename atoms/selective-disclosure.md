@@ -296,6 +296,8 @@ Deleted: External check 4. Execution Contract Database 3 owns it.
 External check 5: A deployment needing Invariant 6.1 cleared MUST read the composing pattern's purge records beside two unfiltered reads of the disclosure records.
 ```
 
+NOTE: watch the composed erasure (External check 5).
+
 ## Non-goals
 
 ```
