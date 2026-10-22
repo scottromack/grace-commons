@@ -89,7 +89,7 @@ Term declared transition: one from state, action, to state and optional guard in
 ### State
 
 ```
-State 1: EVERY workflow MUST carry instance id, a declaration, a current state, a transition history and next sequence number.
+State 1: EVERY workflow MUST carry instance id, a declaration, a current state, a transition history, next sequence number and an instantiation instant.
 State 2: A workflow MAY carry subject reference.
 State 3: A workflow MAY carry instance metadata.
 State 4: EVERY history entry MUST carry transition id, sequence number, from state, to state, action and firing instant.
@@ -100,8 +100,10 @@ State 8: The atom MUST NOT offer a history entry edit surface.
 State 9: The atom MUST NOT offer a reorder surface.
 State 10: The atom MUST NOT offer a transition out of a terminal state.
 State 11: The atom MUST NOT offer an action that stands a workflow in two states.
-State 12: The database instance's workflow count MUST NOT fall.
-State 13: A workflow's transition history MUST NOT shrink.
+State 15: A workflow MAY carry actor reference.
+State 16: A history entry MAY carry guard satisfied.
+Deleted: State 12. Invariant 10.1 and Execution Contract Database 4 own it.
+Deleted: State 13. Invariant 10.2 and Execution Contract Database 4 own it.
 Deleted: State 14. Execution Contract Database 3 owns it.
 ```
 
@@ -118,7 +120,7 @@ Deleted: Capability requirement 4. Execution Contract Logic confinement 7 owns i
 ### Operations
 
 ```
-instantiate(declaration, optional actor_ref, optional instance_metadata, optional instantiated_at)
+instantiate(declaration, optional subject_ref, optional actor_ref, optional instance_metadata, optional instantiated_at)
   answers instance_id
   refuses invalid-declaration | invalid-request | storage-failure
 
@@ -148,6 +150,7 @@ Operation 5: An admitted instantiate MUST stand the workflow in the initial stat
 Operation 6: An admitted instantiate MUST set next sequence number to one.
 Operation 7: An admitted instantiate MUST record an empty transition history.
 Operation 8: An admitted instantiate MUST answer the instance id.
+Operation 56: An admitted instantiate MUST record a supplied subject reference.
 Operation 9: IF instance id EQUALS blank THEN an addressed action MUST answer invalid-request.
 Operation 10: IF action EQUALS blank THEN [Fire] MUST answer invalid-request.
 Operation 11: IF the instance id names no workflow THEN an addressed action MUST answer not-known.
@@ -156,7 +159,7 @@ Operation 13: IF the current state IS IN the terminal states THEN [Fire] MUST an
 Deleted: Operation 14. Execution Contract Refusal 1 owns it.
 Operation 15: IF no declared transition matches the current state and action THEN [Fire] MUST answer invalid-transition.
 Deleted: Operation 16. Execution Contract Refusal 1 owns it.
-Operation 17: IF the matched transition carries a guard AND guard satisfied EQUALS blank THEN [Fire] MUST answer guard-not-satisfied.
+Operation 17: IF the matched transition carries a guard AND guard satisfied DOES NOT EQUAL true THEN [Fire] MUST answer guard-not-satisfied.
 Deleted: Operation 18. Execution Contract Refusal 1 owns it.
 Operation 19: IF now PRECEDES the resolved firing instant THEN [Fire] MUST answer invalid-request.
 Operation 20: IF the resolved firing instant PRECEDES the workflow's instantiation instant THEN [Fire] MUST answer invalid-request.
@@ -197,6 +200,8 @@ Deleted: Operation 54. Execution Contract Logic confinement 3 owns it.
 Operation 55: An ordering rule MUST NOT rest on firing instant.
 ```
 
+NOTE: open 2026-10-22-a — [History]'s query is declared nowhere: which filters it takes, a range's two bounds, whether either may be left unset and whether each holds its end, and the operator for a sequence number range's ends (Operation 43 through 45).
+
 Term now: the wall-time reading the host takes at the seam and hands to the transition, as the section titled Logic Confinement Principle in `execution-contract.md` declares it; never read inside the transition, never supplied by the business caller.
 
 Term business caller: the party whose action the call carries, as the section titled Logic Confinement Principle in `execution-contract.md` declares it; never the source of an injected value.
@@ -221,21 +226,23 @@ Term resolved firing instant: the firing instant the history entry carries — t
 
 Term resolved instantiation instant: the instantiation instant the workflow carries — the supplied value where one exists, and now otherwise.
 
-Term actor reference: the opaque reference naming who fired a declared transition — an [Actor Reference]; optional, and recorded where supplied.
+Term actor reference: the opaque reference naming who instantiated a workflow or fired a declared transition — an [Actor Reference]; optional, and recorded where supplied.
 
 Term guard: the opaque label naming the condition a caller asserts before a declared transition fires — a [Guard].
 
-Term guard satisfied: the caller's assertion that a guard holds — a [Guard Satisfied]; an assertion, never a verdict.
+Term guard satisfied: true | false — a [Guard Satisfied], the caller's assertion that a guard holds; an assertion, never a verdict.
 
 Term matched transition: the one declared transition whose from state is the current state and whose action is the call's action (Declaration 13).
 
 Term filter axes: transition id | sequence number | from state | to state | action | actor reference | firing instant — the seven axes [History] accepts, and no others.
 
-Term admitted instantiate: an [Instantiate] call whose declaration, actor reference and resolved instantiation instant the guards all admit.
+Term admitted instantiate: an [Instantiate] call that passes every precondition and whose database write commits.
 
-Term admitted fire: a [Fire] call whose instance id names a live workflow, whose action matches a declared transition the current state offers, whose guard the caller asserted where one is carried, and whose actor reference and resolved firing instant the guards admit.
+Term admitted fire: a [Fire] call that passes every precondition and whose database writes commit.
 
 Term admitted history: a [History] call whose instance id names a workflow and whose every filter axis and filter value the guards admit.
+
+NOTE: watch the admitted effect (Operation 4 through 8, Operation 21 through 30, Invariant 5.2).
 
 | # | Condition | [Fire] answers |
 |---|---|---|
@@ -243,12 +250,14 @@ Term admitted history: a [History] call whose instance id names a workflow and w
 | 2 | both are well-formed, the instance id names no workflow | not-known |
 | 3 | the workflow exists, the current state is terminal | terminal |
 | 4 | the current state is not terminal, no declared transition matches | invalid-transition |
-| 5 | a declared transition matches, it carries a guard, the caller asserts none | guard-not-satisfied |
+| 5 | a declared transition matches, it carries a guard, guard satisfied is not true | guard-not-satisfied |
 | 6 | the gate clears, actor reference is blank or the resolved firing instant is out of bounds | invalid-request |
 | 7 | every precondition passes, the database refuses the write | storage-failure |
 | 8 | every precondition passes, the database accepts the write | new_state |
 
 NOTE: watch condition negation — invalid-request occupies two rows of one precedence chain (row 1 and row 6), so the answer alone does not say which guard refused. Audit Trail's 2026-08-30-a open line is the same shape with a worse consequence, its row 6 landing after a commitment.
+
+NOTE: open 2026-10-21-a — the table answers a blank actor reference or an out-of-bounds firing instant only once the gate clears (row 6), and no rule holds the fault there, so under Execution Contract Refusal 1 a blank actor reference against an instance id naming no workflow answers invalid-request where the table answers not-known.
 
 ### Invariants
 
@@ -290,7 +299,7 @@ NOTE: watch condition negation — invalid-request occupies two rows of one prec
   ```
 - **Invariant 8 — Guard gating without evaluation.**
   ```
-  Invariant 8.1: A guarded declared transition MUST fire ONLY IF the caller asserts guard satisfied.
+  Invariant 8.1: A guarded declared transition MUST fire ONLY IF guard satisfied EQUALS true.
   Invariant 8.2: The atom MUST NOT evaluate a guard's condition.
   Invariant 8.3: A guarded declared transition's history entry MUST record the caller's assertion.
   ```
@@ -304,6 +313,8 @@ NOTE: watch condition negation — invalid-request occupies two rows of one prec
   Invariant 10.2: The atom MUST NOT remove a history entry from a workflow.
   Deleted: Invariant 10.3. Execution Contract Database 1 owns it.
   ```
+
+NOTE: watch the composed erasure (Invariant 10.1, Invariant 10.2).
 
 ### The declaration
 
@@ -323,6 +334,7 @@ Declaration 12: IF a declared transition's from state IS IN the terminal states 
 Declaration 13: IF two declared transitions share one from state and one action THEN [Instantiate] MUST answer invalid-declaration.
 Declaration 14: IF a declared transition's action EQUALS blank THEN [Instantiate] MUST answer invalid-declaration.
 Declaration 15: IF a supplied guard EQUALS blank THEN [Instantiate] MUST answer invalid-declaration.
+Declaration 18: IF a terminal state IS NOT IN states THEN [Instantiate] MUST answer invalid-declaration.
 Declaration 16: The terminal states MAY carry no member.
 Declaration 17: A declared transition MAY carry no guard.
 ```
@@ -335,7 +347,7 @@ Term initial state: the state a workflow stands in at [Instantiate] — an [Init
 
 Term terminal states: the absorbing members of states — a [Terminal States]; possibly none.
 
-Term well-formed declaration: a declaration Declaration 5 through 15 all admit.
+Term well-formed declaration: a declaration Declaration 5 through 15 and Declaration 18 all admit.
 
 ---
 
@@ -399,7 +411,7 @@ Check 4.1: An auditor MUST find a workflow whose current state IS IN the termina
 Check 4.2: An auditor MUST find no declared transition whose from state IS IN the terminal states (Invariant 4.2).
 Check 5.1: An auditor MUST find a workflow's sequence numbers standing from one to the workflow's history entry count (Invariant 6.2).
 Check 5.2: An auditor MUST reconstruct a workflow's history order from sequence number alone (Invariant 6.3).
-Check 5.3: An auditor MUST find a re-read history entry's fields unchanged from the prior read (Invariant 5.2).
+Check 5.3: An auditor MUST find a re-read history entry's fields unchanged from the prior read (Invariant 5.1).
 Check 6.1: An auditor MUST reach the workflow's current state by replaying the workflow's history from the initial state (Invariant 7.3).
 Check 7.1: An auditor MUST find guard satisfied recorded on EVERY guarded declared transition's history entry (Invariant 8.3).
 Check 7.2: An auditor MUST find no guard satisfied recorded on an unguarded declared transition's history entry (Operation 30).
@@ -407,7 +419,7 @@ Check 8.1: An auditor MUST find transition id, sequence number, from state, to s
 Check 8.2: An auditor MUST find EVERY recorded actor reference non-blank (Invariant 9.1).
 ```
 
-NOTE: EVERY check names the rule the check tests.
+NOTE: EVERY check names the rule the check tests. Which composing patterns a deployment wired in is the deployment's own declaration, not a stored field (External check 4).
 
 ### External checks
 
@@ -415,6 +427,8 @@ NOTE: EVERY check names the rule the check tests.
 External check 1: A deployment needing a guard's condition confirmed MUST read the composing pattern that evaluates the guard (Invariant 8.2).
 External check 2: A deployment needing a workflow's history entry count matched against the workflow's admitted fire count MUST capture the fire answers (Invariant 5.2).
 External check 3: A deployment needing an actor reference bound to an actor MUST read the composing Actor Identity attestation (Non-goal 11).
+External check 4: An auditor MUST identify from the deployment's own declaration which composing patterns the deployment wired in (Composition note 1).
+NOTE: watch the wiring declaration (External check 4).
 ```
 
 ## Non-goals
@@ -520,11 +534,11 @@ Each `[Term]` marker above links to its term entry here; a term entry states wha
 
 ### Vocabulary
 
-Term actors: the atom; the host; the transition; the deployment; a composing pattern; a business caller; a caller; a guard; an auditor; a regulator; an inspector; an investigator; the database; a workflow; a history entry; a declaration; a declared transition; a matched transition; a guarded declared transition; an unguarded declared transition; an addressed action; a writing action; a reading action; a refused action; an ordering rule; an action; a query; a filter; a range filter; a string filter; a replay; a state name; a string input; an opaque reference; the database instance's workflow count; the workflow's history entry count; the workflow's admitted fire count.
+Term actors: the atom; the host; the transition; the deployment; a composing pattern; a business caller; a caller; a guard; an auditor; a regulator; an inspector; an investigator; the database; a workflow; a history entry; a declaration; a declared transition; a matched transition; a guarded declared transition; an unguarded declared transition; an addressed action; a writing action; a reading action; a refused action; an ordering rule; an action; a query; a filter; a range filter; a string filter; a replay; a state name; a string input; an opaque reference; the workflow's history entry count; the workflow's admitted fire count.
 
-Term records: workflow — one running workflow, carrying instance id, a declaration, a current state, a transition history, next sequence number and, where supplied, subject reference and instance metadata. history entry — one recorded transition, carrying transition id, sequence number, from state, to state, action, firing instant and, where supplied, actor reference and guard satisfied.
+Term records: workflow — one running workflow, carrying instance id, a declaration, a current state, a transition history, next sequence number, an instantiation instant and, where supplied, subject reference, instance metadata and actor reference. history entry — one recorded transition, carrying transition id, sequence number, from state, to state, action, firing instant and, where supplied, actor reference and guard satisfied.
 
-Term record verbs: identify, allocate, change, carry, stand, answer, record, append, set, take, raise, leave, own, match, normalize, reorder, interpret, confirm, admit, offer, evaluate, assert, fire, replay, reach, rest, share, precede, follow, exceed, compare, trim, case-fold, refuse, write, read, find, reconstruct, complete, shrink, fall, equal, bound, nest, version, decide, compose, declare, wire, supply, remove, sort, route, name, detect, bind, capture, choose, count, canonicalize.
+Term record verbs: identify, allocate, change, carry, stand, answer, record, append, set, take, raise, leave, own, match, normalize, reorder, interpret, confirm, admit, offer, evaluate, assert, fire, replay, reach, rest, share, precede, follow, exceed, compare, trim, case-fold, refuse, write, read, find, reconstruct, complete, equal, bound, nest, version, decide, compose, declare, wire, supply, remove, sort, route, name, detect, bind, capture, choose, count, canonicalize.
 
 
 Term bounds: empty.
@@ -567,7 +581,7 @@ Kind: Operation
 
 #### Workflow Id
 
-The opaque, immutable, system-generated identity of a workflow — assigned on [Instantiate], never reused, byte-order sortable for deterministic [History] ordering. It is the workflow's identity; the [Declaration], [Current State], and [Transition History] are properties.
+The opaque, immutable, system-generated identity of a workflow — assigned on [Instantiate], never reused, byte-order sortable (Identity 11). It is the workflow's identity; the [Declaration], [Current State], and [Transition History] are properties.
 
 Kind:       Field
 Field of:   the workflow
@@ -719,7 +733,7 @@ Projection: fired_at
 
 #### Actor Reference
 
-The optional opaque reference to the actor who fired a transition, recorded on the history entry (and on the genesis at [Instantiate]). If supplied, non-blank; its presence is deployment policy, not an atom mandate (Invariant 9).
+The optional opaque reference to the actor who fired a transition, recorded on the history entry (and on the workflow at [Instantiate]). If supplied, non-blank; its presence is deployment policy, not an atom mandate (Invariant 9).
 
 Kind:       Field
 Field of:   the history entry
@@ -727,7 +741,7 @@ Projection: actor_ref
 
 #### Guard Satisfied
 
-The caller-asserted flag that a guarded transition's [Guard] condition is met — a [Fire] on a guarded transition fires only if it is `true`, and the history entry then records `guard_satisfied: true` (Invariant 8). Absent for unguarded transitions.
+The caller-asserted flag that a guarded transition's [Guard] condition is met — a [Fire] on a guarded transition fires only if it is true, and the history entry then records `guard_satisfied: true` (Invariant 8). Absent for unguarded transitions.
 
 Kind:       Field
 Field of:   the history entry
@@ -735,7 +749,7 @@ Projection: guard_satisfied
 
 #### Invalid Declaration
 
-The rejection [Instantiate] returns for any declaration defect — an empty or duplicate-named [States] set, an [Initial State] that is missing or in [Terminal States], a transition referencing an undeclared state or leaving a terminal state, a duplicate `(from_state, action)` pair, or a blank [Action] or [Guard].
+The rejection [Instantiate] returns for any declaration defect — an empty or duplicate-named [States] set, an [Initial State] that is missing or in [Terminal States], a [Terminal States] member missing from [States], a transition referencing an undeclared state or leaving a terminal state, a duplicate `(from_state, action)` pair, or a blank [Action] or [Guard].
 
 Kind:       Member
 Member of:  the Instantiate rejection
@@ -789,7 +803,7 @@ Projection: invalid-transition
 
 #### Guard Not Satisfied
 
-The rejection [Fire] returns when the matched transition carries a [Guard] but the caller did not assert [Guard Satisfied] = `true` (Invariant 8).
+The rejection [Fire] returns when the matched transition carries a [Guard] but the caller did not assert [Guard Satisfied] as true (Invariant 8).
 
 Kind:       Member
 Member of:  the Fire rejection
@@ -872,10 +886,11 @@ Guard evaluation, non-repudiable attribution, tamper-evidence, and retention are
 ```
 status: partially resolved
 formal: verified — state-machine.als + 1 twin, 2026-06-04
-last gate: 2026-06-04 — Final Critique 4, fresh reader — clean
+last gate: 2026-10-22 — Final Critique 5, the council's first round on the page and the first since its GRACE-lang migration (ee22b9c) and its Store-contract rewrite (e9a9e03), three fresh readers on free models (GRID Nemotron 3 Ultra, EOS Beam, Linus GLM-5.3 Flash), each handed only the round's reading set, three passes on one text (frozen at acab536); the round rests on three counted passes — foundational count 4 after triage (15 reports: 5 standing in 4 rows; 5 sent down; 5 rejected), Kind A: a guarded fire landed on guard satisfied false; an admitted instantiate or fire took in a call the database refused; no action took the subject reference the page records; and the workflow count could never fall beside a composed retention; 13 refining reports, 6 rhetorical reports; not clean; every foundational finding cured, every refining finding cured, routed or answered; 2026-06-04 — Final Critique 4, fresh reader — clean
 
 open:
-- 2026-10-21-a · refining · Operation 2, 19, 20; [Fire]'s case table, row 6 · the table answers a blank actor reference or an out-of-bounds firing instant only once the gate clears (row 6), after not-known, terminal, invalid-transition and guard-not-satisfied, and no rule ever held it there; [Fire]'s refuses line lists invalid-request first, so under Execution Contract Refusal 1 a blank actor reference against an instance id naming no workflow answers invalid-request where the table answers not-known → a rule holding an actor or instant fault behind the gate (Approval Step Operation 20's form, since invalid-request holds two rows of one order), or the table's row 6 read into row 1; seen by the refusal-order sweep
+- 2026-10-21-a · refining · Operation 2, 19, 20; [Fire]'s case table, row 6 · the table answers a blank actor reference or an out-of-bounds firing instant only once the gate clears (row 6), after not-known, terminal, invalid-transition and guard-not-satisfied, and no rule ever held it there; [Fire]'s refuses line lists invalid-request first, so under Execution Contract Refusal 1 a blank actor reference against an instance id naming no workflow answers invalid-request where the table answers not-known → a rule holding an actor or instant fault behind the gate (Approval Step Operation 20's form, since invalid-request holds two rows of one order), or the table's row 6 read into row 1, or a code of its own for each of row 6's two faults, listed after guard-not-satisfied (Final Critique 5's GRID), which renames refusals both composers read; seen by the refusal-order sweep, reported again at Final Critique 5
+- 2026-10-22-a · refining · Operation 43 through 45; Term filter axes · [History]'s query is declared nowhere: which filters it takes (Term filter axes names seven axes), a range's two bounds, whether either may be left unset and whether each holds its end, and the operator for a sequence number range's ends, which Operation 45 compares with PRECEDES, the instant operator (GRACE-lang Earned vocabulary 18); Final Critique 4's text declared the query, a firing instant range with both bounds optional and inclusive and any combination of axes admitted → declare the query and its filters as terms in Final Critique 4's form, and split Operation 45 by range
 ```
 
 ## Decisions
@@ -885,5 +900,7 @@ Directional changes only — the turns a future reader must know the pattern too
 - **2026-10-20 — The store's guarantees cited, not restated.** *Chose:* the workflow store supplied under Execution Contract Store 1 through 4 (Capability requirement 5), and the ten rules that restated them, or existed only for a store that could split a fire, tombstoned to their owner — Operation 27, a fire's entry, counter raise and state change committed in one operation, Invariant 10.3, no partial record left by a storage-failure rejection, and Atomic writes 1, 2, 4 and 5, no reader observing a history entry without its next sequence number raise or its current state change, a dangling transition resolved and no read served before it is, to Store 1, under which no fire stands partly applied; Atomic writes 3, an uncommitted crash leaving the workflow as the call found it, to Store 1 and Store 3; State 14, next sequence number surviving a restart, to Store 3; Concurrency 1 and 2, two fires on one workflow serialized and the later reading the current state the earlier left, to Store 2; rules 186 to 177. *Over:* the atom restating, for its own store, what every deployment's store guarantees, and keeping a crash-recovery obligation for a split fire that no conforming store leaves. *Because:* the maintainer ruled 2026-10-12 that the corpus takes a store's specification, never the store, and `execution-contract.md` writes it once as the Store contract. What stays is the atom's own: a refused action leaving the workflow as the call found it, appending no history entry and raising no next sequence number (Operation 35 through 37), and the rules that keep a workflow and its history once they exist (State 6, State 7, State 12, State 13, Invariant 10.1, Invariant 10.2), since Store 4 alone neither keeps the atom from removing a workflow or a history entry nor bars a purge another specification declares. The history's order is the atom's own sequence number, taken inside the fire that appends the entry (Operation 22, Invariant 6.3), and the atom's checks compare an auditor's own reads or replay the entries, so the atom cites neither History 1 nor Order 1. What the atom does for its domain is unchanged.
 
 - **2026-10-21 — Which refusal answers is the Execution Contract's.** *Chose:* each refuses line kept as the page wrote it, already in the order its pairs gave — [Instantiate] invalid-declaration ahead of invalid-request; [Fire] invalid-request on a blank instance id or action, then not-known, terminal, invalid-transition and guard-not-satisfied, the table's rows 1 through 5; [History] not-known ahead of invalid-query; storage-failure last, answering only at the write — and the order cited from the Execution Contract (Capability requirement 5, Execution Contract Refusal 1); the pairs that only stated it deleted to Refusal 1: Operation 1 (invalid-request only on a well-formed declaration), Operation 12 (not-known only for an instance id that is not blank), Operation 14 (terminal only for an instance id naming a workflow), Operation 16 (invalid-transition only off a terminal state), Operation 18 (guard-not-satisfied only where a declared transition matches), Operation 34 (storage-failure behind every precondition) and Operation 46 (invalid-query only for an instance id naming a workflow); rules 177 to 170. The table's row 6, an actor or instant fault answered only once the gate clears, stood in no rule and no fixed line can hold invalid-request in both rows, so it is routed as open line 2026-10-21-a. *Over:* the page stating for itself which of an action's refusals answers when several apply. *Because:* the maintainer ruled on 2026-10-21 that the Execution Contract states once that the refusal listed first on an action's refuses line answers.
+
+- **2026-10-22 — A guarded fire lands only on a true assertion, an admitted call is one whose writes commit, and a composed retention may purge what the atom never removes.** *Chose:* Operation 17 refusing a guarded fire whose guard satisfied is not true, with Term guard satisfied declaring true | false and Invariant 8.1 reading the same; the admitted instantiate and admitted fire written as a call that passes every precondition and whose database writes commit; [Instantiate] taking the optional subject reference State 2 and Term string input name, which Operation 56 records; and State 12 and State 13 deleted to Invariant 10.1, Invariant 10.2 and Execution Contract Database 4, the page read as Final Critique 4's text read it: the atom keeps every workflow and history entry, and time-bounded retention is a composing Retention Window's. *Over:* Operation 17 refusing only an absent assertion beside the term entries' true; admitted terms that stopped at the guards and took in a call the database refused; a subject reference no action took; and the 2026-10-20 entry's reading that State 6, State 7, State 12, State 13, Invariant 10.1 and Invariant 10.2 bar a purge another specification declares. *Because:* Final Critique 5 found the four, and the corpus already reads so: Medication Order, Credential, Provisional Commitment, Party Identity, Invitation and Provenance write their admitted calls in that form, and Selective Disclosure, Party Identity, Provisional Commitment, Observation, Capacity Constraint Enforcement and Message Preference cured the composed erasure the same way. Smaller fixes rode with them: State 1 carries the instantiation instant Operation 20 reads, and State 15 and State 16 the instantiating actor reference and guard satisfied; Declaration 18 refuses a terminal state outside states; External check 4 asks the deployment for the patterns it wired in (Composition note 1); Check 5.3 cites Invariant 5.1; the Workflow Id entry no longer names a consumer the page lacks; [History]'s query is routed as open line 2026-10-22-a; rules 170 to 173. What each action answers and writes on a call it admits is unchanged, but that a guarded fire asserting false is refused and the subject reference is taken and recorded.
 
 NOTE: End of State Machine.
