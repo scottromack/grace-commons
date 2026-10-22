@@ -65,6 +65,8 @@ State 8: The atom MUST NOT offer a delete surface.
 State 9: The atom MUST NOT offer an edit surface.
 ```
 
+NOTE: watch the admitted effect (State 6).
+
 Term event: one recorded fact in the log — an [Event]; fixed in place once landed.
 
 Term sequence number: the strictly rising integer an event carries — a [Sequence Number]; the log's order and nothing else.

@@ -204,6 +204,8 @@ Deleted: Operation 63. Execution Contract Logic confinement 3 owns it.
 Operation 64: [Read] MUST evaluate a state filter against the consent record's state.
 ```
 
+NOTE: watch the state a refusal leaves (Operation 32).
+
 Term now: the wall-time reading the host takes at the seam and hands to the transition — a [Now], as the section titled Logic Confinement Principle in `execution-contract.md` declares it; never read inside the transition, never supplied by the business caller.
 
 Term business caller: the party whose action the call carries, as the section titled Logic Confinement Principle in `execution-contract.md` declares it; never the source of an injected value.

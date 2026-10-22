@@ -96,6 +96,8 @@ Deleted: Operation 13. Execution Contract Read 1 owns it.
 Operation 14: IF the database refuses the write THEN [Record] MUST answer storage-failure.
 ```
 
+NOTE: watch the admitted effect (Operation 1 through 3, Invariant 2.3).
+
 Term landed record: a [Record] call whose write, where the call makes one, the database commits.
 
 The case space, and the rule that owns each case:
