@@ -16,7 +16,7 @@ toc: true
 
 ## Summary
 
-Event Log is an append-only record. Anything written to it stays, in the order it arrived, unchanged, for as long as the log exists. It is the foundation that audit trails, undo histories, activity feeds, transaction journals, and replay systems are all built on. It offers just two operations. One adds an event to the end and returns an identifier for it; the other reads events back in order. There is no way to edit or delete, by design. Every event gets a strictly increasing sequence number that fixes its place in line. That number is kept separate from the human-readable timestamp on purpose: clocks can drift or jump, but the sequence number never does, so the log can always be replayed faithfully even on a machine with a bad clock. The log itself takes no position on how long to keep events, how to prove they have not been tampered with, who wrote them, or how to search them. All of these are handled by separate patterns layered on top, which is why the same simple log can sit under a personal task history, a medical chart, a bank ledger, and a regulated audit trail.
+Event Log is an append-only record. Anything written to it stays, in the order it arrived, unchanged, for as long as the log exists. It is the foundation that audit trails, undo histories, activity feeds, transaction journals, and replay systems (which rebuild a past state by reading the events back in order) are all built on. It offers just two operations. One adds an event to the end and returns an identifier for it; the other reads events back in order. There is no way to edit or delete, by design. Every event gets a strictly increasing sequence number that fixes its place in line. That number is kept separate from the human-readable timestamp on purpose: clocks can drift or jump, but the sequence number never does, so the log can always be replayed faithfully even on a machine with a bad clock. The log itself takes no position on how long to keep events, how to prove they have not been tampered with, who wrote them, or how to search them. All of these are handled by separate patterns layered on top, which is why the same simple log can sit under a personal task history, a medical chart, a bank ledger, and a regulated audit trail.
 
 ---
 
@@ -42,6 +42,8 @@ Identity 9: The atom MUST NOT identify an event by the event's data.
 Identity 10: A composing pattern MUST own how many log instances a deployment runs.
 ```
 
+NOTE: open 2026-10-22-b — the event id's source is named as the host's allocation (Identity 2) and not among what the deployment supplies (Capability requirement 1, Capability requirement 2).
+
 Term event id: the opaque value naming one event — an [Event Id]; allocated once, never again.
 
 Term seam: the atom's I/O boundary as the section titled Logic Confinement Principle in `execution-contract.md` declares it; the host injects the clock reading and the event id here.
@@ -50,6 +52,8 @@ Term now: the wall-time reading the host takes at the seam and hands to the tran
 Term transition: the atom's evaluation of one call against the log, as the section titled Logic Confinement Principle in `execution-contract.md` declares it.
 
 Term business caller: the party whose action the call carries, as the section titled Logic Confinement Principle in `execution-contract.md` declares it; never the source of an injected value.
+
+NOTE: open 2026-10-20-c — Term seam, Term now, Term transition and Term business caller cite the section titled Logic Confinement Principle in `execution-contract.md`, which declares none of them.
 
 ### State
 
@@ -64,6 +68,8 @@ Deleted: State 7. Execution Contract Database 3 owns it.
 State 8: The atom MUST NOT offer a delete surface.
 State 9: The atom MUST NOT offer an edit surface.
 ```
+
+NOTE: open 2026-10-20-d — who supplies a log instance's log name (State 3) and who starts a fresh log instance (State 5) is not stated: a composing pattern (Identity 10) or the deployment.
 
 Term event: one recorded fact in the log — an [Event]; fixed in place once landed.
 
@@ -124,9 +130,17 @@ Deleted: Operation 20. Execution Contract Logic confinement 3 owns it.
 Operation 21: The business caller MUST NOT supply recording instant.
 ```
 
+NOTE: open 2026-10-20-f — the tail Operation 1 writes the event at is declared nowhere, where the grammar's own tail is a statement part.
+
+NOTE: open 2026-10-22-a — an append whose answer never reaches its caller has no stated course: the caller holds no event id to find the event by, and nothing names who suppresses a retried append (Operation 11).
+
 Term query: what a read asks for — a [Query]: a sequence number range, a wall-time range, or a combination of the two.
 
+NOTE: open 2026-10-20-b — the query's shape is the implementation's (Operation 18), while the Examples write queries in one shape and pin its verdicts; whether a range holds its ends, what a reversed range answers and how two ranges combine are not stated.
+
 Term payload cap: the per-instance bound on data's size, in bytes; 65,536 bytes where a deployment declares none.
+
+NOTE: open 2026-10-20-a — the deployment's declaration of the payload cap is named here and in External check 6, and listed by no Capability requirement.
 
 The case space, and the rule that owns each case:
 
@@ -134,7 +148,7 @@ The case space, and the rule that owns each case:
 |---|---|---|---|
 | [Append] | data within the cap, database accepts | event id | one event lands at the tail, next sequence number rises (Operation 1, Operation 3, State 6) |
 | [Append] | data over the cap | [Invalid Payload] | none — the precondition failed before the write (Operation 5) |
-| [Append] | database refuses the write | [Storage Failure] | nothing lands; next sequence number is unchanged (Operation 9, State 6) |
+| [Append] | database refuses the write | [Storage Failure] | nothing lands; next sequence number is unchanged (Operation 9, Execution Contract Database 1) |
 | [Read] | query well-formed, events match | the events, ascending | none — the call reads (Invariant 5.1, Operation 17) |
 | [Read] | query well-formed, nothing matches | empty sequence | none (Operation 16) |
 | [Read] | query malformed | [Invalid Query] | none (Operation 15) |
@@ -207,10 +221,12 @@ A single sequence exercising all three rejection reasons:
 - `append({type: "deposit", amount: 500})` → accepted; returns `event_id e1` with `sequence_number 1`.
 - `read({sequence_range: [-1, 5]})` → rejected invalid-query (negative sequence number is not a well-formed range parameter).
 - `read({sequence_range: [1, 1]})` → returns `[e1]`; `sequence_number 1` matches, ordered ascending.
-- Underlying database becomes temporarily unavailable. `append({type: "withdrawal", amount: 100})` → rejected storage-failure; event does not land; caller must treat the rejection as definitive. Nothing is written, so next sequence number stays at 2 (Operation 9, State 6).
+- Underlying database becomes temporarily unavailable. `append({type: "withdrawal", amount: 100})` → rejected storage-failure; event does not land; caller must treat the rejection as definitive. Nothing is written, so next sequence number stays at 2 (Operation 9, Execution Contract Database 1).
 - Database recovers. `append({type: "withdrawal", amount: 100})` → accepted; returns `event_id e2` with `sequence_number 2`.
 
 All three rejection reasons ([Invalid Payload], [Invalid Query], [Storage Failure]) exercised in one thread.
+
+NOTE: open 2026-10-20-e — the Examples invoke regulated domains (a patient chart, a bank journal), and the page carries no Regulated adversarial scenarios subsection.
 
 ---
 
@@ -221,7 +237,7 @@ An implementation is acceptable when the checks below are provable to an externa
 ### Conformance checks
 
 ```
-Check 1.1: An auditor MUST find EVERY event of an earlier read in a later read of one log instance (Invariant 1.1).
+Check 1.1: An auditor MUST find EVERY event of an earlier read in a later read of one log instance whose query the event matches (Invariant 1.1).
 Check 1.2: An auditor MUST find a re-read event's EVERY event field unchanged (Invariant 2.1).
 Check 2.1: An auditor MUST find no two landed events sharing a sequence number (Invariant 3.1).
 Check 2.2: An auditor MUST find no two events sharing an event id (Invariant 6.1).
@@ -413,7 +429,7 @@ Projection: next_sequence_number
 
 #### Query
 
-The selection a caller passes to [Read] — a sequence-number range, a wall-time range, or a combination of the two. Its exact shape is implementation policy; the only requirement is that a valid [Query] returns events in [Sequence Number] order.
+The selection a caller passes to [Read] — a sequence-number range, a wall-time range, or a combination of the two. Its exact shape is implementation policy; a valid [Query] asks for nothing beyond those ranges, and [Read] returns its events in [Sequence Number] order.
 
 Kind:         Parameter
 Parameter of: Read
@@ -498,20 +514,24 @@ It inherits from:
 ```
 status: partially resolved
 formal: verified — event-log.tla + 1 twin, 2026-06-03
-last gate: 2026-10-20 — Final Critique 5, the council's first round on the page and the first on its GRACE-lang text (453bde3) and the Store-contract rewrite (4abad76), three fresh readers on free models (GRID Nemotron 3 Ultra, EOS MiniMax M3.1 Flash, Linus MiMo V2.6 Flash), each handed only the round's reading set, three passes on one text (frozen at 6ed25d6); the round rests on three counted passes — foundational count 5 after triage (12 reports, 2 sent down to refining, 1 rejected), all Kind A: the default payload cap read as 64,000 bytes or 65,536, and the Rejection-paths example held under the first reading alone; a query carried a payload predicate the atom may not read; Check 3.2 failed a conforming log when an event landed between two reads; State 6 raised next sequence number on a refused append and the gap rules let a failed write consume a sequence number, which the Store contract rules out; and Invariant 7.1's recording instant fell under a non-decreasing clock when the store serialized two appends in the order opposite to their clock readings; 17 refining reports, 5 rhetorical reports; not clean; every foundational finding cured in place; 2026-06-18 — Final Critique 4, fresh reader — clean
+last gate: 2026-10-22 — Final Critique 6, the council's second round on the page and the first on its text since the read sweep (755814a), the refusal-order sweep (c2f4e9a) and the repeats sweep (dbdb385), three fresh readers on free models (GRID Nemotron 3 Ultra, EOS Beam, Linus GLM-5.3 Flash), each handed only the round's reading set, three passes on one text (frozen at dbdb385); the round rests on three counted passes — foundational count 1 after triage (11 reports: 1 standing; 6 sent down; 4 rejected), Kind A: Check 1.1 failed a conforming log whenever an auditor's later read asked another query; 13 refining reports, 4 rhetorical reports; not clean; every foundational finding cured, every refining finding cured, routed or answered; 2026-10-20 — Final Critique 5, the council's first round on the page — foundational count 5, all cured, not clean; 2026-06-18 — Final Critique 4, fresh reader — clean
 
 open:
 - 2026-10-20-a · refining · Term payload cap; External check 6 · the deployment's declaration of the payload cap is named (Term payload cap, External check 6) and declared by no Capability requirement → a Capability requirement naming the declaration and the default it falls back to
-- 2026-10-20-b · refining · Operation 18; Term query; Examples · the query's shape is the implementation's (Operation 18), while the Examples, which compile into tests, write queries in one shape and pin that shape's verdict on a range bound below one, and whether a deployment may decline a query kind Term query names is unsaid → fix a portable query shape, or write the Examples' queries in one declared shape
+- 2026-10-20-b · refining · Operation 15; Operation 18; Term query; Examples · the query's shape is the implementation's (Operation 18), while the Examples, which compile into tests, write queries in one shape and pin that shape's verdict on a range bound below one; whether a deployment may decline a query kind Term query names, whether a range holds its ends, what a reversed range answers and how two ranges combine are unsaid → fix a portable query shape, or write the Examples' queries in one declared shape
 - 2026-10-20-c · refining · Term seam; Term now; Term transition; Term business caller · each says the Execution Contract's Logic Confinement Principle declares it, and that section declares none of the four → declare the four there, the corpus's one seam wording, or point each at its declaration
 - 2026-10-20-d · refining · State 3; State 5 · log name and a fresh log instance have no declared supplier → name who supplies each, a composing pattern (Identity 10) or the deployment
 - 2026-10-20-e · refining · Examples · the Examples invoke regulated domains (a patient chart, a bank journal), and the method's When the conventions apply requires Regulated adversarial scenarios of such a page → write the subsection
 - 2026-10-20-f · refining · Operation 1 · the tail is declared nowhere (GRACE-lang Closed vocabulary 4), where the grammar's own tail is a statement part → say in declared words where an append writes the event
+- 2026-10-22-a · refining · Operation 11; Storage Failure entry · an append whose answer never reaches its caller, the acknowledgement lost after the commit or the reply lost after the answer, has no stated course: the caller holds no event id to find the event by, a retry lands a second event, and nothing names who suppresses a retried append; the Execution Contract's Error model names no arm for a lost acknowledgement → name the caller's course and the owner of a retried append, or take the arm the contract states once
+- 2026-10-22-b · refining · Identity 2; Capability requirement · the event id's source is named as the host's allocation (Identity 2) and not among what the deployment supplies, where the atom shape in `spec-format.md` lists an id source under Capability requirement and Final Critique 4's text named one beside the clock → name the source among the Capability requirements, in the one form the corpus settles for its twenty host-allocation atoms
 ```
 
 ## Decisions
 
 Directional changes only — the turns a future reader must know the pattern took, and why. Everything smaller lives in the commit that made it: `git log -- atoms/event-log.md`; the rounds and the migration that got it here are in [its history](./event-log.hist.md).
+
+- **2026-10-22 — A re-read check reads only the reads that can answer the event.** *Chose:* Check 1.1 held to a later read whose query the event matches, so a later read asking another query is no evidence that the log removed an event; the [Query] entry asking for nothing beyond the ranges Term query names; open lines 2026-10-22-a (an append whose answer is lost) and 2026-10-22-b (the event id's source among the Capability requirements), and every open line flagged beside its rule; the rule count stays at 83. *Over:* a check every conforming log fails once an auditor's later read asks another query, which the check's *a later read*, read as the page's checks read *a*, allowed. *Because:* Final Critique 6 found it, and the page already held the answer: a read answers every landed event its query matches (Invariant 5.1), so an event the log kept is in every later read whose query it matches, and Check 3.2 already bounds its two reads to one query. Smaller fixes rode with it, none changing what a rule means: the Summary glosses a replay system; the case table's storage-failure row and the Rejection paths cite Execution Contract Database 1 for the counter a failed append leaves, which State 6 has not said since the repeats sweep. What each action does and answers is unchanged.
 
 - **2026-10-22 — An admitted call is the Execution Contract's.** *Chose:* State 6 written again as the page first had it, *[Append] MUST raise next sequence number by one*, its condition on the append answering an event id, which this page's fifth Final Critique wrote, retired, since Execution Contract Read 4 holds a rule saying what an action does to the calls the action admits, so a refused or failed append raises nothing; Read 4 cited on Capability requirement 2; the rule count stays at 83. *Over:* the page stating for itself that a refused append leaves the counter. *Because:* the maintainer ruled on 2026-10-22 that five repeated cures are each stated once, the admitted effect among them; this page's fifth Final Critique had made the cure first, one specification at a time. What each action does and answers is unchanged.
 
