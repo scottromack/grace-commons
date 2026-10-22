@@ -16,7 +16,7 @@ toc: true
 
 ## Summary
 
-Personal Todo is a single-person to-do list: one user records tasks, edits them while they are still open, marks them done, and deletes them. Every task gets a permanent internal identifier that never changes, so editing the wording of a task does not change which task it is. Each task is always in exactly one state — open (Pending) or finished (Done) — until it is deleted. No two active tasks can share the same wording, and the same text typed two different ways still counts as a match. It is built for one person managing their own list — personal tasks, reading lists, grocery lists, goals — not for shared or delegated lists, which are handled by separate patterns that build on this one.
+Personal Todo is a single-person to-do list: one user records tasks, edits them while they are still open, marks them done, and deletes them. Every task gets a permanent internal identifier that never changes, so editing the wording of a task does not change which task it is. Each task is always in exactly one state — open (Pending) or finished (Done) — until it is deleted. No two active tasks can share the same wording, and the same text typed two different ways (an accented letter entered as one character, or as a plain letter followed by an accent mark) still counts as a match. It is built for one person managing their own list — personal tasks, reading lists, grocery lists, goals — not for shared or delegated lists, which are handled by separate patterns that build on this one.
 
 ---
 
@@ -65,6 +65,8 @@ State 8: [Delete] MUST take the unit out of the list.
 State 9: The atom MUST NOT offer a done-to-pending transition.
 State 10: The atom MUST NOT hold a deleted unit.
 ```
+
+NOTE: open 2026-10-22-a — State 1 and Invariant 1.1 state one proposition word for word; which label stands is not settled.
 
 Term unit state: pending | done — recorded and unfinished, or finished and unremoved.
 
@@ -121,7 +123,7 @@ Deleted: Operation 6. Execution Contract Database 3 owns it.
 Operation 7: IF no unit EXISTS for the id THEN [Edit] MUST answer not-known.
 Operation 8: IF the unit state EQUALS done THEN [Edit] MUST answer not-editable.
 Operation 9: IF the unit state EQUALS pending AND the normalized new description matches another unit in the active set THEN [Edit] MUST answer duplicate-active.
-Operation 9a: IF the unit state EQUALS pending AND the normalized new description fails the description policy THEN [Edit] MUST answer invalid-description.
+Operation 9a: IF the unit state EQUALS pending AND the normalized new description DOES NOT EQUAL the unit's description AND the normalized new description fails the description policy THEN [Edit] MUST answer invalid-description.
 Operation 10: IF the unit state EQUALS pending AND the normalized new description EQUALS the unit's description THEN [Edit] MUST answer ok.
 Operation 11: [Edit] MUST NOT write for a new description equal to the unit's description.
 Operation 12: [Edit] MUST NOT stamp last edit instant for a new description equal to the unit's description.
@@ -186,7 +188,7 @@ The case space, and the rule that owns each case:
   ```
 - **Invariant 5 — Edit preserves state.**
   ```
-  Invariant 5.1: An edited unit MUST stand in pending.
+  Deleted: Invariant 5.1. Invariant 5.2 and Operation 8 own it.
   Invariant 5.2: [Edit] MUST NOT change a field other than description and last edit instant.
   ```
 - **Invariant 6 — Active-set description uniqueness.**
@@ -195,9 +197,9 @@ The case space, and the rule that owns each case:
   ```
 - **Invariant 7 — Timestamp monotonicity.**
   ```
-  Invariant 7.1: IF last edit instant DOES NOT EQUAL blank THEN addition instant MUST NOT EXCEED last edit instant.
-  Invariant 7.2: IF completion instant DOES NOT EQUAL blank THEN addition instant MUST NOT EXCEED completion instant.
-  Invariant 7.3: IF last edit instant DOES NOT EQUAL blank AND completion instant DOES NOT EQUAL blank THEN last edit instant MUST NOT EXCEED completion instant.
+  Invariant 7.1: IF last edit instant DOES NOT EQUAL blank THEN last edit instant MUST NOT PRECEDE addition instant.
+  Invariant 7.2: IF completion instant DOES NOT EQUAL blank THEN completion instant MUST NOT PRECEDE addition instant.
+  Invariant 7.3: IF last edit instant DOES NOT EQUAL blank AND completion instant DOES NOT EQUAL blank THEN completion instant MUST NOT PRECEDE last edit instant.
   ```
 - **Invariant 8 — Id stability.**
   ```
@@ -212,8 +214,8 @@ The case space, and the rule that owns each case:
 Description 1: The atom MUST trim a description's leading and trailing whitespace.
 Description 2: The atom MUST normalize a description to Unicode normal form C.
 Description 3: The atom MUST preserve a description's internal whitespace.
-Description 4: IF the normalized description is empty THEN the atom MUST answer invalid-description.
-Description 5: IF the normalized description EXCEEDS the description cap THEN the atom MUST answer invalid-description.
+Description 4: IF the normalized description is empty THEN [Add] MUST answer invalid-description.
+Description 5: IF the normalized description EXCEEDS the description cap THEN [Add] MUST answer invalid-description.
 Description 6: The atom MUST compare two descriptions case-sensitively.
 Description 7: The atom MUST compare two descriptions on the normalized form.
 Description 8: The atom MUST show the normalized form.
@@ -229,11 +231,11 @@ The same pattern, three personal-scope domains, identical mechanic. A fourth exa
 
 ### Personal task management
 
-A user opens a notes app, types *"buy milk."* The system trims, NFC-normalizes, returns id `t1`. The user marks `t1` done after the errand, then deletes `t1`. A week later, types *"buy milk"* again — accepted; new id `t2` is issued (no temporal memory in this pattern). Adds *"renew passport"* (id `t3`), edits it to *"renew passport before Italy trip"* the next day (still `t3`, [Last Edit Instant] updated), leaves it pending for six weeks, eventually deletes `t3` because they renewed via a different channel.
+A user opens a notes app, types *"buy milk."* The system trims, NFC-normalizes (NFC: Normalization Form C, the Unicode standard's canonical composed form, which gives equivalent characters one standard byte sequence), returns id `t1`. The user marks `t1` done after the errand, then deletes `t1`. A week later, types *"buy milk"* again — accepted; new id `t2` is issued (no temporal memory in this pattern). Adds *"renew passport"* (id `t3`), edits it to *"renew passport before Italy trip"* the next day (still `t3`, [Last Edit Instant] updated), leaves it pending for six weeks, eventually deletes `t3` because they renewed via a different channel.
 
 ### Reading list
 
-A user adds *"Essence of Software"* (id `b1`), finishes it three weeks later, marks it done, deletes it from the Done list. Adds *"TLA+ in Action"* (id `b2`), abandons it after fifty pages, deletes `b2`. Two days later, decides to retry — adds *"TLA+ in Action"* again — accepted with new id `b3` (no recency check in this pattern alone).
+A user adds *"Essence of Software"* (id `b1`), finishes it three weeks later, marks it done, deletes it from the Done list. Adds *"TLA+ in Action"* (a book on TLA+, the Temporal Logic of Actions specification language; id `b2`), abandons it after fifty pages, deletes `b2`. Two days later, decides to retry — adds *"TLA+ in Action"* again — accepted with new id `b3` (no recency check in this pattern alone).
 
 ### Personal goal capture
 
@@ -249,7 +251,7 @@ The same user, exercising the rejection surface in one short sequence:
 - Tries to edit `r1` (currently in [Done]) — rejected as [Not Editable].
 - Tries to add *"   "* (whitespace-only) — rejected as [Invalid Description] (empty after trim).
 - Tries to add a 5,000-codepoint description — rejected as [Invalid Description] (exceeds default 1,024 limit).
-- Pastes *"café"* in NFD form (`cafe` + combining acute) while `r1`'s description *"café"* in NFC form is in [Done] — rejected as [Duplicate Active] (NFC normalization unifies the two forms).
+- Pastes *"café"* in NFD form (Normalization Form D, the decomposed form: `cafe` + combining acute) while `r1`'s description *"café"* in NFC form is in [Done] — rejected as [Duplicate Active] (NFC normalization unifies the two forms).
 - Tries to complete an unknown id — rejected as [Not Known].
 - Deletes `r1`. Now *"buy milk"* is no longer in the active set; a fresh `add("buy milk")` would succeed with a new id (id `r2`).
 
@@ -264,19 +266,19 @@ An implementation is acceptable when the checks below are provable to an externa
 ### Conformance checks
 
 ```
-Check 1.1: An auditor MUST find EVERY known unit whose unit state EQUALS EXACTLY ONE OF pending, done (Invariant 1.1).
+Check 1.1: An auditor MUST find EVERY known unit standing in EXACTLY ONE OF pending, done (Invariant 1.1).
 Check 1.2: An auditor MUST find EVERY unit carrying id, description AND addition instant (State 2).
 Check 1.3: An auditor MUST find EVERY done unit carrying completion instant (State 4).
 Check 2.1: An auditor MUST find no deleted unit whose id IS IN the list (Invariant 4.1).
 Check 2.2: An auditor MUST find no two units sharing an id (Identity 5).
 Check 2.3: An auditor MUST find a unit's id unchanged across an edit (Invariant 8.3).
 Check 3.1: An auditor MUST find no two units in the active set sharing a normalized description (Invariant 6.1).
-Check 3.2: An auditor MUST find an edited unit whose unit state EQUALS pending (Invariant 5.1).
+Deleted: Check 3.2. Check 3.3 owns it.
 Check 3.3: An auditor MUST find an edit changing no field beside description AND last edit instant (Invariant 5.2).
 Check 3.4: An auditor MUST find no last edit instant stamped for an edit answering ok on an unchanged description (Operation 12).
-Check 4.1: An auditor MUST find EVERY unit's addition instant not exceeding the unit's last edit instant (Invariant 7.1).
-Check 4.2: An auditor MUST find EVERY unit's addition instant not exceeding the unit's completion instant (Invariant 7.2).
-Check 4.3: An auditor MUST find EVERY unit's last edit instant not exceeding the unit's completion instant (Invariant 7.3).
+Check 4.1: An auditor MUST find no unit whose last edit instant PRECEDES the unit's addition instant (Invariant 7.1).
+Check 4.2: An auditor MUST find no unit whose completion instant PRECEDES the unit's addition instant (Invariant 7.2).
+Check 4.3: An auditor MUST find no unit whose completion instant PRECEDES the unit's last edit instant (Invariant 7.3).
 Check 5.1: An auditor MUST find a refused call leaving the unit as the call found the unit (Operation 24).
 ```
 
@@ -354,7 +356,7 @@ Term actors: the atom; the host; the transition; the implementation; the deploym
 
 Term records: unit — one thing to do, carrying id, description, addition instant, a unit state and, once they land, last edit instant and completion instant.
 
-Term record verbs: call, identify, allocate, supply, reuse, own, trim, normalize, preserve, answer, compare, show, stand, carry, stamp, take, offer, hold, record, replace, leave, write, read, match, change, set, share, assume, compose, remember, restore, reopen, regenerate, order, keep, resolve, assign, accept, check, exceed, find, refuse.
+Term record verbs: call, identify, allocate, supply, reuse, own, trim, normalize, preserve, answer, compare, show, stand, carry, stamp, take, offer, hold, record, replace, leave, write, read, match, change, set, share, assume, compose, remember, restore, reopen, regenerate, order, keep, resolve, assign, accept, check, precede, find, refuse.
 
 Term value sets: unit state = pending | done.
 
@@ -449,7 +451,7 @@ Projection:   new_description
 The current wall-time reading the transitions stamp timestamps from, supplied to the pure transition by the host at the I/O seam (never read inside the transition, never supplied by the business caller).
 
 Kind:         Parameter
-Parameter of: Add
+Parameter of: Add, Edit and Complete
 Projection:   now
 
 #### Pending
@@ -470,7 +472,7 @@ Role:      Outcome
 
 #### Invalid Description
 
-The refusal [Add] or [Edit] returns when the normalized [Description] is empty or exceeds the length cap. No unit is created or changed.
+The refusal [Add] returns when the normalized [Description] is empty or exceeds the length cap, and [Edit] when the normalized [New Description] is empty or exceeds the length cap and differs from the unit's own [Description]. No unit is created or changed.
 
 Kind:       Member
 Member of:  the action rejection
@@ -563,7 +565,7 @@ Wire:       pinned
 
 ## Standards references
 
-Personal Todo is a primitive, not a regulated business pattern. It has no direct ISO / IEEE / regulatory anchor. It inherits from:
+Personal Todo is a primitive, not a regulated business pattern. It has no direct ISO (International Organization for Standardization), IEEE (Institute of Electrical and Electronics Engineers) or regulatory anchor. It inherits from:
 
 - **Daniel Jackson, *The Essence of Software*** — the conception of a "concept" as a composable, behavioral, freestanding unit of software design. The discipline of *not* absorbing concepts that belong to other concepts.
 - **Eiffel's design-by-contract** — preconditions on add, edit, complete, delete.
@@ -583,9 +585,10 @@ A formal-methods version of a similar concept exists in [concept-catalog](https:
 ```
 status: partially resolved
 formal: not applicable — vote no 2026-06-03
-last gate: 2026-06-18 — Final Critique 4, fresh reader — clean
+last gate: 2026-10-22 — Final Critique 5, the council's first round on the page and the first since its GRACE-lang migration (112b603) and its Store-contract rewrite (1f6e18d), three fresh readers on free models (GRID Nemotron 3 Ultra, EOS Beam, which took the seat when MiniMax M3.1 Flash's endpoint failed mid-pass, Linus GLM-5.3 Flash), each handed only the round's reading set, three passes on one text (frozen at 127858a); the round rests on three counted passes — foundational count 2 after triage (7 reports: 2 standing, one of them for one of its four checks; 2 sent down; 3 rejected), both Kind A: an edit resubmitting a unit's own text over a lowered description cap was obliged both to refuse and to answer ok; and the invariant that an edited unit stands in pending broke on a unit edited and then completed, so the check that tested it failed every conforming list holding one; 10 refining reports, 3 rhetorical reports; not clean; every foundational finding cured, every refining finding cured, routed or answered; 2026-06-18 — Final Critique 4, fresh reader — clean
 
-open: none
+open:
+- 2026-10-22-a · refining · State 1; Invariant 1.1 · State 1 and Invariant 1.1 state one proposition word for word, so the page pays for it twice (GRACE-lang Authority 3) → one owner, the survivor checked against the citers (Check 1.1 cites Invariant 1.1)
 ```
 
 ## Decisions
@@ -594,5 +597,6 @@ Directional changes only — the turns a future reader must know the pattern too
 
 - **2026-10-20 — The store's guarantees cited, not restated.** *Chose:* the store supplied under Execution Contract Store 1 through 4 (Capability requirement 4), and the five rules that restated them tombstoned to their owner — Concurrency 2, every transition atomic, and External check 2, the auditor's evidence of that atomicity, to Store 1; Concurrency 3, a deployment running two clients composing a concurrency-resolution pattern, and External check 3, the auditor's evidence of that pattern, to Store 2; Operation 6, no unit recorded by an [Add] that answers storage-failure, to Store 3; rules 111 to 107. *Over:* the atom restating, for its own store, what every deployment's store guarantees. *Because:* the maintainer ruled 2026-10-12 that the corpus takes a store's specification, never the store, and `execution-contract.md` writes it once as the Store contract. Two clients' calls on one unit, all the page gave a concurrency-resolution pattern to resolve, are serialized by Store 2 for every deployment: the later call reads what the earlier committed, and the active-set duplicate check reads inside the transaction that writes. A refused call leaving the unit as the call found it stays the atom's own (Operation 24), as do the linear sequence of one actor's calls the atom assumes (Concurrency 1), the atom itself resolving no two concurrent calls (Non-goal 14) and the id that never changes (Invariant 8.2). The atom keeps no history of a unit (State 10, Non-goal 13), its checks compare the auditor's own reads, and it orders no units (Non-goal 10), so it cites neither History 1 nor Order 1. What the atom does for its domain is unchanged.
 - **2026-10-20 — Undo History retired, and restoration is the store's history.** *Chose:* Non-goal 7, a deployment needing restoration composing Undo History, and Composition note 4, a composing pattern needing restoration appending a deleted unit to an Event Log, tombstoned to Execution Contract Store 5; rules 107 to 105. *Over:* restoration through a composition that kept its own copy of every deleted unit in an event log and replayed it. *Because:* the maintainer ruled 2026-10-20 that Undo History retires: Store 5 keeps every committed version of a record readable, so an undone deletion comes back with its id, timestamps and description, and no composing pattern needs a copy of its own. The atom itself still restores nothing (Non-goal 6). What the atom does for its domain is unchanged.
+- **2026-10-22 — An edit resubmitting a unit's own text is a no-op under any cap, and an edit's state is held by the rules of the edit.** *Chose:* Operation 9a held to a new description that differs from the unit's own, with Description 4 and Description 5 naming [Add], so an [Edit] that resubmits a unit's text answers ok, writes nothing and stamps nothing, though a deployment has since lowered the description cap below the stored text; Invariant 5.1, that an edited unit stands in pending, deleted to Invariant 5.2 and Operation 8, and Check 3.2, which tested it, to Check 3.3. *Over:* two rules obliging invalid-description and ok on one call; and a property of every reachable state that a unit edited and then completed breaks, with a check that every conforming list holding such a unit fails. *Because:* Final Critique 5 found both. The case table already answered every same-text edit ok, and under the method's 2026-10-08 rule a rule a lawful state breaks is deleted to the rules that already hold that state: [Edit] lands only on a pending unit (Operation 8) and changes no field beside description and last edit instant (Invariant 5.2), the unit state among them. Smaller fixes rode with them: Invariant 7.1 through 7.3 compare instants with PRECEDES (GRACE-lang Earned vocabulary 18), and Check 4.1 through 4.3 read only a unit carrying the instants they compare; Check 1.1 in Invariant 1.1's words; the Now entry names every action that stamps from now; acronyms glossed at first use; rules 105 to 103. What each action answers and writes is unchanged except on the one call the two rules had split.
 
 NOTE: End of Personal Todo.
