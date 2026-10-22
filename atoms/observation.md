@@ -113,7 +113,7 @@ Deleted: Capability requirement 2. Execution Contract Logic confinement 7 owns i
 Deleted: Capability requirement 3. Execution Contract Logic confinement 7 owns it.
 Deleted: Capability requirement 4. Execution Contract Logic confinement 7 owns it.
 Capability requirement 5: The deployment MUST declare the clock offset allowance.
-Capability requirement 6: The deployment MUST supply the observation records PER Execution Contract Database 1 through 4.
+Capability requirement 6: The deployment MUST supply the observation records PER Execution Contract Database 1 through 4 and Execution Contract Refusal 1.
 Deleted: Clock semantics 1. Execution Contract Logic confinement 7 owns it.
 Deleted: Clock semantics 2. Execution Contract Logic confinement 7 owns it.
 Deleted: Clock semantics 3. Execution Contract Logic confinement 7 owns it.
@@ -158,12 +158,12 @@ Operation 11: IF the observation id names no observation THEN a chain action MUS
 Operation 12: A chain action MUST answer not-known ONLY IF the observation id names no observation.
 Operation 13: IF the observation's state EQUALS retracted THEN a chain action MUST answer already-retracted.
 Operation 14: IF the observation's state EQUALS amended THEN [Amend] MUST answer already-amended.
-Operation 15: A chain action MUST answer a state rejection ONLY IF the observation id names an observation.
+Deleted: Operation 15. Execution Contract Refusal 1 owns it.
 Operation 16: IF amending actor EQUALS blank THEN [Amend] MUST answer invalid-request.
 Operation 17: IF reason EQUALS blank THEN a chain action MUST answer invalid-request.
 Operation 18: IF retracting actor EQUALS blank THEN [Retract] MUST answer invalid-request.
-Operation 19: A chain action MUST answer invalid-request ONLY IF EVERY state check passes.
-Operation 20: [Amend] MUST answer invalid-observation ONLY IF EVERY request check passes.
+Deleted: Operation 19. Execution Contract Refusal 1 owns it.
+Deleted: Operation 20. Execution Contract Refusal 1 owns it.
 Operation 21: [Amend] MUST NOT accept a subject reference.
 Operation 22: [Amend] MUST NOT accept an observation type.
 Operation 23: [Amend] MUST NOT accept a recording instant.
@@ -183,7 +183,7 @@ Operation 36: An admitted retract MUST record retracting actor and reason as ret
 Operation 37: An admitted retract MUST answer retracted.
 Operation 38: An observation whose state EQUALS amended MUST NOT refuse [Retract].
 Operation 39: IF the database refuses the write THEN a writing action MUST answer storage-failure.
-Operation 40: An action MUST answer storage-failure ONLY IF EVERY precondition passes.
+Deleted: Operation 40. Execution Contract Refusal 1 owns it.
 Operation 41: A refused action MUST leave the database as the call found the database.
 Operation 42: An admitted read MUST answer the matching observations in recording instant ascending order.
 Operation 43: An admitted read MUST order two observations sharing a recording instant stably across two reads of one database state.
@@ -212,8 +212,6 @@ Term chain action: [Amend] | [Retract] — the two actions that address a record
 Term content-checking action: [Record] | [Amend] — the two actions that carry a value and a unit.
 
 Term writing action: [Record] | [Amend] | [Retract] — every action but [Read].
-
-Term state rejection: already-amended OR already-retracted — the refusals that rest on the observation's state.
 
 Term value constraint: the bound a deployment declares for one observation type — what a valid value for that measurement is; declared by the deployment, applied by the atom, and defined by neither the atom nor this grammar.
 
@@ -469,7 +467,7 @@ Each `[Term]` marker above links to its term entry here; a term entry states wha
 
 ### Vocabulary
 
-Term actors: the atom; the host; the transition; the deployment; a composing pattern; a business caller; a caller; a guard; an auditor; a regulator; an observer; a subject; an investigator; the database; an observation; a successor observation; an original; an amended observation; a retracted observation; a chain action; a content-checking action; a writing action; a refused action; an ordering rule; an action; a query; a filter; a reference filter; a state filter; a range filter; a state rejection; an amendment chain; a string input; an opaque reference; the database instance's observation count.
+Term actors: the atom; the host; the transition; the deployment; a composing pattern; a business caller; a caller; a guard; an auditor; a regulator; an observer; a subject; an investigator; the database; an observation; a successor observation; an original; an amended observation; a retracted observation; a chain action; a content-checking action; a writing action; a refused action; an ordering rule; an action; a query; a filter; a reference filter; a state filter; a range filter; an amendment chain; a string input; an opaque reference; the database instance's observation count.
 
 Term records: observation — one recorded measurement, carrying observation id, subject reference, recording actor, observation type, value, unit, recording instant and a state, plus the transition metadata a chain action writes.
 
@@ -483,7 +481,7 @@ Term cadences: empty.
 
 Term qualifiers: migrated — rewritten in GRACE lang v0.40 (2026-09-13).
 
-Term terms: observation, observation id, subject reference, recording actor, observation type, unit, reference, database instance, seam, transition, now, business caller, states, content field, chain action, content-checking action, writing action, state rejection, value constraint, clock offset allowance, future bound, resolved recording instant, transition metadata, amendment chain, filter axes, admitted record, admitted amend, admitted retract, admitted read, string input, blank.
+Term terms: observation, observation id, subject reference, recording actor, observation type, unit, reference, database instance, seam, transition, now, business caller, states, content field, chain action, content-checking action, writing action, value constraint, clock offset allowance, future bound, resolved recording instant, transition metadata, amendment chain, filter axes, admitted record, admitted amend, admitted retract, admitted read, string input, blank.
 
 Term successor ids: successor_ids — the ids of the observations that succeed this one.
 
@@ -809,5 +807,7 @@ Directional changes only — the turns a future reader must know the pattern too
 - **2026-09-13 — Inheritance by construction, stated as the absence of a parameter.** *Chose:* `Operation 21`, `Operation 22` and `Operation 23` — [Amend] accepts no subject reference, no observation type and no recording instant — with `Invariant 4` and `Invariant 5` resting on them. *Over:* runtime checks that a successor matches its original. *Because:* a check catches divergence and a missing parameter makes it unrepresentable, and the second is the stronger guarantee. The consequence is the atom's most-questioned friction and it is deliberate: a clinician who charted the wrong measurement type is not correcting a value, they recorded something that did not happen, which retraction says and amendment does not.
 
 - **2026-10-20 — The store's guarantees cited, not restated, the observation's critical section among them.** *Chose:* the observation store supplied under Execution Contract Store 1 through 4 (Capability requirement 6), and the fourteen rules that restated them, ran the atom's own critical section over an observation, or existed only for a store that could split an amend, tombstoned to their owner — Operation 33, an admitted amend's successor and the original's change committed in one operation, Invariant 7.2, no partial record left by a storage-failure rejection, Atomic writes 1 and 2, no reader observing either half of an amend without the other, and Atomic writes 4, no repair of a dangling amend, to Store 1, under which no amend stands half-written; Invariant 7.3, no partial record observed once a crash has landed, and Atomic writes 3, an uncommitted crash leaving the store as the call found it, to Store 1 and Store 3; Concurrency 1 through 4 and Concurrency 7, two chain actions on one observation serialized, the state precondition read and held inside the critical section across the check and the transition, a second serialized [Amend] answering already-amended, and no reconciliation leg, to Store 2, and with them the section's release on the invocation's return (Concurrency 5) and its lapse answered as storage-failure (Concurrency 6), since the atom names no section any more; rules 169 to 156. *Over:* the atom running its own critical section over an observation, released on return and lapsing to a storage failure, and forbidding a repair leg for a dangling amend and a reconciliation leg for a second writer that no conforming store leaves — the turns of 2026-08-30 and 2026-09-13, now in the history. *Because:* the maintainer ruled 2026-10-12 that the corpus takes a store's specification, never the store, and `execution-contract.md` writes it once as the Store contract: Store 2 reads the state a chain action's guards decide on inside the transaction that writes the action's effects, which is what the section was for, and Store 1 commits [Amend]'s successor and the original's change together or not at all, so no partial record is left to repair and no second writer to reconcile. A refused action leaving the store as the call found it stays the atom's own (Operation 41), as do the rules that keep an observation once it exists (State 5, State 12, Invariant 7.1, Check 4.1), since Store 4 alone neither keeps the atom from removing an observation nor bars a purge another specification declares, and the external check that holds Invariant 7.1 against the captured record answers (External check 1). Amendment chains are the atom's own records, linked by predecessor and successor ids, [Read] answers by recording instant, and the atom's checks compare an auditor's own reads, so it cites neither History 1 nor Order 1; what the atom does for its domain is unchanged.
+
+- **2026-10-21 — Which refusal answers is the Execution Contract's.** *Chose:* each refuses line kept as the page wrote it, already in the page's order — a chain action answering not-known, its state rejections, then invalid-request once every state check passes, [Amend] invalid-observation after that, and storage-failure last, answering only at the write — and the order cited from the Execution Contract (Capability requirement 6, Execution Contract Refusal 1); the pairs that only stated it deleted to Refusal 1: Operation 15 (a state rejection only for an observation id naming an observation), Operation 19 (invalid-request only once every state check passes), Operation 20 (invalid-observation only once every request check passes) and Operation 40 (storage-failure behind every precondition), with Term state rejection, which only Operation 15 read; rules 156 to 152. *Over:* the page stating for itself which of an action's refusals answers when several apply. *Because:* the maintainer ruled on 2026-10-21 that the Execution Contract states once that the refusal listed first on an action's refuses line answers. What each action answers on every call is unchanged.
 
 NOTE: End of Observation.

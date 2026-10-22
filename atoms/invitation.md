@@ -110,7 +110,7 @@ Capability requirement 6: The database MUST refuse a write carrying an invitatio
 Deleted: Capability requirement 7. Execution Contract Database 3 owns it.
 Capability requirement 8: The deployment MUST canonicalize an opaque reference.
 Capability requirement 9: The deployment MUST deliver the invitation token to the invitee.
-Capability requirement 12: The deployment MUST supply the invitation records PER Execution Contract Database 1 through 4.
+Capability requirement 12: The deployment MUST supply the invitation records PER Execution Contract Database 1 through 4 and Execution Contract Refusal 1.
 Deleted: Capability requirement 10. Execution Contract Logic confinement 7 owns it.
 Deleted: Capability requirement 11. Execution Contract Logic confinement 7 owns it.
 Deleted: Clock semantics 4. Execution Contract Logic confinement 7 owns it.
@@ -164,14 +164,14 @@ Operation 15: IF the invitation token names no invitation THEN a resolving write
 Operation 16: IF the invitation's status IS IN the stored terminals THEN a resolving write MUST answer already-resolved.
 Operation 17: A resolving write answering already-resolved MUST name the invitation's status.
 Operation 18: A resolving write MUST NOT name expired as a stored terminal.
-Operation 19: A resolving write MUST answer already-resolved ONLY IF the invitation token names an invitation.
+Deleted: Operation 19. Execution Contract Refusal 1 owns it.
 Operation 20: IF the invitation reads lapsed THEN a resolving write MUST answer expired.
-Operation 21: A resolving write MUST answer expired ONLY IF the invitation's status EQUALS pending.
+Deleted: Operation 21. Execution Contract Refusal 1 owns it.
 Operation 22: A refused resolving write MUST NOT record a field.
 Operation 23: IF accepting identity reference EQUALS blank THEN [Accept] MUST answer invalid-request.
 Operation 24: IF revoked by reference EQUALS blank THEN [Revoke] MUST answer invalid-request.
 Operation 25: IF reason EQUALS blank THEN [Revoke] MUST answer invalid-request.
-Operation 26: A resolving write MUST answer invalid-request ONLY IF EVERY status check passes.
+Deleted: Operation 26. Execution Contract Refusal 1 owns it.
 Operation 27: [Decline] MUST NOT accept an acting reference.
 Operation 28: An admitted accept MUST stand the invitation in accepted.
 Operation 29: An admitted accept MUST record accepting identity reference and now as acceptance instant.
@@ -181,7 +181,7 @@ Operation 32: An admitted revoke MUST stand the invitation in revoked.
 Operation 33: An admitted revoke MUST record revoked by reference, reason as revocation reason and now as revocation instant.
 Deleted: Operation 34. Execution Contract Database 1 owns it.
 Operation 35: IF the database refuses the write THEN an action MUST answer storage-failure.
-Operation 36: An action MUST answer storage-failure ONLY IF EVERY precondition passes.
+Deleted: Operation 36. Execution Contract Refusal 1 owns it.
 Operation 37: A refused action MUST leave the invitation as the call found the invitation.
 Operation 38: A refused [Initiate] MUST NOT record an invitation.
 Operation 39: A refused resolving write MUST leave the invitation in pending.
@@ -308,7 +308,7 @@ Term admitted read: a [Read] call that answers.
 
 ### Rejection paths
 
-`accept(tok_unknown, user_u1)` → not-known. `accept(tok_inv_c41, user_u1)` on the already-accepted invitation → `already-resolved(accepted)`. `accept(tok_inv_f77, user_u1)` on the lapsed one → expired. `revoke(tok_inv_c41, admin_a7, "  ")` → `already-resolved(accepted)`, not invalid-request: the status check runs first, and the fact that ends the conversation is that the invitation was accepted (Operation 26).
+`accept(tok_unknown, user_u1)` → not-known. `accept(tok_inv_c41, user_u1)` on the already-accepted invitation → `already-resolved(accepted)`. `accept(tok_inv_f77, user_u1)` on the lapsed one → expired. `revoke(tok_inv_c41, admin_a7, "  ")` → `already-resolved(accepted)`, not invalid-request: the status check runs first, and the fact that ends the conversation is that the invitation was accepted (Execution Contract Refusal 1).
 
 ### Regulated adversarial scenarios
 
@@ -810,6 +810,8 @@ open: none
 ## Decisions
 
 Directional changes only — the turns a future reader must know the pattern took, and why. Everything smaller lives in the commit that made it: `git log -- atoms/invitation.md`; the migration that got it here is in [its history](./invitation.hist.md).
+
+- **2026-10-21 — Which refusal answers is the Execution Contract's.** *Chose:* each refuses line kept as the page wrote it, already in the page's order — a resolving write answering not-known, already-resolved, expired, then invalid-request once every status check passes, and storage-failure last, answering only at the write — and the order cited from the Execution Contract (Capability requirement 12, Execution Contract Refusal 1); the pairs that only stated it deleted to Refusal 1: Operation 19 (already-resolved only for a token naming an invitation), Operation 21 (expired only on a pending invitation), Operation 26 (invalid-request only once every status check passes) and Operation 36 (storage-failure behind every precondition); rules 162 to 158. *Over:* the page stating for itself which of an action's refusals answers when several apply. *Because:* the maintainer ruled on 2026-10-21 that the Execution Contract states once that the refusal listed first on an action's refuses line answers. What each action answers on every call is unchanged.
 
 - **2026-10-20 — The store's guarantees cited, not restated.** *Chose:* the invitation store supplied under Execution Contract Store 1 through 4 (Capability requirement 12), and the eleven rules that restated them tombstoned to their owner — Operation 34 and Invariant 3.2, a resolving write's status change and recorded fields committed in one transition, Invariant 10.2, no partial invitation on storage-failure, and Atomic writes 1, 3 and 4, a transition committed whole inside the implementation's transactional boundary and no repair of a dangling one, to Store 1; Atomic writes 2, an uncommitted transition discarded whole, to Store 1 and Store 3; Capability requirement 7, a write acknowledged only once it commits, to Store 3; Concurrency 1, the status check and the status change of a resolving write as one operation, to Store 1 and Store 2; Concurrency 2 and 3, the losing resolving write answering already-resolved and naming the stored terminal the winner committed, to Store 2; rules 172 to 162. *Over:* the atom restating, for its own store, what every deployment's store guarantees. *Because:* the maintainer ruled 2026-10-12 that the corpus takes a store's specification, never the store, and `execution-contract.md` writes it once as the Store contract. Single-resolution stays the atom's own (Invariant 2.1, Invariant 2.2, Operation 16, Operation 17), as do the store refusing a write carrying a token it holds (Capability requirement 6, Identity 6), a refused write recording nothing and leaving the invitation as the call found it (Operation 22, Operation 37 through 39), and the invitations the atom never removes and the count that never falls (State 13, Invariant 10.1). The effective status is a projection over the expiry instant each invitation carries and now (Invariant 12.2), every check that compares reads compares the auditor's own reads, and no rule orders two invitations' writes, so the atom cites neither History 1 nor Order 1. What the atom does for its domain is unchanged.
 - **2026-09-13 — Single-resolution is stated as at-most-one, and the at-least-one half is `Non-goal 24`.** *Chose:* `Invariant 2.1` and `Invariant 2.2` alone. *Over:* a rule reading *exactly one write resolves an invitation*. *Because:* an invitation nobody answers is never written and reads expired forever, which is the designed outcome and not a stuck state — so *at least one* would be false here rather than merely unenforceable. Same decomposition [Provisional Commitment](./provisional-commitment.md) took, reached from the opposite direction.

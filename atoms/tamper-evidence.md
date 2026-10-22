@@ -82,7 +82,7 @@ Term evidence field: evidence id | record set reference | proof | sealing instan
 
 ```
 Capability requirement 1: The deployment MUST supply now at the seam.
-Capability requirement 2: The deployment MUST supply the seal records PER Execution Contract Database 1, Execution Contract Database 3, Execution Contract Database 4 and Execution Contract Read 1 through 3.
+Capability requirement 2: The deployment MUST supply the seal records PER Execution Contract Database 1, Execution Contract Database 3, Execution Contract Database 4, Execution Contract Read 1 through 3 and Execution Contract Refusal 1.
 Capability requirement 3: The deployment MUST declare the deployment's mechanism.
 ```
 
@@ -138,8 +138,7 @@ Operation 28: [Read] MUST answer an evidence's evidence id, record set reference
 Operation 29: [Read] MUST NOT write.
 Deleted: Operation 30. Operation 27 and Execution Contract Read 2 own it.
 Deleted: Operation 31. Execution Contract Read 1 owns it.
-Operation 32: [Seal] MUST NOT evaluate a rule of the seal refusal order BEFORE EVERY earlier rule of the seal refusal order has answered no refusal.
-NOTE: watch the refusal order (Operation 32).
+Deleted: Operation 32. Execution Contract Refusal 1 owns it.
 Operation 33: [Verify] MUST answer verified ONLY IF seal check EQUALS held.
 ```
 
@@ -150,8 +149,6 @@ Term seal check: held | failed | unavailable — the mechanism's verification fu
 Term original record set: the record set a verifier presents at [Verify] — an [Original Record Set]; the proof commits to content, so the verifier holds the content.
 
 Term verification set: the evidence's own fields, the presented original record set, the host-injected record set match, and, where the mechanism's verification function consults one, that mechanism's own external anchor; everything [Verify] is allowed to read, and nothing else.
-
-Term seal refusal order: Operation 6 through 7, Operation 9 — [Seal]'s refusal rules, earliest first; Operation 10 answers only at the write, which no refused call reaches.
 
 The case space, and the rule that owns each case:
 
@@ -168,7 +165,7 @@ The case space, and the rule that owns each case:
 | [Verify] | right records, proof holds | [Verified] | none (Operation 19, Operation 33) |
 | [Read] | any call | every evidence, with its stored fields | none (Operation 27 through 29) |
 
-Where two [Seal] cases hold at once, the earlier rule of the seal refusal order answers (Operation 32).
+Where two [Seal] cases hold at once, the refusal listed first on [Seal]'s refuses line answers (Execution Contract Refusal 1).
 
 ### Invariants
 
@@ -400,7 +397,7 @@ Term cadences: empty — a seal cadence is the composing pattern's (Composition 
 
 Term qualifiers: migrated — rewritten in GRACE lang v0.35 (2026-09-11); sound — a mechanism with no known practical collision or forgery attack.
 
-Term terms: now, evidence, evidence id, record set reference, seam, transition, business caller, sealed, proof, sealing instant, anchoring instant, mechanism credential, evidence field, record set match, seal check, original record set, verification set, seal refusal order, mechanism failure reason, verification failure.
+Term terms: now, evidence, evidence id, record set reference, seam, transition, business caller, sealed, proof, sealing instant, anchoring instant, mechanism credential, evidence field, record set match, seal check, original record set, verification set, mechanism failure reason, verification failure.
 
 #### Evidence
 
@@ -668,5 +665,7 @@ Directional changes only — the turns a future reader must know the pattern too
 - **2026-10-21 — Record set match decides which record set and the seal check its content; the contract covers mechanisms checkable from the verification set; a failed read answers on every action.** *Chose:* record set match answering yes for the named record set whatever its content, the content left to the seal check (Term record set match), so a change is detected where the right records are presented and the check can run (Invariant 2.1), the proof is bound to the record set presented at [Seal] (Invariant 3.1), two verifications answer alike unless one answers mechanism-verification-unavailable or state-unavailable (Invariant 7.1), and the verification set names the record set match the verdict rules read; verified obliged for the right records under a seal check that holds (Operation 19, Operation 33); the contract held for every sound mechanism whose verification function consults no source outside the verification set, so a chain keyed by a shared secret is outside it and the payments example is a signed hash chain (Invariant 8.1); state-unavailable on all three actions where the read of the seal store fails, the Execution Contract's Step 1 failure (Operation 31, Term store read), with [Seal]'s refusals in one stated order, the store read first (Operation 32, Term seal refusal order); the composing patterns and the mechanism read from the deployment's own declaration (External check 3, External check 4, Capability requirement 3). *Over:* a match a host could decide by content, which reports tampering as a caller error; detectability and binding rules that the page's own wrong-record and altered-record examples break; no answer obliged for a proof that holds; a neutrality claim taking in mechanisms no auditor can check from the records; a read forbidden to refuse a store it cannot read; conformance checks reading what the records do not carry. *Because:* Final Critique 5 found each a divergence between conforming builds or a rule no conforming build could keep, and the page already held the line: its Summary rests the guarantee on what is detectable from the records alone, and its Intent names only mechanisms a verifier checks without a secret; Actor Identity's fifth round cured a failed store read, a one-way verified rule and a declaration-reading check the same way. Compositions affected: Audit Trail, which presents its seals to this atom, routes state-unavailable from [Verify] and [Read] when its round reads them.
 
 - **2026-10-21 — A failed read answers as the Execution Contract says.** *Chose:* the failed read cited from the Execution Contract (Capability requirement 2, Execution Contract Read 1 through 3) and the two rules that restated it deleted to it: the atom-wide state-unavailable (Operation 31) to Read 1, and [Read]'s state-unavailable on a failed read alone (Operation 30) to Read 2 beside Operation 27; the read's condition off the rules it held to an answered read (Operation 14, Operation 15, Operation 27), the failed read off the verifications Invariant 7.1 compares, which Read 2 holds to verifications whose reads answered, the read off the seal refusal order, Term database read deleted, state-unavailable off every signature and off the answers Check 4.1 tells apart; rules 106 to 104. *Over:* the page stating for itself what every action answers when the seal records cannot be read. *Because:* the maintainer ruled on 2026-10-21 that the Execution Contract states the failed read once; this page's fifth Final Critique had made one of the cures the contract's Read family is written from. A mechanism that cannot verify keeps its own answer, mechanism-verification-unavailable: the mechanism is no read of the database. What each action answers on an answered read is unchanged.
+
+- **2026-10-21 — Which refusal answers is the Execution Contract's.** *Chose:* [Seal]'s refuses line kept as the page wrote it, already in the order the seal refusal order gave — invalid-request, mechanism-failure, then storage-failure, which answers only at the write — and the order cited from the Execution Contract (Capability requirement 2, Execution Contract Refusal 1); Operation 32, which evaluated the seal refusal order, deleted to Refusal 1, and Term seal refusal order deleted with it; rules 104 to 103. *Over:* the page stating for itself which of [Seal]'s refusals answers when both apply. *Because:* the maintainer ruled on 2026-10-21 that the Execution Contract states once that the refusal listed first on an action's refuses line answers; this page's fifth Final Critique had made the cure one specification at a time. What each action answers on every call is unchanged.
 
 NOTE: End of Tamper Evidence.

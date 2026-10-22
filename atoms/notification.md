@@ -82,7 +82,7 @@ Term creation instant: the instant the notification was recorded — a [Creation
 
 ```
 Capability requirement 1: The deployment MUST supply now at the seam.
-Capability requirement 4: The deployment MUST supply the notification records PER Execution Contract Database 1 through 4 and Execution Contract Read 1 through 3.
+Capability requirement 4: The deployment MUST supply the notification records PER Execution Contract Database 1 through 4, Execution Contract Read 1 through 3 and Execution Contract Refusal 1.
 Capability requirement 5: The deployment MUST supply the string cap.
 Deleted: Capability requirement 2. Execution Contract Logic confinement 7 owns it.
 Deleted: Capability requirement 3. Execution Contract Logic confinement 7 owns it.
@@ -148,15 +148,12 @@ Deleted: Operation 25. Execution Contract Logic confinement 3 owns it.
 Deleted: Operation 26. Execution Contract Logic confinement 3 owns it.
 Deleted: Operation 27. Execution Contract Read 1 owns it.
 Deleted: Operation 28. Execution Contract Read 1 owns it: after the read, every refusal rule of [Create] answers invalid-request.
-Operation 29: A terminal transition MUST NOT evaluate a rule of the terminal refusal order BEFORE EVERY earlier rule of the terminal refusal order has answered no refusal.
-NOTE: watch the refusal order (Operation 29).
+Deleted: Operation 29. Execution Contract Refusal 1 owns it.
 ```
 
 Term terminal transition: a [Deliver], a [Fail] or an [Expire] call — the three that end a notification, sharing one precondition pair.
 
 Term pending at an instant: creation instant at or before the instant, and the terminal stamp either absent or after the instant — the reconstruction an auditor runs over stored fields, never over status, which carries the present rather than the past.
-
-Term terminal refusal order: Operation 8 through 9 — a terminal transition's refusal rules, earliest first; Operation 15 answers only at the write, which no refused call reaches.
 
 The case space, and the rule that owns each case:
 
@@ -418,7 +415,7 @@ Term cadences: empty — a delivery window is the composing pattern's (Operation
 
 Term qualifiers: migrated — rewritten in GRACE lang v0.35 (2026-09-12).
 
-Term terms: notification, notification id, recipient reference, payload, seam, transition, business caller, now, string cap, status, terminal stamp, creation instant, terminal transition, pending at an instant, terminal refusal order.
+Term terms: notification, notification id, recipient reference, payload, seam, transition, business caller, now, string cap, status, terminal stamp, creation instant, terminal transition, pending at an instant.
 
 #### Create
 
@@ -670,5 +667,7 @@ Directional changes only — the turns a future reader must know the pattern too
 - **2026-10-21 — The string cap bounds the recipient reference, and the deployment supplies it; a failed read answers on every action, each writing shape's refusals in one stated order; the wiring declaration is an external check.** *Chose:* String 6's cap on the recipient reference alone, the payload left unmeasured as Operation 6 and Non-goal 10 say (a payload too large to keep is the database's refusal, Operation 7), and Capability requirement 5 obliging the deployment to supply the cap; state-unavailable on all six actions where the read of the notification records fails, the Execution Contract's Step 1 failure (Operation 27, Term database read), [Create]'s refusals and a terminal transition's each evaluated in one order with the read first (Operation 28, Operation 29), and the reads' answer rules held to an answered read (Operation 17 through 19, Invariant 9.3); Check 6.1 deleted to External check 5, the auditor reading which composing patterns a deployment wired in from the deployment's own declaration. *Over:* a cap that reached a payload the atom may neither read nor validate, as Final Critique 4's String input policy had it reach both string inputs; a cap no rule obliged anyone to supply; six actions with no answer for a read that fails; and a conformance check no notification record can answer. *Because:* Final Critique 5 found each a divergence between conforming builds, two rules no build can both obey, or a check a conforming deployment fails, and the corpus held each cure: the page's own payload rules, which say four times that the atom never reads a payload; the requirement form Credential, Party Identity and Medication Order give a length bound; the failed-read form Actor Identity, Approval Step, Capability and Duplicate Prevention carry; and the external check to which six atoms moved the same check. What each action does on a call it admits is unchanged, save that a payload is no longer measured against the cap.
 
 - **2026-10-21 — A failed read answers as the Execution Contract says.** *Chose:* the failed read cited from the Execution Contract (Capability requirement 4, Execution Contract Read 1 through 3) and the two rules that restated it deleted to it: the atom-wide state-unavailable (Operation 27) to Read 1, and the create refusal order (Operation 28), whose rules after the read both answer invalid-request, to Read 1; the read's condition off the read answers it held to an answered read (Operation 17 through 19, Invariant 9.3), the read off the terminal refusal order, Term database read deleted, and state-unavailable off every signature and the case table; rules 131 to 129. *Over:* the page stating for itself what every action answers when the notification records cannot be read. *Because:* the maintainer ruled on 2026-10-21 that the Execution Contract states the failed read once; this page's fifth Final Critique had made one of the cures the contract's Read family is written from. What each action answers on an answered read is unchanged, and Invariant 9, which Notification Fanout cites, holds on every answered read as it did.
+
+- **2026-10-21 — Which refusal answers is the Execution Contract's.** *Chose:* each terminal transition's refuses line kept as the page wrote it, already in the order the terminal refusal order gave — not-known, not-pending, then storage-failure, which answers only at the write — and the order cited from the Execution Contract (Capability requirement 4, Execution Contract Refusal 1); Operation 29, which evaluated the terminal refusal order, deleted to Refusal 1, and Term terminal refusal order deleted with it; rules 129 to 128. *Over:* the page stating for itself which of a terminal transition's refusals answers when both apply. *Because:* the maintainer ruled on 2026-10-21 that the Execution Contract states once that the refusal listed first on an action's refuses line answers; this page's fifth Final Critique had made the cure one specification at a time. What each action answers on every call is unchanged.
 
 NOTE: End of Notification.

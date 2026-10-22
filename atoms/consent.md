@@ -112,7 +112,7 @@ Deleted: Stored state 4. Execution Contract Database 2 owns it.
 
 ```
 Capability requirement 1: The deployment MUST supply now at the seam.
-Capability requirement 5: The deployment MUST supply the consent records PER Execution Contract Database 1 through 4.
+Capability requirement 5: The deployment MUST supply the consent records PER Execution Contract Database 1 through 4 and Execution Contract Refusal 1.
 Deleted: Capability requirement 2. Execution Contract Logic confinement 7 owns it.
 Deleted: Capability requirement 3. Execution Contract Logic confinement 7 owns it.
 Deleted: Capability requirement 4. Execution Contract Logic confinement 7 owns it.
@@ -151,10 +151,10 @@ Operation 10: [Grant] MUST stamp grant instant from the injected now.
 Operation 11: [Grant] MUST record metadata the call supplied.
 Operation 12: [Grant] MUST NOT interpret metadata.
 Operation 13: IF the database refuses the write THEN [Grant] MUST answer storage-failure.
-Operation 14: [Grant] MUST answer storage-failure ONLY IF EVERY grant guard passes.
+Deleted: Operation 14. Execution Contract Refusal 1 owns it.
 Operation 15: IF consent id EQUALS blank THEN [Revoke] MUST answer invalid-request.
 Operation 16: IF the consent id names no consent record THEN [Revoke] MUST answer not-known.
-Operation 17: [Revoke] MUST answer not-known ONLY IF consent id DOES NOT EQUAL blank.
+Deleted: Operation 17. Execution Contract Refusal 1 owns it.
 Operation 18: IF the consent record's state EQUALS revoked THEN [Revoke] MUST answer already-revoked.
 Operation 19: IF the consent record's state EQUALS expired THEN [Revoke] MUST answer already-expired.
 Operation 20: IF revocation instant DOES NOT EQUAL blank THEN [Revoke] MUST resolve revocation instant from the call.
@@ -210,8 +210,6 @@ Term business caller: the party whose action the call carries, as the section ti
 
 Term at time: the instant a [Check] evaluates against — an [At Time]; a caller-supplied query input, resolving to now where the call supplies none.
 
-Term grant guard: [Grant]'s preconditions — subject reference, purpose and granting actor each present, and expiry instant, where supplied, exceeding now.
-
 Term expiry instant: the optional instant a consent record's agreement runs out — an [Expiry Instant]; set at [Grant], never stamped later.
 
 Term metadata: the optional opaque payload the atom stores unchanged — a [Metadata]; consent-form version, signal type, jurisdiction.
@@ -252,7 +250,7 @@ The case space, and the rule that owns each case:
 | [Grant] | as above with an expiry instant after [Now] | the new consent id | as above, with [Expiry Instant] recorded (Operation 7) |
 | [Grant] | a blank reference, or an expiry instant at or before [Now] | [Invalid Request] | none (Operation 4 through 6, Operation 8, Operation 9) |
 | [Revoke] | id names a record in [Granted], attribution present, times ordered | revoked | [Granted] → [Revoked], three fields stamped (Operation 26 through 29) |
-| [Revoke] | blank consent id | [Invalid Request] | none — checked before the database is consulted (Operation 15, Operation 17) |
+| [Revoke] | blank consent id | [Invalid Request] | none — answered ahead of not-known (Operation 15, Execution Contract Refusal 1) |
 | [Revoke] | id names nothing | [Not Known] | none (Operation 16) |
 | [Revoke] | id names a record in [Revoked] | [Already Revoked] | none (Operation 18) |
 | [Revoke] | id names a record in [Expired] | [Already Expired] | none (Operation 19) |
@@ -502,7 +500,7 @@ Term cadences: empty.
 
 Term qualifiers: migrated — rewritten in GRACE lang v0.35 (2026-09-12).
 
-Term terms: consent record, database instance, database name, seam, transition, consent id, subject reference, purpose, granting actor, blank, now, business caller, at time, grant guard, expiry instant, metadata, revoking actor, revocation reason, reason, revocation instant, grant instant, evaluation instant, withdrawn, elapsed, candidate record, later write, query, supported filter axes, reference filter, state filter, state, grant field.
+Term terms: consent record, database instance, database name, seam, transition, consent id, subject reference, purpose, granting actor, blank, now, business caller, at time, expiry instant, metadata, revoking actor, revocation reason, reason, revocation instant, grant instant, evaluation instant, withdrawn, elapsed, candidate record, later write, query, supported filter axes, reference filter, state filter, state, grant field.
 
 #### Grant
 
@@ -810,6 +808,8 @@ open:
 ## Decisions
 
 Directional changes only — the turns a future reader must know the pattern took, and why. Everything smaller lives in the commit that made it: `git log -- atoms/consent.md`; the migrations that got it here are in [its history](./consent.hist.md).
+
+- **2026-10-21 — Which refusal answers is the Execution Contract's.** *Chose:* each refuses line kept as the page wrote it, already in the page's order — [Revoke] answering invalid-request on a blank consent id ahead of not-known, then already-revoked or already-expired, with its attribution and instant faults held to a granted record; storage-failure last, answering only at the write — and the order cited from the Execution Contract (Capability requirement 5, Execution Contract Refusal 1); Operation 14 (a [Grant] storage-failure only once every grant guard passes) and Operation 17 (not-known only for a consent id that is not blank), which only stated the order, deleted to Refusal 1, and Term grant guard, which only Operation 14 read, deleted with it; rules 172 to 170. *Over:* the page stating for itself which of an action's refusals answers when several apply. *Because:* the maintainer ruled on 2026-10-21 that the Execution Contract states once that the refusal listed first on an action's refuses line answers. What each action answers on every call is unchanged.
 
 - **2026-10-21 — The state is derived on every answer and never written; withdrawal outranks expiry everywhere; a refused write leaves a granted record granted; an omitted instant resolves from now; a later write is the write's own instants.** *Chose:* the stored state's cache writes deleted — Stored state 1 to Expiry 5 and Execution Contract Database 4, Stored state 2 and Invariant 6.3 to Operation 36 and Operation 49 — with [Read] carrying the consent record's state on every record it answers (Invariant 2.2) and evaluating a state filter against it (Operation 64, Term state filter), so the stored field holds what [Grant] or [Revoke] last wrote and no answer reads it; Expiry 2 and Operation 42 held to a record that is not withdrawn, Invariant 6.1 deleted to Operation 42 and Invariant 6.2, and Check 5.1 held to a record carrying no revocation instant; Operation 32 held to the refused [Revoke] write; Operation 20, 21, 37 and 38 in the corpus's default form, the call's instant where it supplies one and now where it supplies none; Invariant 10.4 deleted to Invariant 10.1 and 10.3, and Check 8.1 to Check 8.2 through 8.4, which now say which later writes they cross; Term later write without its expiry clause. *Over:* a residual cache the 2026-06-23 entry kept and no conforming build can write — [Check] and [Read] are the contract's query surface and never write, and the Database contract runs no expiry — so the page obliged a write it forbade and an equality nothing could keep; a record revoked before its expiry obliged to stand, and to answer, both revoked and expired; a refused [Revoke] obliged to leave a revoked record in granted; a blank instant resolved from the call; a repeated check said to answer alike across a [Revoke] whose instant the at time does not precede; and the record a check answers from counted as a later write whenever its expiry falls after the at time. *Because:* Final Critique 6 found each a divergence between conforming builds or two rules no build can both obey, and the corpus already held each cure: Invitation and Session derive expiry at read time and carry the derived status on every read, the method's entry of 2026-10-08 deletes a broken rule to the rules that already hold its states, and Final Critique 5's own text had scoped the refused write, put withdrawal ahead of expiry, defaulted both instants to now and named only strictly-later writes. What the atom records is unchanged, and each answer is the one the page's other rules already gave.
 

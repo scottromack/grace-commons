@@ -118,7 +118,7 @@ Term attribution surface: an audit event's actor reference ([Allocating Actor Re
 
 ```
 Capability requirement 1: The deployment MUST supply now at the seam.
-Capability requirement 5: The deployment MUST supply the pool records PER Execution Contract Database 1 through 4.
+Capability requirement 5: The deployment MUST supply the pool records PER Execution Contract Database 1 through 4 and Execution Contract Refusal 1.
 Deleted: Capability requirement 2. Execution Contract Logic confinement 7 owns it.
 Deleted: Capability requirement 3. Execution Contract Logic confinement 7 owns it.
 Deleted: Capability requirement 4. Execution Contract Logic confinement 7 owns it.
@@ -139,7 +139,7 @@ declare_pool(capacity, declaring_actor_ref, reason)
 
 allocate(pool_id, count, allocating_actor_ref)
   answers allocation_event_id
-  refuses not-known | over-capacity | suspended | closed | invalid-request | storage-failure
+  refuses not-known | suspended | closed | over-capacity | invalid-request | storage-failure
 
 release(pool_id, count, releasing_actor_ref)
   answers release_event_id
@@ -180,7 +180,7 @@ Operation 10: IF the pool state EQUALS suspended THEN [Allocate] MUST answer sus
 Operation 11: IF the pool state EQUALS closed THEN [Allocate] MUST answer closed.
 Operation 12: IF count IS NOT IN the positive counts THEN [Allocate] MUST answer invalid-request.
 Operation 13: IF the requested total EXCEEDS capacity THEN [Allocate] MUST answer over-capacity.
-Operation 14: [Allocate] MUST answer over-capacity ONLY IF the pool state EQUALS open.
+Deleted: Operation 14. Execution Contract Refusal 1 owns it.
 Operation 15: [Allocate] MUST raise allocated to the requested total.
 Operation 16: [Allocate] MUST append an allocation event.
 Operation 17: [Allocate] MUST answer the allocation event id.
@@ -226,7 +226,7 @@ Operation 56: IF the database refuses a read THEN [Query] MUST NOT answer a stal
 Operation 57: IF the database refuses a write THEN a writing action MUST answer storage-failure.
 Operation 58: A refused action MUST leave the pool as the call found the pool.
 Operation 59: A refused action MUST NOT append an audit event.
-Operation 60: An action MUST answer storage-failure ONLY IF EVERY precondition passes.
+Deleted: Operation 60. Execution Contract Refusal 1 owns it.
 Deleted: Operation 61. Capability requirement 1 owns it.
 Deleted: Operation 62. Execution Contract Logic confinement 3 owns it.
 Deleted: Operation 63. Execution Contract Logic confinement 3 owns it.
@@ -405,7 +405,7 @@ A primary pool of 200 connections, allocated on checkout and released on return.
 
 `allocate(pool_x, count: 1, ...)` where `pool_x` names nothing → not-known — which covers both *never declared* and *declared, closed, and since purged under a composed retention pattern*. The atom cannot tell them apart and does not pretend to (Operation 8, Invariant 1.1).
 
-`allocate(pool_closed, count: -5, ...)` against a closed pool → closed, not invalid-request. State precedes format, and the caller learns about the count on retry against a live pool.
+`allocate(pool_closed, count: -5, ...)` against a closed pool → closed, not invalid-request. State precedes format on [Allocate]'s refuses line (Execution Contract Refusal 1), and the caller learns about the count on retry against a live pool.
 
 ### Regulated adversarial scenarios
 
@@ -1042,5 +1042,7 @@ open: none
 Directional changes only — the turns a future reader must know the pattern took, and why. Everything smaller lives in the commit that made it: `git log -- atoms/capacity-constraint-enforcement.md`; the migration that got it here is in [its history](./capacity-constraint-enforcement.hist.md).
 
 - **2026-10-20 — The store's guarantees cited, not restated.** *Chose:* the pool store supplied under Execution Contract Store 1 through 4 (Capability requirement 5), and the twelve rules that restated them tombstoned to their owner — Invariant 14.1 and Crash atomicity 1, an action's records committed in one operation, Invariant 1.3 and Invariant 14.2, no partial pool or record on storage-failure, and Invariant 14.3, that commit resting on a host obligation, to Store 1; Crash atomicity 2, 3 and 5, no crash inside a writing action leaving an audit event without its pool change, a pool change without its audit event, or a pool [Declare Pool] did not finish, to Store 1 and Store 3; Crash atomicity 4, a recovered store standing in no violation of Invariant 4.1, to Store 3; Concurrency 2, the arithmetic guard and the write one transition, to Store 1 and Store 2; Concurrency 1, concurrent calls on one pool serialized, and Concurrency 3, a compare-and-set on allocated discharging Concurrency 2, to Store 2; rules 222 to 211. *Over:* the atom restating, for its own store, what every deployment's store guarantees. *Because:* the maintainer ruled 2026-10-12 that the corpus takes a store's specification, never the store, and `execution-contract.md` writes it once as the Store contract. Invariant 4.1 and Invariant 5.1 now rest on the host obligations Capability requirement 5 and Arithmetic 1 name (Invariant 4.4, Invariant 5.3). The bound and its guards stay the atom's own (Invariant 4.1 through 4.3, Operation 13, Operation 22, Operation 32), as do a refused action leaving the pool as the call found it and appending no audit event (Operation 58, Operation 59), the store refusing a colliding pool id (Identity 14), and the records the atom never removes, re-orders or changes (State 7 through 10, State 19, State 20, Invariant 1.1, 1.2, 7.1, 8.1 through 8.3, 9.1 through 9.3, 12.1, 12.2). The audit log is carried on the pool record, ordered by insertion by the atom itself (State 3, State 11), and an auditor replays it forward rather than reading a record as it stood at a past commit (Check 2.1), so the atom cites neither History 1 nor Order 1. What the atom does for its domain is unchanged.
+
+- **2026-10-21 — Which refusal answers is the Execution Contract's.** *Chose:* [Allocate]'s refuses line listing its refusals in the order the page states — not-known, the pool's state (suspended, closed) ahead of over-capacity as Operation 14 held it, state ahead of format as the Rejection paths say, then storage-failure, which answers only at the write — and the order cited from the Execution Contract (Capability requirement 5, Execution Contract Refusal 1); Operation 14 (over-capacity only on an open pool) and Operation 60 (storage-failure behind every precondition), which only stated the order, deleted to Refusal 1; rules 211 to 209. *Over:* the page stating for itself which of an action's refusals answers when several apply. *Because:* the maintainer ruled on 2026-10-21 that the Execution Contract states once that the refusal listed first on an action's refuses line answers. What each action answers on every call is unchanged.
 
 NOTE: End of Capacity Constraint Enforcement.

@@ -148,7 +148,7 @@ Capability requirement 33: The deployment MUST route EVERY call naming one pair 
 Capability requirement 34: The deployment MUST supply id material naming no credential of the database instance.
 Capability requirement 35: The deployment MUST NOT supply the same id material to two calls.
 Capability requirement 36: The deployment MUST route EVERY call naming a credential id to the database instance that assigned the credential id.
-Capability requirement 37: The deployment MUST supply the credential records PER Execution Contract Database 1 through 4 and Execution Contract Read 1 through 3.
+Capability requirement 37: The deployment MUST supply the credential records PER Execution Contract Database 1 through 4, Execution Contract Read 1 through 3 and Execution Contract Refusal 1.
 Capability requirement 38: The deployment MUST NOT supply blank id material.
 Capability requirement 39: The credential id assigned from the id material MUST NOT EXCEED the length bound.
 ```
@@ -184,7 +184,7 @@ Operation 3: IF credential type EQUALS blank THEN [Register] MUST answer invalid
 Operation 4: IF the credential type names no derivation function THEN [Register] MUST answer invalid-request.
 Operation 5: IF now DOES NOT PRECEDE a supplied expiry instant THEN [Register] MUST answer invalid-request.
 Operation 6: IF an effective-active credential EXISTS for the pair THEN [Register] MUST answer duplicate-active-credential.
-Operation 7: [Register] MUST answer duplicate-active-credential ONLY IF EVERY well-formedness check passes.
+Deleted: Operation 7. Execution Contract Refusal 1 owns it.
 Operation 8: A lapsed credential MUST NOT block a register for the credential's pair.
 Operation 9: An admitted register MUST assign a fresh credential id.
 Operation 10: An admitted register MUST record principal reference and credential type.
@@ -207,11 +207,11 @@ Operation 26: [Verify] MUST NOT record a field.
 Operation 27: IF the credential id names no credential THEN a transitioning write MUST answer not-known.
 Operation 28: IF no effective-active credential EXISTS for the credential id THEN [Rotate] MUST answer not-active.
 Operation 29: IF no effective-active credential EXISTS for the credential id THEN [Revoke] MUST answer already-terminal.
-Operation 30: A transitioning write MUST answer a standing rejection ONLY IF the credential id names a credential.
+Deleted: Operation 30. Execution Contract Refusal 1 owns it.
 Operation 31: IF new credential material EQUALS blank THEN [Rotate] MUST answer invalid-request.
 Operation 32: IF revoked by reference EQUALS blank THEN [Revoke] MUST answer invalid-request.
 Operation 33: IF reason EQUALS blank THEN [Revoke] MUST answer invalid-request.
-Operation 34: A transitioning write MUST answer invalid-request ONLY IF EVERY standing check passes.
+Deleted: Operation 34. Execution Contract Refusal 1 owns it.
 Operation 35: An admitted rotate MUST record a successor credential carrying the prior credential's pair.
 Operation 36: An admitted rotate MUST stand the successor credential in active.
 Operation 37: An admitted rotate MUST stand the prior credential in rotated.
@@ -223,7 +223,7 @@ Operation 42: An admitted revoke MUST stand the credential in revoked.
 Operation 43: An admitted revoke MUST record revoked by reference, reason as revocation reason and now as revocation instant.
 Deleted: Operation 44. Execution Contract Database 1 owns it.
 Operation 45: IF the database refuses the write THEN an action MUST answer storage-failure.
-Operation 46: An action MUST answer storage-failure ONLY IF EVERY precondition passes.
+Deleted: Operation 46. Execution Contract Refusal 1 owns it.
 Operation 47: A refused action MUST leave the credential as the call found the credential.
 Operation 48: A refused [Register] MUST NOT record a credential.
 Operation 49: A refused [Rotate] MUST NOT record a successor credential.
@@ -252,10 +252,9 @@ Operation 71: IF expiry instant EQUALS blank AND the default validity EQUALS unb
 Operation 72: IF expiry instant EQUALS blank AND the default validity EQUALS unbounded THEN an admitted rotate MUST record no expiry instant on the successor.
 Operation 73: IF a filter names a field whose value EQUALS blank THEN [Read] MUST answer no credential.
 Deleted: Operation 74. Execution Contract Read 1 owns it.
-Operation 75: [Register] MUST NOT evaluate a rule of the register refusal order BEFORE EVERY earlier rule of the register refusal order has answered no refusal.
-Operation 76: [Rotate] MUST NOT evaluate a rule of the rotate refusal order BEFORE EVERY earlier rule of the rotate refusal order has answered no refusal.
-Operation 77: [Revoke] MUST NOT evaluate a rule of the revoke refusal order BEFORE EVERY earlier rule of the revoke refusal order has answered no refusal.
-NOTE: watch the refusal order (Operation 75, Operation 76, Operation 77).
+Deleted: Operation 75. Execution Contract Refusal 1 owns it.
+Deleted: Operation 76. Execution Contract Refusal 1 owns it.
+Deleted: Operation 77. Execution Contract Refusal 1 owns it.
 ```
 
 Term transitioning write: [Rotate] | [Revoke] — every call that would take an effective-active credential to a stored terminal, including a refused one.
@@ -263,18 +262,6 @@ Term transitioning write: [Rotate] | [Revoke] — every call that would take an 
 Term stored terminal: rotated | revoked.
 
 Term status: active | rotated | revoked — the value a credential stores.
-
-Term standing check: Operation 27, Operation 28, Operation 29 and Operation 65 — every check a transitioning write makes on standing, the credential's own or, for [Rotate], the pair's, before reading the call's inputs.
-
-Term standing rejection: not-active | already-terminal.
-
-Term well-formedness check: Operation 1, Operation 2, Operation 3, Operation 4, Operation 5, Operation 66 and String 7 — every check [Register] makes on the call's own inputs.
-
-Term register refusal order: Operation 1 through 5, Operation 66, String 7, Operation 6 — [Register]'s refusal rules, earliest first; Operation 45 answers only at the write, which no refused call reaches.
-
-Term rotate refusal order: Operation 27 through 28, Operation 65, Operation 31, Operation 63, Operation 67 — [Rotate]'s refusal rules, earliest first, its standing checks ahead of its inputs (Operation 34); Operation 45 answers only at the write, which no refused call reaches.
-
-Term revoke refusal order: Operation 27, Operation 29, Operation 32 through 33, String 9 — [Revoke]'s refusal rules, earliest first, its standing checks ahead of its inputs (Operation 34); Operation 45 answers only at the write, which no refused call reaches.
 
 Term window reading: live | lapsed — how an active credential's window reads against now.
 
@@ -403,7 +390,7 @@ Tokens for `svc_s03` turn up in a log file. `revoke(cred_c11, admin_a01, "log-ex
 
 ### Rejection paths
 
-`register(user_u91, "x", "password")` on a pair that already holds an effective-active credential → duplicate-active-credential; the caller rotates instead. `register(user_u91, "x", "Password ")` → invalid-request, because no derivation function is registered for that type — which is also what stops a byte-exact key from quietly admitting a second effective-active credential under a near-duplicate name. `rotate(cred_unknown, "x")` → not-known. `rotate(cred_c11, "y")` on a reading before 2026-07-01, beside a `register(svc_s03, "z", "api-token")` that took its reading after 2026-07-01 and committed first → not-active: the register found `cred_c11` lapsed and was admitted, and the rotate, reading `cred_c11` live, finds the register's credential effective-active beside it (Operation 65). `register(user_u92, "z", "password")` whose database write fails → storage-failure, and no record exists (Operation 48). `revoke(cred_c07, admin_a01, "  ")` on the already-rotated record → already-terminal, not invalid-request: the standing check runs first (Operation 34).
+`register(user_u91, "x", "password")` on a pair that already holds an effective-active credential → duplicate-active-credential; the caller rotates instead. `register(user_u91, "x", "Password ")` → invalid-request, because no derivation function is registered for that type — which is also what stops a byte-exact key from quietly admitting a second effective-active credential under a near-duplicate name. `rotate(cred_unknown, "x")` → not-known. `rotate(cred_c11, "y")` on a reading before 2026-07-01, beside a `register(svc_s03, "z", "api-token")` that took its reading after 2026-07-01 and committed first → not-active: the register found `cred_c11` lapsed and was admitted, and the rotate, reading `cred_c11` live, finds the register's credential effective-active beside it (Operation 65). `register(user_u92, "z", "password")` whose database write fails → storage-failure, and no record exists (Operation 48). `revoke(cred_c07, admin_a01, "  ")` on the already-rotated record → already-terminal, not invalid-request: [Revoke]'s refuses line lists already-terminal first (Execution Contract Refusal 1).
 
 ### Regulated adversarial scenarios
 
@@ -612,7 +599,7 @@ Term records: credential — one principal's binding to one verifier for one cre
 
 Term record verbs: identify, assign, generate, change, share, carry, stand, read, answer, record, leave, admit, offer, hold, commit, refuse, write, find, resolve, name, compare, normalize, confirm, match, differ, route, append, register, create, pass, attest, cover, call, fall, precede, sample, consume, supply, canonicalize, declare, compose, remove, bind, decide, define, bound, reach, accept, retain, trim, case-fold, compute, reproduce, reconstruct, verify, issue, detect, guarantee, take, derive, expose, store, own, persist, enumerate, distinguish, select, walk, mutate, serialize, rotate, revoke, block, invalidate, migrate, recover, reinterpret, constrain, count, sequence, run, rebind, check, order, lower, retry, authorize, purge, evaluate.
 
-Term value sets: status = active | rotated | revoked. stored terminal = rotated | revoked. standing rejection = not-active | already-terminal. window reading = live | lapsed. property = principal reference | credential type | verifier | registration instant | expiry instant. terminal field = rotation instant | successor credential id | revocation instant | revoked by reference | revocation reason.
+Term value sets: status = active | rotated | revoked. stored terminal = rotated | revoked. window reading = live | lapsed. property = principal reference | credential type | verifier | registration instant | expiry instant. terminal field = rotation instant | successor credential id | revocation instant | revoked by reference | revocation reason.
 
 Term bounds: default validity, length bound, material bound.
 
@@ -620,7 +607,7 @@ Term cadences: empty.
 
 Term qualifiers: migrated — rewritten in GRACE lang v0.40 (2026-09-13).
 
-Term terms: credential, credential id, lapse instant, pair, property, reference, database instance, seam, transition, now, transitioning write, stored terminal, status, standing check, standing rejection, well-formedness check, window reading, live, lapsed, effective-active credential, lapsed credential, proceeding verify, effective status, verifier, derivation function, derivation registry, foldable difference, length bound, default validity, check function, filter, fresh credential id, authorized caller, credential write, secret verifier, settled reading, terminal field, admitted register, admitted rotate, admitted revoke, string input, blank, verification failure, register refusal order, rotate refusal order, revoke refusal order, default expiry.
+Term terms: credential, credential id, lapse instant, pair, property, reference, database instance, seam, transition, now, transitioning write, stored terminal, status, window reading, live, lapsed, effective-active credential, lapsed credential, proceeding verify, effective status, verifier, derivation function, derivation registry, foldable difference, length bound, default validity, check function, filter, fresh credential id, authorized caller, credential write, secret verifier, settled reading, terminal field, admitted register, admitted rotate, admitted revoke, string input, blank, verification failure, default expiry.
 
 Term cited: the section titled Logic Confinement Principle in `execution-contract.md` — the seam and the transition.
 
@@ -855,7 +842,7 @@ Projection: no-active-credential
 
 #### Invalid Request
 
-The refusal returned when a required argument is blank, a [Credential Type] names no derivation function, a supplied [Expiry Instant] does not exceed [Now], the derivation function refuses the material, or — on [Register] and [Revoke] only — a string input exceeds the deployment's length bound. On a transitioning write it is reached only after every standing check passes.
+The refusal returned when a required argument is blank, a [Credential Type] names no derivation function, a supplied [Expiry Instant] does not exceed [Now], the derivation function refuses the material, or — on [Register] and [Revoke] only — a string input exceeds the deployment's length bound. On a transitioning write it is listed after not-known and the standing refusals, so it answers only once none of them applies.
 
 Kind:       Member
 Member of:  the action rejection
@@ -873,7 +860,7 @@ Projection: duplicate-active-credential
 
 #### Not Known
 
-The refusal a transitioning write returns when the supplied [Credential Id] names no credential. Reached before either standing rejection, so a caller reading [Not Active] or [Already Terminal] knows the id resolved.
+The refusal a transitioning write returns when the supplied [Credential Id] names no credential. Listed ahead of [Not Active] and [Already Terminal] on the refuses lines, so a caller reading either knows the id resolved.
 
 Kind:       Member
 Member of:  the transitioning-write rejection
@@ -999,5 +986,7 @@ Directional changes only — the turns a future reader must know the pattern too
 - **2026-10-21 — A failed read answers on every action, each write's refusals in one stated order; the ids the deployment supplies fit the string policy; verified is answered only against the effective-active credential.** *Chose:* state-unavailable on all five actions where the read of the credential store fails, the Execution Contract's Step 1 failure (Operation 74, Term store read), [Verify] and [Read] answering only on an answered read (Operation 18, Operation 55, Term proceeding verify, Term admitted read, Concurrency 5), and the refusals of [Register], [Rotate] and [Revoke] each in one stated order, the store read first and the page's standing checks ahead of the inputs (Operation 75 through 77, the three refusal order terms); id material never blank and never longer than the length bound (Capability requirement 38, 39); the settled reading as the one at which Invariant 2.1 and Check 1.1 judge a pair, where it had been the only one at which a pair's credentials are judged at all (Term settled reading); and Invariant 4.1 and 11.1 deleted to Invariant 3.1, which already answers verified only against the effective-active credential. *Over:* a verify whose read failed answered as no-active-credential, which a lockout counts as a failed verification; a blank id [Read] answers two ways, and an over-long one no [Revoke] can cancel; a term that forbade the pair check Operation 65 makes at the rotate's own reading; invariants that, read alone, forbid verifying a pair holding a revoked or lapsed credential beside its live one. *Because:* Final Critique 13, the council's first round on the page, found each a divergence between conforming builds or two rules no build could keep, all in text Final Critique 12 had read. The failed read takes the form Actor Identity's, Retention Window's, Tamper Evidence's and Permissions' rounds gave it, over Final Critique 12's refining class for it, and the two invariants go by the entry *A rule the page's lawful states break is first checked for a rule to delete it in favour of* in `pressure-testing.md`. Rules 246 to 250. Compositions affected: the pages that compose this atom route state-unavailable from all five actions when their rounds read them.
 
 - **2026-10-21 — A failed read answers as the Execution Contract says.** *Chose:* the failed read cited from the Execution Contract (Capability requirement 37, Execution Contract Read 1 through 3) and the two rules that restated it deleted to it: the atom-wide state-unavailable (Operation 74) to Read 1, and [Read]'s state-unavailable on a failed read alone (Operation 55) to Read 2 beside Operation 51; the read's condition off the rules and terms it held to an answered read (Operation 18, Concurrency 5, Term proceeding verify), and Term admitted read, which held only that condition, deleted, so its rules and checks name [Read] (Operation 51, Operation 52, Operation 69, Operation 73, Invariant 12.2, Check 2.3, Check 5.3, Check 5.4); the read off the register, rotate and revoke refusal orders, Term database read deleted, state-unavailable off every signature and off the Intent; rules 250 to 248. *Over:* the page stating for itself what every action answers when the credential records cannot be read. *Because:* the maintainer ruled on 2026-10-21 that the Execution Contract states the failed read once; this page's thirteenth Final Critique had made one of the cures the contract's Read family is written from, and Read 3 keeps what it said of [Verify]: a failed read is no failed verification. What each action answers on an answered read is unchanged.
+
+- **2026-10-21 — Which refusal answers is the Execution Contract's.** *Chose:* each writing action's refuses line kept as the page wrote it, already in the order its refusal order gave — [Register] invalid-request, duplicate-active-credential; [Rotate] not-known, not-active, invalid-request; [Revoke] not-known, already-terminal, invalid-request; storage-failure last on each, answering only at the write — and the order cited from the Execution Contract (Capability requirement 37, Execution Contract Refusal 1); the rules that only stated it deleted to Refusal 1: Operation 75, Operation 76 and Operation 77, which evaluated the three refusal orders, with Term register refusal order, Term rotate refusal order and Term revoke refusal order, and the pairs Operation 7 (duplicate-active-credential only once every well-formedness check passes), Operation 30 (a standing rejection only for a credential id naming a credential), Operation 34 (invalid-request only once every standing check passes) and Operation 46 (storage-failure behind every precondition), with Term standing check, Term standing rejection and Term well-formedness check, which only those pairs read; rules 248 to 241. *Over:* the page stating for itself which of an action's refusals answers when several apply. *Because:* the maintainer ruled on 2026-10-21 that the Execution Contract states once that the refusal listed first on an action's refuses line answers; this page's thirteenth Final Critique had made the cure one specification at a time. What each action answers on every call is unchanged.
 
 NOTE: End of Credential.

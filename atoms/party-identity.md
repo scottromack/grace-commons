@@ -108,7 +108,7 @@ Deleted: Capability requirement 4. Execution Contract Database 3 owns it.
 Deleted: Capability requirement 5. Execution Contract Database 1 owns it.
 Capability requirement 6: The deployment MUST canonicalize an opaque reference.
 Capability requirement 7: The deployment MUST declare the length bound.
-Capability requirement 10: The deployment MUST supply the party records PER Execution Contract Database 1 through 4 and Execution Contract Order 1.
+Capability requirement 10: The deployment MUST supply the party records PER Execution Contract Database 1 through 4, Execution Contract Order 1 and Execution Contract Refusal 1.
 Deleted: Capability requirement 8. Execution Contract Logic confinement 7 owns it.
 Deleted: Capability requirement 9. Execution Contract Logic confinement 7 owns it.
 ```
@@ -160,10 +160,10 @@ Operation 13: IF the party's state EQUALS closed THEN a party action MUST answer
 Operation 14: IF the party's state EQUALS unverified THEN [Suspend] MUST answer not-verifiable.
 Operation 15: IF the party's state EQUALS suspended THEN [Suspend] MUST answer already-suspended.
 Operation 16: IF the party's state DOES NOT EQUAL suspended THEN [Reinstate] MUST answer not-suspended.
-Operation 17: A party action MUST answer a state rejection ONLY IF the party id names a party.
+Deleted: Operation 17. Execution Contract Refusal 1 owns it.
 Operation 18: IF no fresh verification EXISTS THEN [Reinstate] MUST answer no-passed-verification-since-suspend.
-Operation 19: [Reinstate] MUST answer no-passed-verification-since-suspend ONLY IF the party's state EQUALS suspended.
-Operation 20: A party action MUST answer invalid-request on a field fault ONLY IF EVERY state check passes.
+Deleted: Operation 19. Execution Contract Refusal 1 owns it.
+Deleted: Operation 20. Execution Contract Refusal 1 owns it.
 Operation 21: IF the verification result differs from passed AND the verification result differs from failed THEN [Verify] MUST answer invalid-request.
 Operation 22: An admitted verify MUST append a verification event carrying a fresh verification id.
 Operation 23: An admitted verify MUST record verifying actor reference, verification method, verification result and evidence reference on the verification event.
@@ -183,7 +183,7 @@ Operation 36: An admitted verify MUST NOT record a reason on a state change even
 Operation 37: A transitioning action MUST answer the state change id.
 Deleted: Operation 38. Execution Contract Database 1 owns it.
 Operation 39: IF the database refuses the write THEN an action MUST answer storage-failure.
-Operation 40: An action MUST answer storage-failure ONLY IF EVERY precondition passes.
+Deleted: Operation 40. Execution Contract Refusal 1 owns it.
 Operation 41: A refused action MUST leave the party as the call found the party.
 Operation 42: A refused [Enroll] MUST NOT record a party.
 Operation 43: A refused action MUST NOT append an event.
@@ -212,8 +212,6 @@ Term transitioning action: a party action that changes the party's state — an 
 Term reasoned action: an admitted suspend, an admitted reinstate OR an admitted close — every transitioning action that carries a caller-supplied reason.
 
 Term state: unverified | verified | suspended | closed.
-
-Term state rejection: already-closed | not-verifiable | already-suspended | not-suspended.
 
 Term state check: Operation 11, Operation 13, Operation 14, Operation 15, Operation 16 and Operation 18 — every check a party action makes on the party's own standing before reading the call's remaining inputs.
 
@@ -320,7 +318,7 @@ A screening pattern flags `party_pk3`. `suspend(party_pk3, compliance_c4, "sanct
 
 ### Rejection paths
 
-`suspend(party_qh9, ...)` on the unverified party → not-verifiable — there is no verified standing to suspend. `reinstate(party_pk3, ...)` while verified → not-suspended. `verify(party_closed, ...)` → already-closed. `suspend("", ...)` → invalid-request, decided before the database is consulted; `suspend(party_unknown, ...)` → not-known, decided after. `close(party_zz1, officer_o7, "  ")` on the already-closed party → already-closed, not invalid-request: the state checks run first (Operation 20).
+`suspend(party_qh9, ...)` on the unverified party → not-verifiable — there is no verified standing to suspend. `reinstate(party_pk3, ...)` while verified → not-suspended. `verify(party_closed, ...)` → already-closed. `suspend("", ...)` → invalid-request, decided before the database is consulted; `suspend(party_unknown, ...)` → not-known, decided after. `close(party_zz1, officer_o7, "  ")` on the already-closed party → already-closed, not invalid-request: the state checks run first (Execution Contract Refusal 1).
 
 ### Regulated adversarial scenarios
 
@@ -495,7 +493,7 @@ Term records: party — one external party, carrying party id, name, date of bir
 
 Term record verbs: identify, assign, generate, change, share, carry, stand, read, answer, record, append, remove, leave, admit, offer, hold, refuse, write, find, resolve, name, compare, normalize, confirm, match, differ, route, register, create, pass, attest, cover, call, fall, precede, follow, sample, consume, supply, canonicalize, declare, compose, bind, decide, define, bound, reach, accept, trim, case-fold, compute, reproduce, reconstruct, replay, verify, detect, guarantee, take, derive, expose, store, own, enumerate, distinguish, select, order, deduplicate, scrub, parse, gate, count, schedule, propagate, terminate, link, suspend, reinstate, close, enroll, ignore, partition, retry, exceed, perform, score, model.
 
-Term value sets: state = unverified | verified | suspended | closed. verification result = passed | failed. state rejection = already-closed | not-verifiable | already-suspended | not-suspended. enrollment field = name | date of birth | document type | document reference | enrollment instant | enrolling actor reference.
+Term value sets: state = unverified | verified | suspended | closed. verification result = passed | failed. enrollment field = name | date of birth | document type | document reference | enrollment instant | enrolling actor reference.
 
 Term bounds: length bound.
 
@@ -503,7 +501,7 @@ Term cadences: empty.
 
 Term qualifiers: migrated — rewritten in GRACE lang v0.40 (2026-09-13).
 
-Term terms: party, verify answer, party id, verification event, state change event, assigned id, enrollment field, acting reference, reference, database instance, seam, transition, now, party action, transitioning action, state, state rejection, state check, required string input, fresh verification, insertion order, length bound, reasoned action, custody field, evidence reference, query axes, admitted enroll, admitted verify, admitted suspend, admitted reinstate, admitted close, admitted read, string input, blank, verification result.
+Term terms: party, verify answer, party id, verification event, state change event, assigned id, enrollment field, acting reference, reference, database instance, seam, transition, now, party action, transitioning action, state, state check, required string input, fresh verification, insertion order, length bound, reasoned action, custody field, evidence reference, query axes, admitted enroll, admitted verify, admitted suspend, admitted reinstate, admitted close, admitted read, string input, blank, verification result.
 
 Term cited: the section titled Logic Confinement Principle in `execution-contract.md` — the seam and the transition.
 
@@ -943,5 +941,7 @@ Directional changes only — the turns a future reader must know the pattern too
 - **2026-09-13 — The EOS strip test: no domain tag, no rename, and the coupling is in the attributes rather than the name.** *Chose:* leave the atom untagged and unrenamed, and record where the domain actually touches it. *Over:* a `domain:` tag, or a reframe of the kind [Observation](./observation.md) took. *Because:* the test asks whether stripping the domain leaves a freestanding neutral primitive, and here it does. Every invariant is neutral — records are never removed, a terminal absorbs, events are append-only and immutable, a standing rests on recorded evidence since the last revocation. None of them is derivable only from banking or healthcare; the same shape governs a licence, an accreditation, a calibration status. The *name* is already the stripped form: party is legal and commercial vocabulary rather than one industry's, which is why the atom is not called Customer Identity or Patient Identity. What is domain-flavoured is the enrollment attribute set — name, date of birth, document type, document reference — which is natural-person identity-document vocabulary, and the atom already treats two of the four as opaque strings it never interprets. The honest boundary is that this atom is a neutral standing-and-evidence primitive carrying one concrete attribute schema, and the question of whether that schema should be an opaque attribute bag belongs on the docket rather than in a rename.
 - **2026-09-13 — no-passed-verification-since-suspend stays a purpose-built rejection arm.** *Chose:* the arm the prose already carried. *Over:* folding it into not-suspended or invalid-request, which is what the corpus's closed answer set usually pressures a rare condition into. *Because:* this one is not rare and not adjacent to anything — it is the atom's central guarantee failing, and a caller receiving it knows exactly what to do next, which is to record a check. It is worth naming as the corpus's counter-example: the docket row on answers charged to the nearest arm is about conditions that could not justify the cost of their own name, and this is what paying that cost looks like.
 - **2026-10-20 — The store's guarantees cited, not restated.** *Chose:* the party store supplied under Execution Contract Store 1 through 4 and Execution Contract Order 1 (Capability requirement 10), and the sixteen rules that restated them tombstoned to their owner — Capability requirement 5, Operation 38, Invariant 11.1 and Atomic writes 1, 3 and 4, an action's records committed whole in one transition, and Invariant 1.2, no partial party on storage-failure, to Store 1; Invariant 11.2, no record of a refused action on storage-failure, and Atomic writes 2, an uncommitted transition discarded whole, to Store 1 and Store 3; Capability requirement 4, a write acknowledged only once it commits, to Store 3; Concurrency 1, the state checks and the state change as one operation, to Store 1 and Store 2; Capability requirement 3 and Concurrency 2 and 3, two party actions on one party serialized and the later answering from what the earlier committed, to Store 2; Ordering 1 and 2, the store instance appending each event in its own insertion order, to Order 1; rules 190 to 175. *Over:* the atom restating, for its own store, what every deployment's store guarantees. *Because:* the maintainer ruled 2026-10-12 that the corpus takes a store's specification, never the store, and `execution-contract.md` writes it once as the Store contract. Insertion order stays the atom's authority and a recorded instant advisory (Ordering 3 through 6): a fresh verification is a passed verification event that follows the most recent suspend, a position across a party's two event lists, and [Read] answers parties in insertion order, and the atom carries no sequence of its own to order either, so it cites Order 1, the first specification to. Every check that compares reads compares the auditor's own reads, or reconstructs from one read (Check 5.2), so it cites no History 1. A refused action leaving the party as the call found it and writing nothing stays the atom's own (Operation 41 through 43), as do the records it never removes or changes and the counts and lengths that never fall (Invariant 1.1, 1.3, 5.1, 6.1 through 6.3, 8.2); what the atom does for its domain is unchanged.
+
+- **2026-10-21 — Which refusal answers is the Execution Contract's.** *Chose:* each refuses line kept as the page wrote it, already in the page's order — a party action answering not-known, then its state rejections, [Reinstate]'s not-suspended ahead of no-passed-verification-since-suspend, then invalid-request on a field fault, and storage-failure last, answering only at the write — and the order cited from the Execution Contract (Capability requirement 10, Execution Contract Refusal 1); the pairs that only stated it deleted to Refusal 1: Operation 17 (a state rejection only for a party id naming a party), Operation 19 (no-passed-verification-since-suspend only on a suspended party), Operation 20 (a field fault only once every state check passes) and Operation 40 (storage-failure behind every precondition), with Term state rejection, which only Operation 17 read; rules 175 to 171. Operation 12 stays the page's own: a blank party id answers invalid-request ahead of not-known, while every other field fault answers after the state checks, so invalid-request holds two places in the order and no fixed line can carry both; Refusal 1 reads a refusal Operation 12 keeps from a call as not applying to it. *Over:* the page stating for itself which of an action's refusals answers when several apply. *Because:* the maintainer ruled on 2026-10-21 that the Execution Contract states once that the refusal listed first on an action's refuses line answers. What each action answers on every call is unchanged.
 
 NOTE: End of Party Identity.

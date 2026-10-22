@@ -96,7 +96,7 @@ State 10: The atom MUST NOT record a receipt instant.
 
 ```
 Capability requirement 1: The deployment MUST supply now at the seam.
-Capability requirement 5: The deployment MUST supply the disclosure records PER Execution Contract Database 1, Execution Contract Database 3 and Execution Contract Database 4.
+Capability requirement 5: The deployment MUST supply the disclosure records PER Execution Contract Database 1, Execution Contract Database 3, Execution Contract Database 4 and Execution Contract Refusal 1.
 Deleted: Capability requirement 2. Execution Contract Logic confinement 7 owns it.
 Deleted: Capability requirement 3. Execution Contract Logic confinement 7 owns it.
 Deleted: Capability requirement 4. Execution Contract Logic confinement 7 owns it.
@@ -127,14 +127,14 @@ Operation 4: IF authority EQUALS blank THEN [Record] MUST answer invalid-request
 Operation 5: IF authority type EQUALS blank THEN [Record] MUST answer invalid-request.
 Operation 6: IF authority reference EQUALS blank THEN [Record] MUST answer invalid-request.
 Operation 7: IF now PRECEDES the resolved disclosure instant THEN [Record] MUST answer invalid-request.
-Operation 8: [Record] MUST answer unknown-authority-type ONLY IF EVERY field-level precondition passes.
+Deleted: Operation 8. Execution Contract Refusal 1 owns it.
 Operation 9: IF authority type IS NOT IN the authority types THEN [Record] MUST answer unknown-authority-type.
 Operation 10: An admitted record MUST record EXACTLY ONE disclosure record.
 Operation 11: An admitted record MUST take the disclosure record's disclosure id from the injected disclosure id.
 Operation 12: An admitted record MUST stamp the disclosure record's disclosure instant from the resolved disclosure instant.
 Operation 13: An admitted record MUST answer the disclosure id.
 Operation 14: IF the database refuses the write THEN [Record] MUST answer storage-failure.
-Operation 15: [Record] MUST answer storage-failure ONLY IF EVERY field-level precondition passes AND the authority type IS IN the authority types.
+Deleted: Operation 15. Execution Contract Refusal 1 owns it.
 Operation 16: A refused [Record] MUST NOT record a disclosure record.
 Operation 17: A refused [Record] MUST leave the database as the call found the database.
 Operation 18: An admitted read MUST answer the matching disclosure records in disclosure instant ascending order.
@@ -154,8 +154,7 @@ Deleted: Operation 31. Capability requirement 1 owns it.
 Deleted: Operation 32. Execution Contract Logic confinement 3 owns it.
 Deleted: Operation 33. Execution Contract Logic confinement 3 owns it.
 Deleted: Operation 34. Execution Contract Logic confinement 3 owns it.
-Operation 35: [Record] MUST NOT evaluate a rule of the record refusal order BEFORE EVERY earlier rule of the record refusal order has answered no refusal.
-NOTE: watch the refusal order (Operation 35).
+Deleted: Operation 35. Execution Contract Refusal 1 owns it.
 ```
 
 Term now: the wall-time reading the host takes at the seam and hands to the transition, as the section titled Logic Confinement Principle in `execution-contract.md` declares it; never read inside the transition, never supplied by the business caller.
@@ -174,15 +173,11 @@ Term disclosure instant: the instant the disclosure happened — a [Disclosure I
 
 Term resolved disclosure instant: the disclosure instant the record carries — the supplied value where one exists, and now otherwise.
 
-Term field-level precondition: Operation 1 through 7 — every check [Record] makes before the authority type is read.
-
 Term filter axes: disclosure id | subject reference | recipient | authority type | disclosure instant — the five axes [Read] accepts, and no others.
 
 Term admitted record: a [Record] call whose fields, resolved disclosure instant and authority type the guards all admit.
 
 Term admitted read: a [Read] call whose every filter axis and filter value the guards admit.
-
-Term record refusal order: Operation 1 through 7, Operation 9 — [Record]'s refusal rules, earliest first, in the order Operation 8 gives; Operation 14 answers only at the write, which no refused call reaches.
 
 | # | Condition | [Record] answers |
 |---|---|---|
@@ -248,7 +243,7 @@ A data subject exercises their access right. `read({subject_ref: "patient-88213"
 
 `record("", "Northgate Research Institute", "medical-record:summary", {type: consent, reference: "consent-3301"})` → invalid-request. An empty subject reference EQUALS blank (Operation 1, String 5).
 
-`record("patient-88213", "Northgate", "summary", {type: "legitimate-interest", reference: "policy-7"})` → unknown-authority-type. The value stands outside the three (Operation 9). The same call with a blank scope answers invalid-request instead — the field-level checks complete first, so the caller learns the blank field before the bad type (Operation 8).
+`record("patient-88213", "Northgate", "summary", {type: "legitimate-interest", reference: "policy-7"})` → unknown-authority-type. The value stands outside the three (Operation 9). The same call with a blank scope answers invalid-request instead — the field-level checks complete first, so the caller learns the blank field before the bad type (Execution Contract Refusal 1).
 
 `record("patient-88213", "Northgate", "summary", {type: consent, reference: "   "})` → invalid-request. A whitespace-only reference is blank, and a reference nobody can follow defeats the record's purpose (Operation 6).
 
@@ -399,7 +394,7 @@ Each `[Term]` marker above links to its term entry here; a term entry states wha
 
 ### Vocabulary
 
-Term actors: the atom; the host; the transition; the implementation; the deployment; a composing pattern; a business caller; a caller; a guard; an auditor; a regulator; a data subject; the database; a disclosure record; a stored disclosure record; a correcting disclosure record; a refused [Record]; a query; a filter; a transmission; a string input; an opaque reference; a field-level precondition.
+Term actors: the atom; the host; the transition; the implementation; the deployment; a composing pattern; a business caller; a caller; a guard; an auditor; a regulator; a data subject; the database; a disclosure record; a stored disclosure record; a correcting disclosure record; a refused [Record]; a query; a filter; a transmission; a string input; an opaque reference.
 
 Term records: disclosure record — one recorded disclosure, carrying disclosure id, subject reference, recipient, scope, authority type, authority reference and disclosure instant.
 
@@ -413,7 +408,7 @@ Term cadences: empty.
 
 Term qualifiers: migrated — rewritten in GRACE lang v0.40 (2026-09-12).
 
-Term terms: disclosure record, disclosure id, subject reference, recipient, scope, database instance, seam, transition, now, business caller, authority, authority type, authority types, authority reference, disclosure instant, resolved disclosure instant, field-level precondition, filter axes, admitted record, record refusal order, string input, blank.
+Term terms: disclosure record, disclosure id, subject reference, recipient, scope, database instance, seam, transition, now, business caller, authority, authority type, authority types, authority reference, disclosure instant, resolved disclosure instant, filter axes, admitted record, string input, blank.
 
 #### Record
 
@@ -588,5 +583,7 @@ Directional changes only — the turns a future reader must know the pattern too
 - **2026-10-19 — The store's guarantees cited, not restated.** *Chose:* the disclosure store supplied under Execution Contract Store 1, Store 3 and Store 4 (Capability requirement 5), and the three rules that restated them, or stood in for them, tombstoned to their owner — Invariant 6.2, no partial record left by a storage-failure, to Store 1; Invariant 6.3, an answered disclosure id naming a durably persisted record, and External check 4, the recorded answers captured to find an issued disclosure id the store is missing, to Store 3; rules 130 to 128. *Over:* the atom restating, for its own store, what every deployment's store guarantees, and a deployment capturing its record answers against a store that might lose a disclosure. *Because:* the maintainer ruled 2026-10-12 that the corpus takes a store's specification, never the store, and `execution-contract.md` writes it once as the Store contract. The atom's own no-removal rules stay (State 5, State 8, State 9, Invariant 6.1), since Store 4 alone does not keep the atom from removing a record or the count from falling; a refused [Record] still records nothing and leaves the store as the call found the store, guard refusals included (Operation 16, Operation 17). [Record]'s guards read no store state and each record is written once under a fresh host-allocated id, so the atom cites no Store 2; Check 3.1 and Check 3.2 rest on the auditor's own two reads, and [Read] orders by disclosure instant and disclosure id, so the atom cites neither History 1 nor Order 1. What the atom does for its domain is unchanged.
 
 - **2026-10-21 — A composed retention may purge what the atom never removes; [Record]'s refusals answer in one stated order.** *Chose:* State 8 and State 9, which held the record count and every unfiltered read's records for good, tombstoned to the rules that hold what is true — the atom removes no record (Invariant 6.1), the database removes none but by an action a specification declares (Execution Contract Database 4), and an unfiltered read answers what the database holds (Operation 21); Check 3.2 moved to External check 5, which reads the composing pattern's purge records beside two reads; Check 6.2 tombstoned to Check 6.1, which tests the guard that keeps Invariant 4.1; and one record refusal order over [Record]'s guard refusals (Operation 35), with Operation 8 and Operation 15 kept as its pairs. *Over:* a record count that may never fall beside Non-goal 19, which sends a deployment needing a retention bound to Retention Window, whose purge destroys the record, so a conforming deployment broke State 8 and State 9 and failed Check 3.2 at its first purge; a check comparing each record with a creation instant no record carries; and pairwise ONLY IF rules, Operation 8 read alone forbidding what Operation 9 obliges on a call carrying a blank field and an unknown type. *Because:* Final Critique 6 found each two rules no build could both obey, or a check a conforming deployment fails or a violating one passes; Final Critique 5's text already put the purge with Retention Window (*when (if ever) they may be purged — is a composing Retention Window concept*), so the method's entry of 2026-10-08 tombstones the broken rules to the rules that hold the lawful states rather than qualifying them, and Approval Step's sixth round gave the refusal order its form. What the atom does for its domain is unchanged: it records and reads as it did, refuses the same calls with the same codes, and never removes a record.
+
+- **2026-10-21 — Which refusal answers is the Execution Contract's.** *Chose:* [Record]'s refuses line kept as the page wrote it, already in the order the record refusal order gave — invalid-request, unknown-authority-type, then storage-failure, which answers only at the write — and the order cited from the Execution Contract (Capability requirement 5, Execution Contract Refusal 1); the rules that only stated it deleted to Refusal 1: Operation 35, which evaluated the record refusal order, with Term record refusal order, and the pairs Operation 8 (unknown-authority-type only once every field-level precondition passes) and Operation 15 (storage-failure only once they pass and the authority type is known), with Term field-level precondition, which only those pairs read; rules 126 to 123. *Over:* the page stating for itself which of [Record]'s refusals answers when several apply. *Because:* the maintainer ruled on 2026-10-21 that the Execution Contract states once that the refusal listed first on an action's refuses line answers; this page's sixth Final Critique had made the cure one specification at a time. What each action answers on every call is unchanged.
 
 NOTE: End of Selective Disclosure.

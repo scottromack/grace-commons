@@ -138,7 +138,7 @@ The Grace Commons atom spec maps to the execution model through a direct section
 |---|---|
 | State (the declared states) | S — the named state set |
 | Operations (the signature block's inputs) | E — typed event set per action |
-| Operations (the signature block's refuses lines) | Typed failure space of G |
+| Operations (the signature block's refuses lines) | Typed failure space of G, in the order G answers it (Refusal 1) |
 | Operations (each rule that answers a refusal) | G — guard function per event, evaluating over state_t and clock_t |
 | Operations (each rule that records or changes a unit) | T — transition function body (DB write per transition) |
 | Invariants (single-state) | Post-write PF assertions; compiler emits checks after database.write |
@@ -382,6 +382,12 @@ What an action answers when a read of the database fails is the same for every s
 
 **Read 3: A state-unavailable answer writes nothing.** An action that answers `state-unavailable` writes nothing, and its answer says nothing about the records it could not read: whether a record exists, matches or stands in a state. The call may be retried.
 
+### A family for every action: Refusal
+
+Which refusal an action answers when more than one applies to one call is the same question for every specification, so it is answered once, here, and holds for every specification as the Read rules do: a refuses line lists an action's refusals in the order they answer, and a specification that relies on the order cites it by its label, `Execution Contract Refusal 1`, and does not restate it. Twenty-two specifications once stated an order for themselves: twelve as a declared term listing an action's refusal rules earliest first, beside a rule that the action evaluates no rule of the order before every earlier one has answered no refusal, each written by the Final Critique that cured a pair of refusals firing together on one call, and the rest as rules answering one refusal only where another does not apply.
+
+**Refusal 1: The refusal listed first answers.** Where more than one refusal applies to one call of an action, the action answers the one listed first on its refuses line, and a rule obliging a refusal listed later holds only for a call to which no refusal listed before it applies. A refusal applies to a call where a rule of the action's specification obliges the action to answer it on that call, and not where a rule of the specification keeps the action from answering it there; that is how a specification states an order a fixed line cannot express, such as one refusal answering ahead of another for one input and after it for the rest. A failed read still answers state-unavailable ahead of every refusal the read would have decided (Read 1).
+
 ---
 
 
@@ -408,7 +414,7 @@ That atomicity, and the total order it protects (Event Log Invariant 3; the oper
 
 Three failure classes. No others.
 
-**Guard failure.** G returns `typed_failure(reason)` in Step 2. The reason is one of the reasons named on the action's refuses line in the atom's Operations. The database is unchanged. The caller receives the typed rejection. Guard failures are the normal operational outcome of preconditions not being met — they are not error conditions and must not be logged as errors. Every named rejection reason must be reachable by a conforming caller in a well-specified scenario.
+**Guard failure.** G returns `typed_failure(reason)` in Step 2. The reason is one of the reasons named on the action's refuses line in the atom's Operations; where more than one applies, it is the one Refusal 1 picks. The database is unchanged. The caller receives the typed rejection. Guard failures are the normal operational outcome of preconditions not being met — they are not error conditions and must not be logged as errors. Every named rejection reason must be reachable by a conforming caller in a well-specified scenario.
 
 **Effect failure.** The database read fails (Step 1) or the database write fails (Step 3). These are infrastructure failures.
 - Step 1: the caller receives `state-unavailable`. No guard ran. No transition fired. Retry is safe.

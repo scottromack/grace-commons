@@ -109,7 +109,7 @@ Deleted: State 14. Execution Contract Database 3 owns it.
 
 ```
 Capability requirement 1: The deployment MUST supply now at the seam.
-Capability requirement 5: The deployment MUST supply the workflow records PER Execution Contract Database 1 through 4.
+Capability requirement 5: The deployment MUST supply the workflow records PER Execution Contract Database 1 through 4 and Execution Contract Refusal 1.
 Deleted: Capability requirement 2. Execution Contract Logic confinement 7 owns it.
 Deleted: Capability requirement 3. Execution Contract Logic confinement 7 owns it.
 Deleted: Capability requirement 4. Execution Contract Logic confinement 7 owns it.
@@ -140,7 +140,7 @@ read_declaration(instance_id)
 ```
 
 ```
-Operation 1: [Instantiate] MUST answer invalid-request ONLY IF the declaration is well-formed.
+Deleted: Operation 1. Execution Contract Refusal 1 owns it.
 Operation 2: IF a supplied actor reference EQUALS blank THEN an action MUST answer invalid-request.
 Operation 3: IF now PRECEDES the resolved instantiation instant THEN [Instantiate] MUST answer invalid-request.
 Operation 4: An admitted instantiate MUST record EXACTLY ONE workflow.
@@ -151,13 +151,13 @@ Operation 8: An admitted instantiate MUST answer the instance id.
 Operation 9: IF instance id EQUALS blank THEN an addressed action MUST answer invalid-request.
 Operation 10: IF action EQUALS blank THEN [Fire] MUST answer invalid-request.
 Operation 11: IF the instance id names no workflow THEN an addressed action MUST answer not-known.
-Operation 12: An addressed action MUST answer not-known ONLY IF instance id DOES NOT EQUAL blank.
+Deleted: Operation 12. Execution Contract Refusal 1 owns it.
 Operation 13: IF the current state IS IN the terminal states THEN [Fire] MUST answer terminal.
-Operation 14: [Fire] MUST answer terminal ONLY IF the instance id names a workflow.
+Deleted: Operation 14. Execution Contract Refusal 1 owns it.
 Operation 15: IF no declared transition matches the current state and action THEN [Fire] MUST answer invalid-transition.
-Operation 16: [Fire] MUST answer invalid-transition ONLY IF the current state IS NOT IN the terminal states.
+Deleted: Operation 16. Execution Contract Refusal 1 owns it.
 Operation 17: IF the matched transition carries a guard AND guard satisfied EQUALS blank THEN [Fire] MUST answer guard-not-satisfied.
-Operation 18: [Fire] MUST answer guard-not-satisfied ONLY IF a declared transition matches.
+Deleted: Operation 18. Execution Contract Refusal 1 owns it.
 Operation 19: IF now PRECEDES the resolved firing instant THEN [Fire] MUST answer invalid-request.
 Operation 20: IF the resolved firing instant PRECEDES the workflow's instantiation instant THEN [Fire] MUST answer invalid-request.
 Operation 21: An admitted fire MUST append EXACTLY ONE history entry.
@@ -173,7 +173,7 @@ Operation 30: An admitted fire over an unguarded transition MUST NOT record guar
 Operation 31: [Fire] MUST NOT evaluate a guard.
 Operation 32: [Fire] MUST NOT offer a wildcard declared transition.
 Operation 33: IF the database refuses the write THEN a writing action MUST answer storage-failure.
-Operation 34: An action MUST answer storage-failure ONLY IF EVERY precondition passes.
+Deleted: Operation 34. Execution Contract Refusal 1 owns it.
 Operation 35: A refused action MUST leave the workflow as the call found the workflow.
 Operation 36: A refused action MUST NOT append a history entry.
 Operation 37: A refused action MUST NOT raise next sequence number.
@@ -185,7 +185,7 @@ Operation 42: IF no history entry matches THEN an admitted history MUST answer a
 Operation 43: IF a filter's axis IS NOT IN the filter axes THEN [History] MUST answer invalid-query.
 Operation 44: IF a string filter's value EQUALS blank THEN [History] MUST answer invalid-query.
 Operation 45: IF a range filter's end PRECEDES the range's start THEN [History] MUST answer invalid-query.
-Operation 46: [History] MUST answer invalid-query ONLY IF the instance id names a workflow.
+Deleted: Operation 46. Execution Contract Refusal 1 owns it.
 Operation 47: [Read Declaration] MUST answer the workflow's declaration.
 Operation 48: [Read Declaration] MUST NOT normalize the declaration.
 Operation 49: [Read Declaration] MUST NOT reorder the declaration.
@@ -357,11 +357,11 @@ An inspector asks whether the batch moved only through the approved sequence. `r
 
 ### Rejection paths
 
-`fire("wf_01HQ…", "test")` against the released workflow → terminal. Not invalid-transition, even though no `test` edge leaves `released` — an absorbed workflow refuses every action, and saying so sends the caller to the right problem (Operation 13, Operation 16).
+`fire("wf_01HQ…", "test")` against the released workflow → terminal. Not invalid-transition, even though no `test` edge leaves `released` — an absorbed workflow refuses every action, and saying so sends the caller to the right problem (Operation 13, Execution Contract Refusal 1).
 
 `fire("wf_01HQ…", "expedite")` against a live workflow in `tested` → invalid-transition. No declared transition matches, and there is no wildcard (Operation 15, Operation 32).
 
-`fire("wf_99999", "test")` → not-known. `fire("", "test")` → invalid-request, refused before any database lookup (Operation 9, Operation 12).
+`fire("wf_99999", "test")` → not-known. `fire("", "test")` → invalid-request, answered ahead of not-known (Operation 9, Execution Contract Refusal 1).
 
 `instantiate(declaration)` where two declared transitions both leave `tested` on `qualify` → invalid-declaration. The determinism constraint refuses the ambiguity at birth rather than inventing a tiebreak at fire time (Declaration 13).
 
@@ -874,7 +874,8 @@ status: partially resolved
 formal: verified — state-machine.als + 1 twin, 2026-06-04
 last gate: 2026-06-04 — Final Critique 4, fresh reader — clean
 
-open: none
+open:
+- 2026-10-21-a · refining · Operation 2, 19, 20; [Fire]'s case table, row 6 · the table answers a blank actor reference or an out-of-bounds firing instant only once the gate clears (row 6), after not-known, terminal, invalid-transition and guard-not-satisfied, and no rule ever held it there; [Fire]'s refuses line lists invalid-request first, so under Execution Contract Refusal 1 a blank actor reference against an instance id naming no workflow answers invalid-request where the table answers not-known → a rule holding an actor or instant fault behind the gate (Approval Step Operation 20's form, since invalid-request holds two rows of one order), or the table's row 6 read into row 1; seen by the refusal-order sweep
 ```
 
 ## Decisions
@@ -882,5 +883,7 @@ open: none
 Directional changes only — the turns a future reader must know the pattern took, and why. Everything smaller lives in the commit that made it: `git log -- atoms/state-machine.md`; the migration and the repair that got it here are in [its history](./state-machine.hist.md).
 
 - **2026-10-20 — The store's guarantees cited, not restated.** *Chose:* the workflow store supplied under Execution Contract Store 1 through 4 (Capability requirement 5), and the ten rules that restated them, or existed only for a store that could split a fire, tombstoned to their owner — Operation 27, a fire's entry, counter raise and state change committed in one operation, Invariant 10.3, no partial record left by a storage-failure rejection, and Atomic writes 1, 2, 4 and 5, no reader observing a history entry without its next sequence number raise or its current state change, a dangling transition resolved and no read served before it is, to Store 1, under which no fire stands partly applied; Atomic writes 3, an uncommitted crash leaving the workflow as the call found it, to Store 1 and Store 3; State 14, next sequence number surviving a restart, to Store 3; Concurrency 1 and 2, two fires on one workflow serialized and the later reading the current state the earlier left, to Store 2; rules 186 to 177. *Over:* the atom restating, for its own store, what every deployment's store guarantees, and keeping a crash-recovery obligation for a split fire that no conforming store leaves. *Because:* the maintainer ruled 2026-10-12 that the corpus takes a store's specification, never the store, and `execution-contract.md` writes it once as the Store contract. What stays is the atom's own: a refused action leaving the workflow as the call found it, appending no history entry and raising no next sequence number (Operation 35 through 37), and the rules that keep a workflow and its history once they exist (State 6, State 7, State 12, State 13, Invariant 10.1, Invariant 10.2), since Store 4 alone neither keeps the atom from removing a workflow or a history entry nor bars a purge another specification declares. The history's order is the atom's own sequence number, taken inside the fire that appends the entry (Operation 22, Invariant 6.3), and the atom's checks compare an auditor's own reads or replay the entries, so the atom cites neither History 1 nor Order 1. What the atom does for its domain is unchanged.
+
+- **2026-10-21 — Which refusal answers is the Execution Contract's.** *Chose:* each refuses line kept as the page wrote it, already in the order its pairs gave — [Instantiate] invalid-declaration ahead of invalid-request; [Fire] invalid-request on a blank instance id or action, then not-known, terminal, invalid-transition and guard-not-satisfied, the table's rows 1 through 5; [History] not-known ahead of invalid-query; storage-failure last, answering only at the write — and the order cited from the Execution Contract (Capability requirement 5, Execution Contract Refusal 1); the pairs that only stated it deleted to Refusal 1: Operation 1 (invalid-request only on a well-formed declaration), Operation 12 (not-known only for an instance id that is not blank), Operation 14 (terminal only for an instance id naming a workflow), Operation 16 (invalid-transition only off a terminal state), Operation 18 (guard-not-satisfied only where a declared transition matches), Operation 34 (storage-failure behind every precondition) and Operation 46 (invalid-query only for an instance id naming a workflow); rules 177 to 170. The table's row 6, an actor or instant fault answered only once the gate clears, stood in no rule and no fixed line can hold invalid-request in both rows, so it is routed as open line 2026-10-21-a. *Over:* the page stating for itself which of an action's refusals answers when several apply. *Because:* the maintainer ruled on 2026-10-21 that the Execution Contract states once that the refusal listed first on an action's refuses line answers.
 
 NOTE: End of State Machine.

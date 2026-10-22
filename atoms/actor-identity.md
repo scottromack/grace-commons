@@ -87,7 +87,7 @@ Term attestation field: attestation id | action reference | actor reference | pr
 
 ```
 Capability requirement 1: The deployment MUST supply now at the seam.
-Capability requirement 2: The deployment MUST supply the attestation records PER Execution Contract Database 1, Execution Contract Database 3, Execution Contract Database 4 and Execution Contract Read 1 through 3.
+Capability requirement 2: The deployment MUST supply the attestation records PER Execution Contract Database 1, Execution Contract Database 3, Execution Contract Database 4, Execution Contract Read 1 through 3 and Execution Contract Refusal 1.
 Capability requirement 3: The deployment MUST supply the registry answer at the seam.
 ```
 
@@ -96,7 +96,7 @@ Capability requirement 3: The deployment MUST supply the registry answer at the 
 ```
 attest(action_ref, actor_ref, credential)
   answers attestation_id
-  refuses invalid-request | invalid-credential | registry-unavailable | storage-failure
+  refuses invalid-request | registry-unavailable | invalid-credential | storage-failure
 
 verify(attestation_id)
   answers verified | failed-verification(verification failure) | not-known
@@ -142,15 +142,12 @@ Operation 31: IF registry answer EQUALS unknown-actor THEN [Attest] MUST answer 
 Operation 32: [Verify] MUST answer verified ONLY IF proof check EQUALS held.
 Operation 33: IF registry answer EQUALS unreachable THEN [Attest] MUST answer registry-unavailable.
 Deleted: Operation 34. Execution Contract Read 1 owns it.
-Operation 35: [Attest] MUST NOT evaluate a rule of the attest refusal order BEFORE EVERY earlier rule of the attest refusal order has answered no refusal.
-NOTE: watch the refusal order (Operation 35).
+Deleted: Operation 35. Execution Contract Refusal 1 owns it.
 ```
 
 Term registry answer: material | unknown-actor | unreachable — what the actor registry gives [Attest] or a verifier for an actor reference.
 
 Term registry view: the registry answer for an actor reference and the public material the answer carries, taken together; a rotation, an outage or a removal from the registry changes the registry view.
-
-Term attest refusal order: Operation 6 through 8, Operation 33, Operation 31, Operation 9 — [Attest]'s refusal rules, earliest first; Operation 10 answers only at the write, which no refused call reaches.
 
 Term proof check: held | failed — the recorded proof run against the recorded action reference and actor reference under the public material; failed also where a revocation status the proof carries names the credential revoked (Revocation status 1).
 
@@ -173,7 +170,7 @@ The case space, and the rule that owns each case:
 | [Verify] | material in hand, proof holds | [Verified] | none (Operation 19, Operation 32) |
 | [Read] | any call | every attestation, with its stored fields | none (Operation 27 through 29) |
 
-Where two [Attest] cases hold at once, the earlier rule of the attest refusal order answers (Operation 35).
+Where two [Attest] cases hold at once, the refusal listed first on [Attest]'s refuses line answers (Execution Contract Refusal 1).
 
 ### Invariants
 
@@ -388,7 +385,7 @@ Term cadences: empty.
 
 Term qualifiers: migrated — rewritten in GRACE lang v0.35 (2026-09-12); uncompromised — a credential no disclosure names as compromised at or before the instant in question.
 
-Term terms: now, verification set, attestation, attestation id, action reference, actor reference, seam, transition, business caller, attested, proof, attestation instant, credential, public material, current material, attestation field, registry answer, registry view, attest refusal order, proof check, verification failure.
+Term terms: now, verification set, attestation, attestation id, action reference, actor reference, seam, transition, business caller, attested, proof, attestation instant, credential, public material, current material, attestation field, registry answer, registry view, proof check, verification failure.
 
 #### Attestation
 
@@ -626,6 +623,8 @@ open:
 ## Decisions
 
 Directional changes only — the turns a future reader must know the pattern took, and why. Everything smaller lives in the commit that made it: `git log -- atoms/actor-identity.md`; the rounds and the migration that got it here are in [its history](./actor-identity.hist.md).
+
+- **2026-10-21 — Which refusal answers is the Execution Contract's.** *Chose:* [Attest]'s refuses line listing its refusals in the order the attest refusal order gave them — invalid-request, registry-unavailable, invalid-credential, then storage-failure, which answers only at the write — with the order cited from the Execution Contract (Capability requirement 2, Execution Contract Refusal 1); Operation 35, the rule evaluating the order, deleted to Refusal 1, and Term attest refusal order deleted with it; rules 98 to 97. *Over:* the page stating for itself which of [Attest]'s refusals answers when several apply. *Because:* the maintainer ruled on 2026-10-21 that the Execution Contract states once that the refusal listed first on an action's refuses line answers; this page's fifth Final Critique had made the cure one specification at a time. What [Attest] answers on every call is unchanged.
 
 - **2026-10-21 — A failed read answers as the Execution Contract says.** *Chose:* the failed read cited from the Execution Contract (Capability requirement 2, Execution Contract Read 1 through 3) and the two rules that restated it deleted to it: the atom-wide state-unavailable (Operation 34) to Read 1, and [Read]'s state-unavailable on a failed read alone (Operation 30) to Read 2 beside Operation 27; the read's condition off the rules it held to an answered read (Operation 14, Operation 15, Operation 27), the read off the attest refusal order, Term database read deleted, state-unavailable off every signature and off the answers Check 4.1 tells apart; rules 100 to 98. *Over:* the page stating for itself what every action answers when the attestation records cannot be read. *Because:* the maintainer ruled on 2026-10-21 that the Execution Contract states the failed read once; this page's fifth Final Critique had made the first of the cures the contract's Read family is written from. What each action answers on an answered read is unchanged.
 

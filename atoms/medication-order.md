@@ -114,7 +114,7 @@ Deleted: Capability requirement 9. Execution Contract Database 3 owns it.
 Deleted: Capability requirement 10. Execution Contract Database 1 owns it.
 Capability requirement 11: The deployment MUST canonicalize an opaque reference.
 Capability requirement 12: The deployment MUST declare the length bound.
-Capability requirement 15: The deployment MUST supply the order records PER Execution Contract Database 1 through 4.
+Capability requirement 15: The deployment MUST supply the order records PER Execution Contract Database 1 through 4 and Execution Contract Refusal 1.
 Deleted: Capability requirement 13. Execution Contract Logic confinement 7 owns it.
 Deleted: Capability requirement 14. Execution Contract Logic confinement 7 owns it.
 ```
@@ -182,7 +182,7 @@ Operation 11: IF the order id names no order THEN an order action MUST answer no
 Operation 12: An order action MUST answer not-known ONLY IF order id DOES NOT EQUAL blank.
 Operation 13: IF the order's state EQUALS on-hold THEN a held-refusing action MUST answer on-hold.
 Operation 14: IF the order's state IS IN the inactive states THEN a state-changing action MUST answer the inactive state's rejection.
-Operation 15: A state-changing action MUST answer an inactive-state rejection ONLY IF the order's state DOES NOT EQUAL on-hold.
+Deleted: Operation 15. Execution Contract Refusal 1 owns it.
 Operation 16: IF the order's state DOES NOT EQUAL ordered THEN [Verify] MUST answer not-in-ordered-state.
 Operation 17: IF the order's state IS NOT IN the pre-dispensing states THEN [Amend] MUST answer already-dispensed.
 Operation 18: IF the order's state IS NOT IN the pre-dispensing states THEN [Cancel] MUST answer already-dispensed.
@@ -195,7 +195,7 @@ Operation 24: IF the order's state IS NOT IN the post-dispensing states THEN [Di
 Operation 25: IF the order's state IS NOT IN the actionable states THEN [Hold] MUST answer the order's state rejection.
 Operation 26: IF the order's state EQUALS on-hold THEN [Hold] MUST answer already-on-hold.
 Operation 27: IF the order's state DOES NOT EQUAL on-hold THEN [Reinstate] MUST answer not-on-hold.
-Operation 28: A state-changing action MUST answer a blank-input rejection on a field fault ONLY IF EVERY state check passes.
+Deleted: Operation 28. Execution Contract Refusal 1 owns it.
 Operation 29: IF EVERY supplied dosing parameter matches the order's dosing parameter THEN [Amend] MUST answer invalid-request.
 Operation 30: [Amend] MUST NOT accept a medication reference.
 Operation 31: [Amend] MUST NOT accept a patient reference.
@@ -230,7 +230,7 @@ Operation 59: An admitted discontinue MUST record discontinuing actor, reason as
 Operation 60: An admitted discontinue MUST stand the order in discontinued.
 Deleted: Operation 61. Execution Contract Database 1 owns it.
 Operation 62: IF the database refuses the write THEN an action MUST answer storage-failure.
-Operation 63: An action MUST answer storage-failure ONLY IF EVERY precondition passes.
+Deleted: Operation 63. Execution Contract Refusal 1 owns it.
 Operation 64: A refused action MUST leave the order as the call found the order.
 Operation 65: A refused [Order] MUST NOT record an order.
 Operation 66: A refused [Amend] MUST NOT record a successor order.
@@ -269,7 +269,7 @@ Term actionable state: a pre-dispensing state OR a post-dispensing state — eve
 
 Term inactive state's rejection: already-amended for amended, already-completed for completed, already-cancelled for cancelled, already-discontinued for discontinued.
 
-Term state check: Operation 11, Operation 13, Operation 14 and Operation 15 through 26 — every check an order action makes on the order's own standing before reading the call's remaining inputs.
+Term state check: Operation 11, Operation 13, Operation 14 and Operation 16 through 26 — every check an order action makes on the order's own standing before reading the call's remaining inputs.
 
 Term blank-input rejection: invalid-order for [Order], invalid-request for an order action.
 
@@ -393,7 +393,7 @@ The dose is wrong. `amend(ord_a1, dr_osei, dose: 20, reason: "titration per 2026
 
 ### Rejection paths
 
-`dispense(ord_new, …)` before verification → not-verified — nothing is released on a prescription no pharmacist has read. `amend(ord_held, …)` → the [On Hold Rejection], not already-dispensed: the hold is reported first, because the caller must resolve the hold before learning anything about what is underneath it. `amend(ord_a1, dr_osei, dose: 10, reason: "…")` where the dose already is 10 → invalid-request — an amendment that changes nothing is not an amendment. `cancel(ord_a1, "  ", reason: "…")` on an already-cancelled order → already-cancelled, not invalid-request: the state checks run first (Operation 28).
+`dispense(ord_new, …)` before verification → not-verified — nothing is released on a prescription no pharmacist has read. `amend(ord_held, …)` → the [On Hold Rejection], not already-dispensed: the hold is reported first, because the caller must resolve the hold before learning anything about what is underneath it. `amend(ord_a1, dr_osei, dose: 10, reason: "…")` where the dose already is 10 → invalid-request — an amendment that changes nothing is not an amendment. `cancel(ord_a1, "  ", reason: "…")` on an already-cancelled order → already-cancelled, not invalid-request: the state checks run first (Execution Contract Refusal 1).
 
 ### Regulated adversarial scenarios
 
@@ -1238,5 +1238,7 @@ open: none
 Directional changes only — the turns a future reader must know the pattern took, and why. Everything smaller lives in the commit that made it: `git log -- atoms/medication-order.md`; the taxonomy test and the critical section that got it here are in [its history](./medication-order.hist.md).
 
 - **2026-10-20 — The store's guarantees cited, not restated, the order's critical section among them.** *Chose:* the order store supplied under Execution Contract Store 1 through 4 (Capability requirement 15), and the twenty rules that restated them, or existed only for a store that could split an amend, tombstoned to their owner — Capability requirement 10, Operation 41 and Atomic writes 4, an admitted amend's two writes committed together, Operation 61 and Atomic writes 1 and 3, a transition's state change and recorded fields committed whole inside the implementation's transactional boundary, Invariant 14.2 and Check 7.3, no partial record left by a storage-failure rejection and the check that finds none, and Invariant 14.3, no repair of a partial record, to Store 1, under which no amend stands half-written; Atomic writes 2, an uncommitted transition discarded whole, to Store 1 and Store 3; Atomic writes 5, a refused amend leaving the original in its pre-call state, to Operation 64 and Store 1; Capability requirement 9, a write acknowledged only once it commits, to Store 3; Capability requirement 5 and 6 and Concurrency 1 through 3, two order actions on one order serialized, the state check evaluated inside the critical section with the state change, and a losing action reading the winner's state and answering the rejection it earns, to Store 2, and with them the section's release on the caller's return and death (Capability requirement 7 and 8) and the bar on detecting a race outside it (Concurrency 4), since the atom names no section any more; rules 230 to 211. *Over:* the atom running its own critical section over an order, released on the caller's return or death, and keeping a no-repair rule for a split amend that no conforming store leaves — the turn of 2026-08-30, now in the history. *Because:* the maintainer ruled 2026-10-12 that the corpus takes a store's specification, never the store, and `execution-contract.md` writes it once as the Store contract: Store 2 reads the state an order action's guards decide on inside the transaction that writes the action's effects, which is what the section was for, and Store 1 commits [Amend]'s successor and the original's change together or not at all, so no partial record is left to repair. A refused action leaving the order as the call found it, and a refused [Order] or [Amend] recording no order, stays the atom's own (Operation 64 through 66), as do the rules that keep an order once it exists (State 15, Operation 67, Invariant 14.1), since Store 4 alone neither keeps the atom from removing an order nor bars a purge another specification declares. Amendment chains are the atom's own records, linked by predecessor and successor ids, [Read] answers by order instant, and the atom's checks compare an auditor's own reads, so it cites neither History 1 nor Order 1. The re-entry arm for a caller whose [Amend] lost its answer (Indeterminate outcome 3) and the clock offset allowance (Capability requirement 3 and 4) stay as the 2026-08-30 turn set them; what the atom does for its domain is unchanged.
+
+- **2026-10-21 — Which refusal answers is the Execution Contract's.** *Chose:* each refuses line kept as the page wrote it, already in the page's order — not-known, the hold, the inactive states, the action's own state rejections, then a blank-input rejection on a field fault once every state check passes, and storage-failure last, answering only at the write — and the order cited from the Execution Contract (Capability requirement 15, Execution Contract Refusal 1); the pairs that only stated it deleted to Refusal 1: Operation 15 (an inactive-state rejection only on an order not on hold), Operation 28 (a field fault only once every state check passes) and Operation 63 (storage-failure behind every precondition), and Operation 15 taken off Term state check; rules 211 to 208. Operation 12 stays the page's own: a blank order id answers its blank-input rejection ahead of not-known, while every other field fault answers after the state checks, so the rejection holds two places in the order and no fixed line can carry both; Refusal 1 reads a refusal Operation 12 keeps from a call as not applying to it. *Over:* the page stating for itself which of an action's refusals answers when several apply. *Because:* the maintainer ruled on 2026-10-21 that the Execution Contract states once that the refusal listed first on an action's refuses line answers. What each action answers on every call is unchanged.
 
 NOTE: End of Medication Order.

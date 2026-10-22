@@ -88,7 +88,7 @@ Term transfer instant: the instant the assignment was handed on — a [Transfer 
 
 ```
 Capability requirement 1: The deployment MUST supply now at the seam.
-Capability requirement 4: The deployment MUST supply the assignment records PER Execution Contract Database 1 through 4, Execution Contract Order 1 and Execution Contract Read 1 through 3.
+Capability requirement 4: The deployment MUST supply the assignment records PER Execution Contract Database 1 through 4, Execution Contract Order 1, Execution Contract Read 1 through 3 and Execution Contract Refusal 1.
 Deleted: Capability requirement 2. Execution Contract Logic confinement 7 owns it.
 Deleted: Capability requirement 3. Execution Contract Logic confinement 7 owns it.
 Deleted: Clock semantics 1. Execution Contract Logic confinement 7 owns it.
@@ -156,21 +156,14 @@ Deleted: Operation 31. Capability requirement 1 owns it.
 Deleted: Operation 32. Execution Contract Logic confinement 3 owns it.
 Deleted: Operation 33. Execution Contract Logic confinement 3 owns it.
 Deleted: Operation 34. Execution Contract Read 1 owns it.
-Operation 35: [Assign] MUST NOT evaluate a rule of the assign refusal order BEFORE EVERY earlier rule of the assign refusal order has answered no refusal.
-Operation 36: [Recall] MUST NOT evaluate a rule of the recall refusal order BEFORE EVERY earlier rule of the recall refusal order has answered no refusal.
-Operation 37: [Reassign] MUST NOT evaluate a rule of the reassign refusal order BEFORE EVERY earlier rule of the reassign refusal order has answered no refusal.
-NOTE: watch the refusal order (Operation 35, Operation 36, Operation 37).
+Deleted: Operation 35. Execution Contract Refusal 1 owns it.
+Deleted: Operation 36. Execution Contract Refusal 1 owns it.
+Deleted: Operation 37. Execution Contract Refusal 1 owns it.
 ```
 
 Term new assignee reference: the opaque reference naming the successor a reassignment hands the task to — a [New Assignee Reference].
 
 Term recording commit: the commit of the [Assign] or [Reassign] call that recorded an assignment, one position in the single order Execution Contract Order 1 gives every commit.
-
-Term assign refusal order: Operation 4 through 6 — [Assign]'s refusal rules, earliest first; Operation 7 answers only at the write, which no refused call reaches.
-
-Term recall refusal order: Operation 8 through 10 — [Recall]'s refusal rules, earliest first; Operation 13 answers only at the write, which no refused call reaches.
-
-Term reassign refusal order: Operation 14 through 17 — [Reassign]'s refusal rules, earliest first; Operation 22 answers only at the write, which no refused call reaches.
 
 The case space, and the rule that owns each case:
 
@@ -190,7 +183,7 @@ The case space, and the rule that owns each case:
 | [Active For] | task is unassigned | none | none (Operation 26) |
 | [History For] | any task reference | every assignment for the task, by assignment instant, two sharing one by recording commit | none (Operation 27, Operation 28, Operation 28a, Operation 30) |
 
-Where two [Assign] cases hold at once, the earlier rule of the assign refusal order answers (Operation 35); where two [Recall] cases hold at once, the earlier rule of the recall refusal order answers (Operation 36); where two [Reassign] cases hold at once, the earlier rule of the reassign refusal order answers (Operation 37).
+Where two cases of one action hold at once, the refusal listed first on the action's refuses line answers (Execution Contract Refusal 1).
 
 ### Invariants
 
@@ -383,7 +376,7 @@ Term cadences: empty.
 
 Term qualifiers: migrated — rewritten in GRACE lang v0.35 (2026-09-12).
 
-Term terms: assignment, assignment id, task reference, assignee reference, seam, transition, business caller, now, status, assignment instant, recall instant, transfer instant, new assignee reference, recording commit, assign refusal order, recall refusal order, reassign refusal order.
+Term terms: assignment, assignment id, task reference, assignee reference, seam, transition, business caller, now, status, assignment instant, recall instant, transfer instant, new assignee reference, recording commit.
 
 #### Assignment
 
@@ -639,5 +632,7 @@ Directional changes only — the turns a future reader must know the pattern too
 - **2026-10-21 — A failed read answers on every action, each write's refusals in one stated order; a tie of assignment instants falls to commit order; the wiring declaration is an external check; a holding's end is its terminal stamp.** *Chose:* state-unavailable on all five actions where the read of the assignment records fails, the Execution Contract's Step 1 failure (Operation 34, Term database read), [Active For] and [History For] answering only on an answered read (Operation 25 through 27); the refusals of [Assign], [Recall] and [Reassign] in one stated order each, the read first and then the sequence Final Critique 4's prose gave — the inputs before already-assigned, and a known assignment, then an active one, then the successor (Operation 35 through 37, Term assign refusal order, Term recall refusal order, Term reassign refusal order); two assignments sharing an assignment instant ordered by the commit that recorded each (Operation 28a, Term recording commit), the records supplied under Execution Contract Order 1 beside Database 1 through 4 (Capability requirement 4), and Check 2.1 and the acceptance bar reading that order; the composing patterns a deployment wired in read from the deployment's own declaration (External check 5); and Invariant 9.3, which asked an active holding how it ended, deleted to State 3 and State 4. *Over:* [Active For] answering none, and a write answering no code the page names, when the records cannot be read; one reassign answered two ways by two builds; a [History For] two builds order two ways, and a chain of handoffs at one instant no auditor can rebuild; a conformance check reading what the records do not carry; an invariant every assign breaks. *Because:* Final Critique 5 found each a divergence between conforming builds, or a stated check a conforming build fails, and the corpus already held four of the cures: Actor Identity's fifth round answers a failed read on every action and reads the composing patterns from the deployment's declaration; Retention Window's eighth answers each writing action's refusals in one stated order, the form the maintainer ruled for Verified Repair on 2026-10-19; and Party Identity cites Order 1 beside the Database contract. The entry of 2026-10-19 said a task's chain needs no Order 1, the assignment instants ordering it; a clock that repeats a reading, which Logic confinement 7 allows, ties them, and only the commit order keeps the chain. Compositions affected: the pages that compose this atom route state-unavailable from all five actions, when their rounds read them.
 
 - **2026-10-21 — A failed read answers as the Execution Contract says.** *Chose:* the failed read cited from the Execution Contract (Capability requirement 4, Execution Contract Read 1 through 3) and the rule that restated it, the atom-wide state-unavailable (Operation 34), deleted to Read 1; the read's condition off the read answers it held to an answered read (Operation 25 through 27), the read off the assign, recall and reassign refusal orders, Term database read deleted, state-unavailable off every signature, and the failed read off the case table and the rejection-path example, which now exercises five reasons; rules 103 to 102. *Over:* the page stating for itself what every action answers when the assignment records cannot be read. *Because:* the maintainer ruled on 2026-10-21 that the Execution Contract states the failed read once; this page's fifth Final Critique had made one of the cures the contract's Read family is written from. What each action answers on an answered read is unchanged.
+
+- **2026-10-21 — Which refusal answers is the Execution Contract's.** *Chose:* each writing action's refuses line kept as the page wrote it, already in the order its refusal order gave — [Assign] invalid-request, already-assigned; [Recall] not-known, not-active; [Reassign] not-known, not-active, invalid-request; storage-failure last on each, answering only at the write — and the order cited from the Execution Contract (Capability requirement 4, Execution Contract Refusal 1); Operation 35, Operation 36 and Operation 37, which evaluated the three refusal orders, deleted to Refusal 1, and Term assign refusal order, Term recall refusal order and Term reassign refusal order deleted with them; rules 102 to 99. *Over:* the page stating for itself which of an action's refusals answers when several apply. *Because:* the maintainer ruled on 2026-10-21 that the Execution Contract states once that the refusal listed first on an action's refuses line answers; this page's fifth Final Critique had made the cure one specification at a time. What each action answers on every call is unchanged.
 
 NOTE: End of Assignment.

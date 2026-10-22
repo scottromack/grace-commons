@@ -110,7 +110,7 @@ State 15: The atom MUST NOT record a receipt instant.
 
 ```
 Capability requirement 1: The deployment MUST supply now at the seam.
-Capability requirement 5: The deployment MUST supply the step records PER Execution Contract Database 1 through 4 and Execution Contract Read 1 through 3.
+Capability requirement 5: The deployment MUST supply the step records PER Execution Contract Database 1 through 4, Execution Contract Read 1 through 3 and Execution Contract Refusal 1.
 Deleted: Capability requirement 2. Execution Contract Logic confinement 7 owns it.
 Deleted: Capability requirement 3. Execution Contract Logic confinement 7 owns it.
 Deleted: Capability requirement 4. Execution Contract Logic confinement 7 owns it.
@@ -157,9 +157,9 @@ Operation 8: An admitted submit MUST stand the step in pending.
 Operation 9: An admitted submit MUST answer the step id.
 Operation 10: IF step id EQUALS blank THEN a resolving action MUST answer invalid-request.
 Operation 11: IF the step id names no step THEN a resolving action MUST answer not-known.
-Operation 12: A resolving action MUST answer not-known ONLY IF step id DOES NOT EQUAL blank.
+Deleted: Operation 12. Execution Contract Refusal 1 owns it.
 Operation 13: IF the step's state IS IN the terminal states THEN a resolving action MUST answer not-pending.
-Operation 14: A resolving action MUST answer not-pending ONLY IF the step id names a step.
+Deleted: Operation 14. Execution Contract Refusal 1 owns it.
 Operation 15: IF the deciding reference EQUALS blank THEN a resolving action MUST answer invalid-request.
 Operation 16: IF reason EQUALS blank THEN [Reject] MUST answer invalid-request.
 Operation 17: IF reason EQUALS blank THEN [Withdraw] MUST answer invalid-request.
@@ -168,7 +168,7 @@ Operation 19: IF the resolved decision instant PRECEDES the step's submission in
 Operation 20: A resolving action MUST answer invalid-request on an attribution fault ONLY IF the step's state EQUALS pending.
 Operation 21: IF deciding actor DOES NOT EQUAL approver reference THEN a deciding action MUST answer unauthorized.
 Operation 22: IF withdrawing actor DOES NOT EQUAL submitter reference THEN [Withdraw] MUST answer unauthorized.
-Operation 23: A resolving action MUST answer unauthorized ONLY IF EVERY attribution check passes.
+Deleted: Operation 23. Execution Contract Refusal 1 owns it.
 Operation 24: An admitted approve MUST stand the step in approved.
 Operation 25: An admitted reject MUST stand the step in rejected.
 Operation 26: An admitted withdraw MUST stand the step in withdrawn.
@@ -180,7 +180,7 @@ Deleted: Operation 31. Execution Contract Database 1 owns it.
 Operation 32: An admitted resolve MUST answer the action's success token.
 Operation 33: A resolving action MUST NOT change a submission field.
 Operation 34: IF the database refuses the write THEN a writing action MUST answer storage-failure.
-Operation 35: An action MUST answer storage-failure ONLY IF EVERY precondition passes.
+Deleted: Operation 35. Execution Contract Refusal 1 owns it.
 Operation 36: A refused action MUST leave the step as the call found the step.
 Operation 37: A refused action MUST NOT record an attribution field.
 Operation 38: An admitted read MUST answer the matching steps in submission instant ascending order.
@@ -200,9 +200,8 @@ Deleted: Operation 51. Execution Contract Logic confinement 3 owns it.
 Deleted: Operation 52. Execution Contract Logic confinement 3 owns it.
 Deleted: Operation 53. Execution Contract Read 1 owns it.
 Deleted: Operation 54. Execution Contract Read 1 owns it: after the read, every refusal rule of [Submit] answers invalid-request.
-Operation 55: A resolving action MUST NOT evaluate a rule of the resolve refusal order BEFORE EVERY earlier rule of the resolve refusal order has answered no refusal.
+Deleted: Operation 55. Execution Contract Refusal 1 and Operation 20 own it.
 Deleted: Operation 56. Execution Contract Read 1 owns it: after the read, every refusal rule of [Read] answers invalid-query.
-NOTE: watch the refusal order (Operation 55).
 ```
 
 Term now: the wall-time reading the host takes at the seam and hands to the transition, as the section titled Logic Confinement Principle in `execution-contract.md` declares it; never read inside the transition, never supplied by the business caller.
@@ -247,8 +246,6 @@ Term admitted withdraw: an admitted resolve on [Withdraw].
 
 Term admitted read: a [Read] call whose every filter axis and filter value the guards admit.
 
-Term resolve refusal order: Operation 10 through 11, Operation 13, Operation 15 through 19, Operation 21 through 22 — a resolving action's refusal rules, earliest first, in the order Operation 12, Operation 14, Operation 20 and Operation 23 give each pair; Operation 34 answers only at the write, which no refused call reaches.
-
 | # | Condition | a resolving action answers |
 |---|---|---|
 | 1 | step id is blank | [Invalid Request] |
@@ -259,7 +256,7 @@ Term resolve refusal order: Operation 10 through 11, Operation 13, Operation 15 
 | 6 | every precondition passes, the database refuses the write | [Storage Failure] |
 | 7 | every precondition passes, the database accepts the write | the success token |
 
-Where two rows hold at once, the earlier row answers: the rows follow the resolve refusal order (Operation 55).
+Where two rows hold at once, the earlier row answers: the rows follow the refuses line (Execution Contract Refusal 1), and row 4 answers only on a pending step (Operation 20).
 
 NOTE: watch condition negation — invalid-request occupies rows 1 and 4 of one precedence chain, so the answer alone does not say which guard refused. [State Machine](./state-machine.md) and [Audit Trail](../compositions/audit-trail.md) carry the same shape.
 
@@ -337,7 +334,7 @@ Or the controller catches a routing error first: `withdraw("step-001", withdrawn
 
 `reject("step-002", decided_by: "tax_director", reason: "   ")` → invalid-request. A rejection with no stated reason is not an audit record (Operation 16, Invariant 6.3).
 
-`approve("", decided_by: "finance_director_chen")` → invalid-request — a blank id is garbage, not a reference to a missing step (Operation 10, Operation 12).
+`approve("", decided_by: "finance_director_chen")` → invalid-request — a blank id is garbage, not a reference to a missing step (Operation 10, Execution Contract Refusal 1).
 
 `approve("step-003", decided_by: "finance_director_chen", decided_at: "2020-01-01")` against a step submitted in 2026 → invalid-request. A decision cannot predate its submission (Operation 19).
 
@@ -507,7 +504,7 @@ Term cadences: empty.
 
 Term qualifiers: migrated — rewritten in GRACE lang v0.40 (2026-09-12).
 
-Term terms: step, step id, subject reference, approver reference, submitter reference, scope, reference, database instance, seam, transition, now, business caller, states, terminal state, resolving action, deciding action, writing action, deciding reference, decision instant, resolved decision instant, resolved submission instant, submission field, attribution field, attribution check, filter axes, admitted submit, admitted resolve, admitted approve, admitted reject, admitted withdraw, admitted read, resolve refusal order, string input, blank.
+Term terms: step, step id, subject reference, approver reference, submitter reference, scope, reference, database instance, seam, transition, now, business caller, states, terminal state, resolving action, deciding action, writing action, deciding reference, decision instant, resolved decision instant, resolved submission instant, submission field, attribution field, attribution check, filter axes, admitted submit, admitted resolve, admitted approve, admitted reject, admitted withdraw, admitted read, string input, blank.
 
 #### Approval Step
 
@@ -816,7 +813,7 @@ formal: verified — approval-step.tla + 1 twin, 2026-06-03
 last gate: 2026-10-21 — Final Critique 6, the council's first round on the page and the first on its Store-contract rewrite (c3e6a36), three fresh readers on free models (GRID Nemotron 3 Ultra, EOS MiniMax M3.1 Flash, Linus GLM-5.3 Flash), each handed only the round's reading set, three passes on one text (frozen at 6da5e8b); the round rests on three counted passes — foundational count 3 after triage (15 reports: 4 standing, merged into 3; 3 sent down; 8 rejected), all Kind A: the resolving actions' refusal rules obliged two answers on one call, each pairwise ONLY IF rule read alone forbidding what the rule it ordered obliged; a failed read of the step records had no answer any signature named, and [Read] answered an admitted read whose read had failed; and the Execution Contract obliged a typed guard failure on a deleted subject that Identity 12 forbids the atom to detect; 24 refining reports, 7 rhetorical reports; not clean; every foundational finding cured in place, the third on `execution-contract.md`; 2026-07-12 — Final Critique 5, fresh reader — clean
 
 open:
-- 2026-10-21-a · refining · Operation 20; Operation 32; Operation 35; Term decision instant · attribution fault, success token and precondition name no declared term (the case table and the Submit and Storage Failure entries use precondition too), and Term decision instant is defined by its own name → declare each, or write the rules in declared terms (the refusal orders list each action's preconditions by label)
+- 2026-10-21-a · refining · Operation 20; Operation 32; Term decision instant · attribution fault, success token and precondition name no declared term (the case table and the Submit and Storage Failure entries use precondition too), and Term decision instant is defined by its own name → declare each, or write the rules in declared terms (the refusal orders list each action's preconditions by label)
 - 2026-10-21-b · refining · Operation 43; Operation 47; Term actors; Regulator audit · the range filter's bounds are named start and end in Operation 47 and after and before in the Regulator audit example, no rule says whether a step at a bound matches, and range filter and instant-range filter name one thing → one declared range filter, its two bounds named, and their inclusion stated
 - 2026-10-21-c · refining · Operation 6; Operation 18; Operation 19; Term string input · nothing names the answer to a supplied submission, decision or withdrawal instant that cannot be read as an instant, and Term string input leaves the instant inputs out → a rule answering it invalid-request, or the binding named as its owner
 - 2026-10-21-d · refining · Indeterminate outcome 1 · a caller with no answer is sent to the step records, and no read says whether its submit landed, where two submits carrying one field set are two steps (Non-goal 1); its BEFORE takes a clause where the grammar's tail takes a term → name the read, or Duplicate Prevention (Non-goal 2) as its owner, and write the tail on a term
@@ -827,6 +824,8 @@ open:
 ## Decisions
 
 Directional changes only — the turns a future reader must know the pattern took, and why. Everything smaller lives in the commit that made it: `git log -- atoms/approval-step.md`; the migration and the repairs that got it here are in [its history](./approval-step.hist.md).
+
+- **2026-10-21 — Which refusal answers is the Execution Contract's.** *Chose:* the resolving actions' refuses line kept as the page wrote it — invalid-request, not-known, not-pending, unauthorized, then storage-failure, which answers only at the write — and the order cited from the Execution Contract (Capability requirement 5, Execution Contract Refusal 1); the rules that only stated it deleted to Refusal 1: Operation 55, which evaluated the resolve refusal order, with Term resolve refusal order, and the pairs Operation 12 (a blank step id ahead of not-known), Operation 14 (not-known ahead of not-pending), Operation 23 (an attribution fault ahead of unauthorized) and Operation 35 (storage-failure behind every precondition); rules 154 to 149. Operation 20 stays the page's own: invalid-request answers a blank step id ahead of not-known and an attribution fault only on a pending step, after not-known and not-pending, so it holds two places in the order and no fixed line can carry both; Refusal 1 reads a refusal Operation 20 keeps from a call as not applying to it. *Over:* the page stating for itself which of a resolving action's refusals answers when several apply. *Because:* the maintainer ruled on 2026-10-21 that the Execution Contract states once that the refusal listed first on an action's refuses line answers; this page's sixth Final Critique had made the cure one specification at a time. What each action answers on every call is unchanged.
 
 - **2026-10-21 — A failed read answers as the Execution Contract says.** *Chose:* the failed read cited from the Execution Contract (Capability requirement 5, Execution Contract Read 1 through 3) and the three rules that restated it deleted to Read 1: the atom-wide state-unavailable (Operation 53), and the submit and read refusal orders (Operation 54, Operation 56), whose rules after the read answer one code each, invalid-request and invalid-query; the read's condition off the admitted submit, resolve and read it held to an answered read, the read off the resolve refusal order and its table, Term database read deleted, and state-unavailable off every signature and the examples; rules 157 to 154. *Over:* the page stating for itself what every action answers when the step records cannot be read. *Because:* the maintainer ruled on 2026-10-21 that the Execution Contract states the failed read once; this page's sixth Final Critique had made one of the cures the contract's Read family is written from, and the read first in every order, which it gave as the pipeline's, is Read 1's. What each action answers on an answered read is unchanged.
 

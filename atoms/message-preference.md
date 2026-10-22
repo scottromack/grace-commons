@@ -112,7 +112,7 @@ Deleted: Capability requirement 2. Execution Contract Logic confinement 7 owns i
 Deleted: Capability requirement 3. Execution Contract Logic confinement 7 owns it.
 Deleted: Capability requirement 4. Execution Contract Logic confinement 7 owns it.
 Capability requirement 5: The deployment MUST disclose the supersession gap bound.
-Capability requirement 6: The deployment MUST supply the preference records PER Execution Contract Database 1 through 4.
+Capability requirement 6: The deployment MUST supply the preference records PER Execution Contract Database 1 through 4 and Execution Contract Refusal 1.
 Deleted: Clock semantics 1. Execution Contract Logic confinement 7 owns it.
 Deleted: Clock semantics 2. Execution Contract Logic confinement 7 owns it.
 Deleted: Clock semantics 3. Capability requirement 1 and Execution Contract Logic confinement 7 own it: the seam supplies now, and the reading's honesty is the deployment's.
@@ -150,7 +150,7 @@ Operation 5: IF EVERY preference field EQUALS blank THEN [Set] MUST answer inval
 Operation 6: [Set] MUST read an empty channel preferences map as an omitted preference field.
 Operation 7: [Set] MUST NOT record an empty channel preferences map.
 Operation 8: IF a channel preferences key IS NOT IN the injected declared channel set THEN [Set] MUST answer undeclared-channel.
-Operation 9: [Set] MUST answer undeclared-channel ONLY IF principal reference DOES NOT EQUAL blank AND a preference field DOES NOT EQUAL blank.
+Deleted: Operation 9. Execution Contract Refusal 1 owns it.
 Operation 10: [Set] MUST NOT interpret a preference field.
 Operation 11: [Set] MUST NOT interpret metadata.
 Operation 12: [Set] MUST NOT read metadata as a preference field.
@@ -206,7 +206,7 @@ The case space, and the rule that owns each case:
 | [Set] | principal present, a preference field present, every key declared, database accepts, no prior | the new preference id | one record lands in [Active] (Operation 1, Operation 2) |
 | [Set] | as above, with a prior currently in effect | the new preference id | the new record lands in [Active], the prior moves to [Deleted] (Operation 14) |
 | [Set] | blank principal reference, or no preference field, or an empty map as the only one | [Invalid Request] | none (Operation 4 through 6) |
-| [Set] | a channel preferences key outside the injected set | [Undeclared Channel] | none (Operation 8, Operation 9) |
+| [Set] | a channel preferences key outside the injected set | [Undeclared Channel] | none (Operation 8, Execution Contract Refusal 1) |
 | [Set] | the injected declared channel set is degenerate | no conforming outcome — fail-stop | none (Instance 13 through 16) |
 | [Suspend] | id names a record in [Active] | ok | [Active] → [Suspended], suspension instant stamped (Operation 20, State 9) |
 | [Suspend] | id names a record in [Suspended] or [Deleted] | [Not Active] | none (Operation 18, Operation 19) |
@@ -838,5 +838,7 @@ Directional changes only — the turns a future reader must know the pattern too
 
 - **2026-10-20 — The store's guarantees cited, not restated.** *Chose:* the preference store supplied under Execution Contract Store 1 through 4 (Capability requirement 6), and the sixteen rules that restated them tombstoned to their owner — Operation 15 and Invariant 4.1, the new record and the supersession committed in one operation, and Invariant 4.2 and Concurrency 3, no reader observing two records in effect for one principal or a torn record, to Store 1; Invariant 4.3 and 4.4, a refused supersession leaving the prior record in effect and recording no new one, Operation 30, a refused write leaving the store as the call found it, and Supersession atomicity 4 through 7, no crash inside [Set], [Suspend] or [Delete] leaving part of its writes, to Store 1 and Store 3; Supersession atomicity 8, a recovered store standing in no violation of Invariant 3.1, to Store 3; Supersession atomicity 1, the currency check and the supersession write one transition, to Store 1 and Store 2; Concurrency 1 and Supersession atomicity 2, the calls on one principal serialized, and Supersession atomicity 3, an isolation level foreclosing two concurrent [Set] calls, to Store 2; rules 211 to 196. *Over:* the atom restating, for its own store, what every deployment's store guarantees. *Because:* the maintainer ruled 2026-10-12 that the corpus takes a store's specification, never the store, and `execution-contract.md` writes it once as the Store contract. At most one record in effect per principal stays the atom's own (Invariant 3.1, Operation 14), as do the instants a supersession and each lifecycle move stamp (State 9 through 12), the recorded timestamps witnessing the serialization order (Concurrency 2), and the records the atom never removes and the count that never falls (State 17, Invariant 9.1 through 9.3). A superseded record stays a record of its own with its own instants, and an auditor reconstructs which record governed from those instants (Check 2.1), so the atom cites neither History 1 nor Order 1. What the atom does for its domain is unchanged.
 - **2026-10-21 — The page's records-alone claims read as provable.** *Chose:* *provable* (`glossary.md`: shown by the records alone, never by a system's say-so) where the page wrote *from the database alone*, *from the record alone* or *with no recourse to source code, runbooks or developer narration*: Invariant 10.3, under which an auditor clears Check 5.1 provably, and, by wording alone, the Summary's self-containment claim, the auditability property, the quiet-hours example and the acceptance bar; rules 196 to 196. *Over:* the phrase restated at each site. *Because:* the maintainer ruled 2026-10-21 that *shred*, *grant* and *provable* are declared domain terms, each defined once, in `glossary.md`, and that the specifications say them where their meaning stood; the wording of Invariant 10.3 changed and no obligation did.
+
+- **2026-10-21 — Which refusal answers is the Execution Contract's.** *Chose:* [Set]'s refuses line kept as the page wrote it, already in the page's order — invalid-request, undeclared-channel, then storage-failure, which answers only at the write — and the order cited from the Execution Contract (Capability requirement 6, Execution Contract Refusal 1); Operation 9 (undeclared-channel only once the principal reference and a preference field are supplied), which only stated it, deleted to Refusal 1; rules 196 to 195. *Over:* the page stating for itself which of [Set]'s refusals answers when both apply. *Because:* the maintainer ruled on 2026-10-21 that the Execution Contract states once that the refusal listed first on an action's refuses line answers. What each action answers on every call is unchanged.
 
 NOTE: End of Message Preference.

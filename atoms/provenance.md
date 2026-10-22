@@ -107,7 +107,7 @@ Deleted: State 19. Execution Contract Database 3 owns it.
 
 ```
 Capability requirement 1: The deployment MUST supply now at the seam.
-Capability requirement 5: The deployment MUST supply the chain records PER Execution Contract Database 1 through 4.
+Capability requirement 5: The deployment MUST supply the chain records PER Execution Contract Database 1 through 4 and Execution Contract Refusal 1.
 Deleted: Capability requirement 2. Execution Contract Logic confinement 7 owns it.
 Deleted: Capability requirement 3. Execution Contract Logic confinement 7 owns it.
 Deleted: Capability requirement 4. Execution Contract Logic confinement 7 owns it.
@@ -145,7 +145,7 @@ read(chain_id, query)
 Operation 1: IF artifact reference EQUALS blank THEN [Originate] MUST answer invalid-ref.
 Operation 2: IF custodian reference EQUALS blank THEN [Originate] MUST answer invalid-ref.
 Operation 3: IF genesis type IS NOT IN the genesis types THEN [Originate] MUST answer invalid-genesis-type.
-Operation 4: [Originate] MUST answer invalid-genesis-type ONLY IF artifact reference DOES NOT EQUAL blank AND custodian reference DOES NOT EQUAL blank.
+Deleted: Operation 4. Execution Contract Refusal 1 owns it.
 Operation 5: An admitted originate MUST record EXACTLY ONE chain.
 Operation 6: An admitted originate MUST append the genesis entry.
 Operation 7: An admitted originate MUST set the genesis entry's event type to the call's genesis type.
@@ -157,7 +157,7 @@ Operation 12: IF the chain state EQUALS archived THEN [Transfer] MUST answer arc
 Operation 13: IF the chain state EQUALS archived THEN [Transform] MUST answer archived.
 Operation 14: IF the chain state EQUALS archived THEN [Disclose] MUST answer archived.
 Operation 15: IF the chain state EQUALS archived THEN [Archive] MUST answer already-archived.
-Operation 16: A chain-state rejection MUST answer ONLY IF the chain id names a chain.
+Deleted: Operation 16. Execution Contract Refusal 1 owns it.
 Operation 17: IF to custodian reference EQUALS blank THEN [Transfer] MUST answer invalid-ref.
 Operation 18: [Transfer] MUST NOT accept a from custodian reference from the caller.
 Operation 19: An admitted transfer MUST read from custodian reference from the current custodian.
@@ -168,7 +168,7 @@ Operation 23: IF custodian reference EQUALS blank THEN a custodian-guarded actio
 Operation 24: IF transformation descriptor EQUALS blank THEN [Transform] MUST answer invalid-descriptor.
 Operation 25: IF recipient reference EQUALS blank THEN [Disclose] MUST answer invalid-ref.
 Operation 26: IF custodian reference DOES NOT EQUAL the current custodian THEN a custodian-guarded action MUST answer not-current-custodian.
-Operation 27: A custodian-guarded action MUST answer not-current-custodian ONLY IF EVERY supplied reference DOES NOT EQUAL blank.
+Deleted: Operation 27. Execution Contract Refusal 1 owns it.
 Operation 28: An admitted transform MUST append a transformed entry.
 Operation 29: An admitted disclose MUST append a disclosed entry.
 Operation 30: An admitted archive MUST append an archived entry.
@@ -186,7 +186,7 @@ Operation 41: IF the database refuses the write THEN an appending action MUST an
 Operation 42: A refused action MUST leave the chain as the call found the chain.
 Operation 43: A refused action MUST NOT append an entry.
 Operation 44: A refused action MUST NOT take a sequence number.
-Operation 45: An action MUST answer storage-failure ONLY IF EVERY precondition passes.
+Deleted: Operation 45. Execution Contract Refusal 1 owns it.
 Operation 46: [Read] MUST answer the chain's entries in sequence number ascending order.
 Operation 47: [Read] MUST answer an empty entry sequence for a well-formed query no entry matches.
 Operation 48: IF a query range's end PRECEDES the range's start THEN [Read] MUST answer invalid-query.
@@ -248,7 +248,7 @@ The case space, and the rule that owns each case:
 |---|---|---|---|
 | [Originate] | refs present, genesis type admitted | the new chain id | a chain opens, genesis entry at sequence one (Operation 5 through 9) |
 | [Originate] | a blank reference | [Invalid Reference] | none (Operation 1, Operation 2) |
-| [Originate] | genesis type outside the two | [Invalid Genesis Type] | none (Operation 3, Operation 4) |
+| [Originate] | genesis type outside the two | [Invalid Genesis Type] | none (Operation 3, Execution Contract Refusal 1) |
 | [Transfer] | open chain, to custodian reference present | the entry id | transferred entry; the from-side read from state; custody moves (Operation 19 through 21) |
 | [Transform] | open chain, refs present, custodian current | the entry id | transformed entry; custody unchanged (Operation 28, Operation 33) |
 | [Disclose] | open chain, refs present, custodian current | the entry id | disclosed entry; custody unchanged (Operation 29, Operation 34) |
@@ -335,7 +335,7 @@ Defense counsel claims an undocumented handler between the detective and the lab
 
 ### Rejection paths
 
-`transform("chain-0041", "manuf-lab-7", "added label update")` against the archived pharmaceutical chain → archived. The chain-state rejection precedes the attribution guard, so the caller learns the chain is closed rather than that they are not the custodian (Operation 13, Operation 16).
+`transform("chain-0041", "manuf-lab-7", "added label update")` against the archived pharmaceutical chain → archived. The chain-state rejection precedes the attribution guard, so the caller learns the chain is closed rather than that they are not the custodian (Operation 13, Execution Contract Refusal 1).
 
 The same call against the chain while it stood open, after custody had moved to `pharm-hosp-9` → not-current-custodian (Operation 26).
 
@@ -871,5 +871,7 @@ open: none
 Directional changes only — the turns a future reader must know the pattern took, and why. Everything smaller lives in the commit that made it: `git log -- atoms/provenance.md`; the rounds and the migration that got it here are in [its history](./provenance.hist.md).
 
 - **2026-10-20 — The store's guarantees cited, not restated.** *Chose:* the chain store supplied under Execution Contract Store 1 through 4 (Capability requirement 5), and the twelve rules that restated them, or existed only for a store that could split an append, tombstoned to their owner — Operation 38, an append's entry and counter raise committed in one operation, Invariant 10.2, no partial record left by a storage-failure rejection, and Atomic writes 1 through 3, no reader observing an entry without its counter raise, a transferred entry without its custodian change or an archived entry without the chain's move to archived, to Store 1; Atomic writes 4, an uncommitted crash leaving the chain as the call found it, to Store 1 and Store 3; Atomic writes 5 through 7, the implementation resolving a dangling transition before the store serves a read or accepts an action, to Store 1, under which no append stands partly applied; State 19, next sequence number surviving a restart, to Store 3; Concurrency 1, two calls against one chain serialized, and Concurrency 3, the second serialized transfer reading the custodian the first set, to Store 2; rules 187 to 176. *Over:* the atom restating, for its own store, what every deployment's store guarantees, and keeping a crash-recovery protocol for a split append that no conforming store leaves. *Because:* the maintainer ruled 2026-10-12 that the corpus takes a store's specification, never the store, and `execution-contract.md` writes it once as the Store contract. What stays is the atom's own: a refused action leaving the chain as the call found it, appending no entry and taking no sequence number (Operation 42 through 44), the entry chain governing a cached current custodian that disagrees with a replay (State 18), every serialized transfer appending, since [Transfer] carries no custodian guard (Concurrency 2), the host serializing its own calls for a transfer conditional on the custodian (Concurrency 4), and the append-only chain the atom never edits (State 15 through 17, Invariant 1.1, Invariant 2.1, Invariant 2.2, Invariant 10.1, Correction 1, Correction 2). The sequence number is the chain's own dense order, taken inside the append, and no rule reads an earlier version of a record, so the atom cites neither History 1 nor Order 1. What the atom does for its domain is unchanged.
+
+- **2026-10-21 — Which refusal answers is the Execution Contract's.** *Chose:* each refuses line kept as the page wrote it, already in the page's order — [Originate] invalid-ref ahead of invalid-genesis-type; an addressed action not-known ahead of its chain-state rejection, the chain's state ahead of the attribution guard, invalid-ref ahead of not-current-custodian; storage-failure last, answering only at the write — and the order cited from the Execution Contract (Capability requirement 5, Execution Contract Refusal 1); the pairs that only stated it deleted to Refusal 1: Operation 4 (invalid-genesis-type only once both references are supplied), Operation 16 (a chain-state rejection only for a chain id naming a chain), Operation 27 (not-current-custodian only once every supplied reference is present) and Operation 45 (storage-failure behind every precondition); rules 176 to 172. *Over:* the page stating for itself which of an action's refusals answers when several apply. *Because:* the maintainer ruled on 2026-10-21 that the Execution Contract states once that the refusal listed first on an action's refuses line answers. What each action answers on every call is unchanged.
 
 NOTE: End of Provenance.

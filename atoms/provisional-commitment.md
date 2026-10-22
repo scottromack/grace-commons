@@ -107,7 +107,7 @@ Capability requirement 9: The deployment MUST canonicalize an opaque reference.
 Capability requirement 10: The registry MUST return the resource to availability on a releasing action.
 Capability requirement 11: The registry MUST NOT return the resource to availability on an admitted confirm.
 Capability requirement 12: A deployment firing [Expire] on a cadence MUST resolve EVERY lapsed commitment WITHIN the reclamation window.
-Capability requirement 15: The deployment MUST supply the commitment records PER Execution Contract Database 1 through 4.
+Capability requirement 15: The deployment MUST supply the commitment records PER Execution Contract Database 1 through 4 and Execution Contract Refusal 1.
 Deleted: Capability requirement 13. Execution Contract Logic confinement 7 owns it.
 Deleted: Capability requirement 14. Execution Contract Logic confinement 7 owns it.
 Deleted: Clock semantics 4. Execution Contract Logic confinement 7 owns it.
@@ -147,7 +147,7 @@ Operation 2: IF requester EQUALS blank THEN [Place Hold] MUST answer invalid-req
 Operation 3: IF duration EQUALS blank THEN [Place Hold] MUST answer invalid-request.
 Operation 4: IF the duration falls outside the duration bounds THEN [Place Hold] MUST answer invalid-request.
 Operation 5: IF the registry refuses the resource THEN [Place Hold] MUST answer resource-unavailable.
-Operation 6: [Place Hold] MUST answer resource-unavailable ONLY IF EVERY well-formedness check passes.
+Deleted: Operation 6. Execution Contract Refusal 1 owns it.
 Operation 7: [Place Hold] MUST NOT answer not-known.
 Operation 8: An admitted place hold MUST assign a fresh id.
 Operation 9: An admitted place hold MUST record resource and requester.
@@ -157,11 +157,11 @@ Operation 12: An admitted place hold MUST stand the commitment in held.
 Operation 13: An admitted place hold MUST answer the id.
 Operation 14: IF the id names no commitment THEN a resolving action MUST answer not-known.
 Operation 15: IF the commitment's state IS IN the terminal states THEN a resolving action MUST answer not-held.
-Operation 16: A resolving action MUST answer not-held ONLY IF the id names a commitment.
+Deleted: Operation 16. Execution Contract Refusal 1 owns it.
 Operation 17: IF the commitment reads lapsed THEN [Confirm] MUST answer window-elapsed.
 Operation 18: IF the commitment reads lapsed THEN [Release] MUST answer window-elapsed.
 Operation 19: IF the commitment reads open THEN [Expire] MUST answer window-not-elapsed.
-Operation 20: A resolving action MUST answer a window rejection ONLY IF the commitment's state EQUALS held.
+Deleted: Operation 20. Execution Contract Refusal 1 owns it.
 Operation 21: An admitted confirm MUST stand the commitment in confirmed.
 Operation 22: An admitted release MUST stand the commitment in released.
 Operation 23: An admitted expire MUST stand the commitment in expired.
@@ -170,7 +170,7 @@ Operation 25: An admitted release MUST record now as release instant.
 Operation 26: An admitted expire MUST record now as lapse instant.
 Deleted: Operation 27. Execution Contract Database 1 owns it.
 Operation 28: IF the database refuses the write THEN an action MUST answer storage-failure.
-Operation 29: An action MUST answer storage-failure ONLY IF EVERY precondition passes.
+Deleted: Operation 29. Execution Contract Refusal 1 owns it.
 Operation 30: A refused action MUST leave the commitment as the call found the commitment.
 Operation 31: A refused [Place Hold] MUST NOT record a commitment.
 Operation 32: A refused resolving action MUST leave the commitment in held.
@@ -186,8 +186,6 @@ Operation 41: [Read] MUST NOT refuse a call.
 ```
 
 Term resolving action: [Confirm] | [Release] | [Expire] — every action taking a held commitment to a terminal state.
-
-Term well-formedness check: Operation 1, Operation 2, Operation 3 and Operation 4 — every check [Place Hold] makes on the call's own inputs.
 
 Term duration bounds: the implementation's admitted range for a duration; every admitted value exceeds zero.
 
@@ -460,7 +458,7 @@ Term cadences: empty.
 
 Term qualifiers: migrated — rewritten in GRACE lang v0.40 (2026-09-13).
 
-Term terms: commitment, id, property, reference, registry, database instance, seam, transition, now, resolving action, well-formedness check, duration bounds, window bound, window reading, open, lapsed, window rejection, terminal state, terminal instant, admitted place hold, admitted confirm, admitted release, admitted expire, admitted resolving action, releasing action, string input, blank, reclamation lag, capacity decision, degenerate window, late resolution, premature expiry, re-hold.
+Term terms: commitment, id, property, reference, registry, database instance, seam, transition, now, resolving action, duration bounds, window bound, window reading, open, lapsed, window rejection, terminal state, terminal instant, admitted place hold, admitted confirm, admitted release, admitted expire, admitted resolving action, releasing action, string input, blank, reclamation lag, capacity decision, degenerate window, late resolution, premature expiry, re-hold.
 
 Term cited: sequence number: Event Log. The section titled Logic Confinement Principle in `execution-contract.md` — the seam and the transition.
 
@@ -756,5 +754,7 @@ Directional changes only — the turns a future reader must know the pattern too
 - **2026-06-23 — Expiry stays a stored terminal reached by an explicit expire event; the derived-expiry refactor is withdrawn for this atom.** *Chose:* stored `Expired` with lapse instant, the window-not-elapsed rejection and confirm's window-elapsed guard restored. *Over:* the corpus-wide derive-expiry-at-read-time move applied two days earlier. *Because:* this atom's lapse has a side effect — expire releases the resource, and in a pool-backed composition returns a capacity slot — which Reserve from Pool and Idempotent Reservation call and map; derived expiry is for side-effect-free lapses only.
 
 - **2026-10-20 — The store's guarantees cited, not restated.** *Chose:* the commitment store supplied under Execution Contract Store 1 through 4 (Capability requirement 15), and the nine rules that restated them tombstoned to their owner — Operation 27, a resolving action's state change and recorded instant in one transition, Invariant 10.3, no partial commitment on storage-failure, and Atomic writes 1, 3 and 4, a transition committed whole inside the implementation's transactional boundary and no repair of a dangling one, to Store 1; Atomic writes 2, an uncommitted transition discarded whole, to Store 1 and Store 3; Capability requirement 6, a write acknowledged only once it commits, to Store 3; Concurrency 1, the state check and the state change of a resolving action as one operation, to Store 1 and Store 2; Concurrency 2, the losing resolving action answering not-held from what the winner committed, to Store 2; rules 162 to 154. *Over:* the atom restating, for its own store, what every deployment's store guarantees. *Because:* the maintainer ruled 2026-10-12 that the corpus takes a store's specification, never the store, and `execution-contract.md` writes it once as the Store contract. The registry's critical section over the availability read and the hold write stays the registry's (Capability requirement 3 through 5, Concurrency 3): the registry is the deployment's, outside the atom and its store, and its verdict reaches the transition at the seam, so no Store rule reaches it. A refused action leaving the commitment as the call found it stays the atom's own (Operation 30 through 32), as do the id and properties that never change (Identity 4, Invariant 5.1) and the atom's no-removal rules (State 11, Invariant 10.1, Invariant 10.2). The window reading is taken against the expiry instant each commitment carries, and ordering one commitment's transitions is the composing Event Log's (Non-goal 26), so the atom cites neither History 1 nor Order 1. What the atom does for its domain is unchanged.
+
+- **2026-10-21 — Which refusal answers is the Execution Contract's.** *Chose:* each refuses line kept as the page wrote it, already in the page's order — [Place Hold] invalid-request ahead of resource-unavailable; a resolving action not-known ahead of not-held, and not-held ahead of a window rejection; storage-failure last, answering only at the write — and the order cited from the Execution Contract (Capability requirement 15, Execution Contract Refusal 1); the pairs that only stated it deleted to Refusal 1: Operation 6 (resource-unavailable only once every well-formedness check passes), Operation 16 (not-held only for an id naming a commitment), Operation 20 (a window rejection only on a held commitment) and Operation 29 (storage-failure behind every precondition), with Term well-formedness check, which only Operation 6 read; rules 154 to 150. *Over:* the page stating for itself which of an action's refusals answers when several apply. *Because:* the maintainer ruled on 2026-10-21 that the Execution Contract states once that the refusal listed first on an action's refuses line answers. What each action answers on every call is unchanged.
 
 NOTE: End of Provisional Commitment.

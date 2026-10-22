@@ -81,7 +81,7 @@ Term revocation instant: the instant the grant was withdrawn — a [Revocation I
 
 ```
 Capability requirement 1: The deployment MUST supply now at the seam.
-Capability requirement 4: The deployment MUST supply the grant records PER Execution Contract Database 1 through 4 and Execution Contract Read 1 through 3.
+Capability requirement 4: The deployment MUST supply the grant records PER Execution Contract Database 1 through 4, Execution Contract Read 1 through 3 and Execution Contract Refusal 1.
 Deleted: Capability requirement 2. Execution Contract Logic confinement 7 owns it.
 Deleted: Capability requirement 3. Execution Contract Logic confinement 7 owns it.
 Deleted: Clock semantics 1. Execution Contract Logic confinement 7 owns it.
@@ -139,15 +139,12 @@ Operation 28: [Read] MUST NOT write.
 Deleted: Operation 29. Operation 26 and Execution Contract Read 2 own it.
 Deleted: Operation 30. Execution Contract Read 1 owns it.
 Deleted: Operation 31. Execution Contract Read 1 owns it: after the read, every refusal rule of [Grant] answers invalid-request.
-Operation 32: [Revoke] MUST NOT evaluate a rule of the revoke refusal order BEFORE EVERY earlier rule of the revoke refusal order has answered no refusal.
-NOTE: watch the refusal order (Operation 32).
+Deleted: Operation 32. Execution Contract Refusal 1 owns it.
 ```
 
 Term pair: one subject reference with one action scope — what [Check] matches over.
 
 Term live at an instant: grant instant at or before the instant, and revocation instant either absent or after the instant — the reconstruction an auditor runs over stored fields, never over status, which carries the present rather than the past.
-
-Term revoke refusal order: Operation 9 through 10 — [Revoke]'s refusal rules, earliest first; Operation 13 answers only at the write, which no refused call reaches.
 
 The case space, and the rule that owns each case:
 
@@ -165,7 +162,7 @@ The case space, and the rule that owns each case:
 | [Check] | nothing matches, over-length argument included | [Denied] | none (Operation 18, String 7) |
 | [Read] | any call | every grant, with its stored fields | none (Operation 26 through 28) |
 
-Where two [Revoke] cases hold at once, the earlier rule of the revoke refusal order answers (Operation 32).
+Where two [Revoke] cases hold at once, the refusal listed first on [Revoke]'s refuses line answers (Execution Contract Refusal 1).
 
 ### Invariants
 
@@ -387,7 +384,7 @@ Term cadences: empty.
 
 Term qualifiers: migrated — rewritten in GRACE lang v0.35 (2026-09-12).
 
-Term terms: grant record, live at an instant, grant id, subject reference, action scope, seam, transition, business caller, now, string cap, status, grant instant, revocation instant, pair, revoke refusal order.
+Term terms: grant record, live at an instant, grant id, subject reference, action scope, seam, transition, business caller, now, string cap, status, grant instant, revocation instant, pair.
 
 #### Grant
 
@@ -622,5 +619,7 @@ Directional changes only — the turns a future reader must know the pattern too
 - **2026-10-21 — A failed read answers on every action, each writing action's refusals in one stated order; coverage is no ground for refusal; a deprovisioning is recorded only once no grant stands.** *Chose:* state-unavailable on all four actions where the read of the grant store fails, the Execution Contract's Step 1 failure (Operation 30, Term store read), [Check] and [Read] refusing nothing else and answering only on an answered read (Operation 16, Operation 18, Operation 19, Operation 26, Operation 29), the refusals of [Grant] and [Revoke] in one stated order, the store read first (Operation 31, Operation 32, Term grant refusal order, Term revoke refusal order), and Invariant 3.1, which said outside that order what Operation 10 says, deleted to it; [Grant] forbidden to refuse a call on the ground that an active grant already covers the pair, not to refuse a covered pair at all (Operation 6); a composing pattern recording a subject's deprovisioning only where no active grant exists for the subject (Deprovisioning 5); a check that finds permitted for a matched pair, Check 3.2 citing the rule it tests (Check 3.3, Operation 17); the composing patterns a deployment wired in read from the deployment's own declaration (External check 5). *Over:* [Check] and [Read] forbidden to refuse a store they cannot read; a ban on refusing a covered pair that the write refusal, a lowered string cap and the failed read each break; a sweep recorded complete while a grant issued during it, or one whose revoke never answered, stays active; conformance checks a build denying every pair clears; a check reading what the grant store does not carry. *Because:* Final Critique 5 found each a divergence between conforming builds, or a stated check a conforming build fails or a violating one passes, and the corpus already held three of the cures: Actor Identity's fifth round answers a failed store read on every action and reads the composing patterns from the deployment's declaration, and Retention Window's eighth answers each writing action's refusals in one stated order, the form the maintainer ruled for Verified Repair on 2026-10-19, and forbids a refusal on a stated ground (its Operation 18). Compositions affected: the pages that compose this atom route state-unavailable from all four actions, and record a deprovisioning only once no grant stands, when their rounds read them.
 
 - **2026-10-21 — A failed read answers as the Execution Contract says.** *Chose:* the failed read cited from the Execution Contract (Capability requirement 4, Execution Contract Read 1 through 3) and the four rules that restated it deleted to it: the atom-wide state-unavailable (Operation 30) to Read 1; [Check]'s and [Read]'s state-unavailable on a failed read alone (Operation 19, Operation 29) to Read 2 beside the rules that close each action's answers; and the grant refusal order (Operation 31), whose rules after the read all answer invalid-request, to Read 1; the read's condition off the rules it held to an answered read (Operation 16, Operation 18, Operation 26), the read off the revoke refusal order, Term database read deleted, and state-unavailable off every signature; rules 109 to 105. *Over:* the page stating for itself what every action answers when the grant records cannot be read. *Because:* the maintainer ruled on 2026-10-21 that the Execution Contract states the failed read once; this page's fifth Final Critique had made the cure the contract's Read family is written from. What [Check] answers on an answered read is unchanged.
+
+- **2026-10-21 — Which refusal answers is the Execution Contract's.** *Chose:* [Revoke]'s refuses line kept as the page wrote it, already in the order the revoke refusal order gave — not-known, not-active, then storage-failure, which answers only at the write — and the order cited from the Execution Contract (Capability requirement 4, Execution Contract Refusal 1); Operation 32, which evaluated the revoke refusal order, deleted to Refusal 1, and Term revoke refusal order deleted with it; rules 105 to 104. *Over:* the page stating for itself which of [Revoke]'s refusals answers when both apply. *Because:* the maintainer ruled on 2026-10-21 that the Execution Contract states once that the refusal listed first on an action's refuses line answers; this page's fifth Final Critique had made the cure one specification at a time. What each action answers on every call is unchanged.
 
 NOTE: End of Permissions.

@@ -113,7 +113,7 @@ Capability requirement 24: A deployment MUST inject a round key AND a verdict ke
 Capability requirement 25: A deployment MUST supply a repository read of a page at a commit that answers EXACTLY ONE OF the page's bytes, absent, a refusal.
 Capability requirement 26: A deployment MUST supply a repository read of a commit by the commit id that answers EXACTLY ONE OF the commit's parent ids with the commit's trailer, absent, a refusal.
 Capability requirement 27: A deployment MUST refuse EVERY record_action under the action references council.round, council.verdict, council.triage, council.ruling AND council.escalation from EVERY caller other than the composition's own actions.
-Capability requirement 28: A deployment MUST supply the journal's database PER Execution Contract Database 1 through 3.
+Capability requirement 28: A deployment MUST supply the journal's database PER Execution Contract Database 1 through 3 and Execution Contract Refusal 1.
 ```
 
 Term repository: the version-controlled database holding the canonical pages — one head, commits that carry trailers, a commit taken only on the head it names as its parent, a read by trailer, and a read of a commit's parents and trailer by its id.
@@ -186,11 +186,11 @@ Primitive policy 22: IF the call gives no round AND the journal holds no round o
 ```
 freeze(page, base_commit, actor_ref, credential)
   answers round id and snapshot
-  refuses invalid-request | invalid-request(step) | invalid-credential | not-known | stale | budget-spent | repository-unavailable | journal-unavailable | recording-failure(step)
+  refuses invalid-request | repository-unavailable | journal-unavailable | not-known | stale | budget-spent | invalid-request(step) | invalid-credential | recording-failure(step)
 
 report(round, verdict, actor_ref, credential)
   answers recorded
-  refuses invalid-request | invalid-request(step) | invalid-credential | not-known | purged | stale | already-counted | round-closed | journal-unavailable | recording-failure(step)
+  refuses invalid-request | journal-unavailable | purged | not-known | round-closed | stale | already-counted | invalid-request(step) | invalid-credential | recording-failure(step)
 
 triage(round, finding, record, actor_ref, credential)
   answers recorded
@@ -213,13 +213,10 @@ Action wiring 2: An admitted freeze MUST record the round with the page, the bas
 Action wiring 3: An admitted freeze MUST answer the round id AND the snapshot: the snapshot hash AND the base commit.
 Action wiring 34: IF the round budget DOES NOT EXCEED the page's round count AND the page carries no standing ruling THEN [Freeze] MUST answer budget-spent AND escalate the page to the maintainer's queue.
 Action wiring 57: IF the page at the base commit DOES NOT EQUAL the page at the repository's head THEN [Freeze] MUST answer stale; a page absent at the head equals no page at the base commit.
-Deleted: Action wiring 59. Action wiring 72 owns it: the budget is evaluated last, after Primitive policy and staleness.
-Deleted: Action wiring 67. Action wiring 72 owns it: staleness is evaluated after Primitive policy 2.
-Action wiring 72: [Freeze] MUST NOT evaluate a rule of the freeze refusal order BEFORE EVERY earlier rule of the freeze refusal order has answered no refusal.
-NOTE: watch the refusal order (Action wiring 72).
+Deleted: Action wiring 59. Execution Contract Refusal 1 owns it: the budget answers last, after Primitive policy and staleness.
+Deleted: Action wiring 67. Execution Contract Refusal 1 owns it: staleness answers after Primitive policy 2.
+Deleted: Action wiring 72. Execution Contract Refusal 1 owns it.
 ```
-
-Term freeze refusal order: Primitive policy 1, Primitive policy 10, Primitive policy 11, Primitive policy 2, Action wiring 57, Action wiring 34 — [Freeze]'s refusal rules, earliest first.
 
 #### [Report]
 
@@ -233,8 +230,7 @@ Deleted: Action wiring 48. Action wiring 34 and Execution Contract Database 2 ow
 Action wiring 51: [Report] MUST NOT evaluate Action wiring 6 BEFORE EVERY rule of the report refusal order has answered no refusal.
 Deleted: Action wiring 58. Execution Contract Database 2 and Execution Contract Database 3 own it: every round ahead of the round's record committed ahead of it, so [Report] reads the round position with no round still landing.
 Action wiring 60: [Report] MUST NOT evaluate Action wiring 7 BEFORE Action wiring 6 has answered.
-Action wiring 73: [Report] MUST NOT evaluate a rule of the report refusal order BEFORE EVERY earlier rule of the report refusal order has answered no refusal.
-NOTE: watch the refusal order (Action wiring 73).
+Deleted: Action wiring 73. Execution Contract Refusal 1 owns it.
 ```
 
 Term sound verdict: a recorded verdict of a round carrying holds or counterexample — a reader's or a formal engine's.
@@ -270,7 +266,6 @@ Deleted: Action wiring 65. Action wiring 74 owns it: already-triaged is evaluate
 Deleted: Action wiring 70. Action wiring 74 owns it: round-closed is evaluated ahead of the rest of [Triage]'s Action wiring.
 Deleted: Action wiring 71. Action wiring 74 owns it: round-closed is evaluated after Primitive policy.
 Action wiring 74: [Triage] MUST NOT evaluate a rule of the triage refusal order BEFORE EVERY earlier rule of the triage refusal order has answered no refusal.
-NOTE: watch the refusal order (Action wiring 74).
 ```
 
 Term class: foundational | refining | rhetorical — as the section titled What "grounded" means in `pressure-testing.md` defines each.
@@ -312,7 +307,6 @@ Action wiring 38: IF the actor reference DOES NOT EQUAL the maintainer's actor r
 Action wiring 39: An admitted ruling MUST record the ruling with the page, the page's latest round AND, where given, the round AND the patch whole.
 Deleted: Action wiring 66. Action wiring 75 owns it: the maintainer's credential is evaluated after Primitive policy.
 Action wiring 75: [Rule] MUST NOT evaluate a rule of the ruling refusal order BEFORE EVERY earlier rule of the ruling refusal order has answered no refusal.
-NOTE: watch the refusal order (Action wiring 75).
 ```
 
 Term maintainer's ruling: a ruling record under the maintainer's actor reference — carrying a page, a round and a patch whole, it admits that patch, byte for byte, into the claim families in that round; naming a page alone, it admits the page's next round past its round budget.
@@ -360,7 +354,6 @@ Action wiring 62: IF a patch answers a finding AND the patch DOES NOT EQUAL, byt
 Action wiring 63: IF a records fragment removes a Ledger open line AND no maintainer's ruling carries the round AND the fragment's patch byte-exact THEN [Repair] MUST answer gated.
 Deleted: Action wiring 68. Action wiring 76 owns it: purged is evaluated before unsettled.
 Action wiring 76: [Repair] MUST NOT evaluate a rule of the repair refusal order BEFORE EVERY earlier rule of the repair refusal order has answered no refusal.
-NOTE: watch the refusal order (Action wiring 76).
 ```
 
 Term patch: a patch id, the finding it answers, and one fragment for each sentence the change touches — the rule or Term the finding sits in and every sentence on the page that restates it; a patch carrying the round's records answers no finding.
@@ -581,7 +574,7 @@ Term bounds: round budget (round_budget), patch cap (patch_cap), commit completi
 
 Term qualifiers: migrated — written in GRACE lang v0.63 from the first draft (2026-10-10).
 
-Term terms: writer, diff check, admitted freeze, admitted report, admitted ruling, admitted repair, opened repair, change set, snapshot, snapshot hash, base commit, round, round id, search, clean round, settled round, repair tree, page, finding, site, pass, sound verdict, counted verdict, patch, fragment, claim families, side, role, triage record, settled triage, deciding count, round's records, records fragment, maintainer's queue, maintainer's ruling, standing ruling, round budget, patch cap, sweep identity, commit binding, commit partition, commit probe, commit envelope, council commit, council nonce, council trailer, finding id, counted finding, foundational count, round position, ruled round, target, settling record, declared name, blocking sibling, permitted ranges, round key, parted finding, verdict key, counted triage, admitted triage, round index, triage index, ruling index, round count, repository, corpus gate, freeze refusal order, report refusal order, triage refusal order, ruling refusal order, repair refusal order, stated count.
+Term terms: writer, diff check, admitted freeze, admitted report, admitted ruling, admitted repair, opened repair, change set, snapshot, snapshot hash, base commit, round, round id, search, clean round, settled round, repair tree, page, finding, site, pass, sound verdict, counted verdict, patch, fragment, claim families, side, role, triage record, settled triage, deciding count, round's records, records fragment, maintainer's queue, maintainer's ruling, standing ruling, round budget, patch cap, sweep identity, commit binding, commit partition, commit probe, commit envelope, council commit, council nonce, council trailer, finding id, counted finding, foundational count, round position, ruled round, target, settling record, declared name, blocking sibling, permitted ranges, round key, parted finding, verdict key, counted triage, admitted triage, round index, triage index, ruling index, round count, repository, corpus gate, report refusal order, triage refusal order, ruling refusal order, repair refusal order, stated count.
 
 Term snapshot: a page's bytes at a base commit, named by the base commit and the snapshot hash.
 
@@ -714,5 +707,7 @@ Directional changes only. Everything smaller lives in the commit that made it: `
 - **2026-10-10 — The council written as a page before any runtime installs it.** *Chose:* the repair loop as a composition of Recoverable Invocation and Audit Trail — every commit an act of the protocol, keyed by the repository, paired by the invocation id in the commit's trailer; one verdict contract for readers and engines; a triage record carrying the side a finding indicts; claims gated to the maintainer; deciding counts triaged twice, the second blind to the threshold. *Over:* a loop that commits a patch as its own write, outside the protocol, and an exact diff of one fragment. *Because:* the maintainer ruled that the process is part of the process, and every rule here is one the manual grind paid for, written where the machine that will run it can be held to it.
 
 - **2026-10-21 — The store's guarantees cited, not restated, and every guard of the council's actions read inside the transaction that records it.** *Chose:* the journal's store supplied under Execution Contract Store 1 through 3 (Capability requirement 28), and the four rules that existed only for a store that read a guard apart from the write it decided, or showed a record only some time after it landed, tombstoned to their owner — to Store 2, [Report]'s second reading of the round budget, which refused the verdicts of a round two freezes had recorded on one count, now held by [Freeze]'s budget check alone (Action wiring 48), and [Repair]'s settle bound on the settling record, whose read now shares one transaction with the intent the open records (Action wiring 52); and to Store 2 and Store 3, [Report]'s too-young before it read a round's position and the visibility the deployment owed the journal reads (Action wiring 58, Capability requirement 16); with them every clause that named the three, or spoke of a record the store cannot now produce — a verdict recorded in a race, a malformed verdict recorded after the settling record, a triage record later than it (Action wiring 7, 54, Term counted verdict, counted finding, settled round, round position, the report and repair refusal orders, Term age); rules 170 to 167. *Over:* the earliest record counts and the journal's order decides — a round's verdicts, triages and budget settled by the order the journal keeps, with [Report] and [Repair] waiting out the settle bound, because a read-then-append the substrate could not make conditional could be raced and a record could show late (the history's Round 2 through Round 6, and the formal model's finding of 2026-10-17). *Because:* the maintainer ruled 2026-10-12 that the corpus takes a store's specification, never the store, and 2026-10-20 that Store 1 binds every store write of one composition action, its constituents' included, and that Store 2 covers a guard decided across another writer's record in the one store: the council's records and the protocol's are Audit Trail's, in one store, so the state each action's guards decide on — the round count, a counted verdict, a counted triage, a settled round — is read inside the transaction that writes the action's record, and two freezes on one count, two verdicts for one pass and a triage beside the settling record are serialized for every deployment; a record is readable once it commits, and a record committed later stands later in the journal's order, so no read waits for one still landing. The census asked the maintainer whether that design is the council's domain rule or race machinery for a store that did not serialize; the rulings decide it, as Authenticated Actor's unit read its revoke residue by Store 2's first sentence: the refusals the design backed are the domain and stay (Action wiring 5, 34, 36, 37, 47), and so do Invariant 8.1 and Check 8.1, the page's bounded repair, now resting on [Freeze]'s budget check under Store 2, with the round position a verdict's record carries; the Terms keep their selection — the earliest, up to the settling record, no earlier record in another role — which picks the one record the refusals let through. The settling and budget models are re-derived on the journal's store, each with a twin that takes Store 2 and Store 3 away. The repository commit stays an act outside the store, Recoverable Invocation's: the commit binding, Concurrency 1 and Indeterminate outcome 1 are unchanged, and Primitive policy 17 still answers Audit Trail's step-4 refusal, whose committed event the 2026-10-20 ruling keeps as evidence. What the composition does for its domain is unchanged.
+
+- **2026-10-21 — Which refusal answers is the Execution Contract's, where a fixed line can say it.** *Chose:* [Freeze]'s and [Report]'s refuses lines listing their refusals in the order their refusal orders gave them — [Freeze] invalid-request, repository-unavailable, journal-unavailable, not-known, stale, budget-spent; [Report] invalid-request, journal-unavailable, purged, not-known, round-closed, stale, already-counted — with the codes the action's own record_action answers listed after them, since no record is written before every refusal has answered (Primitive policy 8), and the order cited from the Execution Contract (Capability requirement 28, Execution Contract Refusal 1); Action wiring 72 and Action wiring 73, which evaluated the two orders, deleted to Refusal 1, Term freeze refusal order deleted, and the tombstones of Action wiring 59 and 67 repointed from Action wiring 72 to Refusal 1; rules 167 to 165. Term report refusal order stays, since Action wiring 51 holds the escalation of a malformed verdict behind it. [Triage], [Rule] and [Repair] keep their orders (Action wiring 74 through 76): each answers one code at places no fixed line can hold, invalid-request before and after the journal reads on all three, not-known on both sides of round-closed on [Triage], and on [Repair] unresolved, mismatch and gated each in more than one place among the patch checks. *Over:* deleting the three orders to the contract's rule, which would answer each recurring code at its first place. *Because:* the maintainer ruled on 2026-10-21 that the Execution Contract states once that the refusal listed first on an action's refuses line answers, and that a page keeps its own rule only where its order depends on a condition a fixed line cannot express. What each action answers on every call is unchanged.
 
 NOTE: End of Verified Repair.

@@ -111,7 +111,7 @@ Deleted: Expiry 9. Operation 38 owns it.
 
 ```
 Capability requirement 1: The deployment MUST supply now at the seam.
-Capability requirement 5: The deployment MUST supply the capability records PER Execution Contract Database 1 through 4 and Execution Contract Read 1 through 3.
+Capability requirement 5: The deployment MUST supply the capability records PER Execution Contract Database 1 through 4, Execution Contract Read 1 through 3 and Execution Contract Refusal 1.
 Capability requirement 6: The deployment MAY configure a default capability ttl ONLY IF the default capability ttl EXCEEDS the zero duration.
 Deleted: Capability requirement 2. Execution Contract Logic confinement 7 owns it.
 Deleted: Capability requirement 3. Execution Contract Logic confinement 7 owns it.
@@ -137,7 +137,7 @@ redeem(capability_token)
 
 revoke(capability_token, revoked_by_ref, reason)
   answers revoked
-  refuses invalid-request | already-terminal | not-known | storage-failure
+  refuses not-known | already-terminal | invalid-request | storage-failure
 
 read(filter)
   answers capability_records
@@ -211,8 +211,7 @@ Deleted: Operation 62. Execution Contract Read 1 owns it.
 Operation 63: IF the database refuses the write THEN [Redeem] MUST answer storage-failure.
 Deleted: Operation 64. Execution Contract Read 1 owns it: after the read, every refusal rule of [Allocate] answers invalid-request.
 Operation 65: [Redeem] MUST NOT evaluate a rule of the redeem refusal order BEFORE EVERY earlier rule of the redeem refusal order has answered no refusal.
-Operation 66: [Revoke] MUST NOT evaluate a rule of the revoke refusal order BEFORE EVERY earlier rule of the revoke refusal order has answered no refusal.
-NOTE: watch the refusal order (Operation 65, Operation 66).
+Deleted: Operation 66. Execution Contract Refusal 1 owns it.
 ```
 
 Term now: the wall-time reading the host takes at the seam and hands to the transition — a [Now], as the section titled Logic Confinement Principle in `execution-contract.md` declares it; never read inside the transition, never supplied by the business caller.
@@ -262,8 +261,6 @@ Term filter: the selection a [Read] call scopes the answer by; consumed per call
 Term liveness query: any query for the capabilities still redeemable — the administrative surfaces, and the auditor's triage.
 
 Term redeem refusal order: Operation 23 through 26 — [Redeem]'s refusal rules, earliest first; Operation 63 answers only at the write, which no refused call reaches.
-
-Term revoke refusal order: Operation 35 through 40, String 9 through 10 — [Revoke]'s refusal rules, earliest first; Operation 48 answers only at the write, which no refused call reaches.
 
 The case space, and the rule that owns each case:
 
@@ -550,7 +547,7 @@ Term cadences: empty.
 
 Term qualifiers: migrated — rewritten in GRACE lang v0.35 (2026-09-12).
 
-Term terms: capability, capability token, allocator reference, scope, seam, transition, now, business caller, max redemptions, single-use default, remaining redemptions, ttl, default capability ttl, zero duration, zero, whole count, allocation instant, expiry deadline, expiry instant, lapsed, revocable, effective status, redemption instant, revocation instant, revoked by reference, revocation reason, reason, filter, liveness query, redeem refusal order, revoke refusal order, status, revocation field, blank, maximum length, redemption failure.
+Term terms: capability, capability token, allocator reference, scope, seam, transition, now, business caller, max redemptions, single-use default, remaining redemptions, ttl, default capability ttl, zero duration, zero, whole count, allocation instant, expiry deadline, expiry instant, lapsed, revocable, effective status, redemption instant, revocation instant, revoked by reference, revocation reason, reason, filter, liveness query, redeem refusal order, status, revocation field, blank, maximum length, redemption failure.
 
 #### Allocate
 
@@ -850,6 +847,8 @@ open:
 ## Decisions
 
 Directional changes only — the turns a future reader must know the pattern took, and why. Everything smaller lives in the commit that made it: `git log -- atoms/capability.md`; the migration that got it here is in [its history](./capability.hist.md).
+
+- **2026-10-21 — Which refusal answers is the Execution Contract's.** *Chose:* [Revoke]'s refuses line listing its refusals in the order the revoke refusal order gave them — not-known, already-terminal, invalid-request, then storage-failure, which answers only at the write — and the order cited from the Execution Contract (Capability requirement 5, Execution Contract Refusal 1); Operation 66, which evaluated the revoke refusal order, deleted to Refusal 1, and Term revoke refusal order deleted with it; rules 201 to 200. Operation 65 and Term redeem refusal order stay the page's own: they order the redemption failure [Redeem] answers inside invalid(redemption failure), an answer and no refusal, and Refusal 1 orders only a refuses line. *Over:* the page stating for itself which of [Revoke]'s refusals answers when several apply. *Because:* the maintainer ruled on 2026-10-21 that the Execution Contract states once that the refusal listed first on an action's refuses line answers; this page's sixth Final Critique had made the cure one specification at a time. What each action answers on every call is unchanged.
 
 - **2026-10-21 — A failed read answers as the Execution Contract says.** *Chose:* the failed read cited from the Execution Contract (Capability requirement 5, Execution Contract Read 1 through 3) and the two rules that restated it deleted to it: the atom-wide state-unavailable (Operation 62) to Read 1, and the allocate refusal order (Operation 64), whose rules after the read all answer invalid-request, to Read 1; state-unavailable off [Redeem]'s answers (Operation 19) and the read's condition off [Read]'s (Operation 50), the read off the redeem and revoke refusal orders, Term database read deleted, state-unavailable off every signature, and the failed read off the case table and the redeem example; rules 203 to 201. *Over:* the page stating for itself what every action answers when the capability records cannot be read. *Because:* the maintainer ruled on 2026-10-21 that the Execution Contract states the failed read once; this page's sixth Final Critique had made one of the cures the contract's Read family is written from. What each action answers on an answered read is unchanged, [Redeem]'s storage failure included.
 
