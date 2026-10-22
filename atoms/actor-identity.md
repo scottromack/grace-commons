@@ -75,7 +75,7 @@ State 7: The atom MUST NOT hold the actor registry's public material.
 
 Term attested: the atom's one state — recorded, and nothing further to become.
 
-Term proof: the cryptographic or procedural artifact binding the actor reference to the action reference — a [Proof]; a signature, a message authentication code, a card-bound proof, a qualified electronic signature, a witnessed approval.
+Term proof: the cryptographic artifact binding the actor reference to the action reference, checked under the public material and never under the credential — a [Proof]; a signature, a card-bound proof, a qualified electronic signature.
 
 Term attestation instant: the wall-time instant the attestation was recorded, stamped from the injected now — an [Attestation Instant].
 
@@ -96,7 +96,7 @@ Capability requirement 3: The deployment MUST supply the registry answer at the 
 Capability requirement 4: The deployment MUST supply the cryptographic material at the seam.
 ```
 
-NOTE: open 2026-10-20-a — the cryptographic material is declared nowhere, and where the proof is computed and the credential and proof checks run is not stated (Capability requirement 4, Operation 1, Operation 9).
+NOTE: open 2026-10-20-a — the cryptographic material is declared nowhere, and where the proof is computed and the credential, revocation and proof checks run is not stated (Capability requirement 4, Operation 1, Operation 9, Operation 36).
 
 ### Operations
 
@@ -150,6 +150,7 @@ Operation 32: [Verify] MUST answer verified ONLY IF proof check EQUALS held.
 Operation 33: IF registry answer EQUALS unreachable THEN [Attest] MUST answer registry-unavailable.
 Deleted: Operation 34. Execution Contract Read 1 owns it.
 Deleted: Operation 35. Execution Contract Refusal 1 owns it.
+Operation 36: IF a revocation status the proof carries names the credential revoked THEN [Attest] MUST answer invalid-credential.
 ```
 
 Term registry answer: material | unknown-actor | unreachable — what the actor registry gives [Attest] or a verifier for an actor reference.
@@ -158,17 +159,18 @@ Term registry view: the registry answer for an actor reference and the public ma
 
 Term proof check: held | failed — the recorded proof run against the recorded action reference and actor reference under the public material; failed also where a revocation status the proof carries names the credential revoked (Revocation status 1).
 
-Term verification set: the attestation's own fields together with the registry's public material for the actor reference — and, where the credential mechanism embeds it, the revocation status the proof carries (Revocation status 1, Revocation status 2); everything [Verify] is allowed to read, and nothing else.
+Term verification set: the attestation's own fields together with the registry view for the actor reference — and, where the credential mechanism embeds it, the revocation status the proof carries (Revocation status 1, Revocation status 2); everything [Verify] is allowed to read, and nothing else.
 
 The case space, and the rule that owns each case:
 
 | Call | Case | Answer | Effect on the attestation records |
 |---|---|---|---|
-| [Attest] | action reference, actor reference and credential not blank, registry answers material, credential validates, database accepts | attestation id | one attestation lands in [Attested] (Operation 1, Operation 2) |
+| [Attest] | action reference, actor reference and credential not blank, registry answers material, credential validates, no revocation status the proof carries names the credential revoked, database accepts | attestation id | one attestation lands in [Attested] (Operation 1, Operation 2) |
 | [Attest] | blank action reference, actor reference or credential | [Invalid Request] | none (Operation 6 through 8) |
 | [Attest] | registry unreachable | [Registry Unavailable] | none (Operation 33) |
 | [Attest] | registry holds no material for the actor | [Invalid Credential] | none (Operation 31) |
 | [Attest] | credential fails against the actor's current material | [Invalid Credential] | none (Operation 9) |
+| [Attest] | a revocation status the proof carries names the credential revoked | [Invalid Credential] | none (Operation 36) |
 | [Attest] | database refuses the write | [Storage Failure] | none (Operation 10) |
 | [Verify] | no attestation under that id | [Not Known] | none — the call reads (Operation 15, Operation 20) |
 | [Verify] | attestation found, registry holds no material for the actor | [Actor Unknown In Registry] | none (Operation 16) |
@@ -209,7 +211,7 @@ NOTE: open 2026-10-20-f — [Read] answers every attestation with no bound and n
 - **Invariant 6 — Self-containment.**
   ```
   Invariant 6.1: [Verify] MUST consult the verification set.
-  Invariant 6.2: [Verify] MUST NOT consult the host's state.
+  Deleted: Invariant 6.2. Invariant 6.3 owns it.
   Invariant 6.3: [Verify] MUST NOT consult a source outside the verification set.
   ```
 - **Invariant 7 — Verification consistency under fixed registry state.**
@@ -227,8 +229,6 @@ NOTE: open 2026-10-20-f — [Read] answers every attestation with no bound and n
   Deleted: Invariant 9.2. Invariant 9.1 and Execution Contract Database 4 own it.
   Deleted: Invariant 9.3. Execution Contract Database 1 owns it.
   ```
-
-NOTE: open 2026-10-20-c — the host's state is declared nowhere, and what Invariant 6.2 adds to Invariant 6.3 is not stated.
 
 NOTE: watch the external answer that moves (Invariant 2.1, Invariant 3.1, Invariant 7.1).
 
@@ -248,7 +248,7 @@ A physician writes a Schedule II prescription. DEA (US Drug Enforcement Administ
 
 ### Payments — chip-and-PIN transaction
 
-A cardholder taps a chip card at a terminal and enters their PIN. The card produces a cryptographic attestation: `attest(transaction_t883, card_c41, card_credential)`. The terminal forwards the attestation with the transaction. The issuer calls verify before authorizing the charge. Months later, the cardholder disputes the charge as unauthorized; the issuer produces attestation and re-verifies. verified → the card was physically present and the correct PIN was entered, shifting liability to the cardholder per scheme rules. failed-verification → the dispute is upheld.
+A cardholder taps a chip card at a terminal and enters their PIN. The card produces a cryptographic attestation: `attest(transaction_t883, card_c41, card_credential)`. The terminal forwards the attestation with the transaction. The issuer calls verify before authorizing the charge. Months later, the cardholder disputes the charge as unauthorized; the issuer produces attestation and re-verifies. verified → the card was physically present and the correct PIN was entered, shifting liability to the cardholder per scheme rules. failed-verification(proof-invalid) → the dispute is upheld.
 
 ### Legal — qualified electronic signature on a contract
 
@@ -273,7 +273,7 @@ The mechanic is identical across all five. What differs: the credential mechanis
 Three scenarios the atom must survive in regulated contexts:
 
 - **Regulator audit.** A regulator asks *"who confirmed commitment c41?"* The auditor follows the commitment record to its [Attestation Id], calls [Verify], and reads [Actor Reference] from the verified [Attestation]. The verification is performed against stored fields and registry public material, so the answer is provable. Invariants 2 and 3 are the structural answer.
-- **Disputed transaction.** An actor claims they did not authorize an action. The investigator retrieves the [Attestation] and calls [Verify]. If [Verified], the [Proof] binds the named actor to the named action at [Attestation Instant] (Invariant 8). The actor cannot plausibly deny it without claiming credential compromise — an out-of-band investigation governed by a separate Compromise Disclosure pattern. If [Failed Verification], the dispute is upheld and the system's record is corrected.
+- **Disputed transaction.** An actor claims they did not authorize an action. The investigator retrieves the [Attestation] and calls [Verify]. If [Verified], the [Proof] binds the named actor to the named action at [Attestation Instant] (Invariant 8). The actor cannot plausibly deny it without claiming credential compromise — an out-of-band investigation governed by a separate Compromise Disclosure pattern. If [Failed Verification] with [Proof Invalid], the dispute is upheld and the system's record is corrected.
 - **Compromised credential discovered.** A [Credential] is later determined to have been compromised before some date. The atom does *not* retroactively invalidate attestations made with that [Credential] — Invariant 1 forbids modifying recorded attestations, and Invariant 8 is conditional on credential integrity. Reinterpretation of attestations made during the compromise window belongs to a Compromise Disclosure composing pattern, which produces *new* records that reframe the previously-verified attestations as untrustworthy. The atom's attestation records remain immutable; the meaning of its records changes via composition, not via mutation.
 
 ---
@@ -286,7 +286,7 @@ This atom's acceptance is provable: an external auditor clears it from the attes
 
 ```
 Check 1.1: An auditor MUST reconstruct EVERY attestation from the attestation's stored fields (Invariant 1.1, State 3).
-Check 1.2: An auditor MUST NOT need state beyond those fields and the registry's public material (Invariant 6.1, Invariant 6.2).
+Check 1.2: An auditor MUST NOT need state beyond those fields and the registry's public material (Invariant 6.1, Invariant 6.3).
 Check 2.1: An auditor MUST verify an attestation without privileged access to the system (Invariant 6.1, Operation 21).
 Check 3.1: An auditor MUST confirm that the proof holds against the recorded action reference and against no other action (Invariant 2.1, Invariant 2.2).
 Check 3.2: An auditor MUST confirm that the proof holds against the recorded actor reference and against no other actor (Invariant 3.1, Invariant 3.2).
@@ -454,7 +454,7 @@ Projection: attestation_id
 
 #### Proof
 
-The cryptographic or procedural artifact that binds the [Actor Reference] to the [Action Reference] — a signature, a MAC (message authentication code), a smart-card-bound attestation, a qualified electronic signature. Computed by [Attest] from the [Credential] and the injected cryptographic material, stored on the [Attestation], and the thing [Verify] re-checks. Set on [Attest], immutable thereafter.
+The cryptographic artifact that binds the [Actor Reference] to the [Action Reference] — a signature, a smart-card-bound attestation, a qualified electronic signature — checked under the actor registry's public material and never under the [Credential]. Computed by [Attest] from the [Credential] and the injected cryptographic material, stored on the [Attestation], and the thing [Verify] re-checks. Set on [Attest], immutable thereafter.
 
 Kind:       Field
 Field of:   Attestation
@@ -549,7 +549,7 @@ Projection: invalid-request
 
 #### Invalid Credential
 
-The refusal [Attest] returns when the supplied [Credential] does not validate against the actor registry's current material for the [Actor Reference], or when the registry holds no public material for the [Actor Reference]. A guard rejection that fails before any database write; no [Attestation] is recorded.
+The refusal [Attest] returns when the supplied [Credential] does not validate against the actor registry's current material for the [Actor Reference], when the registry holds no public material for the [Actor Reference], or when a revocation status the [Proof] carries names the [Credential] revoked. A guard rejection that fails before any database write; no [Attestation] is recorded.
 
 Kind:       Member
 Member of:  the Attest rejection
@@ -626,12 +626,11 @@ It inherits from:
 ```
 status: partially resolved
 formal: not applicable — vote no 2026-06-03
-last gate: 2026-10-22 — Final Critique 6, the council's second round on the page, three fresh readers on free models (GRID Nemotron 3 Ultra, EOS Beam, Linus GLM-5.3 Flash), each handed only the round's reading set, three passes on one text (frozen at efcdfbb); the round rests on three counted passes — foundational count 3 after triage (14 reports: 4 standing in 3 rows; 4 sent down; 6 rejected), all Kind A: the attestation set could never shrink beside the composing pattern that owns an attestation's retention; the binding invariants broke at a registry rotation the page calls lawful; and [Verify] read the registry apart from the registry answer the seam supplies, so two builds decided one call under two registry views; 18 refining reports, 7 rhetorical reports; not clean; every foundational finding cured, every refining finding cured, routed or answered; 2026-10-20 — Final Critique 5, the council's first round on the page — foundational count 7, all cured, not clean
+last gate: 2026-10-22 — Final Critique 7, the council's third round on the page and the first on its text since the repeats sweep (dbdb385), three fresh readers on free models (GRID Nemotron 3 Ultra, EOS Beam, Linus GLM-5.3 Flash), each handed only the round's reading set, three passes on one text (frozen at aa074d9); the round rests on three counted passes — foundational count 2 after triage (19 reports: 2 standing; 13 sent down; 4 rejected), both Kind A: Term proof admitted a message authentication code and a witnessed approval, which no proof check under the public material checks without the credential, so a deployment choosing one broke Invariant 3.2 or failed Check 2.1; and [Attest] recorded an attestation under a credential the proof's own revocation status names revoked, whose proof then never verifies, against Invariant 2.1 and Invariant 3.1; 17 refining reports, 5 rhetorical reports; not clean; every foundational finding cured, every refining finding cured, routed or answered; 2026-10-22 — Final Critique 6, the council's second round on the page — foundational count 3, all cured, not clean; 2026-10-20 — Final Critique 5, the council's first round on the page — foundational count 7, all cured, not clean
 
 open:
-- 2026-10-20-a · refining · Term seam; Capability requirement 4 · the cryptographic material the host injects is declared nowhere (GRACE-lang Closed vocabulary 4), and whether the host computes the proof and runs the credential and proof checks at the seam, or hands the transition a primitive the transition calls, is unstated against Execution Contract Logic confinement 1 and 3 → declare the cryptographic material; say where each computation runs
+- 2026-10-20-a · refining · Term seam; Capability requirement 4; Operation 36 · the cryptographic material the host injects is declared nowhere (GRACE-lang Closed vocabulary 4), and whether the host computes the proof and runs the credential, revocation and proof checks at the seam, or hands the transition a primitive the transition calls, is unstated against Execution Contract Logic confinement 1 and 3 → declare the cryptographic material; say where each computation runs
 - 2026-10-20-b · refining · Invariant 6.3; Verification caching 1 · a cached verification result is no part of the verification set, so a cache inside [Verify] consults a source Invariant 6.3 bounds, though a cached and a fresh answer agree under one registry view → name the cache in the verification set, or place the cache in front of [Verify]
-- 2026-10-20-c · refining · Invariant 6.2 · the host's state is declared nowhere and overlaps Invariant 6.3 → declare the host's state, or say what Invariant 6.2 adds to Invariant 6.3
 - 2026-10-20-e · refining · Non-goal 15 · carrying an actor reference across trust domains is forbidden with no owner named, where the Non-goal family names who owns what the atom does not do → name the owner, or a forthcoming pattern
 - 2026-10-20-f · refining · [Read]; Term bounds · [Read] answers every attestation with no bound and no key → a bound, or a keyed read
 - 2026-10-22-a · refining · Term seam; Term transition; Term business caller; Term now; State 2 · each term cites the section titled Logic Confinement Principle in `execution-contract.md`, which declares none of them, and State 2 reads a transition as the contract's move out of a state where Term transition declares the evaluation of one call → settle the corpus's one seam wording where every specification carrying it can take the cure
@@ -640,6 +639,8 @@ open:
 ## Decisions
 
 Directional changes only — the turns a future reader must know the pattern took, and why. Everything smaller lives in the commit that made it: `git log -- atoms/actor-identity.md`; the rounds and the migration that got it here are in [its history](./actor-identity.hist.md).
+
+- **2026-10-22 — A proof is what the public material checks without the credential, and a credential its own proof names revoked does not attest.** *Chose:* Term proof held to the cryptographic artifact checked under the public material and never under the credential — a signature, a card-bound proof, a qualified electronic signature — so a message authentication code and a witnessed approval are no proof the atom records; Operation 36, [Attest] answering invalid-credential where a revocation status the proof carries names the credential revoked; Invariant 6.2 deleted to Invariant 6.3, which already bars every source outside the verification set, and the verification set naming the registry view [Verify] decides on; rules 95 to 95. *Over:* a declared proof kind checked under the shared secret it was made with, or under nothing, beside a check an auditor runs without privileged access and an invariant that no other actor's proof verifies; an attestation recorded under a credential whose own proof names it revoked, which then never verifies. *Because:* Final Critique 7 found each a divergence between conforming builds or a lawful state breaking a stated invariant or check, and the page says the first itself: a proof is what anyone can later check without needing the credential, and the atom breaks down where the mechanism is a shared secret anyone holding it could forge with. What each action answers on every other call is unchanged.
 
 - **2026-10-22 — The wiring and a composed purge are the Execution Contract's.** *Chose:* External check 1, the auditor reading which composing patterns a deployment wired in from the deployment's own declaration, deleted to Execution Contract Conformance 9, with Check 5.1's tombstone, which named it, now naming the contract; Invariant 9.1 read by Execution Contract Database 6, so the atom deletes no attestation and a purge a composing Retention Window declares is answered by that pattern's records; both labels cited on Capability requirement 2; rules 96 to 95. *Over:* the page stating for itself that the wiring is read outside the records and that its no-removal rule binds the atom alone. *Because:* the maintainer ruled on 2026-10-22 that five repeated cures are each stated once, the wiring declaration and the composed erasure among them; this page's fifth and sixth Final Critiques had made those two cures one specification at a time. What each action does and answers is unchanged.
 
