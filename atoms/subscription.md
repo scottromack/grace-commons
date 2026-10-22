@@ -26,7 +26,7 @@ The pattern deliberately does no delivering: it does not know when events happen
 
 At most one active subscription can exist per subscriber-and-scope pair, which prevents the duplicate deliveries that double subscriptions would cause, and cancellation is immediate and permanent while the full history (including cancelled subscriptions) stays queryable for audit.
 
-The most common uses are: notifying users of events relevant to them (task assignments, escalations, alerts), broadcasting policy or system changes to a declared audience, and building any system where actors must opt in to event categories with the ability to opt out. The atom is the first entry in the `messaging` category.
+The most common uses are: notifying users of events relevant to them (task assignments, escalations, alerts), broadcasting policy or system changes to a declared audience, and building any system where actors must opt in to event categories with the ability to opt out. This atom — an atomic concept, a freestanding pattern whose specification names no other pattern — is the first entry in the `messaging` category.
 
 ---
 
@@ -42,7 +42,7 @@ A subscription is a standing answer to *who wants to hear about this?* — recor
 ```
 Identity 1: The atom MUST identify a subscription by the subscription id.
 Identity 2: The host MUST allocate a subscription id at the atom's seam.
-Identity 3: The transition MUST NOT allocate a subscription id.
+Deleted: Identity 3. Execution Contract Logic confinement 3 owns it.
 Identity 4: The atom MUST NOT reuse a subscription id.
 Identity 5: The atom MUST NOT identify a subscription by the subscriber reference and the event scope.
 Identity 6: The deployment MUST draw a subscription id from a cryptographically secure source.
@@ -208,7 +208,7 @@ The case space, and the rule that owns each case:
   ```
 - **Invariant 9 — Timestamp ordering.**
   ```
-  Invariant 9.1: IF cancellation instant DOES NOT EQUAL blank THEN subscription instant MUST NOT EXCEED cancellation instant.
+  Invariant 9.1: IF cancellation instant DOES NOT EQUAL blank THEN cancellation instant MUST NOT PRECEDE subscription instant.
   ```
 
 ## Examples
@@ -253,10 +253,17 @@ Check 2.1: An auditor MUST find no two active subscriptions sharing a pair (Inva
 Check 3.1: An auditor MUST find cancellation instant present on EVERY cancelled subscription (State 3).
 Check 3.2: An auditor MUST find no cancelled subscription in a [Subscribers For] answer (Invariant 3.2).
 Check 4.1: An auditor MUST find a fresh subscription id on EVERY re-subscription of a pair (Invariant 4.1, Invariant 5.1).
-Check 5.1: An auditor MUST identify which composing patterns a deployment wired in (Composition note 1).
+Deleted: Check 5.1. External check 1 owns it.
 ```
 
-NOTE: EVERY check names the rule the check tests.
+NOTE: EVERY check names the rule the check tests. Which composing patterns a deployment wired in is the deployment's own declaration, not a stored field (External check 1).
+
+### External checks
+
+```
+External check 1: An auditor MUST identify from the deployment's own declaration which composing patterns the deployment wired in (Composition note 1).
+NOTE: watch the wiring declaration (External check 1).
+```
 
 ## Non-goals
 
@@ -343,7 +350,7 @@ Term actors: the atom; the host; the transition; the deployment; a composing pat
 
 Term records: subscription — one standing interest, carrying subscription id, subscriber reference, event scope, subscription instant, status and, once withdrawn, cancellation instant.
 
-Term record verbs: recover, identify, allocate, reuse, draw, carry, stand, stamp, offer, delete, hold, record, answer, interpret, accept, refuse, match, order, write, read, supply, change, move, rest, share, fire, create, deliver, expand, guarantee, expire, cancel, compose, gate, enumerate, reach, own, call, find, reconstruct, declare, exceed.
+Term record verbs: recover, identify, allocate, reuse, draw, carry, stand, stamp, offer, delete, hold, record, answer, interpret, accept, refuse, match, order, write, read, supply, change, move, rest, share, fire, create, deliver, expand, guarantee, expire, cancel, compose, gate, enumerate, reach, own, call, find, reconstruct, declare, precede.
 
 Term value sets: status = active | cancelled.
 
@@ -405,7 +412,7 @@ Projection: event_scope
 
 #### Subscription Instant
 
-The wall-time the subscription was recorded, injected at the seam on [Subscribe], immutable (Invariant 1). Its lower-bound relation to [Cancellation Instant] is best-effort (Invariant 9).
+The wall-time the subscription was recorded, injected at the seam on [Subscribe], immutable (Invariant 1). Its lower-bound relation to [Cancellation Instant] holds (Invariant 9.1, Execution Contract Logic confinement 7).
 
 Kind:       Field
 Field of:   the subscription
@@ -421,7 +428,7 @@ Projection: status
 
 #### Cancellation Instant
 
-The wall-time the subscription was cancelled, injected at the seam on [Cancel]. Absent while [Active]; set once and immutable thereafter; ≥ [Subscription Instant] (best-effort, Invariant 9).
+The wall-time the subscription was cancelled, injected at the seam on [Cancel]. Absent while [Active]; set once and immutable thereafter; ≥ [Subscription Instant] (Invariant 9.1, Execution Contract Logic confinement 7).
 
 Kind:       Field
 Field of:   the subscription
@@ -515,10 +522,10 @@ Projection: not-active
 
 ## Standards references
 
-- **Observer pattern** (GoF) — the canonical object-oriented formulation of the subscriber/publisher relationship. Subscription is the structured-natural-language realization of the Subscriber role: an actor with a named interest in a class of events.
-- **Publish-subscribe** (Birman & Joseph, 1987; subsequently AMQP, Apache Kafka, etc.) — topic-based subscription as the mechanism for decoupling event producers from consumers. Subscription records the consumer-side interest; the composing fanout pattern is the broker.
-- **WebSub** (W3C Recommendation) — web-native publish-subscribe over HTTP. The subscription resource in WebSub is the direct Web analog of this atom.
-- **XMPP PubSub** (XEP-0060) — structured publish-subscribe over XMPP. Subscription nodes are the protocol-level analog.
+- **Observer pattern** (GoF — the Gang of Four, the four authors of *Design Patterns*) — the canonical object-oriented formulation of the subscriber/publisher relationship. Subscription is the structured-natural-language realization of the Subscriber role: an actor with a named interest in a class of events.
+- **Publish-subscribe** (Birman & Joseph, 1987; subsequently AMQP (Advanced Message Queuing Protocol — the open messaging-middleware standard), Apache Kafka, etc.) — topic-based subscription as the mechanism for decoupling event producers from consumers. Subscription records the consumer-side interest; the composing fanout pattern is the broker.
+- **WebSub** (W3C — World Wide Web Consortium, the web's standards body — Recommendation) — web-native publish-subscribe over HTTP (HyperText Transfer Protocol — the request/response protocol of the web). The subscription resource in WebSub is the Web analog of this atom.
+- **XMPP PubSub** (XEP-0060, an XMPP Extension Protocol — publish-subscribe over the Extensible Messaging and Presence Protocol) — structured publish-subscribe over XMPP. Subscription nodes are the protocol-level analog.
 - **Daniel Jackson, *The Essence of Software*** — freestanding-atom posture; [Event Scope] as an opaque reference whose semantics are defined by the composing system.
 - **Eiffel's design-by-contract** — preconditions on [Subscribe] and [Cancel]; named rejection reasons.
 
@@ -533,9 +540,13 @@ Projection: not-active
 ```
 status: partially resolved
 formal: verified — subscription.als + 1 twin, 2026-06-03
-last gate: 2026-06-18 — Final Critique 4, fresh reader — clean
+last gate: 2026-10-21 — Final Critique 5, the council's first round on the page and the first on its Store-contract rewrite (c28dab7), three fresh readers on free models (GRID Nemotron 3 Ultra, EOS MiniMax M3.1 Flash, Linus GLM-5.3 Flash), each handed only the round's reading set, three passes on one text (frozen at 7283f70); the round rests on three counted passes — foundational count 1 after triage (13 reports: 2 standing, merged into 1; 4 sent down; 7 rejected), Kind A: a conformance check asked the auditor for the deployment's wiring, which no subscription record carries; 19 refining reports, 6 rhetorical reports; not clean; every foundational finding cured in place; 2026-06-18 — Final Critique 4, fresh reader — clean
 
-open: none
+open:
+- 2026-10-21-a · refining · Term id entropy; Identity 6; Subscription Id entry · Term id entropy gives 128 bits as a default a deployment may replace, and no rule reads it, while the Subscription Id entry and Final Critique 4's text state a floor; a deployment declaring 16 bits draws ids a caller can guess, and [Cancel] takes the id as the whole authorization (Operation 12) → a floor the deployment's declaration may not go below, read by a rule, as Session's Capability requirement 4
+- 2026-10-21-b · refining · Operation 10, 20, 21; Invariant 2.2, 3.1, 3.2; State 6; Lost ledger 2; Composition note 3a · propositions owned twice: Operation 20 and Invariant 3.2, word for word; Operation 10 and Invariant 3.1; State 6 and Invariant 2.2; Lost ledger 2 and Composition note 3a, word for word, the second a lettered label outside a WHEN; Operation 21 beside Term event scope's matched exactly → one owner each (GRACE-lang Authority 3), each tombstone checked against the pages that cite it and against what subscription.als checks (Invariant 2, Invariant 3)
+- 2026-10-21-c · refining · Invariant 7.1, 7.2, 8.2 · the rules rest on the active set, which no Term declares (GRACE-lang Closed vocabulary 4) → declare the active set, or name the active subscriptions in each rule
+- 2026-10-21-d · refining · Term seam; Term transition; Term business caller; Term now · each cites the section titled Logic Confinement Principle in `execution-contract.md` as declaring it, and that section declares none of the four → cite the contract's labels that hold each, in the form every page carrying the one seam wording can take
 ```
 
 ## Decisions
@@ -543,5 +554,7 @@ open: none
 Directional changes only — the turns a future reader must know the pattern took, and why. Everything smaller lives in the commit that made it: `git log -- atoms/subscription.md`; the migration that got it here is in [its history](./subscription.hist.md).
 
 - **2026-10-20 — The store's guarantees cited, not restated.** *Chose:* the subscription store supplied under Execution Contract Store 1 through 4 (Capability requirement 5), and the seven rules that restated them tombstoned to their owner — Cancel atomicity 1, a cancel changing status and cancellation instant together, to Store 1; Cancel atomicity 2 and 3, no crash inside [Cancel] leaving a cancelled status without its cancellation instant or a cancellation instant on an active subscription, to Store 1 and Store 3; Pair race 1, the pair check and the write one transition, to Store 1 and Store 2; Pair race 2, no two active subscriptions for one pair under concurrent calls, and Pair race 3, a store's uniqueness constraint discharging Pair race 1, to Store 2; Operation 15, a refused write leaving the store as the call found the store, to Store 3; rules 99 to 93. *Over:* the atom restating, for its own store, what every deployment's store guarantees. *Because:* the maintainer ruled 2026-10-12 that the corpus takes a store's specification, never the store, and `execution-contract.md` writes it once as the Store contract. At most one active subscription per pair stays the atom's own (Invariant 6.1, Operation 6), as do the atom deleting no subscription (State 7) and the recorded fields that never change (Invariant 1.1). The subscription ids a composing pattern recorded are that pattern's records, not this atom's, so their durability stays the composing pattern's to own (Lost ledger 2, Composition note 3a) and no Store rule the atom cites reaches them. A scope's audience at a past instant is read from the subscription and cancellation instants each subscription carries, and [Subscribers For] answers unordered, so the atom cites neither History 1 nor Order 1. What the atom does for its domain is unchanged.
+
+- **2026-10-21 — The wiring declaration is an external check.** *Chose:* Check 5.1 deleted to External check 1, the auditor reading which composing patterns a deployment wired in from the deployment's own declaration. *Over:* a conformance check no subscription record can answer, under an acceptance an external auditor clears from the subscription records' stored fields. *Because:* Final Critique 5 found that a conforming deployment fails it, and the corpus held the cure: the external check to which seven atoms had moved the same check. Smaller fixes rode with it, none changing what a rule means: Invariant 9.1 compares the two instants with PRECEDES (GRACE-lang Earned vocabulary 18), and the term entries no longer call the order best-effort, since it rests on a clock whose readings never go backward, which the deployment owns (Execution Contract Logic confinement 7, to which Clock semantics 1 through 3 were deleted); Identity 3 is deleted to Execution Contract Logic confinement 3, which it restated. What each action does on a call it admits is unchanged.
 
 NOTE: End of Subscription.
