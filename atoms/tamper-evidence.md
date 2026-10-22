@@ -40,6 +40,8 @@ Identity 7: The atom MUST NOT identify evidence by sealing instant.
 Identity 8: Two seals over one record set MUST carry two evidence ids.
 ```
 
+NOTE: open 2026-10-22-a — the evidence id's source is the host's allocation under Identity (Identity 2), not a Capability requirement.
+
 Term evidence: one recorded commitment over a record set — an [Evidence]; carries the proof and nothing that changes.
 
 Term evidence id: the opaque value naming one evidence — an [Evidence Id].
@@ -84,7 +86,11 @@ Term evidence field: evidence id | record set reference | proof | sealing instan
 Capability requirement 1: The deployment MUST supply now at the seam.
 Capability requirement 2: The deployment MUST supply the seal records PER Execution Contract Database 1, Execution Contract Database 3, Execution Contract Database 4, Execution Contract Read 1 through 3, Execution Contract Refusal 1 and Execution Contract Conformance 9.
 Capability requirement 3: The deployment MUST declare the deployment's mechanism.
+Capability requirement 4: The deployment MUST supply the cryptographic material at the seam.
+Capability requirement 5: The deployment MUST supply record set match at the seam.
 ```
+
+NOTE: open 2026-10-21-a — the cryptographic material is declared nowhere, Operation 1 computes the proof from the mechanism credential where the [Proof] entry adds the material, and where the proof is computed and the seal check runs is not stated (Capability requirement 4, Operation 1, Operation 9).
 
 ### Operations
 
@@ -126,21 +132,25 @@ Operation 18: IF record set match EQUALS yes AND seal check EQUALS failed THEN [
 Operation 19: IF record set match EQUALS yes AND seal check EQUALS held THEN [Verify] MUST answer verified.
 Operation 20: [Verify] MUST NOT write.
 Deleted: Operation 21. Capability requirement 1 owns it.
-Operation 22: The host MUST supply the cryptographic material at the atom's seam.
-Operation 22a: The host MUST supply record set match at the atom's seam.
+Deleted: Operation 22. Capability requirement 4 owns it.
+Deleted: Operation 22a. Capability requirement 5 owns it.
 Operation 22b: The atom MUST NOT judge record set match.
 Deleted: Operation 23. Execution Contract Logic confinement 3 owns it.
 Deleted: Operation 24. Execution Contract Logic confinement 3 owns it.
 Operation 25: The business caller MUST NOT supply sealing instant.
 Operation 26: The implementation MUST own the mechanism.
 Operation 27: [Read] MUST answer EVERY evidence.
-Operation 28: [Read] MUST answer an evidence's evidence id, record set reference, proof, sealing instant AND anchoring instant.
+Operation 28: [Read] MUST answer EVERY evidence field an evidence carries.
 Operation 29: [Read] MUST NOT write.
 Deleted: Operation 30. Operation 27 and Execution Contract Read 2 own it.
 Deleted: Operation 31. Execution Contract Read 1 owns it.
 Deleted: Operation 32. Execution Contract Refusal 1 owns it.
 Operation 33: [Verify] MUST answer verified ONLY IF seal check EQUALS held.
 ```
+
+NOTE: open 2026-10-21-b — Operation 7's *is absent* carries no condition operator, the admitted EQUALS blank takes in the empty credential Operation 8 accepts, and a credential carrying only whitespace has no rule.
+
+NOTE: watch host obligations — this atom sets no maximum length on a string input, where [Duplicate Prevention](./duplicate-prevention.md) declares a cap and [Provenance](./provenance.md) obliges the deployment to set one. Three postures, and the *host obligations* docket row carries the count — a watch flag states the pressure, never a census nothing reads.
 
 Term record set match: yes | no — the host's answer, injected at the seam, to whether the presented original record set is the record set the evidence's record set reference names. A different record set answers no; the named record set answers yes even where its content differs, and the content difference is for seal check to decide. The atom cannot judge it: record set reference is opaque and Identity rules forbid interpreting it, so the party that resolved the reference at seal time is the party that answers here (council read 13).
 
@@ -149,6 +159,8 @@ Term seal check: held | failed | unavailable — the mechanism's verification fu
 Term original record set: the record set a verifier presents at [Verify] — an [Original Record Set]; the proof commits to content, so the verifier holds the content.
 
 Term verification set: the evidence's own fields, the presented original record set, the host-injected record set match, and, where the mechanism's verification function consults one, that mechanism's own external anchor; everything [Verify] is allowed to read, and nothing else.
+
+Term anchor change: a change in what the mechanism's own external anchor answers the mechanism's verification function for an evidence's proof, such as a revocation or a withdrawal of trust the anchoring authority records; a mechanism whose verification function consults no external anchor has none.
 
 The case space, and the rule that owns each case:
 
@@ -181,7 +193,7 @@ Where two [Seal] cases hold at once, the refusal listed first on [Seal]'s refuse
   ```
 - **Invariant 3 — Record-set binding.**
   ```
-  Invariant 3.1: A recorded proof MUST verify against the record set presented at [Seal].
+  Invariant 3.1: IF no anchor change EXISTS for a recorded proof THEN the recorded proof MUST verify against the record set presented at [Seal].
   Invariant 3.2: A recorded proof MUST NOT verify against another record set.
   ```
 - **Invariant 4 — Verification self-containment given the originating records.**
@@ -201,7 +213,7 @@ Where two [Seal] cases hold at once, the refusal listed first on [Seal]'s refuse
   ```
 - **Invariant 7 — Verification consistency under a fixed record set.**
   ```
-  Invariant 7.1: IF no verification answering mechanism-verification-unavailable EXISTS among two verifications of one evidence against one record set THEN the two verifications MUST answer alike.
+  Invariant 7.1: IF no verification answering mechanism-verification-unavailable EXISTS among two verifications of one evidence against one record set AND no anchor change EXISTS between the two verifications THEN the two verifications MUST answer alike.
   ```
 - **Invariant 8 — Mechanism opacity.**
   ```
@@ -215,13 +227,19 @@ Where two [Seal] cases hold at once, the refusal listed first on [Seal]'s refuse
   Deleted: Invariant 9.3. Execution Contract Database 1 owns it.
   ```
 
+NOTE: watch the external answer that moves (Invariant 3.1, Invariant 7.1).
+
+NOTE: open 2026-10-21-c — deprecated is declared nowhere, and Invariant 2.3's re-seal has no trigger, bound or owner.
+
+NOTE: open 2026-10-21-d — deletion surface, revocation surface, unkeyed mechanism, another record set, the host's state, the atom's contract and the evidence set carry rules and are declared nowhere (State 6, State 7, Operation 8, Invariant 3.2, Invariant 4.2, Invariant 8.1, Invariant 9.2).
+
 ## Examples
 
 The same atom, five regulated domains, identical mechanic.
 
 ### Financial — transaction-log anchoring under SOX
 
-A bank's settlement system seals each day's transaction journal: `seal(journal_2026-05-10, hsm_signing_key) → evidence_a91`. The mechanism is a SHA-256 (Secure Hash Algorithm, 256-bit — a standard cryptographic hash function) hash chain over the day's transactions, with the chain's tail signed by an HSM-bound (Hardware Security Module — a dedicated tamper-resistant device for keys) key. Once per hour, the chain tail is anchored to an RFC 3161 qualified timestamp authority; the authority's timestamp token is recorded as [Anchoring Instant] on the seal. Seven years later, during a SOX (Sarbanes-Oxley Act — US financial reporting law) section 404 audit, the external auditor presents the journal and `verify(a91, journal_2026-05-10) → verified` — confirming the day's transactions were not altered after the seal, with the qualified timestamp giving an upper bound on when they could have been forged.
+A bank's settlement system seals each day's transaction journal: `seal(journal_2026-05-10, hsm_signing_key) → evidence_a91`. The mechanism is a SHA-256 (Secure Hash Algorithm, 256-bit — a standard cryptographic hash function) hash chain over the day's transactions, with the chain's tail signed by an HSM-bound (Hardware Security Module — a dedicated tamper-resistant device for keys) key. At seal time, the chain tail is anchored to an RFC (Request for Comments — the Internet's numbered standards series) 3161 qualified timestamp authority, and the time on the authority's timestamp token is recorded as [Anchoring Instant] on the seal. Seven years later, during a SOX (Sarbanes-Oxley Act — US financial reporting law) section 404 audit, the external auditor presents the journal and `verify(a91, journal_2026-05-10) → verified` — confirming the day's transactions were not altered after the seal, with the qualified timestamp giving an upper bound on when they could have been forged.
 
 ### Healthcare — EHR change-log integrity under HIPAA and 21 CFR Part 11
 
@@ -229,11 +247,13 @@ A hospital EHR (Electronic Health Record — the digital patient chart system) a
 
 ### Source control — Git's commit DAG
 
-A developer pushes a commit. Git computes the cryptographic hash (a fixed-length fingerprint computed from data — any change to the data produces a different fingerprint) of the commit object — which includes the hash of its parent commits — and stores the object under that hash. The hash *is* the [Proof]: the commit's content, its parents, and (transitively) the entire history are committed to in one chain. `git fsck` is the verification function; tampering anywhere in the history produces a hash mismatch detectable from the repository alone. The commit DAG is a worked open-source instance of this atom — [Evidence Id] = commit hash, [Record Set Reference] = the commit's tree and parents, [Proof] = the chained hashes, [Sealing Instant] = the commit timestamp. Linus Torvalds built the world's most widely-deployed Tamper Evidence implementation; the atom names what it does in domain-neutral terms.
+A developer pushes a commit. Git computes the cryptographic hash (a fixed-length fingerprint computed from data — any change to the data produces a different fingerprint) of the commit object — which includes the hash of its parent commits — and stores the object under that hash. The hash *is* the [Proof]: the commit's content, its parents, and (transitively) the entire history are committed to in one chain. `git fsck` is the verification function; tampering anywhere in the history produces a hash mismatch detectable from the repository alone. The commit DAG (directed acyclic graph — each commit points to its parents, and nothing points back) is a worked open-source instance of this atom — [Evidence Id] = commit hash, [Record Set Reference] = the commit's tree and parents, [Proof] = the chained hashes, [Sealing Instant] = the commit timestamp. Linus Torvalds built the world's most widely-deployed Tamper Evidence implementation; the atom names what it does in domain-neutral terms.
+
+NOTE: open 2026-10-21-e — the Git example names a content-derived commit hash as [Evidence Id], which the host does not allocate, and a content-addressed tree as [Record Set Reference], which a tampered tree no longer names.
 
 ### Legal — document notarization under RFC 3161 trusted timestamping
 
-A law firm timestamps an executed contract via a qualified Time-Stamp Authority (TSA — a trusted third party that issues signed proofs that data existed at a given time). The mechanism is RFC 3161: a hash of the contract is submitted to the TSA; the TSA returns a signed TimeStampToken binding the hash to a trusted time. The token *is* the [Proof]; [Anchoring Instant] is set from the TSA's timestamp. Any future dispute — opposing counsel claims the contract was modified post-signing — is resolved by `verify(evidence, contract_pdf) → verified | failed-verification(proof-invalid)`. eIDAS Regulation (Electronic Identification, Authentication and Trust Services — the EU regulation governing electronic signatures and timestamps) gives qualified electronic timestamps presumed evidentiary effect across the EU.
+A law firm timestamps an executed contract via a qualified Time-Stamp Authority (TSA — a trusted third party that issues signed proofs that data existed at a given time). The mechanism is RFC 3161: a hash of the contract is submitted to the TSA; the TSA returns a signed TimeStampToken binding the hash to a trusted time. The token *is* the [Proof]; [Anchoring Instant] is set from the TSA's timestamp. Any future dispute — opposing counsel claims the contract was modified post-signing — is resolved by `verify(evidence, contract_pdf) → verified | failed-verification(proof-invalid)`. eIDAS Regulation (Electronic Identification, Authentication and Trust Services — the EU (European Union) regulation governing electronic signatures and timestamps) gives qualified electronic timestamps presumed evidentiary effect across the EU.
 
 ### Payments — PAN-handling audit under PCI DSS
 
@@ -349,6 +369,8 @@ Concurrent seal 1: Two seals over one record set MUST stand as independent evide
 Concurrent seal 2: The atom MUST NOT order two seals over one record set.
 ```
 
+NOTE: open 2026-10-21-f — *seal* names both the action [Seal] and the evidence it records (Identity 8, Concurrent seal 1).
+
 ### Retention coupling
 
 ```
@@ -362,7 +384,10 @@ Retention coupling 3: A deployment MUST NOT read a seal over destroyed records a
 ```
 Verification caching 1: An implementation MAY cache a verification result.
 Verification caching 2: An implementation MUST NOT cache a verification result across two record-set states.
+Verification caching 3: An implementation MUST NOT cache a verification result across an anchor change.
 ```
+
+NOTE: open 2026-10-21-i — what a cached verification result is keyed by is not stated (Verification caching 2, Verification caching 3).
 
 ## Composition notes
 
@@ -396,7 +421,7 @@ Term cadences: empty — a seal cadence is the composing pattern's (Composition 
 
 Term qualifiers: migrated — rewritten in GRACE lang v0.35 (2026-09-11); sound — a mechanism with no known practical collision or forgery attack.
 
-Term terms: now, evidence, evidence id, record set reference, seam, transition, business caller, sealed, proof, sealing instant, anchoring instant, mechanism credential, evidence field, record set match, seal check, original record set, verification set, mechanism failure reason, verification failure.
+Term terms: now, evidence, evidence id, record set reference, seam, transition, business caller, sealed, proof, sealing instant, anchoring instant, mechanism credential, evidence field, record set match, seal check, original record set, verification set, anchor change, mechanism failure reason, verification failure.
 
 #### Evidence
 
@@ -611,12 +636,12 @@ Tamper Evidence is a foundational compliance primitive with deep cryptographic a
 
 - **ISO/IEC 27001 clause A.12.4 (Logging and Monitoring)** — the International Organization for Standardization / International Electrotechnical Commission information-security baseline for log integrity. The atom's no-silent-rewrite guarantee is the structural form.
 - **FIPS 180-4 (Secure Hash Standard)** — a Federal Information Processing Standard (mandatory US government computing standard); the cryptographic foundation for hash-chain and Merkle-tree mechanisms. The atom is hash-function-neutral; FIPS 180-4 is the canonical family anchor.
-- **RFC 3161 (Time-Stamp Protocol)** — the IETF standard for trusted timestamping. Qualified RFC 3161 timestamps are the canonical external-anchoring mechanism for time-of-seal verifiability under eIDAS and elsewhere.
+- **RFC 3161 (Time-Stamp Protocol)** — the IETF (Internet Engineering Task Force) standard for trusted timestamping. Qualified RFC 3161 timestamps are the canonical external-anchoring mechanism for time-of-seal verifiability under eIDAS and elsewhere.
 - **NIST (National Institute of Standards and Technology — US federal standards body) SP 800-92 (Guide to Computer Security Log Management)** — names log-integrity protection as a baseline requirement; tamper-evidence is the structural mechanism.
-- **21 CFR Part 11 — FDA electronic records and electronic signatures** — requires electronic records to be protected against unauthorized modification and to bear evidence of any change. Composes with Actor Identity for the attribution of any modification (which Part 11 also requires).
-- **DoD 5015.02-STD — Design criteria for electronic records management software** — requires records-management systems to protect against unauthorized alteration of records and audit data.
+- **21 CFR Part 11 — FDA (US Food and Drug Administration) electronic records and electronic signatures** — requires electronic records to be protected against unauthorized modification and to bear evidence of any change. Composes with Actor Identity for the attribution of any modification (which Part 11 also requires).
+- **DoD (US Department of Defense) 5015.02-STD — Design criteria for electronic records management software** — requires records-management systems to protect against unauthorized alteration of records and audit data.
 - **GDPR (EU General Data Protection Regulation) Article 32 (Security of Processing)** — names integrity as a property of processing that controllers must ensure with appropriate technical measures.
-- **W3C Verifiable Credentials Data Model** — a standards-track format for tamper-evident attestations, with cryptographic proofs that travel with the data.
+- **W3C (World Wide Web Consortium — the web standards body) Verifiable Credentials Data Model** — a standards-track format for tamper-evident attestations, with cryptographic proofs that travel with the data.
 - **Certificate Transparency (RFC 9162)** — a worked public Merkle-tree append-only (records can be added but never changed or deleted) log; the canonical real-world deployment of public, verifiable, externally-anchored tamper-evidence at internet scale.
 - **Git's commit DAG** — the most widely-deployed open-source reference for hash-chain tamper-evidence. Every modern source-control system inherits the design.
 - **PCI DSS Requirement 10 (Track and monitor all access to network resources and cardholder data)** — including 10.5 (secure audit trails so they cannot be altered). The atom is the structural form.
@@ -640,19 +665,17 @@ It inherits from:
 ```
 status: partially resolved
 formal: not applicable — vote no 2026-06-03
-last gate: 2026-10-21 — Final Critique 5, the council's first round on the page and the first on its Store-contract rewrite (32e8a98), three fresh readers on free models (GRID Nemotron 3 Ultra, EOS MiniMax M3.1 Flash, Linus MiMo V2.6 Flash), each handed only the round's reading set, three passes on one text (frozen at 97a873e); the round rests on three counted passes — foundational count 8 after triage (20 reports, 12 sent down to refining; 3 refining reports raised), all Kind A: Invariant 2.1 obliged proof-invalid for the wrong record set Operation 16 answers record-set-mismatch, and for an altered one the mechanism could not check; record set match left identity or content to the host, so a host comparing content reported tampering as a caller error, and Invariant 3.1 was false of every tampered record set; Invariant 7.1 forbade the transient mechanism-verification-unavailable beside an earlier verified; the verification set left out the record set match the verdict rules read; a failed read of the seal store had no answer the page allowed; the contract claimed every sound mechanism, a chain keyed by a shared secret among them, which no auditor can check from the records; no rule obliged verified for a proof that holds; and two conformance checks read deployment declarations the records do not carry; 27 refining reports, 7 rhetorical reports; not clean; every foundational finding cured in place; 2026-06-18 — Final Critique 4, fresh reader — clean
+last gate: 2026-10-22 — Final Critique 6, the council's second round on the page and the first on its text since the database sweep (cefac92), the terms sweep (7d422ec), the read sweep (755814a), the refusal-order sweep (c2f4e9a) and the repeats sweep (dbdb385), three fresh readers on free models (GRID Nemotron 3 Ultra, EOS Beam, Linus GLM-5.3 Flash), each handed only the round's reading set, three passes on one text (frozen at 003c11a), the Mercury 3 shadow pass ruled out unrun, its session unable to authenticate; the round rests on three counted passes — foundational count 1 after triage (10 reports: 1 standing; 6 sent down; 3 rejected), Kind A: a change in what the mechanism's external anchor answers, such as a revocation the anchoring authority records, turned a verified evidence into a failing one, while Invariant 7.1 held two verifications against one record set to one answer and Invariant 3.1 held every recorded proof to verifying; 13 refining reports, 3 rhetorical reports; not clean; every foundational finding cured, every refining finding cured, routed or answered; 2026-10-21 — Final Critique 5, the council's first round on the page — foundational count 8, all cured, not clean; 2026-06-18 — Final Critique 4, fresh reader — clean
 
 open:
-- 2026-10-21-a · refining · Term seam; Operation 1, 9, 22 · the cryptographic material the host injects is declared nowhere (GRACE-lang Closed vocabulary 4), the seam names neither the record set [Seal] computes over nor the proof and the mechanism's answer the transition records, and whether the host computes the proof and runs the seal check at the seam or hands the transition a primitive the transition calls is unstated against Execution Contract Logic confinement 1 and 3 → declare the cryptographic material; name each value the host injects; say where each computation runs, as Actor Identity's 2026-10-20-a asks of its own
+- 2026-10-21-a · refining · Term seam; Operation 1, 9; Capability requirement 4 · the cryptographic material the deployment supplies is declared nowhere (GRACE-lang Closed vocabulary 4), Operation 1 computes the proof from the mechanism credential where the [Proof] entry adds the material, the seam names neither the record set [Seal] computes over nor the proof and the mechanism's answer the transition records, and whether the host computes the proof and runs the seal check at the seam or hands the transition a primitive the transition calls is unstated against Execution Contract Logic confinement 1 and 3 → declare the cryptographic material; name each value the host injects; say where each computation runs, as Actor Identity's 2026-10-20-a asks of its own
 - 2026-10-21-b · refining · Operation 7, 8; Term mechanism credential · Operation 7 tests "the mechanism credential is absent" in no admitted condition form, while the admitted form, EQUALS blank, takes in the empty credential Operation 8 accepts (GRACE-lang Term blank, Earned vocabulary 7), and a credential carrying only whitespace has no rule → one declared term for the credential's three blank states, each with its answer
 - 2026-10-21-c · refining · Invariant 2.2, 2.3; Term qualifiers · deprecated is declared nowhere, Term qualifiers declaring sound alone, and Invariant 2.3 obliges a re-seal with no trigger, bound or owner → declare deprecated or write the rule in sound; name the re-seal's trigger and owner
 - 2026-10-21-d · refining · State 6, 7; Operation 8; Invariant 3.2, 4.2, 8.1, 9.2 · deletion surface, revocation surface, unkeyed mechanism, another record set, the host's state, the atom's contract and the evidence set carry rules and are declared nowhere → declare each, or write each rule in declared names
 - 2026-10-21-e · refining · Examples, source control; Identity 2, 3 · the Git example names a content-derived commit hash as [Evidence Id], which the host does not allocate, and a content-addressed tree as [Record Set Reference], which a tampered tree no longer names, so tampering would read as a different record set → say what the analogy keeps and what it does not
 - 2026-10-21-f · refining · Summary; Identity 8; Concurrent seal 1 · seal names both the action [Seal] and the evidence it records → one name each
-- 2026-10-21-g · refining · Operation 28; State 4 · [Read] answers anchoring instant for every evidence, while State 4 lets an evidence carry none → answer it where the evidence carries one
-- 2026-10-21-h · refining · Examples, financial; Operation 4; Non-goal 3 · the chain tail is anchored hourly and the token recorded on a daily seal, while Operation 4 carries only an anchor made at seal time and Non-goal 3 forbids anchoring once the seal lands → anchor at seal time, or leave the hourly anchors to External Anchoring
-- 2026-10-21-i · refining · Verification caching 2 · what a cached result is keyed by is unstated, so two conforming caches drop a result at different moments → name the key
-- 2026-10-21-j · refining · acronyms · W3C, DAG, RFC, IETF, FDA and DoD are not spelled out at first use (Pass 1's acronym check) → spell each out
+- 2026-10-21-i · refining · Verification caching 2, 3 · what a cached result is keyed by is unstated, so two conforming caches drop a result at different moments → name the key
+- 2026-10-22-a · refining · Identity 2; Capability requirement · the evidence id's source is named as the host's allocation under Identity and not among the Capability requirements, where spec-format's atom shape lists an id source under Capability requirement; Event Log routed the same form (its 2026-10-22-b), twenty atoms writing the host's allocation under Identity and four having the deployment supply id material under Capability requirement 2 → one form for the corpus, as the seam normalization made one for now
 ```
 
 ## Decisions
@@ -668,5 +691,7 @@ Directional changes only — the turns a future reader must know the pattern too
 - **2026-10-21 — Which refusal answers is the Execution Contract's.** *Chose:* [Seal]'s refuses line kept as the page wrote it, already in the order the seal refusal order gave — invalid-request, mechanism-failure, then storage-failure, which answers only at the write — and the order cited from the Execution Contract (Capability requirement 2, Execution Contract Refusal 1); Operation 32, which evaluated the seal refusal order, deleted to Refusal 1, and Term seal refusal order deleted with it; rules 104 to 103. *Over:* the page stating for itself which of [Seal]'s refusals answers when both apply. *Because:* the maintainer ruled on 2026-10-21 that the Execution Contract states once that the refusal listed first on an action's refuses line answers; this page's fifth Final Critique had made the cure one specification at a time. What each action answers on every call is unchanged.
 
 - **2026-10-22 — The wiring is read outside the records, as the Execution Contract says.** *Chose:* External check 3, the auditor reading which composing patterns a deployment wired in from the deployment's own declaration, deleted to Execution Contract Conformance 9, with Check 6.1's tombstone, which named it, now naming the contract, the wiring off the NOTE listing what the seal records do not carry, and the label cited on Capability requirement 2; rules 103 to 102. *Over:* the page stating for itself that the wiring is an external check. *Because:* the maintainer ruled on 2026-10-22 that five repeated cures are each stated once, the wiring declaration among them; this page's fifth Final Critique had made the cure one specification at a time. What each action does and answers is unchanged.
+
+- **2026-10-22 — The external anchor's answer can change, and the invariants that read the seal check say so.** *Chose:* a change in what the mechanism's own external anchor answers its verification function for an evidence's proof, such as a revocation or a withdrawal of trust the anchoring authority records, named once (Term anchor change); two verifications of one evidence against one record set held to one answer only where no anchor change falls between them (Invariant 7.1), a recorded proof held to verifying against the record set presented at [Seal] only where no anchor change has reached it (Invariant 3.1), and no cached result carried across an anchor change (Verification caching 3). *Over:* a consistency invariant and a binding invariant that a lawful revocation at the anchoring authority breaks on a mechanism the contract covers, with a cache free to answer verified across the change where a fresh verification answers proof-invalid. *Because:* Final Critique 6 found the two answers parting, and the verification set already takes in the mechanism's own external anchor, whose records the atom does not own (External check 2); a mechanism judging expiry against the verify-time clock stays outside the contract, since the verification set does not take in now (Invariant 4.3, Invariant 8.1). Actor Identity's sixth round held its consistency invariant to one registry view and its binding invariants to the material in force at attestation instant, the same shape. The round also moved the cryptographic material and record set match into the Capability requirements the deployment supplies (Capability requirement 4, Capability requirement 5; Operation 22 and Operation 22a tombstoned to them), as the seam normalization moved now. Compositions affected: Audit Trail, which rests on Invariant 3 and Invariant 7, reads them under an unchanged anchor when its round reads them.
 
 NOTE: End of Tamper Evidence.

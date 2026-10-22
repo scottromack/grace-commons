@@ -230,6 +230,8 @@ NOTE: open 2026-10-20-f — [Read] answers every attestation with no bound and n
 
 NOTE: open 2026-10-20-c — the host's state is declared nowhere, and what Invariant 6.2 adds to Invariant 6.3 is not stated.
 
+NOTE: watch the external answer that moves (Invariant 2.1, Invariant 3.1, Invariant 7.1).
+
 Action binding and actor binding give the *attribution* property — *who authorized this?* answered structurally. Immutability and self-containment give *survivability* — an attestation stays verifiable independent of the system that recorded it. The non-repudiation contract names the bar the atom is built to clear, and its condition.
 
 ## Examples
