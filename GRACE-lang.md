@@ -678,6 +678,7 @@ A cure the corpus keeps making one specification at a time is counted here until
 - **the outcome that carries a value**: a signature arm carrying a value inside the outcome or beside it, which Closed vocabulary 21 parses as one opaque token. Two: Invitation's `already-resolved(stored terminal)` and Audit Trail's `(compensation-window)`.
 - **the wire surface**: the places a name keeps its code spelling, which no rule enumerates: a term entry's `Projection:` line, a `formal:` provenance line, a code span, a signature block, a fenced event schema, a braced shape inline, a dotted path or a call, the label position and a bounds parenthetical. Nine instances across four sweeps; a finding against the set itself is still missing.
 - **the external answer that moves**: a verification reading a source the atom does not own, such as a registry's public material or an external anchor's records, whose answer can change between two calls, while the page's binding and consistency invariants were written as if it could not; each cure holds them to one answer of the source. Two: Actor Identity (Invariant 2.1, 3.1 and 7.1) and Tamper Evidence (Invariant 3.1 and 7.1).
+- **the host's state**: a rule keeping a verification from *the host's state* beside a verification set closed with *and nothing else* that takes in a value the host injects, so the rule either forbids what the set has the verification consult or restates the set's own bar; each cure deletes the rule to that bar. Two: Actor Identity (Invariant 6.2) and Tamper Evidence (Invariant 4.2).
 
 ---
 

@@ -172,7 +172,7 @@ The case space, and the rule that owns each case:
 | [Seal] | database refuses the write | [Storage Failure] | none — the proof is discarded (Operation 10, Operation 11) |
 | [Verify] | no evidence under that id | [Not Known] | none — the call reads (Operation 15, Operation 20) |
 | [Verify] | evidence found, wrong records presented | [Record Set Mismatch] | none (Operation 16) |
-| [Verify] | right records, verification service unreachable | [Mechanism Verification Unavailable] | none (Operation 17) |
+| [Verify] | right records, seal check unavailable | [Mechanism Verification Unavailable] | none (Operation 17) |
 | [Verify] | right records, proof does not hold | [Proof Invalid] | none (Operation 18) |
 | [Verify] | right records, proof holds | [Verified] | none (Operation 19, Operation 33) |
 | [Read] | any call | every evidence, with its stored fields | none (Operation 27 through 29) |
@@ -199,7 +199,7 @@ Where two [Seal] cases hold at once, the refusal listed first on [Seal]'s refuse
 - **Invariant 4 — Verification self-containment given the originating records.**
   ```
   Invariant 4.1: [Verify] MUST consult the verification set.
-  Invariant 4.2: [Verify] MUST NOT consult the host's state.
+  Deleted: Invariant 4.2. Invariant 4.3 owns it.
   Invariant 4.3: [Verify] MUST NOT consult a source outside the verification set.
   ```
 - **Invariant 5 — Id stability.**
@@ -223,15 +223,17 @@ Where two [Seal] cases hold at once, the refusal listed first on [Seal]'s refuse
 - **Invariant 9 — Seal record durability.**
   ```
   Invariant 9.1: The atom MUST NOT delete an evidence.
-  Invariant 9.2: The evidence set MUST NOT shrink.
+  Invariant 9.2: The seal records MUST NOT shrink.
   Deleted: Invariant 9.3. Execution Contract Database 1 owns it.
   ```
 
 NOTE: watch the external answer that moves (Invariant 3.1, Invariant 7.1).
 
+NOTE: watch the host's state (Invariant 4.2).
+
 NOTE: open 2026-10-21-c — deprecated is declared nowhere, and Invariant 2.3's re-seal has no trigger, bound or owner.
 
-NOTE: open 2026-10-21-d — deletion surface, revocation surface, unkeyed mechanism, another record set, the host's state, the atom's contract and the evidence set carry rules and are declared nowhere (State 6, State 7, Operation 8, Invariant 3.2, Invariant 4.2, Invariant 8.1, Invariant 9.2).
+NOTE: open 2026-10-21-d — deletion surface, revocation surface, unkeyed mechanism, another record set and the atom's contract carry rules and are declared nowhere (State 6, State 7, Operation 8, Invariant 3.2, Invariant 8.1).
 
 ## Examples
 
@@ -247,9 +249,7 @@ A hospital EHR (Electronic Health Record — the digital patient chart system) a
 
 ### Source control — Git's commit DAG
 
-A developer pushes a commit. Git computes the cryptographic hash (a fixed-length fingerprint computed from data — any change to the data produces a different fingerprint) of the commit object — which includes the hash of its parent commits — and stores the object under that hash. The hash *is* the [Proof]: the commit's content, its parents, and (transitively) the entire history are committed to in one chain. `git fsck` is the verification function; tampering anywhere in the history produces a hash mismatch detectable from the repository alone. The commit DAG (directed acyclic graph — each commit points to its parents, and nothing points back) is a worked open-source instance of this atom — [Evidence Id] = commit hash, [Record Set Reference] = the commit's tree and parents, [Proof] = the chained hashes, [Sealing Instant] = the commit timestamp. Linus Torvalds built the world's most widely-deployed Tamper Evidence implementation; the atom names what it does in domain-neutral terms.
-
-NOTE: open 2026-10-21-e — the Git example names a content-derived commit hash as [Evidence Id], which the host does not allocate, and a content-addressed tree as [Record Set Reference], which a tampered tree no longer names.
+A developer pushes a commit. Git computes the cryptographic hash (a fixed-length fingerprint computed from data — any change to the data produces a different fingerprint) of the commit object — which includes the hash of its parent commits — and stores the object under that hash. The hash *is* the [Proof]: the commit's content, its parents, and (transitively) the entire history are committed to in one chain. `git fsck` is the verification function; tampering anywhere in the history produces a hash mismatch detectable from the repository alone. The commit DAG (directed acyclic graph — each commit points to its parents, and nothing points back) shows this atom's mechanic without being an instance of it. The analogy keeps the [Proof], the chained hashes, and the verification function, `git fsck`. It does not keep the names or the clock: Git names a commit by its own content hash, where the host allocates an [Evidence Id] (Identity 2); it names a tree by its content, so a tampered tree loses the name its commit recorded and reads as a different record set, where a [Record Set Reference] names the record set whatever its content (Term record set match); and the committer sets the commit timestamp, where [Sealing Instant] is stamped from the injected now (Operation 3, Operation 25). Git is the world's most widely deployed tamper-evident history; the atom names what it does in domain-neutral terms.
 
 ### Legal — document notarization under RFC 3161 trusted timestamping
 
@@ -277,7 +277,7 @@ verify(evidence_id: "evidence_a91", original_record_set: journal_2026-05-10_back
 → verified
 ```
 
-verified confirms the backup matches what was sealed; proof-invalid on the altered version confirms the alteration occurred after [Sealing Instant]. The forensic window is bounded by the two seal timestamps.
+verified confirms the backup matches what was sealed; proof-invalid on the altered version confirms the alteration occurred after [Sealing Instant]. One seal covers the journal, so the forensic window opens at that seal, and no later seal closes it.
 
 **Wrong record set presented — [Record Set Mismatch].** A verifier accidentally presents the wrong day's journal to a seal:
 
@@ -293,7 +293,7 @@ The presented record set does not match the [Record Set Reference] the [Evidence
 Three scenarios the atom must survive in regulated contexts:
 
 - **Regulator integrity audit.** A regulator asks *"how do I know these records weren't rewritten after the fact?"* The auditor takes the original record set from the host, the [Evidence Id] from the seal records, and runs [Verify] — independently, with their own implementation of the mechanism's verification function. [Verified] is a structural guarantee, not a procedural promise. Where the [Evidence] carries [Anchoring Instant] from a qualified TSA outside the host's control, the audit additionally establishes an upper bound on the time the records could have been forged. Invariants 2 and 3 are the structural answer.
-- **Breach forensics — "when was the record altered?"** An incident responder discovers anomalous data. They query the seal records for every [Evidence] whose [Record Set Reference] covers the suspect records, in [Sealing Instant] order. Running [Verify] on each, they identify the most recent [Evidence] that returns [Verified] (records intact at that time) and the next [Evidence] that returns [Failed Verification] (records altered between those two seal times). The forensic window is bounded by the seal cadence; tighter cadence narrows the window. The atom does not name *who* altered the records — that is a separate Forensic Attribution composition — but it names *when* with the resolution of the seal schedule.
+- **Breach forensics — "when was the record altered?"** An incident responder discovers anomalous data. They query the seal records for every [Evidence] whose [Record Set Reference] covers the suspect records, in [Sealing Instant] order. Running [Verify] on each, they identify the most recent [Evidence] that returns [Failed Verification] (records intact when it sealed them) and the next [Evidence] that returns [Verified] (the alteration already in place when it sealed): the records were altered between those two seal times, and where no later [Evidence] returns [Verified], after the last failing one. The forensic window is bounded by the seal cadence once a later seal lands; tighter cadence narrows the window. The atom does not name *who* altered the records — that is a separate Forensic Attribution composition — but it names *when* with the resolution of the seal schedule.
 - **False-tamper-claim disproof.** A counterparty claims *"you modified the contract after I signed."* The system presents the contract and the [Evidence]; `verify(evidence, contract) → verified`. The claim is structurally disproven against the unmodified record set the system retains; the counterparty's burden shifts to producing a different record set they claim is the authoritative one, at which point the dispute becomes about *which version is canonical* rather than *whether it was tampered with*. The atom answers the second question; the first belongs to the Content Lock or Document Versioning composing pattern.
 
 ---
@@ -306,13 +306,13 @@ This atom's acceptance is provable: an external auditor clears it from the seal 
 
 ```
 Check 1.1: An auditor MUST reconstruct EVERY seal from the evidence's stored fields (Invariant 1.1, State 3).
-Check 1.2: An auditor MUST NOT need state beyond those fields and the originating record set (Invariant 4.1, Invariant 4.2).
+Check 1.2: An auditor MUST NOT need state beyond those fields and the originating record set (Invariant 4.1, Invariant 4.3).
 Check 2.1: An auditor MUST verify an evidence with the auditor's own implementation of the mechanism's verification function (Invariant 4.1, Operation 13).
-Check 2.2: An auditor MUST NOT need privileged access to the system to verify (Invariant 4.2).
+Check 2.2: An auditor MUST NOT need privileged access to the system to verify (Invariant 4.3).
 Check 3.1: An auditor MUST confirm that a single-byte change to the record set yields proof-invalid (Invariant 2.1, Operation 18).
 Check 4.1: An auditor MUST read verified, failed-verification and not-known as three distinct answers (Operation 14).
 Check 4.2: An auditor MUST read record-set-mismatch, proof-invalid and mechanism-verification-unavailable as three distinct reasons (Operation 16, Operation 17, Operation 18).
-Check 5.1: IF the mechanism anchors at seal time THEN an auditor MUST bound a detected tampering between two adjacent anchoring instant times (Invariant 2.1, Identity 8).
+Check 5.1: IF the mechanism anchors at seal time THEN an auditor MUST bound a detected tampering below by the anchoring instant of EVERY evidence over the record set whose verification answers proof-invalid (Invariant 2.1, Operation 4).
 Check 5.2: An auditor MUST read a bound between two adjacent sealing instant times as best-effort (Non-goal 8).
 Deleted: Check 6.1. Execution Contract Conformance 9 owns it.
 Deleted: Check 6.2. External check 4 owns it.
@@ -665,14 +665,13 @@ It inherits from:
 ```
 status: partially resolved
 formal: not applicable — vote no 2026-06-03
-last gate: 2026-10-22 — Final Critique 6, the council's second round on the page and the first on its text since the database sweep (cefac92), the terms sweep (7d422ec), the read sweep (755814a), the refusal-order sweep (c2f4e9a) and the repeats sweep (dbdb385), three fresh readers on free models (GRID Nemotron 3 Ultra, EOS Beam, Linus GLM-5.3 Flash), each handed only the round's reading set, three passes on one text (frozen at 003c11a), the Mercury 3 shadow pass ruled out unrun, its session unable to authenticate; the round rests on three counted passes — foundational count 1 after triage (10 reports: 1 standing; 6 sent down; 3 rejected), Kind A: a change in what the mechanism's external anchor answers, such as a revocation the anchoring authority records, turned a verified evidence into a failing one, while Invariant 7.1 held two verifications against one record set to one answer and Invariant 3.1 held every recorded proof to verifying; 13 refining reports, 3 rhetorical reports; not clean; every foundational finding cured, every refining finding cured, routed or answered; 2026-10-21 — Final Critique 5, the council's first round on the page — foundational count 8, all cured, not clean; 2026-06-18 — Final Critique 4, fresh reader — clean
+last gate: 2026-10-22 — Final Critique 7, the council's third round on the page and the first on its text since Final Critique 6's settle (aa074d9), three fresh readers on free models (GRID Nemotron 3 Ultra, EOS Beam, Linus GLM-5.3 Flash), each handed only the round's reading set, three passes on one text (frozen at c5e3290); the round rests on three counted passes — foundational count 1 after triage (20 reports: 1 standing; 16 sent down onto six of the page's eight flagged open lines; 3 rejected), Kind A: Check 5.1 obliged an auditor to bound a detected tampering between two adjacent anchoring instants, which a record set sealed once cannot give; 17 refining reports, 2 rhetorical reports; not clean; every foundational finding cured, every refining finding cured, routed or answered, open line 2026-10-21-e cured; 2026-10-22 — Final Critique 6, the council's second round on the page — foundational count 1, cured, not clean; 2026-10-21 — Final Critique 5, the council's first round on the page — foundational count 8, all cured, not clean; 2026-06-18 — Final Critique 4, fresh reader — clean
 
 open:
 - 2026-10-21-a · refining · Term seam; Operation 1, 9; Capability requirement 4 · the cryptographic material the deployment supplies is declared nowhere (GRACE-lang Closed vocabulary 4), Operation 1 computes the proof from the mechanism credential where the [Proof] entry adds the material, the seam names neither the record set [Seal] computes over nor the proof and the mechanism's answer the transition records, and whether the host computes the proof and runs the seal check at the seam or hands the transition a primitive the transition calls is unstated against Execution Contract Logic confinement 1 and 3 → declare the cryptographic material; name each value the host injects; say where each computation runs, as Actor Identity's 2026-10-20-a asks of its own
 - 2026-10-21-b · refining · Operation 7, 8; Term mechanism credential · Operation 7 tests "the mechanism credential is absent" in no admitted condition form, while the admitted form, EQUALS blank, takes in the empty credential Operation 8 accepts (GRACE-lang Term blank, Earned vocabulary 7), and a credential carrying only whitespace has no rule → one declared term for the credential's three blank states, each with its answer
 - 2026-10-21-c · refining · Invariant 2.2, 2.3; Term qualifiers · deprecated is declared nowhere, Term qualifiers declaring sound alone, and Invariant 2.3 obliges a re-seal with no trigger, bound or owner → declare deprecated or write the rule in sound; name the re-seal's trigger and owner
-- 2026-10-21-d · refining · State 6, 7; Operation 8; Invariant 3.2, 4.2, 8.1, 9.2 · deletion surface, revocation surface, unkeyed mechanism, another record set, the host's state, the atom's contract and the evidence set carry rules and are declared nowhere → declare each, or write each rule in declared names
-- 2026-10-21-e · refining · Examples, source control; Identity 2, 3 · the Git example names a content-derived commit hash as [Evidence Id], which the host does not allocate, and a content-addressed tree as [Record Set Reference], which a tampered tree no longer names, so tampering would read as a different record set → say what the analogy keeps and what it does not
+- 2026-10-21-d · refining · State 6, 7; Operation 8; Invariant 3.2, 8.1 · deletion surface, revocation surface, unkeyed mechanism, another record set and the atom's contract carry rules and are declared nowhere → declare each, or write each rule in declared names
 - 2026-10-21-f · refining · Summary; Identity 8; Concurrent seal 1 · seal names both the action [Seal] and the evidence it records → one name each
 - 2026-10-21-i · refining · Verification caching 2, 3 · what a cached result is keyed by is unstated, so two conforming caches drop a result at different moments → name the key
 - 2026-10-22-a · refining · Identity 2; Capability requirement · the evidence id's source is named as the host's allocation under Identity and not among the Capability requirements, where spec-format's atom shape lists an id source under Capability requirement; Event Log routed the same form (its 2026-10-22-b), twenty atoms writing the host's allocation under Identity and four having the deployment supply id material under Capability requirement 2 → one form for the corpus, as the seam normalization made one for now
@@ -693,5 +692,7 @@ Directional changes only — the turns a future reader must know the pattern too
 - **2026-10-22 — The wiring is read outside the records, as the Execution Contract says.** *Chose:* External check 3, the auditor reading which composing patterns a deployment wired in from the deployment's own declaration, deleted to Execution Contract Conformance 9, with Check 6.1's tombstone, which named it, now naming the contract, the wiring off the NOTE listing what the seal records do not carry, and the label cited on Capability requirement 2; rules 103 to 102. *Over:* the page stating for itself that the wiring is an external check. *Because:* the maintainer ruled on 2026-10-22 that five repeated cures are each stated once, the wiring declaration among them; this page's fifth Final Critique had made the cure one specification at a time. What each action does and answers is unchanged.
 
 - **2026-10-22 — The external anchor's answer can change, and the invariants that read the seal check say so.** *Chose:* a change in what the mechanism's own external anchor answers its verification function for an evidence's proof, such as a revocation or a withdrawal of trust the anchoring authority records, named once (Term anchor change); two verifications of one evidence against one record set held to one answer only where no anchor change falls between them (Invariant 7.1), a recorded proof held to verifying against the record set presented at [Seal] only where no anchor change has reached it (Invariant 3.1), and no cached result carried across an anchor change (Verification caching 3). *Over:* a consistency invariant and a binding invariant that a lawful revocation at the anchoring authority breaks on a mechanism the contract covers, with a cache free to answer verified across the change where a fresh verification answers proof-invalid. *Because:* Final Critique 6 found the two answers parting, and the verification set already takes in the mechanism's own external anchor, whose records the atom does not own (External check 2); a mechanism judging expiry against the verify-time clock stays outside the contract, since the verification set does not take in now (Invariant 4.3, Invariant 8.1). Actor Identity's sixth round held its consistency invariant to one registry view and its binding invariants to the material in force at attestation instant, the same shape. The round also moved the cryptographic material and record set match into the Capability requirements the deployment supplies (Capability requirement 4, Capability requirement 5; Operation 22 and Operation 22a tombstoned to them), as the seam normalization moved now. Compositions affected: Audit Trail, which rests on Invariant 3 and Invariant 7, reads them under an unchanged anchor when its round reads them.
+
+- **2026-10-22 — A detected tampering is bounded below by each seal it fails.** *Chose:* the anchored bound an auditor draws for a detected tampering stated as the one the records always give: the anchoring instant of every evidence over the record set whose verification answers proof-invalid bounds the tampering below (Check 5.1, now citing Invariant 2.1 and Operation 4), since such an evidence sealed the records as they stood before the alteration; the Breach forensics scenario closing the window at the next evidence that verifies the altered records, where one exists, and the Rejection paths' journal, which one seal covers, leaving it open. *Over:* a check obliging a bound between two adjacent anchoring instants, which a record set sealed once cannot give and a tampering made after the last seal over a record set never has, and a scenario reading the window from a verifying seal to the failing seal after it, a pair that brackets when the altered records were written rather than when they were altered. *Because:* Final Critique 7 found a conforming deployment failing the page's own check: nothing obliges a second seal over a record set (Term cadences, Non-goal 14), and the Financial and Payments examples seal each day's records once. The round also deleted Invariant 4.2, *[Verify] MUST NOT consult the host's state*, to Invariant 4.3, as Actor Identity's seventh round deleted its twin: on every reading of Term verification set the rule either forbade the host-injected record set match Invariant 4.1 has [Verify] consult or restated Invariant 4.3. Compositions affected: none; Audit Trail rests on Invariant 4 as a family, which keeps Invariant 4.1 and Invariant 4.3.
 
 NOTE: End of Tamper Evidence.
