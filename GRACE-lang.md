@@ -1,4 +1,4 @@
-# GRACE lang v0.66 — Minimal Earned Grammar
+# GRACE lang v0.67 — Minimal Earned Grammar
 
 Grace lang is a controlled semantic metalanguage for domain specifications. Grace UX is abstracted microcopy and interaction behavior derived from verified logical state.
 
@@ -473,15 +473,16 @@ Closed vocabulary 17: A specification MUST NOT redeclare a constituent's term.
 Closed vocabulary 18: A specification MUST NOT declare `EXCEED` or `IS AUTHORITATIVE FOR` as record verbs.
 Closed vocabulary 19: The parser MUST resolve an inflected form of a declared record verb to the declared form.
 Closed vocabulary 20: A specification MUST declare EVERY action's outcomes in a signature block.
-Closed vocabulary 21: The parser MUST read a signature block as the value set of the action's outcomes.
-Closed vocabulary 22: A rule MUST NOT land an outcome absent from the action's signature block.
+Closed vocabulary 21: The parser MUST read a signature block, together with the family answers of Closed vocabulary 30, as the value set of the action's outcomes.
+Closed vocabulary 22: A rule MUST NOT land an outcome absent from the action's signature block and from the family answers of Closed vocabulary 30.
 Closed vocabulary 23: The parser MUST NOT infer order from an answers line's arms.
 Closed vocabulary 24: A writer MUST write a signature in the signature form.
 Closed vocabulary 25: The parser MUST read the arms of an answers line as the action's answers.
 Closed vocabulary 26: The parser MUST read the arms of a refuses line as the action's refusals.
 Closed vocabulary 27: A writer MUST declare a record an action answers as a term.
 Closed vocabulary 28: The parser MUST keep the order of a refuses line's arms.
-Closed vocabulary 29: The parser MUST read a rule whose subject takes in several actions as binding each such action only where the action's signature block carries the outcome the rule lands.
+Closed vocabulary 29: The parser MUST read a rule whose subject takes in several actions as binding each such action only where the action's signature block, together with the family answers of Closed vocabulary 30, carries the outcome the rule lands.
+Closed vocabulary 30: The parser MUST read an action's outcomes as the action's signature block together with the answers the Execution Contract's families give EVERY action, Read 1's `state-unavailable` included, counting each family answer as written under Value set 3.
 ```
 
 Term category: actor | record | record verb | value set | bound | cadence | term | qualifier | cited | composing pattern.
