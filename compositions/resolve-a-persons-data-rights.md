@@ -966,6 +966,7 @@ Concurrency 1: The composition MUST hold the request section over EVERY fulfillm
 Concurrency 2: The composition MUST read the Consent answer a disposition was recorded under as that disposition's basis.
 Concurrency 3: The composition MUST take the request section by Lease's try_take carrying the section term as duration.
 Concurrency 4: The composition MUST mint a fresh holder value PER take (Lease Identity 6).
+NOTE: watch the fresh holder value (Concurrency 4).
 Concurrency 5: The composition MUST namespace the request section's key apart from EVERY other key on the Lease host (Lease Composition note 4).
 Concurrency 6: IF Lease's try_take answers held OR no answer THEN a fulfillment MUST answer section-unavailable.
 Concurrency 7: A fulfillment MUST NOT read the request's state BEFORE taking the request section.

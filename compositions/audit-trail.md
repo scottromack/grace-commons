@@ -466,6 +466,7 @@ Twenty-one knobs — Legal Hold among them, declared with the capability it swit
   Per-act critical section 1a: The host MUST namespace a critical section's key by the act's kind.
   Per-act critical section 1b: The host MUST share the critical section across EVERY process serving the instance.
   Per-act critical section 1c: A holder MUST present a holder value minted fresh for EVERY attempt.
+  NOTE: watch the fresh holder value (Per-act critical section 1c).
   Per-act critical section 1d: The composition MUST bind Lease Sizing 1 through 9, with call pause bound as the atom's call pause bound and EVERY completion bound, the scan leg's budget and the half's work bound as the atom's work bounds.
   Per-act critical section 2: The host MUST release the critical section ONLY on the holder's release or at the lease's instant.
   Per-act critical section 2a: A holder that abandoned a call MUST NOT release the critical section BEFORE the lease's instant.
@@ -1615,6 +1616,7 @@ Concurrency 1d: The implementation MUST NOT take the sealing lock outside [Seal 
 Concurrency 1g: [Seal Now] MUST take the sealing lock by Lease's take, waiting no longer than the atom's arrival term.
 Deleted: Concurrency 1e. Execution Contract Database 2 owns it: [Seal Now]'s re-read, lock check and seal are one transaction, and [Seal Now] makes no abandoned call for the sealing lock to be kept through.
 Concurrency 1f: A [Seal Now] MUST present a holder value minted fresh for EVERY attempt.
+NOTE: watch the fresh holder value (Concurrency 1f).
 Concurrency 2: The implementation MUST serialize the cascade per event id.
 Deleted: Concurrency 3. Execution Contract Database 2 owns it.
 Deleted: Concurrency 3a. Execution Contract Database 2 owns it: the destruction-record write reads the purged events it adds to inside its own transaction, and the composition names no serialization to hold.

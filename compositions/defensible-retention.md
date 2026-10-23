@@ -976,6 +976,7 @@ Concurrency 8: The composition MUST NOT record an intent BEFORE taking the recor
 Concurrency 9: The composition MUST NOT record a gate record BEFORE taking the record section.
 Concurrency 10: The composition MUST take the record section by Lease's try_take carrying the section term as duration.
 Concurrency 11: The composition MUST mint a fresh holder value PER take (Lease Identity 6).
+NOTE: watch the fresh holder value (Concurrency 11).
 Concurrency 12: IF Lease's try_take answers held OR no answer THEN an action MUST answer section-unavailable.
 Concurrency 13: The composition MUST take one reading of Lease's remaining PER committing call.
 Concurrency 14: The composition MUST make a committing call ONLY IF the lease reading taken for the call EQUALS live (Lease Sizing 3).
