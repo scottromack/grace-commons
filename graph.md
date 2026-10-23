@@ -48,6 +48,7 @@ pattern count hides.
 | [Personal Todo](./atoms/personal-todo.html) | 1 | shared-todo |
 | [Provenance](./atoms/provenance.html) | 1 | chain-of-custody |
 | [Tamper Evidence](./atoms/tamper-evidence.html) | 1 | audit-trail |
+| [Cart](./atoms/cart.html) | 0 | *(none yet)* |
 | [Medication Order](./atoms/medication-order.html) | 0 | *(none yet)* |
 | [Observation](./atoms/observation.html) | 0 | *(none yet)* |
 
@@ -125,6 +126,7 @@ flowchart LR
     a_assignment["Assignment · 3"]
     a_capability["Capability · 2"]
     a_capacity_constraint_enforcement["Capacity Constraint Enforcement · 1"]
+    a_cart["Cart"]
     a_consent["Consent · 2"]
     a_credential["Credential · 5"]
     a_duplicate_prevention["Duplicate Prevention · 2"]
@@ -258,7 +260,7 @@ flowchart LR
   classDef atomSec fill:#16394a,stroke:#f7dc6f,color:#fdfbef;
   classDef comp fill:#3b2a52,stroke:#c7a8e8,color:#f2ebfa;
   classDef compReg fill:#52341f,stroke:#f0b27a,color:#fdf2e9;
-  class a_actor_identity,a_approval_step,a_assignment,a_capability,a_capacity_constraint_enforcement,a_consent,a_credential,a_duplicate_prevention,a_event_log,a_invitation,a_lease,a_legal_hold,a_medication_order,a_message_preference,a_notification,a_observation,a_party_identity,a_permissions,a_personal_todo,a_provenance,a_provisional_commitment,a_retention_window,a_selective_disclosure,a_session,a_state_machine,a_subscription,a_tamper_evidence atom;
+  class a_actor_identity,a_approval_step,a_assignment,a_capability,a_capacity_constraint_enforcement,a_cart,a_consent,a_credential,a_duplicate_prevention,a_event_log,a_invitation,a_lease,a_legal_hold,a_medication_order,a_message_preference,a_notification,a_observation,a_party_identity,a_permissions,a_personal_todo,a_provenance,a_provisional_commitment,a_retention_window,a_selective_disclosure,a_session,a_state_machine,a_subscription,a_tamper_evidence atom;
   class a_actor_identity,a_approval_step,a_assignment,a_capability,a_credential,a_invitation,a_party_identity,a_permissions,a_session atomSec;
   class c_actor_suspension,c_attributed_permissions_admin,c_audit_trail,c_authenticated_actor,c_capability_backed_sharing,c_chain_of_custody,c_compensable_workflow,c_customer_onboarding,c_defensible_retention,c_execute_gated_workflow,c_external_onboarding,c_idempotent_reservation,c_immutable_transaction_ledger,c_login,c_multi_party_approval,c_notification_fanout,c_preference_aware_notification_fanout,c_privileged_access_provisioning,c_propagate_consent_revocation_downstream,c_recoverable_invocation,c_reserve_from_pool,c_resolve_a_persons_data_rights,c_session_gated_authorization,c_shared_todo,c_verified_repair comp;
   class c_actor_suspension,c_attributed_permissions_admin,c_audit_trail,c_authenticated_actor,c_capability_backed_sharing,c_chain_of_custody,c_compensable_workflow,c_customer_onboarding,c_defensible_retention,c_execute_gated_workflow,c_external_onboarding,c_idempotent_reservation,c_immutable_transaction_ledger,c_login,c_multi_party_approval,c_notification_fanout,c_preference_aware_notification_fanout,c_privileged_access_provisioning,c_propagate_consent_revocation_downstream,c_recoverable_invocation,c_reserve_from_pool,c_resolve_a_persons_data_rights,c_session_gated_authorization,c_shared_todo,c_verified_repair compReg;

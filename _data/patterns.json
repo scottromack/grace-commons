@@ -334,6 +334,23 @@
   "status": "partially resolved",
   "title": "Capacity Constraint Enforcement"
  },
+ "cart": {
+  "composed_by": [],
+  "domain": null,
+  "grounded": false,
+  "invariants": 6,
+  "kind": "atom",
+  "models": {
+   "als": false,
+   "tla": false,
+   "twins": 0
+  },
+  "regulated_by": [],
+  "security": false,
+  "standards": [],
+  "status": "draft",
+  "title": "Cart"
+ },
  "chain-of-custody": {
   "composes": [
    "provenance"
