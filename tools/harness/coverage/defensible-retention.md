@@ -53,5 +53,5 @@
 
 - GAP rows: none.
 - by-construction flags on load-bearing invariants: none.
-- NOT MODELED, on the model's own list and so where the next reader's findings are likeliest: advisory mode; a hold release; two purges over one record and the sibling purges that travel with a destruction; the intent, the gate record and the recovery intent; the audit arms; the sweep's pairing of markers to acts, where seven of the gate's foundational findings were; the lower edge and the two indexes; the audit horizon; the storage layer's confirmation; a host restart.
+- NOT MODELED, on the model's own list and so where the next reader's findings are likeliest: advisory mode; a hold release; two purges over one record and the sibling purges that travel with a destruction; the intent, the gate record and the recovery intent; the audit arms; the sweep's pairing of markers to acts, where seven of the gate's foundational findings were; the lower edge and the two indexes; the audit horizon; the call to the record destruction pattern, read as one landing with the purge; a host restart.
 - Result: **clean**, on the author's read. A fresh-context read is owed.

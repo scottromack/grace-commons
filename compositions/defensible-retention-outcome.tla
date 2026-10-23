@@ -42,8 +42,8 @@
 \* travel with a destruction; the intent, the gate record and the recovery intent, each one more
 \* record_action under the same floor as the outcome; the audit arms; the lower edge and the two indexes;
 \* a lease call that never answers (Concurrency 18, 19), which the Lease model's party reads as a grant
-\* lost; the storage layer's own confirmation (Retention Window Record divergence 1), read here as one
-\* landing; a host restart; the rate at which two clocks drift.
+\* lost; the call to the record destruction pattern after Retention Window's purge (Action wiring 112),
+\* read here as one landing with it; a host restart; the rate at which two clocks drift.
 EXTENDS Naturals
 
 CONSTANTS Dur, Pause, Lat, MaxTime, Margin, Floor, HTakes, STakes, GateInside, HoldInFlight, HoldRefused, WTakes, GateOn, OutOn
