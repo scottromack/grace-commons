@@ -3162,6 +3162,14 @@ def _record_lines(root: Path, path: Path, lines: list[str]) -> set[int]:
     elif rel == "GRACE-lang.md":
         c = next((i for i, l in enumerate(lines) if l.startswith("### 23. Changes")), len(lines))
         rec |= set(range(c + 1, len(lines)))
+    elif rel == "GRACE-lang.hist.md":
+        # the grammar's Changes section, moved beside it at v0.66; Section 23 points here
+        on = False
+        for i, l in enumerate(lines):
+            if l.startswith("## "):
+                on = l.strip() == "## Changes"
+            if on:
+                rec.add(i)
     elif rel == "governance.md":
         on = False
         for i, l in enumerate(lines):

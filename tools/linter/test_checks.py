@@ -1151,9 +1151,13 @@ def check_notation_synthetic(problems: list[str]) -> int:
             "---\nparent: Project Log\n---\n\n### 2026-06-06 \u2014 entry\n\nsee " + S + "A\n\n"
             "### Standing\n\nlive " + S + "B\n\n## Undated\n\nlive " + S + "C\n", encoding="utf-8")
         (root / "tool.py").write_text("x = '" + S + "'  # hunts the form\ny = '" + S + "'\n", encoding="utf-8")
+        # the grammar's Changes section, moved beside it at v0.66
+        (root / "GRACE-lang.hist.md").write_text(
+            "# h\n\n## Changes\n\nNOTE:\nv0.37 (2026-09-12): per " + S + "21\n\n"
+            "## The Watch list at v0.65\n\nlive " + S + "D\n", encoding="utf-8")
         hits = {(f.path.name, f.line) for f in check_retired_sign(root)}
-        want = {("a.md", 3), ("log.md", 15), ("tool.py", 2)}
-        quiet = {("a.md", 5), ("a.md", 9), ("log.md", 7), ("log.md", 11)}
+        want = {("a.md", 3), ("log.md", 15), ("tool.py", 2), ("GRACE-lang.hist.md", 10)}
+        quiet = {("a.md", 5), ("a.md", 9), ("log.md", 7), ("log.md", 11), ("GRACE-lang.hist.md", 6)}
         for w in want:
             if w not in hits:
                 problems.append(f"N-retired-sign: did not fire at {w}")
@@ -1409,7 +1413,7 @@ def check_borrowed_names_synthetic(problems: list[str]) -> int:
 
 
 def check_operand_type_synthetic(problems: list[str]) -> int:
-    """One operator, one operand type (Earned vocabulary 18, council read 146):
+    """One operator, one operand type (Earned vocabulary 18, Earned vocabulary 20, council read 146):
     EXCEEDS between instants fires, EXCEEDS between durations does not, and a
     lower-case *precedes* fires because PRECEDES is an operator. Returns the
     fixture count."""
@@ -1609,6 +1613,52 @@ def check_rule_symbol_synthetic(problems: list[str]) -> int:
     for name, rule in firing:
         if not run(rule):
             problems.append(f"D-rule-symbol: {name} did not fire")
+    return len(silent) + len(firing)
+
+
+def check_inline_arithmetic_synthetic(problems: list[str]) -> int:
+    """A-arith and D-rule-symbol (tools/grace/check.py) — inline arithmetic
+    admitted as sugar at GRACE-lang v0.66 (Sugar 4 through 10, Hard invariant
+    24): `+`, `-`, `*` and `/` inside one pair of parentheses stay silent, a
+    parenthesized citation and an outcome's hyphen are no arithmetic, and
+    arithmetic outside a pair, a nested pair, a function, another symbol and a
+    clock fire. Returns the fixture count."""
+    import tempfile
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "grace"))
+    from check import scan  # noqa: E402
+    head = ("Term qualifiers: migrated — rewritten in GRACE lang v0.66 (2026-10-23).\n\n"
+            "Term record verbs: answer, read, write.\n\n## Structure\n\n### Operations\n\n")
+    def run(rule: str):
+        with tempfile.TemporaryDirectory() as d:
+            f = Path(d) / "atoms" / "synthetic.md"
+            f.parent.mkdir()
+            f.write_text(head + "```\n" + rule + "\n```\n", encoding="utf-8")
+            return [x for x in scan(f) if x.code in ("A-arith", "D-rule-symbol")]
+    silent = [
+        ("a difference", "Operation 1: A call MUST write balance set to (balance - input)."),
+        ("a product", "Operation 1: A call MUST write total set to (unit price * quantity)."),
+        ("a quotient", "Operation 1: A call MUST write share set to (amount / 2)."),
+        ("three operands", "Operation 1: A call MUST write total set to (subtotal + tax - discount)."),
+        ("in a condition", "Operation 1: IF (spent + input) EXCEEDS the cap THEN a call MUST answer over-cap."),
+        ("a citation", "Operation 1: A call MUST read the store (Execution Contract Read 4)."),
+        ("an outcome's hyphen", "Operation 1: A call MUST answer recording-failure(step-2)."),
+    ]
+    firing = [
+        ("outside a pair", "Operation 1: A call MUST write balance set to balance - input."),
+        ("an asterisk outside a pair", "Operation 1: A call MUST write total set to unit price * quantity."),
+        ("a nested pair", "Operation 1: A call MUST write fee set to ((balance - input) * rate)."),
+        ("a function", "Operation 1: A call MUST write deadline set to (max(a, b) + grace)."),
+        ("another symbol", "Operation 1: A call MUST write total set to (unit price × quantity)."),
+        ("an operator with no spaces", "Operation 1: A call MUST write share set to (amount/2)."),
+        ("a clock", "Operation 1: A call MUST write age set to (the clock reading - placed at)."),
+    ]
+    for name, rule in silent:
+        got = run(rule)
+        if got:
+            problems.append(f"inline arithmetic: fired on {name}: {got[0].code} {got[0].message}")
+    for name, rule in firing:
+        if not run(rule):
+            problems.append(f"inline arithmetic: {name} did not fire")
     return len(silent) + len(firing)
 
 
@@ -2353,6 +2403,15 @@ def main(argv: list[str]) -> int:
               "template silent; a section sign, an arrow, a brace, a bar, an angle bracket, an en "
               "dash and a slash fire) \u2713")
 
+    arith_problems: list[str] = []
+    n_arith = check_inline_arithmetic_synthetic(arith_problems)
+    failures.extend(arith_problems)
+    if not arith_problems:
+        print(f"inline arithmetic: {n_arith} synthetic fixtures hold (a difference, a product, a "
+              "quotient, three operands and a condition inside one pair, a citation and an outcome's "
+              "hyphen silent; arithmetic and an asterisk outside a pair, a nested pair, a function, "
+              "another symbol, an operator with no spaces and a clock fire) \u2713")
+
     ge_problems: list[str] = []
     n_ge = check_ge_form_synthetic(ge_problems)
     failures.extend(ge_problems)
@@ -2385,8 +2444,9 @@ def main(argv: list[str]) -> int:
     failures.extend(notation_problems)
     if not notation_problems:
         print(f"N-retired-sign, X-page-citation, V-views-current: {n_notation} synthetic fixtures hold "
-              "(a live sign, a sign under an undated section and an unmarked tool line fire; "
-              "a span, a Decisions entry, a dated entry and its continuing heading and a marked tool line "
+              "(a live sign, a sign under an undated section, a sign outside the grammar history's "
+              "Changes and an unmarked tool line fire; a span, a Decisions entry, a dated entry and its "
+              "continuing heading, an entry in the grammar history's Changes and a marked tool line "
               "stay silent; a missing heading fires where a heading and an entry resolve; the current "
               "views pass and a stale one fires) \u2713")
 

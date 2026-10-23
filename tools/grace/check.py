@@ -8,7 +8,7 @@ fence classification (Surface 18, Surface 19) and signature blocks (Surface 20),
 and tombstone reuse (Hard invariant 25, Hard invariant 27), the rule form and the statement shapes (Rule shape 1, Rule shape 2,
 Rule shape 6, Hard invariant 2, Hard invariant 3), WHEN blocks (WHEN block 3, Hard invariant 6), mixed AND/OR and OR outside a condition (Hard invariant 7,
 Hard invariant 8), BEFORE and AFTER outside their admitted places (Hard invariant 9 through 11), the banned
-words (Timing 10, Timing 11), arithmetic in a rule (Hard invariant 24), pronouns (Hard invariant 4), the copula after
+words (Timing 10, Timing 11), arithmetic in a rule outside an arithmetic expression (Hard invariant 24, Sugar 4 through 10), pronouns (Hard invariant 4), the copula after
 a modal (Closed vocabulary 8, Closed vocabulary 14), the record verb after the modal against the declared
 vocabulary (Closed vocabulary 8), a declared term nothing uses, and a cross-rule reference to a
 label no rule carries (Hard invariant 12).
@@ -225,7 +225,7 @@ LOWER_PRECEDE = re.compile(r"\b(precedes|precede)\b")
 
 
 def operand_type(text: str) -> list[str]:
-    """One operator, one operand type (Earned vocabulary 18, council read 146).
+    """One operator, one operand type (Earned vocabulary 18, Earned vocabulary 20, council read 146).
 
     EXCEEDS compares quantities and lengths; PRECEDES compares instants. Each
     comparison is read for the shape of the operand beside it, so a duration
@@ -236,8 +236,8 @@ def operand_type(text: str) -> list[str]:
     for m in EXCEEDS_RX.finditer(bare):
         near = bare[max(0, m.start() - 70):m.start()] + " " + bare[m.end():m.end() + 45]
         if INSTANT_WORD.search(near) and "duration" not in near and "bound EXCEEDS" not in bare[max(0, m.start()-12):m.end()]:
-            out.append(f"`{m.group(0)}` between instants; compare two instants with PRECEDES "
-                       f"(Earned vocabulary 18)")
+            out.append(f"`{m.group(0)}` between instants (Earned vocabulary 20); compare two "
+                       f"instants with PRECEDES (Earned vocabulary 18)")
     for m in LOWER_PRECEDE.finditer(bare):
         out.append(f"`{m.group(0)}` in lower case; PRECEDES is a condition operator "
                    f"(Earned vocabulary 18)")
@@ -316,6 +316,47 @@ SOFT_MODAL = re.compile(r"\b(can|could|would|should|might)\b")
 # comparison in an IF is a condition the normalizer cannot read (council read 26).
 COND_ENGLISH = re.compile(r"^IF .*?\b(is not|is no|are not|does not|do not|is a|are a|is negative|is positive|is zero)\b.*? THEN ")
 ARITH = re.compile(r"[+×−]|\s-\s")
+# Inline arithmetic (GRACE-lang v0.66, Sugar 4 through 10): a rule may carry
+# `+`, `-`, `*` and `/`, a space on each side, over declared fields, declared
+# terms and numbers, inside one pair of parentheses that holds no other pair,
+# reading no clock. A-arith and D-rule-symbol read the rule with each
+# parenthesized group that carries arithmetic taken out, so only arithmetic
+# outside a pair is theirs; a group in any other shape is A-arith here.
+ARITH_GROUP = re.compile(r"[+*/×÷−]| - ")
+_ARITH_WORD = r"[\w'’.]+(?:-[\w'’.]+)*"
+_ARITH_OPERAND = _ARITH_WORD + r"(?: " + _ARITH_WORD + r")*"
+ARITH_EXPRESSION = re.compile(r"^" + _ARITH_OPERAND + r"(?: [-+*/] " + _ARITH_OPERAND + r")+$")
+ARITH_CLOCK = re.compile(r"\bclocks?\b")
+
+
+def inline_arithmetic(text: str) -> tuple[str, list[str]]:
+    """The text with each parenthesized group that carries arithmetic taken
+    out, and why each such group is no arithmetic expression."""
+    kept, why = [], []
+    depth = start = last = 0
+    for i, ch in enumerate(text):
+        if ch == "(":
+            if depth == 0:
+                start = i
+            depth += 1
+        elif ch == ")" and depth:
+            depth -= 1
+            group = text[start + 1:i]
+            if depth or not ARITH_GROUP.search(group):
+                continue
+            kept.append(text[last:start] + "(expression)")
+            last = i + 1
+            if "(" in group:
+                why.append(f"'({group})' nests a pair of parentheses; name a term "
+                           f"(Sugar 5, Closed vocabulary 9)")
+            elif not ARITH_EXPRESSION.match(group):
+                why.append(f"'({group})' is no arithmetic expression: operands joined by `+`, `-`, "
+                           f"`*` or `/`, a space on each side (Term arithmetic expression)")
+            elif ARITH_CLOCK.search(group):
+                why.append(f"'({group})' reads a clock (Sugar 6)")
+    kept.append(text[last:])
+    return "".join(kept), why
+
 MARKER = re.compile(r"\[([^\]\[]+)\]")
 MD_LINK = re.compile(r"\[([^\]\[]+)\]\(([^)\s]*)\)")
 STRIPPED_LINK = re.compile(r"(?<![\[\]\w`/])[A-Za-z][A-Za-z' -]*\((?:\.\./)*(?:atoms/|compositions/|\./)[a-z0-9-]+\.md(?:#[^)]*)?\)")
@@ -408,9 +449,9 @@ ADVISORY = {"W-or-word", "W-watch-word", "W-term-unused", "W-lowercase-after",
             "D-decl-modal", "D-decl-selfref", "D-decl-unresolved",
             "K-check-bare", "S-action-unused", "E-not-exclusive"}
 # D-tombstone-form gates: a tombstone in any other shape reserves nothing
-# A declaration may carry arithmetic and comparison where a rule may not
-# (Closed vocabulary 9, Closed vocabulary 11) — which is where complexity
-# goes when a rule cannot hold it, and the one place nothing read it.
+# A declaration may carry arithmetic and comparison where a rule carries only an
+# arithmetic expression (Closed vocabulary 9, Closed vocabulary 11) — which is
+# where complexity goes when a rule cannot hold it, and the one place nothing read it.
 DECL_ARITH = re.compile(r"[−+×÷]|\bmax\(|\bmin\(")
 DECL_TOKEN = re.compile(r"[a-z_][a-z0-9_]*")
 DECL_SKIP = {"max", "min", "of", "the", "a", "an", "and", "or", "per", "less", "true", "false"}
@@ -869,7 +910,10 @@ def scan(path: Path) -> list[Finding]:
                 f"tier as reserved (ruled at council read 85)")
         for why in condition_form(body, sig_inputs, True):
             add(r.line, "D-condition-form", f"{r.label}: {why}")
-        sm = RULE_SYMBOL.search(CODE_SPAN.sub(" ", body))
+        bare_arith, arith_why = inline_arithmetic(body)
+        for why in arith_why:
+            add(r.line, "A-arith", f"{r.label}: {why}")
+        sm = RULE_SYMBOL.search(CODE_SPAN.sub(" ", bare_arith))
         if sm:
             add(r.line, "D-rule-symbol", f"{r.label}: `{sm.group(0)}` in a rule's own text; write it in "
                 f"words, or quote a code spelling in a code span (Earned vocabulary 16)")
@@ -921,8 +965,9 @@ def scan(path: Path) -> list[Finding]:
             add(r.line, "B-banned", f"{r.label}: AT LEAST / STRICTLY (Timing 10, Timing 11)")
         if re.search(r"\bMUST EXCEED\b|\bMAY EXCEED\b", stmt):
             add(r.line, "B-exceed", f"{r.label}: ≥ is written MUST NOT EXCEED (Timing 9)")
-        if ARITH.search(stmt) or ARITH.search(cond):
-            add(r.line, "A-arith", f"{r.label}: arithmetic in a rule; name a term (Hard invariant 24, Closed vocabulary 9)")
+        if ARITH.search(inline_arithmetic(stmt)[0]) or ARITH.search(inline_arithmetic(cond)[0]):
+            add(r.line, "A-arith", f"{r.label}: arithmetic in a rule outside one pair of parentheses; "
+                f"write an arithmetic expression or name a term (Hard invariant 24, Closed vocabulary 9)")
         if PRONOUN.search(stmt) or PRONOUN.search(cond):
             add(r.line, "P-pronoun", f"{r.label}: pronoun in a rule (Hard invariant 4)")
         if re.search(r"\b(MUST NOT|MUST|MAY)\s+(be|is|are|been|being)\b", stmt):

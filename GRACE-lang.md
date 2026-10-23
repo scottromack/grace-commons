@@ -1,14 +1,8 @@
-# GRACE lang v0.65 — Minimal Earned Grammar
+# GRACE lang v0.66 — Minimal Earned Grammar
 
-## Grace lang is a controlled semantic metalanguage for domain specifications.
+Grace lang is a controlled semantic metalanguage for domain specifications. Grace UX is abstracted microcopy and interaction behavior derived from verified logical state.
 
-## NOTE: Grace UX is abstracted microcopy and interaction behavior derived from verified logical state.
-
-Status: the current version and its history are Section 23; this line states nothing else.
-Date: 2026-09-16
-
-NOTE:
-This document obeys itself. A fenced block is classified by its first line (Surface 18): a labelled rule or a tombstone opens a normative block, a surface prefix opens that surface, a signature opens a signature block, and any other block is the surface nothing — unless it carries a labelled rule, which is a parse error. Everything outside the fences and the `Term` lines carries nothing (Surface 3); `WHY:` and `NOTE:` label it for readers. The vocabulary the document's own rules use is declared in Section 13.
+NOTE: self-classification — this document obeys itself: fences classify by first line (Surface 18), everything outside fences and `Term` lines carries nothing (Surface 3), and this document's own vocabulary is Section 13's.
 
 ---
 
@@ -44,11 +38,7 @@ Term retirement: the change that forbids a form, open from the version that reco
 Term historical record: a dated entry on a page whose front matter names Project Log as its parent, a dated entry in the register in `governance.md`, a dated entry in a specification's Decisions section, or a dated entry in this document's Changes section; the undated text around such an entry is not one, and neither is an open Ledger line, which is live work.
 
 WHY:
-The test is the concept, not the token: a token appears only after its form is admitted, so counting tokens is circular. Recurrence alone admits noise. Counts follow the entry *Measure the form, not the word* in `pressure-testing.md`. Surface 5 owns *states WHAT*. The reviewers a draft is run past — the council — advise and never admit; who they are and how a read is cited is the corpus's internal process, kept out of the grammar (the section titled *The language council* in `governance.md`).
-
-*Notation is law* (Principle 12 through 14). A form the rules forbid is forbidden everywhere a reader can learn it: the teaching pages, the agent instructions, the format guide and the generated views are where a writer copies a form from, so a retired form surviving there is taught back into the rules. Only a dated record keeps the old spelling, because history is not rewritten; a code span may still quote a retired form, since naming a form is not writing in it. A retirement left half done is itself the defect — the census behind council read 206 counted the section sign in 579 places of prose, months after v0.56 removed it from the rules (council read 206).
-
-*Local specs declare domain meaning, not GRACE meaning* (Principle 9 through 11). Explicit never meant repeating a globally-known fact in every file: the grammar owns the label families, the categories, the outcome shapes and the timing concepts, and a spec that restates one of them has added a second owner for something it does not own. A spec declares the domain — the nouns, the verbs, the value sets, the signatures, and the local exception the domain forces. The substrate gets richer as the specs get smaller (council read 8).
+The test is the concept, not the token; recurrence alone admits noise (*Measure the form, not the word*, `pressure-testing.md`). The council advises and never admits; its process is `governance.md`'s, not the grammar's. *Notation is law*: a retired form survives nowhere a reader learns it, because a half-done retirement is itself the defect. Local specs declare domain meaning; a spec that restates a grammar-owned concept adds a second owner for something it does not own.
 
 ---
 
@@ -115,15 +105,18 @@ Term MAY rule: a rule under MAY; a system satisfies a MAY rule vacuously, and a 
 NOTE: a fragment, not a rule — no label, no actor, no modal; the tail alone:
       close intent ONLY AFTER hold_bound
 ```
+
 ```
 WHY:
 The sweep waits for the longer of two possible holders, so an intent record is never closed mid-write by another invocation.
 ```
+
 ```
 UX:
 We are still checking whether this action completed.
 Please do not submit it again yet.
 ```
+
 ```
 PROVISIONAL:
 open_invocations IS DERIVED FROM journal.
@@ -131,21 +124,13 @@ open_invocations IS DERIVED FROM journal.
 
 Term hold_bound: max(completion_bound, closure_latency + journal_write_bound).
 
-NOTE: hold_bound is the example's term; the arithmetic lives in the declaration, never in the rule (Hard invariant 24).
+NOTE: hold_bound is the example's term; a function such as max has no place in an arithmetic expression, so the arithmetic lives in the declaration, never in the rule (Closed vocabulary 9).
 
 ---
 
 ### 3. WHAT / WHY / HOW
 
-```
-NOTE:
-Normative = WHAT
-WHY       = WHY
-UX        = HOW
-```
-
-WHY:
-Only the normative line carries meaning the system must obey (Surface 16, Surface 17). WHY and UX are downstream and disposable.
+NOTE: Normative = WHAT; WHY = WHY; UX = HOW. Only the normative line binds a system (Surface 16, Surface 17); WHY and UX are downstream and disposable.
 
 ---
 
@@ -159,15 +144,6 @@ Direction 4: A writer MUST NOT generate a normative line from UX:.
 Direction 5: A drafter MAY use fuzzy intent while drafting.
 Direction 6: A written normative rule MUST stand alone and pass every check this grammar declares.
 Direction 7: A writer MUST NOT keep fuzzy intent as a source of truth.
-```
-
-```
-NOTE:
-Normative → WHY     (allowed)
-Normative → UX      (allowed)
-
-WHY  ↛ Normative    (forbidden)
-UX   ↛ Normative    (forbidden)
 ```
 
 ---
@@ -219,16 +195,10 @@ Standard label 11: A specification MAY omit a standard label family ONLY IF the 
 Standard label 12: A specification carrying two standard label families MUST order the families PER the section titled Heading standard in `spec-format.md`.
 ```
 
-NOTE:
-The promotion census is `tools/grace/cites.py --drift`'s and Section 18's family clause is where it is written down; `lint.py`'s `W-stale-census` compares it against the corpus on every run (council read 33, council read 52). **This NOTE carries no counts of its own** — a first draft did, and a second hand-maintained census is the defect the census discipline exists to prevent, caught here by `W-stale-census` reporting one family twice (council read 58). Standing as a candidate is not being promoted; Principle 8 governs, and Standard label 6 restates it here because a promotion is an admission.
+NOTE: the promotion census is `tools/grace/cites.py --drift`'s, checked by `lint.py`'s `W-stale-census`; this NOTE carries no counts of its own, and standing as a candidate is not being promoted (Principle 8, restated by Standard label 6).
 
 WHY:
-Standard label 4 through 8 are the promotion path, and the threshold is stated as a count rather than as a comparison because the grammar carries no `≥`: three names a candidate, two forbids one, and the two rules together say what one inequality would (the open docket row on that operator is why). Standard label 7 is the gate that matters — a name reaching three specifications proves recurrence and proves nothing about meaning, and a family promoted while its three specs mean three things would put the grammar's authority behind a collision. The drift pass is what separates *the same word* from *the same concept* before the grammar owns the word.
-
-Standard label 9 and Standard label 10 settle position without inventing a second ordering. A promoted family takes the place `spec-format.md` already gives it in the dependence order a spec's sections follow; there is no importance ranking, because a family's place in the tree is the only ranking the corpus has ever needed. Standard label 11 keeps presence optional, and Standard label 12 makes the order checkable wherever two families are present, which is the pair that lets an instrument read a spec's shape without a spec declaring it.
-
-A family carries meaning the rule's own words leave out — *Non-goal 3: The host MUST admit waiters in arrival order* is a positive obligation, and the scope that makes it a non-goal lives in the label (council read 8). Declaring the families once here is what makes that meaning owned rather than conventional, and Principle 9 through 11 is why the declaration is here and not in every spec.
-
+Standard label 4 through 8 are the promotion path; the threshold is a count because the grammar carries no `≥`. Standard label 7 is the gate that matters: three names prove recurrence and nothing about meaning — the drift pass separates *the same word* from *the same concept*. Standard label 9 and 10 settle position from the dependence order a spec's sections already follow; Standard label 11 and 12 let an instrument read a spec's shape without a spec declaring it. A family carries meaning the rule's own words leave out, and declaring the families once here makes that meaning owned rather than conventional (Principle 9 through 11).
 
 #### Casing tiers
 
@@ -248,15 +218,7 @@ Casing 6: The parser MUST read a token's tier from the token's case.
 ```
 
 WHY:
-The tiers were already in force in every migrated document and declared nowhere, which is why the cheap instruments work at all: lower case is the tell. `W-or-word`, `W-watch-word` and `W-modal` each find a reserved concept written in the wrong tier, and they cost a regex because the right tier is upper case and nothing else is.
-
-Casing 3 is the load-bearing one, and it is a reading rule rather than a prohibition. A lower-case `and` is English and carries no operator, so an object list — *the scope and the allocator_ref* — stays legal prose; a condition the writer meant as AND and wrote in lower case is simply not a condition, and the shape checks then report it as one that does not parse. Forbidding the word would break the prose; refusing to read it as an operator makes the drift visible without a new prohibition.
-
-A label family's casing is not this section's to *set* — but the tier set must *contain* it, or Casing 6 has no tier to read for the corpus's commonest family casing and Value set 3's ban on an implicit other bites. sentence case is the fourth member for that reason, added at council read 27 after a three-member set shipped against a census that had already counted 104 sentence-case families. Which tier a family takes stays Rule shape 7's: it already says a label names the heading the label sits under, in the heading's own words, so the casing follows the heading and needs no second owner — which the census confirms: 104 of the 105 families named in words are sentence case, matching their headings. The 62 families named `event_to_attestation`, `seal_coverage`, `retention_policy` and the like are not exceptions to a tier, they are Casing 5 winning: the name *is* a declared term, the lower case is part of the identifier, and title-casing it would break the reference. A first draft of this section claimed an initial capital for label families and bracket markers together, which put Casing 4 and Casing 5 in conflict at those 62 sites; council read 25 applied the pressure and the census settled it.
-
-Casing 6 is what the tiers buy: a parser classifies a token by shape before it looks anything up, so the closed vocabulary is consulted to resolve a name rather than to decide what kind of thing the name is. Closed vocabulary 18 already forbids declaring two specific reserved tokens as record verbs; the tiers generalize that from a list of two to a property of the case.
-
-The census that admitted this: 471 lower-case reserved tokens inside normative rules across the migrated corpus — 277 of them in the two pilot compositions, 38 in this document. The drift is the contested half of Principle 2; the nineteen documents already obeying the tiers are the recurrence half (council read 24).
+The tiers were already in force and declared nowhere, which is why the cheap tier checks work at all: lower case is the tell. Casing 3 is the load-bearing one — a lower-case `and` is English and carries no operator, so prose stays legal and the drift becomes visible without a new prohibition. A family's casing is not this section's to set (Rule shape 7 owns it) but the tier set must contain sentence case, or Casing 6 has no tier for the corpus's commonest family casing; families named as compound identifiers are Casing 5 winning, not exceptions. Casing 6 is what the tiers buy: a parser classifies by shape before lookup. The census that admitted this and the drift numbers are `cites.py --drift`'s.
 
 ---
 
@@ -272,7 +234,13 @@ Term blank: a value that is absent, empty, or carries only whitespace — a call
 
 Term absence form: `no thing EXISTS`, with `for` and the identifier where one names the thing — the one way a condition says a record, an event or a condition is not there.
 
-Term rule symbol: a character a rule's own text does not carry — the section sign, the arrow, a brace, the bar, an angle bracket, the en dash, the slash, the asterisk; a section is *the section titled X*, a map entry *k mapped to v*, a call's answer *answering x*, a record *carrying a, b and c*, a range of steps *steps 2 through 5*, and a code spelling such as a template sits in a code span.
+Term rule symbol: a character a rule's own text does not carry — the section sign, the arrow, a brace, the bar, an angle bracket, the en dash, the slash, the asterisk, save the slash and the asterisk as arithmetic operators inside an arithmetic expression; a section is *the section titled X*, a map entry *k mapped to v*, a call's answer *answering x*, a record *carrying a, b and c*, a range of steps *steps 2 through 5*, and a code spelling such as a template sits in a code span.
+
+Term arithmetic operator: `+` | `-` | `*` | `/` — addition, subtraction, multiplication and division, with their usual meaning and precedence: `*` and `/` apply before `+` and `-`, and operators of one precedence apply from left to right.
+
+Term operand: a declared field, a declared term or a number inside an arithmetic expression.
+
+Term arithmetic expression: operands joined by arithmetic operators, a space on each side of every operator, inside one pair of parentheses in a rule, as in `balance set to (balance - input)`.
 
 Term rule noun: a noun the rules of every specification share, declared once here — call, answer, write, input, field, instant, act, clock, instance, section.
 
@@ -312,18 +280,15 @@ Earned vocabulary 12: A writer MUST NOT write `=` in a rule.
 Earned vocabulary 13: A specification MUST NOT write a `Term` declaration for a rule noun.
 Earned vocabulary 14: A writer MUST write a rule noun under the rule noun's own name.
 Earned vocabulary 15: A writer MUST write a test of a record's state as a value test, `the record's state EQUALS member`.
-Earned vocabulary 16: A writer MUST NOT write a rule symbol in a rule outside a code span.
+Earned vocabulary 16: A writer MUST NOT write a rule symbol in a rule outside a code span and outside an arithmetic expression.
 Earned vocabulary 17: A writer MUST write the negative of EXCEEDS as DOES NOT EXCEED.
-
-Earned vocabulary 18: A writer MUST compare two instants with PRECEDES, and MUST NOT compare two instants with EXCEEDS.
-
+Earned vocabulary 18: A writer MUST compare two instants with PRECEDES.
 Earned vocabulary 19: A writer MUST write the negative of PRECEDES as DOES NOT PRECEDE.
+Earned vocabulary 20: A writer MUST NOT compare two instants with EXCEEDS.
 ```
 
 WHY:
-One operator, one sense. EXISTS asks whether a thing is there — a stored record, an event, a condition — and nothing else; EQUALS blank asks whether a value is missing; IS IN asks whether a value belongs to a set, a record's state among them. Before v0.52 one operator carried all three and more, and `step_id NOT EXISTS` (the caller sent nothing) and `the assignment_id NOT EXISTS` (no record carries the id) differed by an article. The operators are English words so that a rule read aloud, by a person or by a screen reader, says what it means: `!=` comes out as *exclamation equals* or as nothing at all. `no` stays lower case — it is the English determiner, beside `a` and `an`, and EXISTS is the token. `=` and `|` stay only where a value set is declared (Term value-set form). A record's state is one of those values, so a condition tests it with EQUALS and IS IN like any other (Earned vocabulary 15); *stand* stays the verb of the write that moves it — `MUST stand the party in verified`.
-
-The rule nouns are the grammar's for the reason blank is: every specification's rules say *call*, *answer*, *write*, *input*, *field* and *instant*, and almost none declared them, so a noun the rules leaned on hardest resolved to nothing. Earned vocabulary 14 is why *argument* is gone: it named the same thing as *input*, which the signature form already used. *Instance* and *section* joined at v0.60, each once its own second sense was gone: State Machine's running record became a workflow at council read 108, and the host-supplied lock became a critical section at council read 111. *Act* joined them at v0.58: eleven specifications say it in their rules, each for its own thing done, and four of them compose Audit Trail, whose rules say it too — so a declaration in each would have redeclared a constituent's term with another meaning (Closed vocabulary 17). *Clock* joined them at v0.59, the word *instant*'s own declaration already leaned on. *Composition* is not among them, and the reason is new: eleven specifications declare it of themselves, so taking the word would outlaw their declarations under Earned vocabulary 13. A word a specification declares for itself is the specification's. State Machine once declared an instance as one workflow while the other specifications meant one deployed copy of a pattern; State Machine's sense is *workflow* since council read 108, and *instance* waits to be measured in its one remaining sense before it is declared. Party Identity once declared *identifier* as every opaque name it assigns, the word this document declares for any name a rule uses; that sense is *assigned id* since council read 109. Audit Trail once declared *tail* as the highest sequence number a read returns, the word this document declares for ONLY AFTER, ONLY IF, WITHIN, PER and BEFORE; that sense is *tail position* since council read 110. *Section* is not a rule noun yet either. Eleven specifications also used it for a critical section, the host-supplied mutual exclusion, beside its sense of a titled part of a document; since council read 111 that sense is always written *critical section*, and bare *section* waits to be measured for its one declaration.
+One operator, one sense: EXISTS asks whether a thing is there, EQUALS blank whether a value is missing, IS IN whether a value belongs to a set. The operators are English words so a rule read aloud says what it means. `=` and `|` stay only where a value set is declared. The rule nouns are the grammar's for the reason blank is: every spec's rules lean on them, so a declaration in each spec would redeclare a constituent's term (Closed vocabulary 17); words a spec declares for itself stay the spec's. Renamed second senses (*argument*, State Machine's *instance*, Party Identity's *identifier*, Audit Trail's *tail*, bare *section* beside *critical section*) are history, in the Changes section.
 
 ---
 
@@ -336,7 +301,7 @@ Tail 1: A reader MUST NOT infer beyond a tail's text.
 ```
 
 WHY:
-ONLY IF is admitted by Principle 2: the concept recurs, and gate 12 F1's repair is the finding. `ONLY UNDER` is provisional (Section 18): no controlled use, no finding.
+ONLY IF is admitted by Principle 2: the concept recurs, and the repair finding is the contested half. `ONLY UNDER` is provisional (Section 18): no controlled use, no finding.
 
 ```
 NOTE:
@@ -364,7 +329,7 @@ Timing 13: A reader MUST NOT infer timing from rule order.
 ```
 
 WHY:
-`run_floor MUST NOT EXCEED run_bound` means `run_bound ≥ run_floor`. Timing 12 is no new form — a permission gated on a condition; `instance MAY start ONLY IF compensation_window EXCEEDS worst_closure`. A prohibition past an instant is Timing 7, which is why Timing 4 admits no AFTER under MUST NOT. Positive `MUST … BEFORE` smuggles a liveness claim into an ordering claim; liveness goes through WITHIN.
+`run_floor MUST NOT EXCEED run_bound` means `run_bound ≥ run_floor`. Timing 12 is no new form — a permission gated on a condition. Positive `MUST … BEFORE` smuggles a liveness claim into an ordering claim; liveness goes through WITHIN.
 
 ---
 
@@ -398,7 +363,7 @@ Authority 6: A citing spec MUST NOT restate the rule.
 ```
 
 WHY:
-No synonym — `canonical`, `source of truth`, `primary` — carries authority semantics. Authority 3 reads *two rules* rather than *two specs*, which covers both altitudes: a proposition owned twice across two specs, and a proposition owned twice inside one. The second is the common case and was unowned until council read 26 counted it — 46 pairs in one atom, seven of them the same sentence under two labels (`State 1` and `Invariant 2.1`, `State 22` and `Non-goal 20`). A spec pays for a proposition once: deleting the second copy costs nothing, and deleting the first breaks Hard invariant 16, which is what makes the rule mechanical rather than a matter of taste. A site is one spec (the entry *Introducing a form is riskier than discovering one* in `pressure-testing.md`). IS AUTHORITATIVE FOR is an introduced form, not a discovered one: the concept is earned (three consecutive gates; DRY on responsibility depends on it), the phrasing was minted 2026-09-10 in Recoverable Invocation and propagated only after use. It is the grammar's one labelled exception to Principle 1.
+No synonym carries authority semantics. Authority 3 reads *two rules*, covering both altitudes — a proposition owned twice across specs and one owned twice inside one, the common case. A spec pays for a proposition once; deleting the first copy breaks Hard invariant 16, which makes the rule mechanical. IS AUTHORITATIVE FOR is an introduced form, not a discovered one, and the grammar's one labelled exception to Principle 1.
 
 ---
 
@@ -428,7 +393,7 @@ Hard invariant 20: The parser MUST NOT infer missing semantics.
 Hard invariant 21: The parser MUST NOT give WHY: normative force.
 Hard invariant 22: The parser MUST NOT give UX: normative force.
 Hard invariant 23: The parser MUST NOT infer normative meaning from WHY: or UX:.
-Hard invariant 24: The parser MUST reject arithmetic in a rule.
+Hard invariant 24: The parser MUST reject arithmetic in a rule outside one pair of parentheses.
 Hard invariant 25: The parser MUST reserve the label a tombstone carries.
 Hard invariant 26: A writer MUST NOT renumber an invariant.
 Hard invariant 27: A writer MUST NOT reuse a tombstoned label.
@@ -448,9 +413,7 @@ Term tombstone: a line inside a normative block in the form `Deleted: Label. The
 Term range citation: a run of labels of one family written as the first label, the word through and the last number — `Operation 3 through 7`, `Invariant 2.1 through 2.4`, `reconcile step 5.2 through 5.4`; a cross-spec range names the spec first (Hard invariant 28); the family is written once and singular, the last number carries the first number's shape, and both ends are included.
 
 WHY:
-Section 11 is the parser's contract; the writer-facing rules that mirror it (Rule shape 3, WHEN block 3, Earned vocabulary 1, Sugar 2, Timing 4, Timing 6) oblige a different actor, and the two are kept as two norms on purpose. A cross-reference survives a version because labels never move (Hard invariant 26, Hard invariant 27) and never collide across specs (Hard invariant 28): Recoverable Invocation's `Allowance 2` and this document's `Rule shape 2` are cited as `Recoverable Invocation Allowance 2` and `GRACE-lang Rule shape 2`.
-
-A range citation says one thing four spellings used to say: `Operation 3–7` carried a dash no keyboard types, `Operation 3 through Operation 7` wrote the family twice and left room for the second to differ, `Operations 3–7` made the family two strings, and `Operation 3 to 7` does not say whether 7 is in. *Through* includes both ends in plain English, so the range reads the way it resolves (Hard invariant 29): a change to `Operation 5` reopens every text that cites `Operation 3 through 7`, which `tools/grace/cites.py` now counts. A range whose last number does not follow its first cites one label or none, and says neither (Hard invariant 30) — two specifications carried `Capability requirement 2–2` until the conversion found it.
+Section 11 is the parser's contract; the writer-facing rules that mirror it oblige a different actor, and the two are kept as two norms on purpose. A cross-reference survives a version because labels never move and never collide across specs. A range citation says one thing four spellings used to say; *through* includes both ends in plain English, so the range reads the way it resolves, and `tools/grace/cites.py` counts it.
 
 ---
 
@@ -460,15 +423,26 @@ A range citation says one thing four spellings used to say: `Operation 3–7` ca
 Sugar 1: Sugar MAY shorten a rule.
 Sugar 2: Sugar MUST NOT add information.
 Sugar 3: A writer MUST NOT place a sentence that matches no admitted form and no deterministic sugar in a normative block.
+Sugar 4: A rule MAY carry an arithmetic expression.
+Sugar 5: An arithmetic expression MUST NOT nest.
+Sugar 6: An arithmetic expression MUST NOT read a clock.
+Sugar 7: An arithmetic expression MUST NOT carry a call.
+Sugar 8: An arithmetic expression MUST NOT write.
+Sugar 9: A writer MUST declare a quantity the domain names as a term.
+Sugar 10: The parser MUST normalize EVERY arithmetic expression to an unnamed term.
 ```
+
+NOTE: inline arithmetic is the grammar's one symbolic sugar: the parser reads each arithmetic expression as an unnamed term, so the sugar adds no meaning (Sugar 2, Hard invariant 18, Hard invariant 19). A quantity the domain names keeps its term, as Session's expiry deadline does (`issued_at + session_duration`); inline is for nameless intermediates.
 
 ```
 NOTE: the sugar and its normalization.
 NOTE: sweep MUST run AFTER examine_edge.
 ```
+
 ```
 NOTE: sweep MUST run ONLY AFTER examine_edge.
 ```
+
 ```
 NOTE: PER and a cadence, exercised once; the examples in this document borrow Recoverable Invocation's vocabulary and are exemplars, not citations — Hard invariant 28 does not reach a NOTE:.
 NOTE: sweep MUST examine PER reconciliation_cadence.
@@ -487,7 +461,7 @@ Closed vocabulary 5: The parser MUST NOT infer a term's type from the term's nam
 Closed vocabulary 6: A specification MUST declare record verbs explicitly.
 Closed vocabulary 7: A record MUST NOT acquire behavior from the record's noun.
 Closed vocabulary 8: A rule carrying a modal MUST carry a declared record verb or a reserved grammar verb after the modal.
-Closed vocabulary 9: A rule MUST name a term where the rule needs arithmetic.
+Closed vocabulary 9: A rule MUST name a term where the rule needs arithmetic that one pair of parentheses cannot carry.
 Closed vocabulary 10: A writer MUST write a declaration in the declaration form.
 Closed vocabulary 11: A definition MAY carry arithmetic, comparison operators, a value set, or a sentence saying what the name is.
 Closed vocabulary 12: A writer MUST write a definitional sentence as a declaration.
@@ -501,13 +475,13 @@ Closed vocabulary 19: The parser MUST resolve an inflected form of a declared re
 Closed vocabulary 20: A specification MUST declare EVERY action's outcomes in a signature block.
 Closed vocabulary 21: The parser MUST read a signature block as the value set of the action's outcomes.
 Closed vocabulary 22: A rule MUST NOT land an outcome absent from the action's signature block.
-Closed vocabulary 29: The parser MUST read a rule whose subject takes in several actions as binding each such action only where the action's signature block carries the outcome the rule lands.
 Closed vocabulary 23: The parser MUST NOT infer order from an answers line's arms.
 Closed vocabulary 24: A writer MUST write a signature in the signature form.
 Closed vocabulary 25: The parser MUST read the arms of an answers line as the action's answers.
 Closed vocabulary 26: The parser MUST read the arms of a refuses line as the action's refusals.
 Closed vocabulary 27: A writer MUST declare a record an action answers as a term.
 Closed vocabulary 28: The parser MUST keep the order of a refuses line's arms.
+Closed vocabulary 29: The parser MUST read a rule whose subject takes in several actions as binding each such action only where the action's signature block carries the outcome the rule lands.
 ```
 
 Term category: actor | record | record verb | value set | bound | cadence | term | qualifier | cited | composing pattern.
@@ -531,7 +505,7 @@ Term actor: a declared identifier that may serve as a rule's subject.
 Term agent: an actor that can perform a rule's verb — the grammar; the lock list; the parser; a specification; a citing spec; an owner; a system; a reader; a writer; a drafter; a human; a language model; the reverse diff; a maintainer; a party. A rule whose subject is an actor and not an agent constrains the writer (obey).
 
 WHY:
-A named expression has one owner, and a diff can match it by name. Closed vocabulary 8 is what rejects the passive — *The actor MUST be granted invite_actor* has no declared record verb after the modal — which is why no parser invariant restates the rule. A citation form lets a composition use a constituent's term without restating it.
+A named expression has one owner, and a diff can match it by name. Closed vocabulary 8 is what rejects the passive — no declared record verb after the modal. A citation form lets a composition use a constituent's term without restating it.
 
 ```
 NOTE:
@@ -540,7 +514,7 @@ record verb record_action: Audit Trail
 
 #### This document's own vocabulary
 
-Term actors: (every subject in this document, agent or not) the grammar; the lock list (Section 21); the parser; a specification (a spec); a rule; a statement; a sentence (a rule's text); a condition; a form; a sugar form; a term; a declaration; a WHEN block; a tail; a surface; a system; a reader; a writer; a drafter; a human; a language model; the reverse diff; the normalized form (the representation); fuzzy intent; a value set; a value; an enumeration; a synonym; a citing spec; an owner (the spec that declares a term); a registry (a spec's Terms section); `WHY:`; `UX:`; `NOTE:`; `PROVISIONAL:`; sugar; complexity; arithmetic; a label; an obligation; a proposition; an invariant; a tombstone; an ordinal; a pronoun; a line; a fenced block; a party; a run; a maintainer; a child; a category; an actor; an agent; the corpus; a code span.
+Term actors: (every subject in this document, agent or not) the grammar; the lock list (Section 21); the parser; a specification (a spec); a rule; a statement; a sentence (a rule's text); a condition; a form; a sugar form; a term; a declaration; a WHEN block; a tail; a surface; a system; a reader; a writer; a drafter; a human; a language model; the reverse diff; the normalized form (the representation); fuzzy intent; a value set; a value; an enumeration; a synonym; a citing spec; an owner (the spec that declares a term); a registry (a spec's Terms section); `WHY:`; `UX:`; `NOTE:`; `PROVISIONAL:`; sugar; complexity; arithmetic; an arithmetic expression; a label; an obligation; a proposition; an invariant; a tombstone; an ordinal; a pronoun; a line; a fenced block; a party; a run; a maintainer; a child; a category; an actor; an agent; the corpus; a code span.
 
 Term record verbs: decide, contain, admit, recur, satisfy, live, state, read, parse, create, alter, infer, generate, regenerate, discard, write, obey, ignore, carry, use, stand, pass, route, mix, nest, normalize, name, restate, resolve, cite, declare, acquire, redeclare, renumber, reuse, enumerate, reject, lower, report, treat, assume, keep, express, mark, shorten, add, accept, supply, earn, belong, cover, classify, claim, qualify, give, match, place, bind, reserve, compare, land, promote, rest, take, rank, omit, order.
 
@@ -584,6 +558,7 @@ operator MUST NOT resolve BEFORE acquiring section.
 Canonical example 4:
 sweep MUST reconcile AFTER examine_edge.
 ```
+
 ```
 NOTE: Canonical example 4 normalizes to `ONLY AFTER`.
 Canonical example 5:
@@ -637,49 +612,46 @@ PROVISIONAL: a code span inside a rule quotes text — the grammar's own meta-ru
 ```
 
 WHY:
-`DEGRADES TO` is a pairing slot for a degraded guarantee: the condition stays on the strong rule's ONLY IF, the slot carries none, so the pairing adds no third rule — the reverse diff sees the strong rule and the weak rule, and the `PROVISIONAL:` pairing line is invisible to it (Surface 15). Recoverable Invocation uses it four times, states each weak rule under IF, and marks the pairing provisional — the contested history Section 1 requires. The signature block was admitted in v0.33 (Surface 20, Closed vocabulary 20 through 22) on twelve sites across two specs and a parse-error finding (council read 7); the release-and-reject idiom was withdrawn the same day — council read 7's splits were believed to have removed every site, and council read 24's sweep found two surviving in Recoverable Invocation's close step 3.7 and close step 3.8, where a modal joins a release to an outcome rather than to a second verb. The withdrawal stands on Principle 2 rather than on absence: two sites in one specification are not recurrence across specifications. The claim of absence was false and is corrected here rather than quietly repaired, because a grammar that misreports its own corpus is the one document that cannot afford to.
-
----
+`DEGRADES TO` is a pairing slot: the condition stays on the strong rule's ONLY IF, so the pairing adds no third rule and the reverse diff sees only the two rules. The signature block was admitted on recurrence across specs and a parse-error finding; the release-and-reject idiom was withdrawn the same day, and its withdrawal stands on Principle 2 — two sites in one specification are not recurrence. A claim of absence later found false was corrected in the Changes section rather than quietly repaired: a grammar that misreports its own corpus is the one document that cannot afford to.
 
 #### Watch list: repeated cures, counted until stated once
 
-NOTE:
-A cure the corpus keeps making one specification at a time is counted here until the corpus states it once. A writer who makes a cure an earlier round made flags the cured site with `NOTE: watch <name>` beside the rule that strained, and the count is the specifications carrying the flag. A name that reaches five specifications goes to the maintainer once, who rules whether the Execution Contract or this document states it; a name stated once leaves the list with its flags. Most pressure is expected to collapse into declared domain terms rather than new grammar. What left the list, the council reads that counted it and the counts it superseded are in [the grammar's history](./GRACE-lang.hist.md). The rule: flag first, count recurrence, admit nothing until the corpus forces it (Principle 1 through 3).
+NOTE: repeated cures are flagged (`NOTE: watch <name>` beside the strained rule) and counted here per specification until stated once; at five specifications the maintainer rules once whether the Execution Contract or this document states it. Departed names, their council reads and superseded counts: [the grammar's history](./GRACE-lang.hist.md). Flag first, count recurrence, admit nothing until the corpus forces it (Principle 1 through 3). A line's count is the specifications carrying its flag, or the count of the tool the line names; `lint.py`'s `W-stale-census` checks the label-family counts on every run.
 
-- **host obligations**: an atom states its own posture on what the host must bound, such as a maximum length on a string input: a declared cap, a cap the deployment supplies, or silence. Eleven specifications: Actor Identity, Approval Step, Invitation, Medication Order, Notification, Observation, Party Identity, Provisional Commitment, Selective Disclosure, State Machine and Tamper Evidence; the *host obligations* row in `open-questions.md` holds the question.
-- **the state a refusal leaves**: a rule that a refused action leaves its record in the live state, written for a refused write, which read alone binds the refusals that answer on a record in another state or on none. Three: Consent (Operation 32), Invitation (Operation 37) and Provisional Commitment (Operation 30).
-- **condition negation**: a condition DOES NOT EQUAL, the absence form, IS NOT IN and MUST NOT cannot carry, such as one refusal answering in two rows of one precedence chain, so the answer alone does not say which guard refused. Three: Approval Step, Audit Trail and State Machine.
-- **applicability**: a rule that wants `WHERE`, or feature-present gating, written with the applicability carried by its subject or a relative clause. Two: Audit Trail and Recoverable Invocation.
-- **persistent state**: a rule that wants `WHILE`, written with the duration carried by a term or a phrase. One: Audit Trail.
+- **host obligations**: what the host must bound — cap, deployment-supplied, or silence. Eleven specifications: Actor Identity, Approval Step, Invitation, Medication Order, Notification, Observation, Party Identity, Provisional Commitment, Selective Disclosure, State Machine and Tamper Evidence; the *host obligations* row in `open-questions.md` holds the question.
+- **the state a refusal leaves**: a refused write binding record state read alone; the open question is whether refusal answers on a record in another state or none. Three: Consent (Operation 32), Invitation (Operation 37) and Provisional Commitment (Operation 30).
+- **condition negation**: guards a plain negative cannot carry; the open question is one refusal answering in two rows of one precedence chain. Three: Approval Step, Audit Trail and State Machine.
+- **applicability**: `WHERE`-shaped gating written with subject or relative clause. Two: Audit Trail and Recoverable Invocation.
+- **persistent state**: `WHILE`-shaped duration written with a term or phrase. One: Audit Trail.
 - **cardinality**: a need beyond EVERY, EXISTS, EXACTLY ONE and EXACTLY ONE OF. One: Audit Trail.
-- **satisfaction**: what a violation of WITHIN is, compensate or nonconform, where obey is not enough. One: Audit Trail.
-- **addressable sections**: a rule naming a section as its subject or object, where the grammar labels rules and nothing labels a section. One: Recoverable Invocation.
+- **satisfaction**: what a violation of WITHIN is, compensate or nonconform. One: Audit Trail.
+- **addressable sections**: a rule naming a section, where the grammar labels rules and nothing labels a section. One: Recoverable Invocation.
 - **position scoping**: every rule of a family scoped by a condition on position. One: Recoverable Invocation.
 - **negative capability**: an obligation to discard a reply already in hand. One: Recoverable Invocation.
 - **rule inheritance**: one action's rules restated for another, where the grammar has no inheritance form. One: Recoverable Invocation.
 - **event versus state**: where the distinction matters enough that declared terms alone become awkward. None flagged.
-- **contradiction**: two rules normalizing to `X MUST a` and `X MUST NOT a` under identical conditions, nearly free to detect after normalization. None found.
-- **the wire layer**: a term entry's `Projection:` line, the one place a lowering token is written down, and the `Wire: pinned` field beside it, with no naming convention of the layer's own. Fifty-three documents at council read 101; no finding against the layer itself yet.
-- **the term entry grammar**: a term entry's fields, `Kind`, `Member of`, `Field of`, `Parameter of`, `Role`, `Projection:` and `Wire: pinned`, drifting per document on the nothing surface. Nine at council read 12; the superset recurs in every migrated specification.
-- **a term entry's kind**: `Kind: Field` carrying stored, derived and pinned values alike, with only prose telling them apart. One: Retention Window.
-- **the cited line**: the `Term cited:` line written in two shapes this document never states: runs of names each closed by the owner, or a document and what it supplies. Eighteen specifications: four write the first shape, sixteen the second, two both.
-- **the frozen surface's edge**: a citation across specifications freezes the cited family, and nothing says which families freeze. None standing since council read 13.
-- **the degenerate bound**: an inequality or a bound whose two readings make different rules real. Five: Lease (two), Duplicate Prevention, Retention Window and Provenance.
-- **the auditor's vocabulary**: the verbs a Generation acceptance section needs, find, reproduce, compute, reconstruct and confirm, richer than the verbs an atom's own rules use, with nothing owning the split. Not counted.
+- **contradiction**: two rules normalizing to `X MUST a` and `X MUST NOT a` under identical conditions. None found.
+- **the wire layer**: a term entry's `Projection:` line and the `Wire: pinned` field, with no naming convention of the layer's own. Fifty-three documents at council read 101; no finding against the layer itself yet.
+- **the term entry grammar**: a term entry's fields drifting per document on the nothing surface. Nine at council read 12; the superset recurs in every migrated specification.
+- **a term entry's kind**: `Kind: Field` carrying stored, derived and pinned values alike. One: Retention Window.
+- **the cited line**: the `Term cited:` line written in two shapes this document never states, runs of names each closed by the owner, or a document and what it supplies. Eighteen specifications: four write the first shape, sixteen the second, two both.
+- **the frozen surface's edge**: which families a cross-spec citation freezes. None standing since council read 13.
+- **the degenerate bound**: an inequality or bound whose two readings make different rules real. Five: Lease (two), Duplicate Prevention, Retention Window and Provenance.
+- **the auditor's vocabulary**: the verbs a Generation acceptance section needs, richer than an atom's own rules use, with nothing owning the split. Not counted.
 - **a label family recurring across specs outside the standard set**: a concept the corpus keeps declaring by heading: `Clock semantics` (24), `Clock dependence` (7), `Concurrency` (25), `String` (15), `Atomic writes` (4), `Indeterminate outcome` (10), `Expiry` (4), `Instance` (3), `Action wiring` (25), `Correction` (2), `Durability` (1), `Instance start` (2), `Primitive policy` (24), `Composition state` (24), `Verification caching` (2). The counts are `tools/grace/cites.py --drift`'s, and `lint.py`'s `W-stale-census` compares them with the corpus on every run.
-- **the comparator written in English**: *past*, *longer than*, *more than*, *short of*, *at most* or *advance past* in a rule, where the condition operators are the whole set a condition may carry. Thirty-nine sites in nine specifications, `check.py`'s `W-comparator`: Recoverable Invocation 19, Audit Trail 11, Consent 3, and one each in Lease, Message Preference, Notification, Permissions, Session and Subscription.
-- **the unadmitted modal**: *can*, *could*, *would* or *should* inside a rule's subordinate clause, where a declared term or an EXCEEDS would carry the claim. Eleven sites in four specifications, `check.py`'s `W-modal`: Recoverable Invocation 7, Capability 2, Audit Trail 1 and Retention Window 1.
-- **who gates a write**: two postures on one question with nothing declaring the fork: Legal Hold requires attribution on every write, and Message Preference accepts the identifier as the whole authorization. Two.
-- **the modifier class**: a declared noun under an undeclared modifier, *active*, *constituent*, *recorded*, with nothing saying whether a modifier owes a declaration. 4,211 of 20,841 noun phrases at council read 105, by `tools/grace/nouns.py`.
-- **read-order polarity**: every history surface answers a read in ascending order, and Invitation's `Operation 41` answers its matching invitations in no stated order. Two postures.
-- **the side-channel qualifier**: a value riding beside an outcome on its own channel, with rules saying it may not fold into a reason, promote to an outcome or be carried by not-known. One: Audit Trail's `(compensation-window)`.
-- **the modal with no temporal scope**: MUST saying *always* and *eventually* in one breath, so one labelled rule carries a safety claim and a liveness claim and its formal model checks one. One measured instance: Provisional Commitment's draft `Invariant 2.3`.
-- **the window reading**: a two-member value set reading a deadline against now with the boundary instant on the lapsed side, declared by each specification for itself, one name carrying two predicates. Three: Provisional Commitment (`open` | `lapsed`), Invitation and Credential (`live` | `lapsed`); both halves of Principle 2 are satisfied.
-- **the outcome that carries a value**: a signature arm carrying a value inside the outcome or beside it, which Closed vocabulary 21 parses as one opaque token. Two: Invitation's `already-resolved(stored terminal)` and Audit Trail's `(compensation-window)`.
-- **the wire surface**: the places a name keeps its code spelling, which no rule enumerates: a term entry's `Projection:` line, a `formal:` provenance line, a code span, a signature block, a fenced event schema, a braced shape inline, a dotted path or a call, the label position and a bounds parenthetical. Nine instances across four sweeps; a finding against the set itself is still missing.
-- **the external answer that moves**: a verification reading a source the atom does not own, such as a registry's public material or an external anchor's records, whose answer can change between two calls, while the page's binding and consistency invariants, or the checks that test them, were written as if it could not; each cure holds them to one answer of the source. Two: Actor Identity (Invariant 2.1, 3.1 and 7.1, Check 3.1 and 3.2) and Tamper Evidence (Invariant 3.1 and 7.1, Check 5.1).
-- **the host's state**: a rule keeping a verification from *the host's state* beside a verification set closed with *and nothing else* that takes in a value the host injects, so the rule either forbids what the set has the verification consult or restates the set's own bar; each cure deletes the rule to that bar. Two: Actor Identity (Invariant 6.2) and Tamper Evidence (Invariant 4.2).
-- **the lost answer**: an action whose answer never reaches its caller, so the caller cannot tell whether the call landed, an arm the Execution Contract's Error model does not name; each cure states in an Indeterminate outcome family what the caller does, reading before any retry or retrying and accepting a second record, or who owns that course. Eight specifications: Approval Step, Credential, Event Log, Execute Gated Workflow, Medication Order, Notification Fanout, Party Identity and Verified Repair.
+- **the comparator written in English**: *past*, *longer than*, *more than* etc. in a rule (`check.py`'s `W-comparator`). Thirty-nine sites in nine specifications: Recoverable Invocation 19, Audit Trail 11, Consent 3, and one each in Lease, Message Preference, Notification, Permissions, Session and Subscription.
+- **the unadmitted modal**: *can*, *could*, *would*, *should* inside a rule's subordinate clause (`check.py`'s `W-modal`). Eleven sites in four specifications: Recoverable Invocation 7, Capability 2, Audit Trail 1 and Retention Window 1.
+- **who gates a write**: two postures on one question with nothing declaring the fork — attribution on every write, or the identifier as the whole authorization. Two: Legal Hold requires attribution on every write, and Message Preference accepts the identifier as the whole authorization.
+- **the modifier class**: a declared noun under an undeclared modifier, with nothing saying whether a modifier owes a declaration (`tools/grace/nouns.py`). 4,211 of 20,841 noun phrases at council read 105.
+- **read-order polarity**: a history surface answering reads in no stated order. Two postures: every history surface answers a read in ascending order, and Invitation's `Operation 41` answers its matching invitations in no stated order.
+- **the side-channel qualifier**: a value riding beside an outcome on its own channel, which may not fold into a reason, promote to an outcome or be carried by not-known. One: Audit Trail's `(compensation-window)`.
+- **the modal with no temporal scope**: MUST saying *always* and *eventually* in one breath, so one labelled rule carries a safety claim and a liveness claim. One measured instance: Provisional Commitment's draft `Invariant 2.3`.
+- **the window reading**: a two-member value set reading a deadline against now with the boundary instant on the lapsed side, declared by each specification for itself. Three: Provisional Commitment (`open` | `lapsed`), Invitation and Credential (`live` | `lapsed`); both halves of Principle 2 are satisfied.
+- **the outcome that carries a value**: a signature arm carrying a value inside or beside the outcome, which Closed vocabulary 21 parses as one opaque token. Two: Invitation's `already-resolved(stored terminal)` and Audit Trail's `(compensation-window)`.
+- **the wire surface**: the places a name keeps its code spelling, which no rule enumerates. Nine instances across four sweeps; a finding against the set itself is still missing.
+- **the external answer that moves**: a verification reading a source the atom does not own, whose answer can change between two calls while the binding and consistency invariants were written as if it could not. Two: Actor Identity (Invariant 2.1, 3.1 and 7.1, Check 3.1 and 3.2) and Tamper Evidence (Invariant 3.1 and 7.1, Check 5.1).
+- **the host's state**: a rule keeping a verification from *the host's state* beside a verification set closed with *and nothing else* that takes in a value the host injects. Two: Actor Identity (Invariant 6.2) and Tamper Evidence (Invariant 4.2).
+- **the lost answer**: an action whose answer never reaches its caller, so the caller cannot tell whether the call landed — an arm the Execution Contract's Error model does not name. Eight specifications: Approval Step, Credential, Event Log, Execute Gated Workflow, Medication Order, Notification Fanout, Party Identity and Verified Repair.
 - **the fresh holder value**: a composing pattern stating for itself that each take of a Lease carries a holder value no earlier take on the key carried, which Lease Identity 6 asks of every caller and Lease Composition note 5a makes the composing pattern's to own. Four: Audit Trail (Per-act critical section 1c, Concurrency 1f), Defensible Retention (Concurrency 11), Recoverable Invocation (Term operator run id, Term run id) and Resolve a Person's Data Rights (Concurrency 4).
 
 ---
@@ -700,9 +672,6 @@ real need
 → gating
 ```
 
-WHY:
-One occurrence is never enough (Principle 3).
-
 ---
 
 ### 20. Strict Caveman
@@ -718,7 +687,7 @@ Caveman 2: A writer MUST NOT express complex behavior as a more complicated sent
 
 ### 21. What the grammar locks
 
-Term locked forms: Strict Caveman normative prose; WHAT / WHY / HOW separation; `WHY:` and `UX:` with zero normative force; MUST / MUST NOT / MAY; EVERY / EXACTLY ONE / EXACTLY ONE OF; flat IF and flat WHEN; flat AND, flat OR, never both in one condition; OR only inside conditions and term declarations; EQUALS / DOES NOT EQUAL / EXISTS / the absence form / IS IN / IS NOT IN / EXCEEDS; blank; `=` and `|` only in a value set; ONLY AFTER / ONLY IF / WITHIN / PER; MUST NOT EXCEED for ≥, no AT LEAST, no STRICTLY; the strict lower bound as `MAY … ONLY IF … EXCEEDS …`; IS AUTHORITATIVE FOR (introduced, labelled); one site is one spec; forbidden-before (`MUST NOT … BEFORE`); deterministic AFTER sugar under MUST and MAY; positive `MUST … BEFORE` illegal; one obligation per sentence; labels named for their heading, never abbreviated; closed vocabulary including record verbs; the `Term` declaration form; the signature block as a declaration form, one line per action; the standard label families; the casing tiers; the term entry and the bracket marker as reader sugar; a declaration may cite its owner; arithmetic only in term declarations; closed value sets; no pronouns, Section 13 rejects the passive; no inference; normalized representation; reverse diff over normalized rules; admission by Principle 2 — recurrence AND contested.
+Term locked forms: Strict Caveman normative prose; WHAT / WHY / HOW separation; `WHY:` and `UX:` with zero normative force; MUST / MUST NOT / MAY; EVERY / EXACTLY ONE / EXACTLY ONE OF; flat IF and flat WHEN; flat AND, flat OR, never both in one condition; OR only inside conditions and term declarations; EQUALS / DOES NOT EQUAL / EXISTS / the absence form / IS IN / IS NOT IN / EXCEEDS; blank; `=` and `|` only in a value set; ONLY AFTER / ONLY IF / WITHIN / PER; MUST NOT EXCEED for ≥, no AT LEAST, no STRICTLY; the strict lower bound as `MAY … ONLY IF … EXCEEDS …`; IS AUTHORITATIVE FOR (introduced, labelled); one site is one spec; forbidden-before (`MUST NOT … BEFORE`); deterministic AFTER sugar under MUST and MAY; positive `MUST … BEFORE` illegal; one obligation per sentence; labels named for their heading, never abbreviated; closed vocabulary including record verbs; the `Term` declaration form; the signature block as a declaration form, one line per action; the standard label families; the casing tiers; the term entry and the bracket marker as reader sugar; a declaration may cite its owner; arithmetic in term declarations, and in a rule only as an arithmetic expression, `+`, `-`, `*` and `/` inside one pair of parentheses, never nested; closed value sets; no pronouns, Section 13 rejects the passive; no inference; normalized representation; reverse diff over normalized rules; admission by Principle 2 — recurrence AND contested.
 
 ```
 Lock 1: The parser MUST accept only the locked forms and the locked forms' deterministic sugar.
@@ -729,110 +698,12 @@ Lock 2: The lock list MUST NOT admit a form outside the locked forms except by P
 
 ### 22. Core Rules
 
-NOTE: a recap; every claim below is owned by a rule elsewhere (Surface 5, Surface 6 through 17, Direction 1 through 4, Sugar 1 through 2, Hard invariant 16, Hard invariant 20, Caveman 1, Caveman 2). Normative states WHAT. WHY explains why. UX presents how. Sugar shortens syntax and creates no semantics. AI generates WHY or UX from the normative surface, never the reverse. Nothing unstated is true because a reader expects it (Hard invariant 16, Hard invariant 20). Nothing omitted is supplied by context. Nothing is normative unless the parser can name it (Surface 2, Surface 18). Complex systems may require many rules; every rule stays simple (Caveman 1, Caveman 2).
-
-WHY:
-Strict Caveman grows slowly. Grace itself can grow enormously.
+NOTE: recap only — every claim here is owned by a rule elsewhere; read the sections above. Strict Caveman grows slowly. Grace itself can grow enormously.
 
 ---
 
 ### 23. Changes
 
-NOTE:
-v0.65 (2026-10-22): a rule whose subject takes in several actions binds each only where the action's signature block carries the outcome the rule lands (Closed vocabulary 29). Five Final Critiques had narrowed such a rule's subject to the actions whose signatures carry the outcome, one specification at a time — Session, Capability, Party Identity, Provenance and Medication Order — and the maintainer ruled the category reach stated once, here, with four repeated cures stated once in the Execution Contract the same day: the wiring read from the deployment's own declaration (Conformance 9), an atom's no-removal rules binding the atom's own actions (Database 6), a rule saying what an action does holding only for a call the action admits (Read 4), and a ban on refusing reaching only the refusal or the ground it names (Refusal 1). The Watch list is now the count of repeated cures not yet stated once, one line per live entry; the five, every other name that had left the list, its council reads and its superseded counts moved to [the grammar's history](./GRACE-lang.hist.md).
-
-NOTE:
-v0.64 (2026-10-21): a refuses line lists its refusals in the order they answer. Closed vocabulary 23 now leaves only an answers line's arms unordered, Closed vocabulary 28 keeps a refuses line's order, and Term signature form says so; the rule the order serves is the Execution Contract's (Refusal 1: where more than one refusal applies to one call, the one listed first answers). Ruled by the maintainer after Final Critiques had ordered refusals firing together on one call one specification at a time, each with a declared term and a rule evaluating it, which the parser needed because it infers nothing from rule order; the refusal order and the failed read leave the Watch list, each stated once in the Execution Contract.
-
-NOTE:
-v0.63 (2026-09-25): notation is law (Principle 12 through 14; Term corpus, Term retired form, Term retirement, Term historical record). A form the rules forbid is forbidden in every file the repository tracks except a dated historical record, and a retirement closes only when no appearance survives outside the records; a code span may still name a retired form, since naming a form is not writing in it. Proposed and ruled by the maintainer after the front-door census found the section sign retired from the rules at v0.56 and still written in 579 places of prose, the agent instructions and the format guide among them. The section sign's retirement is the first one this reopens: it stays open until the sweep that follows closes it (council read 206).
-
-NOTE:
-v0.62 (2026-09-24): Scope vocabulary, Verdict and Retention asymmetry promoted to the standard label families — the maintainer's ruling on the three candidates Standard label 4 had named, and the first time three crossed together. The drift pass Standard label 7 requires found one concept in each. **Scope vocabulary**, in [Shared Todo](./compositions/shared-todo.md), [Privileged Access Provisioning](./compositions/privileged-access-provisioning.md) and [Multi-Party Approval](./compositions/multi-party-approval.md): the scopes the composition defines for its Permissions instance and the action each gates — Shared Todo maps eight actions to seven scopes, the other two define three scopes and name the one gate they refuse to add, the same concept stated from its two sides. **Verdict**, in [Chain of Custody](./compositions/chain-of-custody.md), Forensic Recovery and [Immutable Transaction Ledger](./compositions/immutable-transaction-ledger.md): how a verification read resolves what it reads into its answer — the first two compose an overall verdict from named classes, the third a binding verdict and per-entry authenticity, each a total function over evidence the read gathered. **Retention asymmetry**, in those three, [Propagate Consent Revocation Downstream](./compositions/propagate-consent-revocation-downstream.md) and Multi-Party Approval: how the spec answers where a record — an accounting record, a consent record, a chain, a lifecycle entry — outlives the audit events that attest it, read as lawful destruction and never as an orphan or a gap. **Standard label 9's positions follow where the naming specs already file them**: every one places Scope vocabulary and Verdict last in Composition logic and Retention asymmetry under Edge cases, so the first two take the end of Composition logic's placed rows — Scope vocabulary first, by the table's interim alphabetical order — and Retention asymmetry an Edge cases row between Indeterminate outcome and String policy, by the same order. A placed heading precedes every unplaced one, so five specs that carried an unplaced heading ahead of the newly placed one are reordered, text unchanged. Council read 198.
-
-NOTE:
-v0.61 (2026-09-21): one operator, one operand type. EXCEEDS compared quantities, lengths *and* instants, which is the multitasking-token row's second member — EXISTS split at v0.52, and this is EXCEEDS. Instants now compare with PRECEDES, negated DOES NOT PRECEDE (Term condition operator, Earned vocabulary 18, Earned vocabulary 19); EXCEEDS keeps quantities and lengths and nothing else. The form is one word, not a phrase: the maintainer ruled against composing a pair where a single word serves, so there is no `IS AFTER` and no `IS BEFORE`, and the negative reuses the shape DOES NOT EXCEED already set. PRECEDE joins EXCEED as a reserved grammar verb, so an ordering invariant reads `A commitment's confirmed at MUST NOT PRECEDE the commitment's placed at`. No plural form is admitted: a comparison has one subject and one object, so PRECEDE after a modal is the only inflection a rule carries. The corpus had already earned it — 19 rule sites wrote *precedes* in lower case before the operator existed, which no instrument read, because W-comparator's word list never carried it. 20 instant comparisons moved off EXCEEDS, 11 lower-case uses were raised, and D-condition-form now reads the operand beside each comparison in both directions. FOLLOWS was refused on measurement rather than taste: *follow* and *follows* sit at 18 rule sites in three senses — temporal, ordering and conformance — and a word meaning three things makes a bad operator. Ruled by the maintainer. Council read 146.
-
-v0.60 (2026-09-18): *instance* and *section* are rule nouns (Term rule noun, Term instance, Term section). Both waited on a rename. *Instance* meant one deployed copy of a pattern everywhere but State Machine, which called its running record an instance until council read 108; it is written 253 times in the rules of 31 of the 41 migrated specifications, and the nineteen declarations that carry the word — *store instance* in fourteen atoms, *event log instance*, *party retention instance* — qualify it rather than redeclare it. *Section* meant both a titled part of a document and the host-supplied lock until council read 111 named the lock a critical section; it is written 173 times in the rules of fourteen specifications, most of them the citation form *the section titled X* that council read 121 settled and `lint.py`'s `X-section-title` resolves. Neither is declared bare by any specification (council read 128).
-
-NOTE:
-v0.59 (2026-09-17): *clock* is a rule noun (Term rule noun, Term clock). It is written 122 times in the rules of 35 of the 41 migrated specifications, declared in none, and headed 102 unresolved noun phrases — most of them the deployment's clock obligations, *the clock's monotonicity*, *honesty*, *timezone handling*, *synchronization* and *skew*, restated as capability requirements in 25 specifications. Its spread is the spread of the first six rule nouns, which the maintainer's v0.53 ruling gives to the grammar, and Term instant already named it (council read 119).
-
-NOTE:
-v0.58 (2026-09-17): *act* is a rule noun (Term rule noun, Term act). The noun reader's next most common miss after *critical section* and *instance* was *act*, unresolved at 52 sites in six specifications and used 126 times in the rules of eleven — Recoverable Invocation 54, Audit Trail 27, Attributed Permissions Admin 16, Defensible Retention 13. Each means its own thing done: Recoverable Invocation's call of the bound act, Audit Trail's record action or cascade, Actor Suspension's suspension, Consent's processing act. Declared in each, the word would have taken four meanings inside one composition tree, since Actor Suspension, Customer Onboarding, Defensible Retention and Recoverable Invocation compose Audit Trail. The maintainer ruled it the grammar's, as the six rule nouns of v0.53 are: one sense, something done that a record accounts for, and each specification's own declarations say which (council read 117).
-
-NOTE:
-v0.57 (2026-09-17): EXCEEDS has an English negative, DOES NOT EXCEED (Earned vocabulary 17, Hard invariant 34). Four conditions spelled *at most* as `NOT EXCEEDS` — Capability's ttl, Medication Order's dose, Credential's expires_at, Session's session_duration — and three spelled *at least* as `x EXCEEDS y OR x EQUALS y`, which read 31 found had no one-arm cure between numbers; `y DOES NOT EXCEED x` is that cure, and Audit Trail's `Invariant 3.1`, Recoverable Invocation's `reconcile step 5.1` and its aged term take it. Retention Window's *the duration is not positive* and *the max_purge_delay is negative* read `DOES NOT EXCEED the zero duration` and `the zero duration EXCEEDS the max_purge_delay`. The maintainer kept EXCEEDS for instants as for quantities and lengths: it means *later or greater in the value's order* on any ordered value, as EQUALS means the same on any value, and an obligation needs it after a modal (`MUST NOT EXCEED`), where *is after* does not parse. `W-ge-disjunction` gates. Council read 104.
-
-NOTE:
-v0.56 (2026-09-16): symbols leave the rules. The maintainer's ruling at council read 99 kept `=` and `|` for value-set declarations alone, and 86 symbols still sat in rule text across eleven specifications, with eight more in this document's own rules: 25 `<kind>` templates, 23 section signs, 11 arrows, 7 brace pairs, 7 bars, 5 en dashes in step ranges, 4 slashes and 4 asterisks. Each became words — *the section titled Conformance in `execution-contract.md`*, *the event's event_id mapped to the attestation_id*, *answering attestation_id*, *carrying invocation_id and intent_event_id*, *recording-failure(step-2) and recording-failure(step-3)*, *steps 2 through 5* — or, where it is a code spelling, a code span (`<kind>.intended`, `audit.*`); this document's own rules name the lock list rather than §21. Term rule symbol, Earned vocabulary 16; `check.py`'s `D-rule-symbol` gates. Council read 103.
-
-NOTE:
-v0.55 (2026-09-16): a record's state is tested as a value. Conditions asked it two ways — `IF the session stands in active` and `IF the party's state EQUALS verified` — and the maintainer ruled the second: the state is a declared value set, so the test names it, `the session's status EQUALS active`, `the order's state IS IN the pre-dispensing states` (Earned vocabulary 15). 178 rule and declaration lines in twenty-nine specifications moved, the state named by each specification's own value set — status, state, pool state, hold state, unit state, chain state, retention state, lifecycle state. *Stand* stays the verb of the write that moves a state. `check.py`'s `D-condition-form` gates *stands in* and *stands outside* in a condition. Council read 102.
-
-NOTE:
-v0.54 (2026-09-16): a term entry's code-spelling line is `Projection:`, not `Projects:`. Every other label on a term entry names a thing — `Kind:`, `Role:`, `Wire:` — and `Projects:` was the one verb; the line holds the projection a name lowers to, and under the v0.53 ruling it is where the code spelling lives. 757 lines renamed in fifty-three specifications, migrated or not, with their aligned blocks re-padded, and the term registry's introduction in twenty-three; `term-adapter.mjs` reads the new label and writes `projections` into the derived manifest. Proposed by the maintainer. Council read 101.
-
-NOTE:
-v0.53 (2026-09-16): the rule nouns are the grammar's. Read by a part-of-speech tagger over 7,869 rules, 3,665 of 21,031 noun phrases resolved to no declared name, and the everyday nouns led: *call* undeclared in 32 of the 36 specifications that use it, *write* in 29 of 35, *instant* in 26 of 27, *field* in 25 of 25, *answer* in 24 of 29. call, answer, write, input, field and instant are now declared once here (Term rule noun), a specification writes no declaration for one (Earned vocabulary 13), and each is written under its own name (Earned vocabulary 14) — *argument*, a second name for *input*, is gone from 91 rules and declarations in twenty-one specifications, *opaque argument* with it. Unresolved noun phrases fall to 3,211. *Instance* waits: State Machine declares it as one workflow where the other specifications mean one deployed copy of a pattern. The maintainer ruled the spelling that comes next — English names in rules, derived word for word from the code spelling, which lives in `Projects:` — and it is not swept here. `check.py`'s `D-rule-noun` gates. Council read 100.
-
-NOTE:
-v0.52 (2026-09-16): one condition operator, one sense, in English words. EXISTS carried at least eight senses across 314 sites in forty-one specifications — a caller's argument (123), a stored record (72), an event or condition (31), membership in a set (30), a deployment setting (24), a stored field (17), a record's state (16) and a constituent's read (1) — and `step_id NOT EXISTS` and `the assignment_id NOT EXISTS` meant *the caller sent nothing* and *no record carries the id*, told apart by an article. Now EXISTS says a thing is there, and `no thing EXISTS` says it is not (the absence form; `NOT EXISTS` retired); a missing value is `EQUALS blank` (161 sites, `is blank` among the retired spellings), and blank is declared once here, where twenty-five specifications had declared it word for word and defined it by the operator beside it; membership is IS IN and IS NOT IN, a record's state among them. `=` and `!=` became EQUALS and DOES NOT EQUAL at 151 tests, and a write that sets a field says `field set to value` at 40 sites, so `=` and `|` stay only where a value set is declared. The maintainer ruled English over symbols: read aloud by a screen reader, `!=` is *exclamation equals* or nothing. Earned vocabulary 6 through 12, Hard invariant 32 and Hard invariant 33 added, Hard invariant 14 reworded; `check.py`'s `D-condition-form` gates. Council read 99.
-
-NOTE:
-v0.51 (2026-09-16): a backtick quotes literal text and never marks a name (Term code span, Surface 30). The declaration form lost its backticks at v0.45; the names a declaration lists — value-set members, fields, outcome codes, vocabulary entries, and in this document the reserved tokens and the standard label families — kept them, and so did the prose that mentioned them. 5,346 code spans unwrapped across this document and forty-one specifications; code spellings, expressions, file names, wire tokens and quoted forms keep theirs. The maintainer ruled the reach: every name the specification itself declares, snake and kebab spellings included. Formatted strictly: `check.py`'s `D-code-span` gates. Council read 92.
-
-NOTE:
-v0.50 (2026-09-16): brackets point only to actions and terms. A rule naming another specification carried a Markdown link, `[Permissions](./permissions.md)`, which renders nowhere inside a fence and reads there as a bracket marker Surface 26 cannot resolve; it now names the specification alone (Surface 29), as Hard invariant 28 already writes a cross-spec label. 218 links removed from 217 rules in twenty-nine specifications, each link's text the linked specification's own title. Formatted strictly: `check.py`'s `F-bracket` gates a link in a rule and a bracket marker that lands on no term entry. Council read 91.
-
-NOTE:
-v0.49 (2026-09-16): one fence kind. A block of rules was a fence marked `text`, a signature block a fence marked with nothing, and the two marks said nothing the first line did not already say — so the mark goes and the first line decides (Surface 18, Term bare fence). A block that carries a labelled rule under a first line that opens nothing is still rejected (Surface 19), which is what the `text` mark used to guard. 982 fences unmarked across the grammar, `spec-format.md` and forty-one specifications. Formatted strictly: `check.py`'s `D-fence-form` gates a fence still marked `text`. Council read 90.
-
-NOTE:
-v0.48 (2026-09-15): a signature is written in words — `name(inputs, optional input)`, an answers line, a refuses line (Term signature form, Closed vocabulary 24 through 27) — replacing the arrow, the trailing `?`, the braced or bracketed record and the `rejected(…)` wrapper. A record an action answers is a declared term, as an inner choice became one at council read 84. 171 signatures in 51 blocks across forty specifications; the wrapper also left 69 rules and 115 prose and example sites, where the outcome now stands by its own name. Admitted with the syntax table, formatted strictly: `check.py`'s `D-signature-form` gates. Council read 89.
-
-NOTE:
-v0.47 (2026-09-15): a run of labels is written one way, `Family N through M` (Term range citation, Hard invariant 29 through 31), replacing the dash, the repeated family, the plural family and *to*. 379 citations converted across sixty-two files; two degenerate ranges, `Capability requirement 2–2`, became the one label they cited. Admitted with the syntax table, formatted strictly: `lint.py`'s `F-range-form` gates every Markdown file in the repository. Council read 88.
-
-NOTE:
-v0.46 (2026-09-15): a tombstone is its own line, `Deleted: Label. The owner, and why.`, and no longer a `NOTE:` whose text happens to begin with a label and the word *deleted*. `NOTE:` now means one thing — this line binds nothing — where it had meant that and, in one shape, *reserve this label forever*; and because a tombstone is no surface prefix, `Surface 18` counts it with a labelled rule when it classifies a fence, so a tombstone written first no longer demotes the rules beneath it, the trap `F-prefix-first` caught twice. 297 tombstones converted, words kept. Council read 87.
-
-NOTE:
-v0.45 (2026-09-15): the declaration form is `Term name: definition.` — the name runs to the first colon, bare, and the definition ends with a period — replacing `Terms › `name`: definition.`, whose separator no keyboard carries and whose backticks gave a declared name a second job beside quoting literal text. Admitted with the syntax table, formatted strictly: a line that opens with `Term` or with the old separator and does not match the form is a gating finding (`check.py`'s `D-decl-form`). 1,649 declarations converted across the grammar and forty-one specifications; no definition changed. Council read 86.
-
-NOTE:
-v0.44 (2026-09-15): `Standard label 11` narrowed from *a specification MAY omit a standard label family* to omitting one only where `spec-format.md` §Heading standard does not require its heading, and `Standard label 9` and `Standard label 12` now cite that section, which replaced §Required sections as the owner of every heading's name, level, parent, order and requirement. The maintainer's rulings, made the same day: a spec carries every heading its shape requires and may skip the rest, and one order governs. `Standard label 11` and `spec-format.md` had given two answers on whether a standard family may be omitted — a blanket MAY here, required-with-an-escape there — and the narrowed rule is the one answer. The outlier v0.43 recorded is gone: Idempotent Reservation's Housekeeping now sits after Wiring decision, placed by the sweep `H-heading` drove to zero. Council read 80.
-
-NOTE:
-v0.43 (2026-09-15): Housekeeping promoted to the standard label families, closing the pair Reconciliation opened one version earlier. Three specifications name it and the drift pass Standard label 7 requires found one concept: each leg runs outside every invocation, owes no closure window, refuses to repair what it finds, and refuses a constituent's write. The apparent divergence is the declaration's own two poles — [Idempotent Reservation](./compositions/idempotent-reservation.md)'s leg **removes** where [Authenticated Actor](./compositions/authenticated-actor.md)'s and [Attributed Permissions Admin](./compositions/attributed-permissions-admin.md)'s **report** — which *it may report, it may remove* already admits, and the section each takes or refuses tracks whether the leg writes at all rather than what the family means. **Standard label 9's position is the pair's rather than the majority's:** two of the three place the family after Wiring decision, where Reconciliation already sits, and Idempotent Reservation places it second — an outlier that predates the pair's cut and is a conformance finding against that spec rather than a second position. Council read 71.
-
-NOTE:
-v0.42 (2026-09-15): Audit arm and Reconciliation promoted to the standard label families — the promotion path's second use, and the first time two families crossed on one migration. Four specifications name each, and the drift pass Standard label 7 requires found one concept in each across all four. Audit arm's concept is the mapping of the substrate's `record_action` taxonomy at the composing boundary: which arm is retryable, which arm arrives with the record already appended, which is a pageable deployment fault, and what the composition owes on each — stated by step in Login and Defensible Retention, by step *and* position in Customer Onboarding and Actor Suspension, which is the same concept with an export the first two did not need. Reconciliation's concept is the awaited leg, and all four members answer council read 64's axis the same way: each escalates against a **declared window** (Login's reconciliation window, Defensible Retention's and Customer Onboarding's compensation window, Actor Suspension's completion window), which is precisely what Housekeeping's two members owe none of. Standard label 9's position is derived rather than assigned: all four specifications already place Audit arm before `Action wiring` and Reconciliation after Wiring decision, so the promotion records the order the corpus had already agreed on. Council read 69.
-
-NOTE:
-v0.41 (2026-09-14): Wiring decision promoted to the standard label families — the promotion path's first use, and the first family the corpus has promoted at all. Seven specifications name it and the drift pass Standard label 7 requires found one concept across all seven, in one invariant shape: a rule naming the decision positively, and one or more rules forbidding the wiring the decision rejected. The argument that decided it is not the count. `spec-format.md` already **requires** *The load-bearing wiring decision* as a composition-shape section, so the family is a container the corpus already carries having its rule form named, and Standard label 9 gives it the position every one of the seven already sits in — promotion reconciles two documents that agreed, where declining would have left them drifting. Council read 64.
-
-NOTE:
-v0.40 (2026-09-12): cited and composing pattern added to the category value set. Both are categories in active use — cited in two compositions, `composing patterns` in one — and absent from the set that is supposed to enumerate the categories a vocabulary may carry, which Value set 3 forbids and Closed vocabulary 2 needs. `check.py` already carried both names in two hard-coded category sets, so the instrument recognized them before the grammar did; the checker now derives the set from this line instead of holding its own copy, so the two cannot drift again. Council read 29.
-
-v0.39 (2026-09-12): sentence case added to the casing tier value set. The tiers shipped with three members against a census that counted 104 word-named label families in sentence case — a member in active use and absent from its own set, which Value set 3 forbids and Casing 6 needs. Council read 27.
-
-NOTE:
-v0.38 (2026-09-12): Authority 3 widened from *two specs* to *two rules*, so one proposition owned twice inside a single spec is a finding rather than a preference. Admitted on Principle 2's two halves — the shape recurs in every migrated spec, and the contested half is council read 26's count of 46 duplicate pairs in Capacity alone, seven of them verbatim under two labels. `tools/grace/check.py` reports `W-duplicate-proposition`. No form admitted or withdrawn; a scope widened.
-
-NOTE:
-v0.37 (2026-09-12): `card` renamed to term entry (Surface 25, Surface 27, §21). A rename only — no rule changed, no form admitted or withdrawn. *Card* named a presentation; the object is structured knowledge about a declared term — its definition, kind, relationships and projection token — and a Grace UI may render it as a card, a tooltip, a panel or nothing at all. Declared lower case, like every sibling term in this document's vocabulary (bracket marker, normative block, `text fence`, casing tier), because Casing 4's title case is the bracket marker's and a grammar term is not one. Council approved.
-
-NOTE:
-v0.36 (2026-09-12): the casing tiers declared (Casing 1 through 6) — upper case is reserved, an initial capital names a label family or a bracket marker, lower case is the specification's own. Already in force in nineteen documents and drifting at 471 sites inside normative rules, which is Principle 2's two halves. Council read 24.
-
-NOTE:
-v0.35 (2026-09-11): local specs declare domain meaning, not GRACE meaning (Principle 9 through 11); the standard label families declared once, here (Standard label 1 through 3); the signature block admitted with one line per action, and the `rejected(…)` wording it carried from Recoverable Invocation dropped; the term entry and the bracket marker read as the surface nothing, the `Terms ›` declaration the one owner (Surface 25 through 27). Council read 8.
-
-NOTE:
-v0.34 (2026-09-11): labels are words — the name of the heading a rule sits under, then a number (Rule shape 7, Rule shape 8); every label in this document, Recoverable Invocation, Audit Trail and Lease relabelled; a cross-spec reference names the spec before the label (Hard invariant 28). No form admitted or removed.
-
-NOTE:
-v0.27–v0.33, the council's reads and the labels before v0.34 are archived in git history (`git log -- GRACE-lang.md`, last commit before the relabel `e80fd21`).
+NOTE: the version history is archived — [the grammar's history](./GRACE-lang.hist.md) and git history (`git log -- GRACE-lang.md`, last commit before the relabel `e80fd21`); open retirements are recorded per Term retirement.
 
 NOTE: End of GRACE-lang. We love you. 🖤
