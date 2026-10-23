@@ -91,7 +91,7 @@ Term event field: event id | sequence number | recording instant | data.
 
 ```
 Capability requirement 1: The deployment MUST supply now at the seam.
-Capability requirement 2: The deployment MUST supply the database PER Execution Contract Database 1 through 4 and Execution Contract Read 4.
+Capability requirement 2: The deployment MUST supply the database PER Execution Contract Database 1 through 4 and Execution Contract Read 1 through 4.
 ```
 
 ### Operations
@@ -124,7 +124,7 @@ Deleted: Operation 14. Invariant 5.2 owns it.
 Operation 15: IF the query is malformed THEN [Read] MUST answer invalid-query.
 Operation 16: [Read] MUST answer an empty sequence for a well-formed query matching nothing.
 Operation 17: [Read] MUST NOT write.
-Operation 18: The implementation MUST own the query's shape.
+Deleted: Operation 18. Term query owns it: what a query holds and when it is malformed is one thing in every build.
 Deleted: Operation 19. Capability requirement 1 owns it.
 Deleted: Operation 20. Execution Contract Logic confinement 3 owns it.
 Operation 21: The business caller MUST NOT supply recording instant.
@@ -132,9 +132,7 @@ Operation 21: The business caller MUST NOT supply recording instant.
 
 NOTE: open 2026-10-22-a — an append whose answer never reaches its caller has no stated course: the caller holds no event id to find the event by, and nothing names who suppresses a retried append (Operation 11).
 
-Term query: what a read asks for — a [Query]: a sequence number range, a wall-time range, or a combination of the two.
-
-NOTE: open 2026-10-20-b — the query's shape is the implementation's (Operation 18), while the Examples write queries in one shape and pin its verdicts; whether a range holds its ends, what a reversed range answers and how two ranges combine are not stated.
+Term query: what a read asks for — a [Query]: a sequence number range, a wall-time range, or a combination of the two. A range holds both its ends, and a combination matches an event that each of its ranges matches. A query is malformed where a range's lower end is above its upper end, where an end of a sequence number range is below one, or where the query asks for anything beyond those ranges.
 
 Term payload cap: the per-instance bound on data's size, in bytes; 65,536 bytes where a deployment declares none.
 
@@ -219,10 +217,10 @@ A single sequence exercising all three rejection reasons:
 - `append({type: "deposit", amount: 500})` → accepted; returns `event_id e1` with `sequence_number 1`.
 - `read({sequence_range: [-1, 5]})` → rejected invalid-query (negative sequence number is not a well-formed range parameter).
 - `read({sequence_range: [1, 1]})` → returns `[e1]`; `sequence_number 1` matches, ordered ascending.
-- Underlying database becomes temporarily unavailable. `append({type: "withdrawal", amount: 100})` → rejected storage-failure; event does not land; caller must treat the rejection as definitive. Nothing is written, so next sequence number stays at 2 (Operation 9, Execution Contract Database 1).
-- Database recovers. `append({type: "withdrawal", amount: 100})` → accepted; returns `event_id e2` with `sequence_number 2`.
+- The database refuses the write. `append({type: "withdrawal", amount: 100})` → rejected storage-failure; event does not land; caller must treat the rejection as definitive. Nothing is written, so next sequence number stays at 2 (Operation 9, Execution Contract Database 1).
+- Retried, the write commits. `append({type: "withdrawal", amount: 100})` → accepted; returns `event_id e2` with `sequence_number 2`.
 
-All three rejection reasons ([Invalid Payload], [Invalid Query], [Storage Failure]) exercised in one thread.
+All three rejection reasons ([Invalid Payload], [Invalid Query], [Storage Failure]) exercised in one thread. A read of the database that fails answers state-unavailable on either action instead (Execution Contract Read 1).
 
 NOTE: open 2026-10-20-e — the Examples invoke regulated domains (a patient chart, a bank journal), and the page carries no Regulated adversarial scenarios subsection.
 
@@ -427,7 +425,7 @@ Projection: next_sequence_number
 
 #### Query
 
-The selection a caller passes to [Read] — a sequence-number range, a wall-time range, or a combination of the two. Its exact shape is implementation policy; a valid [Query] asks for nothing beyond those ranges, and [Read] returns its events in [Sequence Number] order.
+The selection a caller passes to [Read] — a sequence-number range, a wall-time range, or a combination of the two. Each range holds both its ends, and a combination matches an event both its ranges match; a valid [Query] asks for nothing beyond those ranges, and [Read] returns its events in [Sequence Number] order.
 
 Kind:         Parameter
 Parameter of: Read
@@ -444,7 +442,7 @@ Projection: invalid-payload
 
 #### Invalid Query
 
-The refusal [Read] returns when the [Query] is malformed — an invalid range, or a selection on the payload. No events are returned.
+The refusal [Read] returns when the [Query] is malformed — a range whose lower end is above its upper end, a sequence-number range with an end below one, or a selection on the payload. No events are returned.
 
 Kind:       Member
 Member of:  the Read rejection
@@ -512,11 +510,10 @@ It inherits from:
 ```
 status: partially resolved
 formal: verified — event-log.tla + 1 twin, 2026-06-03
-last gate: 2026-10-22 — Final Critique 8, the council's fourth round on the page and the first on its text since Final Critique 7's settle (864dc7c), three fresh readers on free models (GRID Nemotron 3 Ultra, EOS Beam, Linus GLM-5.3 Flash), each handed only the round's reading set, three passes on one text (frozen at db94a93); the round rests on three counted passes — foundational count 0 after the settle's triage (18 reports: 14 sent down onto the page's seven flagged open lines; 4 rejected); 14 refining reports, 5 rhetorical reports; not recorded clean: a count that decides a clean round is triaged a second time, blind to the threshold, and that triage has not run (escalated 2026-10-22); every refining finding cured, routed or answered; 2026-10-22 — Final Critique 7, the council's third round on the page — foundational count 0 after the settle's triage, not recorded clean, its blind second triage not run; 2026-10-22 — Final Critique 6, the council's second round on the page — foundational count 1, cured, not clean; 2026-10-20 — Final Critique 5, the council's first round on the page — foundational count 5, all cured, not clean; 2026-06-18 — Final Critique 4, fresh reader — clean
+last gate: 2026-10-22 — Final Critique 8, the council's fourth round on the page and the first on its text since Final Critique 7's settle (864dc7c), three fresh readers on free models (GRID Nemotron 3 Ultra, EOS Beam, Linus GLM-5.3 Flash), each handed only the round's reading set, three passes on one text (frozen at db94a93); the round rests on three counted passes — foundational count 2 after the blind second triage (2026-10-23, one cold reader given the round's 37 reports, the method's test and the placement rule, and neither the threshold nor what the count decides): the query's shape, which Operation 18 gave the implementation while the Examples, compiled into the test suite, pinned one shape's verdicts (grid F4, eos F2, linus F6; open line 2026-10-20-b), and a failed read the Rejection paths answered with storage-failure beside a capability requirement citing Execution Contract Read 4 alone (linus F1), both Kind A, both cured on 2026-10-23; the settle's own triage had counted 0 (18 reports: 14 sent down onto the page's seven flagged open lines; 4 rejected); 14 refining reports, 5 rhetorical reports; not clean; every refining finding cured, routed or answered; 2026-10-22 — Final Critique 7, the council's third round on the page — foundational count 0 after the settle's triage, not recorded clean, its blind second triage not run; 2026-10-22 — Final Critique 6, the council's second round on the page — foundational count 1, cured, not clean; 2026-10-20 — Final Critique 5, the council's first round on the page — foundational count 5, all cured, not clean; 2026-06-18 — Final Critique 4, fresh reader — clean
 
 open:
 - 2026-10-20-a · refining · Term payload cap; External check 6 · the deployment's declaration of the payload cap is named (Term payload cap, External check 6) and declared by no Capability requirement → a Capability requirement naming the declaration and the default it falls back to
-- 2026-10-20-b · refining · Operation 15; Operation 18; Term query; Examples · the query's shape is the implementation's (Operation 18), while the Examples, which compile into tests, write queries in one shape and pin that shape's verdict on a range bound below one; whether a deployment may decline a query kind Term query names, whether a range holds its ends, what a reversed range answers and how two ranges combine are unsaid → fix a portable query shape, or write the Examples' queries in one declared shape
 - 2026-10-20-c · refining · Term seam; Term now; Term transition; Term business caller · each says the Execution Contract's Logic Confinement Principle declares it, and that section declares none of the four → declare the four there, the corpus's one seam wording, or point each at its declaration
 - 2026-10-20-d · refining · State 3; State 5 · log name and a fresh log instance have no declared supplier → name who supplies each, a composing pattern (Identity 10) or the deployment
 - 2026-10-20-e · refining · Examples · the Examples invoke regulated domains (a patient chart, a bank journal), and the method's When the conventions apply requires Regulated adversarial scenarios of such a page → write the subsection
@@ -527,6 +524,8 @@ open:
 ## Decisions
 
 Directional changes only — the turns a future reader must know the pattern took, and why. Everything smaller lives in the commit that made it: `git log -- atoms/event-log.md`; the rounds and the migration that got it here are in [its history](./event-log.hist.md).
+
+- **2026-10-23 — A query means one thing in every build, and a failed read answers as the Execution Contract says.** *Chose:* the query's meaning stated in Term query — a range holds both its ends, a combination matches an event each of its ranges matches, and a query is malformed where a range's lower end is above its upper end, where an end of a sequence number range is below one, or where it asks for anything beyond those ranges (Operation 15) — with Operation 18, which gave the query's shape to the implementation, deleted to Term query, the [Query] and [Invalid Query] entries following it, and open line 2026-10-20-b closed; the database supplied under Execution Contract Read 1 through 4 (Capability requirement 2), so a read of the database that fails answers state-unavailable on either action (Read 1), and the Rejection paths' storage-failure now a write the database refuses, which is what Operation 9 answers; rules 83 to 82. *Over:* a shape each build chose while the Examples, which compile into the test suite, pinned one shape's verdicts (a range of one to one answering its event, a negative end answering invalid-query), so a build obeying Operation 15 through 18 failed the page's own tests; and a walkthrough answering storage-failure for a database that cannot be reached, beside a capability requirement citing Read 4 alone, which let a build answer storage-failure where Read 1 answers state-unavailable. *Because:* Final Critique 8's blind second triage, run on 2026-10-23 by one cold reader given the round's reports, the method's test and the placement rule, placed both foundational where the settle's own triage had sent the first down onto its open line and rejected the second; settled against the text, each holds. The verdicts the Examples already showed became the rule, so no Example changes its answer. Whether a signature block that leaves state-unavailable out still lets Read 1 land it (GRACE-lang Closed vocabulary 21, 22 and 29) is the corpus's question, escalated on 2026-10-23.
 
 - **2026-10-22 — A refused append writes nothing because the Execution Contract says so, and the page points there.** *Chose:* the case table's over-cap row citing Execution Contract Read 4 beside Operation 5, so the row a reader leans on for why an over-cap append writes nothing names the rule that says it, as the storage-failure row cites Database 1; Term terms naming now beside the page's other declared terms; the seven open lines kept as they stand, each flagged beside its rule; the rule count stays at 83. *Over:* Operation 1 conditioned on the payload cap, a caller rule reading invalid-payload as the event not landing, and Operation 4 conditioned on the event landing, each restating Read 4 on the page. *Because:* Final Critique 8's readers reported the admitted effect twice more, on Operation 1 and Operation 4, the third round running after Read 4 landed; Read 4 holds a rule saying what an action does only for a call the action admits, and this page's entry on the admitted call chose it over a condition of its own. What each action does and answers is unchanged.
 
