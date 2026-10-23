@@ -51,7 +51,7 @@ Term action content: what the action an action reference names says or carries; 
 
 Term actor reference: the opaque reference naming who attested — an [Actor Reference]; the actor registry is a separate concept.
 
-Term seam: the atom's I/O boundary as the section titled Logic Confinement Principle in `execution-contract.md` declares it; the host injects the clock reading, the attestation id, the cryptographic material and the registry answer here.
+Term seam: the atom's I/O (input and output) boundary as the section titled Logic Confinement Principle in `execution-contract.md` declares it; the host injects the clock reading, the attestation id, the cryptographic material and the registry answer here.
 
 Term transition: the atom's evaluation of one call against the attestation records, as the section titled Logic Confinement Principle in `execution-contract.md` declares it.
 
@@ -59,13 +59,13 @@ Term business caller: the party whose action the call carries, as the section ti
 
 Term now: the wall-time reading the host takes at the seam and hands to the transition, as the section titled Logic Confinement Principle in `execution-contract.md` declares it; never read inside the transition, never supplied by the business caller.
 
-NOTE: open 2026-10-22-a — Term seam, Term transition, Term business caller and Term now cite the section titled Logic Confinement Principle in `execution-contract.md`, which declares none of them, and State 2 reads a transition as a move out of a state.
+NOTE: open 2026-10-22-a — Term seam, Term transition, Term business caller and Term now cite the section titled Logic Confinement Principle in `execution-contract.md`, which declares none of them.
 
 ### State
 
 ```
 State 1: EVERY attestation MUST stand in attested.
-State 2: The atom MUST NOT offer a transition out of attested.
+Deleted: State 2. State 1 owns it.
 State 3: EVERY attestation MUST carry attestation id, action reference, actor reference, proof and attestation instant.
 State 4: The atom MUST NOT store the credential.
 State 5: The atom MUST NOT offer a revocation surface.
@@ -412,6 +412,8 @@ Term qualifiers: migrated — rewritten in GRACE lang v0.35 (2026-09-12); uncomp
 
 Term terms: now, verification set, attestation, attestation id, action reference, action content, actor reference, seam, transition, business caller, attested, proof, attestation instant, credential, public material, current material, attestation field, cryptographic material, registry answer, registry view, credential check, proof check, verification failure.
 
+NOTE: open 2026-10-23-a — fifteen declared terms carry no term entry, where spec-format's Terms item asks one per declared term (Term terms).
+
 #### Attestation
 
 The record this atom defines: a permanent, verifiable binding of one action to the actor who authorized it. It carries its [Attestation Id], [Action Reference], [Actor Reference], [Proof], and [Attestation Instant]; nothing about it changes once recorded, and the atom offers no surface to revoke or modify it.
@@ -486,7 +488,7 @@ Projection:   credential
 
 #### Attested
 
-The atom's single stable state: an [Attestation] that has been recorded. There are no transitions out of it — the atom has no surface to revoke, invalidate, or modify an [Attestation] once recorded.
+The atom's single stable state: an [Attestation] that has been recorded. Nothing moves an [Attestation] out of it — the atom has no surface to revoke, invalidate, or modify an [Attestation] once recorded.
 
 Kind:      Member
 Member of: the attestation state
@@ -548,7 +550,7 @@ Projection: registry-unavailable
 
 #### Invalid Request
 
-The refusal [Attest] returns when [Action Reference], [Actor Reference], or [Credential] is null or empty. A guard rejection that fails before any database write; no [Attestation] is recorded.
+The refusal [Attest] returns when [Action Reference], [Actor Reference], or [Credential] is blank. A guard rejection that fails before any database write; no [Attestation] is recorded.
 
 Kind:       Member
 Member of:  the Attest rejection
@@ -627,25 +629,28 @@ It inherits from:
 
 ## Status
 
-`partially resolved` — see the Ledger.
+`grounded on Final Critique 10 — 2026-10-23` — see the Ledger.
 
 ## Ledger
 
 ```
-status: partially resolved
+status: grounded on Final Critique 10 — 2026-10-23
 formal: not applicable — vote no 2026-06-03
-last gate: 2026-10-23 — Final Critique 9, the council's fifth round on the page and the first on its text since Final Critique 8's settle (db94a93), three fresh readers on free models (GRID Nemotron 3 Ultra, EOS Beam, Linus GLM-5.3 Flash), each handed only the round's reading set, three passes on one text (frozen at bd22085); the round rests on three counted passes — foundational count 1 after the blind second triage (2026-10-23, one cold reader given the round's 25 reports, the method's test and the placement rule, and neither the threshold nor what the count decides), Kind A: Operation 9 and Operation 36 decided [Attest]'s refusals on a credential check and a proof that need cryptography no pure guard may run, while the cryptographic material the seam injects was declared nowhere (linus F2, with eos F2 and grid F1; open line 2026-10-20-a), cured; the settle's own triage had counted 0 (13 reports: 10 sent down onto the page's five flagged open lines; 3 rejected); 7 refining reports, 5 rhetorical reports; not clean; every refining finding cured, routed or answered, open line 2026-10-20-a closed; 2026-10-22 — Final Critique 8, the council's fourth round on the page — foundational count 1, cured, not clean; 2026-10-22 — Final Critique 7, the council's third round on the page — foundational count 2, both cured, not clean; 2026-10-22 — Final Critique 6, the council's second round on the page — foundational count 3, all cured, not clean; 2026-10-20 — Final Critique 5, the council's first round on the page — foundational count 7, all cured, not clean
+last gate: 2026-10-23 — Final Critique 10, the council's sixth round on the page and the first on its text since Final Critique 9's settle (7e1da1a), three fresh readers on free models (GRID Nemotron 3 Ultra, EOS Beam, Linus GLM-5.3 Flash), each handed only the round's reading set, three passes on one text (frozen at fbbe23b); the round rests on three counted passes — foundational count 0, held by the blind second triage (2026-10-23, one cold reader given the round's 29 reports, the method's test and the placement rule, and neither the threshold nor what the count decides, which placed none of them foundational); 14 foundational reports, none standing (10 sent down, seven of them onto three of the page's four flagged open lines; 4 rejected); 13 refining reports, 2 rhetorical reports; clean; every refining finding cured, routed or answered, State 2 deleted to State 1, open line 2026-10-22-a narrowed to the seam terms and open line 2026-10-23-a added; one sample; 2026-10-23 — Final Critique 9, the council's fifth round on the page — foundational count 1 after the blind second triage, cured, not clean; 2026-10-22 — Final Critique 8, the council's fourth round on the page — foundational count 1, cured, not clean; 2026-10-22 — Final Critique 7, the council's third round on the page — foundational count 2, both cured, not clean; 2026-10-22 — Final Critique 6, the council's second round on the page — foundational count 3, all cured, not clean; 2026-10-20 — Final Critique 5, the council's first round on the page — foundational count 7, all cured, not clean
 
 open:
 - 2026-10-20-b · refining · Invariant 6.3; Verification caching 1 · a cached verification result is no part of the verification set, so a cache inside [Verify] consults a source Invariant 6.3 bounds, though a cached and a fresh answer agree under one registry view → name the cache in the verification set, or place the cache in front of [Verify]
 - 2026-10-20-e · refining · Non-goal 15 · carrying an actor reference across trust domains is forbidden with no owner named, where the Non-goal family names who owns what the atom does not do → name the owner, or a forthcoming pattern
 - 2026-10-20-f · refining · [Read]; Term bounds · [Read] answers every attestation with no bound and no key → a bound, or a keyed read
-- 2026-10-22-a · refining · Term seam; Term transition; Term business caller; Term now; State 2 · each term cites the section titled Logic Confinement Principle in `execution-contract.md`, which declares none of them, and State 2 reads a transition as the contract's move out of a state where Term transition declares the evaluation of one call → settle the corpus's one seam wording where every specification carrying it can take the cure
+- 2026-10-22-a · refining · Term seam; Term transition; Term business caller; Term now · each term cites the section titled Logic Confinement Principle in `execution-contract.md`, which declares none of them → settle the corpus's one seam wording where every specification carrying it can take the cure
+- 2026-10-23-a · refining · Term terms; Vocabulary · fifteen declared terms (now, verification set, action content, seam, transition, business caller, public material, current material, attestation field, cryptographic material, registry answer, registry view, credential check, proof check, verification failure) carry no term entry, where spec-format's Terms item asks one per declared term and every specification writes one per name a bracket marker lands on → add the entries, each with a Kind the term entry grammar admits, or read the item as the bracketed names
 ```
 
 ## Decisions
 
 Directional changes only — the turns a future reader must know the pattern took, and why. Everything smaller lives in the commit that made it: `git log -- atoms/actor-identity.md`; the rounds and the migration that got it here are in [its history](./actor-identity.hist.md).
+
+- **2026-10-23 — Grounded on Final Critique 10, and State 2 deleted to State 1.** *Chose:* the page grounded on one sample, its foundational count zero on the settle's triage and again on the blind second triage, of fourteen foundational reports (ten sent down, seven of them onto the page's flagged open lines; four rejected); State 2, the atom offering no transition out of attested, deleted to State 1, which already holds every attestation in attested, so the page writes *transition* only as Term transition declares it and open line 2026-10-22-a keeps the seam terms alone; Term seam glossing *I/O*, and the [Invalid Request] entry reading *blank*, as Operation 6 through 8 do; open line 2026-10-23-a holding the fifteen declared terms that carry no term entry; rules 94 to 93. *Over:* another round on a text two triages found no foundational defect in, and a State rule restating State 1 in a word the page declares otherwise. *Because:* the section titled *What "grounded" means* in `pressure-testing.md` grounds a page whose final round counts zero foundational findings, with the formal-layer vote cast and every open line refining, and a page grounded on one clean round owes its second round as its first scheduled rescan (*A clean round is a sample*). What each action answers is unchanged.
 
 - **2026-10-23 — The credential mechanism computes at the seam, and the atom decides on what the seam injects.** *Chose:* Term cryptographic material declared as what the deployment's credential mechanism computes at the seam and the host injects, never inside the transition — at [Attest], the proof and the credential check; at [Verify], the proof check — so Capability requirement 4's supply names something; Operation 9 deciding invalid-credential on the credential check, Operation 1 recording the proof the deployment supplies at the seam, and the verification set taking in the proof check computed over its fields and registry view; Invariant 4.2 deleted to Invariant 1.1, which already binds every attestation field; open line 2026-10-20-a closed; rules 95 to 94. *Over:* an [Attest] that computed the proof itself and refused on a credential check and a revocation status its pure guard could not reach without cryptography (Execution Contract Logic confinement 1), beside a seam injecting cryptographic material declared nowhere. *Because:* Final Critique 9's blind second triage placed the open line foundational, where the settle's own triage and Final Critique 5 through 8 had sent it down on the reading that every conforming build computes at the seam: a rule no implementation can discharge from what the page names rests on an undeclared capability. The Execution Contract already gives the form: cryptographic material is an injected input (Logic confinement 3), and a mechanism is configured material invoked at a named step, never cryptography inside core logic. What each action answers is unchanged.
 
