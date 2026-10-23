@@ -16,14 +16,14 @@ toc: true
 
 ## Summary
 
-Tamper Evidence answers the question "how do I know these records weren't altered after the fact?" It works through seals — permanent records that attach a cryptographic proof to the records they cover. A proof is a mathematical fingerprint of a set of records as they stood at a moment in time. Sealing computes that fingerprint and stores it. Verifying re-computes the fingerprint over the original records and compares. If anything was changed, the fingerprint no longer matches, and the check fails. The crucial limit is that this detects tampering rather than preventing it. It cannot stop someone with full write access from altering both the records and the seal. But it makes any alteration visible to anyone holding the original records and the seal. The pattern is deliberately neutral about the cryptographic method used, as long as the guarantee holds: any change since sealing is provable. This is the mechanism behind sealing financial transaction journals, medical-record change logs, and payment-card access logs so auditors can confirm nothing was rewritten — and behind Git's commit history, the most widely deployed example. It does not, on its own, prevent tampering, prove who created the seal, or guarantee the seal's timestamp. Each of those is a separate pattern layered on top.
+Tamper Evidence answers one question: has this record set changed since this seal? It works through seals — permanent records that attach a cryptographic proof to the records they cover. A proof is a mathematical fingerprint of a set of records as they stood when sealed. Sealing computes that fingerprint and stores it. Verifying re-computes the fingerprint over the records presented and compares. If anything was changed since the seal, the fingerprint no longer matches, and the check fails. The crucial limit is that this detects tampering rather than preventing it. It cannot stop someone with full write access from altering both the records and the seal. But it makes any alteration since a seal visible to anyone holding the records and the seal. The pattern is deliberately neutral about the cryptographic method used, as long as the guarantee holds: any change since sealing is provable. This is the mechanism behind sealing financial transaction journals, medical-record change logs, and payment-card access logs so auditors can confirm nothing was rewritten — and behind Git's commit history, the most widely deployed example. It does not, on its own, prevent tampering, say when or by whom a record set was changed, prove who created the seal, or guarantee the seal's timestamp. Each of those is a separate pattern layered on top.
 
 ---
 
 ## Intent
 
 WHY:
-A regulated record set must answer one question provably: *have these been altered since they were written?* Procedure cannot answer it — a runbook, an access-control list and a developer's word are all claims about the past made by the party under audit. A cryptographic commitment can: seal the record set, keep the proof, and any later modification is detectable by re-running the mechanism's own verification over the records the verifier holds. This atom is that commitment and nothing more. It is mechanism-neutral by design — a hash chain, a Merkle tree with a signed root, a timestamp token and a blockchain anchor satisfy one contract — and it is honest about its ceiling: it produces evidence of tampering, never prevention of it. An adversary with write access to both the records and the seals rewrites both. What defeats that is an anchor outside the adversary's reach, and that is a composing pattern's, named here and not overclaimed.
+A regulated record set must answer one question provably: *have these been altered since they were sealed?* Procedure cannot answer it — a runbook, an access-control list and a developer's word are all claims about the past made by the party under audit. A cryptographic commitment can: seal the record set, keep the proof, and any later modification is detectable by re-running the mechanism's own verification over the records the verifier holds. This atom is that commitment and nothing more: it says whether a record set changed since a seal, never when it changed, which belongs to the patterns that own time and reach. It is mechanism-neutral by design — a hash chain, a Merkle tree with a signed root, a timestamp token and a blockchain anchor satisfy one contract — and it is honest about its ceiling: it produces evidence of tampering, never prevention of it. An adversary with write access to both the records and the seals rewrites both. What defeats that is an anchor outside the adversary's reach, and that is a composing pattern's, named here and not overclaimed.
 
 ## Structure
 
@@ -241,11 +241,11 @@ The same atom, five regulated domains, identical mechanic.
 
 ### Financial — transaction-log anchoring under SOX
 
-A bank's settlement system seals each day's transaction journal: `seal(journal_2026-05-10, hsm_signing_key) → evidence_a91`. The mechanism is a SHA-256 (Secure Hash Algorithm, 256-bit — a standard cryptographic hash function) hash chain over the day's transactions, with the chain's tail signed by an HSM-bound (Hardware Security Module — a dedicated tamper-resistant device for keys) key. At seal time, the chain tail is anchored to an RFC (Request for Comments — the Internet's numbered standards series) 3161 qualified timestamp authority, and the time on the authority's timestamp token is recorded as [Anchoring Instant] on the seal. Seven years later, during a SOX (Sarbanes-Oxley Act — US financial reporting law) section 404 audit, the external auditor presents the journal and `verify(a91, journal_2026-05-10) → verified` — confirming the day's transactions were not altered after the seal, with the qualified timestamp giving an upper bound on when they could have been forged.
+A bank's settlement system seals each day's transaction journal: `seal(journal_2026-05-10, hsm_signing_key) → evidence_a91`. The mechanism is a SHA-256 (Secure Hash Algorithm, 256-bit — a standard cryptographic hash function) hash chain over the day's transactions, with the chain's tail signed by an HSM-bound (Hardware Security Module — a dedicated tamper-resistant device for keys) key. At seal time, the chain tail is anchored to an RFC (Request for Comments — the Internet's numbered standards series) 3161 qualified timestamp authority, and the time on the authority's timestamp token is recorded as [Anchoring Instant] on the seal. Seven years later, during a SOX (Sarbanes-Oxley Act — US financial reporting law) section 404 audit, the external auditor presents the journal and `verify(a91, journal_2026-05-10) → verified` — confirming the day's transactions were not altered since the seal.
 
 ### Healthcare — EHR change-log integrity under HIPAA and 21 CFR Part 11
 
-A hospital EHR (Electronic Health Record — the digital patient chart system) appends every record amendment (correction, addendum, redaction) to a per-patient change log. The change log is sealed on a rolling Merkle-tree basis — each commit produces a new root and a new seal. `verify(seal, patient_change_log) → verified` confirms the log has not been silently rewritten since the seal. A correction added today is a new event in the log, not a modification of yesterday's; if anyone retroactively edited yesterday's entry, today's seal would fail verification. 21 CFR Part 11's (the US Code of Federal Regulations rule on electronic records and signatures) and HIPAA's (US Health Insurance Portability and Accountability Act) electronic-record integrity bar is satisfied structurally.
+A hospital EHR (Electronic Health Record — the digital patient chart system) appends every record amendment (correction, addendum, redaction) to a per-patient change log. The change log is sealed on a rolling Merkle-tree basis — each commit produces a new root and a new seal. `verify(seal, patient_change_log) → verified` confirms the log has not been silently rewritten since the seal. A correction added today is a new event in the log, not a modification of yesterday's; if anyone retroactively edited yesterday's entry, every seal made over that entry before the edit would fail verification. 21 CFR Part 11's (the US Code of Federal Regulations rule on electronic records and signatures) and HIPAA's (US Health Insurance Portability and Accountability Act) electronic-record integrity bar is satisfied structurally.
 
 ### Source control — Git's commit DAG
 
@@ -259,7 +259,7 @@ A law firm timestamps an executed contract via a qualified Time-Stamp Authority 
 
 A payment processor seals each day's cardholder-data access log: `seal(pan_access_log_2026-05-10, processor_key) → evidence_p41`. The mechanism is a SHA-256 hash chain — each entry's hash includes the previous entry's hash and the entry's content — whose tail is signed each day under the processor's key, the [Proof] carrying the signature and the public key that checks it. A chain keyed by a shared secret, such as an HMAC (Hash-based Message Authentication Code) chain, is outside the contract: checking it needs the secret, which the verification set does not carry (Invariant 8.1). PCI DSS (Payment Card Industry Data Security Standard — the card networks' mandatory security rules for cardholder data; here applied to PAN, the Primary Account Number) Requirement 10.5 mandates audit-log integrity; the seal is the structural form. A QSA's (Qualified Security Assessor — a PCI-certified auditor) annual assessment runs verify over the prior year's daily logs; any tampering — whether to hide a cardholder-data exfiltration or to forge access for a fraudulent dispute — is detected from the logs themselves.
 
-The mechanic is identical across all five. What differs: the mechanism family (hash chain, Merkle tree, qualified timestamp), the frequency of sealing (per-commit, per-amendment, per-document, per-day), the anchoring story (none, RFC 3161 TSA, blockchain), and the composing patterns active around it (Actor Identity for authored seals, Trusted Timestamping for qualified anchors, External Anchoring for tamper-proof reach).
+The mechanic is identical across all five. What differs: the mechanism family (hash chain, Merkle tree, qualified timestamp), the frequency of sealing (per-commit, per-amendment, per-document, per-day), the anchoring story (none, RFC 3161 TSA, blockchain), and the composing patterns active around it (Actor Identity for authored seals, Trusted Timestamping for qualified anchors, External Anchoring for tamper-proof reach, Forensic Attribution for when and by whom a record set changed).
 
 ### Rejection and verification-failure paths
 
@@ -277,7 +277,7 @@ verify(evidence_id: "evidence_a91", original_record_set: journal_2026-05-10_back
 → verified
 ```
 
-verified confirms the backup matches what was sealed; proof-invalid on the altered version confirms the alteration occurred after [Sealing Instant]. One seal covers the journal, so the forensic window opens at that seal, and no later seal closes it.
+verified confirms the backup matches what was sealed; proof-invalid on the altered version confirms the journal changed since the seal.
 
 **Wrong record set presented — [Record Set Mismatch].** A verifier accidentally presents the wrong day's journal to a seal:
 
@@ -292,8 +292,8 @@ The presented record set does not match the [Record Set Reference] the [Evidence
 
 Three scenarios the atom must survive in regulated contexts:
 
-- **Regulator integrity audit.** A regulator asks *"how do I know these records weren't rewritten after the fact?"* The auditor takes the original record set from the host, the [Evidence Id] from the seal records, and runs [Verify] — independently, with their own implementation of the mechanism's verification function. [Verified] is a structural guarantee, not a procedural promise. Where the [Evidence] carries [Anchoring Instant] from a qualified TSA outside the host's control, the audit additionally establishes an upper bound on the time the records could have been forged. Invariants 2 and 3 are the structural answer.
-- **Breach forensics — "when was the record altered?"** An incident responder discovers anomalous data. They query the seal records for every [Evidence] whose [Record Set Reference] covers the suspect records, in [Sealing Instant] order. Running [Verify] on each over the suspect records as they now stand, they identify the most recent [Evidence] that returns [Proof Invalid] (records intact when it sealed them, where no anchor change has reached its proof) and the next [Evidence] that returns [Verified] (the alteration already in place when it sealed): the records were altered between those two seal times, and where no later [Evidence] returns [Verified], after the last failing one. The forensic window is bounded by the seal cadence once a later seal lands; tighter cadence narrows the window. The atom does not name *who* altered the records — that is a separate Forensic Attribution composition — but it names *when* with the resolution of the seal schedule.
+- **Regulator integrity audit.** A regulator asks *"how do I know these records weren't rewritten after the fact?"* The auditor takes the original record set from the host, the [Evidence Id] from the seal records, and runs [Verify] — independently, with their own implementation of the mechanism's verification function. [Verified] is a structural guarantee, not a procedural promise. Invariants 2 and 3 are the structural answer. A bound on when the records could have been forged is not the atom's to give: a qualified TSA's time on the [Evidence] sets one only through Trusted Timestamping *(forthcoming)* (Non-goal 9).
+- **Breach forensics — "when was the record altered?"** An incident responder discovers anomalous data. They query the seal records for every [Evidence] whose [Record Set Reference] covers the suspect records and run [Verify] on each over the suspect records as they now stand: [Proof Invalid] says the records changed since that seal, where no anchor change has reached its proof, and [Verified] says they have not. The atom answers that much for each seal and no more. When the records were altered, and who altered them, is Forensic Attribution's *(forthcoming)*, which reads these answers against the times a trusted-timestamping pattern vouches for (Non-goal 9, Non-goal 15, Non-goal 16).
 - **False-tamper-claim disproof.** A counterparty claims *"you modified the contract after I signed."* The system presents the contract and the [Evidence]; `verify(evidence, contract) → verified`. The claim is structurally disproven against the unmodified record set the system retains; the counterparty's burden shifts to producing a different record set they claim is the authoritative one, at which point the dispute becomes about *which version is canonical* rather than *whether it was tampered with*. The atom answers the second question; the first belongs to the Content Lock or Document Versioning composing pattern.
 
 ---
@@ -312,13 +312,11 @@ Check 2.2: An auditor MUST NOT need privileged access to the system to verify (I
 Check 3.1: An auditor MUST confirm that a single-byte change to the record set yields proof-invalid (Invariant 2.1, Operation 18).
 Check 4.1: An auditor MUST read verified, failed-verification and not-known as three distinct answers (Operation 14).
 Check 4.2: An auditor MUST read record-set-mismatch, proof-invalid and mechanism-verification-unavailable as three distinct reasons (Operation 16, Operation 17, Operation 18).
-Check 5.1: IF the mechanism anchors at seal time THEN an auditor MUST bound a detected tampering below by the anchoring instant of EVERY evidence over the record set whose verification over the altered record set answers proof-invalid, where no anchor change EXISTS for the evidence's proof (Invariant 2.1, Invariant 3.1, Operation 4).
-Check 5.2: An auditor MUST read a bound between two adjacent sealing instant times as best-effort (Non-goal 8).
+Deleted: Check 5.1. A trusted-timestamping pattern owns it (Non-goal 9, Non-goal 15): an anchored bound on when a record set changed.
+Deleted: Check 5.2. A forensic-attribution pattern owns it (Non-goal 15, Non-goal 16): a bound between two seals on when a record set changed.
 Deleted: Check 6.1. Execution Contract Conformance 9 owns it.
 Deleted: Check 6.2. External check 4 owns it.
 ```
-
-NOTE: watch the external answer that moves (Check 5.1).
 
 ### External checks
 
@@ -350,6 +348,8 @@ Non-goal 11: The atom MUST NOT define a record set.
 Non-goal 12: The host MUST present a record set alike at seal time and at verify time.
 Non-goal 13: The atom MUST NOT deduplicate two seals over one record set.
 Non-goal 14: A pattern needing one seal per record set per cadence MUST own that coordination.
+Non-goal 15: The atom MUST NOT bound when a record set changed.
+Non-goal 16: A deployment needing when a record set changed MUST compose a forensic-attribution pattern.
 ```
 
 Where the atom breaks down: when the host cannot supply a record set reference whose contents are reproducibly addressable at verify time; when the chosen mechanism commits to the records' identity and not their content; when the proof records and the sealed records share an adversary with write access to both and no external anchor exists.
@@ -376,9 +376,9 @@ NOTE: open 2026-10-21-f — *seal* names both the action [Seal] and the evidence
 ### Retention coupling
 
 ```
-Deleted: Retention coupling 1. Retention coupling 3 owns it: a copy of a purged record set can still verify, and a deployment reads no seal over destroyed records as proof of their content.
+Deleted: Retention coupling 1. The composing pattern that owns the purge owns it (Retention coupling 2): a copy of a purged record set can still verify.
 Retention coupling 2: A composing pattern MUST own the cascading purge of an evidence alongside the records.
-Retention coupling 3: A deployment MUST NOT read a seal over destroyed records as proof of the records' content.
+Deleted: Retention coupling 3. The composing pattern that owns the purge owns it (Retention coupling 2): what a seal over destroyed records proves.
 ```
 
 ### Verification caching
@@ -386,10 +386,10 @@ Retention coupling 3: A deployment MUST NOT read a seal over destroyed records a
 ```
 Verification caching 1: An implementation MAY cache a verification result.
 Verification caching 2: An implementation MUST NOT cache a verification result across two record-set states.
-Verification caching 3: An implementation MUST NOT cache a verification result across an anchor change.
+Deleted: Verification caching 3. An external-anchoring pattern owns it (Non-goal 2): what a seal answers once its anchor changes.
 ```
 
-NOTE: open 2026-10-21-i — what a cached verification result is keyed by is not stated (Verification caching 2, Verification caching 3).
+NOTE: open 2026-10-21-i — what a cached verification result is keyed by is not stated (Verification caching 2).
 
 ## Composition notes
 
@@ -401,7 +401,7 @@ Composition note 4: A composing pattern MUST own the decision to purge an eviden
 Composition note 5: This atom's invariant numbers MUST stand as a frozen contract surface.
 ```
 
-NOTE: composing patterns — [Audit Trail](../compositions/audit-trail.md). Forthcoming: External Anchoring, Trusted Timestamping, Mechanism Registry.
+NOTE: composing patterns — [Audit Trail](../compositions/audit-trail.md). Forthcoming: External Anchoring, Trusted Timestamping, Forensic Attribution, Mechanism Registry.
 
 ## Terms
 
@@ -427,7 +427,7 @@ Term terms: now, evidence, evidence id, record set reference, seam, transition, 
 
 #### Evidence
 
-The record this atom defines: a permanent, verifiable seal over a record set — cryptographic evidence that the set has not been altered since its authoritative creation. It is produced by [Seal] and carries its [Evidence Id], [Record Set Reference], [Proof], [Sealing Instant], and optional [Anchoring Instant]; nothing about it changes once recorded, and the atom offers no surface to revoke, modify, or re-anchor it.
+The record this atom defines: a permanent, verifiable seal over a record set — cryptographic evidence of whether the set has been altered since it was sealed. It is produced by [Seal] and carries its [Evidence Id], [Record Set Reference], [Proof], [Sealing Instant], and optional [Anchoring Instant]; nothing about it changes once recorded, and the atom offers no surface to revoke, modify, or re-anchor it.
 
 Kind: Type
 
@@ -523,7 +523,7 @@ Role:      Outcome
 
 #### Verified
 
-The outcome [Verify] returns when the stored [Proof] checks out against the presented [Original Record Set] under the chosen mechanism's verification function. It is the structural confirmation that the records were not altered after [Sealing Instant] (conditional on a cryptographically sound mechanism).
+The outcome [Verify] returns when the stored [Proof] checks out against the presented [Original Record Set] under the chosen mechanism's verification function. It is the structural confirmation that the records were not altered since the [Evidence] sealed them (conditional on a cryptographically sound mechanism).
 
 Kind:       Member
 Member of:  the Verify outcome
@@ -647,7 +647,7 @@ Tamper Evidence is a foundational compliance primitive with deep cryptographic a
 - **Certificate Transparency (RFC 9162)** — a worked public Merkle-tree append-only (records can be added but never changed or deleted) log; the canonical real-world deployment of public, verifiable, externally-anchored tamper-evidence at internet scale.
 - **Git's commit DAG** — the most widely-deployed open-source reference for hash-chain tamper-evidence. Every modern source-control system inherits the design.
 - **PCI DSS Requirement 10 (Track and monitor all access to network resources and cardholder data)** — including 10.5 (secure audit trails so they cannot be altered). The atom is the structural form.
-- **eIDAS Regulation (EU 910/2014)** — qualified electronic timestamps carry presumed evidentiary effect; the atom's [Anchoring Instant] is the operational anchor.
+- **eIDAS Regulation (EU 910/2014)** — qualified electronic timestamps carry presumed evidentiary effect; the atom's [Anchoring Instant] carries such a timestamp's time, and what that time proves is a trusted-timestamping pattern's (Non-goal 9).
 
 It inherits from:
 
@@ -675,7 +675,7 @@ open:
 - 2026-10-21-c · refining · Invariant 2.2, 2.3; Term qualifiers · deprecated is declared nowhere, Term qualifiers declaring sound alone, and Invariant 2.3 obliges a re-seal with no trigger, bound or owner → declare deprecated or write the rule in sound; name the re-seal's trigger and owner
 - 2026-10-21-d · refining · State 6, 7; Operation 8; Invariant 3.2, 8.1 · deletion surface, revocation surface, unkeyed mechanism, another record set and the atom's contract carry rules and are declared nowhere → declare each, or write each rule in declared names
 - 2026-10-21-f · refining · Summary; Identity 8; Concurrent seal 1 · seal names both the action [Seal] and the evidence it records → one name each
-- 2026-10-21-i · refining · Verification caching 2, 3 · what a cached result is keyed by is unstated, so two conforming caches drop a result at different moments → name the key
+- 2026-10-21-i · refining · Verification caching 2 · what a cached result is keyed by is unstated, so two conforming caches drop a result at different moments → name the key
 - 2026-10-22-a · refining · Identity 2; Capability requirement · the evidence id's source is named as the host's allocation under Identity and not among the Capability requirements, where spec-format's atom shape lists an id source under Capability requirement; Event Log routed the same form (its 2026-10-22-b), twenty atoms writing the host's allocation under Identity and four having the deployment supply id material under Capability requirement 2 → one form for the corpus, as the seam normalization made one for now
 ```
 
@@ -698,5 +698,7 @@ Directional changes only — the turns a future reader must know the pattern too
 - **2026-10-22 — A detected tampering is bounded below by each seal it fails.** *Chose:* the anchored bound an auditor draws for a detected tampering stated as the one the records always give: the anchoring instant of every evidence over the record set whose verification answers proof-invalid bounds the tampering below (Check 5.1, now citing Invariant 2.1 and Operation 4), since such an evidence sealed the records as they stood before the alteration; the Breach forensics scenario closing the window at the next evidence that verifies the altered records, where one exists, and the Rejection paths' journal, which one seal covers, leaving it open. *Over:* a check obliging a bound between two adjacent anchoring instants, which a record set sealed once cannot give and a tampering made after the last seal over a record set never has, and a scenario reading the window from a verifying seal to the failing seal after it, a pair that brackets when the altered records were written rather than when they were altered. *Because:* Final Critique 7 found a conforming deployment failing the page's own check: nothing obliges a second seal over a record set (Term cadences, Non-goal 14), and the Financial and Payments examples seal each day's records once. The round also deleted Invariant 4.2, *[Verify] MUST NOT consult the host's state*, to Invariant 4.3, as Actor Identity's seventh round deleted its twin: on every reading of Term verification set the rule either forbade the host-injected record set match Invariant 4.1 has [Verify] consult or restated Invariant 4.3. Compositions affected: none; Audit Trail rests on Invariant 4 as a family, which keeps Invariant 4.1 and Invariant 4.3.
 
 - **2026-10-23 — A detected tampering is bounded below only by the seals the altered records fail, and a seal over purged records is no proof of their content.** *Chose:* Check 5.1 bounding a detected tampering below by the anchoring instant of every evidence over the record set whose verification over the altered record set answers proof-invalid, where no anchor change exists for the evidence's proof, now citing Invariant 3.1; the Breach forensics scenario running each seal over the suspect records as they now stand, and the [Proof Invalid] entry naming the anchor change; Retention coupling 1, *A purged record set MUST leave [Verify] unable to hold*, deleted to Retention coupling 3; Operation 12, which restated Invariant 1.1 for [Seal] alone, deleted to it; the Generation acceptance introduction naming the deployment's declared mechanism among what the conformance checks read; rules 102 to 100. *Over:* a check that took any verification answering proof-invalid as a seal made before the alteration, so a backup presented to a seal made after the alteration, as the Rejection paths present one, or a seal whose anchor was later revoked, put the bound above the alteration, the previous round's own cure failing two histories the page permits (Identity 8, Non-goal 13, Term anchor change); and a rule no party the page names could keep: [Verify] may not read a purge (Invariant 4.3), and a host answering record set match for a copy of a purged record set as it answers for the Rejection paths' backup answers yes, so the copy verifies. *Because:* Final Critique 8 found both, and Retention coupling 3 already says what stays true after a purge: no seal over destroyed records is proof of their content. The anchor condition is the watched shape *the external answer that moves*, flagged after the checks. Compositions affected: none; Audit Trail cites Invariant 1, 3, 4 and 8, all unchanged.
+
+- **2026-10-23 — The atom answers only whether a record set changed since its seal; when it changed belongs to the composing patterns.** *Chose:* the atom bounding no time of change (Non-goal 15), a deployment needing one composing a forensic-attribution pattern (Non-goal 16); Check 5.1, the anchored lower bound on a detected tampering, deleted to a trusted-timestamping pattern (Non-goal 9), and Check 5.2, the bound between two seals, to a forensic-attribution pattern; Verification caching 3, no cached result across an anchor change, deleted to an external-anchoring pattern (Non-goal 2), whose question is what a seal answers once its anchor changes; Retention coupling 3, no seal over destroyed records read as proof of their content, deleted to the composing pattern that owns the purge (Retention coupling 2), and Retention coupling 1's tombstone re-pointed there; the Breach forensics scenario answering, for each seal, whether the suspect records changed since it, with the window and the attribution left to Forensic Attribution; the Rejection paths, the Regulator integrity audit, the Financial and Healthcare examples, the [Evidence] and [Verified] entries and the eIDAS reference no longer placing a change in time; the Summary and the Intent saying the same; rules 100 to 98. The anchor change stays on Invariant 3.1 and Invariant 7.1 and in the [Proof Invalid] entry: it keeps the binding and consistency claims [Verify] makes against one seal true for a mechanism whose anchor can change, and says nothing of what such a seal then means. The anchoring instant stays a field the evidence carries (State 4, Operation 4); a bound drawn from it is the trusted-timestamping pattern's. *Over:* the atom keeping a forensic bound on when records changed, which three rounds cured and the next found broken on histories the page permits (Final Critique 6 through 8). *Because:* the maintainer ruled on 2026-10-23, direction (b) of the 02:44Z escalation, that the atom answers only *has this record set changed since this seal*, and that when it changed leaves the atom for Trusted Timestamping, External Anchoring and Forensic Attribution, all forthcoming. Compositions affected: none; Audit Trail's own forensic window (its Check 4.1, seal cadence 1 and 2, seal mechanism 2) rests on [Verify]'s answers and the seal stamps, which stand, and on none of the deleted rules.
 
 NOTE: End of Tamper Evidence.
