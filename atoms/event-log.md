@@ -16,7 +16,7 @@ toc: true
 
 ## Summary
 
-Event Log is an append-only record. Anything written to it stays, in the order it arrived, unchanged, for as long as the log exists. It is the foundation that audit trails, undo histories, activity feeds, transaction journals, and replay systems (which rebuild a past state by reading the events back in order) are all built on. It offers just two operations. One adds an event to the end and returns an identifier for it; the other reads events back in order. There is no way to edit or delete, by design. Every event gets a strictly increasing sequence number that fixes its place in line. That number is kept separate from the human-readable timestamp on purpose: clocks can drift or jump, but the sequence number never does, so the log can always be replayed faithfully even on a machine with a bad clock. The log itself takes no position on how long to keep events, how to prove they have not been tampered with, who wrote them, or how to search them. All of these are handled by separate patterns layered on top, which is why the same simple log can sit under a personal task history, a medical chart, a bank ledger, and a regulated audit trail.
+Event Log is an append-only record. Anything written to it stays, in the order it arrived, unchanged, for as long as the log exists. It is the foundation that audit trails, undo histories, activity feeds, transaction journals, and replay systems (which rebuild a past state by reading the events back in order) are all built on. It offers just two operations. One adds an event to the end and returns an identifier for it; the other reads events back in order. There is no way to edit or delete, by design. Every event gets a strictly increasing sequence number (1 for the first event, 2 for the next, and so on) that fixes its place in line. That number is kept separate from the human-readable timestamp on purpose: clocks can drift or jump, but the sequence number never does, so the log can always be replayed faithfully even on a machine with a bad clock. The log itself takes no position on how long to keep events, how to prove they have not been tampered with, who wrote them, or how to search them. All of these are handled by separate patterns layered on top, which is why the same simple log can sit under a personal task history, a medical chart, a bank ledger, and a regulated audit trail.
 
 ---
 
@@ -90,7 +90,7 @@ Term event field: event id | sequence number | recording instant | data.
 ### Capability requirement
 
 ```
-Capability requirement 1: The deployment MUST supply now at the seam.
+Capability requirement 1: The deployment MUST supply now at the seam PER Execution Contract Logic confinement 3.
 Capability requirement 2: The deployment MUST supply the database PER Execution Contract Database 1 through 4 and Execution Contract Read 1 through 4.
 ```
 
@@ -129,8 +129,6 @@ Deleted: Operation 19. Capability requirement 1 owns it.
 Deleted: Operation 20. Execution Contract Logic confinement 3 owns it.
 Operation 21: The business caller MUST NOT supply recording instant.
 ```
-
-NOTE: open 2026-10-22-a — an append whose answer never reaches its caller has no stated course: the caller holds no event id to find the event by, and nothing names who suppresses a retried append (Operation 11).
 
 Term query: what a read asks for — a [Query]: a sequence number range, a wall-time range, or a combination of the two. A range holds both its ends, and a combination matches an event that each of its ranges matches. A query is malformed where the query carries no range, where a range's lower end is above its upper end, where an end a sequence number range carries is below one or is not an integer, or where the query asks for anything beyond those ranges.
 
@@ -290,6 +288,14 @@ Where the pattern breaks down: when the host cannot supply atomic, serialized ap
 
 ## Edge cases
 
+### Indeterminate outcome
+
+```
+Indeterminate outcome 1: A composing pattern MUST own what a caller does when an append's answer never reaches the caller.
+```
+
+NOTE: watch the lost answer (Indeterminate outcome 1).
+
 ### Durability across crashes
 
 ```
@@ -365,7 +371,7 @@ Kind: Type
 
 #### Append
 
-The behavior a composing pattern invokes to record a new [Event] at the end of the log. It allocates the next [Sequence Number], stamps [Recording Instant], and returns the [Event Id]. It is the only way data enters the log.
+The behavior a composing pattern invokes to record a new [Event] at the end of the log. It carries the [Next Sequence Number] into the [Event] and raises it by one, stamps [Recording Instant], and returns the [Event Id]. It is the only way data enters the log.
 
 Kind: Operation
 
@@ -482,7 +488,7 @@ Projection: storage-failure
 
 ## Standards references
 
-Event Log is a foundational primitive with deep standards backing:
+Event Log is a foundational primitive, and these standards bear on it:
 
 - **ISO/IEC 27001** (International Organization for Standardization / International Electrotechnical Commission — joint information-security management standard) — mandates event logging for security-relevant actions.
 - **NIST SP 800-92** (National Institute of Standards and Technology — US federal standards body) — *Guide to Computer Security Log Management*; describes log lifecycle, integrity, retention requirements.
@@ -510,20 +516,21 @@ It inherits from:
 ```
 status: partially resolved
 formal: verified — event-log.tla + 1 twin, 2026-06-03
-last gate: 2026-10-23 — Final Critique 9, the council's fifth round on the page and the first on its text since Final Critique 8's blind second triage cures (4ed7a7d), three fresh readers on free models (GRID Nemotron 3 Ultra, EOS Beam, Linus GLM-5.3 Flash), each handed only the round's reading set, three passes on one text (frozen at 7e1da1a); the round rests on three counted passes — foundational count 1: a query carrying no range, and a sequence number range with an end that is not an integer, which Term query's malformed shapes, written when Operation 18 stopped giving the query's shape to the implementation, left to no rule (linus F3, with eos refining 5), Kind A, cured on 2026-10-23; 16 other foundational reports: 9 sent down onto five of the page's six flagged open lines, 7 rejected; 14 refining reports, 6 rhetorical reports; not clean; every refining finding cured, routed or answered; 2026-10-22 — Final Critique 8, the council's fourth round on the page — foundational count 2 after the blind second triage (2026-10-23; the settle's own triage had counted 0), both cured, not clean; 2026-10-22 — Final Critique 7, the council's third round on the page — foundational count 0 after the settle's triage, not recorded clean, its blind second triage not run; 2026-10-22 — Final Critique 6, the council's second round on the page — foundational count 1, cured, not clean; 2026-10-20 — Final Critique 5, the council's first round on the page — foundational count 5, all cured, not clean; 2026-06-18 — Final Critique 4, fresh reader — clean
+last gate: 2026-10-23 — Final Critique 10, the council's sixth round on the page and the first on its text since Final Critique 9's settle (fbbe23b), three fresh readers on free models (GRID Nemotron 3 Ultra, EOS Beam, Linus GLM-5.3 Flash), each handed only the round's reading set, three passes on one text (frozen at 5432bc0); the round rests on three counted passes — foundational count 1 after the blind second triage (2026-10-23, one cold reader given the round's 38 reports, the method's test and the placement rule, and neither the threshold nor what the count decides; the settle's own triage had counted 0): an append whose answer never reaches its caller, an arm the page named no owner for, on which one conforming deployment re-appended and recorded one state change twice while another never did (grid 6, eos F4, linus F1; open line 2026-10-22-a), Kind A, cured on 2026-10-23; 11 other foundational reports: 10 sent down, 8 of them onto five of the page's six flagged open lines, 1 rejected; 16 refining reports, 8 rhetorical reports; not clean; every refining finding cured, routed or answered; 2026-10-23 — Final Critique 9, the council's fifth round on the page — foundational count 1, cured, not clean; 2026-10-22 — Final Critique 8, the council's fourth round on the page — foundational count 2 after the blind second triage (2026-10-23; the settle's own triage had counted 0), both cured, not clean; 2026-10-22 — Final Critique 7, the council's third round on the page — foundational count 0 after the settle's triage, not recorded clean, its blind second triage not run; 2026-10-22 — Final Critique 6, the council's second round on the page — foundational count 1, cured, not clean; 2026-10-20 — Final Critique 5, the council's first round on the page — foundational count 5, all cured, not clean; 2026-06-18 — Final Critique 4, fresh reader — clean
 
 open:
 - 2026-10-20-a · refining · Term payload cap; External check 6 · the deployment's declaration of the payload cap is named (Term payload cap, External check 6) and declared by no Capability requirement → a Capability requirement naming the declaration and the default it falls back to
 - 2026-10-20-c · refining · Term seam; Term now; Term transition; Term business caller · each says the Execution Contract's Logic Confinement Principle declares it, and that section declares none of the four → declare the four there, the corpus's one seam wording, or point each at its declaration
 - 2026-10-20-d · refining · State 3; State 5 · log name and a fresh log instance have no declared supplier → name who supplies each, a composing pattern (Identity 10) or the deployment
 - 2026-10-20-e · refining · Examples · the Examples invoke regulated domains (a patient chart, a bank journal), and the method's When the conventions apply requires Regulated adversarial scenarios of such a page → write the subsection
-- 2026-10-22-a · refining · Operation 11; Storage Failure entry · an append whose answer never reaches its caller, the acknowledgement lost after the commit or the reply lost after the answer, has no stated course: the caller holds no event id to find the event by, a retry lands a second event, and nothing names who suppresses a retried append; the Execution Contract's Error model names no arm for a lost acknowledgement → name the caller's course and the owner of a retried append, or take the arm the contract states once
 - 2026-10-22-b · refining · Identity 2; Capability requirement · the event id's source is named as the host's allocation (Identity 2) and not among what the deployment supplies, where the atom shape in `spec-format.md` lists an id source under Capability requirement and Final Critique 4's text named one beside the clock → name the source among the Capability requirements, in the one form the corpus settles for its twenty host-allocation atoms
 ```
 
 ## Decisions
 
 Directional changes only — the turns a future reader must know the pattern took, and why. Everything smaller lives in the commit that made it: `git log -- atoms/event-log.md`; the rounds and the migration that got it here are in [its history](./event-log.hist.md).
+
+- **2026-10-23 — What a caller does when an append's answer is lost is the composing pattern's.** *Chose:* Indeterminate outcome 1, the first family under Edge cases, giving a composing pattern what a caller does when an append's answer never reaches the caller, and open line 2026-10-22-a closed; Capability requirement 1 supplying now PER Execution Contract Logic confinement 3, the rule the clock reading meets, as the atom shape in `spec-format.md` asks of each thing a deployment supplies; the rule count 82 to 83. *Over:* an arm no rule gave an owner, on which one deployment re-appended on silence and recorded one state change twice while another never re-appended and, where the call had not landed, recorded nothing, each obeying every rule; and a course chosen for the composing pattern, a retry or none, which only it can choose. *Because:* Final Critique 10's blind second triage placed the lost answer foundational, where the settle's own triage, as four before it, had sent it down onto its open line; settled against the text, it holds, since the page's own flag said the arm had no stated course and that nothing named who suppresses a retried append. The atom answers a retried append as a second call (Execution Contract Read 4) and tells no event by its data (Identity 9), so a composing pattern that needs one event for each state change carries what tells two apart in the data it owns (Composition note 3). The cure is counted on GRACE-lang's Watch list as *the lost answer*, with the seven specifications that state the same arm for themselves. What each action does and answers is unchanged.
 
 - **2026-10-23 — A query carries a range, and a sequence number range's ends are integers.** *Chose:* Term query's malformed shapes taking in a query carrying no range and a sequence number range carrying an end that is not an integer, beside a range's lower end above its upper end, an end below one and anything beyond the ranges, so that [Read] answers invalid-query to each (Operation 15); the [Query] and [Invalid Query] entries following it, the second now naming a selection on the payload as one query asking beyond the ranges; the rule count stays at 82. *Over:* a query with no range, which no rule gave a meaning, so that one build answered it with every event, another with none and a third refused it; and an end such as 2.5, which one build compared and another refused. *Because:* Final Critique 9 found it in the text Final Critique 8's blind second triage wrote when it took the query's shape from the implementation. Term query already said a query is a sequence number range, a wall-time range or the two, so a query carrying neither was never one, and a read of the whole log is a sequence number range from one. What each action does and answers is unchanged but for those two inputs.
 

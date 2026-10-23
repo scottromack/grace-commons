@@ -536,6 +536,8 @@ Indeterminate outcome 2: A caller MUST NOT read a lost answer as a refusal.
 Indeterminate outcome 3: A caller MUST retry a lost [Amend] ONLY IF the original's state IS IN the pre-dispensing states.
 ```
 
+NOTE: watch the lost answer (Indeterminate outcome 1, Indeterminate outcome 2, Indeterminate outcome 3).
+
 ### String policy
 
 ```

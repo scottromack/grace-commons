@@ -535,6 +535,8 @@ Indeterminate outcome 3: A caller retrying a landed [Register] MUST read duplica
 Indeterminate outcome 4: A caller retrying a landed [Rotate] MUST read not-active as the first call's landing.
 ```
 
+NOTE: watch the lost answer (Indeterminate outcome 1, Indeterminate outcome 2, Indeterminate outcome 3, Indeterminate outcome 4).
+
 ### String policy
 
 ```

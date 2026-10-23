@@ -446,6 +446,8 @@ Indeterminate outcome 2: A caller MUST NOT read a transport fault as a storage-f
 Indeterminate outcome 3: A caller retrying a landed resolving action MUST read not-pending.
 ```
 
+NOTE: watch the lost answer (Indeterminate outcome 1, Indeterminate outcome 2, Indeterminate outcome 3).
+
 ### String policy
 
 ```

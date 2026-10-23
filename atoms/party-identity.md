@@ -446,6 +446,8 @@ Indeterminate outcome 2: A caller MUST NOT read a lost answer as a refusal.
 Indeterminate outcome 3: A caller MUST NOT retry a lost [Enroll] BEFORE reading the database.
 ```
 
+NOTE: watch the lost answer (Indeterminate outcome 1, Indeterminate outcome 2, Indeterminate outcome 3).
+
 ### String policy
 
 ```

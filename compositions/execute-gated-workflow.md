@@ -924,6 +924,8 @@ Indeterminate outcome 1: A caller holding a lost [Start Workflow] answer MUST NO
 Indeterminate outcome 2: A caller holding a lost instance action answer MUST NOT re-invoke the instance action BEFORE reading the workflow.
 ```
 
+NOTE: watch the lost answer (Indeterminate outcome 1, Indeterminate outcome 2).
+
 Term lost answer: an answer that never reached the caller.
 
 ### Retention asymmetry

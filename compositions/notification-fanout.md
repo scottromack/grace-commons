@@ -354,6 +354,8 @@ Indeterminate outcome 7: A caller needing at-most-once across an indeterminate c
 Indeterminate outcome 8: A caller MUST NOT read Notification's pending_for as finding an indeterminate create's record.
 ```
 
+NOTE: watch the lost answer (Indeterminate outcome 1, Indeterminate outcome 2, Indeterminate outcome 4, Indeterminate outcome 7, Indeterminate outcome 8).
+
 ---
 
 ## Composition notes
