@@ -1206,7 +1206,7 @@
   "composes": [
    "lease"
   ],
-  "grounded": false,
+  "grounded": true,
   "invariants": 9,
   "kind": "composition",
   "models": {
@@ -1222,7 +1222,7 @@
    "PCI DSS",
    "SOX"
   ],
-  "status": "draft",
+  "status": "grounded on Final Critique 20 \u2014 2026-10-24",
   "substrate_of": [
    "immutable-transaction-ledger",
    "verified-repair"
