@@ -98,6 +98,8 @@ Capability requirement 4: The deployment MUST supply the cryptographic material 
 
 Term cryptographic material: what the deployment's credential mechanism computes at the seam and the host injects, never computed inside the transition (Execution Contract Logic confinement 1) — at [Attest], the proof, computed from the credential over the action reference and the actor reference, and the credential check; at [Verify], the proof check.
 
+NOTE: watch the computation at the seam (Term cryptographic material).
+
 ### Operations
 
 ```

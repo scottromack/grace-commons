@@ -84,6 +84,8 @@ Term action type: place_hold | confirm | release | expire.
 
 Term parameters digest: the collision-resistant digest of a call's non-token parameters, computed at the seam by the configured digest function and injected — a [Parameters Digest].
 
+NOTE: watch the computation at the seam (Term parameters digest).
+
 Term complete entry: a token results entry carrying a recorded result and a completed instant.
 
 NOTE: Contract classification, per the section titled Composition state in `execution-contract.md` — the token results map: extraction-pending, the proposed atom an *Idempotency Result Memo* (token → result, write-once, window-governed eviction), opened as a roadmap proposal (Composition state 1).

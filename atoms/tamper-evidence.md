@@ -90,7 +90,9 @@ Capability requirement 4: The deployment MUST supply the cryptographic material 
 Capability requirement 5: The deployment MUST supply record set match at the seam.
 ```
 
-NOTE: open 2026-10-21-a — the cryptographic material is declared nowhere, Operation 1 computes the proof from the mechanism credential where the [Proof] entry adds the material, and where the proof is computed and the seal check runs is not stated (Capability requirement 4, Operation 1, Operation 9).
+Term cryptographic material: what the deployment's mechanism computes at the seam and the host injects, never computed inside the transition (Execution Contract Logic confinement 1) — at [Seal], the proof, computed from the mechanism credential over the record set the record set reference names, with the anchoring instant where the mechanism anchors at seal time, or the mechanism failure reason where the mechanism cannot compute the proof; at [Verify], the seal check.
+
+NOTE: watch the computation at the seam (Term cryptographic material).
 
 ### Operations
 
@@ -106,12 +108,12 @@ read()
   answers every evidence
 ```
 
-Term mechanism failure reason: unreadable-records | keying-precondition | anchor-unreachable — the reasons [Seal] gives for a mechanism failure.
+Term mechanism failure reason: unreadable-records | keying-precondition | anchor-unreachable — the reason the deployment's mechanism gives at the seam where the mechanism cannot compute the proof, and blank where the mechanism computes one; [Seal]'s mechanism-failure carries the reason (Operation 9).
 
 Term verification failure: proof-invalid | record-set-mismatch | mechanism-verification-unavailable — the reasons [Verify] gives for a failed verification.
 
 ```
-Operation 1: [Seal] MUST compute the proof over the record set from the mechanism credential.
+Operation 1: [Seal] MUST record the proof the deployment supplies at the seam.
 Operation 2: [Seal] MUST record EXACTLY ONE evidence per successful call.
 Operation 3: [Seal] MUST stamp sealing instant from the injected now.
 Operation 4: IF the mechanism anchors at seal time THEN [Seal] MUST carry anchoring instant into the evidence.
@@ -119,7 +121,7 @@ Operation 5: [Seal] MUST consume the mechanism credential.
 Operation 6: IF record set reference EQUALS blank THEN [Seal] MUST answer invalid-request.
 Operation 7: IF the mechanism credential is absent THEN [Seal] MUST answer invalid-request.
 Operation 8: [Seal] MUST accept an empty mechanism credential for an unkeyed mechanism.
-Operation 9: IF the mechanism cannot compute the proof THEN [Seal] MUST answer mechanism-failure.
+Operation 9: IF mechanism failure reason DOES NOT EQUAL blank THEN [Seal] MUST answer mechanism-failure carrying the mechanism failure reason.
 Operation 10: IF the database refuses the write THEN [Seal] MUST answer storage-failure.
 Operation 11: [Seal] MUST discard the proof on storage-failure.
 Deleted: Operation 12. Invariant 1.1 owns it.
@@ -158,7 +160,7 @@ Term seal check: held | failed | unavailable — the mechanism's verification fu
 
 Term original record set: the record set a verifier presents at [Verify] — an [Original Record Set]; the proof commits to content, so the verifier holds the content.
 
-Term verification set: the evidence's own fields, the presented original record set, the host-injected record set match, and, where the mechanism's verification function consults one, that mechanism's own external anchor; everything [Verify] is allowed to read, and nothing else.
+Term verification set: the evidence's own fields, the presented original record set, the host-injected record set match, where the mechanism's verification function consults one, that mechanism's own external anchor, and the seal check computed over them at the seam; everything [Verify] is allowed to read, and nothing else.
 
 Term anchor change: a change in what the mechanism's own external anchor answers the mechanism's verification function for an evidence's proof, such as a revocation or a withdrawal of trust the anchoring authority records; a mechanism whose verification function consults no external anchor has none.
 
@@ -423,7 +425,7 @@ Term cadences: empty — a seal cadence is the composing pattern's (Composition 
 
 Term qualifiers: migrated — rewritten in GRACE lang v0.35 (2026-09-11); sound — a mechanism with no known practical collision or forgery attack.
 
-Term terms: now, evidence, evidence id, record set reference, seam, transition, business caller, sealed, proof, sealing instant, anchoring instant, mechanism credential, evidence field, record set match, seal check, original record set, verification set, anchor change, mechanism failure reason, verification failure.
+Term terms: now, evidence, evidence id, record set reference, seam, transition, business caller, sealed, proof, sealing instant, anchoring instant, mechanism credential, evidence field, cryptographic material, record set match, seal check, original record set, verification set, anchor change, mechanism failure reason, verification failure.
 
 #### Evidence
 
@@ -433,13 +435,13 @@ Kind: Type
 
 #### Seal
 
-The behavior a composing pattern invokes at seal time to record a new [Evidence] over a record set. It consumes the supplied [Mechanism Credential] to compute the [Proof], stamps [Sealing Instant] (and [Anchoring Instant] if the mechanism anchors synchronously), and returns the [Evidence Id]. It always creates a new record — it never modifies an existing one — and never persists the [Mechanism Credential].
+The behavior a composing pattern invokes at seal time to record a new [Evidence] over a record set. It consumes the supplied [Mechanism Credential], records the [Proof] the deployment's mechanism computed from it over the record set at the seam, stamps [Sealing Instant] (and [Anchoring Instant] if the mechanism anchors synchronously), and returns the [Evidence Id]. It always creates a new record — it never modifies an existing one — and never persists the [Mechanism Credential].
 
 Kind: Operation
 
 #### Verify
 
-The read-only behavior an auditor or composing pattern invokes to confirm a recorded [Evidence], by id, against a presented record set. It re-runs the mechanism's verification function over the [Original Record Set] against the stored [Proof] and returns [Verified], [Failed Verification], or [Not Known]. It changes nothing. Unlike Actor Identity's verify, it requires the originating record set as input, because the [Proof] commits to the records' content.
+The read-only behavior an auditor or composing pattern invokes to confirm a recorded [Evidence], by id, against a presented record set. It reads the seal check the deployment's mechanism runs at the seam, the mechanism's verification function over the [Original Record Set] against the stored [Proof], and returns [Verified], [Failed Verification], or [Not Known]. It changes nothing. Unlike Actor Identity's verify, it requires the originating record set as input, because the [Proof] commits to the records' content.
 
 Kind: Operation
 
@@ -467,7 +469,7 @@ Projection: record_set_ref
 
 #### Proof
 
-The cryptographic artifact that commits to the record set's content — a hash chain, Merkle root, signed root, RFC 3161 timestamp token, blockchain transaction id, or composite. Computed by [Seal] from the [Mechanism Credential] and the injected cryptographic material, stored on the [Evidence], and the thing [Verify] re-checks. Set on [Seal], immutable thereafter.
+The cryptographic artifact that commits to the record set's content — a hash chain, Merkle root, signed root, RFC 3161 timestamp token, blockchain transaction id, or composite. Computed from the [Mechanism Credential] over the record set at the seam by the deployment's mechanism, recorded by [Seal] on the [Evidence], and re-checked by the seal check at [Verify]. Set on [Seal], immutable thereafter.
 
 Kind:       Field
 Field of:   Evidence
@@ -586,7 +588,7 @@ Projection: invalid-request
 
 #### Mechanism Failure
 
-The refusal [Seal] returns when the mechanism cannot compute a [Proof] against the record set — the underlying records are unreadable, the keying material fails the mechanism's preconditions, or a required synchronous anchor service is unreachable. No [Evidence] is recorded.
+The refusal [Seal] returns when the deployment's mechanism cannot compute a [Proof] against the record set at the seam, carrying the reason the mechanism gives — the underlying records are unreadable, the keying material fails the mechanism's preconditions, or a required synchronous anchor service is unreachable. No [Evidence] is recorded.
 
 Kind:       Member
 Member of:  the Seal rejection
@@ -667,10 +669,9 @@ It inherits from:
 ```
 status: partially resolved
 formal: not applicable — vote no 2026-06-03
-last gate: 2026-10-23 — Final Critique 8, the council's fourth round on the page and the first on its text since Final Critique 7's settle (7d9dafa), three fresh readers on free models (GRID Nemotron 3 Ultra, EOS Beam, Linus GLM-5.3 Flash), each handed only the round's reading set, three passes on one text (frozen at 70feb0c); the round rests on three counted passes — foundational count 2 after triage (17 reports: 2 standing; 11 sent down, ten of them onto the page's seven flagged open lines; 4 rejected), both Kind A: Check 5.1 bounded a detected tampering by any verification answering proof-invalid, so a backup presented to a seal made after the alteration, or a seal whose anchor an anchor change had reached, set the bound above the alteration; and Retention coupling 1 obliged a purged record set to leave [Verify] unable to hold, which nothing the page names could keep; 20 refining reports, 9 rhetorical reports; not clean; every foundational finding cured, every refining finding cured, routed or answered; 2026-10-22 — Final Critique 7, the council's third round on the page — foundational count 1, cured, not clean; 2026-10-22 — Final Critique 6, the council's second round on the page — foundational count 1, cured, not clean; 2026-10-21 — Final Critique 5, the council's first round on the page — foundational count 8, all cured, not clean; 2026-06-18 — Final Critique 4, fresh reader — clean
+last gate: 2026-10-24 — Final Critique 9 — foundational count 2, not clean, no sample
 
 open:
-- 2026-10-21-a · refining · Term seam; Operation 1, 9; Capability requirement 4 · the cryptographic material the deployment supplies is declared nowhere (GRACE-lang Closed vocabulary 4), Operation 1 computes the proof from the mechanism credential where the [Proof] entry adds the material, the seam names neither the record set [Seal] computes over nor the proof and the mechanism's answer the transition records, and whether the host computes the proof and runs the seal check at the seam or hands the transition a primitive the transition calls is unstated against Execution Contract Logic confinement 1 and 3 → declare the cryptographic material; name each value the host injects; say where each computation runs, as Actor Identity's 2026-10-20-a asks of its own
 - 2026-10-21-b · refining · Operation 7, 8; Term mechanism credential · Operation 7 tests "the mechanism credential is absent" in no admitted condition form, while the admitted form, EQUALS blank, takes in the empty credential Operation 8 accepts (GRACE-lang Term blank, Earned vocabulary 7), and a credential carrying only whitespace has no rule → one declared term for the credential's three blank states, each with its answer
 - 2026-10-21-c · refining · Invariant 2.2, 2.3; Term qualifiers · deprecated is declared nowhere, Term qualifiers declaring sound alone, and Invariant 2.3 obliges a re-seal with no trigger, bound or owner → declare deprecated or write the rule in sound; name the re-seal's trigger and owner
 - 2026-10-21-d · refining · State 6, 7; Operation 8; Invariant 3.2, 8.1 · deletion surface, revocation surface, unkeyed mechanism, another record set and the atom's contract carry rules and are declared nowhere → declare each, or write each rule in declared names

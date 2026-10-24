@@ -120,6 +120,8 @@ Term action type: reserve | confirm_reservation | cancel_reservation | expire_re
 
 Term parameters digest: the collision-resistant digest of a call's business parameters, computed at the seam by the digest function and injected — a [Parameters Digest].
 
+NOTE: watch the computation at the seam (Term parameters digest).
+
 Term business parameter: the pool id, the resource, the requester and the duration at [Reserve]; the reservation id at a resolving action — the inputs that decide an answer.
 
 NOTE: Contract classification, per the section titled Composition state in `execution-contract.md` — the reservation-to-pool binding: derived index over the journal's reserve outcome entries (Composition state 10, Composition state 11), its entries whose reserve outcome entry is an aged entry extraction-pending against Erasure Tombstone *(forthcoming)* (Composition state 15); the token results map: extraction-pending, the proposed atom an *Idempotency Result Memo* (token → result, write-once, window-governed eviction), opened as a roadmap proposal (Composition state 16).
