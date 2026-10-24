@@ -14,6 +14,12 @@ toc: true
 {:toc}
 </details>
 
+## Summary
+
+Cart is a shopping cart: it holds what a person means to buy, one line per item, each line saying how many of the item and the price it had when it was added, and it adds the lines up to a total. A cart is opened in one currency, and every price on it and its total are whole numbers of that currency's smallest unit, such as cents for the euro, so adding them up never rounds. A line keeps the price it was added at even if the shop's price changes later, so the total moves only when a line is added, its quantity is changed, or it is taken out; to charge a new price, the line is taken out and the item added again. The cart decides nothing about what an item costs, whether it is in stock, what tax or delivery applies, whose cart it is, or how the purchase is paid for and becomes an order: each of those belongs to another pattern, which is why one cart can serve an online store, a café's open tab, a wholesale order and a booking alike.
+
+---
+
 ## Intent
 
 WHY:
@@ -141,6 +147,8 @@ Operation 23: [Read] MUST NOT write.
 
 NOTE: watch host obligations — this atom sets no maximum number of lines on a cart and does not oblige the deployment to set one, the silence posture the *host obligations* row in `open-questions.md` counts.
 
+NOTE: open 2026-10-24-b — whether the read answer carries the cart id: State 1 and Term records give every cart one, while Operation 21 lists the answer without it.
+
 Term new quantity: the quantity a [Change Quantity] call sets — a [New Quantity]; a positive count.
 
 Term cart action: [Add] | [Clear] | [Read] — the actions that name a cart by the cart id.
@@ -252,6 +260,8 @@ Check 4.1: An auditor MUST find EVERY line carrying a positive count as the line
 Check 4.2: An auditor MUST find EVERY line carrying a whole amount as the line's unit price (Invariant 6.2).
 ```
 
+Term version: a record as it stood at the commit that wrote it, which Execution Contract Database 5 keeps readable after the record changes.
+
 NOTE: EVERY check names the rule the check tests.
 
 ### External checks
@@ -295,7 +305,9 @@ Two calls adding one item to one cart are serialized by the database (Execution 
 
 ### Indeterminate outcome
 
-A caller whose answer is lost may call again. A repeated [Add] answers [Already In Cart] where the first landed, and [Read] then shows the line and its [Line Id]; a repeated [Change Quantity] or [Clear] leaves the cart as the first left it; a repeated [Remove] answers [Not Known] where the first landed; a repeated [Open] records a second cart, which carries no line.
+A caller whose answer is lost may call again. Where no other call changed the cart in between, a repeated [Add] answers [Already In Cart] where the first landed, and [Read] then shows the line and its [Line Id]; a repeated [Change Quantity] or [Clear] leaves the cart as the first left it; a repeated [Remove] answers [Not Known] where the first landed; a repeated [Open] records a second cart, which carries no line. Where another call did change it, the repeat is decided afresh on what that call left (Execution Contract Database 2).
+
+NOTE: watch the lost answer — a caller whose answer is lost cannot tell whether its call landed, an arm the Execution Contract's Error model does not name; this edge case says what calling again meets.
 
 ### A price that moves after the add
 
@@ -330,9 +342,9 @@ Term cadences: empty.
 
 Term qualifiers: migrated — rewritten in GRACE lang v0.66 (2026-10-23).
 
-Term terms: cart, line, cart id, line id, item reference, seam, quantity, new quantity, unit price, currency, minor unit, whole amount, positive count, total, accepted currencies, cart action, line action.
+Term terms: cart, line, cart id, line id, item reference, seam, quantity, new quantity, unit price, currency, minor unit, whole amount, positive count, total, accepted currencies, cart action, line action, version.
 
-NOTE: open 2026-10-24-a — seven declared terms carry no term entry, where spec-format's Terms item asks one per declared term (Term terms).
+NOTE: open 2026-10-24-a — eight declared terms carry no term entry, where spec-format's Terms item asks one per declared term (Term terms).
 
 #### Open
 
@@ -553,17 +565,18 @@ Rules on how a price is shown and confirmed to a buyer before a purchase, such a
 
 ## Status
 
-`draft` — see the Ledger.
+`grounded on Final Critique 4 — 2026-10-24` — see the Ledger.
 
 ## Ledger
 
 ```
-status: draft
+status: grounded on Final Critique 4 — 2026-10-24
 formal: not applicable — vote no 2026-10-23: the atom reads no clock and claims no ordering of its own; its one-line-per-item and fixed-price claims are single-state properties each action's rules hold, and its concurrency is Execution Contract Database 2's
-last gate: 2026-10-24 — Round 3, the second refinement round and the last of the 3×3 baseline, three fresh readers (GRID GLM-5.3 Flash on OpenCode Go; EOS MiniMax M3 on OpenCode Go; Linus Mercury 3), each handed only the round's reading set, three passes on one text (frozen at 2c329fd); the round rests on three counted passes — foundational count 0, held by the blind second triage (2026-10-24, one cold reader given the round's 24 reports, the method's test and the placement rule, and neither the threshold nor what the count decides, which placed none of them foundational); 2 foundational reports, both rejected (External check 1 asks of the pricing pattern's records what the atom's own records do not answer, as an external check does; a line's versions are one line, which Check 2.2 and Check 2.3 do not count twice); 18 refining reports, 4 rhetorical reports; clean; two refining findings cured, one routed to an open line and two answered by their watch flags; one sample — the baseline's last round, so Final Critique 4 is next
+last gate: 2026-10-24 — Final Critique 4, the page's first gate round after the 3×3 baseline, three fresh readers (GRID GLM-5.3 Flash on OpenCode Go; EOS MiniMax M3 on OpenCode Go; Linus Mercury 3), each handed only the round's reading set, three passes on one text (frozen at 460866f); the round rests on three counted passes — foundational count 0, held by the blind second triage (2026-10-24, one cold reader given the round's 25 reports, the method's test and the placement rule, and neither the threshold nor what the count decides, which placed none of them foundational); 2 foundational reports, both rejected (the answer ok resolves to the signature block that declares it; a read's total is held to the records by Execution Contract Conformance 6, and no record carries it for a check to read); 17 refining reports, 6 rhetorical reports; clean; two refining findings cured, one routed to a new open line, one answered by its open line, one by its watch flag, and one carried to the maintainer; one sample; 2026-10-24 — Round 3, the last of the 3×3 baseline — foundational count 0, held by the blind second triage, clean, one sample; 2026-10-24 — Round 2 — foundational count 1, set by the blind second triage, cured, not clean; 2026-10-24 — Round 1, the foundation — foundational count 0, held by the blind second triage, clean, one sample
 
 open:
-- 2026-10-24-a · refining · Term terms; Vocabulary · seven declared terms (seam, minor unit, whole amount, positive count, accepted currencies, cart action, line action) carry no term entry, where spec-format's Terms item asks one per declared term and every specification writes one per name a bracket marker lands on → add the entries, each with a Kind the term entry grammar admits, or read the item as the bracketed names
+- 2026-10-24-a · refining · Term terms; Vocabulary · eight declared terms (seam, minor unit, whole amount, positive count, accepted currencies, cart action, line action, version) carry no term entry, where spec-format's Terms item asks one per declared term and every specification writes one per name a bracket marker lands on → add the entries, each with a Kind the term entry grammar admits, or read the item as the bracketed names
+- 2026-10-24-b · refining · Operation 21; Term cart; Term records · [Read] answers cart, which State 1 and Term records give a cart id and Term cart, Operation 21 and the Read entry do not, so a build echoes the caller's cart id or not by the reading it picks, as readers in each of the last three rounds asked → name the cart id in Operation 21, or say the answer leaves the caller's own id out
 ```
 
 ## Decisions
@@ -577,5 +590,6 @@ Directional changes only — the turns a future reader must know the pattern too
 - **2026-10-24 — An item reference names the item with its options.** *Chose:* under the maintainer's ruling of 2026-10-23 22:50Z, a line is one configured item: the item reference names a product or a service with the options chosen for it, in the deployment's own scheme (Term item reference), so Invariant 1.1 and Operation 8, unchanged in wording, hold one line per configured item, and a flat white and a flat white with oat milk are two lines at two prices, as the café tab shows; the unit price is the configured item's, options included, supplied by the composing pattern that prices the item (Term unit price, Composition note 2); and the atom reads no option in an item reference (Non-goal 16), which leaves the options to a catalog pattern. *Over:* options carried on the line as fields of the atom's own, which would make the atom read and compare what a catalog defines; and an item whose options its item reference cannot name, which the page had listed where the atom breaks down. *Because:* the atom stores an item reference as supplied and compares two of them codepoint for codepoint (Identity 6, Identity 7), so naming the options inside it costs the atom no rule, and an item taken with other options is another item, at its own price.
 - **2026-10-24 — Round 2: one line per item counts the lines a cart carries, and delivery is declined by name.** *Chose:* Invariant 1.1 and Check 2.3 count the lines one cart carries, where they counted the lines of one cart; the case table gains a row for a failed read and one for a call more than one refusal fits, and its Clear row retires the cleared lines' ids as the Remove row does; Non-goal 17, the atom applies no delivery charge, owned by a delivery pattern *(forthcoming)*; Term writing action deleted, no rule having cited it since Round 1 deleted Operation 20, and the Storage Failure entry names the five actions; Term value sets cites GRACE-lang Closed vocabulary 15 by the grammar's name; and two watch flags, the total's term entry kind and the lines a cart carries, which nothing bounds. *Over:* removing every version of a removed line, so that no history shares an item reference with a live line, an erasure the page declares nowhere, which would leave what a checkout took unreadable; and an open line beside each flag, which would hold in a second place a question the Watch list and the *host obligations* row of `open-questions.md` hold. *Because:* the round's blind second triage placed one finding foundational. A removed line's versions stay readable as they stood and keep their cart id (Execution Contract Database 5, Invariant 3.1), and the auditor reads the records with their earlier versions, so after an item was taken out and added again, the path Term line id makes lawful, Check 2.3 read over the versions counted two lines of one cart for one item and failed a conforming deployment; only the term entries, which carry no obligation, said a removed line leaves its cart. The rule now counts what a cart carries, as Term total does. The Intent declines delivery beside tax, and spec-format names each declined responsibility with its owner; a decision table is the page's completeness argument, so it shows every case an action meets, the Execution Contract's answers among them.
 - **2026-10-24 — Round 3: a currency is compared as supplied, and the rejection paths show a call several refusals fit.** *Chose:* the atom never normalizes a currency and compares two currencies codepoint for codepoint (Identity 8, Identity 9), as it treats an item reference (Identity 6, Identity 7), so a call's currency is among the accepted currencies only where it matches one of them codepoint for codepoint; the rejection paths gain `add(c9, "   ", 0, -100)`, which three refusals fit and the first listed on [Add]'s refuses line answers (Execution Contract Refusal 1); and open line 2026-10-24-a, the declared terms that carry no term entry, which the page shares with every specification. *Over:* a currency matched without regard to case, or read as a unit of account under more than one spelling, which the page's rules never named; External check 1 narrowed to any price the pricing pattern ever recorded for the item, which would no longer test that a line keeps the price taken when it was added; the checks restated as reading each record at its current version, which would let a line id reused after a removal pass Check 2.2; and an open line beside each watch flag, as Round 1 and Round 2 declined. *Because:* the round's two triages placed no finding foundational, so the baseline closes on a clean round, one sample. The method's third pass asks of every string the page takes what its rules are, case-sensitivity among them, and the page had answered it for the item reference alone; and the Testing model writes one guard test per refusal, so only an example, compiled into a sequence test, shows which refusal answers when several apply.
+- **2026-10-24 — Final Critique 4: grounded on one sample; a version is declared, and a repeated call is read against what came between.** *Chose:* the status `grounded on Final Critique 4 — 2026-10-24`, on one sample, under the maintainer's ruling of 2026-10-23 22:51Z that a page meeting the section titled *What "grounded" means* in `pressure-testing.md` is grounded, with the Summary the atom shape asks of a grounded page, in four plain sentences; Term version, the record as it stood at one commit, which Check 3.1 through 3.4 read and Execution Contract Database 5 keeps; the Indeterminate outcome's repeated calls read where no other call changed the cart in between, and decided afresh on what such a call left (Execution Contract Database 2), the lost answer the Watch list counts; and open line 2026-10-24-b, whether [Read]'s answer carries the cart id. *Over:* a check that a read's total equals the sum of its lines, which would read a read's answer where every check reads the records, while Execution Contract Conformance 6 already holds a read to them; a second declaration of the answer ok, beside the signature block that declares it; Execution Contract Refusal 1 struck from Capability requirement 5, which cites the three families once, as the first Decisions entry chose; and the case table's refusal rows citing Execution Contract Read 4, which no table in the corpus does. *Because:* the round's two triages placed no finding foundational, the formal vote is cast (no), and both open lines are refining, so the page meets the bar on one clean round of three fresh passes, and its second round is owed as its first scheduled rescan. Each cure names what the page already obliged and changes no action's answer or write: the checks had read a version since the draft, and a repeat that meets another call's change meets it as the rules say. Readers in each of the last three rounds asked whether a read echoes the cart id, which State 1 gives every cart and Operation 21 leaves out of the answer, so the question now stands on the page until it is decided.
 
 NOTE: End of Cart.

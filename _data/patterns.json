@@ -337,7 +337,7 @@
  "cart": {
   "composed_by": [],
   "domain": null,
-  "grounded": false,
+  "grounded": true,
   "invariants": 6,
   "kind": "atom",
   "models": {
@@ -348,7 +348,7 @@
   "regulated_by": [],
   "security": false,
   "standards": [],
-  "status": "draft",
+  "status": "grounded on Final Critique 4 \u2014 2026-10-24",
   "title": "Cart"
  },
  "chain-of-custody": {
