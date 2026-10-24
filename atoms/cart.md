@@ -33,6 +33,8 @@ Identity 6: The atom MUST NOT normalize an item reference.
 Identity 7: The atom MUST compare two item references codepoint for codepoint.
 ```
 
+NOTE: watch host obligations — this atom sets no maximum length on the item reference and does not oblige the deployment to set one, the silence posture the *host obligations* row in `open-questions.md` counts.
+
 Term cart: a set of lines gathered toward one purchase, with the currency their prices are counted in — a [Cart].
 
 Term line: one item on a cart, with how many of the item and the unit price taken when the line was added — a [Line].
@@ -70,8 +72,8 @@ Term total: the sum, over every line the cart carries, of (quantity * unit price
 ### Capability requirement
 
 ```
-Capability requirement 1: The deployment MUST supply the cart id at the seam PER Execution Contract Logic confinement 3.
-Capability requirement 2: The deployment MUST supply the line id at the seam PER Execution Contract Logic confinement 3.
+Capability requirement 1: The deployment MUST supply at the seam a cart id no cart has carried PER Execution Contract Logic confinement 3.
+Capability requirement 2: The deployment MUST supply at the seam a line id no line has carried PER Execution Contract Logic confinement 3.
 Capability requirement 3: The deployment MUST supply the accepted currencies.
 Capability requirement 4: The deployment MUST compute EVERY total without loss.
 Capability requirement 5: The deployment MUST supply the database PER Execution Contract Database 1 through 6, Execution Contract Read 1 through 4 and Execution Contract Refusal 1.
@@ -120,14 +122,14 @@ Operation 9: [Add] MUST record EXACTLY ONE line carrying the cart id, the item r
 Operation 10: [Add] MUST answer the line id.
 Operation 11: IF no line EXISTS for the line id THEN a line action MUST answer not-known.
 Operation 12: IF the new quantity IS NOT IN the positive counts THEN [Change Quantity] MUST answer invalid-quantity.
-Operation 13: [Change Quantity] MUST set quantity to the new quantity.
+Operation 13: IF the new quantity DOES NOT EQUAL the line's quantity THEN [Change Quantity] MUST set quantity to the new quantity.
 Operation 14: IF the new quantity EQUALS the line's quantity THEN [Change Quantity] MUST NOT write.
 Operation 15: [Change Quantity] MUST answer ok.
-Operation 16: [Remove] MUST take the line out of the line's cart.
+Operation 16: [Remove] MUST remove the line.
 Operation 17: [Remove] MUST answer ok.
-Operation 18: [Clear] MUST take EVERY line of the cart out of the cart.
+Operation 18: [Clear] MUST remove EVERY line of the cart.
 Operation 19: [Clear] MUST answer ok.
-Operation 20: IF the database refuses the write THEN a writing action MUST answer storage-failure.
+Deleted: Operation 20. Execution Contract Read 4 owns it.
 Operation 21: [Read] MUST answer the cart's currency, EVERY line of the cart AND the cart's total.
 Operation 22: [Read] MUST answer a line's line id, item reference, quantity AND unit price.
 Operation 23: [Read] MUST NOT write.
@@ -158,7 +160,7 @@ The case space, and the rule that owns each case:
 | [Remove] | the line is on a cart | ok | the line leaves the cart; its line id is retired (Operation 16, Identity 4) |
 | [Clear] | the cart exists | ok | every line leaves the cart; the cart stays (Operation 18, State 3) |
 | a cart action or a line action | the id names nothing | [Not Known] | none (Operation 4, Operation 11) |
-| any writing call | database refuses the write | [Storage Failure] | none (Operation 20, Execution Contract Read 4) |
+| any writing call | database refuses the write | [Storage Failure] | none (Execution Contract Read 4) |
 | [Read] | the cart exists | the cart's currency, its lines and its total | none (Operation 21 through 23) |
 
 ### Invariants
@@ -305,7 +307,7 @@ Each `[Term]` marker above links to its term entry here; a term entry states wha
 
 ### Vocabulary
 
-Term actors: the atom; the deployment (also: a deployment); a composing pattern; the database; a cart; a line; a cart action; a line action; a writing action; an auditor.
+Term actors: the atom; the host; the deployment (also: a deployment); a composing pattern; the database; a cart; a line; a cart action; a line action; an auditor.
 
 Term records: cart — a set of lines gathered toward one purchase, carrying cart id and currency; line — one item on a cart, carrying line id, cart id, item reference, quantity and unit price.
 
@@ -341,13 +343,13 @@ Kind: Operation
 
 #### Remove
 
-The behavior that takes one [Line] off its cart. The [Line Id] is retired and never reused.
+The behavior that removes one [Line] from its cart. The [Line Id] is retired and never reused.
 
 Kind: Operation
 
 #### Clear
 
-The behavior that takes every [Line] off a cart. The [Cart] itself stays, with its [Currency], ready for more lines.
+The behavior that removes every [Line] from a cart. The [Cart] itself stays, with its [Currency], ready for more lines.
 
 Kind: Operation
 
@@ -547,7 +549,7 @@ Rules on how a price is shown and confirmed to a buyer before a purchase, such a
 ```
 status: draft
 formal: not applicable — vote no 2026-10-23: the atom reads no clock and claims no ordering of its own; its one-line-per-item and fixed-price claims are single-state properties each action's rules hold, and its concurrency is Execution Contract Database 2's
-last gate: none
+last gate: 2026-10-24 — Round 1, the foundation and the council's first round on the page, three fresh readers (GRID Beam through OpenCode Go; EOS MiniMax M3 on OpenCode Go; Linus Mercury 3, the seat's third model of the round, taken when its first two had no allowance left), each handed only the round's reading set, three passes on one text (frozen at d50e62f); the round rests on three counted passes — foundational count 0, held by the blind second triage (2026-10-24, one cold reader given the round's 22 reports, the method's test and the placement rule, and neither the threshold nor what the count decides, which placed none of them foundational); 2 foundational reports, neither standing as the two triages settled them (one sent down, its verb cured; one rejected); 17 refining reports, 3 rhetorical reports; clean; five refining findings cured and one flagged to a watched pressure; one sample — a foundation round, so the baseline's Rounds 2 and 3 are owed before a Final Critique
 
 open: none
 ```
@@ -559,5 +561,6 @@ Directional changes only — the turns a future reader must know the pattern too
 - **2026-10-23 — Drafted in GRACE lang v0.66, the first pattern written against the Database contract from the start.** *Chose:* a Cart atom, the corpus's first e-commerce pattern, drafted on the maintainer's ruling of 2026-10-23, drafting begun 2026-10-23 17:47Z (when the rewrite unit that writes it was claimed), so its rounds to ground are counted from that instant; the Database, Read and Refusal families cited once (Capability requirement 5) and restated nowhere, the Intent the page's one WHY, and no clock read anywhere. *Over:* a cart folded into a checkout or order pattern, or a page drafted in the prose shape and migrated later. *Because:* the ruling asks what a pattern written from the start against the Database contract, the Read and Refusal families, the admitted terms and GRACE lang v0.66 costs to ground; the method's EOS test keeps one freestanding concept, a set of priced lines and their total, and names an owner for pricing, tax, stock, payment and checkout (Non-goal 1 through 15).
 - **2026-10-23 — A line keeps the price taken when it was added, and a cart holds one line per item.** *Chose:* [Add] records the unit price its call supplies and no action changes it (Invariant 2.1); an item already on the cart is refused as already-in-cart (Operation 8, Invariant 1.1); a line is named by an opaque line id, never by its item reference (Identity 2, Identity 5), so an item taken out and added again is a new line at the new price; and [Change Quantity] sets a whole new quantity rather than adding to the old one. *Over:* a second [Add] of an item merging into the line already there, which leaves open whose price the merged units carry; lines named by their item reference, whose history would mix two prices once an item was taken out and added again; and quantity changes by difference, which a repeated call applies twice. *Because:* the ruling defines a line as an item reference, a quantity and the unit price taken when added; with one line per item and one price per line, the total moves only when a line is added, re-counted or taken out, and every version of a line carries the price its add took, which an auditor reads from the database's history (Execution Contract Database 5).
 - **2026-10-23 — One currency per cart, amounts in its minor unit, and no checkout state.** *Chose:* [Open] fixes a cart's currency from the accepted currencies the deployment supplies (Capability requirement 3, Invariant 4.1); every unit price and the total are whole numbers of that currency's minor unit, the total computed at each read, never stored, and without loss (Capability requirement 4); and a cart has no lifecycle state, being neither closed nor removed by the atom (State 3, Non-goal 8), while a checkout reads the lines it takes inside its own transaction (Execution Contract Database 1 and Database 2). *Over:* a currency per line, which leaves a mixed cart with no total; amounts as decimals or floating-point numbers; and a checked-out state on the cart, which would fold the checkout's decision into the atom. *Because:* a sum is defined only over one unit of account, whole minor units add without rounding, and the database keeps every committed version of a cart and its lines readable (Execution Contract Database 5), so what a checkout took stays readable after the cart changes.
+- **2026-10-24 — Round 1: a removed line leaves the records, the deployment's ids are fresh, and the storage-failure answer is the Execution Contract's.** *Chose:* [Remove] and [Clear] remove the line (Operation 16, Operation 18), the verb State 3 uses for a cart, where they had taken the line out of its cart; the deployment supplies a cart id no cart has carried and a line id no line has carried (Capability requirement 1, Capability requirement 2); Operation 13 sets a quantity only where the new quantity differs from the line's, beside Operation 14; Operation 20 deleted, since Execution Contract Read 4 answers a failed write with storage-failure for every specification; and the host named among the actors, where Term seam already says the host injects the ids. *Over:* removing every version of a removed line, an erasure the page declares nowhere, which would leave what a checkout took unreadable; a line state marking removed lines, a field the page has no need of; and a storage-failure rule of the page's own, which restated the contract the first Decisions entry says the page cites and restates nowhere. *Because:* the round's two triages upheld no foundational gap. The text already decided a removed line's fate: no field can mark a line out of its cart, so Operation 16 is obeyed only by the line's leaving the database's current records, and Execution Contract Database 5 keeps its versions readable. A unit price is a whole number of the cart currency's minor unit, which no call can carry in another currency. What the readers found was text a step short of saying what it decides, cured in place, and an item reference no length bounds, the host obligations pressure the Watch list counts.
 
 NOTE: End of Cart.
