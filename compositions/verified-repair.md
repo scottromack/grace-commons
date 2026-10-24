@@ -130,6 +130,8 @@ Term reader: a verifier that is a language model or a person running one pass of
 
 Term formal engine: a verifier that checks the model derived from a page — Alloy, TLA+, or a heavier logic a property requires — through an adapter that answers the verdict contract.
 
+NOTE: open 2026-10-19-e — GRID, EOS, TLA+ and SHA-256 are used without the gloss at first use that spec-format's acronym convention asks.
+
 Term verifier: a reader OR a formal engine.
 
 Term maintainer: the person who holds the corpus's semantic authority.
@@ -175,7 +177,7 @@ Primitive policy 9: IF a round is given AND the round names no round the journal
 Primitive policy 10: IF a read of the repository refuses OR gives no answer THEN [Freeze] AND [Repair] MUST answer repository-unavailable; a read that answers absent is no refusal (Capability requirement 25).
 Primitive policy 11: IF a read of the journal the action makes directly OR through Recoverable Invocation's read invocation refuses OR gives no answer THEN [Freeze], [Report], [Triage], [Rule] AND [Repair] MUST answer journal-unavailable.
 Primitive policy 12: [Freeze], [Report], [Triage], [Rule] AND [Repair] MUST pass the caller's actor reference AND credential through to EVERY record_action the action calls directly.
-Primitive policy 13: IF the record_action that writes the action's own record refuses at a step other than step-4 THEN [Freeze], [Report], [Triage], [Rule] AND [Repair] MUST answer record_action's code with the code's step.
+Primitive policy 13: IF the record_action that writes the action's own record refuses at a step other than step-4 THEN [Freeze], [Report], [Triage], [Rule] AND [Repair] MUST answer record_action's code, carrying the code's step where the code carries one.
 Primitive policy 14: IF the page EQUALS blank, a patch comes with no round OR a round comes with no patch THEN [Rule] MUST answer invalid-request.
 Primitive policy 15: IF an escalation's record_action refuses at a step other than step-4 THEN the escalating action MUST answer record_action's code in place of the escalating action's own answer; an escalation refused at step-4 stands, and that answer is given.
 Primitive policy 16: IF a triage record carries no role, class, kind, blame, side OR disposition, OR carries the role third with no settling text, THEN [Triage] MUST answer invalid-request.
@@ -202,7 +204,7 @@ triage(round, finding, record, actor_ref, credential)
   answers recorded
   refuses invalid-request | invalid-request(step) | invalid-credential | not-known | purged | already-triaged | round-closed | journal-unavailable | recording-failure(step)
 
-rule(page, round, patch, actor_ref, credential)
+rule(page, optional round, optional patch, actor_ref, credential)
   answers recorded
   refuses invalid-request | invalid-request(step) | invalid-credential | not-known | purged | journal-unavailable | recording-failure(step)
 
@@ -232,6 +234,7 @@ Deleted: Action wiring 72. Execution Contract Refusal 1 owns it.
 Action wiring 4: IF the verdict's snapshot hash DOES NOT EQUAL the round's snapshot hash THEN [Report] MUST answer stale.
 Action wiring 5: IF a counted verdict of the round carries the verdict's pass OR the verdict's verifier THEN [Report] MUST answer already-counted.
 Action wiring 6: IF the verdict carries malformed THEN [Report] MUST escalate the verdict to the maintainer's queue.
+NOTE: open 2026-10-10-x — an escalation record is never closed, and a malformed verdict's escalation has no answering action.
 Action wiring 7: An admitted report MUST record the verdict with the verdict key, the round id AND the round's position.
 Action wiring 47: IF the round IS IN the round index's settled rounds THEN [Report] AND [Triage] MUST answer round-closed.
 Deleted: Action wiring 48. Action wiring 34 and Execution Contract Database 2 own it: [Freeze]'s read of the round count and its record of the round are one transaction, so no round is recorded past the round budget but one a standing ruling admits.
@@ -261,6 +264,7 @@ Action wiring 9: IF the finding came from a formal engine AND the record's side 
 Action wiring 10: An admitted triage MUST record the triage record under the triager's own actor reference.
 Action wiring 11: IF the round's foundational count EQUALS zero THEN the composition MUST NOT count the round as settled BEFORE EVERY counted finding of the round carries a counted triage in the role second.
 Action wiring 12: The second triager's brief MUST carry the findings, the first triage's downgraded and rejected findings, the method's test AND the blame rule, the test being the class definitions without the sentences that say what count grounds a page.
+NOTE: open 2026-10-10-y — the Status heading, the buggy twin, the method's test and the blame rule are named and declared nowhere.
 Action wiring 13: The second and third triagers' briefs MUST NOT carry the threshold the count is read against.
 Action wiring 14: IF a counted finding IS IN the parted findings THEN the composition MUST NOT count the round as settled BEFORE the finding carries a counted triage in the role third carrying the text that settles the finding.
 Action wiring 69: The composition MUST NOT count the round as settled BEFORE EVERY finding a formal engine's sound verdict of the round carries carries a counted triage.
@@ -659,14 +663,14 @@ None. The composition makes no regulatory claim of its own; the records it keeps
 
 ## Status
 
-`grounded on Final Critique 19 — 2026-10-23` — see the Ledger.
+`grounded on Final Critique 20 — 2026-10-24` — see the Ledger.
 
 ## Ledger
 
 ```
-status: grounded on Final Critique 19 — 2026-10-23
+status: grounded on Final Critique 20 — 2026-10-24
 formal: verified — vote yes: one writer per repository, no repair before the round settles and the round's bounded repair; verified-repair.tla + 4 twins + 3 probes (the commit path, Invariant 2.1, 2.2, 7.3 and Concurrency 1: two rounds, two [Repair] calls a round with commits in flight and no commit fence, one person commit; 61,659 states, and 263,067 with two person commits, past the harness's cap), verified-repair-settle.tla + 3 twins + 2 probes (the round's settling, Invariant 1.1 and 5.1: two verifiers on one pass, three triage records, each call's read and its record one transaction; 628 states, and 2,824 with four triage records), verified-repair-budget.tla + 3 twins + 2 probes (the round budget, Invariant 8.1: three freezes and one ruling, each freeze's read of the count and its round one transaction; 56 states, and 399 with four freezes and two rulings), the two re-derived 2026-10-21 on the journal's store (Capability requirement 28), each with a twin that takes Execution Contract Store 2 and Store 3 away; the settling model found Term counted finding counting a malformed verdict written after the settling record, cured on the page; 2026-10-21
-last gate: 2026-10-23 — Final Critique 19, the council's eighth round on the page and the first on its text since the store-contract rewrite and the trims (d87f0f7, rules 170 to 167) and the refusal-order sweep (c2f4e9a), three fresh readers through OpenCode Go (GRID Beam, the seat moved twice mid-round when a model's allowance ran out; EOS MiniMax M3; Linus GLM-5.3 Flash), each handed only the round's reading set, three passes on one text (frozen at ba1cc6d); the round rests on three counted passes — foundational count 0, held by the blind second triage (2026-10-23, one cold reader given the round's 18 reports, the method's test and the placement rule, and neither the threshold nor what the count decides, which placed none of them foundational); 7 foundational reports, none standing as the two triages settled them (3 sent down: one cured, closing open line 2026-10-17-v, one onto open line 2026-10-17-g, now flagged, and one rewritten; 4 rejected, two of them a second budget check that Execution Contract Database 2 already makes part of [Freeze]'s own transaction); 9 refining reports, 2 rhetorical reports; clean; every refining finding cured, routed or answered: [Freeze]'s budget refusal and [Repair]'s yield written one obligation a line, read_record cited, Term clean round reading the repair's invocation by its id, three open lines closed and 2026-10-23-a added, four open lines flagged on the page; the status is the maintainer's; one sample; 2026-10-19 — Final Critique 18, the council's seventh round on the page — foundational count 2, both cured, not clean
+last gate: 2026-10-24 — Final Critique 20 — foundational count 0, clean, one sample
 open:
 - 2026-10-10-b · refining · Term repository · the database the act commits to is a deployment's version-controlled repository, which no atom in this library owns → an atom for a versioned database, or the database's contract kept here
 - 2026-10-10-d · refining · Term round count · a lawfully purged round, verdict or triage is answered not-known as if absent → a purged arm
@@ -681,8 +685,7 @@ open:
 - 2026-10-10-y · refining · Capability requirement 4 through 6, Action wiring 12 · "Status heading", "buggy twin", "the method's test" and "the blame rule" are named and declared nowhere → Terms, or the deployment's disclosures
 - 2026-10-10-z · refining · Action wiring 9, 20 · a cure that indicts the model has no actor, action or record on this page, and the first, second and third triage is a dual-control shape that recurs elsewhere → the model's re-derivation named, and the triage shape considered for extraction
 - 2026-10-17-e · refining · Invariant 7.2, Check 7.2, Term site, Action wiring 12, 13 · "unverifiable", "purged-horizon", "end marker", "threshold" and "downgraded" are used and declared nowhere the page reaches — Audit Trail's unverifiable answers its own record verification, and purged-horizon is a sibling page's → Terms, or the words they stand for
-- 2026-10-17-f · refining · Primitive policy 13 · "record_action's code with the code's step" presupposes a step invalid-credential does not carry, the one route by which [Freeze], [Report] and [Triage] export it → the step carried where the code carries one
-- 2026-10-17-g · refining · Invariant 5, Term deciding count, Term records fragment · the rule that a count deciding an outcome is sorted twice, owned by the method's entry of 2026-10-09, and the Ledger's grammar, owned by the section titled Where the journey gets recorded in `pressure-testing.md`, are used without citing them, and Invariant 5.1's every deciding count is wider than the one Term deciding count names; the entry reaches every count an outcome turns on, and on the round that brings the page's round count to the round budget a count above zero decides the next [Freeze]'s budget-spent (Action wiring 34a), a pre-registered stopping rule, which the page triages once → both cited, and the narrowing recorded as a cost the page accepts, or the deciding count widened to that round
+- 2026-10-17-g · refining · Invariant 5, Term deciding count, Term records fragment, the Intent, the Summary · the rule that a count deciding an outcome is sorted twice, owned by the method's entry of 2026-10-09, and the Ledger's grammar, owned by the section titled Where the journey gets recorded in `pressure-testing.md`, are used without citing them, and Invariant 5.1's every deciding count is wider than the one Term deciding count names; the entry reaches every count an outcome turns on, and on the round that brings the page's round count to the round budget, and on every round a standing ruling admits past it, a count above zero decides the next [Freeze]'s budget-spent (Action wiring 34a), a pre-registered stopping rule, which the page triages once, while the Intent (*sorted twice where a count decides an outcome*) and the Summary state the wider reach → both cited, and the narrowing recorded as a cost the page accepts, or the deciding count widened to those rounds, with Action wiring 11, Term settled round and Check 5.1
 - 2026-10-17-h · refining · Term disposition · route obliges no record and no open line, so a routed finding reaches the next round only if a builder chooses to write one → a counted route triage obliging a records fragment that adds the open line
 - 2026-10-17-i · refining · Action wiring 19, 56, 63 · "no maintainer's ruling carries the round AND the fragment's patch byte-exact" reads as one condition on the ruling or as two conjuncts, and "carries the round" as the round given or the page's latest round, both of which Action wiring 39 records → "carries, as the round given, the round AND the patch, byte-exact"
 - 2026-10-17-j · refining · Term settled round, Term foundational count, Term settling record · each is defined through the others with no order of evaluation, so a reading over each prefix of the journal's order and a reading over the whole round give two settling records → the count defined at each prefix
