@@ -246,7 +246,7 @@ Term hold placement: the deployment's own call of Legal Hold's place over an eve
 
 Term open-upper-bound read: `EventLog.read` over a sequence-number range beginning at a given sequence number with no upper bound.
 
-Term record set match: yes | no — the host's answer, at Tamper Evidence's seam, to whether the record set [Verify Record] step 5 re-presents is the record set the evidence's record set reference names; Tamper Evidence cannot judge it (its Operation 22a, Operation 22b), and a no surfaces as `failed-verification(seal-record-set-mismatch)` (verify record step 5.2).
+Term record set match: yes | no — the host's answer, at Tamper Evidence's seam, to whether the record set [Verify Record] step 5 re-presents is the record set the evidence's record set reference names, judged by the count of events the slice reference carries (Capability requirement 6a, 6b), so that a presentation of that count answers yes whatever its content and TamperEvidence.verify judges the content; Tamper Evidence cannot judge it (its Capability requirement 5, Operation 22b), and a no surfaces as `failed-verification(seal-record-set-mismatch)` (verify record step 5.2).
 
 Term content readable: yes | no — the host's answer, at the seam of Event Log's read and of Actor Identity's read, to whether a returned event's data field, or a returned attestation's proof, can be read; neither atom's read declares it (Event Log State 2, Actor Identity Operation 28), and a conforming erasure mechanism is the one thing that turns it to no (erasure mechanism 6a, 6b, 6c).
 
@@ -631,6 +631,7 @@ Steps:
    record action step 2.13: IF the attest call answers no answer THEN [Record Action] MUST land recording-failure(step-2).
    Deleted: record action step 2.11. Execution Contract Database 1 owns it.
    Deleted: record action step 2.12. Execution Contract Database 1 owns it.
+   record action step 2.14: [Record Action] step 2 MUST land registry-unavailable as [Recording Failure].
    ```
 3. **Append.**
    ```
@@ -653,6 +654,7 @@ Steps:
    record action step 4.7: The deployment MUST alert on invalid-policy and policy-not-found as a deployment fault.
    record action step 4.8: [Record Action] step 4 MUST land storage-failure as [Recording Failure].
    record action step 4.9: IF the placement answers no answer THEN [Record Action] step 4 MUST land recording-failure(step-4).
+   record action step 4.10: [Record Action] step 4 MUST land registry-unavailable as [Recording Failure].
    ```
 5. **Record the indexes.**
    ```
@@ -699,11 +701,12 @@ Steps:
    record action step 7.9: An invalid-request refusal MUST carry the step that landed the refusal: step-1, step-2, step-3 or step-4.
    record action step 7.10: An invalid-request(step-1) or invalid-request(step-2) refusal MUST leave nothing committed.
    record action step 7.11: An invalid-request(step-3) refusal MUST leave the step-2 attestation committed, and an invalid-request(step-4) refusal MUST leave the step-2 attestation and the step-3 event committed.
+   NOTE: the refusal's evidence — what step 7.11 keeps is written in the refusal's own transaction, a domain choice by the maintainer's ruling of 2026-10-20 (Decisions) and the declared partial-failure surface the section titled *Substrate composition invocation* in `execution-contract.md` names for this action; the section titled *The pipeline applies to composition actions* in `execution-contract.md` states the multi-write obligation without it.
    record action step 7.12: An invalid-request(step-3) or invalid-request(step-4) refusal MUST surface the partial state the invocation left.
    record action step 7.13: A caller other than the scan MUST NOT retry [Record Action] on an invalid-request(step-3) or invalid-request(step-4) refusal.
    record action step 7.14: IF storage-failure EXISTS at step 2 THEN [Record Action] MUST return recording-failure(step-2).
    ```
-   Term non-storage refusal: invalid-payload at step 3; invalid-request, invalid-policy or policy-not-found at step 4.
+   Term non-storage refusal: invalid-payload at step 3; invalid-request, invalid-policy or policy-not-found at step 4 — the refusals that keep the partial state of record action step 7.11; registry-unavailable, an outage, is none (record action step 2.14, 4.10).
 
 ---
 
@@ -793,9 +796,10 @@ Steps:
    read record step 4.2: [Read Record] step 4 MUST report coverage status per event.
    read record step 4.3: [Read Record] step 4 MUST return the covering seal's full range.
    read record step 4.4: WHEN retention state EQUALS Purged:
-       read record step 4.4a: [Read Record] step 4 MUST read action reference, actor reference and attestation instant from the attestation records through the pair alone.
+       read record step 4.4a: IF a destruction record EXISTS for the event THEN [Read Record] step 4 MUST read action reference, actor reference and attestation instant from the attestation records through the pair alone.
        read record step 4.4b: [Read Record] step 4 MUST NOT read the who, the what and the when from the event payload.
        read record step 4.4c: [Read Record] step 4 MUST return no data.
+       read record step 4.4g: IF no destruction record EXISTS for the event THEN [Read Record] step 4 MUST read action reference, actor reference and attestation instant from the attestation records through event to attestation's entry for the event.
    Deleted: read record step 4.4d. Execution Contract Database 1 owns it.
    Deleted: read record step 4.4e. Execution Contract Database 1 owns it.
    Deleted: read record step 4.4f. Execution Contract Database 1 owns it.
@@ -1191,7 +1195,7 @@ Third half 12: The third half MUST treat an owed narration as a repair to record
 Third half 13: The next run MUST NOT record an owed compensation BEFORE confirming under the critical section that the retention exists.
 Third half 14: The third half MUST NOT treat an intent past the horizon as a finding.
 Third half 15: The third half MUST place the retention under the policy resolved from the event's payload by the resolution [Record Action] step 4 uses.
-Third half 16: IF the placement is refused with invalid-policy OR policy-not-found THEN the third half MUST NOT retry within the run.
+Third half 16: IF the placement is refused with invalid-policy OR policy-not-found OR registry-unavailable THEN the third half MUST NOT retry within the run.
 Third half 17: The deployment MUST alert on invalid-policy and policy-not-found from the third half's placement as a deployment fault.
 ```
 
@@ -1392,6 +1396,8 @@ Term recorded through [Record Action]: the quantifier of Invariants 1, 2 and 8 �
   Invariant 8.5: The composition MUST reserve not-known for an event id no constituent has heard of.
   ```
   Term event standing: retained | lawfully destroyed | held — held is a Purged retention whose cascade a hold has left open; its content is readable unless a delegation destroyed it and the outcome was not recorded (Term cascade-failure(step-3)).
+
+  NOTE: open 2026-08-30-d — a cascade whose erasure mechanism only ever answers destruction-failed stands at quiescence in none of Invariant 8.1a's three standings; past the audit edge it is a residual finding against the mechanism (Check 5.15).
 
   *Rests on:* [Purge Event] steps 0, 1, 2 and 4 and [Verify Record] steps 1–2; [Read Record] step 5 and [Verify Record] step 2 for the compensation-window reading (read record step 5.1, verify record step 2.3); the liveness arm — that the compensation-window state is bounded and closes — on [Record Action], through which the scan records its findings and the compensating placement (Compensation 1 through 5); Retention Window Invariants 1 (membership exclusivity), 3 (terminal absorption) and 10 (retention record durability); Tamper Evidence Invariant 1; Invariant 2 above for the window it is conditioned on and Invariant 4 for the coordination that produces the surviving records.
 
@@ -1699,7 +1705,7 @@ Term records: the audit event (Event Log's data field); the attestation; the ret
 
 Term record verbs: serve, call, read, delete, evaluate, write, dispose, seal, expose, alert, surface, retry, sit, consult, treat, claim, modify, remove, populate, classify, take, re-key, resolve, ask, key, overlap, carry, flag, record, address, land, close, compute, keep, filter, cover, set, place, hold, retain, select, declare, pass, inspect, log, wire, rewrite, leave, report, name, evidence, measure, run, govern, provision, decide, hand, apply, size, widen, exclude, supply, release, skip, block, issue, implement, re-read, start, contain, validate, normalize, compare, consume, store, count, yield, present, canonicalize, return, adopt, guess, fall, depend, defer, invoke, advance, re-seal, change, produce, verify, assemble, fabricate, ride, fold, promote, route, proceed, locate, map, re-derive, share, reject, re-offer, re-drive, invent, resume, add, destroy, repair, remain, conclude, grow, suspend, stay, append, match, exist, condition, reconcile, commit, bound, answer, fetch, reserve, stand, obtain, confirm, enumerate, build, fail, walk, step, discard, regenerate, expect, identify, clear, specify, provide, invalidate, adjudicate, rotate, serialize, require, own, monitor, examine, test, delegate, compose, reference, raise, make, encode, judge, wait, include, namespace, bind, end, re-declare, re-run, go, re-issue, recompute, re-resolve, restart, shred.
 
-Term cited: append, read, event id, sequence number, recording instant, data, next sequence number, invalid-query, invalid-payload, storage-failure: Event Log. attest, verify, attestation id, action reference, actor reference, attestation instant, proof, invalid-credential, invalid-request, not-known, registry-unavailable: Actor Identity. place_under_retention, purge, purge eligible, retention id, policy reference, record reference, retention deadline, purge deadline, purge instant, retention-period-not-elapsed, not-retained, invalid-policy, policy-not-found: Retention Window. seal, evidence id, record set reference, sealing instant, anchoring instant, `mechanism-failure(reason)`, mechanism-verification-unavailable, seal-record-set-mismatch, seal-proof-invalid: Tamper Evidence.
+Term cited: append, read, event id, sequence number, recording instant, data, next sequence number, invalid-query, invalid-payload, storage-failure: Event Log. attest, verify, attestation id, action reference, actor reference, attestation instant, proof, invalid-credential, invalid-request, not-known, registry-unavailable: Actor Identity. place_under_retention, purge, purge eligible, retention id, policy reference, record reference, retention deadline, purge deadline, purge instant, retention-period-not-elapsed, not-retained, invalid-policy, policy-not-found, registry-unavailable: Retention Window. seal, evidence id, record set reference, sealing instant, anchoring instant, `mechanism-failure(reason)`, mechanism-verification-unavailable, seal-record-set-mismatch, seal-proof-invalid: Tamper Evidence.
 
 Term value sets: retention_state = Retained | Purged. seal cadence = per-event | interval-based | on-demand. unsealed tail mode = strict | lenient. mechanism class = unkeyed | keyed | anchored. erasure outcome = destroyed | destruction-failed(reason). coverage status = covered | unsealed tail | records-purged | partially purged. verify outcome = verified | failed-verification(reason) | unverifiable(reason). unverifiable reasons = attestation-registry-unavailable | seal-mechanism-verification-unavailable | partially-purged-coverage. composition-introduced failed-verification reasons = unsealed | purged | attestation-not-known | seal-not-known, plus the constituents' reasons prefixed `attestation-` and `seal-`. subject = attestation | event. disposition = beyond-horizon. cascade-failure step = seal | hold | step-1 | step-2 | step-3 | in-flight. recording-failure step = step-2 | step-3 | step-4. invalid-request step = step-1 | step-2 | step-3 | step-4. classification = derived index | extraction-pending.  lease = live | expired. `Legal Hold` = composed | absent. retention status on the audit record = the retention record's state | unresolved (compensation window). attribution on the audit record = the surviving fields. reserved references = audit.compensation | audit.reconciliation. event standing = retained | lawfully destroyed | held.
 
@@ -1719,7 +1725,7 @@ Term slice reference: slice_ref — the reference naming the slice a seal covers
 
 #### Record Action
 
-The composition's core action: validates the caller's primitives, attests the actor, appends the event, places the retention, links the three in the derived indexes, and under per-event cadence fires a seal over the slice the firing cuts. Returns the new event id; invalid-credential before anything is recorded; invalid-request carrying the step — nothing recorded at step-1 or step-2, the attestation committed at step-3 and the event too at step-4; [Recording Failure] carrying the step where a database refused. A seal failure at step 6 does not reject the call.
+The composition's core action: validates the caller's primitives, attests the actor, appends the event, places the retention, links the three in the derived indexes, and under per-event cadence fires a seal over the slice the firing cuts. Returns the new event id; invalid-credential before anything is recorded; invalid-request carrying the step — nothing recorded at step-1 or step-2, the attestation committed at step-3 and the event too at step-4; [Recording Failure] carrying the step where a database refused or a registry could not be read. A seal failure at step 6 does not reject the call.
 
 Kind: Operation
 
@@ -1731,7 +1737,7 @@ Kind: Operation
 
 #### Read Record
 
-The consolidated read: resolves the event id through event to sequence, joins the event, its attestation reference, its retention record and its coverage status into one [Audit Record], or returns not-known. For a purged event reads the *who / what / when* from the attestation record through the pair. Returning the covering range is what tells a [Verify Record] caller what to present. A pure projection; it presents, [Verify Record] proves.
+The consolidated read: resolves the event id through event to sequence, joins the event, its attestation reference, its retention record and its coverage status into one [Audit Record], or returns not-known. For a purged event reads the *who / what / when* from the attestation record through the pair, or, before the cascade has written its destruction record, through event to attestation's entry. Returning the covering range is what tells a [Verify Record] caller what to present. A pure projection; it presents, [Verify Record] proves.
 
 Kind: Operation
 
@@ -1761,7 +1767,7 @@ Kind: Type
 
 #### Recording Failure
 
-The composition's rejection for *a database refused the write*, carrying the step from [Record Action] only: on any constituent storage-failure, nothing committed; from [Seal Now], bare, when the seal records would not persist a computed proof or its coverage entry. The surface that failed is a database, not a mechanism.
+The composition's rejection for *a database refused the write*, or a registry a constituent reads at its seam could not be read, carrying the step from [Record Action] only: on any constituent storage-failure or registry-unavailable, nothing committed; from [Seal Now], bare, when the seal records would not persist a computed proof or its coverage entry. The surface that failed is a database or a registry, not a mechanism.
 
 Kind:       Member
 Member of:  the record-action and seal rejections
@@ -1857,14 +1863,14 @@ The composition is the structural form of what every major audit regime requires
 
 ## Status
 
-`grounded on Final Critique 38 — 2026-10-23` — see the Ledger.
+`partially resolved` — see the Ledger.
 
 ## Ledger
 
 ```
-status: grounded on Final Critique 38 — 2026-10-23
-formal: verified — audit-trail.tla + 2 twins (cascade; scan first half) and audit-trail-record.tla + 3 twins (record action, one step under Execution Contract Store 1; scan second and third halves; re-derived 2026-10-20) and audit-trail-binding.tla + 2 twins (binding-set predicate against an in-flight cascade), re-derived against the fresh-reader gates of rounds 9 to 18, and audit-trail-hold.tla + 5 twins + 3 probes (a hold placed over an open cascade entry, released and re-driven; 43,688 states within 15 ticks), derived from the page as it stands; the closure arithmetic — a leg's lease against its work (Instance start 18, 19, Per-act critical section 13a, 13b, 13d) and a finding's closure against closure sum with one dead run and one hold placement (Instance start 16) — enumerated by tools/harness/audit-trail-closure.py + 5 twins over 5,184 leg tuples and 5,184 schedule tuples at conforming constants, which no model reaches; the other cures of rounds 19 to 26 are carried on the NOT MODELED lists, not re-derived; models and enumerator last run 2026-10-23
-last gate: 2026-10-23 — Final Critique 38, the council's first round on the page and the first on its text since its rewrite onto the Database contract (937f2ff, 2911210), three fresh readers on free models (GRID Nemotron 3 Ultra, EOS Beam, Linus Nemotron 3 Ultra, the seat sharing GRID's model under the standing ruling of 2026-10-23 after Flint 40B's free allowance ran out), each handed only the round's reading set, three passes on one text (frozen at 087339e); the round rests on three counted passes — foundational count 0, held by the blind second triage (2026-10-23, one cold reader given the round's 30 reports, the method's test and the placement rule, and neither the threshold nor what the count decides, which placed none of them foundational); 13 foundational reports, none standing as the two triages settled them (4 sent down, one of them onto open line 2026-08-30-d; 9 rejected); 12 refining reports, 5 rhetorical reports; clean; every refining finding cured, routed or answered, the Summary brought to six sentences, the page's acronyms spelled out at their first use, Clock source 4 deleted to Execution Contract Logic confinement 7, the uncovered mark's rebuild and the term intent stated, and open line 2026-10-23-a added; one sample; 2026-10-04 — Final Critique 37, fresh reader, three passes on one text — 0 foundational, 53 refining reports, 26 rhetorical reports
+status: partially resolved
+formal: verified — audit-trail.tla + 2 twins (cascade; scan first half) and audit-trail-record.tla + 3 twins (record action, one step under Execution Contract Store 1; scan second and third halves; re-derived 2026-10-20) and audit-trail-binding.tla + 2 twins (binding-set predicate against an in-flight cascade), re-derived against the fresh-reader gates of rounds 9 to 18, and audit-trail-hold.tla + 5 twins + 3 probes (a hold placed over an open cascade entry, released and re-driven; 43,688 states within 15 ticks), derived from the page as it stands; the closure arithmetic — a leg's lease against its work (Instance start 18, 19, Per-act critical section 13a, 13b, 13d) and a finding's closure against closure sum with one dead run and one hold placement (Instance start 16) — enumerated by tools/harness/audit-trail-closure.py + 5 twins over 5,184 leg tuples and 5,184 schedule tuples at conforming constants, which no model reaches; the other cures of rounds 19 to 26 are carried on the NOT MODELED lists, not re-derived; models and enumerator last run 2026-10-24
+last gate: 2026-10-24 — Final Critique 39 — foundational count 2, not clean, no sample
 
 open:
 - 2026-10-03-d · refining · Second half 18; Term dependency outage · content lost with no cascade and not restorable leaves the second half writing no compensation with nothing to end it → a standing for content lost without record; contract-shaped, own round
@@ -1877,7 +1883,6 @@ open:
 - 2026-10-03-q · refining · record action step 3.3, 3.7 · `recording-failure(step-3)` lands for a definitive refusal and for a no answer that may still append, with no bit telling them apart → carry the position
 - 2026-10-03-t · refining · verify record step 3.1, 5.1; Invariant 1.6a · [Verify Record] takes the attestation link from the stored payload and checks the seal against the caller's presentation, and no step compares the two, so verified can stand over a stored entry altered after sealing where the presentation came from an archive → take the link and the references from the presented member at the event's position and compare them to the stored event
 - 2026-10-04-a · refining · Per-act critical section 9a; record action completion bound 2; purge completion bound 2 · the lease is set to the act's completion bound, and Lease Sizing 4a lets a holder take for unfenced work only a duration that exceeds the work's bound; at equality a holder at the worst-case latency reads its own lease expired and refuses its last write → set the lease above the bound by the host's time resolution
-- 2026-10-04-b · refining · record action step 4.5 through 4.9; Third half 16 · Retention Window's `state-unavailable` (its Operation 24b) has no landing → land it on recording-failure(step-4), no caller retry
 - 2026-10-04-c · refining · Term no answer; read record 5; verify record 7; purge eligible 7; purge event 8; Term dependency outage · no answer is sized by call pause bound and applied to reads that enumerate for as long as measured enumeration, so a rebuild-on-miss reads as an outage → name the read's bound
 - 2026-10-04-d · refining · Composition state 7; compensated attestations 6; reported beyond horizon 3; Second half 17; Check 7.1 · a marker's member is never removed, and the marker is rebuilt from the events live in the log, which differ once a compensation is purged → say which the marker is
 - 2026-10-04-e · refining · Term whole closure; Term records · three writes stated for a second half that makes two; Term records lists the derived indexes without the uncovered mark and omits the outage record → correct both
