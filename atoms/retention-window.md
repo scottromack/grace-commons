@@ -58,7 +58,7 @@ Term transition: the atom's evaluation of one call against the retention records
 
 Term business caller: the party whose action the call carries, as the section titled Logic Confinement Principle in `execution-contract.md` declares it; never the source of an injected value.
 
-Term now: the wall-time reading the host takes at the seam and hands to the transition, as the section titled Logic Confinement Principle in `execution-contract.md` declares it; never read inside the transition, never supplied by the business caller.
+Term now: the wall-time reading the host takes at the seam and hands to the transition, as the section titled Logic Confinement Principle in `execution-contract.md` declares it, and to [Read]'s projection; never read inside the transition, never supplied by the business caller.
 
 NOTE: open 2026-10-03-j — Term seam, Term transition and Term business caller cite the section titled Logic Confinement Principle in `execution-contract.md`, which declares none of them.
 
@@ -100,6 +100,8 @@ Term duration: the retention period the policy carries, resolved to an elapsed l
 Term zero duration: a duration of no length — the floor a policy's duration must exceed, and the floor a max purge delay must not fall below.
 
 Term degenerate duration: a duration the host could not resolve to an elapsed length (Operation 24a).
+
+Term degenerate max purge delay: a max purge delay the host could not resolve to an elapsed length (Operation 24a).
 
 Term max purge delay: the lag the policy allows between retention-end and purge — a [Max Purge Delay]; not negative.
 
@@ -157,7 +159,7 @@ Operation 7: IF the policy's duration DOES NOT EXCEED the zero duration THEN [Pl
 Operation 7a: IF the policy's duration EQUALS degenerate duration THEN [Place Under Retention] MUST answer invalid-policy.
 Operation 8: IF the zero duration EXCEEDS the policy's max purge delay THEN [Place Under Retention] MUST answer invalid-policy.
 Deleted: Operation 8a. Execution Contract Refusal 1 owns it.
-Operation 8b: IF the host could not resolve the policy's max purge delay to an elapsed length THEN [Place Under Retention] MUST answer invalid-policy.
+Operation 8b: IF the policy's max purge delay EQUALS degenerate max purge delay THEN [Place Under Retention] MUST answer invalid-policy.
 Operation 8c: IF retention deadline IS NOT IN the instants the database holds OR purge deadline IS NOT IN the instants the database holds THEN [Place Under Retention] MUST answer invalid-policy.
 Operation 9: IF the database refuses the write THEN [Place Under Retention] MUST answer storage-failure.
 Deleted: Operation 9a. Execution Contract Refusal 1 owns it.
@@ -196,9 +198,11 @@ Deleted: Operation 35. Execution Contract Refusal 1 owns it.
 Deleted: Operation 36. Execution Contract Refusal 1 owns it.
 ```
 
+NOTE: watch the unadmitted modal (Operation 8b).
+
 NOTE: watch the comparator written in English (Operation 8c).
 
-NOTE: open 2026-10-20-a — Operation 6, Operation 8b, Operation 8c and Operation 24b answer on the registry's reply, on a max purge delay the host could not resolve and on the instants the database holds, which the transition may not read (Operation 26) and Term seam does not list among the values the host injects; an unresolved delay has no term, as an unresolved duration has (Term degenerate duration).
+NOTE: open 2026-10-20-a — Operation 6, Operation 8c and Operation 24b answer on the registry's reply and on the instants the database holds, which the transition may not read (Operation 26) and Term seam does not list among the values the host injects.
 
 NOTE: open 2026-10-03-l — the day a calendar period counts from is stated for no policy (Operation 24a), a reference is checked for blank alone (Identity 6, Operation 4, Operation 5), and [Read] answers in no stated order and with no bound.
 
@@ -316,8 +320,6 @@ A registered broker-dealer places every business communication (email, chat, voi
 
 A company places each executed contract under retention with policy = max(contract duration + 6 years, statute-of-limitations for relevant claim types); its contract system, which owns the policy (Composition note 4), works that period out for each contract before it calls [Place Under Retention], since the atom never reads the contract (Operation 11). The retention extends past the operational life of the contract because the contract's audit obligations outlive its commercial life. Litigation hold composes by blocking the purge during pending litigation (Defensible Retention's gate over Legal Hold; out of scope for the atom).
 
-NOTE: open 2026-10-03-i — the Standards references' Sarbanes-Oxley line holds per retention what it claims per record, and the litigation discovery scenario reads a record's existence from a retained retention.
-
 ### Rejection paths
 
 **Premature purge attempt.** A records-management system attempts to purge the retention over a transaction record four years into a seven-year SOX retention period:
@@ -344,7 +346,7 @@ Four scenarios the atom must survive in regulated contexts:
 
 - **Regulator audit — "show me every record purged before its retention period elapsed."** The auditor queries the [Purged] set for any record where [Purge Instant] < [Retention Deadline]. Invariant 7 makes this set structurally empty — the precondition on [Purge] prevents it. The auditor sees the empty result as a structural guarantee, not a procedural promise.
 - **Data minimization audit — "show me every record still Retained past its purge deadline."** Common under GDPR (EU General Data Protection Regulation — the European Union's data-privacy law) Article 5(1)(e) reviews. The auditor reads [Retained] with the injected [Now] and selects records where [Now] > [Purge Deadline] (the [Active Overdue] projection; these are necessarily [Purge Eligible] too, since [Purge Deadline] ≥ [Retention Deadline]). The atom does not refuse late purges (rejecting them would compound the [Overshoot]), so this query returns a non-empty set when the organization is behind on its purge schedule. The overdue set is the finding; the records themselves are the evidence; the remediation is to [Purge] the listed records and document the lateness.
-- **Litigation discovery — "produce all records of type X from 2020-2022."** Counsel queries the host system; the host system reads the retention records to determine which matching records still exist ([Retained]) versus which have been [Purged]. A [Purged] retention never returns to [Retained] — that is the atom's terminal-absorption invariant working as designed — and the record it named is gone from the database; where a composing pattern owns the destruction, a standing record is not yet destroyed and is produced (Term standing record). The discovery response distinguishes *records retained and produced* from *records lawfully destroyed under the policy in effect at the time*, with the retention records themselves as the audit trail. Litigation hold should have been placed earlier — if it wasn't, that is a Legal Hold composition failure, not a retention failure.
+- **Litigation discovery — "produce all records of type X from 2020-2022."** Counsel queries the host system, which keeps the records and says which of them still exist, since the atom never reads a record's existence (Record divergence 3); the retention records show, for each matching record, the policy each retention over it was placed under and whether that retention has been [Purged]. A [Purged] retention never returns to [Retained] — that is the atom's terminal-absorption invariant working as designed — and, where no composing pattern owns the destruction, the purge removed the record it named from the database; where a composing pattern owns the destruction, a standing record is not yet destroyed and is produced (Term standing record). A [Retained] retention does not show that its record still exists: once it is purge eligible, the purge of another retention over the same record may remove the record, or let the pattern that owns the destruction destroy it (Operation 13b, Simultaneous retention 4, Simultaneous retention 4a). The discovery response distinguishes *records retained and produced* from *records lawfully destroyed under the policy in effect at the time*, with the retention records themselves as the audit trail. Litigation hold should have been placed earlier — if it wasn't, that is a Legal Hold composition failure, not a retention failure.
 - **Incident investigation — "the deployment's clock ran ahead for six hours; what was destroyed that should not have been?"** The investigator reads every [Purged] retention whose [Purge Instant] falls in the incident window and recomputes eligibility from [Retention Deadline] against a trusted clock. A purge whose stamped instant meets its deadline only because the injected clock ran fast is in that set, and the records hand it over: the retention, its policy, its deadline and its stamped instant all still stand (Invariant 10), so the finding is a list of early destructions with the evidence for each. The atom could not have prevented them — the clock's honesty is the deployment's (Execution Contract Logic confinement 7) — and it does not hide them.
 
 ---
@@ -526,9 +528,9 @@ Term cadences: empty — a purge cadence is the composing pattern's.
 
 Term qualifiers: migrated — rewritten in GRACE lang v0.35 (2026-09-12).
 
-Term terms: zero duration, degenerate duration, now, retention, retention id, record reference, policy reference, seam, transition, business caller, retention state, retention instant, retention deadline, purge deadline, purge instant, overshoot, active overdue, duration, max purge delay, purge eligible, time resolution, well-formedness check, owns the destruction, standing record, withheld record, sibling retention, joint enforcement, retention in place at the destruction, destruction, confirmation, undestroyed.
+Term terms: zero duration, degenerate duration, degenerate max purge delay, now, retention, retention id, record reference, policy reference, seam, transition, business caller, retention state, retention instant, retention deadline, purge deadline, purge instant, overshoot, active overdue, duration, max purge delay, purge eligible, time resolution, well-formedness check, owns the destruction, standing record, withheld record, sibling retention, joint enforcement, retention in place at the destruction, destruction, confirmation, undestroyed.
 
-NOTE: open 2026-10-24-a — seventeen declared terms carry no term entry, where spec-format's Terms item asks one per declared term (Term terms).
+NOTE: open 2026-10-24-a — eighteen declared terms carry no term entry, where spec-format's Terms item asks one per declared term (Term terms).
 
 #### Retention Window
 
@@ -788,7 +790,7 @@ Retention Window is one of the most heavily standardized concepts in compliance;
 - **ISO 15489-1 (Information and documentation — Records management)** — the International Organization for Standardization's standard for records-management practice. Defines retention as a managed lifecycle with policy-governed start, retention period, and disposition. The atom's two-state model is the operational core of ISO 15489's lifecycle framing.
 - **GDPR Article 5(1)(e) — Storage limitation principle** — personal data must be kept *no longer than necessary*. The atom's [Overshoot] metric is the operational form of GDPR's data-minimization audit; persisting personal data past [Purge Deadline] is a violation surfaced by the record itself.
 - **HIPAA section 164.530(j) — Documentation retention** — 6-year federal baseline for required HIPAA documentation; state law commonly extends this for clinical records. The atom's [Policy Reference] carries the applicable rule; the host system reconciles federal-state-policy overlap.
-- **Sarbanes-Oxley section 802 — Retention of records relevant to audits and reviews** — 7-year retention for audit workpapers, with criminal penalties for early destruction. The atom's no-early-purge invariant is the structural fix for SOX section 802's ban on early destruction.
+- **Sarbanes-Oxley section 802 — Retention of records relevant to audits and reviews** — 7-year retention for audit workpapers, with criminal penalties for early destruction. The atom's no-early-purge invariant keeps each retention from ending before its period is up, and where several retentions name one record the pattern that owns joint enforcement keeps the record while any of them is short of its deadline (Simultaneous retention 4, Simultaneous retention 4a); together they are the structural fix for SOX section 802's ban on early destruction.
 - **SEC Rule 17a-4 — Records to be preserved by certain exchange members, brokers, and dealers** — 3-to-7-year retention with specific access-tier requirements (first two years immediately accessible). Storage-tier sub-requirements compose with Storage Tier; the retention obligation itself is this atom.
 - **FINRA Rule 4511 — General requirements for books and records** — incorporates SEC retention rules for FINRA-registered entities.
 - **21 CFR Part 11 — FDA (US Food and Drug Administration) electronic records and electronic signatures** — records covered by Part 11 are retained for the longer of the predicate-rule period or 7 years; destruction must be authorized and audited. Composes with Actor Identity for the destruction-authorization attestation.
@@ -808,14 +810,14 @@ It inherits from:
 
 ## Status
 
-`partially resolved` — see the Ledger.
+`grounded on Final Critique 13 — 2026-10-24` — see the Ledger.
 
 ## Ledger
 
 ```
-status: partially resolved
+status: grounded on Final Critique 13 — 2026-10-24
 formal: not applicable — vote no 2026-06-03
-last gate: 2026-10-24 — Final Critique 12, the council's fifth round on the page and the first on its text since the Retention Window unit (d50e62f, the maintainer's ruling of 2026-10-23), three fresh readers (GRID GLM-5.3 Flash on OpenCode Go; EOS MiniMax M3 on OpenCode Go; Linus Mercury 3), each handed only the round's reading set, three passes on one text (frozen at 5f80d57); the round rests on three counted passes — foundational count 2 after the blind second triage (2026-10-24, one cold reader given the round's 35 reports, the method's test and the placement rule, and neither the threshold nor what the count decides): a retention placed over a record just destroyed, inside the destruction's multiple of the time resolution, which Term retention in place at the destruction counts and External check 5 then reports though no rule was broken (eos F1), and [Purge]'s removal of every version of the record its retention names, which no rule had the record reference reach (eos F3); both cured on 2026-10-24, by Capability requirement 15 and Capability requirement 16; eos F1 Kind A, eos F3 Kind C; the settle's own triage had counted 0 (13 reports: 10 sent down, nine of them onto five of the page's twelve flagged open lines; 3 rejected); 15 refining reports, 7 rhetorical reports; not clean; every refining finding cured, routed or answered; the count held at 2, escalated on 2026-10-24; 2026-10-22 — Final Critique 11, the council's fourth round on the page and the first on its text since Final Critique 10's settle (c5e3290), three fresh readers on free models (GRID Nemotron 3 Ultra, EOS Beam, Linus GLM-5.3 Flash), each handed only the round's reading set, three passes on one text (frozen at de6bc76); the round rests on three counted passes — foundational count 2 after the blind second triage (2026-10-23, one cold reader given the round's 46 reports, the method's test and the placement rule, and neither the threshold nor what the count decides): a purge whose instant the database cannot hold, which destroys the record and then cannot write, leaving its retention retained over a destroyed record with no owner (grid F5, eos F4, linus F4; open line 2026-10-20-d), cured on 2026-10-23, and the storage layer's destruction, which Record divergence 1 places between the guard and the write where Execution Contract Conformance 1 and Conformance 3 leave it no step (linus F5, with grid F7 and eos F8; open line 2026-10-03-a), escalated on 2026-10-23; both Kind A; the settle's own triage had counted 0 (23 reports: 21 sent down onto twelve of the page's fourteen flagged open lines; 2 rejected); 17 refining reports, 6 rhetorical reports; not clean; every refining finding cured, routed or answered; 2026-10-22 — Final Critique 10, the council's third round on the page — foundational count 1, cured, not clean; 2026-10-22 — Final Critique 9, the council's second round on the page — foundational count 1, cured, not clean; 2026-10-20 — Final Critique 8, the council's first round on the page — foundational count 7, all cured, not clean; 2026-10-03 — Final Critique 7, fresh reader, three passes — 0 foundational, 51 refining reports, 16 rhetorical reports
+last gate: 2026-10-24 — Final Critique 13 — foundational count 0, clean, one sample
 
 open:
 - 2026-10-03-b · refining · Capability requirement; Operation 24, 24a; Term owns the destruction; Simultaneous retention 5; Purge persistence 3 · the policy registry and its resolved lengths, the ownership setting and the alert are the deployment's and sit outside the capability list → list them
@@ -823,13 +825,12 @@ open:
 - 2026-10-03-e · refining · Record divergence 4a through 6; Capability requirement 7 · the destruction's lifecycle (standing, withheld, confirmed) has no owning atom, and the confirmation and the destruction instant are one fact with two owners → Erasure Tombstone, when it lands
 - 2026-10-03-f · refining · State 7, 8; Invariant 3.2, 11.1 · two propositions have two owners each, in wordings that do not normalize alike, against the ground Invariant 6.3 was tombstoned on → tombstone the second owner, choosing the wording that stands
 - 2026-10-03-g · refining · Conformance checks; External check 1, 5; Capability requirement 10, 13 · the checks cover Invariants 7, 8 and 11 alone, none reads the deployment's record references, and External check 5 subsumes External check 1 → one check, a check per invariant, and one reading the deployment's reference rule
-- 2026-10-03-i · refining · Regulated adversarial scenarios; Standards references · the Sarbanes-Oxley line calls the per-retention no-early-purge invariant the fix for a ban on early destruction, which holds per record, and the discovery scenario reads a record's existence from a retained retention → state each at the level the rules hold
 - 2026-10-03-j · refining · Term seam, transition, business caller · each cites a section of the Execution Contract that does not use the term → corpus-wide; the contract's vocabulary, not this atom's
 - 2026-10-03-k · refining · Identity 5, 10; Invariant 9.1; Capability requirement 8, 9 · non-reuse has two owners and a colliding id has no refusal arm, and no action performs the comparison Identity 10 obliges → one owner; an arm or a named non-goal
 - 2026-10-03-l · refining · Operation 24a; Identity 6; [Read] · the day a calendar period counts from is in a WHY, a reference is checked for blank alone, and [Read] has no order or bound → pin each or name the owner
 - 2026-10-05-a · refining · Operation 29; [Read] · the read answers every retention of the instance with no key, so a composing pattern's read by retention id or by record is a whole-database enumeration under its lease, and no answer on a read is left to the composer → a keyed read; an arm; reported by Defensible Retention's and Resolve a Person's Data Rights' gates
-- 2026-10-20-a · refining · Term seam; Operation 6, 8b, 8c, 24b; Term degenerate duration · the rules answer on the registry's reply, on a max purge delay the host could not resolve and on the instants the database holds, which the transition may not read (Operation 26) and the seam does not list among the values the host injects, and an unresolved delay has no term as an unresolved duration does → list each injected value; a term for the delay
-- 2026-10-24-a · refining · Term terms; Vocabulary · seventeen declared terms (zero duration, degenerate duration, seam, transition, business caller, retention state, time resolution, well-formedness check, owns the destruction, standing record, withheld record, sibling retention, joint enforcement, retention in place at the destruction, destruction, confirmation, undestroyed) carry no term entry, where spec-format's Terms item asks one per declared term and every specification writes one per name a bracket marker lands on → add the entries, each with a Kind the term entry grammar admits, or read the item as the bracketed names
+- 2026-10-20-a · refining · Term seam; Operation 6, 8c, 24b · the rules answer on the registry's reply and on the instants the database holds, which the transition may not read (Operation 26) and the seam does not list among the values the host injects → list each injected value
+- 2026-10-24-a · refining · Term terms; Vocabulary · eighteen declared terms (zero duration, degenerate duration, degenerate max purge delay, seam, transition, business caller, retention state, time resolution, well-formedness check, owns the destruction, standing record, withheld record, sibling retention, joint enforcement, retention in place at the destruction, destruction, confirmation, undestroyed) carry no term entry, where spec-format's Terms item asks one per declared term and every specification writes one per name a bracket marker lands on → add the entries, each with a Kind the term entry grammar admits, or read the item as the bracketed names
 ```
 
 ## Decisions
