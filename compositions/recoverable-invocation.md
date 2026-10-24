@@ -19,7 +19,7 @@ toc: true
 
 Recoverable Invocation is the protocol every regulated action in this library follows when it changes something it cannot take back and must leave a trustworthy account of having done so: write down what you are about to do, do it, write down what you did — and if the process dies in between, let a separate sweep finish the writing, so that the sweep and the original never both write, the sweep never writes about work still in progress, and the sweep never invents an outcome it cannot read back from the database the act was made in.
 
-Twenty compositions had each written this protocol in their own words. This composition specifies it once. An adopter names it and supplies **bindings** — what the act is, which database commits it, how long it may take, under what identity a sweep may finish the accounting. The intent record, the outcome record, the critical section, the sweep with its two edges, the position on every rejection code, and the arithmetic that makes the closure promise meetable all live here.
+Twenty compositions had each written this protocol in their own words. This composition specifies it once. An adopter names it and supplies **bindings** — what the act is, which database commits it, how long it may take, under what identity a sweep may finish the accounting. The intent record, the outcome record, the critical section, the sweep with its two edges, the position on every rejection code, a closure table naming the rule that owns each input and each answer a constituent can give, and the arithmetic that makes the closure promise meetable all live here.
 
 The protocol is proved in `recoverable-invocation.tla` (TLA+, a formal specification language whose models a checker explores state by state): six components over one act — the invocation, the critical section host, the database, the journal, the sweep as two runs on two nodes, and an operator through [Resolve] as the third writer — with time explicit, the crash anywhere, and every write split into the instant its gate is passed and the instant it is issued. The composition wires the **Audit Trail** substrate and a **critical section** the deployment supplies, keyed by the act, and composes no database of its own. The emergent guarantee: every act committed through it is accounted for exactly once, by exactly one writer, within a declared window or with a declared record of why not.
 
@@ -38,7 +38,7 @@ Not a transaction, not the adopter's database, not an audit journal, not a class
 
 ## Composes
 
-- **[Lease](../atoms/lease.md)** — the per-key grant of exclusive standing whose terminus is an instant. The act's critical section is a lease, and so is the commit fence. This page binds the atom's parameters — which key, which holder, how long, which arm maps to which code — and restates none of its semantics but the sizing the atom obliges a composer to state as its own (act section 16 through 18). What the atom refuses to own and this page adds: which key protects which work, and how long a grant must last.
+- **[Lease](../atoms/lease.md)** — the per-key grant of exclusive standing whose terminus is an instant. The act's critical section is a lease. This page binds the atom's parameters — which key, which holder, how long, which arm maps to which code — and restates none of its semantics but the sizing the atom obliges a composer to state as its own (act section 16 through 18). What the atom refuses to own and this page adds: which key protects which work, and how long a grant must last.
 - **[Audit Trail](./audit-trail.md)** — the regulated-audit substrate and this composition's journal, its four constituents (Event Log, Actor Identity, Tamper Evidence, Retention Window) reached transitively per *Compositions of compositions* ([`spec-format.md`](../spec-format.md)). Consumed at the declared contract `record_action(action_ref, actor_ref, credential, data)`, which answers event id and refuses `invalid-credential | invalid-request(step) | recording-failure(step)`, for every record this page writes; `read_record(event_id)`, which answers `audit_record | not-known`, or no answer where a constituent read gives none (Audit Trail read record 5), where an event id is in hand; and the open-upper-bound sequence-range read, for every other read of the journal (Capability requirement 1). Attribution, retention and sealing of every record here are Audit Trail Invariants 1, 2 and 3; destruction of a payload at the horizon is Audit Trail Invariants 4 and 8.
 - **The bound act** — not a constituent. The adopter's constituent commit call, supplied as a binding together with the read that tells whether it committed. The constituent's own contract governs the commit.
 - **The act's critical section** — keyed by the act, supplied by the deployment (*Capability requirement*, act section). No constituent's records provide it: Lease states what it is, and the deployment supplies the host.
@@ -58,11 +58,11 @@ Deleted: journal fence 3. Execution Contract Database 2 owns it.
 Deleted: journal fence 4. Execution Contract Database 2 owns it.
 ```
 
-Term position's existing arm: `recording-failure(intent)` at [Open]; `recording-failure(outcome)` at [Close]; `recording-failure(refusal, constituent_code)` at [Refuse]; `recording-failure(resolution)` at [Resolve].
+Term position's existing arm: `recording-failure(intent)` at [Open]; `recording-failure(outcome)` at [Close]; `recording-failure(refusal, constituent_code)` at [Refuse]; `recording-failure(resolution)` at [Resolve]; at the sweep's writes, which follow the outcome position, the act left for the next run (reconcile step 3.17).
 
 Term constituent code: constituent_code — the refusal code a constituent returned, carried beside the composition's own.
 
-Term closing event id: closing_event_id — the event id of the closing another writer already wrote for the invocation.
+Term closing event id: closing_event_id — the event id of a closing record: the closing another writer already wrote for the invocation, which already-accounted carries, or the closing [Resolve] writes, which [Resolve] answers (resolve 35).
 
 ### Under journal fence set to none — the case in this library today
 
@@ -105,7 +105,7 @@ Five elements, each carrying the Contract classification of the section titled C
   act closings 2: [Open] step 3, [Resolve]'s supersession check and [Read Invocation] MUST read act closings.
   ```
 - **sweep closed ids**
-  Term sweep closed ids: the set of invocation id values the sweep has closed: an outcome under `recovery = true`, an `<kind>.abandoned`, or an `<kind>.escalated` naming the id. *Derived index*, same rebuild.
+  Term sweep closed ids: the set of invocation id values the sweep has closed: an outcome under `recovery = true` or an `<kind>.escalated` naming the id. *Derived index*, same rebuild.
   ```
   sweep closed ids 1: The sweep MUST NOT write a closing BEFORE consulting sweep closed ids under the critical section.
   ```
@@ -179,13 +179,15 @@ Capability requirement 9: A read_record that cannot reach the journal MUST land 
 Capability requirement 10: A read_record that cannot reach the journal MUST NOT answer not-known.
 Capability requirement 11: IF the range read, read-your-writes or act section is absent THEN the composition MUST NOT start.
 Capability requirement 12: The deployment MUST supply the journal's database PER Execution Contract Database 1 through 4.
+Capability requirement 13: EVERY read path of Recoverable Invocation MUST land an invalid-query where the read path lands unavailable, the instance finding journal-unavailable excepted.
+Capability requirement 14: The composition MUST NOT surface an invalid-query as the instance finding journal-unavailable.
 ```
 
 Term delta range: the sequence-number range from `sequence_high_water + 1` with no upper bound.
 
 Term open-upper-bound sequence-range read: `EventLog.read` over the delta range, reached through Audit Trail's list-shaped pass-through.
 
-Term read path: [Open] step 1 and step 3, [Reconcile] step 1, [Read Invocation], and the re-reads at [Close], [Refuse], [Resolve] and [Reconcile] step 2. The reads at [Open], [Reconcile] step 1 and [Read Invocation] transcribe unavailable as journal-unavailable; the re-reads at [Close], [Refuse] and [Resolve] land it on the position's recording-failure arm, and so do the read-backs of Primitive policy 20, 27 and 35; the re-read at [Reconcile] step 2 leaves the act for the next run under the instance finding journal-unavailable (reconcile step 2.10). A read-back that gives no answer lands the intent position although the intent may stand: nothing is committed, a retry is safe, and the stray intent is the sweep's to close.
+Term read path: [Open] step 1 and step 3, [Reconcile] step 1, [Read Invocation], and the re-reads at [Close], [Refuse], [Resolve] and [Reconcile] step 2. The reads at [Open], [Reconcile] step 1 and [Read Invocation] transcribe unavailable as journal-unavailable; the re-reads at [Close], [Refuse] and [Resolve] land it on the position's recording-failure arm, and so do the read-backs of Primitive policy 20, 27 and 35; the re-read at [Reconcile] step 2 leaves the act for the next run under the instance finding journal-unavailable (reconcile step 2.10). A read-back that gives no answer lands the intent position although the intent may stand: nothing is committed, a retry is safe, and the stray intent is the sweep's to close. A read fails where it answers unavailable. An invalid-query is no outage of the journal but a fault of the build: it lands where unavailable lands, is surfaced, and opens no outage finding (Capability requirement 4, 13 and 14).
 
 Term read-your-writes: Capability requirement 8 and Capability requirement 12 together. The filtering of every range read on action reference, invocation id or a payload field is this composition's code; the substrate offers no such selector.
 
@@ -225,7 +227,9 @@ Term read-your-writes: Capability requirement 8 and Capability requirement 12 to
 
   Term release: to issue Lease's release for the grant where no call in flight exists under the grant, and to issue nothing where one does — the grant then ends at its instant (act section 15). EVERY release on this page reads so.
 
-  Term unfenced write: as Lease declares it; on this page the bound commit where commit fence EQUALS none.
+  Term unfenced write: as Lease declares it; on this page the bound commit.
+
+  Term terminus: the critical section's lease — an invocation's standing to write ends at the lease's expiry.
 - **journal write bound**
   Term journal write bound: the disclosed bound on a record_action from issue to landing: issue-to-first-commit latency, with headroom. *Default:* none.
   ```
@@ -346,6 +350,7 @@ Primitive policy 40: IF position EQUALS outcome THEN an invalid-request(step-4) 
 Primitive policy 41: IF position EQUALS intent THEN invalid-request(step-1), invalid-request(step-2) and invalid-request(step-3) MUST land invalid-request.
 Primitive policy 42: IF position EQUALS outcome THEN invalid-request(step-1), invalid-request(step-2) and invalid-request(step-3) MUST land recording-failure(outcome) with a hard alert.
 Primitive policy 43: The action MUST NOT retry after invalid-request(step-3) or invalid-request(step-4).
+Primitive policy 44: The composition MUST treat recording-failure(step-4) as recording-failure(step-2) at every position.
 ```
 
 ### Action wiring
@@ -379,6 +384,125 @@ Action wiring 6: An adopter's action MUST NOT write to the journal for the act o
 
 *Never re-run* holds while the invocation is unclosed; once [Read Invocation] shows its closing, a new call is a new act and the caller's decision. [Resolve]'s codes are the operator's; [Reconcile]'s journal-unavailable goes to the scheduler. [Read Invocation] is not in the table because it is not called around the commit; it answers journal-unavailable (the act's state unreadable for now) and not-known ([Not Known] — no readable intent), and Action wiring 3 keeps a re-entry arm from re-running an irreversible act whose record is sitting in the journal.
 
+#### Closure table
+
+Every input an action takes and every answer its calls can meet — what Audit Trail's record_action, read_record and range read, Lease's take, remaining and release, and the adopter's probe can answer — with where the action lands it and the rule that owns the landing. The enumeration is exhaustive: an answer a constituent adds is a row this table lacks, and a cell no rule owns is a finding against the page.
+
+**Inputs.** [Reconcile] takes none.
+
+| Action | Input | Lands | Owner |
+|---|---|---|---|
+| [Open] | a kind the bindings table does not serve | invalid-request, with no read and no take | open step 1.9 |
+| [Open] | act key, actor reference or credential blank | invalid-request, nothing written | open step 1.10, open step 1.5 |
+| [Open] | an actor reference naming the kind's service identity | invalid-request, nothing written | open step 1.2, open step 1.5 |
+| [Open] | intent data or the kind's largest record over the cap | invalid-request, nothing written | open step 1.4, Primitive policy 13 |
+| [Close] | a pair no [Open] returned | recording-failure(outcome) at step 1 | Not Open 4, close step 1.2 |
+| [Close] | an outcome action reference outside the kind's outcome refs | recording-failure(outcome), a hard alert, nothing appended | close 6 |
+| [Refuse] | a pair no [Open] returned | recording-failure(refusal, constituent_code) at step 1, nothing written | Not Open 5, refuse step 0.2 |
+| [Yield] | reply answered | ok, the section released | yield 5 |
+| [Yield] | reply lost | ok, the grant left to end at its instant | yield 6 |
+| [Resolve] | a kind the bindings table does not serve | invalid-request(malformed), with no take and nothing appended | resolve 33 |
+| [Resolve] | a disposition outside the three forms | invalid-request(malformed), with no take and nothing appended | resolve 30 |
+| [Resolve] | an outcome action reference outside the kind's outcome refs | invalid-request(malformed), with no take and nothing appended | resolve 31 |
+| [Resolve] | candidates over intent candidates cap | invalid-request(candidates-over-cap) | resolve 28 |
+| [Resolve] | an abandoned disposition for an in-flight intent | invalid-request(too-young) | resolve 18, resolve 19 |
+| [Read Invocation] | an invocation id no readable intent of the act key carries | not-known | read invocation 3b |
+| [Read Invocation] | an act key with no readable intent | not-known | read invocation 12 |
+
+**Lease: the take.**
+
+| take answers | [Open] | [Resolve] | [Reconcile] |
+|---|---|---|---|
+| expires_at | the step-3 re-read (open step 3.1) | the re-read (resolve 8) | the step-2 re-read (reconcile step 2.4) |
+| unavailable | section-unavailable, nothing written (open step 2.3, act section 5) | section-unavailable (resolve 6, act section 5) | skipped (reconcile step 2.3) |
+| no answer | section-unavailable, nothing written (open step 2.3), remaining read as none (act section 17) | section-unavailable (resolve 6), remaining read as none (act section 17) | skipped (reconcile step 2.3), remaining read as none (act section 17) |
+
+**Lease: the remaining reading** behind a write. The floor is write floor, and commit floor for the reading the commit goes out behind; every journal write takes a reading of its own (journal write bound 1).
+
+| remaining answers | [Open] before the intent | [Open] before its return | [Close] | [Refuse] | [Resolve] | [Reconcile] |
+|---|---|---|---|---|---|---|
+| a remaining term above the floor | the intent record (open step 4.3) | open result, the section held (open step 5.2, open step 5.3) | the step-2 re-read (close step 2.1) | the step-2 re-read (refuse step 2.1) | the re-read (resolve 8) | the probe (reconcile step 3.1) |
+| a remaining term at or below the floor, none, or no answer read as none (act section 17) | section-unavailable, released (open step 4.2) | recording-failure(outcome), released, the intent left open (open step 5.5, open step 5.6) | recording-failure(outcome), nothing written (close step 1.2) | recording-failure(refusal, constituent_code), nothing written (refuse step 1.2) | section-unavailable, released (resolve 7) | skipped (reconcile step 2.7) |
+
+**Lease: the release.** Every release leaves the action's answer as it is: not-held is discarded (act section 6); no answer is read as none for the rest of the grant (act section 17) and the call is not issued again (act section 18); and where a call is in flight under the grant, nothing is issued (Term release, act section 15).
+
+**Audit Trail: record_action**, by position. The sweep's closing and recovery_intended writes follow the outcome position (reconcile step 3.15).
+
+| record_action answers | intent: [Open] step 4 | outcome: [Close] step 3 | outcome: the sweep | refusal: [Refuse] step 3 | resolution: [Resolve] |
+|---|---|---|---|---|---|
+| event id | open invocations populated, open result after open step 5.4's reading (open step 5.1, open step 5.2) | cleared, released, outcome event id and landing actor invocation (close step 4.1 through 4.3) | the act counted closed or escalated (reconcile step 3.2c, 3.5b, 3.8c) | cleared, released, refusal event id (refuse step 3.9, 3.10, 3.12) | released, closing event id (resolve 22, resolve 35) |
+| invalid-credential | passed through unchanged, nothing written, released (Primitive policy 19, open step 4.5) | recording-failure(outcome), released (Primitive policy 31, close step 3.8) | surfaced at once, nothing more written under the credential, skipped, the rest of the run unreached (reconcile step 3.18, 3.19, 2.9) | recording-failure(refusal, constituent_code), the intent left open (refuse step 3.7) | invalid-credential, released, nothing appended (resolve 3) |
+| invalid-request(step-1), (step-2) or (step-3) | invalid-request, released (Primitive policy 41, open step 4.5) | recording-failure(outcome), a hard alert (Primitive policy 42, close step 3.3) | the act closed as escalated, cause outcome-unrecordable (reconcile step 3.20); where that escalation answers the same, left for the next run with a hard alert (reconcile step 3.23) | recording-failure(refusal, constituent_code), the intent left open (refuse step 3.8) | recording-failure(resolution), a hard alert (resolve 29) |
+| invalid-request(step-4), the read-back finding the record | proceeds with a hard alert (Primitive policy 20, 21) | success with a hard alert (Primitive policy 27, 28) | read back, success with a hard alert (reconcile step 3.16, Primitive policy 28) | refusal event id with a hard alert (refuse step 3.3, 3.12) | success with a hard alert (resolve 24) |
+| invalid-request(step-4), the read-back finding nothing | invalid-request, released (Primitive policy 22, open step 4.5) | recording-failure(outcome), a hard alert (Primitive policy 40) | a hard alert, the act left for the next run (Primitive policy 40) | recording-failure(refusal, constituent_code), the intent left open (Primitive policy 37b) | recording-failure(resolution) (Primitive policy 37b) |
+| recording-failure(step-2), and recording-failure(step-4) read as it (Primitive policy 44) | recording-failure(intent), released (Primitive policy 23, open step 4.5) | retried under the section to the terminus, step 2 re-run first; cut short, recording-failure(outcome), released (Primitive policy 29, 30, close step 3.4, 3.5, 3.7) | retried within the lease, else left for the next run under journal-unavailable (Primitive policy 29, reconcile step 3.17, 3.22) | recording-failure(refusal, constituent_code), the intent left open (refuse step 3.5) | recording-failure(resolution) (resolve 26) |
+| recording-failure(step-3) or no answer — a lost reply (Primitive policy 32, 32a), read back once journal write bound has passed (Primitive policy 33 through 35) — the read-back finding the record | adopted, [Open] proceeding (Primitive policy 36) | adopted, cleared, released, returned (Primitive policy 36, close step 4.1 through 4.3) | adopted (Primitive policy 36) | refusal event id (refuse step 3.12) | adopted, closing event id (Primitive policy 36, resolve 35) |
+| a lost reply, the read-back finding nothing | recording-failure(intent), released (Primitive policy 23, 37b) | recording-failure(outcome) (Primitive policy 37b) | left for the next run (Primitive policy 37b, reconcile step 3.17), under journal-unavailable for a recording-failure(step-3) (reconcile step 3.22) | recording-failure(refusal, constituent_code), the intent left open (refuse step 3.6) | recording-failure(resolution) (resolve 26) |
+
+A read-back that answers unavailable or gives no answer lands the position's recording-failure arm (Term read path, Capability requirement 6).
+
+**Audit Trail: the range read**, what it answers.
+
+| Read | What it answers | Lands | Owner |
+|---|---|---|---|
+| [Open] step 1 | an open intent [Open] step 3 would refuse | act-in-flight(invocation_id), with no take | open step 1.7 |
+| [Open] step 1 | no such intent | the take | open step 1.6, open step 2.1 |
+| [Open] step 3 | an in-flight open intent | act-in-flight(invocation_id), released | open step 3.4, open step 3.5 |
+| [Open] step 3 | an aged open intent, the kind's service identity not none | act-in-flight(invocation_id), released | open step 3.6, open step 3.7 |
+| [Open] step 3 | an aged open intent, the kind's service identity none | proceeds, the old intent left open and surfaced | open step 3.8 |
+| [Open] step 3 | an outcome for the act, the kind not repeatable | act-landed(outcome_event_id), released | open step 3.9 |
+| [Open] step 3 | a read that exhausts the lease | section-unavailable, released, nothing written | open step 3.11, open step 3.12 |
+| [Open] step 3 | none of these | the intent record | open step 4.3 |
+| [Close] step 2 | an outcome naming the invocation id | adopted, released, outcome event id and landing actor | close step 2.2 |
+| [Close] step 2 | an abandonment or an escalation naming it | recording-failure(outcome), released | close step 2.3 |
+| [Close] step 2 | a refusal naming it | unreachable: an adopter's action routes each commit arm to one action | Action wiring 4, commit 1 |
+| [Close] step 2 | no closing | the outcome record | close step 3.1 |
+| [Refuse] step 2 | a closing naming the invocation id | already-accounted(closing_event_id), nothing appended | refuse step 2.2, refuse step 2.3 |
+| [Refuse] step 2 | no closing | the refusal record | refuse step 3.1 |
+| [Resolve] | an outcome or a refusal naming the invocation id | already-accounted(closing_event_id) | resolve 9 |
+| [Resolve] | an escalation standing | any disposition, naming it in supersedes | resolve 15 |
+| [Resolve] | an abandonment standing, the disposition an outcome | the outcome, superseding it | resolve 16a, resolve 13 |
+| [Resolve] | an abandonment standing, any other disposition | invalid-request(already-abandoned) | resolve 16b |
+| [Resolve] | no closing standing | any disposition | resolve 14 |
+| [Reconcile] step 1 | an aged intent of a served kind short of its horizon edge | kept | reconcile step 1.2 |
+| [Reconcile] step 1 | an intent of a kind the bindings table does not serve | surfaced, never closed, counted in surfaced | reconcile step 1.6, reconcile step 1.7, Binding 4, Binding 5 |
+| [Reconcile] step 2 | a closing landed since step 1 | released, closed already | reconcile step 2.5, reconcile step 2.6 |
+| [Reconcile] step 2 | the intent still open | the probe | reconcile step 3.1 |
+| [Read Invocation] | the act's invocations | the invocation report | read invocation 2, read invocation 4 through 6, read invocation 10 |
+
+**Audit Trail: read_record** at [Resolve] (resolve 11).
+
+| read_record answers | Lands | Owner |
+|---|---|---|
+| the act's intent carrying the invocation id, its payload not Purged | proceeds | resolve 11 |
+| an intent whose payload the substrate reports Purged | invalid-request(purged) | resolve 12 |
+| any other record: no intent of the act carrying the invocation id | not-known | resolve 34 |
+| not-known | not-known | resolve 10 |
+| no answer | recording-failure(resolution), never not-known | Capability requirement 9, Capability requirement 10 |
+
+**A read that fails.** Every read here is the composition's own, so an invalid-query is a fault of the build: it lands where unavailable lands, is surfaced, and opens no outage finding.
+
+| Read | unavailable | invalid-query |
+|---|---|---|
+| [Open] step 1 | journal-unavailable (open step 1.8) | journal-unavailable, surfaced (Capability requirement 13, 4) |
+| [Open] step 3 | journal-unavailable, released, nothing written (open step 3.13) | the same, surfaced (Capability requirement 13, 4) |
+| [Close] step 2 | recording-failure(outcome), nothing written (close step 2.4) | the same, surfaced (Capability requirement 13, 4) |
+| [Refuse] step 2 | recording-failure(refusal, constituent_code) (Capability requirement 6, Term read path) | the same, surfaced (Capability requirement 13, 4) |
+| [Resolve]'s re-read | recording-failure(resolution) (Capability requirement 6, Term read path) | the same, surfaced (Capability requirement 13, 4) |
+| a read-back (Primitive policy 20, 27 and 35) | the position's recording-failure arm (Capability requirement 6, Term read path) | the same, surfaced (Capability requirement 13, 4) |
+| [Reconcile] step 1 | nothing written, journal-unavailable returned, the outage finding opened or advanced (reconcile 1) | journal-unavailable returned, surfaced, no outage finding (Capability requirement 13, 14, 4) |
+| [Reconcile] step 2 | nothing written, released, skipped, the outage finding opened or advanced (reconcile step 2.10) | nothing written, released, skipped, surfaced, no outage finding (Capability requirement 13, 14, 4) |
+| [Read Invocation] | journal-unavailable, never not-known (read invocation 11, Action wiring 3) | the same, surfaced (Capability requirement 13, 4) |
+
+**The adopter's probe** at [Reconcile] step 3, for a kind that declares a service identity; under none the run probes, writes nothing and reports (reconcile 2).
+
+| probe answers | Lands | Owner |
+|---|---|---|
+| committed | `<kind>.recovery_intended`, then the outcome under the service identity; closed | reconcile step 3.2 |
+| not-committed | `<kind>.escalated`, cause not-observed; escalated | reconcile step 3.5 |
+| undecidable | `<kind>.escalated` naming the candidates, past intent candidates cap their count and range; escalated | reconcile step 3.8 through 3.10 |
+| unavailable | nothing written, released, skipped; store-unavailable opened or advanced | reconcile step 3.13 |
+
 ---
 
 #### Open contract
@@ -389,7 +513,7 @@ open(kind, act_key, actor_ref, credential, intent_data)
   refuses invalid-credential | invalid-request | act-in-flight(invocation_id) | act-landed(outcome_event_id) | section-unavailable | journal-unavailable | recording-failure(intent) | recording-failure(outcome)
 ```
 
-Term open result: invocation id and intent event id, and commit fence deadline where commit fence EQUALS declared — what open answers. Neither invocation id nor now is a parameter of open: the adopter's seam injects both (Term invocation id, Term now, Primitive policy 14).
+Term open result: invocation id and intent event id — what open answers. Neither invocation id nor now is a parameter of open: the adopter's seam injects both (Term invocation id, Term now, Primitive policy 14).
 
 Term intent event id: intent_event_id — the event id the journal assigns the intent record, carried by every later record of the invocation (Primitive policy 11a).
 
@@ -399,7 +523,7 @@ Term actor reference: actor_ref — the acting actor Actor Identity attests, rea
 
 Term resolve refusal: purged | malformed | too-young | already-abandoned | candidates-over-cap — the reasons [Resolve] gives for an invalid request.
 
-Opens one invocation of the act: takes the critical section, sizes the records, writes the intent record — where the caller's credential is verified — and returns the pair the adopter carries through the commit to [Close], with the commit fence deadline the commit carries where the kind declares a commit fence.
+Opens one invocation of the act: takes the critical section, sizes the records, writes the intent record — where the caller's credential is verified — and returns the pair the adopter carries through the commit to [Close].
 
 Steps:
 
@@ -414,6 +538,7 @@ Steps:
    open step 1.7: IF the read of open step 1.6 shows an open intent open step 3.5 or open step 3.7 refuses THEN [Open] MUST land act-in-flight(invocation id) with no take.
    open step 1.8: IF the read of open step 1.6 fails THEN [Open] MUST land journal-unavailable.
    open step 1.9: IF kind IS NOT IN the bindings table THEN [Open] MUST land invalid-request with no read and no take.
+   open step 1.10: IF act key EQUALS blank OR actor reference EQUALS blank OR credential EQUALS blank THEN [Open] MUST land invalid-request.
    ```
 2. **Take the act's critical section.**
    ```
@@ -463,11 +588,11 @@ Steps:
    open step 5.1: [Open] MUST populate open invocations at (kind, act key) with the intent.
    open step 5.2: [Open] MUST return invocation id and intent event id.
    open step 5.3: [Open] MUST hold the critical section at return.
-   open step 5.4: IF commit fence EQUALS none THEN [Open] MUST query remaining((kind, act key), invocation id) as the last call [Open] makes.
-   open step 5.5: IF commit fence EQUALS none AND remaining DOES NOT EXCEED commit floor THEN [Open] MUST release.
-   open step 5.6: IF commit fence EQUALS none AND remaining DOES NOT EXCEED commit floor THEN [Open] MUST land recording-failure(outcome) with the intent left open.
-   open step 5.7: IF commit fence EQUALS declared THEN [Open] MUST mint commit fence deadline from the expiry instant the take of open step 2.1 answered.
-   open step 5.8: IF commit fence EQUALS declared THEN [Open] MUST return commit fence deadline with invocation id and intent event id.
+   open step 5.4: [Open] MUST query remaining((kind, act key), invocation id) as the last call [Open] makes.
+   open step 5.5: IF remaining DOES NOT EXCEED commit floor THEN [Open] MUST release.
+   open step 5.6: IF remaining DOES NOT EXCEED commit floor THEN [Open] MUST land recording-failure(outcome) with the intent left open.
+   Deleted: open step 5.7. No adopter binds a declared commit fence, whose deadline it minted; an adopter that needs it reopens it with a Decisions entry.
+   Deleted: open step 5.8. No adopter binds a declared commit fence, whose deadline it returned; an adopter that needs it reopens it with a Decisions entry.
    ```
 
 ---
@@ -498,6 +623,7 @@ close 2: The composition MUST NOT retain state between [Open] and [Close].
 close 3: [Close] and [Refuse] MUST take intent event id.
 close 4: The adopter's action MUST decide not-open from the invocation's own [Open] result ([Not Open]).
 close 5: The adopter MUST pass [Close] outcome data carrying only what probe answers for the act.
+close 6: An outcome action reference that IS NOT IN the kind's enumerated outcome refs MUST land recording-failure(outcome) with a hard alert and nothing appended.
 ```
 
 Steps:
@@ -510,7 +636,7 @@ Steps:
        close step 1.2b: [Close] MUST discard the commit's reply.
        NOTE: watch negative capability — an obligation to discard a reply already in hand (close step 1.2b).
        close step 1.2c: [Close] MUST return recording-failure(outcome).
-   close step 1.3: Step 1 MUST NOT vary with retry terminus.
+   Deleted: close step 1.3. No adopter binds the counted(n) deviation, the one retry terminus beside the lease; an adopter that needs it reopens it with a Decisions entry.
    ```
 2. **Pre-check under the critical section — proceed as landed.**
    ```
@@ -537,9 +663,9 @@ Steps:
    close step 3.3: An invalid-request(step-1), invalid-request(step-2) or invalid-request(step-3) at step 3 MUST land recording-failure(outcome) with a hard alert.
    close step 3.4: [Close] MUST NOT retry after recording-failure(step-2), recording-failure(step-3) or a lost reply BEFORE re-running step 2.
    close step 3.5: IF remaining DOES NOT EXCEED write floor THEN [Close] MUST NOT retry.
-   close step 3.6: WHEN retry terminus EQUALS counted(n):
-       close step 3.6a: [Close] MAY retry at most n attempts.
-   close step 3.7: WHEN the lease or the last attempt cuts a retry short:
+   Deleted: close step 3.6. No adopter binds the counted(n) deviation; an adopter that needs it reopens it with a Decisions entry.
+   Deleted: close step 3.6a. No adopter binds the counted(n) deviation; an adopter that needs it reopens it with a Decisions entry.
+   close step 3.7: WHEN the lease cuts a retry short:
        close step 3.7a: [Close] MUST release.
        close step 3.7b: [Close] MUST land recording-failure(outcome).
    close step 3.8: WHEN step 3 answers invalid-credential:
@@ -664,11 +790,13 @@ resolve 15: WHEN an escalated record stands:
     resolve 15a: [Resolve] MUST name the record in supersedes for any disposition.
 resolve 16: WHEN an abandoned record stands:
     resolve 16a: [Resolve] MAY supersede the record ONLY IF disposition EQUALS outcome.
-resolve 17: An abandoned disposition over an abandoned record MUST land invalid-request(already-abandoned).
+    resolve 16b: IF disposition DOES NOT EQUAL outcome THEN [Resolve] MUST land invalid-request(already-abandoned).
+Deleted: resolve 17. resolve 16b owns it: every disposition but outcome over a standing abandonment answers already-abandoned, an abandoned one among them.
 resolve 18: An abandoned disposition for an in-flight intent MUST land invalid-request(too-young).
 resolve 19: The too-young guard MUST compare against now injected at the operator's seam.
-resolve 20: WHEN commit fence EQUALS none:
-    resolve 20a: [Resolve] MUST admit the operator's abandoned disposition as the operator's attestation that the database has been quiet for as long as the operator's judgment requires.
+Deleted: resolve 20. resolve 32 owns it: no adopter binds a declared commit fence, so the condition it opened held for every kind.
+Deleted: resolve 20a. resolve 32 owns it, for every kind.
+resolve 32: [Resolve] MUST admit the operator's abandoned disposition as the operator's attestation that the database has been quiet for as long as the operator's judgment requires.
 resolve 21: [Resolve] MUST write the closing record under the operator's own credential with recovery set to true, resolving actor set to actor reference, acting actor reference set to the intent's actor reference, and no recovery_intended.
 resolve 22: [Resolve] MUST release after the write.
 resolve 23: The closing write's arms MUST follow the resolution position of resolve 24 through 29.
@@ -680,6 +808,9 @@ resolve 28: A candidate list exceeding intent candidates cap MUST land invalid-r
 resolve 29: An invalid-request(step-1), invalid-request(step-2) or invalid-request(step-3) from the closing write MUST land recording-failure(resolution) with a hard alert.
 resolve 30: A disposition outside the three forms resolve 1 names MUST land invalid-request(malformed) with no take and nothing appended.
 resolve 31: A disposition whose outcome action reference IS NOT IN the kind's enumerated outcome refs MUST land invalid-request(malformed) with no take and nothing appended.
+resolve 33: IF kind IS NOT IN the bindings table THEN [Resolve] MUST land invalid-request(malformed) with no take and nothing appended.
+resolve 34: An intent event id naming no `<kind>.intended` record of the act key carrying invocation id MUST land not-known, an intent whose payload the substrate reports Purged excepted.
+resolve 35: [Resolve] MUST return closing event id for the closing the write lands.
 ```
 
 ---
@@ -692,7 +823,7 @@ reconcile()
   refuses journal-unavailable
 ```
 
-Term reconcile tally: examined, closed, abandoned, escalated, reported, skipped, closed already, surfaced and unreached — what reconcile answers; reconcile is the one action with no kind: the run sweeps every bound kind.
+Term reconcile tally: examined, closed, escalated, reported, skipped, closed already, surfaced and unreached — what reconcile answers; reconcile is the one action with no kind: the run sweeps every bound kind.
 
 The sweep. Runs at every process restart and on reconciliation cadence; reads now once at the sweep's own seam.
 
@@ -715,7 +846,7 @@ reconcile 5: The run MUST sum the counts over both.
 
 Term examined: an act step 1 kept and the run reached — took, or attempted to take, the act's critical section.
 
-Term partition: `closed + abandoned + escalated + reported + skipped + closed_already = examined`.
+Term partition: `closed + escalated + reported + skipped + closed_already = examined`.
 
 Term surfaced: the unbound-kind intents step 1 reports; outside the partition.
 
@@ -723,7 +854,7 @@ Term unreached: the acts step 1 kept that the run stopped short of after the ser
 
 Term closed already: an act step 2's re-read finds another writer closed since step 1.
 
-Term skipped: an act the run examined and left for the next run — a failed take; a re-read at step 2 that failed (reconcile step 2.10); a probe answering unavailable; a closing write or a recovery_intended write whose retries the lease cut short; a closing write or a recovery_intended write left for the next run after step 3 counted the act; an act whose remaining did not exceed write floor at step 2 before any write; an act the fence refused a write for while the intent was short of abandon edge; an act whose write under the service identity answered invalid-credential (reconcile step 3.18). The list is exhaustive.
+Term skipped: an act the run examined and left for the next run — a failed take; a re-read at step 2 that failed (reconcile step 2.10); a probe answering unavailable; a closing write or a recovery_intended write whose retries the lease cut short; a closing write or a recovery_intended write left for the next run after step 3 counted the act; an act whose remaining did not exceed write floor at step 2 before any write; an act whose write under the service identity answered invalid-credential (reconcile step 3.18); an act whose outcome-unrecordable escalation answered invalid-request(step-1), invalid-request(step-2) or invalid-request(step-3) (reconcile step 3.23). The list is exhaustive.
 
 Term reported: an act the run examined, of a kind whose service identity EQUALS none.
 
@@ -736,6 +867,7 @@ Term reported: an act the run examined, of a kind whose service identity EQUALS 
    Deleted: reconcile step 1.4. Execution Contract Database 2 owns it: a writer's re-read, lease check and append are one transaction, so the run keeps no closing record for a duplicate scan.
    Deleted: reconcile step 1.5. Execution Contract Database 2 owns it: a writer's re-read, lease check and append are one transaction, so the run keeps no closing record for a duplicate scan.
    reconcile step 1.6: Step 1 MUST surface EVERY unbound-kind intent per Binding 4 through 6.
+   reconcile step 1.7: The run MUST count EVERY intent step 1 surfaces in surfaced.
    ```
 2. **Take the act's critical section and re-read.**
    ```
@@ -763,15 +895,15 @@ Term reported: an act the run examined, of a kind whose service identity EQUALS 
        reconcile step 3.2b: The run MUST write the outcome record outcome action reference under the service identity with data set to recovered outcome payload.
        reconcile step 3.2c: The run MUST count closed.
    reconcile step 3.3: A later run MAY write a second recovery_intended for the act.
-   reconcile step 3.4: WHEN probe EQUALS not-committed AND commit fence EQUALS declared AND the intent is past abandon edge:
-       reconcile step 3.4a: The run MUST write `<kind>.abandoned` under the service identity with data carrying invocation id, intent event id, act key and cause set to not-committed.
-       reconcile step 3.4b: The run MUST count abandoned.
-   reconcile step 3.5: WHEN probe EQUALS not-committed AND commit fence EQUALS none:
+   Deleted: reconcile step 3.4. No adopter binds a declared commit fence, the one kind the sweep abandoned; an adopter that needs it reopens it with a Decisions entry.
+   Deleted: reconcile step 3.4a. No adopter binds a declared commit fence, the one kind the sweep abandoned; an adopter that needs it reopens it with a Decisions entry.
+   Deleted: reconcile step 3.4b. No adopter binds a declared commit fence, the one kind the sweep abandoned; an adopter that needs it reopens it with a Decisions entry.
+   reconcile step 3.5: WHEN probe EQUALS not-committed:
        reconcile step 3.5a: The run MUST write `<kind>.escalated` under the service identity with data carrying invocation id, intent event id, act key and cause set to not-observed.
        reconcile step 3.5b: The run MUST count escalated.
-   reconcile step 3.6: WHEN probe EQUALS not-committed AND commit fence EQUALS declared AND the intent is short of abandon edge:
-       reconcile step 3.6a: The run MUST write nothing.
-       reconcile step 3.6b: The run MUST count skipped.
+   Deleted: reconcile step 3.6. No adopter binds a declared commit fence, the one kind whose not-committed the sweep held short of abandon edge; an adopter that needs it reopens it with a Decisions entry.
+   Deleted: reconcile step 3.6a. No adopter binds a declared commit fence, the one kind whose not-committed the sweep held short of abandon edge; an adopter that needs it reopens it with a Decisions entry.
+   Deleted: reconcile step 3.6b. No adopter binds a declared commit fence, the one kind whose not-committed the sweep held short of abandon edge; an adopter that needs it reopens it with a Decisions entry.
    reconcile step 3.7: The sweep MUST NOT re-run an act.
    reconcile step 3.8: WHEN probe EQUALS undecidable(candidates):
        reconcile step 3.8a: The run MUST write `<kind>.escalated` under the service identity with data carrying invocation id, intent event id, act key, cause set to undecidable and database candidates set to candidates.
@@ -785,15 +917,16 @@ Term reported: an act the run examined, of a kind whose service identity EQUALS 
        reconcile step 3.13a: The run MUST write nothing.
        reconcile step 3.13b: The run MUST release and count skipped.
        reconcile step 3.13c: The run MUST open or advance the instance finding store-unavailable for the act's kind.
-   reconcile step 3.14: The sweep MUST NOT write abandoned for a database outage.
+   Deleted: reconcile step 3.14. Invariant 4.9 owns it: no adopter binds a declared commit fence, so the sweep writes no abandoned record, for an outage or otherwise; an adopter that needs the fence reopens it with a Decisions entry.
    reconcile step 3.15: EVERY closing write's arms and EVERY recovery_intended write's arms MUST follow the outcome position.
    reconcile step 3.16: After invalid-request(step-4), the run MUST read the record back.
    reconcile step 3.17: The run MUST leave EVERY step-2 arm and step-3 arm not landed within the lease for the next run.
    reconcile step 3.18: The run MUST surface an invalid-credential for the service identity on compliance surface at once.
    reconcile step 3.19: The run MUST NOT write further under the credential until reconfigured.
-   reconcile step 3.20: An invalid-request(step-1), invalid-request(step-2) or invalid-request(step-3) on a closing write or on a recovery_intended write MUST close the act as `<kind>.escalated` with cause set to outcome-unrecordable.
+   reconcile step 3.20: An invalid-request(step-1), invalid-request(step-2) or invalid-request(step-3) on a closing write or on a recovery_intended write MUST close the act as `<kind>.escalated` with cause set to outcome-unrecordable, the write of that escalation excepted (reconcile step 3.23).
    reconcile step 3.21: The run MUST surface EVERY act the run closes as `<kind>.escalated` on compliance surface as the act finding escalated.
    reconcile step 3.22: The run MUST open or advance the instance finding journal-unavailable on compliance surface for EVERY recording-failure(step-2) and EVERY recording-failure(step-3) reconcile step 3.17 leaves for the next run.
+   reconcile step 3.23: IF the escalation reconcile step 3.20 writes answers invalid-request(step-1), invalid-request(step-2) or invalid-request(step-3) THEN the run MUST leave the act for the next run with a hard alert.
    ```
 4. **Update and release.**
    ```
@@ -872,7 +1005,7 @@ An irreversible act and its account are two writes no transaction spans, and clo
 An adopter binds the parameters below once per **act kind**. The instance's bindings Configuration entry is the table of bound kinds — configuration, not state.
 
 ```
-Binding 1: [Reconcile] MUST read completion bound, commit fence, probe, service identity, retention period and the `<kind>.*` vocabulary of every intent from the bindings table by the intent's kind.
+Binding 1: [Reconcile] MUST read completion bound, probe, service identity, retention period and the `<kind>.*` vocabulary of every intent from the bindings table by the intent's kind.
 Binding 2: The deployment MUST refuse a configuration change that unbinds a kind with an open intent.
 Binding 3: The refusal Binding 2 names MUST land on compliance surface with the reason.
 Binding 4: [Reconcile] step 1 MUST surface EVERY `<kind>.intended` record whose kind the bindings table does not serve and which no closing record of any kind names, once per run, on compliance surface.
@@ -905,18 +1038,18 @@ Binding 9: An adopter MUST NOT bind a kind whose database removes a record ahead
       commit 8c: The adopter MUST call [Yield].
       commit 8d: The adopter MUST return recording-failure(outcome) to the caller.
   commit 9: The adopter MAY call [Refuse] ONLY IF the constituent declares the arm pre-commit.
-  commit 10: The binding MUST declare commit fence as EXACTLY ONE OF none, declared.
-  commit 11: A declared commit fence MUST declare the conveyance: a deadline parameter on the constituent's call, or a database-applied request-scoped deadline on every write of the adopter's instance.
-  commit 12: The adopter MUST NOT declare a relative request timeout as commit fence.
-  commit 13: WHEN commit fence EQUALS declared:
-      commit 13a: The sweep MAY write abandoned ONLY IF probe answers not-committed for an intent past abandon edge.
-      commit 13b: The adopter MUST issue the bound commit carrying commit fence deadline by the conveyance commit 11 declares.
-  commit 14: WHEN commit fence EQUALS none:
-      commit 14a: The sweep MUST NOT write abandoned for the act kind.
-      commit 14b: The sweep MUST write escalated for a not-committed answer.
-      commit 14c: The adopter MUST issue the bound commit WITHIN call pause bound of [Open]'s return.
+  Deleted: commit 10. No adopter binds a declared commit fence, so commit fence is no binding; an adopter that needs it reopens it with a Decisions entry.
+  Deleted: commit 11. No adopter binds a declared commit fence, whose conveyance it declared; an adopter that needs it reopens it with a Decisions entry.
+  Deleted: commit 12. No adopter binds a declared commit fence; an adopter that needs it reopens it with a Decisions entry.
+  Deleted: commit 13. No adopter binds a declared commit fence; an adopter that needs it reopens it with a Decisions entry.
+  Deleted: commit 13a. No adopter binds a declared commit fence, the one kind the sweep abandoned; an adopter that needs it reopens it with a Decisions entry.
+  Deleted: commit 13b. No adopter binds a declared commit fence, whose deadline the commit carried; an adopter that needs it reopens it with a Decisions entry.
+  Deleted: commit 14. commit 15, Invariant 4.9 and reconcile step 3.5 own it: no adopter binds a declared commit fence, so the condition it opened held for every kind.
+  Deleted: commit 14a. Invariant 4.9 owns it, for every kind.
+  Deleted: commit 14b. reconcile step 3.5 owns it, for every kind.
+  Deleted: commit 14c. commit 15 owns it, for every kind.
+  commit 15: The adopter MUST issue the bound commit WITHIN call pause bound of [Open]'s return.
   ```
-  Term commit fence: an instance capability requirement on the constituent's database under which a write issued under the act's critical section is never applied after the fence's instant; none or declared.
 
 - **pairing datum**
   Term pairing datum: the field the intent record and the constituent's record both carry by construction: the seam-injected now passed into commit, an adopter-minted nonce stored by the constituent, or a constituent-minted id the database exposes by the intent's parameters.
@@ -982,13 +1115,11 @@ Binding 9: An adopter MUST NOT bind a kind whose database removes a record ahead
 - **outcome envelope**
   Term outcome envelope: the largest outcome payload the kind can write, sized by the adopter from the adopter's own caps, every set-valued field capped and every reference under reference length cap (Invariant 6).
 - **retry terminus**
-  Term retry terminus: `lease` (default) or the declared deviation `counted(n)`.
   ```
-  retry terminus 1: [Close] MUST NOT write BEFORE querying remaining.
-  retry terminus 2: IF remaining DOES NOT EXCEED write floor OR remaining EQUALS none THEN [Close] MUST NOT write.
-  retry terminus 3: retry terminus MUST NOT move the terminus.
+  Deleted: retry terminus 1. journal write bound 1 owns it: [Close] writes only on a remaining queried for the write that exceeds write floor.
+  Deleted: retry terminus 2. journal write bound 1 owns it: [Close] writes only on a remaining queried for the write that exceeds write floor.
+  Deleted: retry terminus 3. No adopter binds the counted(n) deviation, so retry terminus is no binding and the lease is every invocation's terminus; an adopter that needs it reopens it with a Decisions entry.
   ```
-  Term terminus: the critical section's lease — an invocation's standing to write ends at the lease's expiry, under every retry terminus value.
 
 ### Instance start
 
@@ -999,11 +1130,11 @@ Instance start 2: The instance MUST check EVERY condition at start for EVERY bou
 Instance start 3: IF any condition fails for any bound kind THEN the instance MUST NOT start.
 ```
 
-Term worst closure: `completion_bound + 2 × clock_offset_allowance + 2 × reconciliation_cadence + 3 × run_bound` — completion bound the kind's, the rest the instance's, the allowance counted twice for every kind, fenced or not.
+Term worst closure: `completion_bound + 2 × clock_offset_allowance + 2 × reconciliation_cadence + 3 × run_bound` — completion bound the kind's, the rest the instance's, the allowance counted twice for every kind.
 
 Term window end: `completion_bound + clock_offset_allowance + compensation_window`.
 
-Term lease spend: `2 × read_bound + 2 × journal_write_bound + commit_round_trip + 9 × call_pause_bound`, plus clock offset allowance ONLY IF the act kind declares commit fence (Allowance 11).
+Term lease spend: `2 × read_bound + 2 × journal_write_bound + commit_round_trip + 9 × call_pause_bound`.
 
 Term run floor: `max(completion_bound, closure_latency + journal_write_bound) + closure_latency`.
 
@@ -1026,35 +1157,24 @@ Term conditions of instance start: condition 1 is Instance start 4; condition 2 
 Allowance 1: clock offset allowance IS AUTHORITATIVE FOR every comparison in Recoverable Invocation between a reading taken at one seam and a stamp or instant minted at another.
 Allowance 2: This section IS AUTHORITATIVE FOR where the allowance is spent.
 NOTE: watch addressable sections (Instance start 1).
-Allowance 3: A writer MUST classify EVERY cross-seam comparison in Recoverable Invocation as EXACTLY ONE OF applied, minted.
-Allowance 4: An applied comparison MUST take the allowance at the reading.
-Allowance 5: An applied comparison MUST NOT decide a write.
-Allowance 6: An applied comparison MAY exclude a record from a pass.
-Allowance 7: A minted instant MUST carry the allowance subtracted at the minting.
-Allowance 8: A minted instant MAY decide a write.
-Allowance 9: A minter MUST NOT mint a fence's instant bare.
-Allowance 10: A minter MUST mint EVERY instant independently.
-```
-
-Seven clocks meet on this page: the adopter's seam ([Open] step 3), the sweep's seam ([Reconcile]), the operator's seam ([Resolve]), the reader's seam ([Read Invocation]), the substrate's recording instant, the critical section host's expiry instant, and — under a declared commit fence — the constituent database's. One allowance covers every pair, set to cover the widest. [Lease](../atoms/lease.md) Invariant 6 owns the minting rule.
-
-**Minted — one instant.**
-
-Term commit fence deadline: minted by the holder from the expiry instant the critical section host answered at the take (Lease Invariant 6.2, Fence 8), judged by the adopter's constituent database, value `expires_at − clock_offset_allowance`; bound at *Bindings*, the section titled commit.
-
-**Applied — every other cross-seam comparison on this page:** [Open] step 3's age of an open intent; the retention drop on every read of open invocations; [Resolve]'s too-young guard; the sequence high water advance; the sweep's edges and window; [Read Invocation]'s rebuild.
-
-**Payments.** A minted instant is paid for, and this page owns the payments because the atom refuses to.
-
-```
-Allowance 11: IF commit fence EQUALS declared THEN condition 3 of instance start MUST charge one clock offset allowance.
-Allowance 12: The sweep MUST NOT write abandoned BEFORE abandon edge.
+Deleted: Allowance 3. No adopter binds a declared commit fence, whose deadline was the page's one minted instant, so every cross-seam comparison takes the allowance at the reading (Allowance 4); an adopter that needs it reopens it with a Decisions entry.
+Allowance 4: A cross-seam comparison MUST take the allowance at the reading.
+Allowance 5: A cross-seam comparison MUST NOT decide a write.
+Allowance 6: A cross-seam comparison MAY exclude a record from a pass.
+Deleted: Allowance 7. No adopter binds a declared commit fence, whose deadline was the page's one minted instant; an adopter that needs it reopens it with a Decisions entry.
+Deleted: Allowance 8. No adopter binds a declared commit fence, whose deadline was the page's one minted instant; an adopter that needs it reopens it with a Decisions entry.
+Deleted: Allowance 9. No adopter binds a declared commit fence, whose deadline was the page's one minted instant; an adopter that needs it reopens it with a Decisions entry.
+Deleted: Allowance 10. No adopter binds a declared commit fence, whose deadline was the page's one minted instant; an adopter that needs it reopens it with a Decisions entry.
+Deleted: Allowance 11. No adopter binds a declared commit fence, the one kind condition 3 charged an allowance for; an adopter that needs it reopens it with a Decisions entry.
+Deleted: Allowance 12. Invariant 4.9 owns it: no adopter binds a declared commit fence, so the sweep writes no abandoned record; an adopter that needs the fence reopens it with a Decisions entry.
 Deleted: Allowance 13. Execution Contract Database 2 owns it: a writer's re-read, lease check and append are one transaction, and the page mints no instant for a fence on the journal.
 ```
 
-Term abandon edge: the examine edge plus one further clock offset allowance — `recorded_at + completion_bound + 2 × clock_offset_allowance`.
+Term cross-seam comparison: a comparison between a reading taken at one seam and a stamp or instant minted at another (Allowance 1).
 
-Term usable term: `completion_bound − clock_offset_allowance` — the term a fenced lease's operations have to finish in.
+Six clocks meet on this page: the adopter's seam ([Open] step 3), the sweep's seam ([Reconcile]), the operator's seam ([Resolve]), the reader's seam ([Read Invocation]), the substrate's recording instant, and the critical section host's expiry instant. One allowance covers every pair, set to cover the widest.
+
+Every cross-seam comparison on this page takes the allowance at the reading: [Open] step 3's age of an open intent; the retention drop on every read of open invocations; [Resolve]'s too-young guard; the sequence high water advance; the sweep's edges and window; [Read Invocation]'s rebuild.
 
 ### Which closing stands
 
@@ -1081,7 +1201,7 @@ Term standing closing: the closing that stands under Which closing stands — th
 
 Term state projection: no standing closing → open; an outcome record `<kind>.<outcome>` → closed; `<kind>.refused` → refused; `<kind>.abandoned` without resolving actor → abandoned; `<kind>.abandoned` with resolving actor → resolved; `<kind>.escalated` → escalated.
 
-An escalated entry becomes resolved when an operator's abandonment names it, and closed when any outcome names it. resolved is reserved for the case where a human's judgement is the only thing that closed an act and the act did not happen; an operator's outcome is closed. The abandoned split is the one check 6 reads: the sweep's abandonments are tested against probe, the operator's are exempt, and resolving actor separates them at both surfaces.
+An escalated entry becomes resolved when an operator's abandonment names it, and closed when any outcome names it. resolved is reserved for the case where a human's judgement is the only thing that closed an act and the act did not happen; an operator's outcome is closed. The abandoned split is the one Check 6.4 reads: only an operator abandons (Invariant 4.9), so an abandoned record carrying no resolving actor is a conformance failure, and resolving actor tells the two apart at both surfaces.
 
 *Cited by:* [Read Invocation]'s state; Generation acceptance check 2; Invariant 2. None restates it.
 
@@ -1130,9 +1250,9 @@ An escalated entry becomes resolved when an operator's abandonment names it, and
   Invariant 4.5: The outage finding MUST carry the outage's start and end.
   Invariant 4.6: IF service identity EQUALS none THEN a writer MUST report EVERY aged intent as closure-at-risk WITHIN compensation window, for an operator to close through [Resolve].
   Invariant 4.7: PROVISIONAL: Invariant 4.2 DEGRADES TO Invariant 4.6.
-  Invariant 4.8: IF commit fence EQUALS none THEN the sweep MUST escalate an act the database cannot certify as not-committed.
-  Invariant 4.9: IF commit fence EQUALS none THEN the sweep MUST NOT abandon the act.
-  Invariant 4.10: PROVISIONAL: the abandoned arm DEGRADES TO escalated.
+  Invariant 4.8: The sweep MUST escalate an act the database cannot certify as not-committed.
+  Invariant 4.9: The sweep MUST NOT abandon an act.
+  Deleted: Invariant 4.10. No adopter binds a declared commit fence, the one kind the sweep abandoned, so no abandoned arm degrades: Invariant 4.8 and 4.9 hold for every kind; an adopter that needs it reopens it with a Decisions entry.
   ```
   *Rests on:* [Reconcile]'s edges and steps 3–5; the kind's completion bound and retention period; the instance's clock offset allowance, reconciliation cadence, run bound, closure latency, read bound, journal write bound and compensation window; the substrate's range read.
 
@@ -1143,13 +1263,13 @@ An escalated entry becomes resolved when an operator's abandonment names it, and
   Invariant 5.3: EVERY outcome the sweep writes MUST carry only what probe re-derived from the database.
   Invariant 5.4: EVERY outcome an operator writes through [Resolve] MUST carry the operator's own attestation, the original caller in acting actor reference, and resolving actor.
   Invariant 5.5: An operator's outcome MUST NOT owe a recovery_intended.
-  Invariant 5.6: IF commit fence EQUALS declared THEN a writer MAY write `<kind>.abandoned` ONLY IF the database can say the act did not happen.
-  Invariant 5.7: The sweep MAY write abandoned ONLY IF commit fence EQUALS declared AND the intent is past abandon edge.
+  Deleted: Invariant 5.6. No adopter binds a declared commit fence, under which the database could say the act did not happen; an adopter that needs it reopens it with a Decisions entry.
+  Deleted: Invariant 5.7. Invariant 4.9 owns it: no adopter binds a declared commit fence, so the sweep writes no abandoned record; an adopter that needs the fence reopens it with a Decisions entry.
   Invariant 5.8: An operator MAY write abandoned ONLY IF the intent is aged, as the operator's own attestation.
   Invariant 5.9: The sweep MUST escalate with candidates what the database cannot re-derive.
   Invariant 5.10: The sweep MUST NOT close an act whose database the sweep cannot read.
   ```
-  *Rests on:* service identity (Bindings); Audit Trail Invariant 1 (the attesting actor is verified); [Reconcile] step 3. Generation acceptance check 6 rests on Invariant 5.6, and [Resolve]'s too-young guard on Invariant 5.8: without a commit fence an operator's abandonment is the operator's attestation (resolve 20a), not the database's word.
+  *Rests on:* service identity (Bindings); Audit Trail Invariant 1 (the attesting actor is verified); [Reconcile] step 3. Generation acceptance Check 6.4 rests on Invariant 4.9, and [Resolve]'s too-young guard on Invariant 5.8: an operator's abandonment is the operator's attestation (resolve 32), not the database's word.
 
 - **Invariant 6 — The outcome is sized before the intent.**
   ```
@@ -1194,14 +1314,14 @@ The adopter is [Immutable Transaction Ledger](./immutable-transaction-ledger.md)
 - commit = `SelectiveDisclosure.record(subject_ref, recipient, scope, authority, disclosed_at = now)`; invalid-request, `unknown-authority-type` and `storage-failure` are pre-commit as the constituent declares them; a lost reply is unknown.
 - pairing datum = `disclosed_at`, the seam-injected now, carried in intent data and passed into commit. Selective Disclosure admits no nonce, so the binding declares pairing datum 4's obligation on its host — no equal now injected into two invocations of one act key, on one node or two — with Selective Disclosure's seam given the invocation's own reading (Immutable Transaction Ledger Capability requirement 28, Immutable Transaction Ledger Capability requirement 25). One way a host meets it is a per-node monotonic source whose low bits carry the node.
 - probe = read Selective Disclosure's records by `subject_ref`, `recipient` and `disclosed_at` as a range of that one instant, and keep, in the adopter's code, the records whose `scope` and authority equal the intent's: `committed(ledger.disclosure.disclosed, {disclosure_id, subject_ref, recipient, scope, authority, disclosed_at})` on exactly one match, not-committed on none, `undecidable(candidates)` on several, unavailable on any read outage — the constituent's `invalid-query` is unavailable to the sweep and surfaced on compliance surface.
-- `commit_fence = none`; `repeatable = yes`; `completion_bound = 30 s`; `commit_round_trip = 1 s`; `probe_round_trip = 1 s`; `service_identity = ledger-reconciler`.
+- `repeatable = yes`; `completion_bound = 30 s`; `commit_round_trip = 1 s`; `probe_round_trip = 1 s`; `service_identity = ledger-reconciler`.
 - Instance: `reconciliation_cadence = 60 s`; `clock_offset_allowance = 2 s`; `closure_latency = 12 s`; `run_bound = 135 s` (a backlog of three orphans, sequentially, each at worst one holder's remaining lease and one closure: `3 × (30 + 12) = 126 s`, the balance headroom); `journal_write_bound = 3 s`; `read_bound = 2 s`; `call_pause_bound = 0.25 s`; `compensation_window = 10 min`.
 
 **The five conditions of instance start, against these numbers:**
 
 1. `30 + 2×2 + 2×60 + 3×135 = 559 s < 600 s`.
 2. `30 + 2 + 600 + 135 = 767 s < retention_period` — `ledger.disclosure.*` carries a period above 767 s.
-3. `30 s > 2×2 + 2×3 + 1 + 9×0.25 = 13.25 s`; no commit fence is declared, so no allowance is charged.
+3. `30 s > 2×2 + 2×3 + 1 + 9×0.25 = 13.25 s`.
 4. `135 s ≥ max(30, 12 + 3) + 12 = 42 s`.
 5. `12 s > 2 + 2×3 + 1 + 7×0.25 = 10.75 s`, the sweep's closure being the longer; [Resolve]'s work is `2×2 + 3 + 6×0.25 = 8.5 s`.
 
@@ -1211,7 +1331,7 @@ The sweep's lease is `12 + 3 = 15 s`; one closure inside it spends `2 + 1 + 3 + 
 
 **The crash.** The run dies between `SelectiveDisclosure.record` returning `dsc-411` and [Close]. The critical section stays held until its lease runs out at `t + 30 s`; the host does not see the death. Thirty-two seconds later a [Reconcile] run keeps `inv-7f2` (older than `30 + 2 s`, inside the horizon), takes the critical section, re-reads — still open — and probes: exactly one record matches → `committed(ledger.disclosure.disclosed, {disclosure_id: dsc-411, ...})`. The sweep writes `ledger.disclosure.recovery_intended` then `ledger.disclosure.disclosed` with `recovery = true, acting_actor_ref = <the discloser>`, both under `ledger-reconciler`, and releases. Accounted for within about forty-five seconds, inside the ten-minute window, by the one writer left alive.
 
-**The stall.** The run does not die; `SelectiveDisclosure.record` is slow, past the commit round trip the deployment disclosed — outside the bounds, and what follows is what the protocol still holds there. The database applies the write at eight seconds; the adopter, unanswered past its commit round trip, has already yielded and returned `recording-failure(outcome)` (Immutable Transaction Ledger Term commit round trip), and the sweep at thirty-five probes committed and closes it. Or the database never applied the write, and probe answers not-committed — not final under `commit_fence = none`, since a process paused past the lease could still land the write at forty-five. The sweep writes escalated with `cause = not-observed`; the operator writes the abandonment through [Resolve] once the database has been quiet long enough. A write landing at fifty after a sweep read the database empty at thirty-five is survivable: the escalation stands, the operator's later probe finds the record, and the disposition is outcome. A database-level fence makes that order unreachable and gets abandoned from the sweep.
+**The stall.** The run does not die; `SelectiveDisclosure.record` is slow, past the commit round trip the deployment disclosed — outside the bounds, and what follows is what the protocol still holds there. The database applies the write at eight seconds; the adopter, unanswered past its commit round trip, has already yielded and returned `recording-failure(outcome)` (Immutable Transaction Ledger Term commit round trip), and the sweep at thirty-five probes committed and closes it. Or the database never applied the write, and probe answers not-committed — not final, since a process paused past the lease could still land the write at forty-five. The sweep writes escalated with `cause = not-observed`; the operator writes the abandonment through [Resolve] once the database has been quiet long enough. A write landing at fifty after a sweep read the database empty at thirty-five is survivable: the escalation stands, the operator's later probe finds the record, and the disposition is outcome.
 
 **The lost reply.** `SelectiveDisclosure.record` is issued and its reply never arrives. The arm is unknown: the adopter calls [Yield] and returns `recording-failure(outcome)`. Nothing is released — the commit is a call in flight — so the critical section runs to `t + 30 s`, and a second `disclose_subset` on the same four fields meets `act-in-flight(inv-7f2)` at [Open]'s read ahead of the take, without waiting. The [Reconcile] run after `t + 32 s` probes, and closes as in the crash where the database holds the record and as in the stall where it does not.
 
@@ -1257,14 +1377,14 @@ Check 3.2: An auditor MUST exempt an intent of a kind the bindings table no long
 Check 3.3: An auditor MUST exempt an intent whose window overlaps any span of journal-unavailable, or of store-unavailable for the intent's kind.
 Check 3.4: An auditor MUST NOT exempt an intent for the healthy gap between two spans.
 Check 3.5: IF service identity EQUALS none THEN the register MUST carry EVERY aged intent as a closure-at-risk act finding WITHIN compensation window.
-Check 4.1: An auditor MUST confirm all five conditions of instance start, as the section titled Instance start states the conditions, for EVERY bound act kind from the kind's completion bound, commit round trip, probe round trip, retention period and commit fence declaration, and the instance's clock offset allowance, reconciliation cadence, run bound, closure latency, read bound, journal write bound, call pause bound and compensation window.
+Check 4.1: An auditor MUST confirm all five conditions of instance start, as the section titled Instance start states the conditions, for EVERY bound act kind from the kind's completion bound, commit round trip, probe round trip and retention period, and the instance's clock offset allowance, reconciliation cadence, run bound, closure latency, read bound, journal write bound, call pause bound and compensation window.
 Check 5.1: EVERY record the service identity attests whose named intent is inside the horizon MUST name an invocation id whose intent record exists and is attested by a different actor.
 Check 5.2: An auditor MUST report a service-identity record naming no readable intent inside the horizon as a write outside this composition.
 Check 5.3: An auditor MUST answer purged for a service-identity record whose intent is Purged.
 Check 6.1: For EVERY outcome whose recovery EQUALS true, probe run by the auditor against the constituent records MUST corroborate outcome data or answer unavailable, an outcome carrying a resolving actor also passing where probe answers undecidable with outcome data among the candidates.
 Check 6.2: An auditor MUST read unavailable as not applicable, never as failed.
-Check 6.3: For EVERY `<kind>.abandoned` carrying no resolving actor AND not superseded by an outcome carrying supersedes, probe MUST answer not-committed, or undecidable where the kind's pairing datum EQUALS none and a later identical act exists.
-Check 6.4: EVERY `<kind>.abandoned` carrying no resolving actor MUST belong to a kind whose commit fence EQUALS declared.
+Deleted: Check 6.3. Check 6.4 owns it: no adopter binds a declared commit fence, the one kind the sweep abandoned, so no abandoned record carrying no resolving actor conforms; an adopter that needs the fence reopens it with a Decisions entry.
+Check 6.4: EVERY `<kind>.abandoned` MUST carry a resolving actor.
 Check 6.5: EVERY database candidates entry of an `<kind>.escalated` record MUST match a database record of the intent.
 Check 7.1: An auditor MUST exclude an intent the substrate reports Purged from every check.
 Check 7.2: An auditor MUST quantify Check 1, Check 2 and Check 3 over intents whose payload is readable.
@@ -1285,7 +1405,7 @@ External check 3: An auditor MUST clear from external evidence that closure late
 External check 4: An auditor MUST clear from external evidence that the adopter's probe reads the database the act was made in.
 External check 5: WHEN service identity EQUALS none:
     External check 5a: An auditor MUST clear from external evidence that the surfaced intents were acted on through [Resolve].
-External check 6: An auditor MUST clear from external evidence that the database honours commit fence — that a write carrying the minted deadline is never applied after the deadline.
+Deleted: External check 6. No adopter binds a declared commit fence, which the database had to honour; an adopter that needs it reopens it with a Decisions entry.
 External check 7: An auditor MUST clear from external evidence that each adopter's outcome envelope is the true maximum of the records the kind writes.
 External check 8: An auditor MUST clear from external evidence that no writer other than this composition's actions uses an adopter's journal vocabulary.
 ```
@@ -1325,17 +1445,17 @@ Deleted: Clock semantics 1. Execution Contract Logic confinement 3 owns it.
 
 ### Cross-record consistency under partial failure
 
-The reachable partials and their closers. *Crash after [Open], before the commit:* intent open, database untouched; probe answers not-committed; the sweep writes `<kind>.abandoned` where the kind declares a commit fence and the intent is past the abandon edge, `<kind>.escalated` otherwise. *Crash after the commit, before [Close]:* probe answers committed; the sweep writes the outcome under `recovery = true`. *Crash inside [Close] after the outcome landed and before the map update:* the map is a rebuild trigger, not a partial. *A stalled invocation past its lease:* it writes nothing; the sweep closes; the late [Close] returns recording-failure(outcome). *A refusal record that failed:* the intent stands, probe answers not-committed, the sweep closes it — abandoned under a fence, escalated without. *An outcome the database cannot corroborate:* undecidable, escalated with candidates, never chosen. There is no sixth partial; a deployment that finds one has a critical section that is not a critical section.
+The reachable partials and their closers. *Crash after [Open], before the commit:* intent open, database untouched; probe answers not-committed; the sweep writes `<kind>.escalated`, and an operator who finds the database quiet abandons the act through [Resolve]. *Crash after the commit, before [Close]:* probe answers committed; the sweep writes the outcome under `recovery = true`. *Crash inside [Close] after the outcome landed and before the map update:* the map is a rebuild trigger, not a partial. *A stalled invocation past its lease:* it writes nothing; the sweep closes; the late [Close] returns recording-failure(outcome). *A refusal record that failed:* the intent stands, probe answers not-committed, and the sweep escalates it. *An outcome the database cannot corroborate:* undecidable, escalated with candidates, never chosen. There is no sixth partial; a deployment that finds one has a critical section that is not a critical section.
 
 ### Declared deviations
 
 ```
-Deviation 1: An adopter MUST declare a deviation as EXACTLY ONE OF: retry terminus set to counted(n); minted key; journal without attribution.
+Deviation 1: An adopter MUST declare a deviation as EXACTLY ONE OF: minted key; journal without attribution.
 Deviation 2: An adopter MUST record a need outside Deviation 1 first, as a finding against the adopter or as evidence for the next revision of this page.
-Deviation 3: WHEN retry terminus EQUALS counted(n):
-    Deviation 3a: The adopter MUST bound the in-invocation retry of the outcome by n attempts.
-    Deviation 3b: The adopter MUST carry the seam-injected now [Open] step 3 needs.
-    Deviation 3c: [Close]'s remaining query before every write MUST NOT change.
+Deleted: Deviation 3. No adopter binds the counted(n) deviation; an adopter that needs it reopens it with a Decisions entry.
+Deleted: Deviation 3a. No adopter binds the counted(n) deviation; an adopter that needs it reopens it with a Decisions entry.
+Deleted: Deviation 3b. No adopter binds the counted(n) deviation; an adopter that needs it reopens it with a Decisions entry.
+Deleted: Deviation 3c. No adopter binds the counted(n) deviation; an adopter that needs it reopens it with a Decisions entry.
 Deviation 4: WHEN the act's key is minted by the commit:
     Deviation 4a: The adopter MUST bind the key the adopter can name before the commit.
     Deviation 4b: The adopter MUST declare the probe that finds the minted record from the bound key.
@@ -1355,7 +1475,7 @@ Each `[Term]` marker above links to its term entry here; a term entry states wha
 
 ### Vocabulary
 
-Term actors: invocation; sweep run (also: the sweep, the run); operator; adopter's action (also: the adopter, the action); caller; deployment; auditor; substrate; critical section host (also: the host); writer — EXACTLY ONE OF invocation, sweep run, operator; minter — a holder, at the holder's own seam; reader; register (the deployment's findings surface); surface — [Read Invocation] or Generation acceptance check 2.
+Term actors: invocation; sweep run (also: the sweep, the run); operator; adopter's action (also: the adopter, the action); caller; deployment; auditor; substrate; critical section host (also: the host); writer — EXACTLY ONE OF invocation, sweep run, operator; reader; register (the deployment's findings surface); surface — [Read Invocation] or Generation acceptance check 2.
 
 Term records: `<kind>.intended`, `<kind>.<outcome>`, `<kind>.refused`, `<kind>.recovery_intended`, `<kind>.abandoned`, `<kind>.escalated`, [Finding].
 
@@ -1363,7 +1483,7 @@ Term record verbs: write, read, read back, take, release, hold, yield, adopt, re
 
 Term cited: take, try_take, remaining, expiry instant, call in flight, no answer: Lease. record_action, read_record, payload cap, reference length cap, attestation id width, retention policy, recording instant, sequence number, next sequence number, event id, action reference, policy reference, retention deadline: Audit Trail.
 
-Term value sets: landing actor = invocation | sweep | operator. state = open | closed | refused | abandoned | escalated | resolved. disposition = outcome | abandoned | escalated. probe answers committed | not-committed | undecidable | unavailable. commit partition = pre-commit | committed | unknown. repeatable = yes | no. retry terminus = lease | counted(n). commit fence = none | declared. service identity = an actor | none. findings = journal-unavailable | store-unavailable | closure-at-risk | unbound-kind | escalated. [Resolve]'s invalid-request causes = purged | malformed | too-young | already-abandoned | candidates-over-cap. Cross-seam comparisons = applied | minted.
+Term value sets: landing actor = invocation | sweep | operator. state = open | closed | refused | abandoned | escalated | resolved. disposition = outcome | abandoned | escalated. probe answers committed | not-committed | undecidable | unavailable. commit partition = pre-commit | committed | unknown. repeatable = yes | no. service identity = an actor | none. findings = journal-unavailable | store-unavailable | closure-at-risk | unbound-kind | escalated. [Resolve]'s invalid-request causes = purged | malformed | too-young | already-abandoned | candidates-over-cap.
 
 Term position: intent | outcome | refusal | resolution — the record a write lands: the intent at [Open], the outcome at [Close] or after [Yield], the refusal at [Refuse], the resolution at [Resolve].
 
@@ -1395,11 +1515,11 @@ Term cadences: reconciliation cadence.
 
 Term qualifiers: migrated — rewritten in GRACE lang v0.35 (2026-09-11).
 
-Term terms: (named expressions, each declared where it is used) worst closure, window end, lease spend, run floor, closure spend, examine edge, abandon edge, horizon edge, at risk threshold, intent age, settle bound, retention end, usable term, sweep lease, in-flight, aged, partition, examined, skipped, reported, surfaced, unreached, closed already, standing closing, terminus, caller kind, payload match, quiescence, read path, read-your-writes, `position's existing arm`, commit fence, critical section key, critical section holder, critical section duration, reply, release, hard alert, unfenced write, write floor, commit floor, act finding, instance finding, act key, invocation id, now, operator run id, resolve refusal, open result, close result, reconcile tally, invocation report, invocation entry, first seen, last seen, acting actor reference, resolving actor, recovery_intended, database candidates.
+Term terms: (named expressions, each declared where it is used) worst closure, window end, lease spend, run floor, closure spend, examine edge, horizon edge, at risk threshold, intent age, settle bound, retention end, sweep lease, in-flight, aged, partition, examined, skipped, reported, surfaced, unreached, closed already, standing closing, terminus, caller kind, payload match, quiescence, read path, read-your-writes, `position's existing arm`, cross-seam comparison, critical section key, critical section holder, critical section duration, reply, release, hard alert, unfenced write, write floor, commit floor, act finding, instance finding, act key, invocation id, now, operator run id, resolve refusal, open result, close result, reconcile tally, invocation report, invocation entry, first seen, last seen, acting actor reference, resolving actor, recovery_intended, database candidates.
 
 #### Open
 
-The action an adopter's action calls before the bound commit: takes the act's critical section, sizes the outcome and the escalation against the substrate's cap, refuses an act already in flight or already landed, and writes the intent record under the caller's credential. Returns `{invocation_id, intent_event_id}` with the critical section held, and commit fence deadline under a declared fence; under a fenceless commit it first takes the reading the commit goes out behind, and returns `recording-failure(outcome)` where that reading does not cover the commit.
+The action an adopter's action calls before the bound commit: takes the act's critical section, sizes the outcome and the escalation against the substrate's cap, refuses an act already in flight or already landed, and writes the intent record under the caller's credential. Returns `{invocation_id, intent_event_id}` with the critical section held; it first takes the reading the commit goes out behind, and returns `recording-failure(outcome)` where that reading does not cover the commit.
 
 Kind: Operation
 
@@ -1417,7 +1537,7 @@ Kind: Operation
 
 #### Reconcile
 
-The sweep, the composition's second writer: at restart and on cadence, examines open intents between the completion bound and the horizon, takes each act's critical section, probes the database, and closes each act with a re-derived outcome, an abandonment or an escalation — under the service identity behind a recovery-intended record, or as a report only where none is declared.
+The sweep, the composition's second writer: at restart and on cadence, examines open intents between the completion bound and the horizon, takes each act's critical section, probes the database, and closes each act with a re-derived outcome or an escalation — under the service identity behind a recovery-intended record, or as a report only where none is declared.
 
 Kind: Operation
 
@@ -1479,7 +1599,7 @@ Not Open 5: [Refuse] MUST land recording-failure(refusal, constituent code) at s
 
 #### Not Known
 
-The read's answer for an act with no readable intent at all, at [Read Invocation] and at [Resolve], and for an invocation id no readable intent of the act carries, at [Read Invocation]. Absence, not destruction: a lawfully purged intent is answered `invalid-request(purged)` at [Resolve], which takes intent event id for exactly that reason. [Read Invocation] is the one surface that cannot make the distinction and says so.
+The read's answer for an act with no readable intent at all, at [Read Invocation] and at [Resolve]; for an invocation id no readable intent of the act carries, at [Read Invocation]; and for an intent event id naming no intent of the act that carries the invocation id, at [Resolve] (resolve 34). Absence, not destruction: a lawfully purged intent is answered `invalid-request(purged)` at [Resolve], which takes intent event id for exactly that reason. [Read Invocation] is the one surface that cannot make the distinction and says so.
 
 Kind:       Member
 Member of:  the read rejections and the resolve rejections
@@ -1569,20 +1689,14 @@ open:
 - 2026-10-18-a · refining · Term window end; Instance start 5 · window end is the examine edge plus compensation window, a completion bound and an allowance later than the end of the window Term compensation window measures from the recording instant, and Instance start 5 adds run bound to window end inside the rule, arithmetic a rule does not carry (GRACE-lang Hard invariant 24, Closed vocabulary 9) → name the term for the instant it is, or measure condition 2 from the window's own end and state its margin, and declare the sum condition 2 compares as a term
 - 2026-10-18-b · refining · Binding 3; reconcile step 3.18; open step 3.8c · a refused unbind, a refused service credential and a report-only deployment's old intent are surfaced on compliance surface and are neither one of the six findings nor a hard alert → say what record each is
 - 2026-10-18-c · refining · Capability requirement 2; Term open-upper-bound sequence-range read · the range read is asked for a cursor, a declared page size and a page-complete signal that Event Log's read (Operation 13, 18) and Audit Trail's pass-through (Action wiring 1, 5) do not declare and no rule here reads, and the Term calls the pass-through list-shaped → state the paging as the deployment's query shape with the re-reads reading to the signal, or drop it
-- 2026-10-18-d · refining · Term skipped · the list's fence entry, reconcile step 3.6's not-committed short of abandon edge, reads as a write a fence refused, where reconcile step 3.6 has the run write nothing → name the rule each entry comes from
 - 2026-10-18-e · refining · findings 1 · an unbound-kind finding names a kind the bindings table no longer serves, which has no retention period, so its persistence is sized by nothing → size it by the instance's longest retention period, as findings 2 sizes a finding naming no kind
 - 2026-10-18-f · refining · open step 5 · open step 5.2 returns ahead of open step 5.4's reading, which is the last call [Open] makes, and of open step 5.6's arm, and open step 5.3 holds the critical section at every return, the return after open step 5.5's release included → order step 5 as [Open] runs it
-- 2026-10-18-g · refining · reconcile step 3.20 · the escalation reconcile step 3.20 writes for an invalid-request(step-1) to (step-3) on a closing write can answer the same itself, and no rule says where the act then lands → say where it lands
 - 2026-10-18-h · refining · Terms · kind, the first input of every action but [Reconcile] (act section 4) and the key of the bindings table, has no declaration (Closed vocabulary 4) → declare it
-- 2026-10-18-i · refining · Term usable term · declared and cited by no rule → cite it where condition 3 charges the allowance (Allowance 11), or delete it
-- 2026-10-18-j · refining · Capability requirement 3 through 6; Term read path · the read paths say where unavailable lands and nothing of invalid-query, an arm no conforming build meets (every range read here is composition-built, Event Log Operation 15) and one Audit Trail names a deployment fault never answered as an action's outcome (Audit Trail Capability requirement 2, 3), so a defective build's [Read Invocation] could answer the fault as not-known → say what each read path answers to invalid-query, outside journal-unavailable's span
 - 2026-10-18-k · refining · Term invariant map · the map names Invariants 1, 2, 4, 5 and 7 and leaves out 3, 6, 8 and 9, and Check 8 reads an invariant the map does not name → map each invariant to the check that reads it, or say that none does
-- 2026-10-18-m · refining · resolve 22; resolve 23 · no rule returns closing event id where [Resolve] writes, which its signature answers and [Open] and [Close] state for theirs (open step 5.2, close step 4.3) → say so
 - 2026-10-18-n · refining · close step 1.2; close step 2.4; refuse step 1.2 · each returns with nothing written and no release, where [Open]'s early arms release (open step 3.4, 3.6, 4.2a, 4.5) → say whether the invocation releases there or lets the grant end at its instant
 - 2026-10-18-o · refining · Primitive policy 32; journal write bound · no rule says when a record_action's reply counts as lost, which yield 7 says only of the bound commit → say when a journal write's reply is lost
-- 2026-10-18-p · refining · Binding 1 · Binding 1 has [Reconcile] read the per-kind bindings from the bindings table by the intent's kind and names no other action, while [Open], [Close] and [Resolve] read completion bound, commit fence or service identity by kind as well (open step 2.1, open step 5.4, resolve 20) → say every action reads its kind's bindings from the table by the kind it takes
-- 2026-10-18-s · refining · Term surfaced; reconcile step 1.6 · reconcile answers surfaced in its tally and no rule counts it, where reconcile 2f counts reported and reconcile step 2.9 counts unreached → count every intent step 1 surfaces in surfaced
-- 2026-10-18-t · refining · call pause bound 1; act section 19 · the page restates Lease Capability requirement 7 for lease calls alone, leaving out the unfenced write it issues (the bound commit under commit fence none) and the atom's exception for a blocking take, which open step 2.2, reconcile step 2.2 and resolve 5 let wait → restate the requirement whole for the page's calls and unfenced writes, its exception included, keeping the issue of a journal write the part call pause bound bounds
+- 2026-10-18-p · refining · Binding 1 · Binding 1 has [Reconcile] read the per-kind bindings from the bindings table by the intent's kind and names no other action, while [Open], [Close] and [Resolve] read completion bound, service identity or the kind's outcome refs by kind as well (open step 2.1, open step 3.6, close 6, resolve 18, resolve 31) → say every action reads its kind's bindings from the table by the kind it takes
+- 2026-10-18-t · refining · call pause bound 1; act section 19 · the page restates Lease Capability requirement 7 for lease calls alone, leaving out the unfenced write it issues (the bound commit) and the atom's exception for a blocking take, which open step 2.2, reconcile step 2.2 and resolve 5 let wait → restate the requirement whole for the page's calls and unfenced writes, its exception included, keeping the issue of a journal write the part call pause bound bounds
 - 2026-10-18-u · refining · reconcile step 3.18; reconcile step 3.19; Invariant 4.2 · while the service identity's credential stays refused the sweep writes nothing, and no rule says who closes the kind's aged intents within compensation window, which Invariant 4.2 still obliges of a writer; the run counts the rest of its intents unreached, which reconcile step 5.1 does not surface as closure-at-risk, and no external check clears the surfacing reconcile step 3.18 obliges → name the operator's [Resolve] as the closer while the credential is refused, surface what the operator must close, and clear the surfacing
 - 2026-10-18-v · refining · Invariant 4.2; Invariant 4.7; service identity 2 · the degradation of Invariant 4.2 to Invariant 4.6 under service identity none is a PROVISIONAL line, which carries no normative force (GRACE-lang Surface 14), and Invariant 4.2 carries no condition on service identity, so Invariant 4.2 and Check 3.1 still oblige a report-only deployment's operators to close every aged intent within compensation window → condition Invariant 4.2 and Check 3.1 on a declared service identity, as Check 3.5 is conditioned on none, or say that the window binds the operators
 - 2026-10-19-a · refining · Term lease spend; Term closure spend; act section 16; Term critical section duration · lease spend and closure spend charge no lost reply's wait and read-back (Primitive policy 34, Primitive policy 35, reconcile step 3.16), while act section 16 binds them as Lease's work's bounds, the bound on all the work under one lease (Lease Term work's bound); every write past the overrun still passes its gate (open step 5.4 through 5.6, close step 3.5, journal write bound 1) → charge the wait and the read-back, or say the work's bound is the path with no lost reply and what a lost reply costs past it
@@ -1594,6 +1708,8 @@ open:
 ## Decisions
 
 Directional changes only. Everything smaller lives in the commit that made it: `git log -- compositions/recoverable-invocation.md`; the rounds, the binding, the model runs and the migration that got it here, and the twelfth gate's consolidations, are in [its history](./recoverable-invocation.hist.md).
+
+- **2026-10-24 — The branches no adopter binds are cut, and a closure table owns every input and arm.** *Chose:* under the maintainer's ruling of 2026-10-23 20:13Z, direction (b) and then (c) of the 16:51Z escalation, the declared commit fence branch and the counted(n) deviation deleted, since both adopters, Immutable Transaction Ledger and Verified Repair, bind commit fence none and retry terminus lease, each tombstone saying no adopter binds it and an adopter that needs it reopens it with a Decisions entry: the minted deadline and its return (open step 5.7, 5.8), the commit's conveyance and the sweep's abandonment (commit 10 through 13b; reconcile step 3.4, 3.6 and 3.14; Invariant 4.10, 5.6 and 5.7; Check 6.3; External check 6), the minted instant's allowance rules and payments (Allowance 3 and 7 through 12) with Term commit fence deadline, Term abandon edge and Term usable term, and the count (close step 1.3, 3.6; Deviation 3); commit fence and retry terminus no longer bindings, so what held under none holds for every kind (open step 5.4 through 5.6, reconcile step 3.5, Invariant 4.8 and 4.9, commit 15 for commit 14c, resolve 32 for resolve 20a), the sweep counts no abandonment, Check 6.4 reads every abandonment as an operator's, and every cross-seam comparison takes the allowance at the reading (Allowance 4 through 6); a closure table in Action wiring mapping every action's inputs and every answer of record_action, read_record, the range read, take, remaining, release and the probe to where the action lands it and the rule that owns the landing; and the cells no rule owned cured: recording-failure(step-4) read as recording-failure(step-2) at every position, a record action that lands it committing nothing (Execution Contract Database 1; Primitive policy 44); an invalid-query landed where unavailable lands and never surfaced as journal-unavailable (Capability requirement 13, 14); a blank act key, actor reference or credential at [Open] (open step 1.10); an outcome reference outside the kind's at [Close] (close 6); a kind the bindings table does not serve at [Resolve], as at [Open] (resolve 33); an intent event id naming no intent of the act that carries the invocation id (resolve 34); every disposition but an outcome over a standing abandonment (resolve 16b, for resolve 17); [Resolve]'s closing event id (resolve 35); the outcome-unrecordable escalation that answers the same (reconcile step 3.23); and the surfaced count (reconcile step 1.7). Open lines 2026-10-18-d and 2026-10-18-i dissolved by the cut, and 2026-10-18-g, 2026-10-18-j, 2026-10-18-m and 2026-10-18-s cured by the table; no model changed, since the model chooses a fenced or a fenceless store at Init and every run covers both, so each invariant the page keeps is checked over the fenceless half, the page's whole; rules 571 to 540. *Over:* a fenced commit and a counted retry no adopter exercised, where Final Critique 18's second finding lived; and the edges of the six actions found one round at a time. *Because:* the council's counts held and then rose (Final Critique 13 to 18: 3, 3, 4, 2, 2, 4), each round finding the next input or arm with no owner; the maintainer ruled the unbound branches cut first and every input and arm given an owner, so the next round reads a page whose edges are enumerated, and the page's plateau count starts again from that round. What the composition does for an act its adopters bind changes only where the table found no owner.
 
 - **2026-10-23 — A resolution's supersession is no second closing, a declared fence reaches the commit, every holder value is fresh, and an outcome's reference is one the kind declares.** *Chose:* Invariant 2.1 forbidding two unsuperseded closing records, the reading Check 2.1 and the model's Inv2_OneWriter already had, so an operator's resolution over an escalation keeps it; [Open] minting the commit fence deadline from the expiry instant its take answered and returning it beside the pair, and the adopter issuing the commit carrying it (open step 5.7, open step 5.8, commit 13b); operator run id fresh for every [Resolve] call and run id fresh for every run, as Lease Identity 6 asks of every take; an outcome action reference one of the kind's enumerated outcome refs, an operator's other reference refused as malformed (resolve 31); close step 3.7 and 3.8 out of the withdrawn release-and-reject idiom into WHEN blocks, one obligation a line, and Action wiring 5's undeclared examples dropped; open lines 2026-10-23-a and 2026-10-23-b added and 2026-09-10-a widened, these three and 2026-10-18-a now flagged on the page beside their rules; rules 563 to 571. *Over:* Invariant 2.1 as the rewrite of 2026-10-20 left it, binding every deployment with no word for the supersession [Resolve] writes; a deadline the page named and no rule minted or handed over; holder values injected with nothing saying they are fresh; and a disposition's form tested without its reference. *Because:* Final Critique 18's readers traced each on a deployment that keeps every rule: a resolution breaking Invariant 2.1, a commit stalled past the lease landing after the sweep's abandonment under a declared fence, a late release ending another take's grant against Lease Check 5.3, and an operator's outcome under `<kind>.intended` writing a second intent record against Check 2.2. What the composition does for an act it serves is otherwise unchanged.
 
