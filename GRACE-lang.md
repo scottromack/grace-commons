@@ -634,7 +634,7 @@ NOTE: repeated cures are flagged (`NOTE: watch <name>` beside the strained rule)
 - **contradiction**: two rules normalizing to `X MUST a` and `X MUST NOT a` under identical conditions. None found.
 - **the wire layer**: a term entry's `Projection:` line and the `Wire: pinned` field, with no naming convention of the layer's own. Fifty-three documents at council read 101; no finding against the layer itself yet.
 - **the term entry grammar**: a term entry's fields drifting per document on the nothing surface. Nine at council read 12; the superset recurs in every migrated specification.
-- **a term entry's kind**: `Kind: Field` carrying stored, derived and pinned values alike. One: Retention Window.
+- **a term entry's kind**: `Kind: Field` carrying stored, derived and pinned values alike. Two: Cart and Retention Window.
 - **the cited line**: the `Term cited:` line written in two shapes this document never states, runs of names each closed by the owner, or a document and what it supplies. Eighteen specifications: four write the first shape, sixteen the second, two both.
 - **the frozen surface's edge**: which families a cross-spec citation freezes. None standing since council read 13.
 - **the degenerate bound**: an inequality or bound whose two readings make different rules real. Five: Lease (two), Duplicate Prevention, Retention Window and Provenance.
