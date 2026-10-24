@@ -43,7 +43,7 @@ Term cart id: the opaque value naming one cart — a [Cart Id]; unique for the s
 
 Term line id: the opaque value naming one line — a [Line Id]; unique for the system's life, so an item added again after its line was taken out gets a new line id.
 
-Term item reference: the value naming the item a line is for — a product, a variant or a service, in the deployment's own scheme — an [Item Reference]; the atom reads nothing in it.
+Term item reference: the value naming the item a line is for — a product or a service with the options chosen for it, such as a size, a color, oat milk or a gift wrap, in the deployment's own scheme — an [Item Reference]; the atom reads nothing in it.
 
 Term seam: the atom's I/O boundary as the section titled Logic Confinement Principle in `execution-contract.md` declares it; the host injects each cart id and line id here.
 
@@ -57,7 +57,7 @@ State 3: The atom MUST NOT remove a cart.
 
 Term quantity: how many of the item a line holds — a [Quantity]; a positive count.
 
-Term unit price: the price of one of the item, taken from the call that added the line — a [Unit Price]; a whole amount.
+Term unit price: the price of one of the item, options included, supplied by the composing pattern that prices the item (Composition note 2) and taken from the call that added the line — a [Unit Price]; a whole amount.
 
 Term currency: the unit of account a cart's prices and total are counted in, such as a code from ISO 4217 (the International Organization for Standardization's standard for currency codes) — a [Currency]; set when the cart is opened.
 
@@ -202,7 +202,7 @@ A shop selling in euros opens a cart: `open("EUR")` answers [Cart Id] `c1`. The 
 
 ### Café tab
 
-A café opens a tab for table 4 in US dollars — `open("USD")` answers `t4`. Two flat whites at $4.50 — `add(t4, "flat-white", 2, 450)` answers `l5` — and a croissant at $3.25 — `add(t4, "croissant", 1, 325)` answers `l6`: the total is 1225. A third flat white is ordered — `change_quantity(l5, 3)`; the total is 1675. The croissant goes back — `remove(l6)`; the total is 1350. At three o'clock the café's afternoon prices start; the tab's lines keep the prices they were taken at.
+A café opens a tab for table 4 in US dollars — `open("USD")` answers `t4`. Two flat whites at $4.50 — `add(t4, "flat-white", 2, 450)` answers `l5` — and a croissant at $3.25 — `add(t4, "croissant", 1, 325)` answers `l6`: the total is 1225. A third flat white is ordered — `change_quantity(l5, 3)`; the total is 1675. Then a flat white with oat milk at $5.10 — `add(t4, "flat-white-oat", 1, 510)` answers `l10`, a second line beside `l5` at its own price, since an item reference names the item with its options; the total is 2185. The croissant goes back — `remove(l6)`; the total is 1860. At three o'clock the café's afternoon prices start; the tab's lines keep the prices they were taken at.
 
 ### Wholesale order
 
@@ -272,11 +272,12 @@ Non-goal 12: The atom MUST NOT expire a cart.
 Non-goal 13: The atom MUST NOT merge two carts.
 Non-goal 14: The atom MUST NOT order lines.
 Non-goal 15: The atom MUST NOT limit a quantity.
+Non-goal 16: The atom MUST NOT read an item reference's options.
 ```
 
-NOTE: the owners — a pricing pattern *(forthcoming)* (Non-goal 1, Non-goal 2; External check 1); a tax pattern *(forthcoming)* (Non-goal 3); [Provisional Commitment](./provisional-commitment.md) (Non-goal 4, Non-goal 5); a payment pattern *(forthcoming)* (Non-goal 6); a checkout pattern *(forthcoming)* (Non-goal 7, Non-goal 8, Non-goal 13); the composing pattern that knows the shopper, such as one built on [Session](./session.md) or [Party Identity](./party-identity.md) (Non-goal 9); a catalog pattern *(forthcoming)* (Non-goal 10; External check 2); a currency pattern *(forthcoming)* (Non-goal 11); a cart-expiry pattern *(forthcoming)* (Non-goal 12); the composing pattern that shows the cart (Non-goal 14); a purchase-limit pattern *(forthcoming)* (Non-goal 15).
+NOTE: the owners — a pricing pattern *(forthcoming)* (Non-goal 1, Non-goal 2; External check 1); a tax pattern *(forthcoming)* (Non-goal 3); [Provisional Commitment](./provisional-commitment.md) (Non-goal 4, Non-goal 5); a payment pattern *(forthcoming)* (Non-goal 6); a checkout pattern *(forthcoming)* (Non-goal 7, Non-goal 8, Non-goal 13); the composing pattern that knows the shopper, such as one built on [Session](./session.md) or [Party Identity](./party-identity.md) (Non-goal 9); a catalog pattern *(forthcoming)* (Non-goal 10, Non-goal 16; External check 2); a currency pattern *(forthcoming)* (Non-goal 11); a cart-expiry pattern *(forthcoming)* (Non-goal 12); the composing pattern that shows the cart (Non-goal 14); a purchase-limit pattern *(forthcoming)* (Non-goal 15).
 
-Where the atom breaks down: a purchase whose lines are priced in more than one currency; a cart whose prices must follow the catalog as it changes; an item whose options its item reference cannot name.
+Where the atom breaks down: a purchase whose lines are priced in more than one currency; a cart whose prices must follow the catalog as it changes.
 
 ## Edge cases
 
@@ -389,7 +390,7 @@ Projection: line_id
 
 #### Item Reference
 
-The value naming the item a line is for, in the deployment's own scheme — a product code, a variant, a service. The atom stores it as supplied, never normalizes it, and compares two of them codepoint for codepoint; whether it names a real item is a catalog's question.
+The value naming the item a line is for, in the deployment's own scheme: a product or a service with the options chosen for it, such as a size, a color, oat milk or a gift wrap, so a flat white and a flat white with oat milk are two items, held on one cart as two lines. The atom stores it as supplied, never normalizes it, never reads the options in it, and compares two of them codepoint for codepoint; whether it names a real item, and which options it names, is a catalog's question.
 
 Kind:       Field
 Field of:   Line
@@ -413,7 +414,7 @@ Projection:   new_quantity
 
 #### Unit Price
 
-The price of one of the item, as a whole number of the cart currency's minor unit, zero or more: the price the call that added the line supplied. No action changes it.
+The price of one of the item, options included, as a whole number of the cart currency's minor unit, zero or more: the price the call that added the line supplied, from the composing pattern that prices the item. No action changes it.
 
 Kind:       Field
 Field of:   Line
@@ -562,5 +563,6 @@ Directional changes only — the turns a future reader must know the pattern too
 - **2026-10-23 — A line keeps the price taken when it was added, and a cart holds one line per item.** *Chose:* [Add] records the unit price its call supplies and no action changes it (Invariant 2.1); an item already on the cart is refused as already-in-cart (Operation 8, Invariant 1.1); a line is named by an opaque line id, never by its item reference (Identity 2, Identity 5), so an item taken out and added again is a new line at the new price; and [Change Quantity] sets a whole new quantity rather than adding to the old one. *Over:* a second [Add] of an item merging into the line already there, which leaves open whose price the merged units carry; lines named by their item reference, whose history would mix two prices once an item was taken out and added again; and quantity changes by difference, which a repeated call applies twice. *Because:* the ruling defines a line as an item reference, a quantity and the unit price taken when added; with one line per item and one price per line, the total moves only when a line is added, re-counted or taken out, and every version of a line carries the price its add took, which an auditor reads from the database's history (Execution Contract Database 5).
 - **2026-10-23 — One currency per cart, amounts in its minor unit, and no checkout state.** *Chose:* [Open] fixes a cart's currency from the accepted currencies the deployment supplies (Capability requirement 3, Invariant 4.1); every unit price and the total are whole numbers of that currency's minor unit, the total computed at each read, never stored, and without loss (Capability requirement 4); and a cart has no lifecycle state, being neither closed nor removed by the atom (State 3, Non-goal 8), while a checkout reads the lines it takes inside its own transaction (Execution Contract Database 1 and Database 2). *Over:* a currency per line, which leaves a mixed cart with no total; amounts as decimals or floating-point numbers; and a checked-out state on the cart, which would fold the checkout's decision into the atom. *Because:* a sum is defined only over one unit of account, whole minor units add without rounding, and the database keeps every committed version of a cart and its lines readable (Execution Contract Database 5), so what a checkout took stays readable after the cart changes.
 - **2026-10-24 — Round 1: a removed line leaves the records, the deployment's ids are fresh, and the storage-failure answer is the Execution Contract's.** *Chose:* [Remove] and [Clear] remove the line (Operation 16, Operation 18), the verb State 3 uses for a cart, where they had taken the line out of its cart; the deployment supplies a cart id no cart has carried and a line id no line has carried (Capability requirement 1, Capability requirement 2); Operation 13 sets a quantity only where the new quantity differs from the line's, beside Operation 14; Operation 20 deleted, since Execution Contract Read 4 answers a failed write with storage-failure for every specification; and the host named among the actors, where Term seam already says the host injects the ids. *Over:* removing every version of a removed line, an erasure the page declares nowhere, which would leave what a checkout took unreadable; a line state marking removed lines, a field the page has no need of; and a storage-failure rule of the page's own, which restated the contract the first Decisions entry says the page cites and restates nowhere. *Because:* the round's two triages upheld no foundational gap. The text already decided a removed line's fate: no field can mark a line out of its cart, so Operation 16 is obeyed only by the line's leaving the database's current records, and Execution Contract Database 5 keeps its versions readable. A unit price is a whole number of the cart currency's minor unit, which no call can carry in another currency. What the readers found was text a step short of saying what it decides, cured in place, and an item reference no length bounds, the host obligations pressure the Watch list counts.
+- **2026-10-24 — An item reference names the item with its options.** *Chose:* under the maintainer's ruling of 2026-10-23 22:50Z, a line is one configured item: the item reference names a product or a service with the options chosen for it, in the deployment's own scheme (Term item reference), so Invariant 1.1 and Operation 8, unchanged in wording, hold one line per configured item, and a flat white and a flat white with oat milk are two lines at two prices, as the café tab shows; the unit price is the configured item's, options included, supplied by the composing pattern that prices the item (Term unit price, Composition note 2); and the atom reads no option in an item reference (Non-goal 16), which leaves the options to a catalog pattern. *Over:* options carried on the line as fields of the atom's own, which would make the atom read and compare what a catalog defines; and an item whose options its item reference cannot name, which the page had listed where the atom breaks down. *Because:* the atom stores an item reference as supplied and compares two of them codepoint for codepoint (Identity 6, Identity 7), so naming the options inside it costs the atom no rule, and an item taken with other options is another item, at its own price.
 
 NOTE: End of Cart.
