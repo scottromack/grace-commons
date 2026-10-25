@@ -134,7 +134,7 @@ Term query: what a read asks for — a [Query]: a sequence number range, a wall-
 
 NOTE: watch the range's ends (Term query).
 
-Term payload cap: the per-instance bound on the number of bytes in data as the composing pattern supplies it; 65,536 bytes where a deployment declares none.
+Term payload cap: the per-instance bound on the number of bytes the composing pattern supplies as data; 65,536 bytes where a deployment declares none.
 
 NOTE: open 2026-10-20-a — the deployment's declaration of the payload cap is named here and in External check 6, and listed by no Capability requirement.
 
@@ -511,14 +511,14 @@ It inherits from:
 
 ## Status
 
-`partially resolved` — see the Ledger.
+`grounded on Final Critique 13 — 2026-10-25` — see the Ledger.
 
 ## Ledger
 
 ```
-status: partially resolved
+status: grounded on Final Critique 13 — 2026-10-25
 formal: verified — event-log.tla + 1 twin, 2026-06-03
-last gate: 2026-10-25 — Final Critique 12 — foundational count 0, clean, no sample
+last gate: 2026-10-25 — Final Critique 13 — foundational count 0, clean, one sample
 
 open:
 - 2026-10-20-a · refining · Term payload cap; External check 6 · the deployment's declaration of the payload cap is named (Term payload cap, External check 6) and declared by no Capability requirement → a Capability requirement naming the declaration and the default it falls back to
