@@ -180,7 +180,7 @@ Term closed-state marker: compensated attestations and reported beyond horizon.
 
   Term unsealed tail: the events whose sequence number EXCEEDS sealed through.
 - **uncovered mark**
-  Term uncovered mark: set | clear | unknown — one record per instance, kept apart from the sealing lock's grant, which [Seal Now] sets before its seal call (seal now 4) with its holder value and clears once the coverage entry has landed (seal now 15, 22, 23). The one fact it carries, whether a seal may stand in the seal records without its coverage entry, is regenerated from the seal records: unknown sends the next [Seal Now] to rebuild the ranges from the seal records before it reads sealed through, and that rebuild lets it clear the mark (seal now 13, 16).
+  Term uncovered mark: set | clear | unknown — one record per instance, kept apart from the sealing lock's grant, which [Seal Now] sets before its seal call (seal now 4) with its holder value and clears once the coverage entry has landed, by a compare under [Seal Now]'s live lease (seal now 15, 22, 23), and leaves set where that lease expires before the clear or the seal call or the coverage write gives no answer (seal now 19, 24). The one fact it carries, whether a seal may stand in the seal records without its coverage entry, is regenerated from the seal records: a set or unknown mark sends the next [Seal Now] to rebuild the ranges from the seal records before it reads sealed through, and that rebuild lets it clear the mark (seal now 13, 16).
   ```
   uncovered mark 1: The composition MUST classify the uncovered mark as derived index.
   uncovered mark 2: The rebuild MUST leave the uncovered mark unknown (Concurrency 1b, seal now 13, seal now 16).
@@ -662,13 +662,13 @@ Every recording-failure carries its step (record action 1). A caller other than 
 | | no answer | [Recording Failure], the mark left set, so a seal that landed is found by the next taker's rebuild | seal now 13, 24 |
 | the coverage write | written | the mark cleared, the evidence id returned | seal now 16, 23 |
 | | refused | [Recording Failure] | seal now 14 |
-| | no answer | [Recording Failure], the mark left set | seal now 24 |
+| | no answer | [Recording Failure], the mark left set, so a coverage write that landed, sealed through with it, is found by the next taker's rebuild | seal now 9, 10, 13, 24 |
 | the clear of the uncovered mark | any answer | the evidence id: sealed through has advanced, so no rejection is open, and a mark left set or unknown sends the next taker to the rebuild | seal now 9, 13, 16, 23 |
 | a read before the seal call | a failed read | state-unavailable, no seal cut | Execution Contract Read 1 through 3 |
 | | an invalid-query, at the open-upper-bound read | the same, a deployment fault | Capability requirement 2, 3, 3a |
 | a call before the seal call | no answer, where no row above names its arm | [Recording Failure], no further write | seal now 28 |
 
-After every rejection sealed through does not move and no coverage entry is written (seal now 9, 10), and the mark is cleared only where the seal call wrote no evidence (seal now 16).
+After every rejection but one whose coverage write gave no answer, sealed through does not move and no coverage entry is written (seal now 9, 10, 24); once the coverage entry has landed, [Seal Now] answers its evidence id though its lease expires or its clear is refused, the mark left set for the next taker's rebuild (seal now 8, 13, 20); and the mark is cleared only where the seal call wrote no evidence (seal now 16).
 
 **[Read Record], [Verify Record] and [Purge Eligible]: what the reads answer.**
 
@@ -820,9 +820,9 @@ A cascade-failure(step-2) or cascade-failure(step-3) over an incomplete cascade 
 | remaining answers | [Seal Now] | [Purge Event] | a leg |
 |---|---|---|---|
 | live | the write (seal now 19) | the step's write (Per-act critical section 9b) | the write (Per-act critical section 13b) |
-| expired, none, or no answer (Term lease; Per-act critical section 16) | no further write, [Recording Failure], a deployment fault and the bound declared anew (seal now 19, 20, 25 through 27) | before step 1 commits, no step 1 and cascade-failure(step-1); after it, no further write and cascade-failure naming the first step not completed, which the scan re-drives (purge event 7a, 7b, 7c, 7d) | no further write, the act skipped for the rest of the run, a deployment fault (Per-act critical section 13b, 13c, 13e) |
+| expired, none, or no answer (Term lease; Per-act critical section 16) | no further write and [Recording Failure], or, once the coverage entry has landed, the evidence id with the mark left set; a deployment fault and the bound declared anew (seal now 9, 19, 20, 25 through 27) | before step 1 commits, no step 1 and cascade-failure(step-1); after it, no further write and cascade-failure naming the first step not completed, which the scan re-drives (purge event 7a, 7b, 7c, 7d) | no further write, the act skipped for the rest of the run, a deployment fault (Per-act critical section 13b, 13c, 13e) |
 
-**Leases: the release.** Every release leaves the holder's answer as it stands: no rule here refuses on a release's answer (Execution Contract Refusal 1), and once sealed through has advanced [Seal Now] has no rejection open (seal now 9). A release that gives no answer reads the grant expired and is not issued again (Per-act critical section 16, 17). A holder releases on return (Per-act critical section 2b; seal now 21), save a cascade, or a first half re-driving one, whose delegation gave no answer: it keeps the lease to its instant (Per-act critical section 2a).
+**Leases: the release.** Every release leaves the holder's answer as it stands: no rule here refuses on a release's answer (Execution Contract Refusal 1), and once its coverage entry has landed [Seal Now] has no rejection open (seal now 8, 9, 20). A release that gives no answer reads the grant expired and is not issued again (Per-act critical section 16, 17). A holder releases on return (Per-act critical section 2b; seal now 21), save a cascade, or a first half re-driving one, whose delegation gave no answer: it keeps the lease to its instant (Per-act critical section 2a).
 
 ---
 
@@ -971,9 +971,9 @@ seal now 4: [Seal Now] MUST call TamperEvidence.seal(slice reference, mechanism 
 seal now 5: [Seal Now] MUST record the seal coverage entry for evidence id as the slice and advance sealed through to the tail position.
 seal now 6: [Seal Now] MUST land mechanism-failure(reason) as [Mechanism Failure] carrying the reason unchanged.
 seal now 7: [Seal Now] MUST pass invalid-request through unchanged.
-seal now 8: [Seal Now] MUST land storage-failure as [Recording Failure].
-seal now 9: IF [Seal Now] rejects THEN sealed through MUST NOT advance.
-seal now 10: IF [Seal Now] rejects THEN [Seal Now] MUST NOT write a seal coverage entry.
+seal now 8: [Seal Now] MUST land storage-failure as [Recording Failure], a [Seal Now] whose coverage entry of seal now 5 has landed excepted (seal now 9).
+seal now 9: IF [Seal Now] rejects THEN sealed through MUST NOT advance, a [Seal Now] whose coverage write gave no answer excepted (seal now 24; Execution Contract Error model 1).
+seal now 10: IF [Seal Now] rejects THEN [Seal Now] MUST NOT write a seal coverage entry, a [Seal Now] whose coverage write gave no answer excepted (seal now 24; Execution Contract Error model 1).
 seal now 11: IF [Seal Now] rejects THEN the next cadence firing MUST recompute the slice and seal what is not covered.
 seal now 12: The composition MUST NOT expose a re-sealing surface.
 seal now 13: IF the uncovered mark IS set OR IS unknown OR the ranges index IS absent at the take THEN [Seal Now] MUST NOT read sealed through BEFORE rebuilding the ranges of seal coverage from the seal records.
@@ -983,7 +983,7 @@ seal now 16: [Seal Now] MUST clear the uncovered mark ONLY IF the coverage entry
 seal now 17: [Seal Now] MUST read sealed through from the seal coverage ranges under the sealing lock.
 seal now 18: [Seal Now] MUST NOT read sealed through from a process-local cache.
 seal now 19: IF the sealing lock's lease EQUALS expired THEN [Seal Now] MUST NOT issue a further write.
-seal now 20: IF the sealing lock's lease EQUALS expired OR the take answers unavailable THEN [Seal Now] MUST land [Recording Failure].
+seal now 20: IF the sealing lock's lease EQUALS expired OR the take answers unavailable THEN [Seal Now] MUST land [Recording Failure], a [Seal Now] whose coverage entry of seal now 5 has landed excepted (seal now 9).
 seal now 21: [Seal Now] MUST release the sealing lock on return.
 seal now 22: [Seal Now] MUST set the uncovered mark carrying [Seal Now]'s own holder value.
 seal now 23: [Seal Now] MUST clear the uncovered mark ONLY by a compare against the holder value the mark carried when [Seal Now] last read the mark under [Seal Now]'s live lease — [Seal Now]'s own once [Seal Now] has set the mark (seal now 15, 22), the value found at the rebuild — AND MUST issue the compare ONLY IF [Seal Now]'s lease EQUALS live.
@@ -1987,7 +1987,7 @@ Kind: Operation
 
 #### Seal Now
 
-The action that seals the current unsealed tail — under interval or on-demand cadence, from [Record Action] step 6 under per-event cadence, and from [Purge Event] step 0 — over the slice, where the tail position is the highest sequence number the open-upper-bound read returns; records the coverage and advances sealed through. Cuts new coverage only. Returns the evidence id, [Nothing To Seal], [Mechanism Failure] with the mechanism's reason, invalid-request, or [Recording Failure]; under all of them the events stay in the unsealed tail and the next firing retries.
+The action that seals the current unsealed tail — under interval or on-demand cadence, from [Record Action] step 6 under per-event cadence, and from [Purge Event] step 0 — over the slice, where the tail position is the highest sequence number the open-upper-bound read returns; records the coverage and advances sealed through. Cuts new coverage only. Returns the evidence id, [Nothing To Seal], [Mechanism Failure] with the mechanism's reason, invalid-request, or [Recording Failure]; under each rejection the events stay in the unsealed tail, save where a coverage write that gave no answer landed, and the next firing retries.
 
 Kind: Operation
 
@@ -2023,7 +2023,7 @@ Kind: Type
 
 #### Recording Failure
 
-The composition's rejection for *a database refused the write*, a registry a constituent reads at its seam could not be read, or a call gave no answer, carrying the step from [Record Action] only: on any constituent storage-failure, registry-unavailable or no answer, nothing committed; from [Seal Now], bare, when the seal records would not persist a computed proof or its coverage entry, when the sealing lock is not taken or its lease expires, or when a call it issues gives no answer (seal now 20, 24, 28). The surface that failed is a database, a registry or a lease, not a mechanism.
+The composition's rejection for *a database refused the write*, a registry a constituent reads at its seam could not be read, or a call gave no answer, carrying the step from [Record Action] only: on any constituent storage-failure, registry-unavailable or no answer, nothing committed; from [Seal Now], bare, when the seal records would not persist a computed proof or its coverage entry, when the sealing lock is not taken or its lease expires before the coverage entry has landed, or when a call it issues gives no answer (seal now 20, 24, 28). The surface that failed is a database, a registry or a lease, not a mechanism.
 
 Kind:       Member
 Member of:  the record-action and seal rejections
@@ -2126,7 +2126,7 @@ The composition is the structural form of what every major audit regime requires
 ```
 status: partially resolved
 formal: verified — audit-trail.tla + 2 twins (cascade; scan first half) and audit-trail-record.tla + 3 twins (record action, one step under Execution Contract Store 1; scan second and third halves; re-derived 2026-10-20) and audit-trail-binding.tla + 2 twins (binding-set predicate against an in-flight cascade), re-derived against the fresh-reader gates of rounds 9 to 18, and audit-trail-hold.tla + 5 twins + 3 probes (a hold placed over an open cascade entry, released and re-driven; 43,688 states within 15 ticks), derived from the page as it stands; the closure arithmetic — a leg's lease against its work (Instance start 18, 19, Per-act critical section 13a, 13b, 13d) and a finding's closure against closure sum with one dead run and one hold placement (Instance start 16) — enumerated by tools/harness/audit-trail-closure.py + 5 twins over 5,184 leg tuples and 5,184 schedule tuples at conforming constants, which no model reaches; the other cures of rounds 19 to 26 are carried on the NOT MODELED lists, not re-derived; models and enumerator last run 2026-10-24
-last gate: 2026-10-25 — Final Critique 44 — foundational count 0, clean, no sample
+last gate: 2026-10-25 — Final Critique 45 — foundational count 0, clean, no sample
 
 open:
 - 2026-10-03-d · refining · Second half 18; Term dependency outage · content lost with no cascade and not restorable leaves the second half writing no compensation with nothing to end it → a standing for content lost without record; contract-shaped, own round
