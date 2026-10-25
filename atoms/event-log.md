@@ -132,6 +132,8 @@ Operation 21: The business caller MUST NOT supply recording instant.
 
 Term query: what a read asks for — a [Query]: a sequence number range, a wall-time range, or a combination of the two. A range holds both its ends, and a combination matches an event that each of its ranges matches. A query is malformed where the query carries no range, where a range's lower end is above its upper end, where an end a sequence number range carries is below one or is not an integer, or where the query asks for anything beyond those ranges.
 
+NOTE: watch the range's ends (Term query).
+
 Term payload cap: the per-instance bound on data's size, in bytes; 65,536 bytes where a deployment declares none.
 
 NOTE: open 2026-10-20-a — the deployment's declaration of the payload cap is named here and in External check 6, and listed by no Capability requirement.

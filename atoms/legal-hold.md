@@ -16,7 +16,7 @@ toc: true
 
 ## Summary
 
-Legal Hold is a formal instruction to keep a specific record intact — overriding any normal deletion schedule — until the legal matter that triggered it is resolved. When a lawsuit is anticipated, a regulator opens an investigation, or a team needs to freeze evidence, the normal "delete after N years" rule stops applying. The hold records the shift: who issued it, against which record, why, and under what authority. A hold is either [Active] (preservation in effect) or [Released] (lifted, permanently — it cannot be reactivated). Both placing and releasing are attributed, timestamped, and never altered afterward, so the full arc of any preservation obligation is provable. Multiple holds can cover the same record independently — a record under both an internal investigation and a government investigation has two separate obligations, and releasing one leaves the other in force, which is exactly what multi-party legal situations require. The pattern does not itself block deletion; it records that an obligation exists, and the system that actually deletes records is responsible for checking for [Active] holds first. This is the mechanism behind litigation-hold management, breach-response preservation, and any setting where destroying a record during an active legal obligation exposes the organization to penalties.
+Legal Hold is a formal instruction to keep a specific record intact — overriding any normal deletion schedule — until the legal matter that triggered it is resolved. When a lawsuit is anticipated, a regulator opens an investigation, or a team needs to freeze evidence, the normal "delete after N years" rule stops applying. The hold records the shift: who issued it, against which record, why, and under what authority. A hold is either [Active] (preservation in effect) or [Released] (lifted, permanently — it cannot be reactivated). Both placing and releasing are attributed, timestamped, and never altered afterward, so the full arc of any preservation obligation is provable. Multiple holds can cover the same record independently — a record under both an internal investigation and a government investigation has two separate obligations, and releasing one leaves the other in force, which is exactly what multi-party legal situations require. The pattern does not itself block deletion; it records that an obligation exists, and the system that actually deletes records is responsible for checking for [Active] holds first. This is the mechanism behind managing the holds a lawsuit sets off, keeping the records of a data breach while it is investigated, and any setting where destroying a record during an active legal obligation exposes the organization to penalties.
 
 ---
 
@@ -88,7 +88,7 @@ Term release instant: the instant the obligation was documented as ended — a [
 ### Capability requirement
 
 ```
-Capability requirement 1: The deployment MUST supply now at the seam.
+Capability requirement 1: The deployment MUST supply now at the seam PER Execution Contract Logic confinement 7.
 Capability requirement 4: The deployment MUST supply the hold records PER Execution Contract Database 1 through 4, Execution Contract Refusal 1 and Execution Contract Conformance 9.
 Deleted: Capability requirement 2. Execution Contract Logic confinement 7 owns it.
 Deleted: Capability requirement 3. Execution Contract Logic confinement 7 owns it.
@@ -122,7 +122,7 @@ Operation 5: IF placing actor EQUALS blank THEN [Place] MUST answer invalid-requ
 Operation 6: IF hold reason EQUALS blank THEN [Place] MUST answer invalid-request.
 Operation 7: IF a supplied case reference EQUALS blank THEN [Place] MUST answer invalid-request.
 Operation 8: IF now PRECEDES a supplied placement instant THEN [Place] MUST answer invalid-request.
-Operation 9: IF the caller supplies no placement instant THEN [Place] MUST stamp placement instant from the injected now.
+Operation 9: IF placement instant EQUALS blank THEN [Place] MUST stamp placement instant from the injected now.
 Operation 10: [Place] MUST accept a placement instant below now.
 Operation 11: IF the database refuses the write THEN [Place] MUST answer storage-failure.
 Operation 12: IF hold id EQUALS blank THEN [Release] MUST answer invalid-request.
@@ -132,7 +132,7 @@ Operation 15: IF releasing actor EQUALS blank THEN [Release] MUST answer invalid
 Operation 16: IF release reason EQUALS blank THEN [Release] MUST answer invalid-request.
 Operation 17: IF the resolved release instant PRECEDES the hold's placement instant THEN [Release] MUST answer invalid-request.
 Operation 18: IF now PRECEDES a supplied release instant THEN [Release] MUST answer invalid-request.
-Operation 18a: IF the caller supplies no release instant THEN [Release] MUST stamp release instant from the injected now.
+Operation 18a: IF release instant EQUALS blank THEN [Release] MUST stamp release instant from the injected now.
 Operation 19: [Release] MUST stand the hold in released.
 Operation 20: [Release] MUST NOT reach another hold over the record.
 Operation 21: IF the database refuses the write THEN [Release] MUST answer storage-failure.
@@ -162,11 +162,17 @@ Deleted: Operation 42. Execution Contract Refusal 1 owns it.
 
 NOTE: watch the blank id (Operation 13).
 
-Term query: what a read asks for — a [Query]; any combination of the admitted axes, and a query carrying none matches every hold.
+NOTE: watch the instant left blank (Operation 9, Operation 18a).
+
+NOTE: watch host obligations — this atom sets no maximum length on a string input, where [Duplicate Prevention](./duplicate-prevention.md) declares a cap and [Provenance](./provenance.md) obliges the deployment to set one. Three postures, and the *host obligations* docket row carries the count — a watch flag states the pressure, never a census nothing reads.
+
+Term query: what a read asks for — a [Query]; any combination of the admitted axes, and a query carrying none matches every hold. A range's filter values are its start and its end, and an instant at either end lies inside the range. A combination matches a hold that each of its filters matches.
+
+NOTE: watch the range's ends (Term query).
 
 Term admitted axis: hold id | record reference | placing actor | case reference | hold state | a placement instant range | a release instant range — the filter axes [Read] accepts, and no others.
 
-Term resolved release instant: the release instant the release records — the caller's value where one is supplied, the injected now otherwise.
+Term resolved release instant: the release instant the release records — the caller's value where it is not blank, the injected now otherwise.
 
 Term held at an instant: placement instant at or before the instant, and either the hold state EQUALS active or the hold carries a release instant after the instant — the reconstruction an auditor runs over stored fields, never over the hold's present state.
 
@@ -540,12 +546,12 @@ Projection: store_name
 The required, non-empty reason string [Place] and [Release] consume — written into [Hold Reason] or [Release Reason] respectively. Not stored under this name; an empty or whitespace-only value is rejected [Invalid Request].
 
 Kind:         Parameter
-Parameter of: Place
+Parameter of: Place and Release
 Projection:   reason
 
 #### Query
 
-The selection [Read] consumes — a filter over [Hold Id], [Record Reference], [Placing Actor], [Case Reference], [State], and/or a time range on [Placement Instant] or [Release Instant]. Supplied per call, not stored; a malformed one is rejected [Invalid Query].
+The selection [Read] consumes — a filter over [Hold Id], [Record Reference], [Placing Actor], [Case Reference], [State], and/or a time range on [Placement Instant] or [Release Instant]. Each time range carries a start and an end, and an instant at either end lies inside it; a hold matches a combined query only where it matches each filter. Supplied per call, not stored; a malformed one is rejected [Invalid Query].
 
 Kind:         Parameter
 Parameter of: Read
@@ -668,12 +674,12 @@ Projection: invalid-query
 ```
 status: partially resolved
 formal: verified — legal-hold.tla + 2 twins, 2026-06-04
-last gate: 2026-10-24 — Final Critique 6 — foundational count 1, not clean, no sample
+last gate: 2026-10-24 — Final Critique 7 — foundational count 2, not clean, no sample
 
 open:
 - 2026-10-05-a · refining · State 2; Operation 10 · a hold carries a placement instant a caller may assert and no instant the system stamped at entry, so a composing pattern cannot age or order a hold whose audit record is gone → an entry instant; reported by Defensible Retention's gate
 - 2026-10-05-b · refining · Place persistence 2; Operation 8, 17; Composition note 3 through 6 · a place or a release that answers no answer has no rule, a future placement instant and a release ahead of the placement are refused only at the atom's seam, after a composing pattern's intent, and the notes that give authority and bulk to a composing pattern admit no pass-down → state each; reported by the same gate
-- 2026-10-21-a · refining · Operation 29, 30; Term admitted axis; Active and Released entries · [Read]'s query shape is left to the build: the hold state members carry no Projection line while the examples query `state: Active`, and a range's bounds are stated nowhere — whether a range needs both, and whether a bound is inside it — so one well-formed query can answer two hold sets → give the members their wire spelling, and state a range's bounds
+- 2026-10-21-a · refining · Operation 29; Active and Released entries · [Read]'s hold state filter is left to the build: the hold state members carry no Projection line while the examples query `state: Active` → give the members their wire spelling
 - 2026-10-21-b · refining · Operation 8, 18; Placement Instant and Release Instant entries · a supplied placement or release instant has no declared form, and the examples write two (a zoned date and time, a bare date), so a zoneless value near now is placed by a build reading it as UTC and refused as future by one reading it in the deployment's zone → declare the form a supplied instant takes, or name the layer that turns a wire value into an instant
 - 2026-10-21-c · refining · State 1, 7; Invariant 2.1, 4.1, 8.1; Operation 8, 10, 18, 20, 40, 41; Backdating 1, 2; Aggregate 3; Instance 7 · propositions owned twice: State 1 and Invariant 2.1 word for word, State 7 and Invariant 8.1, Operation 10 and Backdating 1, Operation 8 with Backdating 2 and Operation 40, Operation 18 with Operation 41, Operation 20 and Invariant 4.1, Aggregate 3 and Instance 7 → one owner each (GRACE-lang Authority 3), each tombstone checked against the pages that cite it
 - 2026-10-21-e · refining · Examples · no breach or incident read is walked on its own: the regulator audit is a regulator's breach investigation, and the third scenario is a dual-regulator one → walk the three regulated reads spec-format asks for, the breach read on its own
