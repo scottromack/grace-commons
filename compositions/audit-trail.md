@@ -17,7 +17,7 @@ toc: true
 
 ## Summary
 
-Audit Trail answers, all at once, the four questions a regulator or investigator asks about any consequential action: what happened, who authorized it, has the record been altered, and was it kept long enough? It is a composition — a pattern built by wiring simpler patterns together, adding no new building block of its own — and it wires four of them into one record that can be searched: an add-only event log (what happened), cryptographic attribution tying each event to the person or system that performed it (who), tamper-evident sealing that makes any after-the-fact change detectable (has it been altered), and a retention policy that fixes how long records are kept (kept long enough). None of the four answers the whole question alone; wired together, every event is logged, attributed and tracked for retention at once and sealed on the schedule the organization running it sets, and a question about any event it recorded gets a definite answer that tells a lawfully destroyed record from a missing one.
+Audit Trail answers, all at once, the four questions a regulator or investigator asks about any consequential action: what happened, who authorized it, has the record been altered, and was it kept long enough? It is a composition — a pattern built by wiring simpler patterns together, adding no new building block of its own — and it wires four of them into one record that can be searched: an add-only event log (what happened), cryptographic attribution tying each event to the person or system that performed it (who), tamper-evident sealing that makes any after-the-fact change detectable (has it been altered), and a retention policy that fixes how long records are kept (kept long enough). None of the four answers the whole question alone; wired together, each successful recording logs, attributes and places its event under retention at once, the event is then sealed on the schedule the organization running it sets, and a question about any event it recorded gets a definite answer that tells a lawfully destroyed record from a missing one.
 
 None of the four patterns ever deletes a record of its own, which is what makes them trustworthy, so the end of a record's life is not a deletion: the composition records the lawful end of the retention period, marks on the seal that covers the record exactly which of the records the seal protects were destroyed, and hands the destruction of the stored content to the method of destruction the organization running it has declared. What survives is the proof that the record existed and was destroyed lawfully, which is what the regulator asks for.
 
@@ -219,8 +219,7 @@ Term closed-state marker: compensated attestations and reported beyond horizon.
 ### Capability requirement
 
 ```
-Capability requirement 1: The wired Event Log instance MUST expose the open-upper-bound read.
-NOTE: open 2026-10-25-a — Event Log's Term query does not say whether a sequence-number range may omit its upper end, which the open-upper-bound read asks of it (Capability requirement 1).
+Deleted: Capability requirement 1. Event Log Invariant 5.1 owns it: under Event Log's Term query a sequence-number range carrying no upper end holds its lower end and everything above it, so every conforming Event Log instance answers the open-upper-bound read.
 Capability requirement 2: The deployment MUST alert on invalid-query from a composition-built query as a deployment fault.
 Capability requirement 3: The composition MUST NOT surface invalid-query from a composition-built query as an outcome of any action.
 Capability requirement 3a: The composition MUST land an invalid-query from a composition-built query where a failed read of that query lands.
@@ -1066,6 +1065,7 @@ Steps:
    ```
    read record step 5.1: IF a log entry EXISTS AND no retention record EXISTS THEN [Read Record] step 5 MUST return the audit record with retention status unresolved (compensation window).
    read record step 5.2: [Read Record] step 5 MUST NOT fabricate a retention.
+   NOTE: open 2026-10-25-c — over unreadable data, step 5.1 returns an audit record whose action reference, actor reference and attestation id sit in that unreadable data field, where step 4.7 answers a Retained retention over unreadable data no answer (read record step 5.1, read record step 4.7, Invariant 6.1).
    ```
 6. **No verification** (read record 4). [Read Record] presents; [Verify Record] proves. The split is forced by Invariant 7 — verification needs the original payload re-presented, and a read surface that fetched it internally would destroy the asymmetry the composition exists to surface.
 
@@ -2121,14 +2121,14 @@ The composition is the structural form of what every major audit regime requires
 
 ## Status
 
-`grounded on Final Critique 47 — 2026-10-25` — see the Ledger.
+`grounded on Final Critique 48 — 2026-10-25` — see the Ledger.
 
 ## Ledger
 
 ```
-status: grounded on Final Critique 47 — 2026-10-25
+status: grounded on Final Critique 48 — 2026-10-25
 formal: verified — audit-trail.tla + 2 twins (cascade; scan first half) and audit-trail-record.tla + 3 twins (record action, one step under Execution Contract Store 1; scan second and third halves; re-derived 2026-10-20) and audit-trail-binding.tla + 2 twins (binding-set predicate against an in-flight cascade), re-derived against the fresh-reader gates of rounds 9 to 18, and audit-trail-hold.tla + 5 twins + 3 probes (a hold placed over an open cascade entry, released and re-driven; 43,688 states within 15 ticks), derived from the page as it stands; the closure arithmetic — a leg's lease against its work (Instance start 18, 19, Per-act critical section 13a, 13b, 13d) and a finding's closure against closure sum with one dead run and one hold placement (Instance start 16) — enumerated by tools/harness/audit-trail-closure.py + 5 twins over 5,184 leg tuples and 5,184 schedule tuples at conforming constants, which no model reaches; the other cures of rounds 19 to 26 are carried on the NOT MODELED lists, not re-derived; models and enumerator last run 2026-10-24
-last gate: 2026-10-25 — Final Critique 47 — foundational count 0, clean, one sample
+last gate: 2026-10-25 — Final Critique 48 — foundational count 0, clean, one sample
 
 open:
 - 2026-10-03-d · refining · Second half 18; Term dependency outage · content lost with no cascade and not restorable leaves the second half writing no compensation with nothing to end it → a standing for content lost without record; contract-shaped, own round
@@ -2151,12 +2151,12 @@ open:
 - 2026-10-04-p · refining · Capability requirement 7; Non-goal 15 · the hold-gate wiring is an extraction candidate, the Hold-Aware Audit Retention pattern Defensible Retention names as a non-goal → own round
 - 2026-10-04-q · rhetorical · the body · process history (a lang version), labels out of order (13h before 13g, 2.13 before 2.11, 0.10 before 0.9) → rewrite on the next load-bearing touch
 - 2026-08-30-d · refining · Invariant 8 liveness; the scan's first half · a delegation whose outcome record was never written is re-driven "until a `destroyed` outcome lands" against content the mechanism may only ever answer `destruction-failed` for → an *abandoned* record under the operator identity after a declared bound, the arm degrading to *surfaced* (the already-destroyed case closed by erasure mechanism 7a on 2026-10-01; a mechanism that only ever answers `destruction-failed` breaks erasure mechanism 10 since 2026-10-24, so what remains is the terminus its divergence lacks); contract-shaped — ripples to every composer that transcribes Invariant 8's unconditional lawfully-destroyed-versus-missing distinction, own round
-- 2026-10-05-a · refining · the signature block; Capability requirement 1; Composes · a composing layer's read by sequence range has no entry on this composition's surface and is reached through Event Log's read by implication, and what that read answers for a destroyed event is unstated → declare the read; reported by Defensible Retention's and Resolve a Person's Data Rights' gates
+- 2026-10-05-a · refining · the signature block; Term open-upper-bound read; Composes · a composing layer's read by sequence range has no entry on this composition's surface and is reached through Event Log's read by implication, and what that read answers for a destroyed event is unstated → declare the read; reported by Defensible Retention's and Resolve a Person's Data Rights' gates
 - 2026-10-05-b · refining · retention policy 6; purge event · no order is stated for destroying an intent against its outcome, and nothing binds the period of co-tenant events on one instance → state the order, or that there is none; reported by the same gates
 - 2026-10-23-a · refining · Term terms; the Vocabulary · most declared terms carry no term entry, where spec-format's Terms item asks one per declared term and every specification writes one per name a bracket marker lands on → add the entries, each with a Kind the term entry grammar admits, or read the item as the bracketed names
 - 2026-10-24-a · refining · purge eligible 1, purge eligible 2; the [Purge Eligible] signature · [Purge Eligible] answers every eligible event id at once, with no bound and no paging, through Retention Window's read of every retention → a bound, or a paged or keyed read, decided with Retention Window's 2026-10-05-a (its read has no key) and in Actor Identity's 2026-10-20-f form
-- 2026-10-25-a · refining · Capability requirement 1; Term open-upper-bound read; Term full enumeration · Event Log's Term query names no malformed shape for a sequence-number range without an upper end, and its *A range holds both its ends* has read to five readers in four rounds (Final Critiques 43 to 46) as asking for both, so each read Capability requirement 1 as asking the atom for a read it does not serve → Event Log's to say, in its Term query, whether a range may omit its upper end (its own round); until then Capability requirement 1 has the deployment wire an instance that serves the read
 - 2026-10-25-b · refining · seal cadence 3; record action step 6.6; Unsealed tail 1 · under per-event cadence a step-6 seal that failed on a log that then goes quiet stands until a later [Record Action], [Purge Event] or [Seal Now] seals the event, and no rule obliges one, so under strict the event answers failed-verification(unsealed) for as long as the deployment calls none → decide whether per-event owes a retry driver, as seal cadence 4 owes interval-based one, or the standing alert and Unsealed tail 1's watch are the design (the 2026-10-01 entry withdrew the scan's per-run [Seal Now])
+- 2026-10-25-c · refining · read record step 5.1; read record step 4.7; Invariant 6.1; Term audit record · a log entry with no retention record over unreadable data, a deployment fault the scan surfaces (Second half 18; Term dependency outage), has step 5.1 return an audit record whose action reference, actor reference and attestation id sit in that unreadable data field (Term full constructed payload), its event to attestation entry one the refused [Record Action] never wrote and the rebuild cannot take from an unreadable payload (event to attestation 1, 2b), where step 4.7 answers a Retained retention over unreadable data no answer → decide whether the compensation-window read withholds its record as an outage, as step 4.7 does, widening Invariant 6.1's carve-out, or returns a record of what can still be read, declared in Term audit record
 ```
 
 ## Decisions
