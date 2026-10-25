@@ -220,6 +220,7 @@ Term closed-state marker: compensated attestations and reported beyond horizon.
 
 ```
 Capability requirement 1: The wired Event Log instance MUST expose the open-upper-bound read.
+NOTE: open 2026-10-25-a — Event Log's Term query does not say whether a sequence-number range may omit its upper end, which the open-upper-bound read asks of it (Capability requirement 1).
 Capability requirement 2: The deployment MUST alert on invalid-query from a composition-built query as a deployment fault.
 Capability requirement 3: The composition MUST NOT surface invalid-query from a composition-built query as an outcome of any action.
 Capability requirement 3a: The composition MUST land an invalid-query from a composition-built query where a failed read of that query lands.
@@ -668,7 +669,7 @@ Every recording-failure carries its step (record action 1). A caller other than 
 | | an invalid-query, at the open-upper-bound read | the same, a deployment fault | Capability requirement 2, 3, 3a |
 | a call before the seal call | no answer, where no row above names its arm | [Recording Failure], no further write | seal now 28 |
 
-After every rejection but one whose coverage write gave no answer, sealed through does not move and no coverage entry is written (seal now 9, 10, 24); once the coverage entry has landed, [Seal Now] answers its evidence id though its lease expires or its clear is refused, the mark left set for the next taker's rebuild (seal now 8, 13, 20); and the mark is cleared only where the seal call wrote no evidence (seal now 16).
+After every rejection but one whose coverage write gave no answer, sealed through does not move and no coverage entry is written (seal now 9, 10, 24); once its coverage write has answered written, [Seal Now] answers its evidence id though its lease expires or its clear is refused, the mark left set for the next taker's rebuild (seal now 8, 13, 20); and the mark is cleared only where the seal call wrote no evidence (seal now 16).
 
 **[Read Record], [Verify Record] and [Purge Eligible]: what the reads answer.**
 
@@ -820,9 +821,9 @@ A cascade-failure(step-2) or cascade-failure(step-3) over an incomplete cascade 
 | remaining answers | [Seal Now] | [Purge Event] | a leg |
 |---|---|---|---|
 | live | the write (seal now 19) | the step's write (Per-act critical section 9b) | the write (Per-act critical section 13b) |
-| expired, none, or no answer (Term lease; Per-act critical section 16) | no further write and [Recording Failure], or, once the coverage entry has landed, the evidence id with the mark left set; a deployment fault and the bound declared anew (seal now 9, 19, 20, 25 through 27) | before step 1 commits, no step 1 and cascade-failure(step-1); after it, no further write and cascade-failure naming the first step not completed, which the scan re-drives (purge event 7a, 7b, 7c, 7d) | no further write, the act skipped for the rest of the run, a deployment fault (Per-act critical section 13b, 13c, 13e) |
+| expired, none, or no answer (Term lease; Per-act critical section 16) | no further write and [Recording Failure], or, once the coverage write has answered written, the evidence id with the mark left set; a deployment fault and the bound declared anew (seal now 9, 19, 20, 25 through 27) | before step 1 commits, no step 1 and cascade-failure(step-1); after it, no further write and cascade-failure naming the first step not completed, which the scan re-drives (purge event 7a, 7b, 7c, 7d) | no further write, the act skipped for the rest of the run, a deployment fault (Per-act critical section 13b, 13c, 13e) |
 
-**Leases: the release.** Every release leaves the holder's answer as it stands: no rule here refuses on a release's answer (Execution Contract Refusal 1), and once its coverage entry has landed [Seal Now] has no rejection open (seal now 8, 9, 20). A release that gives no answer reads the grant expired and is not issued again (Per-act critical section 16, 17). A holder releases on return (Per-act critical section 2b; seal now 21), save a cascade, or a first half re-driving one, whose delegation gave no answer: it keeps the lease to its instant (Per-act critical section 2a).
+**Leases: the release.** Every release leaves the holder's answer as it stands: no rule here refuses on a release's answer (Execution Contract Refusal 1), and once its coverage write has answered written [Seal Now] has no rejection open (seal now 8, 9, 20). A release that gives no answer reads the grant expired and is not issued again (Per-act critical section 16, 17). A holder releases on return (Per-act critical section 2b; seal now 21), save a cascade, or a first half re-driving one, whose delegation gave no answer: it keeps the lease to its instant (Per-act critical section 2a).
 
 ---
 
@@ -831,10 +832,10 @@ A cascade-failure(step-2) or cascade-failure(step-3) over an incomplete cascade 
 ```
 record_action(action_ref, actor_ref, credential, data)
   answers event_id
-  refuses invalid-credential | invalid-request(step) | recording-failure(step)
+  refuses invalid-credential | invalid-request(step, committed_ids) | recording-failure(step)
 ```
 
-An invalid-request refusal at step-3 or step-4 carries the committed ids, so a caller can read the partial state back rather than search for it: the attestation id from step-3 on, and the event id at step-4 (record action step 7.15, 7.16).
+Term committed ids: committed_ids — the ids of the writes an invalid-request refusal leaves committed, so a caller can read the partial state back rather than search for it: none at step-1 and step-2, the step-2 attestation id at step-3, and the step-2 attestation id and the step-3 event id at step-4 (record action step 7.10, 7.11, 7.15, 7.16).
 
 Validates the caller's primitives, attests the actor, appends the event, places the retention, links the three in the derived indexes, and under per-event cadence fires a seal.
 
@@ -1050,7 +1051,7 @@ Steps:
    read record step 4.6: IF the retention state EQUALS Purged at the re-read THEN [Read Record] step 4 MUST answer as for step 4.4.
    read record step 4.7: IF the retention state EQUALS Retained at the re-read THEN [Read Record] step 4 MUST answer no answer, the unreadable payload standing as an outage of Event Log (Term dependency outage).
    ```
-   Term audit record: the join of the event's action reference, actor reference, sequence number, recording instant and data where the content is still present; the attestation id from event to attestation; the retention record's retention id, policy reference, state, retention deadline, purge deadline and purge instant where set; and the coverage status.
+   Term audit record: the join of the event's action reference, actor reference, sequence number, recording instant and, for a live event, data (read record step 4.4c); the attestation id from event to attestation; the retention record's retention id, policy reference, state, retention deadline, purge deadline and purge instant where set; and the coverage status.
 
    Term coverage status: covered (the covering evidence id with the seal's full sequence-number range, sealing instant, and anchoring instant where the mechanism anchors) | unsealed tail (sequence number EXCEEDS sealed through) | records-purged (the event's own sequence number is a member of the covering seal's purged events) | partially purged (the event's sequence number is not a member while another member's is).
 
@@ -1971,7 +1972,7 @@ Term cadences: seal cadence, reconciliation cadence.
 
 Term qualifiers: migrated — rewritten in GRACE lang v0.35 (2026-09-11); `(compensation-window)` — carried beside a [Verify Record] outcome on a separate channel.
 
-Term terms: (each declared where it is used) audit log, attestation records, retention records, seal records, surviving fields, open-upper-bound read, full enumeration, derived index, extraction-pending, rebuild-on-miss, retention state, live, purged, purged events, covering seal, closed entry, sealed through, unsealed tail, reconciled, resolved policy, time arm, chained mechanism, verify-time presentation, mechanism class, independently trusted substrate, standing false negative, tombstone-by-mutation, `Event Log's data field`, `finding's creation`, serialized envelope, reference headroom, whole closure, `act's completion bound`, `act's kind`, lease, holder, pre-check, closure sum, full constructed payload, reserved namespace, reconciliation path, subject-kind discriminator, read-back, high-water mark, non-storage refusal, slice, tail position, audit record, coverage status, pair, partly-purged coverage, `Legal Hold`, hold, mid-cascade expiry, `cascade-failure(step-3)`, completed cascade, divergence, record edge, purge edge, horizon, purge age, attestation age, event age, binding set, orphan, true miss, owed narration, narrated, intent, quiescence, `recorded through [Record Action]`, audit edge, composition-built query, insert-only map, closed-state marker, reconciled policy, held critical section, truth-bearing write, `who / what / when`, seal disposal, re-sealing, dependency outage, compliance alert, verification surface outage, event standing, residual finding, seal stamps, extraction-pending fact, invocation, later write, malformed reference, standing finding, open entry, external evidence, sealing lock, uncovered mark, probe, cadence driver, no answer, call pause bound, closure floor, measured enumeration, work bound, closure spend, re-drive spend, suspended entry, content readable, unreadable, retention period, purge sweep, outage record; and now, the seam-injected reading (Clock source 1; the section titled Logic Confinement Principle in `execution-contract.md`).
+Term terms: (each declared where it is used) audit log, attestation records, retention records, seal records, surviving fields, open-upper-bound read, full enumeration, derived index, extraction-pending, rebuild-on-miss, retention state, live, purged, purged events, covering seal, closed entry, sealed through, unsealed tail, reconciled, resolved policy, time arm, chained mechanism, verify-time presentation, mechanism class, independently trusted substrate, standing false negative, tombstone-by-mutation, `Event Log's data field`, `finding's creation`, serialized envelope, reference headroom, whole closure, `act's completion bound`, `act's kind`, lease, holder, pre-check, closure sum, full constructed payload, reserved namespace, reconciliation path, committed ids, subject-kind discriminator, read-back, high-water mark, non-storage refusal, slice, tail position, audit record, coverage status, pair, partly-purged coverage, `Legal Hold`, hold, mid-cascade expiry, `cascade-failure(step-3)`, completed cascade, divergence, record edge, purge edge, horizon, purge age, attestation age, event age, binding set, orphan, true miss, owed narration, narrated, intent, quiescence, `recorded through [Record Action]`, audit edge, composition-built query, insert-only map, closed-state marker, reconciled policy, held critical section, truth-bearing write, `who / what / when`, seal disposal, re-sealing, dependency outage, compliance alert, verification surface outage, event standing, residual finding, seal stamps, extraction-pending fact, invocation, later write, malformed reference, standing finding, open entry, external evidence, sealing lock, uncovered mark, probe, cadence driver, no answer, call pause bound, closure floor, measured enumeration, work bound, closure spend, re-drive spend, suspended entry, content readable, unreadable, retention period, purge sweep, outage record; and now, the seam-injected reading (Clock source 1; the section titled Logic Confinement Principle in `execution-contract.md`).
 
 NOTE: open 2026-10-23-a — most declared terms carry no term entry, where spec-format's Terms item asks one per declared term (Term terms).
 
@@ -1981,7 +1982,7 @@ Term slice reference: slice_ref — the reference naming the slice a seal covers
 
 #### Record Action
 
-The composition's core action: validates the caller's primitives, attests the actor, appends the event, places the retention, links the three in the derived indexes, and under per-event cadence fires a seal over the slice the firing cuts. Returns the new event id; invalid-credential before anything is recorded; invalid-request carrying the step — nothing recorded at step-1 or step-2, the attestation committed at step-3 and the event too at step-4; [Recording Failure] carrying the step where a database refused or a registry could not be read. A seal failure at step 6 does not reject the call.
+The composition's core action: validates the caller's primitives, attests the actor, appends the event, places the retention, links the three in the derived indexes, and under per-event cadence fires a seal over the slice the firing cuts. Returns the new event id; invalid-credential before anything is recorded; invalid-request carrying the step and the committed ids — nothing recorded at step-1 or step-2, the attestation committed at step-3 and the event too at step-4; [Recording Failure] carrying the step where a database refused or a registry could not be read. A seal failure at step 6 does not reject the call.
 
 Kind: Operation
 
@@ -2023,7 +2024,7 @@ Kind: Type
 
 #### Recording Failure
 
-The composition's rejection for *a database refused the write*, a registry a constituent reads at its seam could not be read, or a call gave no answer, carrying the step from [Record Action] only: on any constituent storage-failure, registry-unavailable or no answer, nothing committed; from [Seal Now], bare, when the seal records would not persist a computed proof or its coverage entry, when the sealing lock is not taken or its lease expires before the coverage entry has landed, or when a call it issues gives no answer (seal now 20, 24, 28). The surface that failed is a database, a registry or a lease, not a mechanism.
+The composition's rejection for *a database refused the write*, a registry a constituent reads at its seam could not be read, or a call gave no answer, carrying the step from [Record Action] only: on any constituent storage-failure, registry-unavailable or no answer, nothing committed; from [Seal Now], bare, when the seal records would not persist a computed proof or its coverage entry, when the sealing lock is not taken or its lease expires before the coverage entry has landed, or when a call it issues before the clear of the uncovered mark gives no answer (seal now 20, 24, 28). The surface that failed is a database, a registry or a lease, not a mechanism.
 
 Kind:       Member
 Member of:  the record-action and seal rejections
@@ -2126,7 +2127,7 @@ The composition is the structural form of what every major audit regime requires
 ```
 status: partially resolved
 formal: verified — audit-trail.tla + 2 twins (cascade; scan first half) and audit-trail-record.tla + 3 twins (record action, one step under Execution Contract Store 1; scan second and third halves; re-derived 2026-10-20) and audit-trail-binding.tla + 2 twins (binding-set predicate against an in-flight cascade), re-derived against the fresh-reader gates of rounds 9 to 18, and audit-trail-hold.tla + 5 twins + 3 probes (a hold placed over an open cascade entry, released and re-driven; 43,688 states within 15 ticks), derived from the page as it stands; the closure arithmetic — a leg's lease against its work (Instance start 18, 19, Per-act critical section 13a, 13b, 13d) and a finding's closure against closure sum with one dead run and one hold placement (Instance start 16) — enumerated by tools/harness/audit-trail-closure.py + 5 twins over 5,184 leg tuples and 5,184 schedule tuples at conforming constants, which no model reaches; the other cures of rounds 19 to 26 are carried on the NOT MODELED lists, not re-derived; models and enumerator last run 2026-10-24
-last gate: 2026-10-25 — Final Critique 45 — foundational count 0, clean, no sample
+last gate: 2026-10-25 — Final Critique 46 — foundational count 1, not clean, no sample
 
 open:
 - 2026-10-03-d · refining · Second half 18; Term dependency outage · content lost with no cascade and not restorable leaves the second half writing no compensation with nothing to end it → a standing for content lost without record; contract-shaped, own round
@@ -2153,6 +2154,7 @@ open:
 - 2026-10-05-b · refining · retention policy 6; purge event · no order is stated for destroying an intent against its outcome, and nothing binds the period of co-tenant events on one instance → state the order, or that there is none; reported by the same gates
 - 2026-10-23-a · refining · Term terms; the Vocabulary · most declared terms carry no term entry, where spec-format's Terms item asks one per declared term and every specification writes one per name a bracket marker lands on → add the entries, each with a Kind the term entry grammar admits, or read the item as the bracketed names
 - 2026-10-24-a · refining · purge eligible 1, purge eligible 2; the [Purge Eligible] signature · [Purge Eligible] answers every eligible event id at once, with no bound and no paging, through Retention Window's read of every retention → a bound, or a paged or keyed read, decided with Retention Window's 2026-10-05-a (its read has no key) and in Actor Identity's 2026-10-20-f form
+- 2026-10-25-a · refining · Capability requirement 1; Term open-upper-bound read; Term full enumeration · Event Log's Term query names no malformed shape for a sequence-number range without an upper end, and its *A range holds both its ends* has read to five readers in four rounds (Final Critiques 43 to 46) as asking for both, so each read Capability requirement 1 as asking the atom for a read it does not serve → Event Log's to say, in its Term query, whether a range may omit its upper end (its own round); until then Capability requirement 1 has the deployment wire an instance that serves the read
 ```
 
 ## Decisions
