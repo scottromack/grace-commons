@@ -16,7 +16,7 @@ toc: true
 
 ## Summary
 
-Legal Hold is a formal instruction to keep a specific record intact — overriding any normal deletion schedule — until the legal matter that triggered it is resolved. When a lawsuit is anticipated, a regulator opens an investigation, or a team needs to freeze evidence, the normal "delete after N years" rule stops applying. The hold records the shift: who issued it, against which record, why, and under what authority. A hold is either [Active] (preservation in effect) or [Released] (lifted, permanently — it cannot be reactivated). Both placing and releasing are attributed, timestamped, and never altered afterward, so the full arc of any preservation obligation is provable. Multiple holds can cover the same record independently — a record under both an internal investigation and a government investigation has two separate obligations, and releasing one leaves the other in force, which is exactly what multi-party legal situations require. The pattern does not itself block deletion; it records that an obligation exists, and the system that actually deletes records is responsible for checking for [Active] holds first. This is the mechanism behind managing the holds a lawsuit sets off, keeping the records of a data breach while it is investigated, and any setting where destroying a record during an active legal obligation exposes the organization to penalties.
+Legal Hold records a formal instruction to keep one record intact, overriding any normal deletion schedule, until the legal matter behind it ends. When a lawsuit is expected, a regulator opens an investigation, or a team must freeze evidence, someone places a hold that records who placed it, on which record, why and when, and, where one exists, the legal matter it belongs to. A hold stays in effect until someone releases it, recording who released it, why and when; a released hold can never be put back in effect, and nothing recorded about the placing or the releasing can be changed afterward, so the whole history of an obligation can be checked later from the hold records. Several holds can cover one record at once: a record wanted by both an internal investigation and a government inquiry carries two holds, and releasing one leaves the other in force. The pattern does not stop a deletion itself; it records that the obligation exists, and the system that deletes records must check for holds still in effect first. This is the mechanism behind managing the holds a lawsuit sets off, keeping the records of a data breach while it is investigated, and any setting where destroying a record during an active legal obligation exposes the organization to penalties.
 
 ---
 
@@ -62,7 +62,7 @@ State 1: EVERY hold MUST stand in EXACTLY ONE OF active, released.
 State 2: EVERY hold MUST carry hold id, record reference, placing actor, hold reason, placement instant and state.
 State 3: A hold MAY carry case reference.
 State 4: A released hold MUST carry releasing actor, release reason and release instant.
-State 5: An active hold MUST NOT carry release instant.
+State 5: An active hold MUST NOT carry a release field.
 State 7: The atom MUST NOT delete a hold.
 State 8: The atom MUST NOT hold an aggregate for a record.
 Deleted: State 6. Invariant 3.2 owns the absent re-activation.
@@ -84,6 +84,8 @@ Term releasing actor: the opaque reference naming who ended the obligation — a
 Term release reason: the ground the obligation ended on — a [Release Reason].
 
 Term release instant: the instant the obligation was documented as ended — a [Release Instant].
+
+Term release field: releasing actor | release reason | release instant — every field a release records.
 
 ### Capability requirement
 
@@ -258,6 +260,8 @@ Instance 7: IF the answered database name DOES NOT EQUAL the record's database i
 
 Term database instance: one named database — a [Database Name] identifies it; a deployment runs one per organization, jurisdiction or business unit.
 
+Term database name: the identifier naming one database instance — a [Database Name]; deployment routing, never an input and never a stored field.
+
 ## Examples
 
 ### Happy path — litigation hold through release
@@ -276,7 +280,7 @@ After hold-001 is [Released], counsel's paralegal system retries: `release("hold
 
 ### Rejection path — place with empty reason
 
-`place(record_ref: "doc-0099", placed_by: "compliance_chen", reason: "   ")` → invalid-request. Whitespace-only reason is treated as empty. No hold is created.
+`place(record_ref: "doc-0099", placed_by: "compliance_chen", reason: "   ")` → invalid-request. Whitespace-only reason is treated as empty, as is whitespace-only input wherever a blank is refused (Operation 4 through 7, 12, 15 and 16). No hold is created.
 
 ### Rejection path — release with future timestamp
 
@@ -433,7 +437,7 @@ Term cadences: empty.
 
 Term qualifiers: migrated — rewritten in GRACE lang v0.35 (2026-09-12).
 
-Term terms: database instance, hold, hold id, record reference, seam, transition, business caller, now, hold state, placing actor, hold reason, placement instant, case reference, releasing actor, release reason, release instant, query, resolved release instant, admitted axis, held at an instant.
+Term terms: database instance, database name, hold, hold id, record reference, seam, transition, business caller, now, hold state, placing actor, hold reason, placement instant, case reference, releasing actor, release reason, release instant, release field, query, resolved release instant, admitted axis, held at an instant.
 
 #### Place
 
@@ -667,14 +671,14 @@ Projection: invalid-query
 
 ## Status
 
-`partially resolved` — see the Ledger.
+`grounded on Final Critique 8 — 2026-10-24` — see the Ledger.
 
 ## Ledger
 
 ```
-status: partially resolved
+status: grounded on Final Critique 8 — 2026-10-24
 formal: verified — legal-hold.tla + 2 twins, 2026-06-04
-last gate: 2026-10-24 — Final Critique 7 — foundational count 2, not clean, no sample
+last gate: 2026-10-24 — Final Critique 8 — foundational count 0, clean, one sample
 
 open:
 - 2026-10-05-a · refining · State 2; Operation 10 · a hold carries a placement instant a caller may assert and no instant the system stamped at entry, so a composing pattern cannot age or order a hold whose audit record is gone → an entry instant; reported by Defensible Retention's gate

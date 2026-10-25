@@ -780,7 +780,7 @@
    "defensible-retention"
   ],
   "domain": null,
-  "grounded": false,
+  "grounded": true,
   "invariants": 8,
   "kind": "atom",
   "models": {
@@ -800,7 +800,7 @@
    "SEC 17a-4",
    "SOX"
   ],
-  "status": "partially resolved",
+  "status": "grounded on Final Critique 8 \u2014 2026-10-24",
   "title": "Legal Hold"
  },
  "login": {
