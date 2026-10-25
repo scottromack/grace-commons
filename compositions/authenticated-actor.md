@@ -169,7 +169,7 @@ Action wiring 5: IF Credential's register answers duplicate-active-credential TH
 Action wiring 6: IF Credential's verify answers failed-verification THEN an admitted registration MUST answer invalid-credential naming the existing credential.
 Action wiring 7: IF Credential's verify answers verified THEN an admitted registration MUST bind the existing credential's credential id.
 Action wiring 8: The composition MUST NOT answer duplicate-active-credential.
-Action wiring 9: An admitted registration MUST write the binding ONLY AFTER Credential's register commits.
+Action wiring 9: IF Credential's register answers a credential id THEN an admitted registration MUST write the binding ONLY AFTER Credential's register commits.
 Deleted: Action wiring 10. Execution Contract Database 2 owns it.
 Action wiring 11: IF the binding write fails THEN an admitted registration MUST answer storage-failure naming the binding.
 Deleted: Action wiring 12. Execution Contract Database 2 owns it: an action's guard reads and the writes they decide are one transaction, and the composition names no critical section to lapse.

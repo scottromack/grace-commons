@@ -579,7 +579,7 @@ Deleted: Reconciliation 13. Execution Contract Database 2 owns it.
 Deleted: Reconciliation 14. Execution Contract Database 2 owns it.
 Reconciliation 15: IF the pre-check finds an outcome THEN the sweep MUST NOT record an outcome.
 Reconciliation 16: IF the pre-check finds an outcome THEN the sweep MUST write the suspended entry.
-Reconciliation 17: The sweep MUST record a recovery intent ONLY AFTER the pre-check.
+Reconciliation 17: IF the pre-check finds no outcome THEN the sweep MUST record a recovery intent ONLY AFTER the pre-check.
 Reconciliation 18: The sweep MUST revoke a member ONLY AFTER the landed recovery intent.
 Reconciliation 19: A recovery intent MUST carry the cascade's invocation id, the intent event id, the suspended actor AND the members the sweep opens.
 Reconciliation 20: The sweep MUST attest a record under the service identity.

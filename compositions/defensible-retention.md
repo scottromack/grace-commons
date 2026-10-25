@@ -583,7 +583,7 @@ Reconciliation 7: The sweep MUST NOT match an intent to an outcome by an input.
 Reconciliation 8: The sweep MUST read the constituent records for the act an open marker names.
 Reconciliation 9: IF the act did not commit THEN the sweep MUST close the open marker as intent abandoned.
 Deleted: Reconciliation 10. Execution Contract Database 1 owns it.
-Reconciliation 11: The sweep MUST emit EXACTLY ONE recovery outcome PER committed act carrying no outcome.
+Reconciliation 11: IF the constituents' records carry EVERY datum a recovery outcome needs THEN the sweep MUST emit EXACTLY ONE recovery outcome PER committed act carrying no outcome.
 Deleted: Reconciliation 12. Reconciliation 9 owns it.
 Reconciliation 13: A recovery outcome MUST carry the candidate marker's invocation id.
 Reconciliation 14: A recovery outcome MUST carry the candidate marker's actor reference as attributed actors.
@@ -1002,7 +1002,7 @@ Concurrency 20: IF the lease reading EQUALS expired ahead of an act's first comm
 Concurrency 21: IF the record start floor admits no first call of an act's first record_action THEN the action MUST answer section-unavailable.
 Concurrency 22: IF a call in flight EXISTS under the grant THEN the composition MUST NOT release the record section (Lease Composition note 5c).
 Concurrency 23: The composition MUST NOT issue a write under a grant the composition released (Lease Composition note 5f).
-Concurrency 24: The composition MUST release the record section ONLY AFTER the act's last call answered.
+Concurrency 24: IF no record_action under the record section answers recording-failure carrying step-3 THEN the composition MUST release the record section ONLY AFTER the act's last call answered.
 Concurrency 25: IF a record_action under the record section answers recording-failure carrying step-3 THEN the composition MUST NOT release the record section.
 Concurrency 26: A placement MUST NOT read the record's retentions BEFORE taking the record section.
 Concurrency 27: A purge MUST NOT record an intent BEFORE reading the retention state of EVERY retention over the record under the record section.

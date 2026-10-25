@@ -449,7 +449,7 @@ Reconciliation 23: A compensating event MUST carry the recovery flag, the acting
 Reconciliation 24: The reconciliation MUST re-derive a compensating event from the Provenance entry AND the intent's payload.
 Reconciliation 25: The reconciliation MUST NOT record a compensating event BEFORE re-reading the custody enumeration for an outcome carrying the entry id.
 Reconciliation 26: IF the re-read finds an outcome carrying the entry id THEN the reconciliation MUST bind the entry to the found outcome.
-Reconciliation 27: The reconciliation MUST write the binding ONLY AFTER the compensating event lands.
+Reconciliation 27: IF the reconciliation records a compensating event THEN the reconciliation MUST write the binding ONLY AFTER the compensating event lands.
 Reconciliation 28: The reconciliation MUST escalate EVERY overdue orphan as an unresolved finding.
 ```
 

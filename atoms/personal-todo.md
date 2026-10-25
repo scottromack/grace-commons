@@ -59,7 +59,7 @@ State 2: EVERY unit MUST carry id, description and addition instant.
 State 3: A unit MAY carry last edit instant.
 State 4: A done unit MUST carry completion instant.
 State 5: [Add] MUST stamp addition instant from the injected now.
-State 6: [Edit] MUST stamp last edit instant from the injected now.
+State 6: IF the normalized new description DOES NOT EQUAL the unit's description THEN [Edit] MUST stamp last edit instant from the injected now.
 State 7: [Complete] MUST stamp completion instant from the injected now.
 State 8: [Delete] MUST take the unit out of the list.
 State 9: The atom MUST NOT offer a done-to-pending transition.
@@ -125,9 +125,9 @@ Operation 8: IF the unit state EQUALS done THEN [Edit] MUST answer not-editable.
 Operation 9: IF the unit state EQUALS pending AND the normalized new description matches another unit in the active set THEN [Edit] MUST answer duplicate-active.
 Operation 9a: IF the unit state EQUALS pending AND the normalized new description DOES NOT EQUAL the unit's description AND the normalized new description fails the description policy THEN [Edit] MUST answer invalid-description.
 Operation 10: IF the unit state EQUALS pending AND the normalized new description EQUALS the unit's description THEN [Edit] MUST answer ok.
-Operation 11: [Edit] MUST NOT write for a new description equal to the unit's description.
-Operation 12: [Edit] MUST NOT stamp last edit instant for a new description equal to the unit's description.
-Operation 13: [Edit] MUST replace the unit's description.
+Operation 11: IF the normalized new description EQUALS the unit's description THEN [Edit] MUST NOT write.
+Operation 12: IF the normalized new description EQUALS the unit's description THEN [Edit] MUST NOT stamp last edit instant.
+Operation 13: IF the normalized new description DOES NOT EQUAL the unit's description THEN [Edit] MUST replace the unit's description.
 Operation 14: [Edit] MUST leave the unit standing in pending.
 Operation 15: IF no unit EXISTS for the id THEN [Complete] MUST answer not-known.
 Operation 16: IF the unit state EQUALS done THEN [Complete] MUST answer not-pending.
@@ -376,7 +376,7 @@ Kind: Operation
 
 #### Edit
 
-The behavior that revises a [Pending] unit's [Description]. It replaces the value with the normalized [New Description] and stamps [Last Edit Instant]; the unit's state and [Id] are unchanged.
+The behavior that revises a [Pending] unit's [Description]. Where the normalized [New Description] differs from the description, it replaces the value and stamps [Last Edit Instant]; where it does not, the edit answers ok and writes nothing. The unit's state and [Id] are unchanged.
 
 Kind: Operation
 

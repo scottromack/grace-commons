@@ -174,7 +174,7 @@ Operation 12: IF the database refuses the write THEN [Issue] MUST answer storage
 Operation 13: [Validate] MUST answer EXACTLY ONE OF valid, expired, revoked, not-known.
 Operation 14: IF the session token names no session THEN [Validate] MUST answer not-known.
 Operation 15: IF the session's status EQUALS revoked THEN [Validate] MUST answer revoked.
-Operation 16: IF the session is lapsed THEN [Validate] MUST answer expired.
+Operation 16: IF the session is lapsed AND the session's status EQUALS active THEN [Validate] MUST answer expired.
 Operation 17: [Validate] MUST answer expired ONLY IF the session's status EQUALS active.
 Operation 18: [Validate] MUST answer valid ONLY IF the session's status EQUALS active AND the session is not lapsed.
 Operation 19: [Validate] MUST carry principal reference and expiry instant in a valid answer.

@@ -134,7 +134,6 @@ Operation 11: IF no line EXISTS for the line id THEN a line action MUST answer n
 Operation 12: IF the new quantity IS NOT IN the positive counts THEN [Change Quantity] MUST answer invalid-quantity.
 Operation 13: IF the new quantity DOES NOT EQUAL the line's quantity THEN [Change Quantity] MUST set quantity to the new quantity.
 Operation 14: IF the new quantity EQUALS the line's quantity THEN [Change Quantity] MUST NOT write.
-NOTE: watch the unstated exception (Operation 13).
 Operation 15: [Change Quantity] MUST answer ok.
 Operation 16: [Remove] MUST remove the line.
 Operation 17: [Remove] MUST answer ok.

@@ -265,7 +265,7 @@ Deleted: Action wiring 16. Execution Contract Database 1 owns it.
 Deleted: Action wiring 17. Execution Contract Database 1 owns it.
 Action wiring 18: IF the journal holds a reserve outcome entry for the token AND no binding entry EXISTS for the entry's reservation id THEN [Reserve] MUST write the binding entry from the outcome entry.
 Action wiring 19: IF the journal holds the action's intent entry for the token AND no resolving entry names the token THEN the action MUST settle recording-failure carrying outcome.
-Action wiring 20: A state-changing action MUST call Actor Identity's attest with the action reference, the actor reference AND the credential.
+Action wiring 20: IF Duplicate Prevention's check answers not-seen AND the journal holds no entry for the token THEN a state-changing action MUST call Actor Identity's attest with the action reference, the actor reference AND the credential.
 Action wiring 21: A state-changing action MUST NOT call a constituent write BEFORE Actor Identity's attest answers the attestation id.
 Action wiring 22: IF Actor Identity answers invalid-credential THEN the action MUST answer invalid-credential.
 Action wiring 23: IF Actor Identity answers invalid-request THEN the action MUST answer invalid-request.

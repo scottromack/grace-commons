@@ -629,7 +629,7 @@ NOTE: repeated cures are flagged (`NOTE: watch <name>` beside the strained rule)
 - **addressable sections**: a rule naming a section, where the grammar labels rules and nothing labels a section. One: Recoverable Invocation.
 - **position scoping**: every rule of a family scoped by a condition on position. One: Recoverable Invocation.
 - **negative capability**: an obligation to discard a reply already in hand. One: Recoverable Invocation.
-- **rule inheritance**: one action's rules restated for another, where the grammar has no inheritance form. One: Recoverable Invocation.
+- **rule inheritance**: one action's rules restated for another, where the grammar has no inheritance form. Two: Preference-Aware Notification Fanout (Action wiring 54) and Recoverable Invocation.
 - **event versus state**: where the distinction matters enough that declared terms alone become awkward. None flagged.
 - **contradiction**: two rules normalizing to `X MUST a` and `X MUST NOT a` under identical conditions. None found.
 - **the wire layer**: a term entry's `Projection:` line and the `Wire: pinned` field, with no naming convention of the layer's own. Fifty-three documents at council read 101; no finding against the layer itself yet.
@@ -656,7 +656,6 @@ NOTE: repeated cures are flagged (`NOTE: watch <name>` beside the strained rule)
 - **the blank id**: a not-known rule held off a blank identifier, so a blank id answers its blank-input refusal ahead of not-known though the refuses line lists not-known first. Three: Legal Hold (Operation 13), Medication Order (Operation 12) and Party Identity (Operation 12).
 - **the range's ends**: a read's range filter with nothing saying whether its ends lie inside it or how two filters combine, so one query answers two sets in two builds. Two: Event Log (Term query) and Legal Hold (Term query); the question stands open on Consent, Observation, Party Identity, Provenance and State Machine.
 - **the instant left blank**: a caller's optional instant resolved from the injected now when the call leaves it blank, a rule each specification writes for itself. Three: Consent (Operation 21, Operation 38), Legal Hold (Operation 9, Operation 18a) and Medication Order (Operation 4).
-- **the unstated exception**: an unconditional rule beside a narrower rule that forbids or replaces the same act in one state, which the grammar reads as two obligations and never as an exception (Principle 5, Hard invariant 20), so each cure writes the state into the first rule. Three: Audit Trail (purge event step 0.6, 0.7, 2.1, 3.1 and 3.6, Per-act critical section 15), Cart (Operation 13) and Recoverable Invocation (reconcile step 2.1, Allowance 5).
 - **the registry outage**: a constituent's registry-unavailable, which Actor Identity's attest and Retention Window's place_under_retention answer when the host cannot read the registry at the seam, landed by no rule of the composition that calls it, so one build answers a code its signature does not carry and another a refusal its caller reads as final; each cure lands it where the composition lands that constituent's storage-failure. Two: Audit Trail (record action step 2.14, 4.10) and Defensible Retention (Action wiring 16a).
 
 ---

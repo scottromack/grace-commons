@@ -128,7 +128,7 @@ Action wiring 4: IF the subscription records answer unavailable THEN [Fanout] MU
 Action wiring 5: A subscribers-unavailable answer MUST NOT carry a fanout id.
 Action wiring 6: A subscribers-unavailable answer MUST NOT follow a create.
 Action wiring 7: An admitted fanout MUST call Notification's create EXACTLY ONE time per subscriber reference the subscribers_for answer carries.
-Action wiring 8: An admitted fanout MUST call Notification's create with the payload.
+Action wiring 8: IF the subscribers_for answer carries a subscriber reference THEN an admitted fanout MUST call Notification's create with the payload.
 Action wiring 9: An admitted fanout MUST NOT call Notification's create for a subscriber reference the subscribers_for answer does not carry.
 Action wiring 10: IF Notification's create answers a notification id THEN an admitted fanout MUST record the notification id in the created list.
 Action wiring 11: IF Notification's create answers otherwise THEN an admitted fanout MUST record the subscriber reference in the failed list.

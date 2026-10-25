@@ -114,6 +114,12 @@ v0.34 (2026-09-11): labels are words — the name of the heading a rule sits und
 NOTE:
 v0.27–v0.33, the council's reads and the labels before v0.34 are archived in git history (`git log -- GRACE-lang.md`, last commit before the relabel `e80fd21`).
 
+## Left the Watch list at the exception sweep, 2026-10-25
+
+The maintainer ruled on 2026-10-25 (12:55Z) that the unstated exception is cured across the corpus in one unit, with a check that flags the pairs and the exception written into the broader rule, and no grammar change. The sweep that landed it removed every flag the name carried.
+
+- **The unstated exception**, counted at three: an unconditional rule beside a narrower rule that forbids or replaces the same act in one state, which the grammar reads as two obligations and never as an exception (Principle 5, Hard invariant 20), so each cure writes the state into the first rule — Audit Trail (purge event step 0.6, 0.7, 2.1, 3.1 and 3.6, Per-act critical section 15), Cart (Operation 13) and Recoverable Invocation (reconcile step 2.1, Allowance 5). Now `check.py`'s `W-unstated-exception` flags each candidate pair for a reader, and the sweep wrote the narrower rule's state into the broad rule, as the rule's IF condition, at every site its reading found: Personal Todo (State 6, Operation 11 through 13), Session (Operation 16), Capability (Operation 26), Notification Fanout (Action wiring 8), Login (Action wiring 34), Capability-Backed Sharing (Reconciliation 9), Chain of Custody (Reconciliation 27), Authenticated Actor (Action wiring 9), Preference-Aware Notification Fanout (Action wiring 15, Reconciliation 24 and 31), Resolve a Person's Data Rights (Reconciliation 18), Reserve from Pool (Action wiring 20), Actor Suspension (Reconciliation 17), Defensible Retention (Reconciliation 11, Concurrency 24), Multi-Party Approval (Action wiring 35 and Term terminating evaluation), Attributed Permissions Admin (Action wiring 79, through Term consistent attribution), Recoverable Invocation (close step 3.1 and 4.3, reconcile step 3.1) and Audit Trail (Second half 4 and 13, read record step 4.1 through 4.3, verify record step 3.5). The earlier cures that state their exception in the rule's own words stand as written.
+
 ## Left the Watch list at the contract sweep, 2026-10-25
 
 The maintainer ruled on 2026-10-25 that two repeated cures are each stated once in the Execution Contract, under the maintainer's rule that how the system behaves goes there, and the sweep that landed them removed every flag the two carried.

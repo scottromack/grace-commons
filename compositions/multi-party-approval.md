@@ -369,7 +369,7 @@ Action wiring 31: IF the trailing flag EQUALS true THEN a decided decision MUST 
 Action wiring 32: A landed decision MUST answer the step write's answer.
 Deleted: Action wiring 33. Execution Contract Database 2 owns it.
 Action wiring 34: IF the chain state DOES NOT EQUAL Pending THEN the chain evaluation MUST NOT write.
-Action wiring 35: IF the quorum rule answers a terminal state on the routed vector THEN the chain evaluation MUST set the chain state to the terminal state AND the terminal instant to now.
+Action wiring 35: IF the chain state EQUALS Pending AND the quorum rule answers a terminal state on the routed vector THEN the chain evaluation MUST set the chain state to the terminal state AND the terminal instant to now.
 Action wiring 36: The chain evaluation MUST NOT run the cascade BEFORE setting the chain state.
 Action wiring 37: A terminating evaluation MUST run the cascade with the rule reason.
 Action wiring 38: A terminating evaluation MUST record the resolution event carrying the invocation id, the chain id, the chain state, the terminal instant, the rule reason, the recalled step ids AND the partial flag where set under the service identity.
@@ -471,7 +471,7 @@ Term decision action: [Approve Step], [Reject Step] or [Withdraw Step].
 
 Term chain evaluation: running the quorum rule over a chain's routed vector, with the terminal, the cascade and the resolution event a terminal answer fires.
 
-Term terminating evaluation: a chain evaluation whose quorum rule answered a terminal state.
+Term terminating evaluation: a chain evaluation of a chain whose chain state EQUALS Pending, whose quorum rule answered a terminal state.
 
 Term validated chain withdrawal: a [Withdraw Chain] call whose inputs cleared Primitive policy.
 

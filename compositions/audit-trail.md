@@ -511,7 +511,6 @@ Per-act critical section 13: The host MUST hold a scan leg's critical section as
     Per-act critical section 13i: IF a re-run of Instance start 16, 18, 19 or 28 fails on a running instance THEN the deployment MUST surface a compliance alert as a deployment fault until a re-declaration passes the failed check AND the instance MUST go on accepting [Record Action].
 Per-act critical section 14: A [Purge Event] re-driven by the first half MUST NOT take a second critical section for an event id the first half holds.
 Per-act critical section 15: A cascade and a scan leg MUST take the critical section by Lease's try_take, a [Purge Event] re-driven by the first half excepted (Per-act critical section 14).
-NOTE: watch the unstated exception (Per-act critical section 15).
 Per-act critical section 15a: A hold placement MUST take the critical section by Lease's take, waiting no longer than the atom's arrival term.
 Per-act critical section 15b: IF a hold placement's take answers unavailable OR no answer THEN the placement MUST NOT write AND MUST report not placed to the placement's caller.
 Per-act critical section 15c: The composition MUST declare compensation closure latency as the longest duration of a take on a per-act critical section AND seal completion bound as the longest on the sealing lock (Lease Composition note 5d).
@@ -1036,9 +1035,9 @@ Steps:
    ```
 4. **Assemble the [Audit Record].**
    ```
-   read record step 4.1: [Read Record] step 4 MUST assemble and return the audit record.
-   read record step 4.2: [Read Record] step 4 MUST report coverage status per event.
-   read record step 4.3: [Read Record] step 4 MUST return the covering seal's full range.
+   read record step 4.1: IF the event's data IS NOT unreadable under a Retained retention THEN [Read Record] step 4 MUST assemble and return the audit record.
+   read record step 4.2: IF the event's data IS NOT unreadable under a Retained retention THEN [Read Record] step 4 MUST report coverage status per event.
+   read record step 4.3: IF the event's data IS NOT unreadable under a Retained retention THEN [Read Record] step 4 MUST return the covering seal's full range.
    read record step 4.4: WHEN retention state EQUALS Purged:
        read record step 4.4a: IF a destruction record EXISTS for the event THEN [Read Record] step 4 MUST read action reference, actor reference and attestation instant from the attestation records through the pair alone.
        read record step 4.4b: [Read Record] step 4 MUST NOT read the who, the what and the when from the event payload.
@@ -1110,7 +1109,7 @@ Steps:
    verify record step 3.2: [Verify Record] step 3 MUST land a failed-verification(reason) whose reason DOES NOT EQUAL registry-unavailable with the reason prefixed attestation-.
    verify record step 3.3: [Verify Record] step 3 MUST route registry-unavailable to step 6.
    verify record step 3.4: [Verify Record] step 3 MUST land Actor Identity's not-known as failed-verification(attestation-not-known).
-   verify record step 3.5: IF step 3 lands failed-verification THEN [Verify Record] MUST return the step-3 outcome.
+   verify record step 3.5: IF step 3 lands failed-verification AND the retention state DOES NOT EQUAL Purged at the re-read THEN [Verify Record] MUST return the step-3 outcome.
    verify record step 3.6: IF step 3 lands failed-verification THEN [Verify Record] MUST NOT run steps 4, 5 and 6.
    verify record step 3.7: IF step 3 routes registry-unavailable THEN [Verify Record] MUST NOT run steps 4 and 5.
    verify record step 3.8: [Verify Record] MAY run steps 4 and 5 ONLY IF step 3 landed verified.
@@ -1230,7 +1229,6 @@ Steps:
    purge event step 0.5: IF the event's sequence number DOES NOT EXCEED sealed through THEN [Purge Event] step 0 MUST NOT invoke [Seal Now].
    purge event step 0.6: [Purge Event] MUST NOT run step 0 BEFORE taking the per-act critical section keyed by event id, a [Purge Event] re-driven by the first half excepted (Per-act critical section 14).
    purge event step 0.7: IF another holder holds the critical section THEN [Purge Event] MUST land cascade-failure(in-flight), a [Purge Event] re-driven by the first half excepted (Per-act critical section 14).
-   NOTE: watch the unstated exception (purge event step 0.6, purge event step 0.7).
    purge event step 0.8: IF [Seal Now] lands [Nothing To Seal] THEN [Purge Event] step 0 MUST re-resolve the covering seal and proceed ONLY IF one EXISTS.
    purge event step 0.10: IF the take at step 0.6 answers no answer THEN [Purge Event] MUST land cascade-failure(in-flight).
    purge event step 0.9: IF no covering seal EXISTS after [Nothing To Seal] THEN [Purge Event] MUST land cascade-failure(seal).
@@ -1268,7 +1266,6 @@ Steps:
    purge event step 2.8: IF the destruction record's write answers no answer THEN [Purge Event] step 2 MUST land cascade-failure(step-2).
    purge event step 2.6: [Purge Event] step 2 MUST NOT write BEFORE reading the destruction record under the held critical section.
    purge event step 2.7: IF a destruction record EXISTS THEN [Purge Event] step 2 MUST adopt the record as landed.
-   NOTE: watch the unstated exception (purge event step 2.1).
    ```
 3. **Delegate the destruction.**
    ```
@@ -1284,7 +1281,6 @@ Steps:
    purge event step 3.10: A partly-purged seal MUST remain the one seal over the seal's range.
    purge event step 3.11: [Purge Event] step 3 MUST NOT issue the delegation BEFORE reading erasure outcomes under the held critical section.
    purge event step 3.12: IF a destroyed outcome EXISTS THEN [Purge Event] step 3 MUST NOT issue the delegation.
-   NOTE: watch the unstated exception (purge event step 3.1, purge event step 3.6).
    ```
 4. **What survives a completed cascade.**
    ```
@@ -1409,7 +1405,7 @@ Term suspended entry: an open entry a run landed under-legal-hold, from that run
 Second half 1: The second half MUST build the binding set.
 Second half 2: The second half MUST treat an attestation absent from the binding set as an orphan.
 Deleted: Second half 3. Execution Contract Database 1 owns it.
-Second half 4: IF attestation age EXCEEDS horizon AND the orphan's attestation id IS NOT IN compensated attestations THEN the second half MUST report the orphan as beyond the horizon.
+Second half 4: IF attestation age EXCEEDS horizon AND the orphan's attestation id IS NOT IN compensated attestations AND the orphan's attestation id IS NOT IN reported beyond horizon THEN the second half MUST report the orphan as beyond the horizon.
 Second half 5: IF attestation age EXCEEDS horizon THEN the second half MUST NOT write a compensation.
 Second half 6: A beyond-horizon report MUST carry subject set to attestation, the attestation id and disposition set to beyond-horizon, as an audit.reconciliation record.
 Second half 7: The second half MUST NOT report BEFORE reading reported beyond horizon under the critical section.
@@ -1418,7 +1414,7 @@ Second half 9: The second half MUST NOT write a compensation BEFORE reading comp
 Second half 10: The second half MUST NOT write a compensation for a reconciled orphan.
 Second half 11: The second half MUST hold the critical section through the compensating write.
 Second half 12: A writer other than the scan MUST NOT write an orphan's compensation.
-Second half 13: The second half MUST write EXACTLY ONE compensation per orphan, a duplicate of Durability 5 excepted.
+Second half 13: IF attestation age DOES NOT EXCEED horizon THEN the second half MUST write EXACTLY ONE compensation per orphan, a duplicate of Durability 5 excepted.
 Deleted: Second half 16. Execution Contract Database 1 owns it.
 Second half 17: The second half MUST serve the marker reads of Second half 4 and Second half 9 and the narrated read of Compensation 10 from ONE enumeration read under the critical section.
 Second half 14: The second half MUST take an attestation id from an event payload the full enumeration reads, whatever the event's retention state.

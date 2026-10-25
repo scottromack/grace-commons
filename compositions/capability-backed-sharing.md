@@ -378,7 +378,7 @@ Reconciliation 5: The reconciliation MUST NOT write a compensating event BEFORE 
 Reconciliation 6: The reconciliation MUST record a recovery intent carrying the invocation id, the direction, the capability token, the disclosure id where one stands AND the intent reference.
 Reconciliation 7: A compensating event MUST carry the recovery flag AND the original intent event id.
 Reconciliation 8: The reconciliation MUST re-derive a compensating event from the pending marker, the intent event AND the constituent records.
-Reconciliation 9: The reconciliation MUST seal EVERY pending marker by recording the marker's disclosure event.
+Reconciliation 9: IF a pending marker's disclosure intent IS NOT IN the aged events THEN the reconciliation MUST seal the pending marker by recording the marker's disclosure event.
 Reconciliation 10: A compensating disclosure event MUST carry the pending marker's disclosure id AND the disclosure intent's sharing descriptor.
 Reconciliation 11: The reconciliation MUST read a disclosure intent carrying no outcome record as a candidate.
 Reconciliation 12: The reconciliation MUST NOT seal from a disclosure intent.

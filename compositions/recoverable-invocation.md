@@ -176,7 +176,7 @@ Capability requirement 8: EVERY range read issued after journal write bound has 
 Capability requirement 9: A read_record that cannot reach the journal MUST land recording-failure(resolution) at [Resolve].
 Capability requirement 10: A read_record that cannot reach the journal MUST NOT answer not-known.
 Capability requirement 11: IF the range read, read-your-writes or act section is absent THEN the composition MUST NOT start.
-Capability requirement 12: The deployment MUST supply the journal's database PER Execution Contract Database 1 through 4.
+Capability requirement 12: The deployment MUST supply the journal's database PER Execution Contract Database 1 through 4 and Execution Contract Refusal 1.
 Capability requirement 13: EVERY read path of Recoverable Invocation MUST land an invalid-query where the read path lands unavailable, the instance finding journal-unavailable excepted.
 Capability requirement 14: The composition MUST NOT surface an invalid-query as the instance finding journal-unavailable.
 ```
@@ -658,7 +658,7 @@ Steps:
    ```
 3. **Outcome record.**
    ```
-   close step 3.1: [Close] MUST write AuditTrail.record_action(action reference set to outcome action reference, actor reference, credential, data set to outcome payload), answering outcome event id.
+   close step 3.1: IF the step-2 re-read finds no closing record naming the invocation id THEN [Close] MUST write AuditTrail.record_action(action reference set to outcome action reference, actor reference, credential, data set to outcome payload), answering outcome event id.
    close step 3.2: Step 3's arms MUST follow the outcome position of Primitive policy 19 through 23 and Primitive policy 27 through 43.
    close step 3.3: An invalid-request(step-1), invalid-request(step-2) or invalid-request(step-3) at step 3 MUST land recording-failure(outcome) with a hard alert.
    close step 3.4: [Close] MUST NOT retry after recording-failure(step-2), recording-failure(step-3) or a lost reply BEFORE re-running step 2.
@@ -676,7 +676,7 @@ Steps:
    ```
    close step 4.1: [Close] MUST remove the invocation id from open invocations at (kind, act key).
    close step 4.2: [Close] MUST release the critical section.
-   close step 4.3: [Close] MUST return outcome event id and landing actor set to invocation.
+   close step 4.3: IF the step-2 re-read finds no closing record naming the invocation id THEN [Close] MUST return outcome event id and landing actor set to invocation.
    ```
 
 ---
@@ -883,7 +883,6 @@ Term reported: an act the run examined, of a kind whose service identity EQUALS 
        reconcile step 2.7a: The run MUST count the act in skipped.
    reconcile step 2.8: The run MUST NOT take the critical section for an intent reconcile step 2.1 excepts.
    reconcile step 2.9: The run MUST count EVERY intent reconcile step 2.1 excepts in unreached.
-   NOTE: watch the unstated exception (reconcile step 2.1).
    reconcile step 2.10: WHEN the step-2 re-read fails:
        reconcile step 2.10a: The run MUST NOT write to the journal for the act.
        reconcile step 2.10b: The run MUST release.
@@ -892,7 +891,7 @@ Term reported: an act the run examined, of a kind whose service identity EQUALS 
    ```
 3. **Probe the database.**
    ```
-   reconcile step 3.1: The run MUST call the adopter's bound probe(act key, intent payload).
+   reconcile step 3.1: IF step 2 counted the act in no count AND service identity DOES NOT EQUAL none for the act's kind THEN the run MUST call the adopter's bound probe(act key, intent payload).
    reconcile step 3.2: WHEN probe EQUALS committed(outcome action reference, outcome data):
        reconcile step 3.2a: The run MUST write `<kind>.recovery_intended` under the service identity with data carrying invocation id, intent event id, act key and plan set to outcome.
        reconcile step 3.2b: The run MUST write the outcome record outcome action reference under the service identity with data set to recovered outcome payload.
@@ -1165,7 +1164,6 @@ NOTE: watch addressable sections (Instance start 1).
 Deleted: Allowance 3. No adopter binds a declared commit fence, whose deadline was the page's one minted instant, so every cross-seam comparison takes the allowance at the reading (Allowance 4); an adopter that needs it reopens it with a Decisions entry.
 Allowance 4: A cross-seam comparison MUST take the allowance at the reading.
 Deleted: Allowance 5. Allowance 4 owns it: every cross-seam comparison takes the allowance at the reading, against a stamp of the substrate's or the constituent's (Composes 1); [Open] and [Resolve] decide the writes it gates under the critical section, no pairing rests on a stamp within a window (Invariant 3.4), and the sweep abandons nothing (Invariant 4.9).
-NOTE: watch the unstated exception (reconcile step 2.1).
 Allowance 6: A cross-seam comparison MAY exclude a record from a pass.
 Deleted: Allowance 7. No adopter binds a declared commit fence, whose deadline was the page's one minted instant; an adopter that needs it reopens it with a Decisions entry.
 Deleted: Allowance 8. No adopter binds a declared commit fence, whose deadline was the page's one minted instant; an adopter that needs it reopens it with a Decisions entry.
@@ -1414,6 +1412,7 @@ External check 5: WHEN service identity EQUALS none:
 Deleted: External check 6. No adopter binds a declared commit fence, which the database had to honour; an adopter that needs it reopens it with a Decisions entry.
 External check 7: An auditor MUST clear from external evidence that each adopter's outcome envelope is the true maximum of the records the kind writes.
 External check 8: An auditor MUST clear from external evidence that no writer other than this composition's actions uses an adopter's journal vocabulary.
+External check 9: IF repeatable EQUALS no THEN an auditor MUST clear from external evidence that the adopter's bound commit refuses, on an arm the constituent declares pre-commit, EVERY call whose act key a record of the adopter's database carries (repeatable 2).
 ```
 
 ---

@@ -579,7 +579,7 @@ Reconciliation 14: A compensating fulfilled event MUST carry anomaly carrying un
 Reconciliation 15: IF no request-scoped disclosure carries the open intent's request id AND no planned record EXISTS for the intent THEN the reconciliation MUST record an abandonment carrying the request id AND the intent's invocation id.
 Reconciliation 16: A compensating fulfilled event MUST carry the intent's disposition for EVERY record outside the plans.
 Reconciliation 17: The reconciliation MUST NOT close an open intent BEFORE taking the request section over the intent's request id.
-Reconciliation 18: The reconciliation MUST write the fulfillment entry ONLY AFTER the compensating fulfilled event lands.
+Reconciliation 18: IF the reconciliation records a compensating fulfilled event THEN the reconciliation MUST write the fulfillment entry ONLY AFTER the compensating fulfilled event lands.
 Deleted: Reconciliation 19. Defensible Retention Reconciliation 11 owns it.
 Deleted: Reconciliation 20. Defensible Retention Action wiring 70 owns it.
 Deleted: Reconciliation 21. Defensible Retention Reconciliation 11 owns it.

@@ -270,7 +270,7 @@ Action wiring 11: IF the read finds a disposition event THEN the initiated fanou
 Action wiring 12: IF the read finds a disposition event THEN the initiated fanout MUST NOT write for the subscriber.
 Action wiring 13: IF the per-disposition exclusion's lease expired THEN the initiated fanout MUST answer the subscriber AND EVERY remaining subscriber as yielded.
 Action wiring 14: The initiated fanout MUST NOT write for a yielded subscriber.
-Action wiring 15: An initiated fanout MUST read the preference read for the subscriber.
+Action wiring 15: IF the read of Action wiring 10 finds no disposition event THEN an initiated fanout MUST read the preference read for the subscriber.
 Action wiring 16: IF the preference read fails THEN the initiated fanout MUST fail the subscriber carrying preference-unreadable.
 Action wiring 17: IF the preference read fails THEN the initiated fanout MUST NOT run the shaping gate.
 Action wiring 18: IF the preference read answers THEN the initiated fanout MUST run the shaping gate on the answer, the now, the delivery history AND the configuration.
@@ -310,6 +310,7 @@ Deleted: Action wiring 51. Execution Contract Database 1 owns it.
 Action wiring 52: An admitted redisposition MUST call Subscription's subscribed with the principal AND the initiation entry's event scope.
 Action wiring 53: IF subscribed answers not-subscribed THEN [Redispose] MUST record a suppression event carrying unsubscribed, false as the retry eligibility, none as the preference id AND the audience check with the now as the evaluation inputs.
 Action wiring 54: IF subscribed answers subscribed THEN [Redispose] MUST dispose the principal PER Action wiring 15 through 34 under a fresh now.
+NOTE: watch rule inheritance (Action wiring 54) — [Redispose] makes no read of Action wiring 10, the read Action wiring 15's condition names.
 Action wiring 55: A redisposition event MUST carry the original fanout id AND the redisposition flag.
 Action wiring 56: IF Event Log refuses a redisposition event THEN [Redispose] MUST answer journal-rejected carrying the outcome position.
 Deleted: Action wiring 57. Execution Contract Database 1 owns it: a redisposition's writes commit together, so no journal-rejected carries a notification id.
@@ -402,14 +403,14 @@ Reconciliation 20: IF abandon EQUALS true THEN the gap run MUST abandon EVERY re
 Reconciliation 21: IF the payload content EQUALS blank THEN the gap run MUST NOT call [Redispose].
 Reconciliation 22: An abandonment record MUST carry the fanout id, the principals, the abandonment reason AND the decided instant.
 Reconciliation 23: The principals one abandonment record names MUST NOT EXCEED the abandonment principals cap.
-Reconciliation 24: A gap run MUST record an abandonment record under the per-disposition exclusion.
+Reconciliation 24: IF a gap run abandons a principal THEN the gap run MUST record an abandonment record under the per-disposition exclusion.
 Reconciliation 25: IF a gap run's lease expires THEN the gap run MUST NOT write for the principal.
 Reconciliation 26: IF Event Log refuses the reconcile intent THEN [Reconcile Gaps] MUST answer journal-rejected carrying intent.
 Deleted: Reconciliation 27. Execution Contract Database 1 owns it.
 Reconciliation 28: IF Event Log refuses an abandonment record THEN [Reconcile Gaps] MUST answer journal-rejected carrying abandonment.
 Reconciliation 29: A refused append MUST NOT withdraw the gap run's earlier redispositions.
 Reconciliation 30: An overshoot run MUST read the principal's delivery events under each journaled configuration version's window-and-cap pairs.
-Reconciliation 31: IF a window's committed count EXCEEDS the window's contemporaneous cap THEN the overshoot run MUST record an overshoot record carrying the principal, the configuration version, the window, the cap, the committed count AND the decided instant.
+Reconciliation 31: IF a window's committed count EXCEEDS the window's contemporaneous cap AND no overshoot record already names the overshoot AND the window's start IS NOT IN the aged instants THEN the overshoot run MUST record an overshoot record carrying the principal, the configuration version, the window, the cap, the committed count AND the decided instant.
 Reconciliation 32: The overshoot run MUST NOT record an overshoot an overshoot record already names.
 Deleted: Reconciliation 33. Execution Contract Database 2 owns it.
 Deleted: Reconciliation 34. Execution Contract Database 2 owns it.

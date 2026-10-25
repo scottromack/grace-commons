@@ -1541,6 +1541,82 @@ def check_two_obligations_synthetic(problems: list[str]) -> int:
     return n
 
 
+def check_unstated_exception_synthetic(problems: list[str]) -> int:
+    """W-unstated-exception (tools/grace/check.py), the exception sweep
+    (2026-10-25): a rule written unconditionally beside a narrower rule of one
+    subject that forbids its act in one state fires, matched on one verb over
+    one object head, on a bare write beside a writing verb, and on a verb beside
+    its nominalization under a light verb (*delegate destruction* beside *issue
+    the delegation*, which a word match missed); the cured IF form, a stated
+    exception, two manners of one act, two refusals, an enumeration of outcomes,
+    a gate, a timing tail, two subjects and a page outside atoms/ and
+    compositions/ stay silent. Returns the fixture count."""
+    import tempfile
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "grace"))
+    from check import scan  # noqa: E402
+    head = ("Term qualifiers: migrated — rewritten in GRACE lang v0.67 (2026-10-25).\n\n"
+            "Term record verbs: answer, stamp, replace, write, delegate, issue, record, attest.\n\n"
+            "## Structure\n\n### Operations\n\n"
+            "```\nedit(id, description)\n  answers ok\n  refuses not-known | not-editable\n```\n\n")
+    def run(rules: str, folder: str = "atoms"):
+        with tempfile.TemporaryDirectory() as d:
+            f = Path(d) / folder / "synthetic.md"
+            f.parent.mkdir()
+            f.write_text(head + "```\n" + rules + "\n```\n", encoding="utf-8")
+            return [x for x in scan(f) if x.code == "W-unstated-exception"]
+    firing = [
+        ("one verb over one object head",
+         "Operation 1: [Edit] MUST stamp last edit instant from the injected now.\n"
+         "Operation 2: [Edit] MUST NOT stamp last edit instant for an unchanged description."),
+        ("a bare write beside a writing verb",
+         "Operation 1: [Edit] MUST replace the description.\n"
+         "Operation 2: IF the new description EQUALS the description THEN [Edit] MUST NOT write."),
+        ("a verb beside its nominalization under a light verb",
+         "Operation 1: The half MUST delegate destruction to the mechanism.\n"
+         "Operation 2: IF a destroyed outcome EXISTS THEN the half MUST NOT issue the delegation."),
+        ("a broad ban beside a narrower obligation",
+         "Operation 1: [Edit] MUST NOT stamp last edit instant.\n"
+         "Operation 2: IF the description EQUALS blank THEN [Edit] MUST stamp last edit instant."),
+    ]
+    silent = [
+        ("the cured IF form",
+         "Operation 1: IF the new description DOES NOT EQUAL the description THEN [Edit] MUST stamp last edit instant.\n"
+         "Operation 2: IF the new description EQUALS the description THEN [Edit] MUST NOT stamp last edit instant.", "atoms"),
+        ("a stated exception",
+         "Operation 1: The half MUST delegate destruction to the mechanism, a half that reads a destroyed outcome excepted (Operation 2).\n"
+         "Operation 2: IF a destroyed outcome EXISTS THEN the half MUST NOT issue the delegation.", "atoms"),
+        ("two manners of one act",
+         "Operation 1: The composition MUST attest the audit record under the service identity.\n"
+         "Operation 2: The composition MUST NOT attest the audit record under a caller's credential.", "compositions"),
+        ("two refusals",
+         "Operation 1: [Edit] MUST NOT answer not-known for a known id.\n"
+         "Operation 2: IF no unit EXISTS for the id THEN [Edit] MUST answer not-known.", "atoms"),
+        ("an enumeration of outcomes",
+         "Operation 1: [Edit] MUST answer EXACTLY ONE OF ok, not-known.\n"
+         "Operation 2: [Edit] MUST NOT answer ok for an unknown id.", "atoms"),
+        ("a gate",
+         "Operation 1: [Edit] MUST NOT answer ok for a done unit.\n"
+         "Operation 2: [Edit] MUST answer ok ONLY IF the unit stands pending.", "atoms"),
+        ("a timing tail",
+         "Operation 1: [Edit] MUST write the record ONLY AFTER the read lands.\n"
+         "Operation 2: IF the read fails THEN [Edit] MUST NOT write.", "atoms"),
+        ("two subjects",
+         "Operation 1: [Edit] MUST stamp last edit instant.\n"
+         "Operation 2: [Add] MUST NOT stamp last edit instant for a blank description.", "atoms"),
+        ("a page outside atoms and compositions",
+         "Operation 1: [Edit] MUST stamp last edit instant from the injected now.\n"
+         "Operation 2: [Edit] MUST NOT stamp last edit instant for an unchanged description.", "notes"),
+    ]
+    for name, rules in firing:
+        if not run(rules):
+            problems.append(f"W-unstated-exception: {name} did not fire")
+    for name, rules, folder in silent:
+        got = run(rules, folder)
+        if got:
+            problems.append(f"W-unstated-exception: fired on {name}: {got[0].message}")
+    return len(firing) + len(silent)
+
+
 def check_rule_noun_synthetic(problems: list[str]) -> int:
     """D-rule-noun (tools/grace/check.py) — the rule nouns are the grammar's at
     GRACE-lang v0.53 (council read 100). Using one stays silent; declaring one,
@@ -2386,6 +2462,15 @@ def main(argv: list[str]) -> int:
     if not two_ob_problems:
         print(f"W-two-obligations: {n_two} synthetic fixtures hold (a second record verb after "
               "'and' fires; a declared name whose first word is a verb does not) \u2713")
+
+    exc_problems: list[str] = []
+    n_exc = check_unstated_exception_synthetic(exc_problems)
+    failures.extend(exc_problems)
+    if not exc_problems:
+        print(f"W-unstated-exception: {n_exc} synthetic fixtures hold (one verb over one object head, a bare "
+              "write and a nominalization under a light verb fire, both polarities; the cured IF form, a stated "
+              "exception, two manners, two refusals, an enumeration, a gate, a timing tail, two subjects and a "
+              "page outside the specifications stay silent) \u2713")
 
     noun_problems: list[str] = []
     n_noun = check_rule_noun_synthetic(noun_problems)

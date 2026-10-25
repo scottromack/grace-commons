@@ -447,7 +447,8 @@ ADVISORY = {"W-or-word", "W-watch-word", "W-term-unused", "W-lowercase-after",
             "W-two-obligations", "W-demonstrative", "W-comparator", "W-modal",
             "W-condition-operator", "W-duplicate-proposition",
             "D-decl-modal", "D-decl-selfref", "D-decl-unresolved",
-            "K-check-bare", "S-action-unused", "E-not-exclusive"}
+            "K-check-bare", "S-action-unused", "E-not-exclusive",
+            "W-unstated-exception"}
 # D-tombstone-form gates: a tombstone in any other shape reserves nothing
 # A declaration may carry arithmetic and comparison where a rule carries only an
 # arithmetic expression (Closed vocabulary 9, Closed vocabulary 11) — which is
@@ -579,6 +580,138 @@ def borrowed_names(path: Path, text: str) -> set[str]:
             except OSError:
                 continue
     return {n for n in names if _NAME_SHAPE.fullmatch(n)}
+
+
+# W-unstated-exception: a rule written unconditionally beside a narrower rule of
+# one subject that forbids the rule's act, or obliges the opposite, in one state —
+# which the grammar reads as two obligations and never as an exception (Principle
+# 5, Hard invariant 20). The cure writes the narrower rule's state into the broad
+# rule as the broad rule's condition (the exception sweep, 2026-10-25). A word
+# match is not enough: the scan of Audit Trail's [Purge Event] matched on the verb
+# and missed *delegate destruction* beside *issue the delegation*. So acts match
+# three ways — one verb over one object head, a verb beside its nominalization
+# under a light verb, and a bare write beside a writing verb — and every flagged
+# pair is read by hand. Two states that never meet, a narrower rule a refusal
+# answers (Execution Contract Read 4) and two manners of one act are no exception.
+_EXC_STOP = {"the", "a", "an", "of", "for", "to", "in", "on", "at", "by", "with", "from",
+             "and", "or", "every", "each", "which", "whose", "who", "when", "where", "that",
+             "this", "than", "then", "as", "is", "are", "be", "its", "their", "into", "upon",
+             "under", "over", "call", "calls", "answer", "answers", "rule", "rules", "record",
+             "records", "written", "nothing", "none", "same", "other", "another", "such",
+             "any", "all", "only", "also", "more", "most", "less", "once", "first", "last",
+             "new", "old"}
+_EXC_WRITE = set("record set stamp replace remove delete store write append update attest assign "
+                 "close place change mark seal revoke dispose add provision commit reserve create "
+                 "issue grant purge destroy erase scrub populate rebuild insert advance increment "
+                 "decrement overwrite persist log enqueue emit publish".split())
+_EXC_LIGHT = set("issue make perform run start do execute attempt begin trigger initiate send write "
+                 "record append take".split())
+_EXC_TIMING = re.compile(r"\b(BEFORE|AFTER|ONLY AFTER|WITHIN|PER)\b")
+_EXC_NARROW = re.compile(r"\b(for|under|over|whose|where|when|once|that|which|beyond|past|"
+                         r"outside|inside|without|while|unless|on)\b")
+_EXC_MANNER = re.compile(r"\b(under|with|through|by|as|from|on|via|into)\b")
+_EXC_STATED = re.compile(r"\bexcepted\b|\bother than\b|\bunless\b")
+
+
+def _exc_stem(word: str) -> str:
+    w = word.lower()
+    for suffix in ("ations", "ation", "ions", "ion", "ings", "ing", "ers", "er", "ed", "es", "s", "e"):
+        if w.endswith(suffix) and len(w) - len(suffix) >= 4:
+            w = w[: -len(suffix)]
+            break
+    return w[:5]
+
+
+def _exc_act(rule: Rule, by_label: dict[str, Rule]) -> dict | None:
+    body = CODE_SPAN.sub("QUOTED", rule.text)
+    if body.startswith("WHEN ") or " IS AUTHORITATIVE FOR " in body:
+        return None
+    im = re.match(r"^IF (.*?) THEN (.*)$", body)
+    cond, stmt = (im.group(1), im.group(2)) if im else ("", body)
+    if rule.parent and rule.parent in by_label:
+        cond = cond or by_label[rule.parent].text
+    mm = MODAL.search(stmt)
+    if not mm or mm.group(1) == "MAY":
+        return None
+    rest = stmt[mm.end():].strip()
+    tail = re.search(r"\bONLY IF\b", rest)
+    if tail:
+        cond, rest = cond or rest[tail.end():], rest[: tail.start()]
+    subject = re.sub(r"^(every|each|a|an|the)\s+", "", stmt[: mm.start()].strip().lower())
+    act = _EXC_TIMING.split(rest)[0]
+    verb, _, objects = act.partition(" ")
+    words = [w for w in re.findall(r"[A-Za-z][A-Za-z-]+", objects)
+             if not w.isupper() and w.lower() not in _EXC_STOP and len(w) >= 4]
+    return {"modal": mm.group(1), "subject": subject, "cond": cond, "rest": rest,
+            "act": act, "verb": verb.strip(",.;:").lower(), "objects": words}
+
+
+def _exc_overlap(a: dict, b: dict) -> bool:
+    va, vb = a["verb"], b["verb"]
+    oa, ob = a["objects"], b["objects"]
+    # one verb over one object head: stamp last edit instant beside stamp last edit instant
+    if va and _exc_stem(va) == _exc_stem(vb) and oa and ob and _exc_stem(oa[0]) == _exc_stem(ob[0]):
+        return True
+    # a verb beside its nominalization under a light verb: delegate destruction
+    # beside issue the delegation; an agent noun, an adjective, a compound and a
+    # bare inflection are not one
+    for verb, heads, light in ((va, ob[:1], vb), (vb, oa[:1], va)):
+        for w in heads:
+            lw = w.lower()
+            if (light in _EXC_LIGHT and _exc_stem(lw) == _exc_stem(verb) and "-" not in lw
+                    and not lw.endswith(("er", "ers", "or", "ors", "able", "ible"))
+                    and lw not in {verb + x for x in ("", "s", "es", "d", "ed", "ing")}
+                    and lw not in {verb.rstrip("e") + x for x in ("s", "es", "d", "ed", "ing")}):
+                return True
+    # a bare write beside a writing verb
+    for x, y in ((a, b), (b, a)):
+        following = (x["rest"].split() + ["", ""])[1].lower()
+        if x["verb"] == "write" and following in ("", "for") and y["verb"] in _EXC_WRITE:
+            return True
+    return False
+
+
+def _exc_code(act: dict) -> str:
+    return re.sub(r"\(.*", "", (act["act"].split() + ["", ""])[1]).strip(",.;:")
+
+
+def unstated_exceptions(rules: list[Rule], refusals: set[str] = frozenset()) -> list[tuple[Rule, Rule]]:
+    """Pairs (broad, narrow): the broad rule unconditional, stating no exception
+    and enumerating no outcomes; the narrow rule of the same subject and the other
+    modal, carrying a condition or a narrowing clause, and no `MUST … ONLY IF` gate,
+    which obliges nothing alone; the two acts overlapping, and not two refusals the
+    page's refuses lines carry (Execution Contract Read 4, Refusal 1); no timing
+    tail on either."""
+    by_label = {r.label: r for r in rules}
+    acts = [(r, _exc_act(r, by_label)) for r in rules]
+    acts = [(r, a) for r, a in acts if a]
+    pairs: list[tuple[Rule, Rule]] = []
+    seen: set[frozenset] = set()
+    for broad, a in acts:
+        if a["cond"] or _EXC_TIMING.search(a["rest"]) or _EXC_STATED.search(broad.text):
+            continue
+        if a["act"].split(" ", 1)[-1].startswith("EXACTLY ONE OF"):
+            continue  # an enumeration of outcomes, not one act
+        for narrow, b in acts:
+            if narrow is broad or b["modal"] == a["modal"] or b["subject"] != a["subject"]:
+                continue
+            if b["modal"] == "MUST" and re.search(r"\bONLY IF\b", narrow.text) and not narrow.text.startswith("IF "):
+                continue  # a gate: the act is allowed only under the condition
+            if {a["verb"], b["verb"]} <= {"answer", "land"} and _exc_code(a) in refusals and _exc_code(b) in refusals:
+                continue
+            clause = b["act"].split(" ", 1)[1] if " " in b["act"] else ""
+            if not (b["cond"] or _EXC_NARROW.search(clause)) or _EXC_TIMING.search(b["rest"]):
+                continue
+            if not _exc_overlap(a, b):
+                continue
+            ma, mb = _EXC_MANNER.search(a["act"]), _EXC_MANNER.search(b["act"])
+            if ma and mb and ma.group(1) == mb.group(1) and a["act"][ma.end():].strip() != b["act"][mb.end():].strip():
+                continue  # two manners of one act: under X, never under Y
+            key = frozenset((broad.label, narrow.label))
+            if key not in seen:
+                seen.add(key)
+                pairs.append((broad, narrow))
+    return pairs
 
 
 def scan(path: Path) -> list[Finding]:
@@ -1131,6 +1264,15 @@ def scan(path: Path) -> list[Finding]:
                     add(k, "D-decl-unresolved",
                         f"`Term {name}` computes over `{ident}`, which this spec declares nowhere "
                         f"(Closed vocabulary 4)")
+
+    refusal_codes = {re.sub(r"\(.*", "", arm).strip() for ln in lines if ln.startswith("  refuses ")
+                     for arm in ln[len("  refuses "):].split("|")}
+    exc_pairs = unstated_exceptions(rules, refusal_codes) if path.parent.name in ("atoms", "compositions") else []
+    for broad, narrow in exc_pairs:
+        add(broad.line, "W-unstated-exception",
+            f"{broad.label} binds unconditionally beside {narrow.label}, which forbids or replaces its act "
+            f"in one state; where the two states meet, write that state into {broad.label}'s condition "
+            f"(the unstated exception)")
 
     # one proposition owned twice inside one spec (Authority 3, widened v0.38).
     # A token-set prefilter keeps this linear enough for a 2800-rule corpus:

@@ -171,7 +171,7 @@ Operation 22: [Redeem] MUST NOT record a redeemer's identity.
 Operation 23: IF the capability token names no capability THEN [Redeem] MUST answer not-known.
 Operation 24: IF the capability's status EQUALS redeemed THEN [Redeem] MUST answer exhausted.
 Operation 25: IF the capability's status EQUALS revoked THEN [Redeem] MUST answer revoked.
-Operation 26: IF the capability is lapsed THEN [Redeem] MUST answer expired.
+Operation 26: IF the capability is lapsed AND the capability's status EQUALS allocated THEN [Redeem] MUST answer expired.
 Operation 27: [Redeem] MUST answer expired ONLY IF the capability's status EQUALS allocated.
 Operation 28: [Redeem] MUST answer redeemed ONLY IF the capability's status EQUALS allocated AND the capability is not lapsed.
 Operation 29: [Redeem] MUST carry the scope and the allocator reference in a redeemed answer.

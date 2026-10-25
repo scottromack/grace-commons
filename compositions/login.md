@@ -231,7 +231,7 @@ Action wiring 30: IF the first credential id read finds no effective-active cred
 Action wiring 31: IF Session's issue answers storage-failure THEN an admitted login MUST answer storage-failure naming the session-issue stage.
 Action wiring 32: A cascade initiation event MUST carry the credential id, the revoked by reference AND the reason.
 Action wiring 33: IF Audit Trail refuses the cascade initiation event THEN an admitted cascade MUST answer storage-failure.
-Action wiring 34: An admitted cascade MUST call Session's revoke with the cascade reason.
+Action wiring 34: IF Session's validate answers valid for a session token the cascade set carries THEN an admitted cascade MUST call Session's revoke with the cascade reason.
 Action wiring 35: IF Session's validate answers not-known THEN an admitted cascade MUST count the session token as not-found AND record a session not found event.
 Action wiring 36: IF Session's revoke refuses a session token THEN an admitted cascade MUST count the session token as failed AND record a revoke failure event.
 Action wiring 37: An admitted login MUST record the login event ONLY AFTER the login event log entry lands.

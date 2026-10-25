@@ -351,7 +351,7 @@ Action wiring 75: A caller MUST read a registry-unavailable verification as retr
 Action wiring 76: A caller MUST NOT read a registry-unavailable verification as a forensic finding.
 Action wiring 77: A caller MAY read a not-known answer over an absent grant as a miss.
 Action wiring 78: [Verify Grant Attribution] MUST NOT write.
-Action wiring 79: [Verify Grant Attribution] MUST answer the grant record, the issuance attestation AND the issuance verification.
+Action wiring 79: IF a consistent attribution EXISTS for the grant id THEN [Verify Grant Attribution] MUST answer the grant record, the issuance attestation AND the issuance verification.
 Action wiring 80: [Verify Grant Attribution] MUST answer the revocation attestation AND the revocation verification ONLY IF the grant's status EQUALS revoked.
 Action wiring 81: The composition MUST pass an evaluation to Permissions unchanged.
 Action wiring 82: The composition MUST NOT record an evaluation.
@@ -374,6 +374,8 @@ Term verify result: verified | `failed-verification(reason)` | not-known | `not-
 Term tamper reading: [Verify Grant Attribution]'s reading of an absent attestation as evidence that the attestation record or the attribution entry was rewritten — sound only where no lawful destruction explains the absence.
 
 Term lawful destruction: a retention layer's purge of an attestation the purge record names.
+
+Term consistent attribution: a grant the grant id names, the grant's grant attribution entry, and, where the grant's status EQUALS revoked, the grant's revocation attribution entry — what [Verify Grant Attribution] answers the attribution record over, short of which the action answers not-known (Action wiring 56) or attribution-inconsistency (Action wiring 58, 60).
 
 Term forensic finding: an outcome a caller logs and hands to the forensic process rather than handling as a routine lookup.
 
@@ -705,7 +707,7 @@ Term qualifiers: migrated — rewritten in GRACE lang v0.42 (2026-09-15).
 
 Term value sets: verify result = verified | failed-verification(reason) | not-known | not-applicable(purged). underlying reason = invalid-request | not-known | not-active. retention scope = pair-scoped | per-store.
 
-Term terms: composition, constituents, administered grant, administrative act, grant attribution map, revocation attribution map, attribution entry, orphan log, underlying reason, orphan attestation, binding registry, seam, transition, grant proposal format, revocation proposal format, namespace prefix, retention scope, purge record, clock offset allowance, length cap, blank, boundary predicate, opaque input, administered opaque input, admitted issuance, admitted revocation, pair-scoped revocation, enumerated set, verify result, tamper reading, lawful destruction, forensic finding, failed-grant leg, post-enumeration grant, aged-out attestation, landed attestation, retention horizon, purge-pending orphan, non-conformant purge, known grant, issuance orphan position, grant issuance result, grant revocation result, permission revocation result, attribution record.
+Term terms: composition, constituents, administered grant, administrative act, grant attribution map, revocation attribution map, attribution entry, orphan log, underlying reason, orphan attestation, binding registry, seam, transition, grant proposal format, revocation proposal format, namespace prefix, retention scope, purge record, clock offset allowance, length cap, blank, boundary predicate, opaque input, administered opaque input, admitted issuance, admitted revocation, pair-scoped revocation, enumerated set, verify result, tamper reading, lawful destruction, consistent attribution, forensic finding, failed-grant leg, post-enumeration grant, aged-out attestation, landed attestation, retention horizon, purge-pending orphan, non-conformant purge, known grant, issuance orphan position, grant issuance result, grant revocation result, permission revocation result, attribution record.
 
 Term cited: Execution Contract Conformance 8 — the recursive inheritance of a constituent's guarantees. The section titled Composition state in `execution-contract.md` — the derived-index and extraction-pending classifications. The section titled Logic Confinement Principle in `execution-contract.md` — the seam.
 
