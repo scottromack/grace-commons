@@ -77,7 +77,7 @@ Term surviving fields: an attestation's attestation id, action reference, actor 
 
 ### Composition state
 
-Ten elements, each carrying the Contract classification of the section titled Composition state in [`execution-contract.md`](../execution-contract.md). Four are wholly derived indexes — event to retention, event to sequence, sealed through, the uncovered mark. Four split — event to attestation is derived for live events and extraction-pending for purged ones; seal coverage is derived over ranges and carries one extraction-pending per-entry set; compensated attestations and reported beyond horizon are derived for a member taken from a live event and extraction-pending for one a destruction record carries. Two are wholly extraction-pending — erasure outcomes, against Erasure Tombstone *(forthcoming)*, and the outage record, against Condition Register *(forthcoming)*.
+Ten elements, each carrying the Contract classification of the section titled Composition state in [`execution-contract.md`](../execution-contract.md). Four are wholly derived indexes — event to retention, event to sequence, sealed through, the uncovered mark. Four split — event to attestation is derived for an event no destruction record names and extraction-pending for one a destruction record names; seal coverage is derived over ranges and carries one extraction-pending per-entry set; compensated attestations and reported beyond horizon are derived for a member taken from an event no destruction record names and extraction-pending for one a destruction record carries. Two are wholly extraction-pending — erasure outcomes, against Erasure Tombstone *(forthcoming)*, and the outage record, against Condition Register *(forthcoming)*.
 
 Term derived index: an element regenerated from the constituent records by the element's rebuild procedure.
 
@@ -180,7 +180,7 @@ Term closed-state marker: compensated attestations and reported beyond horizon.
 
   Term unsealed tail: the events whose sequence number EXCEEDS sealed through.
 - **uncovered mark**
-  Term uncovered mark: set | clear | unknown — one record per instance, kept apart from the sealing lock's grant, which [Seal Now] sets before step 4 with its holder value and clears once the coverage entry has landed (seal now 15, 22, 23). The one fact it carries, whether a seal may stand in the seal records without its coverage entry, is regenerated from the seal records: unknown sends the next [Seal Now] to rebuild the ranges from the seal records before it reads sealed through, and that rebuild lets it clear the mark (seal now 13, 16).
+  Term uncovered mark: set | clear | unknown — one record per instance, kept apart from the sealing lock's grant, which [Seal Now] sets before its seal call (seal now 4) with its holder value and clears once the coverage entry has landed (seal now 15, 22, 23). The one fact it carries, whether a seal may stand in the seal records without its coverage entry, is regenerated from the seal records: unknown sends the next [Seal Now] to rebuild the ranges from the seal records before it reads sealed through, and that rebuild lets it clear the mark (seal now 13, 16).
   ```
   uncovered mark 1: The composition MUST classify the uncovered mark as derived index.
   uncovered mark 2: The rebuild MUST leave the uncovered mark unknown (Concurrency 1b, seal now 13, seal now 16).
@@ -188,25 +188,25 @@ Term closed-state marker: compensated attestations and reported beyond horizon.
 - **compensated attestations**
   Term compensated attestations: the set of attestation id values for which an `audit.compensation` event has been recorded; the closed-state marker for orphan reconciliation.
   ```
-  compensated attestations 1: The composition MUST classify a member taken from a live audit.compensation event as derived index.
+  compensated attestations 1: The composition MUST classify a member taken from an audit.compensation event no destruction record names as derived index.
   compensated attestations 1a: The composition MUST classify a member taken from the destruction record of a purged audit.compensation event as extraction-pending against Erasure Tombstone.
-  compensated attestations 2: The rebuild MUST keep, from the full enumeration, EVERY live event whose action reference EQUALS audit.compensation AND whose payload subject EQUALS attestation, and take the attestation id each payload names.
+  compensated attestations 2: The rebuild MUST keep, from the full enumeration, EVERY event no destruction record names whose action reference EQUALS audit.compensation AND whose payload subject EQUALS attestation, and take the attestation id each payload names.
   compensated attestations 2a: The rebuild MUST take the attestation id from EVERY destruction record whose action reference EQUALS audit.compensation AND whose subject EQUALS attestation.
   compensated attestations 3: The rebuild MUST filter on the subject-kind discriminator.
   compensated attestations 4: The rebuild MUST filter in composition code.
   compensated attestations 5: A deployment composing Reverse Index MAY filter through Reverse Index as an instance optimization.
-  compensated attestations 6: The rebuild MUST cover the audit.compensation events live in the log.
+  Deleted: compensated attestations 6. compensated attestations 2 owns it.
   ```
   Term reconciled: an orphan whose attestation id is a member of compensated attestations.
 
 - **reported beyond horizon**
   Term reported beyond horizon: the set of attestation id values for which the scan's second half has recorded a *beyond the horizon* finding; the closed-state marker for that report.
   ```
-  reported beyond horizon 1: The composition MUST classify a member taken from a live beyond-horizon report as derived index.
+  reported beyond horizon 1: The composition MUST classify a member taken from a beyond-horizon report no destruction record names as derived index.
   reported beyond horizon 1a: The composition MUST classify a member taken from the destruction record of a purged beyond-horizon report as extraction-pending against Erasure Tombstone.
-  reported beyond horizon 2: The rebuild MUST keep, from the full enumeration, EVERY live event whose action reference EQUALS audit.reconciliation AND whose payload subject EQUALS attestation AND whose payload disposition EQUALS beyond-horizon, and take the attestation id each names.
+  reported beyond horizon 2: The rebuild MUST keep, from the full enumeration, EVERY event no destruction record names whose action reference EQUALS audit.reconciliation AND whose payload subject EQUALS attestation AND whose payload disposition EQUALS beyond-horizon, and take the attestation id each names.
   reported beyond horizon 2a: The rebuild MUST take the attestation id from EVERY destruction record whose action reference EQUALS audit.reconciliation AND whose subject EQUALS attestation AND whose disposition EQUALS beyond-horizon.
-  reported beyond horizon 3: The rebuild MUST cover the audit.reconciliation events live in the log.
+  Deleted: reported beyond horizon 3. reported beyond horizon 2 owns it.
   ```
 - **outage record**
   Term outage record: for each dependency outage, the dependency, the outage's start instant and end instant and the rule that joined its failures (Composition-level invariant 1d, 1f); for each suspended entry, the instant of each run that landed the entry under-legal-hold and of the hold-free run after it (Composition-level invariant 1h) — what an auditor reads a late closure against.
@@ -434,9 +434,9 @@ Twenty-one knobs — Legal Hold among them, declared with the capability it swit
   purge completion bound 2: The deployment MUST include in purge completion bound twice the call pause bound (Lease Sizing 4).
   ```
 - **seal completion bound**
-  Term seal completion bound: the longest a [Seal Now] may take between taking the sealing lock and step 5's coverage entry, the mechanism's round-trip included. *Default:* none.
+  Term seal completion bound: the longest a [Seal Now] may take between taking the sealing lock and the coverage entry of seal now 5, the mechanism's round-trip included. *Default:* none.
   ```
-  seal completion bound 1: The deployment MUST set seal completion bound from the observed worst-case latency of [Seal Now] steps 1 through 5 over a slice of slice cap events with headroom, the rebuild of seal now 13 and the clear of seal now 23 included.
+  seal completion bound 1: The deployment MUST set seal completion bound from the observed worst-case latency of a [Seal Now] over a slice of slice cap events, from taking the sealing lock to the coverage entry of seal now 5, with headroom, the rebuild of seal now 13 and the clear of seal now 23 included.
   seal completion bound 2: The deployment MUST include in seal completion bound twice the call pause bound (Lease Sizing 4).
   ```
 - **slice cap**
@@ -754,7 +754,7 @@ After every rejection sealed through does not move and no coverage entry is writ
 | a read at step 2 or step 3 | a failed read or an invalid-query | the step's cascade-failure, its write not issued | purge event step 2.5, 3.6; Capability requirement 3a |
 | | no answer | the step's cascade-failure, no further write | purge event 8 |
 
-A cascade-failure(step-2) or cascade-failure(step-3) leaves an open entry the scan re-drives and the deployment surfaces (purge event 4a, 4b); a cascade-failure(seal), (hold), (step-1) or (in-flight) leaves the retention as found, a step-1 purge that landed without an answer excepted, and on [Purge Eligible]'s list while Retained (purge event 3a, 3b, 3c, 3d, 3e).
+A cascade-failure(step-2) or cascade-failure(step-3) over an incomplete cascade leaves an open entry the scan re-drives and the deployment surfaces (purge event 4a, 4b), and one a repeat lands over a completed cascade, its read at step 2 or step 3 failing or giving no answer, leaves the cascade complete (purge event step 2.5, 3.6; purge event 8); a cascade-failure(seal), (hold), (step-1) or (in-flight) leaves the retention as found, a step-1 purge that landed without an answer excepted, and on [Purge Eligible]'s list while Retained (purge event 3a, 3b, 3c, 3d, 3e).
 
 **The scan's three halves: what the reads answer.**
 
@@ -765,7 +765,7 @@ A cascade-failure(step-2) or cascade-failure(step-3) leaves an open entry the sc
 | first | one of the three missing, at the read under the critical section keyed by event id as well | the cascade re-driven through [Purge Event] | First half 3, 5 through 7 |
 | second | an attestation in neither enumeration of the binding set | an orphan | Second half 1, 2, 14, 15 |
 | second | under the critical section keyed by its attestation id, the orphan compensated, reported beyond horizon or narrated | no second write of that kind | Second half 8, 10, 17; Compensation 10, 11 |
-| second | an orphan past horizon and unreported | the beyond-horizon report, and no compensation | Second half 4 through 7 |
+| second | an orphan past horizon, uncompensated and unreported | the beyond-horizon report, and no compensation | Second half 4 through 7 |
 | second | an orphan inside horizon and uncompensated | the intent, then the compensation | Compensation 1, 3, 4, 9; Second half 9, 11, 13 |
 | second | an event whose data is unreadable and that no destruction record names | no compensation in the run, a compliance alert, an outage of Event Log | Second half 18; Term dependency outage |
 | third | an event whose event to retention entry is missing after the rebuild | a true miss: the critical section keyed by the payload's attestation id | Third half 1 through 3, 5 |
@@ -773,7 +773,7 @@ A cascade-failure(step-2) or cascade-failure(step-3) leaves an open entry the sc
 | third | a true miss, at the re-read | the intent, the placement under the resolved policy, then the compensation | Third half 7 through 10, 15 |
 | third | an owed narration | its repair recorded, the retention confirmed under the critical section first | Third half 12, 13 |
 | third | an intent past the horizon | no finding | Third half 14 |
-| third | an event whose data is unreadable | no attestation id to key a critical section by, so no write; an outage of Event Log | Reconciliation 6; Term dependency outage |
+| third | a true miss whose data is unreadable | no attestation id to key a critical section by, so no write; an outage of Event Log | Third half 5; Reconciliation 6; Term dependency outage |
 | every half | a failed read, an invalid-query or no answer | nothing decided or written for the acts that read would have decided, which the next run reads again | Execution Contract Read 2, Execution Contract Error model 1; Capability requirement 3a; Reconciliation 7; reconciliation cadence 1 |
 | every half | failed reads or no answers standing longer than call pause bound | a dependency outage: the liveness arms suspended, every outstanding finding surfaced, the outage recorded | Term dependency outage; Composition-level invariant 1 |
 
@@ -977,16 +977,16 @@ seal now 10: IF [Seal Now] rejects THEN [Seal Now] MUST NOT write a seal coverag
 seal now 11: IF [Seal Now] rejects THEN the next cadence firing MUST recompute the slice and seal what is not covered.
 seal now 12: The composition MUST NOT expose a re-sealing surface.
 seal now 13: IF the uncovered mark IS set OR IS unknown OR the ranges index IS absent at the take THEN [Seal Now] MUST NOT read sealed through BEFORE rebuilding the ranges of seal coverage from the seal records.
-seal now 14: IF the coverage write at step 5 fails after step 4 returned THEN [Seal Now] MUST land storage-failure as [Recording Failure].
-seal now 15: [Seal Now] MUST NOT run step 4 BEFORE setting the uncovered mark.
-seal now 16: [Seal Now] MUST clear the uncovered mark ONLY IF step 5's coverage entry has landed OR step 4 has answered a rejection that wrote no evidence OR the rebuild of seal now 13 has completed.
+seal now 14: IF the coverage write of seal now 5 fails after the seal call of seal now 4 returned THEN [Seal Now] MUST land storage-failure as [Recording Failure].
+seal now 15: [Seal Now] MUST NOT issue the seal call of seal now 4 BEFORE setting the uncovered mark.
+seal now 16: [Seal Now] MUST clear the uncovered mark ONLY IF the coverage entry of seal now 5 has landed OR the seal call of seal now 4 has answered a rejection that wrote no evidence OR the rebuild of seal now 13 has completed.
 seal now 17: [Seal Now] MUST read sealed through from the seal coverage ranges under the sealing lock.
 seal now 18: [Seal Now] MUST NOT read sealed through from a process-local cache.
 seal now 19: IF the sealing lock's lease EQUALS expired THEN [Seal Now] MUST NOT issue a further write.
 seal now 20: IF the sealing lock's lease EQUALS expired OR the take answers unavailable THEN [Seal Now] MUST land [Recording Failure].
 seal now 21: [Seal Now] MUST release the sealing lock on return.
 seal now 22: [Seal Now] MUST set the uncovered mark carrying [Seal Now]'s own holder value.
-seal now 23: [Seal Now] MUST clear the uncovered mark ONLY by a compare against the holder value the mark carried when [Seal Now] last read the mark under [Seal Now]'s live lease — [Seal Now]'s own after step 15, the value found at the rebuild — AND MUST issue the compare ONLY IF [Seal Now]'s lease EQUALS live.
+seal now 23: [Seal Now] MUST clear the uncovered mark ONLY by a compare against the holder value the mark carried when [Seal Now] last read the mark under [Seal Now]'s live lease — [Seal Now]'s own once [Seal Now] has set the mark (seal now 15, 22), the value found at the rebuild — AND MUST issue the compare ONLY IF [Seal Now]'s lease EQUALS live.
 seal now 24: IF the seal call or the coverage write answers no answer THEN [Seal Now] MUST land [Recording Failure] AND MUST leave the uncovered mark set.
 seal now 25: A [Seal Now] stopped by an expired lease under seal now 19 MUST surface a compliance alert as a deployment fault.
 seal now 26: IF a [Seal Now] is stopped under seal now 19 THEN the deployment MUST declare seal completion bound anew.
@@ -1215,7 +1215,7 @@ Term hold: a Legal Hold preservation order whose hold state EQUALS active and wh
 
 Term mid-cascade expiry: the lease expiring after step 1 has committed and before step 3's outcome record has landed.
 
-Term cascade-failure(step-3): a delegation not issued, an outcome not recorded, or a reported `destruction-failed(reason)` — three failures leaving one record, retention *Purged* with no destroyed outcome: the content readable where no delegation was issued or the mechanism reported destruction-failed, and already destroyed where the mechanism destroyed and the outcome was not recorded.
+Term cascade-failure(step-3): a delegation not issued, an outcome not recorded, or a reported `destruction-failed(reason)` — three failures that, over an incomplete cascade, leave one record, retention *Purged* with no destroyed outcome: the content readable where no delegation was issued or the mechanism reported destruction-failed, and already destroyed where the mechanism destroyed and the outcome was not recorded; over a completed cascade, a repeat whose step 3 cannot read the destroyed outcome lands it too, its delegation not issued (purge event step 3.6, purge event 8), and the cascade stays complete.
 
 Steps:
 
@@ -1767,7 +1767,7 @@ Check 5.15: IF purge age EXCEEDS audit edge THEN an auditor MUST read a divergen
 Check 6.1: An auditor MUST confirm that verification could not be performed surfaces as unverifiable(reason) and never as failed-verification(reason), for attestation-registry-unavailable, seal-mechanism-verification-unavailable and partially-purged-coverage.
 Check 7.1: An auditor MUST discard event to retention, event to sequence, sealed through, the uncovered mark, seal coverage's ranges, compensated attestations and reported beyond horizon, run the rebuild procedures against the constituent records and the destruction records, and reproduce EVERY traversal answer.
 Check 7.2: An auditor MUST discard event to sequence first.
-Check 7.3: An auditor MUST confirm EVERY member of compensated attestations came from an event carrying an `audit.*` action reference whose actor reference EQUALS reconciliation operator, read from the payload of a live event and from the attestation the destruction record's pair names for a purged one.
+Check 7.3: An auditor MUST confirm EVERY member of compensated attestations came from an event carrying an `audit.*` action reference whose actor reference EQUALS reconciliation operator, read from the event's payload where no destruction record names the event and from the attestation the destruction record's pair names where one does.
 Check 7.4: An auditor MUST regenerate event to attestation's entry for EVERY live event from the event's payload.
 Check 7.5: An auditor MUST confirm event to attestation's entry for EVERY purged event that is not held and whose cascade is quiescent is present in the destruction record.
 Check 7.6: An auditor MUST read a purged event that is not held and whose cascade is quiescent, with no destruction-record pair, as a conformance failure.
@@ -1783,7 +1783,7 @@ Term residual finding: an unreconciled finding older than the audit edge — the
 
 Term seal stamps: sealing instant, and anchoring instant where the mechanism anchors.
 
-Term extraction-pending fact: purged events, event to attestation's purged entries, and erasure outcomes.
+Term extraction-pending fact: purged events, the entries of event to attestation a destruction record carries, and erasure outcomes.
 
 ### External checks
 
@@ -2050,7 +2050,7 @@ Projection: mechanism-failure
 
 #### Cascade Failure
 
-The composition's rejection from [Purge Event] when a database or the seal mechanism refuses mid-cascade, carrying the step: hold, when the hold read answers nothing (the gate fails closed, since the step after it is irreversible), leaving nothing changed; in-flight, when the event's critical section is held by another holder, writes nothing and leaves whatever the holder is doing to it; seal and step-1 leave nothing changed and the event on [Purge Eligible]'s list; step-2 and step-3 leave the retention *Purged* over an incomplete cascade, invisible to [Purge Eligible] and re-driven by the reconciliation scan. On a lease host, the cascade's terminus after step 1.
+The composition's rejection from [Purge Event] when a database or the seal mechanism refuses mid-cascade, carrying the step: hold, when the hold read answers nothing (the gate fails closed, since the step after it is irreversible), leaving nothing changed; in-flight, when the event's critical section is held by another holder, writes nothing and leaves whatever the holder is doing to it; seal and step-1 leave nothing changed and the event on [Purge Eligible]'s list; step-2 and step-3 leave the retention *Purged* over an incomplete cascade, invisible to [Purge Eligible] and re-driven by the reconciliation scan, and leave a completed cascade complete where a repeat's read at step 2 or step 3 fails or gives no answer. On a lease host, the cascade's terminus after step 1.
 
 Kind:       Member
 Member of:  the purge rejection
@@ -2126,11 +2126,10 @@ The composition is the structural form of what every major audit regime requires
 ```
 status: partially resolved
 formal: verified — audit-trail.tla + 2 twins (cascade; scan first half) and audit-trail-record.tla + 3 twins (record action, one step under Execution Contract Store 1; scan second and third halves; re-derived 2026-10-20) and audit-trail-binding.tla + 2 twins (binding-set predicate against an in-flight cascade), re-derived against the fresh-reader gates of rounds 9 to 18, and audit-trail-hold.tla + 5 twins + 3 probes (a hold placed over an open cascade entry, released and re-driven; 43,688 states within 15 ticks), derived from the page as it stands; the closure arithmetic — a leg's lease against its work (Instance start 18, 19, Per-act critical section 13a, 13b, 13d) and a finding's closure against closure sum with one dead run and one hold placement (Instance start 16) — enumerated by tools/harness/audit-trail-closure.py + 5 twins over 5,184 leg tuples and 5,184 schedule tuples at conforming constants, which no model reaches; the other cures of rounds 19 to 26 are carried on the NOT MODELED lists, not re-derived; models and enumerator last run 2026-10-24
-last gate: 2026-10-25 — Final Critique 43 — foundational count 1, not clean, no sample
+last gate: 2026-10-25 — Final Critique 44 — foundational count 0, clean, no sample
 
 open:
 - 2026-10-03-d · refining · Second half 18; Term dependency outage · content lost with no cascade and not restorable leaves the second half writing no compensation with nothing to end it → a standing for content lost without record; contract-shaped, own round
-- 2026-10-03-f · refining · seal now 14 through 16, 23; seal completion bound 1; Durability 8 · [Seal Now] has no numbered steps and is cited by step → cite the seal now rule
 - 2026-10-03-g · refining · seal coverage 2; Composition state 3; Durability 8 · the coverage ranges are a derived index whose loss is a rebuild trigger and a durable entry at once → one classification, the split stated as event to attestation's is
 - 2026-10-03-h · refining · purge event step 1.3; purge event 1; Invariant 8.5 · Retention Window's not-known passes through as this composition's for an event with a log entry → land it on the cascade-failure arm
 - 2026-10-03-i · refining · seal now 8, 14, 20, 24, 28; Term Recording Failure · a bare recording-failure lands for a database refusal, for lock contention, for a call before the seal call that gives no answer and on both sides of the seal commit → carry the cause or the position
