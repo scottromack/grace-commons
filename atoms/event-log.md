@@ -91,7 +91,7 @@ Term event field: event id | sequence number | recording instant | data.
 
 ```
 Capability requirement 1: The deployment MUST supply now at the seam PER Execution Contract Logic confinement 3.
-Capability requirement 2: The deployment MUST supply the database PER Execution Contract Database 1 through 4 and Execution Contract Read 1 through 4.
+Capability requirement 2: The deployment MUST supply the database PER Execution Contract Database 1 through 4, Execution Contract Database 6 and Execution Contract Read 1 through 4.
 ```
 
 ### Operations
@@ -130,11 +130,11 @@ Deleted: Operation 20. Execution Contract Logic confinement 3 owns it.
 Operation 21: The business caller MUST NOT supply recording instant.
 ```
 
-Term query: what a read asks for — a [Query]: a sequence number range, a wall-time range, or a combination of the two. A range holds both its ends, and a combination matches an event that each of its ranges matches. A query is malformed where the query carries no range, where a range's lower end is above its upper end, where an end a sequence number range carries is below one or is not an integer, or where the query asks for anything beyond those ranges.
+Term query: what a read asks for — a [Query]: a sequence number range, a wall-time range, or a combination of the two. A range holds both its ends, and a range carrying no upper end holds its lower end and everything above it; a combination matches an event that each of its ranges matches. A query is malformed where the query carries no range, where a range carries no lower end, where a range's lower end is above its upper end, where an end a sequence number range carries is below one or is not an integer, where an end a wall-time range carries is not an instant, or where the query asks for anything beyond those ranges.
 
 NOTE: watch the range's ends (Term query).
 
-Term payload cap: the per-instance bound on data's size, in bytes; 65,536 bytes where a deployment declares none.
+Term payload cap: the per-instance bound on the number of bytes in data as the composing pattern supplies it; 65,536 bytes where a deployment declares none.
 
 NOTE: open 2026-10-20-a — the deployment's declaration of the payload cap is named here and in External check 6, and listed by no Capability requirement.
 
@@ -181,7 +181,7 @@ The case space, and the rule that owns each case:
   ```
 - **Invariant 7 — Wall-time best-effort monotonicity.**
   ```
-  Deleted: Invariant 7.1. Invariant 7.2 owns it: two appends the database serializes can land in the order opposite to their clock readings, so recording instant can fall in append order under a non-decreasing clock.
+  Deleted: Invariant 7.1. Invariant 7.2 owns it: two appends the database serializes can land in the order opposite to their clock readings, so recording instant can fall along append order under a non-decreasing clock.
   Invariant 7.2: sequence number IS AUTHORITATIVE FOR the log's order.
   ```
 
@@ -284,7 +284,7 @@ Non-goal 15: The atom MUST NOT append two events atomically.
 Deleted: Non-goal 16. Execution Contract Database 1 owns it.
 ```
 
-NOTE: the owners — [Retention Window](./retention-window.md) (Non-goal 1, Non-goal 2) and a Storage Tier pattern *(forthcoming)* for cold events; [Tamper Evidence](./tamper-evidence.md) (Non-goal 3, Non-goal 4); [Actor Identity](./actor-identity.md) (Non-goal 5, Non-goal 6); a Reverse Index pattern *(forthcoming)* (Non-goal 7, Non-goal 8); a Snapshot pattern *(forthcoming)* (Non-goal 13); a Change Feed pattern *(forthcoming)* (Non-goal 14).
+NOTE: the owners — [Retention Window](./retention-window.md) (Non-goal 1, Non-goal 2) and a Storage Tier pattern *(forthcoming)* for cold events; [Tamper Evidence](./tamper-evidence.md) (Non-goal 3, Non-goal 4); [Actor Identity](./actor-identity.md) (Non-goal 5, Non-goal 6); a Reverse Index pattern *(forthcoming)* (Non-goal 7, Non-goal 8); a Consensus pattern *(forthcoming)* (Non-goal 10); a Schema Evolution pattern *(forthcoming)* (Non-goal 12); a Snapshot pattern *(forthcoming)* (Non-goal 13); a Change Feed pattern *(forthcoming)* (Non-goal 14); Erasure Coordination *(forthcoming)* (Erasure 2, Erasure 3).
 
 Where the pattern breaks down: when the host cannot supply atomic, serialized appends — most adversarially-distributed settings; when an event must be edited or deleted in place; when order must come from something other than append order.
 
@@ -357,7 +357,7 @@ Term qualifiers: migrated — rewritten in GRACE lang v0.35 (2026-09-11); landed
 
 Term terms: event id, seam, now, transition, business caller, event, sequence number, recording instant, data, log name, next sequence number, landed, event field, query, payload cap.
 
-NOTE: open 2026-10-23-a — seven declared terms carry no term entry, where spec-format's Terms item asks one per declared term (Term terms).
+NOTE: open 2026-10-23-a — seven declared terms carry no term entry, where spec-format's Terms item asks one per declared term (Term terms); two of them, landed and event field, are each declared twice, the two declarations agreeing (Term landed and Term qualifiers; Term event field and Term value sets).
 
 #### Event Log
 
@@ -401,7 +401,7 @@ Projection: sequence_number
 
 #### Recording Instant
 
-The wall-time at which an [Event] was appended — an annotation of when, not the basis of order. Stamped from the host-injected clock on [Append], it can fall in append order — under a clock that misbehaves, or where two appends land in the order opposite to their clock readings — and [Sequence Number] is authoritative.
+The wall-time at which an [Event] was appended — an annotation of when, not the basis of order. Stamped from the host-injected clock on [Append], it can fall along append order — under a clock that misbehaves, or where two appends land in the order opposite to their clock readings — and [Sequence Number] is authoritative.
 
 Kind:       Field
 Field of:   Event
@@ -433,7 +433,7 @@ Projection: next_sequence_number
 
 #### Query
 
-The selection a caller passes to [Read] — a sequence-number range, a wall-time range, or a combination of the two. Each range holds both its ends, and a combination matches an event both its ranges match; a valid [Query] carries one range or both and asks for nothing beyond them, and [Read] returns its events in [Sequence Number] order.
+The selection a caller passes to [Read] — a sequence-number range, a wall-time range, or a combination of the two. Each range holds both its ends, and one carrying no upper end holds its lower end and everything above it; a combination matches an event both its ranges match; a valid [Query] carries one range or both, each with its lower end, and asks for nothing beyond them, and [Read] returns its events in [Sequence Number] order.
 
 Kind:         Parameter
 Parameter of: Read
@@ -441,7 +441,7 @@ Projection:   query
 
 #### Invalid Payload
 
-The refusal [Append] returns when the supplied [Data] violates the configured payload constraints (for example, exceeding the size cap). The [Event] does not land.
+The refusal [Append] returns when the supplied [Data] exceeds the payload cap. The [Event] does not land.
 
 Kind:       Member
 Member of:  the Append rejection
@@ -450,7 +450,7 @@ Projection: invalid-payload
 
 #### Invalid Query
 
-The refusal [Read] returns when the [Query] is malformed — a query carrying no range, a range whose lower end is above its upper end, a sequence-number range with an end below one or not an integer, or a query asking for anything beyond those ranges, such as a selection on the payload. No events are returned.
+The refusal [Read] returns when the [Query] is malformed — a query carrying no range, a range carrying no lower end, a range whose lower end is above its upper end, a sequence-number range with an end below one or not an integer, a wall-time range with an end that is not an instant, or a query asking for anything beyond those ranges, such as a selection on the payload. No events are returned.
 
 Kind:       Member
 Member of:  the Read rejection
@@ -511,14 +511,14 @@ It inherits from:
 
 ## Status
 
-`grounded on Final Critique 11 — 2026-10-23` — see the Ledger.
+`partially resolved` — see the Ledger.
 
 ## Ledger
 
 ```
-status: grounded on Final Critique 11 — 2026-10-23
+status: partially resolved
 formal: verified — event-log.tla + 1 twin, 2026-06-03
-last gate: 2026-10-23 — Final Critique 11, the council's seventh round on the page and the first on its text since Final Critique 10's settle (602a5bb), three fresh readers on free models (GRID Nemotron 3 Ultra, EOS Beam, Linus Flint 40B, the seat moved mid-round from GLM-5.3 Flash when that model's free allowance ran out), each handed only the round's reading set, three passes on one text (frozen at 602a5bb); the round rests on three counted passes — foundational count 0, held by the blind second triage (2026-10-23, one cold reader given the round's 33 reports, the method's test and the placement rule, and neither the threshold nor what the count decides, which placed none of them foundational); 15 foundational reports, none standing as the two triages settled them (11 sent down, ten of them onto the page's five flagged open lines; 4 rejected); 14 refining reports, 4 rhetorical reports; clean; every refining finding cured, routed or answered, the Summary brought to six sentences, three initialisms spelled out and open line 2026-10-23-a added; one sample; 2026-10-23 — Final Critique 10, the council's sixth round on the page — foundational count 1 after the blind second triage (the settle's own triage had counted 0), cured, not clean; 2026-10-23 — Final Critique 9, the council's fifth round on the page — foundational count 1, cured, not clean; 2026-10-22 — Final Critique 8, the council's fourth round on the page — foundational count 2 after the blind second triage (2026-10-23; the settle's own triage had counted 0), both cured, not clean; 2026-10-22 — Final Critique 7, the council's third round on the page — foundational count 0 after the settle's triage, not recorded clean, its blind second triage not run; 2026-10-22 — Final Critique 6, the council's second round on the page — foundational count 1, cured, not clean; 2026-10-20 — Final Critique 5, the council's first round on the page — foundational count 5, all cured, not clean; 2026-06-18 — Final Critique 4, fresh reader — clean
+last gate: 2026-10-25 — Final Critique 12 — foundational count 0, clean, no sample
 
 open:
 - 2026-10-20-a · refining · Term payload cap; External check 6 · the deployment's declaration of the payload cap is named (Term payload cap, External check 6) and declared by no Capability requirement → a Capability requirement naming the declaration and the default it falls back to
@@ -526,7 +526,7 @@ open:
 - 2026-10-20-d · refining · State 3; State 5 · log name and a fresh log instance have no declared supplier → name who supplies each, a composing pattern (Identity 10) or the deployment
 - 2026-10-20-e · refining · Examples · the Examples invoke regulated domains (a patient chart, a bank journal), and the method's When the conventions apply requires Regulated adversarial scenarios of such a page → write the subsection
 - 2026-10-22-b · refining · Identity 2; Capability requirement · the event id's source is named as the host's allocation (Identity 2) and not among what the deployment supplies, where the atom shape in `spec-format.md` lists an id source under Capability requirement and Final Critique 4's text named one beside the clock → name the source among the Capability requirements, in the one form the corpus settles for its twenty host-allocation atoms
-- 2026-10-23-a · refining · Term terms; Vocabulary · seven declared terms (seam, now, transition, business caller, landed, event field, payload cap) carry no term entry, where spec-format's Terms item asks one per declared term and every specification writes one per name a bracket marker lands on → add the entries, each with a Kind the term entry grammar admits, or read the item as the bracketed names
+- 2026-10-23-a · refining · Term terms; Vocabulary · seven declared terms (seam, now, transition, business caller, landed, event field, payload cap) carry no term entry, where spec-format's Terms item asks one per declared term and every specification writes one per name a bracket marker lands on, and two of them, landed and event field, are each declared twice (Term landed and Term qualifiers; Term event field and Term value sets), the declarations agreeing → add the entries, each with a Kind the term entry grammar admits, or read the item as the bracketed names; keep one declaration of each twice-declared name, the other citing it (GRACE-lang Closed vocabulary 15)
 ```
 
 ## Decisions

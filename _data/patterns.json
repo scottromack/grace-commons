@@ -574,7 +574,7 @@
    "reserve-from-pool"
   ],
   "domain": null,
-  "grounded": true,
+  "grounded": false,
   "invariants": 7,
   "kind": "atom",
   "models": {
@@ -605,7 +605,7 @@
    "SOX",
    "eIDAS"
   ],
-  "status": "grounded on Final Critique 11 \u2014 2026-10-23",
+  "status": "partially resolved",
   "title": "Event Log"
  },
  "execute-gated-workflow": {
