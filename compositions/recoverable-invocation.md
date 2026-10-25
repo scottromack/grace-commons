@@ -876,6 +876,7 @@ Term reported: an act the run examined, of a kind whose service identity EQUALS 
        reconcile step 2.7a: The run MUST count the act in skipped.
    reconcile step 2.8: The run MUST NOT take the critical section for an intent reconcile step 2.1 excepts.
    reconcile step 2.9: The run MUST count EVERY intent reconcile step 2.1 excepts in unreached.
+   NOTE: watch the unstated exception (reconcile step 2.1).
    reconcile step 2.10: WHEN the step-2 re-read fails:
        reconcile step 2.10a: The run MUST write nothing for the act.
        reconcile step 2.10b: The run MUST release.

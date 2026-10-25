@@ -511,6 +511,7 @@ Per-act critical section 13: The host MUST hold a scan leg's critical section as
     Per-act critical section 13i: IF a re-run of Instance start 16, 18, 19 or 28 fails on a running instance THEN the deployment MUST surface a compliance alert as a deployment fault until a re-declaration passes the failed check AND the instance MUST go on accepting [Record Action].
 Per-act critical section 14: A [Purge Event] re-driven by the first half MUST NOT take a second critical section for an event id the first half holds.
 Per-act critical section 15: A cascade and a scan leg MUST take the critical section by Lease's try_take, a [Purge Event] re-driven by the first half excepted (Per-act critical section 14).
+NOTE: watch the unstated exception (Per-act critical section 15).
 Per-act critical section 15a: A hold placement MUST take the critical section by Lease's take, waiting no longer than the atom's arrival term.
 Per-act critical section 15b: IF a hold placement's take answers unavailable OR no answer THEN the placement MUST NOT write AND MUST report not placed to the placement's caller.
 Per-act critical section 15c: The composition MUST declare compensation closure latency as the longest duration of a take on a per-act critical section AND seal completion bound as the longest on the sealing lock (Lease Composition note 5d).
@@ -900,11 +901,11 @@ Steps:
    ```
    record action step 5.1: [Record Action] step 5 MUST record event to attestation, event to retention and event to sequence for the event.
    record action step 5.2: [Record Action] step 5 MUST take sequence number from the read-back.
-   record action step 5.3: The read-back MUST run from the high-water mark plus one to the open end.
+   record action step 5.3: The read-back MUST run from the high-water mark plus one with no upper bound.
    record action step 5.4: The read-back MUST match the returned event id by equality.
    record action step 5.5: IF the read-back returns no event carrying the event id THEN [Record Action] step 5 MUST fall back to the rebuild of event to sequence.
    record action step 5.6: [Record Action] step 5 MUST NOT guess a sequence number.
-   record action step 5.7: An implementation whose append result surfaces sequence number MAY take the value from the append result and skip the read-back.
+   Deleted: record action step 5.7. record action step 5.2 owns it: Event Log's append answers event id alone, so the read-back is the one source of sequence number.
    record action step 5.8: The composition MUST NOT depend on the append result surfacing sequence number.
    record action step 5.9: The composition MUST treat a step-5 failure as a rebuild trigger.
    record action step 5.10: A step-5 failure MUST NOT land [Recording Failure].
@@ -1130,6 +1131,7 @@ Steps:
    verify record step 5.2: [Verify Record] step 5 MUST land a failed-verification(reason) whose reason DOES NOT EQUAL mechanism-verification-unavailable with the reason prefixed seal-.
    verify record step 5.3: [Verify Record] step 5 MUST route mechanism-verification-unavailable to step 6.
    verify record step 5.4: [Verify Record] step 5 MUST land Tamper Evidence's not-known as failed-verification(seal-not-known).
+   NOTE: open 2026-10-03-t — the seal is checked against the caller's presentation and the attestation link is taken from the stored payload, and no step compares the two (verify record step 3.1, verify record step 5.1).
    ```
 6. **Availability arm.**
    ```
@@ -1226,6 +1228,7 @@ Steps:
    purge event step 0.5: IF the event's sequence number DOES NOT EXCEED sealed through THEN [Purge Event] step 0 MUST NOT invoke [Seal Now].
    purge event step 0.6: [Purge Event] MUST NOT run step 0 BEFORE taking the per-act critical section keyed by event id, a [Purge Event] re-driven by the first half excepted (Per-act critical section 14).
    purge event step 0.7: IF another holder holds the critical section THEN [Purge Event] MUST land cascade-failure(in-flight), a [Purge Event] re-driven by the first half excepted (Per-act critical section 14).
+   NOTE: watch the unstated exception (purge event step 0.6, purge event step 0.7).
    purge event step 0.8: IF [Seal Now] lands [Nothing To Seal] THEN [Purge Event] step 0 MUST re-resolve the covering seal and proceed ONLY IF one EXISTS.
    purge event step 0.10: IF the take at step 0.6 answers no answer THEN [Purge Event] MUST land cascade-failure(in-flight).
    purge event step 0.9: IF no covering seal EXISTS after [Nothing To Seal] THEN [Purge Event] MUST land cascade-failure(seal).
@@ -1254,7 +1257,7 @@ Steps:
    ```
 2. **Write the destruction record, before anything is destroyed.**
    ```
-   purge event step 2.1: [Purge Event] step 2 MUST write the destruction record in one durable write.
+   purge event step 2.1: [Purge Event] step 2 MUST write the destruction record in one durable write, a step 2 that reads a destruction record excepted (purge event step 2.7).
    purge event step 2.2: The destruction record MUST add the event's sequence number to the covering seal's purged events.
    purge event step 2.3: The destruction record MUST carry the pair, read from event to attestation with rebuild-on-miss.
    purge event step 2.3a: IF the event's action reference EQUALS audit.compensation OR the event's action reference EQUALS audit.reconciliation THEN the destruction record MUST carry the action reference, the payload's subject-kind discriminator, the id the subject names and the payload's disposition where the payload carries one.
@@ -1263,21 +1266,23 @@ Steps:
    purge event step 2.8: IF the destruction record's write answers no answer THEN [Purge Event] step 2 MUST land cascade-failure(step-2).
    purge event step 2.6: [Purge Event] step 2 MUST NOT write BEFORE reading the destruction record under the held critical section.
    purge event step 2.7: IF a destruction record EXISTS THEN [Purge Event] step 2 MUST adopt the record as landed.
+   NOTE: watch the unstated exception (purge event step 2.1).
    ```
 3. **Delegate the destruction.**
    ```
-   purge event step 3.1: [Purge Event] step 3 MUST delegate destruction to erasure mechanism.
+   purge event step 3.1: [Purge Event] step 3 MUST delegate destruction to erasure mechanism, a step 3 that reads a destroyed outcome excepted (purge event step 3.12).
    purge event step 3.2: The cascade MUST NOT destroy content.
    purge event step 3.3: The delegation MUST name the whole of Event Log's data field and the attestation's proof, and nothing else.
    purge event step 3.4: [Purge Event] step 3 MUST record the mechanism's outcome in erasure outcomes.
    purge event step 3.5: IF outcome EQUALS destruction-failed THEN [Purge Event] step 3 MUST land cascade-failure(step-3).
-   purge event step 3.6: A delegation not issued MUST land cascade-failure(step-3).
+   purge event step 3.6: A delegation not issued MUST land cascade-failure(step-3), a step 3 that reads a destroyed outcome excepted (purge event step 3.12).
    purge event step 3.7: An outcome not recorded MUST land cascade-failure(step-3).
    purge event step 3.8: The cascade MUST NOT record a destroyed outcome the mechanism did not report.
    purge event step 3.9: The composition MUST NOT repair a partly-purged seal.
    purge event step 3.10: A partly-purged seal MUST remain the one seal over the seal's range.
    purge event step 3.11: [Purge Event] step 3 MUST NOT issue the delegation BEFORE reading erasure outcomes under the held critical section.
    purge event step 3.12: IF a destroyed outcome EXISTS THEN [Purge Event] step 3 MUST NOT issue the delegation.
+   NOTE: watch the unstated exception (purge event step 3.1, purge event step 3.6).
    ```
 4. **What survives a completed cascade.**
    ```
@@ -1604,7 +1609,7 @@ Term recorded through [Record Action]: the quantifier of Invariants 1, 2 and 8 �
   ```
   *Rests on:* [Purge Event] steps 0–4, defended by the cascade-on-purge rule; Retention Window Invariants 3 (terminal absorption), 7 (no early purge) and 8 (purge timestamp consistency); Tamper Evidence Invariant 1; Event Log Invariant 1 and Actor Identity Invariant 9, which are what make the delegation necessary rather than optional.
 
-- **Invariant 5 — Constituent invariants preserved.**
+- **Invariant 5 — Constituent invariants preserved, or discharged by the destruction record.**
   ```
   Invariant 5.1: EVERY invariant of the four constituent atoms MUST hold over the atom's instance for EVERY event whose retention state DOES NOT EQUAL Purged.
   Invariant 5.4: For a Purged event, AND for a live event whose covering seal is partly purged, an auditor MUST read a constituent invariant that needs a readable proof or a re-presented record set as discharged by the destruction record.
@@ -2123,7 +2128,7 @@ The composition is the structural form of what every major audit regime requires
 ```
 status: partially resolved
 formal: verified — audit-trail.tla + 2 twins (cascade; scan first half) and audit-trail-record.tla + 3 twins (record action, one step under Execution Contract Store 1; scan second and third halves; re-derived 2026-10-20) and audit-trail-binding.tla + 2 twins (binding-set predicate against an in-flight cascade), re-derived against the fresh-reader gates of rounds 9 to 18, and audit-trail-hold.tla + 5 twins + 3 probes (a hold placed over an open cascade entry, released and re-driven; 43,688 states within 15 ticks), derived from the page as it stands; the closure arithmetic — a leg's lease against its work (Instance start 18, 19, Per-act critical section 13a, 13b, 13d) and a finding's closure against closure sum with one dead run and one hold placement (Instance start 16) — enumerated by tools/harness/audit-trail-closure.py + 5 twins over 5,184 leg tuples and 5,184 schedule tuples at conforming constants, which no model reaches; the other cures of rounds 19 to 26 are carried on the NOT MODELED lists, not re-derived; models and enumerator last run 2026-10-24
-last gate: 2026-10-25 — Final Critique 42 — foundational count 1, not clean, no sample
+last gate: 2026-10-25 — Final Critique 43 — foundational count 1, not clean, no sample
 
 open:
 - 2026-10-03-d · refining · Second half 18; Term dependency outage · content lost with no cascade and not restorable leaves the second half writing no compensation with nothing to end it → a standing for content lost without record; contract-shaped, own round
