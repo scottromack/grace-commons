@@ -23,7 +23,7 @@ Legal Hold is a formal instruction to keep a specific record intact — overridi
 ## Intent
 
 WHY:
-When litigation is filed or reasonably anticipated, the duty to preserve arrives before anyone knows what will matter, and it overrides every retention schedule the organization has. Destroying a held record is spoliation — sanctions, adverse inference, sometimes the case. So the obligation itself has to be a record: what is held, who decided, why, under which matter, from when, and — when it ends — who lifted it and on what grounds. That record is this atom. It does not stop a purge; it documents an obligation a composing pattern enforces at the purge surface. It does not know what a case is. And it never merges two holds over one record, because two authorities demanding preservation of one document is two obligations, each ending on its own day.
+When litigation is filed or reasonably anticipated, the duty to preserve arrives before anyone knows what will matter, and it overrides every retention schedule the organization has. Destroying a held record is spoliation — sanctions, an adverse inference (the jury told it may presume the destroyed record was unfavorable), sometimes the case. So the obligation itself has to be a record: what is held, who decided, why, under which matter, from when, and — when it ends — who lifted it and on what grounds. That record is this atom. It does not stop a purge; it documents an obligation a composing pattern enforces at the purge surface. It does not know what a case is. And it never merges two holds over one record, because two authorities demanding preservation of one document is two obligations, each ending on its own day.
 
 ## Structure
 
@@ -33,7 +33,7 @@ When litigation is filed or reasonably anticipated, the duty to preserve arrives
 Identity 1: The atom MUST identify a hold by the hold id.
 Identity 2: The host MUST allocate a hold id at the atom's seam.
 Identity 3: The transition MUST NOT allocate a hold id.
-Identity 4: The atom MUST NOT reuse a hold id.
+Identity 4: The atom MUST NOT reuse a hold id within one database instance.
 Identity 5: The atom MUST NOT reassign a hold id.
 Identity 6: A hold id MUST sort in lexicographic byte order.
 Identity 7: The atom MUST NOT identify a hold by the record reference.
@@ -106,7 +106,7 @@ place(record_ref, placed_by, reason, optional case_ref, optional placed_at)
 
 release(hold_id, released_by, reason, optional released_at)
   answers released
-  refuses invalid-request | not-known | already-released | storage-failure
+  refuses not-known | already-released | invalid-request | storage-failure
 
 read(query)
   answers holds(store_name)
@@ -126,7 +126,7 @@ Operation 9: IF the caller supplies no placement instant THEN [Place] MUST stamp
 Operation 10: [Place] MUST accept a placement instant below now.
 Operation 11: IF the database refuses the write THEN [Place] MUST answer storage-failure.
 Operation 12: IF hold id EQUALS blank THEN [Release] MUST answer invalid-request.
-Operation 13: IF no hold EXISTS for the hold id THEN [Release] MUST answer not-known.
+Operation 13: IF hold id DOES NOT EQUAL blank AND no hold EXISTS for the hold id THEN [Release] MUST answer not-known.
 Operation 14: IF the hold state EQUALS released THEN [Release] MUST answer already-released.
 Operation 15: IF releasing actor EQUALS blank THEN [Release] MUST answer invalid-request.
 Operation 16: IF release reason EQUALS blank THEN [Release] MUST answer invalid-request.
@@ -157,8 +157,10 @@ Operation 38: The business caller MAY supply placement instant.
 Operation 39: The business caller MAY supply release instant.
 Operation 40: The atom MUST judge a supplied placement instant against the injected now.
 Operation 41: The atom MUST judge a supplied release instant against the injected now.
-Operation 42: [Release] MUST NOT evaluate a rule of the release refusal order BEFORE EVERY earlier rule of the release refusal order has answered no refusal.
+Deleted: Operation 42. Execution Contract Refusal 1 owns it.
 ```
+
+NOTE: watch the blank id (Operation 13).
 
 Term query: what a read asks for — a [Query]; any combination of the admitted axes, and a query carrying none matches every hold.
 
@@ -167,8 +169,6 @@ Term admitted axis: hold id | record reference | placing actor | case reference 
 Term resolved release instant: the release instant the release records — the caller's value where one is supplied, the injected now otherwise.
 
 Term held at an instant: placement instant at or before the instant, and either the hold state EQUALS active or the hold carries a release instant after the instant — the reconstruction an auditor runs over stored fields, never over the hold's present state.
-
-Term release refusal order: Operation 12 through 18 — [Release]'s refusal rules, earliest first; Operation 21 answers only at the write, which no refused call reaches.
 
 The case space, and the rule that owns each case:
 
@@ -189,13 +189,14 @@ The case space, and the rule that owns each case:
 | [Read] | unknown axis, blank value, bad state, inverted range | [Invalid Query] | none — rejected rather than silently ignored (Operation 27 through 30) |
 | [Read] | well-formed query matching nothing | empty sequence | none (Operation 31) |
 
-Where two [Release] rows hold at once, the earlier row answers: the rows follow the release refusal order (Operation 42).
+Where two [Release] rows hold at once, the earlier row answers: the refuses line lists not-known and already-released ahead of invalid-request (Execution Contract Refusal 1), and not-known answers only a hold id that is not blank (Operation 13).
 
 ### Invariants
 
 - **Invariant 1 — Hold immutability.**
   ```
   Invariant 1.1: A recorded hold's hold id, record reference, placing actor, hold reason, placement instant and case reference MUST NOT change.
+  Invariant 1.2: A released hold's releasing actor, release reason and release instant MUST NOT change.
   ```
 - **Invariant 2 — Membership exclusivity.**
   ```
@@ -305,15 +306,15 @@ This atom's acceptance is provable: an external auditor clears it from the hold 
 ```
 Check 1.1: An auditor MUST find EVERY issued hold id in the database (Invariant 8.1, Invariant 8.2).
 Check 2.1: An auditor MUST find placing actor and hold reason not blank on EVERY hold (Invariant 7.1, Invariant 7.2).
+Check 2.2: An auditor MUST find placement instant set on EVERY hold (Invariant 7.3).
 Check 2.3: An auditor MUST find record reference not blank on EVERY hold (Operation 4).
 Check 2.4: An auditor MUST find hold id not blank on EVERY hold (Identity 2, Instance 2).
-Check 2.2: An auditor MUST find placement instant set on EVERY hold (Invariant 7.3).
 Check 3.1: An auditor MUST find releasing actor and release reason not blank on EVERY released hold (Invariant 5.1, Invariant 5.2).
 Check 3.2: An auditor MUST find release instant set on EVERY released hold (Invariant 5.3).
 Check 3.3: An auditor MUST find no released hold whose release instant PRECEDES the hold's placement instant (Invariant 6.1).
 Check 4.1: An auditor MUST find a second hold over one record still active once the first hold is released (Invariant 4.1).
 Check 5.1: An auditor MUST find already-released answered for a release against a released hold (Operation 14, Invariant 3.1).
-Check 5.2: An auditor MUST find a released hold's fields unchanged by that refused release (Invariant 1.1).
+Check 5.2: An auditor MUST find a released hold's fields unchanged by that refused release (Invariant 1.1, Invariant 1.2).
 Check 6.1: An auditor MUST find the hold set never shrinking across two readings (Invariant 8.2).
 Check 6.2: An auditor MUST find EVERY placement field unchanged across two readings (Invariant 1.1).
 Check 6.3: An auditor MUST read an active-to-released move between two readings as conformant (Invariant 2.1).
@@ -416,7 +417,7 @@ Term actors: the atom; the host; the transition; the deployment; a composing pat
 
 Term records: hold — one preservation obligation, carrying hold id, record reference, placing actor, hold reason, placement instant, a hold state and, where they exist, case reference, releasing actor, release reason and release instant.
 
-Term record verbs: supply, judge, purge, retry, raise, match, share, hold, reach, route, identify, allocate, reuse, reassign, sort, carry, stand, offer, delete, record, answer, stamp, accept, read, order, write, change, rest, shrink, find, block, refuse, deduplicate, gate, release, detect, place, import, own, check, compose, declare, precede, fall, evaluate.
+Term record verbs: supply, judge, purge, retry, raise, match, share, hold, reach, route, identify, allocate, reuse, reassign, sort, carry, stand, offer, delete, record, answer, stamp, accept, read, order, write, change, rest, shrink, find, block, refuse, deduplicate, gate, release, detect, place, import, own, check, compose, declare, precede, fall.
 
 Term value sets: hold state = active | released.
 
@@ -426,7 +427,7 @@ Term cadences: empty.
 
 Term qualifiers: migrated — rewritten in GRACE lang v0.35 (2026-09-12).
 
-Term terms: database instance, hold, hold id, record reference, seam, transition, business caller, now, hold state, placing actor, hold reason, placement instant, case reference, releasing actor, release reason, release instant, query, resolved release instant, admitted axis, held at an instant, release refusal order.
+Term terms: database instance, hold, hold id, record reference, seam, transition, business caller, now, hold state, placing actor, hold reason, placement instant, case reference, releasing actor, release reason, release instant, query, resolved release instant, admitted axis, held at an instant.
 
 #### Place
 
@@ -667,7 +668,7 @@ Projection: invalid-query
 ```
 status: partially resolved
 formal: verified — legal-hold.tla + 2 twins, 2026-06-04
-last gate: 2026-10-21 — Final Critique 5, the council's first round on the page and the first on its Store-contract rewrite (5cab2ca), three fresh readers on free models (GRID Nemotron 3 Ultra, EOS MiniMax M3.1 Flash, Linus GLM-5.3 Flash), each handed only the round's reading set, three passes on one text (frozen at 927e3ff); the round rests on three counted passes — foundational count 3 after triage (13 reports: 5 standing, merged into 3; 5 sent down; 3 rejected), all Kind A: [Release]'s refusal rules obliged different answers on one call with no order between them, the priority Final Critique 4 stated having been lost at the migration; Instance 5 obliged [Read] to answer a database name its signature did not carry, so a build answering the name on each hold left an empty answer with nothing for a composing pattern to match; and a conformance check asked the auditor for the deployment's wiring, which no hold record carries; 23 refining reports, 5 rhetorical reports; not clean; every foundational finding cured in place; 2026-05-20 — Final Critique 4, fresh reader — clean
+last gate: 2026-10-24 — Final Critique 6 — foundational count 1, not clean, no sample
 
 open:
 - 2026-10-05-a · refining · State 2; Operation 10 · a hold carries a placement instant a caller may assert and no instant the system stamped at entry, so a composing pattern cannot age or order a hold whose audit record is gone → an entry instant; reported by Defensible Retention's gate
@@ -675,16 +676,16 @@ open:
 - 2026-10-21-a · refining · Operation 29, 30; Term admitted axis; Active and Released entries · [Read]'s query shape is left to the build: the hold state members carry no Projection line while the examples query `state: Active`, and a range's bounds are stated nowhere — whether a range needs both, and whether a bound is inside it — so one well-formed query can answer two hold sets → give the members their wire spelling, and state a range's bounds
 - 2026-10-21-b · refining · Operation 8, 18; Placement Instant and Release Instant entries · a supplied placement or release instant has no declared form, and the examples write two (a zoned date and time, a bare date), so a zoneless value near now is placed by a build reading it as UTC and refused as future by one reading it in the deployment's zone → declare the form a supplied instant takes, or name the layer that turns a wire value into an instant
 - 2026-10-21-c · refining · State 1, 7; Invariant 2.1, 4.1, 8.1; Operation 8, 10, 18, 20, 40, 41; Backdating 1, 2; Aggregate 3; Instance 7 · propositions owned twice: State 1 and Invariant 2.1 word for word, State 7 and Invariant 8.1, Operation 10 and Backdating 1, Operation 8 with Backdating 2 and Operation 40, Operation 18 with Operation 41, Operation 20 and Invariant 4.1, Aggregate 3 and Instance 7 → one owner each (GRACE-lang Authority 3), each tombstone checked against the pages that cite it
-- 2026-10-21-d · refining · Invariant 1.1; Check 5.2; Operation 14 · the release fields stay as written because [Release] refuses a released hold (Operation 14) and the database edits nothing (Execution Contract Database 4), while Invariant 1.1 names the placement fields alone and Check 5.2 cites it for a released hold's fields → name the release fields in Invariant 1, or cite the rules that keep them
 - 2026-10-21-e · refining · Examples · no breach or incident read is walked on its own: the regulator audit is a regulator's breach investigation, and the third scenario is a dual-regulator one → walk the three regulated reads spec-format asks for, the breach read on its own
 - 2026-10-21-f · refining · Check 4.1, 5.1, 6.3 · each check presupposes a history the hold records may not hold (a second hold over one record, a refused second release, a move between two readings), so an auditor holding none finds nothing to test → state each check's antecedent, or say that the auditor makes the history
-- 2026-10-21-g · refining · Identity 4; Instance 2; Hold Id entry · Identity 4 forbids reusing a hold id with no scope, while Instance 2 and the Hold Id entry scope uniqueness to one database instance → scope one to the other
 - 2026-10-21-h · refining · Composition note 2; Aggregate 1 · a composing pattern's check of a record's active holds at the purge surface can race a placement over the record, and no rule names who serializes them; the check and the purge are the composing pattern's one action, whose reads and writes Execution Contract Database 1 and Database 2 hold in one transaction → say so in the Composition notes
 ```
 
 ## Decisions
 
 Directional changes only — the turns a future reader must know the pattern took, and why. Everything smaller lives in the commit that made it: `git log -- atoms/legal-hold.md`; the migration that got it here is in [its history](./legal-hold.hist.md).
+
+- **2026-10-24 — [Release]'s refusal order is the Execution Contract's.** *Chose:* the refuses line listing not-known, already-released, invalid-request, then storage-failure, which answers only at the write, and Operation 13 answering not-known only for a hold id that is not blank, so Execution Contract Refusal 1 answers the order the page kept as its own: a blank hold id first, then an unknown hold, a released hold, a blank attribution and the two time guards; Operation 42 deleted to Refusal 1, and Term release refusal order with it. *Over:* Operation 42 kept, which names neither a refusal nor the ground one answers on, so Refusal 1's second sentence reads it as keeping [Release] from no refusal and the line's invalid-request answers ahead of not-known and already-released. *Because:* Final Critique 6 found two builds answering one call differently, one by Operation 42 and one by the refuses line; the maintainer ruled on 2026-10-21 that a page keeps its own order only where a fixed line cannot express it, and with not-known held to a hold id that is not blank, one fixed line expresses this one. What [Release] answers on every call is unchanged.
 
 - **2026-10-22 — The wiring is read outside the records, and a ban on refusing names its ground, as the Execution Contract says.** *Chose:* External check 5, the auditor reading which composing patterns a deployment wired in from the deployment's own declaration, deleted to Execution Contract Conformance 9, with Check 7.1's tombstone, which named it, now naming the contract; Non-goal 4 kept as written and read by Execution Contract Refusal 1's second sentence, so the ban names its ground, a hold over a destroyed record, and keeps [Place] from no refusal its line declares, a blank or malformed input still answering invalid-request; both labels cited on Capability requirement 4; rules 132 to 131. *Over:* the page stating for itself that the wiring is an external check; Non-goal 4 read alone, keeping [Place] from every refusal on a hold over a destroyed record. *Because:* the maintainer ruled on 2026-10-22 that five repeated cures are each stated once, the wiring declaration and the refusal ban among them; this page's fifth Final Critique had made the first cure one specification at a time, and the 12:03Z escalation named Non-goal 4 among the refusal ban's uncured sites. What each action does and answers is unchanged.
 

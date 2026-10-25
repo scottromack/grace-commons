@@ -253,6 +253,8 @@ Deleted: Operation 78. Execution Contract Logic confinement 3 owns it.
 Deleted: Operation 79. Execution Contract Logic confinement 3 owns it.
 ```
 
+NOTE: watch the blank id (Operation 12).
+
 Term order action: [Amend] | [Verify] | [Hold] | [Reinstate] | [Dispense] | [Administer] | [Complete] | [Cancel] | [Discontinue] — every action naming an order by order id, including a refused one.
 
 Term state-changing action: an order action that would change the order's state — every order action.

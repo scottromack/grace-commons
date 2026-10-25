@@ -205,6 +205,8 @@ Deleted: Operation 58. Execution Contract Logic confinement 3 owns it.
 Deleted: Operation 59. Operation 6, Operation 24 and Operation 34 own it.
 ```
 
+NOTE: watch the blank id (Operation 12).
+
 Term party action: [Verify] | [Suspend] | [Reinstate] | [Close] — every action naming a party by party id, including a refused one.
 
 Term transitioning action: a party action that changes the party's state — an admitted suspend, an admitted reinstate, an admitted close, OR an admitted verify driving the unverified-to-verified transition.
