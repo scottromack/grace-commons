@@ -305,9 +305,7 @@ Two calls adding one item to one cart are serialized (Execution Contract Databas
 
 ### Indeterminate outcome
 
-A caller whose answer is lost may call again. Where no other call changed the cart in between, a repeated [Add] answers [Already In Cart] where the first landed, and [Read] then shows the line and its [Line Id]; a repeated [Change Quantity] or [Clear] leaves the cart as the first left it; a repeated [Remove] answers [Not Known] where the first landed; a repeated [Open] records a second cart carrying no line. Where another call did change it, the repeat is decided afresh on what that call left (Execution Contract Database 2).
-
-NOTE: watch the lost answer — a caller whose answer is lost cannot tell whether its call landed, an arm the Execution Contract's Error model does not name; this edge case says what calling again meets.
+A caller whose answer is lost may call again, and the repeat is a second call (Execution Contract Error model 1). Where no other call changed the cart in between, a repeated [Add] answers [Already In Cart] where the first landed, and [Read] then shows the line and its [Line Id]; a repeated [Change Quantity] or [Clear] leaves the cart as the first left it; a repeated [Remove] answers [Not Known] where the first landed; a repeated [Open] records a second cart carrying no line. Where another call did change it, the repeat is decided afresh on what that call left (Execution Contract Database 2).
 
 ### A price that moves after the add
 

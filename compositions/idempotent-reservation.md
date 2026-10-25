@@ -73,8 +73,8 @@ Deleted: Composition state 4. Execution Contract Database 1 owns it.
 Deleted: Composition state 5. Execution Contract Database 1 owns it.
 Composition state 6: EXACTLY ONE invocation MUST write an entry per act.
 Deleted: Composition state 7. Execution Contract Database 1 owns it: an action's writes commit together, and the composition names no overwrite to keep the pending instant across.
-Composition state 9: The composition MUST take the parameters digest from the seam.
-Composition state 10: The transition MUST NOT compute a parameters digest.
+Composition state 9: The composition MUST take the parameters digest from the seam (Execution Contract Logic confinement 8).
+Deleted: Composition state 10. Execution Contract Logic confinement 8 owns it.
 Deleted: Composition state 8. Housekeeping 5 owns it.
 ```
 
@@ -82,9 +82,7 @@ Term token results map: the composition's own map from an idempotency token to a
 
 Term action type: place_hold | confirm | release | expire.
 
-Term parameters digest: the collision-resistant digest of a call's non-token parameters, computed at the seam by the configured digest function and injected — a [Parameters Digest].
-
-NOTE: watch the computation at the seam (Term parameters digest).
+Term parameters digest: the collision-resistant digest of a call's non-token parameters, computed at the seam by the configured digest function — a [Parameters Digest].
 
 Term complete entry: a token results entry carrying a recorded result and a completed instant.
 

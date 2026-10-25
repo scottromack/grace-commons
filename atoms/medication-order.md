@@ -535,12 +535,10 @@ Deleted: Concurrency 4. Execution Contract Database 2 owns it: an order action's
 ### Indeterminate outcome
 
 ```
-Indeterminate outcome 1: A caller MUST NOT retry an action whose answer the caller lost BEFORE reading the order.
-Indeterminate outcome 2: A caller MUST NOT read a lost answer as a refusal.
-Indeterminate outcome 3: A caller MUST retry a lost [Amend] ONLY IF the original's state IS IN the pre-dispensing states.
+Indeterminate outcome 1: A caller MUST NOT retry an action whose answer the caller lost BEFORE reading the order (Execution Contract Error model 1).
+Deleted: Indeterminate outcome 2. Execution Contract Error model 1 owns it.
+Indeterminate outcome 3: A caller MUST retry a lost [Amend] ONLY IF the original's state IS IN the pre-dispensing states (Execution Contract Error model 1).
 ```
-
-NOTE: watch the lost answer (Indeterminate outcome 1, Indeterminate outcome 2, Indeterminate outcome 3).
 
 ### String policy
 

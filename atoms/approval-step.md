@@ -441,12 +441,10 @@ Deleted: Concurrency 3. Execution Contract Database 2 owns it.
 ### Indeterminate outcome
 
 ```
-Indeterminate outcome 1: A caller receiving no answer MUST NOT retry BEFORE the caller reads the step records.
-Indeterminate outcome 2: A caller MUST NOT read a transport fault as a storage-failure.
-Indeterminate outcome 3: A caller retrying a landed resolving action MUST read not-pending.
+Indeterminate outcome 1: A caller receiving no answer MUST NOT retry BEFORE the caller reads the step records (Execution Contract Error model 1).
+Deleted: Indeterminate outcome 2. Execution Contract Error model 1 owns it.
+Deleted: Indeterminate outcome 3. Execution Contract Error model 1 owns it.
 ```
-
-NOTE: watch the lost answer (Indeterminate outcome 1, Indeterminate outcome 2, Indeterminate outcome 3).
 
 ### String policy
 

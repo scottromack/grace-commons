@@ -293,10 +293,8 @@ Where the pattern breaks down: when the host cannot supply atomic, serialized ap
 ### Indeterminate outcome
 
 ```
-Indeterminate outcome 1: A composing pattern MUST own what a caller does when an append's answer never reaches the caller.
+Deleted: Indeterminate outcome 1. Execution Contract Error model 1 owns it.
 ```
-
-NOTE: watch the lost answer (Indeterminate outcome 1).
 
 ### Durability across crashes
 

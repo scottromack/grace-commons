@@ -567,11 +567,9 @@ Concurrency 1: Two [Repair] calls on one repository MUST serialize on the act's 
 ### Indeterminate outcome
 
 ```
-Indeterminate outcome 1: The commit probe MUST answer Recoverable Invocation's sweep for a council commit whose reply was lost (Recoverable Invocation reconcile step 3).
+Indeterminate outcome 1: The commit probe MUST answer Recoverable Invocation's sweep for a council commit whose reply was lost (Recoverable Invocation reconcile step 3, Execution Contract Error model 1).
 Deleted: Indeterminate outcome 2. Action wiring 23 owns it: a repair builds its own tree, so a crash leaves nothing a later call reads.
 ```
-
-NOTE: watch the lost answer (Indeterminate outcome 1).
 
 ---
 

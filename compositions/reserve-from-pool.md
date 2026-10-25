@@ -102,7 +102,7 @@ Composition state 15: The rebuild MUST leave standing a binding entry whose rese
 Composition state 16: The composition MUST store the token results map.
 Composition state 17: The composition MUST key the token results map by idempotency token.
 Composition state 18: A token results entry MUST carry an action type, a parameters digest AND a result.
-Composition state 19: The composition MUST take the parameters digest from the seam.
+Composition state 19: The composition MUST take the parameters digest from the seam (Execution Contract Logic confinement 8).
 Composition state 20: The parameters digest MUST NOT take the actor reference.
 Composition state 21: The parameters digest MUST NOT take the credential.
 Composition state 22: The composition MUST NOT evict a token results entry BEFORE Duplicate Prevention's check answers not-seen for the entry's token.
@@ -118,9 +118,7 @@ Term token results map: the composition's own map from an idempotency token to t
 
 Term action type: reserve | confirm_reservation | cancel_reservation | expire_reservation.
 
-Term parameters digest: the collision-resistant digest of a call's business parameters, computed at the seam by the digest function and injected — a [Parameters Digest].
-
-NOTE: watch the computation at the seam (Term parameters digest).
+Term parameters digest: the collision-resistant digest of a call's business parameters, computed at the seam by the digest function — a [Parameters Digest].
 
 Term business parameter: the pool id, the resource, the requester and the duration at [Reserve]; the reservation id at a resolving action — the inputs that decide an answer.
 

@@ -74,7 +74,7 @@ Term reference: credential id, principal reference, revoked by reference OR succ
 
 Term database instance: one named database a call is routed to; credential id uniqueness ranges over one instance.
 
-Term seam: the atom's I/O boundary as the section titled Logic Confinement Principle in `execution-contract.md` declares it; the host injects the clock reading, the id material, the entropy and the derivation registry here, and runs the registry's derivation and check functions here, since both are cryptography (Execution Contract Logic confinement 1, 3).
+Term seam: the atom's I/O boundary as the section titled Logic Confinement Principle in `execution-contract.md` declares it; the host injects the clock reading, the id material, the entropy and the derivation registry here, and runs the registry's derivation and check functions here (Execution Contract Logic confinement 3, 8).
 
 Term transition: the atom's evaluation of one call against the credential records, as the section titled Logic Confinement Principle in `execution-contract.md` declares it.
 
@@ -529,13 +529,11 @@ Concurrency 5: IF a verify's read PRECEDES a transitioning write's commit THEN t
 ### Indeterminate outcome
 
 ```
-Indeterminate outcome 1: A caller receiving no answer to a credential write MUST NOT retry the credential write BEFORE the caller reads the database.
-Indeterminate outcome 2: A caller MUST NOT read a transport fault as a storage-failure.
-Indeterminate outcome 3: A caller retrying a landed [Register] MUST read duplicate-active-credential as the first call's landing.
-Indeterminate outcome 4: A caller retrying a landed [Rotate] MUST read not-active as the first call's landing.
+Indeterminate outcome 1: A caller receiving no answer to a credential write MUST NOT retry the credential write BEFORE the caller reads the database (Execution Contract Error model 1).
+Deleted: Indeterminate outcome 2. Execution Contract Error model 1 owns it.
+Deleted: Indeterminate outcome 3. Execution Contract Error model 1 owns it.
+Deleted: Indeterminate outcome 4. Execution Contract Error model 1 owns it.
 ```
-
-NOTE: watch the lost answer (Indeterminate outcome 1, Indeterminate outcome 2, Indeterminate outcome 3, Indeterminate outcome 4).
 
 ### String policy
 
@@ -974,7 +972,7 @@ open:
 - 2026-10-21-e · refining · Check 6.1; Invariant 5.1 · Check 6.1's double negative is hard to read and misses a move from one stored terminal to the other, which Invariant 5.1 forbids; an inversion must keep out a credential a composing Retention Window purged, as Check 8.1 does → restate Check 6.1 as the stored terminal found again, purged credentials excepted
 - 2026-10-21-f · refining · Term value sets · the effective status, expired or the stored status, has no value set → declare it beside status
 - 2026-09-29-e · refining · Final Critique 12 · routed open, non-blocking: precondition and blank used as terms with no entry; the NIST verifier-storage claim against Non-goal 39 and Capability requirement 5; a read naming neither a pair nor an id has no routing across database instances; a type withdrawn from the registry leaves verify and rotate with no answer; a public key's check normalizes nothing the page names; the Summary's at-most-one claim unscoped to a settled reading; the regulator scenario's no rotation is omitted overclaims Invariant 7; Operation 69's direction and collation; a lapse reopens a principal reference to any enrollment proof, unstated; one snapshot for verify's window reading, selection and check, unpinned → one refining pass
-- 2026-09-29-d · refining · Final Critique 11 · routed open, non-blocking: Operation 24 binds the host's check and sits among the transition's rules; Invariant 7 declares no acyclicity or single predecessor; no External check reaches Capability requirement 33, 35 or 36; Identity 5 global against a per-instance database term, and Capability requirement 13's opaque reference reaching credential ids; the NIST line's verifier-storage claim beside Non-goal 39; fido2 and canonicalizes before their glosses; Operation 69's tie order unexplained; Example 1's deadline assumes an unbounded default; Indeterminate outcome 3 and 4 read another caller's landing as the first call's; the Revocation after exposure example revokes on 2026-09-12 a credential that lapsed on 2026-07-01, which answers already-terminal; the Clock semantics tombstones inside the Capability requirement block → one refining pass, gated with the rest
+- 2026-09-29-d · refining · Final Critique 11 · routed open, non-blocking: Operation 24 binds the host's check and sits among the transition's rules; Invariant 7 declares no acyclicity or single predecessor; no External check reaches Capability requirement 33, 35 or 36; Identity 5 global against a per-instance database term, and Capability requirement 13's opaque reference reaching credential ids; the NIST line's verifier-storage claim beside Non-goal 39; fido2 and canonicalizes before their glosses; Operation 69's tie order unexplained; Example 1's deadline assumes an unbounded default; the Revocation after exposure example revokes on 2026-09-12 a credential that lapsed on 2026-07-01, which answers already-terminal; the Clock semantics tombstones inside the Capability requirement block → one refining pass, gated with the rest
 ```
 
 ## Decisions

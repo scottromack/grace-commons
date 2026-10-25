@@ -93,12 +93,10 @@ Term attestation field: attestation id | action reference | actor reference | pr
 Capability requirement 1: The deployment MUST supply now at the seam.
 Capability requirement 2: The deployment MUST supply the attestation records PER Execution Contract Database 1, Execution Contract Database 3, Execution Contract Database 4, Execution Contract Database 6, Execution Contract Read 1 through 3, Execution Contract Refusal 1 and Execution Contract Conformance 9.
 Capability requirement 3: The deployment MUST supply the registry answer at the seam.
-Capability requirement 4: The deployment MUST supply the cryptographic material at the seam.
+Capability requirement 4: The deployment MUST supply the cryptographic material at the seam (Execution Contract Logic confinement 8).
 ```
 
-Term cryptographic material: what the deployment's credential mechanism computes at the seam and the host injects, never computed inside the transition (Execution Contract Logic confinement 1) — at [Attest], the proof, computed from the credential over the action reference and the actor reference, and the credential check; at [Verify], the proof check.
-
-NOTE: watch the computation at the seam (Term cryptographic material).
+Term cryptographic material: what the deployment's credential mechanism computes at the seam — at [Attest], the proof, computed from the credential over the action reference and the actor reference, and the credential check; at [Verify], the proof check.
 
 ### Operations
 

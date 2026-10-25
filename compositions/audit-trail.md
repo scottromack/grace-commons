@@ -752,7 +752,6 @@ seal now 25: A [Seal Now] stopped by an expired lease under seal now 19 MUST sur
 seal now 26: IF a [Seal Now] is stopped under seal now 19 THEN the deployment MUST declare seal completion bound anew.
 seal now 27: IF seal completion bound is declared anew THEN the instance MUST run Instance start 23 and Instance start 25 against the new bound.
 seal now 28: IF a call [Seal Now] issues BEFORE the seal call of seal now 4 answers no answer AND no rule above names the arm THEN [Seal Now] MUST land [Recording Failure] AND MUST issue no further write.
-NOTE: watch the lost answer (seal now 28).
 ```
 
 Term slice: the sequence-number range from `sealed_through + 1` to the tail position, inclusive.

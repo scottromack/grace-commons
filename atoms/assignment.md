@@ -88,7 +88,7 @@ Term transfer instant: the instant the assignment was handed on — a [Transfer 
 
 ```
 Capability requirement 1: The deployment MUST supply now at the seam.
-Capability requirement 4: The deployment MUST supply the assignment records PER Execution Contract Database 1 through 4, Execution Contract Order 1, Execution Contract Read 1 through 3, Execution Contract Refusal 1 and Execution Contract Conformance 9.
+Capability requirement 4: The deployment MUST supply the assignment records PER Execution Contract Database 1 through 4, Execution Contract Order 1, Execution Contract Read 1 through 3, Execution Contract Refusal 1, Execution Contract Error model 1 and Execution Contract Conformance 9.
 Deleted: Capability requirement 2. Execution Contract Logic confinement 7 owns it.
 Deleted: Capability requirement 3. Execution Contract Logic confinement 7 owns it.
 Deleted: Clock semantics 1. Execution Contract Logic confinement 7 owns it.
@@ -615,7 +615,6 @@ last gate: 2026-10-21 — Final Critique 5, the council's first round on the pag
 
 open:
 - 2026-10-21-a · refining · Term seam; Term transition; Term business caller; Term now · each says the section titled Logic Confinement Principle in `execution-contract.md` declares it, and that section declares none of the four and calls the composition layer the seam (Logic confinement 2); seam, transition and business caller have no term entry → declare the four there, the corpus's one seam wording, or point each at its declaration, and give each a term entry
-- 2026-10-21-b · refining · Operation 7, 13, 22, 24; [Storage Failure] · a write whose acknowledgement never reaches the atom has no stated arm: it is not the database refusing the write (Operation 7, 13, 22), and Operation 24 forbids a refusal that leaves the database changed, so a build reads the records again before it answers (Execution Contract Database 3), and nothing says how, for how long, or what it answers while it cannot; the Execution Contract's Error model names no such class → state the arm in the Error model (the maintainer's) and cite it here
 - 2026-10-21-c · refining · Term task reference; Composition note 2 · the Term says the host owns what a task is and Composition note 2 obliges a composing pattern to: one proposition, two holders (GRACE-lang Authority 3) → name one owner and delete the other line's clause to it
 - 2026-10-21-d · refining · Operation 30a, 30b · Operation 30a has [Reassign] read now, which Execution Contract Logic confinement 3 gives the pipeline (one reading per invocation), and Operation 30b stamps transfer instant and assignment instant without saying whose → tombstone Operation 30a to Logic confinement 3, and stamp the old assignment's transfer instant and the new assignment's assignment instant from the injected now
 - 2026-10-21-e · refining · Check 2.3 · it reads a transferred assignment as a successor whose status EQUALS active at transfer instant, which no stored field carries once the successor ends, and in a chain of handoffs at one instant only the recording commit names the successor → name the successor by recording commit, and read its status at the transfer from its stored instants

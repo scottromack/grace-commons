@@ -86,13 +86,11 @@ Term evidence field: evidence id | record set reference | proof | sealing instan
 Capability requirement 1: The deployment MUST supply now at the seam.
 Capability requirement 2: The deployment MUST supply the seal records PER Execution Contract Database 1, Execution Contract Database 3, Execution Contract Database 4, Execution Contract Read 1 through 3, Execution Contract Refusal 1 and Execution Contract Conformance 9.
 Capability requirement 3: The deployment MUST declare the deployment's mechanism.
-Capability requirement 4: The deployment MUST supply the cryptographic material at the seam.
+Capability requirement 4: The deployment MUST supply the cryptographic material at the seam (Execution Contract Logic confinement 8).
 Capability requirement 5: The deployment MUST supply record set match at the seam.
 ```
 
-Term cryptographic material: what the deployment's mechanism computes at the seam and the host injects, never computed inside the transition (Execution Contract Logic confinement 1) — at [Seal], the proof, computed from the mechanism credential over the record set the record set reference names, with the anchoring instant where the mechanism anchors at seal time, or the mechanism failure reason where the mechanism cannot compute the proof; at [Verify], the seal check.
-
-NOTE: watch the computation at the seam (Term cryptographic material).
+Term cryptographic material: what the deployment's mechanism computes at the seam — at [Seal], the proof, computed from the mechanism credential over the record set the record set reference names, with the anchoring instant where the mechanism anchors at seal time, or the mechanism failure reason where the mechanism cannot compute the proof; at [Verify], the seal check.
 
 ### Operations
 

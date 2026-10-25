@@ -114,6 +114,13 @@ v0.34 (2026-09-11): labels are words — the name of the heading a rule sits und
 NOTE:
 v0.27–v0.33, the council's reads and the labels before v0.34 are archived in git history (`git log -- GRACE-lang.md`, last commit before the relabel `e80fd21`).
 
+## Left the Watch list at the contract sweep, 2026-10-25
+
+The maintainer ruled on 2026-10-25 that two repeated cures are each stated once in the Execution Contract, under the maintainer's rule that how the system behaves goes there, and the sweep that landed them removed every flag the two carried.
+
+- **The lost answer**, counted at ten: an action whose answer never reaches its caller, so the caller cannot tell whether the call landed, an arm the Error model did not name; each cure stated what the caller does, reading before any retry or retrying and accepting a second record, or who owns that course — Approval Step, Credential, Event Log, Execute Gated Workflow, Medication Order, Notification Fanout, Party Identity and Verified Repair in an Indeterminate outcome family, Cart in an edge case and Audit Trail in seal now 28, with the same arm routed as open lines in Permissions, Assignment and Capability. Now Execution Contract Error model 1. The rules that only restated it are tombstoned to it, and each page's own course, such as the record a caller reads before retrying, stays the page's and cites the label.
+- **The computation at the seam**, counted at four: a rule deciding on a cryptographic computation, which the core may not run (Execution Contract Logic confinement 1), so each specification declared the value as computed at the seam and injected — Actor Identity and Tamper Evidence in Term cryptographic material, Idempotent Reservation and Reserve from Pool in Term parameters digest. Now Execution Contract Logic confinement 8, which Credential's seam, carrying the same reason for its derivation and check functions, cites too.
+
 ## The Watch list at v0.65, before the grammar compression
 
 The list as it stood on 2026-10-23 before v0.66 compressed it, under the same title, *Watch list: repeated cures, counted until stated once*, word for word, with its council reads and its counts. Section 18 restates each live name with its shape, its count and its specifications.

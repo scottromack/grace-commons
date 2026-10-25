@@ -250,7 +250,7 @@ During a fanout, the notification records become temporarily unavailable after t
 - `Notification.create(dev_c, payload) → notif_62` ✓ (fan-out continues)
 - Returns `{fanout_id: fanout_f03, created: [notif_61, notif_62], failed: [dev_b], fired_at: 2026-03-14T10:02:13Z}`.
 
-The caller inspects the [Failed] list and retries `Notification.create(dev_b, payload) → notif_63` per Indeterminate outcome 3 and Indeterminate outcome 4, knowing what that buys: dev_b's entry was indeterminate, so if the failed write had in fact committed a record before the database went away, dev_b now holds two records from one fanout and the delivery layer sees both — the at-least-once residual the composition names rather than hides. `notif_63` enters Pending independently; dev_a's and dev_c's records are already in their own delivery lifecycles.
+The caller inspects the [Failed] list and retries `Notification.create(dev_b, payload) → notif_63` per Indeterminate outcome 3 and Execution Contract Error model 1, knowing what that buys: dev_b's entry was indeterminate, so if the failed write had in fact committed a record before the database went away, dev_b now holds two records from one fanout and the delivery layer sees both — the at-least-once residual the composition names rather than hides. `notif_63` enters Pending independently; dev_a's and dev_c's records are already in their own delivery lifecycles.
 
 ### Compliance system — policy change broadcast
 
@@ -344,17 +344,15 @@ Clock semantics 4: The composition MUST answer the firing instant to the caller.
 ### Indeterminate outcome
 
 ```
-Indeterminate outcome 1: An unrecordable create MUST stand as indeterminate.
-Indeterminate outcome 2: The composition MUST NOT read an unrecordable create as no record.
+Deleted: Indeterminate outcome 1. Execution Contract Error model 1 owns it.
+Deleted: Indeterminate outcome 2. Execution Contract Error model 1 owns it.
 Indeterminate outcome 3: A caller retrying a failed subscriber reference MUST call Notification's create for the subscriber reference.
-Indeterminate outcome 4: A caller retrying an indeterminate subscriber reference MUST accept a second notification record.
+Deleted: Indeterminate outcome 4. Execution Contract Error model 1 owns it.
 Indeterminate outcome 5: A caller MAY read every subscriber reference failing alike as the payload's fault.
 Indeterminate outcome 6: A caller MAY read one subscriber reference failing alone as the subscriber reference's fault.
-Indeterminate outcome 7: A caller needing at-most-once across an indeterminate create MUST compose Idempotent Reservation.
-Indeterminate outcome 8: A caller MUST NOT read Notification's pending_for as finding an indeterminate create's record.
+Indeterminate outcome 7: A caller needing at-most-once across an indeterminate create MUST compose Idempotent Reservation (Execution Contract Error model 1).
+Indeterminate outcome 8: A caller MUST NOT read Notification's pending_for as finding an indeterminate create's record (Execution Contract Error model 1).
 ```
-
-NOTE: watch the lost answer (Indeterminate outcome 1, Indeterminate outcome 2, Indeterminate outcome 4, Indeterminate outcome 7, Indeterminate outcome 8).
 
 ---
 

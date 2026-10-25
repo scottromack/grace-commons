@@ -443,12 +443,10 @@ Deleted: Concurrency 3. Execution Contract Database 2 owns it.
 ### Indeterminate outcome
 
 ```
-Indeterminate outcome 1: A caller MUST NOT retry an action whose answer the caller lost BEFORE reading the party.
-Indeterminate outcome 2: A caller MUST NOT read a lost answer as a refusal.
-Indeterminate outcome 3: A caller MUST NOT retry a lost [Enroll] BEFORE reading the database.
+Indeterminate outcome 1: A caller MUST NOT retry an action whose answer the caller lost BEFORE reading the party (Execution Contract Error model 1).
+Deleted: Indeterminate outcome 2. Execution Contract Error model 1 owns it.
+Indeterminate outcome 3: A caller MUST NOT retry a lost [Enroll] BEFORE reading the database (Execution Contract Error model 1).
 ```
-
-NOTE: watch the lost answer (Indeterminate outcome 1, Indeterminate outcome 2, Indeterminate outcome 3).
 
 ### String policy
 
