@@ -16,7 +16,7 @@ toc: true
 
 ## Summary
 
-Tamper Evidence answers one question: has this record set changed since this seal? It works through seals — permanent records that attach a cryptographic proof to the records they cover. A proof is a mathematical fingerprint of a set of records as they stood when sealed. Sealing computes that fingerprint and stores it. Verifying re-computes the fingerprint over the records presented and compares. If anything was changed since the seal, the fingerprint no longer matches, and the check fails. The crucial limit is that this detects tampering rather than preventing it. It cannot stop someone with full write access from altering both the records and the seal. But it makes any alteration since a seal visible to anyone holding the records and the seal. The pattern is deliberately neutral about the cryptographic method used, as long as the guarantee holds: any change since sealing is provable. This is the mechanism behind sealing financial transaction journals, medical-record change logs, and payment-card access logs so auditors can confirm nothing was rewritten — and behind Git's commit history, the most widely deployed example. It does not, on its own, prevent tampering, say when or by whom a record set was changed, prove who created the seal, or guarantee the seal's timestamp. Each of those is a separate pattern layered on top.
+Tamper Evidence answers one question: has this set of records changed since it was sealed? A seal is a permanent record holding a proof — a mathematical fingerprint of the records as they stood when sealed — and checking the seal recomputes the fingerprint over the records presented and compares the two, so any change since sealing shows. The pattern detects tampering rather than preventing it: someone who can rewrite both the records and the seal can rewrite both, and only a record of the seal kept beyond their reach, which a separate pattern supplies, defeats that. It works the same with any fingerprinting method that has no known way to fake a match and that anyone holding the records and the seal can check, and on its own it does not say when or by whom records were changed, who made a seal, or whether a seal's time can be trusted; each of those is a separate pattern built on top. This is the mechanism behind sealing financial transaction journals, medical-record change logs and payment-card access logs so auditors can confirm nothing was rewritten, and Git's commit history (a widely used system for tracking changes to software) rests on the same idea.
 
 ---
 
@@ -78,13 +78,19 @@ Term anchoring instant: the time an external anchor recorded at seal time — an
 
 Term mechanism credential: the material the mechanism consumes to produce the proof — a [Mechanism Credential]; keying material for a keyed mechanism, and an empty value — present, carrying nothing — for an unkeyed one. Absent is not empty: Operation 7 refuses the input that was never supplied, Operation 8 accepts the one supplied with no content.
 
+Term unkeyed mechanism: a mechanism that computes the proof from no keying material, such as a hash chain no key signs.
+
 Term evidence field: evidence id | record set reference | proof | sealing instant | anchoring instant.
+
+Term deletion surface: an action that removes an evidence from the seal records.
+
+Term revocation surface: an action that marks an evidence as no longer to be relied on.
 
 ### Capability requirement
 
 ```
 Capability requirement 1: The deployment MUST supply now at the seam.
-Capability requirement 2: The deployment MUST supply the seal records PER Execution Contract Database 1, Execution Contract Database 3, Execution Contract Database 4, Execution Contract Read 1 through 3, Execution Contract Refusal 1 and Execution Contract Conformance 9.
+Capability requirement 2: The deployment MUST supply the seal records PER Execution Contract Database 1, Execution Contract Database 3, Execution Contract Database 4, Execution Contract Read 1 through 4, Execution Contract Refusal 1 and Execution Contract Conformance 9.
 Capability requirement 3: The deployment MUST declare the deployment's mechanism.
 Capability requirement 4: The deployment MUST supply the cryptographic material at the seam (Execution Contract Logic confinement 8).
 Capability requirement 5: The deployment MUST supply record set match at the seam.
@@ -126,9 +132,9 @@ Deleted: Operation 12. Invariant 1.1 owns it.
 Operation 13: [Verify] MUST take the original record set.
 Operation 14: [Verify] MUST answer EXACTLY ONE OF verified, failed-verification, not-known.
 Operation 15: IF no evidence EXISTS for the evidence id THEN [Verify] MUST answer not-known.
-Operation 16: IF evidence EXISTS for the evidence id AND record set match EQUALS no THEN [Verify] MUST answer record-set-mismatch.
-Operation 17: IF record set match EQUALS yes AND seal check EQUALS unavailable THEN [Verify] MUST answer mechanism-verification-unavailable.
-Operation 18: IF record set match EQUALS yes AND seal check EQUALS failed THEN [Verify] MUST answer proof-invalid.
+Operation 16: IF evidence EXISTS for the evidence id AND record set match EQUALS no THEN [Verify] MUST answer failed-verification carrying record-set-mismatch.
+Operation 17: IF record set match EQUALS yes AND seal check EQUALS unavailable THEN [Verify] MUST answer failed-verification carrying mechanism-verification-unavailable.
+Operation 18: IF record set match EQUALS yes AND seal check EQUALS failed THEN [Verify] MUST answer failed-verification carrying proof-invalid.
 Operation 19: IF record set match EQUALS yes AND seal check EQUALS held THEN [Verify] MUST answer verified.
 Operation 20: [Verify] MUST NOT write.
 Deleted: Operation 21. Capability requirement 1 owns it.
@@ -187,14 +193,14 @@ Where two [Seal] cases hold at once, the refusal listed first on [Seal]'s refuse
   ```
 - **Invariant 2 — Detectability of tampering.**
   ```
-  Invariant 2.1: IF record set match EQUALS yes AND seal check DOES NOT EQUAL unavailable AND the original record set differs from the record set presented at [Seal] THEN [Verify] MUST answer proof-invalid.
+  Invariant 2.1: IF record set match EQUALS yes AND seal check DOES NOT EQUAL unavailable AND the original record set differs from the record set presented at [Seal] THEN [Verify] MUST answer failed-verification carrying proof-invalid.
   Invariant 2.2: A deployment MUST NOT rest detectability on a deprecated mechanism.
   Invariant 2.3: A deployment MUST re-seal a record set under a sound mechanism.
   ```
 - **Invariant 3 — Record-set binding.**
   ```
   Invariant 3.1: IF no anchor change EXISTS for a recorded proof THEN the recorded proof MUST verify against the record set presented at [Seal].
-  Invariant 3.2: A recorded proof MUST NOT verify against another record set.
+  Invariant 3.2: A recorded proof MUST NOT verify against a record set that differs from the record set presented at [Seal].
   ```
 - **Invariant 4 — Verification self-containment given the originating records.**
   ```
@@ -233,7 +239,7 @@ NOTE: watch the host's state (Invariant 4.2).
 
 NOTE: open 2026-10-21-c — deprecated is declared nowhere, and Invariant 2.3's re-seal has no trigger, bound or owner.
 
-NOTE: open 2026-10-21-d — deletion surface, revocation surface, unkeyed mechanism, another record set and the atom's contract carry rules and are declared nowhere (State 6, State 7, Operation 8, Invariant 3.2, Invariant 8.1).
+Term contract: the rules of this specification, which a composing pattern relies on.
 
 ## Examples
 
@@ -398,7 +404,7 @@ Composition note 1: A deployment MUST declare which composing patterns the deplo
 Composition note 2: An integrity-relevant Event Log instance MUST compose this atom.
 Composition note 3: A deployment needing an attributable seal MUST supply an actor's credential as the mechanism credential.
 Composition note 4: A composing pattern MUST own the decision to purge an evidence alongside the records the evidence commits to.
-Composition note 5: This atom's invariant numbers MUST stand as a frozen contract surface.
+Deleted: Composition note 5. GRACE-lang Hard invariant 26 owns it.
 ```
 
 NOTE: composing patterns — [Audit Trail](../compositions/audit-trail.md). Forthcoming: External Anchoring, Trusted Timestamping, Forensic Attribution, Mechanism Registry.
@@ -423,7 +429,7 @@ Term cadences: empty — a seal cadence is the composing pattern's (Composition 
 
 Term qualifiers: migrated — rewritten in GRACE lang v0.35 (2026-09-11); sound — a mechanism with no known practical collision or forgery attack.
 
-Term terms: now, evidence, evidence id, record set reference, seam, transition, business caller, sealed, proof, sealing instant, anchoring instant, mechanism credential, evidence field, cryptographic material, record set match, seal check, original record set, verification set, anchor change, mechanism failure reason, verification failure.
+Term terms: now, evidence, evidence id, record set reference, seam, transition, business caller, sealed, proof, sealing instant, anchoring instant, mechanism credential, unkeyed mechanism, evidence field, deletion surface, revocation surface, cryptographic material, record set match, seal check, original record set, verification set, anchor change, contract, mechanism failure reason, verification failure.
 
 #### Evidence
 
@@ -660,19 +666,18 @@ It inherits from:
 
 ## Status
 
-`partially resolved` — see the Ledger.
+`grounded on Final Critique 10 — 2026-10-24` — see the Ledger.
 
 ## Ledger
 
 ```
-status: partially resolved
+status: grounded on Final Critique 10 — 2026-10-24
 formal: not applicable — vote no 2026-06-03
-last gate: 2026-10-24 — Final Critique 9 — foundational count 2, not clean, no sample
+last gate: 2026-10-24 — Final Critique 10 — foundational count 0, clean, one sample
 
 open:
 - 2026-10-21-b · refining · Operation 7, 8; Term mechanism credential · Operation 7 tests "the mechanism credential is absent" in no admitted condition form, while the admitted form, EQUALS blank, takes in the empty credential Operation 8 accepts (GRACE-lang Term blank, Earned vocabulary 7), and a credential carrying only whitespace has no rule → one declared term for the credential's three blank states, each with its answer
 - 2026-10-21-c · refining · Invariant 2.2, 2.3; Term qualifiers · deprecated is declared nowhere, Term qualifiers declaring sound alone, and Invariant 2.3 obliges a re-seal with no trigger, bound or owner → declare deprecated or write the rule in sound; name the re-seal's trigger and owner
-- 2026-10-21-d · refining · State 6, 7; Operation 8; Invariant 3.2, 8.1 · deletion surface, revocation surface, unkeyed mechanism, another record set and the atom's contract carry rules and are declared nowhere → declare each, or write each rule in declared names
 - 2026-10-21-f · refining · Summary; Identity 8; Concurrent seal 1 · seal names both the action [Seal] and the evidence it records → one name each
 - 2026-10-21-i · refining · Verification caching 2 · what a cached result is keyed by is unstated, so two conforming caches drop a result at different moments → name the key
 - 2026-10-22-a · refining · Identity 2; Capability requirement · the evidence id's source is named as the host's allocation under Identity and not among the Capability requirements, where spec-format's atom shape lists an id source under Capability requirement; Event Log routed the same form (its 2026-10-22-b), twenty atoms writing the host's allocation under Identity and four having the deployment supply id material under Capability requirement 2 → one form for the corpus, as the seam normalization made one for now
