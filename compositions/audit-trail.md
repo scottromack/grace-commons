@@ -290,6 +290,7 @@ Twenty-one knobs — Legal Hold among them, declared with the capability it swit
   seal cadence 1: The deployment MUST set seal cadence from the forensic window the deployment's regime tolerates.
   seal cadence 2: A deployment whose auditor requires a bounded per-event tampering window MUST set per-event.
   seal cadence 3: A per-event seal that failed at step 6 MUST stand as the alert of record action step 6.5 until a later [Record Action], [Purge Event] or [Seal Now] seals the event.
+  NOTE: open 2026-10-25-b — under per-event cadence a failed step-6 seal on a log that then goes quiet stands until a later action seals the event, and no rule obliges one (seal cadence 3, record action step 6.6).
   seal cadence 4: IF seal cadence EQUALS interval-based THEN the deployment MUST supply a cadence driver that fires on the time arm and the events arm, survives the loss of any one process, and fires at start and at restart.
   seal cadence 5: The events arm MUST count the log tail less sealed through.
   ```
@@ -2120,14 +2121,14 @@ The composition is the structural form of what every major audit regime requires
 
 ## Status
 
-`partially resolved` — see the Ledger.
+`grounded on Final Critique 47 — 2026-10-25` — see the Ledger.
 
 ## Ledger
 
 ```
-status: partially resolved
+status: grounded on Final Critique 47 — 2026-10-25
 formal: verified — audit-trail.tla + 2 twins (cascade; scan first half) and audit-trail-record.tla + 3 twins (record action, one step under Execution Contract Store 1; scan second and third halves; re-derived 2026-10-20) and audit-trail-binding.tla + 2 twins (binding-set predicate against an in-flight cascade), re-derived against the fresh-reader gates of rounds 9 to 18, and audit-trail-hold.tla + 5 twins + 3 probes (a hold placed over an open cascade entry, released and re-driven; 43,688 states within 15 ticks), derived from the page as it stands; the closure arithmetic — a leg's lease against its work (Instance start 18, 19, Per-act critical section 13a, 13b, 13d) and a finding's closure against closure sum with one dead run and one hold placement (Instance start 16) — enumerated by tools/harness/audit-trail-closure.py + 5 twins over 5,184 leg tuples and 5,184 schedule tuples at conforming constants, which no model reaches; the other cures of rounds 19 to 26 are carried on the NOT MODELED lists, not re-derived; models and enumerator last run 2026-10-24
-last gate: 2026-10-25 — Final Critique 46 — foundational count 1, not clean, no sample
+last gate: 2026-10-25 — Final Critique 47 — foundational count 0, clean, one sample
 
 open:
 - 2026-10-03-d · refining · Second half 18; Term dependency outage · content lost with no cascade and not restorable leaves the second half writing no compensation with nothing to end it → a standing for content lost without record; contract-shaped, own round
@@ -2155,6 +2156,7 @@ open:
 - 2026-10-23-a · refining · Term terms; the Vocabulary · most declared terms carry no term entry, where spec-format's Terms item asks one per declared term and every specification writes one per name a bracket marker lands on → add the entries, each with a Kind the term entry grammar admits, or read the item as the bracketed names
 - 2026-10-24-a · refining · purge eligible 1, purge eligible 2; the [Purge Eligible] signature · [Purge Eligible] answers every eligible event id at once, with no bound and no paging, through Retention Window's read of every retention → a bound, or a paged or keyed read, decided with Retention Window's 2026-10-05-a (its read has no key) and in Actor Identity's 2026-10-20-f form
 - 2026-10-25-a · refining · Capability requirement 1; Term open-upper-bound read; Term full enumeration · Event Log's Term query names no malformed shape for a sequence-number range without an upper end, and its *A range holds both its ends* has read to five readers in four rounds (Final Critiques 43 to 46) as asking for both, so each read Capability requirement 1 as asking the atom for a read it does not serve → Event Log's to say, in its Term query, whether a range may omit its upper end (its own round); until then Capability requirement 1 has the deployment wire an instance that serves the read
+- 2026-10-25-b · refining · seal cadence 3; record action step 6.6; Unsealed tail 1 · under per-event cadence a step-6 seal that failed on a log that then goes quiet stands until a later [Record Action], [Purge Event] or [Seal Now] seals the event, and no rule obliges one, so under strict the event answers failed-verification(unsealed) for as long as the deployment calls none → decide whether per-event owes a retry driver, as seal cadence 4 owes interval-based one, or the standing alert and Unsealed tail 1's watch are the design (the 2026-10-01 entry withdrew the scan's per-run [Seal Now])
 ```
 
 ## Decisions
