@@ -873,6 +873,7 @@ Steps:
    Deleted: record action step 2.11. Execution Contract Database 1 owns it.
    Deleted: record action step 2.12. Execution Contract Database 1 owns it.
    record action step 2.14: [Record Action] step 2 MUST land registry-unavailable as [Recording Failure].
+   NOTE: watch the registry outage (record action step 2.14).
    ```
 3. **Append.**
    ```
@@ -896,6 +897,7 @@ Steps:
    record action step 4.8: [Record Action] step 4 MUST land storage-failure as [Recording Failure].
    record action step 4.9: IF the placement answers no answer THEN [Record Action] step 4 MUST land recording-failure(step-4).
    record action step 4.10: [Record Action] step 4 MUST land registry-unavailable as [Recording Failure].
+   NOTE: watch the registry outage (record action step 4.10).
    ```
 5. **Record the indexes.**
    ```
