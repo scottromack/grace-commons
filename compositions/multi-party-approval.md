@@ -553,12 +553,12 @@ Deleted: Reconciliation 6. Execution Contract Database 2 owns it.
 Deleted: Reconciliation 7. Execution Contract Database 2 owns it: an action's reads of a chain and the writes they decide are one transaction, and the composition names no exclusion for another holder to hold.
 Reconciliation 8: IF a chain record inside the audit horizon carries no chain-shape event THEN the initiation leg MUST run the initiation recovery.
 Reconciliation 9: The initiation recovery MUST run the chain evaluation.
-Reconciliation 10: IF the chain state DOES NOT EQUAL Pending THEN the initiation recovery MUST record the initiation event carrying the chain shape from the chain record, disposition d AND the recovery flag.
+Reconciliation 10: IF the chain state DOES NOT EQUAL Pending AND the chain's step list's count EQUALS the approver set's count THEN the initiation recovery MUST record the initiation event carrying the chain shape from the chain record, disposition d AND the recovery flag.
 Reconciliation 11: IF the chain state EQUALS Pending THEN the initiation recovery MUST set the quarantine flag.
-Reconciliation 12: IF the chain state EQUALS Pending THEN the initiation recovery MUST record the initiation-failed record carrying the chain shape from the chain record, the disposition AND the initiator reference under the service identity.
-Reconciliation 13: IF the initiation-failed record lands THEN the initiation recovery MUST set the chain state to Withdrawn AND run the cascade with the recovery reason.
+Reconciliation 12: IF the chain state EQUALS Pending OR the chain's step list's count DOES NOT EQUAL the approver set's count THEN the initiation recovery MUST record the initiation-failed record carrying the chain shape from the chain record, the disposition AND the initiator reference under the service identity.
+Reconciliation 13: IF the initiation-failed record lands AND the chain state EQUALS Pending THEN the initiation recovery MUST set the chain state to Withdrawn AND run the cascade with the recovery reason.
 Deleted: Reconciliation 14. Execution Contract Database 1 owns it.
-Reconciliation 15: The initiation recovery MUST record the withdrawal event carrying the recovery flag AND the initiation-failed record's event id under the service identity.
+Reconciliation 15: IF the initiation recovery sets the chain state to Withdrawn THEN the initiation recovery MUST record the withdrawal event carrying the recovery flag AND the initiation-failed record's event id under the service identity.
 Reconciliation 16: The initiation recovery MUST clear the quarantine flag ONLY AFTER the chain-shape event lands.
 Reconciliation 17: IF a routed transition carries no outcome AND the transition's chain IS NOT IN the aged chains THEN the transition leg MUST re-emit the transition's outcome.
 Reconciliation 18: The transition leg MUST match a transition ONLY to an audit record.
@@ -598,7 +598,7 @@ Term late-recalled steps: the chain's steps whose recall instant DOES NOT PRECED
 
 Term initiation recovery: the closure of an initiation that committed constituent writes and landed no chain-shape event — run inside the failing invocation, or by the initiation leg.
 
-Term disposition: a | b | c | d — where the initiation stopped: a at submit, b at assign, c at the initiation event, d a quarantined chain its approvers drove terminal before the recovery ran (2026-08-29-k).
+Term disposition: a | b | c | d — where the initiation stopped: a at submit, b at assign, c at the initiation event, d a quarantined chain with its full step list, driven terminal before the recovery ran.
 
 Term initiation-failed record: the chain_initiation_failed event, carrying the intent event id where the recovery runs inside the failing invocation.
 
@@ -828,7 +828,7 @@ NOTE: EVERY check names the rule the check tests.
 
 Term resolution-terminated chain: a chain whose terminal event is a resolution event.
 
-Term withdrawal-terminated chain: a chain whose terminal event is a withdrawal event — withdrawn by its initiator, or closed by the initiation recovery.
+Term withdrawal-terminated chain: a chain whose terminal event is a withdrawal event — withdrawn by its initiator, or by the initiation recovery.
 
 ### External checks
 
@@ -1088,11 +1088,11 @@ It inherits from:
 
 ```
 status: partially resolved
-formal: pending — vote yes 2026-06-03, but no model file exists on disk; the vote entry's "model present" is unevidenced
+formal: verified — multi-party-approval.tla + 8 twins + 7 probes, 2026-10-26
 last gate: 2026-10-26 — Final Critique 12 — foundational count 10, not clean, no sample
 
 open:
-- 2026-08-29-u · refining · formal · the model's sweep carries no recovery record → extend it
+- 2026-08-29-u · refining · formal · multi-party-approval.tla models no audit write, so no model checks that the sweep's recovery intent lands before its closure (Reconciliation 28, 29) → model the audit writes the sweep orders
 - 2026-10-26-a · refining · Reconciliation 21, Term chain results, Term intent candidates · a re-emitted outcome's intent candidates and a read's chain results are lists with no bound, and the payload budget sizes no candidate list → bound each, or size the candidates with the outcome
 - 2026-10-26-b · refining · Action wiring 62 · [Initiate Chain]'s recording-failure carrying outcome carries no chain id to read the committed act back by → carry the chain id on the refusal, or name how a caller finds the chain
 - 2026-10-26-c · foundational · Action wiring 25, Cascade 7 · a lost step-assignment index entry reads as a step with no assignment, so the recall is skipped and a settled step keeps its Active assignment at quiescence → decide the recall on the step's assignment history, or rebuild the entry before deciding

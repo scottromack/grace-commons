@@ -883,8 +883,8 @@
   "kind": "composition",
   "models": {
    "als": false,
-   "tla": false,
-   "twins": 0
+   "tla": true,
+   "twins": 8
   },
   "regulated": true,
   "standards": [
