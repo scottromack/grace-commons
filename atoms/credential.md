@@ -257,7 +257,7 @@ Operation 65: IF a credential beside the credential id is effective-active for t
 Operation 66: IF the derivation function refuses the credential material THEN [Register] MUST answer invalid-request.
 Operation 67: IF the derivation function refuses the new credential material THEN [Rotate] MUST answer invalid-request.
 Operation 68: IF the check function refuses the presented material THEN [Verify] MUST answer material-mismatch.
-Operation 69: [Read] MUST order the answer by registration instant, earliest first, then by credential id in byte order.
+Operation 69: [Read] MUST order the answer by registration instant, earliest first, then by credential id ascending in Unicode code point order.
 Operation 70: A proceeding verify MUST check against the credential carrying the latest registration instant among the pair's credentials effective-active at the verify's reading.
 Operation 71: IF expiry instant EQUALS blank AND the default validity EQUALS unbounded THEN an admitted register MUST record no expiry instant.
 Operation 72: IF expiry instant EQUALS blank AND the default validity EQUALS unbounded THEN an admitted rotate MUST record no expiry instant on the successor.
@@ -690,7 +690,7 @@ Projection: status
 
 #### Credential Id
 
-The opaque, immutable identity of a [Credential], assigned on [Register] from the id material the seam supplies. Never reused, and never the pair — two credentials for one pair are a rotation predecessor and its successor, each standing on its own.
+The opaque, immutable identity of a [Credential], assigned on the [Register] or [Rotate] that records it, from the id material the seam supplies. Never reused, and never the pair — two credentials for one pair are a rotation predecessor and its successor, each standing on its own.
 
 Kind:       Field
 Field of:   Credential
@@ -996,7 +996,7 @@ It inherits from:
 ```
 status: partially resolved
 formal: verified — credential.tla + 4 twins, 2026-09-29
-last gate: 2026-10-26 — Final Critique 17 — foundational count 1, not clean, no sample
+last gate: 2026-10-26 — Final Critique 18 — foundational count 1, not clean, no sample
 
 open:
 - 2026-10-26-c · refining · Term terms; Vocabulary · thirty-eight declared terms (every name on Term terms but credential, credential id, now, status, effective status and verifier) carry no term entry, where spec-format's Terms item asks one per declared term and every specification writes one per name a bracket marker lands on → add the entries, each with a Kind the term entry grammar admits, or read the item as the bracketed names
