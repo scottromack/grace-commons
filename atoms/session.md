@@ -16,13 +16,7 @@ toc: true
 
 ## Summary
 
-Session answers "is this login still good, and for whom?" without re-checking the password on every request. When a principal (the user or service whose identity a login has just proved) logs in, a session is issued: a record tying that principal to a time-limited validity window, identified by a random token the caller presents on later requests.
-
-Checking a token returns one of four clearly separated answers — valid, and for which principal and until when; expired; revoked; unknown. They are never lumped into one "no," because a lapsed login, a deliberately cancelled one, and a token that never existed call for different responses.
-
-A session is stored [Active] until it is deliberately cancelled — [Revoked], with who, when and why recorded, and that is permanent. It can also simply run out. When its window passes the session is *shown* expired, a status worked out on the fly by comparing the clock to the deadline, never written into the record and never a stored state. The deadline is fixed at issue and never changed; a session that needs to last longer is re-issued as a new record rather than extended in place. That keeps every session's validity window provable from the session's one record.
-
-This is the mechanism behind browser sessions, API (Application Programming Interface) access tokens, mobile logins and short-lived elevated-access windows. It deliberately does not check credentials, decide what the principal may do, or run the login flow — each is a separate pattern.
+Session answers "is this login still good, and for whom?" without re-checking the password on every request. When a principal (the user or service whose identity a login has just proved) logs in, a session is issued: a record tying that principal to a validity window whose deadline is fixed at issue, identified by an unguessable token the caller presents on later requests. Checking a token gives one of four clearly separated answers — valid, with the principal and the deadline; expired; revoked; or unknown — because a lapsed login, a deliberately cancelled one and a token that never existed call for different responses. A session stays active until it is deliberately revoked, which is permanent and records who revoked it, when and why, while an active session that has reached its deadline is shown expired, a status worked out by comparing the clock with the deadline and never written into the record. The deadline never changes — a session that needs to last longer is re-issued as a new record — so every session's validity window is provable from its one record. This is the mechanism behind browser sessions, API (Application Programming Interface) access tokens, mobile logins and short-lived elevated-access windows; it deliberately does not check credentials, decide what the principal may do or run the login flow, each of which is a separate pattern.
 
 *Also known as: a login session, an authenticated session, an access token, a session ticket.*
 
@@ -66,7 +60,7 @@ Term principal reference: the opaque reference naming the authenticated principa
 
 Term issued by reference: the opaque reference naming the mechanism that issued the session — an [Issued By Reference].
 
-Term seam: the atom's I/O boundary as the section titled Logic Confinement Principle in `execution-contract.md` declares it; the host injects the clock reading, the session token and the token's random material here.
+Term seam: the atom's I/O (input and output) boundary as the section titled Logic Confinement Principle in `execution-contract.md` declares it; the host injects the clock reading, the session token and the token's random material here.
 
 NOTE: open 2026-10-21-h — Term seam names no default session duration, which [Issue] applies (Operation 6).
 
@@ -169,7 +163,7 @@ Operation 3: [Issue] MUST answer the session token.
 Operation 4: IF principal reference EQUALS blank THEN [Issue] MUST answer invalid-request.
 Operation 5: IF issued by reference EQUALS blank THEN [Issue] MUST answer invalid-request.
 Operation 6: IF session duration EQUALS blank AND the default session duration DOES NOT EQUAL blank THEN [Issue] MUST apply the default session duration.
-Operation 7: [Issue] MUST accept a session duration ONLY IF the session duration EXCEEDS the zero duration.
+Deleted: Operation 7. Operation 8 and Capability requirement 11 own it.
 Operation 8: IF session duration DOES NOT EQUAL blank AND the session duration DOES NOT EXCEED the zero duration THEN [Issue] MUST answer invalid-request.
 Operation 9: [Issue] MUST stamp issuance instant from the injected now.
 Operation 10: [Issue] MUST stamp expiry instant from the expiry deadline.
@@ -221,7 +215,7 @@ Operation 54: IF session duration DOES NOT EQUAL blank AND session duration IS N
 
 NOTE: open 2026-10-21-a — [Read] answers the matching sessions in no stated order (Operation 37).
 
-NOTE: open 2026-10-21-j — no maximum bounds a supplied session duration (Operation 7), while the Summary names short-lived elevated-access windows.
+NOTE: open 2026-10-21-j — no maximum bounds a supplied session duration (Operation 8), while the Summary names short-lived elevated-access windows.
 
 NOTE: watch the untyped input (Operation 54).
 
@@ -396,7 +390,7 @@ This atom's acceptance is provable: an external auditor clears it from the sessi
 ```
 Check 1.1: An auditor MUST find an expiry instant on EVERY session (Invariant 10.1).
 Check 1.2: An auditor MUST find one expiry instant per session across the session's whole life (Invariant 2.1).
-Check 1.3: An auditor MUST find no session whose issuance instant DOES NOT PRECEDE the session's expiry instant (Operation 7, Capability requirement 11).
+Check 1.3: An auditor MUST find no session whose issuance instant DOES NOT PRECEDE the session's expiry instant (Operation 8, Operation 10, Capability requirement 11).
 Check 2.1: An auditor MUST find no stored expired status on any session (Invariant 12.1).
 Check 2.2: An auditor MUST find no expiry timestamp beside expiry instant (Invariant 12.2).
 Check 2.3: An auditor MUST find no field written by a lapse (Invariant 12.3).
@@ -482,7 +476,7 @@ String 9: IF the session's status EQUALS active AND revoked by reference EXCEEDS
 String 10: IF the session's status EQUALS active AND reason EXCEEDS the maximum length THEN [Revoke] MUST answer invalid-request.
 ```
 
-NOTE: watch host obligations — this atom refuses a string input over the deployment's maximum length on the writes alone (String 6, String 7, String 9, String 10); an over-long session token answers by the session it names, not-known where it names none (Operation 14, Operation 22), and an over-long filter value is a value no session carries (String 7, Term filter).
+NOTE: watch host obligations — this atom refuses a string input over the deployment's maximum length on the writes alone (String 6, String 7, String 9, String 10); an over-long session token answers by the session it names, not-known where it names none (Operation 14, Operation 22), and an over-long filter value answers by the sessions it matches (Term filter).
 
 NOTE: String 8 reaches the principal reference, the issued by reference and the revoked by reference, a filter's values among them; the deployment canonicalizes each at the seam, in a form the deployment owns, before the transition compares or records it, since String 3 keeps the atom from normalizing.
 
@@ -811,11 +805,11 @@ Projection: storage-failure
 
 ## Standards references
 
-- **NIST (National Institute of Standards and Technology — US federal standards body) SP 800-63B section 7 (Session Management)** — the primary standard for session management in authentication systems. Its session duration and session termination requirements correspond directly to this atom's behavioral commitments; its session binding and reauthentication triggers are the composing pattern's (Non-goal 10, Composition note 5, Composition note 7). The atom's [Expiry Instant] immutability and re-issuance discipline implement 800-63B's requirement that session extensions produce new session identifiers.
+- **NIST (National Institute of Standards and Technology — US federal standards body) SP (Special Publication) 800-63B section 7 (Session Management)** — the primary standard for session management in authentication systems. Its session duration and session termination requirements correspond directly to this atom's behavioral commitments; its session binding and reauthentication triggers are the composing pattern's (Non-goal 10, Composition note 5, Composition note 7). The atom's [Expiry Instant] immutability and re-issuance discipline implement 800-63B's requirement that session extensions produce new session identifiers.
 - **OWASP ASVS V3 (Application Security Verification Standard — Session Management)** — the OWASP (Open Worldwide Application Security Project) verification standard for session management security. Requirements for session token randomness, expiry, revocation on logout, and protection against fixation attacks are the deployment-configuration surface of this atom.
 - **RFC (Request for Comments — the Internet's numbered standards series) 6265 (HTTP State Management Mechanism — HTTP being the Hypertext Transfer Protocol)** — the cookie standard. The atom's [Session Token] is the value delivered in a `Set-Cookie` response header in browser-based deployments. The atom does not specify cookie attributes (Secure, HttpOnly, SameSite) — those are the composing pattern's configuration obligations.
 - **SAML 2.0 section 4.1.4 (Session Establishment and Termination)** — the SAML (Security Assertion Markup Language — an XML (Extensible Markup Language) standard for exchanging authentication data between identity and service providers) session model maps to this atom: `AuthnStatement` issuance corresponds to [Issue]; `SessionNotOnOrAfter` corresponds to [Expiry Instant]; `SLO` (Single Logout) corresponds to [Revoke]. The atom's re-issuance discipline aligns with SAML's prohibition on reusing assertion IDs.
-- **RFC 6819 (OAuth 2.0 Threat Model and Security Considerations)** — identifies session-related threats (token theft, session fixation, CSRF — Cross-Site Request Forgery) that the deployment-configuration layer of this atom addresses. The atom's immutability and revocation invariants mitigate token theft's blast radius: a stolen token is bounded by [Expiry Instant] and can be revoked.
+- **RFC 6819 (OAuth 2.0 Threat Model and Security Considerations — OAuth being Open Authorization, the web's delegated-authorization framework)** — identifies session-related threats (token theft, session fixation, CSRF — Cross-Site Request Forgery) that the deployment-configuration layer of this atom addresses. The atom's immutability and revocation invariants mitigate token theft's blast radius: a stolen token is bounded by [Expiry Instant] and can be revoked.
 - **OIDC Session Management 1.0 (OpenID Connect Session Management)** — the OpenID Connect (OIDC — an identity layer built on OAuth 2.0) session management specification. The atom's [Session Token] corresponds to an OIDC session's identifier; [Revoke] corresponds to OIDC's Front-Channel and Back-Channel Logout protocols, and natural lapse (the derived [Expired]) corresponds to a session reaching its `SessionNotOnOrAfter` bound without an explicit logout.
 - **HIPAA section 164.312(a)(2)(iii) (Automatic Logoff)** — the HIPAA automatic logoff requirement: electronic information systems must terminate after a period of inactivity. The atom's [Expiry Instant] field is the structural mechanism for this requirement; the composing deployment configures the timeout.
 - **PCI DSS (Payment Card Industry Data Security Standard — the card networks' mandatory security rules for cardholder data) Requirement 8.6 (Session Management)** — session timeout and re-authentication requirements for payment systems. The atom's [Expiry Instant] immutability and re-issuance discipline satisfy the structural portion of these requirements.
@@ -827,19 +821,19 @@ Inherited from:
 
 ## Status
 
-`partially resolved` — see the Ledger.
+`grounded on Final Critique 10 — 2026-10-26` — see the Ledger.
 
 ## Ledger
 
 ```
-status: partially resolved
+status: grounded on Final Critique 10 — 2026-10-26
 formal: not applicable — vote no 2026-06-03
-last gate: 2026-10-26 — Final Critique 9 — foundational count 2, not clean, no sample
+last gate: 2026-10-26 — Final Critique 10 — foundational count 0, clean, one sample
 
 open:
 - 2026-10-21-a · refining · Operation 37; [Read] · [Read] answers the matching sessions in no stated order → an order
 - 2026-10-21-h · refining · Term seam · Term seam names no default session duration, which [Issue] applies (Operation 6) → say where the default enters
-- 2026-10-21-j · refining · Operation 7; Summary · no maximum bounds a supplied session duration, while the Summary names short-lived elevated-access windows → a deployment maximum, or the Summary's claim narrowed
+- 2026-10-21-j · refining · Operation 8; Summary · no maximum bounds a supplied session duration, while the Summary names short-lived elevated-access windows → a deployment maximum, or the Summary's claim narrowed
 - 2026-10-26-c · refining · Term terms; Vocabulary · sixteen declared terms (seam, transition, default session duration, token entropy, business caller, window length, zero duration, expiry deadline, lapsed, liveness query, maximum length, validation failure, verified answer, invalid answer, authentication credential and claim set token) carry no term entry, where spec-format's Terms item asks one per declared term and every specification writes one per name a bracket marker lands on → add the entries, each with a Kind the term entry grammar admits, or read the item as the bracketed names; Credential's 2026-10-26-c routes the same
 ```
 
