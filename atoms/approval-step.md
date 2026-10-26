@@ -55,7 +55,7 @@ Identity 2: The host MUST allocate a step id at the seam.
 Identity 3: The transition MUST NOT allocate a step id.
 Identity 4: The atom MUST NOT change a step id.
 Identity 5: Two steps in one database instance MUST NOT share a step id.
-Identity 6: The deployment MUST choose a step id format that sorts in lexicographic byte order.
+Deleted: Identity 6. Operation 39 owns it: two steps sharing a submission instant are ordered by step id in lexicographic byte order.
 Identity 7: The deployment MUST route EVERY call to one database instance.
 Identity 8: The atom MUST NOT identify a step by the subject reference.
 Identity 9: The atom MUST admit a second step carrying a recorded subject reference.
@@ -65,6 +65,8 @@ Identity 12: The atom MUST NOT confirm that a subject reference names a known su
 Identity 13: The atom MUST NOT interpret a scope.
 Identity 14: The deployment MUST supply a reference in one canonical byte form.
 ```
+
+NOTE: open 2026-10-26-a — the step id's source is named as the host's allocation (Identity 2) and not among what the deployment supplies (Capability requirement 1, Capability requirement 5).
 
 Term step: one authorization gate — one subject, one approver, one submitter, one scope and one outcome; an [Approval Step], the record this atom holds.
 
@@ -78,7 +80,7 @@ Term submitter reference: the opaque reference naming the actor requesting appro
 
 Term scope: the string naming the kind of approval requested — a [Scope]; recorded and filtered on, never interpreted.
 
-Term reference: subject reference, approver reference, submitter reference, deciding actor, withdrawing actor OR scope — every string this atom compares for equality.
+Term reference: subject reference, approver reference, submitter reference, deciding actor, withdrawing actor, step id OR scope — every string this atom compares for equality.
 
 Term database instance: one named database a call is routed to; step id uniqueness ranges over one instance.
 
@@ -89,7 +91,7 @@ Term transition: the atom's evaluation of one call against the step records, as 
 ### State
 
 ```
-State 1: A step MUST NOT leave a terminal state.
+Deleted: State 1. Invariant 3.1 owns it.
 State 2: The atom MUST NOT offer a re-open surface.
 State 3: The atom MUST NOT offer a decision reversal surface.
 State 4: The atom MUST NOT offer a re-submission surface on a recorded step.
@@ -184,13 +186,13 @@ Deleted: Operation 35. Execution Contract Refusal 1 owns it.
 Operation 36: A refused action MUST leave the step as the call found the step.
 Operation 37: A refused action MUST NOT record an attribution field.
 Operation 38: An admitted read MUST answer the matching steps in submission instant ascending order.
-Operation 39: An admitted read MUST order two steps sharing a submission instant by step id ascending.
+Operation 39: An admitted read MUST order two steps sharing a submission instant by step id ascending in lexicographic byte order.
 Operation 40: An admitted read MUST answer EVERY step matching the supplied filters.
 Operation 41: An admitted read MUST NOT answer a step failing a supplied filter.
 Operation 42: IF no step matching the supplied filters EXISTS THEN an admitted read MUST answer an empty step sequence.
-Operation 43: An admitted read MUST match an instant-range filter against ONLY the steps carrying the filter's field.
+Deleted: Operation 43. Term query and Operation 41 own it: a step carrying no instant on a range filter's axis fails the filter.
 Operation 44: IF a filter's axis IS NOT IN the filter axes THEN [Read] MUST answer invalid-query.
-Operation 45: IF a reference filter's value EQUALS blank THEN [Read] MUST answer invalid-query.
+Operation 45: IF a filter's axis IS IN the string axes AND the filter's value EQUALS blank THEN [Read] MUST answer invalid-query.
 Operation 46: IF a state filter's value IS NOT IN the states THEN [Read] MUST answer invalid-query.
 Operation 47: IF a range filter's end PRECEDES the range's start THEN [Read] MUST answer invalid-query.
 Operation 48: [Read] MUST NOT write.
@@ -202,11 +204,17 @@ Deleted: Operation 53. Execution Contract Read 1 owns it.
 Deleted: Operation 54. Execution Contract Read 1 owns it: after the read, every refusal rule of [Submit] answers invalid-request.
 Deleted: Operation 55. Execution Contract Refusal 1 and Operation 20 own it.
 Deleted: Operation 56. Execution Contract Read 1 owns it: after the read, every refusal rule of [Read] answers invalid-query.
+Operation 57: IF a supplied reason EQUALS blank THEN [Approve] MUST answer invalid-request.
+Operation 58: IF the query is malformed THEN [Read] MUST answer invalid-query.
 ```
+
+NOTE: watch the blank filter value (Operation 45).
 
 Term now: the wall-time reading the host takes at the seam and hands to the transition, as the section titled Logic Confinement Principle in `execution-contract.md` declares it; never read inside the transition, never supplied by the business caller.
 
 Term business caller: the party whose action the call carries, as the section titled Logic Confinement Principle in `execution-contract.md` declares it; never the source of an injected value.
+
+NOTE: open 2026-10-26-b — Term seam, Term transition, Term business caller and Term now cite the section titled Logic Confinement Principle in `execution-contract.md`, which declares none of them.
 
 Term states: pending | approved | rejected | withdrawn — a [State], and the whole state space.
 
@@ -220,9 +228,7 @@ Term writing action: [Submit] | [Approve] | [Reject] | [Withdraw] — every acti
 
 Term deciding reference: deciding actor on a deciding action, and withdrawing actor on [Withdraw] — the actor reference a resolving action carries.
 
-Term decision instant: decision instant on a deciding action, and withdrawal instant on [Withdraw] — the instant a resolving action records.
-
-Term resolved decision instant: the decision instant the step carries — the supplied value where one exists, and now otherwise.
+Term resolved decision instant: the instant a resolving action records, as decision instant on a deciding action and as withdrawal instant on [Withdraw] — the supplied value where one exists, and now otherwise.
 
 Term resolved submission instant: the submission instant the step carries — the supplied value where one exists, and now otherwise.
 
@@ -230,13 +236,25 @@ Term submission field: step id, subject reference, approver reference, submitter
 
 Term attribution field: deciding actor, decision reason, decision instant, withdrawing actor, withdrawal reason OR withdrawal instant — every field a resolving action sets.
 
-Term attribution check: Operation 15 through 19 — every check a resolving action makes before the actor guard.
+Term attribution reference: deciding actor on an approved step or a rejected step, and withdrawing actor on a withdrawn step — the actor reference a terminal step carries.
+
+Term attribution check: Operation 15 through 19 and Operation 57 — every check a resolving action makes before the actor guard.
+
+Term attribution fault: an attribution check the call fails.
 
 Term filter axes: step id | subject reference | approver reference | submitter reference | scope | state | submission instant | decision instant | withdrawal instant — the nine axes [Read] accepts, and no others.
 
+Term string axes: step id | subject reference | approver reference | submitter reference | scope — the axes whose filter value carries a string.
+
+Term query: what a read asks for — a [Query]; any combination of the filter axes. A filter on submission instant, decision instant or withdrawal instant carries a range, whose filter values are its start and its end, and a filter on any other axis carries one string. An instant at either end lies inside the range; a step whose instant on the filter's axis lies inside the range matches the filter, and a step carrying no instant on that axis fails it. A query is malformed where a filter carries a value its axis does not take, a range missing its start or its end among them, or where an end a range carries is not an instant.
+
+NOTE: watch the range's ends (Term query).
+
 Term admitted submit: a [Submit] call whose references, scope, supplied reason and resolved submission instant the guards all admit.
 
-Term admitted resolve: a resolving action whose step id names a pending step and whose reason, deciding reference and resolved decision instant the guards admit, and whose deciding reference matches the step's anchor.
+Term authorization anchor: the approver reference on a deciding action, and the submitter reference on [Withdraw].
+
+Term admitted resolve: a resolving action whose step id names a pending step and whose reason, deciding reference and resolved decision instant the guards admit, and whose deciding reference matches the step's authorization anchor.
 
 Term admitted approve: an admitted resolve on [Approve].
 
@@ -246,13 +264,15 @@ Term admitted withdraw: an admitted resolve on [Withdraw].
 
 Term admitted read: a [Read] call whose every filter axis and filter value the guards admit.
 
+Term success token: approved on [Approve], rejected_outcome on [Reject] and withdrawn on [Withdraw] — the answer an admitted resolve returns.
+
 | # | Condition | a resolving action answers |
 |---|---|---|
 | 1 | step id is blank | [Invalid Request] |
 | 2 | step id is not blank, it names no step | [Not Known] |
 | 3 | the step exists, it stands in a terminal state | [Not Pending] |
 | 4 | the step stands in pending, an attribution check fails | [Invalid Request] |
-| 5 | every attribution check passes, the deciding reference is not the anchor | [Unauthorized] |
+| 5 | every attribution check passes, the deciding reference is not the authorization anchor | [Unauthorized] |
 | 6 | every precondition passes, the database refuses the write | [Storage Failure] |
 | 7 | every precondition passes, the database accepts the write | the success token |
 
@@ -322,7 +342,7 @@ The finance director approves: `approve("step-001", decided_by: "finance_directo
 
 An auditor later runs `read({subject_ref: "je-2026-0441", state: approved})` and sees who submitted, who approved, when, and why. The control evidence is provable from the record.
 
-Or the director finds a misclassification: `reject("step-001", decided_by: "finance_director_chen", reason: "GL account 4120 is incorrect — should be 4130 per revenue recognition policy")` → rejected_outcome. The composing workflow routes the entry back, and the corrected entry needs a new [Submit] — this step is closed (Invariant 3.1, State 4).
+Or the director finds a misclassification: `reject("step-001", decided_by: "finance_director_chen", reason: "General ledger account 4120 is incorrect — should be 4130 per revenue recognition policy")` → rejected_outcome. The composing workflow routes the entry back, and the corrected entry needs a new [Submit] — this step is closed (Invariant 3.1, State 4).
 
 Or the controller catches a routing error first: `withdraw("step-001", withdrawn_by: "controller_morgan", reason: "Wrong approver — cross-border entries route to tax_director")` → withdrawn, and `step-002` carries the right approver reference.
 
@@ -348,7 +368,7 @@ A cross-border entry needs both finance and tax sign-off. Two [Submit] calls pro
 
 ### Regulated adversarial scenarios
 
-- **Regulator audit.** A SOX section 404 examiner asks for evidence that the materiality control operated on a sample of entries. `read({scope: "financial:journal-entry:post", submitted_at: {after: …, before: …}})` answers the gates with full attribution, and Check 2.1 through 3.4 are what make each one usable. What the atom cannot answer is which entries *should* have had a gate and did not — that comparison needs the transaction set, which lives outside (Non-goal 18, External check 2).
+- **Regulator audit.** A SOX section 404 examiner asks for evidence that the materiality control operated on a sample of entries. `read({scope: "financial:journal-entry:post", submitted_at: {start: …, end: …}})` answers the gates with full attribution, and Check 2.1 through 3.4 are what make each one usable. What the atom cannot answer is which entries *should* have had a gate and did not — that comparison needs the transaction set, which lives outside (Non-goal 18, External check 2).
 - **Disputed approval.** A director denies approving an entry under an FDA Part 11 signature challenge. The record shows deciding actor equal to approver reference, byte for byte, with the instant and the reason. That proves the call carried their reference and proves nothing about who made the call — the cryptographic binding is [Actor Identity](./actor-identity.md)'s, and the atom says so rather than letting the record be read as a signature (Non-goal 14, External check 3).
 - **Breach forensics.** An investigator examining unauthorized approval attempts finds that the database holds no record of them: a refused call writes nothing (Operation 36, Operation 37), so unauthorized attempts leave no trace here at all. The attempt log is the composing [Audit Trail](../compositions/audit-trail.md)'s, and these records' contribution is the negative evidence — every decision that *did* land, fully attributed (External check 4).
 
@@ -415,7 +435,9 @@ Non-goal 20: The atom MUST NOT bound submission instant from below.
 Non-goal 21: A deployment needing a verifiable time anchor MUST compose a trusted timestamping pattern.
 ```
 
-NOTE: the owners — [Duplicate Prevention](./duplicate-prevention.md) (Non-goal 1, Non-goal 2); [Multi-Party Approval](../compositions/multi-party-approval.md) (Non-goal 3, Non-goal 4; Non-goal 13, Composition note 3); a delegation pattern *(forthcoming)* (Non-goal 5, Non-goal 6); [Permissions](./permissions.md) (Non-goal 9, Non-goal 10; Non-goal 13, Composition note 3); [Actor Identity](./actor-identity.md) (Non-goal 14, Non-goal 15); [Tamper Evidence](./tamper-evidence.md) (Non-goal 16, Non-goal 17; Non-goal 20); the composing pattern that owns the required gate mapping (Non-goal 18, Composition note 10); the deployment (Non-goal 19, External check 2); [Audit Trail](../compositions/audit-trail.md) (Non-goal 20).
+NOTE: the owners — [Duplicate Prevention](./duplicate-prevention.md) (Non-goal 1, Non-goal 2); [Multi-Party Approval](../compositions/multi-party-approval.md) (Non-goal 3, Non-goal 4; Non-goal 13, Composition note 3); a delegation pattern *(forthcoming)* (Non-goal 5, Non-goal 6); [Permissions](./permissions.md) (Non-goal 9, Non-goal 10; Non-goal 13, Composition note 3); [Notification](./notification.md) (Non-goal 11, Non-goal 12; Composition note 5); [Actor Identity](./actor-identity.md) (Non-goal 14, Non-goal 15); [Tamper Evidence](./tamper-evidence.md) (Non-goal 16, Non-goal 17; Non-goal 20); the composing pattern that owns the required gate mapping (Non-goal 18, Composition note 10); the deployment (Non-goal 19, External check 2); [Audit Trail](../compositions/audit-trail.md) (Non-goal 20); a Trusted Timestamping pattern *(forthcoming)* (Non-goal 21).
+
+NOTE: open 2026-10-21-e — the owners NOTE names no owner for Non-goal 7 or Non-goal 8.
 
 ---
 
@@ -446,6 +468,8 @@ Deleted: Indeterminate outcome 2. Execution Contract Error model 1 owns it.
 Deleted: Indeterminate outcome 3. Execution Contract Error model 1 owns it.
 ```
 
+NOTE: open 2026-10-21-d — a caller with no answer is sent to the step records, and no read says whether its submit landed, where two submits carrying one field set are two steps (Non-goal 1).
+
 ### String policy
 
 ```
@@ -459,6 +483,8 @@ String 7: The deployment MUST canonicalize an opaque reference.
 ```
 
 Term string input: a reference, reason OR a filter's value — every caller-supplied string this atom accepts.
+
+NOTE: open 2026-10-21-c — nothing names the answer to a supplied submission, decision or withdrawal instant that cannot be read as an instant (Operation 6, Operation 18, Operation 19), and Term string input leaves the instant inputs out.
 
 NOTE: watch host obligations — this atom sets no maximum length on a string input, where [Duplicate Prevention](./duplicate-prevention.md) declares a cap and [Provenance](./provenance.md) obliges the deployment to set one. Three postures, and the *host obligations* docket row carries the count — a watch flag states the pressure, never a census nothing reads.
 
@@ -490,7 +516,7 @@ Each `[Term]` marker above links to its term entry here; a term entry states wha
 
 ### Vocabulary
 
-Term actors: the atom; the host; the transition; the deployment; a composing pattern; a business caller; a caller; a guard; an auditor; a regulator; an examiner; an investigator; an actor; an approver; a submitter; the database; a step; a pending step; a terminal step; an approved step; a rejected step; a withdrawn step; a resolving action; a deciding action; a writing action; a refused action; an action; a query; a filter; a reference filter; a state filter; a range filter; an instant-range filter; a string input; an opaque reference; the database instance's step count; an attribution check.
+Term actors: the atom; the host; the transition; the deployment; a composing pattern; a business caller; a caller; a guard; an auditor; a regulator; an examiner; an investigator; an actor; an approver; a submitter; the database; a step; a pending step; a terminal step; an approved step; a rejected step; a withdrawn step; a resolving action; a deciding action; a writing action; a refused action; an action; a query; a filter; a state filter; a range filter; a string input; an opaque reference; the database instance's step count; an attribution check.
 
 Term records: step — one authorization gate, carrying step id, subject reference, approver reference, submitter reference, scope, submission instant, a state and, where supplied or set, reason, deciding actor, decision reason, decision instant, withdrawing actor, withdrawal reason and withdrawal instant.
 
@@ -504,7 +530,7 @@ Term cadences: empty.
 
 Term qualifiers: migrated — rewritten in GRACE lang v0.40 (2026-09-12).
 
-Term terms: step, step id, subject reference, approver reference, submitter reference, scope, reference, database instance, seam, transition, now, business caller, states, terminal state, resolving action, deciding action, writing action, deciding reference, decision instant, resolved decision instant, resolved submission instant, submission field, attribution field, attribution check, filter axes, admitted submit, admitted resolve, admitted approve, admitted reject, admitted withdraw, admitted read, string input, blank.
+Term terms: step, step id, subject reference, approver reference, submitter reference, scope, reference, database instance, seam, transition, now, business caller, states, terminal state, resolving action, deciding action, writing action, deciding reference, resolved decision instant, resolved submission instant, submission field, attribution field, attribution reference, attribution check, attribution fault, filter axes, string axes, query, admitted submit, authorization anchor, admitted resolve, admitted approve, admitted reject, admitted withdraw, admitted read, success token, string input, blank.
 
 #### Approval Step
 
@@ -616,7 +642,7 @@ Projection: decided_by
 
 #### Decision Reason
 
-The stated reason recorded with a decision, stamped on [Approve] or [Reject]. Required on a [Rejected] step (Invariant 6); optional on an [Approved] step. Present on [Approved] and [Rejected] steps only; immutable once set.
+The stated reason recorded with a decision, stamped on [Approve] or [Reject]. Required on a [Rejected] step (Invariant 6); optional on an [Approved] step, and refused [Invalid Request] when supplied blank (Operation 57). Present on [Approved] and [Rejected] steps only; immutable once set.
 
 Kind:       Field
 Field of:   Approval Step
@@ -656,7 +682,7 @@ Projection: withdrawn_at
 
 #### Query
 
-The selection a caller passes to [Read] to scope which steps are returned — any combination of the supported filter axes ([Step Id], [Subject Reference], [Approver Reference], [Submitter Reference], [Scope], [State], and time ranges on the timestamp fields). Consumed per call; never stored.
+The selection a caller passes to [Read] to scope which steps are returned — any combination of the supported filter axes ([Step Id], [Subject Reference], [Approver Reference], [Submitter Reference], [Scope], [State], and a time range on [Submission Instant], [Decision Instant] or [Withdrawal Instant]). A time range carries a start and an end, and an instant at either end lies inside it; a step carrying no instant on a range's field matches no range on it. Consumed per call; never stored.
 
 Kind:         Parameter
 Parameter of: Read
@@ -700,7 +726,7 @@ Projection: withdrawn
 
 #### Invalid Request
 
-The rejection a write action ([Submit], [Approve], [Reject], [Withdraw]) returns when an input is malformed — a blank required field, the [Step Id] among them, a missing-reason [Reject]/[Withdraw], a future or backdated-before-[Submission Instant] timestamp. A guard rejection that writes nothing.
+The rejection a write action ([Submit], [Approve], [Reject], [Withdraw]) returns when an input is malformed — a blank required field, the [Step Id] among them, a missing-reason [Reject]/[Withdraw], a blank reason supplied to [Submit] or [Approve], a future or backdated-before-[Submission Instant] timestamp. A guard rejection that writes nothing.
 
 Kind:       Member
 Member of:  the action rejection
@@ -745,7 +771,7 @@ Projection: storage-failure
 
 #### Invalid Query
 
-The rejection [Read] returns when a filter is malformed — a blank string-axis value, a [State] value outside the four states, a time range with end before start, or an unrecognized filter key (rejected rather than silently ignored).
+The rejection [Read] returns when a filter is malformed — a blank string-axis value, a [State] value outside the four states, a time range missing its start or its end, with end before start or with an end that is not an instant, a value its field does not take (a time range on a field that is not an instant, or a single value on one that is), or an unrecognized filter key (rejected rather than silently ignored).
 
 Kind:       Member
 Member of:  the Read rejection
@@ -810,15 +836,14 @@ Projection: invalid-query
 ```
 status: partially resolved
 formal: verified — approval-step.tla + 1 twin, 2026-06-03
-last gate: 2026-10-21 — Final Critique 6, the council's first round on the page and the first on its Store-contract rewrite (c3e6a36), three fresh readers on free models (GRID Nemotron 3 Ultra, EOS MiniMax M3.1 Flash, Linus GLM-5.3 Flash), each handed only the round's reading set, three passes on one text (frozen at 6da5e8b); the round rests on three counted passes — foundational count 3 after triage (15 reports: 4 standing, merged into 3; 3 sent down; 8 rejected), all Kind A: the resolving actions' refusal rules obliged two answers on one call, each pairwise ONLY IF rule read alone forbidding what the rule it ordered obliged; a failed read of the step records had no answer any signature named, and [Read] answered an admitted read whose read had failed; and the Execution Contract obliged a typed guard failure on a deleted subject that Identity 12 forbids the atom to detect; 24 refining reports, 7 rhetorical reports; not clean; every foundational finding cured in place, the third on `execution-contract.md`; 2026-07-12 — Final Critique 5, fresh reader — clean
+last gate: 2026-10-26 — Final Critique 7 — foundational count 4, not clean, no sample
 
 open:
-- 2026-10-21-a · refining · Operation 20; Operation 32; Term decision instant · attribution fault, success token and precondition name no declared term (the case table and the Submit and Storage Failure entries use precondition too), and Term decision instant is defined by its own name → declare each, or write the rules in declared terms (the refusal orders list each action's preconditions by label)
-- 2026-10-21-b · refining · Operation 43; Operation 47; Term actors; Regulator audit · the range filter's bounds are named start and end in Operation 47 and after and before in the Regulator audit example, no rule says whether a step at a bound matches, and range filter and instant-range filter name one thing → one declared range filter, its two bounds named, and their inclusion stated
 - 2026-10-21-c · refining · Operation 6; Operation 18; Operation 19; Term string input · nothing names the answer to a supplied submission, decision or withdrawal instant that cannot be read as an instant, and Term string input leaves the instant inputs out → a rule answering it invalid-request, or the binding named as its owner
 - 2026-10-21-d · refining · Indeterminate outcome 1 · a caller with no answer is sent to the step records, and no read says whether its submit landed, where two submits carrying one field set are two steps (Non-goal 1); its BEFORE takes a clause where the grammar's tail takes a term → name the read, or Duplicate Prevention (Non-goal 2) as its owner, and write the tail on a term
-- 2026-10-21-e · refining · Non-goals NOTE · the owners NOTE gives no owner for Non-goal 7, 8, 11, 12 or 21, names Notification and a trusted timestamping pattern with neither a link nor a forthcoming marker, and gives Non-goal 13 and Non-goal 20 two owners each → one owner each, linked or marked forthcoming
-- 2026-10-21-f · refining · State 1; Invariant 3.1 · both state that a step never leaves a terminal state (GRACE-lang Authority 3) → tombstone one to the other, Check 6.3 citing the one kept
+- 2026-10-21-e · refining · Non-goals NOTE · the owners NOTE gives no owner for Non-goal 7 or Non-goal 8 → one owner each, linked or marked forthcoming
+- 2026-10-26-a · refining · Identity 2; Capability requirement 1, 5 · the step id's source is named as the host's allocation (Identity 2) and not among what the deployment supplies, where the atom shape in `spec-format.md` lists an id source under Capability requirement; Assignment (its 2026-10-26-a), Event Log (its 2026-10-22-b) and Tamper Evidence (its 2026-10-22-a) route the same form → name the source among the Capability requirements, in the one form the corpus settles for its twenty host-allocation atoms
+- 2026-10-26-b · refining · Term seam; Term transition; Term business caller; Term now · each says the section titled Logic Confinement Principle in `execution-contract.md` declares it, and that section declares none of the four → declare the four there, the corpus's one seam wording, or point each at its declaration
 ```
 
 ## Decisions

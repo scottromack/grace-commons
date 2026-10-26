@@ -204,6 +204,8 @@ Operation 56: An admitted amend MUST take the successor's recording actor from t
 Operation 57: An admitted amend MUST record value and unit on the successor.
 ```
 
+NOTE: watch the blank filter value (Operation 48).
+
 NOTE: open 2026-10-22-a — which key orders two observations sharing a recording instant is not stated; Operation 43 and Check 6.1 ask only that the order be stable.
 
 NOTE: open 2026-10-22-b — whether a range filter's start and end lie inside the range, and what a range filter missing a bound answers, are not stated (Operation 44, Operation 50).
