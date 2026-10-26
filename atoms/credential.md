@@ -22,7 +22,7 @@ It works through records that bind a principal to a **verifier**: an artifact de
 
 Each record stands in one open status, active, or in one of two permanent stored ends: rotated (replaced by a newer credential) or revoked (deliberately cancelled, with when, why and whom the caller named recorded). A credential also *expires* — but expiry is not a stored status. When the deadline passes, a still-active record is simply shown expired, computed at read time from the deadline and the clock, never written.
 
-One principal reference holds at most one *effective-active* credential of a given type, where effective-active means stored active **and** before its deadline. That bound is judged at any moment from the latest registration for the principal and type on, since a call whose clock reads earlier than a newer registration can still find the older credential live beside it. It holds across spellings because the deployment canonicalizes references — rewriting spellings that differ only in letter case, surrounding spaces or Unicode form to one — and declares no two credential types that differ only that way (Capability requirement 6, Capability requirement 13). A lapsed record no longer occupies that slot, so a fresh registration is permitted beside it. Rotation is clean: the successor is a new record and the predecessor moves to rotated carrying a link forward, so the whole chain of replacements is walkable.
+One principal reference holds at most one *effective-active* credential of a given type, where effective-active means stored active **and** before its deadline. That bound is judged at any moment from the latest registration for the principal and type on, since a call whose clock reads earlier than a newer registration can still find the older credential live beside it. It holds across spellings because the deployment canonicalizes references — rewriting spellings that differ only in letter case, surrounding spaces or Unicode form to one — and declares no two credential types that differ only that way. A lapsed record no longer occupies that slot, so a fresh registration is permitted beside it. Rotation is clean: the successor is a new record and the predecessor moves to rotated carrying a link forward, so the whole chain of replacements is walkable.
 
 This is the mechanism behind password login, public-key authentication (safe against a captured answer being sent again only when a composing pattern issues a fresh challenge each time), programming-interface tokens (secrets a program presents to a service in place of a person) and hardware keys. Proving who the principal is in the first place, sequencing multiple factors, keeping someone logged in, and deciding what they may do are each a separate pattern.
 
@@ -65,6 +65,8 @@ Term credential: the record this atom holds — one principal's binding to one v
 Term fresh credential id: a credential id naming no credential of the database instance, assigned from the id material the seam supplies (Capability requirement 34, 35).
 
 Term credential id: the opaque value naming one credential — a [Credential Id]; assigned from the id material the seam supplies.
+
+Term id material: the value the deployment supplies at the seam, from which the atom assigns a credential id (Identity 2, Capability requirement 2).
 
 Term pair: principal reference and credential type together — the key the effective-active bound ranges over.
 
@@ -138,8 +140,8 @@ Deleted: Capability requirement 21. Execution Contract Database 2 owns it: the p
 Deleted: Capability requirement 22. Execution Contract Database 2 owns it: the pair's check and write are one transaction, and the atom names no section to release.
 Deleted: Capability requirement 23. Execution Contract Database 2 owns it.
 Capability requirement 24: The deployment MUST supply at the seam the entropy a derivation function consumes.
-Capability requirement 25: The host MUST run a derivation function at the seam.
-Capability requirement 26: The host MUST run a check function at the seam against the verifier of the credential a proceeding verify checks against.
+Capability requirement 25: The host MUST run a derivation function at the seam (Execution Contract Logic confinement 8).
+Capability requirement 26: The host MUST run a check function at the seam against the verifier of the credential a proceeding verify checks against (Execution Contract Logic confinement 8).
 Capability requirement 27: The deployment MUST declare a material bound and the bound's measure PER credential type.
 Capability requirement 28: The derivation function MUST own credential material's normalization.
 Capability requirement 29: The deployment MUST declare a check function that matches the material the credential type's derivation function derived the verifier from.
@@ -158,7 +160,7 @@ Capability requirement 41: The deployment MUST NOT remove a credential type a cr
 Capability requirement 42: The deployment MUST supply id material in the spelling the deployment's reference canonicalization produces.
 ```
 
-NOTE: open 2026-10-21-c — the host runs the check function at the seam against the verifier a proceeding verify checks against (Capability requirement 26, Operation 21), and the pipeline in `execution-contract.md` gives that run no step between the guard's read and its decision.
+NOTE: open 2026-10-21-c — the host runs the derivation function and the check function at the seam and injects each result (Capability requirement 25, Capability requirement 26, Operation 21, Operation 66, Operation 67), and the pipeline in `execution-contract.md` gives that injection no step between the read and the decision.
 
 NOTE: watch host obligations — this atom refuses a string input over the length bound on [Register] and [Revoke] alone (String 7, String 9), obliges the deployment to declare the bound (Capability requirement 14), and obliges it to supply id material whose credential id fits the bound (Capability requirement 39); a blank or over-long principal reference or credential type on [Verify] names no pair, which [Verify] answers no-active-credential (Operation 18), and an over-long credential id on [Rotate] names no credential, which [Rotate] answers not-known (Operation 27).
 
@@ -256,7 +258,7 @@ Operation 66: IF the derivation function refuses the credential material THEN [R
 Operation 67: IF the derivation function refuses the new credential material THEN [Rotate] MUST answer invalid-request.
 Operation 68: IF the check function refuses the presented material THEN [Verify] MUST answer material-mismatch.
 Operation 69: [Read] MUST order the answer by registration instant, earliest first, then by credential id in byte order.
-Operation 70: IF two credentials of the pair are effective-active at the verify's reading THEN a proceeding verify MUST check against the one carrying the later registration instant.
+Operation 70: IF two credentials of the pair are effective-active at the verify's reading THEN a proceeding verify MUST check against the effective-active credential carrying the latest registration instant.
 Operation 71: IF expiry instant EQUALS blank AND the default validity EQUALS unbounded THEN an admitted register MUST record no expiry instant.
 Operation 72: IF expiry instant EQUALS blank AND the default validity EQUALS unbounded THEN an admitted rotate MUST record no expiry instant on the successor.
 Operation 73: IF a filter names a field whose value EQUALS blank THEN [Read] MUST answer no credential.
@@ -290,7 +292,7 @@ Term constant time: a check's duration that the recorded verifier does not chang
 
 Term settled reading: a reading of now that no registration instant of the pair follows — the only reading at which Invariant 2.1 and Check 1.1 judge a pair's credentials together; an earlier reading judges the pair's credentials as the call finds them.
 
-Term effective-active credential: a credential whose status EQUALS active that reads live — what every bound, guard and lookup in this atom means by *the active credential*.
+Term effective-active credential: a credential whose status EQUALS active that reads live.
 
 Term lapsed credential: a credential whose status EQUALS active that reads lapsed.
 
@@ -312,7 +314,7 @@ Term default expiry: now plus the default validity — the expiry instant an adm
 
 Term check function: the deployment's function, declared for one credential type beside its derivation function, answering whether presented material matches a recorded verifier.
 
-Term filter: principal reference, credential type, credential id, OR any combination of them; a credential matches a filter when it carries EVERY value the filter names, so a filter naming no field matches EVERY credential.
+Term filter: principal reference, credential type, credential id, OR any combination of them; a credential matches a filter when it carries EVERY value the filter names and the filter names no other field, so a filter naming no field matches EVERY credential.
 
 Term terminal field: rotation instant | successor credential id | revocation instant | revoked by reference | revocation reason — every field a transitioning write records.
 
@@ -335,7 +337,7 @@ Term admitted revoke: a [Revoke] call the action admits (Execution Contract Read
   ```
 - **Invariant 3 — Sole-holder verification.**
   ```
-  Invariant 3.1: [Verify] MUST answer verified ONLY IF the presented material matches the verifier of the effective-active credential of the pair the call names PER the check function.
+  Invariant 3.1: [Verify] MUST answer verified ONLY IF the presented material matches the verifier of the credential a proceeding verify checks against PER the check function.
   ```
 - **Invariant 4 — Revocation is absorbing.**
   ```
@@ -629,9 +631,9 @@ Term cadences: empty.
 
 Term qualifiers: migrated — rewritten in GRACE lang v0.40 (2026-09-13).
 
-Term terms: credential, credential id, lapse instant, pair, property, reference, database instance, seam, transition, now, transitioning write, stored terminal, status, window reading, live, lapsed, effective-active credential, lapsed credential, proceeding verify, effective status, verifier, derivation function, derivation registry, foldable difference, length bound, material bound, default validity, check function, filter, fresh credential id, authorized caller, credential write, secret verifier, constant time, settled reading, terminal field, admitted register, admitted rotate, admitted revoke, string input, verification failure, default expiry, empty material.
+Term terms: credential, credential id, lapse instant, pair, property, reference, database instance, seam, transition, now, transitioning write, stored terminal, status, window reading, live, lapsed, effective-active credential, lapsed credential, proceeding verify, effective status, verifier, derivation function, derivation registry, foldable difference, length bound, material bound, default validity, check function, filter, fresh credential id, authorized caller, credential write, secret verifier, constant time, settled reading, terminal field, admitted register, admitted rotate, admitted revoke, string input, verification failure, default expiry, empty material, id material.
 
-NOTE: open 2026-10-26-c — thirty-seven declared terms carry no term entry, where spec-format's Terms item asks one per declared term (Term terms).
+NOTE: open 2026-10-26-c — thirty-eight declared terms carry no term entry, where spec-format's Terms item asks one per declared term (Term terms).
 
 Term cited: the section titled Logic Confinement Principle in `execution-contract.md` — the seam and the transition.
 
@@ -992,13 +994,13 @@ It inherits from:
 ```
 status: partially resolved
 formal: verified — credential.tla + 4 twins, 2026-09-29
-last gate: 2026-10-26 — Final Critique 15 — foundational count 3, not clean, no sample
+last gate: 2026-10-26 — Final Critique 16 — foundational count 0, clean, no sample
 
 open:
-- 2026-10-26-c · refining · Term terms; Vocabulary · thirty-seven declared terms (every name on Term terms but credential, credential id, now, status, effective status and verifier) carry no term entry, where spec-format's Terms item asks one per declared term and every specification writes one per name a bracket marker lands on → add the entries, each with a Kind the term entry grammar admits, or read the item as the bracketed names
+- 2026-10-26-c · refining · Term terms; Vocabulary · thirty-eight declared terms (every name on Term terms but credential, credential id, now, status, effective status and verifier) carry no term entry, where spec-format's Terms item asks one per declared term and every specification writes one per name a bracket marker lands on → add the entries, each with a Kind the term entry grammar admits, or read the item as the bracketed names
 - 2026-10-21-b · refining · Term seam, transition, now; Term cited · each cites the section titled Logic Confinement Principle in `execution-contract.md`, which declares none of them → cite what declares each, as Event Log's 2026-10-20-c and Permissions' 2026-10-21-f ask of the same four sentences
-- 2026-10-21-c · refining · Capability requirement 26; Operation 21 · the host runs the check function at the seam against the verifier the transition selects, and the pipeline in `execution-contract.md` gives that run no step between the guard's read and its decision → a seam step for the check, on the contract
-- 2026-09-29-e · refining · Final Critique 12 · routed open, non-blocking: the NIST verifier-storage claim against Non-goal 39 and Capability requirement 5; a read naming neither a pair nor an id has no routing across database instances; a public key's check normalizes nothing the page names; a lapse reopens a principal reference to any enrollment proof, unstated; one snapshot for verify's window reading, selection and check, unpinned → one refining pass
+- 2026-10-21-c · refining · Capability requirement 25, 26; Operation 21, 66, 67 · the host runs the derivation function (on [Register], and on [Rotate] for the type its read finds) and the check function (on [Verify], against the credential Operation 70 selects) at the seam and injects each result, as the contract's section titled Logic Confinement Principle says, and the pipeline in `execution-contract.md` gives that injection no step between the read and the decision, nor its query member a step for a query's check or its clock reading → draw the injection on the contract
+- 2026-09-29-e · refining · Final Critique 12 · routed open, non-blocking: the NIST verifier-storage claim against Non-goal 39 and Capability requirement 5; a read naming neither a pair nor an id has no routing across database instances; a public key's check normalizes nothing the page names; a lapse reopens a principal reference to any enrollment proof, unstated → one refining pass
 - 2026-09-29-d · refining · Final Critique 11 · routed open, non-blocking: Invariant 7 declares no acyclicity or single predecessor; no External check reaches Capability requirement 33, 35 or 36; Identity 5 global against a per-instance database term; the NIST line's verifier-storage claim beside Non-goal 39; Operation 69's tie order unexplained; the Clock semantics tombstones inside the Capability requirement block → one refining pass, gated with the rest
 ```
 
