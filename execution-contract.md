@@ -122,7 +122,7 @@ If the database read fails, the pipeline aborts before Step 2. The guard never e
 
 ### Step 3 failure
 
-If the database write fails after Step 2 returns pass, the pipeline aborts. The caller receives `storage-failure`. The state at `entity_id` is unchanged — `state_t` remains the durable state. This is a critical distinction from Step 1 failure: in Step 3, the guard already passed. A caller who retries on `storage-failure` must understand that the transition may have partially executed — and whether partial execution is recoverable depends on the atom. (In Permissions, a `storage-failure` on `revoke` means the grant remains Active; the caller must not assume it is revoked and must retry. That atom states it as Operation 14 and Operation 15, and its Revoke persistence failure edge case requires the retry and, in a high-assurance deployment, a security alert.)
+If the database write fails after Step 2 returns pass, the pipeline aborts. The caller receives `storage-failure`. The state at `entity_id` is unchanged — `state_t` remains the durable state. This is a critical distinction from Step 1 failure: in Step 3, the guard already passed. A caller who retries on `storage-failure` must understand that the transition may have partially executed — and whether partial execution is recoverable depends on the atom. (In Permissions, a `storage-failure` on `revoke` means the grant remains Active; the caller must not assume it is revoked and must retry. That atom states the caller's reading as Operation 15, and its Revoke persistence failure edge case requires the retry and, in a high-assurance deployment, a security alert.)
 
 ---
 
