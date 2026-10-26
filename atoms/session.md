@@ -16,7 +16,7 @@ toc: true
 
 ## Summary
 
-Session answers "is this login still good, and for whom?" without re-checking the password on every request. When a principal logs in, a session is issued: a record tying that principal to a time-limited validity window, identified by a random token the caller presents on later requests.
+Session answers "is this login still good, and for whom?" without re-checking the password on every request. When a principal (the user or service whose identity a login has just proved) logs in, a session is issued: a record tying that principal to a time-limited validity window, identified by a random token the caller presents on later requests.
 
 Checking a token returns one of four clearly separated answers — valid, and for which principal and until when; expired; revoked; unknown. They are never lumped into one "no," because a lapsed login, a deliberately cancelled one, and a token that never existed call for different responses.
 
@@ -35,9 +35,9 @@ A system that authenticates once and then permits action across many requests ne
 
 The atom isolates that attestation from everything around it. It does not verify credentials — that is [Credential](./credential.md)'s surface. It does not decide what the principal may do — that is [Permissions](./permissions.md)'. It does not sequence the login flow, the multi-factor challenge and the issuance — that is [Login](../compositions/login.md)'s. It answers one structural question: given this token, is there an active, unexpired, unrevoked session for a known principal? And the answer is one of four outcomes, each provable.
 
-The time bound is the atom's core commitment, and the discipline around it is where most session designs go wrong. expiry instant is set at issue and never mutated. A session needing a longer life is re-issued — a new record, a new token — never extended in place. That immutability is what makes every session's window auditable from one record: no history table, no event log, no developer's account of whether the session was extended. The record says when validity ends, and that field never changes.
+The time bound is the atom's core commitment, and the discipline around it is where most session designs go wrong. The expiry instant is set at issue and never mutated. A session needing a longer life is re-issued — a new record, a new token — never extended in place. That immutability is what makes every session's window auditable from one record: no history table, no event log, no developer's account of whether the session was extended. The record says when validity ends, and that field never changes.
 
-The second commitment is that lapsing is *derived*, not written. There is no `expire` action, no `expired_at` column, and no stored [Expired] status. A session past its deadline is computed as lapse instant read time from the immutable deadline against the injected clock. Nothing fires, nothing is stamped, no scheduler is needed — and the stored state space stays exactly two values, which removes the failure mode where a flag lags the clock it is meant to idealize.
+The second commitment is that lapsing is *derived*, not written. There is no `expire` action, no `expired_at` column, and no stored [Expired] status. A session past its deadline is computed as expired at read time from the immutable deadline against the injected clock. Nothing fires, nothing is stamped, no scheduler is needed — and the stored state space stays exactly two values, which removes the failure mode where a flag lags the clock it is meant to idealize.
 
 ## Structure
 
@@ -51,12 +51,14 @@ Identity 4: The transition MUST NOT allocate a session token.
 Identity 5: The atom MUST NOT reuse a session token.
 Identity 6: The atom MUST NOT change a session token.
 Identity 7: The atom MUST NOT carry a session identifier beside the session token.
-Identity 8: Two sessions MUST NOT share a session token.
+Deleted: Identity 8. Invariant 7.1 owns it.
 Identity 9: The deployment MUST draw a session token from a cryptographically secure random source.
 Identity 10: The deployment MUST NOT draw a session token from the session's public properties.
 Identity 11: The atom MUST NOT interpret a principal reference.
 Identity 12: The atom MUST NOT confirm that a principal reference names an authenticated principal.
 ```
+
+NOTE: open 2026-10-21-f — only the principal reference is said to be uninterpreted and unconfirmed (Identity 11, Identity 12), while the atom records revoked by reference and issued by reference on the caller's word too.
 
 Term session: one bounded-lifetime attestation that a principal completed authentication — a [Session], the record this atom holds.
 
@@ -68,6 +70,8 @@ Term issued by reference: the opaque reference naming the mechanism that issued 
 
 Term seam: the atom's I/O boundary as the section titled Logic Confinement Principle in `execution-contract.md` declares it; the host injects the clock reading, the session token and the token's random material here.
 
+NOTE: open 2026-10-21-h — Term seam names no default session duration, which [Issue] applies (Operation 6).
+
 Term transition: the atom's evaluation of one call against the session records, as the section titled Logic Confinement Principle in `execution-contract.md` declares it.
 
 ### State
@@ -75,13 +79,13 @@ Term transition: the atom's evaluation of one call against the session records, 
 ```
 State 1: EVERY session MUST stand in EXACTLY ONE OF active, revoked.
 State 2: EVERY session MUST carry session token, principal reference, issued by reference, issuance instant, expiry instant and status.
-State 3: EVERY session MUST carry an expiry instant.
+Deleted: State 3. Invariant 10.1 owns it.
 State 4: A revoked session MUST carry revocation instant, revoked by reference and revocation reason.
 State 5: An active session MUST NOT carry revocation instant.
 State 6: An active session MUST NOT carry revoked by reference.
 State 7: An active session MUST NOT carry revocation reason.
-State 8: A session MUST NOT carry a stored expired status.
-State 9: A session MUST NOT carry an expiry timestamp beside expiry instant.
+Deleted: State 8. Invariant 12.1 owns it.
+Deleted: State 9. Invariant 12.2 owns it.
 State 10: The atom MUST NOT offer a transition out of revoked.
 State 11: The atom MUST NOT remove a session from the database.
 State 12: The atom MUST NOT hold a permission.
@@ -94,7 +98,7 @@ Term status: active | revoked — the stored status; in force, or cancelled and 
 #### Expiry
 
 ```
-Expiry 1: A lapse MUST NOT write to the session.
+Deleted: Expiry 1. Invariant 12.3 owns it.
 Expiry 2: A lapse MUST NOT fire a transition.
 Expiry 3: The atom MUST NOT stamp an expiry.
 Expiry 4: The deployment MUST NOT schedule a lapse.
@@ -153,10 +157,12 @@ revoke(session_token, revoked_by_ref, reason)
   refuses invalid-request | already-terminal | not-known | storage-failure
 
 read(filter)
-  answers session_records
+  answers the matching sessions
 ```
 
 Term validation failure: expired | revoked | not-known — the reasons [Validate] gives for an invalid session.
+
+NOTE: watch the outcome that carries a value — [Validate]'s invalid arm carries a validation failure, whose members the rules land as answers (Operation 14 through 16, Invariant 6.1) and the Examples write inside the arm.
 
 ```
 Operation 1: [Issue] MUST record EXACTLY ONE session per successful call.
@@ -171,12 +177,12 @@ Operation 9: [Issue] MUST stamp issuance instant from the injected now.
 Operation 10: [Issue] MUST stamp expiry instant from the expiry deadline.
 Operation 11: [Issue] MUST NOT recompute expiry instant from a later clock reading.
 Operation 12: IF the database refuses the write THEN [Issue] MUST answer storage-failure.
-Operation 13: [Validate] MUST answer EXACTLY ONE OF valid, expired, revoked, not-known.
+Deleted: Operation 13. Invariant 6.1 owns it.
 Operation 14: IF the session token names no session THEN [Validate] MUST answer not-known.
 Operation 15: IF the session's status EQUALS revoked THEN [Validate] MUST answer revoked.
 Operation 16: IF the session is lapsed AND the session's status EQUALS active THEN [Validate] MUST answer expired.
 Operation 17: [Validate] MUST answer expired ONLY IF the session's status EQUALS active.
-Operation 18: [Validate] MUST answer valid ONLY IF the session's status EQUALS active AND the session is not lapsed.
+Operation 18: IF the session's effective status EQUALS active THEN [Validate] MUST answer valid.
 Operation 19: [Validate] MUST carry principal reference and expiry instant in a valid answer.
 Operation 20: [Validate] MUST NOT write.
 Operation 21: [Validate] MUST NOT refuse a call.
@@ -204,11 +210,19 @@ Deleted: Operation 42. Capability requirement 1 owns it.
 Deleted: Operation 43. Execution Contract Logic confinement 3 owns it.
 Deleted: Operation 44. Execution Contract Logic confinement 3 owns it.
 Operation 45: The atom MUST NOT offer an expire action.
-Operation 46: The atom MUST NOT offer an extend action.
+Deleted: Operation 46. Non-goal 7 owns it.
 Operation 47: The atom MUST NOT offer an un-revoke action.
 Operation 48: IF the default session duration EQUALS blank THEN [Issue] MUST answer invalid-request.
 Operation 49: The transition MUST NOT generate the session token's random material.
+Operation 50: [Issue] MUST record the principal reference the call supplies.
+Operation 51: [Issue] MUST record the issued by reference the call supplies.
 ```
+
+NOTE: open 2026-10-21-a — [Read] answers the matching sessions in no stated order (Operation 37).
+
+NOTE: open 2026-10-21-j — no maximum bounds a supplied session duration (Operation 7), while the Summary names short-lived elevated-access windows.
+
+NOTE: open 2026-10-26-b — a session is named by its session token alone (Identity 1, Identity 7) and [Read] answers the matching sessions, which the Breach investigation revokes, while Non-goal 18 forbids the atom to enumerate a session token; whether [Read]'s answer carries the session token is not stated.
 
 Term now: the wall-time reading the host takes at the seam and hands to the transition — a [Now], as the section titled Logic Confinement Principle in `execution-contract.md` declares it; never read inside the transition, never supplied by the business caller.
 
@@ -222,11 +236,15 @@ Term issuance instant: the instant the session was recorded — an [Issuance Ins
 
 Term expiry deadline: `issued_at + session_duration` — what [Issue] stores as expiry instant, computed once at issue.
 
+NOTE: open 2026-10-21-c — the session duration carries no unit, which only the Browser login example pins (3600 to one hour).
+
 Term expiry instant: the instant the session's validity ends — an [Expiry Instant]; stamped at issue, never changed, never absent.
 
 Term lapsed: the session's status EQUALS active and now is no earlier than the session's expiry instant — the condition [Validate] derives and never stamps.
 
 Term effective status: expired where the session is lapsed, and the stored status otherwise — an [Effective Status]; a pure projection over the session and now, never stored.
+
+NOTE: watch a term entry's kind — the effective status is derived at each read and never stored, yet its term entry takes `Kind: Field`, as a stored field's does.
 
 Term revocation instant: the instant the session was cancelled — a [Revocation Instant].
 
@@ -236,7 +254,9 @@ Term revocation reason: the stated ground for the cancellation — a [Revocation
 
 Term reason: the [Revoke] input the session keeps as revocation reason — a [Reason].
 
-Term filter: the selection a [Read] call scopes the answer by — a [Filter]; consumed per call, never stored.
+Term filter: the selection a [Read] call scopes the answer by — a [Filter]: principal reference, issued by reference, OR both; a session matches a filter when it carries EVERY value the filter names (String 1), so a filter naming neither matches EVERY session; consumed per call, never stored.
+
+NOTE: open 2026-10-26-a — a call whose filter names a field other than principal reference and issued by reference carries no [Filter], and no rule says what [Read] answers it.
 
 Term liveness query: any query for the sessions in force at the read-time clock — the atom's [Read] and the administrative surfaces built on it.
 
@@ -244,7 +264,7 @@ The case space, and the rule that owns each case:
 
 | Call | Case | Answer | Effect on the database |
 |---|---|---|---|
-| [Issue] | both references present, duration positive or defaulted, database accepts | the new session token | one record lands in [Active], issuance instant and expiry instant stamped (Operation 1, Operation 9, Operation 10) |
+| [Issue] | both references present, duration positive or defaulted, database accepts | the new session token | one record lands in [Active] carrying both references, issuance instant and expiry instant stamped (Operation 1, Operation 9, Operation 10, Operation 50, Operation 51) |
 | [Issue] | a blank or over-long reference, a non-positive duration, or no configured default | [Invalid Request] | none (Operation 4, Operation 5, Operation 8, Operation 48, String 7) |
 | [Validate] | token names nothing | [Not Known] | none — the call reads (Operation 14, Operation 20) |
 | [Validate] | stored status is [Revoked] | [Invalid Revoked] | none — returned even where the window is still open (Operation 15) |
@@ -256,7 +276,7 @@ The case space, and the rule that owns each case:
 | [Revoke] | stored status is already [Revoked] | [Already Terminal] | none (Operation 23, Operation 24) |
 | [Revoke] | session in [Active], blank or over-long attribution | [Invalid Request] | none (Operation 25, Operation 26, String 9, String 10) |
 | either write | database refuses | [Storage Failure] | none (Operation 12, Operation 34) |
-| *a window lapses* | now reaches expiry instant | nothing is called | **nothing written** — no action, no stamp, no scheduler (Expiry 1 through 5) |
+| *a window lapses* | now reaches expiry instant | nothing is called | **nothing written** — no action, no stamp, no scheduler (Expiry 2 through 5, Invariant 12.3) |
 | [Read] | a filter | the matching sessions, each carrying its effective status | none (Operation 37, Operation 38) |
 
 ### Invariants
@@ -284,8 +304,8 @@ The case space, and the rule that owns each case:
 - **Invariant 5 — Stored terminal absorbing.**
   ```
   Invariant 5.1: A revoked session MUST NOT leave revoked.
-  Invariant 5.2: [Revoke] MUST answer already-terminal against a revoked session.
-  Invariant 5.3: A lapsed session MUST reach [Revoke].
+  Deleted: Invariant 5.2. Operation 23 owns it.
+  Deleted: Invariant 5.3. Operation 27 owns it.
   ```
 - **Invariant 6 — Four structurally distinct validate outcomes.**
   ```
@@ -312,7 +332,7 @@ The case space, and the rule that owns each case:
 - **Invariant 10 — Every session has a finite lifetime.**
   ```
   Invariant 10.1: EVERY session MUST carry an expiry instant.
-  Invariant 10.2: The atom MUST NOT record a session carrying no expiry instant.
+  Deleted: Invariant 10.2. Invariant 10.1 owns it.
   ```
 - **Invariant 11 — Expiry absorbing, by derivation.**
   ```
@@ -326,6 +346,8 @@ The case space, and the rule that owns each case:
   Invariant 12.3: A lapse MUST NOT write to the session.
   Invariant 12.4: The effective status MUST rest on the stored status, expiry instant and now.
   ```
+
+NOTE: watch the modal with no temporal scope (Operation 27, Invariant 5.3).
 
 Invariants 1, 2 and 10 together give the *temporal auditability* property — every session's window is fully determined from one record, with no mutable validity field. Invariants 3, 6 and 12 give *validation clarity* — the outcome of any [Validate] call is unambiguous, distinguishable, and computed from the record and the injected clock alone. Invariants 4 and 11 give *terminal finality* — neither a revoked session nor a lapsed one resurfaces as valid by any path.
 
@@ -343,11 +365,11 @@ Twenty minutes later the user requests a protected page. `validate(tok_abc123)` 
 
 The user clicks log out. `revoke(tok_abc123, revoked_by_ref: user_u91, reason: "user-initiated-logout")` → revoked, with `now: 10:45:00Z` injected. The record moves to [Revoked] with all three fields stamped. expiry instant stays `11:00:00Z` — that field is immutable.
 
-If the browser re-presents the old cookie at `10:50:00Z`: `validate(tok_abc123)` → `invalid(revoked)`. The stored status is read first, so the answer is [Invalid Revoked] and not [Invalid Expired], even though the session would have lapsed naturally fifteen minutes later (Operation 15).
+If the browser re-presents the old cookie at `10:50:00Z`: `validate(tok_abc123)` → `invalid(revoked)`. The stored status is read first, so the answer is [Invalid Revoked] and not [Invalid Expired], even though the session would have lapsed naturally at `11:00:00Z`, ten minutes later (Operation 15).
 
 ### A window lapses — derived
 
-The user closes the browser without logging out. The window passes at `11:00:00Z`. **No call is made and no write occurs** — there is no action to call. At `11:30:00Z` a new tab presents the same cookie: `validate(tok_abc123)` → `invalid(expired)`. The record is still stored active, never transitioned; the answer comes from expiry instant against the injected now. Nothing is written, there is no expiry timestamp to write, and the record count is unchanged. A [Read] of the record now reports `effective_status: expired` (Expiry 1 through 8).
+The user closes the browser without logging out. The window passes at `11:00:00Z`. **No call is made and no write occurs** — there is no action to call. At `11:30:00Z` a new tab presents the same cookie: `validate(tok_abc123)` → `invalid(expired)`. The record is still stored active, never transitioned; the answer comes from expiry instant against the injected now. Nothing is written, there is no expiry timestamp to write, and the record count is unchanged. A [Read] of the record now reports `effective_status: expired` (Expiry 2 through 8, Invariant 12.3).
 
 ### Rejection paths
 
@@ -361,7 +383,7 @@ The user closes the browser without logging out. The window passes at `11:00:00Z
 
 - **Regulator audit.** A HIPAA (Health Insurance Portability and Accountability Act) auditor asks whether access to a patient record at `14:32Z` on `2026-10-15` was under a valid, unrevoked session. The database yields `tok_abc123`: stored active, `issued_at: 14:00:00Z`, `expires_at: 15:00:00Z`, no revocation instant. Invariant 3.1 is the structural answer — at `14:32Z` the session was stored active and the deadline had not passed, so [Validate] would have answered [Valid]. The auditor confirms it provably, from the one record; there is no stored expiry flag to corroborate, only the immutable deadline (Check 3.1).
 - **Disputed access.** A user denies access at `03:15` on `2026-11-20`. The investigator reconstructs the sessions in force for the principal at that instant from the records and finds `tok_abc123`: `issued_at: 2026-11-19T22:00:00Z`, `expires_at: 2026-11-20T06:00:00Z`, `issued_by_ref: login_svc_l01`. The session was in force. Whether the token was stolen is a separate investigation; what the records bound is the forensic window — issued through the Login service at 22:00, valid at 03:15, never revoked before the access. Who authenticated at 22:00 and against what credential is [Actor Identity](./actor-identity.md)'s record, wired by Login (Non-goal 1, Composition note 3).
-- **Breach investigation.** Session tokens are found in an exposed log file. The investigator queries every session with `issued_by_ref: api_gateway_g01` inside the exposure window — 47 sessions across 31 principals — and reads each effective status against the investigation clock: which are live, which lapsed, which were already revoked. The team then calls [Revoke] on every session not already revoked, *including the lapsed ones*, so that every closure is attributed (Operation 27). Invariant 8.1 through 8.3 is what makes it provable, six months later, which sessions were closed, by whom, when and why.
+- **Breach investigation.** Session tokens are found in an exposed log file. The investigator reads every session with `issued_by_ref: api_gateway_g01` and keeps those whose issuance instant falls inside the exposure window — 47 sessions across 31 principals — then reads each effective status against the investigation clock: which are live, which lapsed, which were already revoked. The team then calls [Revoke] on every session not already revoked, *including the lapsed ones*, so that every closure is attributed (Operation 27). Invariant 8.1 through 8.3 is what makes it provable, six months later, which sessions were closed, by whom, when and why.
 
 ---
 
@@ -385,6 +407,12 @@ Check 6.1: An auditor MUST find no revoked session whose status EQUALS active (I
 ```
 
 NOTE: EVERY check names the rule the check tests.
+
+### External checks
+
+```
+External check 1: A deployment needing a session token confirmed drawn from a cryptographically secure random source at the token entropy MUST read the deployment's own token generation (Identity 9, Capability requirement 4).
+```
 
 ## Non-goals
 
@@ -417,7 +445,9 @@ Non-goal 25: The atom MUST NOT reconcile two readers disagreeing across the dead
 Non-goal 26: A deployment needing an externally verifiable timestamp MUST compose a trusted timestamping pattern.
 ```
 
-NOTE: the owners — [Login](../compositions/login.md) (Non-goal 1, Non-goal 2, Composition note 2); the deployment (Non-goal 16, Capability requirement 5; Non-goal 17, Capability requirement 6); [Tamper Evidence](./tamper-evidence.md) (Non-goal 19, Non-goal 22); [Retention Window](./retention-window.md) (Non-goal 20, Non-goal 21); [Actor Identity](./actor-identity.md) (Non-goal 23, Non-goal 24); Execution Contract Logic confinement 7 (Non-goal 25).
+NOTE: the owners — [Credential](./credential.md) (Non-goal 1, Non-goal 2); [Login](../compositions/login.md) (Non-goal 3, Non-goal 4, Composition note 2); [Permissions](./permissions.md) (Non-goal 5, Non-goal 6); the composing pattern (Non-goal 7 through 9, Composition note 5; Non-goal 10, Non-goal 11, Composition note 7; Non-goal 12, Non-goal 13, Composition note 8; Non-goal 14, Non-goal 15, Composition note 6); the deployment (Non-goal 16, Capability requirement 5; Non-goal 17, Non-goal 18, Capability requirement 6); [Tamper Evidence](./tamper-evidence.md) (Non-goal 19, Non-goal 22); [Retention Window](./retention-window.md) (Non-goal 20, Non-goal 21); [Actor Identity](./actor-identity.md) (Non-goal 23, Non-goal 24); Execution Contract Logic confinement 7 (Non-goal 25); a trusted timestamping pattern *(forthcoming)* (Non-goal 26).
+
+NOTE: open 2026-10-21-e — Non-goal 23's *who called [Issue]* reads as the mechanism issued by reference records, which the Browser login example fills with the calling Login service.
 
 ## Edge cases
 
@@ -427,6 +457,8 @@ NOTE: the owners — [Login](../compositions/login.md) (Non-goal 1, Non-goal 2, 
 Clock dependence 1: A guard MUST NOT read now.
 Clock dependence 2: A rejection MUST NOT rest on now.
 ```
+
+NOTE: open 2026-10-21-i — *read now* in Clock dependence 1 and 2 can be taken for consuming the injected now, which the lapse derivation does (Expiry 5, Expiry 8).
 
 ### Concurrency
 
@@ -452,6 +484,8 @@ String 9: IF the session's status EQUALS active AND revoked by reference EXCEEDS
 String 10: IF the session's status EQUALS active AND reason EXCEEDS the maximum length THEN [Revoke] MUST answer invalid-request.
 ```
 
+NOTE: open 2026-10-21-g — String 6 sets a maximum length per string input, which no rule applies to [Validate]'s session token or [Read]'s filter, and String 8 names neither the inputs it canonicalizes nor the canonical form.
+
 Term verified answer: the verified outcome [Credential](./credential.md)'s verification produces; cited from that atom, never restated here (Closed vocabulary 15).
 
 Term invalid answer: an answer of [Validate] that EQUALS expired, revoked OR not-known — every answer outside valid.
@@ -464,6 +498,8 @@ Term authentication credential: the material a principal presents to prove ident
 Token format 1: A claim set token's expiry claim MUST NOT differ from the session's expiry instant.
 Token format 2: A deployment extending a claim set token MUST call [Issue].
 ```
+
+NOTE: open 2026-10-21-b — Token format 1 names no writer of a claim set token's expiry claim, and a token carrying its own expiry claim is unread against Identity 9 and Identity 10.
 
 Term claim set token: a session token whose format carries its own expiry claim — a JWT (JSON Web Token — a compact, signed token format carrying claims; JSON is JavaScript Object Notation, a plain-text data format), for instance.
 
@@ -495,7 +531,7 @@ Term actors: the atom; the host; the transition; the implementation; the deploym
 
 Term records: session — one bounded-lifetime attestation, carrying session token, principal reference, issued by reference, issuance instant, expiry instant, status and, once cancelled, revocation instant, revoked by reference and revocation reason.
 
-Term record verbs: identify, serve, offer, compare, allocate, reuse, change, carry, share, draw, interpret, confirm, configure, supply, generate, fall, own, hold, record, stand, answer, apply, accept, stamp, recompute, derive, surface, write, fire, schedule, read, refuse, leave, rest, remove, merge, return, reach, find, reproduce, reconstruct, verify, sequence, decide, extend, call, revoke, bind, check, bound, enforce, propagate, define, enumerate, seal, compose, trim, normalize, case-fold, set, exceed, differ, give, reduce, detect, canonicalize, reconcile, declare.
+Term record verbs: identify, serve, offer, compare, allocate, reuse, change, carry, share, draw, interpret, confirm, configure, supply, generate, fall, own, hold, record, stand, answer, apply, accept, stamp, recompute, derive, surface, write, fire, schedule, read, refuse, leave, rest, remove, merge, return, find, reproduce, reconstruct, verify, sequence, decide, extend, call, revoke, bind, check, bound, enforce, propagate, define, enumerate, seal, compose, trim, normalize, case-fold, set, exceed, differ, give, reduce, detect, canonicalize, reconcile, declare.
 
 Term value sets: status = active | revoked.
 
@@ -505,7 +541,7 @@ Term cadences: empty.
 
 Term qualifiers: migrated — rewritten in GRACE lang v0.35 (2026-09-12).
 
-Term terms: session, session token, principal reference, issued by reference, seam, transition, default session duration, token entropy, now, business caller, session duration, zero duration, issuance instant, expiry deadline, expiry instant, lapsed, effective status, revocation instant, revoked by reference, revocation reason, reason, filter, liveness query, status, blank, maximum length, validation failure.
+Term terms: session, session token, principal reference, issued by reference, seam, transition, default session duration, token entropy, now, business caller, session duration, zero duration, issuance instant, expiry deadline, expiry instant, lapsed, effective status, revocation instant, revoked by reference, revocation reason, reason, filter, liveness query, status, maximum length, validation failure.
 
 #### Session
 
@@ -630,7 +666,7 @@ Projection:   session_duration
 The current clock reading (the pipeline's `clock_t`), pipeline-injected at the I/O seam on every action — not caller-trusted, not read inside any transition, not shown as a signature parameter. It is consumed only to stamp immutable write timestamps ([Issuance Instant], [Revocation Instant]) and to evaluate the pure expiry derivation in [Validate] and [Read] (no write).
 
 Kind:         Parameter
-Parameter of: Validate
+Parameter of: Issue, Validate, Revoke and Read
 Projection:   now
 
 #### Reason
@@ -643,7 +679,7 @@ Projection:   reason
 
 #### Filter
 
-The selection a caller passes to [Read] to scope which [Session] records are returned. Consumed per call; never stored.
+The selection a caller passes to [Read] to scope which [Session] records are returned: a [Principal Reference], an [Issued By Reference], or both. A [Session] matches when it carries every value the filter names, and a filter naming neither matches every [Session]. Consumed per call; never stored.
 
 Kind:         Parameter
 Parameter of: Read
@@ -773,7 +809,7 @@ Projection: storage-failure
 
 ## Standards references
 
-- **NIST (National Institute of Standards and Technology — US federal standards body) SP 800-63B section 7 (Session Management)** — the primary standard for session management in authentication systems. Requirements for session binding, session duration, reauthentication triggers, and session termination correspond directly to this atom's behavioral commitments. The atom's [Expiry Instant] immutability and re-issuance discipline implement 800-63B's requirement that session extensions produce new session identifiers.
+- **NIST (National Institute of Standards and Technology — US federal standards body) SP 800-63B section 7 (Session Management)** — the primary standard for session management in authentication systems. Its session duration and session termination requirements correspond directly to this atom's behavioral commitments; its session binding and reauthentication triggers are the composing pattern's (Non-goal 10, Composition note 5, Composition note 7). The atom's [Expiry Instant] immutability and re-issuance discipline implement 800-63B's requirement that session extensions produce new session identifiers.
 - **OWASP ASVS V3 (Application Security Verification Standard — Session Management)** — the OWASP (Open Worldwide Application Security Project) verification standard for session management security. Requirements for session token randomness, expiry, revocation on logout, and protection against fixation attacks are the deployment-configuration surface of this atom.
 - **RFC (Request for Comments — the Internet's numbered standards series) 6265 (HTTP State Management Mechanism — HTTP being the Hypertext Transfer Protocol)** — the cookie standard. The atom's [Session Token] is the value delivered in a `Set-Cookie` response header in browser-based deployments. The atom does not specify cookie attributes (Secure, HttpOnly, SameSite) — those are the composing pattern's configuration obligations.
 - **SAML 2.0 section 4.1.4 (Session Establishment and Termination)** — the SAML (Security Assertion Markup Language — an XML (Extensible Markup Language) standard for exchanging authentication data between identity and service providers) session model maps to this atom: `AuthnStatement` issuance corresponds to [Issue]; `SessionNotOnOrAfter` corresponds to [Expiry Instant]; `SLO` (Single Logout) corresponds to [Revoke]. The atom's re-issuance discipline aligns with SAML's prohibition on reusing assertion IDs.
@@ -796,20 +832,20 @@ Inherited from:
 ```
 status: partially resolved
 formal: not applicable — vote no 2026-06-03
-last gate: 2026-10-21 — Final Critique 6, the council's first round on the page and the first on its Store-contract rewrite (76db839), three fresh readers on free models (GRID Nemotron 3 Ultra, EOS MiniMax M3.1 Flash, Linus GLM-5.3 Flash), each handed only the round's reading set, three passes on one text (frozen at ac6f9a4); the round rests on three counted passes — foundational count 4 after triage (14 reports: 5 standing, merged into 4; 6 sent down; 3 rejected), all Kind A: Term liveness query bound an auditor's reconstruction of a past instant to the read-time effective status, against Check 3.1; Invariant 12.4 rested the effective status on expiry instant and now alone, which the page's own Term breaks on every revoked session past its deadline; String 7 obliged [Validate] and [Read], which refuse nothing, to refuse an over-long string input; and a configured default session duration of zero or less met no floor, issued by one build and refused by another; 19 refining reports, 5 rhetorical reports; not clean; every foundational finding cured in place; 2026-06-23 — Final Critique 5, fresh reader — clean
+last gate: 2026-10-26 — Final Critique 7 — foundational count 2, not clean, no sample
 
 open:
-- 2026-10-21-a · refining · Term filter; Operation 37; [Read] · which fields a filter names, how a field matches and what a filter naming no field matches are unstated, Operation 37 obliges every matching session and says nothing of the rest, the answer has no order, and the answer arm session_records names no declared term (GRACE-lang Closed vocabulary 27) → declare the filter over the fields the Examples and composing patterns read (principal reference, issued by reference, issuance instant), an answer of the matching sessions only, an order, and the arm as a term
-- 2026-10-21-b · refining · Token format 1; Identity 9; Identity 10 · Token format 1 binds a claim set token's expiry claim and names no actor, though the host allocates the token (Identity 3) and holds every input of the expiry deadline at the seam; and a token carrying its own expiry claim is unread against Identity 9 and 10 (drawn from a random source, never from the session's public properties) → name the host as the claim's writer, and say how a claim set token meets Identity 9 and 10
+- 2026-10-21-a · refining · Operation 37; [Read] · [Read] answers the matching sessions in no stated order → an order
+- 2026-10-21-b · refining · Token format 1; Identity 9; Identity 10 · Token format 1 binds a claim set token's expiry claim and names no actor, though the host allocates the token (Identity 3) and holds every input of the expiry deadline at the seam; and a token carrying its own expiry claim is unread against Identity 9 and 10 (drawn from a random source, never from the session's public properties, which no term declares) → name the host as the claim's writer, and say how a claim set token meets Identity 9 and 10
 - 2026-10-21-c · refining · Term session duration; Term expiry deadline · the window carries no unit, which only the Browser login example pins (3600 to one hour), and Final Critique 5's text left the unit to the deployment → state the unit, or a Capability requirement that the deployment declare it
-- 2026-10-21-d · refining · Identity 8; State 3; State 8; State 9; Expiry 1; Operation 13; Operation 46 · each carries a proposition another rule carries too (Invariant 7.1; Invariant 10.1, with State 2 and Invariant 10.2; Invariant 12.1; Invariant 12.2; Invariant 12.3; Invariant 6.1; Non-goal 7), against GRACE-lang Authority 3 → tombstone one copy of each pair to the other, the checks citing the copy kept
 - 2026-10-21-e · refining · Non-goal 23; Term issued by reference · who called [Issue] reads as the mechanism issued by reference records, which the Browser login example fills with the calling Login service → narrow Non-goal 23 to the actor's attribution, which Non-goal 24 and Composition note 3 give to Actor Identity and the composing pattern
 - 2026-10-21-f · refining · Identity 11; Identity 12 · only the principal reference is said to be uninterpreted and unconfirmed, while revoked by reference and issued by reference are recorded on the caller's word too → say it of every opaque reference
 - 2026-10-21-g · refining · String 6; String 8 · String 6 sets a maximum length per string input, which no rule applies to the token or the filter, and String 8 names neither the inputs it canonicalizes nor the canonical form → state which inputs each covers
-- 2026-10-21-h · refining · Now entry; Term seam · the Now entry gives Parameter of: Validate, while [Issue], [Revoke] and [Read] consume now too (Operation 9, Operation 29, Expiry 7), and Term seam names no default session duration, which [Issue] applies (Operation 6) → name every consumer, and where the default enters
+- 2026-10-21-h · refining · Term seam · Term seam names no default session duration, which [Issue] applies (Operation 6) → say where the default enters
 - 2026-10-21-i · refining · Clock dependence 1; Clock dependence 2 · read now can be taken for consuming the injected now, which the lapse derivation does (Expiry 5, Expiry 8) → pin that a guard takes no clock reading of its own
 - 2026-10-21-j · refining · Operation 7; Summary · no maximum bounds a supplied session duration, while the Summary names short-lived elevated-access windows → a deployment maximum, or the Summary's claim narrowed
-- 2026-10-21-k · refining · Non-goal 26 · a trusted timestamping pattern is linked nowhere and not marked forthcoming → link it, or mark it forthcoming
+- 2026-10-26-a · refining · Term filter; [Read] · a call whose filter names a field other than principal reference and issued by reference carries no [Filter], and no rule says what [Read] answers it → land a refusal by a rule on a refuses line for [Read], or name the layer that parses the call as its owner in a Non-goal; Credential's 2026-10-26-a asks the same of a malformed instant
+- 2026-10-26-b · refining · Non-goal 18; Operation 37; Breach investigation · a session is named by its session token alone (Identity 1, Identity 7), [Read] answers the matching sessions and the Breach investigation revokes the sessions its read found, while Non-goal 18 forbids the atom to enumerate a session token → say whether [Read]'s answer carries the session token: if not, the example takes its tokens from the composing pattern's records; if so, Non-goal 18 narrows to the token space and exposing [Read] is the composing pattern's to authorize, as on Credential
 ```
 
 ## Decisions
