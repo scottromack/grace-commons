@@ -116,7 +116,7 @@
    "shared-todo"
   ],
   "domain": null,
-  "grounded": false,
+  "grounded": true,
   "invariants": 10,
   "kind": "atom",
   "models": {
@@ -139,7 +139,7 @@
    "SOC 2",
    "SOX"
   ],
-  "status": "partially resolved",
+  "status": "grounded on Final Critique 7 \u2014 2026-10-26",
   "title": "Assignment"
  },
  "attributed-permissions-admin": {

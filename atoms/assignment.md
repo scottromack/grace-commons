@@ -16,7 +16,7 @@ toc: true
 
 ## Summary
 
-Assignment records who is responsible for a piece of work and the full history of everyone who has held that responsibility. Each assignment is a record that links a task to the person responsible for it. It moves through three states: Active (in force), Recalled (withdrawn with no replacement), or Transferred (handed off to a new person). The pattern guarantees that a task can have at most one responsible person at a time. The handoff action (reassign) does the swap in a single step, so the task is never left with no one responsible. And because records are never overwritten or deleted, you can always reconstruct who held a task and when. Each assignment carries an identifier that never changes and means nothing by itself (it is opaque); the system running Assignment supplies it from outside Assignment's own logic, as it supplies the clock reading, so that logic generates neither; the task it is for and the actor it binds are fixed when the assignment is created and never change. It deliberately leaves out related questions — whether the person accepts the work, who is allowed to assign it, how much work one person may hold — because those are handled by separate patterns that attach to it. This makes it usable as-is for project boards, support-ticket queues, healthcare shift handoffs, legal case routing, and any other place where accountability for work needs to be tracked.
+Assignment records who is responsible for a piece of work, and keeps the history of everyone who has held that responsibility. Each assignment is a record linking one task to one responsible person: it starts out active and ends at most once, either recalled (withdrawn with nobody taking over) or transferred (handed to someone new), and it records when it began and, once it ends, when it ended. The pattern guarantees that a task has at most one active assignment at a time, and a handoff (a reassign) ends the old assignment and starts the new one in a single step, so a handoff never leaves the task with nobody responsible. Assignment never deletes an assignment, and the task, the person and the start time an assignment records never change, so who held a task, and when, can be rebuilt from the records. Each assignment carries an identifier that means nothing by itself, supplied, like the clock reading, by the system running Assignment from outside Assignment's own logic. Whether the person accepts the work, who may assign it and how much work one person may hold are left to separate patterns that attach to it, which keeps it usable as-is for project boards, support-ticket queues, healthcare shift handoffs and legal case routing.
 
 *Also known as: a work assignment, a responsibility binding, a task owner, an owner of record.*
 
@@ -36,10 +36,10 @@ Identity 1: The atom MUST identify an assignment by the assignment id.
 Identity 2: The host MUST allocate an assignment id at the atom's seam.
 Identity 3: The transition MUST NOT allocate an assignment id.
 Identity 4: The business caller MUST NOT supply an assignment id.
-Identity 5: The atom MUST NOT reuse an assignment id.
+Deleted: Identity 5. Invariant 6.1 owns it.
 Identity 6: The atom MUST NOT identify an assignment by the task reference.
 Identity 7: The atom MUST NOT identify an assignment by the task reference with the assignee reference.
-Identity 8: Two assignments over one task MUST carry two assignment ids.
+Deleted: Identity 8. Invariant 6.1 owns it.
 ```
 
 NOTE: open 2026-10-26-a — the assignment id's source is named as the host's allocation (Identity 2) and not among what the deployment supplies (Capability requirement 1, Capability requirement 4).
@@ -52,7 +52,7 @@ Term task reference: the opaque reference naming the unit of work — a [Task Re
 
 Term assignee reference: the opaque reference naming the responsible actor — an [Assignee Reference]; the actor registry is a separate concept.
 
-Term seam: the atom's I/O boundary as the section titled Logic Confinement Principle in `execution-contract.md` declares it; the host injects the clock reading and the assignment id here.
+Term seam: the atom's I/O (input and output) boundary as the section titled Logic Confinement Principle in `execution-contract.md` declares it; the host injects the clock reading and the assignment id here.
 
 Term transition: the atom's evaluation of one call against the assignment records, as the section titled Logic Confinement Principle in `execution-contract.md` declares it.
 
@@ -72,12 +72,12 @@ State 4: A transferred assignment MUST carry transfer instant.
 State 5: [Assign] MUST stamp assignment instant from the injected now.
 State 6: [Recall] MUST stamp recall instant from the injected now.
 State 7: [Reassign] MUST stamp transfer instant from the injected now.
-State 8: The atom MUST NOT offer a transition out of recalled.
-State 9: The atom MUST NOT offer a transition out of transferred.
-State 10: The atom MUST NOT delete an assignment.
+Deleted: State 8. Invariant 4.1 owns it.
+Deleted: State 9. Invariant 4.2 owns it.
+Deleted: State 10. Invariant 10.1 owns it.
 State 11: The atom MUST NOT hold a task's lifecycle.
 State 12: The atom MUST NOT hold an assignee's workload.
-State 13: The atom MUST NOT re-derive a stamp from a later reading.
+State 13: The atom MUST NOT re-derive an instant an assignment carries from a later reading.
 ```
 
 Term status: active | recalled | transferred — in force, withdrawn with nobody after, or handed on to a new assignee.
@@ -92,7 +92,7 @@ Term transfer instant: the instant the assignment was handed on — a [Transfer 
 
 ```
 Capability requirement 1: The deployment MUST supply now at the seam.
-Capability requirement 4: The deployment MUST supply the assignment records PER Execution Contract Database 1 through 4, Execution Contract Order 1, Execution Contract Read 1 through 4, Execution Contract Refusal 1, Execution Contract Error model 1 and Execution Contract Conformance 9.
+Capability requirement 4: The deployment MUST supply the assignment records PER Execution Contract Database 1 through 6, Execution Contract Order 1, Execution Contract Read 1 through 4, Execution Contract Refusal 1, Execution Contract Error model 1 and Execution Contract Conformance 9.
 Deleted: Capability requirement 2. Execution Contract Logic confinement 7 owns it.
 Deleted: Capability requirement 3. Execution Contract Logic confinement 7 owns it.
 Deleted: Clock semantics 1. Execution Contract Logic confinement 7 owns it.
@@ -163,6 +163,7 @@ Deleted: Operation 34. Execution Contract Read 1 owns it.
 Deleted: Operation 35. Execution Contract Refusal 1 owns it.
 Deleted: Operation 36. Execution Contract Refusal 1 owns it.
 Deleted: Operation 37. Execution Contract Refusal 1 owns it.
+Operation 38: [Reassign] MUST set the new assignment's assignee reference to the new assignee reference.
 ```
 
 NOTE: watch read-order polarity (Operation 28).
@@ -184,14 +185,15 @@ The case space, and the rule that owns each case:
 | [Recall] | assignment is active | ok | [Active] → [Recalled]; the task is nobody's (Operation 11, Operation 12) |
 | [Recall] | assignment is recalled or transferred | [Not Active] | none (Operation 9, Operation 10) |
 | [Recall] | database refuses the write | [Storage Failure] | none — the assignment stays [Active] (Operation 13) |
-| [Reassign] | assignment active, new assignee reference present, database accepts | the new assignment id | old → [Transferred] and a new [Active] one (Operation 18, Operation 19, Operation 21) |
+| [Reassign] | assignment active, new assignee reference present, database accepts | the new assignment id | old → [Transferred] and a new [Active] one carrying the new assignee reference (Operation 18, Operation 19, Operation 21, Operation 38) |
 | [Reassign] | blank new assignee reference | [Invalid Request] | none (Operation 17) |
 | [Reassign] | assignment is recalled or transferred | [Not Active] | none (Operation 15, Operation 16) |
 | [Reassign] | either write refused | [Storage Failure] | none — the old stays [Active] (Operation 22) |
-| any | id names nothing | [Not Known] | none (Operation 8, Operation 14) |
+| [Recall] or [Reassign] | id names nothing | [Not Known] | none (Operation 8, Operation 14) |
 | [Active For] | task has an active assignment | that assignment | none — the call reads (Operation 25, Operation 29) |
 | [Active For] | task is unassigned | none | none (Operation 26) |
 | [History For] | any task reference | every assignment for the task, by assignment instant, earliest first, two sharing one by recording commit | none (Operation 27, Operation 28, Operation 28a, Operation 30) |
+| any call | its read of the assignment records fails | `state-unavailable` | none (Execution Contract Read 1, Execution Contract Read 3) |
 
 Where two cases of one action hold at once, the refusal listed first on the action's refuses line answers (Execution Contract Refusal 1).
 
@@ -218,7 +220,7 @@ Where two cases of one action hold at once, the refusal listed first on the acti
 - **Invariant 5 — Id stability.**
   ```
   Invariant 5.1: [Assign] MUST set the assignment id.
-  Invariant 5.2: An assignment id MUST NOT change.
+  Deleted: Invariant 5.2. Invariant 2.1 owns it.
   ```
 - **Invariant 6 — No id reuse.**
   ```
@@ -235,7 +237,7 @@ Where two cases of one action hold at once, the refusal listed first on the acti
   ```
   Invariant 8.1: IF recall instant DOES NOT EQUAL blank THEN recall instant MUST NOT PRECEDE assignment instant.
   Invariant 8.2: IF transfer instant DOES NOT EQUAL blank THEN transfer instant MUST NOT PRECEDE assignment instant.
-  Invariant 8.3: The atom MUST stamp EVERY timestamp once.
+  Invariant 8.3: The atom MUST stamp EVERY instant an assignment carries once.
   ```
 - **Invariant 9 — Complete responsibility history.**
   ```
@@ -246,7 +248,7 @@ Where two cases of one action hold at once, the refusal listed first on the acti
 - **Invariant 10 — Assignment record durability.**
   ```
   Invariant 10.1: The atom MUST NOT delete an assignment record.
-  Invariant 10.2: The assignment set MUST NOT shrink.
+  Deleted: Invariant 10.2. Invariant 10.1 owns it (Execution Contract Database 6).
   ```
 
 NOTE: watch the modal with no temporal scope (State 1, Invariant 3.2).
@@ -297,9 +299,9 @@ This atom's acceptance is provable: an external auditor clears it from the assig
 Check 1.1: An auditor MUST find no task reference carrying two active assignments (Invariant 1.1).
 Check 2.1: An auditor MUST reconstruct a task's chain of responsibility from the assignments carrying the task reference, ordered by assignment instant, earliest first, and then by recording commit (Invariant 9.1, Invariant 9.2, State 3, State 4).
 Check 2.2: An auditor MUST read a recalled assignment as the recalling call leaving the task reference with no active assignment (Operation 12).
-Check 2.3: An auditor MUST read a transferred assignment as handed on to the assignment the transferring call recorded in active for the same task reference (Operation 18, Operation 19, Invariant 7.2).
+Check 2.3: An auditor MUST read a transferred assignment as handed on to the assignment the transferring call recorded for the same task reference (Operation 18, Operation 19, Invariant 7.2).
 Check 3.1: An auditor MUST find no assignment whose status moved out of a terminal status (Invariant 3.2, Invariant 4.1, Invariant 4.2).
-Check 4.1: An auditor MUST find no assignment whose terminal stamp PRECEDES the assignment's assignment instant (Invariant 8.1, Invariant 8.2).
+Check 4.1: An auditor MUST find no assignment carrying an instant that PRECEDES the assignment's assignment instant (Invariant 8.1, Invariant 8.2).
 Deleted: Check 5.1. Execution Contract Conformance 9 owns it.
 ```
 
@@ -313,7 +315,7 @@ Deleted: External check 4. Execution Contract Database 1 and Execution Contract 
 Deleted: External check 5. Execution Contract Conformance 9 owns it.
 ```
 
-NOTE: EVERY check names the rule the check tests. The assignment records answer *who holds this and who held it*; who was allowed to hand it over, and whether the work is done, are the composing patterns' records.
+NOTE: EVERY check names the rule the check tests. The assignment records answer *who holds this and who held it*; who was allowed to hand it over is in the composing patterns' records, and whether the work is done in the host's task system.
 
 ## Non-goals
 
@@ -359,13 +361,11 @@ Deleted: Assign race 3. Execution Contract Database 2 owns it.
 
 ```
 Composition note 1: A deployment MUST declare which composing patterns the deployment wired in.
-Composition note 2: A composing pattern MUST own what a task is.
+Deleted: Composition note 2. Term task reference owns it: the host owns what a task is.
 Composition note 3: A composing pattern MUST own whether an assignee may hold the task.
 Composition note 4: A composing pattern MUST own whether a completed task's assignment is recalled.
 Composition note 5: A composing pattern needing assigner attribution MUST attest [Assign] and [Reassign] under the assigner's credential.
 ```
-
-NOTE: open 2026-10-21-c — Term task reference says the host owns what a task is, and Composition note 2 obliges a composing pattern to own it; which one holds it is not settled.
 
 NOTE: composing patterns — [Shared Todo](../compositions/shared-todo.md). Forthcoming: Acceptance, Temporal Grant, Capacity Constraint, Team Assignment.
 
@@ -485,7 +485,7 @@ Projection: transferred_at
 
 #### New Assignee Reference
 
-The reference to the new responsible actor [Reassign] consumes and writes into the new [Active] [Assignment]'s [Assignee Reference]. A blank one is refused [Invalid Request] (Operation 17). It is not stored under its own name — only the new [Assignment]'s [Assignee Reference] is stored.
+The reference to the new responsible actor [Reassign] consumes and writes into the new [Active] [Assignment]'s [Assignee Reference] (Operation 38). A blank one is refused [Invalid Request] (Operation 17). It is not stored under its own name — only the new [Assignment]'s [Assignee Reference] is stored.
 
 Kind:         Parameter
 Parameter of: Reassign
@@ -607,7 +607,7 @@ Assignment is a productivity primitive with broad operational anchoring and ligh
 - **ISO/IEC 20000 (Information Technology Service Management)** — the International Organization for Standardization / International Electrotechnical Commission service-management standard; it formalizes incident assignment and reassignment as required process steps with audit-trail obligations. The assignment records supply the assignment and reassignment trail that standard audits.
 - **HL7 FHIR (Health Level Seven Fast Healthcare Interoperability Resources — the standard for exchanging healthcare data electronically) Task resource** — healthcare task management defines assignment as a `Task.owner` binding, with history of ownership tracked per task. The atom's responsibility-history invariant (Invariant 9) is the FHIR-compatible form.
 - **PMI PMBOK (the Project Management Institute's Project Management Body of Knowledge)** — responsibility assignment matrices (RAM), such as the RACI chart (Responsible, Accountable, Consulted, Informed), are the structured form of the same mechanic: binding work packages to responsible individuals. The atom is the dynamic runtime form of a RACI row.
-- **GDPR (EU General Data Protection Regulation) Article 5(1)(f) and Article 32** — in systems processing personal data, assignment records establish who had access and responsibility for personal data at what time. The assignment records are part of the accountability trail.
+- **GDPR (General Data Protection Regulation — the European Union's data-protection law) Article 5(1)(f) and Article 32** — in systems processing personal data, assignment records establish who was responsible for personal data at what time. The assignment records are part of the accountability trail.
 
 It inherits from:
 
@@ -618,18 +618,17 @@ It inherits from:
 
 ## Status
 
-`partially resolved` — see the Ledger.
+`grounded on Final Critique 7 — 2026-10-26` — see the Ledger.
 
 ## Ledger
 
 ```
-status: partially resolved
+status: grounded on Final Critique 7 — 2026-10-26
 formal: verified — assignment.tla + 1 twin, 2026-06-03
-last gate: 2026-10-26 — Final Critique 6 — foundational count 3, not clean, no sample
+last gate: 2026-10-26 — Final Critique 7 — foundational count 0, clean, one sample
 
 open:
 - 2026-10-21-a · refining · Term seam; Term transition; Term business caller; Term now · each says the section titled Logic Confinement Principle in `execution-contract.md` declares it, and that section declares none of the four and calls the composition layer the seam (Logic confinement 2); seam, transition and business caller have no term entry → declare the four there, the corpus's one seam wording, or point each at its declaration, and give each a term entry
-- 2026-10-21-c · refining · Term task reference; Composition note 2 · the Term says the host owns what a task is and Composition note 2 obliges a composing pattern to: one proposition, two holders (GRACE-lang Authority 3) → name one owner and delete the other line's clause to it
 - 2026-10-26-a · refining · Identity 2; Capability requirement 1, 4 · the assignment id's source is named as the host's allocation (Identity 2) and not among what the deployment supplies, where the atom shape in `spec-format.md` lists an id source under Capability requirement; Event Log (its 2026-10-22-b) and Tamper Evidence (its 2026-10-22-a) route the same form → name the source among the Capability requirements, in the one form the corpus settles for its twenty host-allocation atoms
 - 2026-10-26-b · refining · Term recording commit; Term terms · recording commit is declared and carries no term entry, where spec-format's Terms item asks one per declared term, and no Kind a term entry takes (Type, Field, Operation, Parameter, Member) fits a commit's position, which no field stores; Event Log routes its seven so (its 2026-10-23-a) → add the entry under a Kind the term entry grammar admits, or read the item as the bracketed names
 ```
