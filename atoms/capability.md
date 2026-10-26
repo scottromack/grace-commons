@@ -214,6 +214,8 @@ Operation 65: [Redeem] MUST NOT evaluate a rule of the redeem refusal order BEFO
 Deleted: Operation 66. Execution Contract Refusal 1 owns it.
 ```
 
+NOTE: watch the untyped input (Operation 61).
+
 Term now: the wall-time reading the host takes at the seam and hands to the transition — a [Now], as the section titled Logic Confinement Principle in `execution-contract.md` declares it; never read inside the transition, never supplied by the business caller.
 
 Term business caller: the party whose action the call carries, as the section titled Logic Confinement Principle in `execution-contract.md` declares it; never the source of an injected value.
