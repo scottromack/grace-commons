@@ -637,7 +637,7 @@ NOTE: repeated cures are flagged (`NOTE: watch <name>` beside the strained rule)
 - **condition negation**: guards a plain negative cannot carry; the open question is one refusal answering in two rows of one precedence chain. Three: Approval Step, Audit Trail and State Machine.
 - **applicability**: `WHERE`-shaped gating written with subject or relative clause. Two: Audit Trail and Recoverable Invocation.
 - **persistent state**: `WHILE`-shaped duration written with a term or phrase. One: Audit Trail.
-- **cardinality**: a need beyond EVERY, EXISTS, EXACTLY ONE and EXACTLY ONE OF. One: Audit Trail.
+- **cardinality**: a need beyond EVERY, EXISTS, EXACTLY ONE and EXACTLY ONE OF. Two: Audit Trail and Credential (Operation 70).
 - **satisfaction**: what a violation of WITHIN is, compensate or nonconform. One: Audit Trail.
 - **addressable sections**: a rule naming a section, where the grammar labels rules and nothing labels a section. One: Recoverable Invocation.
 - **position scoping**: every rule of a family scoped by a condition on position. One: Recoverable Invocation.
