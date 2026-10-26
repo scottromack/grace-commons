@@ -16,7 +16,7 @@ toc: true
 
 ## Summary
 
-Permissions answers one question: "is this actor allowed to do this thing right now?" It works through grants — explicit records that tie a subject (the actor wanting access) to an action scope (the opaque name of what the grant covers, matched exactly). A grant stays in force until it is revoked, and revocation is immediate and permanent. Checking permission is a pure read-only lookup. If any active grant matches the subject and scope being asked about, the answer is "permitted"; otherwise it is "denied." There is no implicit access — no grant means no permission, always. The whole decision rests on stored records, so any auditor re-running the same check against the same records gets the same answer. That is what regulated access control needs: issue a grant when access is authorized, revoke it when it ends, check on every attempt, and the records show who could do what, from when to when. The pattern deliberately leaves out roles, attribute-based policies, scope hierarchies, delegation, and time-limited grants. Each is a separate pattern built on top of these minimal grant records.
+Permissions answers one question: "is this actor allowed to do this thing right now?" It answers from grants — records that each tie a subject (the actor wanting access) to an action scope (the name of what the grant covers, matched exactly) — and the answer is "permitted" when a grant still in force matches the pair, and "denied" otherwise, so no grant means no permission, always. A grant stays in force until it is revoked: once a revocation is recorded, that grant no longer counts toward any answer and can never count again, while a revocation the database fails to record leaves the grant in force and tells the caller so, to retry. Grants are never deleted, and each keeps when it was granted and, once revoked, when it was revoked, so an auditor re-running a check against the same records gets the same answer, and the records show who could do what, from when to when. Each grant carries an identifier that means nothing by itself, supplied, like the clock reading, by the system running Permissions from outside Permissions' own logic. Roles, attribute-based policies, scope hierarchies, delegation and time-limited grants are left to separate patterns, and so are recording who issued a grant, logging attempts to act, and tying a signed-in user to the subject a grant names.
 
 ---
 
@@ -113,6 +113,8 @@ read()
   answers every grant
 ```
 
+NOTE: open 2026-10-26-b — the rules name the action [Check] and the signature block declares the action as permitted; only the Check entry, which carries no obligation, says the one is the other.
+
 ```
 Operation 1: [Grant] MUST record EXACTLY ONE grant per successful call.
 Operation 2: [Grant] MUST stand the grant in active.
@@ -173,6 +175,7 @@ The case space, and the rule that owns each case:
 | [Check] | an active grant matches the pair | [Permitted] | none — the call reads (Operation 17, Operation 20) |
 | [Check] | nothing matches, over-length argument included | [Denied] | none (Operation 18, String 7) |
 | [Read] | any call | every grant, with its stored fields | none (Operation 26 through 28) |
+| any call | its read of the grant records fails | `state-unavailable` | none (Execution Contract Read 1, Execution Contract Read 3) |
 
 Where two [Revoke] cases hold at once, the refusal listed first on [Revoke]'s refuses line answers (Execution Contract Refusal 1).
 
@@ -218,7 +221,7 @@ Where two [Revoke] cases hold at once, the refusal listed first on [Revoke]'s re
 - **Invariant 9 — Timestamp ordering.**
   ```
   Invariant 9.1: IF revocation instant DOES NOT EQUAL blank THEN revocation instant MUST NOT PRECEDE grant instant.
-  Invariant 9.2: A grant MUST stand in force at an instant ONLY IF the grant is live at the instant.
+  Invariant 9.2: A grant MUST stand in active at an instant ONLY IF the grant is live at the instant.
   ```
 - **Invariant 10 — Grant record durability.**
   ```
@@ -289,7 +292,7 @@ Check 1.2: An auditor MUST read revocation instant on EVERY revoked grant (State
 Check 1.3: An auditor MUST find EVERY grant's grant id, subject reference, action scope and grant instant unchanged across two readings (Invariant 1.1, Invariant 4.2).
 Check 1.4: An auditor MUST find no two grants sharing a grant id (Invariant 5.1).
 Check 1.5: An auditor MUST find no grant whose revocation instant PRECEDES the grant's grant instant (Invariant 9.1).
-Check 2.1: An auditor MUST reconstruct the grant set in force at a past instant from grant instant and revocation instant (Invariant 9.2).
+Check 2.1: An auditor MUST reconstruct the grants standing in active at a past instant from grant instant and revocation instant (Invariant 9.2).
 Check 3.1: An auditor MUST find denied for a pair no active grant matches (Operation 18).
 Check 3.2: An auditor MUST find no permitted answer for which no matching active grant EXISTS (Operation 17).
 Check 3.3: An auditor MUST find permitted for a pair an active grant matches (Invariant 7.1).
@@ -331,6 +334,8 @@ Non-goal 15: The atom MUST NOT revoke a subject's grants in bulk.
 Non-goal 16: The atom MUST NOT carry a grant across trust domains.
 Non-goal 17: A deployment needing a defensible timeline MUST compose a trusted timestamping pattern.
 ```
+
+NOTE: the owners — [Actor Identity](./actor-identity.md) (Non-goal 9, Non-goal 10, External check 1); [Event Log](./event-log.md) (Non-goal 11, Non-goal 12, External check 2); the composing pattern (Non-goal 14, Composition note 3; Non-goal 15, Composition note 5); a Trusted Timestamping pattern *(forthcoming)* (Non-goal 17).
 
 Where the atom breaks down: when the scope vocabulary needs hierarchy or wildcards; when evaluation must reason about the resource's attributes at call time; when a grant must end on its own without anyone revoking it; when the grantor's identity is part of the evaluation rather than beside it.
 
@@ -406,7 +411,7 @@ Term actors: the atom; the host; the transition; the deployment (also: a high-as
 
 Term records: grant record — one binding, carrying grant id, subject reference, action scope, grant instant, status and, once withdrawn, revocation instant.
 
-Term record verbs: identify, allocate, supply, reuse, hold, reach, compare, trim, normalize, case-fold, read, stand, carry, stamp, offer, delete, record, answer, refuse, take, write, match, rest, consult, change, move, set, share, shrink, evaluate, expand, model, expire, authenticate, bind, revoke, retry, raise, enumerate, call, guard, compose, resolve, attest, own, declare, find, reconstruct, precede.
+Term record verbs: identify, allocate, supply, reuse, hold, reach, compare, trim, normalize, case-fold, read, stand, carry, stamp, offer, delete, record, answer, refuse, take, write, match, rest, consult, change, move, set, share, shrink, evaluate, expand, model, expire, authenticate, bind, revoke, retry, raise, enumerate, call, guard, compose, resolve, attest, own, declare, find, reconstruct, precede, cover, return, issue, attempt, wire.
 
 Term value sets: status = active | revoked.
 
@@ -621,14 +626,14 @@ It inherits from:
 
 ## Status
 
-`partially resolved` — see the Ledger.
+`grounded on Final Critique 8 — 2026-10-26` — see the Ledger.
 
 ## Ledger
 
 ```
-status: partially resolved
+status: grounded on Final Critique 8 — 2026-10-26
 formal: verified — permissions.als + 1 twin, 2026-06-03
-last gate: 2026-10-26 — Final Critique 7 — foundational count 2, not clean, no sample
+last gate: 2026-10-26 — Final Critique 8 — foundational count 0, clean, one sample
 
 open:
 - 2026-10-21-c · refining · Revoke persistence 2, 4 · the caller's retry of a refused revoke names no terminus (Pass 1: every retry loop names its terminus), and the deployment that raises the alert is declared only as an alias of the deployment → name the bound at which the caller stops and what it raises there; say which deployments alert
@@ -636,6 +641,7 @@ open:
 - 2026-10-21-f · refining · Term seam; Term transition; Term business caller; Term now · each says the section titled Logic Confinement Principle in `execution-contract.md` declares it, and that section declares none of the four → declare the four there, the corpus's one seam wording, or point each at its declaration
 - 2026-10-21-h · refining · Operation 26, 27 · [Read] answers every grant in no stated order and with no bound on the answer → say the order is unspecified or give one; bound or page the answer
 - 2026-10-26-a · refining · Identity 2; Capability requirement 1, 4 through 6 · the grant id's source is named as the host's allocation (Identity 2) and not among what the deployment supplies, where the atom shape in `spec-format.md` lists an id source under Capability requirement; Approval Step (its 2026-10-26-a), Assignment (its 2026-10-26-a), Event Log (its 2026-10-22-b) and Tamper Evidence (its 2026-10-22-a) route the same form → name the source among the Capability requirements, in the one form the corpus settles for its twenty host-allocation atoms
+- 2026-10-26-b · refining · Operation 16 through 22; the signature block · the rules name the action [Check] and the signature block declares it as permitted, and only the Check entry, a term entry, which carries no obligation (GRACE-lang Surface 25 and 27), says the one is the other; permitted is also one of [Check]'s two answers → name the action alike in the rules and on the wire, whose permitted every composing page calls, or tie the two names on the normative surface in the form the corpus settles for the wire layer (the Watch list's the wire layer)
 ```
 
 ## Decisions
