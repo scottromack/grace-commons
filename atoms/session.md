@@ -54,11 +54,9 @@ Identity 7: The atom MUST NOT carry a session identifier beside the session toke
 Deleted: Identity 8. Invariant 7.1 owns it.
 Identity 9: The deployment MUST draw a session token from a cryptographically secure random source.
 Identity 10: The deployment MUST NOT draw a session token from the session's public properties.
-Identity 11: The atom MUST NOT interpret a principal reference.
-Identity 12: The atom MUST NOT confirm that a principal reference names an authenticated principal.
+Identity 11: The atom MUST NOT interpret an opaque reference.
+Identity 12: The atom MUST NOT confirm an opaque reference.
 ```
-
-NOTE: open 2026-10-21-f — only the principal reference is said to be uninterpreted and unconfirmed (Identity 11, Identity 12), while the atom records revoked by reference and issued by reference on the caller's word too.
 
 Term session: one bounded-lifetime attestation that a principal completed authentication — a [Session], the record this atom holds.
 
@@ -104,8 +102,8 @@ Expiry 3: The atom MUST NOT stamp an expiry.
 Expiry 4: The deployment MUST NOT schedule a lapse.
 Expiry 5: The atom MUST derive a lapse from expiry instant against now.
 Expiry 6: A lapsed session MUST NOT stand in a stored terminal.
-Expiry 7: [Read] MUST surface a lapse as the effective status.
-Expiry 8: [Validate] MUST surface a lapse as expired.
+Deleted: Expiry 7. Operation 38 and Term effective status own it.
+Deleted: Expiry 8. Operation 16 owns it.
 ```
 
 ### Capability requirement
@@ -138,14 +136,14 @@ Deleted: Clock semantics 6. Non-goal 25 owns it.
 Deleted: Clock semantics 7. Non-goal 26 owns it.
 ```
 
-Term default session duration: the window [Issue] applies where the call supplies no session duration; deployment configuration, and its absence is a misconfiguration rather than an operating state.
+Term default session duration: the window [Issue] applies where the call supplies no session duration, a window length; deployment configuration, and its absence is a misconfiguration rather than an operating state.
 
 Term token entropy: 128 bits of cryptographically secure random material — the floor a session token is drawn from, sufficient for negligible collision probability and for unguessability.
 
 ### Operations
 
 ```
-issue(principal_ref, issued_by_ref, session_duration)
+issue(principal_ref, issued_by_ref, optional session_duration)
   answers session_token
   refuses invalid-request | storage-failure
 
@@ -216,27 +214,30 @@ Operation 48: IF the default session duration EQUALS blank THEN [Issue] MUST ans
 Operation 49: The transition MUST NOT generate the session token's random material.
 Operation 50: [Issue] MUST record the principal reference the call supplies.
 Operation 51: [Issue] MUST record the issued by reference the call supplies.
+Operation 52: [Read] MUST NOT carry the session token on an answered session.
+Operation 53: IF a filter names a field whose value EQUALS blank THEN [Read] MUST answer no session.
+Operation 54: IF session duration DOES NOT EQUAL blank AND session duration IS NOT IN the window lengths THEN [Issue] MUST answer invalid-request.
 ```
 
 NOTE: open 2026-10-21-a — [Read] answers the matching sessions in no stated order (Operation 37).
 
 NOTE: open 2026-10-21-j — no maximum bounds a supplied session duration (Operation 7), while the Summary names short-lived elevated-access windows.
 
-NOTE: open 2026-10-26-b — a session is named by its session token alone (Identity 1, Identity 7) and [Read] answers the matching sessions, which the Breach investigation revokes, while Non-goal 18 forbids the atom to enumerate a session token; whether [Read]'s answer carries the session token is not stated.
+NOTE: watch the untyped input (Operation 54).
 
 Term now: the wall-time reading the host takes at the seam and hands to the transition — a [Now], as the section titled Logic Confinement Principle in `execution-contract.md` declares it; never read inside the transition, never supplied by the business caller.
 
 Term business caller: the party whose action the call carries, as the section titled Logic Confinement Principle in `execution-contract.md` declares it; never the source of an injected value.
 
-Term session duration: the window a [Issue] call asks for — a [Session Duration]; consumed to compute the expiry deadline, never stored under this name.
+Term session duration: the window a [Issue] call asks for, a window length — a [Session Duration]; consumed to compute the expiry deadline, never stored under this name.
+
+Term window length: a number of seconds — what a session duration and the default session duration carry.
 
 Term zero duration: a duration of no length — the floor a session duration must exceed, which refuses zero and every negative value.
 
 Term issuance instant: the instant the session was recorded — an [Issuance Instant].
 
 Term expiry deadline: `issued_at + session_duration` — what [Issue] stores as expiry instant, computed once at issue.
-
-NOTE: open 2026-10-21-c — the session duration carries no unit, which only the Browser login example pins (3600 to one hour).
 
 Term expiry instant: the instant the session's validity ends — an [Expiry Instant]; stamped at issue, never changed, never absent.
 
@@ -254,9 +255,7 @@ Term revocation reason: the stated ground for the cancellation — a [Revocation
 
 Term reason: the [Revoke] input the session keeps as revocation reason — a [Reason].
 
-Term filter: the selection a [Read] call scopes the answer by — a [Filter]: principal reference, issued by reference, OR both; a session matches a filter when it carries EVERY value the filter names (String 1), so a filter naming neither matches EVERY session; consumed per call, never stored.
-
-NOTE: open 2026-10-26-a — a call whose filter names a field other than principal reference and issued by reference carries no [Filter], and no rule says what [Read] answers it.
+Term filter: the selection a [Read] call scopes the answer by — a [Filter] naming principal reference, issued by reference, both OR no field; a session matches a filter when it carries EVERY value the filter names (String 1) and the filter names no other field, so a filter naming no field matches EVERY session; consumed per call, never stored.
 
 Term liveness query: any query for the sessions in force at the read-time clock — the atom's [Read] and the administrative surfaces built on it.
 
@@ -265,7 +264,7 @@ The case space, and the rule that owns each case:
 | Call | Case | Answer | Effect on the database |
 |---|---|---|---|
 | [Issue] | both references present, duration positive or defaulted, database accepts | the new session token | one record lands in [Active] carrying both references, issuance instant and expiry instant stamped (Operation 1, Operation 9, Operation 10, Operation 50, Operation 51) |
-| [Issue] | a blank or over-long reference, a non-positive duration, or no configured default | [Invalid Request] | none (Operation 4, Operation 5, Operation 8, Operation 48, String 7) |
+| [Issue] | a blank or over-long reference, a duration that is no window length or is not positive, or no configured default | [Invalid Request] | none (Operation 4, Operation 5, Operation 8, Operation 48, Operation 54, String 7) |
 | [Validate] | token names nothing | [Not Known] | none — the call reads (Operation 14, Operation 20) |
 | [Validate] | stored status is [Revoked] | [Invalid Revoked] | none — returned even where the window is still open (Operation 15) |
 | [Validate] | stored [Active], now has reached expiry instant | [Invalid Expired] | none — derived, nothing written (Operation 16, Operation 17) |
@@ -277,7 +276,8 @@ The case space, and the rule that owns each case:
 | [Revoke] | session in [Active], blank or over-long attribution | [Invalid Request] | none (Operation 25, Operation 26, String 9, String 10) |
 | either write | database refuses | [Storage Failure] | none (Operation 12, Operation 34) |
 | *a window lapses* | now reaches expiry instant | nothing is called | **nothing written** — no action, no stamp, no scheduler (Expiry 2 through 5, Invariant 12.3) |
-| [Read] | a filter | the matching sessions, each carrying its effective status | none (Operation 37, Operation 38) |
+| [Read] | a filter | the matching sessions, each carrying its effective status and no session token | none (Operation 37, Operation 38, Operation 52) |
+| [Read] | a filter naming a blank value, or a field other than principal reference and issued by reference | no session | none (Operation 37, Operation 53, Term filter) |
 
 ### Invariants
 
@@ -288,7 +288,7 @@ The case space, and the rule that owns each case:
   ```
 - **Invariant 2 — Expiry timestamp immutability.**
   ```
-  Invariant 2.1: No action MUST change a recorded expiry instant.
+  Invariant 2.1: An action MUST NOT change a recorded expiry instant.
   Invariant 2.2: A deployment extending a session MUST call [Issue].
   ```
 - **Invariant 3 — Validity bound conjunctive, by derivation.**
@@ -315,7 +315,7 @@ The case space, and the rule that owns each case:
 - **Invariant 7 — Session token uniqueness.**
   ```
   Invariant 7.1: Two sessions MUST NOT share a session token.
-  Invariant 7.2: [Issue] MUST NOT allocate a session token any session carries.
+  Invariant 7.2: The host MUST NOT allocate a session token any session carries.
   ```
 - **Invariant 8 — Revocation attribution completeness.**
   ```
@@ -337,7 +337,7 @@ The case space, and the rule that owns each case:
 - **Invariant 11 — Expiry absorbing, by derivation.**
   ```
   Invariant 11.1: [Validate] MUST NOT answer valid for a lapsed session.
-  Invariant 11.2: A lapsed session MUST stand lapsed at EVERY later now.
+  Deleted: Invariant 11.2. Invariant 11.1 and Invariant 4.1 own it.
   ```
 - **Invariant 12 — Expiry is derived, never written.**
   ```
@@ -369,7 +369,7 @@ If the browser re-presents the old cookie at `10:50:00Z`: `validate(tok_abc123)`
 
 ### A window lapses — derived
 
-The user closes the browser without logging out. The window passes at `11:00:00Z`. **No call is made and no write occurs** — there is no action to call. At `11:30:00Z` a new tab presents the same cookie: `validate(tok_abc123)` → `invalid(expired)`. The record is still stored active, never transitioned; the answer comes from expiry instant against the injected now. Nothing is written, there is no expiry timestamp to write, and the record count is unchanged. A [Read] of the record now reports `effective_status: expired` (Expiry 2 through 8, Invariant 12.3).
+The user closes the browser without logging out. The window passes at `11:00:00Z`. **No call is made and no write occurs** — there is no action to call. At `11:30:00Z` a new tab presents the same cookie: `validate(tok_abc123)` → `invalid(expired)`. The record is still stored active, never transitioned; the answer comes from expiry instant against the injected now. Nothing is written, there is no expiry timestamp to write, and the record count is unchanged. A [Read] of the record now reports `effective_status: expired` (Expiry 2 through 6, Operation 16, Operation 38, Invariant 12.3).
 
 ### Rejection paths
 
@@ -383,7 +383,7 @@ The user closes the browser without logging out. The window passes at `11:00:00Z
 
 - **Regulator audit.** A HIPAA (Health Insurance Portability and Accountability Act) auditor asks whether access to a patient record at `14:32Z` on `2026-10-15` was under a valid, unrevoked session. The database yields `tok_abc123`: stored active, `issued_at: 14:00:00Z`, `expires_at: 15:00:00Z`, no revocation instant. Invariant 3.1 is the structural answer — at `14:32Z` the session was stored active and the deadline had not passed, so [Validate] would have answered [Valid]. The auditor confirms it provably, from the one record; there is no stored expiry flag to corroborate, only the immutable deadline (Check 3.1).
 - **Disputed access.** A user denies access at `03:15` on `2026-11-20`. The investigator reconstructs the sessions in force for the principal at that instant from the records and finds `tok_abc123`: `issued_at: 2026-11-19T22:00:00Z`, `expires_at: 2026-11-20T06:00:00Z`, `issued_by_ref: login_svc_l01`. The session was in force. Whether the token was stolen is a separate investigation; what the records bound is the forensic window — issued through the Login service at 22:00, valid at 03:15, never revoked before the access. Who authenticated at 22:00 and against what credential is [Actor Identity](./actor-identity.md)'s record, wired by Login (Non-goal 1, Composition note 3).
-- **Breach investigation.** Session tokens are found in an exposed log file. The investigator reads every session with `issued_by_ref: api_gateway_g01` and keeps those whose issuance instant falls inside the exposure window — 47 sessions across 31 principals — then reads each effective status against the investigation clock: which are live, which lapsed, which were already revoked. The team then calls [Revoke] on every session not already revoked, *including the lapsed ones*, so that every closure is attributed (Operation 27). Invariant 8.1 through 8.3 is what makes it provable, six months later, which sessions were closed, by whom, when and why.
+- **Breach investigation.** Session tokens are found in an exposed log file. The investigator reads every session with `issued_by_ref: api_gateway_g01` and keeps those whose issuance instant falls inside the exposure window — 47 sessions across 31 principals — then reads each effective status against the investigation clock: which are live, which lapsed, which were already revoked. [Read] answers no session token (Operation 52), so the team takes the tokens from the exposed log itself and calls [Revoke] with each, *including the lapsed ones*, so that every closure is attributed (Operation 27); a token whose session was already revoked answers already-terminal and changes nothing (Operation 23). Invariant 8.1 through 8.3 is what makes it provable, six months later, which sessions were closed, by whom, when and why.
 
 ---
 
@@ -396,14 +396,15 @@ This atom's acceptance is provable: an external auditor clears it from the sessi
 ```
 Check 1.1: An auditor MUST find an expiry instant on EVERY session (Invariant 10.1).
 Check 1.2: An auditor MUST find one expiry instant per session across the session's whole life (Invariant 2.1).
+Check 1.3: An auditor MUST find no session whose issuance instant DOES NOT PRECEDE the session's expiry instant (Operation 7, Capability requirement 11).
 Check 2.1: An auditor MUST find no stored expired status on any session (Invariant 12.1).
 Check 2.2: An auditor MUST find no expiry timestamp beside expiry instant (Invariant 12.2).
 Check 2.3: An auditor MUST find no field written by a lapse (Invariant 12.3).
 Check 2.4: An auditor MUST reproduce the effective status from the stored status, expiry instant and the read-time clock (Invariant 12.4).
 Check 3.1: An auditor MUST reconstruct the sessions in force at a past instant from issuance instant, expiry instant and revocation instant (Invariant 3.1, Invariant 3.2).
-Check 4.1: An auditor MUST find a revocation instant, a revoked by reference and a revocation reason on EVERY revoked session (Invariant 8.1, Invariant 8.2, Invariant 8.3).
+Check 4.1: An auditor MUST find a revocation instant, a revoked by reference and a revocation reason on EVERY revoked session (Invariant 8.1 through 8.3).
 Check 5.1: An auditor MUST find the four validate answers distinguishable on the implementation's contract (Invariant 6.1, Invariant 6.2).
-Check 6.1: An auditor MUST find no revoked session whose status EQUALS active (Invariant 5.1).
+Check 6.1: An auditor MUST find no session whose status DOES NOT EQUAL revoked on a later read of a session a prior read found revoked (Invariant 5.1).
 ```
 
 NOTE: EVERY check names the rule the check tests.
@@ -411,7 +412,7 @@ NOTE: EVERY check names the rule the check tests.
 ### External checks
 
 ```
-External check 1: A deployment needing a session token confirmed drawn from a cryptographically secure random source at the token entropy MUST read the deployment's own token generation (Identity 9, Capability requirement 4).
+External check 1: A deployment needing a session token confirmed drawn from a cryptographically secure random source at the token entropy MUST read the deployment's own token generation (Identity 9, Capability requirement 3, Capability requirement 4).
 ```
 
 ## Non-goals
@@ -454,11 +455,9 @@ NOTE: open 2026-10-21-e — Non-goal 23's *who called [Issue]* reads as the mech
 ### Clock dependence
 
 ```
-Clock dependence 1: A guard MUST NOT read now.
+Deleted: Clock dependence 1. Execution Contract Logic confinement 3 owns it.
 Clock dependence 2: A rejection MUST NOT rest on now.
 ```
-
-NOTE: open 2026-10-21-i — *read now* in Clock dependence 1 and 2 can be taken for consuming the injected now, which the lapse derivation does (Expiry 5, Expiry 8).
 
 ### Concurrency
 
@@ -479,12 +478,14 @@ String 4: The atom MUST NOT case-fold a string input.
 String 5: The atom MUST read a whitespace-only string input as blank.
 String 6: The deployment MUST set a maximum length per string input.
 String 7: IF a string input EXCEEDS the maximum length THEN [Issue] MUST answer invalid-request.
-String 8: The deployment MUST canonicalize an opaque reference.
+String 8: The deployment MUST canonicalize an opaque reference at the seam.
 String 9: IF the session's status EQUALS active AND revoked by reference EXCEEDS the maximum length THEN [Revoke] MUST answer invalid-request.
 String 10: IF the session's status EQUALS active AND reason EXCEEDS the maximum length THEN [Revoke] MUST answer invalid-request.
 ```
 
-NOTE: open 2026-10-21-g — String 6 sets a maximum length per string input, which no rule applies to [Validate]'s session token or [Read]'s filter, and String 8 names neither the inputs it canonicalizes nor the canonical form.
+NOTE: watch host obligations — this atom refuses a string input over the deployment's maximum length on the writes alone (String 6, String 7, String 9, String 10); an over-long session token answers by the session it names, not-known where it names none (Operation 14, Operation 22), and an over-long filter value is a value no session carries (String 7, Term filter).
+
+NOTE: String 8 reaches the principal reference, the issued by reference and the revoked by reference, a filter's values among them; the deployment canonicalizes each at the seam, in a form the deployment owns, before the transition compares or records it, since String 3 keeps the atom from normalizing.
 
 Term verified answer: the verified outcome [Credential](./credential.md)'s verification produces; cited from that atom, never restated here (Closed vocabulary 15).
 
@@ -541,7 +542,9 @@ Term cadences: empty.
 
 Term qualifiers: migrated — rewritten in GRACE lang v0.35 (2026-09-12).
 
-Term terms: session, session token, principal reference, issued by reference, seam, transition, default session duration, token entropy, now, business caller, session duration, zero duration, issuance instant, expiry deadline, expiry instant, lapsed, effective status, revocation instant, revoked by reference, revocation reason, reason, filter, liveness query, status, maximum length, validation failure.
+Term terms: session, session token, principal reference, issued by reference, seam, transition, default session duration, token entropy, now, business caller, session duration, window length, zero duration, issuance instant, expiry deadline, expiry instant, lapsed, effective status, revocation instant, revoked by reference, revocation reason, reason, filter, liveness query, status, maximum length, validation failure, verified answer, invalid answer, authentication credential, claim set token.
+
+NOTE: open 2026-10-26-c — sixteen declared terms carry no term entry, where spec-format's Terms item asks one per declared term (Term terms).
 
 #### Session
 
@@ -569,7 +572,7 @@ Kind: Operation
 
 #### Read
 
-The render-time behavior that returns the matching [Session] records, each carrying its derived [Effective Status]. It only reads; no record changes. It is the surface every liveness query applies, since a raw [Active] with [Expiry Instant] in the past is a lapsed [Session], not a live one.
+The render-time behavior that returns the matching [Session] records, each carrying its derived [Effective Status] and never its [Session Token]. It only reads; no record changes. It is the surface every liveness query applies, since a raw [Active] with [Expiry Instant] in the past is a lapsed [Session], not a live one.
 
 Kind: Operation
 
@@ -655,7 +658,7 @@ Projection: effective_status
 
 #### Session Duration
 
-The duration value [Issue] consumes to compute [Expiry Instant] (`[Issuance Instant] + [Session Duration]`). Supplied per call; if null, the deployment's default applies; zero or negative is rejected. It is never stored under its own name — only the computed [Expiry Instant] is stored.
+The duration value, a number of seconds, [Issue] consumes to compute [Expiry Instant] (`[Issuance Instant] + [Session Duration]`). Supplied per call; if null, the deployment's default applies; a value that is no number of seconds, zero or negative is rejected. It is never stored under its own name — only the computed [Expiry Instant] is stored.
 
 Kind:         Parameter
 Parameter of: Issue
@@ -679,7 +682,7 @@ Projection:   reason
 
 #### Filter
 
-The selection a caller passes to [Read] to scope which [Session] records are returned: a [Principal Reference], an [Issued By Reference], or both. A [Session] matches when it carries every value the filter names, and a filter naming neither matches every [Session]. Consumed per call; never stored.
+The selection a caller passes to [Read] to scope which [Session] records are returned: a [Principal Reference], an [Issued By Reference], both or neither. A [Session] matches when it carries every value the filter names, and a filter naming no field matches every [Session]; a filter naming a blank value, or any other field, matches none. Consumed per call; never stored.
 
 Kind:         Parameter
 Parameter of: Read
@@ -747,7 +750,7 @@ Projection: not-known
 
 #### Invalid Request
 
-The rejection [Issue] returns when [Principal Reference] or [Issued By Reference] is null, empty or longer than the maximum length, when [Session Duration] is zero or negative, or when the deployment default duration is absent; and [Revoke] returns when, on a session stored [Active], [Revoked By Reference] or [Reason] is null, empty or longer than the maximum length.
+The rejection [Issue] returns when [Principal Reference] or [Issued By Reference] is null, empty or longer than the maximum length, when [Session Duration] is no number of seconds, or is zero or negative, or when the deployment default duration is absent; and [Revoke] returns when, on a session stored [Active], [Revoked By Reference] or [Reason] is null, empty or longer than the maximum length.
 
 Kind:       Member
 Member of:  the action rejection
@@ -832,20 +835,15 @@ Inherited from:
 ```
 status: partially resolved
 formal: not applicable — vote no 2026-06-03
-last gate: 2026-10-26 — Final Critique 7 — foundational count 2, not clean, no sample
+last gate: 2026-10-26 — Final Critique 8 — foundational count 4, not clean, no sample
 
 open:
 - 2026-10-21-a · refining · Operation 37; [Read] · [Read] answers the matching sessions in no stated order → an order
 - 2026-10-21-b · refining · Token format 1; Identity 9; Identity 10 · Token format 1 binds a claim set token's expiry claim and names no actor, though the host allocates the token (Identity 3) and holds every input of the expiry deadline at the seam; and a token carrying its own expiry claim is unread against Identity 9 and 10 (drawn from a random source, never from the session's public properties, which no term declares) → name the host as the claim's writer, and say how a claim set token meets Identity 9 and 10
-- 2026-10-21-c · refining · Term session duration; Term expiry deadline · the window carries no unit, which only the Browser login example pins (3600 to one hour), and Final Critique 5's text left the unit to the deployment → state the unit, or a Capability requirement that the deployment declare it
 - 2026-10-21-e · refining · Non-goal 23; Term issued by reference · who called [Issue] reads as the mechanism issued by reference records, which the Browser login example fills with the calling Login service → narrow Non-goal 23 to the actor's attribution, which Non-goal 24 and Composition note 3 give to Actor Identity and the composing pattern
-- 2026-10-21-f · refining · Identity 11; Identity 12 · only the principal reference is said to be uninterpreted and unconfirmed, while revoked by reference and issued by reference are recorded on the caller's word too → say it of every opaque reference
-- 2026-10-21-g · refining · String 6; String 8 · String 6 sets a maximum length per string input, which no rule applies to the token or the filter, and String 8 names neither the inputs it canonicalizes nor the canonical form → state which inputs each covers
 - 2026-10-21-h · refining · Term seam · Term seam names no default session duration, which [Issue] applies (Operation 6) → say where the default enters
-- 2026-10-21-i · refining · Clock dependence 1; Clock dependence 2 · read now can be taken for consuming the injected now, which the lapse derivation does (Expiry 5, Expiry 8) → pin that a guard takes no clock reading of its own
 - 2026-10-21-j · refining · Operation 7; Summary · no maximum bounds a supplied session duration, while the Summary names short-lived elevated-access windows → a deployment maximum, or the Summary's claim narrowed
-- 2026-10-26-a · refining · Term filter; [Read] · a call whose filter names a field other than principal reference and issued by reference carries no [Filter], and no rule says what [Read] answers it → land a refusal by a rule on a refuses line for [Read], or name the layer that parses the call as its owner in a Non-goal; Credential's 2026-10-26-a asks the same of a malformed instant
-- 2026-10-26-b · refining · Non-goal 18; Operation 37; Breach investigation · a session is named by its session token alone (Identity 1, Identity 7), [Read] answers the matching sessions and the Breach investigation revokes the sessions its read found, while Non-goal 18 forbids the atom to enumerate a session token → say whether [Read]'s answer carries the session token: if not, the example takes its tokens from the composing pattern's records; if so, Non-goal 18 narrows to the token space and exposing [Read] is the composing pattern's to authorize, as on Credential
+- 2026-10-26-c · refining · Term terms; Vocabulary · sixteen declared terms (seam, transition, default session duration, token entropy, business caller, window length, zero duration, expiry deadline, lapsed, liveness query, maximum length, validation failure, verified answer, invalid answer, authentication credential and claim set token) carry no term entry, where spec-format's Terms item asks one per declared term and every specification writes one per name a bracket marker lands on → add the entries, each with a Kind the term entry grammar admits, or read the item as the bracketed names; Credential's 2026-10-26-c routes the same
 ```
 
 ## Decisions
