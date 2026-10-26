@@ -52,8 +52,8 @@ Identity 5: The atom MUST NOT reuse a session token.
 Identity 6: The atom MUST NOT change a session token.
 Identity 7: The atom MUST NOT carry a session identifier beside the session token.
 Deleted: Identity 8. Invariant 7.1 owns it.
-Identity 9: The deployment MUST draw a session token from a cryptographically secure random source.
-Identity 10: The deployment MUST NOT draw a session token from the session's public properties.
+Identity 9: The deployment MUST draw the session token's random material from a cryptographically secure random source.
+Deleted: Identity 10. Identity 9 and Capability requirement 4 own it.
 Identity 11: The atom MUST NOT interpret an opaque reference.
 Identity 12: The atom MUST NOT confirm an opaque reference.
 ```
@@ -98,7 +98,7 @@ Term status: active | revoked — the stored status; in force, or cancelled and 
 ```
 Deleted: Expiry 1. Invariant 12.3 owns it.
 Expiry 2: A lapse MUST NOT fire a transition.
-Expiry 3: The atom MUST NOT stamp an expiry.
+Deleted: Expiry 3. Invariant 12.2 and Invariant 12.3 own it.
 Expiry 4: The deployment MUST NOT schedule a lapse.
 Expiry 5: The atom MUST derive a lapse from expiry instant against now.
 Expiry 6: A lapsed session MUST NOT stand in a stored terminal.
@@ -231,7 +231,7 @@ Term business caller: the party whose action the call carries, as the section ti
 
 Term session duration: the window a [Issue] call asks for, a window length — a [Session Duration]; consumed to compute the expiry deadline, never stored under this name.
 
-Term window length: a number of seconds — what a session duration and the default session duration carry.
+Term window length: a whole number of seconds — what a session duration and the default session duration carry.
 
 Term zero duration: a duration of no length — the floor a session duration must exceed, which refuses zero and every negative value.
 
@@ -263,7 +263,7 @@ The case space, and the rule that owns each case:
 
 | Call | Case | Answer | Effect on the database |
 |---|---|---|---|
-| [Issue] | both references present, duration positive or defaulted, database accepts | the new session token | one record lands in [Active] carrying both references, issuance instant and expiry instant stamped (Operation 1, Operation 9, Operation 10, Operation 50, Operation 51) |
+| [Issue] | both references present, a default configured, duration positive or defaulted, database accepts | the new session token | one record lands in [Active] carrying both references, issuance instant and expiry instant stamped (Operation 1, Operation 9, Operation 10, Operation 50, Operation 51) |
 | [Issue] | a blank or over-long reference, a duration that is no window length or is not positive, or no configured default | [Invalid Request] | none (Operation 4, Operation 5, Operation 8, Operation 48, Operation 54, String 7) |
 | [Validate] | token names nothing | [Not Known] | none — the call reads (Operation 14, Operation 20) |
 | [Validate] | stored status is [Revoked] | [Invalid Revoked] | none — returned even where the window is still open (Operation 15) |
@@ -412,7 +412,7 @@ NOTE: EVERY check names the rule the check tests.
 ### External checks
 
 ```
-External check 1: A deployment needing a session token confirmed drawn from a cryptographically secure random source at the token entropy MUST read the deployment's own token generation (Identity 9, Capability requirement 3, Capability requirement 4).
+External check 1: A deployment needing a session token's random material confirmed drawn from a cryptographically secure random source at the token entropy MUST read the deployment's own token generation (Identity 9, Capability requirement 3, Capability requirement 4).
 ```
 
 ## Non-goals
@@ -440,15 +440,14 @@ Non-goal 19: The atom MUST NOT seal a session against modification.
 Non-goal 20: The atom MUST NOT bound how long a session is kept.
 Non-goal 21: A deployment needing a retention bound MUST compose Retention Window.
 Non-goal 22: A deployment needing court-admissible records MUST compose Tamper Evidence.
-Non-goal 23: The atom MUST NOT record who called [Issue].
+Deleted: Non-goal 23. Non-goal 24 and Composition note 3 own it.
 Non-goal 24: A deployment needing attribution on issuance MUST compose Actor Identity.
 Non-goal 25: The atom MUST NOT reconcile two readers disagreeing across the deadline.
 Non-goal 26: A deployment needing an externally verifiable timestamp MUST compose a trusted timestamping pattern.
+Non-goal 27: The atom MUST NOT detect an authentication credential's revocation.
 ```
 
-NOTE: the owners — [Credential](./credential.md) (Non-goal 1, Non-goal 2); [Login](../compositions/login.md) (Non-goal 3, Non-goal 4, Composition note 2); [Permissions](./permissions.md) (Non-goal 5, Non-goal 6); the composing pattern (Non-goal 7 through 9, Composition note 5; Non-goal 10, Non-goal 11, Composition note 7; Non-goal 12, Non-goal 13, Composition note 8; Non-goal 14, Non-goal 15, Composition note 6); the deployment (Non-goal 16, Capability requirement 5; Non-goal 17, Non-goal 18, Capability requirement 6); [Tamper Evidence](./tamper-evidence.md) (Non-goal 19, Non-goal 22); [Retention Window](./retention-window.md) (Non-goal 20, Non-goal 21); [Actor Identity](./actor-identity.md) (Non-goal 23, Non-goal 24); Execution Contract Logic confinement 7 (Non-goal 25); a trusted timestamping pattern *(forthcoming)* (Non-goal 26).
-
-NOTE: open 2026-10-21-e — Non-goal 23's *who called [Issue]* reads as the mechanism issued by reference records, which the Browser login example fills with the calling Login service.
+NOTE: the owners — [Credential](./credential.md) (Non-goal 1, Non-goal 2); [Login](../compositions/login.md) (Non-goal 3, Non-goal 4, Non-goal 27, Composition note 2); [Permissions](./permissions.md) (Non-goal 5, Non-goal 6); the composing pattern (Non-goal 7 through 9, Composition note 5; Non-goal 10, Non-goal 11, Composition note 7; Non-goal 12, Non-goal 13, Composition note 8; Non-goal 14, Non-goal 15, Composition note 6); the deployment (Non-goal 16, Capability requirement 5; Non-goal 17, Non-goal 18, Capability requirement 6); [Tamper Evidence](./tamper-evidence.md) (Non-goal 19, Non-goal 22); [Retention Window](./retention-window.md) (Non-goal 20, Non-goal 21); [Actor Identity](./actor-identity.md) (Non-goal 24); Execution Contract Logic confinement 7 (Non-goal 25); a trusted timestamping pattern *(forthcoming)* (Non-goal 26).
 
 ## Edge cases
 
@@ -496,11 +495,11 @@ Term authentication credential: the material a principal presents to prove ident
 ### Token format
 
 ```
-Token format 1: A claim set token's expiry claim MUST NOT differ from the session's expiry instant.
+Token format 1: The host MUST NOT allocate a claim set token whose expiry claim differs from the session's expiry instant.
 Token format 2: A deployment extending a claim set token MUST call [Issue].
 ```
 
-NOTE: open 2026-10-21-b — Token format 1 names no writer of a claim set token's expiry claim, and a token carrying its own expiry claim is unread against Identity 9 and Identity 10.
+NOTE: the host allocates the token at the top of the pipeline's Step 3, holding the invocation's one clock reading and the window [Issue] applies, so a claim set token's expiry claim carries the expiry deadline [Issue] stamps (Execution Contract Logic confinement 3, 9).
 
 Term claim set token: a session token whose format carries its own expiry claim — a JWT (JSON Web Token — a compact, signed token format carrying claims; JSON is JavaScript Object Notation, a plain-text data format), for instance.
 
@@ -517,7 +516,7 @@ Composition note 7: A composing pattern MUST own the device binding.
 Composition note 8: A composing pattern MUST own the concurrency bound per principal reference.
 Composition note 9: A composing pattern MUST own the retention of the session records.
 Composition note 10: A composing pattern reading the session records MUST NOT write to the session records.
-Composition note 11: The atom MUST NOT detect an authentication credential's revocation.
+Deleted: Composition note 11. Non-goal 27 owns it.
 ```
 
 NOTE: composing patterns — [Login](../compositions/login.md), [Session-Gated Authorization](../compositions/session-gated-authorization.md), [Privileged Access Provisioning](../compositions/privileged-access-provisioning.md).
@@ -578,7 +577,7 @@ Kind: Operation
 
 #### Session Token
 
-The opaque, cryptographically random, immutable, system-generated value [Issue] produces — both the [Session]'s record identity and the bearer credential the caller presents to [Validate] and [Revoke]. It is the injected `id_t`; no two sessions share one, and it is not reused after a [Session] lapses or is revoked.
+The opaque, immutable, system-generated value [Issue] produces, drawn from cryptographically random material — both the [Session]'s record identity and the bearer credential the caller presents to [Validate] and [Revoke]. It is the injected `id_t`; no two sessions share one, and it is not reused after a [Session] lapses or is revoked.
 
 Kind:       Field
 Field of:   Session
@@ -658,7 +657,7 @@ Projection: effective_status
 
 #### Session Duration
 
-The duration value, a number of seconds, [Issue] consumes to compute [Expiry Instant] (`[Issuance Instant] + [Session Duration]`). Supplied per call; if null, the deployment's default applies; a value that is no number of seconds, zero or negative is rejected. It is never stored under its own name — only the computed [Expiry Instant] is stored.
+The duration value, a whole number of seconds, [Issue] consumes to compute [Expiry Instant] (`[Issuance Instant] + [Session Duration]`). Supplied per call; if null, the deployment's default applies; a value that is no whole number of seconds, zero or negative is rejected. It is never stored under its own name — only the computed [Expiry Instant] is stored.
 
 Kind:         Parameter
 Parameter of: Issue
@@ -750,7 +749,7 @@ Projection: not-known
 
 #### Invalid Request
 
-The rejection [Issue] returns when [Principal Reference] or [Issued By Reference] is null, empty or longer than the maximum length, when [Session Duration] is no number of seconds, or is zero or negative, or when the deployment default duration is absent; and [Revoke] returns when, on a session stored [Active], [Revoked By Reference] or [Reason] is null, empty or longer than the maximum length.
+The rejection [Issue] returns when [Principal Reference] or [Issued By Reference] is null, empty or longer than the maximum length, when [Session Duration] is no whole number of seconds, or is zero or negative, or when the default session duration is absent; and [Revoke] returns when, on a session stored [Active], [Revoked By Reference] or [Reason] is null, empty or longer than the maximum length.
 
 Kind:       Member
 Member of:  the action rejection
@@ -835,12 +834,10 @@ Inherited from:
 ```
 status: partially resolved
 formal: not applicable — vote no 2026-06-03
-last gate: 2026-10-26 — Final Critique 8 — foundational count 4, not clean, no sample
+last gate: 2026-10-26 — Final Critique 9 — foundational count 2, not clean, no sample
 
 open:
 - 2026-10-21-a · refining · Operation 37; [Read] · [Read] answers the matching sessions in no stated order → an order
-- 2026-10-21-b · refining · Token format 1; Identity 9; Identity 10 · Token format 1 binds a claim set token's expiry claim and names no actor, though the host allocates the token (Identity 3) and holds every input of the expiry deadline at the seam; and a token carrying its own expiry claim is unread against Identity 9 and 10 (drawn from a random source, never from the session's public properties, which no term declares) → name the host as the claim's writer, and say how a claim set token meets Identity 9 and 10
-- 2026-10-21-e · refining · Non-goal 23; Term issued by reference · who called [Issue] reads as the mechanism issued by reference records, which the Browser login example fills with the calling Login service → narrow Non-goal 23 to the actor's attribution, which Non-goal 24 and Composition note 3 give to Actor Identity and the composing pattern
 - 2026-10-21-h · refining · Term seam · Term seam names no default session duration, which [Issue] applies (Operation 6) → say where the default enters
 - 2026-10-21-j · refining · Operation 7; Summary · no maximum bounds a supplied session duration, while the Summary names short-lived elevated-access windows → a deployment maximum, or the Summary's claim narrowed
 - 2026-10-26-c · refining · Term terms; Vocabulary · sixteen declared terms (seam, transition, default session duration, token entropy, business caller, window length, zero duration, expiry deadline, lapsed, liveness query, maximum length, validation failure, verified answer, invalid answer, authentication credential and claim set token) carry no term entry, where spec-format's Terms item asks one per declared term and every specification writes one per name a bracket marker lands on → add the entries, each with a Kind the term entry grammar admits, or read the item as the bracketed names; Credential's 2026-10-26-c routes the same
