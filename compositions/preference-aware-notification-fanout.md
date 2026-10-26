@@ -195,7 +195,7 @@ Term invocation duration bound: the longest a [Fanout Shaped] may run from the i
 
 Term clock tolerance: the write-clock skew bound between now and the constituents' write clocks, and the accounting-clock regression bound — two components.
 
-Term liveness sum: `invocation duration bound + notification create latency + reconciliation cadence + disposition write latency`.
+Term liveness sum: `(((invocation duration bound + notification create latency) + reconciliation cadence) + disposition write latency)`.
 
 Term hold retry horizon: the duration after a hold suppression's decided instant past which the suppression is terminal.
 
@@ -353,7 +353,7 @@ Term reason's policy: the quiet window policy for quiet-window; the cap policy f
 
 Term action-relented reason: suspended | no-record | channel-opt-out | unsubscribed — a suppression that relents only by the principal's own action.
 
-Term retryable disposition: a failure event; a suppression event carrying true as the retry eligibility whose `decided instant + hold retry horizon` DOES NOT PRECEDE now; a delivery event whose record's status IS IN failed and expired.
+Term retryable disposition: a failure event; a suppression event carrying true as the retry eligibility whose `(decided instant + hold retry horizon)` DOES NOT PRECEDE now; a delivery event whose record's status IS IN failed and expired.
 
 Term redisposition flag: redisposition set to true.
 
@@ -424,11 +424,11 @@ Term gap run: one call of [Reconcile Gaps].
 
 Term overshoot run: one call of [Reconcile Overshoots].
 
-Term young invocation: an invocation whose `fired instant + invocation duration bound + notification create latency` DOES NOT PRECEDE now — still in its loop.
+Term young invocation: an invocation whose `((fired instant + invocation duration bound) + notification create latency)` DOES NOT PRECEDE now — still in its loop.
 
-Term aged entry: a journal entry whose `recording instant + audit horizon` PRECEDES now.
+Term aged entry: a journal entry whose `(recording instant + audit horizon)` PRECEDES now.
 
-Term aged instant: an instant that `+ audit horizon` PRECEDES now.
+Term aged instant: an instant such that `(instant + audit horizon)` PRECEDES now.
 
 Term gap principal: a queried subscriber carrying no disposition event under the fanout id.
 
@@ -646,7 +646,7 @@ Check 6.1: An auditor MUST find EVERY created record's envelope content digestin
 
 NOTE: EVERY check names the rule the check tests.
 
-Term reconstruction window: from `fired instant − clock tolerance` to `fired instant + max query latency + clock tolerance`, the tolerance's write-clock component.
+Term reconstruction window: from `(fired instant - clock tolerance)` to `((fired instant + max query latency) + clock tolerance)`, the tolerance's write-clock component.
 
 ### External checks
 

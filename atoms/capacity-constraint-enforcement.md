@@ -241,7 +241,7 @@ Term capacity: the declared maximum a pool admits — a [Capacity]; a whole coun
 
 Term allocated: the pool's running total — an [Allocated]; changed only by [Allocate] and [Release].
 
-Term available: `capacity − allocated` — an [Available]; computed wherever it is reported and never stored, so it cannot lag its operands.
+Term available: `(capacity - allocated)` — an [Available]; computed wherever it is reported and never stored, so it cannot lag its operands.
 
 Term count: the units one [Allocate] or [Release] call operates on — a [Count]; a positive count.
 
@@ -249,9 +249,9 @@ Term whole count: a count of zero or more; what capacity and new capacity must b
 
 Term positive count: a count of one or more; what count must be, which is why a zero-unit call is refused rather than admitted as a no-op.
 
-Term requested total: `allocated + count` — the running total an [Allocate] call would reach, and the value the capacity guard compares.
+Term requested total: `(allocated + count)` — the running total an [Allocate] call would reach, and the value the capacity guard compares.
 
-Term released total: `allocated − count` — the running total a [Release] call would reach.
+Term released total: `(allocated - count)` — the running total a [Release] call would reach.
 
 Term new capacity: the maximum an [Adjust Capacity] call asks for — a [New Capacity]; a whole count, and refused where it equals the current capacity.
 

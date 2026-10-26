@@ -115,9 +115,9 @@ Five elements, each carrying the Contract classification of the section titled C
   sequence high water 5: IF an intent's retention end PRECEDES now THEN EVERY read of open invocations MUST drop the intent.
   sequence high water 6: A lost mark MUST rebuild both maps from the log's beginning.
   ```
-  Term settle bound: `journal_write_bound + clock_offset_allowance`.
+  Term settle bound: `(journal_write_bound + clock_offset_allowance)`.
 
-  Term retention end: `recorded_at + retention_period − clock_offset_allowance` — the end of the intent's retention, less the allowance for the two clocks, so that a read of open invocations drops the intent no later than the substrate's clock reaches that end (Allowance 4).
+  Term retention end: `((recorded_at + retention_period) - clock_offset_allowance)` — the end of the intent's retention, less the allowance for the two clocks, so that a read of open invocations drops the intent no later than the substrate's clock reaches that end (Allowance 4).
 - **findings**
   Term findings: the register of what the sweep could not close and what the instance could not do, written to the deployment's compliance surface. *Extraction-pending*; the named proposed atom is a **Condition Register** *(forthcoming)*.
   ```
@@ -182,7 +182,7 @@ Capability requirement 14: The composition MUST NOT surface an invalid-query as 
 Capability requirement 15: EVERY read path of Recoverable Invocation that reads under the critical section MUST land a read that returns nothing within read bound where the read path lands unavailable.
 ```
 
-Term delta range: the sequence-number range from `sequence_high_water + 1` with no upper bound.
+Term delta range: the sequence-number range from `(sequence_high_water + 1)` with no upper bound.
 
 Term open-upper-bound sequence-range read: `EventLog.read` over the delta range, reached through Audit Trail's list-shaped pass-through.
 
@@ -235,7 +235,7 @@ Term read-your-writes: Capability requirement 8 and Capability requirement 12 to
   ```
   journal write bound 1: A writer MUST issue a journal write under the critical section ONLY IF a remaining the writer queried for that write EXCEEDS write floor.
   ```
-  Term sweep lease: `closure_latency + journal_write_bound`.
+  Term sweep lease: `(closure_latency + journal_write_bound)`.
 - **call pause bound**
   Term call pause bound: this composition's value of [Lease](../atoms/lease.md)'s call pause bound: the longest time from a holder's decision to issue one call — a lease call, the issue of a journal write, the issue of the bound commit — to the moment the call has taken effect or failed. *Default:* none.
   ```
@@ -243,9 +243,9 @@ Term read-your-writes: Capability requirement 8 and Capability requirement 12 to
   call pause bound 2: A writer MUST issue a journal write WITHIN call pause bound of asking for the write's remaining.
   ```
   A journal write is a unit of work in Lease's sense, its bound the pause from the reading to the issue (call pause bound 2) and journal write bound from the issue to the landing (Lease Term unit's bound); the call pause bound bounds the write's issue, as the atom's Term unit of work allows, and not the whole record action.
-  Term write floor: `journal_write_bound + 3 × call_pause_bound` — Lease's start floor for one journal write: the reading and the issue behind it inside one pause, the write, and the atom's two-call margin. A remaining that answers none does not exceed it.
+  Term write floor: `(journal_write_bound + (3 * call_pause_bound))` — Lease's start floor for one journal write: the reading and the issue behind it inside one pause, the write, and the atom's two-call margin. A remaining that answers none does not exceed it.
 
-  Term commit floor: `commit_round_trip + 4 × call_pause_bound` — the same for the bound commit, with one pause more for the hand from [Open]'s return to the adopter's call.
+  Term commit floor: `(commit_round_trip + (4 * call_pause_bound))` — the same for the bound commit, with one pause more for the hand from [Open]'s return to the adopter's call.
 - **reconciliation cadence**
   Term reconciliation cadence: the interval at which the sweep runs after the mandatory run at process restart. *Default:* none.
 - **read bound**
@@ -306,13 +306,13 @@ Term hard alert: an alert on the compliance surface naming the invocation id and
 
 Term caller kind: EXACTLY ONE OF human, service — service where actor reference names the kind's service identity.
 
-Term examine edge: `recorded_at + completion_bound + clock_offset_allowance`.
+Term examine edge: `((recorded_at + completion_bound) + clock_offset_allowance)`.
 
 Term in-flight: an open intent for which examine edge EXCEEDS now.
 
 Term aged: an open intent for which examine edge DOES NOT EXCEED now.
 
-Term horizon edge: `recorded_at + retention_period − clock_offset_allowance − run_bound` — the allowance for the two clocks, the run bound for the age of a run's one reading by the time the run reads and writes on it.
+Term horizon edge: `(((recorded_at + retention_period) - clock_offset_allowance) - run_bound)` — the allowance for the two clocks, the run bound for the age of a run's one reading by the time the run reads and writes on it.
 
 Term as the substrate measures a payload: the serialized envelope `{action_ref, actor_ref, attestation_id, data}` with the longer of the caller's and the service identity's actor reference, the substrate's attestation id width, and the framing. The sweep's two closings — the recovered outcome (outcome data plus recovery, acting actor reference) and the escalation (database candidates plus the same) — are sized separately; the bound is the larger. [Resolve]'s closings, under the operator's actor reference, are bounded by outcome envelope and intent candidates cap, which take every reference under reference length cap.
 
@@ -851,7 +851,7 @@ reconcile 5: The run MUST sum the counts over both.
 
 Term examined: an act step 1 kept and the run reached — took, or attempted to take, the act's critical section.
 
-Term partition: `closed + escalated + reported + skipped + closed_already = examined`.
+Term partition: `((((closed + escalated) + reported) + skipped) + closed_already) = examined`.
 
 Term surfaced: the unbound-kind intents step 1 reports; outside the partition.
 
@@ -953,9 +953,9 @@ Term reported: an act the run examined, of a kind whose service identity EQUALS 
    reconcile step 5.8: The run MUST return the counts.
    ```
 
-Term at risk threshold: `compensation_window − 2 × run_bound − reconciliation_cadence − clock_offset_allowance`.
+Term at risk threshold: `(((compensation_window - (2 * run_bound)) - reconciliation_cadence) - clock_offset_allowance)`.
 
-Term intent age: `now − recorded_at`.
+Term intent age: `(now - recorded_at)`.
 
 ```
 reconcile 6: An actor that is not a writer MUST NOT write a closing record.
@@ -1138,15 +1138,15 @@ Instance start 2: The instance MUST check EVERY condition at start for EVERY bou
 Instance start 3: IF any condition fails for any bound kind THEN the instance MUST NOT start.
 ```
 
-Term worst closure: `completion_bound + 2 × clock_offset_allowance + 2 × reconciliation_cadence + 3 × run_bound` — completion bound the kind's, the rest the instance's, the allowance counted twice for every kind.
+Term worst closure: `(((completion_bound + (2 * clock_offset_allowance)) + (2 * reconciliation_cadence)) + (3 * run_bound))` — completion bound the kind's, the rest the instance's, the allowance counted twice for every kind.
 
-Term window end: `completion_bound + clock_offset_allowance + compensation_window`.
+Term window end: `((completion_bound + clock_offset_allowance) + compensation_window)`.
 
-Term lease spend: `2 × read_bound + 2 × journal_write_bound + commit_round_trip + 9 × call_pause_bound`.
+Term lease spend: `((((2 * read_bound) + (2 * journal_write_bound)) + commit_round_trip) + (9 * call_pause_bound))`.
 
-Term run floor: `max(completion_bound, closure_latency + journal_write_bound) + closure_latency`.
+Term run floor: `(max(completion_bound, (closure_latency + journal_write_bound)) + closure_latency)`.
 
-Term closure spend: `max(read_bound + 2 × journal_write_bound + probe_round_trip + 7 × call_pause_bound, 2 × read_bound + journal_write_bound + 6 × call_pause_bound)` — the sweep's closure, or [Resolve]'s work under the same lease, whichever is longer.
+Term closure spend: `max((((read_bound + (2 * journal_write_bound)) + probe_round_trip) + (7 * call_pause_bound)), (((2 * read_bound) + journal_write_bound) + (6 * call_pause_bound)))` — the sweep's closure, or [Resolve]'s work under the same lease, whichever is longer.
 
 ```
 Instance start 4: The instance MAY start ONLY IF compensation window EXCEEDS worst closure.

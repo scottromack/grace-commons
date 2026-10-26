@@ -85,7 +85,7 @@ NOTE: watch a term entry's kind — the total is computed at each read and never
 Capability requirement 1: The deployment MUST supply at the seam a cart id no cart has carried PER Execution Contract Logic confinement 3.
 Capability requirement 2: The deployment MUST supply at the seam a line id no line has carried PER Execution Contract Logic confinement 3.
 Capability requirement 3: The deployment MUST supply the accepted currencies.
-Capability requirement 4: The deployment MUST compute EVERY total without loss.
+Deleted: Capability requirement 4. Execution Contract Logic confinement 9 owns it.
 Capability requirement 5: The deployment MUST supply the database PER Execution Contract Database 1 through 6, Execution Contract Read 1 through 4 and Execution Contract Refusal 1.
 ```
 

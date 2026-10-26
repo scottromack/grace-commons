@@ -1,4 +1,4 @@
-# GRACE lang v0.67 — Minimal Earned Grammar
+# GRACE lang v0.68 — Minimal Earned Grammar
 
 Grace lang is a controlled semantic metalanguage for domain specifications. Grace UX is abstracted microcopy and interaction behavior derived from verified logical state.
 
@@ -122,7 +122,7 @@ PROVISIONAL:
 open_invocations IS DERIVED FROM journal.
 ```
 
-Term hold_bound: max(completion_bound, closure_latency + journal_write_bound).
+Term hold_bound: max(completion_bound, (closure_latency + journal_write_bound)).
 
 NOTE: hold_bound is the example's term; a function such as max has no place in an arithmetic expression, so the arithmetic lives in the declaration, never in the rule (Closed vocabulary 9).
 
@@ -234,13 +234,17 @@ Term blank: a value that is absent, empty, or carries only whitespace — a call
 
 Term absence form: `no thing EXISTS`, with `for` and the identifier where one names the thing — the one way a condition says a record, an event or a condition is not there.
 
-Term rule symbol: a character a rule's own text does not carry — the section sign, the arrow, a brace, the bar, an angle bracket, the en dash, the slash, the asterisk, save the slash and the asterisk as arithmetic operators inside an arithmetic expression; a section is *the section titled X*, a map entry *k mapped to v*, a call's answer *answering x*, a record *carrying a, b and c*, a range of steps *steps 2 through 5*, and a code spelling such as a template sits in a code span.
+Term rule symbol: a character a rule's own text does not carry — the section sign, the arrow, a brace, the bar, an angle bracket, the en dash, the slash, the asterisk, save the asterisk as an arithmetic operator inside an arithmetic expression; a section is *the section titled X*, a map entry *k mapped to v*, a call's answer *answering x*, a record *carrying a, b and c*, a range of steps *steps 2 through 5*, and a code spelling such as a template sits in a code span.
 
-Term arithmetic operator: `+` | `-` | `*` | `/` — addition, subtraction, multiplication and division, with their usual meaning and precedence: `*` and `/` apply before `+` and `-`, and operators of one precedence apply from left to right.
+Term arithmetic operator: `+` | `-` | `*` | `/` — addition, subtraction, multiplication and division, with their usual meaning; nothing is read by precedence, since every operator sits in the operator's own pair of parentheses, and the parser reads `×` as `*` (Sugar 12).
 
-Term operand: a declared field, a declared term or a number inside an arithmetic expression.
+Term operand: a declared field, a declared term or a number inside an arithmetic expression or declared arithmetic, never a negative literal — a negative constant is a named term (Closed vocabulary 34).
 
-Term arithmetic expression: operands joined by arithmetic operators, a space on each side of every operator, inside one pair of parentheses in a rule, as in `balance set to (balance - input)`.
+Term arithmetic expression: two operands joined by one of `+`, `-` and `*`, a space on each side of the operator, inside one pair of parentheses in a rule, as in `balance set to (balance - input)`; anything larger is a named term (Closed vocabulary 9).
+
+Term declared arithmetic: arithmetic in a declaration's definition, where every operator sits with the operator's two operands inside the operator's own pair of parentheses, a single operator included, and a pair may hold another pair, as in `(read_bound + (2 * journal_write_bound))`; a function such as max may enclose declared arithmetic, as in `max(completion_bound, (closure_latency + journal_write_bound))`.
+
+Term rounding: rounded down | rounded up | rounded to nearest with ties to even — named after the division a declaration carries, as `Term average: (total / count), rounded down.` names rounded down.
 
 Term rule noun: a noun the rules of every specification share, declared once here — call, answer, write, input, field, instant, act, clock, instance, section.
 
@@ -393,7 +397,10 @@ Hard invariant 20: The parser MUST NOT infer missing semantics.
 Hard invariant 21: The parser MUST NOT give WHY: normative force.
 Hard invariant 22: The parser MUST NOT give UX: normative force.
 Hard invariant 23: The parser MUST NOT infer normative meaning from WHY: or UX:.
-Hard invariant 24: The parser MUST reject arithmetic in a rule outside one pair of parentheses.
+Hard invariant 24: The parser MUST reject arithmetic in a rule outside one pair of parentheses or with a second operator.
+Hard invariant 35: The parser MUST reject an arithmetic operator in a definition outside the operator's own pair of parentheses.
+Hard invariant 36: The parser MUST reject a division outside a definition.
+Hard invariant 37: The parser MUST reject a division whose definition names no rounding.
 Hard invariant 25: The parser MUST reserve the label a tombstone carries.
 Hard invariant 26: A writer MUST NOT renumber an invariant.
 Hard invariant 27: A writer MUST NOT reuse a tombstoned label.
@@ -430,9 +437,11 @@ Sugar 7: An arithmetic expression MUST NOT carry a call.
 Sugar 8: An arithmetic expression MUST NOT write.
 Sugar 9: A writer MUST declare a quantity the domain names as a term.
 Sugar 10: The parser MUST normalize EVERY arithmetic expression to an unnamed term.
+Sugar 11: An arithmetic expression MUST carry exactly one arithmetic operator.
+Sugar 12: The parser MUST normalize `×` to `*`.
 ```
 
-NOTE: inline arithmetic is the grammar's one symbolic sugar: the parser reads each arithmetic expression as an unnamed term, so the sugar adds no meaning (Sugar 2, Hard invariant 18, Hard invariant 19). A quantity the domain names keeps its term, as Session's expiry deadline does (`issued_at + session_duration`); inline is for nameless intermediates.
+NOTE: inline arithmetic is the grammar's one symbolic sugar: the parser reads each arithmetic expression as an unnamed term, so the sugar adds no meaning (Sugar 2, Hard invariant 18, Hard invariant 19). A quantity the domain names keeps its term, as Session's expiry deadline does (`(issued_at + session_duration)`); inline is for nameless intermediates, one operator at a time, and longer arithmetic lives in a declaration (Closed vocabulary 9, Closed vocabulary 31).
 
 ```
 NOTE: the sugar and its normalization.
@@ -461,7 +470,7 @@ Closed vocabulary 5: The parser MUST NOT infer a term's type from the term's nam
 Closed vocabulary 6: A specification MUST declare record verbs explicitly.
 Closed vocabulary 7: A record MUST NOT acquire behavior from the record's noun.
 Closed vocabulary 8: A rule carrying a modal MUST carry a declared record verb or a reserved grammar verb after the modal.
-Closed vocabulary 9: A rule MUST name a term where the rule needs arithmetic that one pair of parentheses cannot carry.
+Closed vocabulary 9: A rule MUST name a term where the rule needs arithmetic beyond one arithmetic expression.
 Closed vocabulary 10: A writer MUST write a declaration in the declaration form.
 Closed vocabulary 11: A definition MAY carry arithmetic, comparison operators, a value set, or a sentence saying what the name is.
 Closed vocabulary 12: A writer MUST write a definitional sentence as a declaration.
@@ -483,6 +492,10 @@ Closed vocabulary 27: A writer MUST declare a record an action answers as a term
 Closed vocabulary 28: The parser MUST keep the order of a refuses line's arms.
 Closed vocabulary 29: The parser MUST read a rule whose subject takes in several actions as binding each such action only where the action's signature block, together with the family answers of Closed vocabulary 30, carries the outcome the rule lands.
 Closed vocabulary 30: The parser MUST read an action's outcomes as the action's signature block together with the answers the Execution Contract's families give EVERY action, Read 1's `state-unavailable` included, counting each family answer as written under Value set 3.
+Closed vocabulary 31: A writer MUST write a definition's arithmetic as declared arithmetic.
+Closed vocabulary 32: A writer MUST name the rounding of EVERY division in a definition.
+Closed vocabulary 33: A writer MUST NOT write a division outside a definition.
+Closed vocabulary 34: A writer MUST declare a negative constant as a term.
 ```
 
 Term category: actor | record | record verb | value set | bound | cadence | term | qualifier | cited | composing pattern.
@@ -527,7 +540,7 @@ Term bounds: empty.
 
 Term cadences: empty.
 
-Term terms: contested, hold_bound, run_floor and the bounds the examples compute over — completion_bound, closure_latency, journal_write_bound, borrowed from Recoverable Invocation and exemplars here, never citations (Hard invariant 28 does not reach an example) — and every other name declared in this document — a comprehension over the document's `Term` lines, determinate by construction.
+Term terms: contested, hold_bound, run_floor and the bounds the examples compute over — completion_bound, closure_latency, journal_write_bound, read_bound, borrowed from Recoverable Invocation and exemplars here, never citations (Hard invariant 28 does not reach an example) — and every other name declared in this document — a comprehension over the document's `Term` lines, determinate by construction.
 
 Term value sets: surface; quantifier, modal, condition operator; tail; diff result — ADDED | REMOVED | CHANGED; category (declared once, at `Term category`; cited here by Closed vocabulary 15).
 
@@ -569,7 +582,7 @@ Canonical example 6:
 run_floor MUST NOT EXCEED run_bound.
 ```
 
-Term run_floor: `max(completion_bound, closure_latency + journal_write_bound) + closure_latency` — Recoverable Invocation's declaration, borrowed with the name.
+Term run_floor: `(max(completion_bound, (closure_latency + journal_write_bound)) + closure_latency)` — Recoverable Invocation's declaration, borrowed with the name.
 
 ---
 
@@ -693,7 +706,7 @@ Caveman 2: A writer MUST NOT express complex behavior as a more complicated sent
 
 ### 21. What the grammar locks
 
-Term locked forms: Strict Caveman normative prose; WHAT / WHY / HOW separation; `WHY:` and `UX:` with zero normative force; MUST / MUST NOT / MAY; EVERY / EXACTLY ONE / EXACTLY ONE OF; flat IF and flat WHEN; flat AND, flat OR, never both in one condition; OR only inside conditions and term declarations; EQUALS / DOES NOT EQUAL / EXISTS / the absence form / IS IN / IS NOT IN / EXCEEDS; blank; `=` and `|` only in a value set; ONLY AFTER / ONLY IF / WITHIN / PER; MUST NOT EXCEED for ≥, no AT LEAST, no STRICTLY; the strict lower bound as `MAY … ONLY IF … EXCEEDS …`; IS AUTHORITATIVE FOR (introduced, labelled); one site is one spec; forbidden-before (`MUST NOT … BEFORE`); deterministic AFTER sugar under MUST and MAY; positive `MUST … BEFORE` illegal; one obligation per sentence; labels named for their heading, never abbreviated; closed vocabulary including record verbs; the `Term` declaration form; the signature block as a declaration form, one line per action; the standard label families; the casing tiers; the term entry and the bracket marker as reader sugar; a declaration may cite its owner; arithmetic in term declarations, and in a rule only as an arithmetic expression, `+`, `-`, `*` and `/` inside one pair of parentheses, never nested; closed value sets; no pronouns, Section 13 rejects the passive; no inference; normalized representation; reverse diff over normalized rules; admission by Principle 2 — recurrence AND contested.
+Term locked forms: Strict Caveman normative prose; WHAT / WHY / HOW separation; `WHY:` and `UX:` with zero normative force; MUST / MUST NOT / MAY; EVERY / EXACTLY ONE / EXACTLY ONE OF; flat IF and flat WHEN; flat AND, flat OR, never both in one condition; OR only inside conditions and term declarations; EQUALS / DOES NOT EQUAL / EXISTS / the absence form / IS IN / IS NOT IN / EXCEEDS; blank; `=` and `|` only in a value set; ONLY AFTER / ONLY IF / WITHIN / PER; MUST NOT EXCEED for ≥, no AT LEAST, no STRICTLY; the strict lower bound as `MAY … ONLY IF … EXCEEDS …`; IS AUTHORITATIVE FOR (introduced, labelled); one site is one spec; forbidden-before (`MUST NOT … BEFORE`); deterministic AFTER sugar under MUST and MAY; positive `MUST … BEFORE` illegal; one obligation per sentence; labels named for their heading, never abbreviated; closed vocabulary including record verbs; the `Term` declaration form; the signature block as a declaration form, one line per action; the standard label families; the casing tiers; the term entry and the bracket marker as reader sugar; a declaration may cite its owner; arithmetic in term declarations only as declared arithmetic, every operator in the operator's own pair of parentheses and a division only there, naming the division's rounding, and in a rule only as an arithmetic expression, one of `+`, `-` and `*` between two operands inside one pair of parentheses, never nested; nothing read by precedence; closed value sets; no pronouns, Section 13 rejects the passive; no inference; normalized representation; reverse diff over normalized rules; admission by Principle 2 — recurrence AND contested.
 
 ```
 Lock 1: The parser MUST accept only the locked forms and the locked forms' deterministic sugar.

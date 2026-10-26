@@ -237,7 +237,7 @@ Term zero duration: a duration of no length — the floor a session duration mus
 
 Term issuance instant: the instant the session was recorded — an [Issuance Instant].
 
-Term expiry deadline: `issued_at + session_duration` — what [Issue] stores as expiry instant, computed once at issue.
+Term expiry deadline: `(issued_at + session_duration)` — what [Issue] stores as expiry instant, computed once at issue.
 
 Term expiry instant: the instant the session's validity ends — an [Expiry Instant]; stamped at issue, never changed, never absent.
 

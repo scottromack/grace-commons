@@ -238,7 +238,7 @@ Term whole count: a whole number of zero or more, with no fractional part — wh
 
 Term allocation instant: the instant the capability was recorded — an [Allocation Instant].
 
-Term expiry deadline: `allocated_at + ttl` — what [Allocate] stores as expiry instant, computed once at allocation.
+Term expiry deadline: `(allocated_at + ttl)` — what [Allocate] stores as expiry instant, computed once at allocation.
 
 Term expiry instant: the instant the capability's window closes — an [Expiry Instant]; stamped at allocation, never changed, never absent.
 

@@ -242,11 +242,11 @@ Term monitoring interval: monitoring_interval — the deployment's declared dura
 
 Term scheduler tolerance: scheduler_tolerance — the deployment's declared allowance for how late the external scheduler may fire a due review.
 
-Term renewal floor: `monitoring_interval + scheduler_tolerance` — the interval a placement's duration must outlast for the chain to stay continuous under a late review.
+Term renewal floor: `(monitoring_interval + scheduler_tolerance)` — the interval a placement's duration must outlast for the chain to stay continuous under a late review.
 
 Term binding floor: the monitoring interval taken with the scheduler tolerance and the post closure policy's duration — the age a binding-bearing event's payload must survive to.
 
-Term closure floor: `onboarding_completion_bound + reconciliation_cadence + audit write latency` — the longest interval in which the reconciliation can close an open marker.
+Term closure floor: `((onboarding_completion_bound + reconciliation_cadence) + audit write latency)` — the longest interval in which the reconciliation can close an open marker.
 
 Term onboarding completion bound: onboarding_completion_bound — the deployment's declared maximum duration between an invocation's intent and the invocation's outcome.
 
@@ -964,7 +964,7 @@ Deleted: Clock semantics 10. Capability requirement 1 and Execution Contract Log
 Deleted: Clock semantics 11. Non-goal 21 owns it.
 ```
 
-Term placement's cover: `the current placement's retention_until − scheduler_tolerance` — the instant past which a review would fire too late to renew the placement before the placement lapses.
+Term placement's cover: `(the current placement's retention_until - scheduler_tolerance)` — the instant past which a review would fire too late to renew the placement before the placement lapses.
 
 ### Concurrency
 

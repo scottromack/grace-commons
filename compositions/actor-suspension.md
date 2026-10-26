@@ -257,7 +257,7 @@ Term suspension completion bound: suspension_completion_bound — the deployment
 
 Term completion window: completion_window — the deployment's declared duration within which a suspending actor reaches suspended or escalates as an unresolved compliance finding.
 
-Term closure floor: `suspension_completion_bound + reconciliation_cadence + outcome_write_latency` — the longest interval in which the sweep can close an open cascade.
+Term closure floor: `((suspension_completion_bound + reconciliation_cadence) + outcome_write_latency)` — the longest interval in which the sweep can close an open cascade.
 
 Term access retention floor: the longest retention obligation standing over the access a suspension closed — what audit_trail_retention_policy must outlast, so the proof the access was lawfully closed outlives the access.
 

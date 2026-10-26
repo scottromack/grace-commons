@@ -112,7 +112,7 @@ Term reservation-to-pool binding: the composition's map from a reservation id to
 
 Term binding entry: one reservation's entry in the reservation-to-pool binding.
 
-Term aged entry: a journal entry whose `recording instant + audit horizon` PRECEDES now — past which the entry's payload may be lawfully destroyed.
+Term aged entry: a journal entry whose `(recording instant + audit horizon)` PRECEDES now — past which the entry's payload may be lawfully destroyed.
 
 Term token results map: the composition's own map from an idempotency token to the answer recorded against the token.
 
@@ -188,7 +188,7 @@ Term digest function: the hash function and serialization convention computing t
 
 Term audit horizon: the journal's retention horizon — where the journal is the Audit Trail substrate, the substrate's purge horizon.
 
-Term retention floor: `longest reservation lifetime + coherence proof period`.
+Term retention floor: `(longest reservation lifetime + coherence proof period)`.
 
 Term longest reservation lifetime: the longest a reservation stands from [Reserve] to a slot-returning outcome entry.
 
@@ -486,7 +486,7 @@ These emerge from the composition; none belongs to one constituent.
   ```
   Term quiescence: a pool state in which no [Reserve] against the pool is in flight.
 
-  Term divergence: `allocated − bound slot-holding count` for one pool.
+  Term divergence: `(allocated - bound slot-holding count)` for one pool.
 
 - **Invariant 2 — Slot returned at most once.**
   ```

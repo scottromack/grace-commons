@@ -129,7 +129,7 @@ Term arrival term: the remaining term of the holder that held the key at the mom
 
 Term successful take: a [Take] that answers expires_at, or a [Try Take] that answers taken(expires_at).
 
-Term expires_at: `reading_at_success + duration` — the instant a grant ends, on the granting host's clock; an [Expiry Instant].
+Term expires_at: `(reading_at_success + duration)` — the instant a grant ends, on the granting host's clock; an [Expiry Instant].
 
 Term asking party: the party naming itself as holder in a [Remaining] or [Release] call.
 
@@ -204,13 +204,13 @@ Term work's bound: the bound the composing pattern declares on all the work unde
 
 Term budget: a bound the composing pattern declares over work that began before the take, of which the lease is given a share.
 
-Term write margin: `2 * call_pause_bound` — a check's answer and the write the check guards are two calls.
+Term write margin: `(2 * call_pause_bound)` — a check's answer and the write the check guards are two calls.
 
-Term start floor: `unit_bound + 2 * call_pause_bound` — what a unit of work needs of the remaining term to finish with the write margin intact.
+Term start floor: `(unit_bound + (2 * call_pause_bound))` — what a unit of work needs of the remaining term to finish with the write margin intact.
 
 Term unit's elapsed time: the time since the unit's start, measured at the holder's own seam.
 
-Term share term: `budget - time_spent_before_take - call_pause_bound`, the time spent measured at the holder's own seam.
+Term share term: `((budget - time_spent_before_take) - call_pause_bound)`, the time spent measured at the holder's own seam.
 
 Term live: a lease whose remaining term EXCEEDS the write margin, unanswered being no.
 
@@ -241,7 +241,7 @@ Fence 10: A work item MUST NOT carry an effect instant.
 
 Term fence: an instant no later than the fence ceiling, handed to a third party as a deadline (a [Fence]) — refuse this holder's work unless the work takes effect before this instant.
 
-Term fence ceiling: `expires_at − allowance`.
+Term fence ceiling: `(expires_at - allowance)`.
 
 Term effect instant: the instant a work item takes effect, read on the fenced party's own clock in the step that applies the work item.
 
@@ -285,7 +285,7 @@ Check 7.4: An auditor MUST confirm that a no answer is treated as expired and th
 Check 7.5: An auditor MUST confirm that the pattern refuses to start where a declared work bound does not exceed twice the call pause bound (Sizing 9).
 ```
 
-Term fence margin: `expires_at − fence`.
+Term fence margin: `(expires_at - fence)`.
 
 NOTE: EVERY check names the rule the check tests. A check that names none is a check whose failure nobody can state (council read 8).
 

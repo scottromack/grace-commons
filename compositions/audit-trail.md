@@ -414,7 +414,7 @@ Twenty-one knobs — Legal Hold among them, declared with the capability it swit
   reference length cap 3: A deployment MAY raise reference length cap above 1 kilobyte ONLY IF a genuine reference scheme EXCEEDS 1 kilobyte.
   reference length cap 4: IF reference length cap EQUALS blank THEN the instance MUST take 1 kilobyte.
   ```
-  Term reference headroom: `payload_cap − attestation_id_width − the largest data the deployment intends to accept`.
+  Term reference headroom: `((payload_cap - attestation_id_width) - the largest data the deployment intends to accept)`.
 
 - **attestation id width**
   Term attestation id width: the width of the attestation id the configured Actor Identity instance allocates. *Default:* none.
@@ -995,9 +995,9 @@ seal now 27: IF seal completion bound is declared anew THEN the instance MUST ru
 seal now 28: IF a call [Seal Now] issues BEFORE the seal call of seal now 4 answers no answer AND no rule above names the arm THEN [Seal Now] MUST land [Recording Failure] AND MUST issue no further write.
 ```
 
-Term slice: the sequence-number range from `sealed_through + 1` to the tail position, inclusive.
+Term slice: the sequence-number range from `(sealed_through + 1)` to the tail position, inclusive.
 
-Term tail position: the highest sequence number among the first slice cap events the open-upper-bound read beginning at `sealed_through + 1` returns; an empty result of that read means the unsealed tail is empty.
+Term tail position: the highest sequence number among the first slice cap events the open-upper-bound read beginning at `(sealed_through + 1)` returns; an empty result of that read means the unsealed tail is empty.
 
 ---
 
@@ -1366,17 +1366,17 @@ Reconciliation 7: EVERY half MUST decide a write by the half's own predicate, re
 
 Term leg: one scan half's handling of one act, from its examination to its closure.
 
-Term record edge: `record_action_completion_bound + clock_offset_allowance`.
+Term record edge: `(record_action_completion_bound + clock_offset_allowance)`.
 
-Term purge edge: `purge_completion_bound + clock_offset_allowance`.
+Term purge edge: `(purge_completion_bound + clock_offset_allowance)`.
 
 Term horizon: the lesser of the retention periods retention policy gives an `audit.compensation` event and an `audit.reconciliation` event.
 
-Term purge age: `now − purged_at`.
+Term purge age: `(now - purged_at)`.
 
-Term attestation age: `now − attested_at`.
+Term attestation age: `(now - attested_at)`.
 
-Term event age: `now − recorded_at`.
+Term event age: `(now - recorded_at)`.
 
 The second half's lower edge, and the third half's for an unretained event, is the commit of the [Record Action] that wrote the record, not an age: its writes commit together (Execution Contract Database 1), so no leg reads a record action still in flight, and an attestation with no event, or an event with no retention, is the evidence a refused call left (record action step 7.11).
 
@@ -1520,15 +1520,15 @@ Instance start 31: IF Legal Hold EQUALS composed AND no Legal Hold database inst
 Instance start 32: IF Legal Hold EQUALS composed AND no hold placement EXISTS THEN the instance MUST NOT start.
 ```
 
-Term closure sum: `max(2 * record_action_completion_bound, purge_completion_bound) + 2 * clock_offset_allowance + 2 * (reconciliation_cadence + compensation_closure_latency)`, plus `purge_completion_bound + reconciliation_cadence` WHERE Legal Hold EQUALS composed — one hold placement that holds an open entry's critical section when a first-half leg comes for it, placed or not: its lease (Capability requirement 7c) and the run it displaces (Per-act critical section 5).
+Term closure sum: `((max((2 * record_action_completion_bound), purge_completion_bound) + (2 * clock_offset_allowance)) + (2 * (reconciliation_cadence + compensation_closure_latency)))`, plus `(purge_completion_bound + reconciliation_cadence)` WHERE Legal Hold EQUALS composed — one hold placement that holds an open entry's critical section when a first-half leg comes for it, placed or not: its lease (Capability requirement 7c) and the run it displaces (Per-act critical section 5).
 
 Term completion bound: record action completion bound, purge completion bound and seal completion bound.
 
-Term closure floor: `4 * record_action_completion_bound + 8 * call_pause_bound`, plus `6 * seal_completion_bound` WHERE seal cadence EQUALS per-event, each of the three [Record Action] calls on the closure — the probe's and the two nested — sealing at step 6 before it returns (record action step 6.1), a seal priced at twice its bound as Instance start 23 prices it — the whole closure of the second and third halves is the probe's wait of Invariant 1.10, the intent, the placement under its live test and the compensation, each call carrying its pause.
+Term closure floor: `((4 * record_action_completion_bound) + (8 * call_pause_bound))`, plus `(6 * seal_completion_bound)` WHERE seal cadence EQUALS per-event, each of the three [Record Action] calls on the closure — the probe's and the two nested — sealing at step 6 before it returns (record action step 6.1), a seal priced at twice its bound as Instance start 23 prices it — the whole closure of the second and third halves is the probe's wait of Invariant 1.10, the intent, the placement under its live test and the compensation, each call carrying its pause.
 
-Term closure spend: `closure_floor + call_pause_bound + 4 * measured_enumeration` — what one closure of the second or third half spends of compensation closure latency: the call pause of the take (Per-act critical section 13a), up to two measured enumerations before the take — the second half's binding set and attestation records, the third half's audit-log pass and the rebuild of event to retention that makes a miss a true miss (Third half 3) — and the work bound's own, up to two under the lease.
+Term closure spend: `((closure_floor + call_pause_bound) + (4 * measured_enumeration))` — what one closure of the second or third half spends of compensation closure latency: the call pause of the take (Per-act critical section 13a), up to two measured enumerations before the take — the second half's binding set and attestation records, the third half's audit-log pass and the rebuild of event to retention that makes a miss a true miss (Third half 3) — and the work bound's own, up to two under the lease.
 
-Term re-drive spend: `purge_completion_bound + call_pause_bound + measured_enumeration` — what one re-drive of the first half spends of compensation closure latency: the retention-record enumeration before the take (First half 1), the call pause of the take, and the cascade.
+Term re-drive spend: `((purge_completion_bound + call_pause_bound) + measured_enumeration)` — what one re-drive of the first half spends of compensation closure latency: the retention-record enumeration before the take (First half 1), the call pause of the take, and the cascade.
 
 Term measured enumeration: the longest of one enumeration of the audit log followed by one read of the destruction records (Second half 15), one enumeration of the attestation records and one of the retention records, each run once at start (Instance start 28).
 
@@ -1779,7 +1779,7 @@ Check 8.1: An auditor MUST identify the composing patterns active in the deploym
 Check 8.2: An auditor MUST NOT run Check 1 through 7 BEFORE identifying Reverse Index, Legal Hold, Erasure Tombstone composed for seal disposal, and Seal Lifecycle.
 ```
 
-Term audit edge: `compensation_window + clock_offset_allowance`, counted from the finding's creation or the hold-free run of Composition-level invariant 1e as Composition-level invariant 1h records it, or `closure_sum + clock_offset_allowance` counted from the end of the last overlapping dependency outage where that is later (Composition-level invariant 1c), never past the horizon counted from the finding's creation (Composition-level invariant 1c), a suspended entry having none — the auditor's own reading compared to a constituent's stamp only under the allowance.
+Term audit edge: `(compensation_window + clock_offset_allowance)`, counted from the finding's creation or the hold-free run of Composition-level invariant 1e as Composition-level invariant 1h records it, or `(closure_sum + clock_offset_allowance)` counted from the end of the last overlapping dependency outage where that is later (Composition-level invariant 1c), never past the horizon counted from the finding's creation (Composition-level invariant 1c), a suspended entry having none — the auditor's own reading compared to a constituent's stamp only under the allowance.
 
 Term residual finding: an unreconciled finding older than the audit edge — the conformance failure Check 2 reports, and Check 5.15 for a divergence.
 

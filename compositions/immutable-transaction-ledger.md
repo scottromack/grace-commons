@@ -563,7 +563,7 @@ Term reconciliation: the leg the composition runs outside every invocation, besi
 
 Term young record: an accounting record whose disclosure instant stands within the act kind's window end of the reconciliation's now — a record whose invocation the sweep may still be closing. The edge is read from the disclosure instant; a record whose intent landed later than the edge allows is read with that intent already visible (Reconciliation 34), so the edge decides no finding.
 
-Term aged record: an accounting record for which the reconciliation's now DOES NOT PRECEDE `disclosure instant + audit horizon − 2 × clock offset allowance − reconciliation run bound`. A record written outside the composition with an instant already past the horizon is aged on arrival and never examined; Check 1.2 is where it shows, as a conformance failure (Composes 11).
+Term aged record: an accounting record for which the reconciliation's now DOES NOT PRECEDE `(((disclosure instant + audit horizon) - (2 * clock offset allowance)) - reconciliation run bound)`. A record written outside the composition with an instant already past the horizon is aged on arrival and never examined; Check 1.2 is where it shows, as a conformance failure (Composes 11).
 
 Term orphan record: an accounting record no outcome event names and no binding names, neither young nor aged.
 

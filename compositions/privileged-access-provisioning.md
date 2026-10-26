@@ -176,7 +176,7 @@ Term audit pending list: a request record's list of pending entries, empty by de
 
 Term pending entry: an open record owed on a request — an initiation entry, an exercise entry, an evaluation entry, a denial-reason entry, or the owed record of a committed act.
 
-Term aged event: an event whose `recording instant + audit horizon` PRECEDES now — past which the event's payload may be lawfully destroyed.
+Term aged event: an event whose `(recording instant + audit horizon)` PRECEDES now — past which the event's payload may be lawfully destroyed.
 
 Term quiescence: a state in which no invocation is in flight and no pending entry is open.
 
@@ -231,7 +231,7 @@ Term approver set minimum: the smallest approver set a chain may carry; 2 where 
 
 Term audit horizon: the retention horizon of the policy the audit substrate is configured with.
 
-Term retention floor: `longest token lifetime + provisioning proof period`.
+Term retention floor: `(longest token lifetime + provisioning proof period)`.
 
 Term longest token lifetime: the longest time-to-live the deployment admits for a token.
 
@@ -249,7 +249,7 @@ Term now: the wall-time reading the host injects at the seam, once per invocatio
 
 Term invocation id: the fresh id the host injects at the seam for each state-changing invocation, carried on every event and pending entry the invocation writes.
 
-Term remaining ttl: `expiry instant − now`, the time-to-live the cascade passes to allocate.
+Term remaining ttl: `(expiry instant - now)`, the time-to-live the cascade passes to allocate.
 
 ### Primitive policy
 

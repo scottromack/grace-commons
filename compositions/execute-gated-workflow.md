@@ -212,7 +212,7 @@ Term reconciliation cadence: the interval between the sweep's runs — `reconcil
 
 Term record write latency: the deployment's disclosed bound on one audit write landing — `record_write_latency`.
 
-Term liveness sum: `completion bound + reconciliation cadence + record write latency`.
+Term liveness sum: `((completion bound + reconciliation cadence) + record write latency)`.
 
 Term service identity: the composition's registered actor reference and credential — `application_actor_ref` and `application_credential` — under which the composition attests every write no present human's invocation owns.
 

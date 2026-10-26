@@ -224,7 +224,7 @@ Term outcome write latency: the deployment's disclosed bound on one audit write 
 
 Term administration completion bound: the longest a [Record Consent] or [Withdraw Consent] invocation may run from its seam reading to its last audit write.
 
-Term liveness sum: `administration completion bound + reconciliation cadence + outcome write latency`.
+Term liveness sum: `((administration completion bound + reconciliation cadence) + outcome write latency)`.
 
 Term field length cap: the byte length no payload string may exceed.
 
@@ -571,7 +571,7 @@ Term grant skew: the absolute difference between a grant intent's intent instant
 
 Term grant instant: the instant Consent stamps on a record at its grant write, at Consent's own seam — granted_at.
 
-Term pairing window: `administration completion bound + clock offset allowance`.
+Term pairing window: `(administration completion bound + clock offset allowance)`.
 
 Term candidate count: how many intents Reconciliation 10 or 17 pairs to one orphan.
 
@@ -639,7 +639,7 @@ These emerge from the composition; none belongs to one constituent, and each nee
   ```
   Term event's boundary: the position in the Event Log of the intent the event's intent reference names — the earliest where it names candidates.
 
-  Term surfacing bound: `revocation instant + administration completion bound + reconciliation cadence`.
+  Term surfacing bound: `((revocation instant + administration completion bound) + reconciliation cadence)`.
 
   Term paired unpropagated record: an unpropagated record that is not an unpaired record.
 
@@ -788,7 +788,7 @@ Term propagation history purged: an aged revoked Consent record carrying no prop
 
 Term write-ownership finding: a Consent record no intent pairs — a direct write against a reserved surface (Composes 11 and 12).
 
-Term widened window: `compensation window + clock offset allowance` from the record's revocation instant to the compensating event's recording instant — two seams' stamps.
+Term widened window: `(compensation window + clock offset allowance)` from the record's revocation instant to the compensating event's recording instant — two seams' stamps.
 
 ### External checks
 

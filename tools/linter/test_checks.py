@@ -1694,15 +1694,17 @@ def check_rule_symbol_synthetic(problems: list[str]) -> int:
 
 def check_inline_arithmetic_synthetic(problems: list[str]) -> int:
     """A-arith and D-rule-symbol (tools/grace/check.py) — inline arithmetic
-    admitted as sugar at GRACE-lang v0.66 (Sugar 4 through 10, Hard invariant
-    24): `+`, `-`, `*` and `/` inside one pair of parentheses stay silent, a
-    parenthesized citation and an outcome's hyphen are no arithmetic, and
-    arithmetic outside a pair, a nested pair, a function, another symbol and a
-    clock fire. Returns the fixture count."""
+    admitted as sugar at GRACE-lang v0.66, one operator a pair from v0.68
+    (Sugar 4 through 12, Hard invariant 24, Hard invariant 36): one of `+`,
+    `-` and `*` between two operands inside one pair of parentheses stays
+    silent, `×` read as `*`, a parenthesized citation and an outcome's hyphen
+    are no arithmetic, and arithmetic outside a pair, a nested pair, a
+    function, a second operator, a division, a negative literal, another
+    symbol and a clock fire. Returns the fixture count."""
     import tempfile
     sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "grace"))
     from check import scan  # noqa: E402
-    head = ("Term qualifiers: migrated — rewritten in GRACE lang v0.66 (2026-10-23).\n\n"
+    head = ("Term qualifiers: migrated — rewritten in GRACE lang v0.68 (2026-10-26).\n\n"
             "Term record verbs: answer, read, write.\n\n## Structure\n\n### Operations\n\n")
     def run(rule: str):
         with tempfile.TemporaryDirectory() as d:
@@ -1713,8 +1715,7 @@ def check_inline_arithmetic_synthetic(problems: list[str]) -> int:
     silent = [
         ("a difference", "Operation 1: A call MUST write balance set to (balance - input)."),
         ("a product", "Operation 1: A call MUST write total set to (unit price * quantity)."),
-        ("a quotient", "Operation 1: A call MUST write share set to (amount / 2)."),
-        ("three operands", "Operation 1: A call MUST write total set to (subtotal + tax - discount)."),
+        ("a product written ×", "Operation 1: A call MUST write total set to (unit price × quantity)."),
         ("in a condition", "Operation 1: IF (spent + input) EXCEEDS the cap THEN a call MUST answer over-cap."),
         ("a citation", "Operation 1: A call MUST read the store (Execution Contract Read 4)."),
         ("an outcome's hyphen", "Operation 1: A call MUST answer recording-failure(step-2)."),
@@ -1724,7 +1725,10 @@ def check_inline_arithmetic_synthetic(problems: list[str]) -> int:
         ("an asterisk outside a pair", "Operation 1: A call MUST write total set to unit price * quantity."),
         ("a nested pair", "Operation 1: A call MUST write fee set to ((balance - input) * rate)."),
         ("a function", "Operation 1: A call MUST write deadline set to (max(a, b) + grace)."),
-        ("another symbol", "Operation 1: A call MUST write total set to (unit price × quantity)."),
+        ("a second operator", "Operation 1: A call MUST write total set to (subtotal + tax - discount)."),
+        ("a quotient", "Operation 1: A call MUST write share set to (amount / 2)."),
+        ("a negative literal", "Operation 1: A call MUST write balance set to (balance + -1)."),
+        ("another symbol", "Operation 1: A call MUST write balance set to (balance − input)."),
         ("an operator with no spaces", "Operation 1: A call MUST write share set to (amount/2)."),
         ("a clock", "Operation 1: A call MUST write age set to (the clock reading - placed at)."),
     ]
@@ -1735,6 +1739,58 @@ def check_inline_arithmetic_synthetic(problems: list[str]) -> int:
     for name, rule in firing:
         if not run(rule):
             problems.append(f"inline arithmetic: {name} did not fire")
+    return len(silent) + len(firing)
+
+
+def check_declared_arithmetic_synthetic(problems: list[str]) -> int:
+    """A-decl-arith (tools/grace/check.py) — declared arithmetic at GRACE-lang
+    v0.68 (Closed vocabulary 31 through 34, Hard invariant 35 through 37):
+    every operator in a pair of its own, pairs nested, a function enclosing
+    such arithmetic, a division naming its rounding, a parenthesized product
+    in prose, a comparison beside the arithmetic, `×` read as `*`, a quoted
+    template and a codepoint stay silent; an operator outside a pair, two in
+    one pair, a function's bare operator, a division naming no rounding, a
+    negative literal, another symbol and an operator beside one operand fire.
+    Returns the fixture count."""
+    import tempfile
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "grace"))
+    from check import scan  # noqa: E402
+    head = ("Term qualifiers: migrated — rewritten in GRACE lang v0.68 (2026-10-26).\n\n"
+            "Term record verbs: answer, read, write.\n\n## Structure\n\n")
+    def run(decl: str):
+        with tempfile.TemporaryDirectory() as d:
+            f = Path(d) / "atoms" / "synthetic.md"
+            f.parent.mkdir()
+            f.write_text(head + decl + "\n", encoding="utf-8")
+            return [x for x in scan(f) if x.code == "A-decl-arith"]
+    silent = [
+        ("one operator", "Term window end: `(issued_at + duration)`."),
+        ("nested pairs", "Term closure spend: `((read_bound + (2 * write_bound)) - margin)`."),
+        ("a function", "Term hold bound: `max(completion_bound, (closure_latency + write_bound))`."),
+        ("a division and its rounding", "Term average: `(total / count)`, rounded down."),
+        ("a product in prose", "Term total: the sum, over every line, of (quantity * unit price)."),
+        ("a comparison", "Term lost vectors: `(r + w) ≥ 1`."),
+        ("a product written ×", "Term read spend: `(2 × read_bound)`."),
+        ("a template", 'Term reason: `"trigger:" + trigger_type`.'),
+        ("a codepoint", "Term zero-width character: a codepoint in `U+200B` to `U+200D`."),
+    ]
+    firing = [
+        ("outside a pair", "Term window end: `issued_at + duration`."),
+        ("two in one pair", "Term window end: `(issued_at + duration + margin)`."),
+        ("a function's bare operator", "Term hold bound: `max(completion_bound, closure_latency + write_bound)`."),
+        ("a division naming no rounding", "Term average: `(total / count)`."),
+        ("a negative literal", "Term floor: `(balance + -1)`."),
+        ("another symbol", "Term available: `(capacity − allocated)`."),
+        ("one operand", "Term aged instant: an instant that `(+ audit horizon)` PRECEDES now."),
+        ("two in a prose pair", "Term total: the sum of (quantity * unit price + tax)."),
+    ]
+    for name, decl in silent:
+        got = run(decl)
+        if got:
+            problems.append(f"declared arithmetic: fired on {name}: {got[0].message}")
+    for name, decl in firing:
+        if not run(decl):
+            problems.append(f"declared arithmetic: {name} did not fire")
     return len(silent) + len(firing)
 
 
@@ -2493,9 +2549,20 @@ def main(argv: list[str]) -> int:
     failures.extend(arith_problems)
     if not arith_problems:
         print(f"inline arithmetic: {n_arith} synthetic fixtures hold (a difference, a product, a "
-              "quotient, three operands and a condition inside one pair, a citation and an outcome's "
+              "product written \u00d7 and a condition inside one pair, a citation and an outcome's "
               "hyphen silent; arithmetic and an asterisk outside a pair, a nested pair, a function, "
-              "another symbol, an operator with no spaces and a clock fire) \u2713")
+              "a second operator, a quotient, a negative literal, another symbol, an operator with "
+              "no spaces and a clock fire) \u2713")
+
+    decl_arith_problems: list[str] = []
+    n_decl_arith = check_declared_arithmetic_synthetic(decl_arith_problems)
+    failures.extend(decl_arith_problems)
+    if not decl_arith_problems:
+        print(f"declared arithmetic: {n_decl_arith} synthetic fixtures hold (one operator, nested "
+              "pairs, a function, a division and its rounding, a product in prose, a comparison, a "
+              "product written \u00d7, a template and a codepoint silent; an operator outside a pair, "
+              "two in one pair, a function's bare operator, a division naming no rounding, a "
+              "negative literal, another symbol, one operand and two in a prose pair fire) \u2713")
 
     ge_problems: list[str] = []
     n_ge = check_ge_form_synthetic(ge_problems)

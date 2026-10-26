@@ -161,7 +161,7 @@ Term custody reconciliation cadence: the interval between the reconciliation's r
 
 Term outcome write latency: the deployment's disclosed bound on one audit write landing.
 
-Term liveness sum: `custody completion bound + custody reconciliation cadence + outcome write latency`.
+Term liveness sum: `((custody completion bound + custody reconciliation cadence) + outcome write latency)`.
 
 Term recovery identity: a deployment-provisioned actor reference and credential under which the reconciliation attests every write it makes.
 
@@ -455,7 +455,7 @@ Reconciliation 28: The reconciliation MUST escalate EVERY overdue orphan as an u
 
 Term reconciliation: the leg the composition runs outside every invocation, whose output — a bound orphan or an escalation — an auditor awaits within the custody compensation window.
 
-Term aged intent: an intent whose `recording instant + audit horizon` PRECEDES the reconciliation's now.
+Term aged intent: an intent whose `(recording instant + audit horizon)` PRECEDES the reconciliation's now.
 
 Term unmatched intent: an intent no outcome event names by intent event id or among its intent candidates.
 
@@ -473,7 +473,7 @@ Term intent reference: the intent event id where one intent realizes the entry, 
 
 Term compensating event: an outcome event the reconciliation records under the recovery identity.
 
-Term overdue orphan: an orphan entry whose intent's `recording instant + custody compensation window` PRECEDES the reconciliation's now.
+Term overdue orphan: an orphan entry whose intent's `(recording instant + custody compensation window)` PRECEDES the reconciliation's now.
 
 ### Verdict
 

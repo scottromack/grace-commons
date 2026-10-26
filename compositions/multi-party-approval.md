@@ -206,7 +206,7 @@ Term reconciliation cadence: the interval between the sweep's runs, beside the r
 
 Term outcome write latency: the deployment's disclosed bound on one audit write landing.
 
-Term liveness sum: `decision completion bound + reconciliation cadence + outcome write latency`.
+Term liveness sum: `((decision completion bound + reconciliation cadence) + outcome write latency)`.
 
 Term service identity: the composition's registered actor reference and credential — `application_actor_ref` and `application_credential` — under which the composition attests every write no present human caused.
 
@@ -512,7 +512,7 @@ Wiring decision 8: The composition MUST mark EVERY out-of-band transition's step
 Wiring decision 9: A rule reason MUST name the firing arm AND the counts.
 ```
 
-Term routed vector: the counts (A, R, W, P) over a chain's step list — A the steps Approved by a routed transition, R Rejected by one, W Withdrawn by one, a routed transition whose decision intent carries the trailing flag as true counting in none of the three, and P `= N − A − R − W`, where N is the approver set's count.
+Term routed vector: the counts (A, R, W, P) over a chain's step list — A the steps Approved by a routed transition, R Rejected by one, W Withdrawn by one, a routed transition whose decision intent carries the trailing flag as true counting in none of the three, and P `= (((N - A) - R) - W)`, where N is the approver set's count.
 
 Term approved count: A.
 
@@ -522,7 +522,7 @@ Term withdrawn count: W.
 
 Term met vectors: under [All Of N], `A = N`; under [M Of N], `A ≥ M`; [One Of N] is [M Of N] with M one.
 
-Term lost vectors: under [All Of N], `R + W ≥ 1`; under [M Of N], `N − R − W < M`.
+Term lost vectors: under [All Of N], `(R + W) ≥ 1`; under [M Of N], `((N - R) - W) < M`.
 
 Term open vectors: the vectors neither met nor lost.
 

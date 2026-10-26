@@ -118,7 +118,7 @@ Term onboarding completion bound: the deployment's declared maximum for an [Onbo
 
 Term clock offset allowance: the deployment's declared bound on the difference between this composition's seam clock and the clocks at Invitation's, Party Identity's, Credential's and the substrate's seams.
 
-Term widened bound: `onboarding completion bound + clock offset allowance` — the age past which an arc may be read as stopped.
+Term widened bound: `(onboarding completion bound + clock offset allowance)` — the age past which an arc may be read as stopped.
 
 Term audit horizon: the horizon of the retention policy the wired Audit Trail instance places every onboarding event under — the upper edge of the resume arm and of every trail-walking check.
 
@@ -300,7 +300,7 @@ Term arc: one onboarding of one invitation token from the acceptance to the comp
 
 Term fresh arc: an admitted onboard whose accept Invitation answered accepted.
 
-Term resumable acceptance: an accepted invitation carrying the call's accepting identity reference whose `acceptance instant + widened bound` PRECEDES now.
+Term resumable acceptance: an accepted invitation carrying the call's accepting identity reference whose `(acceptance instant + widened bound)` PRECEDES now.
 
 Term stage reading: the resume arm's establishment of an arc's stage and party from the trail and the Party Identity records, Resume 4 through 23.
 
@@ -394,13 +394,13 @@ Resume 48: IF Audit Trail answers invalid-request carrying a step below step-4 a
 
 Term resume arm: the [Onboard] path a resumable acceptance takes — a caller-authenticated re-entry of an arc that stopped after the arc's gate cleared, one resumer per token.
 
-Term aged acceptance: an accepted invitation whose `acceptance instant + audit horizon − clock offset allowance` PRECEDES now — an arc whose events may have been lawfully destroyed.
+Term aged acceptance: an accepted invitation whose `((acceptance instant + audit horizon) - clock offset allowance)` PRECEDES now — an arc whose events may have been lawfully destroyed.
 
 Term outcome record: a completion record or an interruption record.
 
-Term young resume record: the token's latest resume record, followed by no completion record and no interruption record, whose `recording instant + widened bound` DOES NOT PRECEDE now.
+Term young resume record: the token's latest resume record, followed by no completion record and no interruption record, whose `(recording instant + widened bound)` DOES NOT PRECEDE now.
 
-Term dead resume record: the token's latest resume record, followed by no completion record and no interruption record, whose `recording instant + widened bound` PRECEDES now.
+Term dead resume record: the token's latest resume record, followed by no completion record and no interruption record, whose `(recording instant + widened bound)` PRECEDES now.
 
 Term stage: acceptance-unrecorded | unrecorded | party-enrollment | credential-registration — where the resume arm finds the arc stopped: the acceptance record never landed; the acceptance landed and nothing after it says where the arc stopped; or the stage an interruption record names.
 
@@ -408,7 +408,7 @@ Term arc's recorded documents: the document type and document reference pair on 
 
 Term document pair: a document type with the document reference beside it.
 
-Term arc's window union: one window per anchor — the anchors being the invitation's acceptance instant and the recording instant of every resume record for the token — each from `anchor − clock offset allowance` to `anchor + widened bound`, both ends included; one read from the earliest lower edge to the latest upper edge is a superset of the union and serves.
+Term arc's window union: one window per anchor — the anchors being the invitation's acceptance instant and the recording instant of every resume record for the token — each from `(anchor - clock offset allowance)` to `(anchor + widened bound)`, both ends included; one read from the earliest lower edge to the latest upper edge is a superset of the union and serves.
 
 Term arc's actor set: the actor references of the token's acceptance record and resume records and, where the acceptance record is absent, of the token's accept attempts.
 
@@ -611,7 +611,7 @@ Standing rule 8: An auditor MUST join records on the invitation token.
 Standing rule 9: An auditor MUST NOT pair an attempt record with an outcome.
 ```
 
-Term arcs inside the horizon: the invitations whose `acceptance instant + audit horizon − clock offset allowance` — or, for an invitation never accepted, whose `initiation instant + audit horizon − clock offset allowance` DOES NOT PRECEDE the auditor's now — the membership test for an Invitation record under Standing rule 5.
+Term arcs inside the horizon: the invitations whose `((acceptance instant + audit horizon) - clock offset allowance)` — or, for an invitation never accepted, whose `((initiation instant + audit horizon) - clock offset allowance)` DOES NOT PRECEDE the auditor's now — the membership test for an Invitation record under Standing rule 5.
 
 ---
 

@@ -406,9 +406,9 @@ Term intent reference: the original intent's event id, or the candidate intents 
 
 Term recovery flag: cascade_recovery set to true — the payload field that tells a reader a compensating event from a clean one.
 
-Term consumed count: `max redemptions − remaining redemptions` for one capability, read through Capability's read.
+Term consumed count: `(max redemptions - remaining redemptions)` for one capability, read through Capability's read.
 
-Term remainder: `consumed count − disclosure events − pending markers − unfulfilled events` for one capability — the consumed uses left unlanded.
+Term remainder: `(((consumed count - disclosure events) - pending markers) - unfulfilled events)` for one capability — the consumed uses left unlanded.
 
 Term pairing window: from an authorization intent's recording instant to the end of the compensation window measured from the same instant.
 
@@ -416,9 +416,9 @@ Term candidate reading: none | sole | several — how many capabilities an autho
 
 Term partial: an allocated capability with no authorization event, a pending marker, a remainder, or an unmatched intent.
 
-Term overdue partial: a partial whose first record's `recording instant + compensation window` PRECEDES now.
+Term overdue partial: a partial whose first record's `(recording instant + compensation window)` PRECEDES now.
 
-Term aged event: an event whose `recording instant + audit horizon` PRECEDES now — past which the event's payload may be lawfully destroyed.
+Term aged event: an event whose `(recording instant + audit horizon)` PRECEDES now — past which the event's payload may be lawfully destroyed.
 
 Term substrate partial: the orphan attestation a substrate failure at the substrate's append leaves, or the unretained event a failure at the substrate's retention placement leaves — the substrate's own reconciliation's.
 

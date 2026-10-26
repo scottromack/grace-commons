@@ -85,15 +85,15 @@ Term retention state: retained | purged — under obligation, or ended by a purg
 
 Term retention instant: the instant the retention was placed, stamped from the injected now — a [Retention Instant].
 
-Term retention deadline: `retained_at + duration`, rounded up to the time resolution — a [Retention Deadline]; the instant the obligation ends.
+Term retention deadline: `(retained_at + duration)`, rounded up to the time resolution — a [Retention Deadline]; the instant the obligation ends.
 
-Term purge deadline: `retention_until + max_purge_delay`, rounded up to the time resolution — a [Purge Deadline]; the latest the regulator expects destruction.
+Term purge deadline: `(retention_until + max_purge_delay)`, rounded up to the time resolution — a [Purge Deadline]; the latest the regulator expects destruction.
 
 Term purge instant: the instant the purge was recorded, stamped from the injected now — a [Purge Instant].
 
-Term overshoot: `purged_at - purge_deadline` where positive, for a purged retention — an [Overshoot]; a reader derives it, the atom does not store it and [Read] does not answer it.
+Term overshoot: `(purged_at - purge_deadline)` where positive, for a purged retention — an [Overshoot]; a reader derives it, the atom does not store it and [Read] does not answer it.
 
-Term active overdue: `now - purge_deadline` where positive, for a retained retention — an [Active Overdue]; a reader derives it, the atom does not store it and [Read] does not answer it.
+Term active overdue: `(now - purge_deadline)` where positive, for a retained retention — an [Active Overdue]; a reader derives it, the atom does not store it and [Read] does not answer it.
 
 Term duration: the retention period the policy carries, resolved to an elapsed length at the seam (Operation 24a) — a [Duration]; positive.
 

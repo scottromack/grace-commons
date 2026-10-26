@@ -8,7 +8,8 @@ fence classification (Surface 18, Surface 19) and signature blocks (Surface 20),
 and tombstone reuse (Hard invariant 25, Hard invariant 27), the rule form and the statement shapes (Rule shape 1, Rule shape 2,
 Rule shape 6, Hard invariant 2, Hard invariant 3), WHEN blocks (WHEN block 3, Hard invariant 6), mixed AND/OR and OR outside a condition (Hard invariant 7,
 Hard invariant 8), BEFORE and AFTER outside their admitted places (Hard invariant 9 through 11), the banned
-words (Timing 10, Timing 11), arithmetic in a rule outside an arithmetic expression (Hard invariant 24, Sugar 4 through 10), pronouns (Hard invariant 4), the copula after
+words (Timing 10, Timing 11), arithmetic in a rule outside an arithmetic expression (Hard invariant 24, Sugar 4 through 12),
+arithmetic in a declaration outside declared arithmetic (Hard invariant 35 through 37, Closed vocabulary 31 through 34), pronouns (Hard invariant 4), the copula after
 a modal (Closed vocabulary 8, Closed vocabulary 14), the record verb after the modal against the declared
 vocabulary (Closed vocabulary 8), a declared term nothing uses, and a cross-rule reference to a
 label no rule carries (Hard invariant 12).
@@ -316,16 +317,21 @@ SOFT_MODAL = re.compile(r"\b(can|could|would|should|might)\b")
 # comparison in an IF is a condition the normalizer cannot read (council read 26).
 COND_ENGLISH = re.compile(r"^IF .*?\b(is not|is no|are not|does not|do not|is a|are a|is negative|is positive|is zero)\b.*? THEN ")
 ARITH = re.compile(r"[+×−]|\s-\s")
-# Inline arithmetic (GRACE-lang v0.66, Sugar 4 through 10): a rule may carry
-# `+`, `-`, `*` and `/`, a space on each side, over declared fields, declared
-# terms and numbers, inside one pair of parentheses that holds no other pair,
-# reading no clock. A-arith and D-rule-symbol read the rule with each
-# parenthesized group that carries arithmetic taken out, so only arithmetic
-# outside a pair is theirs; a group in any other shape is A-arith here.
+# Inline arithmetic (GRACE-lang v0.66, Sugar 4 through 12; one operator from
+# v0.68): a rule may carry one of `+`, `-` and `*`, a space on each side,
+# between two operands — declared fields, declared terms and numbers, never a
+# negative literal — inside one pair of parentheses that holds no other pair,
+# reading no clock; `×` reads as `*` (Sugar 12), and a division belongs in a
+# declaration (Closed vocabulary 33). A-arith and D-rule-symbol read the rule
+# with each parenthesized group that carries arithmetic taken out, so only
+# arithmetic outside a pair is theirs; a group in any other shape is A-arith here.
 ARITH_GROUP = re.compile(r"[+*/×÷−]| - ")
 _ARITH_WORD = r"[\w'’.]+(?:-[\w'’.]+)*"
 _ARITH_OPERAND = _ARITH_WORD + r"(?: " + _ARITH_WORD + r")*"
-ARITH_EXPRESSION = re.compile(r"^" + _ARITH_OPERAND + r"(?: [-+*/] " + _ARITH_OPERAND + r")+$")
+ARITH_EXPRESSION = re.compile(r"^" + _ARITH_OPERAND + r" [-+*×] " + _ARITH_OPERAND + r"$")
+ARITH_OPERATOR = re.compile(r" [-+*×] ")
+ARITH_DIVISION = re.compile(r"[/÷]")
+NEGATIVE_LITERAL = re.compile(r"(?:^|[\s(,])[-−]\d")
 ARITH_CLOCK = re.compile(r"\bclocks?\b")
 
 
@@ -349,9 +355,18 @@ def inline_arithmetic(text: str) -> tuple[str, list[str]]:
             if "(" in group:
                 why.append(f"'({group})' nests a pair of parentheses; name a term "
                            f"(Sugar 5, Closed vocabulary 9)")
+            elif ARITH_DIVISION.search(group):
+                why.append(f"'({group})' divides; a division belongs in a declaration, which names "
+                           f"the division's rounding (Closed vocabulary 33, Hard invariant 36)")
+            elif NEGATIVE_LITERAL.search(group):
+                why.append(f"'({group})' carries a negative literal; declare the negative constant "
+                           f"as a term (Closed vocabulary 34)")
+            elif len(ARITH_OPERATOR.findall(group)) > 1:
+                why.append(f"'({group})' carries more than one operator; name a term "
+                           f"(Sugar 11, Hard invariant 24, Closed vocabulary 9)")
             elif not ARITH_EXPRESSION.match(group):
-                why.append(f"'({group})' is no arithmetic expression: operands joined by `+`, `-`, "
-                           f"`*` or `/`, a space on each side (Term arithmetic expression)")
+                why.append(f"'({group})' is no arithmetic expression: two operands joined by one of "
+                           f"`+`, `-` and `*`, a space on each side (Term arithmetic expression)")
             elif ARITH_CLOCK.search(group):
                 why.append(f"'({group})' reads a clock (Sugar 6)")
     kept.append(text[last:])
@@ -453,9 +468,87 @@ ADVISORY = {"W-or-word", "W-watch-word", "W-term-unused", "W-lowercase-after",
 # A declaration may carry arithmetic and comparison where a rule carries only an
 # arithmetic expression (Closed vocabulary 9, Closed vocabulary 11) — which is
 # where complexity goes when a rule cannot hold it, and the one place nothing read it.
-DECL_ARITH = re.compile(r"[−+×÷]|\bmax\(|\bmin\(")
+DECL_ARITH = re.compile(r"[−+×÷]|(?<= )[-*/](?= )|\bmax\(|\bmin\(")
 DECL_TOKEN = re.compile(r"[a-z_][a-z0-9_]*")
 DECL_SKIP = {"max", "min", "of", "the", "a", "an", "and", "or", "per", "less", "true", "false"}
+# Declared arithmetic (GRACE-lang v0.68, Closed vocabulary 31 through 34, Hard
+# invariant 35 through 37): in a definition every operator sits with its two
+# operands inside its own pair of parentheses, a single one included, and a
+# pair may hold another; a function such as max takes such arithmetic as an
+# argument; a division names its rounding; no operand is a negative literal;
+# `×` reads as `*`. Read in each code span of a definition that carries an
+# operator and in each parenthesized group of its prose that does; a code span
+# holding a quoted string is a template, and `U+200B` names a codepoint.
+DECL_OPERATOR = re.compile(r"[+×÷−]|(?<= )[-*/](?= )")
+DECL_SYMBOL = {"÷": "/", "−": "-"}
+ROUNDING = re.compile(r"\brounded (?:down|up|to nearest with ties to even)\b")
+CODEPOINT = re.compile(r"^U\+[0-9A-F]{4,6}$")
+
+
+def operators_placed(text: str) -> list[str]:
+    """Why the operators in `text` leave declared arithmetic: an operator
+    outside a pair of its own, a pair holding two, an operator short of an
+    operand, a symbol beside the four."""
+    why: list[str] = []
+    frames: list[tuple[str, int, list[int]]] = [("outside", -1, [])]
+    for i, ch in enumerate(text):
+        if ch == "(":
+            call = i > 0 and (text[i - 1].isalnum() or text[i - 1] == "_")
+            frames.append(("call" if call else "pair", i, []))
+        elif ch == ")" and len(frames) > 1:
+            kind, start, ops = frames.pop()
+            group = text[start:i + 1]
+            if kind == "pair" and len(ops) > 1:
+                why.append(f"'{group}' holds {len(ops)} operators in one pair; give each operator "
+                           f"a pair of its own (Closed vocabulary 31, Hard invariant 35)")
+            elif kind == "pair" and ops and not (text[start + 1:ops[0]].strip() and text[ops[0] + 1:i].strip()):
+                why.append(f"'{group}' sets an operator beside one operand (Term declared arithmetic)")
+        elif DECL_OPERATOR.match(text, i):
+            frames[-1][2].append(i)
+            if frames[-1][0] != "pair":
+                why.append(f"`{ch}` sits outside a pair of parentheses of its own "
+                           f"(Closed vocabulary 31, Hard invariant 35)")
+            if ch in DECL_SYMBOL:
+                why.append(f"`{ch}` is no arithmetic operator; write `{DECL_SYMBOL[ch]}` "
+                           f"(Term arithmetic operator)")
+    return why
+
+
+def declared_arithmetic(body: str) -> list[str]:
+    """Why a definition's arithmetic is no declared arithmetic."""
+    pieces = []
+    for span in CODE_SPAN.findall(body):
+        span = span[1:-1]
+        if '"' in span or CODEPOINT.match(span) or span.strip() in ("+", "-", "*", "/", "×", "÷", "−"):
+            continue
+        if DECL_OPERATOR.search(span):
+            pieces.append(span)
+    prose = re.sub(r'"[^"]*"', " ", CODE_SPAN.sub(" ", body))
+    depth = start = 0
+    for i, ch in enumerate(prose):
+        if ch == "(":
+            if depth == 0:
+                start = i
+                # a call's name belongs to the call: max(a, (b + c))
+                while start and (prose[start - 1].isalnum() or prose[start - 1] == "_"):
+                    start -= 1
+            depth += 1
+        elif ch == ")" and depth:
+            depth -= 1
+            if depth == 0 and DECL_OPERATOR.search(prose[start:i + 1]):
+                pieces.append(prose[start:i + 1])
+    why: list[str] = []
+    divides = False
+    for piece in pieces:
+        why.extend(operators_placed(piece))
+        if NEGATIVE_LITERAL.search(piece):
+            why.append(f"'{piece}' carries a negative literal; declare the negative constant as a "
+                       f"term (Closed vocabulary 34)")
+        divides = divides or bool(re.search(r"(?<= )/(?= )|÷", piece))
+    if divides and not ROUNDING.search(body):
+        why.append("a division naming no rounding; name rounded down, rounded up or rounded to "
+                   "nearest with ties to even after the division (Closed vocabulary 32, Hard invariant 37)")
+    return why
 # the reserved grammar verbs a modal may take: an ordering claim is a grammar
 # claim, not a record verb the specification declares (council read 146)
 RESERVED_VERBS = {"EXCEED", "PRECEDE"}
@@ -1264,6 +1357,14 @@ def scan(path: Path) -> list[Finding]:
                     add(k, "D-decl-unresolved",
                         f"`Term {name}` computes over `{ident}`, which this spec declares nowhere "
                         f"(Closed vocabulary 4)")
+    # declared arithmetic, on every declaration but a vocabulary line, which
+    # lists names (`Term terms: ... who / what / when`)
+    for k, line in enumerate(lines, start=1):
+        m = TERM_DECL.match(line)
+        if not m or m.group(1) in VOCABULARY_CATEGORIES:
+            continue
+        for why in declared_arithmetic(m.group(2)):
+            add(k, "A-decl-arith", f"`Term {m.group(1)}`: {why}")
 
     refusal_codes = {re.sub(r"\(.*", "", arm).strip() for ln in lines if ln.startswith("  refuses ")
                      for arm in ln[len("  refuses "):].split("|")}

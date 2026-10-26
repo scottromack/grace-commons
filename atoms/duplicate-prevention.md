@@ -57,7 +57,7 @@ Term recording instant: the instant an identity was placed under guard, stamped 
 
 Term window duration: the length a containing pattern chooses for a guard — a [Window Duration]; the value the elapsed term is measured against. The [Window] the length sizes is the interval, and carries no separate name in a rule.
 
-Term elapsed term: `now − recorded_at`.
+Term elapsed term: `(now - recorded_at)`.
 
 Term under guard: an identity in the recorded set whose elapsed term is less than window duration — the state [Check] answers seen for.
 
