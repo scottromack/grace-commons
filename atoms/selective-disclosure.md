@@ -31,7 +31,7 @@ A few questions need other patterns to answer — whether a referenced consent w
 ## Intent
 
 WHY:
-Regulated systems handling personal data, financial records or protected health information must keep a complete and durable account of every disclosure made — what was shared, with whom, under what legal authority, and when. A GDPR (EU General Data Protection Regulation) supervisory authority conducting an Article 15 review asks what was disclosed to which recipients. An HHS OCR (Office for Civil Rights) inspector validating HIPAA (US Health Insurance Portability and Accountability Act) compliance asks for the accounting of disclosures section 164.528 requires. An SEC (Securities and Exchange Commission) examiner reviewing broker-dealer records asks for the disclosure trail Rule 17a-4 mandates. The obligation is the same across all three: answer provably, without developer testimony, log reconstruction or institutional memory.
+Regulated systems handling personal data, financial records or protected health information must keep a complete and durable account of every disclosure made — what was shared, with whom, under what legal authority, and when. A GDPR (the European Union's General Data Protection Regulation) supervisory authority conducting an Article 15 review asks what was disclosed to which recipients. An HHS (US Department of Health and Human Services) OCR (Office for Civil Rights) inspector validating HIPAA (US Health Insurance Portability and Accountability Act) compliance asks for the accounting of disclosures section 164.528 requires. An SEC (Securities and Exchange Commission) examiner reviewing broker-dealer records asks for the disclosure trail Rule 17a-4 mandates. The obligation is the same across all three: answer provably, without developer testimony, log reconstruction or institutional memory.
 
 This atom is the accountability layer that makes those answers possible, and the line it holds is between *recording* and *performing*. An atom that also performed disclosures — retrieving subject data, applying redaction, routing to recipients — would absorb concepts from storage layers, redaction engines and notification systems, each with its own state, its own invariants and its own composing pattern. Absorbing them destroys freestanding status and produces a spec that cannot be composed independently of the technologies it would have to name. The atom specifies the accountability obligation; the implementation specifies the mechanics of delivery.
 
@@ -75,7 +75,7 @@ Term scope: the opaque string naming what subset of the subject's data was discl
 
 Term database instance: one named database a call is routed to; disclosure id uniqueness ranges over one instance.
 
-Term seam: the atom's I/O boundary as the section titled Logic Confinement Principle in `execution-contract.md` declares it; the host injects the clock reading and the disclosure id here.
+Term seam: the atom's I/O (input and output) boundary as the section titled Logic Confinement Principle in `execution-contract.md` declares it; the host injects the clock reading and the disclosure id here.
 
 Term transition: the atom's evaluation of one call against the disclosure records, as the section titled Logic Confinement Principle in `execution-contract.md` declares it.
 
@@ -247,7 +247,7 @@ A communicable-disease report goes to a state health department under a reportin
 
 ### Legal-Hold-compelled disclosure to an investigator
 
-`record("patient-88213", "OIG Investigator R. Alvarez", "medical-record:billing-2025", {type: legal-hold, reference: "hold-2026-0142"})` → `recorded("01HQ4A...")`, with the host injecting `now: 2026-03-04T16:40:00Z`. The hold id is an opaque pointer; whether the hold was active is [Legal Hold](./legal-hold.md)'s record and not this atom's guard (Non-goal 9).
+`record("patient-88213", "Office of Inspector General — Investigator R. Alvarez", "medical-record:billing-2025", {type: legal-hold, reference: "hold-2026-0142"})` → `recorded("01HQ4A...")`, with the host injecting `now: 2026-03-04T16:40:00Z`. The hold id is an opaque pointer; whether the hold was active is [Legal Hold](./legal-hold.md)'s record and not this atom's guard (Non-goal 9).
 
 ### The Article 15 answer
 
@@ -286,21 +286,19 @@ This atom's acceptance is provable: an external auditor clears it from the discl
 ```
 Check 2.1: An auditor MUST find disclosure id, subject reference, recipient, scope, authority type, authority reference and disclosure instant on EVERY disclosure record (State 1, Invariant 3.1).
 Check 2.2: An auditor MUST find EVERY disclosure record's subject reference, recipient, scope and authority reference non-blank (Invariant 3.2).
-Check 2.3: An auditor MUST find EVERY disclosure record whose authority type IS IN the authority types (Invariant 2.1).
+Check 2.3: An auditor MUST find EVERY disclosure record's authority type standing in the authority types (Invariant 2.1).
 Check 3.1: An auditor MUST find a re-read disclosure record's fields unchanged from the prior read (Invariant 1.1).
 Deleted: Check 3.2. Execution Contract Database 6 owns it.
-Check 4.1: An auditor MUST find [Record] answering unknown-authority-type for an authority type that IS NOT IN the authority types (Operation 9).
-Check 4.2: An auditor MUST find no disclosure record recorded by a refused [Record] (Operation 16).
+Deleted: Check 4.1. Operation 9 owns it.
+Deleted: Check 4.2. Operation 16 owns it.
 Check 5.1: An auditor MUST find a subject reference query answering EVERY disclosure record carrying the subject reference (Operation 27).
 Check 5.2: An auditor MUST find an authority type query answering ONLY the disclosure records carrying the authority type (Operation 28).
 Check 5.3: An auditor MUST find an unmatched well-formed query answering an empty record sequence (Operation 20).
-Check 6.1: An auditor MUST find [Record] answering invalid-request for a disclosure instant following now (Operation 7).
-Deleted: Check 6.2. Check 6.1 owns it.
+Deleted: Check 6.1. Operation 7 owns it.
+Deleted: Check 6.2. Operation 7 owns it.
 ```
 
 NOTE: EVERY check names the rule the check tests.
-
-NOTE: open 2026-10-21-h — the Generation acceptance bar says an external auditor clears the atom from the disclosure records, and Check 4.1 and Check 6.1 find [Record]'s answers to calls, which no record carries, and Check 4.2 finds no record a refused [Record] recorded, where no record carries the call that wrote it.
 
 ### External checks
 
@@ -396,13 +394,11 @@ Composition note 5: A composing pattern MUST own the tamper seal over the disclo
 Composition note 6: A composing pattern MUST own the retention of the disclosure records.
 Composition note 7: A composing pattern MUST own at-most-once recording.
 Composition note 8: A composing pattern closing Invariant 5.1 MUST own the only disclosure surface.
-Composition note 9: A composing pattern reading the disclosure records MUST NOT write to the disclosure records.
+Deleted: Composition note 9. State 4 through 6 and Execution Contract Database 4 own it.
 ```
 
 WHY:
 [Resolve a Person's Data Rights](../compositions/resolve-a-persons-data-rights.md) uses this atom in both directions: *read* to answer Article 15(1)(c)'s recipients limb, and *written* to record each fulfillment response as an accountable disclosure to the requester — which settles, for that case, the policy question Non-goal 20 leaves open.
-
-NOTE: open 2026-10-05-a — read to the letter, Composition note 9 forbids a pattern that reads the disclosure records from writing to them at all, where Resolve a Person's Data Rights reads them and records through [Record].
 
 NOTE: composing patterns — [Capability-Backed Sharing](../compositions/capability-backed-sharing.md), [Immutable Transaction Ledger](../compositions/immutable-transaction-ledger.md), [Resolve a Person's Data Rights](../compositions/resolve-a-persons-data-rights.md).
 
@@ -582,13 +578,11 @@ Projection: invalid-query
 ```
 status: partially resolved
 formal: not applicable — vote no 2026-06-03
-last gate: 2026-10-27 — Final Critique 9 — foundational count 1, not clean, no sample
+last gate: 2026-10-27 — Final Critique 10 — foundational count 2, not clean, no sample
 
 open:
-- 2026-10-05-a · refining · Composition note 9 · read to the letter it forbids a pattern that reads the disclosure records from writing to them at all, where the atom's own account of Resolve a Person's Data Rights has that composition read and record through the atom's surfaces → say no write beside [Record]; reported by that composition's gate
 - 2026-10-21-d · refining · String 7 · the rule obliges the deployment to canonicalize an opaque reference, a phrase no Term declares (Term subject reference alone calls itself one), so which inputs it covers is left to the reader → name them
 - 2026-10-21-f · refining · State 1; Invariant 3.1; Term disclosure instant; Term resolved disclosure instant · one proposition stated twice: State 1 and Invariant 3.1 both require a disclosure instant on every record, and Term disclosure instant's never later than now restates Invariant 4.1 beside a second Term for the instant the record carries → one owner each
-- 2026-10-21-h · refining · Generation acceptance; Check 4.1; Check 4.2; Check 6.1 · the bar says an external auditor clears the atom from the disclosure records, and Check 4.1 and Check 6.1 find [Record]'s answers to calls, which no record carries, and Check 4.2 finds no record a refused [Record] recorded, where no record carries the call that wrote it → say where those checks run
 - 2026-10-27-a · refining · Term seam; Term transition; Term now; Term business caller · each says the section titled Logic Confinement Principle in `execution-contract.md` declares it, and that section declares none of them, as Assignment 2026-10-21-a, Permissions 2026-10-21-f and Event Log 2026-10-20-c record of their own → declare each here, or cite where each is declared
 ```
 
