@@ -16,13 +16,7 @@ toc: true
 
 ## Summary
 
-Capability expresses bearer-token authorization: holding the token grants the right, no matter who holds it. Each capability ties a [Scope] — what it authorizes, opaque to the atom and interpreted by whatever uses it — to a redemption envelope: how many times it may be used, and until when. It is named by a cryptographically random [Capability Token] — a value drawn so that no one can guess it — that doubles as the credential presented to redeem it, and nothing else is required to redeem.
-
-No identity is asked for or recorded on the redemption side. That is the defining asymmetry: who created the capability is always recorded, who used it deliberately is not. The record reads *allocated by X, scope Y, redeemed N times* — never *redeemed by Z*.
-
-A capability ends in one of three clearly separated ways, and the difference is load-bearing. It runs out of redemptions ([Redeemed]) or it is explicitly cancelled ([Revoked]) — each an end state written into the record. Or its window simply passes, in which case it is shown [Expired], a status worked out on the fly by comparing the clock to the deadline and never written down. The default is single-use.
-
-This is the mechanism behind password-reset links, pre-signed file URLs, scoped API (Application Programming Interface) tokens, and OAuth (Open Authorization — the web's delegated-authorization framework) authorization codes. It deliberately does not decide when a capability should be issued, interpret the [Scope], or record what was done after redemption — and where redeeming must bind an identity, that is [Invitation](./invitation.md), not this atom.
+Capability is bearer-token authorization: holding a capability's token grants a right, no matter who holds it, and nothing else is asked for to use it. Each capability ties a scope — what it authorizes, handed back on each use but never interpreted — to how many times it may be used (once, unless its creator asks for more) and until when, and it is named by a token drawn at random so that no one can guess it. Who created a capability is always recorded and who used it never is, so the record reads *allocated by X, scope Y, redeemed N times* — never *redeemed by Z*. A capability ends in one of three clearly separated ways: it runs out of uses or is deliberately cancelled, each an end state written into the record, or its window passes and it is shown expired, a status worked out by comparing the clock with the deadline and never written down. This is the mechanism behind password-reset links, pre-signed file URLs, scoped API (Application Programming Interface) tokens and OAuth (Open Authorization — the web's delegated-authorization framework) authorization codes. It deliberately does not decide when a capability should be issued, interpret what it authorizes or record what was done after it was used, and where using one must bind an identity, that is [Invitation](./invitation.md), not this pattern.
 
 ---
 
@@ -65,7 +59,7 @@ Term allocator reference: the opaque reference naming the actor that created the
 
 Term scope: the opaque value describing what the capability authorizes — a [Scope]; stored at allocation, answered at redemption, never evaluated.
 
-Term seam: the atom's I/O boundary as the section titled Logic Confinement Principle in `execution-contract.md` declares it; the host injects the clock reading and the capability token's random material here.
+Term seam: the atom's I/O (input and output) boundary as the section titled Logic Confinement Principle in `execution-contract.md` declares it; the host injects the clock reading and the capability token's random material here.
 
 Term transition: the atom's evaluation of one call against the capability records, as the section titled Logic Confinement Principle in `execution-contract.md` declares it.
 
@@ -111,7 +105,7 @@ Deleted: Expiry 9. Operation 38 owns it.
 
 ```
 Capability requirement 1: The deployment MUST supply now at the seam.
-Capability requirement 5: The deployment MUST supply the capability records PER Execution Contract Database 1 through 4, Execution Contract Read 1 through 3 and Execution Contract Refusal 1.
+Capability requirement 5: The deployment MUST supply the capability records PER Execution Contract Database 1 through 4, Execution Contract Read 1 through 4 and Execution Contract Refusal 1.
 Capability requirement 6: The deployment MAY configure a default capability ttl ONLY IF the default capability ttl EXCEEDS the zero duration.
 Capability requirement 7: The deployment MUST configure a default capability ttl.
 Capability requirement 8: The capability token's random material MUST NOT fall below the token entropy.
@@ -131,7 +125,7 @@ Term token entropy: 128 bits of cryptographically secure random material — the
 ### Operations
 
 ```
-allocate(allocator_ref, scope, max_redemptions, ttl)
+allocate(allocator_ref, scope, optional max_redemptions, optional ttl)
   answers capability_token
   refuses invalid-request | storage-failure
 
@@ -172,7 +166,7 @@ Operation 19: [Redeem] MUST answer EXACTLY ONE OF redeemed, exhausted, expired, 
 Deleted: Operation 20. Invariant 3.1 owns it.
 Operation 21: [Redeem] MUST NOT accept an identity input.
 Operation 22: [Redeem] MUST NOT record a redeemer's identity.
-Operation 23: IF the capability token names no capability THEN [Redeem] MUST answer not-known.
+Operation 23: IF no capability EXISTS for the capability token THEN [Redeem] MUST answer not-known.
 Operation 24: IF the capability's status EQUALS redeemed THEN [Redeem] MUST answer exhausted.
 Operation 25: IF the capability's status EQUALS revoked THEN [Redeem] MUST answer revoked.
 Operation 26: IF the capability is lapsed THEN [Redeem] MUST answer expired.
@@ -184,7 +178,7 @@ Operation 31: A refused [Redeem] MUST NOT lower remaining redemptions.
 Operation 32: IF remaining redemptions reaches zero THEN [Redeem] MUST stand the capability in redeemed.
 Operation 33: IF remaining redemptions reaches zero THEN [Redeem] MUST stamp redemption instant from the injected now.
 Deleted: Operation 34. Execution Contract Database 1 owns it.
-Operation 35: IF the capability token names no capability THEN [Revoke] MUST answer not-known.
+Operation 35: IF no capability EXISTS for the capability token THEN [Revoke] MUST answer not-known.
 Operation 36: IF the capability's status EQUALS redeemed THEN [Revoke] MUST answer already-terminal.
 Operation 37: IF the capability's status EQUALS revoked THEN [Revoke] MUST answer already-terminal.
 Operation 38: IF the capability is lapsed THEN [Revoke] MUST answer already-terminal.
@@ -235,7 +229,7 @@ Term single-use default: a max redemptions of one — what [Allocate] applies wh
 
 Term remaining redemptions: the redemptions the capability has left — a [Remaining Redemptions]; the one field that moves between allocation and a terminal write.
 
-Term ttl: the validity duration a [Allocate] call asks for, a window length — a [TTL] (time-to-live); consumed to compute the expiry deadline, never stored under this name.
+Term ttl: the validity duration an [Allocate] call asks for, a window length — a [TTL] (time-to-live); consumed to compute the expiry deadline, never stored under this name.
 
 Term default capability ttl: the validity duration [Allocate] applies where the call supplies no ttl, a window length; deployment configuration, and its absence is a misconfiguration rather than an operating state.
 
@@ -553,15 +547,15 @@ Each `[Term]` marker above links to its term entry here; a term entry states wha
 
 ### Vocabulary
 
-Term actors: the atom; the host; the transition; the implementation; the deployment; a composing pattern (also: a pattern); a business caller; a caller; a guard; a bearer; an allocator; an auditor; the database; a capability; a status; a lapse; a liveness query; a write; an action; a string input; an opaque reference; the capability count; the capability token's random material.
+Term actors: the atom; the host; the transition; the implementation; the deployment; a composing pattern (also: a pattern); a business caller; a caller; a guard; a bearer; a redeemer; an allocator; an auditor; the database; a capability; a status; a lapse; a liveness query; a write; an action; a string input; an opaque reference; the capability count; the capability token's random material.
 
 Term records: capability — one bearer-token authorization, carrying capability token, allocator reference, scope, max redemptions, remaining redemptions, allocation instant, expiry instant, status and, once terminal, redemption instant or revocation instant with revoked by reference and revocation reason.
 
-Term record verbs: identify, serve, offer, supply, check, compare, allocate, reuse, change, carry, share, draw, refuse, interpret, confirm, apply, accept, record, stand, answer, stamp, recompute, set, lower, rise, fall, reach, leave, derive, surface, write, fire, schedule, read, rest, remove, evaluate, hold, merge, admit, infer, reduce, range, find, reproduce, own, gate, bind, narrow, deliver, protect, notify, purge, forbid, distinguish, guarantee, seal, compose, trim, normalize, case-fold, exceed, canonicalize, reconcile, attest, declare, call, configure.
+Term record verbs: identify, serve, offer, supply, check, compare, allocate, reuse, change, carry, share, draw, refuse, interpret, confirm, apply, accept, record, stand, answer, stamp, recompute, set, lower, rise, fall, reach, leave, derive, surface, write, fire, schedule, read, rest, remove, evaluate, hold, merge, admit, infer, reduce, range, find, reproduce, own, gate, bind, narrow, deliver, protect, notify, purge, forbid, distinguish, guarantee, seal, compose, trim, normalize, case-fold, exceed, canonicalize, reconcile, attest, declare, call, configure, name, match, retain, wire.
 
-Term value sets: status = allocated | redeemed | revoked.
+Term value sets: status = allocated | redeemed | revoked. revocation field = revocation instant | revoked by reference | revocation reason. redemption failure = exhausted | expired | revoked | not-known.
 
-NOTE: open 2026-10-21-e — the term entries name member-of targets (the action outcome, the Revoke rejection, the action rejection, the derived effective status) where Term value sets declares one.
+NOTE: open 2026-10-21-e — the term entries name member-of targets (the action outcome, the Revoke rejection, the action rejection, the derived effective status), none of which Term value sets declares.
 
 Term bounds: default capability ttl (the validity duration [Allocate] applies where the call supplies none); single-use default (the max redemptions [Allocate] applies where the call supplies none); zero duration (the floor a ttl must exceed); zero (the floor a max redemptions must exceed); whole count (the whole numbers a supplied max redemptions is drawn from); window length (the whole numbers of seconds a ttl and the default capability ttl carry); token entropy (the floor a capability token's random material is drawn from); maximum length (the deployment's cap per string input).
 
@@ -853,20 +847,20 @@ Inherited from:
 
 ## Status
 
-`partially resolved` — see the Ledger.
+`grounded on Final Critique 8 — 2026-10-27` — see the Ledger.
 
 ## Ledger
 
 ```
-status: partially resolved
+status: grounded on Final Critique 8 — 2026-10-27
 formal: verified — capability.als + 1 twin, 2026-06-23
-last gate: 2026-10-27 — Final Critique 7 — foundational count 2, not clean, no sample
+last gate: 2026-10-27 — Final Critique 8 — foundational count 0, clean, one sample
 
 open:
 - 2026-10-21-a · refining · Operation 50; [Read] · [Read] answers the matching capabilities in no stated order → an order
-- 2026-10-21-e · refining · Term value sets; the term entries · the term entries name member-of targets (the action outcome, the Revoke rejection, the action rejection, the derived effective status) where Term value sets declares one → declare each target
+- 2026-10-21-e · refining · Term value sets; the term entries · the term entries name member-of targets (the action outcome, the Revoke rejection, the action rejection, the derived effective status), none of which Term value sets declares → declare each target
 - 2026-10-21-f · refining · External check 1; External check 3; Check 5.2 · External check 1 reads a refused [Redeem] from the composing Audit Trail, which no rule obliges to record a refusal, and cites Invariant 7.3, another proposition; External check 3 sends a field history to Audit Trail while Execution Contract Database 5 keeps every committed version readable and Capability requirement 5 cites Database 1 through 4; Check 5.2 cites Invariant 7.2 for a property the page entails from [Revoke]'s guard and Operation 46 → name what each check reads and cite the rules it tests
-- 2026-10-21-i · refining · Operation 19; Term redemption failure · Operation 19's list and Term redemption failure restate one outcome space → one owner
+- 2026-10-21-i · refining · Operation 19; Term redemption failure; Term redeem refusal order · Operation 19's list and Term redemption failure restate one outcome space, whose members the signature and the [Redeem] entry call answers and Term redeem refusal order, Operation 31 and Operation 65 call refusals → one owner, keeping the reach by which Operation 31 holds a refused redemption's counter
 ```
 
 ## Decisions

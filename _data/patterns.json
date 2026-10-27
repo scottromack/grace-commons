@@ -256,7 +256,7 @@
    "privileged-access-provisioning"
   ],
   "domain": null,
-  "grounded": false,
+  "grounded": true,
   "invariants": 13,
   "kind": "atom",
   "models": {
@@ -279,7 +279,7 @@
    "SEC 17a-4",
    "SOX"
   ],
-  "status": "partially resolved",
+  "status": "grounded on Final Critique 8 \u2014 2026-10-27",
   "title": "Capability"
  },
  "capability-backed-sharing": {
