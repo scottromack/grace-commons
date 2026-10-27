@@ -49,7 +49,7 @@ Identity 2: The host MUST allocate a disclosure id at the seam.
 Identity 3: The transition MUST NOT allocate a disclosure id.
 Identity 4: The atom MUST NOT change a disclosure id.
 Identity 5: Two disclosure records in one database instance MUST NOT share a disclosure id.
-Identity 6: The deployment MUST route EVERY call to one database instance.
+Identity 6: The deployment MUST route EVERY call to the same database instance.
 Identity 7: The atom MUST NOT identify a disclosure record by the subject reference.
 Identity 8: The atom MUST admit a second disclosure record carrying a recorded subject reference.
 Identity 9: The atom MUST match a subject reference exactly.
@@ -61,7 +61,7 @@ Identity 14: The atom MUST NOT interpret a recipient.
 Deleted: Identity 15. Execution Contract Logic confinement 10 owns it.
 ```
 
-NOTE: open 2026-10-21-g — Identity 6 reads as each call routed to one instance or as every call routed to the same instance, and under the first a subject reference query answers only its own instance's records.
+NOTE: watch the routed instance (Identity 6).
 
 Term disclosure record: one recorded disclosure of one subject's data to one recipient under one authority — the record this atom holds.
 
@@ -102,7 +102,7 @@ NOTE: open 2026-10-21-f — State 1 and Invariant 3.1 both require a disclosure 
 
 ```
 Capability requirement 1: The deployment MUST supply now at the seam.
-Capability requirement 5: The deployment MUST supply the disclosure records PER Execution Contract Database 1, Execution Contract Database 3, Execution Contract Database 4, Execution Contract Database 6, Execution Contract Read 1 through 3, Execution Contract Refusal 1 and Execution Contract Query 1 through 4.
+Capability requirement 5: The deployment MUST supply the disclosure records PER Execution Contract Database 1, Execution Contract Database 3, Execution Contract Database 4, Execution Contract Database 6, Execution Contract Read 1 through 4, Execution Contract Refusal 1 and Execution Contract Query 1 through 4.
 Capability requirement 6: The deployment MUST call [Record] for EVERY transmission of a subject's data to a party beside the subject.
 Deleted: Capability requirement 2. Execution Contract Logic confinement 7 owns it.
 Deleted: Capability requirement 3. Execution Contract Logic confinement 7 owns it.
@@ -176,7 +176,7 @@ Term authority: the structured field naming the basis the disclosure was made un
 
 Term authority type: consent | legal-hold | regulatory — an [Authority Type], set at record and never changed.
 
-Term authority types: the three members of authority type, cited here from that declaration (Closed vocabulary 15).
+Term authority types: the three members of authority type, cited here from that declaration (GRACE-lang Closed vocabulary 15).
 
 Term authority reference: the opaque string naming the specific authority — an [Authority Reference]; a consent record's id, a legal hold's id, or a regulatory citation.
 
@@ -261,19 +261,19 @@ A data subject exercises their access right. `read({subject_ref: "patient-88213"
 
 `record("patient-88213", "Northgate", "summary", {type: consent, reference: "   "})` → invalid-request. A whitespace-only reference is blank, and a reference nobody can follow defeats the record's purpose (Operation 6).
 
-`record(..., disclosed_at: "2027-01-01T00:00:00Z")` against `now: 2026-03-04` → invalid-request. Nothing is written (Operation 7, Operation 16).
+`record(..., disclosed_at: "2027-01-01T00:00:00Z")` against `now: 2026-03-04T16:40:00Z` → invalid-request. Nothing is written (Operation 7, Operation 16).
 
 `read({subject_ref: "patient-88213", "authority.reference": "consent-3301"})` → invalid-query. Reference-level filtering is not an axis this atom offers, and the key is refused rather than ignored (Operation 22, Non-goal 22).
 
-`read({disclosed_at: {after: "2026-06-01", before: "2026-03-01"}})` → invalid-query (Operation 25).
+`read({disclosed_at: {after: "2026-06-01T00:00:00Z", before: "2026-03-01T00:00:00Z"}})` → invalid-query (Operation 25).
 
 `read({subject_ref: "patient-99999"})` → an empty record sequence. No disclosure of that subject's data has been recorded, which is itself the compliance answer (Operation 20).
 
 ### Regulated adversarial scenarios
 
-- **Regulator audit.** A GDPR supervisory authority reviewing an Article 15 complaint asks which recipients received the complainant's data in 2026. `read({subject_ref: X, disclosed_at: {after: "2026-01-01", before: "2026-12-31"}})` answers the complete set in order, each with its authority. Invariant 3 is what makes the answer usable — every field on every record, so no entry has to be explained (Check 2.1, Check 2.2).
+- **Regulator audit.** A GDPR supervisory authority reviewing an Article 15 complaint asks which recipients received the complainant's data in 2026. `read({subject_ref: X, disclosed_at: {after: "2026-01-01T00:00:00Z", before: "2026-12-31T23:59:59Z"}})` answers the complete set in order, each with its authority. Invariant 3 is what makes the answer usable — every field on every record, so no entry has to be explained (Check 2.1, Check 2.2).
 - **Disputed disclosure.** A data subject denies ever consenting to a research disclosure. The database yields the record and its `authority_reference: "consent-3301"`. That is where this atom's answer stops: it proves the calling system *claimed* that consent as the basis, and the [Consent](./consent.md) records are what prove the consent was granted, in scope and unrevoked at disclosure instant. The split is deliberate and it is named rather than hidden (External check 1, Non-goal 7).
-- **Breach forensics.** An investigator reconstructing what left the system during an exposure window reads every disclosure record in the window and groups by recipient. The atom never removes a record (Invariant 6.1), and the database removes none except by an action a specification declares (Execution Contract Database 4), so a second read during a long investigation can only add records — nothing an earlier read showed can have quietly left, and a record a composed retention pattern purged in between left by a purge that pattern's own records show (External check 5). What the investigator cannot learn here is whether a transmission happened that nobody recorded; that is Invariant 5's gap, cleared against egress logs rather than against these records (External check 2).
+- **Breach forensics.** An investigator reconstructing what left the system during an exposure window reads every disclosure record in the window and groups by recipient. The atom never removes a record (Invariant 6.1), and the database removes none except by an action a specification declares (Execution Contract Database 4), so a second read during a long investigation can only add records — nothing an earlier read showed can have quietly left, and a record a composed retention pattern purged in between left by a purge that pattern's own records show (Execution Contract Database 6). What the investigator cannot learn here is whether a transmission happened that nobody recorded; that is Invariant 5's gap, cleared against egress logs rather than against these records (External check 2).
 
 ---
 
@@ -300,7 +300,7 @@ Deleted: Check 6.2. Check 6.1 owns it.
 
 NOTE: EVERY check names the rule the check tests.
 
-NOTE: open 2026-10-21-h — the Generation acceptance bar says an external auditor clears the atom from the disclosure records, and Check 4.1 and Check 6.1 find [Record]'s answers to calls, which no record carries.
+NOTE: open 2026-10-21-h — the Generation acceptance bar says an external auditor clears the atom from the disclosure records, and Check 4.1 and Check 6.1 find [Record]'s answers to calls, which no record carries, and Check 4.2 finds no record a refused [Record] recorded, where no record carries the call that wrote it.
 
 ### External checks
 
@@ -418,7 +418,7 @@ Term actors: the atom; the host; the transition; the implementation; the deploym
 
 Term records: disclosure record — one recorded disclosure, carrying disclosure id, subject reference, recipient, scope, authority type, authority reference and disclosure instant.
 
-Term record verbs: identify, allocate, change, carry, stand, answer, record, resolve, take, stamp, leave, own, match, normalize, interpret, confirm, admit, offer, detect, route, share, precede, follow, exceed, compare, trim, case-fold, refuse, write, find, read, remove, edit, retract, order, bound, decide, compose, declare, wire, rest, apply, supply, serialize, issue, name, claim, transmit, redact, retrieve, canonicalize, persist, call, produce, evaluate.
+Term record verbs: identify, allocate, change, carry, stand, answer, record, resolve, take, stamp, leave, own, match, normalize, interpret, confirm, admit, offer, detect, route, share, precede, follow, exceed, compare, trim, case-fold, refuse, write, find, read, remove, edit, retract, order, bound, decide, compose, declare, wire, rest, apply, supply, serialize, issue, name, claim, transmit, redact, retrieve, canonicalize, persist, call, produce, evaluate, agree.
 
 Term value sets: authority type = consent | legal-hold | regulatory.
 
@@ -444,7 +444,7 @@ Kind: Operation
 
 #### Disclosure Id
 
-The opaque, immutable identity of a disclosure record — the injected `id_t`, supplied at the I/O seam, fresh per call and never reused (Invariant 6). It is the record's identity; the other fields are properties.
+The opaque, immutable identity of a disclosure record — the injected `id_t`, supplied at the I/O seam, fresh per call and never reused (Identity 5). It is the record's identity; the other fields are properties.
 
 Kind:       Field
 Field of:   the disclosure record
@@ -582,14 +582,13 @@ Projection: invalid-query
 ```
 status: partially resolved
 formal: not applicable — vote no 2026-06-03
-last gate: 2026-10-27 — Final Critique 8 — foundational count 1, not clean, no sample
+last gate: 2026-10-27 — Final Critique 9 — foundational count 1, not clean, no sample
 
 open:
 - 2026-10-05-a · refining · Composition note 9 · read to the letter it forbids a pattern that reads the disclosure records from writing to them at all, where the atom's own account of Resolve a Person's Data Rights has that composition read and record through the atom's surfaces → say no write beside [Record]; reported by that composition's gate
 - 2026-10-21-d · refining · String 7 · the rule obliges the deployment to canonicalize an opaque reference, a phrase no Term declares (Term subject reference alone calls itself one), so which inputs it covers is left to the reader → name them
 - 2026-10-21-f · refining · State 1; Invariant 3.1; Term disclosure instant; Term resolved disclosure instant · one proposition stated twice: State 1 and Invariant 3.1 both require a disclosure instant on every record, and Term disclosure instant's never later than now restates Invariant 4.1 beside a second Term for the instant the record carries → one owner each
-- 2026-10-21-g · refining · Identity 6; Term database instance · the rule reads as each call routed to one instance or as every call routed to the same instance, and under the first a subject reference query answers only its own instance's records → say which
-- 2026-10-21-h · refining · Generation acceptance; Check 4.1; Check 6.1 · the bar says an external auditor clears the atom from the disclosure records, and Check 4.1 and Check 6.1 find [Record]'s answers to calls, which no record carries → say where those checks run
+- 2026-10-21-h · refining · Generation acceptance; Check 4.1; Check 4.2; Check 6.1 · the bar says an external auditor clears the atom from the disclosure records, and Check 4.1 and Check 6.1 find [Record]'s answers to calls, which no record carries, and Check 4.2 finds no record a refused [Record] recorded, where no record carries the call that wrote it → say where those checks run
 - 2026-10-27-a · refining · Term seam; Term transition; Term now; Term business caller · each says the section titled Logic Confinement Principle in `execution-contract.md` declares it, and that section declares none of them, as Assignment 2026-10-21-a, Permissions 2026-10-21-f and Event Log 2026-10-20-c record of their own → declare each here, or cite where each is declared
 ```
 

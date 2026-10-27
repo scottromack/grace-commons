@@ -164,6 +164,8 @@ NOTE: open 2026-10-21-c — the host runs the derivation function and the check 
 
 NOTE: watch host obligations — this atom refuses a string input over the length bound on [Register] and [Revoke] alone (String 7, String 9), obliges the deployment to declare the bound (Capability requirement 14), and obliges it to supply id material whose credential id fits the bound (Capability requirement 39); a blank or over-long principal reference or credential type on [Verify] names no pair, which [Verify] answers no-active-credential (Operation 18), and an over-long credential id on [Rotate] names no credential, which [Rotate] answers not-known (Operation 27).
 
+NOTE: watch the routed instance (Capability requirement 33).
+
 ### Operations
 
 ```
