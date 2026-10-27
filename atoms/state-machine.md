@@ -39,7 +39,7 @@ The atom is structurally distinct from two adjacent concepts, and both distincti
 
 [Approval Step](./approval-step.md) is a *specific* state machine whose states, transitions and semantics are fixed at the atom level — an external evaluator knows them without reading any deployment configuration. This atom's machine is fixed at the *workflow* level, and an external evaluator must read the workflow's declaration to know what is valid. Specificity is the axis: Approval Step is specification-level, State Machine is workflow-level. Approval Step also carries approval-specific semantics — one named approver, submitter exclusivity on withdrawal, a required reason on rejection — that this atom carries none of. Both are freestanding, and they compose into [Execute Gated Workflow](../compositions/execute-gated-workflow.md), where a State Machine workflow governs the process lifecycle and Approval Step workflows govern the gates inside it.
 
-[Event Log](./event-log.md) records what happened; this atom enforces what is allowed to happen and tracks the resulting state. The transition history here resembles an event log structurally — append-only, totally ordered by a sequence number, with wall time as a best-effort annotation — but an event log has no declared states, no declared transitions, no current state and no validity gate. This atom is freestanding and does not name Event Log; where the two meet is a composition's business.
+[Event Log](./event-log.md) records what happened; this atom enforces what is allowed to happen and tracks the resulting state. The transition history here resembles an event log structurally — append-only, totally ordered by a sequence number, with wall time as a best-effort annotation — but an event log has no declared states, no declared transitions, no current state and no validity gate. This atom is freestanding, and none of its rules names Event Log; where the two meet is a composition's business.
 
 The guard is where the atom's restraint is sharpest. A declared transition may carry a guard label, and the atom enforces that the caller *asserts* the guard satisfied before the transition fires — while evaluating nothing. The history records the assertion, not a verdict. A caller asserting a guard it never checked is violating the declared process and the atom will record the assertion faithfully, because the alternative is an atom that must understand every deployment's predicates, which is the absorption this factoring exists to prevent.
 
@@ -151,6 +151,8 @@ Operation 6: An admitted instantiate MUST set next sequence number to one.
 Operation 7: An admitted instantiate MUST record an empty transition history.
 Operation 8: An admitted instantiate MUST answer the instance id.
 Operation 56: An admitted instantiate MUST record a supplied subject reference.
+Operation 59: An admitted instantiate MUST record a supplied instance metadata.
+Operation 60: An admitted instantiate MUST record a supplied actor reference on the workflow.
 Operation 57: IF the query is malformed THEN [History] MUST answer invalid-query.
 Operation 9: IF instance id EQUALS blank THEN an addressed action MUST answer invalid-request.
 Operation 10: IF action EQUALS blank THEN [Fire] MUST answer invalid-request.
@@ -174,6 +176,7 @@ Deleted: Operation 27. Execution Contract Database 1 owns it.
 Operation 28: An admitted fire MUST answer the matched transition's to state.
 Operation 29: An admitted fire over a guarded transition MUST record guard satisfied on the history entry.
 Operation 30: An admitted fire over an unguarded transition MUST NOT record guard satisfied on the history entry.
+Operation 61: An admitted fire MUST record a supplied actor reference on the history entry.
 Operation 31: [Fire] MUST NOT evaluate a guard.
 Operation 32: [Fire] MUST NOT offer a wildcard declared transition.
 Operation 33: IF the database refuses the write THEN a writing action MUST answer storage-failure.
@@ -188,7 +191,8 @@ Operation 41: An admitted history MUST NOT answer a history entry failing a supp
 Operation 42: IF no history entry matches THEN an admitted history MUST answer an empty entry sequence.
 Operation 43: IF a filter's axis IS NOT IN the filter axes THEN [History] MUST answer invalid-query.
 Operation 44: IF a string filter's value EQUALS blank THEN [History] MUST answer invalid-query.
-Operation 45: IF a range filter's end PRECEDES the range's start THEN [History] MUST answer invalid-query.
+Operation 45: IF a sequence number range's start EXCEEDS the range's end THEN [History] MUST answer invalid-query.
+Operation 58: IF a firing instant range's end PRECEDES the range's start THEN [History] MUST answer invalid-query.
 Deleted: Operation 46. Execution Contract Refusal 1 owns it.
 Operation 47: [Read Declaration] MUST answer the workflow's declaration.
 Operation 48: [Read Declaration] MUST NOT normalize the declaration.
@@ -201,7 +205,9 @@ Deleted: Operation 54. Execution Contract Logic confinement 3 owns it.
 Operation 55: An ordering rule MUST NOT rest on firing instant.
 ```
 
-NOTE: open 2026-10-22-a — Operation 45 compares a sequence number range's ends with PRECEDES, the instant operator.
+NOTE: watch the integer range (Operation 45, Operation 58).
+
+NOTE: watch the optional field no rule records (Operation 56, Operation 59, Operation 60, Operation 61).
 
 Term now: the deployment's clock reading at the call, as Execution Contract Logic confinement 11 declares it.
 
@@ -386,7 +392,7 @@ Two batches run the same declaration as two workflows. Firing `test` on one move
 
 ### Regulated adversarial scenarios
 
-- **Regulator audit.** An FDA inspector auditing under 21 CFR Part 11 and ISO 9001 clause 8.5.1 asks the system to prove the batch moved only through approved states. Check 2.1 and Check 6.1 are the structural answer: every history entry matches a declared transition, and the declaration is the one supplied at instantiation. What the atom cannot answer is whether the `qa_signoff` guard was truly satisfied — `guard_satisfied: true` attests an assertion (Invariant 8.3), and the evidence lives in the composing [Approval Step](./approval-step.md) record.
+- **Regulator audit.** A US Food and Drug Administration (FDA) inspector auditing under 21 CFR Part 11 and ISO 9001 clause 8.5.1 asks the system to prove the batch moved only through approved states. Check 2.1 and Check 6.1 are the structural answer: every history entry matches a declared transition, and the declaration is the one supplied at instantiation. What the atom cannot answer is whether the `qa_signoff` guard was truly satisfied — `guard_satisfied: true` attests an assertion (Invariant 8.3), and the evidence lives in the composing [Approval Step](./approval-step.md) record.
 - **Disputed transition.** An external party claims the workflow skipped a required state. The history is gap-free by sequence number (Invariant 6.2) and replays to the current state (Invariant 7.3), so a skipped state would have to appear as a declared transition that jumps it — which the declaration either names or does not. The claim resolves provably, against the declaration.
 - **Breach investigation.** An investigator reconstructing an anomaly window filters the history by firing instant range and finds the entries generously bracketed. Because sequence number is dense and is the order source (Invariant 6.2, Operation 55), the investigator confirms the window's completeness against an unfiltered read rather than trusting the wall-time filter — a clock-skewed entry can fall outside the bracket and cannot fall out of the sequence.
 
@@ -496,12 +502,16 @@ String 3: The atom MUST NOT normalize a string input.
 String 4: The atom MUST NOT case-fold a string input.
 String 5: The atom MUST read a whitespace-only string input as blank.
 String 6: The atom MUST read an absent string input as blank.
-String 7: The deployment MUST canonicalize an opaque reference.
+String 7: The deployment MUST canonicalize an opaque reference at the seam.
 ```
 
 Term string input: instance id, action, actor reference, subject reference, a state name, a guard OR a filter's value — every caller-supplied string this atom accepts.
 
 NOTE: watch host obligations — this atom sets no maximum length on a string input, where [Duplicate Prevention](./duplicate-prevention.md) declares a cap and [Provenance](./provenance.md) obliges the deployment to set one. Three postures, and the *host obligations* docket row carries the count — a watch flag states the pressure, never a census nothing reads.
+
+NOTE: String 7 reaches the subject reference and the actor reference, a filter's actor reference among them; the deployment canonicalizes each at the seam, in a form the deployment owns, before the transition compares or records it, since String 3 keeps the atom from normalizing.
+
+NOTE: watch the canonical form (String 7).
 
 ---
 
@@ -577,7 +587,7 @@ Kind: Operation
 
 #### Workflow Id
 
-The opaque, immutable, system-generated identity of a workflow — assigned on [Instantiate], never reused, byte-order sortable (Identity 11). It is the workflow's identity; the [Declaration], [Current State], and [Transition History] are properties.
+The opaque, immutable, system-generated identity of a workflow — assigned on [Instantiate], never reused, byte-order sortable (Execution Contract Logic confinement 10). It is the workflow's identity; the [Declaration], [Current State], and [Transition History] are properties.
 
 Kind:       Field
 Field of:   the workflow
@@ -882,11 +892,10 @@ Guard evaluation, non-repudiable attribution, tamper-evidence, and retention are
 ```
 status: partially resolved
 formal: verified — state-machine.als + 1 twin, 2026-06-04
-last gate: 2026-10-22 — Final Critique 5, the council's first round on the page and the first since its GRACE-lang migration (ee22b9c) and its Store-contract rewrite (e9a9e03), three fresh readers on free models (GRID Nemotron 3 Ultra, EOS Beam, Linus GLM-5.3 Flash), each handed only the round's reading set, three passes on one text (frozen at acab536); the round rests on three counted passes — foundational count 4 after triage (15 reports: 5 standing in 4 rows; 5 sent down; 5 rejected), Kind A: a guarded fire landed on guard satisfied false; an admitted instantiate or fire took in a call the database refused; no action took the subject reference the page records; and the workflow count could never fall beside a composed retention; 13 refining reports, 6 rhetorical reports; not clean; every foundational finding cured, every refining finding cured, routed or answered; 2026-06-04 — Final Critique 4, fresh reader — clean
+last gate: 2026-10-27 — Final Critique 6 — foundational count 1, not clean, no sample
 
 open:
-- 2026-10-21-a · refining · Operation 2, 19, 20; [Fire]'s case table, row 6 · the table answers a blank actor reference or an out-of-bounds firing instant only once the gate clears (row 6), after not-known, terminal, invalid-transition and guard-not-satisfied, and no rule ever held it there; [Fire]'s refuses line lists invalid-request first, so under Execution Contract Refusal 1 a blank actor reference against an instance id naming no workflow answers invalid-request where the table answers not-known → a rule holding an actor or instant fault behind the gate (Approval Step Operation 20's form, since invalid-request holds two rows of one order), or the table's row 6 read into row 1, or a code of its own for each of row 6's two faults, listed after guard-not-satisfied (Final Critique 5's GRID), which renames refusals both composers read; seen by the refusal-order sweep, reported again at Final Critique 5
-- 2026-10-22-a · refining · Operation 45 · the operator for a sequence number range's ends, which Operation 45 compares with PRECEDES, the instant operator (GRACE-lang Earned vocabulary 18) → split Operation 45 by range
+- 2026-10-21-a · refining · Operation 2, 19, 20; [Fire]'s case table, row 6 · the table answers a blank actor reference or an out-of-bounds firing instant only once the gate clears (row 6), after not-known, terminal, invalid-transition and guard-not-satisfied, and no rule ever held it there; [Fire]'s refuses line lists invalid-request first, so under Execution Contract Refusal 1 a blank actor reference against an instance id naming no workflow answers invalid-request where the table answers not-known → a rule holding an actor or instant fault behind the gate (Approval Step Operation 20's form, since invalid-request holds two rows of one order), or the table's row 6 read into row 1, or a code of its own for each of row 6's two faults, listed after guard-not-satisfied (Final Critique 5's GRID), which renames refusals both composers read; seen by the refusal-order sweep, reported again at Final Critique 5 and Final Critique 6
 ```
 
 ## Decisions

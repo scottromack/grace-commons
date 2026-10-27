@@ -206,6 +206,10 @@ Operation 60: IF a recording instant range's end PRECEDES the range's start THEN
 Operation 61: An admitted originate MUST set the genesis entry's metadata to the call's metadata.
 ```
 
+NOTE: watch the integer range (Operation 48, Operation 60).
+
+NOTE: watch the optional field no rule records (Operation 61).
+
 Term now: the deployment's clock reading at the call, as Execution Contract Logic confinement 11 declares it.
 
 Term business caller: the party whose action the call carries, as the section titled Logic Confinement Principle in `execution-contract.md` declares it; never the source of an injected value.
