@@ -73,7 +73,7 @@ Deleted: journal fence none 5. Execution Contract Database 2 owns it: a writer's
 Deleted: journal fence none 6. Execution Contract Database 2 owns it: a writer's re-read, lease check and append are one transaction, so no act carries a binding duplicate.
 ```
 
-Term quiescence: no invocation in flight and no sweep run mid-pass.
+Term quiescence: of one act, no intent of the act in-flight and no sweep run holding the act's critical section.
 
 ---
 
@@ -121,7 +121,7 @@ Five elements, each carrying the Contract classification of the section titled C
 - **findings**
   Term findings: the register of what the sweep could not close and what the instance could not do, written to the deployment's compliance surface. *Extraction-pending*; the named proposed atom is a **Condition Register** *(forthcoming)*.
   ```
-  findings 1: The deployment MUST persist a finding for at least the retention period of the kind the finding names.
+  findings 1: The deployment MUST persist a finding naming a kind the bindings table serves for at least the retention period of that kind.
   findings 2: The deployment MUST persist a finding naming no kind for at least the instance's longest retention period.
   findings 3: A surfacing that fails MUST NOT reject a [Reconcile] run that has landed closings.
   findings 4: The register MUST write a [Finding] as EXACTLY ONE OF act finding, instance finding.
@@ -135,6 +135,7 @@ Five elements, each carrying the Contract classification of the section titled C
   findings 11: The register MUST open a new record for a recurrence.
   findings 12: The register MUST hold one record per standing condition.
   findings 13: A reader MUST NOT rely on an order across act keys.
+  findings 14: The deployment MUST persist a finding naming a kind the bindings table does not serve for at least the instance's longest retention period.
   NOTE: open line 2026-09-10-a — the register's durability contract waits on the forthcoming Condition Register, against which Audit Trail classifies its write-once outage record too.
   ```
   Term act finding: {finding, kind, act_key, invocation_id, first_seen, run_id}; deduplicates on (invocation id, finding); carries no last seen and no span. An act finding records a sighting; whether the act still stands escalated is [Read Invocation]'s answer, not the register's.
@@ -166,7 +167,7 @@ Four declared, two optional.
 
 ```
 Capability requirement 1: The substrate MUST supply the open-upper-bound sequence-range read over the delta range.
-Capability requirement 2: The range read MUST answer a page of records with a cursor, a declared page size, and a page-complete signal.
+Deleted: Capability requirement 2. Non-goal 3 owns it: the range read answers as Event Log's read declares, every record the range holds, passed through Audit Trail unchanged (Audit Trail Action wiring 1 and 5), and no rule here reads a page.
 Capability requirement 3: The range read MUST declare the arms invalid-query and unavailable.
 Capability requirement 4: The composition MUST surface invalid-query on compliance surface.
 Capability requirement 5: The composition MUST NOT retry an invalid-query read unchanged.
@@ -184,7 +185,7 @@ Capability requirement 15: EVERY read path of Recoverable Invocation that reads 
 
 Term delta range: the sequence-number range from `(sequence_high_water + 1)` with no upper bound.
 
-Term open-upper-bound sequence-range read: `EventLog.read` over the delta range, reached through Audit Trail's list-shaped pass-through.
+Term open-upper-bound sequence-range read: `EventLog.read` over the delta range, passed through Audit Trail unchanged (Audit Trail Action wiring 1 and 5): it answers every record the range holds, as one sequence.
 
 Term read path: [Open] step 1 and step 3, [Reconcile] step 1, [Read Invocation], and the re-reads at [Close], [Refuse], [Resolve] and [Reconcile] step 2. The reads at [Open], [Reconcile] step 1 and [Read Invocation] transcribe unavailable as journal-unavailable; the re-reads at [Close], [Refuse] and [Resolve] land it on the position's recording-failure arm, and so do the read-backs of Primitive policy 20, 27 and 35; the re-read at [Reconcile] step 2 leaves the act for the next run under the instance finding journal-unavailable (reconcile step 2.10). A read-back that gives no answer lands the intent position although the intent may stand: nothing is committed, a retry is safe, and the stray intent is the sweep's to close. A read fails where it answers unavailable. A read under the critical section that returns nothing within read bound lands where the read path lands unavailable (Capability requirement 15). An invalid-query is no outage of the journal but a fault of the build: it lands where unavailable lands, is surfaced, and opens no outage finding (Capability requirement 4, 13 and 14).
 
@@ -239,7 +240,7 @@ Term read-your-writes: Capability requirement 8 and Capability requirement 12 to
 - **call pause bound**
   Term call pause bound: this composition's value of [Lease](../atoms/lease.md)'s call pause bound: the longest time from a holder's decision to issue one call — a lease call, the issue of a journal write, the issue of the bound commit — to the moment the call has taken effect or failed. *Default:* none.
   ```
-  call pause bound 1: The deployment MUST hold EVERY lease call inside call pause bound, a pause of the holder's own process included.
+  call pause bound 1: The deployment MUST supply Lease Capability requirement 7 for EVERY lease call on this page and for this page's unfenced write, the bound commit, with call pause bound as the atom's call pause bound.
   call pause bound 2: A writer MUST issue a journal write WITHIN call pause bound of asking for the write's remaining.
   ```
   A journal write is a unit of work in Lease's sense, its bound the pause from the reading to the issue (call pause bound 2) and journal write bound from the issue to the landing (Lease Term unit's bound); the call pause bound bounds the write's issue, as the atom's Term unit of work allows, and not the whole record action.
@@ -295,6 +296,8 @@ Primitive policy 18: The sweep MUST read now once per run at the sweep's own sea
 ```
 
 Term invocation id: injected at the adopter's seam alongside now, fresh per invocation, unique across every node of the instance for the journal's lifetime; opaque, byte-identity.
+
+Term journal join: a pairing of two journal records on a field each carries. A read of one record by the event id another record carries, as read_record(intent event id) at resolve 11 and Check 1.2, is a lookup, not a join.
 
 Term now: the seam-injected reading — at the adopter's seam per invocation, at the sweep's seam once per run, at the operator's seam once per [Resolve] call alongside operator run id, at the reader's seam once per [Read Invocation] call; each as the section titled Logic Confinement Principle in `execution-contract.md` declares it, never read inside the transition.
 
@@ -352,6 +355,8 @@ Primitive policy 42: IF position EQUALS outcome THEN invalid-request(step-1), in
 Primitive policy 43: The action MUST NOT retry after invalid-request(step-3) or invalid-request(step-4).
 Primitive policy 44: The composition MUST treat recording-failure(step-4) as recording-failure(step-2) at every position.
 ```
+
+Term lost reply: a record_action that answers recording-failure(step-3) (Primitive policy 32a), or whose reply has not arrived when journal write bound has elapsed since the write's issue, as remaining reports; the bound commit's reply is lost as yield 7 says.
 
 ### Action wiring
 
@@ -422,7 +427,7 @@ Every input an action takes and every answer its calls can meet — what Audit T
 | remaining answers | [Open] before the intent | [Open] before its return | [Close] | [Refuse] | [Resolve] | [Reconcile] |
 |---|---|---|---|---|---|---|
 | a remaining term above the floor | the intent record (open step 4.3) | open result, the section held (open step 5.2, open step 5.3) | the step-2 re-read (close step 2.1) | the step-2 re-read (refuse step 2.1) | the re-read (resolve 8) | the probe (reconcile step 3.1) |
-| a remaining term at or below the floor, none, or no answer read as none (act section 17) | section-unavailable, released (open step 4.2) | recording-failure(outcome), released, the intent left open (open step 5.5, open step 5.6) | recording-failure(outcome), nothing written (close step 1.2) | recording-failure(refusal, constituent_code), nothing written (refuse step 1.2) | section-unavailable, released (resolve 7) | skipped (reconcile step 2.7) |
+| a remaining term at or below the floor, none, or no answer read as none (act section 17) | section-unavailable, released (open step 4.2) | recording-failure(outcome), released, the intent left open (open step 5.5, open step 5.6) | recording-failure(outcome), nothing written, released (close step 1.2) | recording-failure(refusal, constituent_code), nothing written, released (refuse step 1.2) | section-unavailable, released (resolve 7) | skipped (reconcile step 2.7) |
 
 **Lease: the release.** Every release leaves the action's answer as it is: not-held is discarded (act section 6); no answer is read as none for the rest of the grant (act section 17) and the call is not issued again (act section 18); and where a call is in flight under the grant, nothing is issued (Term release, act section 15).
 
@@ -486,7 +491,7 @@ A read-back that answers unavailable or gives no answer lands the position's rec
 |---|---|---|
 | [Open] step 1 | journal-unavailable (open step 1.8) | journal-unavailable, surfaced (Capability requirement 13, 4) |
 | [Open] step 3 | journal-unavailable, released, nothing written (open step 3.13) | the same, surfaced (Capability requirement 13, 4) |
-| [Close] step 2 | recording-failure(outcome), nothing written (close step 2.4) | the same, surfaced (Capability requirement 13, 4) |
+| [Close] step 2 | recording-failure(outcome), nothing written, released (close step 2.4) | the same, surfaced (Capability requirement 13, 4) |
 | [Refuse] step 2 | recording-failure(refusal, constituent_code) (Capability requirement 6, Term read path) | the same, surfaced (Capability requirement 13, 4) |
 | [Resolve]'s re-read | recording-failure(resolution) (Capability requirement 6, Term read path) | the same, surfaced (Capability requirement 13, 4) |
 | a read-back (Primitive policy 20, 27 and 35) | the position's recording-failure arm (Capability requirement 6, Term read path) | the same, surfaced (Capability requirement 13, 4) |
@@ -545,7 +550,7 @@ Steps:
 2. **Take the act's critical section.**
    ```
    open step 2.1: [Open] MUST take the critical section: take((kind, act key), invocation id, completion bound).
-   open step 2.2: The take MUST NOT block longer than the current holder's remaining lease.
+   Deleted: open step 2.2. Lease Operation 3 and Operation 4 own it: the host ends a waiting take at the waiter's bound, which no waiter reads; a take unanswered past the longest duration declared for the key and call pause bound is no answer (Lease Term no answer), which act section 17 lands.
    open step 2.3: A failed take MUST land section-unavailable with nothing written.
    ```
 3. **Pre-check under the critical section.**
@@ -560,10 +565,9 @@ Steps:
    open step 3.8: WHEN service identity EQUALS none:
        open step 3.8a: [Open] MUST proceed past an aged open intent.
        open step 3.8b: [Open] MUST leave the old intent open.
-       open step 3.8c: [Open] MUST surface the old intent on compliance surface.
+       open step 3.8c: [Open] MUST surface the old intent on compliance surface as a hard alert.
        open step 3.8d: An operator MUST close the old intent through [Resolve].
        open step 3.8e: The new invocation's records MUST pair on the new invocation id.
-   NOTE: open line 2026-10-18-b — open step 3.8c, Binding 3 and reconcile step 3.18 surface a report-only deployment's old intent, a refused unbind and a refused service credential on compliance surface, and none of the three is said to be a finding or a hard alert.
    open step 3.9: WHEN repeatable EQUALS no:
        open step 3.9a: [Open] MUST read the act's latest outcome from act closings.
        open step 3.9b: IF an outcome for the act key EXISTS THEN [Open] MUST release.
@@ -588,11 +592,11 @@ Steps:
 5. **Populate, read for the commit, and return.**
    ```
    open step 5.1: [Open] MUST populate open invocations at (kind, act key) with the intent.
-   open step 5.2: [Open] MUST return invocation id and intent event id.
-   open step 5.3: [Open] MUST hold the critical section at return.
    open step 5.4: [Open] MUST query remaining((kind, act key), invocation id) as the last call [Open] makes.
    open step 5.5: IF remaining DOES NOT EXCEED commit floor THEN [Open] MUST release.
    open step 5.6: IF remaining DOES NOT EXCEED commit floor THEN [Open] MUST land recording-failure(outcome) with the intent left open.
+   open step 5.2: IF remaining EXCEEDS commit floor THEN [Open] MUST return invocation id and intent event id.
+   open step 5.3: IF remaining EXCEEDS commit floor THEN [Open] MUST hold the critical section at return.
    Deleted: open step 5.7. No adopter binds a declared commit fence, whose deadline it minted; an adopter that needs it reopens it with a Decisions entry.
    Deleted: open step 5.8. No adopter binds a declared commit fence, whose deadline it returned; an adopter that needs it reopens it with a Decisions entry.
    ```
@@ -638,7 +642,7 @@ Steps:
        close step 1.2b: [Close] MUST discard the commit's reply.
        NOTE: watch negative capability — an obligation to discard a reply already in hand (close step 1.2b).
        close step 1.2c: [Close] MUST return recording-failure(outcome).
-   NOTE: open line 2026-10-18-n — close step 1.2, close step 2.4 and refuse step 1.2 return with nothing written and no release, where [Open]'s early arms release.
+       close step 1.2d: [Close] MUST release.
    Deleted: close step 1.3. No adopter binds the counted(n) deviation, the one retry terminus beside the lease; an adopter that needs it reopens it with a Decisions entry.
    ```
 2. **Pre-check under the critical section — proceed as landed.**
@@ -657,6 +661,7 @@ Steps:
    close step 2.4: WHEN the step-2 re-read fails:
        close step 2.4a: [Close] MUST write nothing.
        close step 2.4b: [Close] MUST return recording-failure(outcome).
+       close step 2.4c: [Close] MUST release.
    Deleted: close step 2.5. Execution Contract Database 2 owns it: a writer's re-read, lease check and append are one transaction, and no deployment declares a fence on the journal.
    ```
 3. **Outcome record.**
@@ -710,6 +715,7 @@ Steps:
    refuse step 1.2: WHEN remaining DOES NOT EXCEED write floor OR remaining EQUALS none:
        refuse step 1.2a: [Refuse] MUST write nothing.
        refuse step 1.2b: [Refuse] MUST return recording-failure(refusal, constituent code).
+       refuse step 1.2c: [Refuse] MUST release.
    refuse step 1.3: A yielded caller MUST NOT read at [Close] or [Refuse].
    refuse step 1.4: A yielded caller MUST NOT adopt at [Close] or [Refuse].
    ```
@@ -774,7 +780,7 @@ resolve 1: The operator MUST supply disposition as EXACTLY ONE OF outcome(outcom
 resolve 2: The substrate MUST validate the operator's credential at the closing record_action and nowhere earlier.
 resolve 3: A credential failure MUST land invalid-credential with the critical section released and nothing appended.
 resolve 4: [Resolve] MUST take the critical section: take((kind, act key), operator run id, sweep lease).
-resolve 5: The take MUST NOT block longer than the holder's remaining lease.
+Deleted: resolve 5. Lease Operation 3 and Operation 4 own it, as for open step 2.2.
 resolve 6: A failed take MUST land section-unavailable.
 resolve 7: WHEN remaining DOES NOT EXCEED write floor:
     resolve 7a: [Resolve] MUST NOT write.
@@ -783,10 +789,12 @@ resolve 7: WHEN remaining DOES NOT EXCEED write floor:
 resolve 8: [Resolve] MUST re-read the journal from sequence high water for the act key under the critical section.
 NOTE: watch rule inheritance (refuse step 0.1).
 resolve 9: An outcome or a refusal naming the invocation id MUST land already-accounted(closing event id).
+NOTE: open line 2026-10-07-l — an operator's outcome carrying a wrong datum stands for good: Check 6.1 finds it, and resolve 9 refuses every resolution over it.
 Deleted: resolve 9a. Execution Contract Database 2 owns it: a writer's re-read, lease check and append are one transaction, so no act carries a binding duplicate.
 resolve 10: An intent event id read_record answers not-known for MUST land not-known.
 resolve 11: [Resolve] MUST read the intent by read_record(intent event id).
 resolve 12: An intent whose payload the substrate reports Purged MUST land invalid-request(purged).
+NOTE: open line 2026-10-07-g — an escalation still standing at its intent's horizon is stranded there, since resolve 12 refuses a purged intent, and no rule here sets an operator a deadline ahead of the horizon.
 resolve 13: EVERY closing [Resolve] writes over an existing record MUST carry supersedes naming that record's event id.
 resolve 14: WHEN no closing stands:
     resolve 14a: [Resolve] MAY write any disposition as the act's closing.
@@ -855,7 +863,7 @@ Term partition: `((((closed + escalated) + reported) + skipped) + closed_already
 
 Term surfaced: the unbound-kind intents step 1 reports; outside the partition.
 
-Term unreached: the acts step 1 kept that the run stopped short of after the service identity's credential was refused (reconcile step 2.1, reconcile step 2.8 through 2.9); outside the partition.
+Term unreached: the acts step 1 kept that the run stopped short of after a write under the service identity of the act's kind answered invalid-credential (reconcile step 2.1, reconcile step 2.8 through 2.9); outside the partition.
 
 Term closed already: an act step 2's re-read finds another writer closed since step 1.
 
@@ -876,8 +884,8 @@ Term reported: an act the run examined, of a kind whose service identity EQUALS 
    ```
 2. **Take the act's critical section and re-read.**
    ```
-   reconcile step 2.1: The run MUST take the critical section for each kept intent: take((kind, act key), critical section holder, sweep lease), an intent not yet examined when a write under the service identity answers invalid-credential excepted.
-   reconcile step 2.2: The take MUST NOT block longer than the current holder's remaining lease.
+   reconcile step 2.1: The run MUST take the critical section for each kept intent: take((kind, act key), critical section holder, sweep lease), an intent not yet examined when a write under the service identity of the intent's kind answers invalid-credential excepted.
+   Deleted: reconcile step 2.2. Lease Operation 3 and Operation 4 own it, as for open step 2.2.
    reconcile step 2.3: A take that fails after the wait MUST count the act in skipped.
    reconcile step 2.4: Under the critical section, the run MUST re-read open invocations at (kind, act key) and sweep closed ids from sequence high water.
    NOTE: watch rule inheritance (refuse step 0.1).
@@ -927,12 +935,13 @@ Term reported: an act the run examined, of a kind whose service identity EQUALS 
    reconcile step 3.15: EVERY closing write's arms and EVERY recovery_intended write's arms MUST follow the outcome position.
    reconcile step 3.16: After invalid-request(step-4), the run MUST read the record back.
    reconcile step 3.17: The run MUST leave EVERY step-2 arm and step-3 arm not landed within the lease for the next run.
-   reconcile step 3.18: The run MUST surface an invalid-credential for the service identity on compliance surface at once.
+   reconcile step 3.18: The run MUST surface an invalid-credential for a service identity on compliance surface at once, as a hard alert.
    reconcile step 3.19: The run MUST NOT write further under the credential until reconfigured.
    reconcile step 3.20: An invalid-request(step-1), invalid-request(step-2) or invalid-request(step-3) on a closing write or on a recovery_intended write MUST close the act as `<kind>.escalated` with cause set to outcome-unrecordable, the write of that escalation excepted (reconcile step 3.23).
    reconcile step 3.21: The run MUST surface EVERY act the run closes as `<kind>.escalated` on compliance surface as the act finding escalated.
    reconcile step 3.22: The run MUST open or advance the instance finding journal-unavailable on compliance surface for EVERY recording-failure(step-2) and EVERY recording-failure(step-3) reconcile step 3.17 leaves for the next run.
    reconcile step 3.23: IF the escalation reconcile step 3.20 writes answers invalid-request(step-1), invalid-request(step-2) or invalid-request(step-3) THEN the run MUST leave the act for the next run with a hard alert.
+   reconcile step 3.24: An operator MUST close through [Resolve] EVERY aged intent of a kind whose service identity's credential reconcile step 3.18 surfaced, until the credential is reconfigured (Invariant 4.2).
    ```
 4. **Update and release.**
    ```
@@ -943,7 +952,7 @@ Term reported: an act the run examined, of a kind whose service identity EQUALS 
    ```
 5. **Liveness.**
    ```
-   reconcile step 5.1: IF at risk threshold DOES NOT EXCEED intent age THEN the run MUST surface an examined or skipped intent whose closing has not landed as the act finding closure-at-risk.
+   reconcile step 5.1: IF at risk threshold DOES NOT EXCEED intent age THEN the run MUST surface an examined, skipped or unreached intent whose closing has not landed as the act finding closure-at-risk.
    Deleted: reconcile step 5.2. Execution Contract Database 2 owns it: a writer's re-read, lease check and append are one transaction, so no act carries a binding duplicate.
    Deleted: reconcile step 5.3. Execution Contract Database 2 owns it: a writer's re-read, lease check and append are one transaction, so no act carries a binding duplicate.
    Deleted: reconcile step 5.4. Execution Contract Database 2 owns it: a writer's re-read, lease check and append are one transaction, so no act carries a binding duplicate.
@@ -987,7 +996,8 @@ read invocation 3: WHEN invocation id is given:
 read invocation 4: records MUST carry the intent, the recovery_intended records and the closing records.
 read invocation 5: [Read Invocation] MUST cap the recovery_intended records and the closing records at the most recent read cap, with more set to true beyond.
 read invocation 6: [Read Invocation] MUST NOT exclude a superseded record from records.
-NOTE: open line 2026-10-25-a — no rule orders the invocations of an invocation report or the records of an invocation entry.
+read invocation 16: [Read Invocation] MUST answer an invocation report's invocations earliest first by the sequence numbers of the invocations' intents, and an invocation entry's records earliest first by sequence number.
+NOTE: watch read-order polarity (read invocation 16).
 Deleted: read invocation 7. Execution Contract Database 2 owns it: a writer's re-read, lease check and append are one transaction, so no act carries a binding duplicate.
 Deleted: read invocation 8. Execution Contract Database 2 owns it: a writer's re-read, lease check and append are one transaction, so no act carries a binding duplicate.
 Deleted: read invocation 9. Execution Contract Database 2 owns it: a writer's re-read, lease check and append are one transaction, so no act carries a binding duplicate.
@@ -1014,17 +1024,18 @@ An adopter binds the parameters below once per **act kind**. The instance's bind
 ```
 Binding 1: [Reconcile] MUST read completion bound, probe, service identity, retention period and the `<kind>.*` vocabulary of every intent from the bindings table by the intent's kind.
 Binding 2: The deployment MUST refuse a configuration change that unbinds a kind with an open intent.
-Binding 3: The refusal Binding 2 names MUST land on compliance surface with the reason.
+Binding 3: The refusal Binding 2 names MUST land on compliance surface as a hard alert naming an open intent of the kind.
 Binding 4: [Reconcile] step 1 MUST surface EVERY `<kind>.intended` record whose kind the bindings table does not serve and which no closing record of any kind names, once per run, on compliance surface.
 Binding 5: [Reconcile] MUST NOT close an intent Binding 4 surfaces.
 Binding 6: [Reconcile] MUST bound the pass Binding 4 names by the instance's longest retention period.
 Binding 7: The adopter MUST declare EVERY binding in the adopter's own Composes entry for this composition.
 Binding 8: The adopter MUST declare a need outside the bindings as a deviation (Edge cases, Declared deviations).
 Binding 9: An adopter MUST NOT bind a kind whose database removes a record ahead of the journal's retention of the record's outcome.
+Binding 10: EVERY action but [Reconcile] MUST read the bindings of the kind the action takes from the bindings table by that kind.
 ```
 
 - **act key**
-  Term act key: the identity of one act, opaque and adopter-typed, with equality by byte-identity: the field or tuple under which two invocations are the same act. The critical section is keyed by it; the sweep pairs by it; the pre-check reads by it.
+  Term act key: the key an adopter gives an act, opaque and adopter-typed, with equality by byte-identity: the field or tuple under which two invocations are one act attempted twice where repeatable is no, and two acts where repeatable is yes. The critical section is keyed by it; the sweep pairs by it; the pre-check reads by it.
   ```
   act key 1: The adopter MUST know act key before [Open].
   act key 2: An act whose key is minted by the commit MUST bind the key the adopter can name before the commit and declare the minted-key deviation.
@@ -1140,7 +1151,9 @@ Instance start 3: IF any condition fails for any bound kind THEN the instance MU
 
 Term worst closure: `(((completion_bound + (2 * clock_offset_allowance)) + (2 * reconciliation_cadence)) + (3 * run_bound))` — completion bound the kind's, the rest the instance's, the allowance counted twice for every kind.
 
-Term window end: `((completion_bound + clock_offset_allowance) + compensation_window)`.
+Term examine window end: `((completion_bound + clock_offset_allowance) + compensation_window)` — measured from an intent's recording instant, the end of a compensation window counted from the intent's examine edge; it lies the examine edge's offset past the end of the window Term compensation window counts from the recording instant.
+
+Term retention floor: `(examine_window_end + run_bound)` — the retention period condition 2 holds a kind above: one run's age past the examine window end.
 
 Term lease spend: `((((2 * read_bound) + (2 * journal_write_bound)) + commit_round_trip) + (9 * call_pause_bound))`.
 
@@ -1148,10 +1161,11 @@ Term run floor: `(max(completion_bound, (closure_latency + journal_write_bound))
 
 Term closure spend: `max((((read_bound + (2 * journal_write_bound)) + probe_round_trip) + (7 * call_pause_bound)), (((2 * read_bound) + journal_write_bound) + (6 * call_pause_bound)))` — the sweep's closure, or [Resolve]'s work under the same lease, whichever is longer.
 
+NOTE: open line 2026-10-19-a — lease spend and closure spend charge no lost reply's wait and read-back, while act section 16 binds them as Lease's work bounds, the bound on all the work under one lease.
+
 ```
 Instance start 4: The instance MAY start ONLY IF compensation window EXCEEDS worst closure.
-Instance start 5: The instance MAY start ONLY IF retention period EXCEEDS window end added to run bound.
-NOTE: open line 2026-10-18-a — Term window end is the examine edge plus compensation window, a completion bound and an allowance past the window's own end, and condition 2 adds run bound to it inside the rule.
+Instance start 5: The instance MAY start ONLY IF retention period EXCEEDS retention floor.
 Instance start 6: The instance MAY start ONLY IF completion bound EXCEEDS lease spend.
 Instance start 7: run floor MUST NOT EXCEED run bound.
 Instance start 8: The instance MAY start ONLY IF closure latency EXCEEDS closure spend.
@@ -1250,7 +1264,7 @@ An escalated entry becomes resolved when an operator's abandonment names it, and
 - **Invariant 4 — Bounded closure (safety + liveness).**
   ```
   Invariant 4.1: The records MUST reveal, provably, EVERY act whose invocation has yielded or died, as an aged intent with no record naming the intent's invocation id.
-  Invariant 4.2: IF the journal and the adopter's database are reachable THEN a writer MUST close EVERY aged intent by an outcome, an abandoned record or an escalation WITHIN compensation window of the intent's recording instant.
+  Invariant 4.2: IF the journal and the adopter's database are reachable AND service identity DOES NOT EQUAL none for the intent's kind THEN a writer MUST close EVERY aged intent by an outcome, an abandoned record or an escalation WITHIN compensation window of the intent's recording instant.
   Invariant 4.3: WHEN the journal is unreachable:
       Invariant 4.3a: A writer MUST NOT close the intent during the outage.
       Invariant 4.3b: [Open] MUST refuse the key journal-unavailable for the outage's duration.
@@ -1365,7 +1379,7 @@ A caller receives `recording-failure(outcome)`. The position says the act commit
 
 ## Generation acceptance
 
-A derived implementation of Recoverable Invocation is acceptable when the following are provable to an auditor given the journal and the adopter's constituent records.
+A derived implementation of Recoverable Invocation is acceptable when the following are provable to an auditor given the journal and the adopter's constituent records. The invariant map pairs each invariant with the check that reads it.
 
 ### Conformance checks
 
@@ -1380,7 +1394,7 @@ Check 2.3: Two intents MUST NOT stand open on one (kind, act key) at any reading
 Check 2.4: An auditor MUST read supersession transitively PER the section titled Which closing stands and count the reachable set as one closing.
 Check 2.5: An auditor MUST read EVERY outcome as EXACTLY ONE OF the three outcome shapes.
 Check 2.6: An auditor MUST report an outcome matching no outcome shape as a conformance failure.
-Check 3.1: For EVERY aged intent inside the horizon, a closing record MUST land WITHIN compensation window of the intent's recording instant, the auditor's reading tolerating clock offset allowance across seams.
+Check 3.1: For EVERY aged intent inside the horizon, of a kind whose service identity DOES NOT EQUAL none, a closing record MUST land WITHIN compensation window of the intent's recording instant, the auditor's reading tolerating clock offset allowance across seams.
 Check 3.2: An auditor MUST exempt an intent of a kind the bindings table no longer serves.
 Check 3.3: An auditor MUST exempt an intent whose window overlaps any span of journal-unavailable, or of store-unavailable for the intent's kind.
 Check 3.4: An auditor MUST NOT exempt an intent for the healthy gap between two spans.
@@ -1402,7 +1416,7 @@ Check 8.1: An auditor MUST clear Audit Trail's eight traversal checks over the j
 
 Term outcome shape: recovery absent with actor reference set to the intent's actor reference; recovery set to true with resolving actor, actor reference set to resolving actor, no recovery_intended owed; recovery set to true without resolving actor, actor reference set to the service identity, preceded by one or more `<kind>.recovery_intended` naming the same invocation id.
 
-Term invariant map: Invariant 1 → Check 1; Invariants 2 and 5 → Check 2; Invariant 4 → Check 3 and Check 4 (conditions 1, 4, 5; with Invariant 7 for condition 2); Invariant 5 → Check 5 and Check 6; Invariant 7 → Check 7.
+Term invariant map: Invariant 1 → Check 1; Invariants 2 and 5 → Check 2; Invariant 3 → Check 1.1 (Invariant 3.1, 3.2) and Check 6 (Invariant 3.3 through 3.5); Invariant 4 → Check 3 and Check 4 (conditions 1, 4, 5; with Invariant 7 for condition 2); Invariant 5 → Check 5 and Check 6; Invariant 6 → External check 7, no conformance check, since no record carries outcome envelope's truth; Invariant 7 → Check 7; Invariant 8 → no check, since the adopter's signature carries the position and no record does; Invariant 9 → Check 8 (Invariant 9.1), and no check for Invariant 9.2 and 9.3, which the adopter's records and commit partition answer.
 
 ### External checks
 
@@ -1417,6 +1431,7 @@ Deleted: External check 6. No adopter binds a declared commit fence, which the d
 External check 7: An auditor MUST clear from external evidence that each adopter's outcome envelope is the true maximum of the records the kind writes.
 External check 8: An auditor MUST clear from external evidence that no writer other than this composition's actions uses an adopter's journal vocabulary.
 External check 9: IF repeatable EQUALS no THEN an auditor MUST clear from external evidence that the adopter's bound commit refuses, on an arm the constituent declares pre-commit, EVERY call whose act key a record of the adopter's database carries (repeatable 2).
+External check 10: An auditor MUST clear from external evidence that EVERY invalid-credential a write under a service identity answered was surfaced on compliance surface at once as a hard alert (reconcile step 3.18).
 ```
 
 ---
@@ -1524,7 +1539,7 @@ Term cadences: reconciliation cadence.
 
 Term qualifiers: migrated — rewritten in GRACE lang v0.35 (2026-09-11).
 
-Term terms: (named expressions, each declared where it is used) worst closure, window end, lease spend, run floor, closure spend, examine edge, horizon edge, at risk threshold, intent age, settle bound, retention end, sweep lease, in-flight, aged, partition, examined, skipped, reported, surfaced, unreached, closed already, standing closing, terminus, caller kind, payload match, quiescence, read path, read-your-writes, `position's existing arm`, cross-seam comparison, critical section key, critical section holder, critical section duration, reply, release, hard alert, unfenced write, write floor, commit floor, act finding, instance finding, kind, act key, invocation id, now, operator run id, resolve refusal, open result, close result, reconcile tally, invocation report, invocation entry, first seen, last seen, span, acting actor reference, resolving actor, recovery_intended, database candidates.
+Term terms: (named expressions, each declared where it is used) worst closure, examine window end, retention floor, lease spend, run floor, closure spend, examine edge, horizon edge, at risk threshold, intent age, settle bound, retention end, sweep lease, in-flight, aged, partition, examined, skipped, reported, surfaced, unreached, closed already, standing closing, terminus, caller kind, payload match, quiescence, read path, read-your-writes, journal join, lost reply, `position's existing arm`, cross-seam comparison, critical section key, critical section holder, critical section duration, reply, release, hard alert, unfenced write, write floor, commit floor, act finding, instance finding, kind, act key, invocation id, now, operator run id, resolve refusal, open result, close result, reconcile tally, invocation report, invocation entry, first seen, last seen, span, acting actor reference, resolving actor, recovery_intended, database candidates.
 
 NOTE: open line 2026-10-25-b — most declared terms carry no term entry, where spec-format's Terms item asks one per declared term (Term terms).
 
@@ -1685,34 +1700,15 @@ The composition anchors the accountability every regulated adopter's regime requ
 
 ```
 status: partially resolved
-formal: verified — recoverable-invocation.tla (v7) + 6 twins + 16 probes and isolations, and v7's own runs (23,962 states **at a horizon of five ticks**, which is the whole of the claim: the four-phase [Open] costs about a factor of ten in states per tick and does not finish at six or seven, so "all invariants hold" here means *holds within five ticks at these constants* and no monotonicity argument is offered for more. **The twin suite does not show that five is enough, and this line said it did:** five of the six twin files are full copies of v4 at their own constants — seven ticks — which carry v4's journal fence as a constant set TRUE, none of their defects turning on it, and each is rejected on the invariant its header names; the sixth, `-buggy-journal`, is the v7 module with its one constant flipped; run instead as configurations of the v7 module at the main constants, two of the three that are one constant's flip are rejected (`VisibleOnReturn`, 19,069 states; `SupersedesNamed`, 20,759) and one holds (`OperatorSkew` under a report-only deployment, 29,826, whose race needs the release at [Yield] that v6 removed), the two structural twins having no constant to flip. **v6 (2026-10-07)** carries the invocation's lost-reply path as Lease has it: `HoldUnanswered` — no release while a commit is in flight or once a write's reply is lost; flipped with the operator's reading one tick ahead it is what lets a false abandonment land (Invariant 5 violated at 4,510 states under v7, holding at 29,826 with the hold), so the hold is a second defence against the operator's clock and no twin file is added for it. **v7 (2026-10-20)** takes the journal fence out under the maintainer's ruling of that day: a take refuses every journal write it overtakes (`TakeRefuses`), a writer's re-read, lease check and append being one transaction (Execution Contract Store 2 through Capability requirement 12), and no lost-reply write is issued twice; with the refusal off (`-buggy-journal`) a second invocation's intent lands beside the first's (1,431 states), and at a nine-tick horizon with pauses and deaths off an invocation's outcome lands after the sweep's take, beside the sweep's (Invariant 2 violated at 23,321 states, holding at 25,286 with the refusal); with the intent write ungated it holds (27,045), so the refusal, not the lease gate, keeps a second intent off the first's; a host that releases on death holds as well (27,500), and `-buggy-death`, `-buggy-skew`, `-buggy-perwrite` and the six intent files that weighed the fence against the gate are retired. The window has its own configurations; Invariants 1, 2, 4, 5 as safety over discrete time; six components over one act — the invocation, a section host with lease-as-terminus, a fenced-or-fenceless store, a journal whose writes return and become visible at separate instants and which refuses a write another holder's take overtakes, two sweep runs on two nodes with a blocking take, **an operator through [Resolve] as the third writer, taking the same section on its own seam reading and re-arming for a second call**, **[Open] split into take → read → gate → issue → return with the intent write carrying its own return and visibility instants**, a death budget and a pause budget; `service_identity` is a modelled dimension, so the sweep's writes and the operator's open-intent arm are gated by it; every journal write split into its gate and its issue, and carrying separate return and visibility instants; twins rejected — `-buggy-reread`, sweep skips the re-read under the section → Invariant 2; `-buggy-fence`, sweep abandons a fenceless act → Invariant 5; `-buggy-journal`, a take that does not refuse the write it overtakes → Invariants 7 and 8; `-buggy-visible`, visibility only time-bounded → Invariant 2; `-buggy-supersede`, a resolution over an escalation carrying `resolved_by` and no `supersedes` → Invariants 2 and 6 (gate 9, F6); `-buggy-opclock`, the operator's reading one tick ahead in a report-only deployment → Invariant 5 (gate 9, F7), against `recoverable-invocation-probe-reportonly-clean` which differs by that one constant and HOLDS; **Invariant 8 — an intent is never in flight under another holder's grant — is earned by the store's refusal and not by the lease gate: with the refusal off it is violated, and with the gate off it holds (gate 10, F6; the journal fence earned it until v7)**; established — the dead-run term inside the model's own frame is the sweep's own lease and not a second `completion_bound` (true of a world with one act in it; the page's inequality carries `run_bound` terms instead, which the model has no backlog to express — Configuration §`compensation_window`), the `remaining` gate is not what carries Invariant 2 (the store's refusal is), the lower edge not safety-bearing at zero skew; Invariant 4 is vacuous at the main constants and is checked in the window configurations instead; **reachability probes — `Probe_OperatorNeverHoldsSection`, `Probe_OperatorNeverWrites`, `Probe_OperatorNeverSupersedes` and `Probe_NeverASupersessionChain`, each a deliberate falsehood the checker rejects**, the last of them only after it had held twice and named two things that were off which the configuration did not say were off, so the operator's invariants are not vacuous the way Invariant 4 once was; not modeled — pairing, purge, the refusal path, `recovery_intended`, the bindings table's lifecycle and with it the `kind` half of the key, the rejection-code taxonomy, the derived indexes, the compliance surface, the sweep's own lost-reply read-back, the call pause bound and the sizing bound from Lease with the reading ahead of the commit (the model's gates compare against `JournalWriteBound` alone and its commit goes ungated, the wider behaviour), [Open]'s read ahead of the take (the model's second opener always takes, the wider behaviour), and **which record a supersession names**: the model counts supersessions and does not identify them, so a chain (an escalation superseded by an abandonment superseded by an outcome) and a double-naming of one record are the same state to it — the transitivity rule below is therefore a prose repair and is **not** model-confirmed), 2026-10-20
+formal: verified — recoverable-invocation.tla (v7) + 6 twins + 16 probes and isolations, and v7's own runs (23,962 states **at a horizon of five ticks**, which is the whole of the claim: the four-phase [Open] costs about a factor of ten in states per tick and does not finish at six or seven, so "all invariants hold" here means *holds within five ticks at these constants* and no monotonicity argument is offered for more. **The twin suite does not show that five is enough.** **The six twins are the v7 module with one defect each (re-derived 2026-10-27; five had been copies of v4 at seven ticks), each at the shortest horizon that rejects it and holding one tick shorter:** `-buggy-opclock` at two ticks (1,590 states), `-buggy-journal` and `-buggy-fence` at three (1,373 and 2,419), `-buggy-supersede` and `-buggy-visible` at four (10,771 and 13,538), `-buggy-reread` at five (18,197); the opclock twin turns off both of its defences, since each alone keeps Invariant 5 against the operator's clock — resolve 19's operator seam (`OperatorSkew` 0; 1,360 states at two ticks, 21,373 at five, the passing sibling `recoverable-invocation-probe-reportonly-clean`) and act section 15's hold (`HoldUnanswered`; 1,594 and 29,826) — so each is the other's second defence. **v6 (2026-10-07)** carries the invocation's lost-reply path as Lease has it: `HoldUnanswered` — no release while a commit is in flight or once a write's reply is lost; flipped with the operator's reading one tick ahead it is what lets a false abandonment land (Invariant 5 violated at 4,510 states under v7, holding at 29,826 with the hold), so the hold is a second defence against the operator's clock, and `-buggy-opclock` turns both off. **v7 (2026-10-20)** takes the journal fence out under the maintainer's ruling of that day: a take refuses every journal write it overtakes (`TakeRefuses`), a writer's re-read, lease check and append being one transaction (Execution Contract Store 2 through Capability requirement 12), and no lost-reply write is issued twice; with the refusal off (`-buggy-journal`) a second invocation's intent lands beside the first's (1,431 states), and at a nine-tick horizon with pauses and deaths off an invocation's outcome lands after the sweep's take, beside the sweep's (Invariant 2 violated at 23,321 states, holding at 25,286 with the refusal); with the intent write ungated it holds (27,045), so the refusal, not the lease gate, keeps a second intent off the first's; a host that releases on death holds as well (27,500), and `-buggy-death`, `-buggy-skew`, `-buggy-perwrite` and the six intent files that weighed the fence against the gate are retired. The window has its own configurations; Invariants 1, 2, 4, 5 as safety over discrete time; six components over one act — the invocation, a section host with lease-as-terminus, a fenced-or-fenceless store, a journal whose writes return and become visible at separate instants and which refuses a write another holder's take overtakes, two sweep runs on two nodes with a blocking take, **an operator through [Resolve] as the third writer, taking the same section on its own seam reading and re-arming for a second call**, **[Open] split into take → read → gate → issue → return with the intent write carrying its own return and visibility instants**, a death budget and a pause budget; `service_identity` is a modelled dimension, so the sweep's writes and the operator's open-intent arm are gated by it; every journal write split into its gate and its issue, and carrying separate return and visibility instants; twins rejected — `-buggy-reread`, sweep skips the re-read under the section → Invariant 2; `-buggy-fence`, the sweep abandons, against Invariant 4.9 → Invariant 5; `-buggy-journal`, a take that does not refuse the write it overtakes → Invariants 7 and 8; `-buggy-visible`, visibility only time-bounded → Invariant 2; `-buggy-supersede`, a resolution over an escalation carrying `resolved_by` and no `supersedes` → Invariants 2 and 6 (gate 9, F6); `-buggy-opclock`, the operator's reading one tick ahead in a report-only deployment, with the hold off → Invariant 5 (gate 9, F7), against `recoverable-invocation-probe-reportonly-clean`, which differs by that reading and HOLDS; **Invariant 8 — an intent is never in flight under another holder's grant — is earned by the store's refusal and not by the lease gate: with the refusal off it is violated, and with the gate off it holds (gate 10, F6; the journal fence earned it until v7)**; established — the dead-run term inside the model's own frame is the sweep's own lease and not a second `completion_bound` (true of a world with one act in it; the page's inequality carries `run_bound` terms instead, which the model has no backlog to express — Configuration §`compensation_window`), the `remaining` gate is not what carries Invariant 2 (the store's refusal is), the lower edge not safety-bearing at zero skew; Invariant 4 is vacuous at the main constants and is checked in the window configurations instead; **reachability probes — `Probe_OperatorNeverHoldsSection`, `Probe_OperatorNeverWrites`, `Probe_OperatorNeverSupersedes` and `Probe_NeverASupersessionChain`, each a deliberate falsehood the checker rejects**, the last of them only after it had held twice and named two things that were off which the configuration did not say were off, so the operator's invariants are not vacuous the way Invariant 4 once was; not modeled — pairing, purge, the refusal path, `recovery_intended`, the bindings table's lifecycle and with it the `kind` half of the key, the rejection-code taxonomy, the derived indexes, the compliance surface, the sweep's own lost-reply read-back, the call pause bound and the sizing bound from Lease with the reading ahead of the commit (the model's gates compare against `JournalWriteBound` alone and its commit goes ungated, the wider behaviour), [Open]'s read ahead of the take (the model's second opener always takes, the wider behaviour), and **which record a supersession names**: the model counts supersessions and does not identify them, so a chain (an escalation superseded by an abandonment superseded by an outcome) and a double-naming of one record are the same state to it — the transitivity rule below is therefore a prose repair and is **not** model-confirmed), 2026-10-20
 last gate: 2026-10-25 — Final Critique 23 — foundational count 1, not clean, no sample
 
 open:
 - 2026-09-10-a · refining · Composition state, `findings` · the register carries truth no constituent's records replay, and it is classified extraction-pending with no atom yet owning it, so this page owns a durability contract that belongs to one → land the **Condition Register** atom, a durable register of named conditions each opening at a first sighting, advancing at every later one and ceasing when a pass no longer sees it; until it lands the contract in Composition state is the declaration and the debt is flagged rather than normalized; Audit Trail classifies its outage record against the same atom and bars modifying an entry once written (its outage record 1 and 2), where this page's findings advance last seen, close and reopen (findings 9 through 11), so the atom must hold both shapes or one page reclassify (Final Critique 18)
-- 2026-10-07-e · refining · formal · five of the six twins are copies of v4, carrying v4's journal fence as a constant set TRUE, and against the v7 module at its own constants one of the three that are one constant's flip holds: the operator-clock race needs the release at [Yield] that act section 15 removed, so no run shows resolve 19 load-bearing on the page as it stands → re-derive the twins as configurations of the current module, each at the shortest horizon that reaches it, and name the rules a second defence now covers
 - 2026-10-07-g · refining · resolve 12 · a purged intent refuses resolution, so any adopter's escalation is stranded at its intent's horizon, and only the pilot adopter obliges an operator to settle ahead of it → own the deadline here
 - 2026-10-07-l · refining · resolve 9; Check 6.1 · an operator's outcome carrying a wrong datum is permanent: the check detects it and no action repairs it → a correcting resolution
-- 2026-10-09-a · refining · Term quiescence · whether quiescence is per act or per instance is unstated, and an instance-wide reading leaves every check that waits on it empty on a busy instance → scope it per act
-- 2026-10-09-b · refining · Term act key · two invocations of one key are called one act, which repeatable set to yes denies → say the key names one act only where repeatable is no
-- 2026-10-09-c · refining · open step 2.2; reconcile step 2.2; resolve 5 · a waiter's bound is the current holder's remaining lease, which no waiter can read (Lease Invariant 5.1) → bound the wait by what the waiter can read
-- 2026-10-09-d · refining · Primitive policy 5; Invariant 3.2 · invocation id and no other field, against Check 1.2's and an adopter's read of the intent by the intent event id a record carries → say a read by a carried event id is a lookup, not a join
-- 2026-10-18-a · refining · Term window end; Instance start 5 · window end is the examine edge plus compensation window, a completion bound and an allowance later than the end of the window Term compensation window measures from the recording instant, and Instance start 5 adds run bound to window end inside the rule, arithmetic a rule does not carry (GRACE-lang Hard invariant 24, Closed vocabulary 9) → name the term for the instant it is, or measure condition 2 from the window's own end and state its margin, and declare the sum condition 2 compares as a term
-- 2026-10-18-b · refining · Binding 3; reconcile step 3.18; open step 3.8c · a refused unbind, a refused service credential and a report-only deployment's old intent are surfaced on compliance surface and are neither one of the six findings nor a hard alert → say what record each is
-- 2026-10-18-c · refining · Capability requirement 2; Term open-upper-bound sequence-range read · the range read is asked for a cursor, a declared page size and a page-complete signal that Event Log's read (Operation 13, 18) and Audit Trail's pass-through (Action wiring 1, 5) do not declare and no rule here reads, and the Term calls the pass-through list-shaped → state the paging as the deployment's query shape with the re-reads reading to the signal, or drop it
-- 2026-10-18-e · refining · findings 1 · an unbound-kind finding names a kind the bindings table no longer serves, which has no retention period, so its persistence is sized by nothing → size it by the instance's longest retention period, as findings 2 sizes a finding naming no kind
-- 2026-10-18-f · refining · open step 5 · open step 5.2 returns ahead of open step 5.4's reading, which is the last call [Open] makes, and of open step 5.6's arm, and open step 5.3 holds the critical section at every return, the return after open step 5.5's release included → order step 5 as [Open] runs it
-- 2026-10-18-k · refining · Term invariant map · the map names Invariants 1, 2, 4, 5 and 7 and leaves out 3, 6, 8 and 9, and Check 8 reads an invariant the map does not name → map each invariant to the check that reads it, or say that none does
-- 2026-10-18-n · refining · close step 1.2; close step 2.4; refuse step 1.2 · each returns with nothing written and no release, where [Open]'s early arms release (open step 3.4, 3.6, 4.2a, 4.5) → say whether the invocation releases there or lets the grant end at its instant
-- 2026-10-18-o · refining · Primitive policy 32; journal write bound · no rule says when a record_action's reply counts as lost, which yield 7 says only of the bound commit → say when a journal write's reply is lost
-- 2026-10-18-p · refining · Binding 1 · Binding 1 has [Reconcile] read the per-kind bindings from the bindings table by the intent's kind and names no other action, while [Open], [Close] and [Resolve] read completion bound, service identity or the kind's outcome refs by kind as well (open step 2.1, open step 3.6, close 6, resolve 18, resolve 31) → say every action reads its kind's bindings from the table by the kind it takes
-- 2026-10-18-t · refining · call pause bound 1; act section 19 · the page restates Lease Capability requirement 7 for lease calls alone, leaving out the unfenced write it issues (the bound commit) and the atom's exception for a blocking take, which open step 2.2, reconcile step 2.2 and resolve 5 let wait → restate the requirement whole for the page's calls and unfenced writes, its exception included, keeping the issue of a journal write the part call pause bound bounds
-- 2026-10-18-u · refining · reconcile step 3.18; reconcile step 3.19; Invariant 4.2 · while the service identity's credential stays refused the sweep writes nothing, and no rule says who closes the kind's aged intents within compensation window, which Invariant 4.2 still obliges of a writer; the run counts the rest of its intents unreached, which reconcile step 5.1 does not surface as closure-at-risk, and no external check clears the surfacing reconcile step 3.18 obliges → name the operator's [Resolve] as the closer while the credential is refused, surface what the operator must close, and clear the surfacing
-- 2026-10-18-v · refining · Invariant 4.2; Invariant 4.7; service identity 2 · the degradation of Invariant 4.2 to Invariant 4.6 under service identity none is a PROVISIONAL line, which carries no normative force (GRACE-lang Surface 14), and Invariant 4.2 carries no condition on service identity, so Invariant 4.2 and Check 3.1 still oblige a report-only deployment's operators to close every aged intent within compensation window → condition Invariant 4.2 and Check 3.1 on a declared service identity, as Check 3.5 is conditioned on none, or say that the window binds the operators
 - 2026-10-19-a · refining · Term lease spend; Term closure spend; act section 16; Term critical section duration · lease spend and closure spend charge no lost reply's wait and read-back (Primitive policy 34, Primitive policy 35, reconcile step 3.16), while act section 16 binds them as Lease's work's bounds, the bound on all the work under one lease (Lease Term work's bound); every write past the overrun still passes its gate (open step 5.4 through 5.6, close step 3.5, journal write bound 1) → charge the wait and the read-back, or say the work's bound is the path with no lost reply and what a lost reply costs past it
-- 2026-10-19-b · refining · reconcile step 2.1; Term unreached; reconcile step 3.19 · the exception reads, with Term unreached, as the run's stop at its first refused write under a service identity, and reconcile step 3.19 forbids writes under the refused credential alone, so where two kinds bind different service identities one build leaves the second kind's intents unreached and another closes them → say whether the exception reaches an intent whose kind binds another service identity
 - 2026-10-23-b · refining · Term probe; probe 1 through 8; Term closure spend; Term quiescence; Term retention period; Term external evidence · Audit Trail declares Term probe, a run's first reconciliation-path record_action (Audit Trail Invariant 1.10), and this page its own Term probe, a read of the adopter's database: two meanings for one word across the seam (GRACE-lang Closed vocabulary 17); Audit Trail declares Term closure spend, Term quiescence, Term retention period and Term external evidence as well, and this page declares each with a definition of its own → rename one side of each; a council commit of this page cannot change Audit Trail
-- 2026-10-25-a · refining · read invocation 2; read invocation 4; read invocation 5 · no rule orders the invocations an invocation report carries or the records an invocation entry carries, where the corpus's history surfaces but one answer a read in ascending order (GRACE-lang Watch list, read-order polarity); no rule or check reads the order, each entry carrying its invocation id and each record its sequence number → state the order, ascending by sequence number as the corpus's history surfaces answer, or say that the answer carries none
 - 2026-10-25-b · refining · Term terms; Vocabulary · most declared terms carry no term entry, where spec-format's Terms item asks one per declared term and every specification writes one per name a bracket marker lands on → add the entries, each with a Kind the term entry grammar admits, or read the item as the bracketed names
 - 2026-10-25-d · refining · reconcile 1; open step 1.8; read invocation 11 · a read outside the critical section — [Open] step 1, [Reconcile] step 1 and [Read Invocation] — that returns nothing has no arm and no bound: each of the three rules lands a read that fails, and Capability requirement 15 reaches only the reads under the critical section, so nothing says when a [Reconcile] run whose enumeration returns nothing ends, which run bound 1 and sequence high water 4 need before the node's next run → say what each lands and by which bound: no answer to give (Execution Contract Error model 1), as Audit Trail answers its own such reads, or journal-unavailable, as a failed read lands; and for [Reconcile] step 1, the bound a stalled enumeration ends at
 ```

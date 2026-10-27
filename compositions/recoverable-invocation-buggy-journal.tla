@@ -11,12 +11,14 @@
 \* what that ruling gives every deployment. Until v7 this twin was a copy of
 \* v4 with JournalFence = FALSE (the sixth fresh-reader gate's F2).
 \*
-\* Expected result: Safety VIOLATED at the main constants — a second
-\* invocation takes the section while the first's intent is in flight, and
-\* both intents land (Inv7_OneLiveIntent, Inv8_IntentUnderItsSection; 1,431
-\* states). At the nine-tick horizon the main module's header names, the
-\* invocation's outcome lands after the sweep's take, beside the sweep's
-\* (Inv2_OneWriter, 23,321 states).
+\* Expected result: Safety VIOLATED at MaxTime = 3, the shortest horizon that
+\* reaches it — a second invocation takes the section while the first's intent
+\* is in flight, and both intents land (Inv7_OneLiveIntent,
+\* Inv8_IntentUnderItsSection; 1,373 states; at MaxTime = 2 it holds, 1,360,
+\* and at the main constants' five ticks it is rejected at 1,431). At the
+\* nine-tick horizon the main module's header names, the invocation's outcome
+\* lands after the sweep's take, beside the sweep's (Inv2_OneWriter, 23,321
+\* states).
 
 
 EXTENDS Naturals
