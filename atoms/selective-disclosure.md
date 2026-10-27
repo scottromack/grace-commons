@@ -61,9 +61,11 @@ Identity 14: The atom MUST NOT interpret a recipient.
 Deleted: Identity 15. Execution Contract Logic confinement 10 owns it.
 ```
 
+NOTE: open 2026-10-21-g — Identity 6 reads as each call routed to one instance or as every call routed to the same instance, and under the first a subject reference query answers only its own instance's records.
+
 Term disclosure record: one recorded disclosure of one subject's data to one recipient under one authority — the record this atom holds.
 
-Term disclosure id: the opaque value naming one disclosure record — a [Disclosure Id]; host-allocated at the seam, fresh per call by the seam's construction.
+Term disclosure id: the opaque string naming one disclosure record — a [Disclosure Id]; host-allocated at the seam, fresh per call by the seam's construction.
 
 Term subject reference: the opaque reference naming the data subject whose data was disclosed — a [Subject Reference]; a property of the record, never the record's identity.
 
@@ -76,6 +78,8 @@ Term database instance: one named database a call is routed to; disclosure id un
 Term seam: the atom's I/O boundary as the section titled Logic Confinement Principle in `execution-contract.md` declares it; the host injects the clock reading and the disclosure id here.
 
 Term transition: the atom's evaluation of one call against the disclosure records, as the section titled Logic Confinement Principle in `execution-contract.md` declares it.
+
+NOTE: open 2026-10-27-a — Term seam, Term transition, Term now and Term business caller cite the section titled Logic Confinement Principle in `execution-contract.md`, which declares none of them.
 
 ### State
 
@@ -92,11 +96,13 @@ Deleted: State 9. Operation 27, Execution Contract Query 4, Invariant 6.1 and Ex
 State 10: The atom MUST NOT record a receipt instant.
 ```
 
+NOTE: open 2026-10-21-f — State 1 and Invariant 3.1 both require a disclosure instant on every record, and Term disclosure instant's *never later than now* restates Invariant 4.1 beside Term resolved disclosure instant.
+
 ### Capability requirement
 
 ```
 Capability requirement 1: The deployment MUST supply now at the seam.
-Capability requirement 5: The deployment MUST supply the disclosure records PER Execution Contract Database 1, Execution Contract Database 3, Execution Contract Database 4, Execution Contract Database 6, Execution Contract Refusal 1 and Execution Contract Query 1 through 4.
+Capability requirement 5: The deployment MUST supply the disclosure records PER Execution Contract Database 1, Execution Contract Database 3, Execution Contract Database 4, Execution Contract Database 6, Execution Contract Read 1 through 3, Execution Contract Refusal 1 and Execution Contract Query 1 through 4.
 Deleted: Capability requirement 2. Execution Contract Logic confinement 7 owns it.
 Deleted: Capability requirement 3. Execution Contract Logic confinement 7 owns it.
 Deleted: Capability requirement 4. Execution Contract Logic confinement 7 owns it.
@@ -156,13 +162,16 @@ Deleted: Operation 33. Execution Contract Logic confinement 3 owns it.
 Deleted: Operation 34. Execution Contract Logic confinement 3 owns it.
 Deleted: Operation 35. Execution Contract Refusal 1 owns it.
 Operation 36: IF a filter is malformed THEN [Read] MUST answer invalid-query.
+Operation 37: IF the supplied disclosure instant DOES NOT EQUAL blank AND the supplied disclosure instant IS NOT IN the instants THEN [Record] MUST answer invalid-request.
 ```
+
+NOTE: watch the untyped input (Operation 37).
 
 Term now: the wall-time reading the host takes at the seam and hands to the transition, as the section titled Logic Confinement Principle in `execution-contract.md` declares it; never read inside the transition, never supplied by the business caller.
 
 Term business caller: the party whose action the call carries, as the section titled Logic Confinement Principle in `execution-contract.md` declares it; never the source of an injected value.
 
-Term authority: the structured field naming the basis the disclosure was made under — an [Authority]; carries authority type and authority reference and nothing else.
+Term authority: the structured field naming the basis the disclosure was made under — an [Authority]; carries authority type and authority reference and nothing else; a field a call's authority carries beyond the two is not recorded.
 
 Term authority type: consent | legal-hold | regulatory — an [Authority Type], set at record and never changed.
 
@@ -172,9 +181,13 @@ Term authority reference: the opaque string naming the specific authority — an
 
 Term disclosure instant: the instant the disclosure happened — a [Disclosure Instant]; caller-supplied or resolved to now, and never later than now.
 
-Term resolved disclosure instant: the disclosure instant the record carries — the supplied value where one exists, and now otherwise.
+Term resolved disclosure instant: the disclosure instant the record carries — the supplied value, and now where the call leaves it blank.
 
-Term filter axes: disclosure id | subject reference | recipient | authority type | disclosure instant — the five axes [Read] accepts, and no others, a filter on disclosure instant carrying a range whose after is its start and whose before is its end.
+NOTE: watch the instant left blank (Term resolved disclosure instant).
+
+Term filter axes: disclosure id | subject reference | recipient | authority type | disclosure instant — the five axes [Read] accepts, and no others, a filter keyed by the projection of the field its axis names, and a filter on disclosure instant carrying a range whose after is its start and whose before is its end.
+
+NOTE: watch the wire layer (Term filter axes).
 
 Term admitted record: a [Record] call whose fields, resolved disclosure instant and authority type the guards all admit.
 
@@ -182,7 +195,7 @@ Term admitted read: a [Read] call whose every filter axis and filter value the g
 
 | # | Condition | [Record] answers |
 |---|---|---|
-| 1 | a field is blank, or the resolved disclosure instant follows now | invalid-request |
+| 1 | a field is blank, a supplied disclosure instant is no instant, or the resolved disclosure instant follows now | invalid-request |
 | 2 | every field passes, authority type stands outside the authority types | unknown-authority-type |
 | 3 | every precondition passes, the database refuses the write | storage-failure |
 | 4 | every precondition passes, the database accepts the write | `recorded(disclosure_id)` |
@@ -220,6 +233,8 @@ Term admitted read: a [Read] call whose every filter axis and filter value the g
   Deleted: Invariant 6.3. Execution Contract Database 3 owns it.
   ```
 
+NOTE: open 2026-10-21-e — Invariant 5.1's subject is a transmission, and no rule names the party that records each one: Composition note 8 binds only a composing pattern that closes it, and External check 2 reads an egress record no rule requires.
+
 ---
 
 ## Examples
@@ -238,7 +253,7 @@ A communicable-disease report goes to a state health department under a reportin
 
 ### The Article 15 answer
 
-A data subject exercises their access right. `read({subject_ref: "patient-88213"})` answers three records in disclosure instant ascending order — the regulatory report first at 09:15, then the consent disclosure at 14:02, then the compelled one — each carrying its recipient, scope, authority type and authority reference. `read({subject_ref: "patient-88213", authority_type: "consent"})` narrows to one. The regulatory question's answer is provable.
+A data subject exercises their access right. `read({subject_ref: "patient-88213"})` answers three records in disclosure instant ascending order — the regulatory report first at 09:15, then the consent disclosure at 14:02, then the compelled one — each carrying its recipient, scope, authority type and authority reference. `read({subject_ref: "patient-88213", "authority.type": "consent"})` narrows to one. The regulatory question's answer is provable.
 
 ### Rejection paths
 
@@ -250,7 +265,7 @@ A data subject exercises their access right. `read({subject_ref: "patient-88213"
 
 `record(..., disclosed_at: "2027-01-01T00:00:00Z")` against `now: 2026-03-04` → invalid-request. Nothing is written (Operation 7, Operation 16).
 
-`read({subject_ref: "patient-88213", authority_reference: "consent-3301"})` → invalid-query. Reference-level filtering is not an axis this atom offers, and the key is refused rather than ignored (Operation 22, Non-goal 22).
+`read({subject_ref: "patient-88213", "authority.reference": "consent-3301"})` → invalid-query. Reference-level filtering is not an axis this atom offers, and the key is refused rather than ignored (Operation 22, Non-goal 22).
 
 `read({disclosed_at: {after: "2026-06-01", before: "2026-03-01"}})` → invalid-query (Operation 25).
 
@@ -286,6 +301,8 @@ Deleted: Check 6.2. Check 6.1 owns it.
 ```
 
 NOTE: EVERY check names the rule the check tests.
+
+NOTE: open 2026-10-21-h — the Generation acceptance bar says an external auditor clears the atom from the disclosure records, and Check 4.1 and Check 6.1 find [Record]'s answers to calls, which no record carries.
 
 ### External checks
 
@@ -355,6 +372,8 @@ Term string input: subject reference, recipient, scope, authority reference OR a
 
 NOTE: watch host obligations — this atom sets no maximum length on a string input, where [Duplicate Prevention](./duplicate-prevention.md) declares a cap and [Provenance](./provenance.md) obliges the deployment to set one. Three postures, and the *host obligations* docket row carries the count — a watch flag states the pressure, never a census nothing reads.
 
+NOTE: open 2026-10-21-d — String 7's *an opaque reference* is a phrase no Term declares (Term subject reference alone calls itself one), so which string inputs the deployment canonicalizes is left to the reader.
+
 ### Correction by append
 
 ```
@@ -364,7 +383,7 @@ Correction 3: A caller correcting a disclosure record MUST call [Record] again.
 Correction 4: A correcting disclosure record's correction narrative MUST name the corrected disclosure record.
 ```
 
-Term correction narrative: the scope OR the authority reference a correcting disclosure record carries — the two fields that hold prose.
+Term correction narrative: the prose a correcting disclosure record's scope OR authority reference carries beside what the field names — the two fields that hold prose.
 
 ---
 
@@ -385,7 +404,9 @@ Composition note 9: A composing pattern reading the disclosure records MUST NOT 
 WHY:
 [Resolve a Person's Data Rights](../compositions/resolve-a-persons-data-rights.md) uses this atom in both directions: *read* to answer Article 15(1)(c)'s recipients limb, and *written* to record each fulfillment response as an accountable disclosure to the requester — which settles, for that case, the policy question Non-goal 20 leaves open.
 
-NOTE: composing patterns — [Immutable Transaction Ledger](../compositions/immutable-transaction-ledger.md), [Resolve a Person's Data Rights](../compositions/resolve-a-persons-data-rights.md).
+NOTE: open 2026-10-05-a — read to the letter, Composition note 9 forbids a pattern that reads the disclosure records from writing to them at all, where Resolve a Person's Data Rights reads them and records through [Record].
+
+NOTE: composing patterns — [Capability-Backed Sharing](../compositions/capability-backed-sharing.md), [Chain of Custody](../compositions/chain-of-custody.md), [Immutable Transaction Ledger](../compositions/immutable-transaction-ledger.md), [Resolve a Person's Data Rights](../compositions/resolve-a-persons-data-rights.md).
 
 ---
 
@@ -413,7 +434,7 @@ Term terms: disclosure record, disclosure id, subject reference, recipient, scop
 
 #### Record
 
-The behavior that appends one immutable disclosure record: it takes the injected `id_t` as the record's [Disclosure Id], stores [Subject Reference], [Recipient], [Scope], [Authority] (both [Authority Type] and [Authority Reference]), and [Disclosure Instant] (the injected clock now if not supplied; rejected [Invalid Request] if in the future), and returns `recorded(disclosure_id)`. Rejection priority: [Invalid Request] → [Unknown Authority Type] → [Storage Failure].
+The behavior that appends one immutable disclosure record: it takes the injected `id_t` as the record's [Disclosure Id], stores [Subject Reference], [Recipient], [Scope], [Authority] (both [Authority Type] and [Authority Reference]), and [Disclosure Instant] (the injected clock now if left blank; rejected [Invalid Request] if no instant or in the future), and returns `recorded(disclosure_id)`. Rejection priority: [Invalid Request] → [Unknown Authority Type] → [Storage Failure].
 
 Kind: Operation
 
@@ -489,7 +510,7 @@ Projection: disclosed_at
 
 #### Invalid Request
 
-The rejection [Record] returns when [Subject Reference], [Recipient], [Scope], [Authority], [Authority Type] or [Authority Reference] is missing or whitespace-only, or the resolved [Disclosure Instant] is in the future.
+The rejection [Record] returns when [Subject Reference], [Recipient], [Scope], [Authority], [Authority Type] or [Authority Reference] is missing or whitespace-only, a supplied [Disclosure Instant] is no instant, or the resolved [Disclosure Instant] is in the future.
 
 Kind:       Member
 Member of:  the record rejection
@@ -563,18 +584,16 @@ Projection: invalid-query
 ```
 status: partially resolved
 formal: not applicable — vote no 2026-06-03
-last gate: 2026-10-21 — Final Critique 6, the council's first round on the page and the first on its Store-contract rewrite (947cfb9), three fresh readers on free models (GRID Nemotron 3 Ultra, EOS MiniMax M3.1 Flash, Linus GLM-5.3 Flash), each handed only the round's reading set, three passes on one text (frozen at c975293); the round rests on three counted passes — foundational count 3 after triage (16 reports: 4 standing, merged into 2; 7 sent down; 5 rejected; 1 refining report raised), all Kind A: State 8, State 9 and Check 3.2 kept every record for good where Non-goal 19 sends a retention bound to Retention Window, whose purge destroys the record; Check 6.2 compared each record with a creation instant no record carries; and [Record]'s refusals answered in pairwise ONLY IF rules, Operation 8 read alone forbidding what Operation 9 obliges; 17 refining reports, 6 rhetorical reports; not clean; every foundational finding cured in place; 2026-06-23 — Final Critique 5, fresh reader — clean
+last gate: 2026-10-27 — Final Critique 7 — foundational count 2, not clean, no sample
 
 open:
 - 2026-10-05-a · refining · Composition note 9 · read to the letter it forbids a pattern that reads the disclosure records from writing to them at all, where the atom's own account of Resolve a Person's Data Rights has that composition read and record through the atom's surfaces → say no write beside [Record]; reported by that composition's gate
-- 2026-10-21-a · refining · Correction 4; Term correction narrative; Term scope; Term authority reference · a correcting record's narrative rides its scope or its authority reference, whose Terms name the subset disclosed and the authority; one string can name both, but no rule says which field carries the pointer to the corrected record or that the field keeps its own content beside it → pin the carrier, or say the field carries both
-- 2026-10-21-b · refining · Operation 7; Term authority · no rule answers a malformed input: a disclosed_at no build can read as an instant, and an authority carrying a field beyond its two, which the guards admit and the record keeps without → say each answer
-- 2026-10-21-c · refining · Operation 22; Term filter axes · no line gives the keys a caller sends: the rules name the axes in English, no Projection line projects a filter, and the examples spell the authority type filter authority_type where the Authority Type field projects as authority.type → give each axis its key
 - 2026-10-21-d · refining · String 7 · the rule obliges the deployment to canonicalize an opaque reference, a phrase no Term declares (Term subject reference alone calls itself one), so which inputs it covers is left to the reader → name them
 - 2026-10-21-e · refining · Invariant 5.1; Composition note 8; External check 2 · the invariant's subject is a transmission, and no rule names the party that records each one: Composition note 8 binds only a composing pattern that closes it, and External check 2 reads an egress record no rule requires → name the owner, as the owners NOTE names the calling system for Non-goal 4 through 6
 - 2026-10-21-f · refining · State 1; Invariant 3.1; Term disclosure instant; Term resolved disclosure instant · one proposition stated twice: State 1 and Invariant 3.1 both require a disclosure instant on every record, and Term disclosure instant's never later than now restates Invariant 4.1 beside a second Term for the instant the record carries → one owner each
 - 2026-10-21-g · refining · Identity 6; Term database instance · the rule reads as each call routed to one instance or as every call routed to the same instance, and under the first a subject reference query answers only its own instance's records → say which
 - 2026-10-21-h · refining · Generation acceptance; Check 4.1; Check 6.1 · the bar says an external auditor clears the atom from the disclosure records, and Check 4.1 and Check 6.1 find [Record]'s answers to calls, which no record carries → say where those checks run
+- 2026-10-27-a · refining · Term seam; Term transition; Term now; Term business caller · each says the section titled Logic Confinement Principle in `execution-contract.md` declares it, and that section declares none of them, as Assignment 2026-10-21-a, Permissions 2026-10-21-f and Event Log 2026-10-20-c record of their own → declare each here, or cite where each is declared
 ```
 
 ## Decisions
