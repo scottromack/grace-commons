@@ -273,15 +273,15 @@ Term admitted read: a [Read] call whose every filter axis and filter value the g
 
 Term success token: approved on [Approve], rejected_outcome on [Reject] and withdrawn on [Withdraw] — the answer an admitted resolve returns.
 
-| # | Condition | a resolving action answers |
-|---|---|---|
-| 1 | step id is blank | [Invalid Request] |
-| 2 | step id is not blank, it names no step | [Not Known] |
-| 3 | the step exists, it stands in a terminal state | [Not Pending] |
-| 4 | the step stands in pending, an attribution check fails | [Invalid Request] |
-| 5 | every attribution check passes, the deciding reference is not the authorization anchor | [Unauthorized] |
-| 6 | every precondition passes, the database refuses the write | [Storage Failure] |
-| 7 | every precondition passes, the database accepts the write | the success token |
+| # | Condition | a resolving action answers | Owner |
+|---|---|---|---|
+| 1 | step id is blank | [Invalid Request] | Operation 10 |
+| 2 | step id is not blank, it names no step | [Not Known] | Operation 11 |
+| 3 | the step exists, it stands in a terminal state | [Not Pending] | Operation 13 |
+| 4 | the step stands in pending, an attribution check fails | [Invalid Request] | Operation 20; Operation 15 through 19, Operation 57, Operation 60 |
+| 5 | every attribution check passes, the deciding reference is not the authorization anchor | [Unauthorized] | Operation 21, Operation 22 |
+| 6 | every precondition passes, the database refuses the write | [Storage Failure] | Operation 34 |
+| 7 | every precondition passes, the database accepts the write | the success token | Operation 32 |
 
 Where two rows hold at once, the earlier row answers: the rows follow the refuses line (Execution Contract Refusal 1), and row 4 answers only on a pending step (Operation 20).
 
@@ -512,10 +512,12 @@ Composition note 7: A composing pattern MUST own the delegation of an approver r
 Composition note 8: A composing pattern MUST own the tamper seal over the step records.
 Composition note 9: A composing pattern MUST own at-most-once submission.
 Composition note 10: A composing pattern MUST own the required gate mapping for a subject.
-Composition note 11: A composing pattern reading the step records MUST NOT write to the step records.
+Deleted: Composition note 11. State 2 through 5 and Execution Contract Database 4 own it.
 ```
 
 NOTE: composing patterns — [Multi-Party Approval](../compositions/multi-party-approval.md), [Execute Gated Workflow](../compositions/execute-gated-workflow.md).
+
+NOTE: watch the reading composer's write ban (Composition note 11).
 
 ---
 
@@ -529,7 +531,7 @@ Term actors: the atom; the host; the transition; the deployment; a composing pat
 
 Term records: step — one authorization gate, carrying step id, subject reference, approver reference, submitter reference, scope, submission instant, a state and, where supplied or set, reason, deciding actor, decision reason, decision instant, withdrawing actor, withdrawal reason and withdrawal instant.
 
-Term record verbs: identify, allocate, change, carry, stand, answer, record, set, take, leave, own, match, equal, normalize, interpret, confirm, admit, offer, detect, route, share, precede, follow, exceed, compare, order, trim, case-fold, refuse, write, read, find, complete, fall, bound, decide, declare, compose, wire, supply, remove, sort, name, notify, bind, choose, canonicalize, retry, permit, evaluate.
+Term record verbs: identify, allocate, change, carry, stand, answer, record, set, take, leave, own, match, equal, normalize, interpret, confirm, admit, offer, detect, route, share, precede, follow, compare, order, trim, case-fold, refuse, write, read, find, complete, fall, bound, decide, declare, compose, wire, supply, remove, sort, name, notify, bind, choose, canonicalize, retry, permit, evaluate, call, require.
 
 Term value sets: state = pending | approved | rejected | withdrawn.
 
@@ -845,7 +847,7 @@ Projection: invalid-query
 ```
 status: partially resolved
 formal: verified — approval-step.tla + 1 twin, 2026-06-03
-last gate: 2026-10-27 — Final Critique 8 — foundational count 1, not clean, no sample
+last gate: 2026-10-27 — Final Critique 9 — foundational count 1, not clean, no sample
 
 open:
 - 2026-10-21-d · refining · Indeterminate outcome 1 · a caller with no answer is sent to the step records, and no read says whether its submit landed, where two submits carrying one field set are two steps (Non-goal 1); its BEFORE takes a clause where the grammar's tail takes a term → name the read, or Duplicate Prevention (Non-goal 2) as its owner, and write the tail on a term
