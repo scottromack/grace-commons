@@ -232,7 +232,7 @@
   "models": {
    "als": false,
    "tla": true,
-   "twins": 1
+   "twins": 4
   },
   "regulated": true,
   "standards": [

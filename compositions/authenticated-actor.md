@@ -555,11 +555,10 @@ Authenticated Actor inherits the broader standards compliance of its constituent
 
 ```
 status: partially resolved
-formal: pending — re-derivation, 2026-08-30: the model treats check-and-attest as one atomic step and cannot exhibit an externally-issued revoke as a second process over the per-principal section (the declared residue), the section's lease terminus, the step-5 log arm after a committed attestation, or the two-principal race the maps' uniqueness constraint decides at step 4; was verified — authenticated-actor.tla + 1 twin, 2026-06-10
+formal: verified — authenticated-actor.tla + 4 twins + 6 probes, 2026-10-27
 last gate: 2026-10-27 — Final Critique 5 — foundational count 2, not clean, no sample
 
 open:
-- 2026-08-30-a · refining · formal · the model has no possession-verified re-entry arm → extend it
 - 2026-10-27-a · foundational · Invariant 4.1, Action wiring 34, 35, Term attest log · a refused call appends its attest log entry, the record the breach investigation reads, while Execution Contract Read 4 says a refused call writes nothing → keep the record of a refused attempt or retire it, once the maintainer reads whether a refused outcome leaves an act's other writes committed (Multi-Party Approval 2026-10-26-d, Actor Suspension 2026-10-26-c, Attributed Permissions Admin 2026-10-27-a)
 ```
 
