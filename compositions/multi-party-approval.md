@@ -287,6 +287,7 @@ Audit arm 7: IF Audit Trail answers invalid-request carrying the retention step 
 Audit arm 8: A read-back MUST match the outcome carrying the invocation id.
 Audit arm 9: IF the read-back finds the outcome THEN the invocation MUST proceed as landed.
 Audit arm 10: IF Audit Trail answers recording-failure at an outcome THEN the action MUST answer recording-failure carrying outcome.
+NOTE: watch the retention step's recording failure (Audit arm 10).
 Audit arm 11: IF the read-back finds no outcome THEN the action MUST answer recording-failure carrying outcome.
 Deleted: Audit arm 12. Execution Contract Database 2 owns it.
 Audit arm 13: The composition MUST NOT retry an outcome inside the invocation.
@@ -365,6 +366,7 @@ Action wiring 20: A resolved decision MUST record the decision intent carrying t
 Action wiring 21: An admitted decision MUST call the decision's step write with the step id, the actor reference as the decider AND the reason.
 Action wiring 22: IF the step write answers a step refusal THEN the decision action MUST answer the step refusal.
 Action wiring 23: IF Approval Step OR Assignment answers storage-failure THEN the action MUST answer recording-failure carrying intent.
+NOTE: watch the unlanded storage failure (Action wiring 23).
 Action wiring 24: A decided decision MUST call Assignment's recall on the step's assignment id.
 Action wiring 25: IF the step-assignment index names no assignment for the step THEN the decided decision MUST NOT call recall.
 Action wiring 26: IF recall answers not-active THEN the decided decision MUST proceed.
