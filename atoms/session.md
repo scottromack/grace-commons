@@ -480,6 +480,8 @@ NOTE: watch host obligations — this atom refuses a string input over the deplo
 
 NOTE: String 8 reaches the principal reference, the issued by reference and the revoked by reference, a filter's values among them; the deployment canonicalizes each at the seam, in a form the deployment owns, before the transition compares or records it, since String 3 keeps the atom from normalizing.
 
+NOTE: watch the canonical form (String 8).
+
 Term verified answer: the verified outcome [Credential](./credential.md)'s verification produces; cited from that atom, never restated here (Closed vocabulary 15).
 
 Term invalid answer: an answer of [Validate] that EQUALS expired, revoked OR not-known — every answer outside valid.

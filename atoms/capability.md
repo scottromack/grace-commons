@@ -526,6 +526,8 @@ String 10: IF the capability is revocable AND reason EXCEEDS the maximum length 
 
 NOTE: String 8 reaches the allocator reference and the revoked by reference, a filter's allocator reference among them; the deployment canonicalizes each at the seam, in a form the deployment owns, before the transition compares or records it, since String 3 keeps the atom from normalizing.
 
+NOTE: watch the canonical form (String 8).
+
 ## Composition notes
 
 ```

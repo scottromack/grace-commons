@@ -59,8 +59,10 @@ Identity 13: The atom MUST NOT confirm that a document reference names a known d
 Identity 14: The atom MUST NOT confirm that an evidence reference names a known evidence record.
 Identity 15: The atom MUST NOT confirm that an acting reference names a known actor.
 Identity 16: The atom MUST NOT match two parties as one natural person.
-Identity 17: The deployment MUST route EVERY call to one database instance.
+Identity 17: The deployment MUST route EVERY call to the same database instance.
 ```
+
+NOTE: watch the routed instance (Identity 17).
 
 Term party: the record this atom holds — one external party's enrollment, verification history and state history.
 
@@ -74,7 +76,7 @@ Term assigned id: party id, verification id OR state change id — every opaque 
 
 Term enrollment field: name | date of birth | document type | document reference | enrollment instant | enrolling actor reference — what a party carries from enrollment and the atom never changes.
 
-Term acting reference: enrolling actor reference, verifying actor reference, suspending actor reference, reinstating_actor_ref OR closing_actor_ref — the reference an action records for who acted.
+Term acting reference: enrolling actor reference, verifying actor reference, suspending actor reference, reinstating actor reference OR closing actor reference — the reference an action records for who acted.
 
 Term reference: an assigned id, an acting reference, document reference OR evidence reference — every opaque reference this atom records.
 
@@ -106,12 +108,16 @@ Capability requirement 2: The deployment MUST supply the id material at the seam
 Deleted: Capability requirement 3. Execution Contract Database 2 owns it.
 Deleted: Capability requirement 4. Execution Contract Database 3 owns it.
 Deleted: Capability requirement 5. Execution Contract Database 1 owns it.
-Capability requirement 6: The deployment MUST canonicalize an opaque reference.
+Capability requirement 6: The deployment MUST canonicalize an opaque reference at the seam.
 Capability requirement 7: The deployment MUST declare the length bound.
 Capability requirement 10: The deployment MUST supply the party records PER Execution Contract Database 1 through 4, Execution Contract Database 6, Execution Contract Order 1, Execution Contract Read 4, Execution Contract Refusal 1 and Execution Contract Query 1 through 4.
 Deleted: Capability requirement 8. Execution Contract Logic confinement 7 owns it.
 Deleted: Capability requirement 9. Execution Contract Logic confinement 7 owns it.
 ```
+
+NOTE: Capability requirement 6 reaches every reference (Term reference), the assigned ids the id material carries and a filter's party id among them; the deployment canonicalizes each at the seam, in a form the deployment owns, before the transition compares or records it, since Identity 12 keeps the atom from normalizing.
+
+NOTE: watch the canonical form (Capability requirement 6).
 
 ### Operations
 
@@ -207,6 +213,8 @@ Deleted: Operation 59. Operation 6, Operation 24 and Operation 34 own it.
 
 NOTE: watch the blank id (Operation 12).
 
+NOTE: open 2026-10-21-f — the date of birth's format, and the instant of the day a date of birth stands for when Operation 3 compares the date with now, are not declared, so a date of birth of today can answer two ways (Operation 2, Operation 3).
+
 Term party action: [Verify] | [Suspend] | [Reinstate] | [Close] — every action naming a party by party id, including a refused one.
 
 Term transitioning action: a party action that changes the party's state — an admitted suspend, an admitted reinstate, an admitted close, OR an admitted verify driving the unverified-to-verified transition.
@@ -221,13 +229,13 @@ Term required string input: name, document type, document reference, verificatio
 
 Term fresh verification: a verification event whose verification result EQUALS passed that follows the party's most recent suspend in insertion order, or that follows the enrollment where no suspend EXISTS.
 
-Term evidence reference: document reference OR evidence reference — every pointer this atom records into the composing pattern's document records.
-
 Term custody field: party id | enrollment instant | enrolling actor reference — the fields an erasure scrub leaves, so the chain of custody outlives the personal data.
 
 Term insertion order: the order a database instance appended its records; authoritative for this atom, where a recorded instant is advisory.
 
-Term query axes: party id, state and a range over enrollment instant — every filter axis [Read] admits.
+Term query axes: party id, state and a range over enrollment instant — every filter axis [Read] admits, the party id axis admitting every value that DOES NOT EQUAL blank, one naming no party among them.
+
+NOTE: watch the blank filter value (Term query axes).
 
 Term admitted enroll: an [Enroll] call the action admits (Execution Contract Read 4).
 
@@ -340,11 +348,12 @@ This atom's acceptance is provable: an external auditor clears it from the party
 Check 1.1: An auditor MUST find EVERY party whose state EQUALS EXACTLY ONE OF unverified, verified, suspended, closed (Invariant 2.1).
 Check 1.2: An auditor MUST find no party whose state DOES NOT EQUAL closed on a later read of a party a prior read found closed (Invariant 3.1).
 Check 2.1: An auditor MUST find a fresh verification on EVERY party whose state EQUALS verified (Invariant 4.1).
-Check 2.2: An auditor MUST read most recent from insertion order (Ordering 3, Ordering 4).
-Check 3.1: An auditor MUST find verifying actor reference, verification method, evidence reference and verification instant on EVERY verification event (State 4).
+Deleted: Check 2.2. Ordering 3 and Ordering 4 own it.
+Check 3.1: An auditor MUST find verification id, verifying actor reference, verification method, verification result, evidence reference and verification instant on EVERY verification event (State 4).
 Check 3.2: An auditor MUST find a re-read verification event unchanged (Invariant 5.1).
 Check 3.3: An auditor MUST find a party's verification event list no shorter on a later read (Invariant 6.3).
-Check 4.1: An auditor MUST find a state change event for EVERY transition a party's state change log records (Invariant 8.1).
+Check 3.4: An auditor MUST find EVERY verification event whose verification result EQUALS EXACTLY ONE OF passed, failed (Operation 21).
+Deleted: Check 4.1. Check 5.1 owns it.
 Check 4.2: An auditor MUST find the prior state, the new state, an acting reference and an instant on EVERY state change event (State 5).
 Check 4.3: An auditor MUST find a reason on EVERY state change event a reasoned action appended (State 7).
 Check 4.4: An auditor MUST find a party's state change log no shorter on a later read (Invariant 8.2).
@@ -357,6 +366,7 @@ Check 7.1: An auditor MUST find no party id on two parties (Identity 7).
 Check 7.2: An auditor MUST find no verification id on two verification events (Identity 8).
 Check 7.3: An auditor MUST find no state change id on two state change events (Identity 9).
 Check 8.1: An auditor MUST partition the party records by state (State 1).
+NOTE: watch the check no record answers (Check 2.2).
 ```
 
 NOTE: EVERY check names the rule the check tests.
@@ -369,11 +379,12 @@ External check 2: A deployment needing two parties resolved as one natural perso
 External check 3: A deployment needing an enrollment field scrubbed MUST read the composing erasure coordination (Non-goal 3, Non-goal 12).
 External check 4: A deployment needing an acting reference bound to an actor MUST read the composing Actor Identity attestation (Identity 15, Non-goal 15).
 External check 5: A deployment needing a recorded instant anchored to wall time MUST read the composing trusted timestamping pattern (Ordering 5, Ordering 6).
-External check 6: A deployment needing an evidence reference resolved MUST read the composing pattern's document records (Identity 13, Identity 14).
+External check 6: A deployment needing a document reference resolved MUST read the composing pattern's document records (Identity 13).
 External check 7: A deployment needing a party's record retention bounded MUST read the composing Retention Window (Non-goal 13).
 External check 8: A deployment needing an answer observed MUST read the composing Event Log (Non-goal 19).
 Deleted: External check 9. Execution Contract Database 6 owns it.
 Deleted: External check 10. Execution Contract Database 6 owns it.
+External check 11: A deployment needing an evidence reference resolved MUST read the composing pattern's document records (Identity 14).
 
 ```
 
@@ -448,6 +459,8 @@ Deleted: Indeterminate outcome 2. Execution Contract Error model 1 owns it.
 Indeterminate outcome 3: A caller MUST NOT retry a lost [Enroll] BEFORE reading the database (Execution Contract Error model 1).
 ```
 
+NOTE: open 2026-10-21-d — a caller who lost an [Enroll]'s answer reads the database before retrying (Indeterminate outcome 3), and how the caller finds the enrollment is not stated: no query axis matches a name, a date of birth or a document reference.
+
 ### String policy
 
 ```
@@ -462,6 +475,8 @@ Deleted: String 8. String 7 and GRACE-lang Closed vocabulary 29 own it.
 ```
 
 Term string input: a required string input, date of birth OR a filter value — every caller-supplied string this atom accepts.
+
+NOTE: open 2026-10-21-e — the verification result is no string input, so no string rule says how a verification result compares with passed and failed (Operation 21, Operation 25).
 
 Term length bound: the maximum length the deployment declares for a string input.
 
@@ -485,6 +500,8 @@ Composition note 10: A composing erasure coordination pattern MUST NOT scrub a c
 Composition note 11: A composing Event Log MUST append an event on EVERY admitted action.
 Composition note 12: A composing Event Log MUST append an event on EVERY refused action.
 ```
+
+NOTE: open 2026-10-21-j — the enrolling and verifying actor references have no route to attestation: Composition note 4 binds a composing Actor Identity to the transitioning actions alone (External check 4).
 
 ---
 
@@ -720,7 +737,7 @@ Projection: new_state
 The caller-supplied basis for a suspension, a reinstatement or a closure. Required and never blank on those three; absent on a [Verify]-driven transition, where the [Verification Event] is the basis.
 
 Kind:         Parameter
-Parameter of: Suspend
+Parameter of: Suspend, Reinstate and Close
 Projection:   reason
 
 #### Fresh Verification
@@ -735,12 +752,12 @@ Projection: fresh_verification
 The wall-time reading the host takes at the seam and hands to the transition, as the section titled Logic Confinement Principle in `execution-contract.md` declares it — never read inside the transition and never supplied by the business caller.
 
 Kind:         Parameter
-Parameter of: Enroll
+Parameter of: Enroll, Verify, Suspend, Reinstate and Close
 Projection:   now
 
 #### Query
 
-The filter a [Read] carries, over exactly three axes: [Party Id], [Current State], and a range on [Enrollment Instant]. An axis or a value outside those is [Invalid Query] rather than a silently dropped filter.
+The filter a [Read] carries, over exactly three axes: [Party Id], [Current State], and a range on [Enrollment Instant]. An axis outside those, or a value its axis does not admit (a blank [Party Id] among them), is [Invalid Query] rather than a silently dropped filter; a well-formed [Party Id] naming no party matches nothing.
 
 Kind:         Parameter
 Parameter of: Read
@@ -843,7 +860,7 @@ Projection: no-passed-verification-since-suspend
 
 #### Invalid Query
 
-The refusal [Read] returns for a filter axis or a filter value it cannot read. Refusing rather than ignoring, because a silently dropped filter answers a different question from the one asked.
+The refusal [Read] returns for a filter axis outside the query axes or a filter value its axis does not admit. Refusing rather than ignoring, because a silently dropped filter answers a different question from the one asked.
 
 Kind:       Member
 Member of:  the Read rejection
@@ -936,19 +953,13 @@ It inherits from:
 ```
 status: partially resolved
 formal: verified — party-identity.tla + 1 twin, 2026-06-03
-last gate: 2026-10-21 — Final Critique 6, the council's first settled round on the page and the first on its Store-contract rewrite (2365141) and the refusal-order sweep (c2f4e9a), its first freeze (at 755814a) voided as snapshot drift, three fresh readers on free models (GRID Nemotron 3 Ultra, EOS MiniMax M3.1 Flash, Linus GLM-5.3 Flash), each handed only the round's reading set, three passes on one text (frozen at c2f4e9a); the round rests on three counted passes — foundational count 4 after triage (10 reports: 3 standing; 1 refining report raised; 3 sent down; 4 rejected), all Kind A: the length bound's refusal reached [Read], whose signature refuses only invalid-query; the enrollment fields' immutability, read with no actor, made the erasure scrub the page authorizes a violation, and a conformance check failed every deployment composing it; a rule against every caller-supplied instant forbade the range bounds [Read] admits; and a party count that could never fall broke at the first purge by the Retention Window the page composes, failing two checks; 16 refining reports, 5 rhetorical reports; not clean; every foundational finding cured in place; 2026-07-12 — Final Critique 5, fresh reader — clean
+last gate: 2026-10-27 — Final Critique 7 — foundational count 2, not clean, no sample
 
 open:
-- 2026-10-21-a · refining · Capability requirement 6 · the deployment canonicalizes an opaque reference by a form the page never names, over references it never lists, so two deployments resolve one spelling two ways while each agrees with itself → name the form the deployment declares and the references it covers
-- 2026-10-21-b · refining · Check 3.1; State 4; Operation 21 · the check names four of State 4's six fields, leaving verification id and verification result unread, and no check reads Operation 21's value set → name all six, and test the result against its value set
 - 2026-10-21-d · refining · Indeterminate outcome 3; Term query axes · a caller who lost an [Enroll]'s answer must read the database before retrying, and no axis finds a party by its enrollment fields, so only an unfiltered read finds the enrollment → name how the caller finds it
 - 2026-10-21-e · refining · Term string input; String 1 through 6; Operation 21, 25 · the verification result is outside the string inputs, so no string rule says how it compares with passed and failed → bring it into the string policy, or say its comparison
 - 2026-10-21-f · refining · Operation 2, 3; Date Of Birth entry · the date of birth's format, and the instant of the day it stands for when Operation 3 compares it with now, are undeclared, so a date of birth of today can answer two ways → declare both
-- 2026-10-21-g · refining · Operation 49, 54 · an axis's admitted values are undeclared for the party id axis, so a filter naming no party may answer invalid-query or an empty sequence → declare the axis's admitted values
-- 2026-10-21-h · refining · Term query axes; Query entry · the timezone of the range's bounds is undeclared → declare it
-- 2026-10-21-i · refining · Check 4.1; Invariant 8.1 · the check finds an event for every transition the log records, which every log passes; a single silent transition shows only in Check 5.1's replay, and two that undo each other in no party record → test what the party records can show, and read the composing Event Log (Composition note 11) for the rest
 - 2026-10-21-j · refining · Composition note 4; External check 4 · the enrolling and verifying actor references have no route to attestation, Composition note 4 binding Actor Identity only to transitioning actions → say whether an enrollment and a check are attested, and by whom
-- 2026-10-21-k · refining · Term evidence reference · the term names itself among its members (document reference OR evidence reference), and only External check 6 reads it as the umbrella → one name for each meaning, each change checked against Term reference, Identity 14 and Term required string input
 ```
 
 ## Decisions
