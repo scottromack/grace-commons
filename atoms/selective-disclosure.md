@@ -406,7 +406,7 @@ WHY:
 
 NOTE: open 2026-10-05-a — read to the letter, Composition note 9 forbids a pattern that reads the disclosure records from writing to them at all, where Resolve a Person's Data Rights reads them and records through [Record].
 
-NOTE: composing patterns — [Capability-Backed Sharing](../compositions/capability-backed-sharing.md), [Chain of Custody](../compositions/chain-of-custody.md), [Immutable Transaction Ledger](../compositions/immutable-transaction-ledger.md), [Resolve a Person's Data Rights](../compositions/resolve-a-persons-data-rights.md).
+NOTE: composing patterns — [Capability-Backed Sharing](../compositions/capability-backed-sharing.md), [Immutable Transaction Ledger](../compositions/immutable-transaction-ledger.md), [Resolve a Person's Data Rights](../compositions/resolve-a-persons-data-rights.md).
 
 ---
 
