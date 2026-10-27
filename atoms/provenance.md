@@ -64,7 +64,7 @@ Deleted: Identity 17. Execution Contract Database 7 owns it.
 
 Term chain: one artifact's custody history for one episode, from a genesis entry to a terminal disposition — the record this atom holds.
 
-Term entry: one appended event on a chain, carrying an entry id, a sequence number, an event type, a custodian and a recording instant.
+Term entry: one appended event on a chain, carrying an entry id, a sequence number, an event type, a recording instant and the per-type fields.
 
 Term chain id: the opaque value naming one chain — a [Chain Id]; host-allocated at the seam.
 
@@ -100,7 +100,7 @@ State 14: The atom MUST NOT offer an action beside [Transfer] that moves the cur
 State 15: The atom MUST NOT offer a removal surface.
 State 16: The atom MUST NOT offer a reorder surface.
 State 17: The atom MUST NOT offer an edit surface.
-State 18: The chain's entries MUST govern where the cached current custodian disagrees with a replay.
+State 18: The chain's entries IS AUTHORITATIVE FOR the current custodian.
 Deleted: State 19. Execution Contract Database 3 owns it.
 ```
 
@@ -117,7 +117,7 @@ Deleted: Capability requirement 4. Execution Contract Logic confinement 7 owns i
 ### Operations
 
 ```
-originate(artifact_ref, custodian_ref, genesis_type, metadata)
+originate(artifact_ref, custodian_ref, genesis_type, optional metadata)
   answers chain_id
   refuses invalid-ref | invalid-genesis-type | storage-failure
 
@@ -203,6 +203,7 @@ Deleted: Operation 57. Clock dependence 2 owns it.
 Operation 58: An ordering rule MUST NOT rest on recording instant.
 Operation 59: IF the query is malformed THEN [Read] MUST answer invalid-query.
 Operation 60: IF a recording instant range's end PRECEDES the range's start THEN [Read] MUST answer invalid-query.
+Operation 61: An admitted originate MUST set the genesis entry's metadata to the call's metadata.
 ```
 
 Term now: the deployment's clock reading at the call, as Execution Contract Logic confinement 11 declares it.
@@ -253,7 +254,7 @@ The case space, and the rule that owns each case:
 
 | Call | Case | Answer | Effect on the chain |
 |---|---|---|---|
-| [Originate] | refs present, genesis type admitted | the new chain id | a chain opens, genesis entry at sequence one (Operation 5 through 9) |
+| [Originate] | refs present, genesis type admitted | the new chain id | a chain opens, genesis entry at sequence one (Operation 5 through 9, Operation 61) |
 | [Originate] | a blank reference | [Invalid Reference] | none (Operation 1, Operation 2) |
 | [Originate] | genesis type outside the two | [Invalid Genesis Type] | none (Operation 3, Execution Contract Refusal 1) |
 | [Transfer] | open chain, to custodian reference present | the entry id | transferred entry; the from-side read from state; custody moves (Operation 19 through 21) |
@@ -290,7 +291,7 @@ The case space, and the rule that owns each case:
   Invariant 4.1: EVERY open chain MUST carry EXACTLY ONE current custodian.
   Invariant 4.2: EVERY custodian-guarded entry's custodian reference MUST equal the current custodian the entry found.
   Invariant 4.3: EVERY transferred entry's from custodian reference MUST equal the current custodian the entry found.
-  Invariant 4.4: EVERY transferred entry's to custodian reference MUST stand as the current custodian the entry left.
+  Invariant 4.4: EVERY transferred entry's to custodian reference MUST equal the current custodian the entry set.
   ```
 - **Invariant 5 — Dense total order within a chain.**
   ```
@@ -334,7 +335,7 @@ A manufacturer opens the chain: `originate(artifact_ref: "batch-x91", custodian_
 
 A regulator asks whether custody was unbroken. `read("chain-0041")` answers five entries in sequence order. Every transferred entry's from custodian reference equals the prior entry's to custodian reference, or the genesis custodian reference for the first transfer. Invariant 4 is the structural answer.
 
-Weeks later the hospital returns part of the batch for re-inspection, and the return opens a second chain for the same artifact rather than reopening the archived one (Identity 10, Invariant 6): `originate(artifact_ref: "batch-x91", custodian_ref: "qa-returns-2", genesis_type: received, metadata: "returned by pharm-hosp-9; earlier custody in chain-0041")` → `chain-0052`. Its genesis entry takes `sequence_number: 1` with event type received and `qa-returns-2` as the first custodian (Operation 5 through 9). The chain records custody from intake forward; what came before intake stays in `chain-0041`, which the genesis metadata names (State 9, Non-goal 8).
+Weeks later the hospital returns part of the batch for re-inspection, and the return opens a second chain for the same artifact rather than reopening the archived one (Identity 10, Invariant 6): `originate(artifact_ref: "batch-x91", custodian_ref: "qa-returns-2", genesis_type: received, metadata: "returned by pharm-hosp-9; earlier custody in chain-0041")` → `chain-0052`. Its genesis entry takes `sequence_number: 1` with event type received and `qa-returns-2` as the first custodian (Operation 5 through 9). The chain records custody from intake forward; what came before intake stays in `chain-0041`, which the genesis metadata names (State 9, Operation 61, Non-goal 8).
 
 ### Legal evidence — a physical exhibit
 
@@ -534,9 +535,9 @@ Term actors: the atom; the host; the transition; the deployment; a composing pat
 
 Term records: chain — one artifact's custody history for one episode, carrying chain id, artifact reference, a chain state, a current custodian and next sequence number. entry — one appended event on a chain, carrying entry id, sequence number, event type and recording instant, and the per-type fields custodian reference, from custodian reference, to custodian reference, transformation descriptor, recipient reference and metadata.
 
-Term record verbs: identify, allocate, change, carry, stand, answer, record, append, set, read, take, raise, stamp, leave, own, match, normalize, interpret, confirm, admit, offer, govern, route, share, equal, precede, follow, exceed, compare, trim, case-fold, refuse, write, find, replay, reconstruct, repeat, complete, roll back, accept, serialize, name, claim, detect, bound, dispose, decide, compose, declare, wire, guard, rest, apply, supply, inject, fall, remove, edit, reorder, empty, move, cache, run.
+Term record verbs: identify, allocate, change, carry, stand, answer, record, append, set, read, take, raise, stamp, leave, own, match, normalize, interpret, confirm, admit, offer, govern, route, share, equal, precede, follow, exceed, compare, trim, case-fold, refuse, write, find, replay, reconstruct, repeat, complete, roll back, accept, serialize, name, claim, detect, bound, dispose, decide, compose, declare, wire, guard, rest, apply, supply, inject, fall, remove, edit, reorder, empty, move, cache, run, call, resolve.
 
-Term value sets: event type = originated | received | transferred | transformed | disclosed | archived. genesis types = originated | received. chain state = open | archived.
+Term value sets: event type = originated | received | transferred | transformed | disclosed | archived. genesis types = originated | received. chain state = open | archived. filter axes = sequence number | recording instant | event type. custodian-guarded action = [Transform] | [Disclose] | [Archive]. appending action = [Originate] | [Transfer] | [Transform] | [Disclose] | [Archive].
 
 Term bounds: maximum length (the deployment's cap per string input).
 
@@ -720,7 +721,7 @@ Role:      Outcome
 
 #### Archived
 
-The terminal, absorbing state of a chain at final disposition (Invariant 6): [Transfer], [Transform], [Disclose], and [Archive] are all rejected, but the chain remains readable. Reached once, via [Archive]. Its name also projects as the archived rejection reason the writer actions return against a closed chain, kept backticked in prose to keep the rejection token distinct from this state anchor.
+The terminal, absorbing state of a chain at final disposition (Invariant 6): [Transfer], [Transform], [Disclose], and [Archive] are all rejected, but the chain remains readable. Reached once, via [Archive]. Its name also projects as the archived rejection reason the writer actions return against a closed chain.
 
 Kind:       Member
 Member of:  the chain state
@@ -876,7 +877,7 @@ It inherits from:
 ```
 status: partially resolved
 formal: verified — provenance.als + 1 twin, 2026-06-04
-last gate: 2026-10-27 — Final Critique 9 — foundational count 1, not clean, no sample
+last gate: 2026-10-27 — Final Critique 10 — foundational count 0, clean, no sample
 
 open: none
 ```
