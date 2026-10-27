@@ -131,6 +131,7 @@ Composition state 27: A reader MUST take the trail's answer ONLY IF the trail's 
 Composition state 28: A reader MUST write the entry the tail read resolved.
 Composition state 29: An absent suspension-state key carrying no suspension intent above the mark MUST stand as active.
 Composition state 54: A reader MUST read the tail read's events PER Composition state 33 through 35.
+Composition state 55: A writer MUST NOT write a suspension-state entry over an entry whose event stands later in the log than the writer's event.
 Deleted: Composition state 30. Execution Contract Database 3 and Execution Contract Database 4 own it.
 Deleted: Composition state 31. Execution Contract Database 3 and Execution Contract Database 4 own it.
 Composition state 32: The rebuild MUST select the composition's own events over an open-ended sequence range.
@@ -158,8 +159,6 @@ Composition state 53: The composition MUST NOT duplicate a constituent's records
 ```
 
 NOTE: open 2026-10-26-a — Composition state 9 classifies the index below the mark as truth-bearing, which the section titled Composition state in `execution-contract.md` gives no element short of extraction-pending, while a miss below the mark is not observable (Composition state 26, 29); which class the window takes is open.
-
-NOTE: open 2026-10-26-e — nothing orders one call's post-commit index write against another's below the mark, where Composition state 27 does not reach, so a reinstatement's active entry written after a later suspension was indexed and the mark advanced past it reads a suspended actor as active.
 
 Term suspension-state index: actor_suspension_state — the composition's index from an actor reference to the actor's lifecycle state and the record that put the actor there; the surface the issuance gate reads and [Suspension Report] answers from.
 
@@ -1038,17 +1037,15 @@ Actor Suspension inherits the broader standards compliance of its constituents:
 
 ```
 status: partially resolved
-formal: pending — actor-suspension.tla + 1 twin verified 2026-06-10 over the retired atomic cascade; re-derive over intent → revoke → outcome with the Suspending state and the completion sweep, the twin being the rollback wiring
+formal: verified — actor-suspension.tla + 5 twins + 9 probes, 2026-10-27
 last gate: 2026-10-26 — Final Critique 6 — foundational count 3, not clean, no sample
 
 open:
-- 2026-08-29-a · refining · formal · the model verifies a one-transaction cascade the composition no longer claims → re-derive per the `formal:` line
-- 2026-08-30-i · refining · formal · the model lacks the resume as a second authenticated writer, the sweep as a second process over one act, the high-water mark, and the tail read on an absent key → extend it (with 2026-08-29-a)
+- 2026-08-30-i · refining · formal · actor-suspension.tla models no credential check and no attribution, so no model checks that each revocation names a writer its own intent verified (Invariant 5.1 through 5.5) → model the attests a fresh cascade, a resume and the sweep make
 - 2026-10-26-a · refining · Composition state 9 · the index below the mark is classified truth-bearing, neither a derived index nor extraction-pending under the Execution Contract's Composition state section, while a miss below the mark is not observable (Composition state 26, 29) → classify the window: extraction-pending against the actor registry (Composition state 11), or derived with its below-mark reading anchored in the trail
 - 2026-10-26-b · refining · Primitive policy 13, 14 · the prefixes and the intent event id lengthen a resumed or swept revoke's reason past the reason the boundary predicate admitted, so a constituent's length bound can refuse it and leave the cascade suspending to its escalation → bound the reason at the boundary with room for a prefix and an intent event id, or oblige the deployment's bounds to admit it
 - 2026-10-26-c · foundational · Audit arm 17, Audit arm 20 · a recording failure at the outcome lands as recording-failure carrying outcome, read as committed revocations, while under Execution Contract Database 1 an act whose write failed commits nothing → land it carrying intent, or keep it, once the maintainer reads whether a refused outcome leaves an act's other writes committed (Multi-Party Approval 2026-10-26-d)
 - 2026-10-26-d · refining · Audit arm 15, the signature, the example of a credential rotated mid-act · invalid-credential's outcome position is unreachable under Execution Contract Database 2 → retire it, a turn of the 2026-09-15 Decision
-- 2026-10-26-e · foundational · Composition state 27, Action wiring 52, Action wiring 85 · nothing orders the post-commit index writes below the mark, so a late reinstatement entry can read a suspended actor as active → order an entry's write by its event's position in the log
 ```
 
 ## Decisions

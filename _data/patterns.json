@@ -56,7 +56,7 @@
   "models": {
    "als": false,
    "tla": true,
-   "twins": 1
+   "twins": 5
   },
   "regulated": true,
   "standards": [
