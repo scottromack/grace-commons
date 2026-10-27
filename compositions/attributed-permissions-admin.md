@@ -114,10 +114,12 @@ Composition state 23: The composition MUST NOT read the orphan log as the orphan
 Composition state 24: An auditor MUST detect an orphan against the constituents AND the attribution maps.
 Composition state 25: The composition MUST write an attribution entry ONLY AFTER the entry's constituent write.
 Composition state 26: An attribution entry MUST stand for the grant's lifetime in the Permissions records.
-Composition state 27: A retention purge MUST cover a grant AND the grant's attestations AND the grant's attribution entries as one unit.
+Composition state 27: A retention purge under a pair-scoped retention scope MUST cover a grant AND the grant's attestations AND the grant's attribution entries as one unit.
 Composition state 28: A retention purge MUST cover an orphan attestation under the orphan attestation's own retention.
 Composition state 29: The composition MUST NOT purge a record.
 ```
+
+NOTE: open 2026-10-27-b — an orphan log entry carries the proposal (Composition state 19) and is never changed or dropped (Composition state 16, 17), while its orphan attestation is purged under the attestation's own retention (Composition state 28); whether a purge covers the entry, or the entry ages out on a retention of its own, is a decision no rule makes.
 
 Term grant attribution map: grant_attribution — the composition's map from a grant's handle to the attestation that authorized the grant's issuance.
 
@@ -207,10 +209,10 @@ Primitive policy 10: The composition MUST NOT fold an opaque input's case.
 Primitive policy 11: The composition MUST NOT trim an evaluation input.
 Primitive policy 12: The composition MUST NOT inspect a credential.
 Primitive policy 13: The composition MUST NOT persist a credential.
-Primitive policy 14: The composition MUST propagate a constituent's invalid-request as invalid-request.
+Primitive policy 14: The composition MUST propagate Actor Identity's invalid-request as invalid-request.
 Primitive policy 15: The composition MUST NOT read a constituent's invalid-request at the attestation step as a caller fault.
 Primitive policy 16: The composition MUST read a constituent's invalid-request at the attestation step as a deployment fault.
-Primitive policy 17: The composition MUST NOT query Permissions BEFORE a revocation's attestation.
+Primitive policy 17: The composition MUST NOT evaluate Permissions BEFORE a revocation's attestation.
 ```
 
 
@@ -232,7 +234,7 @@ Identity 6: The composition MUST NOT reuse a nonce.
 Identity 7: A proposal MUST carry the request instant.
 Identity 8: The request instant MUST stand as the invocation's seam reading.
 Identity 9: EVERY attestation of one pair-scoped revocation MUST carry one request instant.
-Identity 10: An auditor MUST group a pair-scoped revocation's attestations by the request instant.
+Identity 10: An auditor MUST group a pair-scoped revocation's attestations by the request instant, the revoker AND the pair.
 Identity 11: An issuance proposal MUST carry the subject, the scope, the nonce AND the request instant.
 Identity 12: A revocation proposal MUST carry the grant's handle AND the request instant.
 Identity 13: A proposal MUST NOT carry the grant's handle at an issuance.
@@ -245,15 +247,15 @@ Identity 15: The composition MUST NOT pair an attestation to a grant by a propos
 ```
 issue_grant(subject_ref, action_scope, grantor_ref, grantor_credential)
   answers grant issuance result
-  refuses invalid-request | invalid-credential | attribution-storage-failure | orphan-attestation(issuance orphan position)
+  refuses invalid-request | invalid-credential | attribution-storage-failure | registry-unavailable | storage-failure | orphan-attestation(issuance orphan position)
 
 revoke_grant(grant_id, revoker_ref, revoker_credential)
   answers grant revocation result
-  refuses invalid-request | invalid-credential | not-known | not-active | attribution-storage-failure
+  refuses invalid-request | invalid-credential | not-known | not-active | attribution-storage-failure | registry-unavailable | storage-failure
 
 revoke_permission(subject_ref, action_scope, revoker_ref, revoker_credential)
   answers permission revocation result
-  refuses invalid-request | invalid-credential | not-permitted
+  refuses invalid-request | invalid-credential | not-permitted | attribution-storage-failure | registry-unavailable | storage-failure
 
 verify_grant_attribution(grant_id)
   answers attribution record | not-known | attribution-inconsistency
@@ -278,9 +280,13 @@ Action wiring 2: An issuance MUST call Actor Identity's attest with the proposal
 Action wiring 3: IF Actor Identity answers invalid-credential THEN [Issue Grant] MUST answer invalid-credential.
 Action wiring 4: IF Actor Identity answers invalid-request THEN [Issue Grant] MUST answer invalid-request.
 Action wiring 5: IF Actor Identity answers storage-failure THEN [Issue Grant] MUST answer attribution-storage-failure.
+Action wiring 87: IF Actor Identity answers registry-unavailable THEN [Issue Grant] MUST answer registry-unavailable.
+NOTE: watch the registry outage (Action wiring 87).
 Action wiring 6: IF Actor Identity refuses the attest THEN the invocation MUST NOT call Permissions' grant.
 Action wiring 7: An admitted issuance MUST call Permissions' grant with the subject AND the scope.
 Action wiring 8: IF Permissions answers invalid-request THEN [Issue Grant] MUST answer orphan-attestation carrying pre-grant.
+Action wiring 88: IF Permissions answers storage-failure THEN [Issue Grant] MUST answer storage-failure.
+NOTE: watch the unlanded storage failure (Action wiring 88).
 Deleted: Action wiring 9. Execution Contract Database 1 owns it.
 Action wiring 10: IF Permissions answers invalid-request THEN the invocation MUST log the orphan.
 Deleted: Action wiring 11. Execution Contract Database 1 owns it.
@@ -293,16 +299,20 @@ Action wiring 17: A revocation MUST call Actor Identity's attest with the propos
 Action wiring 18: IF Actor Identity answers invalid-credential THEN [Revoke Grant] MUST answer invalid-credential.
 Action wiring 19: IF Actor Identity answers invalid-request THEN [Revoke Grant] MUST answer invalid-request.
 Action wiring 20: IF Actor Identity answers storage-failure THEN [Revoke Grant] MUST answer attribution-storage-failure.
+Action wiring 89: IF Actor Identity answers registry-unavailable THEN [Revoke Grant] MUST answer registry-unavailable.
+NOTE: watch the registry outage (Action wiring 89).
 Action wiring 21: IF Actor Identity refuses the attest THEN the invocation MUST NOT call Permissions' revoke.
 Action wiring 22: An admitted revocation MUST call Permissions' revoke with the grant's handle.
 Action wiring 23: IF Permissions answers not-known THEN [Revoke Grant] MUST answer not-known.
 Action wiring 24: IF Permissions answers not-active THEN [Revoke Grant] MUST answer not-active.
+Action wiring 90: IF Permissions answers storage-failure THEN [Revoke Grant] MUST answer storage-failure.
+NOTE: watch the unlanded storage failure (Action wiring 90).
 Deleted: Action wiring 25. Execution Contract Database 1 owns it.
 Action wiring 26: IF Permissions answers not-known OR not-active THEN the invocation MUST log the orphan.
-Action wiring 27: A caller MUST read a not-known answer as a caller fault.
-Action wiring 28: A caller MUST read a not-active answer as a caller fault.
-Action wiring 29: A caller MUST read a not-known answer as an orphan the composition logged.
-Action wiring 30: A caller MUST read a not-active answer as an orphan the composition logged.
+Action wiring 27: A caller MUST read a not-known answer from [Revoke Grant] as a caller fault.
+Action wiring 28: A caller MUST read a not-active answer from [Revoke Grant] as a caller fault.
+Action wiring 29: A caller MUST read a not-known answer from [Revoke Grant] as an orphan the composition logged.
+Action wiring 30: A caller MUST read a not-active answer from [Revoke Grant] as an orphan the composition logged.
 Deleted: Action wiring 31. Execution Contract Database 1 owns it.
 Deleted: Action wiring 32. Execution Contract Database 1 owns it.
 Deleted: Action wiring 33. Execution Contract Database 1 owns it.
@@ -310,6 +320,7 @@ Deleted: Action wiring 34. Execution Contract Database 1 owns it.
 Deleted: Action wiring 35. Execution Contract Database 1 owns it.
 Deleted: Action wiring 36. Execution Contract Database 1 owns it.
 Action wiring 37: A caller MAY retry a pre-grant landing.
+Action wiring 91: A caller MUST retry a [Revoke Grant] that answered storage-failure.
 Action wiring 38: A retry MUST stand as a fresh administrative act.
 Action wiring 39: A retry MUST carry a fresh attestation.
 Action wiring 40: A retry MUST carry a fresh nonce at an issuance.
@@ -319,6 +330,12 @@ Action wiring 43: IF the enumerated set stands empty THEN [Revoke Permission] MU
 Action wiring 44: IF the enumerated set stands empty THEN the invocation MUST NOT call Actor Identity's attest.
 Action wiring 45: The composition MUST NOT answer not-known for an empty enumerated set.
 Action wiring 46: A pair-scoped revocation MUST perform a revocation PER enumerated grant.
+Action wiring 92: IF Actor Identity answers invalid-credential THEN [Revoke Permission] MUST answer invalid-credential.
+Action wiring 93: IF Actor Identity answers registry-unavailable THEN [Revoke Permission] MUST answer registry-unavailable.
+NOTE: watch the registry outage (Action wiring 93).
+Action wiring 94: IF Actor Identity answers storage-failure THEN [Revoke Permission] MUST answer attribution-storage-failure.
+Action wiring 95: IF Permissions answers storage-failure THEN [Revoke Permission] MUST answer storage-failure.
+NOTE: watch the unlanded storage failure (Action wiring 95).
 Deleted: Action wiring 47. Execution Contract Database 2 owns it.
 Action wiring 48: IF EVERY enumerated grant reached a committed revocation THEN [Revoke Permission] MUST answer the revoked grants AND the attestations.
 Deleted: Action wiring 49. Execution Contract Database 1 and Execution Contract Database 2 own it.
@@ -335,7 +352,7 @@ Action wiring 59: [Verify Grant Attribution] MUST read the revocation attributio
 Action wiring 60: IF no revocation attribution entry EXISTS for a revoked grant THEN [Verify Grant Attribution] MUST answer attribution-inconsistency.
 Action wiring 61: The composition MUST call Actor Identity's verify PER named attestation at [Verify Grant Attribution].
 Action wiring 62: IF Actor Identity answers not-known THEN [Verify Grant Attribution] MUST read the purge record.
-Action wiring 63: IF the purge record names the attestation THEN [Verify Grant Attribution] MUST answer not-applicable carrying purged.
+Action wiring 63: IF the purge record names the attestation THEN the attestation's verify result MUST stand not-applicable carrying purged.
 Action wiring 64: IF the purge record names no attestation THEN [Verify Grant Attribution] MUST answer the tamper reading.
 Action wiring 65: [Verify Grant Attribution] MUST NOT answer the tamper reading for a lawful destruction.
 Action wiring 66: The composition MUST read the purge record ONLY AFTER an absent attestation.
@@ -361,6 +378,8 @@ Action wiring 85: An administrative surface MUST project a permission list from 
 Action wiring 86: An administrative surface MUST NOT project a permission list from the grant records.
 ```
 
+NOTE: open 2026-10-27-a — a refused issuance or revocation keeps its landed attestation and writes its orphan log entry (Action wiring 8, 10, 26; Wiring decision 4, 5; Atomic writes 8), while Execution Contract Read 4 says a refused call writes nothing; which stands waits on whether a refused outcome leaves an act's other writes committed.
+
 Term admitted issuance: an [Issue Grant] call whose boundary predicate passed and whose attestation landed.
 
 Term admitted revocation: a [Revoke Grant] call whose boundary predicate passed and whose attestation landed.
@@ -371,7 +390,7 @@ Term enumerated set: the pair's active grants a pair-scoped revocation read at o
 
 Term verify result: verified | `failed-verification(reason)` | not-known | `not-applicable(purged)`.
 
-Term tamper reading: [Verify Grant Attribution]'s reading of an absent attestation as evidence that the attestation record or the attribution entry was rewritten — sound only where no lawful destruction explains the absence.
+Term tamper reading: an attribution record whose verify result stands not-known — [Verify Grant Attribution]'s reading of an absent attestation as evidence that the attestation record or the attribution entry was rewritten, sound only where no lawful destruction explains the absence.
 
 Term lawful destruction: a retention layer's purge of an attestation the purge record names.
 
@@ -422,7 +441,7 @@ Housekeeping 15: The failed-grant leg MUST NOT report an aged-out attestation as
 Housekeeping 16: The failed-grant leg MUST report an aged-out unpaired attestation carrying an orphan log entry as a purge-pending orphan.
 Housekeeping 17: The failed-grant leg MUST report an aged-out unpaired attestation carrying no orphan log entry as a non-conformant purge.
 Housekeeping 18: The failed-grant leg MUST NOT read an aged-out unpaired attestation as benign.
-Housekeeping 19: A caller MUST retry an orphan's act as a fresh administrative act.
+Deleted: Housekeeping 19. Action wiring 38 owns it: a retry stands as a fresh administrative act, and no rule obliges a caller to retry an orphan's act.
 Housekeeping 20: EXACTLY ONE writer MUST land an administrative act.
 ```
 
@@ -452,12 +471,13 @@ Invariant 1.4: The composition MUST NOT claim Invariant 1.1 over a grant a direc
 Invariant 2.1: An administered revoked grant MUST carry a revocation attribution entry.
 Invariant 2.2: A revocation attribution entry MUST name an attestation the Actor Identity records hold.
 Deleted: Invariant 2.3. Execution Contract Database 1 owns it.
-Invariant 3.1: The composition MUST answer a grant's record, the grant's issuance attestation AND the issuance verification PER known grant.
-Invariant 3.2: The composition MUST answer a revoked grant's revocation attestation AND revocation verification.
+Invariant 2.4: The composition MUST NOT claim Invariant 2.1 over a grant a direct database write revoked.
+Invariant 3.1: The composition MUST answer a grant's record, the grant's issuance attestation AND the issuance verification PER consistent attribution.
+Invariant 3.2: The composition MUST answer a revoked grant's revocation attestation AND revocation verification PER consistent attribution.
 Invariant 3.3: The composition MUST answer a grant's attribution without a log.
 Invariant 3.4: The composition MUST answer a grant's attribution provably.
-Invariant 4.1: An attestation's stamp MUST NOT EXCEED the attestation's grant stamp taken with the clock offset allowance.
-Invariant 4.2: A revocation attestation's stamp MUST NOT EXCEED the grant's revocation stamp taken with the clock offset allowance.
+Invariant 4.1: An issuance attestation's stamp MUST NOT EXCEED the grant's grant instant taken with the clock offset allowance.
+Invariant 4.2: A revocation attestation's stamp MUST NOT EXCEED the grant's revocation instant taken with the clock offset allowance.
 Invariant 4.3: Invariant 4.1 MUST stand best-effort under a non-monotonic clock.
 Invariant 4.4: No write MUST rest on Invariant 4.1.
 Invariant 5.1: EVERY Permissions invariant MUST hold over the Permissions instance.
@@ -482,8 +502,6 @@ Invariant 9.2: EVERY grant of an enumerated set a pair-scoped revocation answere
 Invariant 9.3: The composition MUST NOT state Invariant 9.1 over the pair.
 Deleted: Invariant 9.4. Execution Contract Database 1 and Execution Contract Database 2 own it.
 ```
-
-Term known grant: a grant the Permissions records hold.
 
 ---
 
@@ -525,7 +543,7 @@ A database administrator writes a grant straight into the Permissions records, o
 
 ### Failure path — a lawfully purged attestation
 
-A deployment declares a **per-store** retention scope rather than the pair-scoped one. A grant's issuance attestation reaches its retention end and is purged; the grant is still standing. [Verify Grant Attribution] finds the attribution entry, calls verify, and gets an absent attestation — which under the pair-scoped scope would be a tamper signal. It reads the retention layer's purge record first, finds the attestation named there, and answers `not-applicable(purged)`. The caller counts that as **consistent**. Without this branch the query handed an auditor a forensic finding for a correctly-executed retention policy, which is the one class of false finding an attribution composition can least afford.
+A deployment declares a **per-store** retention scope rather than the pair-scoped one. A grant's issuance attestation reaches its retention end and is purged; the grant is still standing. [Verify Grant Attribution] finds the attribution entry, calls verify, and gets an absent attestation — which under the pair-scoped scope would be a tamper signal. It reads the retention layer's purge record first, finds the attestation named there, and answers the attribution record with `not-applicable(purged)` as the issuance attestation's verify result. The caller counts that as **consistent**. Without this branch the query handed an auditor a forensic finding for a correctly-executed retention policy, which is the one class of false finding an attribution composition can least afford.
 
 ### Regulated adversarial scenarios
 
@@ -552,7 +570,7 @@ Check 1.5: An auditor MUST NOT read a purged grant as a population member (Compo
 Check 2.1: An auditor MUST find a revocation attribution entry PER administered revoked grant (Invariant 2.1).
 Check 2.2: An auditor MUST call Actor Identity's verify for the named revocation attestation (Invariant 3.2).
 Check 2.3: An auditor MUST read an unpaired revoked grant as an attribution inconsistency (Invariant 2.1).
-Check 3.1: An auditor MUST compare an attestation's stamp against the attestation's grant stamp PER administered grant (Invariant 4.1).
+Check 3.1: An auditor MUST compare an issuance attestation's stamp against the grant's grant instant PER administered grant (Invariant 4.1).
 Check 3.2: An auditor MUST run the comparison under the clock offset allowance (Invariant 4.1).
 Check 3.3: An auditor MUST NOT read an inversion inside the clock offset allowance as a finding (Invariant 4.3).
 Check 4.1: An auditor MUST clear Permissions' conformance checks over the Permissions instance (Invariant 5.1).
@@ -649,8 +667,8 @@ Deleted: Clock semantics 2. Identity 8 owns it: a proposal carries the request i
 Deleted: Clock semantics 1. Capability requirement 1 owns it.
 Deleted: Clock semantics 3. Execution Contract Logic confinement 3 owns it.
 Deleted: Clock semantics 4. Execution Contract Logic confinement 3 owns it.
-Clock semantics 6: The nonce MUST carry a proposal's uniqueness.
-Clock semantics 7: The request instant MUST NOT carry a proposal's uniqueness.
+Clock semantics 6: The nonce MUST carry a grant proposal's uniqueness.
+Clock semantics 7: The request instant MUST NOT carry a grant proposal's uniqueness.
 Deleted: Clock semantics 8. Clock dependence 1 owns it.
 Clock semantics 9: A reader MUST read a constituent's stamp as that constituent's own seam reading.
 Clock semantics 10: A reader MUST NOT read two constituents' stamps as one clock.
@@ -693,7 +711,7 @@ The canonical concepts this spec refers to. Each `[Term]` marker in the prose ab
 
 ### Vocabulary
 
-Term actors: the composition; a deployment; the host; the seam; the transition; a caller; an auditor; an administrative surface; a reader; an implementation; an invocation; an action; an administrative act; an issuance; a revocation; a pair-scoped revocation; an admitted issuance; an admitted revocation; an evaluation; an attestation; a landed attestation; an orphan attestation; a proposal; a grant; an administered grant; a known grant; a revoked grant; a grantor; a revoker; a subject; a scope; a credential; a grant's handle; a nonce; a request instant; an attribution entry; a grant attribution entry; a revocation attribution entry; the grant attribution map; the revocation attribution map; an index; the orphan log; an orphan log entry; the failed-grant leg; an enumerated set; a critical section; a purge; a purge record; a lawful destruction; the tamper reading; a forensic finding; a verify result; a retention scope; the retention horizon; a purge-pending orphan; a non-conformant purge; the namespace prefix; the grant proposal format; the revocation proposal format; the clock offset allowance; the length cap; the binding registry; Permissions; Actor Identity; a constituent; a constituent's stamp; a clock reading; two issuances; two seams.
+Term actors: the composition; a deployment; the host; the seam; the transition; a caller; an auditor; an administrative surface; a reader; an implementation; an invocation; an action; an administrative act; an issuance; a revocation; a pair-scoped revocation; an admitted issuance; an admitted revocation; an evaluation; an attestation; a landed attestation; an orphan attestation; a proposal; a grant; an administered grant; a revoked grant; a grantor; a revoker; a subject; a scope; a credential; a grant's handle; a nonce; a request instant; an attribution entry; a grant attribution entry; a revocation attribution entry; the grant attribution map; the revocation attribution map; an index; the orphan log; an orphan log entry; the failed-grant leg; an enumerated set; a critical section; a purge; a purge record; a lawful destruction; the tamper reading; a forensic finding; a verify result; a retention scope; the retention horizon; a purge-pending orphan; a non-conformant purge; the namespace prefix; the grant proposal format; the revocation proposal format; the clock offset allowance; the length cap; the binding registry; Permissions; Actor Identity; a constituent; a constituent's stamp; a clock reading; two issuances; two seams.
 
 Term record verbs: serve, change, inherit, read, hold, reach, call, select, query, attest, own, place, admit, drive, know, push, store, classify, carry, stand, claim, populate, name, alert, drop, take, rebuild, recognize, supply, mint, generate, accept, configure, set, provision, rotate, disclose, run, fire, serialize, resolve, reconcile, refuse, normalize, fold, trim, compare, judge, propagate, cap, truncate, allocate, reuse, pair, make, retry, leave, record, answer, substitute, add, complete, clear, empty, write, advance, repoint, renew, cross, find, confirm, reproduce, establish, match, escalate, emit, expose, validate, commit, detect, inject, stamp, derive, deduplicate, model, schedule, adjudicate, purge, unwind, gate, index, anchor, surface, treat, sweep, spend, enroll, verify, suspend, reinstate, belong, elapse, invoke, duplicate, block, govern, identify, decide, reverse, destroy, revoke, enlist, snapshot, size, adopt, yield, release, count, abort, log, prove, weaken, lapse, deactivate, restore, issue, terminate, enumerate, declare, diverge, persist, inspect, digest, proceed, open, continue, append, compute, transition, produce, sample, repair, resume, restart, retake, assemble, filter, grant, project, aggregate, withdraw, survive, manage, evaluate, bound, seal, age, attribute, check, compose, cover, delete, forbid, group, interpose, key, land, modify, pass, perform, promise, report, require, rest, share, state, widen, wrap.
 
@@ -707,7 +725,7 @@ Term qualifiers: migrated — rewritten in GRACE lang v0.42 (2026-09-15).
 
 Term value sets: verify result = verified | failed-verification(reason) | not-known | not-applicable(purged). underlying reason = invalid-request | not-known | not-active. retention scope = pair-scoped | per-store.
 
-Term terms: composition, constituents, administered grant, administrative act, grant attribution map, revocation attribution map, attribution entry, orphan log, underlying reason, orphan attestation, binding registry, seam, transition, grant proposal format, revocation proposal format, namespace prefix, retention scope, purge record, clock offset allowance, length cap, blank, boundary predicate, opaque input, administered opaque input, admitted issuance, admitted revocation, pair-scoped revocation, enumerated set, verify result, tamper reading, lawful destruction, consistent attribution, forensic finding, failed-grant leg, post-enumeration grant, aged-out attestation, landed attestation, retention horizon, purge-pending orphan, non-conformant purge, known grant, issuance orphan position, grant issuance result, grant revocation result, permission revocation result, attribution record.
+Term terms: composition, constituents, administered grant, administrative act, grant attribution map, revocation attribution map, attribution entry, orphan log, underlying reason, orphan attestation, binding registry, seam, transition, grant proposal format, revocation proposal format, namespace prefix, retention scope, purge record, clock offset allowance, length cap, blank, boundary predicate, opaque input, administered opaque input, admitted issuance, admitted revocation, pair-scoped revocation, enumerated set, verify result, tamper reading, lawful destruction, consistent attribution, forensic finding, failed-grant leg, post-enumeration grant, aged-out attestation, landed attestation, retention horizon, purge-pending orphan, non-conformant purge, issuance orphan position, grant issuance result, grant revocation result, permission revocation result, attribution record.
 
 Term cited: Execution Contract Conformance 8 — the recursive inheritance of a constituent's guarantees. The section titled Composition state in `execution-contract.md` — the derived-index and extraction-pending classifications. The section titled Logic Confinement Principle in `execution-contract.md` — the seam.
 
@@ -823,10 +841,12 @@ It inherits from:
 ```
 status: partially resolved
 formal: pending — re-derivation, 2026-08-30: the Failed-Grant Reconciliation leg is now a second, report-only process over each attestation with completion bounds below which it examines nothing, and Invariants 1 and 2 rest on a declared pairing-write atomicity the model takes as given rather than as a capability; and, 2026-09-10, [Revoke Permission] and Invariant 9 are prose repairs the model does not confirm — it carries one grant per pair and so cannot express an enumerated set, a partial sweep, or a grant landing mid-sweep (NOT MODELED); was verified — attributed-permissions-admin.als + attributed-permissions-admin.tla + 1 twin, 2026-06-12
-last gate: 2026-08-26 — Final Critique 7, fresh reader — clean
+last gate: 2026-10-27 — Final Critique 8 — foundational count 7, not clean, no sample
 
 open:
 - 2026-08-30-b · refining · formal · the model has no report-only leg as a second process over an attestation and no [Revoke Permission] — a pair-scoped invocation over an Active set of several, with the concurrent-issue race Invariant 9 is deliberately not stated over → extend it, and check Invariant 9 and the race against a second writer rather than asserting either from the prose
+- 2026-10-27-a · foundational · Action wiring 8, 10, 26, Wiring decision 4, 5, Atomic writes 8 · a refused issuance or revocation keeps its landed attestation and writes its orphan log entry, the evidence the 2026-10-20 Decision keeps as a domain choice, while Execution Contract Read 4 says a refused call writes nothing → keep the orphan as evidence or retire it, once the maintainer reads whether a refused outcome leaves an act's other writes committed (Multi-Party Approval 2026-10-26-d, Actor Suspension 2026-10-26-c)
+- 2026-10-27-b · refining · Composition state 16, 17, 19, 28 · an orphan log entry carries the proposal and is never dropped, while its orphan attestation is purged under its own retention → say whether a purge covers the entry, or the entry ages out on a retention of its own
 ```
 
 ## Decisions
