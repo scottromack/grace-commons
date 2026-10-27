@@ -402,6 +402,8 @@ WHY:
 
 NOTE: composing patterns — [Capability-Backed Sharing](../compositions/capability-backed-sharing.md), [Immutable Transaction Ledger](../compositions/immutable-transaction-ledger.md), [Resolve a Person's Data Rights](../compositions/resolve-a-persons-data-rights.md).
 
+NOTE: watch the reading composer's write ban (Composition note 9).
+
 ---
 
 ## Terms
