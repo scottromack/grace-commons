@@ -55,7 +55,7 @@ Identity 9: The atom MUST NOT normalize a reference.
 Identity 10: The atom MUST NOT confirm that a resource names a known registry entry.
 Identity 11: The atom MUST NOT confirm that a requester names a known actor.
 Identity 12: The atom MUST NOT hold the resource's content.
-Identity 13: The deployment MUST route EVERY call to one database instance.
+Deleted: Identity 13. Execution Contract Database 7 owns it.
 ```
 
 Term commitment: the record this atom holds — one resource held for one requester for a bounded window, then resolved to exactly one terminal state.
@@ -74,7 +74,7 @@ Term seam: the atom's I/O boundary as the section titled Logic Confinement Princ
 
 Term transition: the atom's evaluation of one call against the commitment records, as the section titled Logic Confinement Principle in `execution-contract.md` declares it.
 
-Term now: the wall-time reading the host takes at the seam and hands to the transition, as the section titled Logic Confinement Principle in `execution-contract.md` declares it; never read inside the transition, never supplied by the business caller.
+Term now: the deployment's clock reading at the call, as Execution Contract Logic confinement 11 declares it.
 
 ### State
 
@@ -107,7 +107,7 @@ Capability requirement 9: The deployment MUST canonicalize an opaque reference.
 Capability requirement 10: The registry MUST return the resource to availability on a releasing action.
 Capability requirement 11: The registry MUST NOT return the resource to availability on an admitted confirm.
 Capability requirement 12: A deployment firing [Expire] on a cadence MUST resolve EVERY lapsed commitment WITHIN the reclamation window.
-Capability requirement 15: The deployment MUST supply the commitment records PER Execution Contract Database 1 through 4, Execution Contract Database 6, Execution Contract Read 4, Execution Contract Refusal 1 and Execution Contract Conformance 9.
+Capability requirement 15: The deployment MUST supply the commitment records PER Execution Contract Database 1 through 4, Execution Contract Database 6, Execution Contract Database 7, Execution Contract Read 4, Execution Contract Refusal 1 and Execution Contract Conformance 9.
 Deleted: Capability requirement 13. Execution Contract Logic confinement 7 owns it.
 Deleted: Capability requirement 14. Execution Contract Logic confinement 7 owns it.
 Deleted: Clock semantics 4. Execution Contract Logic confinement 7 owns it.

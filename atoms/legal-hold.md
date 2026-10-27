@@ -53,7 +53,7 @@ Term transition: the atom's evaluation of one call against the hold records, as 
 
 Term business caller: the party whose action the call carries, as the section titled Logic Confinement Principle in `execution-contract.md` declares it; never the source of an injected value.
 
-Term now: the wall-time reading the host takes at the seam and hands to the transition, as the section titled Logic Confinement Principle in `execution-contract.md` declares it; never read inside the transition, and never supplied by the business caller — placement instant and release instant are the caller's claims about when an obligation began and ended, judged against now and stored as claims (Operation 38 through 41).
+Term now: the deployment's clock reading at the call, as Execution Contract Logic confinement 11 declares it — placement instant and release instant are the caller's claims about when an obligation began and ended, judged against now and stored as claims (Operation 38 through 41).
 
 ### State
 

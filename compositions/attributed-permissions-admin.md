@@ -175,7 +175,7 @@ Capability requirement 34: The deployment MUST supply the database PER Execution
 ```
 
 Term seam: the composition's I/O boundary as the section titled Logic Confinement Principle in `execution-contract.md` declares it; the host injects one clock reading and one nonce here.
-Term now: the wall-time reading the host takes at the seam and hands to the transition, as the section titled Logic Confinement Principle in `execution-contract.md` declares it; never read inside the transition, never supplied by the business caller.
+Term now: the deployment's clock reading at the call, as Execution Contract Logic confinement 11 declares it.
 
 Term transition: the composition's evaluation of one call against the constituents, as the section titled Logic Confinement Principle in `execution-contract.md` declares it.
 
@@ -279,14 +279,13 @@ Action wiring 1: An issuance MUST assemble the proposal PER the grant proposal f
 Action wiring 2: An issuance MUST call Actor Identity's attest with the proposal, the grantor AND the grantor's credential.
 Action wiring 3: IF Actor Identity answers invalid-credential THEN [Issue Grant] MUST answer invalid-credential.
 Action wiring 4: IF Actor Identity answers invalid-request THEN [Issue Grant] MUST answer invalid-request.
-Action wiring 5: IF Actor Identity answers storage-failure THEN [Issue Grant] MUST answer attribution-storage-failure.
+Action wiring 5: IF Actor Identity answers storage-failure THEN [Issue Grant] MUST answer attribution-storage-failure (Execution Contract Constituent failure 1).
 Action wiring 87: IF Actor Identity answers registry-unavailable THEN [Issue Grant] MUST answer registry-unavailable.
 NOTE: watch the registry outage (Action wiring 87).
 Action wiring 6: IF Actor Identity refuses the attest THEN the invocation MUST NOT call Permissions' grant.
 Action wiring 7: An admitted issuance MUST call Permissions' grant with the subject AND the scope.
 Action wiring 8: IF Permissions answers invalid-request THEN [Issue Grant] MUST answer orphan-attestation carrying pre-grant.
-Action wiring 88: IF Permissions answers storage-failure THEN [Issue Grant] MUST answer storage-failure.
-NOTE: watch the unlanded storage failure (Action wiring 88).
+Deleted: Action wiring 88. Execution Contract Constituent failure 1 owns it.
 Deleted: Action wiring 9. Execution Contract Database 1 owns it.
 Action wiring 10: IF Permissions answers invalid-request THEN the invocation MUST log the orphan.
 Deleted: Action wiring 11. Execution Contract Database 1 owns it.
@@ -298,15 +297,14 @@ Action wiring 16: A revocation MUST assemble the proposal PER the revocation pro
 Action wiring 17: A revocation MUST call Actor Identity's attest with the proposal, the revoker AND the revoker's credential.
 Action wiring 18: IF Actor Identity answers invalid-credential THEN [Revoke Grant] MUST answer invalid-credential.
 Action wiring 19: IF Actor Identity answers invalid-request THEN [Revoke Grant] MUST answer invalid-request.
-Action wiring 20: IF Actor Identity answers storage-failure THEN [Revoke Grant] MUST answer attribution-storage-failure.
+Action wiring 20: IF Actor Identity answers storage-failure THEN [Revoke Grant] MUST answer attribution-storage-failure (Execution Contract Constituent failure 1).
 Action wiring 89: IF Actor Identity answers registry-unavailable THEN [Revoke Grant] MUST answer registry-unavailable.
 NOTE: watch the registry outage (Action wiring 89).
 Action wiring 21: IF Actor Identity refuses the attest THEN the invocation MUST NOT call Permissions' revoke.
 Action wiring 22: An admitted revocation MUST call Permissions' revoke with the grant's handle.
 Action wiring 23: IF Permissions answers not-known THEN [Revoke Grant] MUST answer not-known.
 Action wiring 24: IF Permissions answers not-active THEN [Revoke Grant] MUST answer not-active.
-Action wiring 90: IF Permissions answers storage-failure THEN [Revoke Grant] MUST answer storage-failure.
-NOTE: watch the unlanded storage failure (Action wiring 90).
+Deleted: Action wiring 90. Execution Contract Constituent failure 1 owns it.
 Deleted: Action wiring 25. Execution Contract Database 1 owns it.
 Action wiring 26: IF Permissions answers not-known OR not-active THEN the invocation MUST log the orphan.
 Action wiring 27: A caller MUST read a not-known answer from [Revoke Grant] as a caller fault.
@@ -333,9 +331,8 @@ Action wiring 46: A pair-scoped revocation MUST perform a revocation PER enumera
 Action wiring 92: IF Actor Identity answers invalid-credential THEN [Revoke Permission] MUST answer invalid-credential.
 Action wiring 93: IF Actor Identity answers registry-unavailable THEN [Revoke Permission] MUST answer registry-unavailable.
 NOTE: watch the registry outage (Action wiring 93).
-Action wiring 94: IF Actor Identity answers storage-failure THEN [Revoke Permission] MUST answer attribution-storage-failure.
-Action wiring 95: IF Permissions answers storage-failure THEN [Revoke Permission] MUST answer storage-failure.
-NOTE: watch the unlanded storage failure (Action wiring 95).
+Action wiring 94: IF Actor Identity answers storage-failure THEN [Revoke Permission] MUST answer attribution-storage-failure (Execution Contract Constituent failure 1).
+Deleted: Action wiring 95. Execution Contract Constituent failure 1 owns it.
 Deleted: Action wiring 47. Execution Contract Database 2 owns it.
 Action wiring 48: IF EVERY enumerated grant reached a committed revocation THEN [Revoke Permission] MUST answer the revoked grants AND the attestations.
 Deleted: Action wiring 49. Execution Contract Database 1 and Execution Contract Database 2 own it.

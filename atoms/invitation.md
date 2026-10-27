@@ -56,7 +56,7 @@ Identity 10: The atom MUST NOT confirm that an inviter reference names a known a
 Identity 11: The atom MUST NOT confirm that an invitee reference names a known actor.
 Identity 12: The atom MUST NOT confirm that an accepting identity reference names a known identity.
 Identity 13: The atom MUST NOT match an accepting identity reference against an invitee reference.
-Identity 14: The deployment MUST route EVERY call to one database instance.
+Deleted: Identity 14. Execution Contract Database 7 owns it.
 ```
 
 Term invitation: the record this atom holds — one invitation issued by one inviter to join one context, resolved by at most one write.
@@ -73,7 +73,7 @@ Term seam: the atom's I/O boundary as the section titled Logic Confinement Princ
 
 Term transition: the atom's evaluation of one call against the invitation records, as the section titled Logic Confinement Principle in `execution-contract.md` declares it.
 
-Term now: the wall-time reading the host takes at the seam and hands to the transition, as the section titled Logic Confinement Principle in `execution-contract.md` declares it; never read inside the transition, never supplied by the business caller.
+Term now: the deployment's clock reading at the call, as Execution Contract Logic confinement 11 declares it.
 
 ### State
 
@@ -112,7 +112,7 @@ Capability requirement 6: The database MUST refuse a write carrying an invitatio
 Deleted: Capability requirement 7. Execution Contract Database 3 owns it.
 Capability requirement 8: The deployment MUST canonicalize an opaque reference.
 Capability requirement 9: The deployment MUST deliver the invitation token to the invitee.
-Capability requirement 12: The deployment MUST supply the invitation records PER Execution Contract Database 1 through 4, Execution Contract Read 4 and Execution Contract Refusal 1.
+Capability requirement 12: The deployment MUST supply the invitation records PER Execution Contract Database 1 through 4, Execution Contract Database 7, Execution Contract Read 4 and Execution Contract Refusal 1.
 Deleted: Capability requirement 10. Execution Contract Logic confinement 7 owns it.
 Deleted: Capability requirement 11. Execution Contract Logic confinement 7 owns it.
 Deleted: Clock semantics 4. Execution Contract Logic confinement 7 owns it.

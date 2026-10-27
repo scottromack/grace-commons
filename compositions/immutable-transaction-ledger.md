@@ -211,7 +211,7 @@ Term invocation id: the fresh id the host injects at the seam per state-changing
 
 Term seam: the composition's input and output boundary — the one place the host reads the clock and mints the invocation id, per the section titled Logic Confinement Principle in `execution-contract.md`.
 
-Term now: the wall-time reading the host injects at the seam, once per invocation.
+Term now: the deployment's clock reading at the call, as Execution Contract Logic confinement 11 declares it.
 
 ### Primitive policy
 

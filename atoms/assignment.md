@@ -58,9 +58,9 @@ Term transition: the atom's evaluation of one call against the assignment record
 
 Term business caller: the party whose action the call carries, as the section titled Logic Confinement Principle in `execution-contract.md` declares it; never the source of an injected value.
 
-Term now: the wall-time reading the host takes at the seam and hands to the transition, as the section titled Logic Confinement Principle in `execution-contract.md` declares it; never read inside the transition, never supplied by the business caller.
+Term now: the deployment's clock reading at the call, as Execution Contract Logic confinement 11 declares it.
 
-NOTE: open 2026-10-21-a — Term seam, Term transition, Term business caller and Term now cite the section titled Logic Confinement Principle in `execution-contract.md`, which declares none of them.
+NOTE: open 2026-10-21-a — Term seam, Term transition and Term business caller cite the section titled Logic Confinement Principle in `execution-contract.md`, which declares none of them.
 
 ### State
 
@@ -628,7 +628,7 @@ formal: verified — assignment.tla + 1 twin, 2026-06-03
 last gate: 2026-10-26 — Final Critique 7 — foundational count 0, clean, one sample
 
 open:
-- 2026-10-21-a · refining · Term seam; Term transition; Term business caller; Term now · each says the section titled Logic Confinement Principle in `execution-contract.md` declares it, and that section declares none of the four and calls the composition layer the seam (Logic confinement 2); seam, transition and business caller have no term entry → declare the four there, the corpus's one seam wording, or point each at its declaration, and give each a term entry
+- 2026-10-21-a · refining · Term seam; Term transition; Term business caller · each says the section titled Logic Confinement Principle in `execution-contract.md` declares it, and that section declares none of the three and calls the composition layer the seam (Logic confinement 2); seam, transition and business caller have no term entry → declare the three there, the corpus's one seam wording, or point each at its declaration, and give each a term entry
 - 2026-10-26-a · refining · Identity 2; Capability requirement 1, 4 · the assignment id's source is named as the host's allocation (Identity 2) and not among what the deployment supplies, where the atom shape in `spec-format.md` lists an id source under Capability requirement; Event Log (its 2026-10-22-b) and Tamper Evidence (its 2026-10-22-a) route the same form → name the source among the Capability requirements, in the one form the corpus settles for its twenty host-allocation atoms
 - 2026-10-26-b · refining · Term recording commit; Term terms · recording commit is declared and carries no term entry, where spec-format's Terms item asks one per declared term, and no Kind a term entry takes (Type, Field, Operation, Parameter, Member) fits a commit's position, which no field stores; Event Log routes its seven so (its 2026-10-23-a) → add the entry under a Kind the term entry grammar admits, or read the item as the bracketed names
 ```

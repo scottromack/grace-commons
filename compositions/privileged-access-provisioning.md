@@ -245,7 +245,7 @@ Term reference caps: the length caps on the resource reference, the access scope
 
 Term seam: the composition's input and output boundary — the one place the host reads the clock and injects the reading and the invocation id, per the section titled Logic Confinement Principle in `execution-contract.md`.
 
-Term now: the wall-time reading the host injects at the seam, once per invocation.
+Term now: the deployment's clock reading at the call, as Execution Contract Logic confinement 11 declares it.
 
 Term invocation id: the fresh id the host injects at the seam for each state-changing invocation, carried on every event and pending entry the invocation writes.
 
@@ -410,7 +410,7 @@ Action wiring 96: IF the request state DOES NOT EQUAL Provisioned THEN [Revoke A
 Action wiring 97: An admitted revocation MUST call Capability's revoke with the request's capability token, the actor reference AND the reason.
 Action wiring 98: IF Capability's revoke answers not-known OR invalid-request THEN [Revoke Access] MUST answer recording-failure.
 Action wiring 99: IF Capability's revoke answers not-known OR invalid-request THEN the deployment MUST alert on the answer as a conformance fault.
-Action wiring 100: IF Capability's revoke answers storage-failure THEN [Revoke Access] MUST answer recording-failure.
+Action wiring 100: IF Capability's revoke answers storage-failure THEN [Revoke Access] MUST answer recording-failure (Execution Contract Constituent failure 1).
 Action wiring 101: IF Capability's revoke answers revoked OR already-terminal THEN [Revoke Access] MUST record a revocation event carrying Revoked AND the reason.
 Action wiring 102: IF Capability's revoke answers revoked OR already-terminal THEN [Revoke Access] MUST set the request state to Revoked.
 Action wiring 103: IF Capability's revoke answers revoked OR already-terminal THEN [Revoke Access] MUST answer revoked.

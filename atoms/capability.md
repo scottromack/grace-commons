@@ -219,7 +219,7 @@ NOTE: watch the untyped input (Operation 61, Operation 67).
 
 NOTE: open 2026-10-21-i — Operation 19's list and Term redemption failure state one outcome space.
 
-Term now: the wall-time reading the host takes at the seam and hands to the transition — a [Now], as the section titled Logic Confinement Principle in `execution-contract.md` declares it; never read inside the transition, never supplied by the business caller.
+Term now: the deployment's clock reading at the call — a [Now], as Execution Contract Logic confinement 11 declares it.
 
 Term business caller: the party whose action the call carries, as the section titled Logic Confinement Principle in `execution-contract.md` declares it; never the source of an injected value.
 

@@ -947,7 +947,7 @@ Steps:
    NOTE: the refusal's evidence — what step 7.11 keeps is written in the refusal's own transaction, a domain choice by the maintainer's ruling of 2026-10-20 (Decisions) and the declared partial-failure surface the section titled *Substrate composition invocation* in `execution-contract.md` names for this action; the section titled *The pipeline applies to composition actions* in `execution-contract.md` states the multi-write obligation without it.
    record action step 7.12: An invalid-request(step-3) or invalid-request(step-4) refusal MUST surface the partial state the invocation left.
    record action step 7.13: A caller other than the scan MUST NOT retry [Record Action] on an invalid-request(step-3) or invalid-request(step-4) refusal.
-   record action step 7.14: IF storage-failure EXISTS at step 2 THEN [Record Action] MUST return recording-failure(step-2).
+   record action step 7.14: IF storage-failure EXISTS at step 2 THEN [Record Action] MUST return recording-failure(step-2) (Execution Contract Constituent failure 1).
    ```
    Term non-storage refusal: invalid-payload at step 3; invalid-request, invalid-policy or policy-not-found at step 4 — the refusals that keep the partial state of record action step 7.11; registry-unavailable, an outage, is none (record action step 2.14, 4.10).
 

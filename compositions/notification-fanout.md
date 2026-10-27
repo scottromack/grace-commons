@@ -88,7 +88,7 @@ Capability requirement 10: A deployment MUST NOT retry a create call at the tran
 ```
 
 Term seam: the composition's I/O (input and output) boundary as the section titled Logic Confinement Principle in `execution-contract.md` declares it; the host injects one clock reading and one fanout id here.
-Term now: the wall-time reading the host takes at the seam and hands to the transition, as the section titled Logic Confinement Principle in `execution-contract.md` declares it; never read inside the transition, never supplied by the business caller.
+Term now: the deployment's clock reading at the call, as Execution Contract Logic confinement 11 declares it.
 
 Term transition: the composition's evaluation of one [Fanout] call against the two constituents' records, as the section titled Logic Confinement Principle in `execution-contract.md` declares it.
 

@@ -264,7 +264,7 @@ Action wiring 2: A validated authorization MUST record an authorization intent c
 Action wiring 3: The authorization intent MUST NOT carry a capability token.
 Action wiring 4: An admitted authorization MUST call Capability's allocate with the allocator reference, the encoded sharing descriptor as the scope, the effective max redemptions AND the effective ttl.
 Action wiring 5: IF Capability answers invalid-request for an allocate THEN [Authorize Sharing] MUST answer invalid-request.
-Action wiring 6: IF Capability answers storage-failure for an allocate THEN [Authorize Sharing] MUST answer storage-failure.
+Deleted: Action wiring 6. Execution Contract Constituent failure 1 owns it.
 Action wiring 7: A refused allocate MUST NOT write beyond the authorization intent.
 Action wiring 8: An allocating authorization MUST record an authorization event carrying the intent event id, the capability token, the sharing descriptor, the effective max redemptions, the effective ttl AND the allocation reading under the allocator's credential ONLY AFTER Capability's allocate answers the capability token.
 Deleted: Action wiring 9. Execution Contract Database 1 owns it.
@@ -285,16 +285,14 @@ Action wiring 23: An admitted redemption MUST record a disclosure intent carryin
 Action wiring 24: The composition MUST NOT read a disclosure intent as an authentication record.
 Action wiring 25: An admitted redemption MUST call Capability's redeem with the capability token ONLY AFTER the disclosure intent lands.
 Action wiring 26: IF Capability answers invalid THEN [Redeem And Disclose] MUST answer invalid carrying the redemption failure.
-Action wiring 54: IF Capability answers storage-failure for a redeem THEN [Redeem And Disclose] MUST answer storage-failure.
-NOTE: watch the unlanded storage failure (Action wiring 54).
+Deleted: Action wiring 54. Execution Contract Constituent failure 1 owns it.
 Action wiring 27: IF Capability answers invalid THEN the admitted redemption MUST record a refusal event carrying the intent event id, the capability token AND the redemption failure.
 Action wiring 28: The deployment MUST alert on a diverged redemption as a conformance fault.
 Action wiring 29: A consuming redemption MUST call Selective Disclosure's record with the subject reference, the intended recipient as the recipient, the disclosed scope as the scope AND the authority.
 Action wiring 30: A consuming redemption MUST NOT pass a disclosure instant to Selective Disclosure's record.
 Action wiring 31: IF Selective Disclosure answers invalid-request OR unknown-authority-type THEN the consuming redemption MUST record an unfulfilled event carrying the intent event id, the capability token, the allocator reference AND the refusal as the reason.
 Action wiring 32: IF Selective Disclosure answers invalid-request OR unknown-authority-type THEN [Redeem And Disclose] MUST answer redemption-unfulfilled.
-Action wiring 55: IF Selective Disclosure answers storage-failure THEN [Redeem And Disclose] MUST answer storage-failure.
-NOTE: watch the unlanded storage failure (Action wiring 55).
+Deleted: Action wiring 55. Execution Contract Constituent failure 1 owns it.
 Deleted: Action wiring 33. Execution Contract Database 1 owns it.
 Action wiring 34: The composition MUST NOT record a disclosure event for an unfulfilled redemption.
 Action wiring 35: The deployment MUST alert on a foreclosed disclosure refusal as a conformance fault.
@@ -306,7 +304,7 @@ Action wiring 40: A validated revocation MUST record a revocation intent carryin
 Action wiring 41: An admitted revocation MUST call Capability's revoke with the capability token, the revoked by reference AND the revocation reason.
 Action wiring 42: IF Capability answers already-terminal for a revoke THEN [Revoke Sharing] MUST answer already-terminal.
 Action wiring 43: IF Capability answers not-known for a revoke THEN [Revoke Sharing] MUST answer not-known.
-Action wiring 44: IF Capability answers storage-failure for a revoke THEN [Revoke Sharing] MUST answer storage-failure.
+Deleted: Action wiring 44. Execution Contract Constituent failure 1 owns it.
 Action wiring 45: IF Capability answers invalid-request for a revoke THEN [Revoke Sharing] MUST answer invalid-request.
 Action wiring 46: A revoking revocation MUST record a revocation event carrying the intent event id, the capability token, the revocation reason AND the revocation reading under the revoker's credential ONLY AFTER Capability's revoke answers revoked.
 Action wiring 47: A landed revocation MUST answer revoked AND the revocation event's id.
@@ -690,7 +688,7 @@ Kind: Operation
 
 #### Redeem And Disclose
 
-The load-bearing emergent action: it resolves the descriptor, records the disclosure intent, redeems the capability **by possession alone**, commits a disclosure record with its pending marker, and seals the [Sharing Disclosed] event, in one transaction (Action wiring 12 through 32, Action wiring 34 through 36, Action wiring 38, Action wiring 54, Action wiring 55, Invariant 2). Answers the disclosure result, or the constituent's invalid carrying the redemption failure for a spent, lapsed, cancelled or unknown token, [Not Authorized Sharing] for a token this composition did not attest, redemption-unfulfilled when the use was consumed and Selective Disclosure refused the record, or storage-failure when a write fails and nothing commits. Records the allocator, never the redeemer (Invariant 1).
+The load-bearing emergent action: it resolves the descriptor, records the disclosure intent, redeems the capability **by possession alone**, commits a disclosure record with its pending marker, and seals the [Sharing Disclosed] event, in one transaction (Action wiring 12 through 32, Action wiring 34 through 36, Action wiring 38, Invariant 2). Answers the disclosure result, or the constituent's invalid carrying the redemption failure for a spent, lapsed, cancelled or unknown token, [Not Authorized Sharing] for a token this composition did not attest, redemption-unfulfilled when the use was consumed and Selective Disclosure refused the record, or storage-failure when a write fails and nothing commits. Records the allocator, never the redeemer (Invariant 1).
 
 Kind: Operation
 

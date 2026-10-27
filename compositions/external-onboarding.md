@@ -177,7 +177,7 @@ Audit arm 10: The read-back MUST match the post-write record by action reference
 Audit arm 11: IF the read-back finds the post-write record THEN the action MUST proceed as landed.
 Deleted: Audit arm 12. Execution Contract Database 1 owns it.
 Audit arm 13: IF Audit Trail answers invalid-credential at a post-write record THEN the action MUST answer invalid-credential.
-Audit arm 14: IF Invitation answers storage-failure THEN the action MUST answer storage-failure carrying intent.
+Audit arm 14: IF Invitation answers storage-failure THEN the action MUST answer storage-failure carrying intent (Execution Contract Constituent failure 1).
 Audit arm 15: IF Party Identity answers storage-failure THEN [Onboard] MUST answer storage-failure carrying outcome.
 Audit arm 16: IF Credential answers storage-failure THEN [Onboard] MUST answer storage-failure carrying outcome.
 Audit arm 17: A caller MUST read storage-failure carrying intent as a committed nothing.

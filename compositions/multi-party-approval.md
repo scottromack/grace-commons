@@ -214,7 +214,7 @@ Term invocation id: the fresh id the host injects at the seam per state-changing
 
 Term seam: the composition's input and output boundary — the one place the host reads the clock and mints the chain id and the invocation id, per the section titled Logic Confinement Principle in `execution-contract.md`.
 
-Term now: the wall-time reading the host injects at the seam, once per invocation.
+Term now: the deployment's clock reading at the call, as Execution Contract Logic confinement 11 declares it.
 
 Term id widths: the widest chain id, step id, assignment id and event id the seam and the constituents mint — the substrate's own attestation id width move, so a payload carrying id lists is sized at validation.
 
@@ -363,8 +363,7 @@ Action wiring 19: A resolved decision MUST NOT refuse on the chain state.
 Action wiring 20: A resolved decision MUST record the decision intent carrying the invocation id, the chain id, the step id, the decision, the reason, the trailing flag AND now as the intent instant.
 Action wiring 21: An admitted decision MUST call the decision's step write with the step id, the actor reference as the decider AND the reason.
 Action wiring 22: IF the step write answers a step refusal THEN the decision action MUST answer the step refusal.
-Action wiring 23: IF Approval Step OR Assignment answers storage-failure THEN the action MUST answer recording-failure carrying intent.
-NOTE: watch the unlanded storage failure (Action wiring 23).
+Action wiring 23: IF Approval Step OR Assignment answers storage-failure THEN the action MUST answer recording-failure carrying intent (Execution Contract Constituent failure 1).
 Action wiring 24: A decided decision MUST call Assignment's recall on the step's assignment id.
 Action wiring 25: IF the step-assignment index names no assignment for the step THEN the decided decision MUST NOT call recall.
 Action wiring 26: IF recall answers not-active THEN the decided decision MUST proceed.

@@ -299,7 +299,7 @@ Term invocation id: injected at the adopter's seam alongside now, fresh per invo
 
 Term journal join: a pairing of two journal records on a field each carries. A read of one record by the event id another record carries, as read_record(intent event id) at resolve 11 and Check 1.2, is a lookup, not a join.
 
-Term now: the seam-injected reading — at the adopter's seam per invocation, at the sweep's seam once per run, at the operator's seam once per [Resolve] call alongside operator run id, at the reader's seam once per [Read Invocation] call; each as the section titled Logic Confinement Principle in `execution-contract.md` declares it, never read inside the transition.
+Term now: the deployment's clock reading at the call, as Execution Contract Logic confinement 11 declares it.
 
 Term operator run id: injected at the operator's seam once per [Resolve] call, fresh for every call; the critical section holder for [Resolve].
 

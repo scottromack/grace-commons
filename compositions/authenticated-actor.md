@@ -189,8 +189,7 @@ Action wiring 23: An admitted attestation MUST NOT call Actor Identity's attest 
 Action wiring 38: IF Actor Identity's attest answers registry-unavailable THEN an admitted attestation MUST answer registry-unavailable.
 NOTE: watch the registry outage (Action wiring 38).
 Action wiring 39: IF Actor Identity's attest answers invalid-credential THEN an admitted attestation MUST answer invalid-attest-credential.
-Action wiring 40: IF Actor Identity's attest answers storage-failure THEN an admitted attestation MUST answer attest-failed naming the attestation.
-NOTE: watch the unlanded storage failure (Action wiring 40).
+Action wiring 40: IF Actor Identity's attest answers storage-failure THEN an admitted attestation MUST answer attest-failed naming the attestation (Execution Contract Constituent failure 1).
 Action wiring 24: An admitted attestation passing the gate MUST append an attest log entry carrying the current credential's credential id.
 Action wiring 25: IF a success entry's append fails THEN an admitted attestation MUST answer attest-failed naming the log.
 Action wiring 26: [Verify Actor Attestation] MUST call Actor Identity's verify with the attestation id.
@@ -199,7 +198,7 @@ Action wiring 28: [Verify Actor Attestation] MUST NOT write.
 Action wiring 29: The composition MUST take a principal reference, an actor reference AND a credential material on register_authenticated_actor.
 Action wiring 30: An admitted registration MUST pass the gating credential type default for an absent credential type.
 Action wiring 31: IF Credential's register answers invalid-request THEN an admitted registration MUST answer invalid-request.
-Action wiring 32: IF Credential's register answers storage-failure THEN an admitted registration MUST answer storage-failure naming the credential.
+Action wiring 32: IF Credential's register answers storage-failure THEN an admitted registration MUST answer storage-failure naming the credential (Execution Contract Constituent failure 1).
 Deleted: Action wiring 33. Execution Contract Database 2 owns it: an action's guard reads and the writes they decide are one transaction, so no guard runs again over a committed credential.
 Action wiring 34: IF the gate read finds no effective-active credential THEN the attest log entry MUST carry the observed status AND the credential id of the credential Credential's read answers last for the principal reference AND the bound credential type (Credential Operation 69).
 Action wiring 35: IF a refused call's append fails THEN the composition MUST answer attest-failed naming the log.

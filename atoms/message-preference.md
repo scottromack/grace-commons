@@ -112,7 +112,7 @@ Deleted: Capability requirement 2. Execution Contract Logic confinement 7 owns i
 Deleted: Capability requirement 3. Execution Contract Logic confinement 7 owns it.
 Deleted: Capability requirement 4. Execution Contract Logic confinement 7 owns it.
 Deleted: Capability requirement 5. State 11 and State 12 own it: one injected now stamps both instants of a supersession.
-Capability requirement 6: The deployment MUST supply the preference records PER Execution Contract Database 1 through 4, Execution Contract Database 6, Execution Contract Refusal 1 and Execution Contract Conformance 9.
+Capability requirement 6: The deployment MUST supply the preference records PER Execution Contract Database 1 through 4, Execution Contract Database 6, Execution Contract Database 7, Execution Contract Refusal 1 and Execution Contract Conformance 9.
 Capability requirement 7: The deployment MUST disclose the fanout-on-no-record policy.
 Capability requirement 8: The deployment MUST supply the declared channel set at the seam.
 Deleted: Clock semantics 1. Execution Contract Logic confinement 7 owns it.
@@ -197,7 +197,7 @@ Term currently in effect: a preference record whose status EQUALS active OR in s
 
 Term supersession: the one operation in which a [Set] call stands a principal's prior preference record in deleted and records the new preference record.
 
-Term now: the wall-time reading the host takes at the seam and hands to the transition, as the section titled Logic Confinement Principle in `execution-contract.md` declares it; never read inside the transition, never supplied by the business caller.
+Term now: the deployment's clock reading at the call, as Execution Contract Logic confinement 11 declares it.
 
 Term business caller: the party whose action the call carries, as the section titled Logic Confinement Principle in `execution-contract.md` declares it; never the source of an injected value.
 
@@ -305,7 +305,7 @@ Immutability and durability together give *auditability* — the full history of
 ### Database instance model
 
 ```
-Instance 1: The deployment MUST route EVERY call to one database instance.
+Deleted: Instance 1. Execution Contract Database 7 owns it.
 Instance 2: Two preference records in one database instance MUST NOT share a preference id.
 Instance 3: The atom MUST read one principal reference in two database instances as two principals.
 Instance 4: A database name MUST name one database instance.

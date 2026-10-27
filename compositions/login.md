@@ -132,7 +132,7 @@ Capability requirement 18: The deployment MUST supply the database PER Execution
 ```
 
 Term seam: the composition's I/O boundary as the section titled Logic Confinement Principle in `execution-contract.md` declares it; the host injects one clock reading and, for a login call, one entry id here.
-Term now: the wall-time reading the host takes at the seam and hands to the transition, as the section titled Logic Confinement Principle in `execution-contract.md` declares it; never read inside the transition, never supplied by the business caller.
+Term now: the deployment's clock reading at the call, as Execution Contract Logic confinement 11 declares it.
 
 Term transition: the composition's evaluation of one call against the constituents, as the section titled Logic Confinement Principle in `execution-contract.md` declares it.
 
@@ -225,10 +225,10 @@ Action wiring 24: An admitted cascade MUST NOT change the credential-to-sessions
 Action wiring 25: An admitted cascade MUST record a cascade completion event carrying the initiation event's id AND the four counts.
 Action wiring 26: An admitted cascade MUST answer the revocation tally.
 Action wiring 27: IF Session's revoke answers already-terminal THEN an admitted logout MUST answer already-terminal.
-Action wiring 28: IF Session's revoke answers storage-failure THEN an admitted logout MUST answer storage-failure.
+Deleted: Action wiring 28. Execution Contract Constituent failure 1 owns it.
 Action wiring 29: IF Session's revoke answers invalid-request THEN an admitted logout MUST answer invalid-request.
 Action wiring 30: IF the first credential id read finds no effective-active credential THEN an admitted login MUST answer storage-failure naming the credential-id-lookup stage.
-Action wiring 31: IF Session's issue answers storage-failure THEN an admitted login MUST answer storage-failure naming the session-issue stage.
+Action wiring 31: IF Session's issue answers storage-failure THEN an admitted login MUST answer storage-failure naming the session-issue stage (Execution Contract Constituent failure 1).
 Action wiring 32: A cascade initiation event MUST carry the credential id, the revoked by reference AND the reason.
 Action wiring 33: IF Audit Trail refuses the cascade initiation event THEN an admitted cascade MUST answer storage-failure.
 Action wiring 34: IF Session's validate answers valid for a session token the cascade set carries THEN an admitted cascade MUST call Session's revoke with the cascade reason.

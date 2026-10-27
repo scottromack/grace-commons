@@ -15,7 +15,7 @@
 \* ONE TRANSACTION PER ACTION (Execution Contract Database 1, Capability requirement 34).
 \* Every write one action makes, its constituents' included, commits together, so each
 \* action below is one step. A storage failure anywhere in an act commits nothing and is
-\* no step (Action wiring 88, 90, 95; with OneTxn = FALSE a failed grant write leaves its
+\* no step (Execution Contract Constituent failure 1; with OneTxn = FALSE a failed grant write leaves its
 \* attestation behind, -buggy-storageorphan). A constituent's refusal after the attest
 \* (Permissions' invalid-request at an issuance, its not-known or not-active at a
 \* revocation) keeps the attestation and writes its orphan log entry (Action wiring 8, 10,
@@ -72,7 +72,7 @@
 \*                  (Action wiring 64, 67, 73).
 \*
 \* THE RULES, as constants, each TRUE here; each twin is this module with one turned FALSE:
-\*   OneTxn       a storage failure commits nothing (Database 1; Action wiring 88)  -buggy-storageorphan
+\*   OneTxn       a storage failure commits nothing (Database 1; Constituent failure 1)  -buggy-storageorphan
 \*   OwnAttest    each revocation of a sweep has its own attestation (Composes 24)  -buggy-sharedattest
 \*   ReportOnly   the failed-grant leg never completes an orphan (Housekeeping 8)    -buggy-completeorphan
 \*   PairPurge    a pair-scoped purge takes the pair as one unit (Comp. state 27)    -buggy-attestpurge

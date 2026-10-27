@@ -59,7 +59,7 @@ Identity 8: The atom MUST NOT change a transition id.
 Identity 9: Two workflows in one database instance MUST NOT share an instance id.
 Identity 10: Two history entries in one workflow MUST NOT share a transition id.
 Deleted: Identity 11. Execution Contract Logic confinement 10 owns it.
-Identity 12: The deployment MUST route EVERY call to one database instance.
+Deleted: Identity 12. Execution Contract Database 7 owns it.
 Identity 13: The atom MUST NOT identify a workflow by the subject reference.
 Identity 14: The atom MUST admit a second workflow carrying a recorded subject reference.
 Identity 15: The atom MUST NOT confirm that a subject reference names a known subject.
@@ -111,7 +111,7 @@ Deleted: State 14. Execution Contract Database 3 owns it.
 
 ```
 Capability requirement 1: The deployment MUST supply now at the seam.
-Capability requirement 5: The deployment MUST supply the workflow records PER Execution Contract Database 1 through 4, Execution Contract Database 6, Execution Contract Read 4, Execution Contract Refusal 1, Execution Contract Query 1 through 4 and Execution Contract Conformance 9.
+Capability requirement 5: The deployment MUST supply the workflow records PER Execution Contract Database 1 through 4, Execution Contract Database 6, Execution Contract Database 7, Execution Contract Read 4, Execution Contract Refusal 1, Execution Contract Query 1 through 4 and Execution Contract Conformance 9.
 Deleted: Capability requirement 2. Execution Contract Logic confinement 7 owns it.
 Deleted: Capability requirement 3. Execution Contract Logic confinement 7 owns it.
 Deleted: Capability requirement 4. Execution Contract Logic confinement 7 owns it.
@@ -203,7 +203,7 @@ Operation 55: An ordering rule MUST NOT rest on firing instant.
 
 NOTE: open 2026-10-22-a — Operation 45 compares a sequence number range's ends with PRECEDES, the instant operator.
 
-Term now: the wall-time reading the host takes at the seam and hands to the transition, as the section titled Logic Confinement Principle in `execution-contract.md` declares it; never read inside the transition, never supplied by the business caller.
+Term now: the deployment's clock reading at the call, as Execution Contract Logic confinement 11 declares it.
 
 Term business caller: the party whose action the call carries, as the section titled Logic Confinement Principle in `execution-contract.md` declares it; never the source of an injected value.
 

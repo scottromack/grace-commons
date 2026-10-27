@@ -54,10 +54,10 @@ Identity 8: The atom MUST NOT normalize a reference.
 Identity 9: The atom MUST NOT confirm that a principal reference names a known principal.
 Identity 10: The atom MUST NOT confirm that a revoked by reference names a known actor.
 Identity 11: The atom MUST confirm that a credential type names a derivation function in the derivation registry.
-Deleted: Identity 12. Capability requirement 33 owns it.
+Deleted: Identity 12. Execution Contract Database 7 owns it.
 Deleted: Identity 13. Capability requirement 34 owns it.
 Deleted: Identity 14. Capability requirement 35 owns it.
-Deleted: Identity 15. Capability requirement 36 owns it.
+Deleted: Identity 15. Execution Contract Database 7 owns it.
 ```
 
 Term credential: the record this atom holds — one principal's binding to one verifier, for one credential type.
@@ -80,9 +80,9 @@ Term seam: the atom's I/O boundary as the section titled Logic Confinement Princ
 
 Term transition: the atom's evaluation of one call against the credential records, as the section titled Logic Confinement Principle in `execution-contract.md` declares it.
 
-Term now: the wall-time reading the host takes at the seam and hands to the transition, as the section titled Logic Confinement Principle in `execution-contract.md` declares it; never read inside the transition, never supplied by the business caller.
+Term now: the deployment's clock reading at the call, as Execution Contract Logic confinement 11 declares it.
 
-NOTE: open 2026-10-21-b — Term seam, Term transition, Term now and Term cited cite the section titled Logic Confinement Principle in `execution-contract.md`, which declares none of them.
+NOTE: open 2026-10-21-b — Term seam, Term transition and Term cited cite the section titled Logic Confinement Principle in `execution-contract.md`, which declares none of them.
 
 ### State
 
@@ -148,11 +148,11 @@ Capability requirement 29: The deployment MUST declare a check function that mat
 Capability requirement 30: The check function MUST normalize presented material as the credential type's derivation function normalizes credential material.
 Capability requirement 31: IF material EXCEEDS the material bound THEN the derivation function MUST refuse the material.
 Capability requirement 32: IF presented material EXCEEDS the material bound THEN the check function MUST refuse the presented material.
-Capability requirement 33: The deployment MUST route EVERY call naming one pair to the same database instance.
+Deleted: Capability requirement 33. Execution Contract Database 7 owns it.
 Capability requirement 34: The deployment MUST supply id material naming no credential of the database instance.
 Capability requirement 35: The deployment MUST NOT supply the same id material to two calls.
-Capability requirement 36: The deployment MUST route EVERY call naming a credential id to the database instance that assigned the credential id.
-Capability requirement 37: The deployment MUST supply the credential records PER Execution Contract Database 1 through 4, Execution Contract Read 1 through 4 and Execution Contract Refusal 1.
+Deleted: Capability requirement 36. Execution Contract Database 7 owns it.
+Capability requirement 37: The deployment MUST supply the credential records PER Execution Contract Database 1 through 4, Execution Contract Database 7, Execution Contract Read 1 through 4 and Execution Contract Refusal 1.
 Capability requirement 38: The deployment MUST NOT supply blank id material.
 Capability requirement 39: The deployment MUST supply id material whose assigned credential id DOES NOT EXCEED the length bound.
 Capability requirement 40: The deployment MUST declare a check function that checks a secret verifier in constant time.
@@ -164,7 +164,6 @@ NOTE: open 2026-10-21-c — the host runs the derivation function and the check 
 
 NOTE: watch host obligations — this atom refuses a string input over the length bound on [Register] and [Revoke] alone (String 7, String 9), obliges the deployment to declare the bound (Capability requirement 14), and obliges it to supply id material whose credential id fits the bound (Capability requirement 39); a blank or over-long principal reference or credential type on [Verify] names no pair, which [Verify] answers no-active-credential (Operation 18), and an over-long credential id on [Rotate] names no credential, which [Rotate] answers not-known (Operation 27).
 
-NOTE: watch the routed instance (Capability requirement 33).
 
 ### Operations
 
@@ -1002,10 +1001,10 @@ last gate: 2026-10-26 — Final Critique 18 — foundational count 1, not clean,
 
 open:
 - 2026-10-26-c · refining · Term terms; Vocabulary · thirty-eight declared terms (every name on Term terms but credential, credential id, now, status, effective status and verifier) carry no term entry, where spec-format's Terms item asks one per declared term and every specification writes one per name a bracket marker lands on → add the entries, each with a Kind the term entry grammar admits, or read the item as the bracketed names
-- 2026-10-21-b · refining · Term seam, transition, now; Term cited · each cites the section titled Logic Confinement Principle in `execution-contract.md`, which declares none of them → cite what declares each, as Event Log's 2026-10-20-c and Permissions' 2026-10-21-f ask of the same four sentences
+- 2026-10-21-b · refining · Term seam, transition; Term cited · each cites the section titled Logic Confinement Principle in `execution-contract.md`, which declares none of them → cite what declares each, as Event Log's 2026-10-20-c and Permissions' 2026-10-21-f ask of the same three sentences
 - 2026-10-21-c · refining · Capability requirement 25, 26; Operation 21, 66, 67 · the host runs the derivation function (on [Register], and on [Rotate] for the type its read finds) and the check function (on [Verify], against the credential Operation 70 selects) at the seam and injects each result, as the contract's section titled Logic Confinement Principle says, and the pipeline in `execution-contract.md` gives that injection no step between the read and the decision, nor its query member a step for a query's check or its clock reading → draw the injection on the contract
-- 2026-09-29-e · refining · Final Critique 12 · routed open, non-blocking: the NIST verifier-storage claim against Non-goal 39 and Capability requirement 5; a read naming neither a pair nor an id has no routing across database instances; a public key's check normalizes nothing the page names; a lapse reopens a principal reference to any enrollment proof, unstated → one refining pass
-- 2026-09-29-d · refining · Final Critique 11 · routed open, non-blocking: Invariant 7 declares no acyclicity or single predecessor; no External check reaches Capability requirement 33, 35 or 36; the NIST line's verifier-storage claim beside Non-goal 39; Operation 69's tie order unexplained; the Clock semantics tombstones inside the Capability requirement block → one refining pass, gated with the rest
+- 2026-09-29-e · refining · Final Critique 12 · routed open, non-blocking: the NIST verifier-storage claim against Non-goal 39 and Capability requirement 5; a public key's check normalizes nothing the page names; a lapse reopens a principal reference to any enrollment proof, unstated → one refining pass
+- 2026-09-29-d · refining · Final Critique 11 · routed open, non-blocking: Invariant 7 declares no acyclicity or single predecessor; no External check reaches Capability requirement 35; the NIST line's verifier-storage claim beside Non-goal 39; Operation 69's tie order unexplained; the Clock semantics tombstones inside the Capability requirement block → one refining pass, gated with the rest
 ```
 
 ## Decisions

@@ -246,7 +246,7 @@ Term processing activity: one downstream processing a processing system runs und
 
 Term seam: the composition's input and output boundary — the one place the host reads the clock, per the section titled Logic Confinement Principle in `execution-contract.md`.
 
-Term now: the wall-time reading the host injects at the seam, once per invocation.
+Term now: the deployment's clock reading at the call, as Execution Contract Logic confinement 11 declares it.
 
 ### Primitive policy
 
@@ -367,7 +367,7 @@ Action wiring 7: An admitted grant MUST call the consent check with the subject 
 Action wiring 8: IF the consent check answers granted THEN [Record Consent] MUST answer already-granted.
 Action wiring 9: A checked grant MUST call the grant write with the subject reference, the purpose, the actor reference as the grantor, the expiry AND the metadata.
 Action wiring 10: The composition MUST NOT pass an instant to the grant write.
-Action wiring 11: IF the grant write answers storage-failure THEN [Record Consent] MUST answer recording-failure carrying intent.
+Action wiring 11: IF the grant write answers storage-failure THEN [Record Consent] MUST answer recording-failure carrying intent (Execution Contract Constituent failure 1).
 Action wiring 12: IF the grant write answers invalid-request THEN [Record Consent] MUST answer invalid-request.
 Action wiring 13: A committed grant MUST call the retention placement with the consent id AND the retention policy reference.
 Action wiring 14: IF the retention placement answers a placement refusal THEN [Record Consent] MUST answer invalid-request.
@@ -394,7 +394,7 @@ Action wiring 34: An admitted withdrawal MUST call the revoke write with the con
 Action wiring 35: IF the revoke write answers already-revoked THEN [Withdraw Consent] MUST answer already-revoked.
 Action wiring 36: IF the revoke write answers already-expired THEN [Withdraw Consent] MUST answer already-expired.
 Action wiring 37: IF the revoke write answers invalid-request THEN [Withdraw Consent] MUST answer invalid-request.
-Action wiring 38: IF the revoke write answers storage-failure THEN [Withdraw Consent] MUST answer recording-failure carrying intent.
+Action wiring 38: IF the revoke write answers storage-failure THEN [Withdraw Consent] MUST answer recording-failure carrying intent (Execution Contract Constituent failure 1).
 Action wiring 39: IF the revoke write answers not-known THEN [Withdraw Consent] MUST answer not-known.
 Action wiring 40: IF the revoke write answers not-known THEN the composition MUST open an index-anomaly finding for the consent id.
 Action wiring 41: A committed withdrawal MUST record the propagation event carrying the intent event id, the consent id, the subject reference, the purpose, the reason, the propagation set AND the revocation instant.

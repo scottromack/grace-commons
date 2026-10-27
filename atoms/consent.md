@@ -112,7 +112,7 @@ Deleted: Stored state 4. Execution Contract Database 2 owns it.
 
 ```
 Capability requirement 1: The deployment MUST supply now at the seam.
-Capability requirement 5: The deployment MUST supply the consent records PER Execution Contract Database 1 through 4, Execution Contract Database 6, Execution Contract Refusal 1 and Execution Contract Query 1 through 4.
+Capability requirement 5: The deployment MUST supply the consent records PER Execution Contract Database 1 through 4, Execution Contract Database 6, Execution Contract Database 7, Execution Contract Refusal 1 and Execution Contract Query 1 through 4.
 Deleted: Capability requirement 2. Execution Contract Logic confinement 7 owns it.
 Deleted: Capability requirement 3. Execution Contract Logic confinement 7 owns it.
 Deleted: Capability requirement 4. Execution Contract Logic confinement 7 owns it.
@@ -209,7 +209,7 @@ NOTE: watch the state a refusal leaves (Operation 32).
 
 NOTE: watch the instant left blank (Operation 21, Operation 38).
 
-Term now: the wall-time reading the host takes at the seam and hands to the transition — a [Now], as the section titled Logic Confinement Principle in `execution-contract.md` declares it; never read inside the transition, never supplied by the business caller.
+Term now: the deployment's clock reading at the call — a [Now], as Execution Contract Logic confinement 11 declares it.
 
 Term business caller: the party whose action the call carries, as the section titled Logic Confinement Principle in `execution-contract.md` declares it; never the source of an injected value.
 
@@ -330,7 +330,7 @@ The case space, and the rule that owns each case:
 ### Database instance model
 
 ```
-Instance 1: The deployment MUST route EVERY call to one database instance.
+Deleted: Instance 1. Execution Contract Database 7 owns it.
 Instance 2: Two consent records in one database instance MUST NOT share a consent id.
 Instance 3: A database name MUST name one database instance.
 Instance 4: The atom MUST NOT accept a database name as an input.

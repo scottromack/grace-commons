@@ -268,7 +268,7 @@ Term clock offset allowance: the deployment's declared envelope between two cloc
 
 Term seam: the composition's input and output boundary — the one place the host reads the clock and mints the request id and the invocation id, per the section titled Logic Confinement Principle in `execution-contract.md`.
 
-Term now: the wall-time reading the host injects at the seam — once per invocation, once per run and once per leg. Young, overdue and aged are each judged on the now of the invocation, the run or the leg that makes the read.
+Term now: the deployment's clock reading at the call, as Execution Contract Logic confinement 11 declares it; a run and a leg each take one reading of their own at the seam (Capability requirement 46, 55), and young, overdue and aged are each judged on the now of the invocation, the run or the leg that makes the read.
 
 Term invocation id: the id the host injects at the seam for one state-changing invocation — a [Receive Request] call or a fulfillment. Every record the invocation writes carries the id, and a record the reconciliation writes carries the id of the intent the record closes.
 

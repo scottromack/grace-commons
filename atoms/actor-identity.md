@@ -57,9 +57,9 @@ Term transition: the atom's evaluation of one call against the attestation recor
 
 Term business caller: the party whose action the call carries, as the section titled Logic Confinement Principle in `execution-contract.md` declares it; never the source of an injected value.
 
-Term now: the wall-time reading the host takes at the seam and hands to the transition, as the section titled Logic Confinement Principle in `execution-contract.md` declares it; never read inside the transition, never supplied by the business caller.
+Term now: the deployment's clock reading at the call, as Execution Contract Logic confinement 11 declares it.
 
-NOTE: open 2026-10-22-a — Term seam, Term transition, Term business caller and Term now cite the section titled Logic Confinement Principle in `execution-contract.md`, which declares none of them.
+NOTE: open 2026-10-22-a — Term seam, Term transition and Term business caller cite the section titled Logic Confinement Principle in `execution-contract.md`, which declares none of them.
 
 ### State
 
@@ -642,7 +642,7 @@ open:
 - 2026-10-20-b · refining · Invariant 6.3; Verification caching 1 · a cached verification result is no part of the verification set, so a cache inside [Verify] consults a source Invariant 6.3 bounds, though a cached and a fresh answer agree under one registry view → name the cache in the verification set, or place the cache in front of [Verify]
 - 2026-10-20-e · refining · Non-goal 15 · carrying an actor reference across trust domains is forbidden with no owner named, where the Non-goal family names who owns what the atom does not do → name the owner, or a forthcoming pattern
 - 2026-10-20-f · refining · [Read]; Term bounds · [Read] answers every attestation with no bound and no key → a bound, or a keyed read
-- 2026-10-22-a · refining · Term seam; Term transition; Term business caller; Term now · each term cites the section titled Logic Confinement Principle in `execution-contract.md`, which declares none of them → settle the corpus's one seam wording where every specification carrying it can take the cure
+- 2026-10-22-a · refining · Term seam; Term transition; Term business caller · each term cites the section titled Logic Confinement Principle in `execution-contract.md`, which declares none of them → settle the corpus's one seam wording where every specification carrying it can take the cure
 - 2026-10-23-a · refining · Term terms; Vocabulary · fifteen declared terms (now, verification set, action content, seam, transition, business caller, public material, current material, attestation field, cryptographic material, registry answer, registry view, credential check, proof check, verification failure) carry no term entry, where spec-format's Terms item asks one per declared term and every specification writes one per name a bracket marker lands on → add the entries, each with a Kind the term entry grammar admits, or read the item as the bracketed names
 ```
 

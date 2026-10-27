@@ -213,7 +213,7 @@ Capability requirement 66: A deployment MUST supply the record destruction patte
 ```
 
 Term seam: the composition's I/O boundary as the section titled Logic Confinement Principle in `execution-contract.md` declares it; the host injects one clock reading and one invocation id here.
-Term now: the wall-time reading the host takes at the seam and hands to the transition, as the section titled Logic Confinement Principle in `execution-contract.md` declares it; never read inside the transition, never supplied by the business caller.
+Term now: the deployment's clock reading at the call, as Execution Contract Logic confinement 11 declares it.
 
 Term invocation id: the id the seam allocates for one state-changing invocation; an intent and the outcome matched to it carry the same one (Capability requirement 2, Reconciliation 6).
 
@@ -395,14 +395,14 @@ Action wiring 12: IF a committed placement's outcome landed THEN [Place Record U
 Action wiring 13: IF Retention Window answers invalid-policy THEN [Place Record Under Retention] MUST answer invalid-request.
 Action wiring 14: IF Retention Window answers policy-not-found THEN [Place Record Under Retention] MUST answer invalid-request.
 Action wiring 15: IF Retention Window answers invalid-request THEN [Place Record Under Retention] MUST answer invalid-request.
-Action wiring 16: IF Retention Window answers storage-failure THEN [Place Record Under Retention] MUST answer storage-failure.
+Deleted: Action wiring 16. Execution Contract Constituent failure 1 owns it.
 Action wiring 16a: IF Retention Window answers registry-unavailable THEN [Place Record Under Retention] MUST answer storage-failure.
 NOTE: watch the registry outage (Action wiring 16a).
 Action wiring 17: An admitted hold placement MUST call Legal Hold's place with the record reference, the placing actor, the reason, the case reference AND the placement instant.
 Action wiring 18: A committed hold placement MUST record a hold placed outcome carrying the hold id, the record reference, the placing actor, the reason, the case reference AND the placement instant.
 Action wiring 19: IF a committed hold placement's outcome landed THEN [Place Hold] MUST answer the hold id.
 Action wiring 20: IF Legal Hold answers invalid-request THEN [Place Hold] MUST answer invalid-request.
-Action wiring 21: IF Legal Hold answers storage-failure THEN [Place Hold] MUST answer storage-failure.
+Deleted: Action wiring 21. Execution Contract Constituent failure 1 owns it.
 Action wiring 22: The composition MUST NOT record a hold release intent BEFORE reading the hold through Legal Hold's read.
 Action wiring 23: IF no hold EXISTS for the hold id THEN [Release Hold] MUST answer not-known.
 Action wiring 24: IF the hold state EQUALS released THEN [Release Hold] MUST answer already-released.
@@ -412,7 +412,7 @@ Action wiring 27: IF a committed hold release's outcome landed THEN [Release Hol
 Action wiring 28: IF Legal Hold answers not-known THEN [Release Hold] MUST answer not-known.
 Action wiring 29: IF Legal Hold answers already-released THEN [Release Hold] MUST answer already-released.
 Action wiring 30: IF Legal Hold answers invalid-request THEN [Release Hold] MUST answer invalid-request.
-Action wiring 31: IF Legal Hold answers storage-failure THEN [Release Hold] MUST answer storage-failure.
+Deleted: Action wiring 31. Execution Contract Constituent failure 1 owns it.
 Action wiring 32: [Purge Eligible] MUST read the retentions from Retention Window's declared read.
 Action wiring 33: [Purge Eligible] MUST NOT answer a retention outside elapsed retention.
 Action wiring 34: [Purge Eligible] MUST call Legal Hold's read with the record reference AND the active state PER answered retention.
@@ -446,7 +446,7 @@ Action wiring 63: IF a committed purge's outcome landed THEN [Purge Record] MUST
 Action wiring 64: IF Retention Window answers not-retained for the named retention THEN a purge MUST answer not-known.
 Action wiring 65: IF Retention Window answers not-known for the named retention THEN a purge MUST answer not-known.
 Action wiring 66: IF Retention Window answers retention-period-not-elapsed for the named retention THEN a purge MUST answer not-eligible.
-Action wiring 67: IF Retention Window answers storage-failure for the named retention THEN a purge MUST answer storage-failure.
+Deleted: Action wiring 67. Execution Contract Constituent failure 1 owns it.
 Action wiring 68: IF Retention Window answers a refusal for a sibling AND the refusal DOES NOT EQUAL not-retained THEN a purge MUST mark the sibling pending.
 Action wiring 69: The composition MUST remove a purged retention from an index whatever the outcome record's answer.
 Action wiring 70: The composition MUST alert on a destroyed record carrying an owed record.
@@ -459,7 +459,7 @@ Action wiring 76: A purge intent MUST carry the hold check result.
 Action wiring 77: IF the database name a read of Legal Hold answers DOES NOT EQUAL the hold database name THEN the composition MUST read the read as refused (Legal Hold Instance 7).
 Deleted: Action wiring 78. Action wiring 77 owns it.
 Action wiring 79: IF an act's first committing call answers no answer THEN the action MUST answer storage-failure.
-NOTE: open 2026-10-06-c — a storage-failure answers where nothing committed and where the call may still land, with nothing to tell the two apart (Action wiring 16, 16a, 21, 31, 67, 79, 96).
+NOTE: open 2026-10-06-c — a storage-failure answers where nothing committed and where the call may still land, with nothing to tell the two apart (Execution Contract Constituent failure 1; Action wiring 16a, 79, 96).
 Action wiring 80: IF Retention Window's purge answers no answer for a sibling THEN a purge MUST mark the sibling pending.
 Action wiring 81: IF the remaining term a sibling's reading answers DOES NOT EXCEED the sibling floor THEN a purge MUST mark the sibling pending.
 Action wiring 82: A caller MUST retry a [Purge Record] that answered storage-failure (Retention Window Purge persistence 2).
@@ -1224,7 +1224,7 @@ open:
 - 2026-10-05-l · rhetorical · Terms; Composes 7, 12 · the gate, placement, audit instance, hold records, destruction record and eligible each carry two meanings or no entry, Composes 7's letter forbids the instances Composes 1 and 2 hold, and Composes 12 does not name Event Log's read → one term each; name the read
 - 2026-10-06-a · refining · Action wiring 59, 68, 80, 81 · a committed purge is to call the purge of every sibling where the sibling floor marks one pending uncalled, a sibling's purge that answers state-unavailable has no arm, and the order of the sibling purges is unstated → condition the call on the floor; add the arm; pin the order
 - 2026-10-06-b · refining · Check 1.3, 1.11, 5.9; Invariant 5.3 · a release that committed ahead of a purge and whose outcome is still owed past the compensation window leaves its hold in the historical hold set, and an open marker older than the window that carries no stand-in has no verdict → an open obligation while a release marker stands; a verdict
-- 2026-10-06-c · refining · Action wiring 16, 16a, 21, 31, 67, 79, 96 · storage-failure lands where nothing committed and where the call may still land, with nothing to tell the two apart, and only a purge has a caller's reading of the retry → carry the position, or a caller rule for each action
+- 2026-10-06-c · refining · Action wiring 16a, 79, 96; Execution Contract Constituent failure 1 · storage-failure lands where nothing committed and where the call may still land, with nothing to tell the two apart, and only a purge has a caller's reading of the retry → carry the position, or a caller rule for each action
 - 2026-10-06-d · refining · Primitive policy 1 through 11; Action wiring 45, 73 · a blank retention id has no boundary rule beside the blank hold id's and falls to not-known, which a re-invoking caller reads as a destruction → add the rule
 - 2026-10-06-e · refining · Term reconciliation cadence; Reconciliation 2; Term alert floor; Action wiring 110 · the cadence is not said to run start to start, so a backlog's legs can delay the next run's alerts, and the listing has no cap, no page and no collation for its tie → pin start to start; cap the listing
 - 2026-10-06-f · refining · Term overdue marker; Term young marker; Action wiring 8 · both edges of the sweep read the intent instant, the now an invocation stamps ahead of its take, so a host stalled between the seam and the take stamps an old instant on a fresh intent and the sweep reads a live invocation's marker as overdue; Resolve a Person's Data Rights now reads both of its edges on the log's recording instant → the log's stamp; found by that composition's round of 2026-10-06

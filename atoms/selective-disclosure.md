@@ -49,7 +49,7 @@ Identity 2: The host MUST allocate a disclosure id at the seam.
 Identity 3: The transition MUST NOT allocate a disclosure id.
 Identity 4: The atom MUST NOT change a disclosure id.
 Identity 5: Two disclosure records in one database instance MUST NOT share a disclosure id.
-Identity 6: The deployment MUST route EVERY call to the same database instance.
+Deleted: Identity 6. Execution Contract Database 7 owns it.
 Identity 7: The atom MUST NOT identify a disclosure record by the subject reference.
 Identity 8: The atom MUST admit a second disclosure record carrying a recorded subject reference.
 Identity 9: The atom MUST match a subject reference exactly.
@@ -61,7 +61,6 @@ Identity 14: The atom MUST NOT interpret a recipient.
 Deleted: Identity 15. Execution Contract Logic confinement 10 owns it.
 ```
 
-NOTE: watch the routed instance (Identity 6).
 
 Term disclosure record: one recorded disclosure of one subject's data to one recipient under one authority — the record this atom holds.
 
@@ -79,7 +78,7 @@ Term seam: the atom's I/O (input and output) boundary as the section titled Logi
 
 Term transition: the atom's evaluation of one call against the disclosure records, as the section titled Logic Confinement Principle in `execution-contract.md` declares it.
 
-NOTE: open 2026-10-27-a — Term seam, Term transition, Term now and Term business caller cite the section titled Logic Confinement Principle in `execution-contract.md`, which declares none of them.
+NOTE: open 2026-10-27-a — Term seam, Term transition and Term business caller cite the section titled Logic Confinement Principle in `execution-contract.md`, which declares none of them.
 
 ### State
 
@@ -102,7 +101,7 @@ NOTE: open 2026-10-21-f — State 1 and Invariant 3.1 both require a disclosure 
 
 ```
 Capability requirement 1: The deployment MUST supply now at the seam.
-Capability requirement 5: The deployment MUST supply the disclosure records PER Execution Contract Database 1, Execution Contract Database 3, Execution Contract Database 4, Execution Contract Database 6, Execution Contract Read 1 through 4, Execution Contract Refusal 1 and Execution Contract Query 1 through 4.
+Capability requirement 5: The deployment MUST supply the disclosure records PER Execution Contract Database 1, Execution Contract Database 3, Execution Contract Database 4, Execution Contract Database 6, Execution Contract Database 7, Execution Contract Read 1 through 4, Execution Contract Refusal 1 and Execution Contract Query 1 through 4.
 Capability requirement 6: The deployment MUST call [Record] for EVERY transmission of a subject's data to a party beside the subject.
 Deleted: Capability requirement 2. Execution Contract Logic confinement 7 owns it.
 Deleted: Capability requirement 3. Execution Contract Logic confinement 7 owns it.
@@ -168,7 +167,7 @@ Operation 37: IF the supplied disclosure instant DOES NOT EQUAL blank AND the su
 
 NOTE: watch the untyped input (Operation 37).
 
-Term now: the wall-time reading the host takes at the seam and hands to the transition, as the section titled Logic Confinement Principle in `execution-contract.md` declares it; never read inside the transition, never supplied by the business caller.
+Term now: the deployment's clock reading at the call, as Execution Contract Logic confinement 11 declares it.
 
 Term business caller: the party whose action the call carries, as the section titled Logic Confinement Principle in `execution-contract.md` declares it; never the source of an injected value.
 
@@ -584,7 +583,7 @@ last gate: 2026-10-27 — Final Critique 10 — foundational count 2, not clean,
 open:
 - 2026-10-21-d · refining · String 7 · the rule obliges the deployment to canonicalize an opaque reference, a phrase no Term declares (Term subject reference alone calls itself one), so which inputs it covers is left to the reader → name them
 - 2026-10-21-f · refining · State 1; Invariant 3.1; Term disclosure instant; Term resolved disclosure instant · one proposition stated twice: State 1 and Invariant 3.1 both require a disclosure instant on every record, and Term disclosure instant's never later than now restates Invariant 4.1 beside a second Term for the instant the record carries → one owner each
-- 2026-10-27-a · refining · Term seam; Term transition; Term now; Term business caller · each says the section titled Logic Confinement Principle in `execution-contract.md` declares it, and that section declares none of them, as Assignment 2026-10-21-a, Permissions 2026-10-21-f and Event Log 2026-10-20-c record of their own → declare each here, or cite where each is declared
+- 2026-10-27-a · refining · Term seam; Term transition; Term business caller · each says the section titled Logic Confinement Principle in `execution-contract.md` declares it, and that section declares none of them, as Assignment 2026-10-21-a, Permissions 2026-10-21-f and Event Log 2026-10-20-c record of their own → declare each here, or cite where each is declared
 ```
 
 ## Decisions

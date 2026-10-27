@@ -196,7 +196,7 @@ Term coherence proof period: the period over which allocation coherence must be 
 
 Term seam: the composition's input and output boundary — the one place the host reads the clock and hands the reading to the composition, per the section titled Logic Confinement Principle in `execution-contract.md`.
 
-Term now: the wall-time reading the host injects at the seam, once per invocation.
+Term now: the deployment's clock reading at the call, as Execution Contract Logic confinement 11 declares it.
 
 ### Primitive policy
 
@@ -269,12 +269,12 @@ Action wiring 20: IF Duplicate Prevention's check answers not-seen AND the journ
 Action wiring 21: A state-changing action MUST NOT call a constituent write BEFORE Actor Identity's attest answers the attestation id.
 Action wiring 22: IF Actor Identity answers invalid-credential THEN the action MUST answer invalid-credential.
 Action wiring 23: IF Actor Identity answers invalid-request THEN the action MUST answer invalid-request.
-Action wiring 24: IF Actor Identity answers storage-failure THEN the action MUST answer recording-failure carrying intent.
+Action wiring 24: IF Actor Identity answers storage-failure THEN the action MUST answer recording-failure carrying intent (Execution Contract Constituent failure 1).
 Action wiring 25: The composition MUST NOT settle an attest refusal.
 Action wiring 26: A state-changing action MUST record the action's intent entry ONLY AFTER Actor Identity answers the attestation id.
 Action wiring 27: An intent entry MUST carry the action, the idempotency token, the attestation id, the actor reference, the now AND the action's business parameters.
 Action wiring 28: A resolving action's intent entry MUST carry the binding entry's pool id.
-Action wiring 29: IF Event Log answers storage-failure at an intent entry THEN the action MUST answer recording-failure carrying intent.
+Action wiring 29: IF Event Log answers storage-failure at an intent entry THEN the action MUST answer recording-failure carrying intent (Execution Contract Constituent failure 1).
 Action wiring 30: The composition MUST NOT settle a refused intent entry.
 Action wiring 31: IF Event Log answers invalid-payload THEN the composition MUST answer recording-failure carrying the entry's position.
 Action wiring 32: The deployment MUST alert on an invalid-payload as the composition's own defect.
@@ -296,12 +296,12 @@ Action wiring 47: IF Capacity Constraint Enforcement answers over-capacity THEN 
 Action wiring 48: IF Capacity Constraint Enforcement answers suspended THEN [Reserve] MUST answer pool-closed.
 Action wiring 49: IF Capacity Constraint Enforcement answers closed THEN [Reserve] MUST answer pool-closed.
 Action wiring 50: IF Capacity Constraint Enforcement answers invalid-request for an allocate THEN [Reserve] MUST answer invalid-request.
-Action wiring 51: IF Capacity Constraint Enforcement answers storage-failure for an allocate THEN [Reserve] MUST answer recording-failure carrying intent.
+Action wiring 51: IF Capacity Constraint Enforcement answers storage-failure for an allocate THEN [Reserve] MUST answer recording-failure carrying intent (Execution Contract Constituent failure 1).
 Action wiring 52: An admitted reserve MUST settle EVERY allocate refusal.
 Action wiring 53: An admitted reserve MUST call Provisional Commitment's place hold with the resource, the requester AND the duration ONLY AFTER allocate answers the allocation event id.
 Action wiring 54: IF Provisional Commitment answers invalid-request for a place hold THEN [Reserve] MUST answer invalid-request.
 Action wiring 55: IF Provisional Commitment answers resource-unavailable THEN [Reserve] MUST answer resource-unavailable.
-Action wiring 56: IF Provisional Commitment answers storage-failure for a place hold THEN [Reserve] MUST answer recording-failure carrying intent.
+Action wiring 56: IF Provisional Commitment answers storage-failure for a place hold THEN [Reserve] MUST answer recording-failure carrying intent (Execution Contract Constituent failure 1).
 Deleted: Action wiring 57. Execution Contract Database 1 owns it.
 Deleted: Action wiring 58. Execution Contract Database 1 owns it.
 Deleted: Action wiring 59. Execution Contract Database 1 owns it.
@@ -333,7 +333,7 @@ Action wiring 84: The deployment MUST alert on a recording-failure carrying inco
 Action wiring 85: IF Provisional Commitment answers not-held to a resolving action's transition THEN the action MUST answer not-held.
 Action wiring 86: IF Provisional Commitment answers window-elapsed to a resolving action's transition THEN the action MUST answer window-elapsed.
 Action wiring 87: IF Provisional Commitment answers window-not-elapsed to a resolving action's transition THEN the action MUST answer window-not-elapsed.
-Action wiring 88: IF Provisional Commitment answers storage-failure to a resolving action's transition THEN the action MUST answer recording-failure carrying intent.
+Action wiring 88: IF Provisional Commitment answers storage-failure to a resolving action's transition THEN the action MUST answer recording-failure carrying intent (Execution Contract Constituent failure 1).
 Action wiring 89: The composition MUST settle EVERY guard refusal of a resolving action's transition.
 Action wiring 90: [Confirm Reservation] MUST call Provisional Commitment's confirm with the reservation id ONLY AFTER the intent entry lands.
 Action wiring 91: [Confirm Reservation] MUST NOT call a Capacity Constraint Enforcement write.

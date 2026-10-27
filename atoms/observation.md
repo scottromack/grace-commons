@@ -53,7 +53,7 @@ Identity 2: The host MUST allocate an observation id at the seam.
 Identity 3: The transition MUST NOT allocate an observation id.
 Identity 4: The atom MUST NOT change an observation id.
 Identity 5: Two observations in one database instance MUST NOT share an observation id.
-Identity 6: The deployment MUST route EVERY call to one database instance.
+Deleted: Identity 6. Execution Contract Database 7 owns it.
 Identity 7: The atom MUST NOT identify an observation by the subject reference.
 Identity 8: The atom MUST admit a second observation carrying a recorded subject reference.
 Identity 9: A subject reference MUST carry one meaning across EVERY database instance.
@@ -113,7 +113,7 @@ Deleted: Capability requirement 2. Execution Contract Logic confinement 7 owns i
 Deleted: Capability requirement 3. Execution Contract Logic confinement 7 owns it.
 Deleted: Capability requirement 4. Execution Contract Logic confinement 7 owns it.
 Capability requirement 5: The deployment MUST declare the clock offset allowance.
-Capability requirement 6: The deployment MUST supply the observation records PER Execution Contract Database 1 through 4, Execution Contract Database 6, Execution Contract Refusal 1 and Execution Contract Query 1 through 4.
+Capability requirement 6: The deployment MUST supply the observation records PER Execution Contract Database 1 through 4, Execution Contract Database 6, Execution Contract Database 7, Execution Contract Refusal 1 and Execution Contract Query 1 through 4.
 Capability requirement 7: The deployment MUST declare a value constraint per observation type.
 Deleted: Clock semantics 1. Execution Contract Logic confinement 7 owns it.
 Deleted: Clock semantics 2. Execution Contract Logic confinement 7 owns it.
@@ -211,7 +211,7 @@ NOTE: open 2026-10-22-a — which key orders two observations sharing a recordin
 
 NOTE: open 2026-10-22-c — an admitted retract records no instant (Operation 36), where an admitted amend stamps the successor's (Operation 27).
 
-Term now: the wall-time reading the host takes at the seam and hands to the transition, as the section titled Logic Confinement Principle in `execution-contract.md` declares it; never read inside the transition, never supplied by the business caller.
+Term now: the deployment's clock reading at the call, as Execution Contract Logic confinement 11 declares it.
 
 Term business caller: the party whose action the call carries, as the section titled Logic Confinement Principle in `execution-contract.md` declares it; never the source of an injected value.
 

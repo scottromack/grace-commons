@@ -337,8 +337,8 @@ Action wiring 50: A halted advance MUST fire the transition back to the phase th
 Action wiring 51: A resumed attempt MUST proceed as an unresolved attempt.
 Action wiring 52: IF Event Log's append answers storage-failure for a completion record THEN the invocation MUST re-attempt the append WITHIN the step completion bound.
 Action wiring 53: IF the step completion bound elapses on a completion record's append THEN the invocation MUST answer storage-failure naming effect-landed.
-Action wiring 54: IF Event Log's append answers storage-failure for a marker AND no unrecorded effect EXISTS THEN the invocation MUST answer storage-failure naming none.
-Action wiring 55: IF Event Log's append answers storage-failure for a marker AND an unrecorded effect EXISTS THEN the invocation MUST answer storage-failure naming effect-landed.
+Action wiring 54: IF Event Log's append answers storage-failure for a marker AND no unrecorded effect EXISTS THEN the invocation MUST answer storage-failure naming none (Execution Contract Constituent failure 1).
+Action wiring 55: IF Event Log's append answers storage-failure for a marker AND an unrecorded effect EXISTS THEN the invocation MUST answer storage-failure naming effect-landed (Execution Contract Constituent failure 1).
 Deleted: Action wiring 56. Action wiring 52 through 55 and Execution Contract Database 1 own it: a transition-bearing event and its fire commit together, so a fire's storage failure leaves its event unlanded.
 Action wiring 57: IF State Machine's fire answers a spine refusal for a landed transition-bearing event THEN the invocation MUST append a fault halt carrying the finding.
 Action wiring 58: IF State Machine's fire answers a spine refusal for a landed transition-bearing event THEN the invocation MUST NOT fire a further transition.
@@ -349,7 +349,7 @@ Action wiring 62: A validated start MUST instantiate the spine with the definiti
 Action wiring 63: A validated start MUST instantiate the spine with not-started as the initial state.
 Action wiring 64: A validated start MUST append the start event ONLY AFTER State Machine's instantiate answers.
 Action wiring 65: A validated start MUST write the compensable workflow record ONLY AFTER appending the start event.
-Action wiring 66: IF State Machine's instantiate OR Event Log's append answers storage-failure THEN [Start Compensable Workflow] MUST answer storage-failure.
+Deleted: Action wiring 66. Execution Contract Constituent failure 1 owns it.
 Action wiring 67: IF [Start Compensable Workflow] answers storage-failure THEN [Start Compensable Workflow] MUST NOT answer a compensable workflow id.
 Action wiring 68: An admitted start MUST answer the compensable workflow id State Machine's instantiate issued.
 Deleted: Action wiring 69. Execution Contract Database 1 owns it: a transition-bearing event and its fire commit together, so no transition is ever owed.

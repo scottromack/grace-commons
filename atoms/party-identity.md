@@ -59,10 +59,9 @@ Identity 13: The atom MUST NOT confirm that a document reference names a known d
 Identity 14: The atom MUST NOT confirm that an evidence reference names a known evidence record.
 Identity 15: The atom MUST NOT confirm that an acting reference names a known actor.
 Identity 16: The atom MUST NOT match two parties as one natural person.
-Identity 17: The deployment MUST route EVERY call to the same database instance.
+Deleted: Identity 17. Execution Contract Database 7 owns it.
 ```
 
-NOTE: watch the routed instance (Identity 17).
 
 Term party: the record this atom holds — one external party's enrollment, verification history and state history.
 
@@ -86,7 +85,7 @@ Term seam: the atom's I/O boundary as the section titled Logic Confinement Princ
 
 Term transition: the atom's evaluation of one call against the party records, as the section titled Logic Confinement Principle in `execution-contract.md` declares it.
 
-Term now: the wall-time reading the host takes at the seam and hands to the transition, as the section titled Logic Confinement Principle in `execution-contract.md` declares it; never read inside the transition, never supplied by the business caller.
+Term now: the deployment's clock reading at the call, as Execution Contract Logic confinement 11 declares it.
 
 ### State
 
@@ -110,7 +109,7 @@ Deleted: Capability requirement 4. Execution Contract Database 3 owns it.
 Deleted: Capability requirement 5. Execution Contract Database 1 owns it.
 Capability requirement 6: The deployment MUST canonicalize an opaque reference at the seam.
 Capability requirement 7: The deployment MUST declare the length bound.
-Capability requirement 10: The deployment MUST supply the party records PER Execution Contract Database 1 through 4, Execution Contract Database 6, Execution Contract Order 1, Execution Contract Read 4, Execution Contract Refusal 1 and Execution Contract Query 1 through 4.
+Capability requirement 10: The deployment MUST supply the party records PER Execution Contract Database 1 through 4, Execution Contract Database 6, Execution Contract Database 7, Execution Contract Order 1, Execution Contract Read 4, Execution Contract Refusal 1 and Execution Contract Query 1 through 4.
 Deleted: Capability requirement 8. Execution Contract Logic confinement 7 owns it.
 Deleted: Capability requirement 9. Execution Contract Logic confinement 7 owns it.
 ```

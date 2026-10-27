@@ -234,7 +234,7 @@ Deleted: Capability requirement 44. Execution Contract Logic confinement 7 owns 
 ```
 
 Term seam: the composition's I/O boundary as the section titled Logic Confinement Principle in `execution-contract.md` declares it; the host injects one clock reading, one case id and one trigger id here.
-Term now: the wall-time reading the host takes at the seam and hands to the transition, as the section titled Logic Confinement Principle in `execution-contract.md` declares it; never read inside the transition, never supplied by the business caller.
+Term now: the deployment's clock reading at the call, as Execution Contract Logic confinement 11 declares it.
 
 Term transition: the composition's evaluation of one call against the constituents, as the section titled Logic Confinement Principle in `execution-contract.md` declares it.
 
@@ -438,12 +438,12 @@ Action wiring 8: An admitted initiation MUST record an initiation intent.
 Action wiring 9: A direct path initiation MUST NOT carry a party id on the initiation intent.
 Action wiring 10: A direct path initiation MUST call Party Identity's enroll with the enrollment fields.
 Action wiring 11: IF Party Identity answers invalid-request for an enroll THEN [Initiate Onboarding] MUST answer enrollment-failed carrying invalid-request.
-Action wiring 12: IF Party Identity answers storage-failure for an enroll THEN [Initiate Onboarding] MUST answer enrollment-failed carrying storage-failure.
+Action wiring 12: IF Party Identity answers storage-failure for an enroll THEN [Initiate Onboarding] MUST answer enrollment-failed carrying storage-failure (Execution Contract Constituent failure 1).
 Action wiring 13: An admitted initiation MUST call Retention Window's place_under_retention with the party id AND the retention policy reference.
 Action wiring 14: An admitted initiation MUST NOT substitute the active relationship policy for the retention policy reference.
 Action wiring 15: IF Retention Window answers invalid-policy for an initiation THEN [Initiate Onboarding] MUST answer invalid-request.
 Action wiring 16: IF Retention Window answers policy-not-found for an initiation THEN [Initiate Onboarding] MUST answer invalid-request.
-Action wiring 17: IF Retention Window answers storage-failure for an external path initiation THEN [Initiate Onboarding] MUST answer recording-failure carrying intent.
+Action wiring 17: IF Retention Window answers storage-failure for an external path initiation THEN [Initiate Onboarding] MUST answer recording-failure carrying intent (Execution Contract Constituent failure 1).
 Deleted: Action wiring 18. Execution Contract Database 1 owns it.
 Action wiring 19: An admitted initiation MUST record an initiated outcome carrying the case id, the party id, the enrollment path, the current placement, the opening instant AND the next review due.
 Action wiring 20: An admitted initiation MUST answer the case id.
@@ -454,7 +454,7 @@ Action wiring 24: An admitted verification MUST record a verification intent.
 Action wiring 25: An admitted verification MUST call Party Identity's verify with the party id, the verifying actor reference, the method, the verification result AND the evidence reference.
 Action wiring 26: IF Party Identity answers already-closed for a verify THEN [Record Verification] MUST answer already-closed.
 Action wiring 27: IF Party Identity answers not-known for a verify THEN [Record Verification] MUST answer recording-failure carrying intent.
-Action wiring 28: IF Party Identity answers storage-failure for a verify THEN [Record Verification] MUST answer recording-failure carrying intent.
+Action wiring 28: IF Party Identity answers storage-failure for a verify THEN [Record Verification] MUST answer recording-failure carrying intent (Execution Contract Constituent failure 1).
 Action wiring 29: An admitted verification MUST record a verification recorded outcome carrying the case id, the party id, the verification id, the state change id AND the verification result.
 Action wiring 30: A transitioning verification MUST carry the next review due on the verification recorded outcome.
 Action wiring 31: A verification carrying no state change id MUST NOT carry a next review due on the verification recorded outcome.
@@ -487,7 +487,7 @@ Action wiring 57: IF Party Identity answers not-verifiable for a suspend THEN [T
 Action wiring 58: IF Party Identity answers already-closed for a suspend THEN [Trigger Monitoring Review] MUST answer not-verified carrying closed.
 Action wiring 59: IF Party Identity answers not-known for a suspend THEN [Trigger Monitoring Review] MUST answer not-known.
 Action wiring 60: IF Party Identity answers invalid-request for a suspend THEN [Trigger Monitoring Review] MUST answer invalid-request.
-Action wiring 61: IF Party Identity answers storage-failure for a suspend THEN [Trigger Monitoring Review] MUST answer recording-failure carrying intent.
+Action wiring 61: IF Party Identity answers storage-failure for a suspend THEN [Trigger Monitoring Review] MUST answer recording-failure carrying intent (Execution Contract Constituent failure 1).
 Action wiring 62: IF the trigger voided record fails THEN [Trigger Monitoring Review] MUST answer recording-failure carrying intent.
 Action wiring 63: A suspending trigger MUST record a party suspended outcome carrying the case id, the party id, the trigger id, the trigger type, the trigger ref, the state change id AND the suspension instant.
 Action wiring 64: A suspending trigger MUST add the trigger to the open-trigger set whatever the party suspended record's answer.
@@ -496,7 +496,7 @@ Action wiring 66: A periodic trigger MUST read the current placement's policy re
 Action wiring 67: A periodic trigger MUST call Retention Window's place_under_retention with the party id AND the current placement's policy reference.
 Action wiring 68: A periodic trigger MUST renew the placement whatever the party's state.
 Action wiring 69: A periodic trigger MUST renew the placement whatever the current placement's remaining cover.
-Action wiring 70: IF Retention Window answers storage-failure for a renewal THEN [Trigger Monitoring Review] MUST answer recording-failure carrying intent.
+Action wiring 70: IF Retention Window answers storage-failure for a renewal THEN [Trigger Monitoring Review] MUST answer recording-failure carrying intent (Execution Contract Constituent failure 1).
 Action wiring 71: IF Retention Window answers invalid-policy for a renewal THEN [Trigger Monitoring Review] MUST answer invalid-request.
 Action wiring 72: IF Retention Window answers policy-not-found for a renewal THEN [Trigger Monitoring Review] MUST answer invalid-request.
 Action wiring 73: A renewing trigger MUST record a retention renewed outcome carrying the case id, the party id, the enrollment path, the trigger id, the prior placement, the renewed placement, the policy reference AND the renewal instant.
@@ -517,7 +517,7 @@ Action wiring 85: An admitted clearance MUST NOT call Party Identity's verify wi
 Action wiring 86: IF Party Identity answers already-closed for a clearance verify THEN [Clear Review] MUST answer already-closed.
 Action wiring 87: IF Party Identity answers not-known for a clearance verify THEN [Clear Review] MUST answer not-known.
 Action wiring 88: IF Party Identity answers invalid-request for a clearance verify THEN [Clear Review] MUST answer invalid-request.
-Action wiring 89: IF Party Identity answers storage-failure for a clearance verify THEN [Clear Review] MUST answer recording-failure carrying intent.
+Action wiring 89: IF Party Identity answers storage-failure for a clearance verify THEN [Clear Review] MUST answer recording-failure carrying intent (Execution Contract Constituent failure 1).
 Action wiring 90: An admitted clearance MUST record a review cleared outcome carrying the case id, the party id, the verification id, the closed triggers, the reason AND the clearance instant.
 Action wiring 91: A review cleared outcome MUST NOT carry a next review due.
 Action wiring 92: IF the review cleared record fails THEN [Clear Review] MUST answer recording-failure carrying outcome.
@@ -550,7 +550,7 @@ Deleted: Action wiring 118. Execution Contract Database 1 owns it: a closure's c
 Action wiring 119: IF Party Identity answers already-closed for a close AND a party closed event names the case THEN [Close Party] MUST answer not-active.
 Action wiring 120: IF Party Identity answers not-known for a close THEN [Close Party] MUST answer not-known.
 Action wiring 121: IF Party Identity answers invalid-request for a close THEN [Close Party] MUST answer invalid-request.
-Action wiring 122: IF Party Identity answers storage-failure for a close THEN [Close Party] MUST answer recording-failure carrying intent.
+Action wiring 122: IF Party Identity answers storage-failure for a close THEN [Close Party] MUST answer recording-failure carrying intent (Execution Contract Constituent failure 1).
 Action wiring 123: An admitted closure MUST call Retention Window's place_under_retention with the party id AND the post closure policy.
 Action wiring 124: IF Retention Window answers invalid-policy for a closure THEN [Close Party] MUST answer invalid-request.
 Action wiring 125: IF Retention Window answers policy-not-found for a closure THEN [Close Party] MUST answer invalid-request.

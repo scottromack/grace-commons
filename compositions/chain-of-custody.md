@@ -295,7 +295,7 @@ Action wiring 3: An intent MUST NOT carry a constituent-minted id.
 Action wiring 4: An audit write of the composition MUST NOT carry a timestamp.
 Action wiring 5: An outcome event MUST carry the chain id, the entry id, the intent event id AND the acting custodian.
 Deleted: Action wiring 6. Execution Contract Database 2 owns it.
-Action wiring 7: IF Provenance answers storage-failure THEN the custody action MUST answer recording-failure carrying intent.
+Action wiring 7: IF Provenance answers storage-failure THEN the custody action MUST answer recording-failure carrying intent (Execution Contract Constituent failure 1).
 Action wiring 8: IF Provenance answers a Provenance refusal THEN the custody action MUST answer the Provenance refusal.
 Action wiring 9: A refused Provenance write MUST NOT write beyond the intent.
 Deleted: Action wiring 10. Execution Contract Database 1 owns it.

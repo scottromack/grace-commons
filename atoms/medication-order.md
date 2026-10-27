@@ -55,7 +55,7 @@ Identity 10: The atom MUST NOT confirm that a patient reference names a known pa
 Identity 11: The atom MUST NOT confirm that a medication reference names a known medication.
 Identity 12: The atom MUST NOT confirm that an attribution reference names a known actor.
 Identity 13: The atom MUST NOT read a medication reference's clinical meaning.
-Identity 14: The deployment MUST route EVERY call to one database instance.
+Deleted: Identity 14. Execution Contract Database 7 owns it.
 Identity 15: The atom MUST NOT resolve an order id across two database instances.
 ```
 
@@ -77,7 +77,7 @@ Term seam: the atom's I/O boundary as `execution-contract.md` Logic confinement 
 
 Term transition: the atom's evaluation of one call against the order records, as `execution-contract.md` Logic confinement declares it.
 
-Term now: the wall-time reading the host takes at the seam and hands to the transition, as the section titled Logic Confinement Principle in `execution-contract.md` declares it; never read inside the transition, never supplied by the business caller.
+Term now: the deployment's clock reading at the call, as Execution Contract Logic confinement 11 declares it.
 
 ### State
 
@@ -114,7 +114,7 @@ Deleted: Capability requirement 9. Execution Contract Database 3 owns it.
 Deleted: Capability requirement 10. Execution Contract Database 1 owns it.
 Capability requirement 11: The deployment MUST canonicalize an opaque reference.
 Capability requirement 12: The deployment MUST declare the length bound.
-Capability requirement 15: The deployment MUST supply the order records PER Execution Contract Database 1 through 4, Execution Contract Database 6, Execution Contract Read 4 and Execution Contract Refusal 1.
+Capability requirement 15: The deployment MUST supply the order records PER Execution Contract Database 1 through 4, Execution Contract Database 6, Execution Contract Database 7, Execution Contract Read 4 and Execution Contract Refusal 1.
 Deleted: Capability requirement 13. Execution Contract Logic confinement 7 owns it.
 Deleted: Capability requirement 14. Execution Contract Logic confinement 7 owns it.
 ```

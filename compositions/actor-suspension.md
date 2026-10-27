@@ -251,7 +251,7 @@ Deleted: Capability requirement 46. Execution Contract Logic confinement 7 owns 
 ```
 
 Term seam: the composition's I/O boundary as the section titled Logic Confinement Principle in `execution-contract.md` declares it; the host injects one clock reading and one invocation id here.
-Term now: the wall-time reading the host takes at the seam and hands to the transition, as the section titled Logic Confinement Principle in `execution-contract.md` declares it; never read inside the transition, never supplied by the business caller.
+Term now: the deployment's clock reading at the call, as Execution Contract Logic confinement 11 declares it.
 
 Term transition: the composition's evaluation of one call against the constituents, as the section titled Logic Confinement Principle in `execution-contract.md` declares it.
 
@@ -470,8 +470,7 @@ Action wiring 34: IF a constituent answers not-known THEN the cascade MUST add t
 Deleted: Action wiring 35. Primitive policy 11 owns it: a credential Credential refuses as invalid-request still stands effective-active, so the act answers invalid-request and commits nothing (Invariant 1.3, Execution Contract Read 4).
 Action wiring 36: A cascade MUST NOT add an unresolved member to the open members.
 Action wiring 37: A non-benign refusal MUST NOT abort a cascade.
-Action wiring 90: IF a constituent answers storage-failure THEN [Suspend Actor] MUST answer recording-failure carrying intent.
-NOTE: watch the unlanded storage failure (Action wiring 90).
+Action wiring 90: IF a constituent answers storage-failure THEN [Suspend Actor] MUST answer recording-failure carrying intent (Execution Contract Constituent failure 1).
 Action wiring 38: A cascade MUST NOT reverse a committed revocation.
 Action wiring 39: The composition MUST alert on an unresolved member.
 Deleted: Action wiring 40. Execution Contract Database 1 owns it.

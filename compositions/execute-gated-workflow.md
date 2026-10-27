@@ -224,7 +224,7 @@ Term id widths: the widest instance id, step id, assignment id, transition id an
 
 Term seam: the composition's input and output boundary — the one place the host reads the clock, per the section titled Logic Confinement Principle in `execution-contract.md`.
 
-Term now: the wall-time reading the host injects at the seam, once per invocation.
+Term now: the deployment's clock reading at the call, as Execution Contract Logic confinement 11 declares it.
 
 Term gate subject: the workflow's subject reference, a colon and the action — the step's subject, never parsed back by the composition.
 
@@ -356,7 +356,7 @@ Action wiring 3: A permitted start MUST record the start intent carrying the sub
 Action wiring 4: An intent MUST NOT carry an id the intent's act mints.
 Action wiring 5: An admitted start MUST call instantiate with the declaration, the actor reference, the subject reference and the guard labels as metadata, AND now as the instantiated instant.
 Action wiring 6: IF instantiate answers invalid-declaration THEN [Start Workflow] MUST answer invalid-declaration.
-Action wiring 7: IF a load-bearing call answers storage-failure THEN the action MUST answer recording-failure carrying pre-commit.
+Action wiring 7: IF a load-bearing call answers storage-failure THEN the action MUST answer recording-failure carrying pre-commit (Execution Contract Constituent failure 1).
 Action wiring 8: IF an instant-bearing call answers invalid-request THEN the action MUST answer recording-failure carrying pre-commit.
 Action wiring 9: An instantiated start MUST record the start event carrying the intent event id, the whole workflow record AND the reason.
 Action wiring 10: An unlanded start MUST leave the instance quarantined for database maintenance.

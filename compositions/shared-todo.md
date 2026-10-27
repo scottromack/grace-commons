@@ -141,7 +141,7 @@ Action wiring 7: An admitted complete MUST call Personal Todo's complete with th
 Action wiring 8: An admitted complete MUST NOT recall the task's active assignment.
 Action wiring 9: An admitted delete MUST call Assignment's recall for the task's active assignment.
 Action wiring 10: An admitted delete MUST call Personal Todo's delete ONLY AFTER the recall answers ok.
-Action wiring 11: IF the recall answers storage-failure THEN an admitted delete MUST answer storage-failure.
+Deleted: Action wiring 11. Execution Contract Constituent failure 1 owns it.
 Deleted: Action wiring 12. Execution Contract Database 1 owns it.
 Action wiring 13: An admitted assign MUST answer not-known for a task id the Personal Todo instance does not carry.
 Action wiring 14: An admitted assign MUST call Assignment's assign ONLY AFTER the task id's existence check clears.

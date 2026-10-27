@@ -58,10 +58,9 @@ Identity 13: The atom MUST NOT interpret an artifact reference.
 Identity 14: The atom MUST NOT confirm that an artifact reference names a known artifact.
 Identity 15: Two chains in one database instance MUST NOT share a chain id.
 Identity 16: Two entries in one chain MUST NOT share an entry id.
-Identity 17: The deployment MUST route EVERY call to the same database instance.
+Deleted: Identity 17. Execution Contract Database 7 owns it.
 ```
 
-NOTE: watch the routed instance (Identity 17).
 
 Term chain: one artifact's custody history for one episode, from a genesis entry to a terminal disposition — the record this atom holds.
 
@@ -109,7 +108,7 @@ Deleted: State 19. Execution Contract Database 3 owns it.
 
 ```
 Capability requirement 1: The deployment MUST supply now at the seam.
-Capability requirement 5: The deployment MUST supply the chain records PER Execution Contract Database 1 through 4, Execution Contract Read 1 through 4, Execution Contract Refusal 1, Execution Contract Query 1 through 4 and Execution Contract Conformance 9.
+Capability requirement 5: The deployment MUST supply the chain records PER Execution Contract Database 1 through 4, Execution Contract Database 7, Execution Contract Read 1 through 4, Execution Contract Refusal 1, Execution Contract Query 1 through 4 and Execution Contract Conformance 9.
 Deleted: Capability requirement 2. Execution Contract Logic confinement 7 owns it.
 Deleted: Capability requirement 3. Execution Contract Logic confinement 7 owns it.
 Deleted: Capability requirement 4. Execution Contract Logic confinement 7 owns it.
@@ -206,7 +205,7 @@ Operation 59: IF the query is malformed THEN [Read] MUST answer invalid-query.
 Operation 60: IF a recording instant range's end PRECEDES the range's start THEN [Read] MUST answer invalid-query.
 ```
 
-Term now: the wall-time reading the host takes at the seam and hands to the transition, as the section titled Logic Confinement Principle in `execution-contract.md` declares it; never read inside the transition, never supplied by the business caller.
+Term now: the deployment's clock reading at the call, as Execution Contract Logic confinement 11 declares it.
 
 Term business caller: the party whose action the call carries, as the section titled Logic Confinement Principle in `execution-contract.md` declares it; never the source of an injected value.
 

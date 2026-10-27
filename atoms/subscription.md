@@ -149,7 +149,7 @@ Term pair: one subscriber reference with one event scope — what at-most-one ra
 
 Term business caller: the party whose action the call carries, as the section titled Logic Confinement Principle in `execution-contract.md` declares it; never the source of an injected value.
 
-Term now: the wall-time reading the host takes at the seam and hands to the transition, as the section titled Logic Confinement Principle in `execution-contract.md` declares it; never read inside the transition, never supplied by the business caller.
+Term now: the deployment's clock reading at the call, as Execution Contract Logic confinement 11 declares it.
 
 The case space, and the rule that owns each case:
 
@@ -545,7 +545,7 @@ open:
 - 2026-10-21-a · refining · Term id entropy; Identity 6; Subscription Id entry · Term id entropy gives 128 bits as a default a deployment may replace, and no rule reads it, while the Subscription Id entry and Final Critique 4's text state a floor; a deployment declaring 16 bits draws ids a caller can guess, and [Cancel] takes the id as the whole authorization (Operation 12) → a floor the deployment's declaration may not go below, read by a rule, as Session's Capability requirement 4
 - 2026-10-21-b · refining · Operation 10, 20, 21; Invariant 2.2, 3.1, 3.2; State 6; Lost ledger 2; Composition note 3a · propositions owned twice: Operation 20 and Invariant 3.2, word for word; Operation 10 and Invariant 3.1; State 6 and Invariant 2.2; Lost ledger 2 and Composition note 3a, word for word, the second a lettered label outside a WHEN; Operation 21 beside Term event scope's matched exactly → one owner each (GRACE-lang Authority 3), each tombstone checked against the pages that cite it and against what subscription.als checks (Invariant 2, Invariant 3)
 - 2026-10-21-c · refining · Invariant 7.1, 7.2, 8.2 · the rules rest on the active set, which no Term declares (GRACE-lang Closed vocabulary 4) → declare the active set, or name the active subscriptions in each rule
-- 2026-10-21-d · refining · Term seam; Term transition; Term business caller; Term now · each cites the section titled Logic Confinement Principle in `execution-contract.md` as declaring it, and that section declares none of the four → cite the contract's labels that hold each, in the form every page carrying the one seam wording can take
+- 2026-10-21-d · refining · Term seam; Term transition; Term business caller · each cites the section titled Logic Confinement Principle in `execution-contract.md` as declaring it, and that section declares none of the three → cite the contract's labels that hold each, in the form every page carrying the one seam wording can take
 ```
 
 ## Decisions
