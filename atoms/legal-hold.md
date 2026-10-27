@@ -35,14 +35,14 @@ Identity 2: The host MUST allocate a hold id at the atom's seam.
 Identity 3: The transition MUST NOT allocate a hold id.
 Identity 4: The atom MUST NOT reuse a hold id within one database instance.
 Identity 5: The atom MUST NOT reassign a hold id.
-Identity 6: A hold id MUST sort in lexicographic byte order.
+Deleted: Identity 6. Execution Contract Logic confinement 10 owns it.
 Identity 7: The atom MUST NOT identify a hold by the record reference.
 Identity 8: Two holds over one record MUST carry two hold ids.
 ```
 
 Term hold: one recorded preservation obligation over one record — the record this atom writes.
 
-Term hold id: the opaque value naming one hold — a [Hold Id]; not blank, and sortable so [Read] can order deterministically.
+Term hold id: the opaque value naming one hold — a [Hold Id]; not blank.
 
 
 Term record reference: the opaque reference naming what is preserved — a [Record Reference]; the host owns whether the record exists.
@@ -91,7 +91,7 @@ Term release field: releasing actor | release reason | release instant — every
 
 ```
 Capability requirement 1: The deployment MUST supply now at the seam PER Execution Contract Logic confinement 7.
-Capability requirement 4: The deployment MUST supply the hold records PER Execution Contract Database 1 through 4, Execution Contract Refusal 1 and Execution Contract Conformance 9.
+Capability requirement 4: The deployment MUST supply the hold records PER Execution Contract Database 1 through 4, Execution Contract Refusal 1, Execution Contract Query 1 through 4 and Execution Contract Conformance 9.
 Deleted: Capability requirement 2. Execution Contract Logic confinement 7 owns it.
 Deleted: Capability requirement 3. Execution Contract Logic confinement 7 owns it.
 Deleted: Clock semantics 1. Execution Contract Logic confinement 7 owns it.
@@ -141,7 +141,7 @@ Operation 21: IF the database refuses the write THEN [Release] MUST answer stora
 Deleted: Operation 22. Execution Contract Database 3 owns it.
 Operation 23: [Read] MUST answer the holds the query matches.
 Operation 24: [Read] MUST order the answer by placement instant, rising.
-Operation 25: [Read] MUST order two holds sharing a placement instant by hold id, rising.
+Operation 25: [Read] MUST order two holds sharing a placement instant by hold id, rising (Execution Contract Logic confinement 10).
 Operation 26: [Read] MUST accept a filter on EVERY admitted axis.
 Operation 26a: [Read] MUST accept a query combining admitted axes.
 Operation 27: IF the query carries an axis outside the admitted axes THEN [Read] MUST answer invalid-query.
@@ -149,8 +149,8 @@ Operation 28: IF a filter value EQUALS blank THEN [Read] MUST answer invalid-que
 Operation 29: IF a hold state filter value falls outside the hold state set THEN [Read] MUST answer invalid-query.
 Operation 30: IF a range's end PRECEDES the range's start THEN [Read] MUST answer invalid-query.
 Operation 31: [Read] MUST answer an empty sequence for a well-formed query matching nothing.
-Operation 32: [Read] MUST NOT answer an active hold under a release instant filter.
-Operation 33: [Read] MUST NOT answer a hold carrying no case reference under a case reference filter.
+Deleted: Operation 32. Execution Contract Query 3 and Operation 23 own it.
+Deleted: Operation 33. Execution Contract Query 3 and Operation 23 own it.
 Operation 34: [Read] MUST NOT write.
 Deleted: Operation 35. Capability requirement 1 owns it.
 Deleted: Operation 36. Execution Contract Logic confinement 3 owns it.
@@ -168,9 +168,7 @@ NOTE: watch the instant left blank (Operation 9, Operation 18a).
 
 NOTE: watch host obligations — this atom sets no maximum length on a string input, where [Duplicate Prevention](./duplicate-prevention.md) declares a cap and [Provenance](./provenance.md) obliges the deployment to set one. Three postures, and the *host obligations* docket row carries the count — a watch flag states the pressure, never a census nothing reads.
 
-Term query: what a read asks for — a [Query]; any combination of the admitted axes, and a query carrying none matches every hold. A range's filter values are its start and its end, and an instant at either end lies inside the range. A combination matches a hold that each of its filters matches.
-
-NOTE: watch the range's ends (Term query).
+Term query: what a read asks for — a [Query]; any combination of the admitted axes.
 
 Term admitted axis: hold id | record reference | placing actor | case reference | hold state | a placement instant range | a release instant range — the filter axes [Read] accepts, and no others.
 
@@ -427,7 +425,7 @@ Term actors: the atom; the host; the transition; the deployment; a composing pat
 
 Term records: hold — one preservation obligation, carrying hold id, record reference, placing actor, hold reason, placement instant, a hold state and, where they exist, case reference, releasing actor, release reason and release instant.
 
-Term record verbs: supply, judge, purge, retry, raise, match, share, hold, reach, route, identify, allocate, reuse, reassign, sort, carry, stand, offer, delete, record, answer, stamp, accept, read, order, write, change, rest, shrink, find, block, refuse, deduplicate, gate, release, detect, place, import, own, check, compose, declare, precede, fall.
+Term record verbs: supply, judge, purge, retry, raise, match, share, hold, reach, route, identify, allocate, reuse, reassign, carry, stand, offer, delete, record, answer, stamp, accept, read, order, write, change, rest, shrink, find, block, refuse, deduplicate, gate, release, detect, place, import, own, check, compose, declare, precede, fall.
 
 Term value sets: hold state = active | released.
 
@@ -459,7 +457,7 @@ Kind: Operation
 
 #### Hold Id
 
-The opaque, immutable, system-generated identity of a hold, assigned on [Place], never reused or reassigned within the database instance. A non-empty string sortable in lexicographic byte-order — required for deterministic [Read] ordering. The record, actor, reason, and timestamps are properties of the hold, not its identity.
+The opaque, immutable, system-generated identity of a hold, assigned on [Place], never reused or reassigned within the database instance. A non-empty string. The record, actor, reason, and timestamps are properties of the hold, not its identity.
 
 Kind:       Field
 Field of:   the hold record
@@ -555,7 +553,7 @@ Projection:   reason
 
 #### Query
 
-The selection [Read] consumes — a filter over [Hold Id], [Record Reference], [Placing Actor], [Case Reference], [State], and/or a time range on [Placement Instant] or [Release Instant]. Each time range carries a start and an end, and an instant at either end lies inside it; a hold matches a combined query only where it matches each filter. Supplied per call, not stored; a malformed one is rejected [Invalid Query].
+The selection [Read] consumes — a filter over [Hold Id], [Record Reference], [Placing Actor], [Case Reference], [State], and/or a time range on [Placement Instant] or [Release Instant]. Supplied per call, not stored; a malformed one is rejected [Invalid Query].
 
 Kind:         Parameter
 Parameter of: Read

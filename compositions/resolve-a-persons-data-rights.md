@@ -506,9 +506,9 @@ Term erasure intent: the dsar.erasure_execution_intended event.
 
 Term provisional dispositions: the dispositions Disposition 1 through 19, 39 and 40 resolve before any planned call runs.
 
-Term purge plan: the confirmed retention id and record reference pairs bound for Defensible Retention's purge, ordered by record reference, bytewise, rising — the order the calls are made in.
+Term purge plan: the confirmed retention id and record reference pairs bound for Defensible Retention's purge, ordered by record reference, rising (Execution Contract Logic confinement 10) — the order the calls are made in.
 
-Term host delete plan: the record references bound for the host delete, ordered by record reference, bytewise, rising — the order the calls are made in, after the purge plan's.
+Term host delete plan: the record references bound for the host delete, ordered by record reference, rising (Execution Contract Logic confinement 10) — the order the calls are made in, after the purge plan's.
 
 Term destroying surface: Defensible Retention's purge or the host delete.
 

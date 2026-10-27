@@ -108,7 +108,7 @@ Deleted: Capability requirement 4. Execution Contract Database 3 owns it.
 Deleted: Capability requirement 5. Execution Contract Database 1 owns it.
 Capability requirement 6: The deployment MUST canonicalize an opaque reference.
 Capability requirement 7: The deployment MUST declare the length bound.
-Capability requirement 10: The deployment MUST supply the party records PER Execution Contract Database 1 through 4, Execution Contract Database 6, Execution Contract Order 1, Execution Contract Read 4 and Execution Contract Refusal 1.
+Capability requirement 10: The deployment MUST supply the party records PER Execution Contract Database 1 through 4, Execution Contract Database 6, Execution Contract Order 1, Execution Contract Read 4, Execution Contract Refusal 1 and Execution Contract Query 1 through 4.
 Deleted: Capability requirement 8. Execution Contract Logic confinement 7 owns it.
 Deleted: Capability requirement 9. Execution Contract Logic confinement 7 owns it.
 ```
@@ -941,12 +941,11 @@ last gate: 2026-10-21 — Final Critique 6, the council's first settled round on
 open:
 - 2026-10-21-a · refining · Capability requirement 6 · the deployment canonicalizes an opaque reference by a form the page never names, over references it never lists, so two deployments resolve one spelling two ways while each agrees with itself → name the form the deployment declares and the references it covers
 - 2026-10-21-b · refining · Check 3.1; State 4; Operation 21 · the check names four of State 4's six fields, leaving verification id and verification result unread, and no check reads Operation 21's value set → name all six, and test the result against its value set
-- 2026-10-21-c · refining · Operation 48, 49; Term query axes · a filter repeating an axis (party id twice, or a point and a range on enrollment instant) is outside neither the query axes nor an axis's admitted values, so intersection, invalid-query and last-wins are all readable → say which
 - 2026-10-21-d · refining · Indeterminate outcome 3; Term query axes · a caller who lost an [Enroll]'s answer must read the database before retrying, and no axis finds a party by its enrollment fields, so only an unfiltered read finds the enrollment → name how the caller finds it
 - 2026-10-21-e · refining · Term string input; String 1 through 6; Operation 21, 25 · the verification result is outside the string inputs, so no string rule says how it compares with passed and failed → bring it into the string policy, or say its comparison
 - 2026-10-21-f · refining · Operation 2, 3; Date Of Birth entry · the date of birth's format, and the instant of the day it stands for when Operation 3 compares it with now, are undeclared, so a date of birth of today can answer two ways → declare both
-- 2026-10-21-g · refining · Operation 49, 54 · an axis's admitted values are undeclared for the party id axis and the range, so a filter naming no party may answer invalid-query or an empty sequence → declare each axis's admitted values
-- 2026-10-21-h · refining · Term query axes; Query entry · the range's inclusivity and the timezone of its bounds are undeclared; Final Critique 5's text read both bounds inclusive, and the migration dropped it → declare both
+- 2026-10-21-g · refining · Operation 49, 54 · an axis's admitted values are undeclared for the party id axis, so a filter naming no party may answer invalid-query or an empty sequence → declare the axis's admitted values
+- 2026-10-21-h · refining · Term query axes; Query entry · the timezone of the range's bounds is undeclared → declare it
 - 2026-10-21-i · refining · Check 4.1; Invariant 8.1 · the check finds an event for every transition the log records, which every log passes; a single silent transition shows only in Check 5.1's replay, and two that undo each other in no party record → test what the party records can show, and read the composing Event Log (Composition note 11) for the rest
 - 2026-10-21-j · refining · Composition note 4; External check 4 · the enrolling and verifying actor references have no route to attestation, Composition note 4 binding Actor Identity only to transitioning actions → say whether an enrollment and a check are attested, and by whom
 - 2026-10-21-k · refining · Term evidence reference · the term names itself among its members (document reference OR evidence reference), and only External check 6 reads it as the umbrella → one name for each meaning, each change checked against Term reference, Identity 14 and Term required string input

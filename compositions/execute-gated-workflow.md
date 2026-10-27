@@ -195,7 +195,7 @@ Capability requirement 20: The host MUST inject now at the seam once per invocat
 Capability requirement 21: The wired Audit Trail instance MUST expose the log read.
 Capability requirement 22: The composition MUST pass the invocation's now to EVERY constituent call accepting an instant.
 Capability requirement 23: A deployment parsing a gate subject MUST encode the subject reference injectively.
-Capability requirement 24: The deployment MUST supply the database PER Execution Contract Database 1 through 4.
+Capability requirement 24: The deployment MUST supply the database PER Execution Contract Database 1 through 4 and Execution Contract Query 1 through 4.
 ```
 
 Term audit retention policy: the retention policy configured on the composition's single Audit Trail instance — `audit_trail_retention_policy`: a seven-year SOX policy, a Part 11 predicate-rule policy, a HIPAA six-year policy, an ICH E6 trial-master-file policy.
@@ -347,7 +347,7 @@ Term new state: the state the firing moved the workflow to.
 
 Term workflow views: the workflows a query matches, each carrying its workflow record, the machine's current state and history with each entry's firing event id, and each gate's step, marks and assignment records — and the horizon mark where a set-valued query's range reached purged start events.
 
-Term query: a filter on instance id, subject reference, initiator reference, or a range on the started instant in the `{after, before}` form.
+Term query: a filter on instance id, subject reference, initiator reference, or a range on the started instant in the `{after, before}` form, whose after is its start and whose before is its end. A range carrying its after alone holds its after and every later instant, and one carrying its before alone holds its before and every earlier instant, which Execution Contract Query 1 would read as malformed.
 
 ```
 Action wiring 1: A validated start MUST call the permission check with the actor reference AND [Workflows Start].
@@ -422,6 +422,7 @@ Action wiring 69: A permitted read MUST enumerate a workflow's gates from the wo
 Action wiring 70: IF a set-valued query's range reaches a purged start event THEN the workflow views MUST carry the horizon mark.
 Action wiring 71: A permitted read MUST answer the workflow views.
 Action wiring 72: [Read Workflow] MUST NOT record an audit event.
+Action wiring 73: IF the query is malformed THEN [Read Workflow] MUST answer invalid-query.
 ```
 
 Term start intent: the workflow_start_intended event.

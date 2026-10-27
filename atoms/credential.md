@@ -257,7 +257,7 @@ Operation 65: IF a credential beside the credential id is effective-active for t
 Operation 66: IF the derivation function refuses the credential material THEN [Register] MUST answer invalid-request.
 Operation 67: IF the derivation function refuses the new credential material THEN [Rotate] MUST answer invalid-request.
 Operation 68: IF the check function refuses the presented material THEN [Verify] MUST answer material-mismatch.
-Operation 69: [Read] MUST order the answer by registration instant, earliest first, then by credential id ascending in Unicode code point order.
+Operation 69: [Read] MUST order the answer by registration instant, earliest first, then by credential id ascending (Execution Contract Logic confinement 10).
 Operation 70: A proceeding verify MUST check against the credential carrying the latest registration instant among the pair's credentials effective-active at the verify's reading.
 Operation 71: IF expiry instant EQUALS blank AND the default validity EQUALS unbounded THEN an admitted register MUST record no expiry instant.
 Operation 72: IF expiry instant EQUALS blank AND the default validity EQUALS unbounded THEN an admitted rotate MUST record no expiry instant on the successor.

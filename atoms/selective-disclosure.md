@@ -58,7 +58,7 @@ Identity 11: The atom MUST NOT normalize a subject reference.
 Identity 12: The atom MUST NOT confirm that a subject reference names a known subject.
 Identity 13: The atom MUST NOT interpret a scope.
 Identity 14: The atom MUST NOT interpret a recipient.
-Identity 15: The deployment MUST choose a disclosure id format that sorts in lexicographic byte order.
+Deleted: Identity 15. Execution Contract Logic confinement 10 owns it.
 ```
 
 Term disclosure record: one recorded disclosure of one subject's data to one recipient under one authority — the record this atom holds.
@@ -88,7 +88,7 @@ State 5: The atom MUST NOT offer a removal surface.
 State 6: The atom MUST NOT offer a retraction surface.
 State 7: The atom MUST NOT offer a batch record surface.
 Deleted: State 8. Invariant 6.1 and Execution Contract Database 4 own it.
-Deleted: State 9. Operation 21, Invariant 6.1 and Execution Contract Database 4 own it.
+Deleted: State 9. Operation 27, Execution Contract Query 4, Invariant 6.1 and Execution Contract Database 4 own it.
 State 10: The atom MUST NOT record a receipt instant.
 ```
 
@@ -96,7 +96,7 @@ State 10: The atom MUST NOT record a receipt instant.
 
 ```
 Capability requirement 1: The deployment MUST supply now at the seam.
-Capability requirement 5: The deployment MUST supply the disclosure records PER Execution Contract Database 1, Execution Contract Database 3, Execution Contract Database 4, Execution Contract Database 6 and Execution Contract Refusal 1.
+Capability requirement 5: The deployment MUST supply the disclosure records PER Execution Contract Database 1, Execution Contract Database 3, Execution Contract Database 4, Execution Contract Database 6, Execution Contract Refusal 1 and Execution Contract Query 1 through 4.
 Deleted: Capability requirement 2. Execution Contract Logic confinement 7 owns it.
 Deleted: Capability requirement 3. Execution Contract Logic confinement 7 owns it.
 Deleted: Capability requirement 4. Execution Contract Logic confinement 7 owns it.
@@ -138,14 +138,14 @@ Deleted: Operation 15. Execution Contract Refusal 1 owns it.
 Operation 16: A refused [Record] MUST NOT record a disclosure record.
 Operation 17: A refused [Record] MUST leave the database as the call found the database.
 Operation 18: An admitted read MUST answer the matching disclosure records in disclosure instant ascending order.
-Operation 19: An admitted read MUST order two disclosure records sharing a disclosure instant by disclosure id ascending.
+Operation 19: An admitted read MUST order two disclosure records sharing a disclosure instant by disclosure id ascending (Execution Contract Logic confinement 10).
 Operation 20: IF no disclosure record matches THEN an admitted read MUST answer an empty record sequence.
-Operation 21: An admitted read carrying no filter MUST answer EVERY disclosure record in the database instance.
+Deleted: Operation 21. Execution Contract Query 4 and Operation 27 own it.
 Operation 22: IF a filter's axis IS NOT IN the filter axes THEN [Read] MUST answer invalid-query.
 Operation 23: IF a disclosure id, subject reference OR recipient filter's value EQUALS blank THEN [Read] MUST answer invalid-query.
 Operation 24: IF an authority type filter's value IS NOT IN the authority types THEN [Read] MUST answer invalid-query.
 Operation 25: IF a disclosure instant range's before PRECEDES the range's after THEN [Read] MUST answer invalid-query.
-Operation 26: An admitted read MUST match a disclosure instant range as a closed interval.
+Deleted: Operation 26. Execution Contract Query 2 owns it.
 Operation 27: An admitted read MUST answer EVERY disclosure record matching the supplied filters.
 Operation 28: An admitted read MUST NOT answer a disclosure record failing a supplied filter.
 Operation 29: [Read] MUST NOT write.
@@ -155,6 +155,7 @@ Deleted: Operation 32. Execution Contract Logic confinement 3 owns it.
 Deleted: Operation 33. Execution Contract Logic confinement 3 owns it.
 Deleted: Operation 34. Execution Contract Logic confinement 3 owns it.
 Deleted: Operation 35. Execution Contract Refusal 1 owns it.
+Operation 36: IF a filter is malformed THEN [Read] MUST answer invalid-query.
 ```
 
 Term now: the wall-time reading the host takes at the seam and hands to the transition, as the section titled Logic Confinement Principle in `execution-contract.md` declares it; never read inside the transition, never supplied by the business caller.
@@ -173,7 +174,7 @@ Term disclosure instant: the instant the disclosure happened — a [Disclosure I
 
 Term resolved disclosure instant: the disclosure instant the record carries — the supplied value where one exists, and now otherwise.
 
-Term filter axes: disclosure id | subject reference | recipient | authority type | disclosure instant — the five axes [Read] accepts, and no others.
+Term filter axes: disclosure id | subject reference | recipient | authority type | disclosure instant — the five axes [Read] accepts, and no others, a filter on disclosure instant carrying a range whose after is its start and whose before is its end.
 
 Term admitted record: a [Record] call whose fields, resolved disclosure instant and authority type the guards all admit.
 
@@ -398,7 +399,7 @@ Term actors: the atom; the host; the transition; the implementation; the deploym
 
 Term records: disclosure record — one recorded disclosure, carrying disclosure id, subject reference, recipient, scope, authority type, authority reference and disclosure instant.
 
-Term record verbs: identify, allocate, change, carry, stand, answer, record, resolve, take, stamp, leave, own, match, normalize, interpret, confirm, admit, offer, detect, route, share, precede, follow, exceed, compare, trim, case-fold, refuse, write, find, read, remove, edit, retract, sort, order, bound, decide, compose, declare, wire, rest, apply, supply, serialize, issue, name, claim, transmit, redact, retrieve, canonicalize, persist, call, produce, choose, evaluate.
+Term record verbs: identify, allocate, change, carry, stand, answer, record, resolve, take, stamp, leave, own, match, normalize, interpret, confirm, admit, offer, detect, route, share, precede, follow, exceed, compare, trim, case-fold, refuse, write, find, read, remove, edit, retract, order, bound, decide, compose, declare, wire, rest, apply, supply, serialize, issue, name, claim, transmit, redact, retrieve, canonicalize, persist, call, produce, evaluate.
 
 Term value sets: authority type = consent | legal-hold | regulatory.
 
@@ -424,7 +425,7 @@ Kind: Operation
 
 #### Disclosure Id
 
-The opaque, immutable identity of a disclosure record — the injected `id_t`, supplied at the I/O seam (fresh per call, never reused), byte-order sortable for deterministic [Read] ordering (Invariant 6). It is the record's identity; the other fields are properties.
+The opaque, immutable identity of a disclosure record — the injected `id_t`, supplied at the I/O seam, fresh per call and never reused (Invariant 6). It is the record's identity; the other fields are properties.
 
 Kind:       Field
 Field of:   the disclosure record
@@ -515,7 +516,7 @@ Projection: storage-failure
 
 #### Invalid Query
 
-The rejection [Read] returns when a filter value is malformed — a null or whitespace [Disclosure Id], [Subject Reference], or [Recipient]; an [Authority Type] outside the three values; a reversed [Disclosure Instant] range; or an unrecognized filter key.
+The rejection [Read] returns when a filter value is malformed — a null or whitespace [Disclosure Id], [Subject Reference], or [Recipient]; an [Authority Type] outside the three values; a reversed [Disclosure Instant] range, or one missing its after or its before; or an unrecognized filter key.
 
 Kind:       Member
 Member of:  the read rejection
@@ -567,7 +568,7 @@ last gate: 2026-10-21 — Final Critique 6, the council's first round on the pag
 open:
 - 2026-10-05-a · refining · Composition note 9 · read to the letter it forbids a pattern that reads the disclosure records from writing to them at all, where the atom's own account of Resolve a Person's Data Rights has that composition read and record through the atom's surfaces → say no write beside [Record]; reported by that composition's gate
 - 2026-10-21-a · refining · Correction 4; Term correction narrative; Term scope; Term authority reference · a correcting record's narrative rides its scope or its authority reference, whose Terms name the subset disclosed and the authority; one string can name both, but no rule says which field carries the pointer to the corrected record or that the field keeps its own content beside it → pin the carrier, or say the field carries both
-- 2026-10-21-b · refining · Operation 7; Operation 22 through 26; Term authority · no rule answers a malformed input: a disclosed_at no build can read as an instant, a disclosure instant range carrying one bound, and an authority carrying a field beyond its two, which the guards admit and the record keeps without → say each answer
+- 2026-10-21-b · refining · Operation 7; Term authority · no rule answers a malformed input: a disclosed_at no build can read as an instant, and an authority carrying a field beyond its two, which the guards admit and the record keeps without → say each answer
 - 2026-10-21-c · refining · Operation 22; Term filter axes · no line gives the keys a caller sends: the rules name the axes in English, no Projection line projects a filter, and the examples spell the authority type filter authority_type where the Authority Type field projects as authority.type → give each axis its key
 - 2026-10-21-d · refining · String 7 · the rule obliges the deployment to canonicalize an opaque reference, a phrase no Term declares (Term subject reference alone calls itself one), so which inputs it covers is left to the reader → name them
 - 2026-10-21-e · refining · Invariant 5.1; Composition note 8; External check 2 · the invariant's subject is a transmission, and no rule names the party that records each one: Composition note 8 binds only a composing pattern that closes it, and External check 2 reads an egress record no rule requires → name the owner, as the owners NOTE names the calling system for Non-goal 4 through 6

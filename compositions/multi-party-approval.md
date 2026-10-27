@@ -184,7 +184,7 @@ Capability requirement 22: A deployment MUST declare the id widths.
 Capability requirement 23: The composition MUST stamp EVERY instant one invocation writes from the invocation's now.
 Capability requirement 24: A deployment composing Legal Hold MUST place a subject's hold over the event ids the event index names for the subject's chains.
 Capability requirement 25: A deployment needing reader authentication MUST bind the actor reference to an authenticated caller above the composition.
-Capability requirement 26: The deployment MUST supply the database PER Execution Contract Database 1 through 4.
+Capability requirement 26: The deployment MUST supply the database PER Execution Contract Database 1 through 4 and Execution Contract Query 1 through 4.
 Capability requirement 27: A deployment MUST declare the operating skew.
 ```
 
@@ -239,7 +239,7 @@ Primitive policy 13: The composition MUST compare a reference AND an id byte-exa
 Primitive policy 14: The composition MUST NOT normalize a caller string.
 Primitive policy 15: The composition MUST NOT inspect a credential.
 Primitive policy 16: The composition MUST NOT write a credential into an event payload.
-Primitive policy 17: The composition MUST read a chain id's byte order ONLY as [Read Chain]'s tiebreak.
+Primitive policy 17: The composition MUST read a chain id's order ONLY as [Read Chain]'s tiebreak (Execution Contract Logic confinement 10).
 ```
 
 Term reference: an actor reference or an approver reference — each becomes the actor reference of some audit write.
@@ -336,9 +336,7 @@ read_chain(actor_ref, query)
 
 Term chain results: the chains a query matches, in Action wiring 55's order, each carrying the chain record, its step records, each step's assignment records, each step's out-of-band mark and the chain's event ids.
 
-Term query: any combination of filters on chain id, subject reference, scope, initiator reference, chain state, initiated instant and terminal instant. A filter on initiated instant or terminal instant carries a range, whose filter values are its start and its end, and a filter on any other axis carries one value. An instant at either end lies inside the range; a chain whose instant on the filter's axis lies inside the range matches the filter, a chain carrying no instant on that axis fails it, and a chain matches the query where it matches every filter the query carries. A query is malformed where it filters on another axis, where a filter carries a value its axis does not take — a blank string, a chain state outside the four, or a range missing its start or its end among them — where an end a range carries is not an instant, or where a range's end precedes its start.
-
-NOTE: watch the range's ends (Term query).
+Term query: any combination of filters on chain id, subject reference, scope, initiator reference, chain state, initiated instant and terminal instant, a filter on initiated instant or terminal instant carrying a range. A query is malformed where it filters on another axis, where a filter carries a blank string, or where a range's end precedes its start.
 
 NOTE: watch the blank filter value (Term query).
 
@@ -398,7 +396,7 @@ Action wiring 51: A validated read MUST call the permission check with the actor
 Action wiring 52: IF the query is malformed THEN [Read Chain] MUST answer invalid-query.
 Action wiring 53: A permitted read MUST answer the chain results.
 Action wiring 54: A permitted read MUST read a step's assignment records through the step's assignment history.
-Action wiring 55: A permitted read MUST order chains by initiated instant AND then by chain id byte order.
+Action wiring 55: A permitted read MUST order chains by initiated instant AND then by chain id ascending (Execution Contract Logic confinement 10).
 Action wiring 56: [Read Chain] MUST NOT record an audit event.
 Action wiring 57: The composition MUST write EVERY landed event's id into the event index with the step id the event names.
 Deleted: Action wiring 58. Execution Contract Database 2 owns it: an action's reads of a chain and the writes they decide are one transaction, and the composition names no exclusion to release.

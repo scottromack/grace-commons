@@ -107,7 +107,7 @@ Deleted: State 19. Execution Contract Database 3 owns it.
 
 ```
 Capability requirement 1: The deployment MUST supply now at the seam.
-Capability requirement 5: The deployment MUST supply the chain records PER Execution Contract Database 1 through 4, Execution Contract Read 1 through 4, Execution Contract Refusal 1 and Execution Contract Conformance 9.
+Capability requirement 5: The deployment MUST supply the chain records PER Execution Contract Database 1 through 4, Execution Contract Read 1 through 4, Execution Contract Refusal 1, Execution Contract Query 1 through 4 and Execution Contract Conformance 9.
 Deleted: Capability requirement 2. Execution Contract Logic confinement 7 owns it.
 Deleted: Capability requirement 3. Execution Contract Logic confinement 7 owns it.
 Deleted: Capability requirement 4. Execution Contract Logic confinement 7 owns it.
@@ -200,9 +200,10 @@ Deleted: Operation 55. Execution Contract Logic confinement 3 owns it.
 Deleted: Operation 56. Execution Contract Logic confinement 3 owns it.
 Deleted: Operation 57. Clock dependence 2 owns it.
 Operation 58: An ordering rule MUST NOT rest on recording instant.
+Operation 59: IF the query is malformed THEN [Read] MUST answer invalid-query.
 ```
 
-NOTE: open 2026-10-22-a — [Read]'s query is declared nowhere: which filters it takes, whether a range holds its two ends, how two filters combine, and the operator for a sequence range's ends (Operation 47 through 49).
+NOTE: open 2026-10-22-a — Operation 48 compares a sequence range's ends with PRECEDES, the instant operator.
 
 Term now: the wall-time reading the host takes at the seam and hands to the transition, as the section titled Logic Confinement Principle in `execution-contract.md` declares it; never read inside the transition, never supplied by the business caller.
 
@@ -244,6 +245,10 @@ Term admitted disclose: a [Disclose] call the action admits (Execution Contract 
 
 Term admitted archive: an [Archive] call the action admits (Execution Contract Read 4).
 
+Term query: what a read asks for beside the chain id; any combination of the filter axes.
+
+Term filter axes: sequence number | recording instant | event type — the axes a query filters a chain's entries on, a filter on sequence number or recording instant carrying a range.
+
 The case space, and the rule that owns each case:
 
 | Call | Case | Answer | Effect on the chain |
@@ -261,7 +266,7 @@ The case space, and the rule that owns each case:
 | any addressed action | id names nothing | [Not Known] | none (Operation 10) |
 | any appending action | database refuses | [Storage Failure] | none (Operation 41 through 44) |
 | [Read] | a well-formed query, any chain state | the matching entries, oldest first | none (Operation 46, Operation 53) |
-| [Read] | an inverted range, or an unknown event type | [Invalid Query] | none (Operation 48, Operation 49) |
+| [Read] | an inverted range, a range missing an end, or an unknown event type | [Invalid Query] | none (Operation 48, Operation 49, Operation 59) |
 
 ### Invariants
 
@@ -539,7 +544,7 @@ Term cadences: empty.
 
 Term qualifiers: migrated — rewritten in GRACE lang v0.39 (2026-09-12).
 
-Term terms: chain, entry, chain id, artifact reference, entry id, custodian reference, database instance, seam, transition, now, business caller, genesis type, genesis types, event type, event types, chain state, current custodian, sequence number, next sequence number, recording instant, from custodian reference, to custodian reference, transformation descriptor, recipient reference, metadata, addressed action, custodian-guarded action, appending action, chain-state rejection, admitted originate, admitted transfer, admitted transform, admitted disclose, admitted archive, string input, reference, blank, maximum length.
+Term terms: chain, entry, chain id, artifact reference, entry id, custodian reference, database instance, seam, transition, now, business caller, genesis type, genesis types, event type, event types, chain state, current custodian, sequence number, next sequence number, recording instant, from custodian reference, to custodian reference, transformation descriptor, recipient reference, metadata, addressed action, custodian-guarded action, appending action, chain-state rejection, admitted originate, admitted transfer, admitted transform, admitted disclose, admitted archive, query, filter axes, string input, reference, blank, maximum length.
 
 #### Originate
 
@@ -874,7 +879,7 @@ formal: verified — provenance.als + 1 twin, 2026-06-04
 last gate: 2026-10-22 — Final Critique 8, the council's first round on the page and the first since its GRACE-lang migration (21cf887) and its Store-contract rewrite (c95d16b), three fresh readers on free models (GRID Nemotron 3 Ultra, EOS Beam, Linus GLM-5.3 Flash), each handed only the round's reading set, three passes on one text (frozen at 0c1e8a8); the round rests on three counted passes — foundational count 1 after triage (7 reports: 1 standing; 6 sent down; 0 rejected), Kind A: Operation 39 obliged every appending action, [Originate] among them, to answer the entry id, where [Originate]'s signature and Operation 9 answer the chain id; 17 refining reports, 5 rhetorical reports; not clean; every foundational finding cured, every refining finding cured, routed or answered; 2026-08-26 — Final Critique 7, fresh reader — clean
 
 open:
-- 2026-10-22-a · refining · Operation 47 through 49; the Examples · [Read]'s query is declared nowhere: its filters (the examples' sequence range and recording instant range, Operation 49's event type), whether a range holds its two ends, how two filters combine, and the operator for a sequence range's ends, which Operation 48 compares with PRECEDES, the instant operator (GRACE-lang Earned vocabulary 18) → declare the query and its filters as terms, and split Operation 48 by range
+- 2026-10-22-a · refining · Operation 48 · the operator for a sequence range's ends, which Operation 48 compares with PRECEDES, the instant operator (GRACE-lang Earned vocabulary 18) → split Operation 48 by range
 ```
 
 ## Decisions

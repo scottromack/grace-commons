@@ -55,7 +55,7 @@ Identity 2: The host MUST allocate a step id at the seam.
 Identity 3: The transition MUST NOT allocate a step id.
 Identity 4: The atom MUST NOT change a step id.
 Identity 5: Two steps in one database instance MUST NOT share a step id.
-Deleted: Identity 6. Operation 39 owns it: two steps sharing a submission instant are ordered by step id in lexicographic byte order.
+Deleted: Identity 6. Execution Contract Logic confinement 10 owns it.
 Identity 7: The deployment MUST route EVERY call to one database instance.
 Identity 8: The atom MUST NOT identify a step by the subject reference.
 Identity 9: The atom MUST admit a second step carrying a recorded subject reference.
@@ -112,7 +112,7 @@ State 15: The atom MUST NOT record a receipt instant.
 
 ```
 Capability requirement 1: The deployment MUST supply now at the seam.
-Capability requirement 5: The deployment MUST supply the step records PER Execution Contract Database 1 through 4, Execution Contract Read 1 through 3 and Execution Contract Refusal 1.
+Capability requirement 5: The deployment MUST supply the step records PER Execution Contract Database 1 through 4, Execution Contract Read 1 through 3, Execution Contract Refusal 1 and Execution Contract Query 1 through 4.
 Deleted: Capability requirement 2. Execution Contract Logic confinement 7 owns it.
 Deleted: Capability requirement 3. Execution Contract Logic confinement 7 owns it.
 Deleted: Capability requirement 4. Execution Contract Logic confinement 7 owns it.
@@ -186,11 +186,11 @@ Deleted: Operation 35. Execution Contract Refusal 1 owns it.
 Operation 36: A refused action MUST leave the step as the call found the step.
 Operation 37: A refused action MUST NOT record an attribution field.
 Operation 38: An admitted read MUST answer the matching steps in submission instant ascending order.
-Operation 39: An admitted read MUST order two steps sharing a submission instant by step id ascending in lexicographic byte order.
+Operation 39: An admitted read MUST order two steps sharing a submission instant by step id ascending (Execution Contract Logic confinement 10).
 Operation 40: An admitted read MUST answer EVERY step matching the supplied filters.
 Operation 41: An admitted read MUST NOT answer a step failing a supplied filter.
 Operation 42: IF no step matching the supplied filters EXISTS THEN an admitted read MUST answer an empty step sequence.
-Deleted: Operation 43. Term query and Operation 41 own it: a step carrying no instant on a range filter's axis fails the filter.
+Deleted: Operation 43. Execution Contract Query 3 and Operation 41 own it: a step carrying no instant on a range filter's axis fails the filter.
 Operation 44: IF a filter's axis IS NOT IN the filter axes THEN [Read] MUST answer invalid-query.
 Operation 45: IF a filter's axis IS IN the string axes AND the filter's value EQUALS blank THEN [Read] MUST answer invalid-query.
 Operation 46: IF a state filter's value IS NOT IN the states THEN [Read] MUST answer invalid-query.
@@ -246,9 +246,7 @@ Term filter axes: step id | subject reference | approver reference | submitter r
 
 Term string axes: step id | subject reference | approver reference | submitter reference | scope — the axes whose filter value carries a string.
 
-Term query: what a read asks for — a [Query]; any combination of the filter axes. A filter on submission instant, decision instant or withdrawal instant carries a range, whose filter values are its start and its end, and a filter on any other axis carries one string. An instant at either end lies inside the range; a step whose instant on the filter's axis lies inside the range matches the filter, and a step carrying no instant on that axis fails it. A query is malformed where a filter carries a value its axis does not take, a range missing its start or its end among them, or where an end a range carries is not an instant.
-
-NOTE: watch the range's ends (Term query).
+Term query: what a read asks for — a [Query]; any combination of the filter axes, a filter on submission instant, decision instant or withdrawal instant carrying a range.
 
 Term admitted submit: a [Submit] call whose references, scope, supplied reason and resolved submission instant the guards all admit.
 
@@ -564,13 +562,13 @@ Kind: Operation
 
 #### Read
 
-The read-only behavior that returns the steps matching a [Query], ordered by [Submission Instant] ascending with [Step Id] as a lexicographic-byte-order tiebreaker. A well-formed [Query] matching no steps returns an empty sequence; a malformed one is rejected [Invalid Query]. It changes nothing.
+The read-only behavior that returns the steps matching a [Query], ordered by [Submission Instant] ascending with [Step Id] ascending as the tiebreaker. A well-formed [Query] matching no steps returns an empty sequence; a malformed one is rejected [Invalid Query]. It changes nothing.
 
 Kind: Operation
 
 #### Step Id
 
-The opaque, immutable, system-generated identity of an approval step, assigned on [Submit], never reused or reassigned within the database instance. It must be a non-empty string sortable in lexicographic byte-order (for deterministic [Read] ordering). The subject, approver, scope, submitter, reason, and timestamps are properties of the step, not its identity.
+The opaque, immutable, system-generated identity of an approval step, assigned on [Submit], never reused or reassigned within the database instance. It must be a non-empty string. The subject, approver, scope, submitter, reason, and timestamps are properties of the step, not its identity.
 
 Kind:       Field
 Field of:   Approval Step
@@ -682,7 +680,7 @@ Projection: withdrawn_at
 
 #### Query
 
-The selection a caller passes to [Read] to scope which steps are returned — any combination of the supported filter axes ([Step Id], [Subject Reference], [Approver Reference], [Submitter Reference], [Scope], [State], and a time range on [Submission Instant], [Decision Instant] or [Withdrawal Instant]). A time range carries a start and an end, and an instant at either end lies inside it; a step carrying no instant on a range's field matches no range on it. Consumed per call; never stored.
+The selection a caller passes to [Read] to scope which steps are returned — any combination of the supported filter axes ([Step Id], [Subject Reference], [Approver Reference], [Submitter Reference], [Scope], [State], and a time range on [Submission Instant], [Decision Instant] or [Withdrawal Instant]). Consumed per call; never stored.
 
 Kind:         Parameter
 Parameter of: Read

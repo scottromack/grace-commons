@@ -91,7 +91,7 @@ Term event field: event id | sequence number | recording instant | data.
 
 ```
 Capability requirement 1: The deployment MUST supply now at the seam PER Execution Contract Logic confinement 3.
-Capability requirement 2: The deployment MUST supply the database PER Execution Contract Database 1 through 4, Execution Contract Database 6 and Execution Contract Read 1 through 4.
+Capability requirement 2: The deployment MUST supply the database PER Execution Contract Database 1 through 4, Execution Contract Database 6, Execution Contract Read 1 through 4 and Execution Contract Query 1 through 4.
 ```
 
 ### Operations
@@ -124,15 +124,13 @@ Deleted: Operation 14. Invariant 5.2 owns it.
 Operation 15: IF the query is malformed THEN [Read] MUST answer invalid-query.
 Operation 16: [Read] MUST answer an empty sequence for a well-formed query matching nothing.
 Operation 17: [Read] MUST NOT write.
-Deleted: Operation 18. Term query owns it: what a query holds and when it is malformed is one thing in every build.
+Deleted: Operation 18. Term query and Execution Contract Query 1 through 4 own it: what a query holds and when it is malformed is one thing in every build.
 Deleted: Operation 19. Capability requirement 1 owns it.
 Deleted: Operation 20. Execution Contract Logic confinement 3 owns it.
 Operation 21: The business caller MUST NOT supply recording instant.
 ```
 
-Term query: what a read asks for — a [Query]: a sequence number range, a wall-time range, or a combination of the two. A range holds both its ends, and a range carrying no upper end holds its lower end and everything above it; a combination matches an event that each of its ranges matches. A query is malformed where the query carries no range, where a range carries no lower end, where a range's lower end is above its upper end, where an end a sequence number range carries is below one or is not an integer, where an end a wall-time range carries is not an instant, or where the query asks for anything beyond those ranges.
-
-NOTE: watch the range's ends (Term query).
+Term query: what a read asks for — a [Query]: a sequence number range, a wall-time range, or a combination of the two. A range carrying no upper end holds its lower end and everything above it, which Execution Contract Query 1 would read as malformed. A query is malformed where the query carries no range, where a range's lower end is above its upper end, where an end a sequence number range carries is below one, or where the query asks for anything beyond those ranges.
 
 Term payload cap: the per-instance bound on the number of bytes the composing pattern supplies as data; 65,536 bytes where a deployment declares none.
 
@@ -433,7 +431,7 @@ Projection: next_sequence_number
 
 #### Query
 
-The selection a caller passes to [Read] — a sequence-number range, a wall-time range, or a combination of the two. Each range holds both its ends, and one carrying no upper end holds its lower end and everything above it; a combination matches an event both its ranges match; a valid [Query] carries one range or both, each with its lower end, and asks for nothing beyond them, and [Read] returns its events in [Sequence Number] order.
+The selection a caller passes to [Read] — a sequence-number range, a wall-time range, or a combination of the two. A range carrying no upper end holds its lower end and everything above it; a valid [Query] carries one range or both, each with its lower end, and asks for nothing beyond them, and [Read] returns its events in [Sequence Number] order.
 
 Kind:         Parameter
 Parameter of: Read

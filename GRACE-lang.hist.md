@@ -117,6 +117,12 @@ v0.34 (2026-09-11): labels are words — the name of the heading a rule sits und
 NOTE:
 v0.27–v0.33, the council's reads and the labels before v0.34 are archived in git history (`git log -- GRACE-lang.md`, last commit before the relabel `e80fd21`).
 
+## Left the Watch list at the query and order sweep, 2026-10-27
+
+The maintainer ruled on 2026-10-27 that a read's query is stated once in the Execution Contract, beside the Read family, under the maintainer's rule that how the system behaves goes there, and the sweep that landed it removed every flag the name carried.
+
+- **The range's ends**, counted at four: a read's range filter with nothing saying whether its ends lie inside it or how two filters combine, so one query answers two sets in two builds; each cure declared the query in a term, a range holding both its ends, a record without the filtered value failing the filter and a combination matching each of its filters — Event Log, Legal Hold, Approval Step and Multi-Party Approval in Term query, with the question open on Consent, Observation, Party Identity, Provenance and State Machine. Now Execution Contract Query 1 through 4, beside which Event Log keeps its own range carrying no upper end.
+
 ## Left the Watch list at the exception sweep, 2026-10-25
 
 The maintainer ruled on 2026-10-25 (12:55Z) that the unstated exception is cured across the corpus in one unit, with a check that flags the pairs and the exception written into the broader rule, and no grammar change. The sweep that landed it removed every flag the name carried.

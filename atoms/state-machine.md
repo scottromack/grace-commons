@@ -58,7 +58,7 @@ Identity 7: The atom MUST NOT change an instance id.
 Identity 8: The atom MUST NOT change a transition id.
 Identity 9: Two workflows in one database instance MUST NOT share an instance id.
 Identity 10: Two history entries in one workflow MUST NOT share a transition id.
-Identity 11: The deployment MUST choose an instance id format that sorts in lexicographic byte order.
+Deleted: Identity 11. Execution Contract Logic confinement 10 owns it.
 Identity 12: The deployment MUST route EVERY call to one database instance.
 Identity 13: The atom MUST NOT identify a workflow by the subject reference.
 Identity 14: The atom MUST admit a second workflow carrying a recorded subject reference.
@@ -111,7 +111,7 @@ Deleted: State 14. Execution Contract Database 3 owns it.
 
 ```
 Capability requirement 1: The deployment MUST supply now at the seam.
-Capability requirement 5: The deployment MUST supply the workflow records PER Execution Contract Database 1 through 4, Execution Contract Database 6, Execution Contract Read 4, Execution Contract Refusal 1 and Execution Contract Conformance 9.
+Capability requirement 5: The deployment MUST supply the workflow records PER Execution Contract Database 1 through 4, Execution Contract Database 6, Execution Contract Read 4, Execution Contract Refusal 1, Execution Contract Query 1 through 4 and Execution Contract Conformance 9.
 Deleted: Capability requirement 2. Execution Contract Logic confinement 7 owns it.
 Deleted: Capability requirement 3. Execution Contract Logic confinement 7 owns it.
 Deleted: Capability requirement 4. Execution Contract Logic confinement 7 owns it.
@@ -151,6 +151,7 @@ Operation 6: An admitted instantiate MUST set next sequence number to one.
 Operation 7: An admitted instantiate MUST record an empty transition history.
 Operation 8: An admitted instantiate MUST answer the instance id.
 Operation 56: An admitted instantiate MUST record a supplied subject reference.
+Operation 57: IF the query is malformed THEN [History] MUST answer invalid-query.
 Operation 9: IF instance id EQUALS blank THEN an addressed action MUST answer invalid-request.
 Operation 10: IF action EQUALS blank THEN [Fire] MUST answer invalid-request.
 Operation 11: IF the instance id names no workflow THEN an addressed action MUST answer not-known.
@@ -200,7 +201,7 @@ Deleted: Operation 54. Execution Contract Logic confinement 3 owns it.
 Operation 55: An ordering rule MUST NOT rest on firing instant.
 ```
 
-NOTE: open 2026-10-22-a — [History]'s query is declared nowhere: which filters it takes, a range's two bounds, whether either may be left unset and whether each holds its end, and the operator for a sequence number range's ends (Operation 43 through 45).
+NOTE: open 2026-10-22-a — Operation 45 compares a sequence number range's ends with PRECEDES, the instant operator.
 
 Term now: the wall-time reading the host takes at the seam and hands to the transition, as the section titled Logic Confinement Principle in `execution-contract.md` declares it; never read inside the transition, never supplied by the business caller.
 
@@ -234,7 +235,7 @@ Term guard satisfied: true | false — a [Guard Satisfied], the caller's asserti
 
 Term matched transition: the one declared transition whose from state is the current state and whose action is the call's action (Declaration 13).
 
-Term filter axes: transition id | sequence number | from state | to state | action | actor reference | firing instant — the seven axes [History] accepts, and no others.
+Term filter axes: transition id | sequence number | from state | to state | action | actor reference | firing instant — the seven axes [History] accepts, and no others, a filter on sequence number or firing instant carrying a range.
 
 Term admitted instantiate: an [Instantiate] call the action admits (Execution Contract Read 4).
 
@@ -533,7 +534,7 @@ Term actors: the atom; the host; the transition; the deployment; a composing pat
 
 Term records: workflow — one running workflow, carrying instance id, a declaration, a current state, a transition history, next sequence number, an instantiation instant and, where supplied, subject reference, instance metadata and actor reference. history entry — one recorded transition, carrying transition id, sequence number, from state, to state, action, firing instant and, where supplied, actor reference and guard satisfied.
 
-Term record verbs: identify, allocate, change, carry, stand, answer, record, append, set, take, raise, leave, own, match, normalize, reorder, interpret, confirm, admit, offer, evaluate, assert, fire, replay, reach, rest, share, precede, follow, exceed, compare, trim, case-fold, refuse, write, read, find, reconstruct, complete, equal, bound, nest, version, decide, compose, declare, wire, supply, remove, sort, route, name, detect, bind, capture, choose, count, canonicalize.
+Term record verbs: identify, allocate, change, carry, stand, answer, record, append, set, take, raise, leave, own, match, normalize, reorder, interpret, confirm, admit, offer, evaluate, assert, fire, replay, reach, rest, share, precede, follow, exceed, compare, trim, case-fold, refuse, write, read, find, reconstruct, complete, equal, bound, nest, version, decide, compose, declare, wire, supply, remove, route, name, detect, bind, capture, count, canonicalize.
 
 
 Term bounds: empty.
@@ -564,7 +565,7 @@ Kind: Operation
 
 #### History
 
-The read-only query returning a workflow's [Transition History] in [Sequence Number] ascending order, filterable by [Transition Id], [Sequence Number], [From State], [To State], [Action], [Actor Reference], or a [Firing Instant] range. Rejected [Not Known], [Invalid Query], or [Invalid Request].
+The read-only query returning a workflow's [Transition History] in [Sequence Number] ascending order, filterable by [Transition Id], a [Sequence Number] range, [From State], [To State], [Action], [Actor Reference], or a [Firing Instant] range. Rejected [Not Known], [Invalid Query], or [Invalid Request].
 
 Kind: Operation
 
@@ -807,7 +808,7 @@ Projection: guard-not-satisfied
 
 #### Invalid Query
 
-The rejection [History] returns for a malformed filter — a null or whitespace-only [Transition Id], [From State], [To State], [Action], or [Actor Reference]; a reversed [Sequence Number] or [Firing Instant] range; or an unrecognized filter key.
+The rejection [History] returns for a malformed filter — a null or whitespace-only [Transition Id], [From State], [To State], [Action], or [Actor Reference]; a reversed [Sequence Number] or [Firing Instant] range, or one missing its start or its end; or an unrecognized filter key.
 
 Kind:       Member
 Member of:  the History rejection
@@ -885,7 +886,7 @@ last gate: 2026-10-22 — Final Critique 5, the council's first round on the pag
 
 open:
 - 2026-10-21-a · refining · Operation 2, 19, 20; [Fire]'s case table, row 6 · the table answers a blank actor reference or an out-of-bounds firing instant only once the gate clears (row 6), after not-known, terminal, invalid-transition and guard-not-satisfied, and no rule ever held it there; [Fire]'s refuses line lists invalid-request first, so under Execution Contract Refusal 1 a blank actor reference against an instance id naming no workflow answers invalid-request where the table answers not-known → a rule holding an actor or instant fault behind the gate (Approval Step Operation 20's form, since invalid-request holds two rows of one order), or the table's row 6 read into row 1, or a code of its own for each of row 6's two faults, listed after guard-not-satisfied (Final Critique 5's GRID), which renames refusals both composers read; seen by the refusal-order sweep, reported again at Final Critique 5
-- 2026-10-22-a · refining · Operation 43 through 45; Term filter axes · [History]'s query is declared nowhere: which filters it takes (Term filter axes names seven axes), a range's two bounds, whether either may be left unset and whether each holds its end, and the operator for a sequence number range's ends, which Operation 45 compares with PRECEDES, the instant operator (GRACE-lang Earned vocabulary 18); Final Critique 4's text declared the query, a firing instant range with both bounds optional and inclusive and any combination of axes admitted → declare the query and its filters as terms in Final Critique 4's form, and split Operation 45 by range
+- 2026-10-22-a · refining · Operation 45 · the operator for a sequence number range's ends, which Operation 45 compares with PRECEDES, the instant operator (GRACE-lang Earned vocabulary 18) → split Operation 45 by range
 ```
 
 ## Decisions

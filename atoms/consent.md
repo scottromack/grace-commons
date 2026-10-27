@@ -49,7 +49,7 @@ Identity 4: The atom MUST NOT reuse a consent id.
 Identity 5: The atom MUST NOT change a consent id.
 Identity 6: The atom MUST NOT identify a consent record by the subject reference and the purpose.
 Identity 7: EVERY consent id MUST stand non-blank.
-Identity 8: The deployment MUST draw a consent id that sorts in lexicographic byte-order.
+Deleted: Identity 8. Execution Contract Logic confinement 10 owns it.
 Identity 9: The atom MUST NOT interpret a subject reference.
 Identity 10: The atom MUST NOT interpret a purpose.
 Identity 11: The atom MUST NOT confirm that a subject reference names a known data subject.
@@ -112,7 +112,7 @@ Deleted: Stored state 4. Execution Contract Database 2 owns it.
 
 ```
 Capability requirement 1: The deployment MUST supply now at the seam.
-Capability requirement 5: The deployment MUST supply the consent records PER Execution Contract Database 1 through 4, Execution Contract Database 6 and Execution Contract Refusal 1.
+Capability requirement 5: The deployment MUST supply the consent records PER Execution Contract Database 1 through 4, Execution Contract Database 6, Execution Contract Refusal 1 and Execution Contract Query 1 through 4.
 Deleted: Capability requirement 2. Execution Contract Logic confinement 7 owns it.
 Deleted: Capability requirement 3. Execution Contract Logic confinement 7 owns it.
 Deleted: Capability requirement 4. Execution Contract Logic confinement 7 owns it.
@@ -187,10 +187,10 @@ Operation 46: IF at time DOES NOT EQUAL blank THEN [Check] MUST NOT evaluate a c
 Operation 47: [Read] MUST answer EVERY consent record the query matches.
 Operation 48: [Read] MUST order the answer by grant instant ascending.
 Operation 49: [Read] MUST NOT write.
-Operation 50: [Read] MUST order two consent records sharing a grant instant by consent id ascending.
+Operation 50: [Read] MUST order two consent records sharing a grant instant by consent id ascending (Execution Contract Logic confinement 10).
 Operation 51: [Read] MUST answer an empty sequence for a well-formed query no consent record matches.
 Operation 52: [Read] MUST accept EVERY combination of the supported filter axes.
-Operation 53: [Read] MUST answer EVERY consent record for a query carrying no filter.
+Deleted: Operation 53. Execution Contract Query 4 and Operation 47 own it.
 Operation 54: [Read] MUST NOT answer two consent records for a query carrying a consent id filter.
 Operation 55: IF the query carries a filter key outside the supported filter axes THEN [Read] MUST answer invalid-query.
 Operation 56: [Read] MUST NOT ignore a filter key outside the supported filter axes.
@@ -202,6 +202,7 @@ Deleted: Operation 61. Capability requirement 1 owns it.
 Deleted: Operation 62. Execution Contract Logic confinement 3 owns it.
 Deleted: Operation 63. Execution Contract Logic confinement 3 owns it.
 Operation 64: [Read] MUST evaluate a state filter against the consent record's state.
+Operation 65: IF the query is malformed THEN [Read] MUST answer invalid-query.
 ```
 
 NOTE: watch the state a refusal leaves (Operation 32).
@@ -234,7 +235,7 @@ Term withdrawn: the consent record carries a revocation instant no later than th
 
 Term elapsed: the consent record carries an expiry instant no later than the evaluation instant.
 
-Term candidate record: among the consent records carrying the call's subject reference and purpose, the one whose grant instant is the latest that the resolved at time does not precede; a tie on grant instant resolves to the greatest consent id in lexicographic byte-order.
+Term candidate record: among the consent records carrying the call's subject reference and purpose, the one whose grant instant is the latest that the resolved at time does not precede; a tie on grant instant resolves to the greatest consent id (Execution Contract Logic confinement 10).
 
 Term later write: a consent record written with a grant instant or a revocation instant later than the resolved at time.
 
@@ -266,7 +267,7 @@ The case space, and the rule that owns each case:
 | [Check] | no record for the pair was granted by [At Time] | not-known | none (Operation 40) |
 | [Read] | a well-formed query | the matching records, oldest first, each carrying its state at [Now] | none (Operation 47, Operation 48, Invariant 2.2) |
 | [Read] | a well-formed query matching nothing | an empty sequence | none (Operation 51) |
-| [Read] | a blank filter value, a bad state, an inverted range, an unknown key | [Invalid Query] | none (Operation 55 through 59) |
+| [Read] | a blank filter value, a bad state, an inverted range, a range missing an end, an unknown key | [Invalid Query] | none (Operation 55 through 59, Operation 65) |
 
 ### Invariants
 
@@ -321,7 +322,7 @@ The case space, and the rule that owns each case:
 - **Invariant 10 — Point-in-time faithfulness.**
   ```
   Invariant 10.1: [Check] MUST answer from the candidate record alone.
-  Invariant 10.2: A tie on grant instant MUST resolve to the greatest consent id in lexicographic byte-order.
+  Invariant 10.2: A tie on grant instant MUST resolve to the greatest consent id (Execution Contract Logic confinement 10).
   Invariant 10.3: A later write MUST NOT change a [Check] answer for the at time.
   Deleted: Invariant 10.4. Invariant 10.1 and Invariant 10.3 own it.
   ```
@@ -494,7 +495,7 @@ Term actors: the atom; the host; the transition; the implementation; the deploym
 
 Term records: consent record — one agreement to one purpose, carrying consent id, subject reference, purpose, granting actor, grant instant, state, the expiry instant and metadata supplied at grant, and, once withdrawn, revoking actor, revocation reason and revocation instant.
 
-Term record verbs: route, share, name, accept, carry, identify, allocate, reuse, change, draw, interpret, confirm, record, stand, answer, stamp, resolve, refuse, write, evaluate, order, exclude, ignore, leave, read, supply, rest, offer, remove, suppress, hold, poll, equal, appear, meet, fall, find, compose, define, expand, enforce, propagate, gate, establish, seal, bound, guarantee, own, guard, declare, call, run, merge, precede.
+Term record verbs: route, share, name, accept, carry, identify, allocate, reuse, change, interpret, confirm, record, stand, answer, stamp, resolve, refuse, write, evaluate, order, exclude, ignore, leave, read, supply, rest, offer, remove, suppress, hold, poll, equal, appear, meet, fall, find, compose, define, expand, enforce, propagate, gate, establish, seal, bound, guarantee, own, guard, declare, call, run, merge, precede.
 
 Term value sets: state = granted | revoked | expired. supported filter axes and grant field are declared above and cited here (Closed vocabulary 15).
 
@@ -532,7 +533,7 @@ Kind: Operation
 
 #### Consent Id
 
-The opaque, immutable, system-generated identity of a consent record, assigned on [Grant], never reused or reassigned within the database instance. A non-empty string sortable in lexicographic byte-order — required for deterministic [Read] ordering and [Check] tiebreaking. The subject, purpose, actor, and timestamps are properties of the record, not its identity.
+The opaque, immutable, system-generated identity of a consent record, assigned on [Grant], never reused or reassigned within the database instance. A non-empty string. The subject, purpose, actor, and timestamps are properties of the record, not its identity.
 
 Kind:       Field
 Field of:   the consent record
@@ -729,7 +730,7 @@ Projection: already-expired
 
 #### Invalid Query
 
-The refusal [Read] returns when query parameters are malformed — a null/empty/whitespace filter value, a [State] value outside {[Granted], [Revoked], [Expired]}, a time range with end before start, or an unrecognized filter key.
+The refusal [Read] returns when query parameters are malformed — a null/empty/whitespace filter value, a [State] value outside {[Granted], [Revoked], [Expired]}, a time range missing its start or its end, a time range with end before start, or an unrecognized filter key.
 
 Kind:       Member
 Member of:  the Read rejection
@@ -803,8 +804,7 @@ last gate: 2026-10-21 — Final Critique 6, the council's first round on the pag
 open:
 - 2026-10-21-a · refining · State 13; State 14; Expiry 7 · State 13 and State 14 say what the atom will not do, the Non-goals' kind, and Expiry 7 obliges a composing pattern from the Expiry family → move each to the section that holds its kind
 - 2026-10-21-b · refining · Non-goal 20; Non-goal 21; Operation 27; State 7 · Non-goal 20 says the atom records no caller and Non-goal 21 sends attribution to Actor Identity, while [Grant] and [Revoke] record a granting and a revoking actor → say the recorded actors are caller-declared references, not the authenticated caller
-- 2026-10-21-c · refining · Operation 7; State 4; Identity 8 · Operation 7 permits recording a supplied expiry instant that State 4 obliges, and Identity 8 binds a sort order every byte string already has → one form each: the obligation alone, and the consent id's comparable form or no rule
-- 2026-10-21-d · refining · Term supported filter axes; Operation 59; Operation 60 · whether a time range's start and end are inclusive is unstated → state it
+- 2026-10-21-c · refining · Operation 7; State 4 · Operation 7 permits recording a supplied expiry instant that State 4 obliges → one form: the obligation alone
 - 2026-10-21-e · refining · Summary; Examples; Regulated adversarial scenarios · the Summary's whether valid consent exists reads as any record of the pair, while [Check] answers the latest candidate record's state, so a revoked latest record answers revoked beside an older granted one (Concurrency 4); and cns-0001 is a behavioural analytics consent granted 2025-05-13 in the walkthrough and a marketing-email consent granted 2025-03-01 in the disputed-revocation scenario → say the check answers the latest agreement, and give each record one id across the page
 ```
 

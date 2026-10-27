@@ -113,7 +113,7 @@ Deleted: Capability requirement 2. Execution Contract Logic confinement 7 owns i
 Deleted: Capability requirement 3. Execution Contract Logic confinement 7 owns it.
 Deleted: Capability requirement 4. Execution Contract Logic confinement 7 owns it.
 Capability requirement 5: The deployment MUST declare the clock offset allowance.
-Capability requirement 6: The deployment MUST supply the observation records PER Execution Contract Database 1 through 4, Execution Contract Database 6 and Execution Contract Refusal 1.
+Capability requirement 6: The deployment MUST supply the observation records PER Execution Contract Database 1 through 4, Execution Contract Database 6, Execution Contract Refusal 1 and Execution Contract Query 1 through 4.
 Capability requirement 7: The deployment MUST declare a value constraint per observation type.
 Deleted: Clock semantics 1. Execution Contract Logic confinement 7 owns it.
 Deleted: Clock semantics 2. Execution Contract Logic confinement 7 owns it.
@@ -202,13 +202,12 @@ Deleted: Operation 54. Execution Contract Logic confinement 3 owns it.
 Operation 55: An ordering rule MUST NOT rest on a causal claim.
 Operation 56: An admitted amend MUST take the successor's recording actor from the original.
 Operation 57: An admitted amend MUST record value and unit on the successor.
+Operation 58: IF the query is malformed THEN [Read] MUST answer invalid-query.
 ```
 
 NOTE: watch the blank filter value (Operation 48).
 
 NOTE: open 2026-10-22-a — which key orders two observations sharing a recording instant is not stated; Operation 43 and Check 6.1 ask only that the order be stable.
-
-NOTE: open 2026-10-22-b — whether a range filter's start and end lie inside the range, and what a range filter missing a bound answers, are not stated (Operation 44, Operation 50).
 
 NOTE: open 2026-10-22-c — an admitted retract records no instant (Operation 36), where an admitted amend stamps the successor's (Operation 27).
 
@@ -238,7 +237,7 @@ Term transition metadata: successor id, predecessor id, amending actor, amendmen
 
 Term amendment chain: the observations one predecessor id and successor id sequence links — one measurement's correction history for one subject.
 
-Term filter axes: observation id | subject reference | observation type | state | recording instant — the five axes [Read] accepts, and no others.
+Term filter axes: observation id | subject reference | observation type | state | recording instant — the five axes [Read] accepts, and no others, a filter on recording instant carrying a range.
 
 Term admitted record: a [Record] call whose references, observation type, unit, value constraint, value and resolved recording instant the guards all admit.
 
@@ -739,7 +738,7 @@ Projection: invalid-request
 
 #### Invalid Query
 
-The refusal [Read] returns when query parameters are malformed — a filter axis outside the five, a blank filter value, an unrecognized state value, or a time range with end before start.
+The refusal [Read] returns when query parameters are malformed — a filter axis outside the five, a blank filter value, an unrecognized state value, a time range missing its start or its end, or a time range with end before start.
 
 Kind:       Member
 Member of:  the Read rejection
@@ -809,7 +808,6 @@ last gate: 2026-10-22 — Final Critique 5, the council's first round on the pag
 
 open:
 - 2026-10-22-a · refining · Operation 43; Check 6.1 · two observations sharing a recording instant are ordered stably across two reads of one database state, with no key named, so one build orders them by observation id and another by commit, each stable → name the key, or say the order is the build's
-- 2026-10-22-b · refining · Operation 44, Operation 50 · no rule says whether an observation whose recording instant equals a range filter's start or end matches the range, nor what a range filter missing its start or its end answers → say whether each bound lies inside the range, and what a range missing one answers
 - 2026-10-22-c · refining · Operation 36; State 11 · an admitted retract records the retracting actor and the reason and no instant, where an admitted amend stamps the successor's recording instant from now (Operation 27), so the records cannot say when an observation was withdrawn → stamp the retraction from now, or name the instant's owner in a non-goal
 ```
 
