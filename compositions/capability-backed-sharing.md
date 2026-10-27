@@ -526,6 +526,7 @@ Check 2.2: An auditor MUST find no disclosure record carrying two disclosure eve
 Check 2.3: An auditor MUST verify a disclosure event PER Audit Trail's verify record contract, presenting the event's original payload (Invariant 2.1).
 Deleted: Check 2.4. Check 2.3 owns it.
 Check 2.5: An auditor MUST find EVERY disclosure record no disclosure event names standing as a pending marker (Invariant 2.3).
+NOTE: watch the check over a derived index (Check 2.5).
 Check 3.1: An auditor MUST enumerate EVERY authorization intent AND resolve the intent's authorization event AND the intent's candidate capabilities (Invariant 3.4).
 Check 3.2: An auditor MUST find EXACTLY ONE authorization event PER capability-to-sharing entry (Invariant 3.2).
 Check 3.3: An auditor MUST find EVERY authorization event attested under the allocator reference the entry carries (Invariant 3.3).

@@ -51,7 +51,7 @@ Composes 4: The composition MUST NOT compose an instance of a transitive atom.
 Composes 5: The composition MUST inherit a constituent's invariants PER Execution Contract Conformance 8.
 Composes 6: The composition MUST NOT change a constituent's spec.
 Composes 7: The composition MUST select the custody events through the custody enumeration.
-Composes 8: The composition MUST read an event's metadata ONLY through the record read.
+Deleted: Composes 8. Composes 9 owns it.
 Composes 9: The composition MUST NOT read Audit Trail records directly.
 Composes 10: IF the custody enumeration answers invalid-query THEN the deployment MUST alert on a configuration fault.
 Composes 11: The composition MUST record two audit writes PER custody action.
@@ -127,7 +127,7 @@ Capability requirement 7: IF the custody completion bound EQUALS blank THEN the 
 Deleted: Capability requirement 8. Execution Contract Database 1 owns it.
 Capability requirement 9: A deployment MUST set the custody compensation window.
 Capability requirement 10: A deployment MUST set the custody reconciliation cadence.
-Capability requirement 11: A deployment MUST disclose the outcome write latency.
+Capability requirement 11: A deployment MUST disclose the reconciliation run bound.
 Capability requirement 12: The composition MUST start ONLY IF the custody compensation window EXCEEDS the liveness sum.
 Deleted: Capability requirement 13. Execution Contract Database 3 owns it.
 Deleted: Capability requirement 14. Execution Contract Database 3 owns it.
@@ -159,9 +159,9 @@ Term custody compensation window: the duration within which an orphan's outcome 
 
 Term custody reconciliation cadence: the interval between the reconciliation's runs, beside the run at every restart — `custody_reconciliation_cadence` in configuration, distinct from the substrate's own cadence.
 
-Term outcome write latency: the deployment's disclosed bound on one audit write landing.
+Term reconciliation run bound: the deployment's disclosed bound on one reconciliation run, from its start to its last write landing, over the largest custody records the deployment sizes for.
 
-Term liveness sum: `((custody completion bound + custody reconciliation cadence) + outcome write latency)`.
+Term liveness sum: `((custody completion bound + custody reconciliation cadence) + reconciliation run bound)`.
 
 Term recovery identity: a deployment-provisioned actor reference and credential under which the reconciliation attests every write it makes.
 
@@ -240,7 +240,7 @@ Audit arm 25: IF Audit Trail answers invalid-request carrying a step above step-
 Audit arm 26: IF Audit Trail answers invalid-request carrying a step below step-4 at an outcome THEN the invocation MUST escalate the orphan as a deployment fault.
 ```
 
-Term intent: the custody action's record before its Provenance write — custody.originate_intended, custody.transfer_intended, custody.transform_intended, custody.disclose_intended or custody.archive_intended; carrying the invocation's parameters and no constituent-minted id.
+Term intent: the custody action's record before its Provenance write — custody.originate_intended, custody.transfer_intended, custody.transform_intended, custody.disclose_intended or custody.archive_intended; carrying the invocation's parameters other than the credential and the metadata, and no constituent-minted id.
 
 Term position: intent | outcome — where a recording-failure sat: intent, nothing committed and the whole action may be retried; outcome, the custody entry exists and a re-run commits a second one.
 
@@ -290,7 +290,7 @@ Term custody proof: what [Verify Custody] answers — a [Custody Proof].
 
 ```
 Action wiring 1: A validated custody action MUST NOT call a Provenance write BEFORE the action's intent lands.
-Action wiring 2: An intent MUST carry the invocation's parameters under the acting custodian as the actor reference.
+Deleted: Action wiring 2. Primitive policy 14 and Action wiring 12, 20, 27, 29 and 31 own it.
 Action wiring 3: An intent MUST NOT carry a constituent-minted id.
 Action wiring 4: An audit write of the composition MUST NOT carry a timestamp.
 Action wiring 5: An outcome event MUST carry the chain id, the entry id, the intent event id AND the acting custodian.
@@ -329,13 +329,16 @@ Action wiring 37: IF an entry carries no binding after the rebuild AND no purged
 Action wiring 38: A found verification MUST read EVERY bound event through the record read.
 Action wiring 39: IF the record read answers Purged THEN [Verify Custody] MUST call the verification with the covering range's members the original event payloads carry.
 Action wiring 40: [Verify Custody] MUST NOT check the original event payloads for an event the record read answers Purged for.
-Action wiring 41: IF a member of a live event's covering range IS NOT IN the original event payloads THEN the entry MUST carry payload-not-supplied AND the missing sequence numbers as the attestation verification.
-Action wiring 42: IF EVERY member of a live event's covering range IS IN the original event payloads THEN [Verify Custody] MUST call the verification with the covering range's payloads in ascending sequence order.
+Action wiring 56: IF the record read answers partially-purged coverage THEN [Verify Custody] MUST call the verification with the covering range's members the original event payloads carry.
+Action wiring 41: IF a member of a live event's whole covering range IS NOT IN the original event payloads THEN the entry MUST carry payload-not-supplied AND the missing sequence numbers as the attestation verification.
+Action wiring 42: IF EVERY member of a live event's whole covering range IS IN the original event payloads THEN [Verify Custody] MUST call the verification with the covering range's payloads in ascending sequence order.
+NOTE: watch the purged co-member (Action wiring 41, Action wiring 56).
 Action wiring 43: A found verification MUST carry the verification's outcome AND reason unchanged as the attestation verification.
 Action wiring 44: A found verification MUST carry the verification's compensation-window qualifier beside the attestation verification.
 Action wiring 45: A found verification MUST compare the entry's stored fields with the payload at the bound event's own position as the entry payload match.
-Action wiring 46: IF the attestation verification DOES NOT EQUAL verified THEN the entry payload match MUST carry unanchored.
-Action wiring 47: A found verification MUST compare the bound event's attesting actor with the entry's custodian as the actor match.
+Action wiring 46: IF the attestation verification IS NOT IN verified and failed-verification carrying purged THEN the entry payload match MUST carry unanchored.
+Action wiring 57: IF the attestation verification EQUALS failed-verification carrying purged THEN the entry payload match MUST carry not-applicable carrying purged.
+Action wiring 47: A found verification MUST compare the bound event's attesting actor with the entry's attested custodian as the actor match.
 Action wiring 48: A found verification MUST carry the bound event's recovery flag as the recovery attestation.
 Action wiring 49: IF the record read answers Purged THEN the recovery attestation MUST carry unknown carrying purged.
 Action wiring 50: A found verification MUST carry the record read's retention state unchanged.
@@ -390,11 +393,15 @@ Term found verification: a [Verify Custody] call whose chain Provenance's read f
 
 Term covering range: the sequence range the record read names for an event's covering seal, or the event's own sequence number in the unsealed tail.
 
+Term whole covering range: a covering range the record read does not answer partially-purged coverage for.
+
 Term live event: a bound event the record read answers Retained or unresolved in its compensation window.
 
-Term entry payload match: match | entry-payload-mismatch carrying the field | unanchored | not-applicable carrying purged | payload-not-supplied.
+Term entry payload match: match | entry-payload-mismatch carrying the field | unanchored | not-applicable carrying purged.
 
-Term actor match: match | match carrying recovery | attribution-mismatch carrying the actor reference | unknown carrying purged — match carrying recovery where the attesting actor is the recovery identity, the event carries the recovery flag and the payload names the entry's custodian.
+Term attested custodian: a transferred entry's outgoing custodian, or another entry's custodian reference — the acting custodian of the action that appended the entry.
+
+Term actor match: match | match carrying recovery | attribution-mismatch carrying the actor reference | unknown carrying purged — match carrying recovery where the attesting actor is the recovery identity, the event carries the recovery flag and the payload names the entry's attested custodian.
 
 Term recovery attestation: true | false | unknown carrying purged — whether the bound event carries the recovery flag.
 
@@ -438,8 +445,8 @@ Reconciliation 12: IF the candidate count EQUALS zero THEN the reconciliation MU
 Reconciliation 13: IF the candidate count EXCEEDS one THEN the compensating event MUST carry the intent candidates.
 Reconciliation 14: IF the candidate count EXCEEDS the intent candidates cap THEN the reconciliation MUST escalate the orphan.
 Reconciliation 15: IF the candidate count EXCEEDS the intent candidates cap THEN the reconciliation MUST NOT compensate the orphan.
-Reconciliation 16: The reconciliation MUST pair an orphan transferred entry by the chain id, the incoming custodian AND the bound.
-Reconciliation 17: IF the genesis lookup EXISTS THEN the reconciliation MUST pair a genesis intent to the chains the lookup answers by the custodian, the artifact reference, the genesis type AND the bound.
+Reconciliation 16: The reconciliation MUST pair an orphan transferred entry by the chain id AND the incoming custodian.
+Reconciliation 17: IF the genesis lookup EXISTS THEN the reconciliation MUST pair a genesis intent to the chains the lookup answers by the custodian, the artifact reference AND the genesis type.
 Reconciliation 18: IF the genesis lookup EQUALS blank THEN the reconciliation MUST open a genesis-unresolved finding for an unmatched genesis intent.
 Reconciliation 19: IF the paired intent's actor DOES NOT EQUAL a transferred entry's outgoing custodian THEN the reconciliation MUST open a principal-divergence finding.
 Reconciliation 20: The reconciliation MUST NOT compensate a principal divergence.
@@ -451,6 +458,9 @@ Reconciliation 25: The reconciliation MUST NOT record a compensating event BEFOR
 Reconciliation 26: IF the re-read finds an outcome carrying the entry id THEN the reconciliation MUST bind the entry to the found outcome.
 Reconciliation 27: IF the reconciliation records a compensating event THEN the reconciliation MUST write the binding ONLY AFTER the compensating event lands.
 Reconciliation 28: The reconciliation MUST escalate EVERY overdue orphan as an unresolved finding.
+NOTE: open 2026-08-29-a — the formal model's compensation carries no recovery identity, no recovery intent and no aged-intent edge (Reconciliation 4, Reconciliation 21, Reconciliation 22).
+NOTE: open 2026-08-30-v — the formal model lands no principal divergence outside the binding bijection (Reconciliation 19, Reconciliation 20, Invariant 4.6).
+NOTE: open 2026-10-27-a — Reconciliation 16 can pair two transfer intents with one orphan transferred entry, one of them another orphan's, and Reconciliation 19 compares the paired intent's actor, so one build opens a principal divergence for an ordinary orphan and another compensates it.
 ```
 
 Term reconciliation: the leg the composition runs outside every invocation, whose output — a bound orphan or an escalation — an auditor awaits within the custody compensation window.
@@ -490,7 +500,7 @@ Verdict 9: IF an actor match carries attribution-mismatch THEN attribution-misma
 Verdict 10: IF an attestation verification carries a failed attestation THEN attestation-failed MUST apply.
 Verdict 11: IF an attestation verification carries a failed seal THEN seal-failed MUST apply.
 Verdict 12: IF an attestation verification carries unsealed THEN unsealed MUST apply.
-Verdict 13: IF the verification answers not-known THEN binding-gap MUST apply.
+Verdict 13: IF the record read answers not-known for a bound event THEN binding-gap MUST apply.
 Verdict 14: IF an attestation verification carries payload-not-supplied THEN payload-not-supplied MUST apply.
 Verdict 15: IF an attestation verification carries an unavailable surface THEN availability MUST apply.
 Verdict 16: IF an attestation verification carries partially-purged-coverage THEN partially-purged-coverage MUST apply.
@@ -547,7 +557,7 @@ These emerge from the composition; none belongs to one constituent, and each nee
   Invariant 4.5: The reconciliation MUST escalate EVERY uncompensable orphan.
   Invariant 4.6: A principal divergence MUST NOT carry an outcome event.
   ```
-  Term compensable orphan: an orphan entry paired to at most the intent candidates cap of realizing intents, whose outcome was not refused invalid-request(step-1 | step-2 | step-3), and — for a genesis orphan — in a deployment supplying the genesis lookup.
+  Term compensable orphan: an orphan entry paired to at most the intent candidates cap of realizing intents, with no principal-divergence finding open for it, whose outcome was not refused invalid-request(step-1 | step-2 | step-3), and — for a genesis orphan — in a deployment supplying the genesis lookup.
 
   Term uncompensable orphan: an orphan entry that is not compensable.
 
@@ -601,7 +611,7 @@ Defense counsel's claim — that the exhibit passed through an unrecorded, unver
 
 ### Rejection path — transfer by non-current custodian
 
-A prior custodian, `"manuf-lab-7"`, attempts to record a transformation after having transferred to `"dist-region-3"`: `transform_custody("chain-0041", "manuf-lab-7", "added label update", <lab7_credential>)` → `rejected(not-current-custodian)`. The action writes the intent record `custody.transform_intended` first — `lab7_credential` validates, so the attempt is authenticated and durable — and Provenance's not-current-custodian guard then then catches the call: no Provenance entry is written, no **outcome** event is recorded, no `entry_to_event` binding is created, and the binding bijection (Invariant 4) is preserved, because it is over entries and outcome events and an intent record is neither. The chain's integrity is unchanged. **The intent record stands, and that is the point:** a former custodian attempting to alter a chain they no longer hold is precisely what a chain-of-custody trail should retain, and before the intent record existed the attempt left no trace anywhere. It surfaces among the unmatched intents Check 6.2 reads and is adjudicated against the Provenance chain, which shows the attempt was refused.
+A prior custodian, `"manuf-lab-7"`, attempts to record a transformation after having transferred to `"dist-region-3"`: `transform_custody("chain-0041", "manuf-lab-7", "added label update", <lab7_credential>)` → `rejected(not-current-custodian)`. The action writes the intent record `custody.transform_intended` first — `lab7_credential` validates, so the attempt is authenticated and durable — and Provenance's not-current-custodian guard then then catches the call: no Provenance entry is written, no **outcome** event is recorded, no `entry_to_event` binding is created, and the binding bijection (Invariant 4) is preserved, because it is over entries and outcome events and an intent record is neither. The chain's integrity is unchanged. **The intent record stands, and that is the point:** a former custodian attempting to alter a chain they no longer hold is precisely what a chain-of-custody trail should retain, and before the intent record existed the attempt left no trace anywhere. It surfaces among the unmatched intents Reconciliation 9 reads and is adjudicated against the Provenance chain, which shows the attempt was refused.
 
 ### Rejection path — custody action on an Archived chain
 
@@ -609,7 +619,7 @@ After the pharmaceutical chain is Archived (example step 5), a downstream system
 
 ### Failure path — custody step whose audit write fails, recovered
 
-A hospital pharmacist transfers a controlled-substance tote: `transfer_custody("chain-0107", "pharm-hosp-9", credential=<evid_room>)`. The intent `custody.transfer_intended` lands first — the evidence-room custodian's credential validates, so what follows is an authenticated attempt on the record. `Provenance.transfer` writes the entry (`entry_id = e5`); the outcome's `AuditTrail.record_action` returns recording-failure (the Event Log append answered nothing, its reply lost, and the `(step)` payload names step-3). The call returns `rejected(recording-failure(outcome))` — the position telling the pharmacist the entry exists and the action must not be re-run — and in the same outcome the orphan — a committed custody entry with no audit event — surfaces to the compliance dashboard as a high-priority finding. Recovery is the reconciliation's: at its next run it re-reads the log for an event carrying `data.entry_id = e5` and finds none (had the lost append landed after all, it would bind `e5` to that event instead), pairs `e5` to the transfer intent (chain, to_custodian_ref, the bound; the intent's actor equals the entry's `from_custodian_ref`, so this is the ordinary orphan), writes `custody.recovery_intended`, and lands the outcome under `recovery_identity` with `cascade_recovery = true` and the pharmacist named in `data.custodian_ref`. A later [Verify Custody] reports `e5` with `recovery_attested = true`, `actor_match = match(recovery)`, and an [Overall Verdict] of `custody-proof-complete-with-recovered-attestations([e5])` — structurally sound, surfaced for the auditor's judgment. Had the credential been bad, this path would never have been reached: it is refused at the intent with nothing committed.
+A hospital pharmacist transfers a controlled-substance tote: `transfer_custody("chain-0107", "pharm-hosp-9", credential=<evid_room>)`. The intent `custody.transfer_intended` lands first — the evidence-room custodian's credential validates, so what follows is an authenticated attempt on the record. `Provenance.transfer` writes the entry (`entry_id = e5`); the outcome's `AuditTrail.record_action` returns recording-failure (the Event Log append answered nothing, its reply lost, and the `(step)` payload names step-3). The call returns `rejected(recording-failure(outcome))` — the position telling the pharmacist the entry exists and the action must not be re-run — and in the same outcome the orphan — a committed custody entry with no audit event — surfaces to the compliance dashboard as a high-priority finding. Recovery is the reconciliation's: at its next run it re-reads the log for an event carrying `data.entry_id = e5` and finds none (had the lost append landed after all, it would bind `e5` to that event instead), pairs `e5` to the transfer intent (chain, to_custodian_ref; the intent's actor equals the entry's `from_custodian_ref`, so this is the ordinary orphan), writes `custody.recovery_intended`, and lands the outcome under `recovery_identity` with `cascade_recovery = true` and the pharmacist named in `data.custodian_ref`. A later [Verify Custody] reports `e5` with `recovery_attested = true`, `actor_match = match(recovery)`, and an [Overall Verdict] of `custody-proof-complete-with-recovered-attestations([e5])` — structurally sound, surfaced for the auditor's judgment. Had the credential been bad, this path would never have been reached: it is refused at the intent with nothing committed.
 
 ### DEA controlled substance — 21 CFR Part 1304 inventory custody
 
@@ -654,24 +664,26 @@ An implementation is acceptable — in the regulator-acceptance sense — when t
 ```
 Check 1.1: An auditor MUST find a binding for EVERY entry of the chain that is no pre-horizon entry (Invariant 1.1).
 Check 1.2: An auditor MUST find a passing verification for EVERY bound event whose covering range the auditor presents (Invariant 1.1).
-Check 1.3: IF a bound event carries no recovery flag THEN an auditor MUST find the event's attesting actor matching the entry's custodian (Invariant 1.2).
+Check 1.3: IF a bound event carries no recovery flag THEN an auditor MUST find the event's attesting actor matching the entry's attested custodian (Invariant 1.2).
 Check 1.4: An auditor MUST find no event carrying the recovery flag attested under a custodian (Invariant 1.3).
 Check 1.5: An auditor MUST find no event attested under the recovery identity carrying no recovery flag (Invariant 1.3).
 Check 2.1: An auditor MUST find EVERY outcome event the sealed-through position covers carrying EXACTLY ONE verifying seal (Invariant 2.1).
-Check 2.2: An auditor MUST report an outcome event in the unsealed tail as a seal-cadence finding (Invariant 2.1).
+Deleted: Check 2.2. Verdict 12 owns it.
 Check 3.1: An auditor MUST replay the chain's entries AND find the continuity check continuous (Invariant 5.1).
 Check 4.1: An auditor MUST find EVERY outcome event's retention state IS IN Retained and Purged through the record read (Invariant 3.1).
 Check 4.2: An auditor MUST find EVERY Purged outcome event carrying a Purged retention record whose purge instant DOES NOT PRECEDE the retention deadline (Invariant 3.2).
 Check 5.1: An auditor MUST enumerate the chain's outcome events through the custody enumeration AND find EXACTLY ONE outcome event naming each entry (Invariant 4.3).
 Check 5.2: An auditor MUST find EVERY outcome event naming an entry the chain carries (Invariant 4.4).
-Check 5.3: An auditor MUST find the binding index agreeing with the enumerated outcome events (Composition state 3).
+Check 5.3: An auditor MUST find EVERY live binding's outcome event carrying the binding's entry id (Composition state 3).
+NOTE: watch the check over a derived index (Check 5.3).
 Deleted: Check 5.4. Execution Contract Database 3 and Execution Contract Database 4 own it.
-Check 5.5: An auditor MUST report a principal divergence under the class's own finding (Invariant 4.6).
+Deleted: Check 5.5. Reconciliation 20 owns it.
 Check 5.6: An auditor MUST find the custody compensation window exceeding the liveness sum (Capability requirement 12).
 Check 5.7: IF an orphan entry realizing no aged intent carries no open finding THEN an auditor MUST find the orphan's compensating event WITHIN the custody compensation window (Invariant 4.2).
-Check 6.1: An auditor MUST find EVERY outcome event preceded by the intent the outcome's intent event id names, of the matching kind, on the same chain, under the acting custodian (Invariant 7.1).
-Check 6.2: An auditor MUST NOT read an unmatched intent as a conformance failure (Reconciliation 9).
-Check 6.3: An auditor MUST read a precedence check across the audit horizon as unverifiable carrying purged-horizon (Invariant 3.1).
+Check 6.1: IF an outcome event's intent event id names a live intent THEN an auditor MUST find the outcome event preceded by the intent, of the matching kind, on the same chain, under the acting custodian (Invariant 7.1).
+Deleted: Check 6.2. Reconciliation 9 owns it.
+Deleted: Check 6.3. Check 6.1 owns it.
+NOTE: watch the check no record answers (Check 2.2, Check 5.5, Check 6.2, Check 6.3).
 Check 7.1: An auditor MUST clear Provenance's Generation acceptance over the Provenance instance (Composes 5).
 Check 7.2: An auditor MUST clear Audit Trail's Generation acceptance over the Audit Trail instance (Composes 5).
 ```
@@ -679,6 +691,8 @@ Check 7.2: An auditor MUST clear Audit Trail's Generation acceptance over the Au
 NOTE: EVERY check names the rule the check tests.
 
 Term passing verification: verified | failed-verification carrying purged.
+
+Term live intent: an intent the record read answers Retained or unresolved in its compensation window.
 
 ### External checks
 
@@ -750,7 +764,7 @@ Rename 1: The composition MUST NOT change a recorded custodian reference for a r
 
 ## Terms
 
-Each `[Term]` marker above links to its term entry here; a term entry states what the concept *is*, in plain English, and its **Kind**, and — for a Field, a Parameter or a wire Member — carries the one **Projection** line where the concrete name stays visible on the page. The composition's own concepts are the five custody actions it wraps ([Originate Custody], [Transfer Custody], [Transform Custody], [Disclose Custody], [Archive Custody]) and the emergent verification ([Verify Custody]); the structure that verification answers ([Custody Proof]) with its [Continuity Check] and [Overall Verdict]; and the verdict's three values — [Custody Proof Complete], `custody-proof-complete-with-recovered-attestations` and [Custody Proof Incomplete]. The constituents' refusals are relayed by name. Attributed custody, the binding bijection and authentication before commitment are structural properties, not data. The deployment settings keep their wire spellings in configuration — `audit_trail_retention_policy`, `seal_cadence`, `custody_completion_bound`, `custody_compensation_window`, `custody_reconciliation_cadence`, `outcome_write_latency`, `recovery_identity`, `genesis_lookup`, `intent_candidates_cap` — and the binding index its own in an implementation, `entry_to_event`; the page names each in English where it declares it. *(annotation.md Terms registry; representational only — it changes no guarantee, invariant, or behavior of the composition above.)*
+Each `[Term]` marker above links to its term entry here; a term entry states what the concept *is*, in plain English, and its **Kind**, and — for a Field, a Parameter or a wire Member — carries the one **Projection** line where the concrete name stays visible on the page. The composition's own concepts are the five custody actions it wraps ([Originate Custody], [Transfer Custody], [Transform Custody], [Disclose Custody], [Archive Custody]) and the emergent verification ([Verify Custody]); the structure that verification answers ([Custody Proof]) with its [Continuity Check] and [Overall Verdict]; and the verdict's three values — [Custody Proof Complete], `custody-proof-complete-with-recovered-attestations` and [Custody Proof Incomplete]. The constituents' refusals are relayed by name. Attributed custody, the binding bijection and authentication before commitment are structural properties, not data. The deployment settings keep their wire spellings in configuration — `audit_trail_retention_policy`, `seal_cadence`, `custody_completion_bound`, `custody_compensation_window`, `custody_reconciliation_cadence`, `reconciliation_run_bound`, `recovery_identity`, `genesis_lookup`, `intent_candidates_cap` — and the binding index its own in an implementation, `entry_to_event`; the page names each in English where it declares it. *(annotation.md Terms registry; representational only — it changes no guarantee, invariant, or behavior of the composition above.)*
 
 ### Vocabulary
 
@@ -762,15 +776,15 @@ Term record verbs: account, adjudicate, alert, answer, apply, assess, attest, au
 
 Term value sets: action reference = custody.originate_intended | custody.transfer_intended | custody.transform_intended | custody.disclose_intended | custody.archive_intended | custody.originated | custody.received | custody.transferred | custody.transformed | custody.disclosed | custody.archived | custody.recovery_intended. finding = binding-duplicate | principal-divergence | orphan-unpaired | genesis-unresolved. The rest are declared where the section that owns each declares it: genesis type, position, entry payload match, actor match, recovery attestation, class, failure class, incomplete-input class, standing class, Provenance refusal.
 
-Term bounds: custody completion bound (custody_completion_bound), custody compensation window (custody_compensation_window), outcome write latency (outcome_write_latency), intent candidates cap (intent_candidates_cap), input caps, audit horizon (audit_trail_retention_policy).
+Term bounds: custody completion bound (custody_completion_bound), custody compensation window (custody_compensation_window), reconciliation run bound (reconciliation_run_bound), intent candidates cap (intent_candidates_cap), input caps, audit horizon (audit_trail_retention_policy).
 
 Term cadences: custody reconciliation cadence (custody_reconciliation_cadence), seal cadence (seal_cadence).
 
 Term qualifiers: migrated — rewritten in GRACE lang v0.61 (2026-09-24).
 
-Term terms: composition, constituents, transitive atoms, custody enumeration, record read, audit write, verification, custody action, entry id, chain id, binding index, binding, outcome event, live binding, purged binding, binding rebuild, audit retention policy, audit horizon, seal cadence, custody completion bound, custody compensation window, custody reconciliation cadence, outcome write latency, liveness sum, recovery identity, genesis lookup, intent candidates cap, input caps, artifact reference, custodian reference, recipient reference, transformation descriptor, genesis type, metadata, credential, caller string, acting custodian, intent, position, recovery intent, recovery flag, custody result, original event payloads, entry sequence, custody proof, validated custody action, Provenance refusal, bound custody action, validated origination, admitted origination, committed origination, validated transfer, resolved custodian, resolved transfer, admitted transfer, committed transfer, confirmed transfer, validated transformation, admitted transformation, validated disclosure, admitted disclosure, validated archival, admitted archival, purged later entry, pre-horizon entry, found verification, covering range, live event, entry payload match, actor match, recovery attestation, read passthrough, reconciliation, aged intent, unmatched intent, refused attempt, orphan entry, realize, candidate count, intent candidates, intent reference, compensating event, overdue orphan, continuity check, class, failure class, incomplete-input class, standing class, failed attestation, failed seal, unavailable surface, settled entry, compensable orphan, uncompensable orphan, passing verification.
+Term terms: composition, constituents, transitive atoms, custody enumeration, record read, audit write, verification, custody action, entry id, chain id, binding index, binding, outcome event, live binding, purged binding, binding rebuild, audit retention policy, audit horizon, seal cadence, custody completion bound, custody compensation window, custody reconciliation cadence, reconciliation run bound, liveness sum, recovery identity, genesis lookup, intent candidates cap, input caps, artifact reference, custodian reference, recipient reference, transformation descriptor, genesis type, metadata, credential, caller string, acting custodian, intent, position, recovery intent, recovery flag, custody result, original event payloads, entry sequence, custody proof, validated custody action, Provenance refusal, bound custody action, validated origination, admitted origination, committed origination, validated transfer, resolved custodian, resolved transfer, admitted transfer, committed transfer, confirmed transfer, validated transformation, admitted transformation, validated disclosure, admitted disclosure, validated archival, admitted archival, purged later entry, pre-horizon entry, found verification, covering range, whole covering range, live event, entry payload match, attested custodian, actor match, recovery attestation, read passthrough, reconciliation, aged intent, unmatched intent, refused attempt, orphan entry, realize, candidate count, intent candidates, intent reference, compensating event, overdue orphan, continuity check, class, failure class, incomplete-input class, standing class, failed attestation, failed seal, unavailable surface, settled entry, compensable orphan, uncompensable orphan, passing verification, live intent.
 
-Term cited: Execution Contract Conformance 8 — the recursive inheritance of a constituent's guarantees. Execution Contract Logic confinement 7 — the clock's guarantees are the deployment's. The section titled Composition state in `execution-contract.md` — the derived-index and extraction-pending classifications. The section titled Compositions of compositions in `spec-format.md` — the transitive atoms. originate, transfer, transform, disclose, archive, read, entry, event type, outgoing custodian, incoming custodian, genesis custodian, sequence number, Archived, Open, invalid-ref, invalid-genesis-type, invalid-descriptor, not-known, archived, already-archived, not-current-custodian, storage-failure, invalid-query: Provenance. record_action, read_record, verify_record, payload cap, sealed through, unsealed tail, step-2, step-3, step-4, invalid-credential, invalid-request, recording-failure, verified, failed-verification, unverifiable, purged, compensation-window, Retained, Purged, Erasure Tombstone: Audit Trail. append, recording instant: Event Log.
+Term cited: Execution Contract Conformance 8 — the recursive inheritance of a constituent's guarantees. Execution Contract Logic confinement 7 — the clock's guarantees are the deployment's. The section titled Composition state in `execution-contract.md` — the derived-index and extraction-pending classifications. The section titled Compositions of compositions in `spec-format.md` — the transitive atoms. originate, transfer, transform, disclose, archive, read, entry, event type, outgoing custodian, incoming custodian, genesis custodian, sequence number, Archived, Open, invalid-ref, invalid-genesis-type, invalid-descriptor, not-known, archived, already-archived, not-current-custodian, storage-failure, invalid-query: Provenance. record_action, read_record, verify_record, payload cap, sealed through, unsealed tail, step-2, step-3, step-4, invalid-credential, invalid-request, recording-failure, verified, failed-verification, unverifiable, purged, partially-purged coverage, compensation-window, Retained, Purged, Erasure Tombstone: Audit Trail. append, recording instant: Event Log.
 
 Term composing patterns: [Defensible Retention](./defensible-retention.md); [Selective Disclosure](../atoms/selective-disclosure.md); [Permissions](../atoms/permissions.md); [Multi-Party Approval](./multi-party-approval.md).
 
@@ -906,11 +920,12 @@ this composition inherits the broader standards compliance of its constituents:
 ```
 status: partially resolved
 formal: pending — re-derivation, 2026-08-30: the one-writer protocol (bounded in-invocation retry, scan under the per-chain section), the principal-divergence landing, and the genesis downgrade; was verified — chain-of-custody.tla + 2 twins; Invariant 7 not yet modelled, obligation open; 2026-06-11
-last gate: 2026-08-30 — third gate, fresh reader, under the frozen rules — 5 foundational corrected in-round, 14 refining and 5 rhetorical routed (2 refining and the closure check's 3 residues and 7 consistency items also corrected in-round)
+last gate: 2026-10-27 — Final Critique 10 — foundational count 5, not clean, no sample
 
 open:
-- 2026-08-29-a · refining · formal · the model's compensation action carries no identity, no recovery record, and no age bound → extend the model with the bounded scan under `recovery_identity`
+- 2026-08-29-a · refining · formal · the model's compensation action carries no identity, no recovery record, and no age bound → extend the model with the recovery identity, the recovery intent and the aged-intent edge
 - 2026-08-30-v · refining · formal · the model has no `principal-divergence` landing outside the bijection → extend it
+- 2026-10-27-a · foundational · Reconciliation 16, 19 · two orphans of one chain naming one incoming custodian each pair both transfer intents, and Reconciliation 19 compares the actor of the intent that does not realize the entry, so one build opens a principal divergence for an ordinary orphan → compare only where no paired intent realizes the entry, or pair the transfer leg by Term realize and retire the reconciliation's principal divergence
 ```
 
 ## Decisions

@@ -407,6 +407,7 @@ Deleted: Action wiring 32. Action wiring 29 owns it, and reverses it: the purged
 Action wiring 33: A bound ledger verification MUST read the outcome event's covering range through the record read.
 Action wiring 34: IF the record read answers partially-purged coverage THEN the bound ledger verification MUST call the verification with the covering range's members the original event payloads carry.
 Action wiring 35: IF a member of a whole covering range IS NOT IN the original event payloads THEN the attestation verification MUST carry payload-not-supplied AND the missing sequence numbers.
+NOTE: watch the purged co-member (Action wiring 34, Action wiring 35).
 Action wiring 36: IF EVERY member of the covering range IS IN the original event payloads THEN the bound ledger verification MUST call the verification with the covering range's payloads in ascending sequence order.
 Action wiring 37: IF the record read names no covering range THEN the presentation MUST carry the outcome event's own payload from the original event payloads.
 Action wiring 38: The bound ledger verification MUST carry the verification's outcome AND reason unchanged as the attestation verification.
