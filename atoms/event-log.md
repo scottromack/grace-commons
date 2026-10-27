@@ -355,7 +355,7 @@ Term qualifiers: migrated — rewritten in GRACE lang v0.35 (2026-09-11); landed
 
 Term terms: event id, seam, now, transition, business caller, event, sequence number, recording instant, data, log name, next sequence number, landed, event field, query, payload cap.
 
-NOTE: open 2026-10-23-a — seven declared terms carry no term entry, where spec-format's Terms item asks one per declared term (Term terms); two of them, landed and event field, are each declared twice, the two declarations agreeing (Term landed and Term qualifiers; Term event field and Term value sets).
+NOTE: open 2026-10-23-a — landed and event field are each declared twice, the two declarations agreeing (Term landed and Term qualifiers; Term event field and Term value sets).
 
 #### Event Log
 
@@ -524,7 +524,7 @@ open:
 - 2026-10-20-d · refining · State 3; State 5 · log name and a fresh log instance have no declared supplier → name who supplies each, a composing pattern (Identity 10) or the deployment
 - 2026-10-20-e · refining · Examples · the Examples invoke regulated domains (a patient chart, a bank journal), and the method's When the conventions apply requires Regulated adversarial scenarios of such a page → write the subsection
 - 2026-10-22-b · refining · Identity 2; Capability requirement · the event id's source is named as the host's allocation (Identity 2) and not among what the deployment supplies, where the atom shape in `spec-format.md` lists an id source under Capability requirement and Final Critique 4's text named one beside the clock → name the source among the Capability requirements, in the one form the corpus settles for its twenty host-allocation atoms
-- 2026-10-23-a · refining · Term terms; Vocabulary · seven declared terms (seam, now, transition, business caller, landed, event field, payload cap) carry no term entry, where spec-format's Terms item asks one per declared term and every specification writes one per name a bracket marker lands on, and two of them, landed and event field, are each declared twice (Term landed and Term qualifiers; Term event field and Term value sets), the declarations agreeing → add the entries, each with a Kind the term entry grammar admits, or read the item as the bracketed names; keep one declaration of each twice-declared name, the other citing it (GRACE-lang Closed vocabulary 15)
+- 2026-10-23-a · refining · Term landed; Term qualifiers; Term event field; Term value sets · landed and event field are each declared twice (Term landed and Term qualifiers; Term event field and Term value sets), the declarations agreeing → keep one declaration of each twice-declared name, the other citing it (GRACE-lang Closed vocabulary 15)
 ```
 
 ## Decisions

@@ -342,8 +342,6 @@ Term qualifiers: migrated — rewritten in GRACE lang v0.66 (2026-10-23).
 
 Term terms: cart, line, cart id, line id, item reference, seam, quantity, new quantity, unit price, currency, minor unit, whole amount, positive count, total, accepted currencies, cart action, line action, version.
 
-NOTE: open 2026-10-24-a — eight declared terms carry no term entry, where spec-format's Terms item asks one per declared term (Term terms).
-
 #### Open
 
 Starts a cart: checks the [Currency] against the accepted currencies, records a cart carrying that currency and no line, answers the new [Cart Id].
@@ -573,7 +571,6 @@ formal: not applicable — vote no 2026-10-23: the atom reads no clock and claim
 last gate: 2026-10-24 — Final Critique 4 — foundational count 0, clean, one sample
 
 open:
-- 2026-10-24-a · refining · Term terms; Vocabulary · eight declared terms (seam, minor unit, whole amount, positive count, accepted currencies, cart action, line action, version) carry no term entry, where spec-format's Terms item asks one per declared term and every specification writes one per name a bracket marker lands on → add the entries, each with a Kind the term entry grammar admits, or read the item as the bracketed names
 - 2026-10-24-b · refining · Operation 21; Term cart; Term records · [Read] answers cart, which State 1 and Term records give a cart id and Term cart, Operation 21 and the Read entry do not, so a build echoes the caller's cart id or not by the reading it picks, as readers in each of the last three rounds asked → name the cart id in Operation 21, or say the answer leaves the caller's own id out
 ```
 

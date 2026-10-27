@@ -530,8 +530,6 @@ Term qualifiers: migrated — rewritten in GRACE lang v0.35 (2026-09-12).
 
 Term terms: zero duration, degenerate duration, degenerate max purge delay, now, retention, retention id, record reference, policy reference, seam, transition, business caller, retention state, retention instant, retention deadline, purge deadline, purge instant, overshoot, active overdue, duration, max purge delay, purge eligible, time resolution, well-formedness check, owns the destruction, standing record, withheld record, sibling retention, joint enforcement, retention in place at the destruction, destruction, confirmation, undestroyed.
 
-NOTE: open 2026-10-24-a — eighteen declared terms carry no term entry, where spec-format's Terms item asks one per declared term (Term terms).
-
 #### Retention Window
 
 The compliance primitive this atom defines: a record is kept under retention for a known period, then becomes eligible for purge. Each retention is its own record with an opaque [Retention Id]; it carries a [Record Reference], [Policy Reference], the derived deadlines [Retention Deadline] and [Purge Deadline], and (once purged) [Purge Instant]. It occupies one of two states — [Retained] or [Purged].
@@ -830,7 +828,6 @@ open:
 - 2026-10-03-l · refining · Operation 24a; Identity 6; [Read] · the day a calendar period counts from is in a WHY, a reference is checked for blank alone, and [Read] has no order or bound → pin each or name the owner
 - 2026-10-05-a · refining · Operation 29; [Read] · the read answers every retention of the instance with no key, so a composing pattern's read by retention id or by record is a whole-database enumeration under its lease → a keyed read; reported by Defensible Retention's and Resolve a Person's Data Rights' gates
 - 2026-10-20-a · refining · Term seam; Operation 6, 8c, 24b · the rules answer on the registry's reply and on the instants the database holds, which the transition may not read (Operation 26) and the seam does not list among the values the host injects → list each injected value
-- 2026-10-24-a · refining · Term terms; Vocabulary · eighteen declared terms (zero duration, degenerate duration, degenerate max purge delay, seam, transition, business caller, retention state, time resolution, well-formedness check, owns the destruction, standing record, withheld record, sibling retention, joint enforcement, retention in place at the destruction, destruction, confirmation, undestroyed) carry no term entry, where spec-format's Terms item asks one per declared term and every specification writes one per name a bracket marker lands on → add the entries, each with a Kind the term entry grammar admits, or read the item as the bracketed names
 ```
 
 ## Decisions

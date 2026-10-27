@@ -539,8 +539,6 @@ Term qualifiers: migrated — rewritten in GRACE lang v0.35 (2026-09-12).
 
 Term terms: session, session token, principal reference, issued by reference, seam, transition, default session duration, token entropy, now, business caller, session duration, window length, zero duration, issuance instant, expiry deadline, expiry instant, lapsed, effective status, revocation instant, revoked by reference, revocation reason, reason, filter, liveness query, status, maximum length, validation failure, verified answer, invalid answer, authentication credential, claim set token.
 
-NOTE: open 2026-10-26-c — sixteen declared terms carry no term entry, where spec-format's Terms item asks one per declared term (Term terms).
-
 #### Session
 
 The record this atom defines: a time-limited authenticated channel — a durable attestation that a principal was authenticated at a specific moment, queryable until the [Session] lapses or is revoked. It carries its [Session Token], [Principal Reference], [Issued By Reference], [Issuance Instant], [Expiry Instant], [Status], and the revocation fields; its [Expiry Instant] is set once on [Issue] and never mutated. A [Session] that needs a longer lifetime is re-issued, never extended.
@@ -836,7 +834,6 @@ open:
 - 2026-10-21-a · refining · Operation 37; [Read] · [Read] answers the matching sessions in no stated order → an order
 - 2026-10-21-h · refining · Term seam · Term seam names no default session duration, which [Issue] applies (Operation 6) → say where the default enters
 - 2026-10-21-j · refining · Operation 8; Summary · no maximum bounds a supplied session duration, while the Summary names short-lived elevated-access windows → a deployment maximum, or the Summary's claim narrowed
-- 2026-10-26-c · refining · Term terms; Vocabulary · sixteen declared terms (seam, transition, default session duration, token entropy, business caller, window length, zero duration, expiry deadline, lapsed, liveness query, maximum length, validation failure, verified answer, invalid answer, authentication credential and claim set token) carry no term entry, where spec-format's Terms item asks one per declared term and every specification writes one per name a bracket marker lands on → add the entries, each with a Kind the term entry grammar admits, or read the item as the bracketed names; Credential's 2026-10-26-c routes the same
 ```
 
 ## Decisions

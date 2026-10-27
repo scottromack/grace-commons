@@ -172,8 +172,6 @@ Term new assignee reference: the opaque reference naming the actor a reassignmen
 
 Term recording commit: the commit of the [Assign] or [Reassign] call that recorded an assignment, one position in the single order Execution Contract Order 1 gives every commit.
 
-NOTE: open 2026-10-26-b — Term recording commit carries no term entry, and no Kind a term entry takes fits a commit's position, which no field stores.
-
 The case space, and the rule that owns each case:
 
 | Call | Case | Answer | Effect on the assignment records |
@@ -630,7 +628,6 @@ last gate: 2026-10-26 — Final Critique 7 — foundational count 0, clean, one 
 open:
 - 2026-10-21-a · refining · Term seam; Term transition; Term business caller · each says the section titled Logic Confinement Principle in `execution-contract.md` declares it, and that section declares none of the three and calls the composition layer the seam (Logic confinement 2); seam, transition and business caller have no term entry → declare the three there, the corpus's one seam wording, or point each at its declaration, and give each a term entry
 - 2026-10-26-a · refining · Identity 2; Capability requirement 1, 4 · the assignment id's source is named as the host's allocation (Identity 2) and not among what the deployment supplies, where the atom shape in `spec-format.md` lists an id source under Capability requirement; Event Log (its 2026-10-22-b) and Tamper Evidence (its 2026-10-22-a) route the same form → name the source among the Capability requirements, in the one form the corpus settles for its twenty host-allocation atoms
-- 2026-10-26-b · refining · Term recording commit; Term terms · recording commit is declared and carries no term entry, where spec-format's Terms item asks one per declared term, and no Kind a term entry takes (Type, Field, Operation, Parameter, Member) fits a commit's position, which no field stores; Event Log routes its seven so (its 2026-10-23-a) → add the entry under a Kind the term entry grammar admits, or read the item as the bracketed names
 ```
 
 ## Decisions

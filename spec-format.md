@@ -97,7 +97,7 @@ The table under the section titled *Atom headings* owns each heading's name, lev
 
 10. **Composition notes.** Which composing patterns name this atom (with links). New entries land here when a new composition is grounded; forthcoming-links resolve when the composition lands.
 
-11. **Terms.** The spec's registry — the `Term` lines listing its actors, records, record verbs, value sets, bounds, cadences, qualifiers and terms — and *Vocabulary*, one `####` term entry per declared term: the reader's copy of each declaration (the entry *A term entry is the reader's copy* below).
+11. **Terms.** The spec's registry — the `Term` lines listing its actors, records, record verbs, value sets, bounds, cadences, qualifiers and terms — and *Vocabulary*, one `####` term entry per name a bracket marker lands on: the reader's copy of that name's declaration (the entry *A term entry is the reader's copy* below).
 
 12. **Standards references.** The regulatory or industry standards the atom's invariants satisfy or contribute toward, with section anchors where applicable. Cite only standards that genuinely apply at this layer; frame standards that belong to a composing pattern as the composing pattern's obligation.
 

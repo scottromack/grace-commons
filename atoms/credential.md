@@ -636,8 +636,6 @@ Term qualifiers: migrated — rewritten in GRACE lang v0.40 (2026-09-13).
 
 Term terms: credential, credential id, lapse instant, pair, property, reference, database instance, seam, transition, now, transitioning write, stored terminal, status, window reading, live, lapsed, effective-active credential, lapsed credential, proceeding verify, effective status, verifier, derivation function, derivation registry, foldable difference, length bound, material bound, default validity, check function, filter, fresh credential id, authorized caller, credential write, secret verifier, constant time, settled reading, terminal field, admitted register, admitted rotate, admitted revoke, string input, verification failure, default expiry, empty material, id material.
 
-NOTE: open 2026-10-26-c — thirty-eight declared terms carry no term entry, where spec-format's Terms item asks one per declared term (Term terms).
-
 Term cited: the section titled Logic Confinement Principle in `execution-contract.md` — the seam and the transition.
 
 Term composing pattern: [Party Identity](./party-identity.md), [Session](./session.md), [Permissions](./permissions.md), [Actor Identity](./actor-identity.md), [Capability](./capability.md), [Event Log](./event-log.md), [Tamper Evidence](./tamper-evidence.md), [Login](../compositions/login.md), [External Onboarding](../compositions/external-onboarding.md), a compromise disclosure pattern *(forthcoming)*, a trusted timestamping pattern *(forthcoming)*, a challenge pattern *(forthcoming)*, [Retention Window](./retention-window.md).
@@ -1000,7 +998,6 @@ formal: verified — credential.tla + 4 twins, 2026-09-29
 last gate: 2026-10-26 — Final Critique 18 — foundational count 1, not clean, no sample
 
 open:
-- 2026-10-26-c · refining · Term terms; Vocabulary · thirty-eight declared terms (every name on Term terms but credential, credential id, now, status, effective status and verifier) carry no term entry, where spec-format's Terms item asks one per declared term and every specification writes one per name a bracket marker lands on → add the entries, each with a Kind the term entry grammar admits, or read the item as the bracketed names
 - 2026-10-21-b · refining · Term seam, transition; Term cited · each cites the section titled Logic Confinement Principle in `execution-contract.md`, which declares none of them → cite what declares each, as Event Log's 2026-10-20-c and Permissions' 2026-10-21-f ask of the same three sentences
 - 2026-10-21-c · refining · Capability requirement 25, 26; Operation 21, 66, 67 · the host runs the derivation function (on [Register], and on [Rotate] for the type its read finds) and the check function (on [Verify], against the credential Operation 70 selects) at the seam and injects each result, as the contract's section titled Logic Confinement Principle says, and the pipeline in `execution-contract.md` gives that injection no step between the read and the decision, nor its query member a step for a query's check or its clock reading → draw the injection on the contract
 - 2026-09-29-e · refining · Final Critique 12 · routed open, non-blocking: the NIST verifier-storage claim against Non-goal 39 and Capability requirement 5; a public key's check normalizes nothing the page names; a lapse reopens a principal reference to any enrollment proof, unstated → one refining pass

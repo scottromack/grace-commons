@@ -412,8 +412,6 @@ Term qualifiers: migrated — rewritten in GRACE lang v0.35 (2026-09-12); uncomp
 
 Term terms: now, verification set, attestation, attestation id, action reference, action content, actor reference, seam, transition, business caller, attested, proof, attestation instant, credential, public material, current material, attestation field, cryptographic material, registry answer, registry view, credential check, proof check, verification failure.
 
-NOTE: open 2026-10-23-a — fifteen declared terms carry no term entry, where spec-format's Terms item asks one per declared term (Term terms).
-
 #### Attestation
 
 The record this atom defines: a permanent, verifiable binding of one action to the actor who authorized it. It carries its [Attestation Id], [Action Reference], [Actor Reference], [Proof], and [Attestation Instant]; nothing about it changes once recorded, and the atom offers no surface to revoke or modify it.
@@ -643,7 +641,6 @@ open:
 - 2026-10-20-e · refining · Non-goal 15 · carrying an actor reference across trust domains is forbidden with no owner named, where the Non-goal family names who owns what the atom does not do → name the owner, or a forthcoming pattern
 - 2026-10-20-f · refining · [Read]; Term bounds · [Read] answers every attestation with no bound and no key → a bound, or a keyed read
 - 2026-10-22-a · refining · Term seam; Term transition; Term business caller · each term cites the section titled Logic Confinement Principle in `execution-contract.md`, which declares none of them → settle the corpus's one seam wording where every specification carrying it can take the cure
-- 2026-10-23-a · refining · Term terms; Vocabulary · fifteen declared terms (now, verification set, action content, seam, transition, business caller, public material, current material, attestation field, cryptographic material, registry answer, registry view, credential check, proof check, verification failure) carry no term entry, where spec-format's Terms item asks one per declared term and every specification writes one per name a bracket marker lands on → add the entries, each with a Kind the term entry grammar admits, or read the item as the bracketed names
 ```
 
 ## Decisions
