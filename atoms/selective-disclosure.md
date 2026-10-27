@@ -103,6 +103,7 @@ NOTE: open 2026-10-21-f — State 1 and Invariant 3.1 both require a disclosure 
 ```
 Capability requirement 1: The deployment MUST supply now at the seam.
 Capability requirement 5: The deployment MUST supply the disclosure records PER Execution Contract Database 1, Execution Contract Database 3, Execution Contract Database 4, Execution Contract Database 6, Execution Contract Read 1 through 3, Execution Contract Refusal 1 and Execution Contract Query 1 through 4.
+Capability requirement 6: The deployment MUST call [Record] for EVERY transmission of a subject's data to a party beside the subject.
 Deleted: Capability requirement 2. Execution Contract Logic confinement 7 owns it.
 Deleted: Capability requirement 3. Execution Contract Logic confinement 7 owns it.
 Deleted: Capability requirement 4. Execution Contract Logic confinement 7 owns it.
@@ -232,9 +233,6 @@ Term admitted read: a [Read] call whose every filter axis and filter value the g
   Deleted: Invariant 6.2. Execution Contract Database 1 owns it.
   Deleted: Invariant 6.3. Execution Contract Database 3 owns it.
   ```
-
-NOTE: open 2026-10-21-e — Invariant 5.1's subject is a transmission, and no rule names the party that records each one: Composition note 8 binds only a composing pattern that closes it, and External check 2 reads an egress record no rule requires.
-
 ---
 
 ## Examples
@@ -430,7 +428,7 @@ Term cadences: empty.
 
 Term qualifiers: migrated — rewritten in GRACE lang v0.40 (2026-09-12).
 
-Term terms: disclosure record, disclosure id, subject reference, recipient, scope, database instance, seam, transition, now, business caller, authority, authority type, authority types, authority reference, disclosure instant, resolved disclosure instant, filter axes, admitted record, string input, blank.
+Term terms: disclosure record, disclosure id, subject reference, recipient, scope, database instance, seam, transition, now, business caller, authority, authority type, authority types, authority reference, disclosure instant, resolved disclosure instant, filter axes, admitted record, admitted read, string input, correction narrative.
 
 #### Record
 
@@ -584,12 +582,11 @@ Projection: invalid-query
 ```
 status: partially resolved
 formal: not applicable — vote no 2026-06-03
-last gate: 2026-10-27 — Final Critique 7 — foundational count 2, not clean, no sample
+last gate: 2026-10-27 — Final Critique 8 — foundational count 1, not clean, no sample
 
 open:
 - 2026-10-05-a · refining · Composition note 9 · read to the letter it forbids a pattern that reads the disclosure records from writing to them at all, where the atom's own account of Resolve a Person's Data Rights has that composition read and record through the atom's surfaces → say no write beside [Record]; reported by that composition's gate
 - 2026-10-21-d · refining · String 7 · the rule obliges the deployment to canonicalize an opaque reference, a phrase no Term declares (Term subject reference alone calls itself one), so which inputs it covers is left to the reader → name them
-- 2026-10-21-e · refining · Invariant 5.1; Composition note 8; External check 2 · the invariant's subject is a transmission, and no rule names the party that records each one: Composition note 8 binds only a composing pattern that closes it, and External check 2 reads an egress record no rule requires → name the owner, as the owners NOTE names the calling system for Non-goal 4 through 6
 - 2026-10-21-f · refining · State 1; Invariant 3.1; Term disclosure instant; Term resolved disclosure instant · one proposition stated twice: State 1 and Invariant 3.1 both require a disclosure instant on every record, and Term disclosure instant's never later than now restates Invariant 4.1 beside a second Term for the instant the record carries → one owner each
 - 2026-10-21-g · refining · Identity 6; Term database instance · the rule reads as each call routed to one instance or as every call routed to the same instance, and under the first a subject reference query answers only its own instance's records → say which
 - 2026-10-21-h · refining · Generation acceptance; Check 4.1; Check 6.1 · the bar says an external auditor clears the atom from the disclosure records, and Check 4.1 and Check 6.1 find [Record]'s answers to calls, which no record carries → say where those checks run
