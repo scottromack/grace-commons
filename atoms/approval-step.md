@@ -18,7 +18,7 @@ toc: true
 
 Approval Step records a single authorization gate. A specific thing was submitted for approval, presented to one named approver, and ended in a decision — approved, rejected, or withdrawn — with who decided, when, and why.
 
-Each step has exactly one approver (the only person who may approve or reject it), one submitter (the only person who may withdraw it before a decision), one subject (the thing being approved), and one scope (the kind of approval being requested). Those, and the timestamps, are fixed at submission and never change.
+Each step has exactly one approver (the only person who may approve or reject it), one submitter (the only person who may withdraw it before a decision), one subject (the thing being approved), and one scope (the kind of approval being requested). Those, and the submission time, are fixed at submission and never change.
 
 A step has four states: pending, plus three terminal ones — approved, rejected and withdrawn, the last two each with a required reason. All three are absorbing; there is no re-open and no decision reversal.
 
@@ -63,7 +63,7 @@ Identity 10: The atom MUST compare a reference byte-exactly.
 Identity 11: The atom MUST NOT normalize a reference.
 Identity 12: The atom MUST NOT confirm that a subject reference names a known subject.
 Identity 13: The atom MUST NOT interpret a scope.
-Identity 14: The deployment MUST supply a reference in one canonical byte form.
+Deleted: Identity 14. String 7 owns it.
 ```
 
 NOTE: open 2026-10-26-a — the step id's source is named as the host's allocation (Identity 2) and not among what the deployment supplies (Capability requirement 1, Capability requirement 5).
@@ -154,9 +154,11 @@ Operation 3: IF submitter reference EQUALS blank THEN [Submit] MUST answer inval
 Operation 4: IF scope EQUALS blank THEN [Submit] MUST answer invalid-request.
 Operation 5: IF a supplied reason EQUALS blank THEN [Submit] MUST answer invalid-request.
 Operation 6: IF now PRECEDES the resolved submission instant THEN [Submit] MUST answer invalid-request.
+Operation 59: IF the resolved submission instant IS NOT IN the instants THEN [Submit] MUST answer invalid-request.
 Operation 7: An admitted submit MUST record EXACTLY ONE step.
 Operation 8: An admitted submit MUST stand the step in pending.
 Operation 9: An admitted submit MUST answer the step id.
+Operation 61: An admitted submit MUST record a supplied reason.
 Operation 10: IF step id EQUALS blank THEN a resolving action MUST answer invalid-request.
 Operation 11: IF the step id names no step THEN a resolving action MUST answer not-known.
 Deleted: Operation 12. Execution Contract Refusal 1 owns it.
@@ -167,6 +169,7 @@ Operation 16: IF reason EQUALS blank THEN [Reject] MUST answer invalid-request.
 Operation 17: IF reason EQUALS blank THEN [Withdraw] MUST answer invalid-request.
 Operation 18: IF now PRECEDES the resolved decision instant THEN a resolving action MUST answer invalid-request.
 Operation 19: IF the resolved decision instant PRECEDES the step's submission instant THEN a resolving action MUST answer invalid-request.
+Operation 60: IF the resolved decision instant IS NOT IN the instants THEN a resolving action MUST answer invalid-request.
 Operation 20: A resolving action MUST answer invalid-request on an attribution fault ONLY IF the step's state EQUALS pending.
 Operation 21: IF deciding actor DOES NOT EQUAL approver reference THEN a deciding action MUST answer unauthorized.
 Operation 22: IF withdrawing actor DOES NOT EQUAL submitter reference THEN [Withdraw] MUST answer unauthorized.
@@ -210,6 +213,10 @@ Operation 58: IF the query is malformed THEN [Read] MUST answer invalid-query.
 
 NOTE: watch the blank filter value (Operation 45).
 
+NOTE: watch the untyped input (Operation 59, Operation 60).
+
+NOTE: watch the optional field no rule records (Operation 61).
+
 Term now: the deployment's clock reading at the call, as Execution Contract Logic confinement 11 declares it.
 
 Term business caller: the party whose action the call carries, as the section titled Logic Confinement Principle in `execution-contract.md` declares it; never the source of an injected value.
@@ -218,7 +225,7 @@ NOTE: open 2026-10-26-b — Term seam, Term transition and Term business caller 
 
 Term states: pending | approved | rejected | withdrawn — a [State], and the whole state space.
 
-Term terminal state: approved | rejected OR withdrawn — the three absorbing members of states.
+Term terminal state: approved | rejected | withdrawn — the three absorbing members of states.
 
 Term resolving action: [Approve] | [Reject] | [Withdraw] — the three actions that close a pending step.
 
@@ -228,9 +235,11 @@ Term writing action: [Submit] | [Approve] | [Reject] | [Withdraw] — every acti
 
 Term deciding reference: deciding actor on a deciding action, and withdrawing actor on [Withdraw] — the actor reference a resolving action carries.
 
-Term resolved decision instant: the instant a resolving action records, as decision instant on a deciding action and as withdrawal instant on [Withdraw] — the supplied value where one exists, and now otherwise.
+Term resolved decision instant: the instant a resolving action records, as decision instant on a deciding action and as withdrawal instant on [Withdraw] — the supplied value, and now where the call leaves it blank.
 
-Term resolved submission instant: the submission instant the step carries — the supplied value where one exists, and now otherwise.
+Term resolved submission instant: the submission instant the step carries — the supplied value, and now where the call leaves it blank.
+
+NOTE: watch the instant left blank (Term resolved decision instant, Term resolved submission instant).
 
 Term submission field: step id, subject reference, approver reference, submitter reference, scope, submission instant OR reason — every field [Submit] sets.
 
@@ -238,7 +247,7 @@ Term attribution field: deciding actor, decision reason, decision instant, withd
 
 Term attribution reference: deciding actor on an approved step or a rejected step, and withdrawing actor on a withdrawn step — the actor reference a terminal step carries.
 
-Term attribution check: Operation 15 through 19 and Operation 57 — every check a resolving action makes before the actor guard.
+Term attribution check: Operation 15 through 19, Operation 57 and Operation 60 — every check a resolving action makes before the actor guard.
 
 Term attribution fault: an attribution check the call fails.
 
@@ -477,14 +486,16 @@ String 3: The atom MUST NOT normalize a string input.
 String 4: The atom MUST NOT case-fold a string input.
 String 5: The atom MUST read a whitespace-only string input as blank.
 String 6: The atom MUST read an absent string input as blank.
-String 7: The deployment MUST canonicalize an opaque reference.
+String 7: The deployment MUST canonicalize an opaque reference at the seam.
 ```
 
 Term string input: a reference, reason OR a filter's value — every caller-supplied string this atom accepts.
 
-NOTE: open 2026-10-21-c — nothing names the answer to a supplied submission, decision or withdrawal instant that cannot be read as an instant (Operation 6, Operation 18, Operation 19), and Term string input leaves the instant inputs out.
-
 NOTE: watch host obligations — this atom sets no maximum length on a string input, where [Duplicate Prevention](./duplicate-prevention.md) declares a cap and [Provenance](./provenance.md) obliges the deployment to set one. Three postures, and the *host obligations* docket row carries the count — a watch flag states the pressure, never a census nothing reads.
+
+NOTE: String 7 reaches every reference (Term reference), a filter's value on a string axis among them; the deployment canonicalizes each at the seam, in a form the deployment owns, before the transition compares or records it, since Identity 11 and String 3 keep the atom from normalizing.
+
+NOTE: watch the canonical form (String 7).
 
 ---
 
@@ -724,7 +735,7 @@ Projection: withdrawn
 
 #### Invalid Request
 
-The rejection a write action ([Submit], [Approve], [Reject], [Withdraw]) returns when an input is malformed — a blank required field, the [Step Id] among them, a missing-reason [Reject]/[Withdraw], a blank reason supplied to [Submit] or [Approve], a future or backdated-before-[Submission Instant] timestamp. A guard rejection that writes nothing.
+The rejection a write action ([Submit], [Approve], [Reject], [Withdraw]) returns when an input is malformed — a blank required field, the [Step Id] among them, a missing-reason [Reject]/[Withdraw], a blank reason supplied to [Submit] or [Approve], a supplied timestamp that is not an instant, a future or backdated-before-[Submission Instant] timestamp. A guard rejection that writes nothing.
 
 Kind:       Member
 Member of:  the action rejection
@@ -834,10 +845,9 @@ Projection: invalid-query
 ```
 status: partially resolved
 formal: verified — approval-step.tla + 1 twin, 2026-06-03
-last gate: 2026-10-26 — Final Critique 7 — foundational count 4, not clean, no sample
+last gate: 2026-10-27 — Final Critique 8 — foundational count 1, not clean, no sample
 
 open:
-- 2026-10-21-c · refining · Operation 6; Operation 18; Operation 19; Term string input · nothing names the answer to a supplied submission, decision or withdrawal instant that cannot be read as an instant, and Term string input leaves the instant inputs out → a rule answering it invalid-request, or the binding named as its owner
 - 2026-10-21-d · refining · Indeterminate outcome 1 · a caller with no answer is sent to the step records, and no read says whether its submit landed, where two submits carrying one field set are two steps (Non-goal 1); its BEFORE takes a clause where the grammar's tail takes a term → name the read, or Duplicate Prevention (Non-goal 2) as its owner, and write the tail on a term
 - 2026-10-21-e · refining · Non-goals NOTE · the owners NOTE gives no owner for Non-goal 7 or Non-goal 8 → one owner each, linked or marked forthcoming
 - 2026-10-26-a · refining · Identity 2; Capability requirement 1, 5 · the step id's source is named as the host's allocation (Identity 2) and not among what the deployment supplies, where the atom shape in `spec-format.md` lists an id source under Capability requirement; Assignment (its 2026-10-26-a), Event Log (its 2026-10-22-b) and Tamper Evidence (its 2026-10-22-a) route the same form → name the source among the Capability requirements, in the one form the corpus settles for its twenty host-allocation atoms
