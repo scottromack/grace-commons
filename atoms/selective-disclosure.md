@@ -296,6 +296,7 @@ Check 5.2: An auditor MUST find an authority type query answering ONLY the discl
 Check 5.3: An auditor MUST find an unmatched well-formed query answering an empty record sequence (Operation 20).
 Deleted: Check 6.1. Operation 7 owns it.
 Deleted: Check 6.2. Operation 7 owns it.
+NOTE: watch the check no record answers (Check 4.1, Check 4.2, Check 6.1).
 ```
 
 NOTE: EVERY check names the rule the check tests.
