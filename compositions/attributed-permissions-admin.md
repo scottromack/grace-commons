@@ -465,11 +465,11 @@ Term non-conformant purge: an aged-out unpaired attestation carrying no orphan l
 
 ```
 Invariant 1.1: An administered grant MUST carry a grant attribution entry.
-Invariant 1.2: A grant attribution entry MUST name an attestation the Actor Identity records hold.
+Invariant 1.2: A grant attribution entry MUST name an attestation the Actor Identity records hold, an attestation a lawful destruction took excepted.
 Deleted: Invariant 1.3. Execution Contract Database 1 owns it.
 Invariant 1.4: The composition MUST NOT claim Invariant 1.1 over a grant a direct database write produced.
 Invariant 2.1: An administered revoked grant MUST carry a revocation attribution entry.
-Invariant 2.2: A revocation attribution entry MUST name an attestation the Actor Identity records hold.
+Invariant 2.2: A revocation attribution entry MUST name an attestation the Actor Identity records hold, an attestation a lawful destruction took excepted.
 Deleted: Invariant 2.3. Execution Contract Database 1 owns it.
 Invariant 2.4: The composition MUST NOT claim Invariant 2.1 over a grant a direct database write revoked.
 Invariant 3.1: The composition MUST answer a grant's record, the grant's issuance attestation AND the issuance verification PER consistent attribution.
@@ -840,11 +840,11 @@ It inherits from:
 
 ```
 status: partially resolved
-formal: pending — re-derivation, 2026-08-30: the Failed-Grant Reconciliation leg is now a second, report-only process over each attestation with completion bounds below which it examines nothing, and Invariants 1 and 2 rest on a declared pairing-write atomicity the model takes as given rather than as a capability; and, 2026-09-10, [Revoke Permission] and Invariant 9 are prose repairs the model does not confirm — it carries one grant per pair and so cannot express an enumerated set, a partial sweep, or a grant landing mid-sweep (NOT MODELED); was verified — attributed-permissions-admin.als + attributed-permissions-admin.tla + 1 twin, 2026-06-12
+formal: verified — attributed-permissions-admin.tla + 5 twins + 9 probes, and attributed-permissions-admin.als + 1 twin (issuance and revocation, 2026-06-12), 2026-10-27
 last gate: 2026-10-27 — Final Critique 8 — foundational count 7, not clean, no sample
 
 open:
-- 2026-08-30-b · refining · formal · the model has no report-only leg as a second process over an attestation and no [Revoke Permission] — a pair-scoped invocation over an Active set of several, with the concurrent-issue race Invariant 9 is deliberately not stated over → extend it, and check Invariant 9 and the race against a second writer rather than asserting either from the prose
+- 2026-08-30-b · refining · formal · attributed-permissions-admin.tla models no failed-grant leg's ages, horizon or report (Housekeeping 13 through 18) and no clock (Invariant 4), so no model checks that an aged-out unpaired attestation is reported as a purge-pending orphan or a non-conformant purge → model the leg's horizon arm over aged-out unpaired attestations
 - 2026-10-27-a · foundational · Action wiring 8, 10, 26, Wiring decision 4, 5, Atomic writes 8 · a refused issuance or revocation keeps its landed attestation and writes its orphan log entry, the evidence the 2026-10-20 Decision keeps as a domain choice, while Execution Contract Read 4 says a refused call writes nothing → keep the orphan as evidence or retire it, once the maintainer reads whether a refused outcome leaves an act's other writes committed (Multi-Party Approval 2026-10-26-d, Actor Suspension 2026-10-26-c)
 - 2026-10-27-b · refining · Composition state 16, 17, 19, 28 · an orphan log entry carries the proposal and is never dropped, while its orphan attestation is purged under its own retention → say whether a purge covers the entry, or the entry ages out on a retention of its own
 ```
