@@ -112,7 +112,7 @@ State 15: The atom MUST NOT record a receipt instant.
 
 ```
 Capability requirement 1: The deployment MUST supply now at the seam.
-Capability requirement 5: The deployment MUST supply the step records PER Execution Contract Database 1 through 4, Execution Contract Database 7, Execution Contract Read 1 through 3, Execution Contract Refusal 1, Execution Contract Query 1 through 4 and Execution Contract Input 1.
+Capability requirement 5: The deployment MUST supply the step records PER Execution Contract Database 1 through 5, Execution Contract Database 7, Execution Contract Read 1 through 3, Execution Contract Refusal 1, Execution Contract Query 1 through 4 and Execution Contract Input 1.
 Deleted: Capability requirement 2. Execution Contract Logic confinement 7 owns it.
 Deleted: Capability requirement 3. Execution Contract Logic confinement 7 owns it.
 Deleted: Capability requirement 4. Execution Contract Logic confinement 7 owns it.
@@ -159,6 +159,7 @@ Operation 7: An admitted submit MUST record EXACTLY ONE step.
 Operation 8: An admitted submit MUST stand the step in pending.
 Operation 9: An admitted submit MUST answer the step id.
 Operation 61: An admitted submit MUST record a supplied reason.
+Operation 62: An admitted submit MUST record subject reference, approver reference, submitter reference, scope and the resolved submission instant as submission instant.
 Operation 10: IF step id EQUALS blank THEN a resolving action MUST answer invalid-request.
 Operation 11: IF the step id names no step THEN a resolving action MUST answer not-known.
 Deleted: Operation 12. Execution Contract Refusal 1 owns it.
@@ -379,7 +380,7 @@ A cross-border entry needs both finance and tax sign-off. Two [Submit] calls pro
 
 ## Generation acceptance
 
-This atom's acceptance is provable: an external auditor clears it from the step records.
+This atom's acceptance is provable: an external auditor clears it from the step records, with their committed versions (Execution Contract Database 5).
 
 ### Conformance checks
 
@@ -396,12 +397,16 @@ Check 4.1: An auditor MUST find EVERY approved step's deciding actor equal to th
 Check 4.2: An auditor MUST find EVERY rejected step's deciding actor equal to the step's approver reference (Invariant 4.2).
 Check 4.3: An auditor MUST find EVERY withdrawn step's withdrawing actor equal to the step's submitter reference (Invariant 5.1).
 Check 5.1: An auditor MUST find no attribution field on a pending step (State 13).
-Check 6.1: An auditor MUST find no step absent from a later unfiltered read (Invariant 10.1).
-Check 6.2: An auditor MUST find a re-read step's submission fields unchanged from the prior read (Invariant 1.1).
-Check 6.3: An auditor MUST find no step whose state EQUALS pending on a later read of a step a prior read found terminal (Invariant 3.1).
+Check 6.1: An auditor MUST find an unfiltered read answering EVERY step with a committed version (Invariant 10.1; Execution Contract Database 5).
+Check 6.2: An auditor MUST find EVERY step's submission fields unchanged across EVERY committed version of the step (Invariant 1.1; Execution Contract Database 5).
+Check 6.3: An auditor MUST find no step leaving a terminal state across two committed versions of the step (Invariant 3.1; Execution Contract Database 5).
 ```
 
 NOTE: EVERY check names the rule the check tests.
+
+NOTE: watch the check no record answers (Check 6.1, Check 6.2, Check 6.3).
+
+Term committed version: a record as it stood at the commit that wrote it, which Execution Contract Database 5 keeps readable after the record changes.
 
 ### External checks
 
@@ -533,7 +538,7 @@ Term cadences: empty.
 
 Term qualifiers: migrated — rewritten in GRACE lang v0.40 (2026-09-12).
 
-Term terms: step, step id, subject reference, approver reference, submitter reference, scope, reference, database instance, seam, transition, now, business caller, states, terminal state, resolving action, deciding action, writing action, deciding reference, resolved decision instant, resolved submission instant, submission field, attribution field, attribution reference, attribution check, attribution fault, filter axes, string axes, query, admitted submit, authorization anchor, admitted resolve, admitted approve, admitted reject, admitted withdraw, admitted read, success token, string input, blank.
+Term terms: step, step id, subject reference, approver reference, submitter reference, scope, reference, database instance, seam, transition, now, business caller, states, terminal state, resolving action, deciding action, writing action, deciding reference, resolved decision instant, resolved submission instant, submission field, attribution field, attribution reference, attribution check, attribution fault, filter axes, string axes, query, admitted submit, authorization anchor, admitted resolve, admitted approve, admitted reject, admitted withdraw, admitted read, success token, committed version, string input, blank.
 
 #### Approval Step
 
@@ -839,7 +844,7 @@ Projection: invalid-query
 ```
 status: partially resolved
 formal: verified — approval-step.tla + 1 twin, 2026-06-03
-last gate: 2026-10-27 — Final Critique 9 — foundational count 1, not clean, no sample
+last gate: 2026-10-28 — Final Critique 10 — foundational count 1, not clean, no sample
 
 open:
 - 2026-10-21-d · refining · Indeterminate outcome 1 · a caller with no answer is sent to the step records, and no read says whether its submit landed, where two submits carrying one field set are two steps (Non-goal 1); its BEFORE takes a clause where the grammar's tail takes a term → name the read, or Duplicate Prevention (Non-goal 2) as its owner, and write the tail on a term
