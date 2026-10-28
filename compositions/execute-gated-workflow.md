@@ -292,7 +292,8 @@ Audit arm 7: IF Audit Trail answers invalid-request(step-4) at an outcome THEN t
 Audit arm 8: A read-back MUST match the outcome carrying the act's minted id.
 Audit arm 9: IF the read-back finds the outcome THEN the invocation MUST proceed as landed.
 Deleted: Audit arm 10. Execution Contract Database 2 owns it.
-Audit arm 11: IF Audit Trail answers recording-failure carrying a pre-append step at an outcome THEN the action MUST answer recording-failure carrying post-commit.
+Audit arm 11: IF Audit Trail answers recording-failure at an outcome THEN the action MUST answer recording-failure carrying post-commit.
+NOTE: watch the retention step's recording failure (Audit arm 11).
 Deleted: Audit arm 12. Execution Contract Database 1 owns it: an action's writes commit together, so no invocation retries an outcome.
 Audit arm 13: A caller MUST read recording-failure carrying pre-commit as a committed nothing.
 Audit arm 14: A caller MUST NOT re-invoke an instance action on recording-failure carrying post-commit.
