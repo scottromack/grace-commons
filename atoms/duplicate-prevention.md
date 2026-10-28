@@ -16,7 +16,7 @@ toc: true
 
 ## Summary
 
-Duplicate Prevention gives a system a short-term memory of things it has recently seen, so it can spot repeats. The way it works is simple. When something happens (an item is removed, a request is processed), the system records the thing's identity — a value that names it, such as the item's text or the request's key; before accepting a new one, it checks whether that identity was recorded within a set time window. If it was, the check reports "seen" and the system can decide what to do — reject the repeat, ignore it, or return the earlier result. Once the window has passed, the same identity is fresh again. The pattern itself stays out of that decision and out of how identities are compared — those belong to the system using it — which is why the same mechanism works for a to-do list (a one-day window blocks accidental re-adds), a payment system (a few-minute window stops a retried charge from billing twice), a comment box (a one-minute window stops double-click double-posts), and a signup form. One firm guarantee: recording the same identity again does not push the window forward, so a flurry of repeats cannot extend the block indefinitely — the clock starts at the first sighting and runs out at a fixed time.
+Duplicate Prevention gives a system a short-term memory of things it has recently seen, so it can spot repeats. When something happens (an item is removed, a request is processed), the system records the thing's identity — a value that names it, such as the item's text or the request's key; before accepting a new one, it checks whether that identity was recorded within a set time window. If it was, the check reports "seen" and the system can decide what to do — reject the repeat, ignore it, or return the earlier result. Once the window has passed, the same identity is fresh again. The pattern itself stays out of that decision and out of how identities are compared — those belong to the system using it — which is why the same mechanism works for a to-do list (a one-day window blocks accidental re-adds), a payment system (a few-minute window stops a retried charge from billing twice), a comment box (a one-minute window stops double-click double-posts), and a signup form. One firm guarantee: recording the same identity again does not push the window forward, so a flurry of repeats cannot extend the block indefinitely — the clock starts at the sighting that opened the window and runs out at a fixed time.
 
 *Also known as: temporal idempotency (a repeat inside a stretch of time has no further effect), recency guard, cooldown window.*
 
@@ -150,19 +150,19 @@ NOTE: open 2026-10-21-c — three propositions are each owned twice: a fresh gua
 
 A user deletes *"buy milk."* Personal Todo calls [Record] with `"buy milk"`. Two hours later, the user attempts to add *"buy milk"* again. Personal Todo calls [Check] with `"buy milk"`, receives [Seen], rejects the add as `duplicate-recent`. Twenty-five hours after the original delete, the user tries again. Personal Todo calls [Check] with `"buy milk"`, receives [Not Seen], accepts the add.
 
-(`duplicate-recent` is shown verbatim by design: it is the **composing pattern's** pinned rejection string — neither this atom's nor Personal Todo's, since neither raises it; it exists only where the two are wired together, and its wire form is frozen because callers switch on the exact string. It is not this atom's Term; when Personal Todo carries a Terms registry it becomes a cross-page reference to that pattern's term entry. Per [`annotation.md`](../working-ideas/annotation.md), a pinned wire literal shown to display its exact form stays backticked — "literal" is a pinned projection, not a kind.)
+(`duplicate-recent` is shown verbatim by design: it is the **composing pattern's** pinned rejection string — neither this atom's nor Personal Todo's, since neither raises it; it exists only where the two are wired together, and its wire form is frozen because callers switch on the exact string. It is not this atom's Term; Personal Todo's term entry [Duplicate Recent](./personal-todo.md#duplicate-recent) names it. Per [`annotation.md`](../working-ideas/annotation.md), a pinned wire literal shown to display its exact form stays backticked — "literal" is a pinned projection, not a kind.)
 
 ### Comment double-post protection (60-second window)
 
-A user submits a comment, the page hangs, they click submit again. The comment system calls [Record] with the normalized comment text after the first submission completes. The second click triggers [Check], receives [Seen], rejects the second post. The first comment goes through; the second does not.
+A user submits a comment, the page hangs, they click submit again. The comment system calls [Record] with the normalized comment text after the first submission completes. The second click triggers [Check], receives [Seen], rejects the second post. The first comment goes through; the second does not. Two clicks at once can both receive [Not Seen] and both post, since the system checks and records in separate steps (see the Composition notes).
 
 ### Payment idempotency (5-minute window)
 
-A payment processor receives a charge request with an idempotency key. It calls [Check] with the key, receives [Not Seen], processes the charge, caches the response against the key in its own records and calls [Record] with the key. A retry two minutes later triggers [Check] with the key, receives [Seen], and the processor returns its cached result without re-processing.
+A payment processor receives a charge request with an idempotency key. It calls [Check] with the key, receives [Not Seen], processes the charge, caches the response against the key in its own records and calls [Record] with the key. A retry two minutes later triggers [Check] with the key, receives [Seen], and the processor returns its cached result without re-processing. Two requests with the same key at once can both receive [Not Seen] and both be charged, since the processor checks and records in separate steps (see the Composition notes).
 
 ### Newsletter double-subscribe (1-hour window)
 
-A user submits the same email address to a newsletter form twice in quick succession (browser back button, double-click on submit). The first submission processes. The second, a few seconds later, triggers [Seen] and is silently absorbed-as-already-subscribed rather than producing a duplicate confirmation email.
+A user submits the same email address to a newsletter form twice in quick succession (browser back button, double-click on submit). The first submission processes. The second, a few seconds later, receives [Seen] and is silently absorbed-as-already-subscribed rather than producing a duplicate confirmation email.
 
 The mechanic is identical across all four. What differs: the [Window Duration], the identity-matching rule, and the containing pattern's response on [Seen] (reject, return-cached, silently-absorb).
 
@@ -213,7 +213,7 @@ Non-goal 1: The atom MUST NOT decide the containing pattern's response to an ans
 Deleted: Non-goal 2. Execution Contract Database 3 owns it.
 Deleted: Non-goal 3. Execution Contract Database 3 owns it.
 Non-goal 4: The atom MUST NOT reconcile two recorded sets.
-Non-goal 5: A pattern needing one guard across every node MUST compose a coordination pattern.
+Non-goal 5: A pattern needing one guard across every instance MUST compose a coordination pattern.
 Deleted: Non-goal 6. Operation 7 and Execution Contract Database 4 own it.
 Non-goal 7: A pattern needing long-term history MUST compose an audit pattern.
 Non-goal 8: The atom MUST NOT supply the matching rule.
@@ -224,7 +224,7 @@ Non-goal 12: The atom MUST NOT correct clock skew.
 Non-goal 13: A pattern needing a strictly monotonic guard MUST compose a logical-clock pattern.
 ```
 
-NOTE: the owners — the containing pattern (Non-goal 1, Operation 12; Non-goal 8, Identity 5); the deployment (Non-goal 4, Non-goal 5); a Coordination pattern *(forthcoming)* (Non-goal 4, Non-goal 5); an Audit pattern (Non-goal 7); Sliding Window *(forthcoming)* (Non-goal 9); a Calendar Day pattern *(forthcoming)* (Non-goal 10, Non-goal 11).
+NOTE: the owners — the containing pattern (Non-goal 1, Operation 12; Non-goal 8, Identity 5); the deployment (Non-goal 4, Non-goal 5, Non-goal 12); a Coordination pattern *(forthcoming)* (Non-goal 4, Non-goal 5); an Audit pattern (Non-goal 7); Sliding Window *(forthcoming)* (Non-goal 9); a Calendar Day pattern *(forthcoming)* (Non-goal 10, Non-goal 11); a Logical Clock pattern *(forthcoming)* (Non-goal 13).
 
 Where the pattern breaks down: when *recent* is measured by something other than wall-time elapsed. Number of intervening events, calendar-day boundaries and business-day boundaries each take a separate concept.
 
@@ -303,13 +303,13 @@ Kind: Type
 
 #### Window
 
-The bounded interval of time during which a recently-recorded [Identity] is still guarded. It opens when the [Identity] is first recorded and closes after a [Window Duration] the containing pattern sets; once it has elapsed, the same [Identity] is fresh again. (The interval is the concept; the duration value that sizes it is a separate [Window Duration] supplied per containing pattern.)
+The bounded interval of time during which a recently-recorded [Identity] is still guarded. It opens when a [Record] places the [Identity] under guard and closes after a [Window Duration] the containing pattern sets; once it has elapsed, the same [Identity] is fresh again. (The interval is the concept; the duration value that sizes it is a separate [Window Duration] supplied per containing pattern.)
 
 Kind: Type
 
 #### Recorded Set
 
-The atom's memory: every [Identity] a [Record] has placed under guard, each held together with the time its current guard opened. An [Identity] enters on [Record] and stays: once its [Window] has elapsed it is no longer under guard and [Check] answers [Not Seen] for it, but no action of the atom removes its entry. It is an internal mechanism, queryable for diagnostics, not a user-facing surface.
+The atom's memory: every [Identity] a [Record] has placed under guard, each held together with the time its current guard opened. An [Identity] enters on [Record] and stays: once its [Window] has elapsed it is no longer under guard and [Check] answers [Not Seen] for it, but no action of the atom removes its entry. It is an internal mechanism, not a user-facing surface.
 
 Kind:       Type
 Projection: recorded
@@ -414,14 +414,14 @@ It inherits from:
 
 ## Status
 
-`partially resolved` — see the Ledger.
+`grounded on Final Critique 7 — 2026-10-28` — see the Ledger.
 
 ## Ledger
 
 ```
-status: partially resolved
+status: grounded on Final Critique 7 — 2026-10-28
 formal: verified — duplicate-prevention.tla + 1 twin, 2026-06-03
-last gate: 2026-10-28 — Final Critique 6 — foundational count 1, not clean, no sample
+last gate: 2026-10-28 — Final Critique 7 — foundational count 0, clean, one sample
 
 open:
 - 2026-10-21-c · refining · Invariant 2.3; Operation 1; Non-goal 1; Operation 12; Clock semantics 1; Operation 2; Invariant 2.2 · three propositions each owned twice: a fresh guard for an identity not under guard, the response left to the containing pattern, and a guard anchored to the opening record's now → one owner each (GRACE-lang Authority 3)
