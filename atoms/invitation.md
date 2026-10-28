@@ -110,7 +110,7 @@ Capability requirement 4: The deployment MUST declare the default ttl inside the
 Capability requirement 5: The deployment MUST declare the ttl bounds.
 Capability requirement 6: The database MUST refuse a write carrying an invitation token the database holds.
 Deleted: Capability requirement 7. Execution Contract Database 3 owns it.
-Capability requirement 8: The deployment MUST canonicalize an opaque reference.
+Deleted: Capability requirement 8. Execution Contract Logic confinement 13 owns it.
 Capability requirement 9: The deployment MUST deliver the invitation token to the invitee.
 Capability requirement 12: The deployment MUST supply the invitation records PER Execution Contract Database 1 through 4, Execution Contract Database 7, Execution Contract Read 4 and Execution Contract Refusal 1.
 Deleted: Capability requirement 10. Execution Contract Logic confinement 7 owns it.
@@ -470,7 +470,7 @@ Term actors: the atom; the deployment; the database; the seam; the transition; a
 
 Term records: invitation — one invitation issued by one inviter to join one context, carrying invitation token, inviter reference, context, initiation instant, expiry instant, a status and, where supplied or set, invitee reference, accepting identity reference, acceptance instant, declination instant, revoked by reference, revocation reason and revocation instant.
 
-Term record verbs: identify, assign, generate, change, share, reuse, carry, stand, read, answer, record, leave, admit, offer, hold, refuse, write, find, resolve, name, compare, normalize, confirm, match, route, append, register, create, pass, attest, cover, call, fall, precede, sample, consume, supply, deliver, canonicalize, declare, compose, remove, bind, decide, define, bound, reach, accept, trim, case-fold, compute, reproduce, reconstruct, draw, verify, sequence, issue, detect, guarantee, take, store.
+Term record verbs: identify, assign, generate, change, share, reuse, carry, stand, read, answer, record, leave, admit, offer, hold, refuse, write, find, resolve, name, compare, normalize, confirm, match, route, append, register, create, pass, attest, cover, call, fall, precede, sample, consume, supply, deliver, declare, compose, remove, bind, decide, define, bound, reach, accept, trim, case-fold, compute, reproduce, reconstruct, draw, verify, sequence, issue, detect, guarantee, take, store.
 
 Term value sets: status = pending | accepted | declined | revoked. effective status = pending | accepted | declined | revoked | expired. stored terminal = accepted | declined | revoked. window reading = live | lapsed. property = inviter reference | invitee reference | context | initiation instant | expiry instant. resolution field = accepting identity reference | acceptance instant | declination instant | revocation instant | revoked by reference | revocation reason.
 

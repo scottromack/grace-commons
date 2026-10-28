@@ -103,7 +103,7 @@ Capability requirement 5: The registry MUST release the critical section on the 
 Deleted: Capability requirement 6. Execution Contract Database 3 owns it.
 Capability requirement 7: A deployment firing [Expire] on a cadence MUST declare the cadence.
 Capability requirement 8: A deployment firing [Expire] on a cadence MUST declare the reclamation window the cadence falls inside.
-Capability requirement 9: The deployment MUST canonicalize an opaque reference.
+Deleted: Capability requirement 9. Execution Contract Logic confinement 13 owns it.
 Capability requirement 10: The registry MUST return the resource to availability on a releasing action.
 Capability requirement 11: The registry MUST NOT return the resource to availability on an admitted confirm.
 Capability requirement 12: A deployment firing [Expire] on a cadence MUST resolve EVERY lapsed commitment WITHIN the reclamation window.
@@ -449,7 +449,7 @@ Term actors: the atom; the deployment; the registry; the database; the seam; the
 
 Term records: commitment — one resource held for one requester for a bounded window, carrying id, resource, requester, placement instant, expiry instant, a state and, where set, confirmation instant, release instant or lapse instant.
 
-Term record verbs: identify, assign, generate, change, share, carry, stand, read, answer, record, leave, admit, offer, hold, return, refuse, write, find, resolve, name, compare, normalize, confirm, route, consult, append, place, produce, map, attest, fall, precede, sample, consume, supply, release, run, canonicalize, declare, compose, wire, remove, bind, decide, define, bound, surface, pass, reach, accept, pause, call, guarantee, trim, case-fold.
+Term record verbs: identify, assign, generate, change, share, carry, stand, read, answer, record, leave, admit, offer, hold, return, refuse, write, find, resolve, name, compare, normalize, confirm, route, consult, append, place, produce, map, attest, fall, precede, sample, consume, supply, release, run, declare, compose, wire, remove, bind, decide, define, bound, surface, pass, reach, accept, pause, call, guarantee, trim, case-fold.
 
 Term value sets: state = held | confirmed | released | expired. terminal state = confirmed | released | expired. terminal instant = confirmation instant | release instant | lapse instant. window reading = open | lapsed. window rejection = window-elapsed | window-not-elapsed. property = resource | requester | placement instant | expiry instant.
 
@@ -746,7 +746,6 @@ last gate: 2026-10-21 — Final Critique 5, the council's first round on the pag
 open:
 - 2026-10-21-a · refining · Term seam; Capability requirement 1, 2; Operation 5 · the host injects the registry's availability verdict at the seam (Term seam), yet no Capability requirement names its supply, as Capability requirement 1 and 2 name now's and the id material's → name the deployment's supply of the verdict beside them
 - 2026-10-21-b · refining · Capability requirement 3 through 5, 10, 11 · the registry's critical section and its return on a releasing action are bound, but not whether its own record of availability follows the commitment records' commit, so a registry writing that record outside the database transaction keeps a resource unavailable after a [Place Hold] the database refused, or makes one available on a [Release] the database refused while the commitment stands held → say whether the registry's availability follows the commit
-- 2026-10-21-c · refining · Capability requirement 9 · the deployment canonicalizes an opaque reference by a form the page never names, over references it never lists, so two deployments resolve one spelling two ways while each agrees with itself → name the form the deployment declares and the references it covers
 - 2026-10-21-d · refining · Term duration bounds; Operation 4 · the bounds are the implementation's admitted range, an owner Term actors does not name, and no Capability requirement has the deployment declare them → name who declares the bounds
 - 2026-10-21-e · refining · Capability requirement 8, 12; Term reclamation lag · the reclamation window is declared with no anchor, so whether a deployment meets Capability requirement 12 cannot be read from its declaration, while Term reclamation lag runs from the expiry instant → anchor the reclamation window at the expiry instant
 - 2026-10-21-f · refining · Intent; Examples; Release and Expire entries · the Intent, the Examples' closing line and the Release and Expire term entries credit the atom's actions with returning the resource, which Capability requirement 10 gives the registry (the 2026-09-13 entry) → say that the registry returns the resource on a releasing action

@@ -52,7 +52,7 @@ Identity 7: The atom MUST NOT identify a preference record by the principal refe
 Identity 8: The atom MUST NOT interpret a principal reference.
 Identity 9: The atom MUST NOT normalize a principal reference.
 Identity 10: The atom MUST match a principal reference exactly.
-Identity 11: The deployment MUST canonicalize a principal reference.
+Deleted: Identity 11. Execution Contract Logic confinement 13 owns it.
 ```
 
 Term preference id: the opaque value naming one preference record — a [Preference Id]; host-allocated at the seam, never reused.
@@ -543,7 +543,7 @@ Term actors: the atom; the host; the transition; the deployment; a composing pat
 
 Term records: preference record — one principal's stated delivery shaping, carrying preference id, principal reference, declared channels, set instant, status, the supplied preference fields and metadata, and, once stamped, suspension instant and deletion instant.
 
-Term record verbs: route, share, read, name, accept, carry, hold, offer, resolve, inject, stamp, validate, write, answer, surface, identify, allocate, reuse, change, interpret, normalize, match, canonicalize, record, stand, compare, remove, refuse, supply, rest, appear, move, call, own, enumerate, find, reconstruct, mark, disclose, fire, create, deliver, compose, evaluate, declare, detect, gate, expire, redact, seal, guarantee, push, replay, drop, witness, store, bound, return, capture, apply.
+Term record verbs: route, share, read, name, accept, carry, hold, offer, resolve, inject, stamp, validate, write, answer, surface, identify, allocate, reuse, change, interpret, normalize, match, record, stand, compare, remove, refuse, supply, rest, appear, move, call, own, enumerate, find, reconstruct, mark, disclose, fire, create, deliver, compose, evaluate, declare, detect, gate, expire, redact, seal, guarantee, push, replay, drop, witness, store, bound, return, capture, apply.
 
 Term value sets: status = active | suspended | deleted. preference field = channel preferences | frequency limit | quiet hours | format.
 
@@ -595,7 +595,7 @@ Projection: preference_id
 
 #### Principal Reference
 
-The opaque reference to the principal whose preferences are recorded. Set on [Set], immutable. Equality is exact and the atom normalizes nothing; the at-most-one-in-effect rule (Invariant 3) ranges over it, so canonicalization is the deployment's before the call.
+The opaque reference to the principal whose preferences are recorded. Set on [Set], immutable. Equality is exact and the atom normalizes nothing; the at-most-one-in-effect rule (Invariant 3) ranges over it, so canonicalization is the deployment's, at the seam (Execution Contract Logic confinement 13).
 
 Kind:       Field
 Field of:   the preference record

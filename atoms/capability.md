@@ -105,7 +105,7 @@ Deleted: Expiry 9. Operation 38 owns it.
 
 ```
 Capability requirement 1: The deployment MUST supply now at the seam.
-Capability requirement 5: The deployment MUST supply the capability records PER Execution Contract Database 1 through 4, Execution Contract Read 1 through 4 and Execution Contract Refusal 1.
+Capability requirement 5: The deployment MUST supply the capability records PER Execution Contract Database 1 through 4, Execution Contract Read 1 through 4, Execution Contract Refusal 1 and Execution Contract Input 1.
 Capability requirement 6: The deployment MAY configure a default capability ttl ONLY IF the default capability ttl EXCEEDS the zero duration.
 Capability requirement 7: The deployment MUST configure a default capability ttl.
 Capability requirement 8: The capability token's random material MUST NOT fall below the token entropy.
@@ -204,18 +204,16 @@ Deleted: Operation 57. Execution Contract Logic confinement 3 owns it.
 Operation 58: The atom MUST NOT offer an expire action.
 Operation 59: The atom MUST NOT offer a re-scope action.
 Operation 60: The atom MUST NOT offer an extend action.
-Operation 61: IF max redemptions DOES NOT EQUAL blank AND max redemptions IS NOT IN the whole counts THEN [Allocate] MUST answer invalid-request.
+Deleted: Operation 61. Execution Contract Input 1 owns it.
 Deleted: Operation 62. Execution Contract Read 1 owns it.
 Operation 63: IF the database refuses the write THEN [Redeem] MUST answer storage-failure.
 Deleted: Operation 64. Execution Contract Read 1 owns it: after the read, every refusal rule of [Allocate] answers invalid-request.
 Operation 65: [Redeem] MUST NOT evaluate a rule of the redeem refusal order BEFORE EVERY earlier rule of the redeem refusal order has answered no refusal.
 Deleted: Operation 66. Execution Contract Refusal 1 owns it.
-Operation 67: IF ttl DOES NOT EQUAL blank AND ttl IS NOT IN the window lengths THEN [Allocate] MUST answer invalid-request.
+Deleted: Operation 67. Execution Contract Input 1 owns it.
 Operation 68: IF a filter names a field whose value EQUALS blank THEN [Read] MUST answer no capability.
 Operation 69: IF the capability's effective status EQUALS allocated THEN [Redeem] MUST answer redeemed.
 ```
-
-NOTE: watch the untyped input (Operation 61, Operation 67).
 
 NOTE: open 2026-10-21-i — Operation 19's list and Term redemption failure state one outcome space.
 
@@ -276,7 +274,7 @@ The case space, and the rule that owns each case:
 | Call | Case | Answer | Effect on the database |
 |---|---|---|---|
 | [Allocate] | both references present, a default configured, count and duration positive or defaulted, database accepts | the new capability token | one record lands in [Allocated], the counter set to [Max Redemptions] (Operation 1, Operation 17) |
-| [Allocate] | a blank or over-long reference, a count that is not a whole number above zero, a duration that is no window length or is not positive, or no configured default | [Invalid Request] | none (Operation 4, Operation 5, Operation 8, Operation 9, Operation 11, Operation 13, Operation 61, Operation 67, String 7) |
+| [Allocate] | a blank or over-long reference, a count that is not a whole number above zero, a duration that is no window length or is not positive, or no configured default | [Invalid Request] | none (Operation 4, Operation 5, Operation 8, Operation 9, Operation 11, Operation 13, String 7, Execution Contract Input 1) |
 | [Redeem] | token names nothing | `invalid(not-known)` | none (Operation 23) |
 | [Redeem] | stored status is [Redeemed] | `invalid(exhausted)` | none (Operation 24) |
 | [Redeem] | stored status is [Revoked] | `invalid(revoked)` | none (Operation 25) |
@@ -519,14 +517,10 @@ String 4: The atom MUST NOT case-fold a string input.
 String 5: The atom MUST read a whitespace-only string input as blank.
 String 6: The deployment MUST set a maximum length per string input.
 String 7: IF a string input EXCEEDS the maximum length THEN [Allocate] MUST answer invalid-request.
-String 8: The deployment MUST canonicalize an opaque reference at the seam.
+Deleted: String 8. Execution Contract Logic confinement 13 owns it.
 String 9: IF the capability is revocable AND revoked by reference EXCEEDS the maximum length THEN [Revoke] MUST answer invalid-request.
 String 10: IF the capability is revocable AND reason EXCEEDS the maximum length THEN [Revoke] MUST answer invalid-request.
 ```
-
-NOTE: String 8 reaches the allocator reference and the revoked by reference, a filter's allocator reference among them; the deployment canonicalizes each at the seam, in a form the deployment owns, before the transition compares or records it, since String 3 keeps the atom from normalizing.
-
-NOTE: watch the canonical form (String 8).
 
 ## Composition notes
 
@@ -553,7 +547,7 @@ Term actors: the atom; the host; the transition; the implementation; the deploym
 
 Term records: capability — one bearer-token authorization, carrying capability token, allocator reference, scope, max redemptions, remaining redemptions, allocation instant, expiry instant, status and, once terminal, redemption instant or revocation instant with revoked by reference and revocation reason.
 
-Term record verbs: identify, serve, offer, supply, check, compare, allocate, reuse, change, carry, share, draw, refuse, interpret, confirm, apply, accept, record, stand, answer, stamp, recompute, set, lower, rise, fall, reach, leave, derive, surface, write, fire, schedule, read, rest, remove, evaluate, hold, merge, admit, infer, reduce, range, find, reproduce, own, gate, bind, narrow, deliver, protect, notify, purge, forbid, distinguish, guarantee, seal, compose, trim, normalize, case-fold, exceed, canonicalize, reconcile, attest, declare, call, configure, name, match, retain, wire.
+Term record verbs: identify, serve, offer, supply, check, compare, allocate, reuse, change, carry, share, draw, refuse, interpret, confirm, apply, accept, record, stand, answer, stamp, recompute, set, lower, rise, fall, reach, leave, derive, surface, write, fire, schedule, read, rest, remove, evaluate, hold, merge, admit, infer, reduce, range, find, reproduce, own, gate, bind, narrow, deliver, protect, notify, purge, forbid, distinguish, guarantee, seal, compose, trim, normalize, case-fold, exceed, reconcile, attest, declare, call, configure, name, match, retain, wire.
 
 Term value sets: status = allocated | redeemed | revoked. revocation field = revocation instant | revoked by reference | revocation reason. redemption failure = exhausted | expired | revoked | not-known.
 

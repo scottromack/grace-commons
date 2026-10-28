@@ -229,7 +229,7 @@ Term clock offset allowance: the non-negative duration a deployment declares as 
 
 Term future bound: now raised by the clock offset allowance — the ceiling a resolved recording instant is checked against (Operation 7).
 
-Term resolved recording instant: the recording instant the observation carries — the supplied value where one exists, and now otherwise.
+Term resolved recording instant: the recording instant the observation carries — the supplied value, as Execution Contract Logic confinement 12 resolves it.
 
 Term content field: observation id, subject reference, recording actor, observation type, value, unit OR recording instant — every field an observation is recorded with but the state, and nothing changes.
 
@@ -446,7 +446,7 @@ String 3: The atom MUST NOT normalize a string input.
 String 4: The atom MUST NOT case-fold a string input.
 String 5: The atom MUST read a whitespace-only string input as blank.
 String 6: The atom MUST read an absent string input as blank.
-String 7: The deployment MUST canonicalize an opaque reference.
+Deleted: String 7. Execution Contract Logic confinement 13 owns it.
 ```
 
 Term string input: a reference, observation type, unit, reason OR a filter's value — every caller-supplied string this atom accepts.
@@ -482,7 +482,7 @@ Term actors: the atom; the host; the transition; the deployment; a composing pat
 
 Term records: observation — one recorded measurement, carrying observation id, subject reference, recording actor, observation type, value, unit, recording instant and a state, plus the transition metadata a chain action writes.
 
-Term record verbs: identify, allocate, change, carry, stand, answer, record, set, take, stamp, leave, own, match, equal, normalize, interpret, confirm, admit, offer, detect, route, share, precede, follow, exceed, raise, compare, trim, case-fold, refuse, write, read, find, bound, decide, declare, compose, wire, supply, remove, order, sort, name, bind, derive, map, define, apply, return, canonicalize, store, fail, accept, rest, capture.
+Term record verbs: identify, allocate, change, carry, stand, answer, record, set, take, stamp, leave, own, match, equal, normalize, interpret, confirm, admit, offer, detect, route, share, precede, follow, exceed, raise, compare, trim, case-fold, refuse, write, read, find, bound, decide, declare, compose, wire, supply, remove, order, sort, name, bind, derive, map, define, apply, return, store, fail, accept, rest, capture.
 
 Term value sets: state = recorded | amended | retracted.
 

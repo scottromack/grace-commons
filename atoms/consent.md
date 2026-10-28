@@ -158,7 +158,7 @@ Deleted: Operation 17. Execution Contract Refusal 1 owns it.
 Operation 18: IF the consent record's state EQUALS revoked THEN [Revoke] MUST answer already-revoked.
 Operation 19: IF the consent record's state EQUALS expired THEN [Revoke] MUST answer already-expired.
 Operation 20: IF revocation instant DOES NOT EQUAL blank THEN [Revoke] MUST resolve revocation instant from the call.
-Operation 21: IF revocation instant EQUALS blank THEN [Revoke] MUST resolve revocation instant from the injected now.
+Deleted: Operation 21. Execution Contract Logic confinement 12 owns it.
 Operation 22: IF the consent record's state EQUALS granted AND revoking actor EQUALS blank THEN [Revoke] MUST answer invalid-request.
 Operation 23: IF the consent record's state EQUALS granted AND reason EQUALS blank THEN [Revoke] MUST answer invalid-request.
 Operation 24: IF the consent record's state EQUALS granted AND now PRECEDES the resolved revocation instant THEN [Revoke] MUST answer invalid-request.
@@ -175,7 +175,7 @@ Operation 34: [Check] MUST answer EXACTLY ONE OF granted, revoked, expired, not-
 Operation 35: [Check] MUST NOT refuse a call.
 Operation 36: [Check] MUST NOT write.
 Operation 37: IF at time DOES NOT EQUAL blank THEN [Check] MUST resolve at time from the call.
-Operation 38: IF at time EQUALS blank THEN [Check] MUST resolve at time from the injected now.
+Deleted: Operation 38. Execution Contract Logic confinement 12 owns it.
 Operation 39: [Check] MUST accept EVERY at time.
 Operation 40: IF no candidate record EXISTS THEN [Check] MUST answer not-known.
 Operation 41: IF the candidate record is withdrawn THEN [Check] MUST answer revoked.
@@ -207,13 +207,11 @@ Operation 65: IF the query is malformed THEN [Read] MUST answer invalid-query.
 
 NOTE: watch the state a refusal leaves (Operation 32).
 
-NOTE: watch the instant left blank (Operation 21, Operation 38).
-
 Term now: the deployment's clock reading at the call — a [Now], as Execution Contract Logic confinement 11 declares it.
 
 Term business caller: the party whose action the call carries, as the section titled Logic Confinement Principle in `execution-contract.md` declares it; never the source of an injected value.
 
-Term at time: the instant a [Check] evaluates against — an [At Time]; a caller-supplied query input, resolving to now where the call supplies none.
+Term at time: the instant a [Check] evaluates against — an [At Time]; a caller-supplied query input, as Execution Contract Logic confinement 12 resolves it.
 
 Term expiry instant: the optional instant a consent record's agreement runs out — an [Expiry Instant]; set at [Grant], never stamped later.
 
@@ -225,7 +223,7 @@ Term revocation reason: the stated ground for the withdrawal — a [Revocation R
 
 Term reason: the [Revoke] input the record keeps as revocation reason — a [Reason].
 
-Term revocation instant: the instant the withdrawal takes effect — a [Revocation Instant]; caller-supplied or resolved from now.
+Term revocation instant: the instant the withdrawal takes effect — a [Revocation Instant]; caller-supplied, as Execution Contract Logic confinement 12 resolves it.
 
 Term grant instant: the instant the consent record was created — a [Grant Instant]; always stamped from now.
 

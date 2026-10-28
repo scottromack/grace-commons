@@ -124,7 +124,7 @@ Operation 5: IF placing actor EQUALS blank THEN [Place] MUST answer invalid-requ
 Operation 6: IF hold reason EQUALS blank THEN [Place] MUST answer invalid-request.
 Operation 7: IF a supplied case reference EQUALS blank THEN [Place] MUST answer invalid-request.
 Operation 8: IF now PRECEDES a supplied placement instant THEN [Place] MUST answer invalid-request.
-Operation 9: IF placement instant EQUALS blank THEN [Place] MUST stamp placement instant from the injected now.
+Deleted: Operation 9. Execution Contract Logic confinement 12 owns it.
 Operation 10: [Place] MUST accept a placement instant below now.
 Operation 11: IF the database refuses the write THEN [Place] MUST answer storage-failure.
 Operation 12: IF hold id EQUALS blank THEN [Release] MUST answer invalid-request.
@@ -134,7 +134,7 @@ Operation 15: IF releasing actor EQUALS blank THEN [Release] MUST answer invalid
 Operation 16: IF release reason EQUALS blank THEN [Release] MUST answer invalid-request.
 Operation 17: IF the resolved release instant PRECEDES the hold's placement instant THEN [Release] MUST answer invalid-request.
 Operation 18: IF now PRECEDES a supplied release instant THEN [Release] MUST answer invalid-request.
-Operation 18a: IF release instant EQUALS blank THEN [Release] MUST stamp release instant from the injected now.
+Deleted: Operation 18a. Execution Contract Logic confinement 12 owns it.
 Operation 19: [Release] MUST stand the hold in released.
 Operation 20: [Release] MUST NOT reach another hold over the record.
 Operation 21: IF the database refuses the write THEN [Release] MUST answer storage-failure.
@@ -164,15 +164,13 @@ Deleted: Operation 42. Execution Contract Refusal 1 owns it.
 
 NOTE: watch the blank id (Operation 13).
 
-NOTE: watch the instant left blank (Operation 9, Operation 18a).
-
 NOTE: watch host obligations — this atom sets no maximum length on a string input, where [Duplicate Prevention](./duplicate-prevention.md) declares a cap and [Provenance](./provenance.md) obliges the deployment to set one. Three postures, and the *host obligations* docket row carries the count — a watch flag states the pressure, never a census nothing reads.
 
 Term query: what a read asks for — a [Query]; any combination of the admitted axes.
 
 Term admitted axis: hold id | record reference | placing actor | case reference | hold state | a placement instant range | a release instant range — the filter axes [Read] accepts, and no others.
 
-Term resolved release instant: the release instant the release records — the caller's value where it is not blank, the injected now otherwise.
+Term resolved release instant: the release instant the release records — the caller's value, as Execution Contract Logic confinement 12 resolves it.
 
 Term held at an instant: placement instant at or before the instant, and either the hold state EQUALS active or the hold carries a release instant after the instant — the reconstruction an auditor runs over stored fields, never over the hold's present state.
 
@@ -425,7 +423,7 @@ Term actors: the atom; the host; the transition; the deployment; a composing pat
 
 Term records: hold — one preservation obligation, carrying hold id, record reference, placing actor, hold reason, placement instant, a hold state and, where they exist, case reference, releasing actor, release reason and release instant.
 
-Term record verbs: supply, judge, purge, retry, raise, match, share, hold, reach, route, identify, allocate, reuse, reassign, carry, stand, offer, delete, record, answer, stamp, accept, read, order, write, change, rest, shrink, find, block, refuse, deduplicate, gate, release, detect, place, import, own, check, compose, declare, precede, fall.
+Term record verbs: supply, judge, purge, retry, raise, match, share, hold, reach, route, identify, allocate, reuse, reassign, carry, stand, offer, delete, record, answer, accept, read, order, write, change, rest, shrink, find, block, refuse, deduplicate, gate, release, detect, place, import, own, check, compose, declare, precede, fall.
 
 Term value sets: hold state = active | released.
 

@@ -63,7 +63,7 @@ Identity 10: The atom MUST compare a reference byte-exactly.
 Identity 11: The atom MUST NOT normalize a reference.
 Identity 12: The atom MUST NOT confirm that a subject reference names a known subject.
 Identity 13: The atom MUST NOT interpret a scope.
-Deleted: Identity 14. String 7 owns it.
+Deleted: Identity 14. Execution Contract Logic confinement 13 owns it.
 ```
 
 NOTE: open 2026-10-26-a — the step id's source is named as the host's allocation (Identity 2) and not among what the deployment supplies (Capability requirement 1, Capability requirement 5).
@@ -112,7 +112,7 @@ State 15: The atom MUST NOT record a receipt instant.
 
 ```
 Capability requirement 1: The deployment MUST supply now at the seam.
-Capability requirement 5: The deployment MUST supply the step records PER Execution Contract Database 1 through 4, Execution Contract Database 7, Execution Contract Read 1 through 3, Execution Contract Refusal 1 and Execution Contract Query 1 through 4.
+Capability requirement 5: The deployment MUST supply the step records PER Execution Contract Database 1 through 4, Execution Contract Database 7, Execution Contract Read 1 through 3, Execution Contract Refusal 1, Execution Contract Query 1 through 4 and Execution Contract Input 1.
 Deleted: Capability requirement 2. Execution Contract Logic confinement 7 owns it.
 Deleted: Capability requirement 3. Execution Contract Logic confinement 7 owns it.
 Deleted: Capability requirement 4. Execution Contract Logic confinement 7 owns it.
@@ -154,7 +154,7 @@ Operation 3: IF submitter reference EQUALS blank THEN [Submit] MUST answer inval
 Operation 4: IF scope EQUALS blank THEN [Submit] MUST answer invalid-request.
 Operation 5: IF a supplied reason EQUALS blank THEN [Submit] MUST answer invalid-request.
 Operation 6: IF now PRECEDES the resolved submission instant THEN [Submit] MUST answer invalid-request.
-Operation 59: IF the resolved submission instant IS NOT IN the instants THEN [Submit] MUST answer invalid-request.
+Deleted: Operation 59. Execution Contract Input 1 owns it.
 Operation 7: An admitted submit MUST record EXACTLY ONE step.
 Operation 8: An admitted submit MUST stand the step in pending.
 Operation 9: An admitted submit MUST answer the step id.
@@ -169,7 +169,7 @@ Operation 16: IF reason EQUALS blank THEN [Reject] MUST answer invalid-request.
 Operation 17: IF reason EQUALS blank THEN [Withdraw] MUST answer invalid-request.
 Operation 18: IF now PRECEDES the resolved decision instant THEN a resolving action MUST answer invalid-request.
 Operation 19: IF the resolved decision instant PRECEDES the step's submission instant THEN a resolving action MUST answer invalid-request.
-Operation 60: IF the resolved decision instant IS NOT IN the instants THEN a resolving action MUST answer invalid-request.
+Deleted: Operation 60. Execution Contract Input 1 owns it, among the attribution checks (Term attribution check).
 Operation 20: A resolving action MUST answer invalid-request on an attribution fault ONLY IF the step's state EQUALS pending.
 Operation 21: IF deciding actor DOES NOT EQUAL approver reference THEN a deciding action MUST answer unauthorized.
 Operation 22: IF withdrawing actor DOES NOT EQUAL submitter reference THEN [Withdraw] MUST answer unauthorized.
@@ -213,8 +213,6 @@ Operation 58: IF the query is malformed THEN [Read] MUST answer invalid-query.
 
 NOTE: watch the blank filter value (Operation 45).
 
-NOTE: watch the untyped input (Operation 59, Operation 60).
-
 NOTE: watch the optional field no rule records (Operation 61).
 
 Term now: the deployment's clock reading at the call, as Execution Contract Logic confinement 11 declares it.
@@ -235,11 +233,9 @@ Term writing action: [Submit] | [Approve] | [Reject] | [Withdraw] — every acti
 
 Term deciding reference: deciding actor on a deciding action, and withdrawing actor on [Withdraw] — the actor reference a resolving action carries.
 
-Term resolved decision instant: the instant a resolving action records, as decision instant on a deciding action and as withdrawal instant on [Withdraw] — the supplied value, and now where the call leaves it blank.
+Term resolved decision instant: the instant a resolving action records, as decision instant on a deciding action and as withdrawal instant on [Withdraw] — the supplied value, as Execution Contract Logic confinement 12 resolves it.
 
-Term resolved submission instant: the submission instant the step carries — the supplied value, and now where the call leaves it blank.
-
-NOTE: watch the instant left blank (Term resolved decision instant, Term resolved submission instant).
+Term resolved submission instant: the instant the step carries as submission instant — the supplied value, as Execution Contract Logic confinement 12 resolves it.
 
 Term submission field: step id, subject reference, approver reference, submitter reference, scope, submission instant OR reason — every field [Submit] sets.
 
@@ -247,7 +243,7 @@ Term attribution field: deciding actor, decision reason, decision instant, withd
 
 Term attribution reference: deciding actor on an approved step or a rejected step, and withdrawing actor on a withdrawn step — the actor reference a terminal step carries.
 
-Term attribution check: Operation 15 through 19, Operation 57 and Operation 60 — every check a resolving action makes before the actor guard.
+Term attribution check: Operation 15 through 19, Operation 57 and Execution Contract Input 1 on the resolved decision instant — every check a resolving action makes before the actor guard.
 
 Term attribution fault: an attribution check the call fails.
 
@@ -278,7 +274,7 @@ Term success token: approved on [Approve], rejected_outcome on [Reject] and with
 | 1 | step id is blank | [Invalid Request] | Operation 10 |
 | 2 | step id is not blank, it names no step | [Not Known] | Operation 11 |
 | 3 | the step exists, it stands in a terminal state | [Not Pending] | Operation 13 |
-| 4 | the step stands in pending, an attribution check fails | [Invalid Request] | Operation 20; Operation 15 through 19, Operation 57, Operation 60 |
+| 4 | the step stands in pending, an attribution check fails | [Invalid Request] | Operation 20; Operation 15 through 19, Operation 57, Execution Contract Input 1 |
 | 5 | every attribution check passes, the deciding reference is not the authorization anchor | [Unauthorized] | Operation 21, Operation 22 |
 | 6 | every precondition passes, the database refuses the write | [Storage Failure] | Operation 34 |
 | 7 | every precondition passes, the database accepts the write | the success token | Operation 32 |
@@ -486,16 +482,12 @@ String 3: The atom MUST NOT normalize a string input.
 String 4: The atom MUST NOT case-fold a string input.
 String 5: The atom MUST read a whitespace-only string input as blank.
 String 6: The atom MUST read an absent string input as blank.
-String 7: The deployment MUST canonicalize an opaque reference at the seam.
+Deleted: String 7. Execution Contract Logic confinement 13 owns it.
 ```
 
 Term string input: a reference, reason OR a filter's value — every caller-supplied string this atom accepts.
 
 NOTE: watch host obligations — this atom sets no maximum length on a string input, where [Duplicate Prevention](./duplicate-prevention.md) declares a cap and [Provenance](./provenance.md) obliges the deployment to set one. Three postures, and the *host obligations* docket row carries the count — a watch flag states the pressure, never a census nothing reads.
-
-NOTE: String 7 reaches every reference (Term reference), a filter's value on a string axis among them; the deployment canonicalizes each at the seam, in a form the deployment owns, before the transition compares or records it, since Identity 11 and String 3 keep the atom from normalizing.
-
-NOTE: watch the canonical form (String 7).
 
 ---
 
@@ -531,7 +523,7 @@ Term actors: the atom; the host; the transition; the deployment; a composing pat
 
 Term records: step — one authorization gate, carrying step id, subject reference, approver reference, submitter reference, scope, submission instant, a state and, where supplied or set, reason, deciding actor, decision reason, decision instant, withdrawing actor, withdrawal reason and withdrawal instant.
 
-Term record verbs: identify, allocate, change, carry, stand, answer, record, set, take, leave, own, match, equal, normalize, interpret, confirm, admit, offer, detect, route, share, precede, follow, compare, order, trim, case-fold, refuse, write, read, find, complete, fall, bound, decide, declare, compose, wire, supply, remove, sort, name, notify, bind, choose, canonicalize, retry, permit, evaluate, call, require.
+Term record verbs: identify, allocate, change, carry, stand, answer, record, set, take, leave, own, match, equal, normalize, interpret, confirm, admit, offer, detect, route, share, precede, follow, compare, order, trim, case-fold, refuse, write, read, find, complete, fall, bound, decide, declare, compose, wire, supply, remove, sort, name, notify, bind, choose, retry, permit, evaluate, call, require.
 
 Term value sets: state = pending | approved | rejected | withdrawn.
 

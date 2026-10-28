@@ -101,7 +101,7 @@ NOTE: open 2026-10-21-f — State 1 and Invariant 3.1 both require a disclosure 
 
 ```
 Capability requirement 1: The deployment MUST supply now at the seam.
-Capability requirement 5: The deployment MUST supply the disclosure records PER Execution Contract Database 1, Execution Contract Database 3, Execution Contract Database 4, Execution Contract Database 6, Execution Contract Database 7, Execution Contract Read 1 through 4, Execution Contract Refusal 1 and Execution Contract Query 1 through 4.
+Capability requirement 5: The deployment MUST supply the disclosure records PER Execution Contract Database 1, Execution Contract Database 3, Execution Contract Database 4, Execution Contract Database 6, Execution Contract Database 7, Execution Contract Read 1 through 4, Execution Contract Refusal 1, Execution Contract Query 1 through 4 and Execution Contract Input 1.
 Capability requirement 6: The deployment MUST call [Record] for EVERY transmission of a subject's data to a party beside the subject.
 Deleted: Capability requirement 2. Execution Contract Logic confinement 7 owns it.
 Deleted: Capability requirement 3. Execution Contract Logic confinement 7 owns it.
@@ -162,10 +162,8 @@ Deleted: Operation 33. Execution Contract Logic confinement 3 owns it.
 Deleted: Operation 34. Execution Contract Logic confinement 3 owns it.
 Deleted: Operation 35. Execution Contract Refusal 1 owns it.
 Operation 36: IF a filter is malformed THEN [Read] MUST answer invalid-query.
-Operation 37: IF the supplied disclosure instant DOES NOT EQUAL blank AND the supplied disclosure instant IS NOT IN the instants THEN [Record] MUST answer invalid-request.
+Deleted: Operation 37. Execution Contract Input 1 owns it.
 ```
-
-NOTE: watch the untyped input (Operation 37).
 
 Term now: the deployment's clock reading at the call, as Execution Contract Logic confinement 11 declares it.
 
@@ -179,11 +177,9 @@ Term authority types: the three members of authority type, cited here from that 
 
 Term authority reference: the opaque string naming the specific authority — an [Authority Reference]; a consent record's id, a legal hold's id, or a regulatory citation.
 
-Term disclosure instant: the instant the disclosure happened — a [Disclosure Instant]; caller-supplied or resolved to now, and never later than now.
+Term disclosure instant: the instant the disclosure happened — a [Disclosure Instant]; caller-supplied, and never later than now.
 
-Term resolved disclosure instant: the disclosure instant the record carries — the supplied value, and now where the call leaves it blank.
-
-NOTE: watch the instant left blank (Term resolved disclosure instant).
+Term resolved disclosure instant: the disclosure instant the record carries — the supplied value, as Execution Contract Logic confinement 12 resolves it.
 
 Term filter axes: disclosure id | subject reference | recipient | authority type | disclosure instant — the five axes [Read] accepts, and no others, a filter keyed by the projection of the field its axis names, and a filter on disclosure instant carrying a range whose after is its start and whose before is its end.
 
@@ -361,14 +357,14 @@ String 3: The atom MUST NOT normalize a string input.
 String 4: The atom MUST NOT case-fold a string input.
 String 5: The atom MUST read a whitespace-only string input as blank.
 String 6: The atom MUST read an absent string input as blank.
-String 7: The deployment MUST canonicalize an opaque reference.
+Deleted: String 7. Execution Contract Logic confinement 13 owns it.
 ```
 
 Term string input: subject reference, recipient, scope, authority reference OR a filter's value — every caller-supplied string this atom accepts.
 
 NOTE: watch host obligations — this atom sets no maximum length on a string input, where [Duplicate Prevention](./duplicate-prevention.md) declares a cap and [Provenance](./provenance.md) obliges the deployment to set one. Three postures, and the *host obligations* docket row carries the count — a watch flag states the pressure, never a census nothing reads.
 
-NOTE: open 2026-10-21-d — String 7's *an opaque reference* is a phrase no Term declares (Term subject reference alone calls itself one), so which string inputs the deployment canonicalizes is left to the reader.
+NOTE: open 2026-10-21-d — Execution Contract Logic confinement 13 canonicalizes every reference a call carries, and no Term declares which of this atom's string inputs are references (Term subject reference alone calls itself one), so which string inputs the deployment canonicalizes is left to the reader.
 
 ### Correction by append
 
@@ -416,7 +412,7 @@ Term actors: the atom; the host; the transition; the implementation; the deploym
 
 Term records: disclosure record — one recorded disclosure, carrying disclosure id, subject reference, recipient, scope, authority type, authority reference and disclosure instant.
 
-Term record verbs: identify, allocate, change, carry, stand, answer, record, resolve, take, stamp, leave, own, match, normalize, interpret, confirm, admit, offer, detect, route, share, precede, follow, exceed, compare, trim, case-fold, refuse, write, find, read, remove, edit, retract, order, bound, decide, compose, declare, wire, rest, apply, supply, serialize, issue, name, claim, transmit, redact, retrieve, canonicalize, persist, call, produce, evaluate, agree.
+Term record verbs: identify, allocate, change, carry, stand, answer, record, resolve, take, stamp, leave, own, match, normalize, interpret, confirm, admit, offer, detect, route, share, precede, follow, exceed, compare, trim, case-fold, refuse, write, find, read, remove, edit, retract, order, bound, decide, compose, declare, wire, rest, apply, supply, serialize, issue, name, claim, transmit, redact, retrieve, persist, call, produce, evaluate, agree.
 
 Term value sets: authority type = consent | legal-hold | regulatory.
 
@@ -583,7 +579,7 @@ formal: not applicable — vote no 2026-06-03
 last gate: 2026-10-27 — Final Critique 10 — foundational count 2, not clean, no sample
 
 open:
-- 2026-10-21-d · refining · String 7 · the rule obliges the deployment to canonicalize an opaque reference, a phrase no Term declares (Term subject reference alone calls itself one), so which inputs it covers is left to the reader → name them
+- 2026-10-21-d · refining · Term string input · Execution Contract Logic confinement 13 obliges the deployment to canonicalize every reference a call carries, and no Term declares which of this atom's string inputs are references (Term subject reference alone calls itself one), so which inputs it covers is left to the reader → name them
 - 2026-10-21-f · refining · State 1; Invariant 3.1; Term disclosure instant; Term resolved disclosure instant · one proposition stated twice: State 1 and Invariant 3.1 both require a disclosure instant on every record, and Term disclosure instant's never later than now restates Invariant 4.1 beside a second Term for the instant the record carries → one owner each
 - 2026-10-27-a · refining · Term seam; Term transition; Term business caller · each says the section titled Logic Confinement Principle in `execution-contract.md` declares it, and that section declares none of them, as Assignment 2026-10-21-a, Permissions 2026-10-21-f and Event Log 2026-10-20-c record of their own → declare each here, or cite where each is declared
 ```

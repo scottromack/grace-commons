@@ -112,7 +112,7 @@ Deleted: Capability requirement 7. Execution Contract Database 2 owns it: an ord
 Deleted: Capability requirement 8. Execution Contract Database 2 owns it: an order action's state check and state change are one transaction, and the atom names no section to release.
 Deleted: Capability requirement 9. Execution Contract Database 3 owns it.
 Deleted: Capability requirement 10. Execution Contract Database 1 owns it.
-Capability requirement 11: The deployment MUST canonicalize an opaque reference.
+Deleted: Capability requirement 11. Execution Contract Logic confinement 13 owns it.
 Capability requirement 12: The deployment MUST declare the length bound.
 Capability requirement 15: The deployment MUST supply the order records PER Execution Contract Database 1 through 4, Execution Contract Database 6, Execution Contract Database 7, Execution Contract Read 4 and Execution Contract Refusal 1.
 Deleted: Capability requirement 13. Execution Contract Logic confinement 7 owns it.
@@ -171,7 +171,7 @@ read(query)
 Operation 1: IF a required string input EQUALS blank THEN an action MUST answer a blank-input rejection.
 Operation 2: IF the dose DOES NOT EXCEED zero THEN [Order] MUST answer invalid-order.
 Operation 3: IF the future bound PRECEDES a supplied order instant THEN [Order] MUST answer invalid-order.
-Operation 4: IF order instant EQUALS blank THEN [Order] MUST record now as order instant.
+Deleted: Operation 4. Execution Contract Logic confinement 12 owns it.
 Operation 5: An admitted order MUST assign a fresh order id.
 Operation 6: An admitted order MUST record EVERY supplied core field.
 Operation 7: An admitted order MUST stand the order in ordered.
@@ -254,8 +254,6 @@ Deleted: Operation 79. Execution Contract Logic confinement 3 owns it.
 ```
 
 NOTE: watch the blank id (Operation 12).
-
-NOTE: watch the instant left blank (Operation 4).
 
 Term order action: [Amend] | [Verify] | [Hold] | [Reinstate] | [Dispense] | [Administer] | [Complete] | [Cancel] | [Discontinue] — every action naming an order by order id, including a refused one.
 
@@ -514,7 +512,7 @@ Deleted: Atomic writes 5. Operation 64 and Execution Contract Database 1 own it.
 
 ```
 Clock semantics 4: The atom MUST bound a supplied order instant from above by the future bound.
-Deleted: Clock semantics 3. Operation 4 owns it for order instant, and the resolved dispensing instant, resolved administration instant and resolved completion instant declarations own it for the event instants.
+Deleted: Clock semantics 3. Execution Contract Logic confinement 12 owns it.
 Deleted: Clock semantics 1. Execution Contract Logic confinement 3 owns it.
 Deleted: Clock semantics 2. Execution Contract Logic confinement 3 owns it.
 Clock semantics 5: The atom MUST NOT bound a supplied event instant.
@@ -591,7 +589,7 @@ Term actors: the atom; the deployment; the database; the database instance; the 
 
 Term records: order — one prescription's whole life, carrying order id, patient reference, prescriber reference, medication reference, dose, dose unit, route, frequency, order instant, a state, and — where a transition wrote them — duration, clinical evidence reference, verifier reference, verification instant, predecessor id, successor id, amending actor, amendment reason, prior state, holding actor, hold reason, hold instant, reinstating actor, reinstatement instant, dispenser reference, quantity, lot number, dispensing instant, administerer reference, administration instant, completing actor, completion instant, cancelling actor, cancellation reason, cancellation instant, discontinuing actor, discontinuation reason and discontinuation instant.
 
-Term record verbs: identify, assign, generate, change, share, reuse, carry, stand, read, answer, record, replace, leave, admit, offer, hold, refuse, write, find, resolve, name, compare, normalize, confirm, match, route, register, create, pass, attest, cover, call, fall, precede, follow, sample, consume, supply, canonicalize, declare, compose, bind, decide, define, bound, reach, accept, trim, case-fold, compute, reproduce, reconstruct, verify, detect, guarantee, take, derive, expose, store, enumerate, distinguish, select, order, block, place, cancel, exceed, retry, model, remove, amend, append, map, advise.
+Term record verbs: identify, assign, generate, change, share, reuse, carry, stand, read, answer, record, replace, leave, admit, offer, hold, refuse, write, find, resolve, name, compare, normalize, confirm, match, route, register, create, pass, attest, cover, call, fall, precede, follow, sample, consume, supply, declare, compose, bind, decide, define, bound, reach, accept, trim, case-fold, compute, reproduce, reconstruct, verify, detect, guarantee, take, derive, expose, store, enumerate, distinguish, select, order, block, place, cancel, exceed, retry, model, remove, amend, append, map, advise.
 
 Term value sets: state = ordered | verified | amended | on-hold | dispensed | administered | completed | cancelled | discontinued. terminal state = completed | cancelled | discontinued. inactive state = amended | completed | cancelled | discontinued. pre-dispensing state = ordered | verified. post-dispensing state = dispensed | administered. core field = patient reference | prescriber reference | medication reference | dose | dose unit | route | frequency | duration | clinical evidence reference | order instant. dosing parameter = dose | dose unit | route | frequency | duration. blank-input rejection = invalid-order | invalid-request. hold field = prior state | holding actor | hold reason | hold instant. reinstate field = reinstating actor | reinstatement instant.
 
@@ -609,11 +607,11 @@ Term composing pattern: [Permissions](./permissions.md), [Actor Identity](./acto
 
 Term event instant: dispensing instant | administration instant | completion instant — every instant a caller may supply for something that happened away from the call.
 
-Term resolved dispensing instant: the dispensing instant the order carries — the supplied value where one exists, and now otherwise.
+Term resolved dispensing instant: the dispensing instant the order carries — the supplied value, as Execution Contract Logic confinement 12 resolves it.
 
-Term resolved administration instant: the administration instant the order carries — the supplied value where one exists, and now otherwise.
+Term resolved administration instant: the administration instant the order carries — the supplied value, as Execution Contract Logic confinement 12 resolves it.
 
-Term resolved completion instant: the completion instant the order carries — the supplied value where one exists, and now otherwise.
+Term resolved completion instant: the completion instant the order carries — the supplied value, as Execution Contract Logic confinement 12 resolves it.
 
 Term clock offset allowance: clock offset allowance — the non-negative duration the deployment declares as the margin the future bound allows; zero declares no tolerance.
 

@@ -945,8 +945,8 @@ Deleted: Clock semantics 3. Action wiring 106 owns it.
 Clock semantics 5: The composition MUST judge a sibling set member's eligibility against the injected now.
 Deleted: Clock semantics 6. Composes 18 owns it.
 Deleted: Clock semantics 7. Retention Window Operation 13 owns it.
-Deleted: Clock semantics 8. Legal Hold Operation 9 owns it.
-Deleted: Clock semantics 9. Legal Hold Operation 18a owns it.
+Deleted: Clock semantics 8. Execution Contract Logic confinement 12 owns it.
+Deleted: Clock semantics 9. Execution Contract Logic confinement 12 owns it.
 Deleted: Clock semantics 10. Event Log Operation 2 owns it, reached through Audit Trail.
 Clock semantics 11: A reader MUST read a record purged outcome's purge instant as the instant Retention Window stamped the purge.
 Deleted: Clock semantics 12. Action wiring 106 owns it.

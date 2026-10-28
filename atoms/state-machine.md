@@ -111,7 +111,7 @@ Deleted: State 14. Execution Contract Database 3 owns it.
 
 ```
 Capability requirement 1: The deployment MUST supply now at the seam.
-Capability requirement 5: The deployment MUST supply the workflow records PER Execution Contract Database 1 through 7, Execution Contract Read 4, Execution Contract Refusal 1, Execution Contract Query 1 through 4 and Execution Contract Conformance 9.
+Capability requirement 5: The deployment MUST supply the workflow records PER Execution Contract Database 1 through 7, Execution Contract Read 4, Execution Contract Refusal 1, Execution Contract Query 1 through 4, Execution Contract Input 1 and Execution Contract Conformance 9.
 Deleted: Capability requirement 2. Execution Contract Logic confinement 7 owns it.
 Deleted: Capability requirement 3. Execution Contract Logic confinement 7 owns it.
 Deleted: Capability requirement 4. Execution Contract Logic confinement 7 owns it.
@@ -145,7 +145,7 @@ read_declaration(instance_id)
 Deleted: Operation 1. Execution Contract Refusal 1 owns it.
 Operation 2: IF a supplied actor reference EQUALS blank THEN a writing action MUST answer invalid-request.
 Operation 3: IF now PRECEDES the resolved instantiation instant THEN [Instantiate] MUST answer invalid-request.
-Operation 62: IF the resolved instantiation instant IS NOT IN the instants THEN [Instantiate] MUST answer invalid-request.
+Deleted: Operation 62. Execution Contract Input 1 owns it.
 Operation 4: An admitted instantiate MUST record EXACTLY ONE workflow.
 Operation 5: An admitted instantiate MUST stand the workflow in the initial state.
 Operation 6: An admitted instantiate MUST set next sequence number to one.
@@ -167,7 +167,7 @@ Operation 17: IF the matched transition carries a guard AND guard satisfied DOES
 Deleted: Operation 18. Execution Contract Refusal 1 owns it.
 Operation 19: IF now PRECEDES the resolved firing instant THEN [Fire] MUST answer invalid-request.
 Operation 20: IF the resolved firing instant PRECEDES the workflow's instantiation instant THEN [Fire] MUST answer invalid-request.
-Operation 63: IF the resolved firing instant IS NOT IN the instants THEN [Fire] MUST answer invalid-request.
+Deleted: Operation 63. Execution Contract Input 1 owns it, among the firing checks (Term firing check).
 Operation 64: [Fire] MUST answer invalid-request on a firing fault ONLY IF the call is a cleared fire.
 Operation 21: An admitted fire MUST append EXACTLY ONE history entry.
 Operation 22: An admitted fire MUST take the history entry's sequence number from next sequence number.
@@ -212,8 +212,6 @@ NOTE: watch the integer range (Operation 45, Operation 58).
 
 NOTE: watch the optional field no rule records (Operation 56, Operation 59, Operation 60, Operation 61).
 
-NOTE: watch the untyped input (Operation 62, Operation 63).
-
 Term now: the deployment's clock reading at the call, as Execution Contract Logic confinement 11 declares it.
 
 Term business caller: the party whose action the call carries, as the section titled Logic Confinement Principle in `execution-contract.md` declares it; never the source of an injected value.
@@ -234,11 +232,9 @@ Term firing instant: the instant a declared transition fired — a [Firing Insta
 
 Term instantiation instant: the instant a workflow was created — an [Instantiation Instant].
 
-Term resolved firing instant: the firing instant the history entry carries — the supplied value, and now where the call leaves it blank.
+Term resolved firing instant: the firing instant the history entry carries — the supplied value, as Execution Contract Logic confinement 12 resolves it.
 
-Term resolved instantiation instant: the instantiation instant the workflow carries — the supplied value, and now where the call leaves it blank.
-
-NOTE: watch the instant left blank (Term resolved firing instant, Term resolved instantiation instant).
+Term resolved instantiation instant: the instantiation instant the workflow carries — the supplied value, as Execution Contract Logic confinement 12 resolves it.
 
 Term actor reference: the opaque reference naming who instantiated a workflow or fired a declared transition — an [Actor Reference]; optional, and recorded where supplied.
 
@@ -250,7 +246,7 @@ Term matched transition: the one declared transition whose from state is the cur
 
 Term cleared fire: a [Fire] call Operation 11, Operation 13, Operation 15 and Operation 17 all admit.
 
-Term firing check: Operation 2, Operation 19, Operation 20 and Operation 63 — every check [Fire] makes on a cleared fire.
+Term firing check: Operation 2, Operation 19, Operation 20 and Execution Contract Input 1 on the resolved firing instant — every check [Fire] makes on a cleared fire.
 
 Term firing fault: a firing check the call fails.
 
@@ -269,7 +265,7 @@ Term admitted history: a [History] call whose instance id names a workflow and w
 | 3 | the workflow exists, the current state is terminal | terminal | Operation 13 |
 | 4 | the current state is not terminal, no declared transition matches | invalid-transition | Operation 15 |
 | 5 | a declared transition matches, it carries a guard, guard satisfied is not true | guard-not-satisfied | Operation 17 |
-| 6 | the call is a cleared fire, a firing check fails | invalid-request | Operation 64; Operation 2, Operation 19, Operation 20, Operation 63 |
+| 6 | the call is a cleared fire, a firing check fails | invalid-request | Operation 64; Operation 2, Operation 19, Operation 20, Execution Contract Input 1 |
 | 7 | every precondition passes, the database refuses the write | storage-failure | Operation 33 |
 | 8 | every precondition passes, the database accepts the write | new_state | Operation 28 |
 
@@ -519,16 +515,12 @@ String 3: The atom MUST NOT normalize a string input.
 String 4: The atom MUST NOT case-fold a string input.
 String 5: The atom MUST read a whitespace-only string input as blank.
 String 6: The atom MUST read an absent string input as blank.
-String 7: The deployment MUST canonicalize an opaque reference at the seam.
+Deleted: String 7. Execution Contract Logic confinement 13 owns it.
 ```
 
 Term string input: instance id, action, actor reference, subject reference, a state name, a guard OR a filter's value — every caller-supplied string this atom accepts.
 
 NOTE: watch host obligations — this atom sets no maximum length on a string input, where [Duplicate Prevention](./duplicate-prevention.md) declares a cap and [Provenance](./provenance.md) obliges the deployment to set one. Three postures, and the *host obligations* docket row carries the count — a watch flag states the pressure, never a census nothing reads.
-
-NOTE: String 7 reaches the subject reference and the actor reference, a filter's actor reference among them; the deployment canonicalizes each at the seam, in a form the deployment owns, before the transition compares or records it, since String 3 keeps the atom from normalizing.
-
-NOTE: watch the canonical form (String 7).
 
 ---
 
@@ -563,7 +555,7 @@ Term actors: the atom; the host; the transition; the deployment; a composing pat
 
 Term records: workflow — one running workflow, carrying instance id, a declaration, a current state, a transition history, next sequence number, an instantiation instant and, where supplied, subject reference, instance metadata and actor reference. history entry — one recorded transition, carrying transition id, sequence number, from state, to state, action, firing instant and, where supplied, actor reference and guard satisfied.
 
-Term record verbs: identify, allocate, change, carry, stand, answer, record, append, set, take, raise, leave, own, match, normalize, reorder, interpret, confirm, admit, offer, evaluate, assert, fire, replay, reach, rest, share, precede, follow, compare, trim, case-fold, refuse, write, read, find, reconstruct, complete, equal, bound, nest, version, decide, compose, declare, wire, supply, remove, route, name, detect, bind, capture, count, canonicalize.
+Term record verbs: identify, allocate, change, carry, stand, answer, record, append, set, take, raise, leave, own, match, normalize, reorder, interpret, confirm, admit, offer, evaluate, assert, fire, replay, reach, rest, share, precede, follow, compare, trim, case-fold, refuse, write, read, find, reconstruct, complete, equal, bound, nest, version, decide, compose, declare, wire, supply, remove, route, name, detect, bind, capture, count.
 
 Term value sets: writing action = [Instantiate] | [Fire]. reading action = [Current] | [History] | [Read Declaration]. guard satisfied = true | false. filter axes = transition id | sequence number | from state | to state | action | actor reference | firing instant.
 Term bounds: empty.

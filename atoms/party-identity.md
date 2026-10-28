@@ -107,16 +107,12 @@ Capability requirement 2: The deployment MUST supply the id material at the seam
 Deleted: Capability requirement 3. Execution Contract Database 2 owns it.
 Deleted: Capability requirement 4. Execution Contract Database 3 owns it.
 Deleted: Capability requirement 5. Execution Contract Database 1 owns it.
-Capability requirement 6: The deployment MUST canonicalize an opaque reference at the seam.
+Deleted: Capability requirement 6. Execution Contract Logic confinement 13 owns it.
 Capability requirement 7: The deployment MUST declare the length bound.
 Capability requirement 10: The deployment MUST supply the party records PER Execution Contract Database 1 through 4, Execution Contract Database 6, Execution Contract Database 7, Execution Contract Order 1, Execution Contract Read 4, Execution Contract Refusal 1 and Execution Contract Query 1 through 4.
 Deleted: Capability requirement 8. Execution Contract Logic confinement 7 owns it.
 Deleted: Capability requirement 9. Execution Contract Logic confinement 7 owns it.
 ```
-
-NOTE: Capability requirement 6 reaches every reference (Term reference), the assigned ids the id material carries and a filter's party id among them; the deployment canonicalizes each at the seam, in a form the deployment owns, before the transition compares or records it, since Identity 12 keeps the atom from normalizing.
-
-NOTE: watch the canonical form (Capability requirement 6).
 
 ### Operations
 
@@ -514,7 +510,7 @@ Term actors: the atom; the deployment; the database; the database instance; the 
 
 Term records: party — one external party, carrying party id, name, date of birth, document type, document reference, enrollment instant, enrolling actor reference, a state, a state change log and a verification event list. verification event — one identity check, carrying verification id, verifying actor reference, verification method, verification result, evidence reference and verification instant. state change event — one transition, carrying state change id, the prior state, the new state, an acting reference, an instant and, where the writer carries one, a reason.
 
-Term record verbs: identify, assign, generate, change, share, carry, stand, read, answer, record, append, remove, leave, admit, offer, hold, refuse, write, find, resolve, name, compare, normalize, confirm, match, differ, route, register, create, pass, attest, cover, call, fall, precede, follow, sample, consume, supply, canonicalize, declare, compose, bind, decide, define, bound, reach, accept, trim, case-fold, compute, reproduce, reconstruct, replay, verify, detect, guarantee, take, derive, expose, store, own, enumerate, distinguish, select, order, deduplicate, scrub, parse, gate, count, schedule, propagate, terminate, link, suspend, reinstate, close, enroll, ignore, partition, retry, exceed, perform, score, model.
+Term record verbs: identify, assign, generate, change, share, carry, stand, read, answer, record, append, remove, leave, admit, offer, hold, refuse, write, find, resolve, name, compare, normalize, confirm, match, differ, route, register, create, pass, attest, cover, call, fall, precede, follow, sample, consume, supply, declare, compose, bind, decide, define, bound, reach, accept, trim, case-fold, compute, reproduce, reconstruct, replay, verify, detect, guarantee, take, derive, expose, store, own, enumerate, distinguish, select, order, deduplicate, scrub, parse, gate, count, schedule, propagate, terminate, link, suspend, reinstate, close, enroll, ignore, partition, retry, exceed, perform, score, model.
 
 Term value sets: state = unverified | verified | suspended | closed. verification result = passed | failed. enrollment field = name | date of birth | document type | document reference | enrollment instant | enrolling actor reference.
 

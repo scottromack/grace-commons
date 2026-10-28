@@ -109,7 +109,7 @@ Capability requirement 3: The deployment MUST supply the session token's random 
 Capability requirement 4: The session token's random material MUST NOT fall below the token entropy.
 Capability requirement 5: The deployment MUST own the session token's format.
 Capability requirement 6: The deployment MUST own whether the database holds a session token raw.
-Capability requirement 10: The deployment MUST supply the session records PER Execution Contract Database 1 through 4.
+Capability requirement 10: The deployment MUST supply the session records PER Execution Contract Database 1 through 4 and Execution Contract Input 1.
 Capability requirement 11: The deployment MAY configure a default session duration ONLY IF the default session duration EXCEEDS the zero duration.
 Deleted: Capability requirement 7. Execution Contract Logic confinement 7 owns it.
 Deleted: Capability requirement 8. Execution Contract Logic confinement 7 owns it.
@@ -210,14 +210,12 @@ Operation 50: [Issue] MUST record the principal reference the call supplies.
 Operation 51: [Issue] MUST record the issued by reference the call supplies.
 Operation 52: [Read] MUST NOT carry the session token on an answered session.
 Operation 53: IF a filter names a field whose value EQUALS blank THEN [Read] MUST answer no session.
-Operation 54: IF session duration DOES NOT EQUAL blank AND session duration IS NOT IN the window lengths THEN [Issue] MUST answer invalid-request.
+Deleted: Operation 54. Execution Contract Input 1 owns it.
 ```
 
 NOTE: open 2026-10-21-a — [Read] answers the matching sessions in no stated order (Operation 37).
 
 NOTE: open 2026-10-21-j — no maximum bounds a supplied session duration (Operation 8), while the Summary names short-lived elevated-access windows.
-
-NOTE: watch the untyped input (Operation 54).
 
 Term now: the deployment's clock reading at the call — a [Now], as Execution Contract Logic confinement 11 declares it.
 
@@ -258,7 +256,7 @@ The case space, and the rule that owns each case:
 | Call | Case | Answer | Effect on the database |
 |---|---|---|---|
 | [Issue] | both references present, a default configured, duration positive or defaulted, database accepts | the new session token | one record lands in [Active] carrying both references, issuance instant and expiry instant stamped (Operation 1, Operation 9, Operation 10, Operation 50, Operation 51) |
-| [Issue] | a blank or over-long reference, a duration that is no window length or is not positive, or no configured default | [Invalid Request] | none (Operation 4, Operation 5, Operation 8, Operation 48, Operation 54, String 7) |
+| [Issue] | a blank or over-long reference, a duration that is no window length or is not positive, or no configured default | [Invalid Request] | none (Operation 4, Operation 5, Operation 8, Operation 48, String 7, Execution Contract Input 1) |
 | [Validate] | token names nothing | [Not Known] | none — the call reads (Operation 14, Operation 20) |
 | [Validate] | stored status is [Revoked] | [Invalid Revoked] | none — returned even where the window is still open (Operation 15) |
 | [Validate] | stored [Active], now has reached expiry instant | [Invalid Expired] | none — derived, nothing written (Operation 16, Operation 17) |
@@ -471,16 +469,12 @@ String 4: The atom MUST NOT case-fold a string input.
 String 5: The atom MUST read a whitespace-only string input as blank.
 String 6: The deployment MUST set a maximum length per string input.
 String 7: IF a string input EXCEEDS the maximum length THEN [Issue] MUST answer invalid-request.
-String 8: The deployment MUST canonicalize an opaque reference at the seam.
+Deleted: String 8. Execution Contract Logic confinement 13 owns it.
 String 9: IF the session's status EQUALS active AND revoked by reference EXCEEDS the maximum length THEN [Revoke] MUST answer invalid-request.
 String 10: IF the session's status EQUALS active AND reason EXCEEDS the maximum length THEN [Revoke] MUST answer invalid-request.
 ```
 
 NOTE: watch host obligations — this atom refuses a string input over the deployment's maximum length on the writes alone (String 6, String 7, String 9, String 10); an over-long session token answers by the session it names, not-known where it names none (Operation 14, Operation 22), and an over-long filter value answers by the sessions it matches (Term filter).
-
-NOTE: String 8 reaches the principal reference, the issued by reference and the revoked by reference, a filter's values among them; the deployment canonicalizes each at the seam, in a form the deployment owns, before the transition compares or records it, since String 3 keeps the atom from normalizing.
-
-NOTE: watch the canonical form (String 8).
 
 Term verified answer: the verified outcome [Credential](./credential.md)'s verification produces; cited from that atom, never restated here (Closed vocabulary 15).
 
@@ -527,7 +521,7 @@ Term actors: the atom; the host; the transition; the implementation; the deploym
 
 Term records: session — one bounded-lifetime attestation, carrying session token, principal reference, issued by reference, issuance instant, expiry instant, status and, once cancelled, revocation instant, revoked by reference and revocation reason.
 
-Term record verbs: identify, serve, offer, compare, allocate, reuse, change, carry, share, draw, interpret, confirm, configure, supply, generate, fall, own, hold, record, stand, answer, apply, accept, stamp, recompute, derive, surface, write, fire, schedule, read, refuse, leave, rest, remove, merge, return, find, reproduce, reconstruct, verify, sequence, decide, extend, call, revoke, bind, check, bound, enforce, propagate, define, enumerate, seal, compose, trim, normalize, case-fold, set, exceed, differ, give, reduce, detect, canonicalize, reconcile, declare.
+Term record verbs: identify, serve, offer, compare, allocate, reuse, change, carry, share, draw, interpret, confirm, configure, supply, generate, fall, own, hold, record, stand, answer, apply, accept, stamp, recompute, derive, surface, write, fire, schedule, read, refuse, leave, rest, remove, merge, return, find, reproduce, reconstruct, verify, sequence, decide, extend, call, revoke, bind, check, bound, enforce, propagate, define, enumerate, seal, compose, trim, normalize, case-fold, set, exceed, differ, give, reduce, detect, reconcile, declare.
 
 Term value sets: status = active | revoked.
 

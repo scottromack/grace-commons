@@ -121,7 +121,7 @@ Deleted: Capability requirement 9. Execution Contract Database 2 owns it: the pa
 Deleted: Capability requirement 10. Execution Contract Database 2 owns it: the pair's check and write are one transaction, and the atom names no section to release.
 Deleted: Capability requirement 11. Execution Contract Database 3 owns it.
 Deleted: Capability requirement 12. Execution Contract Database 1 owns it.
-Capability requirement 13: The deployment MUST canonicalize an opaque reference, rewriting every spelling that differs by a foldable difference to one.
+Capability requirement 13: The deployment MUST canonicalize an opaque reference, rewriting every spelling that differs by a foldable difference to one (Execution Contract Logic confinement 13).
 Capability requirement 14: The deployment MUST declare the length bound in Unicode code points.
 Deleted: Capability requirement 15. Execution Contract Logic confinement 7 owns it.
 Deleted: Capability requirement 16. Execution Contract Logic confinement 7 owns it.
@@ -152,7 +152,7 @@ Deleted: Capability requirement 33. Execution Contract Database 7 owns it.
 Capability requirement 34: The deployment MUST supply id material naming no credential of the database instance.
 Capability requirement 35: The deployment MUST NOT supply the same id material to two calls.
 Deleted: Capability requirement 36. Execution Contract Database 7 owns it.
-Capability requirement 37: The deployment MUST supply the credential records PER Execution Contract Database 1 through 4, Execution Contract Database 7, Execution Contract Read 1 through 4 and Execution Contract Refusal 1.
+Capability requirement 37: The deployment MUST supply the credential records PER Execution Contract Database 1 through 4, Execution Contract Database 7, Execution Contract Read 1 through 4, Execution Contract Refusal 1 and Execution Contract Input 1.
 Capability requirement 38: The deployment MUST NOT supply blank id material.
 Capability requirement 39: The deployment MUST supply id material whose assigned credential id DOES NOT EXCEED the length bound.
 Capability requirement 40: The deployment MUST declare a check function that checks a secret verifier in constant time.
@@ -267,11 +267,9 @@ Deleted: Operation 74. Execution Contract Read 1 owns it.
 Deleted: Operation 75. Execution Contract Refusal 1 owns it.
 Deleted: Operation 76. Execution Contract Refusal 1 owns it.
 Deleted: Operation 77. Execution Contract Refusal 1 owns it.
-Operation 78: IF expiry instant DOES NOT EQUAL blank AND expiry instant IS NOT IN the instants THEN [Register] MUST answer invalid-request.
-Operation 79: IF expiry instant DOES NOT EQUAL blank AND expiry instant IS NOT IN the instants THEN [Rotate] MUST answer invalid-request.
+Deleted: Operation 78. Execution Contract Input 1 owns it.
+Deleted: Operation 79. Execution Contract Input 1 owns it.
 ```
-
-NOTE: watch the untyped input (Operation 78, Operation 79).
 
 NOTE: watch read-order polarity (Operation 69).
 
