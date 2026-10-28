@@ -76,7 +76,7 @@ Term reference: credential id, principal reference, revoked by reference OR succ
 
 Term database instance: one named database a call is routed to.
 
-Term seam: the atom's I/O boundary as the section titled Logic Confinement Principle in `execution-contract.md` declares it; the host injects the clock reading, the id material, the entropy and the derivation registry here, and runs the registry's derivation and check functions here (Execution Contract Logic confinement 3, 8).
+Term seam: the atom's I/O (input and output) boundary as the section titled Logic Confinement Principle in `execution-contract.md` declares it; the host injects the clock reading, the id material, the entropy and the derivation registry here, and runs the registry's derivation and check functions here (Execution Contract Logic confinement 3, 8).
 
 Term transition: the atom's evaluation of one call against the credential records, as the section titled Logic Confinement Principle in `execution-contract.md` declares it.
 
@@ -152,7 +152,7 @@ Deleted: Capability requirement 33. Execution Contract Database 7 owns it.
 Capability requirement 34: The deployment MUST supply id material naming no credential of the database instance.
 Capability requirement 35: The deployment MUST NOT supply the same id material to two calls.
 Deleted: Capability requirement 36. Execution Contract Database 7 owns it.
-Capability requirement 37: The deployment MUST supply the credential records PER Execution Contract Database 1 through 4, Execution Contract Database 7, Execution Contract Read 1 through 4, Execution Contract Refusal 1 and Execution Contract Input 1.
+Capability requirement 37: The deployment MUST supply the credential records PER Execution Contract Database 1 through 7, Execution Contract Read 1 through 4, Execution Contract Refusal 1 and Execution Contract Input 1.
 Capability requirement 38: The deployment MUST NOT supply blank id material.
 Capability requirement 39: The deployment MUST supply id material whose assigned credential id DOES NOT EXCEED the length bound.
 Capability requirement 40: The deployment MUST declare a check function that checks a secret verifier in constant time.
@@ -162,7 +162,7 @@ Capability requirement 42: The deployment MUST supply id material in the spellin
 
 NOTE: open 2026-10-21-c — the host runs the derivation function and the check function at the seam and injects each result (Capability requirement 25, Capability requirement 26, Operation 21, Operation 66, Operation 67), and the pipeline in `execution-contract.md` gives that injection no step between the read and the decision.
 
-NOTE: watch host obligations — this atom refuses a string input over the length bound on [Register] and [Revoke] alone (String 7, String 9), obliges the deployment to declare the bound (Capability requirement 14), and obliges it to supply id material whose credential id fits the bound (Capability requirement 39); a blank or over-long principal reference or credential type on [Verify] names no pair, which [Verify] answers no-active-credential (Operation 18), and an over-long credential id on [Rotate] names no credential, which [Rotate] answers not-known (Operation 27).
+NOTE: watch host obligations — this atom refuses a string input over the length bound on [Register] and [Revoke] alone (String 7, String 9), obliges the deployment to declare the bound (Capability requirement 14), and obliges it to supply id material whose credential id fits the bound (Capability requirement 39); a blank principal reference or credential type on [Verify] names no pair, which [Verify] answers no-active-credential (Operation 18), and an over-long one answers by the pair it names; an over-long credential id on [Rotate] answers by the credential it names, not-known where it names none (Operation 27).
 
 
 ### Operations
@@ -309,9 +309,9 @@ Term derivation registry: the deployment's declared map from a credential type t
 
 Term foldable difference: a difference between two strings that trimming, case-folding OR Unicode normalization would remove.
 
-Term default validity: the duration the deployment declares for a [Register] or [Rotate] carrying no expiry instant, which EXCEEDS zero OR EQUALS unbounded; the credential records now plus it, and a deployment declaring it unbounded leaves the expiry instant absent.
+Term default validity: the duration the deployment declares for a [Register] or [Rotate] carrying no expiry instant, which EXCEEDS zero OR EQUALS unbounded; the credential records the default expiry, and a deployment declaring it unbounded leaves the expiry instant absent.
 
-Term default expiry: now plus the default validity — the expiry instant an admitted register or rotate records when the call supplies none and the default validity DOES NOT EQUAL unbounded.
+Term default expiry: (now + default validity) — the expiry instant an admitted register or rotate records when the call supplies none and the default validity DOES NOT EQUAL unbounded (Execution Contract Logic confinement 9).
 
 Term check function: the deployment's function, declared for one credential type beside its derivation function, answering whether presented material matches a recorded verifier.
 
@@ -422,7 +422,7 @@ Tokens for `svc_s03` turn up in a log file. `revoke(cred_c15, admin_a01, "log-ex
 
 ## Generation acceptance
 
-This atom's acceptance is provable: an external auditor clears it from the credential records and a read-time clock.
+This atom's acceptance is provable: an external auditor clears it from the credential records, with their committed versions (Execution Contract Database 5), and a read-time clock.
 
 ### Conformance checks
 
@@ -442,18 +442,22 @@ Check 5.1: An auditor MUST find no credential material beyond the verifier in a 
 Check 5.2: An auditor MUST find no presented material in a credential (State 10).
 Check 5.3: An auditor MUST find no verifier in a [Read] answer (Operation 53, State 8).
 Check 5.4: An auditor MUST find no credential material in a [Read] answer (Invariant 8.1).
-Check 6.1: An auditor MUST find EVERY credential a prior read found in a stored terminal in that stored terminal on a later read, beside the credentials a composing Retention Window's purge record names (Invariant 5.1).
+Check 6.1: An auditor MUST find no credential leaving a stored terminal across two committed versions of the credential (Invariant 5.1; Execution Contract Database 5).
 Check 6.2: An auditor MUST find no terminal field on an active credential (State 5).
-Check 7.1: An auditor MUST find a re-read credential's properties unchanged across an admitted rotate (Invariant 1.1, Invariant 6.1).
-Check 7.2: An auditor MUST find a re-read credential's terminal fields unchanged across a later write (Invariant 1.2).
-Check 7.3: An auditor MUST find a rotated credential's fields beside status, rotation instant and successor credential id unchanged across the rotate (Invariant 6.2).
-Check 8.1: An auditor MUST find no credential absent from a later read, beside the credentials a composing Retention Window's purge record names (Invariant 10.1, State 15).
-Check 8.2: An auditor MUST find the database instance's credential count no lower on a later read, beside the credentials a composing Retention Window's purge record names (State 15).
+Check 7.1: An auditor MUST find EVERY credential's properties unchanged across EVERY committed version of the credential (Invariant 1.1, Invariant 6.1; Execution Contract Database 5).
+Check 7.2: An auditor MUST find EVERY terminal field a credential carries unchanged across EVERY committed version of the credential carrying the field (Invariant 1.2; Execution Contract Database 5).
+Check 7.3: An auditor MUST find EVERY rotated credential's fields beside status, rotation instant and successor credential id unchanged across EVERY committed version of the credential (Invariant 6.2; Execution Contract Database 5).
+Check 8.1: An auditor MUST find an unfiltered read answering EVERY credential with a committed version (Invariant 10.1, State 15; Execution Contract Database 5).
+Deleted: Check 8.2. Check 8.1 owns it.
 Check 9.1: An auditor MUST reconstruct EVERY credential of one pair from the database (State 1, State 15, Invariant 10.1).
 Check 10.1: An auditor MUST find no two credentials sharing a credential id (Identity 5).
 ```
 
 NOTE: EVERY check names the rule the check tests.
+
+NOTE: watch the check no record answers (Check 6.1, Check 7.1 through 7.3, Check 8.1).
+
+Term committed version: a record as it stood at the commit that wrote it, which Execution Contract Database 5 keeps readable after the record changes.
 
 ### External checks
 
@@ -632,7 +636,7 @@ Term cadences: empty.
 
 Term qualifiers: migrated — rewritten in GRACE lang v0.40 (2026-09-13).
 
-Term terms: credential, credential id, lapse instant, pair, property, reference, database instance, seam, transition, now, transitioning write, stored terminal, status, window reading, live, lapsed, effective-active credential, lapsed credential, proceeding verify, effective status, verifier, derivation function, derivation registry, foldable difference, length bound, material bound, default validity, check function, filter, fresh credential id, authorized caller, credential write, secret verifier, constant time, settled reading, terminal field, admitted register, admitted rotate, admitted revoke, string input, verification failure, default expiry, empty material, id material.
+Term terms: credential, credential id, lapse instant, pair, property, reference, database instance, seam, transition, now, transitioning write, stored terminal, status, window reading, live, lapsed, effective-active credential, lapsed credential, proceeding verify, effective status, verifier, derivation function, derivation registry, foldable difference, length bound, material bound, default validity, check function, filter, fresh credential id, authorized caller, credential write, secret verifier, constant time, settled reading, terminal field, admitted register, admitted rotate, admitted revoke, string input, verification failure, default expiry, empty material, id material, committed version.
 
 Term cited: the section titled Logic Confinement Principle in `execution-contract.md` — the seam and the transition.
 
@@ -974,7 +978,7 @@ Projection: storage-failure
 - **OpenID Connect (OIDC) Core 1.0** — the OIDC login flow ends in a verification this atom answers, and the verification event itself is a composing Event Log's (Composition note 7); [Login](../compositions/login.md) is the Grace Commons expression of the authorization-code flow.
 - **PCI DSS (the Payment Card Industry Data Security Standard) Requirement 8 (identify and authenticate access)** — the atom satisfies the structural requirements: one effective-active credential per pair, rotation producing a new record, revocation recorded with the attribution the caller supplies. The rotation period is not enforced here: the default validity (Capability requirement 7) is a default that a supplied expiry overrides, so the atom bounds no credential's lifetime and a deployment needing a maximum age enforces it in the pattern that schedules its rotations. Complexity rules and the lockout threshold are likewise the deployment's (Non-goal 8, Non-goal 16).
 - **ISO/IEC (International Organization for Standardization / International Electrotechnical Commission) 27001:2022 Annex A controls 5.17 (authentication information) and 8.5 (secure authentication)** — the registration, rotation and revocation lifecycle corresponds to the authentication-information controls there; the 2013 edition's A.9.4 is the superseded numbering.
-- **GDPR (EU General Data Protection Regulation) Article 32 (security of processing)** — State 9, State 10 and the one-way verifier discipline contribute to the technical measures Article 32 requires. A deployment storing a biometric verifier assesses Article 9 separately (Non-goal 23).
+- **GDPR (General Data Protection Regulation — the European Union's data-protection law) Article 32 (security of processing)** — State 9, State 10 and the one-way verifier discipline contribute to the technical measures Article 32 requires. A deployment storing a biometric verifier assesses Article 9 separately (Non-goal 23).
 - **HIPAA (US Health Insurance Portability and Accountability Act) section 164.312(d) (person or entity authentication)** — the verified answer is the structural mechanism for this requirement.
 
 It inherits from:
@@ -993,7 +997,7 @@ It inherits from:
 ```
 status: partially resolved
 formal: verified — credential.tla + 4 twins, 2026-09-29
-last gate: 2026-10-26 — Final Critique 18 — foundational count 1, not clean, no sample
+last gate: 2026-10-28 — Final Critique 19 — foundational count 0, clean, no sample
 
 open:
 - 2026-10-21-b · refining · Term seam, transition; Term cited · each cites the section titled Logic Confinement Principle in `execution-contract.md`, which declares none of them → cite what declares each, as Event Log's 2026-10-20-c and Permissions' 2026-10-21-f ask of the same three sentences
