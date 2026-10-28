@@ -46,16 +46,20 @@ Term matching rule: the containing pattern's rule for judging two identities the
 ### State
 
 ```
-State 1: The host MUST hold EXACTLY ONE recording instant per guarded identity.
-State 2: The host MUST derive under guard from the elapsed term at the moment a question is asked.
+State 1: The host MUST hold EXACTLY ONE recording instant per identity the recorded set holds.
+State 2: The host MUST derive under guard from the elapsed term at EVERY call.
 State 3: The atom MUST NOT hold state beyond the recorded set.
 ```
 
 Term recorded set: every identity a [Record] has placed under guard, each held with the identity's recording instant, whether or not the identity is still under guard — the [Recorded Set].
 
+NOTE: open 2026-10-21-d — no action erases an entry whose guard has elapsed, so the recorded set keeps every identity ever placed under guard, and a pattern that needs the space back has nothing to call.
+
 Term recording instant: the instant an identity was placed under guard, stamped from the injected now — a [Recording Instant].
 
-Term window duration: the length a containing pattern chooses for a guard — a [Window Duration]; the value the elapsed term is measured against. The [Window] the length sizes is the interval, and carries no separate name in a rule.
+Term window duration: the length a containing pattern chooses for a guard, which EXCEEDS zero — a [Window Duration]; the value the elapsed term is measured against. The [Window] the length sizes is the interval, and carries no separate name in a rule.
+
+NOTE: watch the degenerate bound (Term window duration).
 
 Term elapsed term: `(now - recorded_at)`.
 
@@ -112,9 +116,11 @@ Term now: the deployment's clock reading at the call, as Execution Contract Logi
 
 Term transition: the atom's evaluation of one call against the recorded set, as the section titled Logic Confinement Principle in `execution-contract.md` declares it.
 
-Term seam: the atom's I/O boundary as the section titled Logic Confinement Principle in `execution-contract.md` declares it; the host injects the clock reading here.
+Term seam: the atom's I/O (input and output) boundary as the section titled Logic Confinement Principle in `execution-contract.md` declares it; the host injects the clock reading here.
 
 Term business caller: the party whose action the call carries, as the section titled Logic Confinement Principle in `execution-contract.md` declares it; never the source of an injected value.
+
+NOTE: open 2026-10-28-a — Term seam, Term transition and Term business caller cite the section titled Logic Confinement Principle in `execution-contract.md`, which declares none of them.
 
 ### Invariants
 
@@ -135,6 +141,8 @@ Term business caller: the party whose action the call carries, as the section ti
   Deleted: Invariant 4.1. Operation 7 and Execution Contract Database 4 own it.
   Deleted: Invariant 4.2. Operation 7 owns it.
   ```
+
+NOTE: open 2026-10-21-c — three propositions are each owned twice: a fresh guard for an identity that is not under guard (Invariant 2.3, Operation 1), the response to an answer left to the containing pattern (Non-goal 1, Operation 12), and a guard anchored to the opening record's now (Clock semantics 1, Operation 2, Invariant 2.2).
 
 ## Examples
 
@@ -158,6 +166,10 @@ A user submits the same email address to a newsletter form twice in quick succes
 
 The mechanic is identical across all four. What differs: the [Window Duration], the identity-matching rule, and the containing pattern's response on [Seen] (reject, return-cached, silently-absorb).
 
+### Rejection paths
+
+A comment system calls [Record] with a comment's text, and the database refuses the write: [Record] answers [Storage Failure], nothing is written, and the text, which was not under guard, stays unguarded, so a second post a moment later checks [Not Seen] and goes through (Operation 14, Record failure 2). Had the text been under guard already, the refused write would have left its guard standing. A payment processor calls [Check] while the database cannot be read: [Check] answers state-unavailable (Execution Contract Read 1), and proceeding as on [Not Seen] (fail-open) or as on [Seen] (fail-closed) is the processor's own decision (Operation 12).
+
 ---
 
 ## Generation acceptance
@@ -168,16 +180,17 @@ An implementation is acceptable when the checks below are provable to an externa
 
 ```
 Check 1.1: An auditor MUST find EXACTLY ONE recording instant PER identity the recorded set holds (State 1).
-Check 1.2: An auditor MUST find an identity's recording instant unchanged across a second record inside the identity's window (Invariant 2.2).
-Check 1.3: An auditor MUST find no guard extended by a second record (Invariant 2.1).
-Check 1.4: An auditor MUST find a fresh recording instant for a landed record against an identity that is not under guard (Invariant 2.3).
-Check 2.1: An auditor MUST find the recorded set unchanged across a check (Invariant 3.1).
-Deleted: Check 2.2. Check 2.1, Check 3.2 and Check 3.3 own it.
+Deleted: Check 1.2. Invariant 2.2 owns it.
+Deleted: Check 1.3. Invariant 2.1 owns it.
+Deleted: Check 1.4. Invariant 2.3 owns it.
+Deleted: Check 2.1. Invariant 3.1 owns it.
+Deleted: Check 2.2. Invariant 3.1, Check 3.2 and Check 3.3 own it.
 Check 3.1: An auditor MUST find EVERY check answering EXACTLY ONE OF seen, not-seen (Operation 5).
 Check 3.2: An auditor MUST find a check answering seen for an identity under guard (Operation 6).
 Check 3.3: An auditor MUST find a check answering not-seen for an identity that is not under guard (Operation 7).
 Deleted: Check 3.4. Check 3.3 owns it.
-Check 4.1: An auditor MUST find EVERY landed record answering ok (Operation 3).
+Deleted: Check 4.1. Operation 3 owns it.
+NOTE: watch the check no record answers (Check 1.2, Check 1.3, Check 1.4, Check 2.1, Check 4.1).
 ```
 
 NOTE: EVERY check names the rule the check tests.
@@ -190,7 +203,7 @@ External check 2: An auditor needing the matching rule confirmed MUST read the c
 External check 3: An auditor needing a guard miss confirmed MUST read the deployment's own database (Record failure 2).
 Deleted: External check 4. Execution Contract Database 3 owns it.
 Deleted: External check 5. Operation 12 owns it.
-External check 6: An auditor needing the clock's honesty confirmed MUST read the deployment's own clock discipline (Non-goal 12).
+Deleted: External check 6. Execution Contract Logic confinement 7 owns it: the page relies on no guarantee of the clock.
 ```
 
 ## Non-goals
@@ -249,7 +262,7 @@ The atom claims behaviour and not storage: Operation 7 answers not-seen for an i
 
 ```
 Deleted: Record failure 1. Operation 14 owns it.
-Record failure 2: The atom MUST treat a failed write as a guard miss.
+Record failure 2: The atom MUST treat a failed write as a guard miss for an identity that is not under guard.
 Record failure 3: The atom MUST NOT treat a failed write as a safety violation.
 Deleted: Record failure 4. Execution Contract Database 3 owns it.
 ```
@@ -257,6 +270,8 @@ Deleted: Record failure 4. Execution Contract Database 3 owns it.
 ## Composition notes
 
 Three compositions name this atom: [Idempotent Reservation](../compositions/idempotent-reservation.md), [Preference-Aware Notification Fanout](../compositions/preference-aware-notification-fanout.md) and [Reserve from Pool](../compositions/reserve-from-pool.md). What a containing pattern owes is stated where the atom's operations are — the window duration (Operation 11) and the response to an answer (Operation 12) — and is not restated here.
+
+The comment and payment examples check and record in separate steps. A containing pattern that checks, acts and records in one action has Execution Contract Database 1 and Database 2 serialize it: two such actions on one identity run one after the other, and the later reads what the earlier committed. Where the check and the record are separate actions, two first sightings at once can both answer not-seen and both act; which of the two a containing pattern builds is its own (Operation 12).
 
 ## Terms
 
@@ -268,7 +283,9 @@ Term actors: the atom; the host; the transition; a containing pattern (also: the
 
 Term records: recorded set — every identity placed under guard, one recording instant per entry.
 
-Term record verbs: identify, treat, interpret, normalize, supply, hold, derive, stamp, place, answer, refuse, read, own, stand, extend, preserve, open, alter, decide, survive, reconcile, compose, anchor, correct, find.
+Term record verbs: identify, treat, interpret, normalize, supply, hold, derive, stamp, place, answer, refuse, read, own, extend, preserve, open, alter, decide, reconcile, compose, anchor, correct, find.
+
+Term value sets: empty.
 
 Term bounds: window duration (the length a containing pattern chooses for a guard; window is the lowering token the [Window Duration] term entry carries).
 
@@ -337,7 +354,7 @@ Projection: recorded_at
 
 #### Window Duration
 
-The length the containing pattern chooses for a [Window] — how long a recently-recorded [Identity] stays guarded. It is supplied by the containing pattern, one for each instance of the atom (24 hours for a to-do list, minutes for a payment), sizes the [Window] but is not itself part of the concept's state, and is the value the expiry comparison measures [Now] − [Recording Instant] against.
+The length the containing pattern chooses for a [Window] — how long a recently-recorded [Identity] stays guarded. It is supplied by the containing pattern, one for each instance of the atom and always more than zero (24 hours for a to-do list, minutes for a payment), sizes the [Window] but is not itself part of the concept's state, and is the value the expiry comparison measures [Now] − [Recording Instant] against.
 
 Kind:         Parameter
 Parameter of: Record and Check
@@ -348,7 +365,7 @@ Projection:   window
 The current wall-time reading the [Record] and [Check] behaviors evaluate against, supplied to the pure transition by the host at the I/O seam (never read inside the transition, never supplied by the business caller). [Record] stamps [Recording Instant] from it; [Check] compares it against the [Window] to decide [Seen] versus [Not Seen].
 
 Kind:         Parameter
-Parameter of: Check
+Parameter of: Record and Check
 Projection:   now
 
 #### Storage Failure
@@ -381,7 +398,7 @@ Projection: storage-failure
 
 ## Standards references
 
-Duplicate Prevention is a primitive integrity concept. It has no direct ISO / IEEE / regulatory anchor in this generic form, though specific instantiations have widely-used standards behind them:
+Duplicate Prevention is a primitive integrity concept. It has no direct anchor in ISO (International Organization for Standardization) or IEEE (Institute of Electrical and Electronics Engineers) standards, or in regulation, in this generic form, though specific instantiations have widely-used standards behind them:
 
 - **HTTP (HyperText Transfer Protocol — the request/response protocol of the web) idempotency keys** (IETF (Internet Engineering Task Force — the body that develops internet standards) draft and de-facto convention for safe retry of state-changing requests).
 - **Stripe / payment-processor idempotency** (industry-standard pattern for at-most-once charge semantics within a window).
@@ -404,14 +421,12 @@ It inherits from:
 ```
 status: partially resolved
 formal: verified — duplicate-prevention.tla + 1 twin, 2026-06-03
-last gate: 2026-10-21 — Final Critique 5, the council's first round on the page and the first on its Store-contract rewrite (b683119), three fresh readers on free models (GRID Nemotron 3 Ultra, EOS MiniMax M3.1 Flash, Linus GLM-5.3 Flash), each handed only the round's reading set, three passes on one text (frozen at 3e955a5); the round rests on three counted passes — foundational count 6 after triage (17 reports: 9 standing, merged into 6; 4 sent down; 4 rejected), all Kind A: [Check]'s answers and [Record]'s ok were closed against the failed read and the refused write the Execution Contract answers, and a fail-open posture obliged not-seen for an identity under guard; a refused write was obliged to place the guard the page also called missed; the window duration reached the host by no stated route, so builds read it per call, per entry or at every read; the matching rule was handed to an atom forbidden to interpret an identity; a drop was obliged that no declared action can make, beside a lazy host the page licensed to keep the entry; and two checks under one now were said to answer alike across a [Record] between them; 11 refining reports, 5 rhetorical reports; not clean; every foundational finding cured in place; 2026-06-18 — Final Critique 4, fresh reader — clean
+last gate: 2026-10-28 — Final Critique 6 — foundational count 1, not clean, no sample
 
 open:
-- 2026-10-21-a · refining · Now entry · the Now entry gives Parameter of: Check alone though [Record] stamps from it → name every consumer of now
-- 2026-10-21-b · refining · Examples; Operation 12; Composition notes · the payment and comment examples check, act and record in separate steps, so two first sightings at once both answer not-seen and both act; where [Record] stands against the act is the containing pattern's (Operation 12), and Execution Contract Database 1 and Database 2 serialize a containing action that checks, acts and records in one transaction → say so beside the examples or in the Composition notes
 - 2026-10-21-c · refining · Invariant 2.3; Operation 1; Non-goal 1; Operation 12; Clock semantics 1; Operation 2; Invariant 2.2 · three propositions each owned twice: a fresh guard for an identity not under guard, the response left to the containing pattern, and a guard anchored to the opening record's now → one owner each (GRACE-lang Authority 3)
 - 2026-10-21-d · refining · Term recorded set; Execution Contract Database 4 · no action erases an entry whose guard has elapsed, so the recorded set keeps every identity ever placed under guard and a pattern that needs the space back has nothing to call → a declared erasure the atom owns, or a Non-goal naming the composing pattern that purges
-- 2026-10-21-e · refining · External check 6; Non-goal 12 · External check 6 sends the auditor to Non-goal 12, which owns skew correction, for the clock's honesty, which Execution Contract Logic confinement 7 makes the deployment's → cite Logic confinement 7, or delete the check to it as Event Log's External check 3 was
+- 2026-10-28-a · refining · Term seam; Term transition; Term business caller · each says the section titled Logic Confinement Principle in `execution-contract.md` declares it, and that section declares none of the three → declare the three there, the corpus's one seam wording, or point each at its declaration
 ```
 
 ## Decisions
