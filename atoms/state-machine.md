@@ -16,13 +16,13 @@ toc: true
 
 ## Summary
 
-State Machine records a single named workflow — think of it as a token moving through a flowchart — where the flowchart (the set of valid states and the transitions between them) is declared by the system deploying it rather than fixed by this atom.
+State Machine records a single named workflow — think of it as a token moving through a flowchart — where the flowchart (the set of valid states and the transitions between them) is declared by the system deploying it rather than fixed by the pattern itself.
 
 When the workflow is created, the deployer provides the complete map: every state, every allowed move between states (each move is a named action, optionally gated by a condition the calling system must assert is satisfied), the starting state, and any states that are permanent endpoints. From that moment forward the map is frozen — it cannot be changed for this workflow.
 
-The atom then enforces three guarantees for the lifetime of the workflow: only declared moves are allowed (an undeclared move is refused); exactly one current state exists at all times; and every move that succeeds is recorded permanently, in order, with enough context to replay the full history and arrive at the current state.
+State Machine then enforces three guarantees for the lifetime of the workflow: only declared moves are allowed (an undeclared move is refused); exactly one current state exists at all times; and every move that succeeds is recorded, in order, and never deleted by the pattern itself, with enough context to replay the full history and arrive at the current state.
 
-These guarantees make the system useful for regulated processes (a pharmaceutical batch that must prove it moved only through the approved sequence of quality-control states) and for any process where you need an unambiguous, auditable record of what happened and in what order. This atom is the general pattern; [Approval Step](./approval-step.md) is one specific kind of state machine with its states and rules fixed in advance, whose workflows do not need their own declaration.
+These guarantees make the system useful for regulated processes (a pharmaceutical batch that must prove it moved only through the approved sequence of quality-control states) and for any process where you need an unambiguous, auditable record of what happened and in what order. State Machine is the general pattern; [Approval Step](./approval-step.md) is one specific kind of state machine with its states and rules fixed in advance, whose workflows do not need their own declaration.
 
 *Also known as: a workflow instance, a process instance, a declared finite state machine.*
 
@@ -111,7 +111,7 @@ Deleted: State 14. Execution Contract Database 3 owns it.
 
 ```
 Capability requirement 1: The deployment MUST supply now at the seam.
-Capability requirement 5: The deployment MUST supply the workflow records PER Execution Contract Database 1 through 4, Execution Contract Database 6, Execution Contract Database 7, Execution Contract Read 4, Execution Contract Refusal 1, Execution Contract Query 1 through 4 and Execution Contract Conformance 9.
+Capability requirement 5: The deployment MUST supply the workflow records PER Execution Contract Database 1 through 7, Execution Contract Read 4, Execution Contract Refusal 1, Execution Contract Query 1 through 4 and Execution Contract Conformance 9.
 Deleted: Capability requirement 2. Execution Contract Logic confinement 7 owns it.
 Deleted: Capability requirement 3. Execution Contract Logic confinement 7 owns it.
 Deleted: Capability requirement 4. Execution Contract Logic confinement 7 owns it.
@@ -143,7 +143,7 @@ read_declaration(instance_id)
 
 ```
 Deleted: Operation 1. Execution Contract Refusal 1 owns it.
-Operation 2: IF a supplied actor reference EQUALS blank THEN an action MUST answer invalid-request.
+Operation 2: IF a supplied actor reference EQUALS blank THEN a writing action MUST answer invalid-request.
 Operation 3: IF now PRECEDES the resolved instantiation instant THEN [Instantiate] MUST answer invalid-request.
 Operation 62: IF the resolved instantiation instant IS NOT IN the instants THEN [Instantiate] MUST answer invalid-request.
 Operation 4: An admitted instantiate MUST record EXACTLY ONE workflow.
@@ -405,7 +405,7 @@ Two batches run the same declaration as two workflows. Firing `test` on one move
 
 ### Regulated adversarial scenarios
 
-- **Regulator audit.** A US Food and Drug Administration (FDA) inspector auditing under 21 CFR Part 11 and ISO 9001 clause 8.5.1 asks the system to prove the batch moved only through approved states. Check 2.1 and Check 6.1 are the structural answer: every history entry matches a declared transition, and the declaration is the one supplied at instantiation. What the atom cannot answer is whether the `qa_signoff` guard was truly satisfied — `guard_satisfied: true` attests an assertion (Invariant 8.3), and the evidence lives in the composing [Approval Step](./approval-step.md) record.
+- **Regulator audit.** A US Food and Drug Administration (FDA) inspector auditing under 21 CFR Part 11 and ISO 9001 clause 8.5.1 asks the system to prove the batch moved only through approved states. Check 2.1 and Check 1.1 are the structural answer: every history entry matches a declared transition, and the declaration is the one supplied at instantiation. What the atom cannot answer is whether the `qa_signoff` guard was truly satisfied — `guard_satisfied: true` attests an assertion (Invariant 8.3), and the evidence lives in the composing [Approval Step](./approval-step.md) record.
 - **Disputed transition.** An external party claims the workflow skipped a required state. The history is gap-free by sequence number (Invariant 6.2) and replays to the current state (Invariant 7.3), so a skipped state would have to appear as a declared transition that jumps it — which the declaration either names or does not. The claim resolves provably, against the declaration.
 - **Breach investigation.** An investigator reconstructing an anomaly window filters the history by firing instant range and finds the entries generously bracketed. Because sequence number is dense and is the order source (Invariant 6.2, Operation 55), the investigator confirms the window's completeness against an unfiltered read rather than trusting the wall-time filter — a clock-skewed entry can fall outside the bracket and cannot fall out of the sequence.
 
@@ -413,21 +413,21 @@ Two batches run the same declaration as two workflows. Firing `test` on one move
 
 ## Generation acceptance
 
-This atom's acceptance is provable: an external auditor clears it from the workflow records and the declaration.
+This atom's acceptance is provable: an external auditor clears it from the workflow records, with their committed versions (Execution Contract Database 5), and the declaration.
 
 ### Conformance checks
 
 ```
-Check 1.1: An auditor MUST find a re-read declaration unchanged from the prior read (Invariant 1.1).
-Check 1.2: An auditor MUST find a declaration unchanged across an admitted fire (Invariant 1.1).
+Check 1.1: An auditor MUST find EVERY workflow's declaration unchanged across EVERY committed version of the workflow (Invariant 1.1; Execution Contract Database 5).
+Deleted: Check 1.2. Check 1.1 owns it.
 Check 2.1: An auditor MUST find EVERY history entry's from state, action and to state standing as a declared transition in the workflow's declaration (Invariant 3.1).
 Check 2.2: An auditor MUST find no two declared transitions in one declaration sharing one from state and one action (Invariant 3.2).
 Check 3.1: An auditor MUST find EVERY workflow whose current state EQUALS EXACTLY ONE member of the workflow's states (Invariant 2.1).
-Check 4.1: An auditor MUST find a workflow whose current state IS IN the terminal states carrying no history entry following the entry that reached the terminal state (Invariant 4.1).
+Check 4.1: An auditor MUST find no history entry following a history entry whose to state IS IN the workflow's terminal states (Invariant 4.1).
 Check 4.2: An auditor MUST find no declared transition whose from state IS IN the terminal states (Invariant 4.2).
 Check 5.1: An auditor MUST find a workflow's sequence numbers standing from one to the workflow's history entry count (Invariant 6.2).
 Check 5.2: An auditor MUST reconstruct a workflow's history order from sequence number alone (Invariant 6.3).
-Check 5.3: An auditor MUST find a re-read history entry's fields unchanged from the prior read (Invariant 5.1).
+Check 5.3: An auditor MUST find EVERY history entry's fields unchanged across EVERY committed version carrying the history entry (Invariant 5.1; Execution Contract Database 5).
 Check 6.1: An auditor MUST reach the workflow's current state by replaying the workflow's history from the initial state (Invariant 7.3).
 Check 7.1: An auditor MUST find guard satisfied recorded on EVERY guarded declared transition's history entry (Invariant 8.3).
 Check 7.2: An auditor MUST find no guard satisfied recorded on an unguarded declared transition's history entry (Operation 30).
@@ -436,6 +436,10 @@ Check 8.2: An auditor MUST find EVERY recorded actor reference non-blank (Invari
 ```
 
 NOTE: EVERY check names the rule the check tests.
+
+NOTE: watch the check no record answers (Check 1.1, Check 5.3).
+
+Term committed version: a record as it stood at the commit that wrote it, which Execution Contract Database 5 keeps readable after the record changes.
 
 ### External checks
 
@@ -559,16 +563,16 @@ Term actors: the atom; the host; the transition; the deployment; a composing pat
 
 Term records: workflow — one running workflow, carrying instance id, a declaration, a current state, a transition history, next sequence number, an instantiation instant and, where supplied, subject reference, instance metadata and actor reference. history entry — one recorded transition, carrying transition id, sequence number, from state, to state, action, firing instant and, where supplied, actor reference and guard satisfied.
 
-Term record verbs: identify, allocate, change, carry, stand, answer, record, append, set, take, raise, leave, own, match, normalize, reorder, interpret, confirm, admit, offer, evaluate, assert, fire, replay, reach, rest, share, precede, follow, exceed, compare, trim, case-fold, refuse, write, read, find, reconstruct, complete, equal, bound, nest, version, decide, compose, declare, wire, supply, remove, route, name, detect, bind, capture, count, canonicalize.
+Term record verbs: identify, allocate, change, carry, stand, answer, record, append, set, take, raise, leave, own, match, normalize, reorder, interpret, confirm, admit, offer, evaluate, assert, fire, replay, reach, rest, share, precede, follow, compare, trim, case-fold, refuse, write, read, find, reconstruct, complete, equal, bound, nest, version, decide, compose, declare, wire, supply, remove, route, name, detect, bind, capture, count, canonicalize.
 
-
+Term value sets: writing action = [Instantiate] | [Fire]. reading action = [Current] | [History] | [Read Declaration]. guard satisfied = true | false. filter axes = transition id | sequence number | from state | to state | action | actor reference | firing instant.
 Term bounds: empty.
 
 Term cadences: empty.
 
 Term qualifiers: migrated — rewritten in GRACE lang v0.40 (2026-09-12).
 
-Term terms: workflow, instance id, history entry, transition id, subject reference, instance metadata, database instance, seam, transition, declared transition, declaration, states, initial state, terminal states, well-formed declaration, now, business caller, addressed action, writing action, reading action, current state, next sequence number, sequence number, firing instant, instantiation instant, resolved firing instant, resolved instantiation instant, actor reference, guard, guard satisfied, matched transition, cleared fire, firing check, firing fault, filter axes, admitted instantiate, admitted fire, admitted history, string input, blank.
+Term terms: workflow, instance id, history entry, transition id, subject reference, instance metadata, database instance, seam, transition, declared transition, declaration, states, initial state, terminal states, well-formed declaration, now, business caller, addressed action, writing action, reading action, current state, next sequence number, sequence number, firing instant, instantiation instant, resolved firing instant, resolved instantiation instant, actor reference, guard, guard satisfied, matched transition, cleared fire, firing check, firing fault, filter axes, admitted instantiate, admitted fire, admitted history, committed version, string input.
 
 #### Instantiate
 
@@ -907,7 +911,7 @@ Guard evaluation, non-repudiable attribution, tamper-evidence, and retention are
 ```
 status: partially resolved
 formal: verified — state-machine.als + 1 twin, 2026-06-04
-last gate: 2026-10-27 — Final Critique 7 — foundational count 1, not clean, no sample
+last gate: 2026-10-28 — Final Critique 8 — foundational count 1, not clean, no sample
 
 open: none
 ```
