@@ -314,6 +314,7 @@ Action wiring 50: IF Selective Disclosure answers invalid-query THEN [Sharing Di
 Action wiring 51: [Authorization Provenance] MUST answer the capability-to-sharing entry for the capability token.
 Action wiring 52: IF no capability-to-sharing entry EXISTS for the capability token THEN [Authorization Provenance] MUST answer not-known.
 Action wiring 56: [Authorization Provenance] MUST NOT answer not-known BEFORE rebuilding the capability token's capability-to-sharing entry.
+NOTE: watch the miss read before its rebuild (Action wiring 56).
 Action wiring 53: A read-only query MUST NOT record an event.
 ```
 

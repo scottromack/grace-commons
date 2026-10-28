@@ -101,6 +101,7 @@ Composition state 8: The composition MUST NOT remove a chain record.
 Composition state 9: The composition MUST classify a chain record in an open initiation window as extraction-pending against Outbox.
 Composition state 10: The composition MUST classify a live index entry as a derived index.
 Composition state 11: The composition MUST classify a purged index entry as extraction-pending against Erasure Tombstone.
+NOTE: watch the unnamed purged half (Composition state 11).
 Composition state 12: The composition MUST rebuild the chain records AND the step list index PER the chain rebuild.
 Composition state 13: A rebuild MUST retain EVERY chain record the chain rebuild does not produce.
 Deleted: Composition state 14. Execution Contract Database 1 owns it.
