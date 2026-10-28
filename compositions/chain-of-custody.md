@@ -416,7 +416,9 @@ Wiring decision 5: [Transform Custody], [Disclose Custody] AND [Archive Custody]
 Wiring decision 6: The composition MUST NOT attest a transfer under the incoming custodian.
 ```
 
-WHY:
+<details markdown="block">
+<summary>WHY</summary>
+
 *Principle.* A court-admissible or regulator-acceptable chain of custody needs four properties at once: continuity (no gap, hand to hand), verified attribution (each custodian non-repudiably identified), tamper evidence (any rewrite provable), and retention governance (kept for its regulatory lifetime, lawfully destroyable with a defensible record). Provenance supplies continuity; Audit Trail supplies the other three. Without a per-entry link the two record sets are parallel and unjoined — an auditor can verify continuity separately and attribution separately, but cannot prove all four *together for the same entry*.
 
 *Likely objection.* Why not fold attribution, tamper evidence and retention into Provenance, so the chain itself carries all four?
@@ -424,6 +426,8 @@ WHY:
 *Mechanism.* Those are exactly the concepts Provenance extracted in its EOS (Essence of Software — Daniel Jackson's framework for freestanding, composable concepts) pass to stay freestanding, naming each composing home in its own edge cases. The composition is where they re-converge, and efficiently: Audit Trail already wires all three into one substrate, so one binding — entry to event — carries the whole surface (Wiring decision 1). Absorbing the three into Provenance would end its freestanding status and make every unregulated chain carry the regulated overhead.
 
 *Result.* Provable custody, which neither constituent gives alone: an auditor holding the binding index, the chain and the substrate answers the four questions — who held it, was the transfer unbroken, was the record altered, was it kept long enough.
+
+</details>
 
 ### Reconciliation
 
@@ -920,7 +924,10 @@ last gate: 2026-10-27 — Final Critique 10 — foundational count 5, not clean,
 open: none
 ```
 
-## Decisions
+<details markdown="block">
+<summary>
+    <h2 id="decisions" style="display: inline-block; margin-left: 1.5rem;">Decisions</h2>
+</summary>
 
 Directional changes only — the turns a future reader must know the pattern took, and why. Everything smaller lives in the commit that made it: `git log -- compositions/chain-of-custody.md`; the migration and the earlier gate records that got it here are in [its history](./chain-of-custody.hist.md).
 
@@ -932,5 +939,7 @@ Directional changes only — the turns a future reader must know the pattern too
 - **2026-08-27 — The verification presentation is keyed by audit-log position, not by custody entry.** *Chose:* original_event_payloads keyed by `sequence_number`, with [Verify Custody] assembling each entry's presentation from the covering range `read_record` names. *Over:* a map keyed by `entry_id` holding one payload per entry, or a wiring rule requiring per-event cadence. *Because:* the substrate's rule is that a seal commits to a sequence range whose members include intent records and unrelated actions carrying no `entry_id`; an entry-keyed map cannot present that set under any cadence but per-event, and pinning the cadence would trade a representational fix for a deployment constraint.
 - **2026-06-11 — Invariant 4's compensated arm is in the model, not idealized away.** *Chose:* re-derive the model over sequential sub-writes with compensation. *Over:* the original model, which committed the sub-writes as one atomic action. *Because:* the Provenance write is irreversible and the audit append cannot be withdrawn, so the compensated path is the design.
 - **2026-08-26 — [Transfer Custody] resolves the outgoing custodian before it authenticates, and authenticates before it commits.** *Chose:* a read-only resolution step, then the intent record under the outgoing custodian's credential, then the Provenance call; invalid-credential restored to all five signatures, reversing Final Critique 5's F2 on new grounds. *Over:* declaring the pre-check "a deployment obligation" (Final Critique 5's F-6 closure), or authenticating the incoming caller, the only principal available earlier. *Because:* a declaration discharges nothing the records can show, and the guarantee names the outgoing custodian, a principal produced by the commit.
+
+</details>
 
 NOTE: End of Chain of Custody.

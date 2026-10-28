@@ -24,8 +24,12 @@ Duplicate Prevention gives a system a short-term memory of things it has recentl
 
 ## Intent
 
-WHY:
+<details markdown="block">
+<summary>WHY</summary>
+
 Every system that accepts input from a person or another system meets the same class of problem: the double-submit, the rapid re-add, the replayed message, the retried charge, the double-posted comment, the redundant sign-up. The shape is constant — an action carries an identity, the action should be rejected, de-duplicated or replayed if that identity was seen recently, and *recently* is a wall-time window. The atom is that mechanic and nothing more: it places an identity under guard for a bounded term and answers whether the identity is still under guard. It does not compare identities, does not decide what a repeat means, and does not act. The same literature names it three times — *idempotency window* in distributed systems, *cooldown* in user experience, *replay protection* in security — and the concept underneath is one concept.
+
+</details>
 
 ## Structure
 
@@ -255,8 +259,12 @@ Deleted: Lazy expiry 2. Execution Contract Database 4 owns it.
 Deleted: Lazy expiry 3. Operation 7 owns it.
 ```
 
-WHY:
+<details markdown="block">
+<summary>WHY</summary>
+
 The atom claims behaviour and not storage: Operation 7 answers not-seen for an identity that is not under guard, and the identity's entry stays in the recorded set, since no action of the atom removes one and the database removes nothing on its own (Execution Contract Database 4).
+
+</details>
 
 ### Record storage failure
 
@@ -429,7 +437,10 @@ open:
 - 2026-10-28-a · refining · Term seam; Term transition; Term business caller · each says the section titled Logic Confinement Principle in `execution-contract.md` declares it, and that section declares none of the three → declare the three there, the corpus's one seam wording, or point each at its declaration
 ```
 
-## Decisions
+<details markdown="block">
+<summary>
+    <h2 id="decisions" style="display: inline-block; margin-left: 1.5rem;">Decisions</h2>
+</summary>
 
 Directional changes only — the turns a future reader must know the pattern took, and why. Everything smaller lives in the commit that made it: `git log -- atoms/duplicate-prevention.md`; the rounds and the migration that got it here are in [its history](./duplicate-prevention.hist.md).
 
@@ -440,5 +451,7 @@ Directional changes only — the turns a future reader must know the pattern too
 - **2026-10-21 — A failed read and a refused write answer as the Execution Contract answers them; the window duration is one per instance and the matching rule is applied before the call; nothing drops an entry, so the recorded set holds every identity placed under guard; two checks answer alike by the rules that fix each answer.** *Chose:* state-unavailable on both actions where the read of the recorded set fails (Operation 13, Term database read) and storage-failure on [Record] where the database refuses its write (Operation 14), with [Check]'s answers held to an answered read (Operation 5 through 7) and [Record]'s placing, stamping, ok and fresh guard held to a landed record (Operation 1 through 3, Invariant 2.3, Term landed record); Operation 4 refusing nothing on the ground that the identity is under guard; Record failure 1 deleted to Operation 14, and Check unavailability 1 through 4 and External check 5 to Operation 12, Operation 13 and Non-goal 1, so proceeding as not-seen or as seen on an unavailable read is the containing pattern's response to an answer; one window duration for each instance of the atom (Operation 11); each identity supplied already reduced to the value the containing pattern's matching rule compares by (Identity 5); Invariant 4.1, Non-goal 6 and Lazy expiry 1 through 3 deleted to Operation 7 and Execution Contract Database 4, with Check 3.4 to Check 3.3, and the recorded set declared as every identity placed under guard, held whether or not its guard still runs; Invariant 3.2 deleted to Operation 6, Operation 7 and Invariant 3.1, and Check 2.2 to Check 2.1, Check 3.2 and Check 3.3. *Over:* a [Check] obliged to answer seen or not-seen and a [Record] obliged to answer ok where the contract answers state-unavailable and storage-failure, so a caller could be told a guard stood that the database never kept; a fail-open posture obliging not-seen for an identity under guard; a window duration two builds could take per call, per entry or at every read; a matching rule two builds could apply inside the atom or before the call; a drop obliged of a host that no declared action lets drop, beside a lazy host the page licensed to keep the entry; and two checks under one now said to answer alike across a [Record] between them. *Because:* Final Critique 5 found each a divergence between conforming builds or two rules no build can both obey, and the corpus held each cure: Actor Identity's, Permissions' and Capability's rounds answer the failed read and the refused write, the method's entry of 2026-10-08 deletes a broken rule to the rules that already hold its states, and Final Critique 4's own text configured the window per containing pattern. This turns three choices the 2026-10-20 entry kept — a failed write answering ok, the posture under an unavailable database declared by the deployment, and the host's drop as the atom's own — because the Database contract the atom takes (Capability requirement 2) and the contract's Step 1 and Step 3 failures leave no conforming build that can make them. What [Check] answers on a read that answers, and what [Record] does on a write that lands, are unchanged.
 
 - **2026-10-20 — The store's guarantees cited, not restated.** *Chose:* the store supplied under Execution Contract Store 1 through 4 (Capability requirement 2), and the four rules that set the recorded set's durability tombstoned to Store 3 — Non-goal 2 and Non-goal 3, the recorded set's survival across a restart not required of the atom and left to the deployment, Record failure 4, a durable recorded set where duplicate prevention is safety-critical, and External check 4, the auditor's check of that durability; rules 66 to 63. *Over:* a recorded set whose survival across a restart each deployment chose, a volatile set admitted wherever the guard was not safety-critical. *Because:* the maintainer ruled 2026-10-12 that the corpus takes a store's specification, never the store, and that the four Store rules hold for every specification; `execution-contract.md` writes them once as the Store contract, and Store 3 keeps every committed write across a restart. A failed write still answers ok and misses the guard (Record failure 1 through 3), the posture under an unavailable store stays the deployment's to declare (Check unavailability 1 through 4), and the host's drop of an identity that is not under guard stays the atom's own (Invariant 4.1, Lazy expiry 1, Lazy expiry 2). Under guard is derived from the recording instant each entry carries, so the atom cites neither History 1 nor Order 1; what the atom does for its domain is unchanged.
+
+</details>
 
 NOTE: End of Duplicate Prevention.

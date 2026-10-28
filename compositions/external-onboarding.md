@@ -330,7 +330,9 @@ Wiring decision 4: The composition MUST pass the call's accepting identity refer
 Wiring decision 5: A deployment MUST NOT complete an arc's constituent steps outside the composition.
 ```
 
-WHY:
+<details markdown="block">
+<summary>WHY</summary>
+
 The principle: no party is enrolled and no credential registered through this composition unless an invitation's accepted transition precedes them — in the same call, or, on the resume arm, in the stopped arc the call re-enters. Invitation's single-resolution invariant is the mechanism that makes the gate hold under concurrent attempts: exactly one [Onboard] clears it, and every other receives already-resolved carrying accepted and creates no constituent record — the accept attempt is its only trace.
 
 The likely objection: *why not let an operator finish a stopped arc by hand — enroll the party, register the credential — rather than build a resume arm?* Because manual completion leaves the party with no completion record, which is the regulator-audit scenario's own failure produced by the recovery. And *why not simply accept again?* Because the gate is single-resolution: the arc it opens can be completed only by re-entering it (Wiring decision 3).
@@ -338,6 +340,8 @@ The likely objection: *why not let an operator finish a stopped arc by hand — 
 The mechanism: the step order is fixed (Wiring decision 1 and 2); the identity binding is made at accept, with the accepting identity reference the caller supplies at acceptance, not the one the inviter guessed at initiation (Wiring decision 4); and a stopped arc is re-entered by the resume arm, never re-accepted and never finished outside the composition (Wiring decision 5).
 
 The result: invitation-gates-enrollment (Invariant 1) and credential-follows-party (Invariant 3) fall out of the wiring, and the completion record binds the whole arc in one tamper-evident entry (Invariant 5). The constituent atoms are unchanged; the guarantee lives in the order the composition calls them in.
+
+</details>
 
 ### Resume
 
@@ -830,7 +834,10 @@ open:
 - 2026-08-29-a · refining · formal · `external-onboarding.tla` predates the resume arm and the step-split landings → extend the model with the resume path, its in-flight bound, and the step-4 proceed arm
 ```
 
-## Decisions
+<details markdown="block">
+<summary>
+    <h2 id="decisions" style="display: inline-block; margin-left: 1.5rem;">Decisions</h2>
+</summary>
 
 Directional changes only — the turns a future reader must know the pattern took, and why. Everything smaller lives in the commit that made it: `git log -- compositions/external-onboarding.md`; the migration and the earlier gate record that got it here are in [its history](./external-onboarding.hist.md).
 
@@ -843,5 +850,7 @@ Directional changes only — the turns a future reader must know the pattern too
 - **2026-08-26 — Invariant 4 is safety plus detectability, not totality.** *Chose:* the arc's completeness is claimed over named gap signatures that checks 5 and 6 enumerate. *Over:* the unconditional statement over paths that admit invisible terminal transitions. *Because:* the composition is stateless by design and carries no marker discipline, so detectability through records is the recovery posture it can honestly offer.
 
 - **2026-09-27 — A dead resume without an acceptance record resumes at acceptance-unrecorded.** *Chose:* Resume 9 reads the stage as unrecorded only where an acceptance record exists. *Over:* Resume 9 and Resume 11 both firing on one arc. *Because:* a resume that dies after its resume record lands and before the acceptance record Resume 30 writes leaves a dead resume record and no acceptance record, and the two rules then named two stages; the arc still owes its acceptance record, which only acceptance-unrecorded writes. Found by the cold regeneration of the demo (council read 240).
+
+</details>
 
 NOTE: End of External Onboarding.

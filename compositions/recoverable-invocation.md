@@ -23,12 +23,16 @@ Recoverable Invocation is the protocol a regulated action follows when it change
 
 ## Intent
 
-WHY:
+<details markdown="block">
+<summary>WHY</summary>
+
 An irreversible act and its account are two writes no transaction spans (the library's rule since 2026-08-27: an atomic set may not contain a write the host cannot take back). The order — intent, act, outcome — leaves exactly one reachable partial: the act committed, its record owed. Something must close it after the process that opened it is dead.
 
 By 2026-08-30 twenty compositions had each solved this in their own words, and two days of fresh-reader gates found the same defects in every one: two writers landing an outcome for one act; a sweep reading in-flight work as a crash; a sweep re-emitting an outcome it could not have known; a rejection code saying nothing had committed when something had; a closure window that could not be met. One protocol, carried once. The rule: **one act, one intent, one outcome, one writer** — the invocation while it holds the critical section, the sweep after the invocation has yielded, never both.
 
 Not a transaction, not the adopter's database, not an audit journal, not a class. An adopter names it in *Composes*, binds its parameters, declares any deviation, and deletes the paragraphs this page replaces.
+
+</details>
 
 ---
 
@@ -1032,8 +1036,12 @@ read invocation 15: An adopter that decides a write on [Read Invocation]'s answe
 
 *One act, one writer, one closer.*
 
-WHY:
+<details markdown="block">
+<summary>WHY</summary>
+
 An irreversible act and its account are two writes no transaction spans, and closing the partial after the opening process is dead is a second writer by definition. The protocol is sound exactly when the two writers cannot both write for one act, the second cannot mistake in-flight work for a dead invocation's, and the second cannot write what it did not read — properties of the critical section, the edges and the act probe, none of the adopter's act. A methodology rule does not stop twenty authors writing it twenty ways or spare the formal layer twenty models; the higher-order composition test's threshold is five exact instances and this clears it several times over ([`tools/survey/protocol_prose.py`](../tools/survey/protocol_prose.py)). What differs between adopters is the binding set; anything else is a deviation from a closed list. One page carries the protocol, one model proves it, one gate attacks it; an adopter's action shrinks to *validate, open, commit, close*.
+
+</details>
 
 ### Bindings
 
@@ -1098,7 +1106,12 @@ Binding 10: EVERY action but [Reconcile] MUST read the bindings of the kind the 
   pairing datum 6: WHEN pairing datum EQUALS none:
       pairing datum 6a: act probe MUST NOT answer committed.
   ```
-  WHY: a journal join is a join between two records this composition writes; an adopter's own lookup of its intent by act key and pairing datum is the adopter's read, not a join of this page's.
+  <details markdown="block">
+  <summary>WHY</summary>
+
+  a journal join is a join between two records this composition writes; an adopter's own lookup of its intent by act key and pairing datum is the adopter's read, not a join of this page's.
+
+  </details>
 - **repeatable**
   Term repeatable: `yes` or no: whether two invocations against one act key are two acts or one act attempted twice.
   ```
@@ -1731,7 +1744,10 @@ last gate: 2026-10-28 — Final Critique 24 — foundational count 1, not clean,
 open: none
 ```
 
-## Decisions
+<details markdown="block">
+<summary>
+    <h2 id="decisions" style="display: inline-block; margin-left: 1.5rem;">Decisions</h2>
+</summary>
 
 Directional changes only. Everything smaller lives in the commit that made it: `git log -- compositions/recoverable-invocation.md`; the rounds, the binding, the model runs and the migration that got it here, and the twelfth gate's consolidations, are in [its history](./recoverable-invocation.hist.md).
 
@@ -1758,5 +1774,7 @@ Directional changes only. Everything smaller lives in the commit that made it: `
 - **2026-08-30 — Fenceless is a declared degraded mode.** *Chose:* journal fence optional, the weaker guarantee stated over records. *Over:* requiring a fence no substrate here can supply. *Because:* the guarantee changes and stays checkable.
 - **2026-08-30 — The composition's own writes are fenced, not merely gated.** *Chose:* journal fence as an instance capability requirement. *Over:* the gate alone. *Because:* the gate is check-then-act; the fence carries Invariant 2 with or without it.
 - **2026-08-30 — The protocol is a compound, adopted by binding.** *Chose:* one composition owning the pair, the critical section, the sweep, the derived-not-remembered rule, positioned codes and the closure inequality; adopters bind and declare deviations from a closed list. *Over:* six methodology rules applied twenty times, or a Transaction pattern the constituents cannot support. *Because:* fourteen exact instances and ~920 KB of protocol prose clear the higher-order composition test, and the invariants are provable only over the pair of processes and the one critical section.
+
+</details>
 
 NOTE: End of Recoverable Invocation.

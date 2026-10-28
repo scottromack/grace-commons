@@ -22,8 +22,12 @@ Notification records whether a single piece of information was accepted by the t
 
 ## Intent
 
-WHY:
+<details markdown="block">
+<summary>WHY</summary>
+
 A notification is a promise to tell somebody something, and the interesting part is not the telling — it is the record of whether it happened. Systems that skip this concept end up asking their transport layer what happened weeks ago, which is a question no transport layer can answer. The atom holds the delivery record: who it was for, what it said, when it was made, and exactly one outcome — reached, failed, or ran out of time. It sends nothing. It does not know what a webhook is, does not retry, does not decide whether a bounced email is a failure or an expiry. What it guarantees is that every attempt is one record with one terminal answer and a timestamp, so *did we tell them* is answered from the database rather than from a log nobody kept.
+
+</details>
 
 ## Structure
 
@@ -377,8 +381,12 @@ Payload retention 4: A composing pattern purging a payload MUST leave EVERY stor
 Payload retention 5: A composing pattern MUST NOT delete a notification record.
 ```
 
-WHY:
+<details markdown="block">
+<summary>WHY</summary>
+
 What a composed purge can do is a shred, as [Audit Trail](../compositions/audit-trail.md) wires one over its own cascade (Payload retention 4, Payload retention 5).
+
+</details>
 
 ## Composition notes
 
@@ -657,7 +665,10 @@ open:
 - 2026-10-21-h · refining · State 3 through 6; Invariant 3.2, 4.1, 4.3, 4.5, 7.1; Operation 14b, 20; Composition note 7 · propositions owned twice: State 6 and Invariant 3.2; State 3, 4 and 5 and Invariant 4.1, 4.3 and 4.5; Operation 20 and Invariant 7.1; Operation 14b and Composition note 7 → one owner each (GRACE-lang Authority 3), each tombstone checked against the pages that cite it
 ```
 
-## Decisions
+<details markdown="block">
+<summary>
+    <h2 id="decisions" style="display: inline-block; margin-left: 1.5rem;">Decisions</h2>
+</summary>
 
 Directional changes only — the turns a future reader must know the pattern took, and why. Everything smaller lives in the commit that made it: `git log -- atoms/notification.md`; the migration that got it here is in [its history](./notification.hist.md).
 
@@ -670,5 +681,7 @@ Directional changes only — the turns a future reader must know the pattern too
 - **2026-10-21 — Which refusal answers is the Execution Contract's.** *Chose:* each terminal transition's refuses line kept as the page wrote it, already in the order the terminal refusal order gave — not-known, not-pending, then storage-failure, which answers only at the write — and the order cited from the Execution Contract (Capability requirement 4, Execution Contract Refusal 1); Operation 29, which evaluated the terminal refusal order, deleted to Refusal 1, and Term terminal refusal order deleted with it; rules 129 to 128. *Over:* the page stating for itself which of a terminal transition's refusals answers when both apply. *Because:* the maintainer ruled on 2026-10-21 that the Execution Contract states once that the refusal listed first on an action's refuses line answers; this page's fifth Final Critique had made the cure one specification at a time. What each action answers on every call is unchanged.
 
 - **2026-10-22 — The wiring is read outside the records, as the Execution Contract says.** *Chose:* External check 5, the auditor reading which composing patterns a deployment wired in from the deployment's own declaration, deleted to Execution Contract Conformance 9, with Check 6.1's tombstone, which named it, now naming the contract, the checks NOTE's sentence restating it removed, and the label cited on Capability requirement 4; rules 128 to 127. *Over:* the page stating for itself that the wiring is an external check. *Because:* the maintainer ruled on 2026-10-22 that five repeated cures are each stated once, the wiring declaration among them; this page's fifth Final Critique had made the cure one specification at a time. What each action does and answers is unchanged, and Invariant 9, which Notification Fanout cites, stands as it was.
+
+</details>
 
 NOTE: End of Notification.

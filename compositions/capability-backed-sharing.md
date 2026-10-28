@@ -370,8 +370,12 @@ Deleted: Wiring decision 4. Execution Contract Database 1 owns it.
 Wiring decision 5: The composition MUST NOT fabricate a disclosure record for a consumed use.
 ```
 
-WHY:
+<details markdown="block">
+<summary>WHY</summary>
+
 *Principle:* regulated disclosure requires a named, non-repudiable *authorizing* party, not a named *consumer*; bearer-token sharing requires the consumer be anonymous. Both are satisfied at once by attaching accountability to the allocator. *Likely objection:* doesn't accountable disclosure mean recording who received the data? *Mechanism:* the regulator's question is *who authorized this disclosure, and under what authority?* — and that is the allocator and the authority, both recorded: the allocator at allocation under the allocator's own credential, the authority in the capability's scope and the disclosure record, and the disclosure attributed to the allocator in the disclosure event. The redeemer's identity is *structurally* unavailable — Capability's redeem accepts none and records none — so this composition records what it can prove and is honest about what bearer semantics make unprovable. *Result:* the disclosure is accountable to the allocator and the redeemer is never named — the asymmetry no constituent provides alone.
+
+</details>
 
 ### Reconciliation
 
@@ -859,7 +863,10 @@ open:
 - 2026-10-27-d · foundational · Audit arm 8 · a recording failure at a refusal event or an unfulfilled event lands as recording-failure carrying outcome AND the orphan reference, which names a disclosure id neither path has, and a refusal event follows a redemption that consumed nothing → name each path's position and reference; waits on the maintainer's question whether a refused outcome leaves the act's other writes committed (rounds/escalations.md, Multi-Party Approval, 2026-10-26)
 ```
 
-## Decisions
+<details markdown="block">
+<summary>
+    <h2 id="decisions" style="display: inline-block; margin-left: 1.5rem;">Decisions</h2>
+</summary>
 
 Directional changes only — the turns a future reader must know the pattern took, and why. Everything smaller lives in the commit that made it: `git log -- compositions/capability-backed-sharing.md`; the migration that got it here is in [its history](./capability-backed-sharing.hist.md).
 
@@ -867,5 +874,7 @@ Directional changes only — the turns a future reader must know the pattern too
 - **2026-08-29 — The scan is bounded at both edges, writes as the composition behind a recovery record, and an attestation nobody can re-derive is not re-emitted.** *Chose:* a declared `redemption_completion_bound` below which no direction of the scan examines anything, with the audit horizon above (a marker still pending there is escalated, never sealed); every scan write attested under the service identity behind a `sharing.recovery_intended` record, the revoker carried as `revoked_by` on a compensated [Sharing Revoked]; an unattested capability recovered by attestation only inside the invocation that holds the allocator's credential and by revocation once it is gone; every intent-record transcription carrying `recording-failure(step)` and [Revoke Sharing]'s outcome arms enumerated; `index_durability` declared and the two window knobs moved into Configuration; and a stale duplicate step 3 of [Redeem And Disclose] — the pre-repair wiring, which still described the decrement rolling back with a transaction — deleted. *Over:* an unbounded scan under an unnamed identity, and "retry the attestation" as a crash recovery. *Because:* an unbounded scan seals beside the seal an in-flight invocation is about to append and lands redemption-unfulfilled for a use whose disclosure is about to commit; a compensation the absent actor did not make cannot be attested as theirs; and an attestation under the allocator's credential is precisely the thing no one else can produce (the frozen rules of 2026-08-29 — *A reconciliation is bounded at both ends*, *Recovery commits under a declared service identity*, *A transcribed rejection arm keeps its payload*).
 - **2026-08-29 — The redemption is irreversible, the intent precedes it, and the third partial is landed rather than sealed.** *Chose:* [Redeem And Disclose] resolves the descriptor by the instance's declared token read, records intent, then redeems, then commits the disclosure with its marker, then seals; a consumed use with no disclosure is redemption-unfulfilled, never a fabricated seal; the pending marker is truth-bearing under a durability obligation and the only source a seal is written from; the Capability instance is exclusive; the `(step)` payload governs every retry. *Over:* a decrement described as rolling back with the transaction, a reconciliation that sealed every counter shortfall, a shared instance with a "foreign token" reading, and step-less retries. *Because:* Capability declares no enlistment or undo, so the rollback was attributed to a capability the atom does not have; sealing a shortfall appended seals for disclosures that never happened; a shared instance consumed foreign tokens on refusal and convicted them in the counter checks; and a step-less retry duplicated outcome events after a retention-arm failure.
 - **2026-08-27 — The disclosure is durable intent, then a transactional domain mutation, then a durable outcome — never one atomic set.** *Chose:* [Redeem And Disclose] writes a `[Sharing Authorization Intended]` event, commits the Selective Disclosure record with a pending marker in its own transaction, then appends the `[Sharing Disclosed]` outcome; Invariants 2 and 3 are stated as ordering plus reachable partials plus recovery. *Over:* the original claim that the record, the event and the index commit "together or not at all" under a host transaction. *Because:* an Audit Trail append cannot be enlisted or withdrawn, so a host transaction aborting after the append left the trail asserting a disclosure the store denied — a real design defect, not editorial debt. The rule generalizes: never include an independently durable append in a host transaction's atomic set.
+
+</details>
 
 NOTE: End of Capability-Backed Sharing.

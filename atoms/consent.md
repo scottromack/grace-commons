@@ -28,7 +28,9 @@ This is the mechanism behind privacy-law consent management, patient authorizati
 
 ## Intent
 
-WHY:
+<details markdown="block">
+<summary>WHY</summary>
+
 Every system that processes personal data must answer one question before it acts: does it have the data subject's agreement to do what it is about to do? Under GDPR (EU General Data Protection Regulation), CCPA/CPRA (California Consumer Privacy Act / Privacy Rights Act) and HIPAA (US Health Insurance Portability and Accountability Act), that agreement is a legal prerequisite for whole categories of processing, not a courtesy — and the record of it, its scope, its duration and its end is both an operational control and a legal artifact.
 
 So the grant is scoped to one purpose per record. A system needing consent for three purposes holds three records, because a blanket authorization answers none of the questions a regulator asks. The grant ends in exactly two ways — the subject revokes, or a time bound elapses — and either way the ending state is permanent. A subject who revokes and later re-consents creates a new record; the prior one stays as evidence of the prior agreement and its termination. That is not a limitation, it is the evidentiary structure the regimes require.
@@ -36,6 +38,8 @@ So the grant is scoped to one purpose per record. A system needing consent for t
 The atom is structurally distinct from [Permissions](./permissions.md) in a way that matters. Permissions governs what an internal actor may do inside the system — authorization pointing inward. Consent governs what the system may do to a data subject's data — authorization pointing outward, held by the subject rather than the operator. They are composing peers, not alternatives: a deployment may need a subject's consent for `marketing:email` *and* an actor's permission to fire the campaign.
 
 Revocation is a first-class action rather than a state flag, with its own timestamp, its own attribution and its own stated reason — GDPR Article 7(3) requires withdrawal to be as easy as granting, and [Revoke] is that requirement's specification. Expiry is the opposite: not an action but a condition. No actor triggers it and nothing polls for it; [Check] derives it from the record against the instant asked about.
+
+</details>
 
 ## Structure
 
@@ -806,7 +810,10 @@ open:
 - 2026-10-21-e · refining · Summary; Examples; Regulated adversarial scenarios · the Summary's whether valid consent exists reads as any record of the pair, while [Check] answers the latest candidate record's state, so a revoked latest record answers revoked beside an older granted one (Concurrency 4); and cns-0001 is a behavioural analytics consent granted 2025-05-13 in the walkthrough and a marketing-email consent granted 2025-03-01 in the disputed-revocation scenario → say the check answers the latest agreement, and give each record one id across the page
 ```
 
-## Decisions
+<details markdown="block">
+<summary>
+    <h2 id="decisions" style="display: inline-block; margin-left: 1.5rem;">Decisions</h2>
+</summary>
 
 Directional changes only — the turns a future reader must know the pattern took, and why. Everything smaller lives in the commit that made it: `git log -- atoms/consent.md`; the migrations that got it here are in [its history](./consent.hist.md).
 
@@ -819,5 +826,7 @@ Directional changes only — the turns a future reader must know the pattern too
 - **2026-10-20 — The store's guarantees cited, not restated.** *Chose:* the consent store supplied under Execution Contract Store 1 through 4 (Capability requirement 5), and the six rules that restated them tombstoned to their owner — Invariant 8.3, no partial consent record left by a storage-failure, to Store 1; Operation 33, a write the store refused leaving the store as the call found it, to Store 3; Stored state 4, a lazy stored-state write on one consent record serialized, Concurrency 1, a state transition on one consent id serialized, and Concurrency 2 and 3, two concurrent revokes on one consent id answering revoked once and the later one already-revoked, to Store 2; rules 182 to 177. *Over:* the atom restating, for its own store, what every deployment's store guarantees. *Because:* the maintainer ruled 2026-10-12 that the corpus takes a store's specification, never the store, and `execution-contract.md` writes it once as the Store contract. A refused [Revoke] leaving the consent record in [Granted] stays the atom's own (Operation 32), as do two concurrent grants recording two consent records (Concurrency 4), the stored state as a cache of the derived state (Stored state 1 through 3, Invariant 2.2 and 6.3) and the atom's no-removal rules (Invariant 8.1 and 8.2). [Check]'s point-in-time answer reads the record's own grant, revocation and expiry instants, and [Read] orders by grant instant and consent id, so the atom cites neither History 1 nor Order 1. What the atom does for its domain is unchanged.
 
 - **2026-06-23 — Expiry is derived at check, with the stored `Expired` cache marked as a residual; now is not a signature parameter.** *Chose:* check evaluates expiry against the injected clock (or a caller-supplied `at_time?`, a query parameter, not the clock); the stored-Expired transition an implementation may write is a cache and is marked so. *Over:* threading now into grant / revoke, or treating stored `Expired` as the truth. *Because:* the execution contract injects the clock at the seam, and a stored flag that lags the clock is a cache, not a fact.
+
+</details>
 
 NOTE: End of Consent.

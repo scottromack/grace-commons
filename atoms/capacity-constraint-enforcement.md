@@ -28,12 +28,16 @@ This is the mechanism behind seat inventory, credit headroom, ward beds, connect
 
 ## Intent
 
-WHY:
+<details markdown="block">
+<summary>WHY</summary>
+
 A bounded resource needs one place that owns the bound. Without it, every caller defends the limit at its own call site, and the limit is then enforced in as many slightly different ways as there are callers — which is how an airline oversells a cabin, a credit line goes past its ceiling, and a connection pool exhausts a database.
 
 So the atom owns exactly the arithmetic: a declared maximum, a running total, and the refusal that keeps one under the other. Everything that looks adjacent is deliberately outside. Which unit is which belongs to [Provisional Commitment](./provisional-commitment.md), because per-allocation identity is a different grain. Who may allocate belongs to [Permissions](./permissions.md). What happens when the pool drains belongs to whatever composes [Subscription](./subscription.md) and [Notification](./notification.md). Fairness under contention belongs to a queueing pattern. Each of those is a policy; this is the invariant they all rest on.
 
 Two design commitments carry the rest. **Drained is not a state** — allocated reaching capacity is an arithmetic condition, observable through [Query] and enforced by the allocate guard, and promoting it to a state would conflate a policy decision (an operator halting allocations) with a number reaching another number. And **the atom never clamps.** A capacity adjustment below the running total is refused, not silently fitted; a release beyond the total is refused, not floored at zero. Clamping would keep the invariant true and destroy the caller's ability to know it was violated.
+
+</details>
 
 ## Structure
 
@@ -1045,7 +1049,10 @@ last gate: 2026-10-22 — Final Critique 9, the council's first round on the pag
 open: none
 ```
 
-## Decisions
+<details markdown="block">
+<summary>
+    <h2 id="decisions" style="display: inline-block; margin-left: 1.5rem;">Decisions</h2>
+</summary>
 
 Directional changes only — the turns a future reader must know the pattern took, and why. Everything smaller lives in the commit that made it: `git log -- atoms/capacity-constraint-enforcement.md`; the migration that got it here is in [its history](./capacity-constraint-enforcement.hist.md).
 
@@ -1056,5 +1063,7 @@ Directional changes only — the turns a future reader must know the pattern too
 - **2026-10-22 — What the pool records cannot show is read beside them; an input past its bound is refused; format answers before arithmetic.** *Chose:* Check 6.1 deleted to External check 4, the auditor reading which composing patterns a deployment wired in from the deployment's own declaration; Check 5.1 through 5.4 deleted to External check 5, the attribution surface found on every audit event outside the composed erasure mechanism's scrub records; Check 3.2 held to the allocation events the replay reaches, and External check 6 reading the capacity across a purge from the anchor Check 2.3 names; Arithmetic 4 and 5 refusing a capacity and a new capacity past the integer width, and String 4 a reason past the reason cap, each with invalid-request; [Allocate], [Release] and [Adjust Capacity] listing invalid-request ahead of their arithmetic refusal; Non-goal 30 and 31 sending a retried call to Duplicate Prevention; Operation 55 and 56 deleted to Execution Contract Read 1, which Capability requirement 5 now cites. *Over:* conformance checks no pool record could clear once a deployment wired in, scrubbed or purged what the page admits (Composition note 1, Invariant 8.4, Invariant 9.4); inputs every build had to refuse with no refusal named; and arithmetic refusals answering ahead of a malformed input, against the page's own Invalid Request entry. *Because:* Final Critique 9 found each, and the corpus held the cures: the external checks to which eight atoms had moved the wiring declaration and three the composed erasure's checks, and Final Critique 8's own text, which answered an overflow and an over-long reason with invalid-request, answered format before any arithmetic check, read the capacity across a purge from the archival step's boundary snapshot, and gave idempotent allocation under retry to Duplicate Prevention. Smaller fixes rode with it, none changing what a rule means: the Summary, the Regulator audit scenario and the Closing Balance entry check the bound against the capacity the declaration and the adjustments set; the airline and banking examples read as their rules answer; and the Not Open and Not Suspended entries name the one state each answers. What each action does on a well-formed call is unchanged.
 
 - **2026-10-22 — The wiring and a composed scrub are read outside the pool records, as the Execution Contract says.** *Chose:* External check 4, the auditor reading which composing patterns a deployment wired in from the deployment's own declaration, deleted to Execution Contract Conformance 9, and External check 5, the attribution surface read outside the composed erasure mechanism's scrub records, deleted to Execution Contract Database 6, with the tombstones of Check 5.1 through 5.4 and Check 6.1, which named them, now naming the contract and the checks NOTE cut to External check 6; both labels cited on Capability requirement 5; rules 209 to 207. External check 6 is kept as the page's own: the capacity at a purge boundary is read from the anchor the page itself obliges (Check 2.3), not from the purging pattern's records. *Over:* the page stating for itself that the wiring is an external check and that a scrub another specification declares is answered outside the pool records. *Because:* the maintainer ruled on 2026-10-22 that five repeated cures are each stated once, the wiring declaration and the composed erasure among them; this page's ninth Final Critique had made both cures one specification at a time. What each action does and answers is unchanged.
+
+</details>
 
 NOTE: End of Capacity Constraint Enforcement.

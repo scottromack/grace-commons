@@ -479,7 +479,9 @@ Wiring decision 5: The composition MUST NOT call Permissions' permitted on a dec
 Wiring decision 6: The composition MUST NOT check a bearer's identity at redemption.
 ```
 
-WHY:
+<details markdown="block">
+<summary>WHY</summary>
+
 *Principle.* Privileged access is temporary authorization: what the regulators' findings condemn is standing access that outlives its business need. An artifact that expires structurally — a token with an immutable deadline, refused by its own atom after lapse with nothing written — makes the time bound a property of the record rather than a clean-up job someone must remember.
 
 *Likely objection.* A grant flipped on approval is simpler — identity-keyed, revocable, queryable, and already composed here for the request gates. Why a bearer token and a second gate at exercise time?
@@ -487,6 +489,8 @@ WHY:
 *Mechanism.* A grant stands until someone revokes it — exactly the failure mode; its revocation is an act someone must perform, where the token's expiry is a derivation nobody can forget (Wiring decision 1 and 2). **The bearer property is load-bearing, not incidental** (Wiring decision 6): break-glass and automated executors exercise access without carrying the requestor's identity, and the identity regulated audit needs at exercise time is re-bound by this composition's session gate — Session's validate first, its principal in the exercise record — not by the token. The token never knows its bearer; the exercise record names the session's authenticated principal at the moment of presentation. And the cascade is the only allocation path (Wiring decision 3 and 4): allocate is called at exactly one step, fired only by a chain the substrate reports Approved, with the binding written into the token's own immutable scope; an implementation offering a provisioning path outside the cascade violates Invariant 1. **Approvers are authorized by the approver set, not by a grant** (Wiring decision 5): the substrate refuses any decision from an actor outside the step's approver set, and a Permissions check here would enforce one rule through two mechanisms with two failure modes.
 
 *Result.* Every provisioned access traces, provably, to a documented, quorum-satisfied approval; every exercise is session-gated and principal-attributed; expiry needs no janitor; and a leaked trail grants nothing, because no record carries the bearer material.
+
+</details>
 
 ### Reconciliation
 
@@ -1025,7 +1029,10 @@ open:
 - 2026-08-29-a · refining · formal · the model's sweep carries no pre-check, no identity, no recovery record, and no age bound → extend the model with the four sweep rules
 ```
 
-## Decisions
+<details markdown="block">
+<summary>
+    <h2 id="decisions" style="display: inline-block; margin-left: 1.5rem;">Decisions</h2>
+</summary>
 
 Directional changes only — the turns a future reader must know the pattern took, and why. Everything smaller lives in the commit that made it: `git log -- compositions/privileged-access-provisioning.md`; the migration that got it here is in [its history](./privileged-access-provisioning.hist.md).
 
@@ -1034,5 +1041,7 @@ Directional changes only — the turns a future reader must know the pattern too
 - **2026-08-28 — The live provisioning guard is the sweep's detector, and every crash window around the evaluation has a leg.** *Chose:* [Approve Step] step 5 fires the cascade on the same conjunction the sweep's second leg tests (non-terminal ∧ no token for the request ∧ no open provisioning-failed entry), a not-pending from the substrate still runs the evaluation, a terminal-chain leg closes a request whose decision died before evaluating, exercise entries are marked `redeemed` inside the hold, and a failed evaluation opens an entry and still returns approved. *Over:* a guard on the request-state read, and a reconciliation that compared the redemption counter against events alone. *Because:* the `Approved` transient rebuilds to `Pending`, so the state read alone allocated a second token after a crash; the reconciliation read two open entries — a shape the page admitted — as a conformance finding; and a decision that died between commit and evaluation left its request `Pending` forever.
 - **2026-08-29 — The sweep pre-checks the trail, is bounded where it runs outside the hold, writes as the composition behind a recovery record, and the truth-bearing state is named.** *Chose:* every sweep leg detects on rebuilt state and the absence of the event, paired by a seam-injected `invocation_id` on every event and entry; the redemption-reconciliation leg examines no entry younger than a declared `recording_completion_bound`; every sweep write is attested under the service identity behind an access_recovery_intended record; the open `audit_pending` payloads are declared truth-bearing, extraction-pending against Outbox, and the store's never-delete rule and the dedicated Capability instance's purge exemption are declared as `store_durability`. *Over:* legs that detected on an index and re-ran a non-idempotent `record_action`, an exercise leg with no lower edge over a window the serialization does not cover, and "all six elements are derived indexes" over state the page itself called truth-bearing. *Because:* a stale index with the event already landed re-emitted duplicates; an entry marked `redeemed` seconds ago belongs to an invocation about to write; a compensation the absent actor did not make cannot be attested as theirs; and a record owed for a committed act that exists in no constituent is not a cache (the frozen rules of 2026-08-29 — *A reconciliation is bounded at both ends*, *Intents pair with outcomes*, *Recovery commits under a declared service identity*, *A derived index splits at the horizon*).
 - **2026-08-26 — The `requests:withdraw` scope and third-party withdrawal are dropped.** *Chose:* remove the scope, its term entry and registry entry, and name the administrative alternatives. *Over:* keeping a promise the wiring could not honor. *Because:* the substrate's chain withdrawal is initiator-only and the composition actor is not the initiator, so no honest wiring existed for the path.
+
+</details>
 
 NOTE: End of Privileged Access Provisioning.

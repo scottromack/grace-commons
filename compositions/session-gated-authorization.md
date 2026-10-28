@@ -127,8 +127,12 @@ Term admitted gate: a [Check Permitted] call whose inputs cleared the boundary p
 Wiring decision 1: The composition MUST call Permissions' permitted ONLY AFTER Session's validate gives a valid answer.
 ```
 
-WHY:
+<details markdown="block">
+<summary>WHY</summary>
+
 The decision the composition exists to make: the session gates the permission check, at the composition boundary, so neither atom learns the other's rules (the section titled Intent).
+
+</details>
 
 ---
 
@@ -419,12 +423,17 @@ open:
 - 2026-09-27-a · refining · Primitive policy 10 · added from the cold regeneration's finding (council read 236), a load-bearing touch → the three-pass round the entry *Touch triggers re-pass* in `pressure-testing.md` requires
 ```
 
-## Decisions
+<details markdown="block">
+<summary>
+    <h2 id="decisions" style="display: inline-block; margin-left: 1.5rem;">Decisions</h2>
+</summary>
 
 Directional changes only — the turns a future reader must know the pattern took, and why. Everything smaller lives in the commit that made it: `git log -- compositions/session-gated-authorization.md`; the migration that got it here is in [its history](./session-gated-authorization.hist.md).
 
 - **2026-09-14 — The gate is Session's, the closure is this composition's, and the Summary said both were emergent.** *Chose:* to cite the gate and own the closure — `Composes 7` names [Session](../atoms/session.md)'s `Composition note 4`, `Invariant 1.2` through `Invariant 1.4` are tombstoned to it, `Invariant 1.1` stands, and the Summary now claims exactly the two rules this composition holds. *Over:* carrying the prose's *emergent* claim unchanged, which the atom contradicts; and over deleting Invariant 1 entirely, which was the reviewer's counsel and cuts one rule too deep. *Because:* `Composition note 4` fires on an invalid answer *given* and `Invariant 1.1` fires on no valid answer *given*, so they do not normalize identically (Authority 4) — a deployment that skipped `validate` altogether would satisfy the note and breach the invariant. `Authority 6` forbids a citing spec to restate a rule, which is what the three enumerations did; it does not reach a rule that is strictly stronger. [Permissions](../atoms/permissions.md)'s `Composition note 3` is the third shape again: it assigns the caller-to-subject binding without stating it, so `Invariant 2` is owned here outright. The maintainer's ruling settles the row titled *Which direction a rule may point across a seam* in `open-questions.md`, open since council read 36: **atoms may bind compositions; a composition cites what the composition inherits and owns what the composition adds** (council read 53).
 
 - **2026-09-27 — The length bound sits under the Permissions string cap, and the page steps down to run the round that rule owes.** *Chose:* Primitive policy 10, and `partially resolved` until a three-pass round clears it. *Over:* a routed line on a grounded page. *Because:* a cold regeneration met the gap — Permissions answers an over-length argument denied, so a bound above its cap reports a malformed request as a refusal, the collapse Primitive policy 2 through 4 exist to prevent — and the entry *Touch triggers re-pass* in `pressure-testing.md` downgrades a grounded page for a load-bearing edit (council read 236).
+
+</details>
 
 NOTE: End of Session-Gated Authorization.

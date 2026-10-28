@@ -22,8 +22,12 @@ Tamper Evidence answers one question: has this set of records changed since it w
 
 ## Intent
 
-WHY:
+<details markdown="block">
+<summary>WHY</summary>
+
 A regulated record set must answer one question provably: *have these been altered since they were sealed?* Procedure cannot answer it — a runbook, an access-control list and a developer's word are all claims about the past made by the party under audit. A cryptographic commitment can: seal the record set, keep the proof, and any later modification is detectable by re-running the mechanism's own verification over the records the verifier holds. This atom is that commitment and nothing more: it says whether a record set changed since a seal, never when it changed, which belongs to the patterns that own time and reach. It is mechanism-neutral by design — a hash chain, a Merkle tree with a signed root, a timestamp token and a blockchain anchor satisfy one contract — and it is honest about its ceiling: it produces evidence of tampering, never prevention of it. An adversary with write access to both the records and the seals rewrites both. What defeats that is an anchor outside the adversary's reach, and that is a composing pattern's, named here and not overclaimed.
+
+</details>
 
 ## Structure
 
@@ -683,7 +687,10 @@ open:
 - 2026-10-22-a · refining · Identity 2; Capability requirement · the evidence id's source is named as the host's allocation under Identity and not among the Capability requirements, where spec-format's atom shape lists an id source under Capability requirement; Event Log routed the same form (its 2026-10-22-b), twenty atoms writing the host's allocation under Identity and four having the deployment supply id material under Capability requirement 2 → one form for the corpus, as the seam normalization made one for now
 ```
 
-## Decisions
+<details markdown="block">
+<summary>
+    <h2 id="decisions" style="display: inline-block; margin-left: 1.5rem;">Decisions</h2>
+</summary>
 
 Directional changes only — the turns a future reader must know the pattern took, and why. Everything smaller lives in the commit that made it: `git log -- atoms/tamper-evidence.md`; the rounds and the migration that got it here are in [its history](./tamper-evidence.hist.md).
 
@@ -704,5 +711,7 @@ Directional changes only — the turns a future reader must know the pattern too
 - **2026-10-23 — A detected tampering is bounded below only by the seals the altered records fail, and a seal over purged records is no proof of their content.** *Chose:* Check 5.1 bounding a detected tampering below by the anchoring instant of every evidence over the record set whose verification over the altered record set answers proof-invalid, where no anchor change exists for the evidence's proof, now citing Invariant 3.1; the Breach forensics scenario running each seal over the suspect records as they now stand, and the [Proof Invalid] entry naming the anchor change; Retention coupling 1, *A purged record set MUST leave [Verify] unable to hold*, deleted to Retention coupling 3; Operation 12, which restated Invariant 1.1 for [Seal] alone, deleted to it; the Generation acceptance introduction naming the deployment's declared mechanism among what the conformance checks read; rules 102 to 100. *Over:* a check that took any verification answering proof-invalid as a seal made before the alteration, so a backup presented to a seal made after the alteration, as the Rejection paths present one, or a seal whose anchor was later revoked, put the bound above the alteration, the previous round's own cure failing two histories the page permits (Identity 8, Non-goal 13, Term anchor change); and a rule no party the page names could keep: [Verify] may not read a purge (Invariant 4.3), and a host answering record set match for a copy of a purged record set as it answers for the Rejection paths' backup answers yes, so the copy verifies. *Because:* Final Critique 8 found both, and Retention coupling 3 already says what stays true after a purge: no seal over destroyed records is proof of their content. The anchor condition is the watched shape *the external answer that moves*, flagged after the checks. Compositions affected: none; Audit Trail cites Invariant 1, 3, 4 and 8, all unchanged.
 
 - **2026-10-23 — The atom answers only whether a record set changed since its seal; when it changed belongs to the composing patterns.** *Chose:* the atom bounding no time of change (Non-goal 15), a deployment needing one composing a forensic-attribution pattern (Non-goal 16); Check 5.1, the anchored lower bound on a detected tampering, deleted to a trusted-timestamping pattern (Non-goal 9), and Check 5.2, the bound between two seals, to a forensic-attribution pattern; Verification caching 3, no cached result across an anchor change, deleted to an external-anchoring pattern (Non-goal 2), whose question is what a seal answers once its anchor changes; Retention coupling 3, no seal over destroyed records read as proof of their content, deleted to the composing pattern that owns the purge (Retention coupling 2), and Retention coupling 1's tombstone re-pointed there; the Breach forensics scenario answering, for each seal, whether the suspect records changed since it, with the window and the attribution left to Forensic Attribution; the Rejection paths, the Regulator integrity audit, the Financial and Healthcare examples, the [Evidence] and [Verified] entries and the eIDAS reference no longer placing a change in time; the Summary and the Intent saying the same; rules 100 to 98. The anchor change stays on Invariant 3.1 and Invariant 7.1 and in the [Proof Invalid] entry: it keeps the binding and consistency claims [Verify] makes against one seal true for a mechanism whose anchor can change, and says nothing of what such a seal then means. The anchoring instant stays a field the evidence carries (State 4, Operation 4); a bound drawn from it is the trusted-timestamping pattern's. *Over:* the atom keeping a forensic bound on when records changed, which three rounds cured and the next found broken on histories the page permits (Final Critique 6 through 8). *Because:* the maintainer ruled on 2026-10-23, direction (b) of the 02:44Z escalation, that the atom answers only *has this record set changed since this seal*, and that when it changed leaves the atom for Trusted Timestamping, External Anchoring and Forensic Attribution, all forthcoming. Compositions affected: none; Audit Trail's own forensic window (its Check 4.1, seal cadence 1 and 2, seal mechanism 2) rests on [Verify]'s answers and the seal stamps, which stand, and on none of the deleted rules.
+
+</details>
 
 NOTE: End of Tamper Evidence.

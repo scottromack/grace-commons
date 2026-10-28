@@ -22,8 +22,12 @@ Permissions answers one question: "is this actor allowed to do this thing right 
 
 ## Intent
 
-WHY:
+<details markdown="block">
+<summary>WHY</summary>
+
 *May this actor do this thing?* is the question every regulated system answers a thousand times a second, and the wrong shapes for it are everywhere: a boolean column, a role string parsed at the call site, a policy engine nobody can audit. This atom is the smallest honest answer — a grant binds a subject to a scope, it is in force or withdrawn, and the query is satisfied by any active grant matching the pair. Two decisions carry it. Absence is denial, so there is no explicit deny to reconcile against an allow and no ordering to get wrong. And a subject may hold many independent grants over one scope, each with its own id and its own revocation, because two administrators granting the same access on two days is two facts, and collapsing them makes selective revocation impossible and the audit trail unreadable. Roles, attributes, hierarchies, expiry and delegation are all real and all compose; none of them is this.
+
+</details>
 
 ## Structure
 
@@ -644,7 +648,10 @@ open:
 - 2026-10-26-b · refining · Operation 16 through 22; the signature block · the rules name the action [Check] and the signature block declares it as permitted, and only the Check entry, a term entry, which carries no obligation (GRACE-lang Surface 25 and 27), says the one is the other; permitted is also one of [Check]'s two answers → name the action alike in the rules and on the wire, whose permitted every composing page calls, or tie the two names on the normative surface in the form the corpus settles for the wire layer (the Watch list's the wire layer)
 ```
 
-## Decisions
+<details markdown="block">
+<summary>
+    <h2 id="decisions" style="display: inline-block; margin-left: 1.5rem;">Decisions</h2>
+</summary>
 
 Directional changes only — the turns a future reader must know the pattern took, and why. Everything smaller lives in the commit that made it: `git log -- atoms/permissions.md`; the rounds and the migration that got it here are in [its history](./permissions.hist.md).
 
@@ -657,5 +664,7 @@ Directional changes only — the turns a future reader must know the pattern too
 - **2026-10-21 — Which refusal answers is the Execution Contract's.** *Chose:* [Revoke]'s refuses line kept as the page wrote it, already in the order the revoke refusal order gave — not-known, not-active, then storage-failure, which answers only at the write — and the order cited from the Execution Contract (Capability requirement 4, Execution Contract Refusal 1); Operation 32, which evaluated the revoke refusal order, deleted to Refusal 1, and Term revoke refusal order deleted with it; rules 105 to 104. *Over:* the page stating for itself which of [Revoke]'s refusals answers when both apply. *Because:* the maintainer ruled on 2026-10-21 that the Execution Contract states once that the refusal listed first on an action's refuses line answers; this page's fifth Final Critique had made the cure one specification at a time. What each action answers on every call is unchanged.
 
 - **2026-10-22 — The wiring is read outside the records, and a ban on refusing names its ground, as the Execution Contract says.** *Chose:* External check 5, the auditor reading which composing patterns a deployment wired in from the deployment's own declaration, deleted to Execution Contract Conformance 9, with Check 6.1's tombstone, which named it, now naming the contract, the checks NOTE's clause restating it removed, and the label cited on Capability requirement 4; Operation 6's ground clause retired, the rule written again as the page first had it, *[Grant] MUST NOT refuse a pair an active grant already covers*, which Execution Contract Refusal 1's second sentence reads as naming the ground, so a blank reference still answers invalid-request; rules 104 to 103. *Over:* the page stating for itself that the wiring is an external check, and Operation 6 carrying the ground clause its fifth Final Critique wrote. *Because:* the maintainer ruled on 2026-10-22 that five repeated cures are each stated once, the wiring declaration and the refusal ban among them; this page's fifth Final Critique had made both cures one specification at a time. What each action does and answers is unchanged.
+
+</details>
 
 NOTE: End of Permissions.

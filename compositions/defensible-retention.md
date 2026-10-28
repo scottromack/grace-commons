@@ -274,8 +274,12 @@ Term field cap: the deployment's declared maximum size of one audit payload fiel
 
 Term hold ids cap: hold_ids_cap — the deployment's declared maximum count of hold ids a hold check result carries, in an answer and in a record (Primitive policy 20).
 
-WHY:
+<details markdown="block">
+<summary>WHY</summary>
+
 The one Lease requirement no constituent can meet whole is that a refused write was not applied: the substrate's step-3 refusal may hide an append still to land (`Concurrency 25`), and Retention Window's failed purge may follow a destruction (`Atomic writes 9`). Each is read here as what it is.
+
+</details>
 
 ### Primitive policy
 
@@ -562,7 +566,9 @@ Wiring decision 6: A purge MUST NOT release a hold the purge overrode.
 Wiring decision 7: The composition MUST NOT compose a release reason for an overridden hold.
 ```
 
-WHY:
+<details markdown="block">
+<summary>WHY</summary>
+
 *Principle:* Retention Window's own precondition prevents a premature purge and knows nothing of any hold; Legal Hold records a preservation obligation and intercepts nothing. Without the composition wiring the two checks together, a system can lawfully — from each atom's own perspective — destroy a record under an active litigation hold, which is a spoliation exposure structurally invisible to either atom alone.
 
 *Likely objection:* why not have Legal Hold intercept `RetentionWindow.purge` directly, and skip the composition?
@@ -570,6 +576,8 @@ WHY:
 *Mechanism that resolves it:* Wiring decision 5 is the answer and it is about freestanding status rather than convenience. An atom that intercepted purge calls would have to know about retention records, storage layers and destruction mechanisms — absorbing concepts that belong to the composing layer. The atom records the obligation; the composition enforces it. Both constituents were written for this: [Legal Hold](../atoms/legal-hold.md)'s `Composition note 2` obliges a composing pattern to check a record's active holds at the purge surface, and [Retention Window](../atoms/retention-window.md)'s `Composition note 3` obliges one to own joint enforcement across retentions over one record. Both name this composition in their own words, and [Audit Trail](./audit-trail.md)'s *Legal hold suspension of purge* edge case names it for the business-record half of the gate — the audit-event half stays open and is `Non-goal 20` through `Non-goal 23`.
 
 *Result:* the gate is structural under strict mode rather than a runtime check an operator can talk past inside this composition's surface — though not a gate a direct atom-level call cannot route around, which `Composition state 24` detects rather than prevents. Both halves of the gate's behaviour are provable: `hold_check_result: empty` on every non-override destruction, and a gate record naming the blocking holds on every refusal. On an advisory instance the [Hold Override] marker is the third reading — a destruction that proceeded past a hold the records still name.
+
+</details>
 
 ### Reconciliation
 
@@ -1232,7 +1240,10 @@ open:
 - 2026-10-25-b · refining · Term closure floor; Term call pause bound; Term clock offset allowance; Term compensation window; Term intent; Term leg; Term quiescence; Term reconciliation cadence; Term seal coverage · Audit Trail declares each of these names with a definition of its own (its closure floor another formula, its compensation window and its reconciliation cadence its own reconciliation's, its intent a finding's record), so each word means two things across the seam (GRACE-lang Closed vocabulary 17) → rename this page's side of each; a council commit of this page cannot change Audit Trail
 ```
 
-## Decisions
+<details markdown="block">
+<summary>
+    <h2 id="decisions" style="display: inline-block; margin-left: 1.5rem;">Decisions</h2>
+</summary>
 
 Directional changes only — the turns a future reader must know the pattern took, and why. Everything smaller lives in the commit that made it: `git log -- compositions/defensible-retention.md`; the round and the migration that got it here are in [its history](./defensible-retention.hist.md).
 
@@ -1245,5 +1256,7 @@ Directional changes only — the turns a future reader must know the pattern too
 - **2026-09-27 — The sweep can write the destruction record it owns, a closed marker stays closed, and the purge refusals take an order.** *Chose:* the purge intent carries the hold check result (Action wiring 76); intent_abandoned is an outcome; the not-eligible and under-active-retention rules apply only once the hold check admitted the destruction, and the second only over an elapsed named retention; a gate record that cannot land answers `recording-failure(gate)`. *Over:* a recovery outcome needing a hold check result no store carried, so every owed destruction record closed as abandoned; a closing no rule counted as an outcome, so the sweep re-closed it every run and Invariant 5.6 failed for every abandoned invocation; three refusal rules that could each demand their own answer for one call; and a position token with no member for the gate record. *Because:* the cold regeneration of 2026-09-27 met each — the owed record the 2026-09-14 decision gave the sweep could never be written.
 - **2026-09-14 — A constituent's storage failure surfaces as itself, and this composition's own recording failure carries its position.** *Chose:* storage-failure exported unchanged from all four state-changing actions, and `recording-failure(intent | outcome)` on every one of them. *Over:* the prose's mapping of a constituent storage-failure onto recording-failure, and a bare recording-failure on the three non-destructive actions. *Because:* the first renamed a failure to *write a record* into a failure to *record it*, which is a different fact and a different repair; the second put one token on both sides of the commit, so a caller who retried on it could not know whether anything had committed — which the corpus's own rule requires the exported code to answer.
 - **2026-09-14 — The owed destruction record has exactly one writer.** *Chose:* an invocation retries its outcome until the retention completion bound and then yields; past the bound the record belongs to the sweep, which serializes its leg on the act's invocation id and re-reads the act's outcome under that serialization. *Over:* an out-of-band retry and a sweep both owing the same record with nothing between them. *Because:* two writers over one destruction land two record_purged events for one act, and the trail then protects both — the one failure a compensating write cannot undo.
+
+</details>
 
 NOTE: End of Defensible Retention.

@@ -22,8 +22,12 @@ Actor Identity answers one question: "who authorized this action, and can you pr
 
 ## Intent
 
-WHY:
+<details markdown="block">
+<summary>WHY</summary>
+
 A regulated action has to answer one question provably: *who authorized this?* A logged `actor` field answers it procedurally — it is the system's word about the past, written by the party under audit. A proof answers it structurally: the actor's own credential produced an artifact that binds that actor to that action, and anyone holding the record and the registry's public material can check it. This atom is that binding and nothing else. It does not authenticate the actor, does not decide whether the actor was permitted, does not manage the credential, and does not know what the action is; it records that this actor attested to this action at this time, in a form a verifier can re-check later. The contract it clears is non-repudiation, and it is conditional by construction — on the credential not being compromised, which is a fact the records cannot carry and a composing pattern must reinterpret.
+
+</details>
 
 ## Structure
 
@@ -334,8 +338,12 @@ Non-goal 15: The atom MUST NOT carry an actor reference across trust domains.
 Non-goal 16: A deployment needing a retention bound MUST compose Retention Window.
 ```
 
-WHY:
+<details markdown="block">
+<summary>WHY</summary>
+
 Binding a mutable action is the quiet failure: the proof stays valid while the content it was supposed to attest to changes underneath, which is why the host binds a content hash or composes a Content Lock pattern *(forthcoming)* (Non-goal 13, Non-goal 14).
+
+</details>
 
 NOTE: witness signatures, m-of-n approvals and dual control compose a Witness pattern *(forthcoming)* (Non-goal 8); tamper-evident records are what [Tamper Evidence](./tamper-evidence.md) supply (Non-goal 10, Non-goal 11); a retention bound is what [Retention Window](./retention-window.md) supplies, its purge included (Non-goal 16).
 
@@ -645,7 +653,10 @@ open:
 - 2026-10-22-a · refining · Term seam; Term transition; Term business caller · each term cites the section titled Logic Confinement Principle in `execution-contract.md`, which declares none of them → settle the corpus's one seam wording where every specification carrying it can take the cure
 ```
 
-## Decisions
+<details markdown="block">
+<summary>
+    <h2 id="decisions" style="display: inline-block; margin-left: 1.5rem;">Decisions</h2>
+</summary>
 
 Directional changes only — the turns a future reader must know the pattern took, and why. Everything smaller lives in the commit that made it: `git log -- atoms/actor-identity.md`; the rounds and the migration that got it here are in [its history](./actor-identity.hist.md).
 
@@ -668,5 +679,7 @@ Directional changes only — the turns a future reader must know the pattern too
 - **2026-10-20 — Verification follows the registry's own history, and the registry answer decides [Attest] as it decides [Verify].** *Chose:* the proof check run under the public material the actor registry holds, any historical material the registry keeps included, so a deployment whose old attestations must keep verifying composes a registry that keeps that history (Registry view 3); [Attest] reading the registry answer at the seam (Capability requirement 3), checking a credential against the current material alone, and refusing an unreachable registry with registry-unavailable and an actor the registry does not know with invalid-credential, under one stated order over [Attest]'s refusals (Operation 35); a failed read of the attestation store answering state-unavailable on every action (Operation 34). *Over:* a proof check pinned to the registry's current material beside a rule promising that retained history keeps old attestations verifying; the material in force at the attestation instant, which the registry answer does not carry; an [Attest] with no answer for the registry it reads. *Because:* Final Critique 5 found each a divergence between conforming builds, and the prose this page was migrated from had said it: verification follows the registry's current view, old attestations keep verifying exactly when the registry maintains historical material, and whether the registry does is the registry's.
 
 - **2026-10-19 — The store's guarantees cited, not restated.** *Chose:* the attestation store supplied under Execution Contract Store 1, Store 3 and Store 4 (Capability requirement 2), and the five rules that restated them tombstoned to their owner — Operation 11 and Invariant 9.3, no partial attestation, to Store 1; Attestation durability 2 through 4, durability across a crash, a high-assurance deployment's durability mechanism and a storage-failure agreeing with an absent record, to Store 3; rules 103 to 99. *Over:* the atom restating, for its own store, what every deployment's store guarantees. *Because:* the maintainer ruled 2026-10-12 that the corpus takes a store's specification, never the store, and `execution-contract.md` writes it once as the Store contract; what the atom does for its domain is unchanged.
+
+</details>
 
 NOTE: End of Actor Identity.

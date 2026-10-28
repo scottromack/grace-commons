@@ -22,8 +22,12 @@ Legal Hold records a formal instruction to keep one record intact, overriding an
 
 ## Intent
 
-WHY:
+<details markdown="block">
+<summary>WHY</summary>
+
 When litigation is filed or reasonably anticipated, the duty to preserve arrives before anyone knows what will matter, and it overrides every retention schedule the organization has. Destroying a held record is spoliation — sanctions, an adverse inference (the jury told it may presume the destroyed record was unfavorable), sometimes the case. So the obligation itself has to be a record: what is held, who decided, why, under which matter, from when, and — when it ends — who lifted it and on what grounds. That record is this atom. It does not stop a purge; it documents an obligation a composing pattern enforces at the purge surface. It does not know what a case is. And it never merges two holds over one record, because two authorities demanding preservation of one document is two obligations, each ending on its own day.
+
+</details>
 
 ## Structure
 
@@ -687,7 +691,10 @@ open:
 - 2026-10-21-h · refining · Composition note 2; Aggregate 1 · a composing pattern's check of a record's active holds at the purge surface can race a placement over the record, and no rule names who serializes them; the check and the purge are the composing pattern's one action, whose reads and writes Execution Contract Database 1 and Database 2 hold in one transaction → say so in the Composition notes
 ```
 
-## Decisions
+<details markdown="block">
+<summary>
+    <h2 id="decisions" style="display: inline-block; margin-left: 1.5rem;">Decisions</h2>
+</summary>
 
 Directional changes only — the turns a future reader must know the pattern took, and why. Everything smaller lives in the commit that made it: `git log -- atoms/legal-hold.md`; the migration that got it here is in [its history](./legal-hold.hist.md).
 
@@ -700,5 +707,7 @@ Directional changes only — the turns a future reader must know the pattern too
 - **2026-10-21 — [Release]'s refusals answer in one stated order; [Read]'s answer carries the database name; the wiring declaration is an external check.** *Chose:* [Release]'s refusal rules evaluated in one order — a blank hold id first, then an unknown hold, a released hold, a blank attribution and the two time guards (Operation 42, Term release refusal order) — the priority Final Critique 4 stated and the GRACE-lang migration dropped; [Read]'s answers arm carrying the database name the read was routed to (`holds(store_name)`), so the name Instance 5 obliges is answered on every answered read, an empty one included; Check 7.1 deleted to External check 5, the auditor reading which composing patterns a deployment wired in from the deployment's own declaration. *Over:* seven refusal rules any two of which could oblige different answers on one call; a database name obliged by a rule and carried by no declared answer, which a build could put on each hold, leaving an empty answer with nothing for a composing pattern to match (Instance 7, Aggregate 3); and a conformance check no hold record can answer. *Because:* Final Critique 5 found each a divergence between conforming builds, two rules no build can both obey, or a check a conforming deployment fails, and the corpus held each cure: the refusal order Approval Step, Retention Window and Selective Disclosure carry, in this page's own Final Critique 4 priority; the signature form, whose arm carries the names an answer holds; and the external check to which Actor Identity, Tamper Evidence, Retention Window, Permissions and Assignment moved the same check. What each action does on a call it admits is unchanged.
 
 - **2026-10-20 — The store's guarantees cited, not restated.** *Chose:* the hold store supplied under Execution Contract Store 1 through 4 (Capability requirement 4), and the five rules that restated them tombstoned to their owner — Invariant 8.3, no partial hold left by a storage-failure from [Place], to Store 1; Concurrency 1 and 2, two releases of one hold id serialized and the later one answering already-released, to Store 2; Operation 22, a release the store refused leaving the hold active, to Store 3; Non-goal 16, a deployment's sweep of the hold store leaving every stored field as written, to Store 4; rules 135 to 131. *Over:* the atom restating, for its own store, what every deployment's store guarantees. *Because:* the maintainer ruled 2026-10-12 that the corpus takes a store's specification, never the store, and `execution-contract.md` writes it once as the Store contract. The caller's reading of a refused place or release stays the atom's own (Place persistence 1 through 4), as do two placements over one record recording two holds (Concurrency 3), the placement fields that never change (Invariant 1.1) and the atom's no-removal rules (State 7, Invariant 8.1, Invariant 8.2, Non-goal 15). Held at an instant is read from the placement and release instants each hold carries, and [Read] orders by placement instant and hold id, so the atom cites neither History 1 nor Order 1. What the atom does for its domain is unchanged.
+
+</details>
 
 NOTE: End of Legal Hold.

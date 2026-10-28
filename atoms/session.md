@@ -24,7 +24,9 @@ Session answers "is this login still good, and for whom?" without re-checking th
 
 ## Intent
 
-WHY:
+<details markdown="block">
+<summary>WHY</summary>
+
 A system that authenticates once and then permits action across many requests needs to answer *is this principal still authenticated?* without repeating the credential check every time. A session is that answer made durable: a bounded-lifetime record attesting that a principal completed authentication at a known moment and that the result has not been invalidated since.
 
 The atom isolates that attestation from everything around it. It does not verify credentials — that is [Credential](./credential.md)'s surface. It does not decide what the principal may do — that is [Permissions](./permissions.md)'. It does not sequence the login flow, the multi-factor challenge and the issuance — that is [Login](../compositions/login.md)'s. It answers one structural question: given this token, is there an active, unexpired, unrevoked session for a known principal? And the answer is one of four outcomes, each provable.
@@ -32,6 +34,8 @@ The atom isolates that attestation from everything around it. It does not verify
 The time bound is the atom's core commitment, and the discipline around it is where most session designs go wrong. The expiry instant is set at issue and never mutated. A session needing a longer life is re-issued — a new record, a new token — never extended in place. That immutability is what makes every session's window auditable from one record: no history table, no event log, no developer's account of whether the session was extended. The record says when validity ends, and that field never changes.
 
 The second commitment is that lapsing is *derived*, not written. There is no `expire` action, no `expired_at` column, and no stored [Expired] status. A session past its deadline is computed as expired at read time from the immutable deadline against the injected clock. Nothing fires, nothing is stamped, no scheduler is needed — and the stored state space stays exactly two values, which removes the failure mode where a flag lags the clock it is meant to idealize.
+
+</details>
 
 ## Structure
 
@@ -830,7 +834,10 @@ open:
 - 2026-10-21-j · refining · Operation 8; Summary · no maximum bounds a supplied session duration, while the Summary names short-lived elevated-access windows → a deployment maximum, or the Summary's claim narrowed
 ```
 
-## Decisions
+<details markdown="block">
+<summary>
+    <h2 id="decisions" style="display: inline-block; margin-left: 1.5rem;">Decisions</h2>
+</summary>
 
 Directional changes only — the turns a future reader must know the pattern took, and why. Everything smaller lives in the commit that made it: `git log -- atoms/session.md`; the migration that got it here is in [its history](./session.hist.md).
 
@@ -841,5 +848,7 @@ Directional changes only — the turns a future reader must know the pattern too
 - **2026-10-19 — The store's guarantees cited, not restated.** *Chose:* the session store supplied under Execution Contract Store 1 through 4 (Capability requirement 10), and the six rules that restated them tombstoned to their owner — Operation 32, [Revoke]'s status move and its three revocation fields committed in one operation, and Invariant 9.3, no partial session left by a storage-failure, to Store 1; Operation 35, a write the store refused leaving the store as the call found it, to Store 3; Concurrency 1 through 3, status moves on one session token serialized, two concurrent revokes answering revoked once and the later one already-terminal, to Store 2; rules 178 to 173. *Over:* the atom restating, for its own store, what every deployment's store guarantees. *Because:* the maintainer ruled 2026-10-12 that the corpus takes a store's specification, never the store, and `execution-contract.md` writes it once as the Store contract. A session's window stays auditable from its one record, as the Intent has it: the expiry instant is stamped once and no action changes it (Invariant 2.1), and the atom's own no-removal rules stay (State 11, Invariant 9.1 and 9.2). Check 1.2 rests on the auditor's own reads of a session across its life, as Credential's re-read checks do, and Check 3.1 reconstructs a past instant from the instants each record carries, so the atom cites neither History 1 nor Order 1. What the atom does for its domain is unchanged.
 
 - **2026-06-21 — Expiry is derived at read time, never stored.** *Chose:* the stored state space is `{Active, Revoked}`; `Expired` is the projection `status = Active ∧ now ≥ expires_at` computed from the immutable expiry instant and the injected clock (Invariant 12). *Over:* a stored `Expired` terminal written by a lazy or scheduled transition. *Because:* a stored flag lags the clock it idealizes, and a session's lapse has no side effect that would need a write to carry it.
+
+</details>
 
 NOTE: End of Session.

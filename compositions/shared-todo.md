@@ -177,8 +177,12 @@ Deleted: Wiring decision 2. Execution Contract Database 1 owns it.
 Deleted: Wiring decision 3. Execution Contract Database 1 owns it.
 ```
 
-WHY:
+<details markdown="block">
+<summary>WHY</summary>
+
 The cascade is the composition's load-bearing decision and neither constituent holds it — [Personal Todo](../atoms/personal-todo.md) knows nothing of assignments and [Assignment](../atoms/assignment.md) knows nothing of task deletion.
+
+</details>
 
 ### Scope vocabulary
 
@@ -553,7 +557,10 @@ open:
 - 2026-09-30-e · rhetorical · Final Critique 9 · Wiring decision 1 restates Action wiring 10; Example 3's which role level held which grants names roles Permissions does not hold → drop the restatement; say which actor reference held which grants
 ```
 
-## Decisions
+<details markdown="block">
+<summary>
+    <h2 id="decisions" style="display: inline-block; margin-left: 1.5rem;">Decisions</h2>
+</summary>
 
 Directional changes only — the turns a future reader must know the pattern took, and why. Everything smaller lives in the commit that made it: `git log -- compositions/shared-todo.md`; the migration, the council read's collapse and the regeneration that got it here are in [its history](./shared-todo.hist.md).
 
@@ -562,5 +569,7 @@ Directional changes only — the turns a future reader must know the pattern too
 - **2026-10-20 — Undo History retired, and an undo is the store's history.** *Chose:* Non-goal 6, a deployment needing an undo composing Undo History, tombstoned to Execution Contract Store 5; rules 99 to 98. *Over:* an undo through a composition that replayed an event log of the list's actions. *Because:* the maintainer ruled 2026-10-20 that Undo History retires: Store 5 keeps every committed version of a record readable, so an undone deletion comes back with its id, timestamps and description. The composition itself still offers no undo (Non-goal 5). What the composition does for its domain is unchanged.
 
 - **2026-10-21 — The store's guarantees cited, not restated, and a delete's recall and deletion one transaction.** *Chose:* the store supplied under Execution Contract Store 1 and Execution Contract Store 2 (Capability requirement 1), and the eleven rules that restated it, or existed only for a store that could split a write, tombstoned to their owner — to Store 1, under which a delete's recall and the task's deletion commit together: the bar on wrapping the two in one transaction, the recalled assignment left standing beside a task whose delete failed (Wiring decision 2, 3) and the bar on calling Personal Todo's delete after the recall answered storage-failure (Action wiring 12); and to Store 2, under which an action's guard reads and the writes they decide are one transaction: the host's serialization of two calls naming one task id and of two description writes, with the deployment's supply of it and its external check (Concurrency 1, 6, Composition note 6, External check 6), the answers it left the loser of two assigns and of two deletes (Concurrency 2, 3), a delete's second recall after the first answered not-active (Action wiring 22) and the bar on checking permitted again inside a call (Concurrency 5); with them the delete calls Personal Todo's delete once the recall answers ok rather than once the recall commits (Action wiring 10); rules 98 to 88. *Over:* a recall and a delete committed apart, recall first, so that a delete that failed left an over-recall rather than a dangling assignment, with the host serializing calls by task id and a grant revoked mid-call left to the deployment — the prose spec's design, which the GRACE rewrite carried as Wiring decision 2 and 3 and the Concurrency rules, and Final Critique 7 and 8 extended with Action wiring 22 and Concurrency 6. *Because:* the maintainer ruled 2026-10-12 that the corpus takes a store's specification, never the store, and 2026-10-20 that Store 1 binds every store write of one composition action, its constituents' included: Personal Todo's, Permissions' and Assignment's records are one store, so a delete's recall and its deletion commit together or not at all, and a delete that stops leaves neither an over-recall nor a dangling assignment. Store 2 reads the state an action's guards decide on — the permitted answer, the task's existence, its active assignment, the active set's descriptions — inside the transaction that writes the action's effects, so two calls on one task, two description writes and a reassign beside a delete are serialized for every deployment, and a revoke of a grant the gate read commits before the read or after the action's writes. The other calls a rule decided: Wiring decision 1 stays as the cascade's positive rule and the order of its calls inside the one transaction, Action wiring 11 still answers a recall's storage-failure, and Concurrency 4 still checks permitted at a call's start; the responsibility and grant histories are Assignment's and Permissions' own records with their own instants, so the composition cites neither Store 5 nor Order 1. What the composition does for its domain is unchanged.
+
+</details>
 
 NOTE: End of Shared Todo.

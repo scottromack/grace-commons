@@ -22,8 +22,12 @@ Event Log is an append-only record: what is written to it stays in the order it 
 
 ## Intent
 
-WHY:
+<details markdown="block">
+<summary>WHY</summary>
+
 A composing pattern records facts about state changes, and the same need recurs under a dozen names: audit trails, undo histories, activity feeds, event sourcing, write-ahead logs, replication journals, version-control logs, replay buffers. The shape is constant — a stream of facts, recorded in order, never altered afterward, available for retrospective query. This atom is that stream and nothing else. It carries no opinion about what an event means, how long to keep one, who wrote one, whether one has been tampered with, or how to search by payload; every one of those is a composing pattern's, and the atom is useful under a task list, a patient chart, a bank journal and a regulated audit trail precisely because it declines all of them. What it does carry is the structural guarantee the others rest on: the sequence is faithful to what was recorded.
+
+</details>
 
 ## Structure
 
@@ -527,7 +531,10 @@ open:
 - 2026-10-23-a · refining · Term landed; Term qualifiers; Term event field; Term value sets · landed and event field are each declared twice (Term landed and Term qualifiers; Term event field and Term value sets), the declarations agreeing → keep one declaration of each twice-declared name, the other citing it (GRACE-lang Closed vocabulary 15)
 ```
 
-## Decisions
+<details markdown="block">
+<summary>
+    <h2 id="decisions" style="display: inline-block; margin-left: 1.5rem;">Decisions</h2>
+</summary>
 
 Directional changes only — the turns a future reader must know the pattern took, and why. Everything smaller lives in the commit that made it: `git log -- atoms/event-log.md`; the rounds and the migration that got it here are in [its history](./event-log.hist.md).
 
@@ -550,5 +557,7 @@ Directional changes only — the turns a future reader must know the pattern too
 - **2026-10-20 — A refused append leaves the counter, a query never reads the payload, and wall time promises no order.** *Chose:* next sequence number raised only by an append that answers event id (State 6), so a refused append consumes no sequence number and the gap rules go to Execution Contract Store 1 (Sequence gap 1 through 4, Check 2.4, Invariant 5.3, Check 3.5); a query of sequence number and wall-time ranges alone (Term query), so a selection on the payload is malformed (Operation 15); recording instant an annotation that can fall in append order, its promise under a non-decreasing clock withdrawn to the sequence number's authority (Invariant 7.1 to Invariant 7.2, Check 5.1 to Check 5.2, External check 3 to Execution Contract Logic confinement 7). *Over:* a gap the store's one transaction per action rules out; a payload predicate the atom may not evaluate (Non-goal 11); a clock guarantee the store does not give, since two appends it serializes can land in the order opposite to their clock readings (Execution Contract Store 2, Logic confinement 3). *Because:* Final Critique 5 found each a divergence between conforming builds or a conforming run breaking a stated rule, and in each the page already held the answer — the store it cites, its own non-goals, and the sequence number it makes authoritative.
 
 - **2026-10-19 — The store's guarantees cited, not restated.** *Chose:* the store supplied under Execution Contract Store 1 through 4 (Capability requirement 2), and the eleven rules that restated them tombstoned to their owner — Non-goal 16, one write across two events, to Store 1; Operation 7, 8 and 12 and External check 2, appends to one log serialized and never refused for contention or ordering, to Store 2; State 7, Durability 1 through 4 and External check 1, the log and its next sequence number kept across a restart, to Store 3; rules 105 to 95. *Over:* the atom restating, for its own store, what every deployment's store guarantees. *Because:* the maintainer ruled 2026-10-12 that the corpus takes a store's specification, never the store, and `execution-contract.md` writes it once as the Store contract. The log's order stays the atom's own, carried by the sequence number (State 1, Invariant 3, Invariant 7.2) — two appends one action makes share one commit — so the atom cites no Order 1; what the atom does for its domain is unchanged.
+
+</details>
 
 NOTE: End of Event Log.

@@ -394,8 +394,12 @@ Term repair tree: the files of the head [Repair] read, with the change set appli
 
 Term repair refusal order: Primitive policy 4, Primitive policy 5, Primitive policy 7, Primitive policy 10, Primitive policy 11, Primitive policy 21, Primitive policy 9, Action wiring 49, Action wiring 15, Action wiring 31, Action wiring 61, Action wiring 53, Action wiring 40, Action wiring 62, Action wiring 41, Action wiring 20, Action wiring 17, Action wiring 18, Action wiring 55, Action wiring 24, Action wiring 25, Action wiring 19, Action wiring 56, Action wiring 63 — [Repair]'s refusal rules ahead of the invocation open, earliest first; behind it the invocation's own codes answer (Action wiring 29, 42, 45).
 
-WHY:
+<details markdown="block">
+<summary>WHY</summary>
+
 The escalation is the council's record, not the act's (Action wiring 30): it is written before any intent, so Recoverable Invocation Action wiring 6, which keeps an adopter's journal writes for the act to the protocol's own actions, does not reach it.
+
+</details>
 
 ### Wiring decision
 
@@ -404,8 +408,12 @@ Wiring decision 1: The composition MUST NOT repair a round BEFORE the round sett
 Wiring decision 2: The composition MUST NOT change a site in the claim families without the maintainer's recorded ruling.
 ```
 
-WHY:
+<details markdown="block">
+<summary>WHY</summary>
+
 *Principle.* A count is about one text, and a claim is the maintainer's. *Likely objection.* Repairing as findings arrive is faster, and an invariant the engine breaks is the invariant that is wrong. *Mechanism that resolves it.* Three passes over moving text is a search, not a round: each pass reads a text the last pass never saw, so no count compares with another (the section titled Order and iteration in `pressure-testing.md`). And the cheapest way to make an engine stop finding a counterexample is to weaken the claim it checks; a loop under pressure to converge will find that way if a rule does not close it. *Result.* Every pass is handed the snapshot (Capability requirement 3), and a repair lands after the round settles, on a head whose page is still the snapshot (Action wiring 15); a patch into an Invariant, a Check or an External check stops at the maintainer's queue until a ruling names it, whatever the round count.
+
+</details>
 
 ### Verdict
 
@@ -713,7 +721,10 @@ open:
 - 2026-10-19-e · refining · the Intent, Term formal engine, Term snapshot hash · TLA+ and SHA-256 are used without the gloss at first use that spec-format's acronym convention asks of every initialism off its whitelist → each spelled out and glossed where it first appears
 ```
 
-## Decisions
+<details markdown="block">
+<summary>
+    <h2 id="decisions" style="display: inline-block; margin-left: 1.5rem;">Decisions</h2>
+</summary>
 
 Directional changes only. Everything smaller lives in the commit that made it: `git log -- compositions/verified-repair.md`; the rounds, the maintainer's two rulings and the formal model's drafting that got it here are in [its history](./verified-repair.hist.md).
 
@@ -726,5 +737,7 @@ Directional changes only. Everything smaller lives in the commit that made it: `
 - **2026-10-23 — Clean on Final Critique 19, the status left to the maintainer.** *Chose:* the round recorded clean on one sample, its foundational count zero on the settle's triage and again on the blind second triage, of seven foundational reports (three sent down, four rejected); [Freeze]'s budget refusal and [Repair]'s yield written one obligation a line (Action wiring 34a and 34b, 29a and 29b); read_record cited as Audit Trail's read of a record's retention state, the read Primitive policy 21, Invariant 7.2 and Check 7.2 call the journal's report of Purged; Term clean round reading the repair's invocation by the id the round index carries, which the protocol's read answers under no count cap; and Primitive policy 15 naming the answer a refused escalation displaces as the escalating action's own answer. *Over:* the status written grounded, as a settle writes it for a page that reserves nothing; and a second budget check at [Report] or at the round's record, which two readers proposed. *Because:* the page keeps its status the maintainer's (Term round's records, Term claim families), so the clean round is recorded for the maintainer's ruling and the status stays draft; Execution Contract Database 2 holds [Freeze]'s read of the round count and its record of the round in one transaction, so no round is recorded past the round budget but one a standing ruling admits, as the rewrite of 2026-10-21 chose (Action wiring 48); and each cure obliges what its rule obliged.
 
 - **2026-10-23 — Grounded on Final Critique 19, on the maintainer's ruling.** *Chose:* the page grounded on one sample on the round the entry above records clean, its foundational count zero on the settle's triage and again on the blind second triage, of seven foundational reports (three sent down, four rejected); the status line and the Ledger's status line written `grounded on Final Critique 19 — 2026-10-23`; the Summary written, in the six plain sentences the composition shape in `spec-format.md` asks of a grounded page, saying what the two constituents wire together and what the wiring guarantees; open line 2026-10-10-a, which held the status for that ruling, closed; rules 169 to 169. *Over:* the page accepted on one sample, with no second round owed; and a second round before the status changes. *Because:* the page keeps its status the maintainer's (Term round's records, Term claim families), and the maintainer ruled on 2026-10-23 that a page meeting the section titled *What "grounded" means* in `pressure-testing.md` is grounded: this one counts zero foundational on a round of three fresh passes, the blind second triage agreeing, with the formal-layer vote cast and its three models verifying, and every open line refining; a page grounded on one clean round owes its second round as its first scheduled rescan (*A clean round is a sample*). Recoverable Invocation, a constituent, has a unit of the maintainer's 2026-10-23 ruling still to come, and the cure it brings reopens this page. What the composition does and answers is unchanged.
+
+</details>
 
 NOTE: End of Verified Repair.

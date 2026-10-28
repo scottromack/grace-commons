@@ -559,7 +559,9 @@ Term approval guard: a guard whose evaluation is whether a named approver approv
 
 Term spent step: a bound step that is consumed or mooted.
 
-WHY:
+<details markdown="block">
+<summary>WHY</summary>
+
 *Principle.* A regulated workflow must make it provable that the process moved only through declared transitions and that every guarded one fired only after its named approval was genuinely recorded — attributed, sealed and retained.
 
 *Likely objection.* State Machine already accepts a caller-asserted guard. Why not let the caller assert it, or trust the caller's word?
@@ -567,6 +569,8 @@ WHY:
 *Mechanism.* State Machine deliberately left guard evaluation out: guards recur as approvals, thresholds, quorums and external conditions, each with its own lifecycle, and the atom absorbs none. For approval guards this composition is the evaluation layer: it binds each guarded transition to an Approval Step and, at the fire, reads the bound step's own state; the caller supplies no guard for a guarded transition (Wiring decision 1 and 2). Guards of any other kind stay the caller's or a composing rules engine's (Wiring decision 8).
 
 *Result.* The process moved only through declared transitions; each guarded transition cleared its named approval by the named approver; every firing and decision is attributed, sealed and retained. No transition fires on a bare assertion.
+
+</details>
 
 ### Reconciliation
 
@@ -1175,7 +1179,10 @@ open:
 - 2026-08-30-e · refining · formal · the model carries no mooted flag, no horizon bound on the consumption arm and no decision-matched join for leg (4) → extend it
 ```
 
-## Decisions
+<details markdown="block">
+<summary>
+    <h2 id="decisions" style="display: inline-block; margin-left: 1.5rem;">Decisions</h2>
+</summary>
 
 Directional changes only — the turns a future reader must know the pattern took, and why. Everything smaller lives in the commit that made it: `git log -- compositions/execute-gated-workflow.md`; the migration and the earlier gate records that got it here are in [its history](./execute-gated-workflow.hist.md).
 
@@ -1187,5 +1194,7 @@ Directional changes only — the turns a future reader must know the pattern too
 - **2026-08-29 — The restart sweep is bounded at both edges, writes a recovery record before it commits, and pairs a firing to its intent on the shared reading.** *Chose:* `workflow_completion_bound` below and the audit horizon above for every leg, with the sweep holding the per-instance serialization; a `workflow.recovery_intended` record before any leg that commits constituent state; leg (1) joined on `fired_at = intended_at` plus actor rather than "the latest unmatched intent", with `intent_event_candidates` and the union of plans where more than one matches; `compensation_window` and `reconciliation_cadence` declared. *Over:* a sweep on "a fixed cadence" whose pre-check was its only guard, and a definite-article join. *Because:* the pre-check cannot see an invocation that has not written yet, so a leg fired inside the completion bound lands a second outcome for one commit; a sweep that withdraws steps and recalls assignments without a record of its own is indistinguishable from a direct call; and "the latest" chooses where the records may not (the frozen rules of 2026-08-29 — *A reconciliation is bounded at both ends*, *Recovery commits under a declared service identity*, *Intents pair with outcomes*).
 - **2026-08-27 — Committed-but-unrecorded work is re-derived from the constituent stores, never remembered by the process.** *Chose:* the consumption test's second arm reads State Machine history, the moot-gate cascade is conditioned on the fire's commit, and a four-leg restart sweep diffs the constituent stores against the trail to land every owed record; the in-flight pending set is a cache classified extraction-pending against a forthcoming Outbox atom. *Over:* retry-until-lands obligations held in process memory, and a cascade conditioned on the action returning success. *Because:* a crash between a commit and its record lost the obligation entirely — one approval could fire twice and mooted gates stayed Pending with live Assignments — and an obligation that a records-alone auditor cannot re-derive is not one the pattern can claim.
 - **2026-08-27 — Caller authentication is the composition's own obligation, before any constituent call.** *Chose:* an intent record whose substrate attestation verifies the credential before the Approval Step decision commits. *Over:* assuming an authenticated-caller binding the spec never declared, which let a parseable-garbage credential drive a committed Approved step. *Because:* Permissions assigns the actor-to-caller binding to "the composing system", and this composition is that system.
+
+</details>
 
 NOTE: End of Execute Gated Workflow.

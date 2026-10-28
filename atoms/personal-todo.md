@@ -22,8 +22,12 @@ Personal Todo is a single-person to-do list: one user records tasks, edits them 
 
 ## Intent
 
-WHY:
+<details markdown="block">
+<summary>WHY</summary>
+
 One person, a list of things to do, and nothing else. The atom exists because every larger system that tracks work contains this shape and buries it: a unit is recorded, may be revised, is finished or abandoned, and leaves. Isolating it makes the additions visible as additions — an owner, a priority, a due date, a second actor are each a composing pattern rather than a field quietly added here. Two decisions carry the weight. A unit's identity is an opaque id, never its text, so revising the text does not make it a different unit; and the text is unique across everything live, so a list cannot silently hold *buy milk* twice. Everything else follows from those, including the thing the atom deliberately does not do: remember what was deleted.
+
+</details>
 
 ## Structure
 
@@ -591,12 +595,17 @@ open:
 - 2026-10-22-a · refining · State 1; Invariant 1.1 · State 1 and Invariant 1.1 state one proposition word for word, so the page pays for it twice (GRACE-lang Authority 3) → one owner, the survivor checked against the citers (Check 1.1 cites Invariant 1.1)
 ```
 
-## Decisions
+<details markdown="block">
+<summary>
+    <h2 id="decisions" style="display: inline-block; margin-left: 1.5rem;">Decisions</h2>
+</summary>
 
 Directional changes only — the turns a future reader must know the pattern took, and why. Everything smaller lives in the commit that made it: `git log -- atoms/personal-todo.md`; the rounds and the migration that got it here are in [its history](./personal-todo.hist.md).
 
 - **2026-10-20 — The store's guarantees cited, not restated.** *Chose:* the store supplied under Execution Contract Store 1 through 4 (Capability requirement 4), and the five rules that restated them tombstoned to their owner — Concurrency 2, every transition atomic, and External check 2, the auditor's evidence of that atomicity, to Store 1; Concurrency 3, a deployment running two clients composing a concurrency-resolution pattern, and External check 3, the auditor's evidence of that pattern, to Store 2; Operation 6, no unit recorded by an [Add] that answers storage-failure, to Store 3; rules 111 to 107. *Over:* the atom restating, for its own store, what every deployment's store guarantees. *Because:* the maintainer ruled 2026-10-12 that the corpus takes a store's specification, never the store, and `execution-contract.md` writes it once as the Store contract. Two clients' calls on one unit, all the page gave a concurrency-resolution pattern to resolve, are serialized by Store 2 for every deployment: the later call reads what the earlier committed, and the active-set duplicate check reads inside the transaction that writes. A refused call leaving the unit as the call found it stays the atom's own (Operation 24), as do the linear sequence of one actor's calls the atom assumes (Concurrency 1), the atom itself resolving no two concurrent calls (Non-goal 14) and the id that never changes (Invariant 8.2). The atom keeps no history of a unit (State 10, Non-goal 13), its checks compare the auditor's own reads, and it orders no units (Non-goal 10), so it cites neither History 1 nor Order 1. What the atom does for its domain is unchanged.
 - **2026-10-20 — Undo History retired, and restoration is the store's history.** *Chose:* Non-goal 7, a deployment needing restoration composing Undo History, and Composition note 4, a composing pattern needing restoration appending a deleted unit to an Event Log, tombstoned to Execution Contract Store 5; rules 107 to 105. *Over:* restoration through a composition that kept its own copy of every deleted unit in an event log and replayed it. *Because:* the maintainer ruled 2026-10-20 that Undo History retires: Store 5 keeps every committed version of a record readable, so an undone deletion comes back with its id, timestamps and description, and no composing pattern needs a copy of its own. The atom itself still restores nothing (Non-goal 6). What the atom does for its domain is unchanged.
 - **2026-10-22 — An edit resubmitting a unit's own text is a no-op under any cap, and an edit's state is held by the rules of the edit.** *Chose:* Operation 9a held to a new description that differs from the unit's own, with Description 4 and Description 5 naming [Add], so an [Edit] that resubmits a unit's text answers ok, writes nothing and stamps nothing, though a deployment has since lowered the description cap below the stored text; Invariant 5.1, that an edited unit stands in pending, deleted to Invariant 5.2 and Operation 8, and Check 3.2, which tested it, to Check 3.3. *Over:* two rules obliging invalid-description and ok on one call; and a property of every reachable state that a unit edited and then completed breaks, with a check that every conforming list holding such a unit fails. *Because:* Final Critique 5 found both. The case table already answered every same-text edit ok, and under the method's 2026-10-08 rule a rule a lawful state breaks is deleted to the rules that already hold that state: [Edit] lands only on a pending unit (Operation 8) and changes no field beside description and last edit instant (Invariant 5.2), the unit state among them. Smaller fixes rode with them: Invariant 7.1 through 7.3 compare instants with PRECEDES (GRACE-lang Earned vocabulary 18), and Check 4.1 through 4.3 read only a unit carrying the instants they compare; Check 1.1 in Invariant 1.1's words; the Now entry names every action that stamps from now; acronyms glossed at first use; rules 105 to 103. What each action answers and writes is unchanged except on the one call the two rules had split.
+
+</details>
 
 NOTE: End of Personal Todo.

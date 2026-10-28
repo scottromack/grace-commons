@@ -32,8 +32,12 @@ The most common uses are: notifying users of events relevant to them (task assig
 
 ## Intent
 
-WHY:
+<details markdown="block">
+<summary>WHY</summary>
+
 A subscription is a standing answer to *who wants to hear about this?* — recorded once, read on every event, withdrawn once. Systems that skip the concept end up deriving the audience from whatever is nearby: a role table, a config file, a query over past activity. Each of those answers a different question, and each drifts. The atom holds the interest itself: one actor, one class of events, in force or withdrawn, with a history of both. It fires nothing, delivers nothing, and knows nothing about events — it answers *who should hear about this scope now*, and the composing pattern does the rest. The one structural rule is at most one live subscription per actor and scope, because two produce two notifications for one event, which is almost never what anybody meant.
+
+</details>
 
 ## Structure
 
@@ -548,7 +552,10 @@ open:
 - 2026-10-21-d · refining · Term seam; Term transition; Term business caller · each cites the section titled Logic Confinement Principle in `execution-contract.md` as declaring it, and that section declares none of the three → cite the contract's labels that hold each, in the form every page carrying the one seam wording can take
 ```
 
-## Decisions
+<details markdown="block">
+<summary>
+    <h2 id="decisions" style="display: inline-block; margin-left: 1.5rem;">Decisions</h2>
+</summary>
 
 Directional changes only — the turns a future reader must know the pattern took, and why. Everything smaller lives in the commit that made it: `git log -- atoms/subscription.md`; the migration that got it here is in [its history](./subscription.hist.md).
 
@@ -557,5 +564,7 @@ Directional changes only — the turns a future reader must know the pattern too
 - **2026-10-21 — The wiring declaration is an external check.** *Chose:* Check 5.1 deleted to External check 1, the auditor reading which composing patterns a deployment wired in from the deployment's own declaration. *Over:* a conformance check no subscription record can answer, under an acceptance an external auditor clears from the subscription records' stored fields. *Because:* Final Critique 5 found that a conforming deployment fails it, and the corpus held the cure: the external check to which seven atoms had moved the same check. Smaller fixes rode with it, none changing what a rule means: Invariant 9.1 compares the two instants with PRECEDES (GRACE-lang Earned vocabulary 18), and the term entries no longer call the order best-effort, since it rests on a clock whose readings never go backward, which the deployment owns (Execution Contract Logic confinement 7, to which Clock semantics 1 through 3 were deleted); Identity 3 is deleted to Execution Contract Logic confinement 3, which it restated. What each action does on a call it admits is unchanged.
 
 - **2026-10-22 — The wiring is read outside the records, as the Execution Contract says.** *Chose:* External check 1, the auditor reading which composing patterns a deployment wired in from the deployment's own declaration, deleted to Execution Contract Conformance 9, with Check 5.1's tombstone, which named it, now naming the contract, the checks NOTE's sentence restating it removed, and the label cited on Capability requirement 5; rules 92 to 91. *Over:* the page stating for itself that the wiring is an external check. *Because:* the maintainer ruled on 2026-10-22 that five repeated cures are each stated once, the wiring declaration among them; this page's fifth Final Critique had made the cure one specification at a time. What each action does and answers is unchanged.
+
+</details>
 
 NOTE: End of Subscription.

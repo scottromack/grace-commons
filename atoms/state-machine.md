@@ -30,7 +30,9 @@ These guarantees make the system useful for regulated processes (a pharmaceutica
 
 ## Intent
 
-WHY:
+<details markdown="block">
+<summary>WHY</summary>
+
 Many real-world processes move an entity through a defined sequence of states: a pharmaceutical batch advances from *sampled* through *tested* through *qualified* through *released*; a purchase order from *draft* through *submitted* through *approved* through *fulfilled*; a change request from *open* through *in-review* through *merged* through *deployed*. In each the valid transitions are known in advance, the order they fire in must be auditable, and the current state must be unambiguously knowable at any moment. The structure governing them is the same in all of them: a named entity, a finite declared set of states, a declared set of transitions, and a durable history of which fired and when.
 
 The core problem is that different deployments need different state machines. A batch-release workflow is governed by 21 CFR (Code of Federal Regulations) Part 11 and ISO (International Organization for Standardization) 9001 clause 8.5.1. An HL7 (Health Level Seven) FHIR (Fast Healthcare Interoperability Resources) Task resource has its own lifecycle. A BPMN (Business Process Model and Notation) workflow varies by process type. Writing a separate atom for each is not feasible, and it is also not the right factoring: the commonality is declared-finite-state-machine *enforcement*, not the particular states. That is what this atom captures — the declaration is data supplied by the deployment, and the enforcement is the atom.
@@ -42,6 +44,8 @@ The atom is structurally distinct from two adjacent concepts, and both distincti
 [Event Log](./event-log.md) records what happened; this atom enforces what is allowed to happen and tracks the resulting state. The transition history here resembles an event log structurally — append-only, totally ordered by a sequence number, with wall time as a best-effort annotation — but an event log has no declared states, no declared transitions, no current state and no validity gate. This atom is freestanding, and none of its rules names Event Log; where the two meet is a composition's business.
 
 The guard is where the atom's restraint is sharpest. A declared transition may carry a guard label, and the atom enforces that the caller *asserts* the guard satisfied before the transition fires — while evaluating nothing. The history records the assertion, not a verdict. A caller asserting a guard it never checked is violating the declared process and the atom will record the assertion faithfully, because the alternative is an atom that must understand every deployment's predicates, which is the absorption this factoring exists to prevent.
+
+</details>
 
 ## Structure
 
@@ -908,7 +912,10 @@ last gate: 2026-10-28 — Final Critique 8 — foundational count 1, not clean, 
 open: none
 ```
 
-## Decisions
+<details markdown="block">
+<summary>
+    <h2 id="decisions" style="display: inline-block; margin-left: 1.5rem;">Decisions</h2>
+</summary>
 
 Directional changes only — the turns a future reader must know the pattern took, and why. Everything smaller lives in the commit that made it: `git log -- atoms/state-machine.md`; the migration and the repair that got it here are in [its history](./state-machine.hist.md).
 
@@ -919,5 +926,7 @@ Directional changes only — the turns a future reader must know the pattern too
 - **2026-10-22 — A guarded fire lands only on a true assertion, an admitted call is one whose writes commit, and a composed retention may purge what the atom never removes.** *Chose:* Operation 17 refusing a guarded fire whose guard satisfied is not true, with Term guard satisfied declaring true | false and Invariant 8.1 reading the same; the admitted instantiate and admitted fire written as a call that passes every precondition and whose database writes commit; [Instantiate] taking the optional subject reference State 2 and Term string input name, which Operation 56 records; and State 12 and State 13 deleted to Invariant 10.1, Invariant 10.2 and Execution Contract Database 4, the page read as Final Critique 4's text read it: the atom keeps every workflow and history entry, and time-bounded retention is a composing Retention Window's. *Over:* Operation 17 refusing only an absent assertion beside the term entries' true; admitted terms that stopped at the guards and took in a call the database refused; a subject reference no action took; and the 2026-10-20 entry's reading that State 6, State 7, State 12, State 13, Invariant 10.1 and Invariant 10.2 bar a purge another specification declares. *Because:* Final Critique 5 found the four, and the corpus already reads so: Medication Order, Credential, Provisional Commitment, Party Identity, Invitation and Provenance write their admitted calls in that form, and Selective Disclosure, Party Identity, Provisional Commitment, Observation, Capacity Constraint Enforcement and Message Preference cured the composed erasure the same way. Smaller fixes rode with them: State 1 carries the instantiation instant Operation 20 reads, and State 15 and State 16 the instantiating actor reference and guard satisfied; Declaration 18 refuses a terminal state outside states; External check 4 asks the deployment for the patterns it wired in (Composition note 1); Check 5.3 cites Invariant 5.1; the Workflow Id entry no longer names a consumer the page lacks; [History]'s query is routed as open line 2026-10-22-a; rules 170 to 173. What each action answers and writes on a call it admits is unchanged, but that a guarded fire asserting false is refused and the subject reference is taken and recorded.
 
 - **2026-10-22 — An admitted call, a composed purge and the wiring are the Execution Contract's.** *Chose:* the admitted instantiate and the admitted fire citing Execution Contract Read 4 for what an action admits, in place of the commit clause this page's fifth Final Critique wrote into each, so Operation 38, Operation 47 and Invariant 1.2, which name [Current] and [Read Declaration], hold under Read 4 for the calls those actions admit, as every other effect rule does; Invariant 10.1 and Invariant 10.2 read by Execution Contract Database 6, so the atom removes no workflow and no history entry and a purge a composing Retention Window declares is answered by that pattern's records; External check 4, the auditor reading which composing patterns a deployment wired in from the deployment's own declaration, deleted to Execution Contract Conformance 9, and the checks NOTE's sentence restating it removed; the three labels cited on Capability requirement 5; rules 173 to 172. *Over:* the page stating for itself which calls its effect rules reach, that its no-removal rules bind the atom alone, and that the wiring is an external check. *Because:* the maintainer ruled on 2026-10-22 that five repeated cures are each stated once, the admitted effect, the composed erasure and the wiring declaration among them; this page's fifth Final Critique had made all three one specification at a time. What each action does and answers is unchanged.
+
+</details>
 
 NOTE: End of State Machine.

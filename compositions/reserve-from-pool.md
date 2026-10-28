@@ -415,7 +415,9 @@ Term slot-returning state: Released | Expired — the two constituent-terminal s
 
 Term constituent-terminal state: Confirmed | Released | Expired — Provisional Commitment's absorbing states; Confirmed among them keeps the slot.
 
-WHY:
+<details markdown="block">
+<summary>WHY</summary>
+
 *Principle.* A reservation system must, from the pool count alone, never confirm more reservations than capacity and never lose a freed slot. Structurally the pool's running total and the live-reservation set must move together: a reservation enters the live set exactly when it takes a slot and leaves exactly when its slot is returned.
 
 *Likely objection.* Capacity Constraint Enforcement already bounds allocated by capacity, and Provisional Commitment already owns the reservation state machine. Why not let the caller allocate on place hold and release on the terminal transition?
@@ -423,6 +425,8 @@ WHY:
 *Mechanism.* Neither constituent knows the other, and the seam between them is exactly where coherence breaks. The pool keeps a fungible count with no per-allocation identity, so it cannot know that *this* release corresponds to *that* lapsed hold, or refuse a slot released twice for one reservation. The commitment has per-reservation identity and no notion of a pool — its release and expire decrement nothing. A caller wiring the two by hand re-implements the binding at every call site, and the first site that releases a slot for a reservation already lapsed (double release, count below the truth), transitions a hold terminal without releasing (leak, count above the truth), or confirms a hold whose slot an expiry sweep already returned (oversell) breaks coherence silently. The composition owns the binding (Wiring decision 1): [Reserve] allocates, then holds (Wiring decision 2); [Confirm Reservation] keeps the slot (Wiring decision 3); [Cancel Reservation] and [Expire Reservation] resolve the commitment and then release the slot. And the confirm-within-window guarantee — Provisional Commitment's, surfaced as window-elapsed — forecloses confirming a slot an expiry already returned.
 
 *Result.* Allocation coherence is structural. An auditor, or the pool's own query, reads allocated and can trust it equals the live reservations against the pool. The three failure modes that define reservation bugs — oversell, leak, double release — are each foreclosed by a named mechanism: every [Reserve] gated on allocate, every slot-returning transition releasing exactly once, and the window guard. No other path releases a slot (Wiring decision 6).
+
+</details>
 
 ### Reconciliation
 
@@ -849,7 +853,10 @@ last gate: 2026-08-30 — third gate, fresh reader, under the frozen rules — 6
 open: none
 ```
 
-## Decisions
+<details markdown="block">
+<summary>
+    <h2 id="decisions" style="display: inline-block; margin-left: 1.5rem;">Decisions</h2>
+</summary>
 
 Directional changes only — the turns a future reader must know the pattern took, and why. Everything smaller lives in the commit that made it: `git log -- compositions/reserve-from-pool.md`; the migration that got it here is in [its history](./reserve-from-pool.hist.md).
 
@@ -859,5 +866,7 @@ Directional changes only — the turns a future reader must know the pattern too
 - **2026-08-27 — The confirm pair is completed by a late journal write, not made atomic and not compensated.** *Chose:* on a post-commit journal failure at [Confirm Reservation], return `recording-failure(post-commit)`, cache and record the token, and owe the outcome entry as a `recovery = true` write carrying the invocation's own attestation, detected from an unmatched confirm_intended against a Confirmed record. *Over:* extending the terminal trio's hard atomic-commit requirement to the pair. *Because:* the trio is atomic because a lost pool release and a lost record of one cannot be told apart; the confirm pair has no pool call and the constituent store answers the question directly, so a late write is safe and a transaction would buy nothing.
 - **2026-08-25 — Invariant 5's at-most-once is conditioned on Duplicate Prevention's host obligations.** *Chose:* inherit the constituent's declared failure modes as named host obligations (durable, highly available recorded-set store; fail-closed `check`; `token_results` plus `record` durable before the result returns) and condition Invariant 5 and check 5 on them. *Over:* the unconditional at-most-once claim. *Because:* a silent window miss or a fail-open `check` lets a retried [Reserve] take a second slot, and an obligation-traceable miss is a deployment finding, not a coherence disproof.
 - **2026-08-26 — Attribution is an `attest` call committed with the journal entry, keyed per invocation.** *Chose:* every state-changing action opens with `Actor Identity.attest(action_ref = "<action>:<idempotency_token>", …)` and carries the `attestation_id` on every journal schema; at the terminal trios the attestation stands outside and before the atomic trio. *Over:* attribution as prose ("attributed via Actor Identity") with a caller-supplied actor_ref. *Because:* the attribution guarantee was neither buildable nor witnessable as written, a shared `action_ref` would bind the proof to a category of act rather than the act, and an attestation inside the trio could not refuse the act it exists to gate.
+
+</details>
 
 NOTE: End of Reserve from Pool.

@@ -776,7 +776,10 @@ open:
 - 2026-10-28-a · refining · Capability requirement 4, 5 · the registry releases its critical section on the caller's return or death, so a caller paused inside the section holds the section with no bound, and every [Place Hold] on the resource waits for the caller → bound the section, with a rule that keeps a paused holder from writing its hold after the bound, or name who owns the bound
 ```
 
-## Decisions
+<details markdown="block">
+<summary>
+    <h2 id="decisions" style="display: inline-block; margin-left: 1.5rem;">Decisions</h2>
+</summary>
 
 Directional changes only — the turns a future reader must know the pattern took, and why. Everything smaller lives in the commit that made it: `git log -- atoms/provisional-commitment.md`; the rounds and the migration that got it here are in [its history](./provisional-commitment.hist.md).
 
@@ -791,5 +794,7 @@ Directional changes only — the turns a future reader must know the pattern too
 - **2026-10-21 — A composed retention may purge what the atom never removes; a refusal leaves what it found; a refused re-hold records nothing.** *Chose:* Invariant 10.2 deleted to Invariant 10.1 and Execution Contract Database 4, so the atom never removes a commitment and a composed Retention Window destroys a terminal one only as its own page says (Composition note 5); Check 6.1 and Check 6.2, which cannot tell a purge from a removal from the commitment records alone, moved to External check 7, which reads the Retention Window's purge records beside two reads; Operation 32 deleted to Operation 30, so a refused resolving action leaves the commitment as the call found it, terminal or held, and a call naming no commitment leaves nothing; and Invariant 5.2 deleted to Operation 8, with Term re-hold, which only it read. *Over:* a commitment count that may never fall beside the retention the page sends to Retention Window; a refused resolving action left in held where the not-held refusal answers on a terminal commitment and the not-known refusal on none; and a re-hold obliged to produce a commitment where a refused [Place Hold] records none. *Because:* Final Critique 5 found each a reachable state that breaks a rule of the page or fails one of its checks, and the page's earlier text held each cure: Final Critique 4 kept the record indefinitely from the atom's perspective with retention, archival and purge left to composing patterns, left the commitment in Held only where the store write failed, and made a re-hold a new commitment with a new id. What each action answers on every call is unchanged.
 
 - **2026-10-22 — An admitted call, a composed purge and the wiring are the Execution Contract's.** *Chose:* the four admitted terms (place hold, confirm, release, expire) citing Execution Contract Read 4 for what an action admits, in place of the commit clause this page's fifth Final Critique wrote into each; External check 7, a composing Retention Window's purge records read beside the commitment records, deleted to Execution Contract Database 6, with the tombstones of Check 6.1 and Check 6.2, which named it, now naming the contract; External check 6, the composing patterns read from the deployment's own wiring, deleted to Execution Contract Conformance 9; the three labels cited on Capability requirement 15; rules 146 to 144. *Over:* the page stating for itself which calls its effect rules reach, that a purge another specification declares is answered outside the commitment records, and that the wiring is an external check. *Because:* the maintainer ruled on 2026-10-22 that five repeated cures are each stated once, the admitted effect, the composed erasure and the wiring declaration among them; this page's fifth Final Critique had made the first two cures one specification at a time. What each action does and answers is unchanged.
+
+</details>
 
 NOTE: End of Provisional Commitment.

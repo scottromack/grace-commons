@@ -32,7 +32,9 @@ This is distinct from a permission (standing, reusable authority to do a class o
 
 ## Intent
 
-WHY:
+<details markdown="block">
+<summary>WHY</summary>
+
 Many actions in regulated systems require explicit human authorization before they may proceed. A journal entry above a materiality threshold needs a controller's approval before it posts. A clinical-trial protocol deviation needs the principal investigator's approval before the deviant procedure happens. A pharmaceutical batch release needs a qualified person under 21 CFR (Code of Federal Regulations) Part 211. An engineering change order needs a release chain. The structure is identical every time: something is submitted, a named actor reviews it, and the outcome is an auditable record that external evaluators rely on as evidence the required control existed and operated.
 
 This atom is that structure and nothing else. It records the gate, who the gate was for, the outcome, the actor who decided, and when — and it guarantees those records are present and immutable. Cryptographic protection against post-hoc modification, the bar for court-admissible evidence under SOX (Sarbanes-Oxley Act) section 404 and FDA (US Food and Drug Administration) Part 11, is [Tamper Evidence](./tamper-evidence.md)'s and is not provided here.
@@ -44,6 +46,8 @@ Three adjacent concepts are distinguished, and every distinction is load-bearing
 [Assignment](./assignment.md) governs *responsibility binding* — who owns the work, with a lifecycle of its own. This atom governs the decision. A document may be assigned to an author and simultaneously submitted to a reviewer; the two coexist without overlapping. Confusing them produces either a spec that cannot record the approval or one that loses track of who owns the work.
 
 [State Machine](./state-machine.md) is the general engine: states and transitions declared by the deployment, opaque to the atom. This atom is a *specific* state machine whose four states, four transitions and approval semantics are fixed here — one named approver, a decision that is itself a compliance record, a required reason on rejection. The axis is specificity: an external evaluator knows this atom's states from the spec and must read a State Machine instance's declaration to know that one's. The two are the fixed and declared poles of the same category, and they compose into [Execute Gated Workflow](../compositions/execute-gated-workflow.md).
+
+</details>
 
 ## Structure
 
@@ -853,7 +857,10 @@ open:
 - 2026-10-26-b · refining · Term seam; Term transition; Term business caller · each says the section titled Logic Confinement Principle in `execution-contract.md` declares it, and that section declares none of the three → declare the three there, the corpus's one seam wording, or point each at its declaration
 ```
 
-## Decisions
+<details markdown="block">
+<summary>
+    <h2 id="decisions" style="display: inline-block; margin-left: 1.5rem;">Decisions</h2>
+</summary>
 
 Directional changes only — the turns a future reader must know the pattern took, and why. Everything smaller lives in the commit that made it: `git log -- atoms/approval-step.md`; the migration and the repairs that got it here are in [its history](./approval-step.hist.md).
 
@@ -864,5 +871,7 @@ Directional changes only — the turns a future reader must know the pattern too
 - **2026-10-21 — A failed read answers on every action; each action's refusals answer in one stated order; a deleted subject answers as a live one.** *Chose:* state-unavailable on all five actions where the read of the step records fails, the Execution Contract's Step 1 failure (Operation 53, Term database read), the admitted submit, resolve and read each held to an answered read; one refusal order for [Submit], one for the three resolving actions and one for [Read], the read first since Step 1 runs before any guard, and the resolving actions' in the order the case table and Final Critique 5's fixed priority gave — blank step id, not-known, not-pending, the attribution checks, the actor guard (Operation 54 through 56) — with Operation 12, 14, 20 and 23 kept as the order's own pairs; and the Execution Contract's dangling-reference sentence rewritten, so a deleted subject produces no refusal of this atom's, which never consults it (Identity 12). *Over:* a failed read answered by no code the page names, which one build surfaced as a fault, one as invalid-query and one as an empty answer an auditor reads as no steps; pairwise ONLY IF rules that, each read alone, forbid what the rule they order obliges; and a guard failure the contract obliged and the atom forbids. *Because:* Final Critique 6 found each a divergence between conforming builds, or two rules no build can both obey, and the corpus already held each cure: Actor Identity's fifth round answered the failed read on every action, Verified Repair's ruling of 2026-10-19 gave each action one stated order, and the contract's own paragraph says this atom owns a decision about a reference, never the referenced thing. A blank step id is now refused after the Step 1 read, not before any lookup, since the pipeline reads first. What the atom answers a well-formed call on a readable database is unchanged.
 
 - **2026-10-19 — The store's guarantees cited, not restated.** *Chose:* the step store supplied under Execution Contract Store 1 through 4 (Capability requirement 5), and the eleven rules that restated them, or stood in for them, tombstoned to their owner — Operation 31, a resolve's state change and recorded fields committed in one operation, Invariant 10.2, no partial record left by a storage-failure, and Atomic writes 1, 3 and 4, no reader seeing a terminal state without its attribution fields, a dangling transition resolved and no read served before it is, to Store 1; Atomic writes 2, an uncommitted crash leaving the step as the call found it, to Store 1 and Store 3; Invariant 10.3, an answered step id naming a durably persisted step, and External check 1, the submit answers captured to find a step the store is missing, to Store 3; Concurrency 1 through 3, two resolving actions on one step serialized, the later reading what the earlier left and answering not-pending, to Store 2; rules 163 to 153. *Over:* the atom restating, for its own store, what every deployment's store guarantees, and a deployment journalling its submit answers against a store that might lose a step. *Because:* the maintainer ruled 2026-10-12 that the corpus takes a store's specification, never the store, and `execution-contract.md` writes it once as the Store contract. The atom's own no-removal rules stay (State 5, State 14, Invariant 10.1), since Store 4 alone does not keep the atom from removing a step; Check 6.1 through 6.3 rest on the auditor's own two reads, and [Read] orders by submission instant and step id, so the atom cites neither History 1 nor Order 1. What the atom does for its domain is unchanged.
+
+</details>
 
 NOTE: End of Approval Step.

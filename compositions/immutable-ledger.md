@@ -504,7 +504,9 @@ Wiring decision 3: The composition MUST NOT expose a disclosure surface other th
 Wiring decision 4: The composition MUST NOT require a particular proof mechanism.
 ```
 
-WHY:
+<details markdown="block">
+<summary>WHY</summary>
+
 *Principle.* Disclosure accounting an outside party can trust needs two facts inseparable: that the disclosure was recorded with its authority, and that the record of it is itself immutable, attributed and tamper-evident.
 
 *Likely objection.* Why not let Selective Disclosure carry it alone?
@@ -520,6 +522,8 @@ WHY:
 *Mechanism.* No, deliberately (Wiring decision 4). Tamper Evidence is itself mechanism-neutral — hash chains, Merkle trees and external anchoring are interchangeable realizations — so for this composition to demand Merkle would contradict its own constituent and raise one realization into the ontology. The obligation is behavioural: the substrate's tamper evidence can produce, for a named subset, an artifact an independent party checks against the ledger seal without the undisclosed entries. A deployment whose mechanism cannot is not non-conforming; its bundle degrades to whole-ledger verification and says so (Degraded bundle 1).
 
 *Result.* The essential capability is specified; the mechanism is the deployment's — the line the library holds between *what must be true* and *how it is achieved*.
+
+</details>
 
 ### Reconciliation
 
@@ -1097,7 +1101,10 @@ open:
 - 2026-10-19-i · refining · Reconciliation 4, 6; Term aged record · Reconciliation 4 bars only a young record and Reconciliation 6 reads every record Reconciliation 4 admits, aged ones included, where Term aged record says an aged record is never examined; Term orphan record keeps Reconciliation 14 and 33 off aged records, so nothing diverges → say in one place whether an aged record is read
 ```
 
-## Decisions
+<details markdown="block">
+<summary>
+    <h2 id="decisions" style="display: inline-block; margin-left: 1.5rem;">Decisions</h2>
+</summary>
 
 Directional changes only — the turns a future reader must know the pattern took, and why. Everything smaller lives in the commit that made it: `git log --follow -- compositions/immutable-ledger.md`; the rounds, the treatment ahead of one, the model run and the migration that got it here are in [its history](./immutable-ledger.hist.md).
 
@@ -1108,5 +1115,7 @@ Directional changes only — the turns a future reader must know the pattern too
 - **2026-08-29 — The scan is bounded and writes as the composition, the substrate's step decides the landing, and the seal is verified over its range.** *Chose:* a declared `disclosure_completion_bound` below which the orphan enumeration examines nothing, with the ledger horizon as its upper edge; every scan write attested under a declared recovery identity behind a `ledger.recovery_intended` record, the orphan paired to its intent by the reading step 3 now passes explicitly as `disclosed_at` (candidates named where undecidable, and an undetermined entry set omitted rather than asserted); a seam-injected invocation_id on every event payload so an indeterminate substrate arm is read back exactly; every transcription carrying `recording-failure(step)`, with step-4 and `invalid-request(step-4)` proceeding as landed at both actions; and [Verify Ledger]'s presentation keyed by `sequence_number` over the covering range `read_record` names. *Over:* an unbounded scan under an undeclared identity, a bare token that sent [Record Entry]'s caller back to append a second entry, and a one-payload presentation that returns a mismatch on every intact ledger under interval cadence. *Because:* an unbounded scan compensates in-flight disclosures beside their own outcome events and re-manufactures lawfully purged ones; a compensation the discloser did not make cannot be attested as theirs; the substrate's step-4 arm means the event exists; and a seal commits to a range (the frozen rules of 2026-08-29 — *A reconciliation is bounded at both ends*, *Recovery commits under a declared service identity*, *Intents pair with outcomes*, *A transcribed rejection arm keeps its payload*, *A seal presentation is keyed by log position*).
 - **2026-08-27 — The purged binding's key lives in the composition, and the unbindable orphan gets a terminal verdict.** *Chose:* `disclosure_to_event`'s purged half is truth-bearing under a durability obligation (extraction-pending against the Erasure Tombstone atom), and a deterministic invalid-request on the outcome write lands as a `ledger.disclosure_unbindable` marker read back as `binding-unbindable`. *Over:* configuring the substrate to carry `data.disclosure_id` on its destruction record, and retrying the unbindable orphan indefinitely under the recovery identity. *Because:* the substrate declares its destruction record carries no payload field, so the earlier obligation pinned a capability on a surface that disclaims it; and re-attestation changes only the credential, so an orphan the payload or policy refuses had no lawful terminal state until one was declared.
 - **2026-06-10 — Invariant 1 is safety plus liveness, and the model checks the compensated arm.** *Chose:* state the disclosure-accountability binding as "no unsurfaced orphan" (safety) and "every orphan is eventually bound or surfaced" (liveness), and re-derive the model over the two truth-bearing sub-writes so the reachable orphan is in scope. *Over:* the original model's idealization, which committed the sub-writes as one atomic action. *Because:* Selective Disclosure writes first and irreversibly and no synchronous rollback exists, so the orphan is reachable by design and an invariant that assumed it away verified nothing.
+
+</details>
 
 NOTE: End of Immutable Ledger with Selective Disclosure.

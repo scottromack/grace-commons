@@ -157,8 +157,12 @@ Wiring decision 2: The composition MUST NOT abort a fan-out for a failed create.
 Wiring decision 3: The composition MUST account for EVERY subscriber the subscribers_for answer carries in EXACTLY ONE OF the created list, the failed list.
 ```
 
-WHY:
+<details markdown="block">
+<summary>WHY</summary>
+
 The alternative is all-or-nothing, and it fails the case it exists for: a database briefly unavailable for one subscriber would deny delivery to every reachable subscriber, trading guaranteed delivery to the reachable majority for consistency with the unreachable minority. The failed list is the pressure valve — it makes the trade explicit rather than silent, and the caller applies the policy the event's stakes deserve, which is the mechanism-versus-policy split the composition rests on.
+
+</details>
 
 ---
 
@@ -302,8 +306,12 @@ Deleted: External check 4. Execution Contract Conformance 9 owns it.
 External check 5: An auditor needing a notification record verified MUST read Notification's own acceptance (Composes 7).
 ```
 
-WHY:
+<details markdown="block">
+<summary>WHY</summary>
+
 Check 1.3 pairs each created notification id with its subscriber at a cost: the created list carries ids and the failed list carries subscriber references, so an auditor makes one `status_of` call per created id to read its recipient.
+
+</details>
 
 ---
 
@@ -505,7 +513,10 @@ last gate: 2026-08-28 — second gate after closure, fresh reader — 4 foundati
 open: none
 ```
 
-## Decisions
+<details markdown="block">
+<summary>
+    <h2 id="decisions" style="display: inline-block; margin-left: 1.5rem;">Decisions</h2>
+</summary>
 
 Directional changes only — the turns a future reader must know the pattern took, and why. Everything smaller lives in the commit that made it: `git log -- compositions/notification-fanout.md`; the migration, the council read's collapse, the two readings of the gate's open lines and the regeneration that got it here are in [its history](./notification-fanout.hist.md).
 
@@ -513,5 +524,7 @@ Directional changes only — the turns a future reader must know the pattern too
 
 - **2026-08-28 — A retry of an indeterminate create is at-least-once, and the page says so.** *Chose:* withdraw the `pending_for` reconciliation and the retry-side Duplicate Prevention claim; scope Invariant 4 to observed records; name Idempotent Reservation over `Notification.create` as the deployment's route to at-most-once. *Over:* keeping a reconciliation that read Pending-only ids and matched on payload. *Because:* `pending_for` cannot see a record the delivery layer has moved on, a payload is not a fanout identity, and a guard first consulted at retry never saw the original create — the reconciliation promised what no read of the bare atoms can deliver.
 - **2026-08-28 — firing instant is a lower bound on the instant the set was fixed.** *Chose:* the seam reading the invocation began under, with check 1's window widened by a disclosed `max_read_latency`. *Over:* a stamp "taken immediately before the query" described as the instant the set was fixed. *Because:* the store fixes the set when it executes the read, an instant the composition never observes; the earlier wording named a moment nothing on the page can see and let check 1 convict a subscribe that landed inside the read's latency.
+
+</details>
 
 NOTE: End of Notification Fanout.

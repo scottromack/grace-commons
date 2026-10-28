@@ -30,7 +30,9 @@ Each observation is recorded (current), amended (superseded by a correction), or
 
 ## Intent
 
-WHY:
+<details markdown="block">
+<summary>WHY</summary>
+
 An operator records a measurement about a subject — a blood pressure, a reactor temperature, a closing mark, an assay result — and the record must be trustworthy: what was recorded, who recorded it and when are permanently fixed. Errors are corrected by recording a successor that supersedes the original, and the original does not disappear; it is marked amended. An observation recorded against the wrong subject or under the wrong type is retracted, with the reason documented, rather than edited.
 
 The requirement behind that is universal and recurring wherever a measurement carries consequences: the record must show both what was originally recorded *and* what the correction was, so the history of the reasoning is recoverable. A mutable record system fails it by definition — once someone edits the value, the original is gone and the reason for the edit is invisible. Append-and-supersede preserves both, and it is the only shape that does.
@@ -42,6 +44,8 @@ Two structural choices carry most of the atom's weight. The first is that a corr
 The second is that the atom refuses to validate what it has not been told how to validate. An observation type with no declared value constraint is rejected rather than accepted unchecked, which means a deployment adds a new measurement by first declaring what a valid value for it looks like. The atom never defines what a valid blood pressure is — that is domain knowledge and local — and it never records one it could not check.
 
 The atom imposes no semantics on what a value means. It imposes the structural guarantee that the record is faithful to what was recorded and by whom.
+
+</details>
 
 ## Structure
 
@@ -811,7 +815,10 @@ open:
 - 2026-10-22-c · refining · Operation 36; State 11 · an admitted retract records the retracting actor and the reason and no instant, where an admitted amend stamps the successor's recording instant from now (Operation 27), so the records cannot say when an observation was withdrawn → stamp the retraction from now, or name the instant's owner in a non-goal
 ```
 
-## Decisions
+<details markdown="block">
+<summary>
+    <h2 id="decisions" style="display: inline-block; margin-left: 1.5rem;">Decisions</h2>
+</summary>
 
 Directional changes only — the turns a future reader must know the pattern took, and why. Everything smaller lives in the commit that made it: `git log -- atoms/clinical-observation.md`; the migration, the rename, the critical section and the no-repair rule that got it here are in [its history](./observation.hist.md).
 
@@ -826,5 +833,7 @@ Directional changes only — the turns a future reader must know the pattern too
 - **2026-10-22 — A composed retention may purge what the atom never removes; every field of a successor has a source; a refusal ban names its ground.** *Chose:* State 12 deleted to Invariant 7.1 and Execution Contract Database 4, and Check 4.1 to External check 5, which reads the composing Retention Window's purge records beside two unfiltered reads; Operation 56 and Operation 57, an admitted amend taking the successor's recording actor from the original and recording the call's value and unit on the successor; Operation 38 narrowed to the ground it meant, [Retract] refusing no call on the ground that the observation stands in amended; Non-goal 2 moved to Capability requirement 7, and Term seam naming the clock offset allowance and the value constraints the host injects; Operation 4 refusing a blank unit on [Amend] as on [Record], and Operation 48 a blank value on every filter. *Over:* the reading the 2026-10-20 entry recorded for the maintainer to overrule, under which State 12 and Check 4.1 also barred a purge another specification declares; a successor whose recording actor, value and unit no rule sourced; a ban that, read alone, kept [Retract] from every refusal on an amended observation; and the migration's narrowing of Final Critique 4's refusals to [Record]'s unit and a reference filter's value. *Because:* Final Critique 5 found each, and Final Critique 4's text decided the direction: the atom retains every observation indefinitely, and eventual destruction belongs to Retention Window and Legal Hold as composing patterns, as four Final Critiques read the same shape on their own pages; Medication Order carries the original's prescriber reference onto its successor beside the amending actor; Execution Contract Refusal 1 lets no refusal apply where a rule keeps the action from answering it, so a ban names its ground, as Retention Window, Permissions and Duplicate Prevention write theirs; and Final Critique 4 refused a blank unit on [Amend] and a blank observation id on [Read]. Smaller fixes rode with it, none changing what a rule means: Term content field, the Invalid Observation, Invalid Query, Recording Instant, Recording Actor, Unit and Amend entries, and the transcription example say what the rules say. What each action answers on a well-formed call is unchanged, and a successor now carries a stated recording actor, value and unit.
 
 - **2026-10-22 — A composed purge is answered by the purging pattern's records, and a ban on refusing names its ground, as the Execution Contract says.** *Chose:* External check 5, a composing Retention Window's purge records read beside two unfiltered reads of the observation records, deleted to Execution Contract Database 6, with Check 4.1's tombstone, which named it, now naming the contract, and the label cited on Capability requirement 6; Operation 38's ground clause retired, the rule written as *[Retract] MUST NOT refuse an observation whose state EQUALS amended*, which Execution Contract Refusal 1's second sentence reads as naming the ground, so a blank retracting actor on an amended observation still answers invalid-request; rules 153 to 152. *Over:* the page stating for itself that a purge another specification declares is answered outside the observation records, and Operation 38 carrying the ground clause its fifth Final Critique wrote. *Because:* the maintainer ruled on 2026-10-22 that five repeated cures are each stated once, the composed erasure and the refusal ban among them; this page's fifth Final Critique had made both cures one specification at a time. What each action does and answers is unchanged.
+
+</details>
 
 NOTE: End of Observation.

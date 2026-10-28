@@ -1006,7 +1006,10 @@ open:
 - 2026-09-29-d · refining · Final Critique 11 · routed open, non-blocking: Invariant 7 declares no acyclicity or single predecessor; no External check reaches Capability requirement 35; the NIST line's verifier-storage claim beside Non-goal 39; Operation 69's tie order unexplained; the Clock semantics tombstones inside the Capability requirement block → one refining pass, gated with the rest
 ```
 
-## Decisions
+<details markdown="block">
+<summary>
+    <h2 id="decisions" style="display: inline-block; margin-left: 1.5rem;">Decisions</h2>
+</summary>
 
 Directional changes only — the turns a future reader must know the pattern took, and why. Everything smaller lives in the commit that made it: `git log -- atoms/credential.md`; the rounds, the repairs and the critical section that got it here are in [its history](./credential.hist.md).
 
@@ -1021,5 +1024,7 @@ Directional changes only — the turns a future reader must know the pattern too
 - **2026-10-21 — Which refusal answers is the Execution Contract's.** *Chose:* each writing action's refuses line kept as the page wrote it, already in the order its refusal order gave — [Register] invalid-request, duplicate-active-credential; [Rotate] not-known, not-active, invalid-request; [Revoke] not-known, already-terminal, invalid-request; storage-failure last on each, answering only at the write — and the order cited from the Execution Contract (Capability requirement 37, Execution Contract Refusal 1); the rules that only stated it deleted to Refusal 1: Operation 75, Operation 76 and Operation 77, which evaluated the three refusal orders, with Term register refusal order, Term rotate refusal order and Term revoke refusal order, and the pairs Operation 7 (duplicate-active-credential only once every well-formedness check passes), Operation 30 (a standing rejection only for a credential id naming a credential), Operation 34 (invalid-request only once every standing check passes) and Operation 46 (storage-failure behind every precondition), with Term standing check, Term standing rejection and Term well-formedness check, which only those pairs read; rules 248 to 241. *Over:* the page stating for itself which of an action's refusals answers when several apply. *Because:* the maintainer ruled on 2026-10-21 that the Execution Contract states once that the refusal listed first on an action's refuses line answers; this page's thirteenth Final Critique had made the cure one specification at a time. What each action answers on every call is unchanged.
 
 - **2026-10-22 — An admitted call and a ban's ground are the Execution Contract's.** *Chose:* the three admitted terms (register, rotate, revoke) citing Execution Contract Read 4 for what an action admits, in place of the commit clause each carried, and Read 4 cited on Capability requirement 37; Non-goal 37 kept as written and read by Execution Contract Refusal 1's second sentence, which the page already cites, so the ban names its ground, a rotate to the prior credential's material, and keeps [Rotate] from no refusal its line declares, an unknown or inactive credential and a blank input still answering theirs; the rule count stays at 241. *Over:* the page stating for itself which calls its effect rules reach; Non-goal 37 read alone, keeping [Rotate] from every refusal on such a call. *Because:* the maintainer ruled on 2026-10-22 that five repeated cures are each stated once, the admitted effect and the refusal ban among them; the 12:03Z escalation named Non-goal 37 among the refusal ban's uncured sites. What each action does and answers is unchanged.
+
+</details>
 
 NOTE: End of Credential.

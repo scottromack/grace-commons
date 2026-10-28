@@ -534,12 +534,16 @@ Term out-of-band mark: a step's mark, set where an out-of-band transition decide
 
 Term rule reason: the generated reason a chain evaluation carries — "quorum met: A of N approved under" and the rule, for Approved; "quorum unreachable:" and the rule, then "N − R − W remain achievable; rejections present", for Rejected; "chain withdrawn by cascade:" and the rule, then "quorum unreachable by withdrawal alone", for Withdrawn — non-blank by construction (2026-08-26-g, 2026-08-29-g, 2026-08-29-p).
 
-WHY:
+<details markdown="block">
+<summary>WHY</summary>
+
 *Principle.* The auditor's question is *did the required approvers actually decide?*, and only an outcome that is a pure function of their recorded decisions answers it provably. The composition is the only layer that can own it: Approval Step knows no chain, and the other three know no quorum.
 
 *Likely objection.* Why not let the calling workflow count approvals — it already reads the steps — or push the quorum into Approval Step, where the decisions live?
 
 *Mechanism.* A calling-system count is the unauditable form: the outcome would live in a system no spec governs, and *the chain approved* would be that system's assertion rather than a recomputable fact. Approval Step cannot hold it without ceasing to be the freestanding single-gate atom its EOS (Essence of Software — Daniel Jackson's framework for freestanding, composable concepts) boundary defends, since counting across steps needs chain identity. So the rule lives here as a pure function of named counts with no clock term (Wiring decision 5), and the stored chain state is its memo, cross-checkable against the step records at any time (Invariant 2) — which is what makes a forged terminal detectable. The three sets are disjoint: under all-of-N a met vector has no rejection or withdrawal, and under M-of-N a met vector has `A ≥ M` while a lost one has `A ≤ N − R − W < M`. **A rejection outranks a withdrawal** (Wiring decision 2 and 3): a rejection is an approver's negative decision, a withdrawal is the initiator retracting a mis-submitted gate, and the terminal state keeps the two audit signals apart — Rejected names a quorum failure attributable to named decisions; Withdrawn, a chain retracted before its quorum was determined.
+
+</details>
 
 ### Reconciliation
 
@@ -1099,7 +1103,10 @@ open:
 - 2026-10-26-d · foundational · Action wiring 38, Audit arm · a refused resolution event lands nowhere and no leg re-emits it → land it, and re-emit a chain terminal's missing event, once the maintainer reads whether a refused terminal event leaves the terminal committed (f93b523)
 ```
 
-## Decisions
+<details markdown="block">
+<summary>
+    <h2 id="decisions" style="display: inline-block; margin-left: 1.5rem;">Decisions</h2>
+</summary>
 
 Directional changes only — the turns a future reader must know the pattern took, and why. Everything smaller lives in the commit that made it: `git log -- compositions/multi-party-approval.md`; the migration that got it here is in [its history](./multi-party-approval.hist.md).
 
@@ -1108,5 +1115,7 @@ Directional changes only — the turns a future reader must know the pattern too
 - **2026-08-29 — Recovery is horizon-bounded, evaluate-first, and keyed on the chain's own id.** *Chose:* the initiation leg and the additive rebuild's quarantine apply only inside the audit horizon, with post-horizon chain records declared truth-bearing under `chain_store_durability`; every recovery withdrawal runs the evaluate-first gate and the evaluation leg runs before the initiation leg; each step's stored reason carries its chain_id so the case-(a) scan is exact; every cascade arm is landed with the in-invocation not-pending closing as a supersession. *Over:* an unbounded initiation leg, a recovery that withdrew without evaluating, a scan keyed on subject and initiator, and a cascade whose arms were enumerated only for `storage-failure`. *Because:* the unbounded leg withdrew every lawfully purged chain at each restart; the ungated recovery overturned credential-verified approvals in the initiator's name; the subject-keyed scan withdrew a concurrently-initiating sibling's step; and the unenumerated arms gave check 2(b) two opposite verdicts on one history.
 - **2026-08-26 — Invariant 4 is safety plus liveness at quiescence, not a static always-claim.** *Chose:* the assignment-cascade claim holds at quiescence conditioned on no open recovery marker, with the partial-cascade and step-7 windows named as bounded surfaced transients; check 4 audits under the same structure. *Over:* the static "always both sides" statement. *Because:* the partial-cascade and trailing-decision paths the spec itself describes reach and violate the static form.
 - **2026-08-26 — Recovery emissions are composition-attributed and the retry loop runs only on transient failure.** *Chose:* every record emitted outside the original human invocation attests under `application_actor_ref` with the human in `data` and `recovery = true`; invalid-request foreclosed by budget-derived caps; one vocabulary shared with Execute Gated Workflow. *Over:* re-presenting human credentials on retry, or looping on every rejection. *Because:* a human credential is unavailable to a recovery path, and a deterministic rejection retried forever is a stall.
+
+</details>
 
 NOTE: End of Multi-Party Approval.

@@ -28,7 +28,9 @@ This is the mechanism behind pharmaceutical chain of custody, legal evidence han
 
 ## Intent
 
-WHY:
+<details markdown="block">
+<summary>WHY</summary>
+
 A regulator's question about a controlled artifact is always the same shape: *prove nobody unaccounted-for held this*. Answering it needs a record where custody has no gaps by construction rather than by diligence — because a gap that can be created will be created, and the one place it must not be creatable is the record that exists to disprove it.
 
 So the atom holds a chain per custody episode, and one rule carries the weight: exactly one current custodian at every point. There is no action that empties custody, none that admits two holders, and none but [Transfer] that moves it. A transfer reads the outgoing side from the chain's own state, so the from-field cannot be claimed — which is a stronger guarantee than checking a claim, because there is nothing to check.
@@ -36,6 +38,8 @@ So the atom holds a chain per custody episode, and one rule carries the weight: 
 [Event Log](./event-log.md) cannot express this, and the difference is why Provenance is its own concept rather than a configured stream. Event Log is content-agnostic, has no subject, no custodian, and permits sequence gaps by design. Continuity needs a subject and a holder and a dense sequence; a stream that allows a gap cannot prove there wasn't one.
 
 Two disciplines carry the rest. **Order is the sequence number, never the clock** — the clock stamps an annotation and nothing reads it, so an adversarial clock cannot reorder a custody history. And **identity is the chain, never the artifact reference** — the same artifact may lawfully begin a second chain for a second episode, a returned batch or re-introduced exhibit, and identifying by artifact would merge two histories that must stay apart.
+
+</details>
 
 ## Structure
 
@@ -886,7 +890,10 @@ last gate: 2026-10-27 — Final Critique 10 — foundational count 0, clean, no 
 open: none
 ```
 
-## Decisions
+<details markdown="block">
+<summary>
+    <h2 id="decisions" style="display: inline-block; margin-left: 1.5rem;">Decisions</h2>
+</summary>
 
 Directional changes only — the turns a future reader must know the pattern took, and why. Everything smaller lives in the commit that made it: `git log -- atoms/provenance.md`; the rounds and the migration that got it here are in [its history](./provenance.hist.md).
 
@@ -897,5 +904,7 @@ Directional changes only — the turns a future reader must know the pattern too
 - **2026-10-22 — An action answers what its signature names, and an admitted call is one whose writes commit.** *Chose:* Operation 39 held to an admitted entry action — an admitted transfer, transform, disclose or archive — so [Originate] answers the chain id alone and the four answer the entry id only on a call that lands; the five admitted terms written as a call that passes every precondition and whose database writes commit, so no effect rule reads a call a length bound or the database refuses. *Over:* Operation 39 obliging every appending action, [Originate] among them, to answer the entry id beside Operation 9 and [Originate]'s signature, and every refused call beside its refusal; and admitted terms that stopped at a reference being supplied. *Because:* Final Critique 8 found the first, and the corpus's admitted calls (Medication Order, Credential, Provisional Commitment, Party Identity, Invitation) already read as the second does. Smaller fixes rode with them: Operation 52 deleted to Execution Contract Read 1, with Read 1 through 3 cited on Capability requirement 5; [Read]'s query marked optional, as every example calls it; Correction 4 names the transformed entry a correction rides on, as Final Critique 7's text did; External check 1 asks the deployment for the patterns it wired in (Composition note 1); the storage-failure example cites Refusal 1 for the tombstoned Operation 45; acronyms glossed at first use; an example opens a second custody episode with the received genesis type; rules 172 to 172. What each action answers and writes on a call it admits is unchanged; [Originate] answers what its signature always named.
 
 - **2026-10-22 — An admitted call, an action set's reach and the wiring are stated once.** *Chose:* the five admitted terms citing Execution Contract Read 4 for what an action admits, in place of the commit clause this page's eighth Final Critique wrote into each, so the appending-action rules Operation 36, Operation 37 and Operation 40 and Concurrency 2 hold under Read 4 for the calls each action admits, as every other effect rule does; Operation 39 written again as the page first had it, *An appending action MUST answer the entry id*, and Term admitted entry action, the helper term the eighth Final Critique wrote, deleted, since under GRACE-lang Closed vocabulary 29 the rule binds [Transfer], [Transform], [Disclose] and [Archive], whose signatures answer the entry id, and not [Originate], whose signature answers the chain id; External check 1, the auditor reading which composing patterns a deployment wired in from the deployment's own declaration, deleted to Execution Contract Conformance 9, and the checks NOTE's sentence restating it removed; Read 4 and Conformance 9 cited on Capability requirement 5; rules 172 to 171. *Over:* the page stating for itself which calls its effect rules reach, which appending actions answer the entry id, and that the wiring is an external check. *Because:* the maintainer ruled on 2026-10-22 that five repeated cures are each stated once, the admitted effect, the category reach and the wiring declaration among them; this page's eighth Final Critique had made all three one specification at a time. What each action does and answers is unchanged.
+
+</details>
 
 NOTE: End of Provenance.

@@ -30,7 +30,9 @@ A few questions need other patterns to answer — whether a referenced consent w
 
 ## Intent
 
-WHY:
+<details markdown="block">
+<summary>WHY</summary>
+
 Regulated systems handling personal data, financial records or protected health information must keep a complete and durable account of every disclosure made — what was shared, with whom, under what legal authority, and when. A GDPR (the European Union's General Data Protection Regulation) supervisory authority conducting an Article 15 review asks what was disclosed to which recipients. An HHS (US Department of Health and Human Services) OCR (Office for Civil Rights) inspector validating HIPAA (US Health Insurance Portability and Accountability Act) compliance asks for the accounting of disclosures section 164.528 requires. An SEC (Securities and Exchange Commission) examiner reviewing broker-dealer records asks for the disclosure trail Rule 17a-4 mandates. The obligation is the same across all three: answer provably, without developer testimony, log reconstruction or institutional memory.
 
 This atom is the accountability layer that makes those answers possible, and the line it holds is between *recording* and *performing*. An atom that also performed disclosures — retrieving subject data, applying redaction, routing to recipients — would absorb concepts from storage layers, redaction engines and notification systems, each with its own state, its own invariants and its own composing pattern. Absorbing them destroys freestanding status and produces a spec that cannot be composed independently of the technologies it would have to name. The atom specifies the accountability obligation; the implementation specifies the mechanics of delivery.
@@ -38,6 +40,8 @@ This atom is the accountability layer that makes those answers possible, and the
 Four adjacent concepts are distinguished, and every distinction is load-bearing. [Audit Trail](../compositions/audit-trail.md) answers *what happened in this system* for any action, any actor, any subject; this atom answers *what was disclosed about this subject, to whom, under what authority* for one class of event. [Consent](./consent.md) governs authorization — *may I?* — and is a precondition check; this atom records *I did*, after the fact, whether the basis was consent, compulsion or regulation. [Legal Hold](./legal-hold.md) governs compelled *preservation*; this atom records compelled *disclosure*, and the two address opposite obligations on the same records. [Actor Identity](./actor-identity.md) answers *who authorized an action*; this atom answers *to whom was subject data disclosed*. Both carry attribution fields and they are different kinds of attribution — a disclosure to a regulator names the regulator here and may name the authorizing compliance officer in a composing attestation.
 
 The authority field is where the atom earns its name. Three types and no others — consent, legal-hold, regulatory — cover the complete space of legitimate disclosure bases: data-subject authorization, legal compulsion, regulatory mandate. Refusing a fourth value is a structural claim, not a validation convenience: a disclosure falling outside those three is not a legitimate disclosure, and the database must not be able to say otherwise. Splitting the field into a machine-queryable type and a human-readable reference is what keeps the accounting both filterable and readable by the regulator who has to act on it.
+
+</details>
 
 ## Structure
 
@@ -393,8 +397,12 @@ Composition note 8: A composing pattern closing Invariant 5.1 MUST own the only 
 Deleted: Composition note 9. State 4 through 6 and Execution Contract Database 4 own it.
 ```
 
-WHY:
+<details markdown="block">
+<summary>WHY</summary>
+
 [Resolve a Person's Data Rights](../compositions/resolve-a-persons-data-rights.md) uses this atom in both directions: *read* to answer Article 15(1)(c)'s recipients limb, and *written* to record each fulfillment response as an accountable disclosure to the requester — which settles, for that case, the policy question Non-goal 20 leaves open.
+
+</details>
 
 NOTE: composing patterns — [Capability-Backed Sharing](../compositions/capability-backed-sharing.md), [Immutable Ledger](../compositions/immutable-ledger.md), [Resolve a Person's Data Rights](../compositions/resolve-a-persons-data-rights.md).
 
@@ -584,7 +592,10 @@ open:
 - 2026-10-27-a · refining · Term seam; Term transition; Term business caller · each says the section titled Logic Confinement Principle in `execution-contract.md` declares it, and that section declares none of them, as Assignment 2026-10-21-a, Permissions 2026-10-21-f and Event Log 2026-10-20-c record of their own → declare each here, or cite where each is declared
 ```
 
-## Decisions
+<details markdown="block">
+<summary>
+    <h2 id="decisions" style="display: inline-block; margin-left: 1.5rem;">Decisions</h2>
+</summary>
 
 Directional changes only — the turns a future reader must know the pattern took, and why. Everything smaller lives in the commit that made it: `git log -- atoms/selective-disclosure.md`; the migration and the repairs that got it here are in [its history](./selective-disclosure.hist.md).
 
@@ -595,5 +606,7 @@ Directional changes only — the turns a future reader must know the pattern too
 - **2026-10-21 — Which refusal answers is the Execution Contract's.** *Chose:* [Record]'s refuses line kept as the page wrote it, already in the order the record refusal order gave — invalid-request, unknown-authority-type, then storage-failure, which answers only at the write — and the order cited from the Execution Contract (Capability requirement 5, Execution Contract Refusal 1); the rules that only stated it deleted to Refusal 1: Operation 35, which evaluated the record refusal order, with Term record refusal order, and the pairs Operation 8 (unknown-authority-type only once every field-level precondition passes) and Operation 15 (storage-failure only once they pass and the authority type is known), with Term field-level precondition, which only those pairs read; rules 126 to 123. *Over:* the page stating for itself which of [Record]'s refusals answers when several apply. *Because:* the maintainer ruled on 2026-10-21 that the Execution Contract states once that the refusal listed first on an action's refuses line answers; this page's sixth Final Critique had made the cure one specification at a time. What each action answers on every call is unchanged.
 
 - **2026-10-22 — A composed purge is answered by the purging pattern's records, as the Execution Contract says.** *Chose:* External check 5, a composing pattern's purge records read beside two unfiltered reads of the disclosure records, deleted to Execution Contract Database 6, with Check 3.2's tombstone, which named it, now naming the contract, and the label cited on Capability requirement 5; the atom's own no-removal rules stand as written and bind its own actions; rules 123 to 122. *Over:* the page stating for itself that a purge another specification declares is answered outside the disclosure records. *Because:* the maintainer ruled on 2026-10-22 that five repeated cures are each stated once, the composed erasure among them; this page's sixth Final Critique had made the cure first, one specification at a time. What each action does and answers is unchanged.
+
+</details>
 
 NOTE: End of Selective Disclosure.

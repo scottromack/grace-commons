@@ -28,7 +28,9 @@ The pattern stores preference values without interpreting them: what a frequency
 
 ## Intent
 
-WHY:
+<details markdown="block">
+<summary>WHY</summary>
+
 Every system that pushes information to people accumulates two questions it must not confuse. *Should this principal hear about this class of thing at all?* is topic interest, and separately legal permission. *Given that delivery is going ahead, what shape should delivery take?* is this atom. A principal may want email and not SMS, at most five a day, silence between 10pm and 7am, plain text rather than rich. None of those is a decision about whether to deliver.
 
 So the atom owns the per-principal record of delivery-shaping values and the lifecycle of that record, and nothing else. It does not deliver, does not consult subscriptions, does not evaluate legal permission, and does not interpret any value it stores. What it enforces is structural: one record in force per principal, every channel key drawn from a declared vocabulary, and values that never change once written.
@@ -36,6 +38,8 @@ So the atom owns the per-principal record of delivery-shaping values and the lif
 The three states each answer a different operational question. Active: the principal has stated preferences and delivery proceeds under them. Suspended: the principal paused delivery without modifying the values, so a composing fanout observes the pause and suppresses. Deleted: the record is no longer in force, whether superseded by a new set or retired explicitly. Suspended is deliberately not the same as active-with-everything-opted-out — a suspension preserves the vocabulary, an opt-out destroys it, and the two mean different things to an auditor reconstructing what the principal intended.
 
 Updates are not retroactive in the sense the atom commits to. A new set produces a new record and retires the prior one; no prior record's values change, and no caller's captured copy is touched. A fanout that captured values at queue time keeps delivering under them. The timestamps are sufficient for any composing pattern to reconstruct which record governed any past moment, which is the whole audit story.
+
+</details>
 
 ## Structure
 
@@ -841,7 +845,10 @@ open:
 - 2026-10-22-a · refining · Operation 21; Invariant 6.2; Instance 2; Invariant 8.1 · Operation 21 and Invariant 6.2 state one proposition word for word, and Invariant 8.1 restates Instance 2 without the one-instance scope Term database instance gives both, so the page pays for two propositions twice (GRACE-lang Authority 3) → one owner each, the survivor checked against the citers and the model
 ```
 
-## Decisions
+<details markdown="block">
+<summary>
+    <h2 id="decisions" style="display: inline-block; margin-left: 1.5rem;">Decisions</h2>
+</summary>
 
 Directional changes only — the turns a future reader must know the pattern took, and why. Everything smaller lives in the commit that made it: `git log -- atoms/message-preference.md`; the migration that got it here is in [its history](./message-preference.hist.md).
 
@@ -853,5 +860,7 @@ Directional changes only — the turns a future reader must know the pattern too
 - **2026-10-22 — A composed retention may dispose of what the atom never removes, no check asks for what no record carries, and no rule moves a status no call moves.** *Chose:* Invariant 9.2, the count that never falls, deleted to State 17 and Execution Contract Database 4, with Check 1.1 citing Invariant 9.1 alone; Check 6.1 deleted to External check 1, the auditor reading which composing patterns a deployment wired in from the deployment's own declaration, and Check 6.2 to Capability requirement 7, the deployment disclosing the fanout-on-no-record policy; Invariant 2.1 and Invariant 2.2, each read as obliging a status to move, deleted to State 1 and Invariant 2.3. *Over:* a count no lawful disposal may lower beside a non-goal sending lawful disposal to Retention Window; two conformance checks no preference record can answer, under an acceptance an external auditor clears from the stored fields; and two rules that a record left suspended by a principal who never returns breaks. *Because:* Final Critique 9 found all three, and the corpus held each cure: the composed erasure's, made on five atoms; the wiring declaration's, made on nine; and the method's 2026-10-08 rule, under which a rule a lawful state breaks is deleted to a rule that already holds that state. Smaller fixes rode with them: the supersession gap bound, with Temporal property 4, Capability requirement 5 and Check 4.1 and 4.2, deleted to State 11 and State 12, since one injected now stamps both instants of a supersession and the atomicity the bound once checked is Execution Contract Database 1's; Temporal property 5 deleted to Execution Contract Logic confinement 7; Composition note 13 to Channel set evolution 1, the declared channel set's governance the deployment's, as Final Critique 8's text had it; Invariant 5.2 and Invariant 10.3 to Check 5.1; Capability requirement 8, the deployment supplying the declared channel set at the seam; rules 195 to 185. What each action answers and writes on every call is unchanged.
 
 - **2026-10-22 — The wiring and a composed retention's disposal are the Execution Contract's.** *Chose:* External check 1, the auditor reading which composing patterns a deployment wired in from the deployment's own declaration, deleted to Execution Contract Conformance 9, with Check 6.1's tombstone, which named it, now naming the contract and the checks NOTE's sentence restating it removed; State 17 read by Execution Contract Database 6, so the atom removes no preference record and a disposal a composing retention pattern declares is answered by that pattern's records; both labels cited on Capability requirement 6; rules 185 to 184. *Over:* the page stating for itself that the wiring is an external check and that its no-removal rule binds the atom alone. *Because:* the maintainer ruled on 2026-10-22 that five repeated cures are each stated once, the wiring declaration and the composed erasure among them; this page's ninth Final Critique had made both cures one specification at a time. What each action does and answers is unchanged.
+
+</details>
 
 NOTE: End of Message Preference.

@@ -17,8 +17,12 @@ The instant is a value, not a private timer. A holder may carry it to a third pa
 
 ## Intent
 
-WHY:
+<details markdown="block">
+<summary>WHY</summary>
+
 Two patterns in this library described a per-key critical section with lease semantics in prose, and a third described two fences that are the same concept reached from the other end. Each stated the same rules in its own words, and each repair to one had to be propagated to the others by hand. The concept has its own state machine, its own operations and its own failure mode, and it belongs to none of the patterns that use it. This atom exists so that a pattern needing exclusive standing over a key cites it rather than restating it, and so that the argument for the one hard rule — the terminus is an instant — is made once, where it can be attacked once. It is deliberately small: a lease does not decide who should hold it, does not record that it was held, and does not know what the holder does.
+
+</details>
 
 ## Structure
 
@@ -135,8 +139,12 @@ Term asking party: the party naming itself as holder in a [Remaining] or [Releas
 
 Term the holder: the party the host holds the key for.
 
-WHY:
+<details markdown="block">
+<summary>WHY</summary>
+
 A host restart ends the line: a waiter the restarted host can no longer answer is not admitted afterwards, and its caller reads no answer (Operation 5c, Sizing 7).
+
+</details>
 
 ### Invariants
 
@@ -220,8 +228,12 @@ Term unanswered: yes | no — yes for a grant under which a [Take], a [Try Take]
 
 Term no answer: a call that returns neither its answers nor a refusal within the call pause bound, or, for a blocking [Take], within the longest duration declared for the key and the call pause bound (Composition note 5d).
 
-WHY:
+<details markdown="block">
+<summary>WHY</summary>
+
 A unit's elapsed time and the time spent before a take are spans on the holder's own clock, never instants compared across two clocks; how far two clocks' rates may differ over a span is the deployment's (Execution Contract Logic confinement 7).
+
+</details>
 
 ### The terminus, and carrying it as a fence
 
@@ -456,7 +468,10 @@ open:
 - 2026-10-05-a · refining · Term unit of work; Sizing 2a, 5; Capability requirement 7 · a unit's bound runs from the reading's ask where an adopter's latency runs from the call's issue, a remaining that answers none is classed by no sizing rule, and every unfenced write inside the call pause bound cannot hold for an adopter's one-call unit run to its own bound → one origin; an arm; scope the requirement; reported by Defensible Retention's and Resolve a Person's Data Rights' gates
 ```
 
-## Decisions
+<details markdown="block">
+<summary>
+    <h2 id="decisions" style="display: inline-block; margin-left: 1.5rem;">Decisions</h2>
+</summary>
 
 Directional changes only — the turns a future reader must know the pattern took, and why. Everything smaller lives in the commit that made it: `git log -- atoms/lease.md`; the formal-layer vote and the migration that got it here are in [its history](./lease.hist.md).
 
@@ -469,5 +484,7 @@ Directional changes only — the turns a future reader must know the pattern too
 - **2026-09-10 — Extracted because the obligation kept propagating, not because the shape repeated.** *Chose:* one atom covering the grant and the terminus-as-fence together. *Over:* leaving the prose in the patterns that use it, and over splitting the critical section from the fence into two concepts. *Because:* four consecutive review rounds on one composition showed a flat defect density — one foundational finding per nineteen kilobytes of body — with most new defects being an obligation added in one place and not carried to the others. Lease semantics were the largest single source of such obligations, reaching into fences, timing, expiry, remaining, and worked examples. Splitting the grant from the fence would have preserved exactly the propagation the extraction exists to remove: a fence *is* a terminus handed to another party, and stating it twice is how the two got out of step.
 
 - **2026-09-10 — The terminus is an instant, and death is not observable.** *Chose:* a grant that ends only at its instant or at its holder's release. *Over:* a host that frees a key when it believes the holder is gone, which is what one of the composing descriptions admitted. *Because:* a formal model of a composing pattern rejects the release-on-death variant — a holder that dies with a write in flight frees the key, the next holder reads before that write is visible, and two writers land for one key. The rule is stated here once so that a pattern citing this atom inherits the argument rather than restating it.
+
+</details>
 
 NOTE: End of Lease.

@@ -24,8 +24,12 @@ Assignment records who is responsible for a piece of work, and keeps the history
 
 ## Intent
 
-WHY:
+<details markdown="block">
+<summary>WHY</summary>
+
 Work gets handed to people, and the handing has to be answerable: who holds this now, who held it before, and when did it change hands. Most systems carry an `assignee` column and lose the second two questions the moment somebody edits it. This atom makes each binding a record with its own life — created, held, ended one of two ways — so the column becomes a history. Two decisions do the work. A task has at most one live assignment, so *who is responsible* has exactly one answer or none, never two. And a handoff is one step, not a recall followed by an assign, so the task is never momentarily nobody's. Everything else an assignment regime wants — acceptance, deadlines, workload caps, who was allowed to assign — is a composing pattern, named and declined here.
+
+</details>
 
 ## Structure
 
@@ -630,7 +634,10 @@ open:
 - 2026-10-26-a · refining · Identity 2; Capability requirement 1, 4 · the assignment id's source is named as the host's allocation (Identity 2) and not among what the deployment supplies, where the atom shape in `spec-format.md` lists an id source under Capability requirement; Event Log (its 2026-10-22-b) and Tamper Evidence (its 2026-10-22-a) route the same form → name the source among the Capability requirements, in the one form the corpus settles for its twenty host-allocation atoms
 ```
 
-## Decisions
+<details markdown="block">
+<summary>
+    <h2 id="decisions" style="display: inline-block; margin-left: 1.5rem;">Decisions</h2>
+</summary>
 
 Directional changes only — the turns a future reader must know the pattern took, and why. Everything smaller lives in the commit that made it: `git log -- atoms/assignment.md`; the migration that got it here is in [its history](./assignment.hist.md).
 
@@ -643,5 +650,7 @@ Directional changes only — the turns a future reader must know the pattern too
 - **2026-10-21 — Which refusal answers is the Execution Contract's.** *Chose:* each writing action's refuses line kept as the page wrote it, already in the order its refusal order gave — [Assign] invalid-request, already-assigned; [Recall] not-known, not-active; [Reassign] not-known, not-active, invalid-request; storage-failure last on each, answering only at the write — and the order cited from the Execution Contract (Capability requirement 4, Execution Contract Refusal 1); Operation 35, Operation 36 and Operation 37, which evaluated the three refusal orders, deleted to Refusal 1, and Term assign refusal order, Term recall refusal order and Term reassign refusal order deleted with them; rules 102 to 99. *Over:* the page stating for itself which of an action's refusals answers when several apply. *Because:* the maintainer ruled on 2026-10-21 that the Execution Contract states once that the refusal listed first on an action's refuses line answers; this page's fifth Final Critique had made the cure one specification at a time. What each action answers on every call is unchanged.
 
 - **2026-10-22 — The wiring is read outside the records, as the Execution Contract says.** *Chose:* External check 5, the auditor reading which composing patterns a deployment wired in from the deployment's own declaration, deleted to Execution Contract Conformance 9, with Check 5.1's tombstone, which named it, now naming the contract, and the label cited on Capability requirement 4; rules 99 to 98. *Over:* the page stating for itself that the wiring is an external check. *Because:* the maintainer ruled on 2026-10-22 that five repeated cures are each stated once, the wiring declaration among them; this page's fifth Final Critique had made the cure one specification at a time. What each action does and answers is unchanged.
+
+</details>
 
 NOTE: End of Assignment.

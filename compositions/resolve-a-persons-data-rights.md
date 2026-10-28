@@ -543,7 +543,9 @@ Wiring decision 4: The composition MUST read an erasure's preservation dispositi
 Wiring decision 5: The composition MUST NOT evaluate a hold.
 ```
 
-WHY:
+<details markdown="block">
+<summary>WHY</summary>
+
 *Principle.* A rights response an auditor can trust needs two facts inseparable: that *every* record in the subject's universe was accounted for, none silently dropped, and that the account is itself immutable, attributed and tamper-evident.
 
 *Likely objection.* Why not let each constituent answer for its own records and union the answers?
@@ -559,6 +561,8 @@ WHY:
 *Mechanism.* No — re-deriving hold checking would duplicate exactly the gate Defensible Retention already owns and proves (its Invariant 1), and its purge is irreversible and self-audits each destruction. The composition maps the gate's answers onto dispositions (Wiring decision 4 and 5; Disposition 20 through 46), inheriting its structural guarantee and its retention exemption for free, and adds the one concept the substrate does not carry — the Article 17(1)(b) question of whether another lawful basis means erasure was never due, read-only and ahead of any purge (Disposition 7 through 12).
 
 *Result.* Every preservation disposition traces to a records-checkable Defensible Retention outcome, and the composition stays a thin conflict-resolution-and-accounting layer over a proven substrate rather than a re-implementation of it.
+
+</details>
 
 ### Reconciliation
 
@@ -911,10 +915,14 @@ Term plan span: the stretch of the log from an intent carrying a purge plan to t
 
 Term enumeration instant: the intended instant of the intent a fulfilled event closes — the now under which the universe was enumerated and every verdict made; equal to the fulfilled instant except on a compensating fulfilled event, which carries it as a field of its own (Reconciliation 31) and so keeps it where the intent is destroyed ahead of the event.
 
-WHY:
+<details markdown="block">
+<summary>WHY</summary>
+
 A purge intent's attribution (Check 6.3) is to a plan that named the retention, and no proof of which invocation called: where two requests plan one retention id inside overlapping spans, or another caller purges inside an open span, the nearer plan is credited and may not be the caller's. The purge intent's own actor and invocation id say who called, and reading them against the plan's operator is the auditor's next step.
 
 For a closing record the service identity attested the unknown reading of Check 8.11 does not come back once the log is older than the horizon; what the trail still shows beside a compensating event is the leg's own recovery intent, naming the intent it resolved (Reconciliation 11). A destruction record or a gate record destroyed ahead of the fulfilled event that rests on it is a horizon event too: the disposition's purge instant, or the event's enumeration instant, says how old the missing record is, and at that age Check 3.1 and Check 3.2 read unknown (Check 8.5).
+
+</details>
 
 ### External checks
 
@@ -1015,8 +1023,12 @@ Host-managed records 2: A deployment needing the hold guarantee over a record MU
 Host-managed records 3: The composition MUST NOT claim the hold guarantee for a fulfillment over a record placed under retention later than the fulfillment's retention read.
 ```
 
-WHY:
+<details markdown="block">
+<summary>WHY</summary>
+
 A retention and a hold placed later than a fulfillment's retention read and ahead of the host delete — a window of at most one section term — do not stop that fulfillment's host delete, which passes no gate. The window is the deployment's: it places a host-managed record under retention with no erasure of the record's subject in flight, or it accepts that a fulfillment already past its read completes.
+
+</details>
 
 ### Snapshot
 
@@ -1242,7 +1254,10 @@ open:
 - 2026-10-07-a · rhetorical · Term enumeration instant; Capability requirement 33 · the intended instant is called the now under which the universe was enumerated, where it is the reading ahead of the take and stale by any stall; and the requirement holds by the floors' own formulas → rewrite on the next load-bearing touch
 ```
 
-## Decisions
+<details markdown="block">
+<summary>
+    <h2 id="decisions" style="display: inline-block; margin-left: 1.5rem;">Decisions</h2>
+</summary>
 
 Directional changes only — the turns a future reader must know the pattern took, and why. Everything smaller lives in the commit that made it: `git log -- compositions/resolve-a-persons-data-rights.md`; the rounds and the migration that got it here are in [its history](./resolve-a-persons-data-rights.hist.md).
 
@@ -1254,5 +1269,7 @@ Directional changes only — the turns a future reader must know the pattern too
 - **2026-08-29 — The scan is bounded at both edges and records its intent before it seals or writes.** *Chose:* `fulfillment_completion_bound` below and the audit horizon above for the reconciliation scan; a `dsar.recovery_intended` record before direction 2's cases (i) and (ii); the pairing stated as exact by the Committing gate. *Over:* a scan on `reconciliation_cadence` alone. *Because:* a Committing request seconds old belongs to an invocation about to seal, and case (ii) would write a second response-disclosure beside the one it is about to bind; a seal the scan writes with no record of its own is indistinguishable from a direct call (the frozen rules of 2026-08-29 — *A reconciliation is bounded at both ends*, *Recovery commits under a declared service identity*).
 - **2026-08-29 — The accounting stores leave the universe, a request can be Committing, and the scan compensates only what reached the bind.** *Chose:* the Selective Disclosure and Consent stores are response content retained as a class, not dispositioned records; a Committing state (intent with no closing event) that both fulfillment actions refuse with compensation-pending; scan step 2 resolved by whether a response-disclosure exists (compensate), records were destroyed (complete), or nothing committed (abandon); `purge_record`'s shared tokens disambiguated by one destruction-safe re-invocation; `retained(retention-obligation)` grounded in the Retention Window record; findings recorded as `dsar.finding_opened` / `dsar.finding_closed` events under a declared service identity. *Over:* a universe the branches could not disposition, a two-state lifecycle, unconditional compensation, categorical token readings, an event the substrate never emits, and a dashboard nothing declared. *Because:* the page's own walkthroughs violated Invariant 2; a retry after a post-commit failure re-ran the fulfillment; the recovery path produced the reverse orphan the safety half forbids; and check 4 failed every conforming implementation.
 - **2026-08-27 — Invariant 1 is safety plus liveness, in three arms.** *Chose:* no `dsar.*_fulfilled` event without its response-disclosure and complete disposition set (earned by write order); no unsurfaced orphan; every orphan compensated within a declared window and distinguishable via `cascade_recovery = true`. *Over:* "commits together or not at all" across a write the substrate cannot withdraw. *Because:* the order was right from the first draft and the claim was merely unprovable — the restatement says what the order earns and nothing more.
+
+</details>
 
 NOTE: End of Resolve a Person's Data Rights.

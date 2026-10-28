@@ -95,8 +95,12 @@ State 13: The database instance's invitation count MUST NOT fall.
 
 Term resolution field: accepting identity reference | acceptance instant | declination instant | revocation instant | revoked by reference | revocation reason — every field a resolving write records.
 
-WHY:
+<details markdown="block">
+<summary>WHY</summary>
+
 State 7 and Invariant 12.1 are the derived-expiry posture, and they are two rules rather than one because an implementation can breach each without the other: a stored expired status, and an `expired_at` column written beside a status that stays pending.
+
+</details>
 
 ### Capability requirement
 
@@ -833,7 +837,10 @@ open:
 - 2026-10-22-c · refining · Composition note 6; Composition note 7 · a composing Actor Identity attests the actor behind an admitted accept and behind an admitted initiate, and no note says whether it attests the actor behind an admitted revoke, which records a revoked by reference as an accept records an accepting identity reference → wire the revoke's attestation, or name the deployment as its owner
 ```
 
-## Decisions
+<details markdown="block">
+<summary>
+    <h2 id="decisions" style="display: inline-block; margin-left: 1.5rem;">Decisions</h2>
+</summary>
 
 Directional changes only — the turns a future reader must know the pattern took, and why. Everything smaller lives in the commit that made it: `git log -- atoms/invitation.md`; the migration that got it here is in [its history](./invitation.hist.md).
 
@@ -846,5 +853,7 @@ Directional changes only — the turns a future reader must know the pattern too
 - **2026-10-20 — The store's guarantees cited, not restated.** *Chose:* the invitation store supplied under Execution Contract Store 1 through 4 (Capability requirement 12), and the eleven rules that restated them tombstoned to their owner — Operation 34 and Invariant 3.2, a resolving write's status change and recorded fields committed in one transition, Invariant 10.2, no partial invitation on storage-failure, and Atomic writes 1, 3 and 4, a transition committed whole inside the implementation's transactional boundary and no repair of a dangling one, to Store 1; Atomic writes 2, an uncommitted transition discarded whole, to Store 1 and Store 3; Capability requirement 7, a write acknowledged only once it commits, to Store 3; Concurrency 1, the status check and the status change of a resolving write as one operation, to Store 1 and Store 2; Concurrency 2 and 3, the losing resolving write answering already-resolved and naming the stored terminal the winner committed, to Store 2; rules 172 to 162. *Over:* the atom restating, for its own store, what every deployment's store guarantees. *Because:* the maintainer ruled 2026-10-12 that the corpus takes a store's specification, never the store, and `execution-contract.md` writes it once as the Store contract. Single-resolution stays the atom's own (Invariant 2.1, Invariant 2.2, Operation 16, Operation 17), as do the store refusing a write carrying a token it holds (Capability requirement 6, Identity 6), a refused write recording nothing and leaving the invitation as the call found it (Operation 22, Operation 37 through 39), and the invitations the atom never removes and the count that never falls (State 13, Invariant 10.1). The effective status is a projection over the expiry instant each invitation carries and now (Invariant 12.2), every check that compares reads compares the auditor's own reads, and no rule orders two invitations' writes, so the atom cites neither History 1 nor Order 1. What the atom does for its domain is unchanged.
 - **2026-09-13 — Single-resolution is stated as at-most-one, and the at-least-one half is `Non-goal 24`.** *Chose:* `Invariant 2.1` and `Invariant 2.2` alone. *Over:* a rule reading *exactly one write resolves an invitation*. *Because:* an invitation nobody answers is never written and reads expired forever, which is the designed outcome and not a stuck state — so *at least one* would be false here rather than merely unenforceable. Same decomposition [Provisional Commitment](./provisional-commitment.md) took, reached from the opposite direction.
 - **2026-06-21 — Expiry is derived at read time, never stored; this atom is the corpus's worked reference for the move.** *Chose:* the stored `Expired` state, the `expired_at` field and the `expire` action are removed; `Expired` is a read-time projection over the immutable expiry instant and the injected clock. *Over:* a stored terminal a scheduler or a lazy write has to reach. *Because:* an invitation's lapse is side-effect-free, so a status that can be inferred at read time should be, and a flag that lags the clock is the idealization pitfall the methodology names. [Provisional Commitment](./provisional-commitment.md)'s 2026-06-23 entry is the boundary from the other side: its lapse returns a resource, so its expiry stays a written transition.
+
+</details>
 
 NOTE: End of Invitation.

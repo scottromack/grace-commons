@@ -503,7 +503,9 @@ Wiring decision 3: The composition MUST NOT expose a withdrawal surface other th
 Wiring decision 4: The composition MUST NOT expose a consent gate other than [Processing Permitted].
 ```
 
-WHY:
+<details markdown="block">
+<summary>WHY</summary>
+
 *Principle.* GDPR Articles 6 and 7 require a valid consent at processing time, and Article 7(3), read with Article 17(1)(b), requires that withdrawal end the basis for future processing — which, operationally, means the systems relying on the consent must learn of the withdrawal. The system must make both provable: that the gate was the single consent precondition, and that every withdrawal's downstream impact was enumerated and sealed at the moment of revocation.
 
 *Likely objection.* Consent already owns the lifecycle and exposes its check. Why not let each processing system call it, and why a propagation event when the revocation is already in the Consent records?
@@ -511,6 +513,8 @@ WHY:
 *Mechanism.* Consent owns the state and exposes no gate and no propagation, by design. A check called per system is a gate re-implemented per system, and the first system that forgets it, caches a stale answer or treats expired as granted breaks the Article 6 basis silently (Wiring decision 4). And Consent records *that* a consent was revoked, never *what was relying on it* — importing downstream processing would break its freestanding status — so a revoke alone leaves the withdrawal's downstream impact unrecorded, and a system that never re-checks keeps processing with no record that it should have stopped. The composition closes this with the downstream index, populated by an audited act, and a propagation event carrying the complete set. The event follows the revoke (Wiring decision 1), so a propagation record always has a real revocation behind it — unconditionally, which is the direction an Article 7(3) dispute runs. The gap that remains runs the other way — a revocation whose propagation record has not landed — and it is a gap in the *accounting*, not the *suppression*: the gate reads Consent and answers not-permitted carrying revoked from the instant the revoke commits, given single-active-grant (Invariant 1.3). What would defeat the purpose is the mirror — an event asserting a withdrawal the database does not hold — and the order makes it unreachable.
 
 *Result.* The gate is structural and single; the propagation is complete and sealed *over the registered set*. An auditor answers *when this person withdrew consent, what was supposed to stop, and is it recorded?* by reading one sealed event rather than interviewing every processing system. **What the records cannot prove is outward completeness**: the composition proves what was registered, never that every real processing activity registered — an unregistered one is invisible to the propagation exactly as a gate-bypassing one is invisible to the gate. The two single-surface obligations are paired and the deployment's (Capability requirement 30 and 31; Invariant 1.2).
+
+</details>
 
 ### Reconciliation
 
@@ -1032,7 +1036,10 @@ open:
 - 2026-08-30-k · refining · formal · the model has no second leg; single-active-grant, the third scan leg and the escalation record are unmodelled → extend it with the invocation and the scan as two processes over one act (with 2026-08-29-a)
 ```
 
-## Decisions
+<details markdown="block">
+<summary>
+    <h2 id="decisions" style="display: inline-block; margin-left: 1.5rem;">Decisions</h2>
+</summary>
 
 Directional changes only — the turns a future reader must know the pattern took, and why. Everything smaller lives in the commit that made it: `git log -- compositions/propagate-consent-revocation-downstream.md`; the migration that got it here is in [its history](./propagate-consent-revocation-downstream.hist.md).
 
@@ -1043,5 +1050,7 @@ Directional changes only — the turns a future reader must know the pattern too
 - **2026-08-27 — Authentication happens at this composition's boundary, before the consent state changes.** *Chose:* [Record Consent] and [Withdraw Consent] open with an intent record whose substrate attestation verifies the credential; invalid-credential is a clean pre-state refusal. *Over:* the Action wiring preamble's declaration that the check "cannot be pre-empted at this composition's boundary" and belongs to a deployment pre-check. *Because:* the declaration was false — the composition reaches the same Actor Identity surface at whatever point it chooses to write — and a declared deployment obligation is the answer the methodology refuses.
 - **2026-08-27 — Invariant 3 is safety plus liveness, with the propagation-set boundary on the intent event.** *Chose:* the revoke precedes the propagation event; the reachable partial (Revoked, unpropagated) is an accountability gap surfaced and compensated within `compensation_window`; check 2's set boundary is the withdrawal's own `consent.withdrawal_intended` event. *Over:* "commit together or not at all" under a host transaction. *Because:* Consent's revocation is immutable once committed and the substrate's append cannot be withdrawn, so neither member was ever enlistable; what makes the pair sound is the order.
 - **2026-08-27 — A consent record is never destroyed by this composition; its retention is Retained for life.** *Chose:* the consent-record Retention Window instance marks the proof-period floor and never reaches `Purged`; check 5 requires `Retained` unconditionally. *Over:* admitting a lawful purge here, or scoping Consent's Invariant 8 to the atom's own surface. *Because:* a composition may not weaken a constituent invariant by paraphrase, and Retention Window defines `Purged` as the destruction Consent forbids.
+
+</details>
 
 NOTE: End of Propagate Consent Revocation Downstream.
