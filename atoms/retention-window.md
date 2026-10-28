@@ -202,6 +202,8 @@ NOTE: watch the unadmitted modal (Operation 8b).
 
 NOTE: watch the comparator written in English (Operation 8c).
 
+NOTE: watch the unreadable registry (Operation 24b).
+
 NOTE: open 2026-10-20-a — Operation 6, Operation 8c and Operation 24b answer on the registry's reply and on the instants the database holds, which the transition may not read (Operation 26) and Term seam does not list among the values the host injects.
 
 NOTE: open 2026-10-03-l — the day a calendar period counts from is stated for no policy (Operation 24a), a reference is checked for blank alone (Identity 6, Operation 4, Operation 5), and [Read] answers in no stated order and with no bound.

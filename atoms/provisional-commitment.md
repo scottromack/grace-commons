@@ -28,9 +28,9 @@ Retry safety, the full transition history, and pool-wide capacity limits are del
 
 ## Intent
 
-A requester needs a resource whose allocation is not yet certain. The system holds it for a known period, during which the requester confirms (taking it into a binding allocation) or releases (returning it to availability). If neither happens before the period elapses, an [Expire] event moves the hold to its terminal [Expired] state and returns the resource.
+A requester needs a resource whose allocation is not yet certain. The system holds it for a known period, during which the requester confirms (taking it into a binding allocation) or releases (so the registry returns it to availability). If neither happens before the period elapses, the hold awaits an [Expire], which the deployment fires on a cadence or on the next access and which moves the hold to its terminal [Expired] state, so the registry returns the resource.
 
-Expiry is a written transition rather than a status inferred at read time because the lapse has a side effect — it returns the resource, and in a pool-backed composition a capacity slot. A side-effect-free lapse could be derived; this one releases something and so needs a write.
+Expiry is a written transition rather than a status inferred at read time because the lapse has a side effect — on it the registry returns the resource, and in a pool-backed composition the capacity pattern returns a capacity slot. A side-effect-free lapse could be derived; this one releases something and so needs a write.
 
 The shape is constant across regulated industries: credit-limit holds pending settlement, bed assignments pending admission, inventory reservations pending checkout, room bookings pending check-in, seat holds pending purchase. A resource is encumbered for a bounded window, the encumbrance resolves, and the record of it is itself a regulated asset.
 
@@ -70,7 +70,7 @@ Term registry: the deployment's owner of what a resource is and what availabilit
 
 Term database instance: one named database a call is routed to; id uniqueness ranges over one instance.
 
-Term seam: the atom's I/O boundary as the section titled Logic Confinement Principle in `execution-contract.md` declares it; the host injects the clock reading, the id material and the registry's availability verdict here.
+Term seam: the atom's I/O (input and output) boundary as the section titled Logic Confinement Principle in `execution-contract.md` declares it; the host injects the clock reading, the id material and the registry's availability verdict here.
 
 Term transition: the atom's evaluation of one call against the commitment records, as the section titled Logic Confinement Principle in `execution-contract.md` declares it.
 
@@ -97,6 +97,7 @@ State 11: The atom MUST NOT offer a commitment removal surface.
 ```
 Capability requirement 1: The deployment MUST supply now at the seam.
 Capability requirement 2: The deployment MUST supply the id material at the seam.
+Capability requirement 16: The deployment MUST supply the registry's availability verdict at the seam.
 Capability requirement 3: The registry MUST run the availability read and the hold write for one resource as one critical section.
 Capability requirement 4: The registry MUST release the critical section on the caller's return.
 Capability requirement 5: The registry MUST release the critical section on the caller's death.
@@ -106,8 +107,9 @@ Capability requirement 8: A deployment firing [Expire] on a cadence MUST declare
 Deleted: Capability requirement 9. Execution Contract Logic confinement 13 owns it.
 Capability requirement 10: The registry MUST return the resource to availability on a releasing action.
 Capability requirement 11: The registry MUST NOT return the resource to availability on an admitted confirm.
+Capability requirement 17: The registry MUST refuse a resource a held commitment carries.
 Capability requirement 12: A deployment firing [Expire] on a cadence MUST resolve EVERY lapsed commitment WITHIN the reclamation window.
-Capability requirement 15: The deployment MUST supply the commitment records PER Execution Contract Database 1 through 4, Execution Contract Database 6, Execution Contract Database 7, Execution Contract Read 4, Execution Contract Refusal 1 and Execution Contract Conformance 9.
+Capability requirement 15: The deployment MUST supply the commitment records PER Execution Contract Database 1 through 7, Execution Contract Read 4, Execution Contract Refusal 1 and Execution Contract Conformance 9.
 Deleted: Capability requirement 13. Execution Contract Logic confinement 7 owns it.
 Deleted: Capability requirement 14. Execution Contract Logic confinement 7 owns it.
 Deleted: Clock semantics 4. Execution Contract Logic confinement 7 owns it.
@@ -118,12 +120,16 @@ Deleted: Clock semantics 5. Execution Contract Logic confinement 7 owns it.
 Deleted: Clock semantics 6. Non-goal 26 owns it.
 ```
 
+NOTE: open 2026-10-21-b — whether the registry's own record of a hold follows the commitment records' commit, so a registry writing that record outside the database transaction keeps a resource unavailable after a [Place Hold] the database refused (Capability requirement 3).
+
+NOTE: open 2026-10-28-a — the registry releases the critical section on the caller's return or death, so a caller paused inside the section holds the section with no bound (Capability requirement 4, Capability requirement 5).
+
 ### Operations
 
 ```
 place_hold(resource, requester, duration)
   answers id
-  refuses invalid-request | resource-unavailable | storage-failure
+  refuses invalid-request | registry-unavailable | resource-unavailable | storage-failure
 
 confirm(id)
   answers ok
@@ -147,6 +153,7 @@ Operation 2: IF requester EQUALS blank THEN [Place Hold] MUST answer invalid-req
 Operation 3: IF duration EQUALS blank THEN [Place Hold] MUST answer invalid-request.
 Operation 4: IF the duration falls outside the duration bounds THEN [Place Hold] MUST answer invalid-request.
 Operation 5: IF the registry refuses the resource THEN [Place Hold] MUST answer resource-unavailable.
+Operation 42: IF the host cannot read the registry THEN [Place Hold] MUST answer registry-unavailable.
 Deleted: Operation 6. Execution Contract Refusal 1 owns it.
 Operation 7: [Place Hold] MUST NOT answer not-known.
 Operation 8: An admitted place hold MUST assign a fresh id.
@@ -187,11 +194,15 @@ Operation 41: [Read] MUST NOT refuse a call.
 
 NOTE: watch the state a refusal leaves (Operation 30).
 
+NOTE: watch the unreadable registry (Operation 42).
+
 Term resolving action: [Confirm] | [Release] | [Expire] — every action taking a held commitment to a terminal state.
 
 Term duration bounds: the implementation's admitted range for a duration; every admitted value exceeds zero.
 
-Term window bound: placement instant raised by the duration — the value an admitted place hold records as expiry instant.
+NOTE: open 2026-10-21-d — the duration bounds are the implementation's admitted range, an owner Term actors does not name, and no rule has the deployment declare them.
+
+Term window bound: (placement instant + duration) — the value an admitted place hold records as expiry instant (Execution Contract Logic confinement 9).
 
 Term window reading: open | lapsed — how a held commitment's window reads against now.
 
@@ -218,6 +229,8 @@ Term admitted resolving action: an admitted confirm, an admitted release OR an a
 Term releasing action: an admitted release OR an admitted expire.
 
 Term reclamation lag: the span between a commitment's expiry instant and the admitted expire that settles the commitment.
+
+Term reclamation window: the span a deployment firing [Expire] on a cadence declares as the bound on the reclamation lag (Capability requirement 8).
 
 ### Invariants
 
@@ -279,7 +292,7 @@ The same atom, five regulated domains, one mechanic.
 
 ### Banking — credit-limit hold
 
-`place_hold(card, cardholder, 7-days)` → `auth_c41`; available credit drops by $250. The merchant captures within the window — `confirm(auth_c41)` — and the charge settles; or voids it — `release(auth_c41)` — and credit restores. If neither, the scheme's settlement sweep fires `expire(auth_c41)` on the eighth day and a late capture is refused window-elapsed. Each transition feeds liquidity reporting aligned with the BCBS (Basel Committee on Banking Supervision).
+`place_hold(card, cardholder, 7-days)` → `auth_c41`; available credit drops by $250. The merchant captures within the window — `confirm(auth_c41)` — and the charge settles; or voids it — `release(auth_c41)` — and credit restores. If neither, a capture after the window closes is refused window-elapsed, and the scheme's settlement sweep fires `expire(auth_c41)` on the eighth day, after which a capture is refused not-held. Each transition feeds liquidity reporting aligned with the BCBS (Basel Committee on Banking Supervision).
 
 ### Healthcare — bed assignment
 
@@ -297,19 +310,19 @@ The same atom, five regulated domains, one mechanic.
 
 `place_hold(seat, passenger, 15-minutes)` → `seat_a22`, the carrier's fare-lock per IATA (International Air Transport Association) practice. Payment confirms; backing out releases; abandonment expires. The attached fare quote is invalidated whenever the hold leaves availability, which a composing Fare Quote pattern observes from the terminal state.
 
-What differs across the five: resource semantics, window length, the regulatory framing of the trail, and which patterns compose. What does not differ: an undecided hold ends in a recorded expire that returns the resource.
+What differs across the five: resource semantics, window length, the regulatory framing of the trail, and which patterns compose. What does not differ: an undecided hold ends in a recorded expire, on which the registry returns the resource.
 
 ### Regulated adversarial scenarios
 
 - **Regulator audit.** *Show me every hold confirmed or released after its declared window.* The query is Check 3.1 and returns the empty set by construction — Invariant 7.1 makes a late resolution unrecordable rather than merely unlikely.
 - **Data subject request.** Erasure against the personal data behind requester. The atom alone cannot satisfy it while keeping the trail; a composing Shred or Erasure Tombstone pattern redacts the reference and leaves id, placement instant, expiry instant, the state and the terminal instant intact, so the lifecycle stays auditable and the personal data does not persist.
-- **Breach investigation.** The universe of resources committed between 02:00 and 04:00 UTC. Every commitment carries placement instant, so the answer is a filter over the database with no log replay behind it; the terminal state and its instant then say which holds resolved and which lapsed. [Read] answers every commitment the database holds (Operation 38), and ordering *within* the window needs the composing [Event Log](./event-log.md) (External check 2).
+- **Breach investigation.** The universe of resources committed between 02:00 and 04:00 UTC (Coordinated Universal Time). Every commitment carries placement instant, so the answer is a filter over the database with no log replay behind it; the terminal state and its instant then say which holds resolved and which lapsed. [Read] answers every commitment the database holds (Operation 38), and ordering *within* the window needs the composing [Event Log](./event-log.md) (External check 2).
 
 ---
 
 ## Generation acceptance
 
-This atom's acceptance is provable: an external auditor clears it from the commitment records.
+This atom's acceptance is provable: an external auditor clears it from the commitment records, with their committed versions (Execution Contract Database 5).
 
 ### Conformance checks
 
@@ -318,13 +331,13 @@ Check 1.1: An auditor MUST find EVERY commitment whose state EQUALS EXACTLY ONE 
 Check 1.2: An auditor MUST find a terminal instant on EVERY commitment whose state IS IN the terminal states (State 2, State 3, State 4).
 Check 1.3: An auditor MUST find no terminal instant on a held commitment (State 5).
 Check 2.1: An auditor MUST find no commitment carrying two terminal instants (Invariant 2.2).
-Check 2.2: An auditor MUST find no commitment whose state IS NOT IN the terminal states on a later read of a commitment a prior read found in that terminal state (Invariant 3.1).
+Check 2.2: An auditor MUST find no commitment leaving a terminal state across two committed versions of the commitment (Invariant 3.1; Execution Contract Database 5).
 Check 3.1: An auditor MUST find no late resolution in the database (Invariant 7.1).
 Check 3.2: An auditor MUST find no premature expiry in the database (Invariant 7.2).
 Check 3.3: An auditor MUST find no degenerate window in the database (Invariant 6.1).
 Check 4.1: An auditor MUST find no commitment's confirmation instant preceding the commitment's placement instant (Invariant 8.1).
 Check 4.2: An auditor MUST find no commitment's release instant preceding the commitment's placement instant (Invariant 8.2).
-Check 5.1: An auditor MUST find a re-read commitment's properties unchanged across an admitted resolving action (Invariant 5.1).
+Check 5.1: An auditor MUST find EVERY commitment's properties unchanged across EVERY committed version of the commitment (Invariant 5.1; Execution Contract Database 5).
 Check 5.2: An auditor MUST find no id on two commitments (Identity 5).
 Deleted: Check 6.1. Execution Contract Database 6 owns it.
 Deleted: Check 6.2. Execution Contract Database 6 owns it.
@@ -334,6 +347,10 @@ Check 7.2: An auditor MUST find a placement instant and an expiry instant on EVE
 
 NOTE: EVERY check names the rule the check tests.
 
+NOTE: watch the check no record answers (Check 2.2, Check 5.1).
+
+Term committed version: a record as it stood at the commit that wrote it, which Execution Contract Database 5 keeps readable after the record changes.
+
 ### External checks
 
 ```
@@ -341,7 +358,7 @@ External check 1: A deployment needing the resource confirmed returned to availa
 External check 2: A deployment needing the transitions of one commitment ordered MUST read the composing Event Log (Non-goal 3).
 External check 3: A deployment needing a rejection observed MUST read the composing Event Log (Non-goal 23).
 External check 4: A deployment needing a requester bound to an actor MUST read the composing Actor Identity attestation (Non-goal 14).
-External check 5: A deployment needing the reclamation lag bounded MUST read the sweep's declared cadence (Capability requirement 7).
+External check 5: A deployment needing the reclamation lag bounded MUST read the declared reclamation window (Capability requirement 8).
 Deleted: External check 6. Execution Contract Conformance 9 owns it.
 Deleted: External check 7. Execution Contract Database 6 owns it.
 ```
@@ -415,7 +432,7 @@ String 6: The atom MUST read an absent string input as blank.
 
 Term string input: resource OR requester — every caller-supplied string this atom accepts.
 
-NOTE: watch host obligations — this atom sets no maximum length on a string input and does not oblige the deployment to set one either, which is a fourth posture beside the three the *input-handling regime* docket row already counts: a declared cap, a delegated cap, and silence. duration is bounded by declaration (duration bounds) and the strings are bounded by nothing.
+NOTE: watch host obligations — this atom sets no maximum length on a string input and does not oblige the deployment to set one either, which is a fourth posture beside the three the *input-handling regime* row of `open-questions.md` already counts: a declared cap, a delegated cap, and silence. duration is bounded by declaration (duration bounds) and the strings are bounded by nothing.
 
 ---
 
@@ -445,21 +462,21 @@ Each `[Term]` marker above links to its term entry here; a term entry states wha
 
 ### Vocabulary
 
-Term actors: the atom; the deployment; the registry; the database; the seam; the transition; a composing pattern; a caller; an auditor; a regulator; a data subject; an investigator; a reader; a commitment; a held commitment; a confirmed commitment; a released commitment; an expired commitment; an action; a resolving action; a refused action; a losing [Place Hold]; a rejection; a crash; an opaque reference.
+Term actors: the atom; the deployment; the host; the registry; the database; the seam; the transition; a composing pattern; a caller; an auditor; a regulator; a data subject; an investigator; a reader; a commitment; a held commitment; a confirmed commitment; a released commitment; an expired commitment; an action; a resolving action; a refused action; a losing [Place Hold]; a rejection; a crash; an opaque reference.
 
 Term records: commitment — one resource held for one requester for a bounded window, carrying id, resource, requester, placement instant, expiry instant, a state and, where set, confirmation instant, release instant or lapse instant.
 
-Term record verbs: identify, assign, generate, change, share, carry, stand, read, answer, record, leave, admit, offer, hold, return, refuse, write, find, resolve, name, compare, normalize, confirm, route, consult, append, place, produce, map, attest, fall, precede, sample, consume, supply, release, run, declare, compose, wire, remove, bind, decide, define, bound, surface, pass, reach, accept, pause, call, guarantee, trim, case-fold.
+Term record verbs: identify, assign, generate, change, share, carry, stand, read, answer, record, leave, admit, offer, hold, return, refuse, write, find, resolve, name, compare, normalize, confirm, append, place, produce, map, attest, fall, precede, supply, release, run, declare, compose, remove, bind, decide, define, bound, surface, reach, accept, pause, call, guarantee, trim, case-fold.
 
 Term value sets: state = held | confirmed | released | expired. terminal state = confirmed | released | expired. terminal instant = confirmation instant | release instant | lapse instant. window reading = open | lapsed. window rejection = window-elapsed | window-not-elapsed. property = resource | requester | placement instant | expiry instant.
 
-Term bounds: duration bounds, window bound.
+Term bounds: duration bounds, window bound, reclamation window.
 
 Term cadences: empty.
 
 Term qualifiers: migrated — rewritten in GRACE lang v0.40 (2026-09-13).
 
-Term terms: commitment, id, property, reference, registry, database instance, seam, transition, now, resolving action, duration bounds, window bound, window reading, open, lapsed, window rejection, terminal state, terminal instant, admitted place hold, admitted confirm, admitted release, admitted expire, admitted resolving action, releasing action, string input, blank, reclamation lag, capacity decision, degenerate window, late resolution, premature expiry.
+Term terms: commitment, id, property, reference, registry, database instance, seam, transition, now, resolving action, duration bounds, window bound, window reading, open, lapsed, window rejection, terminal state, terminal instant, admitted place hold, admitted confirm, admitted release, admitted expire, admitted resolving action, releasing action, string input, blank, reclamation lag, reclamation window, capacity decision, degenerate window, late resolution, premature expiry, committed version.
 
 Term cited: sequence number: Event Log. The section titled Logic Confinement Principle in `execution-contract.md` — the seam and the transition.
 
@@ -467,7 +484,7 @@ Term composing pattern: [Duplicate Prevention](./duplicate-prevention.md), [Even
 
 #### Place Hold
 
-The behavior that records a new [Commitment] — assigning a fresh [Id] from the id material the seam supplies, setting [Resource], [Requester], [Placement Instant] and [Expiry Instant], standing the record in [Held], and answering the [Id]. Rejected [Invalid Request], [Resource Unavailable] or [Storage Failure].
+The behavior that records a new [Commitment] — assigning a fresh [Id] from the id material the seam supplies, setting [Resource], [Requester], [Placement Instant] and [Expiry Instant], standing the record in [Held], and answering the [Id]. Rejected [Invalid Request], [Registry Unavailable], [Resource Unavailable] or [Storage Failure].
 
 Kind: Operation
 
@@ -479,13 +496,13 @@ Kind: Operation
 
 #### Release
 
-The resolving behavior that returns a [Held] [Commitment]'s resource to availability before the window closes, standing it in [Released] and stamping [Release Instant]. Legal only while the commitment reads open; rejected [Window Elapsed] once it reads lapsed, and [Not Held] on an already-terminal commitment.
+The resolving behavior that releases a [Held] [Commitment] before the window closes, standing it in [Released] and stamping [Release Instant]; on it the registry returns the resource to availability. Legal only while the commitment reads open; rejected [Window Elapsed] once it reads lapsed, and [Not Held] on an already-terminal commitment.
 
 Kind: Operation
 
 #### Expire
 
-The resolving behavior — the side-effecting lapse — that moves a lapsed [Held] [Commitment] to [Expired] and returns its resource, and in a pool-backed composition a capacity slot, to availability. Legal only while the commitment reads lapsed; rejected [Window Not Elapsed] while it reads open. Fired on a cadence or on the next access; the atom does not decide which.
+The resolving behavior — the side-effecting lapse — that moves a lapsed [Held] [Commitment] to [Expired]; on it the registry returns the resource to availability, and in a pool-backed composition the capacity pattern returns a capacity slot. Legal only while the commitment reads lapsed; rejected [Window Not Elapsed] while it reads open. Fired by the deployment on a cadence or on the next access; the atom does not decide which (Non-goal 13) and does not guarantee that it fires (Non-goal 25).
 
 Kind: Operation
 
@@ -579,7 +596,7 @@ Projection:   duration
 The wall-time reading the host takes at the seam and hands to the transition, as the section titled Logic Confinement Principle in `execution-contract.md` declares it — never read inside the transition and never supplied by the business caller. Consumed twice per call: by the window reading and by the transition's stamp.
 
 Kind:         Parameter
-Parameter of: Place Hold
+Parameter of: Place Hold, Confirm, Release and Expire
 Projection:   now
 
 #### Held
@@ -622,6 +639,15 @@ Kind:       Member
 Member of:  the Place Hold rejection
 Role:       Outcome
 Projection: invalid-request
+
+#### Registry Unavailable
+
+The refusal [Place Hold] returns when the host cannot read the registry (Operation 42). Distinct from [Resource Unavailable], which the registry gives once read: the condition is transient, and the place hold may be retried. No commitment is recorded.
+
+Kind:       Member
+Member of:  the Place Hold rejection
+Role:       Outcome
+Projection: registry-unavailable
 
 #### Resource Unavailable
 
@@ -701,6 +727,7 @@ Projection: storage-failure
 [Released]: #released
 [Expired]: #expired
 [Invalid Request]: #invalid-request
+[Registry Unavailable]: #registry-unavailable
 [Resource Unavailable]: #resource-unavailable
 [Not Known]: #not-known
 [Not Held]: #not-held
@@ -741,14 +768,12 @@ It inherits from:
 ```
 status: partially resolved
 formal: verified — provisional-commitment.tla + 2 twins, 2026-06-04
-last gate: 2026-10-21 — Final Critique 5, the council's first round on the page and the first on its Store-contract rewrite (bb2ab31) and the refusal-order sweep (c2f4e9a), three fresh readers on free models (GRID Nemotron 3 Ultra, EOS MiniMax M3.1 Flash, Linus GLM-5.3 Flash), each handed only the round's reading set, three passes on one text (frozen at 4ead2cd); the round rests on three counted passes — foundational count 3 after triage (8 reports: 5 standing, merged into 3; 3 sent down; 0 rejected), all Kind A: a commitment count that could never fall broke at the first purge by the Retention Window the page composes, failing two checks; a refused resolving action was obliged to leave the commitment in held where the not-held refusal answers on a terminal commitment and the not-known refusal on none; and a re-hold was obliged to produce a commitment where a refused [Place Hold] records none; 20 refining reports, 3 rhetorical reports; not clean; every foundational finding cured in place; 2026-06-18 — Final Critique 4, fresh reader — clean
+last gate: 2026-10-28 — Final Critique 6 — foundational count 3, not clean, no sample
 
 open:
-- 2026-10-21-a · refining · Term seam; Capability requirement 1, 2; Operation 5 · the host injects the registry's availability verdict at the seam (Term seam), yet no Capability requirement names its supply, as Capability requirement 1 and 2 name now's and the id material's → name the deployment's supply of the verdict beside them
-- 2026-10-21-b · refining · Capability requirement 3 through 5, 10, 11 · the registry's critical section and its return on a releasing action are bound, but not whether its own record of availability follows the commitment records' commit, so a registry writing that record outside the database transaction keeps a resource unavailable after a [Place Hold] the database refused, or makes one available on a [Release] the database refused while the commitment stands held → say whether the registry's availability follows the commit
+- 2026-10-21-b · refining · Capability requirement 3 through 5 · the registry's critical section is bound, but not whether the registry's own record of a hold follows the commitment records' commit, so a registry writing that record outside the database transaction keeps a resource unavailable after a [Place Hold] the database refused → say whether the registry's record of a hold follows the commit
 - 2026-10-21-d · refining · Term duration bounds; Operation 4 · the bounds are the implementation's admitted range, an owner Term actors does not name, and no Capability requirement has the deployment declare them → name who declares the bounds
-- 2026-10-21-e · refining · Capability requirement 8, 12; Term reclamation lag · the reclamation window is declared with no anchor, so whether a deployment meets Capability requirement 12 cannot be read from its declaration, while Term reclamation lag runs from the expiry instant → anchor the reclamation window at the expiry instant
-- 2026-10-21-f · refining · Intent; Examples; Release and Expire entries · the Intent, the Examples' closing line and the Release and Expire term entries credit the atom's actions with returning the resource, which Capability requirement 10 gives the registry (the 2026-09-13 entry) → say that the registry returns the resource on a releasing action
+- 2026-10-28-a · refining · Capability requirement 4, 5 · the registry releases its critical section on the caller's return or death, so a caller paused inside the section holds the section with no bound, and every [Place Hold] on the resource waits for the caller → bound the section, with a rule that keeps a paused holder from writing its hold after the bound, or name who owns the bound
 ```
 
 ## Decisions

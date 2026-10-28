@@ -153,6 +153,8 @@ Deleted: Operation 35. Execution Contract Refusal 1 owns it.
 Operation 36: IF a revocation status the proof carries names the credential revoked THEN [Attest] MUST answer invalid-credential.
 ```
 
+NOTE: watch the unreadable registry (Operation 33).
+
 NOTE: watch host obligations — this atom sets no maximum length on a string input, where [Duplicate Prevention](./duplicate-prevention.md) declares a cap and [Provenance](./provenance.md) obliges the deployment to set one. Three postures, and the *host obligations* docket row carries the count — a watch flag states the pressure, never a census nothing reads.
 
 Term registry answer: material | unknown-actor | unreachable — what the actor registry gives [Attest] or a verifier for an actor reference.
