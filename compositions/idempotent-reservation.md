@@ -25,7 +25,7 @@ The fix is a token the caller attaches to every action: if the same token has be
 
 The result is "exactly-once" behavior — the underlying reservation sees one real action no matter how many times it is retried, a token is locked to one specific operation (reusing it for something else is rejected), and so a single intended action can never become a double-hold. (Guarantees that appear only when patterns are combined are called emergent guarantees.)
 
-This is the same mechanism every payment processor uses to stop a retried charge from billing twice, and it applies anywhere a duplicated action is a real defect — payments, hospital resource allocation, inventory reservation.
+This is the mechanism payment processors use to stop a retried charge from billing twice, and it applies anywhere a duplicated action is a real defect — payments, hospital resource allocation, inventory reservation.
 
 ---
 
@@ -35,7 +35,7 @@ Real reservation systems run over unreliable networks. A client submits [Place H
 
 This composition solves the problem at the composition layer rather than absorbing it into Provisional Commitment. The caller supplies an **idempotency token** on every state-changing call. The composition checks the token against a [Duplicate Prevention](../atoms/duplicate-prevention.md) instance; if the token has been seen within the window (the configurable time period during which repeated tokens are detected and deduplicated), the composition returns the *original* response (the same commitment id, the same ok, the same rejection reason) without invoking [Provisional Commitment](../atoms/provisional-commitment.md) a second time — with one exception Invariant 2 states: a resolving action whose token Duplicate Prevention reports seen while the composition holds no answer for it is re-run, effect-free by the constituent's own single-resolution invariant. The constituent atoms are unchanged; the composition is the wiring.
 
-This is the same composition that runs in every payment processor in production today — Stripe's `Idempotency-Key`, Adyen's idempotency header, ISO 20022's (the International Organization for Standardization standard for financial-messaging data) message uniqueness identifier, the IETF (Internet Engineering Task Force — the body that develops internet standards) draft idempotency-key spec. Different vocabularies; identical mechanic.
+This is the composition payment processors run in production today — Stripe's `Idempotency-Key`, Adyen's idempotency header, ISO 20022's (the International Organization for Standardization standard for financial-messaging data) message uniqueness identifier, the IETF (Internet Engineering Task Force — the body that develops internet standards) draft idempotency-key spec. Different vocabularies; identical mechanic.
 
 ---
 
@@ -68,7 +68,7 @@ Term constituents: [Provisional Commitment](../atoms/provisional-commitment.md),
 ```
 Composition state 1: The composition MUST store a token results map.
 Composition state 2: The composition MUST key the token results map by idempotency token.
-Composition state 3: An entry MUST carry an action type, a parameters digest, a result, a pending instant AND a completed instant.
+Composition state 3: An entry MUST carry an action type, a parameters digest, a result, a pending instant AND a recovery mark.
 Deleted: Composition state 4. Execution Contract Database 1 owns it.
 Deleted: Composition state 5. Execution Contract Database 1 owns it.
 Composition state 6: EXACTLY ONE invocation MUST write an entry per act.
@@ -82,9 +82,11 @@ Term token results map: the composition's own map from an idempotency token to a
 
 Term action type: place_hold | confirm | release | expire.
 
+Term recovery mark: recovered | first — recovered on a recovered entry, first on every other entry.
+
 Term parameters digest: the collision-resistant digest of a call's non-token parameters, computed at the seam by the configured digest function — a [Parameters Digest].
 
-Term complete entry: a token results entry carrying a recorded result and a completed instant.
+Term complete entry: a token results entry carrying a recorded result.
 
 NOTE: Contract classification, per the section titled Composition state in `execution-contract.md` — the token results map: extraction-pending, the proposed atom an *Idempotency Result Memo* (token → result, write-once, window-governed eviction), opened as a roadmap proposal (Composition state 1).
 
@@ -94,7 +96,7 @@ NOTE: Contract classification, per the section titled Composition state in `exec
 Capability requirement 1: A deployment MUST set the idempotency window.
 Capability requirement 2: A deployment MUST set the token max length.
 Capability requirement 3: A deployment MUST set the digest function.
-Capability requirement 4: A deployment MUST set the digest function alike across EVERY instance sharing the token results map.
+Capability requirement 4: A deployment MUST set the digest function alike for EVERY call of one instance.
 Deleted: Capability requirement 5. Execution Contract Database 2 owns it.
 Deleted: Capability requirement 6. Execution Contract Database 2 owns it.
 Deleted: Capability requirement 7. Execution Contract Database 2 owns it: an action's reads of a token and the writes they decide are one transaction, and the composition names no critical section to release.
@@ -111,7 +113,13 @@ Deleted: Capability requirement 17. Execution Contract Database 3 owns it.
 Capability requirement 18: The deployment MUST supply the database PER Execution Contract Database 1 through 4.
 ```
 
-Term idempotency window: the duration the Duplicate Prevention instance guards a token — an idempotency window.
+Term idempotency window: the duration the Duplicate Prevention instance guards a token, set by the deployment with no default to cover the slowest legitimate retry of the most critical action — an idempotency window.
+
+Term window end: (pending instant + idempotency window) — the instant an entry's idempotency window elapses at; the window has elapsed for the entry at its window end and after it (Execution Contract Logic confinement 9).
+
+Term token max length: the byte cap on an idempotency token, set by the deployment with no default.
+
+Term digest function: the collision-resistant hash function and serialization convention computing the parameters digest at the seam, set by the deployment with no default.
 
 ### Primitive policy
 
@@ -125,12 +133,14 @@ Primitive policy 6: The composition MUST call Duplicate Prevention's check ONLY 
 Primitive policy 7: The composition MUST NOT store an entry for a malformed idempotency token.
 ```
 
+Term boundary predicate: the test an idempotency token clears before Duplicate Prevention's check — the token is not blank AND does not exceed the token max length (Primitive policy 1, Primitive policy 2).
+
 ### Action wiring
 
 ```
 place_hold(resource, requester, duration, idempotency_token)
   answers id
-  refuses invalid-request | token-collision | resource-unavailable | storage-failure | outcome-unknown(candidates)
+  refuses invalid-request | token-collision | registry-unavailable | resource-unavailable | storage-failure | outcome-unknown(candidates)
 
 confirm(id, idempotency_token)
   answers ok
@@ -145,15 +155,17 @@ expire(id, idempotency_token)
   refuses invalid-request | token-collision | not-known | not-held | window-not-elapsed | storage-failure
 ```
 
+NOTE: watch the registry outage (place_hold's refuses line, Composes 6).
+
 ```
-Action wiring 1: EVERY state-changing action MUST take an idempotency token.
+Action wiring 1: [Place Hold], [Confirm], [Release] AND [Expire] MUST take an idempotency token.
 Deleted: Action wiring 2. Execution Contract Database 2 owns it.
 Deleted: Action wiring 3. Execution Contract Database 2 owns it.
 Deleted: Action wiring 4. Execution Contract Database 2 owns it.
 Deleted: Action wiring 5. Execution Contract Database 2 owns it: an action's reads of a token and the writes they decide are one transaction, and the composition names no critical section to release.
 Deleted: Action wiring 6. Execution Contract Database 2 owns it: an action's reads of a token and the writes they decide are one transaction, and the composition names no critical section to lapse.
-Action wiring 7: IF an entry's action type differs from the call's action type THEN the composition MUST answer token-collision.
-Action wiring 8: IF an entry's parameters digest differs from the call's parameters digest THEN the composition MUST answer token-collision.
+Action wiring 7: IF a live entry's action type differs from the call's action type THEN the composition MUST answer token-collision.
+Action wiring 8: IF a live entry's parameters digest differs from the call's parameters digest THEN the composition MUST answer token-collision.
 Action wiring 9: The composition MUST answer a matching complete entry's result.
 Action wiring 10: The composition MUST NOT call a constituent for a matching complete entry.
 Deleted: Action wiring 11. Execution Contract Database 1 owns it.
@@ -169,13 +181,17 @@ Deleted: Action wiring 20. Execution Contract Database 1 owns it.
 Action wiring 21: The composition MUST answer Provisional Commitment's answer to the caller.
 Action wiring 22: A read-only query MUST NOT take an idempotency token.
 Action wiring 23: A read-only query MUST NOT consult the token results map.
-Action wiring 24: The composition MUST take an idempotency token on EXACTLY ONE OF place_hold, confirm, release, expire.
+Deleted: Action wiring 24. Action wiring 1 owns it.
 Action wiring 25: The composition MUST call Duplicate Prevention's record for EVERY result that lands.
 ```
 
-Term fresh request: a call finding no entry AND Duplicate Prevention's check answering not-seen.
+NOTE: open 2026-10-28-a — Action wiring 22 and Action wiring 23 govern a read-only query, and the page declares no read in its signature block, while Composes 4 replaces Provisional Commitment's caller surface, its read included.
 
-Term matching complete entry: a complete entry whose action type AND parameters digest equal the call's.
+Term live entry: an entry the call finds and does not evict (Action wiring 12).
+
+Term fresh request: a call finding no live entry AND Duplicate Prevention's check answering not-seen.
+
+Term matching complete entry: a live complete entry whose action type AND parameters digest equal the call's.
 
 ### Wiring decision
 
@@ -188,9 +204,13 @@ Deleted: Wiring decision 5. Execution Contract Database 1 owns it: an action's w
 ```
 
 WHY:
-Caching the failure is the non-obvious half. If a first [Place Hold] answers resource-unavailable and a retry were allowed to re-call the constituent, the retry might succeed — the resource may have freed in between — and the caller would observe two answers to what they meant as one operation. Caching the rejection preserves *same token, same result*; the caller decides whether to attempt the act again under a **fresh** token.
+*Principle.* One token, one result: the composition records against the token every answer a constituent gives, a rejection as much as a success, and every later call carrying the token inside the idempotency window receives that answer.
 
-The two exclusions share one reason: the composition did not act, so it holds nothing to cache. A malformed token is not a token, and a `seen` token with no entry means the composition recorded nothing and the next `check` may answer differently.
+*Likely objection.* Caching the failure is the non-obvious half. If a first [Place Hold] answers resource-unavailable, a retry might succeed — the resource may have freed in between — and a registry-unavailable answer stops being true once the host can read the registry again.
+
+*Mechanism that resolves it.* A retry allowed to re-call the constituent would show the caller two answers to what they meant as one operation, the double this composition exists to prevent, and the decision lives here because neither constituent can make it: Provisional Commitment's record carries no token, and Duplicate Prevention remembers an identity, not an answer. The caller decides whether to attempt the act again under a **fresh** token, and the new attempt doubles nothing, since a refused [Place Hold] records no commitment (Provisional Commitment Operation 31).
+
+*Result.* *Same token, same result*, a rejection included. Three exclusions share one reason: the composition did not act, so it holds nothing to cache. A malformed token is not a token; a `seen` token with no entry means the composition recorded nothing and the next `check` may answer differently; and a storage failure commits nothing at all (Execution Contract Constituent failure 1).
 
 ### Housekeeping
 
@@ -254,16 +274,16 @@ These emerge from the composition; none belongs to one constituent.
 
 A client behind a flaky network reserves a hotel room. The composition is configured with a 10-minute idempotency window.
 
-1. **First call:** `place_hold(room_307, guest_g91, 24h, idem_x73a)` → `check(idem_x73a) → not-seen`, no entry; delegates to Provisional Commitment; receives `rm_b4c`. Writes `token_results[idem_x73a] = (place_hold, digest_α, rm_b4c, pending_at, completed_at)` and calls `DuplicatePrevention.record(idem_x73a)`. Returns `rm_b4c` to the client. State: `rm_b4c` Held.
+1. **First call:** `place_hold(room_307, guest_g91, 24h, idem_x73a)` → `check(idem_x73a) → not-seen`, no entry; delegates to Provisional Commitment; receives `rm_b4c`. Writes `token_results[idem_x73a] = (place_hold, digest_α, rm_b4c, pending_at, first)` and calls `DuplicatePrevention.record(idem_x73a)`. Returns `rm_b4c` to the client. State: `rm_b4c` Held.
 2. **Network drops the response. Client retries:** `place_hold(room_307, guest_g91, 24h, idem_x73a)` → `check(idem_x73a) → seen`; lookup matches; returns cached `rm_b4c`. *Provisional Commitment is not invoked.* No second commitment is created.
 3. **Client retries twice more:** identical outcome. Provisional Commitment still sees only one [Place Hold].
 4. **Two hours later, client confirms** with a fresh token: `confirm(rm_b4c, idem_y22)` → `check(idem_y22) → not-seen`; delegates to `ProvisionalCommitment.confirm(rm_b4c)` → ok. Records and returns ok. State: `rm_b4c` Confirmed.
 5. **Client retries the confirm** (browser back button or replay): `confirm(rm_b4c, idem_y22)` → `check → seen`; returns cached ok. Crucially, the second call does *not* return not-held — which is what would happen if the retry hit Provisional Commitment directly, because `rm_b4c` has already moved Held → Confirmed. The idempotency cache hides the terminal-absorption rejection from the legitimate retry.
-6. **Eleven minutes later, client retries the original [Place Hold]** with `idem_x73a`. The 10-minute window has elapsed; `idem_x73a` is no longer in `DuplicatePrevention.recorded` (eventual-expiry invariant). `check → not-seen`; once the eviction leg has run, `token_results[idem_x73a]` is gone and the call is a fresh request — and where it has not yet run (its timing is not promised), the complete-entry arm finds an entry past the window with a `not-seen` token, evicts it in place and proceeds identically. Either way the composition delegates afresh. Provisional Commitment receives [Place Hold] against `room_307`; the room is no longer hold-able because `rm_b4c` is in Confirmed; it returns resource-unavailable. The composition caches *that* rejection against the new occurrence of the token. The client sees resource-unavailable — accurately reflecting the current state of the resource, not the stale identity of an old token.
+6. **Eleven minutes later, client retries the original [Place Hold]** with `idem_x73a`. The 10-minute window has elapsed, and Duplicate Prevention's guard on `idem_x73a` with it: `check → not-seen`; once the eviction leg has run, `token_results[idem_x73a]` is gone and the call is a fresh request — and where it has not yet run (its timing is not promised), the complete-entry arm finds an entry past the window with a `not-seen` token, evicts it in place and proceeds identically. Either way the composition delegates afresh. Provisional Commitment receives [Place Hold] against `room_307`; the room is no longer hold-able because `rm_b4c` is in Confirmed; it returns resource-unavailable. The composition caches *that* rejection against the new occurrence of the token. The client sees resource-unavailable — accurately reflecting the current state of the resource, not the stale identity of an old token.
 
 ### Banking — credit-hold authorization with retry
 
-A merchant POS submits a $250 authorization with an idempotency key (ISO 20022 BizMsgIdr or scheme-defined equivalent). The acquirer's network glitches; the POS retries within seconds. The composition guarantees the cardholder is charged once, not twice. This is exactly what every modern payment processor implements — Stripe's `Idempotency-Key` HTTP header on `POST /v1/charges` produces the same behavior. The composition's `Invariant 8 — Exactly-once effect within the window` is the contract Stripe documents to merchants.
+A merchant POS (point-of-sale terminal) submits a $250 authorization with an idempotency key (ISO 20022 BizMsgIdr or scheme-defined equivalent). The acquirer's network glitches; the POS retries within seconds. The composition guarantees the cardholder is charged once, not twice. This is what modern payment processors implement — Stripe's `Idempotency-Key` HTTP header on `POST /v1/charges` produces the same behavior. The composition's `Invariant 8 — Exactly-once effect within the window` is the contract Stripe documents to merchants.
 
 ### Healthcare — bed assignment with double-click
 
@@ -271,7 +291,7 @@ An emergency department coordinator clicks *Assign Bed* on the dashboard. The da
 
 ### Retail — inventory reservation with mobile retry
 
-A shopper on flaky mobile WiFi taps *Reserve* on a one-of-one luxury item. The app generates an idempotency token from the cart session id and the item sku, attaches it to the request, and retries on network failure with exponential backoff. The composition guarantees the shopper either reserves the item once and sees a successful reservation, or sees a single resource-unavailable rejection (someone else got there first) regardless of how many retries the network handler attempts — or, where the duplicate check fails closed on an unavailable database, `outcome-unknown(candidates)` naming the hold it can see but cannot pair, which the app resolves before trying again under a fresh token. No phantom *two reservations* state.
+A shopper on flaky mobile WiFi taps *Reserve* on a one-of-one luxury item. The app generates an idempotency token from the cart session id and the item sku, attaches it to the request, and retries on network failure with exponential backoff. The composition guarantees the shopper either reserves the item once and sees a successful reservation, or sees a single resource-unavailable rejection (someone else got there first) regardless of how many retries the network handler attempts — or, where the duplicate check fails closed on an unavailable database, `outcome-unknown(candidates)` naming the holds it can see but cannot pair, which the app resolves before trying again under a fresh token. No phantom *two reservations* state.
 
 ### Airline — seat hold with session replay
 
@@ -281,10 +301,10 @@ A travel agency's booking system replays the previous hour's requests after a da
 
 Three scenarios the composition must survive in regulated contexts, beyond happy-path:
 
-- **Regulator audit — "show me every double-charge."** An auditor filters the underlying Provisional Commitment instance's exported commitment sets — the atom exports the sets and each record's fields, not a query keyed by them, so the filter is the auditor's own — for commitments sharing a `(resource, requester, placed_at-near)` signature. The composition's `Invariant 3 — Token-to-commitment one-to-one within the window` guarantees the query returns the empty set within the window; outside the window the audit must distinguish *legitimate sequential holds* (separate logical operations with separate tokens) from *retry-induced doubles* (which the composition has structurally prevented). The auditor sees a structural guarantee, not a procedural promise.
+- **Regulator audit — "show me every double-charge."** An auditor filters the underlying Provisional Commitment instance's exported commitment sets — the atom exports the sets and each record's fields, not a query keyed by them, so the filter is the auditor's own — for commitments sharing a `(resource, requester, placed_at-near)` signature. The composition's `Invariant 3 — Token to commitment, one to one` guarantees the query returns the empty set within the window; outside the window the audit must distinguish *legitimate sequential holds* (separate logical operations with separate tokens) from *retry-induced doubles* (which the composition has structurally prevented). The auditor sees a structural guarantee, not a procedural promise.
 - **Disputed transaction — "you charged me twice."** The investigator inspects the composition's `token_results` map (or its persistent journal). If two of the customer's submitted requests carried the *same* token, the composition's cache produced one commitment and replayed the response — there is no double-spend to dispute. If the customer's client generated *different* tokens for what they intended as the same operation, the composition correctly processed them as independent operations; the dispute belongs to the client's token-generation logic, not to the reservation system.
 - **Replay attack — adversary captures and replays a token.** An adversary captures an in-flight request and replays it later within the window. The composition correctly returns the cached result. The replay produces no new state change — `Invariant 2 — Idempotent state transitions within the window`. Replays *outside* the window are treated as fresh requests; the adversary may succeed in placing a new commitment if the resource is available and they hold valid credentials, but that is an authentication / authorization failure (see [Actor Identity](../atoms/actor-identity.md)), not an idempotency failure.
-- **Token reuse collision — caller accidentally reuses a token across two operations.** A developer reuses `idem_x73a` (originally used for `place_hold(room_307, ...)`) in a subsequent `confirm(rm_b4c, idem_x73a)` call. The composition checks: `DuplicatePrevention.check(idem_x73a) → seen`; looks up `token_results[idem_x73a]` and finds `action_type = place_hold`. Current call's `action_type = confirm` — mismatch. Returns token-collision. No state change occurs. The caller must use a fresh token for the confirm. Invariant 4 (*Token-action binding*) is the structural guarantee; [Token Collision] is its observable form.
+- **Token reuse collision — caller accidentally reuses a token across two operations.** A developer reuses `idem_x73a` (originally used for `place_hold(room_307, ...)`) in a subsequent `confirm(rm_b4c, idem_x73a)` call. The composition checks: `DuplicatePrevention.check(idem_x73a) → seen`; looks up `token_results[idem_x73a]` and finds `action_type = place_hold`. Current call's `action_type = confirm` — mismatch. Returns token-collision. No state change occurs. The caller must use a fresh token for the confirm. Invariant 4 (*Token action binding*) is the structural guarantee; [Token Collision] is its observable form.
 
 ---
 
@@ -302,11 +322,13 @@ Check 3.1: An auditor MUST find EVERY complete entry carrying the result the con
 Deleted: Check 3.2. Execution Contract Database 1 owns it.
 Check 4.1: An auditor MUST find no evicted entry whose token Duplicate Prevention's check answers seen for (Housekeeping 6).
 Check 4.2: An auditor MUST find no evicted entry younger than the idempotency window (Housekeeping 5).
-Check 5.1: An auditor MUST find EVERY recovered entry marked (Indeterminate outcome 8).
+Deleted: Check 5.1. Indeterminate outcome 8 owns it.
 Deleted: Check 5.2. Execution Contract Database 1 owns it: an action's writes commit together, so no entry records outcome-unknown.
 ```
 
 NOTE: EVERY check names the rule the check tests.
+
+NOTE: watch the check no record answers (Check 5.1).
 
 ### External checks
 
@@ -387,17 +409,25 @@ Composition note 5: A deployment MUST NOT expose a constituent's own caller surf
 
 ## Terms
 
-The canonical concepts this spec refers to. Each `term` marker in the prose above links to its term entry here. A term entry states what the concept *is*, in plain English, plus its **Kind** — one of five: **Type** (a thing or category), **Operation** (a behavior), **Member** (a value of an enumerated Type), or, for a named datum, **Field** (a datum a Type carries — *what does it carry?*) or **Parameter** (a value an Operation needs — *what does it need?*). A term entry also names the Type it is a **Member of** / **Field of**, the Operation it is a **Parameter of**, and its **Role** where the domain assigns one. A term entry carries one **Projection** line — the concept's single canonical lowering token, the one place the concrete name stays visible on the page — for every Field, Parameter, and pinned/wire Member. Everything else about casing (each target's snake / camel / pascal / const / wire form) is **derived** from that one token by [`tools/harness/term-adapter.mjs`](../tools/harness/term-adapter.mjs), never hand-written. This is a composition, so its own concepts are the retry-safe action-wirings it exposes ([Place Hold], [Confirm], [Release], [Expire]), the [Idempotency Token] it introduces on every call, and the fields of the recorded outcome it caches ([Action Type], [Parameters Digest], [Result]) plus its own [Token Collision] and [Outcome Unknown] rejections. It carries one piece of own state — the `token_results` map (classified extraction-pending, the proposed *Idempotency Result Memo* atom) — left as a backticked record token rather than carded as a Type, so its Fields are carded against the plain-noun recorded outcome. References to the constituent atoms and their operations — Provisional Commitment's place_hold/confirm/release/expire, Duplicate Prevention's `check`/`record` — the inherited rejection tokens (resource-unavailable, not-known, not-held, window-elapsed, window-not-elapsed, storage-failure, invalid-request), the entry states and stamps (`recovery`, `pending_at`, `completed_at`), and the deployment configuration knobs (`idempotency_window`, `token_max_length`, `digest_function`, `duplicate_prevention_store`) all remain qualified/backticked, not carded here. *(annotation.md Terms registry; representational only — it changes no guarantee, invariant, or behavior of the composition above.)*
+The canonical concepts this spec refers to. Each `term` marker in the prose above links to its term entry here. A term entry states what the concept *is*, in plain English, plus its **Kind** — one of five: **Type** (a thing or category), **Operation** (a behavior), **Member** (a value of an enumerated Type), or, for a named datum, **Field** (a datum a Type carries — *what does it carry?*) or **Parameter** (a value an Operation needs — *what does it need?*). A term entry also names the Type it is a **Member of** / **Field of**, the Operation it is a **Parameter of**, and its **Role** where the domain assigns one. A term entry carries one **Projection** line — the concept's single canonical lowering token, the one place the concrete name stays visible on the page — for every Field, Parameter, and pinned/wire Member. Everything else about casing (each target's snake / camel / pascal / const / wire form) is **derived** from that one token by [`tools/harness/term-adapter.mjs`](../tools/harness/term-adapter.mjs), never hand-written. This is a composition, so its own concepts are the retry-safe action-wirings it exposes ([Place Hold], [Confirm], [Release], [Expire]), the [Idempotency Token] it introduces on every call, and the fields of the recorded outcome it caches ([Action Type], [Parameters Digest], [Result]) plus its own [Token Collision] and [Outcome Unknown] rejections. It carries one piece of own state — the `token_results` map (classified extraction-pending, the proposed *Idempotency Result Memo* atom) — left as a backticked record token rather than carded as a Type, so its Fields are carded against the plain-noun recorded outcome. References to the constituent atoms and their operations — Provisional Commitment's place_hold/confirm/release/expire, Duplicate Prevention's `check`/`record` — the inherited rejection tokens (resource-unavailable, not-known, not-held, window-elapsed, window-not-elapsed, storage-failure, invalid-request), the entry's stamp and mark (`pending_at`, `recovery`), and the deployment configuration knobs (`idempotency_window`, `token_max_length`, `digest_function`) all remain qualified/backticked, not carded here. *(annotation.md Terms registry; representational only — it changes no guarantee, invariant, or behavior of the composition above.)*
 
 ### Vocabulary
 
 Term qualifiers: migrated — rewritten in GRACE lang v0.40 (2026-09-14).
 
-Term terms: composition, constituents, token results map, action type, parameters digest, complete entry, eviction leg, idempotency window, blank, fresh request, matching complete entry, candidates, resolving action, recovered entry.
+Term terms: composition, constituents, token results map, action type, recovery mark, parameters digest, complete entry, eviction leg, idempotency window, window end, token max length, digest function, boundary predicate, blank, live entry, fresh request, matching complete entry, candidates, resolving action, recovered entry.
 
 Term record verbs: call, answer, take, read, write, store, key, carry, keep, evict, measure, repair, validate, compare, normalize, case-fold, record, compute, mark, resolve, rest, stand, bind, reach, find, own, discharge, inherit, change, replace, serve, compose, configure, declare, set, supply, mint, interpret, promise, expose, consult, elapse, exceed, land, run, make, guarantee, bound.
 
-Term actors: the composition; the constituents; the transition; a deployment; an auditor; a caller; an operator; an invocation; the eviction leg; an entry; a token; a commitment.
+Term actors: the composition; the constituents; the transition; a deployment; an auditor; a caller; an operator; an invocation; a read-only query; the eviction leg; an entry; a token; a commitment.
+
+Term records: token results entry — one idempotency token's recorded outcome, carrying an action type, a parameters digest, a result, a pending instant and a recovery mark.
+
+Term value sets: action type, recovery mark and resolving action, each declared where the section that owns it declares it.
+
+Term bounds: idempotency window (idempotency_window), token max length (token_max_length).
+
+Term cadences: empty.
 
 Term cited: Execution Contract Conformance 8 — recursive conformance and the inherited guarantee. The section titled Composition state in `execution-contract.md` — the extraction-pending classification. The section titled Logic Confinement Principle in `execution-contract.md` — the seam, the transition and the mechanism-capability pattern. [Provisional Commitment](../atoms/provisional-commitment.md) `Invariant 2` — single resolution, which makes a resolving re-run effect-free. [Duplicate Prevention](../atoms/duplicate-prevention.md) `Invariant 2` — a record starts a guard rather than extending one.
 
@@ -454,7 +484,7 @@ Projection: parameters_digest
 
 #### Result
 
-The recorded outcome's copy of the original response — the produced id or ok, or the rejection reason — exactly as returned to the caller on the first call. Every outcome is cached, success or rejection (the cache-the-failure rule).
+The recorded outcome's copy of the original response — the produced id or ok, or the rejection reason — exactly as returned to the caller on the first call. Every constituent answer is cached, success or rejection (the cache-the-failure rule), save a storage failure, which commits nothing (Execution Contract Constituent failure 1).
 
 Kind:       Field
 Field of:   the recorded outcome
@@ -504,8 +534,8 @@ This composition draws on:
 - **IETF draft-ietf-httpapi-idempotency-key-header** — the HTTP idempotency-key convention; an industry-standard wire format for the idempotency token.
 - **ISO 20022 (financial messaging)** — `BizMsgIdr` and related message-uniqueness identifiers; the financial-industry standard for at-most-once message semantics.
 - **HL7 (Health Level Seven) FHIR (Fast Healthcare Interoperability Resources) `Bundle.identifier`, `MessageHeader.id`** — healthcare-industry standard for at-most-once message processing.
-- **Stripe Idempotency-Key, Adyen idempotency header, AWS request-ID** — de-facto industry conventions; this composition formalizes what they all implement.
-- **PCI DSS Requirement 10 (logging and monitoring)** — composing with Event Log, the commitment record and the token-mapping together produce the audit-evidence PCI requires.
+- **Stripe Idempotency-Key, Adyen idempotency header, AWS (Amazon Web Services) request-ID** — de-facto industry conventions; this composition formalizes what they all implement.
+- **PCI DSS (Payment Card Industry Data Security Standard) Requirement 10 (logging and monitoring)** — composing with Event Log, the commitment record and the token-mapping together produce the audit-evidence PCI requires.
 
 The two atoms it composes carry their own standards inheritance — Provisional Commitment (ISO 9001 — the International Organization for Standardization quality-management standard — section 8.5.2 and section 8.5.4; Basel III BCBS 238 — Basel Committee on Banking Supervision liquidity rules; Joint Commission; IATA — International Air Transport Association; PCI DSS; GDPR — EU General Data Protection Regulation — Art. 30; SOX — Sarbanes-Oxley Act — section 404; HIPAA — Health Insurance Portability and Accountability Act — section 164.312(b)) and Duplicate Prevention (IETF HTTP idempotency-key draft, payment-processor idempotency conventions, message-queue exactly-once-within-window literature).
 
@@ -525,11 +555,12 @@ It inherits from:
 
 ```
 status: partially resolved
-formal: pending — re-derivation, 2026-08-30: the model has each invocation as one atomic step, with no `pending` intent, no per-token section with a lease terminus, and no eviction leg as a second process over one token; was verified — idempotent-reservation.tla + 1 twin, 2026-06-03
-last gate: 2026-06-18 — Final Critique 4, fresh reader — clean
+formal: pending — re-derivation, 2026-08-30: the model has no eviction leg as a second process over one token and no `outcome-unknown` arm; was verified — idempotent-reservation.tla + 1 twin, 2026-06-03
+last gate: 2026-10-28 — Final Critique 5 — foundational count 5, not clean, no sample
 
 open:
 - 2026-08-30-a · refining · formal · the model has no eviction leg as a second process over one token and no `outcome-unknown` arm; the twin's early-eviction hazard is now the leg's (iii) → extend it
+- 2026-10-28-a · refining · Action wiring 22, 23 · the rules govern a read-only query the page declares no signature for, while Composes 4 replaces Provisional Commitment's caller surface, read() included, and the page before its 2026-09-14 migration passed reads through to it; a declared read() would meet Wiring decision 1, 2 and Action wiring 25, which record every constituent answer against a token a read does not carry → declare read() passing Provisional Commitment's read through and hold those rules to the four token-carrying actions, or tombstone Action wiring 22 and 23
 ```
 
 ## Decisions
