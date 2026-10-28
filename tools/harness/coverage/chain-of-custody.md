@@ -10,7 +10,7 @@
 >
 > **RESOLVED 2026-06-11.** The touch-triggered round landed: the model was revised to
 > sequential-with-compensation covering both arms of Invariant 4 (template:
-> `immutable-transaction-ledger.tla`, the compensated-arm closure), Invariant 4 was restated in the
+> `immutable-transaction-ledger.tla`, since renamed `immutable-ledger.tla`, the compensated-arm closure), Invariant 4 was restated in the
 > English as safety + liveness, and `entry_to_event` was reclassified as a derived index
 > outside the atomicity surface. The pattern returned to `grounded`. Rows below updated in
 > place with the arc preserved; see the pattern's Lineage section Formal model (2026-06-11 entry).

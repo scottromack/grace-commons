@@ -24,7 +24,7 @@ The backbone saturates *harder* here — 50% submittable vs. ERPNext's 29%, beca
 | DocType | Decomposes into (existing atoms) |
 |---|---|
 | **Leave Application** | Approval Step (`leave_approver`, status Open/Approved/Rejected) + temporal window + posts to the leave ledger |
-| **Leave Ledger Entry** | **Immutable Transaction Ledger** (submittable, append-only, `amended_from` reversal) — leave debits/credits |
+| **Leave Ledger Entry** | **Immutable Transaction Ledger** (now Immutable Ledger; submittable, append-only, `amended_from` reversal) — leave debits/credits |
 | **Leave Allocation** | ledger *credit* (grants leave) + temporal validity |
 | **Salary Slip** | computed document (Salary Structure formula) → posts to **Journal Entry (GL ledger)**; submittable |
 | **Expense Claim** | Approval Step (`expense_approver`, `approval_status`) + posts to ledger |

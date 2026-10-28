@@ -539,7 +539,7 @@ S_SILENT = {"login", "chain-of-custody"}
 # Retired as the sweep closes them (one line per retirement, with the date, so
 # a retirement cannot pass as a loosened check): external-onboarding 2026-08-29;
 # propagate-consent-revocation-downstream 2026-08-29; immutable-transaction-
-# ledger 2026-08-29; privileged-access-provisioning 2026-08-29 (a false
+# ledger (now immutable-ledger) 2026-08-29; privileged-access-provisioning 2026-08-29 (a false
 # positive — the peer-arm case above — not a fix); capability-backed-sharing
 # 2026-08-29; actor-suspension 2026-08-29.
 # EMPTY as of 2026-08-29, when the last site closed. S was promoted to GATING
@@ -547,7 +547,7 @@ S_SILENT = {"login", "chain-of-custody"}
 # lives in check_s_synthetic(), which needs no corpus positive to exist.
 S_FIRING: set[str] = set()
 T_SILENT = {"chain-of-custody"}
-# EMPTY as of 2026-08-29, when Immutable Transaction Ledger's [Verify Ledger]
+# EMPTY as of 2026-08-29, when Immutable Transaction Ledger's (now Immutable Ledger's) [Verify Ledger]
 # was re-keyed by sequence_number — the one site the check ever saw. T was
 # promoted to GATING in the same change and this set switched to `exact`, so
 # any firing is reported as an unpinned pattern; the regression coverage lives
@@ -699,7 +699,7 @@ def check_v_synthetic(problems: list[str]) -> None:
 U_SILENT = {"login", "defensible-retention"}
 # Retired as the sweep closes them (one line per retirement, with the date):
 # chain-of-custody 2026-08-30; forensic-recovery 2026-08-30;
-# immutable-transaction-ledger 2026-08-30; capability-backed-sharing
+# immutable-transaction-ledger (now immutable-ledger) 2026-08-30; capability-backed-sharing
 # 2026-08-30; customer-onboarding 2026-08-30.
 # EMPTY as of 2026-08-30, when the last site closed. U was promoted to GATING
 # in the same change and this set switched to `exact`; the regression coverage

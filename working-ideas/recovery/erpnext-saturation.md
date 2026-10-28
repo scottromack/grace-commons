@@ -23,7 +23,7 @@ The shape is already legible from the aggregate: a **small set of primitives** (
 Every one of the 6 sampled DocTypes — and 82 across the corpus — is *submittable*, carrying Frappe's `docstatus` lifecycle: **Draft (0) → Submitted (1) → Cancelled (2)**, where a submitted document is **immutable** (no edits; to change it you *cancel* and *amend*, which creates a new linked document). Zero DocTypes use the optional Frappe Workflow doctype for this — `docstatus` *is* the universal state machine. It decomposes cleanly into existing atoms:
 
 - **Workflow State Machine** — a named instance through declared states/transitions. `docstatus` is the minimal universal instance.
-- **Immutable Transaction Ledger / Event Log** — immutable-on-submit is the append-only/no-rewrite discipline at the document grain.
+- **Immutable Transaction Ledger (now Immutable Ledger) / Event Log** — immutable-on-submit is the append-only/no-rewrite discipline at the document grain.
 - **Reversal via compensation** — cancel→amend is *correction without destructive edit*: you don't mutate, you post a reversal and a new version (the `amended_from` lineage link). Structurally the Undo-History / immutable-ledger compensating-event pattern.
 
 One framework field, three library atoms, 82 instances. This alone largely answers the saturation question.
@@ -32,7 +32,7 @@ One framework field, three library atoms, 82 instances. This alone largely answe
 
 | DocType | Module | Recovered substrate (atoms) | Notes |
 |---|---|---|---|
-| **GL Entry** | Accounts | Immutable Transaction Ledger + Event Log + **binding-bijection** (double-entry: debits = credits) | Append-only postings; sequential `ACC-GLE-.YYYY.-.#####`. The canonical immutable ledger. |
+| **GL Entry** | Accounts | Immutable Transaction Ledger (now Immutable Ledger) + Event Log + **binding-bijection** (double-entry: debits = credits) | Append-only postings; sequential `ACC-GLE-.YYYY.-.#####`. The canonical immutable ledger. |
 | **Stock Ledger Entry** | Stock | Immutable Ledger + Event Log + **Capacity Constraint** (warehouse balance) | `qty_after_transaction` is a **derived index** (running balance rebuildable from the ledger). |
 | **Sales Order** | Selling | Workflow State Machine + **derived indexes** (`delivery_status` ⊥ `billing_status`) + commitment | Domain *composition*; orthogonal sub-lifecycles (see gap 2). |
 | **Payment Entry** | Accounts | Submittable txn → GL postings (Immutable Ledger) + **binding/allocation** (payment ↔ invoices) | Allocation against invoices is a binding-bijection. |

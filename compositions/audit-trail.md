@@ -1945,7 +1945,7 @@ Unsealed tail 3: The deployment MUST read a [Seal Now] invalid-request as a stan
 
 ## Composition notes
 
-NOTE: composing patterns — [Actor Suspension](./actor-suspension.md), [Capability-Backed Sharing](./capability-backed-sharing.md), [Chain of Custody](./chain-of-custody.md), [Customer Onboarding](./customer-onboarding.md), [Defensible Retention](./defensible-retention.md), [Execute Gated Workflow](./execute-gated-workflow.md), [External Onboarding](./external-onboarding.md), [Immutable Transaction Ledger with Selective Disclosure](./immutable-transaction-ledger.md), [Login](./login.md), [Multi-Party Approval](./multi-party-approval.md), [Privileged Access Provisioning](./privileged-access-provisioning.md), [Propagate Consent Revocation Downstream](./propagate-consent-revocation-downstream.md), [Recoverable Invocation](./recoverable-invocation.md), [Verified Repair](./verified-repair.md).
+NOTE: composing patterns — [Actor Suspension](./actor-suspension.md), [Capability-Backed Sharing](./capability-backed-sharing.md), [Chain of Custody](./chain-of-custody.md), [Customer Onboarding](./customer-onboarding.md), [Defensible Retention](./defensible-retention.md), [Execute Gated Workflow](./execute-gated-workflow.md), [External Onboarding](./external-onboarding.md), [Immutable Ledger with Selective Disclosure](./immutable-ledger.md), [Login](./login.md), [Multi-Party Approval](./multi-party-approval.md), [Privileged Access Provisioning](./privileged-access-provisioning.md), [Propagate Consent Revocation Downstream](./propagate-consent-revocation-downstream.md), [Recoverable Invocation](./recoverable-invocation.md), [Verified Repair](./verified-repair.md).
 
 ---
 

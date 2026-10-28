@@ -264,17 +264,17 @@ TRAILING_PAREN = re.compile(r"\s*\([^)]*\)\s*$")
 # change as the last site's fix, with test_checks.py's pin set switched to exact.
 #
 # T-seal-key was promoted to GATING on 2026-08-29, the same day it landed: its
-# one site (Immutable Transaction Ledger's [Verify Ledger]) closed under the
+# one site (Immutable Transaction Ledger's [Verify Ledger], now Immutable Ledger's) closed under the
 # sweep and it fires zero times corpus-wide. S-recording-step followed the same
 # day: its baseline of 22 sites across five patterns (23 before the peer-arm
 # correction) closed under the sweep — External Onboarding, Propagate Consent
-# Revocation Downstream, Immutable Transaction Ledger, Capability-Backed
+# Revocation Downstream, Immutable Transaction Ledger (now Immutable Ledger), Capability-Backed
 # Sharing, Actor Suspension — and it fires zero times corpus-wide.
 # EMPTY as of 2026-08-29: every check is gating.
 #
 # U-retry-bit landed 2026-08-30 ADVISORY with a recorded baseline of 10 actions
 # across 5 patterns (Capability-Backed Sharing, Chain of Custody, Customer
-# Onboarding, Forensic Recovery, Immutable Transaction Ledger) — two of them
+# Onboarding, Forensic Recovery, Immutable Transaction Ledger, now Immutable Ledger) — two of them
 # patterns the second gates had already closed. Same promotion discipline: it
 # becomes gating in the change that closes the last site.
 #
@@ -1034,8 +1034,8 @@ def check_rebuild_bound(patterns: dict[Path, Pattern]) -> list[Finding]:
 # a composition that links audit-trail.md. A bare token anywhere else (a
 # signature block declaring the composition's own code, an example, a Ledger
 # line quoting the defect) is not flagged — and neither is a bare token mapped
-# from a PEER composition's call: Multi-Party Approval, Immutable Transaction
-# Ledger and their kin re-export `recording-failure` bare at their own caller
+# from a PEER composition's call: Multi-Party Approval, Immutable Ledger
+# and their kin re-export `recording-failure` bare at their own caller
 # boundary, so a composer transcribing that arm is transcribing it correctly.
 # The first draft assumed only Audit Trail emits the token and fired on
 # Privileged Access Provisioning's transcription of Multi-Party Approval's

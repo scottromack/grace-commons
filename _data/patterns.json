@@ -210,7 +210,7 @@
    "defensible-retention",
    "execute-gated-workflow",
    "external-onboarding",
-   "immutable-transaction-ledger",
+   "immutable-ledger",
    "login",
    "multi-party-approval",
    "privileged-access-provisioning",
@@ -691,7 +691,7 @@
   "substrates": [],
   "title": "Idempotent Reservation"
  },
- "immutable-transaction-ledger": {
+ "immutable-ledger": {
   "composes": [
    "selective-disclosure"
   ],
@@ -718,7 +718,7 @@
    "audit-trail",
    "recoverable-invocation"
   ],
-  "title": "Immutable Transaction Ledger with Selective Disclosure"
+  "title": "Immutable Ledger with Selective Disclosure"
  },
  "invitation": {
   "composed_by": [
@@ -1224,7 +1224,7 @@
   ],
   "status": "partially resolved",
   "substrate_of": [
-   "immutable-transaction-ledger",
+   "immutable-ledger",
    "verified-repair"
   ],
   "substrates": [
@@ -1335,7 +1335,7 @@
  "selective-disclosure": {
   "composed_by": [
    "capability-backed-sharing",
-   "immutable-transaction-ledger",
+   "immutable-ledger",
    "resolve-a-persons-data-rights"
   ],
   "domain": null,
@@ -1349,7 +1349,7 @@
   },
   "regulated_by": [
    "capability-backed-sharing",
-   "immutable-transaction-ledger",
+   "immutable-ledger",
    "resolve-a-persons-data-rights"
   ],
   "security": false,

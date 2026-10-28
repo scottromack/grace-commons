@@ -190,7 +190,7 @@ cut a versioned release, so everything below sits under **Unreleased**.
     (invariant-level recurrence, not atom-set co-occurrence; an emergent invariant
     surface of its own; Jackson's freestanding-concept test, decisive) with
     forthcoming-debt as a tie-breaker, not a gate — plus a worked case running
-    Immutable Transaction Ledger's *dual-store atomic-commit* candidate through the
+    Immutable Transaction Ledger's (now Immutable Ledger's) *dual-store atomic-commit* candidate through the
     gates to show Gate 3 declines it. Hardened under two fresh-reader Torvalds
     (Pass 3) rounds.
   - **The pressure-testing.md split — declined (A6).** The proposed three-way

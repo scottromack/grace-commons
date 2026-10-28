@@ -52,7 +52,7 @@ _25 compositions (25 regulated) · 28 atoms · 61 composition→atom edges. Gene
 | [Provenance](./provenance.md) | — | yes (1) | — | chain-of-custody |
 | [Provisional Commitment](./provisional-commitment.md) | — | yes (2) | — | idempotent-reservation, reserve-from-pool |
 | [Retention Window](./retention-window.md) | — | yes (4) | — | audit-trail, customer-onboarding, defensible-retention, propagate-consent-revocation-downstream |
-| [Selective Disclosure](./selective-disclosure.md) | — | yes (3) | — | capability-backed-sharing, immutable-transaction-ledger, resolve-a-persons-data-rights |
+| [Selective Disclosure](./selective-disclosure.md) | — | yes (3) | — | capability-backed-sharing, immutable-ledger, resolve-a-persons-data-rights |
 | [Session](./session.md) | — | yes (4) | yes | actor-suspension, login, privileged-access-provisioning, session-gated-authorization |
 | [State Machine](./state-machine.md) | — | yes (2) | — | compensable-workflow, execute-gated-workflow |
 | [Subscription](./subscription.md) | — | yes (2) | — | notification-fanout, preference-aware-notification-fanout |
@@ -82,7 +82,7 @@ Atoms that a regulated composition (one carrying a `## Generation acceptance` se
 - [Provenance](./provenance.md) — via chain-of-custody
 - [Provisional Commitment](./provisional-commitment.md) — via idempotent-reservation, reserve-from-pool
 - [Retention Window](./retention-window.md) — via audit-trail, customer-onboarding, defensible-retention, propagate-consent-revocation-downstream
-- [Selective Disclosure](./selective-disclosure.md) — via capability-backed-sharing, immutable-transaction-ledger, resolve-a-persons-data-rights
+- [Selective Disclosure](./selective-disclosure.md) — via capability-backed-sharing, immutable-ledger, resolve-a-persons-data-rights
 - [Session](./session.md) — via actor-suspension, login, privileged-access-provisioning, session-gated-authorization
 - [State Machine](./state-machine.md) — via compensable-workflow, execute-gated-workflow
 - [Subscription](./subscription.md) — via notification-fanout, preference-aware-notification-fanout

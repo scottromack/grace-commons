@@ -32,7 +32,7 @@ A shared plan board and triage desk for the Grace Commons operation — the drai
 
 ## The two load-bearing boundaries, stated as spec questions
 
-**Draft/record.** Candidate emergent invariants for the deployment design doc (and eventually the composition): (1) *single seam* — no record-space write except through `promote`; (2) *promote binding bijection* — the plan-apply, the lineage reference, and the sealed `desk.promoted` audit event commit together or not at all (the house TLA+ shape: Chain of Custody / Immutable Transaction Ledger family, model + buggy twin largely liftable); (3) *no timeline lost* — a declined or abandoned branch remains reachable and comparable; (4) *branch provenance* — every branch names the record-state it forked from.
+**Draft/record.** Candidate emergent invariants for the deployment design doc (and eventually the composition): (1) *single seam* — no record-space write except through `promote`; (2) *promote binding bijection* — the plan-apply, the lineage reference, and the sealed `desk.promoted` audit event commit together or not at all (the house TLA+ shape: Chain of Custody / Immutable Ledger family, model + buggy twin largely liftable); (3) *no timeline lost* — a declined or abandoned branch remains reachable and comparable; (4) *branch provenance* — every branch names the record-state it forked from.
 
 **Undo permissions.** Who undoes whom; whether an agent may undo its own actions inside its branch (yes, freely — that is what draft-space is for) versus in record-space (never directly — record-space reversal is itself a promoted change); how session-revert composes with Assignment (recall semantics on undone assigns). These are the genuinely new invariants Undo Across Actors exists to own.
 
