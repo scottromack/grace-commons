@@ -371,6 +371,19 @@ open:{open_lines}
 """
 
 
+# Decisions folded into a <details>, as Cart's are (2026-10-28): the heading rides
+# in the <summary> as an <h2> at the start of its line, the form LINEAGE_HEADING reads
+FOLDED_DECISIONS = ('<details markdown="block">\n<summary>\n'
+                    '    <h2 id="decisions" style="display: inline-block; margin-left: 1.5rem;">Decisions</h2>\n'
+                    '</summary>\n\n{body}\n\n</details>\n')
+
+
+def _fold(page: str) -> str:
+    """The page with its Decisions section folded into a <details>."""
+    head, _, body = page.partition("## Decisions\n\n")
+    return head + FOLDED_DECISIONS.format(body=body.rstrip("\n"))
+
+
 R_FIXTURES = [
     # name, page text, code expected (None = must be silent)
     ("R_CLEAN", _ledger_page(
@@ -411,6 +424,11 @@ R_FIXTURES = [
     ("R_DECISIONS_MISSING", _ledger_page(
         "partially resolved", "partially resolved", " none").split("## Decisions")[0],
      "R-decisions-missing"),
+    ("R_DECISIONS_FOLDED", _fold(_ledger_page(
+        "partially resolved", "partially resolved", " none")), None),
+    ("R_DECISION_FORM_FOLDED", _fold(_ledger_page(
+        "partially resolved", "partially resolved", " none",
+        decisions="- **2026-08-26 — Title.** We chose a because c.")), "R-decisions-grammar"),
     ("R_LEDGER_MISSING", "# Synthetic\n\n## Status\n\n`partially resolved` — see the Ledger.\n",
      "R-ledger-missing"),
 ]
@@ -979,9 +997,10 @@ def check_caps_synthetic(problems: list[str]) -> None:
 
 
 def check_heading_synthetic(problems: list[str]) -> None:
-    """H-heading — landed at council read 80. Six fixtures against the real
-    standard: a conforming atom stays silent, and each of the five defect
-    shapes the sweep cleared fires."""
+    """H-heading — landed at council read 80. Nine fixtures against the real
+    standard: a conforming atom stays silent, and so does one whose Decisions
+    are folded into a <details> (2026-10-28), and each of the seven defect
+    shapes fires."""
     root = Path(__file__).resolve().parents[2]
     head = "Term qualifiers: `migrated` — rewritten in GRACE lang v0.44 (2026-09-15).\n\n"
     good = ["Summary", "Intent", "Structure", "### Identity model", "### State", "### Operations",
@@ -994,13 +1013,16 @@ def check_heading_synthetic(problems: list[str]) -> None:
     def page(names: list[str]) -> str:
         return head + "".join(("" if n.startswith("#") else "## ") + n + "\n\nx\n\n" for n in names)
 
-    def run(name: str, names: list[str]) -> set[str]:
+    def run(name: str, names: list[str], text: str | None = None) -> set[str]:
         path = Path(f"synthetic/atoms/{name}.md")
-        pat = Pattern(path=path, text=page(names), invariant_count=1, grounded=False)
+        pat = Pattern(path=path, text=page(names) if text is None else text, invariant_count=1, grounded=False)
         return {f.message for f in check_heading_standard(root, {path: pat})}
 
     if run("good", good):
         problems.append(f"H-heading: fired on a conforming atom: {run('good', good)}")
+    if run("folded", good, _fold(page(good))):
+        problems.append(f"H-heading: fired on an atom whose Decisions are folded: "
+                        f"{run('folded', good, _fold(page(good)))}")
     cases = (
         ("loose_family", [n if n != "### Clock semantics" else "## Clock semantics" for n in good], "is not a section"),
         ("wrong_parent", [n for n in good if n != "### Concurrency"][:6] + ["### Concurrency"] + [n for n in good if n != "### Concurrency"][6:], "belongs under"),
@@ -2372,7 +2394,8 @@ def main(argv: list[str]) -> int:
     check_heading_synthetic(heading_problems)
     failures.extend(heading_problems)
     if not heading_problems:
-        print("H-heading: 8 synthetic fixtures hold (a conforming atom silent; a loose "
+        print("H-heading: 9 synthetic fixtures hold (a conforming atom and one with its "
+              "Decisions folded silent; a loose "
               "family, a wrong parent, a wrong order, an unplaced heading first, a "
               "missing required heading, a retired name and a plural variant fire) \u2713")
 
@@ -2623,7 +2646,7 @@ def main(argv: list[str]) -> int:
     failures.extend(r_problems)
     if not r_problems:
         print(f"R-ledger: {len(R_FIXTURES)} synthetic fixtures hold "
-              f"(two clean pages silent, eleven malformed pages fire their code) \u2713")
+              f"(three clean pages silent, twelve malformed pages fire their code) \u2713")
 
     hist_problems: list[str] = []
     check_history_file_synthetic(hist_problems)

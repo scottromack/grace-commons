@@ -22,8 +22,12 @@ Cart is a shopping cart: it holds what a person means to buy, one line per item,
 
 ## Intent
 
-WHY:
+<details markdown="block">
+<summary>WHY</summary>
+
 A shop lets a person gather what they mean to buy before they buy it, and the shape recurs wherever goods or services are sold: an online store's basket, a café's open tab, a wholesale order assembled line by line, a booking that collects tickets and extras before payment. The shape is constant — lines, each naming an item, how many of it, and the price it was offered at when it went in, and a total the lines add up to — and this atom is that and nothing more. It does not decide what an item costs, whether one is in stock, what tax or delivery applies, whose cart it is, or how the purchase is paid for and becomes an order; each of those belongs to a composing pattern, and declining them is what lets one cart serve an online store, a till and a booking system alike. Two decisions carry the weight. A line keeps the unit price taken when it was added, and nothing in the atom changes it afterwards, so the total moves only when a line is added, re-counted or taken out, never because a price moved underneath it. And a cart holds at most one line per item, so how many of an item a cart holds is one quantity on one line.
+
+</details>
 
 ## Structure
 
@@ -63,7 +67,7 @@ State 2: EVERY line MUST carry line id, cart id, item reference, quantity and un
 State 3: The atom MUST NOT remove a cart.
 ```
 
-Term quantity: how many of the item a line holds — a [Quantity]; a positive count.
+Term quantity: how many of the item a line holds — a [Quantity]; a positive count of the thing the item reference names and the unit price prices, so a pack of two is one; how many physical items a pack holds is the catalog's.
 
 Term unit price: the price of one of the item, options included, supplied by the composing pattern that prices the item (Composition note 2) and taken from the call that added the line — a [Unit Price]; a whole amount.
 
@@ -574,7 +578,10 @@ open:
 - 2026-10-24-b · refining · Operation 21; Term cart; Term records · [Read] answers cart, which State 1 and Term records give a cart id and Term cart, Operation 21 and the Read entry do not, so a build echoes the caller's cart id or not by the reading it picks, as readers in each of the last three rounds asked → name the cart id in Operation 21, or say the answer leaves the caller's own id out
 ```
 
-## Decisions
+<details markdown="block">
+<summary>
+    <h2 id="decisions" style="display: inline-block; margin-left: 1.5rem;">Decisions</h2>
+</summary>
 
 Directional changes only; everything smaller lives in `git log -- atoms/cart.md`.
 
@@ -582,5 +589,7 @@ Directional changes only; everything smaller lives in `git log -- atoms/cart.md`
 - **2026-10-23 — A line keeps the price taken when it was added, and a cart holds one line per item.** *Chose:* the unit price [Add] takes, which no action changes (Invariant 2.1); one line per item among the lines a cart carries, a second add of the item refused as already-in-cart (Operation 8, Invariant 1.1, Check 2.3); a line named by an opaque line id, never by its item reference (Identity 2, Identity 5), so an item removed and added again is a new line at the new price; a removed line gone from the current records, its versions readable as they stood (Operation 16, Operation 18, Execution Contract Database 5); [Change Quantity] setting a whole new quantity. *Over:* merge-into-existing-line (whose price would the merged units carry?); lines named by their item reference (their history would mix two prices); a removed-line state (a field nothing needs); every version of a removed line erased (what a checkout took would become unreadable); quantity by difference (a repeated call applies it twice). *Because:* the ruling defines a line as an item reference, a quantity and the unit price taken when added; with one line per item and one price per line, the total moves only when a line is added, re-counted or removed, and an auditor reads each line's price from its versions (Execution Contract Database 5); a removed line's versions keep its cart id (Invariant 3.1), so the rule counts only the lines a cart carries.
 - **2026-10-23 — One currency per cart, amounts in its minor unit, and no checkout state.** *Chose:* a currency fixed at [Open] from the accepted currencies (Capability requirement 3, Invariant 4.1), stored as supplied and compared codepoint for codepoint (Identity 8, Identity 9); every amount a whole number of the currency's minor unit, the total computed at each read, never stored, without loss (Capability requirement 4); no lifecycle state, a cart never closed or removed by the atom (State 3, Non-goal 8), a checkout reading the lines it takes in its own transaction (Execution Contract Database 1 and Database 2). *Over:* a currency per line (a mixed cart has no total); decimal or floating-point amounts; a currency matched without regard to case (a rule the page never named); a checked-out state (the checkout's decision folded into the atom); a check that a read's total sums its lines (Execution Contract Conformance 6 already holds a read to the records). *Because:* a sum is defined over one unit of account, whole minor units add without rounding, and every committed version of a cart and its lines stays readable (Execution Contract Database 5), so what a checkout took survives the cart's changes.
 - **2026-10-24 — An item reference names the item with its options.** *Chose:* one configured item per line, on the maintainer's ruling of 2026-10-23 22:50Z: the item reference names the item with the options chosen for it, in the deployment's own scheme (Term item reference), so Invariant 1.1 and Operation 8, unchanged in wording, hold one line per configured item, as the café tab's two flat whites show; the unit price is the configured item's, supplied by the composing pattern that prices it (Term unit price, Composition note 2); the atom reads no option (Non-goal 16), which a catalog pattern owns. *Over:* options as fields of the line (the atom would read and compare what a catalog defines); an item whose options its reference cannot name, once listed where the atom breaks down. *Because:* an item reference is stored as supplied and compared codepoint for codepoint (Identity 6, Identity 7), so naming the options in it costs the atom no rule, and an item with other options is another item, at its own price.
+
+</details>
 
 NOTE: End of Cart.

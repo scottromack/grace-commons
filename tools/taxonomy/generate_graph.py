@@ -44,7 +44,10 @@ def invariant_count(text):
     """Bold bullet headings and `Invariant N.M` rule labels — lint.py's
     invariant_numbers, mirrored."""
     return len(set(INVARIANT_HEADER.findall(text)) | set(INVARIANT_RULE.findall(text)))
-STATUS_SECTION = re.compile(r"^## Status\s*\.?\s*$", re.M)
+# a section heading is `## Name`, or the <h2> a section folded into a <details>
+# carries at the start of its line (Cart's Decisions, 2026-10-28)
+H2_FOLDED = re.compile(r"^\s*<h2\b[^>]*>\s*(.*?)\s*</h2>\s*$")
+STATUS_SECTION = re.compile(r"^(?:## Status\s*\.?|[ \t]*<h2\b[^>]*>[ \t]*Status\.?[ \t]*</h2>)\s*$", re.M)
 LEADING_TOKEN = re.compile(r"`([^`]+)`")
 
 
@@ -87,6 +90,9 @@ def substrates_of(text, comp_slugs):
     lines, grab, out = text.splitlines(), False, []
     item = re.compile(r"^\s*-\s+\*{0,2}\[[^\]]+\]\(\./([a-z0-9-]+)\.md\)\*{0,2}\s*[—-]")
     for line in lines:
+        folded = H2_FOLDED.match(line)
+        if folded:
+            line = "## " + folded.group(1)
         if re.match(r"^## ", line):
             if grab:
                 break

@@ -277,6 +277,9 @@ LABEL = re.compile(r"^((?:[A-Za-z_][\w'’-]*)(?: [A-Za-z_][\w'’-]*){0,4} [\d�
 LABEL_PARTS = re.compile(r"^(?P<name>.+?)(?: step (?P<step>[\d½]+)\.(?P<sn>\d+)| (?P<major>\d+)\.(?P<minor>\d+)| (?P<num>\d+))(?P<letter>[a-z]?)$")
 PREFIX = re.compile(r"^(WHY|NOTE|UX|PROVISIONAL):")
 FENCE = re.compile(r"^(\s*)```(\w*)\s*$")
+# a section heading is `## Name`, or the HTML `<h2>` that a section folded into a
+# <details> carries at the start of its line (Cart's Decisions, 2026-10-28)
+H2_FOLDED = re.compile(r"^\s*<h2\b[^>]*>\s*(.*?)\s*</h2>\s*$")
 MIGRATED = re.compile(r"^Term qualifiers:[^\n]*\bmigrated\b", re.M)
 # a spec's history sits beside it as `<spec name>.hist.md` and is no spec
 HISTORY = "*.hist.md"
@@ -333,6 +336,14 @@ ARITH_OPERATOR = re.compile(r" [-+*×] ")
 ARITH_DIVISION = re.compile(r"[/÷]")
 NEGATIVE_LITERAL = re.compile(r"(?:^|[\s(,])[-−]\d")
 ARITH_CLOCK = re.compile(r"\bclocks?\b")
+
+
+def h2_name(ln: str) -> str | None:
+    """The name of the section a `##` heading line opens, in either form, else None."""
+    if ln.startswith("## "):
+        return ln[3:]
+    m = H2_FOLDED.match(ln)
+    return m.group(1) if m else None
 
 
 def inline_arithmetic(text: str) -> tuple[str, list[str]]:
@@ -904,8 +915,8 @@ def scan(path: Path) -> list[Finding]:
                   if sm for x in (sm.group(2) or "").split(", ") if x}
     history = False
     for k, ln in enumerate(lines, start=1):
-        if ln.startswith("## "):
-            history = ln.startswith(("## Status", "## Ledger"))
+        if h2_name(ln) is not None:
+            history = h2_name(ln).startswith(("Status", "Ledger"))
         if history or not TERM_DECL.match(ln):
             continue
         for why in condition_form(ln, sig_inputs, False):
@@ -938,8 +949,8 @@ def scan(path: Path) -> list[Finding]:
         if FENCE.match(ln):
             in_fence = not in_fence
             continue
-        if ln.startswith("## "):
-            history = ln.startswith(("## Status", "## Ledger"))
+        if h2_name(ln) is not None:
+            history = h2_name(ln).startswith(("Status", "Ledger"))
         if in_fence or history or ln.startswith(("#", "Projection:", "Wire:")) or re.match(r"^\[[^\]]+\]:", ln):
             continue
         for sm in re.finditer(r"(?<!`)`([^`\n]+)`(?!`)", ln):
@@ -951,14 +962,16 @@ def scan(path: Path) -> list[Finding]:
 
     def track(ln: str) -> None:
         hm = re.match(r"^(#{2,4}) (.*)$", ln)
-        if hm:
-            lvl = len(hm.group(1))
+        fm = H2_FOLDED.match(ln)
+        if hm or fm:
+            lvl = len(hm.group(1)) if hm else 2
+            name = hm.group(2) if hm else fm.group(1)
             if lvl == 2:
-                ctx.update(h2=hm.group(2), h3="", h4="")
+                ctx.update(h2=name, h3="", h4="")
             elif lvl == 3:
-                ctx.update(h3=hm.group(2), h4="")
+                ctx.update(h3=name, h4="")
             else:
-                ctx["h4"] = hm.group(2)
+                ctx["h4"] = name
             ctx.update(bullet="", italic="", inv=None, step=None)
             return
         im = re.match(r"^\s*- \*\*Invariant (\d+) —(.*)", ln)

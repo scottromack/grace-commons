@@ -53,9 +53,17 @@ CATEGORIES = ("compliance", "healthcare", "messaging", "productivity",
               "resource-lifecycle", "temporal", "workflow")
 
 
+# a section folded into a <details> carries its heading as an <h2> at the start of
+# its line (Cart's Decisions, 2026-10-28); it is read as the `## ` heading it stands for
+H2_FOLDED = re.compile(r"^\s*<h2\b[^>]*>\s*(.*?)\s*</h2>\s*$")
+
+
 def section(text, header_regex):
     out, grab = [], False
     for line in text.splitlines():
+        folded = H2_FOLDED.match(line)
+        if folded:
+            line = "## " + folded.group(1)
         if re.match(r"^## ", line):
             if grab:
                 break
@@ -105,7 +113,7 @@ def parse_composition(path):
             continue
         atoms.append(name)
         roles[name] = m.group(3).strip()[:90]
-    regulated = bool(re.search(r"^## .*Generation acceptance", text, re.M))
+    regulated = bool(re.search(r"^(?:## |[ \t]*<h2\b[^>]*>).*Generation acceptance", text, re.M))
     std_section = section(text, r"^## Standards")
     # a migrated page spells an acronym out where it first appears — `21 CFR (Code of
     # Federal Regulations) Part 11`, `ISO/IEC (International Electrotechnical Commission)

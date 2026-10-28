@@ -35,12 +35,13 @@ export function sliceGA(text) {
   const lines = text.split("\n");
   let start = -1;
   for (let i = 0; i < lines.length; i++) {
-    if (/^##\s+Generation\s+acceptance\s*$/i.test(lines[i])) { start = i + 1; break; }
+    // `## Generation acceptance`, or the <h2> of a section folded into a <details>
+    if (/^(?:##\s+Generation\s+acceptance|\s*<h2\b[^>]*>\s*Generation\s+acceptance\s*<\/h2>)\s*$/i.test(lines[i])) { start = i + 1; break; }
   }
   if (start === -1) return null;
   let end = lines.length;
   for (let i = start; i < lines.length; i++) {
-    if (/^##\s+\S/.test(lines[i])) { end = i; break; }   // next h2 ends the section
+    if (/^(?:##\s+\S|\s*<h2\b)/.test(lines[i])) { end = i; break; }   // next h2 ends the section
   }
   return lines.slice(start, end).join("\n");
 }

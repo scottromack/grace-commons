@@ -179,6 +179,21 @@ PATTERN_DIRS = ("atoms", "compositions")
 # a spec's history sits beside it as `<spec name>.hist.md` and is no pattern:
 # every walk that reads atoms/ and compositions/ as specs skips it
 HISTORY_FILE = "*.hist.md"
+# a section heading is `## Name`, or the HTML `<h2>` that a section folded into a
+# <details> carries at the start of its line (Cart's Decisions, 2026-10-28; the
+# form LINEAGE_HEADING below reads), and every check that finds a section by its
+# heading takes both
+H2_FOLDED = re.compile(r"^\s*<h2\b[^>]*>\s*(.*?)\s*</h2>\s*$")
+
+
+def h2_name(line: str) -> str | None:
+    """The name of the section a `##` heading line opens, in either form, else None."""
+    if line.startswith("## "):
+        return line[3:].rstrip()
+    m = H2_FOLDED.match(line)
+    return m.group(1) if m else None
+
+
 INVARIANT_HEADER = re.compile(r"^\s*-?\s*\*\*Invariant\s+(\d+)\s+[—-]", re.M)
 # a migrated spec states an invariant as rules labelled `Invariant N.M`, and
 # some carry no bold bullet heading above them (council read 93)
@@ -1186,7 +1201,7 @@ STATUS_TOKEN_FORMS = [
     re.compile(r"^grounded \(English\) on Final Critique \d+ — \d{4}-\d{2}-\d{2} — formal layer pending$"),
     re.compile(r"^grounded on Final Critique \d+ — \d{4}-\d{2}-\d{2} — .+ pending$"),
 ]
-STATUS_SECTION = re.compile(r"^## Status\s*$", re.M)
+STATUS_SECTION = re.compile(r"^(?:## Status|[ \t]*<h2\b[^>]*>[ \t]*Status[ \t]*</h2>)\s*$", re.M)
 LEADING_TOKEN = re.compile(r"^`([^`]+)`")
 
 
@@ -1417,7 +1432,8 @@ def check_acceptance_surface(patterns: dict[Path, Pattern]) -> list[Finding]:
     for p in patterns.values():
         if not re.search(r"^Term qualifiers:.*\bmigrated\b", p.text, re.M):
             continue  # the unmigrated corpus is not held to this
-        section = re.search(r"^## Generation acceptance\s*$", p.text, re.M)
+        section = re.search(r"^(?:## Generation acceptance|[ \t]*<h2\b[^>]*>[ \t]*Generation acceptance[ \t]*</h2>)\s*$",
+                            p.text, re.M)
         if section:
             if re.search(r"^\s*(?:Check|External check) \d", p.text, re.M):
                 continue
@@ -1473,8 +1489,11 @@ def check_migration_seam(patterns: dict[Path, Pattern]) -> list[Finding]:
     for p in patterns.values():
         for level in ("## ", "### "):
             seen: dict[str, int] = {}
-            for m in re.finditer(rf"^{level}(?!#)(.+?)\s*$", p.text, re.M):
-                name = m.group(1).strip()
+            heads = rf"^{level}(?!#)(.+?)\s*$"
+            if level == "## ":
+                heads = r"^(?:## (?!#)(.+?)|[ \t]*<h2\b[^>]*>[ \t]*(.+?)[ \t]*</h2>)\s*$"
+            for m in re.finditer(heads, p.text, re.M):
+                name = m.group(m.lastindex).strip()
                 if name in seen:
                     findings.append(Finding(
                         p.path, line_of(p.text, m.start()), "M-section-doubled",
@@ -2188,7 +2207,7 @@ def check_whitelist_gloss(patterns: dict[Path, Pattern]) -> list[Finding]:
 # commented definition block never count as markers. Definitions are the
 # `[Text]: target` lines (the registry itself). Comparison is on the bracket text
 # verbatim — anchors/casing are the adapter's job, not this check's.
-TERMS_SECTION = re.compile(r"^##\s+Terms\b", re.M)
+TERMS_SECTION = re.compile(r"^(?:##\s+|[ \t]*<h2\b[^>]*>[ \t]*)Terms\b", re.M)
 HTML_COMMENT = re.compile(r"<!--.*?-->", re.S)
 # a shortcut-reference definition line: `[Text]: destination`
 TERM_DEF = re.compile(r"^\[([^\]]+)\]:\s*\S", re.M)
@@ -2270,8 +2289,8 @@ def check_term_registry(patterns: dict[Path, Pattern]) -> list[Finding]:
 # status that disagrees with the Status line; an open line with the wrong
 # field count, an unknown class, a malformed or duplicate id.
 
-LEDGER_SECTION = re.compile(r"^## Ledger\s*$", re.M)
-DECISIONS_SECTION = re.compile(r"^## Decisions\s*$", re.M)
+LEDGER_SECTION = re.compile(r"^(?:## Ledger|[ \t]*<h2\b[^>]*>[ \t]*Ledger[ \t]*</h2>)\s*$", re.M)
+DECISIONS_SECTION = re.compile(r"^(?:## Decisions|[ \t]*<h2\b[^>]*>[ \t]*Decisions[ \t]*</h2>)\s*$", re.M)
 FENCE = re.compile(r"^```[^\n]*\n(.*?)^```", re.M | re.S)
 LEDGER_ID = re.compile(r"^\d{4}-\d{2}-\d{2}-[a-z]+$")
 LEDGER_CLASSES = ("foundational", "refining", "rhetorical")
@@ -2441,7 +2460,8 @@ def check_ledger(patterns: dict[Path, Pattern]) -> list[Finding]:
                 "(directional changes only; may have no entries)",
             ))
             continue
-        nxt = re.compile(r"^(?:## |---\s*$)", re.M).search(p.text, d.end())
+        # the section ends at the next heading, a rule, or the close of its fold
+        nxt = re.compile(r"^(?:## |---\s*$|[ \t]*<h2\b|</details>)", re.M).search(p.text, d.end())
         body = p.text[d.end():nxt.start() if nxt else len(p.text)]
         for i, raw in enumerate(body.split("\n")):
             if raw.startswith("- ") and not DECISION_ENTRY.match(raw):
@@ -2561,6 +2581,8 @@ def _heading_tree(text: str) -> list[tuple[int, str, int]]:
         m = re.match(r"^(#{2,3}) (.+?)\s*$", line)
         if m:
             out.append((len(m.group(1)), m.group(2), i))
+        elif H2_FOLDED.match(line):
+            out.append((2, H2_FOLDED.match(line).group(1), i))
     return out
 
 
@@ -2864,8 +2886,10 @@ def _titles(path: Path) -> set[str]:
     except OSError:
         return set()
     out: set[str] = set()
-    for m in re.finditer(r"^#+\s+(.*?)\s*$", text, re.M):
-        h = re.sub(r"^\d+(\.\d+)*\.?\s+", "", m.group(1).strip().replace("`", ""))
+    heads = [m.group(1) for m in re.finditer(r"^#+\s+(.*?)\s*$", text, re.M)]
+    heads += [m.group(1) for m in re.finditer(r"^[ \t]*<h2\b[^>]*>[ \t]*(.*?)[ \t]*</h2>", text, re.M)]
+    for head in heads:
+        h = re.sub(r"^\d+(\.\d+)*\.?\s+", "", head.strip().replace("`", ""))
         h = re.sub(r"\s*\*\(.*\)\*\s*$", "", h)
         out.add(h)
         if " — " in h:
@@ -2943,7 +2967,7 @@ def check_composes_list(patterns: dict[Path, Pattern]) -> list[Finding]:
     for p in patterns.values():
         if p.path.parent.name != "compositions":
             continue
-        m = re.search(r"(?ms)^## Composes\b[^\n]*\n(.*?)(?=^## |\Z)", p.text)
+        m = re.search(r"(?ms)^(?:## |[ \t]*<h2\b[^>]*>[ \t]*)Composes\b[^\n]*\n(.*?)(?=^(?:## |[ \t]*<h2\b)|\Z)", p.text)
         if not m:
             continue  # H-heading owns a missing section
         if not COMPOSES_BULLET.search(m.group(1)):
@@ -2970,7 +2994,7 @@ def check_constituents_agree(patterns: dict[Path, Pattern]) -> list[Finding]:
     for p in patterns.values():
         if p.path.parent.name != "compositions":
             continue
-        sec = re.search(r"(?ms)^## Composes\b[^\n]*\n(.*?)(?=^## |\Z)", p.text)
+        sec = re.search(r"(?ms)^(?:## |[ \t]*<h2\b[^>]*>[ \t]*)Composes\b[^\n]*\n(.*?)(?=^(?:## |[ \t]*<h2\b)|\Z)", p.text)
         if not sec or not COMPOSES_BULLET.search(sec.group(1)):
             continue  # F-composes-list owns a missing list
         listed = set(COMPOSES_BULLET.findall(sec.group(1)))
@@ -3155,8 +3179,8 @@ def _record_lines(root: Path, path: Path, lines: list[str]) -> set[int]:
     if rel.startswith(("atoms/", "compositions/")) and path.suffix == ".md":
         on = False
         for i, l in enumerate(lines):
-            if l.startswith("## "):
-                on = l.strip() == "## Decisions"
+            if h2_name(l) is not None:
+                on = h2_name(l) == "Decisions"
             if on or l.startswith("formal:"):
                 rec.add(i)
     elif rel == "GRACE-lang.md":
@@ -3166,8 +3190,8 @@ def _record_lines(root: Path, path: Path, lines: list[str]) -> set[int]:
         # the grammar's Changes section, moved beside it at v0.66; Section 23 points here
         on = False
         for i, l in enumerate(lines):
-            if l.startswith("## "):
-                on = l.strip() == "## Changes"
+            if h2_name(l) is not None:
+                on = h2_name(l) == "Changes"
             if on:
                 rec.add(i)
     elif rel == "governance.md":

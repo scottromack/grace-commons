@@ -55,19 +55,22 @@ export function project(canonical) {
 // its body until the next h4 / section. We read `Kind:`, the `<X> of:` relation,
 // `Role:`, `Projection:` (canonical token), and the optional `Wire: pinned` flag.
 const CARD = /^####\s+(.+?)\s*$/;
-const SECTION = /^##\s+/;
+// a section heading is `## Name`, or the <h2> a section folded into a <details>
+// carries at the start of its line (Cart's Decisions, 2026-10-28)
+const SECTION = /^(?:##\s+|\s*<h2\b)/;
+const TERMS = /^(?:##\s+|\s*<h2\b[^>]*>\s*)Terms\b/;
 
 function parseTerms(md, path) {
   const lines = md.split("\n");
   // locate the `## Terms` section
-  let i = lines.findIndex((l) => /^##\s+Terms\b/.test(l));
+  let i = lines.findIndex((l) => TERMS.test(l));
   if (i < 0) return null;
   i += 1;
   const terms = {};
   let cur = null;
   for (; i < lines.length; i++) {
     const line = lines[i];
-    if (SECTION.test(line) && !/^##\s+Terms\b/.test(line)) break; // left the section
+    if (SECTION.test(line) && !TERMS.test(line)) break; // left the section
     const h = line.match(CARD);
     if (h) {
       cur = h[1].trim();

@@ -59,9 +59,10 @@ def composes_section(repo, comp_rel):
         return ""
     out, capture = [], False
     for ln in open(full, encoding="utf-8").read().splitlines():
-        if re.match(r'^##\s+Composes\b', ln):
+        # a heading is `## Name`, or the <h2> of a section folded into a <details>
+        if re.match(r'^(?:##\s+|\s*<h2\b[^>]*>\s*)Composes\b', ln):
             capture = True; continue
-        if capture and re.match(r'^##\s+', ln):
+        if capture and re.match(r'^(?:##\s+|\s*<h2\b)', ln):
             break
         if capture:
             out.append(ln)
