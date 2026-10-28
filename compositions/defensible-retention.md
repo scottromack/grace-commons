@@ -196,6 +196,7 @@ Deleted: Capability requirement 49. Execution Contract Database 3 owns it.
 Capability requirement 50: A deployment MUST supply the alerting surface.
 Capability requirement 51: A deployment MUST supply the scheduler.
 Capability requirement 52: The scheduler MUST survive the loss of one process.
+NOTE: watch the supplied scheduler (Capability requirement 51, Capability requirement 52).
 Capability requirement 53: A deployment MUST release a hold of the hold records through [Release Hold] alone.
 Capability requirement 54: A deployment MUST supply hold records, a business retention instance, an audit instance AND a record destruction pattern bound by Lease Capability requirement 8 and 10 for EVERY call the composition issues under the record section.
 Capability requirement 55: A deployment MUST supply the business retention instance PER Retention Window Capability requirement 1, 5 and 6a through 16, the composition owning the destruction (Retention Window Record divergence 4).

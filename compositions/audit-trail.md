@@ -291,6 +291,7 @@ Twenty-one knobs — Legal Hold among them, declared with the capability it swit
   seal cadence 3: A per-event seal that failed at step 6 MUST stand as the alert of record action step 6.5 until a later [Record Action], [Purge Event] or [Seal Now] seals the event.
   NOTE: open 2026-10-25-b — under per-event cadence a failed step-6 seal on a log that then goes quiet stands until a later action seals the event, and no rule obliges one (seal cadence 3, record action step 6.6).
   seal cadence 4: IF seal cadence EQUALS interval-based THEN the deployment MUST supply a cadence driver that fires on the time arm and the events arm, survives the loss of any one process, and fires at start and at restart.
+  NOTE: watch the supplied scheduler (seal cadence 4).
   seal cadence 5: The events arm MUST count the log tail less sealed through.
   ```
   Term cadence driver: the host facility that calls [Seal Now] per an interval-based seal cadence.
@@ -380,6 +381,7 @@ Twenty-one knobs — Legal Hold among them, declared with the capability it swit
   reconciliation cadence 4: IF time arm DOES NOT EQUAL blank AND reconciliation cadence EQUALS blank THEN the instance MUST take the time arm as reconciliation cadence.
   reconciliation cadence 5: reconciliation cadence MUST govern all three halves of the scan.
   reconciliation cadence 6: The scan scheduler MUST start the next run no later than reconciliation cadence after the previous run's start WHEN the process that ran the previous run has died.
+  NOTE: watch the supplied scheduler (reconciliation cadence 6).
   ```
   Term scan scheduler: the host facility that starts scan runs and survives the loss of any one process serving the instance.
 - **reconciliation operator**

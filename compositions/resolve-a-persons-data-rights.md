@@ -213,6 +213,7 @@ Capability requirement 40: A deployment MUST set the text cap.
 Capability requirement 41: A deployment MUST route EVERY disclosure write carrying a request scope through the composition alone.
 Capability requirement 42: A deployment MUST route EVERY audit write carrying a composition action reference through the composition alone.
 Capability requirement 43: The scheduler MUST survive the loss of one process.
+NOTE: watch the supplied scheduler (Capability requirement 38, Capability requirement 43).
 Capability requirement 44: EVERY registered record MUST carry a record reference no other registered record carries.
 Capability requirement 45: A deployment MUST disclose the audit write latency PER Defensible Retention Capability requirement 22.
 Capability requirement 46: The host MUST inject now at the seam once PER leg.

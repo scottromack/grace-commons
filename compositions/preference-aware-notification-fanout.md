@@ -382,6 +382,7 @@ WHY:
 ```
 Reconciliation 1: The deployment's scheduler MUST call [Reconcile Gaps] AND [Reconcile Overshoots] every reconciliation cadence.
 Reconciliation 2: The deployment's scheduler MUST call [Reconcile Gaps] AND [Reconcile Overshoots] at EVERY restart.
+NOTE: watch the supplied scheduler (Reconciliation 1, Reconciliation 2).
 Reconciliation 3: IF the fanout id names a young invocation THEN [Reconcile Gaps] MUST answer too-young.
 Reconciliation 4: [Reconcile Gaps] MUST NOT write for a young invocation.
 Reconciliation 5: [Reconcile Gaps] MUST NOT write for an invocation whose initiation entry is an aged entry.
