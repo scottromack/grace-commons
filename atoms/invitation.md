@@ -18,7 +18,7 @@ toc: true
 
 Invitation tracks the life of an invitation issued to an outside party — a new employee, a customer, a collaborator, a patient. It answers *what is the state of this invitation, and who accepted it?*
 
-An invitation is issued before the invitee has an identity in the system, which is what makes it useful: it is the bridge from outsider to registered participant. Each is identified by a random token the invitee presents to act on it, and each starts pending. It is resolved by a write to one of three recorded end states — accepted (recording, permanently, the identity that joined), declined (a deliberate refusal, recorded as its own outcome), or revoked (the inviter withdrew it). If the window simply passes, the invitation *reads* expired: a status computed from the deadline and the clock, never written.
+An invitation is issued before the invitee has an identity in the system, which is what makes it useful: it is the bridge from outsider to registered participant. Each is identified by a random token the invitee presents to act on it, and each starts pending. It is resolved by a write to one of three recorded end states — accepted (recording the identity that joined, which the pattern never changes or deletes), declined (a deliberate refusal, recorded as its own outcome), or revoked (the inviter withdrew it). If the window simply passes, the invitation *reads* expired: a status computed from the deadline and the clock, never written.
 
 Resolving exactly once is the guarantee. After a write resolves an invitation, any further write is told which resolution stands — and two people accepting at once means one wins and the other is told. A write against a lapsed invitation is told it expired, which is a different answer from any of the three resolutions.
 
@@ -69,7 +69,7 @@ Term reference: invitation token, inviter reference, invitee reference, acceptin
 
 Term database instance: one named database a call is routed to; invitation token uniqueness ranges over one instance.
 
-Term seam: the atom's I/O boundary as the section titled Logic Confinement Principle in `execution-contract.md` declares it; the host injects the clock reading and the token material here.
+Term seam: the atom's I/O (input and output) boundary as the section titled Logic Confinement Principle in `execution-contract.md` declares it; the host injects the clock reading and the token material here.
 
 Term transition: the atom's evaluation of one call against the invitation records, as the section titled Logic Confinement Principle in `execution-contract.md` declares it.
 
@@ -93,8 +93,6 @@ State 12: The atom MUST NOT offer an invitation removal surface.
 State 13: The database instance's invitation count MUST NOT fall.
 ```
 
-NOTE: open 2026-10-22-b — whether a composed retention or a privacy erasure may ever remove an invitation is not stated: State 12, State 13 and Invariant 10.1 keep every invitation, and Non-goal 21 names no owner for a bound.
-
 Term resolution field: accepting identity reference | acceptance instant | declination instant | revocation instant | revoked by reference | revocation reason — every field a resolving write records.
 
 WHY:
@@ -112,7 +110,7 @@ Capability requirement 6: The database MUST refuse a write carrying an invitatio
 Deleted: Capability requirement 7. Execution Contract Database 3 owns it.
 Deleted: Capability requirement 8. Execution Contract Logic confinement 13 owns it.
 Capability requirement 9: The deployment MUST deliver the invitation token to the invitee.
-Capability requirement 12: The deployment MUST supply the invitation records PER Execution Contract Database 1 through 4, Execution Contract Database 7, Execution Contract Read 4 and Execution Contract Refusal 1.
+Capability requirement 12: The deployment MUST supply the invitation records PER Execution Contract Database 1 through 7, Execution Contract Read 4 and Execution Contract Refusal 1.
 Deleted: Capability requirement 10. Execution Contract Logic confinement 7 owns it.
 Deleted: Capability requirement 11. Execution Contract Logic confinement 7 owns it.
 Deleted: Clock semantics 4. Execution Contract Logic confinement 7 owns it.
@@ -194,11 +192,10 @@ Operation 43: [Read] MUST NOT record a field.
 Operation 44: [Read] MUST NOT refuse a filter.
 Deleted: Operation 45. Execution Contract Logic confinement 3 owns it.
 Deleted: Operation 46. Execution Contract Logic confinement 3 owns it.
+Operation 47: IF a filter names a field whose value EQUALS blank THEN [Read] MUST answer no invitation.
 ```
 
 NOTE: watch the state a refusal leaves (Operation 37).
-
-NOTE: open 2026-10-22-a — which fields a filter names, how each matches, whether a status filter reads the stored or the effective status, and the order of [Read]'s answer are not stated (Operation 41, Operation 44).
 
 Term resolving write: [Accept] | [Decline] | [Revoke] — every write taking a pending invitation to a stored terminal.
 
@@ -212,7 +209,7 @@ Term ttl bounds: the deployment's admitted range for a ttl, the time to live an 
 
 Term default ttl: the ttl the deployment declares for an [Initiate] carrying none.
 
-Term expiry bound: initiation instant raised by the ttl — the value an admitted initiate records as expiry instant.
+Term expiry bound: (initiation instant + ttl) — the value an admitted initiate records as expiry instant (Execution Contract Logic confinement 9).
 
 Term window reading: live | lapsed — how a pending invitation's window reads against now.
 
@@ -235,6 +232,10 @@ Term admitted revoke: a [Revoke] call the action admits (Execution Contract Read
 Term admitted resolving write: an admitted accept, an admitted decline OR an admitted revoke.
 
 Term admitted read: a [Read] call that answers.
+
+Term filter: the selection a [Read] call scopes the answer by — a [Filter] naming invitation token, context, status, accepting identity reference, any combination of them OR no field; an invitation matches a filter when it carries EVERY value the filter names (String 1) and the filter names no other field, so a filter naming no field matches EVERY invitation; consumed per call, never stored.
+
+NOTE: open 2026-10-22-a — [Read] answers the matching invitations in no stated order (Operation 41).
 
 ### Invariants
 
@@ -298,7 +299,7 @@ Term admitted read: a [Read] call that answers.
 
 ### New employee onboarding — accept
 
-`initiate(admin_a7, none, "org:northwind", 7-days)` → `tok_inv_c41`, standing pending. The token reaches the new hire out of band. Three days in, `accept(tok_inv_c41, user_u114)` → accepted, binding `user_u114` permanently. The invitee reference was absent at initiation because the hire had no system identity to name; the identity now recorded is the one the call presenting the token supplied. [External Onboarding](../compositions/external-onboarding.md) proceeds from here to a party record, a credential and a session.
+`initiate(admin_a7, none, "org:northwind", 7-days)` → `tok_inv_c41`, standing pending. The token reaches the new hire out of band. Three days in, `accept(tok_inv_c41, user_u114)` → accepted, binding `user_u114`. The invitee reference was absent at initiation because the hire had no system identity to name; the identity now recorded is the one the call presenting the token supplied. [External Onboarding](../compositions/external-onboarding.md) proceeds from here to a party record, a credential and a session.
 
 ### Workspace collaboration — decline
 
@@ -320,13 +321,13 @@ Term admitted read: a [Read] call that answers.
 
 - **Regulator audit.** *Prove that every user who reached patient records joined through a documented invitation from an authorized administrator.* Filter the database to accepted invitations whose context names that system; each record carries the administrator who invited (inviter reference), when the join committed (acceptance instant) and the identity bound (accepting identity reference). Invariant 3.1 is what makes the last of those never empty, so every current participant traces to one invitation and one administrator.
 - **Disputed onboarding.** *I never accepted an invitation — my account was made without me.* Filter by accepting identity reference; the read answers every invitation accepted under that identity — Invariant 2.1 bounds each invitation to one resolution, and no rule bounds how many invitations one identity accepts — and each carries the instant its token was presented. Whether that person or someone holding their token made the call is outside this atom — the record says a bearer presented `tok_inv_e5f6g7` at that instant and supplied that identity, and the composing [Audit Trail](../compositions/audit-trail.md) carries the device, the address and the credential registered alongside.
-- **Breach investigation.** Tokens for a high-security context were exposed in a log over a week. Filter by initiation instant in that window and read each effective status against the investigation clock: the accepted ones are cross-checked against known staff, the still-live ones are revoked at once, and the lapsed ones need nothing — no write ever fired against them and an accept would answer expired. Invariant 5.1 and Invariant 12.2 are what make that triage possible from the database and a clock alone.
+- **Breach investigation.** Tokens for a high-security context were exposed in a log over a week. Filter by that context, keep the invitations whose initiation instant falls inside that week, and read each effective status against the investigation clock: the accepted ones are cross-checked against known staff, the still-live ones are revoked at once, and the lapsed ones need nothing — no write ever fired against them and an accept would answer expired. Invariant 5.1 and Invariant 12.2 are what make that triage possible from the database and a clock alone.
 
 ---
 
 ## Generation acceptance
 
-This atom's acceptance is provable: an external auditor clears it from the invitation records and the read-time clock.
+This atom's acceptance is provable: an external auditor clears it from the invitation records, with their committed versions (Execution Contract Database 5), and the read-time clock.
 
 ### Conformance checks
 
@@ -344,15 +345,19 @@ Check 5.1: An auditor MUST find a non-blank revoked by reference on EVERY revoke
 Check 5.2: An auditor MUST find a non-blank revocation reason on EVERY revoked invitation (Invariant 8.2).
 Check 5.3: An auditor MUST find a revocation instant on EVERY revoked invitation (Invariant 8.3).
 Check 6.1: An auditor MUST find an expiry instant on EVERY invitation (Invariant 9.1).
-Check 6.2: An auditor MUST find no invitation's expiry instant changed across a re-read (Invariant 7.1).
+Check 6.2: An auditor MUST find EVERY invitation's expiry instant unchanged across EVERY committed version of the invitation (Invariant 7.1; Execution Contract Database 5).
 Check 7.1: An auditor MUST find no invitation token on two invitations (Identity 5, Invariant 11.1).
-Check 7.2: An auditor MUST find a re-read invitation's properties unchanged across an admitted resolving write (Invariant 1.1).
-Check 8.1: An auditor MUST find no invitation absent from a later read (Invariant 10.1).
-Check 8.2: An auditor MUST find the database instance's invitation count no lower on a later read (State 13).
+Check 7.2: An auditor MUST find EVERY invitation's properties unchanged across EVERY committed version of the invitation (Invariant 1.1; Execution Contract Database 5).
+Check 8.1: An auditor MUST find an unfiltered read answering EVERY invitation with a committed version (State 13, Invariant 10.1; Execution Contract Database 5).
+Deleted: Check 8.2. Check 8.1 owns it.
 Check 9.1: An auditor MUST reconstruct EVERY invitation of one context from the database (State 1, State 13, Invariant 10.1).
 ```
 
 NOTE: EVERY check names the rule the check tests.
+
+NOTE: watch the check no record answers (Check 6.2, Check 7.2, Check 8.1).
+
+Term committed version: a record as it stood at the commit that wrote it, which Execution Contract Database 5 keeps readable after the record changes.
 
 ### External checks
 
@@ -398,6 +403,7 @@ Non-goal 24: The atom MUST NOT guarantee that an invitation resolves.
 Non-goal 25: The atom MUST NOT bound two readers' effective status agreement.
 Non-goal 26: A deployment needing a verifiable time anchor MUST compose a trusted timestamping pattern.
 Non-goal 27: The atom MUST NOT decide who may call an action.
+Non-goal 28: A deployment needing a retention bound MUST compose Retention Window.
 ```
 
 NOTE: the owners — [Capability](./capability.md) (Non-goal 11, Non-goal 23, Composition note 9); the composing pattern (Non-goal 12, External check 5).
@@ -480,11 +486,11 @@ Term cadences: empty.
 
 Term qualifiers: migrated — rewritten in GRACE lang v0.40 (2026-09-13).
 
-Term terms: invitation, invitation token, property, reference, database instance, seam, transition, now, resolving write, stored terminal, status, status check, ttl bounds, default ttl, expiry bound, window reading, live, lapsed, effective status, acting reference, admitted initiate, admitted accept, admitted decline, admitted revoke, admitted resolving write, admitted read, resolution field, resolution instant, string input, blank.
+Term terms: invitation, invitation token, property, reference, database instance, seam, transition, now, resolving write, stored terminal, status, status check, ttl bounds, default ttl, expiry bound, window reading, live, lapsed, effective status, acting reference, admitted initiate, admitted accept, admitted decline, admitted revoke, admitted resolving write, admitted read, filter, resolution field, resolution instant, committed version, string input, blank.
 
 Term cited: the section titled Logic Confinement Principle in `execution-contract.md` — the seam and the transition.
 
-Term composing pattern: [Party Identity](./party-identity.md), [Credential](./credential.md), [Session](./session.md), [Actor Identity](./actor-identity.md), [Event Log](./event-log.md), [Tamper Evidence](./tamper-evidence.md), [Capability](./capability.md), [External Onboarding](../compositions/external-onboarding.md).
+Term composing pattern: [Party Identity](./party-identity.md), [Credential](./credential.md), [Session](./session.md), [Actor Identity](./actor-identity.md), [Event Log](./event-log.md), [Tamper Evidence](./tamper-evidence.md), [Capability](./capability.md), [Retention Window](./retention-window.md), [External Onboarding](../compositions/external-onboarding.md).
 
 Term resolution instant: acceptance instant | declination instant | revocation instant.
 
@@ -514,7 +520,7 @@ Kind: Operation
 
 #### Read
 
-The read-only query answering the matching [Invitation] records, each carrying its stored fields and its derived [Effective Status]. Refuses nothing — a filter matching no invitation has a correct answer rather than an error.
+The read-only query answering the [Invitation] records a [Filter] matches, each carrying its stored fields and its derived [Effective Status]. Refuses nothing — a filter matching no invitation has a correct answer rather than an error.
 
 Kind: Operation
 
@@ -583,7 +589,7 @@ Projection: status
 
 #### Accepting Identity Reference
 
-The identity bound at acceptance — the permanent record of who joined. Recorded on [Accept], never absent on an [Accepted] invitation, immutable once set.
+The identity bound at acceptance — the record of who joined. Recorded on [Accept], never absent on an [Accepted] invitation, immutable once set.
 
 Kind:       Field
 Field of:   Invitation
@@ -660,6 +666,14 @@ The wall-time reading the host takes at the seam and hands to the transition, as
 Kind:         Parameter
 Parameter of: Initiate, Accept, Decline, Revoke and Read
 Projection:   now
+
+#### Filter
+
+The selection a caller passes to [Read] to scope which invitation records are returned: any combination of an [Invitation Token], a [Context], a [Status] and an [Accepting Identity Reference], or none. An invitation matches when it carries every value the filter names, and a filter naming no field matches every invitation; a filter naming a blank value, or any other field, matches none. A status filter reads the stored [Status], never the derived [Effective Status], which [Read] answers on every match. Consumed per call; never stored.
+
+Kind:         Parameter
+Parameter of: Read
+Projection:   filter
 
 #### Pending
 
@@ -772,6 +786,7 @@ Projection: storage-failure
 [TTL]: #ttl
 [Reason]: #reason
 [Now]: #now
+[Filter]: #filter
 [Pending]: #pending
 [Accepted]: #accepted
 [Declined]: #declined
@@ -811,11 +826,10 @@ It inherits from:
 ```
 status: partially resolved
 formal: verified — invitation.tla + 2 twins, 2026-06-03
-last gate: 2026-10-22 — Final Critique 6, the council's first round on the page and the first on its Store-contract rewrite (bfa0075) and the refusal-order sweep (c2f4e9a), three fresh readers on free models (GRID Nemotron 3 Ultra, EOS MiniMax M3.1 Flash, Linus GLM-5.3 Flash), each handed only the round's reading set, three passes on one text (frozen at c10ea0d); the round rests on three counted passes — foundational count 3 after triage (11 reports: 7 standing, merged into 3; 3 sent down; 1 rejected), all Kind A: a rule forbade the expiry instant every invitation carries, since a rename had given the stored deadline the name the rule used for a recorded lapse; a rule left a refused resolving write's invitation in pending, though an already-resolved refusal answers on a stored terminal; and the Disputed onboarding scenario, an acceptance test, read a bound on one invitation's terminals as one resolved invitation per identity; 24 refining reports, 4 rhetorical reports; not clean; every foundational finding cured, every refining finding cured, routed or answered; 2026-06-23 — Final Critique 5, fresh reader — clean
+last gate: 2026-10-28 — Final Critique 7 — foundational count 2, not clean, no sample
 
 open:
-- 2026-10-22-a · refining · [Read]; Operation 41; Operation 44 · which fields a filter names and how each matches are unstated, so a filter naming the effective status answers the lapsed pending invitations in one build and nothing in another, and Operation 44 refuses neither; the answer has no order, so a caller paging it gets the database's → declare the filter over the fields the scenarios read (context, status, accepting identity reference, initiation instant), say whether a status filter reads the stored or the effective status, and state an order or declare none
-- 2026-10-22-b · refining · State 13; Non-goal 21 · State 12, State 13 and Invariant 10.1 keep every invitation from every remover, as Final Critique 5's text did, while Non-goal 21 says only that the atom bounds no retention and names no owner, so whether a composed Retention Window or a privacy erasure may remove an invitation is unstated → say the records are permanent, or name the pattern that may purge or erase them and give State 13 and the checks reading it (Check 8.1, Check 8.2, Check 9.1) the composed erasure's form
+- 2026-10-22-a · refining · [Read]; Operation 41 · [Read] answers the matching invitations in no stated order, so a caller paging the answer gets the database's (the Watch list's read-order polarity names this page's Operation 41 as one posture) → state an order, or declare none
 - 2026-10-22-c · refining · Composition note 6; Composition note 7 · a composing Actor Identity attests the actor behind an admitted accept and behind an admitted initiate, and no note says whether it attests the actor behind an admitted revoke, which records a revoked by reference as an accept records an accepting identity reference → wire the revoke's attestation, or name the deployment as its owner
 ```
 
