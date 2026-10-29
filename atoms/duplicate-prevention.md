@@ -194,7 +194,6 @@ Check 3.2: An auditor MUST find a check answering seen for an identity under gua
 Check 3.3: An auditor MUST find a check answering not-seen for an identity that is not under guard (Operation 7).
 Deleted: Check 3.4. Check 3.3 owns it.
 Deleted: Check 4.1. Operation 3 owns it.
-NOTE: watch the check no record answers (Check 1.2, Check 1.3, Check 1.4, Check 2.1, Check 4.1).
 ```
 
 NOTE: EVERY check names the rule the check tests.

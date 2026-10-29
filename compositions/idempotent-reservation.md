@@ -155,8 +155,6 @@ expire(id, idempotency_token)
   refuses invalid-request | token-collision | not-known | not-held | window-not-elapsed | storage-failure
 ```
 
-NOTE: watch the registry outage (place_hold's refuses line, Composes 6).
-
 ```
 Action wiring 1: [Place Hold], [Confirm], [Release] AND [Expire] MUST take an idempotency token.
 Deleted: Action wiring 2. Execution Contract Database 2 owns it.
@@ -331,8 +329,6 @@ Deleted: Check 5.2. Execution Contract Database 1 owns it: an action's writes co
 ```
 
 NOTE: EVERY check names the rule the check tests.
-
-NOTE: watch the check no record answers (Check 5.1).
 
 ### External checks
 

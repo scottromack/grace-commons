@@ -351,20 +351,20 @@ An amended observation can still be retracted — retraction reaches any link in
 
 ## Generation acceptance
 
-This atom's acceptance is provable: an external auditor clears it from the observation records.
+This atom's acceptance is provable: an external auditor clears it from the observation records, with their committed versions (Execution Contract Generation acceptance 1).
 
 ### Conformance checks
 
 ```
-Check 1.1: An auditor MUST find a re-read observation's observation id, subject reference, recording actor, observation type, value, unit and recording instant unchanged from the prior read (Invariant 1.1).
-Check 1.2: An auditor MUST find a re-read transition metadata field unchanged from the prior read (Invariant 9.1).
+Check 1.1: An auditor MUST find EVERY observation's observation id, subject reference, recording actor, observation type, value, unit and recording instant unchanged across EVERY committed version of the observation (Invariant 1.1; Execution Contract Generation acceptance 1).
+Check 1.2: An auditor MUST find EVERY transition metadata field an observation carries unchanged across EVERY committed version of the observation carrying the field (Invariant 9.1; Execution Contract Generation acceptance 1).
 Check 2.1: An auditor MUST find a successor observation for EVERY amended observation's successor id (Invariant 2.1).
 Check 2.2: An auditor MUST find EVERY successor observation's predecessor id equal to the original's observation id (Operation 29).
 Check 2.3: An auditor MUST find EVERY observation in one amendment chain sharing one subject reference (Invariant 4.1).
 Check 2.4: An auditor MUST find EVERY observation in one amendment chain sharing one observation type (Invariant 5.1).
 Check 2.5: An auditor MUST find no observation carrying two successor ids (Invariant 3.1).
 Check 2.6: An auditor MUST find no observation carrying two predecessor ids (Invariant 3.2).
-Check 3.1: An auditor MUST find no observation whose state DOES NOT EQUAL retracted on a later read of an observation a prior read found retracted (Invariant 6.1).
+Check 3.1: An auditor MUST find no observation leaving retracted across two committed versions of the observation (Invariant 6.1; Execution Contract Generation acceptance 1).
 Deleted: Check 4.1. Execution Contract Database 6 owns it.
 Check 5.1: An auditor MUST find EVERY observation's recording actor non-blank (Operation 2, String 5).
 Check 5.2: An auditor MUST find EVERY retracted observation's retracting actor and retraction reason non-blank (Operation 17, Operation 18).
@@ -374,6 +374,8 @@ Check 6.1: An auditor MUST find two reads of one database state ordering two obs
 ```
 
 NOTE: EVERY check names the rule the check tests.
+
+Term committed version: a record as it stood at the commit that wrote it, as Execution Contract Generation acceptance 1 declares it.
 
 ### External checks
 
@@ -496,7 +498,7 @@ Term cadences: empty.
 
 Term qualifiers: migrated — rewritten in GRACE lang v0.40 (2026-09-13).
 
-Term terms: observation, observation id, subject reference, recording actor, observation type, unit, reference, database instance, seam, transition, now, business caller, states, content field, chain action, content-checking action, writing action, value constraint, clock offset allowance, future bound, resolved recording instant, transition metadata, amendment chain, filter axes, admitted record, admitted amend, admitted retract, admitted read, string input, blank.
+Term terms: observation, observation id, subject reference, recording actor, observation type, unit, reference, database instance, seam, transition, now, business caller, states, content field, chain action, content-checking action, writing action, value constraint, clock offset allowance, future bound, resolved recording instant, transition metadata, amendment chain, filter axes, admitted record, admitted amend, admitted retract, admitted read, string input, blank, committed version.
 
 Term successor ids: successor_ids — the ids of the observations that succeed this one.
 

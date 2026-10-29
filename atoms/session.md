@@ -385,7 +385,7 @@ The user closes the browser without logging out. The window passes at `11:00:00Z
 
 ## Generation acceptance
 
-This atom's acceptance is provable: an external auditor clears it from the session records and the read-time clock the [Validate] and [Read] surfaces use.
+This atom's acceptance is provable: an external auditor clears it from the session records, with their committed versions (Execution Contract Generation acceptance 1), and the read-time clock the [Validate] and [Read] surfaces use.
 
 ### Conformance checks
 
@@ -400,10 +400,12 @@ Check 2.4: An auditor MUST reproduce the effective status from the stored status
 Check 3.1: An auditor MUST reconstruct the sessions in force at a past instant from issuance instant, expiry instant and revocation instant (Invariant 3.1, Invariant 3.2).
 Check 4.1: An auditor MUST find a revocation instant, a revoked by reference and a revocation reason on EVERY revoked session (Invariant 8.1 through 8.3).
 Check 5.1: An auditor MUST find the four validate answers distinguishable on the implementation's contract (Invariant 6.1, Invariant 6.2).
-Check 6.1: An auditor MUST find no session whose status DOES NOT EQUAL revoked on a later read of a session a prior read found revoked (Invariant 5.1).
+Check 6.1: An auditor MUST find no session leaving revoked across two committed versions of the session (Invariant 5.1; Execution Contract Generation acceptance 1).
 ```
 
 NOTE: EVERY check names the rule the check tests.
+
+Term committed version: a record as it stood at the commit that wrote it, as Execution Contract Generation acceptance 1 declares it.
 
 ### External checks
 
@@ -535,7 +537,7 @@ Term cadences: empty.
 
 Term qualifiers: migrated — rewritten in GRACE lang v0.35 (2026-09-12).
 
-Term terms: session, session token, principal reference, issued by reference, seam, transition, default session duration, token entropy, now, business caller, session duration, window length, zero duration, issuance instant, expiry deadline, expiry instant, lapsed, effective status, revocation instant, revoked by reference, revocation reason, reason, filter, liveness query, status, maximum length, validation failure, verified answer, invalid answer, authentication credential, claim set token.
+Term terms: session, session token, principal reference, issued by reference, seam, transition, default session duration, token entropy, now, business caller, session duration, window length, zero duration, issuance instant, expiry deadline, expiry instant, lapsed, effective status, revocation instant, revoked by reference, revocation reason, reason, filter, liveness query, status, maximum length, validation failure, verified answer, invalid answer, authentication credential, claim set token, committed version.
 
 #### Session
 

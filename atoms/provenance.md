@@ -381,7 +381,7 @@ The same call against the chain while it stood open, after custody had moved to 
 
 ## Generation acceptance
 
-This atom's acceptance is provable: an external auditor clears it from the chain records and the chain's entries.
+This atom's acceptance is provable: an external auditor clears it from the chain records and the chain's entries, with their committed versions (Execution Contract Generation acceptance 1).
 
 ### Conformance checks
 
@@ -396,7 +396,7 @@ Check 3.3: An auditor MUST find EVERY custodian-guarded entry's custodian refere
 Check 4.1: An auditor MUST find a chain's sequence numbers standing from one to the chain's entry count (Invariant 5.2).
 Check 4.2: An auditor MUST reconstruct a chain's order from sequence number alone (Invariant 5.3).
 Check 5.1: An auditor MUST find no entry in an archived chain following the archived entry's sequence number (Invariant 6.2).
-Check 6.1: An auditor MUST find a re-read entry's fields unchanged from the prior read (Invariant 1.1).
+Check 6.1: An auditor MUST find EVERY entry's fields unchanged across EVERY committed version of the entry (Invariant 1.1; Execution Contract Generation acceptance 1).
 Check 7.1: An auditor MUST find EVERY entry whose event type IS IN the event types (Invariant 8.1).
 Check 7.2: An auditor MUST find EVERY archived chain's last entry standing at archived (Invariant 8.4).
 Check 7.3: An auditor MUST find no entry id repeated within a chain (Identity 16).
@@ -404,6 +404,8 @@ Check 7.4: An auditor MUST find no chain id repeated within a database instance 
 ```
 
 NOTE: EVERY check names the rule the check tests.
+
+Term committed version: a record as it stood at the commit that wrote it, as Execution Contract Generation acceptance 1 declares it.
 
 ### External checks
 
@@ -553,7 +555,7 @@ Term cadences: empty.
 
 Term qualifiers: migrated — rewritten in GRACE lang v0.39 (2026-09-12).
 
-Term terms: chain, entry, chain id, artifact reference, entry id, custodian reference, database instance, seam, transition, now, business caller, genesis type, genesis types, event type, event types, chain state, current custodian, sequence number, next sequence number, recording instant, from custodian reference, to custodian reference, transformation descriptor, recipient reference, metadata, addressed action, custodian-guarded action, appending action, chain-state rejection, admitted originate, admitted transfer, admitted transform, admitted disclose, admitted archive, query, filter axes, string input, reference, blank, maximum length.
+Term terms: chain, entry, chain id, artifact reference, entry id, custodian reference, database instance, seam, transition, now, business caller, genesis type, genesis types, event type, event types, chain state, current custodian, sequence number, next sequence number, recording instant, from custodian reference, to custodian reference, transformation descriptor, recipient reference, metadata, addressed action, custodian-guarded action, appending action, chain-state rejection, admitted originate, admitted transfer, admitted transform, admitted disclose, admitted archive, query, filter axes, string input, reference, blank, maximum length, committed version.
 
 #### Originate
 

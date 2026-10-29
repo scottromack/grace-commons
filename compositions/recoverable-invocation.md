@@ -180,14 +180,13 @@ Deleted: Capability requirement 7. Execution Contract Database 2 and Execution C
 Capability requirement 8: EVERY range read issued after journal write bound has elapsed since a lost-reply append's issue MUST return the record.
 Capability requirement 9: A read_record that cannot reach the journal MUST land recording-failure(resolution) at [Resolve].
 Capability requirement 10: A read_record that cannot reach the journal MUST NOT answer not-known.
-Capability requirement 11: IF the range read, read-your-writes, act section or the sweep scheduler is absent THEN the composition MUST NOT start.
+Capability requirement 11: IF the range read, read-your-writes or act section is absent THEN the composition MUST NOT start.
 Capability requirement 12: The deployment MUST supply the journal's database PER Execution Contract Database 1 through 4 and Execution Contract Refusal 1.
 Capability requirement 13: EVERY read path of Recoverable Invocation MUST land an invalid-query where the read path lands unavailable, the instance finding journal-unavailable excepted.
 Capability requirement 14: The composition MUST NOT surface an invalid-query as the instance finding journal-unavailable.
 Capability requirement 15: EVERY read path of Recoverable Invocation that reads under the critical section MUST land a read that returns nothing within read bound where the read path lands unavailable.
-Capability requirement 16: The deployment MUST supply the sweep scheduler.
-Capability requirement 17: The sweep scheduler MUST survive the loss of any one process serving the instance.
-NOTE: watch the supplied scheduler (Capability requirement 16, Capability requirement 17).
+Deleted: Capability requirement 16. Execution Contract Scheduled leg 1 owns it.
+Deleted: Capability requirement 17. Execution Contract Scheduled leg 1 owns it.
 ```
 
 Term delta range: the sequence-number range from `(sequence_high_water + 1)` with no upper bound.
@@ -259,11 +258,10 @@ Term read-your-writes: Capability requirement 8 and Capability requirement 12 to
 - **sweep cadence**
   Term sweep cadence: the interval at which the sweep runs after the mandatory run at process restart. *Default:* none.
   ```
-  sweep cadence 1: The sweep scheduler MUST start a run at every process restart.
-  sweep cadence 2: The sweep scheduler MUST start a run WITHIN sweep cadence of the previous run's return.
-  sweep cadence 3: IF the process that ran the previous run has died THEN the sweep scheduler MUST start a run WITHIN run interval of the previous run's start.
+  Deleted: sweep cadence 1. Execution Contract Scheduled leg 1 owns it.
+  sweep cadence 2: A run MUST start WITHIN sweep cadence of the previous run's return.
+  sweep cadence 3: IF the process that ran the previous run has died THEN a run MUST start WITHIN run interval of the previous run's start.
   ```
-  Term sweep scheduler: the deployment's facility that starts [Reconcile]'s runs (sweep cadence 1 through 3).
   Term run interval: `(sweep_cadence + run_bound)` — the gap between two runs' starts that worst closure charges (Instance start 4): a run's run bound, then the cadence.
 - **read bound**
   Term read bound: the disclosed bound on one journal read under the critical section ([Open] step 3, [Close] step 2, [Refuse], [Resolve], [Reconcile] step 2). Conditions 3 and 5. *Default:* none.
@@ -377,7 +375,7 @@ Term lost reply: a record_action that answers recording-failure(step-3) (Primiti
 
 ### Action wiring
 
-Six actions and one read. [Open], [Close], [Refuse] and [Yield] are called by an adopter's action around the bound commit; [Reconcile] is the sweep, started by the sweep scheduler at every restart and on sweep cadence; [Resolve] is the operator's close; [Read Invocation] is the read.
+Six actions and one read. [Open], [Close], [Refuse] and [Yield] are called by an adopter's action around the bound commit; [Reconcile] is the sweep, started by its starter at every restart and on sweep cadence (Execution Contract Scheduled leg 1); [Resolve] is the operator's close; [Read Invocation] is the read.
 
 ```
 Action wiring 1: EVERY action's signature MUST export the position of every code that could land on more than one side of the commit.
@@ -404,7 +402,7 @@ Action wiring 6: An adopter's action MUST NOT write to the journal for the act o
 | the unknown partition, after [Yield] | `recording-failure(outcome)` | the act may exist; its record is the sweep's; never re-run |
 | [Close] | `recording-failure(outcome)` | the same |
 
-*Never re-run* holds while the invocation is unclosed; once [Read Invocation] shows its closing, a new call is the caller's decision: a new act where the kind is repeatable, and where it is not, a second attempt that [Open] or the commit refuses wherever the act committed (open step 3.9, repeatable 2). [Resolve]'s codes are the operator's; [Reconcile]'s journal-unavailable goes to the sweep scheduler. [Read Invocation] is not in the table because it is not called around the commit; it answers journal-unavailable (the act's state unreadable for now) and not-known ([Not Known] — no readable intent), and Action wiring 3 keeps a re-entry arm from re-running an irreversible act whose record is sitting in the journal.
+*Never re-run* holds while the invocation is unclosed; once [Read Invocation] shows its closing, a new call is the caller's decision: a new act where the kind is repeatable, and where it is not, a second attempt that [Open] or the commit refuses wherever the act committed (open step 3.9, repeatable 2). [Resolve]'s codes are the operator's; [Reconcile]'s journal-unavailable goes to the sweep's starter. [Read Invocation] is not in the table because it is not called around the commit; it answers journal-unavailable (the act's state unreadable for now) and not-known ([Not Known] — no readable intent), and Action wiring 3 keeps a re-entry arm from re-running an irreversible act whose record is sitting in the journal.
 
 #### Closure table
 
@@ -857,7 +855,7 @@ reconcile()
 
 Term reconcile tally: examined, closed, escalated, reported, skipped, closed already, surfaced and unreached — what reconcile answers; reconcile is the one action with no kind: the run sweeps every bound kind.
 
-The sweep. The sweep scheduler starts a run at every process restart and on sweep cadence (sweep cadence 1 through 3); a run reads now once at the sweep's own seam.
+The sweep. Its starter starts a run at every process restart and on sweep cadence (Execution Contract Scheduled leg 1; sweep cadence 2, 3); a run reads now once at the sweep's own seam.
 
 ```
 reconcile 1: WHEN step 1's enumeration fails:
@@ -1315,7 +1313,7 @@ An escalated entry becomes resolved when an operator's abandonment names it, and
   Invariant 4.9: The sweep MUST NOT abandon an act.
   Deleted: Invariant 4.10. No adopter binds a declared commit fence, the one kind the sweep abandoned, so no abandoned arm degrades: Invariant 4.8 and 4.9 hold for every kind; an adopter that needs it reopens it with a Decisions entry.
   ```
-  *Rests on:* [Reconcile]'s edges and steps 3–5; the kind's invocation completion bound and retention period; the instance's clock allowance, sweep cadence, run bound, closure latency, read bound, journal write bound and closure window; the substrate's range read; the sweep scheduler's runs (sweep cadence 1 through 3, Capability requirement 17).
+  *Rests on:* [Reconcile]'s edges and steps 3–5; the kind's invocation completion bound and retention period; the instance's clock allowance, sweep cadence, run bound, closure latency, read bound, journal write bound and closure window; the substrate's range read; the starter's runs (sweep cadence 2, 3; Execution Contract Scheduled leg 1).
 
 - **Invariant 5 — Recovery is derived, never remembered.**
   ```
@@ -1455,7 +1453,7 @@ Check 8.1: An auditor MUST clear Audit Trail's eight traversal checks over the j
 
 Term outcome shape: recovery absent with actor reference set to the intent's actor reference; recovery set to true with resolving actor, actor reference set to resolving actor, no recovery_intended owed; recovery set to true without resolving actor, actor reference set to the service identity, preceded by one or more `<kind>.recovery_intended` naming the same invocation id.
 
-Term invariant map: Invariant 1 → Check 1; Invariants 2 and 5 → Check 2; Invariant 3 → Check 1.1 (Invariant 3.1, 3.2) and Check 6 (Invariant 3.3 through 3.5); Invariant 4 → Check 3 and Check 4 (conditions 1, 4, 5; with Invariant 7 for condition 2), and External check 11 for the sweep scheduler's runs; Invariant 5 → Check 5 and Check 6; Invariant 6 → External check 7, no conformance check, since no record carries outcome envelope's truth; Invariant 7 → Check 7; Invariant 8 → no check, since the adopter's signature carries the position and no record does; Invariant 9 → Check 8 (Invariant 9.1), and no check for Invariant 9.2 and 9.3, which the adopter's records and commit partition answer.
+Term invariant map: Invariant 1 → Check 1; Invariants 2 and 5 → Check 2; Invariant 3 → Check 1.1 (Invariant 3.1, 3.2) and Check 6 (Invariant 3.3 through 3.5); Invariant 4 → Check 3 and Check 4 (conditions 1, 4, 5; with Invariant 7 for condition 2), and External check 11 for the sweep's runs; Invariant 5 → Check 5 and Check 6; Invariant 6 → External check 7, no conformance check, since no record carries outcome envelope's truth; Invariant 7 → Check 7; Invariant 8 → no check, since the adopter's signature carries the position and no record does; Invariant 9 → Check 8 (Invariant 9.1), and no check for Invariant 9.2 and 9.3, which the adopter's records and commit partition answer.
 
 ### External checks
 
@@ -1471,7 +1469,7 @@ External check 7: An auditor MUST clear from external evidence that each adopter
 External check 8: An auditor MUST clear from external evidence that no writer other than this composition's actions uses an adopter's journal vocabulary.
 External check 9: IF repeatable EQUALS no THEN an auditor MUST clear from external evidence that the adopter's bound commit refuses, on an arm the constituent declares pre-commit, EVERY call whose act key a record of the adopter's database carries (repeatable 2).
 External check 10: An auditor MUST clear from external evidence that EVERY invalid-credential a write under a service identity answered was surfaced on compliance surface at once as a hard alert (reconcile step 3.18).
-External check 11: An auditor MUST clear from external evidence that the sweep scheduler starts runs as sweep cadence 1 through 3 state, the loss of a process serving the instance included (Capability requirement 17).
+External check 11: An auditor MUST clear from external evidence that runs start as sweep cadence 2 and 3 state (Execution Contract Scheduled leg 1).
 ```
 
 ---
@@ -1579,7 +1577,7 @@ Term cadences: sweep cadence.
 
 Term qualifiers: migrated — rewritten in GRACE lang v0.35 (2026-09-11).
 
-Term terms: (named expressions, each declared where it is used) worst closure, examine window end, retention floor, lease spend, run floor, sweep lease spend, examine edge, horizon edge, at risk threshold, settling edge, intent age, settle bound, retention end, sweep lease, run interval, sweep scheduler, in-flight, aged, partition, examined, skipped, reported, surfaced, unreached, closed already, standing closing, terminus, caller kind, payload match, act quiescence, read path, read-your-writes, journal join, lost reply, `position's existing arm`, cross-seam comparison, critical section key, critical section holder, critical section duration, reply, release, hard alert, unfenced write, write floor, commit floor, act finding, instance finding, kind, act key, invocation id, now, operator run id, resolve refusal, open result, close result, reconcile tally, invocation report, invocation entry, first seen, last seen, span, acting actor reference, resolving actor, recovery_intended, database candidates.
+Term terms: (named expressions, each declared where it is used) worst closure, examine window end, retention floor, lease spend, run floor, sweep lease spend, examine edge, horizon edge, at risk threshold, settling edge, intent age, settle bound, retention end, sweep lease, run interval, in-flight, aged, partition, examined, skipped, reported, surfaced, unreached, closed already, standing closing, terminus, caller kind, payload match, act quiescence, read path, read-your-writes, journal join, lost reply, `position's existing arm`, cross-seam comparison, critical section key, critical section holder, critical section duration, reply, release, hard alert, unfenced write, write floor, commit floor, act finding, instance finding, kind, act key, invocation id, now, operator run id, resolve refusal, open result, close result, reconcile tally, invocation report, invocation entry, first seen, last seen, span, acting actor reference, resolving actor, recovery_intended, database candidates.
 
 #### Open
 

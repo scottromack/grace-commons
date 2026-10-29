@@ -384,7 +384,7 @@ A cross-border entry needs both finance and tax sign-off. Two [Submit] calls pro
 
 ## Generation acceptance
 
-This atom's acceptance is provable: an external auditor clears it from the step records, with their committed versions (Execution Contract Database 5).
+This atom's acceptance is provable: an external auditor clears it from the step records, with their committed versions (Execution Contract Generation acceptance 1).
 
 ### Conformance checks
 
@@ -401,16 +401,14 @@ Check 4.1: An auditor MUST find EVERY approved step's deciding actor equal to th
 Check 4.2: An auditor MUST find EVERY rejected step's deciding actor equal to the step's approver reference (Invariant 4.2).
 Check 4.3: An auditor MUST find EVERY withdrawn step's withdrawing actor equal to the step's submitter reference (Invariant 5.1).
 Check 5.1: An auditor MUST find no attribution field on a pending step (State 13).
-Check 6.1: An auditor MUST find an unfiltered read answering EVERY step with a committed version (Invariant 10.1; Execution Contract Database 5).
-Check 6.2: An auditor MUST find EVERY step's submission fields unchanged across EVERY committed version of the step (Invariant 1.1; Execution Contract Database 5).
-Check 6.3: An auditor MUST find no step leaving a terminal state across two committed versions of the step (Invariant 3.1; Execution Contract Database 5).
+Check 6.1: An auditor MUST find an unfiltered read answering EVERY step with a committed version (Invariant 10.1; Execution Contract Generation acceptance 1).
+Check 6.2: An auditor MUST find EVERY step's submission fields unchanged across EVERY committed version of the step (Invariant 1.1; Execution Contract Generation acceptance 1).
+Check 6.3: An auditor MUST find no step leaving a terminal state across two committed versions of the step (Invariant 3.1; Execution Contract Generation acceptance 1).
 ```
 
 NOTE: EVERY check names the rule the check tests.
 
-NOTE: watch the check no record answers (Check 6.1, Check 6.2, Check 6.3).
-
-Term committed version: a record as it stood at the commit that wrote it, which Execution Contract Database 5 keeps readable after the record changes.
+Term committed version: a record as it stood at the commit that wrote it, as Execution Contract Generation acceptance 1 declares it.
 
 ### External checks
 

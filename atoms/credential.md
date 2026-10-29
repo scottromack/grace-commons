@@ -424,7 +424,7 @@ Tokens for `svc_s03` turn up in a log file. `revoke(cred_c15, admin_a01, "log-ex
 
 ## Generation acceptance
 
-This atom's acceptance is provable: an external auditor clears it from the credential records, with their committed versions (Execution Contract Database 5), and a read-time clock.
+This atom's acceptance is provable: an external auditor clears it from the credential records, with their committed versions (Execution Contract Generation acceptance 1), and a read-time clock.
 
 ### Conformance checks
 
@@ -444,12 +444,12 @@ Check 5.1: An auditor MUST find no credential material beyond the verifier in a 
 Check 5.2: An auditor MUST find no presented material in a credential (State 10).
 Check 5.3: An auditor MUST find no verifier in a [Read] answer (Operation 53, State 8).
 Check 5.4: An auditor MUST find no credential material in a [Read] answer (Invariant 8.1).
-Check 6.1: An auditor MUST find no credential leaving a stored terminal across two committed versions of the credential (Invariant 5.1; Execution Contract Database 5).
+Check 6.1: An auditor MUST find no credential leaving a stored terminal across two committed versions of the credential (Invariant 5.1; Execution Contract Generation acceptance 1).
 Check 6.2: An auditor MUST find no terminal field on an active credential (State 5).
-Check 7.1: An auditor MUST find EVERY credential's properties unchanged across EVERY committed version of the credential (Invariant 1.1, Invariant 6.1; Execution Contract Database 5).
-Check 7.2: An auditor MUST find EVERY terminal field a credential carries unchanged across EVERY committed version of the credential carrying the field (Invariant 1.2; Execution Contract Database 5).
-Check 7.3: An auditor MUST find EVERY rotated credential's fields beside status, rotation instant and successor credential id unchanged across EVERY committed version of the credential (Invariant 6.2; Execution Contract Database 5).
-Check 8.1: An auditor MUST find an unfiltered read answering EVERY credential with a committed version (Invariant 10.1, State 15; Execution Contract Database 5).
+Check 7.1: An auditor MUST find EVERY credential's properties unchanged across EVERY committed version of the credential (Invariant 1.1, Invariant 6.1; Execution Contract Generation acceptance 1).
+Check 7.2: An auditor MUST find EVERY terminal field a credential carries unchanged across EVERY committed version of the credential carrying the field (Invariant 1.2; Execution Contract Generation acceptance 1).
+Check 7.3: An auditor MUST find EVERY rotated credential's fields beside status, rotation instant and successor credential id unchanged across EVERY committed version of the credential (Invariant 6.2; Execution Contract Generation acceptance 1).
+Check 8.1: An auditor MUST find an unfiltered read answering EVERY credential with a committed version (Invariant 10.1, State 15; Execution Contract Generation acceptance 1).
 Deleted: Check 8.2. Check 8.1 owns it.
 Check 9.1: An auditor MUST reconstruct EVERY credential of one pair from the database (State 1, State 15, Invariant 10.1).
 Check 10.1: An auditor MUST find no two credentials sharing a credential id (Identity 5).
@@ -457,9 +457,7 @@ Check 10.1: An auditor MUST find no two credentials sharing a credential id (Ide
 
 NOTE: EVERY check names the rule the check tests.
 
-NOTE: watch the check no record answers (Check 6.1, Check 7.1 through 7.3, Check 8.1).
-
-Term committed version: a record as it stood at the commit that wrote it, which Execution Contract Database 5 keeps readable after the record changes.
+Term committed version: a record as it stood at the commit that wrote it, as Execution Contract Generation acceptance 1 declares it.
 
 ### External checks
 

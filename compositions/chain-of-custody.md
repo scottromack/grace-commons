@@ -682,7 +682,6 @@ Check 5.7: IF an orphan entry realizing no aged intent carries no open finding T
 Check 6.1: IF an outcome event's intent event id names a live intent THEN an auditor MUST find the outcome event preceded by the intent, of the matching kind, on the same chain, under the acting custodian (Invariant 7.1).
 Deleted: Check 6.2. Reconciliation 9 owns it.
 Deleted: Check 6.3. Check 6.1 owns it.
-NOTE: watch the check no record answers (Check 2.2, Check 5.5, Check 6.2, Check 6.3).
 Check 7.1: An auditor MUST clear Provenance's Generation acceptance over the Provenance instance (Composes 5).
 Check 7.2: An auditor MUST clear Audit Trail's Generation acceptance over the Audit Trail instance (Composes 5).
 ```

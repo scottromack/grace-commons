@@ -331,7 +331,7 @@ NOTE: open 2026-10-22-a — [Read] answers the matching invitations in no stated
 
 ## Generation acceptance
 
-This atom's acceptance is provable: an external auditor clears it from the invitation records, with their committed versions (Execution Contract Database 5), and the read-time clock.
+This atom's acceptance is provable: an external auditor clears it from the invitation records, with their committed versions (Execution Contract Generation acceptance 1), and the read-time clock.
 
 ### Conformance checks
 
@@ -349,19 +349,17 @@ Check 5.1: An auditor MUST find a non-blank revoked by reference on EVERY revoke
 Check 5.2: An auditor MUST find a non-blank revocation reason on EVERY revoked invitation (Invariant 8.2).
 Check 5.3: An auditor MUST find a revocation instant on EVERY revoked invitation (Invariant 8.3).
 Check 6.1: An auditor MUST find an expiry instant on EVERY invitation (Invariant 9.1).
-Check 6.2: An auditor MUST find EVERY invitation's expiry instant unchanged across EVERY committed version of the invitation (Invariant 7.1; Execution Contract Database 5).
+Check 6.2: An auditor MUST find EVERY invitation's expiry instant unchanged across EVERY committed version of the invitation (Invariant 7.1; Execution Contract Generation acceptance 1).
 Check 7.1: An auditor MUST find no invitation token on two invitations (Identity 5, Invariant 11.1).
-Check 7.2: An auditor MUST find EVERY invitation's properties unchanged across EVERY committed version of the invitation (Invariant 1.1; Execution Contract Database 5).
-Check 8.1: An auditor MUST find an unfiltered read answering EVERY invitation with a committed version (State 13, Invariant 10.1; Execution Contract Database 5).
+Check 7.2: An auditor MUST find EVERY invitation's properties unchanged across EVERY committed version of the invitation (Invariant 1.1; Execution Contract Generation acceptance 1).
+Check 8.1: An auditor MUST find an unfiltered read answering EVERY invitation with a committed version (State 13, Invariant 10.1; Execution Contract Generation acceptance 1).
 Deleted: Check 8.2. Check 8.1 owns it.
 Check 9.1: An auditor MUST reconstruct EVERY invitation of one context from the database (State 1, State 13, Invariant 10.1).
 ```
 
 NOTE: EVERY check names the rule the check tests.
 
-NOTE: watch the check no record answers (Check 6.2, Check 7.2, Check 8.1).
-
-Term committed version: a record as it stood at the commit that wrote it, which Execution Contract Database 5 keeps readable after the record changes.
+Term committed version: a record as it stood at the commit that wrote it, as Execution Contract Generation acceptance 1 declares it.
 
 ### External checks
 

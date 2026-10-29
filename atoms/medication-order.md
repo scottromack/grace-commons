@@ -413,15 +413,15 @@ The dose is wrong. `amend(ord_a1, dr_osei, dose: 20, reason: "titration per 2026
 
 ## Generation acceptance
 
-This atom's acceptance is provable: an external auditor clears it from the order records.
+This atom's acceptance is provable: an external auditor clears it from the order records, with their committed versions (Execution Contract Generation acceptance 1).
 
 ### Conformance checks
 
 ```
 Check 1.1: An auditor MUST find EVERY order whose state EQUALS EXACTLY ONE OF the states (State 1).
-Check 1.2: An auditor MUST find no order whose state IS NOT IN the terminal states on a later read of an order a prior read found in that terminal state (Invariant 7.1).
-Check 1.3: An auditor MUST find no order whose state DOES NOT EQUAL amended on a later read of an order a prior read found amended (Invariant 8.1).
-Check 2.1: An auditor MUST find a re-read order's core fields unchanged (Invariant 1.1).
+Check 1.2: An auditor MUST find no order leaving a terminal state across two committed versions of the order (Invariant 7.1; Execution Contract Generation acceptance 1).
+Check 1.3: An auditor MUST find no order leaving amended across two committed versions of the order (Invariant 8.1; Execution Contract Generation acceptance 1).
+Check 2.1: An auditor MUST find EVERY order's core fields unchanged across EVERY committed version of the order (Invariant 1.1; Execution Contract Generation acceptance 1).
 Check 2.2: An auditor MUST find EVERY successor order carrying the original's patient reference, prescriber reference and medication reference (Invariant 2.1).
 Check 2.3: An auditor MUST find no order carrying two successor ids (Invariant 4.1).
 Check 2.4: An auditor MUST find no order carrying two predecessor ids (Invariant 4.2).
@@ -435,7 +435,7 @@ Check 4.2: An auditor MUST find EVERY reason field an order carries non-blank (I
 Check 5.1: An auditor MUST find verifier reference and verification instant on EVERY dispensed order (State 2, State 13).
 Check 5.2: An auditor MUST find a dispense field group on EVERY administered order (State 3, State 13).
 Check 5.3: An auditor MUST find an administration field group on EVERY completed order (State 5, State 13).
-Check 5.4: An auditor MUST find EVERY field group a prior transition wrote on a re-read order (State 13, Invariant 12.1).
+Check 5.4: An auditor MUST find EVERY field group a committed version of an order carries on EVERY later committed version of the order (State 13, Invariant 12.1; Execution Contract Generation acceptance 1).
 Check 6.1: An auditor MUST find prior state, holding actor, hold reason and hold instant on EVERY on-hold order (State 11).
 Deleted: Check 7.1. Execution Contract Database 6 owns it.
 Deleted: Check 7.2. Execution Contract Database 6 owns it.
@@ -445,6 +445,8 @@ Check 8.2: An auditor MUST reconstruct EVERY order's chain of custody from one r
 ```
 
 NOTE: EVERY check names the rule the check tests.
+
+Term committed version: a record as it stood at the commit that wrote it, as Execution Contract Generation acceptance 1 declares it.
 
 ### External checks
 
@@ -599,7 +601,7 @@ Term cadences: empty.
 
 Term qualifiers: migrated — rewritten in GRACE lang v0.40 (2026-09-13).
 
-Term terms: order, order id, database instance, core field, dosing parameter, attribution reference, reference, seam, transition, now, order action, state-changing action, state, terminal state, inactive state, pre-dispensing state, post-dispensing state, actionable state, `inactive state's rejection`, state check, blank-input rejection, field fault, required string input, future bound, clock offset allowance, event instant, query axes, field group, hold field, reinstate field, reason field, admitted order, admitted amend, admitted verify, admitted hold, admitted reinstate, admitted dispense, admitted administer, admitted complete, admitted cancel, admitted discontinue, admitted read, string input, blank, length bound, resolved dispensing instant, resolved administration instant, resolved completion instant.
+Term terms: order, order id, database instance, core field, dosing parameter, attribution reference, reference, seam, transition, now, order action, state-changing action, state, terminal state, inactive state, pre-dispensing state, post-dispensing state, actionable state, `inactive state's rejection`, state check, blank-input rejection, field fault, required string input, future bound, clock offset allowance, event instant, query axes, field group, hold field, reinstate field, reason field, admitted order, admitted amend, admitted verify, admitted hold, admitted reinstate, admitted dispense, admitted administer, admitted complete, admitted cancel, admitted discontinue, admitted read, string input, blank, length bound, resolved dispensing instant, resolved administration instant, resolved completion instant, committed version.
 
 Term cited: `execution-contract.md` Logic confinement — the seam and the transition.
 

@@ -230,13 +230,13 @@ NOTE: open 2026-10-20-e — the Examples invoke regulated domains (a patient cha
 
 ## Generation acceptance
 
-An implementation is acceptable when the checks below are provable to an external auditor given one log instance and the atom's own read surface. This atom claims append-only, total order and read consistency while the evidence for those claims has until now lived in a formal model, a twin suite and five independent renders, none of which a reader of this page has met. This section is the bridge: the same claims, provable from the log.
+An implementation is acceptable when the checks below are provable to an external auditor given one log instance, with its events' committed versions (Execution Contract Generation acceptance 1), and the atom's own read surface. This atom claims append-only, total order and read consistency while the evidence for those claims has until now lived in a formal model, a twin suite and five independent renders, none of which a reader of this page has met. This section is the bridge: the same claims, provable from the log.
 
 ### Conformance checks
 
 ```
-Check 1.1: An auditor MUST find EVERY event of an earlier read in a later read of one log instance whose query the event matches (Invariant 1.1).
-Check 1.2: An auditor MUST find a re-read event's EVERY event field unchanged (Invariant 2.1).
+Check 1.1: An auditor MUST find EVERY event with a committed version answered by EVERY read of the event's log instance whose query the event matches (Invariant 1.1; Execution Contract Generation acceptance 1).
+Check 1.2: An auditor MUST find EVERY event field of EVERY event unchanged across EVERY committed version of the event (Invariant 2.1; Execution Contract Generation acceptance 1).
 Check 2.1: An auditor MUST find no two landed events sharing a sequence number (Invariant 3.1).
 Check 2.2: An auditor MUST find no two events sharing an event id (Invariant 6.1).
 Check 2.3: An auditor MUST find a landed event's sequence number above EVERY sequence number an earlier landed event carries (Invariant 4.1).
@@ -253,6 +253,8 @@ Check 5.2: An auditor MUST NOT read a falling recording instant as an order find
 ```
 
 NOTE: EVERY check names the rule the check tests.
+
+Term committed version: a record as it stood at the commit that wrote it, as Execution Contract Generation acceptance 1 declares it.
 
 ### External checks
 
@@ -357,7 +359,7 @@ Term cadences: empty.
 
 Term qualifiers: migrated — rewritten in GRACE lang v0.35 (2026-09-11); landed — written by a successful append.
 
-Term terms: event id, seam, now, transition, business caller, event, sequence number, recording instant, data, log name, next sequence number, landed, event field, query, payload cap.
+Term terms: event id, seam, now, transition, business caller, event, sequence number, recording instant, data, log name, next sequence number, landed, event field, query, payload cap, committed version.
 
 NOTE: open 2026-10-23-a — landed and event field are each declared twice, the two declarations agreeing (Term landed and Term qualifiers; Term event field and Term value sets).
 

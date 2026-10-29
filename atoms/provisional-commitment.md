@@ -322,7 +322,7 @@ What differs across the five: resource semantics, window length, the regulatory 
 
 ## Generation acceptance
 
-This atom's acceptance is provable: an external auditor clears it from the commitment records, with their committed versions (Execution Contract Database 5).
+This atom's acceptance is provable: an external auditor clears it from the commitment records, with their committed versions (Execution Contract Generation acceptance 1).
 
 ### Conformance checks
 
@@ -331,13 +331,13 @@ Check 1.1: An auditor MUST find EVERY commitment whose state EQUALS EXACTLY ONE 
 Check 1.2: An auditor MUST find a terminal instant on EVERY commitment whose state IS IN the terminal states (State 2, State 3, State 4).
 Check 1.3: An auditor MUST find no terminal instant on a held commitment (State 5).
 Check 2.1: An auditor MUST find no commitment carrying two terminal instants (Invariant 2.2).
-Check 2.2: An auditor MUST find no commitment leaving a terminal state across two committed versions of the commitment (Invariant 3.1; Execution Contract Database 5).
+Check 2.2: An auditor MUST find no commitment leaving a terminal state across two committed versions of the commitment (Invariant 3.1; Execution Contract Generation acceptance 1).
 Check 3.1: An auditor MUST find no late resolution in the database (Invariant 7.1).
 Check 3.2: An auditor MUST find no premature expiry in the database (Invariant 7.2).
 Check 3.3: An auditor MUST find no degenerate window in the database (Invariant 6.1).
 Check 4.1: An auditor MUST find no commitment's confirmation instant preceding the commitment's placement instant (Invariant 8.1).
 Check 4.2: An auditor MUST find no commitment's release instant preceding the commitment's placement instant (Invariant 8.2).
-Check 5.1: An auditor MUST find EVERY commitment's properties unchanged across EVERY committed version of the commitment (Invariant 5.1; Execution Contract Database 5).
+Check 5.1: An auditor MUST find EVERY commitment's properties unchanged across EVERY committed version of the commitment (Invariant 5.1; Execution Contract Generation acceptance 1).
 Check 5.2: An auditor MUST find no id on two commitments (Identity 5).
 Deleted: Check 6.1. Execution Contract Database 6 owns it.
 Deleted: Check 6.2. Execution Contract Database 6 owns it.
@@ -347,9 +347,7 @@ Check 7.2: An auditor MUST find a placement instant and an expiry instant on EVE
 
 NOTE: EVERY check names the rule the check tests.
 
-NOTE: watch the check no record answers (Check 2.2, Check 5.1).
-
-Term committed version: a record as it stood at the commit that wrote it, which Execution Contract Database 5 keeps readable after the record changes.
+Term committed version: a record as it stood at the commit that wrote it, as Execution Contract Generation acceptance 1 declares it.
 
 ### External checks
 

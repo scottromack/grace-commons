@@ -280,8 +280,7 @@ Action wiring 2: An issuance MUST call Actor Identity's attest with the proposal
 Action wiring 3: IF Actor Identity answers invalid-credential THEN [Issue Grant] MUST answer invalid-credential.
 Action wiring 4: IF Actor Identity answers invalid-request THEN [Issue Grant] MUST answer invalid-request.
 Action wiring 5: IF Actor Identity answers storage-failure THEN [Issue Grant] MUST answer attribution-storage-failure (Execution Contract Constituent failure 1).
-Action wiring 87: IF Actor Identity answers registry-unavailable THEN [Issue Grant] MUST answer registry-unavailable.
-NOTE: watch the registry outage (Action wiring 87).
+Deleted: Action wiring 87. Execution Contract Constituent failure 2 owns it.
 Action wiring 6: IF Actor Identity refuses the attest THEN the invocation MUST NOT call Permissions' grant.
 Action wiring 7: An admitted issuance MUST call Permissions' grant with the subject AND the scope.
 Action wiring 8: IF Permissions answers invalid-request THEN [Issue Grant] MUST answer orphan-attestation carrying pre-grant.
@@ -298,8 +297,7 @@ Action wiring 17: A revocation MUST call Actor Identity's attest with the propos
 Action wiring 18: IF Actor Identity answers invalid-credential THEN [Revoke Grant] MUST answer invalid-credential.
 Action wiring 19: IF Actor Identity answers invalid-request THEN [Revoke Grant] MUST answer invalid-request.
 Action wiring 20: IF Actor Identity answers storage-failure THEN [Revoke Grant] MUST answer attribution-storage-failure (Execution Contract Constituent failure 1).
-Action wiring 89: IF Actor Identity answers registry-unavailable THEN [Revoke Grant] MUST answer registry-unavailable.
-NOTE: watch the registry outage (Action wiring 89).
+Deleted: Action wiring 89. Execution Contract Constituent failure 2 owns it.
 Action wiring 21: IF Actor Identity refuses the attest THEN the invocation MUST NOT call Permissions' revoke.
 Action wiring 22: An admitted revocation MUST call Permissions' revoke with the grant's handle.
 Action wiring 23: IF Permissions answers not-known THEN [Revoke Grant] MUST answer not-known.
@@ -329,8 +327,7 @@ Action wiring 44: IF the enumerated set stands empty THEN the invocation MUST NO
 Action wiring 45: The composition MUST NOT answer not-known for an empty enumerated set.
 Action wiring 46: A pair-scoped revocation MUST perform a revocation PER enumerated grant.
 Action wiring 92: IF Actor Identity answers invalid-credential THEN [Revoke Permission] MUST answer invalid-credential.
-Action wiring 93: IF Actor Identity answers registry-unavailable THEN [Revoke Permission] MUST answer registry-unavailable.
-NOTE: watch the registry outage (Action wiring 93).
+Deleted: Action wiring 93. Execution Contract Constituent failure 2 owns it.
 Action wiring 94: IF Actor Identity answers storage-failure THEN [Revoke Permission] MUST answer attribution-storage-failure (Execution Contract Constituent failure 1).
 Deleted: Action wiring 95. Execution Contract Constituent failure 1 owns it.
 Deleted: Action wiring 47. Execution Contract Database 2 owns it.

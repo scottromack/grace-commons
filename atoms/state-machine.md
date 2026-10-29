@@ -413,12 +413,12 @@ Two batches run the same declaration as two workflows. Firing `test` on one move
 
 ## Generation acceptance
 
-This atom's acceptance is provable: an external auditor clears it from the workflow records, with their committed versions (Execution Contract Database 5), and the declaration.
+This atom's acceptance is provable: an external auditor clears it from the workflow records, with their committed versions (Execution Contract Generation acceptance 1), and the declaration.
 
 ### Conformance checks
 
 ```
-Check 1.1: An auditor MUST find EVERY workflow's declaration unchanged across EVERY committed version of the workflow (Invariant 1.1; Execution Contract Database 5).
+Check 1.1: An auditor MUST find EVERY workflow's declaration unchanged across EVERY committed version of the workflow (Invariant 1.1; Execution Contract Generation acceptance 1).
 Deleted: Check 1.2. Check 1.1 owns it.
 Check 2.1: An auditor MUST find EVERY history entry's from state, action and to state standing as a declared transition in the workflow's declaration (Invariant 3.1).
 Check 2.2: An auditor MUST find no two declared transitions in one declaration sharing one from state and one action (Invariant 3.2).
@@ -427,7 +427,7 @@ Check 4.1: An auditor MUST find no history entry following a history entry whose
 Check 4.2: An auditor MUST find no declared transition whose from state IS IN the terminal states (Invariant 4.2).
 Check 5.1: An auditor MUST find a workflow's sequence numbers standing from one to the workflow's history entry count (Invariant 6.2).
 Check 5.2: An auditor MUST reconstruct a workflow's history order from sequence number alone (Invariant 6.3).
-Check 5.3: An auditor MUST find EVERY history entry's fields unchanged across EVERY committed version carrying the history entry (Invariant 5.1; Execution Contract Database 5).
+Check 5.3: An auditor MUST find EVERY history entry's fields unchanged across EVERY committed version carrying the history entry (Invariant 5.1; Execution Contract Generation acceptance 1).
 Check 6.1: An auditor MUST reach the workflow's current state by replaying the workflow's history from the initial state (Invariant 7.3).
 Check 7.1: An auditor MUST find guard satisfied recorded on EVERY guarded declared transition's history entry (Invariant 8.3).
 Check 7.2: An auditor MUST find no guard satisfied recorded on an unguarded declared transition's history entry (Operation 30).
@@ -437,9 +437,7 @@ Check 8.2: An auditor MUST find EVERY recorded actor reference non-blank (Invari
 
 NOTE: EVERY check names the rule the check tests.
 
-NOTE: watch the check no record answers (Check 1.1, Check 5.3).
-
-Term committed version: a record as it stood at the commit that wrote it, which Execution Contract Database 5 keeps readable after the record changes.
+Term committed version: a record as it stood at the commit that wrote it, as Execution Contract Generation acceptance 1 declares it.
 
 ### External checks
 

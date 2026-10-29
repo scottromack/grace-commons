@@ -335,23 +335,23 @@ A screening pattern flags `party_pk3`. `suspend(party_pk3, compliance_c4, "sanct
 
 ## Generation acceptance
 
-This atom's acceptance is provable: an external auditor clears it from the party records.
+This atom's acceptance is provable: an external auditor clears it from the party records, with their committed versions (Execution Contract Generation acceptance 1).
 
 ### Conformance checks
 
 ```
 Check 1.1: An auditor MUST find EVERY party whose state EQUALS EXACTLY ONE OF unverified, verified, suspended, closed (Invariant 2.1).
-Check 1.2: An auditor MUST find no party whose state DOES NOT EQUAL closed on a later read of a party a prior read found closed (Invariant 3.1).
+Check 1.2: An auditor MUST find no party leaving closed across two committed versions of the party (Invariant 3.1; Execution Contract Generation acceptance 1).
 Check 2.1: An auditor MUST find a fresh verification on EVERY party whose state EQUALS verified (Invariant 4.1).
 Deleted: Check 2.2. Ordering 3 and Ordering 4 own it.
 Check 3.1: An auditor MUST find verification id, verifying actor reference, verification method, verification result, evidence reference and verification instant on EVERY verification event (State 4).
-Check 3.2: An auditor MUST find a re-read verification event unchanged (Invariant 5.1).
-Check 3.3: An auditor MUST find a party's verification event list no shorter on a later read (Invariant 6.3).
+Check 3.2: An auditor MUST find EVERY verification event unchanged across EVERY committed version of the party carrying the verification event (Invariant 5.1; Execution Contract Generation acceptance 1).
+Check 3.3: An auditor MUST find no fall in a party's verification event list length across two committed versions of the party (Invariant 6.3; Execution Contract Generation acceptance 1).
 Check 3.4: An auditor MUST find EVERY verification event whose verification result EQUALS EXACTLY ONE OF passed, failed (Operation 21).
 Deleted: Check 4.1. Check 5.1 owns it.
 Check 4.2: An auditor MUST find the prior state, the new state, an acting reference and an instant on EVERY state change event (State 5).
 Check 4.3: An auditor MUST find a reason on EVERY state change event a reasoned action appended (State 7).
-Check 4.4: An auditor MUST find a party's state change log no shorter on a later read (Invariant 8.2).
+Check 4.4: An auditor MUST find no fall in a party's state change log length across two committed versions of the party (Invariant 8.2; Execution Contract Generation acceptance 1).
 Check 5.1: An auditor MUST replay a party's state change log in insertion order from unverified to the party's state (Invariant 8.1, Ordering 3).
 Check 5.2: An auditor MUST reconstruct EVERY party's enrollment, verification history and state history from one read (State 1, State 2, State 3).
 Deleted: Check 6.1. Execution Contract Database 6 owns it.
@@ -361,10 +361,11 @@ Check 7.1: An auditor MUST find no party id on two parties (Identity 7).
 Check 7.2: An auditor MUST find no verification id on two verification events (Identity 8).
 Check 7.3: An auditor MUST find no state change id on two state change events (Identity 9).
 Check 8.1: An auditor MUST partition the party records by state (State 1).
-NOTE: watch the check no record answers (Check 2.2).
 ```
 
 NOTE: EVERY check names the rule the check tests.
+
+Term committed version: a record as it stood at the commit that wrote it, as Execution Contract Generation acceptance 1 declares it.
 
 ### External checks
 
@@ -520,7 +521,7 @@ Term cadences: empty.
 
 Term qualifiers: migrated — rewritten in GRACE lang v0.40 (2026-09-13).
 
-Term terms: party, verify answer, party id, verification event, state change event, assigned id, enrollment field, acting reference, reference, database instance, seam, transition, now, party action, transitioning action, state, state check, required string input, fresh verification, insertion order, length bound, reasoned action, custody field, evidence reference, query axes, admitted enroll, admitted verify, admitted suspend, admitted reinstate, admitted close, admitted read, string input, blank, verification result.
+Term terms: party, verify answer, party id, verification event, state change event, assigned id, enrollment field, acting reference, reference, database instance, seam, transition, now, party action, transitioning action, state, state check, required string input, fresh verification, insertion order, length bound, reasoned action, custody field, evidence reference, query axes, admitted enroll, admitted verify, admitted suspend, admitted reinstate, admitted close, admitted read, string input, blank, verification result, committed version.
 
 Term cited: the section titled Logic Confinement Principle in `execution-contract.md` — the seam and the transition.
 

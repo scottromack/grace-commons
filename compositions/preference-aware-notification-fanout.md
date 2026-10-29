@@ -384,9 +384,8 @@ Wiring decision 4: The composition MUST NOT remove a queried subscriber from the
 ### Reconciliation
 
 ```
-Reconciliation 1: The deployment's scheduler MUST call [Reconcile Gaps] AND [Reconcile Overshoots] every reconciliation cadence.
-Reconciliation 2: The deployment's scheduler MUST call [Reconcile Gaps] AND [Reconcile Overshoots] at EVERY restart.
-NOTE: watch the supplied scheduler (Reconciliation 1, Reconciliation 2).
+Reconciliation 1: The reconciliation MUST run every reconciliation cadence.
+Deleted: Reconciliation 2. Execution Contract Scheduled leg 1 owns it.
 Reconciliation 3: IF the fanout id names a young invocation THEN [Reconcile Gaps] MUST answer too-young.
 Reconciliation 4: [Reconcile Gaps] MUST NOT write for a young invocation.
 Reconciliation 5: [Reconcile Gaps] MUST NOT write for an invocation whose initiation entry is an aged entry.
@@ -423,7 +422,7 @@ Reconciliation 35: The overshoot run MUST NOT record a window whose start is an 
 Reconciliation 36: The reconciliation MUST NOT store composition state.
 ```
 
-Term reconciliation: the two legs the deployment's scheduler calls, [Reconcile Gaps] and [Reconcile Overshoots], whose output — a closed gap or a recorded overshoot — an auditor awaits within the reconciliation window.
+Term reconciliation: the two legs, [Reconcile Gaps] and [Reconcile Overshoots], each a scheduled leg (Execution Contract Scheduled leg 1), whose output — a closed gap or a recorded overshoot — an auditor awaits within the reconciliation window.
 
 Term gap run: one call of [Reconcile Gaps].
 

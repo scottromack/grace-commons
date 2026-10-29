@@ -550,7 +550,6 @@ Check 6.4: An auditor MUST find no allocated capability older than the compensat
 Deleted: Check 6.5. Reconciliation 23 owns it.
 Deleted: Check 6.6. Execution Contract Database 1 owns it.
 Deleted: Check 6.7. Reconciliation 25 owns it.
-NOTE: watch the check no record answers (Check 2.4, Check 3.5, Check 5.3, Check 5.5, Check 6.5, Check 6.7).
 ```
 
 Term sharing record: a capability record, a disclosure record, an audit event or an index entry.

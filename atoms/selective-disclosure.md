@@ -278,7 +278,7 @@ A data subject exercises their access right. `read({subject_ref: "patient-88213"
 
 ## Generation acceptance
 
-This atom's acceptance is provable: an external auditor clears it from the disclosure records.
+This atom's acceptance is provable: an external auditor clears it from the disclosure records, with their committed versions (Execution Contract Generation acceptance 1).
 
 ### Conformance checks
 
@@ -286,7 +286,7 @@ This atom's acceptance is provable: an external auditor clears it from the discl
 Check 2.1: An auditor MUST find disclosure id, subject reference, recipient, scope, authority type, authority reference and disclosure instant on EVERY disclosure record (State 1, Invariant 3.1).
 Check 2.2: An auditor MUST find EVERY disclosure record's subject reference, recipient, scope and authority reference non-blank (Invariant 3.2).
 Check 2.3: An auditor MUST find EVERY disclosure record's authority type standing in the authority types (Invariant 2.1).
-Check 3.1: An auditor MUST find a re-read disclosure record's fields unchanged from the prior read (Invariant 1.1).
+Check 3.1: An auditor MUST find EVERY disclosure record's fields unchanged across EVERY committed version of the disclosure record (Invariant 1.1; Execution Contract Generation acceptance 1).
 Deleted: Check 3.2. Execution Contract Database 6 owns it.
 Deleted: Check 4.1. Operation 9 owns it.
 Deleted: Check 4.2. Operation 16 owns it.
@@ -295,10 +295,11 @@ Check 5.2: An auditor MUST find an authority type query answering ONLY the discl
 Check 5.3: An auditor MUST find an unmatched well-formed query answering an empty record sequence (Operation 20).
 Deleted: Check 6.1. Operation 7 owns it.
 Deleted: Check 6.2. Operation 7 owns it.
-NOTE: watch the check no record answers (Check 4.1, Check 4.2, Check 6.1).
 ```
 
 NOTE: EVERY check names the rule the check tests.
+
+Term committed version: a record as it stood at the commit that wrote it, as Execution Contract Generation acceptance 1 declares it.
 
 ### External checks
 
@@ -430,7 +431,7 @@ Term cadences: empty.
 
 Term qualifiers: migrated — rewritten in GRACE lang v0.40 (2026-09-12).
 
-Term terms: disclosure record, disclosure id, subject reference, recipient, scope, database instance, seam, transition, now, business caller, authority, authority type, authority types, authority reference, disclosure instant, resolved disclosure instant, filter axes, admitted record, admitted read, string input, correction narrative.
+Term terms: disclosure record, disclosure id, subject reference, recipient, scope, database instance, seam, transition, now, business caller, authority, authority type, authority types, authority reference, disclosure instant, resolved disclosure instant, filter axes, admitted record, admitted read, string input, correction narrative, committed version.
 
 #### Record
 

@@ -186,8 +186,7 @@ Action wiring 20: An admitted attestation MUST call Actor Identity's attest with
 Action wiring 21: An admitted attestation MUST NOT call Actor Identity's attest with a caller-supplied actor reference.
 Action wiring 22: An admitted attestation MUST call Actor Identity's attest with the caller's attest credential.
 Action wiring 23: An admitted attestation MUST NOT call Actor Identity's attest with the credential material.
-Action wiring 38: IF Actor Identity's attest answers registry-unavailable THEN an admitted attestation MUST answer registry-unavailable.
-NOTE: watch the registry outage (Action wiring 38).
+Deleted: Action wiring 38. Execution Contract Constituent failure 2 owns it.
 Action wiring 39: IF Actor Identity's attest answers invalid-credential THEN an admitted attestation MUST answer invalid-attest-credential.
 Action wiring 40: IF Actor Identity's attest answers storage-failure THEN an admitted attestation MUST answer attest-failed naming the attestation (Execution Contract Constituent failure 1).
 Action wiring 24: An admitted attestation passing the gate MUST append an attest log entry carrying the current credential's credential id.
