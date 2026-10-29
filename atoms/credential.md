@@ -269,6 +269,8 @@ Deleted: Operation 76. Execution Contract Refusal 1 owns it.
 Deleted: Operation 77. Execution Contract Refusal 1 owns it.
 Deleted: Operation 78. Execution Contract Input 1 owns it.
 Deleted: Operation 79. Execution Contract Input 1 owns it.
+Operation 80: IF a supplied expiry instant is malformed THEN [Register] MUST answer invalid-request (Execution Contract Input 1).
+Operation 81: IF a supplied expiry instant is malformed THEN [Rotate] MUST answer invalid-request (Execution Contract Input 1).
 ```
 
 NOTE: watch read-order polarity (Operation 69).
@@ -997,7 +999,7 @@ It inherits from:
 ```
 status: partially resolved
 formal: verified — credential.tla + 4 twins, 2026-09-29
-last gate: 2026-10-28 — Final Critique 19 — foundational count 0, clean, no sample
+last gate: 2026-10-29 — Final Critique 20 — foundational count 0, clean, no sample
 
 open:
 - 2026-10-21-b · refining · Term seam, transition; Term cited · each cites the section titled Logic Confinement Principle in `execution-contract.md`, which declares none of them → cite what declares each, as Event Log's 2026-10-20-c and Permissions' 2026-10-21-f ask of the same three sentences
