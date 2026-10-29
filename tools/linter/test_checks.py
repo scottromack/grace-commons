@@ -2268,6 +2268,189 @@ def check_renumber_synthetic(problems: list[str]) -> int:
     return len(wants)
 
 
+
+# ── The IR (tools/grace/ir.py), pinned synthetically and on the corpus ───── #
+# The parser landed 2026-10-29 with its proof: every spec parses, each
+# document's rule count equals cites.py's, every label is unique on its page,
+# every rule a Check names exists, every Composes entry resolves to a spec. The
+# synthetic pair pins the reading and each finding from both sides; the corpus
+# pin holds the findings the proof makes on the specs as they stand, exactly,
+# so a new finding or a cured one both send someone to look.
+IR_ATOM = """# Widget
+
+## Summary
+
+A widget holds a count.
+
+## Structure
+
+### Operations
+
+```
+make(name, optional size)
+  answers widget_id
+  refuses invalid-name | storage-failure
+```
+
+```
+Operation 1: [Make] MUST record EXACTLY ONE widget.
+Operation 2: WHEN the name EQUALS blank:
+  Operation 2a: [Make] MUST answer invalid-name.
+Deleted: Operation 3. Execution Contract Read 4 owns it.{dup}
+```
+
+| Call | Case | Answer | Effect |
+|---|---|---|---|
+| [Make] | name given | the widget id | one widget lands (Operation 1, Execution Contract Read 4) |
+
+### Invariants
+
+- **Invariant 1 — One count.**
+  ```
+  Invariant 1.1: EVERY widget MUST carry a count.
+  ```
+
+## Generation acceptance
+
+### Conformance checks
+
+```
+Check 1.1: An auditor MUST find EVERY widget carrying a count (Invariant 1.1).
+Check 1.2: An auditor MUST find no refused make recorded (Operation 2, Execution Contract Read 4).
+Check 1.3: An auditor MUST find EVERY widget made once (Invariant 1).{bad}
+```
+
+## Non-goals
+
+```
+Non-goal 1: The atom MUST NOT price a widget.
+Non-goal 2: The atom MUST NOT ship a widget.
+```
+
+NOTE: the owners — a pricing pattern *(forthcoming)* (Non-goal 1); [Gadget Line](../compositions/gadget-line.md) (Non-goal 2).
+
+## Terms
+
+Term widget: one thing made — a [Widget].
+
+Term actors: the atom.
+
+### Vocabulary
+
+#### Widget
+
+One thing made.
+
+Kind:       Type
+
+## Status
+"""
+
+IR_COMPOSITION = """# Gadget Line
+
+## Composes
+
+- **[Widget](../atoms/widget.md)** — the thing made.{link}
+
+```
+Composes 1: EXACTLY ONE Widget instance MUST serve the composition.
+```
+
+## Generation acceptance
+
+```
+Check 1.1: An auditor MUST find the widget (Widget Invariant 1.1).
+```
+"""
+
+IR_BROKEN = {
+    "dup": "\nOperation 1: [Make] MUST record a widget.",
+    "bad": ("\nCheck 1.4: An auditor MUST find nothing (Invariant 9.9)."
+            "\nCheck 1.5: An auditor MUST find nothing (Operation 3)."
+            "\nCheck 1.6: An auditor MUST find nothing (Execution Contract Read 9)."),
+    "link": "\n- **[Sprocket](../atoms/sprocket.md)** — a part no spec defines.",
+}
+
+IR_FIRING = {
+    ("compositions/audit-trail.md", "IR-check",
+     "External check 9 names Capability requirement 7f, which the page tombstones"),
+}
+
+
+def check_ir_synthetic(problems: list[str]) -> None:
+    import tempfile
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "grace"))
+    import ir
+
+    def run(broken: bool) -> tuple[list[dict], list[tuple]]:
+        with tempfile.TemporaryDirectory() as d:
+            root = Path(d)
+            for sub in ("atoms", "compositions"):
+                (root / sub).mkdir()
+            fill = IR_BROKEN if broken else {k: "" for k in IR_BROKEN}
+            (root / "atoms" / "widget.md").write_text(
+                IR_ATOM.format(dup=fill["dup"], bad=fill["bad"]), encoding="utf-8")
+            (root / "compositions" / "gadget-line.md").write_text(
+                IR_COMPOSITION.format(link=fill["link"]), encoding="utf-8")
+            (root / "execution-contract.md").write_text(
+                "**Read 4:** A refused write writes nothing.\n", encoding="utf-8")
+            if broken:
+                (root / "atoms" / "garbled.md").write_bytes(b"# Garbled\n\xff\xfe\n")
+            docs, findings = ir.build(root)
+            return docs, findings + ir.prove(root, docs)
+
+    docs, findings = run(False)
+    if findings:
+        problems.append(f"IR: the clean pair made findings: {findings}")
+    widget = next((x for x in docs if x["spec"] == "atoms/widget.md"), None)
+    if widget is None:
+        problems.append("IR: the clean atom made no document")
+        return
+    rules = {r["label"]: r for r in widget["rules"]}
+    want = {
+        "rules": len(rules) == 9 and rules["Operation 2a"]["parent"] == "Operation 2",
+        "section": rules["Invariant 1.1"]["section"] == ["Structure", "Invariants", "Invariant 1 — One count."],
+        "tombstone": [t["label"] for t in widget["tombstones"]] == ["Operation 3"],
+        "signature": widget["signatures"] == [{
+            "action": "make", "inputs": [{"name": "name", "optional": False}, {"name": "size", "optional": True}],
+            "answers": ["widget_id"], "refuses": ["invalid-name", "storage-failure"], "line": 12}],
+        "row": widget["case_tables"][0]["rows"][0]["rules"] == ["Operation 1", "Execution Contract Read 4"],
+        "tests": [c["tests"] for c in widget["checks"]] == [
+            ["Invariant 1.1"], ["Operation 2", "Execution Contract Read 4"], ["Invariant 1"]],
+        "owners": [(n["label"], [(o["forthcoming"], o["links"]) for o in n["owners"]]) for n in widget["non_goals"]] == [
+            ("Non-goal 1", [(True, [])]), ("Non-goal 2", [(False, ["compositions/gadget-line.md"])])],
+        "terms": [(t["name"], t["entry"], t["kind"]) for t in widget["terms"]] == [("widget", "Widget", {"Kind": "Type"})]
+        and list(widget["vocabulary"]) == ["actors"],
+        "composes": [e["path"] for x in docs if x["spec"] == "compositions/gadget-line.md"
+                     for e in x["composes"]] == ["atoms/widget.md"],
+    }
+    for what, held in want.items():
+        if not held:
+            problems.append(f"IR: the clean atom's {what} read wrong")
+
+    _, findings = run(True)
+    got = sorted(f"{Path(f[0]).name}:{f[2]}" for f in findings)
+    expect = sorted(["garbled.md:IR-unreadable", "widget.md:IR-count", "widget.md:IR-label",
+                     "widget.md:IR-check", "widget.md:IR-check", "widget.md:IR-check",
+                     "gadget-line.md:IR-composes"])
+    if got != expect:
+        problems.append(f"IR: the broken pair made {got}, want {expect}")
+
+
+def check_ir_corpus(root: Path, problems: list[str]) -> tuple[int, int]:
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "grace"))
+    import ir
+    if ir.specs(root) != sorted(load_patterns(root)):
+        problems.append("IR: ir.specs and lint.py's load_patterns disagree on the spec set")
+    docs, findings = ir.build(root)
+    got = {(f[0], f[2], f[3]) for f in findings + ir.prove(root, docs)}
+    for f in sorted(got - IR_FIRING):
+        problems.append(f"IR: a new finding on the corpus, {f}")
+    for f in sorted(IR_FIRING - got):
+        problems.append(f"IR: the pinned finding {f} no longer fires — cured, so unpin it")
+    return len(docs), sum(len(x["rules"]) for x in docs)
+
+
 def main(argv: list[str]) -> int:
     root = Path(argv[1]).resolve() if len(argv) > 1 else Path(__file__).resolve().parents[2]
     patterns = load_patterns(root)
@@ -2654,6 +2837,15 @@ def main(argv: list[str]) -> int:
     if not hist_problems:
         print("History file: 2 synthetic fixtures hold (a `.hist.md` beside an atom and beside "
               "a composition is no pattern) \u2713")
+
+    ir_problems: list[str] = []
+    check_ir_synthetic(ir_problems)
+    n_specs, n_rules = check_ir_corpus(root, ir_problems)
+    failures.extend(ir_problems)
+    if not ir_problems:
+        print(f"IR: the synthetic pair reads clean and its broken twin fires every finding; the corpus "
+              f"parses, {n_specs} specs and {n_rules} rules, with its {len(IR_FIRING)} pinned "
+              "finding(s) \u2713")
 
     for f in failures:
         print(f"FAIL  {f}", file=sys.stderr)

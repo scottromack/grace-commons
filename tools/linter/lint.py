@@ -1282,8 +1282,9 @@ def _unseparated(region: str) -> list[str]:
 SIGNATURE_BLOCK = re.compile(r"```\n(.*?)\n```", re.S)
 
 
+# `build` holds the IR tools/grace/ir.py derives, ignored by git (2026-10-29)
 KNOWN_DIRS = {"atoms", "compositions", "demos", "grants", "internal", "tools",
-              "working-ideas", "build-terms", "_data", "_includes", "_layouts",
+              "working-ideas", "build-terms", "build", "_data", "_includes", "_layouts",
               "_sass", "assets", ".github"}
 
 

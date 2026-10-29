@@ -126,3 +126,53 @@ rules, 2,977 resolving to nothing — under nltk 3.10.3 and the
 `averaged_perceptron_tagger_eng` weights whose SHA-256 begins `789e8e35f6fa`.
 The tagger is retrained across nltk releases, so a count is quoted with the
 environment it was taken under; the tool prints its own on every run.
+
+## The IR
+
+[`ir.py`](ir.py) is the parser: it reads every spec in `atoms/` and
+`compositions/` into one JSON document, the IR, for the test generator and the
+Grace connector to read. The IR is derived, never canonical: the specs stay the
+source, so a document is rebuilt from its spec, never edited, and `build/`,
+where the documents go, is ignored by git.
+
+```
+python3 tools/grace/ir.py                  # every spec to build/ir/<spec>.json, then the proof
+python3 tools/grace/ir.py --check          # the proof alone, nothing written
+python3 tools/grace/ir.py atoms/cart.md    # one spec's document, printed
+```
+
+It reads with the readers the corpus already has. The fence, label, tombstone
+and signature forms are `check.py`'s, the rule count is `cites.py`'s parse (the
+count the census and the rewrite commits use), the spec set and the Execution
+Contract's labels are `lint.py`'s, and the Composes list is read as the
+council's `write-reads.py` reads it for a round's reading set.
+
+A document carries `"ir": 1`, the shape's version, and these fields, each item
+with the `line` it starts on:
+
+| Field | What it holds |
+|---|---|
+| `spec`, `name`, `title`, `kind` | The spec's path, its name as a cross-spec citation writes it (`Event Log`), its `#` title, and `atom` or `composition`. |
+| `summary` | The Summary section's text, its paragraphs kept. |
+| `rules` | Every labelled rule in file order: `label`, `family` and `number` (`Invariant`, `2.1`; `record action`, `step 3.2`), its one-line `text`, the `section` it sits in (its headings, then the bold bullet an indented fence sits in, `Invariant 1 — One line per item.`), and the WHEN rule that is its `parent`, or null. |
+| `tombstones` | Every `Deleted:` line: the `label` it reserves and the owner it names. |
+| `terms`, `vocabulary` | Every `Term` declaration: `name`, `definition`, and the term `entry` its marker lands on (`— a [Cart]`) with that entry's `kind` block. The category lines (`Term actors:`, `Term records:` and the rest) go in `vocabulary` instead. |
+| `term_entries` | Every `####` entry under `## Terms`: `name`, the reader's copy in `text`, and the `kind` block (`Kind`, `Field of`, `Projection`, `Member of`, `Role`). The declaration owns the definition and the entry is the reader's copy (spec-format.md, *A term entry is the reader's copy*). |
+| `signatures` | Every signature: `action`, its `inputs` (each `name` and whether it is `optional`), and its `answers` and `refuses` arms as written, a payload kept (`storage-failure(stage)`). |
+| `case_tables` | Every table above `## Status`, with the `caption` that introduces it, its `section`, its `columns`, and its `rows`. Each row carries its `cells` and the `rules` it names, the page's labels first and then the Execution Contract's. |
+| `checks` | Every `Check` and `External check`, by `label`, with the rules it `tests`: the labels its closing parenthesis names, written out (`Non-goal 1, 2` is two labels; a range keeps its form). A check with no closing citation has none; `check.py`'s advisory `K-check-bare` reads the same absence. |
+| `non_goals` | Every Non-goal, by `label`, with its `owners` from the section's `NOTE: the owners —` line: the owner's text, its `links` as repo paths, and whether it is `forthcoming`. A Non-goal whose own rule names its owner (`MUST compose Provisional Commitment`) carries it in its rule's text. |
+| `composes` | The constituents: `name`, `path`, and the `role` after the dash. |
+
+A run proves the IR on the whole corpus, and each failure is a finding:
+**IR-unreadable**, a spec the parser cannot read (a finding, never an
+exception); **IR-count**, a document whose rules are not `cites.py`'s count
+and labels; **IR-label**, a label used twice on its page, rule or tombstone;
+**IR-check**, a check naming a rule that does not exist, on its own page, on
+the spec its citation names, or in the Execution Contract; and
+**IR-composes**, a Composes entry that links no spec. A group resolves when a
+rule under it does (`Invariant 2` names `Invariant 2.1`), and a range when
+both its ends do. `check.py`'s `X-ref` takes a tombstoned label as carried,
+since the label exists; the proof does not, since a check cannot test a rule
+that is gone. `test_checks.py` runs the proof with the receipts and pins its
+findings.

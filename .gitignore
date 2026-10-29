@@ -18,6 +18,10 @@ build-tlc/
 # the canonical token lives on the spec page's term entry `Projection:` line.
 build-terms/
 
+# The IR: one JSON document per spec, derived by tools/grace/ir.py. Derived on
+# demand, never canonical — the specs stay the source.
+build/
+
 # Demos — committed source, but exclude build artifacts and runtime data.
 demos/*/node_modules/
 demos/*/.deno/
