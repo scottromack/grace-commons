@@ -512,11 +512,13 @@ Composition note 6: A composing pattern MUST own the logout propagation across a
 Composition note 7: A composing pattern MUST own the device binding.
 Composition note 8: A composing pattern MUST own the concurrency bound per principal reference.
 Composition note 9: A composing pattern MUST own the retention of the session records.
-Composition note 10: A composing pattern reading the session records MUST NOT write to the session records.
+Deleted: Composition note 10. Invariant 1.1, Invariant 9.1 and Execution Contract Database 4 own it.
 Deleted: Composition note 11. Non-goal 27 owns it.
 ```
 
-NOTE: composing patterns — [Login](../compositions/login.md), [Session-Gated Authorization](../compositions/session-gated-authorization.md), [Privileged Access Provisioning](../compositions/privileged-access-provisioning.md).
+NOTE: composing patterns — [Login](../compositions/login.md), [Session-Gated Authorization](../compositions/session-gated-authorization.md), [Privileged Access Provisioning](../compositions/privileged-access-provisioning.md), [Actor Suspension](../compositions/actor-suspension.md).
+
+NOTE: watch the reading composer's write ban (Composition note 10).
 
 ## Terms
 
@@ -829,7 +831,7 @@ Inherited from:
 ```
 status: partially resolved
 formal: not applicable — vote no 2026-06-03
-last gate: 2026-10-26 — Final Critique 10 — foundational count 0, clean, one sample
+last gate: 2026-10-29 — Final Critique 11 — foundational count 1, not clean, no sample
 
 open:
 - 2026-10-21-a · refining · Operation 37; [Read] · [Read] answers the matching sessions in no stated order → an order
