@@ -990,18 +990,18 @@ It inherits from:
 
 ## Status
 
-`partially resolved` — see the Ledger.
+`grounded on Final Critique 21 — 2026-10-29` — see the Ledger.
 
 ## Ledger
 
 ```
-status: partially resolved
+status: grounded on Final Critique 21 — 2026-10-29
 formal: verified — credential.tla + 4 twins, 2026-09-29
-last gate: 2026-10-29 — Final Critique 20 — foundational count 0, clean, no sample
+last gate: 2026-10-29 — Final Critique 21 — foundational count 0, clean, one sample
 
 open:
 - 2026-10-21-b · refining · Term seam, transition; Term cited · each cites the section titled Logic Confinement Principle in `execution-contract.md`, which declares none of them → cite what declares each, as Event Log's 2026-10-20-c and Permissions' 2026-10-21-f ask of the same three sentences
-- 2026-10-21-c · refining · Capability requirement 25, 26; Operation 21, 66, 67 · the host runs the derivation function (on [Register], and on [Rotate] for the type its read finds) and the check function (on [Verify], against the credential Operation 70 selects) at the seam and injects each result, as the contract's section titled Logic Confinement Principle says, and the pipeline in `execution-contract.md` gives that injection no step between the read and the decision, nor its query member a step for a query's check or its clock reading → draw the injection on the contract
+- 2026-10-21-c · refining · Capability requirement 24, 25, 26; Operation 21, 66, 67 · the host runs the derivation function (on [Register], and on [Rotate] for the type its read finds) and the check function (on [Verify], against the credential Operation 70 selects) at the seam and injects each result, as the contract's section titled Logic Confinement Principle says, and the pipeline in `execution-contract.md` gives that injection no step between the read and the decision, nor its query member a step for a query's check or its clock reading, nor the entropy a derivation consumes (Capability requirement 24) a draw before the guards that decide on the derivation's answer (Operation 66, 67), where Logic confinement 3 draws entropy at the top of Step 3 → draw the injection on the contract
 - 2026-09-29-e · refining · Final Critique 12 · routed open, non-blocking: the NIST verifier-storage claim against Non-goal 39 and Capability requirement 5; a public key's check normalizes nothing the page names; a lapse reopens a principal reference to any enrollment proof, unstated → one refining pass
 - 2026-09-29-d · refining · Final Critique 11 · routed open, non-blocking: Invariant 7 declares no acyclicity or single predecessor; no External check reaches Capability requirement 35; the NIST line's verifier-storage claim beside Non-goal 39; Operation 69's tie order unexplained; the Clock semantics tombstones inside the Capability requirement block → one refining pass, gated with the rest
 ```
