@@ -215,6 +215,7 @@ Operation 51: [Issue] MUST record the issued by reference the call supplies.
 Operation 52: [Read] MUST NOT carry the session token on an answered session.
 Operation 53: IF a filter names a field whose value EQUALS blank THEN [Read] MUST answer no session.
 Deleted: Operation 54. Execution Contract Input 1 owns it.
+Operation 55: IF a supplied session duration is malformed THEN [Issue] MUST answer invalid-request (Execution Contract Input 1).
 ```
 
 NOTE: open 2026-10-21-a — [Read] answers the matching sessions in no stated order (Operation 37).
@@ -260,7 +261,7 @@ The case space, and the rule that owns each case:
 | Call | Case | Answer | Effect on the database |
 |---|---|---|---|
 | [Issue] | both references present, a default configured, duration positive or defaulted, database accepts | the new session token | one record lands in [Active] carrying both references, issuance instant and expiry instant stamped (Operation 1, Operation 9, Operation 10, Operation 50, Operation 51) |
-| [Issue] | a blank or over-long reference, a duration that is no window length or is not positive, or no configured default | [Invalid Request] | none (Operation 4, Operation 5, Operation 8, Operation 48, String 7, Execution Contract Input 1) |
+| [Issue] | a blank or over-long reference, a duration that is no window length or is not positive, or no configured default | [Invalid Request] | none (Operation 4, Operation 5, Operation 8, Operation 48, String 7, Operation 55) |
 | [Validate] | token names nothing | [Not Known] | none — the call reads (Operation 14, Operation 20) |
 | [Validate] | stored status is [Revoked] | [Invalid Revoked] | none — returned even where the window is still open (Operation 15) |
 | [Validate] | stored [Active], now has reached expiry instant | [Invalid Expired] | none — derived, nothing written (Operation 16, Operation 17) |
@@ -821,12 +822,12 @@ Inherited from:
 
 ## Status
 
-`grounded on Final Critique 10 — 2026-10-26` — see the Ledger.
+`partially resolved` — see the Ledger.
 
 ## Ledger
 
 ```
-status: grounded on Final Critique 10 — 2026-10-26
+status: partially resolved
 formal: not applicable — vote no 2026-06-03
 last gate: 2026-10-26 — Final Critique 10 — foundational count 0, clean, one sample
 

@@ -150,6 +150,7 @@ Deleted: Operation 1. Execution Contract Refusal 1 owns it.
 Operation 2: IF a supplied actor reference EQUALS blank THEN a writing action MUST answer invalid-request.
 Operation 3: IF now PRECEDES the resolved instantiation instant THEN [Instantiate] MUST answer invalid-request.
 Deleted: Operation 62. Execution Contract Input 1 owns it.
+Operation 65: IF the resolved instantiation instant is malformed THEN [Instantiate] MUST answer invalid-request (Execution Contract Input 1).
 Operation 4: An admitted instantiate MUST record EXACTLY ONE workflow.
 Operation 5: An admitted instantiate MUST stand the workflow in the initial state.
 Operation 6: An admitted instantiate MUST set next sequence number to one.
@@ -172,6 +173,7 @@ Deleted: Operation 18. Execution Contract Refusal 1 owns it.
 Operation 19: IF now PRECEDES the resolved firing instant THEN [Fire] MUST answer invalid-request.
 Operation 20: IF the resolved firing instant PRECEDES the workflow's instantiation instant THEN [Fire] MUST answer invalid-request.
 Deleted: Operation 63. Execution Contract Input 1 owns it, among the firing checks (Term firing check).
+Operation 66: IF the resolved firing instant is malformed THEN [Fire] MUST answer invalid-request (Execution Contract Input 1).
 Operation 64: [Fire] MUST answer invalid-request on a firing fault ONLY IF the call is a cleared fire.
 Operation 21: An admitted fire MUST append EXACTLY ONE history entry.
 Operation 22: An admitted fire MUST take the history entry's sequence number from next sequence number.
@@ -250,7 +252,7 @@ Term matched transition: the one declared transition whose from state is the cur
 
 Term cleared fire: a [Fire] call Operation 11, Operation 13, Operation 15 and Operation 17 all admit.
 
-Term firing check: Operation 2, Operation 19, Operation 20 and Execution Contract Input 1 on the resolved firing instant — every check [Fire] makes on a cleared fire.
+Term firing check: Operation 2, Operation 19, Operation 20 and Operation 66 — every check [Fire] makes on a cleared fire.
 
 Term firing fault: a firing check the call fails.
 
@@ -269,7 +271,7 @@ Term admitted history: a [History] call whose instance id names a workflow and w
 | 3 | the workflow exists, the current state is terminal | terminal | Operation 13 |
 | 4 | the current state is not terminal, no declared transition matches | invalid-transition | Operation 15 |
 | 5 | a declared transition matches, it carries a guard, guard satisfied is not true | guard-not-satisfied | Operation 17 |
-| 6 | the call is a cleared fire, a firing check fails | invalid-request | Operation 64; Operation 2, Operation 19, Operation 20, Execution Contract Input 1 |
+| 6 | the call is a cleared fire, a firing check fails | invalid-request | Operation 64; Operation 2, Operation 19, Operation 20, Operation 66 |
 | 7 | every precondition passes, the database refuses the write | storage-failure | Operation 33 |
 | 8 | every precondition passes, the database accepts the write | new_state | Operation 28 |
 

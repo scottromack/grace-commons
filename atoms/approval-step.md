@@ -159,6 +159,7 @@ Operation 4: IF scope EQUALS blank THEN [Submit] MUST answer invalid-request.
 Operation 5: IF a supplied reason EQUALS blank THEN [Submit] MUST answer invalid-request.
 Operation 6: IF now PRECEDES the resolved submission instant THEN [Submit] MUST answer invalid-request.
 Deleted: Operation 59. Execution Contract Input 1 owns it.
+Operation 63: IF the resolved submission instant is malformed THEN [Submit] MUST answer invalid-request (Execution Contract Input 1).
 Operation 7: An admitted submit MUST record EXACTLY ONE step.
 Operation 8: An admitted submit MUST stand the step in pending.
 Operation 9: An admitted submit MUST answer the step id.
@@ -175,6 +176,7 @@ Operation 17: IF reason EQUALS blank THEN [Withdraw] MUST answer invalid-request
 Operation 18: IF now PRECEDES the resolved decision instant THEN a resolving action MUST answer invalid-request.
 Operation 19: IF the resolved decision instant PRECEDES the step's submission instant THEN a resolving action MUST answer invalid-request.
 Deleted: Operation 60. Execution Contract Input 1 owns it, among the attribution checks (Term attribution check).
+Operation 64: IF the resolved decision instant is malformed THEN a resolving action MUST answer invalid-request (Execution Contract Input 1).
 Operation 20: A resolving action MUST answer invalid-request on an attribution fault ONLY IF the step's state EQUALS pending.
 Operation 21: IF deciding actor DOES NOT EQUAL approver reference THEN a deciding action MUST answer unauthorized.
 Operation 22: IF withdrawing actor DOES NOT EQUAL submitter reference THEN [Withdraw] MUST answer unauthorized.
@@ -248,7 +250,7 @@ Term attribution field: deciding actor, decision reason, decision instant, withd
 
 Term attribution reference: deciding actor on an approved step or a rejected step, and withdrawing actor on a withdrawn step — the actor reference a terminal step carries.
 
-Term attribution check: Operation 15 through 19, Operation 57 and Execution Contract Input 1 on the resolved decision instant — every check a resolving action makes before the actor guard.
+Term attribution check: Operation 15 through 19, Operation 57 and Operation 64 — every check a resolving action makes before the actor guard.
 
 Term attribution fault: an attribution check the call fails.
 
@@ -279,7 +281,7 @@ Term success token: approved on [Approve], rejected_outcome on [Reject] and with
 | 1 | step id is blank | [Invalid Request] | Operation 10 |
 | 2 | step id is not blank, it names no step | [Not Known] | Operation 11 |
 | 3 | the step exists, it stands in a terminal state | [Not Pending] | Operation 13 |
-| 4 | the step stands in pending, an attribution check fails | [Invalid Request] | Operation 20; Operation 15 through 19, Operation 57, Execution Contract Input 1 |
+| 4 | the step stands in pending, an attribution check fails | [Invalid Request] | Operation 20; Operation 15 through 19, Operation 57, Operation 64 |
 | 5 | every attribution check passes, the deciding reference is not the authorization anchor | [Unauthorized] | Operation 21, Operation 22 |
 | 6 | every precondition passes, the database refuses the write | [Storage Failure] | Operation 34 |
 | 7 | every precondition passes, the database accepts the write | the success token | Operation 32 |

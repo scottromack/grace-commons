@@ -167,6 +167,7 @@ Deleted: Operation 34. Execution Contract Logic confinement 3 owns it.
 Deleted: Operation 35. Execution Contract Refusal 1 owns it.
 Operation 36: IF a filter is malformed THEN [Read] MUST answer invalid-query.
 Deleted: Operation 37. Execution Contract Input 1 owns it.
+Operation 38: IF a supplied disclosure instant is malformed THEN [Record] MUST answer invalid-request (Execution Contract Input 1).
 ```
 
 Term now: the deployment's clock reading at the call, as Execution Contract Logic confinement 11 declares it.

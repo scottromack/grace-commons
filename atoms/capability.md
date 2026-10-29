@@ -215,6 +215,7 @@ Deleted: Operation 64. Execution Contract Read 1 owns it: after the read, every 
 Operation 65: [Redeem] MUST NOT evaluate a rule of the redeem refusal order BEFORE EVERY earlier rule of the redeem refusal order has answered no refusal.
 Deleted: Operation 66. Execution Contract Refusal 1 owns it.
 Deleted: Operation 67. Execution Contract Input 1 owns it.
+Operation 70: IF a supplied max redemptions is malformed OR a supplied ttl is malformed THEN [Allocate] MUST answer invalid-request (Execution Contract Input 1).
 Operation 68: IF a filter names a field whose value EQUALS blank THEN [Read] MUST answer no capability.
 Operation 69: IF the capability's effective status EQUALS allocated THEN [Redeem] MUST answer redeemed.
 ```
@@ -278,7 +279,7 @@ The case space, and the rule that owns each case:
 | Call | Case | Answer | Effect on the database |
 |---|---|---|---|
 | [Allocate] | both references present, a default configured, count and duration positive or defaulted, database accepts | the new capability token | one record lands in [Allocated], the counter set to [Max Redemptions] (Operation 1, Operation 17) |
-| [Allocate] | a blank or over-long reference, a count that is not a whole number above zero, a duration that is no window length or is not positive, or no configured default | [Invalid Request] | none (Operation 4, Operation 5, Operation 8, Operation 9, Operation 11, Operation 13, String 7, Execution Contract Input 1) |
+| [Allocate] | a blank or over-long reference, a count that is not a whole number above zero, a duration that is no window length or is not positive, or no configured default | [Invalid Request] | none (Operation 4, Operation 5, Operation 8, Operation 9, Operation 11, Operation 13, String 7, Operation 70) |
 | [Redeem] | token names nothing | `invalid(not-known)` | none (Operation 23) |
 | [Redeem] | stored status is [Redeemed] | `invalid(exhausted)` | none (Operation 24) |
 | [Redeem] | stored status is [Revoked] | `invalid(revoked)` | none (Operation 25) |
@@ -847,12 +848,12 @@ Inherited from:
 
 ## Status
 
-`grounded on Final Critique 8 — 2026-10-27` — see the Ledger.
+`partially resolved` — see the Ledger.
 
 ## Ledger
 
 ```
-status: grounded on Final Critique 8 — 2026-10-27
+status: partially resolved
 formal: verified — capability.als + 1 twin, 2026-06-23
 last gate: 2026-10-27 — Final Critique 8 — foundational count 0, clean, one sample
 
