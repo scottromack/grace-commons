@@ -17,7 +17,7 @@ toc: true
 
 ## Summary
 
-Immutable Ledger with Selective Disclosure is a regulated composition (a spec that wires two or more atoms — freestanding, self-contained pattern specs — together) that solves a problem no single atom solves alone: keeping a tamper-evident, attributed, append-only ledger of transactions *and* being able to hand a regulator, counterparty, or data subject a verifiable slice of it — proving that slice is genuine and was part of the ledger, recording that the disclosure happened and under what authority, and revealing nothing about the rest. It wires three constituents: Recoverable Invocation (the protocol its accounting write follows — intent, act, outcome, and a sweep that finishes the accounting an invocation leaves open), the Audit Trail substrate (the immutable, attributed, tamper-evident, retention-governed ledger, assembled from Event Log, Actor Identity, Tamper Evidence, and Retention Window) and Selective Disclosure (the durable, append-only accounting of every disclosure — recipient, scope, authority, time).
+Immutable Ledger with Selective Disclosure is a regulated composition (a spec that wires two or more atoms — freestanding, self-contained pattern specs — together) that solves a problem no single atom solves alone: keeping a tamper-evident, attributed, append-only ledger *and* being able to hand a regulator, counterparty, or data subject a verifiable slice of it — proving that slice is genuine and was part of the ledger, recording that the disclosure happened and under what authority, and revealing nothing about the rest. It wires three constituents: Recoverable Invocation (the protocol its accounting write follows — intent, act, outcome, and a sweep that finishes the accounting an invocation leaves open), the Audit Trail substrate (the immutable, attributed, tamper-evident, retention-governed ledger, assembled from Event Log, Actor Identity, Tamper Evidence, and Retention Window) and Selective Disclosure (the durable, append-only accounting of every disclosure — recipient, scope, authority, time).
 
 The composition's two defining emergent guarantees are **disclosure-accountability binding bijection** — every [Disclose Subset] writes exactly one Selective Disclosure record *and* exactly one Audit Trail ledger event recording that the disclosure happened — preceded by an intent event that records the attempt and is where the discloser's credential is checked — three writes in one transaction, intent then accounting record then outcome, and where the audit trail refuses the outcome, Recoverable Invocation's sweep lands it or escalates it with a record — so the act of disclosing is itself an immutable, attributed, sealed ledger entry and no disclosure ever lacks its ledger proof silently or permanently — and **verifiable partial disclosure** — any disclosed subset can be independently verified by its recipient as authentic and derived from the ledger, while the undisclosed remainder stays undisclosed and its integrity uncompromised. The first is a structural binding between the ledger and the accounting records; the second is a behavioral obligation on the ledger's tamper-evidence, realized (not defined) by mechanisms such as Merkle inclusion proofs (a path of sibling hashes from one entry to a hash tree's root), cryptographic accumulators (a constant-size commitment with a per-member witness), or signed disclosure packages.
 
@@ -27,7 +27,7 @@ This composition's most common uses are broker-dealer transaction records under 
 
 ## Intent
 
-Every domain that keeps a record of consequential transactions faces the same paired requirement. First, the record must be a **trustworthy ledger**: append-only and totally ordered (no entry inserted out of sequence or quietly back-dated), attributed (every entry tied to a verified actor), tamper-evident (any after-the-fact rewrite provable), and retention-governed (kept for its regulatory lifetime, lawfully destroyable with a defensible record). Second, the record must be **selectively shareable with accountability**: a regulator, counterparty, auditor, or data subject is shown a *subset* of the ledger — a single trade, one patient's billing disclosures, the records pertaining to one matter — and that act of sharing must itself be recorded (to whom, what scope, under what authority, when), while the disclosed subset can be independently verified as genuine and the undisclosed remainder is neither revealed nor weakened.
+Every domain that keeps a record of consequential activity faces the same paired requirement. First, the record must be a **trustworthy ledger**: append-only and totally ordered (no entry inserted out of sequence or quietly back-dated), attributed (every entry tied to a verified actor), tamper-evident (any after-the-fact rewrite provable), and retention-governed (kept for its regulatory lifetime, lawfully destroyable with a defensible record). Second, the record must be **selectively shareable with accountability**: a regulator, counterparty, auditor, or data subject is shown a *subset* of the ledger — a single trade, one patient's billing disclosures, the records pertaining to one matter — and that act of sharing must itself be recorded (to whom, what scope, under what authority, when), while the disclosed subset can be independently verified as genuine and the undisclosed remainder is neither revealed nor weakened.
 
 No single atom satisfies both. The Audit Trail substrate supplies the first: it is the immutable, attributed, tamper-evident, retention-governed ledger, assembled from Event Log (append-only total order), Actor Identity (attribution), Tamper Evidence (sealing), and Retention Window (lifetime). Selective Disclosure supplies the accountability half of the second: a durable, append-only record of every disclosure — recipient, scope, authority, timestamp. But neither provides the full surface until they are wired together. Audit Trail does not know what a *disclosure* is or that disclosing a subset of its own events is itself an auditable event. Selective Disclosure does not perform disclosures, does not seal anything, and — by its own Invariant 5 (no-disclosure-unrecorded) — cannot enforce from inside that every disclosure was in fact recorded; it names that as an integration obligation for a composing pattern to close. The wiring is this composition.
 
@@ -128,7 +128,7 @@ Term binding index: the composition's map from a disclosure id to the outcome ev
 
 Term binding: one disclosure id with its outcome event id.
 
-Term ledger entry: a ledger.entry event — a transaction.
+Term ledger entry: a ledger.entry event.
 
 Term ledger event: an Event Log event on the composition's Audit Trail instance carrying an action reference of the ledger namespace.
 
@@ -216,7 +216,7 @@ Term now: the deployment's clock reading at the call, as Execution Contract Logi
 ### Primitive policy
 
 ```
-Primitive policy 1: IF the transaction data EQUALS blank THEN [Record Entry] MUST answer invalid-request.
+Primitive policy 1: IF the entry data EQUALS blank THEN [Record Entry] MUST answer invalid-request.
 Primitive policy 2: IF the actor reference EQUALS blank THEN the action MUST answer invalid-request.
 Primitive policy 3: IF the disclosed entry ids EQUALS blank THEN [Disclose Subset] MUST answer invalid-request.
 Primitive policy 4: IF the count of disclosed entry ids EXCEEDS the disclosed entries cap THEN [Disclose Subset] MUST answer invalid-request.
@@ -228,7 +228,7 @@ Primitive policy 9: [Disclose Subset] MUST NOT call the invocation open BEFORE P
 Primitive policy 10: The composition MUST compare an event id, a disclosure id AND an invocation id byte-exact.
 Primitive policy 11: The composition MUST NOT normalize a caller string.
 Primitive policy 12: The composition MUST NOT inspect a credential.
-Primitive policy 13: The composition MUST NOT interpret the transaction data.
+Primitive policy 13: The composition MUST NOT interpret the entry data.
 Primitive policy 14: IF the act key OR the actor reference EXCEEDS the reference length cap THEN [Disclose Subset] MUST answer invalid-request.
 Deleted: Primitive policy 15. Primitive policy 8 owns it.
 Primitive policy 16: IF the record read answers no answer at the membership check THEN [Disclose Subset] MUST answer journal-unavailable.
@@ -241,7 +241,7 @@ Primitive policy 21: IF the disclosure id EQUALS blank THEN the action MUST answ
 
 Term membership check: Primitive policy 6's reading of EVERY disclosed entry id through the record read.
 
-Term transaction data: the opaque payload of a ledger entry, schema the host's.
+Term entry data: the opaque payload of a ledger entry, schema the host's.
 
 Term actor reference: the acting party of a ledger write or a disclosure — actor_ref.
 
@@ -307,7 +307,7 @@ Term position: intent | outcome | refusal — the position a recording-failure o
 ### Action wiring
 
 ```
-record_entry(transaction_data, actor_ref, credential)
+record_entry(entry_data, actor_ref, credential)
   answers entry id
   refuses invalid-credential | invalid-request | recording-failure | entry-unconfirmed(invocation_id)
 
@@ -372,7 +372,7 @@ Term no answer: a read or a write that returns neither its answer nor a refusal,
 Term invocation pair: the invocation id and the intent event id the invocation open answered.
 
 ```
-Action wiring 1: A validated entry MUST record the ledger entry carrying the invocation id, the transaction data AND now as the payload instant under the actor's credential.
+Action wiring 1: A validated entry MUST record the ledger entry carrying the invocation id, the entry data AND now as the payload instant under the actor's credential.
 Action wiring 2: A landed entry MUST answer the entry id.
 Action wiring 3: A validated disclosure MUST call the invocation open with the act kind, the act key, the actor reference, the credential AND the intent data.
 Deleted: Action wiring 4. Recoverable Invocation Primitive policy 10 owns it.
@@ -664,7 +664,7 @@ The binding and no-disclosure-unrecorded give *accountable disclosure*; verifiab
 
 A registered broker-dealer deploys this composition as the trade-confirmation ledger for one trading desk. Configuration: `ledger_retention_policy = sec_17a4_6yr` (encoding the six-year floor with the first two years immediately accessible), `seal_cadence = per-event` (each entry independently verifiable the moment it lands, so any subset disclosed later carries a valid partial proof), `tamper_evidence_supports_partial_disclosure = true` (the substrate's Tamper Evidence mechanism — a per-ledger Merkle tree — can produce an inclusion proof for any named subset). The payloads below are abbreviated: every event also carries the invocation id.
 
-1. **Three trades are recorded.** For each executed trade, the desk calls `record_entry(transaction_data = {symbol, qty, price, counterparty, …}, actor_ref = "trader-d12", credential = <trader_cred>)`. The composition calls `AuditTrail.record_action(action_ref = ledger.entry, actor_ref = "trader-d12", <trader_cred>, data = {transaction_data, recorded_at})` three times → `{entry_id = "ev_5001"}`, `{entry_id = "ev_5002"}`, `{entry_id = "ev_5003"}`. Each entry is now an immutable, attributed, per-event-sealed, retained ledger event. No disclosure has occurred, so `disclosure_to_event` is empty.
+1. **Three trades are recorded.** For each executed trade, the desk calls `record_entry(entry_data = {symbol, qty, price, counterparty, …}, actor_ref = "trader-d12", credential = <trader_cred>)`. The composition calls `AuditTrail.record_action(action_ref = ledger.entry, actor_ref = "trader-d12", <trader_cred>, data = {entry_data, recorded_at})` three times → `{entry_id = "ev_5001"}`, `{entry_id = "ev_5002"}`, `{entry_id = "ev_5003"}`. Each entry is now an immutable, attributed, per-event-sealed, retained ledger event. No disclosure has occurred, so `disclosure_to_event` is empty.
 
 2. **An examiner requests one trade.** A FINRA (Financial Industry Regulatory Authority) examiner requests the confirmation for the single trade recorded at `ev_5002` — and only that trade; the desk's other positions are outside the examiner's scope. The compliance officer calls:
 
@@ -709,7 +709,7 @@ A sponsor records each electronic submission to a regulator as a [Record Entry] 
 
 ### Rejection path — empty or unknown subset
 
-A caller attempts to disclose with no entries: `disclose_subset(disclosed_entry_ids = {}, …)` → `rejected(invalid-request)` at validation (Primitive policy 3); nothing is written to the ledger or the accounting records. A caller names an entry id that is not a ledger transaction entry — a fabricated id, or the `event_id` of a `ledger.disclosure.disclosed` event rather than a `ledger.entry` event: `disclose_subset(disclosed_entry_ids = {"ev_5005"}, …)` → `rejected(unknown-entry)` naming `ev_5005` (it is a disclosure event, not a transaction entry); nothing is written. The membership test (every id resolves to a `ledger.entry` event) runs *before* the irreversible Selective Disclosure write, so an invalid subset never produces a disclosure-accounting record.
+A caller attempts to disclose with no entries: `disclose_subset(disclosed_entry_ids = {}, …)` → `rejected(invalid-request)` at validation (Primitive policy 3); nothing is written to the ledger or the accounting records. A caller names an entry id that is not a ledger entry — a fabricated id, or the `event_id` of a `ledger.disclosure.disclosed` event rather than a `ledger.entry` event: `disclose_subset(disclosed_entry_ids = {"ev_5005"}, …)` → `rejected(unknown-entry)` naming `ev_5005` (it is a disclosure event, not a ledger entry); nothing is written. The membership test (every id resolves to a `ledger.entry` event) runs *before* the irreversible Selective Disclosure write, so an invalid subset never produces a disclosure-accounting record.
 
 ### Rejection path — the audit trail refuses the outcome (the orphan)
 
@@ -798,7 +798,7 @@ Term passing verification: verified | failed-verification carrying purged | unve
 External check 1: An auditor needing a write-ownership finding's surfacing confirmed MUST read the deployment's finding surface AND reconciliation schedule (Reconciliation 14).
 External check 2: An auditor needing an asserted authority's validity confirmed MUST read the authority's own pattern (Non-goal 1).
 External check 3: An auditor needing a disclosure's permission confirmed MUST read the deployment's Consent AND Permissions records (Non-goal 1).
-External check 4: An auditor needing the transaction data's accuracy confirmed MUST read the host's source of the transaction (Primitive policy 13).
+External check 4: An auditor needing the entry data's accuracy confirmed MUST read the host's source of the entry data (Primitive policy 13).
 External check 5: An auditor needing the disclosed entries' correspondence to the subject confirmed MUST read the host's subject tagging (Non-goal 6).
 External check 6: An auditor needing the partial disclosure capability AND complement confidentiality confirmed MUST read the deployment's security review of the mechanism (Invariant 2.2).
 External check 7: An auditor needing the ledger seal reference's singularity AND the verifier's independence confirmed MUST read the deployment's seal publication (Invariant 2.1).
@@ -885,7 +885,7 @@ Term cadences: seal cadence (seal_cadence); the sweep cadence is Recoverable Inv
 
 Term qualifiers: migrated — rewritten in GRACE lang v0.61 (2026-09-24).
 
-Term terms: accounting horizon, attestation verification, retention state, bundle construction, verification routine, degraded bundle, index-unavailable, no answer, ledger event, reconciliation run bound, whole covering range, settling period, membership check, entry-unconfirmed, store-unavailable, invocation pair, append step, write-ownership finding, finding surface, settling closing, unsettled escalation, composition, constituents, transitive atoms, ledger enumeration, record read, audit write, verification, disclosure write, disclosure read, ledger namespace, act kind, disclosure binding, act key, commit partition, disclosure probe, disclosure id, binding index, binding, ledger entry, outcome event, intent, disclosed set, live binding, purged binding, binding rebuild, ledger retention policy, audit horizon, seal cadence, disclosure completion bound, commit round trip, sweep cadence, probe round trip, disclosed entries cap, recovery identity, accounting records, partial disclosure capability, invocation id, seam, now, transaction data, actor reference, disclosed entry ids, subject reference, recipient, scope, authority, maximal envelope, caller string, pre-append step, retention step, invalid-request step, position, entry id, disclosure result, disclosed entries, ledger seal reference, disclosure proof, original event payloads, accountability proof, results, validated entry, landed entry, validated disclosure, admitted disclosure, invocation open, invocation close, invocation refusal, invocation yield, invocation read, sweep, intent data, outcome data, disclosure refusal, accounted disclosure, yielded disclosure, landed disclosure, disclosure instant, payload instant, found reissue, found ledger verification, bound ledger verification, covering range, read passthrough, read-only action, reconciliation, young record, aged record, orphan record, discloser, recovered outcome, escalated closing, record's invocation, binding verdict, live outcome event, passing verification, payload handling, accounting-horizon cover, entry read-back, not-known, false closing.
+Term terms: accounting horizon, attestation verification, retention state, bundle construction, verification routine, degraded bundle, index-unavailable, no answer, ledger event, reconciliation run bound, whole covering range, settling period, membership check, entry-unconfirmed, store-unavailable, invocation pair, append step, write-ownership finding, finding surface, settling closing, unsettled escalation, composition, constituents, transitive atoms, ledger enumeration, record read, audit write, verification, disclosure write, disclosure read, ledger namespace, act kind, disclosure binding, act key, commit partition, disclosure probe, disclosure id, binding index, binding, ledger entry, outcome event, intent, disclosed set, live binding, purged binding, binding rebuild, ledger retention policy, audit horizon, seal cadence, disclosure completion bound, commit round trip, sweep cadence, probe round trip, disclosed entries cap, recovery identity, accounting records, partial disclosure capability, invocation id, seam, now, entry data, actor reference, disclosed entry ids, subject reference, recipient, scope, authority, maximal envelope, caller string, pre-append step, retention step, invalid-request step, position, entry id, disclosure result, disclosed entries, ledger seal reference, disclosure proof, original event payloads, accountability proof, results, validated entry, landed entry, validated disclosure, admitted disclosure, invocation open, invocation close, invocation refusal, invocation yield, invocation read, sweep, intent data, outcome data, disclosure refusal, accounted disclosure, yielded disclosure, landed disclosure, disclosure instant, payload instant, found reissue, found ledger verification, bound ledger verification, covering range, read passthrough, read-only action, reconciliation, young record, aged record, orphan record, discloser, recovered outcome, escalated closing, record's invocation, binding verdict, live outcome event, passing verification, payload handling, accounting-horizon cover, entry read-back, not-known, false closing.
 
 Term cited: Execution Contract Conformance 8 — the recursive inheritance of a constituent's guarantees. Execution Contract Logic confinement 7 — the clock's guarantees are the deployment's. The section titled Composition state in `execution-contract.md` — the derived-index classification. The section titled Substrate composition invocation in `execution-contract.md` — the mechanism-capability residual and the multi-instance topology. The section titled Logic Confinement Principle in `execution-contract.md` — the seam. The section titled Compositions of compositions in `spec-format.md` — the transitive atoms. record_action, read_record, verify_record, payload cap, sealed through, unsealed tail, step-2, step-3, step-4, invalid-credential, invalid-request, recording-failure, verified, failed-verification, unverifiable, purged, partially-purged coverage, compensation-window, quiescence, Retained, Purged, Erasure Tombstone: Audit Trail. reference length cap: Audit Trail. record, read, disclosure id, subject reference, recipient, scope, authority, invalid-request, unknown-authority-type, storage-failure, invalid-query: Selective Disclosure. open, close, refuse, yield, read_invocation, reconcile, resolve, critical section, invocation completion bound, closure window, examine window end, service identity, outcome envelope, pairing datum, commit fence, retry terminus, recovery, acting actor reference, intent event id, cause, act-in-flight, section-unavailable, journal-unavailable, already-accounted, clock allowance, pause bound, horizon edge, act quiescence, supersedes, outcome action reference, constituent code, reply, run bound, journal write bound: Recoverable Invocation. read, invalid-query: Event Log. verify, seal: Tamper Evidence.
 
@@ -893,7 +893,7 @@ Term composing patterns: [Consent](../atoms/consent.md); [Permissions](../atoms/
 
 #### Record Entry
 
-The composition action that appends one transaction to the ledger — a single `AuditTrail.record_action` (`ledger.entry`) producing an immutable, attributed, sealed, retained event. Returns the `entry_id` (the Audit Trail `event_id`).
+The composition action that appends one entry to the ledger — a single `AuditTrail.record_action` (`ledger.entry`) producing an immutable, attributed, sealed, retained event. Returns the `entry_id` (the Audit Trail `event_id`).
 
 Kind: Operation
 
@@ -1011,7 +1011,7 @@ Projection: not-in-ledger
 
 #### Unknown Entry
 
-The [Disclose Subset] rejection when a named subset id resolves through the record read to no `ledger.entry` transaction — an unknown id, or any other event, a `ledger.disclosure.disclosed` outcome included — naming every failing id, deterministically.
+The [Disclose Subset] rejection when a named subset id resolves through the record read to no `ledger.entry` event — an unknown id, or any other event, a `ledger.disclosure.disclosed` outcome included — naming every failing id, deterministically.
 
 Kind:       Member
 Member of:  the disclose-subset rejection
