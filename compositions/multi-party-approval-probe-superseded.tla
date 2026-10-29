@@ -69,9 +69,9 @@
 \* 17, 26, 32 and Term aged chains are a rule's condition, not an interleaving; the model has
 \* no clock); the audit write's refusals at an intent or an outcome (Audit arm 1 through 16
 \* land each on the caller, and Recoverable Invocation-style re-emission is the transition
-\* leg's, whose resolution-event arm is open line 2026-10-26-d); assign's refusals
+\* leg's, a terminal chain's missing terminal event included (Reconciliation 35)); assign's refusals
 \* (disposition b, whose chain the recovery closes as it closes disposition c's); the derived
-\* indexes (a lost step-assignment entry is open line 2026-10-26-c); [Read Chain].
+\* indexes (a lost entry is rebuilt before a rule reads it, Composition state 21); [Read Chain].
 
 EXTENDS Naturals, FiniteSets
 

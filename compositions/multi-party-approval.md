@@ -111,6 +111,8 @@ Composition state 17: The composition MUST rebuild the step-assignment index thr
 Composition state 18: The composition MUST rebuild the event index PER the event rebuild.
 Deleted: Composition state 19. Execution Contract Database 3 and Execution Contract Database 4 own it.
 Composition state 20: The composition MUST decide an index entry's horizon by the record read on the entry's source event.
+Composition state 21: The composition MUST NOT read a key as carrying no index entry BEFORE rebuilding the key's index entry.
+NOTE: watch the miss read before its rebuild (Composition state 21).
 ```
 
 Term chain records: the set of chain records — `chain_store` in an implementation.
@@ -408,8 +410,6 @@ Action wiring 62: IF the initiation recovery runs inside the invocation THEN [In
 
 NOTE: open 2026-10-26-b — [Initiate Chain]'s recording-failure carrying outcome (Action wiring 62) carries no chain id, so a caller reading it as a committed act (Audit arm 15) holds no id to read the chain back by.
 
-NOTE: open 2026-10-26-d — a resolution event the audit write refuses (Action wiring 38) is landed by no Audit arm, which land an intent's or an outcome's answer alone, and re-emitted by no rule of the transition leg, so a terminal chain can stand with no terminal event and no open marker.
-
 Term minted id: a chain id, a step id or an assignment id.
 
 Term prefixed reason: "chain:" and the chain id, then ": " and the caller's reason where supplied — the step's stored reason, which names its chain on the atom's own record.
@@ -498,6 +498,96 @@ Term validated read: a [Read Chain] call whose inputs cleared Primitive policy.
 
 Term permitted read: a validated read whose permission check answered permitted and whose query is not malformed.
 
+#### Closure table
+
+Every input an action takes, and every answer a call of the six actions, of the chain evaluation and cascade they run, and of the sweep can meet — Permissions' permission check, Approval Step's submit, step writes, withdraw and read, Assignment's assign, recall and history_for, and Audit Trail's audit write, record read and log read — with where the call lands it and the rule that owns the landing. A constituent call meets the answers its signature declares and the state-unavailable a failed read of the database gives every action (Execution Contract Read 1); a call that never answers is the lost answer of Execution Contract Error model 1, written no answer here. Each action is one transaction (Execution Contract Database 1), so a call that fails the action leaves none of its writes, its intent included, and where two refusals of one action apply to one call, the one listed first on its refuses line answers (Execution Contract Refusal 1). The enumeration is exhaustive: an answer a constituent adds is a row this table lacks, and a cell no rule owns is a finding against the page.
+
+**Inputs.**
+
+| Action | Input | Lands | Owner |
+|---|---|---|---|
+| every action but [Read Chain] | a blank actor reference, or a reference longer than Audit Trail's reference length cap | invalid-request, nothing written and no constituent called | Primitive policy 1, 2, 11, 12 |
+| [Read Chain] | a blank or over-long actor reference | the permission check's answer, the read's refuses line carrying no invalid-request | Action wiring 51, Action wiring 2 |
+| [Initiate Chain] | a blank subject reference, scope or approver reference, or one longer than the field length cap | invalid-request, nothing written | Primitive policy 3, 4, 11 |
+| [Initiate Chain] | an approver set smaller than the approver set minimum, or repeating a reference where the approver set uniqueness is true | invalid-request, nothing written | Primitive policy 5, 6, 11 |
+| [Initiate Chain] | a quorum rule outside the allowed quorum rules, or a quorum count outside the valid quorum counts | invalid-request, nothing written | Primitive policy 7, 8, 11 |
+| [Initiate Chain] | an approver set naming the initiator reference | admitted | Non-goal 13 |
+| [Reject Step], [Withdraw Step], [Withdraw Chain] | a blank reason | invalid-request, nothing written | Primitive policy 9, 11 |
+| [Initiate Chain], [Approve Step] | a reason supplied blank | carried as supplied, never normalized; at [Initiate Chain] the prefixed reason stays non-blank, and at [Approve Step] a refusal of the step write is relayed | Primitive policy 14, Term prefixed reason, Action wiring 22 |
+| every action but [Read Chain] | a larger payload over the payload budget | invalid-request, nothing written | Primitive policy 10, 11 |
+| every action but [Read Chain] | the credential | consumed by the audit write alone, never inspected or written into a payload | Primitive policy 15, 16 |
+| a decision action | a step id the step-chain index does not name under the chain id, a missing entry rebuilt first | not-known, nothing written | Action wiring 17, Composition state 21 |
+| a decision action | a step whose chain is terminal | admitted, the trailing flag true and the chain record unchanged | Action wiring 18, 19, 31 |
+| [Withdraw Chain] | a chain id the chain records carry no record for, a missing record rebuilt first | not-known, ahead of the withdrawal intent | Action wiring 41, Composition state 21 |
+| [Withdraw Chain] | a chain that is not Pending | not-pending, ahead of the withdrawal intent | Action wiring 44 |
+| [Withdraw Chain] | an actor reference other than the chain's initiator reference | unauthorized, ahead of the withdrawal intent | Action wiring 45 |
+| [Read Chain] | a malformed query | invalid-query, nothing read; permission-denied where the permission check also denies the caller | Action wiring 52, Action wiring 2, Execution Contract Refusal 1 |
+| [Read Chain] | a query no chain matches | chain results carrying no chain | Action wiring 53 |
+
+**Permissions: the permission check**, at [Initiate Chain], [Withdraw Chain] and [Read Chain] (Action wiring 1, 40, 51).
+
+| Answer | Lands | Owner |
+|---|---|---|
+| permitted | the initiation intent; at [Withdraw Chain] its chain, Pending and initiator checks; the read | Action wiring 3, 41, 44, 45, 53 |
+| denied | permission-denied, nothing written and nothing recorded | Action wiring 2, Non-goal 9 |
+| state-unavailable | passed through unchanged, nothing written | Execution Contract Read 1 through 3 |
+| no answer | no answer to give | Execution Contract Error model 1 |
+
+**Approval Step and Assignment, inside an action.** A storage-failure from any of these calls fails the whole action, at whatever call it comes: recording-failure carrying intent, nothing committed (Action wiring 23, Execution Contract Constituent failure 1). A state-unavailable passes through unchanged and writes nothing (Execution Contract Read 1 through 3), and a call with no answer leaves the action none to give (Execution Contract Error model 1). The other answers:
+
+| Call | Answer | Lands | Owner |
+|---|---|---|---|
+| submit, per approver slot | a step id | the landed ids, the step list index and the step-chain index | Action wiring 8 |
+| submit | invalid-request | the initiation recovery, disposition a; [Initiate Chain] answers recording-failure carrying outcome | Action wiring 9, 62 |
+| assign, per step id | an assignment id | the landed ids and the step-assignment index | Action wiring 11 |
+| assign | invalid-request or already-assigned | the initiation recovery, disposition b, an already-assigned alerted as id reuse; recording-failure carrying outcome | Action wiring 12, 13, 62 |
+| the decision's step write | approved, rejected_outcome or withdrawn | the recall, the decision's outcome and, unless trailing, the chain evaluation | Action wiring 24, 29, 30 |
+| the decision's step write | invalid-request, not-known, not-pending or unauthorized | the step refusal relayed by name, nothing written | Action wiring 22 |
+| a decided decision's recall | ok or not-active | the decision proceeds to its outcome | Action wiring 26, 29 |
+| a decided decision's recall | not-known | alerted as an index anomaly; the decision proceeds to its outcome | Action wiring 28, 29 |
+| a decided decision's recall | not called where the step-assignment index names no assignment, a missing entry rebuilt first | the decision proceeds to its outcome | Action wiring 25, Composition state 21 |
+| a cascade's withdraw | withdrawn | the step withdrawal event | Cascade 4 |
+| a cascade's withdraw | not-pending | a closure record carrying the superseded mark | Cascade 10 |
+| a cascade's withdraw | unauthorized or not-known | alerted, never retried; the cascade proceeds | Cascade 8, Cascade 12, Action wiring 28, Reconciliation 27 |
+| a cascade's withdraw | the temporal invalid-request | a transient arm: the cascade proceeds and its terminal event carries the partial flag | Cascade 8, Cascade 9, Term transient arm |
+| a cascade's withdraw | any other invalid-request | not met: the withdrawer is the step's submitter and the cascade reason is non-blank | Cascade 2, Term cascade reason |
+| a cascade's recall | ok | the recalled step ids | Cascade 13 |
+| a cascade's recall | not-active | read as done | Cascade 11 |
+| a cascade's recall | not-known | alerted, never retried; the cascade proceeds | Cascade 8, Action wiring 28, Reconciliation 27 |
+| a cascade's recall | not called where the step-assignment index names no assignment, a missing entry rebuilt first | the cascade proceeds | Cascade 7, Composition state 21 |
+| Approval Step's read, on a chain's step ids | the steps | the chain results' step records and out-of-band marks | Action wiring 53, Term out-of-band mark |
+| Approval Step's read | invalid-query | not met: one filter on the step id axis, each id one submit minted | Action wiring 8 |
+| history_for, per step id | the assignments | the chain results' assignment records, and the rebuild of a step-assignment entry | Action wiring 54, Composition state 17 |
+
+**Audit Trail: the audit write**, by what it records. An intent is the initiation, decision or withdrawal intent; an outcome is the initiation event, a decision's outcome or the withdrawal event; the resolution event is the chain evaluation's; the initiation recovery's records are its initiation event, initiation-failed record and withdrawal event.
+
+| Answer | an intent | an outcome | the resolution event | a cascade's step withdrawal event | the initiation recovery's records |
+|---|---|---|---|---|---|
+| an event id | the act proceeds (Term admitted initiation, admitted decision, admitted chain withdrawal) | landed: the action's answer (Action wiring 16, 32, 50) | the chain's terminal event | the cascade withdrawal routed (Term routed transition) | the chain-shape event landed, the chain withdrawn where Pending and the quarantine flag cleared (Reconciliation 13, 16); a withdrawal event, the chain's terminal event |
+| invalid-credential | invalid-credential, nothing written (Audit arm 1) | not met: attested inside the transaction whose intent validated the credential (Execution Contract Database 2) | a service credential fault, paged (Reconciliation 33); the chain left with no terminal event, an open marker | not met: in an action under the credential its intent validated (Cascade 5, Execution Contract Database 2), in the sweep after its recovery intent landed (Reconciliation 28) | paged (Reconciliation 33); the record unlanded, as for a recording-failure |
+| invalid-request carrying step-1, step-2 or step-3 | invalid-request, never retried, a deployment fault alerted (Audit arm 3, 4, 5) | recording-failure carrying outcome, alerted (Audit arm 16, 5) | alerted (Audit arm 5); the chain left with no terminal event, an open marker | alerted, never retried (Audit arm 4, 5) | alerted (Audit arm 5); the record unlanded, as for a recording-failure |
+| invalid-request carrying the retention step | invalid-request, never retried, alerted (Audit arm 3, 4, 5) | read back: found, landed; not found, recording-failure carrying outcome (Audit arm 7, 8, 9, 11) | alerted; the event appended and attested, the chain's terminal event (Audit arm 5, Term retention step) | alerted; the event appended and attested (Audit arm 5, Term retention step) | alerted; the record appended and attested, so landed (Audit arm 5, Term retention step) |
+| recording-failure | recording-failure carrying intent, nothing committed (Audit arm 2, 14) | recording-failure carrying outcome, a committed act whose record the sweep owes (Audit arm 10, 15) | the chain left with no terminal event, an open marker (Term open marker) | a transient arm: the partial flag (Term transient arm, Cascade 9) | an initiation-failed record or initiation event unlanded, the chain record left for the initiation leg (Reconciliation 8, 11, 16); a withdrawal event unlanded, the chain left with no terminal event, an open marker |
+
+Where the resolution event or a record of the initiation recovery is refused, the action answers as its own records land: a decision its step write's answer (Action wiring 32), [Initiate Chain] recording-failure carrying outcome (Action wiring 62). A state-unavailable at any write passes through unchanged and writes nothing (Execution Contract Read 1 through 3), and a write with no answer leaves the action none to give (Execution Contract Error model 1), no outcome being retried inside the invocation (Audit arm 13). The sweep closes what is left open: a chain record with no chain-shape event by the initiation leg (Reconciliation 8), a routed transition with no outcome (Reconciliation 17), a call a partial flag names (Reconciliation 26) and a terminal chain with no terminal event (Reconciliation 35) by the transition leg.
+
+**Audit Trail: the record read and the log read.**
+
+| Read | Answer | Lands | Owner |
+|---|---|---|---|
+| the read-back, on the event id an outcome's invalid-request returns | the outcome | landed | Audit arm 8, 9 |
+| the read-back | not-known | recording-failure carrying outcome | Audit arm 11 |
+| the record read, on an index entry's source event | Retained or Purged | the entry live, or purged | Composition state 20, Term live index entry, Term purged index entry |
+| the record read, on an event id the event index names | not-known | not met: the event index names landed events alone | Action wiring 57 |
+| the log read, from one with an open upper bound | the events | the chain rebuild, the event rebuild and the sweep's two legs | Composition state 12, 18, Term initiation leg, Term transition leg |
+| the log read | invalid-query | not met: the range has a start and no end | Term log read |
+
+Inside an action, a read that fails passes through unchanged and writes nothing (Execution Contract Read 1 through 3), and a read with no answer leaves the action none to give (Execution Contract Error model 1).
+
+**The composition's own records.** A chain record or index entry the action writes commits with the action's other writes (Execution Contract Database 1), and a write of them that fails answers storage-failure (Execution Contract Read 4); a key found carrying no index entry is rebuilt before any rule reads it so (Composition state 21).
+
+**The sweep.** It answers no caller. It decides only on an answered read (Reconciliation 39): a read that fails or gives no answer decides nothing, and the chain is examined again at the next run (Reconciliation 2). It commits a closure only after the closure's recovery intent lands (Reconciliation 28). A write of the sweep's that does not land — its recovery intent, a re-emitted outcome or terminal event, a closure record, an initiation recovery's record or a cascade's call — leaves the open marker it was closing open for the next run (Reconciliation 8, 17, 26, 35), escalated once the marker's escalation instant passes (Reconciliation 32), an invalid-credential paged besides (Reconciliation 33); a write with no answer is decided by what the next run reads (Execution Contract Error model 1). A retried withdraw or recall lands as a cascade's does and records its closure mark (Reconciliation 30, Term closure mark), a storage-failure here being a transient arm (Term transient arm) retried at every run (Reconciliation 26) and a deterministic arm never (Reconciliation 27).
+
 ### Wiring decision
 
 ```
@@ -553,6 +643,7 @@ Reconciliation 2: The sweep MUST run every reconciliation cadence.
 Deleted: Reconciliation 3. Execution Contract Database 1 owns it.
 Deleted: Reconciliation 4. Execution Contract Database 1 owns it.
 Reconciliation 5: The sweep MUST NOT examine an aged chain.
+Reconciliation 39: The sweep MUST decide ONLY on an answered read.
 Deleted: Reconciliation 6. Execution Contract Database 2 owns it.
 Deleted: Reconciliation 7. Execution Contract Database 2 owns it: an action's reads of a chain and the writes they decide are one transaction, and the composition names no exclusion for another holder to hold.
 Reconciliation 8: IF a chain record inside the audit horizon carries no chain-shape event THEN the initiation leg MUST run the initiation recovery.
@@ -565,6 +656,7 @@ Deleted: Reconciliation 14. Execution Contract Database 1 owns it.
 Reconciliation 15: IF the initiation recovery sets the chain state to Withdrawn THEN the initiation recovery MUST record the withdrawal event carrying the recovery flag AND the initiation-failed record's event id under the service identity.
 Reconciliation 16: The initiation recovery MUST clear the quarantine flag ONLY AFTER the chain-shape event lands.
 Reconciliation 17: IF a routed transition carries no outcome AND the transition's chain IS NOT IN the aged chains THEN the transition leg MUST re-emit the transition's outcome.
+Reconciliation 35: IF a terminal chain carries no terminal event AND the chain IS NOT IN the aged chains THEN the transition leg MUST run the cascade with the owed terminal event's reason AND re-emit the chain's owed terminal event.
 Reconciliation 18: The transition leg MUST match a transition ONLY to an audit record.
 Reconciliation 19: The sweep MUST NOT re-emit an out-of-band transition's outcome.
 Reconciliation 20: The sweep MUST alert on EVERY out-of-band transition as a conformance fault.
@@ -582,6 +674,9 @@ Reconciliation 31: The sweep MUST attest EVERY write the sweep makes under the s
 Reconciliation 32: IF an open marker's escalation instant PRECEDES the sweep's now AND the marker's chain IS NOT IN the aged chains THEN the sweep MUST open an unresolved finding for the chain on Audit Trail's alerting surface.
 Reconciliation 33: IF Audit Trail answers invalid-credential to the service identity THEN the deployment MUST page on the answer as a service credential fault.
 Reconciliation 34: A re-emitted resolution event MUST carry the sweep's recalls AND the late-recalled steps as the recalled step ids.
+Reconciliation 36: A re-emitted resolution event MUST carry the rule reason of the quorum rule's answer on the chain's pre-withdrawal vector.
+Reconciliation 37: IF a withdrawal intent carries the chain id THEN a re-emitted withdrawal event MUST carry the withdrawal intent's event id as the intent event id, the withdrawal intent's actor as the acting actor reference AND the withdrawal intent's reason.
+Reconciliation 38: IF no withdrawal intent carries the chain id THEN a re-emitted withdrawal event MUST carry the initiation-failed record's event id AND the recovery reason.
 ```
 
 NOTE: open 2026-10-26-a — the intent candidates a re-emitted outcome carries (Reconciliation 21) and the chain results a read answers are lists with no bound, and the payload budget sizes no candidate list.
@@ -591,6 +686,8 @@ Term sweep: the reconciliation the composition runs outside every invocation —
 Term initiation leg: the sweep's leg comparing the chain records against the chain-shape events.
 
 Term transition leg: the sweep's leg comparing the committed step transitions and chain terminals against their audit records.
+
+Term owed terminal event: the terminal event a terminal chain owes — the resolution event where the quorum rule answers the chain state on the chain's pre-withdrawal vector, and the withdrawal event otherwise.
 
 Term aged chains: the chains whose initiated instant plus the audit horizon PRECEDES now.
 
@@ -620,11 +717,11 @@ Term closure mark: retried where the retried call succeeded; superseded_by_decis
 
 Term recovery intent: the chain_recovery_intended event.
 
-Term open marker: a quarantine flag set, a partial flag with no closure record for every call it names, or a routed transition with no audit record.
+Term open marker: a quarantine flag set, a partial flag with no closure record for every call it names, a routed transition with no audit record, or a terminal chain with no terminal event.
 
 Term escalation instant: an open marker's opening instant plus the compensation window.
 
-Term opening instant: the instant an open marker opened — the initiated instant for a quarantine flag, the terminal instant for a partial flag, and the intent instant of the transition's decision intent for a routed transition with no audit record.
+Term opening instant: the instant an open marker opened — the initiated instant for a quarantine flag, the terminal instant for a partial flag and for a terminal chain with no terminal event, and the intent instant of the transition's decision intent for a routed transition with no audit record.
 
 Term transient arm: a recording-failure from the audit write; a storage-failure on withdraw or recall; Approval Step's temporal invalid-request on a cascade withdrawal, cured by a later reading.
 
@@ -654,8 +751,6 @@ Cascade 11: IF recall answers not-active THEN the cascade MUST read the recall a
 Cascade 12: IF withdraw answers unauthorized THEN the deployment MUST alert on the answer as a conformance fault.
 Cascade 13: The recalled step ids MUST list the steps whose recall answered ok, in recall order.
 ```
-
-NOTE: open 2026-10-26-c — Cascade 7 and Action wiring 25 read a step-assignment index naming no assignment as a step with none, while a lost entry of that derived index is a rebuild trigger (the relations paragraph under Composition-level invariants; the section titled Composition state in `execution-contract.md`), so a step whose entry was lost keeps its Active assignment once its chain is terminal.
 
 Term cascade: the secondary calls a terminal chain owes its still-Pending steps.
 
@@ -862,11 +957,12 @@ Non-goal 10: The composition MUST NOT re-open a decided step under the step's ch
 Non-goal 11: The composition MUST NOT authenticate a reader.
 Non-goal 12: The composition MUST NOT serve an assignee-keyed in-tray view.
 Non-goal 13: The composition MUST NOT refuse an approver set naming the initiator reference.
+Non-goal 14: The composition MUST NOT administer a Permissions grant.
 ```
 
 Term pre-intent refusal: a refusal an action answers ahead of its intent — validation, permission, and at [Withdraw Chain] an unknown chain, not-pending and an initiator mismatch.
 
-NOTE: the owners — other compositions, and a Sequenced Approval Chain *(forthcoming)* for ordering (Non-goal 1, Non-goal 2); a Delegation pattern *(forthcoming)* (Non-goal 3); a composing Permissions layer, the calling system and the governance layer (Non-goal 4, External check 2; Non-goal 5; Non-goal 13); a composing scheduler or a Deadline Escalation pattern *(forthcoming)* (Non-goal 6); [Notification](../atoms/notification.md) and [Notification Fanout](./notification-fanout.md) (Non-goal 7); a higher-order policy (Non-goal 8); a Failed-Attempt Log *(forthcoming)* (Non-goal 9); the calling layer (Non-goal 11, Capability requirement 25, External check 1); a Reverse Index *(forthcoming)* lookup the deployment builds (Non-goal 12).
+NOTE: the owners — other compositions, and a Sequenced Approval Chain *(forthcoming)* for ordering (Non-goal 1, Non-goal 2); a Delegation pattern *(forthcoming)* (Non-goal 3); a composing Permissions layer, the calling system and the governance layer (Non-goal 4, External check 2; Non-goal 5; Non-goal 13); the Permissions-administration layer (Non-goal 14, External check 4); a composing scheduler or a Deadline Escalation pattern *(forthcoming)* (Non-goal 6); [Notification](../atoms/notification.md) and [Notification Fanout](./notification-fanout.md) (Non-goal 7); a higher-order policy (Non-goal 8); a Failed-Attempt Log *(forthcoming)* (Non-goal 9); the calling layer (Non-goal 11, Capability requirement 25, External check 1); a Reverse Index *(forthcoming)* lookup the deployment builds (Non-goal 12).
 
 ---
 
@@ -907,7 +1003,7 @@ Term actors: the composition; the constituents; the host; the sweep; the initiat
 
 Term records: the chain records and the four indexes' entries; the intents, outcomes, resolution events, initiation-failed records, closure records and recovery intents the composition records through the audit write — each an Event Log event carrying one action reference of the chain namespace; and the steps and assignments it writes through Approval Step and Assignment.
 
-Term record verbs: EQUAL, admit, alert, answer, append, attest, authenticate, bind, call, carry, change, check, classify, clear, commit, compare, compose, compute, count, decide, declare, define, disclose, evaluate, examine, expire, expose, find, gate, inherit, inject, inspect, join, judge, keep, list, mark, match, name, normalize, notify, open, order, page, pass, place, proceed, provision, re-emit, re-open, reach, read, rebuild, recall, record, refuse, relate, remove, resolve, retain, retire, retry, run, select, serve, set, stamp, start, store, supply, write.
+Term record verbs: EQUAL, administer, admit, alert, answer, append, attest, authenticate, bind, call, carry, change, check, classify, clear, commit, compare, compose, compute, count, decide, declare, define, disclose, evaluate, examine, expire, expose, find, gate, inherit, inject, inspect, join, judge, keep, list, mark, match, name, normalize, notify, open, order, page, pass, place, proceed, provision, re-emit, re-open, reach, read, rebuild, recall, record, refuse, relate, remove, resolve, retain, retire, retry, run, select, serve, set, stamp, start, store, supply, write.
 
 Term value sets: chain state, disposition, closure mark, decision, position and the quorum rule are declared where the section that owns each declares it.
 
@@ -917,7 +1013,7 @@ Term cadences: reconciliation cadence (reconciliation_cadence).
 
 Term qualifiers: migrated — rewritten in GRACE lang v0.61 (2026-09-24).
 
-Term terms: composition, constituents, transitive atoms, log read, record read, audit write, verification, step write, chain namespace, chain records, chain record, declared fields, chain id, chain state, terminal instant, quarantine flag, landed ids, step list index, step-chain index, step-assignment index, event index, index entry, chain-shape event, chain shape, open initiation window, source event, live index entry, purged index entry, chain rebuild, event rebuild, assignment history, approver set minimum, approver set uniqueness, allowed quorum rules, audit retention policy, audit horizon, decision completion bound, compensation window, reconciliation cadence, outcome write latency, liveness sum, service identity, invocation id, seam, now, id widths, operating skew, reference, capped string, actor reference, subject reference, scope, approver set, approver reference, quorum rule, quorum count, valid quorum counts, reason, reason-bearing action, field length cap, larger payload, payload budget, credential, intent, outcome, retention step, read-back, position, chain results, query, minted id, prefixed reason, initiation intent, initiation event, decision intent, withdrawal intent, approval event, rejection event, step withdrawal event, withdrawal event, resolution event, decision's outcome, decision, decision's step write, step refusal, intent event id, intent instant, initiated instant, acting actor reference, trailing flag, cascade flag, partial flag, recovery flag, validated initiation, permitted initiation, admitted initiation, submitted initiation, staffed initiation, landed initiation, unlanded initiation, resolved decision, admitted decision, decided decision, landed decision, decision action, chain evaluation, terminating evaluation, validated chain withdrawal, found chain withdrawal, open chain withdrawal, admitted chain withdrawal, landed chain withdrawal, validated read, permitted read, routed vector, approved count, rejected count, withdrawn count, met vectors, lost vectors, open vectors, routed transition, out-of-band transition, out-of-band mark, rule reason, sweep, initiation leg, transition leg, aged chains, aged chain, settled step, late-recalled steps, initiation recovery, disposition, initiation-failed record, chainless step, recovery reason, intent candidates, closure record, superseded mark, closure mark, recovery intent, open marker, escalation instant, opening instant, transient arm, deterministic arm, cascade, cascade reason, recalled step ids, quiescent chains, quiescent chain, recovery-closed chains, pre-withdrawal vector, open steps, audit record, committed transition, lifecycle, resolution-terminated chain, withdrawal-terminated chain, pre-intent refusal.
+Term terms: composition, constituents, transitive atoms, log read, record read, audit write, verification, step write, chain namespace, chain records, chain record, declared fields, chain id, chain state, terminal instant, quarantine flag, landed ids, step list index, step-chain index, step-assignment index, event index, index entry, chain-shape event, chain shape, open initiation window, source event, live index entry, purged index entry, chain rebuild, event rebuild, assignment history, approver set minimum, approver set uniqueness, allowed quorum rules, audit retention policy, audit horizon, decision completion bound, compensation window, reconciliation cadence, outcome write latency, liveness sum, service identity, invocation id, seam, now, id widths, operating skew, reference, capped string, actor reference, subject reference, scope, approver set, approver reference, quorum rule, quorum count, valid quorum counts, reason, reason-bearing action, field length cap, larger payload, payload budget, credential, intent, outcome, retention step, read-back, position, chain results, query, minted id, prefixed reason, initiation intent, initiation event, decision intent, withdrawal intent, approval event, rejection event, step withdrawal event, withdrawal event, resolution event, decision's outcome, decision, decision's step write, step refusal, intent event id, intent instant, initiated instant, acting actor reference, trailing flag, cascade flag, partial flag, recovery flag, validated initiation, permitted initiation, admitted initiation, submitted initiation, staffed initiation, landed initiation, unlanded initiation, resolved decision, admitted decision, decided decision, landed decision, decision action, chain evaluation, terminating evaluation, validated chain withdrawal, found chain withdrawal, open chain withdrawal, admitted chain withdrawal, landed chain withdrawal, validated read, permitted read, routed vector, approved count, rejected count, withdrawn count, met vectors, lost vectors, open vectors, routed transition, out-of-band transition, out-of-band mark, rule reason, sweep, initiation leg, transition leg, owed terminal event, aged chains, aged chain, settled step, late-recalled steps, initiation recovery, disposition, initiation-failed record, chainless step, recovery reason, intent candidates, closure record, superseded mark, closure mark, recovery intent, open marker, escalation instant, opening instant, transient arm, deterministic arm, cascade, cascade reason, recalled step ids, quiescent chains, quiescent chain, recovery-closed chains, pre-withdrawal vector, open steps, audit record, committed transition, lifecycle, resolution-terminated chain, withdrawal-terminated chain, pre-intent refusal.
 
 Term cited: Execution Contract Conformance 8 — the recursive inheritance of a constituent's guarantees. Execution Contract Logic confinement 7 — the clock's guarantees are the deployment's. The section titled Composition state in `execution-contract.md` — the derived-index and extraction-pending classifications. The section titled Logic Confinement Principle in `execution-contract.md` — the seam. The section titled Compositions of compositions in `spec-format.md` — the transitive atoms. The section titled Structural-relation invariant templates in `spec-format.md` — the three relations. record_action, read_record, verify_record, payload cap, reference length cap, attestation id width, step-2, step-3, step-4, invalid-credential, invalid-request, recording-failure, verified, failed-verification, purged, Retained, Purged, committed ids, alerting surface, Erasure Tombstone, Reverse Index, Failed-Attempt Log, Trusted Timestamping, Compromise Disclosure: Audit Trail. submit, approve, reject, withdraw, read, submitted_at, decided_by, withdrawn_by, approved, rejected_outcome, withdrawn, Pending, Approved, Rejected, Withdrawn, invalid-request, not-known, not-pending, unauthorized, storage-failure, invalid-query: Approval Step. assign, recall, active_for, history_for, ok, not-active, already-assigned, Active, Recalled: Assignment. permitted, denied: Permissions. read: Event Log. Sequenced Approval Chain, Delegation, Deadline Escalation, Outbox: forthcoming.
 
@@ -1093,14 +1189,12 @@ It inherits from:
 ```
 status: partially resolved
 formal: verified — multi-party-approval.tla + 8 twins + 7 probes, 2026-10-26
-last gate: 2026-10-26 — Final Critique 12 — foundational count 10, not clean, no sample
+last gate: 2026-10-29 — Final Critique 13 — foundational count 2, not clean, no sample
 
 open:
 - 2026-08-29-u · refining · formal · multi-party-approval.tla models no audit write, so no model checks that the sweep's recovery intent lands before its closure (Reconciliation 28, 29) → model the audit writes the sweep orders
 - 2026-10-26-a · refining · Reconciliation 21, Term chain results, Term intent candidates · a re-emitted outcome's intent candidates and a read's chain results are lists with no bound, and the payload budget sizes no candidate list → bound each, or size the candidates with the outcome
 - 2026-10-26-b · refining · Action wiring 62 · [Initiate Chain]'s recording-failure carrying outcome carries no chain id to read the committed act back by → carry the chain id on the refusal, or name how a caller finds the chain
-- 2026-10-26-c · foundational · Action wiring 25, Cascade 7 · a lost step-assignment index entry reads as a step with no assignment, so the recall is skipped and a settled step keeps its Active assignment at quiescence → decide the recall on the step's assignment history, or rebuild the entry before deciding
-- 2026-10-26-d · foundational · Action wiring 38, Audit arm · a refused resolution event lands nowhere and no leg re-emits it → land it, and re-emit a chain terminal's missing event, once the maintainer reads whether a refused terminal event leaves the terminal committed (f93b523)
 ```
 
 <details markdown="block">
