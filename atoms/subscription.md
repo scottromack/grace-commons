@@ -26,7 +26,7 @@ The pattern deliberately does no delivering: it does not know when events happen
 
 At most one active subscription can exist per subscriber-and-scope pair, which prevents the duplicate deliveries that double subscriptions would cause, and cancellation is immediate and permanent while the full history (including cancelled subscriptions) stays queryable for audit.
 
-The most common uses are: notifying users of events relevant to them (task assignments, escalations, alerts), broadcasting policy or system changes to a declared audience, and building any system where actors must opt in to event categories with the ability to opt out. This atom — an atomic concept, a freestanding pattern whose specification names no other pattern — is the first entry in the `messaging` category.
+The most common uses are: notifying users of events relevant to them (task assignments, escalations, alerts), broadcasting policy or system changes to a declared audience, and building any system where actors must opt in to event categories with the ability to opt out. This atom is an atomic concept: a freestanding pattern whose specification names no other pattern.
 
 ---
 
@@ -35,7 +35,7 @@ The most common uses are: notifying users of events relevant to them (task assig
 <details markdown="block">
 <summary>WHY</summary>
 
-A subscription is a standing answer to *who wants to hear about this?* — recorded once, read on every event, withdrawn once. Systems that skip the concept end up deriving the audience from whatever is nearby: a role table, a config file, a query over past activity. Each of those answers a different question, and each drifts. The atom holds the interest itself: one actor, one class of events, in force or withdrawn, with a history of both. It fires nothing, delivers nothing, and knows nothing about events — it answers *who should hear about this scope now*, and the composing pattern does the rest. The one structural rule is at most one live subscription per actor and scope, because two produce two notifications for one event, which is almost never what anybody meant.
+A subscription is a standing answer to *who wants to hear about this?* — recorded once, read on every event, withdrawn once. Systems that skip the concept end up deriving the audience from whatever is nearby: a role table, a config file, a query over past activity. Each of those answers a different question, and each drifts. The atom holds the interest itself: one actor, one class of events, in force or withdrawn, with a history of both. It fires nothing, delivers nothing, and knows nothing about events — it answers *who should hear about this scope now*, and the composing pattern does the rest. The one structural rule is at most one active subscription per actor and scope (Invariant 6.1, Operation 6), because two produce two notifications for one event, which is almost never what anybody meant.
 
 </details>
 
@@ -65,7 +65,9 @@ Term seam: the atom's I/O boundary as the section titled Logic Confinement Princ
 
 Term transition: the atom's evaluation of one call against the subscription records, as the section titled Logic Confinement Principle in `execution-contract.md` declares it.
 
-Term id entropy: the random material a subscription id is drawn from; 128 bits where a deployment declares none.
+NOTE: open 2026-10-21-d — Term seam, Term transition and Term business caller cite the section titled Logic Confinement Principle in `execution-contract.md`, which declares none of them.
+
+Term id entropy: 128 bits of cryptographically secure random material — the floor a subscription id is drawn from, sufficient for negligible collision probability and for unguessability.
 
 ### State
 
@@ -87,11 +89,16 @@ Term subscription instant: the instant the subscription was recorded — a [Subs
 
 Term cancellation instant: the instant the subscription was withdrawn — a [Cancellation Instant].
 
+Term active set: the subscriptions whose status EQUALS active — what [Subscribed] and [Subscribers For] rest on (Invariant 7.1, Invariant 7.2).
+
+Term active at an instant: subscription instant at or before the instant, and cancellation instant either absent or after the instant — the reconstruction an auditor runs over stored fields, never over status, which carries the present rather than the past.
+
 ### Capability requirement
 
 ```
 Capability requirement 1: The deployment MUST supply now at the seam.
 Capability requirement 5: The deployment MUST supply the subscription records PER Execution Contract Database 1 through 4 and Execution Contract Conformance 9.
+Capability requirement 6: The subscription id's random material MUST NOT fall below the id entropy.
 Deleted: Capability requirement 2. Execution Contract Logic confinement 7 owns it.
 Deleted: Capability requirement 3. Execution Contract Logic confinement 7 owns it.
 Deleted: Capability requirement 4. Execution Contract Logic confinement 7 owns it.
@@ -159,17 +166,17 @@ The case space, and the rule that owns each case:
 
 | Call | Case | Answer | Effect on the database |
 |---|---|---|---|
-| [Subscribe] | refs present, no live subscription for the pair, database accepts | subscription id | one subscription lands in [Active] (Operation 1, Operation 2) |
+| [Subscribe] | refs present, no active subscription for the pair, database accepts | subscription id | one subscription lands in [Active] (Operation 1, Operation 2) |
 | [Subscribe] | blank subscriber reference or event scope | [Invalid Request] | none (Operation 4, Operation 5) |
-| [Subscribe] | the pair already has a live subscription | [Already Subscribed] | none (Operation 6) |
-| [Cancel] | id names a live subscription | ok | [Active] → [Cancelled], cancellation instant stamped (Operation 11, State 5) |
+| [Subscribe] | the pair already has an active subscription | [Already Subscribed] | none (Operation 6) |
+| [Cancel] | id names an active subscription | ok | [Active] → [Cancelled], cancellation instant stamped (Operation 11, State 5) |
 | [Cancel] | id names a cancelled subscription | [Not Active] | none (Operation 10) |
 | [Cancel] | id names nothing | [Not Known] | none (Operation 9) |
 | either write | database refuses | [Storage Failure] | none (Operation 13, Operation 14) |
-| [Subscribed] | a live subscription matches the pair | subscribed | none — the call reads (Operation 17, Operation 24) |
+| [Subscribed] | an active subscription matches the pair | subscribed | none — the call reads (Operation 17, Operation 24) |
 | [Subscribed] | nothing matches, blank arguments included | not-subscribed | none (Operation 18, Invariant 8.1) |
-| [Subscribers For] | live subscriptions match the scope | their subscriber reference values, unordered | none (Operation 19, Operation 23) |
-| [Subscribers For] | scope never subscribed, or all cancelled | empty list | none — the two cases read alike (Operation 22) |
+| [Subscribers For] | active subscriptions match the scope | their subscriber reference values, unordered | none (Operation 19, Operation 23) |
+| [Subscribers For] | scope never subscribed, a blank scope included, or all cancelled | empty list | none — the cases read alike (Operation 5, Operation 22) |
 
 ### Invariants
 
@@ -179,7 +186,7 @@ The case space, and the rule that owns each case:
   ```
 - **Invariant 2 — Status monotonicity.**
   ```
-  Invariant 2.1: A status MUST move from active to cancelled.
+  Deleted: Invariant 2.1. State 1 owns it.
   Invariant 2.2: A status MUST NOT move from cancelled to active.
   ```
 - **Invariant 3 — Cancellation is terminal.**
@@ -215,6 +222,10 @@ The case space, and the rule that owns each case:
   Invariant 9.1: IF cancellation instant DOES NOT EQUAL blank THEN cancellation instant MUST NOT PRECEDE subscription instant.
   ```
 
+NOTE: watch the modal with no temporal scope (State 1, Invariant 2.2).
+
+NOTE: open 2026-10-21-b — Operation 20 and Invariant 3.2, Operation 10 and Invariant 3.1, State 6 and Invariant 2.2, and Lost ledger 2 and Composition note 3a each state one proposition twice, Operation 21 restates Term event scope's matched exactly, and Lost ledger 3 beside Composition note 3b, and Non-goal 12 beside Composition note 4, each give one obligation two subjects.
+
 ## Examples
 
 The same atom, three domains, identical mechanic.
@@ -241,7 +252,7 @@ Three scenarios the subscription records must survive in regulated contexts:
 
 - **Regulator audit — who was subscribed to a scope at a given time.** A compliance auditor asks *"which actors were subscribed to `policy:updated` at the time the policy was updated on 2025-03-14T10:00Z?"* The auditor queries the subscription records for subscriptions where `event_scope = policy:updated` and (`status = active` or `cancelled_at > 2025-03-14T10:00Z`) and `subscribed_at ≤ 2025-03-14T10:00Z`. The subscription records answer provably, from stored fields — [Subscriber Reference], [Event Scope], [Subscription Instant], [Status], [Cancellation Instant]. Invariants 1 and 9 make the timeline reconstruction exact.
 - **Disputed subscription — actor claims they were never subscribed.** Officer_a denies having subscribed to `escalation:queue-9`. The investigator queries the subscription records for subscriptions where `subscriber_ref = officer_a` and `event_scope = escalation:queue-9`. If a record exists with [Subscription Instant] and the actor's reference, Invariant 1 (subscription immutability) is the structural answer: the record was created at that time with that [Subscriber Reference]; it does not change. If no record exists, the database confirms the actor was never subscribed. The subscription records are the single source of truth; no external corroboration is required.
-- **Breach investigation — exposure scope assessment.** A security incident requires identifying all actors who were subscribed to `data:export` at the time of the breach (2025-06-01T03:00Z). The investigator queries subscriptions where `event_scope = data:export` and `subscribed_at ≤ 2025-06-01T03:00Z` and (`status = active` or `cancelled_at > 2025-06-01T03:00Z`). The result set is the exposure scope — every actor who would have received notifications fired against that scope during the breach window. Invariant 6 (at-most-one-active) confirms no actor appears more than once in the Active set at any point in time.
+- **Breach investigation — exposure scope assessment.** A security incident requires identifying all actors who were subscribed to `data:export` at the time of the breach (2025-06-01T03:00Z). The investigator queries subscriptions where `event_scope = data:export` and `subscribed_at ≤ 2025-06-01T03:00Z` and (`status = active` or `cancelled_at > 2025-06-01T03:00Z`). The result set is the exposure scope — every actor who was subscribed to that scope at the instant of the breach. Invariant 6 (at-most-one-active) confirms no actor appears more than once in the Active set at any point in time.
 
 ---
 
@@ -252,7 +263,7 @@ This atom's acceptance is provable: an external auditor clears it from the subsc
 ### Conformance checks
 
 ```
-Check 1.1: An auditor MUST reconstruct a scope's active subscriber set at a past instant from subscription instant, status and cancellation instant (Invariant 1.1, Invariant 9.1).
+Check 1.1: An auditor MUST reconstruct a scope's subscriptions active at a past instant from subscription instant and cancellation instant (Invariant 1.1, Invariant 9.1).
 Check 2.1: An auditor MUST find no two active subscriptions sharing a pair (Invariant 6.1).
 Check 3.1: An auditor MUST find cancellation instant present on EVERY cancelled subscription (State 3).
 Check 3.2: An auditor MUST find no cancelled subscription in a [Subscribers For] answer (Invariant 3.2).
@@ -290,9 +301,9 @@ Non-goal 16: The atom MUST NOT offer a bulk cancel.
 Non-goal 17: The atom MUST NOT record an event's firing history.
 ```
 
-NOTE: the owners — the composing pattern (Non-goal 1 through 5, Non-goal 8, Non-goal 9, Non-goal 16; Non-goal 12, Composition note 4); the composing system (Non-goal 6, Non-goal 7, Composition note 5); [Event Log](./event-log.md) and [Notification](./notification.md) (State 8, State 9).
+NOTE: the owners — the composing pattern (Non-goal 1 through 5, Non-goal 8, Non-goal 9, Non-goal 16; Non-goal 12, Composition note 4); the composing system (Non-goal 6, Non-goal 7, Composition note 5); a temporal-subscription pattern *(forthcoming)* (Non-goal 10); an actor registry *(forthcoming)* (Non-goal 11); [Actor Identity](./actor-identity.md) (Non-goal 13, Non-goal 14); [Permissions](./permissions.md) (Non-goal 15, Cancel capability 3); [Event Log](./event-log.md) (Non-goal 17); [Event Log](./event-log.md) and [Notification](./notification.md) (State 8, State 9).
 
-Where the atom breaks down: when the audience cannot be named in advance — a rule evaluated per event rather than a standing interest; when one actor genuinely needs two live subscriptions to one scope through two channels, which is a channel concept the composing pattern carries; and when the composing pattern loses the ids it captured — the subscriptions stay active, every audit sees them, and nothing in this atom can cancel them, because the id is the whole authorization and the atom enumerates none (Lost ledger 1 through 4).
+Where the atom breaks down: when the audience cannot be named in advance — a rule evaluated per event rather than a standing interest; when one actor genuinely needs two active subscriptions to one scope through two channels, which is a channel concept the composing pattern carries; and when the composing pattern loses the ids it captured — the subscriptions stay active, every audit sees them, and nothing in this atom can cancel them, because the id is the whole authorization and the atom enumerates none (Lost ledger 1 through 4).
 
 ## Edge cases
 
@@ -353,17 +364,17 @@ Term actors: the atom; the host; the transition; the deployment; a composing pat
 
 Term records: subscription — one standing interest, carrying subscription id, subscriber reference, event scope, subscription instant, status and, once withdrawn, cancellation instant.
 
-Term record verbs: recover, identify, allocate, reuse, draw, carry, stand, stamp, offer, delete, hold, record, answer, interpret, accept, refuse, match, order, write, read, supply, change, move, rest, share, fire, create, deliver, expand, guarantee, expire, cancel, compose, gate, enumerate, reach, own, call, find, reconstruct, declare, precede.
+Term record verbs: recover, identify, allocate, reuse, draw, carry, stand, stamp, offer, delete, hold, record, answer, interpret, accept, refuse, match, order, write, read, supply, change, move, rest, share, fire, create, deliver, expand, guarantee, expire, cancel, compose, gate, enumerate, reach, own, call, find, reconstruct, declare, precede, fall.
 
 Term value sets: status = active | cancelled.
 
-Term bounds: id entropy (the random material a subscription id is drawn from).
+Term bounds: id entropy (the floor a subscription id's random material is drawn from).
 
 Term cadences: empty.
 
 Term qualifiers: migrated — rewritten in GRACE lang v0.35 (2026-09-12).
 
-Term terms: now, subscription, subscription id, subscriber reference, event scope, seam, transition, id entropy, status, subscription instant, cancellation instant, pair, business caller.
+Term terms: now, subscription, subscription id, subscriber reference, event scope, seam, transition, id entropy, status, subscription instant, cancellation instant, active set, active at an instant, pair, business caller.
 
 #### Subscribe
 
@@ -399,7 +410,7 @@ Projection: subscription_id
 
 #### Subscriber Reference
 
-The opaque reference to the subscribing actor. Set on [Subscribe], immutable (Invariant 1); the actor registry is a separate concept.
+The opaque reference to the subscribing actor. Set on [Subscribe], immutable (Invariant 1); the actor registry is a separate concept. Equality is exact and the atom normalizes nothing; the at-most-one-active rule (Invariant 6) ranges over it, so canonicalization is the deployment's, at the seam (Execution Contract Logic confinement 13).
 
 Kind:       Field
 Field of:   the subscription
@@ -407,7 +418,7 @@ Projection: subscriber_ref
 
 #### Event Scope
 
-The opaque reference to the class of events the subscription covers. Set on [Subscribe], immutable; matched by exact value ([Subscribers For] and [Subscribed] compare on it) — scope hierarchy and wildcards belong to composing patterns.
+The opaque reference to the class of events the subscription covers. Set on [Subscribe], immutable; matched by exact value ([Subscribers For] and [Subscribed] compare on it) — scope hierarchy and wildcards belong to composing patterns. The atom normalizes nothing; the at-most-one-active rule (Invariant 6) ranges over it, so canonicalization is the deployment's, at the seam (Execution Contract Logic confinement 13).
 
 Kind:       Field
 Field of:   the subscription
@@ -423,7 +434,7 @@ Projection: subscribed_at
 
 #### Status
 
-The subscription's lifecycle state — active or cancelled (i.e., [Active] or [Cancelled]). Set to active on [Subscribe]; transitions once to cancelled on [Cancel] (Invariant 2).
+The subscription's lifecycle state — active or cancelled (i.e., [Active] or [Cancelled]). Set to active on [Subscribe]; transitions once to cancelled on [Cancel] (State 1, Invariant 2).
 
 Kind:       Field
 Field of:   the subscription
@@ -455,7 +466,7 @@ Role:      Outcome
 
 #### Invalid Request
 
-The rejection [Subscribe] returns when [Subscriber Reference] or [Event Scope] is null, undefined, or empty. (The read queries never return it — a bad query is a correct not-subscribed or empty answer.)
+The rejection [Subscribe] returns when [Subscriber Reference] or [Event Scope] is blank: absent, empty, or carrying only whitespace (Operation 4, Operation 5). (The read queries never return it — a bad query is a correct not-subscribed or empty answer.)
 
 Kind:       Member
 Member of:  the Subscribe rejection
@@ -543,12 +554,10 @@ Projection: not-active
 ```
 status: partially resolved
 formal: verified — subscription.als + 1 twin, 2026-06-03
-last gate: 2026-10-21 — Final Critique 5, the council's first round on the page and the first on its Store-contract rewrite (c28dab7), three fresh readers on free models (GRID Nemotron 3 Ultra, EOS MiniMax M3.1 Flash, Linus GLM-5.3 Flash), each handed only the round's reading set, three passes on one text (frozen at 7283f70); the round rests on three counted passes — foundational count 1 after triage (13 reports: 2 standing, merged into 1; 4 sent down; 7 rejected), Kind A: a conformance check asked the auditor for the deployment's wiring, which no subscription record carries; 19 refining reports, 6 rhetorical reports; not clean; every foundational finding cured in place; 2026-06-18 — Final Critique 4, fresh reader — clean
+last gate: 2026-10-29 — Final Critique 6 — foundational count 1, not clean, no sample
 
 open:
-- 2026-10-21-a · refining · Term id entropy; Identity 6; Subscription Id entry · Term id entropy gives 128 bits as a default a deployment may replace, and no rule reads it, while the Subscription Id entry and Final Critique 4's text state a floor; a deployment declaring 16 bits draws ids a caller can guess, and [Cancel] takes the id as the whole authorization (Operation 12) → a floor the deployment's declaration may not go below, read by a rule, as Session's Capability requirement 4
-- 2026-10-21-b · refining · Operation 10, 20, 21; Invariant 2.2, 3.1, 3.2; State 6; Lost ledger 2; Composition note 3a · propositions owned twice: Operation 20 and Invariant 3.2, word for word; Operation 10 and Invariant 3.1; State 6 and Invariant 2.2; Lost ledger 2 and Composition note 3a, word for word, the second a lettered label outside a WHEN; Operation 21 beside Term event scope's matched exactly → one owner each (GRACE-lang Authority 3), each tombstone checked against the pages that cite it and against what subscription.als checks (Invariant 2, Invariant 3)
-- 2026-10-21-c · refining · Invariant 7.1, 7.2, 8.2 · the rules rest on the active set, which no Term declares (GRACE-lang Closed vocabulary 4) → declare the active set, or name the active subscriptions in each rule
+- 2026-10-21-b · refining · Operation 10, 20, 21; Invariant 2.2, 3.1, 3.2; State 6; Lost ledger 2, 3; Composition note 3a, 3b, 4; Non-goal 12 · propositions owned twice: Operation 20 and Invariant 3.2, word for word; Operation 10 and Invariant 3.1; State 6 and Invariant 2.2; Lost ledger 2 and Composition note 3a, word for word, the second a lettered label outside a WHEN; Operation 21 beside Term event scope's matched exactly; and one obligation given two subjects, Lost ledger 3 (a deployment, permanently active) beside Composition note 3b (a composing pattern, uncancellable), and Non-goal 12 (a deployment) beside Composition note 4 (a composing pattern) → one owner each (GRACE-lang Authority 3), each tombstone checked against the pages that cite it and against what subscription.als checks (Invariant 2, Invariant 3)
 - 2026-10-21-d · refining · Term seam; Term transition; Term business caller · each cites the section titled Logic Confinement Principle in `execution-contract.md` as declaring it, and that section declares none of the three → cite the contract's labels that hold each, in the form every page carrying the one seam wording can take
 ```
 
