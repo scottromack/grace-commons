@@ -375,8 +375,8 @@ The case space, and the rule that owns each case:
 - **Invariant 12 — Capability token uniqueness.**
   ```
   Invariant 12.1: Two capabilities MUST NOT share a capability token.
-  Invariant 12.2: IF a write would reuse a capability token THEN the database MUST refuse the write.
-  Invariant 12.3: [Allocate] MUST NOT allocate a capability token any capability carries.
+  Invariant 12.2: IF a write would reuse a capability token any retained capability carries THEN the database MUST refuse the write.
+  Deleted: Invariant 12.3. Identity 6 owns it.
   Invariant 12.4: Invariant 12.1 MUST range over the capabilities the database retains.
   ```
 - **Invariant 13 — Expiry is derived, never written.**
@@ -536,11 +536,13 @@ Composition note 3: A composing pattern MUST own the authority to allocate for a
 Composition note 4: A composing pattern MUST own the redemption's attribution.
 Composition note 5: A composing pattern MUST own the capability token's delivery.
 Composition note 6: A composing pattern MUST own the retention of the capability records.
-Composition note 7: A composing pattern reading the capability records MUST NOT write to the capability records.
+Deleted: Composition note 7. Invariant 1.1, Invariant 11.1 and Execution Contract Database 4 own it.
 Composition note 8: A composing pattern MUST NOT record a redeemer's identity on a capability.
 ```
 
 NOTE: composing patterns — [Capability-Backed Sharing](../compositions/capability-backed-sharing.md), [Privileged Access Provisioning](../compositions/privileged-access-provisioning.md).
+
+NOTE: watch the reading composer's write ban (Composition note 7).
 
 ## Terms
 
@@ -787,7 +789,7 @@ Projection: invalid-request
 
 #### Storage Failure
 
-The refusal [Allocate], [Redeem] or [Revoke] returns when the database write fails after the preconditions pass; a refused [Redeem] write lowers nothing. A token-reuse write is also rejected here (Invariant 12). The caller must treat it as definitive.
+The refusal [Allocate], [Redeem] or [Revoke] returns when the database write fails after the preconditions pass; a refused [Redeem] write lowers nothing. A write reusing a capability token any retained capability carries is also rejected here (Invariant 12).
 
 Kind:       Member
 Member of:  the action rejection
@@ -855,7 +857,7 @@ Inherited from:
 ```
 status: partially resolved
 formal: verified — capability.als + 1 twin, 2026-06-23
-last gate: 2026-10-27 — Final Critique 8 — foundational count 0, clean, one sample
+last gate: 2026-10-29 — Final Critique 9 — foundational count 2, not clean, no sample
 
 open:
 - 2026-10-21-a · refining · Operation 50; [Read] · [Read] answers the matching capabilities in no stated order → an order
