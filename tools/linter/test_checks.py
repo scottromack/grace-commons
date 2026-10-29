@@ -59,6 +59,7 @@ from lint import (  # noqa: E402
     check_stale_census,
     check_acceptance_surface,
     check_orphan_forthcoming,
+    check_requirement_text,
     DECORATING_FORTHCOMING,
     load_patterns,
 )
@@ -2269,6 +2270,113 @@ def check_renumber_synthetic(problems: list[str]) -> int:
 
 
 
+# ── Requirement text (Z), INCOSE's mechanical rules, pinned synthetically ─── #
+# The Z checks landed 2026-10-29. Each was tuned on the corpus (the first run's
+# 494 personal pronouns on Term lines, 71 uses of "effective" inside declared
+# names, 308 durations and counts), so each is pinned from both sides: the
+# correct text a tuning made silent stays silent, and every form fires. The
+# exemplars on the corpus are pinned silent too.
+REQ_PAGE = """# Gizmo
+
+## Summary
+
+A gizmo holds a reading, as appropriate, etc. — prose, which Z never reads.
+
+## Structure
+
+```
+Operation 1: The atom MUST answer within an appropriate interval.
+Operation 2: The atom MUST record the reason where possible.
+Operation 3: The atom MUST record it.
+Operation 4: IF the reading EQUALS several THEN the atom MUST answer ambiguous.
+Operation 5: The atom MUST record the sufficient evidence.
+Operation 6: The atom MUST place an identity that is not under guard under guard.
+Operation 7: The atom MUST store the record as required by Execution Contract Database 1.
+Operation 8: The atom MUST refuse a set that is empty, that repeats a name, OR that carries a blank name.
+Operation 9: The atom MUST answer `etc.` as a literal code.
+Operation 10: This atom MUST record the reading.
+Operation 11: The atom MUST record the reading; that MUST carry the gizmo id.
+```
+
+WHY: and/or, if possible, it — a WHY is no rule text.
+
+Term reading: none | sole | several — how many gizmos a lookup found.
+
+Term sufficient evidence: the evidence a ruling rests on.
+
+Term seam: the atom's boundary, as Execution Contract Logic confinement 11 declares it.
+
+Term channel: email, sms, push, etc.
+
+Term contact: an email and/or a phone number.
+
+Term edge: the later of two outages, the first where that is later.
+
+Term relay: the record a hop forwards, and the hop that forwards this.
+
+Term name cap: the maximum length of a name, in Unicode code points.
+
+Term length bound: the maximum length the deployment declares for a string input.
+
+Term whole amount: a whole number of the currency's minor unit.
+
+Term unit price: the price of one gizmo — a whole amount.
+
+Term hold window: the length of time a hold stands.
+
+Term integer width: the largest count the deployment's integers carry without loss.
+
+## Status
+
+`draft`
+
+```
+Operation 12: The atom MUST answer as appropriate.
+```
+
+Term late: and/or, below Status, which Z never reads.
+"""
+
+REQ_FIRING = sorted([
+    ("Z-vague", "Operation 1"), ("Z-escape", "Operation 2"), ("Z-pronoun", "Operation 3"),
+    ("Z-pronoun", "Operation 11"), ("Z-open-ended", "Term channel"), ("Z-and-or", "Term contact"),
+    ("Z-pronoun", "Term edge"), ("Z-pronoun", "Term relay"), ("Z-unit", "Term length bound"),
+])
+
+# a declared value, a declared name, two relatives, a named authority, a code
+# span, a determiner, a Term's own `it`, a unit, a unit through a Term, a
+# duration and a count; prose, a WHY and what lies below Status
+REQ_SILENT = ("Operation 4", "Operation 5", "Operation 6", "Operation 7", "Operation 8",
+              "Operation 9", "Operation 10", "Operation 12", "Term reading",
+              "Term sufficient evidence", "Term seam", "Term name cap", "Term whole amount",
+              "Term unit price", "Term hold window", "Term integer width", "Term late")
+
+# the exemplars: Cart and Permissions name their units, Duplicate Prevention
+# writes a relative `that` in six rules, Credential's effective-active
+# credential is the declared name that kept "effective" off the list
+REQ_SILENT_PAGES = {("Z-unit", "cart"), ("Z-unit", "permissions"),
+                    ("Z-pronoun", "duplicate-prevention"), ("Z-vague", "credential")}
+
+
+def check_requirement_text_synthetic(problems: list[str], patterns) -> int:
+    """Z: the synthetic page fires each form exactly once where it should and
+    nowhere else, and the corpus exemplars stay silent. Returns the fixture
+    count."""
+    pat = Pattern(path=Path("synthetic/atoms/gizmo.md"), text=REQ_PAGE,
+                  invariant_count=0, grounded=False)
+    found = [(f.code, f.message.split(": ", 1)[0]) for f in check_requirement_text({pat.path: pat})]
+    if sorted(found) != REQ_FIRING:
+        problems.append(f"Z: the synthetic page fired {sorted(found)}, want {REQ_FIRING}")
+    for label in REQ_SILENT:
+        if any(lab == label for _, lab in found):
+            problems.append(f"Z: fired on {label}, which is correct text the tuning made silent")
+    got = {(f.code, f.path.stem) for f in check_requirement_text(patterns)}
+    for code, stem in sorted(REQ_SILENT_PAGES & got):
+        problems.append(f"{code}: fired on {stem}, the exemplar this check was tuned against "
+                        f"— the check has lost precision, or the page has a new site to read")
+    return len(REQ_FIRING) + len(REQ_SILENT) + len(REQ_SILENT_PAGES)
+
+
 # ── The IR (tools/grace/ir.py), pinned synthetically and on the corpus ───── #
 # The parser landed 2026-10-29 with its proof: every spec parses, each
 # document's rule count equals cites.py's, every label is unique on its page,
@@ -2837,6 +2945,16 @@ def main(argv: list[str]) -> int:
     if not hist_problems:
         print("History file: 2 synthetic fixtures hold (a `.hist.md` beside an atom and beside "
               "a composition is no pattern) \u2713")
+
+    req_problems: list[str] = []
+    n_req = check_requirement_text_synthetic(req_problems, patterns)
+    failures.extend(req_problems)
+    if not req_problems:
+        print(f"Z-vague / Z-escape / Z-open-ended / Z-and-or / Z-pronoun / Z-unit: {n_req} "
+              "fixtures hold (each INCOSE form fires once; a declared name and value, two "
+              "relatives, a named authority, a code span, a determiner, a Term's own `it`, a "
+              "unit, a unit through a Term, a duration, a count, prose, a WHY and what lies "
+              "below Status stay silent; the corpus exemplars stay silent) ✓")
 
     ir_problems: list[str] = []
     check_ir_synthetic(ir_problems)

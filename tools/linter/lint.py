@@ -151,6 +151,16 @@ the three-pass review otherwise has to catch by eye —
                               not-yet-converted patterns stay at 0 and recall
                               grows as pages convert. The safety net for the
                               annotation.md bulk rollout. (Whitelist gloss is N.)
+  Z. Requirement text       — the mechanical rules of the INCOSE Guide to
+                              Writing Requirements, on rule text only (every
+                              labelled rule in a normative block and every Term
+                              line above Status, as tools/grace/ir.py reads them):
+                              a vague term (INCOSE R7, Z-vague), an escape clause
+                              (R8, Z-escape), an open-ended clause (R9,
+                              Z-open-ended), and/or (R17 and R19, Z-and-or), a
+                              pronoun standing for a noun (R24, Z-pronoun), and a
+                              length, size, width or amount Term that names no
+                              unit (R6, Z-unit).
 
 Design notes (this tool is meant to be maintained by a small/cheap model):
   - Standard library only. No deps. Runs anywhere `python3` does.
@@ -283,7 +293,14 @@ TRAILING_PAREN = re.compile(r"\s*\([^)]*\)\s*$")
 # (Capability-Backed Sharing, Customer Onboarding) in the change after, and it
 # fires zero times corpus-wide.
 # EMPTY as of 2026-08-30: every check is gating.
-ADVISORY_CODES: frozenset[str] = frozenset()
+#
+# The requirement-text checks (Z) landed 2026-10-29. Z-escape, Z-open-ended and
+# Z-and-or fired zero times and are gating from the day they landed. Z-vague,
+# Z-unit and Z-pronoun landed ADVISORY with a recorded baseline of 15 sites on 10
+# patterns, 16 on 15, and 1 on Audit Trail. They are not swept: each site is a
+# finding for its page's next round, and a code leaves this set in the change
+# that cures its last site.
+ADVISORY_CODES: frozenset[str] = frozenset({"Z-vague", "Z-unit", "Z-pronoun"})
 
 
 @dataclass
@@ -3339,6 +3356,167 @@ def check_views_current(root: Path) -> list[Finding]:
     return out
 
 
+# --------------------------------------------------------------------------- #
+# Requirement text (Z) — INCOSE's mechanical rules on rule text
+# --------------------------------------------------------------------------- #
+# The rules of the INCOSE Guide to Writing Requirements (GtWR v4, 2023) that a
+# rule's text can break mechanically, each check naming its INCOSE rule (the
+# council's `tooling: requirement lint`, decided 2026-10-29). They read rule text
+# only: every labelled rule in a normative block and every `Term` line above
+# `## Status` — never prose, a WHY, a NOTE or a Decisions entry. A word inside a
+# name the page declares is the declared name's, never vague (INCOSE R4).
+
+# R7: vague terms — the decided seven and their kin. INCOSE's own list has
+# "effective", which the corpus uses only inside names it declares or cites
+# (Capability's effective status, Credential's effective-active credential):
+# left out, since it hit nothing else.
+REQ_VAGUE = re.compile(
+    r"(?i)\b(adequate(?:ly)?|inadequate(?:ly)?|appropriate(?:ly)?|inappropriate(?:ly)?"
+    r"|sufficient(?:ly)?|insufficient(?:ly)?|fast(?:er|est)?|quick(?:ly)?|rapid(?:ly)?"
+    r"|robust(?:ly|ness)?|user-friendly|significant(?:ly)?|insignificant(?:ly)?"
+    r"|reasonabl[ey]|unreasonabl[ey]|efficient(?:ly)?|flexibl[ey]"
+    r"|typical(?:ly)?|usual(?:ly)?|approximate(?:ly)?|nearly|almost|several|numerous"
+    r"|various|relevant|irrelevant|suitabl[ey]|timely|easy|easily|negligibl[ey]"
+    r"|minimal|optimal(?:ly)?)\b")
+# R8: escape clauses. One followed by `by` or `under` names its authority
+# (`as required by Execution Contract Database 1`) and escapes nothing.
+REQ_ESCAPE = re.compile(
+    r"(?i)\b(?:(?:if|where|when|whenever)\s+(?:possible|practical|practicable|feasible"
+    r"|appropriate|necessary|needed|required|applicable)"
+    r"|as\s+(?:appropriate|necessary|needed|required|applicable|practical|practicable)"
+    r"|as (?:far|much|little) as possible|so far as is possible"
+    r"|to the extent (?:possible|practical|practicable|necessary))\b(?!\s+(?:by|under)\b)")
+# R9: open-ended clauses.
+REQ_OPEN = re.compile(
+    r"(?i)\b(?:including,? but not limited to|but not limited to|including without limitation"
+    r"|and so on|and so forth|and the like|or the like|et cetera|among others)\b|\betc\b\.?")
+# R17 and R19: the combinator and/or — an oblique between two combinators.
+REQ_AND_OR = re.compile(r"(?i)\b(?:and\s*/\s*or|or\s*/\s*and)\b")
+# R24: a pronoun standing for a noun. In a rule, the personal pronouns (the gate's
+# P-pronoun rejects them too); in a rule or a Term line, `this` or `that` standing
+# alone — closing a sentence or a clause, or opening one, at its start or after a
+# subordinating conjunction, before a verb ("where that is later"). A `that`
+# opening a relative clause ("an identity that is not under guard", "a set that
+# is empty, that repeats a name") or following a verb, and a `this` before a
+# noun, stand for no noun of their own (GRACE-lang Term pronoun). On a Term line
+# the personal pronouns are not read: there `it` is nearly always the declared
+# term (`as Execution Contract Logic confinement 11 declares it`), as nearly all
+# of the first run's 494 hits on Term lines were.
+REQ_PERSONAL = re.compile(r"\b(it|they|them)\b")
+REQ_DEMONSTRATIVE = re.compile(
+    r"(?i)\b(this|that)\s*(?=[.;:)]|$)"
+    r"|(?:^|[.;:(—]\s*|\b(?:where|when|whenever|if|unless|because|since|while|once|until"
+    r"|though|although)\s+)(this|that)\s+(?=(?:is|are|was|were|has|holds|means|does|must|may)\b)")
+# R6: a Term declaring a length, size or width of data, or an amount of money,
+# names the unit it is measured in, itself or through a Term of the page that does
+# (Cart's unit price is a whole amount, a whole number of the cart currency's
+# minor unit). A duration's measure is time and a count's the thing it counts:
+# neither is read.
+REQ_QUANTITY = re.compile(r"(?i)\b(lengths?|sizes?|widths?|prices?|amounts?|costs?|fees?)\b")
+REQ_TIME = re.compile(
+    r"(?i)\b(?:durations?|periods?|intervals?|windows?|times?|cadences?|delays?|lags?"
+    r"|horizons?|ages?|deadlines?|instants?|seconds?|minutes?|hours?|days?)\b")
+REQ_UNIT = re.compile(
+    r"(?i)\b(?:bytes?|byte-exact|octets?|bits?|characters?|code ?points?|code units?"
+    r"|graphemes?|minor units?|currency|currencies|unit of account|in the measure"
+    r"|measured in|counted in|counts?|whole number|number of|how many|the most"
+    r"|kilobytes?|KB|megabytes?|MB)\b")
+REQ_ALIAS = re.compile(r"^[a-z][a-z0-9]*(?:_[a-z0-9]+)+ — ")
+REQ_HEAD_END = re.compile(r" (?:of|that|whose|which|where|for|per|in|on) | — |[;,:]")
+
+
+def _parser():
+    """tools/grace's cites.py and ir.py, imported on first use, since ir.py
+    imports this module."""
+    grace = str(Path(__file__).resolve().parents[1] / "grace")
+    if grace not in sys.path:
+        sys.path.insert(0, grace)
+    import cites
+    import ir
+    return cites, ir
+
+
+def rule_text(p: Pattern) -> list[tuple[int, str, str]]:
+    """Z's reading of a page: (line, label, text) for every labelled rule in a
+    normative block and every `Term` line above `## Status`, code spans scrubbed;
+    a Term line's label is `Term <name>`. The rules are the parser's
+    (tools/grace/ir.py, the gate's classification of a block), so Z reads no
+    form of its own."""
+    cites, ir = _parser()
+    lines = p.text.split("\n")
+    status = STATUS_SECTION.search(p.text)
+    end = line_of(p.text, status.start()) if status else len(lines) + 1
+    rules, _ = ir.walk_rules(lines, ir.outline(lines))
+    out = [(r["line"], r["label"], r["text"]) for r in rules if r["line"] < end]
+    fenced = False
+    for k, line in enumerate(lines[:end - 1]):
+        if cites.FENCE.match(line):
+            fenced = not fenced
+        elif not fenced and (t := cites.TERM_DECL.match(line)):
+            out.append((k + 1, f"Term {t.group(1)}", t.group(2)))
+    return [(n, label, CODE_SPAN.sub(" ", text)) for n, label, text in sorted(out)]
+
+
+def check_requirement_text(patterns: dict[Path, Pattern]) -> list[Finding]:
+    """Z: INCOSE's mechanical rules on rule text — a vague term (R7), an escape
+    clause (R8), an open-ended clause (R9), and/or (R17, R19), a pronoun standing
+    for a noun (R24), and a length, size, width or amount Term that names no unit
+    (R6)."""
+    cites, _ = _parser()
+    out: list[Finding] = []
+    for path, p in sorted(patterns.items()):
+        entries = rule_text(p)
+        terms = {label[5:]: (n, text) for n, label, text in reversed(entries)
+                 if label.startswith("Term ")}
+        declared = set(terms)
+        for _, text in terms.values():
+            head = re.split(r" — |\. |; ", text, maxsplit=1)[0]
+            if " | " in head:  # a value set's members are declared values
+                declared |= {v.strip(" .") for v in head.split(" | ")}
+        names = re.compile(r"(?i)(?<![\w-])(?:" + "|".join(
+            re.escape(d) for d in sorted(declared, key=len, reverse=True) if d) + r")(?![\w-])")
+        for n, label, text in entries:
+            hits: list[tuple[str, str]] = []
+            escapes = list(REQ_ESCAPE.finditer(text))
+            hits += [("Z-escape", f'"{m.group(0)}" is an escape clause — the obligation holds, '
+                      f"or a condition says when (INCOSE R8)") for m in escapes]
+            hits += [("Z-open-ended", f'"{m.group(0).strip()}" leaves the list open — '
+                      f"enumerate it, or name the declared set (INCOSE R9)")
+                     for m in REQ_OPEN.finditer(text)]
+            hits += [("Z-and-or", f'"{m.group(0)}" — write AND, OR or EXACTLY ONE OF, '
+                      f"or the two cases apart (INCOSE R17, R19)")
+                     for m in REQ_AND_OR.finditer(text)]
+            plain = text
+            for m in escapes:  # an escape clause is R8's, not a vague term too
+                plain = plain[:m.start()] + " " * len(m.group(0)) + plain[m.end():]
+            if declared:
+                plain = names.sub(lambda m: " " * len(m.group(0)), plain)
+            hits += [("Z-vague", f'"{m.group(0)}" is a vague term — name the measure, '
+                      f"or declare the term (INCOSE R7)") for m in REQ_VAGUE.finditer(plain)]
+            pronouns = [m.group(1) or m.group(2) for m in REQ_DEMONSTRATIVE.finditer(text)]
+            if not label.startswith("Term "):
+                pronouns += [m.group(1) for m in REQ_PERSONAL.finditer(text)]
+            hits += [("Z-pronoun", f'"{w}" stands for a noun — write the noun (INCOSE R24)')
+                     for w in pronouns]
+            out += [Finding(path, n, code, f"{label}: {message}") for code, message in hits]
+        for name, (n, text) in terms.items():
+            if name in cites.CATEGORY_NAMES:
+                continue
+            head = REQ_HEAD_END.split(REQ_ALIAS.sub("", text), maxsplit=1)[0]
+            head = " ".join(head.split()[:5])
+            q = REQ_QUANTITY.search(name) or REQ_QUANTITY.search(head)
+            if not q or REQ_TIME.search(name) or REQ_TIME.search(head) or REQ_UNIT.search(text):
+                continue
+            if any(other != name and REQ_UNIT.search(other_text)
+                   and re.search(r"(?i)(?<![\w-])" + re.escape(other) + r"(?![\w-])", text)
+                   for other, (_, other_text) in terms.items()):
+                continue  # counted in a unit through a Term of the page that names one
+            out.append(Finding(path, n, "Z-unit",
+                f"Term {name}: a {q.group(1).lower().rstrip('s')} that names no unit — say what "
+                f"it is measured in: bytes, code points, the currency's minor unit (INCOSE R6)"))
+    return out
+
+
 def main(argv: list[str]) -> int:
     args = [a for a in argv[1:] if not a.startswith("--")]
     flags = {a for a in argv[1:] if a.startswith("--")}
@@ -3404,6 +3582,7 @@ def main(argv: list[str]) -> int:
     findings += check_retired_sign(root)
     findings += check_page_citations(root)
     findings += check_views_current(root)
+    findings += check_requirement_text(patterns)
 
     findings.sort(key=lambda f: (f.code, str(f.path), f.line))
     for f in findings:
