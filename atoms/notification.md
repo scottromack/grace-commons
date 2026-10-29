@@ -43,6 +43,8 @@ Identity 6: The atom MUST NOT identify a notification by the recipient reference
 Identity 7: Two notifications carrying one recipient reference and one payload MUST carry two notification ids.
 ```
 
+NOTE: open 2026-10-29-a — the notification id's source is named as the host's allocation (Identity 2) and not among what the deployment supplies (Capability requirement 1, Capability requirement 4 through 6).
+
 Term notification: one delivery record — one recipient, one payload, one outcome.
 
 Term notification id: the opaque value naming one notification — a [Notification Id].
@@ -58,6 +60,8 @@ Term transition: the atom's evaluation of one call against the notification reco
 Term business caller: the party whose action the call carries, as the section titled Logic Confinement Principle in `execution-contract.md` declares it; never the source of an injected value.
 
 Term now: the deployment's clock reading at the call — a [Now], as Execution Contract Logic confinement 11 declares it.
+
+NOTE: open 2026-10-21-a — Term seam, Term transition and Term business caller cite the section titled Logic Confinement Principle in `execution-contract.md`, which declares none of them.
 
 ### State
 
@@ -86,8 +90,9 @@ Term creation instant: the instant the notification was recorded — a [Creation
 
 ```
 Capability requirement 1: The deployment MUST supply now at the seam.
-Capability requirement 4: The deployment MUST supply the notification records PER Execution Contract Database 1 through 4, Execution Contract Read 1 through 3, Execution Contract Refusal 1 and Execution Contract Conformance 9.
+Capability requirement 4: The deployment MUST supply the notification records PER Execution Contract Database 1 through 4, Execution Contract Read 1 through 4, Execution Contract Refusal 1 and Execution Contract Conformance 9.
 Capability requirement 5: The deployment MUST supply the string cap.
+Capability requirement 6: The deployment MUST NOT change the string cap for the life of the instance.
 Deleted: Capability requirement 2. Execution Contract Logic confinement 7 owns it.
 Deleted: Capability requirement 3. Execution Contract Logic confinement 7 owns it.
 Deleted: Clock semantics 1. Execution Contract Logic confinement 7 owns it.
@@ -121,13 +126,15 @@ pending_for(recipient_ref)
   answers notification_ids
 ```
 
+NOTE: open 2026-10-21-f — the success arm ok and the answer arm notification_ids resolve to no declaration on the page.
+
 ```
 Operation 1: [Create] MUST record EXACTLY ONE notification per successful call.
 Operation 2: [Create] MUST stand the notification in pending.
 Operation 3: [Create] MUST answer notification id.
-Operation 4: IF recipient reference is empty THEN [Create] MUST answer invalid-request.
+Operation 4: IF recipient reference EQUALS blank THEN [Create] MUST answer invalid-request.
 Operation 5: [Create] MUST accept an empty payload.
-Operation 6: The atom MUST NOT read a payload.
+Operation 6: The atom MUST NOT evaluate a payload.
 Operation 7: IF the database refuses the write THEN [Create] MUST answer storage-failure.
 Operation 8: IF no notification EXISTS for the notification id THEN a terminal transition MUST answer not-known.
 Operation 9: IF the notification's status DOES NOT EQUAL pending THEN a terminal transition MUST answer not-pending.
@@ -154,6 +161,8 @@ Deleted: Operation 27. Execution Contract Read 1 owns it.
 Deleted: Operation 28. Execution Contract Read 1 owns it: after the read, every refusal rule of [Create] answers invalid-request.
 Deleted: Operation 29. Execution Contract Refusal 1 owns it.
 ```
+
+NOTE: open 2026-10-21-e — the Failed and Expired entries describe an attempt that failed and a window that lapsed, while the rules let [Fail] and [Expire] land on any pending notification (Operation 9, Operation 13, Operation 14a).
 
 Term terminal transition: a [Deliver], a [Fail] or an [Expire] call — the three that end a notification, sharing one precondition pair.
 
@@ -187,7 +196,7 @@ The case space, and the rule that owns each case:
   ```
 - **Invariant 2 — Status monotonicity.**
   ```
-  Invariant 2.1: A status MUST move from pending to EXACTLY ONE OF delivered, failed, expired.
+  Deleted: Invariant 2.1. State 1 owns it.
   Invariant 2.2: A status MUST NOT move to pending from a terminal status.
   Invariant 2.3: A status MUST NOT move between two terminal statuses.
   Invariant 2.4: A notification MUST read as pending at an instant ONLY IF the notification is pending at an instant.
@@ -232,6 +241,10 @@ The case space, and the rule that owns each case:
   Invariant 9.3: [Status Of] MUST answer a created notification's fields for the database's life.
   ```
 
+NOTE: watch the modal with no temporal scope (State 1, Invariant 2.2).
+
+NOTE: open 2026-10-21-h — State 6 and Invariant 3.2, State 3 through 5 and Invariant 4.1, 4.3 and 4.5, Operation 20 and Invariant 7.1, and Operation 14b and Composition note 7 each state one proposition twice.
+
 Immutability and durability give *auditability* — the delivery history is the database, with no gaps. Exclusivity and the status-stamp match give the *unambiguous record* property — one outcome per notification, with a stable time. Monotonicity and ordering make [Pending For] a deterministic snapshot of what is still unresolved.
 
 ## Examples
@@ -245,6 +258,8 @@ A Notification Fanout pattern creates a notification when a task is assigned: `c
 If dev_d is offline, the push attempt produces a connection error: `fail(notif_77)` → [Failed]. The composing system may create a retry notification: `create(dev_d, {same payload}) → notif_78` — a new [Pending] record, distinct id, independent outcome.
 
 If neither delivery nor failure is recorded within the expiry window: `expire(notif_77)` → [Expired]. `status_of(notif_77)` returns [Lapse Instant].
+
+NOTE: open 2026-10-21-b — the three outcomes of notif_77 above are alternatives, which only each paragraph's condition says.
 
 ### Support queue — escalation alert
 
@@ -272,21 +287,25 @@ Three scenarios the notification records must survive in regulated contexts:
 
 ## Generation acceptance
 
-This atom's acceptance is provable: an external auditor clears it from the notification records' stored fields. The audit surface is the database, not the action surface.
+This atom's acceptance is provable: an external auditor clears it from the notification records' stored fields, with their committed versions (Execution Contract Generation acceptance 1). The audit surface is the database, not the action surface.
 
 ### Conformance checks
 
 ```
 Check 1.1: An auditor MUST read EVERY notification's notification id, recipient reference, payload, creation instant and status from the database (State 2).
 Check 2.1: An auditor MUST reconstruct a notification's status at a past instant from creation instant and the terminal stamp (Invariant 2.4).
-Check 2.2: An auditor MUST read the reconstruction as deterministic on stored fields (Invariant 1.2).
+Check 2.2: An auditor MUST read the reconstruction as deterministic on stored fields (Invariant 1.1, Invariant 1.2).
 Check 2.3: An auditor MUST read the reconstruction's wall-clock truth as best-effort (Invariant 8.1, Execution Contract Logic confinement 7).
 Check 3.1: An auditor MUST find no notification carrying two terminal stamps (Invariant 3.1).
 Check 3.2: An auditor MUST find no pending notification carrying a terminal stamp (Invariant 3.2).
 Check 4.1: An auditor MUST find EVERY terminal stamp matching the notification's status (Invariant 4.2, Invariant 4.4, Invariant 4.6).
-Check 5.1: An auditor MUST find the notification set never shrinking across two readings (Invariant 9.1, Invariant 9.2).
+Check 5.1: An auditor MUST find the notification set never shrinking across the notifications' committed versions (Invariant 9.1, Invariant 9.2; Execution Contract Generation acceptance 1).
 Deleted: Check 6.1. Execution Contract Conformance 9 owns it.
 ```
+
+Term committed version: a record as it stood at the commit that wrote it, as Execution Contract Generation acceptance 1 declares it.
+
+NOTE: open 2026-10-21-d — no check tests that a terminal status carries its stamp (Check 3.1 and Check 4.1 read the other directions), and none tests Invariant 6.1.
 
 ### External checks
 
@@ -316,7 +335,7 @@ Non-goal 10: The atom MUST NOT validate a payload.
 Non-goal 11: The atom MUST NOT record who called [Create].
 Non-goal 12: The atom MUST NOT deduplicate two notifications.
 Non-goal 13: The atom MUST NOT purge a payload.
-Non-goal 14: The atom MUST NOT gate [Create].
+Non-goal 14: The atom MUST NOT gate [Create] on a caller's authority.
 Non-goal 15: The atom MUST NOT expire notifications in bulk.
 Non-goal 16: A deployment needing a defensible timeline MUST compose a trusted timestamping pattern.
 ```
@@ -341,9 +360,11 @@ String 8: [Pending For] MUST read an over-length recipient reference as matching
 String 9: [Pending For] MUST read a whitespace-only recipient reference as matching nothing.
 ```
 
-Term string cap: the deployment's bound on the recipient reference's length.
+Term string cap: the deployment's bound on the recipient reference's length, measured in Unicode code points; a cap of zero refuses every [Create], which is the degenerate configuration a deployment owns rather than a state the atom admits.
 
-NOTE: watch host obligations — this atom caps the recipient reference alone and obliges the deployment to supply the cap (String 6, Capability requirement 5), leaving the payload unbounded, where [Duplicate Prevention](./duplicate-prevention.md) declares a cap and [Provenance](./provenance.md) obliges the deployment to set one; Final Critique 5 cured the cap's reach and its supplier.
+Term whitespace: a code point with the Unicode White_Space property.
+
+NOTE: watch host obligations — this atom caps the recipient reference alone and obliges the deployment to supply the cap and to hold it unchanged for the life of the instance (String 6, String 8, Capability requirement 5, Capability requirement 6), leaving the payload unbounded, where [Duplicate Prevention](./duplicate-prevention.md) declares a cap and [Provenance](./provenance.md) obliges the deployment to set one; Final Critique 5 cured the cap's reach and its supplier, and Final Critique 6 its unit, counted in Unicode code points as [Permissions](./permissions.md) and [Credential](./credential.md) count theirs, and its constancy.
 
 ### Atomicity of a terminal transition
 
@@ -370,6 +391,8 @@ Deliver persistence 2: A caller MUST retry a deliver that answered storage-failu
 Deliver persistence 3: A caller MUST NOT deliver the payload a second time on that retry.
 Deliver persistence 4: A high-assurance deployment MUST raise an alert on storage-failure from [Deliver].
 ```
+
+NOTE: open 2026-10-21-g — a high-assurance deployment (Deliver persistence 4) is declared nowhere, and the alert names no receiver.
 
 ### Payload retention
 
@@ -416,13 +439,13 @@ Term record verbs: identify, allocate, supply, reuse, carry, compare, trim, norm
 
 Term value sets: status = pending | delivered | failed | expired. terminal stamp = delivery instant | failure instant | lapse instant.
 
-Term bounds: string cap (the deployment's bound on the recipient reference's length).
+Term bounds: string cap (the deployment's bound on the recipient reference's length, measured in Unicode code points).
 
 Term cadences: empty — a delivery window is the composing pattern's (Operation 14b, Composition note 7).
 
 Term qualifiers: migrated — rewritten in GRACE lang v0.35 (2026-09-12).
 
-Term terms: notification, notification id, recipient reference, payload, seam, transition, business caller, now, string cap, status, terminal stamp, creation instant, terminal transition, pending at an instant.
+Term terms: notification, notification id, recipient reference, payload, seam, transition, business caller, now, string cap, whitespace, status, terminal stamp, creation instant, terminal transition, pending at an instant, committed version.
 
 #### Create
 
@@ -494,7 +517,7 @@ Projection: created_at
 
 #### Status
 
-The notification's lifecycle state — [Pending], [Delivered], [Failed], or [Expired]. Set to [Pending] on [Create]; transitions once to a terminal (Invariant 2).
+The notification's lifecycle state — [Pending], [Delivered], [Failed], or [Expired]. Set to [Pending] on [Create]; transitions once to a terminal (State 1, Invariant 2).
 
 Kind:       Field
 Field of:   the notification record
@@ -652,17 +675,17 @@ Projection: storage-failure
 ```
 status: partially resolved
 formal: verified — notification.als + 1 twin, 2026-06-03
-last gate: 2026-10-21 — Final Critique 5, the council's first round on the page and the first on its Store-contract rewrite (a3f152b), three fresh readers on free models (GRID Nemotron 3 Ultra, EOS MiniMax M3.1 Flash, Linus GLM-5.3 Flash), each handed only the round's reading set, three passes on one text (frozen at 43f87f5); the round rests on three counted passes — foundational count 4 after triage (10 reports: 5 standing, merged into 3; 1 refining report raised; 2 sent down; 3 rejected), all Kind A: the string cap could reach the payload, which the page forbids the atom to read or validate; no requirement obliged a deployment to supply the cap, so a deployment supplying none left two builds answering one create oppositely; no action answered a failed read of the notification records, while the reads' answer rules obliged answers such a read cannot give; and a conformance check asked the auditor for the deployment's wiring, which no notification record carries; 20 refining reports, 5 rhetorical reports; not clean; every foundational finding cured in place; 2026-06-18 — Final Critique 4, fresh reader — clean
+last gate: 2026-10-29 — Final Critique 6 — foundational count 5, not clean, no sample
 
 open:
 - 2026-10-21-a · refining · Term seam; Term transition; Term business caller · each cites the Execution Contract's Logic Confinement Principle as declaring it, and that section declares none of the three, while the page carries no Term cited line for what it cites (GRACE-lang Closed vocabulary 2) → cite the contract's labels that hold each, and declare what the page cites, in the form every page carrying the one seam wording can take
 - 2026-10-21-b · refining · Examples (Shared Todo) · the three outcomes of notif_77 (delivered, failed, expired) share one notification, and only each paragraph's condition says they are alternatives, so a sequence test compiled from the walkthrough can read them as one sequence that breaks Invariant 2.3 → name each outcome an alternative, or give each its own notification
-- 2026-10-21-c · refining · Term string cap; String 5, 6, 9; Capability requirement 5 · the cap's unit (bytes or characters) and its floor are undeclared, so a cap of zero refuses every [Create], and what counts as whitespace rests on GRACE-lang's Term blank, which names no character set → declare the unit and the floor with the cap, and say which characters are whitespace
 - 2026-10-21-d · refining · Check 3.1, 4.1; Invariant 3.1, 4.1, 4.3, 4.5, 6.1 · no check tests that a terminal status carries its stamp (Check 4.1 reads stamp to status, Check 3.1 only the two-stamp half of Invariant 3.1, so a delivered notification with no stamp passes both), and Invariant 6.1 has no check; Final Critique 4's acceptance read the match both ways → test both directions, and the ids' uniqueness
 - 2026-10-21-e · refining · Failed and Expired entries; Operation 9, 13, 14a · the entries describe an attempt that failed and a window that lapsed, while the rules let [Fail] and [Expire] land on any pending notification, ask no attempt of [Expire] and hold no window → describe each as the call a composing pattern makes under the deployment's declared policy (Operation 14, Composition note 2)
 - 2026-10-21-f · refining · Operations (signature block) · the success arm ok and the answer arm notification_ids resolve to no declaration (GRACE-lang Closed vocabulary 4, 27), the corpus's form on sixteen and seven specifications → declare each, or settle in the grammar whether an arm owes a term entry
 - 2026-10-21-g · refining · Deliver persistence 4 · a high-assurance deployment is declared nowhere, and the alert names no receiver → declare the class and the receiver, or say whose they are
 - 2026-10-21-h · refining · State 3 through 6; Invariant 3.2, 4.1, 4.3, 4.5, 7.1; Operation 14b, 20; Composition note 7 · propositions owned twice: State 6 and Invariant 3.2; State 3, 4 and 5 and Invariant 4.1, 4.3 and 4.5; Operation 20 and Invariant 7.1; Operation 14b and Composition note 7 → one owner each (GRACE-lang Authority 3), each tombstone checked against the pages that cite it
+- 2026-10-29-a · refining · Identity 2; Capability requirement 1, 4 through 6 · the notification id's source is named as the host's allocation (Identity 2) and not among what the deployment supplies, where the atom shape in `spec-format.md` lists an id source under Capability requirement; Permissions and Assignment (each its 2026-10-26-a), Event Log (its 2026-10-22-b) and Tamper Evidence (its 2026-10-22-a) route the same form → name the source among the Capability requirements, in the one form the corpus settles for its host-allocation atoms
 ```
 
 <details markdown="block">
