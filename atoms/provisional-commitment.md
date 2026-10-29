@@ -100,7 +100,9 @@ Capability requirement 2: The deployment MUST supply the id material at the seam
 Capability requirement 16: The deployment MUST supply the registry's availability verdict at the seam.
 Capability requirement 3: The registry MUST run the availability read and the hold write for one resource as one critical section.
 Capability requirement 4: The registry MUST release the critical section on the caller's return.
-Capability requirement 5: The registry MUST release the critical section on the caller's death.
+Deleted: Capability requirement 5. Capability requirement 18 and Capability requirement 19 own it.
+Capability requirement 18: The registry MUST bound the critical section.
+Capability requirement 19: IF a hold write in flight EXISTS for the resource THEN the registry MUST NOT release the critical section.
 Deleted: Capability requirement 6. Execution Contract Database 3 owns it.
 Capability requirement 7: A deployment firing [Expire] on a cadence MUST declare the cadence.
 Capability requirement 8: A deployment firing [Expire] on a cadence MUST declare the reclamation window the cadence falls inside.
@@ -108,6 +110,7 @@ Deleted: Capability requirement 9. Execution Contract Logic confinement 13 owns 
 Capability requirement 10: The registry MUST return the resource to availability on a releasing action.
 Capability requirement 11: The registry MUST NOT return the resource to availability on an admitted confirm.
 Capability requirement 17: The registry MUST refuse a resource a held commitment carries.
+Capability requirement 20: The registry MUST NOT remove the resource from availability on a refused [Place Hold].
 Capability requirement 12: A deployment firing [Expire] on a cadence MUST resolve EVERY lapsed commitment WITHIN the reclamation window.
 Capability requirement 15: The deployment MUST supply the commitment records PER Execution Contract Database 1 through 7, Execution Contract Read 4, Execution Contract Refusal 1 and Execution Contract Conformance 9.
 Deleted: Capability requirement 13. Execution Contract Logic confinement 7 owns it.
@@ -120,9 +123,9 @@ Deleted: Clock semantics 5. Execution Contract Logic confinement 7 owns it.
 Deleted: Clock semantics 6. Non-goal 26 owns it.
 ```
 
-NOTE: open 2026-10-21-b — whether the registry's own record of a hold follows the commitment records' commit, so a registry writing that record outside the database transaction keeps a resource unavailable after a [Place Hold] the database refused (Capability requirement 3).
+Term hold write: the database write by which a [Place Hold] records a commitment.
 
-NOTE: open 2026-10-28-a — the registry releases the critical section on the caller's return or death, so a caller paused inside the section holds the section with no bound (Capability requirement 4, Capability requirement 5).
+Term hold write in flight: a hold write the database has neither committed nor refused.
 
 ### Operations
 
@@ -474,7 +477,7 @@ Term cadences: empty.
 
 Term qualifiers: migrated — rewritten in GRACE lang v0.40 (2026-09-13).
 
-Term terms: commitment, id, property, reference, registry, database instance, seam, transition, now, resolving action, duration bounds, window bound, window reading, open, lapsed, window rejection, terminal state, terminal instant, admitted place hold, admitted confirm, admitted release, admitted expire, admitted resolving action, releasing action, string input, blank, reclamation lag, reclamation window, capacity decision, degenerate window, late resolution, premature expiry, committed version.
+Term terms: commitment, id, property, reference, registry, database instance, seam, transition, now, hold write, hold write in flight, resolving action, duration bounds, window bound, window reading, open, lapsed, window rejection, terminal state, terminal instant, admitted place hold, admitted confirm, admitted release, admitted expire, admitted resolving action, releasing action, string input, blank, reclamation lag, reclamation window, capacity decision, degenerate window, late resolution, premature expiry, committed version.
 
 Term cited: sequence number: Event Log. The section titled Logic Confinement Principle in `execution-contract.md` — the seam and the transition.
 
@@ -769,9 +772,7 @@ formal: verified — provisional-commitment.tla + 2 twins, 2026-06-04
 last gate: 2026-10-28 — Final Critique 6 — foundational count 3, not clean, no sample
 
 open:
-- 2026-10-21-b · refining · Capability requirement 3 through 5 · the registry's critical section is bound, but not whether the registry's own record of a hold follows the commitment records' commit, so a registry writing that record outside the database transaction keeps a resource unavailable after a [Place Hold] the database refused → say whether the registry's record of a hold follows the commit
 - 2026-10-21-d · refining · Term duration bounds; Operation 4 · the bounds are the implementation's admitted range, an owner Term actors does not name, and no Capability requirement has the deployment declare them → name who declares the bounds
-- 2026-10-28-a · refining · Capability requirement 4, 5 · the registry releases its critical section on the caller's return or death, so a caller paused inside the section holds the section with no bound, and every [Place Hold] on the resource waits for the caller → bound the section, with a rule that keeps a paused holder from writing its hold after the bound, or name who owns the bound
 ```
 
 <details markdown="block">
@@ -792,6 +793,8 @@ Directional changes only — the turns a future reader must know the pattern too
 - **2026-10-21 — A composed retention may purge what the atom never removes; a refusal leaves what it found; a refused re-hold records nothing.** *Chose:* Invariant 10.2 deleted to Invariant 10.1 and Execution Contract Database 4, so the atom never removes a commitment and a composed Retention Window destroys a terminal one only as its own page says (Composition note 5); Check 6.1 and Check 6.2, which cannot tell a purge from a removal from the commitment records alone, moved to External check 7, which reads the Retention Window's purge records beside two reads; Operation 32 deleted to Operation 30, so a refused resolving action leaves the commitment as the call found it, terminal or held, and a call naming no commitment leaves nothing; and Invariant 5.2 deleted to Operation 8, with Term re-hold, which only it read. *Over:* a commitment count that may never fall beside the retention the page sends to Retention Window; a refused resolving action left in held where the not-held refusal answers on a terminal commitment and the not-known refusal on none; and a re-hold obliged to produce a commitment where a refused [Place Hold] records none. *Because:* Final Critique 5 found each a reachable state that breaks a rule of the page or fails one of its checks, and the page's earlier text held each cure: Final Critique 4 kept the record indefinitely from the atom's perspective with retention, archival and purge left to composing patterns, left the commitment in Held only where the store write failed, and made a re-hold a new commitment with a new id. What each action answers on every call is unchanged.
 
 - **2026-10-22 — An admitted call, a composed purge and the wiring are the Execution Contract's.** *Chose:* the four admitted terms (place hold, confirm, release, expire) citing Execution Contract Read 4 for what an action admits, in place of the commit clause this page's fifth Final Critique wrote into each; External check 7, a composing Retention Window's purge records read beside the commitment records, deleted to Execution Contract Database 6, with the tombstones of Check 6.1 and Check 6.2, which named it, now naming the contract; External check 6, the composing patterns read from the deployment's own wiring, deleted to Execution Contract Conformance 9; the three labels cited on Capability requirement 15; rules 146 to 144. *Over:* the page stating for itself which calls its effect rules reach, that a purge another specification declares is answered outside the commitment records, and that the wiring is an external check. *Because:* the maintainer ruled on 2026-10-22 that five repeated cures are each stated once, the admitted effect, the composed erasure and the wiring declaration among them; this page's fifth Final Critique had made the first two cures one specification at a time. What each action does and answers is unchanged.
+
+- **2026-10-29 — The registry's verdict follows the commitment records.** *Chose:* Capability requirement 17 kept, so the registry refuses a resource a held commitment carries; Capability requirement 20, the registry never removing the resource from availability on a refused [Place Hold], so the registry's own record of a hold follows the commit of the hold write, a storage-failure included (closing open line 2026-10-21-b); Capability requirement 18 and Capability requirement 19, the registry bounding its critical section and never releasing it while a hold write in it is in flight, as Lease's holder never releases a grant with a call in flight, with Capability requirement 5, the release on the caller's death, deleted to them, since a registry cannot tell a dead caller from a paused one (Lease Invariant 3) and a paused caller's hold write landing after the release would stand two held commitments on one resource (closing 2026-10-28-a); Term hold write and Term hold write in flight, naming the database write Capability requirement 3's critical section covers, apart from the registry's own record; rules 145 to 147. *Over:* option (b) of the 2026-10-28 09:25Z escalation, availability wholly the registry's own (Non-goal 11, Non-goal 12), with Capability requirement 17 deleted and the Summary's promise rewritten as the registry's; and a declared bound with a fence carried to the database, Lease's shape, which would choose the registry's mechanism for it. *Because:* the maintainer ruled on 2026-10-29 that the registry's verdict follows the commitment records, a held commitment's resource is refused, and the open lines settle the same way, the registry's own record of a hold following the commit; Concurrency 3, Capability requirement 3, 10 and 11 and Reserve from Pool's wiring already read the registry so. Each new rule binds the registry, as Capability requirement 3 through 5 did: the atom still defines no availability and decides no hold-ability (Non-goal 11, Non-goal 12), and what each action does and answers is unchanged.
 
 </details>
 
