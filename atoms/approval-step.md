@@ -20,11 +20,11 @@ Approval Step records a single authorization gate. A specific thing was submitte
 
 Each step has exactly one approver (the only person who may approve or reject it), one submitter (the only person who may withdraw it before a decision), one subject (the thing being approved), and one scope (the kind of approval being requested). Those, and the submission time, are fixed at submission and never change.
 
-A step has four states: pending, plus three terminal ones — approved, rejected and withdrawn, the last two each with a required reason. All three are absorbing; there is no re-open and no decision reversal.
+A step has four states: pending, plus three final ones — approved, rejected and withdrawn, the last two each with a required reason. A step that reaches a final state stays there: there is no re-open and no decision reversal.
 
 The core guarantee is that every decision is fully attributed. An anonymous decision, a rejection with no reason, or a missing timestamp is a failure. So it is provable that a required control existed and operated, which is exactly what an auditor or investigator asks for.
 
-This is distinct from a permission (standing, reusable authority to do a class of things) and from an assignment (who owns a task, not who approved it). A controller may be *permitted* to approve journal entries, and each entry still needs an Approval Step proving they *did* approve that one. Delegation is a composing concept, not a property of this atom.
+This is distinct from a permission (standing, reusable authority to do a class of things) and from an assignment (who owns a task, not who approved it). A controller may be *permitted* to approve journal entries, and each entry still needs an Approval Step proving they *did* approve that one. Delegation — letting someone decide in the named approver's place — is not part of the step; a deployment that needs it adds it separately.
 
 *Also known as: an approval gate, a sign-off, an authorization step, a review gate.*
 
@@ -88,7 +88,7 @@ Term reference: subject reference, approver reference, submitter reference, deci
 
 Term database instance: one named database a call is routed to; step id uniqueness ranges over one instance.
 
-Term seam: the atom's I/O boundary as the section titled Logic Confinement Principle in `execution-contract.md` declares it; the host injects the clock reading and the step id here.
+Term seam: the atom's input/output boundary as the section titled Logic Confinement Principle in `execution-contract.md` declares it; the host injects the clock reading and the step id here.
 
 Term transition: the atom's evaluation of one call against the step records, as the section titled Logic Confinement Principle in `execution-contract.md` declares it.
 
@@ -116,7 +116,7 @@ State 15: The atom MUST NOT record a receipt instant.
 
 ```
 Capability requirement 1: The deployment MUST supply now at the seam.
-Capability requirement 5: The deployment MUST supply the step records PER Execution Contract Database 1 through 5, Execution Contract Database 7, Execution Contract Read 1 through 3, Execution Contract Refusal 1, Execution Contract Query 1 through 4 and Execution Contract Input 1.
+Capability requirement 5: The deployment MUST supply the step records PER Execution Contract Database 1 through 5, Execution Contract Database 7, Execution Contract Read 1 through 4, Execution Contract Refusal 1, Execution Contract Query 1 through 4 and Execution Contract Input 1.
 Deleted: Capability requirement 2. Execution Contract Logic confinement 7 owns it.
 Deleted: Capability requirement 3. Execution Contract Logic confinement 7 owns it.
 Deleted: Capability requirement 4. Execution Contract Logic confinement 7 owns it.
@@ -215,7 +215,7 @@ Deleted: Operation 54. Execution Contract Read 1 owns it: after the read, every 
 Deleted: Operation 55. Execution Contract Refusal 1 and Operation 20 own it.
 Deleted: Operation 56. Execution Contract Read 1 owns it: after the read, every refusal rule of [Read] answers invalid-query.
 Operation 57: IF a supplied reason EQUALS blank THEN [Approve] MUST answer invalid-request.
-Operation 58: IF the query is malformed THEN [Read] MUST answer invalid-query.
+Operation 58: IF the query is malformed THEN [Read] MUST answer invalid-query (Execution Contract Query 1).
 ```
 
 NOTE: watch the blank filter value (Operation 45).
@@ -774,7 +774,7 @@ Projection: unauthorized
 
 #### Storage Failure
 
-The rejection any write action returns when the underlying database write fails after all preconditions pass. No [Step Id] is issued on [Submit]; a resolving action leaves the step in [Pending]. The caller must retry.
+The rejection any write action returns when the underlying database write fails after all preconditions pass. No [Step Id] is issued on [Submit]; a resolving action leaves the step in [Pending].
 
 Kind:       Member
 Member of:  the action rejection
@@ -783,7 +783,7 @@ Projection: storage-failure
 
 #### Invalid Query
 
-The rejection [Read] returns when a filter is malformed — a blank string-axis value, a [State] value outside the four states, a time range missing its start or its end, with end before start or with an end that is not an instant, a value its field does not take (a time range on a field that is not an instant, or a single value on one that is), or an unrecognized filter key (rejected rather than silently ignored).
+The rejection [Read] returns when a filter is malformed — a blank string-axis value, a [State] value outside the four states, a time range missing its start or its end, with end before start or with a start or an end that is not an instant, a value its field does not take (a time range on a field that is not an instant, or a single value on one that is), or an unrecognized filter key (rejected rather than silently ignored).
 
 Kind:       Member
 Member of:  the Read rejection
@@ -831,9 +831,9 @@ Projection: invalid-query
 
 ## Standards references
 
-- **Sarbanes-Oxley section 404 (17 U.S.C. section 7262)** — internal control over financial reporting. The approval step is the structural form of a financial reporting control: a gate that must be cleared before a material action proceeds, with an auditable record of who cleared it. SOX auditors reviewing control evidence query approval step records directly; Invariants 4, 6, and 8 are the structural guarantees the evidence must carry.
+- **Sarbanes-Oxley section 404 (15 U.S.C. (United States Code) section 7262)** — internal control over financial reporting. The approval step is the structural form of a financial reporting control: a gate that must be cleared before a material action proceeds, with an auditable record of who cleared it. SOX auditors reviewing control evidence query approval step records directly; Invariants 4, 6, and 8 are the structural guarantees the evidence must carry.
 - **FDA 21 CFR Part 11 (Electronic Records; Electronic Signatures)** — for FDA-regulated contexts (pharmaceutical manufacturing, clinical trials, medical device quality systems): each approval step by a named actor is the record an electronic signature on the action is linked to. Part 11 section 11.50 requires that electronic signatures are attributable to one individual and section 11.70 requires that they are linked to their respective records to prevent removal, substitution, or falsification. Composition with [Actor Identity](./actor-identity.md) provides the cryptographic binding; composition with [Tamper Evidence](./tamper-evidence.md) provides the linking and non-falsifiability. The Approval Step record is the gate; the composition is the compliant electronic signature system.
-- **ICH (International Council for Harmonisation of Technical Requirements for Pharmaceuticals for Human Use) E6(R3) Good Clinical Practice — Guideline** — the international standard for clinical trial conduct. Section 4 (Investigator's Responsibilities) and Section 5 (Sponsor's Responsibilities) require documented approval steps at multiple points in the trial lifecycle: investigator approval of protocol deviations, IRB (Institutional Review Board) approval of informed consent amendments, sponsor approval of site qualification assessments. Each maps to an Approval Step record whose [Scope] identifies the specific GCP obligation.
+- **ICH (International Council for Harmonisation of Technical Requirements for Pharmaceuticals for Human Use) E6(R3) Good Clinical Practice — Guideline** — the international standard for clinical trial conduct. Section 4 (Investigator's Responsibilities) and Section 5 (Sponsor's Responsibilities) require documented approval steps at multiple points in the trial lifecycle: investigator approval of protocol deviations, IRB (Institutional Review Board) approval of informed consent amendments, sponsor approval of site qualification assessments. Each maps to an Approval Step record whose [Scope] identifies the specific Good Clinical Practice obligation.
 - **ISO 9001:2015 clause 8.5.1 (Control of production and service provision)** — the International Organization for Standardization's quality-management standard; requires that production and service provision activities be controlled by documented procedures including approval of documents, products, and services at defined points. Approval steps are the documented approval records section 8.5.1 anticipates; the atom's immutability invariants satisfy the document control requirements.
 - **ISO 13485:2016 clause 4.2 (Documentation requirements)** — for medical device manufacturers: records of approval activities must be maintained. Approval Step records are the compliant implementation surface.
 
@@ -841,14 +841,14 @@ Projection: invalid-query
 
 ## Status
 
-`partially resolved` — see the Ledger.
+`grounded on Final Critique 11 — 2026-10-29` — see the Ledger.
 
 ## Ledger
 
 ```
-status: partially resolved
+status: grounded on Final Critique 11 — 2026-10-29
 formal: verified — approval-step.tla + 1 twin, 2026-06-03
-last gate: 2026-10-28 — Final Critique 10 — foundational count 1, not clean, no sample
+last gate: 2026-10-29 — Final Critique 11 — foundational count 0, clean, one sample
 
 open:
 - 2026-10-21-d · refining · Indeterminate outcome 1 · a caller with no answer is sent to the step records, and no read says whether its submit landed, where two submits carrying one field set are two steps (Non-goal 1); its BEFORE takes a clause where the grammar's tail takes a term → name the read, or Duplicate Prevention (Non-goal 2) as its owner, and write the tail on a term
