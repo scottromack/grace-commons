@@ -634,7 +634,7 @@ NOTE: repeated cures are flagged (`NOTE: watch <name>` beside the strained rule)
 
 - **host obligations**: what the host must bound — cap, deployment-supplied, or silence. Seventeen specifications: Actor Identity, Approval Step, Cart, Consent, Credential, Invitation, Legal Hold, Medication Order, Notification, Observation, Party Identity, Permissions, Provisional Commitment, Selective Disclosure, Session, State Machine and Tamper Evidence; the *host obligations* row in `open-questions.md` holds the question.
 - **the state a refusal leaves**: a refused write binding record state read alone; the open question is whether refusal answers on a record in another state or none. Three: Consent (Operation 32), Invitation (Operation 37) and Provisional Commitment (Operation 30).
-- **condition negation**: guards a plain negative cannot carry; the open question is one refusal answering in two rows of one precedence chain. Three: Approval Step, Audit Trail and State Machine.
+- **condition negation**: guards a plain negative cannot carry; the open question is one refusal answering in two rows of one precedence chain. Four: Approval Step, Audit Trail, Consent and State Machine.
 - **applicability**: `WHERE`-shaped gating written with subject or relative clause. Two: Audit Trail and Recoverable Invocation.
 - **persistent state**: `WHILE`-shaped duration written with a term or phrase. One: Audit Trail.
 - **cardinality**: a need beyond EVERY, EXISTS, EXACTLY ONE and EXACTLY ONE OF. Three: Audit Trail, Credential (Operation 70) and Authenticated Actor (Term current credential).

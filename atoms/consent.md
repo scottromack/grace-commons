@@ -173,11 +173,11 @@ Operation 18: IF the consent record is withdrawn THEN [Revoke] MUST answer alrea
 Operation 19: IF the consent record is elapsed AND the consent record is not withdrawn THEN [Revoke] MUST answer already-expired.
 Operation 20: IF revocation instant DOES NOT EQUAL blank THEN [Revoke] MUST resolve revocation instant from the call.
 Deleted: Operation 21. Execution Contract Logic confinement 12 owns it.
-Operation 22: IF the consent record is not withdrawn AND the consent record is not elapsed AND revoking actor EQUALS blank THEN [Revoke] MUST answer invalid-request.
-Operation 23: IF the consent record is not withdrawn AND the consent record is not elapsed AND reason EQUALS blank THEN [Revoke] MUST answer invalid-request.
-Operation 24: IF the consent record is not withdrawn AND the consent record is not elapsed AND now PRECEDES the resolved revocation instant THEN [Revoke] MUST answer invalid-request.
-Operation 25: IF the consent record is not withdrawn AND the consent record is not elapsed AND the resolved revocation instant PRECEDES grant instant THEN [Revoke] MUST answer invalid-request.
-Operation 67: IF the consent record is not withdrawn AND the consent record is not elapsed AND a supplied revocation instant is malformed THEN [Revoke] MUST answer invalid-request (Execution Contract Input 1).
+Operation 22: IF a consent record EXISTS for the consent id AND the consent record is not withdrawn AND the consent record is not elapsed AND revoking actor EQUALS blank THEN [Revoke] MUST answer invalid-request.
+Operation 23: IF a consent record EXISTS for the consent id AND the consent record is not withdrawn AND the consent record is not elapsed AND reason EQUALS blank THEN [Revoke] MUST answer invalid-request.
+Operation 24: IF a consent record EXISTS for the consent id AND the consent record is not withdrawn AND the consent record is not elapsed AND now PRECEDES the resolved revocation instant THEN [Revoke] MUST answer invalid-request.
+Operation 25: IF a consent record EXISTS for the consent id AND the consent record is not withdrawn AND the consent record is not elapsed AND the resolved revocation instant PRECEDES grant instant THEN [Revoke] MUST answer invalid-request.
+Operation 67: IF a consent record EXISTS for the consent id AND the consent record is not withdrawn AND the consent record is not elapsed AND a supplied revocation instant is malformed THEN [Revoke] MUST answer invalid-request (Execution Contract Input 1).
 Operation 26: [Revoke] MUST stand the consent record in revoked.
 Operation 27: [Revoke] MUST record revoking actor on the consent record.
 Operation 28: [Revoke] MUST record the reason as the revocation reason.
@@ -221,6 +221,8 @@ Operation 65: IF the query is malformed THEN [Read] MUST answer invalid-query (E
 ```
 
 NOTE: watch the state a refusal leaves (Operation 32).
+
+NOTE: watch condition negation — invalid-request occupies two rows of [Revoke]'s precedence chain, a blank consent id's ahead of not-known (Operation 15) and a granted record's attribution and instant faults after already-expired (Operation 22 through 25, Operation 67), so the answer alone does not say which guard refused.
 
 NOTE: a withdrawal whose [Revoke] write the database refuses (Operation 31), or whose answer is lost (Execution Contract Error model 1), and whose retry finds the consent record elapsed answers already-expired (Operation 19) and is recorded on no consent record: [Check] still answers granted for an at time between the attempt and the expiry instant. A first [Revoke] that finds the consent record elapsed answers already-expired as well, whatever revocation instant the call carries, so a withdrawal made after the expiry instant and backdated before it is recorded on no consent record either: [Check] answers granted for an at time between that revocation instant and the expiry instant. What the caller does with either withdrawal is the composing pattern's, as is the suppression of a processing act (Composition note 3).
 
@@ -410,6 +412,7 @@ This atom's acceptance is provable: an external auditor clears it from the conse
 
 ```
 Check 1.1: An auditor MUST find EVERY issued consent id in the database through [Read] (Invariant 8.1; Execution Contract Generation acceptance 1).
+Check 1.2: An auditor MUST find no two consent records in one database instance sharing a consent id (Instance 2).
 Check 2.1: An auditor MUST find EVERY consent record's consent id, subject reference, purpose and granting actor non-blank (Invariant 7.1).
 Check 2.2: An auditor MUST find a grant instant on EVERY consent record (Invariant 7.2).
 Check 2.3: An auditor MUST find EVERY consent record's grant fields unchanged across EVERY committed version of the consent record (Invariant 1.1, Invariant 1.2, Invariant 9.1; Execution Contract Generation acceptance 1).
@@ -603,7 +606,7 @@ Projection: granted_at
 
 #### Expiry Instant
 
-The optional timestamp at which the consent expires. Set on [Grant] (must be strictly in the future relative to the injected [Now]); immutable. When [Expiry Instant] ≤ the evaluating clock and no revocation precedes it, the semantic state is [Expired]. Absent or blank ⇒ [Grant] records none, and the consent never expires by time.
+The optional timestamp at which the consent expires. Set on [Grant], which refuses one at or before the injected [Now] (Operation 8, Operation 9); immutable. When [Expiry Instant] ≤ the evaluating clock and no revocation precedes it, the semantic state is [Expired]. Absent or blank ⇒ [Grant] records none, and the consent never expires by time.
 
 Kind:       Field
 Field of:   the consent record
@@ -619,7 +622,7 @@ Projection: metadata
 
 #### Revoking Actor
 
-The opaque reference to the actor who recorded the withdrawal. Set at [Revoke], immutable thereafter; present on [Revoked] records only. Empty or whitespace-only is rejected [Invalid Request].
+The opaque reference to the actor who recorded the withdrawal. Set at [Revoke], immutable thereafter; present on [Revoked] records only. Empty or whitespace-only is rejected [Invalid Request] on a record in [Granted] (Operation 22).
 
 Kind:       Field
 Field of:   the consent record
@@ -635,7 +638,7 @@ Projection: revocation_reason
 
 #### Revocation Instant
 
-The timestamp the consent was revoked — supplied or defaulted to the injected [Now]. Must not be future and must be ≥ [Grant Instant] (Invariant 5). Set at [Revoke], immutable; present on [Revoked] records only.
+The timestamp the consent was revoked — supplied or defaulted to the injected [Now]. [Revoke] refuses one after [Now] or before [Grant Instant] (Operation 24, Operation 25, Invariant 5). Set at [Revoke], immutable; present on [Revoked] records only.
 
 Kind:       Field
 Field of:   the consent record
@@ -659,7 +662,7 @@ Projection: store_name
 
 #### Now
 
-The current clock reading the pipeline consumes — the injected `clock_t`, supplied at the I/O seam, never read inside a transition and never a signature parameter. It stamps the immutable write timestamps ([Grant Instant], [Revocation Instant]) and drives the pure expiry guard / derivation (no write); [At Time] defaults to it when omitted.
+The current clock reading the pipeline consumes — the injected `clock_t`, supplied at the I/O seam, never read inside a transition and never a signature parameter. It stamps [Grant Instant] (Operation 10); a [Revocation Instant] or an [At Time] the call leaves blank resolves to it (Execution Contract Logic confinement 12); and it drives the pure expiry guard / derivation (no write).
 
 Kind:         Parameter
 Parameter of: Grant, Revoke, Check and Read
@@ -675,7 +678,7 @@ Projection:   at_time
 
 #### Reason
 
-The required, non-empty reason string [Revoke] consumes — written into [Revocation Reason]. Not stored under this name; an empty or whitespace-only value is rejected [Invalid Request].
+The required, non-empty reason string [Revoke] consumes — written into [Revocation Reason]. Not stored under this name; an empty or whitespace-only value is rejected [Invalid Request] on a record in [Granted] (Operation 23).
 
 Kind:         Parameter
 Parameter of: Revoke
@@ -724,7 +727,7 @@ Projection: not-known
 
 #### Invalid Request
 
-The refusal [Grant] or [Revoke] returns when request fields fail — an empty or whitespace-only [Consent Id], [Subject Reference], [Purpose], [Granting Actor], [Revoking Actor], or [Reason]; an [Expiry Instant] not in the future at [Grant]; a supplied [Expiry Instant] or [Revocation Instant] that is neither blank nor an instant; or a [Revocation Instant] that is future or before [Grant Instant].
+The refusal [Grant] or [Revoke] returns when request fields fail — at [Grant], an empty or whitespace-only [Subject Reference], [Purpose] or [Granting Actor], an [Expiry Instant] at or before [Now], or a supplied [Expiry Instant] that is neither blank nor an instant; at [Revoke], an empty or whitespace-only [Consent Id], or, on a record in [Granted], an empty or whitespace-only [Revoking Actor] or [Reason], a [Revocation Instant] after [Now] or before [Grant Instant], or a supplied [Revocation Instant] that is neither blank nor an instant.
 
 Kind:       Member
 Member of:  the action rejection
@@ -829,7 +832,7 @@ Projection: invalid-query
 ```
 status: partially resolved
 formal: not applicable — vote no 2026-06-03
-last gate: 2026-10-30 — Final Critique 13 — foundational count 1, not clean, no sample
+last gate: 2026-10-30 — Final Critique 14 — foundational count 0, clean, no sample
 
 open:
 - 2026-10-29-b · refining · Term seam; Term transition; Term business caller · each says the section titled Logic Confinement Principle in `execution-contract.md` declares it, and that section declares none of the three → declare the three there, the corpus's one seam wording, or point each at its declaration
