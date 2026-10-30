@@ -75,6 +75,7 @@ Drafted before any rule (the section titled *Workflow for adding a new pattern* 
 | Cart | unit price (Composition note 2) | the unit price an [Add Line] call carries, supplied by the composing pattern that prices the item (Composition note 4) |
 | Permissions | subject reference | the actor reference a call carries (Action wiring 4) |
 | Permissions | action scope | a cart scope (Scope vocabulary 2) |
+| Permissions | string cap | the deployment's, unchanged |
 | Event Log | data | a cart event (Action wiring 22) |
 | Event Log | payload cap | the deployment's, holding the largest cart event under the reference bound (Capability requirement 2) |
 
@@ -114,15 +115,27 @@ Term actor reference: the opaque reference a call carries for the person making 
 
 Term friend reference: the actor reference [Share Cart] grants a verb scope to.
 
-Term cart event: the data a changing action appends to Event Log, whose schema the composition owns (Event Log Composition note 3): the act's name, the cart id, the actor reference, and the line id, new quantity, friend reference, cart verb or grant id the act carried; never an item reference, which the Cart records hold.
+Term cart event: the data a changing action appends to Event Log, whose schema the composition owns (Event Log Composition note 3): the fields the act's row below names, and no other; never an item reference, which the Cart records hold.
+
+The cart event each changing action appends, and the rule that owns it:
+
+| Changing action | Its cart event carries |
+|---|---|
+| [Open Cart] | the act's name, the cart id Cart's open answers and the actor reference (Action wiring 22) |
+| [Share Cart] | the act's name, the cart id, the actor reference, the friend reference, the cart verb and the grant id Permissions' grant answers (Action wiring 22) |
+| [Unshare Cart] | the act's name, the cart id, the actor reference and the grant id (Action wiring 22) |
+| [Add Line] | the act's name, the cart id, the actor reference and the line id Cart's add answers (Action wiring 22) |
+| [Change Quantity] | the act's name, the cart id, the actor reference, the line id and the new quantity (Action wiring 22) |
+| [Remove Line] | the act's name, the cart id, the actor reference and the line id (Action wiring 22) |
+| [Clear Cart] | the act's name, the cart id and the actor reference (Action wiring 22) |
 
 Term add event: the cart event an [Add Line] appends.
 
-Term cart events: the events Event Log's read answers whose data carries one cart id, in sequence number order.
+Term cart events: the events of the Event Log instance whose data carries one cart id, in sequence number order.
 
 Term adder: the actor reference the add event of a line carries.
 
-Term whole-log query: a sequence number range from one carrying no upper end, a query Event Log's read admits.
+Term whole-log query: a sequence number range from one carrying no upper end — a query Event Log's read admits, and the one query known to answer every cart event of a cart.
 
 ### Capability requirement
 
@@ -200,8 +213,9 @@ Action wiring 23: A refused act MUST NOT call Event Log's append.
 Action wiring 24: IF a constituent call refuses THEN the composition MUST answer the refusal.
 Action wiring 25: An admitted view MUST answer Cart's read answer AND the adder of EVERY line.
 Action wiring 26: An admitted history MUST answer the cart events of the cart.
-Action wiring 27: [View Cart] AND [Cart History] MUST call Event Log's read with the whole-log query.
+Action wiring 27: [View Cart] AND [Cart History] MUST read EVERY cart event of the cart through Event Log's read.
 Action wiring 28: [View Cart] AND [Cart History] MUST NOT write.
+Action wiring 29: A gated action MUST answer permission-denied for a cart id no grant names.
 ```
 
 Term gated action: every action but [Open Cart] — the actions that name an open cart by its cart id.
@@ -239,19 +253,19 @@ Every action, every constituent call it makes, and for each call its answer, its
 | Action | Call | Answer | Refusals | Failed read | No answer |
 |---|---|---|---|---|---|
 | [Open Cart] | Cart.open | the cart id, answered (Action wiring 8) | invalid-currency: Action wiring 24 | Execution Contract Read 1 | Execution Contract Error model 1 |
-| [Open Cart] | Permissions.grant, once per verb scope | kept by Permissions (Action wiring 7) | invalid-request: unreachable, Action wiring 5 refuses a blank actor reference first | Execution Contract Read 1 | Execution Contract Error model 1 |
+| [Open Cart] | Permissions.grant, once per verb scope | kept by Permissions (Action wiring 7) | invalid-request: Action wiring 24 for an actor reference or cart scope over Permissions' string cap (Permissions String 6); unreachable for a blank actor reference, which Action wiring 5 refuses first | Execution Contract Read 1 | Execution Contract Error model 1 |
 | every changing action | Event Log.append | kept by Event Log (Action wiring 22) | invalid-payload: unreachable under Capability requirement 2 | Execution Contract Read 1 | Execution Contract Error model 1 |
-| every gated action | Permissions.permitted | permitted: the action proceeds (Action wiring 1); denied: Action wiring 2, Action wiring 3 | — | Execution Contract Read 1 | Execution Contract Error model 1 |
-| [Share Cart] | Permissions.grant | the grant id, answered (Action wiring 12) | invalid-request: unreachable, Action wiring 9 and 10 refuse first | Execution Contract Read 1 | Execution Contract Error model 1 |
+| every gated action | Permissions.permitted | permitted: the action proceeds (Action wiring 1); denied: Action wiring 2, Action wiring 3, and Action wiring 29 for a cart id no grant names | — | Execution Contract Read 1 | Execution Contract Error model 1 |
+| [Share Cart] | Permissions.grant | the grant id, answered (Action wiring 12) | invalid-request: Action wiring 24 for a friend reference or cart scope over Permissions' string cap (Permissions String 6); unreachable otherwise, Action wiring 9 and 10 refuse first | Execution Contract Read 1 | Execution Contract Error model 1 |
 | [Unshare Cart] | Permissions.read | the grant, found or not (Action wiring 13) | — | Execution Contract Read 1 | Execution Contract Error model 1 |
 | [Unshare Cart] | Permissions.revoke | ok, answered (Action wiring 24) | not-known: unreachable, Action wiring 13 answers first; not-active: Action wiring 24 | Execution Contract Read 1 | Execution Contract Error model 1 |
-| [Add Line] | Cart.add | the line id, answered (Action wiring 16) | not-known: unreachable under Invariant 2.1; every other refusal: Action wiring 24 | Execution Contract Read 1 | Execution Contract Error model 1 |
-| [Change Quantity], [Remove Line] | Cart.read | the cart's lines (Action wiring 17, Action wiring 19) | not-known: unreachable under Invariant 2.1 | Execution Contract Read 1 | Execution Contract Error model 1 |
+| [Add Line] | Cart.add | the line id, answered (Action wiring 16) | not-known: unreachable under Action wiring 29 and Invariant 2.1; every other refusal: Action wiring 24 | Execution Contract Read 1 | Execution Contract Error model 1 |
+| [Change Quantity], [Remove Line] | Cart.read | the cart's lines (Action wiring 17, Action wiring 19) | not-known: unreachable under Action wiring 29 and Invariant 2.1 | Execution Contract Read 1 | Execution Contract Error model 1 |
 | [Change Quantity] | Cart.change_quantity | ok, answered (Action wiring 24) | not-known: unreachable, Action wiring 17 answers first; invalid-quantity: Action wiring 24 | Execution Contract Read 1 | Execution Contract Error model 1 |
 | [Remove Line] | Cart.remove | ok, answered (Action wiring 24) | not-known: unreachable, Action wiring 19 answers first | Execution Contract Read 1 | Execution Contract Error model 1 |
-| [Clear Cart] | Cart.clear | ok, answered (Action wiring 24) | not-known: unreachable under Invariant 2.1 | Execution Contract Read 1 | Execution Contract Error model 1 |
-| [View Cart] | Cart.read | the cart (Action wiring 25) | not-known: unreachable under Invariant 2.1 | Execution Contract Read 1 | Execution Contract Error model 1 |
-| [View Cart], [Cart History] | Event Log.read | the events, filtered to the cart events (Action wiring 25, Action wiring 26) | invalid-query: unreachable, the whole-log query is one Event Log admits (Action wiring 27) | Execution Contract Read 1 | Execution Contract Error model 1 |
+| [Clear Cart] | Cart.clear | ok, answered (Action wiring 24) | not-known: unreachable under Action wiring 29 and Invariant 2.1 | Execution Contract Read 1 | Execution Contract Error model 1 |
+| [View Cart] | Cart.read | the cart (Action wiring 25) | not-known: unreachable under Action wiring 29 and Invariant 2.1 | Execution Contract Read 1 | Execution Contract Error model 1 |
+| [View Cart], [Cart History] | Event Log.read | the events, filtered to the cart events of the cart (Action wiring 25, Action wiring 26, Action wiring 27) | invalid-query: unreachable under Action wiring 27, which no refused query meets; the whole-log query is a query Event Log admits that meets Action wiring 27 | Execution Contract Read 1 | Execution Contract Error model 1 |
 
 ### Wiring decision
 
@@ -316,7 +330,7 @@ Term share scope: the cart scope carrying share, such as `c1:share`.
   Invariant 4.1: [Unshare Cart] MUST NOT change a line.
   ```
 
-Permission enforcement and attribution together give the shared surface: no friend acts beyond the grants a sharer handed out, and every line says who added it. Because grants are made only by [Open Cart] and by an admitted share, a cart id no grant names is answered as permission-denied, never not-known, and a caller learns nothing about carts not shared with them.
+Permission enforcement and attribution together give the shared surface: no friend acts beyond the grants a sharer handed out, and every line says who added it. Because grants are made only by [Open Cart] and by an admitted share, a cart id no grant names is answered as permission-denied, never not-known (Action wiring 29), and a caller learns nothing about carts not shared with them.
 
 ---
 
@@ -326,7 +340,7 @@ Amounts are whole numbers of the currency's minor unit, so `4999` in US dollars 
 
 ### Birthday gift
 
-Ana opens a cart in US dollars for her brother's birthday: `open_cart(ana, "USD")` answers `c1`, and Ana holds `c1:view`, `c1:add`, `c1:change`, `c1:remove` and `c1:share`. She lets Ben add and view — `share_cart(ana, c1, ben, "add")` answers grant `g6`, `share_cart(ana, c1, ben, "view")` answers `g7` — and lets Cal view only: `share_cart(ana, c1, cal, "view")` answers `g8`. Ben adds headphones at $49.99: `add_line(ben, c1, "headphones-black", 1, 4999)` answers `l1`. Ana adds a card at $4.50: `add_line(ana, c1, "card-birthday", 1, 450)` answers `l2`. Cal tries `add_line(cal, c1, "socks", 2, 900)` — [Permission Denied]; Cal holds no `c1:add`. `view_cart(cal, c1)` answers both lines and a total of 5449, `l1` added by ben and `l2` by ana. Ana takes away Ben's adding — `unshare_cart(ana, c1, g6)` answers ok — and `l1` stays, still added by ben; Ben's next add is refused, and he can still view.
+Ana opens a cart in US dollars for her brother's birthday: `open_cart(ana, "USD")` answers `c1`, and Ana holds `c1:view`, `c1:add`, `c1:change`, `c1:remove` and `c1:share`. She lets Ben add and view — `share_cart(ana, c1, ben, "add")` answers grant `g6`, `share_cart(ana, c1, ben, "view")` answers `g7` — and lets Cal view only: `share_cart(ana, c1, cal, "view")` answers `g8`. Ben adds headphones at $49.99: `add_line(ben, c1, "headphones-black", 1, 4999)` answers `l1`. Ana adds a card at $4.50: `add_line(ana, c1, "card-birthday", 1, 450)` answers `l2`. Cal tries `add_line(cal, c1, "socks", 2, 900)` — [Permission Denied]; Cal holds no `c1:add`. `view_cart(cal, c1)` answers both lines and a total of 5449, `l1` added by ben and `l2` by ana. Ana takes away Ben's adding — `unshare_cart(ana, c1, g6)` answers ok — and `l1` stays, still added by ben; Ben's next add is refused, and he can still view. Later Ana lets Cal remove — `share_cart(ana, c1, cal, "remove")` answers `g9` — and `clear_cart(cal, c1)` answers ok: the remove scope reaches every line, Ben's `l1` and Ana's `l2` alike, and the cart events still name who added each.
 
 ### Office lunch
 
@@ -334,7 +348,7 @@ An office manager opens a cart in euros — `open_cart(maya, "EUR")` answers `c7
 
 ### Rejection paths
 
-Ana's cart `c1` above, after Ben's adding was taken away:
+Ana's cart `c1` above, after Ben's adding was taken away and before Ana let Cal remove:
 
 - `open_cart("", "USD")` — rejected as [Invalid Request]; the actor reference is blank.
 - `open_cart(ana, "XYZ")` — rejected as invalid-currency, Cart's refusal answered unchanged.
@@ -355,7 +369,7 @@ Every check below clears from the three constituents' records; where a claim nee
 
 ```
 Check 1.1: An auditor MUST find EVERY grant the Permissions records carry naming a cart the Cart records carry (Invariant 2.1).
-Check 2.1: An auditor MUST find EXACTLY ONE add event for EVERY line id the Cart records carry (Invariant 3.1).
+Check 2.1: An auditor MUST find EXACTLY ONE add event for EVERY line id the Cart records carry, carrying the line id (Invariant 3.1).
 Check 3.1: An auditor MUST find EVERY action scope the Permissions records carry written as a cart scope (Scope vocabulary 2).
 ```
 
@@ -368,6 +382,7 @@ External check 1: An auditor needing a denied call confirmed unreached MUST read
 External check 2: An auditor needing a refused act confirmed unrecorded MUST read the deployment's own implementation (Invariant 3.2).
 External check 3: An auditor needing an unshare confirmed clear of the lines MUST read the deployment's own implementation (Invariant 4.1).
 External check 4: An auditor needing the actor reference bound to a caller MUST read the deployment's authentication layer (Non-goal 1).
+External check 5: An auditor needing a call on a cart id no grant names confirmed answered permission-denied MUST read the deployment's own implementation (Action wiring 29).
 ```
 
 ---
@@ -502,7 +517,7 @@ Projection:   cart_verb
 
 #### Permission Denied
 
-The composition's own refusal, answered when Permissions' `permitted` answers denied, before any other constituent is called (Invariant 1.1); also the answer for a cart id no grant names, so a caller learns nothing about carts not shared with them.
+The composition's own refusal, answered when Permissions' `permitted` answers denied, before any other constituent is called (Invariant 1.1); also the answer for a cart id no grant names (Action wiring 29), so a caller learns nothing about carts not shared with them.
 
 Kind:       Member
 Member of:  the action rejection
@@ -511,7 +526,7 @@ Projection: permission-denied
 
 #### Invalid Request
 
-The composition's own refusal of a blank actor reference on [Open Cart], or of a blank friend reference or a [Cart Verb] outside the cart verbs on [Share Cart].
+The composition's own refusal of a blank actor reference on [Open Cart], or of a blank friend reference or a [Cart Verb] outside the cart verbs on [Share Cart]; the same code answers Permissions' invalid-request unchanged, for a reference or cart scope over Permissions' string cap (Action wiring 24).
 
 Kind:       Member
 Member of:  the action rejection
