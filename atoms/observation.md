@@ -211,6 +211,8 @@ Operation 58: IF the query is malformed THEN [Read] MUST answer invalid-query.
 
 NOTE: watch the blank filter value (Operation 48).
 
+NOTE: watch the required input no rule records (Operation 57).
+
 NOTE: open 2026-10-22-a — which key orders two observations sharing a recording instant is not stated; Operation 43 and Check 6.1 ask only that the order be stable.
 
 NOTE: open 2026-10-22-c — an admitted retract records no instant (Operation 36), where an admitted amend stamps the successor's (Operation 27).

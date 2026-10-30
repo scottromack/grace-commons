@@ -113,6 +113,7 @@ Deleted: State 19. Execution Contract Database 3 owns it.
 ```
 Capability requirement 1: The deployment MUST supply now at the seam.
 Capability requirement 5: The deployment MUST supply the chain records PER Execution Contract Database 1 through 4, Execution Contract Database 7, Execution Contract Read 1 through 4, Execution Contract Refusal 1, Execution Contract Query 1 through 4 and Execution Contract Conformance 9.
+Capability requirement 6: The deployment MUST set a maximum length per string input.
 Deleted: Capability requirement 2. Execution Contract Logic confinement 7 owns it.
 Deleted: Capability requirement 3. Execution Contract Logic confinement 7 owns it.
 Deleted: Capability requirement 4. Execution Contract Logic confinement 7 owns it.
@@ -208,15 +209,23 @@ Operation 58: An ordering rule MUST NOT rest on recording instant.
 Operation 59: IF the query is malformed THEN [Read] MUST answer invalid-query.
 Operation 60: IF a recording instant range's end PRECEDES the range's start THEN [Read] MUST answer invalid-query.
 Operation 61: An admitted originate MUST set the genesis entry's metadata to the call's metadata.
+Operation 62: An admitted originate MUST set the chain's artifact reference to the call's artifact reference.
+Operation 63: An admitted originate MUST set the genesis entry's custodian reference to the call's custodian reference.
+Operation 64: An admitted transform MUST set the transformed entry's transformation descriptor to the call's transformation descriptor.
+Operation 65: An admitted disclose MUST set the disclosed entry's recipient reference to the call's recipient reference.
 ```
 
 NOTE: watch the integer range (Operation 48, Operation 60).
 
 NOTE: watch the optional field no rule records (Operation 61).
 
+NOTE: watch the required input no rule records (Operation 62, Operation 63, Operation 64, Operation 65).
+
 Term now: the deployment's clock reading at the call, as Execution Contract Logic confinement 11 declares it.
 
 Term business caller: the party whose action the call carries, as the section titled Logic Confinement Principle in `execution-contract.md` declares it; never the source of an injected value.
+
+NOTE: open 2026-10-30-a — Term seam, Term transition and Term business caller cite the section titled Logic Confinement Principle in `execution-contract.md`, which declares none of them.
 
 Term genesis type: the call input selecting a genesis entry's event type — a [Genesis Type]; an input name, never a stored field.
 
@@ -262,12 +271,12 @@ The case space, and the rule that owns each case:
 
 | Call | Case | Answer | Effect on the chain |
 |---|---|---|---|
-| [Originate] | refs present, genesis type admitted | the new chain id | a chain opens, genesis entry at sequence one (Operation 5 through 9, Operation 61) |
+| [Originate] | refs present, genesis type admitted | the new chain id | a chain opens, genesis entry at sequence one (Operation 5 through 9, Operation 61 through 63) |
 | [Originate] | a blank reference | [Invalid Reference] | none (Operation 1, Operation 2) |
 | [Originate] | genesis type outside the two | [Invalid Genesis Type] | none (Operation 3, Execution Contract Refusal 1) |
 | [Transfer] | open chain, to custodian reference present | the entry id | transferred entry; the from-side read from state; custody moves (Operation 19 through 21) |
-| [Transform] | open chain, refs present, custodian current | the entry id | transformed entry; custody unchanged (Operation 28, Operation 33) |
-| [Disclose] | open chain, refs present, custodian current | the entry id | disclosed entry; custody unchanged (Operation 29, Operation 34) |
+| [Transform] | open chain, refs present, custodian current | the entry id | transformed entry; custody unchanged (Operation 28, Operation 33, Operation 64) |
+| [Disclose] | open chain, refs present, custodian current | the entry id | disclosed entry; custody unchanged (Operation 29, Operation 34, Operation 65) |
 | [Archive] | open chain, custodian current | the entry id | archived entry; chain closes; custody unchanged (Operation 30 through 32) |
 | any writer | chain is archived | [Archived] | none (Operation 12 through 14) |
 | [Archive] | chain is archived | [Already Archived] | none (Operation 15) |
@@ -337,13 +346,13 @@ The case space, and the rule that owns each case:
 
 ### Pharmaceutical — a batch from manufacture to dispensing
 
-A manufacturer opens the chain: `originate(artifact_ref: "batch-x91", custodian_ref: "manuf-lab-7", genesis_type: originated)` → `chain-0041`. The genesis entry takes `sequence_number: 1` and the chain stands open with `manuf-lab-7` current (Operation 5 through 9).
+A manufacturer opens the chain: `originate(artifact_ref: "batch-x91", custodian_ref: "manuf-lab-7", genesis_type: originated)` → `chain-0041`. The genesis entry takes `sequence_number: 1` and the chain stands open with `manuf-lab-7` current (Operation 5 through 9, Operation 63).
 
 `transfer("chain-0041", to_custodian_ref: "dist-region-3")` → `e2`. The entry records `from_custodian_ref: "manuf-lab-7"` — read from the current custodian, never from the caller (Operation 18, Operation 19). `transfer("chain-0041", "pharm-hosp-9")` → `e3`. The pharmacist records the dispense: `transform("chain-0041", "pharm-hosp-9", "dispensed 10mg dose into unit D44")` → `e4`, then closes it: `archive("chain-0041", "pharm-hosp-9")` → `e5`. The chain stands archived.
 
 A regulator asks whether custody was unbroken. `read("chain-0041")` answers five entries in sequence order. Every transferred entry's from custodian reference equals the prior entry's to custodian reference, or the genesis custodian reference for the first transfer. Invariant 4 is the structural answer.
 
-Weeks later the hospital returns part of the batch for re-inspection, and the return opens a second chain for the same artifact rather than reopening the archived one (Identity 10, Invariant 6): `originate(artifact_ref: "batch-x91", custodian_ref: "qa-returns-2", genesis_type: received, metadata: "returned by pharm-hosp-9; earlier custody in chain-0041")` → `chain-0052`. Its genesis entry takes `sequence_number: 1` with event type received and `qa-returns-2` as the first custodian (Operation 5 through 9). The chain records custody from intake forward; what came before intake stays in `chain-0041`, which the genesis metadata names (State 9, Operation 61, Non-goal 8).
+Weeks later the hospital returns part of the batch for re-inspection, and the return opens a second chain for the same artifact rather than reopening the archived one (Identity 10, Invariant 6): `originate(artifact_ref: "batch-x91", custodian_ref: "qa-returns-2", genesis_type: received, metadata: "returned by pharm-hosp-9; earlier custody in chain-0041")` → `chain-0052`. Its genesis entry takes `sequence_number: 1` with event type received and `qa-returns-2` as the first custodian (Operation 5 through 9, Operation 63). The chain records custody from intake forward; what came before intake stays in `chain-0041`, which the genesis metadata names (State 9, Operation 61, Non-goal 8).
 
 ### Legal evidence — a physical exhibit
 
@@ -373,7 +382,7 @@ The same call against the chain while it stood open, after custody had moved to 
 
 ### Regulated adversarial scenarios
 
-- **Regulator audit.** An FDA (US Food and Drug Administration) inspector asks for the complete chain of custody for `batch-x91` under 21 CFR (Code of Federal Regulations) Part 211. `read("chain-0041")` answers the ordered sequence; the inspector clears Check 1.1 through 7.2 provably, from those records.
+- **Regulator audit.** An FDA (US Food and Drug Administration) inspector asks for the complete chain of custody for `batch-x91` under 21 CFR (Code of Federal Regulations) Part 211. `read("chain-0041")` answers the ordered sequence; the inspector clears Check 1.1 through 7.2 provably, from those records and their committed versions (Execution Contract Generation acceptance 1).
 - **Disputed transaction.** The defense rebuttal above rests on two invariants together: custody continuity, because from custodian reference is read from chain state and cannot be supplied (Invariant 4, Operation 18), and custodian presence, because no entry may name an empty custodian (Invariant 7).
 - **Breach investigation.** An investigator brackets an anomaly window generously: `read("chain-0041", {recorded_at_range: ["2026-02-27T00:00:00Z", "2026-03-17T23:59:59Z"]})`. A wall-time filter is a convenience over a best-effort annotation and never an ordering claim (Operation 58), so the window is checked against an unfiltered read — the filtered window's first and last entries are located in the full sequence and their sequence-adjacent neighbours checked to fall outside the bracket. The sequence is dense (Invariant 5), so the run from the window's first entry to its last holds every entry appended between them, one whose skewed recording instant the filter missed among them; an entry outside the run whose skewed recording instant fell outside the bracket stays outside it, a miss the generous bracket narrows and no record rules out. The custodian in force at any point is then exactly determined by replaying the preceding entries.
 
@@ -387,7 +396,7 @@ This atom's acceptance is provable: an external auditor clears it from the chain
 
 ```
 Check 1.1: An auditor MUST find a custodian reference on EVERY non-transferred entry (Invariant 7.1).
-Check 1.2: An auditor MUST find a from custodian reference and a to custodian reference on EVERY transferred entry (Invariant 7.2).
+Check 1.2: An auditor MUST find a from custodian reference and a to custodian reference and no custodian reference on EVERY transferred entry (State 5, Invariant 7.2).
 Check 2.1: An auditor MUST find EXACTLY ONE genesis entry per chain (Invariant 3.1).
 Check 2.2: An auditor MUST find EVERY genesis entry standing at sequence number one (Invariant 3.2).
 Check 3.1: An auditor MUST replay a chain in sequence number ascending order against a current custodian cursor (Invariant 4.1).
@@ -395,6 +404,7 @@ Check 3.2: An auditor MUST find EVERY transferred entry's from custodian referen
 Check 3.3: An auditor MUST find EVERY custodian-guarded entry's custodian reference equal to the cursor at that entry (Invariant 4.2).
 Check 4.1: An auditor MUST find a chain's sequence numbers standing from one to the chain's entry count (Invariant 5.2).
 Check 4.2: An auditor MUST reconstruct a chain's order from sequence number alone (Invariant 5.3).
+Check 4.3: An auditor MUST find no sequence number repeated within a chain (Invariant 5.1).
 Check 5.1: An auditor MUST find no entry in an archived chain following the archived entry's sequence number (Invariant 6.2).
 Check 6.1: An auditor MUST find EVERY entry's fields unchanged across EVERY committed version of the entry (Invariant 1.1; Execution Contract Generation acceptance 1).
 Check 7.1: An auditor MUST find EVERY entry whose event type IS IN the event types (Invariant 8.1).
@@ -494,7 +504,7 @@ String 2: The atom MUST NOT trim a string input.
 String 3: The atom MUST NOT normalize a string input.
 String 4: The atom MUST NOT case-fold a string input.
 String 5: The atom MUST read a whitespace-only string input as blank.
-String 6: The deployment MUST set a maximum length per string input.
+Deleted: String 6. Capability requirement 6 owns it.
 String 7: IF a reference EXCEEDS the maximum length THEN the action MUST answer invalid-ref.
 String 8: IF transformation descriptor EXCEEDS the maximum length THEN [Transform] MUST answer invalid-descriptor.
 String 9: IF metadata EXCEEDS the maximum length THEN [Originate] MUST answer invalid-ref.
@@ -505,7 +515,9 @@ Term string input: artifact reference, custodian reference, to custodian referen
 Term reference: artifact reference, custodian reference, to custodian reference OR recipient reference — every string input naming a party or an artifact.
 
 
-Term maximum length: the deployment's cap per string input.
+Term maximum length: the deployment's cap per string input, measured in Unicode code points.
+
+NOTE: watch host obligations — this atom refuses a string input over the maximum length on every appending action (String 7, String 8, String 9) and obliges the deployment to set the maximum length (Capability requirement 6), where [Duplicate Prevention](./duplicate-prevention.md) declares a cap; Final Critique 11 cured its unit, counted in Unicode code points as [Permissions](./permissions.md) and [Credential](./credential.md) count theirs.
 
 ### Correction by append
 
@@ -549,7 +561,7 @@ Term record verbs: identify, allocate, change, carry, stand, answer, record, app
 
 Term value sets: event type = originated | received | transferred | transformed | disclosed | archived. genesis types = originated | received. chain state = open | archived. filter axes = sequence number | recording instant | event type. custodian-guarded action = [Transform] | [Disclose] | [Archive]. appending action = [Originate] | [Transfer] | [Transform] | [Disclose] | [Archive].
 
-Term bounds: maximum length (the deployment's cap per string input).
+Term bounds: maximum length (the deployment's cap per string input, measured in Unicode code points).
 
 Term cadences: empty.
 
@@ -627,7 +639,7 @@ Projection: current_custodian
 
 #### Next Sequence Number
 
-The chain's per-instance counter, beginning at 1 and incrementing by one per successful entry write.
+The chain's own counter, beginning at 1 and incrementing by one per successful entry write.
 
 Kind:       Field
 Field of:   the chain
@@ -758,7 +770,7 @@ Projection: invalid-genesis-type
 
 #### Storage Failure
 
-The rejection any action returns when its database write fails after all preconditions pass; guarantees no partial record is observable (Operation 42 through 44).
+The rejection an appending action returns when its database write fails after all preconditions pass; guarantees no partial record is observable (Operation 42 through 44).
 
 Kind:       Member
 Member of:  the action rejection
@@ -785,7 +797,7 @@ Projection: already-archived
 
 #### Not Current Custodian
 
-The rejection [Transform], [Disclose], or [Archive] returns when the supplied [Custodian Reference] is not the chain's [Current Custodian] — a prior holder has no write authority.
+The rejection [Transform], [Disclose], or [Archive] returns when the supplied [Custodian Reference] is not the chain's [Current Custodian] — a prior holder's call on any of the three lands no entry; [Transfer] guards no caller (Operation 22).
 
 Kind:       Member
 Member of:  the action rejection
@@ -887,9 +899,10 @@ It inherits from:
 ```
 status: partially resolved
 formal: verified — provenance.als + 1 twin, 2026-06-04
-last gate: 2026-10-27 — Final Critique 10 — foundational count 0, clean, no sample
+last gate: 2026-10-30 — Final Critique 11 — foundational count 1, not clean, no sample
 
-open: none
+open:
+- 2026-10-30-a · refining · Term seam; Term transition; Term business caller · each says the section titled Logic Confinement Principle in `execution-contract.md` declares it, and that section declares none of the three → declare the three there, the corpus's one seam wording, or point each at its declaration
 ```
 
 <details markdown="block">

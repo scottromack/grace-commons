@@ -222,6 +222,8 @@ NOTE: watch the blank filter value (Operation 45).
 
 NOTE: watch the optional field no rule records (Operation 61).
 
+NOTE: watch the required input no rule records (Operation 62).
+
 Term now: the deployment's clock reading at the call, as Execution Contract Logic confinement 11 declares it.
 
 Term business caller: the party whose action the call carries, as the section titled Logic Confinement Principle in `execution-contract.md` declares it; never the source of an injected value.
