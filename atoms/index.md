@@ -23,7 +23,7 @@ toc: true
 
 The freestanding semantic units of Grace Commons — each fully specifiable without naming another atom. Atoms are stored flat (`atoms/<name>.md`); their classification is not a folder but a set of **lenses** over the Intent Graph. Overlays (regulated · security · standards) are read off the composition graph and **report usage, not essence** — a standard shows as *HIPAA via audit-trail*, an uncomposed atom as *composed by: (none yet)*, never a bare boolean. **Domain** is the one intrinsic axis: an optional, EOS-gated tag, default absent. The design and its rationale are in [the taxonomy note](./TAXONOMY.md).
 
-_25 compositions (25 regulated) · 28 atoms · 61 composition→atom edges. Generated from `tools/taxonomy/reverse_index.py`; regenerate with `python3 tools/taxonomy/generate_views.py .`_
+_25 compositions (25 regulated) · 29 atoms · 61 composition→atom edges. Generated from `tools/taxonomy/reverse_index.py`; regenerate with `python3 tools/taxonomy/generate_views.py .`_
 
 ## All atoms
 
@@ -39,6 +39,7 @@ _25 compositions (25 regulated) · 28 atoms · 61 composition→atom edges. Gene
 | [Credential](./credential.md) | — | yes (5) | yes | actor-suspension, authenticated-actor, external-onboarding, login, privileged-access-provisioning |
 | [Duplicate Prevention](./duplicate-prevention.md) | — | yes (2) | — | idempotent-reservation, reserve-from-pool |
 | [Event Log](./event-log.md) | — | yes (4) | — | audit-trail, compensable-workflow, preference-aware-notification-fanout, reserve-from-pool |
+| [Gift Card](./gift-card.md) | — | — | — | *(none yet)* |
 | [Invitation](./invitation.md) | — | yes (1) | yes | external-onboarding |
 | [Lease](./lease.md) | — | yes (1) | — | recoverable-invocation |
 | [Legal Hold](./legal-hold.md) | — | yes (1) | — | defensible-retention |
@@ -144,6 +145,7 @@ The union of standards each atom's composers carry, attributed per composer in t
 Atoms no composition yet composes. The overlays say nothing about them — an honest gap, not a claim of non-regulation.
 
 - [Cart](./cart.md)
+- [Gift Card](./gift-card.md)
 - [Medication Order](./medication-order.md)
 - [Observation](./observation.md)
 

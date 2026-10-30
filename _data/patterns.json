@@ -666,6 +666,23 @@
   ],
   "title": "External Onboarding"
  },
+ "gift-card": {
+  "composed_by": [],
+  "domain": null,
+  "grounded": false,
+  "invariants": 4,
+  "kind": "atom",
+  "models": {
+   "als": false,
+   "tla": false,
+   "twins": 0
+  },
+  "regulated_by": [],
+  "security": false,
+  "standards": [],
+  "status": "draft",
+  "title": "Gift Card"
+ },
  "idempotent-reservation": {
   "composes": [
    "provisional-commitment",
