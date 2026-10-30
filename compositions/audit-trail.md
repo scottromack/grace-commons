@@ -1454,6 +1454,7 @@ Third half 13: The next run MUST NOT record an owed compensation BEFORE confirmi
 Third half 14: The third half MUST NOT treat an intent past the horizon as a finding.
 Third half 15: The third half MUST place the retention under the policy resolved from the event's payload by the resolution [Record Action] step 4 uses.
 Third half 16: IF the placement is refused OR answers state-unavailable THEN the third half MUST NOT retry within the run.
+NOTE: watch the constituent's failed read (Third half 16).
 Third half 17: The deployment MUST alert on invalid-policy and policy-not-found from the third half's placement as a deployment fault.
 ```
 
@@ -1484,6 +1485,7 @@ Compensation 15: The scan MUST retry a finding whose reconciliation-path [Record
 Compensation 16: The deployment MUST alert on a reconciliation-path recording-failure standing across two runs.
 Compensation 17: IF a reconciliation-path [Record Action] is refused with invalid-credential THEN the scan MUST alert as a deployment fault AND MUST NOT retry within the run.
 Compensation 18: The scan MUST treat a reconciliation-path [Record Action] that answers state-unavailable as refused with recording-failure.
+NOTE: watch the constituent's failed read (Compensation 18).
 ```
 
 Term intent: a finding's `audit.reconciliation` record, which the scan lands before the act it announces (Compensation 3).

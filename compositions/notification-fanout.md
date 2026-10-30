@@ -126,6 +126,7 @@ Action wiring 1: An admitted fanout MUST call Subscription's subscribers_for wit
 Action wiring 2: An admitted fanout MUST take the firing instant from the seam's clock reading.
 Action wiring 3: An admitted fanout MUST take the fanout id from the seam's id.
 Action wiring 4: IF Subscription's subscribers_for answers state-unavailable OR answers nothing within the read latency bound THEN [Fanout] MUST answer subscribers-unavailable.
+NOTE: watch the constituent's failed read (Action wiring 4).
 Action wiring 5: A subscribers-unavailable answer MUST NOT carry a fanout id.
 Deleted: Action wiring 6. Action wiring 9 owns it.
 Action wiring 7: An admitted fanout MUST call Notification's create EXACTLY ONE time per subscriber reference the subscribers_for answer carries.

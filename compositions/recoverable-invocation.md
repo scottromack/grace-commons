@@ -39,7 +39,7 @@ Not a transaction, not the adopter's database, not an audit journal, not a class
 ## Composes
 
 - **[Lease](../atoms/lease.md)** — the per-key grant of exclusive standing whose terminus is an instant. The act's critical section is a lease. This page binds the atom's parameters — which key, which holder, how long, which arm maps to which code — and restates none of its semantics but the sizing the atom obliges a composer to state as its own (act section 16 through 18). What the atom refuses to own and this page adds: which key protects which work, and how long a grant must last.
-- **[Audit Trail](./audit-trail.md)** — the regulated-audit substrate and this composition's journal, its four constituents (Event Log, Actor Identity, Tamper Evidence, Retention Window) reached transitively per *Compositions of compositions* ([`spec-format.md`](../spec-format.md)). Consumed at the declared contract `record_action(action_ref, actor_ref, credential, data)`, which answers event id and refuses `invalid-credential | invalid-request(step) | recording-failure(step)`, for every record this page writes; `read_record(event_id)`, which answers `audit_record | not-known`, or no answer where a constituent read gives none (Execution Contract Error model 1), where an event id is in hand; and the open-upper-bound sequence-range read, for every other read of the journal (Capability requirement 1). Attribution, retention and sealing of every record here are Audit Trail Invariants 1, 2 and 3; destruction of a payload at the horizon is Audit Trail Invariants 4 and 8.
+- **[Audit Trail](./audit-trail.md)** — the regulated-audit substrate and this composition's journal, its four constituents (Event Log, Actor Identity, Tamper Evidence, Retention Window) reached transitively per *Compositions of compositions* ([`spec-format.md`](../spec-format.md)). Consumed at the declared contract `record_action(action_ref, actor_ref, credential, data)`, which answers event id and refuses `invalid-credential | invalid-request(step, committed_ids) | recording-failure(step)`, for every record this page writes; `read_record(event_id)`, which answers `audit_record | not-known`, or no answer where a constituent read gives none (Execution Contract Error model 1), where an event id is in hand; and the open-upper-bound sequence-range read, for every other read of the journal (Capability requirement 1). Attribution, retention and sealing of every record here are Audit Trail Invariants 1, 2 and 3; destruction of a payload at the horizon is Audit Trail Invariants 4 and 8.
 - **The bound act** — not a constituent. The adopter's constituent commit call, supplied as a binding together with the read that tells whether it committed. The constituent's own contract governs the commit.
 - **The act's critical section** — keyed by the act, supplied by the deployment (*Capability requirement*, act section). No constituent's records provide it: Lease states what it is, and the deployment supplies the host.
 
@@ -110,7 +110,7 @@ Five elements, each carrying the Contract classification of the section titled C
   sweep closed ids 1: The sweep MUST NOT write a closing BEFORE consulting sweep closed ids under the critical section.
   ```
 - **sequence high water**
-  Term sequence high water: the highest sequence number the composition has read. Derived index.
+  Term sequence high water: the highest sequence number the composition has read. Derived index. Past the horizon it holds no record and no payload, only a sequence number, which a payload's destruction leaves as it was.
   ```
   sequence high water 1: EVERY re-read of Recoverable Invocation MUST read the delta above sequence high water and advance the local maps by the delta.
   sequence high water 2: The mark MAY advance past a sequence number ONLY AFTER settle bound has elapsed since the sequence number's recording instant.
@@ -187,6 +187,8 @@ Capability requirement 14: The composition MUST NOT surface an invalid-query as 
 Capability requirement 15: EVERY read path of Recoverable Invocation that reads under the critical section MUST land a read that returns nothing within read bound where the read path lands unavailable.
 Deleted: Capability requirement 16. Execution Contract Scheduled leg 1 owns it.
 Deleted: Capability requirement 17. Execution Contract Scheduled leg 1 owns it.
+Capability requirement 18: A read_record that answers state-unavailable MUST land recording-failure(resolution) at [Resolve] (Execution Contract Read 1).
+NOTE: watch the constituent's failed read (Primitive policy 45).
 ```
 
 Term delta range: the sequence-number range from `(sequence_high_water + 1)` with no upper bound.
@@ -221,10 +223,13 @@ Term read-your-writes: Capability requirement 8 and Capability requirement 12 to
   Deleted: act section 14. Lease Non-goal 1 owns it: a party takes no key the party holds, the holder included.
   act section 15: IF a call in flight EXISTS under the grant THEN the holder MUST NOT issue Lease's release for the grant (Lease Composition note 5c).
   act section 16: The composition MUST bind Lease Sizing 1 through 9 for EVERY unfenced write under the critical section, with pause bound as the atom's call pause bound, lease spend and sweep lease spend, each on the path with no retry and no lost reply, as the atom's work bounds, and write floor and commit floor as the atom's start floors.
-  act section 17: IF a take, a remaining or a release on act section answers no answer THEN the holder MUST read remaining as none for the rest of the grant (Lease Sizing 7).
+  act section 17: IF a take, a remaining or a release on act section answers no answer OR state-unavailable THEN the holder MUST read remaining as none for the rest of the grant (Lease Sizing 7).
   act section 18: A holder MUST NOT issue a second time, under one lease, a lease call that answered no answer (Lease Sizing 8).
   Deleted: act section 18a. act section 16 owns it: Lease Sizing 8, bound for every unfenced write.
   act section 19: The deployment MUST supply Lease Capability requirement 8 through 10 at the journal and at the adopter's database.
+  act section 20: IF a release answers no answer OR state-unavailable THEN the holder MUST NOT decide an answer on the release (Execution Contract Read 1).
+  NOTE: watch the constituent's failed read (Primitive policy 45).
+  NOTE: open line 2026-10-30-c — a take's or a release's storage-failure fails the whole action (Execution Contract Constituent failure 1), and no rule here lands it.
   ```
   Term critical section key: `(kind, act_key)`.
 
@@ -279,10 +284,16 @@ Term read-your-writes: Capability requirement 8 and Capability requirement 12 to
   Term clock allowance: the allowance for comparing a reading from one clock with a stamp or instant from another; the section titled *Where the allowance goes* owns where it is spent. *Default:* none.
 - **intent candidates cap**
   Term intent candidates cap: the most database candidates an `<kind>.escalated` record names, each under reference length cap; past it, the count and the range. Sizes the escalation (Invariant 6). *Default:* none.
+  ```
+  intent candidates cap 1: The deployment MUST set intent candidates cap.
+  ```
 - **retention period**
   Term retention period: the duration a policy carries, as [Audit Trail](./audit-trail.md) declares it; here a per-kind binding, the duration of the one policy reference journal 6 resolves the kind's records to (*Bindings*, journal); [Reconcile] step 1 and condition 2 read it. *Default:* none.
 - **read cap**
   Term read cap: the most invocations [Read Invocation] returns for one act, and the most records per invocation. *Default:* none.
+  ```
+  read cap 1: The deployment MUST set read cap.
+  ```
 - **compliance surface**
   Term compliance surface: the deployment's surface for the instance's findings (*Composition state* owns the contract); check 3 reads both branches on it. *Default:* none.
 
@@ -369,6 +380,8 @@ Primitive policy 41: IF position EQUALS intent THEN invalid-request(step-1), inv
 Primitive policy 42: IF position EQUALS outcome THEN invalid-request(step-1), invalid-request(step-2) and invalid-request(step-3) MUST land recording-failure(outcome) with a hard alert.
 Primitive policy 43: The action MUST NOT retry after invalid-request(step-3) or invalid-request(step-4).
 Primitive policy 44: The composition MUST treat recording-failure(step-4) as recording-failure(step-2) at every position.
+Primitive policy 45: The composition MUST treat a record_action that answers state-unavailable as recording-failure(step-2) at every position (Execution Contract Read 1).
+NOTE: watch the constituent's failed read (Primitive policy 45, Capability requirement 18, act section 17, act section 20).
 ```
 
 Term lost reply: a record_action that answers recording-failure(step-3) (Primitive policy 32a), or whose reply has not arrived when journal write bound has elapsed since the write's issue, as remaining reports; the bound commit's reply is lost as yield 7 says.
@@ -428,6 +441,7 @@ Every input an action takes and every answer its calls can meet — what Audit T
 | [Resolve] | an abandoned disposition for an in-flight intent | invalid-request(too-young) | resolve 18, resolve 19 |
 | [Read Invocation] | an invocation id no readable intent of the act key carries | not-known | read invocation 3b |
 | [Read Invocation] | an act key with no readable intent | not-known | read invocation 12 |
+| [Read Invocation] | invocation id blank | the act's invocations, at most read cap of the most recent | read invocation 2 |
 
 **Lease: the take.**
 
@@ -436,15 +450,16 @@ Every input an action takes and every answer its calls can meet — what Audit T
 | expires_at | the step-3 re-read (open step 3.1) | the re-read (resolve 8) | the step-2 re-read (reconcile step 2.4) |
 | unavailable | section-unavailable, nothing written (open step 2.3, act section 5) | section-unavailable (resolve 6, act section 5) | skipped (reconcile step 2.3) |
 | no answer | section-unavailable, nothing written (open step 2.3), remaining read as none (act section 17) | section-unavailable (resolve 6), remaining read as none (act section 17) | skipped (reconcile step 2.3), remaining read as none (act section 17) |
+| state-unavailable | section-unavailable, nothing written (open step 2.3), remaining read as none (act section 17) | section-unavailable (resolve 6), remaining read as none (act section 17) | skipped (reconcile step 2.3), remaining read as none (act section 17) |
 
 **Lease: the remaining reading** behind a write. The floor is write floor, and commit floor for the reading the commit goes out behind; every journal write takes a reading of its own (journal write bound 1).
 
 | remaining answers | [Open] before the intent | [Open] before its return | [Close] | [Refuse] | [Resolve] | [Reconcile] |
 |---|---|---|---|---|---|---|
 | a remaining term above the floor | the intent record (open step 4.3) | open result, the section held (open step 5.2, open step 5.3) | the step-2 re-read (close step 2.1) | the step-2 re-read (refuse step 2.1) | the re-read (resolve 8) | the act probe (reconcile step 3.1) |
-| a remaining term at or below the floor, none, or no answer read as none (act section 17) | section-unavailable, released (open step 4.2) | recording-failure(outcome), released, the intent left open (open step 5.5, open step 5.6) | recording-failure(outcome), nothing written, released (close step 1.2) | recording-failure(refusal, constituent_code), nothing written, released (refuse step 1.2) | section-unavailable, released (resolve 7) | skipped (reconcile step 2.7) |
+| a remaining term at or below the floor, none, or no answer or state-unavailable read as none (act section 17) | section-unavailable, released (open step 4.2) | recording-failure(outcome), released, the intent left open (open step 5.5, open step 5.6) | recording-failure(outcome), nothing written, released (close step 1.2) | recording-failure(refusal, constituent_code), nothing written, released (refuse step 1.2) | section-unavailable, released (resolve 7) | skipped (reconcile step 2.7) |
 
-**Lease: the release.** Every release leaves the action's answer as it is: not-held is discarded (act section 6); no answer is read as none for the rest of the grant (act section 17) and the call is not issued again (act section 18); and where a call is in flight under the grant, nothing is issued (Term release, act section 15).
+**Lease: the release.** Every release leaves the action's answer as it is: not-held is discarded (act section 6); no answer and state-unavailable are read as none for the rest of the grant (act section 17) and decide no answer (act section 20), and a call that gave no answer is not issued again (act section 18); and where a call is in flight under the grant, nothing is issued (Term release, act section 15).
 
 **Audit Trail: record_action**, by position. The sweep's closing and recovery_intended writes follow the outcome position (reconcile step 3.15).
 
@@ -455,7 +470,7 @@ Every input an action takes and every answer its calls can meet — what Audit T
 | invalid-request(step-1), (step-2) or (step-3) | invalid-request, released (Primitive policy 41, open step 4.5) | recording-failure(outcome), a hard alert (Primitive policy 42, close step 3.3) | the act closed as escalated, cause outcome-unrecordable (reconcile step 3.20); where that escalation answers the same, left for the next run with a hard alert (reconcile step 3.23) | recording-failure(refusal, constituent_code), the intent left open (refuse step 3.8) | recording-failure(resolution), a hard alert (resolve 29) |
 | invalid-request(step-4), the read-back finding the record | proceeds with a hard alert (Primitive policy 20, 21) | success with a hard alert (Primitive policy 27, 28) | read back, success with a hard alert (reconcile step 3.16, Primitive policy 28) | refusal event id with a hard alert (refuse step 3.3, 3.12) | success with a hard alert (resolve 24) |
 | invalid-request(step-4), the read-back finding nothing | invalid-request, released (Primitive policy 22, open step 4.5) | recording-failure(outcome), a hard alert (Primitive policy 40) | a hard alert, the act left for the next run (Primitive policy 40) | recording-failure(refusal, constituent_code), the intent left open (Primitive policy 37b) | recording-failure(resolution) (Primitive policy 37b) |
-| recording-failure(step-2), and recording-failure(step-4) read as it (Primitive policy 44) | recording-failure(intent), released (Primitive policy 23, open step 4.5) | retried under the section to the terminus, step 2 re-run first; cut short, recording-failure(outcome), released (Primitive policy 29, 30, close step 3.4, 3.5, 3.7) | retried within the lease, else left for the next run under journal-unavailable (Primitive policy 29, reconcile step 3.17, 3.22) | recording-failure(refusal, constituent_code), the intent left open (refuse step 3.5) | recording-failure(resolution) (resolve 26) |
+| recording-failure(step-2), and recording-failure(step-4) and state-unavailable read as it (Primitive policy 44, 45) | recording-failure(intent), released (Primitive policy 23, open step 4.5) | retried under the section to the terminus, step 2 re-run first; cut short, recording-failure(outcome), released (Primitive policy 29, 30, close step 3.4, 3.5, 3.7) | retried within the lease, else left for the next run under journal-unavailable (Primitive policy 29, reconcile step 3.17, 3.22) | recording-failure(refusal, constituent_code), the intent left open (refuse step 3.5) | recording-failure(resolution) (resolve 26) |
 | recording-failure(step-3) or no answer — a lost reply (Primitive policy 32, 32a), read back once journal write bound has passed (Primitive policy 33 through 35) — the read-back finding the record | adopted, [Open] proceeding (Primitive policy 36) | adopted, cleared, released, returned (Primitive policy 36, close step 4.1 through 4.3) | adopted (Primitive policy 36) | refusal event id (refuse step 3.12) | adopted, closing event id (Primitive policy 36, resolve 35) |
 | a lost reply, the read-back finding nothing | recording-failure(intent), released (Primitive policy 23, 37b) | recording-failure(outcome) (Primitive policy 37b) | left for the next run (Primitive policy 37b, reconcile step 3.17), under journal-unavailable for a recording-failure(step-3) (reconcile step 3.22) | recording-failure(refusal, constituent_code), the intent left open (refuse step 3.6) | recording-failure(resolution) (resolve 26) |
 
@@ -490,7 +505,7 @@ A read-back that answers unavailable or gives no answer lands the position's rec
 | [Reconcile] step 1 | an intent of a kind the bindings table does not serve | surfaced, never closed, counted in surfaced | reconcile step 1.6, reconcile step 1.7, Binding 4, Binding 5 |
 | [Reconcile] step 2 | a closing landed since step 1 | released, closed already | reconcile step 2.5, reconcile step 2.6 |
 | [Reconcile] step 2 | the intent still open | the act probe | reconcile step 3.1 |
-| [Read Invocation] | the act's invocations | the invocation report | read invocation 2, read invocation 4 through 6, read invocation 10 |
+| [Read Invocation] | the act's invocations | the invocation report | read invocation 2, read invocation 3a, read invocation 4 through 6, read invocation 10 |
 
 **Audit Trail: read_record** at [Resolve] (resolve 11).
 
@@ -501,6 +516,7 @@ A read-back that answers unavailable or gives no answer lands the position's rec
 | any other record: no intent of the act carrying the invocation id | not-known | resolve 34 |
 | not-known | not-known | resolve 10 |
 | no answer | recording-failure(resolution), never not-known | Capability requirement 9, Capability requirement 10 |
+| state-unavailable | recording-failure(resolution), never not-known | Capability requirement 18 |
 
 **A read that fails.** Every read here is the composition's own, so an invalid-query is a fault of the build: it lands where unavailable lands, is surfaced, and opens no outage finding.
 
@@ -1009,10 +1025,11 @@ Reads the act's invocations — each intent and whichever closing record names i
 
 ```
 read invocation 1: [Read Invocation] MUST perform the rebuild under now injected at the reader's own seam.
-read invocation 2: [Read Invocation] MUST return one entry per invocation id, at most read cap of the most recent, with more set to true where the act has older ones.
-read invocation 3: WHEN invocation id is given:
+read invocation 2: IF invocation id EQUALS blank THEN [Read Invocation] MUST return one entry per invocation id, at most read cap of the most recent, with more set to true where the act has older ones.
+read invocation 3: WHEN invocation id DOES NOT EQUAL blank:
     read invocation 3a: [Read Invocation] MUST return one entry for an invocation id a readable intent of the act key carries.
     read invocation 3b: [Read Invocation] MUST answer not-known for an invocation id no readable intent of the act key carries.
+NOTE: watch the blank optional input (read invocation 2, read invocation 3).
 read invocation 4: records MUST carry the intent, the recovery_intended records and the closing records.
 read invocation 5: [Read Invocation] MUST cap the recovery_intended records and the closing records at the most recent read cap, with more set to true beyond.
 read invocation 6: [Read Invocation] MUST NOT exclude a superseded record from records.
@@ -1563,6 +1580,8 @@ Term recovery_intended: a `<kind>.recovery_intended` record — the sweep's stat
 
 Term database candidates: the records in the database an `<kind>.escalated` record names as possibly the intent's, at most intent candidates cap of them (reconcile step 3.8a).
 
+Term readable intent: an intent record whose payload the substrate has not destroyed (Audit Trail Invariant 4, Audit Trail Invariant 8).
+
 Term run id: a sweep run's own seam-injected id, fresh for every run; with the examined intent's invocation id, the critical section holder for one take.
 
 Term true maximum: the largest outcome payload a kind writes, as External check 7 clears.
@@ -1577,7 +1596,7 @@ Term cadences: sweep cadence.
 
 Term qualifiers: migrated — rewritten in GRACE lang v0.35 (2026-09-11).
 
-Term terms: (named expressions, each declared where it is used) worst closure, examine window end, retention floor, lease spend, run floor, sweep lease spend, examine edge, horizon edge, at risk threshold, settling edge, intent age, settle bound, retention end, sweep lease, run interval, in-flight, aged, partition, examined, skipped, reported, surfaced, unreached, closed already, standing closing, terminus, caller kind, payload match, act quiescence, read path, read-your-writes, journal join, lost reply, `position's existing arm`, cross-seam comparison, critical section key, critical section holder, critical section duration, reply, release, hard alert, unfenced write, write floor, commit floor, act finding, instance finding, kind, act key, invocation id, now, operator run id, resolve refusal, open result, close result, reconcile tally, invocation report, invocation entry, first seen, last seen, span, acting actor reference, resolving actor, recovery_intended, database candidates.
+Term terms: (named expressions, each declared where it is used) worst closure, examine window end, retention floor, lease spend, run floor, sweep lease spend, examine edge, horizon edge, at risk threshold, settling edge, intent age, settle bound, retention end, sweep lease, run interval, in-flight, aged, partition, examined, skipped, reported, surfaced, unreached, closed already, standing closing, terminus, caller kind, payload match, act quiescence, read path, read-your-writes, journal join, lost reply, `position's existing arm`, cross-seam comparison, critical section key, critical section holder, critical section duration, reply, release, hard alert, unfenced write, write floor, commit floor, act finding, instance finding, kind, act key, invocation id, now, operator run id, resolve refusal, open result, close result, reconcile tally, invocation report, invocation entry, first seen, last seen, span, acting actor reference, resolving actor, recovery_intended, database candidates, readable intent.
 
 #### Open
 
@@ -1737,9 +1756,10 @@ The composition anchors the accountability every regulated adopter's regime requ
 ```
 status: partially resolved
 formal: verified — recoverable-invocation.tla (v7) + 6 twins + 16 probes and isolations, and v7's own runs (23,962 states **at a horizon of five ticks**, which is the whole of the claim: the four-phase [Open] costs about a factor of ten in states per tick and does not finish at six or seven, so "all invariants hold" here means *holds within five ticks at these constants* and no monotonicity argument is offered for more. **The twin suite does not show that five is enough.** **The six twins are the v7 module with one defect each (re-derived 2026-10-27; five had been copies of v4 at seven ticks), each at the shortest horizon that rejects it and holding one tick shorter:** `-buggy-opclock` at two ticks (1,590 states), `-buggy-journal` and `-buggy-fence` at three (1,373 and 2,419), `-buggy-supersede` and `-buggy-visible` at four (10,771 and 13,538), `-buggy-reread` at five (18,197); the opclock twin turns off both of its defences, since each alone keeps Invariant 5 against the operator's clock — resolve 19's operator seam (`OperatorSkew` 0; 1,360 states at two ticks, 21,373 at five, the passing sibling `recoverable-invocation-probe-reportonly-clean`) and act section 15's hold (`HoldUnanswered`; 1,594 and 29,826) — so each is the other's second defence. **v6 (2026-10-07)** carries the invocation's lost-reply path as Lease has it: `HoldUnanswered` — no release while a commit is in flight or once a write's reply is lost; flipped with the operator's reading one tick ahead it is what lets a false abandonment land (Invariant 5 violated at 4,510 states under v7, holding at 29,826 with the hold), so the hold is a second defence against the operator's clock, and `-buggy-opclock` turns both off. **v7 (2026-10-20)** takes the journal fence out under the maintainer's ruling of that day: a take refuses every journal write it overtakes (`TakeRefuses`), a writer's re-read, lease check and append being one transaction (Execution Contract Store 2 through Capability requirement 12), and no lost-reply write is issued twice; with the refusal off (`-buggy-journal`) a second invocation's intent lands beside the first's (1,431 states), and at a nine-tick horizon with pauses and deaths off an invocation's outcome lands after the sweep's take, beside the sweep's (Invariant 2 violated at 23,321 states, holding at 25,286 with the refusal); with the intent write ungated it holds (27,045), so the refusal, not the lease gate, keeps a second intent off the first's; a host that releases on death holds as well (27,500), and `-buggy-death`, `-buggy-skew`, `-buggy-perwrite` and the six intent files that weighed the fence against the gate are retired. The window has its own configurations; Invariants 1, 2, 4, 5 as safety over discrete time; six components over one act — the invocation, a section host with lease-as-terminus, a fenced-or-fenceless store, a journal whose writes return and become visible at separate instants and which refuses a write another holder's take overtakes, two sweep runs on two nodes with a blocking take, **an operator through [Resolve] as the third writer, taking the same section on its own seam reading and re-arming for a second call**, **[Open] split into take → read → gate → issue → return with the intent write carrying its own return and visibility instants**, a death budget and a pause budget; `service_identity` is a modelled dimension, so the sweep's writes and the operator's open-intent arm are gated by it; every journal write split into its gate and its issue, and carrying separate return and visibility instants; twins rejected — `-buggy-reread`, sweep skips the re-read under the section → Invariant 2; `-buggy-fence`, the sweep abandons, against Invariant 4.9 → Invariant 5; `-buggy-journal`, a take that does not refuse the write it overtakes → Invariants 7 and 8; `-buggy-visible`, visibility only time-bounded → Invariant 2; `-buggy-supersede`, a resolution over an escalation carrying `resolved_by` and no `supersedes` → Invariants 2 and 6 (gate 9, F6); `-buggy-opclock`, the operator's reading one tick ahead in a report-only deployment, with the hold off → Invariant 5 (gate 9, F7), against `recoverable-invocation-probe-reportonly-clean`, which differs by that reading and HOLDS; **Invariant 8 — an intent is never in flight under another holder's grant — is earned by the store's refusal and not by the lease gate: with the refusal off it is violated, and with the gate off it holds (gate 10, F6; the journal fence earned it until v7)**; established — the dead-run term inside the model's own frame is the sweep's own lease and not a second `completion_bound` (true of a world with one act in it; the page's inequality carries `run_bound` terms instead, which the model has no backlog to express — Configuration §`compensation_window`), the `remaining` gate is not what carries Invariant 2 (the store's refusal is), the lower edge not safety-bearing at zero skew; Invariant 4 is vacuous at the main constants and is checked in the window configurations instead; **reachability probes — `Probe_OperatorNeverHoldsSection`, `Probe_OperatorNeverWrites`, `Probe_OperatorNeverSupersedes` and `Probe_NeverASupersessionChain`, each a deliberate falsehood the checker rejects**, the last of them only after it had held twice and named two things that were off which the configuration did not say were off, so the operator's invariants are not vacuous the way Invariant 4 once was; not modeled — pairing, purge, the refusal path, `recovery_intended`, the bindings table's lifecycle and with it the `kind` half of the key, the rejection-code taxonomy, the derived indexes, the compliance surface, the sweep's own lost-reply read-back, the call pause bound and the sizing bound from Lease with the reading ahead of the commit (the model's gates compare against `JournalWriteBound` alone and its commit goes ungated, the wider behaviour), [Open]'s read ahead of the take (the model's second opener always takes, the wider behaviour), and **which record a supersession names**: the model counts supersessions and does not identify them, so a chain (an escalation superseded by an abandonment superseded by an outcome) and a double-naming of one record are the same state to it — the transitivity rule below is therefore a prose repair and is **not** model-confirmed), 2026-10-20
-last gate: 2026-10-28 — Final Critique 24 — foundational count 1, not clean, no sample
+last gate: 2026-10-30 — Final Critique 25 — foundational count 2, not clean, no sample
 
-open: none
+open:
+- 2026-10-30-c · foundational · act section 17, act section 20; the closure table's Lease rows · a take or a release that answers storage-failure fails the whole composing action (Execution Contract Database 1, Constituent failure 1), so a [Close] whose release fails answers storage-failure after the commit with no position (Invariant 8.1), and a [Reconcile] run's other closings fail with it → land it on each position's existing arm by a rule citing Constituent failure 1, a take's as a failed take, and decide what a run whose release fails commits and answers
 ```
 
 <details markdown="block">

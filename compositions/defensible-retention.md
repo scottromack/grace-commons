@@ -493,6 +493,7 @@ Action wiring 108: A purge MUST NOT record an intent BEFORE judging the refusals
 Action wiring 109: IF Retention Window's declared read answers state-unavailable OR no answer ahead of an act's first committing call THEN the action MUST answer storage-failure.
 Action wiring 110: [Purge Eligible] MUST answer EVERY elapsed retention Retention Window's declared read answers, a retention Action wiring 95 covers AND a retention Action wiring 101 covers excepted.
 Action wiring 111: IF Retention Window's declared read answers state-unavailable OR no answer to a call of [Purge Eligible] THEN the action MUST answer storage-failure.
+NOTE: watch the constituent's failed read (Action wiring 98, Action wiring 109, Action wiring 111).
 Action wiring 112: IF the remaining term the destruction call's reading answers EXCEEDS the sibling floor THEN a committed purge MUST call the record destruction pattern with the record reference.
 Deleted: Action wiring 46. Composition state 19 owns it.
 Deleted: Action wiring 51. Invariant 1.3 owns it.
