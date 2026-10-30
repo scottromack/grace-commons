@@ -548,6 +548,8 @@ Term terms: contested, hold_bound, run_floor and the bounds the examples compute
 
 Term value sets: surface; quantifier, modal, condition operator; tail; diff result — ADDED | REMOVED | CHANGED; category (declared once, at `Term category`; cited here by Closed vocabulary 15).
 
+NOTE: the words outside the grammar live in two places: a specification's own words in its Terms section ([spec-format.md](./spec-format.md)), and the few English words whose ambiguity leaks into specifications in [glossary.md](./glossary.md), which admits a word only when specifications force it, as Principle 1 admits a form.
+
 ---
 
 ### 14. Closed Value Sets

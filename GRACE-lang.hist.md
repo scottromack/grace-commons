@@ -18,6 +18,9 @@ GRACE-lang v0.69 and the Execution Contract as they stand at grace-commons `cab2
 The grammar's Changes section, newest first. From v0.66 each version's entry is written here; the entries from v0.65 back moved from Section 23 on 2026-10-23, word for word.
 
 NOTE:
+v0.69, editorial (2026-10-30): Section 13 points to where the words outside the grammar live, a specification's own words in its Terms section (`spec-format.md`) and the few English words whose ambiguity leaks into specifications in `glossary.md`: a pointer, never a mirror, carrying nothing (Surface 3) and obliging nothing, so the version stands and no round is owed. Asked by the maintainer on 2026-10-30 at 20:02Z.
+
+NOTE:
 v0.69 (2026-10-30): a rule of the Invariant family claims only what holds in every reachable state and obliges no act (Standard label 13, Standard label 14), so a page writes a move as what may not happen or as where a record stands, the State family's EXACTLY ONE OF, never as a move a record owes, and `tools/grace/check.py`'s `R-invariant-move` gates `MUST move` inside the family; this document's record verbs gain oblige. Term blank names whitespace: the code points with the Unicode White_Space property, the set Notification's Final Critique 6 declared for its recipient reference, the first page to name one, so every page that reads a whitespace-only input reads one set. Ruled by the maintainer on 2026-10-30 at 11:09Z (yes to all), on two escalations of 2026-10-29 15:25Z: the modal with no temporal scope at five specifications, and Notification's direction (b). Six specifications had cured the modal, five by deleting a status rule to State 1 and Session by deleting its lapse rule to Operation 27, and no rule of the corpus carried it when the check landed.
 
 NOTE:
