@@ -5,7 +5,13 @@ nav_exclude: true
 
 # GRACE lang — history
 
-The dated record of how [GRACE lang](./GRACE-lang.md) got here, moved out of the grammar because a reader does not need it to use the grammar today: the Watch list's history on 2026-10-22, and the Changes section, Section 23, on 2026-10-23 at v0.66. The grammar keeps its rules and its live Watch list, and its Section 23 points here; everything smaller is in `git log -- GRACE-lang.md`.
+The dated record of how [GRACE lang](./GRACE-lang.md) got here, moved out of the grammar because a reader does not need it to use the grammar today: the Watch list's history on 2026-10-22, and the Changes section, Section 23, on 2026-10-23 at v0.66; and, since the v1 baseline of 2026-10-30, the v2 list, the changes held for after launch. The grammar keeps its rules and its live Watch list, and its Section 23 points here; everything smaller is in `git log -- GRACE-lang.md`.
+
+## The v2 list
+
+GRACE-lang v0.69 and the Execution Contract as they stand at grace-commons `cab291d` are the v1 baseline (the maintainer's ruling of 2026-10-30 11:12Z). Until v2, after launch, either may still gain a rule that states once what the pages already oblige, editorially, reopening nothing; no change to an existing obligation lands in either. Each such change found meanwhile is listed here instead, and a repeated form found after the freeze is cured page by page, in each page's own round, never by a sweep.
+
+- **The retention step's recording failure** (2026-10-30, at five specifications on the Watch list): stated once, the Execution Contract would say that a composing action lands every recording-failure Audit Trail answers at the position it was written at. That adds obligations to the three pages that land it only at some steps: External Onboarding (Audit arm 5), Immutable Ledger (Audit arm 19, Audit arm 30) and Defensible Retention (Audit arm 1, Audit arm 2, Audit arm 16, Audit arm 17). Recorded by Propagate Consent Revocation Downstream's Final Critique 10, the fifth page to cure it.
 
 ## Changes
 
