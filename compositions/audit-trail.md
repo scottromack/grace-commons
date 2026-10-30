@@ -1527,6 +1527,7 @@ Deleted: Instance start 29. Execution Contract Scheduled leg 1 owns it.
 Instance start 30: IF slice cap EQUALS blank THEN the instance MUST NOT start.
 Instance start 31: IF Legal Hold EQUALS composed AND no Legal Hold database instance is wired to this instance THEN the instance MUST NOT start.
 Instance start 32: IF Legal Hold EQUALS composed AND no hold placement EXISTS THEN the instance MUST NOT start.
+NOTE: watch the unset setting (Instance start 1 through 14, 20, 24 and 30).
 ```
 
 Term closure sum: `((max((2 * record_action_completion_bound), purge_completion_bound) + (2 * clock_offset_allowance)) + (2 * (reconciliation_cadence + compensation_closure_latency)))`, plus `(purge_completion_bound + reconciliation_cadence)` WHERE Legal Hold EQUALS composed — one hold placement that holds an open entry's critical section when a first-half leg comes for it, placed or not: its lease (Capability requirement 7c) and the run it displaces (Per-act critical section 5).
