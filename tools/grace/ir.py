@@ -4,18 +4,18 @@
 The IR is derived, never canonical: the specs stay the source (Scott,
 2026-10-28). One JSON document per spec, written to build/ir/<spec>.json and
 ignored by git, holds what a test generator or the Grace connector reads from a
-page: its title and kind, its Summary, every labelled rule, every Term with its
-term entry's Kind, every signature, every case-table row, every Check with the
-rules it tests, the Non-goals with their owners, and the Composes list.
+page: its title, kind and status, its Summary, every labelled rule, every Term
+with its term entry's Kind, every signature, every case-table row, every Check
+with the rules it tests, the Non-goals with their owners, and the Composes list.
 README.md, section *The IR*, gives the shape.
 
 It reads with the readers the corpus already has, not a second copy of their
 forms: check.py's fence, label, tombstone and signature forms; cites.py's
 parse, the labelled-rule count the census and the rewrite commits use;
-lint.py's spec set and its reading of the Execution Contract's labels; and
-the Composes list as write-reads.py's composes() reads it for the council's
-reading sets, so a spec's constituents here are the pages its readers are
-given.
+lint.py's spec set, its Status line and its reading of the Execution
+Contract's labels; and the Composes list as write-reads.py's composes() reads
+it for the council's reading sets, so a spec's constituents here are the pages
+its readers are given.
 
 Then it proves the IR on the whole corpus: every spec parses; each document's
 rule count equals cites.py's; every label is unique on its page; every rule a
@@ -25,6 +25,11 @@ cannot read is a finding, never an exception.
     python3 tools/grace/ir.py                  # every spec to build/ir/, then the proof
     python3 tools/grace/ir.py --check          # the proof alone, nothing written
     python3 tools/grace/ir.py atoms/cart.md    # one spec's document, printed
+
+One-spec mode reads a draft outside the repo too, the Grace connector's: its
+`spec` is the path as given, it is a composition when it has a Composes
+section and an atom otherwise, and its links resolve as from atoms/ or
+compositions/, so the constituents it names are the repo's specs.
 
 Standard library only. One finding per line, `path:line: [CODE] message`; exit
 1 on any finding.
@@ -43,9 +48,10 @@ sys.path.insert(0, str(HERE))
 sys.path.insert(0, str(HERE.parent / "linter"))
 import check  # noqa: E402
 import cites  # noqa: E402
-from lint import CONTRACT_CITE, CONTRACT_LABEL, HISTORY_FILE, PATTERN_DIRS  # noqa: E402
+from lint import CONTRACT_CITE, CONTRACT_LABEL, HISTORY_FILE, PATTERN_DIRS, status_token_of  # noqa: E402
 
-# the shape of a document; a change a reader of the IR must know about moves it
+# the shape of a document; a change a reader of the IR must know about moves it,
+# and an added field is none
 IR_VERSION = 1
 
 H34 = re.compile(r"^(#{3,4}) (.*?)\s*$")
@@ -388,10 +394,30 @@ def walk_composes(rel: str, lines: list[str]) -> list[dict]:
     return out
 
 
+def repo_path(path: Path, root: Path) -> str | None:
+    """A spec's path in the repo, or None for a draft outside it. Compared as
+    given, then resolved, so a root reached through a symlink still holds."""
+    for p, r in ((path, root), (path.resolve(), root.resolve())):
+        try:
+            return p.relative_to(r).as_posix()
+        except ValueError:
+            continue
+    return None
+
+
 def parse(path: Path, root: Path) -> dict:
-    """One spec's document."""
-    rel = path.relative_to(root).as_posix()
-    lines = path.read_text(encoding="utf-8").split("\n")
+    """One spec's document. A draft outside the repo keeps its path as given,
+    and its links resolve as from the folder its shape would put it in."""
+    text = path.read_text(encoding="utf-8")
+    lines = text.split("\n")
+    rel = repo_path(path, root)
+    if rel is None:
+        composes = any((check.h2_name(ln) or "").strip() == "Composes" for ln in lines)
+        kind = "composition" if composes else "atom"
+        home = f"{kind}s/{path.name}"
+    else:
+        kind = "atom" if Path(rel).parent.name == "atoms" else "composition"
+        home = rel
     where = outline(lines)
     spec = cites.parse(path)
     rules, tombstones = walk_rules(lines, where)
@@ -399,10 +425,11 @@ def parse(path: Path, root: Path) -> dict:
     summary = "\n".join(lines[k].strip() for k in section_lines(lines, "Summary") if lines[k].strip() != "---")
     return {
         "ir": IR_VERSION,
-        "spec": rel,
+        "spec": rel or path.as_posix(),
         "name": cites.spec_name(path),
         "title": next((ln[2:].strip() for ln in lines if ln.startswith("# ")), ""),
-        "kind": "atom" if path.parent.name == "atoms" else "composition",
+        "kind": kind,
+        "status": status_token_of(text)[0],
         "summary": "\n\n".join(p.strip() for p in re.split(r"\n\s*\n", summary) if p.strip()),
         "rules": rules,
         "tombstones": tombstones,
@@ -412,8 +439,8 @@ def parse(path: Path, root: Path) -> dict:
         "signatures": walk_signatures(lines),
         "case_tables": walk_tables(lines, where, spec),
         "checks": walk_checks(rules),
-        "non_goals": walk_non_goals(rel, lines, rules, spec),
-        "composes": walk_composes(rel, lines),
+        "non_goals": walk_non_goals(home, lines, rules, spec),
+        "composes": walk_composes(home, lines),
     }
 
 
@@ -521,7 +548,7 @@ def main(argv: list[str]) -> int:
     args = [a for a in argv[1:] if not a.startswith("--")]
     if args:
         for a in args:
-            print(json.dumps(parse(Path(a).resolve(), root), indent=2, ensure_ascii=False))
+            print(json.dumps(parse(Path(a), root), indent=2, ensure_ascii=False))
         return 0
     docs, findings = build(root)
     findings += prove(root, docs)

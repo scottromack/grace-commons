@@ -2419,9 +2419,11 @@ def check_requirement_text_synthetic(problems: list[str], patterns) -> int:
 # The parser landed 2026-10-29 with its proof: every spec parses, each
 # document's rule count equals cites.py's, every label is unique on its page,
 # every rule a Check names exists, every Composes entry resolves to a spec. The
-# synthetic pair pins the reading and each finding from both sides; the corpus
-# pin holds the findings the proof makes on the specs as they stand, exactly,
-# so a new finding or a cured one both send someone to look.
+# synthetic pair pins the reading and each finding from both sides, and read
+# again from a folder outside the repo it pins one-spec mode on a draft (the
+# Grace connector's, 2026-10-30); the corpus pin holds the findings the proof
+# makes on the specs as they stand, exactly, so a new finding or a cured one
+# both send someone to look.
 IR_ATOM = """# Widget
 
 ## Summary
@@ -2490,6 +2492,8 @@ One thing made.
 Kind:       Type
 
 ## Status
+
+`draft` — see the Ledger.
 """
 
 IR_COMPOSITION = """# Gadget Line
@@ -2566,10 +2570,23 @@ def check_ir_synthetic(problems: list[str]) -> None:
         and list(widget["vocabulary"]) == ["actors"],
         "composes": [e["path"] for x in docs if x["spec"] == "compositions/gadget-line.md"
                      for e in x["composes"]] == ["atoms/widget.md"],
+        "status": [x["status"] for x in docs] == ["draft", None],
     }
     for what, held in want.items():
         if not held:
             problems.append(f"IR: the clean atom's {what} read wrong")
+
+    with tempfile.TemporaryDirectory() as root, tempfile.TemporaryDirectory() as away:
+        atom, composition = Path(away) / "widget.md", Path(away) / "gadget-line.md"
+        atom.write_text(IR_ATOM.format(dup="", bad=""), encoding="utf-8")
+        composition.write_text(IR_COMPOSITION.format(link=""), encoding="utf-8")
+        drafts = [ir.parse(p, Path(root)) for p in (atom, composition)]
+    read = [(x["spec"], x["kind"]) for x in drafts] + [
+        [lk for n in drafts[0]["non_goals"] for o in n["owners"] for lk in o["links"]],
+        [e["path"] for e in drafts[1]["composes"]]]
+    if read != [(atom.as_posix(), "atom"), (composition.as_posix(), "composition"),
+                ["compositions/gadget-line.md"], ["atoms/widget.md"]]:
+        problems.append(f"IR: a draft outside the repo read wrong: {read}")
 
     _, findings = run(True)
     got = sorted(f"{Path(f[0]).name}:{f[2]}" for f in findings)
@@ -3004,9 +3021,9 @@ def main(argv: list[str]) -> int:
     n_specs, n_rules = check_ir_corpus(root, ir_problems)
     failures.extend(ir_problems)
     if not ir_problems:
-        print(f"IR: the synthetic pair reads clean and its broken twin fires every finding; the corpus "
-              f"parses, {n_specs} specs and {n_rules} rules, with its {len(IR_FIRING)} pinned "
-              "finding(s) \u2713")
+        print(f"IR: the synthetic pair reads clean, as drafts outside the repo too, and its broken twin "
+              f"fires every finding; the corpus parses, {n_specs} specs and {n_rules} rules, with its "
+              f"{len(IR_FIRING)} pinned finding(s) \u2713")
 
     for f in failures:
         print(f"FAIL  {f}", file=sys.stderr)

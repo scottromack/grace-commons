@@ -140,13 +140,20 @@ where the documents go, is ignored by git.
 python3 tools/grace/ir.py                  # every spec to build/ir/<spec>.json, then the proof
 python3 tools/grace/ir.py --check          # the proof alone, nothing written
 python3 tools/grace/ir.py atoms/cart.md    # one spec's document, printed
+python3 tools/grace/ir.py /elsewhere/gift-card.md    # a draft outside the repo, printed
 ```
+
+One-spec mode reads a draft outside the repo too, as the Grace connector
+writes one: its `spec` is the path as given, it is a `composition` when it has
+a `## Composes` section and an `atom` otherwise, and its links resolve as from
+`atoms/` or `compositions/`, so its constituents and its Non-goals' owners are
+the repo's specs.
 
 It reads with the readers the corpus already has. The fence, label, tombstone
 and signature forms are `check.py`'s, the rule count is `cites.py`'s parse (the
-count the census and the rewrite commits use), the spec set and the Execution
-Contract's labels are `lint.py`'s, and the Composes list is read as the
-council's `write-reads.py` reads it for a round's reading set.
+count the census and the rewrite commits use), the spec set, the Status line
+and the Execution Contract's labels are `lint.py`'s, and the Composes list is
+read as the council's `write-reads.py` reads it for a round's reading set.
 
 A document carries `"ir": 1`, the shape's version, and these fields, each item
 with the `line` it starts on:
@@ -154,6 +161,7 @@ with the `line` it starts on:
 | Field | What it holds |
 |---|---|
 | `spec`, `name`, `title`, `kind` | The spec's path, its name as a cross-spec citation writes it (`Event Log`), its `#` title, and `atom` or `composition`. |
+| `status` | The code span on the spec's `## Status` line (`grounded on Final Critique 4 — 2026-10-24` for Cart), or null when there is none. |
 | `summary` | The Summary section's text, its paragraphs kept. |
 | `rules` | Every labelled rule in file order: `label`, `family` and `number` (`Invariant`, `2.1`; `record action`, `step 3.2`), its one-line `text`, the `section` it sits in (its headings, then the bold bullet an indented fence sits in, `Invariant 1 — One line per item.`), and the WHEN rule that is its `parent`, or null. |
 | `tombstones` | Every `Deleted:` line: the `label` it reserves and the owner it names. |
