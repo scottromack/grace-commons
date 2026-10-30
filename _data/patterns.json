@@ -335,7 +335,9 @@
   "title": "Capacity Constraint Enforcement"
  },
  "cart": {
-  "composed_by": [],
+  "composed_by": [
+   "shared-cart"
+  ],
   "domain": null,
   "grounded": true,
   "invariants": 6,
@@ -345,7 +347,9 @@
    "tla": false,
    "twins": 0
   },
-  "regulated_by": [],
+  "regulated_by": [
+   "shared-cart"
+  ],
   "security": false,
   "standards": [],
   "status": "grounded on Final Critique 4 \u2014 2026-10-24",
@@ -571,7 +575,8 @@
    "audit-trail",
    "compensable-workflow",
    "preference-aware-notification-fanout",
-   "reserve-from-pool"
+   "reserve-from-pool",
+   "shared-cart"
   ],
   "domain": null,
   "grounded": true,
@@ -586,7 +591,8 @@
    "audit-trail",
    "compensable-workflow",
    "preference-aware-notification-fanout",
-   "reserve-from-pool"
+   "reserve-from-pool",
+   "shared-cart"
   ],
   "security": false,
   "standards": [
@@ -1023,6 +1029,7 @@
    "privileged-access-provisioning",
    "propagate-consent-revocation-downstream",
    "session-gated-authorization",
+   "shared-cart",
    "shared-todo"
   ],
   "domain": null,
@@ -1042,6 +1049,7 @@
    "privileged-access-provisioning",
    "propagate-consent-revocation-downstream",
    "session-gated-authorization",
+   "shared-cart",
    "shared-todo"
   ],
   "security": true,
@@ -1447,6 +1455,26 @@
   "status": "partially resolved",
   "substrates": [],
   "title": "Session-Gated Authorization"
+ },
+ "shared-cart": {
+  "composes": [
+   "cart",
+   "permissions",
+   "event-log"
+  ],
+  "grounded": false,
+  "invariants": 4,
+  "kind": "composition",
+  "models": {
+   "als": false,
+   "tla": false,
+   "twins": 0
+  },
+  "regulated": true,
+  "standards": [],
+  "status": "draft",
+  "substrates": [],
+  "title": "Shared Cart"
  },
  "shared-todo": {
   "composes": [

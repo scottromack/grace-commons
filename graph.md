@@ -23,10 +23,10 @@ pattern count hides.
 
 | Atom | Fan-in | Composed by |
 |---|---|---|
-| [Permissions](./atoms/permissions.html) | 8 | actor-suspension, attributed-permissions-admin, execute-gated-workflow, multi-party-approval, privileged-access-provisioning, propagate-consent-revocation-downstream, session-gated-authorization, shared-todo |
+| [Permissions](./atoms/permissions.html) | 9 | actor-suspension, attributed-permissions-admin, execute-gated-workflow, multi-party-approval, privileged-access-provisioning, propagate-consent-revocation-downstream, session-gated-authorization, shared-cart, shared-todo |
 | [Credential](./atoms/credential.html) | 5 | actor-suspension, authenticated-actor, external-onboarding, login, privileged-access-provisioning |
+| [Event Log](./atoms/event-log.html) | 5 | audit-trail, compensable-workflow, preference-aware-notification-fanout, reserve-from-pool, shared-cart |
 | [Actor Identity](./atoms/actor-identity.html) | 4 | attributed-permissions-admin, audit-trail, authenticated-actor, reserve-from-pool |
-| [Event Log](./atoms/event-log.html) | 4 | audit-trail, compensable-workflow, preference-aware-notification-fanout, reserve-from-pool |
 | [Retention Window](./atoms/retention-window.html) | 4 | audit-trail, customer-onboarding, defensible-retention, propagate-consent-revocation-downstream |
 | [Session](./atoms/session.html) | 4 | actor-suspension, login, privileged-access-provisioning, session-gated-authorization |
 | [Assignment](./atoms/assignment.html) | 3 | execute-gated-workflow, multi-party-approval, shared-todo |
@@ -41,6 +41,7 @@ pattern count hides.
 | [State Machine](./atoms/state-machine.html) | 2 | compensable-workflow, execute-gated-workflow |
 | [Subscription](./atoms/subscription.html) | 2 | notification-fanout, preference-aware-notification-fanout |
 | [Capacity Constraint Enforcement](./atoms/capacity-constraint-enforcement.html) | 1 | reserve-from-pool |
+| [Cart](./atoms/cart.html) | 1 | shared-cart |
 | [Invitation](./atoms/invitation.html) | 1 | external-onboarding |
 | [Lease](./atoms/lease.html) | 1 | recoverable-invocation |
 | [Legal Hold](./atoms/legal-hold.html) | 1 | defensible-retention |
@@ -48,7 +49,6 @@ pattern count hides.
 | [Personal Todo](./atoms/personal-todo.html) | 1 | shared-todo |
 | [Provenance](./atoms/provenance.html) | 1 | chain-of-custody |
 | [Tamper Evidence](./atoms/tamper-evidence.html) | 1 | audit-trail |
-| [Cart](./atoms/cart.html) | 0 | *(none yet)* |
 | [Gift Card](./atoms/gift-card.html) | 0 | *(none yet)* |
 | [Medication Order](./atoms/medication-order.html) | 0 | *(none yet)* |
 | [Observation](./atoms/observation.html) | 0 | *(none yet)* |
@@ -116,7 +116,7 @@ flowchart LR
 ## The full graph
 
 <details markdown="block">
-<summary>Every composition → atom edge (61 edges — expand)</summary>
+<summary>Every composition → atom edge (64 edges — expand)</summary>
 
 ```mermaid
 %%{init: {"theme": "dark", "flowchart": {"htmlLabels": true}} }%%
@@ -127,11 +127,11 @@ flowchart LR
     a_assignment["Assignment · 3"]
     a_capability["Capability · 2"]
     a_capacity_constraint_enforcement["Capacity Constraint Enforcement · 1"]
-    a_cart["Cart"]
+    a_cart["Cart · 1"]
     a_consent["Consent · 2"]
     a_credential["Credential · 5"]
     a_duplicate_prevention["Duplicate Prevention · 2"]
-    a_event_log["Event Log · 4"]
+    a_event_log["Event Log · 5"]
     a_gift_card["Gift Card"]
     a_invitation["Invitation · 1"]
     a_lease["Lease · 1"]
@@ -141,7 +141,7 @@ flowchart LR
     a_notification["Notification · 2"]
     a_observation["Observation"]
     a_party_identity["Party Identity · 2"]
-    a_permissions["Permissions · 8"]
+    a_permissions["Permissions · 9"]
     a_personal_todo["Personal Todo · 1"]
     a_provenance["Provenance · 1"]
     a_provisional_commitment["Provisional Commitment · 2"]
@@ -176,6 +176,7 @@ flowchart LR
     c_reserve_from_pool["Reserve from Pool"]
     c_resolve_a_persons_data_rights["Resolve a Person's Data Rights"]
     c_session_gated_authorization["Session-Gated Authorization"]
+    c_shared_cart["Shared Cart"]
     c_shared_todo["Shared Todo"]
     c_verified_repair["Verified Repair"]
   end
@@ -237,6 +238,9 @@ flowchart LR
   c_resolve_a_persons_data_rights --> a_consent
   c_session_gated_authorization --> a_session
   c_session_gated_authorization --> a_permissions
+  c_shared_cart --> a_cart
+  c_shared_cart --> a_permissions
+  c_shared_cart --> a_event_log
   c_shared_todo --> a_personal_todo
   c_shared_todo --> a_permissions
   c_shared_todo --> a_assignment
@@ -264,8 +268,8 @@ flowchart LR
   classDef compReg fill:#52341f,stroke:#f0b27a,color:#fdf2e9;
   class a_actor_identity,a_approval_step,a_assignment,a_capability,a_capacity_constraint_enforcement,a_cart,a_consent,a_credential,a_duplicate_prevention,a_event_log,a_gift_card,a_invitation,a_lease,a_legal_hold,a_medication_order,a_message_preference,a_notification,a_observation,a_party_identity,a_permissions,a_personal_todo,a_provenance,a_provisional_commitment,a_retention_window,a_selective_disclosure,a_session,a_state_machine,a_subscription,a_tamper_evidence atom;
   class a_actor_identity,a_approval_step,a_assignment,a_capability,a_credential,a_invitation,a_party_identity,a_permissions,a_session atomSec;
-  class c_actor_suspension,c_attributed_permissions_admin,c_audit_trail,c_authenticated_actor,c_capability_backed_sharing,c_chain_of_custody,c_compensable_workflow,c_customer_onboarding,c_defensible_retention,c_execute_gated_workflow,c_external_onboarding,c_idempotent_reservation,c_immutable_ledger,c_login,c_multi_party_approval,c_notification_fanout,c_preference_aware_notification_fanout,c_privileged_access_provisioning,c_propagate_consent_revocation_downstream,c_recoverable_invocation,c_reserve_from_pool,c_resolve_a_persons_data_rights,c_session_gated_authorization,c_shared_todo,c_verified_repair comp;
-  class c_actor_suspension,c_attributed_permissions_admin,c_audit_trail,c_authenticated_actor,c_capability_backed_sharing,c_chain_of_custody,c_compensable_workflow,c_customer_onboarding,c_defensible_retention,c_execute_gated_workflow,c_external_onboarding,c_idempotent_reservation,c_immutable_ledger,c_login,c_multi_party_approval,c_notification_fanout,c_preference_aware_notification_fanout,c_privileged_access_provisioning,c_propagate_consent_revocation_downstream,c_recoverable_invocation,c_reserve_from_pool,c_resolve_a_persons_data_rights,c_session_gated_authorization,c_shared_todo,c_verified_repair compReg;
+  class c_actor_suspension,c_attributed_permissions_admin,c_audit_trail,c_authenticated_actor,c_capability_backed_sharing,c_chain_of_custody,c_compensable_workflow,c_customer_onboarding,c_defensible_retention,c_execute_gated_workflow,c_external_onboarding,c_idempotent_reservation,c_immutable_ledger,c_login,c_multi_party_approval,c_notification_fanout,c_preference_aware_notification_fanout,c_privileged_access_provisioning,c_propagate_consent_revocation_downstream,c_recoverable_invocation,c_reserve_from_pool,c_resolve_a_persons_data_rights,c_session_gated_authorization,c_shared_cart,c_shared_todo,c_verified_repair comp;
+  class c_actor_suspension,c_attributed_permissions_admin,c_audit_trail,c_authenticated_actor,c_capability_backed_sharing,c_chain_of_custody,c_compensable_workflow,c_customer_onboarding,c_defensible_retention,c_execute_gated_workflow,c_external_onboarding,c_idempotent_reservation,c_immutable_ledger,c_login,c_multi_party_approval,c_notification_fanout,c_preference_aware_notification_fanout,c_privileged_access_provisioning,c_propagate_consent_revocation_downstream,c_recoverable_invocation,c_reserve_from_pool,c_resolve_a_persons_data_rights,c_session_gated_authorization,c_shared_cart,c_shared_todo,c_verified_repair compReg;
 ```
 
 </details>

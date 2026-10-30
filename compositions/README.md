@@ -80,6 +80,8 @@ See [`contributing.md`](../contributing.md) for the full contribution shape.
 
 - [Verified Repair](./verified-repair.md) — Recoverable Invocation + Audit Trail. The rulebook for a council of automated reviewers that keeps a library's pages correct: each round freezes one copy of a page, sorts the failures its readers and checkers report against it, and lets through only the fixes the sorting admits, landed on the text the readers read and recorded step by step. Anchors no standard of its own; its records are Audit Trail's.
 
+- [Shared Cart](./shared-cart.md) — Cart + Permissions + Event Log. A cart several people see and add to: whoever opens it shares it with each friend one permission at a time (view, add, change, remove or share), every action is checked against those permissions before anything changes, and every change records who made it, so each line shows who added it and the history stays readable after a friend's access is taken away. Anchors no standard of its own; the standards it touches are its constituents'.
+
 ---
 
 *Atoms describe what; compositions describe what happens when atoms meet.*
