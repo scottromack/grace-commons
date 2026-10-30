@@ -2517,10 +2517,7 @@ IR_BROKEN = {
     "link": "\n- **[Sprocket](../atoms/sprocket.md)** — a part no spec defines.",
 }
 
-IR_FIRING = {
-    ("compositions/audit-trail.md", "IR-check",
-     "External check 9 names Capability requirement 7f, which the page tombstones"),
-}
+IR_FIRING: set[tuple[str, str, str]] = set()
 
 
 def check_ir_synthetic(problems: list[str]) -> None:
