@@ -222,7 +222,7 @@ Operation 65: IF the query is malformed THEN [Read] MUST answer invalid-query (E
 
 NOTE: watch the state a refusal leaves (Operation 32).
 
-NOTE: a withdrawal whose [Revoke] write the database refuses (Operation 31), or whose answer is lost (Execution Contract Error model 1), and whose retry finds the consent record elapsed answers already-expired (Operation 19) and is recorded on no consent record: [Check] still answers granted for an at time between the attempt and the expiry instant. What the caller does with that withdrawal is the composing pattern's, as is the suppression of a processing act (Composition note 3).
+NOTE: a withdrawal whose [Revoke] write the database refuses (Operation 31), or whose answer is lost (Execution Contract Error model 1), and whose retry finds the consent record elapsed answers already-expired (Operation 19) and is recorded on no consent record: [Check] still answers granted for an at time between the attempt and the expiry instant. A first [Revoke] that finds the consent record elapsed answers already-expired as well, whatever revocation instant the call carries, so a withdrawal made after the expiry instant and backdated before it is recorded on no consent record either: [Check] answers granted for an at time between that revocation instant and the expiry instant. What the caller does with either withdrawal is the composing pattern's, as is the suppression of a processing act (Composition note 3).
 
 Term now: the deployment's clock reading at the call — a [Now], as Execution Contract Logic confinement 11 declares it.
 
@@ -412,6 +412,7 @@ This atom's acceptance is provable: an external auditor clears it from the conse
 Check 1.1: An auditor MUST find EVERY issued consent id in the database through [Read] (Invariant 8.1; Execution Contract Generation acceptance 1).
 Check 2.1: An auditor MUST find EVERY consent record's consent id, subject reference, purpose and granting actor non-blank (Invariant 7.1).
 Check 2.2: An auditor MUST find a grant instant on EVERY consent record (Invariant 7.2).
+Check 2.3: An auditor MUST find EVERY consent record's grant fields unchanged across EVERY committed version of the consent record (Invariant 1.1, Invariant 1.2, Invariant 9.1; Execution Contract Generation acceptance 1).
 Check 3.1: An auditor MUST find EVERY revoked consent record's revoking actor and revocation reason non-blank (Invariant 4.1, Invariant 4.2).
 Check 3.2: An auditor MUST find EVERY revoked consent record's grant instant no later than the revocation instant (Invariant 5.1).
 Check 4.1: An auditor MUST find [Check] answering granted, then revoked once a [Revoke] lands on the candidate record with a revocation instant the at time DOES NOT PRECEDE, then granted once a fresh [Grant]'s consent record is the candidate record (Invariant 3.1, Operation 44).
@@ -506,11 +507,13 @@ Composition note 4: A composing pattern MUST own the propagation of a withdrawal
 Composition note 5: A composing pattern MUST own the purpose taxonomy.
 Composition note 6: A composing pattern MUST own the retention of the consent records.
 Composition note 7: A composing pattern MUST own the authority to grant for a data subject.
-Composition note 8: A composing pattern MUST NOT stand a consent record in any state.
+Deleted: Composition note 8. Operation 2, Operation 26, Invariant 8.1 and Execution Contract Database 4 own it.
 Composition note 9: A composing pattern MUST NOT poll for an elapsed consent record.
 ```
 
 NOTE: composing patterns — [Propagate Consent Revocation Downstream](../compositions/propagate-consent-revocation-downstream.md), [Resolve a Person's Data Rights](../compositions/resolve-a-persons-data-rights.md).
+
+NOTE: watch the reading composer's write ban (Composition note 8).
 
 ## Terms
 
@@ -826,7 +829,7 @@ Projection: invalid-query
 ```
 status: partially resolved
 formal: not applicable — vote no 2026-06-03
-last gate: 2026-10-30 — Final Critique 12 — foundational count 0, clean, no sample
+last gate: 2026-10-30 — Final Critique 13 — foundational count 1, not clean, no sample
 
 open:
 - 2026-10-29-b · refining · Term seam; Term transition; Term business caller · each says the section titled Logic Confinement Principle in `execution-contract.md` declares it, and that section declares none of the three → declare the three there, the corpus's one seam wording, or point each at its declaration
