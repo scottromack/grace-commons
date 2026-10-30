@@ -16,11 +16,11 @@ toc: true
 
 ## Summary
 
-Consent records a person's agreement to have their personal data used for one named purpose — "marketing emails," "behavioural analytics." Each record captures when the agreement was given, who collected it, and what it covers, and it captures how the agreement ends: the person withdraws it, or it runs out because a time limit was set at grant.
+Consent records a person's agreement to have their personal data used for one named purpose, such as "marketing emails" or "behavioural analytics": when the agreement was given, who collected it, what it covers, and how it ends — the person withdraws it, or it runs out because a time limit was set at grant.
 
-Every record is in one of three states — [Granted] (in effect), [Revoked] (withdrawn) or [Expired] (run out). The two ending states are permanent. Consent that has ended is not revived; the person gives fresh agreement instead, and that is a new record. What a grant recorded is never edited, and no record is removed when its consent ends: a withdrawal is added to the record with the instant it takes effect, who recorded it and why, rather than by editing the grant — so the proof that use before the withdrawal took effect was permitted is kept. Withdrawing ends use from the instant it takes effect; what came before that instant stands.
+Every record is in one of three states — [Granted] (in effect), [Revoked] (withdrawn) or [Expired] (run out) — and the two ending states are permanent: consent that has ended is not revived, and a person who agrees again gives fresh agreement, which is a new record. What a grant recorded is never edited, and no record is removed when its consent ends: a withdrawal is added to the record with the instant it takes effect, who recorded it and why, so withdrawing ends use from that instant and the proof that use before it was permitted is kept.
 
-The load-bearing operation is a check: before doing anything that depends on consent, a system asks whether the latest agreement this person gave for this purpose is in effect. The check can ask about a past date, for an audit, or a future one, to see whether consent recorded today still covers a campaign going out next month; a withdrawal recorded before then changes the answer. Expiry is not an action anybody takes — it is a condition the check derives.
+The load-bearing operation is a check: before doing anything that depends on consent, a system asks whether the latest agreement this person gave for this purpose is in effect — now, on a past date for an audit, or on a future one, to see whether consent recorded today still covers a campaign going out next month, an answer a withdrawal recorded before then changes. Expiry is not an action anybody takes — it is a condition the check derives.
 
 This is the mechanism behind privacy-law consent management, patient authorizations, and cookie opt-ins.
 
@@ -250,13 +250,13 @@ Term grant instant: the instant the consent record was created — a [Grant Inst
 
 Term evaluation instant: the instant a consent record's state is read against — the resolved at time in [Check], now everywhere else.
 
-Term withdrawn: the consent record carries a revocation instant no later than the evaluation instant.
+Term withdrawn: the consent record carries a revocation instant the evaluation instant DOES NOT PRECEDE.
 
-Term elapsed: the consent record carries an expiry instant no later than the evaluation instant.
+Term elapsed: the consent record carries an expiry instant the evaluation instant DOES NOT PRECEDE.
 
-Term candidate record: among the consent records carrying the call's subject reference and purpose, the one whose grant instant is the latest that the resolved at time does not precede; a tie on grant instant resolves to the greatest consent id (Execution Contract Logic confinement 10); none where the call's at time is neither blank nor an instant.
+Term candidate record: among the consent records carrying the call's subject reference and purpose, the one whose grant instant is the latest the resolved at time DOES NOT PRECEDE; a tie on grant instant resolves to the greatest consent id (Execution Contract Logic confinement 10); none where the call's at time is neither blank nor an instant.
 
-Term later write: a consent record written with a grant instant or a revocation instant later than the resolved at time.
+Term later write: a consent record written with a grant instant or a revocation instant the resolved at time PRECEDES.
 
 Term query: the filter set [Read] accepts — a [Query]; any combination of filters on the supported filter axes, including two filters on one axis, combined as Execution Contract Query 4 combines them.
 
@@ -417,9 +417,9 @@ Check 2.1: An auditor MUST find EVERY consent record's consent id, subject refer
 Check 2.2: An auditor MUST find a grant instant on EVERY consent record (Invariant 7.2).
 Check 2.3: An auditor MUST find EVERY consent record's grant fields unchanged across EVERY committed version of the consent record (Invariant 1.1, Invariant 1.2, Invariant 9.1; Execution Contract Generation acceptance 1).
 Check 3.1: An auditor MUST find EVERY revoked consent record's revoking actor and revocation reason non-blank (Invariant 4.1, Invariant 4.2).
-Check 3.2: An auditor MUST find EVERY revoked consent record's grant instant no later than the revocation instant (Invariant 5.1).
+Check 3.2: An auditor MUST find no revoked consent record whose revocation instant PRECEDES the consent record's grant instant (Invariant 5.1).
 Check 4.1: An auditor MUST find [Check] answering granted, then revoked once a [Revoke] lands on the candidate record with a revocation instant the at time DOES NOT PRECEDE, then granted once a fresh [Grant]'s consent record is the candidate record (Invariant 3.1, Operation 44).
-Check 5.1: An auditor MUST find [Check] answering granted for an at time the candidate record's expiry instant exceeds, and expired for an at time no earlier than the candidate record's expiry instant, where the candidate record carries no revocation instant (Operation 42, Operation 44).
+Check 5.1: An auditor MUST find [Check] answering granted for an at time that PRECEDES the candidate record's expiry instant, and expired for an at time that DOES NOT PRECEDE the candidate record's expiry instant, where the candidate record carries no revocation instant (Operation 42, Operation 44).
 Deleted: Check 5.2. Invariant 2.2 and Stored state 3 own it.
 Deleted: Check 6.1. Operation 18 and Invariant 3.1 own it.
 Deleted: Check 6.2. Operation 19 and Invariant 3.2 own it.
@@ -484,7 +484,7 @@ Deleted: Clock semantics 3. Capability requirement 1 and Execution Contract Logi
 Deleted: Clock semantics 4. Execution Contract Logic confinement 11 owns it.
 Deleted: Clock semantics 7. Operation 10 owns it: `now` is never supplied by the business caller, so a grant instant stamped from the injected now is never a caller-supplied instant.
 Deleted: Clock semantics 6. Operation 24 owns it.
-Clock semantics 8: [Revoke] MAY record a revocation instant earlier than now.
+Clock semantics 8: [Revoke] MAY record a revocation instant that PRECEDES now.
 ```
 
 NOTE: a revocation instant earlier than now ends the agreement from that instant, so a [Check] for an at time between the revocation instant and the [Revoke] call answers granted before the [Revoke] lands and revoked after it: that [Revoke] is no later write for the at time (Term later write), and Invariant 10.3 and Check 8.3 hold the answer only for an at time that precedes the revocation instant.
@@ -825,19 +825,19 @@ Projection: invalid-query
 
 ## Status
 
-`partially resolved` — see the Ledger.
+`grounded on Final Critique 15 — 2026-10-30` — see the Ledger.
 
 ## Ledger
 
 ```
-status: partially resolved
+status: grounded on Final Critique 15 — 2026-10-30
 formal: not applicable — vote no 2026-06-03
-last gate: 2026-10-30 — Final Critique 14 — foundational count 0, clean, no sample
+last gate: 2026-10-30 — Final Critique 15 — foundational count 0, clean, one sample
 
 open:
 - 2026-10-29-b · refining · Term seam; Term transition; Term business caller · each says the section titled Logic Confinement Principle in `execution-contract.md` declares it, and that section declares none of the three → declare the three there, the corpus's one seam wording, or point each at its declaration
 - 2026-10-29-c · refining · the read signature · its answers arm, consent_records, is no declared name (GRACE-lang Term signature form: an arm is a declared name), as Message Preference's preference_record, Provenance's entry_sequence and Event Log's events reach their declared names by word form alone → one form for a read's answer arm, declared as the page's other arms are
-- 2026-10-30-a · refining · Identity 2; Capability requirement 1, 5 · the consent id's source is named as the host's allocation (Identity 2) and not among what the deployment supplies, where the atom shape in `spec-format.md` lists an id source under Capability requirement; Notification (its 2026-10-29-a), Approval Step, Assignment and Permissions (each its 2026-10-26-a), Event Log (its 2026-10-22-b) and Tamper Evidence (its 2026-10-22-a) route the same form → name the source among the Capability requirements, in the one form the corpus settles for its host-allocation atoms
+- 2026-10-30-a · refining · Identity 2, 4; Capability requirement 1, 5 · the consent id's source is named as the host's allocation (Identity 2) and not among what the deployment supplies, where the atom shape in `spec-format.md` lists an id source under Capability requirement, and the id's non-reuse binds the atom (Identity 4) though the host alone allocates one (Identity 2, Identity 3); Notification (its 2026-10-29-a), Approval Step, Assignment and Permissions (each its 2026-10-26-a), Event Log (its 2026-10-22-b) and Tamper Evidence (its 2026-10-22-a) route the same form → name the source among the Capability requirements, a fresh id on every allocation, in the one form the corpus settles for its host-allocation atoms
 ```
 
 <details markdown="block">
