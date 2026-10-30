@@ -72,19 +72,19 @@ Term granting actor: the opaque reference naming the actor that recorded the sub
 ```
 State 2: A consent record's state MUST rest on grant instant, revocation instant and expiry instant against the evaluation instant.
 State 3: EVERY consent record MUST carry consent id, subject reference, purpose, granting actor, grant instant and state.
-State 4: A consent record MUST carry an expiry instant the [Grant] call supplied.
-State 5: A consent record MUST carry metadata the [Grant] call supplied.
-State 6: A consent record MUST NOT carry an expiry instant the [Grant] call omitted.
+State 4: IF expiry instant DOES NOT EQUAL blank THEN [Grant] MUST record the expiry instant on the consent record.
+State 5: IF metadata DOES NOT EQUAL blank THEN [Grant] MUST record the metadata on the consent record.
+State 6: IF expiry instant EQUALS blank THEN [Grant] MUST NOT record an expiry instant on the consent record.
 State 7: A revoked consent record MUST carry revoking actor, revocation reason and revocation instant.
 Deleted: State 8. Expiry 1 and Invariant 2.1 own it.
 State 9: An expired consent record MUST NOT carry revocation instant.
 Deleted: State 10. Invariant 1.2 and Invariant 9.1 own it.
-State 11: The atom MUST NOT offer a transition out of revoked.
-State 12: The atom MUST NOT offer a transition out of expired.
+Deleted: State 11. Invariant 3.1 owns it.
+Deleted: State 12. Invariant 3.2 owns it.
 Deleted: State 13. Non-goal 23 owns it.
 Deleted: State 14. Non-goal 11 owns it.
 Deleted: State 15. Non-goal 24 owns it.
-State 16: A consent record MUST NOT carry metadata the [Grant] call omitted.
+State 16: IF metadata EQUALS blank THEN [Grant] MUST NOT record metadata on the consent record.
 Deleted: State 1. Invariant 2.1 owns it.
 ```
 
@@ -93,6 +93,8 @@ Term state: granted | revoked | expired — in effect, withdrawn, or run out; a 
 Term grant field: consent id | subject reference | purpose | granting actor | grant instant | expiry instant | metadata — what [Grant] writes and Invariant 1.1 freezes.
 
 NOTE: watch a term entry's kind — the state is derived against the evaluation instant, yet its term entry takes `Kind: Field`, as a stored field's does, and names beside it the stored field [Grant] and [Revoke] write.
+
+NOTE: watch the blank optional input (State 4, State 5, State 6, State 16).
 
 #### Expiry
 
@@ -158,7 +160,7 @@ Operation 8: IF expiry instant PRECEDES now THEN [Grant] MUST answer invalid-req
 Operation 9: IF expiry instant EQUALS now THEN [Grant] MUST answer invalid-request.
 Operation 66: IF a supplied expiry instant is malformed THEN [Grant] MUST answer invalid-request (Execution Contract Input 1).
 Operation 10: [Grant] MUST stamp grant instant from the injected now.
-Operation 11: [Grant] MUST record metadata the call supplied.
+Deleted: Operation 11. State 5 and State 16 own it.
 Operation 12: [Grant] MUST NOT interpret metadata.
 Operation 13: IF the database refuses the write THEN [Grant] MUST answer storage-failure.
 Deleted: Operation 14. Execution Contract Refusal 1 owns it.
@@ -202,13 +204,13 @@ Operation 50: [Read] MUST order two consent records sharing a grant instant by c
 Operation 51: [Read] MUST answer an empty sequence for a well-formed query no consent record matches.
 Operation 52: [Read] MUST accept EVERY combination of the supported filter axes.
 Deleted: Operation 53. Execution Contract Query 4 and Operation 47 own it.
-Operation 54: [Read] MUST NOT answer two consent records for a query carrying a consent id filter.
+Deleted: Operation 54. Instance 2, Operation 47 and Execution Contract Query 3 own it.
 Operation 55: IF the query carries a filter key outside the supported filter axes THEN [Read] MUST answer invalid-query.
 Operation 56: [Read] MUST NOT ignore a filter key outside the supported filter axes.
 Operation 57: IF a reference filter's value EQUALS blank THEN [Read] MUST answer invalid-query.
 Operation 58: IF a state filter's value IS NOT IN state THEN [Read] MUST answer invalid-query.
 Operation 59: IF a time range's end PRECEDES the time range's start THEN [Read] MUST answer invalid-query.
-Operation 60: [Read] MUST exclude a consent record carrying no value for a time range's field (Execution Contract Query 3).
+Deleted: Operation 60. Execution Contract Query 3 owns it.
 Deleted: Operation 61. Capability requirement 1 owns it.
 Deleted: Operation 62. Execution Contract Logic confinement 3 owns it.
 Deleted: Operation 63. Execution Contract Logic confinement 3 owns it.
@@ -288,7 +290,7 @@ The case space, and the rule that owns each case:
 - **Invariant 1 — Grant immutability.**
   ```
   Invariant 1.1: A recorded consent record's grant fields MUST NOT change.
-  Invariant 1.2: A grant field the [Grant] call omitted MUST NOT appear later.
+  Invariant 1.2: A grant field [Grant] did not record MUST NOT appear later.
   ```
 - **Invariant 2 — Membership exclusivity.**
   ```
@@ -357,7 +359,7 @@ Term database instance: one named database a call is routed to; consent id uniqu
 
 Term database name: the identifier naming one database instance — a [Database Name]; deployment routing, never an input and never a stored field.
 
-Term seam: the atom's I/O boundary as the section titled Logic Confinement Principle in `execution-contract.md` declares it; the host injects the clock reading and the consent id here.
+Term seam: the atom's I/O (input and output) boundary as the section titled Logic Confinement Principle in `execution-contract.md` declares it; the host injects the clock reading and the consent id here.
 
 Term transition: the atom's evaluation of one call against the consent records, as the section titled Logic Confinement Principle in `execution-contract.md` declares it.
 
@@ -479,6 +481,8 @@ Deleted: Clock semantics 6. Operation 24 owns it.
 Clock semantics 8: [Revoke] MAY record a revocation instant earlier than now.
 ```
 
+NOTE: a revocation instant earlier than now ends the agreement from that instant, so a [Check] for an at time between the revocation instant and the [Revoke] call answers granted before the [Revoke] lands and revoked after it: that [Revoke] is no later write for the at time (Term later write), and Invariant 10.3 and Check 8.3 hold the answer only for an at time that precedes the revocation instant.
+
 ### Concurrency
 
 ```
@@ -514,9 +518,9 @@ Each `[Term]` marker above links to its term entry here; a term entry states wha
 
 Term actors: the atom; the host; the transition; the implementation; the deployment; a composing pattern (also: a pattern); a business caller; a caller; a guard; a data subject; an auditor; a reader; the database; a consent record; a state; a database name; a query; a filter key; a time range; a reference filter; a later write; a processing act; a lawful basis; a purpose taxonomy; a purpose hierarchy.
 
-Term records: consent record — one agreement to one purpose, carrying consent id, subject reference, purpose, granting actor, grant instant, state, the expiry instant and metadata supplied at grant, and, once withdrawn, revoking actor, revocation reason and revocation instant.
+Term records: consent record — one agreement to one purpose, carrying consent id, subject reference, purpose, granting actor, grant instant, state, the expiry instant and metadata [Grant] recorded, and, once withdrawn, revoking actor, revocation reason and revocation instant.
 
-Term record verbs: share, name, accept, carry, identify, allocate, reuse, change, interpret, confirm, record, stand, answer, stamp, resolve, refuse, write, evaluate, order, exclude, ignore, leave, supply, rest, offer, remove, suppress, hold, poll, appear, find, compose, define, expand, enforce, propagate, gate, establish, seal, bound, guarantee, own, declare, call, run, merge.
+Term record verbs: share, name, accept, carry, identify, allocate, reuse, change, interpret, confirm, record, stand, answer, stamp, resolve, refuse, write, evaluate, order, ignore, leave, supply, rest, offer, remove, suppress, hold, poll, appear, find, compose, define, expand, enforce, propagate, gate, establish, seal, bound, guarantee, own, declare, call, run, merge.
 
 Term value sets: state = granted | revoked | expired. supported filter axes and grant field are declared above and cited here (Closed vocabulary 15).
 
@@ -530,7 +534,7 @@ Term terms: consent record, database instance, database name, seam, transition, 
 
 #### Grant
 
-The behavior a consent collection surface invokes to record a data subject's affirmative agreement to a named [Purpose]. It assigns a fresh [Consent Id], stamps [Grant Instant] from the injected [Now], records [Subject Reference], [Purpose], [Granting Actor], and [Expiry Instant] / [Metadata] if supplied, and returns the [Consent Id] (or a rejection). The consent enters [Granted].
+The behavior a consent collection surface invokes to record a data subject's affirmative agreement to a named [Purpose]. It assigns a fresh [Consent Id], stamps [Grant Instant] from the injected [Now], records [Subject Reference], [Purpose], [Granting Actor], and [Expiry Instant] / [Metadata] if supplied and not blank, and returns the [Consent Id] (or a rejection). The consent enters [Granted].
 
 Kind: Operation
 
@@ -594,7 +598,7 @@ Projection: granted_at
 
 #### Expiry Instant
 
-The optional timestamp at which the consent expires. Set on [Grant] (must be strictly in the future relative to the injected [Now]); immutable. When [Expiry Instant] ≤ the evaluating clock and no revocation precedes it, the semantic state is [Expired]. Absent ⇒ the consent never expires by time.
+The optional timestamp at which the consent expires. Set on [Grant] (must be strictly in the future relative to the injected [Now]); immutable. When [Expiry Instant] ≤ the evaluating clock and no revocation precedes it, the semantic state is [Expired]. Absent or blank ⇒ [Grant] records none, and the consent never expires by time.
 
 Kind:       Field
 Field of:   the consent record
@@ -602,7 +606,7 @@ Projection: expires_at
 
 #### Metadata
 
-The optional opaque payload supplied at [Grant] — consent form version, signal type, jurisdiction. Stored as-is, never parsed or validated; immutable after grant (Invariant 1). Deployment-specific content rules belong to the composing layer.
+The optional opaque payload supplied at [Grant] — consent form version, signal type, jurisdiction. Stored as-is where it is not blank, never parsed or validated; immutable after grant (Invariant 1). Deployment-specific content rules belong to the composing layer.
 
 Kind:       Field
 Field of:   the consent record
@@ -715,7 +719,7 @@ Projection: not-known
 
 #### Invalid Request
 
-The refusal [Grant] or [Revoke] returns when request fields fail — an empty or whitespace-only [Consent Id], [Subject Reference], [Purpose], [Granting Actor], [Revoking Actor], or [Reason]; an [Expiry Instant] not in the future at [Grant]; a supplied [Expiry Instant] or [Revocation Instant] that is no instant; or a [Revocation Instant] that is future or before [Grant Instant].
+The refusal [Grant] or [Revoke] returns when request fields fail — an empty or whitespace-only [Consent Id], [Subject Reference], [Purpose], [Granting Actor], [Revoking Actor], or [Reason]; an [Expiry Instant] not in the future at [Grant]; a supplied [Expiry Instant] or [Revocation Instant] that is neither blank nor an instant; or a [Revocation Instant] that is future or before [Grant Instant].
 
 Kind:       Member
 Member of:  the action rejection
@@ -820,7 +824,7 @@ Projection: invalid-query
 ```
 status: partially resolved
 formal: not applicable — vote no 2026-06-03
-last gate: 2026-10-29 — Final Critique 10 — foundational count 1, not clean, no sample
+last gate: 2026-10-30 — Final Critique 11 — foundational count 0, clean, no sample
 
 open:
 - 2026-10-29-b · refining · Term seam; Term transition; Term business caller · each says the section titled Logic Confinement Principle in `execution-contract.md` declares it, and that section declares none of the three → declare the three there, the corpus's one seam wording, or point each at its declaration

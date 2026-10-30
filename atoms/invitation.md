@@ -201,6 +201,8 @@ Operation 47: IF a filter names a field whose value EQUALS blank THEN [Read] MUS
 
 NOTE: watch the state a refusal leaves (Operation 37).
 
+NOTE: watch the blank optional input (Operation 10).
+
 Term resolving write: [Accept] | [Decline] | [Revoke] — every write taking a pending invitation to a stored terminal.
 
 Term stored terminal: accepted | declined | revoked.
