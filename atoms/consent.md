@@ -59,6 +59,8 @@ Identity 10: The atom MUST NOT interpret a purpose.
 Identity 11: The atom MUST NOT confirm that a subject reference names a known data subject.
 ```
 
+NOTE: open 2026-10-30-a — the consent id's source is named as the host's allocation (Identity 2) and not among what the deployment supplies (Capability requirement 1, Capability requirement 5).
+
 Term consent id: the opaque value naming one consent record — a [Consent Id]; host-allocated at the seam, never reused.
 
 Term subject reference: the opaque reference naming the data subject whose agreement the record holds — a [Subject Reference], as Execution Contract Logic confinement 13 canonicalizes it.
@@ -412,7 +414,7 @@ Check 2.1: An auditor MUST find EVERY consent record's consent id, subject refer
 Check 2.2: An auditor MUST find a grant instant on EVERY consent record (Invariant 7.2).
 Check 3.1: An auditor MUST find EVERY revoked consent record's revoking actor and revocation reason non-blank (Invariant 4.1, Invariant 4.2).
 Check 3.2: An auditor MUST find EVERY revoked consent record's grant instant no later than the revocation instant (Invariant 5.1).
-Check 4.1: An auditor MUST find [Check] answering granted, then revoked once a [Revoke] lands on the candidate record, then granted once a fresh [Grant]'s consent record is the candidate record (Invariant 3.1, Operation 44).
+Check 4.1: An auditor MUST find [Check] answering granted, then revoked once a [Revoke] lands on the candidate record with a revocation instant the at time DOES NOT PRECEDE, then granted once a fresh [Grant]'s consent record is the candidate record (Invariant 3.1, Operation 44).
 Check 5.1: An auditor MUST find [Check] answering granted for an at time the candidate record's expiry instant exceeds, and expired for an at time no earlier than the candidate record's expiry instant, where the candidate record carries no revocation instant (Operation 42, Operation 44).
 Deleted: Check 5.2. Invariant 2.2 and Stored state 3 own it.
 Deleted: Check 6.1. Operation 18 and Invariant 3.1 own it.
@@ -422,8 +424,8 @@ Check 7.1: An auditor MUST find EVERY revoked and expired consent record still a
 Deleted: Check 8.1. Check 8.2 through 8.4 own it.
 Check 8.2: An auditor MUST find a [Check] carrying an at time answering alike across a later [Grant] for the pair, where the at time PRECEDES the later consent record's grant instant (Invariant 10.3).
 Check 8.3: An auditor MUST find a [Check] carrying an at time answering alike across a later [Revoke] for the pair, where the at time PRECEDES the revocation instant (Invariant 10.3).
-Check 8.4: An auditor MUST find [Check] answering from the latest consent record the at time DOES NOT PRECEDE (Invariant 10.1).
-Check 8.5: An auditor MUST find [Check] answering from the greatest consent id of two consent records sharing a subject reference, a purpose and a grant instant, where that grant instant is the latest the at time DOES NOT PRECEDE (Invariant 10.2).
+Check 8.4: An auditor MUST find [Check] answering from the consent record carrying the call's subject reference and purpose whose grant instant is the latest the at time DOES NOT PRECEDE (Invariant 10.1).
+Check 8.5: An auditor MUST find [Check] answering from the greatest consent id of two consent records carrying the call's subject reference and purpose and sharing a grant instant, where that grant instant is the latest the at time DOES NOT PRECEDE (Invariant 10.2).
 ```
 
 NOTE: EVERY check names the rule the check tests.
@@ -458,7 +460,7 @@ Non-goal 23: The atom MUST NOT suppress a processing act.
 Non-goal 24: The atom MUST NOT hold a purpose taxonomy.
 ```
 
-NOTE: the owners — [Duplicate Prevention](./duplicate-prevention.md) (Non-goal 1, Non-goal 2); the deployment (Non-goal 5, Non-goal 6, Non-goal 11); [Propagate Consent Revocation Downstream](../compositions/propagate-consent-revocation-downstream.md) (Non-goal 9, Non-goal 10); [Permissions](./permissions.md) (Non-goal 12, Non-goal 13); a guardian-relationship pattern *(forthcoming)* (Non-goal 14, Non-goal 15); [Tamper Evidence](./tamper-evidence.md) (Non-goal 16, Non-goal 17); [Retention Window](./retention-window.md) (Non-goal 18, Non-goal 19); [Legal Hold](./legal-hold.md) (Non-goal 18); [Audit Trail](../compositions/audit-trail.md) (Non-goal 20, Non-goal 25); [Actor Identity](./actor-identity.md) (Non-goal 20, Non-goal 21, Non-goal 25); a composing pattern (Non-goal 23, Non-goal 24).
+NOTE: the owners — [Duplicate Prevention](./duplicate-prevention.md) (Non-goal 1, Non-goal 2); the deployment (Non-goal 11); [Propagate Consent Revocation Downstream](../compositions/propagate-consent-revocation-downstream.md) (Non-goal 9, Non-goal 10); [Permissions](./permissions.md) (Non-goal 12, Non-goal 13); a guardian-relationship pattern *(forthcoming)* (Non-goal 14, Non-goal 15); [Tamper Evidence](./tamper-evidence.md) (Non-goal 16, Non-goal 17); [Retention Window](./retention-window.md) (Non-goal 18, Non-goal 19); [Legal Hold](./legal-hold.md) (Non-goal 18); [Audit Trail](../compositions/audit-trail.md) (Non-goal 20, Non-goal 25); [Actor Identity](./actor-identity.md) (Non-goal 20, Non-goal 21, Non-goal 25); a composing pattern (Non-goal 5, Non-goal 6, Non-goal 24, Composition note 5; Non-goal 23, Composition note 3).
 
 ## Edge cases
 
@@ -824,11 +826,12 @@ Projection: invalid-query
 ```
 status: partially resolved
 formal: not applicable — vote no 2026-06-03
-last gate: 2026-10-30 — Final Critique 11 — foundational count 0, clean, no sample
+last gate: 2026-10-30 — Final Critique 12 — foundational count 0, clean, no sample
 
 open:
 - 2026-10-29-b · refining · Term seam; Term transition; Term business caller · each says the section titled Logic Confinement Principle in `execution-contract.md` declares it, and that section declares none of the three → declare the three there, the corpus's one seam wording, or point each at its declaration
 - 2026-10-29-c · refining · the read signature · its answers arm, consent_records, is no declared name (GRACE-lang Term signature form: an arm is a declared name), as Message Preference's preference_record, Provenance's entry_sequence and Event Log's events reach their declared names by word form alone → one form for a read's answer arm, declared as the page's other arms are
+- 2026-10-30-a · refining · Identity 2; Capability requirement 1, 5 · the consent id's source is named as the host's allocation (Identity 2) and not among what the deployment supplies, where the atom shape in `spec-format.md` lists an id source under Capability requirement; Notification (its 2026-10-29-a), Approval Step, Assignment and Permissions (each its 2026-10-26-a), Event Log (its 2026-10-22-b) and Tamper Evidence (its 2026-10-22-a) route the same form → name the source among the Capability requirements, in the one form the corpus settles for its host-allocation atoms
 ```
 
 <details markdown="block">
