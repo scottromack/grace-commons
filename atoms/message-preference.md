@@ -302,8 +302,6 @@ The case space, and the rule that owns each case:
   Deleted: Temporal property 5. Execution Contract Logic confinement 7 owns it: the deployment owns the clock's guarantees, the implementation none of them.
   ```
 
-NOTE: watch the modal with no temporal scope (State 1, Invariant 2.3).
-
 Immutability and durability together give *auditability* — the full history of every principal's preferences is provable, with no gap but what a separate retention pattern disposes of on its own declared schedule. At-most-one-in-effect and supersession atomicity together give *unambiguous currency* — at any moment a principal has at most one record governing delivery, and the moment of transition is recorded. Suspension being value-preserving gives *cheap resumption* — a principal who pauses and later returns loses nothing but a channel the deployment withdrew in the meantime.
 
 ### Database instance model

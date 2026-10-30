@@ -571,7 +571,7 @@ Composition note 4: A composing pattern MUST record the event id the atom answer
 Composition note 5: A composing pattern MUST own the authority to call an action.
 Composition note 6: A composing pattern MUST own the refusal record.
 Composition note 7: A composing pattern MUST own the retention of the pool records.
-Composition note 8: A composing pattern reading the pool records MUST NOT write to the pool records.
+Deleted: Composition note 8. Execution Contract Atom interface 1 owns it.
 ```
 
 ## Terms

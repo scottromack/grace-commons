@@ -241,8 +241,6 @@ The case space, and the rule that owns each case:
   Invariant 9.3: [Status Of] MUST answer a created notification's fields for the database's life.
   ```
 
-NOTE: watch the modal with no temporal scope (State 1, Invariant 2.2).
-
 NOTE: open 2026-10-21-h — State 6 and Invariant 3.2, State 3 through 5 and Invariant 4.1, 4.3 and 4.5, Operation 20 and Invariant 7.1, and Operation 14b and Composition note 7 each state one proposition twice.
 
 Immutability and durability give *auditability* — the delivery history is the database, with no gaps. Exclusivity and the status-stamp match give the *unambiguous record* property — one outcome per notification, with a stable time. Monotonicity and ordering make [Pending For] a deterministic snapshot of what is still unresolved.
@@ -362,8 +360,6 @@ String 9: [Pending For] MUST read a whitespace-only recipient reference as match
 
 Term string cap: the deployment's bound on the recipient reference's length, measured in Unicode code points; a cap of zero refuses every [Create], which is the degenerate configuration a deployment owns rather than a state the atom admits.
 
-Term whitespace: a code point with the Unicode White_Space property.
-
 NOTE: watch host obligations — this atom caps the recipient reference alone and obliges the deployment to supply the cap and to hold it unchanged for the life of the instance (String 6, String 8, Capability requirement 5, Capability requirement 6), leaving the payload unbounded, where [Duplicate Prevention](./duplicate-prevention.md) declares a cap and [Provenance](./provenance.md) obliges the deployment to set one; Final Critique 5 cured the cap's reach and its supplier, and Final Critique 6 its unit, counted in Unicode code points as [Permissions](./permissions.md) and [Credential](./credential.md) count theirs, and its constancy.
 
 ### Atomicity of a terminal transition
@@ -445,7 +441,7 @@ Term cadences: empty — a delivery window is the composing pattern's (Operation
 
 Term qualifiers: migrated — rewritten in GRACE lang v0.35 (2026-09-12).
 
-Term terms: notification, notification id, recipient reference, payload, seam, transition, business caller, now, string cap, whitespace, status, terminal stamp, creation instant, terminal transition, pending at an instant, committed version.
+Term terms: notification, notification id, recipient reference, payload, seam, transition, business caller, now, string cap, status, terminal stamp, creation instant, terminal transition, pending at an instant, committed version.
 
 #### Create
 

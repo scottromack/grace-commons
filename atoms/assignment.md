@@ -253,8 +253,6 @@ Where two cases of one action hold at once, the refusal listed first on the acti
   Deleted: Invariant 10.2. Invariant 10.1 owns it (Execution Contract Database 6).
   ```
 
-NOTE: watch the modal with no temporal scope (State 1, Invariant 3.2).
-
 At-most-one and reassign atomicity give the *unambiguous accountability* property — *who is responsible for this task?* has one answer or none, never two. Immutability, the complete history and durability give *auditability* — the chain is the database, and nothing leaves it quietly.
 
 ## Examples

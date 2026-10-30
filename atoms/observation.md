@@ -473,7 +473,7 @@ Composition note 6: A composing pattern MUST own the retention of the observatio
 Composition note 7: A composing pattern MUST own at-most-once recording.
 Composition note 8: A composing pattern MUST own a trend across two observations.
 Composition note 9: A composing pattern MUST own the routing across two database instances.
-Composition note 10: A composing pattern reading the observation records MUST NOT write to the observation records.
+Deleted: Composition note 10. Execution Contract Atom interface 1 owns it.
 ```
 
 ---

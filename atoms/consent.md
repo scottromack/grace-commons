@@ -510,13 +510,11 @@ Composition note 4: A composing pattern MUST own the propagation of a withdrawal
 Composition note 5: A composing pattern MUST own the purpose taxonomy.
 Composition note 6: A composing pattern MUST own the retention of the consent records.
 Composition note 7: A composing pattern MUST own the authority to grant for a data subject.
-Deleted: Composition note 8. Operation 2, Operation 26, Invariant 8.1 and Execution Contract Database 4 own it.
+Deleted: Composition note 8. Execution Contract Atom interface 1 owns it.
 Composition note 9: A composing pattern MUST NOT poll for an elapsed consent record.
 ```
 
 NOTE: composing patterns — [Propagate Consent Revocation Downstream](../compositions/propagate-consent-revocation-downstream.md), [Resolve a Person's Data Rights](../compositions/resolve-a-persons-data-rights.md).
-
-NOTE: watch the reading composer's write ban (Composition note 8).
 
 ## Terms
 

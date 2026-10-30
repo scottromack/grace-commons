@@ -513,12 +513,10 @@ Composition note 7: A composing pattern MUST own the delegation of an approver r
 Composition note 8: A composing pattern MUST own the tamper seal over the step records.
 Composition note 9: A composing pattern MUST own at-most-once submission.
 Composition note 10: A composing pattern MUST own the required gate mapping for a subject.
-Deleted: Composition note 11. State 2 through 5 and Execution Contract Database 4 own it.
+Deleted: Composition note 11. Execution Contract Atom interface 1 owns it.
 ```
 
 NOTE: composing patterns — [Multi-Party Approval](../compositions/multi-party-approval.md), [Execute Gated Workflow](../compositions/execute-gated-workflow.md).
-
-NOTE: watch the reading composer's write ban (Composition note 11).
 
 ---
 

@@ -536,13 +536,11 @@ Composition note 3: A composing pattern MUST own the authority to allocate for a
 Composition note 4: A composing pattern MUST own the redemption's attribution.
 Composition note 5: A composing pattern MUST own the capability token's delivery.
 Composition note 6: A composing pattern MUST own the retention of the capability records.
-Deleted: Composition note 7. Invariant 1.1, Invariant 11.1 and Execution Contract Database 4 own it.
+Deleted: Composition note 7. Execution Contract Atom interface 1 owns it.
 Composition note 8: A composing pattern MUST NOT record a redeemer's identity on a capability.
 ```
 
 NOTE: composing patterns — [Capability-Backed Sharing](../compositions/capability-backed-sharing.md), [Privileged Access Provisioning](../compositions/privileged-access-provisioning.md).
-
-NOTE: watch the reading composer's write ban (Composition note 7).
 
 ## Terms
 

@@ -1676,6 +1676,44 @@ def check_rule_noun_synthetic(problems: list[str]) -> int:
     return len(silent) + len(firing)
 
 
+def check_invariant_move_synthetic(problems: list[str]) -> int:
+    """R-invariant-move (tools/grace/check.py) — the Invariant family claims what
+    holds in every reachable state and obliges no act (GRACE-lang v0.69, Standard
+    label 13 and 14). A forbidden move, where a record stands and an action's move
+    stay silent; a move a record owes inside the Invariant family fires.
+    Returns the fixture count."""
+    import tempfile
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "grace"))
+    from check import scan  # noqa: E402
+    head = ("Term qualifiers: migrated — rewritten in GRACE lang v0.69 (2026-10-30).\n\n"
+            "Term record verbs: move, stand.\n\n## Structure\n\n")
+    def run(heading: str, rule: str):
+        with tempfile.TemporaryDirectory() as d:
+            f = Path(d) / "atoms" / "synthetic.md"
+            f.parent.mkdir()
+            f.write_text(head + heading + "\n\n```\n" + rule + "\n```\n", encoding="utf-8")
+            return [x for x in scan(f) if x.code == "R-invariant-move"]
+    silent = [
+        ("a forbidden move", "### Invariants", "Invariant 1.1: A cancelled status MUST NOT move to active."),
+        ("where a record stands", "### State",
+         "State 1: EVERY status MUST stand in EXACTLY ONE OF pending, delivered, failed."),
+        ("an action's move", "### Operations", "Operation 1: The cancel MUST move the status to cancelled."),
+    ]
+    firing = [
+        ("a status owing a move", "### Invariants",
+         "Invariant 1.1: A status MUST move from pending to EXACTLY ONE OF delivered, failed."),
+        ("a lapsed record owing a move", "### Invariants", "Invariant 1.2: A lapsed status MUST move to cancelled."),
+    ]
+    for name, heading, rule in silent:
+        got = run(heading, rule)
+        if got:
+            problems.append(f"R-invariant-move: fired on {name}: {got[0].message}")
+    for name, heading, rule in firing:
+        if not run(heading, rule):
+            problems.append(f"R-invariant-move: {name} did not fire")
+    return len(silent) + len(firing)
+
+
 def check_rule_symbol_synthetic(problems: list[str]) -> int:
     """D-rule-symbol (tools/grace/check.py) — symbols leave the rules at
     GRACE-lang v0.56 (council read 103). The English forms and a code span
@@ -2849,6 +2887,14 @@ def main(argv: list[str]) -> int:
         print(f"D-rule-noun: {n_noun} synthetic fixtures hold (a rule noun used, a domain term "
               "declared and a quoted *argument* silent; a rule noun declared and *argument* in a "
               "rule and in a declaration fire) \u2713")
+
+    inv_problems: list[str] = []
+    n_inv = check_invariant_move_synthetic(inv_problems)
+    failures.extend(inv_problems)
+    if not inv_problems:
+        print(f"R-invariant-move: {n_inv} synthetic fixtures hold (a forbidden move, where a record "
+              "stands and an action's move silent; a status owing a move and a lapsed record owing "
+              "a move inside the Invariant family fire) ✓")
 
     sym_problems: list[str] = []
     n_sym = check_rule_symbol_synthetic(sym_problems)

@@ -540,12 +540,10 @@ Composition note 6: A composing pattern MUST own the tamper seal over a transiti
 Composition note 7: A composing pattern MUST own the retention of the workflow records.
 Composition note 8: A composing pattern MUST own an idempotency key.
 Composition note 9: A composing pattern MUST own a declaration template.
-Deleted: Composition note 10. State 6 through 9, Declaration 3 and Execution Contract Database 4 own it.
+Deleted: Composition note 10. Execution Contract Atom interface 1 owns it.
 ```
 
 NOTE: composing patterns — [Execute Gated Workflow](../compositions/execute-gated-workflow.md).
-
-NOTE: watch the reading composer's write ban (Composition note 10).
 
 ---
 

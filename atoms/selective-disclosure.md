@@ -396,7 +396,7 @@ Composition note 5: A composing pattern MUST own the tamper seal over the disclo
 Composition note 6: A composing pattern MUST own the retention of the disclosure records.
 Composition note 7: A composing pattern MUST own at-most-once recording.
 Composition note 8: A composing pattern closing Invariant 5.1 MUST own the only disclosure surface.
-Deleted: Composition note 9. State 4 through 6 and Execution Contract Database 4 own it.
+Deleted: Composition note 9. Execution Contract Atom interface 1 owns it.
 ```
 
 <details markdown="block">
@@ -407,8 +407,6 @@ Deleted: Composition note 9. State 4 through 6 and Execution Contract Database 4
 </details>
 
 NOTE: composing patterns — [Capability-Backed Sharing](../compositions/capability-backed-sharing.md), [Immutable Ledger](../compositions/immutable-ledger.md), [Resolve a Person's Data Rights](../compositions/resolve-a-persons-data-rights.md).
-
-NOTE: watch the reading composer's write ban (Composition note 9).
 
 ---
 

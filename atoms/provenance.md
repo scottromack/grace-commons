@@ -528,7 +528,7 @@ Composition note 4: A composing pattern MUST own the tamper seal over the chain'
 Composition note 5: A composing pattern MUST own the retention of the chain records.
 Composition note 6: A composing pattern MUST own a disclosure's scope and authority.
 Composition note 7: A composing pattern MUST own the relationship between two chains.
-Composition note 8: A composing pattern reading the chain records MUST NOT write to the chain records.
+Deleted: Composition note 8. Execution Contract Atom interface 1 owns it.
 ```
 
 NOTE: composing patterns — [Chain of Custody](../compositions/chain-of-custody.md).

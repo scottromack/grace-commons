@@ -234,8 +234,6 @@ Where two [Revoke] cases hold at once, the refusal listed first on [Revoke]'s re
   Deleted: Invariant 10.3. Execution Contract Database 1 owns it.
   ```
 
-NOTE: watch the modal with no temporal scope (State 1, Invariant 2.2).
-
 Self-containment and denial-by-absence give the *determinism* property — one query against one active set answers one way, always. Immutability and monotonicity give *auditability* — the authorization history is provable from the database.
 
 ## Examples

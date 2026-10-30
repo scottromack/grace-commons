@@ -1211,6 +1211,14 @@ def scan(path: Path) -> list[Finding]:
             add(r.line, "P-pronoun", f"{r.label}: pronoun in a rule (Hard invariant 4)")
         if re.search(r"\b(MUST NOT|MUST|MAY)\s+(be|is|are|been|being)\b", stmt):
             add(r.line, "C-copula", f"{r.label}: copula after the modal — no declared record verb (Closed vocabulary 8)")
+        # the Invariant family claims what holds in every reachable state and obliges
+        # no act (GRACE-lang v0.69, Standard label 13 and 14): a move a record owes
+        # reads as a liveness claim that each page's own lawful states break
+        if r.label.startswith("Invariant ") and re.search(r"\bMUST move\b", stmt):
+            add(r.line, "R-invariant-move",
+                f"{r.label}: a move a record owes, inside the Invariant family — write the move a record "
+                f"MUST NOT make (MUST NOT move to …) or where a record stands (the State family's "
+                f"EXACTLY ONE OF) (Standard label 13, Standard label 14)")
         if COND_ENGLISH.match(body):
             add(r.line, "W-condition-operator",
                 f"{r.label}: an English comparison in a condition — the operators are "

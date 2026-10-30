@@ -222,8 +222,6 @@ The case space, and the rule that owns each case:
   Invariant 9.1: IF cancellation instant DOES NOT EQUAL blank THEN cancellation instant MUST NOT PRECEDE subscription instant.
   ```
 
-NOTE: watch the modal with no temporal scope (State 1, Invariant 2.2).
-
 NOTE: open 2026-10-21-b — Operation 20 and Invariant 3.2, Operation 10 and Invariant 3.1, State 6 and Invariant 2.2, and Lost ledger 2 and Composition note 3a each state one proposition twice, Operation 21 restates Term event scope's matched exactly, and Lost ledger 3 beside Composition note 3b, and Non-goal 12 beside Composition note 4, each give one obligation two subjects.
 
 ## Examples

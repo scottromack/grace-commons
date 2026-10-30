@@ -344,8 +344,6 @@ The case space, and the rule that owns each case:
   Invariant 12.4: The effective status MUST rest on the stored status, expiry instant and now.
   ```
 
-NOTE: watch the modal with no temporal scope (Operation 27, Invariant 5.3).
-
 Invariants 1, 2 and 10 together give the *temporal auditability* property — every session's window is fully determined from one record, with no mutable validity field. Invariants 3, 6 and 12 give *validation clarity* — the outcome of any [Validate] call is unambiguous, distinguishable, and computed from the record and the injected clock alone. Invariants 4 and 11 give *terminal finality* — neither a revoked session nor a lapsed one resurfaces as valid by any path.
 
 ---
@@ -512,13 +510,11 @@ Composition note 6: A composing pattern MUST own the logout propagation across a
 Composition note 7: A composing pattern MUST own the device binding.
 Composition note 8: A composing pattern MUST own the concurrency bound per principal reference.
 Composition note 9: A composing pattern MUST own the retention of the session records.
-Deleted: Composition note 10. Invariant 1.1, Invariant 9.1 and Execution Contract Database 4 own it.
+Deleted: Composition note 10. Execution Contract Atom interface 1 owns it.
 Deleted: Composition note 11. Non-goal 27 owns it.
 ```
 
 NOTE: composing patterns — [Login](../compositions/login.md), [Session-Gated Authorization](../compositions/session-gated-authorization.md), [Privileged Access Provisioning](../compositions/privileged-access-provisioning.md), [Actor Suspension](../compositions/actor-suspension.md).
-
-NOTE: watch the reading composer's write ban (Composition note 10).
 
 ## Terms
 
