@@ -61,11 +61,11 @@ Identity 11: The atom MUST NOT confirm that a subject reference names a known da
 
 Term consent id: the opaque value naming one consent record — a [Consent Id]; host-allocated at the seam, never reused.
 
-Term subject reference: the opaque reference naming the data subject whose agreement the record holds — a [Subject Reference].
+Term subject reference: the opaque reference naming the data subject whose agreement the record holds — a [Subject Reference], as Execution Contract Logic confinement 13 canonicalizes it.
 
 Term purpose: the opaque value naming the processing purpose the agreement covers — a [Purpose]; caller-declared vocabulary, matched exactly.
 
-Term granting actor: the opaque reference naming the actor that recorded the subject's affirmative signal — a [Granting Actor].
+Term granting actor: the opaque reference naming the actor that recorded the subject's affirmative signal — a [Granting Actor], as Execution Contract Logic confinement 13 canonicalizes it.
 
 ### State
 
@@ -119,7 +119,7 @@ Deleted: Stored state 4. Execution Contract Database 2 owns it.
 
 ```
 Capability requirement 1: The deployment MUST supply now at the seam.
-Capability requirement 5: The deployment MUST supply the consent records PER Execution Contract Database 1 through 4, Execution Contract Database 6, Execution Contract Database 7, Execution Contract Read 1 through 4, Execution Contract Refusal 1, Execution Contract Query 1 through 4 and Execution Contract Input 1.
+Capability requirement 5: The deployment MUST supply the consent records PER Execution Contract Database 1 through 7, Execution Contract Read 1 through 4, Execution Contract Refusal 1, Execution Contract Query 1 through 4 and Execution Contract Input 1.
 Deleted: Capability requirement 2. Execution Contract Logic confinement 7 owns it.
 Deleted: Capability requirement 3. Execution Contract Logic confinement 7 owns it.
 Deleted: Capability requirement 4. Execution Contract Logic confinement 7 owns it.
@@ -213,7 +213,7 @@ Deleted: Operation 61. Capability requirement 1 owns it.
 Deleted: Operation 62. Execution Contract Logic confinement 3 owns it.
 Deleted: Operation 63. Execution Contract Logic confinement 3 owns it.
 Operation 64: [Read] MUST evaluate a state filter against the consent record's state.
-Operation 65: IF the query is malformed THEN [Read] MUST answer invalid-query.
+Operation 65: IF the query is malformed THEN [Read] MUST answer invalid-query (Execution Contract Query 1).
 ```
 
 NOTE: watch the state a refusal leaves (Operation 32).
@@ -232,7 +232,7 @@ Term expiry instant: the optional instant a consent record's agreement runs out 
 
 Term metadata: the optional opaque payload the atom stores unchanged — a [Metadata]; consent-form version, signal type, jurisdiction.
 
-Term revoking actor: the opaque reference naming the actor that recorded the withdrawal — a [Revoking Actor].
+Term revoking actor: the opaque reference naming the actor that recorded the withdrawal — a [Revoking Actor], as Execution Contract Logic confinement 13 canonicalizes it.
 
 Term revocation reason: the stated ground for the withdrawal — a [Revocation Reason], carried from the call's [Reason].
 
@@ -252,7 +252,7 @@ Term candidate record: among the consent records carrying the call's subject ref
 
 Term later write: a consent record written with a grant instant or a revocation instant later than the resolved at time.
 
-Term query: the filter set [Read] accepts — a [Query]; any combination of the supported filter axes, one filter per axis.
+Term query: the filter set [Read] accepts — a [Query]; any combination of filters on the supported filter axes, including two filters on one axis, combined as Execution Contract Query 4 combines them.
 
 Term supported filter axes: consent id | subject reference | purpose | granting actor | state | a time range on grant instant | a time range on revocation instant | a time range on expiry instant.
 
@@ -281,6 +281,7 @@ The case space, and the rule that owns each case:
 | [Read] | a well-formed query | the matching records, oldest first, each carrying its state at [Now] | none (Operation 47, Operation 48, Invariant 2.2) |
 | [Read] | a well-formed query matching nothing | an empty sequence | none (Operation 51) |
 | [Read] | a blank filter value, a bad state, an inverted range, a range missing an end, an unknown key | [Invalid Query] | none (Operation 55 through 59, Operation 65) |
+| any call | its read of the database fails | `state-unavailable` | none (Execution Contract Read 1 through 3) |
 
 ### Invariants
 
@@ -409,7 +410,7 @@ Check 2.1: An auditor MUST find EVERY consent record's consent id, subject refer
 Check 2.2: An auditor MUST find a grant instant on EVERY consent record (Invariant 7.2).
 Check 3.1: An auditor MUST find EVERY revoked consent record's revoking actor and revocation reason non-blank (Invariant 4.1, Invariant 4.2).
 Check 3.2: An auditor MUST find EVERY revoked consent record's grant instant no later than the revocation instant (Invariant 5.1).
-Check 4.1: An auditor MUST find [Check] answering granted, then revoked once a [Revoke] lands on the candidate record, then granted once a fresh [Grant] lands (Invariant 3.1, Operation 44).
+Check 4.1: An auditor MUST find [Check] answering granted, then revoked once a [Revoke] lands on the candidate record, then granted once a fresh [Grant]'s consent record is the candidate record (Invariant 3.1, Operation 44).
 Check 5.1: An auditor MUST find [Check] answering granted for an at time the candidate record's expiry instant exceeds, and expired for an at time no earlier than the candidate record's expiry instant, where the candidate record carries no revocation instant (Operation 42, Operation 44).
 Deleted: Check 5.2. Invariant 2.2 and Stored state 3 own it.
 Deleted: Check 6.1. Operation 18 and Invariant 3.1 own it.
@@ -468,13 +469,13 @@ Deleted: Clock dependence 1. Execution Contract Logic confinement 11 owns it.
 ### Clock semantics
 
 ```
-Clock semantics 5: [Grant] MUST guard a supplied expiry instant against now.
+Deleted: Clock semantics 5. Operation 8 and Operation 9 own it.
 Deleted: Clock semantics 1. Execution Contract Logic confinement 7 owns it.
 Deleted: Clock semantics 2. Execution Contract Logic confinement 7 owns it.
 Deleted: Clock semantics 3. Capability requirement 1 and Execution Contract Logic confinement 7 own it: the seam supplies now, and the reading's honesty is the deployment's.
 Deleted: Clock semantics 4. Execution Contract Logic confinement 11 owns it.
 Deleted: Clock semantics 7. Operation 10 owns it: `now` is never supplied by the business caller, so a grant instant stamped from the injected now is never a caller-supplied instant.
-Clock semantics 6: [Revoke] MUST guard a supplied revocation instant against now.
+Deleted: Clock semantics 6. Operation 24 owns it.
 Clock semantics 8: [Revoke] MAY record a revocation instant earlier than now.
 ```
 
@@ -515,7 +516,7 @@ Term actors: the atom; the host; the transition; the implementation; the deploym
 
 Term records: consent record — one agreement to one purpose, carrying consent id, subject reference, purpose, granting actor, grant instant, state, the expiry instant and metadata supplied at grant, and, once withdrawn, revoking actor, revocation reason and revocation instant.
 
-Term record verbs: route, share, name, accept, carry, identify, allocate, reuse, change, interpret, confirm, record, stand, answer, stamp, resolve, refuse, write, evaluate, order, exclude, ignore, leave, supply, rest, offer, remove, suppress, hold, poll, equal, appear, meet, fall, find, compose, define, expand, enforce, propagate, gate, establish, seal, bound, guarantee, own, guard, declare, call, run, merge, precede.
+Term record verbs: share, name, accept, carry, identify, allocate, reuse, change, interpret, confirm, record, stand, answer, stamp, resolve, refuse, write, evaluate, order, exclude, ignore, leave, supply, rest, offer, remove, suppress, hold, poll, appear, find, compose, define, expand, enforce, propagate, gate, establish, seal, bound, guarantee, own, declare, call, run, merge.
 
 Term value sets: state = granted | revoked | expired. supported filter axes and grant field are declared above and cited here (Closed vocabulary 15).
 
@@ -708,7 +709,7 @@ Role:      Outcome
 The outcome [Check] returns when no record for the queried (subject, [Purpose]) pair was granted by [At Time], or when [At Time] is neither blank nor an instant; and the refusal [Revoke] returns when the named [Consent Id] references no record in this database instance. A first-class [Check] result, never an error there.
 
 Kind:       Member
-Member of:  the action outcome
+Member of:  the action outcome and the Revoke rejection
 Role:       Outcome
 Projection: not-known
 
@@ -800,7 +801,7 @@ Projection: invalid-query
 - **GDPR Article 7** — conditions for consent: must be freely given, specific, informed, and unambiguous; burden of proof on the controller (Invariant 7, Check 2.1 and 2.2); withdrawal must be as easy as giving (the [Revoke] action records a withdrawal as [Grant] records a grant; the ease a person meets is the composing layer's); withdrawal does not affect lawfulness of prior processing (Invariant 9.1 and Invariant 10.3: the grant's fields stand, and a [Check] for an instant before the withdrawal took effect answers as it did).
 - **GDPR Article 17(1)(b)** — right to erasure applies when the data subject withdraws consent and there is no other lawful basis for processing. The [Revoke] action is the trigger; whether erasure follows is a composing-layer decision.
 - **GDPR Article 30** — record of processing activities must include the purpose of processing and the legal basis. Consent records with [Purpose] and [Grant Instant] supply the Article 30 documentation surface.
-- **CCPA / CPRA** — right to opt-out of sale or sharing of personal information; right to opt-in for sensitive personal information. The [Grant] and [Revoke] actions are the opt-in and opt-out mechanisms. CPRA extends consent requirements to sensitive personal information categories.
+- **CCPA / CPRA** — right to opt-out of sale or sharing of personal information; right to opt-in for sensitive personal information. [Grant] records an opt-in and [Revoke] the withdrawal of a recorded one; an opt-out of sale or sharing with no recorded opt-in behind it, and ending the sale or sharing, are the composing layer's (Non-goal 23). CPRA extends consent requirements to sensitive personal information categories.
 - **HIPAA section 164.508 (Authorization)** — required elements for a valid authorization include: a description of each purpose of the use or disclosure ([Purpose]), an expiration date or event ([Expiry Instant] holds a date), and a statement of the right to revoke ([Revoke] records the revocation). The atom holds no expiration event, and the authorization's other required elements — the information to be used or disclosed, who may make the disclosure and to whom, and the individual's signature and date — are the composing layer's.
 - **HIPAA section 164.522** — right of an individual to request restrictions on certain uses and disclosures of PHI. Consent records with granular [Purpose] scoping are the mechanism.
 - **21 CFR (Code of Federal Regulations) Part 11** — electronic records and signatures in FDA-regulated (US Food and Drug Administration) contexts. Consent records for clinical trial participation are regulated records under Part 11; [Granting Actor] and [Revoking Actor] map to electronic signature requirements when composed with Actor Identity.
@@ -819,7 +820,7 @@ Projection: invalid-query
 ```
 status: partially resolved
 formal: not applicable — vote no 2026-06-03
-last gate: 2026-10-29 — Final Critique 9 — foundational count 0, clean, no sample
+last gate: 2026-10-29 — Final Critique 10 — foundational count 1, not clean, no sample
 
 open:
 - 2026-10-29-b · refining · Term seam; Term transition; Term business caller · each says the section titled Logic Confinement Principle in `execution-contract.md` declares it, and that section declares none of the three → declare the three there, the corpus's one seam wording, or point each at its declaration
