@@ -66,6 +66,8 @@ NUMBER = r"[\d½]+(?:\.\d+)?[a-z]?"
 BARE_NUMBER = re.compile(r"^(?:step )?" + NUMBER + r"(?: through " + NUMBER + r")?$")
 OWNERS = "NOTE: the owners — "
 FORTHCOMING = re.compile(r"\*\((?:forthcoming|not yet in the library)\)\*")
+NEXT_OWNER = re.compile(r",?\s+(?:and|or)\s+|,\s+")
+OPENS_OWNER = re.compile(r"\[|(?:a|an|the)\s|[A-Z]")
 
 
 def section_lines(lines: list[str], name: str) -> range:
@@ -324,7 +326,8 @@ def walk_non_goals(rel: str, lines: list[str], rules: list[dict], spec: cites.Sp
     line: owners separated by `;`, each followed by the labels it owns in
     parentheses (spec-format.md section Non-goals: each points at the pattern
     or mechanism that owns it, by link, `*(forthcoming)*` if it has not
-    landed)."""
+    landed). Each owner says whether it is forthcoming, so a part that names a
+    forthcoming owner beside others gives each its own entry (owner_parts)."""
     owned: dict[str, list[dict]] = {}
     for k in section_lines(lines, "Non-goals"):
         if not lines[k].startswith(OWNERS):
@@ -336,14 +339,40 @@ def walk_non_goals(rel: str, lines: list[str], rules: list[dict], spec: cites.Sp
                 if labels and not FORTHCOMING.search("*(" + par + ")*"):
                     cited += labels
                     owner = owner.replace("(" + par + ")", " ")
-            who = {"owner": re.sub(r"\s+", " ", owner).strip(),
-                   "links": [posixpath.normpath(posixpath.join(posixpath.dirname(rel), lk))
-                             for _, lk in check.MD_LINK.findall(group) if lk.endswith(".md")],
-                   "forthcoming": bool(FORTHCOMING.search(group)), "line": k + 1}
+            whos = [{"owner": part,
+                     "links": [posixpath.normpath(posixpath.join(posixpath.dirname(rel), lk))
+                               for _, lk in check.MD_LINK.findall(part) if lk.endswith(".md")],
+                     "forthcoming": bool(FORTHCOMING.search(part)), "line": k + 1}
+                    for part in owner_parts(owner)]
             for label in expand(cited, spec):
-                owned.setdefault(label, []).append(who)
+                owned.setdefault(label, []).extend(whos)
     return [{"label": r["label"], "line": r["line"], "owners": owned.get(r["label"], [])}
             for r in rules if r["family"] == "Non-goal"]
+
+
+def owner_parts(owner: str) -> list[str]:
+    """The owners one part of the owners line names, its labels already cut. A
+    part that marks a name forthcoming is split at each comma, `and` or `or`
+    outside a link and a parenthesis that a link, an article or a capitalized
+    word follows: `[Audit Trail](./audit-trail.md), the deployment and
+    Hold-Aware Audit Retention *(forthcoming)*` is three owners, and `a
+    priority and ordering pattern *(forthcoming)*` one. A part with no marker
+    is one owner, since none of its owners is forthcoming, and its prose is
+    not split: in `[Permissions](../atoms/permissions.md) and
+    [Session](../atoms/session.md), an identity-keyed access model` the last
+    phrase glosses the two."""
+    if not FORTHCOMING.search(owner):
+        return [re.sub(r"\s+", " ", owner).strip()]
+    parts, depth, start, i = [], 0, 0, 0
+    while i < len(owner):
+        depth += (owner[i] in "([") - (owner[i] in ")]")
+        m = NEXT_OWNER.match(owner, i) if depth == 0 else None
+        if m and OPENS_OWNER.match(owner, m.end()):
+            parts.append(owner[start:i])
+            start = i = m.end()
+            continue
+        i += 1
+    return [p for p in (re.sub(r"\s+", " ", p).strip() for p in parts + [owner[start:]]) if p]
 
 
 def top_level_split(text: str) -> list[str]:

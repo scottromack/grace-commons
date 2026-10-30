@@ -2419,9 +2419,10 @@ def check_requirement_text_synthetic(problems: list[str], patterns) -> int:
 # The parser landed 2026-10-29 with its proof: every spec parses, each
 # document's rule count equals cites.py's, every label is unique on its page,
 # every rule a Check names exists, every Composes entry resolves to a spec. The
-# synthetic pair pins the reading and each finding from both sides, and read
-# again from a folder outside the repo it pins one-spec mode on a draft (the
-# Grace connector's, 2026-10-30); the corpus pin holds the findings the proof
+# synthetic pair pins the reading and each finding from both sides, which owner
+# of a Non-goal is forthcoming among them, and read again from a folder outside
+# the repo it pins one-spec mode on a draft (the Grace connector's,
+# 2026-10-30); the corpus pin holds the findings the proof
 # makes on the specs as they stand, exactly, so a new finding or a cured one
 # both send someone to look.
 IR_ATOM = """# Widget
@@ -2473,9 +2474,10 @@ Check 1.3: An auditor MUST find EVERY widget made once (Invariant 1).{bad}
 ```
 Non-goal 1: The atom MUST NOT price a widget.
 Non-goal 2: The atom MUST NOT ship a widget.
+Non-goal 3: The atom MUST NOT paint a widget.
 ```
 
-NOTE: the owners — a pricing pattern *(forthcoming)* (Non-goal 1); [Gadget Line](../compositions/gadget-line.md) (Non-goal 2).
+NOTE: the owners — a pricing and discount pattern *(forthcoming)* (Non-goal 1); [Gadget Line and Rail](../compositions/gadget-line.md), the deployment and Widget Shipping *(not yet in the library)* (Non-goal 2); [Gadget Line](../compositions/gadget-line.md) and the deployment, a painting layer (Non-goal 3).
 
 ## Terms
 
@@ -2555,7 +2557,7 @@ def check_ir_synthetic(problems: list[str]) -> None:
         return
     rules = {r["label"]: r for r in widget["rules"]}
     want = {
-        "rules": len(rules) == 9 and rules["Operation 2a"]["parent"] == "Operation 2",
+        "rules": len(rules) == 10 and rules["Operation 2a"]["parent"] == "Operation 2",
         "section": rules["Invariant 1.1"]["section"] == ["Structure", "Invariants", "Invariant 1 — One count."],
         "tombstone": [t["label"] for t in widget["tombstones"]] == ["Operation 3"],
         "signature": widget["signatures"] == [{
@@ -2564,8 +2566,15 @@ def check_ir_synthetic(problems: list[str]) -> None:
         "row": widget["case_tables"][0]["rows"][0]["rules"] == ["Operation 1", "Execution Contract Read 4"],
         "tests": [c["tests"] for c in widget["checks"]] == [
             ["Invariant 1.1"], ["Operation 2", "Execution Contract Read 4"], ["Invariant 1"]],
-        "owners": [(n["label"], [(o["forthcoming"], o["links"]) for o in n["owners"]]) for n in widget["non_goals"]] == [
-            ("Non-goal 1", [(True, [])]), ("Non-goal 2", [(False, ["compositions/gadget-line.md"])])],
+        "owners": [(n["label"], [(o["owner"], o["forthcoming"], o["links"]) for o in n["owners"]])
+                   for n in widget["non_goals"]] == [
+            ("Non-goal 1", [("a pricing and discount pattern *(forthcoming)*", True, [])]),
+            ("Non-goal 2", [("[Gadget Line and Rail](../compositions/gadget-line.md)", False,
+                             ["compositions/gadget-line.md"]),
+                            ("the deployment", False, []),
+                            ("Widget Shipping *(not yet in the library)*", True, [])]),
+            ("Non-goal 3", [("[Gadget Line](../compositions/gadget-line.md) and the deployment, a painting layer",
+                             False, ["compositions/gadget-line.md"])])],
         "terms": [(t["name"], t["entry"], t["kind"]) for t in widget["terms"]] == [("widget", "Widget", {"Kind": "Type"})]
         and list(widget["vocabulary"]) == ["actors"],
         "composes": [e["path"] for x in docs if x["spec"] == "compositions/gadget-line.md"
@@ -2585,7 +2594,7 @@ def check_ir_synthetic(problems: list[str]) -> None:
         [lk for n in drafts[0]["non_goals"] for o in n["owners"] for lk in o["links"]],
         [e["path"] for e in drafts[1]["composes"]]]
     if read != [(atom.as_posix(), "atom"), (composition.as_posix(), "composition"),
-                ["compositions/gadget-line.md"], ["atoms/widget.md"]]:
+                ["compositions/gadget-line.md"] * 2, ["atoms/widget.md"]]:
         problems.append(f"IR: a draft outside the repo read wrong: {read}")
 
     _, findings = run(True)
