@@ -288,7 +288,7 @@ Non-goal 15: The atom MUST NOT append two events atomically.
 Deleted: Non-goal 16. Execution Contract Database 1 owns it.
 ```
 
-NOTE: the owners — [Retention Window](./retention-window.md) (Non-goal 1, Non-goal 2) and a Storage Tier pattern *(forthcoming)* for cold events; [Tamper Evidence](./tamper-evidence.md) (Non-goal 3, Non-goal 4); [Actor Identity](./actor-identity.md) (Non-goal 5, Non-goal 6); a Reverse Index pattern *(forthcoming)* (Non-goal 7, Non-goal 8); a Consensus pattern *(forthcoming)* (Non-goal 10); a Schema Evolution pattern *(forthcoming)* (Non-goal 12); a Snapshot pattern *(forthcoming)* (Non-goal 13); a Change Feed pattern *(forthcoming)* (Non-goal 14); Erasure Coordination *(forthcoming)* (Erasure 2, Erasure 3).
+NOTE: the owners — [Retention Window](./retention-window.md) (Non-goal 1, Non-goal 2) and a Storage Tier *(forthcoming)* for cold events; [Tamper Evidence](./tamper-evidence.md) (Non-goal 3, Non-goal 4); [Actor Identity](./actor-identity.md) (Non-goal 5, Non-goal 6); a Reverse Index *(forthcoming)* (Non-goal 7, Non-goal 8); a Consensus pattern *(forthcoming)* (Non-goal 10); a Schema Evolution pattern *(forthcoming)* (Non-goal 12); a Snapshot pattern *(forthcoming)* (Non-goal 13); a Change Feed pattern *(forthcoming)* (Non-goal 14); Erasure Coordination *(forthcoming)* (Erasure 2, Erasure 3).
 
 Where the pattern breaks down: when the host cannot supply atomic, serialized appends — most adversarially-distributed settings; when an event must be edited or deleted in place; when order must come from something other than append order.
 

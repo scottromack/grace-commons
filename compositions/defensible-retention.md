@@ -922,7 +922,7 @@ Non-goal 28: The composition MUST NOT hold an idempotence key for a placement.
 Non-goal 29: A deployment needing an at-most-once placement MUST compose Duplicate Prevention.
 ```
 
-NOTE: the owners — Policy Reconciliation *(forthcoming)* (Non-goal 1, Non-goal 2); the deployment (Non-goal 8; Non-goal 25 through 27); [Permissions](../atoms/permissions.md) and the deployment (Non-goal 9 through 12, Composition note 3 through 5); a shred pattern *(forthcoming)* (Non-goal 15, Non-goal 16); a Failed-Attempt Log *(forthcoming)* (Non-goal 17, Non-goal 18); [Audit Trail](./audit-trail.md), the deployment and Hold-Aware Audit Retention *(forthcoming)* (Non-goal 20 through 23); Reverse Index *(forthcoming)* (Composes 14); Override Authorization *(forthcoming)* (Capability requirement 33).
+NOTE: the owners — Policy Reconciliation *(forthcoming)* (Non-goal 1, Non-goal 2); the deployment (Non-goal 8; Non-goal 25 through 27); [Permissions](../atoms/permissions.md) and the deployment (Non-goal 9 through 12, Composition note 3 through 5); Shred *(forthcoming)* (Non-goal 15, Non-goal 16); a Failed-Attempt Log *(forthcoming)* (Non-goal 17, Non-goal 18); [Audit Trail](./audit-trail.md), the deployment and Hold-Aware Audit Retention *(forthcoming)* (Non-goal 20 through 23); Reverse Index *(forthcoming)* (Composes 14); Override Authorization *(forthcoming)* (Capability requirement 33).
 
 ## Edge cases
 
@@ -1062,7 +1062,7 @@ Term terms: composition, constituents, business retention instance, service iden
 
 Term cited: Execution Contract Conformance 8 — the recursive inheritance of a constituent's guarantees. The section titled Substrate composition invocation in `execution-contract.md` — the substrate relation and its instance topology. The section titled Composition state in `execution-contract.md` — the derived-index classification and its obligations. The section titled Logic Confinement Principle in `execution-contract.md` — the seam. verify_record, purge_event, event id, recording instant, start margin: Audit Trail. try_take, remaining, grant, holder value, remaining term, call in flight, no answer: Lease. time resolution: Retention Window.
 
-Term composing patterns: Policy Reconciliation *(forthcoming)*; Record Destruction *(forthcoming)*; Hold-Aware Audit Retention *(forthcoming)*; Override Authorization *(forthcoming)*; Reverse Index *(forthcoming)*; Failed-Attempt Log *(forthcoming)*; a shred pattern *(forthcoming)*; [Permissions](../atoms/permissions.md); [Duplicate Prevention](../atoms/duplicate-prevention.md).
+Term composing patterns: Policy Reconciliation *(forthcoming)*; Record Destruction *(forthcoming)*; Hold-Aware Audit Retention *(forthcoming)*; Override Authorization *(forthcoming)*; Reverse Index *(forthcoming)*; Failed-Attempt Log *(forthcoming)*; Shred *(forthcoming)*; [Permissions](../atoms/permissions.md); [Duplicate Prevention](../atoms/duplicate-prevention.md).
 
 Term record: the host's business record this composition governs — named by a record reference, held in the host's own records, and destroyed by the composition through the record destruction pattern once `RetentionWindow.purge` has stood its retention purged (Action wiring 112).
 

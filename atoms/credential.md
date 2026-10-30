@@ -525,7 +525,7 @@ Non-goal 38: The atom MUST NOT define an answer to a fault in a function the der
 Non-goal 39: The atom MUST NOT bound the cost of guessing a verifier.
 ```
 
-NOTE: the owners — a compromise disclosure pattern *(forthcoming)* (Non-goal 19, Composition note 11); Execution Contract Logic confinement 7 (Non-goal 27); the deployment (Non-goal 11, Non-goal 14, Non-goal 17, Non-goal 23, Non-goal 26, Non-goal 37, Composition note 17); the host (Non-goal 38); the derivation function (Non-goal 18, Non-goal 39, External check 14); a composing Event Log (Non-goal 24, Non-goal 25); a composing Retention Window (Non-goal 22); a challenge pattern *(forthcoming)* (Non-goal 31, Non-goal 36); the composing pattern that exposes [Read] (Non-goal 33, Composition note 16).
+NOTE: the owners — Compromise Disclosure *(forthcoming)* (Non-goal 19, Composition note 11); Execution Contract Logic confinement 7 (Non-goal 27); the deployment (Non-goal 11, Non-goal 14, Non-goal 17, Non-goal 23, Non-goal 26, Non-goal 37, Composition note 17); the host (Non-goal 38); the derivation function (Non-goal 18, Non-goal 39, External check 14); a composing Event Log (Non-goal 24, Non-goal 25); a composing Retention Window (Non-goal 22); a challenge pattern *(forthcoming)* (Non-goal 31, Non-goal 36); the composing pattern that exposes [Read] (Non-goal 33, Composition note 16).
 
 ---
 
@@ -640,7 +640,7 @@ Term terms: credential, credential id, lapse instant, pair, property, reference,
 
 Term cited: the section titled Logic Confinement Principle in `execution-contract.md` — the seam and the transition.
 
-Term composing pattern: [Party Identity](./party-identity.md), [Session](./session.md), [Permissions](./permissions.md), [Actor Identity](./actor-identity.md), [Capability](./capability.md), [Event Log](./event-log.md), [Tamper Evidence](./tamper-evidence.md), [Login](../compositions/login.md), [External Onboarding](../compositions/external-onboarding.md), a compromise disclosure pattern *(forthcoming)*, a trusted timestamping pattern *(forthcoming)*, a challenge pattern *(forthcoming)*, [Retention Window](./retention-window.md).
+Term composing pattern: [Party Identity](./party-identity.md), [Session](./session.md), [Permissions](./permissions.md), [Actor Identity](./actor-identity.md), [Capability](./capability.md), [Event Log](./event-log.md), [Tamper Evidence](./tamper-evidence.md), [Login](../compositions/login.md), [External Onboarding](../compositions/external-onboarding.md), Compromise Disclosure *(forthcoming)*, Trusted Timestamping *(forthcoming)*, a challenge pattern *(forthcoming)*, [Retention Window](./retention-window.md).
 
 Term credential types: credential_types — the credential kinds a deployment declares.
 

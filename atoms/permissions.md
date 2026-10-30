@@ -337,7 +337,7 @@ Non-goal 16: The atom MUST NOT carry a grant across trust domains.
 Non-goal 17: A deployment needing a defensible timeline MUST compose a trusted timestamping pattern.
 ```
 
-NOTE: the owners — [Actor Identity](./actor-identity.md) (Non-goal 9, Non-goal 10, External check 1); [Event Log](./event-log.md) (Non-goal 11, Non-goal 12, External check 2); the composing pattern (Non-goal 14, Composition note 3; Non-goal 15, Composition note 5); a Trusted Timestamping pattern *(forthcoming)* (Non-goal 17).
+NOTE: the owners — [Actor Identity](./actor-identity.md) (Non-goal 9, Non-goal 10, External check 1); [Event Log](./event-log.md) (Non-goal 11, Non-goal 12, External check 2); the composing pattern (Non-goal 14, Composition note 3; Non-goal 15, Composition note 5); Trusted Timestamping *(forthcoming)* (Non-goal 17).
 
 Where the atom breaks down: when the scope vocabulary needs hierarchy or wildcards; when evaluation must reason about the resource's attributes at call time; when a grant must end on its own without anyone revoking it; when the grantor's identity is part of the evaluation rather than beside it.
 

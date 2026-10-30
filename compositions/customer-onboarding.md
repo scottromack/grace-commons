@@ -925,7 +925,7 @@ Non-goal 20: The composition MUST NOT admit a second Party Identity writer.
 Non-goal 21: The composition MUST NOT detect a dishonest clock reading.
 ```
 
-NOTE: the owners — a Risk Tiering / EDD composing pattern *(forthcoming)* (Non-goal 3 through 5); [Duplicate Prevention](../atoms/duplicate-prevention.md), wired by a deployment in front of [Record Verification] or [Trigger Monitoring Review] (Non-goal 9); the composing system (Non-goal 10); a composing [Permissions](../atoms/permissions.md) layer (Non-goal 16, External check 5); a Review Schedule atom *(forthcoming)* (Non-goal 17); a Reverse Index *(forthcoming)* a deployment composes over the trail (Non-goal 19, Composes 14).
+NOTE: the owners — Risk Tiering / EDD *(forthcoming)* (Non-goal 3 through 5); [Duplicate Prevention](../atoms/duplicate-prevention.md), wired by a deployment in front of [Record Verification] or [Trigger Monitoring Review] (Non-goal 9); the composing system (Non-goal 10); a composing [Permissions](../atoms/permissions.md) layer (Non-goal 16, External check 5); a Review Schedule *(forthcoming)* (Non-goal 17); a Reverse Index *(forthcoming)* a deployment composes over the trail (Non-goal 19, Composes 14).
 
 ---
 
