@@ -19,6 +19,9 @@ GRACE-lang v0.69 and the Execution Contract as they stand at grace-commons `cab2
 The grammar's Changes section, newest first. From v0.66 each version's entry is written here; the entries from v0.65 back moved from Section 23 on 2026-10-23, word for word.
 
 NOTE:
+v0.69, editorial (2026-10-30): Term MAY rule says what an ONLY IF tail does: a MAY rule carrying one leaves the act unpermitted wherever the tail's condition does not hold, cited beside Timing 12, which writes a strict lower bound in that form; every other MAY rule is satisfied vacuously and obliges nothing, as before. The 27 rules in nine specifications that carry Timing 12's form already oblige it, so the sentence states once what the pages oblige: the version stands and no round is owed. Ruled by the maintainer on 2026-10-30 at 21:09Z, on the escalation of 19:28Z (R3), after readers on four model families had read Session's Capability requirement 11 as binding nothing, four rounds running.
+
+NOTE:
 v0.69, editorial (2026-10-30): Section 13 points to where the words outside the grammar live, a specification's own words in its Terms section (`spec-format.md`) and the few English words whose ambiguity leaks into specifications in `glossary.md`: a pointer, never a mirror, carrying nothing (Surface 3) and obliging nothing, so the version stands and no round is owed. Asked by the maintainer on 2026-10-30 at 20:02Z.
 
 NOTE:

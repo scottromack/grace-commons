@@ -99,7 +99,7 @@ Term conformance failure: a run that violates a rule.
 
 Term obey: a system obeys a rule when every run of the system satisfies the rule's obligation under the rule's condition; a run that does not is a conformance failure, decided from records by the spec's acceptance checks (Generation acceptance: `spec-format.md`); an inequality rule (Timing 9) obliges the party that binds the terms; a rule whose subject is not an agent is a constraint on the writer.
 
-Term MAY rule: a rule under MAY; a system satisfies a MAY rule vacuously, and a MAY rule obliges nothing.
+Term MAY rule: a rule under MAY; a system satisfies a MAY rule vacuously, and a MAY rule obliges nothing, except that a MAY rule carrying an ONLY IF tail leaves the act unpermitted wherever the tail's condition does not hold (Timing 12).
 
 ```
 NOTE: a fragment, not a rule — no label, no actor, no modal; the tail alone:
