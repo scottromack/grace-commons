@@ -45,6 +45,8 @@ Identity 8: The atom MUST NOT identify an attestation by attestation instant.
 Deleted: Identity 9. Invariant 5.1 owns it.
 ```
 
+NOTE: watch the allocation ban (Identity 3).
+
 Term attestation: one recorded binding of an actor to an action — an [Attestation].
 
 Term attestation id: the opaque value naming one attestation — an [Attestation Id].

@@ -16,11 +16,11 @@ toc: true
 
 ## Summary
 
-Provenance answers one question: who has held this artifact, in what order, from intake to disposition. A chain opens with a genesis entry naming its first custodian and accumulates entries — transfers, transformations, disclosures — until it is archived. Each entry names a custodian; the chain is append-only; nothing is ever edited.
+Provenance answers one question: who has held this artifact, in what order, from intake to disposition. A chain opens with a genesis entry naming its first custodian and accumulates entries — transfers, transformations, disclosures — until it is archived. Each entry names a custodian, and a transfer names two, the outgoing and the incoming; the chain is append-only; nothing is ever edited.
 
 Order comes from a sequence number, not the clock. A skewed or dishonest clock degrades a timestamp and can change nothing else — which entries are accepted, how they replay, or who holds the artifact now.
 
-The load-bearing rule is continuity: from genesis to archive the chain has exactly one current custodian, never none and never two. A transfer is hand-to-hand — the outgoing custodian is read from the chain's own state and never supplied by the caller, so a transferred entry cannot record a false hand-off.
+The load-bearing rule is continuity: from genesis to archive the chain has exactly one current custodian, never none and never two. A transfer is hand-to-hand — the outgoing custodian is read from the chain's current custodian and never supplied by the caller, so a transferred entry cannot record a false hand-off.
 
 This is the mechanism behind pharmaceutical chain of custody, legal evidence handling, forensic specimen tracking and regulated document lineage. It does not verify that a custodian is who they claim, decide who may call, or seal the chain against an adversary with write access.
 
@@ -33,9 +33,9 @@ This is the mechanism behind pharmaceutical chain of custody, legal evidence han
 
 A regulator's question about a controlled artifact is always the same shape: *prove nobody unaccounted-for held this*. Answering it needs a record where custody has no gaps by construction rather than by diligence — because a gap that can be created will be created, and the one place it must not be creatable is the record that exists to disprove it.
 
-So the atom holds a chain per custody episode, and one rule carries the weight: exactly one current custodian at every point. There is no action that empties custody, none that admits two holders, and none but [Transfer] that moves it. A transfer reads the outgoing side from the chain's own state, so the from-field cannot be claimed — which is a stronger guarantee than checking a claim, because there is nothing to check.
+So the atom holds a chain per custody episode, and one rule carries the weight: exactly one current custodian at every point. There is no action that empties custody, none that admits two holders, and none but [Transfer] that moves it. A transfer reads the outgoing side from the chain's current custodian, so the from-field cannot be claimed — which is a stronger guarantee than checking a claim, because there is nothing to check.
 
-[Event Log](./event-log.md) cannot express this, and the difference is why Provenance is its own concept rather than a configured stream. Event Log is content-agnostic, has no subject, no custodian, and permits sequence gaps by design. Continuity needs a subject and a holder and a dense sequence; a stream that allows a gap cannot prove there wasn't one.
+[Event Log](./event-log.md) cannot express this, and the difference is why Provenance is its own concept rather than a configured stream. Event Log is content-agnostic: it has no subject and no custodian. Continuity needs a subject, a holder and a dense sequence; a stream that names no holder cannot prove that no one unaccounted-for held the artifact.
 
 Two disciplines carry the rest. **Order is the sequence number, never the clock** — the clock stamps an annotation and nothing reads it, so an adversarial clock cannot reorder a custody history. And **identity is the chain, never the artifact reference** — the same artifact may lawfully begin a second chain for a second episode, a returned batch or re-introduced exhibit, and identifying by artifact would merge two histories that must stay apart.
 
@@ -50,8 +50,8 @@ Identity 1: The atom MUST identify a chain by the chain id.
 Identity 2: The atom MUST identify an entry by the entry id.
 Identity 3: The host MUST allocate a chain id at the seam.
 Identity 4: The host MUST allocate an entry id at the seam.
-Identity 5: The transition MUST NOT allocate a chain id.
-Identity 6: The transition MUST NOT allocate an entry id.
+Deleted: Identity 5. Execution Contract Logic confinement 3 owns it.
+Deleted: Identity 6. Execution Contract Logic confinement 3 owns it.
 Identity 7: The atom MUST NOT change a chain id.
 Identity 8: The atom MUST NOT change an entry id.
 Identity 9: The atom MUST NOT identify a chain by the artifact reference.
@@ -65,6 +65,7 @@ Identity 16: Two entries in one chain MUST NOT share an entry id.
 Deleted: Identity 17. Execution Contract Database 7 owns it.
 ```
 
+NOTE: watch the allocation ban (Identity 5, Identity 6).
 
 Term chain: one artifact's custody history for one episode, from a genesis entry to a terminal disposition — the record this atom holds.
 
@@ -80,9 +81,11 @@ Term custodian reference: the opaque reference naming who holds the artifact —
 
 Term database instance: one named database a call is routed to; chain id uniqueness ranges over one instance.
 
-Term seam: the atom's I/O boundary as the section titled Logic Confinement Principle in `execution-contract.md` declares it; the host injects the clock reading, the chain id and the entry id here.
+Term seam: the atom's I/O (input and output) boundary; the host injects the clock reading, the chain id and the entry id here.
 
-Term transition: the atom's evaluation of one call against the chain records, as the section titled Logic Confinement Principle in `execution-contract.md` declares it.
+Term transition: the atom's evaluation of one call against the chain records.
+
+NOTE: watch the seam citation (Term seam, Term transition).
 
 ### State
 
@@ -112,12 +115,15 @@ Deleted: State 19. Execution Contract Database 3 owns it.
 
 ```
 Capability requirement 1: The deployment MUST supply now at the seam.
-Capability requirement 5: The deployment MUST supply the chain records PER Execution Contract Database 1 through 4, Execution Contract Database 7, Execution Contract Read 1 through 4, Execution Contract Refusal 1, Execution Contract Query 1 through 4 and Execution Contract Conformance 9.
+Capability requirement 5: The deployment MUST supply the chain records PER Execution Contract Database 1 through 4, Execution Contract Database 7, Execution Contract Read 1 through 4, Execution Contract Refusal 1 and Execution Contract Query 1 through 4.
 Capability requirement 6: The deployment MUST set a maximum length per string input.
+Capability requirement 7: The deployment MUST declare which composing patterns the deployment wired in.
 Deleted: Capability requirement 2. Execution Contract Logic confinement 7 owns it.
 Deleted: Capability requirement 3. Execution Contract Logic confinement 7 owns it.
 Deleted: Capability requirement 4. Execution Contract Logic confinement 7 owns it.
 ```
+
+NOTE: watch the deployment's composition note (Capability requirement 7).
 
 ### Operations
 
@@ -213,19 +219,26 @@ Operation 62: An admitted originate MUST set the chain's artifact reference to t
 Operation 63: An admitted originate MUST set the genesis entry's custodian reference to the call's custodian reference.
 Operation 64: An admitted transform MUST set the transformed entry's transformation descriptor to the call's transformation descriptor.
 Operation 65: An admitted disclose MUST set the disclosed entry's recipient reference to the call's recipient reference.
+Operation 66: An admitted transfer MUST set the transferred entry's event type to transferred.
+Operation 67: An admitted transfer MUST set the transferred entry's from custodian reference to the current custodian the entry found.
+Operation 68: An admitted transfer MUST set the transferred entry's to custodian reference to the call's to custodian reference.
+Operation 69: An admitted transform MUST set the transformed entry's event type to transformed.
+Operation 70: An admitted transform MUST set the transformed entry's custodian reference to the call's custodian reference.
+Operation 71: An admitted disclose MUST set the disclosed entry's event type to disclosed.
+Operation 72: An admitted disclose MUST set the disclosed entry's custodian reference to the call's custodian reference.
+Operation 73: An admitted archive MUST set the archived entry's event type to archived.
+Operation 74: An admitted archive MUST set the archived entry's custodian reference to the call's custodian reference.
 ```
 
 NOTE: watch the integer range (Operation 48, Operation 60).
 
 NOTE: watch the optional field no rule records (Operation 61).
 
-NOTE: watch the required input no rule records (Operation 62, Operation 63, Operation 64, Operation 65).
+NOTE: watch the required input no rule records (Operation 62, Operation 63, Operation 64, Operation 65, Operation 68, Operation 70, Operation 72, Operation 74).
+
+NOTE: Operation 39 binds the four appending actions whose signatures answer the entry id, [Transfer], [Transform], [Disclose] and [Archive], and not [Originate], whose signature answers the chain id (Operation 9; GRACE-lang Closed vocabulary 29).
 
 Term now: the deployment's clock reading at the call, as Execution Contract Logic confinement 11 declares it.
-
-Term business caller: the party whose action the call carries, as the section titled Logic Confinement Principle in `execution-contract.md` declares it; never the source of an injected value.
-
-NOTE: open 2026-10-30-a — Term seam, Term transition and Term business caller cite the section titled Logic Confinement Principle in `execution-contract.md`, which declares none of them.
 
 Term genesis type: the call input selecting a genesis entry's event type — a [Genesis Type]; an input name, never a stored field.
 
@@ -263,9 +276,13 @@ Term admitted disclose: a [Disclose] call the action admits (Execution Contract 
 
 Term admitted archive: an [Archive] call the action admits (Execution Contract Read 4).
 
-Term query: what a read asks for beside the chain id; any combination of the filter axes.
+Term query: what a read asks for beside the chain id; any combination of the filter axes, a filter on another axis making the query malformed.
 
-Term filter axes: sequence number | recording instant | event type — the axes a query filters a chain's entries on, a filter on sequence number or recording instant carrying a range.
+Term entry sequence: what [Read] answers — the chain's entries the query matches, as Operation 46 orders them.
+
+Term filter axes: sequence number | recording instant | event type — the three axes a query filters a chain's entries on, a filter keyed by the projection of the field its axis names, and a filter on sequence number or recording instant carrying a range, written start first and end second.
+
+NOTE: watch the wire layer (Term filter axes).
 
 The case space, and the rule that owns each case:
 
@@ -274,17 +291,25 @@ The case space, and the rule that owns each case:
 | [Originate] | refs present, genesis type admitted | the new chain id | a chain opens, genesis entry at sequence one (Operation 5 through 9, Operation 61 through 63) |
 | [Originate] | a blank reference | [Invalid Reference] | none (Operation 1, Operation 2) |
 | [Originate] | genesis type outside the two | [Invalid Genesis Type] | none (Operation 3, Execution Contract Refusal 1) |
-| [Transfer] | open chain, to custodian reference present | the entry id | transferred entry; the from-side read from state; custody moves (Operation 19 through 21) |
-| [Transform] | open chain, refs present, custodian current | the entry id | transformed entry; custody unchanged (Operation 28, Operation 33, Operation 64) |
-| [Disclose] | open chain, refs present, custodian current | the entry id | disclosed entry; custody unchanged (Operation 29, Operation 34, Operation 65) |
-| [Archive] | open chain, custodian current | the entry id | archived entry; chain closes; custody unchanged (Operation 30 through 32) |
+| [Transfer] | open chain, to custodian reference present | the entry id | transferred entry; the from-side read from the current custodian; custody moves (Operation 19 through 21, Operation 66 through 68) |
+| [Transform] | open chain, refs present, custodian current | the entry id | transformed entry; custody unchanged (Operation 28, Operation 33, Operation 64, Operation 69, Operation 70) |
+| [Disclose] | open chain, refs present, custodian current | the entry id | disclosed entry; custody unchanged (Operation 29, Operation 34, Operation 65, Operation 71, Operation 72) |
+| [Archive] | open chain, custodian current | the entry id | archived entry; chain closes; custody unchanged (Operation 30 through 32, Operation 73, Operation 74) |
 | any writer | chain is archived | [Archived] | none (Operation 12 through 14) |
 | [Archive] | chain is archived | [Already Archived] | none (Operation 15) |
-| custodian-guarded | custodian reference is not the current custodian | [Not Current Custodian] | none (Operation 26) |
+| custodian-guarded | custodian reference present and not the current custodian | [Not Current Custodian] | none (Operation 26) |
 | any addressed action | id names nothing | [Not Known] | none (Operation 10) |
 | any appending action | database refuses | [Storage Failure] | none (Operation 41 through 44) |
+| [Transfer] | a blank to custodian reference | [Invalid Reference] | none (Operation 17) |
+| custodian-guarded | a blank custodian reference | [Invalid Reference] | none (Operation 23) |
+| [Transform] | a blank transformation descriptor | [Invalid Descriptor] | none (Operation 24) |
+| [Disclose] | a blank recipient reference | [Invalid Reference] | none (Operation 25) |
+| any appending action | a reference over the maximum length | [Invalid Reference] | none (String 7) |
+| [Transform] | a transformation descriptor over the maximum length | [Invalid Descriptor] | none (String 8) |
+| [Originate] | metadata over the maximum length | [Invalid Reference] | none (String 9) |
+| any action | the database cannot be read | state-unavailable | none (Execution Contract Read 1) |
 | [Read] | a well-formed query, any chain state | the matching entries, oldest first | none (Operation 46, Operation 53) |
-| [Read] | an inverted range, a range missing an end, or an unknown event type | [Invalid Query] | none (Operation 48, Operation 49, Operation 59, Operation 60) |
+| [Read] | an inverted range, a range missing an end, an unknown event type, or a filter keyed by no axis's projection | [Invalid Query] | none (Operation 48, Operation 49, Operation 59, Operation 60) |
 
 ### Invariants
 
@@ -348,7 +373,7 @@ The case space, and the rule that owns each case:
 
 A manufacturer opens the chain: `originate(artifact_ref: "batch-x91", custodian_ref: "manuf-lab-7", genesis_type: originated)` → `chain-0041`. The genesis entry takes `sequence_number: 1` and the chain stands open with `manuf-lab-7` current (Operation 5 through 9, Operation 63).
 
-`transfer("chain-0041", to_custodian_ref: "dist-region-3")` → `e2`. The entry records `from_custodian_ref: "manuf-lab-7"` — read from the current custodian, never from the caller (Operation 18, Operation 19). `transfer("chain-0041", "pharm-hosp-9")` → `e3`. The pharmacist records the dispense: `transform("chain-0041", "pharm-hosp-9", "dispensed 10mg dose into unit D44")` → `e4`, then closes it: `archive("chain-0041", "pharm-hosp-9")` → `e5`. The chain stands archived.
+`transfer("chain-0041", to_custodian_ref: "dist-region-3")` → `e2`. The entry records `from_custodian_ref: "manuf-lab-7"` — read from the current custodian, never from the caller (Operation 18, Operation 19, Operation 67). `transfer("chain-0041", "pharm-hosp-9")` → `e3`. The pharmacist records the dispense: `transform("chain-0041", "pharm-hosp-9", "dispensed 10mg dose into unit D44")` → `e4`, then closes it: `archive("chain-0041", "pharm-hosp-9")` → `e5`. The chain stands archived.
 
 A regulator asks whether custody was unbroken. `read("chain-0041")` answers five entries in sequence order. Every transferred entry's from custodian reference equals the prior entry's to custodian reference, or the genesis custodian reference for the first transfer. Invariant 4 is the structural answer.
 
@@ -376,15 +401,15 @@ The same call against the chain while it stood open, after custody had moved to 
 
 `read("chain-9999")` → not-known (Operation 10).
 
-`read("chain-0041", {sequence_range: [5, 2]})` → invalid-query. The caller corrects the query rather than reading an empty answer as *no entries matched* (Operation 47, Operation 48).
+`read("chain-0041", {sequence_number: [5, 2]})` → invalid-query. The caller corrects the query rather than reading an empty answer as *no entries matched* (Operation 47, Operation 48).
 
 `transfer("chain-0107", "forensic-lab-12")` while the database's write path is down → storage-failure. Every precondition passed and the write did not; no entry is appended, no sequence number is taken, and the current custodian holds its prior value (Operation 41 through 44, Execution Contract Refusal 1).
 
 ### Regulated adversarial scenarios
 
-- **Regulator audit.** An FDA (US Food and Drug Administration) inspector asks for the complete chain of custody for `batch-x91` under 21 CFR (Code of Federal Regulations) Part 211. `read("chain-0041")` answers the ordered sequence; the inspector clears Check 1.1 through 7.2 provably, from those records and their committed versions (Execution Contract Generation acceptance 1).
-- **Disputed transaction.** The defense rebuttal above rests on two invariants together: custody continuity, because from custodian reference is read from chain state and cannot be supplied (Invariant 4, Operation 18), and custodian presence, because no entry may name an empty custodian (Invariant 7).
-- **Breach investigation.** An investigator brackets an anomaly window generously: `read("chain-0041", {recorded_at_range: ["2026-02-27T00:00:00Z", "2026-03-17T23:59:59Z"]})`. A wall-time filter is a convenience over a best-effort annotation and never an ordering claim (Operation 58), so the window is checked against an unfiltered read — the filtered window's first and last entries are located in the full sequence and their sequence-adjacent neighbours checked to fall outside the bracket. The sequence is dense (Invariant 5), so the run from the window's first entry to its last holds every entry appended between them, one whose skewed recording instant the filter missed among them; an entry outside the run whose skewed recording instant fell outside the bracket stays outside it, a miss the generous bracket narrows and no record rules out. The custodian in force at any point is then exactly determined by replaying the preceding entries.
+- **Regulator audit.** An FDA (US Food and Drug Administration) inspector asks for the complete chain of custody for `batch-x91` under 21 CFR (Code of Federal Regulations) Part 211. `read("chain-0041")` answers the ordered sequence; the inspector clears Check 1.1 through 7.4 provably, from those records and their committed versions (Execution Contract Generation acceptance 1).
+- **Disputed transaction.** The defense rebuttal above rests on two invariants together: custody continuity, because from custodian reference is read from the current custodian and cannot be supplied (Invariant 4, Operation 18), and custodian presence, because no entry may name an empty custodian (Invariant 7).
+- **Breach investigation.** An investigator brackets an anomaly window generously: `read("chain-0041", {recorded_at: ["2026-02-27T00:00:00Z", "2026-03-17T23:59:59Z"]})`. A wall-time filter is a convenience over a best-effort annotation and never an ordering claim (Operation 58), so the window is checked against an unfiltered read — the filtered window's first and last entries are located in the full sequence and their sequence-adjacent neighbours checked to fall outside the bracket. The sequence is dense (Invariant 5), so the run from the window's first entry to its last holds every entry appended between them, one whose skewed recording instant the filter missed among them; an entry outside the run whose skewed recording instant fell outside the bracket stays outside it, a miss the generous bracket narrows and no record rules out. The custodian in force at any point is then exactly determined by replaying the preceding entries.
 
 ---
 
@@ -407,7 +432,7 @@ Check 4.2: An auditor MUST reconstruct a chain's order from sequence number alon
 Check 4.3: An auditor MUST find no sequence number repeated within a chain (Invariant 5.1).
 Check 5.1: An auditor MUST find no entry in an archived chain following the archived entry's sequence number (Invariant 6.2).
 Check 6.1: An auditor MUST find EVERY entry's fields unchanged across EVERY committed version of the entry (Invariant 1.1; Execution Contract Generation acceptance 1).
-Check 7.1: An auditor MUST find EVERY entry whose event type IS IN the event types (Invariant 8.1).
+Check 7.1: An auditor MUST find EVERY entry's event type standing in the event types (Invariant 8.1).
 Check 7.2: An auditor MUST find EVERY archived chain's last entry standing at archived (Invariant 8.4).
 Check 7.3: An auditor MUST find no entry id repeated within a chain (Identity 16).
 Check 7.4: An auditor MUST find no chain id repeated within a database instance (Identity 15).
@@ -451,7 +476,7 @@ Non-goal 22: The atom MUST NOT offer a compare-and-swap arm on [Transfer].
 Non-goal 23: A deployment needing a verifiable time anchor MUST compose a trusted timestamping pattern.
 ```
 
-NOTE: the owners — [Actor Identity](./actor-identity.md) (Non-goal 1, Non-goal 2, Composition note 3); [Permissions](./permissions.md) (Non-goal 3, Non-goal 4); [Selective Disclosure](./selective-disclosure.md) (Non-goal 5 through 7, Composition note 6); a separate chain, or an external record the host links through the genesis metadata (Non-goal 8, State 9); [Tamper Evidence](./tamper-evidence.md) (Non-goal 12, Non-goal 13, Composition note 4); [Retention Window](./retention-window.md) (Non-goal 14, Non-goal 15, Composition note 5); a composing pattern (Non-goal 16, Composition note 7); [Retention Window](./retention-window.md) and [Defensible Retention](../compositions/defensible-retention.md) (Non-goal 19, Non-goal 20); the host (Non-goal 21; Non-goal 22, Concurrency 4).
+NOTE: the owners — [Actor Identity](./actor-identity.md) (Non-goal 1, Non-goal 2, Composition note 3); [Permissions](./permissions.md) (Non-goal 3, Non-goal 4); [Selective Disclosure](./selective-disclosure.md) (Non-goal 5 through 7, Composition note 6); a separate chain, or an external record the host links through the genesis metadata (Non-goal 8, State 9); Correction 3 and Correction 4, a correction appended as a transformed entry naming the corrected entry's sequence number (Non-goal 9 through 11); [Tamper Evidence](./tamper-evidence.md) (Non-goal 12, Non-goal 13, Composition note 4); [Retention Window](./retention-window.md) (Non-goal 14, Non-goal 15, Composition note 5); a composing pattern (Non-goal 16, Composition note 7); [Retention Window](./retention-window.md) and [Defensible Retention](../compositions/defensible-retention.md) (Non-goal 19, Non-goal 20); the host (Non-goal 21; Non-goal 22, Concurrency 4).
 
 ---
 
@@ -512,10 +537,10 @@ String 9: IF metadata EXCEEDS the maximum length THEN [Originate] MUST answer in
 
 Term string input: artifact reference, custodian reference, to custodian reference, recipient reference, transformation descriptor OR metadata — every caller-supplied string this atom accepts.
 
-Term reference: artifact reference, custodian reference, to custodian reference OR recipient reference — every string input naming a party or an artifact.
+Term reference: artifact reference, custodian reference, to custodian reference OR recipient reference — every string input naming a party or an artifact, as Execution Contract Logic confinement 13 canonicalizes each at the seam.
 
 
-Term maximum length: the deployment's cap per string input, measured in Unicode code points.
+Term maximum length: the cap the deployment sets for one string input, each string input carrying its own, measured in Unicode code points.
 
 NOTE: watch host obligations — this atom refuses a string input over the maximum length on every appending action (String 7, String 8, String 9) and obliges the deployment to set the maximum length (Capability requirement 6), where [Duplicate Prevention](./duplicate-prevention.md) declares a cap; Final Critique 11 cured its unit, counted in Unicode code points as [Permissions](./permissions.md) and [Credential](./credential.md) count theirs.
 
@@ -533,7 +558,7 @@ Correction 4: A correcting entry MUST stand as a transformed entry whose transfo
 ## Composition notes
 
 ```
-Composition note 1: A deployment MUST declare which composing patterns the deployment wired in.
+Deleted: Composition note 1. Capability requirement 7 owns it.
 Composition note 2: A composing pattern MUST own the authorization of a call.
 Composition note 3: A composing pattern MUST own the attestation binding a custodian reference to an actor.
 Composition note 4: A composing pattern MUST own the tamper seal over the chain's entries.
@@ -553,7 +578,7 @@ Each `[Term]` marker above links to its term entry here; a term entry states wha
 
 ### Vocabulary
 
-Term actors: the atom; the host; the transition; the deployment; a composing pattern; a business caller; a caller; a guard; an auditor; a regulator; the database; a chain; an entry; a genesis entry; a transferred entry; a non-transferred entry; a transformed entry; a disclosed entry; an archived entry; a custodian-guarded entry; an addressed action; an appending action; a custodian-guarded action; a writer action; a refused action; an ordering rule; a query; a replay; a rejection; a correction; a string input; a reference; an opaque reference; the chain count; the entry count.
+Term actors: the atom; the host; the transition; the deployment; a composing pattern; a caller; a guard; an auditor; a regulator; the database; a chain; an entry; a genesis entry; a transferred entry; a non-transferred entry; a transformed entry; a disclosed entry; an archived entry; a custodian-guarded entry; an addressed action; an appending action; a custodian-guarded action; a writer action; a refused action; an ordering rule; a query; a replay; a rejection; a correction; a string input; a reference; an opaque reference; the chain count; the entry count.
 
 Term records: chain — one artifact's custody history for one episode, carrying chain id, artifact reference, a chain state, a current custodian and next sequence number. entry — one appended event on a chain, carrying entry id, sequence number, event type and recording instant, and the per-type fields custodian reference, from custodian reference, to custodian reference, transformation descriptor, recipient reference and metadata.
 
@@ -561,13 +586,13 @@ Term record verbs: identify, allocate, change, carry, stand, answer, record, app
 
 Term value sets: event type = originated | received | transferred | transformed | disclosed | archived. genesis types = originated | received. chain state = open | archived. filter axes = sequence number | recording instant | event type. custodian-guarded action = [Transform] | [Disclose] | [Archive]. appending action = [Originate] | [Transfer] | [Transform] | [Disclose] | [Archive].
 
-Term bounds: maximum length (the deployment's cap per string input, measured in Unicode code points).
+Term bounds: maximum length (the cap the deployment sets for one string input, each string input carrying its own, measured in Unicode code points).
 
 Term cadences: empty.
 
 Term qualifiers: migrated — rewritten in GRACE lang v0.39 (2026-09-12).
 
-Term terms: chain, entry, chain id, artifact reference, entry id, custodian reference, database instance, seam, transition, now, business caller, genesis type, genesis types, event type, event types, chain state, current custodian, sequence number, next sequence number, recording instant, from custodian reference, to custodian reference, transformation descriptor, recipient reference, metadata, addressed action, custodian-guarded action, appending action, chain-state rejection, admitted originate, admitted transfer, admitted transform, admitted disclose, admitted archive, query, filter axes, string input, reference, blank, maximum length, committed version.
+Term terms: chain, entry, chain id, artifact reference, entry id, custodian reference, database instance, seam, transition, now, genesis type, genesis types, event type, event types, chain state, current custodian, sequence number, next sequence number, recording instant, from custodian reference, to custodian reference, transformation descriptor, recipient reference, metadata, addressed action, custodian-guarded action, appending action, chain-state rejection, admitted originate, admitted transfer, admitted transform, admitted disclose, admitted archive, query, entry sequence, filter axes, string input, reference, blank, maximum length, committed version.
 
 #### Originate
 
@@ -631,7 +656,7 @@ Projection: chain_state
 
 #### Current Custodian
 
-The opaque reference of the chain's single current holder — a derived projection (cache) of the chain's entries: the [To Custodian Reference] of the latest transferred entry, or the genesis [Custodian Reference]. Non-null while the chain exists; changes only on [Transfer]. On any disagreement the chain's replayed entries are authoritative.
+The opaque reference of the chain's single current holder — a derived projection (cache) of the chain's entries: the [To Custodian Reference] of the latest transferred entry, or the genesis [Custodian Reference]. Non-null while the chain exists; changes only on [Transfer]. On any disagreement the chain's replayed entries are authoritative (State 18).
 
 Kind:       Field
 Field of:   the chain
@@ -743,7 +768,7 @@ Role:      Outcome
 
 #### Archived
 
-The terminal, absorbing state of a chain at final disposition (Invariant 6): [Transfer], [Transform], [Disclose], and [Archive] are all rejected, but the chain remains readable. Reached once, via [Archive]. Its name also projects as the archived rejection reason the writer actions return against a closed chain.
+The terminal, absorbing state of a chain at final disposition (Invariant 6): [Transfer], [Transform], [Disclose], and [Archive] are all rejected, but the chain remains readable. Reached once, via [Archive]. The archived rejection [Transfer], [Transform] and [Disclose] answer against a closed chain (Operation 12 through 14) is an arm of their refuses lines spelled as this member projects, so every build answers the one token archived.
 
 Kind:       Member
 Member of:  the chain state
@@ -752,7 +777,7 @@ Projection: archived
 
 #### Invalid Reference
 
-The rejection an action returns when a required reference ([Artifact Reference], [Custodian Reference], [To Custodian Reference], or [Recipient Reference]) is empty, whitespace-only, or over the deployment-pinned length cap — also returned by [Originate] for an over-limit [Metadata] (String 7, String 9).
+The rejection an action returns when a required reference ([Artifact Reference], [Custodian Reference], [To Custodian Reference], or [Recipient Reference]) is empty, whitespace-only, or over the deployment-pinned length cap (String 7) — also returned by [Originate] for an over-limit [Metadata] (String 9).
 
 Kind:       Member
 Member of:  the action rejection
@@ -788,7 +813,7 @@ Projection: not-known
 
 #### Already Archived
 
-The rejection [Archive] returns when the target chain is already [Archived]. (The same condition reaches [Transfer], [Transform], and [Disclose] as the archived rejection — kept a distinct token to avoid colliding with the [Archived] state.)
+The rejection [Archive] returns when the target chain is already [Archived] (Operation 15). The same condition answers [Transfer], [Transform] and [Disclose] with the archived rejection (Operation 12 through 14); [Archive] answers a token of its own, so a retrying archiver learns the work is done rather than refused.
 
 Kind:       Member
 Member of:  the Archive rejection
@@ -815,7 +840,7 @@ Projection: invalid-descriptor
 
 #### Invalid Query
 
-The rejection [Read] returns when a query parameter is malformed — e.g., a range with start greater than end, or an unknown [Event Type] filter value.
+The rejection [Read] returns when a query is malformed — e.g., a range with start greater than end, an unknown [Event Type] filter value, or a filter keyed by no axis's projection.
 
 Kind:       Member
 Member of:  the Read rejection
@@ -880,7 +905,7 @@ Provenance is an infrastructure primitive with regulatory anchoring across pharm
 
 - **RFC (Request for Comments) 3161 (Time-Stamp Protocol)** — the standard for trusted timestamping. Where a custodial timestamp carries legal force — a chain-of-custody stamp in court proceedings, a pharmaceutical distribution record — RFC 3161 trusted timestamping supplies the verifiable anchor, through a composed trusted timestamping pattern (Non-goal 23).
 
-The cross-domain structural identity is the atom's core thesis: the pharmaceutical chain of custody, the legal evidence chain, the financial instrument custody record, and the DEA controlled-substance custody log are all instances of the same primitive — one artifact, one current custodian, append-only entries, custody never gaps. This atom is the core of the Chain of Custody composition, `grounded` 2026-06-04.
+The cross-domain structural identity is the atom's core thesis: the pharmaceutical chain of custody, the legal evidence chain, the financial instrument custody record, and the DEA controlled-substance custody log are all instances of the same primitive — one artifact, one current custodian, append-only entries, custody never gaps. This atom is the core of the Chain of Custody composition.
 
 It inherits from:
 
@@ -899,10 +924,9 @@ It inherits from:
 ```
 status: partially resolved
 formal: verified — provenance.als + 1 twin, 2026-06-04
-last gate: 2026-10-30 — Final Critique 11 — foundational count 1, not clean, no sample
+last gate: 2026-10-31 — Final Critique 12 — foundational count 2, not clean, no sample
 
-open:
-- 2026-10-30-a · refining · Term seam; Term transition; Term business caller · each says the section titled Logic Confinement Principle in `execution-contract.md` declares it, and that section declares none of the three → declare the three there, the corpus's one seam wording, or point each at its declaration
+open: none
 ```
 
 <details markdown="block">

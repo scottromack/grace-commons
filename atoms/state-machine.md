@@ -124,6 +124,8 @@ Deleted: Capability requirement 3. Execution Contract Logic confinement 7 owns i
 Deleted: Capability requirement 4. Execution Contract Logic confinement 7 owns it.
 ```
 
+NOTE: watch the deployment's composition note (Capability requirement 6).
+
 ### Operations
 
 ```
