@@ -231,6 +231,8 @@ Term now: the deployment's clock reading at the call — a [Now], as Execution C
 
 Term business caller: the party whose action the call carries; never the source of an injected value.
 
+NOTE: watch the seam citation (Term seam, Term transition, Term business caller).
+
 Term session duration: the window a [Issue] call asks for, a window length — a [Session Duration]; consumed to compute the expiry deadline, never stored under this name.
 
 Term window length: a whole number of seconds — what a session duration and the default session duration carry.
