@@ -957,6 +957,7 @@ Non-goal 10: The composition MUST NOT re-open a decided step under the step's ch
 Non-goal 11: The composition MUST NOT authenticate a reader.
 Non-goal 12: The composition MUST NOT serve an assignee-keyed in-tray view.
 Non-goal 13: The composition MUST NOT refuse an approver set naming the initiator reference.
+NOTE: watch the segregation policy (Non-goal 13).
 Non-goal 14: The composition MUST NOT administer a Permissions grant.
 ```
 

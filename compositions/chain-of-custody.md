@@ -163,6 +163,8 @@ Term reconciliation run bound: the deployment's disclosed bound on one reconcili
 
 Term liveness sum: `((custody completion bound + custody reconciliation cadence) + reconciliation run bound)`.
 
+NOTE: watch the reconciliation's own run (Term liveness sum).
+
 Term recovery identity: a deployment-provisioned actor reference and credential under which the reconciliation attests every write it makes.
 
 Term genesis lookup: the deployment-supplied lookup from an artifact reference to the chains originated for it.
