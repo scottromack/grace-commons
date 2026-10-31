@@ -1399,7 +1399,7 @@
    "session-gated-authorization"
   ],
   "domain": null,
-  "grounded": false,
+  "grounded": true,
   "invariants": 12,
   "kind": "atom",
   "models": {
@@ -1427,7 +1427,7 @@
    "SEC 17a-4",
    "SOX"
   ],
-  "status": "partially resolved",
+  "status": "grounded on Final Critique 14 \u2014 2026-10-31",
   "title": "Session"
  },
  "session-gated-authorization": {
