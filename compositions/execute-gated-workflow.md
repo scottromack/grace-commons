@@ -928,6 +928,7 @@ Non-goal 7: The composition MUST NOT judge a [Gate Spec]'s fit to the regulation
 Non-goal 8: The composition MUST NOT serve an assignee-keyed in-tray view.
 Non-goal 9: The composition MUST NOT refuse a [Gate Spec] naming the initiator reference as an approver reference.
 NOTE: watch the segregation policy (Non-goal 9).
+NOTE: watch the adopter's policy note (Non-goal 9).
 Non-goal 10: The composition MUST NOT admit a delegate's decision on a named approver's step.
 ```
 
