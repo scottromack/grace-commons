@@ -17,7 +17,7 @@ toc: true
 
 ## Summary
 
-Recoverable Invocation is the protocol a regulated action follows when it changes something it cannot take back and must leave a trustworthy account of having done so: write down what it is about to do, do it, then write down what it did. If the process dies in between, a separate clean-up run, the sweep, finishes the account later, writing only what it can read back from the database the act was made in, and where that database cannot say, recording the act for a person to settle rather than guessing. It is a composition, a pattern built by wiring simpler patterns together: [Audit Trail](./audit-trail.md) keeps every record tied to the verified person or service that made it, retained for a set period and sealed so that any later change to it shows, and [Lease](../atoms/lease.md), a grant of sole standing over one act that its holder gives back when done or that runs out at a set time, never when someone notices a crash, keeps the original process and the sweep from ever both writing about one act, while the sweep looks only at acts whose time limit has passed, so it never writes about work still in progress. An action that adopts the protocol names the act, the database that makes it and how long it may take, and the protocol refuses to start where those time limits cannot be met. Wired together, they give what neither gives alone: every act made through the protocol is accounted for exactly once, by exactly one writer, for as long as its records are kept, within a time limit set in advance or with a record of why not.
+Recoverable Invocation is the protocol a regulated action follows when it changes something it cannot take back and must leave a trustworthy account of having done so: write down what it is about to do, do it, then write down what it did. If the process dies in between, a separate clean-up run, the sweep, finishes the account later, writing only what it can read back from the database the act was made in, and where that database cannot say, recording the act for a person to settle rather than guessing. It is a composition, a pattern built by wiring simpler patterns together: [Audit Trail](./audit-trail.md) keeps every record tied to the verified person or service that made it, retained for a set period and sealed so that any later change to it shows, and [Lease](../atoms/lease.md), a grant of sole standing over one act that its holder gives back when done or that runs out at a set time, never when someone notices a crash, keeps the original process and the sweep from ever both writing about one act, while the sweep looks only at acts whose time limit has passed, so it never writes about work still in progress. An action that adopts the protocol names the act, the database that makes it and how long it may take, and the protocol refuses to start where those time limits cannot be met. Wired together, they give what neither gives alone: every act made through the protocol is accounted for exactly once, by exactly one writer, for as long as its records are kept, within a time limit set in advance, or else flagged for a person as at risk.
 
 ---
 
@@ -224,7 +224,7 @@ Term read-your-writes: Capability requirement 8 and Capability requirement 12 to
   act section 13: A sweep run MUST leave a closing write in flight at expiry for the next run.
   Deleted: act section 14. Lease Non-goal 1 owns it: a party takes no key the party holds, the holder included.
   act section 15: IF a call in flight EXISTS under the grant THEN the holder MUST NOT issue Lease's release for the grant (Lease Composition note 5c).
-  act section 16: The composition MUST bind Lease Sizing 1 through 9 for EVERY unfenced write under the critical section, with pause bound as the atom's call pause bound, lease spend and sweep lease spend, each on the path with no retry and no lost reply, as the atom's work bounds, and write floor and commit floor as the atom's start floors.
+  act section 16: The composition MUST bind Lease Sizing 1 through 9 for EVERY unfenced write under the critical section, with pause bound as the atom's call pause bound, lease spend and sweep lease spend, each on the path with no retry and no lost reply, as the atom's work bounds, write floor and commit floor as the atom's start floors, and journal write bound and commit round trip, each behind one pause, as the units' bounds (Lease Composition note 8a).
   act section 17: IF a take, a remaining or a release on act section answers no answer OR state-unavailable THEN the holder MUST read remaining as none for the rest of the grant (Lease Sizing 7).
   act section 18: A holder MUST NOT issue a second time, under one lease, a lease call that answered no answer (Lease Sizing 8).
   Deleted: act section 18a. act section 16 owns it: Lease Sizing 8, bound for every unfenced write.
@@ -254,7 +254,7 @@ Term read-your-writes: Capability requirement 8 and Capability requirement 12 to
 - **pause bound**
   Term pause bound: this composition's value of [Lease](../atoms/lease.md)'s call pause bound: the longest time from a holder's decision to issue one call — a lease call, the issue of a journal write, the issue of the bound commit — to the moment the call has taken effect or failed. *Default:* none.
   ```
-  pause bound 1: The deployment MUST supply Lease Capability requirement 7 for EVERY lease call on this page and for this page's unfenced write, the bound commit, with pause bound as the atom's call pause bound.
+  pause bound 1: The deployment MUST supply Lease Capability requirement 7 for EVERY lease call on this page and for this page's unfenced writes, the bound commit and every journal write, with pause bound as the atom's call pause bound.
   pause bound 2: A writer MUST issue a journal write WITHIN pause bound of asking for the write's remaining.
   Deleted: call pause bound 1. pause bound 1 owns it: the binding is renamed pause bound, a name Audit Trail does not declare (the maintainer's ruling of 2026-10-27).
   Deleted: call pause bound 2. pause bound 2 owns it: the binding is renamed pause bound.
@@ -338,7 +338,7 @@ NOTE: watch the fresh holder value (Term operator run id, Term run id).
 
 Term hard alert: an alert on the compliance surface naming the invocation id and the arm that raised it — beside the findings register and no part of it (findings 6), and what a deployment's operators are paged by.
 
-Term caller kind: EXACTLY ONE OF human, service — service where actor reference names the kind's service identity.
+Term caller kind: EXACTLY ONE OF human, service — service where actor reference names the kind's service identity, which a comparison by byte-identity decides; a comparison inspects nothing in the reference (Primitive policy 7).
 
 Term examine edge: `((recorded_at + invocation_completion_bound) + clock_allowance)`.
 
@@ -623,8 +623,8 @@ Steps:
    ```
 4. **Intent record.**
    ```
-   open step 4.1: IF remaining DOES NOT EXCEED write floor THEN [Open] MUST NOT write the intent record.
-   open step 4.2: WHEN remaining DOES NOT EXCEED write floor:
+   open step 4.1: IF the remaining [Open] queried for the intent record (journal write bound 1) DOES NOT EXCEED write floor THEN [Open] MUST NOT write the intent record.
+   open step 4.2: WHEN the remaining [Open] queried for the intent record (journal write bound 1) DOES NOT EXCEED write floor:
        open step 4.2a: [Open] MUST release.
        open step 4.2b: [Open] MUST land section-unavailable.
    open step 4.3: [Open] MUST write AuditTrail.record_action(action reference set to `<kind>.intended`, actor reference, credential, data set to intent payload), answering intent event id.
@@ -663,7 +663,7 @@ Term outcome event id: outcome_event_id — the event id the journal assigns the
 
 Term landing actor: landed_by — which writer landed the outcome: the invocation, the operator, or the sweep.
 
-Writes the act's outcome record after the bound commit has returned, under the critical section [Open] took, and releases the critical section. The one action that can find its own work already done.
+Writes the act's outcome record after the bound commit has returned, under the critical section [Open] took, and releases the critical section. The one action that can find its own work already done. Its step-1 reading confirms standing alone: the outcome record goes out behind a reading of its own, taken after the step-2 re-read (journal write bound 1, pause bound 2).
 
 ```
 close 1: The adopter MUST pass [Close] the actor reference [Open] was given for the invocation.
@@ -741,7 +741,7 @@ refuse(kind, act_key, invocation_id, intent_event_id, actor_ref, credential, rea
 
 Term refusal event id: refusal_event_id — the event id the journal assigns the refusal record; what refuse answers.
 
-Closes an intent whose bound commit did not commit — the constituent refused on a pre-commit arm — so the intent does not stand open for the sweep to probe.
+Closes an intent whose bound commit did not commit — the constituent refused on a pre-commit arm — so the intent does not stand open for the sweep to probe. Its step-1 reading confirms standing alone: the refusal record goes out behind a reading of its own, taken after the step-2 re-read (journal write bound 1, pause bound 2).
 
 Steps:
 
@@ -825,7 +825,7 @@ resolve 3: A credential failure MUST land invalid-credential with the critical s
 resolve 4: [Resolve] MUST take the critical section: take((kind, act key), operator run id, sweep lease).
 Deleted: resolve 5. Lease Operation 3 and Operation 4 own it, as for open step 2.2.
 resolve 6: A failed take, a storage-failure included (Execution Contract Constituent failure 1), MUST land section-unavailable.
-resolve 7: WHEN remaining DOES NOT EXCEED write floor:
+resolve 7: WHEN a remaining [Resolve] queried (journal write bound 1) DOES NOT EXCEED write floor:
     resolve 7a: [Resolve] MUST NOT write.
     resolve 7b: [Resolve] MUST release.
     resolve 7c: [Resolve] MUST land section-unavailable.
@@ -935,7 +935,7 @@ Term reported: an act the run examined, of a kind whose service identity EQUALS 
    NOTE: watch rule inheritance (refuse step 0.1).
    reconcile step 2.5: IF a closing record naming the invocation id landed since step 1 THEN the run MUST release.
    reconcile step 2.6: IF a closing record naming the invocation id landed since step 1 THEN the run MUST count the act in closed already.
-   reconcile step 2.7: WHEN remaining DOES NOT EXCEED write floor:
+   reconcile step 2.7: WHEN a remaining the run queried for the act (journal write bound 1) DOES NOT EXCEED write floor:
        reconcile step 2.7a: The run MUST count the act in skipped.
    reconcile step 2.8: The run MUST NOT take the critical section for an intent reconcile step 2.1 excepts.
    reconcile step 2.9: The run MUST count EVERY intent reconcile step 2.1 excepts in unreached.
@@ -1317,7 +1317,7 @@ An escalated entry becomes resolved when an operator's abandonment names it, and
   Invariant 2.6: The section titled Which closing stands IS AUTHORITATIVE FOR which closing is the act's.
   NOTE: watch addressable sections (Instance start 1).
   ```
-  *Rests on:* act section (Configuration) with lease-as-terminus semantics; Execution Contract Database 2 through Capability requirement 12, under which a writer's re-read, lease check and append are one transaction; the return-based read-your-writes clause (Capability requirement 12); [Close] step 2's proceed-as-landed; [Reconcile] step 2's re-read under the critical section and sweep closed ids. *Defended in-line:* the load-bearing wiring decision; the model's rejected twins bearing on this invariant — `-buggy-reread` and `-buggy-visible`, each landing two closings for one act, and `-buggy-journal`, a take that does not refuse the write it overtakes, landing a second invocation's intent beside the first's at the main constants and an outcome beside the sweep's at nine ticks; a fourth, `-buggy-supersede`, lands two unsuperseded closings by omitting the name from a resolution over an escalation.
+  *Rests on:* act section (Configuration) with lease-as-terminus semantics; Execution Contract Database 2 through Capability requirement 12, under which a writer's re-read, lease check and append are one transaction, the lease check being one of the guard reads Database 2 puts inside the transaction that appends; the return-based read-your-writes clause (Capability requirement 12); [Close] step 2's proceed-as-landed; [Reconcile] step 2's re-read under the critical section and sweep closed ids. *Defended in-line:* the load-bearing wiring decision; the model's rejected twins bearing on this invariant — `-buggy-reread` and `-buggy-visible`, each landing two closings for one act, and `-buggy-journal`, a take that does not refuse the write it overtakes, landing a second invocation's intent beside the first's at the main constants and an outcome beside the sweep's at nine ticks; a fourth, `-buggy-supersede`, lands two unsuperseded closings by omitting the name from a resolution over an escalation.
 
 - **Invariant 3 — Pairing is by the seam-injected key in the journal, and by the bound datum in the database.**
   ```
@@ -1539,7 +1539,7 @@ Deleted: Clock semantics 1. Execution Contract Logic confinement 3 owns it.
 
 ### Cross-record consistency under partial failure
 
-The reachable partials and their closers. *Crash after [Open], before the commit:* intent open, database untouched; act probe answers not-committed; the sweep writes `<kind>.escalated`, and an operator who finds the database quiet abandons the act through [Resolve]. *Crash after the commit, before [Close]:* act probe answers committed; the sweep writes the outcome under `recovery = true`. *Crash inside [Close] after the outcome landed and before the map update:* the map is a rebuild trigger, not a partial. *A stalled invocation past its lease:* it writes nothing; the sweep closes; the late [Close] returns recording-failure(outcome). *A refusal record that failed:* the intent stands, act probe answers not-committed, and the sweep escalates it. *An outcome the database cannot corroborate:* undecidable, escalated with candidates, never chosen. There is no sixth partial; a deployment that finds one has a critical section that is not a critical section.
+The reachable partials and their closers. *Crash after [Open], before the commit:* intent open, database untouched; act probe answers not-committed; the sweep writes `<kind>.escalated`, and an operator who finds the database quiet abandons the act through [Resolve]. *Crash after the commit, before [Close]:* act probe answers committed; the sweep writes the outcome under `recovery = true`. *Crash inside [Close] after the outcome landed and before the map update:* the map is a rebuild trigger, not a partial. *A stalled invocation past its lease:* it writes nothing; the sweep closes; the late [Close] returns recording-failure(outcome). *A refusal record that failed:* the intent stands, act probe answers not-committed, and the sweep escalates it. *An outcome the database cannot corroborate:* undecidable, escalated with candidates, never chosen. These five are every partial the critical section leaves: a sixth would take two writers for one act, which Invariant 2 rules out.
 
 ### Declared deviations
 
@@ -1615,7 +1615,7 @@ Term bounds: invocation completion bound, commit round trip, probe round trip, j
 
 Term cadences: sweep cadence.
 
-Term qualifiers: migrated — rewritten in GRACE lang v0.35 (2026-09-11).
+Term qualifiers: migrated — rewritten in GRACE-lang, the corpus's rule grammar, v0.35 (2026-09-11).
 
 Term terms: (named expressions, each declared where it is used) worst closure, examine window end, retention floor, lease spend, run floor, sweep lease spend, examine edge, horizon edge, at risk threshold, settling edge, intent age, settle bound, retention end, sweep lease, run interval, in-flight, aged, partition, examined, skipped, reported, surfaced, unreached, closed already, standing closing, terminus, caller kind, payload match, act quiescence, read path, read-your-writes, journal join, lost reply, `position's existing arm`, cross-seam comparison, critical section key, critical section holder, critical section duration, reply, release, hard alert, unfenced write, write floor, commit floor, act finding, instance finding, kind, act key, invocation id, now, operator run id, resolve refusal, open result, close result, reconcile tally, invocation report, invocation entry, first seen, last seen, span, acting actor reference, resolving actor, recovery_intended, database candidates, readable intent.
 
