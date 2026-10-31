@@ -681,7 +681,8 @@ After every rejection but one whose coverage write gave no answer, sealed throug
 | Action | What the reads answer | Lands | Owner |
 |---|---|---|---|
 | [Read Record] | no retention record and no log entry | not-known | read record step 3.1 |
-| [Read Record] | a log entry and no retention record | the audit record, retention status unresolved (compensation window), no retention fabricated | read record step 5.1, 5.2 |
+| [Read Record] | a log entry and no retention record over readable data | the audit record, retention status unresolved (compensation window), no retention fabricated | read record step 5.1, 5.2 |
+| [Read Record] | a log entry and no retention record over unreadable data | no answer, an outage of Event Log | read record step 5.3 |
 | [Read Record] | a Retained retention over readable data | the audit record, with its coverage status and the covering seal's full range | read record step 4.1 through 4.3 |
 | [Read Record] | a Retained retention over unreadable data | the retention read again: Purged, answered as a purged event; still Retained, no answer, an outage of Event Log | read record step 4.5 through 4.7 |
 | [Read Record] | a Purged retention and a destruction record | the who, the what and the when through the pair from the attestation records, and no data | read record step 4.4a, 4.4b, 4.4c |
@@ -1039,9 +1040,9 @@ Steps:
    ```
 4. **Assemble the [Audit Record].**
    ```
-   read record step 4.1: IF the event's data IS NOT unreadable under a Retained retention THEN [Read Record] step 4 MUST assemble and return the audit record.
-   read record step 4.2: IF the event's data IS NOT unreadable under a Retained retention THEN [Read Record] step 4 MUST report coverage status per event.
-   read record step 4.3: IF the event's data IS NOT unreadable under a Retained retention THEN [Read Record] step 4 MUST return the covering seal's full range.
+   read record step 4.1: IF the event's data IS NOT unreadable under a Retained retention AND the event's data IS NOT unreadable with no retention record THEN [Read Record] step 4 MUST assemble and return the audit record.
+   read record step 4.2: IF the event's data IS NOT unreadable under a Retained retention AND the event's data IS NOT unreadable with no retention record THEN [Read Record] step 4 MUST report coverage status per event.
+   read record step 4.3: IF the event's data IS NOT unreadable under a Retained retention AND the event's data IS NOT unreadable with no retention record THEN [Read Record] step 4 MUST return the covering seal's full range.
    read record step 4.4: WHEN retention state EQUALS Purged:
        read record step 4.4a: IF a destruction record EXISTS for the event THEN [Read Record] step 4 MUST read action reference, actor reference and attestation instant from the attestation records through the pair alone.
        read record step 4.4b: [Read Record] step 4 MUST NOT read the who, the what and the when from the event payload.
@@ -1066,9 +1067,9 @@ Steps:
 
 5. **Orphan window.**
    ```
-   read record step 5.1: IF a log entry EXISTS AND no retention record EXISTS THEN [Read Record] step 5 MUST return the audit record with retention status unresolved (compensation window).
+   read record step 5.1: IF a log entry EXISTS AND no retention record EXISTS AND the event's data IS NOT unreadable THEN [Read Record] step 5 MUST return the audit record with retention status unresolved (compensation window).
    read record step 5.2: [Read Record] step 5 MUST NOT fabricate a retention.
-   NOTE: open 2026-10-25-c — over unreadable data, step 5.1 returns an audit record whose action reference, actor reference and attestation id sit in that unreadable data field, where step 4.7 answers a Retained retention over unreadable data no answer (read record step 5.1, read record step 4.7, Invariant 6.1).
+   read record step 5.3: IF a log entry EXISTS AND no retention record EXISTS AND the event's data IS unreadable THEN [Read Record] step 5 MUST answer no answer, the unreadable payload standing as an outage of Event Log (Term dependency outage).
    ```
 6. **No verification** (read record 4). [Read Record] presents; [Verify Record] proves. The split is forced by Invariant 7 — verification needs the original payload re-presented, and a read surface that fetched it internally would destroy the asymmetry the composition exists to surface.
 
@@ -1630,7 +1631,7 @@ Term recorded through [Record Action]: the quantifier of Invariants 1, 2 and 8 �
 
 - **Invariant 6 — Forensic completability.**
   ```
-  Invariant 6.1: For EVERY event id, IF every constituent read answers AND the event's data IS NOT unreadable under a Retained retention (read record step 4.7) THEN [Read Record] MUST return EXACTLY ONE OF the audit record, not-known.
+  Invariant 6.1: For EVERY event id, IF every constituent read answers AND the event's data IS NOT unreadable under a Retained retention (read record step 4.7) AND the event's data IS NOT unreadable with no retention record (read record step 5.3) THEN [Read Record] MUST return EXACTLY ONE OF the audit record, not-known.
   Invariant 6.2: For EVERY event id, IF every constituent read answers THEN [Verify Record] MUST return EXACTLY ONE OF verified, failed-verification(reason), unverifiable(reason), not-known.
   Invariant 6.3: IF no verification surface outage EXISTS THEN [Verify Record] MUST answer deterministically over a fixed record set.
   ```
@@ -1772,7 +1773,7 @@ Check 5.8: An auditor MUST confirm a destroyed outcome recorded for the event in
 Check 5.9: An auditor MUST NOT read a destruction-failed record as completion.
 Check 5.10: An auditor MUST confirm the live members of a partly-purged seal answer unverifiable(partially-purged-coverage).
 Check 5.11: An auditor MUST read an instance answering verified for a live member of a partly-purged seal as composing Seal Lifecycle, audited against that pattern's bar.
-Check 5.12: An auditor MUST confirm an event with no retention record inside compensation window carries retention status unresolved (compensation window).
+Check 5.12: An auditor MUST confirm an event with no retention record inside compensation window carries retention status unresolved (compensation window), an event whose data IS unreadable excepted (read record step 5.3).
 Check 5.13: An auditor MUST confirm [Purge Event] over an event with no retention record inside compensation window returns retention-unresolved.
 Check 5.14: An auditor MUST read a member of a covering seal's purged events whose retention state EQUALS Retained as a conformance failure (Invariant 4.5).
 Check 5.15: IF purge age EXCEEDS audit edge THEN an auditor MUST read a divergence as a residual finding against the deployment's erasure mechanism (Boundary one 5, erasure mechanism 10).
@@ -2163,7 +2164,6 @@ open:
 - 2026-10-05-b · refining · retention policy 6; purge event · no order is stated for destroying an intent against its outcome, and nothing binds the period of co-tenant events on one instance → state the order, or that there is none; reported by the same gates
 - 2026-10-24-a · refining · purge eligible 1, purge eligible 2; the [Purge Eligible] signature · [Purge Eligible] answers every eligible event id at once, with no bound and no paging, through Retention Window's read of every retention → a bound, or a paged or keyed read, decided with Retention Window's 2026-10-05-a (its read has no key) and in Actor Identity's 2026-10-20-f form
 - 2026-10-25-b · refining · seal cadence 3; record action step 6.6; Unsealed tail 1 · under per-event cadence a step-6 seal that failed on a log that then goes quiet stands until a later [Record Action], [Purge Event] or [Seal Now] seals the event, and no rule obliges one, so under strict the event answers failed-verification(unsealed) for as long as the deployment calls none → decide whether per-event owes a retry starter, as Execution Contract Scheduled leg 1 gives an interval-based one its starter, or the standing alert and Unsealed tail 1's watch are the design (the 2026-10-01 entry withdrew the scan's per-run [Seal Now])
-- 2026-10-25-c · refining · read record step 5.1; read record step 4.7; Invariant 6.1; Term audit record · a log entry with no retention record over unreadable data, a deployment fault the scan surfaces (Second half 18; Term dependency outage), has step 5.1 return an audit record whose action reference, actor reference and attestation id sit in that unreadable data field (Term full constructed payload), its event to attestation entry one the refused [Record Action] never wrote and the rebuild cannot take from an unreadable payload (event to attestation 1, 2b), where step 4.7 answers a Retained retention over unreadable data no answer → decide whether the compensation-window read withholds its record as an outage, as step 4.7 does, widening Invariant 6.1's carve-out, or returns a record of what can still be read, declared in Term audit record
 ```
 
 <details markdown="block">
