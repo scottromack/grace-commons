@@ -58,15 +58,13 @@ Identity 12: The atom MUST NOT confirm an opaque reference.
 
 Term session: one bounded-lifetime attestation that a principal completed authentication — a [Session], the record this atom holds.
 
-Term session token: the opaque value naming one session — a [Session Token]; unguessable, host-allocated at the seam, and the capability [Validate] and [Revoke] accept.
+Term session token: the opaque value naming one session — a [Session Token]; unguessable, host-allocated at the seam, and the bearer credential [Validate] and [Revoke] accept (Identity 2, Operation 36).
 
 Term principal reference: the opaque reference naming the authenticated principal — a [Principal Reference].
 
 Term issued by reference: the opaque reference naming the mechanism that issued the session — an [Issued By Reference].
 
-Term seam: the atom's I/O (input and output) boundary as the section titled Logic Confinement Principle in `execution-contract.md` declares it; the host injects the clock reading, the session token and the token's random material here.
-
-NOTE: open 2026-10-21-h — Term seam names no default session duration, which [Issue] applies (Operation 6).
+Term seam: the atom's I/O (input and output) boundary as the section titled Logic Confinement Principle in `execution-contract.md` declares it; the host injects the clock reading, the session token, the token's random material and the default session duration here.
 
 Term transition: the atom's evaluation of one call against the session records, as the section titled Logic Confinement Principle in `execution-contract.md` declares it.
 
@@ -134,7 +132,7 @@ Deleted: Clock semantics 6. Non-goal 25 owns it.
 Deleted: Clock semantics 7. Non-goal 26 owns it.
 ```
 
-Term default session duration: the window [Issue] applies where the call supplies no session duration, a window length; deployment configuration, and its absence is a misconfiguration rather than an operating state.
+Term default session duration: the window [Issue] applies where the call supplies no session duration, a window length; deployment configuration (Capability requirement 2), and its absence, or a value that does not exceed the zero duration, is a misconfiguration rather than an operating state, so [Issue] refuses every call while it stands, a call supplying its own session duration included (Operation 48, Operation 56).
 
 Term token entropy: 128 bits of cryptographically secure random material — the floor a session token is drawn from, sufficient for negligible collision probability and for unguessability.
 
@@ -176,12 +174,12 @@ Operation 12: IF the database refuses the write THEN [Issue] MUST answer storage
 Deleted: Operation 13. Invariant 6.1 owns it.
 Operation 14: IF the session token names no session THEN [Validate] MUST answer not-known.
 Operation 15: IF the session's status EQUALS revoked THEN [Validate] MUST answer revoked.
-Operation 16: IF the session is lapsed AND the session's status EQUALS active THEN [Validate] MUST answer expired.
+Operation 16: IF the session is lapsed THEN [Validate] MUST answer expired.
 Operation 17: [Validate] MUST answer expired ONLY IF the session's status EQUALS active.
 Operation 18: IF the session's effective status EQUALS active THEN [Validate] MUST answer valid.
 Operation 19: [Validate] MUST carry principal reference and expiry instant in a valid answer.
 Operation 20: [Validate] MUST NOT write.
-Operation 21: [Validate] MUST NOT refuse a call.
+Deleted: Operation 21. Invariant 6.1 owns it.
 Operation 22: IF the session token names no session THEN [Revoke] MUST answer not-known.
 Operation 23: IF the session's status EQUALS revoked THEN [Revoke] MUST answer already-terminal.
 Operation 24: [Revoke] MUST answer already-terminal ONLY IF the session's status EQUALS revoked.
@@ -217,13 +215,11 @@ Operation 53: IF a filter names a field whose value EQUALS blank THEN [Read] MUS
 Deleted: Operation 54. Execution Contract Input 1 owns it.
 Operation 55: IF a supplied session duration is malformed THEN [Issue] MUST answer invalid-request (Execution Contract Input 1).
 Operation 56: IF the default session duration DOES NOT EQUAL blank AND the default session duration DOES NOT EXCEED the zero duration THEN [Issue] MUST answer invalid-request.
+Operation 57: IF the session's status EQUALS active AND reason is malformed THEN [Revoke] MUST answer invalid-request (Execution Contract Input 1).
+Operation 58: [Issue] MUST record the session token the host allocates (Capability requirement 6).
 ```
 
 NOTE: open 2026-10-21-a — [Read] answers the matching sessions in no stated order (Operation 37).
-
-NOTE: open 2026-10-21-j — no maximum bounds a supplied session duration (Operation 8), while the Summary names short-lived elevated-access windows.
-
-NOTE: open 2026-10-30-b — [Revoke] names no refusal for a malformed input, and Term reason declares no type, which Execution Contract Input 1's family asks of every writing action (Operation 55).
 
 NOTE: watch the required input no rule records (Operation 30, Operation 50, Operation 51).
 
@@ -241,7 +237,7 @@ Term zero duration: a duration of no length — the floor a session duration mus
 
 Term issuance instant: the instant the session was recorded — an [Issuance Instant].
 
-Term expiry deadline: `(issued_at + session_duration)` — what [Issue] stores as expiry instant, computed once at issue; on a call supplying no session duration, the default session duration [Issue] applies takes the session duration's place (Operation 6).
+Term expiry deadline: `(issued_at + session_duration)` — what [Issue] stores as expiry instant, computed once at issue (Execution Contract Logic confinement 9); on a call supplying no session duration, the default session duration [Issue] applies takes the session duration's place (Operation 6).
 
 Term expiry instant: the instant the session's validity ends — an [Expiry Instant]; stamped at issue, never changed, never absent.
 
@@ -257,7 +253,7 @@ Term revoked by reference: the opaque reference naming the actor that cancelled 
 
 Term revocation reason: the stated ground for the cancellation — a [Revocation Reason], carried from the call's [Reason].
 
-Term reason: the [Revoke] input the session keeps as revocation reason — a [Reason].
+Term reason: the [Revoke] input the session keeps as revocation reason, a string input — a [Reason].
 
 Term filter: the selection a [Read] call scopes the answer by — a [Filter] naming principal reference, issued by reference, both OR no field; a session matches a filter when it carries EVERY value the filter names (String 1) and the filter names no other field, so a filter naming no field matches EVERY session; consumed per call, never stored.
 
@@ -267,7 +263,7 @@ The case space, and the rule that owns each case:
 
 | Call | Case | Answer | Effect on the database |
 |---|---|---|---|
-| [Issue] | both references present, a positive default configured, duration positive or defaulted, database accepts | the new session token | one record lands in [Active] carrying both references, issuance instant and expiry instant stamped (Operation 1, Operation 9, Operation 10, Operation 50, Operation 51) |
+| [Issue] | both references present, a positive default configured, duration positive or defaulted, database accepts | the new session token | one record lands in [Active] carrying the session token the host allocated and both references, issuance instant and expiry instant stamped (Operation 1, Operation 9, Operation 10, Operation 50, Operation 51, Operation 58) |
 | [Issue] | a blank or over-long reference, a duration that is no window length or is not positive, no configured default, or a default that is not positive | [Invalid Request] | none (Operation 4, Operation 5, Operation 8, Operation 48, String 7, Operation 55, Operation 56) |
 | [Validate] | token names nothing | [Not Known] | none — the call reads (Operation 14, Operation 20) |
 | [Validate] | stored status is [Revoked] | [Invalid Revoked] | none — returned even where the window is still open (Operation 15) |
@@ -277,7 +273,7 @@ The case space, and the rule that owns each case:
 | [Revoke] | token names a session in [Active] past its deadline | revoked | as above — a lapse is not a stored terminal (Operation 27) |
 | [Revoke] | token names nothing | [Not Known] | none (Operation 22) |
 | [Revoke] | stored status is already [Revoked] | [Already Terminal] | none (Operation 23, Operation 24) |
-| [Revoke] | session in [Active], blank or over-long attribution | [Invalid Request] | none (Operation 25, Operation 26, String 9, String 10) |
+| [Revoke] | session in [Active], blank or over-long attribution, or a malformed reason | [Invalid Request] | none (Operation 25, Operation 26, String 9, String 10, Operation 57) |
 | either write | database refuses | [Storage Failure] | none (Operation 12, Operation 34) |
 | *a window lapses* | now reaches expiry instant | nothing is called | **nothing written** — no action, no stamp, no scheduler (Expiry 2 through 5, Invariant 12.3) |
 | [Read] | a filter | the matching sessions, each carrying its effective status and no session token | none (Operation 37, Operation 38, Operation 52) |
@@ -450,9 +446,11 @@ Non-goal 24: A deployment needing attribution on issuance MUST compose Actor Ide
 Non-goal 25: The atom MUST NOT reconcile two readers disagreeing across the deadline.
 Non-goal 26: A deployment needing an externally verifiable timestamp MUST compose a trusted timestamping pattern.
 Non-goal 27: The atom MUST NOT detect an authentication credential's revocation.
+Non-goal 28: The atom MUST NOT set a maximum session duration.
+Non-goal 29: A deployment needing a maximum session duration MUST enforce the maximum at the composing layer.
 ```
 
-NOTE: the owners — [Credential](./credential.md) (Non-goal 1, Non-goal 2); [Login](../compositions/login.md) (Non-goal 3, Non-goal 4, Non-goal 27, Composition note 2); [Permissions](./permissions.md) (Non-goal 5, Non-goal 6); the composing pattern (Non-goal 7 through 9, Composition note 5; Non-goal 10, Non-goal 11, Composition note 7; Non-goal 12, Non-goal 13, Composition note 8; Non-goal 14, Non-goal 15, Composition note 6); the deployment (Non-goal 16, Capability requirement 5; Non-goal 17, Non-goal 18, Capability requirement 6); [Tamper Evidence](./tamper-evidence.md) (Non-goal 19, Non-goal 22); [Retention Window](./retention-window.md) (Non-goal 20, Non-goal 21); [Actor Identity](./actor-identity.md) (Non-goal 24); Execution Contract Logic confinement 7 (Non-goal 25); Trusted Timestamping *(forthcoming)* (Non-goal 26).
+NOTE: the owners — [Credential](./credential.md) (Non-goal 1, Non-goal 2); [Login](../compositions/login.md) (Non-goal 3, Non-goal 4, Non-goal 27, Composition note 2); [Permissions](./permissions.md) (Non-goal 5, Non-goal 6); the composing pattern (Non-goal 7 through 9, Composition note 5; Non-goal 10, Non-goal 11, Composition note 7; Non-goal 12, Non-goal 13, Composition note 8; Non-goal 14, Non-goal 15, Composition note 6; Non-goal 28, Non-goal 29); the deployment (Non-goal 16, Capability requirement 5; Non-goal 17, Non-goal 18, Capability requirement 6); [Tamper Evidence](./tamper-evidence.md) (Non-goal 19, Non-goal 22); [Retention Window](./retention-window.md) (Non-goal 20, Non-goal 21); [Actor Identity](./actor-identity.md) (Non-goal 24); Execution Contract Logic confinement 7 (Non-goal 25); Trusted Timestamping *(forthcoming)* (Non-goal 26).
 
 ## Edge cases
 
@@ -491,7 +489,7 @@ NOTE: watch host obligations — this atom refuses a string input over the deplo
 
 Term verified answer: the verified outcome [Credential](./credential.md)'s verification produces; cited from that atom, never restated here (Closed vocabulary 15).
 
-Term invalid answer: an answer of [Validate] that EQUALS expired, revoked OR not-known — every answer outside valid.
+Term invalid answer: an answer of [Validate] that carries a validation failure, so one that EQUALS expired, revoked OR not-known; a call whose read failed answers state-unavailable (Execution Contract Read 1), which is no invalid answer, and a composing pattern maps it as it maps any constituent rejection (the section titled Substrate composition invocation in `execution-contract.md`).
 
 Term authentication credential: the material a principal presents to prove identity, as [Credential](./credential.md) declares it; distinct from the session token, which is the bearer credential this atom's own [Validate] accepts (Identity 2).
 
@@ -518,6 +516,7 @@ Composition note 6: A composing pattern MUST own the logout propagation across a
 Composition note 7: A composing pattern MUST own the device binding.
 Composition note 8: A composing pattern MUST own the concurrency bound per principal reference.
 Composition note 9: A composing pattern MUST own the retention of the session records.
+Composition note 12: A composing pattern MUST own the attribution of a revocation.
 Deleted: Composition note 10. Execution Contract Atom interface 1 owns it.
 Deleted: Composition note 11. Non-goal 27 owns it.
 ```
@@ -658,7 +657,7 @@ Projection: effective_status
 
 #### Session Duration
 
-The duration value, a whole number of seconds, [Issue] consumes to compute [Expiry Instant] (`[Issuance Instant] + [Session Duration]`). Supplied per call; if null, the deployment's default applies; a value that is no whole number of seconds, zero or negative is rejected. It is never stored under its own name — only the computed [Expiry Instant] is stored.
+The duration value, a whole number of seconds, [Issue] consumes to compute [Expiry Instant] (`[Issuance Instant] + [Session Duration]`). Supplied per call; if blank, the deployment's default applies; a value that is no whole number of seconds, zero or negative is rejected. It is never stored under its own name — only the computed [Expiry Instant] is stored.
 
 Kind:         Parameter
 Parameter of: Issue
@@ -674,7 +673,7 @@ Projection:   now
 
 #### Reason
 
-The caller-supplied reason string [Revoke] consumes and writes into the [Session]'s [Revocation Reason]. Required non-null and non-empty. It is not stored under its own name — only [Revocation Reason] is stored.
+The caller-supplied reason string [Revoke] consumes and writes into the [Session]'s [Revocation Reason]. On a session stored [Active], a blank, over-long or malformed reason is refused (Operation 26, String 10, Operation 57). It is not stored under its own name — only [Revocation Reason] is stored.
 
 Kind:         Parameter
 Parameter of: Revoke
@@ -750,7 +749,7 @@ Projection: not-known
 
 #### Invalid Request
 
-The rejection [Issue] returns when [Principal Reference] or [Issued By Reference] is blank or longer than the maximum length, when [Session Duration] is no whole number of seconds, or is zero or negative, or when the default session duration is absent, zero or negative; and [Revoke] returns when, on a session stored [Active], [Revoked By Reference] or [Reason] is blank or longer than the maximum length.
+The rejection [Issue] returns when [Principal Reference] or [Issued By Reference] is blank or longer than the maximum length, when [Session Duration] is no whole number of seconds, or is zero or negative, or when the default session duration is absent, zero or negative; and [Revoke] returns when, on a session stored [Active], [Revoked By Reference] or [Reason] is blank or longer than the maximum length, or [Reason] is malformed.
 
 Kind:       Member
 Member of:  the action rejection
@@ -768,7 +767,7 @@ Projection: already-terminal
 
 #### Storage Failure
 
-The rejection [Issue] or [Revoke] returns when the underlying database write fails. The caller must treat it as definitive.
+The rejection [Issue] or [Revoke] returns when the underlying database write fails.
 
 Kind:       Member
 Member of:  the action rejection
@@ -835,14 +834,11 @@ Inherited from:
 ```
 status: partially resolved
 formal: not applicable — vote no 2026-06-03
-last gate: 2026-10-30 — Final Critique 12 — foundational count 1, not clean, no sample
+last gate: 2026-10-31 — Final Critique 13 — foundational count 1, not clean, no sample
 
 open:
 - 2026-10-21-a · refining · Operation 37; [Read] · [Read] answers the matching sessions in no stated order → an order
-- 2026-10-21-h · refining · Term seam · Term seam names no default session duration, which [Issue] applies (Operation 6) → say where the default enters
-- 2026-10-21-j · refining · Operation 8; Summary · no maximum bounds a supplied session duration, while the Summary names short-lived elevated-access windows → a deployment maximum, or the Summary's claim narrowed
 - 2026-10-30-a · refining · Term seam; Term transition; Term business caller · each says the section titled Logic Confinement Principle in `execution-contract.md` declares it, and that section declares none of the three → declare the three there, the corpus's one seam wording, or point each at its declaration
-- 2026-10-30-b · refining · [Revoke]; Term reason; Operation 55 · the page names a refusal for a malformed input on [Issue]'s session duration alone and declares no type for [Revoke]'s reason, while Execution Contract Input 1's family has a specification declare each input's type and the refusal each writing action answers a malformed input with → declare the reason's type and name [Revoke]'s refusal for a malformed input, held to an active session as Operation 25 and Operation 26 are, or say why a reference or a reason reaches the transition well formed (Execution Contract Logic confinement 13)
 ```
 
 <details markdown="block">
