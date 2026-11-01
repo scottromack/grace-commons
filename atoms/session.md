@@ -227,6 +227,8 @@ NOTE: open 2026-10-31-a — [Read] answers EVERY matching session with no cap an
 
 NOTE: watch the required input no rule records (Operation 30, Operation 50, Operation 51).
 
+NOTE: watch the untyped input (Term reason, Operation 57).
+
 Term now: the deployment's clock reading at the call — a [Now], as Execution Contract Logic confinement 11 declares it.
 
 Term business caller: the party whose action the call carries; never the source of an injected value.
