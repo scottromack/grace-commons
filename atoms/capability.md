@@ -44,7 +44,7 @@ Identity 1: The atom MUST identify a capability by the capability token.
 Identity 2: The capability token MUST serve as the bearer credential [Redeem] accepts.
 Identity 3: The capability token MUST serve as the bearer credential [Revoke] accepts.
 Identity 4: The host MUST allocate a capability token at the seam.
-Identity 5: The transition MUST NOT allocate a capability token.
+Deleted: Identity 5. Execution Contract Logic confinement 3 owns it.
 Identity 6: The atom MUST NOT reuse a capability token any retained capability carries.
 Identity 7: The atom MUST NOT change a capability token.
 Deleted: Identity 8. Invariant 12.1 owns it.
@@ -55,6 +55,8 @@ Identity 12: The atom MUST NOT interpret an allocator reference.
 Deleted: Identity 13. Non-goal 1 owns it.
 ```
 
+NOTE: watch the allocation ban (Identity 5).
+
 Term capability: one bearer-token authorization with a redemption envelope — the record this atom holds.
 
 Term capability token: the opaque value naming one capability — a [Capability Token]; unguessable, host-allocated at the seam, and the capability [Redeem] and [Revoke] accept.
@@ -63,9 +65,9 @@ Term allocator reference: the opaque reference naming the actor that created the
 
 Term scope: the opaque value describing what the capability authorizes — a [Scope]; stored at allocation, answered at redemption, never evaluated.
 
-Term seam: the atom's I/O (input and output) boundary as the section titled Logic Confinement Principle in `execution-contract.md` declares it; the host injects the clock reading and the capability token's random material here.
+Term seam: the atom's I/O (input and output) boundary; the host injects the clock reading and the capability token's random material here.
 
-Term transition: the atom's evaluation of one call against the capability records, as the section titled Logic Confinement Principle in `execution-contract.md` declares it.
+Term transition: the atom's evaluation of one call against the capability records.
 
 ### State
 
@@ -109,10 +111,11 @@ Deleted: Expiry 9. Operation 38 owns it.
 
 ```
 Capability requirement 1: The deployment MUST supply now at the seam.
-Capability requirement 5: The deployment MUST supply the capability records PER Execution Contract Database 1 through 4, Execution Contract Read 1 through 4, Execution Contract Refusal 1 and Execution Contract Input 1.
+Capability requirement 5: The deployment MUST supply the capability records PER Execution Contract Database 1 through 7, Execution Contract Read 1 through 4, Execution Contract Refusal 1 and Execution Contract Input 1.
 Capability requirement 6: The deployment MAY configure a default capability ttl ONLY IF the default capability ttl EXCEEDS the zero duration.
 Capability requirement 7: The deployment MUST configure a default capability ttl.
 Capability requirement 8: The capability token's random material MUST NOT fall below the token entropy.
+Capability requirement 9: The deployment MUST declare which composing patterns the deployment wired in.
 Deleted: Capability requirement 2. Execution Contract Logic confinement 7 owns it.
 Deleted: Capability requirement 3. Execution Contract Logic confinement 7 owns it.
 Deleted: Capability requirement 4. Execution Contract Logic confinement 7 owns it.
@@ -123,6 +126,8 @@ Deleted: Clock semantics 4. Clock dependence 1 owns it.
 Deleted: Clock semantics 5. Clock dependence 2 owns it.
 Deleted: Clock semantics 6. Non-goal 28 owns it.
 ```
+
+NOTE: watch the deployment's composition note (Capability requirement 9).
 
 Term token entropy: 128 bits of cryptographically secure random material — the floor a capability token is drawn from, sufficient for negligible collision probability and for unguessability.
 
@@ -177,7 +182,8 @@ Operation 26: IF the capability is lapsed THEN [Redeem] MUST answer expired.
 Operation 27: [Redeem] MUST answer expired ONLY IF the capability's status EQUALS allocated.
 Operation 28: [Redeem] MUST answer redeemed ONLY IF the capability's status EQUALS allocated AND the capability is not lapsed.
 Operation 29: [Redeem] MUST carry the scope and the allocator reference in a redeemed answer.
-Deleted: Operation 30. Invariant 2.4 owns it.
+Deleted: Operation 30. Operation 71 owns it.
+Operation 71: A redeeming [Redeem] MUST lower remaining redemptions by one.
 Operation 31: A refused [Redeem] MUST NOT lower remaining redemptions.
 Operation 32: IF remaining redemptions reaches zero THEN [Redeem] MUST stand the capability in redeemed.
 Operation 33: IF remaining redemptions reaches zero THEN [Redeem] MUST stamp redemption instant from the injected now.
@@ -224,7 +230,9 @@ NOTE: open 2026-10-21-i — Operation 19's list and Term redemption failure stat
 
 Term now: the deployment's clock reading at the call — a [Now], as Execution Contract Logic confinement 11 declares it.
 
-Term business caller: the party whose action the call carries, as the section titled Logic Confinement Principle in `execution-contract.md` declares it; never the source of an injected value.
+Term business caller: the party whose action the call carries; never the source of an injected value.
+
+NOTE: watch the seam citation (Term seam, Term transition, Term business caller).
 
 Term max redemptions: the number of redemptions the capability permits — a [Max Redemptions]; a whole count, set at allocation, never changed.
 
@@ -284,7 +292,7 @@ The case space, and the rule that owns each case:
 | [Redeem] | stored status is [Redeemed] | `invalid(exhausted)` | none (Operation 24) |
 | [Redeem] | stored status is [Revoked] | `invalid(revoked)` | none (Operation 25) |
 | [Redeem] | stored [Allocated], now has reached expiry instant | `invalid(expired)` | **none** — derived, and the counter is untouched (Operation 26, Operation 31) |
-| [Redeem] | stored [Allocated], window open, counter above one | `redeemed(scope, allocator_ref)` | the counter falls by one; status unchanged (Operation 69, Invariant 2.4) |
+| [Redeem] | stored [Allocated], window open, counter above one | `redeemed(scope, allocator_ref)` | the counter falls by one; status unchanged (Operation 69, Operation 71) |
 | [Redeem] | stored [Allocated], window open, counter at one | `redeemed(scope, allocator_ref)` | the counter reaches zero and the status moves to [Redeemed] (Operation 69, Operation 32, Operation 33) |
 | [Revoke] | token names a revocable capability, attribution present | revoked | [Allocated] → [Revoked], three fields stamped, counter untouched (Operation 41 through 44, Operation 46) |
 | [Revoke] | token names nothing | [Not Known] | none (Operation 35) |
@@ -307,7 +315,7 @@ The case space, and the rule that owns each case:
   Invariant 2.1: A capability's remaining redemptions MUST NOT rise.
   Deleted: Invariant 2.2. Operation 17 owns it.
   Invariant 2.3: A capability's remaining redemptions MUST NOT EXCEED the max redemptions.
-  Invariant 2.4: A redeeming [Redeem] MUST lower remaining redemptions by one.
+  Deleted: Invariant 2.4. Operation 71 owns it.
   Invariant 2.5: A capability's remaining redemptions MUST NOT fall below zero.
   ```
 - **Invariant 3 — Bearer redemption.**
@@ -353,7 +361,7 @@ The case space, and the rule that owns each case:
 - **Invariant 8 — Scope immutability.**
   ```
   Invariant 8.1: A recorded scope MUST NOT change.
-  Invariant 8.2: A deployment re-scoping an authorization MUST call [Allocate].
+  Deleted: Invariant 8.2. Non-goal 29 owns it.
   ```
 - **Invariant 9 — Revocation attribution completeness.**
   ```
@@ -387,9 +395,9 @@ The case space, and the rule that owns each case:
   Invariant 13.4: The effective status MUST rest on the stored status, the expiry instant and now.
   ```
 
-Invariants 1 and 3 together give the *authorization envelope* property — a capability's full authorization is readable from one immutable record, and no identity check contaminates the bearer semantics. Invariants 2 and 4 give *redemption integrity* — the counter falls exactly once per redemption. Invariants 5, 6 and 13 give *audit clarity* — the record always answers who allocated and what was authorized, never who redeemed; the two stored terminals are unambiguous; and the derived [Expired] is reproducible from the deadline and the read-time clock. Invariant 12 gives *lookup determinism* — [Redeem] resolves to one capability or none.
+Invariants 1 and 3 together give the *authorization envelope* property — a capability's full authorization is readable from one immutable record, and no identity check contaminates the bearer semantics. Invariants 2 and 4, with Operation 71, give *redemption integrity* — the counter falls exactly once per redemption. Invariants 5, 6 and 13 give *audit clarity* — the record always answers who allocated and what was authorized, never who redeemed; the two stored terminals are unambiguous; and the derived [Expired] is reproducible from the deadline and the read-time clock. Invariant 12 gives *lookup determinism* — [Redeem] resolves to one capability or none.
 
-Two properties are entailed rather than stated, and the formal model ([`capability.als`](./capability.als), this spec's sibling) confirms both. A remaining redemptions of zero is reachable only through the exhausting move, which stands the capability in [Redeemed] — [Revoke] does not lower the counter and a lapse never writes — so a zero counter outside [Redeemed] is unreachable (Invariant 2.4, Operation 32, Operation 46, Expiry 3). And a [Revoked] capability always carries a counter above zero, because [Revoke] requires a revocable capability and preserves the counter, and the stored terminals are absorbing (Invariant 7.1, Invariant 7.2, Operation 46).
+Two properties are entailed rather than stated, and the formal model ([`capability.als`](./capability.als), this spec's sibling) confirms both. A remaining redemptions of zero is reachable only through the exhausting move, which stands the capability in [Redeemed] — [Revoke] does not lower the counter and a lapse never writes — so a zero counter outside [Redeemed] is unreachable (Operation 71, Operation 32, Operation 46, Expiry 3). And a [Revoked] capability always carries a counter above zero, because [Revoke] requires a revocable capability and preserves the counter, and the stored terminals are absorbing (Invariant 7.1, Invariant 7.2, Operation 46).
 
 ---
 
@@ -405,7 +413,7 @@ A second click on the same link → `invalid(exhausted)` (Operation 24).
 
 ### Multi-use pre-signed read token
 
-A document service allocates a five-use read token: `allocate(allocator_ref: share_svc_s02, scope: "read::document::doc_d448", max_redemptions: 5, ttl: 604800)` → `cap_tok_b81c`. Three fetches over the week each answer `redeemed(...)` and leave the counter at 2, with the status still [Allocated] (Invariant 2.4).
+A document service allocates a five-use read token: `allocate(allocator_ref: share_svc_s02, scope: "read::document::doc_d448", max_redemptions: 5, ttl: 604800)` → `cap_tok_b81c`. Three fetches over the week each answer `redeemed(...)` and leave the counter at 2, with the status still [Allocated] (Operation 71).
 
 The window closes with two redemptions unspent. **Nothing is called and nothing is written.** A [Read] now reports `effective_status: expired`; the counter still reads 2, because a lapse forfeits the remaining redemptions by derivation rather than by spending them (Expiry 3, Invariant 6.3). A fourth fetch answers `invalid(expired)`.
 
@@ -423,18 +431,19 @@ The window closes with two redemptions unspent. **Nothing is called and nothing 
 
 - **Regulator audit — who authorized a disclosure.** An auditor asks under what authority a document was released. The database yields the capability: `allocator_ref: share_svc_s02`, `scope: "read::document::doc_d448"`, `max_redemptions: 5`, allocation instant, expiry instant. Invariant 1.1 is the answer — the envelope is immutable and readable from one record. What the database *cannot* answer is who fetched the document, and the auditor must be told that up front: attribution for the redemption side lives in the composing [Audit Trail](../compositions/audit-trail.md), never here (Invariant 5.2, Composition note 4).
 - **Disputed reset — the account owner denies resetting.** The database shows `cap_tok_7f3a` allocated to `recovery_svc_r01` at `09:00`, redeemed at `09:12`, exhausted. It does not show who redeemed it, and no amount of reading will make it. That is the structural finding, not a gap: the capability is evidence that *someone holding the link* reset the password within the window, which is exactly what a bearer credential attests (Invariant 3.4, Invariant 5.3).
-- **Breach triage — which capabilities are still redeemable.** Tokens appear in an exposed log. The investigator reads each record's effective status against the investigation clock: which are live, which lapsed, which exhausted or revoked. Every live one is revoked with attribution. The lapsed ones **cannot** be revoked — they answer [Already Terminal] — so the attributed closure a [Session](./session.md) breach response can record is not available here, and the triage record has to lean on the [Audit Trail](../compositions/audit-trail.md) instead (Operation 38, Composition note 4).
+- **Breach triage — which capabilities are still redeemable.** Tokens appear in an exposed log. The investigator reads each record's effective status against the investigation clock: which are live, which lapsed, which exhausted or revoked. Every live one is revoked with attribution. The lapsed ones **cannot** be revoked — they answer [Already Terminal] — so the attributed closure a [Session](./session.md) breach response can record is not available here, and the triage record has to lean on the [Audit Trail](../compositions/audit-trail.md) instead (Operation 38).
 
 ---
 
 ## Generation acceptance
 
-This atom's acceptance is provable: an external auditor clears it from the capability records and the read-time clock.
+This atom's acceptance is provable: an external auditor clears it from the capability records, with their committed versions (Execution Contract Generation acceptance 1), and the read-time clock.
 
 ### Conformance checks
 
 ```
 Check 1.1: An auditor MUST find EVERY capability's allocator reference, scope, max redemptions, allocation instant and expiry instant present (Invariant 5.1, Invariant 10.1).
+Check 1.2: An auditor MUST find one allocator reference, scope, max redemptions, allocation instant and expiry instant per capability across the capability's whole life (Invariant 1.1, Invariant 8.1; Execution Contract Generation acceptance 1).
 Check 2.1: An auditor MUST find no capability's remaining redemptions below zero (Invariant 2.5).
 Check 2.2: An auditor MUST find EVERY capability's remaining redemptions no higher than the max redemptions (Invariant 2.3).
 Check 2.3: An auditor MUST find a remaining redemptions of zero AND a redemption instant on EVERY redeemed capability (Invariant 6.1).
@@ -450,15 +459,17 @@ Check 6.1: An auditor MUST find a revocation instant, a revoked by reference and
 
 NOTE: EVERY check names the rule the check tests.
 
+Term committed version: a record as it stood at the commit that wrote it, as Execution Contract Generation acceptance 1 declares it.
+
 #### External checks
 
 ```
 External check 1: An auditor MUST read a refused [Redeem] from the composing Audit Trail (Invariant 7.3).
 External check 2: An auditor needing a redemption's attribution MUST read the attribution from the composing pattern's records (Invariant 5.2, Non-goal 6).
-External check 3: An auditor needing a capability's field history MUST read the history from the composing Audit Trail (Invariant 1.1).
+Deleted: External check 3. Check 1.2 owns it.
 ```
 
-NOTE: open 2026-10-21-f — External check 1 and External check 3 send the auditor to records no rule obliges the composing Audit Trail to keep, and Check 5.2 cites Invariant 7.2 for a property [Revoke]'s guard and Operation 46 entail.
+NOTE: open 2026-10-21-f — External check 1 sends the auditor to records no rule obliges the composing Audit Trail to keep, and Check 5.2 cites Invariant 7.2 for a property [Revoke]'s guard and Operation 46 entail.
 
 ## Non-goals
 
@@ -491,9 +502,10 @@ Non-goal 25: The atom MUST NOT attest an allocator reference.
 Non-goal 26: The atom MUST NOT attest a revoked by reference.
 Non-goal 27: A deployment needing an attested actor MUST compose Actor Identity.
 Non-goal 28: The atom MUST NOT reconcile two readers disagreeing across the deadline.
+Non-goal 29: A deployment re-scoping an authorization MUST call [Allocate].
 ```
 
-NOTE: the owners — [Audit Trail](../compositions/audit-trail.md) (Non-goal 5, Non-goal 6); [Permissions](./permissions.md) (Non-goal 13, Non-goal 14); [Invitation](./invitation.md) (Non-goal 15, Non-goal 16); [Tamper Evidence](./tamper-evidence.md) (Non-goal 19, Non-goal 20); [Retention Window](./retention-window.md) (Non-goal 21, Non-goal 22); the deployment (Non-goal 23); [Actor Identity](./actor-identity.md) (Non-goal 25, Non-goal 27); Execution Contract Logic confinement 7 (Non-goal 28).
+NOTE: the owners — [Audit Trail](../compositions/audit-trail.md) (Non-goal 5, Non-goal 6); [Permissions](./permissions.md) (Non-goal 13, Non-goal 14); [Invitation](./invitation.md) (Non-goal 15, Non-goal 16); [Tamper Evidence](./tamper-evidence.md) (Non-goal 19, Non-goal 20); [Retention Window](./retention-window.md) (Non-goal 21, Non-goal 22); the deployment (Non-goal 23, Non-goal 29); [Actor Identity](./actor-identity.md) (Non-goal 25, Non-goal 27); Execution Contract Logic confinement 7 (Non-goal 28).
 
 ## Edge cases
 
@@ -530,7 +542,7 @@ String 10: IF the capability is revocable AND reason EXCEEDS the maximum length 
 ## Composition notes
 
 ```
-Composition note 1: A deployment MUST declare which composing patterns the deployment wired in.
+Deleted: Composition note 1. Capability requirement 9 owns it.
 Composition note 2: A composing pattern MUST own the scope's meaning.
 Composition note 3: A composing pattern MUST own the authority to allocate for a scope.
 Composition note 4: A composing pattern MUST own the redemption's attribution.
@@ -564,7 +576,7 @@ Term cadences: empty.
 
 Term qualifiers: migrated — rewritten in GRACE lang v0.35 (2026-09-12).
 
-Term terms: capability, capability token, allocator reference, scope, seam, transition, token entropy, now, business caller, max redemptions, single-use default, remaining redemptions, ttl, default capability ttl, window length, zero duration, zero, whole count, allocation instant, expiry deadline, expiry instant, lapsed, revocable, effective status, redemption instant, revocation instant, revoked by reference, revocation reason, reason, filter, liveness query, redeem refusal order, status, revocation field, maximum length, redemption failure.
+Term terms: capability, capability token, allocator reference, scope, seam, transition, token entropy, now, business caller, max redemptions, single-use default, remaining redemptions, ttl, default capability ttl, window length, zero duration, zero, whole count, allocation instant, expiry deadline, expiry instant, lapsed, revocable, effective status, redemption instant, revocation instant, revoked by reference, revocation reason, reason, filter, liveness query, redeem refusal order, status, revocation field, maximum length, redemption failure, committed version.
 
 #### Allocate
 
@@ -848,20 +860,20 @@ Inherited from:
 
 ## Status
 
-`partially resolved` — see the Ledger.
+`grounded on Final Critique 10 — 2026-11-01` — see the Ledger.
 
 ## Ledger
 
 ```
-status: partially resolved
+status: grounded on Final Critique 10 — 2026-11-01
 formal: verified — capability.als + 1 twin, 2026-06-23
-last gate: 2026-10-29 — Final Critique 9 — foundational count 2, not clean, no sample
+last gate: 2026-11-01 — Final Critique 10 — foundational count 0, clean, one sample
 
 open:
 - 2026-10-21-a · refining · Operation 50; [Read] · [Read] answers the matching capabilities in no stated order → an order
 - 2026-10-21-e · refining · Term value sets; the term entries · the term entries name member-of targets (the action outcome, the Revoke rejection, the action rejection, the derived effective status), none of which Term value sets declares → declare each target
-- 2026-10-21-f · refining · External check 1; External check 3; Check 5.2 · External check 1 reads a refused [Redeem] from the composing Audit Trail, which no rule obliges to record a refusal, and cites Invariant 7.3, another proposition; External check 3 sends a field history to Audit Trail while Execution Contract Database 5 keeps every committed version readable and Capability requirement 5 cites Database 1 through 4; Check 5.2 cites Invariant 7.2 for a property the page entails from [Revoke]'s guard and Operation 46 → name what each check reads and cite the rules it tests
-- 2026-10-21-i · refining · Operation 19; Term redemption failure; Term redeem refusal order · Operation 19's list and Term redemption failure restate one outcome space, whose members the signature and the [Redeem] entry call answers and Term redeem refusal order, Operation 31 and Operation 65 call refusals → one owner, keeping the reach by which Operation 31 holds a refused redemption's counter
+- 2026-10-21-f · refining · External check 1; Check 5.2 · External check 1 reads a refused [Redeem] from the composing Audit Trail, which no rule obliges to record a refusal, and cites Invariant 7.3, another proposition, which a refusal cannot show: a refused call writes nothing (Execution Contract Read 4), so it shows one call refused, not that none was admitted; Check 5.2 cites Invariant 7.2 for a property the page entails from [Revoke]'s guard and Operation 46 → name what each check reads and cite the rules it tests
+- 2026-10-21-i · refining · Operation 19; Term redemption failure; Term redeem refusal order · Operation 19's list and Term redemption failure restate one outcome space, whose members the signature and the [Redeem] entry call answers and Term redeem refusal order, Operation 31 and Operation 65 call refusals, and Operation 65 orders rules that never apply together (Term lapsed holds only in allocated) → one owner, keeping the reach by which Operation 31 holds a refused redemption's counter
 ```
 
 <details markdown="block">
