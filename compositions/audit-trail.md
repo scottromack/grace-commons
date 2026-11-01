@@ -141,6 +141,7 @@ Term closed-state marker: compensated attestations and reported beyond horizon.
   event to sequence 6: The composition MUST NOT ask EventLog.read to select on event id.
   event to sequence 7: The composition MUST NOT ask EventLog.read for a payload predicate.
   ```
+  An event id no constituent knows misses event to sequence on every call, so each id-addressed call for it runs the rebuild, one full enumeration, before it lands not-known (Composition state 2, event to sequence 3).
 - **seal coverage**
   Term seal coverage: for each evidence id in the seal records, the contiguous sequence-number range the seal commits to as [Seal Now] cut it, plus a per-entry purged events set the cascade writes; what tells the verifier which record set to present.
   ```
@@ -159,6 +160,8 @@ Term closed-state marker: compensated attestations and reported beyond horizon.
   seal coverage 13: The slice reference MUST encode the slice's first and last sequence number.
   seal coverage 14: The slice reference MUST carry the count of events the slice holds.
   ```
+  Term slice reference: slice_ref — the reference naming the slice a seal covers.
+
   Term purged events: the set of sequence number values within one seal's range that a cascade's destruction record has added (purge event step 2.2), each added before the cascade delegates the destruction of the event's content (purge event step 2.4).
 
   Term covering seal: the evidence id whose seal coverage range contains the event's sequence number.
@@ -173,9 +176,9 @@ Term closed-state marker: compensated attestations and reported beyond horizon.
   Deleted: erasure outcomes 5. Execution Contract Database 1, Execution Contract Database 3 and Execution Contract Database 4 own it.
   erasure outcomes 6: A destruction-failed record MUST NOT close an entry.
   ```
-  Term closed entry: an erasure outcomes entry among whose records a destroyed outcome exists.
+  Term closed entry: a Purged retention whose cascade is a completed cascade.
 
-  Term open entry: an erasure outcomes entry that is not a closed entry; open for re-driving.
+  Term open entry: a Purged retention whose cascade is not a completed cascade; open for re-driving.
 
 - **sealed through**
   ```
@@ -259,7 +262,7 @@ Term hold placement: the deployment's own call of Legal Hold's place over an eve
 
 Term open-upper-bound read: `EventLog.read` over a sequence-number range beginning at a given sequence number with no upper bound.
 
-Record set match is Tamper Evidence's, cited and not redeclared (GRACE-lang Closed vocabulary 17): the host's answer at that atom's seam, which the atom cannot judge (its Capability requirement 5, Operation 22b). Here the deployment judges it by the count of events the slice reference carries (Capability requirement 6a, 6b), so a presentation of that count answers yes whatever its content and TamperEvidence.verify judges the content, and a no surfaces as `failed-verification(seal-record-set-mismatch)` (verify record step 5.2).
+Record set match is Tamper Evidence's, cited and not redeclared (GRACE-lang Closed vocabulary 17): the host's answer at that atom's seam, which the atom cannot judge (its Capability requirement 5, Operation 22b). Here the deployment judges it by the count of events the slice reference carries (Capability requirement 6a, 6b), so a presentation of that count answers yes whatever its content and TamperEvidence.verify judges the content: a presentation of that count that breaks Primitive policy 26 answers `failed-verification(seal-proof-invalid)` as altered content would, the caller's error read as the record's, which the composition cannot tell apart without the payload's identity. A no surfaces as `failed-verification(seal-record-set-mismatch)` (verify record step 5.2).
 
 Term content readable: yes | no — the host's answer, at the seam of Event Log's read and of Actor Identity's read, to whether a returned event's data field, or a returned attestation's proof, can be read; neither atom's read declares it (Event Log State 2, Actor Identity Operation 28), and a conforming erasure mechanism is the one thing that turns it to no (erasure mechanism 6a, 6b, 6c).
 
@@ -309,6 +312,7 @@ Twenty-one knobs — Legal Hold among them, declared with the capability it swit
   Term seal mechanism: a Tamper Evidence mechanism reference: hash chain, Merkle tree, RFC 3161-anchored timestamp (RFC 3161, Request for Comments 3161: the Internet Engineering Task Force's Time-Stamp Protocol). *Default:* none.
   ```
   seal mechanism 1: The deployment MUST select a mechanism sound for the full audit horizon.
+  NOTE: open 2026-11-01-d — *the audit horizon* is declared nowhere and reads as Term horizon, the lesser of the two reserved retention periods, under a modifier (seal mechanism 1, External check 3, External check 5).
   seal mechanism 2: A deployment requiring the forensic-window bound of Check 4 MUST select a chained mechanism.
   seal mechanism 3: The deployment MUST set seal mechanism to the mechanism the wired Tamper Evidence instance runs.
   seal mechanism 4: The deployment MUST alert on a disagreement between seal mechanism and the wired instance's mechanism as a deployment fault.
@@ -320,7 +324,7 @@ Twenty-one knobs — Legal Hold among them, declared with the capability it swit
   Term verify-time presentation: the payloads of every event in the covering seal's range, byte-exact, in ascending sequence number order — no re-serialization, key reordering or encoding fixup.
 
 - **mechanism credential**
-  Term mechanism credential: opaque credential material passed to `TamperEvidence.seal` on every seal, whatever the cadence: a signing key for a keyed mechanism, a TSA (Time-Stamp Authority — a trusted third party that signs proofs of when data existed) client credential for an anchored one. *Default:* empty (unkeyed).
+  Mechanism credential is Tamper Evidence's, cited and not redeclared (GRACE-lang Closed vocabulary 17): here the deployment's setting for the material passed to `TamperEvidence.seal` on every seal, whatever the cadence — a signing key for a keyed mechanism, a TSA (Time-Stamp Authority — a trusted third party that signs proofs of when data existed) client credential for an anchored one. *Default:* empty (unkeyed).
   ```
   mechanism credential 1: The composition MUST pass mechanism credential to TamperEvidence.seal on every seal.
   mechanism credential 2: The composition MUST pass mechanism credential through unchanged.
@@ -594,6 +598,8 @@ Term reserved namespace: every action reference whose bytes begin with `audit.`;
 
 Term reconciliation path: the scan's own writes — `audit.reconciliation` and `audit.compensation` records — identified by actor reference EQUALS reconciliation operator.
 
+Term original event payload: original_event_payload — the record set [Verify Record] re-presents to Tamper Evidence: the verify-time presentation of the covering seal's range as [Read Record] reported it, which is the event's own payload as appended where the range is the one event, and never the event's payload alone where the range is wider (Primitive policy 26).
+
 ### Action wiring
 
 One *record* action wraps all four constituents; *seal*, *read*, *verify* and *purge* actions run over the composed surface; the consolidated per-event join is [Read Record]. Each step names every rejection its constituent call declares and where the rejection lands at this composition's boundary; the enumeration is exhaustive, because silent rejection-code drift is a Pass 1 reference-graph finding. A constituent's state-unavailable, which a failed read of the database answers on no signature, passes through unchanged wherever no rule here lands it (Execution Contract Read 1 through 3). A call that never answers is the lost answer of Execution Contract Error model 1; the closure table below names where each call's answers, its lost answer among them, land.
@@ -605,6 +611,7 @@ Action wiring 3: The composition MUST NOT serve a query by payload field.
 Action wiring 4: A deployment needing a query by payload field MUST compose Reverse Index over the audit log and join the results through [Read Record] one event id at a time.
 Action wiring 5: The composition MUST pass the answer and the refusal of a passed-through EventLog.read through unchanged, invalid-query included.
 Action wiring 6: The composition MUST return EVERY payload of a passed-through EventLog.read byte-exact as appended.
+NOTE: open 2026-10-05-a — a composing layer's read by sequence-number range has no entry on this composition's surface, no signature and no closure row, and is reached through Event Log's read (Action wiring 1, Action wiring 5); what it answers for a destroyed event is unstated.
 ```
 
 #### Closure table
@@ -923,7 +930,7 @@ Steps:
    record action step 5.9: The composition MUST treat a step-5 failure as a rebuild trigger.
    record action step 5.10: A step-5 failure MUST NOT land [Recording Failure].
    ```
-   Term read-back: the open-upper-bound read over the new unsealed tail through `EventLog.read`.
+   Term read-back: the open-upper-bound read through `EventLog.read` over the unsealed tail past the high-water mark (record action step 5.3).
 
    Term high-water mark: the greater of sealed through and the highest sequence number this instance has itself recorded into event to sequence.
 
@@ -1082,7 +1089,7 @@ Steps:
    read record step 5.2: [Read Record] step 5 MUST NOT fabricate a retention.
    read record step 5.3: IF a log entry EXISTS AND no retention record EXISTS AND the event's data IS unreadable THEN [Read Record] step 5 MUST answer no answer, the unreadable payload standing as an outage of Event Log (Term dependency outage).
    ```
-6. **No verification** (read record 4). [Read Record] presents; [Verify Record] proves. The split is forced by Invariant 7 — verification needs the original payload re-presented, and a read surface that fetched it internally would destroy the asymmetry the composition exists to surface.
+6. **No verification** (read record 4). [Read Record] presents; [Verify Record] proves. The split is forced by Invariant 7 — verification needs the original payload re-presented, and a read surface that fetched it internally would destroy the asymmetry the composition exists to surface. The who it presents is the record's word until [Verify Record] answers verified, its step 3 calling Actor Identity's verify (Actor Identity Composition note 3).
 
 ---
 
@@ -1446,12 +1453,12 @@ Second half 12: A writer other than the scan MUST NOT write an orphan's compensa
 Second half 13: IF attestation age DOES NOT EXCEED horizon THEN the second half MUST write EXACTLY ONE compensation per orphan, a duplicate of Durability 5 excepted.
 Deleted: Second half 16. Execution Contract Database 1 owns it.
 Second half 17: The second half MUST serve the marker reads of Second half 4 and Second half 9 and the narrated read of Compensation 10 from ONE enumeration read under the critical section.
-Second half 14: The second half MUST take an attestation id from an event payload the full enumeration reads, whatever the event's retention state.
+Second half 14: The second half MUST take the payload's attestation id from an event payload the full enumeration reads, whatever the event's retention state.
 Second half 15: The second half MUST read the destruction records AFTER the full enumeration.
 Second half 18: IF the full enumeration returns an event whose data is unreadable AND no destruction record names the event THEN the second half MUST write no compensation in the run AND MUST surface a compliance alert.
 ```
 
-Term binding set: the union of the attestation id values carried in every event payload the full enumeration reads, whatever the event's retention state, and the attestation id values in destruction records.
+Term binding set: the union of the payload's attestation id of every event the full enumeration returns whose data IS NOT unreadable, whatever the event's retention state, and the attestation id values in destruction records.
 
 Term orphan: an attestation in the database whose attestation id is in neither enumeration of the binding set.
 
@@ -1479,6 +1486,8 @@ Third half 17: The deployment MUST alert on invalid-policy and policy-not-found 
 ```
 
 Term true miss: a miss of event to retention that survives the rebuild.
+
+Term unretained event: an event in the audit log over which no retention record stands — the third half's finding, found as a true miss.
 
 Term owed narration: an `audit.reconciliation` intent whose subject is set to event, carrying no disposition, older than record edge, inside the horizon, whose subject has no matching `audit.compensation` record — both read composition-side out of the full enumeration filtered on the two reserved references.
 
@@ -1655,9 +1664,11 @@ Term recorded through [Record Action]: the quantifier of Invariants 1, 2 and 8 �
   ```
   Invariant 6.1: For EVERY event id, IF every constituent read answers AND the event's data IS NOT unreadable under a Retained retention (read record step 4.7) AND the event's data IS NOT unreadable with no retention record (read record step 5.3) AND the event's data IS NOT unreadable under a Purged retention no destruction record names (read record step 4.4h) THEN [Read Record] MUST return EXACTLY ONE OF the audit record, not-known.
   Invariant 6.2: For EVERY event id, IF every constituent read answers AND the event's data IS NOT unreadable under a Retained retention (verify record step 2.6) AND the event's data IS NOT unreadable with no retention record (verify record step 2.6) THEN [Verify Record] MUST return EXACTLY ONE OF verified, failed-verification(reason), unverifiable(reason), not-known.
-  Invariant 6.3: IF no verification surface outage EXISTS THEN [Verify Record] MUST answer deterministically over a fixed record set.
+  Invariant 6.3: IF no verification surface outage EXISTS AND no anchor change EXISTS between two [Verify Record] calls on one event under one registry view over a fixed record set THEN the two calls MUST answer alike.
   ```
   Term verification surface outage: the actor registry or the seal mechanism unreachable.
+
+  NOTE: watch the external answer that moves (Invariant 6.3).
 
   *Rests on:* [Read Record] and [Verify Record]; for a purged event the *who / what / when* half of the join on the pair captured at [Purge Event] step 2 and the surviving fields it names (read record step 4.4), the only route left once Event Log's data field is unreadable; Actor Identity Invariants 1 and 9 (without which the record would not still be there to read), 6 (self-containment) and 7 (verification consistency under fixed registry state); Tamper Evidence Invariants 4 (verification self-containment given the originating records) and 7 (verification consistency under a fixed record set); Invariant 1 through 3 above for the completeness of what is joined.
 
@@ -1830,6 +1841,7 @@ External check 2: An auditor MUST clear from external evidence that the actor re
 External check 3: An auditor MUST clear from external evidence that the seal mechanism is cryptographically sound for the audit horizon.
 External check 4: An auditor MUST clear from external evidence that the mechanism's seal-time rendering agrees with the verify-time presentation.
 External check 5: An auditor MUST clear from external evidence that the clock was monotonic and unmanipulated over the audit horizon.
+NOTE: open 2026-11-01-d — *the audit horizon* reads as Term horizon under a modifier (External check 3, External check 5, seal mechanism 1).
 External check 6: An auditor MUST clear from external evidence that the configured retention policy was the correct one for the record class.
 Deleted: External check 7. Execution Contract Database 3 owns it.
 External check 8: An auditor MUST clear from the deployment's own matching logic that record set match judges the presented record set against the reference the seal committed to.
@@ -1998,7 +2010,7 @@ Term records: the audit event (Event Log's data field); the attestation; the ret
 
 Term record verbs: serve, call, read, delete, evaluate, write, dispose, seal, expose, alert, surface, retry, sit, consult, treat, claim, modify, remove, populate, classify, take, re-key, resolve, ask, key, overlap, carry, flag, record, address, land, close, compute, keep, filter, cover, set, place, hold, retain, select, declare, pass, inspect, log, wire, rewrite, leave, report, name, evidence, measure, run, govern, provision, decide, hand, apply, size, widen, exclude, supply, release, skip, block, issue, implement, re-read, start, contain, validate, normalize, compare, consume, store, count, yield, present, canonicalize, return, adopt, guess, fall, depend, defer, invoke, advance, re-seal, change, produce, verify, assemble, fabricate, ride, fold, promote, route, proceed, locate, map, re-derive, share, reject, re-offer, re-drive, invent, resume, add, destroy, repair, remain, conclude, grow, suspend, stay, append, match, exist, condition, reconcile, commit, bound, answer, fetch, reserve, stand, obtain, confirm, enumerate, build, fail, walk, step, discard, regenerate, expect, identify, clear, specify, provide, invalidate, adjudicate, rotate, serialize, require, own, monitor, examine, test, delegate, compose, reference, raise, make, encode, judge, wait, include, namespace, bind, end, re-declare, re-run, go, re-issue, recompute, re-resolve, restart, shred.
 
-Term cited: append, read, event id, sequence number, recording instant, data, next sequence number, invalid-query, invalid-payload, storage-failure: Event Log. attest, verify, attestation id, action reference, actor reference, attestation instant, proof, invalid-credential, invalid-request, not-known, registry-unavailable: Actor Identity. place_under_retention, purge, purge eligible, retention id, policy reference, record reference, retention deadline, purge deadline, purge instant, retention-period-not-elapsed, not-retained, invalid-policy, policy-not-found, registry-unavailable: Retention Window. seal, evidence id, record set reference, record set match, sealing instant, anchoring instant, `mechanism-failure(reason)`, mechanism-verification-unavailable, seal-record-set-mismatch, seal-proof-invalid: Tamper Evidence.
+Term cited: append, read, event id, sequence number, recording instant, data, next sequence number, invalid-query, invalid-payload, storage-failure: Event Log. attest, verify, attestation id, action reference, actor reference, attestation instant, proof, registry view, invalid-credential, invalid-request, not-known, registry-unavailable: Actor Identity. place_under_retention, purge, purge eligible, retention id, policy reference, record reference, retention deadline, purge deadline, purge instant, retention-period-not-elapsed, not-retained, invalid-policy, policy-not-found, registry-unavailable: Retention Window. seal, evidence id, record set reference, record set match, mechanism credential, anchor change, sealing instant, anchoring instant, `mechanism-failure(reason)`, mechanism-verification-unavailable, seal-record-set-mismatch, seal-proof-invalid: Tamper Evidence.
 
 Term value sets: retention_state = Retained | Purged. seal cadence = per-event | interval-based | on-demand. unsealed tail mode = strict | lenient. mechanism class = unkeyed | keyed | anchored. erasure outcome = destroyed | destruction-failed(reason). coverage status = covered | unsealed tail | records-purged | partially purged. verify outcome = verified | failed-verification(reason) | unverifiable(reason). unverifiable reasons = attestation-registry-unavailable | seal-mechanism-verification-unavailable | partially-purged-coverage. composition-introduced failed-verification reasons = unsealed | purged | attestation-not-known | seal-not-known, plus the constituents' reasons prefixed `attestation-` and `seal-`, registry-unavailable and mechanism-verification-unavailable excepted (verify record step 3.2, 5.2). subject = attestation | event. disposition = beyond-horizon. cascade-failure step = seal | hold | step-1 | step-2 | step-3 | in-flight. recording-failure step = step-2 | step-3 | step-4. invalid-request step = step-1 | step-2 | step-3 | step-4. classification = derived index | extraction-pending.  lease = live | expired. `Legal Hold` = composed | absent. retention status on the audit record = the retention record's state | unresolved (compensation window). attribution on the audit record = the surviving fields. reserved references = audit.compensation | audit.reconciliation. event standing = retained | lawfully destroyed | held.
 
@@ -2008,11 +2020,7 @@ Term cadences: seal cadence, reconciliation cadence.
 
 Term qualifiers: migrated — rewritten in GRACE lang v0.35 (2026-09-11); `(compensation-window)` — carried beside a [Verify Record] outcome on a separate channel.
 
-Term terms: (each declared where it is used) audit log, attestation records, retention records, seal records, surviving fields, open-upper-bound read, full enumeration, derived index, extraction-pending, rebuild-on-miss, retention state, live, purged, purged events, covering seal, closed entry, sealed through, unsealed tail, reconciled, resolved policy, time arm, chained mechanism, verify-time presentation, mechanism class, independently trusted substrate, standing false negative, tombstone-by-mutation, `Event Log's data field`, `finding's creation`, serialized envelope, reference headroom, largest intended data, whole closure, `act's completion bound`, `act's kind`, lease, holder, pre-check, closure sum, full constructed payload, reserved namespace, reconciliation path, committed ids, subject-kind discriminator, read-back, high-water mark, non-storage refusal, slice, slice read, tail position, audit record, coverage status, pair, partly-purged coverage, `Legal Hold`, hold, mid-cascade expiry, `cascade-failure(step-3)`, completed cascade, divergence, record edge, purge edge, lower edge, upper edge, horizon, purge age, attestation age, event age, binding set, orphan, true miss, owed narration, narrated, intent, quiescence, `recorded through [Record Action]`, window span, audit edge, composition-built query, insert-only map, closed-state marker, reconciled policy, held critical section, truth-bearing write, `who / what / when`, seal disposal, re-sealing, dependency outage, compliance alert, verification surface outage, event standing, residual finding, seal stamps, extraction-pending fact, invocation, later write, malformed reference, standing finding, open entry, external evidence, sealing lock, uncovered mark, probe, no answer, call pause bound, closure floor, measured enumeration, work bound, closure spend, re-drive spend, suspended entry, content readable, unreadable, retention period, purge sweep, outage record; and now, the seam-injected reading (Clock source 1; Execution Contract Logic confinement 11).
-
-Term original event payload: original_event_payload — the record set [Verify Record] re-presents to Tamper Evidence: the verify-time presentation of the covering seal's range as [Read Record] reported it, which is the event's own payload as appended where the range is the one event, and never the event's payload alone where the range is wider (Primitive policy 26).
-
-Term slice reference: slice_ref — the reference naming the slice a seal covers.
+Term terms: (each declared where it is used) audit log, attestation records, retention records, seal records, surviving fields, open-upper-bound read, full enumeration, derived index, extraction-pending, rebuild-on-miss, retention state, live, purged, purged events, covering seal, closed entry, sealed through, unsealed tail, reconciled, resolved policy, time arm, chained mechanism, verify-time presentation, mechanism class, independently trusted substrate, standing false negative, tombstone-by-mutation, `Event Log's data field`, `finding's creation`, serialized envelope, reference headroom, largest intended data, whole closure, `act's completion bound`, `act's kind`, lease, holder, pre-check, closure sum, full constructed payload, reserved namespace, reconciliation path, committed ids, subject-kind discriminator, read-back, high-water mark, non-storage refusal, slice, slice read, tail position, audit record, coverage status, pair, partly-purged coverage, `Legal Hold`, hold, mid-cascade expiry, `cascade-failure(step-3)`, completed cascade, divergence, record edge, purge edge, lower edge, upper edge, horizon, purge age, attestation age, event age, binding set, orphan, true miss, unretained event, owed narration, narrated, intent, quiescence, `recorded through [Record Action]`, window span, audit edge, composition-built query, insert-only map, closed-state marker, reconciled policy, held critical section, truth-bearing write, `who / what / when`, seal disposal, re-sealing, dependency outage, compliance alert, verification surface outage, event standing, residual finding, seal stamps, extraction-pending fact, invocation, later write, malformed reference, standing finding, open entry, external evidence, sealing lock, uncovered mark, probe, no answer, call pause bound, closure floor, measured enumeration, work bound, closure spend, re-drive spend, suspended entry, content readable, unreadable, retention period, purge sweep, outage record; and now, the seam-injected reading (Clock source 1; Execution Contract Logic confinement 11).
 
 #### Record Action
 
@@ -2161,7 +2169,7 @@ The composition is the structural form of what every major audit regime requires
 ```
 status: partially resolved
 formal: verified — audit-trail.tla + 2 twins (cascade; scan first half) and audit-trail-record.tla + 3 twins (record action, one step under Execution Contract Store 1; scan second and third halves; re-derived 2026-10-20) and audit-trail-binding.tla + 2 twins (binding-set predicate against an in-flight cascade), re-derived against the fresh-reader gates of rounds 9 to 18, and audit-trail-hold.tla + 5 twins + 3 probes (a hold placed over an open cascade entry, released and re-driven; 43,688 states within 15 ticks), derived from the page as it stands; the closure arithmetic — a leg's lease against its work (Instance start 18, 19, Per-act critical section 13a, 13b, 13d) and a finding's closure against closure sum with one dead run and one hold placement (Instance start 16) — enumerated by tools/harness/audit-trail-closure.py + 5 twins over 5,184 leg tuples and 5,184 schedule tuples at conforming constants, which no model reaches; the other cures of rounds 19 to 26 are carried on the NOT MODELED lists, not re-derived; models and enumerator last run 2026-10-24
-last gate: 2026-11-01 — Final Critique 51 — foundational count 1, not clean, no sample
+last gate: 2026-11-01 — Final Critique 52 — foundational count 2, not clean, no sample
 
 open:
 - 2026-10-03-d · refining · Second half 18; Term dependency outage · content lost with no cascade and not restorable leaves the second half writing no compensation with nothing to end it → a standing for content lost without record; contract-shaped, own round
@@ -2191,6 +2199,7 @@ open:
 - 2026-11-01-a · refining · Term closure sum; Capability requirement 7a; Per-act critical section 5; Non-goal 15 · closure sum prices one hold placement holding an open entry's critical section when a first-half leg comes for it, and placements that take the section and place nothing can displace the leg run after run, with nothing bounding how many → price each such placement in closure sum, or have the deployment's placement gate (Non-goal 15) displace one entry's leg at most once a window
 - 2026-11-01-b · refining · read record step 5.1; Check 5.12 · the read surface answers retention status unresolved (compensation window) for an event with no retention record at any age, while Check 5.12 reads it only inside the window, and the surface reads no clock → decide whether the label names the state at any age, as [Purge Event]'s retention-unresolved does (purge event step 0½.2), or the surface learns the window
 - 2026-11-01-c · refining · Compensation 2; Compensation 10; Compensation 11; Term narrated; Second half 13 · the second half decides a compensation on the run's reading of now and reads narrated under the critical section up to closure latency later, and narrated reads only an intent live in the log, so an intent whose retention elapses in that span — its orphan's age at the horizon, the reconciliation reference's period the lesser, the intent written within closure latency of its orphan and the compensation refused run after run until then — is purged before the read, and a second audit.reconciliation record lands for the finding → have narrated read the subject and id the destruction record carries (purge event step 2.3a), as compensated attestations 2a reads its purged members, or have the second half decide at the narrated read
+- 2026-11-01-d · refining · seal mechanism 1; External check 3; External check 5; Term horizon · the three rules read *the audit horizon*, declared nowhere, which reads as Term horizon, the lesser of the two reserved retention periods, under a modifier, where they mean the span the records must stay answerable → declare Term audit horizon apart from Term horizon (to the latest purge deadline, or as long as the seal records stand), or write each rule's span
 ```
 
 <details markdown="block">
