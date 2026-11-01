@@ -22,7 +22,7 @@ The record keeps the party's enrollment, the full history of identity checks —
 
 The central guarantee is that a party cannot stand verified without a passing check recorded since the most recent suspension. The atom enforces that itself, so a downstream process can require *a verified party* and trust that the standing rests on recorded evidence rather than a flipped flag.
 
-The atom records the results of identity checks; it does not perform them — no document scan, no biometric match, no sanctions screen — and it does not deduplicate parties. It is distinct from [Actor Identity](./actor-identity.md), and the distinction is the shortest way to say what this atom is: an actor signs, a party is verified.
+The atom records the results of identity checks; it does not perform them — no document scan, no biometric match, no sanctions screen — and it does not deduplicate parties. It is distinct from [Actor Identity](./actor-identity.md), and the distinction is the shortest way to say what this atom is: an actor signs, a party is verified — Actor Identity proves who took an action, and this atom keeps the recorded checks a party's verified standing rests on.
 
 ---
 
@@ -71,21 +71,23 @@ Term verification event: the record of one identity check — its method, result
 
 Term state change event: the record of one transition — the prior state, the new state, the acting reference, the instant and, where the action carries one, the reason — appended to a party and never changed.
 
-Term assigned id: party id, verification id OR state change id — every opaque name this atom assigns.
+Term assigned id: party id, verification id OR state change id — every opaque name this atom assigns, each fresh: carried by no record of the database instance when the atom assigns it (Capability requirement 11, Capability requirement 12).
 
 Term enrollment field: name | date of birth | document type | document reference | enrollment instant | enrolling actor reference — what a party carries from enrollment and the atom never changes.
 
-Term acting reference: enrolling actor reference, verifying actor reference, suspending actor reference, reinstating actor reference OR closing actor reference — the reference an action records for who acted.
+Term acting reference: enrolling actor reference, verifying actor reference, suspending actor reference, reinstating actor reference OR closing actor reference — the one reference an action's call carries for who acted, which the action records: on a state change event an admitted verify appends, the verifying actor reference.
 
 Term reference: an assigned id, an acting reference, document reference OR evidence reference — every opaque reference this atom records.
 
 Term database instance: one named database a call is routed to; assigned id uniqueness ranges over one instance.
 
-Term seam: the atom's I/O boundary as the section titled Logic Confinement Principle in `execution-contract.md` declares it; the host injects the clock reading and the id material here.
+Term seam: the atom's I/O (input and output) boundary; the host injects the clock reading and the id material here.
 
-Term transition: the atom's evaluation of one call against the party records, as the section titled Logic Confinement Principle in `execution-contract.md` declares it.
+Term transition: the atom's evaluation of one call against the party records.
 
 Term now: the deployment's clock reading at the call, as Execution Contract Logic confinement 11 declares it.
+
+NOTE: watch the seam citation (Term seam, Term transition).
 
 ### State
 
@@ -110,9 +112,15 @@ Deleted: Capability requirement 5. Execution Contract Database 1 owns it.
 Deleted: Capability requirement 6. Execution Contract Logic confinement 13 owns it.
 Capability requirement 7: The deployment MUST declare the length bound.
 Capability requirement 10: The deployment MUST supply the party records PER Execution Contract Database 1 through 4, Execution Contract Database 6, Execution Contract Database 7, Execution Contract Order 1, Execution Contract Read 4, Execution Contract Refusal 1 and Execution Contract Query 1 through 4.
+Capability requirement 11: The deployment MUST supply id material naming no record of the database instance.
+Capability requirement 12: The deployment MUST NOT supply the same id material to two calls.
+Capability requirement 13: The deployment MUST NOT supply blank id material.
+Capability requirement 14: The deployment MUST supply id material whose assigned party id DOES NOT EXCEED the length bound.
 Deleted: Capability requirement 8. Execution Contract Logic confinement 7 owns it.
 Deleted: Capability requirement 9. Execution Contract Logic confinement 7 owns it.
 ```
+
+NOTE: watch host obligations (Capability requirement 11 through 14).
 
 ### Operations
 
@@ -146,8 +154,8 @@ Term verify answer: verification id and an optional state change id — what ver
 
 ```
 Operation 1: IF a required string input EQUALS blank THEN an action MUST answer invalid-request.
-Operation 2: IF the date of birth parses as no calendar date THEN [Enroll] MUST answer invalid-request.
-Operation 3: IF now PRECEDES the date of birth THEN [Enroll] MUST answer invalid-request.
+Operation 2: IF the date of birth parses as no calendar date in the date form THEN [Enroll] MUST answer invalid-request.
+Operation 3: IF now PRECEDES the date of birth start THEN [Enroll] MUST answer invalid-request.
 Operation 4: An admitted enroll MUST assign a fresh party id.
 Operation 5: An admitted enroll MUST record EVERY enrollment field.
 Operation 6: An admitted enroll MUST record now as enrollment instant.
@@ -165,7 +173,7 @@ Deleted: Operation 17. Execution Contract Refusal 1 owns it.
 Operation 18: IF no fresh verification EXISTS THEN [Reinstate] MUST answer no-passed-verification-since-suspend.
 Deleted: Operation 19. Execution Contract Refusal 1 owns it.
 Deleted: Operation 20. Execution Contract Refusal 1 owns it.
-Operation 21: IF the verification result differs from passed AND the verification result differs from failed THEN [Verify] MUST answer invalid-request.
+Operation 21: IF the verification result DOES NOT EQUAL passed AND the verification result DOES NOT EQUAL failed THEN [Verify] MUST answer invalid-request.
 Operation 22: An admitted verify MUST append a verification event carrying a fresh verification id.
 Operation 23: An admitted verify MUST record verifying actor reference, verification method, verification result and evidence reference on the verification event.
 Operation 24: An admitted verify MUST record now as the verification event's verification instant.
@@ -192,8 +200,8 @@ Operation 44: The atom MUST NOT offer a party removal surface.
 Operation 45: The atom MUST NOT offer an event removal surface.
 Operation 46: The atom MUST NOT offer an enrollment field update surface.
 Operation 47: The atom MUST NOT offer a reopen surface.
-Operation 48: IF a filter axis falls outside the query axes THEN [Read] MUST answer invalid-query.
-Operation 49: IF a filter value falls outside the axis's admitted values THEN [Read] MUST answer invalid-query.
+Operation 48: IF a filter axis IS NOT IN the query axes THEN [Read] MUST answer invalid-query.
+Operation 49: IF a filter value IS NOT IN the axis's admitted values THEN [Read] MUST answer invalid-query.
 Operation 50: [Read] MUST NOT ignore an unreadable filter.
 Operation 51: An admitted read MUST answer EVERY matching party.
 Operation 52: An admitted read MUST answer the state change log and the verification event list PER matching party.
@@ -208,7 +216,9 @@ Deleted: Operation 59. Operation 6, Operation 24 and Operation 34 own it.
 
 NOTE: watch the blank id (Operation 12).
 
-NOTE: open 2026-10-21-f — the date of birth's format, and the instant of the day a date of birth stands for when Operation 3 compares the date with now, are not declared, so a date of birth of today can answer two ways (Operation 2, Operation 3).
+Term date form: four digits of year, two of month and two of day, joined by hyphens, as `1984-03-02` — the calendar date form of ISO 8601 (the International Organization for Standardization's standard for writing dates and times).
+
+Term date of birth start: the first instant of the calendar date the date of birth names, in the timezone the deployment takes its clock reading in (Execution Contract Logic confinement 7).
 
 Term party action: [Verify] | [Suspend] | [Reinstate] | [Close] — every action naming a party by party id, including a refused one.
 
@@ -218,7 +228,7 @@ Term reasoned action: an admitted suspend, an admitted reinstate OR an admitted 
 
 Term state: unverified | verified | suspended | closed.
 
-Term state check: Operation 11, Operation 13, Operation 14, Operation 15, Operation 16 and Operation 18 — every check a party action makes on the party's own standing before reading the call's remaining inputs.
+Term state check: Operation 11, Operation 13, Operation 14, Operation 15, Operation 16 and Operation 18 — every check a party action makes on the party's existence and standing before reading the call's remaining inputs.
 
 Term required string input: name, document type, document reference, verification method, evidence reference, reason, an acting reference OR party id — every string an action refuses when blank.
 
@@ -228,7 +238,7 @@ Term custody field: party id | enrollment instant | enrolling actor reference �
 
 Term insertion order: the order a database instance appended its records; authoritative for this atom, where a recorded instant is advisory.
 
-Term query axes: party id, state and a range over enrollment instant — every filter axis [Read] admits, the party id axis admitting every value that DOES NOT EQUAL blank, one naming no party among them.
+Term query axes: party id, state and a range over enrollment instant — every filter axis [Read] admits, the party id axis admitting every value that DOES NOT EQUAL blank, one naming no party or exceeding the length bound among them, the state axis each state, and the range's start and end each an instant (Execution Contract Query 1).
 
 NOTE: watch the blank filter value (Term query axes).
 
@@ -455,7 +465,7 @@ Deleted: Indeterminate outcome 2. Execution Contract Error model 1 owns it.
 Indeterminate outcome 3: A caller MUST NOT retry a lost [Enroll] BEFORE reading the database (Execution Contract Error model 1).
 ```
 
-NOTE: open 2026-10-21-d — a caller who lost an [Enroll]'s answer reads the database before retrying (Indeterminate outcome 3), and how the caller finds the enrollment is not stated: no query axis matches a name, a date of birth or a document reference.
+NOTE: a caller who lost an [Enroll]'s answer finds the enrollment by reading the parties without a party id filter (Indeterminate outcome 3): a query carrying no filter matches every party (Execution Contract Query 4), each party answered with its enrollment fields (Operation 51, State 1), among them the name, date of birth and document reference the lost call carried; a range over enrollment instant narrows the read only as far as the deployment's clock allows (Execution Contract Logic confinement 7).
 
 ### String policy
 
@@ -470,9 +480,7 @@ String 7: IF a string input EXCEEDS the length bound THEN an action MUST answer 
 Deleted: String 8. String 7 and GRACE-lang Closed vocabulary 29 own it.
 ```
 
-Term string input: a required string input, date of birth OR a filter value — every caller-supplied string this atom accepts.
-
-NOTE: open 2026-10-21-e — the verification result is no string input, so no string rule says how a verification result compares with passed and failed (Operation 21, Operation 25).
+Term string input: a required string input, date of birth, verification result OR a filter value — every caller-supplied string this atom accepts.
 
 Term length bound: the maximum length the deployment declares for a string input.
 
@@ -497,7 +505,9 @@ Composition note 11: A composing Event Log MUST append an event on EVERY admitte
 Composition note 12: A composing Event Log MUST append an event on EVERY refused action.
 ```
 
-NOTE: open 2026-10-21-j — the enrolling and verifying actor references have no route to attestation: Composition note 4 binds a composing Actor Identity to the transitioning actions alone (External check 4).
+NOTE: open 2026-10-21-j — the enrolling and verifying actor references have no route to attestation: Composition note 4 binds a composing Actor Identity to the transitioning actions alone, and Composition note 5 an attestation to a state change id, which an enroll and a verify driving no transition never answer (External check 4).
+
+NOTE: open 2026-11-01-a — a composing pattern changes the party records only through this atom's declared actions (Execution Contract Atom interface 1), and none of them changes an enrollment field (Operation 46, Non-goal 12), so the scrub External check 3, Composition note 9 and Composition note 10 give a composing erasure coordination pattern has no conforming route.
 
 ---
 
@@ -511,7 +521,7 @@ Term actors: the atom; the deployment; the database; the database instance; the 
 
 Term records: party — one external party, carrying party id, name, date of birth, document type, document reference, enrollment instant, enrolling actor reference, a state, a state change log and a verification event list. verification event — one identity check, carrying verification id, verifying actor reference, verification method, verification result, evidence reference and verification instant. state change event — one transition, carrying state change id, the prior state, the new state, an acting reference, an instant and, where the writer carries one, a reason.
 
-Term record verbs: identify, assign, generate, change, share, carry, stand, read, answer, record, append, remove, leave, admit, offer, hold, refuse, write, find, resolve, name, compare, normalize, confirm, match, differ, route, register, create, pass, attest, cover, call, fall, precede, follow, sample, consume, supply, declare, compose, bind, decide, define, bound, reach, accept, trim, case-fold, compute, reproduce, reconstruct, replay, verify, detect, guarantee, take, derive, expose, store, own, enumerate, distinguish, select, order, deduplicate, scrub, parse, gate, count, schedule, propagate, terminate, link, suspend, reinstate, close, enroll, ignore, partition, retry, exceed, perform, score, model.
+Term record verbs: identify, assign, generate, change, share, carry, stand, read, answer, record, append, remove, leave, admit, offer, hold, refuse, write, find, resolve, name, compare, normalize, confirm, match, route, register, create, pass, attest, cover, call, fall, precede, follow, sample, consume, supply, declare, compose, bind, decide, define, bound, reach, accept, trim, case-fold, compute, reproduce, reconstruct, replay, verify, detect, guarantee, take, derive, expose, store, own, enumerate, distinguish, select, order, deduplicate, scrub, parse, gate, count, schedule, propagate, terminate, link, suspend, reinstate, close, enroll, ignore, partition, retry, exceed, perform, score, model.
 
 Term value sets: state = unverified | verified | suspended | closed. verification result = passed | failed. enrollment field = name | date of birth | document type | document reference | enrollment instant | enrolling actor reference.
 
@@ -521,9 +531,7 @@ Term cadences: empty.
 
 Term qualifiers: migrated — rewritten in GRACE lang v0.40 (2026-09-13).
 
-Term terms: party, verify answer, party id, verification event, state change event, assigned id, enrollment field, acting reference, reference, database instance, seam, transition, now, party action, transitioning action, state, state check, required string input, fresh verification, insertion order, length bound, reasoned action, custody field, evidence reference, query axes, admitted enroll, admitted verify, admitted suspend, admitted reinstate, admitted close, admitted read, string input, blank, verification result, committed version.
-
-Term cited: the section titled Logic Confinement Principle in `execution-contract.md` — the seam and the transition.
+Term terms: party, verify answer, party id, verification event, state change event, assigned id, enrollment field, acting reference, reference, database instance, seam, transition, now, date form, date of birth start, party action, transitioning action, state, state check, required string input, fresh verification, insertion order, length bound, reasoned action, custody field, evidence reference, query axes, admitted enroll, admitted verify, admitted suspend, admitted reinstate, admitted close, admitted read, string input, blank, verification result, committed version.
 
 Term composing pattern: [Actor Identity](./actor-identity.md), [Consent](./consent.md), [Retention Window](./retention-window.md), [Event Log](./event-log.md), [Audit Trail](../compositions/audit-trail.md), [Customer Onboarding](../compositions/customer-onboarding.md), [External Onboarding](../compositions/external-onboarding.md), an identity resolution pattern, an attribute update pattern, an erasure coordination pattern, a trusted timestamping pattern, a document records pattern.
 
@@ -602,7 +610,7 @@ Projection: name
 
 #### Date Of Birth
 
-The party's date of birth at enrollment, as a calendar date that does not exceed [Now]. Immutable under the atom's actions.
+The party's date of birth at enrollment, as a calendar date in the date form, no later than the day of the party's [Enroll]. Immutable under the atom's actions.
 
 Kind:       Field
 Field of:   Party
@@ -745,7 +753,7 @@ Projection: fresh_verification
 
 #### Now
 
-The wall-time reading the host takes at the seam and hands to the transition, as the section titled Logic Confinement Principle in `execution-contract.md` declares it — never read inside the transition and never supplied by the business caller.
+The wall-time reading the host takes at the seam and hands to the transition (Execution Contract Logic confinement 11) — never read inside the transition and never supplied by the business caller.
 
 Kind:         Parameter
 Parameter of: Enroll, Verify, Suspend, Reinstate and Close
@@ -753,7 +761,7 @@ Projection:   now
 
 #### Query
 
-The filter a [Read] carries, over exactly three axes: [Party Id], [Current State], and a range on [Enrollment Instant]. An axis outside those, or a value its axis does not admit (a blank [Party Id] among them), is [Invalid Query] rather than a silently dropped filter; a well-formed [Party Id] naming no party matches nothing.
+The filter a [Read] carries, over exactly three axes: [Party Id], [Current State], and a range on [Enrollment Instant]. An axis outside those, or a value its axis does not admit (a blank [Party Id] among them), is [Invalid Query] rather than a silently dropped filter; a well-formed [Party Id] naming no party, as every one over the length bound does (Capability requirement 14), matches nothing.
 
 Kind:         Parameter
 Parameter of: Read
@@ -793,7 +801,7 @@ Role:      Outcome
 
 #### Invalid Request
 
-The refusal returned when a required string input is blank, a [Date Of Birth] parses as no calendar date or exceeds [Now], a [Verification Result] is neither `passed` nor failed, or — on [Enroll] and a party action only — a string input exceeds the deployment's length bound. A blank [Party Id] earns it ahead of [Not Known], which a well-formed one naming no party earns (Operation 12); every other field fault earns it after every state check passes.
+The refusal returned when a required string input is blank, a [Date Of Birth] parses as no calendar date in the date form or names a day that starts after [Now], a [Verification Result] is neither `passed` nor failed, or — on [Enroll] and a party action only — a string input exceeds the deployment's length bound. A blank [Party Id] earns it ahead of [Not Known], which a well-formed one naming no party earns (Operation 12); every other field fault earns it after every state check passes.
 
 Kind:       Member
 Member of:  the action rejection
@@ -949,13 +957,11 @@ It inherits from:
 ```
 status: partially resolved
 formal: verified — party-identity.tla + 1 twin, 2026-06-03
-last gate: 2026-10-27 — Final Critique 7 — foundational count 2, not clean, no sample
+last gate: 2026-11-01 — Final Critique 8 — foundational count 4, not clean, no sample
 
 open:
-- 2026-10-21-d · refining · Indeterminate outcome 3; Term query axes · a caller who lost an [Enroll]'s answer must read the database before retrying, and no axis finds a party by its enrollment fields, so only an unfiltered read finds the enrollment → name how the caller finds it
-- 2026-10-21-e · refining · Term string input; String 1 through 6; Operation 21, 25 · the verification result is outside the string inputs, so no string rule says how it compares with passed and failed → bring it into the string policy, or say its comparison
-- 2026-10-21-f · refining · Operation 2, 3; Date Of Birth entry · the date of birth's format, and the instant of the day it stands for when Operation 3 compares it with now, are undeclared, so a date of birth of today can answer two ways → declare both
-- 2026-10-21-j · refining · Composition note 4; External check 4 · the enrolling and verifying actor references have no route to attestation, Composition note 4 binding Actor Identity only to transitioning actions → say whether an enrollment and a check are attested, and by whom
+- 2026-10-21-j · refining · Composition note 4, 5; External check 4 · the enrolling and verifying actor references have no route to attestation, Composition note 4 binding Actor Identity only to transitioning actions and Composition note 5 an attestation to a state change id, which an enroll and a verify driving no transition never answer → say whether an enrollment and a check are attested, and by whom; re-found by Final Critique 8
+- 2026-11-01-a · foundational · Composition note 9, 10; External check 3; Term custody field; Standards references, GDPR Article 17 · Execution Contract Atom interface 1 lets a composing pattern change the party records only through this atom's declared actions, and none changes an enrollment field (Operation 46, Non-goal 12), so the scrub the page gives a composing erasure coordination pattern has no conforming route → the maintainer's direction: a declared scrub action, no scrub of an enrollment field, or the scrub declared by a pattern that does not compose this atom (Execution Contract Database 4, Execution Contract Database 6)
 ```
 
 <details markdown="block">
