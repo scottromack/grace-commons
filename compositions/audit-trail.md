@@ -93,6 +93,8 @@ Term rebuild-on-miss: a read of a derived index that runs the element's rebuild 
 
 Term retention state: the state of the event's retention record — `Retained` | `Purged`; absent where no retention record exists.
 
+NOTE: open 2026-11-01-f — retention state is Retention Window's term, declared again here with its two members in title case (GRACE-lang Closed vocabulary 17, GRACE-lang Casing 5).
+
 Term live: an event whose retention state DOES NOT EQUAL `Purged`.
 
 Term purged: an event whose retention state EQUALS `Purged`.
@@ -706,8 +708,8 @@ After every rejection but one whose coverage write gave no answer, sealed throug
 | [Read Record] | a log entry and no retention record over unreadable data | no answer, an outage of Event Log | read record step 5.3 |
 | [Read Record] | a Retained retention over readable data | the audit record, with its coverage status and, where a covering seal exists, the covering seal's full range | read record step 4.1 through 4.3 |
 | [Read Record] | a Retained retention over unreadable data | the retention read again: Purged, answered as a purged event; still Retained, no answer, an outage of Event Log | read record step 4.5 through 4.7 |
-| [Read Record] | a Purged retention and a destruction record | the who, the what and the when through the pair from the attestation records, and no data | read record step 4.4a, 4.4b, 4.4c |
-| [Read Record] | a Purged retention and no destruction record over readable data | the same through event to attestation's entry | read record step 4.4c, 4.4g |
+| [Read Record] | a Purged retention and a destruction record | the audit record: the who, the what and the when through the pair from the attestation records, its coverage status, and no data | read record step 4.4a, 4.4b, 4.4c, 4.4i, 4.4j |
+| [Read Record] | a Purged retention and no destruction record over readable data | the same through event to attestation's entry | read record step 4.4c, 4.4g, 4.4i, 4.4j |
 | [Read Record] | a Purged retention and no destruction record over unreadable data | no answer, an outage of Event Log | read record step 4.4h |
 | [Read Record], [Verify Record], [Purge Event] | a retention record and no log entry | unreachable: a retention is placed only over an appended event, in the append's transaction or after it; where a deployment fault leaves one, the deployment alerts | Composes 4a, 9; Execution Contract Database 1; read record step 3.3 |
 | [Read Record], [Verify Record] | the uncovered mark set or unknown, or the ranges index absent | the ranges of seal coverage rebuilt from the seal records before sealed through is read | sealed through 3 |
@@ -1068,15 +1070,17 @@ Steps:
    ```
 4. **Assemble the [Audit Record].**
    ```
-   read record step 4.1: IF a retention record EXISTS AND the event's data IS NOT unreadable under a Retained retention THEN [Read Record] step 4 MUST assemble and return the audit record.
-   read record step 4.2: IF a retention record EXISTS AND the event's data IS NOT unreadable under a Retained retention THEN [Read Record] step 4 MUST report coverage status per event.
-   read record step 4.3: IF a retention record EXISTS AND the event's data IS NOT unreadable under a Retained retention AND a covering seal EXISTS THEN [Read Record] step 4 MUST return the covering seal's full range.
+   read record step 4.1: IF retention state EQUALS Retained AND the event's data IS NOT unreadable THEN [Read Record] step 4 MUST assemble and return the audit record.
+   read record step 4.2: IF retention state EQUALS Retained AND the event's data IS NOT unreadable THEN [Read Record] step 4 MUST report coverage status per event.
+   read record step 4.3: IF retention state EQUALS Retained AND the event's data IS NOT unreadable AND a covering seal EXISTS THEN [Read Record] step 4 MUST return the covering seal's full range.
    read record step 4.4: WHEN retention state EQUALS Purged:
        read record step 4.4a: IF a destruction record EXISTS for the event THEN [Read Record] step 4 MUST read action reference, actor reference and attestation instant from the attestation records through the pair alone.
        read record step 4.4b: [Read Record] step 4 MUST NOT read the who, the what and the when from the event payload.
        read record step 4.4c: [Read Record] step 4 MUST return no data.
        read record step 4.4g: IF no destruction record EXISTS for the event AND the event's data IS NOT unreadable THEN [Read Record] step 4 MUST read action reference, actor reference and attestation instant from the attestation records through event to attestation's entry for the event.
        read record step 4.4h: IF no destruction record EXISTS for the event AND the event's data IS unreadable THEN [Read Record] step 4 MUST answer no answer, the unreadable payload standing as an outage of Event Log (Term dependency outage).
+       read record step 4.4i: IF a destruction record EXISTS for the event OR the event's data IS NOT unreadable THEN [Read Record] step 4 MUST assemble and return the audit record.
+       read record step 4.4j: IF a destruction record EXISTS for the event OR the event's data IS NOT unreadable THEN [Read Record] step 4 MUST report coverage status per event.
    Deleted: read record step 4.4d. Execution Contract Database 1 owns it.
    Deleted: read record step 4.4e. Execution Contract Database 1 owns it.
    Deleted: read record step 4.4f. Execution Contract Database 1 owns it.
@@ -2179,7 +2183,7 @@ The composition is the structural form of what every major audit regime requires
 ```
 status: partially resolved
 formal: verified — audit-trail.tla + 2 twins (cascade; scan first half) and audit-trail-record.tla + 3 twins (record action, one step under Execution Contract Store 1; scan second and third halves; re-derived 2026-10-20) and audit-trail-binding.tla + 2 twins (binding-set predicate against an in-flight cascade), re-derived against the fresh-reader gates of rounds 9 to 18, and audit-trail-hold.tla + 5 twins + 3 probes (a hold placed over an open cascade entry, released and re-driven; 43,688 states within 15 ticks), derived from the page as it stands; the closure arithmetic — a leg's lease against its work (Instance start 18, 19, Per-act critical section 13a, 13b, 13d) and a finding's closure against closure sum with one dead run and one hold placement (Instance start 16) — enumerated by tools/harness/audit-trail-closure.py + 5 twins over 5,184 leg tuples and 5,184 schedule tuples at conforming constants, which no model reaches; the other cures of rounds 19 to 26 are carried on the NOT MODELED lists, not re-derived; models and enumerator last run 2026-10-24
-last gate: 2026-11-01 — Final Critique 57 — foundational count 2, not clean, no sample
+last gate: 2026-11-01 — Final Critique 58 — foundational count 1, not clean, no sample
 
 open:
 - 2026-10-03-d · refining · Second half 18; Term dependency outage · content lost with no cascade and not restorable leaves the second half writing no compensation with nothing to end it → a standing for content lost without record; contract-shaped, own round
@@ -2205,6 +2209,7 @@ open:
 - 2026-10-24-a · refining · purge eligible 1, purge eligible 2; the [Purge Eligible] signature · [Purge Eligible] answers every eligible event id at once, with no bound and no paging, through Retention Window's read of every retention → a bound, or a paged or keyed read, decided with Retention Window's 2026-10-05-a (its read has no key) and in Actor Identity's 2026-10-20-f form; re-found by Final Critique 55
 - 2026-10-25-b · refining · seal cadence 3; record action step 6.6; Unsealed tail 1 · under per-event cadence a step-6 seal that failed on a log that then goes quiet stands until a later [Record Action], [Purge Event] or [Seal Now] seals the event, and no rule obliges one, so under strict the event answers failed-verification(unsealed) for as long as the deployment calls none → decide whether per-event owes a retry starter, as Execution Contract Scheduled leg 1 gives an interval-based one its starter, or the standing alert and Unsealed tail 1's watch are the design (the 2026-10-01 entry withdrew the scan's per-run [Seal Now]); re-found by Final Critique 54 and 55
 - 2026-11-01-c · refining · Compensation 2; Compensation 10; Compensation 11; Term narrated; Second half 13 · the second half decides a compensation on the run's reading of now and reads narrated under the critical section up to closure latency later, and narrated reads only an intent live in the log, so an intent whose retention elapses in that span — its orphan's age at the horizon, the reconciliation reference's period the lesser, the intent written within closure latency of its orphan and the compensation refused run after run until then — is purged before the read, and a second audit.reconciliation record lands for the finding → have narrated read the subject and id the destruction record carries (purge event step 2.3a), as compensated attestations 2a reads its purged members, or have the second half decide at the narrated read; re-found by Final Critique 55
+- 2026-11-01-f · refining · Term retention state; Term value sets; Term purged · the page declares retention state again where Retention Window owns it, its two members in title case, against GRACE-lang Closed vocabulary 17 and GRACE-lang Casing 5, and Immutable Ledger and Chain of Custody write `Purged` after it; the constituent's lower-case members would make *purged* name a member, Term purged and a failed-verification reason, and *retained* a member of two value sets → cite retention state on Retention Window's run, write its members in lower case and rename Term purged and the reason so that no name resolves twice, the two composers in the same unit
 ```
 
 <details markdown="block">
