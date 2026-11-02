@@ -56,7 +56,7 @@ Three adjacent concepts are distinguished, and every distinction is load-bearing
 ```
 Identity 1: The atom MUST identify a step by the step id.
 Identity 2: The host MUST allocate a step id at the seam.
-Identity 3: The transition MUST NOT allocate a step id.
+Deleted: Identity 3. Execution Contract Logic confinement 3 owns it.
 Identity 4: The atom MUST NOT change a step id.
 Identity 5: Two steps in one database instance MUST NOT share a step id.
 Deleted: Identity 6. Execution Contract Logic confinement 10 owns it.
@@ -88,9 +88,9 @@ Term reference: subject reference, approver reference, submitter reference, deci
 
 Term database instance: one named database a call is routed to; step id uniqueness ranges over one instance.
 
-Term seam: the atom's input/output boundary as the section titled Logic Confinement Principle in `execution-contract.md` declares it; the host injects the clock reading and the step id here.
+Term seam: the atom's input/output boundary; the host injects the clock reading and the step id here.
 
-Term transition: the atom's evaluation of one call against the step records, as the section titled Logic Confinement Principle in `execution-contract.md` declares it.
+Term transition: the atom's evaluation of one call against the step records.
 
 ### State
 
@@ -218,6 +218,7 @@ Deleted: Operation 55. Execution Contract Refusal 1 and Operation 20 own it.
 Deleted: Operation 56. Execution Contract Read 1 owns it: after the read, every refusal rule of [Read] answers invalid-query.
 Operation 57: IF a supplied reason EQUALS blank THEN [Approve] MUST answer invalid-request.
 Operation 58: IF the query is malformed THEN [Read] MUST answer invalid-query (Execution Contract Query 1).
+Operation 66: IF a filter's value EXCEEDS the string cap THEN [Read] MUST answer invalid-query.
 ```
 
 NOTE: watch the blank filter value (Operation 45).
@@ -228,9 +229,7 @@ NOTE: watch the required input no rule records (Operation 62).
 
 Term now: the deployment's clock reading at the call, as Execution Contract Logic confinement 11 declares it.
 
-Term business caller: the party whose action the call carries, as the section titled Logic Confinement Principle in `execution-contract.md` declares it; never the source of an injected value.
-
-NOTE: open 2026-10-26-b — Term seam, Term transition and Term business caller cite the section titled Logic Confinement Principle in `execution-contract.md`, which declares none of them.
+Term business caller: the party whose action the call carries; never the source of an injected value.
 
 Term states: pending | approved | rejected | withdrawn — a [State], and the whole state space.
 
@@ -254,7 +253,7 @@ Term attribution field: deciding actor, decision reason, decision instant, withd
 
 Term attribution reference: deciding actor on an approved step or a rejected step, and withdrawing actor on a withdrawn step — the actor reference a terminal step carries.
 
-Term attribution check: Operation 15 through 19, Operation 57, Operation 64 and Operation 65 — every check a resolving action makes before the actor guard.
+Term attribution check: Operation 15 through 19, Operation 57, Operation 64 through 65 — every check a resolving action makes before the actor guard.
 
 Term attribution fault: an attribution check the call fails.
 
@@ -285,7 +284,7 @@ Term success token: approved on [Approve], rejected_outcome on [Reject] and with
 | 1 | step id is blank or over the string cap | [Invalid Request] | Operation 10; Execution Contract Input 2 |
 | 2 | step id is not blank, it names no step | [Not Known] | Operation 11 |
 | 3 | the step exists, it stands in a terminal state | [Not Pending] | Operation 13 |
-| 4 | the step stands in pending, an attribution check fails | [Invalid Request] | Operation 20; Operation 15 through 19, Operation 57, Operation 64, Operation 65 |
+| 4 | the step stands in pending, an attribution check fails | [Invalid Request] | Operation 20; Operation 15 through 19, Operation 57, Operation 64 through 65 |
 | 5 | every attribution check passes, the deciding reference is not the authorization anchor | [Unauthorized] | Operation 21, Operation 22 |
 | 6 | every precondition passes, the database refuses the write | [Storage Failure] | Operation 34 |
 | 7 | every precondition passes, the database accepts the write | the success token | Operation 32 |
@@ -785,7 +784,7 @@ Projection: storage-failure
 
 #### Invalid Query
 
-The rejection [Read] returns when a filter is malformed — a blank string-axis value, a [State] value outside the four states, a time range missing its start or its end, with end before start or with a start or an end that is not an instant, a value its field does not take (a time range on a field that is not an instant, or a single value on one that is), or an unrecognized filter key (rejected rather than silently ignored).
+The rejection [Read] returns when a filter is malformed — a blank string-axis value, a filter's value over the string cap, a [State] value outside the four states, a time range missing its start or its end, with end before start or with a start or an end that is not an instant, a value its field does not take (a time range on a field that is not an instant, or a single value on one that is), or an unrecognized filter key (rejected rather than silently ignored).
 
 Kind:       Member
 Member of:  the Read rejection
@@ -843,20 +842,19 @@ Projection: invalid-query
 
 ## Status
 
-`grounded on Final Critique 11 — 2026-10-29` — see the Ledger.
+`partially resolved` — see the Ledger.
 
 ## Ledger
 
 ```
-status: grounded on Final Critique 11 — 2026-10-29
+status: partially resolved
 formal: verified — approval-step.tla + 1 twin, 2026-06-03
-last gate: 2026-10-29 — Final Critique 11 — foundational count 0, clean, one sample
+last gate: 2026-11-02 — Final Critique 12, a delta round, frozen at e63380b — foundational count 1, cured, not clean, no sample; 2026-10-29 — Final Critique 11 — foundational count 0, clean, one sample
 
 open:
 - 2026-10-21-d · refining · Indeterminate outcome 1 · a caller with no answer is sent to the step records, and no read says whether its submit landed, where two submits carrying one field set are two steps (Non-goal 1); its BEFORE takes a clause where the grammar's tail takes a term → name the read, or Duplicate Prevention (Non-goal 2) as its owner, and write the tail on a term
 - 2026-10-21-e · refining · Non-goals NOTE · the owners NOTE gives no owner for Non-goal 7 or Non-goal 8 → one owner each, linked or marked forthcoming
 - 2026-10-26-a · refining · Identity 2; Capability requirement 1, 5 · the step id's source is named as the host's allocation (Identity 2) and not among what the deployment supplies, where the atom shape in `spec-format.md` lists an id source under Capability requirement; Assignment (its 2026-10-26-a), Event Log (its 2026-10-22-b) and Tamper Evidence (its 2026-10-22-a) route the same form → name the source among the Capability requirements, in the one form the corpus settles for its twenty host-allocation atoms
-- 2026-10-26-b · refining · Term seam; Term transition; Term business caller · each says the section titled Logic Confinement Principle in `execution-contract.md` declares it, and that section declares none of the three → declare the three there, the corpus's one seam wording, or point each at its declaration
 ```
 
 <details markdown="block">
