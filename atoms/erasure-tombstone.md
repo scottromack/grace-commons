@@ -534,7 +534,7 @@ Inherited from:
 ```
 status: partially resolved
 formal: not applicable — vote no 2026-11-02: no guard reads the clock, which only stamps the destruction instant, and the atom claims no commit order of its own; its permanence, one-record-per-destruction and no-content claims are single-state properties each action's rules hold, its listing order is a sort over stored fields, and its concurrency is Execution Contract Database 2's
-last gate: 2026-11-02 — Final Critique 1, frozen at b703490 — foundational count 7, all cured, not clean, no sample
+last gate: 2026-11-02 — Final Critique 1, frozen at b703490 — foundational count 8, all cured, not clean, no sample
 
 open:
 - 2026-11-02-a · refining · Composition note 3; Identity 3, Identity 4 · a person-derived authority reference or actor reference is barred nowhere, though a destroyed id derived from a person's data is (Composition note 3), and no rule says whether an actor reference naming a person's own account is the person's data → decide whether Composition note 3 reaches the authority reference and the actor reference
