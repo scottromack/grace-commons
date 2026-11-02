@@ -122,7 +122,7 @@ Term parameters digest: the collision-resistant digest of a call's business para
 
 Term business parameter: the pool id, the resource, the requester and the duration at [Reserve]; the reservation id at a resolving action — the inputs that decide an answer.
 
-NOTE: Contract classification, per the section titled Composition state in `execution-contract.md` — the reservation-to-pool binding: derived index over the journal's reserve outcome entries (Composition state 10, Composition state 11), its entries whose reserve outcome entry is an aged entry extraction-pending against Erasure Tombstone *(forthcoming)* (Composition state 15); the token results map: extraction-pending, the proposed atom an *Idempotency Result Memo* (token → result, write-once, window-governed eviction), opened as a roadmap proposal (Composition state 16).
+NOTE: Contract classification, per the section titled Composition state in `execution-contract.md` — the reservation-to-pool binding: derived index over the journal's reserve outcome entries (Composition state 10, Composition state 11), its entries whose reserve outcome entry is an aged entry extraction-pending against [Erasure Tombstone](../atoms/erasure-tombstone.md) (Composition state 15); the token results map: extraction-pending, the proposed atom an *Idempotency Result Memo* (token → result, write-once, window-governed eviction), opened as a roadmap proposal (Composition state 16).
 
 ### Capability requirement
 
@@ -724,7 +724,7 @@ Term terms: composition, constituents, reservation, reservation id, journal, jou
 
 Term cited: Execution Contract Conformance 8 — the recursive inheritance of a constituent's guarantees. The section titled Composition state in `execution-contract.md` — the derived-index, truth-bearing and extraction-pending classifications. The section titled Logic Confinement Principle in `execution-contract.md` — the seam. commitment id, place hold, confirm, release, expire, resource, requester, duration, window reading, open, lapsed, Held, Confirmed, Released, Expired, not-held, window-elapsed, window-not-elapsed, resource-unavailable: Provisional Commitment. pool id, capacity, allocated, allocate, declare pool, query, audit log, audit event, allocation event, release event, allocation event id, release event id, opening balance, closing balance, over-capacity, suspended, closed: Capacity Constraint Enforcement. check, record, seen, not-seen: Duplicate Prevention. append, event id, sequence number, recording instant, payload cap, invalid-payload: Event Log. attest, verify, attestation id, actor reference, credential, actor registry, invalid-credential, actor-unknown-in-registry, registry-unavailable: Actor Identity.
 
-Term composing patterns: [Idempotent Reservation](./idempotent-reservation.md); [Audit Trail](./audit-trail.md); Reversal *(forthcoming)*; Trusted Timestamping *(forthcoming)*; Erasure Tombstone *(forthcoming)*; [Permissions](../atoms/permissions.md).
+Term composing patterns: [Idempotent Reservation](./idempotent-reservation.md); [Audit Trail](./audit-trail.md); Reversal *(forthcoming)*; Trusted Timestamping *(forthcoming)*; [Erasure Tombstone](../atoms/erasure-tombstone.md); [Permissions](../atoms/permissions.md).
 
 Term reserve intent: the reserve_intended entry.
 

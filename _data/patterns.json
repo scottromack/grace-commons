@@ -570,6 +570,23 @@
   "status": "grounded on Final Critique 7 \u2014 2026-10-28",
   "title": "Duplicate Prevention"
  },
+ "erasure-tombstone": {
+  "composed_by": [],
+  "domain": null,
+  "grounded": false,
+  "invariants": 5,
+  "kind": "atom",
+  "models": {
+   "als": false,
+   "tla": false,
+   "twins": 0
+  },
+  "regulated_by": [],
+  "security": false,
+  "standards": [],
+  "status": "draft",
+  "title": "Erasure Tombstone"
+ },
  "event-log": {
   "composed_by": [
    "audit-trail",

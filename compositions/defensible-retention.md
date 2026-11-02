@@ -151,7 +151,7 @@ Term horizon margin: `(((2 * clock_offset_allowance) + time_resolution) + sectio
 
 Term surviving destruction: a destroyed record whose earliest purge among the retentions over the record stands within the audit horizon — a destruction whose own record purged outcome and purge intent cannot have aged out. The edge is the record's first purge and never a sibling's later one, which the sweep may land long after the outcome.
 
-The audit cascade keeps one composition-state element of its own, moved here from Audit Trail with the cascade: erasure outcomes, extraction-pending against Erasure Tombstone *(forthcoming)* (Execution Contract Composition state).
+The audit cascade keeps one composition-state element of its own, moved here from Audit Trail with the cascade: erasure outcomes, extraction-pending against [Erasure Tombstone](../atoms/erasure-tombstone.md) (Execution Contract Composition state).
 
 - **erasure outcomes**
   Term erasure outcomes: for each event over which [Purge Event] step 3 has issued its delegation, the outcome the configured erasure mechanism reported: destroyed or `destruction-failed(reason)`.
@@ -1509,7 +1509,7 @@ Term terms: composition, constituents, business retention instance, service iden
 
 Term cited: Execution Contract Conformance 8 — the recursive inheritance of a constituent's guarantees. The section titled Substrate composition invocation in `execution-contract.md` — the substrate relation and its instance topology. The section titled Composition state in `execution-contract.md` — the derived-index classification and its obligations. The section titled Logic Confinement Principle in `execution-contract.md` — the seam. verify_record, read_record, seal_now, record_destruction, destruction-failure, nothing-to-seal, retention-period-not-elapsed, event id, recording instant, sequence number, coverage status, covering seal, purged events, destruction record, pair, retention state, per-act critical section, sealed through, unsealed tail: Audit Trail. try_take, remaining, grant, holder value, remaining term, call in flight, no answer: Lease. time resolution, standing record, withheld record: Retention Window.
 
-Term composing patterns: Policy Reconciliation *(forthcoming)*; Record Destruction *(forthcoming)*; Override Authorization *(forthcoming)*; Reverse Index *(forthcoming)*; Failed-Attempt Log *(forthcoming)*; Shred *(forthcoming)*; Erasure Tombstone *(forthcoming)*; [Permissions](../atoms/permissions.md); [Duplicate Prevention](../atoms/duplicate-prevention.md).
+Term composing patterns: Policy Reconciliation *(forthcoming)*; Record Destruction *(forthcoming)*; Override Authorization *(forthcoming)*; Reverse Index *(forthcoming)*; Failed-Attempt Log *(forthcoming)*; Shred *(forthcoming)*; [Erasure Tombstone](../atoms/erasure-tombstone.md); [Permissions](../atoms/permissions.md); [Duplicate Prevention](../atoms/duplicate-prevention.md).
 
 Term record: the host's business record this composition governs — named by a record reference, held in the host's own records, and destroyed by the composition through the record destruction pattern once `RetentionWindow.purge` has stood its retention purged (Action wiring 112).
 

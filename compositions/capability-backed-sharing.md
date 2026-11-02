@@ -113,7 +113,7 @@ Term intended recipient: the recipient the allocator declared in the sharing des
 
 Term disclosed scope: the field subset a capability authorizes for disclosure, parsed from the capability's immutable scope by the sharing scope grammar — a [Disclosed Scope].
 
-NOTE: Contract classification, per the section titled Composition state in `execution-contract.md` — the capability-to-sharing index: derived index over the authorization events (Composition state 6), its authorization event id not rebuilt past the audit horizon (Composition state 7); a disclosure-to-redemption entry: extraction-pending against Outbox *(forthcoming)* while it is a pending marker, derived index over the disclosure events once sealed (Composition state 16), and extraction-pending against Erasure Tombstone *(forthcoming)* past the audit horizon (Capability requirement 5).
+NOTE: Contract classification, per the section titled Composition state in `execution-contract.md` — the capability-to-sharing index: derived index over the authorization events (Composition state 6), its authorization event id not rebuilt past the audit horizon (Composition state 7); a disclosure-to-redemption entry: extraction-pending against Outbox *(forthcoming)* while it is a pending marker, derived index over the disclosure events once sealed (Composition state 16), and extraction-pending against [Erasure Tombstone](../atoms/erasure-tombstone.md) past the audit horizon (Capability requirement 5).
 
 ---
 ### Capability requirement
@@ -652,7 +652,7 @@ Term terms: composition, constituents, substrate, trail, capability-to-sharing i
 
 Term cited: Execution Contract Conformance 8 — the recursive inheritance of a constituent's guarantees. Execution Contract Logic confinement 7 — the clock's guarantees are the deployment's, which Term aged event and Term overdue partial rely on when they read the substrate's recording instant against now. The section titled Substrate composition invocation in `execution-contract.md` — the substrate relation and its instance topology. The section titled Composition state in `execution-contract.md` — the derived-index, truth-bearing and extraction-pending classifications. record_action, verify_record, proceed as landed, compliance alert, payload cap, recording instant, event id, action reference: Audit Trail. capability token, allocator reference, scope, max redemptions, remaining redemptions, ttl, default capability ttl, expiry instant, status, lapsed, revoked by reference, revocation reason, redemption failure, filter, now: Capability. disclosure record, disclosure id, subject reference, recipient, authority, authority type, authority types, authority reference, disclosure instant: Selective Disclosure.
 
-Term composing patterns: Outbox *(forthcoming)*; Erasure Tombstone *(forthcoming)*; Trusted Timestamping *(forthcoming)*; [Permissions](../atoms/permissions.md); [Session](../atoms/session.md).
+Term composing patterns: Outbox *(forthcoming)*; [Erasure Tombstone](../atoms/erasure-tombstone.md); Trusted Timestamping *(forthcoming)*; [Permissions](../atoms/permissions.md); [Session](../atoms/session.md).
 
 Term authorization intent: the sharing.authorization_intended event — a [Sharing Authorization Intended].
 
