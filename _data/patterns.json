@@ -7,7 +7,7 @@
    "reserve-from-pool"
   ],
   "domain": null,
-  "grounded": true,
+  "grounded": false,
   "invariants": 9,
   "kind": "atom",
   "models": {
@@ -41,7 +41,7 @@
    "SOX",
    "eIDAS"
   ],
-  "status": "grounded on Final Critique 10 \u2014 2026-10-23",
+  "status": "partially resolved",
   "title": "Actor Identity"
  },
  "actor-suspension": {

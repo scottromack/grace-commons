@@ -57,15 +57,15 @@ Term action content: what the action an action reference names says or carries; 
 
 Term actor reference: the opaque reference naming who attested — an [Actor Reference]; the actor registry is a separate concept.
 
-Term seam: the atom's I/O (input and output) boundary as the section titled Logic Confinement Principle in `execution-contract.md` declares it; the host injects the clock reading, the attestation id, the cryptographic material and the registry answer here.
+Term seam: the atom's I/O (input and output) boundary; the host injects the clock reading, the attestation id, the cryptographic material and the registry answer here.
 
-Term transition: the atom's evaluation of one call against the attestation records, as the section titled Logic Confinement Principle in `execution-contract.md` declares it.
+Term transition: the atom's evaluation of one call against the attestation records.
 
-Term business caller: the party whose action the call carries, as the section titled Logic Confinement Principle in `execution-contract.md` declares it; never the source of an injected value.
+Term business caller: the party whose action the call carries; never the source of an injected value.
 
 Term now: the deployment's clock reading at the call, as Execution Contract Logic confinement 11 declares it.
 
-NOTE: open 2026-10-22-a — Term seam, Term transition and Term business caller cite the section titled Logic Confinement Principle in `execution-contract.md`, which declares none of them.
+NOTE: watch the seam citation (Term seam, Term transition, Term business caller).
 
 ### State
 
@@ -158,9 +158,12 @@ Operation 33: IF registry answer EQUALS unreachable THEN [Attest] MUST answer re
 Deleted: Operation 34. Execution Contract Read 1 owns it.
 Deleted: Operation 35. Execution Contract Refusal 1 owns it.
 Operation 36: IF a revocation status the proof carries names the credential revoked THEN [Attest] MUST answer invalid-credential.
+Operation 37: IF a string input EXCEEDS the string cap THEN [Attest] MUST answer invalid-request.
 ```
 
 NOTE: watch the unreadable registry (Operation 33).
+
+NOTE: watch the cap's refusal (Operation 37).
 
 Term string cap: the bound on a string input's length in Unicode code points; 4,096 code points where a deployment declares none.
 
@@ -179,7 +182,7 @@ The case space, and the rule that owns each case:
 | Call | Case | Answer | Effect on the attestation records |
 |---|---|---|---|
 | [Attest] | action reference, actor reference and credential not blank, registry answers material, credential validates, no revocation status the proof carries names the credential revoked, database accepts | attestation id | one attestation lands in [Attested] (Operation 1, Operation 2) |
-| [Attest] | blank action reference, actor reference or credential, or a string input over the string cap | [Invalid Request] | none (Operation 6 through 8, Execution Contract Input 2) |
+| [Attest] | blank action reference, actor reference or credential, or a string input over the string cap | [Invalid Request] | none (Operation 6 through 8, Operation 37, Execution Contract Input 2) |
 | [Attest] | registry unreachable | [Registry Unavailable] | none (Operation 33) |
 | [Attest] | registry holds no material for the actor | [Invalid Credential] | none (Operation 31) |
 | [Attest] | credential fails against the actor's current material | [Invalid Credential] | none (Operation 9) |
@@ -417,7 +420,7 @@ Term record verbs: identify, allocate, supply, reuse, carry, stand, offer, store
 
 Term value sets: registry answer = material | unknown-actor | unreachable. proof check = held | failed. credential check = held | failed. attestation field = attestation id | action reference | actor reference | proof | attestation instant.
 
-Term bounds: string cap (the bound on a string input's length in Unicode code points, 4,096 where a deployment declares none).
+Term bounds: string cap.
 
 Term cadences: empty.
 
@@ -640,20 +643,19 @@ It inherits from:
 
 ## Status
 
-`grounded on Final Critique 10 — 2026-10-23` — see the Ledger.
+`partially resolved` — see the Ledger.
 
 ## Ledger
 
 ```
-status: grounded on Final Critique 10 — 2026-10-23
+status: partially resolved
 formal: not applicable — vote no 2026-06-03
-last gate: 2026-10-23 — Final Critique 10, the council's sixth round on the page and the first on its text since Final Critique 9's settle (7e1da1a), three fresh readers on free models (GRID Nemotron 3 Ultra, EOS Beam, Linus GLM-5.3 Flash), each handed only the round's reading set, three passes on one text (frozen at fbbe23b); the round rests on three counted passes — foundational count 0, held by the blind second triage (2026-10-23, one cold reader given the round's 29 reports, the method's test and the placement rule, and neither the threshold nor what the count decides, which placed none of them foundational); 14 foundational reports, none standing as the two triages settled them (12 sent down, eight of them onto the page's four flagged open lines; 2 rejected); 13 refining reports, 2 rhetorical reports; clean; every refining finding cured, routed or answered, State 2 deleted to State 1, open line 2026-10-22-a narrowed to the seam terms and open line 2026-10-23-a added; one sample; 2026-10-23 — Final Critique 9, the council's fifth round on the page — foundational count 1 after the blind second triage, cured, not clean; 2026-10-22 — Final Critique 8, the council's fourth round on the page — foundational count 1, cured, not clean; 2026-10-22 — Final Critique 7, the council's third round on the page — foundational count 2, both cured, not clean; 2026-10-22 — Final Critique 6, the council's second round on the page — foundational count 3, all cured, not clean; 2026-10-20 — Final Critique 5, the council's first round on the page — foundational count 7, all cured, not clean
+last gate: 2026-11-02 — Final Critique 11, a delta round, frozen at f85ef8d — foundational count 1, cured, not clean, no sample; 2026-10-23 — Final Critique 10, the council's sixth round on the page and the first on its text since Final Critique 9's settle (7e1da1a), three fresh readers on free models (GRID Nemotron 3 Ultra, EOS Beam, Linus GLM-5.3 Flash), each handed only the round's reading set, three passes on one text (frozen at fbbe23b); the round rests on three counted passes — foundational count 0, held by the blind second triage (2026-10-23, one cold reader given the round's 29 reports, the method's test and the placement rule, and neither the threshold nor what the count decides, which placed none of them foundational); 14 foundational reports, none standing as the two triages settled them (12 sent down, eight of them onto the page's four flagged open lines; 2 rejected); 13 refining reports, 2 rhetorical reports; clean; every refining finding cured, routed or answered, State 2 deleted to State 1, open line 2026-10-22-a narrowed to the seam terms and open line 2026-10-23-a added; one sample; 2026-10-23 — Final Critique 9, the council's fifth round on the page — foundational count 1 after the blind second triage, cured, not clean; 2026-10-22 — Final Critique 8, the council's fourth round on the page — foundational count 1, cured, not clean; 2026-10-22 — Final Critique 7, the council's third round on the page — foundational count 2, both cured, not clean; 2026-10-22 — Final Critique 6, the council's second round on the page — foundational count 3, all cured, not clean; 2026-10-20 — Final Critique 5, the council's first round on the page — foundational count 7, all cured, not clean
 
 open:
 - 2026-10-20-b · refining · Invariant 6.3; Verification caching 1 · a cached verification result is no part of the verification set, so a cache inside [Verify] consults a source Invariant 6.3 bounds, though a cached and a fresh answer agree under one registry view → name the cache in the verification set, or place the cache in front of [Verify]
 - 2026-10-20-e · refining · Non-goal 15 · carrying an actor reference across trust domains is forbidden with no owner named, where the Non-goal family names who owns what the atom does not do → name the owner, or a forthcoming pattern
 - 2026-10-20-f · refining · [Read]; Term bounds · [Read] answers every attestation with no bound and no key → a bound, or a keyed read
-- 2026-10-22-a · refining · Term seam; Term transition; Term business caller · each term cites the section titled Logic Confinement Principle in `execution-contract.md`, which declares none of them → settle the corpus's one seam wording where every specification carrying it can take the cure
 ```
 
 <details markdown="block">
