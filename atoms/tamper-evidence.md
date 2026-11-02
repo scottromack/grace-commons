@@ -52,11 +52,13 @@ Term evidence id: the opaque value naming one evidence — an [Evidence Id].
 
 Term record set reference: the opaque reference naming what was sealed — a [Record Set Reference]; the host owns what a record set is.
 
-Term seam: the atom's I/O boundary as the section titled Logic Confinement Principle in `execution-contract.md` declares it; the host injects the clock reading, the evidence id, the cryptographic material and record set match here.
+Term seam: the atom's I/O boundary; the host injects the clock reading, the evidence id, the cryptographic material and record set match here.
 
-Term transition: the atom's evaluation of one call against the seal records, as the section titled Logic Confinement Principle in `execution-contract.md` declares it.
+Term transition: the atom's evaluation of one call against the seal records.
 
-Term business caller: the party whose action the call carries, as the section titled Logic Confinement Principle in `execution-contract.md` declares it; never the source of an injected value.
+Term business caller: the party whose action the call carries; never the source of an injected value.
+
+NOTE: watch the seam citation (Term seam, Term transition, Term business caller).
 
 Term now: the deployment's clock reading at the call, as Execution Contract Logic confinement 11 declares it.
 
@@ -94,7 +96,7 @@ Term revocation surface: an action that marks an evidence as no longer to be rel
 
 ```
 Capability requirement 1: The deployment MUST supply now at the seam.
-Capability requirement 2: The deployment MUST supply the seal records PER Execution Contract Database 1, Execution Contract Database 3, Execution Contract Database 4, Execution Contract Read 1 through 4, Execution Contract Refusal 1 and Execution Contract Conformance 9.
+Capability requirement 2: The deployment MUST supply the seal records PER Execution Contract Database 1, Execution Contract Database 3, Execution Contract Database 4, Execution Contract Database 7, Execution Contract Read 1 through 4, Execution Contract Refusal 1 and Execution Contract Conformance 9.
 Capability requirement 3: The deployment MUST declare the deployment's mechanism.
 Capability requirement 4: The deployment MUST supply the cryptographic material at the seam (Execution Contract Logic confinement 8).
 Capability requirement 5: The deployment MUST supply record set match at the seam.
@@ -157,9 +159,12 @@ Deleted: Operation 30. Operation 27 and Execution Contract Read 2 own it.
 Deleted: Operation 31. Execution Contract Read 1 owns it.
 Deleted: Operation 32. Execution Contract Refusal 1 owns it.
 Operation 33: [Verify] MUST answer verified ONLY IF seal check EQUALS held.
+Operation 34: IF a string input EXCEEDS the string cap THEN [Seal] MUST answer invalid-request.
 ```
 
-NOTE: open 2026-10-21-b — Operation 7's *is absent* carries no condition operator, the admitted EQUALS blank takes in the empty credential Operation 8 accepts, and a credential carrying only whitespace has no rule.
+NOTE: open 2026-10-21-b — Operation 7's *is absent* carries no condition operator, the admitted EQUALS blank takes in the empty credential Operation 8 accepts, and a credential carrying only whitespace has no rule, nor has the empty credential given to a keyed mechanism (Operation 9 answers only the reason the mechanism gives).
+
+NOTE: watch the cap's refusal (Operation 34).
 
 Term string cap: the bound on a string input's length in Unicode code points; 4,096 code points where a deployment declares none.
 
@@ -178,7 +183,7 @@ The case space, and the rule that owns each case:
 | Call | Case | Answer | Effect on the seal records |
 |---|---|---|---|
 | [Seal] | credential and reference well-formed, mechanism computes, database accepts | evidence id | one evidence lands in [Sealed] (Operation 1, Operation 2) |
-| [Seal] | blank reference, absent credential, or a string input over the string cap | [Invalid Request] | none (Operation 6, Operation 7, Execution Contract Input 2) |
+| [Seal] | blank reference, absent credential, or a string input over the string cap | [Invalid Request] | none (Operation 6, Operation 7, Operation 34, Execution Contract Input 2) |
 | [Seal] | mechanism cannot compute the proof | [Mechanism Failure] | none (Operation 9) |
 | [Seal] | database refuses the write | [Storage Failure] | none — the proof is discarded (Operation 10, Operation 11) |
 | [Verify] | no evidence under that id | [Not Known] | none — the call reads (Operation 15, Operation 20) |
@@ -320,7 +325,7 @@ Check 1.1: An auditor MUST reconstruct EVERY seal from the evidence's stored fie
 Check 1.2: An auditor MUST NOT need state beyond those fields and the originating record set (Invariant 4.1, Invariant 4.3).
 Check 2.1: An auditor MUST verify an evidence with the auditor's own implementation of the mechanism's verification function (Invariant 4.1, Operation 13).
 Check 2.2: An auditor MUST NOT need privileged access to the system to verify (Invariant 4.3).
-Check 3.1: An auditor MUST confirm that a single-byte change to the record set yields proof-invalid (Invariant 2.1, Operation 18).
+Check 3.1: IF record set match EQUALS yes AND seal check DOES NOT EQUAL unavailable THEN an auditor MUST confirm that a single-byte change to the record set yields proof-invalid (Invariant 2.1, Operation 18).
 Check 4.1: An auditor MUST read verified, failed-verification and not-known as three distinct answers (Operation 14).
 Check 4.2: An auditor MUST read record-set-mismatch, proof-invalid and mechanism-verification-unavailable as three distinct reasons (Operation 16, Operation 17, Operation 18).
 Deleted: Check 5.1. A trusted-timestamping pattern owns it (Non-goal 9, Non-goal 15): an anchored bound on when a record set changed.
@@ -428,7 +433,7 @@ Term record verbs: judge, identify, allocate, supply, reuse, carry, stand, order
 
 Term value sets: record set match = yes | no. seal check = held | failed | unavailable. evidence field = evidence id | record set reference | proof | sealing instant | anchoring instant. evidence state = sealed.
 
-Term bounds: string cap (the bound on a string input's length in Unicode code points, 4,096 where a deployment declares none).
+Term bounds: string cap.
 
 Term cadences: empty — a seal cadence is the composing pattern's (Composition note 1).
 
@@ -671,17 +676,17 @@ It inherits from:
 
 ## Status
 
-`grounded on Final Critique 10 — 2026-10-24` — see the Ledger.
+`partially resolved` — see the Ledger.
 
 ## Ledger
 
 ```
-status: grounded on Final Critique 10 — 2026-10-24
+status: partially resolved
 formal: not applicable — vote no 2026-06-03
-last gate: 2026-10-24 — Final Critique 10 — foundational count 0, clean, one sample
+last gate: 2026-11-02 — Final Critique 11, a delta round, frozen at d28642a — foundational count 3, all cured, not clean, no sample; 2026-10-24 — Final Critique 10 — foundational count 0, clean, one sample
 
 open:
-- 2026-10-21-b · refining · Operation 7, 8; Term mechanism credential · Operation 7 tests "the mechanism credential is absent" in no admitted condition form, while the admitted form, EQUALS blank, takes in the empty credential Operation 8 accepts (GRACE-lang Term blank, Earned vocabulary 7), and a credential carrying only whitespace has no rule → one declared term for the credential's three blank states, each with its answer
+- 2026-10-21-b · refining · Operation 7, 8; Term mechanism credential · Operation 7 tests "the mechanism credential is absent" in no admitted condition form, while the admitted form, EQUALS blank, takes in the empty credential Operation 8 accepts (GRACE-lang Term blank, Earned vocabulary 7), and a credential carrying only whitespace has no rule, nor has the empty credential given to a keyed mechanism (Operation 9 answers only the reason the mechanism gives) → one declared term for the credential's blank states, each with its answer, the keyed mechanism's among them
 - 2026-10-21-c · refining · Invariant 2.2, 2.3; Term qualifiers · deprecated is declared nowhere, Term qualifiers declaring sound alone, and Invariant 2.3 obliges a re-seal with no trigger, bound or owner → declare deprecated or write the rule in sound; name the re-seal's trigger and owner
 - 2026-10-21-f · refining · Summary; Identity 8; Concurrent seal 1 · seal names both the action [Seal] and the evidence it records → one name each
 - 2026-10-21-i · refining · Verification caching 2 · what a cached result is keyed by is unstated, so two conforming caches drop a result at different moments → name the key
