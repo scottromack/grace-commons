@@ -4,52 +4,52 @@
 \* disagreement, diagnose per the entry *The conflict protocol* in pressure-testing.md.
 \*
 \* VERSION 2. v1 performed the cascade as ONE atomic action, which the page forbids
-\* claiming (Invariant 4.3) and which supplied the care a careful implementer would
+\* claiming (Defensible Retention Invariant 11.2) and which supplied the care a careful implementer would
 \* (the model was more disciplined than the page). v2 carries the cascade as the page
 \* writes it: steps 0, 1, 2, 3 as separate commits in the declared order (Invariant 4.2),
-\* under a per-act critical section that is a lease (Per-act critical section 4, 9),
-\* a holder that may die at any point, mid-cascade expiry (purge event 7), and the
+\* under a per-act critical section that is a lease (Per-act critical section 4; Defensible Retention Cascade critical section 4),
+\* a holder that may die at any point, mid-cascade expiry (Defensible Retention purge event 7), and the
 \* reconciliation scan's first half as a second process: it examines a Purged retention
 \* older than purge edge, skips a held section (Per-act critical section 5), re-reads the
-\* predicate under the section (First half 7), and re-drives from step 2 adopting what
+\* predicate under the section (Defensible Retention First half 7), and re-drives from step 2 adopting what
 \* landed (proceed as landed), on a cadence, and may itself die once.
 \*
 \* WHAT THIS MODEL CHECKS  Invariants 4 (order), 8 (honest destruction; and its liveness
 \* arm, bounded), and the one-writer discipline of the per-act critical section.
 \*
 \* NOT MODELED
-\* - No-answer arms (record action step 3.7, 4.9, purge event step 1.6, 2.8, seal now 24, Per-act critical section 17), the leg's in-lease reads
+\* - No-answer arms (record action step 3.7, 4.9, record destruction step 1.6, 2.8, seal now 24, Per-act critical section 17), the leg's in-lease reads
 \*   in the work bound (Per-act critical section 13e) and Non-goal 11 are not modelled.
 \* - The mark's holder compare (seal now 22, 23), the doubled skew term
 \*   (the model runs A = 0) and the measured enumeration (Instance start 28) are not modelled.
 \* - The call pause bound margin (Term lease, Per-act critical section 13a), the probe of Invariant 1.10 through 1.12, the outage restart
-\*   (Composition-level invariant 1c), the scan scheduler and the first half's upper edge (First half 12) are not modelled.
+\*   (Composition-level invariant 1c), the scan scheduler and the first half's upper edge (Defensible Retention First half 12) are not modelled.
 \* - Scan legs run concurrently and a leg's lease is sized from the run's elapsed time (Reconciliation 1a, Per-act critical section 13a, 13d, 13e): runs are
-\*   instantaneous here. The lease call kinds (Per-act critical section 15, 16), erasure mechanism 7a (the mechanism answers destroyed over destroyed
+\*   instantaneous here. The lease call kinds (Per-act critical section 15, 16), Defensible Retention erasure mechanism 7a (the mechanism answers destroyed over destroyed
 \*   content: here every delegation lands) and the outage window extension (Composition-level invariant 1c) are not modelled.
 \* - A scan leg's lease sized from the run's elapsed time (Per-act critical section 13a, 13d): runs are instantaneous here,
 \*   so the lease is the whole bound; Durability 8 (a lost coverage entry) and event to attestation's split key.
-\* - The hold read's failure arm (purge event 5e, cascade-failure(hold) with no step executed), Concurrency 3a's
+\* - The hold read's failure arm (Defensible Retention purge event 5e, cascade-failure(hold) with no step executed), Concurrency 3a's
 \*   lease on the serialization, Concurrency 1h and 1f (the uncovered mark apart from the grant, a fresh holder
 \*   per seal attempt), and Invariant 1.10's circuit break (a run ends at the first refusal that left an orphan).
 \* - [Record Action], and the scan's second and third halves: audit-trail-record.tla. Invariants 3, 5,
 \*   6 and 7, [Read Record], [Verify Record], and the return arms of [Purge Event].
-\* - The first half writes no audit.reconciliation intent (Compensation 12): none is modelled.
+\* - The first half writes no audit.reconciliation intent (Defensible Retention First half 13): none is modelled.
 \* - The leg abort (Per-act critical section 13b, 13c) is NOT exercised: the Tick guard holds time while
 \*   a run is in flight (compensation closure latency 1), so no leg outlives its lease.
 \* - The binding-set predicate against an in-flight cascade: audit-trail-binding.tla.
-\* - Not carried, each on the page and unverified here: the Legal Hold gate over a first cascade (purge event 5c; over a re-driven entry, with the placement's
-\*   serialization and the hold-release restart, it is audit-trail-hold.tla's); the [Seal Now] crash gap and its rebuild (seal now 13 through 20, Concurrency 1a through 1d, the sealing lock's lease); the start checks Instance start 21 and 22 (horizon); a leg's placement or a seal abandoned is refused once the next holder takes the section, its lease check and its write being one transaction (Capability requirement 13), so no model carries it; the cascade's erasure delegation abandoned (Per-act critical section 2a) is carried by no model; scan run duration (compensation closure latency 3) is not modelled, runs being instantaneous; the [Verify Record] re-read against a
-\*   racing cascade (verify record 5, 6); the in-flight arm of [Purge Event] (purge event step 0.7); the third half's
+\* - Not carried, each on the page and unverified here: the Legal Hold gate over a first cascade (Defensible Retention purge event 5c; over a re-driven entry, with the placement's
+\*   serialization and the hold-release restart, it is defensible-retention-audit-hold.tla's); the [Seal Now] crash gap and its rebuild (seal now 13 through 20, Concurrency 1a through 1d, the sealing lock's lease); the start checks Instance start 21 and 22 (horizon); a leg's placement or a seal abandoned is refused once the next holder takes the section, its lease check and its write being one transaction (Capability requirement 13), so no model carries it; the cascade's erasure delegation abandoned (Defensible Retention Cascade critical section 1) is carried by no model; scan run duration (compensation closure latency 3) is not modelled, runs being instantaneous; the [Verify Record] re-read against a
+\*   racing cascade (verify record 5, 6); the in-flight arm of [Purge Event] (Defensible Retention purge event step 0.7); the third half's
 \*   policy resolution (Third half 15). Both models are single-act: the cross-act serializations of Concurrency 1 and 3 are
 \*   absent, and Invariant 3 is unmodelled.
 \*   Also not carried: the scan's
 \*   one attempt per finding per run and its alert (Third half 11, Compensation 16);
-\*   a caller-driven re-entry of [Purge Event] on a Purged retention (purge event step 1.4).
-\*   Also not carried (round 18): the no-answer arms of the step-0 and step-0½ reads (purge event step 0.11, 0½.6) and the
+\*   a caller-driven re-entry of [Purge Event] on a Purged retention (record destruction step 1.4).
+\*   Also not carried (round 18): the no-answer arms of the step-0 and step-0½ reads (Defensible Retention purge event step 0.11, 0½.6) and the
 \*   serialization's expiry gate under a re-drive (Concurrency 3c), both single-act and cross-act respectively; the model's cascade
 \*   has no read that answers no answer and no serialization to expire.
-\* - MechOk = TRUE only: the destruction-failed loop (First half 4, Boundary one 3 through 6, Ledger 2026-08-30-d) is not explored, and Inv_BoundedClosure is vacuous over it; MechOk = FALSE overflows the deleg counter and then the harness depth cap.
+\* - MechOk = TRUE only: the destruction-failed loop (Defensible Retention First half 4, Defensible Retention Boundary one 3 through 6, Ledger 2026-08-30-d) is not explored, and Inv_BoundedClosure is vacuous over it; MechOk = FALSE overflows the deleg counter and then the harness depth cap.
 \* - The restart-triggered scan run; the single scan-crash budget is shared by the scan's runs.
 \* - Where the model is more generous than the page: a write issued inside the lease lands inside it
 \*   (a stalled store write the page lets land later, refused once the next holder takes the section,
@@ -57,7 +57,7 @@
 \*   delegation the page's premise, made an obligation by purge completion bound 2: the pause between
 \*   a lease check and the delegation is inside the bound, the mechanism carrying no fence); clock offset
 \*   allowance 0; the first half re-drives the cascade itself, where the page re-drives through
-\*   [Purge Event] under the section the first half holds (Per-act critical section 14).
+\*   [Purge Event] under the section the first half holds (Defensible Retention Cascade critical section 5).
 \* - The erasure mechanism answers destroyed on re-delegation: with an outcome unrecorded, a
 \*   re-delegation over destroyed content is the page's own open edge (Ledger 2026-08-30-d).
 \* - The leg arithmetic at conforming constants (Per-act critical section 13a, 13b, 13d, Term closure spend, Term re-drive spend,
@@ -130,7 +130,7 @@ HostRelease ==
     /\ holder' = "none"
     /\ UNCHANGED <<now, ret, pInst, sealed, destRec, deleg, outc, content, ipc, exp, spc, lastRun, foreign, dup, crashes>>
 
-\* Cascade (purge event 1-4): takes the section keyed by event id, lease = purge completion bound.
+\* Cascade (Defensible Retention purge event 1-4): takes the section keyed by event id, lease = purge completion bound.
 IStart ==
     /\ ipc = "idle"
     /\ holder = "none"
@@ -140,7 +140,7 @@ IStart ==
     /\ exp' = now + LeaseLen
     /\ UNCHANGED <<now, ret, pInst, sealed, destRec, deleg, outc, content, spc, lastRun, foreign, dup, crashes>>
 
-\* Step 0: covering seal exists before step 1 (purge event step 0.3).
+\* Step 0: covering seal exists before step 1 (Defensible Retention purge event step 0.3).
 IStep0 ==
     /\ ipc = "s0"
     /\ Live("inv")
@@ -188,7 +188,7 @@ IStep4 ==
     /\ foreign' = IF holder # "inv" THEN TRUE ELSE foreign
     /\ UNCHANGED <<now, ret, pInst, sealed, destRec, deleg, content, exp, spc, lastRun, dup, crashes>>
 
-\* Mid-cascade expiry (purge event 7): the lease is gone, no further write issues, the invocation returns cascade-failure(step).
+\* Mid-cascade expiry (Defensible Retention purge event 7): the lease is gone, no further write issues, the invocation returns cascade-failure(step).
 IAbort ==
     /\ ipc \in {"s0", "s1", "s2", "s3", "s4"}
     /\ ~Live("inv")
@@ -201,14 +201,14 @@ ICrash ==
     /\ ipc' = "dead"
     /\ UNCHANGED <<now, ret, pInst, sealed, destRec, deleg, outc, content, holder, exp, spc, lastRun, foreign, dup, crashes>>
 
-\* A cascade that left retention Retained is re-offered by Purge Eligible (purge event 3c).
+\* A cascade that left retention Retained is re-offered by Purge Eligible (Defensible Retention purge event 3c).
 IRetry ==
     /\ ipc = "dead"
     /\ ret = "Retained"
     /\ ipc' = "idle"
     /\ UNCHANGED <<now, ret, pInst, sealed, destRec, deleg, outc, content, holder, exp, spc, lastRun, foreign, dup, crashes>>
 
-\* First half: examine a Purged retention older than purge edge, take the section (First half 2, 6).
+\* First half: examine a Purged retention older than purge edge, take the section (Defensible Retention First half 2, 6).
 SRunTake ==
     /\ spc = "idle"
     /\ ret = "Purged"
@@ -228,7 +228,7 @@ SRunSkip ==
     /\ lastRun' = now
     /\ UNCHANGED <<now, ret, pInst, sealed, destRec, deleg, outc, content, ipc, holder, exp, spc, foreign, dup, crashes>>
 
-\* Re-read the predicate under the section before any write (First half 7).
+\* Re-read the predicate under the section before any write (Defensible Retention First half 7).
 SCheck ==
     /\ spc = "held"
     /\ Live("scan")
@@ -294,7 +294,7 @@ Spec == Init /\ [][Next]_vars
 
 \* --- invariants, named as the page names them ---
 
-\* Invariant 4.2 / purge event step 0.3, 2.4: the declared order of commits.
+\* Invariant 4.2 / Defensible Retention purge event step 0.3, 2.4: the declared order of commits.
 Inv4_Order ==
     /\ (ret = "Purged") => sealed
     /\ destRec => (ret = "Purged")
@@ -305,7 +305,7 @@ Inv4_Order ==
 Inv8_HonestDestruction ==
     (content = "destroyed") => (ret = "Purged" /\ destRec)
 
-\* Per-act critical section 7-8, 11-12: one writer per act; no delegation
+\* Defensible Retention Cascade critical section 2-3, Per-act critical section 11-12: one writer per act; no delegation
 \* after a destroyed outcome is recorded; no write lands outside a held section.
 Inv_OneWriter == ~foreign /\ ~dup
 

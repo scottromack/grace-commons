@@ -1,5 +1,5 @@
 ---- MODULE audit-trail-buggy ----
-\* BUGGY TWIN (vacuity guard): the invocation never notices its lease has gone and keeps writing after it expired (Per-act critical section 9b violated).
+\* BUGGY TWIN (vacuity guard): the invocation never notices its lease has gone and keeps writing after it expired (Defensible Retention Cascade critical section 4b violated).
 EXTENDS Naturals
 
 CONSTANTS LeaseLen, SweepLease, Cadence, MaxTime, MechOk
@@ -66,7 +66,7 @@ HostRelease ==
     /\ holder' = "none"
     /\ UNCHANGED <<now, ret, pInst, sealed, destRec, deleg, outc, content, ipc, exp, spc, lastRun, foreign, dup, crashes>>
 
-\* Cascade (purge event 1-4): takes the section keyed by event id, lease = purge completion bound.
+\* Cascade (Defensible Retention purge event 1-4): takes the section keyed by event id, lease = purge completion bound.
 IStart ==
     /\ ipc = "idle"
     /\ holder = "none"
@@ -76,7 +76,7 @@ IStart ==
     /\ exp' = now + LeaseLen
     /\ UNCHANGED <<now, ret, pInst, sealed, destRec, deleg, outc, content, spc, lastRun, foreign, dup, crashes>>
 
-\* Step 0: covering seal exists before step 1 (purge event step 0.3).
+\* Step 0: covering seal exists before step 1 (Defensible Retention purge event step 0.3).
 IStep0 ==
     /\ ipc = "s0"
     /\ ipc # "idle" /\ ipc # "dead" /\ ipc # "done"
@@ -136,14 +136,14 @@ ICrash ==
     /\ ipc' = "dead"
     /\ UNCHANGED <<now, ret, pInst, sealed, destRec, deleg, outc, content, holder, exp, spc, lastRun, foreign, dup, crashes>>
 
-\* A cascade that left retention Retained is re-offered by Purge Eligible (purge event 3c).
+\* A cascade that left retention Retained is re-offered by Purge Eligible (Defensible Retention purge event 3c).
 IRetry ==
     /\ ipc = "dead"
     /\ ret = "Retained"
     /\ ipc' = "idle"
     /\ UNCHANGED <<now, ret, pInst, sealed, destRec, deleg, outc, content, holder, exp, spc, lastRun, foreign, dup, crashes>>
 
-\* First half: examine a Purged retention older than purge edge, take the section (First half 2, 6).
+\* First half: examine a Purged retention older than purge edge, take the section (Defensible Retention First half 2, 6).
 SRunTake ==
     /\ spc = "idle"
     /\ ret = "Purged"
@@ -163,7 +163,7 @@ SRunSkip ==
     /\ lastRun' = now
     /\ UNCHANGED <<now, ret, pInst, sealed, destRec, deleg, outc, content, ipc, holder, exp, spc, foreign, dup, crashes>>
 
-\* Re-read the predicate under the section before any write (First half 7).
+\* Re-read the predicate under the section before any write (Defensible Retention First half 7).
 SCheck ==
     /\ spc = "held"
     /\ Live("scan")
@@ -229,7 +229,7 @@ Spec == Init /\ [][Next]_vars
 
 \* --- invariants, named as the page names them ---
 
-\* Invariant 4.2 / purge event step 0.3, 2.4: the declared order of commits.
+\* Invariant 4.2 / Defensible Retention purge event step 0.3, 2.4: the declared order of commits.
 Inv4_Order ==
     /\ (ret = "Purged") => sealed
     /\ destRec => (ret = "Purged")
@@ -240,7 +240,7 @@ Inv4_Order ==
 Inv8_HonestDestruction ==
     (content = "destroyed") => (ret = "Purged" /\ destRec)
 
-\* Per-act critical section 7-8, 11-12: one writer per act; no delegation
+\* Defensible Retention Cascade critical section 2-8, 11-12: one writer per act; no delegation
 \* after a destroyed outcome is recorded; no write lands outside a held section.
 Inv_OneWriter == ~foreign /\ ~dup
 

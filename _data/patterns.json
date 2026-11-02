@@ -516,7 +516,7 @@
    "retention-window"
   ],
   "grounded": false,
-  "invariants": 10,
+  "invariants": 13,
   "kind": "composition",
   "models": {
    "als": false,

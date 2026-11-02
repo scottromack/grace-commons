@@ -40,15 +40,15 @@
 \* - The binding-set predicate against an in-flight cascade (Second half 14, Second half 15):
 \*   audit-trail-binding.tla. The scan's retry of an invalid-request refusal on the next run
 \*   (Compensation 15), and Tamper Evidence's record set match (Capability requirement 5): not carried.
-\* - Not carried, each on the page and unverified here: the Legal Hold gate over a first cascade (purge event 5c; over a re-driven entry, with the placement's
-\*   serialization and the hold-release restart, it is audit-trail-hold.tla's); the [Seal Now] crash gap and its rebuild (seal now 13 through 20, Concurrency 1a through 1d, the sealing lock's lease); the start checks Instance start 21 and 22 (horizon); a leg's placement or a seal abandoned is refused once the next holder takes the section, its lease check and its write being one transaction (Capability requirement 13), so no model carries it; the cascade's erasure delegation abandoned (Per-act critical section 2a) is carried by no model; scan run duration (compensation closure latency 3) is not modelled, runs being instantaneous; the [Verify Record] re-read against a
-\*   racing cascade (verify record 5, 6); the in-flight arm of [Purge Event] (purge event step 0.7); the third half's
+\* - Not carried, each on the page and unverified here: the Legal Hold gate over a first cascade (Defensible Retention purge event 5c; over a re-driven entry, with the placement's
+\*   serialization and the hold-release restart, it is defensible-retention-audit-hold.tla's); the [Seal Now] crash gap and its rebuild (seal now 13 through 20, Concurrency 1a through 1d, the sealing lock's lease); the start checks Instance start 21 and 22 (horizon); a leg's placement or a seal abandoned is refused once the next holder takes the section, its lease check and its write being one transaction (Capability requirement 13), so no model carries it; the cascade's erasure delegation abandoned (Defensible Retention Cascade critical section 1) is carried by no model; scan run duration (compensation closure latency 3) is not modelled, runs being instantaneous; the [Verify Record] re-read against a
+\*   racing cascade (verify record 5, 6); the in-flight arm of [Purge Event] (Defensible Retention purge event step 0.7); the third half's
 \*   policy resolution (Third half 15). Both models are single-act: the cross-act serialization of Concurrency 1 is
 \*   absent, and Invariant 3 is unmodelled.
 \* - The constants breach Instance start 18 and 19 (SweepLease = 1 against a closure floor of 4); a conforming regime exceeds the harness's depth cap; the arithmetic at conforming constants is carried by tools/harness/audit-trail-closure.py.
 \*   Also not carried: the scan's
 \*   one attempt per finding per run and its alert (Third half 11, Compensation 16);
-\*   a caller-driven re-entry of [Purge Event] on a Purged retention (purge event step 1.4).
+\*   a caller-driven re-entry of [Purge Event] on a Purged retention (record destruction step 1.4).
 \* - Small constants: "all invariants hold" is a statement within MaxTime ticks at these constants.
 EXTENDS Naturals
 

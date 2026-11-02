@@ -3,6 +3,7 @@
 - **Pattern:** `compositions/audit-trail.md`
 - **Model:** `audit-trail.tla` + `audit-trail-buggy.tla`
 - **Reviewer / date:** Claude Sonnet 4.6 (fresh-context) — 2026-06-03
+- **Touch of 2026-11-02 (the purge move):** the cascade, its worklist, the hold gate over it and the scan's first half moved to `compositions/defensible-retention.md`. Invariant 4 here keeps 4.2 and 4.5, the destruction record's commit and the purged events' standing; the cascade's other rules are Defensible Retention Invariant 11. `audit-trail.tla` and its twins check the cascade's order and Invariant 8 together and are cited by both pages; the hold family (`audit-trail-hold*.tla`) was renamed `defensible-retention-audit-hold*.tla` and is Defensible Retention's. The models were run again, unchanged but for their comments: 0 FAIL.
 - **Formal-layer vote load-bearing claims:** Invariant 4 (cascade-on-purge — purge, attestation purge, and seal-coverage update compose atomically or via compensating record); Invariant 8 (honest representation of destruction — `evState = purged ⇒ retState = Purged`)
 
 ## Step 1 — harness re-run (must pass)

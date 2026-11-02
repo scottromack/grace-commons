@@ -355,7 +355,7 @@ def owner_parts(owner: str) -> list[str]:
     part that marks a name forthcoming is split at each comma, `and` or `or`
     outside a link and a parenthesis that a link, an article or a capitalized
     word follows: `[Audit Trail](./audit-trail.md), the deployment and
-    Hold-Aware Audit Retention *(forthcoming)*` is three owners, and `a
+    Reverse Index *(forthcoming)*` is three owners, and `a
     priority and ordering pattern *(forthcoming)*` one. A part with no marker
     is one owner, since none of its owners is forthcoming, and its prose is
     not split: in `[Permissions](../atoms/permissions.md) and

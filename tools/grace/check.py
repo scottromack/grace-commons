@@ -691,7 +691,7 @@ def borrowed_names(path: Path, text: str) -> set[str]:
 # which the grammar reads as two obligations and never as an exception (Principle
 # 5, Hard invariant 20). The cure writes the narrower rule's state into the broad
 # rule as the broad rule's condition (the exception sweep, 2026-10-25). A word
-# match is not enough: the scan of Audit Trail's [Purge Event] matched on the verb
+# match is not enough: the scan of the audit cascade's Purge Event (then Audit Trail's) matched on the verb
 # and missed *delegate destruction* beside *issue the delegation*. So acts match
 # three ways — one verb over one object head, a verb beside its nominalization
 # under a light verb, and a bare write beside a writing verb — and every flagged

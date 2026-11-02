@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Audit Trail — the closure arithmetic, enumerated.
 
-A second instrument beside the TLA+ models of compositions/audit-trail.md. The models carry
+A second instrument beside the TLA+ models of compositions/audit-trail.md and compositions/defensible-retention.md. The models carry
 interleavings at small constants and cannot run a conforming regime (their headers say so);
 this script carries the ARITHMETIC: it reads the page's own term formulas, enumerates
 parameter tuples the page's Instance start admits, walks each scan leg's timeline as the
@@ -10,9 +10,11 @@ finish (C1) or a finding outlives closure sum (C3). pressure-testing.md, *An
 outside-the-frame finding names the instrument you are missing*: a bound over a schedule
 wants an enumerator.
 
-What is read from the page, so the page and this script cannot drift apart silently:
+What is read from the pages, so the pages and this script cannot drift apart silently:
   Term closure sum (both parts), Term closure floor (both parts), Term closure spend, Term
-  re-drive spend, Term record edge, Term purge edge  — evaluated as written.
+  re-drive spend, Term record edge  — evaluated as written from Audit Trail; Term purge edge
+  from Defensible Retention, which owns the first half and the cascade (the purge move of
+  2026-11-02).
 What is encoded here, each line citing the rule it transcribes; every cited label must
 exist on the page or the run fails:
   the leg timeline (TIMELINE below), Term work bound's enumeration counts, Instance start
@@ -29,6 +31,7 @@ from functools import lru_cache
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 PAGE = os.environ.get('AUDIT_TRAIL_PAGE') or os.path.join(HERE, '..', '..', 'compositions', 'audit-trail.md')
+PAGE_DR = os.environ.get('DEFENSIBLE_RETENTION_PAGE') or os.path.join(HERE, '..', '..', 'compositions', 'defensible-retention.md')
 
 # ---------------------------------------------------------------- the page, read
 NAMES = ['record_action_completion_bound', 'purge_completion_bound', 'seal_completion_bound',
@@ -37,7 +40,7 @@ NAMES = ['record_action_completion_bound', 'purge_completion_bound', 'seal_compl
 SAFE = re.compile(r'^[\sa-z_0-9+*(),]+$')
 
 def read_page(path=PAGE):
-    text = open(path, encoding='utf-8').read()
+    text = open(path, encoding='utf-8').read() + '\n' + open(PAGE_DR, encoding='utf-8').read()
     terms = {}
     for name in ['closure spend', 're-drive spend', 'record edge', 'purge edge']:
         m = re.search(r'^\s*Term %s: `([^`]+)`' % re.escape(name), text, re.M)
@@ -70,7 +73,7 @@ TIMELINE = [
  ('Reconciliation 5',                 'a run reads now once, before its enumeration; the age edge is read against that reading'),
  ('clock offset allowance 2',         'the first half\'s edge is widened by the allowance, and the scan\'s reading may run one allowance behind the stamp: bound + 2A'),
  ('Capability requirement 13',        'a [Record Action]\'s writes commit together (Execution Contract Database 1): the second and third halves examine a finding from its creation, and no record action holds its act; a holder\'s lease check and its write are one transaction (Execution Contract Database 2), so a write committing after the leg\'s lease meets the next holder\'s take'),
- ('First half 1',                     'first half, before the take: one enumeration, the retention records'),
+ ('First half 1',                     'first half, before the take: one enumeration, the retention records (Defensible Retention)'),
  ('Second half 1',                    'second half, before the take: the binding set (audit log, then destruction records) ...'),
  ('Reconciliation 1',                 '... and the attestation records the half runs over'),
  ('Third half 1',                     'third half, before the take: the audit-log pass ...'),
@@ -93,10 +96,10 @@ TIMELINE = [
  ('Third half 8',                     'intent before placement'),
  ('Third half 9',                     'placement before the compensation record'),
  ('lease',                            'live only while remaining > 2 call pauses (Lease Sizing 2)'),
- ('Per-act critical section 9a',      'a cascade\'s lease is its completion bound, so a dead cascade strands the act that long'),
+ ('Cascade critical section 4a',      'a cascade\'s lease is its completion bound, so a dead cascade strands the act that long (Defensible Retention)'),
  ('compensation closure latency 1',   'one whole closure lands within closure latency of the run\'s start'),
- ('Capability requirement 7c',        'a hold placement holds the event\'s section as a lease of the purge bound'),
- ('Per-act critical section 15a',     'a hold placement waits for a held section and takes it when it frees; a leg does not wait'),
+ ('Capability requirement 69c',       'a hold placement holds the event\'s section as a lease of the purge bound (Defensible Retention)'),
+ ('Cascade critical section 6',       'a hold placement waits for a held section and takes it when it frees; a leg does not wait (Defensible Retention)'),
  ('Instance start 16',                'window > closure sum'),
  ('Instance start 18',                'closure latency > closure spend'),
  ('Instance start 19',                'closure latency > re-drive spend'),
@@ -184,7 +187,7 @@ def worst_landing(p, lat, half, reading):
             if places:                                        # a placement takes the free section just ahead of the leg's
                 best = max(best, nxt(s, s + emax + pcb, deaths, places - 1))  # try-take and holds it one purge bound (7c)
         if places and free_at > s:                            # a placement waiting on a held section takes it at the
-            best = max(best, go(s, free_at + pcb, deaths, places - 1))        # instant it frees (Per-act critical section 15a)
+            best = max(best, go(s, free_at + pcb, deaths, places - 1))        # instant it frees (Cascade critical section 6, Defensible Retention)
         if not must_take:
             best = max(best, nxt(s, free_at, deaths, places)) # the adversary's e skips it
         return best
