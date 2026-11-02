@@ -174,6 +174,8 @@ NOTE: watch the required input no rule records (Operation 38, Operation 39, Oper
 
 NOTE: watch the blank optional input (Operation 40, Operation 41).
 
+NOTE: watch the listing page (Operation 28, Operation 29, Term matching record).
+
 Term now: the deployment's clock reading at the call — a [Now], as Execution Contract Logic confinement 11 declares it.
 
 Term writing action: [Record Sighting], [Report Standing] or [Report Clear].

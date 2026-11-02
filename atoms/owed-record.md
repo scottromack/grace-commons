@@ -16,7 +16,7 @@ toc: true
 
 ## Summary
 
-Owed Record keeps the durable record that something is owed. When a pattern does something that leaves a write still to be made — an audit record to land, an approval chain to close, a sealed entry to replace a pending mark — it records an owed record in the same transaction, so the obligation exists exactly when its cause does. The owed record names the owing pattern, its own id, the cause that created it and the instant it falls due. It ends one of two ways: it is discharged, exactly once, naming the record that fulfilled it; or its due-by instant passes and a sweep flags it for a person, who may still discharge it later. The atom does not make the owed write, does not run the sweep and does not decide what a person does with a flag; those belong to the patterns that compose it. It carries no message and delivers nothing.
+Owed Record keeps the durable record that something is owed. When a pattern does something that leaves a write still to be made — an audit record to land, an approval to be closed, a provisional entry to be replaced by a final one — it records an owed record in the same transaction (the all-or-nothing step that commits the cause), so the obligation exists exactly when its cause does. The owed record names the owing pattern, its own id, the cause that created it and the instant it falls due. It is met by a discharge, exactly once, naming the record that fulfilled it; if its due-by instant comes first, a sweep flags it for a person, who may still discharge it later. The atom does not make the owed write, does not run the sweep and does not decide what a person does with a flag; those belong to the patterns that compose it. It carries no message and delivers nothing.
 
 ---
 
@@ -73,7 +73,7 @@ State 8: The atom MUST NOT offer a transition from flagged to open.
 State 9: The atom MUST NOT remove an owed record from the database.
 ```
 
-Term status: open | flagged | discharged — owed and in time, owed and past due, met. A [Status] is an [Open], [Flagged] or [Discharged] value.
+Term status: open | flagged | discharged — owed and not yet flagged, owed and flagged for a person, met. A [Status] is an [Open], [Flagged] or [Discharged] value.
 
 ### Capability requirement
 
@@ -121,12 +121,12 @@ Operation 3: [Record Owed] MUST stamp recording instant from the injected now.
 Operation 4: [Record Owed] MUST stamp due-by instant from the due-by deadline.
 Operation 5: [Record Owed] MUST answer recorded.
 Operation 6: IF an owed record EXISTS for the owing pattern and the owed id THEN [Record Owed] MUST answer duplicate.
-Operation 7: IF owing pattern EQUALS blank OR owed id EQUALS blank OR cause id EQUALS blank THEN [Record Owed] MUST answer invalid-request.
+Operation 7: IF owing pattern EQUALS blank OR owed id EQUALS blank OR cause id EQUALS blank OR due-by window EQUALS blank THEN [Record Owed] MUST answer invalid-request.
 Operation 8: IF due-by window DOES NOT EXCEED zero THEN [Record Owed] MUST answer invalid-request.
 Operation 9: IF owing pattern EXCEEDS the pattern name cap THEN [Record Owed] MUST answer invalid-request.
 Operation 10: IF owed id EXCEEDS the id cap OR cause id EXCEEDS the id cap THEN [Record Owed] MUST answer invalid-request.
 Operation 11: IF the database refuses the write THEN [Record Owed] MUST answer storage-failure.
-Operation 12: IF no owed record EXISTS for the owing pattern and the owed id THEN [Discharge] MUST answer not-known.
+Operation 12: IF owing pattern DOES NOT EQUAL blank AND owed id DOES NOT EQUAL blank AND no owed record EXISTS for the owing pattern and the owed id THEN [Discharge] MUST answer not-known.
 Operation 13: IF the owed record's status EQUALS discharged THEN [Discharge] MUST answer already-discharged.
 Operation 14: IF fulfilment id EQUALS blank OR fulfilment id EXCEEDS the id cap THEN [Discharge] MUST answer invalid-request.
 Operation 15: [Discharge] MUST accept an owed record whose status IS IN open, flagged.
@@ -135,7 +135,7 @@ Operation 17: [Discharge] MUST stamp discharge instant from the injected now.
 Operation 18: [Discharge] MUST record the fulfilment id on the owed record.
 Operation 19: [Discharge] MUST answer discharged.
 Operation 20: IF the database refuses the write THEN [Discharge] MUST answer storage-failure.
-Operation 21: IF no owed record EXISTS for the owing pattern and the owed id THEN [Flag] MUST answer not-known.
+Operation 21: IF owing pattern DOES NOT EQUAL blank AND owed id DOES NOT EQUAL blank AND no owed record EXISTS for the owing pattern and the owed id THEN [Flag] MUST answer not-known.
 Operation 22: IF the owed record's status EQUALS discharged THEN [Flag] MUST answer already-discharged.
 Operation 23: IF the owed record's status EQUALS flagged THEN [Flag] MUST answer already-flagged.
 Operation 24: IF now PRECEDES the owed record's due-by instant THEN [Flag] MUST answer not-due.
@@ -145,19 +145,36 @@ Operation 27: [Flag] MUST stamp flag instant from the injected now.
 Operation 28: [Flag] MUST record the actor reference on the owed record.
 Operation 29: [Flag] MUST answer flagged.
 Operation 30: IF the database refuses the write THEN [Flag] MUST answer storage-failure.
-Operation 31: [List Owed] MUST answer EVERY owed record of the owing pattern whose status EQUALS the listed status, up to the page size.
+Operation 31: [List Owed] MUST answer the matching owed records with the earliest listing keys, up to the page size.
 Operation 32: [List Owed] MUST order the answer by due-by instant, then by owed id.
-Operation 33: IF a continuation key EXISTS THEN [List Owed] MUST answer only owed records whose listing key EXCEEDS the continuation key.
+Deleted: Operation 33. Term matching owed record owns it.
 Operation 34: IF owing pattern EQUALS blank THEN [List Owed] MUST answer invalid-request.
 Operation 35: IF listed status IS NOT IN open, flagged THEN [List Owed] MUST answer invalid-request.
 Operation 36: [List Owed] MUST NOT write.
 Operation 37: The atom MUST NOT offer a removal action.
 Operation 38: The atom MUST NOT offer a reopen action.
+Operation 39: [List Owed] MUST NOT answer an owed record that is not a matching owed record.
+Operation 40: IF continuation key DOES NOT EQUAL blank AND the continuation key is malformed THEN [List Owed] MUST answer invalid-request.
+Operation 41: IF a due-by window is malformed THEN [Record Owed] MUST answer invalid-request (Execution Contract Input 1).
+Operation 42: IF owing pattern EQUALS blank OR owed id EQUALS blank THEN [Discharge] MUST answer invalid-request.
+Operation 43: IF owing pattern EQUALS blank OR owed id EQUALS blank THEN [Flag] MUST answer invalid-request.
 ```
+
+NOTE: watch the blank id (Operation 12, Operation 21).
+
+NOTE: watch the blank optional input (Term matching owed record).
+
+NOTE: watch the untyped input (Operation 41, Term due-by window).
+
+NOTE: watch the listing page (Operation 31, Operation 39, Term matching owed record).
+
+NOTE: open 2026-11-02-a — the atom answers no read of a discharged owed record or of one record by its ids, so a discharged record is reached only by an auditor's read of the database (Check 3.1).
+
+NOTE: open 2026-11-02-b — a due-by window has no upper bound, so a window past the instant range [Record Owed] stamps has no rule.
 
 Term now: the deployment's clock reading at the call — a [Now], as Execution Contract Logic confinement 11 declares it.
 
-Term due-by window: the whole number of seconds a [Record Owed] call allows for the obligation to be met — a [Due-By Window]; consumed to compute the due-by deadline, never stored under this name.
+Term due-by window: the whole number of seconds a [Record Owed] call allows for the obligation to be met — a [Due-By Window], malformed where it is not a whole number; consumed to compute the due-by deadline, never stored under this name.
 
 Term due-by deadline: `(recording_instant + due_by_window)` — what [Record Owed] stores as due-by instant, computed once.
 
@@ -171,9 +188,11 @@ Term flag instant: the instant the owed record was flagged for a person — a [F
 
 Term listed status: the status a [List Owed] call asks for, open or flagged — a [Listed Status].
 
-Term listing key: an owed record's due-by instant paired with its owed id, compared first by instant, then by id — the order [List Owed] answers in.
+Term listing key: an owed record's due-by instant paired with its owed id, compared first by instant, then by id in code point order (Execution Contract Logic confinement 10) — the order [List Owed] answers in.
 
-Term continuation key: the listing key of the last owed record a previous [List Owed] call answered — a [Continuation Key].
+Term continuation key: the listing key of the last owed record a previous [List Owed] call answered — a [Continuation Key], malformed where it is not an instant paired with an owed id.
+
+Term matching owed record: an owed record of the owing pattern whose status EQUALS the listed status, only where the listing key EXCEEDS the continuation key where continuation key DOES NOT EQUAL blank. Where none match the answer is empty.
 
 The case space, and the rule that owns each case:
 
@@ -181,16 +200,17 @@ The case space, and the rule that owns each case:
 |---|---|---|---|
 | [Record Owed] | every id present and within its cap, a window above zero, no owed record for the pair, database accepts | recorded | one owed record lands in [Open], recording instant and due-by instant stamped (Operation 1 through 5) |
 | [Record Owed] | an owed record already names the pair | [Duplicate] | none (Operation 6) |
-| [Record Owed] | a blank or over-long id, or a window of zero or less | [Invalid Request] | none (Operation 7 through 10) |
+| [Record Owed] | a blank or over-long id, a blank or malformed window, or a window of zero or less | [Invalid Request] | none (Operation 7 through 10, Operation 41) |
 | [Discharge] | the record is [Open] or [Flagged], a fulfilment id present | discharged | the record moves to [Discharged], fulfilment id and discharge instant written (Operation 15 through 19) |
-| [Discharge] | the pair names nothing | [Not Known] | none (Operation 12) |
+| [Discharge] | a pair that is not blank and names nothing | [Not Known] | none (Operation 12) |
+| [Discharge], [Flag] | a blank owing pattern or a blank owed id | [Invalid Request] | none (Operation 42, Operation 43) |
 | [Discharge] | the record is [Discharged] | [Already Discharged] | none (Operation 13) |
 | [Flag] | the record is [Open], its due-by instant reached, an actor present | flagged | the record moves to [Flagged], flag instant and actor written (Operation 26 through 29) |
 | [Flag] | the record is [Open] and its due-by instant still ahead | [Not Due] | none (Operation 24) |
 | [Flag] | the record is [Flagged] or [Discharged] | [Already Flagged] or [Already Discharged] | none (Operation 22, Operation 23) |
 | [Record Owed], [Discharge], [Flag] | database refuses the write | [Storage Failure] | none, and the caller's transaction rolls back with it (Operation 11, Operation 20, Operation 30) |
-| [List Owed] | a pattern, open or flagged, an optional continuation key | up to the page size of matching records, in listing-key order | none (Operation 31 through 33) |
-| [List Owed] | a blank pattern, or a status other than open or flagged | [Invalid Request] | none (Operation 34, Operation 35) |
+| [List Owed] | a pattern, open or flagged, an optional continuation key | the matching owed records with the earliest listing keys, up to the page size, in listing-key order; none where none match | none (Operation 31, Operation 32, Operation 39) |
+| [List Owed] | a blank pattern, a status other than open or flagged, or a malformed continuation key | [Invalid Request] | none (Operation 34, Operation 35, Operation 40) |
 
 ### Invariants
 
@@ -220,7 +240,7 @@ The case space, and the rule that owns each case:
 
 Term settlement field: fulfilment id | discharge instant | flag instant | actor reference — what [Discharge] and [Flag] write and nothing else does.
 
-Invariants 1 and 2 give *a fixed obligation*: what was owed, by whom and for what cause reads the same forever, once. Invariant 3 gives *exactly-once fulfilment*. Invariant 4 gives *honest escalation*: no obligation is flagged before it is due. Invariant 5 gives *completeness*: every obligation ever recorded is still there to be matched against its fulfilment or its flag.
+Invariants 1 and 2 give *a fixed obligation*: what was owed, by whom and for what cause reads the same forever, once. Invariant 3 gives *exactly-once fulfilment*. Invariant 4 gives *honest escalation*: no obligation is flagged before it is due. Invariant 5 gives *completeness*: the atom removes no obligation, so each one it recorded stays there to be matched against its fulfilment or its flag, until a composed Retention Window purges it (Non-goal 9).
 
 ---
 
@@ -248,7 +268,7 @@ A second `discharge(..., owed_id: "aud_51c0", fulfilment_id: "evt_9a13")` → al
 
 ### Regulated adversarial scenarios
 
-- **Regulator audit — was every act recorded?** The auditor lists every owed record of Audit Trail and matches each discharged one to its fulfilment id. Every flagged one is an act whose record was late, with the instant it was found and who found it; none can be missing, because the obligation was written with the act (Invariant 5.1, Composition note 1).
+- **Regulator audit — was every act recorded?** The auditor reads every owed record of Audit Trail from the database, lists the open and flagged ones through [List Owed], and matches each discharged one to its fulfilment id (Check 3.1). Every flagged one is an act whose record was late, with the instant it was found and who found it; none can be missing, because the obligation was written with the act (Invariant 5.1, Composition note 1).
 - **A sweep that runs early.** A misconfigured sweep tries to flag obligations the moment they are recorded. Each call answers not-due, and no record is escalated before its time (Invariant 4.1).
 - **Two writers settle one obligation.** A recovering process and an operator discharge the same owed record at once. One lands; the other answers already-discharged, so the record names one fulfilment (Invariant 3.1).
 
@@ -276,7 +296,7 @@ Term committed version: a record as it stood at the commit that wrote it, as Exe
 #### External checks
 
 ```
-External check 1: An auditor MUST read whether a fulfilment id names a real record from the owing pattern's records (Non-goal 1).
+External check 1: An auditor MUST read whether a fulfilment id names a real record from the owing pattern's records (Non-goal 2).
 ```
 
 ## Non-goals
@@ -286,7 +306,7 @@ Non-goal 1: The atom MUST NOT make the owed write.
 Non-goal 2: The atom MUST NOT confirm a fulfilment id names a record.
 Non-goal 3: The atom MUST NOT run a sweep.
 Non-goal 4: A deployment needing a sweep MUST compose Recoverable Invocation.
-Non-goal 5: The atom MUST NOT settle a flagged owed record.
+Non-goal 5: The atom MUST NOT decide what becomes of a flagged owed record.
 Non-goal 6: The atom MUST NOT carry a message body.
 Non-goal 7: A deployment delivering a message MUST compose Notification Fanout.
 Non-goal 8: The atom MUST NOT retain an owed record for a period.
@@ -344,7 +364,7 @@ Term actors: the atom; the host; the deployment; a composing pattern; a caller; 
 
 Term records: owed record — the record that one write is owed, carrying owing pattern, owed id, cause id, recording instant, due-by instant and status and, once settled, fulfilment id and discharge instant, or flag instant and actor reference.
 
-Term record verbs: identify, interpret, stand, carry, offer, remove, supply, override, exceed, record, stamp, answer, accept, read, write, order, change, share, refuse, leave, fall, find, make, confirm, run, settle, retain, attest, compose, compare, trim, normalize, case-fold, call, own.
+Term record verbs: identify, interpret, stand, carry, offer, remove, supply, override, exceed, record, stamp, answer, accept, read, write, order, change, share, refuse, leave, fall, find, make, confirm, run, decide, retain, attest, compose, compare, trim, normalize, case-fold, call, own.
 
 Term value sets: status = open | flagged | discharged. listed status = open | flagged. settlement field = fulfilment id | discharge instant | flag instant | actor reference.
 
@@ -354,7 +374,7 @@ Term cadences: empty.
 
 Term qualifiers: migrated — drafted in GRACE lang v0.69 (2026-11-01) through the Grace connector.
 
-Term terms: owed record, owing pattern, owed id, cause id, fulfilment id, actor reference, seam, status, id cap, pattern name cap, page size, zero, now, due-by window, due-by deadline, recording instant, due-by instant, discharge instant, flag instant, listed status, listing key, continuation key, settlement field, committed version.
+Term terms: owed record, owing pattern, owed id, cause id, fulfilment id, actor reference, seam, status, id cap, pattern name cap, page size, zero, now, due-by window, due-by deadline, recording instant, due-by instant, discharge instant, flag instant, listed status, listing key, continuation key, matching owed record, settlement field, committed version.
 
 #### Record Owed
 
@@ -370,7 +390,7 @@ Kind: Operation
 
 #### Flag
 
-The behavior a sweep invokes on an [Open] owed record that is past due, moving it to [Flagged] and recording [Flag Instant] and [Actor Reference]. A flagged record may still be discharged.
+The behavior a sweep invokes on an [Open] owed record whose [Due-By Instant] has come, moving it to [Flagged] and recording [Flag Instant] and [Actor Reference]. A flagged record may still be discharged.
 
 Kind: Operation
 
@@ -502,7 +522,7 @@ Role:      Outcome
 
 #### Flagged
 
-The status of an owed record found past due by a sweep and left for a person; it may still be discharged.
+The status of an owed record a sweep found due and left for a person; it may still be discharged.
 
 Kind:      Member
 Member of: the owed record status
@@ -563,7 +583,7 @@ Projection: not-due
 
 #### Invalid Request
 
-The refusal an action answers for a blank or over-long input, a [Due-By Window] of zero or less, or a [Listed Status] other than open or flagged. Nothing is written.
+The refusal an action answers for a blank, malformed or over-long input, a [Due-By Window] of zero or less, or a [Listed Status] other than open or flagged. Nothing is written.
 
 Kind:       Member
 Member of:  the action rejection
@@ -622,16 +642,18 @@ Inherited from:
 
 ## Status
 
-`draft` — see the Ledger.
+`partially resolved` — see the Ledger.
 
 ## Ledger
 
 ```
-status: draft
+status: partially resolved
 formal: not applicable — vote no 2026-11-02: the one guard that reads the clock, [Flag]'s not-due refusal, compares now with a due-by instant stamped once and never changed, and the atom claims no commit order of its own; its flagged-only-when-due, discharged-once and one-record-per-obligation claims are single-state properties each action's rules hold, its listing order is a sort over stored fields, and its concurrency is Execution Contract Database 2's
-last gate: none
+last gate: 2026-11-02 — Final Critique 1, frozen at 2aaf35c — foundational count 3, all cured, not clean, no sample
 
-open: none
+open:
+- 2026-11-02-a · refining · List Owed; Operation 35; Check 3.1 · the atom answers no read of a discharged owed record or of one owed record by its owing pattern and owed id, so a discharged record is reached only by an auditor's read of the database, and a single record only through the pagination of its status → decide whether the atom offers a read by id and a listed status of discharged
+- 2026-11-02-b · refining · Operation 8; Term due-by window · a due-by window has no upper bound, so a window past the instant range the due-by deadline can hold (or one that makes the obligation never fall due in practice) has no rule, and Execution Contract Input 2 asks a bounded input for a cap → decide whether the atom caps the window and what a call past the cap answers
 ```
 
 <details markdown="block">
