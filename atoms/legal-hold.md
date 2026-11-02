@@ -96,6 +96,7 @@ Term release field: releasing actor | release reason | release instant — every
 ```
 Capability requirement 1: The deployment MUST supply now at the seam PER Execution Contract Logic confinement 7.
 Capability requirement 4: The deployment MUST supply the hold records PER Execution Contract Database 1 through 4, Execution Contract Refusal 1, Execution Contract Query 1 through 4 and Execution Contract Conformance 9.
+Capability requirement 5: The deployment MAY declare the string cap PER Execution Contract Input 2.
 Deleted: Capability requirement 2. Execution Contract Logic confinement 7 owns it.
 Deleted: Capability requirement 3. Execution Contract Logic confinement 7 owns it.
 Deleted: Clock semantics 1. Execution Contract Logic confinement 7 owns it.
@@ -168,7 +169,7 @@ Deleted: Operation 42. Execution Contract Refusal 1 owns it.
 
 NOTE: watch the blank id (Operation 13).
 
-NOTE: watch host obligations — this atom sets no maximum length on a string input, where [Duplicate Prevention](./duplicate-prevention.md) declares a cap and [Provenance](./provenance.md) obliges the deployment to set one. Three postures, and the *host obligations* docket row carries the count — a watch flag states the pressure, never a census nothing reads.
+Term string cap: the bound on a string input's length in Unicode code points; 1,024 code points where a deployment declares none.
 
 Term query: what a read asks for — a [Query]; any combination of the admitted axes.
 
@@ -183,14 +184,14 @@ The case space, and the rule that owns each case:
 | Call | Case | Answer | Effect on the hold records |
 |---|---|---|---|
 | [Place] | refs and reason present, placement instant not future, database accepts | hold id | one hold lands in [Active] (Operation 1, Operation 2) |
-| [Place] | blank record reference, placing actor, reason, or supplied case reference | [Invalid Request] | none (Operation 4 through 7) |
+| [Place] | blank record reference, placing actor, reason, or supplied case reference, or a string input over the string cap | [Invalid Request] | none (Operation 4 through 7, Execution Contract Input 2) |
 | [Place] | supplied placement instant in the future | [Invalid Request] | none (Operation 8) |
 | [Place] | supplied placement instant in the past | hold id | one hold lands, back-dated as supplied (Operation 10) |
 | [Release] | hold active, attribution present, time in range | released | [Active] → [Released], release fields stamped (Operation 19, State 4) |
 | [Release] | blank hold id | [Invalid Request] | none — the caller passed nothing, not a missing hold (Operation 12) |
 | [Release] | id names nothing | [Not Known] | none (Operation 13) |
 | [Release] | hold already released | [Already Released] | none (Operation 14) |
-| [Release] | blank releasing actor or release reason | [Invalid Request] | none (Operation 15, Operation 16) |
+| [Release] | blank releasing actor or release reason, or a string input over the string cap | [Invalid Request] | none (Operation 15, Operation 16, Execution Contract Input 2) |
 | [Release] | resolved release instant before placement instant, or supplied one in the future | [Invalid Request] | none (Operation 17, Operation 18) |
 | either write | database refuses | [Storage Failure] | none — a release leaves the hold [Active] (Operation 11, Operation 21, Place persistence 4) |
 | [Read] | well-formed query | the matching holds, ordered | none — the call reads (Operation 23, Operation 34) |
@@ -431,13 +432,13 @@ Term record verbs: supply, judge, purge, retry, raise, match, share, hold, reach
 
 Term value sets: hold state = active | released.
 
-Term bounds: empty.
+Term bounds: string cap (the bound on a string input's length in Unicode code points, 1,024 where a deployment declares none).
 
 Term cadences: empty.
 
 Term qualifiers: migrated — rewritten in GRACE lang v0.35 (2026-09-12).
 
-Term terms: database instance, database name, hold, hold id, record reference, seam, transition, business caller, now, hold state, placing actor, hold reason, placement instant, case reference, releasing actor, release reason, release instant, release field, query, resolved release instant, admitted axis, held at an instant.
+Term terms: database instance, database name, hold, hold id, record reference, seam, transition, business caller, now, hold state, placing actor, hold reason, placement instant, case reference, releasing actor, release reason, release instant, release field, query, resolved release instant, admitted axis, held at an instant, string cap.
 
 #### Place
 
@@ -579,7 +580,7 @@ Role:      Outcome
 
 #### Invalid Request
 
-The refusal [Place] or [Release] returns when request fields fail — an empty/whitespace [Record Reference], [Placing Actor], [Reason], [Case Reference], [Releasing Actor], or [Hold Id]; a future [Placement Instant]; or a [Release Instant] that is future or before [Placement Instant].
+The refusal [Place] or [Release] returns when request fields fail — an empty/whitespace [Record Reference], [Placing Actor], [Reason], [Case Reference], [Releasing Actor], or [Hold Id]; a future [Placement Instant]; a [Release Instant] that is future or before [Placement Instant]; or a string input over the string cap (Execution Contract Input 2).
 
 Kind:       Member
 Member of:  the action rejection
@@ -697,6 +698,8 @@ open:
 </summary>
 
 Directional changes only — the turns a future reader must know the pattern took, and why. Everything smaller lives in the commit that made it: `git log -- atoms/legal-hold.md`; the migration that got it here is in [its history](./legal-hold.hist.md).
+
+- **2026-11-02 — The string cap has a default.** *Chose:* the string cap stated as 1,024 Unicode code points where a deployment declares none, Capability requirement 5 added, citing Execution Contract Input 2. *Over:* a bound the deployment must supply, or silence. *Because:* the maintainer ruled on 2026-11-01 that what the host must bound takes one posture, a corpus default a deployment may override; the string inputs run from references to a free-text reason, and 1,024 code points, the corpus's default for text (Personal Todo's description cap), holds a sentence or two.
 
 - **2026-10-24 — [Release]'s refusal order is the Execution Contract's.** *Chose:* the refuses line listing not-known, already-released, invalid-request, then storage-failure, which answers only at the write, and Operation 13 answering not-known only for a hold id that is not blank, so Execution Contract Refusal 1 answers the order the page kept as its own: a blank hold id first, then an unknown hold, a released hold, a blank attribution and the two time guards; Operation 42 deleted to Refusal 1, and Term release refusal order with it. *Over:* Operation 42 kept, which names neither a refusal nor the ground one answers on, so Refusal 1's second sentence reads it as keeping [Release] from no refusal and the line's invalid-request answers ahead of not-known and already-released. *Because:* Final Critique 6 found two builds answering one call differently, one by Operation 42 and one by the refuses line; the maintainer ruled on 2026-10-21 that a page keeps its own order only where a fixed line cannot express it, and with not-known held to a hold id that is not blank, one fixed line expresses this one. What [Release] answers on every call is unchanged.
 

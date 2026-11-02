@@ -98,6 +98,7 @@ Capability requirement 2: The deployment MUST supply the seal records PER Execut
 Capability requirement 3: The deployment MUST declare the deployment's mechanism.
 Capability requirement 4: The deployment MUST supply the cryptographic material at the seam (Execution Contract Logic confinement 8).
 Capability requirement 5: The deployment MUST supply record set match at the seam.
+Capability requirement 6: The deployment MAY declare the string cap PER Execution Contract Input 2.
 ```
 
 Term cryptographic material: what the deployment's mechanism computes at the seam — at [Seal], the proof, computed from the mechanism credential over the record set the record set reference names, with the anchoring instant where the mechanism anchors at seal time, or the mechanism failure reason where the mechanism cannot compute the proof; at [Verify], the seal check.
@@ -160,7 +161,7 @@ Operation 33: [Verify] MUST answer verified ONLY IF seal check EQUALS held.
 
 NOTE: open 2026-10-21-b — Operation 7's *is absent* carries no condition operator, the admitted EQUALS blank takes in the empty credential Operation 8 accepts, and a credential carrying only whitespace has no rule.
 
-NOTE: watch host obligations — this atom sets no maximum length on a string input, where [Duplicate Prevention](./duplicate-prevention.md) declares a cap and [Provenance](./provenance.md) obliges the deployment to set one. Three postures, and the *host obligations* docket row carries the count — a watch flag states the pressure, never a census nothing reads.
+Term string cap: the bound on a string input's length in Unicode code points; 4,096 code points where a deployment declares none.
 
 Term record set match: yes | no — the host's answer, injected at the seam, to whether the presented original record set is the record set the evidence's record set reference names. A different record set answers no; the named record set answers yes even where its content differs, and the content difference is for seal check to decide. The atom cannot judge it: record set reference is opaque and Identity rules forbid interpreting it, so the party that resolved the reference at seal time is the party that answers here (council read 13).
 
@@ -177,7 +178,7 @@ The case space, and the rule that owns each case:
 | Call | Case | Answer | Effect on the seal records |
 |---|---|---|---|
 | [Seal] | credential and reference well-formed, mechanism computes, database accepts | evidence id | one evidence lands in [Sealed] (Operation 1, Operation 2) |
-| [Seal] | blank reference, or absent credential | [Invalid Request] | none (Operation 6, Operation 7) |
+| [Seal] | blank reference, absent credential, or a string input over the string cap | [Invalid Request] | none (Operation 6, Operation 7, Execution Contract Input 2) |
 | [Seal] | mechanism cannot compute the proof | [Mechanism Failure] | none (Operation 9) |
 | [Seal] | database refuses the write | [Storage Failure] | none — the proof is discarded (Operation 10, Operation 11) |
 | [Verify] | no evidence under that id | [Not Known] | none — the call reads (Operation 15, Operation 20) |
@@ -427,13 +428,13 @@ Term record verbs: judge, identify, allocate, supply, reuse, carry, stand, order
 
 Term value sets: record set match = yes | no. seal check = held | failed | unavailable. evidence field = evidence id | record set reference | proof | sealing instant | anchoring instant. evidence state = sealed.
 
-Term bounds: empty.
+Term bounds: string cap (the bound on a string input's length in Unicode code points, 4,096 where a deployment declares none).
 
 Term cadences: empty — a seal cadence is the composing pattern's (Composition note 1).
 
 Term qualifiers: migrated — rewritten in GRACE lang v0.35 (2026-09-11); sound — a mechanism with no known practical collision or forgery attack.
 
-Term terms: now, evidence, evidence id, record set reference, seam, transition, business caller, sealed, proof, sealing instant, anchoring instant, mechanism credential, unkeyed mechanism, evidence field, deletion surface, revocation surface, cryptographic material, record set match, seal check, original record set, verification set, anchor change, contract, mechanism failure reason, verification failure.
+Term terms: now, evidence, evidence id, record set reference, seam, transition, business caller, sealed, proof, sealing instant, anchoring instant, mechanism credential, unkeyed mechanism, evidence field, deletion surface, revocation surface, cryptographic material, record set match, seal check, original record set, verification set, anchor change, contract, mechanism failure reason, verification failure, string cap.
 
 #### Evidence
 
@@ -587,7 +588,7 @@ Projection: mechanism-verification-unavailable
 
 #### Invalid Request
 
-The refusal [Seal] returns when [Record Set Reference] is blank, or [Mechanism Credential] is absent entirely. A guard rejection that fails before any database write; no [Evidence] is recorded.
+The refusal [Seal] returns when [Record Set Reference] is blank, [Mechanism Credential] is absent entirely, or a string input exceeds the string cap (Execution Contract Input 2). A guard rejection that fails before any database write; no [Evidence] is recorded.
 
 Kind:       Member
 Member of:  the Seal rejection
@@ -693,6 +694,8 @@ open:
 </summary>
 
 Directional changes only — the turns a future reader must know the pattern took, and why. Everything smaller lives in the commit that made it: `git log -- atoms/tamper-evidence.md`; the rounds and the migration that got it here are in [its history](./tamper-evidence.hist.md).
+
+- **2026-11-02 — The string cap has a default.** *Chose:* the string cap stated as 4,096 Unicode code points where a deployment declares none, Capability requirement 6 added, citing Execution Contract Input 2. *Over:* a bound the deployment must supply, or silence. *Because:* the maintainer ruled on 2026-11-01 that what the host must bound takes one posture, a corpus default a deployment may override; the string inputs are a record set reference and a mechanism credential, which is keying material, and a PEM-encoded 4096-bit RSA private key runs to about 3,200 code points; the credential sets the cap.
 
 - **2026-10-19 — The store's guarantees cited, not restated.** *Chose:* the seal store supplied under Execution Contract Store 1, Store 3 and Store 4 (Capability requirement 2), and the four rules that restated them tombstoned to their owner — Invariant 9.3, no partial evidence on a storage-failure, and Seal atomicity 1, a seal atomic, to Store 1; Seal atomicity 2, no evidence left by a crash with a proof the mechanism did not produce, to Store 1 and Store 3; Seal atomicity 3, the deployment owning the seal store's durability, to Store 3; rules 106 to 103. *Over:* the atom restating, for its own store, what every deployment's store guarantees. *Because:* the maintainer ruled 2026-10-12 that the corpus takes a store's specification, never the store, and `execution-contract.md` writes it once as the Store contract. Discarding the proof on a storage-failure stays (Operation 11): it binds the proof outside the store as well. What the atom does for its domain is unchanged.
 

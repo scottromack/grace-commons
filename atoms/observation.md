@@ -119,6 +119,7 @@ Deleted: Capability requirement 4. Execution Contract Logic confinement 7 owns i
 Capability requirement 5: The deployment MUST declare the clock offset allowance.
 Capability requirement 6: The deployment MUST supply the observation records PER Execution Contract Database 1 through 4, Execution Contract Database 6, Execution Contract Database 7, Execution Contract Refusal 1 and Execution Contract Query 1 through 4.
 Capability requirement 7: The deployment MUST declare a value constraint per observation type.
+Capability requirement 8: The deployment MAY declare the string cap PER Execution Contract Input 2.
 Deleted: Clock semantics 1. Execution Contract Logic confinement 7 owns it.
 Deleted: Clock semantics 2. Execution Contract Logic confinement 7 owns it.
 Deleted: Clock semantics 3. Execution Contract Logic confinement 7 owns it.
@@ -258,8 +259,8 @@ Term admitted read: a [Read] call whose every filter axis and filter value the g
 | 1 | the observation id names no observation | [Not Known] |
 | 2 | the observation exists, it stands in retracted | [Already Retracted] |
 | 3 | [Amend], the observation stands in amended | [Already Amended] |
-| 4 | the state admits the action, a request field is blank | [Invalid Request] |
-| 5 | [Amend], the request is well-formed, the unit is blank or the value fails the constraint | [Invalid Observation] |
+| 4 | the state admits the action, a request field is blank or over the string cap | [Invalid Request] |
+| 5 | [Amend], the request is well-formed, the unit is blank or over the string cap, or the value fails the constraint | [Invalid Observation] |
 | 6 | every precondition passes, the database refuses the write | [Storage Failure] |
 | 7 | every precondition passes, the database accepts the write | the success answer |
 
@@ -459,7 +460,7 @@ Deleted: String 7. Execution Contract Logic confinement 13 owns it.
 
 Term string input: a reference, observation type, unit, reason OR a filter's value — every caller-supplied string this atom accepts.
 
-NOTE: watch host obligations — this atom sets no maximum length on a string input, where [Duplicate Prevention](./duplicate-prevention.md) declares a cap and [Provenance](./provenance.md) obliges the deployment to set one. Three postures, and the *host obligations* docket row carries the count — a watch flag states the pressure, never a census nothing reads.
+Term string cap: the bound on a string input's length in Unicode code points; 1,024 code points where a deployment declares none.
 
 ---
 
@@ -494,13 +495,13 @@ Term record verbs: identify, allocate, change, carry, stand, answer, record, set
 
 Term value sets: state = recorded | amended | retracted.
 
-Term bounds: clock offset allowance (the margin a deployment declares between a caller's clock and the seam's); value constraint (the bound a deployment declares per observation type).
+Term bounds: clock offset allowance (the margin a deployment declares between a caller's clock and the seam's); value constraint (the bound a deployment declares per observation type); string cap (the bound on a string input's length in Unicode code points, 1,024 where a deployment declares none).
 
 Term cadences: empty.
 
 Term qualifiers: migrated — rewritten in GRACE lang v0.40 (2026-09-13).
 
-Term terms: observation, observation id, subject reference, recording actor, observation type, unit, reference, database instance, seam, transition, now, business caller, states, content field, chain action, content-checking action, writing action, value constraint, clock offset allowance, future bound, resolved recording instant, transition metadata, amendment chain, filter axes, admitted record, admitted amend, admitted retract, admitted read, string input, blank, committed version.
+Term terms: observation, observation id, subject reference, recording actor, observation type, unit, reference, database instance, seam, transition, now, business caller, states, content field, chain action, content-checking action, writing action, value constraint, clock offset allowance, future bound, resolved recording instant, transition metadata, amendment chain, filter axes, admitted record, admitted amend, admitted retract, admitted read, string input, blank, committed version, string cap.
 
 Term successor ids: successor_ids — the ids of the observations that succeed this one.
 
@@ -692,7 +693,7 @@ Role:      Outcome
 
 #### Invalid Observation
 
-The refusal [Record] or [Amend] returns when observation content fails. Either answers it for an empty or whitespace-only [Unit], a [Value] failing the per-type constraint, or an [Observation Type] with no declared constraint; [Record] alone also answers it for an empty or whitespace-only [Subject Reference], [Recording Actor] or [Observation Type], or a [Recording Instant] past the future bound, since [Amend] accepts none of these.
+The refusal [Record] or [Amend] returns when observation content fails. Either answers it for an empty or whitespace-only [Unit], a [Value] failing the per-type constraint, an [Observation Type] with no declared constraint, or a [Unit] or string [Value] over the string cap (Execution Contract Input 2); [Record] alone also answers it for an empty, whitespace-only or over-cap [Subject Reference], [Recording Actor] or [Observation Type], or a [Recording Instant] past the future bound, since [Amend] accepts none of these.
 
 Kind:       Member
 Member of:  the action rejection
@@ -737,7 +738,7 @@ Projection: already-retracted
 
 #### Invalid Request
 
-The refusal [Amend] or [Retract] returns when request metadata fails — an empty or whitespace-only [Amending Actor], [Retracting Actor], or [Reason].
+The refusal [Amend] or [Retract] returns when request metadata fails — an empty or whitespace-only [Amending Actor], [Retracting Actor], or [Reason], or any of them over the string cap (Execution Contract Input 2).
 
 Kind:       Member
 Member of:  the action rejection
@@ -825,6 +826,8 @@ open:
 </summary>
 
 Directional changes only — the turns a future reader must know the pattern took, and why. Everything smaller lives in the commit that made it: `git log -- atoms/clinical-observation.md`; the migration, the rename, the critical section and the no-repair rule that got it here are in [its history](./observation.hist.md).
+
+- **2026-11-02 — The string cap has a default.** *Chose:* the string cap stated as 1,024 Unicode code points where a deployment declares none, Capability requirement 8 added, citing Execution Contract Input 2. *Over:* a bound the deployment must supply, or silence. *Because:* the maintainer ruled on 2026-11-01 that what the host must bound takes one posture, a corpus default a deployment may override; the string inputs run from references and a measurement's type, unit and value to a free-text reason, and 1,024 code points, the corpus's default for text (Personal Todo's description cap), holds a sentence or two.
 
 - **2026-09-13 — The value constraint is the deployment's, and the refusal is the atom's.** *Chose:* `Operation 5` — an observation type carrying no declared value constraint is refused — with `Non-goal 1` and `Non-goal 2` stating the division from both ends. *Over:* accepting an unknown type unchecked, which is what most record stores do. *Because:* what counts as a valid systolic pressure or pain score is clinical and local, so an atom that defined one would be specified against a single care setting, and an atom that accepted a type it could not check would have a per-type integrity guarantee in name only. A deployment adds a measurement by declaring what a valid value for it looks like first. This is the corpus's first bounds entry whose *value* is entirely the deployment's while its *existence* is normative.
 

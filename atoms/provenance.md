@@ -116,7 +116,7 @@ Deleted: State 19. Execution Contract Database 3 owns it.
 ```
 Capability requirement 1: The deployment MUST supply now at the seam.
 Capability requirement 5: The deployment MUST supply the chain records PER Execution Contract Database 1 through 4, Execution Contract Database 7, Execution Contract Read 1 through 4, Execution Contract Refusal 1 and Execution Contract Query 1 through 4.
-Capability requirement 6: The deployment MUST set a maximum length per string input.
+Capability requirement 6: The deployment MAY declare a maximum length per string input PER Execution Contract Input 2.
 Capability requirement 7: The deployment MUST declare which composing patterns the deployment wired in.
 Deleted: Capability requirement 2. Execution Contract Logic confinement 7 owns it.
 Deleted: Capability requirement 3. Execution Contract Logic confinement 7 owns it.
@@ -540,9 +540,7 @@ Term string input: artifact reference, custodian reference, to custodian referen
 Term reference: artifact reference, custodian reference, to custodian reference OR recipient reference — every string input naming a party or an artifact, as Execution Contract Logic confinement 13 canonicalizes each at the seam.
 
 
-Term maximum length: the cap the deployment sets for one string input, each string input carrying its own, measured in Unicode code points.
-
-NOTE: watch host obligations — this atom refuses a string input over the maximum length on every appending action (String 7, String 8, String 9) and obliges the deployment to set the maximum length (Capability requirement 6), where [Duplicate Prevention](./duplicate-prevention.md) declares a cap; Final Critique 11 cured its unit, counted in Unicode code points as [Permissions](./permissions.md) and [Credential](./credential.md) count theirs.
+Term maximum length: the cap on one string input, each string input carrying its own, measured in Unicode code points; 1,024 code points for each where a deployment declares none.
 
 ### Correction by append
 
@@ -586,7 +584,7 @@ Term record verbs: identify, allocate, change, carry, stand, answer, record, app
 
 Term value sets: event type = originated | received | transferred | transformed | disclosed | archived. genesis types = originated | received. chain state = open | archived. filter axes = sequence number | recording instant | event type. custodian-guarded action = [Transform] | [Disclose] | [Archive]. appending action = [Originate] | [Transfer] | [Transform] | [Disclose] | [Archive].
 
-Term bounds: maximum length (the cap the deployment sets for one string input, each string input carrying its own, measured in Unicode code points).
+Term bounds: maximum length (the cap on one string input, each string input carrying its own, measured in Unicode code points, 1,024 for each where a deployment declares none).
 
 Term cadences: empty.
 
@@ -935,6 +933,8 @@ open: none
 </summary>
 
 Directional changes only — the turns a future reader must know the pattern took, and why. Everything smaller lives in the commit that made it: `git log -- atoms/provenance.md`; the rounds and the migration that got it here are in [its history](./provenance.hist.md).
+
+- **2026-11-02 — The maximum length has a default.** *Chose:* the maximum length stated as 1,024 Unicode code points where a deployment declares none for each string input, which a deployment may override for one input alone; String 7 through 9 stand, Capability requirement 6 turned to *declare*, citing Execution Contract Input 2. *Over:* a bound the deployment must supply, or silence. *Because:* the maintainer ruled on 2026-11-01 that what the host must bound takes one posture, a corpus default a deployment may override; the string inputs are references, a transformation descriptor and metadata, and 1,024 code points, the corpus's default for text (Personal Todo's description cap), holds a descriptor of a sentence or two.
 
 - **2026-10-20 — The store's guarantees cited, not restated.** *Chose:* the chain store supplied under Execution Contract Store 1 through 4 (Capability requirement 5), and the twelve rules that restated them, or existed only for a store that could split an append, tombstoned to their owner — Operation 38, an append's entry and counter raise committed in one operation, Invariant 10.2, no partial record left by a storage-failure rejection, and Atomic writes 1 through 3, no reader observing an entry without its counter raise, a transferred entry without its custodian change or an archived entry without the chain's move to archived, to Store 1; Atomic writes 4, an uncommitted crash leaving the chain as the call found it, to Store 1 and Store 3; Atomic writes 5 through 7, the implementation resolving a dangling transition before the store serves a read or accepts an action, to Store 1, under which no append stands partly applied; State 19, next sequence number surviving a restart, to Store 3; Concurrency 1, two calls against one chain serialized, and Concurrency 3, the second serialized transfer reading the custodian the first set, to Store 2; rules 187 to 176. *Over:* the atom restating, for its own store, what every deployment's store guarantees, and keeping a crash-recovery protocol for a split append that no conforming store leaves. *Because:* the maintainer ruled 2026-10-12 that the corpus takes a store's specification, never the store, and `execution-contract.md` writes it once as the Store contract. What stays is the atom's own: a refused action leaving the chain as the call found it, appending no entry and taking no sequence number (Operation 42 through 44), the entry chain governing a cached current custodian that disagrees with a replay (State 18), every serialized transfer appending, since [Transfer] carries no custodian guard (Concurrency 2), the host serializing its own calls for a transfer conditional on the custodian (Concurrency 4), and the append-only chain the atom never edits (State 15 through 17, Invariant 1.1, Invariant 2.1, Invariant 2.2, Invariant 10.1, Correction 1, Correction 2). The sequence number is the chain's own dense order, taken inside the append, and no rule reads an earlier version of a record, so the atom cites neither History 1 nor Order 1. What the atom does for its domain is unchanged.
 

@@ -100,6 +100,7 @@ Capability requirement 1: The deployment MUST supply now at the seam.
 Capability requirement 2: The deployment MUST supply the attestation records PER Execution Contract Database 1, Execution Contract Database 3, Execution Contract Database 4, Execution Contract Database 6, Execution Contract Read 1 through 3, Execution Contract Refusal 1 and Execution Contract Conformance 9.
 Capability requirement 3: The deployment MUST supply the registry answer at the seam.
 Capability requirement 4: The deployment MUST supply the cryptographic material at the seam (Execution Contract Logic confinement 8).
+Capability requirement 5: The deployment MAY declare the string cap PER Execution Contract Input 2.
 ```
 
 Term cryptographic material: what the deployment's credential mechanism computes at the seam — at [Attest], the proof, computed from the credential over the action reference and the actor reference, and the credential check; at [Verify], the proof check.
@@ -161,7 +162,7 @@ Operation 36: IF a revocation status the proof carries names the credential revo
 
 NOTE: watch the unreadable registry (Operation 33).
 
-NOTE: watch host obligations — this atom sets no maximum length on a string input, where [Duplicate Prevention](./duplicate-prevention.md) declares a cap and [Provenance](./provenance.md) obliges the deployment to set one. Three postures, and the *host obligations* docket row carries the count — a watch flag states the pressure, never a census nothing reads.
+Term string cap: the bound on a string input's length in Unicode code points; 4,096 code points where a deployment declares none.
 
 Term registry answer: material | unknown-actor | unreachable — what the actor registry gives [Attest] or a verifier for an actor reference.
 
@@ -178,7 +179,7 @@ The case space, and the rule that owns each case:
 | Call | Case | Answer | Effect on the attestation records |
 |---|---|---|---|
 | [Attest] | action reference, actor reference and credential not blank, registry answers material, credential validates, no revocation status the proof carries names the credential revoked, database accepts | attestation id | one attestation lands in [Attested] (Operation 1, Operation 2) |
-| [Attest] | blank action reference, actor reference or credential | [Invalid Request] | none (Operation 6 through 8) |
+| [Attest] | blank action reference, actor reference or credential, or a string input over the string cap | [Invalid Request] | none (Operation 6 through 8, Execution Contract Input 2) |
 | [Attest] | registry unreachable | [Registry Unavailable] | none (Operation 33) |
 | [Attest] | registry holds no material for the actor | [Invalid Credential] | none (Operation 31) |
 | [Attest] | credential fails against the actor's current material | [Invalid Credential] | none (Operation 9) |
@@ -416,13 +417,13 @@ Term record verbs: identify, allocate, supply, reuse, carry, stand, offer, store
 
 Term value sets: registry answer = material | unknown-actor | unreachable. proof check = held | failed. credential check = held | failed. attestation field = attestation id | action reference | actor reference | proof | attestation instant.
 
-Term bounds: empty.
+Term bounds: string cap (the bound on a string input's length in Unicode code points, 4,096 where a deployment declares none).
 
 Term cadences: empty.
 
 Term qualifiers: migrated — rewritten in GRACE lang v0.35 (2026-09-12); uncompromised — a credential no disclosure names as compromised at or before the instant in question.
 
-Term terms: now, verification set, attestation, attestation id, action reference, action content, actor reference, seam, transition, business caller, attested, proof, attestation instant, credential, public material, current material, attestation field, cryptographic material, registry answer, registry view, credential check, proof check, verification failure.
+Term terms: now, verification set, attestation, attestation id, action reference, action content, actor reference, seam, transition, business caller, attested, proof, attestation instant, credential, public material, current material, attestation field, cryptographic material, registry answer, registry view, credential check, proof check, verification failure, string cap.
 
 #### Attestation
 
@@ -560,7 +561,7 @@ Projection: registry-unavailable
 
 #### Invalid Request
 
-The refusal [Attest] returns when [Action Reference], [Actor Reference], or [Credential] is blank. A guard rejection that fails before any database write; no [Attestation] is recorded.
+The refusal [Attest] returns when [Action Reference], [Actor Reference], or [Credential] is blank, or a string input exceeds the string cap (Execution Contract Input 2). A guard rejection that fails before any database write; no [Attestation] is recorded.
 
 Kind:       Member
 Member of:  the Attest rejection
@@ -661,6 +662,8 @@ open:
 </summary>
 
 Directional changes only — the turns a future reader must know the pattern took, and why. Everything smaller lives in the commit that made it: `git log -- atoms/actor-identity.md`; the rounds and the migration that got it here are in [its history](./actor-identity.hist.md).
+
+- **2026-11-02 — The string cap has a default.** *Chose:* the string cap stated as 4,096 Unicode code points where a deployment declares none, Capability requirement 5 added, citing Execution Contract Input 2. *Over:* a bound the deployment must supply, or silence. *Because:* the maintainer ruled on 2026-11-01 that what the host must bound takes one posture, a corpus default a deployment may override; the string inputs are two opaque references and a credential, which is private key material, and a PEM-encoded 4096-bit RSA private key runs to about 3,200 code points; the credential sets the cap.
 
 - **2026-10-23 — Grounded on Final Critique 10, and State 2 deleted to State 1.** *Chose:* the page grounded on one sample, its foundational count zero on the settle's triage and again on the blind second triage, of fourteen foundational reports (twelve sent down, eight of them onto the page's four flagged open lines; two rejected); State 2, the atom offering no transition out of attested, deleted to State 1, which already holds every attestation in attested, so the page writes *transition* only as Term transition declares it and open line 2026-10-22-a keeps the seam terms alone; Term seam glossing *I/O*, and the [Invalid Request] entry reading *blank*, as Operation 6 through 8 do; open line 2026-10-23-a holding the fifteen declared terms that carry no term entry; rules 94 to 93. *Over:* another round on a text two triages found no foundational defect in, and a State rule restating State 1 in a word the page declares otherwise. *Because:* the section titled *What "grounded" means* in `pressure-testing.md` grounds a page whose final round counts zero foundational findings, with the formal-layer vote cast and every open line refining, and a page grounded on one clean round owes its second round as its first scheduled rescan (*A clean round is a sample*). What each action answers is unchanged.
 

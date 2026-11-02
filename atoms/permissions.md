@@ -90,7 +90,7 @@ Term revocation instant: the instant the grant was withdrawn — a [Revocation I
 ```
 Capability requirement 1: The deployment MUST supply now at the seam.
 Capability requirement 4: The deployment MUST supply the grant records PER Execution Contract Database 1 through 4, Execution Contract Database 6, Execution Contract Read 1 through 4, Execution Contract Refusal 1 and Execution Contract Conformance 9.
-Capability requirement 5: The deployment MUST supply the string cap.
+Capability requirement 5: The deployment MAY declare the string cap PER Execution Contract Input 2.
 Capability requirement 6: The deployment MUST NOT change the string cap for the life of the instance.
 Deleted: Capability requirement 2. Execution Contract Logic confinement 7 owns it.
 Deleted: Capability requirement 3. Execution Contract Logic confinement 7 owns it.
@@ -355,9 +355,7 @@ String 6: IF a string input EXCEEDS the string cap THEN [Grant] MUST answer inva
 String 7: [Check] MUST read an over-length string input as matching nothing.
 ```
 
-Term string cap: the deployment's bound on a string input's length in Unicode code points; a cap of zero refuses every [Grant], which is the degenerate configuration a deployment owns rather than a state the atom admits.
-
-NOTE: watch host obligations — this atom refuses a string input over the cap on [Grant] and reads one as matching nothing on [Check], and obliges the deployment to supply the cap and to hold it unchanged for the life of the instance (String 6, String 7, Capability requirement 5, Capability requirement 6), where [Duplicate Prevention](./duplicate-prevention.md) declares a cap and [Provenance](./provenance.md) obliges the deployment to set one; Final Critique 6 cured the cap's supplier, and Final Critique 7 its unit, counted in Unicode code points as [Credential](./credential.md) declares its length bound, and its constancy.
+Term string cap: the bound on a string input's length in Unicode code points; 256 code points where a deployment declares none; a cap of zero refuses every [Grant], which is the degenerate configuration a deployment owns rather than a state the atom admits.
 
 ### Deprovisioning a subject
 
@@ -417,7 +415,7 @@ Term record verbs: identify, allocate, supply, reuse, hold, reach, compare, trim
 
 Term value sets: status = active | revoked.
 
-Term bounds: string cap (the deployment's bound on a string input's length in Unicode code points).
+Term bounds: string cap (the bound on a string input's length in Unicode code points, 256 where a deployment declares none).
 
 Term cadences: empty.
 
@@ -652,6 +650,8 @@ open:
 </summary>
 
 Directional changes only — the turns a future reader must know the pattern took, and why. Everything smaller lives in the commit that made it: `git log -- atoms/permissions.md`; the rounds and the migration that got it here are in [its history](./permissions.hist.md).
+
+- **2026-11-02 — The string cap has a default.** *Chose:* the string cap stated as 256 Unicode code points where a deployment declares none, and Capability requirement 5 turned from *supply* to *declare*, citing Execution Contract Input 2; String 6, String 7 and Capability requirement 6 stand. *Over:* a cap the deployment must supply before the atom can refuse an over-long string. *Because:* the maintainer ruled on 2026-11-01 that what the host must bound takes one posture, a corpus default a deployment may override; both string inputs, a subject reference and an action scope, are identifiers, and 256 code points holds an email address (254) with room to spare.
 
 - **2026-10-19 — The store's guarantees cited, not restated.** *Chose:* the grant store supplied under Execution Contract Store 1 through 4 (Capability requirement 4), and the seven rules that restated them tombstoned to their owner — Operation 8 and Invariant 10.3, no partial grant, to Store 1; Operation 12, the active-to-revoked move committed as one write, to Store 1 and Store 2; Revoke concurrency 1 and 2, two revokes of one grant never both succeeding and the later answering not-active, and External check 4, the deployment's evidence of that serialization, to Store 2; Operation 14, a refused revoke leaving the grant active, to Store 3; rules 111 to 105. *Over:* the atom restating, for its own store, what every deployment's store guarantees. *Because:* the maintainer ruled 2026-10-12 that the corpus takes a store's specification, never the store, and `execution-contract.md` writes it once as the Store contract. The grant set that never shrinks stays (Invariant 10.2), the atom's own surface that Check 5.1 reads, and so does the caller's reading of a refused revoke (Operation 15, Revoke persistence 1 through 4): it binds the caller, which no Store rule does. What the atom does for its domain is unchanged.
 

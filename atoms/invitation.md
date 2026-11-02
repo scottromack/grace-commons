@@ -111,6 +111,7 @@ Deleted: Capability requirement 7. Execution Contract Database 3 owns it.
 Deleted: Capability requirement 8. Execution Contract Logic confinement 13 owns it.
 Capability requirement 9: The deployment MUST deliver the invitation token to the invitee.
 Capability requirement 12: The deployment MUST supply the invitation records PER Execution Contract Database 1 through 7, Execution Contract Read 4 and Execution Contract Refusal 1.
+Capability requirement 13: The deployment MAY declare the string cap PER Execution Contract Input 2.
 Deleted: Capability requirement 10. Execution Contract Logic confinement 7 owns it.
 Deleted: Capability requirement 11. Execution Contract Logic confinement 7 owns it.
 Deleted: Clock semantics 4. Execution Contract Logic confinement 7 owns it.
@@ -449,7 +450,7 @@ String 6: The atom MUST read an absent string input as blank.
 
 Term string input: a reference, context OR reason — every caller-supplied string this atom accepts.
 
-NOTE: watch host obligations — this atom sets no maximum length on a string input and does not oblige the deployment to set one, which is the *input-handling regime* docket row's silence posture.
+Term string cap: the bound on a string input's length in Unicode code points; 1,024 code points where a deployment declares none.
 
 ---
 
@@ -487,13 +488,13 @@ Term record verbs: identify, assign, generate, change, share, reuse, carry, stan
 
 Term value sets: status = pending | accepted | declined | revoked. effective status = pending | accepted | declined | revoked | expired. stored terminal = accepted | declined | revoked. window reading = live | lapsed. property = inviter reference | invitee reference | context | initiation instant | expiry instant. resolution field = accepting identity reference | acceptance instant | declination instant | revocation instant | revoked by reference | revocation reason.
 
-Term bounds: ttl bounds, default ttl, expiry bound.
+Term bounds: ttl bounds, default ttl, expiry bound, string cap.
 
 Term cadences: empty.
 
 Term qualifiers: migrated — rewritten in GRACE lang v0.40 (2026-09-13).
 
-Term terms: invitation, invitation token, property, reference, database instance, seam, transition, now, resolving write, stored terminal, status, status check, ttl bounds, default ttl, window length, expiry bound, window reading, live, lapsed, effective status, acting reference, admitted initiate, admitted accept, admitted decline, admitted revoke, admitted resolving write, admitted read, filter, resolution field, resolution instant, committed version, string input, blank.
+Term terms: invitation, invitation token, property, reference, database instance, seam, transition, now, resolving write, stored terminal, status, status check, ttl bounds, default ttl, window length, expiry bound, window reading, live, lapsed, effective status, acting reference, admitted initiate, admitted accept, admitted decline, admitted revoke, admitted resolving write, admitted read, filter, resolution field, resolution instant, committed version, string input, blank, string cap.
 
 Term composing pattern: [Party Identity](./party-identity.md), [Credential](./credential.md), [Session](./session.md), [Actor Identity](./actor-identity.md), [Event Log](./event-log.md), [Tamper Evidence](./tamper-evidence.md), [Capability](./capability.md), [Retention Window](./retention-window.md), [External Onboarding](../compositions/external-onboarding.md).
 
@@ -722,7 +723,7 @@ Role:      Outcome
 
 #### Invalid Request
 
-The refusal returned when a required argument is blank, or a supplied [TTL] is malformed or falls outside the ttl bounds, or no default ttl is declared. On a resolving write it is reached only after every status check passes.
+The refusal returned when a required argument is blank, or a supplied [TTL] is malformed or falls outside the ttl bounds, or no default ttl is declared, or a string input exceeds the string cap (Execution Contract Input 2). On a resolving write it is reached only after every status check passes.
 
 Kind:       Member
 Member of:  the action rejection
@@ -844,6 +845,8 @@ open:
 </summary>
 
 Directional changes only — the turns a future reader must know the pattern took, and why. Everything smaller lives in the commit that made it: `git log -- atoms/invitation.md`; the migration that got it here is in [its history](./invitation.hist.md).
+
+- **2026-11-02 — The string cap has a default.** *Chose:* the string cap stated as 1,024 Unicode code points where a deployment declares none, Capability requirement 13 added, citing Execution Contract Input 2. *Over:* a bound the deployment must supply, or silence. *Because:* the maintainer ruled on 2026-11-01 that what the host must bound takes one posture, a corpus default a deployment may override; the string inputs run from references to an invitation context and a revocation reason, and 1,024 code points, the corpus's default for text (Personal Todo's description cap), holds a sentence or two.
 
 - **2026-10-22 — An admitted call is the Execution Contract's.** *Chose:* the four admitted terms (initiate, accept, decline, revoke) citing Execution Contract Read 4 for what an action admits, in place of the commit clause each carried, so the admitted resolving write they make up reads as before; Read 4 cited on Capability requirement 12; the rule count stays at 156. *Over:* the page stating for itself which calls its effect rules reach. *Because:* the maintainer ruled on 2026-10-22 that five repeated cures are each stated once, the admitted effect among them, which seven atoms had written in one form, this page among them. What each action does and answers is unchanged.
 

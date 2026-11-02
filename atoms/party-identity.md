@@ -110,7 +110,7 @@ Deleted: Capability requirement 3. Execution Contract Database 2 owns it.
 Deleted: Capability requirement 4. Execution Contract Database 3 owns it.
 Deleted: Capability requirement 5. Execution Contract Database 1 owns it.
 Deleted: Capability requirement 6. Execution Contract Logic confinement 13 owns it.
-Capability requirement 7: The deployment MUST declare the length bound.
+Capability requirement 7: The deployment MAY declare the length bound PER Execution Contract Input 2.
 Capability requirement 10: The deployment MUST supply the party records PER Execution Contract Database 1 through 4, Execution Contract Database 6, Execution Contract Database 7, Execution Contract Order 1, Execution Contract Read 4, Execution Contract Refusal 1 and Execution Contract Query 1 through 4.
 Capability requirement 11: The deployment MUST supply id material naming no record of the database instance.
 Capability requirement 12: The deployment MUST NOT supply the same id material to two calls.
@@ -119,8 +119,6 @@ Capability requirement 14: The deployment MUST supply id material whose assigned
 Deleted: Capability requirement 8. Execution Contract Logic confinement 7 owns it.
 Deleted: Capability requirement 9. Execution Contract Logic confinement 7 owns it.
 ```
-
-NOTE: watch host obligations (Capability requirement 11 through 14).
 
 ### Operations
 
@@ -482,9 +480,7 @@ Deleted: String 8. String 7 and GRACE-lang Closed vocabulary 29 own it.
 
 Term string input: a required string input, date of birth, verification result OR a filter value — every caller-supplied string this atom accepts.
 
-Term length bound: the maximum length the deployment declares for a string input.
-
-NOTE: watch host obligations — this atom refuses a string input over the length bound on every action whose signature carries invalid-request (String 7, GRACE-lang Closed vocabulary 29), [Read] meeting no length refusal, and obliges the deployment to declare the bound (Capability requirement 7), where [Duplicate Prevention](./duplicate-prevention.md) declares a cap and [Provenance](./provenance.md) obliges the deployment to set one; Final Critique 6 cured the bound's reach.
+Term length bound: the maximum length of a string input in Unicode code points; 1,024 code points where a deployment declares none.
 
 ---
 
@@ -801,7 +797,7 @@ Role:      Outcome
 
 #### Invalid Request
 
-The refusal returned when a required string input is blank, a [Date Of Birth] parses as no calendar date in the date form or names a day that starts after [Now], a [Verification Result] is neither `passed` nor failed, or — on [Enroll] and a party action only — a string input exceeds the deployment's length bound. A blank [Party Id] earns it ahead of [Not Known], which a well-formed one naming no party earns (Operation 12); every other field fault earns it after every state check passes.
+The refusal returned when a required string input is blank, a [Date Of Birth] parses as no calendar date in the date form or names a day that starts after [Now], a [Verification Result] is neither `passed` nor failed, or — on [Enroll] and a party action only — a string input exceeds the length bound. A blank [Party Id] earns it ahead of [Not Known], which a well-formed one naming no party earns (Operation 12); every other field fault earns it after every state check passes.
 
 Kind:       Member
 Member of:  the action rejection
@@ -970,6 +966,8 @@ open:
 </summary>
 
 Directional changes only — the turns a future reader must know the pattern took, and why. Everything smaller lives in the commit that made it: `git log -- atoms/party-identity.md`; the migration that got it here is in [its history](./party-identity.hist.md).
+
+- **2026-11-02 — The length bound has a default.** *Chose:* the length bound stated as 1,024 Unicode code points where a deployment declares none, the unit written as Unicode code points as Permissions, Credential and Provenance count theirs; String 7 and Capability requirement 14 stand, Capability requirement 7 turned to *declare*, citing Execution Contract Input 2. *Over:* a bound the deployment must supply, or silence. *Because:* the maintainer ruled on 2026-11-01 that what the host must bound takes one posture, a corpus default a deployment may override; the string inputs run from a name and references to a free-text reason, and 1,024 code points, the corpus's default for text (Personal Todo's description cap), holds a sentence or two.
 
 - **2026-09-13 — The EOS strip test: no domain tag, no rename, and the coupling is in the attributes rather than the name.** *Chose:* leave the atom untagged and unrenamed, and record where the domain actually touches it. *Over:* a `domain:` tag, or a reframe of the kind [Observation](./observation.md) took. *Because:* the test asks whether stripping the domain leaves a freestanding neutral primitive, and here it does. Every invariant is neutral — records are never removed, a terminal absorbs, events are append-only and immutable, a standing rests on recorded evidence since the last revocation. None of them is derivable only from banking or healthcare; the same shape governs a licence, an accreditation, a calibration status. The *name* is already the stripped form: party is legal and commercial vocabulary rather than one industry's, which is why the atom is not called Customer Identity or Patient Identity. What is domain-flavoured is the enrollment attribute set — name, date of birth, document type, document reference — which is natural-person identity-document vocabulary, and the atom already treats two of the four as opaque strings it never interprets. The honest boundary is that this atom is a neutral standing-and-evidence primitive carrying one concrete attribute schema, and the question of whether that schema should be an opaque attribute bag belongs on the docket rather than in a rename.
 - **2026-09-13 — no-passed-verification-since-suspend stays a purpose-built rejection arm.** *Chose:* the arm the prose already carried. *Over:* folding it into not-suspended or invalid-request, which is what the corpus's closed answer set usually pressures a rare condition into. *Because:* this one is not rare and not adjacent to anything — it is the atom's central guarantee failing, and a caller receiving it knows exactly what to do next, which is to record a check. It is worth naming as the corpus's counter-example: the docket row on answers charged to the nearest arm is about conditions that could not justify the cost of their own name, and this is what paying that cost looks like.

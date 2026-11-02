@@ -122,7 +122,7 @@ Deleted: Capability requirement 10. Execution Contract Database 2 owns it: the p
 Deleted: Capability requirement 11. Execution Contract Database 3 owns it.
 Deleted: Capability requirement 12. Execution Contract Database 1 owns it.
 Capability requirement 13: The deployment MUST canonicalize an opaque reference, rewriting every spelling that differs by a foldable difference to one (Execution Contract Logic confinement 13).
-Capability requirement 14: The deployment MUST declare the length bound in Unicode code points.
+Capability requirement 14: The deployment MAY declare the length bound in Unicode code points PER Execution Contract Input 2.
 Deleted: Capability requirement 15. Execution Contract Logic confinement 7 owns it.
 Deleted: Capability requirement 16. Execution Contract Logic confinement 7 owns it.
 Deleted: Clock semantics 4. Execution Contract Logic confinement 7 owns it.
@@ -161,8 +161,6 @@ Capability requirement 42: The deployment MUST supply id material in the spellin
 ```
 
 NOTE: open 2026-10-21-c — the host runs the derivation function and the check function at the seam and injects each result (Capability requirement 25, Capability requirement 26, Operation 21, Operation 66, Operation 67), and the pipeline in `execution-contract.md` gives that injection no step between the read and the decision.
-
-NOTE: watch host obligations — this atom refuses a string input over the length bound on [Register] and [Revoke] alone (String 7, String 9), obliges the deployment to declare the bound (Capability requirement 14), and obliges it to supply id material whose credential id fits the bound (Capability requirement 39); a blank principal reference or credential type on [Verify] names no pair, which [Verify] answers no-active-credential (Operation 18), and an over-long one answers by the pair it names; an over-long credential id on [Rotate] answers by the credential it names, not-known where it names none (Operation 27).
 
 
 ### Operations
@@ -577,7 +575,7 @@ Deleted: String 10. Term empty material owns it: material is missing only where 
 
 Term string input: a reference, credential type OR reason — every caller-supplied string this atom accepts beside material.
 
-Term length bound: the maximum length the deployment declares for a string input.
+Term length bound: the maximum length of a string input in Unicode code points; 1,024 code points where a deployment declares none.
 
 Term material bound: the maximum size the deployment declares for one credential type's material, in the measure the deployment declares with the bound (Capability requirement 27).
 
@@ -877,7 +875,7 @@ Projection: no-active-credential
 
 #### Invalid Request
 
-The refusal returned when a required string input is blank, the material is absent or carries no character, a [Credential Type] names no derivation function, a supplied [Expiry Instant] is no instant or does not exceed [Now], the derivation function refuses the material, or — on [Register] and [Revoke] only — a string input exceeds the deployment's length bound. On a transitioning write it is listed after not-known and the standing refusals, so it answers only once none of them applies.
+The refusal returned when a required string input is blank, the material is absent or carries no character, a [Credential Type] names no derivation function, a supplied [Expiry Instant] is no instant or does not exceed [Now], the derivation function refuses the material, or — on [Register] and [Revoke] only — a string input exceeds the length bound. On a transitioning write it is listed after not-known and the standing refusals, so it answers only once none of them applies.
 
 Kind:       Member
 Member of:  the action rejection
@@ -1012,6 +1010,8 @@ open:
 </summary>
 
 Directional changes only — the turns a future reader must know the pattern took, and why. Everything smaller lives in the commit that made it: `git log -- atoms/credential.md`; the rounds, the repairs and the critical section that got it here are in [its history](./credential.hist.md).
+
+- **2026-11-02 — The length bound has a default.** *Chose:* the length bound stated as 1,024 Unicode code points where a deployment declares none; String 7, String 9 and Capability requirement 39 stand, Capability requirement 14 turned to *declare*, citing Execution Contract Input 2. *Over:* a bound the deployment must supply, or silence. *Because:* the maintainer ruled on 2026-11-01 that what the host must bound takes one posture, a corpus default a deployment may override; the string inputs run from references and identifiers to a revocation reason, and 1,024 code points, the corpus's default for text (Personal Todo's description cap), holds a sentence or two.
 
 - **2026-09-29 — The two functions a type declares, tied.** *Chose:* a check function that matches the material its type's derivation function derived the verifier from, normalizing as it does (Capability requirement 29, 30), confirmed by an External check on material the auditor supplies. *Over:* two independent declarations, under which an always-no-match check function satisfied every rule. *Because:* Final Critique 9 (a cold reader); the split was this page's own, made when Final Critique 7 separated checking from deriving. The same round scoped Invariant 2.1, 4.1 and 11.1 to the reading they hold at, moved Identity 12 through 15 to the deployment's family, and wrote down what a verified public key does not establish.
 - **2026-09-29 — Authenticated as whom.** *Chose:* the authorized caller — authenticated as the principal the call names, admitted by an enrollment pattern's own proof for a principal holding no credential, or authorized over the principal by a composing Permissions decision — behind every credential write (Composition note 12 through 14), and [Read] exposed only to an authorized caller (Composition note 16). *Over:* *authenticating the caller*, which a caller authenticated as Alice satisfies while rotating Bob's credential, and which a principal's first registration cannot satisfy at all. *Because:* Final Critique 8 (a cold reader), and the binding half of the section titled *Authentication precedence* in `pressure-testing.md`. The same round moved lockout and multi-factor sequencing off Login, which disclaims both, onto the deployment.

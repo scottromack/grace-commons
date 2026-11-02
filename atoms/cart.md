@@ -45,7 +45,7 @@ Identity 8: The atom MUST NOT normalize a currency.
 Identity 9: The atom MUST compare two currencies codepoint for codepoint.
 ```
 
-NOTE: watch host obligations — this atom sets no maximum length on the item reference and does not oblige the deployment to set one, the silence posture the *host obligations* row in `open-questions.md` counts.
+Term string cap: the bound on an item reference's length in Unicode code points; 1,024 code points where a deployment declares none.
 
 Term cart: a set of lines gathered toward one purchase, with the currency their prices are counted in — a [Cart].
 
@@ -91,6 +91,8 @@ Capability requirement 2: The deployment MUST supply at the seam a line id no li
 Capability requirement 3: The deployment MUST supply the accepted currencies.
 Deleted: Capability requirement 4. Execution Contract Logic confinement 9 owns it.
 Capability requirement 5: The deployment MUST supply the database PER Execution Contract Database 1 through 6, Execution Contract Read 1 through 4 and Execution Contract Refusal 1.
+Capability requirement 6: The deployment MAY declare the string cap PER Execution Contract Input 2.
+Capability requirement 7: The deployment MAY declare the line cap PER Execution Contract Input 2.
 ```
 
 Term accepted currencies: the currencies the deployment sells in — the set [Open] checks a currency against.
@@ -104,7 +106,7 @@ open(currency)
 
 add(cart_id, item_reference, quantity, unit_price)
   answers line_id
-  refuses not-known | invalid-item-reference | invalid-quantity | invalid-price | already-in-cart | storage-failure
+  refuses not-known | invalid-item-reference | invalid-quantity | invalid-price | already-in-cart | cart-full | storage-failure
 
 change_quantity(line_id, new_quantity)
   answers ok
@@ -132,6 +134,7 @@ Operation 5: IF the item reference EQUALS blank THEN [Add] MUST answer invalid-i
 Operation 6: IF the quantity IS NOT IN the positive counts THEN [Add] MUST answer invalid-quantity.
 Operation 7: IF the unit price IS NOT IN the whole amounts THEN [Add] MUST answer invalid-price.
 Operation 8: IF a line of the cart EXISTS for the item reference THEN [Add] MUST answer already-in-cart.
+Operation 24: IF the line cap DOES NOT EXCEED the line count THEN [Add] MUST answer cart-full.
 Operation 9: [Add] MUST record EXACTLY ONE line carrying the cart id, the item reference, the quantity and the unit price of the call.
 Operation 10: [Add] MUST answer the line id.
 Operation 11: IF no line EXISTS for the line id THEN a line action MUST answer not-known.
@@ -149,7 +152,9 @@ Operation 22: [Read] MUST answer a line's line id, item reference, quantity AND 
 Operation 23: [Read] MUST NOT write.
 ```
 
-NOTE: watch host obligations — this atom sets no maximum number of lines on a cart and does not oblige the deployment to set one, the silence posture the *host obligations* row in `open-questions.md` counts.
+Term line cap: the most lines a cart holds; 500 lines where a deployment declares none.
+
+Term line count: the number of lines a cart holds.
 
 NOTE: open 2026-10-24-b — whether the read answer carries the cart id: State 1 and Term records give every cart one, while Operation 21 lists the answer without it.
 
@@ -166,10 +171,11 @@ The case space, and the rule that owns each case:
 | [Open] | currency accepted, database accepts | the cart id | one cart lands, carrying the currency and no line (Operation 2) |
 | [Open] | currency not accepted | [Invalid Currency] | none (Operation 1) |
 | [Add] | inputs valid, no line for the item, database accepts | the line id | one line lands, carrying the call's item reference, quantity and unit price (Operation 9) |
-| [Add] | item reference blank | [Invalid Item Reference] | none (Operation 5) |
+| [Add] | item reference blank or over the string cap | [Invalid Item Reference] | none (Operation 5, Execution Contract Input 2) |
 | [Add] | quantity not a positive count | [Invalid Quantity] | none (Operation 6) |
 | [Add] | unit price not a whole amount | [Invalid Price] | none (Operation 7) |
 | [Add] | the cart already carries a line for the item | [Already In Cart] | none (Operation 8) |
+| [Add] | the cart already holds as many lines as the line cap allows | [Cart Full] | none (Operation 24) |
 | [Change Quantity] | new quantity a positive count, different from the line's | ok | the quantity changes; the unit price stands (Operation 13, Invariant 2.1) |
 | [Change Quantity] | new quantity equal to the line's | ok | none — no write (Operation 14) |
 | [Change Quantity] | new quantity not a positive count | [Invalid Quantity] | none (Operation 12) |
@@ -334,17 +340,17 @@ Term actors: the atom; the host; the deployment (also: a deployment); a composin
 
 Term records: cart — a set of lines gathered toward one purchase, carrying cart id and currency; line — one item on a cart, carrying line id, cart id, item reference, quantity and unit price.
 
-Term record verbs: identify, reuse, normalize, compare, carry, remove, supply, compute, record, answer, set, write, take, share, change, name, find, read, price, apply, hold, compose, turn, close, check, convert, expire, merge, order, limit, own, refuse.
+Term record verbs: identify, reuse, normalize, compare, carry, remove, supply, compute, record, answer, set, write, take, share, change, name, find, read, price, apply, hold, compose, turn, close, check, convert, expire, merge, order, limit, own, refuse, declare.
 
 Term value sets: cart action and line action are declared above and cited here (GRACE-lang Closed vocabulary 15).
 
-Term bounds: positive count (one, the floor of a quantity); whole amount (zero, the floor of a unit price).
+Term bounds: positive count (one, the floor of a quantity); whole amount (zero, the floor of a unit price); string cap (the bound on an item reference's length in Unicode code points, 1,024 where a deployment declares none); line cap (the most lines a cart holds, 500 where a deployment declares none).
 
 Term cadences: empty.
 
 Term qualifiers: migrated — rewritten in GRACE lang v0.66 (2026-10-23).
 
-Term terms: cart, line, cart id, line id, item reference, seam, quantity, new quantity, unit price, currency, minor unit, whole amount, positive count, total, accepted currencies, cart action, line action, version.
+Term terms: cart, line, cart id, line id, item reference, seam, quantity, new quantity, unit price, currency, minor unit, whole amount, positive count, total, accepted currencies, cart action, line action, version, string cap, line cap, line count.
 
 #### Open
 
@@ -478,7 +484,7 @@ Projection: not-known
 
 #### Invalid Item Reference
 
-[Add]'s refusal of a blank [Item Reference].
+[Add]'s refusal of a blank [Item Reference], or one over the string cap (Execution Contract Input 2).
 
 Kind:       Member
 Member of:  the action rejection
@@ -511,6 +517,15 @@ Kind:       Member
 Member of:  the action rejection
 Role:       Outcome
 Projection: already-in-cart
+
+#### Cart Full
+
+[Add]'s refusal when the cart already holds as many lines as the line cap allows; the caller removes a line or opens another cart.
+
+Kind:       Member
+Member of:  the action rejection
+Role:       Outcome
+Projection: cart-full
 
 #### Storage Failure
 
@@ -548,6 +563,7 @@ Projection: storage-failure
 [Invalid Quantity]: #invalid-quantity
 [Invalid Price]: #invalid-price
 [Already In Cart]: #already-in-cart
+[Cart Full]: #cart-full
 [Storage Failure]: #storage-failure
 
 ---
@@ -584,6 +600,8 @@ open:
 </summary>
 
 Directional changes only; everything smaller lives in `git log -- atoms/cart.md`.
+
+- **2026-11-02 — The string cap and the line cap have defaults.** *Chose:* the string cap on an item reference stated as 1,024 Unicode code points and the line cap on a cart as 500 lines, each where a deployment declares none, with Capability requirement 6 and Capability requirement 7 citing Execution Contract Input 2; [Add] answers cart-full (Operation 24), listed after already-in-cart so a repeat of an item the cart already carries answers that first. *Over:* silence on both. *Because:* the maintainer ruled on 2026-11-01 that what the host must bound takes one posture, a corpus default a deployment may override; an item reference names an item with its chosen options, a composed string that 1,024 code points, the corpus's default for text (Personal Todo's description cap), holds, and a cart gathers items toward one purchase, so 500 lines is several times the largest ordinary basket and keeps [Read], which answers every line, bounded.
 
 - **2026-10-23 — Drafted in GRACE lang v0.66, the first pattern written against the Database contract from the start.** *Chose:* a Cart atom, the corpus's first e-commerce pattern, on the maintainer's ruling of 2026-10-23, drafting begun 2026-10-23 17:47Z, from which its rounds to ground count; the Database, Read and Refusal families cited once (Capability requirement 5) and restated nowhere; no clock read. *Over:* a cart folded into a checkout or order pattern; a prose draft migrated later. *Because:* the ruling asks what a pattern written from the start against the Database contract and GRACE lang v0.66 costs to ground; the EOS test keeps one freestanding concept, priced lines and their total, and names an owner for pricing, tax, stock, payment, checkout and delivery (Non-goal 1 through 15, Non-goal 17).
 - **2026-10-23 — A line keeps the price taken when it was added, and a cart holds one line per item.** *Chose:* the unit price [Add] takes, which no action changes (Invariant 2.1); one line per item among the lines a cart carries, a second add of the item refused as already-in-cart (Operation 8, Invariant 1.1, Check 2.3); a line named by an opaque line id, never by its item reference (Identity 2, Identity 5), so an item removed and added again is a new line at the new price; a removed line gone from the current records, its versions readable as they stood (Operation 16, Operation 18, Execution Contract Database 5); [Change Quantity] setting a whole new quantity. *Over:* merge-into-existing-line (whose price would the merged units carry?); lines named by their item reference (their history would mix two prices); a removed-line state (a field nothing needs); every version of a removed line erased (what a checkout took would become unreadable); quantity by difference (a repeated call applies it twice). *Because:* the ruling defines a line as an item reference, a quantity and the unit price taken when added; with one line per item and one price per line, the total moves only when a line is added, re-counted or removed, and an auditor reads each line's price from its versions (Execution Contract Database 5); a removed line's versions keep its cart id (Invariant 3.1), so the rule counts only the lines a cart carries.

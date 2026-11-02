@@ -113,6 +113,7 @@ Capability requirement 17: The registry MUST refuse a resource a held commitment
 Capability requirement 20: The registry MUST NOT remove the resource from availability on a refused [Place Hold].
 Capability requirement 12: A deployment firing [Expire] on a cadence MUST resolve EVERY lapsed commitment WITHIN the reclamation window.
 Capability requirement 15: The deployment MUST supply the commitment records PER Execution Contract Database 1 through 7, Execution Contract Read 4, Execution Contract Refusal 1 and Execution Contract Conformance 9.
+Capability requirement 21: The deployment MAY declare the string cap PER Execution Contract Input 2.
 Deleted: Capability requirement 13. Execution Contract Logic confinement 7 owns it.
 Deleted: Capability requirement 14. Execution Contract Logic confinement 7 owns it.
 Deleted: Clock semantics 4. Execution Contract Logic confinement 7 owns it.
@@ -433,7 +434,7 @@ String 6: The atom MUST read an absent string input as blank.
 
 Term string input: resource OR requester — every caller-supplied string this atom accepts.
 
-NOTE: watch host obligations — this atom sets no maximum length on a string input and does not oblige the deployment to set one either, which is a fourth posture beside the three the *input-handling regime* row of `open-questions.md` already counts: a declared cap, a delegated cap, and silence. duration is bounded by declaration (duration bounds) and the strings are bounded by nothing.
+Term string cap: the bound on a string input's length in Unicode code points; 256 code points where a deployment declares none.
 
 ---
 
@@ -471,13 +472,13 @@ Term record verbs: identify, assign, generate, change, share, carry, stand, read
 
 Term value sets: state = held | confirmed | released | expired. terminal state = confirmed | released | expired. terminal instant = confirmation instant | release instant | lapse instant. window reading = open | lapsed. window rejection = window-elapsed | window-not-elapsed. property = resource | requester | placement instant | expiry instant.
 
-Term bounds: duration bounds, window bound, reclamation window.
+Term bounds: duration bounds, window bound, reclamation window, string cap.
 
 Term cadences: empty.
 
 Term qualifiers: migrated — rewritten in GRACE lang v0.40 (2026-09-13).
 
-Term terms: commitment, id, property, reference, registry, database instance, seam, transition, now, hold write, hold write in flight, resolving action, duration bounds, window bound, window reading, open, lapsed, window rejection, terminal state, terminal instant, admitted place hold, admitted confirm, admitted release, admitted expire, admitted resolving action, releasing action, string input, blank, reclamation lag, reclamation window, capacity decision, degenerate window, late resolution, premature expiry, committed version.
+Term terms: commitment, id, property, reference, registry, database instance, seam, transition, now, hold write, hold write in flight, resolving action, duration bounds, window bound, window reading, open, lapsed, window rejection, terminal state, terminal instant, admitted place hold, admitted confirm, admitted release, admitted expire, admitted resolving action, releasing action, string input, blank, reclamation lag, reclamation window, capacity decision, degenerate window, late resolution, premature expiry, committed version, string cap.
 
 Term cited: sequence number: Event Log. The section titled Logic Confinement Principle in `execution-contract.md` — the seam and the transition.
 
@@ -634,7 +635,7 @@ Role:      Outcome
 
 #### Invalid Request
 
-The refusal [Place Hold] returns when [Resource], [Requester] or [Duration] is absent, or [Duration] falls outside the duration bounds. No commitment is recorded.
+The refusal [Place Hold] returns when [Resource], [Requester] or [Duration] is absent, [Duration] falls outside the duration bounds, or a string input exceeds the string cap (Execution Contract Input 2). No commitment is recorded.
 
 Kind:       Member
 Member of:  the Place Hold rejection
@@ -781,6 +782,8 @@ open:
 </summary>
 
 Directional changes only — the turns a future reader must know the pattern took, and why. Everything smaller lives in the commit that made it: `git log -- atoms/provisional-commitment.md`; the rounds and the migration that got it here are in [its history](./provisional-commitment.hist.md).
+
+- **2026-11-02 — The string cap has a default.** *Chose:* the string cap stated as 256 Unicode code points where a deployment declares none, Capability requirement 21 added, citing Execution Contract Input 2. *Over:* a bound the deployment must supply, or silence. *Because:* the maintainer ruled on 2026-11-01 that what the host must bound takes one posture, a corpus default a deployment may override; both string inputs, a resource and a requester, are opaque references, and 256 code points holds an email address (254) with room to spare.
 
 - **2026-09-13 — The resource return is the registry's obligation, not the atom's.** *Chose:* Capability requirement 10 and Capability requirement 11. *Over:* an `Operation` obliging the atom to return the resource, which a draft of this migration carried. *Because:* the atom cannot see availability (Non-goal 11) and External check 1's own WHY says so, which made the rule either false or unfalsifiable — a MUST whose subject cannot evaluate it is decoration. The asymmetry was the tell: the negative half (*an admitted confirm MUST NOT return it*) was specifiable and the positive half was not.
 - **2026-09-13 — Single-resolution is stated as at-most-one, and the at-least-one half is a non-goal.** *Chose:* `Invariant 2.1` and `Invariant 2.2` alone, with `Non-goal 25` naming the limit and `Capability requirement 12` where a deployment may close it. *Over:* a third rule reading *EXACTLY ONE resolving action MUST commit*. *Because:* its marginal content over the other two was liveness, which an atom that licenses lazy expiry cannot deliver — and the model says the same: `INVARIANT Safety` with no temporal property, and `Inv_SingleResolution` checking only that a written resolution matches the state. The spec claimed *exactly*; the model checked *at most*. GRACE's `MUST` has no temporal scope to tell them apart, which is now a docket row.

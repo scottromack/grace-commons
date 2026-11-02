@@ -91,7 +91,7 @@ Term creation instant: the instant the notification was recorded — a [Creation
 ```
 Capability requirement 1: The deployment MUST supply now at the seam.
 Capability requirement 4: The deployment MUST supply the notification records PER Execution Contract Database 1 through 4, Execution Contract Read 1 through 4, Execution Contract Refusal 1 and Execution Contract Conformance 9.
-Capability requirement 5: The deployment MUST supply the string cap.
+Capability requirement 5: The deployment MAY declare the string cap PER Execution Contract Input 2.
 Capability requirement 6: The deployment MUST NOT change the string cap for the life of the instance.
 Deleted: Capability requirement 2. Execution Contract Logic confinement 7 owns it.
 Deleted: Capability requirement 3. Execution Contract Logic confinement 7 owns it.
@@ -358,9 +358,7 @@ String 8: [Pending For] MUST read an over-length recipient reference as matching
 String 9: [Pending For] MUST read a whitespace-only recipient reference as matching nothing.
 ```
 
-Term string cap: the deployment's bound on the recipient reference's length, measured in Unicode code points; a cap of zero refuses every [Create], which is the degenerate configuration a deployment owns rather than a state the atom admits.
-
-NOTE: watch host obligations — this atom caps the recipient reference alone and obliges the deployment to supply the cap and to hold it unchanged for the life of the instance (String 6, String 8, Capability requirement 5, Capability requirement 6), leaving the payload unbounded, where [Duplicate Prevention](./duplicate-prevention.md) declares a cap and [Provenance](./provenance.md) obliges the deployment to set one; Final Critique 5 cured the cap's reach and its supplier, and Final Critique 6 its unit, counted in Unicode code points as [Permissions](./permissions.md) and [Credential](./credential.md) count theirs, and its constancy.
+Term string cap: the bound on the recipient reference's length, measured in Unicode code points; 256 code points where a deployment declares none; a cap of zero refuses every [Create], which is the degenerate configuration a deployment owns rather than a state the atom admits.
 
 ### Atomicity of a terminal transition
 
@@ -435,7 +433,7 @@ Term record verbs: identify, allocate, supply, reuse, carry, compare, trim, norm
 
 Term value sets: status = pending | delivered | failed | expired. terminal stamp = delivery instant | failure instant | lapse instant.
 
-Term bounds: string cap (the deployment's bound on the recipient reference's length, measured in Unicode code points).
+Term bounds: string cap (the bound on the recipient reference's length, measured in Unicode code points, 256 where a deployment declares none).
 
 Term cadences: empty — a delivery window is the composing pattern's (Operation 14b, Composition note 7).
 
@@ -690,6 +688,8 @@ open:
 </summary>
 
 Directional changes only — the turns a future reader must know the pattern took, and why. Everything smaller lives in the commit that made it: `git log -- atoms/notification.md`; the migration that got it here is in [its history](./notification.hist.md).
+
+- **2026-11-02 — The string cap has a default.** *Chose:* the string cap stated as 256 Unicode code points where a deployment declares none, Capability requirement 5 turned to *declare*, citing Execution Contract Input 2. *Over:* a bound the deployment must supply, or silence. *Because:* the maintainer ruled on 2026-11-01 that what the host must bound takes one posture, a corpus default a deployment may override; the one string input the cap bounds is the recipient reference, an opaque reference, and 256 code points holds an email address (254) with room to spare; the payload stays outside the cap, as the page left it, and String 6 and Capability requirement 6 stand.
 
 - **2026-10-20 — The store's guarantees cited, not restated.** *Chose:* the notification store supplied under Execution Contract Store 1 through 4 (Capability requirement 4), and the four rules that restated them tombstoned to their owner — Terminal atomicity 1, a terminal transition changing status and the terminal stamp together, to Store 1; Terminal atomicity 2 and 3, no crash inside a terminal transition leaving a terminal status without its stamp or a stamp on a pending notification, to Store 1 and Store 3; Terminal atomicity 4, two terminal transitions on one notification id serialized, to Store 2; rules 130 to 127. *Over:* the atom restating, for its own store, what every deployment's store guarantees. *Because:* the maintainer ruled 2026-10-12 that the corpus takes a store's specification, never the store, and `execution-contract.md` writes it once as the Store contract. A refused call leaving the notification as the call found it stays the atom's own (Operation 16), as do the caller's reading of a refused deliver (Deliver persistence 1 through 4), the payload kept for the store's life and a composed purge leaving every stored field as written (Payload retention 1 through 5), the recorded fields and a landed stamp that never change (Invariant 1.1, Invariant 1.2) and the atom's durability (State 10, Invariant 9.1 through 9.3). Pending at an instant is read from the creation instant and terminal stamp each notification carries, and [Pending For] answers unordered, so the atom cites neither History 1 nor Order 1. What the atom does for its domain is unchanged.
 

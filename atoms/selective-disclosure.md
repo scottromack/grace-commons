@@ -107,6 +107,7 @@ Capability requirement 1: The deployment MUST supply now at the seam.
 Capability requirement 5: The deployment MUST supply the disclosure records PER Execution Contract Database 1, Execution Contract Database 3, Execution Contract Database 4, Execution Contract Database 6, Execution Contract Database 7, Execution Contract Read 1 through 4, Execution Contract Refusal 1, Execution Contract Query 1 through 4 and Execution Contract Input 1.
 Capability requirement 6: The deployment MUST call [Record] for EVERY transmission of a subject's data to a party beside the subject.
 Capability requirement 7: The deployment MUST declare which composing patterns the deployment wired in.
+Capability requirement 8: The deployment MAY declare the string cap PER Execution Contract Input 2.
 Deleted: Capability requirement 2. Execution Contract Logic confinement 7 owns it.
 Deleted: Capability requirement 3. Execution Contract Logic confinement 7 owns it.
 Deleted: Capability requirement 4. Execution Contract Logic confinement 7 owns it.
@@ -377,7 +378,7 @@ Term string input: subject reference, recipient, scope, authority reference OR a
 
 Term reference: subject reference — the one opaque reference this atom records, as Execution Contract Logic confinement 13 canonicalizes it at the seam; a recipient, a scope, an authority reference and a disclosure id are opaque strings, and no references.
 
-NOTE: watch host obligations — this atom sets no maximum length on a string input, where [Duplicate Prevention](./duplicate-prevention.md) declares a cap and [Provenance](./provenance.md) obliges the deployment to set one. Three postures, and the *host obligations* docket row carries the count — a watch flag states the pressure, never a census nothing reads.
+Term string cap: the bound on a string input's length in Unicode code points; 1,024 code points where a deployment declares none.
 
 ### Correction by append
 
@@ -431,13 +432,13 @@ Term record verbs: identify, allocate, change, carry, stand, answer, record, res
 
 Term value sets: authority type = consent | legal-hold | regulatory.
 
-Term bounds: empty.
+Term bounds: string cap (the bound on a string input's length in Unicode code points, 1,024 where a deployment declares none).
 
 Term cadences: empty.
 
 Term qualifiers: migrated — rewritten in GRACE lang v0.40 (2026-09-12).
 
-Term terms: disclosure record, disclosure id, subject reference, recipient, scope, database instance, seam, receipt instant, now, authority, authority type, authority types, authority reference, disclosure instant, resolved disclosure instant, filter axes, admitted record, admitted read, string input, reference, correction narrative, committed version.
+Term terms: disclosure record, disclosure id, subject reference, recipient, scope, database instance, seam, receipt instant, now, authority, authority type, authority types, authority reference, disclosure instant, resolved disclosure instant, filter axes, admitted record, admitted read, string input, reference, correction narrative, committed version, string cap.
 
 #### Record
 
@@ -517,7 +518,7 @@ Projection: disclosed_at
 
 #### Invalid Request
 
-The rejection [Record] returns when [Subject Reference], [Recipient], [Scope], [Authority], [Authority Type] or [Authority Reference] is missing or whitespace-only, a non-blank supplied [Disclosure Instant] is no instant, or the resolved [Disclosure Instant] is in the future.
+The rejection [Record] returns when [Subject Reference], [Recipient], [Scope], [Authority], [Authority Type] or [Authority Reference] is missing or whitespace-only, a non-blank supplied [Disclosure Instant] is no instant, the resolved [Disclosure Instant] is in the future, or a string input exceeds the string cap (Execution Contract Input 2).
 
 Kind:       Member
 Member of:  the record rejection
@@ -602,6 +603,8 @@ open: none
 </summary>
 
 Directional changes only — the turns a future reader must know the pattern took, and why. Everything smaller lives in the commit that made it: `git log -- atoms/selective-disclosure.md`; the migration and the repairs that got it here are in [its history](./selective-disclosure.hist.md).
+
+- **2026-11-02 — The string cap has a default.** *Chose:* the string cap stated as 1,024 Unicode code points where a deployment declares none, Capability requirement 8 added, citing Execution Contract Input 2. *Over:* a bound the deployment must supply, or silence. *Because:* the maintainer ruled on 2026-11-01 that what the host must bound takes one posture, a corpus default a deployment may override; the string inputs are references, a recipient and a scope the caller declares in words, and 1,024 code points, the corpus's default for text (Personal Todo's description cap), holds a scope of a sentence or two.
 
 - **2026-10-19 — The store's guarantees cited, not restated.** *Chose:* the disclosure store supplied under Execution Contract Store 1, Store 3 and Store 4 (Capability requirement 5), and the three rules that restated them, or stood in for them, tombstoned to their owner — Invariant 6.2, no partial record left by a storage-failure, to Store 1; Invariant 6.3, an answered disclosure id naming a durably persisted record, and External check 4, the recorded answers captured to find an issued disclosure id the store is missing, to Store 3; rules 130 to 128. *Over:* the atom restating, for its own store, what every deployment's store guarantees, and a deployment capturing its record answers against a store that might lose a disclosure. *Because:* the maintainer ruled 2026-10-12 that the corpus takes a store's specification, never the store, and `execution-contract.md` writes it once as the Store contract. The atom's own no-removal rules stay (State 5, State 8, State 9, Invariant 6.1), since Store 4 alone does not keep the atom from removing a record or the count from falling; a refused [Record] still records nothing and leaves the store as the call found the store, guard refusals included (Operation 16, Operation 17). [Record]'s guards read no store state and each record is written once under a fresh host-allocated id, so the atom cites no Store 2; Check 3.1 and Check 3.2 rest on the auditor's own two reads, and [Read] orders by disclosure instant and disclosure id, so the atom cites neither History 1 nor Order 1. What the atom does for its domain is unchanged.
 

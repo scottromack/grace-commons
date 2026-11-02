@@ -99,6 +99,7 @@ Term active at an instant: subscription instant at or before the instant, and ca
 Capability requirement 1: The deployment MUST supply now at the seam.
 Capability requirement 5: The deployment MUST supply the subscription records PER Execution Contract Database 1 through 4, Execution Contract Database 7, Execution Contract Read 1 through 4 and Execution Contract Conformance 9.
 Capability requirement 6: The subscription id's random material MUST NOT fall below the id entropy.
+Capability requirement 7: The deployment MAY declare the string cap PER Execution Contract Input 2.
 Deleted: Capability requirement 2. Execution Contract Logic confinement 7 owns it.
 Deleted: Capability requirement 3. Execution Contract Logic confinement 7 owns it.
 Deleted: Capability requirement 4. Execution Contract Logic confinement 7 owns it.
@@ -156,7 +157,7 @@ Deleted: Operation 27. Execution Contract Logic confinement 3 owns it.
 Deleted: Operation 28. Execution Contract Logic confinement 3 owns it.
 ```
 
-NOTE: watch host obligations — this atom sets no maximum length on the subscriber reference or the event scope and does not oblige the deployment to set one, the silence posture the *host obligations* row in `open-questions.md` counts.
+Term string cap: the bound on a string input's length in Unicode code points; 256 code points where a deployment declares none.
 
 Term pair: one subscriber reference with one event scope — what at-most-one ranges over.
 
@@ -169,7 +170,7 @@ The case space, and the rule that owns each case:
 | Call | Case | Answer | Effect on the database |
 |---|---|---|---|
 | [Subscribe] | refs present, no active subscription for the pair, database accepts | subscription id | one subscription lands in [Active] (Operation 1, Operation 2) |
-| [Subscribe] | blank subscriber reference or event scope | [Invalid Request] | none (Operation 4, Operation 5) |
+| [Subscribe] | blank subscriber reference or event scope, or a string input over the string cap | [Invalid Request] | none (Operation 4, Operation 5, Execution Contract Input 2) |
 | [Subscribe] | the pair already has an active subscription | [Already Subscribed] | none (Operation 6) |
 | [Cancel] | id names an active subscription | ok | [Active] → [Cancelled], cancellation instant stamped (Operation 11, State 5) |
 | [Cancel] | id names a cancelled subscription | [Not Active] | none (Operation 10) |
@@ -373,13 +374,13 @@ Term record verbs: recover, identify, allocate, reuse, draw, carry, stand, stamp
 
 Term value sets: status = active | cancelled.
 
-Term bounds: id entropy (the floor a subscription id's random material is drawn from).
+Term bounds: id entropy (the floor a subscription id's random material is drawn from); string cap (the bound on a string input's length in Unicode code points, 256 where a deployment declares none).
 
 Term cadences: empty.
 
 Term qualifiers: migrated — rewritten in GRACE lang v0.35 (2026-09-12).
 
-Term terms: now, subscription, subscription id, subscriber reference, event scope, seam, transition, id entropy, status, subscription instant, cancellation instant, active set, active at an instant, pair, business caller, committed version.
+Term terms: now, subscription, subscription id, subscriber reference, event scope, seam, transition, id entropy, status, subscription instant, cancellation instant, active set, active at an instant, pair, business caller, committed version, string cap.
 
 #### Subscribe
 
@@ -471,7 +472,7 @@ Role:      Outcome
 
 #### Invalid Request
 
-The rejection [Subscribe] returns when [Subscriber Reference] or [Event Scope] is blank: absent, empty, or carrying only whitespace (Operation 4, Operation 5). (The read queries never return it — a bad query is a correct not-subscribed or empty answer.)
+The rejection [Subscribe] returns when [Subscriber Reference] or [Event Scope] is blank: absent, empty, or carrying only whitespace (Operation 4, Operation 5), or when a string input exceeds the string cap (Execution Contract Input 2). (The read queries never return it — a bad query is a correct not-subscribed or empty answer.)
 
 Kind:       Member
 Member of:  the Subscribe rejection
@@ -572,6 +573,8 @@ open:
 </summary>
 
 Directional changes only — the turns a future reader must know the pattern took, and why. Everything smaller lives in the commit that made it: `git log -- atoms/subscription.md`; the migration that got it here is in [its history](./subscription.hist.md).
+
+- **2026-11-02 — The string cap has a default.** *Chose:* the string cap stated as 256 Unicode code points where a deployment declares none, Capability requirement 7 added, citing Execution Contract Input 2. *Over:* a bound the deployment must supply, or silence. *Because:* the maintainer ruled on 2026-11-01 that what the host must bound takes one posture, a corpus default a deployment may override; both string inputs, a subscriber reference and an event scope, are opaque references, and 256 code points holds an email address (254) with room to spare.
 
 - **2026-10-20 — The store's guarantees cited, not restated.** *Chose:* the subscription store supplied under Execution Contract Store 1 through 4 (Capability requirement 5), and the seven rules that restated them tombstoned to their owner — Cancel atomicity 1, a cancel changing status and cancellation instant together, to Store 1; Cancel atomicity 2 and 3, no crash inside [Cancel] leaving a cancelled status without its cancellation instant or a cancellation instant on an active subscription, to Store 1 and Store 3; Pair race 1, the pair check and the write one transition, to Store 1 and Store 2; Pair race 2, no two active subscriptions for one pair under concurrent calls, and Pair race 3, a store's uniqueness constraint discharging Pair race 1, to Store 2; Operation 15, a refused write leaving the store as the call found the store, to Store 3; rules 99 to 93. *Over:* the atom restating, for its own store, what every deployment's store guarantees. *Because:* the maintainer ruled 2026-10-12 that the corpus takes a store's specification, never the store, and `execution-contract.md` writes it once as the Store contract. At most one active subscription per pair stays the atom's own (Invariant 6.1, Operation 6), as do the atom deleting no subscription (State 7) and the recorded fields that never change (Invariant 1.1). The subscription ids a composing pattern recorded are that pattern's records, not this atom's, so their durability stays the composing pattern's to own (Lost ledger 2, Composition note 3a) and no Store rule the atom cites reaches them. A scope's audience at a past instant is read from the subscription and cancellation instants each subscription carries, and [Subscribers For] answers unordered, so the atom cites neither History 1 nor Order 1. What the atom does for its domain is unchanged.
 

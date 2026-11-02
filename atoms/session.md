@@ -485,14 +485,12 @@ String 2: The atom MUST NOT trim a string input.
 String 3: The atom MUST NOT normalize a string input.
 String 4: The atom MUST NOT case-fold a string input.
 String 5: The atom MUST read a whitespace-only string input as blank.
-String 6: The deployment MUST set a maximum length per string input.
+String 6: The deployment MAY declare a maximum length per string input PER Execution Contract Input 2.
 String 7: IF a string input EXCEEDS the maximum length THEN [Issue] MUST answer invalid-request.
 Deleted: String 8. Execution Contract Logic confinement 13 owns it.
 String 9: IF the session's status EQUALS active AND the revoked by reference the call supplies EXCEEDS the maximum length THEN [Revoke] MUST answer invalid-request.
 String 10: IF the session's status EQUALS active AND reason EXCEEDS the maximum length THEN [Revoke] MUST answer invalid-request.
 ```
-
-NOTE: watch host obligations — this atom refuses a string input over the deployment's maximum length on the writes alone (String 6, String 7, String 9, String 10); an over-long session token answers by the session it names, not-known where it names none (Operation 14, Operation 22), and an over-long filter value answers by the sessions it matches (Term filter).
 
 Term verified answer: the verified outcome [Credential](./credential.md)'s verification produces; cited from that atom, never restated here (Closed vocabulary 15).
 
@@ -544,7 +542,7 @@ Term record verbs: identify, serve, offer, compare, allocate, reuse, change, car
 
 Term value sets: status = active | revoked.
 
-Term bounds: token entropy (the floor a session token's random material is drawn from); default session duration (the window [Issue] applies where the call supplies none); zero duration (the floor a session duration must exceed); maximum length (the deployment's cap per string input).
+Term bounds: token entropy (the floor a session token's random material is drawn from); default session duration (the window [Issue] applies where the call supplies none); zero duration (the floor a session duration must exceed); maximum length (the cap per string input in Unicode code points, 1,024 where a deployment declares none).
 
 Term cadences: empty.
 
@@ -854,6 +852,8 @@ open:
 </summary>
 
 Directional changes only — the turns a future reader must know the pattern took, and why. Everything smaller lives in the commit that made it: `git log -- atoms/session.md`; the migration that got it here is in [its history](./session.hist.md).
+
+- **2026-11-02 — The maximum length has a default.** *Chose:* the maximum length stated as 1,024 Unicode code points where a deployment declares none, the unit written as Unicode code points as Permissions, Credential and Provenance count theirs, and String 6 turned from *set* to *declare*; String 7, String 9 and String 10 stand, citing Execution Contract Input 2. *Over:* a bound the deployment must supply, or silence. *Because:* the maintainer ruled on 2026-11-01 that what the host must bound takes one posture, a corpus default a deployment may override; the string inputs run from principal and issuer references to a revocation reason, and 1,024 code points, the corpus's default for text (Personal Todo's description cap), holds a sentence or two.
 
 - **2026-10-22 — The length refusal's split stays the page's own.** *Chose:* String 7, String 9 and String 10 kept as written, the category reach's flag removed: GRACE-lang Closed vocabulary 29 now reads a rule over several actions as binding each only where its signature carries the outcome, so [Validate] and [Read] would meet no length refusal under one rule over every action, but the split also refuses on [Revoke] only an over-long revoked by reference or reason, and only on a session stored active, as Operation 25 and Operation 26 refuse a blank one, where [Revoke]'s refuses line lists invalid-request first; one rule over every action would refuse an over-long token or an over-long reason on a revoked session with invalid-request ahead of not-known and already-terminal. *Over:* String 7 written again as one rule over every action, the page's form before its sixth Final Critique. *Because:* the maintainer ruled on 2026-10-22 that five repeated cures are each stated once, the category reach among them, and that a page keeps its own rule where its domain differs. What each action does and answers is unchanged.
 

@@ -119,6 +119,7 @@ Deleted: State 14. Execution Contract Database 3 owns it.
 Capability requirement 1: The deployment MUST supply now at the seam.
 Capability requirement 5: The deployment MUST supply the workflow records PER Execution Contract Database 1 through 7, Execution Contract Read 1 through 4, Execution Contract Refusal 1, Execution Contract Query 1 through 4, Execution Contract Input 1 and Execution Contract Conformance 9.
 Capability requirement 6: The deployment MUST declare which composing patterns the deployment wired in.
+Capability requirement 7: The deployment MAY declare the string cap PER Execution Contract Input 2.
 Deleted: Capability requirement 2. Execution Contract Logic confinement 7 owns it.
 Deleted: Capability requirement 3. Execution Contract Logic confinement 7 owns it.
 Deleted: Capability requirement 4. Execution Contract Logic confinement 7 owns it.
@@ -543,7 +544,7 @@ Deleted: String 7. Execution Contract Logic confinement 13 owns it.
 
 Term string input: instance id, action, actor reference, subject reference, a state name, a guard OR a filter's value — every caller-supplied string this atom accepts.
 
-NOTE: watch host obligations — this atom sets no maximum length on a string input, where [Duplicate Prevention](./duplicate-prevention.md) declares a cap and [Provenance](./provenance.md) obliges the deployment to set one. Three postures, and the *host obligations* docket row carries the count — a watch flag states the pressure, never a census nothing reads.
+Term string cap: the bound on a string input's length in Unicode code points; 1,024 code points where a deployment declares none.
 
 ---
 
@@ -579,13 +580,13 @@ Term records: workflow — one running workflow, carrying instance id, a declara
 Term record verbs: identify, allocate, change, carry, stand, answer, record, append, set, take, raise, leave, own, match, normalize, reorder, interpret, confirm, admit, offer, evaluate, assert, fire, replay, reach, rest, share, precede, follow, compare, trim, case-fold, refuse, write, read, find, reconstruct, complete, equal, bound, nest, version, decide, compose, declare, wire, supply, remove, route, name, detect, bind, capture, count.
 
 Term value sets: writing action = [Instantiate] | [Fire]. reading action = [Current] | [History] | [Read Declaration]. guard satisfied = true | false. filter axes = transition id | sequence number | from state | to state | action | actor reference | firing instant.
-Term bounds: empty.
+Term bounds: string cap (the bound on a string input's length in Unicode code points, 1,024 where a deployment declares none).
 
 Term cadences: empty.
 
 Term qualifiers: migrated — rewritten in GRACE lang v0.40 (2026-09-12).
 
-Term terms: workflow, instance id, history entry, transition id, subject reference, instance metadata, database instance, seam, transition, declared transition, declaration, states, initial state, terminal states, well-formed declaration, now, addressed action, writing action, reading action, current state, next sequence number, sequence number, firing instant, instantiation instant, resolved firing instant, resolved instantiation instant, actor reference, guard, guard satisfied, matched transition, cleared fire, firing check, firing fault, filter axes, admitted instantiate, admitted fire, admitted history, committed version, string input.
+Term terms: workflow, instance id, history entry, transition id, subject reference, instance metadata, database instance, seam, transition, declared transition, declaration, states, initial state, terminal states, well-formed declaration, now, addressed action, writing action, reading action, current state, next sequence number, sequence number, firing instant, instantiation instant, resolved firing instant, resolved instantiation instant, actor reference, guard, guard satisfied, matched transition, cleared fire, firing check, firing fault, filter axes, admitted instantiate, admitted fire, admitted history, committed version, string input, string cap.
 
 #### Instantiate
 
@@ -796,7 +797,7 @@ Projection: invalid-declaration
 
 #### Invalid Request
 
-The rejection an action returns for a malformed argument — a null or whitespace-only [Workflow Id] or [Action], a bad [Actor Reference], a supplied instant that is not an instant, a supplied [Guard Satisfied] that is neither true nor false on an unguarded transition, or an [Instantiation Instant] / [Firing Instant] that is in the future or (for [Firing Instant]) before [Instantiation Instant].
+The rejection an action returns for a malformed argument — a null or whitespace-only [Workflow Id] or [Action], a bad [Actor Reference], a string input over the string cap (Execution Contract Input 2), a supplied instant that is not an instant, a supplied [Guard Satisfied] that is neither true nor false on an unguarded transition, or an [Instantiation Instant] / [Firing Instant] that is in the future or (for [Firing Instant]) before [Instantiation Instant].
 
 Kind:       Member
 Member of:  the action rejection
@@ -936,6 +937,8 @@ open:
 </summary>
 
 Directional changes only — the turns a future reader must know the pattern took, and why. Everything smaller lives in the commit that made it: `git log -- atoms/state-machine.md`; the migration and the repair that got it here are in [its history](./state-machine.hist.md).
+
+- **2026-11-02 — The string cap has a default.** *Chose:* the string cap stated as 1,024 Unicode code points where a deployment declares none, Capability requirement 7 added, citing Execution Contract Input 2. *Over:* a bound the deployment must supply, or silence. *Because:* the maintainer ruled on 2026-11-01 that what the host must bound takes one posture, a corpus default a deployment may override; the string inputs are a workflow's subject and actor references and an action name, and 1,024 code points, the corpus's default for text (Personal Todo's description cap), leaves room for any of them; the opaque instance metadata is no string input and stays outside the cap, as the page left it.
 
 - **2026-10-20 — The store's guarantees cited, not restated.** *Chose:* the workflow store supplied under Execution Contract Store 1 through 4 (Capability requirement 5), and the ten rules that restated them, or existed only for a store that could split a fire, tombstoned to their owner — Operation 27, a fire's entry, counter raise and state change committed in one operation, Invariant 10.3, no partial record left by a storage-failure rejection, and Atomic writes 1, 2, 4 and 5, no reader observing a history entry without its next sequence number raise or its current state change, a dangling transition resolved and no read served before it is, to Store 1, under which no fire stands partly applied; Atomic writes 3, an uncommitted crash leaving the workflow as the call found it, to Store 1 and Store 3; State 14, next sequence number surviving a restart, to Store 3; Concurrency 1 and 2, two fires on one workflow serialized and the later reading the current state the earlier left, to Store 2; rules 186 to 177. *Over:* the atom restating, for its own store, what every deployment's store guarantees, and keeping a crash-recovery obligation for a split fire that no conforming store leaves. *Because:* the maintainer ruled 2026-10-12 that the corpus takes a store's specification, never the store, and `execution-contract.md` writes it once as the Store contract. What stays is the atom's own: a refused action leaving the workflow as the call found it, appending no history entry and raising no next sequence number (Operation 35 through 37), and the rules that keep a workflow and its history once they exist (State 6, State 7, State 12, State 13, Invariant 10.1, Invariant 10.2), since Store 4 alone neither keeps the atom from removing a workflow or a history entry nor bars a purge another specification declares. The history's order is the atom's own sequence number, taken inside the fire that appends the entry (Operation 22, Invariant 6.3), and the atom's checks compare an auditor's own reads or replay the entries, so the atom cites neither History 1 nor Order 1. What the atom does for its domain is unchanged.
 

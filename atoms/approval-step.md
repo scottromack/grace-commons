@@ -117,6 +117,7 @@ State 15: The atom MUST NOT record a receipt instant.
 ```
 Capability requirement 1: The deployment MUST supply now at the seam.
 Capability requirement 5: The deployment MUST supply the step records PER Execution Contract Database 1 through 5, Execution Contract Database 7, Execution Contract Read 1 through 4, Execution Contract Refusal 1, Execution Contract Query 1 through 4 and Execution Contract Input 1.
+Capability requirement 6: The deployment MAY declare the string cap PER Execution Contract Input 2.
 Deleted: Capability requirement 2. Execution Contract Logic confinement 7 owns it.
 Deleted: Capability requirement 3. Execution Contract Logic confinement 7 owns it.
 Deleted: Capability requirement 4. Execution Contract Logic confinement 7 owns it.
@@ -177,6 +178,7 @@ Operation 18: IF now PRECEDES the resolved decision instant THEN a resolving act
 Operation 19: IF the resolved decision instant PRECEDES the step's submission instant THEN a resolving action MUST answer invalid-request.
 Deleted: Operation 60. Execution Contract Input 1 owns it, among the attribution checks (Term attribution check).
 Operation 64: IF the resolved decision instant is malformed THEN a resolving action MUST answer invalid-request (Execution Contract Input 1).
+Operation 65: IF the deciding reference EXCEEDS the string cap OR reason EXCEEDS the string cap THEN a resolving action MUST answer invalid-request.
 Operation 20: A resolving action MUST answer invalid-request on an attribution fault ONLY IF the step's state EQUALS pending.
 Operation 21: IF deciding actor DOES NOT EQUAL approver reference THEN a deciding action MUST answer unauthorized.
 Operation 22: IF withdrawing actor DOES NOT EQUAL submitter reference THEN [Withdraw] MUST answer unauthorized.
@@ -252,7 +254,7 @@ Term attribution field: deciding actor, decision reason, decision instant, withd
 
 Term attribution reference: deciding actor on an approved step or a rejected step, and withdrawing actor on a withdrawn step — the actor reference a terminal step carries.
 
-Term attribution check: Operation 15 through 19, Operation 57 and Operation 64 — every check a resolving action makes before the actor guard.
+Term attribution check: Operation 15 through 19, Operation 57, Operation 64 and Operation 65 — every check a resolving action makes before the actor guard.
 
 Term attribution fault: an attribution check the call fails.
 
@@ -280,10 +282,10 @@ Term success token: approved on [Approve], rejected_outcome on [Reject] and with
 
 | # | Condition | a resolving action answers | Owner |
 |---|---|---|---|
-| 1 | step id is blank | [Invalid Request] | Operation 10 |
+| 1 | step id is blank or over the string cap | [Invalid Request] | Operation 10; Execution Contract Input 2 |
 | 2 | step id is not blank, it names no step | [Not Known] | Operation 11 |
 | 3 | the step exists, it stands in a terminal state | [Not Pending] | Operation 13 |
-| 4 | the step stands in pending, an attribution check fails | [Invalid Request] | Operation 20; Operation 15 through 19, Operation 57, Operation 64 |
+| 4 | the step stands in pending, an attribution check fails | [Invalid Request] | Operation 20; Operation 15 through 19, Operation 57, Operation 64, Operation 65 |
 | 5 | every attribution check passes, the deciding reference is not the authorization anchor | [Unauthorized] | Operation 21, Operation 22 |
 | 6 | every precondition passes, the database refuses the write | [Storage Failure] | Operation 34 |
 | 7 | every precondition passes, the database accepts the write | the success token | Operation 32 |
@@ -498,7 +500,7 @@ Deleted: String 7. Execution Contract Logic confinement 13 owns it.
 
 Term string input: a reference, reason OR a filter's value — every caller-supplied string this atom accepts.
 
-NOTE: watch host obligations — this atom sets no maximum length on a string input, where [Duplicate Prevention](./duplicate-prevention.md) declares a cap and [Provenance](./provenance.md) obliges the deployment to set one. Three postures, and the *host obligations* docket row carries the count — a watch flag states the pressure, never a census nothing reads.
+Term string cap: the bound on a string input's length in Unicode code points; 1,024 code points where a deployment declares none.
 
 ---
 
@@ -536,13 +538,13 @@ Term record verbs: identify, allocate, change, carry, stand, answer, record, set
 
 Term value sets: state = pending | approved | rejected | withdrawn.
 
-Term bounds: empty.
+Term bounds: string cap (the bound on a string input's length in Unicode code points, 1,024 where a deployment declares none).
 
 Term cadences: empty.
 
 Term qualifiers: migrated — rewritten in GRACE lang v0.40 (2026-09-12).
 
-Term terms: step, step id, subject reference, approver reference, submitter reference, scope, reference, database instance, seam, transition, now, business caller, states, terminal state, resolving action, deciding action, writing action, deciding reference, resolved decision instant, resolved submission instant, submission field, attribution field, attribution reference, attribution check, attribution fault, filter axes, string axes, query, admitted submit, authorization anchor, admitted resolve, admitted approve, admitted reject, admitted withdraw, admitted read, success token, committed version, string input, blank.
+Term terms: step, step id, subject reference, approver reference, submitter reference, scope, reference, database instance, seam, transition, now, business caller, states, terminal state, resolving action, deciding action, writing action, deciding reference, resolved decision instant, resolved submission instant, submission field, attribution field, attribution reference, attribution check, attribution fault, filter axes, string axes, query, admitted submit, authorization anchor, admitted resolve, admitted approve, admitted reject, admitted withdraw, admitted read, success token, committed version, string input, blank, string cap.
 
 #### Approval Step
 
@@ -738,7 +740,7 @@ Projection: withdrawn
 
 #### Invalid Request
 
-The rejection a write action ([Submit], [Approve], [Reject], [Withdraw]) returns when an input is malformed — a blank required field, the [Step Id] among them, a missing-reason [Reject]/[Withdraw], a blank reason supplied to [Submit] or [Approve], a supplied timestamp that is not an instant, a future or backdated-before-[Submission Instant] timestamp. A guard rejection that writes nothing.
+The rejection a write action ([Submit], [Approve], [Reject], [Withdraw]) returns when an input is malformed — a blank required field, the [Step Id] among them, a missing-reason [Reject]/[Withdraw], a blank reason supplied to [Submit] or [Approve], a string input over the string cap (Execution Contract Input 2), a supplied timestamp that is not an instant, a future or backdated-before-[Submission Instant] timestamp. A guard rejection that writes nothing.
 
 Kind:       Member
 Member of:  the action rejection
@@ -863,6 +865,8 @@ open:
 </summary>
 
 Directional changes only — the turns a future reader must know the pattern took, and why. Everything smaller lives in the commit that made it: `git log -- atoms/approval-step.md`; the migration and the repairs that got it here are in [its history](./approval-step.hist.md).
+
+- **2026-11-02 — The string cap has a default.** *Chose:* the string cap stated as 1,024 Unicode code points where a deployment declares none, Capability requirement 6 added, citing Execution Contract Input 2. *Over:* a bound the deployment must supply, or silence. *Because:* the maintainer ruled on 2026-11-01 that what the host must bound takes one posture, a corpus default a deployment may override; the string inputs run from references to a free-text reason, and 1,024 code points, the corpus's default for text (Personal Todo's description cap), holds a sentence or two; Operation 65 joins the attribution checks, so an over-cap deciding reference or reason is refused only on a pending step, as a blank one is (Operation 20), and a resolved step answers not-pending.
 
 - **2026-10-21 — Which refusal answers is the Execution Contract's.** *Chose:* the resolving actions' refuses line kept as the page wrote it — invalid-request, not-known, not-pending, unauthorized, then storage-failure, which answers only at the write — and the order cited from the Execution Contract (Capability requirement 5, Execution Contract Refusal 1); the rules that only stated it deleted to Refusal 1: Operation 55, which evaluated the resolve refusal order, with Term resolve refusal order, and the pairs Operation 12 (a blank step id ahead of not-known), Operation 14 (not-known ahead of not-pending), Operation 23 (an attribution fault ahead of unauthorized) and Operation 35 (storage-failure behind every precondition); rules 154 to 149. Operation 20 stays the page's own: invalid-request answers a blank step id ahead of not-known and an attribution fault only on a pending step, after not-known and not-pending, so it holds two places in the order and no fixed line can carry both; Refusal 1 reads a refusal Operation 20 keeps from a call as not applying to it. *Over:* the page stating for itself which of a resolving action's refusals answers when several apply. *Because:* the maintainer ruled on 2026-10-21 that the Execution Contract states once that the refusal listed first on an action's refuses line answers; this page's sixth Final Critique had made the cure one specification at a time. What each action answers on every call is unchanged.
 

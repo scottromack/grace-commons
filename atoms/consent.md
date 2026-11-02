@@ -124,6 +124,7 @@ Deleted: Stored state 4. Execution Contract Database 2 owns it.
 ```
 Capability requirement 1: The deployment MUST supply now at the seam.
 Capability requirement 5: The deployment MUST supply the consent records PER Execution Contract Database 1 through 7, Execution Contract Read 1 through 4, Execution Contract Refusal 1, Execution Contract Query 1 through 4 and Execution Contract Input 1.
+Capability requirement 6: The deployment MAY declare the string cap PER Execution Contract Input 2.
 Deleted: Capability requirement 2. Execution Contract Logic confinement 7 owns it.
 Deleted: Capability requirement 3. Execution Contract Logic confinement 7 owns it.
 Deleted: Capability requirement 4. Execution Contract Logic confinement 7 owns it.
@@ -178,6 +179,8 @@ Operation 23: IF a consent record EXISTS for the consent id AND the consent reco
 Operation 24: IF a consent record EXISTS for the consent id AND the consent record is not withdrawn AND the consent record is not elapsed AND now PRECEDES the resolved revocation instant THEN [Revoke] MUST answer invalid-request.
 Operation 25: IF a consent record EXISTS for the consent id AND the consent record is not withdrawn AND the consent record is not elapsed AND the resolved revocation instant PRECEDES grant instant THEN [Revoke] MUST answer invalid-request.
 Operation 67: IF a consent record EXISTS for the consent id AND the consent record is not withdrawn AND the consent record is not elapsed AND a supplied revocation instant is malformed THEN [Revoke] MUST answer invalid-request (Execution Contract Input 1).
+Operation 68: IF a consent record EXISTS for the consent id AND the consent record is not withdrawn AND the consent record is not elapsed AND revoking actor EXCEEDS the string cap THEN [Revoke] MUST answer invalid-request.
+Operation 69: IF a consent record EXISTS for the consent id AND the consent record is not withdrawn AND the consent record is not elapsed AND reason EXCEEDS the string cap THEN [Revoke] MUST answer invalid-request.
 Operation 26: [Revoke] MUST stand the consent record in revoked.
 Operation 27: [Revoke] MUST record revoking actor on the consent record.
 Operation 28: [Revoke] MUST record the reason as the revocation reason.
@@ -272,13 +275,13 @@ The case space, and the rule that owns each case:
 |---|---|---|---|
 | [Grant] | three references present, no expiry instant, database accepts | the new consent id | one record lands in [Granted] (Operation 1, Operation 2) |
 | [Grant] | as above with an expiry instant after [Now] | the new consent id | as above, with [Expiry Instant] recorded (State 4) |
-| [Grant] | a blank reference, or an expiry instant at or before [Now] or malformed | [Invalid Request] | none (Operation 4 through 6, Operation 8, Operation 9, Operation 66) |
+| [Grant] | a blank reference or one over the string cap, or an expiry instant at or before [Now] or malformed | [Invalid Request] | none (Operation 4 through 6, Operation 8, Operation 9, Operation 66, Execution Contract Input 2) |
 | [Revoke] | id names a record in [Granted], attribution present, times ordered | revoked | [Granted] → [Revoked], three fields stamped (Operation 26 through 29) |
-| [Revoke] | blank consent id | [Invalid Request] | none — answered ahead of not-known (Operation 15, Execution Contract Refusal 1) |
+| [Revoke] | blank consent id or one over the string cap | [Invalid Request] | none — answered ahead of not-known (Operation 15, Execution Contract Input 2, Execution Contract Refusal 1) |
 | [Revoke] | id names nothing | [Not Known] | none (Operation 16) |
 | [Revoke] | id names a record in [Revoked] | [Already Revoked] | none (Operation 18) |
 | [Revoke] | id names a record in [Expired] | [Already Expired] | none (Operation 19) |
-| [Revoke] | record in [Granted], blank attribution, or a time out of order or malformed | [Invalid Request] | none (Operation 22 through 25, Operation 67) |
+| [Revoke] | record in [Granted], blank or over-cap attribution, or a time out of order or malformed | [Invalid Request] | none (Operation 22 through 25, Operation 67 through 69) |
 | either write | database refuses | [Storage Failure] | none (Operation 13, Operation 31, Operation 32) |
 | [Check] | the candidate record is withdrawn by [At Time] | revoked | none — the call reads (Operation 41, Operation 36) |
 | [Check] | the candidate record is elapsed by [At Time], never withdrawn | expired | none (Operation 42, Operation 43) |
@@ -498,7 +501,7 @@ Deleted: Concurrency 3. Execution Contract Database 2 owns it.
 Concurrency 4: Two concurrent [Grant] calls carrying one subject reference and one purpose MUST record two consent records.
 ```
 
-NOTE: watch host obligations — this atom sets no maximum length on a string input, where [Duplicate Prevention](./duplicate-prevention.md) declares a cap and [Provenance](./provenance.md) obliges the deployment to set one. Three postures, and the *host obligations* docket row carries the count — a watch flag states the pressure, never a census nothing reads.
+Term string cap: the bound on a string input's length in Unicode code points; 1,024 code points where a deployment declares none.
 
 ## Composition notes
 
@@ -530,13 +533,13 @@ Term record verbs: share, name, accept, carry, identify, allocate, reuse, change
 
 Term value sets: state = granted | revoked | expired. supported filter axes and grant field are declared above and cited here (Closed vocabulary 15).
 
-Term bounds: empty.
+Term bounds: string cap (the bound on a string input's length in Unicode code points, 1,024 where a deployment declares none).
 
 Term cadences: empty.
 
 Term qualifiers: migrated — rewritten in GRACE lang v0.35 (2026-09-12).
 
-Term terms: consent record, database instance, database name, seam, transition, consent id, subject reference, purpose, granting actor, blank, now, business caller, at time, expiry instant, metadata, revoking actor, revocation reason, reason, revocation instant, grant instant, evaluation instant, withdrawn, elapsed, candidate record, later write, query, supported filter axes, reference filter, state filter, state, grant field.
+Term terms: consent record, database instance, database name, seam, transition, consent id, subject reference, purpose, granting actor, blank, now, business caller, at time, expiry instant, metadata, revoking actor, revocation reason, reason, revocation instant, grant instant, evaluation instant, withdrawn, elapsed, candidate record, later write, query, supported filter axes, reference filter, state filter, state, grant field, string cap.
 
 #### Grant
 
@@ -725,7 +728,7 @@ Projection: not-known
 
 #### Invalid Request
 
-The refusal [Grant] or [Revoke] returns when request fields fail — at [Grant], an empty or whitespace-only [Subject Reference], [Purpose] or [Granting Actor], an [Expiry Instant] at or before [Now], or a supplied [Expiry Instant] that is neither blank nor an instant; at [Revoke], an empty or whitespace-only [Consent Id], or, on a record in [Granted], an empty or whitespace-only [Revoking Actor] or [Reason], a [Revocation Instant] after [Now] or before [Grant Instant], or a supplied [Revocation Instant] that is neither blank nor an instant.
+The refusal [Grant] or [Revoke] returns when request fields fail — at [Grant], an empty or whitespace-only [Subject Reference], [Purpose] or [Granting Actor], or one over the string cap (Execution Contract Input 2), an [Expiry Instant] at or before [Now], or a supplied [Expiry Instant] that is neither blank nor an instant; at [Revoke], an empty or whitespace-only [Consent Id], or one over the string cap, or, on a record in [Granted], an empty or whitespace-only [Revoking Actor] or [Reason], or one over the string cap, a [Revocation Instant] after [Now] or before [Grant Instant], or a supplied [Revocation Instant] that is neither blank nor an instant.
 
 Kind:       Member
 Member of:  the action rejection
@@ -844,6 +847,8 @@ open:
 </summary>
 
 Directional changes only — the turns a future reader must know the pattern took, and why. Everything smaller lives in the commit that made it: `git log -- atoms/consent.md`; the migrations that got it here are in [its history](./consent.hist.md).
+
+- **2026-11-02 — The string cap has a default.** *Chose:* the string cap stated as 1,024 Unicode code points where a deployment declares none, Capability requirement 6 added, citing Execution Contract Input 2. *Over:* a bound the deployment must supply, or silence. *Because:* the maintainer ruled on 2026-11-01 that what the host must bound takes one posture, a corpus default a deployment may override; the string inputs run from references to a purpose and a revocation reason, and 1,024 code points, the corpus's default for text (Personal Todo's description cap), holds a sentence or two; the opaque metadata payload is no string input and stays outside the cap, as the page left it; Operation 68 and Operation 69 hold an over-cap revoking actor or reason to a granted record, as Operation 22 and Operation 23 hold a blank one, so a withdrawn or elapsed record answers already-revoked or already-expired as it does for a blank one.
 
 - **2026-10-22 — A composed retention may dispose of what the atom never removes.** *Chose:* Invariant 8.2, the consent record count that never falls, written with no actor, deleted to Invariant 8.1 and Execution Contract Database 6, so the atom removes no consent record and a purge a composing Retention Window declares (Non-goal 19) is answered by that pattern's records, with Check 1.1 citing Invariant 8.1 alone and Database 6 cited on Capability requirement 5; open line 2026-10-06-a, which asked who guarantees persistence beside a composed retention bound, closed as dissolved by the maintainer's 2026-10-22 ruling: Database 6 says the atom's no-removal rule binds the atom's own actions; rules 170 to 169. *Over:* a count that never falls beside a non-goal sending the retention bound to a composing pattern, which read alone forbids that pattern's purge. *Because:* the maintainer ruled on 2026-10-22 that five repeated cures are each stated once, the composed erasure among them; the 06:36Z escalation named this rule among the composed erasure's uncured sites, and Message Preference's ninth Final Critique had made the same cure on its twin. What each action does and answers is unchanged.
 
