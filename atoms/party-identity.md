@@ -16,13 +16,13 @@ toc: true
 
 ## Summary
 
-Party Identity is a lasting, verifiable identity record for an external party — a customer, a patient, a counterparty, a beneficial owner. It answers the question every regulated system settles before doing business: *who is this party, and has their identity been checked?*
+Party Identity is a lasting, verifiable identity record for an external party — a customer, a patient, a counterparty or a beneficial owner (the person who ultimately owns or controls a company). It answers the question every regulated system settles before doing business: *who is this party, and has their identity been checked?*
 
-The record keeps the party's enrollment, the full history of identity checks — each one's method, result and supporting evidence — and every later change, with who did it and why. A party stands in one of four states: unverified, verified, suspended, or closed. Closed is permanent; a party who returns after closure needs a fresh enrollment.
+The record keeps the party's enrollment, the full history of identity checks — each one's method, result and supporting evidence — and every later change, with who made it and why. A party stands in one of four states — unverified, verified, suspended or closed — and closed is permanent, so a party who returns after closure needs a fresh enrollment.
 
-The central guarantee is that a party cannot stand verified without a passing check recorded since the most recent suspension. The atom enforces that itself, so a downstream process can require *a verified party* and trust that the standing rests on recorded evidence rather than a flipped flag.
+The central guarantee is that a party cannot stand verified without a passing check recorded since the most recent suspension, so a downstream process can require *a verified party* and trust that the standing rests on a recorded check rather than a flipped flag.
 
-The atom records the results of identity checks; it does not perform them — no document scan, no biometric match, no sanctions screen — and it does not deduplicate parties. It is distinct from [Actor Identity](./actor-identity.md), and the distinction is the shortest way to say what this atom is: an actor signs, a party is verified — Actor Identity proves who took an action, and this atom keeps the recorded checks a party's verified standing rests on.
+Party Identity records the results of identity checks and does not perform them — no document scan, no biometric match, no sanctions screen — and it does not deduplicate parties; it is distinct from [Actor Identity](./actor-identity.md): an actor signs, a party is verified — Actor Identity proves who took an action, and Party Identity keeps the recorded checks a party's verified standing rests on.
 
 ---
 
@@ -111,11 +111,12 @@ Deleted: Capability requirement 4. Execution Contract Database 3 owns it.
 Deleted: Capability requirement 5. Execution Contract Database 1 owns it.
 Deleted: Capability requirement 6. Execution Contract Logic confinement 13 owns it.
 Capability requirement 7: The deployment MAY declare the length bound PER Execution Contract Input 2.
-Capability requirement 10: The deployment MUST supply the party records PER Execution Contract Database 1 through 4, Execution Contract Database 6, Execution Contract Database 7, Execution Contract Order 1, Execution Contract Read 4, Execution Contract Refusal 1 and Execution Contract Query 1 through 4.
+Capability requirement 10: The deployment MUST supply the party records PER Execution Contract Database 1 through 7, Execution Contract Order 1, Execution Contract Read 4, Execution Contract Refusal 1 and Execution Contract Query 1 through 4.
 Capability requirement 11: The deployment MUST supply id material naming no record of the database instance.
 Capability requirement 12: The deployment MUST NOT supply the same id material to two calls.
 Capability requirement 13: The deployment MUST NOT supply blank id material.
 Capability requirement 14: The deployment MUST supply id material whose assigned party id DOES NOT EXCEED the length bound.
+Capability requirement 15: The deployment MUST supply id material whose verification id DOES NOT EQUAL the state change id.
 Deleted: Capability requirement 8. Execution Contract Logic confinement 7 owns it.
 Deleted: Capability requirement 9. Execution Contract Logic confinement 7 owns it.
 ```
@@ -166,9 +167,9 @@ Operation 12: A party action MUST answer not-known ONLY IF party id DOES NOT EQU
 Operation 13: IF the party's state EQUALS closed THEN a party action MUST answer already-closed.
 Operation 14: IF the party's state EQUALS unverified THEN [Suspend] MUST answer not-verifiable.
 Operation 15: IF the party's state EQUALS suspended THEN [Suspend] MUST answer already-suspended.
-Operation 16: IF the party's state DOES NOT EQUAL suspended THEN [Reinstate] MUST answer not-suspended.
+Operation 16: IF the party's state EQUALS unverified OR the party's state EQUALS verified THEN [Reinstate] MUST answer not-suspended.
 Deleted: Operation 17. Execution Contract Refusal 1 owns it.
-Operation 18: IF no fresh verification EXISTS THEN [Reinstate] MUST answer no-passed-verification-since-suspend.
+Operation 18: IF the party's state EQUALS suspended AND no fresh verification EXISTS THEN [Reinstate] MUST answer no-passed-verification-since-suspend.
 Deleted: Operation 19. Execution Contract Refusal 1 owns it.
 Deleted: Operation 20. Execution Contract Refusal 1 owns it.
 Operation 21: IF the verification result DOES NOT EQUAL passed AND the verification result DOES NOT EQUAL failed THEN [Verify] MUST answer invalid-request.
@@ -178,7 +179,7 @@ Operation 24: An admitted verify MUST record now as the verification event's ver
 Operation 25: IF the party's state EQUALS unverified AND the verification result EQUALS passed THEN an admitted verify MUST stand the party in verified.
 Operation 26: An admitted verify MUST NOT change the party's state outside the unverified-to-verified transition.
 Operation 27: An admitted verify MUST answer the verification id.
-Operation 28: An admitted verify driving a transition MUST answer the state change id.
+Deleted: Operation 28. Operation 37 owns it.
 Operation 29: An admitted verify driving no transition MUST NOT answer a state change id.
 Operation 30: An admitted suspend MUST stand the party in suspended.
 Operation 31: An admitted reinstate MUST stand the party in verified.
@@ -202,7 +203,7 @@ Operation 48: IF a filter axis IS NOT IN the query axes THEN [Read] MUST answer 
 Operation 49: IF a filter value IS NOT IN the axis's admitted values THEN [Read] MUST answer invalid-query.
 Operation 50: [Read] MUST NOT ignore an unreadable filter.
 Operation 51: An admitted read MUST answer EVERY matching party.
-Operation 52: An admitted read MUST answer the state change log and the verification event list PER matching party.
+Operation 52: An admitted read MUST answer the state change log and the verification event list PER matching party, each in insertion order.
 Operation 53: An admitted read MUST answer the matching parties in insertion order.
 Operation 54: An admitted read MUST answer an empty sequence where no party matches.
 Operation 55: [Read] MUST NOT record a field.
@@ -210,9 +211,12 @@ Operation 56: [Read] MUST NOT answer storage-failure.
 Deleted: Operation 57. Execution Contract Logic confinement 3 owns it.
 Deleted: Operation 58. Execution Contract Logic confinement 3 owns it.
 Deleted: Operation 59. Operation 6, Operation 24 and Operation 34 own it.
+Operation 60: [Read] MUST NOT answer invalid-request.
 ```
 
-NOTE: watch the blank id (Operation 12).
+NOTE: watch the blank id (Operation 12, Operation 16, Operation 18).
+
+NOTE: watch read-order polarity (Operation 52).
 
 Term date form: four digits of year, two of month and two of day, joined by hyphens, as `1984-03-02` — the calendar date form of ISO 8601 (the International Organization for Standardization's standard for writing dates and times).
 
@@ -231,8 +235,6 @@ Term state check: Operation 11, Operation 13, Operation 14, Operation 15, Operat
 Term required string input: name, document type, document reference, verification method, evidence reference, reason, an acting reference OR party id — every string an action refuses when blank.
 
 Term fresh verification: a verification event whose verification result EQUALS passed that follows the party's most recent suspend in insertion order, or that follows the enrollment where no suspend EXISTS.
-
-Term custody field: party id | enrollment instant | enrolling actor reference — the fields an erasure scrub leaves, so the chain of custody outlives the personal data.
 
 Term insertion order: the order a database instance appended its records; authoritative for this atom, where a recorded instant is advisory.
 
@@ -360,11 +362,13 @@ Deleted: Check 4.1. Check 5.1 owns it.
 Check 4.2: An auditor MUST find the prior state, the new state, an acting reference and an instant on EVERY state change event (State 5).
 Check 4.3: An auditor MUST find a reason on EVERY state change event a reasoned action appended (State 7).
 Check 4.4: An auditor MUST find no fall in a party's state change log length across two committed versions of the party (Invariant 8.2; Execution Contract Generation acceptance 1).
+Check 4.5: An auditor MUST find no reason on a state change event an admitted verify appended (Operation 36).
 Check 5.1: An auditor MUST replay a party's state change log in insertion order from unverified to the party's state (Invariant 8.1, Ordering 3).
 Check 5.2: An auditor MUST reconstruct EVERY party's enrollment, verification history and state history from one read (State 1, State 2, State 3).
 Deleted: Check 6.1. Execution Contract Database 6 owns it.
 Deleted: Check 6.2. Execution Contract Database 6 owns it.
 Deleted: Check 6.3. Execution Contract Database 6 owns it.
+Check 6.4: An auditor MUST find EVERY enrollment field unchanged across EVERY committed version of the party carrying the enrollment field (Non-goal 3; Execution Contract Generation acceptance 1).
 Check 7.1: An auditor MUST find no party id on two parties (Identity 7).
 Check 7.2: An auditor MUST find no verification id on two verification events (Identity 8).
 Check 7.3: An auditor MUST find no state change id on two state change events (Identity 9).
@@ -380,7 +384,7 @@ Term committed version: a record as it stood at the commit that wrote it, as Exe
 ```
 External check 1: A deployment needing an identity check performed MUST read the composing verification workflow (Non-goal 7).
 External check 2: A deployment needing two parties resolved as one natural person MUST read the composing identity resolution (Identity 16, Non-goal 1).
-External check 3: A deployment needing an enrollment field scrubbed MUST read the composing erasure coordination (Non-goal 3, Non-goal 12).
+Deleted: External check 3. Non-goal 12 and Composition note 8 own it.
 External check 4: A deployment needing an acting reference bound to an actor MUST read the composing Actor Identity attestation (Identity 15, Non-goal 15).
 External check 5: A deployment needing a recorded instant anchored to wall time MUST read the composing trusted timestamping pattern (Ordering 5, Ordering 6).
 External check 6: A deployment needing a document reference resolved MUST read the composing pattern's document records (Identity 13).
@@ -422,7 +426,7 @@ Non-goal 22: The atom MUST NOT model a pending verification.
 Non-goal 23: The atom MUST NOT guarantee that a party reaches verified.
 ```
 
-NOTE: the owners — an identity resolution pattern (Non-goal 1, Non-goal 2); an attribute update pattern (Non-goal 3, Non-goal 4); an erasure coordination pattern (Non-goal 12, External check 3); [Retention Window](./retention-window.md) (Non-goal 13, Non-goal 14); the composing system (Non-goal 21); [Customer Onboarding](../compositions/customer-onboarding.md) (Non-goal 22, Composition note 2).
+NOTE: the owners — an identity resolution pattern (Non-goal 1, Non-goal 2); an attribute update pattern (Non-goal 3, Non-goal 4); [Retention Window](./retention-window.md) (Non-goal 12, Non-goal 13, Non-goal 14); the composing system (Non-goal 21); [Customer Onboarding](../compositions/customer-onboarding.md) (Non-goal 22, Composition note 2).
 
 ---
 
@@ -494,16 +498,14 @@ Composition note 4: A composing Actor Identity MUST attest the actor behind EVER
 Composition note 5: A composing Actor Identity MUST bind an attestation to a state change id.
 Composition note 6: A composing Audit Trail MUST record EVERY verification event and EVERY state change event.
 Composition note 7: A composing Consent MUST name the party id as the data subject reference.
-Composition note 8: A composing Retention Window MUST NOT scrub an enrollment field.
-Composition note 9: A composing erasure coordination pattern MUST record a scrub as an attributed event.
-Composition note 10: A composing erasure coordination pattern MUST NOT scrub a custody field.
+Composition note 8: A composing pattern MUST NOT scrub an enrollment field.
+Deleted: Composition note 9. Composition note 8 owns it.
+Deleted: Composition note 10. Composition note 8 owns it.
 Composition note 11: A composing Event Log MUST append an event on EVERY admitted action.
 Composition note 12: A composing Event Log MUST append an event on EVERY refused action.
 ```
 
 NOTE: open 2026-10-21-j — the enrolling and verifying actor references have no route to attestation: Composition note 4 binds a composing Actor Identity to the transitioning actions alone, and Composition note 5 an attestation to a state change id, which an enroll and a verify driving no transition never answer (External check 4).
-
-NOTE: open 2026-11-01-a — a composing pattern changes the party records only through this atom's declared actions (Execution Contract Atom interface 1), and none of them changes an enrollment field (Operation 46, Non-goal 12), so the scrub External check 3, Composition note 9 and Composition note 10 give a composing erasure coordination pattern has no conforming route.
 
 ---
 
@@ -527,9 +529,9 @@ Term cadences: empty.
 
 Term qualifiers: migrated — rewritten in GRACE lang v0.40 (2026-09-13).
 
-Term terms: party, verify answer, party id, verification event, state change event, assigned id, enrollment field, acting reference, reference, database instance, seam, transition, now, date form, date of birth start, party action, transitioning action, state, state check, required string input, fresh verification, insertion order, length bound, reasoned action, custody field, evidence reference, query axes, admitted enroll, admitted verify, admitted suspend, admitted reinstate, admitted close, admitted read, string input, blank, verification result, committed version.
+Term terms: party, verify answer, party id, verification event, state change event, assigned id, enrollment field, acting reference, reference, database instance, seam, transition, now, date form, date of birth start, party action, transitioning action, state, state check, required string input, fresh verification, insertion order, length bound, reasoned action, evidence reference, query axes, admitted enroll, admitted verify, admitted suspend, admitted reinstate, admitted close, admitted read, string input, blank, verification result, committed version.
 
-Term composing pattern: [Actor Identity](./actor-identity.md), [Consent](./consent.md), [Retention Window](./retention-window.md), [Event Log](./event-log.md), [Audit Trail](../compositions/audit-trail.md), [Customer Onboarding](../compositions/customer-onboarding.md), [External Onboarding](../compositions/external-onboarding.md), an identity resolution pattern, an attribute update pattern, an erasure coordination pattern, a trusted timestamping pattern, a document records pattern.
+Term composing pattern: [Actor Identity](./actor-identity.md), [Consent](./consent.md), [Retention Window](./retention-window.md), [Event Log](./event-log.md), [Audit Trail](../compositions/audit-trail.md), [Customer Onboarding](../compositions/customer-onboarding.md), [External Onboarding](../compositions/external-onboarding.md), an identity resolution pattern, an attribute update pattern, a trusted timestamping pattern, a document records pattern.
 
 #### Enroll
 
@@ -630,7 +632,7 @@ Projection: document_ref
 
 #### Enrollment Instant
 
-The instant the party was enrolled, stamped from [Now]. Immutable, and one of the three fields an erasure scrub must leave.
+The instant the party was enrolled, stamped from [Now]. Immutable.
 
 Kind:       Field
 Field of:   Party
@@ -638,7 +640,7 @@ Projection: enrolled_at
 
 #### Enrolling Actor Reference
 
-The opaque reference naming who enrolled the party. Attribution only — binding it to a verifiable actor is [Actor Identity](./actor-identity.md)'s. One of the three fields an erasure scrub must leave.
+The opaque reference naming who enrolled the party. Attribution only — binding it to a verifiable actor is [Actor Identity](./actor-identity.md)'s.
 
 Kind:       Field
 Field of:   Party
@@ -932,9 +934,9 @@ Projection: storage-failure
 - **BSA/AML — 31 CFR Part 1020 (FinCEN — the Financial Crimes Enforcement Network — Customer Identification Program)** — minimum identity attributes, verification by documentary or non-documentary method, and five-year retention past the relationship's end. The enrollment fields are the attributes; [Verification Method] records which kind was used; retention is [Retention Window](./retention-window.md)'s (Non-goal 13).
 - **FinCEN Beneficial Ownership Rule — 31 CFR section 1010.230** — each beneficial owner is a party record in their own right; the ownership relationship is not.
 - **EU (European Union) 5th Anti-Money Laundering Directive (AMLD5)** — enhanced due diligence and beneficial-ownership registries, aligned with FATF.
-- **GDPR Article 4(1)** — the enrollment fields are personal data, and this atom is the corpus's clearest case of an atom that holds some rather than opaque references alone.
+- **GDPR Article 4(1)** — the enrollment fields are personal data, and this atom holds some rather than opaque references alone.
 - **GDPR Articles 5–6** — lawful basis for processing, typically Article 6(1)(c) or 6(1)(b); processing *beyond* the regulatory obligation is [Consent](./consent.md)'s.
-- **GDPR Article 17 (right to erasure)** — in direct tension with the retention obligations above. This atom does not resolve it: Non-goal 3 forbids the atom to change an enrollment field, and the composing erasure pattern is the authorized scrub (External check 3, Non-goal 12).
+- **GDPR Article 17 (right to erasure)** — in direct tension with the retention obligations above. This atom does not resolve it: no pattern scrubs an enrollment field (Non-goal 3, Non-goal 12, Composition note 8), an erasure lands in the records the document reference and the evidence reference name, and the party record leaves whole through [Retention Window](./retention-window.md)'s purge once its retention allows (Execution Contract Database 4).
 - **HIPAA 45 CFR section 164.514** — patient identity must be established before protected health information records exist; the patient is a party here.
 
 It inherits from:
@@ -953,11 +955,10 @@ It inherits from:
 ```
 status: partially resolved
 formal: verified — party-identity.tla + 1 twin, 2026-06-03
-last gate: 2026-11-01 — Final Critique 8 — foundational count 4, not clean, no sample
+last gate: 2026-11-02 — Final Critique 9 — foundational count 3, not clean, no sample
 
 open:
-- 2026-10-21-j · refining · Composition note 4, 5; External check 4 · the enrolling and verifying actor references have no route to attestation, Composition note 4 binding Actor Identity only to transitioning actions and Composition note 5 an attestation to a state change id, which an enroll and a verify driving no transition never answer → say whether an enrollment and a check are attested, and by whom; re-found by Final Critique 8
-- 2026-11-01-a · foundational · Composition note 9, 10; External check 3; Term custody field; Standards references, GDPR Article 17 · Execution Contract Atom interface 1 lets a composing pattern change the party records only through this atom's declared actions, and none changes an enrollment field (Operation 46, Non-goal 12), so the scrub the page gives a composing erasure coordination pattern has no conforming route → the maintainer's direction: a declared scrub action, no scrub of an enrollment field, or the scrub declared by a pattern that does not compose this atom (Execution Contract Database 4, Execution Contract Database 6)
+- 2026-10-21-j · refining · Composition note 4, 5; External check 4 · the enrolling and verifying actor references have no route to attestation, Composition note 4 binding Actor Identity only to transitioning actions and Composition note 5 an attestation to a state change id, which an enroll and a verify driving no transition never answer → say whether an enrollment and a check are attested, and by whom; re-found by Final Critique 8 and Final Critique 9
 ```
 
 <details markdown="block">
@@ -966,6 +967,8 @@ open:
 </summary>
 
 Directional changes only — the turns a future reader must know the pattern took, and why. Everything smaller lives in the commit that made it: `git log -- atoms/party-identity.md`; the migration that got it here is in [its history](./party-identity.hist.md).
+
+- **2026-11-02 — No pattern scrubs an enrollment field; an erasure lands in the records the references name, and the party record leaves whole.** *Chose:* Composition note 8 widened from a composing Retention Window to every composing pattern, so no pattern scrubs an enrollment field; Composition note 9 and 10 and External check 3, which gave a composing erasure coordination pattern the scrub, tombstoned to it and to Non-goal 12; Term custody field, and the clauses in the Enrollment Instant and Enrolling Actor Reference entries that named it, deleted with it; the GDPR Article 17 line saying where an erasure lands, in the records the document reference and the evidence reference name, and that the party record leaves whole through Retention Window's purge once its retention allows (Execution Contract Database 4). *Over:* a declared scrub action on this atom, which would reverse Non-goal 12 and add a sixth write, and a field-level scrub that a pattern not composing this atom declares under Database 4 and 6. *Because:* the maintainer ruled on 2026-11-01 (rounds/escalations.md, 21:37Z, Party Identity (b)) that no pattern scrubs an enrollment field. Execution Contract Atom interface 1 lets a composing pattern change this atom's records only through its declared actions, and none of them changes an enrollment field (Operation 46, Non-goal 12), so the scrub the page gave a composing pattern had no conforming route, and Final Critique 8 and Final Critique 9 each found it. The corpus's model is that personal data leaves with the whole record, and Capacity Constraint Enforcement follows it at its own next round. What each action does and answers is unchanged.
 
 - **2026-11-02 — The length bound has a default.** *Chose:* the length bound stated as 1,024 Unicode code points where a deployment declares none, the unit written as Unicode code points as Permissions, Credential and Provenance count theirs; String 7 and Capability requirement 14 stand, Capability requirement 7 turned to *declare*, citing Execution Contract Input 2. *Over:* a bound the deployment must supply, or silence. *Because:* the maintainer ruled on 2026-11-01 that what the host must bound takes one posture, a corpus default a deployment may override; the string inputs run from a name and references to a free-text reason, and 1,024 code points, the corpus's default for text (Personal Todo's description cap), holds a sentence or two.
 
