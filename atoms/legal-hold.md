@@ -679,7 +679,7 @@ Projection: invalid-query
 ```
 status: grounded on Final Critique 8 — 2026-10-24
 formal: verified — legal-hold.tla + 2 twins, 2026-06-04
-last gate: 2026-10-24 — Final Critique 8 — foundational count 0, clean, one sample
+last gate: 2026-11-02 — Final Critique 9, a delta round, frozen at d1e9f55 — foundational count 0, clean, no sample; 2026-10-24 — Final Critique 8 — foundational count 0, clean, one sample
 
 open:
 - 2026-10-05-a · refining · State 2; Operation 10 · a hold carries a placement instant a caller may assert and no instant the system stamped at entry, so a composing pattern cannot age or order a hold whose audit record is gone → an entry instant; reported by Defensible Retention's gate
