@@ -23,7 +23,7 @@ toc: true
 
 The freestanding semantic units of Grace Commons — each fully specifiable without naming another atom. Atoms are stored flat (`atoms/<name>.md`); their classification is not a folder but a set of **lenses** over the Intent Graph. Overlays (regulated · security · standards) are read off the composition graph and **report usage, not essence** — a standard shows as *HIPAA via audit-trail*, an uncomposed atom as *composed by: (none yet)*, never a bare boolean. **Domain** is the one intrinsic axis: an optional, EOS-gated tag, default absent. The design and its rationale are in [the taxonomy note](./TAXONOMY.md).
 
-_26 compositions (26 regulated) · 30 atoms · 64 composition→atom edges. Generated from `tools/taxonomy/reverse_index.py`; regenerate with `python3 tools/taxonomy/generate_views.py .`_
+_26 compositions (26 regulated) · 31 atoms · 64 composition→atom edges. Generated from `tools/taxonomy/reverse_index.py`; regenerate with `python3 tools/taxonomy/generate_views.py .`_
 
 ## All atoms
 
@@ -48,6 +48,7 @@ _26 compositions (26 regulated) · 30 atoms · 64 composition→atom edges. Gene
 | [Message Preference](./message-preference.md) | — | yes (1) | — | preference-aware-notification-fanout |
 | [Notification](./notification.md) | — | yes (2) | — | notification-fanout, preference-aware-notification-fanout |
 | [Observation](./observation.md) | — | — | — | *(none yet)* |
+| [Owed Record](./owed-record.md) | — | — | — | *(none yet)* |
 | [Party Identity](./party-identity.md) | — | yes (2) | yes | customer-onboarding, external-onboarding |
 | [Permissions](./permissions.md) | — | yes (9) | yes | actor-suspension, attributed-permissions-admin, execute-gated-workflow, multi-party-approval, privileged-access-provisioning, propagate-consent-revocation-downstream, session-gated-authorization, shared-cart, shared-todo |
 | [Personal Todo](./personal-todo.md) | — | yes (1) | — | shared-todo |
@@ -150,6 +151,7 @@ Atoms no composition yet composes. The overlays say nothing about them — an ho
 - [Gift Card](./gift-card.md)
 - [Medication Order](./medication-order.md)
 - [Observation](./observation.md)
+- [Owed Record](./owed-record.md)
 
 ---
 

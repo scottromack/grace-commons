@@ -121,7 +121,7 @@ Deleted: Composition state 23. Execution Contract Read 3 owns it.
 Composition state 24: IF an unbound disclosure EXISTS for the request THEN the request's state MUST carry Committing.
 Composition state 25: An index write that fails MUST NOT change an action's answer.
 Composition state 26: IF a stall mark EXISTS for the request THEN the request's state MUST carry Committing.
-Composition state 27: The composition MUST classify a stall mark as extraction-pending against Outbox.
+Composition state 27: The composition MUST classify a stall mark as extraction-pending against Owed Record.
 Composition state 28: The composition MUST NOT clear a stall mark.
 ```
 
