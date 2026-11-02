@@ -176,13 +176,17 @@ Operation 40: An admitted record MUST take the disclosure record's recipient fro
 Operation 41: An admitted record MUST take the disclosure record's scope from the call's scope.
 Operation 42: An admitted record MUST take the disclosure record's authority type from the call's authority type.
 Operation 43: An admitted record MUST take the disclosure record's authority reference from the call's authority reference.
+Operation 44: IF a string input EXCEEDS the string cap THEN [Record] MUST answer invalid-request.
+Operation 45: IF a string input EXCEEDS the string cap THEN [Read] MUST answer invalid-query.
 ```
 
 NOTE: watch the required input no rule records (Operation 39, Operation 40, Operation 41, Operation 42, Operation 43).
 
+NOTE: watch the cap's refusal (Operation 44, Operation 45).
+
 Term now: the deployment's clock reading at the call, as Execution Contract Logic confinement 11 declares it.
 
-Term authority: the structured field naming the basis the disclosure was made under — an [Authority]; carries authority type and authority reference and nothing else; a call's authority carrying a further field is still an authority (Execution Contract Input 1), refused for it by no guard, and the further field is not recorded.
+Term authority: the structured field naming the basis the disclosure was made under — an [Authority]; the type carries exactly two sub-fields, authority type and authority reference; a call's authority carrying a further field is still an authority (Execution Contract Input 1), refused for it by no guard, and the further field is not recorded.
 
 Term authority type: consent | legal-hold | regulatory — an [Authority Type], set at record and never changed.
 
@@ -346,9 +350,10 @@ Non-goal 20: The atom MUST NOT decide whether a disclosure to the subject stands
 Non-goal 21: The atom MUST NOT bound disclosure instant from below.
 Non-goal 22: The atom MUST NOT offer a filter axis over an authority reference.
 Non-goal 23: A deployment needing a verifiable time anchor MUST compose a trusted timestamping pattern.
+Non-goal 24: A deployment needing a backdated disclosure instant detected MUST compose Event Log.
 ```
 
-NOTE: the owners — the calling system (Non-goal 4, Non-goal 5, Non-goal 6); [Consent](./consent.md) and [Legal Hold](./legal-hold.md) (Non-goal 7, Non-goal 8, Non-goal 9); [Permissions](./permissions.md) (Non-goal 10, Non-goal 11); [Actor Identity](./actor-identity.md) (Non-goal 12, Non-goal 13); [Duplicate Prevention](./duplicate-prevention.md) (Non-goal 14, Non-goal 15); [Tamper Evidence](./tamper-evidence.md) (Non-goal 16, Non-goal 17); [Retention Window](./retention-window.md) (Non-goal 18, Non-goal 19); the compliance team, and [Resolve a Person's Data Rights](../compositions/resolve-a-persons-data-rights.md) for an access request (Non-goal 20); [Event Log](./event-log.md) (Non-goal 21, External check 3); Trusted Timestamping *(forthcoming)* (Non-goal 23).
+NOTE: the owners — the calling system (Non-goal 4, Non-goal 5, Non-goal 6); [Consent](./consent.md) and [Legal Hold](./legal-hold.md) (Non-goal 7, Non-goal 8, Non-goal 9); [Permissions](./permissions.md) (Non-goal 10, Non-goal 11); [Actor Identity](./actor-identity.md) (Non-goal 12, Non-goal 13); [Duplicate Prevention](./duplicate-prevention.md) (Non-goal 14, Non-goal 15); [Tamper Evidence](./tamper-evidence.md) (Non-goal 16, Non-goal 17); [Retention Window](./retention-window.md) (Non-goal 18, Non-goal 19); the compliance team, and [Resolve a Person's Data Rights](../compositions/resolve-a-persons-data-rights.md) for an access request (Non-goal 20); [Event Log](./event-log.md) (Non-goal 21, Non-goal 24, External check 3); Trusted Timestamping *(forthcoming)* (Non-goal 23).
 
 ---
 
@@ -374,7 +379,7 @@ String 6: The atom MUST read an absent string input as blank.
 Deleted: String 7. Execution Contract Logic confinement 13 owns it.
 ```
 
-Term string input: subject reference, recipient, scope, authority reference OR a filter's value on an axis other than disclosure instant — every caller-supplied string this atom accepts.
+Term string input: subject reference, recipient, scope, authority reference OR a filter's key OR a filter's value on an axis other than disclosure instant — every caller-supplied string this atom accepts.
 
 Term reference: subject reference — the one opaque reference this atom records, as Execution Contract Logic confinement 13 canonicalizes it at the seam; a recipient, a scope, an authority reference and a disclosure id are opaque strings, and no references.
 
@@ -448,7 +453,7 @@ Kind: Operation
 
 #### Read
 
-The read-only query returning the matching disclosure records in [Disclosure Instant] then [Disclosure Id] ascending order, filtered by any of [Disclosure Id], [Subject Reference], [Recipient], [Authority Type], or a [Disclosure Instant] range, which holds both its ends, so a range whose after and before are one instant matches the records at that instant (Execution Contract Query 2). Never writes; an empty result is not a rejection. Rejected [Invalid Query] for a malformed filter.
+The read-only query returning the matching disclosure records in [Disclosure Instant] then [Disclosure Id] ascending order, filtered by filters on [Disclosure Id], [Subject Reference], [Recipient], [Authority Type], or a [Disclosure Instant] range, which holds both its ends, so a range whose after and before are one instant matches the records at that instant (Execution Contract Query 2). Never writes; an empty result is not a rejection. Rejected [Invalid Query] for a malformed filter.
 
 Kind: Operation
 
@@ -545,7 +550,7 @@ Projection: storage-failure
 
 #### Invalid Query
 
-The rejection [Read] returns when a filter value is malformed — a null or whitespace [Disclosure Id], [Subject Reference], or [Recipient]; an [Authority Type] outside the three values; a reversed [Disclosure Instant] range, one missing its after or its before, or a single [Disclosure Instant] where the axis takes a range (Execution Contract Query 1); or an unrecognized filter key.
+The rejection [Read] returns when a filter value is malformed — a null or whitespace [Disclosure Id], [Subject Reference], or [Recipient]; an [Authority Type] outside the three values; a reversed [Disclosure Instant] range, one missing its after or its before, or a single [Disclosure Instant] where the axis takes a range (Execution Contract Query 1); a filter value exceeding the string cap (Execution Contract Input 2); or an unrecognized filter key.
 
 Kind:       Member
 Member of:  the read rejection
@@ -585,14 +590,14 @@ Projection: invalid-query
 
 ## Status
 
-`grounded on Final Critique 12 — 2026-10-31` — see the Ledger.
+`partially resolved` — see the Ledger.
 
 ## Ledger
 
 ```
-status: grounded on Final Critique 12 — 2026-10-31
+status: partially resolved
 formal: not applicable — vote no 2026-06-03
-last gate: 2026-10-31 — Final Critique 12 — foundational count 0, clean, one sample
+last gate: 2026-11-02 — Final Critique 13, a delta round, frozen at bba8734 — foundational count 2, both cured, not clean, no sample; 2026-10-31 — Final Critique 12 — foundational count 0, clean, one sample
 
 open: none
 ```
