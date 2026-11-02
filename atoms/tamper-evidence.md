@@ -36,7 +36,7 @@ A regulated record set must answer one question provably: *have these been alter
 ```
 Identity 1: The atom MUST identify evidence by the evidence id.
 Identity 2: The host MUST allocate an evidence id at the atom's seam.
-Identity 3: The transition MUST NOT allocate an evidence id.
+Deleted: Identity 3. Execution Contract Logic confinement 3 owns it.
 Identity 4: The business caller MUST NOT supply an evidence id.
 Identity 5: The atom MUST NOT reuse an evidence id.
 Identity 6: The atom MUST NOT identify evidence by the record set reference.
@@ -45,6 +45,8 @@ Identity 8: Two seals over one record set MUST carry two evidence ids.
 ```
 
 NOTE: open 2026-10-22-a — the evidence id's source is the host's allocation under Identity (Identity 2), not a Capability requirement.
+
+NOTE: watch the allocation ban (Identity 3).
 
 Term evidence: one recorded commitment over a record set — an [Evidence]; carries the proof and nothing that changes.
 
@@ -325,7 +327,9 @@ Check 1.1: An auditor MUST reconstruct EVERY seal from the evidence's stored fie
 Check 1.2: An auditor MUST NOT need state beyond those fields and the originating record set (Invariant 4.1, Invariant 4.3).
 Check 2.1: An auditor MUST verify an evidence with the auditor's own implementation of the mechanism's verification function (Invariant 4.1, Operation 13).
 Check 2.2: An auditor MUST NOT need privileged access to the system to verify (Invariant 4.3).
-Check 3.1: IF record set match EQUALS yes AND seal check DOES NOT EQUAL unavailable THEN an auditor MUST confirm that a single-byte change to the record set yields proof-invalid (Invariant 2.1, Operation 18).
+Check 3.1: IF the record set match of a verification over an original record set carrying a single-byte change to the record set presented at [Seal] EQUALS yes AND the seal check of that verification DOES NOT EQUAL unavailable THEN an auditor MUST confirm that the verification answers failed-verification carrying proof-invalid (Invariant 2.1, Operation 18).
+
+NOTE: open 2026-11-02-a — Check 3.1 exercises the failure direction alone, and no check has the record set presented at [Seal] answer verified (Operation 19, Invariant 3.1).
 Check 4.1: An auditor MUST read verified, failed-verification and not-known as three distinct answers (Operation 14).
 Check 4.2: An auditor MUST read record-set-mismatch, proof-invalid and mechanism-verification-unavailable as three distinct reasons (Operation 16, Operation 17, Operation 18).
 Deleted: Check 5.1. A trusted-timestamping pattern owns it (Non-goal 9, Non-goal 15): an anchored bound on when a record set changed.
@@ -683,13 +687,14 @@ It inherits from:
 ```
 status: partially resolved
 formal: not applicable — vote no 2026-06-03
-last gate: 2026-11-02 — Final Critique 11, a delta round, frozen at d28642a — foundational count 3, all cured, not clean, no sample; 2026-10-24 — Final Critique 10 — foundational count 0, clean, one sample
+last gate: 2026-11-02 — Final Critique 12, a delta round, frozen at dd11876 — foundational count 1, cured, not clean, no sample; 2026-11-02 — Final Critique 11, a delta round, frozen at d28642a — foundational count 3, all cured, not clean, no sample; 2026-10-24 — Final Critique 10 — foundational count 0, clean, one sample
 
 open:
 - 2026-10-21-b · refining · Operation 7, 8; Term mechanism credential · Operation 7 tests "the mechanism credential is absent" in no admitted condition form, while the admitted form, EQUALS blank, takes in the empty credential Operation 8 accepts (GRACE-lang Term blank, Earned vocabulary 7), and a credential carrying only whitespace has no rule, nor has the empty credential given to a keyed mechanism (Operation 9 answers only the reason the mechanism gives) → one declared term for the credential's blank states, each with its answer, the keyed mechanism's among them
 - 2026-10-21-c · refining · Invariant 2.2, 2.3; Term qualifiers · deprecated is declared nowhere, Term qualifiers declaring sound alone, and Invariant 2.3 obliges a re-seal with no trigger, bound or owner → declare deprecated or write the rule in sound; name the re-seal's trigger and owner
 - 2026-10-21-f · refining · Summary; Identity 8; Concurrent seal 1 · seal names both the action [Seal] and the evidence it records → one name each
 - 2026-10-21-i · refining · Verification caching 2 · what a cached result is keyed by is unstated, so two conforming caches drop a result at different moments → name the key
+- 2026-11-02-a · refining · Check 3.1; Operation 19; Invariant 3.1 · Check 3.1 confirms the failure direction alone, so a mechanism answering failed on the record set presented at [Seal] meets it, though Operation 19 and Invariant 3.1 oblige verified there; no rule of the corpus says a spec's checks cover each direction of an invariant, and a positive check carries the same conditions Check 3.1 has just been cured to name (record set match, seal check not unavailable, no anchor change) → decide whether the atom's acceptance tests the positive direction, and write the check on the verification's own record set match and seal check
 - 2026-10-22-a · refining · Identity 2; Capability requirement · the evidence id's source is named as the host's allocation under Identity and not among the Capability requirements, where spec-format's atom shape lists an id source under Capability requirement; Event Log routed the same form (its 2026-10-22-b), twenty atoms writing the host's allocation under Identity and four having the deployment supply id material under Capability requirement 2 → one form for the corpus, as the seam normalization made one for now
 ```
 
