@@ -62,6 +62,8 @@ Term business caller: the party whose action the call carries, as the section ti
 
 Term now: the deployment's clock reading at the call, as Execution Contract Logic confinement 11 declares it.
 
+NOTE: open 2026-11-02-a — Term now glosses the clock reading beside its citation of Execution Contract Logic confinement 11, which says a relying specification cites it and does not restate it; the gloss is the form some thirty atoms carry.
+
 NOTE: open 2026-10-21-f — Term seam, Term transition and Term business caller cite the section titled Logic Confinement Principle in `execution-contract.md`, which declares none of them.
 
 ### State
@@ -225,7 +227,7 @@ Where two [Revoke] cases hold at once, the refusal listed first on [Revoke]'s re
 - **Invariant 9 — Timestamp ordering.**
   ```
   Invariant 9.1: IF revocation instant DOES NOT EQUAL blank THEN revocation instant MUST NOT PRECEDE grant instant.
-  Invariant 9.2: A grant MUST stand in active at an instant ONLY IF the grant is live at the instant.
+  Invariant 9.2: A grant MUST stand in active at an instant ONLY IF the grant is live at the instant (Term live at an instant).
   ```
 - **Invariant 10 — Grant record durability.**
   ```
@@ -415,7 +417,7 @@ Term record verbs: identify, allocate, supply, reuse, hold, reach, compare, trim
 
 Term value sets: status = active | revoked.
 
-Term bounds: string cap (the bound on a string input's length in Unicode code points, 256 where a deployment declares none).
+Term bounds: string cap.
 
 Term cadences: empty.
 
@@ -633,7 +635,7 @@ It inherits from:
 ```
 status: grounded on Final Critique 8 — 2026-10-26
 formal: verified — permissions.als + 1 twin, 2026-06-03
-last gate: 2026-10-26 — Final Critique 8 — foundational count 0, clean, one sample
+last gate: 2026-11-02 — Final Critique 9 — delta, foundational count 0, clean, one sample
 
 open:
 - 2026-10-21-c · refining · Revoke persistence 2, 4 · the caller's retry of a refused revoke names no terminus (Pass 1: every retry loop names its terminus), and the deployment that raises the alert is declared only as an alias of the deployment → name the bound at which the caller stops and what it raises there; say which deployments alert
@@ -642,6 +644,7 @@ open:
 - 2026-10-21-h · refining · Operation 26, 27 · [Read] answers every grant in no stated order and with no bound on the answer → say the order is unspecified or give one; bound or page the answer
 - 2026-10-26-a · refining · Identity 2; Capability requirement 1, 4 through 6 · the grant id's source is named as the host's allocation (Identity 2) and not among what the deployment supplies, where the atom shape in `spec-format.md` lists an id source under Capability requirement; Approval Step (its 2026-10-26-a), Assignment (its 2026-10-26-a), Event Log (its 2026-10-22-b) and Tamper Evidence (its 2026-10-22-a) route the same form → name the source among the Capability requirements, in the one form the corpus settles for its twenty host-allocation atoms
 - 2026-10-26-b · refining · Operation 16 through 22; the signature block · the rules name the action [Check] and the signature block declares it as permitted, and only the Check entry, a term entry, which carries no obligation (GRACE-lang Surface 25 and 27), says the one is the other; permitted is also one of [Check]'s two answers → name the action alike in the rules and on the wire, whose permitted every composing page calls, or tie the two names on the normative surface in the form the corpus settles for the wire layer (the Watch list's the wire layer)
+- 2026-11-02-a · refining · Term now · the entry restates Execution Contract Logic confinement 11's definition beside its citation, where that rule says a relying specification cites it and does not restate it; the same gloss stands on some thirty atoms → one corpus sweep settles the form for every atom, or Logic confinement 11 admits the gloss
 ```
 
 <details markdown="block">
