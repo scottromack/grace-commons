@@ -198,7 +198,7 @@ Term window end: the instant the [List Conditions] window closes — a [Window E
 
 Term listed status: the status a [List Conditions] call asks for, open or closed, or blank for both — a [Listed Status].
 
-Term listing key: a record's seen instant or first seen, paired with the record's subject or record id, compared first by instant, then by id in code point order (Execution Contract Logic confinement 10).
+Term listing key: a sighting's seen instant paired with its subject, or a standing record's first seen paired with its record id, compared first by instant, then by id in code point order (Execution Contract Logic confinement 10).
 
 Term continuation key: the listing key of the last record a previous [List Conditions] call answered — a [Continuation Key].
 
@@ -651,7 +651,7 @@ Inherited from:
 ```
 status: partially resolved
 formal: not applicable — vote no 2026-11-02: no guard reads the clock, which only stamps the instants (Clock dependence 1), and the atom claims no commit order of its own; its one-sighting-per-subject, one-open-span and forward-running-span claims are single-record properties the database refuses (Invariant 2.2, 3.2, 4) and each action's rules hold, its listing order is a sort over stored fields, and its concurrency is Execution Contract Database 2's
-last gate: 2026-11-02 — Final Critique 1, frozen at ebdfc8e — foundational count 7, all cured, not clean, no sample
+last gate: 2026-11-02 — Final Critique 2, a delta round, frozen at dd11876 — foundational count 0, clean, no sample; Final Critique 1, frozen at ebdfc8e — foundational count 7, all cured, not clean, no sample
 
 open: none
 ```
