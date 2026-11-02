@@ -123,7 +123,7 @@ Five elements, each carrying the Contract classification of the section titled C
 
   Term retention end: `((recorded_at + retention_period) - clock_allowance)` — the end of the intent's retention, less the allowance for the two clocks, so that a read of open invocations drops the intent no later than the substrate's clock reaches that end (Allowance 4).
 - **findings**
-  Term findings: the register of what the sweep could not close and what the instance could not do, written to the deployment's compliance surface. *Extraction-pending*; the named proposed atom is a **Condition Register** *(forthcoming)*.
+  Term findings: the register of what the sweep could not close and what the instance could not do, written to the deployment's compliance surface. *Extraction-pending*; the named atom is the [Condition Register](../atoms/condition-register.md).
   ```
   findings 1: The deployment MUST persist a finding naming a kind the bindings table serves for at least the retention period of that kind.
   findings 2: The deployment MUST persist a finding naming no kind for at least the instance's longest retention period.
@@ -140,7 +140,7 @@ Five elements, each carrying the Contract classification of the section titled C
   findings 12: The register MUST hold one record per standing condition.
   findings 13: A reader MUST NOT rely on an order across act keys.
   findings 14: The deployment MUST persist a finding naming a kind the bindings table does not serve for at least the instance's longest retention period.
-  NOTE: until the forthcoming Condition Register lands (`roadmap.md`), the deployment persists the register (findings 1, findings 2 and findings 14) and this page states its records (findings 3 through 13); the debt is that no atom owns either yet, and the atom, when it lands, takes both, as Audit Trail classifies its write-once outage record and Immutable Ledger its write-ownership findings against it too.
+  NOTE: until the register moves onto the [Condition Register](../atoms/condition-register.md) (a draft; `roadmap.md`), the deployment persists the register (findings 1, findings 2 and findings 14) and this page states its records (findings 3 through 13); the debt is that no atom owns either yet, and the atom, when it lands, takes both, as Audit Trail classifies its write-once outage record and Immutable Ledger its write-ownership findings against it too.
   ```
   Term act finding: {finding, kind, act_key, invocation_id, first_seen, run_id}; deduplicates on (invocation id, finding); carries no last seen and no span. An act finding records a sighting; whether the act still stands escalated is [Read Invocation]'s answer, not the register's.
 

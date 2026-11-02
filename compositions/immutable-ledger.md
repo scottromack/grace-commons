@@ -118,7 +118,7 @@ Composition state 13: An intent MUST NOT name an event outside the ledger entrie
 Composition state 14: The composition MUST NOT store a ledger entry outside Audit Trail.
 Composition state 15: The composition MUST NOT duplicate a constituent's records.
 Composition state 16: The composition MUST read a disclosure's disclosed set from the intent the disclosure's outcome event names.
-Composition state 17: The composition MUST classify a write-ownership finding as extraction-pending against Condition Register, an atom forthcoming.
+Composition state 17: The composition MUST classify a write-ownership finding as extraction-pending against Condition Register.
 Composition state 18: The binding rebuild MUST bind a disclosure id to the live outcome event of the lowest sequence number carrying the disclosure id, a disclosure id a purged binding names excepted.
 ```
 
