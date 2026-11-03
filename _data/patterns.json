@@ -339,7 +339,7 @@
    "shared-cart"
   ],
   "domain": null,
-  "grounded": true,
+  "grounded": false,
   "invariants": 6,
   "kind": "atom",
   "models": {
@@ -352,7 +352,7 @@
   ],
   "security": false,
   "standards": [],
-  "status": "grounded on Final Critique 4 \u2014 2026-10-24 at 460866f",
+  "status": "partially resolved",
   "title": "Cart"
  },
  "chain-of-custody": {

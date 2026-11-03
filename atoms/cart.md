@@ -49,6 +49,8 @@ Term string cap: the bound on an item reference's length in Unicode code points;
 
 Term cart: a set of lines gathered toward one purchase, with the currency their prices are counted in — a [Cart].
 
+NOTE: open 2026-11-03-b — whether the lines a [Read] answers come in an order: the atom holds no field that orders them, and Operation 21 states none.
+
 Term line: one item on a cart, with how many of the item and the unit price taken when the line was added — a [Line].
 
 Term cart id: the opaque value naming one cart — a [Cart Id]; unique for the system's life.
@@ -56,6 +58,8 @@ Term cart id: the opaque value naming one cart — a [Cart Id]; unique for the s
 Term line id: the opaque value naming one line — a [Line Id]; unique for the system's life, so an item added again after its line was taken out gets a new line id.
 
 Term item reference: the value naming the item a line is for — a product or a service with the options chosen for it, such as a size, a color, oat milk or a gift wrap, in the deployment's own scheme — an [Item Reference]; the atom reads nothing in it.
+
+NOTE: open 2026-11-03-a — whether the item reference and the currency are references the deployment canonicalizes at the seam (Execution Contract Logic confinement 13) or values stored as the call carries them: Identity 6 and the marker entries say stored as supplied, and no rule here declares either value a reference.
 
 Term seam: the atom's I/O boundary as the section titled Logic Confinement Principle in `execution-contract.md` declares it; the host injects each cart id and line id here.
 
@@ -86,8 +90,8 @@ NOTE: watch a term entry's kind — the total is computed at each read and never
 ### Capability requirement
 
 ```
-Capability requirement 1: The deployment MUST supply at the seam a cart id no cart has carried PER Execution Contract Logic confinement 3.
-Capability requirement 2: The deployment MUST supply at the seam a line id no line has carried PER Execution Contract Logic confinement 3.
+Capability requirement 1: The deployment MUST supply at the seam, for each [Open] call, a cart id no cart has carried PER Execution Contract Logic confinement 3.
+Capability requirement 2: The deployment MUST supply at the seam, for each [Add] call, a line id no line has carried PER Execution Contract Logic confinement 3.
 Capability requirement 3: The deployment MUST supply the accepted currencies.
 Deleted: Capability requirement 4. Execution Contract Logic confinement 9 owns it.
 Capability requirement 5: The deployment MUST supply the database PER Execution Contract Database 1 through 6, Execution Contract Read 1 through 4 and Execution Contract Refusal 1.
@@ -130,12 +134,12 @@ Operation 1: IF the currency IS NOT IN the accepted currencies THEN [Open] MUST 
 Operation 2: [Open] MUST record EXACTLY ONE cart carrying the currency of the call.
 Operation 3: [Open] MUST answer the cart id.
 Operation 4: IF no cart EXISTS for the cart id THEN a cart action MUST answer not-known.
-Operation 5: IF the item reference EQUALS blank THEN [Add] MUST answer invalid-item-reference.
+Operation 5: IF the item reference EQUALS blank OR the item reference EXCEEDS the string cap THEN [Add] MUST answer invalid-item-reference.
 Operation 6: IF the quantity IS NOT IN the positive counts THEN [Add] MUST answer invalid-quantity.
 Operation 7: IF the unit price IS NOT IN the whole amounts THEN [Add] MUST answer invalid-price.
 Operation 8: IF a line of the cart EXISTS for the item reference THEN [Add] MUST answer already-in-cart.
 Operation 24: IF the line cap DOES NOT EXCEED the line count THEN [Add] MUST answer cart-full.
-Operation 9: [Add] MUST record EXACTLY ONE line carrying the cart id, the item reference, the quantity and the unit price of the call.
+Operation 9: [Add] MUST record EXACTLY ONE line carrying the line id the seam supplies and the cart id, the item reference, the quantity and the unit price of the call.
 Operation 10: [Add] MUST answer the line id.
 Operation 11: IF no line EXISTS for the line id THEN a line action MUST answer not-known.
 Operation 12: IF the new quantity IS NOT IN the positive counts THEN [Change Quantity] MUST answer invalid-quantity.
@@ -170,8 +174,8 @@ The case space, and the rule that owns each case:
 |---|---|---|---|
 | [Open] | currency accepted, database accepts | the cart id | one cart lands, carrying the currency and no line (Operation 2) |
 | [Open] | currency not accepted | [Invalid Currency] | none (Operation 1) |
-| [Add] | inputs valid, no line for the item, database accepts | the line id | one line lands, carrying the call's item reference, quantity and unit price (Operation 9) |
-| [Add] | item reference blank or over the string cap | [Invalid Item Reference] | none (Operation 5, Execution Contract Input 2) |
+| [Add] | inputs valid, no line for the item, database accepts | the line id | one line lands, carrying the line id and the call's cart id, item reference, quantity and unit price (Operation 9) |
+| [Add] | item reference blank or over the string cap | [Invalid Item Reference] | none (Operation 5) |
 | [Add] | quantity not a positive count | [Invalid Quantity] | none (Operation 6) |
 | [Add] | unit price not a whole amount | [Invalid Price] | none (Operation 7) |
 | [Add] | the cart already carries a line for the item | [Already In Cart] | none (Operation 8) |
@@ -360,7 +364,7 @@ Kind: Operation
 
 #### Add
 
-Puts an item on a cart: records one [Line] carrying the call's [Item Reference], [Quantity] and [Unit Price], answers the new [Line Id]. An item already on the cart is refused.
+Puts an item on a cart: records one [Line] carrying the new [Line Id] and the call's [Cart Id], [Item Reference], [Quantity] and [Unit Price], answers the new [Line Id]. An item already on the cart is refused.
 
 Kind: Operation
 
@@ -484,7 +488,7 @@ Projection: not-known
 
 #### Invalid Item Reference
 
-[Add]'s refusal of a blank [Item Reference], or one over the string cap (Execution Contract Input 2).
+[Add]'s refusal of a blank [Item Reference], or one over the string cap (Operation 5).
 
 Kind:       Member
 Member of:  the action rejection
@@ -581,16 +585,18 @@ Rules on showing and confirming a price before a purchase, such as the Consumer 
 
 ## Status
 
-`grounded on Final Critique 4 — 2026-10-24 at 460866f` — see the Ledger.
+`partially resolved` — see the Ledger.
 
 ## Ledger
 
 ```
-status: grounded on Final Critique 4 — 2026-10-24 at 460866f
+status: partially resolved
 formal: not applicable — vote no 2026-10-23: the atom reads no clock and claims no ordering of its own; its one-line-per-item and fixed-price claims are single-state properties each action's rules hold, and its concurrency is Execution Contract Database 2's
-last gate: 2026-10-24 — Final Critique 4 — foundational count 0, clean, one sample
+last gate: 2026-11-03 — Final Critique 5 (delta) — foundational count 1, not clean, one sample
 
 open:
+- 2026-11-03-a · refining · Term item reference; Term currency; Identity 6; Identity 8 · the atom declares neither value a reference and cites no canonicalization rule, so a deployment that canonicalizes either at the seam (Execution Contract Logic confinement 13) stores a spelling "stored as supplied and compared codepoint for codepoint" does not describe → say these two values enter the atom as the call carries them, or declare them references and cite Logic confinement 13
+- 2026-11-03-b · refining · Operation 21; Term cart · [Read] answers the cart's lines in no stated order and the atom holds no field that orders them, so a caller rendering the cart has no determinate order → state an order, or say the lines in the answer are unordered
 - 2026-10-24-b · refining · Operation 21; Term cart; Term records · [Read] answers cart, which State 1 and Term records give a cart id and Term cart, Operation 21 and the Read entry do not, so a build echoes the caller's cart id or not by the reading it picks, as readers in each of the last three rounds asked → name the cart id in Operation 21, or say the answer leaves the caller's own id out
 ```
 
