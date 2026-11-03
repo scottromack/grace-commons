@@ -219,7 +219,7 @@ Operation 57: IF the session's status EQUALS active AND reason is malformed THEN
 Operation 58: [Issue] MUST record the session token the host allocates (Identity 3, Capability requirement 6).
 Operation 59: [Read] MUST carry principal reference, issued by reference, issuance instant, expiry instant and status on EVERY answered session.
 Operation 60: [Read] MUST carry revocation instant, revoked by reference and revocation reason on EVERY answered revoked session.
-Operation 61: IF the filter's value on principal reference EXCEEDS the maximum length of principal reference OR the filter's value on issued by reference EXCEEDS the maximum length of issued by reference THEN [Read] MUST answer no session (String 6, Execution Contract Input 2).
+Operation 61: IF the filter names a field other than principal reference and issued by reference OR the filter's value on principal reference EXCEEDS the maximum length of principal reference OR the filter's value on issued by reference EXCEEDS the maximum length of issued by reference THEN [Read] MUST answer no session (String 6, Execution Contract Input 2).
 ```
 
 NOTE: open 2026-10-21-a — [Read] answers the matching sessions in no stated order (Operation 37).
@@ -262,7 +262,7 @@ Term revocation reason: the stated ground for the cancellation — a [Revocation
 
 Term reason: the [Revoke] input the session keeps as revocation reason, a string input — a [Reason].
 
-Term filter: the selection a [Read] call scopes the answer by — a [Filter] naming principal reference, issued by reference, both OR no field; a session matches a filter when it carries EVERY value the filter names (String 1) and the filter names no blank value, no value that EXCEEDS the maximum length of its field (Operation 61) and no other field, so a filter naming no field matches EVERY session; consumed per call, never stored.
+Term filter: the selection a [Read] call scopes the answer by — a [Filter] naming principal reference, issued by reference, both, no field, OR a field other than principal reference and issued by reference; a session matches a filter when it carries EVERY value the filter names (String 1) and the filter names no blank value (Operation 53), no value that EXCEEDS the maximum length of its field (Operation 61) and no other field, so a filter naming no field matches EVERY session; consumed per call, never stored.
 
 Term liveness query: any query for the sessions in force at the read-time clock — the atom's [Read] and the administrative surfaces built on it.
 
@@ -690,7 +690,7 @@ Projection:   reason
 
 #### Filter
 
-The selection a caller passes to [Read] to scope which [Session] records are returned: a [Principal Reference], an [Issued By Reference], both or neither. A [Session] matches when it carries every value the filter names, and a filter naming no field matches every [Session]; a filter naming a blank value, a value over the maximum length of its field, or any other field, matches none. Consumed per call; never stored.
+The selection a caller passes to [Read] to scope which [Session] records are returned: a [Principal Reference], an [Issued By Reference], both, neither, or a field other than principal reference and issued by reference. A [Session] matches when it carries every value the filter names, and a filter naming no field matches every [Session]; a filter naming a blank value, a value over the maximum length of its field, or any other field, matches none. Consumed per call; never stored.
 
 Kind:         Parameter
 Parameter of: Read
@@ -843,7 +843,7 @@ Inherited from:
 ```
 status: partially resolved
 formal: not applicable — vote no 2026-06-03
-last gate: 2026-11-03 — Final Critique 17 — delta — foundational count 2, not clean, no sample
+last gate: 2026-11-03 — Final Critique 18 — delta — foundational count 1, not clean, no sample
 
 open:
 - 2026-10-21-a · refining · Operation 37; [Read] · [Read] answers the matching sessions in no stated order → an order
