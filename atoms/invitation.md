@@ -26,7 +26,7 @@ Systems that admit external parties face one structural problem: the invitation 
 
 This atom isolates that record from the machinery around it. It does not register the credential that follows acceptance ([Credential](./credential.md)), create the identity record the accepted invitee becomes ([Party Identity](./party-identity.md)), issue the session ([Session](./session.md)), or sequence those steps ([External Onboarding](../compositions/external-onboarding.md)). It answers one question, from the invitation record alone.
 
-The declined terminal is what separates Invitation from [Capability](./capability.md) at the EOS (Essence of Software — Daniel Jackson's framework for freestanding, composable concepts) Pass 2 boundary. Both use bearer-token transport, both are time-bounded, both can be revoked. The difference is that a refusal is an outcome the atom records — an instant stamped when a holder deliberately declined, distinct from a token never presented; who declined is the composing pattern's to record, not this atom's (Non-goal 12, External check 5). A capability's bearer either redeems it or does not, and the non-use is not an outcome the system records.
+The declined terminal is what separates Invitation from [Capability](./capability.md) at the EOS (Essence of Software — Daniel Jackson's framework for freestanding, composable concepts) Pass 2 boundary. Both use bearer-token transport, both are time-bounded, both can be revoked. The difference is that the declined outcome is one the atom records — an instant stamped when a holder deliberately declined, distinct from a token never presented; who declined is the composing pattern's to record, not this atom's (Non-goal 12, External check 5). A capability's bearer either redeems it or does not, and the non-use is not an outcome the system records.
 
 This is a freestanding atom in the EOS sense: its own state, its own four writes and one read, and its own operational principles — single-resolution, expiry-is-derived, opaque invitee at initiation, identity binding at acceptance.
 
@@ -68,6 +68,8 @@ Term seam: the atom's I/O (input and output) boundary; the host injects the cloc
 Term transition: the atom's evaluation of one call against the invitation records.
 
 Term now: the deployment's clock reading at the call, as Execution Contract Logic confinement 11 declares it.
+
+NOTE: open 2026-11-03-a — where an admitted read takes its one clock reading against its database read is not stated (Invariant 12.2); the Execution Contract's Q names no clock step.
 
 NOTE: watch the seam citation (Term seam, Term transition).
 
@@ -195,7 +197,12 @@ Deleted: Operation 45. Execution Contract Logic confinement 3 owns it.
 Deleted: Operation 46. Execution Contract Logic confinement 3 owns it.
 Operation 47: IF a filter names a field whose value EQUALS blank THEN [Read] MUST answer no invitation.
 Operation 48: IF a supplied ttl is malformed THEN [Initiate] MUST answer invalid-request (Execution Contract Input 1).
+Operation 49: IF a string input EXCEEDS the string cap THEN [Initiate] MUST answer invalid-request (Execution Contract Input 2).
+Operation 50: IF a string input EXCEEDS the string cap THEN [Accept] MUST answer invalid-request (Execution Contract Input 2).
+Operation 51: IF a string input EXCEEDS the string cap THEN [Revoke] MUST answer invalid-request (Execution Contract Input 2).
 ```
+
+NOTE: watch the cap's refusal (Operation 49, Operation 50, Operation 51).
 
 NOTE: watch the blank optional input (Operation 10).
 
@@ -347,7 +354,7 @@ Check 1.2: An auditor MUST find EXACTLY ONE resolution instant on EVERY invitati
 Check 1.3: An auditor MUST find no resolution field on a pending invitation (State 6).
 Check 2.1: An auditor MUST find no invitation storing expired as a status (State 7).
 Deleted: Check 2.2. Invariant 12.1 owns it.
-Check 2.3: An auditor MUST reproduce an admitted read's effective status from the invitation's expiry instant and the now the read consumed (Invariant 12.2).
+Check 2.3: An auditor MUST reproduce an admitted read's effective status from the invitation's expiry instant and a clock reading the auditor supplies as that read's now (Invariant 12.2).
 Check 3.1: An auditor MUST find a non-blank accepting identity reference on EVERY accepted invitation (Invariant 3.1).
 Check 3.2: An auditor MUST find an acceptance instant on EVERY accepted invitation (State 3).
 Check 4.1: An auditor MUST find no two stored terminals carrying one resolution field pattern (Invariant 5.1).
@@ -450,7 +457,9 @@ String 6: The atom MUST read an absent string input as blank.
 
 Term string input: a reference, context OR reason — every caller-supplied string this atom accepts.
 
-Term string cap: the bound on a string input's length in Unicode code points; 1,024 code points where a deployment declares none.
+Term string cap: the bound on a string input's length in Unicode code points, counted on the value as the call carries it; 1,024 code points where a deployment declares none.
+
+NOTE: watch the cap's measure (Term string cap).
 
 ---
 
@@ -723,7 +732,7 @@ Role:      Outcome
 
 #### Invalid Request
 
-The refusal returned when a required argument is blank, or a supplied [TTL] is malformed or falls outside the ttl bounds, or no default ttl is declared, or a string input exceeds the string cap (Execution Contract Input 2). On a resolving write it is reached only after every status check passes.
+The refusal returned when a required argument is blank, or a supplied [TTL] is malformed or falls outside the ttl bounds, or no default ttl is declared, or a string input exceeds the string cap (Execution Contract Input 2). On a resolving write it is reached only after every status check passes (Execution Contract Refusal 1).
 
 Kind:       Member
 Member of:  the action rejection
@@ -825,16 +834,17 @@ It inherits from:
 
 ## Status
 
-`grounded on Final Critique 8 — 2026-11-01 at f68a856` — see the Ledger.
+`partially resolved` — see the Ledger.
 
 ## Ledger
 
 ```
-status: grounded on Final Critique 8 — 2026-11-01 at f68a856
+status: partially resolved
 formal: verified — invitation.tla + 2 twins, 2026-06-03
-last gate: 2026-11-01 — Final Critique 8 — foundational count 0, clean, one sample
+last gate: 2026-11-03 — Final Critique 9, a delta round, frozen at b98a66c — foundational count 3, cured, not clean, no sample
 
 open:
+- 2026-11-03-a · refining · Term now; Invariant 12.2 · where an admitted read takes its one clock reading against its database read is stated by no rule: the Execution Contract's Q names no clock step, and Logic confinement 3 and 11 place the reading at the top of Step 2 for a transition only; any build's answer follows the reading it takes, and the placement is owed by the contract to every read that answers against now, not by this page (escalated to the maintainer 2026-11-03) → the contract states it once, or the question is closed.
 - 2026-10-22-a · refining · [Read]; Operation 41 · [Read] answers the matching invitations in no stated order, so a caller paging the answer gets the database's (the Watch list's read-order polarity names this page's Operation 41 as one posture) → state an order, or declare none
 - 2026-10-22-c · refining · Composition note 6; Composition note 7 · a composing Actor Identity attests the actor behind an admitted accept and behind an admitted initiate, and no note says whether it attests the actor behind an admitted revoke, which records a revoked by reference as an accept records an accepting identity reference → wire the revoke's attestation, or name the deployment as its owner
 ```
