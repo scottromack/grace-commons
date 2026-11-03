@@ -40,7 +40,7 @@ They agree on two shapes. A sighting is about one subject and happens once: the 
 ```
 Identity 1: The atom MUST identify a sighting by the condition and the subject.
 Identity 2: The atom MUST identify a standing record by the record id.
-Identity 3: The host MUST allocate a record id at the seam.
+Identity 3: The host MUST allocate a record id at the seam that no standing record carries.
 Identity 4: The atom MUST NOT reuse a record id.
 Identity 5: The atom MUST NOT interpret a subject.
 Identity 6: The atom MUST NOT interpret a scope.
@@ -63,7 +63,7 @@ Term run id: the opaque id of the run that reported — a [Run Id].
 
 Term record id: the opaque id of one standing record — a [Record Id].
 
-Term seam: the atom's I/O (input and output) boundary; the host injects the clock reading and the record id here.
+Term seam: the atom's I/O (input and output) boundary; the host injects the clock reading, the declared conditions and, for a call that opens a standing record, the record id here.
 
 ### State
 
@@ -84,7 +84,7 @@ Term status: open | closed — a standing record still seen, or no longer seen. 
 
 ```
 Capability requirement 1: The deployment MUST supply now at the seam.
-Capability requirement 2: The deployment MUST supply the condition records PER Execution Contract Database 1 through 7, Execution Contract Read 1 through 4, Execution Contract Refusal 1, Execution Contract Input 1 and Execution Contract Input 2.
+Capability requirement 2: The deployment MUST supply the condition records PER Execution Contract Database 1 through 7, Execution Contract Order 1, Execution Contract Read 1 through 4, Execution Contract Refusal 1, Execution Contract Input 1 and Execution Contract Input 2.
 Capability requirement 3: The deployment MUST declare EVERY condition a composing pattern declares, with the condition's shape.
 Capability requirement 4: The deployment MAY override the name cap.
 Capability requirement 5: The deployment MAY override the id cap.
@@ -168,6 +168,8 @@ Operation 40: IF no open standing record EXISTS for the condition and the scope 
 Operation 41: IF no open standing record EXISTS for the condition and the scope AND scope EQUALS blank THEN [Report Standing] MUST record the scope as blank.
 Operation 42: IF window start EQUALS blank OR window end EQUALS blank THEN [List Conditions] MUST answer invalid-request.
 Operation 43: IF listed status DOES NOT EQUAL blank AND listed status DOES NOT EQUAL open AND listed status DOES NOT EQUAL closed THEN [List Conditions] MUST answer invalid-request.
+Operation 44: IF continuation key DOES NOT EQUAL blank AND the continuation key is malformed THEN [List Conditions] MUST answer invalid-request.
+Operation 45: IF condition EQUALS blank THEN EVERY action MUST answer invalid-request.
 ```
 
 NOTE: watch the required input no rule records (Operation 38, Operation 39, Operation 40, Operation 41).
@@ -175,6 +177,8 @@ NOTE: watch the required input no rule records (Operation 38, Operation 39, Oper
 NOTE: watch the blank optional input (Operation 40, Operation 41).
 
 NOTE: watch the listing page (Operation 28, Operation 29, Term matching record).
+
+NOTE: watch the untyped input (Term continuation key, Operation 44).
 
 Term now: the deployment's clock reading at the call — a [Now], as Execution Contract Logic confinement 11 declares it.
 
@@ -200,9 +204,9 @@ Term listed status: the status a [List Conditions] call asks for, open or closed
 
 Term listing key: a sighting's seen instant paired with its subject, or a standing record's first seen paired with its record id, compared first by instant, then by id in code point order (Execution Contract Logic confinement 10).
 
-Term continuation key: the listing key of the last record a previous [List Conditions] call answered — a [Continuation Key].
+Term continuation key: the listing key of the last record a previous [List Conditions] call answered — a [Continuation Key], malformed where it is not an instant paired with an id.
 
-Term matching record: a sighting of the condition whose seen instant falls in the window, or a standing record of the condition whose first seen falls in the window and whose status EQUALS the listed status where listed status DOES NOT EQUAL blank — in either case only where the listing key EXCEEDS the continuation key where continuation key DOES NOT EQUAL blank. A condition has one shape, so its records are of that shape alone, and where none match the answer is empty.
+Term matching record: a sighting of the condition whose seen instant falls in the window, or a standing record of the condition whose first seen falls in the window and whose status EQUALS the listed status where listed status DOES NOT EQUAL blank — in either case only where the listing key EXCEEDS the continuation key where continuation key DOES NOT EQUAL blank. A condition has one shape, so its records are of that shape alone, a sighting carries no status so a listed status does not select it, a standing record is listed in the window its first seen falls in and in no other, and where none match the answer is empty.
 
 The case space, and the rule that owns each case:
 
@@ -214,11 +218,11 @@ The case space, and the rule that owns each case:
 | [Report Standing] | an open record for condition and scope | advanced | last run id and last seen move (Operation 12, Operation 13, Operation 14) |
 | [Report Clear] | an open record for condition and scope | closed | the record moves to [Closed], closing run and instant written, last seen unchanged (Operation 19 through 23) |
 | [Report Clear] | no open record for condition and scope | [None Open] | none (Operation 24) |
-| any writing action | an undeclared condition, a condition of the other shape, a blank or over-long input | [Invalid Request] | none (Operation 1 through 3, Operation 8 through 11, Operation 25, Operation 26) |
+| any writing action | an undeclared condition, a condition of the other shape, a blank or over-long input | [Invalid Request] | none (Operation 1 through 3, Operation 8 through 11, Operation 25, Operation 26, Operation 45) |
 | any writing action | database refuses the write | [Storage Failure] | none (Operation 27) |
-| [Report Standing], [Report Clear] | an open record whose last seen follows now | [Storage Failure] | none (Invariant 4.2, Invariant 4.3, Operation 27; Execution Contract Read 4) |
+| [Report Standing], [Report Clear] | an open record whose last seen follows now | [Storage Failure] | none (Invariant 4.2, Invariant 4.3, Operation 27) |
 | [List Conditions] | a declared condition, a window, an optional status and continuation key | the matching records with the earliest listing keys, up to the page size, in listing-key order; none where none match | none (Operation 28, Operation 29, Operation 31) |
-| [List Conditions] | an undeclared condition, a window that ends before it starts or has a blank bound, or a listed status that is not open, closed or blank | [Invalid Request] | none (Operation 33, Operation 34, Operation 42, Operation 43) |
+| [List Conditions] | an undeclared condition, a window that ends before it starts or has a blank bound, a listed status that is not open, closed or blank, or a malformed continuation key | [Invalid Request] | none (Operation 33, Operation 34, Operation 42, Operation 43, Operation 44) |
 
 ### Invariants
 
@@ -237,7 +241,7 @@ The case space, and the rule that owns each case:
 - **Invariant 3 — One open span per condition and scope.**
   ```
   Invariant 3.1: Two open standing records MUST NOT share a condition and a scope.
-  Invariant 3.2: The database MUST refuse a write opening a second standing record for one condition and one scope.
+  Invariant 3.2: The database MUST refuse a write opening a second open standing record for one condition and one scope.
   ```
 - **Invariant 4 — A span runs forward.**
   ```
@@ -366,7 +370,12 @@ Composition note 1: A composing pattern MUST declare EVERY condition the composi
 Composition note 2: A run MUST call [Report Clear] for EVERY standing condition and scope the run checked and did not see.
 Composition note 3: A failed report MUST NOT fail the rest of the run's work.
 Composition note 4: A composing pattern MUST own the meaning of a scope and a subject.
+Composition note 5: A composing pattern MUST supply a run id that no other run carries.
 ```
+
+NOTE: watch the fresh holder value (Composition note 5).
+
+NOTE: open 2026-11-03-a — a conflict retry under Execution Contract Database 2 may keep its one clock reading, so a call serialized after a later one answers storage-failure through the row on Invariant 4.3 where a locking build answers advanced (Operation 13, Operation 21).
 
 NOTE: composing patterns — the three compositions that name an extraction-pending register against this atom: [Recoverable Invocation](../compositions/recoverable-invocation.md) (its findings, the conditions its sweep declares), [Audit Trail](../compositions/audit-trail.md) (its outage record) and [Immutable Ledger](../compositions/immutable-ledger.md) (its write-ownership findings).
 
@@ -522,7 +531,7 @@ Projection:   listed_status
 
 #### Continuation Key
 
-The listing key of the last record a previous [List Conditions] call answered.
+The listing key of the last record a previous [List Conditions] call answered, an instant paired with an id; a blank continuation key starts at the earliest.
 
 Kind:         Parameter
 Parameter of: List Conditions
@@ -588,7 +597,7 @@ Projection: duplicate
 
 #### Invalid Request
 
-The refusal an action answers for an undeclared condition, a condition of the other shape, a blank or over-long input, a window that ends before it starts or has a blank bound, or a listed status that is not open, closed or blank. Nothing is written.
+The refusal an action answers for an undeclared condition, a condition of the other shape, a blank or over-long input, a window that ends before it starts or has a blank bound, a listed status that is not open, closed or blank, or a malformed continuation key. Nothing is written.
 
 Kind:       Member
 Member of:  the action rejection
@@ -651,9 +660,10 @@ Inherited from:
 ```
 status: partially resolved
 formal: not applicable — vote no 2026-11-02: no guard reads the clock, which only stamps the instants (Clock dependence 1), and the atom claims no commit order of its own; its one-sighting-per-subject, one-open-span and forward-running-span claims are single-record properties the database refuses (Invariant 2.2, 3.2, 4) and each action's rules hold, its listing order is a sort over stored fields, and its concurrency is Execution Contract Database 2's
-last gate: 2026-11-02 — Final Critique 2, a delta round, frozen at dd11876 — foundational count 0, clean, no sample; Final Critique 1, frozen at ebdfc8e — foundational count 7, all cured, not clean, no sample
+last gate: 2026-11-03 — Final Critique 3, frozen at aeea14e — foundational count 2, all cured, not clean, no sample; Final Critique 2, a delta round, frozen at dd11876 — foundational count 0, clean, no sample; Final Critique 1, frozen at ebdfc8e — foundational count 7, all cured, not clean, no sample
 
-open: none
+open:
+- 2026-11-03-a · refining · Operation 13, Operation 21 · a conflict retry under Execution Contract Database 2 may keep its one clock reading (Logic confinement 3), so a call serialized after a later one answers storage-failure through the row on Invariant 4.3 where a build that locks before it reads the clock answers advanced; the Execution Contract owns whether a retry reads the clock again → decide whether Database 2 and Logic confinement 3 say a retry reads the clock again
 ```
 
 <details markdown="block">
