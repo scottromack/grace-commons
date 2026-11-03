@@ -97,7 +97,7 @@ Expiry 2: A lapse MUST NOT fire a transition.
 Deleted: Expiry 3. Invariant 12.2 and Invariant 12.3 own it.
 Expiry 4: The deployment MUST NOT schedule a lapse.
 Expiry 5: The atom MUST derive a lapse from expiry instant against now.
-Expiry 6: A lapsed session MUST NOT stand in a stored terminal.
+Deleted: Expiry 6. Invariant 12.3 owns it.
 Deleted: Expiry 7. Operation 38 and Term effective status own it.
 Deleted: Expiry 8. Operation 16 owns it.
 ```
@@ -219,6 +219,7 @@ Operation 57: IF the session's status EQUALS active AND reason is malformed THEN
 Operation 58: [Issue] MUST record the session token the host allocates (Identity 3, Capability requirement 6).
 Operation 59: [Read] MUST carry principal reference, issued by reference, issuance instant, expiry instant and status on EVERY answered session.
 Operation 60: [Read] MUST carry revocation instant, revoked by reference and revocation reason on EVERY answered revoked session.
+Operation 61: IF a filter names a field whose value EXCEEDS the maximum length THEN [Read] MUST answer no session.
 ```
 
 NOTE: open 2026-10-21-a — [Read] answers the matching sessions in no stated order (Operation 37).
@@ -283,7 +284,7 @@ The case space, and the rule that owns each case:
 | either write | database refuses | [Storage Failure] | none (Operation 12, Operation 34) |
 | *a window lapses* | now reaches expiry instant | nothing is called | **nothing written** — no action, no stamp, no scheduler (Expiry 2 through 5, Invariant 12.3) |
 | [Read] | a filter | the matching sessions, each carrying its principal reference, issued by reference, issuance instant, expiry instant, status, revocation fields once revoked and effective status, and no session token | none (Operation 37, Operation 38, Operation 52, Operation 59, Operation 60) |
-| [Read] | a filter naming a blank value, or a field other than principal reference and issued by reference | no session | none (Operation 37, Operation 53, Term filter) |
+| [Read] | a filter naming a blank value or a value over the maximum length, or a field other than principal reference and issued by reference | no session | none (Operation 37, Operation 53, Operation 61, Term filter) |
 
 ### Invariants
 
@@ -373,7 +374,7 @@ If the browser re-presents the old cookie at `10:50:00Z`: `validate(tok_abc123)`
 
 ### A window lapses — derived
 
-The user closes the browser without logging out. The window passes at `11:00:00Z`. **No call is made and no write occurs** — there is no action to call. At `11:30:00Z` a new tab presents the same cookie: `validate(tok_abc123)` → `invalid(expired)`. The record is still stored active, never transitioned; the answer comes from expiry instant against the injected now. Nothing is written, there is no expiry timestamp to write, and the record count is unchanged. A [Read] of the record now reports `effective_status: expired` (Expiry 2 through 6, Operation 16, Operation 38, Invariant 12.3).
+The user closes the browser without logging out. The window passes at `11:00:00Z`. **No call is made and no write occurs** — there is no action to call. At `11:30:00Z` a new tab presents the same cookie: `validate(tok_abc123)` → `invalid(expired)`. The record is still stored active, never transitioned; the answer comes from expiry instant against the injected now. Nothing is written, there is no expiry timestamp to write, and the record count is unchanged. A [Read] of the record now reports `effective_status: expired` (Expiry 2 through 5, Operation 16, Operation 38, Invariant 12.3).
 
 ### Rejection paths
 
@@ -503,9 +504,10 @@ Term authentication credential: the material a principal presents to prove ident
 ```
 Token format 1: The host MUST NOT allocate a claim set token whose expiry claim differs from the session's expiry instant.
 Token format 2: A deployment extending a claim set token MUST call [Issue].
+Token format 3: IF the session token's format cannot carry the expiry deadline exactly THEN the session token MUST carry no expiry claim.
 ```
 
-NOTE: Token format 1 and Token format 2 bind a claim set token's expiry claim and its extension, never the token's format, which the deployment owns (Capability requirement 5, Non-goal 16), so a format that cannot carry the expiry deadline exactly is one the host allocates no claim set token in; the host allocates the token at the top of the pipeline's Step 3, holding the invocation's one clock reading and the window [Issue] applies, so a claim set token's expiry claim carries the expiry deadline [Issue] stamps (Execution Contract Logic confinement 3, 9).
+NOTE: Token format 1 and Token format 2 bind a claim set token's expiry claim and its extension, never the token's format, which the deployment owns (Capability requirement 5, Non-goal 16), and Token format 3 gives the token in a format that cannot carry the expiry deadline exactly no expiry claim at all; the host allocates the token at the top of the pipeline's Step 3, holding the invocation's one clock reading and the window [Issue] applies, so a claim set token's expiry claim carries the expiry deadline [Issue] stamps (Execution Contract Logic confinement 3, 9).
 
 Term claim set token: a session token whose format carries its own expiry claim — a JWT (JSON Web Token — a compact, signed token format carrying claims; JSON is JavaScript Object Notation, a plain-text data format), for instance.
 
@@ -832,14 +834,14 @@ Inherited from:
 
 ## Status
 
-`grounded on Final Critique 14 — 2026-10-31` — see the Ledger.
+`partially resolved` — see the Ledger.
 
 ## Ledger
 
 ```
-status: grounded on Final Critique 14 — 2026-10-31
+status: partially resolved
 formal: not applicable — vote no 2026-06-03
-last gate: 2026-10-31 — Final Critique 14 — foundational count 0, clean, one sample
+last gate: 2026-11-03 — Final Critique 15 — delta — foundational count 2, not clean, no sample
 
 open:
 - 2026-10-21-a · refining · Operation 37; [Read] · [Read] answers the matching sessions in no stated order → an order
