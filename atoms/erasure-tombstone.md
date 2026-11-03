@@ -527,14 +527,14 @@ Inherited from:
 
 ## Status
 
-`partially resolved` — see the Ledger.
+`grounded on Final Critique 2 — 2026-11-03 at aeea14e` — see the Ledger.
 
 ## Ledger
 
 ```
-status: partially resolved
+status: grounded on Final Critique 2 — 2026-11-03 at aeea14e
 formal: not applicable — vote no 2026-11-02: no guard reads the clock, which only stamps the destruction instant, and the atom claims no commit order of its own; its permanence, one-record-per-destruction and no-content claims are single-state properties each action's rules hold, its listing order is a sort over stored fields, and its concurrency is Execution Contract Database 2's
-last gate: 2026-11-02 — Final Critique 1, frozen at b703490 — foundational count 8, all cured, not clean, no sample
+last gate: 2026-11-03 — Final Critique 2, delta, frozen at aeea14e — foundational count 0, clean, one sample
 
 open:
 - 2026-11-02-a · refining · Composition note 3; Identity 3, Identity 4 · a person-derived authority reference or actor reference is barred nowhere, though a destroyed id derived from a person's data is (Composition note 3), and no rule says whether an actor reference naming a person's own account is the person's data → decide whether Composition note 3 reaches the authority reference and the actor reference

@@ -590,7 +590,7 @@
  "erasure-tombstone": {
   "composed_by": [],
   "domain": null,
-  "grounded": false,
+  "grounded": true,
   "invariants": 5,
   "kind": "atom",
   "models": {
@@ -601,7 +601,7 @@
   "regulated_by": [],
   "security": false,
   "standards": [],
-  "status": "partially resolved",
+  "status": "grounded on Final Critique 2 \u2014 2026-11-03 at aeea14e",
   "title": "Erasure Tombstone"
  },
  "event-log": {
