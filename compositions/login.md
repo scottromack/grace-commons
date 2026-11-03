@@ -19,7 +19,7 @@ toc: true
 
 Login wires together the full lifecycle of logging in: checking the presented credential, issuing a time-limited session on success, logging out, and — crucially — cancelling every session that came from a credential when that credential is revoked. It combines three patterns: one that verifies credentials (Credential), one that issues and tracks time-limited sessions (Session), and the tamper-evident audit record that spans all of it (Audit Trail).
 
-Its central guarantee is that a session can never be issued without a successful credential check first — the wiring calls Session's issue only after Credential's verify answers verified, and it is provable because every issued session is named by its login_succeeded audit event, committed with the session it names or, where the audit trail refuses it, re-emitted by the reconciliation sweep from the login's log entry. Its second guarantee is cascade completeness: when a credential is revoked, every still-active session the index or the trail names for it at that moment is cancelled before the operation returns, and any the cancel could not reach is counted back to the caller.
+Its central guarantee is that a session can never be issued without a successful credential check first — a session is issued only after the presented credential verifies, and it is provable because every issued session is named by the audit event recorded with it, and a login whose audit record the trail refuses commits no session. Its second guarantee is cascade completeness: when a credential is revoked, every still-active session the index or the trail names for it at that moment is cancelled before the operation returns, and any the cancel could not reach is counted back to the caller.
 
 Every login attempt (success or failure), every logout, and every cascaded revocation is recorded, so it is provable which credentials established which sessions, whether a session rested on a valid credential, and when and by whom sessions were revoked. The cascade is the load-bearing guarantee that appears only when the three patterns are combined — it belongs to none of them alone — and it is what lets higher-level patterns reliably cut off access the moment a credential is pulled.
 
@@ -50,7 +50,7 @@ Composes 3: EXACTLY ONE Audit Trail instance MUST serve the composition.
 Composes 4: The composition MUST NOT change a constituent's spec.
 Composes 5: The composition MUST inherit a constituent's invariants PER Execution Contract Conformance 8.
 Composes 6: The composition MUST read Audit Trail as a substrate PER the section titled Substrate composition invocation in `execution-contract.md`.
-Composes 7: The composition MUST NOT hold an instance of a constituent Audit Trail reaches.
+Composes 7: The composition MUST NOT hold an instance of a constituent OF Audit Trail.
 Composes 8: The composition MUST NOT call Credential's register.
 Composes 9: The composition MUST NOT call Credential's rotate.
 Composes 10: The composition MUST NOT call Credential's revoke.
@@ -58,13 +58,13 @@ Composes 11: The composition MUST NOT offer Session's validate on the compositio
 Composes 12: The composition MUST attest EVERY audit event under the composition's own service identity.
 Composes 13: The composition MUST carry the party the call names in an audit event's data.
 Composes 14: The composition MUST NOT attest an audit event under a caller's credential.
-Composes 15: The composition MUST read the substrate's events by an open-ended sequence range.
+Composes 15: The composition MUST read the substrate's events through the Event Log instance Audit Trail carries, by an open-ended sequence range.
 Composes 16: The composition MUST select an event in the composition's own code.
 Composes 17: The composition MUST NOT query the substrate by a payload predicate.
 Composes 18: The composition MUST read the substrate's events from sequence one.
 ```
 
-Term composition: this pattern's wiring of [Credential](../atoms/credential.md), [Session](../atoms/session.md) and the [Audit Trail](./audit-trail.md) substrate — the issuance gate, the revocation cascade, the two maps and the sweep.
+Term composition: this pattern's wiring of [Credential](../atoms/credential.md), [Session](../atoms/session.md) and the [Audit Trail](./audit-trail.md) substrate — the issuance gate, the revocation cascade and the two maps.
 
 Term constituents: [Credential](../atoms/credential.md), [Session](../atoms/session.md), [Audit Trail](./audit-trail.md).
 
@@ -86,7 +86,7 @@ Composition state 6: The composition MUST key the credential-to-sessions map by 
 Composition state 7: The composition MUST rebuild a map from the substrate's login succeeded events.
 Composition state 8: The composition MUST NOT rest a session's validity on a map write.
 Composition state 9: The composition MUST store a login event log.
-Composition state 10: The composition MUST append a login event log entry per login call reaching an outcome.
+Composition state 10: The composition MUST append a login event log entry per login call answering the login result or invalid-credential.
 Deleted: Composition state 11. Execution Contract Database 3 owns it.
 Deleted: Composition state 12. Execution Contract Database 3 and Execution Contract Database 4 own it.
 Composition state 13: EVERY session MUST rest on EXACTLY ONE credential.
@@ -97,17 +97,17 @@ Composition state 16: A login event log entry MUST carry the entry id.
 
 Term credential-to-sessions map: the composition's own map from a credential id to the session tokens issued under it — a credential to sessions map; the cascade's root index.
 
-Term login event log: the composition's own append-only record of every login call, successful or refused — a login event log.
+Term login event log: the composition's own append-only record of every login call answering the login result or invalid-credential — a login event log.
 
 Term entry id: the id the host supplies at the seam for one login call's login event log entry — the key between the entry and the entry's mirrored event.
 
 Term login-family events: the substrate's login_succeeded and login_failed events.
 
-Term login event: the login-family event an admitted login records — login_failed where Credential's verify answered failed-verification, login_succeeded otherwise.
+Term login event: the login-family event an admitted login records — login_failed where the call answers invalid-credential, login_succeeded where the call answers the login result, and none where the call answers a refusal (Execution Contract Read 4).
 
 **Contract classification: two derived indexes and one extraction-pending element** (the section titled Composition state in [`execution-contract.md`](../execution-contract.md)).
 
-- The two **maps** are a *derived index*, and the pairing fact lives in a constituent: every issued session's `(credential_id, session_token)` pair is immutable audit content, written into the login_succeeded event's data, which commits with the session. *Rebuild procedure:* enumerate the substrate through the declared read, select the login_succeeded events, and group each data's session token by its credential id. **Bound on the rebuild's totality, stated rather than assumed:** the traversal reads event payloads the substrate destroys at its retention horizon, so the rebuild is total only within that horizon — and the readers need it total for one session lifetime, not for the life of the credential (Capability requirement 19). A map write that fails leaves its pair on the login_succeeded event, so the rebuild reconstructs exactly the backfill Invariant 2.4's remediation prescribes — rebuild-on-miss **is** the remediation path.
+- The two **maps** are a *derived index*, and the pairing fact lives in a constituent: every issued session's `(credential_id, session_token)` pair is immutable audit content, written into the login_succeeded event's data, which commits with the session. *Rebuild procedure:* enumerate the substrate through the declared read, select the login_succeeded events, and group each data's session token by its credential id. **Bound on the rebuild's totality, stated rather than assumed:** the traversal reads event payloads the substrate destroys at its retention horizon, so the rebuild is total only within that horizon — and the readers need it total for one session lifetime, not for the life of the credential (Primitive policy 18). A map write that fails leaves its pair on the login_succeeded event, so the rebuild reconstructs exactly the backfill Invariant 2.4's remediation prescribes — rebuild-on-miss **is** the remediation path.
 - The **login event log** is *extraction-pending, against [Event Log](../atoms/event-log.md)*. The Contract's record-coordination rule says a composition that must record that its own calls occurred composes Event Log rather than growing bespoke records, and that is the extraction pending here: a second Event Log instance for the login-attempt journal, at which point the entries become that instance's events and the classification question dissolves.
 
 ### Capability requirement
@@ -128,10 +128,11 @@ Capability requirement 12: A deployment MUST set the reconciliation cadence.
 Capability requirement 13: The reconciliation cadence MUST NOT EXCEED the reconciliation window.
 Deleted: Capability requirement 14. Execution Contract Database 1 owns it.
 Deleted: Capability requirement 15. Action wiring 13 owns it: every admitted login records its login event.
-Capability requirement 16: The host MUST supply one entry id at the seam PER login call.
+Capability requirement 16: The host MUST supply one entry id at the seam PER login call, distinct from every entry id the login event log carries.
 Capability requirement 17: A deployment MUST NOT revoke a session under the issuer references outside the composition.
 Capability requirement 18: The deployment MUST supply the database PER Execution Contract Database 1 through 4.
-Capability requirement 19: A session's duration MUST NOT EXCEED the retention period the substrate gives the session's login succeeded event.
+Deleted: Capability requirement 19. Primitive policy 18 owns it.
+Capability requirement 20: A deployment MUST supply the surface the sweep escalates to.
 ```
 
 Term seam: the composition's I/O boundary as the section titled Logic Confinement Principle in `execution-contract.md` declares it; the host injects one clock reading and, for a login call, one entry id here.
@@ -161,6 +162,7 @@ Deleted: Primitive policy 14. Execution Contract Database 1 owns it: a login's s
 Primitive policy 15: The composition MUST answer invalid-request for a blank credential id.
 Primitive policy 16: The composition MUST answer invalid-request for a blank revoked by reference on a cascade.
 Primitive policy 17: The composition MUST answer invalid-request for a blank reason on a cascade.
+Primitive policy 18: IF the session duration the call supplies, or the default session duration where the call supplies none, EXCEEDS the retention period the substrate gives a login succeeded event THEN the composition MUST answer invalid-request.
 ```
 
 
@@ -181,14 +183,15 @@ Audit arm 9: The composition MUST read an invalid-request(step-4) answer as a re
 Audit arm 10: The composition MUST read an invalid-request(step-3) answer as a record still owed.
 Audit arm 11: The composition MUST read an invalid-request(step-1) or invalid-request(step-2) answer as a record still owed with nothing committed.
 Audit arm 12: The composition MUST NOT retry an invalid-request(step-3) or invalid-request(step-4) answer.
+Audit arm 13: IF Audit Trail answers invalid-credential, invalid-request OR recording-failure at a login event, a logout event OR a cascade event THEN the action MUST answer storage-failure, naming the login-event-record stage at a login (Execution Contract Constituent failure 1, Execution Contract Constituent failure 4).
 ```
 
 ### Action wiring
 
 ```
 login(principal_ref, credential_type, presented_material, issued_by_ref, optional session_duration)
-  answers login result
-  refuses invalid-request | invalid-credential | storage-failure(stage)
+  answers login result | invalid-credential
+  refuses invalid-request | storage-failure(stage)
 
 logout(session_token, revoked_by_ref, reason)
   answers ok
@@ -199,7 +202,7 @@ revoke_sessions_for_credential(credential_id, revoked_by_ref, reason)
   refuses invalid-request | storage-failure
 ```
 
-Term login result: session token and expiry instant — what login answers.
+Term login result: the session token Session's issue answers — what login answers once Credential's verify answers verified; a failed verification answers invalid-credential beside it, an answer and not a refusal, so the call is admitted and its writes commit (Execution Contract Read 4).
 
 Term revocation tally: revoked, skipped, failed and not-found — the four counts revoke_sessions_for_credential answers.
 
@@ -217,16 +220,16 @@ Action wiring 10: IF the map write fails THEN an admitted login MUST answer the 
 Deleted: Action wiring 11. Execution Contract Database 1 owns it: the login's records commit before its map write, and the login succeeded event already carries the pair a rebuild restores.
 Action wiring 12: An admitted login MUST append a login event log entry.
 Action wiring 13: An admitted login MUST record a login event under the service identity.
-Action wiring 14: An admitted logout MUST call Session's revoke with the session token, the revoked by reference AND the reason.
+Action wiring 14: IF the session-to-credential map, rebuilt as Composition state 7 says, carries an entry for the session token THEN an admitted logout MUST call Session's revoke with the session token, the revoked by reference AND the reason.
 Action wiring 15: IF Session's revoke answers not-known THEN an admitted logout MUST answer not-known.
-Action wiring 16: An admitted logout MUST record a logout event under the service identity.
+Action wiring 16: An admitted logout MUST record a logout event under the service identity, carrying the session token, the revoked by reference, the reason AND now.
 Action wiring 17: An admitted cascade MUST read the cascade set ONLY AFTER recording a cascade initiation event.
 Action wiring 18: An admitted cascade MUST read the cascade set as the union of the map entry AND the event-derived set.
 Action wiring 19: An admitted cascade MUST call Session's validate for EVERY session token the cascade set carries.
 Action wiring 20: An admitted cascade MUST call Session's revoke for EVERY session token Session's validate answers valid for.
 Action wiring 21: An admitted cascade MUST NOT call Session's revoke for a session token Session's validate answers invalid for.
 Action wiring 22: IF Session's validate answers expired OR revoked THEN an admitted cascade MUST count the session token as skipped.
-Action wiring 23: An admitted cascade MUST record a session revoked event per revoked session token.
+Action wiring 23: An admitted cascade MUST record a session revoked event per revoked session token, carrying the session token, the revoked by reference, the cascade reason AND now.
 Action wiring 24: An admitted cascade MUST NOT change the credential-to-sessions map.
 Action wiring 25: An admitted cascade MUST record a cascade completion event carrying the initiation event's id AND the four counts.
 Action wiring 26: An admitted cascade MUST answer the revocation tally.
@@ -236,7 +239,7 @@ Action wiring 29: IF Session's revoke answers invalid-request THEN an admitted l
 Action wiring 30: IF the credential id read finds no effective-active credential THEN an admitted login MUST answer storage-failure naming the credential-id-lookup stage.
 Action wiring 31: IF Session's issue answers storage-failure THEN an admitted login MUST answer storage-failure naming the session-issue stage (Execution Contract Constituent failure 1).
 Action wiring 32: A cascade initiation event MUST carry the credential id, the revoked by reference AND the reason.
-Action wiring 33: IF Audit Trail refuses the cascade initiation event THEN an admitted cascade MUST answer storage-failure.
+Deleted: Action wiring 33. Audit arm 13 owns it.
 Action wiring 34: IF Session's validate answers valid for a session token the cascade set carries THEN an admitted cascade MUST call Session's revoke with the cascade reason.
 Action wiring 35: IF Session's validate answers not-known THEN an admitted cascade MUST count the session token as not-found AND record a session not found event.
 Action wiring 36: IF Session's revoke answers invalid-request THEN an admitted cascade MUST count the session token as failed AND record a revoke failure event.
@@ -244,11 +247,15 @@ Action wiring 37: An admitted login MUST record the login event ONLY AFTER the l
 Action wiring 38: IF the login event log append fails THEN an admitted login MUST answer storage-failure naming the login-event-log stage.
 Action wiring 39: A login event MUST carry the login event log entry's entry id.
 Action wiring 40: IF Session's issue answers invalid-request THEN an admitted login MUST answer invalid-request.
+Action wiring 41: IF Session's revoke answers already-terminal THEN an admitted cascade MUST count the session token as skipped.
+Action wiring 42: IF Session's revoke answers not-known THEN an admitted cascade MUST count the session token as not-found AND record a session not found event.
+Action wiring 43: IF the session-to-credential map, rebuilt as Composition state 7 says, carries no entry for the session token THEN an admitted logout MUST answer not-known.
+Deleted: Action wiring 44. Action wiring 14 owns it.
 ```
 
-NOTE: open 2026-10-29-a — a refused login appends its log entry and records its login failed event (Action wiring 2, 12, 13; Composition state 10), while Execution Contract Read 4 says a refused call writes nothing; which stands waits on whether a refused outcome leaves an act's other writes committed.
+NOTE: watch the attempt a refusal erases (Action wiring 2, Term login result).
 
-NOTE: open 2026-10-29-b — Audit Trail's recording-failure at a login's, a logout's or a cascade's record lands at no position (Action wiring 13, 16, 23, 25, 35, 36; Action wiring 33 lands only the initiation event's), and Check 4.1 reads an initiation whose completion the trail refused as a finding until the sweep abandons it; the landing waits on 2026-10-29-a.
+NOTE: open 2026-10-29-b — an invalid-request(step-3) or invalid-request(step-4) at a login's, a logout's or a cascade's record keeps Audit Trail's evidence committed (Audit Trail record action step 7.11) and reads as a record owed or landed (Audit arm 9 through 12), while the action Audit arm 13 fails commits nothing of its own (Execution Contract Database 1); whether that evidence stands is open, a kept cascade initiation event then Reconciliation 12's to abandon and Check 4.1 bounded by the reconciliation window.
 
 Term admitted login: a login call whose inputs cleared the boundary predicate.
 
@@ -257,8 +264,101 @@ Term admitted logout: a logout call whose inputs cleared the boundary predicate.
 Term admitted cascade: a [Revoke Sessions For Credential] call whose inputs cleared the boundary predicate.
 
 Term cascade reason: "credential-revocation-cascade:" and the cascade initiation event's id, then ": " and the caller's reason — the join key the revoked Session record keeps.
+Term stage: credential-id-lookup | session-issue | login-event-log | login-event-record — the stage storage-failure(stage) names (Action wiring 30, 31, 38, Audit arm 13).
+Term cascade reason prefix: "credential-revocation-cascade:" — the leading text of a cascade reason (Primitive policy 13).
+Term session revoked event: session_revoked_by_cascade — the cascade's per-session event (Action wiring 23, Invariant 5.2, Check 4.2).
 Term cascade events: credential_revocation_cascade_initiated, session_revoked_by_cascade, session_revoke_failure_during_cascade, session_not_found_during_cascade, credential_revocation_cascade_completed and credential_revocation_cascade_abandoned — the substrate's events a cascade and the sweep's abandonment record.
 Term cascade set: the union of the credential-to-sessions map's entry for a credential id and the event-derived set the substrate's login succeeded events carry for it.
+
+#### Closure table
+
+Every input an action takes and every answer a call of the three actions can meet — Credential's verify and read, Session's issue, validate and revoke, and Audit Trail's record_action — with where the call lands it and the rule that owns the landing. A constituent call meets the answers its signature declares and the state-unavailable a failed read of the database gives every action (Execution Contract Read 1, Execution Contract Constituent failure 3); a call that never answers is the lost answer of Execution Contract Error model 1, written no answer here. Each action is one transaction (Execution Contract Database 1), the state its guards decide on read inside it (Execution Contract Database 2). A login answering invalid-credential lands an answer, not a refusal, so the call is admitted and its log entry and event commit with it; a refusal writes nothing (Execution Contract Read 4).
+
+**Inputs.**
+
+| Action | Input | Lands | Owner |
+|---|---|---|---|
+| login | a blank principal reference, credential type or presented material | invalid-request, nothing written | Primitive policy 1, 2, 3 |
+| login | a principal reference or credential type over Credential's length bound | invalid-request, nothing written | Primitive policy 10, 11 |
+| login | an issued by reference outside the issuer references | invalid-request, nothing written | Primitive policy 12 |
+| login | no session duration supplied and none set by the deployment | invalid-request, nothing written | Primitive policy 5 |
+| login | a session duration over the retention period the substrate gives a login succeeded event | invalid-request, nothing written | Primitive policy 18 |
+| logout | a blank session token | invalid-request, nothing written | Primitive policy 4 |
+| logout | a reason beginning with the cascade reason prefix | invalid-request, nothing written | Primitive policy 13 |
+| revoke_sessions_for_credential | a blank credential id, revoked by reference or reason | invalid-request, nothing written | Primitive policy 15, 16, 17 |
+| every action | an opaque input | compared byte-exact, never normalized | Primitive policy 6, 7 |
+
+**Credential's verify**, at login.
+
+| Answer | Lands | Owner |
+|---|---|---|
+| verified | the credential id read, then Session's issue | Action wiring 1, 4, 5 |
+| failed-verification | invalid-credential answered, the login event log entry and the login failed event written, no session issued | Action wiring 2, 3, 12, 13, 37 |
+| state-unavailable | state-unavailable, nothing written | Execution Contract Constituent failure 3 |
+
+**The credential id read**, at login once verify answers verified.
+
+| Answer | Lands | Owner |
+|---|---|---|
+| the effective-active credential | its credential id, kept for the map write | Action wiring 5 |
+| no effective-active credential | storage-failure naming credential-id-lookup, nothing written | Action wiring 30 |
+| state-unavailable | state-unavailable, nothing written | Execution Contract Constituent failure 3 |
+
+**Session's issue**, at login.
+
+| Answer | Lands | Owner |
+|---|---|---|
+| a session token | the login event log entry, the login succeeded event, then the maps written; the token answered | Action wiring 8, 9, 12, 13, 37 |
+| invalid-request | invalid-request, nothing written | Action wiring 40 |
+| storage-failure | storage-failure naming session-issue, nothing written | Action wiring 31, Execution Contract Constituent failure 1 |
+| state-unavailable | state-unavailable, nothing written | Execution Contract Constituent failure 3 |
+
+**The map write and the log append**, at login.
+
+| Outcome | Lands | Owner |
+|---|---|---|
+| the map write fails | the session token answered; the pair stays on the login succeeded event for the rebuild and the sweep's backfill | Action wiring 10, Reconciliation 20 |
+| the login event log append fails | storage-failure naming login-event-log, nothing written | Action wiring 38 |
+
+**Session's revoke**, at logout, after the map read.
+
+| Answer | Lands | Owner |
+|---|---|---|
+| the session token no entry of the rebuilt map carries | not-known, Session's revoke not called | Action wiring 43 |
+| revoked | the logout event recorded, ok answered | Action wiring 14, 16 |
+| already-terminal | already-terminal | Action wiring 27 |
+| not-known | not-known | Action wiring 15 |
+| invalid-request | invalid-request | Action wiring 29 |
+| storage-failure | storage-failure, nothing written | Execution Contract Constituent failure 1 |
+| state-unavailable | state-unavailable, nothing written | Execution Contract Constituent failure 3 |
+
+**Session's validate**, at the cascade, for every session token the cascade set carries.
+
+| Answer | Lands | Owner |
+|---|---|---|
+| valid | Session's revoke with the cascade reason | Action wiring 19, 20, 34 |
+| invalid(expired) or invalid(revoked) | counted skipped, Session's revoke not called | Action wiring 21, 22 |
+| invalid(not-known) | counted not-found, a session not found event | Action wiring 35 |
+| state-unavailable | state-unavailable, nothing written | Execution Contract Constituent failure 3 |
+
+**Session's revoke**, at the cascade.
+
+| Answer | Lands | Owner |
+|---|---|---|
+| revoked | counted revoked, a session revoked event | Action wiring 23 |
+| already-terminal | counted skipped | Action wiring 41 |
+| not-known | counted not-found, a session not found event | Action wiring 42 |
+| invalid-request | counted failed, a revoke failure event | Action wiring 36 |
+| storage-failure | storage-failure, nothing written | Execution Contract Constituent failure 1 |
+| state-unavailable | state-unavailable, nothing written | Execution Contract Constituent failure 3 |
+
+**Audit Trail's record_action**, at a login event, a logout event and each cascade event (the initiation, a session revoked, a session not found, a revoke failure and the completion).
+
+| Answer | Lands | Owner |
+|---|---|---|
+| an event id | the action goes on to its next write; the cascade reads its set only after the initiation lands | Action wiring 17, 37 |
+| invalid-credential, invalid-request or recording-failure | storage-failure, naming login-event-record at a login, nothing written of the action's own; the deployment reads invalid-credential as a fault and alerts | Audit arm 4, 5, 13, Execution Contract Constituent failure 1, Execution Contract Constituent failure 4 |
+| state-unavailable | state-unavailable, nothing written | Execution Contract Constituent failure 3 |
 
 ### Wiring decision
 
@@ -290,9 +390,11 @@ Reconciliation 17: The sweep MUST call [Revoke Sessions For Credential] again fo
 Deleted: Reconciliation 18. Execution Contract Database 1 owns it.
 Reconciliation 19: The sweep MUST call a cascade again ONLY AFTER recording a recovery intent.
 Reconciliation 20: IF both maps lack the pair a login succeeded event carries THEN the sweep MUST write the pair into both maps.
-Reconciliation 13: The sweep MUST escalate a discrepancy the reconciliation window did not close.
+Reconciliation 13: The sweep MUST escalate a discrepancy the reconciliation window did not close to the surface Capability requirement 20 supplies.
 Reconciliation 14: The sweep MUST NOT examine an event the substrate's horizon EXCEEDS.
 Reconciliation 21: The sweep MUST match a login event log entry to the entry's mirrored event by the entry id.
+Reconciliation 22: The sweep MUST match a revoked session to a revocation-family event by the revoked by reference, the reason AND the revocation instant.
+Reconciliation 23: The sweep MUST NOT match a revocation-family event to a second session.
 ```
 
 Term revocation-family event: logout_succeeded | session_revoked_by_cascade — the exact family a revoked session's record must belong to.
@@ -310,6 +412,7 @@ Each emerges from the composition; none belongs to one constituent.
   Invariant 1.1: EVERY session token the session-to-credential map carries MUST follow Credential's verify answering verified.
   Invariant 1.2: The composition MUST NOT call Session's issue for a login Credential's verify refused.
   ```
+  *Rests on:* Action wiring 1, 2, 4 and 40; Wiring decision 1; Credential's verify answering verified.
 - **Invariant 2 — Cascade completeness.**
   ```
   Invariant 2.1: EVERY session the cascade set carried AND Session's validate answered valid for AND the cascade did not count failed MUST stand terminal at the cascade's return.
@@ -317,10 +420,12 @@ Each emerges from the composition; none belongs to one constituent.
   Invariant 2.3: The cascade set MUST carry the union of the map's entry AND the event-derived set.
   Invariant 2.4: A lost map entry MUST NOT shrink the cascade set.
   ```
+  *Rests on:* Action wiring 17 through 20, 34, 41 and 42; Wiring decision 2 and 4; Reconciliation 17 and 20; Session's validate and revoke.
 - **Invariant 3 — Session-credential traceability.**
   ```
   Invariant 3.1: EVERY session-to-credential entry's credential id MUST equal the credential id the login's credential id read answered (Action wiring 5).
   ```
+  *Rests on:* Action wiring 5 and 9; Composition state 5; Credential's read.
 - **Invariant 4 — Login event log completeness.**
   ```
   Deleted: Invariant 4.2. Execution Contract Database 1 owns it.
@@ -331,10 +436,12 @@ Each emerges from the composition; none belongs to one constituent.
   Invariant 5.1: EVERY login succeeded event MUST name a session token the rebuilt session-to-credential map carries.
   Invariant 5.2: EVERY session revoked event MUST name a session token the cascade found valid.
   ```
+  *Rests on:* Action wiring 13, 23 and 25; Composition state 7; Primitive policy 18.
 - **Invariant 6 — Map inverse consistency.**
   ```
   Invariant 6.1: The credential-to-sessions map AND the session-to-credential map MUST agree.
   ```
+  *Rests on:* Composition state 2 through 5; Action wiring 9 and 24.
 
 ---
 
@@ -360,7 +467,7 @@ The user clicks "Log out." The host system calls `logout(session_token: tok_abc1
 
 An incident-response team determines that `cred_c01` (user_u91's password credential) was likely compromised. The identity-management surface calls `Credential.revoke(cred_c01, revoked_by_ref: security_team_s01, reason: "suspected-compromise-2026-09-12")`. The response team then calls `revoke_sessions_for_credential(credential_id: cred_c01, revoked_by_ref: security_team_s01, reason: "suspected-compromise-2026-09-12")`.
 
-The composition first records `credential_revocation_cascade_initiated` event `ev_c01` for `cred_c01`, carrying the revoking reference and the reason, and only then reads the cascade set: `credential_to_sessions[cred_c01]` = `{tok_abc123, tok_def456}` (two sessions were issued over the credential's lifetime), and the trail names no other. For `tok_abc123`: `Session.validate → valid(...)` → `Session.revoke(tok_abc123, security_team_s01, "credential-revocation-cascade:ev_c01: suspected-compromise-2026-09-12") → revoked`; Audit Trail session_revoked_by_cascade. For `tok_def456`: `Session.validate → invalid(expired)` → skipped (dead by derivation; no revocation write needed). Audit Trail `credential_revocation_cascade_completed` naming `ev_c01` with the four counts. Return: `{revoked: 1, skipped: 1, failed: 0, not_found: 0}`.
+The composition first records `credential_revocation_cascade_initiated` event `ev_c01` for `cred_c01`, carrying the revoking reference and the reason, and only then reads the cascade set: `credential_to_sessions[cred_c01]` = `{tok_abc123, tok_def456}` (two sessions were issued over the credential's lifetime), and the trail names no other. For `tok_abc123`: `Session.validate → valid(...)` → `Session.revoke(tok_abc123, security_team_s01, "credential-revocation-cascade:ev_c01: suspected-compromise-2026-09-12") → revoked`; Audit Trail session_revoked_by_cascade. For `tok_def456`: `Session.validate → invalid(expired)` → skipped (already terminal; no revocation write needed). Audit Trail `credential_revocation_cascade_completed` naming `ev_c01` with the four counts. Return: `{revoked: 1, skipped: 1, failed: 0, not_found: 0}`.
 
 Any subsequent Privileged Access Provisioning `exercise_access` call under `tok_abc123` will return `session-invalid` at step 1, before the Capability is presented.
 
@@ -388,7 +495,7 @@ Check 1.2: An auditor MUST find EVERY session-to-credential entry naming a crede
 Check 2.1: An auditor MUST find the credential-to-sessions map AND the session-to-credential map agreeing (Invariant 6.1).
 Check 2.2: An auditor MUST rebuild both maps from the substrate's login succeeded events (Composition state 7).
 Check 2.3: IF a login succeeded event's age EXCEEDS the reconciliation window THEN an auditor MUST find the event's session token carrying an entry in both maps (Reconciliation 20).
-Check 3.1: An auditor MUST find EVERY login call reaching an outcome carrying one login event log entry (Composition state 10).
+Check 3.1: An auditor MUST find EVERY login call answering the login result or invalid-credential carrying one login event log entry (Composition state 10).
 Check 3.2: An auditor MUST find EVERY login event log entry's outcome matching the mirrored event's action reference (Composition state 10).
 Check 3.3: An auditor MUST rebuild a principal reference's session set from the login event log (Composition state 10).
 Check 4.1: An auditor MUST find EVERY cascade initiation event carrying EXACTLY ONE OF a completion event, an abandoned event (Reconciliation 12).
@@ -475,16 +582,16 @@ Kind: Operation
 
 #### Invalid Credential
 
-The composition's own login rejection — returned when `Credential.verify` fails (`failed-verification(reason)`): the credential check did not pass, so no session is issued and a failed-login event is recorded. The observable form of the credential-gates-issuance boundary (Invariant 1).
+The login answer returned when `Credential.verify` fails (`failed-verification(reason)`): the credential check did not pass, so no session is issued and a failed-login event is recorded. An answer and not a refusal, so the call is admitted and its log entry and event commit with it (Execution Contract Read 4). The observable form of the credential-gates-issuance boundary (Invariant 1).
 
 Kind:       Member
-Member of:  the login rejection
-Role:       Rejection
+Member of:  the login answer
+Role:       Outcome
 Projection: invalid-credential
 
 #### Outcome
 
-The `login_event_log` entry's classification of a login call: `success` or `failed-verification(reason)`. Every login call reaching an outcome appends exactly one entry (Composition state 10), giving the composition a provable query surface alongside the tamper-evident Audit Trail; a login that answers storage-failure commits nothing, its entry included (Execution Contract Database 1).
+The `login_event_log` entry's classification of a login call: `success` or `failed-verification(reason)`. Every login call answering the login result or invalid-credential appends exactly one entry (Composition state 10), giving the composition a provable query surface alongside the tamper-evident Audit Trail; a login that answers storage-failure commits nothing, its entry included (Execution Contract Database 1).
 
 Kind:       Field
 Field of:   the login-event-log entry
@@ -493,7 +600,7 @@ Projection: outcome
 
 #### Not Known
 
-The [Revoke Sessions For Credential] counter for a data-integrity gap: a session token present in `credential_to_sessions` but absent from the Session records (`Session.validate → invalid(not-known)`). Distinct from skipped (already-terminal sessions); each increment writes a `session_not_found_during_cascade` event for investigation.
+The [Revoke Sessions For Credential] counter for a data-integrity gap: a session token present in `credential_to_sessions` but absent from the Session records (`Session.validate → invalid(not-known)`, or `Session.revoke` refusing not-known). Session removes no session (Session State 11), so the counter is defensive: it stands for a gap a lost write or a foreign token would leave, never an operating state. Distinct from skipped (already-terminal sessions); each increment writes a `session_not_found_during_cascade` event for investigation.
 
 Kind:       Field
 Field of:   the cascade result
@@ -539,12 +646,11 @@ Inherited from:
 ```
 status: partially resolved
 formal: verified — login.tla, no twin, 2026-05-23
-last gate: 2026-10-29 — Final Critique 10 — foundational count 6, not clean, no sample
+last gate: 2026-11-03 — Final Critique 11 — foundational count 7, not clean, no sample
 
 open:
 - 2026-08-29-a · refining · formal · the model's sweep carries no upper edge and no recovery record → extend it
-- 2026-10-29-a · foundational · Action wiring 2, 12, 13, Composition state 10 · a refused login appends its log entry and records its login failed event, the record the disputed-login scenario reads, while Execution Contract Read 4 says a refused call writes nothing → keep the record of a refused attempt or retire it, once the maintainer reads whether a refused outcome leaves an act's other writes committed (Multi-Party Approval 2026-10-26-d, Actor Suspension 2026-10-26-c, Attributed Permissions Admin 2026-10-27-a, Authenticated Actor 2026-10-27-a)
-- 2026-10-29-b · foundational · Action wiring 13, 16, 23, 25, 35, 36, Check 4.1 · Audit Trail's recording-failure at a login's, a logout's or a cascade's record lands at no position, Action wiring 33 landing only the initiation event's, and Check 4.1 reads an initiation whose completion the trail refused as a finding until the sweep abandons it → land every recording-failure at the position it was written at and bound Check 4.1 by the reconciliation window, once 2026-10-29-a is answered
+- 2026-10-29-b · foundational · Audit arm 9 through 13, Check 4.1 · an invalid-request(step-3) or invalid-request(step-4) at a login's, a logout's or a cascade's record keeps Audit Trail's evidence (record action step 7.11) beside an action that commits nothing of its own (Execution Contract Database 1) → keep the evidence, abandoning a kept initiation (Reconciliation 12) and bounding Check 4.1 by the reconciliation window, or roll it back with the action, tombstoning Audit arm 9 through 11 and leaving Check 4.1 as written
 ```
 
 <details markdown="block">
