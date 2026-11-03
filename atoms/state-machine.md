@@ -68,7 +68,11 @@ Identity 13: The atom MUST NOT identify a workflow by the subject reference.
 Identity 14: The atom MUST admit a second workflow carrying a recorded subject reference.
 Identity 15: The atom MUST NOT confirm that a subject reference names a known subject.
 Identity 16: The atom MUST NOT interpret an instance metadata.
+Identity 17: The host MUST NOT allocate an instance id that EXCEEDS the string cap.
+Identity 18: The host MUST NOT allocate a transition id that EXCEEDS the string cap.
 ```
+
+NOTE: watch the id's length against the cap (Identity 17, Identity 18).
 
 Term workflow: one running workflow — one declaration, one current state and one transition history; the record this atom holds.
 
@@ -600,7 +604,7 @@ Term terms: workflow, instance id, history entry, transition id, subject referen
 
 #### Instantiate
 
-The behavior that validates a caller-supplied [Declaration] and creates a new workflow in its [Initial State], assigning a fresh [Workflow Id], recording [Workflow Metadata], [Actor Reference], and [Instantiation Instant], and starting an empty [Transition History]. Rejected [Invalid Declaration] for any declaration defect, [Invalid Request] for a bad [Actor Reference] or [Instantiation Instant] or a [Subject Reference] over the string cap, or [Storage Failure].
+The behavior that validates a caller-supplied [Declaration] and creates a new workflow in its [Initial State], assigning a fresh [Workflow Id], recording [Workflow Metadata], [Actor Reference], and [Instantiation Instant], and starting an empty [Transition History]. Rejected [Invalid Declaration] for any declaration defect, [Invalid Request] for a bad [Actor Reference] or [Instantiation Instant], an [Actor Reference] over the string cap, or a [Subject Reference] over the string cap, or [Storage Failure].
 
 Kind: Operation
 
@@ -798,7 +802,7 @@ Projection: guard_satisfied
 
 #### Invalid Declaration
 
-The rejection [Instantiate] returns for any declaration defect — a malformed [Declaration], an empty or duplicate-named [States] set, an [Initial State] that is missing or in [Terminal States], a [Terminal States] member missing from [States], a transition referencing an undeclared state or leaving a terminal state, a duplicate `(from_state, action)` pair, a blank [Action] or [Guard], or a state name, [Action] or [Guard] over the string cap.
+The rejection [Instantiate] returns for any declaration defect — a malformed [Declaration], an empty or duplicate-named [States] set, a blank state name, an [Initial State] that is missing or in [Terminal States], a [Terminal States] member missing from [States], a transition referencing an undeclared state or leaving a terminal state, a duplicate `(from_state, action)` pair, a blank [Action] or [Guard], or a state name, [Action] or [Guard] over the string cap.
 
 Kind:       Member
 Member of:  the Instantiate rejection
@@ -935,7 +939,7 @@ Guard evaluation, non-repudiable attribution, tamper-evidence, and retention are
 ```
 status: partially resolved
 formal: verified — state-machine.als + 1 twin, 2026-06-04
-last gate: 2026-11-03 — Final Critique 11 — delta — foundational count 2, not clean, one sample
+last gate: 2026-11-03 — Final Critique 12 — delta — foundational count 1, not clean, one sample
 
 open:
 - 2026-10-31-a · refining · State 2; State 3; State 15; Operation 67 · no action answers a workflow's subject reference, instance metadata, actor reference or instantiation instant, which the workflow records carry, and a composing pattern reads an atom only through the atom's declared surface (the section titled The atom interface contract in `execution-contract.md`) → a read answering them, or a non-goal saying none does and who owns the need
