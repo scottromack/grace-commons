@@ -219,7 +219,7 @@ Operation 57: IF the session's status EQUALS active AND reason is malformed THEN
 Operation 58: [Issue] MUST record the session token the host allocates (Identity 3, Capability requirement 6).
 Operation 59: [Read] MUST carry principal reference, issued by reference, issuance instant, expiry instant and status on EVERY answered session.
 Operation 60: [Read] MUST carry revocation instant, revoked by reference and revocation reason on EVERY answered revoked session.
-Operation 61: IF a filter names a field whose value EXCEEDS the maximum length THEN [Read] MUST answer no session.
+Operation 61: IF the filter's value on principal reference EXCEEDS the maximum length of principal reference OR the filter's value on issued by reference EXCEEDS the maximum length of issued by reference THEN [Read] MUST answer no session (String 6, Execution Contract Input 2).
 ```
 
 NOTE: open 2026-10-21-a — [Read] answers the matching sessions in no stated order (Operation 37).
@@ -284,7 +284,7 @@ The case space, and the rule that owns each case:
 | either write | database refuses | [Storage Failure] | none (Operation 12, Operation 34) |
 | *a window lapses* | now reaches expiry instant | nothing is called | **nothing written** — no action, no stamp, no scheduler (Expiry 2 through 5, Invariant 12.3) |
 | [Read] | a filter | the matching sessions, each carrying its principal reference, issued by reference, issuance instant, expiry instant, status, revocation fields once revoked and effective status, and no session token | none (Operation 37, Operation 38, Operation 52, Operation 59, Operation 60) |
-| [Read] | a filter naming a blank value or a value over the maximum length, or a field other than principal reference and issued by reference | no session | none (Operation 37, Operation 53, Operation 61, Term filter) |
+| [Read] | a filter naming a blank value, or a value Operation 61 answers no session on, or a field other than principal reference and issued by reference | no session | none (Operation 37, Operation 53, Operation 61, Term filter) |
 
 ### Invariants
 
@@ -507,7 +507,7 @@ Token format 2: A deployment extending a claim set token MUST call [Issue].
 Token format 3: IF the session token's format cannot carry the expiry deadline exactly THEN the session token MUST carry no expiry claim.
 ```
 
-NOTE: Token format 1 and Token format 2 bind a claim set token's expiry claim and its extension, never the token's format, which the deployment owns (Capability requirement 5, Non-goal 16), and Token format 3 gives the token in a format that cannot carry the expiry deadline exactly no expiry claim at all; the host allocates the token at the top of the pipeline's Step 3, holding the invocation's one clock reading and the window [Issue] applies, so a claim set token's expiry claim carries the expiry deadline [Issue] stamps (Execution Contract Logic confinement 3, 9).
+NOTE: Token format 1 and Token format 2 bind a claim set token's expiry claim and its extension, never the token's format, which the deployment owns (Capability requirement 5, Non-goal 16), and Token format 3 gives the token whose format cannot carry the expiry deadline exactly no expiry claim at all; the host allocates the token at the top of the pipeline's Step 3, holding the invocation's one clock reading and the window [Issue] applies, so a claim set token's expiry claim carries the expiry deadline [Issue] stamps (Execution Contract Logic confinement 3, 9).
 
 Term claim set token: a session token whose format carries its own expiry claim — a JWT (JSON Web Token — a compact, signed token format carrying claims; JSON is JavaScript Object Notation, a plain-text data format), for instance.
 
@@ -544,7 +544,9 @@ Term record verbs: identify, serve, offer, compare, allocate, reuse, change, car
 
 Term value sets: status = active | revoked.
 
-Term bounds: token entropy (the floor a session token's random material is drawn from); default session duration (the window [Issue] applies where the call supplies none); zero duration (the floor a session duration must exceed); maximum length (the cap per string input in Unicode code points, 1,024 where a deployment declares none).
+Term bounds: token entropy (the floor a session token's random material is drawn from); default session duration (the window [Issue] applies where the call supplies none); zero duration (the floor a session duration must exceed); maximum length (the cap per string input in Unicode code points, counted as the call supplies the value, 1,024 where a deployment declares none).
+
+NOTE: watch the cap's measure (Term bounds).
 
 Term cadences: empty.
 
@@ -688,7 +690,7 @@ Projection:   reason
 
 #### Filter
 
-The selection a caller passes to [Read] to scope which [Session] records are returned: a [Principal Reference], an [Issued By Reference], both or neither. A [Session] matches when it carries every value the filter names, and a filter naming no field matches every [Session]; a filter naming a blank value, or any other field, matches none. Consumed per call; never stored.
+The selection a caller passes to [Read] to scope which [Session] records are returned: a [Principal Reference], an [Issued By Reference], both or neither. A [Session] matches when it carries every value the filter names, and a filter naming no field matches every [Session]; a filter naming a blank value, a value Operation 61 answers no session on, or any other field, matches none. Consumed per call; never stored.
 
 Kind:         Parameter
 Parameter of: Read
@@ -841,7 +843,7 @@ Inherited from:
 ```
 status: partially resolved
 formal: not applicable — vote no 2026-06-03
-last gate: 2026-11-03 — Final Critique 15 — delta — foundational count 2, not clean, no sample
+last gate: 2026-11-03 — Final Critique 16 — delta — foundational count 2, not clean, no sample
 
 open:
 - 2026-10-21-a · refining · Operation 37; [Read] · [Read] answers the matching sessions in no stated order → an order
