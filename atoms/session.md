@@ -111,7 +111,7 @@ Capability requirement 3: The deployment MUST supply the session token's random 
 Capability requirement 4: The session token's random material MUST NOT fall below the token entropy.
 Capability requirement 5: The deployment MUST own the session token's format.
 Capability requirement 6: The deployment MUST own whether the database holds a session token raw.
-Capability requirement 10: The deployment MUST supply the session records PER Execution Contract Database 1 through 7 and Execution Contract Input 1.
+Capability requirement 10: The deployment MUST supply the session records PER Execution Contract Database 1 through 7, Execution Contract Read 5, Execution Contract Read 6 and Execution Contract Input 1.
 Deleted: Capability requirement 11. Operation 56 owns it.
 Deleted: Capability requirement 7. Execution Contract Logic confinement 7 owns it.
 Deleted: Capability requirement 8. Execution Contract Logic confinement 7 owns it.
@@ -221,10 +221,6 @@ Operation 59: [Read] MUST carry principal reference, issued by reference, issuan
 Operation 60: [Read] MUST carry revocation instant, revoked by reference and revocation reason on EVERY answered revoked session.
 Operation 61: IF the filter names a field other than principal reference and issued by reference OR the filter's value on principal reference EXCEEDS the maximum length of principal reference OR the filter's value on issued by reference EXCEEDS the maximum length of issued by reference THEN [Read] MUST answer no session (String 6, Execution Contract Input 2).
 ```
-
-NOTE: open 2026-10-21-a — [Read] answers the matching sessions in no stated order (Operation 37).
-
-NOTE: open 2026-10-31-a — [Read] answers EVERY matching session with no cap and no paging (Operation 37).
 
 NOTE: watch the required input no rule records (Operation 30, Operation 50, Operation 51).
 
@@ -845,9 +841,7 @@ status: partially resolved
 formal: not applicable — vote no 2026-06-03
 last gate: 2026-11-03 — Final Critique 18 — delta — foundational count 1, not clean, no sample
 
-open:
-- 2026-10-21-a · refining · Operation 37; [Read] · [Read] answers the matching sessions in no stated order → an order
-- 2026-10-31-a · refining · Operation 37; [Read] · [Read] answers EVERY matching session with no cap and no paging, and no rule says whether a read's answer is capped, bounded by the deployment or left unbounded (the host obligations row in `open-questions.md`) → a cap, a deployment-supplied bound, or the unbounded answer stated
+open: none
 ```
 
 <details markdown="block">

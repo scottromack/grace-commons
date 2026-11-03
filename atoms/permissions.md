@@ -91,7 +91,7 @@ Term revocation instant: the instant the grant was withdrawn — a [Revocation I
 
 ```
 Capability requirement 1: The deployment MUST supply now at the seam.
-Capability requirement 4: The deployment MUST supply the grant records PER Execution Contract Database 1 through 4, Execution Contract Database 6, Execution Contract Read 1 through 4, Execution Contract Refusal 1 and Execution Contract Conformance 9.
+Capability requirement 4: The deployment MUST supply the grant records PER Execution Contract Database 1 through 4, Execution Contract Database 6, Execution Contract Read 1 through 6, Execution Contract Refusal 1 and Execution Contract Conformance 9.
 Capability requirement 5: The deployment MAY declare the string cap PER Execution Contract Input 2.
 Capability requirement 6: The deployment MUST NOT change the string cap for the life of the instance.
 Deleted: Capability requirement 2. Execution Contract Logic confinement 7 owns it.
@@ -155,8 +155,6 @@ Deleted: Operation 30. Execution Contract Read 1 owns it.
 Deleted: Operation 31. Execution Contract Read 1 owns it: after the read, every refusal rule of [Grant] before the write answers invalid-request.
 Deleted: Operation 32. Execution Contract Refusal 1 owns it.
 ```
-
-NOTE: open 2026-10-21-h — [Read] answers every grant in no stated order and with no bound on the answer (Operation 26, Operation 27).
 
 Term pair: one subject reference with one action scope — what [Check] matches over.
 
@@ -641,7 +639,6 @@ open:
 - 2026-10-21-c · refining · Revoke persistence 2, 4 · the caller's retry of a refused revoke names no terminus (Pass 1: every retry loop names its terminus), and the deployment that raises the alert is declared only as an alias of the deployment → name the bound at which the caller stops and what it raises there; say which deployments alert
 - 2026-10-21-e · refining · Grant concurrency 2 · one authoritative grant and the guard against a concurrent issue name neither what the composing pattern guards nor how, while the atom refuses no covered pair (Operation 6) → name what the composing pattern guards, outside the atom
 - 2026-10-21-f · refining · Term seam; Term transition; Term business caller · each says the section titled Logic Confinement Principle in `execution-contract.md` declares it, and that section declares none of the three → declare the three there, the corpus's one seam wording, or point each at its declaration
-- 2026-10-21-h · refining · Operation 26, 27 · [Read] answers every grant in no stated order and with no bound on the answer → say the order is unspecified or give one; bound or page the answer
 - 2026-10-26-a · refining · Identity 2; Capability requirement 1, 4 through 6 · the grant id's source is named as the host's allocation (Identity 2) and not among what the deployment supplies, where the atom shape in `spec-format.md` lists an id source under Capability requirement; Approval Step (its 2026-10-26-a), Assignment (its 2026-10-26-a), Event Log (its 2026-10-22-b) and Tamper Evidence (its 2026-10-22-a) route the same form → name the source among the Capability requirements, in the one form the corpus settles for its twenty host-allocation atoms
 - 2026-10-26-b · refining · Operation 16 through 22; the signature block · the rules name the action [Check] and the signature block declares it as permitted, and only the Check entry, a term entry, which carries no obligation (GRACE-lang Surface 25 and 27), says the one is the other; permitted is also one of [Check]'s two answers → name the action alike in the rules and on the wire, whose permitted every composing page calls, or tie the two names on the normative surface in the form the corpus settles for the wire layer (the Watch list's the wire layer)
 - 2026-11-02-a · refining · Term now · the entry restates Execution Contract Logic confinement 11's definition beside its citation, where that rule says a relying specification cites it and does not restate it; the same gloss stands on some thirty atoms → one corpus sweep settles the form for every atom, or Logic confinement 11 admits the gloss

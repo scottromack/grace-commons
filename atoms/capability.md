@@ -111,7 +111,7 @@ Deleted: Expiry 9. Operation 38 owns it.
 
 ```
 Capability requirement 1: The deployment MUST supply now at the seam.
-Capability requirement 5: The deployment MUST supply the capability records PER Execution Contract Database 1 through 7, Execution Contract Read 1 through 4, Execution Contract Refusal 1 and Execution Contract Input 1.
+Capability requirement 5: The deployment MUST supply the capability records PER Execution Contract Database 1 through 7, Execution Contract Read 1 through 6, Execution Contract Refusal 1 and Execution Contract Input 1.
 Capability requirement 6: The deployment MAY configure a default capability ttl ONLY IF the default capability ttl EXCEEDS the zero duration.
 Capability requirement 7: The deployment MUST configure a default capability ttl.
 Capability requirement 8: The capability token's random material MUST NOT fall below the token entropy.
@@ -275,8 +275,6 @@ Term revocation reason: the stated ground for the cancellation — a [Revocation
 Term reason: the [Revoke] input the capability keeps as revocation reason — a [Reason].
 
 Term filter: the selection a [Read] call scopes the answer by — a [Filter] naming capability token, allocator reference, both OR no field; a capability matches a filter when it carries EVERY value the filter names (String 1) and the filter names no other field, so a filter naming no field matches EVERY capability; consumed per call, never stored.
-
-NOTE: open 2026-10-21-a — [Read] answers the matching capabilities in no stated order (Operation 50).
 
 Term liveness query: any query for the capabilities still redeemable — the administrative surfaces, and the auditor's triage.
 
@@ -870,7 +868,6 @@ formal: verified — capability.als + 1 twin, 2026-06-23
 last gate: 2026-11-01 — Final Critique 10 — foundational count 0, clean, one sample
 
 open:
-- 2026-10-21-a · refining · Operation 50; [Read] · [Read] answers the matching capabilities in no stated order → an order
 - 2026-10-21-e · refining · Term value sets; the term entries · the term entries name member-of targets (the action outcome, the Revoke rejection, the action rejection, the derived effective status), none of which Term value sets declares → declare each target
 - 2026-10-21-f · refining · External check 1; Check 5.2 · External check 1 reads a refused [Redeem] from the composing Audit Trail, which no rule obliges to record a refusal, and cites Invariant 7.3, another proposition, which a refusal cannot show: a refused call writes nothing (Execution Contract Read 4), so it shows one call refused, not that none was admitted; Check 5.2 cites Invariant 7.2 for a property the page entails from [Revoke]'s guard and Operation 46 → name what each check reads and cite the rules it tests
 - 2026-10-21-i · refining · Operation 19; Term redemption failure; Term redeem refusal order · Operation 19's list and Term redemption failure restate one outcome space, whose members the signature and the [Redeem] entry call answers and Term redeem refusal order, Operation 31 and Operation 65 call refusals, and Operation 65 orders rules that never apply together (Term lapsed holds only in allocated) → one owner, keeping the reach by which Operation 31 holds a refused redemption's counter

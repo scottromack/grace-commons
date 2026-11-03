@@ -424,6 +424,10 @@ What an action answers when a read of the database fails is the same for every s
 
 **Read 3: A state-unavailable answer writes nothing.** An action that answers `state-unavailable` writes nothing, and its answer says nothing about the records it could not read: whether a record exists, matches or stands in a state. The call may be retried.
 
+**Read 5: A read answering many records answers them in one order.** Where a specification's read answers more than one record and names no order, it answers them by each record's creation instant, earliest first, then by id ascending (Logic confinement 10). A specification that names its own order keeps it.
+
+**Read 6: A read answers the whole match.** A read answers every record its filter matches, and a specification sets no cap on it. A deployment may deliver the answer in pages, provided the pages together answer the same records in Read 5's order. A specification whose domain needs a cap states its own, and that cap stands in place of this rule.
+
 ### A family for every action: Refusal
 
 Which refusal an action answers when more than one applies to one call is the same question for every specification, so it is answered once, here, and holds for every specification as the Read rules do: a refuses line lists an action's refusals in the order they answer, and a specification that relies on the order cites it by its label, `Execution Contract Refusal 1`, and does not restate it. Twenty-two specifications once stated an order for themselves: twelve as a declared term listing an action's refusal rules earliest first, beside a rule that the action evaluates no rule of the order before every earlier one has answered no refusal, each written by the Final Critique that cured a pair of refusals firing together on one call, and the rest as rules answering one refusal only where another does not apply. Five atoms once narrowed a rule banning a refusal to the ground the rule meant, each in the Final Critique that cured it; Refusal 1's second sentence now reads every such rule that way.

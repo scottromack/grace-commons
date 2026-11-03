@@ -236,7 +236,7 @@ Capability requirement 61: A deployment MUST declare the enumeration bound.
 Capability requirement 62: A field cap of a reference MUST NOT EXCEED the audit instance's reference length cap.
 Capability requirement 63: The host MUST NOT supply one invocation id to two invocations.
 Capability requirement 64: A deployment MUST NOT admit another writer of the composition's action references on the audit instance.
-Capability requirement 65: The deployment MUST supply the constituent instances' database PER Execution Contract Database 1 through 4.
+Capability requirement 65: The deployment MUST supply the constituent instances' database PER Execution Contract Database 1 through 4 and Execution Contract Read 6.
 Capability requirement 66: A deployment MUST supply the record destruction pattern PER Retention Window Record divergence 4a through 6.
 Capability requirement 67: The record destruction pattern MUST NOT retry a destruction BEFORE taking the record section over the record reference (Retention Window Simultaneous retention 6).
 Capability requirement 68: IF the hold check mode EQUALS strict THEN the record destruction pattern MUST retry a destruction ONLY IF a read of Legal Hold made under the record section answers no active hold over the record (Wiring decision 1).
@@ -755,8 +755,6 @@ Deleted: purge eligible events 7. Execution Contract Error model 1 owns it: a de
 purge eligible events 8: The deployment MUST call [Purge Event] for EVERY event [Purge Eligible Events] answers.
 purge eligible events 9: IF a Retained retention's purge deadline PRECEDES now AND no hold EXISTS over the event THEN the deployment MUST surface a compliance alert.
 ```
-
-NOTE: open 2026-10-24-a — [Purge Eligible Events] answers every eligible event id at once, with no bound and no paging (purge eligible events 1, purge eligible events 2).
 
 Term purge sweep: the deployment's calls of [Purge Event] over the events [Purge Eligible Events] answers (purge eligible events 8) — the sweep a refusal that changed nothing leaves the event to (purge event 3c).
 
@@ -1720,7 +1718,6 @@ open:
 - 2026-10-04-t · refining · Capability requirement 69; Capability requirement 71 · (Audit Trail's 2026-10-04-k) the hold gate's read does not match the Legal Hold database name the atom has a composing pattern match (Legal Hold Instance 5 through 7) → cite the atom's rule at the gate
 - 2026-10-04-u · refining · Capability requirement 69; Non-goal 30 · (Audit Trail's 2026-10-04-p) the hold-gate wiring is an extraction candidate, the Hold-Aware Audit Retention pattern Defensible Retention names as a non-goal → own round
 - 2026-08-30-d · refining · Audit Trail Invariant 8 liveness; the scan's first half · a delegation whose outcome record was never written is re-driven "until a `destroyed` outcome lands" against content the mechanism may only ever answer `destruction-failed` for → an *abandoned* record under the operator identity after a declared bound, the arm degrading to *surfaced* (the already-destroyed case closed by erasure mechanism 7a on 2026-10-01; a mechanism that only ever answers `destruction-failed` breaks erasure mechanism 10 since 2026-10-24, so what remains is the terminus its divergence lacks); contract-shaped — ripples to every composer that transcribes Audit Trail Invariant 8's unconditional lawfully-destroyed-versus-missing distinction, own round
-- 2026-10-24-a · refining · purge eligible events 1, purge eligible events 2; the [Purge Eligible Events] signature · [Purge Eligible Events] answers every eligible event id at once, with no bound and no paging, through Retention Window's read of every retention → a bound, or a paged or keyed read, decided with Retention Window's 2026-10-05-a (its read has no key) and in Actor Identity's 2026-10-20-f form; re-found by Final Critique 55
 - 2026-11-02-a · refining · purge event step 0.1 through 0½.6; purge eligible events 1, 2; First half 1, 3; Composes 19 · the audit cascade now reaches Audit Trail through read_record, seal_now and record_destruction, but its first half and its eligible list still read the audit retention instance beside the declared reads, and the first half tests purged events, the pair and the destruction record, which are Audit Trail's indexes → declare the reads on Audit Trail, or route each through read_record; found by the purge move
 - 2026-11-02-b · refining · Closure table; Action wiring · the closure table covers the audit cascade alone, and the five business actions' rows are owed → draft them in the page's full round; found by the purge move
 - 2026-11-02-c · refining · compensation window; quiescence; leg; call pause bound; clock offset allowance; reconciliation cadence; Term purge edge · the moved cascade reads Audit Trail's compensation window, quiescence, call pause bound, clock offset allowance and reconciliation cadence beside this page's own sweep terms of the same names, qualified in the rules that name them and not renamed (open line 2026-10-25-b, GRACE-lang Closed vocabulary 17) → rename this page's side of each; found by the purge move

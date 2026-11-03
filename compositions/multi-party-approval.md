@@ -187,7 +187,7 @@ Capability requirement 22: A deployment MUST declare the id widths.
 Capability requirement 23: The composition MUST stamp EVERY instant one invocation writes from the invocation's now.
 Capability requirement 24: A deployment composing Legal Hold MUST place a subject's hold over the event ids the event index names for the subject's chains.
 Capability requirement 25: A deployment needing reader authentication MUST bind the actor reference to an authenticated caller above the composition.
-Capability requirement 26: The deployment MUST supply the database PER Execution Contract Database 1 through 4 and Execution Contract Query 1 through 4.
+Capability requirement 26: The deployment MUST supply the database PER Execution Contract Database 1 through 4, Execution Contract Query 1 through 4 and Execution Contract Read 6.
 Capability requirement 27: A deployment MUST declare the operating skew.
 ```
 
@@ -679,7 +679,7 @@ Reconciliation 37: IF a withdrawal intent carries the chain id THEN a re-emitted
 Reconciliation 38: IF no withdrawal intent carries the chain id THEN a re-emitted withdrawal event MUST carry the initiation-failed record's event id AND the recovery reason.
 ```
 
-NOTE: open 2026-10-26-a — the intent candidates a re-emitted outcome carries (Reconciliation 21) and the chain results a read answers are lists with no bound, and the payload budget sizes no candidate list.
+NOTE: open 2026-10-26-a — the intent candidates a re-emitted outcome carries (Reconciliation 21) are a list with no bound, and the payload budget sizes no candidate list.
 
 Term sweep: the reconciliation the composition runs outside every invocation — two legs over the records, whose output an auditor awaits within the compensation window.
 
@@ -1195,7 +1195,7 @@ last gate: 2026-10-29 — Final Critique 13 — foundational count 2, not clean,
 
 open:
 - 2026-08-29-u · refining · formal · multi-party-approval.tla models no audit write, so no model checks that the sweep's recovery intent lands before its closure (Reconciliation 28, 29) → model the audit writes the sweep orders
-- 2026-10-26-a · refining · Reconciliation 21, Term chain results, Term intent candidates · a re-emitted outcome's intent candidates and a read's chain results are lists with no bound, and the payload budget sizes no candidate list → bound each, or size the candidates with the outcome
+- 2026-10-26-a · refining · Reconciliation 21, Term intent candidates · a re-emitted outcome's intent candidates are a list with no bound, and the payload budget sizes no candidate list; a read's chain results are bounded by Execution Contract Read 6 → bound the candidates, or size them with the outcome
 - 2026-10-26-b · refining · Action wiring 62 · [Initiate Chain]'s recording-failure carrying outcome carries no chain id to read the committed act back by → carry the chain id on the refusal, or name how a caller finds the chain
 ```
 

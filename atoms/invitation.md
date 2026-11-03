@@ -112,7 +112,7 @@ Capability requirement 6: The database MUST refuse a write carrying an invitatio
 Deleted: Capability requirement 7. Execution Contract Database 3 owns it.
 Deleted: Capability requirement 8. Execution Contract Logic confinement 13 owns it.
 Capability requirement 9: The deployment MUST deliver the invitation token to the invitee.
-Capability requirement 12: The deployment MUST supply the invitation records PER Execution Contract Database 1 through 7, Execution Contract Read 4 and Execution Contract Refusal 1.
+Capability requirement 12: The deployment MUST supply the invitation records PER Execution Contract Database 1 through 7, Execution Contract Read 4, Execution Contract Read 5 and Execution Contract Refusal 1.
 Capability requirement 13: The deployment MAY declare the string cap PER Execution Contract Input 2.
 Deleted: Capability requirement 10. Execution Contract Logic confinement 7 owns it.
 Deleted: Capability requirement 11. Execution Contract Logic confinement 7 owns it.
@@ -247,8 +247,6 @@ Term admitted resolving write: an admitted accept, an admitted decline OR an adm
 Term admitted read: a [Read] call that answers.
 
 Term filter: the selection a [Read] call scopes the answer by — a [Filter] naming invitation token, context, status, accepting identity reference, any combination of them OR no field; an invitation matches a filter when it carries EVERY value the filter names (String 1), a status matched against the invitation's stored status and never its effective status, and the filter names no other field; so a filter naming no field matches EVERY invitation, a filter naming any other field matches no invitation, and a malformed filter (Execution Contract Query 1) is answered by this match, a status other than pending, accepted, declined OR revoked matching no invitation; consumed per call, never stored.
-
-NOTE: open 2026-10-22-a — [Read] answers the matching invitations in no stated order (Operation 41).
 
 ### Invariants
 
@@ -845,7 +843,6 @@ last gate: 2026-11-03 — Final Critique 9, a delta round, frozen at b98a66c —
 
 open:
 - 2026-11-03-a · refining · Term now; Invariant 12.2 · where an admitted read takes its one clock reading against its database read is stated by no rule: the Execution Contract's Q names no clock step, and Logic confinement 3 and 11 place the reading at the top of Step 2 for a transition only; any build's answer follows the reading it takes, and the placement is owed by the contract to every read that answers against now, not by this page (escalated to the maintainer 2026-11-03) → the contract states it once, or the question is closed.
-- 2026-10-22-a · refining · [Read]; Operation 41 · [Read] answers the matching invitations in no stated order, so a caller paging the answer gets the database's (the Watch list's read-order polarity names this page's Operation 41 as one posture) → state an order, or declare none
 - 2026-10-22-c · refining · Composition note 6; Composition note 7 · a composing Actor Identity attests the actor behind an admitted accept and behind an admitted initiate, and no note says whether it attests the actor behind an admitted revoke, which records a revoked by reference as an accept records an accepting identity reference → wire the revoke's attestation, or name the deployment as its owner
 ```
 

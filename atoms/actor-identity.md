@@ -99,7 +99,7 @@ Term attestation field: attestation id | action reference | actor reference | pr
 
 ```
 Capability requirement 1: The deployment MUST supply now at the seam.
-Capability requirement 2: The deployment MUST supply the attestation records PER Execution Contract Database 1, Execution Contract Database 3, Execution Contract Database 4, Execution Contract Database 6, Execution Contract Read 1 through 3, Execution Contract Refusal 1 and Execution Contract Conformance 9.
+Capability requirement 2: The deployment MUST supply the attestation records PER Execution Contract Database 1, Execution Contract Database 3, Execution Contract Database 4, Execution Contract Database 6, Execution Contract Read 1 through 3, Execution Contract Read 5, Execution Contract Read 6, Execution Contract Refusal 1 and Execution Contract Conformance 9.
 Capability requirement 3: The deployment MUST supply the registry answer at the seam.
 Capability requirement 4: The deployment MUST supply the cryptographic material at the seam (Execution Contract Logic confinement 8).
 Capability requirement 5: The deployment MAY declare the string cap PER Execution Contract Input 2.
@@ -217,7 +217,7 @@ The case space, and the rule that owns each case:
 
 Where two [Attest] cases hold at once, the refusal listed first on [Attest]'s refuses line answers (Execution Contract Refusal 1).
 
-NOTE: open 2026-10-20-f — [Read] answers every attestation with no bound, no key and no stated order (Operation 27, Term bounds).
+NOTE: open 2026-10-20-f — [Read] answers every attestation with no key (Operation 27).
 
 ### Invariants
 
@@ -685,7 +685,7 @@ last gate: 2026-11-03 — Final Critique 13, a full round, frozen at abc0293 —
 
 open:
 - 2026-11-03-a · refining · Check 3.1; Check 3.2; Registry view 2 · the checks read the material current at attestation instant, and a registry keeping historical material with no era leaves an auditor no way to tell which kept material that was → name what the registry answer carries, or a snapshot term the checks read
-- 2026-10-20-f · refining · [Read]; Term bounds · [Read] answers every attestation with no bound, no key and no stated order → a bound, a keyed read and an order
+- 2026-10-20-f · refining · [Read]; Operation 27 · [Read] answers every attestation with no key; its bound and order are Execution Contract Read 6 and Execution Contract Read 5 → a keyed read
 ```
 
 <details markdown="block">
