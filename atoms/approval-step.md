@@ -502,6 +502,8 @@ Term string input: a reference, reason OR a filter's value — every caller-supp
 
 Term string cap: the bound on a string input's length in Unicode code points, counted on the value as the call carries it; 1,024 code points where a deployment declares none.
 
+NOTE: watch the cap's measure (Term string cap, Term bounds).
+
 ---
 
 ## Composition notes

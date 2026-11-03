@@ -168,7 +168,9 @@ NOTE: watch the untyped input (Operation 30, Operation 31, Term subscriber refer
 
 NOTE: open 2026-11-03-b — [Subscribers For] answers every active subscription's subscriber reference for a scope with no cardinality cap (Operation 19).
 
-Term string cap: the bound on a string input's length in Unicode code points; 256 code points where a deployment declares none.
+Term string cap: the bound on a string input's length in Unicode code points, counted on the value as the call carries it; 256 code points where a deployment declares none.
+
+NOTE: watch the cap's measure (Term string cap, Term bounds).
 
 Term string input: a subscriber reference or an event scope a [Subscribe] call supplies — every caller-supplied string this atom records; a subscription id and the inputs of [Subscribed] and [Subscribers For] are compared with the records and bound by no cap, so one too long matches no subscription.
 
@@ -311,7 +313,7 @@ Non-goal 8: The atom MUST NOT guarantee a delivery count.
 Non-goal 9: The atom MUST NOT expire a subscription.
 Non-goal 10: A deployment needing a time-bounded subscription MUST compose a temporal-subscription pattern.
 Non-goal 11: The atom MUST NOT hold a subscriber's lifecycle.
-Non-goal 12: A deployment deprovisioning an actor MUST cancel the actor's active subscriptions one by one.
+Non-goal 12: A deployment deprovisioning an actor MUST cancel, one by one, each of the actor's active subscriptions whose subscription id the composing pattern recorded (Lost ledger 2); a subscription whose id is lost stays active (Lost ledger 3).
 Non-goal 13: The atom MUST NOT record who called [Subscribe].
 Non-goal 14: A deployment needing attribution MUST compose Actor Identity.
 Non-goal 15: The atom MUST NOT gate [Cancel] beyond the subscription id.
@@ -391,7 +393,7 @@ Term record verbs: recover, identify, allocate, reuse, draw, carry, stand, stamp
 
 Term value sets: status = active | cancelled.
 
-Term bounds: id entropy (the floor a subscription id's random material is drawn from); string cap (the bound on a string input's length in Unicode code points, 256 where a deployment declares none).
+Term bounds: id entropy (the floor a subscription id's random material is drawn from); string cap (the bound on a string input's length in Unicode code points, counted on the value as the call carries it, 256 where a deployment declares none).
 
 Term cadences: empty.
 
@@ -577,7 +579,7 @@ Projection: not-active
 ```
 status: partially resolved
 formal: verified — subscription.als + 1 twin, 2026-06-03
-last gate: 2026-11-03 — Final Critique 8 — foundational count 2, not clean, no sample
+last gate: 2026-11-03 — Final Critique 9, a delta round, frozen at e1e522d — foundational count 2, cured, not clean, no sample
 
 open:
 - 2026-11-03-a · refining · Lost ledger 4 · the administrative-recovery pattern it tells a deployment to compose is named by no page, link or roadmap row, and Cancel capability 2 bars the enumeration it would need → decide whether the roadmap lists the pattern (and the owners NOTE marks it *(forthcoming)*), or Lost ledger 4 closes by a named non-goal
