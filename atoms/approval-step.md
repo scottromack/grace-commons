@@ -55,7 +55,7 @@ Three adjacent concepts are distinguished, and every distinction is load-bearing
 
 ```
 Identity 1: The atom MUST identify a step by the step id.
-Identity 2: The host MUST allocate a step id at the seam.
+Identity 2: The host MUST allocate a step id for a [Submit] at the seam.
 Deleted: Identity 3. Execution Contract Logic confinement 3 owns it.
 Identity 4: The atom MUST NOT change a step id.
 Identity 5: Two steps in one database instance MUST NOT share a step id.
@@ -88,7 +88,7 @@ Term reference: subject reference, approver reference, submitter reference, deci
 
 Term database instance: one named database a call is routed to; step id uniqueness ranges over one instance.
 
-Term seam: the atom's input/output boundary; the host injects the clock reading and the step id here.
+Term seam: the atom's input/output boundary; the host injects the clock reading here on every call and the step id on a [Submit] alone.
 
 Term transition: the atom's evaluation of one call against the step records.
 
@@ -115,7 +115,7 @@ State 15: The atom MUST NOT record a receipt instant.
 ### Capability requirement
 
 ```
-Capability requirement 1: The deployment MUST supply now at the seam.
+Capability requirement 1: The deployment MUST supply now at the seam (Execution Contract Logic confinement 11).
 Capability requirement 5: The deployment MUST supply the step records PER Execution Contract Database 1 through 5, Execution Contract Database 7, Execution Contract Read 1 through 4, Execution Contract Refusal 1, Execution Contract Query 1 through 4 and Execution Contract Input 1.
 Capability requirement 6: The deployment MAY declare the string cap PER Execution Contract Input 2.
 Deleted: Capability requirement 2. Execution Contract Logic confinement 7 owns it.
@@ -253,7 +253,7 @@ Term attribution field: deciding actor, decision reason, decision instant, withd
 
 Term attribution reference: deciding actor on an approved step or a rejected step, and withdrawing actor on a withdrawn step — the actor reference a terminal step carries.
 
-Term attribution check: Operation 15 through 19, Operation 57, Operation 64 through 65 — every check a resolving action makes before the actor guard.
+Term attribution check: Operation 15 through 19, Operation 57, Operation 64 through 65.
 
 Term attribution fault: an attribution check the call fails.
 
@@ -448,6 +448,7 @@ Non-goal 18: The atom MUST NOT declare which gates a subject requires.
 Non-goal 19: The atom MUST NOT detect a subject carrying no step.
 Non-goal 20: The atom MUST NOT bound submission instant from below.
 Non-goal 21: A deployment needing a verifiable time anchor MUST compose a trusted timestamping pattern.
+Non-goal 22: The atom MUST NOT own the clock's monotonicity (Execution Contract Logic confinement 7).
 ```
 
 NOTE: the owners — [Duplicate Prevention](./duplicate-prevention.md) (Non-goal 1, Non-goal 2); [Multi-Party Approval](../compositions/multi-party-approval.md) (Non-goal 3, Non-goal 4; Non-goal 13, Composition note 3); Delegation *(forthcoming)* (Non-goal 5, Non-goal 6); [Permissions](./permissions.md) (Non-goal 9, Non-goal 10; Non-goal 13, Composition note 3); [Notification](./notification.md) (Non-goal 11, Non-goal 12; Composition note 5); [Actor Identity](./actor-identity.md) (Non-goal 14, Non-goal 15); [Tamper Evidence](./tamper-evidence.md) (Non-goal 16, Non-goal 17; Non-goal 20); the composing pattern that owns the required gate mapping (Non-goal 18, Composition note 10); the deployment (Non-goal 19, External check 2); [Audit Trail](../compositions/audit-trail.md) (Non-goal 20); Trusted Timestamping *(forthcoming)* (Non-goal 21).
@@ -499,7 +500,7 @@ Deleted: String 7. Execution Contract Logic confinement 13 owns it.
 
 Term string input: a reference, reason OR a filter's value — every caller-supplied string this atom accepts.
 
-Term string cap: the bound on a string input's length in Unicode code points; 1,024 code points where a deployment declares none.
+Term string cap: the bound on a string input's length in Unicode code points, counted on the value as the call carries it; 1,024 code points where a deployment declares none.
 
 ---
 
@@ -537,7 +538,7 @@ Term record verbs: identify, allocate, change, carry, stand, answer, record, set
 
 Term value sets: state = pending | approved | rejected | withdrawn.
 
-Term bounds: string cap (the bound on a string input's length in Unicode code points, 1,024 where a deployment declares none).
+Term bounds: string cap (the bound on a string input's length in Unicode code points, counted on the value as the call carries it, 1,024 where a deployment declares none).
 
 Term cadences: empty.
 
@@ -849,7 +850,7 @@ Projection: invalid-query
 ```
 status: partially resolved
 formal: verified — approval-step.tla + 1 twin, 2026-06-03
-last gate: 2026-11-02 — Final Critique 12, a delta round, frozen at e63380b — foundational count 1, cured, not clean, no sample; 2026-10-29 — Final Critique 11 — foundational count 0, clean, one sample
+last gate: 2026-11-03 — Final Critique 13, a delta round, frozen at 30a4db8 — foundational count 1, cured, not clean, no sample; 2026-11-02 — Final Critique 12, a delta round, frozen at e63380b — foundational count 1, cured, not clean, no sample; 2026-10-29 — Final Critique 11 — foundational count 0, clean, one sample
 
 open:
 - 2026-10-21-d · refining · Indeterminate outcome 1 · a caller with no answer is sent to the step records, and no read says whether its submit landed, where two submits carrying one field set are two steps (Non-goal 1); its BEFORE takes a clause where the grammar's tail takes a term → name the read, or Duplicate Prevention (Non-goal 2) as its owner, and write the tail on a term
