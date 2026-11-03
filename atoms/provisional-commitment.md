@@ -16,7 +16,7 @@ toc: true
 
 ## Summary
 
-Provisional Commitment is the business act of holding something for someone while they decide — a card authorization, a hospital bed, an item in a cart, a hotel room, an airline seat. A hold is placed, stays open for a fixed window, and resolves at most once, into one of three recorded end states: confirmed, released, or expired. The window is a promise in both directions: the resource stays reserved until it closes, and the requester must decide before it does.
+Provisional Commitment is the business act of holding something for someone while they decide — a card authorization, a hospital bed, an item in a cart, a hotel room, an airline seat. A hold is placed, stays open for a fixed window, and resolves at most once, into one of three recorded end states: confirmed, released, or expired. The window is a promise in both directions: the resource stays reserved until the hold resolves, and the requester must decide before the window closes.
 
 Resolving at most once is the guarantee. A resolving call against an already-settled hold is refused. A confirm or release past the window is refused. An expire before the window closes is refused. Each hold carries a permanent id; its resource, requester and window are fixed at placement and never change. A settled hold is therefore an unambiguous and provable record of what happened.
 
@@ -49,7 +49,7 @@ Identity 3: The atom MUST NOT generate an id.
 Identity 4: The atom MUST NOT change a commitment's id.
 Identity 5: Two commitments MUST NOT share an id.
 Identity 6: The atom MUST NOT identify a commitment by a property.
-Identity 7: An admitted place hold MUST record one commitment.
+Identity 7: An admitted place hold MUST record EXACTLY ONE commitment.
 Identity 8: The atom MUST compare a reference byte-exactly.
 Identity 9: The atom MUST NOT normalize a reference.
 Identity 10: The atom MUST NOT confirm that a resource names a known registry entry.
@@ -60,6 +60,8 @@ Deleted: Identity 13. Execution Contract Database 7 owns it.
 
 Term commitment: the record this atom holds — one resource held for one requester for a bounded window, then resolved to exactly one terminal state.
 
+Term id material: the value the seam supplies for [Place Hold] to assign as the id (Capability requirement 2, Capability requirement 23).
+
 Term id: the opaque value naming one commitment — an [Id]; assigned from the id material the seam supplies and never reused.
 
 Term property: resource | requester | placement instant | expiry instant — what a commitment carries that is not the commitment's identity.
@@ -67,6 +69,10 @@ Term property: resource | requester | placement instant | expiry instant — wha
 Term reference: id, resource OR requester — every opaque reference this atom records.
 
 Term registry: the deployment's owner of what a resource is and what availability means; outside this atom (Non-goal 11).
+
+Term availability: whether the registry accepts a resource for a hold — the registry's own standing of the resource, which the atom never defines (Non-goal 11).
+
+Term availability verdict: the registry's answer on one resource, accepts OR refuses, which the host reads and injects at the seam (Capability requirement 16).
 
 Term database instance: one named database a call is routed to; id uniqueness ranges over one instance.
 
@@ -101,11 +107,11 @@ Capability requirement 16: The deployment MUST supply the registry's availabilit
 Capability requirement 3: The registry MUST run the availability read and the hold write for one resource as one critical section.
 Capability requirement 4: The registry MUST release the critical section on the caller's return.
 Deleted: Capability requirement 5. Capability requirement 18 and Capability requirement 19 own it.
-Capability requirement 18: The registry MUST bound the critical section.
+Capability requirement 18: The registry MUST bound the critical section by the critical section bound the registry declares.
 Capability requirement 19: IF a hold write in flight EXISTS for the resource THEN the registry MUST NOT release the critical section.
 Deleted: Capability requirement 6. Execution Contract Database 3 owns it.
-Capability requirement 7: A deployment firing [Expire] on a cadence MUST declare the cadence.
-Capability requirement 8: A deployment firing [Expire] on a cadence MUST declare the reclamation window the cadence falls inside.
+Capability requirement 7: A deployment firing [Expire] on a cadence MUST declare the expire cadence.
+Capability requirement 8: A deployment firing [Expire] on a cadence MUST declare the reclamation window the expire cadence falls inside.
 Deleted: Capability requirement 9. Execution Contract Logic confinement 13 owns it.
 Capability requirement 10: The registry MUST return the resource to availability on a releasing action.
 Capability requirement 11: The registry MUST NOT return the resource to availability on an admitted confirm.
@@ -114,6 +120,10 @@ Capability requirement 20: The registry MUST NOT remove the resource from availa
 Capability requirement 12: A deployment firing [Expire] on a cadence MUST resolve EVERY lapsed commitment WITHIN the reclamation window.
 Capability requirement 15: The deployment MUST supply the commitment records PER Execution Contract Database 1 through 7, Execution Contract Read 4, Execution Contract Refusal 1 and Execution Contract Conformance 9.
 Capability requirement 21: The deployment MAY declare the string cap PER Execution Contract Input 2.
+Capability requirement 22: The deployment MAY declare the duration bounds PER Execution Contract Input 2.
+Capability requirement 23: The deployment MUST supply id material naming no commitment of the database instance.
+Capability requirement 24: A deployment firing [Expire] on a cadence MUST declare the expire run bound.
+Capability requirement 25: IF the reclamation sum EXCEEDS the reclamation window THEN a deployment MUST NOT declare the reclamation window.
 Deleted: Capability requirement 13. Execution Contract Logic confinement 7 owns it.
 Deleted: Capability requirement 14. Execution Contract Logic confinement 7 owns it.
 Deleted: Clock semantics 4. Execution Contract Logic confinement 7 owns it.
@@ -127,6 +137,8 @@ Deleted: Clock semantics 6. Non-goal 26 owns it.
 Term hold write: the database write by which a [Place Hold] records a commitment.
 
 Term hold write in flight: a hold write the database has neither committed nor refused.
+
+Term critical section bound: the span the registry declares as the longest the critical section runs before the registry ends it (Capability requirement 18).
 
 ### Operations
 
@@ -157,7 +169,7 @@ Operation 2: IF requester EQUALS blank THEN [Place Hold] MUST answer invalid-req
 Operation 3: IF duration EQUALS blank THEN [Place Hold] MUST answer invalid-request.
 Operation 4: IF the duration falls outside the duration bounds THEN [Place Hold] MUST answer invalid-request.
 Operation 5: IF the registry refuses the resource THEN [Place Hold] MUST answer resource-unavailable.
-Operation 42: IF the host cannot read the registry THEN [Place Hold] MUST answer registry-unavailable.
+Operation 42: IF the host cannot read the registry WITHIN the critical section bound THEN [Place Hold] MUST answer registry-unavailable.
 Deleted: Operation 6. Execution Contract Refusal 1 owns it.
 Operation 7: [Place Hold] MUST NOT answer not-known.
 Operation 8: An admitted place hold MUST assign a fresh id.
@@ -180,7 +192,7 @@ Operation 24: An admitted confirm MUST record now as confirmation instant.
 Operation 25: An admitted release MUST record now as release instant.
 Operation 26: An admitted expire MUST record now as lapse instant.
 Deleted: Operation 27. Execution Contract Database 1 owns it.
-Operation 28: IF the database refuses the write THEN an action MUST answer storage-failure.
+Deleted: Operation 28. Execution Contract Read 4 owns it.
 Deleted: Operation 29. Execution Contract Refusal 1 owns it.
 Operation 30: A refused action MUST leave the commitment as the call found the commitment.
 Operation 31: A refused [Place Hold] MUST NOT record a commitment.
@@ -193,18 +205,20 @@ Deleted: Operation 37. Execution Contract Logic confinement 3 owns it.
 Operation 38: [Read] MUST answer EVERY commitment, held AND terminal.
 Operation 39: [Read] MUST answer a commitment's stored fields.
 Operation 40: [Read] MUST NOT write.
-Operation 41: [Read] MUST NOT refuse a call.
+Operation 41: [Read] MUST NOT refuse a call, and a failed read answers state-unavailable (Execution Contract Read 1).
 ```
 
 NOTE: watch the state a refusal leaves (Operation 30).
 
 NOTE: watch the unreadable registry (Operation 42).
 
+NOTE: watch the comparator written in English (Operation 4).
+
 Term resolving action: [Confirm] | [Release] | [Expire] — every action taking a held commitment to a terminal state.
 
-Term duration bounds: the implementation's admitted range for a duration; every admitted value exceeds zero.
+Term duration: the window length a [Place Hold] call supplies — a whole number of seconds; consumed to compute the window bound, never stored under its own name (State 6).
 
-NOTE: open 2026-10-21-d — the duration bounds are the implementation's admitted range, an owner Term actors does not name, and no rule has the deployment declare them.
+Term duration bounds: the deployment's admitted range for a duration; every admitted value exceeds zero, and every duration exceeding zero falls inside the duration bounds where a deployment declares none (Capability requirement 22).
 
 Term window bound: (placement instant + duration) — the value an admitted place hold records as expiry instant (Execution Contract Logic confinement 9).
 
@@ -235,6 +249,14 @@ Term releasing action: an admitted release OR an admitted expire.
 Term reclamation lag: the span between a commitment's expiry instant and the admitted expire that settles the commitment.
 
 Term reclamation window: the span a deployment firing [Expire] on a cadence declares as the bound on the reclamation lag (Capability requirement 8).
+
+Term expire cadence: the span between two firings of [Expire] a deployment firing [Expire] on a cadence declares (Capability requirement 7).
+
+Term expire run bound: the span a deployment firing [Expire] on a cadence declares as the bound on one firing's run, from its start to its last write landing (Capability requirement 24).
+
+Term reclamation sum: (the expire cadence + the expire run bound).
+
+NOTE: watch the reconciliation's own run (Term reclamation sum).
 
 ### Invariants
 
@@ -296,23 +318,23 @@ The same atom, five regulated domains, one mechanic.
 
 ### Banking — credit-limit hold
 
-`place_hold(card, cardholder, 7-days)` → `auth_c41`; available credit drops by $250. The merchant captures within the window — `confirm(auth_c41)` — and the charge settles; or voids it — `release(auth_c41)` — and credit restores. If neither, a capture after the window closes is refused window-elapsed, and the scheme's settlement sweep fires `expire(auth_c41)` on the eighth day, after which a capture is refused not-held. Each transition feeds liquidity reporting aligned with the BCBS (Basel Committee on Banking Supervision).
+`place_hold(card, cardholder, 604800)` → `auth_c41`; available credit drops by $250. The merchant captures within the window — `confirm(auth_c41)` — and the charge settles; or voids it — `release(auth_c41)` — and credit restores. If neither, a capture after the window closes is refused window-elapsed, and the scheme's settlement sweep fires `expire(auth_c41)` on the eighth day, after which a capture is refused not-held. Each transition feeds liquidity reporting aligned with the BCBS (Basel Committee on Banking Supervision).
 
 ### Healthcare — bed assignment
 
-`place_hold(bed, patient, 2-hours)` → `bed_h17`, placed 14:00, expiring 16:00. The patient arrives at 14:45 — `confirm(bed_h17)`; or is discharged from the emergency department — `release(bed_h17)`. If neither by 16:00 the bed-management sweep fires `expire(bed_h17)` and the bed returns to the pool. The Joint-Commission-aligned care-coordination audit reads the commitment record directly.
+`place_hold(bed, patient, 7200)` → `bed_h17`, placed 14:00, expiring 16:00. The patient arrives at 14:45 — `confirm(bed_h17)`; or is discharged from the emergency department — `release(bed_h17)`. If neither by 16:00 the bed-management sweep fires `expire(bed_h17)` and the bed returns to the pool. The Joint-Commission-aligned care-coordination audit reads the commitment record directly.
 
 ### Retail — inventory reservation
 
-`place_hold(sku, shopper, 15-minutes)` → `inv_r93`, placed 19:14. The shopper checks out at 19:18 — `confirm(inv_r93)`; or empties the cart — `release(inv_r93)`. An abandoned cart is swept from 19:29 — `expire(inv_r93)` — and the unit returns to stock.
+`place_hold(sku, shopper, 900)` → `inv_r93`, placed 19:14. The shopper checks out at 19:18 — `confirm(inv_r93)`; or empties the cart — `release(inv_r93)`. An abandoned cart is swept after 19:29 — `expire(inv_r93)` — and the unit returns to stock.
 
 ### Hospitality — room booking
 
-`place_hold(room, guest, duration)` → `rm_b58`, expiring at the property's cancellation cutoff. Check-in confirms; cancellation by the cutoff releases; neither leaves the sweep to expire it, which is the transition the property's no-show fee policy — a separate composing pattern — triggers off.
+`place_hold(room, guest, 172800)` → `rm_b58`, expiring at the property's cancellation cutoff, two days on. Check-in confirms; cancellation by the cutoff releases; neither leaves the sweep to expire it, which is the transition the property's no-show fee policy — a separate composing pattern — triggers off.
 
 ### Airline — seat hold
 
-`place_hold(seat, passenger, 15-minutes)` → `seat_a22`, the carrier's fare-lock per IATA (International Air Transport Association) practice. Payment confirms; backing out releases; abandonment expires. The attached fare quote is invalidated whenever the hold leaves availability, which a composing Fare Quote pattern observes from the terminal state.
+`place_hold(seat, passenger, 900)` → `seat_a22`, the carrier's fare-lock per IATA (International Air Transport Association) practice. Payment confirms; backing out releases; abandonment expires. The attached fare quote is invalidated whenever the hold leaves availability, which a composing Fare Quote pattern observes from the terminal state.
 
 What differs across the five: resource semantics, window length, the regulatory framing of the trail, and which patterns compose. What does not differ: an undecided hold ends in a recorded expire, on which the registry returns the resource.
 
@@ -398,7 +420,7 @@ Non-goal 25: The atom MUST NOT guarantee that a lapsed commitment resolves.
 Non-goal 26: A deployment needing two racing transitions ordered MUST read the composing Event Log sequence number.
 ```
 
-NOTE: the owners — [Idempotent Reservation](../compositions/idempotent-reservation.md) (Non-goal 1, Non-goal 2); the registry (Non-goal 11, Non-goal 12, External check 1); the deployment (Non-goal 13, Capability requirement 7; Non-goal 25, Capability requirement 12); a composition of two tiers of commitment (Non-goal 24).
+NOTE: the owners — [Idempotent Reservation](../compositions/idempotent-reservation.md) (Non-goal 1, Non-goal 2); the registry (Non-goal 11, Non-goal 12, External check 1); the deployment (Non-goal 13, Capability requirement 7; Non-goal 25 for a lapse awaiting the next access, and Capability requirement 12 for a cadence's firings); a composition of two tiers of commitment (Non-goal 24).
 
 ---
 
@@ -472,13 +494,13 @@ Term record verbs: identify, assign, generate, change, share, carry, stand, read
 
 Term value sets: state = held | confirmed | released | expired. terminal state = confirmed | released | expired. terminal instant = confirmation instant | release instant | lapse instant. window reading = open | lapsed. window rejection = window-elapsed | window-not-elapsed. property = resource | requester | placement instant | expiry instant.
 
-Term bounds: duration bounds, window bound, reclamation window, string cap.
+Term bounds: duration bounds, window bound, reclamation window, string cap, critical section bound, expire run bound.
 
-Term cadences: empty.
+Term cadences: expire cadence.
 
 Term qualifiers: migrated — rewritten in GRACE lang v0.40 (2026-09-13).
 
-Term terms: commitment, id, property, reference, registry, database instance, seam, transition, now, hold write, hold write in flight, resolving action, duration bounds, window bound, window reading, open, lapsed, window rejection, terminal state, terminal instant, admitted place hold, admitted confirm, admitted release, admitted expire, admitted resolving action, releasing action, string input, blank, reclamation lag, reclamation window, capacity decision, degenerate window, late resolution, premature expiry, committed version, string cap.
+Term terms: commitment, id, property, reference, registry, database instance, seam, transition, now, hold write, hold write in flight, resolving action, duration bounds, window bound, window reading, open, lapsed, window rejection, terminal state, terminal instant, admitted place hold, admitted confirm, admitted release, admitted expire, admitted resolving action, releasing action, string input, blank, reclamation lag, reclamation window, capacity decision, degenerate window, late resolution, premature expiry, committed version, string cap, duration, id material, availability, availability verdict, critical section bound, expire cadence, expire run bound, reclamation sum.
 
 Term cited: sequence number: Event Log. The section titled Logic Confinement Principle in `execution-contract.md` — the seam and the transition.
 
@@ -587,7 +609,7 @@ Projection: expired_at
 
 #### Duration
 
-The window length supplied to [Place Hold]. It sizes the window and is not stored under its own name; [Placement Instant] and [Expiry Instant] are what persist. Must fall inside the duration bounds.
+The window length supplied to [Place Hold], a whole number of seconds. It sizes the window and is not stored under its own name; [Placement Instant] and [Expiry Instant] are what persist. Must fall inside the duration bounds.
 
 Kind:         Parameter
 Parameter of: Place Hold
@@ -611,7 +633,7 @@ Role:      Outcome
 
 #### Confirmed
 
-The terminal state reached when the requester confirmed inside the window — the resource is taken into a binding allocation. Absorbing.
+The terminal state reached when the requester confirmed while the commitment read open — the resource is taken into a binding allocation. Absorbing.
 
 Kind:      Member
 Member of: the commitment state
@@ -619,7 +641,7 @@ Role:      Outcome
 
 #### Released
 
-The terminal state reached when the commitment was released inside the window — the resource returns to availability. Absorbing.
+The terminal state reached when the commitment was released while the commitment read open — the resource returns to availability. Absorbing.
 
 Kind:      Member
 Member of: the commitment state
@@ -635,7 +657,7 @@ Role:      Outcome
 
 #### Invalid Request
 
-The refusal [Place Hold] returns when [Resource], [Requester] or [Duration] is absent, [Duration] falls outside the duration bounds, or a string input exceeds the string cap (Execution Contract Input 2). No commitment is recorded.
+The refusal [Place Hold] returns when [Resource], [Requester] or [Duration] is absent, [Duration] is not a whole number of seconds (Execution Contract Input 1), [Duration] falls outside the duration bounds, or a string input exceeds the string cap (Execution Contract Input 2). No commitment is recorded.
 
 Kind:       Member
 Member of:  the Place Hold rejection
@@ -644,7 +666,7 @@ Projection: invalid-request
 
 #### Registry Unavailable
 
-The refusal [Place Hold] returns when the host cannot read the registry (Operation 42). Distinct from [Resource Unavailable], which the registry gives once read: the condition is transient, and the place hold may be retried. No commitment is recorded.
+The refusal [Place Hold] returns when the host cannot read the registry within the critical section bound (Operation 42). Distinct from [Resource Unavailable], which the registry gives once read: the condition is transient, and the place hold may be retried. No commitment is recorded.
 
 Kind:       Member
 Member of:  the Place Hold rejection
@@ -770,10 +792,9 @@ It inherits from:
 ```
 status: partially resolved
 formal: verified — provisional-commitment.tla + 2 twins, 2026-06-04
-last gate: 2026-10-28 — Final Critique 6 — foundational count 3, not clean, no sample
+last gate: 2026-11-03 — Final Critique 7 — foundational count 4, not clean, no sample
 
-open:
-- 2026-10-21-d · refining · Term duration bounds; Operation 4 · the bounds are the implementation's admitted range, an owner Term actors does not name, and no Capability requirement has the deployment declare them → name who declares the bounds
+open: none
 ```
 
 <details markdown="block">
