@@ -429,7 +429,7 @@
    "resolve-a-persons-data-rights"
   ],
   "domain": null,
-  "grounded": true,
+  "grounded": false,
   "invariants": 10,
   "kind": "atom",
   "models": {
@@ -450,7 +450,7 @@
    "SEC 17a-4",
    "SOX"
   ],
-  "status": "grounded on Final Critique 15 \u2014 2026-10-30 at 115e9d3",
+  "status": "partially resolved",
   "title": "Consent"
  },
  "credential": {

@@ -162,12 +162,16 @@ Deleted: Operation 7. State 4, Operation 8 and Operation 9 own it.
 Operation 8: IF expiry instant PRECEDES now THEN [Grant] MUST answer invalid-request.
 Operation 9: IF expiry instant EQUALS now THEN [Grant] MUST answer invalid-request.
 Operation 66: IF a supplied expiry instant is malformed THEN [Grant] MUST answer invalid-request (Execution Contract Input 1).
+Operation 70: IF subject reference EXCEEDS the string cap THEN [Grant] MUST answer invalid-request (Execution Contract Input 2).
+Operation 71: IF purpose EXCEEDS the string cap THEN [Grant] MUST answer invalid-request (Execution Contract Input 2).
+Operation 72: IF granting actor EXCEEDS the string cap THEN [Grant] MUST answer invalid-request (Execution Contract Input 2).
 Operation 10: [Grant] MUST stamp grant instant from the injected now.
 Deleted: Operation 11. State 5 and State 16 own it.
 Operation 12: [Grant] MUST NOT interpret metadata.
 Operation 13: IF the database refuses the write THEN [Grant] MUST answer storage-failure.
 Deleted: Operation 14. Execution Contract Refusal 1 owns it.
 Operation 15: IF consent id EQUALS blank THEN [Revoke] MUST answer invalid-request.
+Operation 73: IF consent id EXCEEDS the string cap THEN [Revoke] MUST answer invalid-request (Execution Contract Input 2).
 Operation 16: IF the consent id names no consent record THEN [Revoke] MUST answer not-known.
 Deleted: Operation 17. Execution Contract Refusal 1 owns it.
 Operation 18: IF the consent record is withdrawn THEN [Revoke] MUST answer already-revoked.
@@ -181,6 +185,7 @@ Operation 25: IF a consent record EXISTS for the consent id AND the consent reco
 Operation 67: IF a consent record EXISTS for the consent id AND the consent record is not withdrawn AND the consent record is not elapsed AND a supplied revocation instant is malformed THEN [Revoke] MUST answer invalid-request (Execution Contract Input 1).
 Operation 68: IF a consent record EXISTS for the consent id AND the consent record is not withdrawn AND the consent record is not elapsed AND revoking actor EXCEEDS the string cap THEN [Revoke] MUST answer invalid-request.
 Operation 69: IF a consent record EXISTS for the consent id AND the consent record is not withdrawn AND the consent record is not elapsed AND reason EXCEEDS the string cap THEN [Revoke] MUST answer invalid-request.
+Operation 74: IF a consent record EXISTS for the consent id AND the consent record is not withdrawn AND the consent record is not elapsed AND a supplied reason is malformed THEN [Revoke] MUST answer invalid-request (Execution Contract Input 1).
 Operation 26: [Revoke] MUST stand the consent record in revoked.
 Operation 27: [Revoke] MUST record revoking actor on the consent record.
 Operation 28: [Revoke] MUST record the reason as the revocation reason.
@@ -245,7 +250,9 @@ Term revoking actor: the opaque reference naming the actor that recorded the wit
 
 Term revocation reason: the stated ground for the withdrawal — a [Revocation Reason], carried from the call's [Reason].
 
-Term reason: the [Revoke] input the record keeps as revocation reason — a [Reason].
+Term reason: the [Revoke] input the record keeps as revocation reason, a string input — a [Reason].
+
+NOTE: watch the untyped input (Term reason, Operation 74).
 
 Term revocation instant: the instant the withdrawal takes effect — a [Revocation Instant]; caller-supplied, as Execution Contract Logic confinement 12 resolves it.
 
@@ -275,13 +282,13 @@ The case space, and the rule that owns each case:
 |---|---|---|---|
 | [Grant] | three references present, no expiry instant, database accepts | the new consent id | one record lands in [Granted] (Operation 1, Operation 2) |
 | [Grant] | as above with an expiry instant after [Now] | the new consent id | as above, with [Expiry Instant] recorded (State 4) |
-| [Grant] | a blank reference or one over the string cap, or an expiry instant at or before [Now] or malformed | [Invalid Request] | none (Operation 4 through 6, Operation 8, Operation 9, Operation 66, Execution Contract Input 2) |
+| [Grant] | a blank reference or one over the string cap, or an expiry instant at or before [Now] or malformed | [Invalid Request] | none (Operation 4 through 6, Operation 8, Operation 9, Operation 66, Operation 70 through 72, Execution Contract Input 2) |
 | [Revoke] | id names a record in [Granted], attribution present, times ordered | revoked | [Granted] → [Revoked], three fields stamped (Operation 26 through 29) |
-| [Revoke] | blank consent id or one over the string cap | [Invalid Request] | none — answered ahead of not-known (Operation 15, Execution Contract Input 2, Execution Contract Refusal 1) |
+| [Revoke] | blank consent id or one over the string cap | [Invalid Request] | none — answered ahead of not-known (Operation 15, Operation 73, Execution Contract Input 2, Execution Contract Refusal 1) |
 | [Revoke] | id names nothing | [Not Known] | none (Operation 16) |
 | [Revoke] | id names a record in [Revoked] | [Already Revoked] | none (Operation 18) |
 | [Revoke] | id names a record in [Expired] | [Already Expired] | none (Operation 19) |
-| [Revoke] | record in [Granted], blank or over-cap attribution, or a time out of order or malformed | [Invalid Request] | none (Operation 22 through 25, Operation 67 through 69) |
+| [Revoke] | record in [Granted], blank or over-cap attribution, a malformed reason, or a time out of order or malformed | [Invalid Request] | none (Operation 22 through 25, Operation 67 through 69, Operation 74) |
 | either write | database refuses | [Storage Failure] | none (Operation 13, Operation 31, Operation 32) |
 | [Check] | the candidate record is withdrawn by [At Time] | revoked | none — the call reads (Operation 41, Operation 36) |
 | [Check] | the candidate record is elapsed by [At Time], never withdrawn | expired | none (Operation 42, Operation 43) |
@@ -501,7 +508,11 @@ Deleted: Concurrency 3. Execution Contract Database 2 owns it.
 Concurrency 4: Two concurrent [Grant] calls carrying one subject reference and one purpose MUST record two consent records.
 ```
 
-Term string cap: the bound on a string input's length in Unicode code points; 1,024 code points where a deployment declares none.
+Term string cap: the bound on a string input's length in Unicode code points, counted on the value as the call carries it; 1,024 code points where a deployment declares none.
+
+NOTE: watch the cap's measure (Term string cap, Term bounds).
+
+NOTE: watch the cap's refusal (Operation 70, Operation 71, Operation 72, Operation 73).
 
 ## Composition notes
 
@@ -533,7 +544,7 @@ Term record verbs: share, name, accept, carry, identify, allocate, reuse, change
 
 Term value sets: state = granted | revoked | expired. supported filter axes and grant field are declared above and cited here (Closed vocabulary 15).
 
-Term bounds: string cap (the bound on a string input's length in Unicode code points, 1,024 where a deployment declares none).
+Term bounds: string cap (the bound on a string input's length in Unicode code points, counted on the value as the call carries it, 1,024 where a deployment declares none).
 
 Term cadences: empty.
 
@@ -728,7 +739,7 @@ Projection: not-known
 
 #### Invalid Request
 
-The refusal [Grant] or [Revoke] returns when request fields fail — at [Grant], an empty or whitespace-only [Subject Reference], [Purpose] or [Granting Actor], or one over the string cap (Execution Contract Input 2), an [Expiry Instant] at or before [Now], or a supplied [Expiry Instant] that is neither blank nor an instant; at [Revoke], an empty or whitespace-only [Consent Id], or one over the string cap, or, on a record in [Granted], an empty or whitespace-only [Revoking Actor] or [Reason], or one over the string cap, a [Revocation Instant] after [Now] or before [Grant Instant], or a supplied [Revocation Instant] that is neither blank nor an instant.
+The refusal [Grant] or [Revoke] returns when request fields fail — at [Grant], an empty or whitespace-only [Subject Reference], [Purpose] or [Granting Actor], or one over the string cap (Execution Contract Input 2), an [Expiry Instant] at or before [Now], or a supplied [Expiry Instant] that is neither blank nor an instant; at [Revoke], an empty or whitespace-only [Consent Id], or one over the string cap, or, on a record in [Granted], an empty or whitespace-only [Revoking Actor] or [Reason], or one over the string cap, a [Reason] that is not a string, a [Revocation Instant] after [Now] or before [Grant Instant], or a supplied [Revocation Instant] that is neither blank nor an instant.
 
 Kind:       Member
 Member of:  the action rejection
@@ -826,14 +837,14 @@ Projection: invalid-query
 
 ## Status
 
-`grounded on Final Critique 15 — 2026-10-30 at 115e9d3` — see the Ledger.
+`partially resolved` — see the Ledger.
 
 ## Ledger
 
 ```
-status: grounded on Final Critique 15 — 2026-10-30 at 115e9d3
+status: partially resolved
 formal: not applicable — vote no 2026-06-03
-last gate: 2026-10-30 — Final Critique 15 — foundational count 0, clean, one sample
+last gate: 2026-11-03 — Final Critique 16, a delta round, frozen at 05ba25e — foundational count 4, cured, not clean, no sample
 
 open:
 - 2026-10-29-b · refining · Term seam; Term transition; Term business caller · each says the section titled Logic Confinement Principle in `execution-contract.md` declares it, and that section declares none of the three → declare the three there, the corpus's one seam wording, or point each at its declaration
