@@ -19,10 +19,20 @@ reading, the human does it (GRACE-lang Principle 8).
     python3 tools/grace/cites.py 'Fence 5'          # what rests on this
     python3 tools/grace/cites.py --changed HEAD~1   # what today's edits re-open
     python3 tools/grace/cites.py --changed HEAD~1 --paths atoms/lease.md
+    python3 tools/grace/cites.py --reach compositions/audit-trail.md --changed HEAD~1
     python3 tools/grace/cites.py --unread            # migrated, but no council read
     python3 tools/grace/cites.py --standard          # which families ARE standard, and what each means
     python3 tools/grace/cites.py --promote Housekeeping
     python3 tools/grace/cites.py --promote 'Action wiring' --means 'what the promotion would declare'
+
+`--reach <spec path>` prints the one spec's share of that change, a label a line:
+its own changed rules and terms, the rules in it that rest on them (a changed
+term's definition chain walked to its end), and the rules that cite a changed
+rule or term of another spec by the cross-spec form or by the possessive
+(`Tamper Evidence's seam`) or a [Marker] link. It prints `nothing` and exits 1
+when the change reaches none of the spec: a change that reaches no rule of a
+composition reopens nothing of it (Scott, 2026-11-03 16:40Z: "A change reopens
+what it reaches, not the page").
 
 `--standard` exists because the standard set's membership went wrong three
 times in two days, in two readers, after two corrections: a promoted family is
@@ -134,6 +144,24 @@ def uses(text: str, spec: Spec, lab_re, holder: str) -> tuple[set[str], set[str]
     return labels, terms
 
 
+def term_chain(spec: Spec, seed_terms: set[str]) -> set[str]:
+    """The changed terms and every term defined over one, walked to the end:
+    a term whose definition rests on a changed term is itself changed."""
+    lab_re = _label_pattern(set(spec.rules))
+    changed_terms = set(seed_terms)
+    growing = True
+    while growing:
+        growing = False
+        for name, (_, body) in spec.terms.items():
+            if name in changed_terms:
+                continue
+            _, used = uses(body, spec, lab_re, name)
+            if used & changed_terms:
+                changed_terms.add(name)
+                growing = True
+    return changed_terms
+
+
 def reopened_by(spec: Spec, seeds: set[str]) -> dict[str, set[str]]:
     """What a change to `seeds` puts back in front of a reader.
 
@@ -146,23 +174,10 @@ def reopened_by(spec: Spec, seeds: set[str]) -> dict[str, set[str]]:
     seed_labels = {s for s in seeds if not s.startswith("`")}
     seed_terms = {s.strip("`") for s in seeds if s.startswith("`")}
 
-    # definition chain: a term whose definition rests on a changed term
-    changed_terms = set(seed_terms)
-    growing = True
-    while growing:
-        growing = False
-        for name, (_, body) in spec.terms.items():
-            if name in changed_terms:
-                continue
-            _, used = uses(body, spec, lab_re, name)
-            if used & changed_terms:
-                changed_terms.add(name)
-                growing = True
+    changed_terms = term_chain(spec, seed_terms)
 
-    CATALOGUE = {"actors", "records", "record verbs", "value sets", "bounds",
-                 "cadences", "terms", "qualifiers", "composing patterns", "cited"}
     out: dict[str, set[str]] = {}
-    for name in changed_terms - seed_terms - CATALOGUE:
+    for name in changed_terms - seed_terms - CATEGORY_NAMES:
         _, used = uses(spec.terms[name][1], spec, lab_re, name)
         out[f"`{name}`"] = {f"`{x}`" for x in used & changed_terms}
     for label, text in spec.text_of.items():
@@ -188,20 +203,44 @@ def across(specs: list[Spec], seeds: dict[Path, set[str]]) -> dict[str, list[str
     the corpus can make is a citation something has to walk."""
     wanted: list[tuple[str, str]] = []
     ranged: list[tuple[str, str, str]] = []   # spec name, label, origin
+    termed: list[tuple[str, re.Pattern, str]] = []   # ref, pattern, origin
     for path, labels in seeds.items():
         name = spec_name(path)
         for label in labels:
             if label.startswith("`"):
+                term = label.strip("`")
+                if term in CATEGORY_NAMES:
+                    continue
+                # a term is cited across specs in two forms: the possessive
+                # (`Tamper Evidence's seam`) and a [Marker] link into the spec
+                # (`[seam](../atoms/tamper-evidence.md#seam)`)
+                slug = re.escape(term.lower().replace(" ", "-"))
+                termed.append((f"{name}'s {term}", re.compile(
+                    r"(?<![\w-])" + re.escape(name) + r"['’]s " + re.escape(term) + r"(?![\w-])"), path.name))
+                termed.append((f"{name}'s {term}", re.compile(
+                    r"\[[^\]]*\]\([^)\s]*" + re.escape(path.name) + r"#" + slug + r"\)"
+                    r"|\[" + re.escape(term) + r"\]\([^)\s]*" + re.escape(path.name) + r"(?:#[^)\s]*)?\)",
+                    re.I), path.name))
                 continue
             wanted.append((f"{name} {label}", path.name))
             ranged.append((name, label, path.name))
             group = re.match(r"^(.*?) (\d+)\.\d+[a-z]?$", label)
             if group:
                 wanted.append((f"{name} {group.group(1)} {group.group(2)}", path.name))
+    # a citation names its spec, so a line that names none of the changed specs
+    # cites nothing of them: test the names first, the labels only past that
+    names = {spec_name(path) for path in seeds}
+    by_name: dict[str, list[tuple[str, str]]] = {}
+    for ref, origin in wanted:
+        by_name.setdefault(next(n for n in names if ref.startswith(n + " ")), []).append((ref, origin))
+
     def hits(text: str, origin_name: str) -> set[str]:
-        found = {ref for ref, origin in wanted if ref in text and origin != origin_name}
+        present = [n for n in by_name if n in text]
+        found = {ref for n in present for ref, origin in by_name[n] if ref in text and origin != origin_name}
+        if termed and any(n + "’s" in text or n + "'s" in text or ".md" in text for n in names):
+            found |= {ref for ref, pat, origin in termed if origin != origin_name and pat.search(text)}
         # a range citation cites every label between its ends (Hard invariant 29)
-        for m in CROSS_REF.finditer(text):
+        for m in (CROSS_REF.finditer(text) if " through " in text else ()):
             end = RANGE_END.match(text, m.end())
             if not end:
                 continue
@@ -446,6 +485,44 @@ def changed_seeds(root: Path, rev: str, spec: Spec) -> set[str]:
     return seeds
 
 
+def expanded(spec: Spec, seeds: set[str]) -> set[str]:
+    """`seeds` with every term a changed term's definition chain reaches: what
+    another spec cites of a changed term, it cites of the whole chain."""
+    chain = term_chain(spec, {s.strip("`") for s in seeds if s.startswith("`")})
+    return seeds | {f"`{name}`" for name in chain}
+
+
+def reach(root: Path, rev: str, target: Path) -> list[str] | None:
+    """The rules of one spec a diff reaches, in the order the spec writes them:
+    its own changed rules and terms, the rules of it that rest on them, and the
+    rules of it that cite a changed rule or term of another spec. None where the
+    spec is not one the tools read."""
+    corpus = specs_with_rules(root, None)
+    spec = next((s for s in corpus if s.path.resolve() == target.resolve()), None)
+    if spec is None:
+        return None
+    seeds_by_path = {s.path: expanded(s, changed_seeds(root, rev, s)) for s in corpus}
+    mine = seeds_by_path[spec.path]
+    held: dict[str, int] = {}
+    for seed in mine:
+        if seed.startswith("`"):
+            if seed.strip("`") in spec.terms and seed.strip("`") not in CATEGORY_NAMES:
+                held[f"Term {seed.strip('`')}"] = spec.terms[seed.strip("`")][0]
+        else:
+            held[seed] = spec.rules[seed]
+    for holder in reopened_by(spec, mine):
+        held[holder] = spec.rules.get(holder) or spec.terms[holder.strip("`")][0]
+        if holder.startswith("`"):
+            held[f"Term {holder.strip('`')}"] = held.pop(holder)
+    prefix = f"{spec.path.name}:"
+    for sites in across(corpus, seeds_by_path).values():
+        for site in sites:
+            if site.startswith(prefix) and not site.endswith(": (prose)"):
+                _, line, label = site.split(":", 2)
+                held[label.strip()] = int(line)
+    return [label for label, _ in sorted(held.items(), key=lambda kv: (kv[1], kv[0]))]
+
+
 def report(spec: Spec, seeds: set[str]) -> int:
     if not seeds:
         return 0
@@ -463,7 +540,10 @@ def report(spec: Spec, seeds: set[str]) -> int:
 
 
 def main(argv: list[str]) -> int:
-    root = Path(__file__).resolve().parents[2]
+    return run(Path(__file__).resolve().parents[2], argv)
+
+
+def run(root: Path, argv: list[str]) -> int:
     args = [a for a in argv[1:] if not a.startswith("--")]
     rev = None
     if "--changed" in argv:
@@ -471,6 +551,18 @@ def main(argv: list[str]) -> int:
         rev = argv[i + 1] if i + 1 < len(argv) else "HEAD"
         if rev in args:
             args.remove(rev)
+    if "--reach" in argv:
+        i = argv.index("--reach")
+        target = argv[i + 1] if i + 1 < len(argv) and not argv[i + 1].startswith("--") else None
+        if not target:
+            print("cites.py --reach <spec path> --changed <base>")
+            return 2
+        reached = reach(root, rev or "HEAD", Path(target) if Path(target).is_absolute() else root / target)
+        if reached is None:
+            print(f"— {target} is not a migrated spec the tools read.")
+            return 2
+        print("\n".join(reached) if reached else "nothing")
+        return 0 if reached else 1
     paths = None
     if "--paths" in argv:
         i = argv.index("--paths")
@@ -666,7 +758,7 @@ def main(argv: list[str]) -> int:
         seeds_by_path = {}
         for spec in specs:
             seeds = changed_seeds(root, rev, spec)
-            seeds_by_path[spec.path] = seeds
+            seeds_by_path[spec.path] = expanded(spec, seeds)
             total += report(spec, seeds)
         # a cited rule's own spec is never the whole blast radius
         corpus = specs if paths is None else specs_with_rules(root, None)

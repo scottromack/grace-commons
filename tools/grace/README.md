@@ -58,6 +58,7 @@ A code span inside a rule is read as quoted text, never as the rule's own tokens
 python3 tools/grace/cites.py 'Fence 5'            # what rests on this rule
 python3 tools/grace/cites.py 'fence'              # what rests on this term
 python3 tools/grace/cites.py --changed HEAD~1     # what a commit's edits re-open
+python3 tools/grace/cites.py --reach compositions/audit-trail.md --changed HEAD~1  # what the diff reaches of one spec
 python3 tools/grace/cites.py --into event-log     # what the corpus cites INTO a spec
 python3 tools/grace/cites.py --terms seam         # every declaration of one name
 python3 tools/grace/cites.py --queue              # unmigrated specs, most-cited first
