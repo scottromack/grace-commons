@@ -16,7 +16,7 @@ toc: true
 
 ## Summary
 
-Owed Record keeps the durable record that something is owed. When a pattern does something that leaves a write still to be made — an audit record to land, an approval to be closed, a provisional entry to be replaced by a final one — it records an owed record in the same transaction (the all-or-nothing step that commits the cause), so the obligation exists exactly when its cause does. The owed record names the owing pattern, its own id, the cause that created it and the instant it falls due. It is met by a discharge, exactly once, naming the record that fulfilled it; if its due-by instant comes first, a sweep flags it for a person, who may still discharge it later. The atom does not make the owed write, does not run the sweep and does not decide what a person does with a flag; those belong to the patterns that compose it. It carries no message and delivers nothing.
+Owed Record keeps the durable record that something is owed. When a pattern does something that leaves a write still to be made — an audit record to land, an approval to be closed, a provisional entry to be replaced by a final one — it records an owed record in the same transaction (the one step that commits the cause whole or not at all), so the obligation exists exactly when its cause does. The owed record names the owing pattern, its own id, the cause that created it and the instant it falls due. It is met by a discharge, exactly once, naming the record that fulfilled it; if its due-by instant comes first, a sweep flags it for a person, who may still discharge it later. The atom does not make the owed write, does not run the sweep and does not decide what a person does with a flag; those belong to the patterns that compose it. It carries no message and delivers nothing.
 
 ---
 
@@ -188,7 +188,7 @@ Term flag instant: the instant the owed record was flagged for a person — a [F
 
 Term listed status: the status a [List Owed] call asks for, open or flagged — a [Listed Status].
 
-Term listing key: an owed record's due-by instant paired with its owed id, compared first by instant, then by id in code point order (Execution Contract Logic confinement 10) — the order [List Owed] answers in.
+Term listing key: an owed record's due-by instant paired with its owed id, compared first by instant, then by id in code point order (Execution Contract Logic confinement 10).
 
 Term continuation key: the listing key of the last owed record a previous [List Owed] call answered — a [Continuation Key], malformed where it is not an instant paired with an owed id.
 
@@ -316,6 +316,8 @@ Non-goal 11: A deployment needing an attested actor MUST compose Actor Identity.
 ```
 
 NOTE: the owners — the owing pattern (Non-goal 1, Non-goal 2); [Recoverable Invocation](../compositions/recoverable-invocation.md) (Non-goal 3, Non-goal 4); the deployment's operator (Non-goal 5); [Notification Fanout](../compositions/notification-fanout.md) (Non-goal 6, Non-goal 7); [Retention Window](./retention-window.md) (Non-goal 8, Non-goal 9); [Actor Identity](./actor-identity.md) (Non-goal 10, Non-goal 11).
+
+NOTE: open 2026-11-03-a — Non-goal 1, Non-goal 2 and Non-goal 5 name their owners (the owing pattern, the deployment's operator) with no page to link, which the Non-goals form asks for.
 
 ## Edge cases
 
@@ -642,16 +644,17 @@ Inherited from:
 
 ## Status
 
-`partially resolved` — see the Ledger.
+`grounded on Final Critique 2 — 2026-11-03 at aeea14e` — see the Ledger.
 
 ## Ledger
 
 ```
-status: partially resolved
+status: grounded on Final Critique 2 — 2026-11-03 at aeea14e
 formal: not applicable — vote no 2026-11-02: the one guard that reads the clock, [Flag]'s not-due refusal, compares now with a due-by instant stamped once and never changed, and the atom claims no commit order of its own; its flagged-only-when-due, discharged-once and one-record-per-obligation claims are single-state properties each action's rules hold, its listing order is a sort over stored fields, and its concurrency is Execution Contract Database 2's
-last gate: 2026-11-02 — Final Critique 1, frozen at 2aaf35c — foundational count 3, all cured, not clean, no sample
+last gate: 2026-11-03 — Final Critique 2, delta, frozen at aeea14e — foundational count 0, clean, one sample
 
 open:
+- 2026-11-03-a · refining · Non-goal 1; Non-goal 2; Non-goal 5 · the owners of three non-goals are the owing pattern and the deployment's operator, neither a page, so the form's link to the owner has no target → decide whether the atom names a composing pattern as owner or the form excuses a non-goal whose owner is a caller
 - 2026-11-02-a · refining · List Owed; Operation 35; Check 3.1 · the atom answers no read of a discharged owed record or of one owed record by its owing pattern and owed id, so a discharged record is reached only by an auditor's read of the database, and a single record only through the pagination of its status → decide whether the atom offers a read by id and a listed status of discharged
 - 2026-11-02-b · refining · Operation 8; Term due-by window · a due-by window has no upper bound, so a window past the instant range the due-by deadline can hold (or one that makes the obligation never fall due in practice) has no rule, and Execution Contract Input 2 asks a bounded input for a cap → decide whether the atom caps the window and what a call past the cap answers
 ```
