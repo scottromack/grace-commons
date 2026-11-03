@@ -955,7 +955,7 @@ It inherits from:
 ```
 status: partially resolved
 formal: verified — party-identity.tla + 1 twin, 2026-06-03
-last gate: 2026-11-02 — Final Critique 9 — foundational count 3, not clean, no sample
+last gate: 2026-11-02 — Final Critique 10 (delta) — foundational count 0, clean, no sample
 
 open:
 - 2026-10-21-j · refining · Composition note 4, 5; External check 4 · the enrolling and verifying actor references have no route to attestation, Composition note 4 binding Actor Identity only to transitioning actions and Composition note 5 an attestation to a state change id, which an enroll and a verify driving no transition never answer → say whether an enrollment and a check are attested, and by whom; re-found by Final Critique 8 and Final Critique 9
