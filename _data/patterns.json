@@ -139,7 +139,7 @@
    "SOC 2",
    "SOX"
   ],
-  "status": "grounded on Final Critique 7 \u2014 2026-10-26",
+  "status": "grounded on Final Critique 7 \u2014 2026-10-26 at 207f9b2",
   "title": "Assignment"
  },
  "attributed-permissions-admin": {
@@ -279,7 +279,7 @@
    "SEC 17a-4",
    "SOX"
   ],
-  "status": "grounded on Final Critique 10 \u2014 2026-11-01",
+  "status": "grounded on Final Critique 10 \u2014 2026-11-01 at 275383a",
   "title": "Capability"
  },
  "capability-backed-sharing": {
@@ -352,7 +352,7 @@
   ],
   "security": false,
   "standards": [],
-  "status": "grounded on Final Critique 4 \u2014 2026-10-24",
+  "status": "grounded on Final Critique 4 \u2014 2026-10-24 at 460866f",
   "title": "Cart"
  },
  "chain-of-custody": {
@@ -450,7 +450,7 @@
    "SEC 17a-4",
    "SOX"
   ],
-  "status": "grounded on Final Critique 15 \u2014 2026-10-30",
+  "status": "grounded on Final Critique 15 \u2014 2026-10-30 at 115e9d3",
   "title": "Consent"
  },
  "credential": {
@@ -496,7 +496,7 @@
    "SOX",
    "eIDAS"
   ],
-  "status": "grounded on Final Critique 21 \u2014 2026-10-29",
+  "status": "grounded on Final Critique 21 \u2014 2026-10-29 at cf02362",
   "title": "Credential"
  },
  "customer-onboarding": {
@@ -584,7 +584,7 @@
    "PCI DSS",
    "SOX"
   ],
-  "status": "grounded on Final Critique 7 \u2014 2026-10-28",
+  "status": "grounded on Final Critique 7 \u2014 2026-10-28 at 7c6ea61",
   "title": "Duplicate Prevention"
  },
  "erasure-tombstone": {
@@ -645,7 +645,7 @@
    "SOX",
    "eIDAS"
   ],
-  "status": "grounded on Final Critique 13 \u2014 2026-10-25",
+  "status": "grounded on Final Critique 13 \u2014 2026-10-25 at bae1f12",
   "title": "Event Log"
  },
  "execute-gated-workflow": {
@@ -802,7 +802,7 @@
    "SCIM",
    "SOC 2"
   ],
-  "status": "grounded on Final Critique 8 \u2014 2026-11-01",
+  "status": "grounded on Final Critique 8 \u2014 2026-11-01 at f68a856",
   "title": "Invitation"
  },
  "lease": {
@@ -829,7 +829,7 @@
    "PCI DSS",
    "SOX"
   ],
-  "status": "grounded on Final Critique 4 \u2014 2026-10-04",
+  "status": "grounded on Final Critique 4 \u2014 2026-10-04 at 46804b7",
   "title": "Lease"
  },
  "legal-hold": {
@@ -857,7 +857,7 @@
    "SEC 17a-4",
    "SOX"
   ],
-  "status": "grounded on Final Critique 8 \u2014 2026-10-24",
+  "status": "grounded on Final Critique 8 \u2014 2026-10-24 at c39a73f",
   "title": "Legal Hold"
  },
  "login": {
@@ -1118,7 +1118,7 @@
    "SOC 2",
    "SOX"
   ],
-  "status": "grounded on Final Critique 8 \u2014 2026-10-26",
+  "status": "grounded on Final Critique 8 \u2014 2026-10-26 at ba799a4",
   "title": "Permissions"
  },
  "personal-todo": {
@@ -1405,7 +1405,7 @@
    "SOX",
    "eIDAS"
   ],
-  "status": "grounded on Final Critique 13 \u2014 2026-10-24",
+  "status": "grounded on Final Critique 13 \u2014 2026-10-24 at 142a72a",
   "title": "Retention Window"
  },
  "selective-disclosure": {
@@ -1574,7 +1574,7 @@
    "PCI DSS",
    "SOX"
   ],
-  "status": "grounded on Final Critique 10 \u2014 2026-10-31",
+  "status": "grounded on Final Critique 10 \u2014 2026-10-31 at bda283f",
   "title": "State Machine"
  },
  "subscription": {

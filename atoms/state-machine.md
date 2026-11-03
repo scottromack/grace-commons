@@ -918,12 +918,12 @@ Guard evaluation, non-repudiable attribution, tamper-evidence, and retention are
 
 ## Status
 
-`grounded on Final Critique 10 — 2026-10-31` — see the Ledger.
+`grounded on Final Critique 10 — 2026-10-31 at bda283f` — see the Ledger.
 
 ## Ledger
 
 ```
-status: grounded on Final Critique 10 — 2026-10-31
+status: grounded on Final Critique 10 — 2026-10-31 at bda283f
 formal: verified — state-machine.als + 1 twin, 2026-06-04
 last gate: 2026-10-31 — Final Critique 10 — foundational count 0, clean, one sample
 

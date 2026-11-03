@@ -1214,9 +1214,9 @@ STATUS_TOKEN_FORMS = [
     re.compile(r"^draft$"),
     re.compile(r"^unresolved$"),
     re.compile(r"^partially resolved$"),
-    re.compile(r"^grounded on Final Critique \d+ — \d{4}-\d{2}-\d{2}$"),
-    re.compile(r"^grounded \(English\) on Final Critique \d+ — \d{4}-\d{2}-\d{2} — formal layer pending$"),
-    re.compile(r"^grounded on Final Critique \d+ — \d{4}-\d{2}-\d{2} — .+ pending$"),
+    re.compile(r"^grounded on Final Critique \d+ — \d{4}-\d{2}-\d{2}(?: at [0-9a-f]{7,40})?$"),
+    re.compile(r"^grounded \(English\) on Final Critique \d+ — \d{4}-\d{2}-\d{2}(?: at [0-9a-f]{7,40})? — formal layer pending$"),
+    re.compile(r"^grounded on Final Critique \d+ — \d{4}-\d{2}-\d{2}(?: at [0-9a-f]{7,40})? — .+ pending$"),
 ]
 STATUS_SECTION = re.compile(r"^(?:## Status|[ \t]*<h2\b[^>]*>[ \t]*Status[ \t]*</h2>)\s*$", re.M)
 LEADING_TOKEN = re.compile(r"^`([^`]+)`")

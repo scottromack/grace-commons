@@ -628,12 +628,12 @@ It inherits from:
 
 ## Status
 
-`grounded on Final Critique 8 — 2026-10-26` — see the Ledger.
+`grounded on Final Critique 8 — 2026-10-26 at ba799a4` — see the Ledger.
 
 ## Ledger
 
 ```
-status: grounded on Final Critique 8 — 2026-10-26
+status: grounded on Final Critique 8 — 2026-10-26 at ba799a4
 formal: verified — permissions.als + 1 twin, 2026-06-03
 last gate: 2026-11-02 — Final Critique 9 — delta, foundational count 0, clean, one sample
 

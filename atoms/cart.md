@@ -581,12 +581,12 @@ Rules on showing and confirming a price before a purchase, such as the Consumer 
 
 ## Status
 
-`grounded on Final Critique 4 — 2026-10-24` — see the Ledger.
+`grounded on Final Critique 4 — 2026-10-24 at 460866f` — see the Ledger.
 
 ## Ledger
 
 ```
-status: grounded on Final Critique 4 — 2026-10-24
+status: grounded on Final Critique 4 — 2026-10-24 at 460866f
 formal: not applicable — vote no 2026-10-23: the atom reads no clock and claims no ordering of its own; its one-line-per-item and fixed-price claims are single-state properties each action's rules hold, and its concurrency is Execution Contract Database 2's
 last gate: 2026-10-24 — Final Critique 4 — foundational count 0, clean, one sample
 

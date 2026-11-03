@@ -992,12 +992,12 @@ It inherits from:
 
 ## Status
 
-`grounded on Final Critique 21 — 2026-10-29` — see the Ledger.
+`grounded on Final Critique 21 — 2026-10-29 at cf02362` — see the Ledger.
 
 ## Ledger
 
 ```
-status: grounded on Final Critique 21 — 2026-10-29
+status: grounded on Final Critique 21 — 2026-10-29 at cf02362
 formal: verified — credential.tla + 4 twins, 2026-09-29
 last gate: 2026-11-02 — Final Critique 22 (delta) — foundational count 0, clean, one sample
 

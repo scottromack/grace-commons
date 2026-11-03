@@ -444,12 +444,12 @@ The concept is not itself regulated. It appears in regulated patterns as the mec
 
 ## Status
 
-`grounded on Final Critique 4 — 2026-10-04` — see the Ledger.
+`grounded on Final Critique 4 — 2026-10-04 at 46804b7` — see the Ledger.
 
 ## Ledger
 
 ```
-status: grounded on Final Critique 4 — 2026-10-04
+status: grounded on Final Critique 4 — 2026-10-04 at 46804b7
 formal: verified — lease.tla + 4 twins + 1 probe (vote yes: one holder, the terminus, the fence and the write margin are temporal claims; 14,480 states, holding at clock bounds 8, 10 and 12), 2026-10-04
 last gate: 2026-10-04 — Final Critique 4, fresh reader, three passes — 0 foundational, 44 refining reports, 13 rhetorical reports
 

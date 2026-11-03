@@ -814,12 +814,12 @@ It inherits from:
 
 ## Status
 
-`grounded on Final Critique 13 — 2026-10-24` — see the Ledger.
+`grounded on Final Critique 13 — 2026-10-24 at 142a72a` — see the Ledger.
 
 ## Ledger
 
 ```
-status: grounded on Final Critique 13 — 2026-10-24
+status: grounded on Final Critique 13 — 2026-10-24 at 142a72a
 formal: not applicable — vote no 2026-06-03
 last gate: 2026-10-24 — Final Critique 13 — foundational count 0, clean, one sample
 

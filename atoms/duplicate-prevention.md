@@ -421,12 +421,12 @@ It inherits from:
 
 ## Status
 
-`grounded on Final Critique 7 — 2026-10-28` — see the Ledger.
+`grounded on Final Critique 7 — 2026-10-28 at 7c6ea61` — see the Ledger.
 
 ## Ledger
 
 ```
-status: grounded on Final Critique 7 — 2026-10-28
+status: grounded on Final Critique 7 — 2026-10-28 at 7c6ea61
 formal: verified — duplicate-prevention.tla + 1 twin, 2026-06-03
 last gate: 2026-10-28 — Final Critique 7 — foundational count 0, clean, one sample
 

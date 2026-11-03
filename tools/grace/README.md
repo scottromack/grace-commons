@@ -161,7 +161,7 @@ with the `line` it starts on:
 | Field | What it holds |
 |---|---|
 | `spec`, `name`, `title`, `kind` | The spec's path, its name as a cross-spec citation writes it (`Event Log`), its `#` title, and `atom` or `composition`. |
-| `status` | The code span on the spec's `## Status` line (`grounded on Final Critique 4 — 2026-10-24` for Cart), or null when there is none. |
+| `status` | The code span on the spec's `## Status` line (`grounded on Final Critique 4 — 2026-10-24 at 460866f` for Cart), or null when there is none. |
 | `summary` | The Summary section's text, its paragraphs kept. |
 | `rules` | Every labelled rule in file order: `label`, `family` and `number` (`Invariant`, `2.1`; `record action`, `step 3.2`), its one-line `text`, the `section` it sits in (its headings, then the bold bullet an indented fence sits in, `Invariant 1 — One line per item.`), and the WHEN rule that is its `parent`, or null. |
 | `tombstones` | Every `Deleted:` line: the `label` it reserves and the owner it names. |

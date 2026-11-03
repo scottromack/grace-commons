@@ -860,12 +860,12 @@ Inherited from:
 
 ## Status
 
-`grounded on Final Critique 10 — 2026-11-01` — see the Ledger.
+`grounded on Final Critique 10 — 2026-11-01 at 275383a` — see the Ledger.
 
 ## Ledger
 
 ```
-status: grounded on Final Critique 10 — 2026-11-01
+status: grounded on Final Critique 10 — 2026-11-01 at 275383a
 formal: verified — capability.als + 1 twin, 2026-06-23
 last gate: 2026-11-01 — Final Critique 10 — foundational count 0, clean, one sample
 

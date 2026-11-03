@@ -515,12 +515,12 @@ It inherits from:
 
 ## Status
 
-`grounded on Final Critique 13 — 2026-10-25` — see the Ledger.
+`grounded on Final Critique 13 — 2026-10-25 at bae1f12` — see the Ledger.
 
 ## Ledger
 
 ```
-status: grounded on Final Critique 13 — 2026-10-25
+status: grounded on Final Critique 13 — 2026-10-25 at bae1f12
 formal: verified — event-log.tla + 1 twin, 2026-06-03
 last gate: 2026-10-25 — Final Critique 13 — foundational count 0, clean, one sample
 

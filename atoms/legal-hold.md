@@ -672,12 +672,12 @@ Projection: invalid-query
 
 ## Status
 
-`grounded on Final Critique 8 — 2026-10-24` — see the Ledger.
+`grounded on Final Critique 8 — 2026-10-24 at c39a73f` — see the Ledger.
 
 ## Ledger
 
 ```
-status: grounded on Final Critique 8 — 2026-10-24
+status: grounded on Final Critique 8 — 2026-10-24 at c39a73f
 formal: verified — legal-hold.tla + 2 twins, 2026-06-04
 last gate: 2026-11-02 — Final Critique 9, a delta round, frozen at d1e9f55 — foundational count 0, clean, no sample; 2026-10-24 — Final Critique 8 — foundational count 0, clean, one sample
 

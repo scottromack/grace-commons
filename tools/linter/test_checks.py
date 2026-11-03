@@ -393,6 +393,12 @@ R_FIXTURES = [
     ("R_CLEAN_NONE", _ledger_page(
         "grounded on Final Critique 4 — 2026-06-04",
         "grounded on Final Critique 4 — 2026-06-04", " none"), None),
+    ("R_CLEAN_PINNED", _ledger_page(
+        "grounded on Final Critique 4 — 2026-06-04 at 1719092",
+        "grounded on Final Critique 4 — 2026-06-04 at 1719092", " none"), None),
+    ("R_PIN_NOT_A_SHA", _ledger_page(
+        "grounded on Final Critique 4 — 2026-06-04 at nowhere",
+        "grounded on Final Critique 4 — 2026-06-04 at nowhere", " none"), "R-ledger-grammar"),
     ("R_GROUNDED_OPEN", _ledger_page(
         "grounded on Final Critique 4 — 2026-06-04",
         "grounded on Final Critique 4 — 2026-06-04",

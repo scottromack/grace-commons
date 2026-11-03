@@ -826,12 +826,12 @@ Projection: invalid-query
 
 ## Status
 
-`grounded on Final Critique 15 — 2026-10-30` — see the Ledger.
+`grounded on Final Critique 15 — 2026-10-30 at 115e9d3` — see the Ledger.
 
 ## Ledger
 
 ```
-status: grounded on Final Critique 15 — 2026-10-30
+status: grounded on Final Critique 15 — 2026-10-30 at 115e9d3
 formal: not applicable — vote no 2026-06-03
 last gate: 2026-10-30 — Final Critique 15 — foundational count 0, clean, one sample
 
