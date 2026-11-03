@@ -56,8 +56,8 @@ Identity 1: The atom MUST identify a workflow by the instance id.
 Identity 2: The atom MUST identify a history entry by the transition id.
 Identity 3: The host MUST allocate an instance id at the seam.
 Identity 4: The host MUST allocate a transition id at the seam.
-Identity 5: The transition MUST NOT allocate an instance id.
-Identity 6: The transition MUST NOT allocate a transition id.
+Deleted: Identity 5. Execution Contract Logic confinement 3 owns it.
+Deleted: Identity 6. Execution Contract Logic confinement 3 owns it.
 Identity 7: The atom MUST NOT change an instance id.
 Identity 8: The atom MUST NOT change a transition id.
 Identity 9: Two workflows in one database instance MUST NOT share an instance id.
@@ -154,6 +154,8 @@ read_declaration(instance_id)
 ```
 Deleted: Operation 1. Execution Contract Refusal 1 owns it.
 Operation 2: IF the call carries actor reference AND actor reference EQUALS blank THEN a writing action MUST answer invalid-request.
+Operation 77: IF actor reference EXCEEDS the string cap THEN a writing action MUST answer invalid-request (Execution Contract Input 2).
+Operation 78: IF subject reference EXCEEDS the string cap THEN [Instantiate] MUST answer invalid-request (Execution Contract Input 2).
 Operation 3: IF now PRECEDES the resolved instantiation instant THEN [Instantiate] MUST answer invalid-request.
 Deleted: Operation 62. Execution Contract Input 1 owns it.
 Operation 65: IF the resolved instantiation instant is malformed THEN [Instantiate] MUST answer invalid-request (Execution Contract Input 1).
@@ -171,7 +173,9 @@ Operation 67: An admitted instantiate MUST record the resolved instantiation ins
 Operation 72: An admitted instantiate MUST record on the workflow the instance id the host allocates (Identity 3).
 Operation 74: An admitted instantiate MUST record the declaration.
 Operation 9: IF instance id EQUALS blank THEN an addressed action MUST answer invalid-request.
+Operation 75: IF instance id EXCEEDS the string cap THEN an addressed action MUST answer invalid-request (Execution Contract Input 2).
 Operation 10: IF action EQUALS blank THEN [Fire] MUST answer invalid-request.
+Operation 76: IF action EXCEEDS the string cap THEN [Fire] MUST answer invalid-request (Execution Contract Input 2).
 Operation 11: IF the instance id names no workflow THEN an addressed action MUST answer not-known.
 Deleted: Operation 12. Execution Contract Refusal 1 owns it.
 Operation 13: IF the current state IS IN the terminal states THEN [Fire] MUST answer terminal.
@@ -214,6 +218,7 @@ Operation 42: IF no history entry matches THEN an admitted history MUST answer a
 Operation 57: IF the query is malformed THEN [History] MUST answer invalid-query.
 Operation 43: IF a filter's axis IS NOT IN the filter axes THEN [History] MUST answer invalid-query.
 Operation 44: IF a string filter's value EQUALS blank THEN [History] MUST answer invalid-query.
+Operation 79: IF a string filter's value EXCEEDS the string cap THEN [History] MUST answer invalid-query (Execution Contract Input 2).
 Operation 45: IF a sequence number range's start EXCEEDS the range's end THEN [History] MUST answer invalid-query.
 Operation 58: IF a firing instant range's end PRECEDES the range's start THEN [History] MUST answer invalid-query.
 Deleted: Operation 46. Execution Contract Refusal 1 owns it.
@@ -235,6 +240,8 @@ NOTE: watch the optional field no rule records (Operation 56, Operation 59, Oper
 NOTE: watch the blank optional input (Operation 56, Operation 59, Operation 60, Operation 61, Operation 70, Operation 71).
 
 NOTE: watch the required input no rule records (Operation 67, Operation 68, Operation 74).
+
+NOTE: watch the cap's refusal (Operation 75, Operation 76, Operation 77, Operation 78, Operation 79, Declaration 20).
 
 NOTE: open 2026-10-31-a — no action answers a workflow's subject reference, instance metadata, actor reference or instantiation instant (State 2, State 3, State 15, Operation 67).
 
@@ -270,7 +277,7 @@ Term matched transition: the one declared transition whose from state is the cur
 
 Term cleared fire: a [Fire] call Operation 11, Operation 13, Operation 15 and Operation 17 all admit.
 
-Term firing check: Operation 2, Operation 19, Operation 20, Operation 66 and Operation 69 — every check [Fire] makes on a cleared fire.
+Term firing check: Operation 2, Operation 19, Operation 20, Operation 66, Operation 69 and Operation 77 — every check [Fire] makes on a cleared fire.
 
 Term firing fault: a firing check the call fails.
 
@@ -284,12 +291,12 @@ Term admitted history: a [History] call whose instance id names a workflow and w
 
 | # | Condition | [Fire] answers | Owner |
 |---|---|---|---|
-| 1 | instance id or action is blank | invalid-request | Operation 9, Operation 10 |
+| 1 | instance id or action is blank or over the string cap | invalid-request | Operation 9, Operation 10, Operation 75, Operation 76 |
 | 2 | both are well-formed, the instance id names no workflow | not-known | Operation 11 |
 | 3 | the workflow exists, the current state is terminal | terminal | Operation 13 |
 | 4 | the current state is not terminal, no declared transition matches | invalid-transition | Operation 15 |
 | 5 | a declared transition matches, it carries a guard, guard satisfied is not true | guard-not-satisfied | Operation 17 |
-| 6 | the call is a cleared fire, a firing check fails | invalid-request | Operation 64; Operation 2, Operation 19, Operation 20, Operation 66, Operation 69 |
+| 6 | the call is a cleared fire, a firing check fails | invalid-request | Operation 64; Operation 2, Operation 19, Operation 20, Operation 66, Operation 69, Operation 77 |
 | 7 | every precondition passes, the database refuses the write | storage-failure | Operation 33 |
 | 8 | every precondition passes, the database accepts the write | new_state | Operation 28 |
 
@@ -372,6 +379,7 @@ Declaration 14: IF a declared transition's action EQUALS blank THEN [Instantiate
 Declaration 15: IF a declared transition carries a guard AND the guard EQUALS blank THEN [Instantiate] MUST answer invalid-declaration.
 Declaration 18: IF a terminal state IS NOT IN states THEN [Instantiate] MUST answer invalid-declaration.
 Declaration 19: IF the declaration is malformed THEN [Instantiate] MUST answer invalid-declaration (Execution Contract Input 1).
+Declaration 20: IF a state name EXCEEDS the string cap OR a declared transition's action EXCEEDS the string cap OR a guard EXCEEDS the string cap THEN [Instantiate] MUST answer invalid-declaration (Execution Contract Input 2).
 Declaration 16: The terminal states MAY carry no member.
 Declaration 17: A declared transition MAY carry no guard.
 ```
@@ -384,7 +392,7 @@ Term initial state: the state a workflow stands in at [Instantiate] — an [Init
 
 Term terminal states: the absorbing members of states — a [Terminal States]; possibly none.
 
-Term well-formed declaration: a declaration Declaration 5 through 15, Declaration 18 and Declaration 19 all admit.
+Term well-formed declaration: a declaration Declaration 5 through 15, Declaration 18, Declaration 19 and Declaration 20 all admit.
 
 ---
 
@@ -544,7 +552,9 @@ Deleted: String 7. Execution Contract Logic confinement 13 owns it.
 
 Term string input: instance id, action, actor reference, subject reference, a state name, a guard OR a filter's value — every caller-supplied string this atom accepts.
 
-Term string cap: the bound on a string input's length in Unicode code points; 1,024 code points where a deployment declares none.
+Term string cap: the bound on a string input's length in Unicode code points, counted on the value as the call carries it; 1,024 code points where a deployment declares none.
+
+NOTE: watch the cap's measure (Term string cap, Term bounds).
 
 ---
 
@@ -580,7 +590,7 @@ Term records: workflow — one running workflow, carrying instance id, a declara
 Term record verbs: identify, allocate, change, carry, stand, answer, record, append, set, take, raise, leave, own, match, normalize, reorder, interpret, confirm, admit, offer, evaluate, assert, fire, replay, reach, rest, share, precede, follow, compare, trim, case-fold, refuse, write, read, find, reconstruct, complete, equal, bound, nest, version, decide, compose, declare, wire, supply, remove, route, name, detect, bind, capture, count.
 
 Term value sets: writing action = [Instantiate] | [Fire]. reading action = [Current] | [History] | [Read Declaration]. guard satisfied = true | false. filter axes = transition id | sequence number | from state | to state | action | actor reference | firing instant.
-Term bounds: string cap (the bound on a string input's length in Unicode code points, 1,024 where a deployment declares none).
+Term bounds: string cap (the bound on a string input's length in Unicode code points, counted on the value as the call carries it, 1,024 where a deployment declares none).
 
 Term cadences: empty.
 
@@ -590,7 +600,7 @@ Term terms: workflow, instance id, history entry, transition id, subject referen
 
 #### Instantiate
 
-The behavior that validates a caller-supplied [Declaration] and creates a new workflow in its [Initial State], assigning a fresh [Workflow Id], recording [Workflow Metadata], [Actor Reference], and [Instantiation Instant], and starting an empty [Transition History]. Rejected [Invalid Declaration] for any declaration defect, [Invalid Request] for a bad [Actor Reference] or [Instantiation Instant], or [Storage Failure].
+The behavior that validates a caller-supplied [Declaration] and creates a new workflow in its [Initial State], assigning a fresh [Workflow Id], recording [Workflow Metadata], [Actor Reference], and [Instantiation Instant], and starting an empty [Transition History]. Rejected [Invalid Declaration] for any declaration defect, [Invalid Request] for a bad [Actor Reference] or [Instantiation Instant] or a [Subject Reference] over the string cap, or [Storage Failure].
 
 Kind: Operation
 
@@ -628,7 +638,7 @@ Projection: instance_id
 
 #### Subject Reference
 
-The optional opaque reference to the entity whose lifecycle the workflow governs (a batch id, document id, work item id). Set on [Instantiate], immutable; the atom does not validate it, and its absence is valid.
+The optional opaque reference to the entity whose lifecycle the workflow governs (a batch id, document id, work item id). Set on [Instantiate], immutable; the atom does not confirm it names a known subject (Identity 15), and its absence is valid.
 
 Kind:       Field
 Field of:   the workflow
@@ -788,7 +798,7 @@ Projection: guard_satisfied
 
 #### Invalid Declaration
 
-The rejection [Instantiate] returns for any declaration defect — a malformed [Declaration], an empty or duplicate-named [States] set, an [Initial State] that is missing or in [Terminal States], a [Terminal States] member missing from [States], a transition referencing an undeclared state or leaving a terminal state, a duplicate `(from_state, action)` pair, or a blank [Action] or [Guard].
+The rejection [Instantiate] returns for any declaration defect — a malformed [Declaration], an empty or duplicate-named [States] set, an [Initial State] that is missing or in [Terminal States], a [Terminal States] member missing from [States], a transition referencing an undeclared state or leaving a terminal state, a duplicate `(from_state, action)` pair, a blank [Action] or [Guard], or a state name, [Action] or [Guard] over the string cap.
 
 Kind:       Member
 Member of:  the Instantiate rejection
@@ -797,7 +807,7 @@ Projection: invalid-declaration
 
 #### Invalid Request
 
-The rejection an action returns for a malformed argument — a null or whitespace-only [Workflow Id] or [Action], a bad [Actor Reference], a string input over the string cap (Execution Contract Input 2), a supplied instant that is not an instant, a supplied [Guard Satisfied] that is neither true nor false on an unguarded transition, or an [Instantiation Instant] / [Firing Instant] that is in the future or (for [Firing Instant]) before [Instantiation Instant].
+The rejection an action returns for a malformed argument — a null or whitespace-only [Workflow Id] or [Action], a bad [Actor Reference], a [Workflow Id], [Action], [Actor Reference] or [Subject Reference] over the string cap (Execution Contract Input 2), a supplied instant that is not an instant, a supplied [Guard Satisfied] that is neither true nor false on an unguarded transition, or an [Instantiation Instant] / [Firing Instant] that is in the future or (for [Firing Instant]) before [Instantiation Instant].
 
 Kind:       Member
 Member of:  the action rejection
@@ -851,7 +861,7 @@ Projection: guard-not-satisfied
 
 #### Invalid Query
 
-The rejection [History] returns for a malformed filter — a null or whitespace-only [Transition Id], [From State], [To State], [Action], or [Actor Reference]; a reversed [Sequence Number] or [Firing Instant] range, or one missing its start or its end; or an unrecognized filter key.
+The rejection [History] returns for a malformed filter — a null or whitespace-only [Transition Id], [From State], [To State], [Action], or [Actor Reference], or one over the string cap; a reversed [Sequence Number] or [Firing Instant] range, or one missing its start or its end; or an unrecognized filter key.
 
 Kind:       Member
 Member of:  the History rejection
@@ -918,14 +928,14 @@ Guard evaluation, non-repudiable attribution, tamper-evidence, and retention are
 
 ## Status
 
-`grounded on Final Critique 10 — 2026-10-31 at bda283f` — see the Ledger.
+`partially resolved` — see the Ledger.
 
 ## Ledger
 
 ```
-status: grounded on Final Critique 10 — 2026-10-31 at bda283f
+status: partially resolved
 formal: verified — state-machine.als + 1 twin, 2026-06-04
-last gate: 2026-10-31 — Final Critique 10 — foundational count 0, clean, one sample
+last gate: 2026-11-03 — Final Critique 11 — delta — foundational count 2, not clean, one sample
 
 open:
 - 2026-10-31-a · refining · State 2; State 3; State 15; Operation 67 · no action answers a workflow's subject reference, instance metadata, actor reference or instantiation instant, which the workflow records carry, and a composing pattern reads an atom only through the atom's declared surface (the section titled The atom interface contract in `execution-contract.md`) → a read answering them, or a non-goal saying none does and who owns the need
