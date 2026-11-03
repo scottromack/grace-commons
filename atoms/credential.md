@@ -122,7 +122,7 @@ Deleted: Capability requirement 10. Execution Contract Database 2 owns it: the p
 Deleted: Capability requirement 11. Execution Contract Database 3 owns it.
 Deleted: Capability requirement 12. Execution Contract Database 1 owns it.
 Capability requirement 13: The deployment MUST canonicalize an opaque reference, rewriting every spelling that differs by a foldable difference to one (Execution Contract Logic confinement 13).
-Capability requirement 14: The deployment MAY declare the length bound in Unicode code points PER Execution Contract Input 2.
+Capability requirement 14: The deployment MAY declare the length bound PER Execution Contract Input 2.
 Deleted: Capability requirement 15. Execution Contract Logic confinement 7 owns it.
 Deleted: Capability requirement 16. Execution Contract Logic confinement 7 owns it.
 Deleted: Clock semantics 4. Execution Contract Logic confinement 7 owns it.
@@ -161,6 +161,10 @@ Capability requirement 42: The deployment MUST supply id material in the spellin
 ```
 
 NOTE: open 2026-10-21-c — the host runs the derivation function and the check function at the seam and injects each result (Capability requirement 25, Capability requirement 26, Operation 21, Operation 66, Operation 67), and the pipeline in `execution-contract.md` gives that injection no step between the read and the decision.
+
+NOTE: open 2026-11-02-a — the material bound has no default, while Execution Contract Input 2 gives a bound a stated default and says a deployment never has to supply one; the value waits on a decision no rule makes, since the bound is declared PER credential type in a measure the deployment chooses.
+
+NOTE: open 2026-11-02-b — a deployment may declare a length bound (Capability requirement 14) below the length of a credential id already assigned, and [Revoke] then answers invalid-request for that credential (String 9) where Operation 27 does not apply, so the credential cannot be revoked; no rule holds the bound above the ids assigned.
 
 
 ### Operations
@@ -995,9 +999,11 @@ It inherits from:
 ```
 status: grounded on Final Critique 21 — 2026-10-29
 formal: verified — credential.tla + 4 twins, 2026-09-29
-last gate: 2026-10-29 — Final Critique 21 — foundational count 0, clean, one sample
+last gate: 2026-11-02 — Final Critique 22 (delta) — foundational count 0, clean, one sample
 
 open:
+- 2026-11-02-b · refining · Capability requirement 14; String 9; Operation 27 · a deployment may declare a length bound below the length of a credential id already assigned, and [Revoke] then answers invalid-request for it (String 9), the case the 2026-10-21 entry closed for the bound's old form → decide whether a deployment MUST NOT declare a length bound below an assigned credential id (the shape of Capability requirement 19, 20, 41), or whether a stored credential past the bound is Non-goal 26's; found by the blind second placement of Final Critique 22
+- 2026-11-02-a · refining · Capability requirement 27, 31, 32; Term material bound · the material bound is a cap the deployment MUST declare per credential type and states no default, where Execution Contract Input 2 (the host obligations sweep, 690b048) gives every bound a stated default a deployment may override → state a default and its measure per credential type (the sweep's 4,096 for key material is the nearest precedent), or rule that a per-type material bound is outside Input 2; found by Final Critique 22 (Linus, delta round)
 - 2026-10-21-b · refining · Term seam, transition; Term cited · each cites the section titled Logic Confinement Principle in `execution-contract.md`, which declares none of them → cite what declares each, as Event Log's 2026-10-20-c and Permissions' 2026-10-21-f ask of the same three sentences
 - 2026-10-21-c · refining · Capability requirement 24, 25, 26; Operation 21, 66, 67 · the host runs the derivation function (on [Register], and on [Rotate] for the type its read finds) and the check function (on [Verify], against the credential Operation 70 selects) at the seam and injects each result, as the contract's section titled Logic Confinement Principle says, and the pipeline in `execution-contract.md` gives that injection no step between the read and the decision, nor its query member a step for a query's check or its clock reading, nor the entropy a derivation consumes (Capability requirement 24) a draw before the guards that decide on the derivation's answer (Operation 66, 67), where Logic confinement 3 draws entropy at the top of Step 3 → draw the injection on the contract
 - 2026-09-29-e · refining · Final Critique 12 · routed open, non-blocking: the NIST verifier-storage claim against Non-goal 39 and Capability requirement 5; a public key's check normalizes nothing the page names; a lapse reopens a principal reference to any enrollment proof, unstated → one refining pass
