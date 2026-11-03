@@ -262,7 +262,7 @@ Term revocation reason: the stated ground for the cancellation — a [Revocation
 
 Term reason: the [Revoke] input the session keeps as revocation reason, a string input — a [Reason].
 
-Term filter: the selection a [Read] call scopes the answer by — a [Filter] naming principal reference, issued by reference, both OR no field; a session matches a filter when it carries EVERY value the filter names (String 1) and the filter names no other field, so a filter naming no field matches EVERY session; consumed per call, never stored.
+Term filter: the selection a [Read] call scopes the answer by — a [Filter] naming principal reference, issued by reference, both OR no field; a session matches a filter when it carries EVERY value the filter names (String 1) and the filter names no blank value, no value that EXCEEDS the maximum length of its field (Operation 61) and no other field, so a filter naming no field matches EVERY session; consumed per call, never stored.
 
 Term liveness query: any query for the sessions in force at the read-time clock — the atom's [Read] and the administrative surfaces built on it.
 
@@ -284,7 +284,7 @@ The case space, and the rule that owns each case:
 | either write | database refuses | [Storage Failure] | none (Operation 12, Operation 34) |
 | *a window lapses* | now reaches expiry instant | nothing is called | **nothing written** — no action, no stamp, no scheduler (Expiry 2 through 5, Invariant 12.3) |
 | [Read] | a filter | the matching sessions, each carrying its principal reference, issued by reference, issuance instant, expiry instant, status, revocation fields once revoked and effective status, and no session token | none (Operation 37, Operation 38, Operation 52, Operation 59, Operation 60) |
-| [Read] | a filter naming a blank value, or a value Operation 61 answers no session on, or a field other than principal reference and issued by reference | no session | none (Operation 37, Operation 53, Operation 61, Term filter) |
+| [Read] | a filter naming a blank value, or a value that EXCEEDS the maximum length of its field, or a field other than principal reference and issued by reference | no session | none (Operation 37, Operation 53, Operation 61, Term filter) |
 
 ### Invariants
 
@@ -486,7 +486,7 @@ String 2: The atom MUST NOT trim a string input.
 String 3: The atom MUST NOT normalize a string input.
 String 4: The atom MUST NOT case-fold a string input.
 String 5: The atom MUST read a whitespace-only string input as blank.
-String 6: The deployment MAY declare a maximum length per string input PER Execution Contract Input 2.
+String 6: The deployment MAY declare a maximum length per string input PER Execution Contract Input 2; a filter's value on principal reference or issued by reference takes the cap of that field's string input.
 String 7: IF a string input EXCEEDS the maximum length THEN [Issue] MUST answer invalid-request.
 Deleted: String 8. Execution Contract Logic confinement 13 owns it.
 String 9: IF the session's status EQUALS active AND the revoked by reference the call supplies EXCEEDS the maximum length THEN [Revoke] MUST answer invalid-request.
@@ -544,7 +544,7 @@ Term record verbs: identify, serve, offer, compare, allocate, reuse, change, car
 
 Term value sets: status = active | revoked.
 
-Term bounds: token entropy (the floor a session token's random material is drawn from); default session duration (the window [Issue] applies where the call supplies none); zero duration (the floor a session duration must exceed); maximum length (the cap per string input in Unicode code points, counted as the call supplies the value, 1,024 where a deployment declares none).
+Term bounds: token entropy (the floor a session token's random material is drawn from); default session duration (the window [Issue] applies where the call supplies none); zero duration (the floor a session duration must exceed); maximum length (the cap per string input in Unicode code points, counted as the call supplies the value, 1,024 where a deployment declares none; a filter's value on principal reference or issued by reference takes the cap of that field's string input).
 
 NOTE: watch the cap's measure (Term bounds).
 
@@ -690,7 +690,7 @@ Projection:   reason
 
 #### Filter
 
-The selection a caller passes to [Read] to scope which [Session] records are returned: a [Principal Reference], an [Issued By Reference], both or neither. A [Session] matches when it carries every value the filter names, and a filter naming no field matches every [Session]; a filter naming a blank value, a value Operation 61 answers no session on, or any other field, matches none. Consumed per call; never stored.
+The selection a caller passes to [Read] to scope which [Session] records are returned: a [Principal Reference], an [Issued By Reference], both or neither. A [Session] matches when it carries every value the filter names, and a filter naming no field matches every [Session]; a filter naming a blank value, a value over the maximum length of its field, or any other field, matches none. Consumed per call; never stored.
 
 Kind:         Parameter
 Parameter of: Read
@@ -843,7 +843,7 @@ Inherited from:
 ```
 status: partially resolved
 formal: not applicable — vote no 2026-06-03
-last gate: 2026-11-03 — Final Critique 16 — delta — foundational count 2, not clean, no sample
+last gate: 2026-11-03 — Final Critique 17 — delta — foundational count 2, not clean, no sample
 
 open:
 - 2026-10-21-a · refining · Operation 37; [Read] · [Read] answers the matching sessions in no stated order → an order
