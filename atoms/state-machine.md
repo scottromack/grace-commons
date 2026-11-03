@@ -72,7 +72,7 @@ Identity 17: The host MUST NOT allocate an instance id that EXCEEDS the string c
 Identity 18: The host MUST NOT allocate a transition id that EXCEEDS the string cap.
 ```
 
-NOTE: watch the id's length against the cap (Identity 17, Identity 18).
+NOTE: watch the id's length against the cap (Identity 17, Identity 18, Capability requirement 8).
 
 Term workflow: one running workflow — one declaration, one current state and one transition history; the record this atom holds.
 
@@ -124,6 +124,7 @@ Capability requirement 1: The deployment MUST supply now at the seam.
 Capability requirement 5: The deployment MUST supply the workflow records PER Execution Contract Database 1 through 7, Execution Contract Read 1 through 4, Execution Contract Refusal 1, Execution Contract Query 1 through 4, Execution Contract Input 1 and Execution Contract Conformance 9.
 Capability requirement 6: The deployment MUST declare which composing patterns the deployment wired in.
 Capability requirement 7: The deployment MAY declare the string cap PER Execution Contract Input 2.
+Capability requirement 8: IF a string input or a transition id a workflow records EXCEEDS a string cap THEN the deployment MUST NOT declare that string cap.
 Deleted: Capability requirement 2. Execution Contract Logic confinement 7 owns it.
 Deleted: Capability requirement 3. Execution Contract Logic confinement 7 owns it.
 Deleted: Capability requirement 4. Execution Contract Logic confinement 7 owns it.
@@ -556,7 +557,7 @@ Deleted: String 7. Execution Contract Logic confinement 13 owns it.
 
 Term string input: instance id, action, actor reference, subject reference, a state name, a guard OR a filter's value — every caller-supplied string this atom accepts.
 
-Term string cap: the bound on a string input's length in Unicode code points, counted on the value as the call carries it; 1,024 code points where a deployment declares none.
+Term string cap: the bound on a string input's length in Unicode code points, counted on the value as the call carries it, or on an id as the host allocates it; 1,024 code points where a deployment declares none.
 
 NOTE: watch the cap's measure (Term string cap, Term bounds).
 
@@ -594,7 +595,7 @@ Term records: workflow — one running workflow, carrying instance id, a declara
 Term record verbs: identify, allocate, change, carry, stand, answer, record, append, set, take, raise, leave, own, match, normalize, reorder, interpret, confirm, admit, offer, evaluate, assert, fire, replay, reach, rest, share, precede, follow, compare, trim, case-fold, refuse, write, read, find, reconstruct, complete, equal, bound, nest, version, decide, compose, declare, wire, supply, remove, route, name, detect, bind, capture, count.
 
 Term value sets: writing action = [Instantiate] | [Fire]. reading action = [Current] | [History] | [Read Declaration]. guard satisfied = true | false. filter axes = transition id | sequence number | from state | to state | action | actor reference | firing instant.
-Term bounds: string cap (the bound on a string input's length in Unicode code points, counted on the value as the call carries it, 1,024 where a deployment declares none).
+Term bounds: string cap (the bound on a string input's length in Unicode code points, counted on the value as the call carries it, or on an id as the host allocates it, 1,024 where a deployment declares none).
 
 Term cadences: empty.
 
@@ -604,7 +605,7 @@ Term terms: workflow, instance id, history entry, transition id, subject referen
 
 #### Instantiate
 
-The behavior that validates a caller-supplied [Declaration] and creates a new workflow in its [Initial State], assigning a fresh [Workflow Id], recording [Workflow Metadata], [Actor Reference], and [Instantiation Instant], and starting an empty [Transition History]. Rejected [Invalid Declaration] for any declaration defect, [Invalid Request] for a bad [Actor Reference] or [Instantiation Instant], an [Actor Reference] over the string cap, or a [Subject Reference] over the string cap, or [Storage Failure].
+The behavior that validates a caller-supplied [Declaration] and creates a new workflow in its [Initial State], recording the injected [Workflow Id], [Workflow Metadata], [Actor Reference], and [Instantiation Instant], and starting an empty [Transition History]. Rejected [Invalid Declaration] for any declaration defect, [Invalid Request] for a bad [Actor Reference] or [Instantiation Instant], an [Actor Reference] over the string cap, or a [Subject Reference] over the string cap, or [Storage Failure].
 
 Kind: Operation
 
@@ -939,7 +940,7 @@ Guard evaluation, non-repudiable attribution, tamper-evidence, and retention are
 ```
 status: partially resolved
 formal: verified — state-machine.als + 1 twin, 2026-06-04
-last gate: 2026-11-03 — Final Critique 12 — delta — foundational count 1, not clean, one sample
+last gate: 2026-11-03 — Final Critique 13 — delta — foundational count 1, not clean, one sample
 
 open:
 - 2026-10-31-a · refining · State 2; State 3; State 15; Operation 67 · no action answers a workflow's subject reference, instance metadata, actor reference or instantiation instant, which the workflow records carry, and a composing pattern reads an atom only through the atom's declared surface (the section titled The atom interface contract in `execution-contract.md`) → a read answering them, or a non-goal saying none does and who owns the need
