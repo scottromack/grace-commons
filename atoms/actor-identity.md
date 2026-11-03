@@ -16,7 +16,7 @@ toc: true
 
 ## Summary
 
-Actor Identity answers one question: "who authorized this action, and can you prove it?" It works through attestations — permanent records that tie a specific person or system to a specific action by way of a proof. A proof is a tamper-resistant artifact, computed from the actor's private credential, that anyone can later check without needing the credential itself. Creating an attestation consumes the credential to produce the proof and then throws the credential away; only the proof is kept. Checking one is purely read-only. Given an attestation's identifier, the system re-checks the stored proof against the recorded action and actor, using only public information about the actor. The guarantee is non-repudiation. If the check passes, the named actor really did authorize the named action and cannot credibly deny it — short of claiming their credential was stolen. This is the mechanism behind supervisor sign-off on large wire transfers, doctors' electronic prescriptions for controlled drugs, chip-and-PIN (personal identification number) card payments, legally binding e-signatures, and signed code commits in regulated software. Attest when the action happens, verify at audit time, and the answer is provable.
+Actor Identity answers one question: "who authorized this action, and can you prove it?" It works through attestations — immutable records that tie a specific person or system to a specific action by way of a proof. A proof is a tamper-resistant artifact, computed from the actor's private credential, that anyone can later check without needing the credential itself. Creating an attestation consumes the credential to produce the proof and then throws the credential away; only the proof is kept. Checking one is purely read-only. Given an attestation's identifier, the system re-checks the stored proof against the recorded action and actor, using only public information about the actor. The guarantee is non-repudiation. If the check passes, the named actor really did authorize the named action and cannot credibly deny it — short of claiming their credential was stolen. This is the mechanism behind supervisor sign-off on large wire transfers, doctors' electronic prescriptions for controlled drugs, chip-and-PIN (personal identification number) card payments, legally binding e-signatures, and signed code commits in regulated software. Attest when the action happens, verify at audit time, and the answer is provable.
 
 ---
 
@@ -91,6 +91,8 @@ Term public material: what the actor registry holds for an actor reference and a
 
 Term current material: the public material in force for an actor reference now, historical material excluded — what the credential check runs a credential against.
 
+Term revocation status: what the proof carries, where the credential mechanism embeds it, saying whether the credential is revoked (Revocation status 1).
+
 Term attestation field: attestation id | action reference | actor reference | proof | attestation instant.
 
 ### Capability requirement
@@ -101,16 +103,18 @@ Capability requirement 2: The deployment MUST supply the attestation records PER
 Capability requirement 3: The deployment MUST supply the registry answer at the seam.
 Capability requirement 4: The deployment MUST supply the cryptographic material at the seam (Execution Contract Logic confinement 8).
 Capability requirement 5: The deployment MAY declare the string cap PER Execution Contract Input 2.
+Capability requirement 6: The deployment MUST supply at the seam on [Attest] an attestation id no attestation has carried PER Execution Contract Logic confinement 3.
+Capability requirement 7: The deployment MUST declare which composing patterns the deployment wired in.
 ```
 
-Term cryptographic material: what the deployment's credential mechanism computes at the seam — at [Attest], the proof, computed from the credential over the action reference and the actor reference, and the credential check; at [Verify], the proof check.
+Term cryptographic material: what the deployment's credential mechanism computes at the seam — at [Attest], the proof, computed from the credential over the action reference and the actor reference, and the credential check; at [Verify], the proof check. Where the mechanism computes nothing at the seam, the host injects the credential check or the proof check as unavailable.
 
 ### Operations
 
 ```
 attest(action_ref, actor_ref, credential)
   answers attestation_id
-  refuses invalid-request | registry-unavailable | invalid-credential | storage-failure
+  refuses invalid-request | registry-unavailable | mechanism-unavailable | invalid-credential | storage-failure
 
 verify(attestation_id)
   answers verified | failed-verification(verification failure) | not-known
@@ -119,11 +123,13 @@ read()
   answers every attestation
 ```
 
-Term verification failure: proof-invalid | actor-unknown-in-registry | registry-unavailable — the reasons [Verify] gives for a failed verification.
+Term admitted attest: an [Attest] call the action admits (Execution Contract Read 4).
+
+Term verification failure: proof-invalid | actor-unknown-in-registry | registry-unavailable | mechanism-unavailable — the reasons [Verify] gives for a failed verification.
 
 ```
 Operation 1: [Attest] MUST record the proof the deployment supplies at the seam.
-Operation 2: [Attest] MUST record EXACTLY ONE attestation per successful call.
+Operation 2: [Attest] MUST record EXACTLY ONE attestation per admitted attest.
 Operation 3: [Attest] MUST stamp attestation instant from the injected now.
 Operation 4: [Attest] MUST answer attestation id.
 Operation 5: [Attest] MUST consume the credential.
@@ -139,8 +145,8 @@ Operation 14: [Verify] MUST answer EXACTLY ONE OF verified, failed-verification,
 Operation 15: IF no attestation EXISTS for the attestation id THEN [Verify] MUST answer not-known.
 Operation 16: IF an attestation EXISTS for the attestation id AND registry answer EQUALS unknown-actor THEN [Verify] MUST answer actor-unknown-in-registry.
 Operation 17: IF an attestation EXISTS for the attestation id AND registry answer EQUALS unreachable THEN [Verify] MUST answer registry-unavailable.
-Operation 18: IF registry answer EQUALS material AND proof check EQUALS failed THEN [Verify] MUST answer proof-invalid.
-Operation 19: IF registry answer EQUALS material AND proof check EQUALS held THEN [Verify] MUST answer verified.
+Operation 18: IF an attestation EXISTS for the attestation id AND registry answer EQUALS material AND proof check EQUALS failed THEN [Verify] MUST answer proof-invalid.
+Operation 19: IF an attestation EXISTS for the attestation id AND registry answer EQUALS material AND proof check EQUALS held THEN [Verify] MUST answer verified.
 Operation 20: [Verify] MUST NOT write.
 Operation 21: IF an attestation EXISTS for the attestation id AND registry answer EQUALS material THEN [Verify] MUST consult the public material the registry answer at the seam carries, for the attestation's actor reference.
 Deleted: Operation 22. Capability requirement 1 owns it.
@@ -159,31 +165,44 @@ Deleted: Operation 34. Execution Contract Read 1 owns it.
 Deleted: Operation 35. Execution Contract Refusal 1 owns it.
 Operation 36: IF a revocation status the proof carries names the credential revoked THEN [Attest] MUST answer invalid-credential.
 Operation 37: IF a string input EXCEEDS the string cap THEN [Attest] MUST answer invalid-request.
+Operation 38: [Attest] MUST record the action reference the call carries.
+Operation 39: [Attest] MUST record the actor reference the call carries.
+Operation 40: IF registry answer EQUALS material AND credential check EQUALS unavailable THEN [Attest] MUST answer mechanism-unavailable.
+Operation 41: IF an attestation EXISTS for the attestation id AND registry answer EQUALS material AND proof check EQUALS unavailable THEN [Verify] MUST answer mechanism-unavailable.
 ```
+
+NOTE: watch the required input no rule records (Operation 38, Operation 39).
 
 NOTE: watch the unreadable registry (Operation 33).
 
 NOTE: watch the cap's refusal (Operation 37).
 
-Term string cap: the bound on a string input's length in Unicode code points; 4,096 code points where a deployment declares none.
+Term string cap: the bound on a string input's length in Unicode code points, counted on the value as the call carries it; 4,096 code points where a deployment declares none.
+
+Term string input: action reference, actor reference OR credential — every caller-supplied string this atom accepts.
+
+NOTE: watch the cap's measure (Term string cap, Term bounds).
+
+NOTE: watch the untyped input (Term string input).
 
 Term registry answer: material | unknown-actor | unreachable — what the actor registry gives [Attest] or a verifier for an actor reference.
 
 Term registry view: the registry answer for an actor reference and the public material the answer carries, taken together; a rotation, an outage or a removal from the registry changes the registry view.
 
-Term credential check: held | failed — the supplied credential run against the current material the registry answer carries for the actor reference.
+Term credential check: held | failed | unavailable — the supplied credential run against the current material the registry answer carries for the actor reference; unavailable where the credential mechanism supplies no credential check or no proof at the seam, which says nothing about the credential.
 
-Term proof check: held | failed — the recorded proof run against the recorded action reference and actor reference under the public material; failed also where a revocation status the proof carries names the credential revoked (Revocation status 1).
+Term proof check: held | failed | unavailable — the recorded proof run against the recorded action reference and actor reference under the public material, held where the proof verifies under any one material the public material holds for the actor reference, the current material and any historical material alike, and failed where it verifies under none; failed also where a revocation status the proof carries names the credential revoked (Revocation status 1); unavailable where the credential mechanism supplies no proof check at the seam, a live revocation service the mechanism rests on being down included (Revocation status 3), which says nothing about the proof.
 
-Term verification set: the attestation's own fields together with the registry view for the actor reference and the proof check computed at the seam (Term proof check) — and, where the credential mechanism embeds it, the revocation status the proof carries (Revocation status 1, Revocation status 2); everything [Verify] is allowed to read, and nothing else.
+Term verification set: the attestation's own fields together with the registry view for the actor reference and the proof check computed at the seam (Term proof check) — and, where the credential mechanism embeds it, the revocation status the proof carries (Revocation status 1, Revocation status 2); and a verification result an implementation caches (Verification caching 1); everything [Verify] is allowed to read, and nothing else.
 
 The case space, and the rule that owns each case:
 
 | Call | Case | Answer | Effect on the attestation records |
 |---|---|---|---|
-| [Attest] | action reference, actor reference and credential not blank, registry answers material, credential validates, no revocation status the proof carries names the credential revoked, database accepts | attestation id | one attestation lands in [Attested] (Operation 1, Operation 2) |
+| [Attest] | action reference, actor reference and credential not blank, registry answers material, credential validates, no revocation status the proof carries names the credential revoked, database accepts | attestation id | one attestation lands in [Attested] (Operation 1, Operation 2, Operation 38, Operation 39) |
 | [Attest] | blank action reference, actor reference or credential, or a string input over the string cap | [Invalid Request] | none (Operation 6 through 8, Operation 37, Execution Contract Input 2) |
 | [Attest] | registry unreachable | [Registry Unavailable] | none (Operation 33) |
+| [Attest] | registry answers material, the credential mechanism supplies no credential check or no proof | [Mechanism Unavailable] | none (Operation 40) |
 | [Attest] | registry holds no material for the actor | [Invalid Credential] | none (Operation 31) |
 | [Attest] | credential fails against the actor's current material | [Invalid Credential] | none (Operation 9) |
 | [Attest] | a revocation status the proof carries names the credential revoked | [Invalid Credential] | none (Operation 36) |
@@ -191,13 +210,14 @@ The case space, and the rule that owns each case:
 | [Verify] | no attestation under that id | [Not Known] | none — the call reads (Operation 15, Operation 20) |
 | [Verify] | attestation found, registry holds no material for the actor | [Actor Unknown In Registry] | none (Operation 16) |
 | [Verify] | attestation found, registry unreachable | [Registry Unavailable] | none (Operation 17) |
-| [Verify] | material in hand, proof does not hold, or a revocation status the proof carries names the credential revoked | [Proof Invalid] | none (Operation 18) |
-| [Verify] | material in hand, proof holds | [Verified] | none (Operation 19, Operation 32) |
+| [Verify] | attestation found, material in hand, the credential mechanism supplies no proof check | [Mechanism Unavailable] | none (Operation 41) |
+| [Verify] | attestation found, material in hand, proof does not hold, or a revocation status the proof carries names the credential revoked | [Proof Invalid] | none (Operation 18) |
+| [Verify] | attestation found, material in hand, proof holds | [Verified] | none (Operation 19, Operation 32) |
 | [Read] | any call | every attestation, with its stored fields | none (Operation 27 through 29) |
 
 Where two [Attest] cases hold at once, the refusal listed first on [Attest]'s refuses line answers (Execution Contract Refusal 1).
 
-NOTE: open 2026-10-20-f — [Read] answers every attestation with no bound and no key (Operation 27, Term bounds).
+NOTE: open 2026-10-20-f — [Read] answers every attestation with no bound, no key and no stated order (Operation 27, Term bounds).
 
 ### Invariants
 
@@ -217,7 +237,7 @@ NOTE: open 2026-10-20-f — [Read] answers every attestation with no bound and n
   ```
 - **Invariant 4 — Id stability.**
   ```
-  Invariant 4.1: [Attest] MUST set the attestation id.
+  Deleted: Invariant 4.1. State 3 and Operation 4 own it.
   Deleted: Invariant 4.2. Invariant 1.1 owns it.
   ```
 - **Invariant 5 — No id reuse.**
@@ -226,13 +246,13 @@ NOTE: open 2026-10-20-f — [Read] answers every attestation with no bound and n
   ```
 - **Invariant 6 — Self-containment.**
   ```
-  Invariant 6.1: [Verify] MUST consult the verification set.
+  Deleted: Invariant 6.1. Operation 21 and Invariant 6.3 own it.
   Deleted: Invariant 6.2. Invariant 6.3 owns it.
   Invariant 6.3: [Verify] MUST NOT consult a source outside the verification set.
   ```
 - **Invariant 7 — Verification consistency under fixed registry state.**
   ```
-  Invariant 7.1: Two verifications of one attestation under one registry view MUST answer alike.
+  Invariant 7.1: IF no verification answering mechanism-unavailable EXISTS among two verifications of one attestation under one registry view THEN the two verifications MUST answer alike.
   ```
 - **Invariant 8 — Non-repudiation contract.**
   ```
@@ -266,7 +286,7 @@ A physician writes a Schedule II prescription. DEA (US Drug Enforcement Administ
 
 ### Payments — chip-and-PIN transaction
 
-A cardholder taps a chip card at a terminal and enters their PIN. The card produces a cryptographic attestation: `attest(transaction_t883, card_c41, card_credential)`. The terminal forwards the attestation with the transaction. The issuer calls verify before authorizing the charge. Months later, the cardholder disputes the charge as unauthorized; the issuer produces attestation and re-verifies. verified → the card was physically present and the correct PIN was entered, shifting liability to the cardholder per scheme rules. failed-verification(proof-invalid) → the dispute is upheld.
+A cardholder taps a chip card at a terminal and enters their PIN. The card produces a cryptographic attestation: `attest(transaction_t883, card_c41, card_credential)`. The terminal forwards the attestation with the transaction. The issuer calls verify before authorizing the charge. Months later, the cardholder disputes the charge as unauthorized; the issuer produces attestation and re-verifies. verified → the proof binds the card's actor reference to the transaction, shifting liability to the cardholder per scheme rules. failed-verification(proof-invalid) while the registry holds the material in force at the attestation instant → the dispute is upheld.
 
 ### Legal — qualified electronic signature on a contract
 
@@ -282,7 +302,7 @@ The mechanic is identical across all five. What differs: the credential mechanis
 
 **[Verify] → [Failed Verification] ([Proof Invalid]):** An auditor reviewing a batch of wire authorizations calls `verify(attestation_a44)`. The actor's key has been rotated since the [Attestation] was recorded, the registry kept no historical material, and the registry's current public material for `actor_ref: supervisor_s12` no longer matches the stored [Proof]. The atom returns `failed-verification(proof-invalid)`. The auditor notes the failure; the composing audit workflow escalates for manual review. The [Attestation] record is unchanged — Invariant 1 prevents modification; the failure is a verification-time result, not a record defect.
 
-**[Verify] → [Not Known]:** A composing pattern references an [Attestation Id] that was never written (a partial-failure scenario where the host allocated the id at the seam (Identity 2), [Attest] answered [Storage Failure], and the composing pattern, whose call crossed that seam, cached the id before confirming success). `verify(attestation_a_unknown)` returns not-known — the id is not in the attestation records. This is structurally distinct from [Failed Verification]: the id does not reference any [Attestation]. The composing pattern must treat [Not Known] as a missing record (requiring re-attestation) rather than a verification failure.
+**[Verify] → [Not Known]:** A composing pattern references an [Attestation Id] that was never written (a partial-failure scenario where the host allocated the id at the seam (Identity 2), [Attest] answered [Storage Failure], and the composing pattern, whose call crossed that seam, cached the id before confirming success). `verify(attestation_a_unknown)` returns not-known — the id is not in the attestation records. This is structurally distinct from [Failed Verification]: the id does not reference any [Attestation]. The composing pattern reads [Not Known] as a missing record, not as a verification failure.
 
 **[Attest] → [Invalid Credential]:** A supervisor approves a high-value wire using a [Credential] that was rotated out earlier that day. `attest(wire_w55, supervisor_s12, rotated_credential)` → the [Credential] fails to validate against the registry's current public material for `supervisor_s12`; the atom returns invalid-credential. No [Attestation] is recorded — [Invalid Credential] is a guard rejection that fails before any database write (Operation 9); the composing workflow prompts re-attestation with the current [Credential].
 
@@ -304,16 +324,18 @@ This atom's acceptance is provable: an external auditor clears it from the attes
 
 ```
 Check 1.1: An auditor MUST reconstruct EVERY attestation from the attestation's stored fields (Invariant 1.1, State 3).
-Check 1.2: An auditor MUST NOT need state beyond those fields and the registry's public material (Invariant 6.1, Invariant 6.3).
-Check 2.1: An auditor MUST verify an attestation without privileged access to the system (Invariant 6.1, Operation 21).
+Check 1.2: An auditor MUST NOT need state beyond those fields and the registry's public material (Invariant 6.3).
+Check 2.1: An auditor MUST verify an attestation without privileged access to the system (Operation 21).
 Check 3.1: IF the current material at attestation instant IS IN the public material THEN an auditor MUST confirm that the proof holds against the recorded action reference under the current material at attestation instant and against no other action (Invariant 2.1, Invariant 2.2).
 Check 3.2: IF the current material at attestation instant IS IN the public material THEN an auditor MUST confirm that the proof holds against the recorded actor reference under the current material at attestation instant and against no other actor (Invariant 3.1, Invariant 3.2).
 Check 4.1: An auditor MUST read verified, failed-verification and not-known as three distinct answers (Operation 14).
-Check 4.2: An auditor MUST read proof-invalid, actor-unknown-in-registry and registry-unavailable as three distinct reasons (Operation 16, Operation 17, Operation 18).
+Check 4.2: An auditor MUST read proof-invalid, actor-unknown-in-registry, registry-unavailable and mechanism-unavailable as four distinct reasons (Operation 16 through 18, Operation 41).
 Deleted: Check 5.1. Execution Contract Conformance 9 owns it.
 ```
 
 NOTE: watch the external answer that moves (Check 3.1, Check 3.2).
+
+NOTE: open 2026-11-03-a — Check 3.1 and Check 3.2 read the material current at attestation instant, which the registry answer need not carry the era of (Registry view 2).
 
 NOTE: EVERY check names the rule the check tests. The bar is the regulator's question — *can you prove who authorized this action?* — never the developer's intuition.
 
@@ -342,6 +364,7 @@ Non-goal 13: The atom MUST NOT bind the action content.
 Non-goal 14: A host whose action content is mutable MUST bind an immutable reference.
 Non-goal 15: The atom MUST NOT carry an actor reference across trust domains.
 Non-goal 16: A deployment needing a retention bound MUST compose Retention Window.
+Non-goal 17: A deployment needing an actor reference carried across trust domains MUST compose a cross-domain actor mapping pattern.
 ```
 
 <details markdown="block">
@@ -351,9 +374,7 @@ Binding a mutable action is the quiet failure: the proof stays valid while the c
 
 </details>
 
-NOTE: witness signatures, m-of-n approvals and dual control compose a Witness pattern *(forthcoming)* (Non-goal 8); tamper-evident records are what [Tamper Evidence](./tamper-evidence.md) supply (Non-goal 10, Non-goal 11); a retention bound is what [Retention Window](./retention-window.md) supplies, its purge included (Non-goal 16).
-
-NOTE: open 2026-10-20-e — Non-goal 15 names no owner for carrying an actor reference across trust domains.
+NOTE: witness signatures, m-of-n approvals and dual control compose a Witness pattern *(forthcoming)* (Non-goal 8); tamper-evident records are what [Tamper Evidence](./tamper-evidence.md) supply (Non-goal 10, Non-goal 11); a retention bound is what [Retention Window](./retention-window.md) supplies, its purge included (Non-goal 16); carrying an actor reference across trust domains composes a Cross-Domain Actor Mapping pattern *(forthcoming)* (Non-goal 15, Non-goal 17).
 
 Where the atom breaks down: when authorization cannot be reduced to one actor — truly anonymous attestation in a regulated context is a contradiction; when the credential mechanism cannot produce a verifiable proof — a shared secret anyone holding it could forge with; when the deployment has no actor registry a verifier can consult.
 
@@ -388,16 +409,16 @@ Registry view 3: A deployment whose old attestations must keep verifying MUST co
 ### Verification caching
 
 ```
-Verification caching 1: An implementation MAY cache a verification result.
+Verification caching 1: An implementation MAY cache a verification result against the attestation id and the registry view the result was computed under.
 Verification caching 2: An implementation MUST NOT cache a verification result across two registry views.
+Verification caching 3: An implementation MUST NOT cache a verification result answering mechanism-unavailable.
 ```
-
-NOTE: open 2026-10-20-b — a cached verification result is no part of the verification set, so whether a cache sits inside [Verify], against Invariant 6.3, or in front of it is not stated (Verification caching 1).
 
 ## Composition notes
 
 ```
-Composition note 1: A deployment MUST declare which composing patterns the deployment wired in.
+Deleted: Composition note 1. Capability requirement 7 owns it.
+NOTE: watch the deployment's composition note (Capability requirement 7).
 Composition note 2: A composing pattern MUST carry the attestation id alongside the record the attestation attributes.
 Composition note 3: A composing pattern MUST trust a recorded actor field ONLY IF [Verify] answers verified.
 Composition note 4: A composing pattern MUST own the retention of an attestation.
@@ -418,19 +439,19 @@ Term records: attestation — one binding, carrying attestation id, action refer
 
 Term record verbs: identify, allocate, supply, reuse, carry, stand, offer, store, hold, compute, record, stamp, answer, consume, alter, read, mint, write, verify, consult, set, change, share, bind, reinterpret, delete, register, retire, compose, authenticate, decide, manage, invalidate, detect, vouch, turn, own, retain, keep, rest, cache, reconstruct, need, confirm, declare, trust, renumber, add, fail, refuse, evaluate.
 
-Term value sets: registry answer = material | unknown-actor | unreachable. proof check = held | failed. credential check = held | failed. attestation field = attestation id | action reference | actor reference | proof | attestation instant.
+Term value sets: registry answer = material | unknown-actor | unreachable. proof check = held | failed | unavailable. credential check = held | failed | unavailable. attestation field = attestation id | action reference | actor reference | proof | attestation instant.
 
-Term bounds: string cap.
+Term bounds: string cap (the bound on a string input's length in Unicode code points, counted on the value as the call carries it, 4,096 where a deployment declares none).
 
 Term cadences: empty.
 
 Term qualifiers: migrated — rewritten in GRACE lang v0.35 (2026-09-12); uncompromised — a credential no disclosure names as compromised at or before the instant in question.
 
-Term terms: now, verification set, attestation, attestation id, action reference, action content, actor reference, seam, transition, business caller, attested, proof, attestation instant, credential, public material, current material, attestation field, cryptographic material, registry answer, registry view, credential check, proof check, verification failure, string cap.
+Term terms: now, verification set, attestation, attestation id, action reference, action content, actor reference, seam, transition, business caller, attested, proof, attestation instant, credential, public material, current material, attestation field, cryptographic material, registry answer, registry view, credential check, proof check, verification failure, string cap, string input, revocation status, admitted attest.
 
 #### Attestation
 
-The record this atom defines: a permanent, verifiable binding of one action to the actor who authorized it. It carries its [Attestation Id], [Action Reference], [Actor Reference], [Proof], and [Attestation Instant]; nothing about it changes once recorded, and the atom offers no surface to revoke or modify it.
+The record this atom defines: an immutable, verifiable binding of one action to the actor who authorized it. It carries its [Attestation Id], [Action Reference], [Actor Reference], [Proof], and [Attestation Instant]; nothing about it changes once recorded, and the atom offers no surface to revoke or modify it.
 
 Kind: Type
 
@@ -519,7 +540,7 @@ Projection: verified
 
 #### Failed Verification
 
-The outcome [Verify] returns when the [Attestation] exists but does not verify, carrying a reason — [Proof Invalid], [Actor Unknown In Registry], or [Registry Unavailable]. Distinct from [Not Known], which is a lookup miss.
+The outcome [Verify] returns when the [Attestation] exists but does not verify, carrying a reason — [Proof Invalid], [Actor Unknown In Registry], [Registry Unavailable], or [Mechanism Unavailable]. Distinct from [Not Known], which is a lookup miss.
 
 Kind:       Member
 Member of:  the Verify outcome
@@ -528,7 +549,7 @@ Projection: failed-verification
 
 #### Not Known
 
-The outcome [Verify] returns when the supplied [Attestation Id] references no recorded [Attestation] — a lookup miss, not a verification failure. A composing pattern treats it as a missing record (requiring re-attestation), not as a denial of authorship.
+The outcome [Verify] returns when the supplied [Attestation Id] references no recorded [Attestation] — a lookup miss, not a verification failure. A composing pattern reads it as a missing record, not as a denial of authorship.
 
 Kind:       Member
 Member of:  the Verify outcome
@@ -555,12 +576,21 @@ Projection: actor-unknown-in-registry
 
 #### Registry Unavailable
 
-The [Failed Verification] reason returned when the actor registry is unreachable at verify time, and the refusal [Attest] returns when the registry is unreachable at attest time — a transient, retryable condition, distinct from [Actor Unknown In Registry].
+The [Failed Verification] reason returned when the actor registry is unreachable at verify time, and the refusal [Attest] returns when the registry is unreachable at attest time — a transient, retryable condition, distinct from [Actor Unknown In Registry], and from [Mechanism Unavailable], which the credential mechanism's failure answers.
 
 Kind:       Member
 Member of:  the Failed Verification reason and the Attest rejection
 Role:       Outcome
 Projection: registry-unavailable
+
+#### Mechanism Unavailable
+
+The [Failed Verification] reason returned when the deployment's credential mechanism supplies no proof check at the seam at verify time, and the refusal [Attest] returns when the mechanism supplies no credential check or no [Proof] at the seam at attest time — a hardware security module that does not answer, a card pulled mid-read, a live revocation service the mechanism rests on that is down. A transient, retryable condition that says nothing about the [Credential] or the [Proof]; distinct from [Registry Unavailable], [Invalid Credential] and [Proof Invalid]. No [Attestation] is recorded.
+
+Kind:       Member
+Member of:  the Failed Verification reason and the Attest rejection
+Role:       Outcome
+Projection: mechanism-unavailable
 
 #### Invalid Request
 
@@ -573,7 +603,7 @@ Projection: invalid-request
 
 #### Invalid Credential
 
-The refusal [Attest] returns when the supplied [Credential] does not validate against the actor registry's current material for the [Actor Reference], when the registry holds no public material for the [Actor Reference], or when a revocation status the [Proof] carries names the [Credential] revoked. A guard rejection that fails before any database write; no [Attestation] is recorded.
+The refusal [Attest] returns when the supplied [Credential] does not validate against the actor registry's current material for the [Actor Reference], when the registry holds no public material for the [Actor Reference], or when a revocation status the [Proof] carries names the [Credential] revoked; never when the credential mechanism supplies no credential check ([Mechanism Unavailable]). A guard rejection that fails before any database write; no [Attestation] is recorded.
 
 Kind:       Member
 Member of:  the Attest rejection
@@ -611,6 +641,7 @@ Projection: storage-failure
 [Proof Invalid]: #proof-invalid
 [Actor Unknown In Registry]: #actor-unknown-in-registry
 [Registry Unavailable]: #registry-unavailable
+[Mechanism Unavailable]: #mechanism-unavailable
 [Invalid Request]: #invalid-request
 [Invalid Credential]: #invalid-credential
 [Storage Failure]: #storage-failure
@@ -650,12 +681,11 @@ It inherits from:
 ```
 status: partially resolved
 formal: not applicable — vote no 2026-06-03
-last gate: 2026-11-02 — Final Critique 12, a delta round, frozen at dd11876 — foundational count 0, clean, no sample; 2026-11-02 — Final Critique 11, a delta round, frozen at f85ef8d — foundational count 1, cured, not clean, no sample; 2026-10-23 — Final Critique 10, the council's sixth round on the page and the first on its text since Final Critique 9's settle (7e1da1a), three fresh readers on free models (GRID Nemotron 3 Ultra, EOS Beam, Linus GLM-5.3 Flash), each handed only the round's reading set, three passes on one text (frozen at fbbe23b); the round rests on three counted passes — foundational count 0, held by the blind second triage (2026-10-23, one cold reader given the round's 29 reports, the method's test and the placement rule, and neither the threshold nor what the count decides, which placed none of them foundational); 14 foundational reports, none standing as the two triages settled them (12 sent down, eight of them onto the page's four flagged open lines; 2 rejected); 13 refining reports, 2 rhetorical reports; clean; every refining finding cured, routed or answered, State 2 deleted to State 1, open line 2026-10-22-a narrowed to the seam terms and open line 2026-10-23-a added; one sample; 2026-10-23 — Final Critique 9, the council's fifth round on the page — foundational count 1 after the blind second triage, cured, not clean; 2026-10-22 — Final Critique 8, the council's fourth round on the page — foundational count 1, cured, not clean; 2026-10-22 — Final Critique 7, the council's third round on the page — foundational count 2, both cured, not clean; 2026-10-22 — Final Critique 6, the council's second round on the page — foundational count 3, all cured, not clean; 2026-10-20 — Final Critique 5, the council's first round on the page — foundational count 7, all cured, not clean
+last gate: 2026-11-03 — Final Critique 13, a full round, frozen at abc0293 — foundational count 6, cured, not clean, no sample; 2026-11-02 — Final Critique 12, a delta round, frozen at dd11876 — foundational count 0, clean, no sample; 2026-11-02 — Final Critique 11, a delta round, frozen at f85ef8d — foundational count 1, cured, not clean, no sample; 2026-10-23 — Final Critique 10, the council's sixth round on the page and the first on its text since Final Critique 9's settle (7e1da1a), three fresh readers on free models (GRID Nemotron 3 Ultra, EOS Beam, Linus GLM-5.3 Flash), each handed only the round's reading set, three passes on one text (frozen at fbbe23b); the round rests on three counted passes — foundational count 0, held by the blind second triage (2026-10-23, one cold reader given the round's 29 reports, the method's test and the placement rule, and neither the threshold nor what the count decides, which placed none of them foundational); 14 foundational reports, none standing as the two triages settled them (12 sent down, eight of them onto the page's four flagged open lines; 2 rejected); 13 refining reports, 2 rhetorical reports; clean; every refining finding cured, routed or answered, State 2 deleted to State 1, open line 2026-10-22-a narrowed to the seam terms and open line 2026-10-23-a added; one sample; 2026-10-23 — Final Critique 9, the council's fifth round on the page — foundational count 1 after the blind second triage, cured, not clean; 2026-10-22 — Final Critique 8, the council's fourth round on the page — foundational count 1, cured, not clean; 2026-10-22 — Final Critique 7, the council's third round on the page — foundational count 2, both cured, not clean; 2026-10-22 — Final Critique 6, the council's second round on the page — foundational count 3, all cured, not clean; 2026-10-20 — Final Critique 5, the council's first round on the page — foundational count 7, all cured, not clean
 
 open:
-- 2026-10-20-b · refining · Invariant 6.3; Verification caching 1 · a cached verification result is no part of the verification set, so a cache inside [Verify] consults a source Invariant 6.3 bounds, though a cached and a fresh answer agree under one registry view → name the cache in the verification set, or place the cache in front of [Verify]
-- 2026-10-20-e · refining · Non-goal 15 · carrying an actor reference across trust domains is forbidden with no owner named, where the Non-goal family names who owns what the atom does not do → name the owner, or a forthcoming pattern
-- 2026-10-20-f · refining · [Read]; Term bounds · [Read] answers every attestation with no bound and no key → a bound, or a keyed read
+- 2026-11-03-a · refining · Check 3.1; Check 3.2; Registry view 2 · the checks read the material current at attestation instant, and a registry keeping historical material with no era leaves an auditor no way to tell which kept material that was → name what the registry answer carries, or a snapshot term the checks read
+- 2026-10-20-f · refining · [Read]; Term bounds · [Read] answers every attestation with no bound, no key and no stated order → a bound, a keyed read and an order
 ```
 
 <details markdown="block">
@@ -664,6 +694,8 @@ open:
 </summary>
 
 Directional changes only — the turns a future reader must know the pattern took, and why. Everything smaller lives in the commit that made it: `git log -- atoms/actor-identity.md`; the rounds and the migration that got it here are in [its history](./actor-identity.hist.md).
+
+- **2026-11-03 — A mechanism that supplies nothing at the seam is answered, not read as a failed check.** *Chose:* credential check and proof check each given a third member, unavailable, and [Attest] and [Verify] each answering mechanism-unavailable on it (Operation 40, Operation 41), a reason of its own beside registry-unavailable; Invariant 7.1 excepting a verification that answers it, and Verification caching 3 keeping it out of a cache; Term proof check held where the proof verifies under any one material the public material holds, the current and the historical alike; the string cap counting the value as the call carries it over three declared string inputs; [Attest] recording the action reference and the actor reference the call carries (Operation 38, Operation 39). *Over:* reading a mechanism's outage as a failed check, which answers invalid-credential, or on [Verify] proof-invalid, which the Payments example reads as a dispute upheld; or answering it registry-unavailable, which Execution Contract Constituent failure 2 defines as the registry the host could not read. *Because:* Final Critique 13's EOS and Linus passes each found the outage with no arm, and Opus 5.5 decided the cure after the settle could not see its reach: Tamper Evidence already answers its mechanism's outage as a reason of its own, and two meanings on one token is a defect. Audit Trail, Attributed Permissions Admin, Authenticated Actor and Reserve from Pool land Actor Identity's attest and verify answers and are queued or held already, so the addition reopens none that was grounded.
 
 - **2026-11-02 — The string cap has a default.** *Chose:* the string cap stated as 4,096 Unicode code points where a deployment declares none, Capability requirement 5 added, citing Execution Contract Input 2. *Over:* a bound the deployment must supply, or silence. *Because:* the maintainer ruled on 2026-11-01 that what the host must bound takes one posture, a corpus default a deployment may override; the string inputs are two opaque references and a credential, which is private key material, and a PEM-encoded 4096-bit RSA private key runs to about 3,200 code points; the credential sets the cap.
 
