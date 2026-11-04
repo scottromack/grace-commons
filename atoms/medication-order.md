@@ -19,7 +19,7 @@ toc: true
 
 Medication Order records the whole life of a prescription, from the moment a prescriber places it to its end. The order names the drug, the patient, the [Dose] (how much at a time), the [Route] (how it is given, such as by mouth), the [Frequency] (how often) and the [Duration] (for how long), then moves through a regulated chain of custody: a pharmacist verifies it before anything is dispensed, a dispenser releases the medication, a nurse or the patient administers it, and the course completes or is stopped — with the actor at every step permanently recorded.
 
-The guarantee is that the chain is unchangeable and complete: no step silently skipped, no actor silently omitted, no record altered afterwards. The drug, dose, route and frequency are fixed when the order is placed. A correction *before* dispensing creates a successor order, which must be verified afresh; a correction *after* dispensing requires stopping the order and placing a new one, because the physical medication has already left the pharmacy.
+The guarantee is that the chain is complete and that the atom offers no surface that alters it: no step silently skipped, no actor silently omitted, no field a past transition wrote altered afterwards; a rewrite beneath the atom is a composing Tamper Evidence's (Non-goal 18). The drug, dose, route and frequency are fixed when the order is placed. A correction *before* dispensing creates a successor order, which must be verified afresh; a correction *after* dispensing requires stopping the order and placing a new one, because the physical medication has already left the pharmacy.
 
 An order stands in exactly one of nine states, with a reversible hold for a surgical pause or an interaction review. The line between an order cancelled before any drug was dispensed and one discontinued after is enforced structurally, because it is the line controlled-substance accounting turns on.
 
@@ -47,7 +47,7 @@ Identity 2: The atom MUST assign the order id from the id material the seam supp
 Identity 3: The atom MUST NOT generate an order id.
 Identity 4: The atom MUST NOT change an order's order id.
 Identity 5: Two orders in one database instance MUST NOT share an order id.
-Identity 6: The atom MUST NOT reuse a resolved order's order id.
+Identity 6: The atom MUST NOT reuse an order's order id.
 Identity 7: The atom MUST NOT identify an order by a core field.
 Identity 8: The atom MUST compare a reference byte-exactly.
 Identity 9: The atom MUST NOT normalize a reference.
@@ -114,10 +114,13 @@ Deleted: Capability requirement 9. Execution Contract Database 3 owns it.
 Deleted: Capability requirement 10. Execution Contract Database 1 owns it.
 Deleted: Capability requirement 11. Execution Contract Logic confinement 13 owns it.
 Capability requirement 12: The deployment MAY declare the length bound PER Execution Contract Input 2.
-Capability requirement 15: The deployment MUST supply the order records PER Execution Contract Database 1 through 4, Execution Contract Database 6, Execution Contract Database 7, Execution Contract Read 4 and Execution Contract Refusal 1.
+Capability requirement 15: The deployment MUST supply the order records PER Execution Contract Database 1 through 7, Execution Contract Read 4 and Execution Contract Refusal 1.
 Deleted: Capability requirement 13. Execution Contract Logic confinement 7 owns it.
 Deleted: Capability requirement 14. Execution Contract Logic confinement 7 owns it.
+Capability requirement 16: The deployment MUST supply id material whose assigned order id DOES NOT EXCEED the length bound.
 ```
+
+NOTE: watch the id's length against the cap (Capability requirement 16).
 
 ### Operations
 
@@ -171,9 +174,11 @@ read(query)
 Operation 1: IF a required string input EQUALS blank THEN an action MUST answer a blank-input rejection.
 Operation 2: IF the dose DOES NOT EXCEED zero THEN [Order] MUST answer invalid-order.
 Operation 3: IF the future bound PRECEDES a supplied order instant THEN [Order] MUST answer invalid-order.
+Operation 86: IF the dose is malformed OR a supplied order instant is malformed THEN [Order] MUST answer invalid-order (Execution Contract Input 1).
 Deleted: Operation 4. Execution Contract Logic confinement 12 owns it.
 Operation 5: An admitted order MUST assign a fresh order id.
 Operation 6: An admitted order MUST record EVERY supplied core field.
+Operation 87: An admitted order MUST record the resolved order instant.
 Operation 7: An admitted order MUST stand the order in ordered.
 Operation 8: An admitted order MUST answer the order id.
 Operation 9: [Order] MUST NOT answer not-known.
@@ -198,7 +203,7 @@ Deleted: Operation 25. Operation 14 and Operation 26 own it.
 Operation 26: IF the order's state EQUALS on-hold THEN [Hold] MUST answer already-on-hold.
 Operation 27: IF the order's state DOES NOT EQUAL on-hold THEN [Reinstate] MUST answer not-on-hold.
 Deleted: Operation 28. Execution Contract Refusal 1 owns it.
-Operation 29: IF EVERY supplied dosing parameter matches the order's dosing parameter THEN [Amend] MUST answer invalid-request.
+Operation 29: IF [Amend] supplies no dosing parameter OR EVERY supplied dosing parameter matches the order's dosing parameter THEN [Amend] MUST answer invalid-request.
 Operation 30: [Amend] MUST NOT accept a medication reference.
 Operation 31: [Amend] MUST NOT accept a patient reference.
 Operation 32: [Amend] MUST NOT accept a prescriber reference.
@@ -243,6 +248,8 @@ Operation 69: The atom MUST NOT offer a second dose event surface.
 Operation 70: The atom MUST NOT offer a refill surface.
 Operation 71: IF a filter axis falls outside the query axes THEN [Read] MUST answer invalid-query.
 Operation 72: IF a filter value falls outside the axis's admitted values THEN [Read] MUST answer invalid-query.
+Operation 84: IF a filter value EXCEEDS the length bound THEN [Read] MUST answer invalid-query.
+Operation 85: IF a filter axis IS IN the string axes AND the filter value EQUALS blank THEN [Read] MUST answer invalid-query.
 Operation 73: An admitted read MUST answer EVERY matching order.
 Operation 74: An admitted read MUST answer the matching orders by order instant ascending.
 Operation 82: An admitted read MUST order two orders sharing an order instant by order id ascending.
@@ -254,6 +261,12 @@ Deleted: Operation 79. Execution Contract Logic confinement 3 owns it.
 ```
 
 NOTE: watch the blank id (Operation 12).
+
+NOTE: watch the blank filter value (Operation 85).
+
+NOTE: watch the filter value over the cap (Operation 84).
+
+NOTE: watch the untyped input (Operation 86, Term numeric input).
 
 Term order action: [Amend] | [Verify] | [Hold] | [Reinstate] | [Dispense] | [Administer] | [Complete] | [Cancel] | [Discontinue] — every action naming an order by order id, including a refused one.
 
@@ -277,19 +290,23 @@ Term state check: Operation 11, Operation 13, Operation 14, Operation 16 through
 
 Term blank-input rejection: invalid-order for [Order], invalid-request for an order action.
 
-Term field fault: a blank required string input beside order id, a non-positive dose, a non-positive quantity, a supplied order instant exceeding the future bound, OR an [Amend] whose supplied dosing parameters all match the original.
+Term field fault: a blank required string input beside order id, a non-positive dose, a non-positive quantity, a malformed dose, a malformed quantity, a supplied order instant exceeding the future bound or malformed, an [Amend] that supplies no dosing parameter, OR an [Amend] whose supplied dosing parameters all match the original.
 
 Term required string input: patient reference, prescriber reference, medication reference, dose unit, route, frequency, a supplied clinical evidence reference, a supplied lot number, reason, an attribution reference OR order id — every string an action refuses when blank.
 
-Term future bound: now raised by the clock offset allowance.
+Term future bound: (now + clock offset allowance).
 
 Term query axes: order id, patient reference, medication reference, prescriber reference, state and a range over order instant — every filter axis [Read] admits.
+
+Term string axes: order id | patient reference | medication reference | prescriber reference — the query axes whose filter value carries a string.
 
 Term field group: the fields one transition writes, carried on the order from that transition onward.
 
 Term hold field: prior state | holding actor | hold reason | hold instant — the fields an admitted hold writes, replaced by each new hold cycle.
 
 Term reinstate field: reinstating actor | reinstatement instant — the fields an admitted reinstate writes, replaced by each new hold cycle.
+
+Term reinstated order: an order an admitted reinstate returned to the order's prior state.
 
 Term admitted order: an [Order] call the action admits (Execution Contract Read 4).
 
@@ -389,11 +406,11 @@ Term admitted read: a [Read] call that answers.
 
 ### Amendment before dispensing
 
-The dose is wrong. `amend(ord_a1, dr_osei, dose: 20, reason: "titration per 2026-05-02 BP readings")` → `ord_a2`, the reason — a titration against the patient's blood pressure (BP) readings — recorded as the successor's [Amendment Reason]. `ord_a2` stands ordered carrying the corrected dose, the inherited patient, prescriber and medication, and `predecessor_id: ord_a1`; and `ord_a1` stands amended carrying `successor_id: ord_a2`. The successor starts in ordered rather than verified — the clinical content changed, so the pharmacist reviews it again.
+The dose is wrong. `ord_b1` stands verified at a dose of 10. `amend(ord_b1, dr_osei, dose: 20, reason: "titration per 2026-05-02 BP readings")` → `ord_b2`, the reason — a titration against the patient's blood pressure (BP) readings — recorded as the successor's [Amendment Reason]. `ord_b2` stands ordered carrying the corrected dose, the inherited patient, prescriber and medication, and `predecessor_id: ord_b1`; and `ord_b1` stands amended carrying `successor_id: ord_b2`. The successor starts in ordered rather than verified — the clinical content changed, so the pharmacist reviews it again.
 
 ### Hold and reinstate
 
-`hold(ord_a1, rn_patel, "NPO for surgery 06:00")` → held (NPO: nothing by mouth), recording `prior_state: dispensed`. Every action but [Hold] and [Reinstate] now answers on-hold, and [Hold] answers already-on-hold. `reinstate(ord_a1, rn_patel)` → reinstated, recording [Reinstating Actor] and [Reinstatement Instant] and returning the order to dispensed — the action takes no target state, so it cannot return it anywhere else.
+`ord_c1` stands dispensed. `hold(ord_c1, rn_patel, "NPO for surgery 06:00")` → held (NPO: nothing by mouth), recording `prior_state: dispensed`. Every action but [Hold] and [Reinstate] now answers on-hold, and [Hold] answers already-on-hold. `reinstate(ord_c1, rn_patel)` → reinstated, recording [Reinstating Actor] and [Reinstatement Instant] and returning the order to dispensed — the action takes no target state, so it cannot return it anywhere else.
 
 ### The dispensing edge, from both sides
 
@@ -401,13 +418,13 @@ The dose is wrong. `amend(ord_a1, dr_osei, dose: 20, reason: "titration per 2026
 
 ### Rejection paths
 
-`dispense(ord_new, …)` before verification → not-verified — nothing is released on a prescription no pharmacist has read. `amend(ord_held, …)` → the [On Hold Rejection], not already-dispensed: the hold is reported first, because the caller must resolve the hold before learning anything about what is underneath it. `amend(ord_a1, dr_osei, dose: 10, reason: "…")` where the dose already is 10 → invalid-request — an amendment that changes nothing is not an amendment. `cancel(ord_a1, "  ", reason: "…")` on an already-cancelled order → already-cancelled, not invalid-request: the state checks run first (Execution Contract Refusal 1).
+`dispense(ord_new, …)` before verification → not-verified — nothing is released on a prescription no pharmacist has read. `amend(ord_held, …)` → the [On Hold Rejection], not already-dispensed: the hold is reported first, because the caller must resolve the hold before learning anything about what is underneath it. `amend(ord_d1, dr_osei, dose: 10, reason: "…")` on a verified order whose dose already is 10 → invalid-request, and so does an amend that supplies no dosing parameter — an amendment that changes nothing is not an amendment. `cancel(ord_e1, "  ", reason: "…")` on an already-cancelled order → already-cancelled, not invalid-request: the state checks run first (Execution Contract Refusal 1).
 
 ### Regulated adversarial scenarios
 
-- **DEA controlled-substance audit.** *Account for every unit of this schedule II drug.* Filter by [Medication Reference] and read each order's terminal: a cancelled order means nothing was released, a discontinued one means something was and the course stopped, a completed one means the full course was given. Invariant 6.1 and Invariant 6.2 are what make that distinction structural rather than a matter of how the reason was worded.
+- **DEA controlled-substance audit.** *Account for every unit of this schedule II drug.* Filter by [Medication Reference] and read each order's terminal: a cancelled order means nothing was released, a discontinued one means something was and the course stopped, a completed one means an administration was recorded and the order closed, a second dose event being a composing dose-event pattern's (External check 2). Invariant 6.1 and Invariant 6.2 are what make that distinction structural rather than a matter of how the reason was worded.
 - **Wrong-medication dispute.** *The patient received the wrong drug.* medication reference is fixed at placement and inherited unchanged by every successor (Invariant 2.1), and [Amend] cannot take one, so no order in the chain can name a drug the prescriber did not order. The dispute resolves to whether the right order was acted on, not to whether the record was edited.
-- **Diversion investigation.** *Who touched this medication?* Every transition records its actor — the [Administerer Reference] on the dose, the [Dispenser Reference] on the release — no attribution may be blank (Invariant 10.1), and the atom removes no record (Invariant 14.1), short of what a composed Retention Window purged, which its purge records name (External check 9). The chain from prescriber to whoever closed the order is on one record, under one [Patient Reference]; what the atom cannot prove is that the database was not rewritten underneath it, which is [Tamper Evidence](./tamper-evidence.md)'s (External check 4).
+- **Diversion investigation.** *Who touched this medication?* Every transition records its actor — the [Administerer Reference] on the dose, the [Dispenser Reference] on the release — no attribution may be blank (Invariant 10.1), and the atom removes no record (Invariant 14.1), short of what a composed Retention Window purged, which its purge records name (Execution Contract Database 6). The chain from prescriber to whoever closed the order is on one record, under one [Patient Reference]; what the atom cannot prove is that the database was not rewritten underneath it, which is [Tamper Evidence](./tamper-evidence.md)'s (External check 4).
 
 ---
 
@@ -494,7 +511,7 @@ Non-goal 24: The atom MUST NOT guarantee that an order reaches a terminal state.
 Non-goal 25: A deployment needing a verifiable time anchor MUST compose a trusted timestamping pattern.
 ```
 
-NOTE: the owners — a decision-support pattern (Non-goal 4 through 7); a dose-event pattern (Non-goal 11, Non-goal 12, External check 2; Operation 69); [Tamper Evidence](./tamper-evidence.md) (Non-goal 18, External check 4); [Event Log](./event-log.md) (Non-goal 19, Non-goal 20, External check 1); a new order or a layer above (Non-goal 21; Operation 70); [Retention Window](./retention-window.md) (Non-goal 22, External check 7, External check 9); [Retention Window](./retention-window.md) and [Legal Hold](./legal-hold.md) (State 14).
+NOTE: the owners — a decision-support pattern (Non-goal 4 through 7); a dose-event pattern (Non-goal 11, Non-goal 12, External check 2; Operation 69); [Tamper Evidence](./tamper-evidence.md) (Non-goal 18, External check 4); [Event Log](./event-log.md) (Non-goal 19, Non-goal 20, External check 1); a new order or a layer above (Non-goal 21; Operation 70); [Retention Window](./retention-window.md) (Non-goal 22, External check 7); [Retention Window](./retention-window.md) and [Legal Hold](./legal-hold.md) (State 14).
 
 ---
 
@@ -555,6 +572,7 @@ Deleted: String 8. String 7 and GRACE-lang Closed vocabulary 29 own it.
 
 Term string input: a required string input OR a filter value — every caller-supplied string this atom accepts.
 
+Term numeric input: a [Dose] OR a [Quantity] — every caller-supplied number this atom accepts.
 
 Term length bound: the maximum length of a string input in Unicode code points; 1,024 code points where a deployment declares none.
 
@@ -599,7 +617,7 @@ Term cadences: empty.
 
 Term qualifiers: migrated — rewritten in GRACE lang v0.40 (2026-09-13).
 
-Term terms: order, order id, database instance, core field, dosing parameter, attribution reference, reference, seam, transition, now, order action, state-changing action, state, terminal state, inactive state, pre-dispensing state, post-dispensing state, actionable state, `inactive state's rejection`, state check, blank-input rejection, field fault, required string input, future bound, clock offset allowance, event instant, query axes, field group, hold field, reinstate field, reason field, admitted order, admitted amend, admitted verify, admitted hold, admitted reinstate, admitted dispense, admitted administer, admitted complete, admitted cancel, admitted discontinue, admitted read, string input, blank, length bound, resolved dispensing instant, resolved administration instant, resolved completion instant, committed version.
+Term terms: order, order id, database instance, core field, dosing parameter, attribution reference, reference, seam, transition, now, order action, state-changing action, state, terminal state, inactive state, pre-dispensing state, post-dispensing state, actionable state, `inactive state's rejection`, state check, blank-input rejection, field fault, required string input, future bound, clock offset allowance, event instant, query axes, string axes, field group, hold field, reinstate field, reinstated order, reason field, admitted order, admitted amend, admitted verify, admitted hold, admitted reinstate, admitted dispense, admitted administer, admitted complete, admitted cancel, admitted discontinue, admitted read, string input, numeric input, blank, length bound, resolved order instant, resolved dispensing instant, resolved administration instant, resolved completion instant, committed version.
 
 Term cited: `execution-contract.md` Logic confinement — the seam and the transition.
 
@@ -612,6 +630,8 @@ Term resolved dispensing instant: the dispensing instant the order carries — t
 Term resolved administration instant: the administration instant the order carries — the supplied value, as Execution Contract Logic confinement 12 resolves it.
 
 Term resolved completion instant: the completion instant the order carries — the supplied value, as Execution Contract Logic confinement 12 resolves it.
+
+Term resolved order instant: the order instant the order carries — the supplied value, as Execution Contract Logic confinement 12 resolves it.
 
 Term clock offset allowance: clock offset allowance — the non-negative duration the deployment declares as the margin the future bound allows; zero declares no tolerance.
 
@@ -717,7 +737,7 @@ Projection: medication_ref
 
 #### Dose
 
-The prescribed quantity per administration. A dosing parameter, so an amendment may correct it on a successor; positive, and paired with a [Dose Unit].
+The prescribed quantity per administration. A dosing parameter, so an amendment may correct it on a successor; a number, positive, and paired with a [Dose Unit].
 
 Kind:       Field
 Field of:   Order
@@ -749,7 +769,7 @@ Projection: frequency
 
 #### Duration
 
-How long the course runs. Optional: an absent [Duration] is an open-ended order, which stands active until someone completes or discontinues it. A dosing parameter, so an amendment may add one, change one, or remove one.
+How long the course runs. Optional: an absent [Duration] is an open-ended order, which stands active until someone completes or discontinues it. A dosing parameter, opaque to the atom, so an amendment may add one or change one.
 
 Kind:       Field
 Field of:   Order
@@ -829,7 +849,7 @@ Projection: dispenser_ref
 
 #### Quantity
 
-How much was released at [Dispense]. Positive; written once.
+How much was released at [Dispense]. A number, positive; written once.
 
 Kind:       Field
 Field of:   Order
@@ -1069,7 +1089,7 @@ Role:      Outcome
 
 #### Invalid Order
 
-The refusal [Order] returns when a required string input is blank, a supplied [Order Instant] exceeds the future bound, or a [Dose] does not exceed zero.
+The refusal [Order] returns when a required string input is blank or over the length bound, a supplied [Order Instant] exceeds the future bound or is malformed, or a [Dose] does not exceed zero or is malformed (Execution Contract Input 1).
 
 Kind:       Member
 Member of:  the Order rejection
@@ -1078,7 +1098,7 @@ Projection: invalid-order
 
 #### Invalid Request
 
-The refusal an order action returns for a blank input, a non-positive [Quantity], or an [Amend] whose supplied dosing parameters all match the original. Reached only after every state check passes.
+The refusal an order action returns for a blank input, a string input over the length bound, a non-positive or malformed [Quantity] (Execution Contract Input 1), or an [Amend] that supplies no dosing parameter or whose supplied dosing parameters all match the original. Reached only after every state check passes.
 
 Kind:       Member
 Member of:  the order-action rejection
@@ -1222,7 +1242,7 @@ Projection: storage-failure
 
 #### Invalid Query
 
-The refusal [Read] returns for a filter axis or a filter value it cannot read.
+The refusal [Read] returns for a filter axis or a filter value it cannot read: a blank one on a string axis, one over the length bound, or one outside the axis's admitted values.
 
 Kind:       Member
 Member of:  the Read rejection
@@ -1336,7 +1356,7 @@ It inherits from:
 ```
 status: partially resolved
 formal: verified — medication-order.als + medication-order.tla + 2 twins, 2026-06-04
-last gate: 2026-10-22 — Final Critique 5, the council's first round on the page and the first since its GRACE-lang migration (ee9f572) and its Store-contract rewrite (bfb0388), three fresh readers on free models (GRID Nemotron 3 Ultra, EOS Beam, Linus GLM-5.3 Flash), each handed only the round's reading set, three passes on one text (frozen at f83906e); the round rests on three counted passes — foundational count 7 after triage (14 reports: 4 standing in 4 rows; 5 sent down; 5 rejected; 3 rows raised from refining reports), Kind A: [Dispense] and [Administer] never answered already-dispensed or already-administered; three ONLY IF invariants kept [Amend], [Cancel] and [Discontinue] from every refusal; no rule decided a successor's clinical evidence reference; the order count could never fall beside a composed retention; the length bound reached [Read]; rules over every order action landed refusals outside [Hold]'s, [Amend]'s and [Reinstate]'s signatures; and the write-once rule forbade what each hold cycle replaces; 15 refining reports, 2 rhetorical reports; not clean; every foundational finding cured, every refining finding cured, raised or answered; 2026-05-20 — Final Critique 4, fresh reader — clean
+last gate: 2026-11-04 — Final Critique 6, a full round, frozen at 939f0b7 — foundational count 5, cured, not clean, no sample
 
 open: none
 ```
