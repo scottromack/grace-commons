@@ -72,7 +72,7 @@ Identity 17: The host MUST NOT allocate an instance id that EXCEEDS the string c
 Identity 18: The host MUST NOT allocate a transition id that EXCEEDS the string cap.
 ```
 
-NOTE: watch the id's length against the cap (Identity 17, Identity 18, Capability requirement 8).
+NOTE: watch the id's length against the cap (Identity 17, Identity 18).
 
 Term workflow: one running workflow — one declaration, one current state and one transition history; the record this atom holds.
 
@@ -124,10 +124,10 @@ Capability requirement 1: The deployment MUST supply now at the seam.
 Capability requirement 5: The deployment MUST supply the workflow records PER Execution Contract Database 1 through 7, Execution Contract Read 1 through 4, Execution Contract Refusal 1, Execution Contract Query 1 through 4, Execution Contract Input 1 and Execution Contract Conformance 9.
 Capability requirement 6: The deployment MUST declare which composing patterns the deployment wired in.
 Capability requirement 7: The deployment MAY declare the string cap PER Execution Contract Input 2.
-Capability requirement 8: IF a string input or a transition id a workflow records EXCEEDS a string cap THEN the deployment MUST NOT declare that string cap.
 Deleted: Capability requirement 2. Execution Contract Logic confinement 7 owns it.
 Deleted: Capability requirement 3. Execution Contract Logic confinement 7 owns it.
 Deleted: Capability requirement 4. Execution Contract Logic confinement 7 owns it.
+Deleted: Capability requirement 8. Execution Contract Input 2 owns it.
 ```
 
 NOTE: watch the deployment's composition note (Capability requirement 6).
