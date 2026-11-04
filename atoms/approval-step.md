@@ -70,8 +70,6 @@ Identity 13: The atom MUST NOT interpret a scope.
 Deleted: Identity 14. Execution Contract Logic confinement 13 owns it.
 ```
 
-NOTE: open 2026-10-26-a — the step id's source is named as the host's allocation (Identity 2) and not among what the deployment supplies (Capability requirement 1, Capability requirement 5).
-
 Term step: one authorization gate — one subject, one approver, one submitter, one scope and one outcome; an [Approval Step], the record this atom holds.
 
 Term step id: the opaque value naming one step — a [Step Id]; host-allocated at the seam.
@@ -118,6 +116,7 @@ State 15: The atom MUST NOT record a receipt instant.
 Capability requirement 1: The deployment MUST supply now at the seam (Execution Contract Logic confinement 11).
 Capability requirement 5: The deployment MUST supply the step records PER Execution Contract Database 1 through 5, Execution Contract Database 7, Execution Contract Read 1 through 4, Execution Contract Refusal 1, Execution Contract Query 1 through 4 and Execution Contract Input 1.
 Capability requirement 6: The deployment MAY declare the string cap PER Execution Contract Input 2.
+Capability requirement 7: The deployment MUST supply at the seam a step id no step in the database instance has carried PER Execution Contract Logic confinement 3.
 Deleted: Capability requirement 2. Execution Contract Logic confinement 7 owns it.
 Deleted: Capability requirement 3. Execution Contract Logic confinement 7 owns it.
 Deleted: Capability requirement 4. Execution Contract Logic confinement 7 owns it.
@@ -502,7 +501,7 @@ Term string input: a reference, reason OR a filter's value — every caller-supp
 
 Term string cap: the bound on a string input's length in Unicode code points, counted on the value as the call carries it; 1,024 code points where a deployment declares none.
 
-NOTE: watch the cap's measure (Term string cap, Term bounds).
+NOTE: watch the cap's measure (Term string cap).
 
 ---
 
@@ -540,7 +539,7 @@ Term record verbs: identify, allocate, change, carry, stand, answer, record, set
 
 Term value sets: state = pending | approved | rejected | withdrawn.
 
-Term bounds: string cap (the bound on a string input's length in Unicode code points, counted on the value as the call carries it, 1,024 where a deployment declares none).
+Term bounds: string cap.
 
 Term cadences: empty.
 
@@ -852,12 +851,11 @@ Projection: invalid-query
 ```
 status: partially resolved
 formal: verified — approval-step.tla + 1 twin, 2026-06-03
-last gate: 2026-11-03 — Final Critique 13, a delta round, frozen at 30a4db8 — foundational count 1, cured, not clean, no sample; 2026-11-02 — Final Critique 12, a delta round, frozen at e63380b — foundational count 1, cured, not clean, no sample; 2026-10-29 — Final Critique 11 — foundational count 0, clean, one sample
+last gate: 2026-11-04 — Final Critique 14, a delta round, frozen at 075c6e4 — foundational count 1, cured by a held cure, not clean, no sample; 2026-11-03 — Final Critique 13, a delta round, frozen at 30a4db8 — foundational count 1, cured, not clean, no sample; 2026-11-02 — Final Critique 12, a delta round, frozen at e63380b — foundational count 1, cured, not clean, no sample; 2026-10-29 — Final Critique 11 — foundational count 0, clean, one sample
 
 open:
 - 2026-10-21-d · refining · Indeterminate outcome 1 · a caller with no answer is sent to the step records, and no read says whether its submit landed, where two submits carrying one field set are two steps (Non-goal 1); its BEFORE takes a clause where the grammar's tail takes a term → name the read, or Duplicate Prevention (Non-goal 2) as its owner, and write the tail on a term
 - 2026-10-21-e · refining · Non-goals NOTE · the owners NOTE gives no owner for Non-goal 7 or Non-goal 8 → one owner each, linked or marked forthcoming
-- 2026-10-26-a · refining · Identity 2; Capability requirement 1, 5 · the step id's source is named as the host's allocation (Identity 2) and not among what the deployment supplies, where the atom shape in `spec-format.md` lists an id source under Capability requirement; Assignment (its 2026-10-26-a), Event Log (its 2026-10-22-b) and Tamper Evidence (its 2026-10-22-a) route the same form → name the source among the Capability requirements, in the one form the corpus settles for its twenty host-allocation atoms
 ```
 
 <details markdown="block">
