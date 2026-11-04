@@ -339,7 +339,7 @@ Timing 13: A reader MUST NOT infer timing from rule order.
 ```
 
 WHY:
-`run_floor MUST NOT EXCEED run_bound` means `run_bound ≥ run_floor`. Timing 12 is no new form — a permission gated on a condition. Positive `MUST … BEFORE` smuggles a liveness claim into an ordering claim; liveness goes through WITHIN.
+`run_floor MUST NOT EXCEED run_bound` means `run_bound ≥ run_floor`. Timing 12 is no new form — a permission gated on a condition. A bound whose two readings, at or past, make different rules real is written by Timing 9 or Timing 12, so equality falls on a named side and no specification restates it. Positive `MUST … BEFORE` smuggles a liveness claim into an ordering claim; liveness goes through WITHIN.
 
 ---
 
@@ -657,7 +657,6 @@ NOTE: repeated cures are flagged (`NOTE: watch <name>` beside the strained rule)
 - **a term entry's kind**: `Kind: Field` carrying stored, derived and pinned values alike. Four: Cart, Consent, Retention Window and Session.
 - **the cited line**: the `Term cited:` line written in two shapes this document never states, runs of names each closed by the owner, or a document and what it supplies. Eighteen specifications: four write the first shape, sixteen the second, two both.
 - **the frozen surface's edge**: which families a cross-spec citation freezes. None standing since council read 13.
-- **the degenerate bound**: an inequality or bound whose two readings make different rules real. Five: Lease (two), Duplicate Prevention, Retention Window and Provenance.
 - **the id's length against the cap**: a host-allocated id longer than the string cap or the length bound leaves its record unaddressable, with no rule obliging the allocator to stay under it. Two flagged: State Machine (Identity 17, Identity 18) and Observation (Identity 2, its Final Critique 6); the same cure stands unflagged on Credential (Capability requirement 39) and Party Identity (Capability requirement 14).
 - **the auditor's vocabulary**: the verbs a Generation acceptance section needs, richer than an atom's own rules use, with nothing owning the split. Not counted.
 - **a label family recurring across specs outside the standard set**: a concept the corpus keeps declaring by heading: `Clock semantics` (24), `Clock dependence` (9), `Concurrency` (28), `String` (18), `Atomic writes` (4), `Indeterminate outcome` (9), `Expiry` (4), `Instance` (3), `Action wiring` (26), `Correction` (2), `Durability` (1), `Instance start` (2), `Primitive policy` (24), `Composition state` (25), `Verification caching` (2). The counts are `tools/grace/cites.py --drift`'s, and `lint.py`'s `W-stale-census` compares them with the corpus on every run.

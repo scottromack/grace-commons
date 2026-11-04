@@ -133,6 +133,12 @@ v0.34 (2026-09-11): labels are words — the name of the heading a rule sits und
 NOTE:
 v0.27–v0.33, the council's reads and the labels before v0.34 are archived in git history (`git log -- GRACE-lang.md`, last commit before the relabel `e80fd21`).
 
+## Left the Watch list at the degenerate bound, 2026-11-04
+
+The mayor stated it once at six, by the 2026-10-22 placement (how a rule reads lives here, settle.md *Repeats*; the maintainer's 2026-11-03 17:15Z ruling that a repeat at five is stated, not parked), and reports it as a ruling the maintainer may reverse by one line. The cure every site made is the grammar's own: Timing 9 writes a closed bound as `term MUST NOT EXCEED term` and Timing 12 a strict one as `actor MAY action ONLY IF term EXCEEDS term`, so equality falls on a named side. The entry had stood at five since before the v0.65 compression; Compensable Workflow's Final Critique 5 (Capability requirement 9 and 10: a lease length pinned equal to the step completion bound, so the halt owed at the bound landed on the expiry instant) made it six. The sentence added to Timing's WHY names the home. The two `NOTE: watch the degenerate bound` flags (Duplicate Prevention, Compensable Workflow) stay and are listed in assets/v3-batch.md for the batch to cut; no atom or composition moves.
+
+- **the degenerate bound**: an inequality or bound whose two readings make different rules real. Six: Lease (two), Duplicate Prevention, Retention Window, Provenance and Compensable Workflow (Capability requirement 9 and Capability requirement 10, Term step completion bound, its Final Critique 5).
+
 ## Left the Watch list at the read order and bound unit, 2026-11-03
 
 The maintainer ruled on 2026-11-03 ("so make it DONE") that Execution Contract Read 5 states once the order a read answers in where its specification names none, and Read 6 that a read answers the whole match, a deployment paging it in the same order. The order is the standing posture the entry below counted (every history surface answers ascending); the departure is its Read 5, citing Logic confinement 10 for the tie. Five specifications left the order open (Session, Capability, Invitation, Permissions, Actor Identity), and each now cites Read 5 in its Capability requirement.
