@@ -49,7 +49,7 @@ The authority field is where the atom earns its name. Three types and no others 
 
 ```
 Identity 1: The atom MUST identify a disclosure record by the disclosure id.
-Identity 2: The host MUST allocate a disclosure id at the seam.
+Identity 2: The host MUST allocate a disclosure id that DOES NOT EXCEED the string cap, at the seam.
 Deleted: Identity 3. Execution Contract Logic confinement 3 owns it.
 Identity 4: The atom MUST NOT change a disclosure id.
 Identity 5: Two disclosure records in one database instance MUST NOT share a disclosure id.
@@ -66,6 +66,8 @@ Deleted: Identity 15. Execution Contract Logic confinement 10 owns it.
 ```
 
 NOTE: watch the allocation ban (Identity 3).
+
+NOTE: watch the id's length against the cap (Identity 2).
 
 Term disclosure record: one recorded disclosure of one subject's data to one recipient under one authority — the record this atom holds.
 
@@ -379,7 +381,7 @@ String 6: The atom MUST read an absent string input as blank.
 Deleted: String 7. Execution Contract Logic confinement 13 owns it.
 ```
 
-Term string input: subject reference, recipient, scope, authority reference OR a filter's key OR a filter's value on an axis other than disclosure instant — every caller-supplied string this atom accepts.
+Term string input: subject reference, recipient, scope, authority reference OR a filter's key OR a filter's value on an axis other than disclosure instant — every caller-supplied string this atom accepts, but not a further field a call's authority carries.
 
 Term reference: subject reference — the one opaque reference this atom records, as Execution Contract Logic confinement 13 canonicalizes it at the seam; a recipient, a scope, an authority reference and a disclosure id are opaque strings, and no references.
 
@@ -550,7 +552,7 @@ Projection: storage-failure
 
 #### Invalid Query
 
-The rejection [Read] returns when a filter value is malformed — a null or whitespace [Disclosure Id], [Subject Reference], or [Recipient]; an [Authority Type] outside the three values; a reversed [Disclosure Instant] range, one missing its after or its before, or a single [Disclosure Instant] where the axis takes a range (Execution Contract Query 1); a filter value exceeding the string cap (Execution Contract Input 2); or an unrecognized filter key.
+The rejection [Read] returns when a filter value is malformed — a null or whitespace [Disclosure Id], [Subject Reference], or [Recipient]; an [Authority Type] outside the three values; a reversed [Disclosure Instant] range, one missing its after or its before, or a single [Disclosure Instant] where the axis takes a range (Execution Contract Query 1); a filter value exceeding the string cap (Operation 45); or an unrecognized filter key.
 
 Kind:       Member
 Member of:  the read rejection
@@ -597,7 +599,7 @@ Projection: invalid-query
 ```
 status: partially resolved
 formal: not applicable — vote no 2026-06-03
-last gate: 2026-11-02 — Final Critique 13, a delta round, frozen at bba8734 — foundational count 2, both cured, not clean, no sample; 2026-10-31 — Final Critique 12 — foundational count 0, clean, one sample
+last gate: 2026-11-04 — Final Critique 14, a delta round, frozen at 5961920 — foundational count 2, both cured, not clean, no sample; 2026-11-02 — Final Critique 13, a delta round, frozen at bba8734 — foundational count 2, both cured, not clean, no sample; 2026-10-31 — Final Critique 12 — foundational count 0, clean, one sample
 
 open: none
 ```
