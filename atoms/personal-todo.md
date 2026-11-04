@@ -16,7 +16,7 @@ toc: true
 
 ## Summary
 
-Personal Todo is a single-person to-do list: one user records tasks, edits them while they are still open, marks them done, and deletes them. Every task gets a permanent internal identifier that never changes, so editing the wording of a task does not change which task it is. Each task is always in exactly one state — open (Pending) or finished (Done) — until it is deleted. No two tasks on the list, open or finished, can share the same wording, ignoring spaces at either end, and the same text typed two different ways (an accented letter entered as one character, or as a plain letter followed by an accent mark) still counts as a match. It is built for one person managing their own list — personal tasks, reading lists, grocery lists, goals — not for shared or delegated lists, which are handled by separate patterns that build on this one.
+Personal Todo is a single-person to-do list: one user records tasks, edits them while they are still open, marks them done, and deletes them. Every task gets a permanent internal identifier that never changes, so editing the wording of a task does not change which task it is. Each task is always in exactly one state — open (Pending) or finished (Done) — until it is deleted. No two tasks on the list, open or finished, can share the same wording, ignoring whitespace at either end but not a difference of capital letters (*Buy milk* and *buy milk* are two tasks), and the same text typed two different ways (an accented letter entered as one character, or as a plain letter followed by an accent mark) still counts as a match. It is built for one person managing their own list — personal tasks, reading lists, grocery lists, goals — not for shared or delegated lists, which are handled by separate patterns that build on this one.
 
 ---
 
@@ -37,7 +37,7 @@ One person, a list of things to do, and nothing else. The atom exists because ev
 Identity 1: The atom MUST identify a unit by the id.
 Identity 2: The host MUST allocate an id at the atom's seam.
 Deleted: Identity 3. Execution Contract Logic confinement 3 owns it.
-Identity 4: The business caller MUST NOT supply an id.
+Identity 4: [Add] MUST NOT take an id from the business caller.
 Identity 5: The atom MUST NOT reuse an id.
 Identity 6: The atom MUST NOT identify a unit by the description.
 Identity 7: The implementation MUST own the id's scheme.
@@ -47,7 +47,7 @@ NOTE: watch the allocation ban (Identity 3).
 
 Term unit: one thing to do — the record this atom holds; recorded, revised, finished or abandoned.
 
-Term id: the opaque value naming one unit — an [Id]; stable across sessions, unique for the system's life.
+Term id: the opaque string naming one unit — an [Id]; malformed where it is no string; stable across sessions, unique for the system's life.
 
 Term seam: the atom's I/O (input and output) boundary; the host injects the clock reading and the id here.
 
@@ -78,7 +78,7 @@ Term unit state: pending | done — recorded and unfinished, or finished and unr
 
 Term addition instant: the instant the unit was recorded — an [Addition Instant].
 
-Term last edit instant: the instant the unit's description last changed — a [Last Edit Instant]; absent until an edit lands.
+Term last edit instant: the instant the unit's description last changed — a [Last Edit Instant]; absent until a change of description lands.
 
 Term completion instant: the instant the unit was finished — a [Completion Instant].
 
@@ -121,7 +121,7 @@ read()
 ```
 
 ```
-Operation 1: [Add] MUST record EXACTLY ONE unit per successful call.
+Operation 1: [Add] MUST record EXACTLY ONE unit per successful call, the unit carrying the normalized description.
 Operation 2: [Add] MUST stand the unit in pending.
 Operation 3: [Add] MUST answer id.
 Operation 4: IF the normalized description matches a unit in the active set THEN [Add] MUST answer duplicate-active.
@@ -134,7 +134,7 @@ Deleted: Operation 9a. Operation 32 and Operation 33 own it.
 Operation 10: IF the unit state EQUALS pending AND the normalized new description EQUALS the unit's description THEN [Edit] MUST answer ok.
 Deleted: Operation 11. Execution Contract Conformance 1 owns the admitted call's write.
 Operation 12: IF the normalized new description EQUALS the unit's description THEN [Edit] MUST NOT stamp last edit instant.
-Operation 13: IF the normalized new description DOES NOT EQUAL the unit's description THEN [Edit] MUST replace the unit's description.
+Operation 13: IF the normalized new description DOES NOT EQUAL the unit's description THEN [Edit] MUST replace the unit's description with the normalized new description.
 Operation 14: [Edit] MUST leave the unit standing in pending.
 Operation 15: IF no unit EXISTS for the id THEN [Complete] MUST answer not-known.
 Operation 16: IF the unit state EQUALS done THEN [Complete] MUST answer not-pending.
@@ -152,11 +152,18 @@ Deleted: Operation 27. Execution Contract Logic confinement 3 owns it.
 Operation 28: [Read] MUST answer EVERY unit, pending AND done.
 Operation 29: [Read] MUST answer a unit's id, description, state, addition instant, last edit instant AND completion instant.
 Operation 30: [Read] MUST NOT write.
-Operation 31: [Read] MUST NOT refuse a call.
+Operation 31: [Read] MUST NOT refuse a call, and a failed read answers state-unavailable (Execution Contract Read 1).
 Operation 32: IF the unit state EQUALS pending AND the normalized new description DOES NOT EQUAL the unit's description AND the normalized new description EQUALS blank THEN [Edit] MUST answer invalid-description.
-Operation 33: IF the unit state EQUALS pending AND the normalized new description DOES NOT EQUAL the unit's description AND the normalized new description EXCEEDS the description cap THEN [Edit] MUST answer invalid-description.
+Operation 33: IF the unit state EQUALS pending AND the normalized new description DOES NOT EQUAL the unit's description AND the new description the call carries EXCEEDS the description cap THEN [Edit] MUST answer invalid-description (Execution Contract Input 2).
 Operation 34: IF the unit state EQUALS pending AND the new description is malformed THEN [Edit] MUST answer invalid-description (Execution Contract Input 1).
+Operation 35: IF the id is malformed THEN [Edit] MUST answer not-known (Execution Contract Input 1).
+Operation 36: IF the id is malformed THEN [Complete] MUST answer not-known (Execution Contract Input 1).
+Operation 37: IF the id is malformed THEN [Delete] MUST answer not-known (Execution Contract Input 1).
 ```
+
+NOTE: watch the untyped input (Operation 35, Operation 36, Operation 37, Term id).
+
+NOTE: open 2026-11-03-a — no rule says an admitted [Edit], [Complete] or [Delete] answers ok; only Operation 10 does, and only for an unchanged description.
 
 Term new description: the text an edit offers for a unit — a [New Description]; normalized under the description policy.
 
@@ -166,7 +173,7 @@ The case space, and the rule that owns each case:
 |---|---|---|---|
 | [Add] | description valid, no active match, database accepts | id | one unit lands in [Pending] (Operation 1, Operation 2) |
 | [Add] | description blank, over the cap or malformed | [Invalid Description] | none (Description 4, Description 5, Description 9) |
-| [Add] | description matches a live unit | [Duplicate Active] | none (Operation 4) |
+| [Add] | description matches a unit in the active set | [Duplicate Active] | none (Operation 4) |
 | [Edit] | valid, different, no active match, database accepts | ok | description and last edit instant change (Operation 13, State 6) |
 | [Edit] | same normalized text | ok | no field changes (Operation 10, Operation 12) |
 | [Edit] | new description malformed, or blank or over the cap and different | [Invalid Description] | none (Operation 32, Operation 33, Operation 34) |
@@ -175,7 +182,7 @@ The case space, and the rule that owns each case:
 | [Complete] | unit is pending | ok | [Pending] → [Done], completion instant stamped (Operation 17, State 7) |
 | [Complete] | unit is done | [Not Pending] | none (Operation 16) |
 | [Delete] | unit is pending or done | ok | the unit leaves; the id is retired (Operation 19, Operation 20, Identity 5) |
-| any | id names nothing | [Not Known] | none (Operation 7, Operation 15, Operation 18) |
+| any | id names nothing, or is malformed | [Not Known] | none (Operation 7, Operation 15, Operation 18, Operation 35 through 37) |
 | any writing call | database refuses | [Storage Failure] | none (Operation 5, Operation 21 through 23; Execution Contract Read 4) |
 | any | the database read fails | state-unavailable | none (Execution Contract Read 1, Execution Contract Read 3) |
 | [Read] | the database answers the read | every unit, with its stored fields | none (Operation 28 through 31) |
@@ -228,7 +235,7 @@ Description 1: The atom MUST trim a description's leading and trailing whitespac
 Description 2: The atom MUST normalize a description to Unicode normal form C.
 Description 3: The atom MUST preserve a description's internal whitespace.
 Description 4: IF the normalized description EQUALS blank THEN [Add] MUST answer invalid-description.
-Description 5: IF the normalized description EXCEEDS the description cap THEN [Add] MUST answer invalid-description.
+Description 5: IF the description the call carries EXCEEDS the description cap THEN [Add] MUST answer invalid-description (Execution Contract Input 2).
 Description 6: The atom MUST compare two descriptions case-sensitively.
 Description 7: The atom MUST compare two descriptions on the normalized form.
 Description 8: The atom MUST show the normalized form.
@@ -237,7 +244,9 @@ Description 9: IF the description is malformed THEN [Add] MUST answer invalid-de
 
 Term description: the text the person gives a unit — a [Description]; normalized before it enters the list and before any comparison.
 
-Term description cap: the bound on a normalized description's length; 1024 codepoints where a deployment declares none.
+Term description cap: the bound on a description's length as the call carries it, before it is normalized (Execution Contract Input 2); 1024 codepoints where a deployment declares none.
+
+NOTE: watch the cap's measure (Term description cap, Term bounds).
 
 ## Examples
 
@@ -269,7 +278,7 @@ The same user, exercising the rejection surface in one short sequence:
 - Tries to complete an unknown id — rejected as [Not Known].
 - Deletes `r1`. Now *"buy milk"* is no longer in the active set; a fresh `add("buy milk")` would succeed with a new id (id `r3`).
 
-This sequence covers four of the rejection reasons ([Invalid Description], [Duplicate Active], [Not Editable], [Not Known]) in a single thread of user action. The fifth reason, [Not Pending], is exercised separately — for example, attempting to [Complete] an id that is already [Done].
+This sequence covers four of the six rejection reasons ([Invalid Description], [Duplicate Active], [Not Editable], [Not Known]) in a single thread of user action. [Not Pending] is exercised separately — for example, attempting to [Complete] an id that is already [Done]. [Storage Failure] is exercised separately too: an [Add] of *"read the manual"* whose write the database refuses answers [Storage Failure] and records nothing, and the same [Add] sent again once the database accepts the write records the unit and answers its id.
 
 ---
 
@@ -298,10 +307,12 @@ Deleted: Check 5.1. Execution Contract Read 4 owns it.
 
 NOTE: EVERY check names the rule the check tests.
 
+NOTE: open 2026-11-03-b — Invariant 2.1 and Invariant 3.1 carry no conformance check.
+
 ### External checks
 
 ```
-External check 1: An auditor needing the clock's monotonicity confirmed MUST read the deployment's own clock discipline (Invariant 7.1 through 7.3).
+External check 1: An auditor needing the clock's monotonicity confirmed MUST read the deployment's own clock discipline (Invariant 7.1 through 7.3; Execution Contract Logic confinement 7).
 Deleted: External check 2. Execution Contract Database 1 owns it.
 Deleted: External check 3. Execution Contract Database 2 owns it.
 ```
@@ -327,7 +338,7 @@ Non-goal 15: The atom MUST NOT match descriptions case-insensitively.
 Non-goal 16: A deployment needing a defensible timeline MUST compose a trusted timestamping pattern.
 ```
 
-NOTE: the owners — [Shared Todo](../compositions/shared-todo.md) (Non-goal 1 through 3, Composition note 5); [Duplicate Prevention](./duplicate-prevention.md) and the composing pattern that answers [Duplicate Recent] (Non-goal 4, Non-goal 5, Composition note 2, Composition note 3; State 10); Execution Contract Database 5 (Non-goal 6); a history pattern (Non-goal 8, Non-goal 13; State 9); a recurrence pattern *(forthcoming)* (Non-goal 9); a priority and ordering pattern *(forthcoming)* (Non-goal 10); a due-date pattern *(forthcoming)* (Non-goal 11); a dependency pattern *(forthcoming)* (Non-goal 12); Execution Contract Database 2 (Non-goal 14); a wrapping pattern (Non-goal 15); Trusted Timestamping *(forthcoming)* (Non-goal 16).
+NOTE: the owners — [Shared Todo](../compositions/shared-todo.md) (Non-goal 1 through 3, Composition note 5); [Duplicate Prevention](./duplicate-prevention.md) and the composing pattern that answers [Duplicate Recent] (Non-goal 4, Non-goal 5, Composition note 2, Composition note 3; State 10); Execution Contract Database 5 (Non-goal 6); a history pattern *(forthcoming)* (Non-goal 8, Non-goal 13; State 9); a recurrence pattern *(forthcoming)* (Non-goal 9); a priority and ordering pattern *(forthcoming)* (Non-goal 10); a due-date pattern *(forthcoming)* (Non-goal 11); a dependency pattern *(forthcoming)* (Non-goal 12); Execution Contract Database 2 (Non-goal 14); a wrapping pattern *(forthcoming)* (Non-goal 15); Trusted Timestamping *(forthcoming)* (Non-goal 16).
 
 Where the atom breaks down: any system with more than one actor; a system where *finished* is not binary; a system where the description is not a property worth constraining; a host that cannot make a transition atomic.
 
@@ -368,13 +379,13 @@ Each `[Term]` marker above links to its term entry here; a term entry states wha
 
 Term actors: the atom; the host; the transition; the implementation; the deployment; a composing pattern (also: a pattern); a business caller; a person; a unit; a call; the database; the list; an auditor.
 
-Term records: unit — one thing to do, carrying id, description, addition instant, a unit state and, once they land, last edit instant and completion instant.
+Term records: unit — one thing to do, carrying id, description, addition instant, a unit state and, once they land, last edit instant and completion instant; list — the units the atom holds, which is the active set.
 
 Term record verbs: call, identify, allocate, declare, supply, reuse, own, trim, normalize, preserve, answer, compare, show, stand, carry, stamp, take, offer, hold, record, replace, leave, write, read, match, change, set, share, assume, compose, remember, restore, reopen, regenerate, order, keep, resolve, assign, accept, check, precede, find, refuse.
 
 Term value sets: unit state = pending | done.
 
-Term bounds: description cap (the bound on a normalized description's length).
+Term bounds: description cap (the bound on a description's length as the call carries it).
 
 Term cadences: empty.
 
@@ -408,7 +419,7 @@ Kind: Operation
 
 #### Read
 
-The read-only query answering every unit in the list, pending and done, each with its stored fields, in no order the atom states, since the atom orders no units (Non-goal 10); a last edit instant or completion instant the unit does not carry is answered blank. It changes nothing and refuses nothing.
+The read-only query answering every unit in the list, pending and done, each with its stored fields, in the order Execution Contract Read 5 gives (creation instant, then id ascending), since the atom orders no units (Non-goal 10); a last edit instant or completion instant the unit does not carry is answered blank. It changes nothing and refuses no call; where the database read fails it answers state-unavailable (Execution Contract Read 1).
 
 Kind: Operation
 
@@ -438,7 +449,7 @@ Projection: added_at
 
 #### Last Edit Instant
 
-The wall-time of a unit's most recent [Edit], stamped from the injected [Now]. Absent on a unit that has never been edited.
+The wall-time of the most recent [Edit] that changed a unit's description, stamped from the injected [Now]. Absent on a unit whose description has never changed.
 
 Kind:       Field
 Field of:   Personal Todo
@@ -486,7 +497,7 @@ Role:      Outcome
 
 #### Invalid Description
 
-The refusal [Add] returns when the [Description] is malformed or the normalized [Description] is blank or exceeds the length cap, and [Edit], on a [Pending] unit, when the [New Description] is malformed or the normalized [New Description] is blank or exceeds the length cap and differs from the unit's own [Description]. No unit is created or changed.
+The refusal [Add] returns when the [Description] is malformed, exceeds the length cap as the call carries it, or is blank once normalized, and [Edit], on a [Pending] unit, when the [New Description] is malformed or, its normalized form differing from the unit's own [Description], is blank once normalized or exceeds the length cap as the call carries it. No unit is created or changed.
 
 Kind:       Member
 Member of:  the action rejection
@@ -504,7 +515,7 @@ Projection: duplicate-active
 
 #### Not Known
 
-The refusal [Edit], [Complete], or [Delete] returns when the supplied [Id] references no unit the system holds.
+The refusal [Edit], [Complete], or [Delete] returns when the supplied [Id] references no unit the system holds or is malformed.
 
 Kind:       Member
 Member of:  the action rejection
@@ -531,7 +542,7 @@ Projection: not-editable
 
 #### Storage Failure
 
-The refusal any writing action returns when the underlying database write fails after all preconditions pass. The unit is left in its prior state, and the call may be retried.
+The refusal any writing action returns when the underlying database write fails after all preconditions pass. The unit is left in its prior state, and the call may be retried; a retry of a call whose answer was lost meets what that call left (Execution Contract Error model 1).
 
 Kind:       Member
 Member of:  the action rejection
@@ -599,9 +610,11 @@ A formal-methods version of a similar concept exists in [concept-catalog](https:
 ```
 status: partially resolved
 formal: not applicable — vote no 2026-06-03
-last gate: 2026-10-31 — Final Critique 6 — foundational count 3, not clean, no sample
+last gate: 2026-11-03 — Final Critique 7 — foundational count 3, not clean, no sample
 
-open: none
+open:
+- 2026-11-03-a · refining · Operation 10; Operation 13; Operation 17; Operation 19; Operation 20; the case space · no rule says an admitted [Edit], [Complete] or [Delete] answers ok, though the signature block gives ok as its answer; only Operation 10 states ok, for an unchanged description, and the case space cites for the other ok rows rules that land no outcome, so a build may answer ok or leave the answer to the pipeline by the reading it picks → state the answer in one rule per action, as Cart's Operation 15, Operation 17 and Operation 19 do, or say the signature block's answer is the admitted call's (Closed vocabulary 21)
+- 2026-11-03-b · refining · Invariant 2.1; Invariant 3.1; Check 2.1; Check 3.1 · Invariant 4.1 has Check 2.1 and Invariant 6.1 has Check 3.1, but Invariant 2.1 and Invariant 3.1 have none, so an auditor reading the committed versions has nothing that tests a unit standing in pending after a complete or a delete, or in done after a delete → add a check for each, reading the committed versions (Execution Contract Generation acceptance 1), or delete the two invariants to the rules that already hold them (State 9, State 10)
 ```
 
 <details markdown="block">
