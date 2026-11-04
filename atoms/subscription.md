@@ -393,7 +393,7 @@ Term record verbs: recover, identify, allocate, reuse, draw, carry, stand, stamp
 
 Term value sets: status = active | cancelled.
 
-Term bounds: id entropy (the floor a subscription id's random material is drawn from); string cap (the bound on a string input's length in Unicode code points, counted on the value as the call carries it, 256 where a deployment declares none).
+Term bounds: id entropy (the floor a subscription id's random material is drawn from); string cap.
 
 Term cadences: empty.
 
@@ -572,14 +572,14 @@ Projection: not-active
 
 ## Status
 
-`partially resolved` — see the Ledger.
+`grounded on Final Critique 10 — 2026-11-04 at c904915` — see the Ledger.
 
 ## Ledger
 
 ```
-status: partially resolved
+status: grounded on Final Critique 10 — 2026-11-04 at c904915
 formal: verified — subscription.als + 1 twin, 2026-06-03
-last gate: 2026-11-03 — Final Critique 9, a delta round, frozen at e1e522d — foundational count 2, cured, not clean, no sample
+last gate: 2026-11-04 — Final Critique 10, a delta round, frozen at c904915 — foundational count 0, clean, no sample; 2026-11-03 — Final Critique 9, a delta round, frozen at e1e522d — foundational count 2, cured, not clean, no sample
 
 open:
 - 2026-11-03-a · refining · Lost ledger 4 · the administrative-recovery pattern it tells a deployment to compose is named by no page, link or roadmap row, and Cancel capability 2 bars the enumeration it would need → decide whether the roadmap lists the pattern (and the owners NOTE marks it *(forthcoming)*), or Lost ledger 4 closes by a named non-goal

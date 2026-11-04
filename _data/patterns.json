@@ -1583,7 +1583,7 @@
    "preference-aware-notification-fanout"
   ],
   "domain": null,
-  "grounded": false,
+  "grounded": true,
   "invariants": 9,
   "kind": "atom",
   "models": {
@@ -1599,7 +1599,7 @@
   "standards": [
    "GDPR"
   ],
-  "status": "partially resolved",
+  "status": "grounded on Final Critique 10 \u2014 2026-11-04 at c904915",
   "title": "Subscription"
  },
  "tamper-evidence": {
