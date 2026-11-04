@@ -832,14 +832,14 @@ Inherited from:
 
 ## Status
 
-`partially resolved` — see the Ledger.
+`grounded on Final Critique 19 — 2026-11-04 at 260b6c6` — see the Ledger.
 
 ## Ledger
 
 ```
-status: partially resolved
+status: grounded on Final Critique 19 — 2026-11-04 at 260b6c6
 formal: not applicable — vote no 2026-06-03
-last gate: 2026-11-03 — Final Critique 18 — delta — foundational count 1, not clean, no sample
+last gate: 2026-11-04 — Final Critique 19 — delta — foundational count 0, clean, no sample
 
 open: none
 ```
