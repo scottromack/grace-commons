@@ -56,7 +56,7 @@ Composes 7: The composition MUST select the ledger events through the ledger enu
 Composes 8: The composition MUST read an event by id ONLY through the record read.
 Deleted: Composes 9. Recoverable Invocation Action wiring 4 owns it: an adopter's action runs validate, open, commit, close.
 Composes 10: A deployment MUST NOT record an event under the ledger namespace outside the composition.
-Composes 11: A deployment MUST NOT call the disclosure write outside the composition.
+Composes 11: A deployment MUST NOT call the disclosure write of the composition's Selective Disclosure instance outside the composition AND MUST record a transmission of a subject's data the composition does not perform on another Selective Disclosure instance (Selective Disclosure Capability requirement 6).
 Composes 12: EXACTLY ONE Recoverable Invocation instance MUST serve the composition.
 Composes 13: The Recoverable Invocation instance MUST write to the composition's Audit Trail instance.
 Composes 14: The composition MUST bind the act kind PER the disclosure binding.
@@ -89,7 +89,7 @@ Term disclosure binding: the act kind's bindings, each under the name Recoverabl
 
 Term act key: a disclosure's subject reference, recipient, scope and authority, in that order. The disclosure id is minted by the commit and cannot key the act ahead of it, which is the minted key deviation (Recoverable Invocation Deviation 4). Two disclosures carrying all four alike are one key, and take the critical section in turn. A caller told act-in-flight finds the named invocation's closing by its id through the read passthrough's sequence-range query before calling again: a call made once that invocation has closed is a second disclosure, the kind being repeatable. The key is serialized as five byte strings — subject reference, recipient, scope, authority type, authority reference — each behind a four-byte length, and that serialization's length is what Primitive policy 14 compares with the reference length cap.
 
-Term commit partition: committed where the disclosure write answers a disclosure id; pre-commit where it answers invalid-request, unknown-authority-type or storage-failure, each of which Selective Disclosure states leaves the database as the call found it (Selective Disclosure Operation 14, Selective Disclosure Operation 16, Selective Disclosure Operation 17); unknown where it answers a code Selective Disclosure does not declare.
+Term commit partition: committed where the disclosure write answers a disclosure id; pre-commit where it answers invalid-request, unknown-authority-type or storage-failure, each of which Selective Disclosure states leaves the database as the call found it (Selective Disclosure Operation 14, Selective Disclosure Operation 16, Selective Disclosure Operation 17); unknown where it answers a code Selective Disclosure does not declare, AND where its reply has not arrived when the commit round trip has elapsed since the write's issue (Recoverable Invocation commit 6, commit 7).
 
 Term disclosure probe: the disclosure read filtered by the act key's subject reference and recipient and by the intent's disclosure instant as a range of that one instant, kept in the composition's own code to the records carrying the act key's scope and authority — answering committed carrying ledger.disclosure.disclosed and the record's own fields where exactly one record matches, not-committed where none does, undecidable carrying the matching records' disclosure ids where more than one does, and unavailable where the read refuses or gives no answer. Every read of the database shows every record whose write has answered (Capability requirement 36).
 
@@ -179,10 +179,11 @@ Capability requirement 29: An operator MUST NOT leave an unsettled escalation wh
 Capability requirement 30: A deployment MUST persist EVERY write-ownership finding for the audit horizon.
 Deleted: Capability requirement 31. Recoverable Invocation Instance start 5 owns it: the act kind's retention period, the audit horizon, exceeds the retention floor, which carries the settling period and the run bound past the examine window end.
 Capability requirement 32: A reconciliation run MUST NOT EXCEED the reconciliation run bound.
-Capability requirement 33: A deployment MAY set the audit horizon ONLY IF the audit horizon EXCEEDS twice the sweep cadence added to three times the reconciliation run bound, the clock allowance and Recoverable Invocation's journal write bound.
+Capability requirement 33: A deployment MAY set the audit horizon ONLY IF the audit horizon EXCEEDS twice the sweep cadence added to three times the reconciliation run bound, the clock allowance and Recoverable Invocation's journal write bound AND EXCEEDS the act kind's examine window end added to twice the clock allowance, the reconciliation run bound and the sweep cadence.
 Capability requirement 34: A deployment MUST NOT disclose the entries to the disclosure's recipient BEFORE an outcome event carrying the disclosure id lands.
 Deleted: Capability requirement 35. Execution Contract Database 2 and Execution Contract Database 3 own it.
 Capability requirement 36: The deployment MUST supply the database PER Execution Contract Database 1 through 4.
+Capability requirement 37: IF the partial disclosure capability EQUALS true THEN the deployment MUST supply the ledger seal reference to the recipient (Invariant 2.1).
 ```
 
 Term ledger retention policy: the policy reference configured on the composition's single Audit Trail instance, governing every ledger event — `ledger_retention_policy`.
@@ -359,7 +360,7 @@ Term store-unavailable: [Verify Ledger]'s refusal where the read of the accounti
 
 Term attestation verification: what the substrate's verify_record answers for the outcome event's covering range, or what Action wiring 35, Action wiring 67 and Verdict 7 put in its place.
 
-Term retention state: Retained | Purged | unresolved, as the record read answers it for an event.
+Term retention state: Audit Trail's retention state, Retained | Purged, as the record read answers it for an event; unresolved is the record read's retention status for an event with no retention record yet, inside Audit Trail's compensation window.
 
 Term bundle construction: building the verification bundle over the disclosed set through the verification routine.
 
@@ -395,7 +396,7 @@ Deleted: Action wiring 14. Recoverable Invocation act section 10 owns it.
 Deleted: Action wiring 15. Recoverable Invocation close step 3.1 owns it.
 Action wiring 16: A landed disclosure MUST write the binding.
 Action wiring 17: A landed disclosure MUST construct the verification bundle over the disclosed set.
-Action wiring 18: IF the bundle construction fails THEN the landed disclosure MUST carry unavailable carrying the reason as the verification bundle.
+Action wiring 18: IF the read of the disclosed set from the intent OR the bundle construction fails THEN the landed disclosure MUST carry unavailable carrying the reason as the verification bundle.
 Deleted: Action wiring 19. Recoverable Invocation Invariant 3.5 owns it: a sweep that cannot pair writes no outcome, so no outcome carries an unresolved set.
 Action wiring 20: A landed disclosure MUST answer the disclosure result.
 Deleted: Action wiring 21. Recoverable Invocation yield 3 owns it: no adopter touches the section.
@@ -411,9 +412,9 @@ Action wiring 30: A found ledger verification MUST NOT rest a verdict on the bin
 Deleted: Action wiring 31. Action wiring 29 owns it: the enumeration runs on a hit and on a miss alike.
 Deleted: Action wiring 32. Action wiring 29 owns it, and reverses it: the purged verdict's first clause needs the enumeration a purged hit was denied.
 Action wiring 33: A bound ledger verification MUST read the outcome event's covering range through the record read.
-Action wiring 34: IF the record read answers partially-purged coverage THEN the bound ledger verification MUST call the verification with the covering range's members the original event payloads carry.
+Action wiring 34: IF the record read answers partially-purged coverage THEN the bound ledger verification MUST call the verification with the covering range's members the original event payloads carry, original event payloads carrying no member of the covering range excepted.
 Action wiring 35: IF a member of a whole covering range IS NOT IN the original event payloads THEN the attestation verification MUST carry payload-not-supplied AND the missing sequence numbers.
-NOTE: watch the purged co-member (Action wiring 34, Action wiring 35).
+NOTE: watch the purged co-member (Action wiring 34, Action wiring 35, Action wiring 71).
 Action wiring 36: IF EVERY member of the covering range IS IN the original event payloads THEN the bound ledger verification MUST call the verification with the covering range's payloads in ascending sequence order.
 Action wiring 37: IF the record read names no covering range THEN the verify-time presentation MUST carry the outcome event's own payload from the original event payloads.
 Action wiring 38: The bound ledger verification MUST carry the verification's outcome AND reason unchanged as the attestation verification.
@@ -429,7 +430,7 @@ Action wiring 47: IF the invocation open refuses THEN [Disclose Subset] MUST ans
 Action wiring 48: IF the disclosure write answers a disclosure refusal THEN [Disclose Subset] MUST call the invocation refusal with the act kind, the act key, the invocation pair, the caller's actor reference AND credential, AND the disclosure refusal as the reason AND as the constituent code.
 Action wiring 49: IF the invocation refusal answers THEN [Disclose Subset] MUST answer the disclosure refusal.
 Action wiring 50: IF the invocation refusal refuses THEN [Disclose Subset] MUST answer the invocation refusal's own refusal.
-Action wiring 51: IF the disclosure write's answer falls in the unknown partition THEN [Disclose Subset] MUST call the invocation yield with the act kind, the act key AND the invocation id, carrying answered for an undeclared code.
+Action wiring 51: IF the disclosure write's answer falls in the unknown partition THEN [Disclose Subset] MUST call the invocation yield with the act kind, the act key AND the invocation id, carrying answered for an undeclared code AND lost for a lost reply.
 Action wiring 52: A yielded disclosure MUST answer recording-failure carrying outcome.
 Action wiring 53: An accounted disclosure MUST call the invocation close with the act kind, the act key, the invocation pair, the caller's actor reference AND credential, ledger.disclosure.disclosed as the outcome action reference AND the outcome data.
 Action wiring 54: IF the invocation close refuses THEN [Disclose Subset] MUST answer recording-failure carrying outcome.
@@ -449,6 +450,7 @@ Action wiring 67: IF the record read names no covering range AND the outcome eve
 Action wiring 68: EVERY recording-failure [Disclose Subset] answers carrying outcome MUST carry the invocation id.
 Action wiring 69: [Verify Ledger] MUST answer the first refusal in the order Primitive policy 21, Action wiring 58, 28, 56, 57, 64.
 Action wiring 70: [Reissue Bundle] MUST answer the first refusal in the order Primitive policy 21, Action wiring 59, 65, 22.
+Action wiring 71: IF the record read answers partially-purged coverage AND no member of the covering range IS IN the original event payloads THEN the attestation verification MUST carry payload-not-supplied AND the missing sequence numbers.
 ```
 
 Term validated entry: a [Record Entry] call whose inputs cleared Primitive policy.
@@ -475,7 +477,7 @@ Term intent data: what a validated disclosure passes the invocation open — the
 
 Term outcome data: what an accounted disclosure passes the invocation close — the disclosure id, the subject reference, the recipient, the scope, the authority and the disclosure instant: the accounting record's own fields, so an invocation's outcome and a recovered one carry the same.
 
-Term disclosure refusal: invalid-request | unknown-authority-type — Selective Disclosure's refusals of the disclosure write on the commit partition's pre-commit arms, storage-failure excepted, which Execution Contract Constituent failure 1 answers; each relayed by name once its refusal is recorded.
+Term disclosure refusal: invalid-request | unknown-authority-type | storage-failure — Selective Disclosure's refusals of the disclosure write on the commit partition's pre-commit arms; each relayed by name once its refusal is recorded (Recoverable Invocation commit 2, commit 3).
 
 Term accounted disclosure: an admitted disclosure whose disclosure write answered the disclosure id.
 
@@ -572,9 +574,9 @@ Every input an action takes, and every answer a call of the five actions, the re
 |---|---|---|
 | a disclosure id | the invocation close | Action wiring 53 |
 | invalid-request or unknown-authority-type | the invocation refusal, then the code | Action wiring 48, 49 |
-| storage-failure | storage-failure, nothing committed, the intent included | Execution Contract Constituent failure 1 |
+| storage-failure | the invocation refusal, then storage-failure; the refusal record lands and the intent closes | Action wiring 48, 49 |
 | a code Selective Disclosure does not declare | the invocation yield, then recording-failure(outcome) carrying the invocation id | Action wiring 51, 52, 68 |
-| a lost answer | no answer to give: the intent and the accounting record commit together or not at all, and the sweep finds an intent that committed | Execution Contract Error model 1, Database 1 |
+| a lost answer | the invocation yield carrying lost, then recording-failure(outcome) carrying the invocation id; the intent stands and the accounting record may exist, its outcome is the sweep's | Action wiring 51, 52, 68; Recoverable Invocation commit 6 |
 
 **The invocation refusal**, Recoverable Invocation's refuse, at a disclosure refusal (Action wiring 48).
 
@@ -601,7 +603,8 @@ Every input an action takes, and every answer a call of the five actions, the re
 |---|---|---|---|
 | the binding's write | written | the binding index carries the binding | Action wiring 16 |
 | the binding's write | no answer, a refusal included | the disclosure result all the same; the next rebuild writes the binding | Action wiring 66, Reconciliation 3 |
-| the disclosed set's read | — | whether the set is re-read from the intent or taken from the call, and what a failed read answers | open 2026-10-09-d |
+| the disclosed set's read, the record read of the intent the outcome event names | the intent | the bundle construction over the disclosed set | Composition state 16, Action wiring 17 |
+| the disclosed set's read | no answer | the disclosure result carrying unavailable carrying the reason as the bundle; the disclosure has landed and is never refused | Action wiring 18, 20 |
 | the bundle construction | a bundle | the disclosure result carrying it | Action wiring 17, 20 |
 | the bundle construction | a failure | the disclosure result carrying unavailable carrying the reason as the bundle | Action wiring 18, 20 |
 | the bundle construction, per disclosed entry | in the unsealed tail | the entry marked unverifiable carrying unsealed | Verdict 9 |
@@ -628,7 +631,7 @@ Every input an action takes, and every answer a call of the five actions, the re
 | the invocation read | journal-unavailable, or no answer | journal-unavailable | Action wiring 56 |
 | the record read, of a bound outcome event's covering range | a whole covering range, every member in the original event payloads | the verification over the range's payloads in ascending sequence order | Action wiring 33, 36 |
 | the record read | a whole covering range, a member not in the original event payloads | payload-not-supplied and the missing sequence numbers | Action wiring 35 |
-| the record read | partially-purged coverage | the verification over the members the original event payloads carry | Action wiring 34 |
+| the record read | partially-purged coverage | the verification over the members the original event payloads carry; payload-not-supplied and the missing sequence numbers where it carries none | Action wiring 34, 71 |
 | the record read | no covering range | the verification over the outcome event's own payload, or payload-not-supplied where the original event payloads lack it | Action wiring 37, 67 |
 | the record read | a range the horizon purged after the enumeration | payload-not-supplied, absence for a lawful destruction | open 2026-10-09-l |
 | the record read | no answer | journal-unavailable | Action wiring 57 |
@@ -675,7 +678,7 @@ Every input an action takes, and every answer a call of the five actions, the re
 | the ledger enumeration, kept to the intents | an orphan record's invocation closed by an abandonment or a refusal | an alert carrying the disclosure id | Reconciliation 33 |
 | the finding surface's write | no answer | no rule | open 2026-10-09-j |
 
-An aged record is no orphan record and no reconciliation rule reads it for a finding (Term orphan record); where its invocation's intent purged with no closing, no class of Check 1.2 takes it (open 2026-11-01-a).
+An aged record is no orphan record and no reconciliation rule reads it for a finding (Term orphan record); where its invocation's intent purged with no closing, Check 1.2 takes it (Verdict 5, Recoverable Invocation Invariant 7.3).
 
 ### Wiring decision
 
@@ -792,8 +795,9 @@ Verdict 10: IF a disclosed entry's event carries Purged at the bundle's construc
 Verdict 11: IF the verification bundle OR the ledger seal reference is malformed THEN EVERY presented entry MUST carry unverifiable carrying bundle-malformed.
 Verdict 12: IF no entry is presented THEN the overall verdict MUST carry disclosure-unverified carrying no-entries-presented.
 Verdict 13: The overall verdict MUST carry disclosure-verified ONLY IF EVERY presented entry carries authentic AND confidentiality preserved EQUALS true.
-Verdict 14: [Verify Disclosure] MUST carry the verification routine's own report as confidentiality preserved.
+Verdict 14: IF [Verify Disclosure] receives no degraded bundle THEN [Verify Disclosure] MUST carry the verification routine's own report as confidentiality preserved.
 Verdict 15: IF no live outcome event carries the disclosure id AND no purged binding names the disclosure id AND the record's invocation EXISTS THEN a found ledger verification MUST read the state of the record's invocation through the invocation read carrying the invocation id.
+Verdict 16: IF confidentiality preserved EQUALS false AND [Verify Disclosure] receives no degraded bundle THEN the overall verdict MUST carry disclosure-unverified carrying confidentiality-not-preserved.
 ```
 
 Term binding verdict: [Bound] | [Binding Duplicate] | [Binding Purged] | [Binding Escalated] | [Binding Gap].
@@ -812,10 +816,11 @@ These emerge from the composition; none belongs to one constituent, and each nee
   Invariant 1.4: EVERY outcome event MUST carry a disclosure id the accounting records carry.
   Deleted: Invariant 1.5. Recoverable Invocation Invariant 5.2 owns it.
   Invariant 1.6: IF an accounting record's outcome event carries Purged THEN the binding index MUST keep the record's binding.
+  Invariant 1.7: EVERY outcome event's subject reference, recipient, scope, authority AND disclosure instant MUST EQUAL the fields of the accounting record the outcome event's disclosure id names.
   ```
 - **Invariant 2 — Verifiable partial disclosure.**
   ```
-  Invariant 2.1: IF the partial disclosure capability EQUALS true THEN a party holding the disclosed entries, the verification bundle AND the ledger seal reference MUST verify EVERY sealed disclosed entry's authenticity, an entry the bundle marks entry-purged excepted.
+  Invariant 2.1: IF the partial disclosure capability EQUALS true THEN a party holding the disclosed entries, the verification bundle AND the ledger seal reference MUST verify EVERY sealed disclosed entry's authenticity, an entry the bundle marks entry-purged excepted, an entry the bundle marks unsealed excepted.
   Invariant 2.2: IF the partial disclosure capability EQUALS true THEN the verification bundle MUST NOT reveal an undisclosed entry.
   Invariant 2.3: IF the partial disclosure capability EQUALS false THEN the verification bundle MUST declare the degradation.
   ```
@@ -829,11 +834,11 @@ These emerge from the composition; none belongs to one constituent, and each nee
 - **Invariant 4 — No disclosure unrecorded, structurally closed.**
   ```
   Invariant 4.1: A disclosure through the composition MUST NOT answer success BEFORE the accounting record AND the outcome event land.
+  Deleted: Invariant 5. Composes 5 owns it.
   ```
 - **Invariant 6 — Authentication precedes commitment.**
   ```
   Deleted: Invariant 6.1. Recoverable Invocation Invariant 1.1 owns it.
-  Deleted: Invariant 5. Composes 5 owns it.
   ```
 
 The binding and no-disclosure-unrecorded give *accountable disclosure*; verifiable partial disclosure gives *the slice is provably genuine and the rest stays hidden*; the immutable ledger underlies both; authentication before commitment makes the accounting exact.
@@ -883,7 +888,7 @@ A registered broker-dealer deploys this composition as the trade-confirmation le
 
 ### Healthcare — accounting of disclosures under HIPAA section 164.528
 
-A covered entity keeps each patient's billing-disclosure ledger in this composition. Every time PHI (Protected Health Information) is disclosed to a payer, a public-health authority, or a business associate, the entity calls [Disclose Subset] naming the disclosed billing entries, the recipient, and the authority (`{ type: regulatory, reference: "HIPAA §164.512(b)" }` for public-health reporting; `{ type: consent, reference: "<consent-id>" }` for patient-authorized sharing). When the patient exercises their section 164.528 right to an accounting of disclosures, the entity calls read against the Selective Disclosure records filtered by `subject_ref = <patient>`: the result is every disclosure — date, recipient, scope, authority — each provable, the date being the admission's (Term disclosure instant). Because each disclosure is also a `ledger.disclosure.disclosed` event (Invariant 1), the accounting is itself immutable, attributed, and tamper-evident — a property section 164.528's accounting obligation needs but the plain Selective Disclosure atom cannot supply alone.
+A covered entity keeps each patient's billing-disclosure ledger in this composition. Every time PHI (Protected Health Information) is disclosed to a payer, a public-health authority, or a business associate, the entity calls [Disclose Subset] naming the disclosed billing entries, the recipient, and the authority (`{ type: regulatory, reference: "HIPAA §164.512(b)" }` for public-health reporting; `{ type: consent, reference: "<consent-id>" }` for patient-authorized sharing). When the patient exercises their section 164.528 right to an accounting of disclosures, the entity calls read against the Selective Disclosure records filtered by `subject_ref = <patient>`: the result is every disclosure — date, recipient, scope, authority — each provable, the date being the admission's (Term disclosure instant). NOTE: open 2026-11-04-b — the recipient's address and a statement of purpose, which section 164.528 also asks of an accounting, are not carried. Because each disclosure is also a `ledger.disclosure.disclosed` event (Invariant 1), the accounting is itself immutable, attributed, and tamper-evident — a property section 164.528's accounting obligation needs but the plain Selective Disclosure atom cannot supply alone.
 
 ### Clinical-trial submission ledger under 21 CFR Part 11
 
@@ -895,7 +900,7 @@ A caller attempts to disclose with no entries: `disclose_subset(disclosed_entry_
 
 ### Rejection path — the audit trail refuses the outcome (the orphan)
 
-The compliance officer calls [Disclose Subset] with a valid subset. The open lands the intent and the commit succeeds: `SelectiveDisclosure.record(...)` → `disc-2211` (Selective Disclosure records are immutable once committed). The close fails: the append of the outcome gives no answer, `AuditTrail.record_action(ledger.disclosure.disclosed, …)` answers recording-failure carrying step-3, which the protocol reads as a lost reply (Recoverable Invocation Primitive policy 32a), the close reads it back by the invocation id and finds nothing, and the close returns `recording-failure(outcome)`. The intent and the accounting record commit with the invocation; the outcome does not. The composition returns `rejected(recording-failure(outcome, inv-9c4))` — the position telling the officer the accounting record exists and the action must not be re-run, and the invocation by which the officer finds its outcome once the sweep lands it. The result, once the record is no longer young, is an **orphan**: a Selective Disclosure record (`disc-2211`) with no `ledger.disclosure.disclosed` record (and consequently no `disclosure_to_event` entry — the missing record is the orphan's defining lack; the index merely reflects it). Its intent stands open, and Recoverable Invocation's sweep closes it: once the intent is past its examine edge, a run takes the same critical section, probes the accounting records for the act key at the intent's instant, finds `disc-2211`, and writes `ledger.disclosure.recovery_intended` and then the outcome under the recovery identity, `recovery = true`, the officer carried as the acting actor reference. The next reconciliation run writes the binding. Had the database answered two records for that key and instant, the sweep would have chosen neither and written `ledger.disclosure.escalated` naming both, and [Verify Ledger] would answer `binding-escalated` until an operator resolved it.
+The compliance officer calls [Disclose Subset] with a valid subset. The open lands the intent and the commit succeeds: `SelectiveDisclosure.record(...)` → `disc-2211` (Selective Disclosure records are immutable once committed). The close fails: the append of the outcome gives no answer, `AuditTrail.record_action(ledger.disclosure.disclosed, …)` answers recording-failure carrying step-3, which the protocol reads as a lost reply (Recoverable Invocation Primitive policy 32a), the close reads it back by the invocation id and finds nothing, and the close returns `recording-failure(outcome)`. The intent committed at the open and the accounting record at the disclosure write; the outcome does not. The composition returns `rejected(recording-failure(outcome, inv-9c4))` — the position telling the officer the accounting record exists and the action must not be re-run, and the invocation by which the officer finds its outcome once the sweep lands it. The result, once the record is no longer young, is an **orphan**: a Selective Disclosure record (`disc-2211`) with no `ledger.disclosure.disclosed` record (and consequently no `disclosure_to_event` entry — the missing record is the orphan's defining lack; the index merely reflects it). Its intent stands open, and Recoverable Invocation's sweep closes it: once the intent is past its examine edge, a run takes the same critical section, probes the accounting records for the act key at the intent's instant, finds `disc-2211`, and writes `ledger.disclosure.recovery_intended` and then the outcome under the recovery identity, `recovery = true`, the officer carried as the acting actor reference. The next reconciliation run writes the binding. Had the database answered two records for that key and instant, the sweep would have chosen neither and written `ledger.disclosure.escalated` naming both, and [Verify Ledger] would answer `binding-escalated` until an operator resolved it.
 
 ### Retention horizon — a disclosure event reaches its lawful end
 
@@ -944,16 +949,16 @@ An implementation is acceptable — in the regulator-acceptance sense — when t
 
 ```
 Check 1.1: An auditor MUST read EVERY accounting record against the outcome events (Reconciliation 6).
-Check 1.2: An auditor MUST resolve EVERY accounting record carrying no live outcome event, a young record excepted, to EXACTLY ONE OF binding-purged, binding-escalated, an open invocation inside the instance's closure window, an open invocation outside that window Recoverable Invocation Check 3.3 exempts, an open invocation outside that window no check exempts, a false closing, a write-ownership finding (Verdict 3 through 5, Reconciliation 14, Reconciliation 33).
-NOTE: open 2026-11-01-a — an accounting record whose invocation's intent the horizon purged with no closing, after an outage Recoverable Invocation Check 3.3 exempts, is none of these.
+Check 1.2: An auditor MUST resolve EVERY accounting record carrying no live outcome event, a young record excepted, to EXACTLY ONE OF binding-purged, binding-escalated, an open invocation inside the instance's closure window, an open invocation outside that window Recoverable Invocation Check 3.3 exempts, an open invocation outside that window no check exempts, an aged record whose invocation's intent the horizon destroyed with no closing, which Recoverable Invocation Invariant 7.3 excludes and Verdict 5 reads as binding-gap, a false closing, a write-ownership finding (Verdict 3 through 5, Reconciliation 14, Reconciliation 33).
 Check 1.3: An auditor MUST read a young record as inconclusive (Reconciliation 4).
 Deleted: Check 1.9. Check 1.2 owns it: an escalation left past its intent's horizon reads as the gap, and a second check of the same records overlapped the first.
 Check 1.4: An auditor MUST find EVERY outcome event's disclosure id carried by the accounting records (Invariant 1.4).
 Check 1.5: An auditor MUST find no disclosure id two live outcome events carry at act quiescence (Invariant 1.3).
+Check 1.10: An auditor MUST find EVERY outcome event's subject reference, recipient, scope, authority AND disclosure instant EQUALing the fields of the accounting record the outcome event's disclosure id names (Invariant 1.7).
 Deleted: Check 1.6. Recoverable Invocation Check 2.5 owns it.
 Deleted: Check 1.7. Recoverable Invocation Check 2.5 owns it.
 Deleted: Check 1.8. Recoverable Invocation Check 4.1 owns it.
-Check 2.1: IF the partial disclosure capability EQUALS true THEN an auditor MUST find [Verify Disclosure] answering authentic for EVERY sealed disclosed entry a presented bundle covers, an entry the bundle marks entry-purged excepted (Invariant 2.1).
+Check 2.1: IF the partial disclosure capability EQUALS true THEN an auditor MUST find [Verify Disclosure] answering authentic for EVERY sealed disclosed entry a presented bundle covers, an entry the bundle marks entry-purged excepted, an entry the bundle marks unsealed excepted (Invariant 2.1).
 Check 2.2: IF the partial disclosure capability EQUALS false THEN an auditor MUST find the bundle declaring the degradation (Invariant 2.3).
 Check 3.1: An auditor MUST find EVERY ledger event attested AND placed in the Event Log sequence (Invariant 3.1).
 Check 3.2: An auditor MUST find a passing verification for EVERY ledger event whose covering range the auditor presents (Invariant 3.1).
@@ -965,7 +970,7 @@ Deleted: Check 5.3. Recoverable Invocation Check 1.1 owns it.
 Deleted: Check 5.4. Recoverable Invocation Check 3.1 owns it: an aged intent carries a closing inside the window.
 Deleted: Check 5.5. Recoverable Invocation Check 1.4 owns it.
 Check 5.6: An auditor MUST read a disclosure's disclosed set from the intent the outcome event names (Composition state 16).
-Check 5.7: IF the record read answers Purged for an outcome event's intent THEN an auditor MUST read the disclosed set as unverifiable carrying purged-horizon (Composition state 16).
+Check 5.7: IF the record read answers Purged for an outcome event's intent THEN an auditor MUST read the disclosed set as unavailable carrying entry-set-purged (Composition state 16, Action wiring 55).
 Check 6.1: An auditor MUST clear Audit Trail's Generation acceptance over the Audit Trail instance (Composes 5).
 Check 6.2: An auditor MUST clear Selective Disclosure's Generation acceptance over the Selective Disclosure instance (Composes 5).
 Check 6.3: An auditor MUST clear Recoverable Invocation's Generation acceptance over the act kind (Composes 5).
@@ -984,7 +989,7 @@ External check 3: An auditor needing a disclosure's permission confirmed MUST re
 External check 4: An auditor needing the entry data's accuracy confirmed MUST read the host's source of the entry data (Primitive policy 13).
 External check 5: An auditor needing the disclosed entries' correspondence to the subject confirmed MUST read the host's subject tagging (Non-goal 6).
 External check 6: An auditor needing the partial disclosure capability AND complement confidentiality confirmed MUST read the deployment's security review of the mechanism (Invariant 2.2).
-External check 7: An auditor needing the ledger seal reference's singularity AND the verifier's independence confirmed MUST read the deployment's seal publication (Invariant 2.1).
+External check 7: An auditor needing the ledger seal reference's singularity AND the verifier's independence confirmed MUST read the deployment's seal publication (Capability requirement 37, Invariant 2.1).
 ```
 
 ---
@@ -1037,6 +1042,15 @@ Retention asymmetry 1: The composition MUST NOT bound the accounting records' re
 Retention asymmetry 2: A deployment whose accounting horizon is regulated MUST declare an accounting-horizon cover.
 ```
 
+### Cross-record consistency under partial failure
+
+The intent commits at the open, ahead of the disclosure write, and cannot be rolled back (Execution Contract Database 3; Recoverable Invocation Non-goal 1), so a disclosure whose later write fails leaves a state this section names and the protocol compensates.
+
+```
+Partial failure 1: A disclosure whose intent committed AND whose outcome event did not land MUST leave the invocation open for the sweep to resolve (Action wiring 52, Action wiring 54, Action wiring 68).
+Partial failure 2: The reconciliation MUST read an accounting record no outcome event names as an orphan record (Reconciliation 14, Reconciliation 33).
+```
+
 ### Degraded bundle
 
 ```
@@ -1060,7 +1074,7 @@ Term records: the ledger entries the composition records through the audit write
 
 Term record verbs: EQUAL, adjudicate, adopt, alert, answer, append, attest, bind, bound, call, carry, change, check, classify, clear, compare, compensate, compose, construct, decide, declare, disclose, duplicate, examine, expose, fall, find, guarantee, inherit, inject, inspect, interpret, join, keep, key, leave, mark, match, name, normalize, open, override, pair, pass, perform, persist, pre-check, proceed, provision, re-derive, re-read, reach, read, rebuild, record, refuse, release, remove, reorder, require, resolve, rest, retry, reveal, route, run, select, serialize, serve, set, stamp, start, store, supersede, supply, suspend, take, track, validate, verify, write.
 
-Term value sets: action reference = ledger.entry | ledger.disclosure.intended | ledger.disclosure.disclosed | ledger.disclosure.refused | ledger.disclosure.recovery_intended | ledger.disclosure.abandoned | ledger.disclosure.escalated. authenticity = authentic | altered | not-in-ledger | unverifiable. unverifiable reason = unsealed | entry-purged | bundle-malformed | whole-ledger-required. attestation verification reason = purged | payload-not-supplied | partially-purged-coverage | the substrate's own. bundle unavailable reason = entry-set-purged | the construction's own. disclosed set unverifiable reason = purged-horizon. overall verdict reason = no-entries-presented | degraded-bundle | an entry's own. The rest are declared where the section that owns each declares it: position, binding verdict, disclosure refusal.
+Term value sets: action reference = ledger.entry | ledger.disclosure.intended | ledger.disclosure.disclosed | ledger.disclosure.refused | ledger.disclosure.recovery_intended | ledger.disclosure.abandoned | ledger.disclosure.escalated. authenticity = authentic | altered | not-in-ledger | unverifiable. unverifiable reason = unsealed | entry-purged | bundle-malformed | whole-ledger-required. attestation verification reason = purged | payload-not-supplied | partially-purged-coverage | the substrate's own. bundle unavailable reason = entry-set-purged | the construction's own. overall verdict reason = no-entries-presented | degraded-bundle | confidentiality-not-preserved | an entry's own. The rest are declared where the section that owns each declares it: position, binding verdict, disclosure refusal.
 
 Term bounds: disclosure completion bound (disclosure_completion_bound), commit round trip (commit_round_trip), probe round trip (probe_round_trip), disclosed entries cap (disclosed_entry_ids_cap), audit horizon (ledger_retention_policy), reconciliation run bound (reconciliation_run_bound), settling period (settling_period).
 
@@ -1256,13 +1270,12 @@ This composition inherits the broader standards compliance of its constituents:
 ```
 status: partially resolved
 formal: verified — vote yes: the binding bijection, the order of the two writes and the horizon arithmetic; re-derived 2026-10-19 over what is this page's own, against Recoverable Invocation's contracts, which that page's model proves, in place of immutable-ledger.tla + 1 twin of 2026-06-10, and again 2026-10-21 under Execution Contract Store 1, each [Disclose Subset] one transaction: immutable-ledger.tla + 7 twins + 4 probes (the binding, Invariant 1.3, 1.4 and 4.1, its one-to-one binding, Capability requirement 28 and 34, the disclosure probe's four answers, and no abandonment standing over a record the store carries, which -buggy-split breaks once an accounting write may apply after its invocation's step: two invocations over two act keys sharing a subject and a recipient; 1,475 states), immutable-ledger-rebuild.tla + 6 twins + 5 probes (the binding index written every run and the horizon, Invariant 1.6, Reconciliation 1 through 3 and 28 through 31, Composition state 9, Capability requirement 33, a run that may die; 12,100 states, and 578,490 with two outcome events, no time horizon), immutable-ledger-reconcile.tla + 4 twins + 4 probes (the reading of two stores, Reconciliation 4, 6, 7, 14, 29, 32 and 34, Capability requirement 29 and 31, the young and the aged edge deciding no finding once no write applies after its intent's transaction; 97,512 states, and 123,036 at a horizon a tick longer, no time horizon); the rebuild model found Capability requirement 33 budgeting no dead run, the reconcile model the aged edge an allowance and a run bound short (2026-10-09-m), both cured on the page the day they were found; 2026-10-21
-last gate: 2026-11-01 — Final Critique 17 — foundational count 1, not clean, no sample
+last gate: 2026-11-04 — Final Critique 18 — foundational count 9, not clean, no sample
 
 open:
 - 2026-10-09-a · refining · Verdict 3 · the indexed purged event's surviving attestation is not required to name ledger.disclosure.disclosed, so an index entry pointing at any purged event answers binding-purged → require the action reference
 - 2026-10-09-b · refining · Composition state 17; Capability requirement 30 · write-ownership findings and alerts keep a register of their own beside the protocol's, with other dedupe and persistence rules → one register, once the Condition Register lands
 - 2026-10-09-c · refining · Term position; Term act key · a caller re-enters through raw journal records and works out which closing stands itself, the protocol's read_invocation not being exposed to a caller → expose the read, or state what the caller reads
-- 2026-10-09-d · refining · Composition state 16; Action wiring 17 · whether a landed disclosure re-reads the set from its intent or uses the set in hand, and what a failed read then answers, is unstated → say which
 - 2026-10-09-e · refining · Reconciliation 33 · an abandonment for this fenceless kind is always an operator's, which the protocol projects as resolved, and the two words are not mapped → map them
 - 2026-10-09-f · refining · Primitive policy 3, 4; Term intent data · a repeated disclosed entry id is neither refused nor collapsed, which changes the cap's count and the intent's set → say which
 - 2026-10-09-g · refining · the Standards section; Composes 11 · Selective Disclosure's External check 3 reads backdating against a composing receipt instant, and no record here is named as that instant → name it
@@ -1282,8 +1295,11 @@ open:
 - 2026-10-19-f · refining · Term binding index; Term no answer; Action wiring 64, 65 · no Term declares what a read of the binding index answers, and Term no answer reads a refusal of the index read as no answer, so a database that reports a missing key as a refusal reads every disclosure no binding names as index-unavailable, where Verdict 3 through 5, Term index-unavailable and Term accountability proof read the absence as an answer → declare the index read's answers — names an event, names none, no answer — in a rule
 - 2026-10-19-g · refining · Check 1.2 · Check 1.2's list names no outcome for a record no class takes, where Term aged record and the Check 1.9 tombstone say Check 1.2 is where such a record shows, as a conformance failure → name that outcome in the rule
 - 2026-10-19-i · refining · Reconciliation 4, 6; Term aged record · Reconciliation 4 bars only a young record and Reconciliation 6 reads every record Reconciliation 4 admits, aged ones included, where Term aged record says an aged record is never examined; Term orphan record keeps Reconciliation 14 and 33 off aged records, so nothing diverges → say in one place whether an aged record is read
-- 2026-11-01-a · foundational · Check 1.2; Term aged record; Reconciliation 4, 6, 14 · an outage of the journal or the accounting records, which Recoverable Invocation Check 3.3 exempts and no rule bounds, outlasts an open invocation's horizon edge with its accounting record committed and its outcome unlanded; its intent purges, the record is aged, carries no binding and no escalation, and its invocation can no longer be found, so it is none of Check 1.2's classes and the check fails a deployment that kept every rule → the maintainer's choice: (a) a Capability requirement holding every such outage inside the settling period, (b) the reconciliation alerting an aged record no live outcome and no binding names, Check 1.2 taking it so alerted, or (c) Check 1.2 excluding it as Recoverable Invocation Invariant 7.3 excludes a destroyed intent; its cure owes 2026-10-19-g's and 2026-10-19-i's wording
 - 2026-11-01-b · refining · Term no answer · the page declares Audit Trail's no answer again under the same name, read wider — a failed or unavailable read, not-known for a substrate's id, invalid-query for the composition's own query, the binding index's refusal — which GRACE-lang Closed vocabulary 17 forbids; the term now says it reads wider → name the wider reading apart and cite Audit Trail's term (Closed vocabulary 15), as 2026-10-19-c owes for Term disclosure instant
+- 2026-11-04-a · refining · the formal line · the formal vote of 2026-10-21 rests on each [Disclose Subset] being one transaction and on no accounting write applying after its invocation's step; the intent commits at the open, ahead of the accounting write (Execution Contract Database 3), so the model's premise and its -buggy-split probe are stale → re-run the model with the intent committed ahead of the accounting write
+- 2026-11-04-b · refining · the Healthcare example; Selective Disclosure's section 164.528 reference · the recipient's address and a statement of the disclosure's purpose, which section 164.528 asks of an accounting, are left to the calling system or a composing pattern, and this page adds no field or rule for either → say whether the composition carries them
+- 2026-11-04-c · refining · Audit Trail's Record Action closure table, its lost-answer cell · the cell reads nothing committed where Execution Contract Error model 1 and both adopters' read-backs (Recoverable Invocation Primitive policy 32a, Audit arm 30) leave the append possibly committed → cure on audit-trail.md in its own round
+- 2026-10-19-e · refining · Reconciliation 33; Term false closing · reopened 2026-11-04: an abandonment beside a disclosure write still in flight is reachable again now the intent commits ahead of the write, and Reconciliation 33's alert is what reads it → say whether the alert suffices
 ```
 
 <details markdown="block">
@@ -1293,6 +1309,7 @@ open:
 
 Directional changes only — the turns a future reader must know the pattern took, and why. Everything smaller lives in the commit that made it: `git log --follow -- compositions/immutable-ledger.md`; the rounds, the treatment ahead of one, the model run and the migration that got it here are in [its history](./immutable-ledger.hist.md).
 
+- **2026-11-04 — The disclosure write's two arms follow the protocol, not one transaction.** *Chose:* the intent committed at the open, ahead of the disclosure write, so a storage-failure of the write is a refusal the protocol records and closes (Term disclosure refusal, Recoverable Invocation commit 2, commit 3), and a lost reply is unknown, yielded, and answered recording-failure(outcome) carrying the invocation id (Term commit partition, Action wiring 51, Recoverable Invocation commit 6, yield 7); the closure table says so in both cells. *Over:* the 2026-10-21 reading that Execution Contract Database 1 puts the intent, the accounting record and the outcome in one transaction. *Because:* Database 3 keeps what the invocation open acknowledged, Recoverable Invocation Non-goal 1 forbids describing open, commit and close as atomic, and Execution Contract's atomicity layers name this action the sequential-with-compensation worked form; three readers of Final Critique 18, on two models, each found the one-transaction cells against those rules, and the orphan example, the sweep and Reconciliation 14 and 33 are reachable only if the intent commits first. Open line 2026-10-19-e, closed as dissolved on 2026-10-21, is reopened, and the formal line owes a re-run (open 2026-11-04-a). Execution Contract Constituent failure 1 still reads as failing the whole composing action; the cure to it is a held method-page change.
 - **2026-10-28 — Renamed Immutable Ledger with Selective Disclosure, from Immutable Transaction Ledger with Selective Disclosure.** *Chose:* the name without "Transaction", in the title and in every file the page owns: the spec at `compositions/immutable-ledger.md`, its history file, its three formal models with their 17 twins, 13 probes and configurations (each MODULE line renamed with its file) and its coverage file, each moved with `git mv` so `git log --follow` carries its history; every reference in the repository moved to the new path and name, so another page cites this one as Immutable Ledger before the label (GRACE-lang Hard invariant 28), and a dated record keeps the old name with the new one beside it. *Over:* keeping the old name, and a redirect from the old path. *Because:* the maintainer's ruling of 2026-10-28: "Transaction" is wrong as well as redundant, since the page's uses include HIPAA disclosure accounting and 21 CFR Part 11 submissions, which are no transactions, and a name should mean one thing everywhere, its file included; the repository has few outside links to keep. No obligation changed, so no round is owed.
 - **2026-10-21 — The store's guarantees cited, not restated, and a disclosure's intent, accounting record and outcome one transaction.** *Chose:* Capability requirement 36 citing Execution Contract Store 1 through 4 for the store the three constituents' records and the binding index live in; the index durability tombstoned to Store 3 (Composition state 10, Capability requirement 19, 20) and the accounting store's read visibility to Store 2 and Store 3 (Capability requirement 35), as Recoverable Invocation's journal visibility went; Wiring decision 2, which denied an atomic set over the accounting record and the outcome event, to Store 1; Primitive policy 19 and Audit arm 14, which answered substrate codes Audit Trail's own rewrite removed (attribution not-recoverable at the record read, recording-failure at the retention step), to Store 1; and, by clause, the accounting write's lost reply out of the yield and its storage failure out of the refusals the protocol records (Action wiring 51, Term commit partition, Term disclosure refusal). Rules 228 to 222. *Over:* the turn of 2026-06-10, which re-derived the model over the two truth-bearing writes because the accounting record was written first with no synchronous rollback, and the ordered three-write sequence the 2026-08-30 turn put in place of every remaining *atomically*. *Because:* the maintainer ruled 2026-10-12 that the corpus takes a store's specification, never the store, and 2026-10-20 that Store 1 binds every store write of one composition action, its constituents' included. The accounting record is Selective Disclosure's record, a store write, so the census's question for this page, whether binding the record as Recoverable Invocation's act keeps it outside the transaction, is decided by that ruling: the intent, the record and the outcome commit in one transaction, and no disclosure write lands after its invocation's closing. The false closing of open line 2026-10-19-e, an operator's abandonment beside a disclosure write still in flight, therefore cannot happen on a deployment that keeps every rule, and the line closes as dissolved. A refused attempt the page keeps as evidence stays, as the same ruling has it: the refusal record is written with its intent. What the protocol still closes is what the audit trail's refusals leave (an outcome or a refusal record the substrate refuses), so the binding, the sweep, the settling of an escalation, the reconciliation's reading of two stores for a record no intent carries, and Reconciliation 33's alert for a record beside a refused or abandoned intent all stay. The ledger's order is Event Log's sequence and the checks compare an auditor's own reads, so the page cites neither Store 5 nor Order 1; what it does for its domain is unchanged.
 - **2026-10-07 — Bound to Recoverable Invocation as its pilot adopter: validate, open, commit, close; seventy-five rules deleted to tombstones that name their new owner.** *Chose:* the act kind ledger.disclosure on one Recoverable Invocation instance writing to this composition's Audit Trail instance (Composes 12 through 15); the act keyed by subject reference, recipient, scope and authority under the minted key deviation, the accounting write partitioned as Selective Disclosure states its arms, no commit fence, the disclosure instant as the pairing datum, the accounting store's read as the probe, the recovery identity as the service identity (Term disclosure binding); [Disclose Subset] as four calls with one route for each answer of the accounting write (Action wiring 3, 6, 47 through 54); the disclosed set recorded in the intent alone, since a recovered outcome carries only what the store re-derives (Composition state 16); the unbindable marker replaced by the protocol's escalation, read as binding-escalated through the protocol's own read (Verdict 4, 15); a reconciliation reduced to the binding rebuild and the reading of the accounting store for a record no intent carries (Reconciliation 1 through 4, 6, 7, 14, 27). *Over:* this page's own intent, outcome, per-disclosure exclusion, counted retry, rejection arms and compensating scan — the protocol other compositions also carry in their own words. *Because:* the roadmap names this page the pilot, with the deletion measured here before any other page is swept. Measured: 241 live rules to 190 — 75 deleted, 24 added — and the rules' own text 22% smaller; the page 3.8% larger, since every deleted rule leaves a tombstone and the binding is new prose; which is the roadmap's own reading, that owners fall where bytes may not. Four deleted rules said other than their new owner does, and the owner stands: a host freed the exclusion on a holder's death, where the protocol's model rejects that host (Recoverable Invocation act section 2); an invocation whose lease expired took the exclusion again, where it now never does (Recoverable Invocation act section 10); a refused accounting write left its intent standing with nothing after it, where a refusal record now closes it (Recoverable Invocation commit 2); and an intent appended behind a step-4 refusal was left standing, where it is now read back and the disclosure proceeds (Recoverable Invocation Primitive policy 20). One claim narrowed: no disclosure id under two live outcomes holds at quiescence, as far as the protocol's one-writer invariant reaches without a journal fence (Invariant 1.3). No pass has read the bound text; the page stays `partially resolved`.
