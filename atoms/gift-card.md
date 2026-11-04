@@ -63,19 +63,17 @@ State 1: EVERY gift card MUST carry card id, card code, currency, value and bala
 State 2: The atom MUST NOT remove a gift card.
 ```
 
-Term value: the amount a gift card was loaded with at [Issue] — a [Value]; a positive amount.
+Term value: the amount a gift card was loaded with at [Issue] — a [Value]; a positive amount in the currency the call names.
 
 Term balance: the amount left on a gift card — a [Balance]; a whole amount, the value less every spend.
 
 Term currency: the unit of account a gift card's value and balance are counted in, such as a code from ISO 4217 (the International Organization for Standardization's standard for currency codes) — a [Currency]; set when the gift card is issued.
 
-Term minor unit: the smallest unit of a currency — the cent of a dollar, or the yen itself.
+Term minor unit: the smallest unit of a currency — the cent of a dollar, or the yen itself; for a code from ISO 4217, the unit that standard's minor unit exponent gives.
 
 Term whole amount: a whole number of the gift card currency's minor unit, zero or more.
 
 Term positive amount: a whole amount of one or more.
-
-Term used up: a gift card carrying a balance of zero.
 
 ### Capability requirement
 
@@ -85,13 +83,21 @@ Capability requirement 2: The deployment MUST supply at the seam a card code no 
 Capability requirement 3: The deployment MUST draw a card code from a cryptographically secure random source.
 Capability requirement 4: The card code's random material MUST NOT fall below the code entropy.
 Capability requirement 5: The deployment MUST supply the accepted currencies.
-Capability requirement 6: The deployment MUST supply the card cap for EVERY accepted currency.
-Capability requirement 7: The deployment MUST supply the database PER Execution Contract Database 1 through 6, Execution Contract Read 1 through 4 and Execution Contract Refusal 1.
+Capability requirement 6: The deployment MAY supply the card cap for a currency PER Execution Contract Input 2.
+Capability requirement 7: The deployment MUST supply the database PER Execution Contract Database 1 through 7, Execution Contract Read 1 through 4 and Execution Contract Refusal 1.
+Capability requirement 8: The deployment MUST NOT normalize a card code at the seam.
+Capability requirement 9: The deployment MUST NOT normalize a currency at the seam.
 ```
 
-Term accepted currencies: the currencies the deployment sells gift cards in — the set [Issue] checks a currency against.
+NOTE: the atom declares no reference, so Execution Contract Logic confinement 13 reaches neither the card code nor the currency (Capability requirement 8, Capability requirement 9).
 
-Term card cap: the largest value the deployment issues a gift card for in one currency, such as 50000 in US dollars, which is $500 — a [Card Cap]; a positive amount.
+NOTE: open 2026-11-04-a — a deployment-supplied card code that collides with a stored one (Capability requirement 2) has no answer on [Issue]; the deployment owns the obligation and the refusal is a decision no rule makes.
+
+Term accepted currencies: the currencies the deployment sells gift cards in — the set [Issue] checks a currency against; where the deployment supplies none, the set is empty and Operation 1 refuses every currency.
+
+Term card cap: the largest value the deployment issues a gift card for in one currency — a [Card Cap]; a positive amount; 50000 of the currency's minor unit where a deployment declares none, which is $500 in US dollars.
+
+NOTE: watch the unset setting (Capability requirement 6).
 
 ### Operations
 
@@ -101,7 +107,7 @@ issue(currency, value)
   refuses invalid-currency | invalid-value | over-cap | storage-failure
 
 check_balance(card_code)
-  answers balance
+  answers balance(balance, currency)
   refuses not-known
 
 spend(card_code, amount)
@@ -109,7 +115,7 @@ spend(card_code, amount)
   refuses not-known | invalid-amount | insufficient-balance | storage-failure
 
 read(card_id)
-  answers gift card
+  answers gift card(card_id, currency, value, balance)
   refuses not-known
 ```
 
@@ -117,15 +123,15 @@ read(card_id)
 Operation 1: IF the currency IS NOT IN the accepted currencies THEN [Issue] MUST answer invalid-currency.
 Operation 2: IF the value IS NOT IN the positive amounts THEN [Issue] MUST answer invalid-value.
 Operation 3: IF the value EXCEEDS the card cap of the currency THEN [Issue] MUST answer over-cap.
-Operation 4: [Issue] MUST record EXACTLY ONE gift card carrying the currency and the value of the call.
+Operation 4: [Issue] MUST record EXACTLY ONE gift card carrying the card id AND the card code the seam supplied, the currency and the value of the call.
 Operation 5: [Issue] MUST set the gift card's balance to the value.
 Operation 6: [Issue] MUST answer the card id AND the card code.
-Operation 7: IF no gift card EXISTS for the card code THEN a code action MUST answer not-known.
+Operation 7: IF no gift card EXISTS for the card code, including a card code that is not a string, THEN a code action MUST answer not-known.
 Operation 8: [Check Balance] MUST answer the gift card's balance AND the gift card's currency.
 Operation 9: [Check Balance] MUST NOT write.
 Operation 10: IF the amount IS NOT IN the positive amounts THEN [Spend] MUST answer invalid-amount.
 Operation 11: IF the amount EXCEEDS the gift card's balance THEN [Spend] MUST answer insufficient-balance.
-Operation 12: [Spend] MUST set balance to (the gift card's balance - the amount).
+Operation 12: [Spend] MUST set balance to (the gift card's balance - the amount) PER Execution Contract Logic confinement 9.
 Operation 13: [Spend] MUST answer the gift card's new balance.
 Operation 14: IF no gift card EXISTS for the card id THEN [Read] MUST answer not-known.
 Operation 15: [Read] MUST answer the gift card's card id, currency, value AND balance.
@@ -188,7 +194,7 @@ A shop selling gift cards in US dollars, with a card cap of 50000 ($500), sells 
 
 ### Bookshop
 
-A bookshop in euros sells a €20 gift card: `issue("EUR", 2000)` answers `issued(b7, "Q4WN8ZT2HC6PLM3R")`. A paperback at €9.50 — `spend("Q4WN8ZT2HC6PLM3R", 950)` answers 1050. A notebook at €4.25 — `spend("Q4WN8ZT2HC6PLM3R", 425)` answers 625. The €6.25 left stays on the gift card as long as the shop keeps the gift card, since a gift card never expires.
+A bookshop in euros sells a €20 gift card: `issue("EUR", 2000)` answers `issued(b7, "Q4WN8ZT2HC6PLM3R")`. A paperback at €9.50 — `spend("Q4WN8ZT2HC6PLM3R", 950)` answers 1050. A notebook at €4.25 — `spend("Q4WN8ZT2HC6PLM3R", 425)` answers 625. The €6.25 left stays on the gift card, since a gift card never expires.
 
 ### Rejection paths
 
@@ -199,7 +205,7 @@ A deployment that accepts `"USD"` with a card cap of 50000, and gift card `g1` a
 - `issue("USD", 60000)` — rejected as [Over Cap]: $600 is over the $500 cap.
 - `spend("7KQ9M2XV4RTP8HNC", 0)` — rejected as [Invalid Amount].
 - `spend("7KQ9M2XV4RTP8HNC", 2000)` — rejected as [Insufficient Balance]; the balance stays 1782 (Invariant 4.1), and a checkout spends 1782 and charges the rest elsewhere.
-- `spend("7kq9m2xv4rtp8hnc", 100)` — rejected as [Not Known]: two codes are compared codepoint for codepoint, and the atom normalizes none (Identity 7, Identity 8).
+- `spend("7kq9m2xv4rtp8hnc", 100)` — rejected as [Not Known]: two codes are compared codepoint for codepoint, and neither the atom nor the deployment normalizes one (Identity 7, Identity 8, Capability requirement 8).
 - `check_balance("NOSUCHCODE000000")` — rejected as [Not Known].
 - `read(g404)`, where no gift card `g404` exists — rejected as [Not Known].
 
@@ -216,7 +222,7 @@ Check 1.1: An auditor MUST find EVERY gift card carrying card id, card code, cur
 Check 2.1: An auditor MUST find no two gift cards sharing a card id (Identity 5).
 Check 2.2: An auditor MUST find no two gift cards sharing a card code (Identity 6).
 Check 3.1: An auditor MUST find EVERY gift card carrying a whole amount as the gift card's balance (Invariant 1.1).
-Check 3.2: An auditor MUST find no version of a gift card whose balance EXCEEDS the balance of the gift card's previous version (Invariant 2.1).
+Check 3.2: An auditor MUST find no version of a gift card other than the gift card's first version whose balance EXCEEDS the balance of the gift card's previous version (Invariant 2.1).
 Check 3.3: An auditor MUST find no gift card whose balance EXCEEDS the gift card's value (Invariant 2.2).
 Check 4.1: An auditor MUST find EVERY version of a gift card carrying the card code of the gift card's first version (Invariant 3.1).
 Check 4.2: An auditor MUST find EVERY version of a gift card carrying the currency of the gift card's first version (Invariant 3.2).
@@ -261,7 +267,7 @@ Where the atom breaks down: a gift card meant to be reloaded, shared, or refunde
 
 ### Concurrency
 
-Two spends on one gift card are serialized (Execution Contract Database 2): the later reads the balance the earlier left and is refused as [Insufficient Balance] if its amount is over it, so two spends never both take the last of a balance (Invariant 1.1).
+Two spends on one gift card are serialized (Execution Contract Database 2): the later reads the balance the earlier left and is refused as [Insufficient Balance] if its amount is over it, so two spends never both take the last of a balance (Invariant 1).
 
 ### Indeterminate outcome
 
@@ -296,11 +302,11 @@ Term cadences: empty.
 
 Term qualifiers: migrated — drafted in GRACE lang v0.69 (2026-10-30) through the Grace connector.
 
-Term terms: gift card, card id, card code, code entropy, seam, value, balance, currency, minor unit, whole amount, positive amount, used up, accepted currencies, card cap, amount, code action, version.
+Term terms: gift card, card id, card code, code entropy, seam, value, balance, currency, minor unit, whole amount, positive amount, accepted currencies, card cap, amount, code action, version.
 
 #### Issue
 
-Starts a gift card: checks the [Currency] against the accepted currencies and the [Value] against the [Card Cap], records a gift card whose [Balance] is its value, and answers the new [Card Id] and [Card Code]. The only action that ever answers the code.
+Starts a gift card: checks the [Currency] against the accepted currencies and the [Value] against the [Card Cap], records a gift card whose [Balance] is its value, and answers [Issued], the new [Card Id] and [Card Code]. The only action that ever answers the code.
 
 Kind: Operation
 
@@ -378,11 +384,20 @@ Projection:   amount
 
 #### Card Cap
 
-The largest [Value] the deployment issues a gift card for in one [Currency], such as 50000 in US dollars, which is $500.
+The largest [Value] the deployment issues a gift card for in one [Currency]; 50000 of the currency's minor unit where a deployment declares none, which is $500 in US dollars.
 
 Kind:       Parameter
 Parameter of: Issue
 Projection: card_cap
+
+#### Issued
+
+The [Issue] outcome when the call records a gift card. It carries the [Card Id] and the [Card Code].
+
+Kind:       Member
+Member of:  the issue outcome
+Role:       Outcome
+Projection: issued
 
 #### Invalid Currency
 
@@ -454,6 +469,7 @@ Projection: storage-failure
 [Check Balance]: #check-balance
 [Spend]: #spend
 [Read]: #read
+[Issued]: #issued
 [Gift Card]: #gift-card
 [Card Id]: #card-id
 [Card Code]: #card-code
@@ -476,8 +492,8 @@ Projection: storage-failure
 
 Gift Card is a primitive whose regulatory anchor it deliberately stays clear of. It inherits from:
 
-- **15 U.S.C. 1693l-1 and Regulation E (12 CFR 1005.20)** — the federal gift card rule, which limits when a gift card's money may expire and when an inactivity fee may be charged. A gift card under this atom never expires and carries no fee (Non-goal 6, Non-goal 7), so the rule's two limits are never reached.
-- **FinCEN's prepaid access rule** — store gift cards are mostly outside it below $2,000 per device per day; the card cap is the deployment's to set (Capability requirement 6).
+- **15 U.S.C. (the United States Code) 1693l-1 and Regulation E (12 CFR (the Code of Federal Regulations) 1005.20)** — the federal gift card rule, which limits when a gift card's money may expire and when an inactivity fee may be charged. A gift card under this atom never expires and carries no fee (Non-goal 6, Non-goal 7), so the rule's two limits are never reached.
+- **The prepaid access rule of FinCEN (the Financial Crimes Enforcement Network)** — store gift cards are mostly outside it below $2,000 per device per day; the card cap defaults to 50000 of the currency's minor unit and the deployment may declare its own (Capability requirement 6).
 - **ISO 4217** — the codes a currency is commonly named by, and the minor unit every amount on a gift card is counted in.
 - **Daniel Jackson, *The Essence of Software*** — the concept as a freestanding, composable unit of software design, leaving payment, checkout and loyalty to concepts of their own.
 
@@ -494,9 +510,10 @@ State unclaimed-property laws, which may oblige a seller to report a balance lef
 ```
 status: draft
 formal: not applicable — vote no 2026-10-30: the atom reads no clock and claims no ordering of its own; its balance, code, currency and value claims are properties each action's rules hold, and its concurrency is Execution Contract Database 2's
-last gate: none
+last gate: 2026-11-04 — Final Critique 1, frozen at ee75f7d — foundational count 4, not clean, no sample
 
-open: none
+open:
+- 2026-11-04-a · refining · Capability requirement 2; Operation 6 · a deployment-supplied card code that collides with a stored one has no answer on [Issue], since Identity 6 binds the atom and Capability requirement 2 the deployment → state the refusal [Issue] answers when the seam's card code is already carried, or leave the collision to the deployment's own obligation
 ```
 
 <details markdown="block">
