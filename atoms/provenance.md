@@ -228,6 +228,7 @@ Operation 71: An admitted disclose MUST set the disclosed entry's event type to 
 Operation 72: An admitted disclose MUST set the disclosed entry's custodian reference to the call's custodian reference.
 Operation 73: An admitted archive MUST set the archived entry's event type to archived.
 Operation 74: An admitted archive MUST set the archived entry's custodian reference to the call's custodian reference.
+Operation 75: An admitted originate MUST set the current custodian to the call's custodian reference.
 ```
 
 NOTE: watch the integer range (Operation 48, Operation 60).
@@ -237,6 +238,16 @@ NOTE: watch the optional field no rule records (Operation 61).
 NOTE: watch the required input no rule records (Operation 62, Operation 63, Operation 64, Operation 65, Operation 68, Operation 70, Operation 72, Operation 74).
 
 NOTE: Operation 39 binds the four appending actions whose signatures answer the entry id, [Transfer], [Transform], [Disclose] and [Archive], and not [Originate], whose signature answers the chain id (Operation 9; GRACE-lang Closed vocabulary 29).
+
+Term writer action: an appending action — [Originate], [Transfer], [Transform], [Disclose] or [Archive]; [Read] is no writer action.
+
+Term refused action: an action whose call a rule of this page refuses, answering a refusal code and writing nothing.
+
+Term ordering rule: a rule that places one entry before another; the sequence number places entries, never the recording instant (Operation 58).
+
+Term entry count: the number of entries a chain holds.
+
+Term chain count: the number of chains the database holds.
 
 Term now: the deployment's clock reading at the call, as Execution Contract Logic confinement 11 declares it.
 
@@ -288,7 +299,7 @@ The case space, and the rule that owns each case:
 
 | Call | Case | Answer | Effect on the chain |
 |---|---|---|---|
-| [Originate] | refs present, genesis type admitted | the new chain id | a chain opens, genesis entry at sequence one (Operation 5 through 9, Operation 61 through 63) |
+| [Originate] | refs present, genesis type admitted | the new chain id | a chain opens, genesis entry at sequence one (Operation 5 through 9, Operation 61 through 63, Operation 75) |
 | [Originate] | a blank reference | [Invalid Reference] | none (Operation 1, Operation 2) |
 | [Originate] | genesis type outside the two | [Invalid Genesis Type] | none (Operation 3, Execution Contract Refusal 1) |
 | [Transfer] | open chain, to custodian reference present | the entry id | transferred entry; the from-side read from the current custodian; custody moves (Operation 19 through 21, Operation 66 through 68) |
@@ -383,7 +394,7 @@ Weeks later the hospital returns part of the batch for re-inspection, and the re
 
 `originate(artifact_ref: "exhibit-A", custodian_ref: "det-r.james", genesis_type: originated)` → `chain-0107`. The exhibit moves to the evidence room (`e2`), then the lab (`e3`). The lab records its work: `transform("chain-0107", "forensic-lab-12", "fingerprint-lifted; DNA-sample-taken; original-exhibit-intact")` → `e4`. It returns to the evidence room (`e5`). The chain stands open pending trial.
 
-Defense counsel claims an undocumented handler between the detective and the lab. `read("chain-0107")` answers five entries; no entry's from custodian reference names a party who was not the immediately prior to custodian reference, and every entry names a custodian (Invariant 4, Invariant 7). An unrecorded intermediary was never the current custodian, so no intermediary could have recorded a transformation or generated a transfer.
+Defense counsel claims an undocumented handler between the detective and the lab. `read("chain-0107")` answers five entries; no entry's from custodian reference names a party who was not the immediately prior to custodian reference, and every entry names a custodian (Invariant 4, Invariant 7). An unrecorded intermediary was never the current custodian, so no entry names an intermediary as the custodian of a transformation or as the sender of a transfer.
 
 ### Rejection paths
 
@@ -547,9 +558,11 @@ Term maximum length: the cap on one string input, each string input carrying its
 ```
 Correction 1: The atom MUST NOT edit an entry.
 Correction 2: The atom MUST NOT remove an entry.
-Correction 3: The current custodian MUST record a correction as a subsequent entry.
+Correction 3: A correction MUST stand as a subsequent entry.
 Correction 4: A correcting entry MUST stand as a transformed entry whose transformation descriptor names the corrected entry's sequence number.
 ```
+
+NOTE: open 2026-11-03-a — the descriptor is opaque to the atom, so no check reads the corrected sequence number (Correction 4).
 
 ---
 
@@ -893,9 +906,9 @@ Provenance is an infrastructure primitive with regulatory anchoring across pharm
 
 - **W3C (the World Wide Web Consortium) PROV (Provenance Data Model — W3C's RDF (Resource Description Framework)-based standard for representing provenance)** — the atom models the linear single-artifact custody slice of PROV's entity/activity/agent framework. PROV expresses a DAG (directed acyclic graph) of provenance relationships; this atom is the linear spine of a single-entity PROV graph — the `wasGeneratedBy`, `used`, and `wasAttributedTo` relationships along a single entity's chain. The deliberate non-goal of `wasDerivedFrom` (DAG derivation) and artifact splitting (one entity split into several) are both out-of-scope relative to the full PROV model.
 
-- **FDA 21 CFR Part 211 (Current Good Manufacturing Practice — Finished Pharmaceuticals)** — US pharmaceutical manufacturing regulations requiring a chain-of-custody record for drug substances and products from manufacture through distribution. The atom's genesis + transfer + transformation + archive lifecycle is the operational form of Part 211's custodial recording requirements.
+- **FDA 21 CFR Part 211 (Current Good Manufacturing Practice — Finished Pharmaceuticals)** — US pharmaceutical manufacturing regulations requiring a chain-of-custody record for drug substances and products from manufacture through distribution. The atom's genesis + transfer + transformation + archive lifecycle is the operational form of Part 211's custodial recording requirements — necessary, not by itself sufficient: the atom contributes the custody record, never the manufacturing practice.
 
-- **DEA 21 CFR Part 1304 (Controlled Substance Inventory Records)** — US Drug Enforcement Administration (DEA) regulations requiring complete, accurate records of the disposition of controlled substances, including every change of custody. Invariant 4 (custody continuity) is the structural implementation of this requirement.
+- **DEA 21 CFR Part 1304 (Controlled Substance Inventory Records)** — US Drug Enforcement Administration (DEA) regulations requiring complete, accurate records of the disposition of controlled substances, including every change of custody. Invariant 4 (custody continuity) is the structural form of this requirement — necessary, not by itself sufficient: the atom contributes the record structure, never the inventory itself.
 
 - **SEC Rule 17a-4 (Records to be preserved by certain exchange members, brokers, and dealers)** — US Securities and Exchange Commission rule requiring records to be preserved as originally created, in a non-rewriteable, non-erasable format. The atom's append-only, entry-immutable chain (Invariants 1 and 2) is the structural form of the preservation-as-originally-created requirement — **necessary, not by itself sufficient**: the rule's format requirement is met by the deployment's storage medium and the audit proof by a composed Tamper Evidence seal (WORM — write-once, read-many — storage being one realization). The atom contributes the record structure the rule preserves, never the whole compliance claim.
 
@@ -915,16 +928,17 @@ It inherits from:
 
 ## Status
 
-`partially resolved` — see the Ledger.
+`grounded on Final Critique 13 — 2026-11-03 at e0a85af` — see the Ledger.
 
 ## Ledger
 
 ```
-status: partially resolved
+status: grounded on Final Critique 13 — 2026-11-03 at e0a85af
 formal: verified — provenance.als + 1 twin, 2026-06-04
-last gate: 2026-10-31 — Final Critique 12 — foundational count 2, not clean, no sample
+last gate: 2026-11-03 — Final Critique 13, frozen at e0a85af — foundational count 0, clean, one sample
 
-open: none
+open:
+- 2026-11-03-a · refining · Correction 4 · a correcting entry's descriptor must name the corrected sequence number, and the descriptor is opaque, so no rule the atom can check enforces it → name a descriptor form the atom parses, or a check an auditor reads
 ```
 
 <details markdown="block">
