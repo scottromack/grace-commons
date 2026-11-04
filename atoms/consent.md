@@ -47,7 +47,7 @@ Revocation is a first-class action rather than a state flag, with its own timest
 
 ```
 Identity 1: The atom MUST identify a consent record by the consent id.
-Identity 2: The host MUST allocate a consent id that DOES NOT EXCEED the string cap.
+Identity 2: The host MUST allocate a consent id that DOES NOT EQUAL blank AND DOES NOT EXCEED the string cap.
 Identity 3: The transition MUST NOT allocate a consent id.
 Identity 4: The atom MUST NOT reuse a consent id.
 Identity 5: The atom MUST NOT change a consent id.
@@ -513,7 +513,7 @@ Concurrency 4: Two concurrent [Grant] calls carrying one subject reference and o
 
 Term string cap: the bound on a string input's length in Unicode code points, counted on the value as the call carries it; 1,024 code points where a deployment declares none.
 
-Term string input: a [Subject Reference], [Purpose], [Granting Actor], [Consent Id], [Revoking Actor] OR [Reason] — every caller-supplied string this atom accepts.
+Term string input: a [Subject Reference], [Purpose], [Granting Actor], [Consent Id], [Revoking Actor] OR [Reason] — every caller-supplied string a writing action of this atom accepts.
 
 NOTE: watch the cap's measure (Term string cap, Term bounds).
 
@@ -849,7 +849,7 @@ Projection: invalid-query
 ```
 status: partially resolved
 formal: not applicable — vote no 2026-06-03
-last gate: 2026-11-04 — Final Critique 17, a delta round, frozen at 5b2cbfd — foundational count 2, cured, not clean, no sample
+last gate: 2026-11-04 — Final Critique 18, a delta round, frozen at a2051e5 — foundational count 1, cured, not clean, no sample
 
 open:
 - 2026-10-29-b · refining · Term seam; Term transition; Term business caller · each says the section titled Logic Confinement Principle in `execution-contract.md` declares it, and that section declares none of the three → declare the three there, the corpus's one seam wording, or point each at its declaration
