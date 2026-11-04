@@ -155,9 +155,10 @@ Operation 15: IF the database refuses the write THEN a terminal transition MUST 
 Operation 16: A refused call MUST leave the notification as the call found the notification.
 Operation 17: [Status Of] MUST answer the notification's stored fields.
 Operation 18: IF no notification EXISTS for the notification id THEN [Status Of] MUST answer not-known.
+Operation 18b: IF a notification id is malformed THEN [Status Of] MUST answer not-known (Execution Contract Query 1, Query 5).
 Operation 19: [Pending For] MUST answer the notification id of EVERY pending notification carrying the recipient reference.
 Operation 20: [Pending For] MUST NOT answer a terminal notification's notification id.
-Operation 21: [Pending For] MUST NOT order the answer.
+Operation 21: [Pending For] MUST NOT order the answer, in place of Execution Contract Read 5.
 Operation 22: [Status Of] MUST NOT write.
 Operation 23: [Pending For] MUST NOT write.
 Deleted: Operation 24. Capability requirement 1 owns it.
@@ -186,7 +187,7 @@ The case space, and the rule that owns each case:
 | Call | Case | Answer | Effect on the notification records |
 |---|---|---|---|
 | [Create] | recipient present, database accepts | notification id | one notification lands in [Pending] (Operation 1, Operation 2, Operation 30) |
-| [Create] | empty, whitespace-only or malformed recipient, or over the cap | [Invalid Request] | none (Operation 4, Operation 31, String 5, String 6) |
+| [Create] | empty, whitespace-only or malformed recipient, or over the cap | [Invalid Request] | none (Operation 4, Operation 31, String 6) |
 | [Create] | empty payload | notification id | one notification lands — the payload is the caller's business (Operation 5, Operation 6) |
 | [Deliver] | notification is pending | ok | [Pending] → [Delivered], delivery instant stamped (Operation 10, State 8) |
 | [Fail] | notification is pending | ok | [Pending] → [Failed], failure instant stamped (Operation 11) |
@@ -195,7 +196,7 @@ The case space, and the rule that owns each case:
 | any terminal transition | id names nothing, or is malformed | [Not Known] | none (Operation 8, Operation 32) |
 | any write | database refuses | [Storage Failure] | none (Operation 7, Operation 15, Operation 16) |
 | [Status Of] | id names a notification | its stored fields | none — the call reads (Operation 17, Operation 22) |
-| [Status Of] | id names nothing | not-known | none (Operation 18) |
+| [Status Of] | id names nothing, or is malformed | not-known | none (Operation 18, Operation 18b) |
 | [Pending For] | recipient has pending notifications | their ids, unordered | none (Operation 19, Operation 21) |
 | [Pending For] | recipient has none, or only terminal ones | empty list | none (Operation 20) |
 | [Pending For] | over-length or whitespace-only recipient | empty list | none — a read with a bad argument has a correct answer (String 8, String 9) |
@@ -361,7 +362,7 @@ String 1: The atom MUST compare a string input byte-exactly.
 String 2: The atom MUST NOT trim a string input.
 String 3: The atom MUST NOT normalize a string input.
 String 4: The atom MUST NOT case-fold a string input.
-String 5: The atom MUST read a whitespace-only recipient reference as empty.
+Deleted: String 5. GRACE-lang Term blank owns it.
 String 6: IF the recipient reference EXCEEDS the string cap THEN [Create] MUST answer invalid-request.
 String 7: The business caller MUST own a recipient reference's canonical form.
 String 8: [Pending For] MUST read an over-length recipient reference as matching nothing.
@@ -593,7 +594,7 @@ Projection:   now
 
 #### Invalid Request
 
-The refusal [Create] returns when a request field fails its rule — an empty or whitespace-only [Recipient Reference] (Operation 4, String 5), a malformed [Recipient Reference] (Operation 31), or a recipient reference over the deployment's cap (String 6). An empty [Payload] is not a failure: Operation 5 accepts it.
+The refusal [Create] returns when a request field fails its rule — an empty or whitespace-only [Recipient Reference] (Operation 4), a malformed [Recipient Reference] (Operation 31), or a recipient reference over the deployment's cap (String 6). An empty [Payload] is not a failure: Operation 5 accepts it.
 
 Kind:       Member
 Member of:  the Create rejection
@@ -602,7 +603,7 @@ Projection: invalid-request
 
 #### Not Known
 
-The refusal [Deliver], [Fail], or [Expire] returns when the [Notification Id] references no notification in the database or is malformed (Operation 32). Also the [Status Of] outcome for an unknown id.
+The refusal [Deliver], [Fail], or [Expire] returns when the [Notification Id] references no notification in the database or is malformed (Operation 32). Also the [Status Of] outcome for an unknown or malformed id (Operation 18b).
 
 Kind:       Member
 Member of:  the action rejection
@@ -661,7 +662,7 @@ Projection: storage-failure
 ## Standards references
 
 - **Observer pattern** (GoF — the Gang of Four, the four authors of *Design Patterns*) — Notification is the structured-natural-language realization of the notification object: the message delivered from subject to observer.
-- **SMTP / RFC 5321** — SMTP (Simple Mail Transfer Protocol, defined in the Internet standard RFC (Request for Comments) 5321) email delivery as the canonical push transport. The three terminal states map directly to SMTP disposition: 2xx success (Delivered), 5xx permanent failure (Failed), and timeout without delivery (Expired).
+- **SMTP / RFC 5321** — SMTP (Simple Mail Transfer Protocol, defined in the Internet standard RFC (Request for Comments) 5321) email delivery as the canonical push transport. Two of the three terminal states map to an SMTP disposition: 2xx success (Delivered) and 5xx permanent failure (Failed); timeout without delivery (Expired) maps to none, since SMTP has no terminal disposition for it and the composing pattern owns the delivery window (Operation 14b).
 - **HTTP (HyperText Transfer Protocol — the request/response protocol of the web) webhooks** — POST-to-URL delivery model standard in web systems. [Deliver] records a 2xx response; [Fail] records a 4xx/5xx or connection failure.
 - **W3C (World Wide Web Consortium — the web standards body) Activity Streams 2.0** — semantic vocabulary for describing social and messaging events. Notification payloads in web deployments often conform to Activity Streams objects.
 - **Apple Push Notification Service / Firebase Cloud Messaging** — platform push notification services where [Deliver] corresponds to accepted delivery and [Fail] corresponds to a rejected or unregistered token.
@@ -679,7 +680,7 @@ Projection: storage-failure
 ```
 status: partially resolved
 formal: verified — notification.als + 1 twin, 2026-06-03
-last gate: 2026-11-03 — Final Critique 7 — foundational count 2, not clean, no sample
+last gate: 2026-11-04 — Final Critique 8, a delta round, frozen at 075c6e4 — foundational count 1, cured, not clean, no sample; 2026-11-03 — Final Critique 7 — foundational count 2, not clean, no sample
 
 open:
 - 2026-10-21-b · refining · Examples (Shared Todo) · the three outcomes of notif_77 (delivered, failed, expired) share one notification, and only each paragraph's condition says they are alternatives, so a sequence test compiled from the walkthrough can read them as one sequence that breaks Invariant 2.3 → name each outcome an alternative, or give each its own notification
