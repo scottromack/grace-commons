@@ -1126,7 +1126,7 @@
    "shared-todo"
   ],
   "domain": null,
-  "grounded": false,
+  "grounded": true,
   "invariants": 8,
   "kind": "atom",
   "models": {
@@ -1139,7 +1139,7 @@
   ],
   "security": false,
   "standards": [],
-  "status": "partially resolved",
+  "status": "grounded on Final Critique 8 \u2014 2026-11-04 at 17878a4",
   "title": "Personal Todo"
  },
  "preference-aware-notification-fanout": {

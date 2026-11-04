@@ -45,7 +45,7 @@ Identity 7: The implementation MUST own the id's scheme.
 
 NOTE: watch the allocation ban (Identity 3).
 
-Term unit: one thing to do — the record this atom holds; recorded, revised, finished or abandoned.
+Term unit: one thing to do — the record this atom holds; recorded, revised or finished, until it is deleted.
 
 Term id: the opaque string naming one unit — an [Id]; malformed where it is no string; stable across sessions, unique for the system's life.
 
@@ -152,7 +152,7 @@ Deleted: Operation 27. Execution Contract Logic confinement 3 owns it.
 Operation 28: [Read] MUST answer EVERY unit, pending AND done.
 Operation 29: [Read] MUST answer a unit's id, description, state, addition instant, last edit instant AND completion instant.
 Operation 30: [Read] MUST NOT write.
-Operation 31: [Read] MUST NOT refuse a call, and a failed read answers state-unavailable (Execution Contract Read 1).
+Operation 31: [Read] MUST NOT refuse a call (Execution Contract Read 1 answers a failed read).
 Operation 32: IF the unit state EQUALS pending AND the normalized new description DOES NOT EQUAL the unit's description AND the normalized new description EQUALS blank THEN [Edit] MUST answer invalid-description.
 Operation 33: IF the unit state EQUALS pending AND the normalized new description DOES NOT EQUAL the unit's description AND the new description the call carries EXCEEDS the description cap THEN [Edit] MUST answer invalid-description (Execution Contract Input 2).
 Operation 34: IF the unit state EQUALS pending AND the new description is malformed THEN [Edit] MUST answer invalid-description (Execution Contract Input 1).
@@ -163,7 +163,7 @@ Operation 37: IF the id is malformed THEN [Delete] MUST answer not-known (Execut
 
 NOTE: watch the untyped input (Operation 35, Operation 36, Operation 37, Term id).
 
-NOTE: open 2026-11-03-a — no rule says an admitted [Edit], [Complete] or [Delete] answers ok; only Operation 10 does, and only for an unchanged description.
+NOTE: an admitted [Edit], [Complete] or [Delete] answers ok, the one answer its signature block gives (Closed vocabulary 21, Closed vocabulary 22, Closed vocabulary 25), so no operation restates it.
 
 Term new description: the text an edit offers for a unit — a [New Description]; normalized under the description policy.
 
@@ -181,8 +181,8 @@ The case space, and the rule that owns each case:
 | [Edit] | unit is done | [Not Editable] | none (Operation 8) |
 | [Complete] | unit is pending | ok | [Pending] → [Done], completion instant stamped (Operation 17, State 7) |
 | [Complete] | unit is done | [Not Pending] | none (Operation 16) |
-| [Delete] | unit is pending or done | ok | the unit leaves; the id is retired (Operation 19, Operation 20, Identity 5) |
-| any | id names nothing, or is malformed | [Not Known] | none (Operation 7, Operation 15, Operation 18, Operation 35 through 37) |
+| [Delete] | unit is pending or done | ok | the unit leaves; its id is not reused (Operation 19, Operation 20, Identity 5) |
+| [Edit], [Complete] or [Delete] | id names nothing, or is malformed | [Not Known] | none (Operation 7, Operation 15, Operation 18, Operation 35 through 37) |
 | any writing call | database refuses | [Storage Failure] | none (Operation 5, Operation 21 through 23; Execution Contract Read 4) |
 | any | the database read fails | state-unavailable | none (Execution Contract Read 1, Execution Contract Read 3) |
 | [Read] | the database answers the read | every unit, with its stored fields | none (Operation 28 through 31) |
@@ -419,7 +419,7 @@ Kind: Operation
 
 #### Read
 
-The read-only query answering every unit in the list, pending and done, each with its stored fields, in the order Execution Contract Read 5 gives (creation instant, then id ascending), since the atom orders no units (Non-goal 10); a last edit instant or completion instant the unit does not carry is answered blank. It changes nothing and refuses no call; where the database read fails it answers state-unavailable (Execution Contract Read 1).
+The read-only query answering every unit in the list, pending and done, each with its stored fields, in the order Execution Contract Read 5 gives (addition instant, then id ascending), since the atom orders no units (Non-goal 10); a last edit instant or completion instant the unit does not carry is answered blank. It changes nothing and refuses no call; where the database read fails it answers state-unavailable (Execution Contract Read 1).
 
 Kind: Operation
 
@@ -603,17 +603,16 @@ A formal-methods version of a similar concept exists in [concept-catalog](https:
 
 ## Status
 
-`partially resolved` — see the Ledger.
+`grounded on Final Critique 8 — 2026-11-04 at 17878a4` — see the Ledger.
 
 ## Ledger
 
 ```
-status: partially resolved
+status: grounded on Final Critique 8 — 2026-11-04 at 17878a4
 formal: not applicable — vote no 2026-06-03
-last gate: 2026-11-03 — Final Critique 7 — foundational count 3, not clean, no sample
+last gate: 2026-11-04 — Final Critique 8, a delta round, frozen at 17878a4 — foundational count 0, clean, one sample; 2026-11-03 — Final Critique 7 — foundational count 3, not clean, no sample
 
 open:
-- 2026-11-03-a · refining · Operation 10; Operation 13; Operation 17; Operation 19; Operation 20; the case space · no rule says an admitted [Edit], [Complete] or [Delete] answers ok, though the signature block gives ok as its answer; only Operation 10 states ok, for an unchanged description, and the case space cites for the other ok rows rules that land no outcome, so a build may answer ok or leave the answer to the pipeline by the reading it picks → state the answer in one rule per action, as Cart's Operation 15, Operation 17 and Operation 19 do, or say the signature block's answer is the admitted call's (Closed vocabulary 21)
 - 2026-11-03-b · refining · Invariant 2.1; Invariant 3.1; Check 2.1; Check 3.1 · Invariant 4.1 has Check 2.1 and Invariant 6.1 has Check 3.1, but Invariant 2.1 and Invariant 3.1 have none, so an auditor reading the committed versions has nothing that tests a unit standing in pending after a complete or a delete, or in done after a delete → add a check for each, reading the committed versions (Execution Contract Generation acceptance 1), or delete the two invariants to the rules that already hold them (State 9, State 10)
 ```
 
