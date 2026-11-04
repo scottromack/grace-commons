@@ -49,7 +49,7 @@ Term string cap: the bound on an item reference's length in Unicode code points;
 
 Term cart: a set of lines gathered toward one purchase, with the currency their prices are counted in — a [Cart].
 
-NOTE: open 2026-11-03-b — whether the lines a [Read] answers come in an order: the atom holds no field that orders them, and Operation 21 states none.
+NOTE: the lines a [Read] answers come in the order Execution Contract Read 5 states; no rule of this atom names another, and any other order is the composing pattern's that shows the cart (Non-goal 14).
 
 Term line: one item on a cart, with how many of the item and the unit price taken when the line was added — a [Line].
 
@@ -59,7 +59,7 @@ Term line id: the opaque value naming one line — a [Line Id]; unique for the s
 
 Term item reference: the value naming the item a line is for — a product or a service with the options chosen for it, such as a size, a color, oat milk or a gift wrap, in the deployment's own scheme — an [Item Reference]; the atom reads nothing in it.
 
-NOTE: open 2026-11-03-a — whether the item reference and the currency are references the deployment canonicalizes at the seam (Execution Contract Logic confinement 13) or values stored as the call carries them: Identity 6 and the marker entries say stored as supplied, and no rule here declares either value a reference.
+NOTE: the atom declares no value a reference, so Execution Contract Logic confinement 13 canonicalizes neither the item reference nor the currency, and each is recorded as the call carries it (Execution Contract Input 4; Identity 6 through 9).
 
 Term seam: the atom's I/O boundary as the section titled Logic Confinement Principle in `execution-contract.md` declares it; the host injects each cart id and line id here.
 
@@ -364,7 +364,7 @@ Kind: Operation
 
 #### Add
 
-Puts an item on a cart: records one [Line] carrying the new [Line Id] and the call's [Cart Id], [Item Reference], [Quantity] and [Unit Price], answers the new [Line Id]. An item already on the cart is refused.
+Puts an item on a cart: records one [Line] carrying the new [Line Id] and the call's [Cart Id], [Item Reference], [Quantity] and [Unit Price], answers the new [Line Id]. An item already on the cart is refused (Operation 8).
 
 Kind: Operation
 
@@ -585,18 +585,16 @@ Rules on showing and confirming a price before a purchase, such as the Consumer 
 
 ## Status
 
-`partially resolved` — see the Ledger.
+`grounded on Final Critique 6 — 2026-11-04 at cd6400b` — see the Ledger.
 
 ## Ledger
 
 ```
-status: partially resolved
+status: grounded on Final Critique 6 — 2026-11-04 at cd6400b
 formal: not applicable — vote no 2026-10-23: the atom reads no clock and claims no ordering of its own; its one-line-per-item and fixed-price claims are single-state properties each action's rules hold, and its concurrency is Execution Contract Database 2's
-last gate: 2026-11-03 — Final Critique 5 (delta) — foundational count 1, not clean, one sample
+last gate: 2026-11-04 — Final Critique 6, a delta round, frozen at cd6400b — foundational count 0, clean, one sample; 2026-11-03 — Final Critique 5 (delta) — foundational count 1, not clean, one sample
 
 open:
-- 2026-11-03-a · refining · Term item reference; Term currency; Identity 6; Identity 8 · the atom declares neither value a reference and cites no canonicalization rule, so a deployment that canonicalizes either at the seam (Execution Contract Logic confinement 13) stores a spelling "stored as supplied and compared codepoint for codepoint" does not describe → say these two values enter the atom as the call carries them, or declare them references and cite Logic confinement 13
-- 2026-11-03-b · refining · Operation 21; Term cart · [Read] answers the cart's lines in no stated order and the atom holds no field that orders them, so a caller rendering the cart has no determinate order → state an order, or say the lines in the answer are unordered
 - 2026-10-24-b · refining · Operation 21; Term cart; Term records · [Read] answers cart, which State 1 and Term records give a cart id and Term cart, Operation 21 and the Read entry do not, so a build echoes the caller's cart id or not by the reading it picks, as readers in each of the last three rounds asked → name the cart id in Operation 21, or say the answer leaves the caller's own id out
 ```
 
