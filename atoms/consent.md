@@ -229,9 +229,12 @@ Deleted: Operation 62. Execution Contract Logic confinement 3 owns it.
 Deleted: Operation 63. Execution Contract Logic confinement 3 owns it.
 Operation 64: [Read] MUST evaluate a state filter against the consent record's state.
 Operation 65: IF the query is malformed THEN [Read] MUST answer invalid-query (Execution Contract Query 1).
+Operation 76: IF a reference filter's value EXCEEDS the string cap THEN [Read] MUST answer invalid-query.
 ```
 
 NOTE: watch the state a refusal leaves (Operation 32).
+
+NOTE: watch the filter value over the cap (Operation 76).
 
 NOTE: watch condition negation — invalid-request occupies two rows of [Revoke]'s precedence chain, a blank consent id's ahead of not-known (Operation 15) and a granted record's attribution and instant faults after already-expired (Operation 22 through 25, Operation 67), so the answer alone does not say which guard refused.
 
@@ -299,7 +302,7 @@ The case space, and the rule that owns each case:
 | [Check] | no record for the pair was granted by [At Time], or an [At Time] neither blank nor an instant | not-known | none (Operation 40) |
 | [Read] | a well-formed query | the matching records, oldest first, each carrying its state at [Now] | none (Operation 47, Operation 48, Invariant 2.2) |
 | [Read] | a well-formed query matching nothing | an empty sequence | none (Operation 51) |
-| [Read] | a blank filter value, a bad state, an inverted range, a range missing an end, an unknown key | [Invalid Query] | none (Operation 55 through 59, Operation 65) |
+| [Read] | a blank or over-cap filter value, a bad state, an inverted range, a range missing an end, an unknown key | [Invalid Query] | none (Operation 55 through 59, Operation 65, Operation 76) |
 | any call | its read of the database fails | `state-unavailable` | none (Execution Contract Read 1 through 3) |
 
 ### Invariants
@@ -511,7 +514,7 @@ Deleted: Concurrency 3. Execution Contract Database 2 owns it.
 Concurrency 4: Two concurrent [Grant] calls carrying one subject reference and one purpose MUST record two consent records.
 ```
 
-Term string cap: the bound on a string input's length in Unicode code points, counted on the value as the call carries it; 1,024 code points where a deployment declares none.
+Term string cap: the bound on the length in Unicode code points of a string input, of a reference filter's value and of the consent id the host allocates, counted PER Execution Contract Input 2 on the value a call carries and on the consent id as the host allocates it; 1,024 code points where a deployment declares none.
 
 Term string input: a [Subject Reference], [Purpose], [Granting Actor], [Consent Id], [Revoking Actor] OR [Reason] — every caller-supplied string a writing action of this atom accepts.
 
@@ -549,7 +552,7 @@ Term record verbs: share, name, accept, carry, identify, allocate, reuse, change
 
 Term value sets: state = granted | revoked | expired. supported filter axes and grant field are declared above and cited here (Closed vocabulary 15).
 
-Term bounds: string cap (the bound on a string input's length in Unicode code points, counted on the value as the call carries it, 1,024 where a deployment declares none).
+Term bounds: string cap (the bound on the length in Unicode code points of a string input, of a reference filter's value and of the allocated consent id, counted PER Execution Contract Input 2 on the value a call carries and on the consent id as the host allocates it, 1,024 where a deployment declares none).
 
 Term cadences: empty.
 
@@ -780,7 +783,7 @@ Projection: already-expired
 
 #### Invalid Query
 
-The refusal [Read] returns when query parameters are malformed — a null/empty/whitespace filter value, a [State] value outside {[Granted], [Revoked], [Expired]}, a time range missing its start or its end, a time range with end before start, or an unrecognized filter key.
+The refusal [Read] returns when query parameters are malformed — a null/empty/whitespace filter value or one over the string cap, a [State] value outside {[Granted], [Revoked], [Expired]}, a time range missing its start or its end, a time range with end before start, or an unrecognized filter key.
 
 Kind:       Member
 Member of:  the Read rejection
@@ -849,7 +852,7 @@ Projection: invalid-query
 ```
 status: partially resolved
 formal: not applicable — vote no 2026-06-03
-last gate: 2026-11-04 — Final Critique 18, a delta round, frozen at a2051e5 — foundational count 1, cured, not clean, no sample
+last gate: 2026-11-04 — Final Critique 19, a delta round, frozen at 34af5e0 — foundational count 1, cured, not clean, no sample
 
 open:
 - 2026-10-29-b · refining · Term seam; Term transition; Term business caller · each says the section titled Logic Confinement Principle in `execution-contract.md` declares it, and that section declares none of the three → declare the three there, the corpus's one seam wording, or point each at its declaration
