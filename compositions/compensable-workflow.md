@@ -20,7 +20,7 @@ toc: true
 
 Compensable Workflow wires two building blocks — a workflow state machine (a process that moves through a declared sequence of steps, one step current at a time) and an event log (an add-only record of everything that happens) — so that a multi-step process can be undone *as a whole* even after some of its steps have already had real-world effects.
 
-The trick is that each forward step is recorded together with a **compensating action**: a second step that reverses the first one's effect, the way a refund reverses a charge or a cancellation reverses a reservation. While everything is going well the compensable workflow just advances, step by step. If a step fails (or someone cancels), the compensable workflow runs the compensating actions for the steps that already finished, in reverse order — so the process ends up either fully done or fully undone, never stranded half-finished.
+The trick is that each forward step is recorded together with a **compensating action**: a second step that reverses the first one's effect, the way a refund reverses a charge or a cancellation reverses a reservation. While everything is going well the compensable workflow just advances, step by step. If a step fails (or someone cancels), the compensable workflow runs the compensating actions for the steps that already finished, in reverse order — so the process ends up either fully done or fully undone — or, where a compensation cannot succeed, visibly halted for an operator — never silently stranded half-finished.
 
 (A guarantee that appears only when the two building blocks are combined is called an *emergent guarantee*; here the headline one is **all-or-compensated** — no finished step's real-world effect is left standing after an abort.)
 
@@ -46,7 +46,7 @@ This composition is **not a new primitive.** State Machine and Event Log are unc
 
 ## Composes
 
-- **[State Machine](../atoms/state-machine.md)** — the step-sequence spine the progress is brought to.
+- **[State Machine](../atoms/state-machine.md)** — the phase spine the progress is brought to.
 - **[Event Log](../atoms/event-log.md)** — the step log, the compensable workflow's one durable record.
 
 ```
@@ -61,6 +61,10 @@ Composes 8: The composition MUST decide EVERY compensation at the composition's 
 Composes 9: The composition MUST NOT change a constituent's spec.
 Composes 10: The composition MUST inherit a constituent's invariants PER Execution Contract Conformance 8.
 ```
+
+NOTE: open 2026-11-03-b — nothing names who provisions the per-run Event Log instance or maps the compensable workflow id to it (Composes 3).
+
+NOTE: open 2026-11-03-e — State Machine's fire is open to any caller and Composes 4 does not bar a second one, so a fire the composition did not make breaks Invariant 2.1 with no fault halt in the log.
 
 Term composition: this pattern's wiring of [State Machine](../atoms/state-machine.md) and [Event Log](../atoms/event-log.md) — the step log, the five actions and the replay.
 
@@ -91,7 +95,7 @@ Composition state 8: The composition MUST take the compensable workflow id from 
 Composition state 9: The composition MUST read the start instant from the start event's recording instant.
 Composition state 10: The composition MUST NOT read a clock.
 Composition state 11: The composition MUST derive a step's effect key from the compensable workflow id AND the step.
-Composition state 12: The composition MUST derive a compensation's effect key from the compensable workflow id, the step AND the compensation.
+Composition state 12: The composition MUST derive a compensation's effect key from the compensable workflow id, the step AND the compensation reference.
 Composition state 13: The composition MUST NOT mint an effect key PER attempt.
 ```
 
@@ -103,7 +107,7 @@ Term compensable workflow records: every compensable workflow record the composi
 
 Term compensable workflow id: the State Machine instance id issued for the spine, which names the compensable workflow for the compensable workflow's whole life.
 
-Term definition: the deployment-declared step and compensation sequence a [Start Compensable Workflow] call carries.
+Term definition: the deployment-declared step and compensation sequence a [Start Compensable Workflow] call carries and the start event records — for each step its name, whether it is an effect step, its step marker where it has one, and its compensating action with that action's input envelope where it has one.
 
 Term definition reference: the opaque reference to the definition the compensable workflow record keeps.
 
@@ -111,7 +115,7 @@ Term start instant: the recording instant Event Log stamped on the start event.
 
 Term completed steps: the steps whose step completion event landed and whose compensation run event has not, newest last.
 
-Term unresolved attempts: the set of attempt markers no later resolving event answers — one member under the reverse compensation order, several under the parallel compensation order.
+Term unresolved attempts: the set of attempt markers no later resolving event answers and whose effect key is not in the applied effects — one member under the reverse compensation order, several under the parallel compensation order.
 
 Term compensation registry: the map from a completed step to the step's compensation reference and captured inputs, as the step completion event recorded both.
 
@@ -123,8 +127,8 @@ Term effect key: the at-most-once key an effect runs under; the same key on ever
 
 ```
 Replay 1: The replay MUST read EVERY event of the step log in sequence number order.
-Replay 2: IF no compensation onset event EXISTS THEN the replay MUST derive forward as the phase.
-Replay 3: IF a compensation onset event EXISTS THEN the replay MUST derive compensating as the phase.
+Replay 2: IF no compensation onset event EXISTS AND no standing halt EXISTS THEN the replay MUST derive forward as the phase.
+Replay 3: IF a compensation onset event EXISTS AND no standing halt EXISTS THEN the replay MUST derive compensating as the phase.
 Replay 4: IF a standing halt EXISTS THEN the replay MUST derive halted as the phase.
 Replay 5: IF a commit event EXISTS THEN the replay MUST derive committed as the outcome.
 Replay 6: IF a compensation close event EXISTS THEN the replay MUST derive compensated as the outcome.
@@ -132,7 +136,7 @@ Replay 7: The replay MUST add a step completion event's step to the completed st
 Replay 8: The replay MUST remove a compensation run event's step from the completed steps.
 Replay 9: The replay MUST map a step completion event's step to the event's compensation reference AND captured inputs.
 Replay 10: The replay MUST add the effect key of EVERY completion record to the applied effects.
-Replay 11: The replay MUST hold an attempt marker in the unresolved attempts ONLY IF no resolving event EXISTS for the attempt marker.
+Replay 11: The replay MUST hold an attempt marker in the unresolved attempts ONLY IF no resolving event EXISTS for the attempt marker AND the attempt marker's effect key IS NOT IN the applied effects.
 Replay 12: The replay MUST NOT read a halt event as a resolving event.
 Replay 13: The replay MUST read a step completion event as an applied effect.
 Replay 14: The replay MUST produce one progress PER step log.
@@ -157,8 +161,8 @@ Capability requirement 5: The host MUST supply a critical section keyed by compe
 Capability requirement 6: The host MUST exclude a second holder of one compensable workflow's critical section across EVERY node.
 Capability requirement 7: The host MUST release a critical section on the holder's return.
 Capability requirement 8: The host MUST release a critical section on the holder's death.
-Capability requirement 9: The lease length MUST NOT EXCEED the step completion bound.
-Capability requirement 10: The step completion bound MUST NOT EXCEED the lease length.
+Capability requirement 9: A host MAY hold a critical section ONLY IF the lease length EXCEEDS the step completion bound.
+Deleted: Capability requirement 10. Capability requirement 9 owns it.
 Capability requirement 11: IF the critical section EQUALS blank THEN the composition MUST refuse to start.
 Deleted: Capability requirement 12. Execution Contract Database 3 owns it.
 Deleted: Capability requirement 13. Execution Contract Database 3 owns it.
@@ -173,13 +177,19 @@ Capability requirement 20: A deployment MUST supply the database PER Execution C
 
 Term compensation order: reverse | parallel — the order a compensating phase unwinds the completed steps in; reverse, the default, is last-in-first-out, the newest completed step first.
 
+NOTE: open 2026-11-03-a — the parallel compensation order has no semantics: nothing says which compensation the advance result names or how PER applies (Action wiring 16, Action wiring 32).
+
 Term compensation failure policy: halt-and-surface | continue — what a compensating phase does with a compensation the target definitely refused; halt-and-surface is the default.
 
-Term step completion bound: the longest an [Advance] may run between taking the critical section and the invocation's last write — the critical section's lease length, and the terminus of every in-invocation re-attempt.
+Term step completion bound: the longest an [Advance] may run between taking the critical section and the invocation's last write — the terminus of every in-invocation re-attempt, and the latest instant the invocation's halt event may land.
 
 Term critical section: the host-supplied mutual exclusion keyed by compensable workflow id, taken by every section-taking action before the action's first read.
 
+NOTE: open 2026-11-03-c — nothing says how an invocation observes the step completion bound elapsing or what a failed take of the critical section answers (Action wiring 1).
+
 Term lease length: the duration the host holds a critical section implemented as a lease.
+
+NOTE: watch the degenerate bound (Capability requirement 9).
 
 Term target: a system a step's effect or a compensating action reaches — a payment processor, an inventory service, a carrier.
 
@@ -189,22 +199,24 @@ Term effect key horizon: the duration the targets keep an effect key's result.
 
 Term longest attempt gap: the longest interval between two attempts of one effect key, a rest in the halted phase included.
 
+NOTE: open 2026-11-03-d — the gap includes a rest in the halted phase, which a deployment cannot keep, and Capability requirement 17 makes it the deployment's to keep.
+
 Term captured input cap: the largest input envelope a definition may declare for a compensating action — a byte bound over the envelope's declared fields.
 
 ### Primitive policy
 
 ```
-Primitive policy 1: The composition MUST answer invalid-request for a blank compensable workflow id.
+Primitive policy 1: A section-taking action AND [Read Log] MUST answer invalid-request for a blank compensable workflow id.
 Primitive policy 2: [Start Compensable Workflow] MUST answer invalid-request for a blank subject reference.
 Primitive policy 3: [Start Compensable Workflow] MUST answer invalid-request for a blank definition.
-Primitive policy 4: [Start Compensable Workflow] MUST answer invalid-request for a definition carrying a blank compensation reference.
+Deleted: Primitive policy 4. Primitive policy 12 owns it: a step declaring no compensating action is refused invalid-definition when it is an unmarked irreversible step, and admitted when it is marked.
 Primitive policy 5: The composition MUST NOT run an effect under a blank effect key.
 Primitive policy 6: The composition MUST answer invalid-request for a blank supplied reason.
 Primitive policy 7: IF the phase EQUALS halted AND the horizon assertion DOES NOT EQUAL true THEN [Advance] MUST answer invalid-request.
 Primitive policy 8: IF the phase DOES NOT EQUAL halted THEN [Advance] MUST ignore the horizon assertion.
-Primitive policy 9: IF the phase EQUALS halted AND an overflowed step IS IN the named steps AND the compensation inputs EQUALS blank THEN [Advance] MUST answer invalid-request.
+Primitive policy 9: IF an overflow halt EXISTS AND the compensation inputs EQUALS blank THEN [Advance] MUST answer invalid-request.
 Primitive policy 10: [Advance] MUST answer invalid-request for oversized inputs.
-Primitive policy 11: IF the phase DOES NOT EQUAL halted THEN [Advance] MUST ignore the compensation inputs.
+Primitive policy 11: IF no overflow halt EXISTS THEN [Advance] MUST ignore the compensation inputs.
 Primitive policy 12: [Start Compensable Workflow] MUST answer invalid-definition for a definition carrying an unmarked irreversible step.
 Primitive policy 13: A definition MUST declare an input envelope for EVERY compensating action.
 Primitive policy 14: An input envelope MUST NOT EXCEED the captured input cap.
@@ -216,18 +228,22 @@ Primitive policy 19: IF a target answers oversized inputs THEN a forward advance
 Primitive policy 20: IF a target answers oversized inputs THEN a forward advance MUST set the truncation mark to true.
 Primitive policy 21: IF a target answers oversized inputs THEN a forward advance MUST append a halt event naming the forward phase AND the step.
 Primitive policy 22: IF a target answers oversized inputs THEN a forward advance MUST answer `arguments-overflow`.
-Primitive policy 23: A compensating advance MUST run an overflowed step's compensating action with the compensation inputs the resuming [Advance] supplied.
+Primitive policy 23: A compensating advance MUST run an overflowed step's compensating action with the compensation inputs the step's resume marker carries.
 Primitive policy 24: A compensation run event for an overflowed step MUST carry operator as the input source.
 Primitive policy 25: The composition MUST NOT compensate an overflowed step from the truncated captured inputs.
+Primitive policy 26: IF State Machine's instantiate answers invalid-request THEN [Start Compensable Workflow] MUST answer invalid-request.
+Primitive policy 27: IF the standing halt carries a finding AND the horizon assertion EQUALS true THEN [Advance] MUST answer spine-fault.
 ```
 
 Term supplied reason: a reason the call carries, whatever the reason's content; an absent reason is not supplied.
 
 Term horizon assertion: true | false — the operator's assertion, on an [Advance] from the halted phase, that a parked attempt's effect key is still inside the effect key horizon at the target.
 
-Term compensation inputs: the reversal inputs an operator supplies on the [Advance] that resumes a compensable workflow halted on an overflowed step.
+Term compensation inputs: the reversal inputs an operator supplies on the [Advance] that resumes an overflow halt, kept on the overflowed step's resume marker.
 
 Term overflowed step: a step whose step completion event carries the truncation mark set to true.
+
+Term overflow halt: a standing halt carrying no finding that names the forward phase AND an overflowed step — the halt [Arguments Overflow] leaves.
 
 Term oversized inputs: inputs carrying a field the step's input envelope does not declare, or a field over the field's byte bound.
 
@@ -235,7 +251,7 @@ Term input envelope: the fields a definition declares for a compensating action'
 
 Term captured inputs: the reversal inputs a target answered for a step's effect and the step completion event recorded — the `charge_id` a refund needs.
 
-Term largest admitted record: the larger of a step completion event carrying the compensation reference, the full input envelope and the effect key, and a compensation run event — the largest record the definition lets a compensable workflow write.
+Term largest admitted record: the largest of a start event carrying the definition, a step completion event carrying the compensation reference, the full input envelope and the effect key, a resume marker carrying the full input envelope, the recorded horizon assertion and the effect key, and a compensation run event — the largest record the definition lets a compensable workflow write.
 
 Term effect step: a declared step whose result escapes the compensable workflow's own step log — a charge, a shipment, an outbound message.
 
@@ -273,7 +289,7 @@ read_log(compensable_workflow_id, query)
   refuses not-known | invalid-query | invalid-request
 ```
 
-Term advance result: the step the call acted on and the progress the call left.
+Term advance result: the step the call acted on — blank where the call ran no step — and the progress the call left.
 
 Term cancel result: compensating | halted | roll-forward — the phase a [Cancel] leaves the compensable workflow in, or roll-forward where the compensable workflow completed a roll-forward step.
 
@@ -333,20 +349,22 @@ Action wiring 46: The invocation MUST re-attempt an unknown effect under the eff
 Action wiring 47: IF the step completion bound elapses on an unknown effect THEN the invocation MUST append a halt event naming the phase AND the step.
 Action wiring 48: IF the step completion bound elapses on an unknown effect THEN the invocation MUST answer effect-indeterminate naming target-unknown.
 Action wiring 49: A halted advance MUST append a resume marker for EVERY named step.
-Action wiring 50: A halted advance MUST fire the transition back to the phase the standing halt names ONLY AFTER appending the resume markers.
-Action wiring 51: A resumed attempt MUST proceed as an unresolved attempt.
+Action wiring 50: A halted advance MUST fire the transition back to the phase the halt event the halted advance found standing names ONLY AFTER appending the resume markers.
+Action wiring 85: IF the halt event a halted advance finds standing names the forward phase THEN the halted advance MUST append each resume marker as a step attempt event carrying the named step's effect key.
+Action wiring 86: IF the halt event a halted advance finds standing names the compensating phase THEN the halted advance MUST append each resume marker as a compensation attempt event carrying the effect key of the named step's compensation.
+Deleted: Action wiring 51. Replay 11 and Action wiring 15 own it: a resume marker is an attempt marker, held unresolved unless its effect key is already applied, and the re-entry arm re-runs every unresolved attempt.
 Action wiring 52: IF Event Log's append answers storage-failure for a completion record THEN the invocation MUST re-attempt the append WITHIN the step completion bound.
 Action wiring 53: IF the step completion bound elapses on a completion record's append THEN the invocation MUST answer storage-failure naming effect-landed.
 Action wiring 54: IF Event Log's append answers storage-failure for a marker AND no unrecorded effect EXISTS THEN the invocation MUST answer storage-failure naming none (Execution Contract Constituent failure 1).
 Action wiring 55: IF Event Log's append answers storage-failure for a marker AND an unrecorded effect EXISTS THEN the invocation MUST answer storage-failure naming effect-landed (Execution Contract Constituent failure 1).
 Deleted: Action wiring 56. Action wiring 52 through 55 and Execution Contract Database 1 own it: a transition-bearing event and its fire commit together, so a fire's storage failure leaves its event unlanded.
-Action wiring 57: IF State Machine's fire answers a spine refusal for a landed transition-bearing event THEN the invocation MUST append a fault halt carrying the finding.
+Action wiring 57: IF State Machine's fire answers a spine refusal for a landed transition-bearing event THEN the invocation MUST append a fault halt carrying the finding AND naming the phase AND the step of the landed event.
 Action wiring 58: IF State Machine's fire answers a spine refusal for a landed transition-bearing event THEN the invocation MUST NOT fire a further transition.
 Action wiring 59: IF State Machine's fire answers a spine refusal for a landed transition-bearing event THEN the invocation MUST answer spine-fault.
 Action wiring 60: A forward advance landing a step completion event MUST answer the advance result.
 Action wiring 61: A compensating advance landing a compensation run event MUST answer the advance result.
-Action wiring 62: A validated start MUST instantiate the spine with the definition's steps AND compensations as the declared transitions.
-Action wiring 63: A validated start MUST instantiate the spine with not-started as the initial state.
+Action wiring 62: A validated start MUST instantiate the spine with the phases AND the outcomes as the states, the outcomes as the terminal states AND the spine transitions as the declared transitions.
+Action wiring 63: A validated start MUST instantiate the spine with forward as the initial state.
 Action wiring 64: A validated start MUST append the start event ONLY AFTER State Machine's instantiate answers.
 Action wiring 65: A validated start MUST write the compensable workflow record ONLY AFTER appending the start event.
 Deleted: Action wiring 66. Execution Contract Constituent failure 1 owns it.
@@ -366,13 +384,16 @@ Action wiring 79: [Read Log] MUST answer Event Log's read for the query.
 Action wiring 80: [Read Log] MUST NOT write.
 Deleted: Action wiring 81. Execution Contract Database 1 owns it: a transition-bearing event and its fire commit together, so no transition is ever owed.
 Deleted: Action wiring 82. Execution Contract Database 1 owns it: a transition-bearing event and its fire commit together, so no transition is ever owed.
+Action wiring 83: An advance landing a terminal marker MUST answer the advance result.
+Action wiring 84: A halted advance that answers no refusal MUST answer the advance result.
+Action wiring 87: A [Cancel] call in the forward phase, with no terminal marker, no unresolved attempt and no completed roll-forward step, MUST append a compensation onset event.
 ```
 
 Term section-taking action: [Advance] | [Cancel] | [Read Progress].
 
 Term invocation: one call of a section-taking action, from taking the critical section to the call's answer.
 
-Term re-entry arm: the first thing an [Advance] does in every phase — recognizing the invocation's own prior commits from the step log, never from process memory.
+Term re-entry arm: the first thing an [Advance] does in the forward and compensating phases, and the first thing a halted advance does after the transition back — recognizing the invocation's own prior commits from the step log, never from process memory.
 
 Term effect: the external act a step or a compensating action runs at a target.
 
@@ -386,7 +407,7 @@ Term forward advance: an [Advance] call finding the compensable workflow in the 
 
 Term compensating advance: an [Advance] call finding the compensable workflow in the compensating phase with no unresolved attempt.
 
-Term next step: the first declared step no step completion event names.
+Term next step: the first step the start event's definition declares that no step completion event names.
 
 Term pending compensation: a completed step no standing failure names.
 
@@ -394,13 +415,15 @@ Term standing failure: a compensation failure event whose step no later compensa
 
 Term resumed attempt: an attempt a resume marker opened.
 
+NOTE: open 2026-11-03-f — after a resume of a parked attempt two attempt markers stand under one effect key, and whether the re-entry arm re-runs per marker or per key is unsaid (Action wiring 15).
+
 Term completion record: a step completion event or a compensation run event.
 
 Term marker: an attempt marker, a phase marker or a terminal marker.
 
 Term unrecorded effect: an effect the invocation ran whose verdict is not failed and whose completion record did not land.
 
-Term spine refusal: invalid-transition | terminal | guard-not-satisfied | invalid-request — the State Machine fire refusals the definition validation forecloses, so reaching one means the declaration and the log disagree.
+Term spine refusal: invalid-transition | terminal | guard-not-satisfied | invalid-request — the State Machine fire refusals the spine transitions foreclose, so reaching one means the spine and the log disagree.
 
 Term fault halt: a halt event carrying a finding.
 
@@ -410,16 +433,18 @@ Term validated start: a [Start Compensable Workflow] call whose inputs and defin
 
 Term admitted start: a validated start whose start event lands.
 
-Term halted advance: an [Advance] call finding the compensable workflow in the halted phase whose horizon assertion EQUALS true and, where an overflowed step IS IN the named steps, whose compensation inputs clear Primitive policy 9 and Primitive policy 10.
+Term halted advance: an [Advance] call finding the compensable workflow in the halted phase whose horizon assertion EQUALS true and, where an overflow halt EXISTS, whose compensation inputs clear Primitive policy 9 and Primitive policy 10.
 
 Term admitted cancel: a [Cancel] call in the forward phase, with no terminal marker, no unresolved attempt and no completed roll-forward step, whose compensation onset event lands.
+
+Term spine transitions: the ten unguarded declared transitions, each a from state, an action and a to state, whose action is the wire spelling of the type of the transition-bearing event that fires it — forward, `step_completed`, forward; forward, `compensation_begun`, compensating; forward, `compensable_workflow_halted`, halted; forward, `compensable_workflow_committed`, committed; compensating, `compensation_run`, compensating; compensating, `compensable_workflow_halted`, halted; compensating, `compensable_workflow_compensated`, compensated; compensating, `compensation_attempted`, compensating; halted, `step_attempted`, forward; halted, `compensation_attempted`, compensating. A transition-bearing event's declared transition is the one leaving the spine's current state under the event's wire spelling; the compensating self-loop under `compensation_attempted` serves the resume markers after the first.
 
 ### Wiring decision
 
 ```
 Wiring decision 1: The composition MUST reverse a completed effect step by running the step's registered compensating action.
 Wiring decision 2: The composition MUST NOT reverse a completed effect step by replay-skip.
-Wiring decision 3: The composition MUST reverse a step from the captured inputs the step's completion event carries.
+Wiring decision 3: The composition MUST reverse a step from reversal inputs the step log carries for the step.
 Wiring decision 4: The composition MUST NOT recompute a compensation's inputs from current state.
 Wiring decision 5: The composition MUST NOT own the durable execution engine that drives AND retries the steps.
 ```
@@ -440,8 +465,8 @@ The result: all-or-compensated (Invariant 4) falls out of the wiring as an emerg
 ### Event schemas
 
 ```
-{type: "compensable_workflow_started",     event_id, recorded_at, compensable_workflow_id, definition_ref, subject_ref}
-{type: "step_attempted",                   event_id, recorded_at, step, effect_key, within_horizon_asserted}
+{type: "compensable_workflow_started",     event_id, recorded_at, compensable_workflow_id, definition, definition_ref, subject_ref}
+{type: "step_attempted",                   event_id, recorded_at, step, effect_key, within_horizon_asserted, compensation_arguments}
 {type: "compensation_attempted",           event_id, recorded_at, step, effect_key, within_horizon_asserted}
 {type: "step_completed",                   event_id, recorded_at, step, compensation_ref, captured_arguments, arguments_overflow, effect_key}
 {type: "compensation_run",                 event_id, recorded_at, step, effect_key, arguments_source}
@@ -455,15 +480,17 @@ The result: all-or-compensated (Invariant 4) falls out of the wiring as an emerg
 ```
 Event schema 1: The composition MUST append an event carrying EXACTLY ONE OF the ten event types.
 Event schema 2: The composition MUST NOT change an appended event.
-Event schema 3: A start event MUST carry the compensable workflow id, the definition reference AND the subject reference.
+Event schema 3: A start event MUST carry the compensable workflow id, the definition, the definition reference AND the subject reference.
 Event schema 4: An attempt marker MUST carry the step AND the effect key.
-Event schema 5: A step completion event MUST carry the step, the compensation reference, the captured inputs, the truncation mark AND the effect key.
+Event schema 5: A step completion event MUST carry the step, the compensation reference, the captured inputs, the truncation mark AND the effect key, the compensation reference AND the captured inputs standing blank for a step declaring no compensating action.
 Event schema 6: A resume marker MUST carry the recorded horizon assertion.
 Event schema 7: A compensation run event MUST carry the step, the effect key AND the input source.
 Event schema 8: A compensation failure event MUST carry the step AND the effect key.
 Event schema 9: IF a failed effect begins the compensating phase THEN the compensation onset event MUST carry the failed step.
 Event schema 10: A halt event MUST carry the phase the halt event leaves AND the steps the halt event names.
 Event schema 11: A fault halt MUST carry the finding.
+Event schema 12: A resume marker for the overflowed step an overflow halt names MUST carry the compensation inputs.
+Event schema 13: A compensation onset event a [Cancel] appends MUST carry no step.
 ```
 
 Term event type: start | step attempt | compensation attempt | step completion | compensation run | compensation failure | compensation onset | halt | commit | compensation close — the ten schemas, in the order the fence above writes the schemas' wire spellings.
@@ -494,13 +521,13 @@ These emerge from the composition; none belongs to a single constituent atom. Ea
   ```
 - **Invariant 2 — Progress equivalence.**
   ```
-  Invariant 2.1: The spine's current state MUST equal the replayed progress at EVERY quiescent point.
+  Invariant 2.1: IF no fault halt EXISTS THEN the spine's current state MUST equal the replayed state at EVERY quiescent point.
   Deleted: Invariant 2.2. Execution Contract Database 1 owns it.
   Deleted: Invariant 2.3. Execution Contract Database 1 and Execution Contract Database 3 own it.
   ```
 - **Invariant 3 — Compensation pairing.**
   ```
-  Invariant 3.1: EVERY step completion event of an effect step MUST carry EXACTLY ONE compensation reference.
+  Invariant 3.1: EVERY step completion event of an effect step that IS NOT IN the roll-forward steps MUST carry EXACTLY ONE compensation reference.
   ```
 - **Invariant 4 — All-or-compensated.** *(The load-bearing claim.)*
   ```
@@ -519,7 +546,7 @@ These emerge from the composition; none belongs to a single constituent atom. Ea
   ```
   Invariant 6.1: A compensable workflow MUST NOT carry two terminal markers.
   Invariant 6.2: The composition MUST NOT read halted as an outcome.
-  Invariant 6.3: A resume marker MUST return the compensable workflow to the phase the standing halt names.
+  Invariant 6.3: A resume marker MUST return the compensable workflow to the phase the newest halt event the resume marker follows names.
   ```
 - **Invariant 7 — Idempotency under retry.**
   ```
@@ -532,9 +559,11 @@ These emerge from the composition; none belongs to a single constituent atom. Ea
   Deleted: Invariant 9. Composes 10 owns it.
   ```
 
-Term recorded act: an attempt, a step completion, a compensation run, a definite compensation failure, a phase change or a terminal outcome.
+Term recorded act: an attempt, a step completion, a compensation run, a definite compensation failure under the continue policy, a phase change or a terminal outcome.
 
 Term quiescent point: an instant no invocation holds the compensable workflow's critical section.
+
+Term replayed state: the outcome the replay derives or, where the replay derives none, the phase the replay derives — the spine state the step log fixes.
 
 ---
 
@@ -542,20 +571,20 @@ Term quiescent point: an instant no invocation holds the compensable workflow's 
 
 ### Walkthrough — order fulfillment
 
-A compensable workflow with three external-effect steps — *reserve* inventory, *charge* the card, *ship* the order — and their compensations *release*, *refund*, and (for shipment) *recall*. The definition passes validation: every external-effect step names a compensation.
+A compensable workflow with three external-effect steps — *reserve* inventory, *charge* the card, *ship* the order — and their compensations *release*, *refund*, and (for shipment) *recall*. The definition passes validation: every external-effect step names a compensation. Progress is written below by its current step; the phase and the outcome are those the replay derives (Term progress).
 
 1. `start_compensable_workflow(order_fulfillment, "order-9")` → `{compensable_workflow_id: s1}`. Log: `[compensable_workflow_started]`. Progress: *not-started* (forward phase).
 2. `advance(s1)` → takes the run's section; appends `step_attempted(reserve, e1)`; runs *reserve* under `effect_key e1`; inventory held. Appends `step_completed(reserve, comp=release, args={hold_id}, e1)`; fires forward. Progress: *reserved*.
 3. `advance(s1)` → appends `step_attempted(charge, e2)`; runs *charge* under `e2`; card charged. Appends `step_completed(charge, comp=refund, args={charge_id}, e2)`; fires. Progress: *charged*.
 4. `advance(s1)` → appends `step_attempted(ship, e3)`; runs *ship* under `e3`; **the shipping carrier rejects the request** — a definite verdict the carrier returned, not a timeout. No completion is recorded. The compensable workflow appends `compensation_begun` (which resolves the attempt) and flips to the compensating phase. Returns [Step Failed].
-5. `advance(s1)` → compensating phase, reverse order: the most recent completed step is *charge*, so it appends `compensation_attempted(charge, e4)` and runs *refund* against the recorded `charge_id` under `effect_key e4`. Appends `compensation_run(charge, e4)`; fires toward the compensated terminal.
+5. `advance(s1)` → compensating phase, reverse order: the most recent completed step is *charge*, so it appends `compensation_attempted(charge, e4)` and runs *refund* against the recorded `charge_id` under `effect_key e4`. Appends `compensation_run(charge, e4)`; fires, and the spine stays compensating.
 6. `advance(s1)` → appends `compensation_attempted(reserve, e5)` and compensates *reserve* by running *release* against the recorded `hold_id` under `effect_key e5`. Appends `compensation_run(reserve, e5)`; fires. No completed-uncompensated steps remain and no attempt is unresolved; appends `compensable_workflow_compensated` and fires the terminal transition. Progress: *compensated* (terminal).
 
 Outcome: the charge was refunded and the reservation released — the order's external effects are all reversed. The card was charged and then refunded; both remain visible in the payment ledger (a *semantic* reversal, not a pretence the charge never happened — Non-goal 5). All-or-compensated holds: no completed effect survived the abort.
 
 ### Idempotency under retry
 
-Run step 3 again with a realistic engine. `advance(s1)` appends `step_attempted(charge, e2)`, charges the card under `e2`, the charge succeeds, but the `step_completed` append fails and keeps failing until `step_completion_bound`; the invocation yields with `storage-failure(effect-landed)` — the position telling the engine an effect exists that the log does not record — and the compensable workflow stays at *reserved* with `step_attempted(charge, e2)` standing as its unresolved attempt. A `cancel(s1)` here is refused [Step Unresolved]: a compensating phase begun now would refund nothing and leave the charge standing. The engine retries `advance(s1)`: the re-entry arm finds the unresolved attempt (branch 2) and re-attempts *charge* under the **same `effect_key e2`**; the payment service — the deployment's `effect_key_honoured` target — recognizes `e2` as already charged and returns the original result, `charge_id` included, without charging again; this time the append lands and the `fire` follows. The card is charged exactly once despite two [Advance] attempts. Note which half did the work: `applied_effects` was empty for `e2` throughout, because the record it is built from is the one that failed; the payment service's key discipline prevented the double-charge, and the attempt marker is what let [Cancel] refuse. Had the second delivery of `advance(s1)` arrived while the first was still inside its bound, `per_run_serialization` would have held it until the first returned — two writers reading one empty ledger is the double-charge the section exists to prevent. Had the *charge* call instead timed out with no reply, the same marker would stand, the invocation would re-attempt under `e2` until a verdict or the bound and then return [Effect Indeterminate] (no-verdict), and the run would not flip to compensating over a charge that may have landed. Had the payment service answered that it recognized `e2` but had lost its result, the run would halt at the bound with [Effect Indeterminate] (target-unknown), and only an operator's `advance(s1, within_horizon = true)` would re-ask it.
+Run step 3 again with a realistic engine. `advance(s1)` appends `step_attempted(charge, e2)`, charges the card under `e2`, the charge succeeds, but the `step_completed` append fails and keeps failing until `step_completion_bound`; the invocation yields with `storage-failure(effect-landed)` — the position telling the engine an effect exists that the log does not record — and the compensable workflow stays at *reserved* with `step_attempted(charge, e2)` standing as its unresolved attempt. A `cancel(s1)` here is refused [Step Unresolved]: a compensating phase begun now would refund nothing and leave the charge standing. The engine retries `advance(s1)`: the re-entry arm finds the unresolved attempt (branch 2) and re-attempts *charge* under the **same `effect_key e2`**; the payment service — the deployment's target, which keeps the target key discipline — recognizes `e2` as already charged and returns the original result, `charge_id` included, without charging again; this time the append lands and the `fire` follows. The card is charged exactly once despite two [Advance] attempts. Note which half did the work: `applied_effects` was empty for `e2` throughout, because the record it is built from is the one that failed; the payment service's key discipline prevented the double-charge, and the attempt marker is what let [Cancel] refuse. Had the second delivery of `advance(s1)` arrived while the first was still inside its bound, the critical section would have held it until the first returned — two writers reading one empty ledger is the double-charge the section exists to prevent. Had the *charge* call instead timed out with no reply, the same marker would stand, the invocation would re-attempt under `e2` until a verdict or the bound and then return [Effect Indeterminate] (no-verdict), and the run would not flip to compensating over a charge that may have landed. Had the payment service answered that it recognized `e2` but had lost its result, the run would halt at the bound with [Effect Indeterminate] (target-unknown), and only an operator's `advance(s1, within_horizon = true)` would re-ask it.
 
 ### Domain examples
 
@@ -566,10 +595,10 @@ Run step 3 again with a realistic engine. `advance(s1)` appends `step_attempted(
 ### Rejection paths
 
 - [Start Compensable Workflow] with a definition whose *charge* step declares no compensation and is not marked read-only or pivot → `rejected(invalid-definition)`. The compensable workflow never starts; the composition refuses to promise all-or-compensated for an irreversible effect.
-- A *refund* compensation fails — definitely, the payment service returned the failure — during the compensating phase with `on_compensation_failure = halt-and-surface` → the compensable workflow appends `compensable_workflow_halted(compensating, charge)` and enters the non-terminal [Halted] holding state, surfacing the outstanding refund as a records-visible obligation; it rests *visibly stalled*, not in a silent partial, and once the refund path is repaired an operator's `advance(s1, within_horizon = true)` appends the resume marker for *charge*, fires back to the compensating phase, and re-runs the refund under its same key (re-entry branch 2) and the compensable workflow proceeds to [Compensated]. With continue, `compensation_failed(charge)` is recorded, the remaining compensations run, and the run ends in [Halted] carrying the failed refund — never in [Compensated], never dropped.
+- A *refund* compensation fails — definitely, the payment service returned the failure — during the compensating phase with `on_compensation_failure = halt-and-surface` → the compensable workflow appends `compensable_workflow_halted(compensating, charge)` and enters the non-terminal [Halted] holding state, surfacing the outstanding refund as a records-visible obligation; it rests *visibly stalled*, not in a silent partial, and once the refund path is repaired an operator's `advance(s1, within_horizon = true)` appends the resume marker `compensation_attempted(charge, e4)`, fires back to the compensating phase, and re-runs the refund under its same key (re-entry branch 2) and the compensable workflow proceeds to [Compensated]. With continue, `compensation_failed(charge)` is recorded, the remaining compensations run, and the run ends in [Halted] carrying the failed refund — never in [Compensated], never dropped.
 - A post-pivot *dispatch* step keeps failing → the invocation re-attempts under its key until `step_completion_bound`, then appends `compensable_workflow_halted(forward, dispatch)`, fires it, and returns [Step Failed]; the run rests in [Halted] in the forward phase, and the next [Advance] — with `within_horizon = true` — appends the resume marker and re-attempts.
-- The *charge* target returns reversal arguments larger than the step's declared envelope → `step_completed(charge, …, arguments_overflow = true)` with the arguments truncated, `compensable_workflow_halted(forward, charge)`, [Arguments Overflow] returned; the operator's `advance(s1, within_horizon = true, compensation_arguments = {charge_id})` resumes the run, and if it later compensates, `compensation_run(charge, e4, arguments_source = operator)` says whose arguments reversed it.
-- A `fire` after a landed record returns invalid-transition → `compensable_workflow_halted(forward, charge, finding = spine-fault(invalid-transition))`, [Spine Fault] returned: the declaration and the log disagree, which validation was meant to foreclose, and the run rests surfaced until the finding is cleared and an operator resumes it. Roll-forward is bounded per invocation and surfaced between, never an unbounded loop.
+- The *charge* target returns reversal arguments larger than the step's declared envelope → `step_completed(charge, …, arguments_overflow = true)` with the arguments truncated, `compensable_workflow_halted(forward, charge)`, [Arguments Overflow] returned; the operator's `advance(s1, within_horizon = true, compensation_arguments = {charge_id})` appends the resume marker `step_attempted(charge, e2, compensation_arguments = {charge_id})` — `e2` is already applied, so nothing re-runs — and resumes the run, and if it later compensates, `compensation_run(charge, e4, arguments_source = operator)` says whose arguments reversed it.
+- A `fire` after a landed record returns invalid-transition → `compensable_workflow_halted(forward, charge, finding = spine-fault(invalid-transition))`, [Spine Fault] returned: the spine and the log disagree, which the spine transitions were meant to foreclose, and the run rests surfaced: no act of the composition clears a finding, so every later [Advance] answers [Spine Fault] (Primitive policy 27). Roll-forward is bounded per invocation and surfaced between, never an unbounded loop.
 
 ---
 
@@ -582,19 +611,20 @@ An implementation is acceptable when the conformance checks below are provable t
 ```
 Check 1.1: An auditor MUST find EXACTLY ONE event PER recorded act in the step log (Invariant 1.1).
 Check 1.2: An auditor MUST find a recorded act behind EVERY event of the step log (Invariant 1.2).
-Check 2.1: An auditor MUST find the spine's current state equal to a fresh replay of the step log at a quiescent point (Invariant 2.1).
+Check 2.1: An auditor MUST find the spine's current state equal to the replayed state of a fresh replay of the step log at a quiescent point of a compensable workflow carrying no fault halt (Invariant 2.1).
 Check 2.2: An auditor MUST derive the progress from the step log AND NOT from the spine (Composes 7).
-Check 3.1: An auditor MUST find EXACTLY ONE compensation reference on EVERY step completion event of an effect step (Invariant 3.1).
+Check 3.1: An auditor MUST find EXACTLY ONE compensation reference on EVERY step completion event of an effect step that IS NOT IN the roll-forward steps (Invariant 3.1).
 Check 4.1: An auditor MUST find a compensation run event for EVERY step completion event of a compensable workflow carrying a compensation close event (Invariant 4.1).
 Check 4.2: An auditor MUST find a step completion event for EVERY declared step of a compensable workflow carrying a commit event (Invariant 4.2).
 Check 4.3: An auditor MUST find no compensation onset event in a compensable workflow carrying a commit event (Invariant 4.3).
 Check 4.4: An auditor MUST find no terminal marker in a compensable workflow carrying an unresolved attempt (Invariant 4.5).
-Check 4.5: An auditor MUST find EVERY attempt marker a halt event names still unresolved in the replay of the halt event's prefix (Replay 12).
+Check 4.5: An auditor MUST find the same unresolved attempts in the replay of a halt event's prefix AND in the replay of that prefix with the halt event (Replay 12).
 Check 5.1: An auditor MUST find compensation run events in the reverse of the step completion order under the reverse compensation order (Invariant 5.1).
 Check 6.1: An auditor MUST find no compensable workflow carrying two terminal markers (Invariant 6.1).
 Check 6.2: An auditor MUST find a recorded horizon assertion on EVERY resume marker (Event schema 6).
 Check 7.1: An auditor MUST find no two completion records carrying one effect key (Invariant 7.2).
-Check 7.2: An auditor MUST find EVERY effect key derived from the compensable workflow id AND the step (Composition state 11).
+Check 7.2: An auditor MUST find EVERY step's effect key derived from the compensable workflow id AND the step (Composition state 11).
+Check 7.3: An auditor MUST find EVERY compensation's effect key derived from the compensable workflow id, the step AND the compensation reference (Composition state 12).
 Check 8.1: An auditor MUST find no step completion event following a compensation onset event (Invariant 8.1).
 Check 8.2: An auditor MUST find operator as the input source on EVERY compensation run event for an overflowed step (Primitive policy 24).
 ```
@@ -634,9 +664,19 @@ Non-goal 13: A deployment needing a regulated compensable workflow MUST compose 
 Non-goal 14: The composition MUST NOT promise a window for discharging an open obligation.
 Non-goal 15: The composition MUST NOT enumerate the compensable workflow records.
 Non-goal 16: A deployment needing a list of compensable workflows MUST supply the deployment's own index.
+Non-goal 17: The composition MUST NOT decide who may call the composition's actions.
+Non-goal 18: A deployment needing an authorization decision MUST compose Permissions.
+Non-goal 19: The composition MUST NOT decide the retention of the step log, the spine's history AND the compensable workflow records.
+Non-goal 20: A deployment needing a retention bound MUST compose Retention Window.
+Non-goal 21: The composition MUST NOT record a supplied reason.
+Non-goal 22: A calling system needing a recorded reason MUST store the reason.
 ```
 
-NOTE: the owners — Semantic Lock *(forthcoming)* (Non-goal 3, Non-goal 4); a single transactional database (Non-goal 5, Non-goal 6); operational escalation (Non-goal 10, Non-goal 11); a regulated compensable workflow composing [Audit Trail](./audit-trail.md), a future composition (Non-goal 12, Non-goal 13).
+NOTE: the owners — Semantic Lock *(forthcoming)* (Non-goal 3, Non-goal 4); a single transactional database (Non-goal 5, Non-goal 6); operational escalation (Non-goal 10, Non-goal 11); a regulated compensable workflow composing [Audit Trail](./audit-trail.md), a future composition (Non-goal 12, Non-goal 13); [Permissions](../atoms/permissions.md) (Non-goal 17, Non-goal 18); [Retention Window](../atoms/retention-window.md) (Non-goal 19, Non-goal 20); the calling system (Non-goal 21, Non-goal 22).
+
+NOTE: watch the adopter's policy note (State Machine Composition note 4 and note 7; Non-goal 17 through 20).
+
+NOTE: watch the optional field no rule records (Primitive policy 6; Non-goal 21).
 
 Where the composition breaks down: when a step's external effect is irreversible *and* not a markable pivot — nothing can compensate it and it cannot be retried to success; when step effects are not idempotent and the executor retries, which fails Invariant 7 at the root; and when the steps require true isolation rather than eventual all-or-nothing.
 
@@ -663,7 +703,7 @@ Indeterminate outcome 2: The composition MUST NOT resolve an unresolved attempt 
 
 ## Terms
 
-Each `[Term]` marker above links to its term entry here; a term entry states what the concept *is*, in plain English, and its **Kind**, and — for a Field, a Parameter or a wire Member — carries the one **Projection** line where the concrete name stays visible on the page. The composition's own concepts are the five actions it exposes, the [Compensating Action] it introduces, the fields and parameters of the records and calls it owns, its outcomes and holding state, and its own refusals. The deployment settings keep their wire spellings in configuration — `compensation_order`, `on_compensation_failure`, `per_run_serialization`, `effect_key_honoured` — and the compensable workflow records and derived indexes in an implementation — `compensable_workflow_store`, `step_log`, `completed_steps`, `unresolved_attempts`, `compensation_registry`, `applied_effects`; the page names each in English where it declares it. *(annotation.md Terms registry; representational only — it changes no guarantee, invariant, or behavior of the composition above.)*
+Each `[Term]` marker above links to its term entry here; a term entry states what the concept *is*, in plain English, and its **Kind**, and — for a Field, a Parameter or a wire Member — carries the one **Projection** line where the concrete name stays visible on the page. The composition's own concepts are the five actions it exposes, the [Compensating Action] it introduces, the fields and parameters of the records and calls it owns, its outcomes and holding state, and its own refusals. The deployment settings keep their wire spellings in configuration — `compensation_order`, `on_compensation_failure`, — and the compensable workflow records and derived indexes in an implementation — `compensable_workflow_store`, `step_log`, `completed_steps`, `unresolved_attempts`, `compensation_registry`, `applied_effects`; the page names each in English where it declares it. *(annotation.md Terms registry; representational only — it changes no guarantee, invariant, or behavior of the composition above.)*
 
 ### Vocabulary
 
@@ -681,19 +721,19 @@ Term cadences: empty.
 
 Term qualifiers: migrated — rewritten in GRACE lang v0.61 (2026-09-23).
 
-Term terms: composition, constituents, compensable workflow, spine, step log, log projection, progress, compensable workflow records, compensable workflow id, definition, definition reference, start instant, completed steps, unresolved attempts, compensation registry, applied effects, effect key, replay, standing halt, named step, resolving event, compensation order, compensation failure policy, step completion bound, critical section, lease length, target, target key discipline, effect key horizon, longest attempt gap, captured input cap, supplied reason, horizon assertion, compensation inputs, overflowed step, oversized inputs, input envelope, captured inputs, largest admitted record, effect step, step marker, unmarked irreversible step, roll-forward step, truncation mark, input source, advance result, cancel result, indeterminate reason, advance failure position, cancel failure position, section-taking action, invocation, re-entry arm, effect, compensation, attempt, effect verdict, forward advance, compensating advance, next step, pending compensation, standing failure, resumed attempt, completion record, marker, unrecorded effect, spine refusal, fault halt, finding, validated start, admitted start, halted advance, admitted cancel, event type, attempt marker, phase marker, terminal marker, resume marker, recorded horizon assertion, transition-bearing event, open obligation, recorded act, quiescent point.
+Term terms: composition, constituents, compensable workflow, spine, step log, log projection, progress, compensable workflow records, compensable workflow id, definition, definition reference, start instant, completed steps, unresolved attempts, compensation registry, applied effects, effect key, replay, standing halt, named step, resolving event, compensation order, compensation failure policy, step completion bound, critical section, lease length, target, target key discipline, effect key horizon, longest attempt gap, captured input cap, supplied reason, horizon assertion, compensation inputs, overflowed step, overflow halt, oversized inputs, input envelope, captured inputs, largest admitted record, effect step, step marker, unmarked irreversible step, roll-forward step, truncation mark, input source, advance result, cancel result, indeterminate reason, advance failure position, cancel failure position, section-taking action, invocation, re-entry arm, effect, compensation, attempt, effect verdict, forward advance, compensating advance, next step, pending compensation, standing failure, resumed attempt, completion record, marker, unrecorded effect, spine refusal, fault halt, finding, validated start, admitted start, halted advance, admitted cancel, spine transitions, event type, attempt marker, phase marker, terminal marker, resume marker, recorded horizon assertion, transition-bearing event, open obligation, recorded act, quiescent point, replayed state.
 
 Term cited: Execution Contract Conformance 8 — recursive conformance and the inherited guarantee. The section titled Composition state in `execution-contract.md` — the derived-index classification. workflow, instance id, subject reference, instantiate, fire, current: State Machine. append, read, query, event id, sequence number, recording instant, payload cap, landed: Event Log. Idempotent Reservation Invariant 8.1 — the peer's exactly-once claim and the claim's conditions.
 
 #### Start Compensable Workflow
 
-The action that begins a compensable workflow. It validates the definition — refusing [Invalid Definition] where a step with an external effect declares neither a [Compensating Action] nor a step marker, and Event Log's invalid-payload where the largest record the definition admits would exceed the payload cap — instantiates the spine over the declared step and compensation sequence, and appends the start event. The start event's recording instant is the compensable workflow's [Start Instant]. Answers the compensable workflow id (Primitive policy 12 through 17, Action wiring 62 through 68).
+The action that begins a compensable workflow. It validates the definition — refusing [Invalid Definition] where a step with an external effect declares neither a [Compensating Action] nor a step marker, and Event Log's invalid-payload where the largest record the definition admits would exceed the payload cap — instantiates the spine over the spine transitions, and appends the start event. The start event's recording instant is the compensable workflow's [Start Instant]. Answers the compensable workflow id (Primitive policy 12 through 17, Action wiring 62 through 68).
 
 Kind: Operation
 
 #### Advance
 
-The composition's emergent, load-bearing action — the *advance-or-compensate* verb neither constituent has. Under the critical section it first re-enters from the step log — an unresolved attempt or a fresh step — and, from [Halted], runs the halted arm under the operator's [Horizon Assertion], with [Compensation Inputs] for an overflowed step. In the forward phase it appends an attempt marker, runs the next step under its [Effect Key] and records the completion; in the compensating phase it does the same for the next [Compensating Action]. Answers the step and the progress it left; refuses [Step Failed] when a step's effect definitely fails, [Arguments Overflow] when the target's reversal inputs exceed the envelope, [Effect Indeterminate] when no usable verdict arrived by the bound, [Spine Fault] when a `fire` after a landed record is refused, and storage-failure naming where the failing write sat (Action wiring 9 through 11, Action wiring 15 through 55, Action wiring 57 through 61).
+The composition's emergent, load-bearing action — the *advance-or-compensate* verb neither constituent has. Under the critical section it re-enters from the step log — an unresolved attempt or a fresh step — and, from [Halted], first runs the halted arm under the operator's [Horizon Assertion], with [Compensation Inputs] for an overflowed step, and re-enters after the transition back. In the forward phase it appends an attempt marker, runs the next step under its [Effect Key] and records the completion; in the compensating phase it does the same for the next [Compensating Action]. Answers the step and the progress it left; refuses [Step Failed] when a step's effect definitely fails, [Arguments Overflow] when the target's reversal inputs exceed the envelope, [Effect Indeterminate] when no usable verdict arrived by the bound, [Spine Fault] when a `fire` after a landed record is refused, and storage-failure naming where the failing write sat (Action wiring 9 through 11, Action wiring 15 through 55, Action wiring 57 through 61).
 
 Kind: Operation
 
@@ -781,7 +821,7 @@ Projection: within_horizon_asserted
 
 #### Compensation Inputs
 
-The reversal inputs an operator supplies on the [Advance] that resumes a compensable workflow halted on an overflowed step, within the step's input envelope, and recorded as operator in the [Input Source] of the compensation run that spends them (Primitive policy 9, 10 and 23).
+The reversal inputs an operator supplies on the [Advance] that resumes a compensable workflow halted on an overflowed step, within the step's input envelope, kept on the step's resume marker, and recorded as operator in the [Input Source] of the compensation run that spends them (Primitive policy 9, 10 and 23, Event schema 12).
 
 Kind:         Parameter
 Parameter of: Advance
@@ -815,7 +855,7 @@ Projection: compensated
 
 #### Halted
 
-The explicitly surfaced, **non-terminal** holding state a stalled compensation enters under the halt-and-surface policy, or a failed roll-forward step at the step completion bound, an overflowed envelope, a target that lost the outcome, or a spine fault. The halt event **parks** the attempts it names — they stay unresolved, so [Cancel] stays refused. Not a third terminal: an operator's [Advance] carrying the [Horizon Assertion] appends a resume marker per named step and returns the compensable workflow to the phase it left. Carries the outstanding compensation or step as a visible, routed obligation — never a silent partial.
+The explicitly surfaced, **non-terminal** holding state a stalled compensation enters under the halt-and-surface policy, or a failed roll-forward step at the step completion bound, an overflowed envelope, a target that lost the outcome, or a spine fault. The halt event resolves no attempt — an unresolved attempt it names stays **parked**, so [Cancel] stays refused [Step Unresolved]; an overflowed step or a standing failure it names carries none. Not a third terminal: outside a spine fault, an operator's [Advance] carrying the [Horizon Assertion] appends a resume marker per named step and returns the compensable workflow to the phase it left. Carries the outstanding compensation or step as a visible, routed obligation — never a silent partial.
 
 Kind:       Member
 Member of:  the compensable workflow phase
@@ -860,7 +900,7 @@ Projection: arguments-overflow
 
 #### Spine Fault
 
-The composition's own refusal from [Advance] or [Cancel] when a `fire` after a landed record answers a spine refusal the definition validation forecloses — meaning the declaration and the log disagree. A conformance fault, not a position: the compensable workflow halts carrying the finding, fires nothing further, and rests surfaced until the finding is cleared and an operator resumes it (Action wiring 57 through 59).
+The composition's own refusal from [Advance] or [Cancel] when a `fire` after a landed record answers a spine refusal the spine transitions foreclose — meaning the spine and the log disagree. A conformance fault, not a position: the compensable workflow halts carrying the finding, fires nothing further, and rests surfaced; no act of the composition clears a finding, so every later [Advance] answers it again and the repair is the operator's (Action wiring 57 through 59, Primitive policy 27).
 
 Kind:       Member
 Member of:  the advance refusal
@@ -930,9 +970,15 @@ It composes with, and is positioned against, [Idempotent Reservation](./idempote
 ```
 status: partially resolved
 formal: pending — re-derivation, 2026-08-30: the model has no attempt marker, no per-run section as a second process over one act, no indeterminate verdict, and no key horizon; was verified — compensable-workflow.tla + 2 twins, 2026-06-16
-last gate: 2026-06-16 — Final Critique 4, fresh reader — clean
+last gate: 2026-11-03 — Final Critique 5, frozen at f0729b8 — foundational count 12, cured, not clean, no sample; Final Critique 4, 2026-06-16, fresh reader — clean
 
 open:
+- 2026-11-03-a · refining · Action wiring 16, Action wiring 32 · the parallel compensation order carries no semantics, so PER and the advance result's single step are unevaluable under it → say what a parallel compensating advance runs and names, or retire the order
+- 2026-11-03-b · refining · Composes 3 · nothing provisions the per-run Event Log instance or maps the compensable workflow id to it → name the owner
+- 2026-11-03-c · refining · Action wiring 1 · nothing says how the bound's elapsing is observed or what a failed take of the critical section answers → decide the answer
+- 2026-11-03-d · refining · Capability requirement 17 · the longest attempt gap includes a rest in the halted phase, which the deployment cannot keep → decide whether the halted rest is bounded or answered by the horizon assertion alone
+- 2026-11-03-e · refining · Composes 4 · a fire by another caller breaks Invariant 2.1 with no fault halt → bar a second caller or name its owner
+- 2026-11-03-f · refining · Action wiring 15 · two markers share one effect key after a resume → say whether the re-entry arm runs per marker or per key
 - 2026-08-30-a · refining · formal · the model lacks the attempt markers, `per_run_serialization` as a second writer over one act with lease expiry as its terminus, the four-way verdict, the halted marker that parks rather than resolves, and the operator's resume → extend it
 ```
 
