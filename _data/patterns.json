@@ -409,7 +409,7 @@
  "condition-register": {
   "composed_by": [],
   "domain": null,
-  "grounded": false,
+  "grounded": true,
   "invariants": 5,
   "kind": "atom",
   "models": {
@@ -420,7 +420,7 @@
   "regulated_by": [],
   "security": false,
   "standards": [],
-  "status": "partially resolved",
+  "status": "grounded on Final Critique 4 \u2014 2026-11-04 at 7f522a9",
   "title": "Condition Register"
  },
  "consent": {

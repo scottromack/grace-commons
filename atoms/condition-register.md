@@ -222,7 +222,7 @@ The case space, and the rule that owns each case:
 | any writing action | database refuses the write | [Storage Failure] | none (Operation 27) |
 | [Report Standing], [Report Clear] | an open record whose last seen follows now | [Storage Failure] | none (Invariant 4.2, Invariant 4.3, Operation 27) |
 | [List Conditions] | a declared condition, a window, an optional status and continuation key | the matching records with the earliest listing keys, up to the page size, in listing-key order; none where none match | none (Operation 28, Operation 29, Operation 31) |
-| [List Conditions] | an undeclared condition, a window that ends before it starts or has a blank bound, a listed status that is not open, closed or blank, or a malformed continuation key | [Invalid Request] | none (Operation 33, Operation 34, Operation 42, Operation 43, Operation 44) |
+| [List Conditions] | an undeclared, blank or over-long condition, a window that ends before it starts or has a blank bound, a listed status that is not open, closed or blank, or a continuation key that is not blank and is malformed | [Invalid Request] | none (Operation 25, Operation 33, Operation 34, Operation 42, Operation 43, Operation 44, Operation 45) |
 
 ### Invariants
 
@@ -254,6 +254,8 @@ The case space, and the rule that owns each case:
   Invariant 5.1: EVERY sighting's run id MUST stand non-blank.
   Invariant 5.2: EVERY standing record's first run id and last run id MUST stand non-blank.
   ```
+
+NOTE: open 2026-11-04-a — Invariant 2.2 and Invariant 3.2 are written as an act the database performs, which Standard label 14 bars the Invariant family; eight invariants in four atoms (Condition Register, Owed Record, Erasure Tombstone, Capability) take the same form, and a race's loser answers by Execution Contract Database 2, not by the refusal.
 
 Invariants 1 and 4 give *a faithful history*: what a run saw reads the same forever, and a span only grows forward until it closes. Invariant 2 gives *one sighting per subject*, however many runs find it. Invariant 3 gives *distinct spans*: an outage is one record while it lasts, and a recurrence is another. Invariant 5 gives *provenance*: every record names the run that saw it.
 
@@ -653,17 +655,18 @@ Inherited from:
 
 ## Status
 
-`partially resolved` — see the Ledger.
+`grounded on Final Critique 4 — 2026-11-04 at 7f522a9` — see the Ledger.
 
 ## Ledger
 
 ```
-status: partially resolved
+status: grounded on Final Critique 4 — 2026-11-04 at 7f522a9
 formal: not applicable — vote no 2026-11-02: no guard reads the clock, which only stamps the instants (Clock dependence 1), and the atom claims no commit order of its own; its one-sighting-per-subject, one-open-span and forward-running-span claims are single-record properties the database refuses (Invariant 2.2, 3.2, 4) and each action's rules hold, its listing order is a sort over stored fields, and its concurrency is Execution Contract Database 2's
-last gate: 2026-11-03 — Final Critique 3, frozen at aeea14e — foundational count 2, all cured, not clean, no sample; Final Critique 2, a delta round, frozen at dd11876 — foundational count 0, clean, no sample; Final Critique 1, frozen at ebdfc8e — foundational count 7, all cured, not clean, no sample
+last gate: 2026-11-04 — Final Critique 4, a delta round, frozen at 7f522a9 — foundational count 0, clean, no sample; 2026-11-03 — Final Critique 3, frozen at aeea14e — foundational count 2, all cured, not clean, no sample; Final Critique 2, a delta round, frozen at dd11876 — foundational count 0, clean, no sample; Final Critique 1, frozen at ebdfc8e — foundational count 7, all cured, not clean, no sample
 
 open:
 - 2026-11-03-a · refining · Operation 13, Operation 21 · a conflict retry under Execution Contract Database 2 may keep its one clock reading (Logic confinement 3), so a call serialized after a later one answers storage-failure through the row on Invariant 4.3 where a build that locks before it reads the clock answers advanced; the Execution Contract owns whether a retry reads the clock again → decide whether Database 2 and Logic confinement 3 say a retry reads the clock again
+- 2026-11-04-a · refining · Invariant 2.2, Invariant 3.2 · the two are written as an act the database performs (Standard label 14 bars an act in the Invariant family), as are eight invariants in four atoms → decide whether the Invariant family may name the database's refusal, or each such invariant is restated as a state
 ```
 
 <details markdown="block">
