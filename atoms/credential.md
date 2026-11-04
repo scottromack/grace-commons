@@ -678,7 +678,7 @@ Kind: Operation
 
 #### Read
 
-The read-only query answering the matching [Credential] records, each carrying its stored fields — never the [Verifier] — and its derived [Effective Status].
+The read-only query answering the [Credential] records that match a [Filter], each carrying its stored fields — never the [Verifier] — and its derived [Effective Status].
 
 Kind: Operation
 
@@ -808,6 +808,14 @@ The raw material the principal supplies to [Verify]: a secret for a secret-deriv
 Kind:         Parameter
 Parameter of: Verify
 Projection:   presented_material
+
+#### Filter
+
+The matching criteria supplied to [Read]: a principal reference, a credential type, a credential id, or any combination of them. A credential matches when it carries every value the filter names and the filter names no other field, so a filter naming no field matches every credential.
+
+Kind:         Parameter
+Parameter of: Read
+Projection:   filter
 
 #### Reason
 
@@ -953,6 +961,7 @@ Projection: storage-failure
 [Effective Status]: #effective-status
 [Credential Material]: #credential-material
 [Presented Material]: #presented-material
+[Filter]: #filter
 [Reason]: #reason
 [Now]: #now
 [Active]: #active
