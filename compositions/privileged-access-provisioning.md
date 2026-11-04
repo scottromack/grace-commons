@@ -24,7 +24,7 @@ A request is submitted under a named requestor, must clear a mandatory multi-par
 
 It combines six patterns: the multi-party approval gate, credential authentication, time-limited sessions, caller authorization (Permissions), the access token itself (a Capability — a bearer token good for a bounded time and scope), and the tamper-evident audit record spanning the whole arc.
 
-The central guarantees, which appear only when the patterns are combined, are that no access token can exist without an approved chain behind it (so an auditor can confirm every token traces back to real approvals), that access cannot be used under an expired or revoked session, and that the entire recorded arc — request, approvals, provisioning, each use, and revocation — sits in one audit record with no gaps and nothing to cross-correlate; expiry is derived from the token's own deadline and writes nothing. Modeling the access as a time-limited token rather than a standing permission is deliberate: privileged access is temporary authorization, not indefinite access.
+The central guarantees, which appear only when the patterns are combined, are that no access token can exist without an approved chain behind it (so an auditor can confirm every token traces back to real approvals), that access cannot be used under an expired or revoked session, and that the entire recorded arc — request, approvals, provisioning, each use, and revocation — sits in one audit trail, reached through the request's event ids; expiry is derived from the token's own deadline and writes nothing. Modeling the access as a time-limited token rather than a standing permission is deliberate: privileged access is temporary authorization, not indefinite access.
 
 This is the worked example of approval-gated provisioning behind privileged access management, break-glass access, and time-boxed administrative escalation.
 
@@ -34,7 +34,7 @@ This is the worked example of approval-gated provisioning behind privileged acce
 
 Privileged access — access to financial controls, patient records, production credentials, source-of-truth databases, cryptographic key material — differs from ordinary access in two ways. First, the grant itself must be authorized by more than one party: a single administrator who can self-approve elevated access to any resource is a control failure under every regulated framework from SOX (the Sarbanes-Oxley Act — US corporate financial-reporting law) to HIPAA (the Health Insurance Portability and Accountability Act — US healthcare-data privacy law) to PCI DSS (the Payment Card Industry Data Security Standard). Second, the access must be time-limited and scoped: indefinite standing access to privileged resources is the most common finding in security audits, because standing access that outlives the business need is indistinguishable from residual access that was never intended.
 
-The six constituents address neither property alone. [Multi-Party Approval](./multi-party-approval.md) enforces the approval gate but does not produce the access artifact. [Capability](../atoms/capability.md) produces the time-limited scoped access token but knows nothing about whether an approval chain cleared. [Session](../atoms/session.md) validates the authenticated channel but does not gate any downstream action. [Credential](../atoms/credential.md) authenticates the principal but does not know what they are requesting access to. [Permissions](../atoms/permissions.md) authorizes who may ask but neither approves nor provisions. [Audit Trail](./audit-trail.md) records everything and decides nothing. The composition is the layer that wires these concepts into a single, enforceable arc: no Capability is issued without an Approved chain; no access exercise succeeds without an active Session; the full arc is recorded in one tamper-evident Audit Trail.
+The six constituents address neither property alone. [Multi-Party Approval](./multi-party-approval.md) enforces the approval gate but does not produce the access artifact. [Capability](../atoms/capability.md) produces the time-limited scoped access token but knows nothing about whether an approval chain cleared. [Session](../atoms/session.md) validates the authenticated channel but does not gate any downstream action. [Credential](../atoms/credential.md) authenticates the principal but does not know what they are requesting access to. [Permissions](../atoms/permissions.md) authorizes who may ask but neither approves nor provisions. [Audit Trail](./audit-trail.md) records the arc and decides none of its approvals. The composition is the layer that wires these concepts into a single, enforceable arc: no Capability is issued without an Approved chain; no access exercise succeeds without an active Session; the full arc is recorded in one tamper-evident Audit Trail.
 
 The load-bearing design decision is that privileged access is modeled as a Capability token rather than a Permissions grant. Permissions grants are persistent until revoked and identity-keyed — they say "this actor may perform this action, indefinitely." Capability tokens are time-bounded, scoped, and bearer-keyed — they say "whoever holds this token may exercise this specific access once (or N times), until this date." Privileged access is temporary authorization, not standing access. The bearer-key property of Capability is a feature here: the access token can be handed off to an automated system or a break-glass process without requiring the executing agent to carry the principal's identity. The Capability's own audit record names the allocator (the composition, acting on behalf of the approved request) and the requestor (via the request record); it intentionally does not name the redeemer — the atom's declared audit asymmetry. What re-binds identity at exercise time is this composition's session gate: `Session.validate`'s declared return hands back the session's `principal_ref`, and the exercise record names it. The asymmetry the composition defends is therefore precise: the *token* never knows its bearer; the *exercise record* names the authenticated principal of the session it was exercised under — which is the identity regulated audit actually needs, supplied by the constituent's declared surface rather than by subverting the token.
 
@@ -99,7 +99,7 @@ Term chains read: the approval substrate's scope admitting read_chain.
 ```
 Composition state 1: The composition MUST store a request record per request.
 Composition state 2: A request record MUST carry the request id, the requestor reference, the resource reference, the access scope, the justification, the requested instant, the expiry instant, the chain id, the request state AND the audit pending list.
-Composition state 3: A request record MUST carry a denial reason ONLY IF the request state IS IN the refused states.
+Composition state 3: A request record MUST NOT carry a denial reason.
 Composition state 4: The composition MUST NOT change a request record's identity fields.
 Composition state 5: The composition MUST NOT change a chain id a request record carries.
 Composition state 6: The composition MUST change a request state PER the request progression.
@@ -127,7 +127,7 @@ Composition state 27: The composition MUST add an event id to the request-to-eve
 Composition state 28: The request-to-events map MUST NOT key an event carrying blank as the request id.
 Composition state 29: The composition MUST NOT rebuild an index entry from an aged event.
 Composition state 30: The composition MUST leave standing an index entry whose event is an aged event.
-Composition state 31: A pending entry MUST carry the action reference, the event data AND the invocation id of the record the pending entry owes.
+Composition state 31: A pending entry other than an evaluation entry MUST carry the action reference, the event data AND the invocation id of the record the pending entry owes.
 Composition state 32: The composition MUST close a pending entry ONLY AFTER the pending entry's record lands.
 Deleted: Composition state 33. Execution Contract Database 2 owns it.
 Deleted: Composition state 34. Execution Contract Database 2 owns it.
@@ -217,7 +217,12 @@ Capability requirement 29: The host MUST inject one invocation id per state-chan
 Capability requirement 30: An admitted request MUST take the invocation id as the request id.
 Capability requirement 31: The composition MUST NOT mint an id inside a transition.
 Capability requirement 32: The deployment MUST supply the database PER Execution Contract Database 1 through 4.
+Capability requirement 33: IF the credential type, the composed-scope encoding, the reference caps OR the service identity EQUALS blank THEN the composition MUST refuse to start.
 ```
+
+NOTE: watch the unset setting (Capability requirement 33).
+
+NOTE: open 2026-11-04-b (Capability requirement 10).
 
 Term default ttl: the time-to-live — the validity duration — a request carries where the requestor supplies none.
 
@@ -249,7 +254,7 @@ Term now: the deployment's clock reading at the call, as Execution Contract Logi
 
 Term invocation id: the fresh id the host injects at the seam for each state-changing invocation, carried on every event and pending entry the invocation writes.
 
-Term remaining ttl: `(expiry instant - now)`, the time-to-live the cascade passes to allocate.
+Term remaining ttl: `(expiry instant - now)`, rounded down to a whole number of seconds, the time-to-live the cascade passes to allocate.
 
 ### Primitive policy
 
@@ -274,22 +279,24 @@ Term payload budget: the audit substrate's payload cap less the event envelope.
 
 ### Action wiring
 
+NOTE: open 2026-11-04-a (the closure table).
+
 ```
 request_access(requestor_ref, credential, resource_ref, access_scope, justification, approver_set, quorum_rule, optional ttl)
   answers request_id
-  refuses invalid-request | permission-denied | invalid-credential | recording-failure
+  refuses invalid-request | permission-denied | invalid-credential | recording-failure(position)
 
 approve_step(actor_ref, credential, request_id, step_id, optional reason)
   answers approved
-  refuses invalid-request | not-known | not-pending | unauthorized | invalid-credential | recording-failure
+  refuses invalid-request | invalid-credential | not-known | not-pending | unauthorized | recording-failure(position)
 
 reject_step(actor_ref, credential, request_id, step_id, reason)
   answers rejected_outcome
-  refuses invalid-request | not-known | not-pending | unauthorized | invalid-credential | recording-failure
+  refuses invalid-request | invalid-credential | not-known | not-pending | unauthorized | recording-failure(position)
 
 withdraw_request(actor_ref, credential, request_id, reason)
   answers withdrawn
-  refuses invalid-request | not-known | not-pending | unauthorized | permission-denied | invalid-credential | recording-failure
+  refuses invalid-request | invalid-credential | not-known | not-pending | unauthorized | permission-denied | recording-failure(position)
 
 exercise_access(session_token, capability_token)
   answers exercised
@@ -297,7 +304,7 @@ exercise_access(session_token, capability_token)
 
 revoke_access(actor_ref, credential, request_id, reason)
   answers revoked
-  refuses invalid-request | not-known | not-provisioned | invalid-credential | permission-denied | recording-failure
+  refuses invalid-request | invalid-credential | permission-denied | not-known | not-provisioned | recording-failure
 
 read_request(actor_ref, query)
   answers request results
@@ -309,6 +316,12 @@ Term validation failure: expired | revoked | not-known — Session's reasons for
 Term exercise failure: exhausted | expired | revoked | not-known | recording-failure — Capability's redemption failure, or an exercise entry the database refused.
 
 Term request results: the requests a query matches, each carrying the request record's fields, the chain's state, the token's effective status and the request's event ids, in declared order.
+
+Term read query: the filters [Read Request] admits, in any combination — request id, requestor reference, resource reference and request state — and malformed where it filters on another key, where a filter carries a blank value, or where the request state filter names no request state (Action wiring 106).
+
+Term unavailable: the chain's state a request result carries where read chain refused (Action wiring 109), the one value beside Multi-Party Approval's Pending, Approved, Rejected and Withdrawn.
+
+Term mapped refusal: the refusal [Request Access] answers for the initiate chain refusal that closed the request (Action wiring 22 through 25), carried as the initiation-failed withdrawal event's reason.
 
 ```
 Action wiring 1: A credentialed action MUST call Credential's verify with the actor reference, the credential type AND the credential.
@@ -325,7 +338,7 @@ Action wiring 11: IF Permissions answers denied THEN the action MUST answer perm
 Action wiring 12: IF the credential check on request EQUALS true THEN [Request Access] MUST call Credential's verify with the requestor reference, the credential type AND the credential.
 Action wiring 13: An admitted request MUST write the request record carrying Pending AND an initiation entry.
 Deleted: Action wiring 14. Execution Contract Database 1 owns it.
-Action wiring 15: IF the database refuses the request record THEN [Request Access] MUST answer recording-failure.
+Action wiring 15: IF the database refuses the request record THEN [Request Access] MUST answer recording-failure carrying intent.
 Action wiring 16: An admitted request MUST call Multi-Party Approval's initiate chain with the requestor reference, the credential, the request id, the access scope, the approver set AND the quorum rule.
 Action wiring 17: IF initiate chain answers the chain id THEN [Request Access] MUST write the chain id onto the request record.
 Action wiring 18: IF initiate chain answers the chain id THEN [Request Access] MUST complete the initiation entry's payload with the chain id.
@@ -335,7 +348,7 @@ Action wiring 21: IF initiate chain refuses THEN [Request Access] MUST close the
 Action wiring 22: IF initiate chain answers invalid-request THEN [Request Access] MUST answer invalid-request.
 Action wiring 23: IF initiate chain answers invalid-credential THEN [Request Access] MUST answer invalid-credential.
 Action wiring 24: IF initiate chain answers permission-denied THEN [Request Access] MUST answer permission-denied.
-Action wiring 25: IF initiate chain answers recording-failure THEN [Request Access] MUST answer recording-failure.
+Action wiring 25: IF initiate chain answers recording-failure THEN [Request Access] MUST answer recording-failure carrying the position unchanged.
 Action wiring 26: The deployment MUST alert on a substrate permission-denied as a wiring fault.
 Action wiring 27: An admitted request MUST record the request event ONLY AFTER initiate chain answers the chain id.
 Action wiring 28: IF the request event lands THEN [Request Access] MUST close the initiation entry.
@@ -346,8 +359,8 @@ Action wiring 32: [Approve Step] MUST call Multi-Party Approval's approve step w
 Action wiring 33: [Reject Step] MUST call Multi-Party Approval's reject step with the actor reference, the credential, the chain id, the step id AND the reason.
 Action wiring 34: IF the approval substrate answers invalid-request, not-known, not-pending OR unauthorized to a decision THEN the decision action MUST answer the substrate's refusal.
 Action wiring 35: IF the approval substrate answers invalid-credential to a decision THEN the decision action MUST answer invalid-credential.
-Action wiring 36: IF the approval substrate answers recording-failure to a decision THEN the decision action MUST answer recording-failure.
-Action wiring 37: IF the approval substrate answers invalid-credential OR recording-failure to a decision THEN the decision action MUST open an evaluation entry.
+Action wiring 36: IF the approval substrate answers recording-failure to a decision THEN the decision action MUST answer recording-failure carrying the position unchanged.
+Action wiring 37: IF the approval substrate answers recording-failure carrying outcome to a decision THEN the decision action MUST open an evaluation entry.
 Action wiring 38: IF the approval substrate answers not-pending to a decision THEN the decision action MUST run the chain evaluation.
 Action wiring 39: A decision action MUST record a decision event carrying the request id, the chain id, the step id, the decision AND the reason ONLY AFTER the approval substrate answers the decision.
 Action wiring 40: A decision action MUST run the chain evaluation ONLY AFTER the approval substrate answers the decision.
@@ -377,11 +390,11 @@ Action wiring 63: An admitted withdrawal MUST call Multi-Party Approval's withdr
 Action wiring 64: IF withdraw chain answers not-pending THEN [Withdraw Request] MUST run the chain evaluation.
 Action wiring 65: IF withdraw chain answers not-pending THEN [Withdraw Request] MUST answer not-pending.
 Action wiring 66: IF withdraw chain answers permission-denied THEN [Withdraw Request] MUST answer permission-denied.
-Action wiring 67: IF withdraw chain answers unauthorized OR not-known THEN [Withdraw Request] MUST answer recording-failure.
+Action wiring 67: IF withdraw chain answers unauthorized OR not-known THEN [Withdraw Request] MUST answer recording-failure carrying intent.
 Action wiring 68: IF withdraw chain answers unauthorized OR not-known THEN the deployment MUST alert on the answer as a conformance fault.
 Action wiring 69: IF withdraw chain answers invalid-credential THEN [Withdraw Request] MUST answer invalid-credential.
 Action wiring 70: IF withdraw chain answers invalid-request THEN [Withdraw Request] MUST answer invalid-request.
-Action wiring 71: IF withdraw chain answers recording-failure THEN [Withdraw Request] MUST answer recording-failure.
+Action wiring 71: IF withdraw chain answers recording-failure THEN [Withdraw Request] MUST answer recording-failure carrying the position unchanged.
 Action wiring 72: An admitted withdrawal MUST record a withdrawal event carrying Withdrawn AND the reason ONLY AFTER withdraw chain answers withdrawn.
 Action wiring 73: An admitted withdrawal MUST set the request state to Withdrawn ONLY AFTER withdraw chain answers withdrawn.
 Action wiring 74: An admitted withdrawal MUST answer withdrawn ONLY AFTER withdraw chain answers withdrawn.
@@ -424,7 +437,14 @@ Action wiring 110: IF Capability's read finds no record for a request THEN the r
 Action wiring 111: A request result MUST NOT carry bearer material.
 Action wiring 112: A permitted read MUST order the results by requested instant, ties by request id, ascending.
 Action wiring 113: IF an owed record's actor credential is in hand THEN the invocation MUST retry the owed record under the actor's credential.
+Action wiring 114: IF Permissions' permitted answers denied THEN [Revoke Access] MUST answer permission-denied.
+Action wiring 115: IF Permissions' permitted answers denied THEN [Read Request] MUST answer permission-denied.
+Action wiring 116: IF the approval substrate answers invalid-credential OR recording-failure carrying intent to a decision THEN the decision action MUST NOT write.
+Action wiring 117: IF read chain answers the chain THEN the chain evaluation MUST close the request's open evaluation entries ONLY AFTER the chain evaluation's writes land.
+Action wiring 118: IF Capability's redeem answers invalid THEN [Exercise Access] MUST complete the exercise entry with the redemption failure.
 ```
+
+NOTE: open 2026-11-04-c (Action wiring 55).
 
 Term credentialed action: [Approve Step] | [Reject Step] | [Withdraw Request] | [Revoke Access].
 
@@ -448,7 +468,7 @@ Term admitted request: a [Request Access] call whose inputs, permission check an
 
 Term initiation entry: the pending entry [Request Access] writes with the request record, carrying the request event's payload less the chain id until initiate_chain answers.
 
-Term evaluation entry: the pending entry recording a chain evaluation owed after a committed decision.
+Term evaluation entry: the pending entry recording a chain evaluation owed after a committed decision, carrying the request id AND the invocation id; its retry is the chain evaluation.
 
 Term denial-reason entry: the pending entry recording a denial event that landed with a blank denial reason.
 
@@ -501,8 +521,8 @@ Deleted: Reconciliation 3. Execution Contract Database 2 owns it.
 Reconciliation 4: The reconciliation MUST NOT emit a record BEFORE reading the trail for an event carrying the record's action reference AND invocation id.
 Reconciliation 5: IF the pre-check finds the event THEN the reconciliation MUST close the entry.
 Reconciliation 6: IF the pre-check finds the event THEN the reconciliation MUST NOT emit the record.
-Reconciliation 7: IF an entry carries no invocation id THEN the reconciliation MUST pair the entry by the entry's request id, action reference, exercised instant AND session principal reference.
-Reconciliation 8: IF the pairing count EXCEEDS one THEN the reconciliation MUST NOT emit the record.
+Deleted: Reconciliation 7. Composition state 31 owns it: every pending entry carries an invocation id, so no entry is paired by its payload fields.
+Deleted: Reconciliation 8. Composition state 31 owns it.
 Deleted: Reconciliation 9. Execution Contract Database 1 owns it.
 Reconciliation 10: The reconciliation MUST NOT write for an aged event.
 Reconciliation 11: The reconciliation MUST attest EVERY write under the service identity.
@@ -527,7 +547,7 @@ Reconciliation 29: The redemption leg MUST land a recovery record for the failed
 Reconciliation 30: IF the request record carries no chain id THEN the initiation leg MUST read the approval substrate for a chain whose subject reference EQUALS the request id.
 Deleted: Reconciliation 31. Execution Contract Database 1 owns it.
 Reconciliation 32: IF the initiation leg finds the chain AND the request state EQUALS Pending THEN the initiation leg MUST land a recovery record for the request event.
-Reconciliation 33: IF the initiation leg finds no chain THEN the initiation leg MUST record an initiation-failed withdrawal event carrying the request shape.
+Reconciliation 33: IF the initiation leg finds no chain THEN the initiation leg MUST record an initiation-failed withdrawal event carrying the request shape AND initiation-failed as the reason.
 Deleted: Reconciliation 34. Execution Contract Database 1 owns it.
 Reconciliation 35: IF the initiation leg finds the chain AND the request state EQUALS Withdrawn THEN the initiation leg MUST close the initiation entry.
 Reconciliation 36: IF the initiation leg finds the chain AND the request state EQUALS Withdrawn THEN the initiation leg MUST report the live chain as a finding.
@@ -543,8 +563,6 @@ Term reconciliation: the leg this composition runs outside every invocation whos
 Term recovery intent: the access_recovery_intended event — the reconciliation's record that the act following it was occasioned by the reconciliation and not by a direct call.
 
 Term recovery record: the access_audit_recovery event — the composition's record standing in for an owed record whose actor is absent.
-
-Term pairing count: the count of events pairing with an entry by the entry's payload fields.
 
 Term refusing chain state: Rejected | Withdrawn.
 
@@ -570,6 +588,8 @@ Provisioning cascade 9: A provisioning event MUST NOT carry the capability token
 Provisioning cascade 10: The provisioning cascade MUST set the request state to Provisioned ONLY AFTER Capability's allocate answers the capability token.
 Provisioning cascade 11: The provisioning cascade MUST deliver the capability token to the requestor through the delivery channel ONLY AFTER Capability's allocate answers the capability token.
 Provisioning cascade 12: The composition MUST NOT carry the capability token on a surface other than the delivery channel.
+Provisioning cascade 13: IF Audit Trail refuses the provisioning event THEN the provisioning cascade MUST open a pending entry carrying the provisioning event.
+Provisioning cascade 14: The provisioning cascade MUST write the request-to-capability entry AND the capability-to-request entry ONLY AFTER Capability's allocate answers the capability token.
 ```
 
 Term provisioning cascade: the internal leg the chain evaluation fires on an Approved chain — allocate, record, deliver; no caller invokes it.
@@ -687,7 +707,7 @@ The gate's rejecting arm, fired: an insider with a perfectly valid session guess
 
 `exercise_access(session_token: sess_k9r2m4, capability_token: cap_FORGED) → rejected(capability-invalid(not-known))`
 
-Session validates as `valid(principal_ref: user_u77, …)` — the session gate passes. `Capability.redeem(cap_FORGED)` returns `invalid(not-known)`: the dedicated instance never allocated it, so it traces to no approval and grants nothing. The attempt is recorded — access_exercise_failed with `{request_id: null, session_principal_ref: user_u77, reason: not-known}` (the declared null-request exception; the forged material itself is never written) — so the auditor sees *who*, under a real session, presented a token the system never issued. The approval gate is visible here in its refusing mode: no chain, no token, no access, and a named principal attached to the attempt.
+Session validates as `valid(principal_ref: user_u77, …)` — the session gate passes. `Capability.redeem(cap_FORGED)` returns `invalid(not-known)`: the dedicated instance never allocated it, so it traces to no approval and grants nothing. The attempt is recorded — access_exercise_failed with `{request_id: blank, session_principal_ref: user_u77, reason: not-known}` (the declared blank-request exception; the forged material itself is never written) — so the auditor sees *who*, under a real session, presented a token the system never issued. The approval gate is visible here in its refusing mode: no chain, no token, no access, and a named principal attached to the attempt.
 
 ### Regulated adversarial scenarios
 
@@ -769,9 +789,12 @@ Non-goal 13: A deployment automating exercise MUST supply the deployment's own a
 Non-goal 14: The composition MUST NOT record a failed session gate.
 Non-goal 15: The composition MUST NOT hide a request's existence from an authenticated caller.
 Non-goal 16: The composition MUST NOT seal a composition index.
+Non-goal 17: The composition MUST NOT refuse an approver set naming the requestor reference.
 ```
 
-NOTE: the owners — the deployment (Non-goal 4 through 7); an Idempotency Result Memo (Non-goal 12); a Failed-Attempt Log *(forthcoming)* (Non-goal 14); the deployment's calling layer (Non-goal 15).
+NOTE: watch the segregation policy (Non-goal 17).
+
+NOTE: the owners — the deployment (Non-goal 4 through 7); an Idempotency Result Memo (Non-goal 12); a Failed-Attempt Log *(forthcoming)* (Non-goal 14); the deployment's calling layer (Non-goal 15); the deployment's segregation policy (Non-goal 17).
 
 ---
 
@@ -798,7 +821,7 @@ Deleted: Concurrency 3. Execution Contract Database 2 owns it: an action's reads
 Expiry 1: The composition MUST NOT write a capability's expiry.
 Expiry 2: A lapsed capability MUST leave the request state Provisioned.
 Expiry 3: The composition MUST NOT gate a decision on the request's expiry instant.
-Expiry 4: A deployment wanting stale requests withdrawn MUST call [Withdraw Request] from the deployment's own scheduler.
+Expiry 4: A deployment wanting stale Pending requests withdrawn MUST call [Withdraw Request] from the deployment's own scheduler.
 ```
 
 ### Multi-use capabilities
@@ -844,9 +867,9 @@ Term cadences: empty.
 
 Term qualifiers: migrated — rewritten in GRACE lang v0.61 (2026-09-23).
 
-Term terms: composition, constituents, approval substrate, audit substrate, trail, chains initiate, chains withdraw, chains read, request record, request id, request state, request progression, open request state, terminal request state, refused state, identity field, request shape, shape-bearing event, state-transition event, bearer material, request-to-chain map, request-to-capability map, capability-to-request map, session access log, session access entry, request-to-events map, audit pending list, pending entry, aged event, quiescence, default ttl, max redemptions default, credential type, credential check on request, approver set minimum, audit horizon, retention floor, longest token lifetime, provisioning proof period, composed scope, service identity, reference caps, seam, now, invocation id, remaining ttl, payload budget, validation failure, exercise failure, request results, credentialed action, decision action, load-bearing act, validated request, admitted withdrawal, validated exercise, verified revocation, admitted revocation, permitted read, admitted request, initiation entry, evaluation entry, denial-reason entry, exercise entry, resolved exercise, chain evaluation, provisioning conjunction, terminal chain action, requests initiate, requests revoke, requests read, reconciliation, recovery intent, recovery record, pairing count, refusing chain state, provisioning cascade, delivery channel, bypass token, operating skew, request event, decision event, provisioning event, denial event, withdrawal event, initiation-failed withdrawal event, provisioning-failure event, exercise event, failed exercise event, revocation event.
+Term terms: composition, constituents, approval substrate, audit substrate, trail, chains initiate, chains withdraw, chains read, request record, request id, request state, request progression, open request state, terminal request state, refused state, identity field, request shape, shape-bearing event, state-transition event, bearer material, request-to-chain map, request-to-capability map, capability-to-request map, session access log, session access entry, request-to-events map, audit pending list, pending entry, aged event, quiescence, default ttl, max redemptions default, credential type, credential check on request, approver set minimum, audit horizon, retention floor, longest token lifetime, provisioning proof period, composed scope, service identity, reference caps, seam, now, invocation id, remaining ttl, payload budget, validation failure, exercise failure, request results, credentialed action, decision action, load-bearing act, validated request, admitted withdrawal, validated exercise, verified revocation, admitted revocation, permitted read, admitted request, initiation entry, evaluation entry, denial-reason entry, exercise entry, resolved exercise, chain evaluation, provisioning conjunction, terminal chain action, requests initiate, requests revoke, requests read, reconciliation, recovery intent, recovery record, refusing chain state, provisioning cascade, delivery channel, bypass token, operating skew, request event, decision event, provisioning event, denial event, withdrawal event, initiation-failed withdrawal event, provisioning-failure event, exercise event, failed exercise event, revocation event, read query, unavailable, mapped refusal, recording failure.
 
-Term cited: Execution Contract Conformance 8 — the recursive inheritance of a constituent's guarantees. The section titled Substrate composition invocation in `execution-contract.md` — the substrate relation and its instance topology. The section titled Composition state in `execution-contract.md` — the derived-index, truth-bearing and extraction-pending classifications. The section titled Logic Confinement Principle in `execution-contract.md` — the seam. initiate chain, approve step, reject step, withdraw chain, read chain, chain id, step id, subject reference, approver set, quorum rule, chain_resolved, chain_withdrawn, Approved, Rejected, Withdrawn, Pending, not-pending, unauthorized: Multi-Party Approval. record action, read record, verify record, event id, payload cap, actor registry, invalid-credential, recording-failure: Audit Trail. verify, failed-verification, verified, Active: Credential. validate, valid, invalid, session token, principal reference: Session. permitted, denied: Permissions. allocate, redeem, revoke, read, capability token, scope, max redemptions, remaining redemptions, ttl, allocator reference, redeemed, effective status, redemption failure, exhausted, expired, revoked, already-terminal, Redeemed, Expired: Capability.
+Term cited: Execution Contract Conformance 8 — the recursive inheritance of a constituent's guarantees. The section titled Substrate composition invocation in `execution-contract.md` — the substrate relation and its instance topology. The section titled Composition state in `execution-contract.md` — the derived-index, truth-bearing and extraction-pending classifications. The section titled Logic Confinement Principle in `execution-contract.md` — the seam. initiate chain, approve step, reject step, withdraw chain, read chain, chain id, step id, subject reference, approver set, quorum rule, chain_resolved, chain_withdrawn, Approved, Rejected, Withdrawn, Pending, not-pending, unauthorized, position: Multi-Party Approval. record action, read record, verify record, event id, payload cap, actor registry, invalid-credential, recording-failure: Audit Trail. verify, failed-verification, verified, Active: Credential. validate, valid, invalid, session token, principal reference: Session. permitted, denied: Permissions. allocate, redeem, revoke, read, capability token, scope, max redemptions, remaining redemptions, ttl, allocator reference, redeemed, effective status, redemption failure, exhausted, expired, revoked, already-terminal, Redeemed, Expired: Capability.
 
 Term composing patterns: [Login](./login.md); [Session-Gated Authorization](./session-gated-authorization.md); [External Onboarding](./external-onboarding.md); [Capability-Backed Sharing](./capability-backed-sharing.md); Failed-Attempt Log *(forthcoming)*; [Owed Record](../atoms/owed-record.md); Trusted Timestamping *(forthcoming)*; Compromise Disclosure *(forthcoming)*.
 
@@ -860,7 +883,7 @@ Term denial event: the access_denied event.
 
 Term withdrawal event: the access_request_withdrawn event.
 
-Term initiation-failed withdrawal event: a withdrawal event carrying initiation-failed as the reason and the request shape — the only event a request closed before its chain existed carries.
+Term initiation-failed withdrawal event: a withdrawal event carrying the request shape and, as the reason, the mapped refusal where initiate chain refused (Action wiring 19) or initiation-failed where the initiation leg found no chain (Reconciliation 33) — the only event a request closed before its chain existed carries.
 
 Term provisioning-failure event: the access_provisioning_failed event.
 
@@ -872,7 +895,7 @@ Term revocation event: the access_revoked event.
 
 #### Request Access
 
-The intake action: submit a privileged-access request under a named requestor, gate it on [Requests Initiate] and — where configured — the requestor's credential, write the request, open its approval chain, and record the request event (Action wiring 10 through 13 and Action wiring 15 through 29). Answers the request id; the request is Pending. Refuses [Permission Denied] where Permissions answers denied (Action wiring 11) and [Invalid Credential] where Credential's verify answers failed-verification (Action wiring 3).
+The intake action: submit a privileged-access request under a named requestor, gate it on [Requests Initiate] and — where configured — the requestor's credential, write the request, open its approval chain, and record the request event (Action wiring 10 through 13 and Action wiring 15 through 29). Answers the request id; the request is Pending. Refuses [Permission Denied] where Permissions answers denied (Action wiring 11) and [Invalid Credential] where Credential's verify answers failed-verification (Action wiring 3) and [Recording Failure] where the database refuses the request record (Action wiring 15).
 
 Kind: Operation
 
@@ -896,13 +919,13 @@ Kind: Operation
 
 #### Exercise Access
 
-The session-gated use of a provisioned token: validate the session *first* — a non-valid session is [Session Invalid] before the token is touched — then resolve the token, write the exercise entry, redeem, and record every attempt that reached the atom, each naming the session's principal (Action wiring 75 through 82 and Action wiring 84 through 94). Not idempotent: each live presentation consumes a redemption, and a consumed redemption is always answered exercised.
+The session-gated use of a provisioned token: validate the session *first* — a non-valid session is [Session Invalid] before the token is touched — then resolve the token, write the exercise entry, redeem, and record every attempt that reached the atom, each naming the principal reference the invocation's validate answered (Action wiring 75 through 82 and Action wiring 84 through 94). Not idempotent: each live presentation consumes a redemption, and a consumed redemption is always answered exercised.
 
 Kind: Operation
 
 #### Revoke Access
 
-The revocation of a provisioned token, gated by [Requests Revoke]; the request moves to Revoked. Answers [Not Provisioned] for a request not Provisioned (Action wiring 95 through 103).
+The revocation of a provisioned token, gated by [Requests Revoke]; the request moves to Revoked, a token already terminal (redeemed, expired or revoked) included (Action wiring 101 through 103). Answers [Not Provisioned] for a request not Provisioned (Action wiring 95 through 103).
 
 Kind: Operation
 
@@ -966,6 +989,15 @@ Member of:  the composition's refusals
 Role:       Rejection
 Projection: permission-denied
 
+#### Recording Failure
+
+The composition's rejection for a write the database refused or a constituent's recording failure relayed, carrying its position — intent, nothing committed and the action retryable in whole; outcome, the act committed and its record owed (Multi-Party Approval's Audit arm 14 and Audit arm 15). The composition's own refusal carries intent (Action wiring 15 and Action wiring 67); the approval substrate's carries its position unchanged (Action wiring 25, Action wiring 36 and Action wiring 71).
+
+Kind:       Member
+Member of:  the composition's refusals
+Role:       Rejection
+Projection: recording-failure
+
 #### Invalid Credential
 
 The refusal when Credential's verify answers failed-verification — material-mismatch or no-active-credential — for a requestor or an approver, or when the approval substrate's attest refuses the credential; the enforcement behind approver-credential completeness (Invariant 6).
@@ -994,6 +1026,7 @@ Projection: invalid-credential
 [Session Invalid]: #session-invalid
 [Permission Denied]: #permission-denied
 [Invalid Credential]: #invalid-credential
+[Recording Failure]: #recording-failure
 
 ---
 
@@ -1023,9 +1056,12 @@ Projection: invalid-credential
 ```
 status: partially resolved
 formal: verified — privileged-access-provisioning.tla, no twin, 2026-06-03
-last gate: 2026-08-28 — second gate after closure, fresh reader — 5 foundational (all since closed), 19 refining, 5 rhetorical
+last gate: 2026-11-04 — Final Critique 3, full, three passes — 9 foundational (all cured this round), 12 refining, 4 rhetorical, not clean
 
 open:
+- 2026-11-04-a · refining · structure · Action wiring carries no closure table, which spec-format.md requires as the subsection's first #### block → draft it as its own authoring unit, every cell owned by a rule
+- 2026-11-04-b · refining · retention · Capability requirement 10 constrains the retention floor, but no rule sets the longest token lifetime or the provisioning proof period, nor refuses a supplied ttl past the longest → decide whether a request over the longest token lifetime is refused or clamped, then set both
+- 2026-11-04-c · refining · withdrawal reason · Action wiring 55 records the terminal event's reason on the withdrawal event with no answer for a destroyed reason, where Action wiring 51 through 52 take blank and open a denial-reason entry → decide whether a blank withdrawal reason owes a recovery entry
 - 2026-08-29-a · refining · formal · the model's sweep carries no pre-check, no identity, no recovery record, and no age bound → extend the model with the four sweep rules
 ```
 
