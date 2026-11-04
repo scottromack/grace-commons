@@ -47,7 +47,7 @@ Revocation is a first-class action rather than a state flag, with its own timest
 
 ```
 Identity 1: The atom MUST identify a consent record by the consent id.
-Identity 2: The host MUST allocate a consent id that DOES NOT EQUAL blank AND DOES NOT EXCEED the string cap.
+Identity 2: The host MUST allocate a consent id that DOES NOT EQUAL blank AND DOES NOT EXCEED the string cap (Execution Contract Input 2).
 Identity 3: The transition MUST NOT allocate a consent id.
 Identity 4: The atom MUST NOT reuse a consent id.
 Identity 5: The atom MUST NOT change a consent id.
@@ -189,6 +189,7 @@ Operation 68: IF a consent record EXISTS for the consent id AND the consent reco
 Operation 69: IF a consent record EXISTS for the consent id AND the consent record is not withdrawn AND the consent record is not elapsed AND reason EXCEEDS the string cap THEN [Revoke] MUST answer invalid-request.
 Operation 74: IF a consent record EXISTS for the consent id AND the consent record is not withdrawn AND the consent record is not elapsed AND a supplied reason is malformed THEN [Revoke] MUST answer invalid-request (Execution Contract Input 1).
 Operation 75: IF a consent record EXISTS for the consent id AND the consent record is not withdrawn AND the consent record is not elapsed AND revoking actor is malformed THEN [Revoke] MUST answer invalid-request (Execution Contract Input 1).
+Operation 77: IF no consent record EXISTS for the consent id OR the consent record is withdrawn OR the consent record is elapsed THEN [Revoke] MUST NOT answer invalid-request on a granted record input fault.
 Operation 26: [Revoke] MUST stand the consent record in revoked.
 Operation 27: [Revoke] MUST record revoking actor on the consent record.
 Operation 28: [Revoke] MUST record the reason as the revocation reason.
@@ -236,7 +237,7 @@ NOTE: watch the state a refusal leaves (Operation 32).
 
 NOTE: watch the filter value over the cap (Operation 76).
 
-NOTE: watch condition negation — invalid-request occupies two rows of [Revoke]'s precedence chain, a blank consent id's ahead of not-known (Operation 15) and a granted record's attribution and instant faults after already-expired (Operation 22 through 25, Operation 67), so the answer alone does not say which guard refused.
+NOTE: watch condition negation — invalid-request occupies two rows of [Revoke]'s precedence chain, a blank consent id's ahead of not-known (Operation 15) and a granted record's attribution and instant faults after already-expired (Operation 22 through 25, Operation 67), and Operation 77 keeps the over-cap and malformed faults of the granted record's inputs off a call that finds no record, a withdrawn one or an elapsed one, so the answer alone does not say which guard refused.
 
 NOTE: a withdrawal whose [Revoke] write the database refuses (Operation 31), or whose answer is lost (Execution Contract Error model 1), and whose retry finds the consent record elapsed answers already-expired (Operation 19) and is recorded on no consent record: [Check] still answers granted for an at time between the attempt and the expiry instant. A first [Revoke] that finds the consent record elapsed answers already-expired as well, whatever revocation instant the call carries, so a withdrawal made after the expiry instant and backdated before it is recorded on no consent record either: [Check] answers granted for an at time between that revocation instant and the expiry instant. What the caller does with either withdrawal is the composing pattern's, as is the suppression of a processing act (Composition note 3).
 
@@ -291,10 +292,10 @@ The case space, and the rule that owns each case:
 | [Grant] | a blank, over-cap or non-string subject reference, purpose or granting actor, or an expiry instant at or before [Now] or malformed | [Invalid Request] | none (Operation 4 through 6, Operation 8, Operation 9, Operation 66, Operation 70 through 72, Execution Contract Input 1, Execution Contract Input 2) |
 | [Revoke] | id names a record in [Granted], attribution present, times ordered | revoked | [Granted] → [Revoked], three fields stamped (Operation 26 through 29) |
 | [Revoke] | a blank, over-cap or non-string consent id | [Invalid Request] | none — answered ahead of not-known (Operation 15, Operation 73, Execution Contract Input 1, Execution Contract Input 2, Execution Contract Refusal 1) |
-| [Revoke] | id names nothing | [Not Known] | none (Operation 16) |
-| [Revoke] | id names a record in [Revoked] | [Already Revoked] | none (Operation 18) |
-| [Revoke] | id names a record in [Expired] | [Already Expired] | none (Operation 19) |
-| [Revoke] | record in [Granted], blank or over-cap attribution, a malformed revoking actor or reason, or a time out of order or malformed | [Invalid Request] | none (Operation 22 through 25, Operation 67 through 69, Operation 74, Operation 75) |
+| [Revoke] | id names nothing | [Not Known] | none (Operation 16, Operation 77) |
+| [Revoke] | id names a record in [Revoked] | [Already Revoked] | none (Operation 18, Operation 77) |
+| [Revoke] | id names a record in [Expired] | [Already Expired] | none (Operation 19, Operation 77) |
+| [Revoke] | record in [Granted], blank or over-cap attribution, a malformed revoking actor or reason, or a time out of order or malformed | [Invalid Request] | none (Operation 22 through 25, Operation 67 through 69, Operation 74, Operation 75, Operation 77) |
 | either write | database refuses | [Storage Failure] | none (Operation 13, Operation 31, Operation 32) |
 | [Check] | the candidate record is withdrawn by [At Time] | revoked | none — the call reads (Operation 41, Operation 36) |
 | [Check] | the candidate record is elapsed by [At Time], never withdrawn | expired | none (Operation 42, Operation 43) |
@@ -516,11 +517,15 @@ Concurrency 4: Two concurrent [Grant] calls carrying one subject reference and o
 
 Term string cap: the bound on the length in Unicode code points of a string input, of a reference filter's value and of the consent id the host allocates, counted PER Execution Contract Input 2 on the value a call carries and on the consent id as the host allocates it; 1,024 code points where a deployment declares none.
 
-Term string input: a [Subject Reference], [Purpose], [Granting Actor], [Consent Id], [Revoking Actor] OR [Reason] — every caller-supplied string a writing action of this atom accepts.
+Term granted record input fault: a [Revoking Actor] OR [Reason] that EXCEEDS the string cap, a [Revoking Actor] OR [Reason] that is malformed, OR a supplied [Revocation Instant] that is malformed — the faults Operation 67, Operation 68, Operation 69, Operation 74 and Operation 75 refuse on a record in [Granted].
+
+Term string input: a [Subject Reference], [Purpose], [Granting Actor], [Consent Id], [Revoking Actor] OR [Reason] — every caller-supplied string a writing action of this atom accepts; a reference filter's value is the string a read carries, held to the string cap by Operation 76, and is no string input.
 
 NOTE: watch the cap's measure (Term string cap, Term bounds).
 
-NOTE: watch the cap's refusal (Operation 70, Operation 71, Operation 72, Operation 73).
+NOTE: open 2026-11-04-a — the cap is counted before canonicalization (Execution Contract Input 2) while the consent record holds the canonical form (Execution Contract Logic confinement 13), so a canonical form longer than the value a call carried writes a record whose own reference no reference filter can carry (Operation 76).
+
+NOTE: watch the cap's refusal (Operation 68, Operation 69, Operation 70, Operation 71, Operation 72, Operation 73).
 
 ## Composition notes
 
@@ -558,7 +563,7 @@ Term cadences: empty.
 
 Term qualifiers: migrated — rewritten in GRACE lang v0.35 (2026-09-12).
 
-Term terms: consent record, database instance, database name, seam, transition, consent id, subject reference, purpose, granting actor, blank, now, business caller, at time, expiry instant, metadata, revoking actor, revocation reason, reason, revocation instant, grant instant, evaluation instant, withdrawn, elapsed, candidate record, later write, query, supported filter axes, reference filter, state filter, state, grant field, string cap, string input.
+Term terms: consent record, database instance, database name, seam, transition, consent id, subject reference, purpose, granting actor, blank, now, business caller, at time, expiry instant, metadata, revoking actor, revocation reason, reason, revocation instant, grant instant, evaluation instant, withdrawn, elapsed, candidate record, later write, query, supported filter axes, reference filter, state filter, state, grant field, string cap, string input, granted record input fault.
 
 #### Grant
 
@@ -852,12 +857,13 @@ Projection: invalid-query
 ```
 status: partially resolved
 formal: not applicable — vote no 2026-06-03
-last gate: 2026-11-04 — Final Critique 19, a delta round, frozen at 34af5e0 — foundational count 1, cured, not clean, no sample
+last gate: 2026-11-04 — Final Critique 20, a delta round, frozen at 092ccde — foundational count 1, cured, not clean, no sample
 
 open:
 - 2026-10-29-b · refining · Term seam; Term transition; Term business caller · each says the section titled Logic Confinement Principle in `execution-contract.md` declares it, and that section declares none of the three → declare the three there, the corpus's one seam wording, or point each at its declaration
 - 2026-10-29-c · refining · the read signature · its answers arm, consent_records, is no declared name (GRACE-lang Term signature form: an arm is a declared name), as Message Preference's preference_record, Provenance's entry_sequence and Event Log's events reach their declared names by word form alone → one form for a read's answer arm, declared as the page's other arms are
 - 2026-10-30-a · refining · Identity 2, 4; Capability requirement 1, 5 · the consent id's source is named as the host's allocation (Identity 2) and not among what the deployment supplies, where the atom shape in `spec-format.md` lists an id source under Capability requirement, and the id's non-reuse binds the atom (Identity 4) though the host alone allocates one (Identity 2, Identity 3); Notification (its 2026-10-29-a), Approval Step, Assignment and Permissions (each its 2026-10-26-a), Event Log (its 2026-10-22-b) and Tamper Evidence (its 2026-10-22-a) route the same form → name the source among the Capability requirements, a fresh id on every allocation, in the one form the corpus settles for its host-allocation atoms
+- 2026-11-04-a · refining · Term string cap; Operation 76 · the cap is counted on the value a call carries (Execution Contract Input 2) and the record holds its canonical form (Execution Contract Logic confinement 13), so a canonical form longer than the carried value writes a record whose own reference exceeds the cap and no reference filter can carry it, and no rule owns that → a rule in the Execution Contract for a canonical form that exceeds the cap, held for the maintainer
 ```
 
 <details markdown="block">
