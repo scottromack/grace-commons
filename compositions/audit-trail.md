@@ -1390,6 +1390,8 @@ Term compliance alert: a finding surfaced on the deployment's alerting surface, 
 
 Term quiescence: for an act, no [Record Action] in flight for it, its compensation window, run on under Composition-level invariant 1c and restarted under Defensible Retention Invariant 12.1, elapsed, the act not a suspended entry of Defensible Retention's first half, constituent records reachable.
 
+NOTE: open 2026-11-04-a — an act whose constituents' records stay unreachable never reaches quiescence, so the checks of Defensible Retention that read this quiescence never bind over it and the failed-verification(purged) backing has no owner in that arm.
+
 Term recorded through [Record Action]: the quantifier of Invariants 1, 2 and 8 — this composition declares exactly one way in, and an event written around it is not one these invariants cover (Non-goal 2).
 
 - **Invariant 1 — Attribution coverage (safety + liveness at quiescence).**
@@ -1933,6 +1935,7 @@ open:
 - 2026-11-01-f · refining · Term retention state; Term value sets; Term purged · the page declares retention state again where Retention Window owns it, its two members in title case, against GRACE-lang Closed vocabulary 17 and GRACE-lang Casing 5, and Immutable Ledger and Chain of Custody write `Purged` after it; the constituent's lower-case members would make *purged* name a member, Term purged and a failed-verification reason, and *retained* a member of two value sets → cite retention state on Retention Window's run, write its members in lower case and rename Term purged and the reason so that no name resolves twice, the two composers in the same unit; re-found by Final Critique 59
 - 2026-11-02-a · refining · Term closure sum; Term closure floor; Term re-drive spend; Instance start 12, 16, 17, 19, 23; purge completion bound 1, 2; Reconciliation 1; reconciliation cadence 5 · the closure arithmetic and the scan's cadence still price a first half, a hold placement and a cascade that Defensible Retention now owns, and this page keeps declared the bounds they name, so an instance of this page alone must set a purge completion bound for a cascade it does not run → split the sum and the start checks by the page that owns each leg, or state that the instance carries the composer's bounds; found by the purge move
 - 2026-11-02-b · refining · record destruction 1 through 4; record destruction step 1.1 through 2.9; the [Record Destruction] closure rows · the action is the old cascade's steps 1 and 2 under a new name and has had no round of its own: its refusal arms (retention-period-not-elapsed passed through, destruction-failure carrying the step) and its closure rows are new text, and a caller other than Defensible Retention's purge_event is unstated → read it in the page's full round; found by the purge move
+- 2026-11-04-a · refining · Term quiescence; Defensible Retention's quiescence checks · "constituent records reachable" leaves an act whose constituents' records stay unreachable out of quiescence for ever, so the checks that read quiescence never bind and the failed-verification(purged) backing has no owner in that arm → an unknown arm for the unreachable act, or a bound on the wait; found by the Defensible Retention Final Critique 17 delta round
 ```
 
 <details markdown="block">
