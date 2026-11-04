@@ -832,14 +832,14 @@ It inherits from:
 
 ## Status
 
-`partially resolved` — see the Ledger.
+`grounded on Final Critique 10 — 2026-11-04 at cd9d6f3` — see the Ledger.
 
 ## Ledger
 
 ```
-status: partially resolved
+status: grounded on Final Critique 10 — 2026-11-04 at cd9d6f3
 formal: verified — invitation.tla + 2 twins, 2026-06-03
-last gate: 2026-11-03 — Final Critique 9, a delta round, frozen at b98a66c — foundational count 3, cured, not clean, no sample
+last gate: 2026-11-04 — Final Critique 10, a delta round, frozen at cd9d6f3 — foundational count 0, clean, one sample; 2026-11-03 — Final Critique 9 (delta) — foundational count 3, cured, not clean, no sample
 
 open:
 - 2026-11-03-a · refining · Term now; Invariant 12.2 · where an admitted read takes its one clock reading against its database read is stated by no rule: the Execution Contract's Q names no clock step, and Logic confinement 3 and 11 place the reading at the top of Step 2 for a transition only; any build's answer follows the reading it takes, and the placement is owed by the contract to every read that answers against now, not by this page (escalated to the maintainer 2026-11-03) → the contract states it once, or the question is closed.
