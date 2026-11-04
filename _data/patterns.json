@@ -911,7 +911,7 @@
    "preference-aware-notification-fanout"
   ],
   "domain": null,
-  "grounded": false,
+  "grounded": true,
   "invariants": 10,
   "kind": "atom",
   "models": {
@@ -926,7 +926,7 @@
   "standards": [
    "GDPR"
   ],
-  "status": "partially resolved",
+  "status": "grounded on Final Critique 11 \u2014 2026-11-04 at cef41e2",
   "title": "Message Preference"
  },
  "multi-party-approval": {

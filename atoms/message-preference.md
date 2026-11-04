@@ -43,7 +43,7 @@ Updates are not retroactive in the sense the atom commits to. A new set produces
 Identity 1: The atom MUST identify a preference record by the preference id.
 Identity 2: The host MUST allocate a preference id at the seam.
 Deleted: Identity 3. Execution Contract Logic confinement 3 owns it.
-Identity 4: The atom MUST NOT reuse a preference id.
+Identity 4: The atom MUST NOT reuse a preference id in one database instance (Instance 2).
 Identity 5: The atom MUST NOT change a preference id.
 Identity 6: The atom MUST NOT identify a preference record by the principal reference.
 Identity 7: The atom MUST NOT identify a preference record by the principal reference and the set instant.
@@ -55,7 +55,7 @@ Deleted: Identity 11. Execution Contract Logic confinement 13 owns it.
 
 NOTE: watch the allocation ban (Identity 3).
 
-Term preference id: the opaque value naming one preference record — a [Preference Id]; host-allocated at the seam, never reused; malformed where it is no string.
+Term preference id: the opaque value naming one preference record — a [Preference Id]; host-allocated at the seam, never reused in one database instance; malformed where it is no string.
 
 Term principal reference: the opaque reference naming the principal whose preferences the record holds — a [Principal Reference]; compared by exact equality; malformed where it is no string.
 
@@ -847,14 +847,14 @@ Projection: already-deleted
 
 ## Status
 
-`partially resolved` — see the Ledger.
+`grounded on Final Critique 11 — 2026-11-04 at cef41e2` — see the Ledger.
 
 ## Ledger
 
 ```
-status: partially resolved
+status: grounded on Final Critique 11 — 2026-11-04 at cef41e2
 formal: verified — message-preference.tla + 1 twin, 2026-06-03
-last gate: 2026-11-03 — Final Critique 10 — foundational count 3, not clean, no sample
+last gate: 2026-11-04 — Final Critique 11, a delta round, frozen at cef41e2 — foundational count 0, clean, no sample; 2026-11-03 — Final Critique 10 — foundational count 3, not clean, no sample
 
 open:
 - 2026-11-03-a · refining · Operations (signature block) · the success arm ok of suspend and delete is declared nowhere, no term entry and no Terms-registry line, where every other arm resolves to a declaration (GRACE-lang Closed vocabulary 4, 27); Notification routes the same form (its 2026-10-21-f) → declare it, or settle in the grammar whether an arm owes a term entry
