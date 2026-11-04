@@ -188,7 +188,7 @@ NOTE: watch the cap's refusal (Operation 44, Operation 45).
 
 Term now: the deployment's clock reading at the call, as Execution Contract Logic confinement 11 declares it.
 
-Term authority: the structured field naming the basis the disclosure was made under — an [Authority]; the type carries exactly two sub-fields, authority type and authority reference; a call's authority carrying a further field is still an authority (Execution Contract Input 1), refused for it by no guard, and the further field is not recorded.
+Term authority: the structured field naming the basis the disclosure was made under — an [Authority]; the type carries the two sub-fields, authority type and authority reference, and a sub-field of an authority beyond those two is further content of the type; a call's authority carrying a further field is still an authority (Execution Contract Input 1), refused for it by no guard, and the further field is not recorded.
 
 Term authority type: consent | legal-hold | regulatory — an [Authority Type], set at record and never changed.
 
@@ -381,11 +381,13 @@ String 6: The atom MUST read an absent string input as blank.
 Deleted: String 7. Execution Contract Logic confinement 13 owns it.
 ```
 
+NOTE: the canonicalization Logic confinement 13 carries at the seam is the deployment's, not a normalization of a string input the atom makes.
+
 Term string input: subject reference, recipient, scope, authority reference OR a filter's key OR a filter's value on an axis other than disclosure instant — every caller-supplied string this atom accepts, but not a further field a call's authority carries.
 
 Term reference: subject reference — the one opaque reference this atom records, as Execution Contract Logic confinement 13 canonicalizes it at the seam; a recipient, a scope, an authority reference and a disclosure id are opaque strings, and no references.
 
-Term string cap: the bound on a string input's length in Unicode code points; 1,024 code points where a deployment declares none.
+Term string cap: the bound on a string input's length and on a disclosure id's length, in Unicode code points; 1,024 code points where a deployment declares none.
 
 ### Correction by append
 
@@ -439,7 +441,7 @@ Term record verbs: identify, allocate, change, carry, stand, answer, record, res
 
 Term value sets: authority type = consent | legal-hold | regulatory.
 
-Term bounds: string cap (the bound on a string input's length in Unicode code points, 1,024 where a deployment declares none).
+Term bounds: string cap (the bound on a string input's length and on a disclosure id's length, in Unicode code points, 1,024 where a deployment declares none).
 
 Term cadences: empty.
 
@@ -493,7 +495,7 @@ Projection: scope
 
 #### Authority
 
-The structured field naming the legal basis for the disclosure — exactly two sub-fields, [Authority Type] and [Authority Reference]; a further sub-field a call carries is dropped, neither recorded nor refused. Always present in structured form (Invariant 2). Set on [Record], immutable.
+The structured field naming the legal basis for the disclosure — the two sub-fields, [Authority Type] and [Authority Reference], and a sub-field beyond those two is further content of the type; a further sub-field a call carries is dropped, neither recorded nor refused. Always present in structured form (Invariant 2). Set on [Record], immutable.
 
 Kind:       Field
 Field of:   the disclosure record
@@ -552,7 +554,7 @@ Projection: storage-failure
 
 #### Invalid Query
 
-The rejection [Read] returns when a filter value is malformed — a null or whitespace [Disclosure Id], [Subject Reference], or [Recipient]; an [Authority Type] outside the three values; a reversed [Disclosure Instant] range, one missing its after or its before, or a single [Disclosure Instant] where the axis takes a range (Execution Contract Query 1); a filter value exceeding the string cap (Operation 45); or an unrecognized filter key.
+The rejection [Read] returns when a query or a filter value is malformed — a blank [Disclosure Id], [Subject Reference], or [Recipient]; an [Authority Type] outside the three values; a reversed [Disclosure Instant] range, one missing its after or its before, or a single [Disclosure Instant] where the axis takes a range (Execution Contract Query 1); a filter value exceeding the string cap (Operation 45); or a filter whose key is blank or unrecognized.
 
 Kind:       Member
 Member of:  the read rejection
@@ -599,7 +601,7 @@ Projection: invalid-query
 ```
 status: partially resolved
 formal: not applicable — vote no 2026-06-03
-last gate: 2026-11-04 — Final Critique 14, a delta round, frozen at 5961920 — foundational count 2, both cured, not clean, no sample; 2026-11-02 — Final Critique 13, a delta round, frozen at bba8734 — foundational count 2, both cured, not clean, no sample; 2026-10-31 — Final Critique 12 — foundational count 0, clean, one sample
+last gate: 2026-11-04 — Final Critique 15, a delta round, frozen at 100a240 — foundational count 1, cured, not clean, no sample; 2026-11-04 — Final Critique 14, a delta round, frozen at 5961920 — foundational count 2, both cured, not clean, no sample; 2026-11-02 — Final Critique 13, a delta round, frozen at bba8734 — foundational count 2, both cured, not clean, no sample; 2026-10-31 — Final Critique 12 — foundational count 0, clean, one sample
 
 open: none
 ```
