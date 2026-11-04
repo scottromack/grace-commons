@@ -346,7 +346,7 @@ Nineteen knobs and two instance capability requirements: the per-act critical se
   Term compensation window: the duration within which the liveness arms of Invariants 1, 2 and 8 close: an orphan attestation, an unretained event or a half-completed cascade is surfaced and reconciled inside it. *Default:* none.
   ```
   compensation window 1: The deployment MUST set compensation window from the tightest reconciliation deadline the deployment's regime imposes.
-  compensation window 2: The composition MUST measure compensation window from the finding's creation.
+  compensation window 2: The composition MUST measure compensation window from the finding's creation, a suspended entry's window from the instant Defensible Retention Invariant 12.1 restarts the window.
   compensation window 3: The composition MUST NOT measure compensation window from the finding's detection.
   compensation window 4: An auditor MUST read the quiescence condition of Check 2 from compensation window.
   ```
