@@ -1,6 +1,6 @@
 # GRACE lang surface checker
 
-The mechanical slice of [`GRACE-lang.md`](../../GRACE-lang.md): what a form-reader can decide about a spec's normative surface without semantics. It is the forerunner of the parser section 11 obliges, not the parser — it resolves no identifiers (Closed vocabulary 4), matches no value against a value set (Hard invariant 14), and normalizes nothing (section 16).
+The mechanical slice of [`GRACE-lang.md`](../../GRACE-lang.md): what a form-reader can decide about a spec's normative surface without semantics. It is the forerunner of the parser section 11 obliges, not the parser — it resolves no identifiers (Closed vocabulary 4), matches no value against a value set (Hard invariant 14: `normalize.py`'s advisory `N-value-set`), and normalizes nothing (section 16: `normalize.py` lowers every rule, `rdiff.py` compares the lowered forms; see *The normalizer*).
 
 ```
 python3 tools/grace/check.py                 # GRACE-lang.md + every spec declaring itself migrated
@@ -173,6 +173,7 @@ with the `line` it starts on:
 | `checks` | Every `Check` and `External check`, by `label`, with the rules it `tests`: the labels its closing parenthesis names, written out (`Non-goal 1, 2` is two labels; a range keeps its form). A check with no closing citation has none; `check.py`'s advisory `K-check-bare` reads the same absence. |
 | `non_goals` | Every Non-goal, by `label`, with its `owners` from the section's `NOTE: the owners —` line: the owner's text, its `links` as repo paths, and whether it is `forthcoming`, true for a name followed by `*(forthcoming)*` or `*(not yet in the library)*` and false for a linked spec or a mechanism such as the deployment. Each owner carries its own: a part of the line that marks a name forthcoming is split into its owners at each comma, *and* or *or* that a link, an article or a capitalized word follows, so `[Audit Trail](./audit-trail.md), the deployment and Reverse Index *(forthcoming)*` is three owners and only the last is forthcoming, while `a priority and ordering pattern *(forthcoming)*` is one. A part with no marker stays one owner, its prose unsplit. A Non-goal whose own rule names its owner (`MUST compose Provisional Commitment`) carries it in its rule's text. |
 | `composes` | The constituents: `name`, `path`, and the `role` after the dash. |
+| `normalized` | Every rule lowered to its normalized form (GRACE-lang section 16), by label and in label order: `{"normal": 1, "rules": {label: form}}`. See *The normalizer*. |
 
 A run proves the IR on the whole corpus, and each failure is a finding:
 **IR-unreadable**, a spec the parser cannot read (a finding, never an
@@ -186,3 +187,72 @@ both its ends do. `check.py`'s `X-ref` takes a tombstoned label as carried,
 since the label exists; the proof does not, since a check cannot test a rule
 that is gone. `test_checks.py` runs the proof with the receipts and pins its
 findings.
+
+## The normalizer
+
+[`normalize.py`](normalize.py) lowers every labelled rule `ir.py` reads to the explicit structure section 16 obliges, and `ir.py` writes it into each document's `normalized` field (`build/ir/<spec>.json`). It reads sections 5, 8, 9 and 12 of the grammar and carries only what the normative source states (Normalized form 2); `WHY:`, `UX:`, `NOTE:` and `PROVISIONAL:` never enter it (Normalized form 3).
+
+```
+python3 tools/grace/normalize.py                 # every spec's advisory findings, and the count
+python3 tools/grace/normalize.py atoms/cart.md   # one spec's normalized form, printed
+python3 tools/grace/rdiff.py HEAD~1              # the reverse diff: what a change did to the rules
+python3 tools/linter/test_normalize.py           # the parser properties, pinned
+```
+
+A form is one of five kinds. A `rule` carries its `quantifier` (`EVERY`, `EXACTLY ONE`), `subject`, and `obligations`, each with a `modal`, an `act`, an `object`, its `timing` tails (`ONLY AFTER`, `BEFORE`, `WITHIN`, `PER`, in one canonical order), its `only_if` and `only_under` gates and, where `EXACTLY ONE OF` names them, the `exclusive` outcomes; a rule that opens `IF condition THEN` carries the `if` condition. An `authority` form carries a subject and the proposition it is authoritative for. A `when` form carries the block's condition and its `children`, and each child carries that condition as `when`. A rule whose body opens with `PROVISIONAL:` or another prefix is `excluded` and carries nothing of the line. A rule the normalizer cannot lower is `unlowered`, with its text as written. A condition is `AND` or `OR` over clauses, each an operator `comparison` (`EQUALS`, `DOES NOT EQUAL`, `EXCEEDS`, `DOES NOT EXCEED`, `PRECEDES`, `DOES NOT PRECEDE`, `IS IN`, `IS NOT IN`), a `presence` or an `absence` (`no thing EXISTS`, Hard invariant 33), or a `predicate` the spec's own verbs carry. The sugar adds nothing: `AFTER` under `MUST` or `MAY` is `ONLY AFTER` (Timing 2, Timing 3), `×` is `*` (Sugar 12), and each arithmetic expression is an unnamed `term` (Sugar 10). `render()` writes a form back as its canonical text, and lowering that text gives the form again (Hard invariant 18, 19).
+
+The form holds no line, no position and no section, and is keyed and ordered by label, so the order the rules come in is not in it (Hard invariant 15). Two outcomes carry no exclusivity unless `EXACTLY ONE OF` states it (Hard invariant 17).
+
+| Code | What it reads |
+|---|---|
+| **N-unlowered** *(advisory)* | A rule the normalizer cannot lower, with its spec, label and the form it could not read: no modal, no subject, a condition mixing `AND` and `OR`, `IF` with no `THEN`, a tail naming no term, `AFTER` under `MUST NOT`, a positive `MUST … BEFORE`, an arithmetic group that is no arithmetic expression. |
+| **N-ordinal-ref** *(advisory)* | A rule that names another rule by its place, not its label (Hard invariant 13): *the previous rule*, *the rule above*, *rule 3*. |
+| **N-value-set** *(advisory)* | An `EQUALS` or `DOES NOT EQUAL` whose right side is one bare value, not `blank`, that no closed value set the spec or a constituent declares holds (Hard invariant 14): a bar-separated `Term` declaration, a signature's answers and refusal codes, an `EXACTLY ONE OF` list. A phrase, a number and a name the spec declares as a term are no value. |
+
+It lands advisory, as `check.py` landed in September: no finding gates, `check.py --gate` and `ir.py --check` are unchanged, and `ir.py` reports the count beside its own. The reverse diff ([`rdiff.py`](rdiff.py)) compares two commits' normalized rules and reports each `ADDED`, `REMOVED` or `CHANGED`; two rules that normalize identically are equivalent (an `AFTER` against an `ONLY AFTER`, a rule moved to another label with its form unchanged), a rule the normalizer cannot lower is compared by its text, and a change to `WHY:` or `UX:` is not reported (Reverse diff 1 through 5). It exits 1 when any obligation differs.
+
+## The hard invariants, and what holds each
+
+GRACE-lang section 11 is the parser's contract; this is how far the parser fulfils it. *Gating* is a finding that fails `check.py --gate` (`lint.py` for its own codes, `ir.py --check` for the proof's). *Advisory* is read and counted, and gates nothing. *Not yet* has no tool. A gating check reads the specs that declare themselves migrated, which today is every one.
+
+| # | The parser MUST … | Status | Held by |
+|---|---|---|---|
+| 1 | reject an unprefixed line in a normative block that does not parse | gating | `check.py` F-unlabelled, F-fence-first |
+| 2 | reject a rule with no explicit subject | advisory | `normalize.py` N-unlowered (*no subject*); `check.py` reads the modal, not the subject |
+| 3 | reject a rule with no explicit modal where the shape requires one | gating | `check.py` R-no-modal |
+| 4 | reject a rule carrying a pronoun | gating, in part | `check.py` P-pronoun; *these* and *those* standing alone are advisory W-demonstrative, and *this* and *that* are not read |
+| 5 | reject a sentence carrying two obligations | advisory | `check.py` W-two-obligations; `normalize.py` carries a second obligation as its own `obligations` entry |
+| 6 | reject a nested WHEN block | gating | `check.py` R-nested-when |
+| 7 | reject a condition mixing `AND` and `OR` | gating | `check.py` V-mixed; `normalize.py` N-unlowered |
+| 8 | reject `OR` outside a condition or a term declaration | gating | `check.py` V-or-obligation; advisory W-or-word |
+| 9 | reject `BEFORE` outside `MUST NOT` | gating, in part | `check.py` B-before, with the reach Hard invariant 11's row names; `normalize.py` N-unlowered |
+| 10 | reject `AFTER` outside `ONLY AFTER` or the deterministic sugar | gating, in part | `check.py` B-after reads `AFTER` under `MUST NOT`; advisory W-watch-word reads a lower-case one; `normalize.py` N-unlowered |
+| 11 | reject a positive `MUST … BEFORE` ordering | gating, in part | `check.py` B-before, whose pattern stops at a full stop, so a label or step number (`step 0.1a`) before the `BEFORE` hides it; `normalize.py` N-unlowered reads all of it |
+| 12 | resolve a cross-rule reference by label | gating | `check.py` X-ref; `ir.py` IR-check for a check's citations |
+| 13 | reject a cross-rule reference by ordinal | advisory | `normalize.py` N-ordinal-ref |
+| 14 | reject a value used with `EQUALS` or `DOES NOT EQUAL` that is not blank and belongs to no declared closed value set | advisory | `normalize.py` N-value-set |
+| 15 | not infer from rule order | advisory | `normalize.py`: the form is keyed and ordered by label; `test_normalize.py` shuffles a spec's rules |
+| 16 | not infer from the absence of a rule | advisory, in part | `normalize.py` lowers only what a rule states; `check.py` V-unpartnered-reservation reads one case |
+| 17 | not infer exclusivity among outcomes unless `EXACTLY ONE OF` states it | advisory | `normalize.py` carries `exclusive` only from `EXACTLY ONE OF`; `test_normalize.py`; advisory E-not-exclusive |
+| 18 | normalize sugar without adding meaning | advisory | `normalize.py`; `test_normalize.py` lowers every rule of the corpus twice |
+| 19 | normalize every sugar form to exactly one canonical form | advisory | `normalize.py`: `AFTER`, `×`, an arithmetic expression, a tail's order; `test_normalize.py` |
+| 20 | not infer missing semantics | advisory | `check.py` W-unstated-exception reads the unstated exception; `normalize.py` adds no field the source lacks |
+| 21 | not give `WHY:` normative force | advisory | `normalize.py`: a `WHY:` line is no rule and never enters the form; `test_normalize.py` |
+| 22 | not give `UX:` normative force | advisory | the same |
+| 23 | not infer normative meaning from `WHY:` or `UX:` | advisory | the same |
+| 24 | reject arithmetic in a rule outside one pair of parentheses or with a second operator | gating | `check.py` A-arith |
+| 25 | reserve the label a tombstone carries | gating | `check.py` L-tombstone-reuse, D-tombstone-form |
+| 26 | not renumber an invariant | gating | `lint.py` F-renumber |
+| 27 | not reuse a tombstoned label | gating | `check.py` L-tombstone-reuse; `lint.py` F-renumber |
+| 28 | name the spec before the label in a cross-spec reference | gating, in part | `lint.py` X-contract-label and `ir.py` IR-check resolve a citation that names its spec; no tool flags a bare label that should have named one |
+| 29 | read a range citation as every label from the first number through the last | gating | `check.py` X-ref; `cites.py`; `ir.py` IR-check |
+| 30 | reject a range citation whose last number does not follow the first | gating | `lint.py` F-range-form |
+| 31 | reject a run of labels written other than as a range citation | gating | `lint.py` F-range-form |
+| 32 | reject `NOT EXISTS` | gating | `check.py` D-condition-form |
+| 33 | read `no thing EXISTS` as the thing's absence | advisory | `normalize.py` lowers it to an `absence`; `test_normalize.py` |
+| 34 | reject `NOT EXCEEDS` | gating | `check.py` D-condition-form |
+| 35 | reject an arithmetic operator in a definition outside its own pair of parentheses | gating | `check.py` A-decl-arith |
+| 36 | reject a division outside a definition | gating | `check.py` A-arith, A-decl-arith |
+| 37 | reject a division whose definition names no rounding | gating | `check.py` A-decl-arith |
+
+Of the 37: 18 gating, 5 gating in part (4, 9, 10, 11, 28), 13 advisory and 1 advisory in part (16), 0 not yet. Where the table says advisory, the invariant holds by the normalizer's construction and the tests, or is read and counted without gating; promoting any to gating is a decision of its own. Hard invariants 15, 17, 18, 19, 21, 22, 23 and 33 are properties of the normalizer, not findings: nothing fires when they fail except `test_normalize.py`.

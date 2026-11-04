@@ -6,7 +6,9 @@ The IR is derived, never canonical: the specs stay the source (Scott,
 ignored by git, holds what a test generator or the Grace connector reads from a
 page: its title, kind and status, its Summary, every labelled rule, every Term
 with its term entry's Kind, every signature, every case-table row, every Check
-with the rules it tests, the Non-goals with their owners, and the Composes list.
+with the rules it tests, the Non-goals with their owners, the Composes list,
+and every rule lowered to its normalized form (normalize.py, GRACE-lang section
+16).
 README.md, section *The IR*, gives the shape.
 
 It reads with the readers the corpus already has, not a second copy of their
@@ -48,6 +50,7 @@ sys.path.insert(0, str(HERE))
 sys.path.insert(0, str(HERE.parent / "linter"))
 import check  # noqa: E402
 import cites  # noqa: E402
+import normalize  # noqa: E402
 from lint import CONTRACT_CITE, CONTRACT_LABEL, HISTORY_FILE, PATTERN_DIRS, status_token_of  # noqa: E402
 
 # the shape of a document; a change a reader of the IR must know about moves it,
@@ -452,7 +455,7 @@ def parse(path: Path, root: Path) -> dict:
     rules, tombstones = walk_rules(lines, where)
     terms, vocabulary, entries = walk_terms(spec, lines, where)
     summary = "\n".join(lines[k].strip() for k in section_lines(lines, "Summary") if lines[k].strip() != "---")
-    return {
+    doc = {
         "ir": IR_VERSION,
         "spec": rel or path.as_posix(),
         "name": cites.spec_name(path),
@@ -471,6 +474,8 @@ def parse(path: Path, root: Path) -> dict:
         "non_goals": walk_non_goals(home, lines, rules, spec),
         "composes": walk_composes(home, lines),
     }
+    doc["normalized"] = normalize.lower_doc(doc)
+    return doc
 
 
 def specs(root: Path) -> list[Path]:
@@ -593,11 +598,13 @@ def main(argv: list[str]) -> int:
             if stale.name not in written:
                 stale.unlink()  # a retired spec's document
     emit(findings)
+    advisory = sum(len(normalize.findings(d, {x["spec"]: x for x in docs})) for d in docs)
     n_rules = sum(len(d["rules"]) for d in docs)
     n_checks = sum(len(d["checks"]) for d in docs)
     untested = sum(1 for d in docs for c in d["checks"] if not c["tests"])
     print(f"ir: {len(docs)} specs, {n_rules} rules, {n_checks} checks ({untested} naming no rule in a closing "
-          f"citation); {len(findings)} finding(s)", file=sys.stderr)
+          f"citation); {len(findings)} finding(s); {advisory} advisory from normalize.py "
+          f"(none gates)", file=sys.stderr)
     return 1 if findings else 0
 
 

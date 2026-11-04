@@ -20,9 +20,10 @@ declares itself migrated. Prints one finding per line, `path:line: [CODE] messag
 Non-gating by default: exits 0 whatever it finds; `--gate` exits 1 on any
 finding that is not advisory (the W- codes).
 
-What it does not do: resolve every identifier (Closed vocabulary 4), parse value sets against
-conditions (Hard invariant 14), or normalize (section 16). Those need the parser this is the
-forerunner of.
+What it does not do: resolve every identifier (Closed vocabulary 4). Value sets against
+conditions (Hard invariant 14) and the normalized form (section 16) are normalize.py's, advisory,
+and the reverse diff (section 17) is rdiff.py's; README.md holds the scoreboard of the hard
+invariants.
 """
 from __future__ import annotations
 
