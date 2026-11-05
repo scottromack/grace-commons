@@ -105,6 +105,7 @@ Capability requirement 5: The deployment MUST supply record set match at the sea
 Capability requirement 6: The deployment MAY declare the string cap PER Execution Contract Input 2.
 Capability requirement 7: The deployment MUST supply, at the seam, a seal check that never answers held over an original record set that differs from the record set presented at [Seal] (Invariant 3.2).
 Capability requirement 8: The deployment MUST supply, at the seam, a seal check that never answers failed over an original record set that does not differ from the record set presented at [Seal] while no anchor change EXISTS for the recorded proof (Invariant 3.1).
+Capability requirement 9: The deployment MUST supply, at the seam, a seal check that answers unavailable ONLY IF the mechanism's verification function consults the mechanism's own external anchor AND that anchor is unavailable at verify time.
 ```
 
 Term cryptographic material: what the deployment's mechanism computes at the seam — at [Seal], the proof, computed from the mechanism credential over the record set the record set reference names, with the anchoring instant where the mechanism anchors at seal time, or the mechanism failure reason where the mechanism cannot compute the proof; at [Verify], the seal check.
@@ -689,7 +690,7 @@ It inherits from:
 ```
 status: partially resolved
 formal: not applicable — vote no 2026-06-03
-last gate: 2026-11-04 — Final Critique 14, a delta round, frozen at 36e6d47 — foundational count 1, cured, not clean, no sample; 2026-11-03 — Final Critique 13, a delta round, frozen at f84da63 — foundational count 1, cured, not clean, no sample; 2026-11-02 — Final Critique 12, a delta round, frozen at dd11876 — foundational count 1, cured, not clean, no sample; 2026-11-02 — Final Critique 11, a delta round, frozen at d28642a — foundational count 3, all cured, not clean, no sample; 2026-10-24 — Final Critique 10 — foundational count 0, clean, one sample
+last gate: 2026-11-05 — Final Critique 15, a delta round, frozen at b1ae778 — foundational count 1, cured, not clean, no sample; 2026-11-04 — Final Critique 14, a delta round, frozen at 36e6d47 — foundational count 1, cured, not clean, no sample; 2026-11-03 — Final Critique 13, a delta round, frozen at f84da63 — foundational count 1, cured, not clean, no sample; 2026-11-02 — Final Critique 12, a delta round, frozen at dd11876 — foundational count 1, cured, not clean, no sample; 2026-11-02 — Final Critique 11, a delta round, frozen at d28642a — foundational count 3, all cured, not clean, no sample; 2026-10-24 — Final Critique 10 — foundational count 0, clean, one sample
 
 open:
 - 2026-10-21-b · refining · Operation 7, 8; Term mechanism credential · Operation 7 tests "the mechanism credential is absent" in no admitted condition form, while the admitted form, EQUALS blank, takes in the empty credential Operation 8 accepts (GRACE-lang Term blank, Earned vocabulary 7), and a credential carrying only whitespace has no rule, nor has the empty credential given to a keyed mechanism (Operation 9 answers only the reason the mechanism gives) → one declared term for the credential's blank states, each with its answer, the keyed mechanism's among them
