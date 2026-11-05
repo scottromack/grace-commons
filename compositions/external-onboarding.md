@@ -122,7 +122,7 @@ Term clock offset allowance: the deployment's declared bound on the difference b
 
 Term widened bound: `(onboarding completion bound + clock offset allowance)` — the age past which an arc may be read as stopped.
 
-Term resume window floor: `(widened bound + clock offset allowance)` — the least audit horizon at which an arc can be resumable and not aged at one instant: the resume arm admits an arc from `(acceptance instant + widened bound)` and Resume 4 ages it from `((acceptance instant + audit horizon) - clock offset allowance)`.
+Term resume window floor: `(widened bound + clock offset allowance)` — the value the audit horizon must exceed for an arc to be resumable and not aged at one instant: the resume arm admits an arc from `(acceptance instant + widened bound)` and Resume 4 ages it from `((acceptance instant + audit horizon) - clock offset allowance)`.
 
 Term audit horizon: the horizon of the retention policy the wired Audit Trail instance places every onboarding event under — the upper edge of the resume arm and of every trail-walking check.
 
@@ -145,7 +145,7 @@ Primitive policy 5: IF the data of an event the action will emit EXCEEDS the pay
 Primitive policy 6: The composition MUST size a minted id the payload will carry at the id's minted-id width bound.
 Primitive policy 7: IF the call carries a resume choice THEN [Onboard] MUST read the invitation through Invitation's read.
 Primitive policy 8: [Onboard] MUST NOT record the accept attempt BEFORE reading the invitation for a call carrying a resume choice.
-Primitive policy 9: IF the call carries a resume choice AND the invitation's status EQUALS pending THEN [Onboard] MUST answer invalid-request.
+Primitive policy 9: IF the call carries a resume choice AND the invitation's stored status EQUALS pending THEN [Onboard] MUST answer invalid-request.
 Primitive policy 10: An action refused under Primitive policy 1 through 9 MUST NOT write.
 ```
 
@@ -192,7 +192,10 @@ Audit arm 21: IF Audit Trail answers invalid-request carrying a step above step-
 Audit arm 22: IF Audit Trail answers invalid-request carrying a step below step-4 at a post-write record THEN the action MUST answer storage-failure carrying outcome.
 Audit arm 23: A caller MUST read storage-failure carrying attempt-evidence as a committed attestation AND no constituent write.
 Audit arm 24: A caller MUST NOT retry a call that answered storage-failure carrying attempt-evidence as written.
+Audit arm 25: IF the landing read finds no post-write record THEN the action MUST answer storage-failure carrying outcome.
 ```
+
+NOTE: watch the read-back's other arm (Audit arm 25, Resume 50).
 
 Term attempt record: the record an action writes first — the initiate attempt, the accept attempt, the decline attempt or the revoke attempt; the Actor Identity attestation the substrate makes inside the record *is* the credential gate.
 
@@ -200,11 +203,11 @@ Term post-write record: a record an action writes after a constituent write comm
 
 Term retention step: the step naming the substrate's retention placement on an invalid-request — step-4; the event is appended and attested.
 
-Term invalid-request step: step-1 | step-2 | step-3 | step-4 — the step of Audit Trail's record action that landed the refusal; step-4 is the retention step, and at step-1 through step-3 the event is not in the log.
+Term invalid-request step: step-1 | step-2 | step-3 | step-4, in that order, so below and above compare by the number — the step of Audit Trail's record action that landed the refusal; step-4 is the retention step, and at step-1 through step-3 the event is not in the log.
 
 Term landing read: the composition's enumerate-and-filter read of the trail for a post-write record whose landing the substrate's answer did not say.
 
-Term position: intent | outcome | attempt-evidence — where a storage-failure sat: intent, no constituent has committed anything and the whole action may be retried as written; outcome, the action's Invitation write has committed, and a retry re-enters the action rather than repeating it; attempt-evidence, the substrate refused the attempt record or the resume record past its first step, so its attestation stands committed and no constituent has written (Audit Trail record action step 7.11, 7.13).
+Term position: intent | outcome | attempt-evidence — where a storage-failure sat: intent, no constituent has committed anything and the whole action may be retried as written; outcome, the action's Invitation write has committed, and a retry re-enters the action rather than repeating it; attempt-evidence, the substrate refused the attempt record or the resume record past its first step, so its attestation stands committed and no constituent has written (Audit Trail record action step 7.11 and 7.13).
 
 ### Action wiring
 
@@ -231,6 +234,8 @@ Term onboarding result: the party id and the credential id an [Onboard] answers.
 Term invitation refusal: the Invitation refusal a gate call met — already-resolved carrying the stored terminal, not-known or expired.
 
 Term candidates: party candidates | credential candidates — the ids an onboarding-indeterminate refusal carries: every id the reading kept, none where the reading is none, with no cap beyond the payload cap.
+
+NOTE: open 2026-11-05-b — a reading that exceeds the payload cap has no answer: no rule says whether the refusal truncates, refuses or fails.
 
 ```
 Action wiring 1: An action MUST NOT call a constituent BEFORE the action's attempt record lands.
@@ -399,7 +404,10 @@ Resume 46: The composition MUST NOT choose among the credential candidates.
 Resume 47: A resume arm answering onboarding-indeterminate carrying the credential candidates MUST record an interruption record carrying the invitation token, the accepting identity reference, the party id, credential-registration as the stage AND onboarding-indeterminate as the reason.
 Resume 48: IF Audit Trail answers invalid-request carrying a step below step-3 at the resume record THEN the resume arm MUST answer storage-failure carrying intent.
 Resume 49: IF Audit Trail answers invalid-request carrying step-3 at the resume record THEN the resume arm MUST answer storage-failure carrying attempt-evidence.
+Resume 50: IF the read PER Audit arm 9 through 10 at the resume record finds no resume record THEN the resume arm MUST answer storage-failure carrying intent.
 ```
+
+NOTE: open 2026-11-05-a — Resume 42's refusal carries an empty credential candidates set, and no rule says which administrator action follows it (abandon, revoke or register again).
 
 Term resume arm: the [Onboard] path a resumable acceptance takes — a caller-authenticated re-entry of an arc that stopped after the arc's gate cleared, one resumer per token.
 
@@ -835,9 +843,11 @@ Projection: onboarding.resume-intended
 ```
 status: partially resolved
 formal: pending — re-derivation, 2026-08-30: external-onboarding.tla, no twin, verified 2026-06-03 over a single-pass arc with no resume; re-derive over two resumers and a stalled original as processes over one token, the per-token section as the point past which only one can write (2026-08-29-a, 2026-08-30-p)
-last gate: 2026-11-04 — Final Critique 4, full, frozen at 25a720e — foundational count 5 (of 8 claimed, 3 refuted on rules the page holds), all cured, not clean, no sample; 2026-08-30 — third gate, fresh reader, under the frozen rules — 6 foundational corrected in-round, 13 refining and 3 rhetorical routed (2 refining since closed), 5 foundational closure residue corrected in a second pass
+last gate: 2026-11-05 — Final Critique 5, delta, frozen at b1ae778 — foundational count 2 (of 3 claimed, 1 refuted on rules the page holds), all cured, not clean, no sample; 2026-11-04 — Final Critique 4, full, frozen at 25a720e — foundational count 5 (of 8 claimed, 3 refuted on rules the page holds), all cured, not clean, no sample; 2026-08-30 — third gate, fresh reader, under the frozen rules — 6 foundational corrected in-round, 13 refining and 3 rhetorical routed (2 refining since closed), 5 foundational closure residue corrected in a second pass
 
 open:
+- 2026-11-05-a · refining · Resume 42 · onboarding-indeterminate carrying none credential candidates leaves the administrator no stated next action → state whether the arc is abandoned, the credential revoked or a fresh register allowed, once a rule decides which
+- 2026-11-05-b · refining · Term candidates · a reading larger than the payload cap has no stated answer → decide truncation (barred by Resume 24 and Resume 46), a refusal or a storage failure
 - 2026-08-29-a · refining · formal · `external-onboarding.tla` predates the resume arm and the step-split landings → extend the model with the resume path, its in-flight bound, and the step-4 proceed arm
 ```
 
