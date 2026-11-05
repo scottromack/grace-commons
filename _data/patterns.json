@@ -892,7 +892,7 @@
  "medication-order": {
   "composed_by": [],
   "domain": "healthcare",
-  "grounded": false,
+  "grounded": true,
   "invariants": 14,
   "kind": "atom",
   "models": {
@@ -903,7 +903,7 @@
   "regulated_by": [],
   "security": false,
   "standards": [],
-  "status": "partially resolved",
+  "status": "grounded on Final Critique 7 \u2014 2026-11-05 at ec26ba5",
   "title": "Medication Order"
  },
  "message-preference": {

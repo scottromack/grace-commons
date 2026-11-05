@@ -19,7 +19,7 @@ toc: true
 
 Medication Order records the whole life of a prescription, from the moment a prescriber places it to its end. The order names the drug, the patient, the [Dose] (how much at a time), the [Route] (how it is given, such as by mouth), the [Frequency] (how often) and the [Duration] (for how long), then moves through a regulated chain of custody: a pharmacist verifies it before anything is dispensed, a dispenser releases the medication, a nurse or the patient administers it, and the course completes or is stopped — with the actor at every step permanently recorded.
 
-The guarantee is that the chain is complete and that the atom offers no surface that alters it: no step silently skipped, no actor silently omitted, no field a past transition wrote altered afterwards; a rewrite beneath the atom is a composing Tamper Evidence's (Non-goal 18). The drug, dose, route and frequency are fixed when the order is placed. A correction *before* dispensing creates a successor order, which must be verified afresh; a correction *after* dispensing requires stopping the order and placing a new one, because the physical medication has already left the pharmacy.
+The guarantee is that the chain is complete and that the atom offers no surface that alters it: no step silently skipped, no actor silently omitted, no field a past transition wrote altered afterwards beyond a hold field and a reinstate field (Invariant 12.1); a rewrite beneath the atom is a composing Tamper Evidence's (Non-goal 18). The drug, dose, route and frequency are fixed when the order is placed. A correction *before* dispensing creates a successor order, which must be verified afresh; a correction *after* dispensing requires stopping the order and placing a new one, because the physical medication has already left the pharmacy.
 
 An order stands in exactly one of nine states, with a reversible hold for a surgical pause or an interaction review. The line between an order cancelled before any drug was dispensed and one discontinued after is enforced structurally, because it is the line controlled-substance accounting turns on.
 
@@ -1349,14 +1349,14 @@ It inherits from:
 
 ## Status
 
-`partially resolved` — see the Ledger.
+`grounded on Final Critique 7 — 2026-11-05 at ec26ba5` — see the Ledger.
 
 ## Ledger
 
 ```
-status: partially resolved
+status: grounded on Final Critique 7 — 2026-11-05 at ec26ba5
 formal: verified — medication-order.als + medication-order.tla + 2 twins, 2026-06-04
-last gate: 2026-11-04 — Final Critique 6, a full round, frozen at 939f0b7 — foundational count 5, cured, not clean, no sample
+last gate: 2026-11-05 — Final Critique 7, a delta round, frozen at ec26ba5 — foundational count 0, clean, one sample
 
 open: none
 ```
