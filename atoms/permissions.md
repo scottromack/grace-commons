@@ -357,6 +357,8 @@ String 7: [Check] MUST read an over-length string input as matching nothing.
 
 Term string cap: the bound on a string input's length in Unicode code points; 256 code points where a deployment declares none; a cap of zero refuses every [Grant], which is the degenerate configuration a deployment owns rather than a state the atom admits.
 
+NOTE: watch the cap's floor (Term string cap).
+
 ### Deprovisioning a subject
 
 ```

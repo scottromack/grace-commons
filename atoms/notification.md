@@ -371,6 +371,8 @@ String 9: [Pending For] MUST read a whitespace-only recipient reference as match
 
 Term string cap: the bound on the recipient reference's length, measured in Unicode code points; 256 code points where a deployment declares none; a cap of zero refuses every [Create], which is the degenerate configuration a deployment owns rather than a state the atom admits.
 
+NOTE: watch the cap's floor (Term string cap).
+
 ### Atomicity of a terminal transition
 
 ```

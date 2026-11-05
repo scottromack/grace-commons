@@ -123,7 +123,7 @@ Deleted: State 14. Execution Contract Database 3 owns it.
 Capability requirement 1: The deployment MUST supply now at the seam.
 Capability requirement 5: The deployment MUST supply the workflow records PER Execution Contract Database 1 through 7, Execution Contract Read 1 through 4, Execution Contract Refusal 1, Execution Contract Query 1 through 4, Execution Contract Input 1 and Execution Contract Conformance 9.
 Capability requirement 6: The deployment MUST declare which composing patterns the deployment wired in.
-Capability requirement 7: The deployment MAY declare the string cap PER Execution Contract Input 2.
+Capability requirement 7: The deployment MAY declare the string cap ONLY IF the string cap EXCEEDS 0 PER Execution Contract Input 2.
 Deleted: Capability requirement 2. Execution Contract Logic confinement 7 owns it.
 Deleted: Capability requirement 3. Execution Contract Logic confinement 7 owns it.
 Deleted: Capability requirement 4. Execution Contract Logic confinement 7 owns it.
@@ -561,6 +561,8 @@ Term string cap: the bound on a string input's length in Unicode code points, co
 
 NOTE: watch the cap's measure (Term string cap, Term bounds).
 
+NOTE: watch the cap's floor (Capability requirement 7).
+
 ---
 
 ## Composition notes
@@ -940,7 +942,7 @@ Guard evaluation, non-repudiable attribution, tamper-evidence, and retention are
 ```
 status: partially resolved
 formal: verified — state-machine.als + 1 twin, 2026-06-04
-last gate: 2026-11-03 — Final Critique 13 — delta — foundational count 1, not clean, one sample
+last gate: 2026-11-04 — Final Critique 14 — delta — foundational count 1, not clean, one sample
 
 open:
 - 2026-10-31-a · refining · State 2; State 3; State 15; Operation 67 · no action answers a workflow's subject reference, instance metadata, actor reference or instantiation instant, which the workflow records carry, and a composing pattern reads an atom only through the atom's declared surface (the section titled The atom interface contract in `execution-contract.md`) → a read answering them, or a non-goal saying none does and who owns the need
