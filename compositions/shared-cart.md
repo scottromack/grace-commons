@@ -576,14 +576,14 @@ Shared Cart is a wiring of three primitives and not a regulated pattern, so it c
 
 ## Status
 
-`draft` — see the Ledger.
+`grounded on Final Critique 2 — 2026-11-05 at b430bcf` — see the Ledger.
 
 ## Ledger
 
 ```
-status: draft
+status: grounded on Final Critique 2 — 2026-11-05 at b430bcf
 formal: not applicable — vote no 2026-10-30: the composition reads no clock and claims no ordering of its own; its permission, grant and attribution claims are single-invocation structural properties each action's rules hold in the one transaction Execution Contract Database 1 gives it, and its concurrency is Execution Contract Database 2's
-last gate: 2026-11-04 — Final Critique 1, frozen at d7d3b7a — foundational count 5, cured, not clean, no sample
+last gate: 2026-11-05 — Final Critique 2, delta, frozen at b430bcf — foundational count 0, clean, one sample; 2026-11-04 — Final Critique 1, frozen at d7d3b7a — foundational count 5, cured, not clean, no sample
 
 open:
 - 2026-11-04-a · refining · Composition note 3; Non-goal 9; Unshare Cart · the sweep of a departing actor's grants through [Unshare Cart] needs the caller to hold the cart's share scope and the grant id, and no action answers the grant ids [Open Cart] gives the opener, so a departing sharer holding the cart's last share scope, or a departing opener, leaves grants the sweep cannot name → decide who may revoke a departing actor's grants and how their grant ids surface (an answer on [Open Cart], or a grant listing)
