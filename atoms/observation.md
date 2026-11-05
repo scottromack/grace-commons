@@ -218,6 +218,7 @@ Operation 59: IF the subject reference, the recording actor OR the observation t
 Operation 60: IF value carries a string that EXCEEDS the string cap THEN a content-checking action MUST answer invalid-observation.
 Operation 61: IF a filter's value EXCEEDS the string cap THEN [Read] MUST answer invalid-query.
 Operation 62: An admitted record MUST record EVERY required input PER Execution Contract Input 4.
+Operation 63: IF a supplied recording instant is malformed THEN [Record] MUST answer invalid-observation (Execution Contract Input 1).
 ```
 
 NOTE: watch the blank filter value (Operation 48).
@@ -225,6 +226,8 @@ NOTE: watch the blank filter value (Operation 48).
 NOTE: watch the filter value over the cap (Operation 61).
 
 NOTE: watch the required input no rule records (Operation 57).
+
+NOTE: watch the malformed supplied instant (Operation 63).
 
 NOTE: open 2026-11-04-b — Operation 39, Operation 51 and Operation 55 each sit near a contract rule or a term the page does not own: the answer to a failed write, a read's no-write, and an ordering rule, an actor of Term actors that no entry or scope rule bounds.
 
@@ -355,6 +358,8 @@ An amended observation can still be retracted — retraction reaches any link in
 `retract("obs-0441", retracted_by: "dr.mensah", reason: "   ")` → invalid-request. A withdrawal with no stated reason is not an audit record (Operation 17).
 
 `record(..., recorded_at: <an instant past the future bound>)` → invalid-observation. A measurement recorded as taken later than it could have been is a logical impossibility, and the allowance exists only because two clocks are being compared (Operation 7, Capability requirement 5).
+
+`record(..., recorded_at: "next tuesday")` → invalid-observation. A supplied instant that is not an instant is no measurement time, and [Record] answers it as it answers a content field that fails (Operation 63, Execution Contract Input 1).
 
 `read({subject_ref: "p42", recorded_by: "rn.okafor"})` → invalid-query. The clinician axis is not among the five, and the key is refused rather than ignored (Operation 47).
 
@@ -707,7 +712,7 @@ Role:      Outcome
 
 #### Invalid Observation
 
-The refusal [Record] or [Amend] returns when observation content fails. Either answers it for an empty or whitespace-only [Unit], a [Value] failing the per-type constraint, an [Observation Type] with no declared constraint, or a [Unit] or string [Value] over the string cap (Operation 4, Operation 60: the page's own answer, which stands in place of Execution Contract Input 2); [Record] alone also answers it for an empty, whitespace-only or over-cap [Subject Reference], [Recording Actor] or [Observation Type], or a [Recording Instant] past the future bound, since [Amend] accepts none of these (Operation 1 through 3, Operation 7, Operation 59).
+The refusal [Record] or [Amend] returns when observation content fails. Either answers it for an empty or whitespace-only [Unit], a [Value] failing the per-type constraint, an [Observation Type] with no declared constraint, or a [Unit] or string [Value] over the string cap (Operation 4, Operation 60: the page's own answer, which stands in place of Execution Contract Input 2); [Record] alone also answers it for an empty, whitespace-only or over-cap [Subject Reference], [Recording Actor] or [Observation Type], or a supplied [Recording Instant] that is malformed (Operation 63) or past the future bound, since [Amend] accepts none of these (Operation 1 through 3, Operation 7, Operation 59, Operation 63).
 
 Kind:       Member
 Member of:  the action rejection
@@ -827,7 +832,7 @@ Projection: invalid-query
 ```
 status: partially resolved
 formal: verified — observation.als + 1 twin, 2026-06-03
-last gate: 2026-11-04 — Final Critique 6 — foundational count 7, not clean, one sample
+last gate: 2026-11-04 — Final Critique 7, a delta round, frozen at 83cd9e0 — foundational count 1, cured, not clean, no sample; 2026-11-04 — Final Critique 6 — foundational count 7, not clean, one sample
 
 open:
 - 2026-11-04-a · refining · Identity 9 · one subject reference meaning across every database instance has no discharging rule, check or owner, since the atom never reads across instances → name the deployment obligation or an external check
