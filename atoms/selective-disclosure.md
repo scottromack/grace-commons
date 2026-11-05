@@ -56,7 +56,7 @@ Identity 5: Two disclosure records in one database instance MUST NOT share a dis
 Deleted: Identity 6. Execution Contract Database 7 owns it.
 Identity 7: The atom MUST NOT identify a disclosure record by the subject reference.
 Identity 8: The atom MUST admit a second disclosure record carrying a recorded subject reference.
-Identity 9: The atom MUST match a subject reference exactly.
+Identity 9: The atom MUST match a subject reference exactly, as the seam has canonicalized the subject reference (Execution Contract Logic confinement 13).
 Identity 10: The atom MUST match a recipient exactly.
 Identity 11: The atom MUST NOT normalize a subject reference.
 Identity 12: The atom MUST NOT confirm that a subject reference names a known subject.
@@ -71,7 +71,7 @@ NOTE: watch the id's length against the cap (Identity 2).
 
 Term disclosure record: one recorded disclosure of one subject's data to one recipient under one authority — the record this atom holds.
 
-Term disclosure id: the opaque string naming one disclosure record — a [Disclosure Id]; host-allocated at the seam, fresh per call by the seam's construction.
+Term disclosure id: the opaque string naming one disclosure record — a [Disclosure Id]; host-allocated at the seam, fresh per call as Capability requirement 1 requires.
 
 Term subject reference: the opaque reference naming the data subject whose data was disclosed — a [Subject Reference]; a property of the record, never the record's identity.
 
@@ -105,8 +105,8 @@ Term receipt instant: the instant the deployment received a [Record] call, which
 ### Capability requirement
 
 ```
-Capability requirement 1: The deployment MUST supply now at the seam.
-Capability requirement 5: The deployment MUST supply the disclosure records PER Execution Contract Database 1, Execution Contract Database 3, Execution Contract Database 4, Execution Contract Database 6, Execution Contract Database 7, Execution Contract Read 1 through 4, Execution Contract Refusal 1, Execution Contract Query 1 through 4 and Execution Contract Input 1.
+Capability requirement 1: The deployment MUST supply now at the seam, and MUST supply each disclosure id to one call only, so that no disclosure id the deployment supplies was supplied to an earlier call of the same database instance (Execution Contract Logic confinement 3; Term disclosure id).
+Capability requirement 5: The deployment MUST supply the disclosure records PER Execution Contract Database 1, Execution Contract Database 3, Execution Contract Database 4, Execution Contract Database 5, Execution Contract Database 6, Execution Contract Database 7, Execution Contract Read 1 through 4, Execution Contract Refusal 1, Execution Contract Query 1 through 4 and Execution Contract Input 1.
 Capability requirement 6: The deployment MUST call [Record] for EVERY transmission of a subject's data to a party beside the subject.
 Capability requirement 7: The deployment MUST declare which composing patterns the deployment wired in.
 Capability requirement 8: The deployment MAY declare the string cap PER Execution Contract Input 2.
@@ -119,6 +119,8 @@ Deleted: Clock semantics 3. Execution Contract Logic confinement 7 owns it.
 Deleted: Clock semantics 4. State 10 owns it.
 Deleted: Clock semantics 5. Non-goal 23 owns it.
 ```
+
+NOTE: watch the id the host supplies to two calls (Capability requirement 1).
 
 NOTE: watch the deployment's composition note (Capability requirement 7).
 
@@ -188,7 +190,7 @@ NOTE: watch the cap's refusal (Operation 44, Operation 45).
 
 Term now: the deployment's clock reading at the call, as Execution Contract Logic confinement 11 declares it.
 
-Term authority: the structured field naming the basis the disclosure was made under — an [Authority]; the type carries the two sub-fields, authority type and authority reference, and a sub-field of an authority beyond those two is further content of the type; a call's authority carrying a further field is still an authority (Execution Contract Input 1), refused for it by no guard, and the further field is not recorded.
+Term authority: the structured field naming the basis the disclosure was made under — an [Authority]; the type carries the two sub-fields, authority type and authority reference, and a sub-field of an authority beyond those two is further content of the type; a call's authority carrying a further field is still an authority (Execution Contract Input 1), no rule of this atom refuses it for the further field, and the further field is not recorded.
 
 Term authority type: consent | legal-hold | regulatory — an [Authority Type], set at record and never changed.
 
@@ -322,6 +324,7 @@ Term committed version: a record as it stood at the commit that wrote it, as Exe
 External check 1: A deployment needing a disclosure's authority legitimacy cleared MUST read the composing pattern's authority records (Non-goal 7, Non-goal 8).
 External check 2: A deployment needing Capability requirement 6 cleared MUST read the egress record beside the disclosure records.
 External check 3: A deployment needing a backdated disclosure instant detected MUST read the composing Event Log's receipt instant (State 10).
+External check 6: A deployment needing a correction's narrative cleared MUST read the correcting disclosure record's correction narrative beside the corrected disclosure record (Correction 4; Identity 13).
 Deleted: External check 4. Execution Contract Database 3 owns it.
 Deleted: External check 5. Execution Contract Database 6 owns it.
 ```
@@ -387,7 +390,7 @@ Term string input: subject reference, recipient, scope, authority reference OR a
 
 Term reference: subject reference — the one opaque reference this atom records, as Execution Contract Logic confinement 13 canonicalizes it at the seam; a recipient, a scope, an authority reference and a disclosure id are opaque strings, and no references.
 
-Term string cap: the bound on a string input's length and on a disclosure id's length, in Unicode code points; 1,024 code points where a deployment declares none.
+Term string cap: the bound on a string input's length and on a disclosure id's length (Execution Contract Input 2); 1,024 code points where a deployment declares none.
 
 ### Correction by append
 
@@ -395,7 +398,7 @@ Term string cap: the bound on a string input's length and on a disclosure id's l
 Correction 1: The atom MUST NOT edit a disclosure record.
 Correction 2: The atom MUST NOT remove a disclosure record.
 Correction 3: A caller correcting a disclosure record MUST call [Record] again.
-Correction 4: A correcting disclosure record's correction narrative MUST name the corrected disclosure record.
+Correction 4: A caller's correcting [Record] call MUST carry a correction narrative that names the corrected disclosure record.
 ```
 
 Term correction narrative: the prose a correcting disclosure record's scope OR authority reference carries beside what the field names — the two fields that hold prose, since a record carries State 1's seven fields and no optional one (State 3); this prose, and no field, pairs a correction with the record it corrects.
@@ -441,7 +444,7 @@ Term record verbs: identify, allocate, change, carry, stand, answer, record, res
 
 Term value sets: authority type = consent | legal-hold | regulatory.
 
-Term bounds: string cap (the bound on a string input's length and on a disclosure id's length, in Unicode code points, 1,024 where a deployment declares none).
+Term bounds: string cap (the bound on a string input's length and on a disclosure id's length, 1,024 code points where a deployment declares none, Execution Contract Input 2).
 
 Term cadences: empty.
 
@@ -601,7 +604,7 @@ Projection: invalid-query
 ```
 status: partially resolved
 formal: not applicable — vote no 2026-06-03
-last gate: 2026-11-04 — Final Critique 15, a delta round, frozen at 100a240 — foundational count 1, cured, not clean, no sample; 2026-11-04 — Final Critique 14, a delta round, frozen at 5961920 — foundational count 2, both cured, not clean, no sample; 2026-11-02 — Final Critique 13, a delta round, frozen at bba8734 — foundational count 2, both cured, not clean, no sample; 2026-10-31 — Final Critique 12 — foundational count 0, clean, one sample
+last gate: 2026-11-05 — Final Critique 16, a delta round, frozen at 2db59c0 — foundational count 1, cured, not clean, no sample; 2026-11-04 — Final Critique 15, a delta round, frozen at 100a240 — foundational count 1, cured, not clean, no sample; 2026-11-04 — Final Critique 14, a delta round, frozen at 5961920 — foundational count 2, both cured, not clean, no sample; 2026-11-02 — Final Critique 13, a delta round, frozen at bba8734 — foundational count 2, both cured, not clean, no sample; 2026-10-31 — Final Critique 12 — foundational count 0, clean, one sample
 
 open: none
 ```
