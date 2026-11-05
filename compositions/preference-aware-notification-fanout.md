@@ -157,6 +157,8 @@ Capability requirement 48: A deployment MUST disclose the reconciliation run bou
 Capability requirement 49: A deployment MUST set the audit horizon.
 Capability requirement 50: IF the cap serialization EQUALS blank THEN the composition MUST refuse to start.
 Capability requirement 51: IF the cap serialization EQUALS serialized-per-principal AND the host supplies no per-principal exclusion THEN the composition MUST refuse to start.
+Capability requirement 52: The composition MUST start ONLY IF the audit horizon EXCEEDS the reconciliation window.
+NOTE: watch the horizon against the escalation (Capability requirement 52).
 ```
 
 Term quiet hours interpretation: the deployment's rule reading a stored quiet hours value as a predicate over now — is this instant inside the principal's quiet window.
@@ -998,7 +1000,7 @@ It inherits from: **[Subscription](../atoms/subscription.md)** (Observer, pub-su
 ```
 status: partially resolved
 formal: pending — re-derivation, 2026-08-30: the invocation and [Reconcile Gaps] are now two processes over one disposition under a per-disposition section whose lease is the invocation's terminus, the deliver pair is ordered rather than atomic with an adoptable orphan, and the gap leg is age-bounded, none of which the model carries; was verified — preference-aware-notification-fanout.tla + 1 twin, 2026-06-12
-last gate: 2026-11-04 — Final Critique 13, fresh readers — not clean, 13 foundational, cured in the settle (the next round is a delta round)
+last gate: 2026-11-05 — Final Critique 14, delta, one fresh reader (Linus) — not clean, 1 foundational, cured in the settle (the next round is a delta round)
 
 open:
 - 2026-11-04-a · refining · Action wiring 6, Action wiring 10, Reconciliation 11, Action wiring 26 · a failed read and a lost reply have no rule of their own on the page; Execution Contract Read 1 and Error model 1 own them and the lease's expiry yields (Action wiring 13) → cite them at the sites, or state the answer a failed Action wiring 10 read gives
