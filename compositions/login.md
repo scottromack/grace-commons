@@ -128,14 +128,12 @@ Capability requirement 12: A deployment MUST set the reconciliation cadence.
 Capability requirement 13: The reconciliation cadence MUST NOT EXCEED the reconciliation window.
 Deleted: Capability requirement 14. Execution Contract Database 1 owns it.
 Deleted: Capability requirement 15. Action wiring 13 owns it: every admitted login records its login event.
-Capability requirement 16: The host MUST supply one entry id at the seam PER login call, distinct from every entry id supplied for any other login call.
+Capability requirement 16: The host MUST supply one entry id at the seam PER login call PER Execution Contract Logic confinement 16, distinct from every entry id supplied for a login call of any other instance of the composition.
 Capability requirement 17: A deployment MUST NOT revoke a session under the issuer references outside the composition.
 Capability requirement 18: The deployment MUST supply the database PER Execution Contract Database 1 through 4.
 Deleted: Capability requirement 19. Primitive policy 18 owns it.
 Capability requirement 20: A deployment MUST supply the surface the sweep escalates to.
 ```
-
-NOTE: watch the id the host supplies to two calls (Capability requirement 16).
 
 Term seam: the composition's I/O boundary as the section titled Logic Confinement Principle in `execution-contract.md` declares it; the host injects one clock reading and, for a login call, one entry id here.
 Term now: the deployment's clock reading at the call, as Execution Contract Logic confinement 11 declares it.
@@ -181,9 +179,9 @@ Audit arm 5: The composition MUST alert on an invalid-credential answer.
 Audit arm 6: The composition MUST read an invalid-request answer as a deployment fault.
 Audit arm 7: The composition MUST NOT read an invalid-request answer as unreachable.
 Audit arm 8: The composition MUST NOT retry an invalid-request answer in a loop.
-Audit arm 9: The composition MUST read an invalid-request(step-4) answer as a record already landed.
-Audit arm 10: The composition MUST read an invalid-request(step-3) answer as a record still owed.
-Audit arm 11: The composition MUST read an invalid-request(step-1) or invalid-request(step-2) answer as a record still owed with nothing committed.
+Deleted: Audit arm 9. Execution Contract Database 1 owns it: an action that fails commits nothing, so no record stays landed beside it.
+Deleted: Audit arm 10. Execution Contract Database 1 owns it: an action that fails commits nothing, so no record stays owed beside it.
+Deleted: Audit arm 11. Execution Contract Database 1 owns it: an action that fails commits nothing, so no record stays owed beside it.
 Audit arm 12: The composition MUST NOT retry an invalid-request(step-3) or invalid-request(step-4) answer.
 Audit arm 13: IF Audit Trail answers invalid-credential, invalid-request OR recording-failure at a login event, a logout event OR a cascade event THEN the action MUST answer storage-failure, naming the login-event-record stage at a login (Execution Contract Constituent failure 1, Execution Contract Constituent failure 4).
 ```
@@ -256,8 +254,6 @@ Deleted: Action wiring 44. Action wiring 14 owns it.
 ```
 
 NOTE: watch the attempt a refusal erases (Action wiring 2, Term login result).
-
-NOTE: open 2026-10-29-b — an invalid-request(step-3) or invalid-request(step-4) at a login's, a logout's or a cascade's record keeps Audit Trail's evidence committed (Audit Trail record action step 7.11) and reads as a record owed or landed (Audit arm 9 through 12), while the action Audit arm 13 fails commits nothing of its own (Execution Contract Database 1); whether that evidence stands is open, a kept cascade initiation event then Reconciliation 12's to abandon and Check 4.1 bounded by the reconciliation window.
 
 Term admitted login: a login call whose inputs cleared the boundary predicate.
 
@@ -648,11 +644,10 @@ Inherited from:
 ```
 status: partially resolved
 formal: verified — login.tla, no twin, 2026-05-23
-last gate: 2026-11-04 — Final Critique 12 — delta, foundational count 1, not clean, no sample
+last gate: 2026-11-05 — Final Critique 13 — delta, frozen at 82d4603 — foundational count 0, clean, no sample; the settle cured Ledger open line 2026-10-29-b, a foundational line no reader had read (Scott's ruling of 2026-11-03 21:53Z), so the page is not grounded and owes a delta round; 2026-11-04 — Final Critique 12 — delta, foundational count 1, not clean, no sample
 
 open:
 - 2026-08-29-a · refining · formal · the model's sweep carries no upper edge and no recovery record → extend it
-- 2026-10-29-b · foundational · Audit arm 9 through 13, Check 4.1 · an invalid-request(step-3) or invalid-request(step-4) at a login's, a logout's or a cascade's record keeps Audit Trail's evidence (record action step 7.11) beside an action that commits nothing of its own (Execution Contract Database 1) → keep the evidence, abandoning a kept initiation (Reconciliation 12) and bounding Check 4.1 by the reconciliation window, or roll it back with the action, tombstoning Audit arm 9 through 11 and leaving Check 4.1 as written
 ```
 
 <details markdown="block">
