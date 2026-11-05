@@ -158,7 +158,7 @@ Operation 18: IF no notification EXISTS for the notification id THEN [Status Of]
 Operation 18b: IF a notification id is malformed THEN [Status Of] MUST answer not-known (Execution Contract Query 1, Query 5).
 Operation 19: [Pending For] MUST answer the notification id of EVERY pending notification carrying the recipient reference.
 Operation 20: [Pending For] MUST NOT answer a terminal notification's notification id.
-Operation 21: [Pending For] MUST NOT order the answer.
+Deleted: Operation 21. Execution Contract Read 5 owns it.
 Operation 22: [Status Of] MUST NOT write.
 Operation 23: [Pending For] MUST NOT write.
 Deleted: Operation 24. Capability requirement 1 owns it.
@@ -176,7 +176,7 @@ NOTE: watch the required input no rule records (Operation 30).
 
 NOTE: watch the untyped input (Operation 31, Operation 32, Term notification id, Term recipient reference).
 
-NOTE: the ids a [Pending For] answers come in the order Execution Contract Read 5 states; no rule of this atom names another, since the atom orders none (Operation 21, Non-goal 7).
+NOTE: the ids a [Pending For] answers come in the order Execution Contract Read 5 states; no rule of this atom names another (Operation 19).
 
 NOTE: watch the order an atom forbids (Operation 21).
 
@@ -201,7 +201,7 @@ The case space, and the rule that owns each case:
 | any write | database refuses | [Storage Failure] | none (Operation 7, Operation 15, Operation 16) |
 | [Status Of] | id names a notification | its stored fields | none — the call reads (Operation 17, Operation 22) |
 | [Status Of] | id names nothing, or is malformed | not-known | none (Operation 18, Operation 18b) |
-| [Pending For] | recipient has pending notifications | their ids, in Execution Contract Read 5's order | none (Operation 19, Operation 21) |
+| [Pending For] | recipient has pending notifications | their ids, in Execution Contract Read 5's order | none (Operation 19, Execution Contract Read 5) |
 | [Pending For] | recipient has none, or only terminal ones | empty list | none (Operation 20) |
 | [Pending For] | over-length or whitespace-only recipient | empty list | none — a read with a bad argument has a correct answer (String 8, String 9) |
 
@@ -341,7 +341,7 @@ Non-goal 3: The atom MUST NOT retry a failed notification.
 Non-goal 4: A composing pattern retrying MUST create a second notification.
 Non-goal 5: The atom MUST NOT deliver a notification.
 Non-goal 6: The atom MUST NOT hold a transport's mechanism.
-Non-goal 7: The atom MUST NOT order two pending notifications.
+Deleted: Non-goal 7. Execution Contract Read 5 owns it.
 Non-goal 8: The atom MUST NOT record a recipient's reading.
 Non-goal 9: A deployment needing a read acknowledgement MUST create a second notification for the acknowledgement.
 Non-goal 10: The atom MUST NOT validate a payload.
@@ -686,7 +686,7 @@ Projection: storage-failure
 ```
 status: partially resolved
 formal: verified — notification.als + 1 twin, 2026-06-03
-last gate: 2026-11-05 — Final Critique 9, a delta round, frozen at 29128b6 — foundational count 1, cured, not clean, no sample; 2026-11-04 — Final Critique 8, a delta round, frozen at 075c6e4 — foundational count 1, cured, not clean, no sample; 2026-11-03 — Final Critique 7 — foundational count 2, not clean, no sample
+last gate: 2026-11-05 — Final Critique 10, a delta round, frozen at 82d4603 — foundational count 1, cured, not clean, no sample; 2026-11-05 — Final Critique 9, a delta round, frozen at 29128b6 — foundational count 1, cured, not clean, no sample; 2026-11-04 — Final Critique 8, a delta round, frozen at 075c6e4 — foundational count 1, cured, not clean, no sample; 2026-11-03 — Final Critique 7 — foundational count 2, not clean, no sample
 
 open:
 - 2026-10-21-b · refining · Examples (Shared Todo) · the three outcomes of notif_77 (delivered, failed, expired) share one notification, and only each paragraph's condition says they are alternatives, so a sequence test compiled from the walkthrough can read them as one sequence that breaks Invariant 2.3 → name each outcome an alternative, or give each its own notification
