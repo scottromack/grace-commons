@@ -107,7 +107,7 @@ Capability requirement 16: The deployment MUST supply the registry's availabilit
 Capability requirement 3: The registry MUST run the availability read and the hold write for one resource as one critical section.
 Capability requirement 4: The registry MUST release the critical section on the caller's return.
 Deleted: Capability requirement 5. Capability requirement 18 and Capability requirement 19 own it.
-Capability requirement 18: The registry MUST bound the critical section by the critical section bound the registry declares.
+Capability requirement 18: The registry MUST bound the critical section's availability read by the critical section bound the registry declares.
 Capability requirement 19: IF a hold write in flight EXISTS for the resource THEN the registry MUST NOT release the critical section.
 Deleted: Capability requirement 6. Execution Contract Database 3 owns it.
 Capability requirement 7: A deployment firing [Expire] on a cadence MUST declare the expire cadence.
@@ -124,6 +124,7 @@ Capability requirement 22: The deployment MAY declare the duration bounds PER Ex
 Capability requirement 23: The deployment MUST supply id material naming no commitment of the database instance.
 Capability requirement 24: A deployment firing [Expire] on a cadence MUST declare the expire run bound.
 Capability requirement 25: IF the reclamation sum EXCEEDS the reclamation window THEN a deployment MUST NOT declare the reclamation window.
+Capability requirement 26: A deployment firing [Expire] on a cadence MUST declare the restart delay bound.
 Deleted: Capability requirement 13. Execution Contract Logic confinement 7 owns it.
 Deleted: Capability requirement 14. Execution Contract Logic confinement 7 owns it.
 Deleted: Clock semantics 4. Execution Contract Logic confinement 7 owns it.
@@ -138,7 +139,7 @@ Term hold write: the database write by which a [Place Hold] records a commitment
 
 Term hold write in flight: a hold write the database has neither committed nor refused.
 
-Term critical section bound: the span the registry declares as the longest the critical section runs before the registry ends it (Capability requirement 18).
+Term critical section bound: the span the registry declares as the longest the availability read of a critical section runs, from the read's start, before the host answers registry-unavailable (Capability requirement 18, Operation 42).
 
 ### Operations
 
@@ -254,7 +255,9 @@ Term expire cadence: the span between two firings of [Expire] a deployment firin
 
 Term expire run bound: the span a deployment firing [Expire] on a cadence declares as the bound on one firing's run, from its start to its last write landing (Capability requirement 24).
 
-Term reclamation sum: (the expire cadence + the expire run bound).
+Term restart delay bound: the span a deployment firing [Expire] on a cadence declares as the bound on how long after its cadence a charged firing starts where the process that ran the previous firing has died (Capability requirement 26, Execution Contract Scheduled leg 1).
+
+Term reclamation sum: (the expire cadence + (the expire run bound + the restart delay bound)).
 
 NOTE: watch the reconciliation's own run (Term reclamation sum).
 
@@ -494,13 +497,13 @@ Term record verbs: identify, assign, generate, change, share, carry, stand, read
 
 Term value sets: state = held | confirmed | released | expired. terminal state = confirmed | released | expired. terminal instant = confirmation instant | release instant | lapse instant. window reading = open | lapsed. window rejection = window-elapsed | window-not-elapsed. property = resource | requester | placement instant | expiry instant.
 
-Term bounds: duration bounds, window bound, reclamation window, string cap, critical section bound, expire run bound.
+Term bounds: duration bounds, window bound, reclamation window, string cap, critical section bound, expire run bound, restart delay bound.
 
 Term cadences: expire cadence.
 
 Term qualifiers: migrated — rewritten in GRACE lang v0.40 (2026-09-13).
 
-Term terms: commitment, id, property, reference, registry, database instance, seam, transition, now, hold write, hold write in flight, resolving action, duration bounds, window bound, window reading, open, lapsed, window rejection, terminal state, terminal instant, admitted place hold, admitted confirm, admitted release, admitted expire, admitted resolving action, releasing action, string input, blank, reclamation lag, reclamation window, capacity decision, degenerate window, late resolution, premature expiry, committed version, string cap, duration, id material, availability, availability verdict, critical section bound, expire cadence, expire run bound, reclamation sum.
+Term terms: commitment, id, property, reference, registry, database instance, seam, transition, now, hold write, hold write in flight, resolving action, duration bounds, window bound, window reading, open, lapsed, window rejection, terminal state, terminal instant, admitted place hold, admitted confirm, admitted release, admitted expire, admitted resolving action, releasing action, string input, blank, reclamation lag, reclamation window, capacity decision, degenerate window, late resolution, premature expiry, committed version, string cap, duration, id material, availability, availability verdict, critical section bound, expire cadence, expire run bound, restart delay bound, reclamation sum.
 
 Term cited: sequence number: Event Log. The section titled Logic Confinement Principle in `execution-contract.md` — the seam and the transition.
 
@@ -633,7 +636,7 @@ Role:      Outcome
 
 #### Confirmed
 
-The terminal state reached when the requester confirmed while the commitment read open — the resource is taken into a binding allocation. Absorbing.
+The terminal state reached when the requester confirmed while the commitment's window reading was open at the call's now — the resource is taken into a binding allocation. Absorbing.
 
 Kind:      Member
 Member of: the commitment state
@@ -641,7 +644,7 @@ Role:      Outcome
 
 #### Released
 
-The terminal state reached when the commitment was released while the commitment read open — the resource returns to availability. Absorbing.
+The terminal state reached when the commitment was released while the commitment's window reading was open at the call's now — the resource returns to availability. Absorbing.
 
 Kind:      Member
 Member of: the commitment state
@@ -792,7 +795,7 @@ It inherits from:
 ```
 status: partially resolved
 formal: verified — provisional-commitment.tla + 2 twins, 2026-06-04
-last gate: 2026-11-03 — Final Critique 7 — foundational count 4, not clean, no sample
+last gate: 2026-11-04 — Final Critique 8 (delta) — foundational count 2, not clean, no sample
 
 open: none
 ```
