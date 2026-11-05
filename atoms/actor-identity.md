@@ -93,6 +93,8 @@ Term current material: the public material in force for an actor reference now, 
 
 Term revocation status: what the credential mechanism reads about the credential's revocation — carried inside the proof (Revocation status 1) or read from a live revocation service (Revocation status 3) — saying whether the credential is revoked.
 
+NOTE: open 2026-11-05-a — Term revocation status names no as-of instant, so a revocation after the attestation instant turns an earlier honest attestation proof-invalid in one build and not in another (Term revocation status, Term proof check).
+
 Term attestation field: attestation id | action reference | actor reference | proof | attestation instant.
 
 ### Capability requirement
@@ -102,8 +104,8 @@ Capability requirement 1: The deployment MUST supply now at the seam.
 Capability requirement 2: The deployment MUST supply the attestation records PER Execution Contract Database 1, Execution Contract Database 3, Execution Contract Database 4, Execution Contract Database 6, Execution Contract Read 1 through 3, Execution Contract Read 5, Execution Contract Read 6, Execution Contract Refusal 1 and Execution Contract Conformance 9.
 Capability requirement 3: The deployment MUST supply the registry answer at the seam.
 Capability requirement 4: The deployment MUST supply the cryptographic material at the seam (Execution Contract Logic confinement 8).
-Capability requirement 5: The deployment MAY declare the string cap PER Execution Contract Input 2.
-Capability requirement 6: The deployment MUST supply at the seam on [Attest] an attestation id no attestation has carried PER Execution Contract Logic confinement 3.
+Capability requirement 5: The deployment MAY declare the string cap ONLY IF the string cap EXCEEDS 0 PER Execution Contract Input 2.
+Capability requirement 6: The deployment MUST supply at the seam on [Attest] an attestation id no attestation has carried PER Execution Contract Logic confinement 3 and Execution Contract Logic confinement 16.
 Capability requirement 7: The deployment MUST declare which composing patterns the deployment wired in.
 ```
 
@@ -183,15 +185,17 @@ Term string input: action reference, actor reference OR credential — every cal
 
 NOTE: watch the cap's measure (Term string cap, Term bounds).
 
+NOTE: watch the cap's floor (Capability requirement 5).
+
 NOTE: watch the untyped input (Term string input).
 
 Term registry answer: material | unknown-actor | unreachable — what the actor registry gives [Attest] or a verifier for an actor reference.
 
 Term registry view: the registry answer for an actor reference and the public material the answer carries, taken together; a rotation, an outage or a removal from the registry changes the registry view.
 
-Term credential check: held | failed | unavailable — the supplied credential run against the current material the registry answer carries for the actor reference; unavailable where the credential mechanism supplies no credential check or no proof at the seam, which says nothing about the credential.
+Term credential check: held | failed | unavailable — the supplied credential run against the current material the registry answer carries for the actor reference; unavailable where the credential mechanism supplies no credential check or no proof at the seam, a live revocation service the mechanism rests on being down included (Revocation status 3), which says nothing about the credential; where more than one of held, failed and unavailable applies to one call, the credential check is failed ahead of unavailable and unavailable ahead of held.
 
-Term proof check: held | failed | unavailable — the recorded proof run against the recorded action reference and actor reference under the public material, held where the proof verifies under any one material the public material holds for the actor reference, the current material and any historical material alike, and failed where it verifies under none; failed also where a revocation status names the credential revoked (Revocation status 1, Revocation status 3); unavailable where the credential mechanism supplies no proof check at the seam, a live revocation service the mechanism rests on being down included (Revocation status 3), which says nothing about the proof.
+Term proof check: held | failed | unavailable — the recorded proof run against the recorded action reference and actor reference under the public material, held where the proof verifies under any one material the public material holds for the actor reference, the current material and any historical material alike, and failed where it verifies under none; failed also where a revocation status names the credential revoked (Revocation status 1, Revocation status 3); unavailable where the credential mechanism supplies no proof check at the seam, a live revocation service the mechanism rests on being down included (Revocation status 3), which says nothing about the proof; where more than one of held, failed and unavailable applies to one attestation, the proof check is failed ahead of unavailable and unavailable ahead of held.
 
 Term verification set: the attestation's own fields together with the registry view for the actor reference and the proof check computed at the seam (Term proof check) — and, where the credential mechanism embeds it, the revocation status the proof carries (Revocation status 1, Revocation status 2); and a verification result an implementation caches (Verification caching 1); everything [Verify] is allowed to read, and nothing else.
 
@@ -204,7 +208,7 @@ The case space, and the rule that owns each case:
 | [Attest] | action reference, actor reference and credential not blank, registry answers material, credential validates, no revocation status names the credential revoked, database accepts | attestation id | one attestation lands in [Attested] (Operation 1, Operation 2, Operation 38, Operation 39) |
 | [Attest] | blank action reference, actor reference or credential, or a string input over the string cap | [Invalid Request] | none (Operation 6 through 8, Operation 37, Execution Contract Input 2) |
 | [Attest] | registry unreachable | [Registry Unavailable] | none (Operation 33) |
-| [Attest] | registry answers material, the credential mechanism supplies no credential check or no proof | [Mechanism Unavailable] | none (Operation 40) |
+| [Attest] | registry answers material, the credential mechanism supplies no credential check or no proof, a live revocation service the mechanism rests on being down included | [Mechanism Unavailable] | none (Operation 40) |
 | [Attest] | registry holds no material for the actor | [Invalid Credential] | none (Operation 31) |
 | [Attest] | credential fails against the actor's current material | [Invalid Credential] | none (Operation 9) |
 | [Attest] | a revocation status names the credential revoked | [Invalid Credential] | none (Operation 36) |
@@ -214,10 +218,10 @@ The case space, and the rule that owns each case:
 | [Verify] | attestation found, registry unreachable | [Registry Unavailable] | none (Operation 17) |
 | [Verify] | attestation found, material in hand, the credential mechanism supplies no proof check, a live revocation service the mechanism rests on being down included | [Mechanism Unavailable] | none (Operation 41) |
 | [Verify] | attestation found, material in hand, proof does not hold, or a revocation status names the credential revoked | [Proof Invalid] | none (Operation 18) |
-| [Verify] | attestation found, material in hand, proof holds | [Verified] | none (Operation 19, Operation 32) |
+| [Verify] | attestation found, material in hand, proof holds, no revocation status names the credential revoked and no live revocation service the mechanism rests on is down | [Verified] | none (Operation 19, Operation 32) |
 | [Read] | any call | every attestation, with its stored fields | none (Operation 27 through 29) |
 
-Where two [Attest] cases hold at once, the refusal listed first on [Attest]'s refuses line answers (Execution Contract Refusal 1).
+Where two [Attest] cases hold at once, the refusal listed first on [Attest]'s refuses line answers (Execution Contract Refusal 1). Where two [Verify] cases hold at once, the proof check answers in the order Term proof check gives: failed, then unavailable, then held.
 
 NOTE: open 2026-10-20-f — [Read] answers every attestation with no key (Operation 27).
 
@@ -268,7 +272,7 @@ NOTE: open 2026-10-20-f — [Read] answers every attestation with no key (Operat
   Deleted: Invariant 9.3. Execution Contract Database 1 owns it.
   ```
 
-NOTE: watch the external answer that moves (Invariant 2.1, Invariant 3.1, Invariant 7.1).
+NOTE: watch the external answer that moves (Invariant 2.1, Invariant 3.1, Invariant 7.1, Check 1.2, Check 1.3).
 
 NOTE: watch the host's state (Invariant 6.2).
 
@@ -320,13 +324,14 @@ Three scenarios the atom must survive in regulated contexts:
 
 ## Generation acceptance
 
-This atom's acceptance is provable: an external auditor clears it from the attestation records and the actor registry's public material.
+This atom's acceptance is provable: an external auditor clears it from the attestation records and the actor registry's public material, and, where the credential mechanism rests on a live revocation service, that service's revocation status.
 
 ### Conformance checks
 
 ```
 Check 1.1: An auditor MUST reconstruct EVERY attestation from the attestation's stored fields (Invariant 1.1, State 3).
-Check 1.2: An auditor MUST NOT need state beyond those fields and the registry's public material (Invariant 6.3).
+Check 1.2: IF the credential mechanism rests on no live revocation service THEN an auditor MUST NOT need state beyond those fields and the registry's public material (Invariant 6.3).
+Check 1.3: IF the credential mechanism rests on a live revocation service THEN an auditor MUST NOT need state beyond those fields, the registry's public material and the revocation status that service answers (Invariant 6.3, Revocation status 3).
 Check 2.1: An auditor MUST verify an attestation without privileged access to the system (Operation 21).
 Check 3.1: IF the current material at attestation instant IS IN the public material THEN an auditor MUST confirm that the proof holds against the recorded action reference under the current material at attestation instant and against no other action (Invariant 2.1, Invariant 2.2).
 Check 3.2: IF the current material at attestation instant IS IN the public material THEN an auditor MUST confirm that the proof holds against the recorded actor reference under the current material at attestation instant and against no other actor (Invariant 3.1, Invariant 3.2).
@@ -608,7 +613,7 @@ Projection: invalid-request
 
 #### Invalid Credential
 
-The refusal [Attest] returns when the supplied [Credential] does not validate against the actor registry's current material for the [Actor Reference], when the registry holds no public material for the [Actor Reference], or when a revocation status names the [Credential] revoked; never when the credential mechanism supplies no credential check ([Mechanism Unavailable]). A guard rejection that fails before any database write; no [Attestation] is recorded.
+The refusal [Attest] returns when the supplied [Credential] does not validate against the actor registry's current material for the [Actor Reference], when the registry holds no public material for the [Actor Reference], or when a revocation status names the [Credential] revoked; never when the credential mechanism supplies no credential check, which answers [Mechanism Unavailable] ahead of it (Operation 40, Execution Contract Refusal 1). A guard rejection that fails before any database write; no [Attestation] is recorded.
 
 Kind:       Member
 Member of:  the Attest rejection
@@ -686,9 +691,10 @@ It inherits from:
 ```
 status: partially resolved
 formal: not applicable — vote no 2026-06-03
-last gate: 2026-11-04 — Final Critique 14, a delta round, frozen at a3eeb6a — foundational count 1, cured, not clean, no sample; 2026-11-03 — Final Critique 13, a full round, frozen at abc0293 — foundational count 6, cured, not clean, no sample; 2026-11-02 — Final Critique 12, a delta round, frozen at dd11876 — foundational count 0, clean, no sample; 2026-11-02 — Final Critique 11, a delta round, frozen at f85ef8d — foundational count 1, cured, not clean, no sample; 2026-10-23 — Final Critique 10, the council's sixth round on the page and the first on its text since Final Critique 9's settle (7e1da1a), three fresh readers on free models (GRID Nemotron 3 Ultra, EOS Beam, Linus GLM-5.3 Flash), each handed only the round's reading set, three passes on one text (frozen at fbbe23b); the round rests on three counted passes — foundational count 0, held by the blind second triage (2026-10-23, one cold reader given the round's 29 reports, the method's test and the placement rule, and neither the threshold nor what the count decides, which placed none of them foundational); 14 foundational reports, none standing as the two triages settled them (12 sent down, eight of them onto the page's four flagged open lines; 2 rejected); 13 refining reports, 2 rhetorical reports; clean; every refining finding cured, routed or answered, State 2 deleted to State 1, open line 2026-10-22-a narrowed to the seam terms and open line 2026-10-23-a added; one sample; 2026-10-23 — Final Critique 9, the council's fifth round on the page — foundational count 1 after the blind second triage, cured, not clean; 2026-10-22 — Final Critique 8, the council's fourth round on the page — foundational count 1, cured, not clean; 2026-10-22 — Final Critique 7, the council's third round on the page — foundational count 2, both cured, not clean; 2026-10-22 — Final Critique 6, the council's second round on the page — foundational count 3, all cured, not clean; 2026-10-20 — Final Critique 5, the council's first round on the page — foundational count 7, all cured, not clean
+last gate: 2026-11-05 — Final Critique 15, a delta round, frozen at cd7c4bb — foundational count 3, cured, not clean, no sample; 2026-11-04 — Final Critique 14, a delta round, frozen at a3eeb6a — foundational count 1, cured, not clean, no sample; 2026-11-03 — Final Critique 13, a full round, frozen at abc0293 — foundational count 6, cured, not clean, no sample; 2026-11-02 — Final Critique 12, a delta round, frozen at dd11876 — foundational count 0, clean, no sample; 2026-11-02 — Final Critique 11, a delta round, frozen at f85ef8d — foundational count 1, cured, not clean, no sample; 2026-10-23 — Final Critique 10, the council's sixth round on the page and the first on its text since Final Critique 9's settle (7e1da1a), three fresh readers on free models (GRID Nemotron 3 Ultra, EOS Beam, Linus GLM-5.3 Flash), each handed only the round's reading set, three passes on one text (frozen at fbbe23b); the round rests on three counted passes — foundational count 0, held by the blind second triage (2026-10-23, one cold reader given the round's 29 reports, the method's test and the placement rule, and neither the threshold nor what the count decides, which placed none of them foundational); 14 foundational reports, none standing as the two triages settled them (12 sent down, eight of them onto the page's four flagged open lines; 2 rejected); 13 refining reports, 2 rhetorical reports; clean; every refining finding cured, routed or answered, State 2 deleted to State 1, open line 2026-10-22-a narrowed to the seam terms and open line 2026-10-23-a added; one sample; 2026-10-23 — Final Critique 9, the council's fifth round on the page — foundational count 1 after the blind second triage, cured, not clean; 2026-10-22 — Final Critique 8, the council's fourth round on the page — foundational count 1, cured, not clean; 2026-10-22 — Final Critique 7, the council's third round on the page — foundational count 2, both cured, not clean; 2026-10-22 — Final Critique 6, the council's second round on the page — foundational count 3, all cured, not clean; 2026-10-20 — Final Critique 5, the council's first round on the page — foundational count 7, all cured, not clean
 
 open:
+- 2026-11-05-a · refining · Term revocation status; Term proof check · the revocation status carries no as-of instant, so a revocation after the attestation instant may turn an earlier attestation proof-invalid, and nothing says whether the mechanism or the atom owns the instant the status is read at → settle whether verify reads the status as of now or as of the attestation instant
 - 2026-11-04-b · refining · Verification caching 1; Operation 32; Operation 41 · a cached verification may answer verified or proof-invalid without the seam's proof check, and a cache hit has no rule saying whether an unavailable proof check answers mechanism-unavailable → say whether a cache hit still reads the seam's proof check
 - 2026-11-04-a · refining · Term verification set · the set closes with "everything [Verify] is allowed to read, and nothing else" and omits the attestation id the call carries and the host-injected values (now, the registry answer) → settle which host-injected values sit inside the set (the watch list flags Invariant 6.2 for this pair)
 - 2026-11-03-a · refining · Check 3.1; Check 3.2; Registry view 2; Registry view 3 · the checks read the material current at attestation instant, and a registry keeping historical material with no era leaves an auditor no way to tell which kept material that was → name what the registry answer carries, or a snapshot term the checks read
