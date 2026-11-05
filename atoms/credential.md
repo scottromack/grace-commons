@@ -160,6 +160,8 @@ Capability requirement 41: The deployment MUST NOT remove a credential type a cr
 Capability requirement 42: The deployment MUST supply id material in the spelling the deployment's reference canonicalization produces.
 ```
 
+NOTE: watch the id the host supplies to two calls (Capability requirement 35).
+
 NOTE: open 2026-10-21-c — the host runs the derivation function and the check function at the seam and injects each result (Capability requirement 25, Capability requirement 26, Operation 21, Operation 66, Operation 67), and the pipeline in `execution-contract.md` gives that injection no step between the read and the decision.
 
 NOTE: open 2026-11-02-a — the material bound has no default, while Execution Contract Input 2 gives a bound a stated default and says a deployment never has to supply one; the value waits on a decision no rule makes, since the bound is declared PER credential type in a measure the deployment chooses.

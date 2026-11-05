@@ -254,6 +254,8 @@ Capability requirement 71: IF Legal Hold EQUALS composed AND no Legal Hold datab
 Capability requirement 72: IF Legal Hold EQUALS composed AND no hold placement EXISTS THEN the instance MUST NOT start.
 ```
 
+NOTE: watch the id the host supplies to two calls (Capability requirement 63).
+
 Term seam: the composition's I/O boundary as the section titled Logic Confinement Principle in `execution-contract.md` declares it; the host injects one clock reading and one invocation id here.
 Term now: the deployment's clock reading at the call, as Execution Contract Logic confinement 11 declares it.
 
