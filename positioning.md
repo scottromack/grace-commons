@@ -62,6 +62,10 @@ flowchart TD
   CONF --> R5["MongoDB"]
 ```
 
+## The designer's scale
+
+Grace is the Modulor for software. Le Corbusier's Modulor gave architects a scale of proportions, so that good proportions came by default; Einstein, shown it at Princeton in 1946, called it "a scale of proportions which makes the bad difficult and the good easy" (as Le Corbusier recounts in *The Modulor*, 1950). The corpus does the same for builders: it gives them proven patterns, so correct software comes by default. And the loops make a bad specification hard to ship, which is how Grace makes the hard easier.
+
 ## The lineage — what each solved, where each stopped
 
 Every row below contributed something this library inherits; none is dismissed. The last column is the specific gap, not a verdict.
