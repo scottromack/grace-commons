@@ -108,6 +108,7 @@ Composition state 14: The rebuild MUST NOT read a purged placement event's paylo
 Composition state 15: The rebuild MUST NOT read a trail miss as an absent retention.
 Composition state 16: The database-sourced rebuild MUST admit a retention the composition did not place.
 Composition state 17: A refusal resting on the database-sourced rebuild MUST NOT stand as a scope statement.
+NOTE: open 2026-11-05-a — "scope statement" in Composition state 17 is no declared term, so what a refusal resting on the database-sourced rebuild may not claim (that the retention was placed through this composition, Composition state 16) is unstated.
 Composition state 18: The composition MUST NOT rest a purge admission on an index.
 Composition state 19: The composition MUST read the sibling set from Retention Window's records.
 Composition state 20: An index MUST stand outside an action's atomicity set.
@@ -137,13 +138,13 @@ Term surviving placement event: a retention_placed event whose payload the audit
 
 Term purged placement event: a retention_placed event whose payload the audit instance has destroyed.
 
-Term rebuild: the composition's named regeneration of an index — select this composition's placement events over an open-ended sequence range, keeping each event whose action reference names retention_placed, the outcome a committed placement records (Term outcome), the action reference being what Audit Trail's read answers for every event, a destroyed event included (Term destroyed event); take a surviving event's record reference and retention id, take every retention Retention Window's declared read answers as an index entry, and drop every retention the database reports purged.
+Term rebuild: the composition's named regeneration of an index — select this composition's placement events over an open-ended sequence range, keeping each event whose action reference names retention_placed, the outcome a committed placement records (Term outcome), the action reference being what Audit Trail's read answers for every event, a destroyed event included (Term destroyed event); take a surviving event's record reference and retention id, and take and drop retentions as Composition state 13 and Composition state 23 write.
 
 Term sibling set: the retentions whose retention state EQUALS retained over one record beside the named retention, read from Retention Window's records.
 
 Term pending sibling: a retention standing retained over a destroyed record — a sibling whose own purge has not landed.
 
-Term within the audit horizon: said of a placement, a release or a purge by the instant the constituent's records carry for it — the reader's now less that instant plus the horizon margin DOES NOT EXCEED the audit horizon, so the act's own audit records cannot have aged out. An act that does not stand within the audit horizon reads unknown wherever its record is missing (Check 6.4).
+Term within the audit horizon: said of a placement, a release or a purge by the instant the constituent's records carry for it — the act's age, the reader's now less that instant, plus the horizon margin DOES NOT EXCEED the audit horizon, so the act's own audit records cannot have aged out. An act that does not stand within the audit horizon reads unknown wherever its record is missing (Check 6.4).
 
 NOTE: open 2026-10-04-g — a hold's placement and release are aged by the instant Legal Hold's records carry, which a caller may assert, so a hold backdated past the horizon reads as outside it the day it is entered.
 
@@ -271,7 +272,7 @@ Term closure floor: `(((((retention_completion_bound + (2 * clock_offset_allowan
 
 NOTE: open 2026-10-25-b — Audit Trail declares its own Term closure floor, another formula, and its own Term call pause bound, clock offset allowance, compensation window, intent, leg, quiescence, reconciliation cadence, seal coverage and audit horizon (GRACE-lang Closed vocabulary 17).
 
-Term alert floor: `((((2 * compensation_window) + reconciliation_cadence) + enumeration_bound) + (2 * clock_offset_allowance))` — the age by which a run has alerted on an overdue marker and the deployment has had a window to answer the alert, while the marker's intent can still be read. The terms in order: the window; a cadence to the run that reads the marker overdue, and that run's enumeration; a second window for the alert to be answered in; and two allowances, one where a run reads overdue against an instant another seam stamped and one where the substrate destroys on a clock of its own. The alert rests on the run's own enumeration and waits for no section, so a held section or a refused read of a leg delays the closing and never the alert. The floor promises the alert and its window and nothing of the closing that follows the answer: a run closes what its legs reach, one grant after another, and a marker still open when its intent is destroyed stays the alerted partial it was (Atomic writes 7), its outcome unwritten (Invariant 5.7). A deployment that means every marker to close sets the horizon above the floor by the runs its backlog needs.
+Term alert floor: `((((2 * compensation_window) + reconciliation_cadence) + enumeration_bound) + (2 * clock_offset_allowance))` — the age by which a run has alerted on an overdue marker and the deployment has had a window to answer the alert, while the marker's intent can still be read. The terms in order: the window; a cadence to the run that reads the marker overdue, and that run's enumeration; a second window for the alert to be answered in; and two allowances, one where a run reads overdue against an instant another seam stamped and one where the substrate destroys on a clock of its own. The alert rests on the run's own enumeration and waits for no section, so a held section or a refused read of a leg delays the closing and never the alert; a run whose enumeration answers a refusal, state-unavailable or no answer alerts on that (Reconciliation 44). The floor promises the alert and its window and nothing of the closing that follows the answer: a run closes what its legs reach, one grant after another, and a marker still open when its intent is destroyed stays the alerted partial it was (Atomic writes 7), its outcome unwritten (Invariant 5.7). A deployment that means every marker to close sets the horizon above the floor by the runs its backlog needs.
 
 Term enumeration bound: enumeration_bound — the deployment's declared longest time from a run's start to the end of the run's enumeration of the open markers and of its alerts on them. The trail grows and the sweep keeps no cursor (Reconciliation 3), so holding the bound is the deployment's.
 
@@ -1682,16 +1683,17 @@ The three constituents carry their own standards inheritance — see each consti
 
 ## Status
 
-`partially resolved` — see the Ledger.
+`grounded on Final Critique 18 — 2026-11-05 at 4e61dc9` — see the Ledger.
 
 ## Ledger
 
 ```
-status: partially resolved
+status: grounded on Final Critique 18 — 2026-11-05 at 4e61dc9
 formal: verified — defensible-retention.tla + 5 twins + 1 probe (the gate under the record section: a purge against a hold placement and a sibling placement; 4,206 states, holding at a term of 7 within 10 ticks) and defensible-retention-outcome.tla + 3 twins + 1 probe (one outcome per destruction: the invocation's outcome, a step-3 refusal whose append lands late, and a sweep leg; 4,222 states, holding at a term of 9 within 12 ticks), re-derived from the page as it stands, 2026-10-04, and the audit cascade's models, moved here with the cascade: defensible-retention-audit-hold.tla + 5 twins + 3 probes (a hold placed over an open cascade entry, released and re-driven; 43,688 states within 15 ticks, re-run 2026-11-02) and audit-trail.tla + 2 twins (the cascade's order and the scan's first half, which both pages cite); models last run 2026-11-02
-last gate: 2026-11-04 — Final Critique 17 — delta, foundational count 2, not clean, no sample
+last gate: 2026-11-05 — Final Critique 18 — delta, frozen at 4e61dc9 — foundational count 0, clean, one sample
 
 open:
+- 2026-11-05-a · refining · Composition state 17 · "scope statement" is no declared term, and what a refusal resting on the database-sourced rebuild may not claim is unstated → declare the claim (that the composition placed the retention, Composition state 16) and write the rule by it
 - 2026-10-04-d · refining · Term evidence floor; Capability requirement 11, 12 · the retention and purge-delay terms have no declaring requirement, and no check sets a hold's actual life against the longest hold declared → declare; a provable check
 - 2026-10-04-e · refining · Term closure floor; Term section work bound; Term sibling floor; Term audit write latency; Reconciliation 21 · a leg's re-read under the section and its lease readings are uncounted and a leg has no work bound the section term must exceed, the latency runs from the issue where Lease's unit runs from the ask, and the sibling floor leaves no pause for the outcome's own reading or the purge-instant read; the worst case is an owed outcome or an early alert → a leg work bound; recount
 - 2026-10-04-f · refining · Reconciliation 19, 25, 41; Check 3.3; Term leg · a pending sibling has no window and no alert, and the Term covers a leg over open markers and not one over siblings alone → a window; widen the Term

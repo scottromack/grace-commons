@@ -532,7 +532,7 @@
    "legal-hold",
    "retention-window"
   ],
-  "grounded": false,
+  "grounded": true,
   "invariants": 13,
   "kind": "composition",
   "models": {
@@ -549,7 +549,7 @@
    "SEC 17a-4",
    "SOX"
   ],
-  "status": "partially resolved",
+  "status": "grounded on Final Critique 18 \u2014 2026-11-05 at 4e61dc9",
   "substrate_of": [
    "resolve-a-persons-data-rights"
   ],
