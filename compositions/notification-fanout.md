@@ -530,14 +530,14 @@ It inherits from:
 
 ## Status
 
-`partially resolved` — see the Ledger.
+`grounded on Final Critique 11 — 2026-11-05 at 63c13eb` — see the Ledger.
 
 ## Ledger
 
 ```
-status: partially resolved
+status: grounded on Final Critique 11 — 2026-11-05 at 63c13eb
 formal: not applicable — vote no 2026-06-03: single-invocation structural coverage properties, no ordering or concurrency claim
-last gate: 2026-11-04 — Final Critique 10 — foundational count 4, not clean, no sample
+last gate: 2026-11-05 — Final Critique 11, a delta round, frozen at 63c13eb — foundational count 0, clean, no sample; 2026-11-04 — Final Critique 10 — foundational count 4, not clean, no sample
 
 open: none
 ```

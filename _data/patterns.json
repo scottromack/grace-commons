@@ -990,7 +990,7 @@
    "subscription",
    "notification"
   ],
-  "grounded": false,
+  "grounded": true,
   "invariants": 6,
   "kind": "composition",
   "models": {
@@ -1000,7 +1000,7 @@
   },
   "regulated": true,
   "standards": [],
-  "status": "partially resolved",
+  "status": "grounded on Final Critique 11 \u2014 2026-11-05 at 63c13eb",
   "substrates": [],
   "title": "Notification Fanout"
  },
