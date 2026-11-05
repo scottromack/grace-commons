@@ -211,7 +211,7 @@ Term longest workflow lifetime: the longest a workflow run the deployment admits
 
 Term completion bound: the longest a state-changing invocation may run, from its intent to its outcome and, for a firing, its moot cascade — `workflow_completion_bound`.
 
-Term compensation window: the duration within which an owed record or cascade must land or be escalated — `compensation_window`.
+Term compensation window: the duration after which an owed record or cascade that has not landed is eligible for escalation — `compensation_window`.
 
 Term reconciliation cadence: the interval between the sweep's runs — `reconciliation_cadence`.
 
@@ -1200,14 +1200,14 @@ It inherits from:
 
 ## Status
 
-`partially resolved` — see the Ledger.
+`grounded (English) on Final Critique 15 — 2026-11-05 at 776c44e — formal layer pending` — see the Ledger.
 
 ## Ledger
 
 ```
-status: partially resolved
+status: grounded (English) on Final Critique 15 — 2026-11-05 at 776c44e — formal layer pending
 formal: pending — re-derivation, 2026-08-30: execute-gated-workflow.tla + 2 twins verified 2026-06-04 over an unbounded consumption arm, Pending-only mooting and a single-writer invocation with no terminus; re-derive over the mooted flag, the horizon-bounded consumption arm, the invocation and the sweep as two processes with the bound as the yield point, and leg (4)'s decision-matched join (2026-08-29-a, 2026-08-30-e)
-last gate: 2026-11-04 — Final Critique 14 — foundational count 3, not clean, no sample
+last gate: 2026-11-05 — Final Critique 15 — delta, frozen at 776c44e — foundational count 0, clean, one sample
 
 open:
 - 2026-08-29-a · refining · formal · the model's sweep carries no age bound and no recovery record → extend the model with the bounded sweep behind `workflow_recovery_intended`

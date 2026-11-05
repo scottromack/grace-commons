@@ -655,7 +655,7 @@
    "permissions",
    "assignment"
   ],
-  "grounded": false,
+  "grounded": true,
   "invariants": 7,
   "kind": "composition",
   "models": {
@@ -671,7 +671,7 @@
    "PCI DSS",
    "SOX"
   ],
-  "status": "partially resolved",
+  "status": "grounded (English) on Final Critique 15 \u2014 2026-11-05 at 776c44e \u2014 formal layer pending",
   "substrates": [
    "audit-trail"
   ],
