@@ -112,7 +112,7 @@ Term live binding: a binding whose outcome event's payload the audit horizon has
 
 Term purged binding: a binding whose outcome event's payload the audit horizon has destroyed.
 
-Term binding rebuild: the custody enumeration from the log's start, kept to the outcome events carrying an entry id of the chain, re-keyed by that entry id.
+Term binding rebuild: the custody enumeration from the log's start, kept to the outcome events whose entry id the chain's Provenance entries carry, re-keyed by that entry id.
 
 ### Capability requirement
 
@@ -202,7 +202,7 @@ Primitive policy 12: The composition MUST NOT normalize a caller string.
 Primitive policy 13: The composition MUST NOT inspect a credential beyond Primitive policy 6.
 Primitive policy 14: The composition MUST pass a custody action's acting custodian to the outcome's audit write as the actor reference.
 Primitive policy 15: The composition MUST NOT carry the metadata in an audit write.
-Primitive policy 16: The composition MUST pass the custodian reference of EVERY custody action to the intent's audit write as the actor reference, [Transfer Custody] excepted.
+Primitive policy 16: The composition MUST pass the custodian reference of EVERY custody action to the intent's audit write as the actor reference, [Transfer Custody] excepted (Action wiring 20).
 ```
 
 Term artifact reference: the opaque reference to the artifact whose custody a chain tracks — never validated against a registry here.
@@ -369,7 +369,7 @@ Action wiring 53: [Verify Custody] MUST NOT record an audit event.
 Action wiring 54: The read passthrough MUST answer Provenance's read for the chain id AND the query unchanged.
 Action wiring 55: The read passthrough MUST NOT record an audit event.
 Action wiring 59: IF a read the action makes answers state-unavailable THEN the action MUST answer state-unavailable PER Execution Contract Read 1.
-Action wiring 60: A caller MUST read a refusal of a custody action as committing no custody entry.
+Action wiring 60: A caller MUST read a refusal of a custody action as committing no custody entry, a recording-failure carrying outcome excepted (Audit arm 24, Term position).
 ```
 
 Term validated custody action: a custody action whose inputs cleared Primitive policy.
@@ -483,6 +483,7 @@ Reconciliation 25: The reconciliation MUST NOT record a compensating event BEFOR
 Reconciliation 26: IF the re-read finds an outcome carrying the entry id THEN the reconciliation MUST bind the entry to the found outcome.
 Reconciliation 27: IF the reconciliation records a compensating event THEN the reconciliation MUST write the binding ONLY AFTER the compensating event lands.
 Reconciliation 28: The reconciliation MUST escalate EVERY overdue orphan as an unresolved finding.
+Reconciliation 29: IF the reconciliation escalates an orphan entry realizing no aged intent AND no escalation record naming the entry id EXISTS THEN the reconciliation MUST record an escalation record naming the entry id.
 ```
 
 Term reconciliation: the leg the composition runs outside every invocation, whose output — a bound orphan or an escalation — an auditor awaits within the custody compensation window.
@@ -507,7 +508,9 @@ Term compensating event: an outcome event the reconciliation records under the r
 
 Term overdue orphan: an orphan entry whose intent's `(recording instant + custody compensation window)` PRECEDES the reconciliation's now.
 
-Term escalation: the surfacing of an orphan entry as a finding by the reconciliation, under Reconciliation 11, 14 or 28.
+Term escalation: the surfacing of an orphan entry as a finding by the reconciliation, under Reconciliation 11, 14 or 28 — never the binding-duplicate finding of Composition state 9, which names no orphan entry.
+
+Term escalation record: the custody.escalated event the reconciliation records — carrying the chain id and the entry id of an orphan entry it escalated.
 
 ### Verdict
 
@@ -555,7 +558,7 @@ These emerge from the composition; none belongs to one constituent, and each nee
 
 - **Invariant 1 — Attributed custody.**
   ```
-  Invariant 1.1: IF a settled entry carries no escalation THEN the entry MUST carry EXACTLY ONE outcome event whose action reference matches the entry's event type.
+  Invariant 1.1: IF no escalation record names a settled entry THEN the entry MUST carry EXACTLY ONE outcome event whose action reference matches the entry's event type.
   Invariant 1.2: IF an outcome event carries no recovery flag THEN the event MUST carry an attestation of the acting custodian.
   Invariant 1.3: IF an outcome event carries the recovery flag THEN the event MUST carry an attestation of the recovery identity AND the acting custodian in the payload.
   Invariant 1.4: EVERY outcome event MUST name an intent of the matching kind attested under the acting custodian.
@@ -586,6 +589,8 @@ These emerge from the composition; none belongs to one constituent, and each nee
   Term uncompensable orphan: an orphan entry that is not compensable.
 
   NOTE: open 2026-11-04-b — the compensable orphan's refusal clause reads a refusal no record keeps.
+
+  NOTE: open 2026-11-05-a — Invariant 4.2's exception for an escalated orphan lets a build that only escalates meet it; no rule obliges the compensating event inside the window.
 
 - **Invariant 5 — Provable custody.**
   ```
@@ -688,7 +693,7 @@ An implementation is acceptable — in the regulator-acceptance sense — when t
 ### Conformance checks
 
 ```
-Check 1.1: An auditor MUST find a binding for EVERY entry of the chain that is no pre-horizon entry, that is a settled entry AND that carries no escalation, resolving a missing live binding through the binding rebuild (Invariant 1.1).
+Check 1.1: An auditor MUST find a binding for EVERY entry of the chain that is no pre-horizon entry, that is a settled entry AND that no escalation record names, resolving a missing live binding through the binding rebuild (Invariant 1.1).
 Check 1.2: An auditor MUST find a passing verification for EVERY bound event whose covering range the auditor presents (Invariant 1.1).
 Check 1.3: IF a bound event carries no recovery flag THEN an auditor MUST find the event's attesting actor matching the entry's attested custodian (Invariant 1.2).
 Check 1.4: An auditor MUST find no event carrying the recovery flag attested under a custodian (Invariant 1.3).
@@ -696,7 +701,7 @@ Check 1.5: An auditor MUST find no outcome event attested under the recovery ide
 Check 2.1: An auditor MUST find EVERY outcome event the sealed-through position covers carrying EXACTLY ONE verifying seal (Invariant 2.1).
 Deleted: Check 2.2. Verdict 12 owns it.
 Check 3.1: An auditor MUST replay the chain's entries AND find the continuity check continuous (Invariant 5.1).
-Check 4.1: IF no invalid-request(step-4) refusal kept an outcome event THEN an auditor MUST find the outcome event's retention state IS IN Retained and Purged through the record read (Invariant 3.1).
+Check 4.1: IF no invalid-request(step-4) refusal kept a custody event THEN an auditor MUST find the custody event's retention state IS IN Retained and Purged through the record read (Invariant 3.1).
 Check 4.2: An auditor MUST find EVERY Purged outcome event carrying a Purged retention record whose purge instant DOES NOT PRECEDE the retention deadline (Invariant 3.2).
 Check 5.1: An auditor MUST enumerate the chain's outcome events through the custody enumeration AND find EXACTLY ONE outcome event naming each entry (Invariant 4.3).
 Check 5.2: An auditor MUST find EVERY outcome event naming an entry the chain carries (Invariant 4.4).
@@ -705,8 +710,7 @@ NOTE: watch the check over a derived index (Check 1.1, Check 5.3).
 Deleted: Check 5.4. Execution Contract Database 3 and Execution Contract Database 4 own it.
 Deleted: Check 5.5. Reconciliation 11 owns it.
 Check 5.6: An auditor MUST find the custody compensation window exceeding the liveness sum (Capability requirement 12).
-Check 5.7: IF an orphan entry realizing no aged intent carries no escalation THEN an auditor MUST find the orphan's compensating event WITHIN the custody compensation window (Invariant 4.2).
-NOTE: open 2026-11-04-a — the reconciliation's findings and escalations are alerts no record holds, so Check 5.7 reads no escalation from any record.
+Check 5.7: IF no escalation record names an orphan entry realizing no aged intent THEN an auditor MUST find the orphan's compensating event WITHIN the custody compensation window (Invariant 4.2).
 Check 5.8: An auditor MUST find the audit horizon exceeding the escalation reach (Capability requirement 29).
 Check 6.1: IF an outcome event's intent event id names a live intent THEN an auditor MUST find the outcome event preceded by the intent, of the matching kind, on the same chain, under the acting custodian (Invariant 7.1).
 Deleted: Check 6.2. Reconciliation 9 owns it.
@@ -798,11 +802,11 @@ Each `[Term]` marker above links to its term entry here; a term entry states wha
 
 Term actors: the composition; the constituents; the host; the reconciliation; a deployment; a regulated deployment; an auditor; a caller; a custodian; an invocation; a custody action; a validated custody action; a bound custody action; a validated origination; an admitted origination; a committed origination; a validated transfer; a resolved transfer; an admitted transfer; a committed transfer; a validated transformation; an admitted transformation; a validated disclosure; an admitted disclosure; a validated archival; an admitted archival.
 
-Term records: the intents, outcome events and recovery intents the composition records through the audit write — each an Event Log event carrying one action reference below — and the binding index's entries.
+Term records: the intents, outcome events, recovery intents and escalation records the composition records through the audit write — each an Event Log event carrying one action reference below — and the binding index's entries.
 
 Term record verbs: account, adjudicate, alert, answer, apply, assess, attest, authenticate, bind, call, carry, change, check, claim, classify, clear, compare, compensate, compose, cover, disclose, dispose, duplicate, enumerate, escalate, expose, fetch, find, follow, gate, hold, inherit, inject, inspect, key, land, leave, match, name, normalize, open, override, pair, pass, proceed, provision, re-derive, re-read, reach, read, rebuild, record, refuse, replay, report, resolve, retry, run, select, serve, set, start, store, supply, suspend, track, validate, widen, write.
 
-Term value sets: action reference = custody.originate_intended | custody.transfer_intended | custody.transform_intended | custody.disclose_intended | custody.archive_intended | custody.originated | custody.received | custody.transferred | custody.transformed | custody.disclosed | custody.archived | custody.recovery_intended. finding = binding-duplicate | orphan-unpaired | genesis-unresolved | unresolved. The rest are declared where the section that owns each declares it: genesis type, position, entry payload match, actor match, recovery attestation, class, failure class, incomplete-input class, standing class, Provenance refusal.
+Term value sets: action reference = custody.originate_intended | custody.transfer_intended | custody.transform_intended | custody.disclose_intended | custody.archive_intended | custody.originated | custody.received | custody.transferred | custody.transformed | custody.disclosed | custody.archived | custody.recovery_intended | custody.escalated. finding = binding-duplicate | orphan-unpaired | genesis-unresolved | unresolved. The rest are declared where the section that owns each declares it: genesis type, position, entry payload match, actor match, recovery attestation, class, failure class, incomplete-input class, standing class, Provenance refusal.
 
 Term bounds: custody completion bound (custody_completion_bound), custody compensation window (custody_compensation_window), reconciliation run bound (reconciliation_run_bound), clock offset allowance (clock_offset_allowance), intent candidates cap (intent_candidates_cap), input caps, audit horizon (audit_trail_retention_policy).
 
@@ -810,7 +814,7 @@ Term cadences: custody reconciliation cadence (custody_reconciliation_cadence), 
 
 Term qualifiers: migrated — rewritten in GRACE lang v0.61 (2026-09-24).
 
-Term terms: composition, constituents, transitive atoms, custody enumeration, record read, audit write, verification, custody action, entry id, chain id, binding index, binding, outcome event, live binding, purged binding, binding rebuild, audit retention policy, audit horizon, seal cadence, custody completion bound, custody compensation window, custody reconciliation cadence, reconciliation run bound, liveness sum, escalation reach, clock offset allowance, now, recovery identity, genesis lookup, intent candidates cap, input caps, artifact reference, custodian reference, recipient reference, transformation descriptor, genesis type, metadata, credential, caller string, acting custodian, intent, position, recovery intent, recovery flag, custody result, original event payloads, entry sequence, custody proof, validated custody action, Provenance refusal, bound custody action, validated origination, admitted origination, committed origination, validated transfer, resolved custodian, resolved transfer, admitted transfer, committed transfer, validated transformation, admitted transformation, validated disclosure, admitted disclosure, validated archival, admitted archival, purged later entry, pre-horizon entry, found verification, covering range, whole covering range, live event, entry payload match, attested custodian, actor match, recovery attestation, read passthrough, reconciliation, aged intent, unmatched intent, refused attempt, orphan entry, realize, candidate count, intent candidates, intent reference, compensating event, overdue orphan, escalation, continuity check, class, failure class, incomplete-input class, standing class, failed attestation, failed seal, unavailable surface, settled entry, compensable orphan, uncompensable orphan, passing verification, live intent.
+Term terms: composition, constituents, transitive atoms, custody enumeration, record read, audit write, verification, custody action, entry id, chain id, binding index, binding, outcome event, live binding, purged binding, binding rebuild, audit retention policy, audit horizon, seal cadence, custody completion bound, custody compensation window, custody reconciliation cadence, reconciliation run bound, liveness sum, escalation reach, clock offset allowance, now, recovery identity, genesis lookup, intent candidates cap, input caps, artifact reference, custodian reference, recipient reference, transformation descriptor, genesis type, metadata, credential, caller string, acting custodian, intent, position, recovery intent, recovery flag, custody result, original event payloads, entry sequence, custody proof, validated custody action, Provenance refusal, bound custody action, validated origination, admitted origination, committed origination, validated transfer, resolved custodian, resolved transfer, admitted transfer, committed transfer, validated transformation, admitted transformation, validated disclosure, admitted disclosure, validated archival, admitted archival, purged later entry, pre-horizon entry, found verification, covering range, whole covering range, live event, entry payload match, attested custodian, actor match, recovery attestation, read passthrough, reconciliation, aged intent, unmatched intent, refused attempt, orphan entry, realize, candidate count, intent candidates, intent reference, compensating event, overdue orphan, escalation, escalation record, continuity check, class, failure class, incomplete-input class, standing class, failed attestation, failed seal, unavailable surface, settled entry, compensable orphan, uncompensable orphan, passing verification, live intent.
 
 Term cited: Execution Contract Conformance 8 — the recursive inheritance of a constituent's guarantees. Execution Contract Logic confinement 7 — the clock's guarantees are the deployment's. Execution Contract Logic confinement 11 — the clock reading at the call. Execution Contract Read 1 — a failed read answers state-unavailable. The section titled Composition state in `execution-contract.md` — the derived-index and extraction-pending classifications. The section titled Compositions of compositions in `spec-format.md` — the transitive atoms. originate, transfer, transform, disclose, archive, read, entry, event type, outgoing custodian, incoming custodian, genesis custodian, sequence number, Archived, Open, invalid-ref, invalid-genesis-type, invalid-descriptor, not-known, archived, already-archived, not-current-custodian, storage-failure, invalid-query: Provenance. record_action, read_record, verify_record, payload cap, sealed through, unsealed tail, step-2, step-3, step-4, invalid-credential, invalid-request, recording-failure, verified, failed-verification, unverifiable, purged, partially-purged coverage, compensation-window, Retained, Purged, Erasure Tombstone: Audit Trail. append, recording instant: Event Log.
 
@@ -948,15 +952,15 @@ this composition inherits the broader standards compliance of its constituents:
 ```
 status: partially resolved
 formal: verified — chain-of-custody.tla + 8 twins + 6 probes, 2026-10-27
-last gate: 2026-11-04 — Final Critique 11 — foundational count 13, not clean, no sample
+last gate: 2026-11-05 — Final Critique 12, delta — foundational count 2, not clean, no sample
 
 open:
-- 2026-11-04-a · refining · Check 5.7 · the reconciliation's findings and escalations are alerts no record holds, so an auditor reads no escalation from any record → decide where a finding is kept (a record under the recovery identity, or the deployment's alert store named as an External check)
-- 2026-11-04-b · refining · Term compensable orphan · the clause 'whose outcome was not refused invalid-request(step-1 | step-2 | step-3)' reads a refusal no record keeps → keep the refusal in the escalation of Audit arm 26, once 2026-11-04-a decides where an escalation lives
+- 2026-11-04-b · refining · Term compensable orphan · the clause 'whose outcome was not refused invalid-request(step-1 | step-2 | step-3)' reads a refusal no record keeps → the escalation record now exists (Reconciliation 29, Term escalation record); Audit arm 26's escalation is the invocation's, not the reconciliation's, and writes no escalation record: decide whether the invocation writes one, naming the refusal, so the clause reads a recorded fact
 - 2026-11-04-c · refining · Action wiring · spec-format's closure table (the subsection's first block) is not drafted; its cells land every constituent answer, and this settle changed Audit arm 25, 27 and 28 and Action wiring 59 → draft it once on the cured text, in the delta round that reads the cures
 - 2026-11-04-d · refining · Action wiring 39, 56 · the verification call may present an empty payload, which Audit Trail Primitive policy 27 forbids a caller, though Verify Record step 1.2 lands the purged answer before the presentation is read → decide whether Audit Trail states that order as a caller exemption
 - 2026-11-04-e · refining · Capability requirement 24 · the minted ids' width is no bound Provenance declares, so the payload cap sums capped inputs alone → decide whether Provenance declares an id width
 - 2026-11-04-f · refining · Action wiring 41, Verdict 2 · the missing sequence numbers and the named entries are set-valued outcomes with no stated cardinality cap (the sizing check) → state each as at most the covering range's size and the chain's entries
+- 2026-11-05-a · refining · Invariant 4.2 · the exception for an orphan the reconciliation escalated (Reconciliation 28) lets a reconciliation that never compensates meet the invariant by escalating every orphan once its window passes, and no rule obliges the reconciliation to compensate a compensable orphan inside the window → decide whether a Reconciliation rule obliges the compensating event on a compensable orphan whose window is open
 ```
 
 <details markdown="block">
