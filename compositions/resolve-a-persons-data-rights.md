@@ -1219,14 +1219,14 @@ This composition inherits the broader standards compliance of its constituents:
 
 ## Status
 
-`partially resolved` — see the Ledger.
+`grounded on Final Critique 2 — 2026-11-05 at 776c44e` — see the Ledger.
 
 ## Ledger
 
 ```
-status: partially resolved
+status: grounded on Final Critique 2 — 2026-11-05 at 776c44e
 formal: verified — resolve-a-persons-data-rights.tla + 9 twins + 3 probes (one erasure against two legs of the reconciliation, under the request section: 162,645 states, holding at a term of 6 within 9 ticks), resolve-a-persons-data-rights-access.tla + 1 probe (a fulfillment with nothing planned against the same two legs: 17,796 states, holding at a term of 6 within 9 ticks) and resolve-a-persons-data-rights-admission.tla + 1 twin + 1 probe (two fulfillments of one request: 56,552 states, holding at a term of 6 within 8 ticks), re-derived from the page as it stands, 2026-10-21
-last gate: 2026-11-04 — Final Critique 1, a full round of three fresh passes over the page and its three constituents — 9 foundational after merging, cured in the settle, 3 reports refuted on the page's own text; not clean: the cures are unread, and the next round is a delta round.
+last gate: 2026-11-05 — Final Critique 2, a delta round, frozen at 776c44e — foundational count 0, clean, no sample; 2026-11-04 — Final Critique 1, a full round of three fresh passes over the page and its three constituents — 9 foundational after merging, cured in the settle, 3 reports refuted on the page's own text; not clean: the cures are unread, and the next round is a delta round.
 
 open:
 - 2026-11-04-a · refining · Action wiring; spec-format closure table · the subsection carries no closure table as its first #### block, and its cells are routed in prose rules → write the table beside the rules that route its cells
