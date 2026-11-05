@@ -850,14 +850,14 @@ Projection: invalid-query
 
 ## Status
 
-`partially resolved` — see the Ledger.
+`grounded on Final Critique 21 — 2026-11-05 at 4f85e1c` — see the Ledger.
 
 ## Ledger
 
 ```
-status: partially resolved
+status: grounded on Final Critique 21 — 2026-11-05 at 4f85e1c
 formal: not applicable — vote no 2026-06-03
-last gate: 2026-11-04 — Final Critique 20, a delta round, frozen at 092ccde — foundational count 1, cured, not clean, no sample
+last gate: 2026-11-05 — Final Critique 21, a delta round, frozen at 4f85e1c — foundational count 0, clean, one sample
 
 open:
 - 2026-10-29-b · refining · Term seam; Term transition; Term business caller · each says the section titled Logic Confinement Principle in `execution-contract.md` declares it, and that section declares none of the three → declare the three there, the corpus's one seam wording, or point each at its declaration
