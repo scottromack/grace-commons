@@ -5,14 +5,11 @@ nav_exclude: true
 
 # GRACE lang — history
 
-The dated record of how [GRACE lang](./GRACE-lang.md) got here, moved out of the grammar because a reader does not need it to use the grammar today: the Watch list's history on 2026-10-22, and the Changes section, Section 23, on 2026-10-23 at v0.66; and, since the v1 baseline of 2026-10-30, the v2 list, the changes held for after launch. The grammar keeps its rules and its live Watch list, and its Section 23 points here; everything smaller is in `git log -- GRACE-lang.md`.
+The dated record of how [GRACE lang](./GRACE-lang.md) got here, moved out of the grammar because a reader does not need it to use the grammar today: the Watch list's history on 2026-10-22, and the Changes section, Section 23, on 2026-10-23 at v0.66; and the v1 baseline, frozen on 2026-10-30 and released on 2026-11-05, with the empty v2 list it held. The grammar keeps its rules and its live Watch list, and its Section 23 points here; everything smaller is in `git log -- GRACE-lang.md`.
 
-## The v2 list
+## The v1 baseline (released)
 
-GRACE-lang v0.69 and the Execution Contract as they stand at grace-commons `cab291d` are the v1 baseline (the maintainer's ruling of 2026-10-30 11:12Z). Until v2, after launch, either may still gain a rule that states once what the pages already oblige, editorially, reopening nothing; no change to an existing obligation lands in either. Each such change found meanwhile is listed here instead, and a repeated form found after the freeze is cured page by page, in each page's own round, never by a sweep.
-
-Empty since 2026-11-03: the `cap once` unit stated all four names the list held (the retention step's recording failure, the required input no rule records, the constituent's failed read, the miss read before its rebuild) at five, by the maintainer's ruling of 17:15Z, and each now stands in the Execution Contract.
-
+GRACE-lang v0.69 and the Execution Contract at grace-commons `cab291d` were the v1 baseline from 2026-10-30 11:12Z until the maintainer released it on 2026-11-05 at 01:29Z ("cool, we can release the freeze now"); the v2 list was empty at release, since the `cap once` unit of 2026-11-03 17:15Z had stated all four names it held. From the release a change to an existing obligation in either may land as a unit, and a repeated form may be stated once by a sweep. What the release leaves as it was: the delta rounds for reopened pages (next-round.py `--kind`), the reach rule (`cites.py --reach`) that decides what a change reopens, the quiet window that a change to a shared method page waits for (settle.md step 5), the 2026-11-03 17:15Z ruling that a repeat at five is stated once, and the V1 release marker of 2026-10-31 16:22Z, which is separate from the freeze.
 
 ## Changes
 
