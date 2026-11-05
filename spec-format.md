@@ -55,6 +55,31 @@ Two core documents describe a Grace Commons spec, and every rule about specs liv
 
 **Merge the view, not the source.** If a single unified "language reference" spanning containers and semantics is ever wanted, it is generated as a projection of this document and the Contract — text-canonical / views-derived, the library's own diagram discipline applied to its own documentation. The two sources do not merge: they serve different audiences (drafters versus implementers) and change at different rates, and a merged source would bury the human-bridge material in runtime semantics.
 
+### Where a rule lives
+
+A pattern's rule has two homes. A rule only that pattern needs, its own seams among them, stays on its page. A form that repeats across patterns is flagged and counted on the Watch list in [`GRACE-lang.md`](./GRACE-lang.md); at five patterns it is stated once in the Execution Contract, and every pattern that carries it cites it and deletes its copy. A composition is its constituents, its own seams and its citations: the sharing is by relocation into the one shared contract, never by minting a new atom or component. The three entries that say the parts are the section titled *One home for a shared obligation* in [`execution-contract.md`](./execution-contract.md), the Watch list note in [`GRACE-lang.md`](./GRACE-lang.md), and the entry *No abstraction without recurrence* in [`pressure-testing.md`](./pressure-testing.md); none of their rules is restated here.
+
+```
+  a rule in a pattern
+          |
+          v
+  only this pattern needs it? --yes--> stays on its page
+          |                            (its own rules, its seams)
+          no: it repeats
+          v
+  Watch list counts it   1 . 2 . 3 . 4 . 5
+                                         | at five
+                                         v
+  +------------------------------------------+
+  |  EXECUTION CONTRACT: stated once         |
+  |  one rulebook, shared by every pattern   |
+  +------------------------------------------+
+     ^ cites  ^ cites  ^ cites  ^ cites  ^ cites
+     atom     atom     comp     comp     ... (300+)
+
+  composition = atoms + its own seams + citations
+```
+
 ---
 
 ## Atom shape
