@@ -7,6 +7,8 @@ toc: true
 
 # State Machine
 
+NOTE: open 2026-11-05-b — the atom shape asks a `nav_order` and a summary blockquote under this heading, which every atom lacks.
+
 <details markdown="block">
 <summary>Table of contents</summary>
 {: .text-delta }
@@ -68,11 +70,9 @@ Identity 13: The atom MUST NOT identify a workflow by the subject reference.
 Identity 14: The atom MUST admit a second workflow carrying a recorded subject reference.
 Identity 15: The atom MUST NOT confirm that a subject reference names a known subject.
 Identity 16: The atom MUST NOT interpret an instance metadata.
-Identity 17: The host MUST NOT allocate an instance id that EXCEEDS the string cap.
-Identity 18: The host MUST NOT allocate a transition id that EXCEEDS the string cap.
+Deleted: Identity 17. Execution Contract Input 2 owns it.
+Deleted: Identity 18. Execution Contract Input 2 owns it.
 ```
-
-NOTE: watch the id's length against the cap (Identity 17, Identity 18).
 
 Term workflow: one running workflow — one declaration, one current state and one transition history; the record this atom holds.
 
@@ -84,7 +84,7 @@ Term transition id: the opaque value naming one history entry — a [Transition 
 
 Term subject reference: the opaque reference naming the entity whose lifecycle the workflow governs — a [Subject Reference]; a property of the workflow, never the workflow's identity.
 
-Term instance metadata: the opaque payload the caller supplies at [Instantiate] for deployment context — a [Workflow Metadata]; recorded where not blank, never interpreted.
+Term instance metadata: the opaque payload the caller supplies at [Instantiate] for deployment context — a [Workflow Metadata]; opaque content of any value (Execution Contract Input 3), outside the string cap, recorded where not blank, never interpreted.
 
 Term database instance: one named database a call is routed to; instance id uniqueness ranges over one database instance.
 
@@ -121,16 +121,14 @@ Deleted: State 14. Execution Contract Database 3 owns it.
 
 ```
 Capability requirement 1: The deployment MUST supply now at the seam.
-Capability requirement 5: The deployment MUST supply the workflow records PER Execution Contract Database 1 through 7, Execution Contract Read 1 through 4, Execution Contract Refusal 1, Execution Contract Query 1 through 4, Execution Contract Input 1 and Execution Contract Conformance 9.
-Capability requirement 6: The deployment MUST declare which composing patterns the deployment wired in.
+Capability requirement 5: The deployment MUST supply the workflow records PER Execution Contract Database 1 through 7, Execution Contract Read 1 through 4, Execution Contract Read 6, Execution Contract Refusal 1, Execution Contract Query 1 through 5, Execution Contract Input 1, Execution Contract Input 4 and Execution Contract Conformance 9.
+Deleted: Capability requirement 6. Execution Contract Conformance 9 owns it.
 Capability requirement 7: The deployment MAY declare the string cap ONLY IF the string cap EXCEEDS 0 PER Execution Contract Input 2.
 Deleted: Capability requirement 2. Execution Contract Logic confinement 7 owns it.
 Deleted: Capability requirement 3. Execution Contract Logic confinement 7 owns it.
 Deleted: Capability requirement 4. Execution Contract Logic confinement 7 owns it.
 Deleted: Capability requirement 8. Execution Contract Input 2 owns it.
 ```
-
-NOTE: watch the deployment's composition note (Capability requirement 6).
 
 ### Operations
 
@@ -158,12 +156,12 @@ read_declaration(instance_id)
 
 ```
 Deleted: Operation 1. Execution Contract Refusal 1 owns it.
-Operation 2: IF the call carries actor reference AND actor reference EQUALS blank THEN a writing action MUST answer invalid-request.
+Operation 2: IF actor reference IS IN whitespace strings THEN a writing action MUST answer invalid-request.
 Operation 77: IF actor reference EXCEEDS the string cap THEN a writing action MUST answer invalid-request (Execution Contract Input 2).
 Operation 78: IF subject reference EXCEEDS the string cap THEN [Instantiate] MUST answer invalid-request (Execution Contract Input 2).
 Operation 3: IF now PRECEDES the resolved instantiation instant THEN [Instantiate] MUST answer invalid-request.
 Deleted: Operation 62. Execution Contract Input 1 owns it.
-Operation 65: IF the resolved instantiation instant is malformed THEN [Instantiate] MUST answer invalid-request (Execution Contract Input 1).
+Deleted: Operation 65. Execution Contract Input 3 owns it.
 Operation 4: An admitted instantiate MUST record EXACTLY ONE workflow.
 Operation 5: An admitted instantiate MUST stand the workflow in the initial state.
 Operation 6: An admitted instantiate MUST set next sequence number to one.
@@ -176,7 +174,7 @@ Operation 71: IF instance metadata EQUALS blank THEN an admitted instantiate MUS
 Operation 60: IF actor reference DOES NOT EQUAL blank THEN an admitted instantiate MUST record actor reference on the workflow.
 Operation 67: An admitted instantiate MUST record the resolved instantiation instant.
 Operation 72: An admitted instantiate MUST record on the workflow the instance id the host allocates (Identity 3).
-Operation 74: An admitted instantiate MUST record the declaration.
+Deleted: Operation 74. Execution Contract Input 4 owns it.
 Operation 9: IF instance id EQUALS blank THEN an addressed action MUST answer invalid-request.
 Operation 75: IF instance id EXCEEDS the string cap THEN an addressed action MUST answer invalid-request (Execution Contract Input 2).
 Operation 10: IF action EQUALS blank THEN [Fire] MUST answer invalid-request.
@@ -193,7 +191,7 @@ Operation 19: IF now PRECEDES the resolved firing instant THEN [Fire] MUST answe
 Operation 20: IF the resolved firing instant PRECEDES the workflow's instantiation instant THEN [Fire] MUST answer invalid-request.
 Deleted: Operation 63. Execution Contract Input 1 owns it, among the firing checks (Term firing check).
 Operation 66: IF the resolved firing instant is malformed THEN [Fire] MUST answer invalid-request (Execution Contract Input 1).
-Operation 69: IF the call carries guard satisfied AND guard satisfied is malformed THEN [Fire] MUST answer invalid-request (Execution Contract Input 1).
+Operation 69: IF the matched transition carries no guard AND the call carries guard satisfied AND guard satisfied is malformed THEN [Fire] MUST answer invalid-request (Execution Contract Input 1).
 Operation 64: [Fire] MUST answer invalid-request on a firing fault ONLY IF the call is a cleared fire.
 Operation 21: An admitted fire MUST append EXACTLY ONE history entry.
 Operation 22: An admitted fire MUST take the history entry's sequence number from next sequence number.
@@ -206,7 +204,7 @@ Operation 28: An admitted fire MUST answer the matched transition's to state.
 Operation 29: An admitted fire over a guarded transition MUST record guard satisfied on the history entry.
 Operation 30: An admitted fire over an unguarded transition MUST NOT record guard satisfied on the history entry.
 Operation 61: IF actor reference DOES NOT EQUAL blank THEN an admitted fire MUST record actor reference on the history entry.
-Operation 68: An admitted fire MUST record action and the resolved firing instant on the history entry.
+Operation 68: An admitted fire MUST record the resolved firing instant on the history entry.
 Operation 73: An admitted fire MUST record the transition id the host allocates on the history entry (Identity 4).
 Operation 31: [Fire] MUST NOT evaluate a guard.
 Deleted: Operation 32. Operation 15 and Declaration 10 own it.
@@ -217,13 +215,13 @@ Operation 36: A refused action MUST NOT append a history entry.
 Operation 37: A refused action MUST NOT raise next sequence number.
 Operation 38: [Current] MUST answer the workflow's current state.
 Operation 39: An admitted history MUST answer the matching history entries in sequence number ascending order.
-Operation 40: An admitted history MUST answer EVERY history entry matching the supplied filters.
-Operation 41: An admitted history MUST NOT answer a history entry failing a supplied filter.
+Deleted: Operation 40. Execution Contract Read 6 owns it.
+Deleted: Operation 41. Execution Contract Query 3 through 4 own it.
 Operation 42: IF no history entry matches THEN an admitted history MUST answer an empty entry sequence.
 Operation 57: IF the query is malformed THEN [History] MUST answer invalid-query.
 Operation 43: IF a filter's axis IS NOT IN the filter axes THEN [History] MUST answer invalid-query.
-Operation 44: IF a string filter's value EQUALS blank THEN [History] MUST answer invalid-query.
-Operation 79: IF a string filter's value EXCEEDS the string cap THEN [History] MUST answer invalid-query (Execution Contract Input 2).
+Deleted: Operation 44. Execution Contract Query 5 owns it.
+Deleted: Operation 79. Execution Contract Query 5 owns it.
 Operation 45: IF a sequence number range's start EXCEEDS the range's end THEN [History] MUST answer invalid-query.
 Operation 58: IF a firing instant range's end PRECEDES the range's start THEN [History] MUST answer invalid-query.
 Deleted: Operation 46. Execution Contract Refusal 1 owns it.
@@ -242,11 +240,13 @@ NOTE: watch the integer range (Operation 45, Operation 58).
 
 NOTE: watch the optional field no rule records (Operation 56, Operation 59, Operation 60, Operation 61).
 
-NOTE: watch the blank optional input (Operation 56, Operation 59, Operation 60, Operation 61, Operation 70, Operation 71).
+NOTE: watch the blank optional input (Operation 2, Operation 56, Operation 59, Operation 60, Operation 61, Operation 70, Operation 71).
 
-NOTE: watch the required input no rule records (Operation 67, Operation 68, Operation 74).
+NOTE: watch the required input no rule records (Operation 67, Operation 68).
 
-NOTE: watch the cap's refusal (Operation 75, Operation 76, Operation 77, Operation 78, Operation 79, Declaration 20).
+NOTE: watch the cap's refusal (Operation 75 through 78, Declaration 20).
+
+NOTE: open 2026-11-05-a — seven watch flags on this page name no line in GRACE-lang's Watch list (the id's length against the cap, the seam citation, the deployment's composition note, the blank optional input, the required input no rule records, the cap's refusal, the cap's measure).
 
 NOTE: open 2026-10-31-a — no action answers a workflow's subject reference, instance metadata, actor reference or instantiation instant (State 2, State 3, State 15, Operation 67).
 
@@ -282,7 +282,7 @@ Term matched transition: the one declared transition whose from state is the cur
 
 Term cleared fire: a [Fire] call Operation 11, Operation 13, Operation 15 and Operation 17 all admit.
 
-Term firing check: Operation 2, Operation 19, Operation 20, Operation 66, Operation 69 and Operation 77 — every check [Fire] makes on a cleared fire.
+Term firing check: Operation 2, Operation 19 through 20, Operation 66, Operation 69 and Operation 77 — every check [Fire] makes on a cleared fire.
 
 Term firing fault: a firing check the call fails.
 
@@ -305,7 +305,7 @@ Term admitted history: a [History] call whose instance id names a workflow and w
 | 7 | every precondition passes, the database refuses the write | storage-failure | Operation 33 |
 | 8 | every precondition passes, the database accepts the write | new_state | Operation 28 |
 
-Where two rows hold at once, the earlier row answers: the rows follow the refuses line (Execution Contract Refusal 1), and row 6 answers only on a cleared fire (Operation 64).
+Where two rows hold at once, the earlier row answers: the rows follow the refuses line (Execution Contract Refusal 1), except that row 6 answers only on a cleared fire (Operation 64) and so stands below rows 2 through 5.
 
 NOTE: watch condition negation — invalid-request occupies two rows of one precedence chain (row 1 and row 6), so the answer alone does not say which guard refused. Audit Trail's 2026-08-30-a open line is the same shape with a worse consequence, its row 6 landing after a commitment.
 
@@ -395,9 +395,9 @@ Term states: the named states one declaration admits — a [States]; every state
 
 Term initial state: the state a workflow stands in at [Instantiate] — an [Initial State]; a member of states and never a terminal state.
 
-Term terminal states: the absorbing members of states — a [Terminal States]; possibly none.
+Term terminal states: the absorbing members of states — a [Terminal States]; possibly none; a name the map repeats is one member.
 
-Term well-formed declaration: a declaration Declaration 5 through 15, Declaration 18, Declaration 19 and Declaration 20 all admit.
+Term well-formed declaration: a declaration Declaration 5 through 15 and Declaration 18 through 20 all admit.
 
 ---
 
@@ -557,6 +557,8 @@ Deleted: String 7. Execution Contract Logic confinement 13 owns it.
 
 Term string input: instance id, action, actor reference, subject reference, a state name, a guard OR a filter's value — every caller-supplied string this atom accepts.
 
+Term whitespace strings: every string holding no code point outside the Unicode White_Space property, the empty string among them.
+
 Term string cap: the bound on a string input's length in Unicode code points, counted on the value as the call carries it, or on an id as the host allocates it; 1,024 code points where a deployment declares none.
 
 NOTE: watch the cap's measure (Term string cap, Term bounds).
@@ -568,7 +570,7 @@ NOTE: watch the cap's floor (Capability requirement 7).
 ## Composition notes
 
 ```
-Deleted: Composition note 1. Capability requirement 6 owns it.
+Deleted: Composition note 1. Execution Contract Conformance 9 owns it.
 Composition note 2: A composing pattern MUST own a guard's evaluation.
 Composition note 3: A composing pattern asserting guard satisfied MUST own the evidence.
 Composition note 4: A composing pattern MUST own the authorization of a call.
@@ -603,11 +605,11 @@ Term cadences: empty.
 
 Term qualifiers: migrated — rewritten in GRACE lang v0.40 (2026-09-12).
 
-Term terms: workflow, instance id, history entry, transition id, subject reference, instance metadata, database instance, seam, transition, declared transition, declaration, states, initial state, terminal states, well-formed declaration, now, addressed action, writing action, reading action, current state, next sequence number, sequence number, firing instant, instantiation instant, resolved firing instant, resolved instantiation instant, actor reference, guard, guard satisfied, matched transition, cleared fire, firing check, firing fault, filter axes, admitted instantiate, admitted fire, admitted history, committed version, string input, string cap.
+Term terms: workflow, instance id, history entry, transition id, subject reference, instance metadata, database instance, seam, transition, declared transition, declaration, states, initial state, terminal states, well-formed declaration, now, addressed action, writing action, reading action, current state, next sequence number, sequence number, firing instant, instantiation instant, resolved firing instant, resolved instantiation instant, actor reference, guard, guard satisfied, matched transition, cleared fire, firing check, firing fault, filter axes, admitted instantiate, admitted fire, admitted history, committed version, string input, string cap, whitespace strings.
 
 #### Instantiate
 
-The behavior that validates a caller-supplied [Declaration] and creates a new workflow in its [Initial State], recording the injected [Workflow Id], [Workflow Metadata], [Actor Reference], and [Instantiation Instant], and starting an empty [Transition History]. Rejected [Invalid Declaration] for any declaration defect, [Invalid Request] for a bad [Actor Reference] or [Instantiation Instant], an [Actor Reference] over the string cap, or a [Subject Reference] over the string cap, or [Storage Failure].
+The behavior that validates a caller-supplied [Declaration] and creates a new workflow in its [Initial State], recording the injected [Workflow Id], [Workflow Metadata], [Actor Reference], and [Instantiation Instant], and starting an empty [Transition History]. Rejected [Invalid Declaration] for any declaration defect, [Invalid Request] for an [Actor Reference] that is an empty or whitespace-only string or carries a value that is not a string, or a bad [Instantiation Instant], an [Actor Reference] over the string cap, or a [Subject Reference] over the string cap, or [Storage Failure].
 
 Kind: Operation
 
@@ -789,7 +791,7 @@ Projection: fired_at
 
 #### Actor Reference
 
-The optional opaque reference to the actor who fired a transition, recorded on the history entry (and on the workflow at [Instantiate]). If supplied, non-blank; its presence is deployment policy, not an atom mandate (Invariant 9).
+The optional opaque reference to the actor who fired a transition, recorded on the history entry (and on the workflow at [Instantiate]). If supplied as a string, not empty or whitespace-only; its presence is deployment policy, not an atom mandate (Invariant 9).
 
 Kind:       Field
 Field of:   the history entry
@@ -814,7 +816,7 @@ Projection: invalid-declaration
 
 #### Invalid Request
 
-The rejection an action returns for a malformed argument — a null or whitespace-only [Workflow Id] or [Action], a bad [Actor Reference], a [Workflow Id], [Action], [Actor Reference] or [Subject Reference] over the string cap (Execution Contract Input 2), a supplied instant that is not an instant, a supplied [Guard Satisfied] that is neither true nor false on an unguarded transition, or an [Instantiation Instant] / [Firing Instant] that is in the future or (for [Firing Instant]) before [Instantiation Instant].
+The rejection an action returns for a malformed argument — a null or whitespace-only [Workflow Id] or [Action], an [Actor Reference] that is an empty or whitespace-only string or carries a value that is not a string (Execution Contract Input 3), a [Workflow Id], [Action], [Actor Reference] or [Subject Reference] over the string cap (Execution Contract Input 2), a supplied instant that is not an instant, a supplied [Guard Satisfied] that is neither true nor false on an unguarded transition, or an [Instantiation Instant] / [Firing Instant] that is in the future or (for [Firing Instant]) before [Instantiation Instant].
 
 Kind:       Member
 Member of:  the action rejection
@@ -926,7 +928,7 @@ Projection: invalid-query
 - **UML (Unified Modeling Language — the standard object-oriented modeling language published by the Object Management Group) statecharts and Harel statecharts** — the conceptual core of this atom. A UML statechart's states, transitions, events, and guards map directly to this atom's [States], [Transitions], [Action]s, and [Guard] labels. This atom is a flat (non-hierarchical, single-active-state) Mealy / Moore finite-state-machine (a finite state machine is a computational model with a finite set of states, a start state, a set of transitions, and one active state at a time) workflow; Harel nesting and parallel regions are out of scope (see Non-goal 3 through 7).
 - **SOX (Sarbanes-Oxley Act — US law on corporate financial reporting and records integrity) section 404** — internal control over financial reporting. For financial process workflows (approval chains, journal entry processing, purchase order lifecycle), State Machine workflows are the process-control records SOX auditors query to verify that required control steps occurred in the declared order.
 - **HIPAA (Health Insurance Portability and Accountability Act) section 164.530(j)** — documentation requirements for covered entities: policies and procedures must be documented. Workflows governing patient-care or administrative processes under HIPAA may use this atom's transition history as the documentation of process execution.
-- **GDPR (EU General Data Protection Regulation) Article 17** — the right to erasure. How long workflows are kept under it is a composed [Retention Window](./retention-window.md)'s obligation, not this atom's (Non-goal 15, Non-goal 16).
+- **GDPR (General Data Protection Regulation of the European Union) Article 17** — the right to erasure. How long workflows are kept under it is a composed [Retention Window](./retention-window.md)'s obligation, not this atom's (Non-goal 15, Non-goal 16).
 - **FRCP (Federal Rules of Civil Procedure) Rule 37(e)** — failure to preserve electronically stored information. How long workflows are kept under it is a composed [Retention Window](./retention-window.md)'s obligation, not this atom's (Non-goal 15, Non-goal 16).
 
 Guard evaluation, non-repudiable attribution, tamper-evidence, and retention are explicitly composing-pattern obligations, not this atom's own standards obligations.
@@ -942,9 +944,11 @@ Guard evaluation, non-repudiable attribution, tamper-evidence, and retention are
 ```
 status: partially resolved
 formal: verified — state-machine.als + 1 twin, 2026-06-04
-last gate: 2026-11-04 — Final Critique 14 — delta — foundational count 1, not clean, one sample
+last gate: 2026-11-05 — Final Critique 15 — foundational count 1, not clean, no sample
 
 open:
+- 2026-11-05-a · refining · the Watch list in GRACE-lang.md · the page carries watch flags whose names the list's census does not hold, and the list is a shared method page the mayor edits → the mayor rules whether a flag on one specification enters the census, then enters each with its count or the page drops the flag
+- 2026-11-05-b · refining · frontmatter; the H1 · spec-format's atom shape asks a `nav_order` and a one-paragraph blockquote under the H1, which this page and every atom in the corpus lack, so the page cannot be cured alone → the maintainer rules whether the atom shape or the corpus's practice stands
 - 2026-10-31-a · refining · State 2; State 3; State 15; Operation 67 · no action answers a workflow's subject reference, instance metadata, actor reference or instantiation instant, which the workflow records carry, and a composing pattern reads an atom only through the atom's declared surface (the section titled The atom interface contract in `execution-contract.md`) → a read answering them, or a non-goal saying none does and who owns the need
 ```
 
