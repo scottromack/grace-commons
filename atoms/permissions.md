@@ -626,14 +626,14 @@ It inherits from:
 
 ## Status
 
-`grounded on Final Critique 8 — 2026-10-26 at ba799a4` — see the Ledger.
+`grounded on Final Critique 10 — 2026-11-04 at 582c382` — see the Ledger.
 
 ## Ledger
 
 ```
-status: grounded on Final Critique 8 — 2026-10-26 at ba799a4
+status: grounded on Final Critique 10 — 2026-11-04 at 582c382
 formal: verified — permissions.als + 1 twin, 2026-06-03
-last gate: 2026-11-02 — Final Critique 9 — delta, foundational count 0, clean, one sample
+last gate: 2026-11-04 — Final Critique 10, delta, frozen at 582c382 — foundational count 0, clean, one sample
 
 open:
 - 2026-10-21-c · refining · Revoke persistence 2, 4 · the caller's retry of a refused revoke names no terminus (Pass 1: every retry loop names its terminus), and the deployment that raises the alert is declared only as an alias of the deployment → name the bound at which the caller stops and what it raises there; say which deployments alert
