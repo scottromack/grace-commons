@@ -314,7 +314,7 @@ Action wiring 11: [Advance] MUST NOT run an effect BEFORE running the re-entry a
 Deleted: Action wiring 12. Execution Contract Database 1 owns it: a transition-bearing event and its fire commit together, so no transition is ever owed.
 Deleted: Action wiring 13. Execution Contract Database 1 owns it: a transition-bearing event and its fire commit together, so no transition is ever owed.
 Deleted: Action wiring 14. Execution Contract Database 1 owns it: a transition-bearing event and its fire commit together, so no transition is ever owed.
-Action wiring 15: The re-entry arm MUST re-run the effect of EVERY unresolved attempt under the attempt's own effect key EXACTLY ONE time PER effect key.
+Action wiring 15: The re-entry arm MUST re-run the effect of EVERY unresolved attempt under the attempt's own effect key EXACTLY ONE time PER re-entry arm execution PER effect key.
 Action wiring 16: The re-entry arm MUST re-run the unresolved attempts PER the compensation order.
 Action wiring 17: The re-entry arm MUST take a re-run's captured inputs from the target's answer to the re-run.
 Action wiring 18: The re-entry arm MUST NOT take captured inputs from the invocation's memory.
@@ -352,7 +352,7 @@ Action wiring 49: A halted advance MUST append a resume marker for EVERY named s
 Action wiring 50: A halted advance MUST fire the transition back to the phase the halt event the halted advance found standing names ONLY AFTER appending the resume markers.
 Action wiring 85: IF the halt event a halted advance finds standing names the forward phase THEN the halted advance MUST append each resume marker as a step attempt event carrying the named step's effect key.
 Action wiring 86: IF the halt event a halted advance finds standing names the compensating phase THEN the halted advance MUST append each resume marker as a compensation attempt event carrying the effect key of the named step's compensation.
-Deleted: Action wiring 51. Replay 11 and Action wiring 15 own it: a resume marker is an attempt marker, held unresolved unless its effect key is already applied, and the re-entry arm re-runs every unresolved attempt, once per effect key.
+Deleted: Action wiring 51. Replay 11 and Action wiring 15 own it: a resume marker is an attempt marker, held unresolved unless its effect key is already applied, and the re-entry arm re-runs every unresolved attempt, once per re-entry arm execution per effect key.
 Action wiring 52: IF Event Log's append answers storage-failure for a completion record THEN the invocation MUST re-attempt the append WITHIN the step completion bound.
 Action wiring 53: IF the step completion bound elapses on a completion record's append THEN the invocation MUST answer storage-failure naming effect-landed.
 Action wiring 54: IF Event Log's append answers storage-failure for a marker AND no unrecorded effect EXISTS THEN the invocation MUST answer storage-failure naming none (Execution Contract Constituent failure 1).
@@ -968,7 +968,7 @@ It composes with, and is positioned against, [Idempotent Reservation](./idempote
 ```
 status: partially resolved
 formal: pending — re-derivation, 2026-08-30: the model has no attempt marker, no per-run section as a second process over one act, no indeterminate verdict, and no key horizon; was verified — compensable-workflow.tla + 2 twins, 2026-06-16
-last gate: 2026-11-05 — Final Critique 6, a delta round, frozen at de92f1e — foundational count 1, cured by the settle, not clean, no sample; 2026-11-03 — Final Critique 5, frozen at f0729b8 — foundational count 12, cured, not clean, no sample; Final Critique 4, 2026-06-16, fresh reader — clean
+last gate: 2026-11-05 — Final Critique 7, a delta round, frozen at 82d4603 — foundational count 1, cured by the settle, not clean, no sample; 2026-11-05 — Final Critique 6, a delta round, frozen at de92f1e — foundational count 1, cured by the settle, not clean, no sample; 2026-11-03 — Final Critique 5, frozen at f0729b8 — foundational count 12, cured, not clean, no sample; Final Critique 4, 2026-06-16, fresh reader — clean
 
 open:
 - 2026-11-03-a · refining · Action wiring 16, Action wiring 32 · the parallel compensation order carries no semantics, so PER and the advance result's single step are unevaluable under it → say what a parallel compensating advance runs and names, or retire the order
