@@ -45,8 +45,6 @@ Identity 7: Two notifications carrying one recipient reference and one payload M
 
 NOTE: watch the allocation ban (Identity 3).
 
-NOTE: open 2026-10-29-a — the notification id's source is named as the host's allocation (Identity 2) and not among what the deployment supplies (Capability requirement 1, Capability requirement 4 through 6).
-
 Term notification: one delivery record — one recipient, one payload, one outcome.
 
 Term notification id: the opaque string naming one notification — a [Notification Id]; malformed where it is no string.
@@ -55,11 +53,11 @@ Term recipient reference: the opaque string naming who the notification is for �
 
 Term payload: the opaque content the notification carries — a [Payload]; stored and returned unchanged.
 
-Term seam: the atom's I/O boundary; the host injects the clock reading and the notification id here.
+Term seam: the atom's I/O boundary as Execution Contract Logic confinement 14 declares it; the host injects the clock reading and the notification id here.
 
-Term transition: the atom's evaluation of one call against the notification records.
+Term transition: the evaluation of one call against the notification records, as Execution Contract Logic confinement 14 declares it.
 
-Term business caller: the party whose action the call carries; never the source of an injected value.
+Term business caller: the business caller per Execution Contract Logic confinement 14.
 
 Term now: the deployment's clock reading at the call — a [Now], as Execution Contract Logic confinement 11 declares it.
 
@@ -82,11 +80,13 @@ State 11: The atom MUST NOT hold a transport.
 State 12: The atom MUST NOT hold a retry.
 ```
 
-Term status: pending | delivered | failed | expired — the [Status] field's four values: awaiting an outcome, reached, attempted without success, or out of time.
+Term status: pending | delivered | failed | expired — the [Status] field's four values: awaiting an outcome, reached, ended as failed, or ended as expired.
 
 Term terminal stamp: delivery instant | failure instant | lapse instant — the one stamp a terminal status carries.
 
 Term creation instant: the instant the notification was recorded — a [Creation Instant].
+
+Term notification set: the notifications the database holds.
 
 ### Capability requirement
 
@@ -97,6 +97,7 @@ Capability requirement 5: The deployment MAY declare the string cap PER Executio
 Capability requirement 6: The deployment MUST NOT change the string cap for the life of the instance.
 Capability requirement 7: The deployment MUST declare which composing patterns the deployment wired in PER Execution Contract Conformance 9.
 Capability requirement 8: The deployment MUST declare the deployment's fail-versus-expire policy.
+Capability requirement 9: The deployment MUST supply at the seam a notification id no notification has carried PER Execution Contract Logic confinement 3.
 Deleted: Capability requirement 2. Execution Contract Logic confinement 7 owns it.
 Deleted: Capability requirement 3. Execution Contract Logic confinement 7 owns it.
 Deleted: Clock semantics 1. Execution Contract Logic confinement 7 owns it.
@@ -167,7 +168,7 @@ Deleted: Operation 26. Execution Contract Logic confinement 3 owns it.
 Deleted: Operation 27. Execution Contract Read 1 owns it.
 Deleted: Operation 28. Execution Contract Read 1 owns it: after the read, every refusal rule of [Create] answers invalid-request.
 Deleted: Operation 29. Execution Contract Refusal 1 owns it.
-Operation 30: [Create] MUST record the recipient reference the call supplies.
+Deleted: Operation 30. Execution Contract Input 4 owns it.
 Operation 31: IF a recipient reference is malformed THEN [Create] MUST answer invalid-request (Execution Contract Input 1).
 Operation 32: IF a notification id is malformed THEN a terminal transition MUST answer not-known (Execution Contract Input 1).
 ```
@@ -180,17 +181,15 @@ NOTE: the ids a [Pending For] answers come in the order Execution Contract Read 
 
 NOTE: watch the order an atom forbids (Operation 21).
 
-NOTE: open 2026-10-21-e — the Failed and Expired entries describe an attempt that failed and a window that lapsed, while the rules let [Fail] and [Expire] land on any pending notification (Operation 9, Operation 13, Operation 14a).
-
 Term terminal transition: a [Deliver], a [Fail] or an [Expire] call — the three that end a notification, sharing one precondition pair.
 
-Term pending at an instant: the instant DOES NOT PRECEDE creation instant, and the terminal stamp EQUALS blank or the instant PRECEDES the terminal stamp — the reconstruction an auditor runs over stored fields, never over status, which carries the present rather than the past.
+Term pending at an instant: the instant DOES NOT PRECEDE creation instant, and the notification carries no terminal stamp or the instant PRECEDES the terminal stamp the notification carries — the reconstruction an auditor runs over stored fields, never over status, which carries the present rather than the past.
 
 The case space, and the rule that owns each case:
 
 | Call | Case | Answer | Effect on the notification records |
 |---|---|---|---|
-| [Create] | recipient present, database accepts | notification id | one notification lands in [Pending] (Operation 1, Operation 2, Operation 30) |
+| [Create] | recipient present, database accepts | notification id | one notification lands in [Pending] (Operation 1, Operation 2, Execution Contract Input 4) |
 | [Create] | blank or malformed recipient, or over the cap | [Invalid Request] | none (Operation 4, Operation 31, String 6) |
 | [Create] | empty payload | notification id | one notification lands — the payload is the caller's business (Operation 5, Operation 6) |
 | [Deliver] | notification is pending | ok | [Pending] → [Delivered], delivery instant stamped (Operation 10, State 8) |
@@ -203,7 +202,7 @@ The case space, and the rule that owns each case:
 | [Status Of] | id names nothing, or is malformed | not-known | none (Operation 18, Operation 18b) |
 | [Pending For] | recipient has pending notifications | their ids, in Execution Contract Read 5's order | none (Operation 19, Execution Contract Read 5) |
 | [Pending For] | recipient has none, or only terminal ones | empty list | none (Operation 20) |
-| [Pending For] | over-length or whitespace-only recipient | empty list | none — a read with a bad argument has a correct answer (String 8, String 9) |
+| [Pending For] | over-length or blank recipient | empty list | none — a read with a bad argument has a correct answer (String 8, String 9) |
 
 ### Invariants
 
@@ -236,7 +235,7 @@ The case space, and the rule that owns each case:
 - **Invariant 5 — Id stability.**
   ```
   Invariant 5.1: [Create] MUST set the notification id.
-  Invariant 5.2: A notification id MUST NOT change.
+  Deleted: Invariant 5.2. Invariant 1.1 owns it.
   ```
 - **Invariant 6 — No id reuse.**
   ```
@@ -370,7 +369,7 @@ Deleted: String 5. GRACE-lang Term blank owns it.
 String 6: IF the recipient reference EXCEEDS the string cap THEN [Create] MUST answer invalid-request.
 String 7: The business caller MUST own a recipient reference's canonical form.
 String 8: [Pending For] MUST read an over-length recipient reference as matching nothing.
-String 9: [Pending For] MUST read a whitespace-only recipient reference as matching nothing.
+String 9: [Pending For] MUST read a blank recipient reference as matching nothing.
 ```
 
 Term string cap: the bound on the recipient reference's length, measured in Unicode code points; 256 code points where a deployment declares none; a cap of zero refuses every [Create], which is the degenerate configuration a deployment owns rather than a state the atom admits.
@@ -393,6 +392,8 @@ Bulk expiry 1: A composing pattern MUST enumerate a recipient's pending notifica
 Bulk expiry 2: A composing pattern MUST call [Expire] for EVERY notification the enumeration returns.
 Bulk expiry 3: A composing pattern MUST NOT read one expiry as a deadline sweep.
 ```
+
+NOTE: open 2026-11-05-a — Bulk expiry 1 and Bulk expiry 2 carry no condition, so as written they bind every composing pattern, not the one that expires in bulk.
 
 ### Deliver persistence failure
 
@@ -456,7 +457,7 @@ Term cadences: empty — a delivery window is the composing pattern's (Operation
 
 Term qualifiers: migrated — rewritten in GRACE lang v0.35 (2026-09-12).
 
-Term terms: notification, notification id, recipient reference, payload, seam, transition, business caller, now, string cap, status, terminal stamp, creation instant, terminal transition, pending at an instant, committed version.
+Term terms: notification, notification id, recipient reference, payload, seam, transition, business caller, now, string cap, status, terminal stamp, creation instant, terminal transition, pending at an instant, committed version, notification set.
 
 #### Create
 
@@ -576,7 +577,7 @@ Role:      Outcome
 
 #### Failed
 
-The terminal state of a notification whose delivery was attempted and produced a definitive negative outcome. Carries [Failure Instant]; absorbing.
+The terminal state of a notification a composing pattern ended as failed, under the deployment's declared fail-versus-expire policy (Operation 14, Capability requirement 8). Carries [Failure Instant]; absorbing.
 
 Kind:      Member
 Member of: the notification status
@@ -584,7 +585,7 @@ Role:      Outcome
 
 #### Expired
 
-The terminal state of a notification whose delivery window lapsed without a recorded outcome. Carries [Lapse Instant]; absorbing.
+The terminal state of a notification a composing pattern ended as expired, under the deployment's declared fail-versus-expire policy (Operation 14, Operation 14b, Capability requirement 8). Carries [Lapse Instant]; absorbing.
 
 Kind:      Member
 Member of: the notification status
@@ -679,21 +680,20 @@ Projection: storage-failure
 
 ## Status
 
-`partially resolved` — see the Ledger.
+`grounded on Final Critique 11 — 2026-11-05 at 917cc95` — see the Ledger.
 
 ## Ledger
 
 ```
-status: partially resolved
+status: grounded on Final Critique 11 — 2026-11-05 at 917cc95
 formal: verified — notification.als + 1 twin, 2026-06-03
-last gate: 2026-11-05 — Final Critique 10, a delta round, frozen at 82d4603 — foundational count 1, cured, not clean, no sample; 2026-11-05 — Final Critique 9, a delta round, frozen at 29128b6 — foundational count 1, cured, not clean, no sample; 2026-11-04 — Final Critique 8, a delta round, frozen at 075c6e4 — foundational count 1, cured, not clean, no sample; 2026-11-03 — Final Critique 7 — foundational count 2, not clean, no sample
+last gate: 2026-11-05 — Final Critique 11, a full round, frozen at 917cc95 — foundational count 0, clean, one sample; 2026-11-05 — Final Critique 10, a delta round, frozen at 82d4603 — foundational count 1, cured, not clean, no sample; 2026-11-05 — Final Critique 9, a delta round, frozen at 29128b6 — foundational count 1, cured, not clean, no sample; 2026-11-04 — Final Critique 8, a delta round, frozen at 075c6e4 — foundational count 1, cured, not clean, no sample; 2026-11-03 — Final Critique 7 — foundational count 2, not clean, no sample
 
 open:
 - 2026-10-21-b · refining · Examples (Shared Todo) · the three outcomes of notif_77 (delivered, failed, expired) share one notification, and only each paragraph's condition says they are alternatives, so a sequence test compiled from the walkthrough can read them as one sequence that breaks Invariant 2.3 → name each outcome an alternative, or give each its own notification
-- 2026-10-21-e · refining · Failed and Expired entries; Operation 9, 13, 14a · the entries describe an attempt that failed and a window that lapsed, while the rules let [Fail] and [Expire] land on any pending notification, ask no attempt of [Expire] and hold no window → describe each as the call a composing pattern makes under the deployment's declared policy (Operation 14, Capability requirement 8)
 - 2026-10-21-f · refining · Operations (signature block) · the success arm ok and the answer arm notification_ids resolve to no declaration (GRACE-lang Closed vocabulary 4, 27), the corpus's form on sixteen and seven specifications → declare each, or settle in the grammar whether an arm owes a term entry
 - 2026-10-21-g · refining · Deliver persistence 4 · a high-assurance deployment is declared nowhere, and the alert names no receiver → declare the class and the receiver, or say whose they are
-- 2026-10-29-a · refining · Identity 2; Capability requirement 1, 4 through 8 · the notification id's source is named as the host's allocation (Identity 2) and not among what the deployment supplies, where the atom shape in `spec-format.md` lists an id source under Capability requirement; Permissions and Assignment (each its 2026-10-26-a), Event Log (its 2026-10-22-b) and Tamper Evidence (its 2026-10-22-a) route the same form → name the source among the Capability requirements, in the one form the corpus settles for its host-allocation atoms
+- 2026-11-05-a · refining · Bulk expiry 1, Bulk expiry 2 · the two rules bind every composing pattern as written, where Non-goal 4 and Payload retention 4 carry the conditioned form (IF a composing pattern expires in bulk THEN …) → condition both on a composing pattern that expires in bulk, once the corpus settles whether a bulk expiry is a composing pattern's obligation or a deployment's
 ```
 
 <details markdown="block">

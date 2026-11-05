@@ -966,7 +966,7 @@
    "preference-aware-notification-fanout"
   ],
   "domain": null,
-  "grounded": false,
+  "grounded": true,
   "invariants": 9,
   "kind": "atom",
   "models": {
@@ -982,7 +982,7 @@
   "standards": [
    "GDPR"
   ],
-  "status": "partially resolved",
+  "status": "grounded on Final Critique 11 \u2014 2026-11-05 at 917cc95",
   "title": "Notification"
  },
  "notification-fanout": {
