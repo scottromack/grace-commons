@@ -84,7 +84,7 @@
    "multi-party-approval"
   ],
   "domain": null,
-  "grounded": false,
+  "grounded": true,
   "invariants": 10,
   "kind": "atom",
   "models": {
@@ -106,7 +106,7 @@
    "SOC 2",
    "SOX"
   ],
-  "status": "partially resolved",
+  "status": "grounded on Final Critique 15 \u2014 2026-11-05 at 00843d2",
   "title": "Approval Step"
  },
  "assignment": {
