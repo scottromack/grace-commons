@@ -103,6 +103,16 @@ The stance follows from the one above. The corpus does not take your logic. It r
 
 Four, so this position survives pressure rather than merely sounding good. First: since the 2025 wave, the *stance* is no longer differentiating — the rigor is the entire moat, and it must keep being re-earned as the library grows (the gates on the [status page](./status.html) are that re-earning, automated). Second: the distinctive bet — a canonical layer in structured natural language rather than a formalism — carries a real question: is structured English rigorous enough to be a source of truth? The derived formal models and the conformance harness are the answer, and they must remain the answer at scale. Third: legibility framings make this position readable; only the verification layer makes it true. The two jobs are kept distinct on purpose. Fourth — scale, stated plainly: the three conditions are demonstrated on *today's* corpus, measured, not at every size. The library is young, formal checking is exhaustive only within declared bounds, and emergent-invariant coverage is a maintained discipline, not a law of nature; holding all three conditions at ten times the corpus is the open bet, and it is instrumented rather than assumed. And if the wave's tools grow real verification stories of their own, the moat narrows to what it always truly was — the verified corpus and the discipline that keeps it verified — which is a future this library would count as winning, not losing.
 
+## Where this goes
+
+Realism and vision don't have to fight.
+
+Today a render generates code, and people and the loops inspect it. The contract is the specification, its normalized form and the behavior loops — never the code. So when AI emits a binary directly, a web app shell with WebAssembly logic or a native program, nothing about a pattern changes; only the render target does. Until then the render is well-designed Tailwind HTML with Sage's INKs, inheriting HTML's cruft and its goodness until a subset stabilizes. Security is where this direction pays most: a binary held to a verified specification is checked against what it may do, not read for what it does.
+
+Everyone is AI native now. Grace was native first: the specification was always the thing that runs; the AI just reads it.
+
+Without a time machine we can't know exactly what networks will look like, but we are ready today.
+
 ## The one-liner
 
 Everyone now declares the spec a source of truth. The hard word is *truth* — a source whose correctness you can show and that settles disagreements. That costs invariant-complete concepts, a way to verify the spec without running it, and a boundary that keeps implementation choices meaning-free. This library pays all three. The movement calls its practice Intent-Driven Development and drives the build from intent; this is Intent-Driven *Design* — it makes the intent an artifact worth driving from. Not ahead of the movement: its fulfillment.
