@@ -33,7 +33,7 @@ This is the mechanism payment processors use to stop a retried charge from billi
 
 Real reservation systems run over unreliable networks. A client submits [Place Hold]; the network drops the response before it arrives; the client retries. Without idempotency, the second call produces a *second* commitment — two distinct ids, two distinct audit trails, one unintended double-hold of the resource. The same hazard recurs for [Confirm], [Release], and [Expire]: a retry past Provisional Commitment's terminal-absorption boundary returns not-held, which the caller cannot distinguish from a *new* failure without out-of-band information.
 
-This composition solves the problem at the composition layer rather than absorbing it into Provisional Commitment. The caller supplies an **idempotency token** on every state-changing call. The composition checks the token against a [Duplicate Prevention](../atoms/duplicate-prevention.md) instance; if the token has been seen within the window (the configurable time period during which repeated tokens are detected and deduplicated), the composition returns the *original* response (the same commitment id, the same ok, the same rejection reason) without invoking [Provisional Commitment](../atoms/provisional-commitment.md) a second time — with one exception Invariant 2 states: a resolving action whose token Duplicate Prevention reports seen while the composition holds no answer for it is re-run, effect-free where an earlier run committed, by the constituent's own single-resolution invariant. The constituent atoms are unchanged; the composition is the wiring.
+This composition solves the problem at the composition layer rather than absorbing it into Provisional Commitment. The caller supplies an **idempotency token** on every state-changing call. The composition checks the token against a [Duplicate Prevention](../atoms/duplicate-prevention.md) instance; if the token has been seen within the window (the configurable time period during which repeated tokens are detected and deduplicated), the composition returns the *original* response (the same commitment id, the same ok, the same rejection reason) without invoking [Provisional Commitment](../atoms/provisional-commitment.md) a second time — with one exception Invariant 2 states: a resolving action whose token Duplicate Prevention reports seen while the composition holds no answer for it is re-run (Indeterminate outcome 13), effect-free where an earlier run committed, by the constituent's own single-resolution invariant. The constituent atoms are unchanged; the composition is the wiring.
 
 This is the composition payment processors run in production today — Stripe's `Idempotency-Key`, Adyen's idempotency header, ISO 20022's (the International Organization for Standardization standard for financial-messaging data) message uniqueness identifier, the IETF (Internet Engineering Task Force — the body that develops internet standards) draft idempotency-key spec. Different vocabularies; identical mechanic.
 
@@ -120,6 +120,8 @@ Term pending instant: the entry's stamp, the now its writing invocation read at 
 Term window end: (pending instant + idempotency window) — the instant an entry's idempotency window elapses at; the window has elapsed for the entry at its window end and after it (Execution Contract Logic confinement 9).
 
 Term token max length: the byte cap on an idempotency token, set by the deployment with no default.
+
+NOTE: open 2026-11-05-a — the token max length states no default cap (Capability requirement 2, Primitive policy 2).
 
 Term digest function: the collision-resistant hash function and serialization convention computing the parameters digest at the seam, set by the deployment with no default.
 
@@ -250,7 +252,7 @@ These emerge from the composition; none belongs to one constituent.
 - **Invariant 2 — Idempotent state transitions within the window.**
   ```
   Invariant 2.1: Two resolving calls carrying one idempotency token AND one parameters digest MUST answer alike inside the idempotency window.
-  Invariant 2.2: The composition MUST NOT call a constituent twice for one idempotency token inside the idempotency window.
+  Invariant 2.2: The composition MUST NOT call a constituent twice for one idempotency token inside the idempotency window, a resolving action's re-entry excepted (Indeterminate outcome 13).
   Invariant 2.3: A resolving action's re-entry MUST rest on Provisional Commitment Invariant 2.
   ```
 - **Invariant 3 — Token to commitment, one to one.**
@@ -292,7 +294,7 @@ A client behind a flaky network reserves a hotel room. The composition is config
 
 ### Banking — credit-hold authorization with retry
 
-A merchant POS (point-of-sale terminal) submits a $250 authorization with an idempotency key (ISO 20022 BizMsgIdr or scheme-defined equivalent). The acquirer's network glitches; the POS retries within seconds. The composition guarantees the cardholder is charged once, not twice. Stripe's `Idempotency-Key` HTTP header on `POST /v1/charges` returns the same result for a retried request; the composition's `Invariant 8 — Exactly-once effect within the window` states the exactly-once effect that behavior serves.
+A merchant POS (point-of-sale terminal) submits a $250 authorization with an idempotency key (ISO 20022 BizMsgIdr or scheme-defined equivalent). The acquirer's network glitches; the POS retries within seconds. The composition guarantees the authorization hold is placed once, not twice; the charge is a later resolving action under its own token. Stripe's `Idempotency-Key` HTTP header on `POST /v1/charges` returns the same result for a retried request; the composition's `Invariant 8 — Exactly-once effect within the window` states the exactly-once effect that behavior serves.
 
 ### Healthcare — bed assignment with double-click
 
@@ -310,7 +312,7 @@ A travel agency's booking system replays the previous hour's requests after a da
 
 Three scenarios the composition must survive in regulated contexts, beyond happy-path:
 
-- **Regulator audit — "show me every double-charge."** An auditor reads the composition's read, which answers every commitment with its stored fields, and joins the token results map to it on the commitment id each [Place Hold] entry records; inside the window the join carries one commitment per token (`Invariant 3 — Token to commitment, one to one`). A filter over the commitments alone for a shared `(resource, requester, placed_at-near)` signature cannot tell *legitimate sequential holds* (separate logical operations with separate tokens) from *retry-induced doubles*, because a commitment record carries no token; the map separates them. Outside the window the map holds no entry for the token, so the join no longer reaches a retry and the guarantee ends with the window (Non-goal 1).
+- **Regulator audit — "show me every double-charge."** An auditor reads the composition's read, which answers every commitment with its stored fields, and joins the token results map to it on the commitment id each [Place Hold] entry records; inside the window the join carries one commitment per token (`Invariant 3 — Token to commitment, one to one`). A filter over the commitments alone for a shared `(resource, requester, placed_at-near)` signature cannot tell *legitimate sequential holds* (separate logical operations with separate tokens) from *retry-induced doubles*, because a commitment record carries no token; the map separates them. Outside the window the map may still hold the token's entry until the eviction leg runs, and a call carrying the token stands as a fresh request (Invariant 7.2), so the join no longer reaches a retry and the guarantee ends with the window (Non-goal 1).
 - **Disputed transaction — "you charged me twice."** The investigator inspects the composition's `token_results` map (or its persistent journal). If two of the customer's submitted requests carried the *same* token, the composition's cache produced one commitment and replayed the response — there is no double-spend to dispute. If the customer's client generated *different* tokens for what they intended as the same operation, the composition correctly processed them as independent operations; the dispute belongs to the client's token-generation logic, not to the reservation system.
 - **Replay attack — adversary captures and replays a token.** An adversary captures an in-flight request and replays it later within the window. The composition correctly returns the cached result. The replay produces no new state change — `Invariant 2 — Idempotent state transitions within the window`. Replays *outside* the window are treated as fresh requests; the adversary may succeed in placing a new commitment if the resource is available and they hold valid credentials, but that is an authentication / authorization failure (see [Actor Identity](../atoms/actor-identity.md)), not an idempotency failure.
 - **Token reuse collision — caller accidentally reuses a token across two operations.** A developer reuses `idem_x73a` (originally used for `place_hold(room_307, ...)`) in a subsequent `confirm(rm_b4c, idem_x73a)` call. The composition checks: `DuplicatePrevention.check(idem_x73a) → seen`; looks up `token_results[idem_x73a]` and finds `action_type = place_hold`. Current call's `action_type = confirm` — mismatch. Returns token-collision. No state change occurs. The caller must use a fresh token for the confirm. Invariant 4 (*Token action binding*) is the structural guarantee; [Token Collision] is its observable form.
@@ -394,9 +396,7 @@ Indeterminate outcome 13: A resolving action MUST run again for a seen token car
 Deleted: Indeterminate outcome 14. Execution Contract Database 3 owns it: the database acknowledges a write only once it commits, so no resolving action answers outcome-unknown.
 ```
 
-NOTE: open 2026-11-04-a — the candidates set carries no cardinality cap.
-
-Term candidates: for a [Place Hold], the held commitments of the Provisional Commitment instance whose resource and requester equal the call's — a candidates set; the composition's own filter over a constituent read, never a constituent's answer.
+Term candidates: for a [Place Hold], the held commitments of the Provisional Commitment instance whose resource and requester equal the call's — a candidates set; the composition's own filter over a constituent read, never a constituent's answer. The set holds at most one commitment, since the registry refuses a resource a held commitment carries (Provisional Commitment Capability requirement 17, Operation 5).
 
 Term resolving action: [Confirm] | [Release] | [Expire].
 
@@ -558,18 +558,18 @@ It inherits from:
 
 ## Status
 
-`partially resolved` — see the Ledger.
+`grounded (English) on Final Critique 7 — 2026-11-05 at 63c13eb — formal layer pending` — see the Ledger.
 
 ## Ledger
 
 ```
-status: partially resolved
+status: grounded (English) on Final Critique 7 — 2026-11-05 at 63c13eb — formal layer pending
 formal: pending — re-derivation, 2026-08-30: the model has no eviction leg as a second process over one token and no `outcome-unknown` arm; was verified — idempotent-reservation.tla + 1 twin, 2026-06-03
-last gate: 2026-11-04 — Final Critique 6, a full round, frozen at de92f1e — foundational count 3, cured, not clean, no sample
+last gate: 2026-11-05 — Final Critique 7, a delta round, frozen at 63c13eb — foundational count 0, clean, one sample; 2026-11-04 — Final Critique 6, a full round, frozen at de92f1e — foundational count 3, cured, not clean, no sample
 
 open:
 - 2026-08-30-a · refining · formal · the model has no eviction leg as a second process over one token and no `outcome-unknown` arm; the twin's early-eviction hazard is now the leg's (iii) → extend it
-- 2026-11-04-a · refining · Indeterminate outcome 7, Term candidates · the candidates set an outcome-unknown answer carries has no cardinality cap, against the rule that every set-valued outcome field resolves to one (the section titled *An outcome is sized before the intent* in `pressure-testing.md`) → declare a cap in the deployment's configuration, or show that Provisional Commitment bounds the held commitments of one resource and one requester
+- 2026-11-05-a · refining · Capability requirement 2, Primitive policy 2, Term token max length · the token max length is a byte cap with no default, where Execution Contract Input 2 states a bound as a cap with a default a deployment may override → state a default (a value no rule of the corpus decides) and make Capability requirement 2 a MAY, or record the token as an input the deployment bounds by its own rule
 ```
 
 <details markdown="block">

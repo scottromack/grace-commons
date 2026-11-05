@@ -728,7 +728,7 @@
    "provisional-commitment",
    "duplicate-prevention"
   ],
-  "grounded": false,
+  "grounded": true,
   "invariants": 6,
   "kind": "composition",
   "models": {
@@ -744,7 +744,7 @@
    "PCI DSS",
    "SOX"
   ],
-  "status": "partially resolved",
+  "status": "grounded (English) on Final Critique 7 \u2014 2026-11-05 at 63c13eb \u2014 formal layer pending",
   "substrates": [],
   "title": "Idempotent Reservation"
  },
