@@ -17,7 +17,7 @@ toc: true
 
 ## Summary
 
-Preference-Aware Notification Fanout connects an event to everyone who asked to hear about it — delivered the way each of them wants. It wires together four simpler patterns: one for who is interested in which events ([Subscription](../atoms/subscription.md)); one for each person's delivery wishes — preferred channels, "no more than N a day," "nothing between 10pm and 7am," plain versus rich format ([Message Preference](../atoms/message-preference.md)); one that creates a per-recipient delivery record and tracks its outcome ([Notification](../atoms/notification.md)); and one that keeps a permanent ordered journal of everything that happened ([Event Log](../atoms/event-log.md)). When an event fires, it asks who is subscribed and, for each subscriber, reads their current preferences and decides: deliver on these channels in this format, or don't — for a named reason (paused, inside quiet hours, over their frequency limit, or opted out of every channel). The guarantee none of the four can make alone: every subscriber gets exactly one recorded **disposition** — delivered, failed, or suppressed-with-a-reason — and nothing is silently dropped, so the deployment can later prove from the journal that it honored quiet-hours and opt-out rules, the evidence telemarketing and commercial-email regulations effectively demand.
+Preference-Aware Notification Fanout connects an event to everyone who asked to hear about it — delivered the way each of them wants. It wires together four simpler patterns: one for who is interested in which events ([Subscription](../atoms/subscription.md)); one for each person's delivery wishes — preferred channels, "no more than N a day," "nothing between 10pm and 7am," plain versus rich format ([Message Preference](../atoms/message-preference.md)); one that creates a per-recipient delivery record and tracks its outcome ([Notification](../atoms/notification.md)); and one that keeps a permanent ordered journal of everything that happened ([Event Log](../atoms/event-log.md)). When an event fires, it asks who is subscribed and, for each subscriber, reads their current preferences and decides: deliver on these channels in this format, or don't — for a named reason (paused, inside quiet hours, over their frequency limit, or opted out of every channel). The guarantee none of the four can make alone: every subscriber gets exactly one recorded **disposition** — delivered, failed, or suppressed-with-a-reason — and nothing is silently dropped, so the deployment can later prove from the journal that it honored quiet-hours and opt-out rules, the evidence telemarketing and commercial-email regulations require or expect.
 
 ---
 
@@ -25,7 +25,7 @@ Preference-Aware Notification Fanout connects an event to everyone who asked to 
 
 Notification Fanout answers *who should receive this?* and produces one delivery record per Active subscriber. What it cannot answer is *how does this subscriber want delivery shaped — and is right now even an acceptable moment?* The Message Preference atom records those answers: channels, frequency limits, quiet hours, format. But by its own declaration Message Preference does not deliver, does not consult subscriptions, and does not interpret its own opaque values — it names "the composing fanout pattern" as the interpreter. The interpretation point — the moment a fanout invocation reads a subscriber's in-effect preference record and renders a delivery-or-suppress verdict — belongs to no atom. It is this composition's reason to exist.
 
-The stakes of that interpretation point are regulatory, not cosmetic. The TCPA (Telephone Consumer Protection Act, codified at section 227 of title 47 of the United States Code (U.S.C.) — the US federal law restricting unsolicited calls and text messages) attaches per-message statutory liability to a text sent inside a recipient's quiet window; CAN-SPAM (the US Controlling the Assault of Non-Solicited Pornography And Marketing Act, 15 U.S.C. section 7701 et seq.) requires honored opt-outs in commercial email. A fanout loop that consults preferences "usually" delivers inside quiet windows whenever a code path forgets to check. This composition makes the check structural. The shaping gate sits between `Subscription.subscribers_for` and each `Notification.create`, so every subscriber passes through it on every disposition — the original invocation's pass and any later journaled retry. Its verdict is recorded whether it delivers or suppresses. A suppressed subscriber is not a skipped subscriber — the suppression is a first-class disposition, classified by reason, written to the Event Log, and queryable later by the regulator, the disputing recipient, or the breach investigator.
+The stakes of that interpretation point are regulatory, not cosmetic. The TCPA (Telephone Consumer Protection Act, codified at section 227 of title 47 of the United States Code (U.S.C.) — the US federal law restricting unsolicited calls and text messages) attaches per-message statutory liability to a text sent inside a recipient's quiet window; CAN-SPAM (the US Controlling the Assault of Non-Solicited Pornography And Marketing Act, 15 U.S.C. section 7701 et seq.) requires honored opt-outs in commercial email. A fanout loop that consults preferences "usually" delivers inside quiet windows whenever a code path forgets to check. This composition makes the check structural. The shaping gate sits between `Subscription.subscribers_for` and each `Notification.create`, so every subscriber passes through it on every disposition — the original invocation's pass and any later journaled retry. Its verdict is recorded whether it delivers, suppresses or fails closed. A suppressed subscriber is not a skipped subscriber — the suppression is a first-class disposition, classified by reason, written to the Event Log, and queryable later by the regulator, the disputing recipient, or the breach investigator.
 
 This composition does **not** compose Notification Fanout. Notification Fanout's fanout action exposes no per-subscriber hook; wrapping it cannot insert the shaping gate between the query and the creates without a breaking change to a grounded composition. The precedent is [Reserve from Pool](./reserve-from-pool.md), the pool-arithmetic superset of Idempotent Reservation: re-wire the same atoms plus more, rather than wrap the smaller composition. Notification Fanout remains the unshaped sibling — deployments that need fanout without preference shaping use it directly. This composition mirrors its loop, its failure isolation, and its fanout_id correlation discipline, widening the bipartition `{created, failed}` to the trichotomy `{created, failed, suppressed}`.
 
@@ -79,9 +79,9 @@ Composition state 6: The composition MUST remove a delivery count entry whose de
 Composition state 7: The composition MUST store the fanout dispositions index.
 Composition state 8: The composition MUST key the fanout dispositions index by fanout id.
 Composition state 9: The composition MUST rebuild a missing fanout dispositions entry from the journal's events carrying the fanout id.
-Composition state 10: The composition MUST read the journal through the journal query capability.
+Composition state 10: The composition MUST take the journal's events on event type, fanout id, principal reference AND decided instant from the events the journal query capability's read returns.
 Composition state 11: EVERY disposition event MUST carry a fanout id naming EXACTLY ONE initiation entry.
-Composition state 12: EVERY queried subscriber MUST carry a disposition event at quiescence.
+Composition state 12: IF no abandonment record names a queried subscriber THEN the queried subscriber MUST carry a disposition event at quiescence once the reconciliation window has passed from the fired instant.
 Composition state 13: The composition MUST read a disposition pair's latest disposition event as the pair's operative disposition.
 Composition state 14: The composition MUST NOT change a disposition event.
 Composition state 15: EVERY preference id a disposition event carries MUST name a record in effect at the event's decided instant.
@@ -101,7 +101,7 @@ Term queried subscriber: a principal the initiation entry's queried list names.
 
 Term quiescence: a state in which no invocation, redisposition or reconciliation run is in flight for the fanout id.
 
-NOTE: Contract classification, per the section titled Composition state in `execution-contract.md` — the delivery count index: derived index over the principal's delivery events, rebuilt inside the interpreted frequency window (Composition state 4); the fanout dispositions index: derived index over the journal's events carrying the fanout id (Composition state 9).
+NOTE: Contract classification, per the section titled Composition state in `execution-contract.md` — the delivery count index: derived index over the principal's delivery events, rebuilt inside the interpreted frequency window (Composition state 4); the fanout dispositions index: derived index over the journal's events carrying the fanout id (Composition state 9); past the audit horizon an entry of either index is not needed: the delivery count index is read only inside the interpreted frequency window (Composition state 4, Composition state 6) and the fanout dispositions index serves an audit query only for an invocation whose initiation entry is not an aged entry (Reconciliation 5).
 
 ### Capability requirement
 
@@ -129,7 +129,7 @@ Capability requirement 20: A deployment MUST set the payload digest function.
 Capability requirement 21: A deployment MUST set the reconciliation window.
 Capability requirement 22: A deployment MUST set the reconciliation cadence.
 Capability requirement 23: A deployment MUST disclose the notification create latency.
-Capability requirement 24: A deployment MUST disclose the disposition write latency.
+Deleted: Capability requirement 24. Term reconciliation run bound owns it: the run bound counts every write's landing.
 Capability requirement 25: A deployment MUST disclose the max query latency.
 Capability requirement 26: A deployment MUST set the abandonment principals cap.
 Capability requirement 27: A deployment MUST set the invocation duration bound.
@@ -148,11 +148,15 @@ Capability requirement 39: IF the host supplies no per-disposition exclusion THE
 Deleted: Capability requirement 40. Execution Contract Database 1 owns it: a disposition's create and its delivery event commit together, and the composition names no orphan for a lookup to find.
 Capability requirement 41: A deployment whose deliveries on a statutorily time-restricted channel fall within the restriction's scope MUST declare the statutory quiet window.
 Capability requirement 42: A deployment omitting the statutory quiet window MUST disclose the omission as the deployment's legal posture.
-Capability requirement 43: The host MUST inject now at the seam once per invocation.
-Capability requirement 44: The composition MUST stamp the fired instant AND EVERY decided instant of one invocation from the invocation's now.
+Capability requirement 43: The host MUST inject now at the seam once per call of an action.
+Capability requirement 44: The composition MUST stamp the fired instant AND EVERY decided instant of one call from the call's now.
 Capability requirement 45: The composition MUST NOT read the clock inside the shaping gate.
 Capability requirement 46: The composition MUST take the fanout id from the seam.
 Capability requirement 47: The deployment MUST supply the constituent instances' database PER Execution Contract Database 1 through 4.
+Capability requirement 48: A deployment MUST disclose the reconciliation run bound.
+Capability requirement 49: A deployment MUST set the audit horizon.
+Capability requirement 50: IF the cap serialization EQUALS blank THEN the composition MUST refuse to start.
+Capability requirement 51: IF the cap serialization EQUALS serialized-per-principal AND the host supplies no per-principal exclusion THEN the composition MUST refuse to start.
 ```
 
 Term quiet hours interpretation: the deployment's rule reading a stored quiet hours value as a predicate over now — is this instant inside the principal's quiet window.
@@ -161,7 +165,7 @@ Term frequency limit interpretation: the deployment's rule reading a stored freq
 
 Term channel interpretation: the deployment's rule reading stored channel preferences as the deliverable channel set, and a stored format as the envelope's format.
 
-Term default shape: the channel set and format the deliver path uses where no channels are stated — never an empty channel set.
+Term default shape: the channel set and format the shaping gate uses where the record carries no channel preferences — never an empty channel set.
 
 Term configuration version: the id of one immutable version of the interpretation configuration, the default shape, the statutory quiet window and the policy settings.
 
@@ -175,7 +179,7 @@ Term cap serialization: serialized-per-principal | best-effort — whether the h
 
 Term per-principal exclusion: the host-supplied mutual exclusion keyed by principal reference, over a cap evaluation and the delivery commit after it.
 
-Term journal query capability: the deployment's declared guarantee that the Event Log instance's read answers a predicate on event type, fanout id, principal reference and decided-instant range.
+Term journal query capability: the deployment's declared guarantee that the Event Log instance's read, over a sequence-number range or a wall-time range, returns EVERY event the range holds, so the composition's own filter on event type, fanout id, principal reference and decided-instant range selects among them.
 
 Term payload digest function: the deterministic digest the initiation entry and [Redispose] take of the payload content.
 
@@ -185,7 +189,7 @@ Term reconciliation cadence: the interval between the reconciliation's runs, bes
 
 Term notification create latency: the deployment's disclosed bound on one create landing and becoming visible to pending_for.
 
-Term disposition write latency: the deployment's disclosed bound on one closing write landing.
+Term reconciliation run bound: the deployment's disclosed bound on one reconciliation run, from its start to the landing of its last write, its enumeration and the writes of every closure it makes included.
 
 Term max query latency: the deployment's disclosed bound between the fired instant and subscribers_for answering.
 
@@ -195,7 +199,9 @@ Term invocation duration bound: the longest a [Fanout Shaped] may run from the i
 
 Term clock tolerance: the write-clock skew bound between now and the constituents' write clocks, and the accounting-clock regression bound — two components.
 
-Term liveness sum: `(((invocation duration bound + notification create latency) + reconciliation cadence) + disposition write latency)`.
+Term liveness sum: `(((invocation duration bound + notification create latency) + reconciliation cadence) + reconciliation run bound)`.
+
+NOTE: watch the reconciliation's own run (Term liveness sum).
 
 Term hold retry horizon: the duration after a hold suppression's decided instant past which the suppression is terminal.
 
@@ -203,7 +209,7 @@ Term per-disposition exclusion: the host-supplied mutual exclusion keyed by disp
 
 Term statutory quiet window: a deployment-declared window and channel set evaluated for every disposition, whatever the principal's stored preferences — the law's window.
 
-Term audit horizon: the journal's retention horizon.
+Term audit horizon: the duration the deployment sets beyond which the composition treats a journal entry as aged.
 
 Term seam: the composition's input and output boundary — the one place the host reads the clock and generates the fanout id, per the section titled Logic Confinement Principle in `execution-contract.md`.
 
@@ -221,6 +227,8 @@ Primitive policy 6: The composition MUST NOT normalize an event scope.
 Primitive policy 7: A deployment MUST register one canonical reference per person in Subscription AND Message Preference alike.
 Primitive policy 8: A deployment MUST size the payload cap for the largest record the composition writes.
 Primitive policy 9: An action refused under Primitive policy 1 through 4 MUST NOT write.
+Primitive policy 10: IF abandon EQUALS blank THEN [Reconcile Gaps] MUST answer invalid-request.
+Primitive policy 11: [Reconcile Gaps] refused under Primitive policy 10 MUST NOT write.
 ```
 
 ### Action wiring
@@ -266,6 +274,7 @@ Action wiring 7: IF Event Log refuses the initiation entry THEN [Fanout Shaped] 
 Action wiring 8: An initiated fanout MUST dispose EVERY queried subscriber.
 Deleted: Action wiring 9. Execution Contract Database 2 owns it.
 Action wiring 10: An initiated fanout MUST read the pair's latest disposition event under the per-disposition exclusion.
+NOTE: open 2026-11-04-a — a failed read and a lost reply here have no rule of their own.
 Action wiring 11: IF the read finds a disposition event THEN the initiated fanout MUST answer the event's disposition for the subscriber.
 Action wiring 12: IF the read finds a disposition event THEN the initiated fanout MUST NOT write for the subscriber.
 Action wiring 13: IF the per-disposition exclusion's lease expired THEN the initiated fanout MUST answer the subscriber AND EVERY remaining subscriber as yielded.
@@ -279,13 +288,13 @@ Action wiring 20: An envelope MUST carry the payload content, the channels, the 
 Action wiring 21: The initiated fanout MUST record the delivery event ONLY AFTER Notification's create answers the notification id.
 Action wiring 22: A delivery event MUST carry the fanout id, the principal reference, the notification id, the channels, the format, the preference id, the evaluation inputs AND the decided instant.
 Action wiring 23: The initiated fanout MUST make the delivery pair under the per-disposition exclusion.
-Action wiring 24: IF Event Log refuses a delivery event THEN the initiated fanout MUST answer the subscriber as yielded.
+Action wiring 24: IF Event Log refuses a delivery event THEN the initiated fanout MUST answer the subscriber as yielded (Execution Contract Constituent failure 1).
 Action wiring 25: IF Event Log refuses a delivery event THEN the initiated fanout MUST NOT record a failure event for the subscriber.
-Action wiring 26: IF Notification's create refuses THEN the initiated fanout MUST record a failure event carrying create-failed.
+Action wiring 26: IF Notification's create refuses THEN the initiated fanout MUST record a failure event carrying create-failed (Execution Contract Constituent failure 1).
 Action wiring 27: A failure event MUST carry the fanout id, the principal reference, the cause, the preference id AND the decided instant.
 Action wiring 28: IF the shaping gate answers fail THEN the initiated fanout MUST record a failure event carrying the gate's cause.
 Action wiring 29: IF the shaping gate answers suppress THEN the initiated fanout MUST record a suppression event carrying the fanout id, the principal reference, the reason, the preference id, the evaluation inputs, the retry eligibility AND the decided instant.
-Action wiring 30: IF Event Log refuses a suppression event OR a failure event THEN the initiated fanout MUST answer the subscriber in the matching list.
+Action wiring 30: IF Event Log refuses a suppression event OR a failure event THEN the initiated fanout MUST answer the subscriber as yielded (Execution Contract Constituent failure 1).
 Action wiring 31: A delivery event's evaluation inputs MUST carry the observed record status, the now, EVERY interpreted window-and-cap pair with the gate's in-window count AND the statutory exclusion the gate evaluated.
 Action wiring 32: A suppression event's evaluation inputs MUST carry the observed record status, the now AND the inputs of the rule that fired.
 Action wiring 33: A suppression event MUST carry true as the retry eligibility ONLY IF the reason's policy EQUALS hold.
@@ -301,7 +310,7 @@ Action wiring 42: IF a foreign holder holds the per-disposition exclusion THEN [
 Action wiring 43: IF the lease expires ahead of the commit THEN [Redispose] MUST answer yielded.
 Action wiring 44: A [Redispose] answering yielded MUST NOT write.
 Action wiring 45: IF an abandonment record covers the principal THEN [Redispose] MUST answer not-retryable.
-Action wiring 46: IF the pair's operative disposition IS NOT IN the retryable dispositions THEN [Redispose] MUST answer not-retryable.
+Action wiring 46: IF the pair carries a disposition event AND the pair's operative disposition IS NOT IN the retryable dispositions THEN [Redispose] MUST answer not-retryable.
 Action wiring 47: IF the pair carries no disposition event AND the principal IS NOT IN the queried list THEN [Redispose] MUST answer not-retryable.
 Action wiring 48: A validated redisposition MUST read a delivery event's record status through the status read.
 Deleted: Action wiring 49. Execution Contract Database 1 owns it.
@@ -309,8 +318,8 @@ Deleted: Action wiring 50. Execution Contract Database 1 owns it.
 Deleted: Action wiring 51. Execution Contract Database 1 owns it.
 Action wiring 52: An admitted redisposition MUST call Subscription's subscribed with the principal AND the initiation entry's event scope.
 Action wiring 53: IF subscribed answers not-subscribed THEN [Redispose] MUST record a suppression event carrying unsubscribed, false as the retry eligibility, none as the preference id AND the audience check with the now as the evaluation inputs.
-Action wiring 54: IF subscribed answers subscribed THEN [Redispose] MUST dispose the principal PER Action wiring 15 through 34 under a fresh now.
-NOTE: watch rule inheritance (Action wiring 54) — [Redispose] makes no read of Action wiring 10, the read Action wiring 15's condition names.
+Action wiring 54: IF subscribed answers subscribed THEN [Redispose] MUST read the preference read for the principal AND dispose the principal PER Action wiring 16 through 23, 25 through 29 AND 31 through 34 under a fresh now.
+NOTE: watch rule inheritance (Action wiring 54) — [Redispose] makes no read of Action wiring 10, so Action wiring 15 is not inherited, and Action wiring 56 owns a refused append, so Action wiring 24 and 30 are not.
 Action wiring 55: A redisposition event MUST carry the original fanout id AND the redisposition flag.
 Action wiring 56: IF Event Log refuses a redisposition event THEN [Redispose] MUST answer journal-rejected carrying the outcome position.
 Deleted: Action wiring 57. Execution Contract Database 1 owns it: a redisposition's writes commit together, so no journal-rejected carries a notification id.
@@ -354,6 +363,8 @@ Term reason's policy: the quiet window policy for quiet-window; the cap policy f
 Term action-relented reason: suspended | no-record | channel-opt-out | unsubscribed — a suppression that relents only by the principal's own action.
 
 Term retryable disposition: a failure event; a suppression event carrying true as the retry eligibility whose `(decided instant + hold retry horizon)` DOES NOT PRECEDE now; a delivery event whose record's status IS IN failed and expired.
+
+NOTE: open 2026-11-04-b — a failure event is retryable unconditionally.
 
 Term redisposition flag: redisposition set to true.
 
@@ -403,7 +414,7 @@ Deleted: Reconciliation 16. Execution Contract Database 1 owns it.
 Reconciliation 17: IF the payload content EXISTS AND abandon EQUALS false THEN the gap run MUST call [Redispose] as the exclusion's holder.
 Reconciliation 18: IF [Redispose] answers yielded, journal-rejected OR not-retryable to a gap run THEN the gap run MUST carry the principal to the next run.
 Reconciliation 19: A gap run MUST NOT abandon a principal the gap run carries to the next run.
-Reconciliation 20: IF abandon EQUALS true THEN the gap run MUST abandon EVERY remaining gap principal.
+Reconciliation 20: IF abandon EQUALS true THEN the gap run MUST abandon EVERY gap principal carrying operator-declined as the abandonment reason.
 Reconciliation 21: IF the payload content EQUALS blank THEN the gap run MUST NOT call [Redispose].
 Reconciliation 22: An abandonment record MUST carry the fanout id, the principals, the abandonment reason AND the decided instant.
 Reconciliation 23: The principals one abandonment record names MUST NOT EXCEED the abandonment principals cap.
@@ -420,6 +431,7 @@ Deleted: Reconciliation 33. Execution Contract Database 2 owns it.
 Deleted: Reconciliation 34. Execution Contract Database 2 owns it.
 Reconciliation 35: The overshoot run MUST NOT record a window whose start is an aged instant.
 Reconciliation 36: The reconciliation MUST NOT store composition state.
+Reconciliation 37: IF the payload content EQUALS blank AND abandon EQUALS false THEN the gap run MUST abandon EVERY gap principal carrying payload-unavailable as the abandonment reason.
 ```
 
 Term reconciliation: the two legs, [Reconcile Gaps] and [Reconcile Overshoots], each a scheduled leg (Execution Contract Scheduled leg 1), whose output — a closed gap or a recorded overshoot — an auditor awaits within the reconciliation window.
@@ -440,7 +452,7 @@ Term reconcile intent: the fanout.reconcile-intended event — the gap run's int
 
 Term abandonment record: the fanout.abandoned event — the terminal record discharging the liveness of the principals it names, or of all.
 
-Term abandonment reason: payload-unavailable | operator-declined | redispose-rejected.
+Term abandonment reason: payload-unavailable | operator-declined.
 
 Term overshoot record: the fanout.cap-overshoot-reconciled event.
 
@@ -460,11 +472,11 @@ Shaping gate 10: The shaping gate MUST NOT count a history entry naming another 
 Shaping gate 11: IF a rule the shaping gate reaches consults a field whose interpretation is undeclared THEN the shaping gate MUST answer fail carrying interpretation-undeclared.
 Shaping gate 12: IF the shaping gate reaches the cap rule AND the delivery history EQUALS unavailable THEN the shaping gate MUST answer fail carrying accounting-unreadable.
 Shaping gate 13: IF the precedence walk reaches channel selection THEN the shaping gate MUST map the stated channel preferences to the channel set AND format.
-Shaping gate 14: IF the deliver path states no channels THEN the shaping gate MUST take the default shape's channel set.
+Shaping gate 14: IF the record carries no channel preferences THEN the shaping gate MUST take the default shape's channel set.
 Shaping gate 15: The shaping gate MUST exclude EVERY channel of a statutory quiet window containing now.
 Shaping gate 16: IF the channel set DOES NOT EQUAL blank THEN the shaping gate MUST answer deliver carrying the channel set AND the format.
 Shaping gate 17: IF the preference values emptied the channel set THEN the shaping gate MUST answer suppress carrying channel-opt-out.
-Shaping gate 18: IF the statutory exclusion emptied the channel set THEN the shaping gate MUST answer suppress carrying quiet-window.
+Shaping gate 18: IF the statutory exclusion emptied a channel set the preference values left non-empty THEN the shaping gate MUST answer suppress carrying quiet-window.
 Shaping gate 19: The shaping gate MUST NOT answer deliver on a fail-closed cause.
 Shaping gate 20: The shaping gate MUST NOT call a constituent.
 Shaping gate 21: The composition MUST NOT reorder the precedence rules.
@@ -489,7 +501,7 @@ Term interpreted field: channel preferences | frequency limit | quiet hours | fo
 
 ```
 Verdict replay 1: Re-evaluating the shaping gate on a verdict-bearing event's recorded inputs MUST reproduce the recorded verdict.
-Verdict replay 2: The replay MUST take the preference values from Message Preference's read of the event's preference id.
+Verdict replay 2: The replay MUST take the preference values from Message Preference's read of the event's preference id; where the event's preference id EQUALS none, the replay MUST take the absence the gate saw.
 Verdict replay 3: The replay MUST take the observed record status, the now AND the in-window counts from the event's evaluation inputs.
 Verdict replay 4: The replay MUST evaluate under the configuration version the initiation entry journaled.
 Verdict replay 5: An auditor MUST attribute a replay divergence to EXACTLY ONE OF the journal entry, the configuration disclosure, the implementation's shaping gate.
@@ -511,7 +523,7 @@ These emerge from the composition; none belongs to one constituent.
 - **Invariant 2 — Suppression precedence over subscription.**
   ```
   Invariant 2.1: A subscriber the shaping gate suppresses MUST NOT receive a Notification create in the pass.
-  Invariant 2.2: A suppression event MUST carry the first precedence rule that fired as the reason.
+  Invariant 2.2: A suppression event the shaping gate renders MUST carry the first precedence rule that fired as the reason.
   ```
 - **Invariant 3 — Quiet-window safety.**
   ```
@@ -521,7 +533,7 @@ These emerge from the composition; none belongs to one constituent.
 - **Invariant 4 — Frequency-cap safety.**
   ```
   Invariant 4.1: IF the deployment declares the frequency limit interpretation THEN EVERY delivery event's observed in-window count MUST fall below EVERY cap interpreted from the record observed at the delivery.
-  Invariant 4.2: IF the cap serialization EQUALS serialized-per-principal THEN a delivery event MUST carry the committed count at the delivery as the observed count.
+  Invariant 4.2: IF the cap serialization EQUALS serialized-per-principal THEN a delivery event MUST carry the count of the preceding delivery events in the interpreted window as the observed count.
   Invariant 4.3: IF the cap serialization EQUALS best-effort THEN EVERY overshoot MUST carry an overshoot record WITHIN the reconciliation window.
   ```
 - **Invariant 5 — No silent disposition.**
@@ -556,7 +568,7 @@ Trichotomy with no silent disposition gives the *accountable fanout* property; q
 
 ## Examples
 
-The walkthrough deployment declares channels `["email", "sms", "push"]`, `no_record_policy = deliver-unshaped` with default shape `{channels: [email], format: "plain"}`, `cap_policy = drop`, `quiet_window_policy = hold`, `cap_serialization = serialized-per-principal`, `frequency_limit_interpretation` reading `{per_day: N}` as a rolling 24-hour cap, `quiet_hours_interpretation` resolving stored windows in the record's own timezone, a `statutory_quiet_window` of 21:00–08:00 recipient-local on `{sms}` (its SMS sends include solicitations), a `journal_query_capability` covering the four required predicates, a `payload_digest_function`, a one-hour `reconciliation_window`, a seven-day `hold_retry_horizon`, a five-second `invocation_duration_bound`, a one-second `notification_create_latency`, a 500ms `clock_tolerance` declared for both components (the deployment attests the one bound covers write-clock skew and accounting-clock regression alike), and interpretation-configuration version `cfg_v3` in force throughout.
+The walkthrough deployment declares channels `["email", "sms", "push"]`, `no_record_policy = deliver-unshaped` with default shape `{channels: [email], format: "plain"}`, `cap_policy = drop`, `quiet_window_policy = hold`, `cap_serialization = serialized-per-principal`, `frequency_limit_interpretation` reading `{per_day: N}` as a rolling 24-hour cap, `quiet_hours_interpretation` resolving stored windows in the record's own timezone, a `statutory_quiet_window` of 21:00–08:00 recipient-local on `{sms}` (its SMS sends include solicitations), a `journal_query_capability` covering the range reads the four filters need, a `payload_digest_function`, a one-hour `reconciliation_window`, a seven-day `hold_retry_horizon`, a five-second `invocation_duration_bound`, a one-second `notification_create_latency`, a ten-minute `reconciliation_cadence`, a thirty-second `reconciliation_run_bound`, a 500ms `clock_tolerance` declared for both components (the deployment attests the one bound covers write-clock skew and accounting-clock regression alike), and interpretation-configuration version `cfg_v3` in force throughout.
 
 ### Walkthrough — one invocation, all three dispositions
 
@@ -617,6 +629,8 @@ A fanout `fx_07` to `[ana, eli, fay]`: ana's disposition pair commits (created);
 - **Disputed delivery — "I was texted at 3am."** A principal complains of a 3am SMS. The investigator reconstructs from records: the principal's in-effect preference record at the delivery moment (Message Preference's in-effect reconstruction — max `set_at ≤ t` within the in-effect window); the disposition — either a `fanout.created` event whose `decided_at`, `channels`, and `preference_id` show what the gate saw and decided, or no such event (the message did not come through this composition — a finding against the deployment's delivery inventory, not this composition's records). If the record carried no `quiet_hours`, the delivery was conformant *with respect to stated preferences* — and the declared `statutory_quiet_window` is then the operative question: a 3am SMS is inside any TCPA-conformant declaration, so a delivered SMS envelope at 3am indicts the deployment's statutory-window declaration (absent, or wrongly scoped) rather than the gate; the event's `evaluation_inputs` show whether a statutory exclusion was evaluated. If it carried one and the interpretation places 3am inside it, Invariant 3's antecedent is examined: either the gate misfired (replay the verdict — Invariant 7 isolates the divergence) or the deployment's declared clock/timezone capability was unsound (the externally-clearable disclosure names the liable layer). The composition's records identify which.
 - **Breach investigation — suppression-bypass forensics.** An incident suggests deliveries bypassed suppression during a window (e.g., a deploy that skipped the gate). The investigator cross-checks, per invocation in the window: the Active subscriber set reconstructed at the `fanout.initiated` entry's `fired_at` (Check 1.4's procedure) versus the disposition events under its fanout_id (Invariant 1 — a delivery with no `fanout.created` event, or a reconstructed subscriber with no disposition past the reconciliation window, is structural evidence of bypass); Notification records created in the window versus `fanout.created` events (a Notification whose creation has no journal pair indicates writes outside the composition); and replay of suppression verdicts near the window's edges (Invariant 7) to confirm verdicts matched the stored preferences. The journal's append-only total order (Event Log Invariant 1 through 4) bounds the affected invocations.
 
+NOTE: open 2026-11-04-c — the disputed-delivery scenario names an in-effect reconstruction no declared surface carries.
+
 ---
 
 ## Generation acceptance
@@ -626,10 +640,10 @@ An implementation is acceptable when the checks below are provable to an externa
 ### Conformance checks
 
 ```
-Check 1.1: An auditor MUST find the latest disposition events under a fanout id partitioning the initiation entry's queried list at quiescence (Invariant 1.1).
+Check 1.1: IF no abandonment record names a principal of the initiation entry's queried list THEN an auditor MUST find the principal's latest disposition event under the fanout id at quiescence once the reconciliation window has passed from the fired instant (Composition state 12).
 Deleted: Check 1.2. Execution Contract Database 1 owns it.
 Check 1.3: An auditor MUST read an abandonment record as accounting for the principals the record covers (Reconciliation 22).
-Check 1.4: An auditor MUST reconstruct the Active set across the fired instant's reconstruction window AND compare the set with the queried list (Composition state 11).
+Check 1.4: An auditor MUST reconstruct the Active set across the fired instant's reconstruction window AND compare the set with the queried list (Action wiring 5).
 Check 1.5: An auditor MUST report a queried list diverging from EVERY reconstruction in the window as a fidelity finding (Action wiring 5).
 Check 1.6: An auditor MUST find EVERY delivery event's notification id naming a record whose recipient EQUALS the event's principal (Action wiring 22).
 Check 2.1: An auditor MUST find EVERY delivery event's observed count below EVERY cap the event records (Invariant 4.1).
@@ -657,7 +671,7 @@ Term reconstruction window: from `(fired instant - clock tolerance)` to `((fired
 ```
 External check 1: An auditor needing the interpretation AND policy disclosures confirmed MUST read the deployment's disclosure of EVERY Capability requirement setting AND EVERY retained configuration version (Capability requirement 9).
 External check 2: An auditor needing the reconciliation discipline confirmed MUST read the scheduler's calls of [Reconcile Gaps] AND [Reconcile Overshoots] (Reconciliation 1).
-External check 3: An auditor needing the journal's capability confirmed MUST read the deployed Event Log instance's predicates (Capability requirement 19).
+External check 3: An auditor needing the journal's capability confirmed MUST read the deployed Event Log instance's range reads (Capability requirement 19).
 External check 4: An auditor needing single-pipeline routing confirmed MUST read the deployment's attestation (Non-goal 5).
 External check 5: An auditor needing the recipient-local clock confirmed MUST read the deployment's attestation (Invariant 3.1).
 External check 6: An auditor needing the unified principal namespace confirmed MUST read the deployment's canonicalization attestation (Primitive policy 7).
@@ -743,13 +757,13 @@ Term record verbs: abandon, abort, admit, answer, appear, attribute, bind, call,
 
 Term value sets: event type = fanout.initiated | fanout.created | fanout.suppressed | fanout.create-failed | fanout.reconcile-intended | fanout.abandoned | fanout.cap-overshoot-reconciled. The rest are declared where the section that owns each declares it: verdict, suppression reason, fail-closed cause, failure cause, action-relented reason, abandonment reason, observed record status, interpreted field, no record policy, cap policy, quiet window policy, cap serialization, redispose position, gap position.
 
-Term bounds: reconciliation window (reconciliation_window), invocation duration bound (invocation_duration_bound), hold retry horizon (hold_retry_horizon), notification create latency (notification_create_latency), disposition write latency (disposition_write_latency), max query latency (max_query_latency), abandonment principals cap (abandonment_principals_cap), clock tolerance (clock_tolerance), audit horizon.
+Term bounds: reconciliation window (reconciliation_window), invocation duration bound (invocation_duration_bound), hold retry horizon (hold_retry_horizon), notification create latency (notification_create_latency), reconciliation run bound (reconciliation_run_bound), max query latency (max_query_latency), abandonment principals cap (abandonment_principals_cap), clock tolerance (clock_tolerance), audit horizon.
 
 Term cadences: reconciliation cadence (reconciliation_cadence).
 
 Term qualifiers: migrated — rewritten in GRACE lang v0.61 (2026-09-23).
 
-Term terms: composition, constituents, journal, delivery count index, delivery count entry, fanout dispositions index, interpreted frequency window, disposition pair, queried subscriber, quiescence, quiet hours interpretation, frequency limit interpretation, channel interpretation, default shape, configuration version, no record policy, cap policy, quiet window policy, cap serialization, per-principal exclusion, journal query capability, payload digest function, reconciliation window, reconciliation cadence, notification create latency, disposition write latency, max query latency, abandonment principals cap, invocation duration bound, clock tolerance, liveness sum, hold retry horizon, per-disposition exclusion, statutory quiet window, audit horizon, seam, now, fanout result, redisposition, redispose position, carried by [Redispose]'s journal-rejected, gap result, gap position, carried by [Reconcile Gaps]'s journal-rejected, overshoot result, subscriber query, preference read, status read, validated fanout, initiated fanout, validated redisposition, admitted redisposition, queried list, initiation entry, delivery event, suppression event, failure event, disposition event, envelope, delivery pair, delivery history, reason's policy, action-relented reason, retryable disposition, redisposition flag, observed record status, reconciliation, gap run, overshoot run, young invocation, aged entry, aged instant, gap principal, reconcile intent, abandonment record, abandonment reason, overshoot record, shaping gate, verdict, precedence rules, suppression reason, fail-closed cause, failure cause, interpreted field, verdict-bearing event, live record, reconstruction window, covered obligation, fanout id, payload content, payload digest, fired instant, decided instant, evaluation inputs, retry eligibility.
+Term terms: composition, constituents, journal, delivery count index, delivery count entry, fanout dispositions index, interpreted frequency window, disposition pair, queried subscriber, quiescence, quiet hours interpretation, frequency limit interpretation, channel interpretation, default shape, configuration version, no record policy, cap policy, quiet window policy, cap serialization, per-principal exclusion, journal query capability, payload digest function, reconciliation window, reconciliation cadence, notification create latency, reconciliation run bound, max query latency, abandonment principals cap, invocation duration bound, clock tolerance, liveness sum, hold retry horizon, per-disposition exclusion, statutory quiet window, audit horizon, seam, now, fanout result, redisposition, redispose position, carried by [Redispose]'s journal-rejected, gap result, gap position, carried by [Reconcile Gaps]'s journal-rejected, overshoot result, subscriber query, preference read, status read, validated fanout, initiated fanout, validated redisposition, admitted redisposition, queried list, initiation entry, delivery event, suppression event, failure event, disposition event, envelope, delivery pair, delivery history, reason's policy, action-relented reason, retryable disposition, redisposition flag, observed record status, reconciliation, gap run, overshoot run, young invocation, aged entry, aged instant, gap principal, reconcile intent, abandonment record, abandonment reason, overshoot record, shaping gate, verdict, precedence rules, suppression reason, fail-closed cause, failure cause, interpreted field, verdict-bearing event, live record, reconstruction window, covered obligation, fanout id, payload content, payload digest, fired instant, decided instant, evaluation inputs, retry eligibility.
 
 Term cited: Execution Contract Conformance 8 — the recursive inheritance of a constituent's guarantees. The section titled Composition state in `execution-contract.md` — the derived-index classification. The section titled Composition model in `execution-contract.md` — Event Log as the sanctioned history records. The section titled Logic Confinement Principle in `execution-contract.md` — the seam. subscribers_for, subscribed, not-subscribed, subscriber reference, event scope: Subscription. create, status_of, pending_for, notification id, payload, Pending, Delivered, failed, expired: Notification. current_for, read, preference id, principal reference, preference record, channel preferences, frequency limit, quiet hours, format, metadata, status, suspended: Message Preference. append, recording instant, payload cap, invalid-payload, storage-failure: Event Log.
 
@@ -965,7 +979,7 @@ Projection: too-young
 
 ## Standards references
 
-- **TCPA — Telephone Consumer Protection Act (47 U.S.C. section 227) and 47 CFR section 64.1200(c)(1)** — restricts calls and texts outside permitted hours (the Federal Communications Commission's implementing rule presumes no solicitations before 8am or after 9pm recipient-local time) and underwrites per-message statutory damages. Invariant 3 (quiet-window safety) is the structural mechanism: the gate evaluates the recipient's stored quiet window in recipient-local time before any create, and the suppression record is the affirmative evidence of compliance. The statutory 8am–9pm presumption applies whether or not the principal stored a window, which is why the gate carries the `statutory_quiet_window` arm (Configuration) alongside the stored-preference arm — Invariant 3 covers both. Three obligations this composition names but does not itself discharge: the recipient-local clock capability, the prior-express-consent requirement (the Consent peer's), and the single-pipeline routing obligation — the invariants cover only deliveries routed through the gate, so the deployment must route every TCPA-covered delivery through it and must declare the statutory window for the covered channels (Edge cases; externally-clearable disclosures).
+- **TCPA — Telephone Consumer Protection Act (47 U.S.C. section 227) and 47 CFR (the Code of Federal Regulations) section 64.1200(c)(1)** — restricts calls and texts outside permitted hours (the Federal Communications Commission's implementing rule presumes no solicitations before 8am or after 9pm recipient-local time) and underwrites per-message statutory damages. Invariant 3 (quiet-window safety) is the structural mechanism: the gate evaluates the recipient's stored quiet window in recipient-local time before any create, and the suppression record is the affirmative evidence of compliance. The statutory 8am–9pm presumption applies whether or not the principal stored a window, which is why the gate carries the `statutory_quiet_window` arm (Configuration) alongside the stored-preference arm — Invariant 3 covers both. Three obligations this composition names but does not itself discharge: the recipient-local clock capability, the prior-express-consent requirement (the Consent peer's), and the single-pipeline routing obligation — the invariants cover only deliveries routed through the gate, so the deployment must route every TCPA-covered delivery through it and must declare the statutory window for the covered channels (Edge cases; externally-clearable disclosures).
 - **CAN-SPAM Act (15 U.S.C. section 7701 et seq., esp. section 7704)** — commercial email senders must honor opt-outs. The channel-opt-out suppression (an `email: "opt-out"` channel preference yielding an empty deliverable set or excluding the channel) is the enforcement point; Message Preference's immutable records plus the suppression journal produce the audit trail CAN-SPAM enforcement requires. The 10-business-day honoring window is a deployment obligation on preference-change-to-enforcement latency, met structurally here because the gate reads the in-effect record at every disposition.
 - **GDPR (the EU General Data Protection Regulation) Article 7(3)** — withdrawal of consent must be as easy as giving it. The Article 7(3) obligation proper belongs to the Consent atom and the Propagate Consent Revocation Downstream composition (Message Preference's own Standards references draw this line). This composition's contribution is the enforcement-latency half of the ease story: a withdrawal or preference change recorded upstream is honored at the *next disposition evaluation* — there is no cached permission to invalidate, because the gate reads `current_for` fresh per invocation.
 - **GDPR Article 21(2)** — the right to object to direct-marketing processing. Per Message Preference's Standards references, the objection's delivery-shaping signal lives in the preference record and the legal-permission revocation in Consent; this composition is the named enforcement point for the first half — the recorded opt-out becomes a suppression at the next evaluation.
@@ -984,9 +998,12 @@ It inherits from: **[Subscription](../atoms/subscription.md)** (Observer, pub-su
 ```
 status: partially resolved
 formal: pending — re-derivation, 2026-08-30: the invocation and [Reconcile Gaps] are now two processes over one disposition under a per-disposition section whose lease is the invocation's terminus, the deliver pair is ordered rather than atomic with an adoptable orphan, and the gap leg is age-bounded, none of which the model carries; was verified — preference-aware-notification-fanout.tla + 1 twin, 2026-06-12
-last gate: 2026-06-12 — Final Critique 12, fresh reader — clean
+last gate: 2026-11-04 — Final Critique 13, fresh readers — not clean, 13 foundational, cured in the settle (the next round is a delta round)
 
 open:
+- 2026-11-04-a · refining · Action wiring 6, Action wiring 10, Reconciliation 11, Action wiring 26 · a failed read and a lost reply have no rule of their own on the page; Execution Contract Read 1 and Error model 1 own them and the lease's expiry yields (Action wiring 13) → cite them at the sites, or state the answer a failed Action wiring 10 read gives
+- 2026-11-04-b · refining · Term retryable disposition · a failure event is retryable unconditionally, so a pair whose earlier delivery event names a live record can be retried toward a second live record → admit a failure event only where no live record stands (Invariant 9.1)
+- 2026-11-04-c · refining · Examples (disputed delivery) · the scenario names Message Preference's in-effect reconstruction and an in-effect window, which no declared surface carries → rewrite the reconstruction over the declared read and set and deletion instants
 - 2026-08-30-d · refining · formal · the model has no [Reconcile Gaps] leg as a second process over one disposition, no per-disposition section with a lease terminus, and no age-bounded leg → extend it
 ```
 
