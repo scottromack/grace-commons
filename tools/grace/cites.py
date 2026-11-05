@@ -25,6 +25,13 @@ reading, the human does it (GRACE-lang Principle 8).
     python3 tools/grace/cites.py --promote Housekeeping
     python3 tools/grace/cites.py --promote 'Action wiring' --means 'what the promotion would declare'
 
+The Execution Contract and the grammar are read as specs here: their labelled
+rules (`Logic confinement 7`, `Hard invariant 28`) resolve as a pattern's do, and
+a rule that cites one by the cross-spec form (`Execution Contract Logic confinement
+7`, GRACE-lang Hard invariant 28) is what rests on it. The contract writes its
+rules as bold labelled paragraphs; a citation of a label neither document carries
+is what `contract_citations` finds, and `check.py` gates it.
+
 `--reach <spec path>` prints the one spec's share of that change, a label a line:
 its own changed rules and terms, the rules in it that rest on them (a changed
 term's definition chain walked to its end), and the rules that cite a changed
@@ -80,6 +87,19 @@ def in_range(label: str, family: str, first: str, last: str) -> bool:
     return lo <= k[:len(lo)] and k[:len(hi)] <= hi
 
 
+CONTRACT = "execution-contract.md"
+# the contract's rules are bold labelled paragraphs, `**Logic confinement 7: Title.** Text`,
+# or bold labelled list items, `- **Conformance 1:** Text`
+CONTRACT_RULE = re.compile(
+    r"^(?:- )?\*\*((?:[A-Z][A-Za-z'’-]*)(?: [a-z][A-Za-z'’-]*){0,3} [\d½]+(?:\.\d+)?[a-z]?):\*{0,2}\s*(.*)$")
+# a citation of a label of the contract or of the grammar, by the cross-spec form
+# (GRACE-lang Hard invariant 28), with the grammar's version before it where one is named
+CONTRACT_CITATION = re.compile(
+    r"(?<![\w-])(Execution Contract|GRACE-lang)(?: v\d+(?:\.\d+)*,)? "
+    r"((?:[A-Z][a-z]+)(?: [a-z]+){0,2}) ([\d½]+(?:\.\d+)?[a-z]?)(?![\w.]\d)")
+CODE_SPAN = re.compile(r"`[^`\n]*`")
+
+
 @dataclass
 class Spec:
     path: Path
@@ -88,7 +108,25 @@ class Spec:
     terms: dict[str, tuple[int, str]] = field(default_factory=dict)
 
 
+def parse_contract(path: Path) -> Spec:
+    """The Execution Contract's labelled rules, as a pattern's are read: a label,
+    the line it stands on and its statement. It carries no terms."""
+    spec = Spec(path)
+    in_fence = False
+    for i, raw in enumerate(path.read_text(encoding="utf-8").split("\n"), start=1):
+        if FENCE.match(raw):
+            in_fence = not in_fence
+            continue
+        m = None if in_fence else CONTRACT_RULE.match(raw.strip())
+        if m:
+            spec.rules[m.group(1)] = i
+            spec.text_of[m.group(1)] = m.group(2).replace("**", "")
+    return spec
+
+
 def parse(path: Path) -> Spec:
+    if path.name == CONTRACT:
+        return parse_contract(path)
     spec = Spec(path)
     lines = path.read_text(encoding="utf-8").split("\n")
     in_fence = normative = False
@@ -451,7 +489,7 @@ def specs_with_rules(root: Path, paths: list[Path] | None) -> list[Spec]:
     if paths:
         candidates = paths
     else:
-        candidates = [root / "GRACE-lang.md"] + sorted(root.glob("atoms/*.md")) + \
+        candidates = [root / "GRACE-lang.md", root / CONTRACT] + sorted(root.glob("atoms/*.md")) + \
                      sorted(root.glob("compositions/*.md"))
     out = []
     for p in candidates:
@@ -459,11 +497,50 @@ def specs_with_rules(root: Path, paths: list[Path] | None) -> list[Spec]:
             continue
         text = p.read_text(encoding="utf-8")
         # a spec says it is migrated; the tools never guess it from a fence
-        if p.name != "GRACE-lang.md" and not MIGRATED.search(text):
+        if p.name not in ("GRACE-lang.md", CONTRACT) and not MIGRATED.search(text):
             continue
         spec = parse(p)
         if spec.rules:
             out.append(spec)
+    return out
+
+
+def contract_labels(root: Path) -> dict[str, set[str]]:
+    """The labels a citation by the cross-spec form can name in the two documents
+    every specification cites: `Execution Contract <label>` and `GRACE-lang <label>`.
+    An empty set for a document the root does not carry."""
+    out: dict[str, set[str]] = {}
+    for owner, name in (("Execution Contract", CONTRACT), ("GRACE-lang", "GRACE-lang.md")):
+        path = root / name
+        out[owner] = set(parse(path).rules) if path.exists() else set()
+    return out
+
+
+def contract_citations(text: str, labels: dict[str, set[str]]) -> list[tuple[str, str]]:
+    """The citations in `text` of a label the contract or the grammar does not
+    carry: (the citation as written, the label it names). A code span quotes
+    literal text and cites nothing. A range citation names its last label too
+    (Hard invariant 29), and a citation of a major (`Invariant 2`) resolves to a
+    rule where a minor of it exists. Only the label right after the owner's name
+    is read: a list written after it (`Read 1 and Read 4`) is not walked."""
+    def carried(owner: str, label: str) -> bool:
+        return label in labels[owner] or any(
+            lab.startswith(label + ".") or re.fullmatch(re.escape(label) + "[a-z]", lab)
+            for lab in labels[owner])
+
+    out: list[tuple[str, str]] = []
+    text = CODE_SPAN.sub("", text)
+    for m in CONTRACT_CITATION.finditer(text):
+        owner, family = m.group(1), m.group(2)
+        if not labels.get(owner):
+            continue
+        refs = [f"{family} {m.group(3)}"]
+        end = RANGE_END.match(text, m.end())
+        if end:
+            refs.append(f"{family} {end.group(1)}")
+        for ref in refs:
+            if not carried(owner, ref):
+                out.append((f"{owner} {ref}", ref))
     return out
 
 
@@ -476,7 +553,7 @@ def changed_seeds(root: Path, rev: str, spec: Spec) -> set[str]:
         if not line or line[0] not in "+-" or line.startswith(("+++", "---")):
             continue
         body = line[1:].strip()
-        lm = LABEL.match(body)
+        lm = CONTRACT_RULE.match(body) if spec.path.name == CONTRACT else LABEL.match(body)
         if lm and lm.group(1) in spec.rules:
             seeds.add(lm.group(1))
         dm = TERM_DECL.match(body)

@@ -132,6 +132,86 @@ class Corpus:
         self._dir.cleanup()
 
 
+CONTRACT = """# Execution Contract
+
+## Logic Confinement Principle
+
+**Logic confinement 3: Explicit inputs only.** Time is injected, as Logic confinement 1 says.
+
+**Logic confinement 1: Core is pure.** No IO.
+
+### The Database contract
+
+- **Conformance 1:** Every transition executes the four steps.
+"""
+
+# cites the contract by the cross-spec form
+CONTRACT_CITER = """# Zeta Comp
+
+Term qualifiers: migrated.
+
+```
+Rule 1: The composition MUST keep its own record, as Execution Contract Logic confinement 3 holds.
+Rule 2: The composition MUST keep another record.
+```
+"""
+
+
+class ContractTest(unittest.TestCase):
+    """The Execution Contract's labels resolve as a pattern's do, and a citation
+    of a label neither it nor the grammar carries is found."""
+
+    def setUp(self) -> None:
+        self.corpus = Corpus()
+        self.addCleanup(self.corpus.close)
+        self.corpus.write("execution-contract.md", CONTRACT)
+        self.corpus.write("compositions/zeta-comp.md", CONTRACT_CITER)
+        git(self.corpus.root, "add", ".")
+        git(self.corpus.root, "commit", "-q", "-m", "contract")
+        self.corpus.base = git(self.corpus.root, "rev-parse", "HEAD")
+
+    def seed(self, label: str) -> tuple[int, str]:
+        out = io.StringIO()
+        with contextlib.redirect_stdout(out):
+            code = cites.run(self.corpus.root, ["cites.py", label])
+        return code, out.getvalue()
+
+    def test_the_contract_parses_its_bold_labels_and_list_items(self) -> None:
+        spec = cites.parse(self.corpus.root / "execution-contract.md")
+        self.assertEqual(set(spec.rules), {"Logic confinement 1", "Logic confinement 3", "Conformance 1"})
+        self.assertTrue(spec.text_of["Logic confinement 3"].startswith("Explicit inputs only."))
+
+    def test_a_contract_label_resolves_and_names_what_cites_it(self) -> None:
+        code, out = self.seed("Logic confinement 3")
+        self.assertEqual(code, 0)
+        self.assertIn("zeta-comp.md", out)
+        self.assertIn("cross-spec: Execution Contract Logic confinement 3", out)
+
+    def test_a_contract_label_the_contract_lacks_names_no_rule(self) -> None:
+        code, out = self.seed("Logic confinement 99")
+        self.assertEqual(code, 2)
+        self.assertIn("no rule or term named", out)
+
+    def test_a_change_to_a_contract_rule_reaches_the_rule_that_cites_it(self) -> None:
+        self.corpus.edit("execution-contract.md", "Explicit inputs only.", "Inputs are explicit.")
+        code, lines = self.corpus.reach("compositions/zeta-comp.md")
+        self.assertEqual(code, 0)
+        self.assertEqual(lines, ["Rule 1"])
+
+    def test_a_citation_of_a_missing_label_is_found(self) -> None:
+        labels = cites.contract_labels(self.corpus.root)
+        text = ("Execution Contract Logic confinement 3 and Execution Contract Logic confinement 99, "
+                "Execution Contract Logic confinement 1 through 7, `Execution Contract Fence 5`, "
+                "Execution Contract Conformance 1")
+        self.assertEqual(cites.contract_citations(text, labels),
+                         [("Execution Contract Logic confinement 99", "Logic confinement 99"),
+                          ("Execution Contract Logic confinement 7", "Logic confinement 7")])
+
+    def test_a_document_the_root_lacks_resolves_nothing(self) -> None:
+        self.assertEqual(cites.contract_citations("GRACE-lang Hard invariant 28",
+                                                  cites.contract_labels(self.corpus.root)), [])
+
+
 class ReachTest(unittest.TestCase):
     def setUp(self) -> None:
         self.corpus = Corpus()

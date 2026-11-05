@@ -33,6 +33,9 @@ import sys
 from dataclasses import dataclass
 from pathlib import Path
 
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import cites  # noqa: E402
+
 # the vocabulary's categories, derived from the grammar rather than held here:
 # check.py carried its own copy through v0.39 and recognized `cited` and
 # `composing patterns` two versions before `Term category` did (council read
@@ -819,6 +822,17 @@ def unstated_exceptions(rules: list[Rule], refusals: set[str] = frozenset()) -> 
     return pairs
 
 
+_CONTRACT_LABELS: dict[str, set[str]] | None = None
+
+
+def contract_labels() -> dict[str, set[str]]:
+    """The labels of the Execution Contract and of GRACE-lang, read once."""
+    global _CONTRACT_LABELS
+    if _CONTRACT_LABELS is None:
+        _CONTRACT_LABELS = cites.contract_labels(Path(__file__).resolve().parents[2])
+    return _CONTRACT_LABELS
+
+
 def scan(path: Path) -> list[Finding]:
     text = path.read_text(encoding="utf-8")
     blank_guarded = set(BLANK_GUARD.findall(text))
@@ -1318,6 +1332,13 @@ def scan(path: Path) -> list[Finding]:
                         continue
                     seen.add(ref)
                     add(k, "X-ref", f"reference to {ref}, which no rule in this spec carries (Hard invariant 12)")
+
+    # a citation of the Execution Contract's or the grammar's label that neither carries
+    # (Hard invariant 12, Hard invariant 28): `Execution Contract Logic confinement 99`
+    for k, raw in enumerate(lines, start=1):
+        for cited, _ in cites.contract_citations(raw, contract_labels()):
+            add(k, "X-contract-ref", f"reference to {cited}, a label the document it names does not carry "
+                "(Hard invariant 12, Hard invariant 28)")
 
     # what a declaration carries: an obligation, or a name that resolves nowhere
     decls = declared_terms(text)

@@ -1154,12 +1154,37 @@ def check_range_form_synthetic(problems: list[str]) -> int:
             problems.append("check.py X-ref: fired on a linked spec's label cited by the spec's name")
         if not any("Operation 8" in m for m in got):
             problems.append("check.py X-ref: a label after a name the file does not link resolved")
+    # a citation of a label the Execution Contract or the grammar does not carry
+    # fires X-contract-ref; one it carries, a range of them, and a quoted one do not
+    contract_cases = [   # (the citation as written, the label the finding names, or None)
+        ("Execution Contract Logic confinement 3", None),
+        ("Execution Contract Logic confinement 99", "Execution Contract Logic confinement 99"),
+        ("Execution Contract Read 1 through 4", None),
+        ("Execution Contract Read 1 through 98", "Execution Contract Read 98"),
+        ("Execution Contract Database 5", None), ("Execution Contract Conformance 1", None),
+        ("GRACE-lang Hard invariant 28", None),
+        ("GRACE-lang Hard invariant 997", "GRACE-lang Hard invariant 997"),
+        ("GRACE-lang v0.69, Standard label 13", None),
+        ("GRACE-lang v0.69, Standard label 996", "GRACE-lang Standard label 996"),
+        ("`Execution Contract Logic confinement 995`", None),
+        ("Execution Contract Fence 5", "Execution Contract Fence 5")]
+    with tempfile.TemporaryDirectory() as d:
+        f = Path(d) / "atoms" / "synthetic.md"
+        f.parent.mkdir()
+        body = [f"Operation {i}: The atom MUST read the store ({cite})." for i, (cite, _) in enumerate(contract_cases, 1)]
+        f.write_text("Term qualifiers: `migrated` — rewritten in GRACE lang v0.47 (2026-09-15).\n\n"
+                     "Term record verbs: read.\n\n## Structure\n\n### Operations\n\n```\n"
+                     + "\n".join(body) + "\n```\n", encoding="utf-8")
+        fired = {x.message.split(",")[0].removeprefix("reference to ") for x in scan(f) if x.code == "X-contract-ref"}
+        want = {named for _, named in contract_cases if named}
+        if fired != want:
+            problems.append(f"check.py X-contract-ref: fired on {sorted(fired - want)}, missed {sorted(want - fired)}")
     covers = [("Invariant 4.2", True), ("Invariant 1", True), ("Invariant 5.1", False),
               ("Operation 2", False), ("Invariant step 2.1", False)]
     for label, want in covers:
         if in_range(label, "Invariant", " 1", "4") != want:
             problems.append(f"cites.py in_range: `Invariant 1 through 4` on {label} gave {not want}")
-    return len(silent) + len(firing) + 1 + len(covers)
+    return len(silent) + len(firing) + 1 + len(covers) + len(contract_cases)
 
 
 def check_notation_synthetic(problems: list[str]) -> int:
