@@ -477,7 +477,7 @@ Term trailing flag: [Trailing] — true where the chain state did not equal Pend
 
 Term cascade flag: cascade — true only on the step withdrawal events a cascade records.
 
-Term partial flag: cascade_partial set to true on a terminal event whose cascade left a call unanswered on a transient arm, with each such call named by its step id and its call — the calls the flag names.
+Term partial flag: cascade_partial set to true on a terminal event whose cascade left a call with a transient arm, with each such call named by its step id and its call — the calls the flag names.
 
 Term recovery flag: recovery set to true on every event the composition records outside the invocation that owed it.
 
@@ -673,6 +673,7 @@ Term rule reason: the generated reason a chain evaluation carries — "quorum me
 ```
 Reconciliation 1: The sweep MUST run at EVERY process start.
 Reconciliation 2: The sweep MUST run every reconciliation cadence.
+NOTE: open 2026-11-05-b — the order of the initiation leg and the transition leg within one run is not written.
 Deleted: Reconciliation 3. Execution Contract Database 1 owns it.
 Deleted: Reconciliation 4. Execution Contract Database 1 owns it.
 Reconciliation 5: The sweep MUST NOT examine an aged chain.
@@ -936,6 +937,7 @@ An implementation is acceptable — in the regulator-acceptance sense — when t
 ```
 Check 1.1: An auditor MUST find EVERY quiescent chain's step list complete PER Invariant 1.1 AND Invariant 1.2 (Invariant 1.1).
 Check 1.2: An auditor MUST find EVERY step id in a step list naming an Approval Step record the step-chain index maps back to the chain (Invariant 1.4).
+Check 1.3: An auditor MUST find the Approval Step records carrying no chainless step of a quiescent chain (Invariant 1.5).
 Check 2.1: An auditor MUST find EVERY resolution-terminated chain's chain state equal to the quorum rule's answer on the chain's routed vector (Invariant 2.1).
 Check 2.2: An auditor MUST find the quorum rule answering Pending on EVERY withdrawal-terminated chain's pre-withdrawal vector (Invariant 2.2).
 Check 2.3: An auditor MUST NOT run Check 2.1's recomputation on a withdrawal-terminated chain (Invariant 2.2).
@@ -1030,6 +1032,7 @@ Deleted: Concurrency 3. Execution Contract Database 2 owns it: an action's reads
 Retention asymmetry 1: The composition MUST keep an aged chain's chain record AND step records.
 Retention asymmetry 2: IF no hold keeps a chain's event THEN an auditor MUST read failed-verification carrying purged on the event as lawful destruction.
 Retention asymmetry 2a: IF a hold keeps a chain's event THEN an auditor MUST read failed-verification carrying purged on the event as held.
+NOTE: open 2026-11-05-a — Retention asymmetry 2a reads the answer purged as held where a hold keeps the event, while Audit Trail Invariant 8.2b gives a held event the same answer as a purged one; where the auditor reads that a hold keeps the event is not written.
 ```
 
 ---
@@ -1230,9 +1233,11 @@ It inherits from:
 ```
 status: partially resolved
 formal: verified — multi-party-approval.tla + 8 twins + 7 probes, 2026-10-26
-last gate: 2026-11-04 — Final Critique 14 — foundational count 7, not clean, no sample
+last gate: 2026-11-05 — Final Critique 15 — delta — foundational count 1, not clean, no sample
 
 open:
+- 2026-11-05-a · refining · Retention asymmetry 2a; Audit Trail Invariant 8.2b · a held event answers failed-verification carrying purged as a purged one does, and the page does not say where an auditor reads that a hold keeps the event → name the record the auditor reads, a decision on what a hold is
+- 2026-11-05-b · refining · Reconciliation 2; Term initiation leg; Term transition leg · the order of the sweep's two legs within one run is not written → decide whether the order is fixed or free
 - 2026-08-29-u · refining · formal · multi-party-approval.tla models no audit write, so no model checks that the sweep's recovery intent lands before its closure (Reconciliation 28, 29) → model the audit writes the sweep orders
 ```
 
