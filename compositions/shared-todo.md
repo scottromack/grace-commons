@@ -78,11 +78,11 @@ Composition state 3: The composition MUST derive the visible tasks from Personal
 Composition state 4: The composition MUST NOT materialize a derived query.
 ```
 
-Term task id: the Personal Todo id a call names a task by (Action wiring 6).
+Term task id: the Personal Todo id a call names a task by (Personal Todo's Id entry).
 
 Term actor reference: the opaque reference a call carries for the actor making it; the composition checks it and never authenticates it (Non-goal 12).
 
-Term responsible actor: the assignee reference of the active assignment Assignment's active_for answers for a task id — unassigned if Assignment answers none.
+Term responsible actor: the assignee reference of the active assignment Assignment's active_for answers for a task id — unassigned if Assignment answers none for a task id the Personal Todo instance carries, and not-known for a task id it does not carry.
 
 Term visible tasks: EVERY task of the Personal Todo instance, for an actor reference holding tasks:view.
 
@@ -195,7 +195,9 @@ Every input an action takes, and every answer a constituent call can meet, with 
 | Action | Input | Lands | Owner |
 |---|---|---|---|
 | every action | an actor reference that is blank or malformed | Permissions' permitted answers denied, so permission-denied | Action wiring 2, 4; Permissions' Denied entry |
-| [Edit Task], [Complete Task], [Delete Task], [Assign Task], [Responsible Actor], [Active Assignment] | a task id that is blank, malformed or names no task | not-known | Action wiring 13, 20, 23; Personal Todo's Not Known entry |
+| [Edit Task], [Complete Task], [Delete Task] | a task id that is blank, malformed or names no task | not-known | Personal Todo's Not Known entry |
+| [Assign Task] | a task id that is blank, malformed or names no task | not-known | Action wiring 13 |
+| [Responsible Actor], [Active Assignment] | a task id that is blank, malformed or names no task | not-known | Action wiring 20, 23 |
 | [Add Task], [Edit Task] | a description or a new description Personal Todo refuses | invalid-description or duplicate-active, propagated | Action wiring 5, 6, 18 |
 | [Assign Task], [Reassign Task] | an assignee reference or a new assignee reference that is blank | invalid-request, propagated | Action wiring 14, 16, 18; Assignment's Invalid Request entry |
 | [Reassign Task], [Recall Assignment] | an assignment id that names no assignment | not-known, propagated | Action wiring 16, 17, 18; Assignment's Not Known entry |
@@ -298,7 +300,7 @@ Each of these needs two or all three constituents working together. None is avai
   ```
 - **Invariant 4 — Responsibility queryability.**
   ```
-  Invariant 4.1: The Assignment instance MUST answer a task's responsible actor.
+  Invariant 4.1: The composition MUST answer a task's responsible actor through [Responsible Actor], which joins Personal Todo's records with Assignment's active_for.
   Invariant 4.2: The Assignment instance MUST answer a task's responsibility history.
   ```
 - **Invariant 5 — Authorization history completeness.**
@@ -366,7 +368,7 @@ The closing claim above is the acceptance bar and this section distributes it: *
 Check 1.1: An auditor MUST find EVERY assignment of a deleted task whose status EQUALS EXACTLY ONE OF recalled, transferred (Invariant 3.1).
 Check 1.2: An auditor MUST find no active assignment naming a task id the Personal Todo records do not carry (Invariant 3.2).
 Check 2.1: An auditor MUST find no task id carrying two active assignments in the Assignment records (Invariant 2.1).
-Check 3.1: An auditor MUST find a task's responsible actor from the Assignment records (Invariant 4.1).
+Check 3.1: An auditor MUST find a task's responsible actor from the Personal Todo and Assignment records, through [Responsible Actor] (Invariant 4.1).
 Check 3.2: An auditor MUST find a task's responsibility sequence from the Assignment records (Invariant 4.2).
 Check 4.1: An auditor MUST find an actor reference's grant history in the Permissions records (Invariant 5.1).
 Deleted: Check 4.2. External check 5 owns it.
@@ -622,14 +624,14 @@ Shared Todo is a wiring of three primitives and not a regulated pattern, so it c
 
 ## Status
 
-`partially resolved` — see the Ledger.
+`grounded on Final Critique 11 — 2026-11-05 at 227ba75` — see the Ledger.
 
 ## Ledger
 
 ```
-status: partially resolved
+status: grounded on Final Critique 11 — 2026-11-05 at 227ba75
 formal: verified — shared-todo.tla + 1 twin, 2026-06-03
-last gate: 2026-11-04 — Final Critique 10, frozen at 493f80f — foundational count 4, cured, not clean, no sample; Final Critique 9, 2026-09-30, cold reader — 0 foundational, 14 refining (8 already open, 6 routed open), 3 rhetorical (routed open)
+last gate: 2026-11-05 — Final Critique 11, a delta round, frozen at 227ba75 — foundational count 0, clean, no sample; 2026-11-04 — Final Critique 10, frozen at 493f80f — foundational count 4, cured, not clean, no sample; Final Critique 9, 2026-09-30, cold reader — 0 foundational, 14 refining (8 already open, 6 routed open), 3 rhetorical (routed open)
 
 open:
 - 2026-09-30-a · refining · Final Critique 7 · routed open, non-blocking: Action wiring 8 bars recall-on-complete that Non-goal 4 leaves to the deployment; the Summary's and Intent's overclaims (the list beyond granted permissions, owners-only editing, a query no single pattern answers); the unconditional Composition note 2 beside the conditional Non-goal 13; Assignment Composition note 3 and Permissions note 5 neither discharged nor declined, clock and ids absent from the deployment's notes; Action wiring 14's arguments; happy-path examples and the cascade recall's scope shown only in an example → one refining pass
