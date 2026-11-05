@@ -85,7 +85,7 @@ Term database instance: one named database a call is routed to; assigned id uniq
 
 Term seam: the atom's I/O (input and output) boundary; the host injects the clock reading and the id material here.
 
-Term id material: what the seam supplies to one call for the ids it assigns — the party id on an admitted enroll, the verification id on an admitted verify and the state change id on a transitioning action (Operation 4, Operation 22, Operation 33).
+Term id material: what the seam supplies to one call for the ids it assigns — the party id on an admitted enroll, the verification id and the state change id on an admitted verify, the state change id unused where the verify drives no transition (Operation 29), and the state change id on every other transitioning action (Operation 4, Operation 22, Operation 33).
 
 Term transition: the atom's evaluation of one call against the party records.
 
@@ -973,14 +973,14 @@ It inherits from:
 
 ## Status
 
-`partially resolved` — see the Ledger.
+`grounded on Final Critique 12 — 2026-11-05 at 29399d0` — see the Ledger.
 
 ## Ledger
 
 ```
-status: partially resolved
+status: grounded on Final Critique 12 — 2026-11-05 at 29399d0
 formal: verified — party-identity.tla + 1 twin, 2026-06-03
-last gate: 2026-11-04 — Final Critique 11 — foundational count 1, not clean, no sample
+last gate: 2026-11-05 — Final Critique 12, a delta round, frozen at 29399d0 — foundational count 0, clean, no sample; 2026-11-04 — Final Critique 11 — foundational count 1, not clean, no sample
 
 open:
 - 2026-10-21-j · refining · Composition note 4, 5; External check 4 · the enrolling and verifying actor references have no route to attestation, Composition note 4 binding Actor Identity only to transitioning actions and Composition note 5 an attestation to a state change id, which an enroll and a verify driving no transition never answer → say whether an enrollment and a check are attested, and by whom; re-found by Final Critique 8, Final Critique 9 and Final Critique 11 (rated foundational there; placed refining, Kind C: Actor Identity takes any opaque action reference, so the atom's Composition notes name the least a composer attests and no rule forbids attesting an enrollment)
