@@ -130,6 +130,12 @@ v0.34 (2026-09-11): labels are words — the name of the heading a rule sits und
 NOTE:
 v0.27–v0.33, the council's reads and the labels before v0.34 are archived in git history (`git log -- GRACE-lang.md`, last commit before the relabel `e80fd21`).
 
+## Left the Watch list at the malformed instant unit, 2026-11-05
+
+The mayor stated it once at seven in the Execution Contract, by the 2026-10-22 placement (how the system behaves lives there, settle.md *Repeats*; the maintainer's 2026-11-03 17:15Z ruling that a repeat at five is stated, not parked), in the quiet window as the held cure of Observation Final Critique 7, and reports it as a ruling the maintainer may reverse by one line. Input 3 now holds a supplied instant that a rule compares to the type instant and answers a value that is not one with invalid-request unless the specification states its own answer (Observation keeps invalid-observation). No atom or composition changes; the flag in Observation (Operation 63) is a relocation, and no round is owed.
+
+- **the malformed supplied instant**: an instant a call may supply, which the page compares (PRECEDES or EXCEEDS) and so Execution Contract Input 3 does not default, with no rule naming the refusal for a value that is not an instant, so one build answers the refusal Input 2 names (invalid-request) and another the page's own content refusal; each cure writes one Operation rule on the admitting action, `IF a supplied <instant> is malformed THEN <action> MUST answer <refusal> (Execution Contract Input 1)`. Seven: Approval Step (Operation 63 and Operation 64), Consent (Operation 66 and Operation 67), Credential (Operation 80 and Operation 81), Medication Order (Operation 86), Selective Disclosure (Operation 38), State Machine (Operation 65 and Operation 66) and Observation (Operation 63, its Final Critique 7). Stated once at Execution Contract Input 3.
+
 ## Left the Watch list at the required setting unit, 2026-11-04
 
 The mayor stated it once at nine in the Execution Contract, by the 2026-10-22 placement (how the system behaves lives there, settle.md *Repeats*; the maintainer's 2026-11-03 17:15Z ruling that a repeat at five is stated, not parked), and reports it as a ruling the maintainer may reverse by one line. Logic confinement 15 makes a setting with no default a required setting the deployment sets, with no start while it is blank; four of the cures were caps already given a default by Input 2. No atom or composition changes; the flags are relocations, listed in the v3 batch.
