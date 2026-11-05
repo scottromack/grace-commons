@@ -101,7 +101,7 @@ What is left after binding is, by construction, what is only yours — the prici
 
 The line between the two is mechanical, not a consultant's judgement. Normalization (Section 16 of [`GRACE-lang.md`](./GRACE-lang.md)) reduces every obligation to one canonical form; an obligation that normalizes to a corpus rule, or cites one, is common; one that does not is yours. The reverse diff (Section 17) reports that split between two versions of one spec today; run against the corpus instead of a prior version, it reports the inventory of your novelty. That inventory is what a modernization delivers — the common four-fifths bound to a public, verified corpus; the novel fifth written down where it can be audited, licensed or defended; the whole portable, because a spec is the meaning and not the mechanism. The four-fifths is a claim to measure, not a figure to quote: the library's one measurement so far is the protocol survey above.
 
-The stance follows from the one above. The corpus does not take your logic. It removes everything around your logic that was never yours to maintain, and leaves what is yours visible. A vendor who helps extract it holds no part of it.
+The stance follows from the one above. The corpus does not take your logic. It removes everything around your logic that was never yours to maintain, and leaves what is yours visible. A vendor who helps extract it holds no part of it. The same line for business readers, in plain words, is [Our IP pledge](./ip-pledge.md).
 
 ## Honest concessions
 

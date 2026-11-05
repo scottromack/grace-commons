@@ -8,6 +8,8 @@ permalink: /
 
 > Fifty-plus specifications, a methodology, formal models, and a verification harness is a lot of surface to land on. This is the short path through it: four stops, about an hour of focused attention, and at the end you will know what this library is, whether its claims hold, and whether it matters to you. Resist the nav sidebar until stop four — it will still be there.
 
+> Grace wants the commons, not your gold: what is yours stays yours. Read [Our IP pledge](./ip-pledge.md).
+
 ---
 
 ## Stop 1 — Read one atom: [Event Log](./atoms/event-log.md) *(~10 minutes)*
