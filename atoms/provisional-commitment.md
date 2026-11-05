@@ -139,7 +139,7 @@ Term hold write: the database write by which a [Place Hold] records a commitment
 
 Term hold write in flight: a hold write the database has neither committed nor refused.
 
-Term critical section bound: the span the registry declares as the longest the availability read span of a critical section may reach without the host answering registry-unavailable (Capability requirement 18, Operation 42).
+Term critical section bound: the span the registry declares as the availability read span of a critical section at which the host answers registry-unavailable (Capability requirement 18, Operation 42).
 
 Term availability read span: the time from the availability read's start to the availability verdict's landing, or to the host's check where no verdict has landed.
 
@@ -172,7 +172,7 @@ Operation 2: IF requester EQUALS blank THEN [Place Hold] MUST answer invalid-req
 Operation 3: IF duration EQUALS blank THEN [Place Hold] MUST answer invalid-request.
 Operation 4: IF the duration falls outside the duration bounds THEN [Place Hold] MUST answer invalid-request.
 Operation 5: IF the registry refuses the resource THEN [Place Hold] MUST answer resource-unavailable.
-Operation 42: IF the availability read span EXCEEDS the critical section bound THEN [Place Hold] MUST answer registry-unavailable.
+Operation 42: IF the critical section bound DOES NOT EXCEED the availability read span THEN [Place Hold] MUST answer registry-unavailable.
 Deleted: Operation 6. Execution Contract Refusal 1 owns it.
 Operation 7: [Place Hold] MUST NOT answer not-known.
 Operation 8: An admitted place hold MUST assign a fresh id.
@@ -671,7 +671,7 @@ Projection: invalid-request
 
 #### Registry Unavailable
 
-The refusal [Place Hold] returns when the availability read span exceeds the critical section bound (Operation 42). Distinct from [Resource Unavailable], which the registry gives once read: the condition is transient, and the place hold may be retried. No commitment is recorded.
+The refusal [Place Hold] returns when the critical section bound DOES NOT EXCEED the availability read span (Operation 42). Distinct from [Resource Unavailable], which the registry gives once read: the condition is transient, and the place hold may be retried. No commitment is recorded.
 
 Kind:       Member
 Member of:  the Place Hold rejection
@@ -797,7 +797,7 @@ It inherits from:
 ```
 status: partially resolved
 formal: verified — provisional-commitment.tla + 2 twins, 2026-06-04
-last gate: 2026-11-05 — Final Critique 9 (delta) — foundational count 1, not clean, no sample
+last gate: 2026-11-05 — Final Critique 10 (delta) — foundational count 1, not clean, no sample
 
 open: none
 ```
