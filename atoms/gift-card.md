@@ -44,6 +44,7 @@ Identity 7: The atom MUST NOT normalize a card code.
 Identity 8: The atom MUST compare two card codes codepoint for codepoint.
 Identity 9: The atom MUST NOT normalize a currency.
 Identity 10: The atom MUST compare two currencies codepoint for codepoint.
+Identity 11: The atom MUST compare two card ids codepoint for codepoint.
 ```
 
 Term gift card: one stored value loaded once in one currency and spent down — a [Gift Card].
@@ -83,15 +84,17 @@ Capability requirement 2: The deployment MUST supply at the seam a card code no 
 Capability requirement 3: The deployment MUST draw a card code from a cryptographically secure random source.
 Capability requirement 4: The card code's random material MUST NOT fall below the code entropy.
 Capability requirement 5: The deployment MUST supply the accepted currencies.
-Capability requirement 6: The deployment MAY supply the card cap for a currency PER Execution Contract Input 2.
+Capability requirement 6: The deployment MAY supply the card cap for a currency ONLY IF the card cap IS IN the positive amounts PER Execution Contract Input 2.
 Capability requirement 7: The deployment MUST supply the database PER Execution Contract Database 1 through 7, Execution Contract Read 1 through 4 and Execution Contract Refusal 1.
 Capability requirement 8: The deployment MUST NOT normalize a card code at the seam.
 Capability requirement 9: The deployment MUST NOT normalize a currency at the seam.
+Capability requirement 10: The deployment MUST NOT supply one card id to two calls.
+Capability requirement 11: The deployment MUST NOT supply one card code to two calls.
 ```
 
 NOTE: the atom declares no reference, so Execution Contract Logic confinement 13 reaches neither the card code nor the currency (Capability requirement 8, Capability requirement 9).
 
-NOTE: open 2026-11-04-a — a deployment-supplied card code that collides with a stored one (Capability requirement 2) has no answer on [Issue]; the deployment owns the obligation and the refusal is a decision no rule makes.
+NOTE: watch the id the host supplies to two calls (Capability requirement 10, Capability requirement 11).
 
 Term accepted currencies: the currencies the deployment sells gift cards in — the set [Issue] checks a currency against; where the deployment supplies none, the set is empty and Operation 1 refuses every currency.
 
@@ -271,7 +274,7 @@ Two spends on one gift card are serialized (Execution Contract Database 2): the 
 
 ### Indeterminate outcome
 
-A caller whose answer is lost may call again, and the repeat is a second call (Execution Contract Error model 1). A repeated [Spend] where the first landed takes the amount a second time, or is refused as [Insufficient Balance]; so a caller whose answer to [Spend] is lost calls [Check Balance] before it spends again, and a composing pattern needing a repeat to take the amount once composes Duplicate Prevention (Non-goal 15). A repeated [Issue] records a second gift card.
+A caller whose answer is lost may call again, and the repeat is a second call (Execution Contract Error model 1). A repeated [Spend] where the first landed takes the amount a second time, or is refused as [Insufficient Balance]; so a caller whose answer to [Spend] is lost calls [Check Balance] before it spends again, and a composing pattern needing a repeat to take the amount once composes Duplicate Prevention (Non-goal 15). A repeated [Issue] records a second gift card; the first keeps its full balance, its card code known to the deployment alone, since the code reaches a caller only in [Issue]'s answer (Operation 6, Operation 16).
 
 ## Composition notes
 
@@ -503,17 +506,16 @@ State unclaimed-property laws, which may oblige a seller to report a balance lef
 
 ## Status
 
-`draft` — see the Ledger.
+`partially resolved` — see the Ledger.
 
 ## Ledger
 
 ```
-status: draft
+status: partially resolved
 formal: not applicable — vote no 2026-10-30: the atom reads no clock and claims no ordering of its own; its balance, code, currency and value claims are properties each action's rules hold, and its concurrency is Execution Contract Database 2's
-last gate: 2026-11-04 — Final Critique 1, frozen at ee75f7d — foundational count 4, not clean, no sample
+last gate: 2026-11-05 — Final Critique 2, a delta round, frozen at 4f85e1c — foundational count 2, cured, not clean, no sample
 
-open:
-- 2026-11-04-a · refining · Capability requirement 2; Operation 6 · a deployment-supplied card code that collides with a stored one has no answer on [Issue], since Identity 6 binds the atom and Capability requirement 2 the deployment → state the refusal [Issue] answers when the seam's card code is already carried, or leave the collision to the deployment's own obligation
+open: none
 ```
 
 <details markdown="block">

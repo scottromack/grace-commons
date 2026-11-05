@@ -720,7 +720,7 @@
   "regulated_by": [],
   "security": false,
   "standards": [],
-  "status": "draft",
+  "status": "partially resolved",
   "title": "Gift Card"
  },
  "idempotent-reservation": {
