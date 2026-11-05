@@ -55,7 +55,7 @@ Identity 12: The atom MUST NOT interpret an allocator reference.
 Deleted: Identity 13. Non-goal 1 owns it.
 ```
 
-NOTE: watch the allocation ban (Identity 5).
+NOTE: watch the allocation ban (Execution Contract Logic confinement 3).
 
 Term capability: one bearer-token authorization with a redemption envelope — the record this atom holds.
 
@@ -65,9 +65,9 @@ Term allocator reference: the opaque reference naming the actor that created the
 
 Term scope: the opaque value describing what the capability authorizes — a [Scope]; stored at allocation, answered at redemption, never evaluated.
 
-Term seam: the atom's I/O (input and output) boundary; the host injects the clock reading and the capability token's random material here.
+Term seam: the atom's I/O (input and output) boundary per Execution Contract Logic confinement 14; the host injects the clock reading and the capability token's random material here.
 
-Term transition: the atom's evaluation of one call against the capability records.
+Term transition: the atom's evaluation of one call against the capability records, per Execution Contract Logic confinement 14.
 
 ### State
 
@@ -114,7 +114,7 @@ Capability requirement 1: The deployment MUST supply now at the seam.
 Capability requirement 5: The deployment MUST supply the capability records PER Execution Contract Database 1 through 7, Execution Contract Read 1 through 6, Execution Contract Refusal 1 and Execution Contract Input 1.
 Capability requirement 6: The deployment MAY configure a default capability ttl ONLY IF the default capability ttl EXCEEDS the zero duration.
 Capability requirement 7: The deployment MUST configure a default capability ttl.
-Capability requirement 8: The capability token's random material MUST NOT fall below the token entropy.
+Capability requirement 8: The token entropy MUST NOT EXCEED the capability token's random material.
 Capability requirement 9: The deployment MUST declare which composing patterns the deployment wired in.
 Deleted: Capability requirement 2. Execution Contract Logic confinement 7 owns it.
 Deleted: Capability requirement 3. Execution Contract Logic confinement 7 owns it.
@@ -230,7 +230,7 @@ NOTE: open 2026-10-21-i — Operation 19's list and Term redemption failure stat
 
 Term now: the deployment's clock reading at the call — a [Now], as Execution Contract Logic confinement 11 declares it.
 
-Term business caller: the party whose action the call carries; never the source of an injected value.
+Term business caller: the business caller per Execution Contract Logic confinement 14.
 
 NOTE: watch the seam citation (Term seam, Term transition, Term business caller).
 
@@ -858,14 +858,14 @@ Inherited from:
 
 ## Status
 
-`grounded on Final Critique 10 — 2026-11-01 at 275383a` — see the Ledger.
+`grounded on Final Critique 11 — 2026-11-04 at 582c382` — see the Ledger.
 
 ## Ledger
 
 ```
-status: grounded on Final Critique 10 — 2026-11-01 at 275383a
+status: grounded on Final Critique 11 — 2026-11-04 at 582c382
 formal: verified — capability.als + 1 twin, 2026-06-23
-last gate: 2026-11-01 — Final Critique 10 — foundational count 0, clean, one sample
+last gate: 2026-11-04 — Final Critique 11 — delta — foundational count 0, clean, no sample; 2026-11-01 — Final Critique 10 — foundational count 0, clean, one sample
 
 open:
 - 2026-10-21-e · refining · Term value sets; the term entries · the term entries name member-of targets (the action outcome, the Revoke rejection, the action rejection, the derived effective status), none of which Term value sets declares → declare each target
