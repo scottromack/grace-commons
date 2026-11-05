@@ -158,7 +158,7 @@ Operation 18: IF no notification EXISTS for the notification id THEN [Status Of]
 Operation 18b: IF a notification id is malformed THEN [Status Of] MUST answer not-known (Execution Contract Query 1, Query 5).
 Operation 19: [Pending For] MUST answer the notification id of EVERY pending notification carrying the recipient reference.
 Operation 20: [Pending For] MUST NOT answer a terminal notification's notification id.
-Operation 21: [Pending For] MUST NOT order the answer, in place of Execution Contract Read 5.
+Operation 21: [Pending For] MUST NOT order the answer.
 Operation 22: [Status Of] MUST NOT write.
 Operation 23: [Pending For] MUST NOT write.
 Deleted: Operation 24. Capability requirement 1 owns it.
@@ -176,6 +176,10 @@ NOTE: watch the required input no rule records (Operation 30).
 
 NOTE: watch the untyped input (Operation 31, Operation 32, Term notification id, Term recipient reference).
 
+NOTE: the ids a [Pending For] answers come in the order Execution Contract Read 5 states; no rule of this atom names another, since the atom orders none (Operation 21, Non-goal 7).
+
+NOTE: watch the order an atom forbids (Operation 21).
+
 NOTE: open 2026-10-21-e — the Failed and Expired entries describe an attempt that failed and a window that lapsed, while the rules let [Fail] and [Expire] land on any pending notification (Operation 9, Operation 13, Operation 14a).
 
 Term terminal transition: a [Deliver], a [Fail] or an [Expire] call — the three that end a notification, sharing one precondition pair.
@@ -187,7 +191,7 @@ The case space, and the rule that owns each case:
 | Call | Case | Answer | Effect on the notification records |
 |---|---|---|---|
 | [Create] | recipient present, database accepts | notification id | one notification lands in [Pending] (Operation 1, Operation 2, Operation 30) |
-| [Create] | empty, whitespace-only or malformed recipient, or over the cap | [Invalid Request] | none (Operation 4, Operation 31, String 6) |
+| [Create] | blank or malformed recipient, or over the cap | [Invalid Request] | none (Operation 4, Operation 31, String 6) |
 | [Create] | empty payload | notification id | one notification lands — the payload is the caller's business (Operation 5, Operation 6) |
 | [Deliver] | notification is pending | ok | [Pending] → [Delivered], delivery instant stamped (Operation 10, State 8) |
 | [Fail] | notification is pending | ok | [Pending] → [Failed], failure instant stamped (Operation 11) |
@@ -197,7 +201,7 @@ The case space, and the rule that owns each case:
 | any write | database refuses | [Storage Failure] | none (Operation 7, Operation 15, Operation 16) |
 | [Status Of] | id names a notification | its stored fields | none — the call reads (Operation 17, Operation 22) |
 | [Status Of] | id names nothing, or is malformed | not-known | none (Operation 18, Operation 18b) |
-| [Pending For] | recipient has pending notifications | their ids, unordered | none (Operation 19, Operation 21) |
+| [Pending For] | recipient has pending notifications | their ids, in Execution Contract Read 5's order | none (Operation 19, Operation 21) |
 | [Pending For] | recipient has none, or only terminal ones | empty list | none (Operation 20) |
 | [Pending For] | over-length or whitespace-only recipient | empty list | none — a read with a bad argument has a correct answer (String 8, String 9) |
 
@@ -486,7 +490,7 @@ Kind: Operation
 
 #### Pending For
 
-The read-only query returning the [Notification Id] values of all [Pending] notifications addressed to a [Recipient Reference] (unordered; excludes terminals, Operation 20). Never transitions.
+The read-only query returning the [Notification Id] values of all [Pending] notifications addressed to a [Recipient Reference] (in the order Execution Contract Read 5 states; excludes terminals, Operation 20). Never transitions.
 
 Kind: Operation
 
@@ -596,7 +600,7 @@ Projection:   now
 
 #### Invalid Request
 
-The refusal [Create] returns when a request field fails its rule — an empty or whitespace-only [Recipient Reference] (Operation 4), a malformed [Recipient Reference] (Operation 31), or a recipient reference over the deployment's cap (String 6). An empty [Payload] is not a failure: Operation 5 accepts it.
+The refusal [Create] returns when a request field fails its rule — a blank [Recipient Reference] (Operation 4), a malformed [Recipient Reference] (Operation 31), or a recipient reference over the deployment's cap (String 6). An empty [Payload] is not a failure: Operation 5 accepts it.
 
 Kind:       Member
 Member of:  the Create rejection
@@ -605,7 +609,7 @@ Projection: invalid-request
 
 #### Not Known
 
-The refusal [Deliver], [Fail], or [Expire] returns when the [Notification Id] references no notification in the database or is malformed (Operation 32). Also the [Status Of] outcome for an unknown or malformed id (Operation 18b).
+The refusal [Deliver], [Fail], or [Expire] returns when the [Notification Id] references no notification in the database (Operation 8) or is malformed (Operation 32). Also the [Status Of] outcome for an unknown id (Operation 18) or a malformed id (Operation 18b).
 
 Kind:       Member
 Member of:  the action rejection
@@ -682,7 +686,7 @@ Projection: storage-failure
 ```
 status: partially resolved
 formal: verified — notification.als + 1 twin, 2026-06-03
-last gate: 2026-11-04 — Final Critique 8, a delta round, frozen at 075c6e4 — foundational count 1, cured, not clean, no sample; 2026-11-03 — Final Critique 7 — foundational count 2, not clean, no sample
+last gate: 2026-11-05 — Final Critique 9, a delta round, frozen at 29128b6 — foundational count 1, cured, not clean, no sample; 2026-11-04 — Final Critique 8, a delta round, frozen at 075c6e4 — foundational count 1, cured, not clean, no sample; 2026-11-03 — Final Critique 7 — foundational count 2, not clean, no sample
 
 open:
 - 2026-10-21-b · refining · Examples (Shared Todo) · the three outcomes of notif_77 (delivered, failed, expired) share one notification, and only each paragraph's condition says they are alternatives, so a sequence test compiled from the walkthrough can read them as one sequence that breaks Invariant 2.3 → name each outcome an alternative, or give each its own notification
