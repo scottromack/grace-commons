@@ -1007,7 +1007,7 @@
  "observation": {
   "composed_by": [],
   "domain": null,
-  "grounded": false,
+  "grounded": true,
   "invariants": 9,
   "kind": "atom",
   "models": {
@@ -1018,7 +1018,7 @@
   "regulated_by": [],
   "security": false,
   "standards": [],
-  "status": "partially resolved",
+  "status": "grounded on Final Critique 8 \u2014 2026-11-05 at 917cc95",
   "title": "Observation"
  },
  "owed-record": {

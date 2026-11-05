@@ -227,8 +227,6 @@ NOTE: watch the filter value over the cap (Operation 61).
 
 NOTE: watch the required input no rule records (Operation 57).
 
-NOTE: watch the malformed supplied instant (Operation 63).
-
 NOTE: open 2026-11-04-b — Operation 39, Operation 51 and Operation 55 each sit near a contract rule or a term the page does not own: the answer to a failed write, a read's no-write, and an ordering rule, an actor of Term actors that no entry or scope rule bounds.
 
 NOTE: open 2026-10-22-c — an admitted retract records no instant (Operation 36), where an admitted amend stamps the successor's (Operation 27).
@@ -825,14 +823,14 @@ Projection: invalid-query
 
 ## Status
 
-`partially resolved` — see the Ledger.
+`grounded on Final Critique 8 — 2026-11-05 at 917cc95` — see the Ledger.
 
 ## Ledger
 
 ```
-status: partially resolved
+status: grounded on Final Critique 8 — 2026-11-05 at 917cc95
 formal: verified — observation.als + 1 twin, 2026-06-03
-last gate: 2026-11-04 — Final Critique 7, a delta round, frozen at 83cd9e0 — foundational count 1, cured, not clean, no sample; 2026-11-04 — Final Critique 6 — foundational count 7, not clean, one sample
+last gate: 2026-11-05 — Final Critique 8, a delta round, frozen at 917cc95 — foundational count 0, clean, no sample; 2026-11-04 — Final Critique 7, a delta round, frozen at 83cd9e0 — foundational count 1, cured, not clean, no sample; 2026-11-04 — Final Critique 6 — foundational count 7, not clean, one sample
 
 open:
 - 2026-11-04-a · refining · Identity 9 · one subject reference meaning across every database instance has no discharging rule, check or owner, since the atom never reads across instances → name the deployment obligation or an external check
