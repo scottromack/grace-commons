@@ -47,7 +47,7 @@ Composes 1: EXACTLY ONE Session instance MUST serve the composition.
 Composes 2: EXACTLY ONE Permissions instance MUST serve the composition.
 Composes 3: The composition MUST NOT change a constituent's spec.
 Composes 4: The composition MUST NOT hold state across a call.
-Composes 5: The composition MUST replace the constituents' own authorization surface.
+Composes 5: The composition MUST replace Permissions' permitted as the authorization surface.
 Composes 6: The composition MUST own the binding between the authenticated caller and the subject reference.
 Composes 7: The composition MUST obey Session Composition note 4.
 ```
@@ -284,7 +284,7 @@ Internally: `Session.validate("tok_abc123") → valid(principal_ref: "usr_42", .
 
 **Regulator audit.** An auditor queries whether the system enforces access control at session-expiry boundaries — specifically, whether an expired session is permitted to evaluate any authorization query. By Invariant 1, any [Check Permitted] call with an expired session token returns `session-invalid(expired)` before Permissions is consulted. The session expiry state is verifiable from Session's own records; the composition's invariant is derivable from the action wiring alone, without inspecting runtime logs. If Audit Trail is composed in as a substrate, the individual [Check Permitted] records confirm the rejected outcome directly.
 
-**Disputed access.** A data subject asserts that their account was accessed after they logged out — which revoked their session. The dispute requires establishing: (a) the session was revoked at time T; (b) any [Check Permitted] call whose validate answered after T with that session token returned `session-invalid(revoked)`, not permitted or denied. Session's state records the revocation timestamp. The composition's Invariant 1 establishes that Permissions was never reached without a valid answer, and Concurrency 2 leaves a call whose validate answered before T to finish. If Audit Trail is composed in, the dispute's answer is provable. If not, the argument is structural: the session was invalid (revoked) as of T, and the composition guarantees that an invalid session cannot produce a permitted or denied result.
+**Disputed access.** A data subject asserts that their account was accessed after they logged out — which revoked their session. The dispute requires establishing: (a) the session was revoked at time T; (b) any [Check Permitted] call whose validate answered after T with that session token returned `session-invalid(revoked)`, not permitted or denied. Session's state records the revocation timestamp. The composition's Invariant 1 establishes that Permissions was never reached without a valid answer, and Concurrency 2 leaves a call whose validate answered before T to finish. If Audit Trail is composed in, the dispute's answer is provable. If not, the argument is structural: the session was invalid (revoked) as of T, and the composition guarantees that a call whose validate answered after T cannot produce a permitted or denied result. A call whose validate answered before T may still answer permitted (Concurrency 2); a bound on that effect is the deployment's (Concurrency 3).
 
 **Breach forensics.** An investigator determines that a session token was stolen and seeks to establish what permissions were exercised under it before revocation. This composition does not maintain an authorization event log; forensic coverage of individual [Check Permitted] calls requires [Audit Trail](./audit-trail.md) composed in as a substrate (see *Composition notes*). Without Audit Trail, the investigator can establish from Session's state that the session was active for a given window and was eventually revoked, and from Permissions' state what grants the principal held during that window — but cannot enumerate individual [Check Permitted] calls or their outcomes from the composition's own state. This is a known scope limitation that composition with Audit Trail resolves.
 
@@ -306,6 +306,8 @@ Check 3.1: An auditor MUST find EVERY answer of the composition that EQUALS EXAC
 ```
 
 NOTE: EVERY check names the rule the check tests.
+
+NOTE: open 2026-11-05-a — which tier Check 1.1 and Check 3.1 sit in, the instant and the answers read from no record without Audit Trail (Check 1.1, Check 3.1).
 
 ### External checks
 
@@ -457,16 +459,17 @@ Projection: length_bound
 
 ## Status
 
-`partially resolved` — see the Ledger.
+`grounded on Final Critique 10 — 2026-11-05 at 7f57305` — see the Ledger.
 
 ## Ledger
 
 ```
-status: partially resolved
+status: grounded on Final Critique 10 — 2026-11-05 at 7f57305
 formal: verified — session-gated-authorization.als, no twin, 2026-06-03
-last gate: 2026-11-04 — Final Critique 9, a full round, frozen at 100a240 — foundational count 7, cured, not clean, no sample
+last gate: 2026-11-05 — Final Critique 10, delta, frozen at 7f57305 — foundational count 0, clean, one sample
 
 open:
+- 2026-11-05-a · refining · Check 1.1, Check 3.1 · the instant a validate call answered (Check 1.1) and every answer (Check 3.1) are on no record the composition holds without Audit Trail (Composition state 1), while the page files both checks in the tier cleared from the constituents' own state; whether the two checks move under a composed Audit Trail, as External checks 6 and 7 did, or stay on the runtime surface is a decision no rule makes → the next round that reads the Generation acceptance tier
 - 2026-09-27-a · refining · Primitive policy 10 · added from the cold regeneration's finding (council read 236), a load-bearing touch → the three-pass round the entry *Touch triggers re-pass* in `pressure-testing.md` requires
 ```
 
