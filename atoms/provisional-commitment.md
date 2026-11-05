@@ -76,7 +76,7 @@ Term availability verdict: the registry's answer on one resource, accepts OR ref
 
 Term database instance: one named database a call is routed to; id uniqueness ranges over one instance.
 
-Term seam: the atom's I/O (input and output) boundary as the section titled Logic Confinement Principle in `execution-contract.md` declares it; the host injects the clock reading, the id material and the registry's availability verdict here.
+Term seam: the atom's I/O (input and output) boundary as the section titled Logic Confinement Principle in `execution-contract.md` declares it; the host injects the clock reading, the id material, the registry's availability verdict and the availability read span here.
 
 Term transition: the atom's evaluation of one call against the commitment records, as the section titled Logic Confinement Principle in `execution-contract.md` declares it.
 
@@ -103,7 +103,7 @@ State 11: The atom MUST NOT offer a commitment removal surface.
 ```
 Capability requirement 1: The deployment MUST supply now at the seam.
 Capability requirement 2: The deployment MUST supply the id material at the seam.
-Capability requirement 16: The deployment MUST supply the registry's availability verdict at the seam.
+Capability requirement 16: The deployment MUST supply the registry's availability verdict and the availability read span at the seam.
 Capability requirement 3: The registry MUST run the availability read and the hold write for one resource as one critical section.
 Capability requirement 4: The registry MUST release the critical section on the caller's return.
 Deleted: Capability requirement 5. Capability requirement 18 and Capability requirement 19 own it.
@@ -139,9 +139,9 @@ Term hold write: the database write by which a [Place Hold] records a commitment
 
 Term hold write in flight: a hold write the database has neither committed nor refused.
 
-Term critical section bound: the span the registry declares as the availability read span of a critical section at which the host answers registry-unavailable (Capability requirement 18, Operation 42).
+Term critical section bound: the span the registry declares as the availability read span of a critical section at which [Place Hold] answers registry-unavailable (Capability requirement 18, Operation 42).
 
-Term availability read span: the time from the availability read's start to the availability verdict's landing, or to the host's check where no verdict has landed.
+Term availability read span: the time from the availability read's start to the availability verdict's landing, or to the critical section bound where no verdict has landed.
 
 ### Operations
 
@@ -797,7 +797,7 @@ It inherits from:
 ```
 status: partially resolved
 formal: verified — provisional-commitment.tla + 2 twins, 2026-06-04
-last gate: 2026-11-05 — Final Critique 10 (delta) — foundational count 1, not clean, no sample
+last gate: 2026-11-05 — Final Critique 11 (delta) — foundational count 1, not clean, no sample
 
 open: none
 ```
