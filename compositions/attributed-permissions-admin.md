@@ -774,7 +774,7 @@ Role: the append-only orphan record
 
 #### Orphan Attestation
 
-The composition's outcome of [Issue Grant], answered and not refused, when Permissions refused the grant after the attestation landed, leaving an attestation no attribution entry names: the call's attestation and orphan log entry commit (Action wiring 101). **Its payload carries the position:** pre-grant means no grant committed and the caller may retry.
+The composition's outcome of [Issue Grant], answered and not refused, when Permissions turned the grant away with invalid-request after the attestation landed (Action wiring 8), leaving an attestation no attribution entry names: the call's attestation and orphan log entry commit (Action wiring 101). **Its payload carries the position:** pre-grant means no grant committed and the caller may retry.
 
 Kind:       Member
 Member of:  the administration outcome
@@ -844,14 +844,14 @@ It inherits from:
 
 ## Status
 
-`partially resolved` — see the Ledger.
+`grounded on Final Critique 10 — 2026-11-05 at a6a6920` — see the Ledger.
 
 ## Ledger
 
 ```
-status: partially resolved
+status: grounded on Final Critique 10 — 2026-11-05 at a6a6920
 formal: verified — attributed-permissions-admin.tla + 5 twins + 9 probes, and attributed-permissions-admin.als + 1 twin (issuance and revocation, 2026-06-12), 2026-10-27
-last gate: 2026-11-04 — Final Critique 9 — foundational count 6, not clean, no sample
+last gate: 2026-11-05 — Final Critique 10, delta, frozen at a6a6920 — foundational count 0, clean, one sample
 
 open:
 - 2026-08-30-b · refining · formal · attributed-permissions-admin.tla models no failed-grant leg's ages, horizon or report (Housekeeping 13 through 18) and no clock (Invariant 4), so no model checks that an aged-out unpaired attestation is reported as a purge-pending orphan or a non-conformant purge → model the leg's horizon arm over aged-out unpaired attestations
