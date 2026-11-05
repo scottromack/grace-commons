@@ -254,11 +254,11 @@ Term closure floor: `((onboarding_completion_bound + reconciliation_cadence) + r
 
 Term reconciliation run bound: reconciliation_run_bound — the deployment's declared maximum duration of one reconciliation run's own work, its enumerations, its constituent re-queries and its closures' audit writes included.
 
-Term escalation reach: the compensation window taken with the closure floor — the age an open marker's intent may reach before the reconciliation has escalated it (Reconciliation 20).
+Term escalation reach: `(the compensation window + the closure floor)` — the age an open marker's intent may reach before the reconciliation has escalated it (Reconciliation 20).
 
 Term clock offset allowance: clock_offset_allowance — the deployment's declared most that the clock reading at the composition's seam and the clock reading at a constituent's seam may differ.
 
-Term commitment window: the interval from the intent's intent instant less the clock offset allowance to the intent's intent instant taken with the onboarding completion bound and the clock offset allowance — the interval in which a constituent's recorded instant answers the intent (Reconciliation 27, Reconciliation 28).
+Term commitment window: the interval from `(the intent's intent instant - clock_offset_allowance)` to `((the intent's intent instant + onboarding_completion_bound) + clock_offset_allowance)` — the interval in which a constituent's recorded instant answers the intent (Reconciliation 27, Reconciliation 28).
 
 Term onboarding completion bound: onboarding_completion_bound — the deployment's declared maximum duration between an invocation's intent and the invocation's outcome.
 
@@ -999,7 +999,7 @@ Term placement's cover: `(the current placement's retention_until - scheduler_to
 Deleted: Concurrency 1. Execution Contract Database 2 owns it.
 Concurrency 2: A deployment MUST NOT serialize [Activity Permitted].
 Concurrency 3: [Activity Permitted]'s two reads MUST NOT stand atomic.
-Concurrency 4: A skewed gate read MUST NOT answer permitted.
+Deleted: Concurrency 4. Invariant 1.1 owns it: a skewed gate read answers permitted only where Party Identity's read reports the party verified, so the skew fails safe.
 Deleted: Concurrency 5. Execution Contract Database 2 owns it.
 Concurrency 6: The composition MUST read a state rejection the trigger pre-check forecloses as a serialization breach.
 Deleted: Concurrency 7. Execution Contract Database 2 owns it.
@@ -1240,7 +1240,7 @@ The three constituents carry their own deep standards inheritance — see each c
 ```
 status: partially resolved
 formal: verified — customer-onboarding.tla + 1 twin, 2026-06-03
-last gate: 2026-11-04 — Final Critique 3, full round — 6 foundational (all cured), not clean, three fresh passes
+last gate: 2026-11-05 — Final Critique 4, delta round — 1 foundational (cured), not clean, one fresh pass
 
 open:
 - 2026-08-29-s · refining · formal · the model's reconciliation carries no age bound → extend it
