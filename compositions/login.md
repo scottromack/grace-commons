@@ -128,12 +128,14 @@ Capability requirement 12: A deployment MUST set the reconciliation cadence.
 Capability requirement 13: The reconciliation cadence MUST NOT EXCEED the reconciliation window.
 Deleted: Capability requirement 14. Execution Contract Database 1 owns it.
 Deleted: Capability requirement 15. Action wiring 13 owns it: every admitted login records its login event.
-Capability requirement 16: The host MUST supply one entry id at the seam PER login call, distinct from every entry id the login event log carries.
+Capability requirement 16: The host MUST supply one entry id at the seam PER login call, distinct from every entry id supplied for any other login call.
 Capability requirement 17: A deployment MUST NOT revoke a session under the issuer references outside the composition.
 Capability requirement 18: The deployment MUST supply the database PER Execution Contract Database 1 through 4.
 Deleted: Capability requirement 19. Primitive policy 18 owns it.
 Capability requirement 20: A deployment MUST supply the surface the sweep escalates to.
 ```
+
+NOTE: watch the id the host supplies to two calls (Capability requirement 16).
 
 Term seam: the composition's I/O boundary as the section titled Logic Confinement Principle in `execution-contract.md` declares it; the host injects one clock reading and, for a login call, one entry id here.
 Term now: the deployment's clock reading at the call, as Execution Contract Logic confinement 11 declares it.
@@ -646,7 +648,7 @@ Inherited from:
 ```
 status: partially resolved
 formal: verified — login.tla, no twin, 2026-05-23
-last gate: 2026-11-03 — Final Critique 11 — foundational count 7, not clean, no sample
+last gate: 2026-11-04 — Final Critique 12 — delta, foundational count 1, not clean, no sample
 
 open:
 - 2026-08-29-a · refining · formal · the model's sweep carries no upper edge and no recovery record → extend it
