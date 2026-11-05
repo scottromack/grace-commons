@@ -1317,40 +1317,39 @@ Term narrated: a finding whose subject and id an `audit.reconciliation` record l
 ### Instance start
 
 ```
-Instance start 1: IF retention policy EQUALS blank THEN the instance MUST NOT start.
-Instance start 2: IF seal cadence EQUALS blank THEN the instance MUST NOT start.
-Instance start 3: IF seal mechanism EQUALS blank THEN the instance MUST NOT start.
+Deleted: Instance start 1. Execution Contract Logic confinement 15 owns it.
+Deleted: Instance start 2. Execution Contract Logic confinement 15 owns it.
+Deleted: Instance start 3. Execution Contract Logic confinement 15 owns it.
 Deleted: Instance start 4. Defensible Retention Capability requirement 70 owns it.
-Instance start 5: IF compensation window EQUALS blank THEN the instance MUST NOT start.
+Deleted: Instance start 5. Execution Contract Logic confinement 15 owns it.
 Instance start 6: IF reconciliation cadence EQUALS blank AND time arm EQUALS blank THEN the instance MUST NOT start.
-Instance start 7: IF reconciliation operator EQUALS blank THEN the instance MUST NOT start.
-Instance start 8: IF reconciliation operator credential EQUALS blank THEN the instance MUST NOT start.
-Instance start 9: IF payload cap EQUALS blank THEN the instance MUST NOT start.
-Instance start 10: IF attestation id width EQUALS blank THEN the instance MUST NOT start.
-Instance start 11: IF record action completion bound EQUALS blank THEN the instance MUST NOT start.
+Deleted: Instance start 7. Execution Contract Logic confinement 15 owns it.
+Deleted: Instance start 8. Execution Contract Logic confinement 15 owns it.
+Deleted: Instance start 9. Execution Contract Logic confinement 15 owns it.
+Deleted: Instance start 10. Execution Contract Logic confinement 15 owns it.
+Deleted: Instance start 11. Execution Contract Logic confinement 15 owns it.
 Instance start 12: IF purge completion bound EQUALS blank THEN the instance MUST NOT start.
-Instance start 13: IF compensation closure latency EQUALS blank THEN the instance MUST NOT start.
-Instance start 14: IF clock offset allowance EQUALS blank THEN the instance MUST NOT start.
+Deleted: Instance start 13. Execution Contract Logic confinement 15 owns it.
+Deleted: Instance start 14. Execution Contract Logic confinement 15 owns it.
 Instance start 15: IF no per-act critical section EXISTS THEN the instance MUST NOT start.
 Instance start 16: The instance MAY start ONLY IF compensation window EXCEEDS closure sum.
 Instance start 17: The instance MUST read EVERY term of closure sum at start.
 Instance start 18: The instance MAY start ONLY IF compensation closure latency EXCEEDS closure spend.
 Instance start 19: The instance MAY start ONLY IF compensation closure latency EXCEEDS re-drive spend.
-Instance start 20: IF seal completion bound EQUALS blank THEN the instance MUST NOT start.
+Deleted: Instance start 20. Execution Contract Logic confinement 15 owns it.
 Instance start 21: The instance MUST resolve horizon at start from retention policy for an audit.compensation event AND for an audit.reconciliation event by action reference and actor reference alone (retention policy 6), and take the lesser of the two retention periods the deployment supplies (Capability requirement 11).
 Instance start 22: The instance MAY start ONLY IF horizon EXCEEDS compensation window.
 Instance start 23: The instance MAY start ONLY IF purge completion bound EXCEEDS twice seal completion bound.
-Instance start 24: IF call pause bound EQUALS blank THEN the instance MUST NOT start.
+Deleted: Instance start 24. Execution Contract Logic confinement 15 owns it.
 Instance start 25: The instance MAY start ONLY IF EVERY completion bound EXCEEDS twice call pause bound (Lease Sizing 9).
 Deleted: Instance start 26. Execution Contract Scheduled leg 1 owns it.
 Instance start 27: IF no sealing lock EXISTS THEN the instance MUST NOT start.
 Instance start 28: The instance MUST run one enumeration of the audit log followed by one read of the destruction records, one of the attestation records and one of the retention records at start.
 Deleted: Instance start 29. Execution Contract Scheduled leg 1 owns it.
-Instance start 30: IF slice cap EQUALS blank THEN the instance MUST NOT start.
+Deleted: Instance start 30. Execution Contract Logic confinement 15 owns it.
 Deleted: Instance start 31. Defensible Retention Capability requirement 71 owns it.
 Deleted: Instance start 32. Defensible Retention Capability requirement 72 owns it.
 Instance start 33: A change to a setting MUST NOT take effect on a running instance BEFORE EVERY Instance start rule reading the setting, directly and through the terms resolved from the setting, has passed against the change.
-NOTE: watch the unset setting (Instance start 1 through 14, 20, 24 and 30).
 ```
 
 Term closure sum: `((max((2 * record_action_completion_bound), purge_completion_bound) + (2 * clock_offset_allowance)) + (2 * (reconciliation_cadence + compensation_closure_latency)))`, plus `(purge_completion_bound + reconciliation_cadence)` WHERE Legal Hold EQUALS composed — one hold placement that holds an open entry's critical section when a first-half leg comes for it, placed or not: its lease (Defensible Retention Capability requirement 69c) and the run it displaces (Per-act critical section 5), the one displacement Defensible Retention Capability requirement 69i admits within compensation window of a finding's creation.
@@ -1624,7 +1623,7 @@ Deleted: External check 1. Defensible Retention External check 15 owns it.
 External check 2: An auditor MUST clear from external evidence that the actor registry retained the registry's historical public material across key rotation.
 External check 3: An auditor MUST clear from external evidence that the seal mechanism is cryptographically sound for EVERY seal's audit horizon.
 External check 4: An auditor MUST clear from external evidence that the mechanism's seal-time rendering agrees with the verify-time presentation.
-External check 5: An auditor MUST clear from external evidence that the clock was monotonic and unmanipulated over the instance's audit horizon.
+Deleted: External check 5. Execution Contract Logic confinement 7 owns it.
 External check 6: An auditor MUST clear from external evidence that the configured retention policy was the correct one for the record class.
 Deleted: External check 7. Execution Contract Database 3 owns it.
 External check 8: An auditor MUST clear from the deployment's own matching logic that record set match judges the presented record set against the reference the seal committed to.

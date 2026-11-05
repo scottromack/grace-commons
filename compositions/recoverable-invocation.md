@@ -282,16 +282,14 @@ Term read-your-writes: Capability requirement 8 and Capability requirement 12 to
 - **intent candidates cap**
   Term intent candidates cap: the most database candidates an `<kind>.escalated` record names, each under reference length cap (reconcile step 3.9, 3.10). Sizes the escalation (Invariant 6). *Default:* none.
   ```
-  intent candidates cap 1: The deployment MUST set intent candidates cap.
-  NOTE: watch the unset setting (Instance start 3).
+  Deleted: intent candidates cap 1. Execution Contract Logic confinement 15 owns it.
   ```
 - **retention period**
   Term retention period: the duration a policy carries, as [Audit Trail](./audit-trail.md) declares it; here a per-kind binding, the duration of the one policy reference journal 6 resolves the kind's records to (*Bindings*, journal); [Reconcile] step 1 and condition 2 read it. *Default:* none.
 - **read cap**
   Term read cap: the most invocations [Read Invocation] returns for one act, and the most records per invocation. *Default:* none.
   ```
-  read cap 1: The deployment MUST set read cap.
-  NOTE: watch the unset setting (Instance start 3).
+  Deleted: read cap 1. Execution Contract Logic confinement 15 owns it.
   ```
 - **compliance surface**
   Term compliance surface: the deployment's surface for the instance's findings (*Composition state* owns the contract); check 3 reads both branches on it. *Default:* none.
@@ -1228,8 +1226,7 @@ Binding 10: EVERY action but [Reconcile] MUST read the bindings of the kind the 
 Instance start 1: This section IS AUTHORITATIVE FOR the conditions of instance start.
 NOTE: watch addressable sections — a section title as the subject of an authority claim (Instance start 1, Allowance 2, Which closing stands 1, Invariant 2.6).
 Instance start 2: The instance MUST check EVERY condition at start for EVERY bound act kind.
-Instance start 3: IF any condition fails for any bound kind OR a term of any condition EQUALS blank OR intent candidates cap EQUALS blank OR read cap EQUALS blank THEN the instance MUST NOT start.
-NOTE: watch the unset setting (Instance start 3).
+Instance start 3: IF any condition fails for any bound kind THEN the instance MUST NOT start.
 ```
 
 Term worst closure: `(((invocation_completion_bound + (2 * clock_allowance)) + (2 * sweep_cadence)) + (3 * run_bound))` — invocation completion bound the kind's, the rest the instance's, the allowance counted twice for every kind.

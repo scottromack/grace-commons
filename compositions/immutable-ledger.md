@@ -152,11 +152,11 @@ Capability requirement 2: The composition MUST NOT pass a retention input to the
 Capability requirement 3: A regulated deployment MUST set a ledger retention policy encoding the regime's minimum retention.
 Capability requirement 4: A deployment MUST set the seal cadence on the Audit Trail instance.
 Capability requirement 5: The composition MUST NOT override the seal cadence.
-Capability requirement 6: A deployment MUST set the disclosure completion bound.
+Deleted: Capability requirement 6. Execution Contract Logic confinement 15 owns it.
 Deleted: Capability requirement 7. Recoverable Invocation close step 3.5 owns it: a retry ends at the lease, not at a count.
 Deleted: Capability requirement 8. Recoverable Invocation Instance start 4 owns it: the cadence is the instance's.
 Deleted: Capability requirement 9. Recoverable Invocation journal write bound 1 owns it.
-Capability requirement 10: A deployment MUST set the disclosed entries cap.
+Deleted: Capability requirement 10. Execution Contract Logic confinement 15 owns it.
 Deleted: Capability requirement 11. Recoverable Invocation Instance start 5 owns it.
 Deleted: Capability requirement 12. Recoverable Invocation act section 1 owns it, keyed by the act key (Recoverable Invocation open step 2.1).
 Deleted: Capability requirement 13. Recoverable Invocation close step 4.2 owns it.
