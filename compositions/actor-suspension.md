@@ -124,11 +124,11 @@ Composition state 18: An index MUST NOT stand inside an action's atomicity surfa
 Composition state 19: An index MUST NOT claim cross-constituent transactional consistency.
 Composition state 20: An absent suspension-state key MUST stand as a miss.
 Composition state 21: An absent suspension-state key MUST NOT stand as active.
-Composition state 22: A suspension-state entry the trail contradicts MUST stand as a miss.
+Composition state 22: A suspension-state entry an event above the mark contradicts MUST stand as a miss.
 Composition state 23: A reader MUST resolve a miss by the tail read.
 Composition state 24: A reader MUST NOT resolve a miss by an enumeration of the index.
 Composition state 25: The tail read MUST select an event above the mark.
-Composition state 26: The tail read MUST NOT select an event below the mark.
+Composition state 26: The tail read MUST NOT select an event at or below the mark.
 Composition state 27: A reader MUST take the trail's answer ONLY IF the trail's answer stands later in the log than the entry's event.
 Composition state 28: A reader MUST write the entry the tail read resolved.
 Composition state 29: An absent suspension-state key carrying no suspension intent above the mark MUST stand as active.
@@ -163,9 +163,13 @@ Composition state 56: The rebuild MUST NOT read an escalation record as a lifecy
 
 NOTE: open 2026-10-26-a — Composition state 9 classifies the index below the mark as truth-bearing, which the section titled Composition state in `execution-contract.md` gives no element short of extraction-pending, while a miss below the mark is not observable (Composition state 26, 29); which class the window takes is open.
 
+NOTE: open 2026-11-05-a — Composition state 12 classifies the high-water mark as derived, while Term rebuild regenerates the suspension-state index alone, so no rule names the value a rebuilt mark takes; the only value the trail re-derives is the log's first position.
+
 Term suspension-state index: actor_suspension_state — the composition's index from an actor reference to the actor's lifecycle state and the record that put the actor there; the surface the issuance gate reads and [Suspension Report] answers from.
 
 Term high-water mark: index_high_water — the log position through which the sweep has reconciled the suspension-state index with the trail; every intent at or below it carries an index entry or an outcome naming the intent's invocation id.
+
+NOTE: open 2026-10-26-a — the mark cannot pass an event the sweep did not index (Reconciliation 4, 6, 7, 16), a writer cannot lay an entry over a later event's (Composition state 55), and a committed entry is kept (Execution Contract Database 3 and 4, Capability requirement 47), so an entry lost below the mark is unreachable; which class the window takes stays open.
 
 Term suspension log: suspension_log — the composition's append-only record of every [Suspend Actor] and [Reinstate Actor] call, whether the call transitioned, stood as a no-op, or refused.
 
@@ -195,7 +199,7 @@ Term post-snapshot member: a grant, a session, OR a credential a constituent reg
 
 Term rebuild: the composition's named regeneration of the suspension-state index — select the composition's own events over an open-ended sequence range and take each actor's latest lifecycle-bearing event.
 
-Term miss: an index read the composition answers by the tail read rather than by the stored entry.
+Term miss: an index read the composition resolves by the tail read.
 
 Term plan: the enumerated active set an intent carries — planned_grants, planned_sessions and planned_credentials.
 
@@ -1060,18 +1064,19 @@ Actor Suspension inherits the broader standards compliance of its constituents:
 
 ## Status
 
-`partially resolved` — see the Ledger.
+`grounded on Final Critique 9 — 2026-11-05 at 917cc95` — see the Ledger.
 
 ## Ledger
 
 ```
-status: partially resolved
+status: grounded on Final Critique 9 — 2026-11-05 at 917cc95
 formal: verified — actor-suspension.tla + 5 twins + 9 probes, 2026-10-27
-last gate: 2026-11-04 — Final Critique 8, a delta round, frozen at 92bff7a — foundational count 0 in the reader's report, open foundational line 2026-10-26-c cured by the settle, not clean, no sample; 2026-11-03 — Final Critique 7 — foundational count 7, not clean, no sample
+last gate: 2026-11-05 — Final Critique 9, delta, frozen at 917cc95 — foundational count 0, clean, one sample; 2026-11-04 — Final Critique 8, a delta round, frozen at 92bff7a — foundational count 0 in the reader's report, open foundational line 2026-10-26-c cured by the settle, not clean, no sample; 2026-11-03 — Final Critique 7 — foundational count 7, not clean, no sample
 
 open:
 - 2026-08-30-i · refining · formal · actor-suspension.tla models no credential check and no attribution, so no model checks that each revocation names a writer its own intent verified (Invariant 5.1 through 5.5) → model the attests a fresh cascade, a resume and the sweep make
 - 2026-10-26-a · refining · Composition state 9 · the index below the mark is classified truth-bearing, neither a derived index nor extraction-pending under the Execution Contract's Composition state section, while a miss below the mark is not observable (Composition state 26, 29) → classify the window: extraction-pending against the actor registry (Composition state 11), or derived with its below-mark reading anchored in the trail (refined, Final Critique 8: a lost entry below the mark is unreachable under Execution Contract Database 3 and 4, Reconciliation 4, 6, 7 and Capability requirement 47; classifying the window as derived would bring a miss below the mark under Derived index 1 and replace the tail read with the full rebuild, Composition state 23, 28, Term miss, Term rebuild)
+- 2026-11-05-a · refining · Composition state 12 · the mark is classified derived, while Term rebuild regenerates the suspension-state index alone, so no rule names the value a rebuilt mark takes → say that a rebuild of the index sets the mark to the log's first position, so the sweep re-indexes from it, or classify the mark otherwise
 - 2026-10-26-b · refining · Primitive policy 13, 14 · the prefixes and the intent event id lengthen a resumed or swept revoke's reason past the reason the boundary predicate admitted, so a constituent's length bound can refuse it and leave the cascade suspending to its escalation → bound the reason at the boundary with room for a prefix and an intent event id, or oblige the deployment's bounds to admit it
 - 2026-10-26-d · refining · Audit arm 15, the signature, the example of a credential rotated mid-act · invalid-credential's outcome position is unreachable under Execution Contract Database 2 → retire it, a turn of the 2026-09-15 Decision
 - 2026-11-03-a · refining · Term outcome, Term Outcome · the record_action call and the suspension log's classification share one word → rename the classification
