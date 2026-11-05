@@ -139,7 +139,9 @@ Term hold write: the database write by which a [Place Hold] records a commitment
 
 Term hold write in flight: a hold write the database has neither committed nor refused.
 
-Term critical section bound: the span the registry declares as the longest the availability read of a critical section runs, from the read's start, before the host answers registry-unavailable (Capability requirement 18, Operation 42).
+Term critical section bound: the span the registry declares as the longest the availability read span of a critical section may reach without the host answering registry-unavailable (Capability requirement 18, Operation 42).
+
+Term availability read span: the time from the availability read's start to the availability verdict's landing, or to the host's check where no verdict has landed.
 
 ### Operations
 
@@ -170,7 +172,7 @@ Operation 2: IF requester EQUALS blank THEN [Place Hold] MUST answer invalid-req
 Operation 3: IF duration EQUALS blank THEN [Place Hold] MUST answer invalid-request.
 Operation 4: IF the duration falls outside the duration bounds THEN [Place Hold] MUST answer invalid-request.
 Operation 5: IF the registry refuses the resource THEN [Place Hold] MUST answer resource-unavailable.
-Operation 42: IF the host cannot read the registry WITHIN the critical section bound THEN [Place Hold] MUST answer registry-unavailable.
+Operation 42: IF the availability read span EXCEEDS the critical section bound THEN [Place Hold] MUST answer registry-unavailable.
 Deleted: Operation 6. Execution Contract Refusal 1 owns it.
 Operation 7: [Place Hold] MUST NOT answer not-known.
 Operation 8: An admitted place hold MUST assign a fresh id.
@@ -503,7 +505,7 @@ Term cadences: expire cadence.
 
 Term qualifiers: migrated — rewritten in GRACE lang v0.40 (2026-09-13).
 
-Term terms: commitment, id, property, reference, registry, database instance, seam, transition, now, hold write, hold write in flight, resolving action, duration bounds, window bound, window reading, open, lapsed, window rejection, terminal state, terminal instant, admitted place hold, admitted confirm, admitted release, admitted expire, admitted resolving action, releasing action, string input, blank, reclamation lag, reclamation window, capacity decision, degenerate window, late resolution, premature expiry, committed version, string cap, duration, id material, availability, availability verdict, critical section bound, expire cadence, expire run bound, restart delay bound, reclamation sum.
+Term terms: commitment, id, property, reference, registry, database instance, seam, transition, now, hold write, hold write in flight, resolving action, duration bounds, window bound, window reading, open, lapsed, window rejection, terminal state, terminal instant, admitted place hold, admitted confirm, admitted release, admitted expire, admitted resolving action, releasing action, string input, blank, reclamation lag, reclamation window, capacity decision, degenerate window, late resolution, premature expiry, committed version, string cap, duration, id material, availability, availability verdict, critical section bound, availability read span, expire cadence, expire run bound, restart delay bound, reclamation sum.
 
 Term cited: sequence number: Event Log. The section titled Logic Confinement Principle in `execution-contract.md` — the seam and the transition.
 
@@ -644,7 +646,7 @@ Role:      Outcome
 
 #### Released
 
-The terminal state reached when the commitment was released while the commitment's window reading was open at the call's now — the resource returns to availability. Absorbing.
+The terminal state reached when the commitment was released while the commitment's window reading was open at the call's now — the registry returns the resource to availability (Capability requirement 10). Absorbing.
 
 Kind:      Member
 Member of: the commitment state
@@ -669,7 +671,7 @@ Projection: invalid-request
 
 #### Registry Unavailable
 
-The refusal [Place Hold] returns when the host cannot read the registry within the critical section bound (Operation 42). Distinct from [Resource Unavailable], which the registry gives once read: the condition is transient, and the place hold may be retried. No commitment is recorded.
+The refusal [Place Hold] returns when the availability read span exceeds the critical section bound (Operation 42). Distinct from [Resource Unavailable], which the registry gives once read: the condition is transient, and the place hold may be retried. No commitment is recorded.
 
 Kind:       Member
 Member of:  the Place Hold rejection
@@ -795,7 +797,7 @@ It inherits from:
 ```
 status: partially resolved
 formal: verified — provisional-commitment.tla + 2 twins, 2026-06-04
-last gate: 2026-11-04 — Final Critique 8 (delta) — foundational count 2, not clean, no sample
+last gate: 2026-11-05 — Final Critique 9 (delta) — foundational count 1, not clean, no sample
 
 open: none
 ```
