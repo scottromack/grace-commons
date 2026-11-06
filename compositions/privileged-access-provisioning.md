@@ -114,7 +114,7 @@ Composition state 14: The composition MUST NOT write bearer material into an aud
 Deleted: Composition state 15. Execution Contract Database 3 and Execution Contract Database 4 own it.
 Composition state 16: The rebuild MUST take a request's identity fields from the request's shape-bearing event.
 Composition state 17: The rebuild MUST take a request's state from the request's latest state-transition event.
-Composition state 18: The rebuild MUST read a recovery record as the event the recovery record names.
+Composition state 18: The rebuild, EVERY invariant AND EVERY check MUST read a recovery record as the event the recovery record names.
 Composition state 19: The composition MUST resolve a request's chain from the request record's chain id.
 Composition state 20: The composition MUST store the request-to-chain map as an index over the request records' chain ids.
 Composition state 21: The composition MUST store the request-to-capability map.
@@ -344,7 +344,7 @@ Action wiring 17: IF initiate chain answers the chain id OR recording-failure ca
 Action wiring 18: IF initiate chain answers the chain id OR recording-failure carrying outcome THEN [Request Access] MUST complete the initiation entry's payload with the chain id.
 Action wiring 19: IF initiate chain answers invalid-request, invalid-credential, permission-denied OR recording-failure carrying intent THEN [Request Access] MUST record an initiation-failed withdrawal event carrying the request shape AND the mapped refusal as the reason.
 Action wiring 20: IF initiate chain answers invalid-request, invalid-credential, permission-denied OR recording-failure carrying intent THEN [Request Access] MUST set the request state to Withdrawn.
-Action wiring 21: IF initiate chain answers invalid-request, invalid-credential, permission-denied OR recording-failure carrying intent THEN [Request Access] MUST close the initiation entry.
+Action wiring 21: IF initiate chain answers invalid-request, invalid-credential, permission-denied OR recording-failure carrying intent THEN [Request Access] MUST close the initiation entry ONLY AFTER the initiation-failed withdrawal event lands.
 Action wiring 22: IF initiate chain answers invalid-request THEN [Request Access] MUST answer invalid-request.
 Action wiring 23: IF initiate chain answers invalid-credential THEN [Request Access] MUST answer invalid-credential.
 Action wiring 24: IF initiate chain answers permission-denied THEN [Request Access] MUST answer permission-denied.
@@ -466,7 +466,7 @@ Term permitted read: a [Read Request] whose caller Permissions permitted and who
 
 Term admitted request: a [Request Access] call whose inputs, permission check and credential check passed.
 
-Term initiation entry: the pending entry [Request Access] writes with the request record, carrying the request event's payload less the chain id until initiate_chain answers.
+Term initiation entry: the pending entry [Request Access] writes with the request record, carrying the request event's payload less the chain id until initiate_chain answers, and owing the request event or, where initiate chain refused leaving no chain, the initiation-failed withdrawal event (Action wiring 19).
 
 Term evaluation entry: the pending entry recording a chain evaluation owed after a committed decision, carrying the request id AND the invocation id; its retry is the chain evaluation.
 
@@ -557,6 +557,8 @@ Reconciliation 39: IF the read answers the terminal event's reason THEN the deni
 Reconciliation 40: IF Audit Trail's read record answers not-known OR the terminal event's reason is destroyed THEN the denial-reason leg MUST close the denial-reason entry.
 Reconciliation 41: The denial-reason leg MUST NOT record a second denial event.
 ```
+
+NOTE: open 2026-11-06-a (Reconciliation 35 AND Reconciliation 40).
 
 Term reconciliation: the leg this composition runs outside every invocation whose output — a landed record, a finished provisioning, a closed request — a requestor or an auditor awaits: the approval leg, the terminal-chain leg, the redemption leg, the initiation leg and the denial-reason leg, at every start and on every retry.
 
@@ -1056,9 +1058,10 @@ Projection: invalid-credential
 ```
 status: partially resolved
 formal: verified — privileged-access-provisioning.tla, no twin, 2026-06-03
-last gate: 2026-11-05 — Final Critique 4, delta, one pass (Linus) — 4 foundational (all cured this round; a fifth reported and refuted by Execution Contract Database 1), 2 refining cured (2 more refuted), 0 rhetorical, not clean
+last gate: 2026-11-06 — Final Critique 5, delta, one pass (Linus) — 2 foundational (both cured this round), 0 refining, 0 rhetorical, not clean
 
 open:
+- 2026-11-06-a · refining · pending entries · Composition state 32 closes a pending entry only after its record lands, while Reconciliation 35 closes an initiation entry whose request event Reconciliation 37 bars and Reconciliation 40 closes a denial-reason entry whose reason is destroyed, and the grammar has no form for an exception to an ONLY AFTER rule (W-unstated-exception asks for the state in the condition, and a record barred or destroyed has no positive state to name) → decide how a pending entry whose record the page bars or destroys is written, then restate Composition state 32 once
 - 2026-11-04-a · refining · structure · Action wiring carries no closure table, which spec-format.md requires as the subsection's first #### block → draft it as its own authoring unit, every cell owned by a rule
 - 2026-11-04-b · refining · retention · Capability requirement 10 constrains the retention floor, but no rule sets the longest token lifetime or the provisioning proof period, nor refuses a supplied ttl past the longest → decide whether a request over the longest token lifetime is refused or clamped, then set both
 - 2026-11-04-c · refining · withdrawal reason · Action wiring 55 records the terminal event's reason on the withdrawal event with no answer for a destroyed reason, where Action wiring 51 through 52 take blank and open a denial-reason entry → decide whether a blank withdrawal reason owes a recovery entry
