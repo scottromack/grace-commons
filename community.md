@@ -11,3 +11,5 @@ The participation contract, in three sentences. **Contributing starts smaller th
 The pages below are the contract in full: how to contribute, how admission and sealing will be governed as the library matures, and the architectural decisions deliberately still open.
 
 Three pages say how we treat each other and what to do when something goes wrong: the [code of conduct](./CODE_OF_CONDUCT.md), the [security policy](./SECURITY.md) and the [accessibility statement](./ACCESSIBILITY.md).
+
+Questions go to [Discussions](https://github.com/scottromack/grace-commons/discussions/categories/q-a), in the Q&A category; findings go in an [issue](https://github.com/scottromack/grace-commons/issues/new/choose).

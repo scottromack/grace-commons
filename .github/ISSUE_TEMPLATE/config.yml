@@ -1,5 +1,8 @@
 blank_issues_enabled: false
 contact_links:
+  - name: Ask a question
+    url: https://github.com/scottromack/grace-commons/discussions/categories/q-a
+    about: How Grace works, whether it fits your problem. Findings in a pattern go in an issue.
   - name: Report a security vulnerability
     url: https://github.com/scottromack/grace-commons/security/advisories/new
     about: Report it privately through the Security tab, never in a public issue. See SECURITY.md.
