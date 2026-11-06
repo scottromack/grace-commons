@@ -270,7 +270,7 @@ Action wiring 15: IF the journal holds an entry for the token that IS NOT an own
 Deleted: Action wiring 16. Execution Contract Database 1 owns it.
 Deleted: Action wiring 17. Execution Contract Database 1 owns it.
 Action wiring 18: IF the journal holds a reserve outcome entry for the token AND no binding entry EXISTS for the entry's reservation id THEN [Reserve] MUST write the binding entry from the outcome entry.
-Action wiring 19: IF the journal holds the action's intent entry for the token AND the journaled digest EQUALS the call's parameters digest AND no resolving entry names the token THEN the action MUST answer recording-failure carrying outcome.
+Action wiring 19: IF the journal holds the action's intent entry for the token AND the journaled digest EQUALS the call's parameters digest AND no outcome entry names the token THEN the action MUST answer recording-failure carrying outcome.
 Action wiring 20: IF Duplicate Prevention's check answers not-seen AND the journal holds no entry for the token THEN [Reserve] MUST call Actor Identity's attest with the action reference, the actor reference AND the credential.
 Action wiring 21: A state-changing action MUST NOT call a constituent write BEFORE Actor Identity's attest answers the attestation id.
 Action wiring 22: IF Actor Identity answers invalid-credential THEN the action MUST answer invalid-credential.
@@ -405,8 +405,6 @@ Term intent entry: a reserve intent, a confirm intent, a cancel intent or an exp
 Term outcome entry: a reserve outcome entry, a confirm outcome entry or a slot-returning outcome entry — the journal entry an action appends after the action's act.
 
 Term slot-returning outcome entry: a cancel outcome entry or an expire outcome entry.
-
-Term resolving entry: an outcome entry naming a token.
 
 Term admitted reserve: a [Reserve] call whose attest answered the attestation id and whose reserve intent landed.
 
@@ -591,7 +589,7 @@ An implementation is acceptable when the checks below are provable to an externa
 ### Conformance checks
 
 ```
-Check 1.1: An auditor MUST count a pool's slot-holding reservations by traversing the journal's reserve outcome entries for the pool, counting a reservation ONLY IF no slot-returning outcome entry names the reservation with a slot-returning state, AND the pool's binding entries naming no reservation the traversal reaches (Invariant 1.1, Composition state 15).
+Check 1.1: An auditor MUST count a pool's slot-holding reservations among the reservations reached by traversing the journal's reserve outcome entries for the pool AND the reservations the pool's binding entries name that the traversal does not reach, counting a reservation ONLY IF no slot-returning outcome entry names the reservation with a slot-returning state (Invariant 1.1, Composition state 15).
 Check 1.2: An auditor MUST resolve EVERY traversed reservation id through the binding as a keyed lookup, rebuilding on a miss (Composition state 10).
 Check 1.3: An auditor MUST NOT count binding entries in place of the traversal (Invariant 1.1).
 Check 1.4: An auditor MUST report a divergence the rebuild closes as an index gap (Composition state 10).
@@ -740,7 +738,7 @@ Term cadences: empty.
 
 Term qualifiers: migrated — rewritten in GRACE lang v0.61 (2026-09-23).
 
-Term terms: composition, constituents, reservation, reservation id, journal, journal entry, reservation-to-pool binding, binding entry, aged entry, token results map, action type, parameters digest, business parameter, idempotency window, expiry sweep, pool event read, token max length, digest function, audit horizon, retention floor, longest reservation lifetime, coherence proof period, seam, now, envelope, position, reservation reading, slot-held reading, state-changing action, resolving action, slot-returning action, settling, replay, matching token results entry, action reference, journaled digest, own entry, intent entry, outcome entry, slot-returning outcome entry, resolving entry, admitted reserve, pool event balances, witness balance, terminal state, slot-holding state, slot-returning state, constituent-terminal state, bound slot-holding count, quiescence, divergence, registry condition, pre-attest refusal, downstream surface, reserve intent, reserve outcome entry, confirm intent, confirm outcome entry, cancel intent, cancel outcome entry, expire intent, expire outcome entry.
+Term terms: composition, constituents, reservation, reservation id, journal, journal entry, reservation-to-pool binding, binding entry, aged entry, token results map, action type, parameters digest, business parameter, idempotency window, expiry sweep, pool event read, token max length, digest function, audit horizon, retention floor, longest reservation lifetime, coherence proof period, seam, now, envelope, position, reservation reading, slot-held reading, state-changing action, resolving action, slot-returning action, settling, replay, matching token results entry, action reference, journaled digest, own entry, intent entry, outcome entry, slot-returning outcome entry, admitted reserve, pool event balances, witness balance, terminal state, slot-holding state, slot-returning state, constituent-terminal state, bound slot-holding count, quiescence, divergence, registry condition, pre-attest refusal, downstream surface, reserve intent, reserve outcome entry, confirm intent, confirm outcome entry, cancel intent, cancel outcome entry, expire intent, expire outcome entry.
 
 Term cited: Execution Contract Conformance 8 — the recursive inheritance of a constituent's guarantees. The section titled Composition state in `execution-contract.md` — the derived-index, truth-bearing and extraction-pending classifications. The section titled Logic Confinement Principle in `execution-contract.md` — the seam. commitment id, place hold, confirm, release, expire, resource, requester, duration, window reading, open, lapsed, Held, Confirmed, Released, Expired, not-held, window-elapsed, window-not-elapsed, resource-unavailable: Provisional Commitment. pool id, capacity, allocated, allocate, declare pool, query, audit log, audit event, allocation event, release event, allocation event id, release event id, opening balance, closing balance, over-capacity, suspended, closed: Capacity Constraint Enforcement. check, record, seen, not-seen: Duplicate Prevention. append, event id, sequence number, recording instant, payload cap, invalid-payload: Event Log. attest, verify, attestation id, actor reference, credential, actor registry, invalid-credential, actor-unknown-in-registry, registry-unavailable: Actor Identity.
 
@@ -868,7 +866,7 @@ The five constituents carry their own deep standards inheritance — see each co
 ```
 status: partially resolved
 formal: pending — reserve-from-pool.tla + 1 twin verified 2026-06-04 over the retired atomic trio; re-derive over the ordered slot-returning pair and the pool reconciliation (2026-08-29-a)
-last gate: 2026-11-06 — Final Critique 10, delta, one pass (Linus) — 3 foundational reported (2 cured this round, 1 refuted), not clean, no sample
+last gate: 2026-11-06 — Final Critique 11, delta, one pass (Linus) — 2 foundational reported (1 cured this round, 1 refuted), not clean, no sample
 
 open:
 - 2026-11-05-a · refining · retention · Term longest reservation lifetime counts the time a reservation the deployment admits stands Held, but no rule sets that longest or says whether a hold standing past it under a lazy sweep is tolerated → decide, then set it
