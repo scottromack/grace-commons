@@ -709,7 +709,7 @@
  "gift-card": {
   "composed_by": [],
   "domain": null,
-  "grounded": false,
+  "grounded": true,
   "invariants": 4,
   "kind": "atom",
   "models": {
@@ -720,7 +720,7 @@
   "regulated_by": [],
   "security": false,
   "standards": [],
-  "status": "partially resolved",
+  "status": "grounded on Final Critique 3 \u2014 2026-11-06 at 368ce1f",
   "title": "Gift Card"
  },
  "idempotent-reservation": {

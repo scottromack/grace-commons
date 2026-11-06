@@ -88,8 +88,8 @@ Capability requirement 6: The deployment MAY supply the card cap for a currency 
 Capability requirement 7: The deployment MUST supply the database PER Execution Contract Database 1 through 7, Execution Contract Read 1 through 4 and Execution Contract Refusal 1.
 Capability requirement 8: The deployment MUST NOT normalize a card code at the seam.
 Capability requirement 9: The deployment MUST NOT normalize a currency at the seam.
-Capability requirement 10: The deployment MUST NOT supply one card id to two calls.
-Capability requirement 11: The deployment MUST NOT supply one card code to two calls.
+Capability requirement 10: The deployment MUST supply each card id PER Execution Contract Logic confinement 16.
+Capability requirement 11: The deployment MUST supply each card code PER Execution Contract Logic confinement 16.
 ```
 
 NOTE: the atom declares no reference, so Execution Contract Logic confinement 13 reaches neither the card code nor the currency (Capability requirement 8, Capability requirement 9).
@@ -506,14 +506,14 @@ State unclaimed-property laws, which may oblige a seller to report a balance lef
 
 ## Status
 
-`partially resolved` — see the Ledger.
+`grounded on Final Critique 3 — 2026-11-06 at 368ce1f` — see the Ledger.
 
 ## Ledger
 
 ```
-status: partially resolved
+status: grounded on Final Critique 3 — 2026-11-06 at 368ce1f
 formal: not applicable — vote no 2026-10-30: the atom reads no clock and claims no ordering of its own; its balance, code, currency and value claims are properties each action's rules hold, and its concurrency is Execution Contract Database 2's
-last gate: 2026-11-05 — Final Critique 2, a delta round, frozen at 4f85e1c — foundational count 2, cured, not clean, no sample
+last gate: 2026-11-06 — Final Critique 3, a delta round, frozen at 368ce1f — foundational count 0, clean, one sample; 2026-11-05 — Final Critique 2, a delta round, frozen at 4f85e1c — foundational count 2, cured, not clean, no sample
 
 open: none
 ```
