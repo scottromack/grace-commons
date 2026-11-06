@@ -1,0 +1,31 @@
+name: Finding
+description: An ambiguity you found while reading a pattern. The cheapest real contribution.
+title: "Finding: "
+labels: ["finding"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        A finding is a place where a pattern could be read two ways. Say where, and say what the two readings are. You do not need to propose a fix.
+  - type: input
+    id: pattern
+    attributes:
+      label: Pattern
+      description: The atom or composition you were reading.
+      placeholder: Audit Trail
+    validations:
+      required: true
+  - type: input
+    id: line
+    attributes:
+      label: Rule or line
+      description: The rule label or the line, for example Invariant 2.1.
+    validations:
+      required: true
+  - type: textarea
+    id: ambiguity
+    attributes:
+      label: What it could mean two ways
+      description: The first reading, the second reading, and a case where they give different answers.
+    validations:
+      required: true

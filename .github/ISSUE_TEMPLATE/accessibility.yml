@@ -1,0 +1,24 @@
+name: Accessibility barrier
+description: Something on the site or a page that is hard to use.
+title: "Accessibility: "
+labels: ["accessibility"]
+body:
+  - type: input
+    id: page
+    attributes:
+      label: Page
+      description: The address, or the page's title.
+    validations:
+      required: true
+  - type: textarea
+    id: barrier
+    attributes:
+      label: What stopped you
+      description: What you were trying to do, and what got in the way.
+    validations:
+      required: true
+  - type: input
+    id: tools
+    attributes:
+      label: How you read the site
+      description: Optional. Screen reader, browser, keyboard only, zoom.
