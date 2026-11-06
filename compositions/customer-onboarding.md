@@ -260,6 +260,8 @@ Term clock offset allowance: clock_offset_allowance — the deployment's declare
 
 Term commitment window: the interval from `(the intent's intent instant - clock_offset_allowance)` to `((the intent's intent instant + onboarding_completion_bound) + clock_offset_allowance)` — the interval in which a constituent's recorded instant answers the intent (Reconciliation 27, Reconciliation 28).
 
+NOTE: open 2026-11-06-a — no rule states how the compensation window and the commitment window stand to each other; the commitment window matches a constituent's recorded instants, and an invocation's commitment falls within onboarding_completion_bound of its intent, before any run outside the compensation window (Capability requirement 27), so Reconciliation 20 and Reconciliations 27 and 28 hold together as written.
+
 Term onboarding completion bound: onboarding_completion_bound — the deployment's declared maximum duration between an invocation's intent and the invocation's outcome.
 
 Term active relationship policy: active_relationship_policy_ref — the deployment's recommended Retention Window policy for a live relationship's party record.
@@ -1233,16 +1235,17 @@ The three constituents carry their own deep standards inheritance — see each c
 
 ## Status
 
-`partially resolved` — see the Ledger.
+`grounded on Final Critique 5 — 2026-11-06 at 8736397` — see the Ledger.
 
 ## Ledger
 
 ```
-status: partially resolved
+status: grounded on Final Critique 5 — 2026-11-06 at 8736397
 formal: verified — customer-onboarding.tla + 1 twin, 2026-06-03
-last gate: 2026-11-05 — Final Critique 4, delta round — 1 foundational (cured), not clean, one fresh pass
+last gate: 2026-11-06 — Final Critique 5, delta round — 0 foundational (one refuted), clean, one fresh pass
 
 open:
+- 2026-11-06-a · refining · Term commitment window; Reconciliation 20, 27, 28 · no rule states how the compensation window and the commitment window stand to each other, and Capability requirement 47 gives the clock offset allowance no ceiling, so a reader may take the commitment window to hold a marker open past the compensation window → decide whether one sentence states that the window matches recorded instants and holds nothing open
 - 2026-08-29-s · refining · formal · the model's reconciliation carries no age bound → extend it
 - 2026-11-04-a · refining · Primitive policy 20; Invariant 7.5; Composition state 33, 34 · the closed triggers and the open triggers at close carry no cap beside the open-trigger set's, and a digest in place of their ids would starve the rebuild and Invariant 7.5 → decide whether those two sets stay uncapped or carry a rule that keeps their ids
 - 2026-11-04-b · refining · Composition state 5, 20, 21, 22 · an unrebuildable entry outlives the events that carried its case id, party id and enrollment path, and no rebuild reproduces it, where the Execution Contract counts an unflagged truth-bearing composition record a conformance finding → decide whether the entry is flagged extraction-pending against a named atom or the horizon bound (Capability requirement 14) is the answer

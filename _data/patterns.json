@@ -504,7 +504,7 @@
    "party-identity",
    "retention-window"
   ],
-  "grounded": false,
+  "grounded": true,
   "invariants": 8,
   "kind": "composition",
   "models": {
@@ -521,7 +521,7 @@
    "GDPR",
    "HIPAA"
   ],
-  "status": "partially resolved",
+  "status": "grounded on Final Critique 5 \u2014 2026-11-06 at 8736397",
   "substrates": [
    "audit-trail"
   ],
