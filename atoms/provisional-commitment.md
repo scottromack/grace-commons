@@ -791,14 +791,14 @@ It inherits from:
 
 ## Status
 
-`partially resolved` — see the Ledger.
+`grounded on Final Critique 13 — 2026-11-05 at 8adbf07` — see the Ledger.
 
 ## Ledger
 
 ```
-status: partially resolved
+status: grounded on Final Critique 13 — 2026-11-05 at 8adbf07
 formal: verified — provisional-commitment.tla + 2 twins, 2026-06-04
-last gate: 2026-11-05 — Final Critique 12 — foundational count 3, not clean, no sample
+last gate: 2026-11-05 — Final Critique 13, a delta round, frozen at 8adbf07 — foundational count 0, clean, one sample; 2026-11-05 — Final Critique 12 — foundational count 3, not clean, no sample
 
 open:
 - 2026-11-05-a · refining · Capability requirement 4; Capability requirement 19; Term hold write in flight; Registry Unavailable · a hold write the database never resolves, or a caller that never returns, keeps the resource's critical section held with no owner for its recovery, while the Registry Unavailable entry's "transient" assumes one → name who ends a section held by a hold write that never resolves, without releasing it while that write could still commit (Capability requirement 19)

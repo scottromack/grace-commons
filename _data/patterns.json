@@ -1255,7 +1255,7 @@
    "reserve-from-pool"
   ],
   "domain": null,
-  "grounded": false,
+  "grounded": true,
   "invariants": 8,
   "kind": "atom",
   "models": {
@@ -1275,7 +1275,7 @@
    "PCI DSS",
    "SOX"
   ],
-  "status": "partially resolved",
+  "status": "grounded on Final Critique 13 \u2014 2026-11-05 at 8adbf07",
   "title": "Provisional Commitment"
  },
  "recoverable-invocation": {
