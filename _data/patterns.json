@@ -388,7 +388,7 @@
    "state-machine",
    "event-log"
   ],
-  "grounded": false,
+  "grounded": true,
   "invariants": 8,
   "kind": "composition",
   "models": {
@@ -402,7 +402,7 @@
    "ISO 27001",
    "NIST 800-92"
   ],
-  "status": "partially resolved",
+  "status": "grounded (English) on Final Critique 8 \u2014 2026-11-06 at ef1f25a \u2014 formal layer pending",
   "substrates": [],
   "title": "Compensable Workflow"
  },

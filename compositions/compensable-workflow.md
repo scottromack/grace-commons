@@ -389,6 +389,8 @@ Action wiring 84: A halted advance that answers no refusal MUST answer the advan
 Action wiring 87: A [Cancel] call in the forward phase, with no terminal marker, no unresolved attempt and no completed roll-forward step, MUST append a compensation onset event.
 ```
 
+NOTE: open 2026-11-06-a — nothing says whether a re-run under Action wiring 15 appends an attempt marker; Action wiring 19 reads a re-run's attempt marker as the one it re-runs.
+
 Term section-taking action: [Advance] | [Cancel] | [Read Progress].
 
 Term invocation: one call of a section-taking action, from taking the critical section to the call's answer.
@@ -961,14 +963,14 @@ It composes with, and is positioned against, [Idempotent Reservation](./idempote
 
 ## Status
 
-`partially resolved` — returned 2026-08-30 by the sweep under the frozen rules; see the Ledger.
+`grounded (English) on Final Critique 8 — 2026-11-06 at ef1f25a — formal layer pending` — see the Ledger.
 
 ## Ledger
 
 ```
-status: partially resolved
+status: grounded (English) on Final Critique 8 — 2026-11-06 at ef1f25a — formal layer pending
 formal: pending — re-derivation, 2026-08-30: the model has no attempt marker, no per-run section as a second process over one act, no indeterminate verdict, and no key horizon; was verified — compensable-workflow.tla + 2 twins, 2026-06-16
-last gate: 2026-11-05 — Final Critique 7, a delta round, frozen at 82d4603 — foundational count 1, cured by the settle, not clean, no sample; 2026-11-05 — Final Critique 6, a delta round, frozen at de92f1e — foundational count 1, cured by the settle, not clean, no sample; 2026-11-03 — Final Critique 5, frozen at f0729b8 — foundational count 12, cured, not clean, no sample; Final Critique 4, 2026-06-16, fresh reader — clean
+last gate: 2026-11-06 — Final Critique 8, a delta round, frozen at ef1f25a — foundational count 0, clean, one sample; 2026-11-05 — Final Critique 7, a delta round, frozen at 82d4603 — foundational count 1, cured by the settle, not clean, no sample; 2026-11-05 — Final Critique 6, a delta round, frozen at de92f1e — foundational count 1, cured by the settle, not clean, no sample; 2026-11-03 — Final Critique 5, frozen at f0729b8 — foundational count 12, cured, not clean, no sample; Final Critique 4, 2026-06-16, fresh reader — clean
 
 open:
 - 2026-11-03-a · refining · Action wiring 16, Action wiring 32 · the parallel compensation order carries no semantics, so PER and the advance result's single step are unevaluable under it → say what a parallel compensating advance runs and names, or retire the order
@@ -976,6 +978,7 @@ open:
 - 2026-11-03-c · refining · Action wiring 1 · nothing says how the bound's elapsing is observed or what a failed take of the critical section answers → decide the answer
 - 2026-11-03-d · refining · Capability requirement 17 · the longest attempt gap includes a rest in the halted phase, which the deployment cannot keep → decide whether the halted rest is bounded or answered by the horizon assertion alone
 - 2026-11-03-e · refining · Composes 4 · a fire by another caller breaks Invariant 2.1 with no fault halt → bar a second caller or name its owner
+- 2026-11-06-a · refining · Action wiring 15 · no rule says whether a re-run under Action wiring 15 appends an attempt marker, so an auditor applying Check 1.1 infers the answer from Action wiring 19 and the worked example → state that a re-run opens no attempt marker and is resolved by the completion record or onset event it lands
 - 2026-08-30-a · refining · formal · the model lacks the attempt markers, `per_run_serialization` as a second writer over one act with lease expiry as its terminus, the four-way verdict, the halted marker that parks rather than resolves, and the operator's resume → extend it
 ```
 
