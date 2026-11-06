@@ -71,7 +71,7 @@ NOTE: watch the id's length against the cap (Identity 2).
 
 Term disclosure record: one recorded disclosure of one subject's data to one recipient under one authority — the record this atom holds.
 
-Term disclosure id: the opaque string naming one disclosure record — a [Disclosure Id]; host-allocated at the seam, fresh per call as Capability requirement 9 requires.
+Term disclosure id: the opaque string naming one disclosure record — a [Disclosure Id]; host-allocated at the seam, as Capability requirement 9 requires.
 
 Term subject reference: the opaque reference naming the data subject whose data was disclosed — a [Subject Reference]; a property of the record, never the record's identity.
 
@@ -123,7 +123,7 @@ Deleted: Clock semantics 5. Non-goal 23 owns it.
 
 NOTE: watch the id the host supplies to two calls (Capability requirement 9).
 
-NOTE: watch the deployment's composition note (Capability requirement 7).
+NOTE: watch the deployment's composition note (Execution Contract Conformance 9).
 
 ### Operations
 
@@ -253,7 +253,7 @@ Term record sequence: the run of disclosure records an admitted read answers, in
   Deleted: Invariant 6.3. Execution Contract Database 3 owns it.
   ```
 
-NOTE: open 2026-11-06-a — Invariant 4.1 is kept at the write by Operation 7 and cleared by no check over the records, since no record keeps the now its creation read (State 1, State 10).
+NOTE: open 2026-11-06-a — Invariant 4.1 is kept at the write by Operation 7 and cleared by no check over the records, since no record keeps the now its creation read (State 1, State 10); the owner that would clear it, External check 3's receipt-instant read or a Non-goal, is undecided (Ledger open 2026-11-06-a).
 
 ---
 
@@ -463,7 +463,7 @@ Term qualifiers: migrated — rewritten in GRACE lang v0.40 (2026-09-12).
 
 Term terms: disclosure record, disclosure id, subject reference, recipient, scope, database instance, seam, receipt instant, now, authority, authority type, authority types, authority reference, disclosure instant, resolved disclosure instant, filter axes, admitted record, admitted read, string input, reference, correction narrative, committed version, string cap, record sequence, authority records, egress record.
 
-NOTE: open 2026-11-06-b — the vocabulary carries no composing patterns line and no cited line, and the page has no title-and-summary blockquote.
+NOTE: open 2026-11-06-b — the vocabulary carries no composing patterns line and no cited line, and the page has no title-and-summary blockquote; whether that absence is intended is undecided (Ledger open 2026-11-06-b).
 
 #### Record
 
@@ -610,14 +610,14 @@ Projection: invalid-query
 
 ## Status
 
-`partially resolved` — see the Ledger.
+`grounded on Final Critique 19 — 2026-11-06 at 368ce1f` — see the Ledger.
 
 ## Ledger
 
 ```
-status: partially resolved
+status: grounded on Final Critique 19 — 2026-11-06 at 368ce1f
 formal: not applicable — vote no 2026-06-03
-last gate: 2026-11-06 — Final Critique 18, a full round, frozen at 20c8fb1 — foundational count 1, cured, not clean, no sample; 2026-11-05 — Final Critique 17, a delta round, frozen at 8adbf07 — foundational count 2, both cured, not clean, no sample; 2026-11-05 — Final Critique 16, a delta round, frozen at 2db59c0 — foundational count 1, cured, not clean, no sample; 2026-11-04 — Final Critique 15, a delta round, frozen at 100a240 — foundational count 1, cured, not clean, no sample; 2026-11-04 — Final Critique 14, a delta round, frozen at 5961920 — foundational count 2, both cured, not clean, no sample; 2026-11-02 — Final Critique 13, a delta round, frozen at bba8734 — foundational count 2, both cured, not clean, no sample; 2026-10-31 — Final Critique 12 — foundational count 0, clean, one sample
+last gate: 2026-11-06 — Final Critique 19, a delta round, frozen at 368ce1f — foundational count 0, clean, one sample; 2026-11-06 — Final Critique 18, a full round, frozen at 20c8fb1 — foundational count 1, cured, not clean, no sample; 2026-11-05 — Final Critique 17, a delta round, frozen at 8adbf07 — foundational count 2, both cured, not clean, no sample; 2026-11-05 — Final Critique 16, a delta round, frozen at 2db59c0 — foundational count 1, cured, not clean, no sample; 2026-11-04 — Final Critique 15, a delta round, frozen at 100a240 — foundational count 1, cured, not clean, no sample; 2026-11-04 — Final Critique 14, a delta round, frozen at 5961920 — foundational count 2, both cured, not clean, no sample; 2026-11-02 — Final Critique 13, a delta round, frozen at bba8734 — foundational count 2, both cured, not clean, no sample; 2026-10-31 — Final Critique 12 — foundational count 0, clean, one sample
 
 open:
 - 2026-11-06-a · refining · Invariant 4.1; State 10; External check 3 · Invariant 4.1 binds the now a record's creation read, no field of a record keeps that now, so no conformance check over the records clears it and no external check names it → decide whether External check 3's receipt-instant read stands for it, or a Non-goal names the guarantee as kept at the write only

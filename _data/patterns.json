@@ -1415,7 +1415,7 @@
    "resolve-a-persons-data-rights"
   ],
   "domain": null,
-  "grounded": false,
+  "grounded": true,
   "invariants": 6,
   "kind": "atom",
   "models": {
@@ -1439,7 +1439,7 @@
    "SEC 17a-4",
    "SOX"
   ],
-  "status": "partially resolved",
+  "status": "grounded on Final Critique 19 \u2014 2026-11-06 at 368ce1f",
   "title": "Selective Disclosure"
  },
  "session": {
