@@ -337,7 +337,7 @@ Check 2.1: An auditor MUST verify an evidence with the auditor's own implementat
 Check 2.2: An auditor MUST NOT need privileged access to the system to verify (Invariant 4.3).
 Check 3.1: IF the record set match of a verification over an original record set carrying a single-byte change to the record set presented at [Seal] EQUALS yes AND the seal check of that verification DOES NOT EQUAL unavailable THEN an auditor MUST confirm that the verification answers failed-verification carrying proof-invalid (Invariant 2.1, Operation 18).
 
-NOTE: open 2026-11-02-a — Check 3.1 exercises the failure direction alone, and no check has the record set presented at [Seal] answer verified (Operation 19, Invariant 3.1).
+NOTE: open 2026-11-02-a — Check 3.1 exercises the failure direction alone, over one named differing set (a single-byte change) where Invariant 2.1 covers any, and no check has the record set presented at [Seal] answer verified (Operation 19, Invariant 3.1).
 Check 4.1: An auditor MUST read verified, failed-verification and not-known as three distinct answers (Operation 14).
 Check 4.2: An auditor MUST read record-set-mismatch, proof-invalid and mechanism-verification-unavailable as three distinct reasons (Operation 16, Operation 17, Operation 18).
 Deleted: Check 5.1. A trusted-timestamping pattern owns it (Non-goal 9, Non-goal 15): an anchored bound on when a record set changed.
@@ -422,11 +422,9 @@ Deleted: Retention coupling 3. The composing pattern that owns the purge owns it
 
 ```
 Verification caching 1: An implementation MAY cache a verification result ONLY IF the mechanism's verification function consults no external anchor.
-Verification caching 2: An implementation MUST NOT cache a verification result across two record-set states.
+Verification caching 2: An implementation MAY answer a cached verification result ONLY IF the evidence id, the original record set and the record set match of the call EQUAL the evidence id, the original record set and the record set match the cached result was verified over.
 Deleted: Verification caching 3. An external-anchoring pattern owns it (Non-goal 2): what a seal answers once its anchor changes.
 ```
-
-NOTE: open 2026-10-21-i — what a cached verification result is keyed by is not stated (Verification caching 2).
 
 ## Composition notes
 
@@ -697,14 +695,14 @@ It inherits from:
 
 ## Status
 
-`partially resolved` — see the Ledger.
+`grounded on Final Critique 17 — 2026-11-06 at 700b167` — see the Ledger.
 
 ## Ledger
 
 ```
-status: partially resolved
+status: grounded on Final Critique 17 — 2026-11-06 at 700b167
 formal: not applicable — vote no 2026-06-03
-last gate: 2026-11-05 — Final Critique 16, a full round, frozen at cd7c4bb — foundational count 3, all cured, not clean, no sample; 2026-11-05 — Final Critique 15, a delta round, frozen at b1ae778 — foundational count 1, cured, not clean, no sample; 2026-11-04 — Final Critique 14, a delta round, frozen at 36e6d47 — foundational count 1, cured, not clean, no sample; 2026-11-03 — Final Critique 13, a delta round, frozen at f84da63 — foundational count 1, cured, not clean, no sample; 2026-11-02 — Final Critique 12, a delta round, frozen at dd11876 — foundational count 1, cured, not clean, no sample; 2026-11-02 — Final Critique 11, a delta round, frozen at d28642a — foundational count 3, all cured, not clean, no sample; 2026-10-24 — Final Critique 10 — foundational count 0, clean, one sample
+last gate: 2026-11-06 — Final Critique 17, a delta round, frozen at 700b167 — foundational count 0, clean, one sample; 2026-11-05 — Final Critique 16, a full round, frozen at cd7c4bb — foundational count 3, all cured, not clean, no sample; 2026-11-05 — Final Critique 15, a delta round, frozen at b1ae778 — foundational count 1, cured, not clean, no sample; 2026-11-04 — Final Critique 14, a delta round, frozen at 36e6d47 — foundational count 1, cured, not clean, no sample; 2026-11-03 — Final Critique 13, a delta round, frozen at f84da63 — foundational count 1, cured, not clean, no sample; 2026-11-02 — Final Critique 12, a delta round, frozen at dd11876 — foundational count 1, cured, not clean, no sample; 2026-11-02 — Final Critique 11, a delta round, frozen at d28642a — foundational count 3, all cured, not clean, no sample; 2026-10-24 — Final Critique 10 — foundational count 0, clean, one sample
 
 open:
 - 2026-11-05-a · refining · Invariant 4.1, 4.3; Operation 15; Term verification set; Term seam · the verification set holds the evidence's own fields, yet [Verify] reads the seal records to find that no evidence exists for an id (Operation 15), and where the seam gets the proof, the record set reference and the record set match is placed nowhere, nor what [Verify] answers when that read fails beyond Execution Contract Read 1; a host-injected value is received, not consulted, and no rule says so → decide what the verification set holds for a lookup miss and for the seam's reads
@@ -713,8 +711,7 @@ open:
 - 2026-11-05-d · refining · Edge cases headings; Seal atomicity, Concurrent seal, Retention coupling labels · the headings *Atomicity of a seal* and *Retention coupling* stand beside spec-format's table rows *Atomic writes* and *Retention asymmetry*, and the tombstoned and live labels follow the headings, each cited by name in other pages → decide whether the table's spellings bind headings and labels, and what renumbering the citations take
 - 2026-11-05-e · refining · Examples (false-tamper-claim disproof) · the example names Content Lock and Document Versioning as the composing patterns, with no link and no roadmap row to mark them forthcoming (M-orphan-forthcoming), so a reader cannot tell whether either exists → decide whether the roadmap lists the two patterns, or the example names the home in words
 - 2026-10-21-f · refining · Summary; Identity 8; Concurrent seal 1 · seal names both the action [Seal] and the evidence it records → one name each
-- 2026-10-21-i · refining · Verification caching 2 · what a cached result is keyed by is unstated, so two conforming caches drop a result at different moments → name the key
-- 2026-11-02-a · refining · Check 3.1; Operation 19; Invariant 3.1 · Check 3.1 confirms the failure direction alone, so a mechanism answering failed on the record set presented at [Seal] meets it, though Operation 19 and Invariant 3.1 oblige verified there; no rule of the corpus says a spec's checks cover each direction of an invariant, and a positive check carries the same conditions Check 3.1 has just been cured to name (record set match, seal check not unavailable, no anchor change) → decide whether the atom's acceptance tests the positive direction, and write the check on the verification's own record set match and seal check
+- 2026-11-02-a · refining · Check 3.1; Operation 19; Invariant 2.1; Invariant 3.1 · Check 3.1 confirms the failure direction alone, over the one differing set of a single-byte change though Invariant 2.1 covers any differing set (Final Critique 17), so a mechanism answering failed on the record set presented at [Seal] meets it, though Operation 19 and Invariant 3.1 oblige verified there; no rule of the corpus says a spec's checks cover each direction of an invariant, and a positive check carries the same conditions Check 3.1 has just been cured to name (record set match, seal check not unavailable, no anchor change) → decide whether the atom's acceptance tests the positive direction, and write the check on the verification's own record set match and seal check
 - 2026-10-22-a · refining · Identity 2; Capability requirement · the evidence id's source is named as the host's allocation under Identity and not among the Capability requirements, where spec-format's atom shape lists an id source under Capability requirement; Event Log routed the same form (its 2026-10-22-b), twenty atoms writing the host's allocation under Identity and four having the deployment supply id material under Capability requirement 2 → one form for the corpus, as the seam normalization made one for now
 ```
 
