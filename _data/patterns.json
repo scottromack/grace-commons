@@ -226,7 +226,7 @@
    "credential",
    "actor-identity"
   ],
-  "grounded": false,
+  "grounded": true,
   "invariants": 4,
   "kind": "composition",
   "models": {
@@ -246,7 +246,7 @@
    "SOX",
    "eIDAS"
   ],
-  "status": "partially resolved",
+  "status": "grounded on Final Critique 10 \u2014 2026-11-06 at 368ce1f",
   "substrates": [],
   "title": "Authenticated Actor"
  },
