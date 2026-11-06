@@ -105,7 +105,7 @@ Term receipt instant: the instant the deployment received a [Record] call, which
 ### Capability requirement
 
 ```
-Capability requirement 1: The deployment MUST supply now at the seam, and MUST supply each disclosure id to one call only, so that no disclosure id the deployment supplies was supplied to an earlier call of the same database instance (Execution Contract Logic confinement 3; Term disclosure id).
+Capability requirement 1: The deployment MUST supply now at the seam, and MUST supply the disclosure id at the seam, PER Execution Contract Logic confinement 3 and Execution Contract Logic confinement 16 (Term disclosure id).
 Capability requirement 5: The deployment MUST supply the disclosure records PER Execution Contract Database 1, Execution Contract Database 3, Execution Contract Database 4, Execution Contract Database 5, Execution Contract Database 6, Execution Contract Database 7, Execution Contract Read 1 through 4, Execution Contract Refusal 1, Execution Contract Query 1 through 4 and Execution Contract Input 1.
 Capability requirement 6: The deployment MUST call [Record] for EVERY transmission of a subject's data to a party beside the subject.
 Capability requirement 7: The deployment MUST declare which composing patterns the deployment wired in.
@@ -398,10 +398,10 @@ Term string cap: the bound on a string input's length and on a disclosure id's l
 Correction 1: The atom MUST NOT edit a disclosure record.
 Correction 2: The atom MUST NOT remove a disclosure record.
 Correction 3: A caller correcting a disclosure record MUST call [Record] again.
-Correction 4: A caller's correcting [Record] call MUST carry a correction narrative that names the corrected disclosure record.
+Correction 4: A caller's correcting [Record] call MUST carry a correction narrative that carries the corrected disclosure record's disclosure id.
 ```
 
-Term correction narrative: the prose a correcting disclosure record's scope OR authority reference carries beside what the field names — the two fields that hold prose, since a record carries State 1's seven fields and no optional one (State 3); this prose, and no field, pairs a correction with the record it corrects.
+Term correction narrative: the prose a correcting disclosure record's scope OR authority reference carries beside what the field names — the two fields that hold prose, since a record carries State 1's seven fields and no optional one (State 3); this prose, and no field, pairs a correction with the record it corrects, by carrying the corrected disclosure record's disclosure id exactly as the corrected record carries it.
 
 ---
 
@@ -604,7 +604,7 @@ Projection: invalid-query
 ```
 status: partially resolved
 formal: not applicable — vote no 2026-06-03
-last gate: 2026-11-05 — Final Critique 16, a delta round, frozen at 2db59c0 — foundational count 1, cured, not clean, no sample; 2026-11-04 — Final Critique 15, a delta round, frozen at 100a240 — foundational count 1, cured, not clean, no sample; 2026-11-04 — Final Critique 14, a delta round, frozen at 5961920 — foundational count 2, both cured, not clean, no sample; 2026-11-02 — Final Critique 13, a delta round, frozen at bba8734 — foundational count 2, both cured, not clean, no sample; 2026-10-31 — Final Critique 12 — foundational count 0, clean, one sample
+last gate: 2026-11-05 — Final Critique 17, a delta round, frozen at 8adbf07 — foundational count 2, both cured, not clean, no sample; 2026-11-05 — Final Critique 16, a delta round, frozen at 2db59c0 — foundational count 1, cured, not clean, no sample; 2026-11-04 — Final Critique 15, a delta round, frozen at 100a240 — foundational count 1, cured, not clean, no sample; 2026-11-04 — Final Critique 14, a delta round, frozen at 5961920 — foundational count 2, both cured, not clean, no sample; 2026-11-02 — Final Critique 13, a delta round, frozen at bba8734 — foundational count 2, both cured, not clean, no sample; 2026-10-31 — Final Critique 12 — foundational count 0, clean, one sample
 
 open: none
 ```
