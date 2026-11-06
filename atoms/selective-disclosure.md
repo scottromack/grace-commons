@@ -71,7 +71,7 @@ NOTE: watch the id's length against the cap (Identity 2).
 
 Term disclosure record: one recorded disclosure of one subject's data to one recipient under one authority — the record this atom holds.
 
-Term disclosure id: the opaque string naming one disclosure record — a [Disclosure Id]; host-allocated at the seam, fresh per call as Capability requirement 1 requires.
+Term disclosure id: the opaque string naming one disclosure record — a [Disclosure Id]; host-allocated at the seam, fresh per call as Capability requirement 9 requires.
 
 Term subject reference: the opaque reference naming the data subject whose data was disclosed — a [Subject Reference]; a property of the record, never the record's identity.
 
@@ -105,11 +105,12 @@ Term receipt instant: the instant the deployment received a [Record] call, which
 ### Capability requirement
 
 ```
-Capability requirement 1: The deployment MUST supply now at the seam, and MUST supply the disclosure id at the seam, PER Execution Contract Logic confinement 3 and Execution Contract Logic confinement 16 (Term disclosure id).
-Capability requirement 5: The deployment MUST supply the disclosure records PER Execution Contract Database 1, Execution Contract Database 3, Execution Contract Database 4, Execution Contract Database 5, Execution Contract Database 6, Execution Contract Database 7, Execution Contract Read 1 through 4, Execution Contract Refusal 1, Execution Contract Query 1 through 4 and Execution Contract Input 1.
+Capability requirement 1: The deployment MUST supply now at the seam PER Execution Contract Logic confinement 3.
+Capability requirement 5: The deployment MUST supply the disclosure records PER Execution Contract Database 1, Execution Contract Database 2, Execution Contract Database 3, Execution Contract Database 4, Execution Contract Database 5, Execution Contract Database 6, Execution Contract Database 7, Execution Contract Read 1 through 4, Execution Contract Refusal 1, Execution Contract Query 1 through 4 and Execution Contract Input 1.
 Capability requirement 6: The deployment MUST call [Record] for EVERY transmission of a subject's data to a party beside the subject.
-Capability requirement 7: The deployment MUST declare which composing patterns the deployment wired in.
+Deleted: Capability requirement 7. Execution Contract Conformance 9 owns it.
 Capability requirement 8: The deployment MAY declare the string cap PER Execution Contract Input 2.
+Capability requirement 9: The deployment MUST supply the disclosure id at the seam PER Execution Contract Logic confinement 3 and Execution Contract Logic confinement 16 (Term disclosure id).
 Deleted: Capability requirement 2. Execution Contract Logic confinement 7 owns it.
 Deleted: Capability requirement 3. Execution Contract Logic confinement 7 owns it.
 Deleted: Capability requirement 4. Execution Contract Logic confinement 7 owns it.
@@ -120,7 +121,7 @@ Deleted: Clock semantics 4. State 10 owns it.
 Deleted: Clock semantics 5. Non-goal 23 owns it.
 ```
 
-NOTE: watch the id the host supplies to two calls (Capability requirement 1).
+NOTE: watch the id the host supplies to two calls (Capability requirement 9).
 
 NOTE: watch the deployment's composition note (Capability requirement 7).
 
@@ -175,9 +176,9 @@ Deleted: Operation 35. Execution Contract Refusal 1 owns it.
 Operation 36: IF a filter is malformed THEN [Read] MUST answer invalid-query.
 Deleted: Operation 37. Execution Contract Input 1 owns it.
 Operation 38: IF the resolved disclosure instant is malformed THEN [Record] MUST answer invalid-request (Execution Contract Input 1).
-Operation 39: An admitted record MUST take the disclosure record's subject reference from the call's subject reference.
-Operation 40: An admitted record MUST take the disclosure record's recipient from the call's recipient.
-Operation 41: An admitted record MUST take the disclosure record's scope from the call's scope.
+Deleted: Operation 39. Execution Contract Input 4 owns it.
+Deleted: Operation 40. Execution Contract Input 4 owns it.
+Deleted: Operation 41. Execution Contract Input 4 owns it.
 Operation 42: An admitted record MUST take the disclosure record's authority type from the call's authority type.
 Operation 43: An admitted record MUST take the disclosure record's authority reference from the call's authority reference.
 Operation 44: IF a string input EXCEEDS the string cap THEN [Record] MUST answer invalid-request.
@@ -206,13 +207,15 @@ Term filter axes: disclosure id | subject reference | recipient | authority type
 
 NOTE: watch the wire layer (Term filter axes).
 
-Term admitted record: a [Record] call whose fields, resolved disclosure instant and authority type the guards all admit.
+Term admitted record: a [Record] call whose fields, resolved disclosure instant and authority type the guards all admit and whose write commits (Execution Contract Read 4).
 
 Term admitted read: a [Read] call whose every filter axis and filter value the guards admit.
 
+Term record sequence: the run of disclosure records an admitted read answers, in disclosure instant then disclosure id ascending order (Operation 18, Operation 19); empty where none matches (Operation 20).
+
 | # | Condition | [Record] answers |
 |---|---|---|
-| 1 | a field is blank, a non-blank supplied disclosure instant is no instant, or the resolved disclosure instant follows now | invalid-request |
+| 1 | a field is blank, a string input exceeds the string cap, a non-blank supplied disclosure instant is no instant, or the resolved disclosure instant follows now | invalid-request |
 | 2 | every field passes, authority type stands outside the authority types | unknown-authority-type |
 | 3 | every precondition passes, the database refuses the write | storage-failure |
 | 4 | every precondition passes, the database accepts the write | `recorded(disclosure_id)` |
@@ -227,7 +230,7 @@ Term admitted read: a [Read] call whose every filter axis and filter value the g
 - **Invariant 2 — Authority completeness.**
   ```
   Invariant 2.1: EVERY disclosure record's authority type MUST stand in the authority types.
-  Invariant 2.2: EVERY disclosure record's authority reference MUST stand non-blank.
+  Deleted: Invariant 2.2. Invariant 3.2 owns it.
   ```
 - **Invariant 3 — Field completeness.**
   ```
@@ -249,6 +252,9 @@ Term admitted read: a [Read] call whose every filter axis and filter value the g
   Deleted: Invariant 6.2. Execution Contract Database 1 owns it.
   Deleted: Invariant 6.3. Execution Contract Database 3 owns it.
   ```
+
+NOTE: open 2026-11-06-a — Invariant 4.1 is kept at the write by Operation 7 and cleared by no check over the records, since no record keeps the now its creation read (State 1, State 10).
+
 ---
 
 ## Examples
@@ -303,6 +309,7 @@ This atom's acceptance is provable: an external auditor clears it from the discl
 Check 2.1: An auditor MUST find disclosure id, subject reference, recipient, scope, authority type, authority reference and disclosure instant on EVERY disclosure record (State 1).
 Check 2.2: An auditor MUST find EVERY disclosure record's subject reference, recipient, scope and authority reference non-blank (Invariant 3.2).
 Check 2.3: An auditor MUST find EVERY disclosure record's authority type standing in the authority types (Invariant 2.1).
+Check 2.4: An auditor MUST find EVERY disclosure record's disclosure id distinct from the disclosure id of every other disclosure record in one database instance (Identity 5).
 Check 3.1: An auditor MUST find EVERY disclosure record's fields unchanged across EVERY committed version of the disclosure record (Invariant 1.1; Execution Contract Generation acceptance 1).
 Deleted: Check 3.2. Execution Contract Database 6 owns it.
 Deleted: Check 4.1. Operation 9 owns it.
@@ -329,6 +336,10 @@ Deleted: External check 4. Execution Contract Database 3 owns it.
 Deleted: External check 5. Execution Contract Database 6 owns it.
 ```
 
+Term authority records: the composing pattern's own records of the authorities a disclosure's authority reference names (Non-goal 7, Non-goal 8).
+
+Term egress record: the deployment's own record of what left the deployment, read beside the disclosure records to clear Capability requirement 6 (External check 2).
+
 ## Non-goals
 
 ```
@@ -354,7 +365,7 @@ Non-goal 19: A deployment needing a retention bound MUST compose Retention Windo
 Non-goal 20: The atom MUST NOT decide whether a disclosure to the subject stands as a disclosure.
 Non-goal 21: The atom MUST NOT bound disclosure instant from below.
 Non-goal 22: The atom MUST NOT offer a filter axis over an authority reference.
-Non-goal 23: A deployment needing a verifiable time anchor MUST compose a trusted timestamping pattern.
+Non-goal 23: A deployment needing a verifiable time anchor MUST compose Trusted Timestamping.
 Non-goal 24: A deployment needing a backdated disclosure instant detected MUST compose Event Log.
 ```
 
@@ -386,7 +397,7 @@ Deleted: String 7. Execution Contract Logic confinement 13 owns it.
 
 NOTE: the canonicalization Logic confinement 13 carries at the seam is the deployment's, not a normalization of a string input the atom makes.
 
-Term string input: subject reference, recipient, scope, authority reference OR a filter's key OR a filter's value on an axis other than disclosure instant — every caller-supplied string this atom accepts, but not a further field a call's authority carries.
+Term string input: subject reference, recipient, scope, authority type, authority reference OR a filter's key OR a filter's value on an axis other than disclosure instant — every caller-supplied string this atom accepts, but not a further field a call's authority carries.
 
 Term reference: subject reference — the one opaque reference this atom records, as Execution Contract Logic confinement 13 canonicalizes it at the seam; a recipient, a scope, an authority reference and a disclosure id are opaque strings, and no references.
 
@@ -408,7 +419,7 @@ Term correction narrative: the prose a correcting disclosure record's scope OR a
 ## Composition notes
 
 ```
-Deleted: Composition note 1. Capability requirement 7 owns it.
+Deleted: Composition note 1. Execution Contract Conformance 9 owns it.
 Composition note 2: A composing pattern MUST own the authorization of a call.
 Composition note 3: A composing pattern MUST own the attestation binding the recording actor.
 Composition note 4: A composing pattern MUST own the legitimacy of an authority reference.
@@ -450,7 +461,9 @@ Term cadences: empty.
 
 Term qualifiers: migrated — rewritten in GRACE lang v0.40 (2026-09-12).
 
-Term terms: disclosure record, disclosure id, subject reference, recipient, scope, database instance, seam, receipt instant, now, authority, authority type, authority types, authority reference, disclosure instant, resolved disclosure instant, filter axes, admitted record, admitted read, string input, reference, correction narrative, committed version, string cap.
+Term terms: disclosure record, disclosure id, subject reference, recipient, scope, database instance, seam, receipt instant, now, authority, authority type, authority types, authority reference, disclosure instant, resolved disclosure instant, filter axes, admitted record, admitted read, string input, reference, correction narrative, committed version, string cap, record sequence, authority records, egress record.
+
+NOTE: open 2026-11-06-b — the vocabulary carries no composing patterns line and no cited line, and the page has no title-and-summary blockquote.
 
 #### Record
 
@@ -482,7 +495,7 @@ Projection: subject_ref
 
 #### Recipient
 
-The non-empty string naming the party the data was disclosed to. Set on [Record], immutable (Invariants 1 and 3); opaque and exact-match on [Read] (subject-recognizable naming is the calling system's obligation).
+The non-blank string naming the party the data was disclosed to. Set on [Record], immutable (Invariants 1 and 3); opaque and exact-match on [Read] (subject-recognizable naming is the calling system's obligation).
 
 Kind:       Field
 Field of:   the disclosure record
@@ -490,7 +503,7 @@ Projection: recipient
 
 #### Scope
 
-The non-empty string naming what subset of the subject's data was disclosed, as declared by the calling system. Set on [Record], immutable; opaque (subject-comprehensible vocabulary is the calling system's obligation).
+The non-blank string naming what subset of the subject's data was disclosed, as declared by the calling system. Set on [Record], immutable; opaque (subject-comprehensible vocabulary is the calling system's obligation).
 
 Kind:       Field
 Field of:   the disclosure record
@@ -506,7 +519,7 @@ Projection: authority
 
 #### Authority Type
 
-The kind of authority — exactly consent, legal-hold, or regulatory (any other value is [Unknown Authority Type]). The machine-queryable half of [Authority]; the [Read] filter axis of the same name matches on it.
+The kind of authority — exactly consent, legal-hold, or regulatory (any other value within the string cap is [Unknown Authority Type]). The machine-queryable half of [Authority]; the [Read] filter axis of the same name matches on it.
 
 Kind:       Field
 Field of:   the authority field
@@ -604,9 +617,11 @@ Projection: invalid-query
 ```
 status: partially resolved
 formal: not applicable — vote no 2026-06-03
-last gate: 2026-11-05 — Final Critique 17, a delta round, frozen at 8adbf07 — foundational count 2, both cured, not clean, no sample; 2026-11-05 — Final Critique 16, a delta round, frozen at 2db59c0 — foundational count 1, cured, not clean, no sample; 2026-11-04 — Final Critique 15, a delta round, frozen at 100a240 — foundational count 1, cured, not clean, no sample; 2026-11-04 — Final Critique 14, a delta round, frozen at 5961920 — foundational count 2, both cured, not clean, no sample; 2026-11-02 — Final Critique 13, a delta round, frozen at bba8734 — foundational count 2, both cured, not clean, no sample; 2026-10-31 — Final Critique 12 — foundational count 0, clean, one sample
+last gate: 2026-11-06 — Final Critique 18, a full round, frozen at 20c8fb1 — foundational count 1, cured, not clean, no sample; 2026-11-05 — Final Critique 17, a delta round, frozen at 8adbf07 — foundational count 2, both cured, not clean, no sample; 2026-11-05 — Final Critique 16, a delta round, frozen at 2db59c0 — foundational count 1, cured, not clean, no sample; 2026-11-04 — Final Critique 15, a delta round, frozen at 100a240 — foundational count 1, cured, not clean, no sample; 2026-11-04 — Final Critique 14, a delta round, frozen at 5961920 — foundational count 2, both cured, not clean, no sample; 2026-11-02 — Final Critique 13, a delta round, frozen at bba8734 — foundational count 2, both cured, not clean, no sample; 2026-10-31 — Final Critique 12 — foundational count 0, clean, one sample
 
-open: none
+open:
+- 2026-11-06-a · refining · Invariant 4.1; State 10; External check 3 · Invariant 4.1 binds the now a record's creation read, no field of a record keeps that now, so no conformance check over the records clears it and no external check names it → decide whether External check 3's receipt-instant read stands for it, or a Non-goal names the guarantee as kept at the write only
+- 2026-11-06-b · refining · Term actors; Term terms; the page head · Non-goals and Composition notes name composing patterns and the Terms cite the Execution Contract, yet the vocabulary carries no composing patterns line and no cited line (Closed vocabulary 2, Closed vocabulary 3), and the page has no title-and-summary blockquote (Atom shape 2) → decide the category lines the corpus's atoms carry, then add them and the blockquote
 ```
 
 <details markdown="block">
