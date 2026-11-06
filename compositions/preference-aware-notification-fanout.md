@@ -229,7 +229,7 @@ Term now: the deployment's clock reading at the call, as Execution Contract Logi
 
 ```
 Primitive policy 1: IF the event scope EQUALS blank THEN [Fanout Shaped] MUST answer invalid-request.
-Primitive policy 2: IF the payload content EQUALS blank THEN the action MUST answer invalid-request.
+Primitive policy 2: IF the payload content EQUALS blank THEN [Fanout Shaped] MUST answer invalid-request.
 Primitive policy 3: IF a supplied fanout id EQUALS blank THEN the action MUST answer invalid-request.
 Primitive policy 4: IF a supplied principal reference EQUALS blank THEN the action MUST answer invalid-request.
 Primitive policy 5: The composition MUST compare a subscriber reference with a principal reference byte-exact.
@@ -239,6 +239,8 @@ Primitive policy 8: A deployment MUST size the payload cap for the largest recor
 Primitive policy 9: An action refused under Primitive policy 1 through 4 MUST NOT write.
 Primitive policy 10: IF abandon EQUALS blank THEN [Reconcile Gaps] MUST answer invalid-request.
 Primitive policy 11: [Reconcile Gaps] refused under Primitive policy 10 MUST NOT write.
+Primitive policy 12: IF the payload content EQUALS blank THEN [Redispose] MUST answer invalid-request.
+Primitive policy 13: [Redispose] refused under Primitive policy 12 MUST NOT write.
 ```
 
 ### Action wiring
@@ -267,11 +269,11 @@ Term redisposition: created carrying the notification id | failed carrying the c
 
 Term redispose position: read | outcome — whether the refused read preceded everything, or the outcome's append was refused.
 
-Term gap result: the repaired principals with each outcome, and the abandoned principals or all.
+Term gap result: the repaired principals with each outcome, and the abandoned principals.
 
 Term gap position: intent | abandonment.
 
-Term overshoot result: the overshoots recorded, each a configuration version, a window, a cap and the committed count.
+Term overshoot result: the overshoots recorded, each a configuration version, a window, a cap, the committed count and the delivery event's id.
 
 ```
 Action wiring 1: A validated fanout MUST take a fanout id from the seam.
@@ -284,7 +286,6 @@ Action wiring 7: IF Event Log refuses the initiation entry THEN [Fanout Shaped] 
 Action wiring 8: An initiated fanout MUST dispose EVERY queried subscriber.
 Deleted: Action wiring 9. Execution Contract Database 2 owns it.
 Action wiring 10: An initiated fanout MUST read the pair's latest disposition event under the per-disposition exclusion.
-NOTE: open 2026-11-04-a — a failed read and a lost reply here have no rule of their own.
 Action wiring 11: IF the read finds a disposition event THEN the initiated fanout MUST answer the event's disposition for the subscriber.
 Action wiring 12: IF the read finds a disposition event THEN the initiated fanout MUST NOT write for the subscriber.
 Action wiring 13: IF the per-disposition exclusion's lease expired THEN the initiated fanout MUST answer the subscriber AND EVERY remaining subscriber as yielded.
@@ -328,12 +329,15 @@ Deleted: Action wiring 50. Execution Contract Database 1 owns it.
 Deleted: Action wiring 51. Execution Contract Database 1 owns it.
 Action wiring 52: An admitted redisposition MUST call Subscription's subscribed with the principal AND the initiation entry's event scope.
 Action wiring 53: IF subscribed answers not-subscribed THEN [Redispose] MUST record a suppression event carrying unsubscribed, false as the retry eligibility, none as the preference id AND the audience check with the now as the evaluation inputs.
-Action wiring 54: IF subscribed answers subscribed THEN [Redispose] MUST read the preference read for the principal AND dispose the principal PER Action wiring 16 through 23, 25 through 29 AND 31 through 34 under a fresh now.
+Action wiring 54: IF subscribed answers subscribed THEN [Redispose] MUST read the preference read for the principal AND dispose the principal PER Action wiring 16 through 23, 25 through 29, 31 through 34 AND 61 under a fresh now.
 NOTE: watch rule inheritance (Action wiring 54) — [Redispose] makes no read of Action wiring 10, so Action wiring 15 is not inherited, and Action wiring 56 owns a refused append, so Action wiring 24 and 30 are not.
 Action wiring 55: A redisposition event MUST carry the original fanout id AND the redisposition flag.
 Action wiring 56: IF Event Log refuses a redisposition event THEN [Redispose] MUST answer journal-rejected carrying the outcome position.
 Deleted: Action wiring 57. Execution Contract Database 1 owns it: a redisposition's writes commit together, so no journal-rejected carries a notification id.
 Action wiring 58: An admitted redisposition MUST answer the committed disposition.
+Action wiring 59: IF the read of Action wiring 10 answers state-unavailable THEN the initiated fanout MUST answer the subscriber as yielded (Execution Contract Constituent failure 3).
+Action wiring 60: IF a foreign holder holds the per-disposition exclusion at the read of Action wiring 10 THEN the initiated fanout MUST answer the subscriber as yielded.
+Action wiring 61: IF the rule that fired IS channel selection THEN a suppression event's evaluation inputs MUST carry EVERY interpreted window-and-cap pair with the gate's in-window count.
 ```
 
 Term subscriber query: Subscription's subscribers_for on the event scope.
@@ -435,13 +439,14 @@ Deleted: Reconciliation 27. Execution Contract Database 1 owns it.
 Reconciliation 28: IF Event Log refuses an abandonment record THEN [Reconcile Gaps] MUST answer journal-rejected carrying abandonment.
 Reconciliation 29: A refused append MUST NOT withdraw the gap run's earlier redispositions.
 Reconciliation 30: An overshoot run MUST read the principal's delivery events under each journaled configuration version's window-and-cap pairs.
-Reconciliation 31: IF a window's committed count EXCEEDS the window's contemporaneous cap AND no overshoot record already names the overshoot AND the window's start IS NOT IN the aged instants THEN the overshoot run MUST record an overshoot record carrying the principal, the configuration version, the window, the cap, the committed count AND the decided instant.
-Reconciliation 32: The overshoot run MUST NOT record an overshoot an overshoot record already names.
+Reconciliation 31: IF a delivery event IS an overshoot AND no overshoot record already carries the delivery event's id for the pair AND the window's start IS NOT IN the aged instants THEN the overshoot run MUST record an overshoot record carrying the principal, the configuration version, the window, the cap, the committed count, the delivery event's id AND the decided instant.
+Reconciliation 32: The overshoot run MUST NOT record an overshoot record for a delivery event id AND window-and-cap pair an overshoot record already carries.
 Deleted: Reconciliation 33. Execution Contract Database 2 owns it.
 Deleted: Reconciliation 34. Execution Contract Database 2 owns it.
 Reconciliation 35: The overshoot run MUST NOT record a window whose start is an aged instant.
 Reconciliation 36: The reconciliation MUST NOT store composition state.
 Reconciliation 37: IF the payload content EQUALS blank AND abandon EQUALS false THEN the gap run MUST abandon EVERY gap principal carrying payload-unavailable as the abandonment reason.
+Reconciliation 38: IF Event Log refuses an overshoot record THEN [Reconcile Overshoots] MUST answer journal-rejected (Execution Contract Constituent failure 1).
 ```
 
 Term reconciliation: the two legs, [Reconcile Gaps] and [Reconcile Overshoots], each a scheduled leg (Execution Contract Scheduled leg 1), whose output — a closed gap or a recorded overshoot — an auditor awaits within the reconciliation window.
@@ -449,6 +454,8 @@ Term reconciliation: the two legs, [Reconcile Gaps] and [Reconcile Overshoots], 
 Term gap run: one call of [Reconcile Gaps].
 
 Term overshoot run: one call of [Reconcile Overshoots].
+
+Term overshoot: a delivery event whose window ending at the event's decided instant carries a committed count that EXCEEDS an interpreted cap.
 
 Term young invocation: an invocation whose `((fired instant + invocation duration bound) + notification create latency)` DOES NOT PRECEDE now — still in its loop.
 
@@ -460,7 +467,7 @@ Term gap principal: a queried subscriber carrying no disposition event under the
 
 Term reconcile intent: the fanout.reconcile-intended event — the gap run's intent, naming the invocation it is about to repair.
 
-Term abandonment record: the fanout.abandoned event — the terminal record discharging the liveness of the principals it names, or of all.
+Term abandonment record: the fanout.abandoned event — the terminal record discharging the liveness of the principals it names.
 
 Term abandonment reason: payload-unavailable | operator-declined.
 
@@ -486,7 +493,7 @@ Shaping gate 14: IF the record carries no channel preferences THEN the shaping g
 Shaping gate 15: The shaping gate MUST exclude EVERY channel of a statutory quiet window containing now.
 Shaping gate 16: IF the channel set DOES NOT EQUAL blank THEN the shaping gate MUST answer deliver carrying the channel set AND the format.
 Shaping gate 17: IF the preference values emptied the channel set THEN the shaping gate MUST answer suppress carrying channel-opt-out.
-Shaping gate 18: IF the statutory exclusion emptied a channel set the preference values left non-empty THEN the shaping gate MUST answer suppress carrying quiet-window.
+Shaping gate 18: IF the statutory exclusion emptied a channel set the preference values or the default shape left non-empty THEN the shaping gate MUST answer suppress carrying quiet-window.
 Shaping gate 19: The shaping gate MUST NOT answer deliver on a fail-closed cause.
 Shaping gate 20: The shaping gate MUST NOT call a constituent.
 Shaping gate 21: The composition MUST NOT reorder the precedence rules.
@@ -603,7 +610,7 @@ eli's record carries `frequency_limit: {per_day: 3}`. Deliveries committed for e
 
 A deployment that cannot serialize per principal declares `cap_serialization = best-effort`. Principal **fred** carries `frequency_limit: {per_day: 2}` and has one delivery in the rolling 24-hour window (count 1). Two invocations — `fx_20` and `fx_21` — fire for fred at nearly the same instant. Each gate independently reads the history, observes count 1 < cap 2, and commits a delivery: `fx_20`'s `fanout.created` records `{count: 1, window: rolling-24h, cap: 2}`; `fx_21`'s records the *same* observed `{count: 1}` — neither saw the other's not-yet-committed delivery (the time-of-check-to-time-of-use race). The committed total is now 3 against a cap of 2: a one-delivery overshoot, bounded by the two concurrent invocations.
 
-Nothing is hidden. Each `fanout.created` event carries the headroom its gate actually saw, so Invariant 4's per-commit anchor still holds — each delivery *was* below cap at its own observation — and the overshoot is diagnosable from the journal: a post-hoc recount of fred's window finds 3 committed deliveries under a cap of 2. Within the declared `reconciliation_window`, the deployment's scheduler invokes `reconcile_overshoots(fred)`, whose detector flags the window and appends `{type: "fanout.cap-overshoot-reconciled", principal_ref: fred, config_version: cfg_v3, window: rolling-24h, cap: 2, committed: 3, decided_at}` — the record Check 2.4 reads as the evidence that the overshoot was detected and recorded within the window (Invariant 4's liveness arm, discharged). A regulated deployment whose caps carry legal force would instead have declared serialized-per-principal, under which the second gate observes count 2 and suppresses frequency-cap — no overshoot is possible.
+Nothing is hidden. Each `fanout.created` event carries the headroom its gate actually saw, so Invariant 4's per-commit anchor still holds — each delivery *was* below cap at its own observation — and the overshoot is diagnosable from the journal: a post-hoc recount of fred's window finds 3 committed deliveries under a cap of 2. Within the declared `reconciliation_window`, the deployment's scheduler invokes `reconcile_overshoots(fred)`, whose detector flags the window and appends `{type: "fanout.cap-overshoot-reconciled", principal_ref: fred, config_version: cfg_v3, window: rolling-24h, cap: 2, committed: 3, delivery_event_id: <fx_21's fanout.created event id>, decided_at}` — the record Check 2.4 reads as the evidence that the overshoot was detected and recorded within the window (Invariant 4's liveness arm, discharged). A regulated deployment whose caps carry legal force would instead have declared serialized-per-principal, under which the second gate observes count 2 and suppresses frequency-cap — no overshoot is possible.
 
 ### Statutory window firing — no stored quiet hours
 
@@ -710,6 +717,8 @@ Non-goal 12: A deployment needing at-most-once across a wholesale re-fanout MUST
 
 Term covered obligation: a quiet-window obligation or a frequency obligation the deployment's regime imposes.
 
+NOTE: open 2026-11-06-d — no Capability requirement binds the transport to end a Pending Notification record the composition created.
+
 NOTE: the owners — the deployment's scheduler (Non-goal 3); the deployment (Non-goal 5, External check 4); the transport (Non-goal 6); a composing [Permissions](../atoms/permissions.md) layer (Non-goal 7); [Audit Trail](./audit-trail.md) (Non-goal 10, Non-goal 11).
 
 ---
@@ -729,6 +738,7 @@ Clock semantics 2: A deployment needing a mid-invocation window change honoured 
 Concurrency 1: A [Redispose] deliver MUST hold the per-disposition exclusion AND the per-principal exclusion alike.
 Deleted: Concurrency 2. Execution Contract Database 2 owns it.
 Concurrency 3: The composition MUST NOT roll back one subscriber's disposition for another's failure.
+NOTE: open 2026-11-06-e — the page declares no transaction boundary for a fanout's per-subscriber commits.
 ```
 
 ### Payload retention
@@ -755,7 +765,7 @@ Staleness 2: An admitted redisposition MUST re-verify the audience AND re-read t
 
 ## Terms
 
-Each `[Term]` marker above links to its term entry here; a term entry states what the concept *is*, in plain English, and its **Kind**, and — for a Field, a Parameter or a wire Member — carries the one **Projection** line where the concrete name stays visible on the page. The composition's own concepts are the four actions it exposes and the pure gate they run, the invocation's id and two of the gate's journaled data, the closed suppression reasons, the closed fail-closed causes, and its own refusals. The trichotomy, quiet-window and cap safety, no silent disposition and replayability are structural properties, not data. The deployment settings keep their wire spellings in configuration — `quiet_hours_interpretation`, `frequency_limit_interpretation`, `channel_interpretation`, `no_record_policy`, `cap_policy`, `quiet_window_policy`, `cap_serialization`, `journal_query_capability`, `payload_digest_function`, `reconciliation_window`, `reconciliation_cadence`, `notification_create_latency`, `disposition_write_latency`, `max_query_latency`, `abandonment_principals_cap`, `invocation_duration_bound`, `hold_retry_horizon`, `statutory_quiet_window`, `clock_tolerance` — and the two indexes theirs in an implementation, `delivery_count_index` and `fanout_dispositions`; the page names each in English where it declares it. *(annotation.md Terms registry; representational only — it changes no guarantee, invariant, or behavior of the composition above.)*
+Each `[Term]` marker above links to its term entry here; a term entry states what the concept *is*, in plain English, and its **Kind**, and — for a Field, a Parameter or a wire Member — carries the one **Projection** line where the concrete name stays visible on the page. The composition's own concepts are the four actions it exposes and the pure gate they run, the invocation's id and two of the gate's journaled data, the closed suppression reasons, the closed fail-closed causes, and its own refusals. The trichotomy, quiet-window and cap safety, no silent disposition and replayability are structural properties, not data. The deployment settings keep their wire spellings in configuration — `quiet_hours_interpretation`, `frequency_limit_interpretation`, `channel_interpretation`, `no_record_policy`, `cap_policy`, `quiet_window_policy`, `cap_serialization`, `journal_query_capability`, `payload_digest_function`, `reconciliation_window`, `reconciliation_cadence`, `notification_create_latency`, `max_query_latency`, `abandonment_principals_cap`, `invocation_duration_bound`, `hold_retry_horizon`, `statutory_quiet_window`, `clock_tolerance` — and the two indexes theirs in an implementation, `delivery_count_index` and `fanout_dispositions`; the page names each in English where it declares it. *(annotation.md Terms registry; representational only — it changes no guarantee, invariant, or behavior of the composition above.)*
 
 ### Vocabulary
 
@@ -843,7 +853,7 @@ Projection: retry_eligible
 
 #### Evaluation Inputs
 
-The record of what the gate observed at disposition time — the observed record status, the injected now, and (for a cap verdict) the interpreted `(window, cap)` pairs and in-window counts — journaled on both `fanout.created` and `fanout.suppressed` events. It is what makes a verdict replayable (Invariant 7) and a best-effort overshoot diagnosable, because it captures the mutable and ephemeral inputs a later re-read cannot recover.
+The record of what the gate observed at disposition time — the observed record status, the injected now, and (for a cap verdict or a channel selection verdict) the interpreted `(window, cap)` pairs and in-window counts — journaled on both `fanout.created` and `fanout.suppressed` events. It is what makes a verdict replayable (Invariant 7) and a best-effort overshoot diagnosable, because it captures the mutable and ephemeral inputs a later re-read cannot recover.
 
 Kind:       Field
 Field of:   the disposition event
@@ -1008,12 +1018,13 @@ It inherits from: **[Subscription](../atoms/subscription.md)** (Observer, pub-su
 ```
 status: partially resolved
 formal: pending — re-derivation, 2026-08-30: the invocation and [Reconcile Gaps] are now two processes over one disposition under a per-disposition section whose lease is the invocation's terminus, the deliver pair is ordered rather than atomic with an adoptable orphan, and the gap leg is age-bounded, none of which the model carries; was verified — preference-aware-notification-fanout.tla + 1 twin, 2026-06-12
-last gate: 2026-11-06 — Final Critique 16, delta, one fresh reader (Linus) — not clean, 1 foundational (the blind second triage's; Linus reported 3), cured by a held Execution Contract rule (Logic confinement 17) in the quiet window (the next round is a delta round); refining recorded (open line 2026-11-06-c), the Reconcile Gaps prose cured; 2026-11-06 — Final Critique 15, delta, one fresh reader (Linus) — not clean, 2 foundational (the blind second triage's; Linus reported 0), cured in the settle (the next round is a delta round); 2026-11-05 — Final Critique 14, delta, one fresh reader (Linus) — not clean, 1 foundational, cured in the settle (the next round is a delta round)
+last gate: 2026-11-06 — Final Critique 17, full, three fresh readers (GRID, EOS, Linus) — not clean, 6 foundational (GRID reported 7, EOS 1, Linus 1; GRID's fail-versus-expire finding recorded as refining and Linus's refuted against Database 1), cured in the patch (the next round is a delta round); refining recorded (open lines 2026-11-06-d and 2026-11-06-e); 2026-11-06 — Final Critique 16, delta, one fresh reader (Linus) — not clean, 1 foundational (the blind second triage's; Linus reported 3), cured by a held Execution Contract rule (Logic confinement 17) in the quiet window (the next round is a delta round); refining recorded (open line 2026-11-06-c), the Reconcile Gaps prose cured; 2026-11-06 — Final Critique 15, delta, one fresh reader (Linus) — not clean, 2 foundational (the blind second triage's; Linus reported 0), cured in the settle (the next round is a delta round); 2026-11-05 — Final Critique 14, delta, one fresh reader (Linus) — not clean, 1 foundational, cured in the settle (the next round is a delta round)
 
 open:
+- 2026-11-06-e · refining · Concurrency 3, Action wiring 35 · the page declares no transaction boundary for a fanout's per-subscriber commits, while Execution Contract Database 1 is one transaction per action → state the boundary a subscriber's disposition commits in
+- 2026-11-06-d · refining · Non-goal 6 · no Capability requirement names who ends a Pending Notification record the composition created or under which fail-versus-expire policy, so a record the transport never ends stays Pending and Action wiring 46 answers not-retryable → bind the transport's call of Notification's deliver, fail or expire in a Capability requirement
 - 2026-11-06-c · refining · Capability requirement 54 · the prohibition on reading a window beyond the longest names no answer a caller gets, so builds may refuse with different codes → state the refusal the frequency limit interpretation answers
 - 2026-11-06-b · refining · Capability requirement 9, Capability requirement 30 · the hold retry horizon is not ordered against the audit horizon, so a [Redispose] of a retryable suppression past the audit horizon would need a configuration version Capability requirement 9 no longer retains → order the two durations at start, or retain a configuration version through the hold retry horizon
-- 2026-11-04-a · refining · Action wiring 6, Action wiring 10, Reconciliation 11, Action wiring 26 · a failed read and a lost reply have no rule of their own on the page; Execution Contract Read 1 and Error model 1 own them and the lease's expiry yields (Action wiring 13) → cite them at the sites, or state the answer a failed Action wiring 10 read gives
 - 2026-11-04-b · refining · Term retryable disposition · a failure event is retryable unconditionally, so a pair whose earlier delivery event names a live record can be retried toward a second live record → admit a failure event only where no live record stands (Invariant 9.1)
 - 2026-11-04-c · refining · Examples (disputed delivery) · the scenario names Message Preference's in-effect reconstruction and an in-effect window, which no declared surface carries → rewrite the reconstruction over the declared read and set and deletion instants
 - 2026-08-30-d · refining · formal · the model has no [Reconcile Gaps] leg as a second process over one disposition, no per-disposition section with a lease terminus, and no age-bounded leg → extend it
