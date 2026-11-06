@@ -667,6 +667,7 @@ Check 2.1: An auditor MUST find EVERY delivery event's observed count below EVER
 Check 2.2: IF the cap serialization EQUALS serialized-per-principal THEN an auditor MUST find EVERY delivery event's observed count derivable from the preceding delivery events in the window (Invariant 4.2).
 Deleted: Check 2.3. Execution Contract Database 1 owns it.
 Check 2.4: IF the cap serialization EQUALS best-effort THEN an auditor MUST find EVERY overshoot matched by an overshoot record WITHIN the reconciliation window (Invariant 4.3).
+NOTE: open 2026-11-06-f — Invariant 4.3 and Check 2.4 do not state the instant the reconciliation window counts from for an overshoot.
 Check 3.1: An auditor MUST find EVERY suppression event carrying a suppression reason (Invariant 5.1).
 Check 3.2: An auditor MUST find EVERY suppression event's preference id naming a record in effect at the decided instant within the clock tolerance (Composition state 15).
 Check 3.3: An auditor MUST find EVERY failure event carrying a failure cause (Invariant 5.2).
@@ -1011,16 +1012,17 @@ It inherits from: **[Subscription](../atoms/subscription.md)** (Observer, pub-su
 
 ## Status
 
-`partially resolved` — see the Ledger.
+`grounded (English) on Final Critique 18 — 2026-11-06 at a342d5e — formal layer pending` — see the Ledger.
 
 ## Ledger
 
 ```
-status: partially resolved
+status: grounded (English) on Final Critique 18 — 2026-11-06 at a342d5e — formal layer pending
 formal: pending — re-derivation, 2026-08-30: the invocation and [Reconcile Gaps] are now two processes over one disposition under a per-disposition section whose lease is the invocation's terminus, the deliver pair is ordered rather than atomic with an adoptable orphan, and the gap leg is age-bounded, none of which the model carries; was verified — preference-aware-notification-fanout.tla + 1 twin, 2026-06-12
-last gate: 2026-11-06 — Final Critique 17, full, three fresh readers (GRID, EOS, Linus) — not clean, 6 foundational (GRID reported 7, EOS 1, Linus 1; GRID's fail-versus-expire finding recorded as refining and Linus's refuted against Database 1), cured in the patch (the next round is a delta round); refining recorded (open lines 2026-11-06-d and 2026-11-06-e); 2026-11-06 — Final Critique 16, delta, one fresh reader (Linus) — not clean, 1 foundational (the blind second triage's; Linus reported 3), cured by a held Execution Contract rule (Logic confinement 17) in the quiet window (the next round is a delta round); refining recorded (open line 2026-11-06-c), the Reconcile Gaps prose cured; 2026-11-06 — Final Critique 15, delta, one fresh reader (Linus) — not clean, 2 foundational (the blind second triage's; Linus reported 0), cured in the settle (the next round is a delta round); 2026-11-05 — Final Critique 14, delta, one fresh reader (Linus) — not clean, 1 foundational, cured in the settle (the next round is a delta round)
+last gate: 2026-11-06 — Final Critique 18, delta, one fresh reader (Linus), frozen at a342d5e — foundational count 0, clean, one sample (Linus reported 2 foundational, both refuted on the page's text; the blind second triage placed none foundational); refining recorded (open line 2026-11-06-f); 2026-11-06 — Final Critique 17, full, three fresh readers (GRID, EOS, Linus) — not clean, 6 foundational (GRID reported 7, EOS 1, Linus 1; GRID's fail-versus-expire finding recorded as refining and Linus's refuted against Database 1), cured in the patch (the next round is a delta round); refining recorded (open lines 2026-11-06-d and 2026-11-06-e); 2026-11-06 — Final Critique 16, delta, one fresh reader (Linus) — not clean, 1 foundational (the blind second triage's; Linus reported 3), cured by a held Execution Contract rule (Logic confinement 17) in the quiet window (the next round is a delta round); refining recorded (open line 2026-11-06-c), the Reconcile Gaps prose cured; 2026-11-06 — Final Critique 15, delta, one fresh reader (Linus) — not clean, 2 foundational (the blind second triage's; Linus reported 0), cured in the settle (the next round is a delta round); 2026-11-05 — Final Critique 14, delta, one fresh reader (Linus) — not clean, 1 foundational, cured in the settle (the next round is a delta round)
 
 open:
+- 2026-11-06-f · refining · Invariant 4.3, Check 2.4 · neither states the instant the reconciliation window counts from for an overshoot (the fired instant, which Composition state 12 and the escalation reach count from, or the delivery event's decided instant, which a [Redispose]'s later delivery event needs) → state the origin and its reach
 - 2026-11-06-e · refining · Concurrency 3, Action wiring 35 · the page declares no transaction boundary for a fanout's per-subscriber commits, while Execution Contract Database 1 is one transaction per action → state the boundary a subscriber's disposition commits in
 - 2026-11-06-d · refining · Non-goal 6 · no Capability requirement names who ends a Pending Notification record the composition created or under which fail-versus-expire policy, so a record the transport never ends stays Pending and Action wiring 46 answers not-retryable → bind the transport's call of Notification's deliver, fail or expire in a Capability requirement
 - 2026-11-06-c · refining · Capability requirement 54 · the prohibition on reading a window beyond the longest names no answer a caller gets, so builds may refuse with different codes → state the refusal the frequency limit interpretation answers

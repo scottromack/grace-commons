@@ -1149,7 +1149,7 @@
    "message-preference",
    "event-log"
   ],
-  "grounded": false,
+  "grounded": true,
   "invariants": 9,
   "kind": "composition",
   "models": {
@@ -1161,7 +1161,7 @@
   "standards": [
    "GDPR"
   ],
-  "status": "partially resolved",
+  "status": "grounded (English) on Final Critique 18 \u2014 2026-11-06 at a342d5e \u2014 formal layer pending",
   "substrates": [],
   "title": "Preference-Aware Notification Fanout"
  },
