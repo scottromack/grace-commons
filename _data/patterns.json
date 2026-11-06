@@ -752,7 +752,7 @@
   "composes": [
    "selective-disclosure"
   ],
-  "grounded": false,
+  "grounded": true,
   "invariants": 5,
   "kind": "composition",
   "models": {
@@ -770,7 +770,7 @@
    "SEC 17a-4",
    "SOX"
   ],
-  "status": "partially resolved",
+  "status": "grounded on Final Critique 19 \u2014 2026-11-06 at ef1f25a",
   "substrates": [
    "audit-trail",
    "recoverable-invocation"

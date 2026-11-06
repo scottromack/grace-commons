@@ -1263,14 +1263,14 @@ This composition inherits the broader standards compliance of its constituents:
 
 ## Status
 
-`partially resolved` — see the Ledger.
+`grounded on Final Critique 19 — 2026-11-06 at ef1f25a` — see the Ledger.
 
 ## Ledger
 
 ```
-status: partially resolved
+status: grounded on Final Critique 19 — 2026-11-06 at ef1f25a
 formal: verified — vote yes: the binding bijection, the order of the two writes and the horizon arithmetic; re-derived 2026-10-19 over what is this page's own, against Recoverable Invocation's contracts, which that page's model proves, in place of immutable-ledger.tla + 1 twin of 2026-06-10, and again 2026-10-21 under Execution Contract Store 1, each [Disclose Subset] one transaction: immutable-ledger.tla + 7 twins + 4 probes (the binding, Invariant 1.3, 1.4 and 4.1, its one-to-one binding, Capability requirement 28 and 34, the disclosure probe's four answers, and no abandonment standing over a record the store carries, which -buggy-split breaks once an accounting write may apply after its invocation's step: two invocations over two act keys sharing a subject and a recipient; 1,475 states), immutable-ledger-rebuild.tla + 6 twins + 5 probes (the binding index written every run and the horizon, Invariant 1.6, Reconciliation 1 through 3 and 28 through 31, Composition state 9, Capability requirement 33, a run that may die; 12,100 states, and 578,490 with two outcome events, no time horizon), immutable-ledger-reconcile.tla + 4 twins + 4 probes (the reading of two stores, Reconciliation 4, 6, 7, 14, 29, 32 and 34, Capability requirement 29 and 31, the young and the aged edge deciding no finding once no write applies after its intent's transaction; 97,512 states, and 123,036 at a horizon a tick longer, no time horizon); the rebuild model found Capability requirement 33 budgeting no dead run, the reconcile model the aged edge an allowance and a run bound short (2026-10-09-m), both cured on the page the day they were found; 2026-10-21
-last gate: 2026-11-04 — Final Critique 18 — foundational count 9, not clean, no sample
+last gate: 2026-11-06 — Final Critique 19, a delta round, frozen at ef1f25a — foundational count 0, clean, one sample; 2026-11-04 — Final Critique 18 — foundational count 9, not clean, no sample
 
 open:
 - 2026-10-09-a · refining · Verdict 3 · the indexed purged event's surviving attestation is not required to name ledger.disclosure.disclosed, so an index entry pointing at any purged event answers binding-purged → require the action reference
