@@ -1316,7 +1316,7 @@
    "event-log",
    "actor-identity"
   ],
-  "grounded": false,
+  "grounded": true,
   "invariants": 7,
   "kind": "composition",
   "models": {
@@ -1328,7 +1328,7 @@
   "standards": [
    "PCI DSS"
   ],
-  "status": "partially resolved",
+  "status": "grounded (English) on Final Critique 14 \u2014 2026-11-06 at a896453 \u2014 formal layer pending",
   "substrates": [],
   "title": "Reserve from Pool"
  },

@@ -865,14 +865,14 @@ The five constituents carry their own deep standards inheritance — see each co
 
 ## Status
 
-`partially resolved` — see the Ledger.
+`grounded (English) on Final Critique 14 — 2026-11-06 at a896453 — formal layer pending` — see the Ledger.
 
 ## Ledger
 
 ```
-status: partially resolved
+status: grounded (English) on Final Critique 14 — 2026-11-06 at a896453 — formal layer pending
 formal: pending — reserve-from-pool.tla + 1 twin verified 2026-06-04 over the retired atomic trio; re-derive over the ordered slot-returning pair and the pool reconciliation (2026-08-29-a)
-last gate: 2026-11-06 — Final Critique 13, full, three passes (GRID, EOS, Linus) — 2 foundational (a reserve or other own outcome entry journaled under a different digest met no rule, cured by widening Action wiring 125 and the digest condition of Action wiring 18; a slot-returning outcome entry could be destroyed while its binding entry stood, cured by Capability requirement 49), GRID's one foundational refuted (Execution Contract Database 1 and Read 4), not clean, no sample
+last gate: 2026-11-06 — Final Critique 14, a delta round, frozen at a896453 — foundational count 0, clean, one sample; 2026-11-06 — Final Critique 13, full, three passes (GRID, EOS, Linus) — 2 foundational (a reserve or other own outcome entry journaled under a different digest met no rule, cured by widening Action wiring 125 and the digest condition of Action wiring 18; a slot-returning outcome entry could be destroyed while its binding entry stood, cured by Capability requirement 49), GRID's one foundational refuted (Execution Contract Database 1 and Read 4), not clean, no sample
 
 open:
 - 2026-11-06-b · refining · retention · Capability requirement 49 keeps a reservation's slot-returning outcome entries while its binding entry stands, and Composition state 6 never removes the binding entry, so both grow without bound; and a pool purged under a composed retention pattern while a reservation stands makes [Confirm Reservation] answer recording-failure carrying inconsistency for ever (Action wiring 124) → decide whether a deployment capability bounds the growth and who purges a pool holding live reservations, or name them non-goals
