@@ -865,7 +865,7 @@
    "credential",
    "session"
   ],
-  "grounded": false,
+  "grounded": true,
   "invariants": 6,
   "kind": "composition",
   "models": {
@@ -883,7 +883,7 @@
    "PCI DSS",
    "SOX"
   ],
-  "status": "partially resolved",
+  "status": "grounded on Final Critique 14 \u2014 2026-11-06 at efa2db9",
   "substrates": [
    "audit-trail"
   ],
