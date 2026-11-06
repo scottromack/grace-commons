@@ -737,7 +737,7 @@ These emerge from the composition; none belongs to one constituent, and each nee
   Invariant 2.1: IF a governed consent's escalation instant PRECEDES now THEN the governed consent MUST carry a grant closure.
   Invariant 2.2: EVERY grant event MUST carry an attestation AND a position in the Event Log sequence.
   ```
-  Term grant closure: a grant event naming the consent, a purged key entry the consent's consent id keys, or an escalation of kind grant naming the consent.
+  Term grant closure: a grant event naming the consent, a purged key entry the consent's consent id keys, an escalation of kind grant naming the consent, or the consent's grant instant plus the audit horizon PRECEDING now, the horizon having destroyed that escalation's payload.
 
 - **Invariant 3 — Revocation propagation completeness.**
   ```
@@ -774,7 +774,7 @@ These emerge from the composition; none belongs to one constituent, and each nee
   ```
   Term consent retention: the consent retention instance's record over one consent record.
 
-  Term retention closure: a consent retention naming the consent, or an escalation of kind grant naming the consent.
+  Term retention closure: a consent retention naming the consent, an escalation of kind grant naming the consent, or the consent's grant instant plus the audit horizon PRECEDING now.
 
 - **Invariant 7 — Inward and outward authorization stay separate.**
   ```
@@ -857,7 +857,6 @@ An implementation is acceptable — in the regulator-acceptance sense — when t
 Check 1.1: An auditor MUST find [Processing Permitted] AND the consent check agreeing over a sample of subject references AND purposes (Invariant 1.1).
 Check 1.2: An auditor MUST find no two governed consents in Granted carrying one subject reference AND one purpose (Invariant 1.3).
 Check 2.1: An auditor MUST find a grant closure for EVERY governed consent whose escalation instant PRECEDES the audit (Invariant 2.1).
-NOTE: open 2026-11-05-a — a grant closure names an escalation of kind grant, and the horizon destroys the escalation's payload; no rule says what closes the consent once it is purged.
 Check 2.2: An auditor MUST resolve EVERY Consent record carrying no grant event, other than a purged grant, to EXACTLY ONE OF an aged record, an orphan under compensation, an escalated grant orphan, a write-ownership finding (Invariant 2.1).
 NOTE: open 2026-11-05-b — an aged record whose escalation is still readable is both an aged record and an escalated grant orphan, so EXACTLY ONE OF cannot hold.
 Check 2.3: An auditor MUST find a passing verification for EVERY grant event (Invariant 2.2).
@@ -1139,7 +1138,7 @@ The four constituents carry their own deep standards inheritance — see each co
 ```
 status: partially resolved
 formal: pending — re-derivation, 2026-08-30: propagate-consent-revocation-downstream.tla + 1 twin verified 2026-08-27 over a single-writer invocation with no terminus; re-derive over the invocation and the scan as two processes over one act, the bound as the yield point (2026-08-29-a, 2026-08-30-k)
-last gate: 2026-11-05 — Final Critique 12 — delta, foundational count 1, not clean, no sample
+last gate: 2026-11-06 — Final Critique 13 — delta, foundational count 1, not clean, no sample
 
 open:
 - 2026-08-29-a · refining · formal · the model's compensation action carries no identity, no intent record, and no age bound; the twin predates the scan's two edges → extend the model with the service-identity compensation behind `consent.recovery_intended` and the bounded scan
@@ -1149,7 +1148,6 @@ open:
 - 2026-11-04-c · refining · Action wiring 12, 37 · a bare invalid-request lands after the grant or withdrawal intent committed, so a caller cannot tell a malformed input from a clock-order refusal (Consent Operation 24, 25) → give the refusal a position, or name the retry posture
 - 2026-11-04-d · refining · Primitive policy 7, Capability requirement 14 · the propagation envelope never exceeds the maximal envelope the start rule bounds, so the guard cannot fire → name which envelope Primitive policy 7 measures, or delete the guard to Capability requirement 14
 - 2026-11-04-e · refining · Action wiring 8, 12, 14, 35, 36, Check 6.4 · a refused call's intent stands as residue where Execution Contract Read 4 has a refused call write nothing → answer the refusal as Authenticated Actor and Login did, or keep the intent as the refused attempt's evidence (Scott, 2026-10-20) in a round that reads Check 6.4 with it
-- 2026-11-05-a · refining · Invariant 2.1, Check 2.1, Term grant closure · an escalated grant orphan's escalation payload is destroyed at the audit horizon, and the grant closure has no purged-escalation counterpart, so Check 2.1 fails on a lawfully purged escalation → name the closure a purged escalation leaves, as a purged key entry is one
 - 2026-11-05-b · refining · Check 2.2 · an aged record whose escalation is still readable is also an escalated grant orphan, and the check asks for exactly one → name which of the two the auditor reads first, or drop the overlap
 ```
 
