@@ -807,7 +807,7 @@ Kind: Operation
 
 #### Reconcile Gaps
 
-The composition-introduced reconciliation surface that resolves an invocation's journal gap, examining only invocations older than the invocation duration bound plus the create latency and inside the audit horizon: it writes its `fanout.reconcile-intended` record first, then for each subscriber in the journaled `queried` list with no disposition event — under the per-disposition section — re-disposes through [Redispose], and closes any residue with a terminal `fanout.abandoned` record. Owns the intent and abandonment writes; carries no composition state (the records live in Event Log). Refuses [Too Young] for an invocation younger than the invocation duration bound plus the create latency.
+The composition-introduced reconciliation surface that resolves an invocation's journal gap, examining only an invocation that is not a young invocation and whose initiation entry is not an aged entry: it writes its `fanout.reconcile-intended` record first, then for each subscriber in the journaled `queried` list with no disposition event — under the per-disposition section — re-disposes through [Redispose], and closes any residue with a terminal `fanout.abandoned` record. Owns the intent and abandonment writes; carries no composition state (the records live in Event Log). Refuses [Too Young] for a young invocation.
 
 Kind: Operation
 
@@ -951,7 +951,7 @@ Projection: yielded
 
 #### Too Young
 
-The rejection [Reconcile Gaps] returns for an invocation whose `fired_at` is younger than `invocation_duration_bound + notification_create_latency`: the invocation may still be in its loop, its undisposed subscribers are work in flight rather than gaps, and the leg examines nothing and writes nothing.
+The rejection [Reconcile Gaps] returns for a young invocation (an invocation whose `fired_at` plus `invocation_duration_bound + notification_create_latency` DOES NOT PRECEDE now): the invocation may still be in its loop, its undisposed subscribers are work in flight rather than gaps, and the leg examines nothing and writes nothing.
 
 Kind:       Member
 Member of:  the reconcile-gaps rejection
@@ -1008,10 +1008,11 @@ It inherits from: **[Subscription](../atoms/subscription.md)** (Observer, pub-su
 ```
 status: partially resolved
 formal: pending — re-derivation, 2026-08-30: the invocation and [Reconcile Gaps] are now two processes over one disposition under a per-disposition section whose lease is the invocation's terminus, the deliver pair is ordered rather than atomic with an adoptable orphan, and the gap leg is age-bounded, none of which the model carries; was verified — preference-aware-notification-fanout.tla + 1 twin, 2026-06-12
-last gate: 2026-11-06 — Final Critique 15, delta, one fresh reader (Linus) — not clean, 2 foundational (the blind second triage's; Linus reported 0), cured in the settle (the next round is a delta round); 2026-11-05 — Final Critique 14, delta, one fresh reader (Linus) — not clean, 1 foundational, cured in the settle (the next round is a delta round)
+last gate: 2026-11-06 — Final Critique 16, delta, one fresh reader (Linus) — not clean, 1 foundational (the blind second triage's; Linus reported 3), cured by a held Execution Contract rule (Logic confinement 17) in the quiet window (the next round is a delta round); refining recorded (open line 2026-11-06-c), the Reconcile Gaps prose cured; 2026-11-06 — Final Critique 15, delta, one fresh reader (Linus) — not clean, 2 foundational (the blind second triage's; Linus reported 0), cured in the settle (the next round is a delta round); 2026-11-05 — Final Critique 14, delta, one fresh reader (Linus) — not clean, 1 foundational, cured in the settle (the next round is a delta round)
 
 open:
 - 2026-11-06-a · refining · Capability requirement 52 · no rule says whether a setting read at start (the audit horizon, the reconciliation window) holds for the instance's life, so a retune mid-run could be read by one build and not another → state it once in the Execution Contract beside Logic confinement 15 (a method page, the mayor's)
+- 2026-11-06-c · refining · Capability requirement 54 · the prohibition on reading a window beyond the longest names no answer a caller gets, so builds may refuse with different codes → state the refusal the frequency limit interpretation answers
 - 2026-11-06-b · refining · Capability requirement 9, Capability requirement 30 · the hold retry horizon is not ordered against the audit horizon, so a [Redispose] of a retryable suppression past the audit horizon would need a configuration version Capability requirement 9 no longer retains → order the two durations at start, or retain a configuration version through the hold retry horizon
 - 2026-11-04-a · refining · Action wiring 6, Action wiring 10, Reconciliation 11, Action wiring 26 · a failed read and a lost reply have no rule of their own on the page; Execution Contract Read 1 and Error model 1 own them and the lease's expiry yields (Action wiring 13) → cite them at the sites, or state the answer a failed Action wiring 10 read gives
 - 2026-11-04-b · refining · Term retryable disposition · a failure event is retryable unconditionally, so a pair whose earlier delivery event names a live record can be retried toward a second live record → admit a failure event only where no live record stands (Invariant 9.1)
