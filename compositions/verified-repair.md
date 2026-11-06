@@ -173,7 +173,7 @@ Term sweep identity: the commit binding's service identity, under which Recovera
 ```
 Primitive policy 1: IF the page OR the base commit EQUALS blank THEN [Freeze] MUST answer invalid-request.
 Primitive policy 2: IF the page IS NOT IN the repository at the base commit THEN [Freeze] MUST answer not-known.
-Primitive policy 3: IF a verdict carries no snapshot hash OR no base commit OR no verifier OR no pass OR no verdict value OR holds with a finding the verifier classed foundational OR counterexample with no finding the verifier classed foundational THEN [Report] MUST answer invalid-request.
+Primitive policy 3: IF a verdict carries no snapshot hash OR no base commit OR no verifier OR no pass OR no verdict value OR two verdict values OR holds with a finding the verifier classed foundational OR counterexample with no finding the verifier classed foundational THEN [Report] MUST answer invalid-request.
 Primitive policy 4: IF the call carries no patch, a patch carries no patch id, no fragment OR a fragment with no target THEN [Repair] MUST answer invalid-request.
 Primitive policy 5: IF the count of a commit's patches EXCEEDS the patch cap THEN [Repair] MUST answer invalid-request.
 Primitive policy 6: The composition MUST compare a snapshot hash, a commit id, a finding id AND a fragment byte-exact.
@@ -305,6 +305,8 @@ Term deciding count: a count an outcome turns on — a round's foundational coun
 NOTE: open 2026-10-17-g — this Term, and with it Invariant 5.1, Action wiring 11 and Check 5.1, owes the second, blind triage on a zero count alone, so a count above zero, the one on the round that brings the page's round count to the round budget included, is owed no second triage; the entry A count that decides something is triaged twice in `pressure-testing.md`, and this page's Intent, reach every count an outcome turns on. Widening the Term, a claim, waits on the maintainer's ruling.
 
 Term foundational count: the number of a round's counted findings whose settled triage carries the class foundational and a disposition other than reject.
+
+NOTE: a formal engine's finding is no counted finding (Verdict 9), so it enters no foundational count; it is triaged once before the round settles (Action wiring 69, Term settled round), and the Ledger's formal line, not the count, holds the formal layer to the ground (`pressure-testing.md`, *Formal models*).
 
 Term parted finding: a finding whose earliest counted first and second triages differ on the class, the side or the disposition.
 
@@ -458,7 +460,7 @@ Term finding: one failure a verifier reports — the site (the labels of the rul
 
 Term finding id: the verdict key of the verdict that carries the finding, and the finding's ordinal in it — minted by the council, so an intent may carry it (Recoverable Invocation Primitive policy 10).
 
-Term site: a span of the page a finding or a fragment sits in, as the snapshot carries it — a rule label or a Term name with its text, running to the end of its fenced block or declaration line, or to the next label or Term name inside the block; for a sentence outside every rule and Term, a WHY under a block of rules and an invariant's title among them, the heading of the section it falls under; and the records sites: the status line, the Ledger's status, formal and last gate lines, the Ledger's open list and the page's end marker.
+Term site: a span of the page a finding or a fragment sits in, as the snapshot carries it — a rule label or a Term name with its text, running to the end of its fenced block or declaration line, or to the next label or Term name inside the block; for a sentence outside every rule and Term, a WHY under a block of rules and an invariant's title among them, the span of all sentences outside every rule and Term under the heading it falls under, named by that heading; and the records sites: the status line, the Ledger's status, formal and last gate lines, the Ledger's open list and the page's end marker.
 
 Term pass: grid | eos | linus | formal — the reader's pass a verdict answers, as the method defines the three, or formal for a formal engine's run.
 
@@ -690,7 +692,7 @@ None. The composition makes no regulatory claim of its own; the records it keeps
 ```
 status: partially resolved
 formal: verified — vote yes: one writer per repository, no repair before the round settles and the round's bounded repair; verified-repair.tla + 4 twins + 3 probes (the commit path, Invariant 2.1, 2.2, 7.3 and Concurrency 1: two rounds, two [Repair] calls a round with commits in flight and no commit fence, one person commit; 61,659 states, and 263,067 with two person commits, past the harness's cap), verified-repair-settle.tla + 3 twins + 2 probes (the round's settling, Invariant 1.1 and 5.1: two verifiers on one pass, three triage records, each call's read and its record one transaction; 628 states, and 2,824 with four triage records), verified-repair-budget.tla + 3 twins + 2 probes (the round budget, Invariant 8.1: three freezes and one ruling, each freeze's read of the count and its round one transaction; 56 states, and 399 with four freezes and two rulings), the two re-derived 2026-10-21 on the journal's store (Capability requirement 28), each with a twin that takes Execution Contract Store 2 and Store 3 away; the settling model found Term counted finding counting a malformed verdict written after the settling record, cured on the page; 2026-10-21
-last gate: 2026-11-06 — Final Critique 24, delta, frozen at c7bc9ee — foundational count 0, clean, one sample; the standing foundational line 2026-10-31-e is cured in this settle and unread, so the page waits for the delta round that reads the cure
+last gate: 2026-11-06 — Final Critique 25, delta, frozen at 72d9cb0 — foundational count 1, not clean, one sample; the round read the cure of 2026-10-31-e and found Term site's heading span read two ways, cured in this settle and unread, so the page waits for the delta round that reads the cure
 open:
 - 2026-10-10-b · refining · Term repository · the database the act commits to is a deployment's version-controlled repository, which no atom in this library owns → an atom for a versioned database, or the database's contract kept here
 - 2026-10-10-d · refining · Term round count · a lawfully purged round, verdict or triage is answered not-known as if absent → a purged arm
