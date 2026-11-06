@@ -737,7 +737,7 @@ These emerge from the composition; none belongs to one constituent, and each nee
   Invariant 2.1: IF a governed consent's escalation instant PRECEDES now THEN the governed consent MUST carry a grant closure.
   Invariant 2.2: EVERY grant event MUST carry an attestation AND a position in the Event Log sequence.
   ```
-  Term grant closure: a grant event naming the consent, a purged key entry the consent's consent id keys, an escalation of kind grant naming the consent, or the consent's grant instant plus the audit horizon PRECEDING now, the horizon having destroyed that escalation's payload.
+  Term grant closure: a grant event naming the consent, a purged key entry the consent's consent id keys, an escalation of kind grant naming the consent, or the consent's grant instant plus the audit horizon PRECEDING now, whether or not an escalation of kind grant naming the consent still stands, the horizon having by then destroyed its payload.
 
 - **Invariant 3 — Revocation propagation completeness.**
   ```
@@ -1131,14 +1131,14 @@ The four constituents carry their own deep standards inheritance — see each co
 
 ## Status
 
-`partially resolved` — see the Ledger.
+`grounded on Final Critique 14 — 2026-11-06 at 85bc8fe` — see the Ledger.
 
 ## Ledger
 
 ```
-status: partially resolved
+status: grounded on Final Critique 14 — 2026-11-06 at 85bc8fe
 formal: pending — re-derivation, 2026-08-30: propagate-consent-revocation-downstream.tla + 1 twin verified 2026-08-27 over a single-writer invocation with no terminus; re-derive over the invocation and the scan as two processes over one act, the bound as the yield point (2026-08-29-a, 2026-08-30-k)
-last gate: 2026-11-06 — Final Critique 13 — delta, foundational count 1, not clean, no sample
+last gate: 2026-11-06 — Final Critique 14, a delta round, frozen at 85bc8fe — foundational count 0, clean, one sample; 2026-11-06 — Final Critique 13 — delta, foundational count 1, not clean, no sample
 
 open:
 - 2026-08-29-a · refining · formal · the model's compensation action carries no identity, no intent record, and no age bound; the twin predates the scan's two edges → extend the model with the service-identity compensation behind `consent.recovery_intended` and the bounded scan
