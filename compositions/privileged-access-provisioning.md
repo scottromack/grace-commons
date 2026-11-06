@@ -105,7 +105,7 @@ Composition state 5: The composition MUST NOT change a chain id a request record
 Composition state 6: The composition MUST change a request state PER the request progression.
 Composition state 7: The composition MUST NOT change a request state that IS IN the terminal request states.
 Composition state 8: The composition MUST NOT delete a request record.
-Composition state 9: EVERY audit event the composition records MUST carry the request id AND the invocation id.
+Composition state 9: EVERY audit event the composition records MUST carry the invocation id AND, where the audit event is not a failed exercise event for a token resolving to no request, the request id.
 Composition state 10: A failed exercise event for a token resolving to no request MUST carry blank as the request id.
 Composition state 11: A shape-bearing event MUST carry the request shape.
 Composition state 12: A state-transition event MUST carry the resulting request state.
@@ -114,7 +114,7 @@ Composition state 14: The composition MUST NOT write bearer material into an aud
 Deleted: Composition state 15. Execution Contract Database 3 and Execution Contract Database 4 own it.
 Composition state 16: The rebuild MUST take a request's identity fields from the request's shape-bearing event.
 Composition state 17: The rebuild MUST take a request's state from the request's latest state-transition event.
-Composition state 18: The rebuild, EVERY invariant AND EVERY check MUST read a recovery record as the event the recovery record names.
+Composition state 18: The rebuild, EVERY invariant, EVERY check, the pre-check of Reconciliation 4 AND the request-to-events map MUST read a recovery record as the event the recovery record names.
 Composition state 19: The composition MUST resolve a request's chain from the request record's chain id.
 Composition state 20: The composition MUST store the request-to-chain map as an index over the request records' chain ids.
 Composition state 21: The composition MUST store the request-to-capability map.
@@ -128,7 +128,7 @@ Composition state 28: The request-to-events map MUST NOT key an event carrying b
 Composition state 29: The composition MUST NOT rebuild an index entry from an aged event.
 Composition state 30: The composition MUST leave standing an index entry whose event is an aged event.
 Composition state 31: A pending entry other than an evaluation entry MUST carry the action reference AND the invocation id of the record the pending entry owes, AND, once the act the entry records resolves, the event data of that record.
-Composition state 32: The composition MUST close a pending entry ONLY AFTER the pending entry's record lands.
+Composition state 32: The composition MUST close a pending entry ONLY AFTER the pending entry's closing occasion.
 Deleted: Composition state 33. Execution Contract Database 2 owns it.
 Deleted: Composition state 34. Execution Contract Database 2 owns it.
 Composition state 35: A request carrying a chain id MUST name EXACTLY ONE chain.
@@ -158,6 +158,8 @@ Term shape-bearing event: a request event, or an initiation-failed withdrawal ev
 
 Term state-transition event: a provisioning event, a denial event, a withdrawal event, a revocation event or a provisioning-failure event.
 
+Term latest state-transition event: the request's state-transition event carrying the state furthest along the request progression, whatever the order in which the request's events were recorded or a recovery record landed.
+
 Term bearer material: a capability token | a session token — material whose holder can exercise what it names.
 
 Term request-to-chain map: the composition's map from a request id to the request's chain id.
@@ -175,6 +177,8 @@ Term request-to-events map: the composition's map from a request id to the event
 Term audit pending list: a request record's list of pending entries, empty by default.
 
 Term pending entry: an open record owed on a request — an initiation entry, an exercise entry, an evaluation entry, a denial-reason entry, or the owed record of a committed act.
+
+Term closing occasion: the landing of the record a pending entry owes — for an evaluation entry, of the chain evaluation's writes (Action wiring 117) — or, for a denial-reason entry alone, Audit Trail's read record answering not-known for the chain's terminal event or the denial-reason leg finding the terminal event's reason destroyed (Reconciliation 40).
 
 Term aged event: an event whose `(recording instant + audit horizon)` PRECEDES now — past which the event's payload may be lawfully destroyed.
 
@@ -313,7 +317,7 @@ read_request(actor_ref, query)
 
 Term validation failure: expired | revoked | not-known — Session's reasons for an invalid session.
 
-Term exercise failure: exhausted | expired | revoked | not-known | recording-failure — Capability's redemption failure, or an exercise entry the database refused.
+Term exercise failure: exhausted | expired | revoked | not-known | recording-failure — Capability's redemption failure, or an exercise entry the database refused; a failed exercise event carries every one but recording-failure, which [Exercise Access] answers (Action wiring 84) and records on no event.
 
 Term request results: the requests a query matches, each carrying the request record's fields, the chain's state, the token's effective status and the request's event ids, in declared order.
 
@@ -375,7 +379,7 @@ Action wiring 48: IF the chain's state EQUALS Approved AND the provisioning conj
 Action wiring 49: IF the chain's state EQUALS Rejected AND the request state EQUALS Pending THEN the chain evaluation MUST read the chain's terminal event.
 Action wiring 50: The chain evaluation MUST find the chain's terminal event by reading the chain's event ids from the tail to the first event whose action reference IS IN the terminal chain actions.
 Action wiring 51: IF Audit Trail's read record answers not-known OR the terminal event's reason is destroyed THEN the chain evaluation MUST take blank as the denial reason.
-Action wiring 52: IF the denial reason EQUALS blank THEN the chain evaluation MUST open a denial-reason entry.
+Action wiring 52: IF the denial reason EQUALS blank THEN the chain evaluation MUST open a denial-reason entry ONLY IF the request carries no open denial-reason entry.
 Action wiring 53: IF the chain's state EQUALS Rejected AND the request state EQUALS Pending THEN the chain evaluation MUST record a denial event carrying Denied AND the denial reason under the service identity.
 Action wiring 54: IF the chain's state EQUALS Rejected AND the request state EQUALS Pending THEN the chain evaluation MUST set the request state to Denied.
 Action wiring 55: IF the chain's state EQUALS Withdrawn AND the request state EQUALS Pending THEN the chain evaluation MUST record a withdrawal event carrying Withdrawn AND the terminal event's reason under the service identity.
@@ -402,9 +406,9 @@ Action wiring 75: [Exercise Access] MUST NOT call a Capability action BEFORE Ses
 Action wiring 76: IF Session's validate answers invalid THEN [Exercise Access] MUST answer session-invalid carrying the validation failure.
 Action wiring 77: IF Session's validate answers invalid THEN [Exercise Access] MUST NOT write.
 Action wiring 78: A validated exercise MUST resolve the token's request through Capability's read filtered on the capability token.
-Action wiring 79: IF Capability's read finds no record for the token THEN [Exercise Access] MUST NOT call Capability's redeem.
-Action wiring 80: IF Capability's read finds no record for the token THEN [Exercise Access] MUST answer capability-invalid carrying not-known.
-Action wiring 81: IF Capability's read finds no record for the token THEN [Exercise Access] MUST record a failed exercise event carrying blank as the request id.
+Action wiring 79: IF Capability's read finds no record for the token OR the record's composed scope parses to no request THEN [Exercise Access] MUST NOT call Capability's redeem.
+Action wiring 80: IF Capability's read finds no record for the token OR the record's composed scope parses to no request THEN [Exercise Access] MUST answer capability-invalid carrying not-known.
+Action wiring 81: IF Capability's read finds no record for the token OR the record's composed scope parses to no request THEN [Exercise Access] MUST record a failed exercise event carrying blank as the request id.
 Action wiring 82: A resolved exercise MUST open an exercise entry carrying the session principal reference AND the exercised instant.
 Deleted: Action wiring 83. Execution Contract Database 1 owns it.
 Action wiring 84: IF the database refuses the exercise entry THEN [Exercise Access] MUST answer capability-invalid carrying recording-failure.
@@ -466,7 +470,7 @@ Term permitted read: a [Read Request] whose caller Permissions permitted and who
 
 Term admitted request: a [Request Access] call whose inputs, permission check and credential check passed.
 
-Term initiation entry: the pending entry [Request Access] writes with the request record, carrying the request event's payload less the chain id until initiate_chain answers, and owing the request event or, where initiate chain refused leaving no chain, the initiation-failed withdrawal event (Action wiring 19).
+Term initiation entry: the pending entry [Request Access] writes with the request record, carrying the request event's payload less the chain id until initiate_chain answers, and owing the request event where the request record carries the chain id (Action wiring 17), and otherwise the initiation-failed withdrawal event (Action wiring 19).
 
 Term evaluation entry: the pending entry recording a chain evaluation owed after a committed decision, carrying the request id AND the invocation id; its retry is the chain evaluation.
 
@@ -474,7 +478,7 @@ Term denial-reason entry: the pending entry recording a denial event that landed
 
 Term exercise entry: the pending entry a resolved exercise writes in the exercise's one transaction (Execution Contract Database 1), carrying the exercise's payload; marked redeemed where redeem answers redeemed (Action wiring 86) and completed with the redemption failure where redeem answers invalid (Action wiring 118), so an open exercise entry carries one or the other.
 
-Term resolved exercise: an [Exercise Access] whose session validated and whose token Capability's read found.
+Term resolved exercise: an [Exercise Access] whose session validated and whose token Capability's read found with a composed scope that parses to a request.
 
 Term chain evaluation: the read of a request's chain and the transition, record and cascade the chain's state calls for.
 
@@ -546,19 +550,17 @@ Deleted: Reconciliation 28. Execution Contract Database 1 owns it.
 Reconciliation 29: The redemption leg MUST land a recovery record for the failed exercise event of EVERY open exercise entry carrying a redemption failure.
 Reconciliation 30: IF the request record carries no chain id THEN the initiation leg MUST read the approval substrate for a chain whose subject reference EQUALS the request id.
 Deleted: Reconciliation 31. Execution Contract Database 1 owns it.
-Reconciliation 32: IF the initiation leg finds the chain AND the request state EQUALS Pending THEN the initiation leg MUST land a recovery record for the request event.
+Reconciliation 32: IF the request carries an open initiation entry AND the request record carries the chain id THEN the initiation leg MUST land a recovery record for the request event.
 Reconciliation 33: IF the initiation leg finds no chain THEN the initiation leg MUST record an initiation-failed withdrawal event carrying the request shape AND initiation-failed as the reason.
 Deleted: Reconciliation 34. Execution Contract Database 1 owns it.
-Reconciliation 35: IF the initiation leg finds the chain AND the request state EQUALS Withdrawn THEN the initiation leg MUST close the initiation entry.
-Reconciliation 36: IF the initiation leg finds the chain AND the request state EQUALS Withdrawn THEN the initiation leg MUST report the live chain as a finding.
-Reconciliation 37: IF the initiation leg finds the chain AND the request state EQUALS Withdrawn THEN the initiation leg MUST NOT land a request event.
+Reconciliation 35: IF the initiation leg finds the chain AND the request record carries no chain id AND the request state EQUALS Withdrawn THEN the initiation leg MUST land a recovery record for the initiation-failed withdrawal event carrying initiation-failed as the reason.
+Reconciliation 36: IF the initiation leg finds the chain AND the request record carries no chain id AND the request state EQUALS Withdrawn THEN the initiation leg MUST report the live chain as a finding.
+Reconciliation 37: IF the initiation leg finds the chain AND the request record carries no chain id AND the request state EQUALS Withdrawn THEN the initiation leg MUST NOT land a request event.
 Reconciliation 38: The denial-reason leg MUST read the chain's terminal event for EVERY open denial-reason entry.
 Reconciliation 39: IF the read answers the terminal event's reason THEN the denial-reason leg MUST land a recovery record for the denial event carrying the reason.
 Reconciliation 40: IF Audit Trail's read record answers not-known OR the terminal event's reason is destroyed THEN the denial-reason leg MUST close the denial-reason entry.
 Reconciliation 41: The denial-reason leg MUST NOT record a second denial event.
 ```
-
-NOTE: open 2026-11-06-a (Reconciliation 35 AND Reconciliation 40).
 
 Term reconciliation: the leg this composition runs outside every invocation whose output — a landed record, a finished provisioning, a closed request — a requestor or an auditor awaits: the approval leg, the terminal-chain leg, the redemption leg, the initiation leg and the denial-reason leg, at every start and on every retry.
 
@@ -750,8 +752,10 @@ Check 5.5: An auditor MUST find no bearer material in a request result (Action w
 Check 6.1: An auditor MUST reconstruct a request's arc from the request's events through the request-to-events map (Invariant 5.1).
 Check 6.2: An auditor MUST verify EVERY event of the arc through Audit Trail's read record AND verify record (Invariant 10.1).
 Check 6.3: An auditor MUST read a request carrying an open pending entry as a surfaced recovery window (Invariant 5.1).
-Check 6.4: An auditor MUST report a committed act carrying no event AND no open pending entry as a finding (Invariant 5.3).
+Check 6.4: An auditor MUST report a consumed redemption carrying no exercise event AND no open pending entry as a finding (Invariant 5.3).
 Check 6.5: An auditor MUST report a recovery record whose data disagrees with the constituent records as a finding (Reconciliation 16).
+Check 6.6: An auditor MUST report a request carrying no shape-bearing event AND no open pending entry as a finding (Invariant 5.1).
+Check 6.7: An auditor MUST report a redemption failure a resolved exercise reached carrying no failed exercise event AND no open pending entry as a finding (Invariant 5.4).
 ```
 
 NOTE: EVERY check names the rule the check tests.
@@ -869,7 +873,7 @@ Term cadences: empty.
 
 Term qualifiers: migrated — rewritten in GRACE lang v0.61 (2026-09-23).
 
-Term terms: composition, constituents, approval substrate, audit substrate, trail, chains initiate, chains withdraw, chains read, request record, request id, request state, request progression, open request state, terminal request state, refused state, identity field, request shape, shape-bearing event, state-transition event, bearer material, request-to-chain map, request-to-capability map, capability-to-request map, session access log, session access entry, request-to-events map, audit pending list, pending entry, aged event, quiescence, default ttl, max redemptions default, credential type, credential check on request, approver set minimum, audit horizon, retention floor, longest token lifetime, provisioning proof period, composed scope, service identity, reference caps, seam, now, invocation id, remaining ttl, payload budget, validation failure, exercise failure, request results, credentialed action, decision action, load-bearing act, validated request, admitted withdrawal, validated exercise, verified revocation, admitted revocation, permitted read, admitted request, initiation entry, evaluation entry, denial-reason entry, exercise entry, resolved exercise, chain evaluation, provisioning conjunction, terminal chain action, requests initiate, requests revoke, requests read, reconciliation, recovery intent, recovery record, refusing chain state, provisioning cascade, delivery channel, bypass token, operating skew, request event, decision event, provisioning event, denial event, withdrawal event, initiation-failed withdrawal event, provisioning-failure event, exercise event, failed exercise event, revocation event, read query, unavailable, mapped refusal, recording failure.
+Term terms: composition, constituents, approval substrate, audit substrate, trail, chains initiate, chains withdraw, chains read, request record, request id, request state, request progression, open request state, terminal request state, refused state, identity field, request shape, shape-bearing event, state-transition event, latest state-transition event, bearer material, request-to-chain map, request-to-capability map, capability-to-request map, session access log, session access entry, request-to-events map, audit pending list, pending entry, closing occasion, aged event, quiescence, default ttl, max redemptions default, credential type, credential check on request, approver set minimum, audit horizon, retention floor, longest token lifetime, provisioning proof period, composed scope, service identity, reference caps, seam, now, invocation id, remaining ttl, payload budget, validation failure, exercise failure, request results, credentialed action, decision action, load-bearing act, validated request, admitted withdrawal, validated exercise, verified revocation, admitted revocation, permitted read, admitted request, initiation entry, evaluation entry, denial-reason entry, exercise entry, resolved exercise, chain evaluation, provisioning conjunction, terminal chain action, requests initiate, requests revoke, requests read, reconciliation, recovery intent, recovery record, refusing chain state, provisioning cascade, delivery channel, bypass token, operating skew, request event, decision event, provisioning event, denial event, withdrawal event, initiation-failed withdrawal event, provisioning-failure event, exercise event, failed exercise event, revocation event, read query, unavailable, mapped refusal, recording failure.
 
 Term cited: Execution Contract Conformance 8 — the recursive inheritance of a constituent's guarantees. The section titled Substrate composition invocation in `execution-contract.md` — the substrate relation and its instance topology. The section titled Composition state in `execution-contract.md` — the derived-index, truth-bearing and extraction-pending classifications. The section titled Logic Confinement Principle in `execution-contract.md` — the seam. initiate chain, approve step, reject step, withdraw chain, read chain, chain id, step id, subject reference, approver set, quorum rule, chain_resolved, chain_withdrawn, Approved, Rejected, Withdrawn, Pending, not-pending, unauthorized, position: Multi-Party Approval. record action, read record, verify record, event id, payload cap, actor registry, invalid-credential, recording-failure: Audit Trail. verify, failed-verification, verified, Active: Credential. validate, valid, invalid, session token, principal reference: Session. permitted, denied: Permissions. allocate, redeem, revoke, read, capability token, scope, max redemptions, remaining redemptions, ttl, allocator reference, redeemed, effective status, redemption failure, exhausted, expired, revoked, already-terminal, Redeemed, Expired: Capability.
 
@@ -885,7 +889,7 @@ Term denial event: the access_denied event.
 
 Term withdrawal event: the access_request_withdrawn event.
 
-Term initiation-failed withdrawal event: a withdrawal event carrying the request shape and, as the reason, the mapped refusal where initiate chain refused leaving no chain (Action wiring 19) or initiation-failed where the initiation leg found no chain (Reconciliation 33) — the only event a request closed before its chain existed carries.
+Term initiation-failed withdrawal event: a withdrawal event carrying the request shape and, as the reason, the mapped refusal where initiate chain refused (Action wiring 19) or initiation-failed where the initiation leg found the request record carrying no chain id (Reconciliation 33 and 35) — the only shape-bearing event a request closed with no chain id carries.
 
 Term provisioning-failure event: the access_provisioning_failed event.
 
@@ -1058,10 +1062,9 @@ Projection: invalid-credential
 ```
 status: partially resolved
 formal: verified — privileged-access-provisioning.tla, no twin, 2026-06-03
-last gate: 2026-11-06 — Final Critique 5, delta, one pass (Linus) — 2 foundational (both cured this round), 0 refining, 0 rhetorical, not clean
+last gate: 2026-11-06 — Final Critique 6, delta, one pass (Linus) — 2 foundational (both cured this round), 7 refining cured, 0 rhetorical, not clean
 
 open:
-- 2026-11-06-a · refining · pending entries · Composition state 32 closes a pending entry only after its record lands, while Reconciliation 35 closes an initiation entry whose request event Reconciliation 37 bars and Reconciliation 40 closes a denial-reason entry whose reason is destroyed, and the grammar has no form for an exception to an ONLY AFTER rule (W-unstated-exception asks for the state in the condition, and a record barred or destroyed has no positive state to name) → decide how a pending entry whose record the page bars or destroys is written, then restate Composition state 32 once
 - 2026-11-04-a · refining · structure · Action wiring carries no closure table, which spec-format.md requires as the subsection's first #### block → draft it as its own authoring unit, every cell owned by a rule
 - 2026-11-04-b · refining · retention · Capability requirement 10 constrains the retention floor, but no rule sets the longest token lifetime or the provisioning proof period, nor refuses a supplied ttl past the longest → decide whether a request over the longest token lifetime is refused or clamped, then set both
 - 2026-11-04-c · refining · withdrawal reason · Action wiring 55 records the terminal event's reason on the withdrawal event with no answer for a destroyed reason, where Action wiring 51 through 52 take blank and open a denial-reason entry → decide whether a blank withdrawal reason owes a recovery entry
