@@ -642,7 +642,7 @@ Term terms: credential, credential id, lapse instant, pair, property, reference,
 
 Term cited: the section titled Logic Confinement Principle in `execution-contract.md` — the seam and the transition.
 
-Term composing pattern: [Party Identity](./party-identity.md), [Session](./session.md), [Permissions](./permissions.md), [Actor Identity](./actor-identity.md), [Capability](./capability.md), [Event Log](./event-log.md), [Tamper Evidence](./tamper-evidence.md), [Login](../compositions/login.md), [External Onboarding](../compositions/external-onboarding.md), Compromise Disclosure *(forthcoming)*, Trusted Timestamping *(forthcoming)*, a challenge pattern *(forthcoming)*, [Retention Window](./retention-window.md).
+Term composing pattern: [Party Identity](./party-identity.md), [Session](./session.md), [Permissions](./permissions.md), [Actor Identity](./actor-identity.md), [Capability](./capability.md), [Event Log](./event-log.md), [Tamper Evidence](./tamper-evidence.md), [Login](../compositions/login.md), [External Onboarding](../compositions/external-onboarding.md); Compromise Disclosure *(forthcoming)*, Trusted Timestamping *(forthcoming)*, a challenge pattern *(forthcoming)*, [Retention Window](./retention-window.md).
 
 Term credential types: credential_types — the credential kinds a deployment declares.
 

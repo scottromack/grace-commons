@@ -407,6 +407,8 @@ Resume 49: IF Audit Trail answers invalid-request carrying step-3 at the resume 
 Resume 50: IF the read PER Audit arm 9 through 10 at the resume record finds no resume record THEN the resume arm MUST answer storage-failure carrying intent.
 ```
 
+NOTE: open 2026-11-06-a — Term position is read per invocation by Resume 29, 48 and 50 (intent: this call wrote nothing, and a retry as written re-enters the resume arm) and per arc by Audit arm 15 and 16, and no rule says which; Resume 50's read-back follows a step-4 refusal that leaves the attestation committed (Audit Trail record action step 7.11), so the arm fires only on a lost record, and which position it carries is not decided.
+
 NOTE: open 2026-11-05-a — Resume 42's refusal carries an empty credential candidates set, and no rule says which administrator action follows it (abandon, revoke or register again).
 
 Term resume arm: the [Onboard] path a resumable acceptance takes — a caller-authenticated re-entry of an arc that stopped after the arc's gate cleared, one resumer per token.
@@ -836,16 +838,17 @@ Projection: onboarding.resume-intended
 
 ## Status
 
-`partially resolved` — see the Ledger.
+`grounded on Final Critique 6 — 2026-11-06 at 47b6606` — see the Ledger.
 
 ## Ledger
 
 ```
-status: partially resolved
+status: grounded on Final Critique 6 — 2026-11-06 at 47b6606
 formal: pending — re-derivation, 2026-08-30: external-onboarding.tla, no twin, verified 2026-06-03 over a single-pass arc with no resume; re-derive over two resumers and a stalled original as processes over one token, the per-token section as the point past which only one can write (2026-08-29-a, 2026-08-30-p)
-last gate: 2026-11-05 — Final Critique 5, delta, frozen at b1ae778 — foundational count 2 (of 3 claimed, 1 refuted on rules the page holds), all cured, not clean, no sample; 2026-11-04 — Final Critique 4, full, frozen at 25a720e — foundational count 5 (of 8 claimed, 3 refuted on rules the page holds), all cured, not clean, no sample; 2026-08-30 — third gate, fresh reader, under the frozen rules — 6 foundational corrected in-round, 13 refining and 3 rhetorical routed (2 refining since closed), 5 foundational closure residue corrected in a second pass
+last gate: 2026-11-06 — Final Critique 6, delta, frozen at 47b6606 — foundational count 0 (the 1 claimed refuted on rules the page holds), clean, one sample; 2026-11-05 — Final Critique 5, delta, frozen at b1ae778 — foundational count 2 (of 3 claimed, 1 refuted on rules the page holds), all cured, not clean, no sample; 2026-11-04 — Final Critique 4, full, frozen at 25a720e — foundational count 5 (of 8 claimed, 3 refuted on rules the page holds), all cured, not clean, no sample; 2026-08-30 — third gate, fresh reader, under the frozen rules — 6 foundational corrected in-round, 13 refining and 3 rhetorical routed (2 refining since closed), 5 foundational closure residue corrected in a second pass
 
 open:
+- 2026-11-06-a · refining · Term position; Resume 50; Audit arm 15, 16 · the position term reads per invocation on the resume arm in Resume 29, 48 and 50 (intent: this call wrote nothing) and per arc in Audit arm 15 and 16 (outcome: the invitation write an earlier call committed), and Resume 50's read-back follows a step-4 refusal that Audit Trail's record action step 7.11 leaves committed, so the arm fires only on a lost record and the attestation stands → decide whether the term says per invocation, and whether Resume 50 carries intent or attempt-evidence once a rule decides which
 - 2026-11-05-a · refining · Resume 42 · onboarding-indeterminate carrying none credential candidates leaves the administrator no stated next action → state whether the arc is abandoned, the credential revoked or a fresh register allowed, once a rule decides which
 - 2026-11-05-b · refining · Term candidates · a reading larger than the payload cap has no stated answer → decide truncation (barred by Resume 24 and Resume 46), a refusal or a storage failure
 - 2026-08-29-a · refining · formal · `external-onboarding.tla` predates the resume arm and the step-split landings → extend the model with the resume path, its in-flight bound, and the step-4 proceed arm
