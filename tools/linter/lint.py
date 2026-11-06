@@ -3327,14 +3327,67 @@ def check_page_citations(root: Path) -> list[Finding]:
     return out
 
 
+_LIVE_NUM = (r"(?:\d{2,}|twenty|thirty|forty|fifty|sixty|seventy|eighty|ninety)"
+             r"(?:[- ](?:one|two|three|four|five|six|seven|eight|nine))?(?:-plus)?")
+_LIVE_COUNT = re.compile(
+    r"\b" + _LIVE_NUM + r"\s+(?:(?:grounded|canonical|distinct)\s+)?patterns\b"
+    r"|\b" + _LIVE_NUM + r"\s+grounded\b"
+    r"|\b(?:\d{2,}|twenty|thirty|forty|fifty|sixty|seventy|eighty|ninety)-plus\s+"
+    r"(?:specifications|specs)\b", re.IGNORECASE)
+# the dated ledgers and registers, where a number is the count at the date it was written
+_LIVE_LEDGERS = {"roadmap.md", "changelog.md", "project-log.md", "ai-usage-log.md",
+                 "governance.md", "measurement.md", "open-questions.md", "discoveries.md"}
+
+
+def check_live_counts(root: Path) -> list[Finding]:
+    """N-live-count: a site page outside the library (atoms/, compositions/) and outside
+    the dated ledgers states the corpus's pattern or grounded count as a number it must read
+    from `_data/stats.json` instead (`{{ site.data.stats.patterns }}`; unit `site: live
+    numbers`, Scott 2026-11-06: a library that never desyncs does not hand-write its
+    own count). A line carrying an ISO date is a dated record, a code span and a fenced
+    block are quoted text, and a history file is a ledger: none is checked."""
+    out: list[Finding] = []
+    for path in sorted(root.glob("*.md")):
+        if path.name in _LIVE_LEDGERS or path.name.endswith(".hist.md"):
+            continue
+        try:
+            lines = path.read_text(encoding="utf-8").splitlines()
+        except (OSError, UnicodeDecodeError):
+            continue
+        fence = False
+        for i, raw in enumerate(lines):
+            if raw.lstrip().startswith("```"):
+                fence = not fence
+                continue
+            if fence or re.search(r"\d{4}-\d{2}-\d{2}", raw):
+                continue
+            m = _LIVE_COUNT.search(_SPANS.sub("", raw))
+            if m:
+                out.append(Finding(path, i + 1, "N-live-count",
+                    f"'{m.group(0)}' states the corpus's size or progress as a literal — "
+                    "write it from _data/stats.json ({{ site.data.stats.patterns }} and so on)"))
+    return out
+
+
 def check_views_current(root: Path) -> list[Finding]:
     """V-views-current: the generated views — `graph.md`, `atoms/index.md`,
-    `_data/patterns.json` — match what their generators produce from the corpus
-    now (council read 204: thirteen migrations passed with the views behind)."""
+    `_data/patterns.json`, `_data/stats.json` — match what their generators produce
+    from the corpus now (council read 204: thirteen migrations passed with the views
+    behind). stats.json is compared without `commits`, which counts the repository's
+    history and so is no function of the corpus's text."""
     import shutil
     import subprocess
     import tempfile
-    views = ["graph.md", "atoms/index.md", "_data/patterns.json"]
+    views = ["graph.md", "atoms/index.md", "_data/patterns.json", "_data/stats.json"]
+
+    def view_text(path: Path, name: str) -> str:
+        text = path.read_text(encoding="utf-8")
+        if name == "_data/stats.json":
+            import json
+            data = json.loads(text)
+            data.pop("commits", None)
+            return json.dumps(data, sort_keys=True)
+        return text
     out: list[Finding] = []
     with tempfile.TemporaryDirectory() as tmp:
         t = Path(tmp)
@@ -3349,7 +3402,7 @@ def check_views_current(root: Path) -> list[Finding]:
             a, b = root / v, t / v
             if not b.exists():
                 continue
-            if not a.exists() or a.read_text(encoding="utf-8") != b.read_text(encoding="utf-8"):
+            if not a.exists() or view_text(a, v) != view_text(b, v):
                 out.append(Finding(a, 1, "V-views-current",
                     "the generated view differs from what its generator produces now — "
                     "regenerate with tools/taxonomy/generate_graph.py and generate_views.py"))
@@ -3582,6 +3635,7 @@ def main(argv: list[str]) -> int:
     findings += check_retired_sign(root)
     findings += check_page_citations(root)
     findings += check_views_current(root)
+    findings += check_live_counts(root)
     findings += check_requirement_text(patterns)
 
     findings.sort(key=lambda f: (f.code, str(f.path), f.line))

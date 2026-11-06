@@ -14,9 +14,15 @@ Two artifacts, both DERIVED from the corpus (never hand-edited — regenerate):
                       (working-ideas/site-improvement-plan.md item 2).
 
   _data/patterns.json Per-pattern card data consumed by _includes/pattern-card.html
-                      at Jekyll render time, so the 52 canonical pattern files are
+                      at Jekyll render time, so the canonical pattern files are
                       NEVER edited — the card is a view injected by layout, the
                       same discipline as diagrams-are-views-not-truth.
+
+  _data/stats.json    The corpus's size and progress as numbers (patterns, atoms,
+                      compositions, grounded of each kind, commits), written with
+                      patterns.json from the same cards, so a site page states a
+                      count as {{ site.data.stats.patterns }} and cannot drift from
+                      the library (unit `site: live numbers`, Scott 2026-11-06).
 
 Every field is read off the files (Status token, Invariant headers, sibling
 .tla/.als models and their -buggy twins, Composes edges) or off the usage-derived
@@ -26,9 +32,9 @@ composition) edges are parsed here from each composition's Composes section; if 
 second consumer appears, graduate that parse into reverse_index.py.
 
 Usage:  python3 tools/taxonomy/generate_graph.py [repo-root]
-        # writes <root>/graph.md and <root>/_data/patterns.json
+        # writes <root>/graph.md, <root>/_data/patterns.json and <root>/_data/stats.json
 """
-import sys, re, json, pathlib
+import sys, re, json, pathlib, subprocess
 from collections import defaultdict
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
@@ -109,6 +115,27 @@ def node_id(slug):
     return slug.replace("-", "_")
 
 
+def corpus_stats(root, cards):
+    """The numbers a site page may state about the corpus, all read off the cards and
+    the repository as built. `commits` counts the commits at HEAD when the file is
+    written, so it trails the commit that carries it by one."""
+    atoms = [c for c in cards.values() if c["kind"] == "atom"]
+    comps = [c for c in cards.values() if c["kind"] == "composition"]
+    try:
+        commits = int(subprocess.run(
+            ["git", "-C", str(root), "rev-list", "--count", "HEAD"],
+            capture_output=True, text=True, check=True).stdout.strip())
+    except (OSError, ValueError, subprocess.CalledProcessError):
+        commits = None
+    return {
+        "patterns": len(cards), "atoms": len(atoms), "compositions": len(comps),
+        "grounded": sum(c["grounded"] for c in cards.values()),
+        "grounded_atoms": sum(c["grounded"] for c in atoms),
+        "grounded_compositions": sum(c["grounded"] for c in comps),
+        "commits": commits,
+    }
+
+
 def main():
     args = [a for a in sys.argv[1:] if not a.startswith("--")]
     root = pathlib.Path(args[0]) if args else pathlib.Path(".")
@@ -157,6 +184,9 @@ def main():
     data_dir.mkdir(exist_ok=True)
     (data_dir / "patterns.json").write_text(
         json.dumps(cards, indent=1, sort_keys=True) + "\n", encoding="utf-8")
+    (data_dir / "stats.json").write_text(
+        json.dumps(corpus_stats(root, cards), indent=1, sort_keys=True) + "\n",
+        encoding="utf-8")
 
     # ---- graph.md ----------------------------------------------------------
     def alink(s):
@@ -292,7 +322,7 @@ def main():
     (root / "graph.md").write_text("\n".join(L), encoding="utf-8")
     sys.stderr.write(
         f"wrote graph.md ({len(atoms)} atoms, {len(comps)} compositions, "
-        f"{len(substrate_edges)} substrate edges) and _data/patterns.json "
+        f"{len(substrate_edges)} substrate edges) and _data/patterns.json and stats.json "
         f"({len(cards)} cards)\n")
 
 

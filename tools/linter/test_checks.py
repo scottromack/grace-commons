@@ -37,6 +37,7 @@ from lint import (  # noqa: E402
     check_retired_sign,
     check_page_citations,
     check_views_current,
+    check_live_counts,
     check_migration_seam,
     check_heading_standard,
     check_range_form,
@@ -1242,7 +1243,34 @@ def check_notation_synthetic(problems: list[str]) -> int:
         (root / "graph.md").write_text((root / "graph.md").read_text(encoding="utf-8") + "\nstale\n", encoding="utf-8")
         if not check_views_current(root):
             problems.append("V-views-current: did not fire on a stale view")
-        n += 2
+        (root / "graph.md").write_text((root / "graph.md").read_text(encoding="utf-8").replace("\nstale\n", ""), encoding="utf-8")
+        import json
+        stats = json.loads((root / "_data" / "stats.json").read_text(encoding="utf-8"))
+        (root / "_data" / "stats.json").write_text(json.dumps({**stats, "commits": 1}), encoding="utf-8")
+        if check_views_current(root):
+            problems.append("V-views-current: fired on a stats.json that differs only in commits")
+        (root / "_data" / "stats.json").write_text(json.dumps({**stats, "patterns": 1}), encoding="utf-8")
+        if not check_views_current(root):
+            problems.append("V-views-current: did not fire on a stale stats.json")
+        n += 4
+    with tempfile.TemporaryDirectory() as d:
+        root = Path(d)
+        (root / "atoms").mkdir()
+        (root / "atoms" / "a.md").write_text("Fifty-plus specifications and 52 grounded.\n", encoding="utf-8")
+        (root / "readme.md").write_text(
+            "> Fifty-plus specifications are a lot.\n"
+            "{{ site.data.stats.patterns }} patterns, {{ site.data.stats.grounded }} grounded.\n"
+            "52 grounded patterns today.\n"
+            "On 2026-11-06 the library held 58 patterns.\n"
+            "the `58 patterns` form is quoted.\n"
+            "```\n52 grounded\n```\n"
+            "Three patterns share it.\n", encoding="utf-8")
+        (root / "roadmap.md").write_text("A ledger: 52 grounded, 58 patterns.\n", encoding="utf-8")
+        (root / "open-questions.md").write_text("A register: thirty-seven grounded patterns.\n", encoding="utf-8")
+        hits = {(f.path.name, f.line) for f in check_live_counts(root)}
+        if hits != {("readme.md", 1), ("readme.md", 3)}:
+            problems.append(f"N-live-count: fired at {sorted(hits)}, want readme.md lines 1 and 3")
+        n += 9
     return n
 
 

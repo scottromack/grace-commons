@@ -9,7 +9,7 @@ toc: true
 
 ## Summary
 
-A **lease** is a grant of exclusive standing over a key, to a named holder, until a declared instant. It is the smallest concept two patterns in this library kept re-describing in prose: a per-key critical section whose terminus is a time rather than an event.
+A **lease** is a claim that runs out at a set time: its holder has exclusive standing over a key only until then, unless the holder gives the claim back sooner. Stated exactly, a lease is a grant of exclusive standing over a key, to a named holder, until a declared instant. It is the smallest concept two patterns in this library kept re-describing in prose: a per-key critical section whose terminus is a time rather than an event.
 
 The whole of the atom is one sentence and its consequences: **the grant ends at the instant, never at an event.** Nothing in a distributed system observes a holder's death, so a grant that ended on death would end on a fact no party holds. A lease therefore ends in exactly two ways — the holder returns and releases it, or the instant passes — and every other property here follows from that.
 
