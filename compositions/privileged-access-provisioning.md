@@ -104,7 +104,7 @@ Composition state 4: The composition MUST NOT change a request record's identity
 Composition state 5: The composition MUST NOT change a chain id a request record carries.
 Composition state 6: The composition MUST change a request state PER the request progression.
 Composition state 7: The composition MUST NOT change a request state that IS IN the terminal request states.
-Composition state 8: The composition MUST NOT delete a request record.
+Composition state 8: The composition MUST NOT delete a request record AND MUST classify a request record whose shape-bearing event is an aged event as extraction-pending against Erasure Tombstone.
 Composition state 9: EVERY audit event the composition records MUST carry the invocation id AND, where the audit event is not a failed exercise event for a token resolving to no request, the request id.
 Composition state 10: A failed exercise event for a token resolving to no request MUST carry blank as the request id.
 Composition state 11: A shape-bearing event MUST carry the request shape.
@@ -120,13 +120,13 @@ Composition state 20: The composition MUST store the request-to-chain map as an 
 Composition state 21: The composition MUST store the request-to-capability map.
 Composition state 22: The composition MUST store the capability-to-request map.
 Composition state 23: The composition MUST rebuild the capability maps from Capability's read by parsing each record's composed scope.
-Composition state 24: The composition MUST store the session access log as an index over the exercise events AND the failed exercise events.
+Composition state 24: The composition MUST store the session access log as an index over the exercise events AND the failed exercise events, AND MUST write a session access entry in the transaction that records the entry's event (Execution Contract Database 1).
 Composition state 25: A session access entry MUST carry the request id, the session principal reference, the exercised instant AND the result.
 Composition state 26: The composition MUST store the request-to-events map.
-Composition state 27: The composition MUST add an event id to the request-to-events map ONLY AFTER Audit Trail's record action answers the event id.
+Composition state 27: The composition MUST add an event id to the request-to-events map in the transaction that records the event (Execution Contract Database 1), ONLY AFTER Audit Trail's record action answers the event id.
 Composition state 28: The request-to-events map MUST NOT key an event carrying blank as the request id.
 Composition state 29: The composition MUST NOT rebuild an index entry from an aged event.
-Composition state 30: The composition MUST leave standing an index entry whose event is an aged event.
+Composition state 30: The composition MUST leave standing an index entry whose event is an aged event AND MUST classify the index entry as extraction-pending against Erasure Tombstone.
 Composition state 31: A pending entry other than an evaluation entry MUST carry the action reference AND the invocation id of the record the pending entry owes, AND, once the act the entry records resolves, the event data of that record.
 Composition state 32: The composition MUST close a pending entry ONLY AFTER the pending entry's closing occasion.
 Deleted: Composition state 33. Execution Contract Database 2 owns it.
@@ -160,6 +160,18 @@ Term state-transition event: a provisioning event, a denial event, a withdrawal 
 
 Term latest state-transition event: the request's state-transition event carrying the state furthest along the request progression, whatever the order in which the request's events were recorded or a recovery record landed.
 
+Term denial reason: the reason a denial event or a provisioning-failure event carries for the refused state.
+
+Term requested instant: the now an admitted request stamps when it opens (Capability requirement 25).
+
+Term access scope: the part of the resource a requestor names and the capability authorizes, carried on the request and parsed back out of the composed scope.
+
+Term justification: the requestor's stated reason for the access, carried on the request and read by no rule.
+
+Term terminal event: the chain's event whose action reference IS IN the terminal chain actions.
+
+Term event envelope: the bytes the audit substrate adds around the data the composition supplies.
+
 Term bearer material: a capability token | a session token — material whose holder can exercise what it names.
 
 Term request-to-chain map: the composition's map from a request id to the request's chain id.
@@ -171,6 +183,8 @@ Term capability-to-request map: the composition's map from a capability token to
 Term session access log: the per-request record of every [Exercise Access] that reached Capability's redeem.
 
 Term session access entry: one entry of the session access log.
+
+Term transactional index writes: a session access entry write | a request-to-events map write — the index writes that commit with their event (Composition state 24 and 27).
 
 Term request-to-events map: the composition's map from a request id to the event ids recorded for the request, in recording order — the declared request-to-audit traversal.
 
@@ -184,13 +198,13 @@ Term aged event: an event whose `(recording instant + audit horizon)` PRECEDES n
 
 Term quiescence: a state in which no invocation is in flight and no pending entry is open.
 
-NOTE: Contract classification, per the section titled Composition state in `execution-contract.md` — inside the audit horizon, derived indexes: the request records over the trail (Composition state 16 through 18), the request-to-chain map over the request records' chain ids (Composition state 20), the request-to-capability and capability-to-request maps over the Capability instance's composed scopes (Composition state 23), the session access log over the exercise events and the failed exercise events (Composition state 24) and the request-to-events map over the events' request ids (Composition state 26); past the horizon, truth-bearing: the request records (Composition state 8), the session access log and the request-to-events map (Composition state 30); the audit pending list: extraction-pending against [Owed Record](../atoms/owed-record.md) (Composition state 31).
+NOTE: Contract classification, per the section titled Composition state in `execution-contract.md` — inside the audit horizon, derived indexes: the request records over the trail (Composition state 16 through 18), the request-to-chain map over the request records' chain ids (Composition state 20), the request-to-capability and capability-to-request maps over the Capability instance's composed scopes (Composition state 23), the session access log over the exercise events and the failed exercise events (Composition state 24) and the request-to-events map over the events' request ids (Composition state 26); past the horizon, truth-bearing, extraction-pending against [Erasure Tombstone](../atoms/erasure-tombstone.md): the request records (Composition state 8, Capability requirement 13), the session access log and the request-to-events map (Composition state 24, 27, 30, Capability requirement 35 and 36); the audit pending list: extraction-pending against [Owed Record](../atoms/owed-record.md) (Composition state 31).
 
 ### Capability requirement
 
 ```
 Capability requirement 1: A deployment MUST set the default ttl.
-Capability requirement 2: IF the default ttl DOES NOT EXCEED zero THEN the composition MUST refuse to start.
+Capability requirement 2: IF the default ttl IS IN the refused ttls THEN the composition MUST refuse to start.
 Capability requirement 3: A deployment MUST set the max redemptions default.
 Capability requirement 4: [Request Access] MUST NOT take a redemption count.
 Capability requirement 5: A deployment MUST set the credential type.
@@ -213,7 +227,7 @@ Deleted: Capability requirement 21. Execution Contract Database 2 owns it: an ac
 Deleted: Capability requirement 22. Execution Contract Database 2 owns it: an action's reads of a request and the writes they decide are one transaction, and the composition names no exclusion to release.
 Capability requirement 23: The host MUST inject now at the composition's seam once per invocation.
 Capability requirement 24: The composition MUST NOT read the clock inside a transition.
-Capability requirement 25: An admitted request MUST stamp the requested instant AND compute the expiry instant from one now.
+Capability requirement 25: An admitted request MUST stamp the requested instant as now AND compute the expiry instant from that same now.
 Capability requirement 26: The provisioning cascade MUST compute the remaining ttl from the stored expiry instant AND the invocation's now.
 Capability requirement 27: The composition MUST NOT store a clock-derived flag.
 Capability requirement 28: The composition MUST NOT compare the composition's now with a constituent's stamp.
@@ -221,12 +235,13 @@ Capability requirement 29: The host MUST inject one invocation id per state-chan
 Capability requirement 30: An admitted request MUST take the invocation id as the request id.
 Capability requirement 31: The composition MUST NOT mint an id inside a transition.
 Capability requirement 32: The deployment MUST supply the database PER Execution Contract Database 1 through 4.
-Capability requirement 33: IF the credential type, the composed-scope encoding, the reference caps OR the service identity EQUALS blank THEN the composition MUST refuse to start.
+Capability requirement 33: IF the credential type, the composed-scope encoding, the reference caps, the longest token lifetime, the provisioning proof period OR the service identity EQUALS blank THEN the composition MUST refuse to start.
+Capability requirement 34: A deployment MUST set the longest token lifetime AND the provisioning proof period.
+Capability requirement 35: A deployment MUST NOT purge a session access entry.
+Capability requirement 36: A deployment MUST NOT purge a request-to-events map entry.
 ```
 
 NOTE: watch the unset setting (Capability requirement 33).
-
-NOTE: open 2026-11-04-b (Capability requirement 10).
 
 Term default ttl: the time-to-live — the validity duration — a request carries where the requestor supplies none.
 
@@ -242,15 +257,17 @@ Term audit horizon: the retention horizon of the policy the audit substrate is c
 
 Term retention floor: `(longest token lifetime + provisioning proof period)`.
 
-Term longest token lifetime: the longest time-to-live the deployment admits for a token.
+Term longest token lifetime: the longest time-to-live the deployment sets for a token (Capability requirement 34).
 
 Term provisioning proof period: the period over which the deployment must prove approval-gated provisioning from the trail.
+
+Term refused ttls: the ttls that DO NOT EXCEED zero OR EXCEED the longest token lifetime.
 
 Term composed scope: the byte-exact, self-delimiting serialization of the request id, the resource reference and the access scope, in that order, that the composition writes into Capability's opaque scope.
 
 Term service identity: the composition's own actor reference and credential, supplied by the deployment, that attributes every event with no human origin and makes every chain read.
 
-Term reference caps: the length caps on the resource reference, the access scope and each approver reference, derived from every surface the values must fit.
+Term reference caps: the length caps on the actor reference, the requestor reference, the resource reference, the access scope and each approver reference, derived from every surface the values must fit.
 
 Term seam: the composition's input and output boundary — the one place the host reads the clock and injects the reading and the invocation id, per the section titled Logic Confinement Principle in `execution-contract.md`.
 
@@ -259,6 +276,10 @@ Term now: the deployment's clock reading at the call, as Execution Contract Logi
 Term invocation id: the fresh id the host injects at the seam for each state-changing invocation, carried on every event and pending entry the invocation writes.
 
 Term remaining ttl: `(expiry instant - now)`, rounded down to a whole number of seconds, the time-to-live the cascade passes to allocate.
+
+Term request ttl: the ttl the requestor supplies, or the default ttl where the requestor supplies none.
+
+Term expiry instant: `(requested instant + request ttl)`, the deadline an admitted request stamps from its one now.
 
 ### Primitive policy
 
@@ -269,7 +290,7 @@ Primitive policy 3: IF the access scope EQUALS blank THEN [Request Access] MUST 
 Primitive policy 4: IF a reference EXCEEDS the reference's cap THEN the action MUST answer invalid-request.
 Primitive policy 5: The composition MUST validate a request's approver set AND quorum rule PER the approval substrate's own chain-shape rules.
 Primitive policy 6: IF the constructed event data EXCEEDS the payload budget THEN the action MUST answer invalid-request.
-Primitive policy 7: IF a supplied ttl DOES NOT EXCEED zero THEN [Request Access] MUST answer invalid-request.
+Primitive policy 7: IF a supplied ttl IS IN the refused ttls THEN [Request Access] MUST answer invalid-request.
 Primitive policy 8: IF the justification EQUALS blank THEN [Request Access] MUST answer invalid-request.
 Primitive policy 9: IF a required reason EQUALS blank THEN the action MUST answer invalid-request.
 Primitive policy 10: An action refused under Primitive policy 1 through 9 MUST NOT write.
@@ -336,7 +357,7 @@ Action wiring 5: IF a credentialed action's request id names no request record T
 Action wiring 6: IF the action's load-bearing act answers the act's success THEN the action MUST answer the action's success.
 Action wiring 7: IF Audit Trail refuses the record following a committed load-bearing act THEN the action MUST open a pending entry carrying the record.
 Action wiring 8: The composition MUST write an index entry ONLY AFTER the record the index entry derives from lands.
-Action wiring 9: A failed index write MUST NOT change an action's answer.
+Action wiring 9: A failed index write that IS NOT IN the transactional index writes MUST NOT change an action's answer.
 Action wiring 10: A validated request MUST call Permissions' permitted with the requestor reference AND requests initiate.
 Action wiring 11: IF Permissions answers denied THEN the action MUST answer permission-denied.
 Action wiring 12: IF the credential check on request EQUALS true THEN [Request Access] MUST call Credential's verify with the requestor reference, the credential type AND the credential.
@@ -446,9 +467,16 @@ Action wiring 115: IF Permissions' permitted answers denied THEN [Read Request] 
 Action wiring 116: IF the approval substrate answers invalid-credential OR recording-failure carrying intent to a decision THEN the decision action MUST NOT write.
 Action wiring 117: IF read chain answers the chain THEN the chain evaluation MUST close the request's open evaluation entries ONLY AFTER the chain evaluation's writes land.
 Action wiring 118: IF Capability's redeem answers invalid THEN [Exercise Access] MUST complete the exercise entry with the redemption failure.
+Action wiring 119: IF Audit Trail refuses the failed exercise event carrying blank as the request id THEN [Exercise Access] MUST answer capability-invalid carrying not-known (Execution Contract Constituent failure 1).
+Action wiring 120: IF Audit Trail refuses the failed exercise event carrying blank as the request id THEN [Exercise Access] MUST NOT open a pending entry.
+Action wiring 121: A resolved exercise MUST take the exercised instant from the invocation's now.
 ```
 
 NOTE: open 2026-11-04-c (Action wiring 55).
+
+NOTE: open 2026-11-06-c (Action wiring 25).
+
+NOTE: open 2026-11-06-d (Action wiring 47).
 
 Term credentialed action: [Approve Step] | [Reject Step] | [Withdraw Request] | [Revoke Access].
 
@@ -512,7 +540,7 @@ Wiring decision 6: The composition MUST NOT check a bearer's identity at redempt
 
 *Mechanism.* A grant stands until someone revokes it — exactly the failure mode; its revocation is an act someone must perform, where the token's expiry is a derivation nobody can forget (Wiring decision 1 and 2). **The bearer property is load-bearing, not incidental** (Wiring decision 6): break-glass and automated executors exercise access without carrying the requestor's identity, and the identity regulated audit needs at exercise time is re-bound by this composition's session gate — Session's validate first, its principal in the exercise record — not by the token. The token never knows its bearer; the exercise record names the session's authenticated principal at the moment of presentation. And the cascade is the only allocation path (Wiring decision 3 and 4): allocate is called at exactly one step, fired only by a chain the substrate reports Approved, with the binding written into the token's own immutable scope; an implementation offering a provisioning path outside the cascade violates Invariant 1. **Approvers are authorized by the approver set, not by a grant** (Wiring decision 5): the substrate refuses any decision from an actor outside the step's approver set, and a Permissions check here would enforce one rule through two mechanisms with two failure modes.
 
-*Result.* Every provisioned access traces, provably, to a documented, quorum-satisfied approval; every exercise is session-gated and principal-attributed; expiry needs no janitor; and a leaked trail grants nothing, because no record carries the bearer material.
+*Result.* Every provisioned access traces, provably, to a documented, quorum-satisfied approval; every exercise is session-gated and principal-attributed; a token's expiry needs no janitor; and a leaked trail grants nothing, because no audit event carries the bearer material.
 
 </details>
 
@@ -562,6 +590,8 @@ Reconciliation 40: IF Audit Trail's read record answers not-known OR the termina
 Reconciliation 41: The denial-reason leg MUST NOT record a second denial event.
 ```
 
+NOTE: open 2026-11-06-b (Reconciliation 23).
+
 Term reconciliation: the leg this composition runs outside every invocation whose output — a landed record, a finished provisioning, a closed request — a requestor or an auditor awaits: the approval leg, the terminal-chain leg, the redemption leg, the initiation leg and the denial-reason leg, at every start and on every retry.
 
 Term recovery intent: the access_recovery_intended event — the reconciliation's record that the act following it was occasioned by the reconciliation and not by a direct call.
@@ -582,23 +612,24 @@ Scope vocabulary 2: The composition MUST NOT define a withdraw scope.
 ```
 Deleted: Provisioning cascade 1. Execution Contract Database 2 owns it.
 Provisioning cascade 2: The provisioning cascade MUST call Capability's allocate with the service identity, the composed scope, the max redemptions default AND the remaining ttl.
-Provisioning cascade 3: IF Capability's allocate refuses THEN the provisioning cascade MUST open a pending entry carrying the provisioning-failure event.
-Provisioning cascade 4: IF Capability's allocate refuses THEN the provisioning cascade MUST record a provisioning-failure event carrying ProvisioningFailed AND the denial reason under the service identity.
-Provisioning cascade 5: IF Capability's allocate refuses THEN the provisioning cascade MUST set the request state to ProvisioningFailed.
+Provisioning cascade 3: IF Capability's allocate answers invalid-request THEN the provisioning cascade MUST open a pending entry carrying the provisioning-failure event.
+Provisioning cascade 4: IF Capability's allocate answers invalid-request THEN the provisioning cascade MUST record a provisioning-failure event carrying ProvisioningFailed AND the denial reason under the service identity.
+Provisioning cascade 5: IF Capability's allocate answers invalid-request THEN the provisioning cascade MUST set the request state to ProvisioningFailed.
 Provisioning cascade 6: IF Capability's allocate answers invalid-request AND the remaining ttl DOES NOT EXCEED zero THEN the denial reason MUST read ttl-elapsed.
-Provisioning cascade 7: IF Capability's allocate refuses for another cause THEN the denial reason MUST carry the relayed refusal.
+Provisioning cascade 7: IF Capability's allocate answers invalid-request for another cause THEN the denial reason MUST carry the relayed refusal.
 Provisioning cascade 8: The provisioning cascade MUST record a provisioning event carrying the request id, the requestor reference, the resource reference, the access scope, the max redemptions, the expiry instant AND Provisioned ONLY AFTER Capability's allocate answers the capability token.
 Provisioning cascade 9: A provisioning event MUST NOT carry the capability token.
 Provisioning cascade 10: The provisioning cascade MUST set the request state to Provisioned ONLY AFTER Capability's allocate answers the capability token.
 Provisioning cascade 11: The provisioning cascade MUST deliver the capability token to the requestor through the delivery channel ONLY AFTER Capability's allocate answers the capability token.
-Provisioning cascade 12: The composition MUST NOT carry the capability token on a surface other than the delivery channel.
+Provisioning cascade 12: The composition MUST NOT carry the capability token on a surface other than the delivery channel, the request-to-capability map AND the capability-to-request map.
 Provisioning cascade 13: IF Audit Trail refuses the provisioning event THEN the provisioning cascade MUST open a pending entry carrying the provisioning event.
 Provisioning cascade 14: The provisioning cascade MUST write the request-to-capability entry AND the capability-to-request entry ONLY AFTER Capability's allocate answers the capability token.
+Provisioning cascade 15: IF Capability's allocate answers storage-failure THEN the provisioning cascade MUST NOT write (Execution Contract Constituent failure 1).
 ```
 
 Term provisioning cascade: the internal leg the chain evaluation fires on an Approved chain — allocate, record, deliver; no caller invokes it.
 
-Term delivery channel: the deployment's channel carrying a provisioned token to the requestor — the only surface the raw token crosses.
+Term delivery channel: the deployment's channel carrying a provisioned token to the requestor — the only surface the raw token crosses beside the two capability maps.
 
 ---
 
@@ -717,11 +748,11 @@ Session validates as `valid(principal_ref: user_u77, …)` — the session gate 
 
 Four scenarios the composition must survive in regulated contexts:
 
-**Regulator audit — SOX section 404 privileged access control.** An external auditor asks *"can you prove that no one accessed the production financial database with elevated privileges without documented, multi-party authorization?"* The walk uses the declared surfaces, not payload-field queries the substrate does not offer: `read_request({resource_ref: db::prod::financials})` returns every request ever opened against the resource, each carrying its state and its `request_to_events` ids. For each `Provisioned` request the auditor takes the event ids into the substrate — access_provisioned, then every access_exercised — and traces the approval side through `request_to_chain` to the chain's own step records, recomputing the quorum outcome under the substrate's Invariant 2. Invariant 1 closes the other direction: enumerating the dedicated Capability instance and parsing each composed scope proves every token that exists traces to an `Approved` chain — no orphan tokens, no single-approver grants. SOX section 404 is satisfied, provably.
+**Regulator audit — SOX section 404 privileged access control.** An external auditor asks *"can you prove that no one accessed the production financial database with elevated privileges without documented, multi-party authorization?"* The walk uses the declared surfaces, not payload-field queries the substrate does not offer: `read_request({resource_ref: db::prod::financials})` returns every request ever opened against the resource, each carrying its state and its `request_to_events` ids. For each `Provisioned` request the auditor takes the event ids into the substrate — access_provisioned, then every access_exercised — and traces the approval side through `request_to_chain` to the chain's own step records, recomputing the quorum outcome from those step records. Invariant 1 closes the other direction: enumerating the dedicated Capability instance and parsing each composed scope proves every token that exists traces to an `Approved` chain — no orphan tokens, no single-approver grants. The records alone carry the evidence section 404 asks for.
 
 **Disputed access — former employee denies using privileged token.** A security investigation reveals the production credentials database was queried at `2026-11-14T03:22:00Z`. A former employee claims they did not access it. The investigator runs `read_request({resource_ref: db::prod::credentials})`, finds `req_r9s4t1` provisioned that night, and reads its events: the access_exercised event at `03:22:11Z` carries `session_principal_ref: user_u88` — the identity `Session.validate` returned at the moment of exercise, recorded in the event itself rather than recovered by a later cross-reference. The approval chain for `req_r9s4t1` shows the same principal as requestor_ref, with both approvals attested at `02:58Z`. Invariant 3 guarantees the session gate passed in the same call; the Session records corroborate a session issued to `user_u88` at `03:15Z`. The denial cannot be sustained against the structural record; a credential-compromise reinterpretation is the **Compromise Disclosure** *(forthcoming)* pattern's business, never a mutation of this trail.
 
-**HIPAA break-glass access trace — clinical PHI access audit.** A compliance officer must demonstrate to an OCR (Office for Civil Rights) auditor that a nurse's emergency break-glass access to a patient record on `2026-09-12` was authorized and documented. `read_request({resource_ref: ehr::patient::p4471})` returns `req_h8k3n2`; its events show the arc in order: `access_requested` (justification: "INC-4418 cardiac event — emergency PHI (Protected Health Information) access required"), the chain's two approval decisions (charge nurse + attending physician, all-of-N over two, credentials verified at decision time — Invariant 6), access_provisioned, and one access_exercised at `02:44Z` carrying `session_principal_ref: nurse_n21`. The full arc is present in the one Audit Trail instance (Invariant 9's provable half); HIPAA section 164.312(b)'s access-audit requirement is satisfied, provably.
+**HIPAA break-glass access trace — clinical PHI access audit.** A compliance officer must demonstrate to an OCR (Office for Civil Rights) auditor that a nurse's emergency break-glass access to a patient record on `2026-09-12` was authorized and documented. `read_request({resource_ref: ehr::patient::p4471})` returns `req_h8k3n2`; its events show the arc in order: `access_requested` (justification: "INC-4418 cardiac event — emergency PHI (Protected Health Information) access required"), the chain's two approval decisions (charge nurse + attending physician, all-of-N over two, credentials verified at decision time — Invariant 6), access_provisioned, and one access_exercised at `02:44Z` carrying `session_principal_ref: nurse_n21`. The full arc is present in the one Audit Trail instance (Invariant 9's provable half); The records alone carry the access-audit evidence HIPAA section 164.312(b) asks for.
 
 **Breach investigation — approval gate bypassed?** A security team finds an access_exercised event at `2026-12-01T18:44Z` against a high-security vault and asks whether the approval gate was bypassed. The event's request_id leads to `req_v2w5x8`: state `Provisioned`, chain `Approved`, two decision records, quorum recomputation clean. Then the systemic half: enumerate the dedicated Capability instance and parse every composed scope. A token whose scope parses to no request, to a request whose chain is not `Approved`, or that fails to parse at all is evidence of out-of-band allocation. All tokens accounting for themselves is the structural no-bypass answer; Invariant 1 makes the check deterministic.
 
@@ -796,11 +827,12 @@ Non-goal 14: The composition MUST NOT record a failed session gate.
 Non-goal 15: The composition MUST NOT hide a request's existence from an authenticated caller.
 Non-goal 16: The composition MUST NOT seal a composition index.
 Non-goal 17: The composition MUST NOT refuse an approver set naming the requestor reference.
+Non-goal 18: IF the delivery channel fails to carry the capability token to the requestor THEN the deployment MUST call [Revoke Access] for the request.
 ```
 
 NOTE: watch the segregation policy (Non-goal 17).
 
-NOTE: the owners — the deployment (Non-goal 4 through 7); an Idempotency Result Memo (Non-goal 12); a Failed-Attempt Log *(forthcoming)* (Non-goal 14); the deployment's calling layer (Non-goal 15); the deployment's segregation policy (Non-goal 17).
+NOTE: the owners — the deployment (Non-goal 4 through 7); an Idempotency Result Memo (Non-goal 12); a Failed-Attempt Log *(forthcoming)* (Non-goal 14); the deployment's calling layer (Non-goal 15); the deployment's segregation policy (Non-goal 17); the deployment's delivery failure (Non-goal 18).
 
 ---
 
@@ -863,7 +895,7 @@ Term actors: the composition; the constituents; the approval substrate; the audi
 
 Term records: the audit events the composition records through the audit substrate — each an Audit Trail event carrying one action reference below — the request records, and the index entries.
 
-Term record verbs: acquire, add, alert, answer, attest, belong, call, carry, change, check, close, commit, compare, complete, compose, compute, configure, declare, define, delete, deliver, emit, enumerate, expose, find, fire, follow, gate, grant, hide, hold, inherit, initiate, inject, issue, key, land, leave, make, mark, mint, name, normalize, notify, offer, open, order, own, pair, parse, pass, provision, purge, read, rebuild, reconstruct, record, refuse, register, renew, report, resolve, retry, return, reuse, revoke, run, satisfy, seal, serve, set, stamp, store, supply, take, validate, verify, wire, write.
+Term record verbs: acquire, add, alert, answer, attest, belong, call, carry, change, check, classify, close, commit, compare, complete, compose, compute, configure, declare, define, delete, deliver, emit, enumerate, expose, find, fire, follow, gate, grant, hide, hold, inherit, initiate, inject, issue, key, land, leave, make, mark, mint, name, normalize, notify, offer, open, order, own, pair, parse, pass, provision, purge, read, rebuild, reconstruct, record, refuse, register, renew, report, resolve, retry, return, reuse, revoke, run, satisfy, seal, serve, set, stamp, store, supply, take, validate, verify, wire, write.
 
 Term value sets: action reference = access_requested | approval_step_decided | access_provisioned | access_denied | access_request_withdrawn | access_provisioning_failed | access_exercised | access_exercise_failed | access_revoked | access_recovery_intended | access_audit_recovery. The rest are declared where the section that owns each declares it: request state, open request state, terminal request state, refused state, refusing chain state, credential check on request, validation failure, exercise failure, terminal chain action, bearer material.
 
@@ -873,11 +905,11 @@ Term cadences: empty.
 
 Term qualifiers: migrated — rewritten in GRACE lang v0.61 (2026-09-23).
 
-Term terms: composition, constituents, approval substrate, audit substrate, trail, chains initiate, chains withdraw, chains read, request record, request id, request state, request progression, open request state, terminal request state, refused state, identity field, request shape, shape-bearing event, state-transition event, latest state-transition event, bearer material, request-to-chain map, request-to-capability map, capability-to-request map, session access log, session access entry, request-to-events map, audit pending list, pending entry, closing occasion, aged event, quiescence, default ttl, max redemptions default, credential type, credential check on request, approver set minimum, audit horizon, retention floor, longest token lifetime, provisioning proof period, composed scope, service identity, reference caps, seam, now, invocation id, remaining ttl, payload budget, validation failure, exercise failure, request results, credentialed action, decision action, load-bearing act, validated request, admitted withdrawal, validated exercise, verified revocation, admitted revocation, permitted read, admitted request, initiation entry, evaluation entry, denial-reason entry, exercise entry, resolved exercise, chain evaluation, provisioning conjunction, terminal chain action, requests initiate, requests revoke, requests read, reconciliation, recovery intent, recovery record, refusing chain state, provisioning cascade, delivery channel, bypass token, operating skew, request event, decision event, provisioning event, denial event, withdrawal event, initiation-failed withdrawal event, provisioning-failure event, exercise event, failed exercise event, revocation event, read query, unavailable, mapped refusal, recording failure.
+Term terms: composition, constituents, approval substrate, audit substrate, trail, chains initiate, chains withdraw, chains read, request record, request id, request state, request progression, open request state, terminal request state, refused state, identity field, request shape, shape-bearing event, state-transition event, latest state-transition event, denial reason, requested instant, access scope, justification, terminal event, event envelope, bearer material, request-to-chain map, request-to-capability map, capability-to-request map, session access log, session access entry, transactional index writes, request-to-events map, audit pending list, pending entry, closing occasion, aged event, quiescence, default ttl, max redemptions default, credential type, credential check on request, approver set minimum, audit horizon, retention floor, longest token lifetime, provisioning proof period, refused ttls, composed scope, service identity, reference caps, seam, now, invocation id, remaining ttl, request ttl, expiry instant, payload budget, validation failure, exercise failure, request results, credentialed action, decision action, load-bearing act, validated request, admitted withdrawal, validated exercise, verified revocation, admitted revocation, permitted read, admitted request, initiation entry, evaluation entry, denial-reason entry, exercise entry, resolved exercise, chain evaluation, provisioning conjunction, terminal chain action, requests initiate, requests revoke, requests read, reconciliation, recovery intent, recovery record, refusing chain state, provisioning cascade, delivery channel, bypass token, operating skew, request event, decision event, provisioning event, denial event, withdrawal event, initiation-failed withdrawal event, provisioning-failure event, exercise event, failed exercise event, revocation event, read query, unavailable, mapped refusal, recording failure.
 
-Term cited: Execution Contract Conformance 8 — the recursive inheritance of a constituent's guarantees. The section titled Substrate composition invocation in `execution-contract.md` — the substrate relation and its instance topology. The section titled Composition state in `execution-contract.md` — the derived-index, truth-bearing and extraction-pending classifications. The section titled Logic Confinement Principle in `execution-contract.md` — the seam. initiate chain, approve step, reject step, withdraw chain, read chain, chain id, step id, subject reference, approver set, quorum rule, chain_resolved, chain_withdrawn, Approved, Rejected, Withdrawn, Pending, not-pending, unauthorized, position: Multi-Party Approval. record action, read record, verify record, event id, payload cap, actor registry, invalid-credential, recording-failure: Audit Trail. verify, failed-verification, verified, Active: Credential. validate, valid, invalid, session token, principal reference: Session. permitted, denied: Permissions. allocate, redeem, revoke, read, capability token, scope, max redemptions, remaining redemptions, ttl, allocator reference, redeemed, effective status, redemption failure, exhausted, expired, revoked, already-terminal, Redeemed, Expired: Capability.
+Term cited: Execution Contract Conformance 8 — the recursive inheritance of a constituent's guarantees. Execution Contract Database 1 — an index write and its event commit together. The section titled Substrate composition invocation in `execution-contract.md` — the substrate relation and its instance topology. The section titled Composition state in `execution-contract.md` — the derived-index, truth-bearing and extraction-pending classifications. The section titled Logic Confinement Principle in `execution-contract.md` — the seam. initiate chain, approve step, reject step, withdraw chain, read chain, chain id, step id, subject reference, approver set, quorum rule, chain_resolved, chain_withdrawn, Approved, Rejected, Withdrawn, Pending, not-pending, unauthorized, position: Multi-Party Approval. record action, read record, verify record, event id, payload cap, actor registry, invalid-credential, recording-failure: Audit Trail. verify, failed-verification, verified, Active: Credential. validate, valid, invalid, session token, principal reference: Session. permitted, denied: Permissions. allocate, redeem, revoke, read, capability token, scope, max redemptions, remaining redemptions, ttl, allocator reference, redeemed, effective status, redemption failure, exhausted, expired, revoked, already-terminal, Redeemed, Expired: Capability.
 
-Term composing patterns: [Login](./login.md); [Session-Gated Authorization](./session-gated-authorization.md); [External Onboarding](./external-onboarding.md); [Capability-Backed Sharing](./capability-backed-sharing.md); Failed-Attempt Log *(forthcoming)*; [Owed Record](../atoms/owed-record.md); Trusted Timestamping *(forthcoming)*; Compromise Disclosure *(forthcoming)*.
+Term composing patterns: [Login](./login.md); [Session-Gated Authorization](./session-gated-authorization.md); [External Onboarding](./external-onboarding.md); [Capability-Backed Sharing](./capability-backed-sharing.md); Failed-Attempt Log *(forthcoming)*; [Owed Record](../atoms/owed-record.md); [Erasure Tombstone](../atoms/erasure-tombstone.md); Trusted Timestamping *(forthcoming)*; Compromise Disclosure *(forthcoming)*.
 
 Term request event: the access_requested event — a request's shape-bearing opening record.
 
@@ -1043,6 +1075,8 @@ Projection: invalid-credential
 
 - **HIPAA section 164.312(a)(1) (Access Control)** — covered entities must implement technical policies and procedures for electronic information systems that allow access only to authorized users. The composition's multi-party approval gate is the authorization policy; the Credential.verify checks at both request and approval time ensure the actors in the arc are authenticated; the Session.validate check ensures the principal is currently authenticated at exercise time.
 
+- **HIPAA section 164.312(b) (Audit Controls)** — covered entities must implement mechanisms that record and examine activity in information systems that contain or use electronic protected health information. The Audit Trail holds the request, each approval decision, the provisioning and every exercise with the session principal, and read_request walks them by request id.
+
 - **PCI DSS Requirements 7 and 8 (Restrict Access and Identify Users)** — Requirement 7 mandates that access to system components and cardholder data is restricted to only those individuals whose job requires such access. Requirement 8 mandates that all users are assigned a unique ID before access is allowed. This composition enforces both: the approval chain documents the business need; the requestor_ref and the Session record establish the unique user identity.
 
 - **NIST (National Institute of Standards and Technology — US federal standards body) SP 800-53 AC-2 (Account Management) and AC-6 (Least Privilege)** — AC-2 requires that privileged user accounts are authorized by senior officials and reviewed regularly. AC-6 requires that privileged access is limited to the minimum required. This composition models the authorization record (AC-2) and the time-limited, scoped Capability (AC-6's minimum-necessary principle expressed as a token with explicit TTL — time-to-live, a validity duration — and scope).
@@ -1062,11 +1096,13 @@ Projection: invalid-credential
 ```
 status: partially resolved
 formal: verified — privileged-access-provisioning.tla, no twin, 2026-06-03
-last gate: 2026-11-06 — Final Critique 6, delta, one pass (Linus) — 2 foundational (both cured this round), 7 refining cured, 0 rhetorical, not clean
+last gate: 2026-11-06 — Final Critique 7, full, three passes (GRID, EOS, Linus) — 7 foundational (all cured this round), 6 refining cured and 3 left as open lines, 3 rhetorical cured, not clean
 
 open:
 - 2026-11-04-a · refining · structure · Action wiring carries no closure table, which spec-format.md requires as the subsection's first #### block → draft it as its own authoring unit, every cell owned by a rule
-- 2026-11-04-b · refining · retention · Capability requirement 10 constrains the retention floor, but no rule sets the longest token lifetime or the provisioning proof period, nor refuses a supplied ttl past the longest → decide whether a request over the longest token lifetime is refused or clamped, then set both
+- 2026-11-06-b · refining · terminal-chain leg · Reconciliation 23 lands a recovery record for every step decision in the chain's events that no decision event names, with no scope: every chain, or only the Rejected and Withdrawn chains Reconciliation 22 runs for, so a decision whose substrate recording-failure carrying outcome landed on a Pending or Approved chain may keep no decision event → decide the scope, then state it in Reconciliation 23's condition
+- 2026-11-06-c · refining · request id on a refused outcome · [Request Access] answering recording-failure carrying outcome hands the requestor no request id, so a retry opens a second request and chain → decide whether the answer carries the request id or the retry is the requestor's cost, then state it
+- 2026-11-06-d · refining · seam vocabulary · the request states Pending, Approved and Withdrawn are reused as the chain's states with different meanings across the seam (Action wiring 47 through 57) → decide whether the chain's states take a Term of their own, then rename the reads
 - 2026-11-04-c · refining · withdrawal reason · Action wiring 55 records the terminal event's reason on the withdrawal event with no answer for a destroyed reason, where Action wiring 51 through 52 take blank and open a denial-reason entry → decide whether a blank withdrawal reason owes a recovery entry
 - 2026-08-29-a · refining · formal · the model's sweep carries no pre-check, no identity, no recovery record, and no age bound → extend the model with the four sweep rules
 ```
