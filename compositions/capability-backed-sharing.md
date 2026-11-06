@@ -83,7 +83,7 @@ Composition state 1: The composition MUST store the capability-to-sharing index.
 Composition state 2: The composition MUST key the capability-to-sharing index by capability token.
 Composition state 3: A capability-to-sharing entry MUST carry the allocator reference, the subject reference, the intended recipient, the disclosed scope, the authority, the authorization event id AND the allocation reading.
 Composition state 4: The composition MUST write a capability-to-sharing entry ONLY AFTER the authorization event lands.
-Composition state 5: The composition MUST NOT change a capability-to-sharing entry.
+Composition state 5: IF no diverged entry EXISTS for the capability token THEN the composition MUST NOT change the token's capability-to-sharing entry.
 Composition state 6: IF no capability-to-sharing entry EXISTS for a capability token AND the token's authorization event IS NOT IN the aged events THEN the composition MUST rebuild the capability-to-sharing entry from the authorization events.
 Composition state 7: IF a capability token's authorization event IS IN the aged events THEN the composition MUST NOT rebuild the token's capability-to-sharing entry.
 Composition state 8: The composition MUST store the disclosure-to-redemption index.
@@ -287,6 +287,7 @@ Action wiring 16: The deployment MUST alert on an unparsed scope as a conformanc
 Action wiring 17: [Redeem And Disclose] MUST NOT refuse a token as unattested BEFORE rebuilding the token's capability-to-sharing entry.
 Action wiring 18: [Redeem And Disclose] MUST answer not-authorized-sharing for an unattested token.
 Action wiring 19: IF a diverged entry EXISTS for the capability token THEN [Redeem And Disclose] MUST rebuild the capability-to-sharing entry.
+NOTE: open 2026-11-06-a — the rebuild of a diverged entry and Composition state 7 for a token whose authorization event is aged.
 Action wiring 20: [Redeem And Disclose] MUST answer not-authorized-sharing for an irreconcilable token.
 Action wiring 21: The deployment MUST alert on an irreconcilable token as a conformance fault.
 Action wiring 22: A refusal under Action wiring 14 through 21 MUST NOT write.
@@ -875,7 +876,7 @@ Capability-Backed Sharing inherits the broader standards compliance of its const
 ```
 status: partially resolved
 formal: verified — capability-backed-sharing.tla + 2 twins, 2026-08-27
-last gate: 2026-11-05 — Final Critique 9, delta — foundational count 4, not clean, no sample
+last gate: 2026-11-06 — Final Critique 10, delta — foundational count 1, not clean, no sample
 
 open:
 - 2026-08-29-r · refining · formal · the model's compensation carries no identity, no recovery record, and no age bound; the twins predate the scan's horizon edge → extend the model with the service-identity compensation behind `sharing.recovery_intended` and the scan's horizon edge
@@ -884,6 +885,7 @@ open:
 - 2026-11-05-b · refining · Capability requirement 9, Term escalation reach · neither budgets the reconciliation's own run, the enumeration and the closures' writes (the watched "the reconciliation's own run") → the disclosed run bound enters Term escalation reach and Capability requirement 9 when the rule stated once lands
 - 2026-11-05-c · refining · Check 6.4, Check 3.1, Invariant 3.4 · Check 6.4 accepts an escalated capability that Invariant 3.4 does not count as settled, and Check 3.1 asks an auditor to resolve an aged intent's candidates whose actor may be destroyed → decide what the check reads at the escalation reach
 - 2026-11-05-d · refining · Reconciliation 13, Term remainder · the remainder counts disclosure events with no age bound, so one destroyed past the audit horizon inflates it, and the reconciliation's reads are not one transaction (Execution Contract Database 1 binds an action) → bound the count at the escalation reach and name the read
+- 2026-11-06-a · refining · Action wiring 19, Composition state 7 · Action wiring 19 obliges the rebuild of a diverged entry and Composition state 7 forbids the rebuild of the entry of a token whose authorization event is aged, and no rule names what a diverged entry's rebuild reads (Composition state 6 rebuilds from the authorization events) → decide whether a diverged entry of an aged token is rebuilt from the capability record or stands as an irreconcilable token
 ```
 
 <details markdown="block">
