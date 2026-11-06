@@ -121,7 +121,7 @@ Deleted: State 14. Execution Contract Database 3 owns it.
 
 ```
 Capability requirement 1: The deployment MUST supply now at the seam.
-Capability requirement 5: The deployment MUST supply the workflow records PER Execution Contract Database 1 through 7, Execution Contract Read 1 through 4, Execution Contract Read 6, Execution Contract Refusal 1, Execution Contract Query 1 through 5, Execution Contract Input 1, Execution Contract Input 4 and Execution Contract Conformance 9.
+Capability requirement 5: The deployment MUST supply the workflow records PER Execution Contract Database 1 through 7, Execution Contract Read 1 through 4, Execution Contract Read 6, Execution Contract Refusal 1, Execution Contract Query 1 through 5, Execution Contract Input 1 through 4 and Execution Contract Conformance 9.
 Deleted: Capability requirement 6. Execution Contract Conformance 9 owns it.
 Capability requirement 7: The deployment MAY declare the string cap ONLY IF the string cap EXCEEDS 0 PER Execution Contract Input 2.
 Deleted: Capability requirement 2. Execution Contract Logic confinement 7 owns it.
@@ -937,14 +937,14 @@ Guard evaluation, non-repudiable attribution, tamper-evidence, and retention are
 
 ## Status
 
-`partially resolved` — see the Ledger.
+`grounded on Final Critique 16 — 2026-11-06 at ad732c0` — see the Ledger.
 
 ## Ledger
 
 ```
-status: partially resolved
+status: grounded on Final Critique 16 — 2026-11-06 at ad732c0
 formal: verified — state-machine.als + 1 twin, 2026-06-04
-last gate: 2026-11-05 — Final Critique 15 — foundational count 1, not clean, no sample
+last gate: 2026-11-06 — Final Critique 16, delta — foundational count 0, clean, one sample
 
 open:
 - 2026-11-05-a · refining · the Watch list in GRACE-lang.md · the page carries watch flags whose names the list's census does not hold, and the list is a shared method page the mayor edits → the mayor rules whether a flag on one specification enters the census, then enters each with its count or the page drops the flag
