@@ -112,7 +112,7 @@ Term reservation-to-pool binding: the composition's map from a reservation id to
 
 Term binding entry: one reservation's entry in the reservation-to-pool binding.
 
-Term aged entry: a journal entry whose `(recording instant + audit horizon)` PRECEDES now — past which the entry's payload may be lawfully destroyed.
+Term aged entry: a journal entry whose `(recording instant + audit horizon)` PRECEDES now — past which the entry's payload may be lawfully destroyed, a reserve outcome entry's once the reservation's binding entry stands (Capability requirement 48).
 
 Term token results map: the composition's own map from an idempotency token to the answer recorded against the token.
 
@@ -122,7 +122,7 @@ Term parameters digest: the collision-resistant digest of a call's business para
 
 Term business parameter: the pool id, the resource, the requester and the duration at [Reserve]; the reservation id at a resolving action — the inputs that decide an answer.
 
-NOTE: Contract classification, per the section titled Composition state in `execution-contract.md` — the reservation-to-pool binding: derived index over the journal's reserve outcome entries (Composition state 10, Composition state 11), its entries whose reserve outcome entry is an aged entry extraction-pending against [Erasure Tombstone](../atoms/erasure-tombstone.md) (Composition state 15); the token results map: extraction-pending, the proposed atom an *Idempotency Result Memo* (token → result, write-once, window-governed eviction), opened as a roadmap proposal (Composition state 16).
+NOTE: Contract classification, per the section titled Composition state in `execution-contract.md` — the reservation-to-pool binding: derived index over the journal's reserve outcome entries (Composition state 10, Composition state 11), a reserve outcome entry's payload retained until the entry's binding entry stands (Capability requirement 48), its entries whose reserve outcome entry is an aged entry extraction-pending against [Erasure Tombstone](../atoms/erasure-tombstone.md) (Composition state 15); the token results map: extraction-pending, the proposed atom an *Idempotency Result Memo* (token → result, write-once, window-governed eviction), opened as a roadmap proposal (Composition state 16).
 
 ### Capability requirement
 
@@ -174,6 +174,7 @@ Capability requirement 44: The composition MUST NOT store a clock-derived flag.
 Capability requirement 45: The composition MUST NOT derive a hold's deadline.
 Capability requirement 46: The composition MUST order reservation events by the journal's sequence numbers.
 Capability requirement 47: The deployment MUST supply the database PER Execution Contract Database 1 through 4.
+Capability requirement 48: IF no binding entry EXISTS for a reserve outcome entry's reservation id THEN the deployment MUST retain the reserve outcome entry's payload.
 ```
 
 Term idempotency window: the duration the Duplicate Prevention instance guards a token — chosen to cover the slowest legitimate retry of the most critical action.
@@ -866,7 +867,7 @@ The five constituents carry their own deep standards inheritance — see each co
 ```
 status: partially resolved
 formal: pending — reserve-from-pool.tla + 1 twin verified 2026-06-04 over the retired atomic trio; re-derive over the ordered slot-returning pair and the pool reconciliation (2026-08-29-a)
-last gate: 2026-11-06 — Final Critique 11, delta, one pass (Linus) — 2 foundational reported (1 cured this round, 1 refuted), not clean, no sample
+last gate: 2026-11-06 — Final Critique 12, delta, one pass (Linus) — 0 foundational reported, 1 foundational by the blind second triage (a binding entry may not stand before its reserve outcome entry's payload is destroyed; cured this round by Capability requirement 48), not clean, no sample
 
 open:
 - 2026-11-05-a · refining · retention · Term longest reservation lifetime counts the time a reservation the deployment admits stands Held, but no rule sets that longest or says whether a hold standing past it under a lazy sweep is tolerated → decide, then set it
