@@ -798,6 +798,8 @@ Cascade 13: The recalled step ids MUST list the steps whose recall answered ok, 
 
 Term cascade: the secondary calls a terminal chain owes its still-Pending steps.
 
+NOTE: open 2026-11-06-c — "still-Pending" is not said to be the step's Approval Step state or Wiring decision 7's count, which differ for a step decided outside the composition.
+
 Term cascade reason: the rule reason, the initiator's validated reason on the [Withdraw Chain] path, or the recovery reason — non-blank by construction, so Approval Step never refuses a cascade withdrawal over its reason.
 
 Term recalled step ids: the steps whose assignments a cascade recalled — always present on a resolution event, empty where none.
@@ -1231,19 +1233,20 @@ It inherits from:
 
 ## Status
 
-`partially resolved` — see the Ledger.
+`grounded on Final Critique 18 — 2026-11-06 at 56ae031` — see the Ledger.
 
 ## Ledger
 
 ```
-status: partially resolved
+status: grounded on Final Critique 18 — 2026-11-06 at 56ae031
 formal: verified — multi-party-approval.tla + 8 twins + 7 probes, 2026-10-26
-last gate: 2026-11-06 — Final Critique 17 — delta — foundational count 2, not clean, no sample
+last gate: 2026-11-06 — Final Critique 18 — full, frozen at 56ae031 — foundational count 0, clean, three fresh passes; 2026-11-06 — Final Critique 17 — delta — foundational count 2, not clean, no sample
 
 open:
 - 2026-11-05-a · refining · Retention asymmetry 2a; Audit Trail Invariant 8.2b · a held event answers failed-verification carrying purged as a purged one does, and the page does not say where an auditor reads that a hold keeps the event → name the record the auditor reads, a decision on what a hold is
 - 2026-11-05-b · refining · Reconciliation 2; Term initiation leg; Term transition leg · the order of the sweep's two legs within one run is not written → decide whether the order is fixed or free
 - 2026-11-06-a · refining · Term operating skew; Term liveness sum; Term escalation reach · the operating skew is carried by neither the liveness sum nor the escalation reach, so the skew's effect on a sweep trigger is not written → decide whether the sums carry the skew
+- 2026-11-06-c · refining · Term cascade; Cascade 1; Cascade 2; Invariant 4.2 · "still-Pending" is read from Approval Step's state by one build and from Wiring decision 7's count by another, so a step decided outside the composition keeps or loses its assignment at a terminal chain's cascade → decide which count the cascade's still-Pending names; a gloss that excludes every routed transition would stop the cascade recalling the steps it withdraws (Cascade 3)
 - 2026-11-06-b · refining · Term field length cap; Term query; Primitive policy 4 · a deployment's smaller field length cap makes a query filter malformed that another deployment answers, and the cap's floor does not reach a reference filter → decide whether the cap's floor covers a query filter
 - 2026-08-29-u · refining · formal · multi-party-approval.tla models no audit write, so no model checks that the sweep's recovery intent lands before its closure (Reconciliation 28, 29) → model the audit writes the sweep orders
 ```

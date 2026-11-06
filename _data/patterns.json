@@ -935,7 +935,7 @@
    "permissions",
    "assignment"
   ],
-  "grounded": false,
+  "grounded": true,
   "invariants": 9,
   "kind": "composition",
   "models": {
@@ -951,7 +951,7 @@
    "SOC 2",
    "SOX"
   ],
-  "status": "partially resolved",
+  "status": "grounded on Final Critique 18 \u2014 2026-11-06 at 56ae031",
   "substrate_of": [
    "privileged-access-provisioning"
   ],
