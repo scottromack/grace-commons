@@ -196,6 +196,8 @@ NOTE: open 2026-11-05-a (Term longest reservation lifetime).
 
 Term longest reservation lifetime: the longest a reservation the deployment admits stands Held, from [Reserve] to the reservation's confirm outcome entry or slot-returning outcome entry — a reservation standing longer, a Confirmed one among them, is counted past the audit horizon from its binding entry (Composition state 15, Check 1.1).
 
+NOTE: open 2026-11-06-a (Term coherence proof period).
+
 Term coherence proof period: the period over which allocation coherence must be provable from the journal.
 
 Term seam: the composition's input and output boundary — the one place the host reads the clock and hands the reading to the composition, per the section titled Logic Confinement Principle in `execution-contract.md`.
@@ -268,7 +270,7 @@ Action wiring 15: IF the journal holds an entry for the token that IS NOT an own
 Deleted: Action wiring 16. Execution Contract Database 1 owns it.
 Deleted: Action wiring 17. Execution Contract Database 1 owns it.
 Action wiring 18: IF the journal holds a reserve outcome entry for the token AND no binding entry EXISTS for the entry's reservation id THEN [Reserve] MUST write the binding entry from the outcome entry.
-Action wiring 19: IF the journal holds the action's intent entry for the token AND no resolving entry names the token THEN the action MUST answer recording-failure carrying outcome.
+Action wiring 19: IF the journal holds the action's intent entry for the token AND the journaled digest EQUALS the call's parameters digest AND no resolving entry names the token THEN the action MUST answer recording-failure carrying outcome.
 Action wiring 20: IF Duplicate Prevention's check answers not-seen AND the journal holds no entry for the token THEN [Reserve] MUST call Actor Identity's attest with the action reference, the actor reference AND the credential.
 Action wiring 21: A state-changing action MUST NOT call a constituent write BEFORE Actor Identity's attest answers the attestation id.
 Action wiring 22: IF Actor Identity answers invalid-credential THEN the action MUST answer invalid-credential.
@@ -301,7 +303,7 @@ Action wiring 48: IF Capacity Constraint Enforcement answers suspended THEN [Res
 Action wiring 49: IF Capacity Constraint Enforcement answers closed THEN [Reserve] MUST answer pool-closed.
 Action wiring 50: IF Capacity Constraint Enforcement answers invalid-request for an allocate THEN [Reserve] MUST answer invalid-request.
 Action wiring 51: IF Capacity Constraint Enforcement answers storage-failure for an allocate THEN [Reserve] MUST answer recording-failure carrying intent (Execution Contract Constituent failure 1).
-Action wiring 52: An admitted reserve MUST settle not-known, pool-closed AND pool-capacity-exceeded.
+Action wiring 52: IF an admitted reserve answers not-known OR pool-closed OR pool-capacity-exceeded THEN [Reserve] MUST settle the answer.
 Action wiring 53: An admitted reserve MUST call Provisional Commitment's place hold with the resource, the requester AND the duration ONLY AFTER allocate answers the allocation event id.
 Action wiring 54: IF Provisional Commitment answers invalid-request for a place hold THEN [Reserve] MUST answer invalid-request.
 Action wiring 55: IF Provisional Commitment answers resource-unavailable THEN [Reserve] MUST answer resource-unavailable.
@@ -338,7 +340,7 @@ Action wiring 85: IF Provisional Commitment answers not-held to a resolving acti
 Action wiring 86: IF Provisional Commitment answers window-elapsed to a resolving action's transition THEN the action MUST answer window-elapsed.
 Action wiring 87: IF Provisional Commitment answers window-not-elapsed to a resolving action's transition THEN the action MUST answer window-not-elapsed.
 Action wiring 88: IF Provisional Commitment answers storage-failure to a resolving action's transition THEN the action MUST answer recording-failure carrying intent (Execution Contract Constituent failure 1).
-Action wiring 89: The composition MUST settle not-held, window-elapsed AND window-not-elapsed.
+Action wiring 89: IF a resolving action answers not-held OR window-elapsed OR window-not-elapsed THEN the action MUST settle the answer.
 Action wiring 90: [Confirm Reservation] MUST call Provisional Commitment's confirm with the reservation id ONLY AFTER the intent entry lands.
 Action wiring 91: [Confirm Reservation] MUST NOT call a Capacity Constraint Enforcement write.
 Action wiring 92: [Confirm Reservation] MUST record the confirm outcome entry ONLY AFTER confirm answers ok.
@@ -375,6 +377,7 @@ Action wiring 122: IF Duplicate Prevention's record answers storage-failure THEN
 Action wiring 123: [Confirm Reservation] MUST read the witness balance ONLY AFTER confirm answers ok.
 Action wiring 124: IF Capacity Constraint Enforcement's query answers not-known for the witness balance THEN [Confirm Reservation] MUST answer recording-failure carrying inconsistency.
 Action wiring 125: IF the journal holds the action's intent entry for the token AND the journaled digest DOES NOT EQUAL the call's parameters digest THEN the action MUST answer token-collision.
+Action wiring 126: IF the journal holds an entry for the token THEN the action MUST NOT call Actor Identity's attest.
 ```
 
 Term state-changing action: [Reserve] | [Confirm Reservation] | [Cancel Reservation] | [Expire Reservation].
@@ -385,7 +388,7 @@ Term slot-returning action: [Cancel Reservation] | [Expire Reservation].
 
 NOTE: watch the attempt a refusal erases (Term settling, Action wiring 52, Action wiring 89).
 
-Term settling: writing an answer to the token results map against the token, calling Duplicate Prevention's record, and answering the caller — the cache-the-failure rule, which settles an answer a constituent's refusal decides exactly as one its success decides.
+Term settling: writing an answer to the token results map against the token, calling Duplicate Prevention's record, and answering the caller — an answer a constituent's refusal decides is settled exactly as one its success decides.
 
 Term replay: a call answered from a matching token results entry.
 
@@ -393,7 +396,7 @@ Term matching token results entry: a token results entry whose action type AND p
 
 Term action reference: `<action type>:<idempotency token>` — the per-invocation reference Actor Identity binds an attestation to; an [Action Reference].
 
-Term journaled digest: the parameters digest the seam recomputes from an intent entry's business parameters, and the parameters digest an outcome entry carries.
+Term journaled digest: an intent entry's is the parameters digest the seam recomputes from its business parameters; an outcome entry's is the parameters digest it carries.
 
 Term own entry: the action's intent entry for a token OR the action's outcome entry for the token.
 
@@ -588,7 +591,7 @@ An implementation is acceptable when the checks below are provable to an externa
 ### Conformance checks
 
 ```
-Check 1.1: An auditor MUST count a pool's slot-holding reservations by traversing the journal's reserve outcome entries for the pool AND the pool's binding entries naming no reservation the traversal reaches (Invariant 1.1, Composition state 15).
+Check 1.1: An auditor MUST count a pool's slot-holding reservations by traversing the journal's reserve outcome entries for the pool, counting a reservation ONLY IF no slot-returning outcome entry names the reservation with a slot-returning state, AND the pool's binding entries naming no reservation the traversal reaches (Invariant 1.1, Composition state 15).
 Check 1.2: An auditor MUST resolve EVERY traversed reservation id through the binding as a keyed lookup, rebuilding on a miss (Composition state 10).
 Check 1.3: An auditor MUST NOT count binding entries in place of the traversal (Invariant 1.1).
 Check 1.4: An auditor MUST report a divergence the rebuild closes as an index gap (Composition state 10).
@@ -865,10 +868,11 @@ The five constituents carry their own deep standards inheritance — see each co
 ```
 status: partially resolved
 formal: pending — reserve-from-pool.tla + 1 twin verified 2026-06-04 over the retired atomic trio; re-derive over the ordered slot-returning pair and the pool reconciliation (2026-08-29-a)
-last gate: 2026-11-05 — Final Critique 9, full, three passes — 6 foundational (all cured this round), not clean, no sample
+last gate: 2026-11-06 — Final Critique 10, delta, one pass (Linus) — 3 foundational reported (2 cured this round, 1 refuted), not clean, no sample
 
 open:
 - 2026-11-05-a · refining · retention · Term longest reservation lifetime counts the time a reservation the deployment admits stands Held, but no rule sets that longest or says whether a hold standing past it under a lazy sweep is tolerated → decide, then set it
+- 2026-11-06-a · refining · coherence proof period · Term coherence proof period names the period over which allocation coherence must be provable, but no rule gives its unit, who sets it or where a deployment declares it, so an auditor cannot recompute the retention floor → decide whether a deployment capability sets it (as 2026-11-05-b for the audit horizon)
 - 2026-11-05-b · refining · audit horizon · Term audit horizon names the Audit Trail substrate's purge horizon, while the declared journal is the bare Event Log, which declares no retention, so no rule says who sets the horizon or purges the journal there → decide whether a deployment capability sets it
 ```
 
