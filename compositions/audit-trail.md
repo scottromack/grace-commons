@@ -1903,14 +1903,14 @@ The composition is the structural form of what every major audit regime requires
 
 ## Status
 
-`partially resolved` — see the Ledger.
+`grounded on Final Critique 60 — 2026-11-06 at 21ece33` — see the Ledger.
 
 ## Ledger
 
 ```
-status: partially resolved
+status: grounded on Final Critique 60 — 2026-11-06 at 21ece33
 formal: verified — audit-trail.tla + 2 twins (cascade; scan first half) and audit-trail-record.tla + 3 twins (record action, one step under Execution Contract Store 1; scan second and third halves; re-derived 2026-10-20) and audit-trail-binding.tla + 2 twins (binding-set predicate against an in-flight cascade), re-derived against the fresh-reader gates of rounds 9 to 18, derived from the page as it stands; the legal hold over an open cascade entry (its model, five twins and three probes, 43,688 states within 15 ticks) moved with the gate to Defensible Retention, and audit-trail.tla and its twins, which check the cascade's order and Invariant 8 together, are cited by both pages; the closure arithmetic — a leg's lease against its work (Instance start 18, 19, Per-act critical section 13a, 13b, 13d) and a finding's closure against closure sum with one dead run and one hold placement (Instance start 16) — enumerated by tools/harness/audit-trail-closure.py + 5 twins over 5,184 leg tuples and 5,184 schedule tuples at conforming constants, which no model reaches; the other cures of rounds 19 to 26 are carried on the NOT MODELED lists, not re-derived; the cascade models commit steps 1 and 2 apart, a superset of the one transaction Invariant 4.2 states since Final Critique 59; models and enumerator last run 2026-11-02
-last gate: 2026-11-01 — Final Critique 59 — foundational count 2, not clean, no sample
+last gate: 2026-11-06 — Final Critique 60, a delta round, frozen at 21ece33 — foundational count 0, clean, one sample; 2026-11-01 — Final Critique 59 — foundational count 2, not clean, no sample
 
 open:
 - 2026-10-03-d · refining · Second half 18; Term dependency outage · content lost with no cascade and not restorable leaves the second half writing no compensation with nothing to end it → a standing for content lost without record; contract-shaped, own round
