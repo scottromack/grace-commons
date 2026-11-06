@@ -247,6 +247,7 @@ Term now: the deployment's clock reading at the call, as Execution Contract Logi
 Term id widths: the widest chain id, step id, assignment id and event id the seam and the constituents mint — the substrate's own attestation id width move, so a payload carrying id lists is sized at validation.
 
 Term operating skew: the deployment's declared bound on the difference between the composition's seam and a constituent's.
+NOTE: open 2026-11-06-a — the operating skew bounds the composition's seam against a constituent's, and neither the liveness sum nor the escalation reach carries it, so a sweep trigger read at the composition's seam and a constituent's record read at its own can disagree by the skew without a written margin.
 
 ### Primitive policy
 
@@ -297,6 +298,7 @@ Term reason-bearing action: [Reject Step], [Withdraw Step] or [Withdraw Chain], 
 Term state-changing action: [Initiate Chain], a decision action or [Withdraw Chain].
 
 Term field length cap: the byte length a capped string may not exceed, derived from Audit Trail's payload cap less the composition's event envelope, so every event's constructed data fits by construction.
+NOTE: open 2026-11-06-b — a deployment may declare a field length cap below the default, which makes a query filter value over it malformed (Term query) while another deployment answers the same filter normally; the cap's floor protects ids and not a reference filter.
 
 Term larger payload: the larger of an action's intent payload and its outcome payload, every id at the id widths, the reason with its prefix and, on a re-emitted outcome, the intent candidates at the intent candidates cap.
 
@@ -708,11 +710,10 @@ Reconciliation 26: IF a partial flag's chain IS NOT IN the aged chains THEN the 
 Reconciliation 27: The sweep MUST NOT retry a deterministic arm.
 Reconciliation 28: The sweep MUST NOT commit a closure BEFORE the sweep's recovery intent for the closure lands.
 Reconciliation 29: A recovery intent MUST carry the invocation id, the chain id, the leg AND the intent candidates.
-NOTE: open 2026-11-05-d — a recovery intent names no call, so which intent a closure's Reconciliation 28 intent is, where one run closes two calls of one chain, is not written.
+Reconciliation 29a: IF a recovery intent is for a closure THEN the recovery intent MUST carry the step id of the call the closure closes.
 Reconciliation 30: The sweep MUST record a closure record carrying the chain id, the step id AND the closure mark for EVERY call the sweep closes.
 Reconciliation 31: The sweep MUST attest EVERY write the sweep makes under the service identity.
-Reconciliation 32: IF an open marker's escalation instant PRECEDES the sweep's now AND the marker's chain IS NOT IN the aged chains THEN the sweep MUST open an unresolved finding for the chain on Audit Trail's alerting surface.
-NOTE: open 2026-11-05-c — whether a marker the same run closes still earns this finding is not written.
+Reconciliation 32: IF an open marker's escalation instant PRECEDES the sweep's now AND the marker's chain IS NOT IN the aged chains AND the marker remains an open marker at the end of the sweep's run THEN the sweep MUST open an unresolved finding for the chain on Audit Trail's alerting surface.
 Reconciliation 33: IF Audit Trail answers invalid-credential to the service identity THEN the deployment MUST page on the answer as a service credential fault.
 Reconciliation 34: A re-emitted resolution event MUST carry the sweep's recalls AND the late-recalled steps as the recalled step ids.
 Reconciliation 36: A re-emitted resolution event MUST carry the rule reason of the quorum rule's answer on the chain's pre-withdrawal vector.
@@ -1237,13 +1238,13 @@ It inherits from:
 ```
 status: partially resolved
 formal: verified — multi-party-approval.tla + 8 twins + 7 probes, 2026-10-26
-last gate: 2026-11-05 — Final Critique 16 — delta — foundational count 2, not clean, no sample
+last gate: 2026-11-06 — Final Critique 17 — delta — foundational count 2, not clean, no sample
 
 open:
 - 2026-11-05-a · refining · Retention asymmetry 2a; Audit Trail Invariant 8.2b · a held event answers failed-verification carrying purged as a purged one does, and the page does not say where an auditor reads that a hold keeps the event → name the record the auditor reads, a decision on what a hold is
 - 2026-11-05-b · refining · Reconciliation 2; Term initiation leg; Term transition leg · the order of the sweep's two legs within one run is not written → decide whether the order is fixed or free
-- 2026-11-05-c · refining · Reconciliation 32; Reconciliation 40 · whether a marker the sweep's run closes in the same run still earns an unresolved finding is not written → decide whether the finding follows the escalation instant at the take or at the closure
-- 2026-11-05-d · refining · Reconciliation 28; Reconciliation 29 · a recovery intent names no call, so the intent a closure's Reconciliation 28 intent is, where one run closes two calls of one chain, is not written → decide whether the recovery intent names the call it closes
+- 2026-11-06-a · refining · Term operating skew; Term liveness sum; Term escalation reach · the operating skew is carried by neither the liveness sum nor the escalation reach, so the skew's effect on a sweep trigger is not written → decide whether the sums carry the skew
+- 2026-11-06-b · refining · Term field length cap; Term query; Primitive policy 4 · a deployment's smaller field length cap makes a query filter malformed that another deployment answers, and the cap's floor does not reach a reference filter → decide whether the cap's floor covers a query filter
 - 2026-08-29-u · refining · formal · multi-party-approval.tla models no audit write, so no model checks that the sweep's recovery intent lands before its closure (Reconciliation 28, 29) → model the audit writes the sweep orders
 ```
 
