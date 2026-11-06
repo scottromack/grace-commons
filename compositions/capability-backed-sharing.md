@@ -325,6 +325,7 @@ Action wiring 51: [Authorization Provenance] MUST answer the capability-to-shari
 Action wiring 52: IF no capability-to-sharing entry EXISTS for the capability token THEN [Authorization Provenance] MUST answer not-known.
 Action wiring 56: [Authorization Provenance] MUST NOT answer not-known BEFORE rebuilding the capability token's capability-to-sharing entry.
 NOTE: watch the miss read before its rebuild (Action wiring 56).
+Action wiring 57: [Authorization Provenance] MUST NOT answer a diverged entry BEFORE rebuilding the capability token's capability-to-sharing entry.
 Action wiring 53: A read-only query MUST NOT record an event.
 ```
 
@@ -734,7 +735,7 @@ Kind: Operation
 
 #### Authorization Provenance
 
-The read-only query answering who authorized a given share, from the capability-to-sharing index (Action wiring 51, 52 and 56). Records no event.
+The read-only query answering who authorized a given share, from the capability-to-sharing index (Action wiring 51, 52, 56 and 57). Records no event.
 
 Kind: Operation
 
@@ -876,7 +877,7 @@ Capability-Backed Sharing inherits the broader standards compliance of its const
 ```
 status: partially resolved
 formal: verified — capability-backed-sharing.tla + 2 twins, 2026-08-27
-last gate: 2026-11-06 — Final Critique 10, delta — foundational count 1, not clean, no sample
+last gate: 2026-11-06 — Final Critique 11, delta — foundational count 1 (the settle's own; the reader's one report placed refining), not clean, no sample
 
 open:
 - 2026-08-29-r · refining · formal · the model's compensation carries no identity, no recovery record, and no age bound; the twins predate the scan's horizon edge → extend the model with the service-identity compensation behind `sharing.recovery_intended` and the scan's horizon edge
