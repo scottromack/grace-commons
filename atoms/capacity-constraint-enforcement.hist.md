@@ -1,6 +1,7 @@
 ---
 title: Capacity Constraint Enforcement — history
 nav_exclude: true
+search_exclude: true
 ---
 
 # Capacity Constraint Enforcement — history

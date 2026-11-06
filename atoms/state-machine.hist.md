@@ -1,6 +1,7 @@
 ---
 title: State Machine — history
 nav_exclude: true
+search_exclude: true
 ---
 
 # State Machine — history

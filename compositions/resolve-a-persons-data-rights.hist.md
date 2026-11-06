@@ -1,6 +1,7 @@
 ---
 title: Resolve a Person's Data Rights — history
 nav_exclude: true
+search_exclude: true
 ---
 
 # Resolve a Person's Data Rights — history

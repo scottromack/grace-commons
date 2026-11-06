@@ -1,6 +1,7 @@
 ---
 title: Capability — history
 nav_exclude: true
+search_exclude: true
 ---
 
 # Capability — history

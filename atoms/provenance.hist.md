@@ -1,6 +1,7 @@
 ---
 title: Provenance — history
 nav_exclude: true
+search_exclude: true
 ---
 
 # Provenance — history

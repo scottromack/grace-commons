@@ -1,6 +1,7 @@
 ---
 title: Notification Fanout — history
 nav_exclude: true
+search_exclude: true
 ---
 
 # Notification Fanout — history

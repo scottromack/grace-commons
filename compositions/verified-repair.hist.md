@@ -1,6 +1,7 @@
 ---
 title: Verified Repair — history
 nav_exclude: true
+search_exclude: true
 ---
 
 # Verified Repair — history

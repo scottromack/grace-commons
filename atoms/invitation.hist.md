@@ -1,6 +1,7 @@
 ---
 title: Invitation — history
 nav_exclude: true
+search_exclude: true
 ---
 
 # Invitation — history

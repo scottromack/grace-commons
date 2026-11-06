@@ -1,6 +1,7 @@
 ---
 title: Selective Disclosure — history
 nav_exclude: true
+search_exclude: true
 ---
 
 # Selective Disclosure — history

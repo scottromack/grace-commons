@@ -1,6 +1,7 @@
 ---
 title: Preference-Aware Notification Fanout — history
 nav_exclude: true
+search_exclude: true
 ---
 
 # Preference-Aware Notification Fanout — history

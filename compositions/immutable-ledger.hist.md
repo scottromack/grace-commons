@@ -1,6 +1,7 @@
 ---
 title: Immutable Ledger with Selective Disclosure — history
 nav_exclude: true
+search_exclude: true
 ---
 
 # Immutable Ledger with Selective Disclosure — history

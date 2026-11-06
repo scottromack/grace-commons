@@ -1,6 +1,7 @@
 ---
 title: Propagate Consent Revocation Downstream — history
 nav_exclude: true
+search_exclude: true
 ---
 
 # Propagate Consent Revocation Downstream — history

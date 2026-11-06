@@ -1,6 +1,7 @@
 ---
 title: Party Identity — history
 nav_exclude: true
+search_exclude: true
 ---
 
 # Party Identity — history

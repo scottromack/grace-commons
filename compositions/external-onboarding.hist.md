@@ -1,6 +1,7 @@
 ---
 title: External Onboarding — history
 nav_exclude: true
+search_exclude: true
 ---
 
 # External Onboarding — history

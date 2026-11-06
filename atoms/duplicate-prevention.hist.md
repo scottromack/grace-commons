@@ -1,6 +1,7 @@
 ---
 title: Duplicate Prevention — history
 nav_exclude: true
+search_exclude: true
 ---
 
 # Duplicate Prevention — history

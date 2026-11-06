@@ -1,6 +1,7 @@
 ---
 title: Chain of Custody — history
 nav_exclude: true
+search_exclude: true
 ---
 
 # Chain of Custody — history

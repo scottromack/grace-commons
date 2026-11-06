@@ -1,6 +1,7 @@
 ---
 title: Customer Onboarding — history
 nav_exclude: true
+search_exclude: true
 ---
 
 # Customer Onboarding — history

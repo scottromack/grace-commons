@@ -1,6 +1,7 @@
 ---
 title: Provisional Commitment — history
 nav_exclude: true
+search_exclude: true
 ---
 
 # Provisional Commitment — history

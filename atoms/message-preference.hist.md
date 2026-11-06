@@ -1,6 +1,7 @@
 ---
 title: Message Preference — history
 nav_exclude: true
+search_exclude: true
 ---
 
 # Message Preference — history

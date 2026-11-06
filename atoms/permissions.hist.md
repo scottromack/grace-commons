@@ -1,6 +1,7 @@
 ---
 title: Permissions — history
 nav_exclude: true
+search_exclude: true
 ---
 
 # Permissions — history

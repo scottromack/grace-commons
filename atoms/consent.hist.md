@@ -1,6 +1,7 @@
 ---
 title: Consent — history
 nav_exclude: true
+search_exclude: true
 ---
 
 # Consent — history

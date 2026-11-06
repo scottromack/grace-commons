@@ -1,6 +1,7 @@
 ---
 title: Audit Trail — history
 nav_exclude: true
+search_exclude: true
 ---
 
 # Audit Trail — history

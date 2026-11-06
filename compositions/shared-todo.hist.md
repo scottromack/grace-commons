@@ -1,6 +1,7 @@
 ---
 title: Shared Todo — history
 nav_exclude: true
+search_exclude: true
 ---
 
 # Shared Todo — history

@@ -1,6 +1,7 @@
 ---
 title: Actor Identity — history
 nav_exclude: true
+search_exclude: true
 ---
 
 # Actor Identity — history

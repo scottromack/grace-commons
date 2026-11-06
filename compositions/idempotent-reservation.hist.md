@@ -1,6 +1,7 @@
 ---
 title: Idempotent Reservation — history
 nav_exclude: true
+search_exclude: true
 ---
 
 # Idempotent Reservation — history

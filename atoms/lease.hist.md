@@ -1,6 +1,7 @@
 ---
 title: Lease — history
 nav_exclude: true
+search_exclude: true
 ---
 
 # Lease — history

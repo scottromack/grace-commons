@@ -1,6 +1,7 @@
 ---
 title: Actor Suspension — history
 nav_exclude: true
+search_exclude: true
 ---
 
 # Actor Suspension — history

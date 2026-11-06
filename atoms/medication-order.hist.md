@@ -1,6 +1,7 @@
 ---
 title: Medication Order — history
 nav_exclude: true
+search_exclude: true
 ---
 
 # Medication Order — history

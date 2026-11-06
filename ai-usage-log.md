@@ -2,6 +2,7 @@
 title: AI Usage Log
 nav_order: 5
 parent: Project Log
+search_exclude: true
 ---
 
 # AI Usage Log

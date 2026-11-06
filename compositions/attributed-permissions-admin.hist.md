@@ -1,6 +1,7 @@
 ---
 title: Attributed Permissions Admin — history
 nav_exclude: true
+search_exclude: true
 ---
 
 # Attributed Permissions Admin — history

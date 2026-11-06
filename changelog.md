@@ -2,6 +2,7 @@
 title: Changelog
 nav_order: 2
 parent: Project Log
+search_exclude: true
 ---
 
 # Changelog

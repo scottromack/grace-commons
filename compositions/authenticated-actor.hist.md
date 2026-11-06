@@ -1,6 +1,7 @@
 ---
 title: Authenticated Actor — history
 nav_exclude: true
+search_exclude: true
 ---
 
 # Authenticated Actor — history

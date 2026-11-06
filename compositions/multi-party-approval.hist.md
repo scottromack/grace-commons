@@ -1,6 +1,7 @@
 ---
 title: Multi-Party Approval — history
 nav_exclude: true
+search_exclude: true
 ---
 
 # Multi-Party Approval — history

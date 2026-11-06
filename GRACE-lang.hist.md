@@ -1,6 +1,7 @@
 ---
 title: GRACE lang — history
 nav_exclude: true
+search_exclude: true
 ---
 
 # GRACE lang — history

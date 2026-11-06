@@ -1,6 +1,7 @@
 ---
 title: Event Log — history
 nav_exclude: true
+search_exclude: true
 ---
 
 # Event Log — history

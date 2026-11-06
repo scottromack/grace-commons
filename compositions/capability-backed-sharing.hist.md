@@ -1,6 +1,7 @@
 ---
 title: Capability-Backed Sharing — history
 nav_exclude: true
+search_exclude: true
 ---
 
 # Capability-Backed Sharing — history

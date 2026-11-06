@@ -1,6 +1,7 @@
 ---
 title: Personal Todo — history
 nav_exclude: true
+search_exclude: true
 ---
 
 # Personal Todo — history

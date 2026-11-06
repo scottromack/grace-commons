@@ -1,6 +1,7 @@
 ---
 title: Execute Gated Workflow — history
 nav_exclude: true
+search_exclude: true
 ---
 
 # Execute Gated Workflow — history

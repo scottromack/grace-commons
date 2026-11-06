@@ -1,6 +1,7 @@
 ---
 title: Tamper Evidence — history
 nav_exclude: true
+search_exclude: true
 ---
 
 # Tamper Evidence — history

@@ -1,6 +1,7 @@
 ---
 title: Observation — history
 nav_exclude: true
+search_exclude: true
 ---
 
 # Observation — history

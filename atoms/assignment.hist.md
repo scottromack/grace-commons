@@ -1,6 +1,7 @@
 ---
 title: Assignment — history
 nav_exclude: true
+search_exclude: true
 ---
 
 # Assignment — history

@@ -1,6 +1,7 @@
 ---
 title: Session-Gated Authorization — history
 nav_exclude: true
+search_exclude: true
 ---
 
 # Session-Gated Authorization — history

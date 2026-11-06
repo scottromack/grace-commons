@@ -1,6 +1,7 @@
 ---
 title: Retention Window — history
 nav_exclude: true
+search_exclude: true
 ---
 
 # Retention Window — history

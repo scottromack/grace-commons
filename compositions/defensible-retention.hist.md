@@ -1,6 +1,7 @@
 ---
 title: Defensible Retention — history
 nav_exclude: true
+search_exclude: true
 ---
 
 # Defensible Retention — history

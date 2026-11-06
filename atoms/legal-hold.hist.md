@@ -1,6 +1,7 @@
 ---
 title: Legal Hold — history
 nav_exclude: true
+search_exclude: true
 ---
 
 # Legal Hold — history

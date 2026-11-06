@@ -1,6 +1,7 @@
 ---
 title: Credential — history
 nav_exclude: true
+search_exclude: true
 ---
 
 # Credential — history

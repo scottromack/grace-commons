@@ -1,6 +1,7 @@
 ---
 title: Subscription — history
 nav_exclude: true
+search_exclude: true
 ---
 
 # Subscription — history

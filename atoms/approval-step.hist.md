@@ -1,6 +1,7 @@
 ---
 title: Approval Step — history
 nav_exclude: true
+search_exclude: true
 ---
 
 # Approval Step — history

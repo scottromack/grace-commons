@@ -1,6 +1,7 @@
 ---
 title: Reserve from Pool — history
 nav_exclude: true
+search_exclude: true
 ---
 
 # Reserve from Pool — history
