@@ -136,6 +136,7 @@ Capability requirement 27: A deployment MUST set the invocation duration bound.
 Capability requirement 28: A deployment MUST declare the clock tolerance.
 Capability requirement 29: The composition MUST start ONLY IF the reconciliation window EXCEEDS the liveness sum.
 Capability requirement 30: A deployment MUST set the hold retry horizon.
+NOTE: open 2026-11-06-b — the hold retry horizon is not ordered against the audit horizon.
 Capability requirement 31: The host MUST supply a per-disposition exclusion keyed by disposition pair.
 Capability requirement 32: The host MUST release the per-disposition exclusion on the holder's return.
 Capability requirement 33: The host MUST release the per-disposition exclusion on the holder's death.
@@ -157,8 +158,11 @@ Capability requirement 48: A deployment MUST disclose the reconciliation run bou
 Capability requirement 49: A deployment MUST set the audit horizon.
 Capability requirement 50: IF the cap serialization EQUALS blank THEN the composition MUST refuse to start.
 Capability requirement 51: IF the cap serialization EQUALS serialized-per-principal AND the host supplies no per-principal exclusion THEN the composition MUST refuse to start.
-Capability requirement 52: The composition MUST start ONLY IF the audit horizon EXCEEDS the reconciliation window.
+Capability requirement 52: The composition MUST start ONLY IF the audit horizon EXCEEDS the escalation reach.
 NOTE: watch the horizon against the escalation (Capability requirement 52).
+NOTE: open 2026-11-06-a — no rule says whether a setting read at start holds for the instance's life.
+Capability requirement 53: A deployment MUST set the longest interpreted frequency window.
+Capability requirement 54: The frequency limit interpretation MUST NOT read a window whose duration EXCEEDS the longest interpreted frequency window.
 ```
 
 Term quiet hours interpretation: the deployment's rule reading a stored quiet hours value as a predicate over now — is this instant inside the principal's quiet window.
@@ -212,6 +216,10 @@ Term per-disposition exclusion: the host-supplied mutual exclusion keyed by disp
 Term statutory quiet window: a deployment-declared window and channel set evaluated for every disposition, whatever the principal's stored preferences — the law's window.
 
 Term audit horizon: the duration the deployment sets beyond which the composition treats a journal entry as aged.
+
+Term longest interpreted frequency window: the duration the deployment sets as the bound of every interpreted frequency window, rolling or calendar-aligned.
+
+Term escalation reach: `((reconciliation window + longest interpreted frequency window) + the clock tolerance's write-clock component)` — how far back from the fired instant the gap leg's entry and the overshoot leg's window start can lie when the leg's last write lands.
 
 Term seam: the composition's input and output boundary — the one place the host reads the clock and generates the fanout id, per the section titled Logic Confinement Principle in `execution-contract.md`.
 
@@ -759,13 +767,13 @@ Term record verbs: abandon, abort, admit, answer, appear, attribute, bind, call,
 
 Term value sets: event type = fanout.initiated | fanout.created | fanout.suppressed | fanout.create-failed | fanout.reconcile-intended | fanout.abandoned | fanout.cap-overshoot-reconciled. The rest are declared where the section that owns each declares it: verdict, suppression reason, fail-closed cause, failure cause, action-relented reason, abandonment reason, observed record status, interpreted field, no record policy, cap policy, quiet window policy, cap serialization, redispose position, gap position.
 
-Term bounds: reconciliation window (reconciliation_window), invocation duration bound (invocation_duration_bound), hold retry horizon (hold_retry_horizon), notification create latency (notification_create_latency), reconciliation run bound (reconciliation_run_bound), max query latency (max_query_latency), abandonment principals cap (abandonment_principals_cap), clock tolerance (clock_tolerance), audit horizon.
+Term bounds: reconciliation window (reconciliation_window), longest interpreted frequency window (longest_frequency_window), invocation duration bound (invocation_duration_bound), hold retry horizon (hold_retry_horizon), notification create latency (notification_create_latency), reconciliation run bound (reconciliation_run_bound), max query latency (max_query_latency), abandonment principals cap (abandonment_principals_cap), clock tolerance (clock_tolerance), audit horizon.
 
 Term cadences: reconciliation cadence (reconciliation_cadence).
 
 Term qualifiers: migrated — rewritten in GRACE lang v0.61 (2026-09-23).
 
-Term terms: composition, constituents, journal, delivery count index, delivery count entry, fanout dispositions index, interpreted frequency window, disposition pair, queried subscriber, quiescence, quiet hours interpretation, frequency limit interpretation, channel interpretation, default shape, configuration version, no record policy, cap policy, quiet window policy, cap serialization, per-principal exclusion, journal query capability, payload digest function, reconciliation window, reconciliation cadence, notification create latency, reconciliation run bound, max query latency, abandonment principals cap, invocation duration bound, clock tolerance, liveness sum, hold retry horizon, per-disposition exclusion, statutory quiet window, audit horizon, seam, now, fanout result, redisposition, redispose position, carried by [Redispose]'s journal-rejected, gap result, gap position, carried by [Reconcile Gaps]'s journal-rejected, overshoot result, subscriber query, preference read, status read, validated fanout, initiated fanout, validated redisposition, admitted redisposition, queried list, initiation entry, delivery event, suppression event, failure event, disposition event, envelope, delivery pair, delivery history, reason's policy, action-relented reason, retryable disposition, redisposition flag, observed record status, reconciliation, gap run, overshoot run, young invocation, aged entry, aged instant, gap principal, reconcile intent, abandonment record, abandonment reason, overshoot record, shaping gate, verdict, precedence rules, suppression reason, fail-closed cause, failure cause, interpreted field, verdict-bearing event, live record, reconstruction window, covered obligation, fanout id, payload content, payload digest, fired instant, decided instant, evaluation inputs, retry eligibility.
+Term terms: composition, constituents, journal, delivery count index, delivery count entry, fanout dispositions index, interpreted frequency window, disposition pair, queried subscriber, quiescence, quiet hours interpretation, frequency limit interpretation, channel interpretation, default shape, configuration version, no record policy, cap policy, quiet window policy, cap serialization, per-principal exclusion, journal query capability, payload digest function, reconciliation window, reconciliation cadence, notification create latency, reconciliation run bound, max query latency, abandonment principals cap, invocation duration bound, clock tolerance, liveness sum, hold retry horizon, per-disposition exclusion, statutory quiet window, audit horizon, longest interpreted frequency window, escalation reach, seam, now, fanout result, redisposition, redispose position, carried by [Redispose]'s journal-rejected, gap result, gap position, carried by [Reconcile Gaps]'s journal-rejected, overshoot result, subscriber query, preference read, status read, validated fanout, initiated fanout, validated redisposition, admitted redisposition, queried list, initiation entry, delivery event, suppression event, failure event, disposition event, envelope, delivery pair, delivery history, reason's policy, action-relented reason, retryable disposition, redisposition flag, observed record status, reconciliation, gap run, overshoot run, young invocation, aged entry, aged instant, gap principal, reconcile intent, abandonment record, abandonment reason, overshoot record, shaping gate, verdict, precedence rules, suppression reason, fail-closed cause, failure cause, interpreted field, verdict-bearing event, live record, reconstruction window, covered obligation, fanout id, payload content, payload digest, fired instant, decided instant, evaluation inputs, retry eligibility.
 
 Term cited: Execution Contract Conformance 8 — the recursive inheritance of a constituent's guarantees. The section titled Composition state in `execution-contract.md` — the derived-index classification. The section titled Composition model in `execution-contract.md` — Event Log as the sanctioned history records. The section titled Logic Confinement Principle in `execution-contract.md` — the seam. subscribers_for, subscribed, not-subscribed, subscriber reference, event scope: Subscription. create, status_of, pending_for, notification id, payload, Pending, Delivered, failed, expired: Notification. current_for, read, preference id, principal reference, preference record, channel preferences, frequency limit, quiet hours, format, metadata, status, suspended: Message Preference. append, recording instant, payload cap, invalid-payload, storage-failure: Event Log.
 
@@ -799,7 +807,7 @@ Kind: Operation
 
 #### Reconcile Gaps
 
-The composition-introduced reconciliation surface that resolves an invocation's journal gap, examining only invocations older than the invocation duration bound plus the create latency and inside the journal's retention horizon: it writes its `fanout.reconcile-intended` record first, then for each subscriber in the journaled `queried` list with no disposition event — under the per-disposition section — re-disposes through [Redispose], and closes any residue with a terminal `fanout.abandoned` record. Owns the intent and abandonment writes; carries no composition state (the records live in Event Log). Refuses [Too Young] for an invocation younger than the invocation duration bound plus the create latency.
+The composition-introduced reconciliation surface that resolves an invocation's journal gap, examining only invocations older than the invocation duration bound plus the create latency and inside the audit horizon: it writes its `fanout.reconcile-intended` record first, then for each subscriber in the journaled `queried` list with no disposition event — under the per-disposition section — re-disposes through [Redispose], and closes any residue with a terminal `fanout.abandoned` record. Owns the intent and abandonment writes; carries no composition state (the records live in Event Log). Refuses [Too Young] for an invocation younger than the invocation duration bound plus the create latency.
 
 Kind: Operation
 
@@ -1000,9 +1008,11 @@ It inherits from: **[Subscription](../atoms/subscription.md)** (Observer, pub-su
 ```
 status: partially resolved
 formal: pending — re-derivation, 2026-08-30: the invocation and [Reconcile Gaps] are now two processes over one disposition under a per-disposition section whose lease is the invocation's terminus, the deliver pair is ordered rather than atomic with an adoptable orphan, and the gap leg is age-bounded, none of which the model carries; was verified — preference-aware-notification-fanout.tla + 1 twin, 2026-06-12
-last gate: 2026-11-05 — Final Critique 14, delta, one fresh reader (Linus) — not clean, 1 foundational, cured in the settle (the next round is a delta round)
+last gate: 2026-11-06 — Final Critique 15, delta, one fresh reader (Linus) — not clean, 2 foundational (the blind second triage's; Linus reported 0), cured in the settle (the next round is a delta round); 2026-11-05 — Final Critique 14, delta, one fresh reader (Linus) — not clean, 1 foundational, cured in the settle (the next round is a delta round)
 
 open:
+- 2026-11-06-a · refining · Capability requirement 52 · no rule says whether a setting read at start (the audit horizon, the reconciliation window) holds for the instance's life, so a retune mid-run could be read by one build and not another → state it once in the Execution Contract beside Logic confinement 15 (a method page, the mayor's)
+- 2026-11-06-b · refining · Capability requirement 9, Capability requirement 30 · the hold retry horizon is not ordered against the audit horizon, so a [Redispose] of a retryable suppression past the audit horizon would need a configuration version Capability requirement 9 no longer retains → order the two durations at start, or retain a configuration version through the hold retry horizon
 - 2026-11-04-a · refining · Action wiring 6, Action wiring 10, Reconciliation 11, Action wiring 26 · a failed read and a lost reply have no rule of their own on the page; Execution Contract Read 1 and Error model 1 own them and the lease's expiry yields (Action wiring 13) → cite them at the sites, or state the answer a failed Action wiring 10 read gives
 - 2026-11-04-b · refining · Term retryable disposition · a failure event is retryable unconditionally, so a pair whose earlier delivery event names a live record can be retried toward a second live record → admit a failure event only where no live record stands (Invariant 9.1)
 - 2026-11-04-c · refining · Examples (disputed delivery) · the scenario names Message Preference's in-effect reconstruction and an in-effect window, which no declared surface carries → rewrite the reconstruction over the declared read and set and deletion instants
