@@ -160,7 +160,7 @@ Capability requirement 50: IF the cap serialization EQUALS blank THEN the compos
 Capability requirement 51: IF the cap serialization EQUALS serialized-per-principal AND the host supplies no per-principal exclusion THEN the composition MUST refuse to start.
 Capability requirement 52: The composition MUST start ONLY IF the audit horizon EXCEEDS the escalation reach.
 NOTE: watch the horizon against the escalation (Capability requirement 52).
-NOTE: open 2026-11-06-a — no rule says whether a setting read at start holds for the instance's life.
+NOTE: the audit horizon and the escalation reach are read at start and held until the next start (Execution Contract Logic confinement 17).
 Capability requirement 53: A deployment MUST set the longest interpreted frequency window.
 Capability requirement 54: The frequency limit interpretation MUST NOT read a window whose duration EXCEEDS the longest interpreted frequency window.
 ```
@@ -1011,7 +1011,6 @@ formal: pending — re-derivation, 2026-08-30: the invocation and [Reconcile Gap
 last gate: 2026-11-06 — Final Critique 16, delta, one fresh reader (Linus) — not clean, 1 foundational (the blind second triage's; Linus reported 3), cured by a held Execution Contract rule (Logic confinement 17) in the quiet window (the next round is a delta round); refining recorded (open line 2026-11-06-c), the Reconcile Gaps prose cured; 2026-11-06 — Final Critique 15, delta, one fresh reader (Linus) — not clean, 2 foundational (the blind second triage's; Linus reported 0), cured in the settle (the next round is a delta round); 2026-11-05 — Final Critique 14, delta, one fresh reader (Linus) — not clean, 1 foundational, cured in the settle (the next round is a delta round)
 
 open:
-- 2026-11-06-a · refining · Capability requirement 52 · no rule says whether a setting read at start (the audit horizon, the reconciliation window) holds for the instance's life, so a retune mid-run could be read by one build and not another → state it once in the Execution Contract beside Logic confinement 15 (a method page, the mayor's)
 - 2026-11-06-c · refining · Capability requirement 54 · the prohibition on reading a window beyond the longest names no answer a caller gets, so builds may refuse with different codes → state the refusal the frequency limit interpretation answers
 - 2026-11-06-b · refining · Capability requirement 9, Capability requirement 30 · the hold retry horizon is not ordered against the audit horizon, so a [Redispose] of a retryable suppression past the audit horizon would need a configuration version Capability requirement 9 no longer retains → order the two durations at start, or retain a configuration version through the hold retry horizon
 - 2026-11-04-a · refining · Action wiring 6, Action wiring 10, Reconciliation 11, Action wiring 26 · a failed read and a lost reply have no rule of their own on the page; Execution Contract Read 1 and Error model 1 own them and the lease's expiry yields (Action wiring 13) → cite them at the sites, or state the answer a failed Action wiring 10 read gives
