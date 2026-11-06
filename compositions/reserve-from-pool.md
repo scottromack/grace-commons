@@ -112,7 +112,7 @@ Term reservation-to-pool binding: the composition's map from a reservation id to
 
 Term binding entry: one reservation's entry in the reservation-to-pool binding.
 
-Term aged entry: a journal entry whose `(recording instant + audit horizon)` PRECEDES now — past which the entry's payload may be lawfully destroyed, a reserve outcome entry's once the reservation's binding entry stands (Capability requirement 48).
+Term aged entry: a journal entry whose `(recording instant + audit horizon)` PRECEDES now — past which the entry's payload may be lawfully destroyed, a reserve outcome entry's once the reservation's binding entry stands (Capability requirement 48), a slot-returning outcome entry's never while the reservation's binding entry stands (Capability requirement 49).
 
 Term token results map: the composition's own map from an idempotency token to the answer recorded against the token.
 
@@ -122,7 +122,7 @@ Term parameters digest: the collision-resistant digest of a call's business para
 
 Term business parameter: the pool id, the resource, the requester and the duration at [Reserve]; the reservation id at a resolving action — the inputs that decide an answer.
 
-NOTE: Contract classification, per the section titled Composition state in `execution-contract.md` — the reservation-to-pool binding: derived index over the journal's reserve outcome entries (Composition state 10, Composition state 11), a reserve outcome entry's payload retained until the entry's binding entry stands (Capability requirement 48), its entries whose reserve outcome entry is an aged entry extraction-pending against [Erasure Tombstone](../atoms/erasure-tombstone.md) (Composition state 15); the token results map: extraction-pending, the proposed atom an *Idempotency Result Memo* (token → result, write-once, window-governed eviction), opened as a roadmap proposal (Composition state 16).
+NOTE: Contract classification, per the section titled Composition state in `execution-contract.md` — the reservation-to-pool binding: derived index over the journal's reserve outcome entries (Composition state 10, Composition state 11), a reserve outcome entry's payload retained until the entry's binding entry stands (Capability requirement 48), a reservation's slot-returning outcome entries retained while its binding entry stands (Capability requirement 49), its entries whose reserve outcome entry is an aged entry extraction-pending against [Erasure Tombstone](../atoms/erasure-tombstone.md) (Composition state 15); the token results map: extraction-pending, the proposed atom an *Idempotency Result Memo* (token → result, write-once, window-governed eviction), opened as a roadmap proposal (Composition state 16).
 
 ### Capability requirement
 
@@ -175,7 +175,10 @@ Capability requirement 45: The composition MUST NOT derive a hold's deadline.
 Capability requirement 46: The composition MUST order reservation events by the journal's sequence numbers.
 Capability requirement 47: The deployment MUST supply the database PER Execution Contract Database 1 through 4.
 Capability requirement 48: IF no binding entry EXISTS for a reserve outcome entry's reservation id THEN the deployment MUST retain the reserve outcome entry's payload.
+Capability requirement 49: IF a reservation's binding entry EXISTS THEN the deployment MUST retain the slot-returning outcome entries naming the reservation.
 ```
+
+NOTE: open 2026-11-06-b (Capability requirement 49).
 
 Term idempotency window: the duration the Duplicate Prevention instance guards a token — chosen to cover the slowest legitimate retry of the most critical action.
 
@@ -270,7 +273,7 @@ Action wiring 14: IF the journal holds the action's outcome entry for the token 
 Action wiring 15: IF the journal holds an entry for the token that IS NOT an own entry THEN the action MUST answer token-collision.
 Deleted: Action wiring 16. Execution Contract Database 1 owns it.
 Deleted: Action wiring 17. Execution Contract Database 1 owns it.
-Action wiring 18: IF the journal holds a reserve outcome entry for the token AND no binding entry EXISTS for the entry's reservation id THEN [Reserve] MUST write the binding entry from the outcome entry.
+Action wiring 18: IF the journal holds a reserve outcome entry for the token AND the journaled digest EQUALS the call's parameters digest AND no binding entry EXISTS for the entry's reservation id THEN [Reserve] MUST write the binding entry from the outcome entry.
 Action wiring 19: IF the journal holds the action's intent entry for the token AND the journaled digest EQUALS the call's parameters digest AND no outcome entry names the token THEN the action MUST answer recording-failure carrying outcome.
 Action wiring 20: IF Duplicate Prevention's check answers not-seen AND the journal holds no entry for the token THEN [Reserve] MUST call Actor Identity's attest with the action reference, the actor reference AND the credential.
 Action wiring 21: A state-changing action MUST NOT call a constituent write BEFORE Actor Identity's attest answers the attestation id.
@@ -282,7 +285,7 @@ Action wiring 26: A state-changing action MUST record the action's intent entry 
 Action wiring 27: An intent entry MUST carry the action, the idempotency token, the attestation id, the actor reference, the now AND the action's business parameters.
 Action wiring 28: A resolving action's intent entry MUST carry the binding entry's pool id.
 Action wiring 29: IF Event Log answers storage-failure at an intent entry THEN the action MUST answer recording-failure carrying intent (Execution Contract Constituent failure 1).
-Action wiring 30: The composition MUST NOT settle a refused intent entry.
+Action wiring 30: The composition MUST NOT settle an intent entry whose recording was refused.
 Action wiring 31: IF Event Log answers invalid-payload THEN the composition MUST answer recording-failure carrying the entry's position.
 Action wiring 32: The deployment MUST alert on an invalid-payload as the composition's own defect.
 Deleted: Action wiring 33. Execution Contract Database 2 owns it.
@@ -369,7 +372,7 @@ Action wiring 113: A slot-returning action MUST settle ok ONLY AFTER Capacity Co
 Action wiring 114: [Query Reservation] MUST NOT take an idempotency token.
 Action wiring 115: [Query Reservation] MUST NOT write.
 Action wiring 116: IF the reservation id names no binding entry THEN [Query Reservation] MUST answer not-known.
-Action wiring 117: [Query Reservation] MUST answer the reservation's state from Provisional Commitment, the binding entry's pool id AND the slot-held reading.
+Action wiring 117: [Query Reservation] MUST answer the reservation's state from Provisional Commitment's read, the binding entry's pool id AND the slot-held reading.
 Action wiring 118: The slot-held reading MUST read true ONLY IF the reservation's state IS IN the slot-holding states.
 Action wiring 119: IF a resolving action's reservation id names a binding entry AND Duplicate Prevention's check answers not-seen AND the journal holds no entry for the token THEN the resolving action MUST call Actor Identity's attest with the action reference, the actor reference AND the credential.
 Action wiring 120: IF Capacity Constraint Enforcement answers not-known OR invalid-request OR over-release for a release THEN the slot-returning action MUST answer recording-failure carrying inconsistency.
@@ -377,7 +380,7 @@ Action wiring 121: IF Capacity Constraint Enforcement answers storage-failure fo
 Action wiring 122: IF Duplicate Prevention's record answers storage-failure THEN the action MUST answer recording-failure carrying intent (Execution Contract Constituent failure 1).
 Action wiring 123: [Confirm Reservation] MUST read the witness balance ONLY AFTER confirm answers ok.
 Action wiring 124: IF Capacity Constraint Enforcement's query answers not-known for the witness balance THEN [Confirm Reservation] MUST answer recording-failure carrying inconsistency.
-Action wiring 125: IF the journal holds the action's intent entry for the token AND the journaled digest DOES NOT EQUAL the call's parameters digest THEN the action MUST answer token-collision.
+Action wiring 125: IF the journal holds an own entry for the token AND the journaled digest DOES NOT EQUAL the call's parameters digest THEN the action MUST answer token-collision.
 Action wiring 126: IF the journal holds an entry for the token THEN the action MUST NOT call Actor Identity's attest.
 ```
 
@@ -645,6 +648,8 @@ External check 8: An auditor needing a constituent's own guarantee confirmed MUS
 External check 9: An auditor needing the idempotency window confirmed MUST read the deployment's own configuration (Capability requirement 1).
 External check 10: An auditor needing the token max length confirmed MUST read the deployment's own configuration (Capability requirement 27).
 External check 11: An auditor needing the digest function confirmed MUST read the deployment's own configuration (Capability requirement 28).
+External check 12: An auditor needing the expiry sweep confirmed MUST read the deployment's own configuration (Capability requirement 3).
+External check 13: An auditor needing the pool event read confirmed MUST read the deployment's own configuration (Capability requirement 17).
 ```
 
 ---
@@ -867,9 +872,10 @@ The five constituents carry their own deep standards inheritance — see each co
 ```
 status: partially resolved
 formal: pending — reserve-from-pool.tla + 1 twin verified 2026-06-04 over the retired atomic trio; re-derive over the ordered slot-returning pair and the pool reconciliation (2026-08-29-a)
-last gate: 2026-11-06 — Final Critique 12, delta, one pass (Linus) — 0 foundational reported, 1 foundational by the blind second triage (a binding entry may not stand before its reserve outcome entry's payload is destroyed; cured this round by Capability requirement 48), not clean, no sample
+last gate: 2026-11-06 — Final Critique 13, full, three passes (GRID, EOS, Linus) — 2 foundational (a reserve or other own outcome entry journaled under a different digest met no rule, cured by widening Action wiring 125 and the digest condition of Action wiring 18; a slot-returning outcome entry could be destroyed while its binding entry stood, cured by Capability requirement 49), GRID's one foundational refuted (Execution Contract Database 1 and Read 4), not clean, no sample
 
 open:
+- 2026-11-06-b · refining · retention · Capability requirement 49 keeps a reservation's slot-returning outcome entries while its binding entry stands, and Composition state 6 never removes the binding entry, so both grow without bound; and a pool purged under a composed retention pattern while a reservation stands makes [Confirm Reservation] answer recording-failure carrying inconsistency for ever (Action wiring 124) → decide whether a deployment capability bounds the growth and who purges a pool holding live reservations, or name them non-goals
 - 2026-11-05-a · refining · retention · Term longest reservation lifetime counts the time a reservation the deployment admits stands Held, but no rule sets that longest or says whether a hold standing past it under a lazy sweep is tolerated → decide, then set it
 - 2026-11-06-a · refining · coherence proof period · Term coherence proof period names the period over which allocation coherence must be provable, but no rule gives its unit, who sets it or where a deployment declares it, so an auditor cannot recompute the retention floor → decide whether a deployment capability sets it (as 2026-11-05-b for the audit horizon)
 - 2026-11-05-b · refining · audit horizon · Term audit horizon names the Audit Trail substrate's purge horizon, while the declared journal is the bare Event Log, which declares no retention, so no rule says who sets the horizon or purges the journal there → decide whether a deployment capability sets it
