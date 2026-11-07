@@ -548,6 +548,9 @@ Check 2.2: An auditor MUST find EVERY line a council commit changes in the round
 Check 3.1: An auditor MUST find, for EVERY council commit changing a site in the claim families, a maintainer's ruling carrying the commit's round AND the patch byte for byte (Invariant 3.1).
 Check 4.1: An auditor MUST find no council commit's page patch answering a finding whose settled triage's side EQUALS model (Invariant 4.1).
 Check 5.1: An auditor MUST find two triages under two actor references for EVERY counted finding of a settled round whose foundational count is zero (Invariant 5.1).
+
+NOTE: open 2026-11-07-a — two actor references are two triagers by Term counted triage and Term actor reference, and no capability requirement obliges a deployment to provision each triager a reference no other triager holds, as Capability requirement 10 does for the sweep identity; External check 3 audits the blinding (Action wiring 13).
+
 Check 6.1: An auditor MUST find no council commit answering a formal engine's malformed verdict (Invariant 6.1).
 Check 7.1: An auditor MUST find, for EVERY council commit, the intent event the commit's trailer names in the journal under the act kind council.commit, carrying the round key, the snapshot hash, EVERY patch whole AND the commit's council nonce (Invariant 7.1).
 Check 7.2: An auditor MUST find EVERY check of this page whose reading met the payload of a record the journal reports Purged answering unverifiable for that subject (Invariant 7.2); a check reading only sequence numbers is not met by a purge.
@@ -685,14 +688,14 @@ None. The composition makes no regulatory claim of its own; the records it keeps
 
 ## Status
 
-`partially resolved` — see the Ledger.
+`grounded on Final Critique 27 — 2026-11-07 at 93b19f5` — see the Ledger.
 
 ## Ledger
 
 ```
-status: partially resolved
+status: grounded on Final Critique 27 — 2026-11-07 at 93b19f5
 formal: verified — vote yes: one writer per repository, no repair before the round settles and the round's bounded repair; verified-repair.tla + 4 twins + 3 probes (the commit path, Invariant 2.1, 2.2, 7.3 and Concurrency 1: two rounds, two [Repair] calls a round with commits in flight and no commit fence, one person commit; 61,659 states, and 263,067 with two person commits, past the harness's cap), verified-repair-settle.tla + 3 twins + 2 probes (the round's settling, Invariant 1.1 and 5.1: two verifiers on one pass, three triage records, each call's read and its record one transaction; 628 states, and 2,824 with four triage records), verified-repair-budget.tla + 3 twins + 2 probes (the round budget, Invariant 8.1: three freezes and one ruling, each freeze's read of the count and its round one transaction; 56 states, and 399 with four freezes and two rulings), the two re-derived 2026-10-21 on the journal's store (Capability requirement 28), each with a twin that takes Execution Contract Store 2 and Store 3 away; the settling model found Term counted finding counting a malformed verdict written after the settling record, cured on the page; 2026-10-21
-last gate: 2026-11-07 — Final Critique 26, delta, frozen at 521fda8 — foundational count 1, not clean, one sample; the round read the cure of Term site's heading span and found Term finding still naming a finding's site as the labels of rules and Terms alone, cured in this settle and unread, so the page waits for the delta round that reads the cure
+last gate: 2026-11-07 — Final Critique 27, delta, frozen at 93b19f5 — foundational count 0 after the blind second triage, clean, one sample; Linus's one report, filing one foundational item (Check 5.1 taking two actor references as two triagers and as blinding), refuted on the blinding half by Action wiring 13 and External check 3 and on the identity half by Term counted triage and Term actor reference, and placed refining, Kind C, by the blind second triage, open as 2026-11-07-a; the round read the cure of Term finding and Primitive policy 3 and Recoverable Invocation's change at Indeterminate outcome 1
 open:
 - 2026-10-10-b · refining · Term repository · the database the act commits to is a deployment's version-controlled repository, which no atom in this library owns → an atom for a versioned database, or the database's contract kept here
 - 2026-10-10-d · refining · Term round count · a lawfully purged round, verdict or triage is answered not-known as if absent → a purged arm
@@ -739,6 +742,7 @@ open:
 - 2026-10-31-b · refining · Verdict 2, Action wiring 5, Term counted verdict · a verdict's verifier is the reporter's own word, tied to no attested actor reference, so one actor naming three verifiers fills a round's three passes, and no check tells the three apart → the verifier tied to the caller's actor reference, or External check 1 widened to the readers' distinctness
 - 2026-10-31-c · refining · Action wiring 40, 62, 77, Term change set · a settled cure the change set leaves out, as a cure gated under Action wiring 19, 56 or 63 or refused under Action wiring 18, 24 or 25 must be for the round's records to land, leaves no trace on the page, while Action wiring 77 traces a routed finding → the omitted cure traced, as a routed finding is
 - 2026-10-31-d · refining · the Intent, the Summary · the Intent's bold sentence says no change lands unless it answers a reported failure and is kept out of the page's claims, while the round's records land on every council commit answering no finding (Term patch, Action wiring 61) and a claim-family patch lands under the maintainer's ruling (Wiring decision 2); the Summary repeats the first half → both sentences reworded
+- 2026-11-07-a · refining · Invariant 5.1, Check 5.1 · a deployment that provisions one person two actor references gives the page two triagers, and no capability requirement obliges each triager a reference of its own or no check clears it → a capability requirement provisioning each triager apart from every other, with an External check of their distinctness, as 2026-10-31-b asks for readers
 ```
 
 <details markdown="block">
