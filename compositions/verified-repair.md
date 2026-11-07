@@ -173,7 +173,7 @@ Term sweep identity: the commit binding's service identity, under which Recovera
 ```
 Primitive policy 1: IF the page OR the base commit EQUALS blank THEN [Freeze] MUST answer invalid-request.
 Primitive policy 2: IF the page IS NOT IN the repository at the base commit THEN [Freeze] MUST answer not-known.
-Primitive policy 3: IF a verdict carries no snapshot hash OR no base commit OR no verifier OR no pass OR no verdict value OR two verdict values OR holds with a finding the verifier classed foundational OR counterexample with no finding the verifier classed foundational THEN [Report] MUST answer invalid-request.
+Primitive policy 3: IF a verdict carries no snapshot hash OR no base commit OR no verifier OR no pass OR the count of verdict values the verdict carries DOES NOT EQUAL one OR holds with a finding the verifier classed foundational OR counterexample with no finding the verifier classed foundational THEN [Report] MUST answer invalid-request.
 Primitive policy 4: IF the call carries no patch, a patch carries no patch id, no fragment OR a fragment with no target THEN [Repair] MUST answer invalid-request.
 Primitive policy 5: IF the count of a commit's patches EXCEEDS the patch cap THEN [Repair] MUST answer invalid-request.
 Primitive policy 6: The composition MUST compare a snapshot hash, a commit id, a finding id AND a fragment byte-exact.
@@ -456,7 +456,7 @@ Term counterexample: the verdict carrying one or more foundational findings, eac
 
 Term malformed: the verdict that nothing was verified — a model that did not compile, a reader that read past its permitted ranges, an answer outside the contract.
 
-Term finding: one failure a verifier reports — the site (the labels of the rules or Terms it sits in), the trace, and the reporter's class and kind — named by its finding id.
+Term finding: one failure a verifier reports — the site as Term site names it, the trace, and the reporter's class and kind — named by its finding id.
 
 Term finding id: the verdict key of the verdict that carries the finding, and the finding's ordinal in it — minted by the council, so an intent may carry it (Recoverable Invocation Primitive policy 10).
 
@@ -692,7 +692,7 @@ None. The composition makes no regulatory claim of its own; the records it keeps
 ```
 status: partially resolved
 formal: verified — vote yes: one writer per repository, no repair before the round settles and the round's bounded repair; verified-repair.tla + 4 twins + 3 probes (the commit path, Invariant 2.1, 2.2, 7.3 and Concurrency 1: two rounds, two [Repair] calls a round with commits in flight and no commit fence, one person commit; 61,659 states, and 263,067 with two person commits, past the harness's cap), verified-repair-settle.tla + 3 twins + 2 probes (the round's settling, Invariant 1.1 and 5.1: two verifiers on one pass, three triage records, each call's read and its record one transaction; 628 states, and 2,824 with four triage records), verified-repair-budget.tla + 3 twins + 2 probes (the round budget, Invariant 8.1: three freezes and one ruling, each freeze's read of the count and its round one transaction; 56 states, and 399 with four freezes and two rulings), the two re-derived 2026-10-21 on the journal's store (Capability requirement 28), each with a twin that takes Execution Contract Store 2 and Store 3 away; the settling model found Term counted finding counting a malformed verdict written after the settling record, cured on the page; 2026-10-21
-last gate: 2026-11-06 — Final Critique 25, delta, frozen at 72d9cb0 — foundational count 1, not clean, one sample; the round read the cure of 2026-10-31-e and found Term site's heading span read two ways, cured in this settle and unread, so the page waits for the delta round that reads the cure
+last gate: 2026-11-07 — Final Critique 26, delta, frozen at 521fda8 — foundational count 1, not clean, one sample; the round read the cure of Term site's heading span and found Term finding still naming a finding's site as the labels of rules and Terms alone, cured in this settle and unread, so the page waits for the delta round that reads the cure
 open:
 - 2026-10-10-b · refining · Term repository · the database the act commits to is a deployment's version-controlled repository, which no atom in this library owns → an atom for a versioned database, or the database's contract kept here
 - 2026-10-10-d · refining · Term round count · a lawfully purged round, verdict or triage is answered not-known as if absent → a purged arm
