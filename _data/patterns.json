@@ -287,7 +287,7 @@
    "capability",
    "selective-disclosure"
   ],
-  "grounded": false,
+  "grounded": true,
   "invariants": 5,
   "kind": "composition",
   "models": {
@@ -305,7 +305,7 @@
    "SEC 17a-4",
    "SOX"
   ],
-  "status": "partially resolved",
+  "status": "grounded on Final Critique 13 \u2014 2026-11-06 at be596ef",
   "substrates": [
    "audit-trail"
   ],

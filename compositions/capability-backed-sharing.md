@@ -157,6 +157,7 @@ Term longest disclosure-accounting obligation: the longest a regulation in force
 Term default max redemptions: the max redemptions [Authorize Sharing] passes to Capability's allocate where the call supplies none — a whole number of one or more, inside Capability's own bounds.
 
 Term compensation window: the deployment-declared duration within which a committed-but-unsealed disclosure, or an allocated capability with no authorization event, must be compensated or escalated.
+NOTE: open 2026-11-05-c — the term promises an escalation inside the window, and Term overdue partial puts it after.
 
 Term reconciliation cadence: the interval at which the reconciliation runs.
 
@@ -428,7 +429,8 @@ Reconciliation 26: The reconciliation MUST NOT compensate a substrate partial.
 NOTE: open 2026-08-29-r — the formal model's compensation carries no service identity, no recovery intent and no age bound (Reconciliation 4, Reconciliation 6, Reconciliation 24, Reconciliation 25).
 ```
 
-Term reconciliation: the leg this composition runs outside every action, each run an invocation of its own, whose output — a sealed disclosure, a landed partial or an escalation — an auditor awaits within the compensation window.
+Term reconciliation: the leg this composition runs outside every action, each run an invocation of its own, whose output — a sealed disclosure or a landed partial — an auditor awaits within the compensation window, and whose escalation of an overdue partial an auditor awaits within the escalation reach.
+NOTE: watch the escalation outside the window (Term reconciliation).
 
 Term recovery intent: the sharing.recovery_intended event — the reconciliation's intent record, naming the partial the reconciliation detected and what the reconciliation is about to append.
 
@@ -874,25 +876,26 @@ Capability-Backed Sharing inherits the broader standards compliance of its const
 
 ## Status
 
-`partially resolved` — see the Ledger.
+`grounded on Final Critique 13 — 2026-11-06 at be596ef` — see the Ledger.
 
 ## Ledger
 
 ```
-status: partially resolved
+status: grounded on Final Critique 13 — 2026-11-06 at be596ef
 formal: verified — capability-backed-sharing.tla + 2 twins, 2026-08-27
-last gate: 2026-11-06 — Final Critique 12, full — foundational count 3 (a descriptor field over Selective Disclosure's string cap, an aged token's provenance and rebuild, the reconciliation's run bound), not clean, no sample
+last gate: 2026-11-06 — Final Critique 13, a delta round, frozen at be596ef — foundational count 0, clean, one sample; 2026-11-06 — Final Critique 12, full — foundational count 3 (a descriptor field over Selective Disclosure's string cap, an aged token's provenance and rebuild, the reconciliation's run bound), not clean, no sample
 
 open:
 - 2026-08-29-r · refining · formal · the model's compensation carries no identity, no recovery record, and no age bound; the twins predate the scan's horizon edge → extend the model with the service-identity compensation behind `sharing.recovery_intended` and the scan's horizon edge
 - 2026-10-27-a · refining · Invariant 1.3 · Selective Disclosure's Term recipient is the party the data reached (its term entry: the party the data was disclosed to), and the composition records the intended recipient, whom a bearer's redemption need not reach → Selective Disclosure decides what its recipient carries, which this page may not change (Composes 4)
 - 2026-11-05-a · refining · Reconciliation 18, Reconciliation 20 · the revoke and its compensating revocation event land a cadence apart, and no rule names the delay → decide whether one run records both
-- 2026-11-05-c · refining · Check 6.4, Check 6.1, Check 3.1, Invariant 3.4 · Check 6.4 accepts an escalated capability that Invariant 3.4 does not count as settled, Check 6.1 accepts an escalated pending marker with no record in Term records that carries the escalation, and Check 3.1 asks an auditor to resolve an aged intent's candidates whose actor may be destroyed → decide what the check reads at the escalation reach
+- 2026-11-05-c · refining · Check 6.4, Check 6.1, Check 3.1, Invariant 3.4, Term compensation window · Check 6.4 accepts an escalated capability that Invariant 3.4 does not count as settled, Check 6.1 accepts an escalated pending marker with no record in Term records that carries the escalation, Check 3.1 asks an auditor to resolve an aged intent's candidates whose actor may be destroyed, and Term compensation window, Invariant 3.4, Check 6.1 and Check 6.4 read an escalation or a settlement at the window's edge where Term overdue partial and Reconciliation 23 put it at the first run past the window (Term reconciliation now awaits the escalation at the escalation reach, Final Critique 13) → decide what the term, the invariant and the checks read at the escalation reach
 - 2026-11-05-d · refining · Reconciliation 13, Term remainder · the remainder counts disclosure events with no age bound, so one destroyed past the audit horizon inflates it, and the reconciliation's reads are not one transaction (Execution Contract Database 1 binds an action) → bound the count at the escalation reach and name the read
 - 2026-11-06-b · refining · Reconciliation 17, Term aged event, Term pairing window · the pairing window compares Capability's allocation instant with the substrate's recording instant, and Term aged event compares the substrate's recording instant with now, and neither names a clock offset allowance → decide whether the deployment declares an allowance across the seam
 - 2026-11-06-c · refining · Composes 12, Term cited · the page reads the substrate's events by a sequence range and cites payload cap, recording instant, proceed as landed, compliance alert and action reference as Audit Trail's, none of which Audit Trail's declared surfaces carry (the same Composes 12 stands in Defensible Retention, Actor Suspension, Customer Onboarding and External Onboarding; Login Composes 15 names the Event Log instance) → Audit Trail's declared surfaces decide whether the range read and those terms are declared, then each composition cites them
 - 2026-11-06-d · refining · Action wiring 3, Action wiring 8, Action wiring 36 · the authorization and disclosure events carry the live capability token, so a reader of the trail inside the ttl can redeem it → decide whether the trail's readers are bound (Permissions, Audit Trail's read) or the events carry a digest of the token
 - 2026-11-06-e · refining · Invariant 1.4 · the allocator-named claim rests on "the disclosure's events" and no rule names which events must lie inside the audit horizon → name the authorization event and the disclosure event, or the ones the claim reads
+- 2026-11-06-f · refining · Term escalation reach, Term reconciliation, Capability requirement 19, Reconciliation 23 · Term escalation reach names an authorization intent's candidates, and Term reconciliation, Capability requirement 19 and Reconciliation 23 read the reach for every overdue partial, a pending marker's escalation included → decide whether the term names the pending marker's escalation too
 ```
 
 <details markdown="block">
