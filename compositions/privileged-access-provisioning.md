@@ -124,6 +124,9 @@ Composition state 24: The composition MUST store the session access log as an in
 Composition state 25: A session access entry MUST carry the request id, the session principal reference, the exercised instant AND the result.
 Composition state 26: The composition MUST store the request-to-events map.
 Composition state 27: The composition MUST add an event id to the request-to-events map in the transaction that records the event (Execution Contract Database 1), ONLY AFTER Audit Trail's record action answers the event id AND the event carries a request id other than blank.
+
+NOTE: open 2026-11-07-a (Composition state 27).
+
 Composition state 28: The request-to-events map MUST NOT key an event carrying blank as the request id.
 Composition state 29: The composition MUST NOT rebuild an index entry from an aged event.
 Composition state 30: The composition MUST leave standing an index entry whose event is an aged event AND MUST classify the index entry as extraction-pending against Erasure Tombstone.
@@ -187,6 +190,8 @@ Term session access entry: one entry of the session access log.
 Term transactional index writes: a session access entry write | a request-to-events map write — the index writes that commit with their event (Composition state 24 and 27).
 
 Term request-to-events map: the composition's map from a request id to the event ids recorded for the request, in recording order — the declared request-to-audit traversal.
+
+NOTE: open 2026-11-07-b (Term request-to-events map).
 
 Term audit pending list: a request record's list of pending entries, empty by default.
 
@@ -1089,16 +1094,18 @@ Projection: invalid-credential
 
 ## Status
 
-`partially resolved` — see the Ledger.
+`grounded on Final Critique 9 — 2026-11-07 at fb5b973` — see the Ledger.
 
 ## Ledger
 
 ```
-status: partially resolved
+status: grounded on Final Critique 9 — 2026-11-07 at fb5b973
 formal: verified — privileged-access-provisioning.tla, no twin, 2026-06-03
-last gate: 2026-11-07 — Final Critique 8, delta, one pass (Linus) — 1 foundational (cured this round), 1 refining cured, 0 rhetorical, not clean
+last gate: 2026-11-07 — Final Critique 9, delta, frozen at fb5b973 — foundational count 0, clean, one sample, 2 refining left as open lines; 2026-11-07 — Final Critique 8, delta, one pass (Linus) — 1 foundational (cured this round), 1 refining cured, 0 rhetorical, not clean
 
 open:
+- 2026-11-07-a · refining · derived-index classification · the Contract classification NOTE calls the request-to-events map (and the session access log) a derived index inside the audit horizon, while Composition state 24 and 27 write each as a peer write in the event's transaction, which the section titled Composition state in `execution-contract.md` (obligations 2 and 3) says a derived index is not → decide whether the NOTE names the departure (an index written with its event so that it is complete before the event ages) or the in-transaction write is struck, then state it once
+- 2026-11-07-b · refining · map order · Term request-to-events map says "in recording order" and cites no order rule, where the trail's sequence order and Execution Contract Order 1 each govern → decide whether the Term names the trail's sequence order, then state it
 - 2026-11-04-a · refining · structure · Action wiring carries no closure table, which spec-format.md requires as the subsection's first #### block → draft it as its own authoring unit, every cell owned by a rule
 - 2026-11-06-b · refining · terminal-chain leg · Reconciliation 23 lands a recovery record for every step decision in the chain's events that no decision event names, with no scope: every chain, or only the Rejected and Withdrawn chains Reconciliation 22 runs for, so a decision whose substrate recording-failure carrying outcome landed on a Pending or Approved chain may keep no decision event → decide the scope, then state it in Reconciliation 23's condition
 - 2026-11-06-c · refining · request id on a refused outcome · [Request Access] answering recording-failure carrying outcome hands the requestor no request id, so a retry opens a second request and chain → decide whether the answer carries the request id or the retry is the requestor's cost, then state it
