@@ -1,9 +1,9 @@
 {
  "atoms": 32,
- "commits": 1511,
+ "commits": 1515,
  "compositions": 26,
- "grounded": 54,
+ "grounded": 55,
  "grounded_atoms": 32,
- "grounded_compositions": 22,
+ "grounded_compositions": 23,
  "patterns": 58
 }

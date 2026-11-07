@@ -152,6 +152,7 @@ Capability requirement 30: A deployment MUST set the clock offset allowance.
 Capability requirement 31: IF the clock offset allowance EQUALS blank THEN the composition MUST refuse to start.
 Capability requirement 32: EVERY reconciliation run's last write MUST land WITHIN the reconciliation run bound.
 Capability requirement 33: A deployment MUST supply an enumeration of EVERY chain id Provenance holds.
+NOTE: open 2026-11-06-k — the instant the enumeration is taken is stated nowhere.
 ```
 
 Term audit retention policy: the policy reference configured on the composition's single Audit Trail instance, governing the lifetime of every custody event — never the Provenance chain itself.
@@ -162,7 +163,7 @@ Term seal cadence: Audit Trail's per-event | interval-based | on-demand setting,
 
 Term custody completion bound: the longest a custody action may run from its intent to its outcome.
 
-Term custody compensation window: the duration, from an orphan's anchor instant, within which an orphan's outcome event lands or the orphan is escalated — `custody_compensation_window` in configuration, distinct from the substrate's own compensation window.
+Term custody compensation window: the duration, from an orphan's anchor instant, within which an orphan's outcome event lands, past which the orphan is overdue and the reconciliation escalates it — `custody_compensation_window` in configuration, distinct from the substrate's own compensation window.
 
 Term custody reconciliation cadence: the interval between the reconciliation's runs, beside the run at every restart — `custody_reconciliation_cadence` in configuration, distinct from the substrate's own cadence.
 
@@ -493,10 +494,11 @@ Reconciliation 26: IF the re-read finds an outcome carrying the entry id THEN th
 Reconciliation 27: IF the reconciliation records a compensating event THEN the reconciliation MUST write the binding ONLY AFTER the compensating event lands.
 Reconciliation 28: The reconciliation MUST escalate EVERY overdue orphan as an unresolved finding.
 Reconciliation 29: IF the reconciliation escalates an orphan entry AND no escalation record naming the entry id EXISTS THEN the reconciliation MUST record an escalation record naming the entry id.
-NOTE: open 2026-11-06-b — no rule orders the escalation record against the unresolved finding, so a crash between the two leaves one without the other, and a restart that finds no record opens the finding again.
+NOTE: open 2026-11-06-b — Reconciliation 28 escalates every overdue orphan and no rule skips an orphan an escalation record already names, so each run after the first may open another unresolved finding for one orphan.
 ```
 
-Term reconciliation: the leg the composition runs outside every invocation, whose output — a bound orphan or an escalation — an auditor awaits within the custody compensation window.
+Term reconciliation: the leg the composition runs outside every invocation, whose output — a bound orphan — an auditor awaits within the custody compensation window, and whose escalation an auditor awaits within the escalation reach.
+NOTE: watch the escalation outside the window (Term reconciliation).
 
 Term aged intent: an intent whose `(recording instant + audit horizon)` PRECEDES the reconciliation's now.
 
@@ -959,14 +961,14 @@ this composition inherits the broader standards compliance of its constituents:
 
 ## Status
 
-`partially resolved` — see the Ledger.
+`grounded on Final Critique 17 — 2026-11-06 at dbb9804` — see the Ledger.
 
 ## Ledger
 
 ```
-status: partially resolved
+status: grounded on Final Critique 17 — 2026-11-06 at dbb9804
 formal: verified — chain-of-custody.tla + 8 twins + 6 probes, 2026-10-27
-last gate: 2026-11-06 — Final Critique 16, delta — foundational count 1, not clean, no sample
+last gate: 2026-11-06 — Final Critique 17, a delta round, frozen at dbb9804 — foundational count 0, clean, one sample; 2026-11-06 — Final Critique 16, delta — foundational count 1, not clean, no sample
 
 open:
 - 2026-11-04-c · refining · Action wiring · spec-format's closure table (the subsection's first block) is not drafted; its cells land every constituent answer, and this settle changed Audit arm 25, 27 and 28 and Action wiring 59 → draft it once on the cured text, in the delta round that reads the cures
@@ -975,13 +977,14 @@ open:
 - 2026-11-04-f · refining · Action wiring 41, Verdict 2 · the missing sequence numbers and the named entries are set-valued outcomes with no stated cardinality cap (the sizing check) → state each as at most the covering range's size and the chain's entries
 - 2026-11-05-a · refining · Invariant 4.2 · the exception for an orphan the reconciliation escalated (Reconciliation 28) lets a reconciliation that never compensates meet the invariant by escalating every orphan once its window passes, and no rule obliges the reconciliation to compensate a compensable orphan inside the window → decide whether a Reconciliation rule obliges the compensating event on a compensable orphan whose window is open
 - 2026-11-05-b · refining · Reconciliation 25, 7 · a state-unavailable answer from the re-read or the enumeration defers a compensation by another cadence, which no bound in the liveness sum covers → decide whether the liveness sum adds one cadence for a run that answers state-unavailable, or the deployment declares a retry bound
-- 2026-11-06-b · refining · Reconciliation 29 · no rule orders the escalation record against the unresolved finding, so a crash between the two leaves one without the other, and a restart that finds no record opens the finding again → decide whether the record lands before the finding or the finding is read from the record, and whether findings are deduplicated by entry id
+- 2026-11-06-b · refining · Reconciliation 28, 29 · Reconciliation 28 escalates every overdue orphan and no rule skips an orphan an escalation record already names, so each run after the first may open another unresolved finding for one orphan (the record and the finding commit together: Execution Contract Database 2 through the Reconciliation 6 tombstone) → decide whether Reconciliation 28 skips an orphan an escalation record names or findings are deduplicated by entry id
 - 2026-11-06-c · refining · Clock semantics 1 · the Event Log sequence and the Provenance sequence have no cross comparison, so the binding rebuild's order across them is the build's → decide the ordering key a rebuild across both sequences uses
 - 2026-11-06-e · refining · Check 1.2 · it cites Invariant 1.1 but tests the attestation, and Term passing verification admits unsealed and partially-purged-coverage, which Verdict 12 and 16 make classes → decide which invariant the check tests and whether a passing verification excludes the two
 - 2026-11-06-f · refining · Check 4.1 · it names the states Retained and Purged, while Term live event adds unresolved in its compensation window → decide the retention states the check admits
 - 2026-11-06-h · refining · Verdict 1, Action wiring 41, 56 · a chain whose every bound event is purged completes, and an omitted live member of a partially-purged range is never reported as payload-not-supplied → decide whether a standing class names an all-purged chain and whether Action wiring 41 reaches a partially-purged range
 - 2026-11-06-i · refining · Term original event payloads · the caller's map has no cardinality cap, so the verification input's size is unbounded for a large covering range → state the cap
 - 2026-11-06-j · refining · Action wiring refuses lines · transform, disclose and archive list not-known and not-current-custodian ahead of invalid-credential, which the wiring answers first (Execution Contract Refusal 1) → reorder the refuses lines or state the answer order
+- 2026-11-06-k · refining · Capability requirement 33, Reconciliation 7 · the instant the chain id enumeration is taken (run start, each chain read) is stated nowhere, so a chain minted mid-run is read by the next run, within the liveness sum's one cadence → decide the instant Capability requirement 33's enumeration is taken
 ```
 
 <details markdown="block">

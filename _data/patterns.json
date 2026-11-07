@@ -359,7 +359,7 @@
   "composes": [
    "provenance"
   ],
-  "grounded": false,
+  "grounded": true,
   "invariants": 6,
   "kind": "composition",
   "models": {
@@ -377,7 +377,7 @@
    "SEC 17a-4",
    "SOX"
   ],
-  "status": "partially resolved",
+  "status": "grounded on Final Critique 17 \u2014 2026-11-06 at dbb9804",
   "substrates": [
    "audit-trail"
   ],
