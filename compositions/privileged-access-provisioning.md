@@ -123,7 +123,7 @@ Composition state 23: The composition MUST rebuild the capability maps from Capa
 Composition state 24: The composition MUST store the session access log as an index over the exercise events AND the failed exercise events, AND MUST write a session access entry in the transaction that records the entry's event (Execution Contract Database 1).
 Composition state 25: A session access entry MUST carry the request id, the session principal reference, the exercised instant AND the result.
 Composition state 26: The composition MUST store the request-to-events map.
-Composition state 27: The composition MUST add an event id to the request-to-events map in the transaction that records the event (Execution Contract Database 1), ONLY AFTER Audit Trail's record action answers the event id.
+Composition state 27: The composition MUST add an event id to the request-to-events map in the transaction that records the event (Execution Contract Database 1), ONLY AFTER Audit Trail's record action answers the event id AND the event carries a request id other than blank.
 Composition state 28: The request-to-events map MUST NOT key an event carrying blank as the request id.
 Composition state 29: The composition MUST NOT rebuild an index entry from an aged event.
 Composition state 30: The composition MUST leave standing an index entry whose event is an aged event AND MUST classify the index entry as extraction-pending against Erasure Tombstone.
@@ -1096,7 +1096,7 @@ Projection: invalid-credential
 ```
 status: partially resolved
 formal: verified — privileged-access-provisioning.tla, no twin, 2026-06-03
-last gate: 2026-11-06 — Final Critique 7, full, three passes (GRID, EOS, Linus) — 7 foundational (all cured this round), 6 refining cured and 3 left as open lines, 3 rhetorical cured, not clean
+last gate: 2026-11-07 — Final Critique 8, delta, one pass (Linus) — 1 foundational (cured this round), 1 refining cured, 0 rhetorical, not clean
 
 open:
 - 2026-11-04-a · refining · structure · Action wiring carries no closure table, which spec-format.md requires as the subsection's first #### block → draft it as its own authoring unit, every cell owned by a rule
