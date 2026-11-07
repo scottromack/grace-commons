@@ -1997,7 +1997,7 @@ ANCESTOR_PROPER_NOUN = "Separation of Concerns"
 # Ordinary-English "concern" — a deployment-level matter/responsibility, not the
 # banned unit-of-separation working noun. Permitted; stripped before the scan.
 ORDINARY_CONCERN = re.compile(r"(?i)\bdeployment\s+concern\w*")
-BANNED_TOKEN_EXCLUDED_DIRS = {".git", ".github", "node_modules", "Alloy.app",
+BANNED_TOKEN_EXCLUDED_DIRS = {".git", ".github", "node_modules",
                               "demos", "grants", "internal", "working-ideas"}
 
 # Lineage notes are dated historical narration (like roadmap.md, already exempt);
@@ -2020,7 +2020,7 @@ def check_banned_token(root: Path) -> list[Finding]:
     out: list[Finding] = []
     md_files: list[Path] = []
     for dirpath, dirnames, filenames in os.walk(root):
-        # prune in place so excluded trees (Alloy.app, node_modules, …) are
+        # prune in place so excluded trees (node_modules, …) are
         # never descended into — rglob-then-filter walks them and is far too slow
         dirnames[:] = [d for d in dirnames if d not in BANNED_TOKEN_EXCLUDED_DIRS]
         md_files += [Path(dirpath) / f for f in filenames if f.endswith(".md")]
@@ -2757,7 +2757,7 @@ def check_section_classification(root: Path) -> list[Finding]:
 # `Articles 5–6` is not a label and is not flagged. A repeated family after
 # `to` is left alone: *renumbered Operation 3 to Operation 7* is a move, not a
 # range. Code spans are scrubbed, so the grammar can quote a retired form.
-RANGE_EXCLUDED_DIRS = {".git", ".github", "node_modules", "Alloy.app", "_site",
+RANGE_EXCLUDED_DIRS = {".git", ".github", "node_modules", "_site",
                        "vendor", "__pycache__"}
 _RANGE_FENCE = re.compile(r"^\s*```(\w*)")
 _RANGE_LABEL = re.compile(

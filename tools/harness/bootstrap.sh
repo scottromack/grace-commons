@@ -2,8 +2,8 @@
 # Provision the harness's two checkers from the npm registry only — no
 # firewalled downloads (Adoptium/GitHub/Maven are not required and are
 # typically blocked in sandboxes). Run once per session; node_modules is
-# git-ignored. The Alloy jar itself lives at tools/alloy/alloy.jar and is
-# extracted from the Alloy.app bundle (Contents/Resources/) — not downloaded.
+# git-ignored. The Alloy jar itself is committed at tools/alloy/alloy.jar; to
+# replace it, save org.alloytools.alloy.dist.jar from the AlloyTools releases there.
 set -euo pipefail
 cd "$(dirname "$0")"
 
@@ -29,7 +29,7 @@ fi
 echo
 echo "TLA+ checker : $(ls node_modules/tla-checker/tla_checker_bg.wasm >/dev/null 2>&1 && echo OK || echo MISSING)"
 echo "JRE 17       : $("$JAVA" -version 2>&1 | head -1)"
-echo "Alloy jar    : $(ls ../alloy/alloy.jar >/dev/null 2>&1 && echo OK || echo 'MISSING — extract from Alloy.app/Contents/Resources/org.alloytools.alloy.dist.jar')"
+echo "Alloy jar    : $(ls ../alloy/alloy.jar >/dev/null 2>&1 && echo OK || echo 'MISSING — save org.alloytools.alloy.dist.jar from the AlloyTools releases as tools/alloy/alloy.jar')"
 echo
 echo "Ready. Examples:"
 echo "  node check.mjs ../../grants/tla-poc/MultiPartyApproval.tla"

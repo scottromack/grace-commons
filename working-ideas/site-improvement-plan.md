@@ -48,7 +48,7 @@ _Working staging, not canonical. Ranked by payoff per effort from an external re
 
 ## 5. The positioning page, made public
 
-**What.** A public page carrying the argument currently staged in [`prior-art-and-positioning.md`](./prior-art-and-positioning.md): the 2024–26 spec-driven wave *declares* the spec the source of truth; this library carries the machinery that *earns* the word (grounded review, formal twins, measured conformance, the earning-SSOT three conditions). Include the drift-direction contrast (their specs chase code; here code chases spec) and the verification-floor contrast (schema lint vs records-alone conformance).
+**What.** A public page carrying the argument, which now lives at [`positioning.md`](../positioning.md): the 2024–26 spec-driven wave *declares* the spec the source of truth; this library carries the machinery that *earns* the word (grounded review, formal twins, measured conformance, the earning-SSOT three conditions). Include the drift-direction contrast (their specs chase code; here code chases spec) and the verification-floor contrast (schema lint vs records-alone conformance).
 
 **Why.** The spec-driven-development audience is searching *right now* — Kiro, Spec Kit, and Tessl created the category vocabulary; this page is what they should land on. The argument is written; it is just filed as internal staging while being the sharpest public differentiator.
 

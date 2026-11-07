@@ -5,7 +5,7 @@ One reproducible checker for both formal-model flavors in the library:
 - **TLA+** (`.tla` + `.cfg`) via the [`tla-checker`](https://www.npmjs.com/package/tla-checker) WASM model checker.
 - **Alloy** (`.als`) via the `org.alloytools.alloy.dist` jar running headless (`exec`) under a JRE 17.
 
-Both checkers are provisioned **from the npm registry only** — no Adoptium / GitHub / Maven downloads, which are blocked in the sandbox. The Alloy jar at `tools/alloy/alloy.jar` is extracted from `Alloy.app/Contents/Resources/`, not downloaded.
+Both checkers are provisioned **from the npm registry only** — no Adoptium / GitHub / Maven downloads, which are blocked in the sandbox. The Alloy jar at `tools/alloy/alloy.jar` is committed, not downloaded.
 
 ## Setup (once per session)
 
@@ -72,7 +72,7 @@ The *authoring* pitfalls — vacuity, store-scoping transitions, deriving ideali
 
 **Operational gotchas in this sandbox.**
 
-- **Provision from npm only.** apt (no sudo), Maven, Adoptium, and GitHub release downloads are all blocked; the npm registry is the one reachable source. The JRE comes from the `javajre-linux-64` npm package, the Alloy jar is extracted from the `Alloy.app` bundle (`Contents/Resources/org.alloytools.alloy.dist.jar`), not downloaded.
+- **Provision from npm only.** apt (no sudo), Maven, Adoptium, and GitHub release downloads are all blocked; the npm registry is the one reachable source. The JRE comes from the `javajre-linux-64` npm package, the Alloy jar is committed at `tools/alloy/alloy.jar` (`org.alloytools.alloy.dist.jar` from the AlloyTools releases), not downloaded.
 - **The JRE must live on native `/tmp`, not the mounted repo FS.** Unpacking it into the mount drops `libjli.so` and the launcher dies with exit 127 (`bootstrap.sh` installs it to `/tmp/javajre`).
 - **Alloy writes its per-command `SAT`/`UNSAT` results to stderr**, not stdout — capture both streams (`check.mjs` uses `spawnSync` for this reason).
 - **Background jobs don't survive across independent shell calls.** A long `node audit.mjs &` started in one shell invocation is killed before the next; run long jobs inline and poll, or break the audit into per-model calls.
