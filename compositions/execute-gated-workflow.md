@@ -1200,19 +1200,18 @@ It inherits from:
 
 ## Status
 
-`grounded (English) on Final Critique 15 — 2026-11-05 at 776c44e — formal layer pending` — see the Ledger.
+`grounded on Final Critique 15 — 2026-11-05 at 776c44e` — see the Ledger.
 
 ## Ledger
 
 ```
-status: grounded (English) on Final Critique 15 — 2026-11-05 at 776c44e — formal layer pending
-formal: pending — re-derivation, 2026-08-30: execute-gated-workflow.tla + 2 twins verified 2026-06-04 over an unbounded consumption arm, Pending-only mooting and a single-writer invocation with no terminus; re-derive over the mooted flag, the horizon-bounded consumption arm, the invocation and the sweep as two processes with the bound as the yield point, and leg (4)'s decision-matched join (2026-08-29-a, 2026-08-30-e)
+status: grounded on Final Critique 15 — 2026-11-05 at 776c44e
+formal: verified — execute-gated-workflow.tla + 10 twins, re-derived 2026-11-08 (it was verified 2026-06-04 over an unbounded consumption arm, Pending-only mooting and a single-writer invocation with no terminus): the mooted mark, the horizon-bounded consumption arm, the moot cascade, the invocation and the sweep as two processes, and the sweep's four legs with the recovery record and the age bound, leg (4) joined on the step's own decision; every composition-level Invariant the model can carry (1.1 to 1.3, 3.1, 3.2, 4.1, 4.2, 6.1) checked, with the rules they stand on; the invocation is one transaction since 2026-10-20 (Store 1 and 2), so the completion bound's yield point is not modelled; closes 2026-08-29-a and 2026-08-30-e, 2026-11-08
 last gate: 2026-11-05 — Final Critique 15 — delta, frozen at 776c44e — foundational count 0, clean, one sample
 
 open:
-- 2026-08-29-a · refining · formal · the model's sweep carries no age bound and no recovery record → extend the model with the bounded sweep behind `workflow_recovery_intended`
-- 2026-08-30-e · refining · formal · the model carries no mooted flag, no horizon bound on the consumption arm and no decision-matched join for leg (4) → extend it
 - 2026-11-04-a · refining · Primitive policy 9; Term capped field; Term moot plan · a fire intent's moot plan carries the declaration's state and action names, which no cap bounds, so the intent's payload is sized by names the capped fields leave out → decide whether [Start Workflow] caps a declared state or action name (invalid-declaration) or the moot plan's size is derived from the names' widest
+- 2026-11-08-a · refining · Term mooting rule; Term consumption rule; Capability requirement 3 · the consumption rule reads a firing past the horizon (Wiring decision 5) and the mooting rule reads no record past it, so where a workflow outlives the audit horizon an approval mooted only by an owed cascade's fire intent reads as live again once that intent is purged, and clears a firing; under Capability requirement 3 an intent is never aged while its workflow can fire, so the arm is out of reach → state that the consumption rule's aged arm is likewise unreachable under Capability requirement 3, or give the mooting rule an aged arm
 - 2026-10-31-b · refining · Audit arm 11; Term stage · the page reads an Audit Trail refusal at an outcome as leaving the act committed (post-commit), where Execution Contract Read 4 says a refused call writes nothing → waits on the 2026-10-26 11:43Z escalation's (b): whether a refused outcome leaves an act's other writes committed
 ```
 
