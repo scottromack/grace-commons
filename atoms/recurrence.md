@@ -93,7 +93,7 @@ Term position number: a whole number from 1 through 366 or from -366 through -1.
 
 Term positive count: a whole number, one or more.
 
-Term admitted day entry: a day of the week alone; for monthly, also a day of the week with an ordinal from 1 through 5 or from -5 through -1; for yearly, also one with an ordinal from 1 through 53 or from -53 through -1; a day of the week with an ordinal is admitted only where the call gives no month days.
+Term admitted day entry: a day of the week alone; for monthly, also a day of the week with an ordinal from 1 through 5 or from -5 through -1; for yearly, also one with an ordinal from 1 through 53 or from -53 through -1; a day of the week with an ordinal is admitted only where the call gives no month days. So 2 tuesday is admitted on a monthly series and refused on a weekly one, and beside month days a day entry stands bare: friday, and never -1 friday.
 
 Term selector: a month, a month day or a day entry of a series or a call.
 
@@ -103,9 +103,12 @@ Term selector: a month, a month day or a day entry of a series or a call.
 Capability requirement 1: The deployment MUST supply at the seam, for each [Open] call, a series id no series has carried PER Execution Contract Logic confinement 3.
 Capability requirement 2: The deployment MUST supply the database PER Execution Contract Database 1 through 7, Execution Contract Read 1 through 4 and Execution Contract Refusal 1.
 Capability requirement 3: The deployment MAY declare the occurrence cap PER Execution Contract Input 2.
+Capability requirement 4: The deployment MAY declare the limit cap PER Execution Contract Input 2.
 ```
 
 Term occurrence cap: the most occurrences one [Occurrences] call answers; 1,000 where a deployment declares none — a default cap a deployment may override as Execution Contract Input 2 allows, though a call over it answers too-many-occurrences (Operation 34), this atom's own answer in place of Input 2's invalid-request.
+
+Term limit cap: the largest limit a series may carry; 1,000 where a deployment declares none.
 
 ### Operations
 
@@ -148,6 +151,7 @@ Operation 9: IF a position of the call IS NOT IN the position numbers THEN [Open
 Operation 10: IF a position of the call EXISTS AND no selector of the call EXISTS THEN [Open] MUST answer invalid-position.
 Operation 11: IF the limit DOES NOT EQUAL blank AND the end date DOES NOT EQUAL blank THEN [Open] MUST answer invalid-end.
 Operation 12: IF the limit DOES NOT EQUAL blank AND the limit IS NOT IN the positive counts THEN [Open] MUST answer invalid-end.
+Operation 37: IF the limit DOES NOT EQUAL blank AND the limit EXCEEDS the limit cap THEN [Open] MUST answer invalid-end.
 Operation 13: IF the end date DOES NOT EQUAL blank AND the end date IS NOT IN the range dates THEN [Open] MUST answer invalid-end.
 Operation 14: IF the end date DOES NOT EQUAL blank AND the end date PRECEDES the start THEN [Open] MUST answer invalid-end.
 Operation 15: [Open] MUST record EXACTLY ONE series carrying the series id the seam supplies, the start, frequency, interval, week start, months, month days, day entries, positions, limit and end date of the call, and no exception.
@@ -212,6 +216,8 @@ Term window: the dates from the from date through the through date of an [Occurr
 
 Term window count: the number of occurrences the window holds.
 
+NOTE: the terms build in this order. A repeating period's picks come from the frequency (Term daily picks through Term yearly picks); its picked dates are those picks; the selected dates are the picked dates the positions keep; the generated dates are the selected dates the start and the date range keep; the occurrences are the generated dates the end bound and the exceptions leave. Positions count over a period's picks, and where some of those picks precede the start they still count (Edge cases, *A start the series does not generate*, says it).
+
 The case space, and the rule that owns each case:
 
 | Call | Case | Answer | Effect on the series |
@@ -225,7 +231,7 @@ The case space, and the rule that owns each case:
 | [Open] | a month day outside 1 through 31 and -31 through -1, or any month day on a weekly series | [Invalid Month Day] | none (Operation 6, Operation 7) |
 | [Open] | a day entry the frequency does not admit, such as 2 tuesday on a weekly series | [Invalid Day Entry] | none (Operation 8) |
 | [Open] | a position outside 1 through 366 and -366 through -1, or positions with no selector | [Invalid Position] | none (Operation 9, Operation 10) |
-| [Open] | a limit and an end date both, a limit not a positive count, or an end date not a range date or earlier than the start | [Invalid End] | none (Operation 11 through 14) |
+| [Open] | a limit and an end date both, a limit not a positive count or over the limit cap, or an end date not a range date or earlier than the start | [Invalid End] | none (Operation 11 through 14, Operation 37) |
 | [Except] | the date not yet taken out | ok | the date joins the exceptions (Operation 19) |
 | [Except] | the date already taken out | ok | none — no write (Operation 20) |
 | [Restore] | the date taken out | ok | the date leaves the exceptions (Operation 22) |
@@ -438,13 +444,13 @@ Term record verbs: identify, reuse, carry, remove, supply, declare, record, answ
 
 Term value sets: day of the week, frequency, series action, exception action and query action are declared above and cited here (GRACE-lang Closed vocabulary 15).
 
-Term bounds: date range (the calendar dates from 0001-01-01 through 9999-12-31); positive count (one, the floor of an interval and a limit); month number (1 through 12); month day number (1 through 31, -31 through -1); position number (1 through 366, -366 through -1); occurrence cap (the most occurrences one [Occurrences] call answers, 1,000 where a deployment declares none).
+Term bounds: date range (the calendar dates from 0001-01-01 through 9999-12-31); positive count (one, the floor of an interval and a limit); limit cap (the largest limit a series may carry, 1,000 where a deployment declares none); month number (1 through 12); month day number (1 through 31, -31 through -1); position number (1 through 366, -366 through -1); occurrence cap (the most occurrences one [Occurrences] call answers, 1,000 where a deployment declares none).
 
 Term cadences: empty.
 
 Term qualifiers: migrated — drafted in GRACE lang v0.69 (2026-11-07) through the Grace connector.
 
-Term terms: series, series id, seam, calendar, calendar date, month length, date range, range date, day of the week, start, frequency, interval, week start, months, month days, day entries, positions, limit, end date, exceptions, month number, month day number, position number, positive count, admitted day entry, selector, occurrence cap, series action, exception action, query action, period, period number, repeating period, day match, entry match, daily picks, weekly picks, monthly picks, yearly picks, picked dates, selected dates, generated date, end bound, occurrence, window, window count, fixed parts, version, conformance table.
+Term terms: series, series id, seam, calendar, calendar date, month length, date range, range date, day of the week, start, frequency, interval, week start, months, month days, day entries, positions, limit, end date, exceptions, month number, month day number, position number, positive count, admitted day entry, selector, occurrence cap, limit cap, series action, exception action, query action, period, period number, repeating period, day match, entry match, daily picks, weekly picks, monthly picks, yearly picks, picked dates, selected dates, generated date, end bound, occurrence, window, window count, fixed parts, version, conformance table.
 
 #### Open
 
@@ -562,7 +568,7 @@ Projection: positions
 
 #### Limit
 
-How many dates a series generates, counted from the start, a whole number of one or more, or none; the dates taken out still count; RFC 5545's COUNT.
+How many dates a series generates, counted from the start, a whole number of one or more and no more than the limit cap, or none; the dates taken out still count; RFC 5545's COUNT.
 
 Kind:       Field
 Field of:   Series
@@ -658,7 +664,7 @@ Projection: invalid-position
 
 #### Invalid End
 
-The refusal of an end a series cannot have: on [Open], a [Limit] and an [End Date] both, a limit that is not a whole number of one or more, or an end date that is not a calendar date in the range or is earlier than the [Start]; on [End], an end date earlier than the start or later than the series' end bound.
+The refusal of an end a series cannot have: on [Open], a [Limit] and an [End Date] both, a limit that is not a whole number of one or more or is over the limit cap, or an end date that is not a calendar date in the range or is earlier than the [Start]; on [End], an end date earlier than the start or later than the series' end bound.
 
 Kind:       Member
 Member of:  the action rejection
@@ -787,6 +793,7 @@ Directional changes only; everything smaller lives in `git log -- atoms/recurren
 - **2026-11-08 — Drafted through the Grace connector, the second atom of the hard set.** *Chose:* a Recurrence atom on the maintainer's ruling of 2026-11-06 (after-grounding item 14: "what a repeat rule says ('every second Tuesday', 'the last business day', exceptions), modeled on iCalendar's repeat rules as the answer key, composing Calendar Time"), begun on the maintainer's word of 2026-11-08 02:23Z ("lets go") once Calendar Time grounded, drafting begun 2026-11-08 02:27Z, from which its rounds to ground count; an atom, as the ruling's "two atoms, one purpose each" says, which names no other atom (spec-format.md, *Atom shape*), so it answers calendar dates and the pattern that composes it with Calendar Time resolves them. *Over:* a composition of Recurrence with Calendar Time in one page; a time of day and a place carried in the series. *Because:* a repeat says which days; what moment a day's time names in a place is Calendar Time's, already grounded, so the daylight-saving cases the ruling gives a TLA model belong to the wiring of the two, and this page's formal layer is the Alloy model of its shape.
 - **2026-11-08 — RFC 5545's repeat rules for the parts most software needs.** *Chose:* daily, weekly, monthly and yearly frequencies with an interval and a week start (Term period, Term repeating period); months, month days and day entries, each picking or keeping dates by RFC 5545's table for those four frequencies (Term daily picks through Term yearly picks); positions over each period's picks (Term selected dates); a limit or an end date, never both (Operation 11); exceptions that take dates out without moving the limit (Term end bound, Term occurrence). *Over:* repeats within a day, BYHOUR, BYMINUTE and BYSECOND (a scheduler's, Non-goal 1); BYWEEKNO and BYYEARDAY (rare, and outside the needs the ruling names); RDATE and moved occurrences (an event's, Non-goal 7, 8); an RRULE text the atom would parse. *Because:* the ruling names every second Tuesday, the last business day and exceptions, and these parts say each of them in both its readings, the Examples showing how; what the atom leaves out is named with its owner.
 - **2026-11-08 — Where RFC 5545 leaves a choice open.** *Chose:* a start the series does not generate is no occurrence, the series counting its periods from the start's period (Term generated date); a date the calendar lacks never generated and never counted (Term day match), so the 31st falls only in months that hold one; an ordinal on a day entry only on monthly and yearly series (RFC 5545 erratum 1911) and never beside month days; positions only beside a selector (Operation 10); an end that moves a series' end sooner and drops its limit, never later (Operation 27, Operation 28). *Over:* the start counted as the first occurrence whatever the series says (RFC 5545 calls an unsynchronized start undefined, and every Tuesday from a Friday would answer a Friday); RFC 7529's SKIP, moving a missing date back or forward (month days 28 through 31 with position -1 say the clamped 31st in RFC 5545's own terms, so the atom keeps one behavior); a day entry with an ordinal read beside month days in some order. *Because:* each choice keeps a series' meaning one meaning and matches what the common implementations of RFC 5545 answer, as the conformance table's rows show.
+- **2026-11-08 — A cap on the limit.** *Chose:* the largest limit a series may carry is a cap, 1,000 where a deployment declares none (Term limit cap, Capability requirement 4), and an [Open] over it answers invalid-end (Operation 37). *Over:* no cap, which left the work of [End]'s check (Operation 27) and of the dates [Occurrences] keeps within a limit growing with a limit nothing bounds; a cap that cuts the series short, which would give one series two meanings. *Because:* 1,000 matches the occurrence cap, so every date of a limited series fits one [Occurrences] call, and a longer series takes an end date, which bounds it without counting (the corpus's posture on what the host must bound, Cart's 2026-11-02 entry).
 
 </details>
 
