@@ -838,12 +838,12 @@ Projection: onboarding.resume-intended
 
 ## Status
 
-`grounded on Final Critique 6 — 2026-11-06 at 47b6606` — see the Ledger.
+`grounded on Final Critique 6 — 2026-11-06 at 47b6606 — formal layer pending` — see the Ledger.
 
 ## Ledger
 
 ```
-status: grounded on Final Critique 6 — 2026-11-06 at 47b6606
+status: grounded on Final Critique 6 — 2026-11-06 at 47b6606 — formal layer pending
 formal: pending — re-derivation, 2026-08-30: external-onboarding.tla, no twin, verified 2026-06-03 over a single-pass arc with no resume; re-derive over two resumers and a stalled original as processes over one token, the per-token section as the point past which only one can write (2026-08-29-a, 2026-08-30-p)
 last gate: 2026-11-06 — Final Critique 6, delta, frozen at 47b6606 — foundational count 0 (the 1 claimed refuted on rules the page holds), clean, one sample; 2026-11-05 — Final Critique 5, delta, frozen at b1ae778 — foundational count 2 (of 3 claimed, 1 refuted on rules the page holds), all cured, not clean, no sample; 2026-11-04 — Final Critique 4, full, frozen at 25a720e — foundational count 5 (of 8 claimed, 3 refuted on rules the page holds), all cured, not clean, no sample; 2026-08-30 — third gate, fresh reader, under the frozen rules — 6 foundational corrected in-round, 13 refining and 3 rhetorical routed (2 refining since closed), 5 foundational closure residue corrected in a second pass
 

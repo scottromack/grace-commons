@@ -1131,12 +1131,12 @@ The four constituents carry their own deep standards inheritance — see each co
 
 ## Status
 
-`grounded on Final Critique 14 — 2026-11-06 at 85bc8fe` — see the Ledger.
+`grounded on Final Critique 14 — 2026-11-06 at 85bc8fe — formal layer pending` — see the Ledger.
 
 ## Ledger
 
 ```
-status: grounded on Final Critique 14 — 2026-11-06 at 85bc8fe
+status: grounded on Final Critique 14 — 2026-11-06 at 85bc8fe — formal layer pending
 formal: pending — re-derivation, 2026-08-30: propagate-consent-revocation-downstream.tla + 1 twin verified 2026-08-27 over a single-writer invocation with no terminus; re-derive over the invocation and the scan as two processes over one act, the bound as the yield point (2026-08-29-a, 2026-08-30-k)
 last gate: 2026-11-06 — Final Critique 14, a delta round, frozen at 85bc8fe — foundational count 0, clean, one sample; 2026-11-06 — Final Critique 13 — delta, foundational count 1, not clean, no sample
 
