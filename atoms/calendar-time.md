@@ -16,7 +16,7 @@ toc: true
 
 ## Summary
 
-Calendar Time says what a date and a time of day mean in a place. A place is a time zone, such as America/Chicago, and the day its weeks start on, such as Sunday. The atom keeps places, and in a place it answers four questions. Which stretch of time does a date cover there? Usually 24 hours, but 23 or 25 on the days the clocks change, and a day can start at 1 AM where the clocks change at midnight. Which moment does a local time name there? A time the clocks skip, such as 2:30 AM on the night they go forward, or show twice, such as 1:30 AM on the night they go back, is settled by one of four choices: the usual one (the time moves forward past a skip, and the first of two repeats is taken), the earlier moment, the later moment, or a refusal. What date is a date plus some years, months and days? January 31 plus one month is February 28, or February 29 in a leap year, or is refused, never March 3. And how does a moment read to a person in their place? Today, yesterday, tomorrow, the day of this week, last week, this month, last month, or the full date, counted by the calendar where the person is rather than by hours, so something posted at 11:50 last night reads "yesterday", with the exact local date and time given beside it. Calendar Time decides nothing about repeating events, working days, holidays, other calendars, or the words a reading is shown in.
+Calendar Time says what a date and a time of day mean in a place. A place is a time zone, such as America/Chicago, and the day its weeks start on, such as Sunday. The atom keeps places, and in a place it answers four questions. Which stretch of time does a date cover there? Usually 24 hours, but 23 or 25 on the days the clocks change by an hour, and a day can start at 1 AM where the clocks change at midnight. Which moment does a local time name there? A time the clocks skip, such as 2:30 AM on the night they go forward, or show twice, such as 1:30 AM on the night they go back, is settled by one of four choices: the usual one (the time moves forward past a skip, and the first of two repeats is taken), the earlier moment, the later moment, or a refusal. What date is a date plus some years, months and days? January 31 plus one month is February 28, or February 29 in a leap year, or is refused, never March 3. And how does a moment read to a person in their place? Today, yesterday, tomorrow, the day of this week, last week, this month, last month, or the full date, counted by the calendar where the person is rather than by hours, so something posted at 11:50 last night reads "yesterday", with the exact local date and time given beside it. Calendar Time decides nothing about repeating events, working days, holidays, other calendars, or the words a reading is shown in.
 
 ---
 
@@ -175,7 +175,7 @@ Term query action: [Read] | [Day] | [Resolve] | [Shift] | [Show] — the actions
 
 Term day start: the earliest instant at which the place's clock shows the local date or a later date — a [Day Start]; 00:00 on most days, the first time the clock shows on a day whose midnight the clock skips, and the day end itself on a date the clock skips whole.
 
-Term day end: the day start of the date that follows the local date — a [Day End]; a day lasts from the day start up to the day end, 23 or 25 hours on a day the clocks change.
+Term day end: the day start of the date that follows the local date — a [Day End]; a day lasts from the day start up to the day end, 24 hours unless the clocks change on it, when the change of the offset shortens or lengthens it: 23 or 25 hours for an hour's change, 0 hours on a date the clock skips whole.
 
 Term day span: a local date's day start and day end in a place — a [Day Span]; computed at the call, never stored.
 
@@ -189,7 +189,7 @@ Term wall time: the local date and the local time of a [Resolve] call, read on t
 
 Term matching instant: an instant at which the place's clock shows the wall time.
 
-Term plain time: a wall time that exactly one instant matches.
+Term plain time: a wall time that exactly one instant matches; a wall time at the moment the offset changes is read as the clock shows it after the change, so where the clocks go forward at 02:00 by an hour, 02:00:00 is skipped and 03:00:00 plain, and where they go back from 02:00 to 01:00, 01:00:00 through 01:59:59 are repeated and 02:00:00 plain.
 
 Term skipped time: a wall time that no instant matches: the place's clock jumps over the wall time, as when the clocks go forward.
 
@@ -205,19 +205,19 @@ Term earlier match: the first of a repeated time's two matching instants.
 
 Term later match: the second of a repeated time's two matching instants.
 
-Term amount: the years, the months and the days a [Shift] call moves a local date by, each a whole number.
+Term amount: the years, the months and the days a [Shift] call moves a local date by, each a number as the call carries it, a whole number or not.
 
-Term signed amount: an amount none of whose years, months and days lies above zero where another lies below zero.
+Term signed amount: an amount whose years, months and days are each a whole number, none of which lies above zero where another lies below zero.
 
 Term overflow: clamp | reject — what [Shift] does where the landing month holds no day of the local date's number — an [Overflow].
 
 Term month move: ((years * 12) + months) — the months a [Shift] call moves the local date's month by.
 
-Term landing month: the month of the calendar the month move takes the local date's month to.
+Term landing month: the month of the calendar that lies the month move months from the local date's month, counted on across the end of a year: a month move of 13 takes January 2026 to February 2027, and a month move of -1 takes it to December 2025.
 
 Term landing day: the local date's day, or the landing month's length where the local date's day exceeds the landing month's length.
 
-Term shifted date: the date the amount's days move the landing month's landing day to; the date [Shift] answers.
+Term shifted date: the date that lies the amount's days from the landing month's landing day, counted on across the end of a month and of a year: 31 days after 2026-02-28 is 2026-03-31, and 1 day before 2026-01-01 is 2025-12-31; the date [Shift] answers.
 
 Term read date: the local date the place's clock shows at the instant.
 
@@ -381,11 +381,11 @@ The conformance table, each row a call and the answer the atom owes:
 | `shift(2026-01-31, 0, 1, 0, reject)` | any | no-such-day | Operation 24 |
 | `shift(2026-01-31, 0, 1, 31, clamp)` | any | 2026-03-31 | Operation 26 |
 | `show(Chicago, 2026-11-07T05:50Z)` | 2026-11-07T18:00Z | yesterday, 2026-11-06, 23:50:00, −06:00, friday | Operation 29, Operation 37 |
-| `show(Chicago, 2026-11-03T15:00Z)` | 2026-11-07T18:00Z | current-week, tuesday | Operation 31 |
-| `show(Chicago, 2026-10-28T15:00Z)` | 2026-11-07T18:00Z | last-week | Operation 32 |
-| `show(Chicago, 2026-10-10T15:00Z)` | 2026-11-07T18:00Z | last-month | Operation 34 |
-| `show(Chicago, 2026-11-09T15:00Z)` | 2026-11-28T18:00Z | current-month | Operation 33 |
-| `show(Berlin, 2026-11-02T12:00Z)` | 2026-11-08T12:00Z | current-week, monday | Operation 31 |
+| `show(Chicago, 2026-11-03T15:00Z)` | 2026-11-07T18:00Z | current-week, 2026-11-03, 09:00:00, −06:00, tuesday | Operation 31, Operation 37 |
+| `show(Chicago, 2026-10-28T15:00Z)` | 2026-11-07T18:00Z | last-week, 2026-10-28, 10:00:00, −05:00, wednesday | Operation 32, Operation 37 |
+| `show(Chicago, 2026-10-10T15:00Z)` | 2026-11-07T18:00Z | last-month, 2026-10-10, 10:00:00, −05:00, saturday | Operation 34, Operation 37 |
+| `show(Chicago, 2026-11-09T15:00Z)` | 2026-11-28T18:00Z | current-month, 2026-11-09, 09:00:00, −06:00, monday | Operation 33, Operation 37 |
+| `show(Berlin, 2026-11-02T12:00Z)` | 2026-11-08T12:00Z | current-week, 2026-11-02, 13:00:00, +01:00, monday | Operation 31, Operation 37 |
 
 Here Chicago is a place on America/Chicago whose weeks start on Sunday, Berlin a place on Europe/Berlin whose weeks start on Monday, Havana a place on America/Havana and Apia a place on Pacific/Apia.
 
@@ -805,14 +805,14 @@ Calendar Time is a primitive with no regulatory anchor of its own. It inherits f
 
 ## Status
 
-`draft` — see the Ledger.
+`grounded on Final Critique 1 — 2026-11-08 at 4b0bd47` — see the Ledger.
 
 ## Ledger
 
 ```
-status: draft
-formal: pending — the formal-layer vote is not cast at intake; the first council round casts it, and a vote of yes owes a model
-last gate: none
+status: grounded on Final Critique 1 — 2026-11-08 at 4b0bd47
+formal: not applicable — vote no 2026-11-08: the atom reads one clock reading at the seam (Execution Contract Logic confinement 11) and claims no ordering of its own; every answer is a single-state function of the place, the time zone rules and now that each action's rules hold, and its concurrency is Execution Contract Database 2's
+last gate: 2026-11-08 — Final Critique 1, frozen at 4b0bd47 — foundational count 0, clean, one sample
 
 open: none
 ```

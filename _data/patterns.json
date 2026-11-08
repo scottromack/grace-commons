@@ -253,7 +253,7 @@
  "calendar-time": {
   "composed_by": [],
   "domain": null,
-  "grounded": false,
+  "grounded": true,
   "invariants": 4,
   "kind": "atom",
   "models": {
@@ -264,7 +264,7 @@
   "regulated_by": [],
   "security": false,
   "standards": [],
-  "status": "draft",
+  "status": "grounded on Final Critique 1 \u2014 2026-11-08 at 4b0bd47",
   "title": "Calendar Time"
  },
  "capability": {
