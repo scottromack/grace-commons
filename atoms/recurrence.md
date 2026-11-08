@@ -16,7 +16,7 @@ toc: true
 
 ## Summary
 
-Recurrence says which dates a repeating event falls on. A series starts on a date and repeats daily, weekly, monthly or yearly, every period or every few periods, on the days its parts pick: chosen months, days of the month such as the 15th or the last day, and days of the week, with an ordinal where one is wanted, such as the second Tuesday or the last Friday. A position narrows each period's picks to the first or the last of them, so the last weekday of the month is the month's Mondays through Fridays with the last one kept. A series ends after so many dates, on an end date, or never, and single dates can be taken out as exceptions and put back. It follows iCalendar's repeat rules, the ones every calendar app exchanges: a date the calendar does not hold, such as February 30 or the 31st of a short month, is never produced, so "the 31st, or the month's last day" is written as the last of the 28th through the 31st. Recurrence answers dates only; the time of day, the place and what its clocks do, holidays and reminders belong to the patterns that compose it.
+Recurrence says which dates a repeating event falls on. A series starts on a date and repeats daily, weekly, monthly or yearly, every period or every few periods, on the days its parts pick: chosen months, days of the month such as the 15th or the last day, and days of the week, with an ordinal where one is wanted, such as the second Tuesday or the last Friday. A position narrows each period's picks to the first or the last of them, so the last weekday of the month is the month's Mondays through Fridays with the last one kept. A series ends after so many dates, on an end date, or never, and single dates can be taken out as exceptions and put back. It follows iCalendar's repeat rules (RFC 5545, the Internet standard for calendar exchange), the ones every calendar app exchanges: a date the calendar does not hold, such as February 30 or the 31st of a short month, is never produced, so "the 31st, or the month's last day" is written as the last day among the 28th through the 31st that the month holds. Recurrence answers dates only; the time of day, the place and what its clocks do, holidays and reminders belong to the patterns that compose it.
 
 ---
 
@@ -51,7 +51,7 @@ State 1: EVERY series MUST carry series id, start, frequency, interval, week sta
 State 2: The atom MUST NOT remove a series.
 ```
 
-Term calendar: the Gregorian calendar of ISO 8601, run back before 1582 as if always in force.
+Term calendar: the Gregorian calendar of ISO 8601, the international standard for dates, run back before 1582 as if always in force.
 
 Term calendar date: a year, a month from 1 through 12 and a day from 1 through the month's length, naming a day the calendar holds, such as 2028-02-29 but not 2026-02-29.
 
@@ -67,9 +67,9 @@ Term start: the date a series starts from, as the call carries it — a [Start];
 
 Term frequency: daily | weekly | monthly | yearly — how long one period of a series is — a [Frequency].
 
-Term interval: every how many periods a series repeats, as the call carries it — an [Interval]; 1 for every period, 2 for every other one, and 1 where the call carries none.
+Term interval: every how many periods a series repeats, as the call carries it — an [Interval]; 1 for every period, 2 for every other one.
 
-Term week start: the day of the week a series' weeks start on — a [Week Start]; monday where the call carries none, as in RFC 5545.
+Term week start: the day of the week a series' weeks start on — a [Week Start]; RFC 5545's WKST.
 
 Term months: the months of the year a series keeps or picks, each as the call carries it — the [Months]; none, or month numbers.
 
@@ -83,7 +83,7 @@ Term limit: how many generated dates a series holds, counted from the start, as 
 
 Term end date: the last date a series may fall on, as the call carries it — an [End Date]; RFC 5545's UNTIL, inclusive; blank for a series without one.
 
-Term exceptions: the dates taken out of a series — the [Exceptions]; RFC 5545's EXDATE; none when the series opens.
+Term exceptions: the dates taken out of a series — the [Exceptions]; RFC 5545's EXDATE; none when the series opens; a date the series does not generate may be held all the same, and takes nothing out.
 
 Term month number: a whole number from 1 through 12.
 
@@ -93,7 +93,7 @@ Term position number: a whole number from 1 through 366 or from -366 through -1.
 
 Term positive count: a whole number, one or more.
 
-Term admitted day entry: a day of the week alone; for monthly, also a day of the week with an ordinal from 1 through 5 or from -5 through -1; for yearly, also one with an ordinal from 1 through 53 or from -53 through -1; and only a day of the week alone where month days are given.
+Term admitted day entry: a day of the week alone; for monthly, also a day of the week with an ordinal from 1 through 5 or from -5 through -1; for yearly, also one with an ordinal from 1 through 53 or from -53 through -1; a day of the week with an ordinal is admitted only where the call gives no month days.
 
 Term selector: a month, a month day or a day entry of a series or a call.
 
@@ -101,11 +101,11 @@ Term selector: a month, a month day or a day entry of a series or a call.
 
 ```
 Capability requirement 1: The deployment MUST supply at the seam, for each [Open] call, a series id no series has carried PER Execution Contract Logic confinement 3.
-Capability requirement 2: The deployment MUST supply the database PER Execution Contract Database 1 through 6, Execution Contract Read 1 through 4 and Execution Contract Refusal 1.
+Capability requirement 2: The deployment MUST supply the database PER Execution Contract Database 1 through 7, Execution Contract Read 1 through 4 and Execution Contract Refusal 1.
 Capability requirement 3: The deployment MAY declare the occurrence cap PER Execution Contract Input 2.
 ```
 
-Term occurrence cap: the most occurrences one [Occurrences] call answers; 1,000 where a deployment declares none.
+Term occurrence cap: the most occurrences one [Occurrences] call answers; 1,000 where a deployment declares none — a default cap a deployment may override as Execution Contract Input 2 allows, though a call over it answers too-many-occurrences (Operation 34), this atom's own answer in place of Input 2's invalid-request.
 
 ### Operations
 
@@ -180,7 +180,7 @@ Term exception action: [Except] | [Restore] — the actions that take a date out
 
 Term query action: [Read] | [Occurrences] — the actions that write nothing.
 
-Term period: the calendar dates one repetition of a series covers: a single date for daily; for weekly, seven dates from a date whose day of the week is the series' week start; a calendar month for monthly; a calendar year for yearly.
+Term period: the calendar dates one repetition of a series covers: a single date for daily; for weekly, the seven dates from a date whose day of the week is the series' week start, the period holding the start being the one that begins on the latest such date not after the start; a calendar month for monthly; a calendar year for yearly.
 
 Term period number: how many periods a period lies past the period holding the start: 0 for that period, 1 for the next.
 
@@ -190,7 +190,7 @@ Term day match: the date a month day names in a month: for a month day above zer
 
 Term entry match: the dates a day entry names in a stretch of dates: every date of the entry's day of the week, for an entry with no ordinal; for an ordinal n, the nth such date counted from the stretch's first date where n is above zero, or from its last date where n is below zero, and no date where the stretch holds fewer.
 
-Term daily picks: the period's one date, where the series' months, where given, hold the date's month, a month day, where given, has the date as a day match, and the day entries, where given, hold the date's day of the week.
+Term daily picks: the period's one date, where the series' months, where given, hold the date's month, some month day, where given, has the date as a day match, and the day entries, where given, hold the date's day of the week.
 
 Term weekly picks: the period's dates whose day of the week the day entries hold, or whose day of the week is the start's where no day entries are given, each kept where the months, where given, hold the date's month.
 
@@ -198,13 +198,13 @@ Term monthly picks: no date where the months are given and lack the period's mon
 
 Term yearly picks: with month days, the day matches of the month days in each month the months hold, or in every month where no months are given, each kept where the day entries, where given, hold the date's day of the week; with day entries and no month days, the entry matches of the day entries in each month the months hold, or in the whole year where no months are given; with months alone, the date whose day number is the start's in each month the months hold; with no selector, the date of the year whose month and day number are the start's.
 
-Term picked dates: the daily, weekly, monthly or yearly picks of a repeating period, as the series' frequency is.
+Term picked dates: the daily, weekly, monthly or yearly picks of a repeating period, as the series' frequency is, a date the picks name more than once being one picked date.
 
 Term selected dates: the picked dates of a repeating period, in date order, each kept where the date's place in that order is among the positions, counted from the first picked date as 1 for a position above zero and from the last as -1 for one below zero; every picked date where no positions are given.
 
 Term generated date: a selected date of a repeating period that is a range date and is the series' start or falls later.
 
-Term end bound: for a series with a limit, the generated date the limit reaches, counting the generated dates in date order from 1; for a series with an end date, the end date; none for a series with neither.
+Term end bound: for a series with a limit, the generated date the limit reaches, counting the generated dates in date order from 1, and none where the series generates fewer dates than the limit; for a series with an end date, the end date; none for a series with neither.
 
 Term occurrence: a generated date that is not later than the end bound, where the series has one, and that the exceptions do not hold — a date [Occurrences] answers.
 
@@ -330,6 +330,7 @@ The conformance table, each row a series as its [Open] call makes it, a window, 
 | `open(2026-11-15, monthly, 1, monday, none, none, [monday, tuesday, wednesday, thursday, friday], [1], none, none)` | 2026-11-01 through 2027-01-31 | 2026-12-01, 2027-01-01 — the first weekday of November, 2026-11-02, precedes the start | Term selected dates, Term generated date |
 | `open(2026-01-31, monthly, 1, monday, none, none, none, none, none, none)` | 2026-01-01 through 2026-07-31 | 2026-01-31, 2026-03-31, 2026-05-31, 2026-07-31 | Term monthly picks |
 | `open(2026-01-31, monthly, 1, monday, none, [28, 29, 30, 31], none, [-1], none, none)` | 2026-01-01 through 2026-04-30 | 2026-01-31, 2026-02-28, 2026-03-31, 2026-04-30 | Term day match, Term selected dates |
+| `open(2026-02-01, monthly, 1, monday, none, [28, -1], none, none, 2, none)` | 2026-02-01 through 2026-04-30 | 2026-02-28, 2026-03-28 | Term picked dates, Term end bound |
 | `open(2026-01-31, monthly, 1, monday, none, [-1], none, none, none, none)` | 2026-01-01 through 2026-04-30 | 2026-01-31, 2026-02-28, 2026-03-31, 2026-04-30 | Term day match |
 | `open(2028-02-29, yearly, 1, monday, none, none, none, none, none, none)` | 2028-01-01 through 2036-12-31 | 2028-02-29, 2032-02-29, 2036-02-29 | Term yearly picks |
 | `open(2028-02-29, yearly, 1, monday, [2], [28, 29], none, [-1], none, none)` | 2028-01-01 through 2032-12-31 | 2028-02-29, 2029-02-28, 2030-02-28, 2031-02-28, 2032-02-29 | Term yearly picks, Term selected dates |
@@ -521,7 +522,7 @@ Projection: interval
 
 #### Week Start
 
-The day of the week a series' weeks start on, monday unless the call says otherwise; it decides which days share a week, and so which weeks repeat; RFC 5545's WKST.
+The day of the week a series' weeks start on; it decides which days share a week, and so which weeks repeat; RFC 5545's WKST.
 
 Kind:       Field
 Field of:   Series
@@ -771,7 +772,7 @@ Recurrence is a primitive with no regulatory anchor of its own. It inherits from
 ```
 status: draft
 formal: pending — the formal-layer vote is not cast at intake; the first council round casts it, and a vote of yes owes a model
-last gate: none
+last gate: 2026-11-08 — Final Critique 1, a full round, frozen at 9f67272 — foundational count 3, all cured, not clean, no sample
 
 open: none
 ```
