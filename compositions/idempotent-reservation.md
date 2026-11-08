@@ -558,17 +558,16 @@ It inherits from:
 
 ## Status
 
-`grounded (English) on Final Critique 7 — 2026-11-05 at 63c13eb — formal layer pending` — see the Ledger.
+`grounded on Final Critique 7 — 2026-11-05 at 63c13eb` — see the Ledger.
 
 ## Ledger
 
 ```
-status: grounded (English) on Final Critique 7 — 2026-11-05 at 63c13eb — formal layer pending
-formal: pending — re-derivation, 2026-08-30: the model has no eviction leg as a second process over one token and no `outcome-unknown` arm; was verified — idempotent-reservation.tla + 1 twin, 2026-06-03
+status: grounded on Final Critique 7 — 2026-11-05 at 63c13eb
+formal: verified — idempotent-reservation.tla + 11 twins, re-derived 2026-11-08 (it was verified 2026-06-03 over one effect counter and an unguarded early eviction): the token's entry with its action type, parameters digest and recovery mark; Duplicate Prevention's guard on its own clock and its outage, read fail-closed; the eviction leg as the second process beside the calls, and the five arms a call takes (token-collision, replay, fresh request, outcome-unknown, re-entry); Invariants 1.1, 2.1 to 2.3, 3.1, 4.1, 4.2, 7.1, 7.2 and 8.2 checked, with Check 4.1 and 4.2, Composes 7, Wiring decision 2 and Indeterminate outcome 3, 4, 7, 8, 10 and 13; one token and a place_hold and a release stand for the action types, the boundary predicate and Invariant 8.1 are not modelled; closes 2026-08-30-a, 2026-11-08
 last gate: 2026-11-05 — Final Critique 7, a delta round, frozen at 63c13eb — foundational count 0, clean, one sample; 2026-11-04 — Final Critique 6, a full round, frozen at de92f1e — foundational count 3, cured, not clean, no sample
 
 open:
-- 2026-08-30-a · refining · formal · the model has no eviction leg as a second process over one token and no `outcome-unknown` arm; the twin's early-eviction hazard is now the leg's (iii) → extend it
 - 2026-11-05-a · refining · Capability requirement 2, Primitive policy 2, Term token max length · the token max length is a byte cap with no default, where Execution Contract Input 2 states a bound as a cap with a default a deployment may override → state a default (a value no rule of the corpus decides) and make Capability requirement 2 a MAY, or record the token as an input the deployment bounds by its own rule
 ```
 
