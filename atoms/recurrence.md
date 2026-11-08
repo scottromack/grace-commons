@@ -771,13 +771,13 @@ Recurrence is a primitive with no regulatory anchor of its own. It inherits from
 
 ## Status
 
-`grounded (English) on Final Critique 2 — 2026-11-08 at 237cc22 — formal layer pending` — see the Ledger.
+`grounded on Final Critique 2 — 2026-11-08 at 237cc22` — see the Ledger.
 
 ## Ledger
 
 ```
-status: grounded (English) on Final Critique 2 — 2026-11-08 at 237cc22 — formal layer pending
-formal: pending — vote yes 2026-11-08, on the maintainer's ruling (after-grounding item 14, 2026-11-06: "Recurrence gets an Alloy model (it is mostly shape)"): the Alloy model of the page's shape is owed, drafted beside the spec; the daylight-saving cases that ruling gives a TLA model belong to the wiring of this atom with Calendar Time, not to this page
+status: grounded on Final Critique 2 — 2026-11-08 at 237cc22
+formal: verified — recurrence.als + 1 twin (vote yes, on the maintainer's ruling (after-grounding item 14, 2026-11-06: "Recurrence gets an Alloy model (it is mostly shape)"); every Invariant checked, 1.1 through 3.4, with the build order of the Terms, the exceptions that keep a limit's bound and the limit cap; the twin drops Operation 27's guard from [End] and Invariant 2.2 catches it; the daylight-saving cases that ruling gives a TLA model belong to the wiring of this atom with Calendar Time, not to this page), 2026-11-08
 last gate: 2026-11-08 — Final Critique 2, delta, frozen at 237cc22 — foundational count 0 after the blind second triage, clean, one sample
 
 open: none
