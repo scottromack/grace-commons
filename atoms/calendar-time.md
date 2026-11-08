@@ -16,7 +16,7 @@ toc: true
 
 ## Summary
 
-Calendar Time says what a date and a time of day mean in a place. A place is a time zone, such as America/Chicago, and the day its weeks start on, such as Sunday. The atom keeps places, and in a place it answers four questions. Which stretch of time does a date cover there? Usually 24 hours, but 23 or 25 on the days the clocks change by an hour, and a day can start at 1 AM where the clocks change at midnight. Which moment does a local time name there? A time the clocks skip, such as 2:30 AM on the night they go forward, or show twice, such as 1:30 AM on the night they go back, is settled by one of four choices: the usual one (the time moves forward past a skip, and the first of two repeats is taken), the earlier moment, the later moment, or a refusal. What date is a date plus some years, months and days? January 31 plus one month is February 28, or February 29 in a leap year, or is refused, never March 3. And how does a moment read to a person in their place? Today, yesterday, tomorrow, the day of this week, last week, this month, last month, or the full date, counted by the calendar where the person is rather than by hours, so something posted at 11:50 last night reads "yesterday", with the exact local date and time given beside it. Calendar Time decides nothing about repeating events, working days, holidays, other calendars, or the words a reading is shown in.
+Calendar Time says what a date and a time of day mean in a place. A place is a time zone, such as America/Chicago, and the day its weeks start on, such as Sunday. The atom keeps places, and in a place it answers four questions. Which stretch of time does a date cover there? Usually 24 hours, but 23 or 25 on the days the clocks change by an hour, and a day can start at 1 AM where the clocks change at midnight. Which moment does a local time name there? A time the clocks skip, such as 2:30 AM on the night they go forward, or show twice, such as 1:30 AM on the night they go back, is settled by one of four choices: the usual one (the time moves forward past a skip, and the first of two repeats is taken), the earlier moment, the later moment, or a refusal. What date is a date plus some years, months and days? January 31 plus one month is February 28, or February 29 in a leap year, or is refused, never March 3. And how does a moment read to a person in their place? Today, yesterday, tomorrow, the day of this week, last week, this month, last month, or the full date (a date further ahead than tomorrow reads as the full date), counted by the calendar where the person is rather than by hours, so something posted at 11:50 last night reads "yesterday", with the exact local date and time given beside it. Calendar Time decides nothing about repeating events, working days, holidays, other calendars, or the words a reading is shown in.
 
 ---
 
@@ -175,7 +175,7 @@ Term query action: [Read] | [Day] | [Resolve] | [Shift] | [Show] — the actions
 
 Term day start: the earliest instant at which the place's clock shows the local date or a later date — a [Day Start]; 00:00 on most days, the first time the clock shows on a day whose midnight the clock skips, and the day end itself on a date the clock skips whole.
 
-Term day end: the day start of the date that follows the local date — a [Day End]; a day lasts from the day start up to the day end, 24 hours unless the clocks change on it, when the change of the offset shortens or lengthens it: 23 or 25 hours for an hour's change, 0 hours on a date the clock skips whole.
+Term day end: the day start of the date that follows the local date — a [Day End]; a day covers its day start and every instant up to the day end, the day end not included: the day end is the next date's day start, so no instant lies in two dates; a day lasts 24 hours unless the clocks change on it, when the change of the offset shortens or lengthens it: 23 or 25 hours for an hour's change, 0 hours on a date the clock skips whole.
 
 Term day span: a local date's day start and day end in a place — a [Day Span]; computed at the call, never stored.
 
@@ -207,7 +207,7 @@ Term later match: the second of a repeated time's two matching instants.
 
 Term amount: the years, the months and the days a [Shift] call moves a local date by, each a number as the call carries it, a whole number or not.
 
-Term signed amount: an amount whose years, months and days are each a whole number, none of which lies above zero where another lies below zero.
+Term signed amount: an amount whose years, months and days are each a whole number, and are all zero or more, or all zero or less.
 
 Term overflow: clamp | reject — what [Shift] does where the landing month holds no day of the local date's number — an [Overflow].
 
@@ -376,10 +376,15 @@ The conformance table, each row a call and the answer the atom owes:
 | `resolve(Chicago, 2026-11-01, 01:30:00, later)` | any | 2026-11-01T07:30Z | Operation 20 |
 | `resolve(Chicago, 2026-11-01, 01:30:00, reject)` | any | repeated-time | Operation 21 |
 | `resolve(Chicago, 2026-11-07, 09:00:00, reject)` | any | 2026-11-07T15:00Z | Operation 15 |
+| `resolve(Apia, 2011-12-30, 12:00:00, compatible)` | any | 2011-12-30T22:00Z, which the clock shows as 12:00 on 2011-12-31 | Operation 16 |
+| `resolve(Apia, 2011-12-30, 12:00:00, earlier)` | any | 2011-12-29T22:00Z, 12:00 on 2011-12-29 | Operation 17 |
+| `resolve(Apia, 2011-12-30, 12:00:00, reject)` | any | skipped-time | Operation 18 |
+| `resolve(Chicago, 2026-02-29, 24:00:00, soonest)` | any | invalid-date, the first on the refuses line of the three refusals that apply | Operation 10, Execution Contract Refusal 1 |
 | `shift(2026-01-31, 0, 1, 0, clamp)` | any | 2026-02-28 | Operation 26 |
 | `shift(2028-01-31, 0, 1, 0, clamp)` | any | 2028-02-29 | Operation 26 |
 | `shift(2026-01-31, 0, 1, 0, reject)` | any | no-such-day | Operation 24 |
 | `shift(2026-01-31, 0, 1, 31, clamp)` | any | 2026-03-31 | Operation 26 |
+| `shift(2026-01-31, 0, 1, -1, clamp)` | any | invalid-amount | Operation 22 |
 | `show(Chicago, 2026-11-07T05:50Z)` | 2026-11-07T18:00Z | yesterday, 2026-11-06, 23:50:00, −06:00, friday | Operation 29, Operation 37 |
 | `show(Chicago, 2026-11-03T15:00Z)` | 2026-11-07T18:00Z | current-week, 2026-11-03, 09:00:00, −06:00, tuesday | Operation 31, Operation 37 |
 | `show(Chicago, 2026-10-28T15:00Z)` | 2026-11-07T18:00Z | last-week, 2026-10-28, 10:00:00, −05:00, wednesday | Operation 32, Operation 37 |
@@ -387,7 +392,7 @@ The conformance table, each row a call and the answer the atom owes:
 | `show(Chicago, 2026-11-09T15:00Z)` | 2026-11-28T18:00Z | current-month, 2026-11-09, 09:00:00, −06:00, monday | Operation 33, Operation 37 |
 | `show(Berlin, 2026-11-02T12:00Z)` | 2026-11-08T12:00Z | current-week, 2026-11-02, 13:00:00, +01:00, monday | Operation 31, Operation 37 |
 
-Here Chicago is a place on America/Chicago whose weeks start on Sunday, Berlin a place on Europe/Berlin whose weeks start on Monday, Havana a place on America/Havana and Apia a place on Pacific/Apia.
+Here Chicago is the place `open("America/Chicago", sunday)` opens, Berlin the place `open("Europe/Berlin", monday)` opens, Havana a place on America/Havana and Apia a place on Pacific/Apia, each with any week start, which no row reads.
 
 ### Conformance checks
 
@@ -455,6 +460,8 @@ The calendar has no leap second: 23:59:60 is not a time of day and is refused as
 ### Midnight that never comes, and a day skipped whole
 
 Where a zone's clocks change at midnight, as America/Havana's and America/Santiago's do, the clock never shows 00:00 on that date, and the day starts when the clock first shows the date, at 01:00. Pacific/Apia skipped 2011-12-30 whole when Samoa moved across the date line: [Day] answers a day start equal to the day end, and a wall time on that date is a skipped time whose gap is a whole day, so the forward resolution lands on 2011-12-31.
+
+A wall time in a gap that opens at midnight, resolved earlier, lands on the date before: America/Havana's 00:30 on 2026-03-08 resolves earlier to 2026-03-08T04:30Z, which the clock shows as 23:30 on 2026-03-07.
 
 ## Composition notes
 
@@ -557,7 +564,7 @@ Kind: Type
 
 #### Day Span
 
-The instants a [Local Date] covers in a place, from its [Day Start] up to its [Day End]; computed at each [Day], never stored.
+The instants a [Local Date] covers in a place, its [Day Start] and every instant up to its [Day End], the day end not included; computed at each [Day], never stored.
 
 Kind: Type
 
@@ -601,7 +608,7 @@ Projection: day_start
 
 #### Day End
 
-The day start of the next date: the instant the day stops covering, 23 or 25 hours past the day start on a day the clocks change.
+The day start of the next date: the instant the day stops covering, so not itself in the day but the first instant of the next date; 24 hours past the day start unless the clocks change on the day (Term day end).
 
 Kind:       Field
 Field of:   Day Span
