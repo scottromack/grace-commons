@@ -431,7 +431,7 @@ Non-goal 7: The atom MUST NOT hold a place's owner.
 Non-goal 8: The atom MUST NOT act at a time.
 ```
 
-NOTE: the owners — Recurrence *(forthcoming)*, which composes this atom (Non-goal 1); Business Calendar *(forthcoming)* (Non-goal 2, 3); Calendar System *(forthcoming)* (Non-goal 4); Localization *(forthcoming)*, which words a relative day and writes a date in the reader's language (Non-goal 5); the composing pattern that shows the time, which puts the exact date and time one tap away (Non-goal 6); the composing pattern that knows the person or the site, such as one built on [Party Identity](./party-identity.md) or [Session](./session.md) (Non-goal 7; External check 1); Scheduler *(forthcoming)* (Non-goal 8).
+NOTE: the owners — [Recurrence](./recurrence.md), which repeats dates (Non-goal 1); Business Calendar *(forthcoming)* (Non-goal 2, 3); Calendar System *(forthcoming)* (Non-goal 4); Localization *(forthcoming)*, which words a relative day and writes a date in the reader's language (Non-goal 5); the composing pattern that shows the time, which puts the exact date and time one tap away (Non-goal 6); the composing pattern that knows the person or the site, such as one built on [Party Identity](./party-identity.md) or [Session](./session.md) (Non-goal 7; External check 1); Scheduler *(forthcoming)* (Non-goal 8).
 
 Where the atom breaks down: a date with no time of day, such as a due date or a birthday, has no instant for [Show] to read; a reader whose place is not where the reader is, such as a traveller whose place is still home; a local time kept for a future date in a zone whose rules then change (Edge cases).
 
@@ -470,7 +470,7 @@ Composition note 1: A composing pattern MUST own what this atom declines.
 Composition note 2: A pattern that shows a person an instant MUST show the reading [Show] answers for the person's place.
 ```
 
-NOTE: composing patterns — none yet. Forthcoming: Recurrence, which composes this atom; and every pattern that shows a time, such as a comment's, a Ledger entry's or a notification's, which reads the time through [Show] (Composition note 2).
+NOTE: composing patterns — none yet. Forthcoming: Calendar Event, which composes this atom with [Recurrence](./recurrence.md); and every pattern that shows a time, such as a comment's, a Ledger entry's or a notification's, which reads the time through [Show] (Composition note 2).
 
 NOTE: to keep a time of day at a place, a composing pattern keeps the local date, the local time and the place id and resolves them through [Resolve] at use; to move such a time by months or days and keep its time of day, it shifts the local date through [Shift] and resolves the time again, which is how Temporal and RFC 5545 add days across a clock change.
 

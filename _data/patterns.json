@@ -1325,6 +1325,23 @@
   ],
   "title": "Recoverable Invocation"
  },
+ "recurrence": {
+  "composed_by": [],
+  "domain": null,
+  "grounded": false,
+  "invariants": 3,
+  "kind": "atom",
+  "models": {
+   "als": false,
+   "tla": false,
+   "twins": 0
+  },
+  "regulated_by": [],
+  "security": false,
+  "standards": [],
+  "status": "draft",
+  "title": "Recurrence"
+ },
  "reserve-from-pool": {
   "composes": [
    "provisional-commitment",
