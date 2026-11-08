@@ -411,7 +411,7 @@ An occurrence is a calendar date, with no time of day and no place. A pattern th
 
 ### A date the calendar does not hold
 
-A month day or a start's day of the month that a month lacks, such as the 30th in February or the 31st in April, names no date there, and the series simply has no occurrence in that month: the date is never produced and never counted toward the limit, as RFC 5545 says. A series that wants the month's last day in place of a missing one says so with month days and a position (Examples, *The 31st, and the month's last day*). A series that can never fall, such as the 30th of February every year, opens and answers no occurrence.
+A month day or a start's day of the month that a month lacks, such as the 30th in February or the 31st in April, names no date there, and the series simply has no occurrence in that month: the date is never produced and never counted toward the limit, as RFC 5545 says. A series that wants the month's last day in place of a missing one says so with month days and a position (Examples, *The 31st, and the month's last day*). A series that can never fall, such as the 30th of February every year, opens and answers no occurrence. The same holds for a yearly day entry's ordinal where months are given: it counts within each of those months (Term yearly picks), so one past 5 or below -5 names no date there, and with no months it counts over the whole year, where up to 53 can land.
 
 ### A start the series does not generate
 
@@ -771,14 +771,14 @@ Recurrence is a primitive with no regulatory anchor of its own. It inherits from
 
 ## Status
 
-`draft` — see the Ledger.
+`grounded (English) on Final Critique 2 — 2026-11-08 at 237cc22 — formal layer pending` — see the Ledger.
 
 ## Ledger
 
 ```
-status: draft
-formal: pending — the formal-layer vote is not cast at intake; the first council round casts it, and a vote of yes owes a model
-last gate: 2026-11-08 — Final Critique 1, a full round, frozen at 9f67272 — foundational count 3, all cured, not clean, no sample
+status: grounded (English) on Final Critique 2 — 2026-11-08 at 237cc22 — formal layer pending
+formal: pending — vote yes 2026-11-08, on the maintainer's ruling (after-grounding item 14, 2026-11-06: "Recurrence gets an Alloy model (it is mostly shape)"): the Alloy model of the page's shape is owed, drafted beside the spec; the daylight-saving cases that ruling gives a TLA model belong to the wiring of this atom with Calendar Time, not to this page
+last gate: 2026-11-08 — Final Critique 2, delta, frozen at 237cc22 — foundational count 0 after the blind second triage, clean, one sample
 
 open: none
 ```

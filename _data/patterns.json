@@ -1328,7 +1328,7 @@
  "recurrence": {
   "composed_by": [],
   "domain": null,
-  "grounded": false,
+  "grounded": true,
   "invariants": 3,
   "kind": "atom",
   "models": {
@@ -1339,7 +1339,7 @@
   "regulated_by": [],
   "security": false,
   "standards": [],
-  "status": "draft",
+  "status": "grounded (English) on Final Critique 2 \u2014 2026-11-08 at 237cc22 \u2014 formal layer pending",
   "title": "Recurrence"
  },
  "reserve-from-pool": {
