@@ -963,13 +963,13 @@ It composes with, and is positioned against, [Idempotent Reservation](./idempote
 
 ## Status
 
-`grounded (English) on Final Critique 8 — 2026-11-06 at ef1f25a — formal layer pending` — see the Ledger.
+`grounded on Final Critique 8 — 2026-11-06 at ef1f25a` — see the Ledger.
 
 ## Ledger
 
 ```
-status: grounded (English) on Final Critique 8 — 2026-11-06 at ef1f25a — formal layer pending
-formal: pending — re-derivation, 2026-08-30: the model has no attempt marker, no per-run section as a second process over one act, no indeterminate verdict, and no key horizon; was verified — compensable-workflow.tla + 2 twins, 2026-06-16
+status: grounded on Final Critique 8 — 2026-11-06 at ef1f25a
+formal: verified — compensable-workflow.tla + 17 twins, re-derived 2026-11-08 (it was verified 2026-06-16 over a bare effect-then-record window): the attempt marker before every effect and the four-way verdict (applied, failed, indeterminate, unknown); the critical section as a second writer, with lease expiry as its terminus and the expired invocation's reply discarded; the halt that parks an attempt and the operator's resume under the horizon assertion, with the effect key lapsing while the run rests halted; both compensation failure policies; the pivot; the overflow landing; Invariants 2.1, 4, 4.1 to 4.5, 5.1, 6.3, 7.1, 7.2 and 8.1 checked, with Check 7.1, Replay 12, Primitive policy 23 through 25, Action wiring 30, 72 and 73 and Non-goal 9; the parallel compensation order (open 2026-11-03-a), the spine fault, the start and the reads are not modelled, and the bound is two steps because three run past the checker's depth cap; closes 2026-08-30-a, 2026-11-08
 last gate: 2026-11-06 — Final Critique 8, a delta round, frozen at ef1f25a — foundational count 0, clean, one sample; 2026-11-05 — Final Critique 7, a delta round, frozen at 82d4603 — foundational count 1, cured by the settle, not clean, no sample; 2026-11-05 — Final Critique 6, a delta round, frozen at de92f1e — foundational count 1, cured by the settle, not clean, no sample; 2026-11-03 — Final Critique 5, frozen at f0729b8 — foundational count 12, cured, not clean, no sample; Final Critique 4, 2026-06-16, fresh reader — clean
 
 open:
@@ -979,7 +979,6 @@ open:
 - 2026-11-03-d · refining · Capability requirement 17 · the longest attempt gap includes a rest in the halted phase, which the deployment cannot keep → decide whether the halted rest is bounded or answered by the horizon assertion alone
 - 2026-11-03-e · refining · Composes 4 · a fire by another caller breaks Invariant 2.1 with no fault halt → bar a second caller or name its owner
 - 2026-11-06-a · refining · Action wiring 15 · no rule says whether a re-run under Action wiring 15 appends an attempt marker, so an auditor applying Check 1.1 infers the answer from Action wiring 19 and the worked example → state that a re-run opens no attempt marker and is resolved by the completion record or onset event it lands
-- 2026-08-30-a · refining · formal · the model lacks the attempt markers, `per_run_serialization` as a second writer over one act with lease expiry as its terminus, the four-way verdict, the halted marker that parks rather than resolves, and the operator's resume → extend it
 ```
 
 <details markdown="block">
