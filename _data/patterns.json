@@ -250,6 +250,23 @@
   "substrates": [],
   "title": "Authenticated Actor"
  },
+ "calendar-time": {
+  "composed_by": [],
+  "domain": null,
+  "grounded": false,
+  "invariants": 4,
+  "kind": "atom",
+  "models": {
+   "als": false,
+   "tla": false,
+   "twins": 0
+  },
+  "regulated_by": [],
+  "security": false,
+  "standards": [],
+  "status": "draft",
+  "title": "Calendar Time"
+ },
  "capability": {
   "composed_by": [
    "capability-backed-sharing",

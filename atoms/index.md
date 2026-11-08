@@ -23,7 +23,7 @@ toc: true
 
 The freestanding semantic units of Grace Commons — each fully specifiable without naming another atom. Atoms are stored flat (`atoms/<name>.md`); their classification is not a folder but a set of **lenses** over the Intent Graph. Overlays (regulated · security · standards) are read off the composition graph and **report usage, not essence** — a standard shows as *HIPAA via audit-trail*, an uncomposed atom as *composed by: (none yet)*, never a bare boolean. **Domain** is the one intrinsic axis: an optional, EOS-gated tag, default absent. The design and its rationale are in [the taxonomy note](./TAXONOMY.md).
 
-_26 compositions (26 regulated) · 32 atoms · 64 composition→atom edges. Generated from `tools/taxonomy/reverse_index.py`; regenerate with `python3 tools/taxonomy/generate_views.py .`_
+_26 compositions (26 regulated) · 33 atoms · 64 composition→atom edges. Generated from `tools/taxonomy/reverse_index.py`; regenerate with `python3 tools/taxonomy/generate_views.py .`_
 
 ## All atoms
 
@@ -32,6 +32,7 @@ _26 compositions (26 regulated) · 32 atoms · 64 composition→atom edges. Gene
 | [Actor Identity](./actor-identity.md) | — | yes (4) | yes | attributed-permissions-admin, audit-trail, authenticated-actor, reserve-from-pool |
 | [Approval Step](./approval-step.md) | — | yes (2) | yes | execute-gated-workflow, multi-party-approval |
 | [Assignment](./assignment.md) | — | yes (3) | yes | execute-gated-workflow, multi-party-approval, shared-todo |
+| [Calendar Time](./calendar-time.md) | — | — | — | *(none yet)* |
 | [Capability](./capability.md) | — | yes (2) | yes | capability-backed-sharing, privileged-access-provisioning |
 | [Capacity Constraint Enforcement](./capacity-constraint-enforcement.md) | — | yes (1) | — | reserve-from-pool |
 | [Cart](./cart.md) | — | yes (1) | — | shared-cart |
@@ -148,6 +149,7 @@ The union of standards each atom's composers carry, attributed per composer in t
 
 Atoms no composition yet composes. The overlays say nothing about them — an honest gap, not a claim of non-regulation.
 
+- [Calendar Time](./calendar-time.md)
 - [Condition Register](./condition-register.md)
 - [Erasure Tombstone](./erasure-tombstone.md)
 - [Gift Card](./gift-card.md)
