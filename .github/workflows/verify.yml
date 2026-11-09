@@ -113,5 +113,8 @@ jobs:
       - name: Bootstrap checkers (npm-only; JRE 17 to /tmp)
         run: bash bootstrap.sh
 
+      - name: Test the state ledger
+        run: GRACE_STATES_LEDGER=off node --test test_states.mjs
+
       - name: Audit every model but Recoverable Invocation's — correct hold, buggy twins rejected
         run: node audit.mjs --except "$(cat recoverable-invocation.pattern)"

@@ -3395,6 +3395,10 @@ def check_views_current(root: Path) -> list[Finding]:
             shutil.copytree(root / d, t / d, ignore=shutil.ignore_patterns("__pycache__"))
         for f in root.glob("*.md"):
             shutil.copy(f, t / f.name)
+        ledger = root / "tools/harness/states.tsv"      # stats.json totals it
+        if ledger.exists():
+            (t / "tools/harness").mkdir(parents=True, exist_ok=True)
+            shutil.copy(ledger, t / "tools/harness/states.tsv")
         for gen in ("generate_graph.py", "generate_views.py"):
             subprocess.run([sys.executable, str(t / "tools/taxonomy" / gen), str(t)],
                            capture_output=True, text=True, timeout=120)

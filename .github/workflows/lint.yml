@@ -30,3 +30,6 @@ jobs:
         # 2026-06-18 — see changelog), so the gate is the plain linter again,
         # failing hard on every finding class.
         run: python3 tools/linter/lint.py .
+
+      - name: Test the state totals
+        run: python3 tools/taxonomy/test_stats.py

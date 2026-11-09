@@ -19,7 +19,8 @@ Two artifacts, both DERIVED from the corpus (never hand-edited — regenerate):
                       same discipline as diagrams-are-views-not-truth.
 
   _data/stats.json    The corpus's size and progress as numbers (patterns, atoms,
-                      compositions, grounded of each kind, commits), written with
+                      compositions, grounded of each kind, commits, and the states and Alloy commands
+                      the harness has checked, from tools/harness/states.tsv), written with
                       patterns.json from the same cards, so a site page states a
                       count as {{ site.data.stats.patterns }} and cannot drift from
                       the library (unit `site: live numbers`, Scott 2026-11-06).
@@ -115,6 +116,32 @@ def node_id(slug):
     return slug.replace("-", "_")
 
 
+def states_ledger_stats(root):
+    """The totals of tools/harness/states.tsv (tools/harness/ledger.mjs writes it, one
+    line per model check). Each file counts its latest line only, so a model
+    rechecked is counted once, at its latest size; a latest line whose verdict is
+    ERROR counts nothing (a run the 200,000-state cap stopped is one). States are
+    kept apart for models and twins; Alloy counts its commands, models and twins
+    together."""
+    latest = {}
+    path = pathlib.Path(root) / "tools" / "harness" / "states.tsv"
+    if path.exists():
+        for line in path.read_text(encoding="utf-8").splitlines():
+            c = line.split("\t")
+            if line.startswith("#") or len(c) < 12:
+                continue
+            latest[c[1]] = c
+    out = {"states_models": 0, "states_twins": 0, "alloy_commands": 0}
+    for c in latest.values():
+        if c[11] == "ERROR":
+            continue
+        if c[3] == "tla" and c[4].isdigit():
+            out["states_twins" if c[2] == "twin" else "states_models"] += int(c[4])
+        elif c[3] == "als" and c[6].isdigit():
+            out["alloy_commands"] += int(c[6])
+    return out
+
+
 def corpus_stats(root, cards):
     """The numbers a site page may state about the corpus, all read off the cards and
     the repository as built. `commits` counts the commits at HEAD when the file is
@@ -133,6 +160,7 @@ def corpus_stats(root, cards):
         "grounded_atoms": sum(c["grounded"] for c in atoms),
         "grounded_compositions": sum(c["grounded"] for c in comps),
         "commits": commits,
+        **states_ledger_stats(root),
     }
 
 

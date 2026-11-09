@@ -32,6 +32,7 @@ import { dirname, join, basename, extname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { tmpdir } from "node:os";
 import { spawnSync } from "node:child_process";
+import { appendLedger } from "./ledger.mjs";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 
@@ -119,7 +120,9 @@ async function checkTla(modelPath, buggy) {
     // Parse / translation error, not a real counterexample.
     console.log(`  TLA+  ${basename(modelPath)}`);
     console.log(`  MODEL/HARNESS ERROR: ${res.error_type} — ${res.error_message}`);
-    return { pass: false, kind: "error", detail: res.error_message };
+    const capped = res.error_type === "MaxStatesExceeded";
+    return { pass: false, kind: "error", detail: res.error_message,
+      ledger: capped ? { engine: "tla", states: res.states_explored, capped: 1 } : null };
   }
 
   console.log(`  TLA+  ${basename(modelPath)}  (states: ${res.states_explored})`);
@@ -129,7 +132,8 @@ async function checkTla(modelPath, buggy) {
     console.log(`  -> all invariants hold`);
   }
   const pass = buggy ? violated : !violated;
-  return { pass, kind: buggy ? "buggy" : "correct", violated };
+  return { pass, kind: buggy ? "buggy" : "correct", violated,
+    ledger: { engine: "tla", states: res.states_explored, capped: 0 } };
 }
 
 // ---- Alloy ------------------------------------------------------------------
@@ -192,7 +196,10 @@ function checkAls(modelPath, buggy) {
     if (vacuousRuns.length) console.log(`  -> ${vacuousRuns.length} vacuous run(s)`);
     if (pass) console.log(`  -> all guarantees hold, all runs non-vacuous`);
   }
-  return { pass, kind: buggy ? "buggy" : "correct", counterexamples, vacuousRuns };
+  return { pass, kind: buggy ? "buggy" : "correct", counterexamples, vacuousRuns,
+    ledger: { engine: "als", commands: cmds.length, holds: checks.length - counterexamples.length,
+      satisfiable: runs.length - vacuousRuns.length, counterexamples: counterexamples.length,
+      vacuous: vacuousRuns.length } };
 }
 
 // ---- main -------------------------------------------------------------------
@@ -210,5 +217,6 @@ const result = ext === ".tla" ? await checkTla(model, buggy)
 const verdict = ["error", "typecheck", "noresult"].includes(result.kind) ? "ERROR"
   : buggy ? (result.pass ? "CAUGHT" : "MISSED")
   : (result.pass ? "HOLDS" : "BROKEN");
+if (result.ledger) appendLedger({ ...result.ledger, file: model, role: buggy ? "twin" : "model", verdict });
 console.log(`  ${verdict}`);
 process.exit(verdict === "ERROR" ? 2 : result.pass ? 0 : 1);

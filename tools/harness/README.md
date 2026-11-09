@@ -30,6 +30,8 @@ node check.mjs ../../atoms/party-identity-buggy.tla --buggy
 node audit.mjs
 ```
 
+Every run appends one line to `states.tsv` (written by `ledger.mjs`; columns in its header comment): the date, the model, whether it is a model or a twin, the states explored and whether the 200,000-state cap stopped it (TLA+), or the commands and their verdicts (Alloy). `_data/stats.json` totals each file's latest line (`states_models`, `states_twins`, `alloy_commands`), so the count of what the corpus's models have been checked over is kept. `GRACE_STATES_LEDGER=off` writes no line; `node --test test_states.mjs` tests the ledger.
+
 Each model ends in one verdict word: **HOLDS** (a correct model held), **CAUGHT** (a buggy model was rejected), **BROKEN** (a correct model was violated), **MISSED** (a buggy model was not rejected), or **ERROR** (the model was never checked — no Java, no `.cfg`, a parse or type error). HOLDS and CAUGHT exit `0`; BROKEN and MISSED exit `1`; ERROR exits `2`. `audit.mjs` counts each and exits non-zero on any problem.
 
 ## The closure enumerator
