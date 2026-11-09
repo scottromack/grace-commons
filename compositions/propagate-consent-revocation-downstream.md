@@ -478,7 +478,7 @@ Term placement refusal: invalid-policy | policy-not-found | invalid-request — 
 
 Term record count: how many Consent records a history read returned.
 
-Term propagation set: [Affected Scopes] — the registered set as of the withdrawal intent: the pairs of the registration events carrying the consent id that PRECEDE the withdrawal intent in the Event Log, together with the purged downstream entries for the consent id whose registration event PRECEDES the withdrawal intent in the Event Log.
+Term propagation set: [Affected Scopes] — the registered set as of the withdrawal intent: the pairs of the registration events carrying the consent id that PRECEDE the withdrawal intent in the Event Log, together with the purged downstream entries for the consent id whose registration event PRECEDES the withdrawal intent in the Event Log. The derivation reads inside the transaction that records the withdrawal intent, so what it reads is what precedes the intent (Execution Contract Database 2).
 
 Term validated grant: a [Record Consent] call whose permission check answered permitted and whose inputs cleared Primitive policy.
 
@@ -581,7 +581,7 @@ Every input an action takes, and every answer a call of the five actions and of 
 | invalid-credential | invalid-credential, nothing written (Audit arm 1) | invalid-credential (Audit arm 7) | invalid-credential (Audit arm 7) | unlanded; the orphan alerted and examined again at the next run (Reconciliation 2, 36), escalated carrying it once its escalation instant passes (Reconciliation 30, 34) |
 | invalid-request carrying step-1, step-2 or step-3 | invalid-request, never retried (Audit arm 2, 4) | recording-failure carrying outcome, alerted as a deployment fault (Audit arm 9, 17) | invalid-request, alerted as a deployment fault (Audit arm 8, 9) | never retried, an escalation's refusal included (Audit arm 4, Reconciliation 30, 34), otherwise escalated carrying it once the escalation instant passes (Reconciliation 30), a compensating event alerted (Audit arm 9) |
 | invalid-request carrying the retention step | invalid-request, never retried (Audit arm 2, 4) | proceeds as landed, alerted (Audit arm 6, 16) | proceeds as landed, alerted (Audit arm 6, 16) | appended and attested, so landed (Term retention step), a compensating event alerted (Audit arm 6) |
-| recording-failure | recording-failure carrying intent, a committed nothing (Audit arm 3, 14) | recording-failure carrying outcome, read as a committed Consent record whose event the reconciliation owes (Audit arm 12, 15) | recording-failure (Audit arm 13) | retried at the next run: a compensating event (Reconciliation 28), an escalation (Reconciliation 34), a recovery intent with the orphan it was for (Reconciliation 2, 24) |
+| recording-failure | recording-failure carrying intent, a committed nothing (Audit arm 3, 14) | recording-failure carrying outcome, read as a committed Consent record whose event the reconciliation owes (Audit arm 12, 15) | recording-failure (Audit arm 13) | retried at the next run: an escalation (Reconciliation 34), a recovery intent with the orphan it was for (Reconciliation 2, 24), and a compensating event while its orphan is an orphan under compensation (Reconciliation 28), the orphan escalated carrying it once its escalation instant passes (Reconciliation 30) |
 
 A state-unavailable at any audit write passes through unchanged and writes nothing (Execution Contract Read 1 through 3), and a write with no answer leaves the action none to give (Execution Contract Error model 1); no invocation retries an outcome (Execution Contract Database 1). The reconciliation closes what an outcome's refusal leaves open: an ungranted record by a compensating grant event and an unpropagated record by a compensating propagation event, each behind its recovery intent (Reconciliation 9 through 17, 24 through 27), or either by an escalation (Reconciliation 29, 30).
 
@@ -628,8 +628,8 @@ Wiring decision 4: The composition MUST NOT expose a consent gate other than [Pr
 Deleted: Reconciliation 1. Execution Contract Database 1 and Execution Contract Database 3 own it.
 Reconciliation 2: The reconciliation MUST run every reconciliation cadence.
 Deleted: Reconciliation 3. Execution Contract Database 1 owns it.
-Reconciliation 4: The reconciliation MUST NOT compensate or escalate an aged record, other than by the retry Reconciliation 28 or Reconciliation 34 owes.
-NOTE: watch the horizon against the escalation (Reconciliation 4, Reconciliation 28, Reconciliation 34).
+Reconciliation 4: The reconciliation MUST NOT compensate or escalate an aged record, other than by the retry Reconciliation 34 owes.
+NOTE: watch the horizon against the escalation (Reconciliation 4, Reconciliation 34).
 Reconciliation 5: The reconciliation MUST report an aged revoked Consent record carrying no propagation event, which no escalation of kind propagation names, as propagation history purged.
 Reconciliation 6: The reconciliation MUST read EVERY revoked Consent record against the propagation events.
 Deleted: Reconciliation 7. Execution Contract Database 2 owns it.
@@ -654,9 +654,10 @@ Reconciliation 24: The reconciliation MUST NOT record a compensating event BEFOR
 Reconciliation 25: A recovery intent MUST carry the kind, the consent id, the intent reference AND the planned writes.
 Reconciliation 26: The reconciliation MUST attest EVERY write the reconciliation makes under the recovery identity.
 Reconciliation 27: A compensating event MUST carry the recovery flag, the operator AND the intent reference.
-Reconciliation 28: The reconciliation MUST retry a compensating event refused with recording-failure at the reconciliation's next run.
-Reconciliation 29: IF an uncompensable cause holds for a record THEN the reconciliation MUST record an escalation carrying the cause.
-Reconciliation 30: IF an orphan's escalation instant PRECEDES the reconciliation's now AND the orphan's compensation met a refusal AND no escalation of the orphan met invalid-request carrying step-1, step-2 or step-3 THEN the reconciliation MUST record an escalation carrying the last refusal the orphan's compensation met.
+Reconciliation 28: IF a compensating event is refused with recording-failure AND the event's orphan is an orphan under compensation at the reconciliation's next run THEN the reconciliation MUST retry the compensating event at that run.
+NOTE: open 2026-11-09-e — no rule owes the retry of a refused recovery intent, which the closure table says the next run retries (Reconciliation 2, 24).
+Reconciliation 29: IF an uncompensable cause holds for a record AND the reconciliation recorded no escalation of the record at an earlier run THEN the reconciliation MUST record an escalation carrying the cause.
+Reconciliation 30: IF an orphan's escalation instant PRECEDES the reconciliation's now AND the orphan's compensation met a refusal AND the reconciliation recorded no escalation of the orphan at an earlier run THEN the reconciliation MUST record an escalation carrying the last refusal the orphan's compensation met.
 Reconciliation 31: An escalation MUST carry the kind, the consent id, the intent reference, the cause AND the attempt count.
 Reconciliation 32: The reconciliation MUST NOT compensate an escalated record.
 Reconciliation 33: The reconciliation MUST NOT record a second landed escalation for one record.
@@ -664,6 +665,7 @@ Reconciliation 34: IF an escalation fails to land AND the escalation met no inva
 Reconciliation 35: The reconciliation MUST report EVERY escalated record at EVERY run.
 Reconciliation 36: The deployment MUST alert on EVERY orphan as a high-priority finding.
 Reconciliation 37: The reconciliation MUST decide ONLY on an answered read.
+NOTE: open 2026-11-09-f — no read supplies the reconciliation its earlier refused writes, which Reconciliation 28, 30 and 34 decide on.
 ```
 
 Term reconciliation: the leg the composition runs outside every invocation, whose output — a compensated orphan or a write-ownership finding — an auditor awaits within the compensation window, and whose escalation an auditor awaits within the escalation reach.
@@ -898,7 +900,7 @@ NOTE: open 2026-11-09-c — Check 3.4's conformance-failure arm takes in an orph
 
 Term passing verification: verified | failed-verification carrying purged | failed-verification carrying unsealed | unverifiable carrying partially-purged-coverage.
 
-Term orphan under compensation: an orphan younger than its escalation instant that a candidate intent pairs.
+Term orphan under compensation: an orphan that a candidate intent pairs AND whose escalation instant DOES NOT PRECEDE the reconciliation's now.
 
 Term escalated grant orphan: a Consent record an escalation of kind grant names.
 
@@ -1147,7 +1149,7 @@ The four constituents carry their own deep standards inheritance — see each co
 ```
 status: partially resolved
 formal: pending — re-derivation, 2026-08-30: propagate-consent-revocation-downstream.tla + 1 twin verified 2026-08-27 over a single-writer invocation with no terminus; re-derive over the invocation and the scan as two processes over one act, the bound as the yield point (2026-08-29-a, 2026-08-30-k)
-last gate: 2026-11-09 — Final Critique 16, a delta round, frozen at fa8b27b — foundational count 4, all cured, not clean, no sample; 2026-11-09 — Final Critique 15, a full round, frozen at 887b20e — foundational count 4 and one more the formal-layer unit found, all cured, not clean, no sample; 2026-11-06 — Final Critique 14, a delta round, frozen at 85bc8fe — foundational count 0, clean, one sample; 2026-11-06 — Final Critique 13 — delta, foundational count 1, not clean, no sample
+last gate: 2026-11-09 — Final Critique 17, a delta round, frozen at aea99e2 — foundational count 2, all cured, not clean, no sample; 2026-11-09 — Final Critique 16, a delta round, frozen at fa8b27b — foundational count 4, all cured, not clean, no sample; 2026-11-09 — Final Critique 15, a full round, frozen at 887b20e — foundational count 4 and one more the formal-layer unit found, all cured, not clean, no sample; 2026-11-06 — Final Critique 14, a delta round, frozen at 85bc8fe — foundational count 0, clean, one sample; 2026-11-06 — Final Critique 13 — delta, foundational count 1, not clean, no sample
 
 open:
 - 2026-08-29-a · refining · formal · the model's compensation action carries no identity, no intent record, and no age bound; the twin predates the scan's two edges → extend the model with the service-identity compensation behind `consent.recovery_intended` and the bounded scan
@@ -1158,8 +1160,10 @@ open:
 - 2026-11-04-d · refining · Primitive policy 7, Capability requirement 14 · the propagation envelope never exceeds the maximal envelope the start rule bounds, so the guard cannot fire → name which envelope Primitive policy 7 measures, or delete the guard to Capability requirement 14; re-found by Final Critique 15
 - 2026-11-09-a · refining · Audit arm 7 · an invalid-credential at a subsequent write lands as a refusal, so the caller of a withdrawal whose propagation event write answers it reads nothing happened though the intent and the Consent write committed → give the arm a position as Audit arm 12, 14, 15 and 17 give recording-failure at an outcome
 - 2026-11-09-b · refining · Term event id width, Term maximal envelope, Capability requirement 13, 14 · the event id width is a setting the substrate does not disclose and no read surface supplies, and the maximal envelope omits the recovery intent's overhead, so at cap-equality a maximal-shaped orphan can never land it → name the owner of the width and count the recovery intent in the envelope
-- 2026-11-09-c · refining · Check 3.4 · the conformance-failure arm swallows the stuck unescalated orphan Reconciliation 28 and 34 permit while every write fails → name the arm for an orphan past its escalation instant that no closure names; re-found by Final Critique 16 (the cure to Reconciliation 30 and 34 leaves an orphan whose escalation was refused with invalid-request unescalated for good)
+- 2026-11-09-c · refining · Check 3.4 · the conformance-failure arm swallows the stuck unescalated orphan Reconciliation 34 permits while every write fails → name the arm for an orphan past its escalation instant that no closure names; re-found by Final Critique 16 (the cure to Reconciliation 30 and 34 leaves an orphan whose escalation was refused with invalid-request unescalated for good)
 - 2026-11-09-d · refining · Edge cases · the revoke-committed, event-owed orphan is spec-format's cross-record consistency under partial failure case and has no entry in Edge cases → add the entry, or name Audit arm 12, 15 as its owner
+- 2026-11-09-e · refining · Reconciliation 2, 24, 28, closure table row recording-failure · a recovery intent refused with recording-failure leaves no compensating event, Reconciliation 12a compensates only at the run that first reads the orphan and Reconciliation 28 retries only a compensating event, yet the closure table says the next run retries the intent → name the retry in Reconciliation 28 or 12a, or delete the table's claim; found by the Final Critique 17 settle
+- 2026-11-09-f · refining · Reconciliation 28, 30, 34, 37 · the reconciliation decides on its earlier refused writes, and Reconciliation 37 admits only an answered read, so no rule names the read that supplies a refusal an earlier run met → name the read (Audit Trail's refusal evidence), or the attempt record the reconciliation keeps; found by the Final Critique 17 settle
 ```
 
 <details markdown="block">
