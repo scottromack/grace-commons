@@ -1224,14 +1224,14 @@
   "models": {
    "als": false,
    "tla": true,
-   "twins": 1
+   "twins": 0
   },
   "regulated": true,
   "standards": [
    "GDPR",
    "HIPAA"
   ],
-  "status": "grounded (English) on Final Critique 18 \u2014 2026-11-09 at c0f7c2a \u2014 formal layer pending",
+  "status": "grounded on Final Critique 18 \u2014 2026-11-09 at c0f7c2a",
   "substrates": [
    "audit-trail"
   ],
