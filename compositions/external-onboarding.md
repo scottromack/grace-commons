@@ -184,8 +184,8 @@ Audit arm 11: IF the landing read finds the post-write record THEN the action MU
 Deleted: Audit arm 12. Execution Contract Database 1 owns it.
 Audit arm 13: IF Audit Trail answers invalid-credential at a post-write record THEN the action MUST answer invalid-credential.
 Audit arm 14: IF Invitation answers storage-failure THEN the action MUST answer storage-failure carrying intent (Execution Contract Constituent failure 1).
-Audit arm 15: IF Party Identity answers storage-failure THEN [Onboard] MUST answer storage-failure carrying outcome.
-Audit arm 16: IF Credential answers storage-failure THEN [Onboard] MUST answer storage-failure carrying outcome.
+Audit arm 15: IF Party Identity answers storage-failure THEN [Onboard] MUST answer storage-failure carrying outcome on the resume arm AND carrying intent on a fresh arc (Execution Contract Constituent failure 1).
+Audit arm 16: IF Credential answers storage-failure THEN [Onboard] MUST answer storage-failure carrying outcome on the resume arm AND carrying intent on a fresh arc (Execution Contract Constituent failure 1).
 Audit arm 17: A caller MUST read storage-failure carrying intent as a committed nothing.
 Audit arm 18: A caller MUST read storage-failure carrying outcome as a committed invitation write.
 Audit arm 19: The deployment MUST alert on an invalid-request from Audit Trail as a deployment fault.
@@ -198,6 +198,8 @@ Audit arm 25: IF the landing read finds no post-write record THEN the action MUS
 ```
 
 NOTE: watch the read-back's other arm (Audit arm 25, Resume 50).
+
+NOTE: open 2026-11-09-a — Audit arm 5, 22 and 25 answer storage-failure carrying outcome after a refused acceptance or completion record on a fresh arc, and Execution Contract Read 4 refuses the whole call, the accept with it, unless Audit Trail's record action step 7.11 keeps what it names; no rule says whether the accept stands on those arms.
 
 Term attempt record: the record an action writes first — the initiate attempt, the accept attempt, the decline attempt or the revoke attempt; the Actor Identity attestation the substrate makes inside the record *is* the credential gate.
 
@@ -266,11 +268,10 @@ Action wiring 23: IF the stored terminal EQUALS accepted AND no resumable accept
 Action wiring 24: A refused gate call MUST NOT write beyond the accept attempt.
 Action wiring 25: A fresh arc MUST record an acceptance record carrying the invitation token, the accepting identity reference, the document type AND the document reference.
 Action wiring 26: A fresh arc MUST call Party Identity's enroll with the name, the date of birth, the document type, the document reference AND the enrolling actor reference ONLY AFTER the acceptance record lands.
-Action wiring 27: IF Party Identity refuses an enroll THEN the arc MUST record an interruption record carrying the invitation token, the accepting identity reference, party-enrollment as the stage AND the refusal as the reason.
-Action wiring 28: IF Party Identity answers invalid-request for an enroll THEN [Onboard] MUST answer storage-failure carrying outcome.
+Action wiring 28: IF Party Identity answers invalid-request for an enroll THEN [Onboard] MUST answer storage-failure carrying outcome on the resume arm AND carrying intent on a fresh arc (Execution Contract Read 4).
 Action wiring 29: An arc MUST call Credential's register with the arc's party id as the principal reference, the credential material, the credential type AND the call's expiry instant, passed unchanged (blank where the call supplies none), ONLY AFTER the arc's party stands.
-Action wiring 30: IF Credential refuses a register on a fresh arc THEN the arc MUST record an interruption record carrying the invitation token, the accepting identity reference, the party id, credential-registration as the stage AND the refusal as the reason.
-Action wiring 31: IF Credential answers invalid-request for a register THEN [Onboard] MUST answer storage-failure carrying outcome.
+Action wiring 30: IF Credential answers duplicate-active-credential on a fresh arc THEN the arc MUST record an interruption record carrying the invitation token, the accepting identity reference, the party id, credential-registration as the stage AND duplicate-active-credential as the reason.
+Action wiring 31: IF Credential answers invalid-request for a register THEN [Onboard] MUST answer storage-failure carrying outcome on the resume arm AND carrying intent on a fresh arc (Execution Contract Read 4).
 Action wiring 32: IF Credential answers duplicate-active-credential on a fresh arc THEN [Onboard] MUST answer duplicate-active-credential.
 Action wiring 33: IF Credential answers duplicate-active-credential on the resume arm THEN the resume arm MUST establish the arc's credential PER Resume 39 through 47.
 Deleted: Action wiring 34. Resume 41 and Resume 45 own it, because the arc continues with the credential the arc registered, never the credential standing active.
@@ -298,8 +299,6 @@ Action wiring 55: A landed revoke MUST answer revoked.
 ```
 
 NOTE: open 2026-11-08-c — a constituent's invalid-request on enroll or register (Action wiring 28, 31) answers storage-failure carrying outcome, and a skew between this composition's now and the constituent's now repeats the mapping on each resume; no rule says whether it carries invalid-request instead.
-
-NOTE: open 2026-11-08-e — Execution Contract Constituent failure 1 makes a constituent's storage-failure fail the whole action and commit nothing, and Party Identity's enroll refuses only with invalid-request or storage-failure (Action wiring 28), so Action wiring 27's interruption record and Action wiring 30's arms for a register refused other than with duplicate-active-credential can never commit, while Audit arm 18, Term position (outcome) and the Partial failure edge case describe a committed invitation write after such a refusal; no rule says which constituent refusals leave an arc partial.
 
 Term validated invite: an [Invite] call whose inputs clear Primitive policy.
 
@@ -434,7 +433,7 @@ Term young resume record: the token's latest resume record, followed by no compl
 
 Term dead resume record: the token's latest resume record, followed by no completion record and no interruption record, whose `(recording instant + widened bound)` PRECEDES now.
 
-Term stage: acceptance-unrecorded | unrecorded | party-enrollment | credential-registration — where the resume arm finds the arc stopped: the acceptance record never landed; the acceptance landed and nothing after it says where the arc stopped; or the stage an interruption record names.
+Term stage: acceptance-unrecorded | unrecorded | credential-registration — where the resume arm finds the arc stopped: the acceptance record never landed; the acceptance landed and nothing after it says where the arc stopped; or the stage an interruption record names.
 
 Term arc's recorded documents: the document type and document reference pair on the token's acceptance record, or, where that record is absent, the pairs on the token's accept attempts carrying the call's accepting identity reference — a set, a superset in the safe direction.
 
@@ -699,7 +698,7 @@ On a fresh arc the party id was minted at the enroll of this very call, so no ea
 
 ### Partial failure
 
-If Invitation's accept succeeds and a later step fails — the acceptance record, Party Identity's enroll, Credential's register or the completion record — the invitation is permanently accepted and cannot be accepted again. It **can be resumed**: a later [Onboard] with the same token and the same accepting identity reference, past the widened bound and inside the audit horizon, takes the resume arm, one resumer per token, establishes the stage from the trail and, where the trail is silent, from the Party Identity records over every window the arc's records anchor, and re-runs the remaining steps under the caller's own authenticated identity behind a resume record. The caller need not be the actor who began the arc. What the resume does **not** do is guess: where the database shows more than one party enrolled by the arc's actors under the arc's recorded documents inside the arc's windows and named on no other invitation's records, it answers onboarding-indeterminate, which commits the arc's writes with it, and an administrator chooses. Manual completion outside the composition is not the recovery (Wiring decision 5); a deployment that performs it produces a party with no completion record — the regulator-audit scenario's failure, by its own hand. Check 5.1 through 5.3 surface the arcs awaiting resumption.
+If Invitation's accept succeeds and a later step fails — the acceptance record or the completion record — or Credential's register answers duplicate-active-credential on a fresh arc, the invitation is permanently accepted and cannot be accepted again. A Party Identity or Credential refusal on a fresh arc leaves no partial arc: it refuses the whole [Onboard], the accept with it, and answers storage-failure carrying intent (Audit arm 15, 16, Action wiring 28, 31). It **can be resumed**: a later [Onboard] with the same token and the same accepting identity reference, past the widened bound and inside the audit horizon, takes the resume arm, one resumer per token, establishes the stage from the trail and, where the trail is silent, from the Party Identity records over every window the arc's records anchor, and re-runs the remaining steps under the caller's own authenticated identity behind a resume record. The caller need not be the actor who began the arc. What the resume does **not** do is guess: where the database shows more than one party enrolled by the arc's actors under the arc's recorded documents inside the arc's windows and named on no other invitation's records, it answers onboarding-indeterminate, which commits the arc's writes with it, and an administrator chooses. Manual completion outside the composition is not the recovery (Wiring decision 5); a deployment that performs it produces a party with no completion record — the regulator-audit scenario's failure, by its own hand. Check 5.1 through 5.3 surface the arcs awaiting resumption.
 
 ---
 
@@ -773,7 +772,7 @@ Kind: Operation
 
 #### Onboard
 
-The composition's load-bearing action: accept an invitation and, in one fixed sequence gated by Invitation's accept, enroll the invitee as an unverified party and register the party's credential — recording the [Onboarding Invitation Accepted], then the [Onboarding Completed], or the [Onboarding Interrupted] on a failure past the gate. A stopped arc is re-entered through the resume arm — one resumer per token, bounded below by the widened bound and above by the audit horizon — never re-accepted (Action wiring 8, Action wiring 9, Action wiring 17 through 38, Resume 4 through 26, Resume 28 through 33, Resume 35, Resume 36, Resume 39 through 51). No enrollment occurs unless the gate clears (Invariant 1).
+The composition's load-bearing action: accept an invitation and, in one fixed sequence gated by Invitation's accept, enroll the invitee as an unverified party and register the party's credential — recording the [Onboarding Invitation Accepted], then the [Onboarding Completed], or the [Onboarding Interrupted] on an answer that leaves the arc partial. A stopped arc is re-entered through the resume arm — one resumer per token, bounded below by the widened bound and above by the audit horizon — never re-accepted (Action wiring 8, Action wiring 9, Action wiring 17 through 38, Resume 4 through 26, Resume 28 through 33, Resume 35, Resume 36, Resume 39 through 51). No enrollment occurs unless the gate clears (Invariant 1).
 
 Kind: Operation
 
@@ -809,7 +808,7 @@ Projection: onboarding.completed
 
 #### Onboarding Interrupted
 
-The Audit Trail event [Onboard] writes when a step past the gate fails — Party Identity's enroll or Credential's register — naming the stage and the reason, so a partial onboarding is detectable and resumable rather than silent (Action wiring 27 and 30).
+The Audit Trail event [Onboard] writes when an arc stops past the gate on an answer — Credential's duplicate-active-credential on a fresh arc, or the resume arm's onboarding-indeterminate carrying the credential candidates — naming the stage and the reason, so a partial onboarding is detectable and resumable rather than silent (Action wiring 30, Resume 47).
 
 Kind:       Member
 Member of:  the onboarding event
@@ -862,7 +861,7 @@ Projection: onboarding.resume-intended
 ```
 status: partially resolved
 formal: pending — re-derivation, 2026-08-30: external-onboarding.tla, no twin, verified 2026-06-03 over a single-pass arc with no resume; re-derive over two resumers and a stalled original as processes over one token, the per-token section as the point past which only one can write (2026-08-29-a, 2026-08-30-p)
-last gate: 2026-11-08 — Final Critique 8, delta, frozen at d805eac — foundational count 2 (Linus claimed 3: one stands, the Term candidates payload-cap gap; two are open lines already recorded, refined or refuted on the rules; and one the blind second triage found that no reader reported, the attempt a refusal erases in [Onboard]'s signature), both cured, not clean, no sample; 2026-11-08 — Final Critique 7, full, frozen at 28a3a20 — foundational count 2 (of 13 claimed, one of them the formal layer's counterexample before the freeze; 7 refuted on rules the page holds or the constituent declares, 4 refining), both cured, not clean, no sample; 2026-11-06 — Final Critique 6, delta, frozen at 47b6606 — foundational count 0 (the 1 claimed refuted on rules the page holds), clean, one sample; 2026-11-05 — Final Critique 5, delta, frozen at b1ae778 — foundational count 2 (of 3 claimed, 1 refuted on rules the page holds), all cured, not clean, no sample; 2026-11-04 — Final Critique 4, full, frozen at 25a720e — foundational count 5 (of 8 claimed, 3 refuted on rules the page holds), all cured, not clean, no sample; 2026-08-30 — third gate, fresh reader, under the frozen rules — 6 foundational corrected in-round, 13 refining and 3 rhetorical routed (2 refining since closed), 5 foundational closure residue corrected in a second pass
+last gate: 2026-11-09 — Final Critique 9, delta, frozen at 266bfb7 — foundational count 1 (Linus claimed 2: one stands, narrowed by the Opus call to Audit arm 15 and 16 answering outcome on a fresh arc where Constituent failure 1 and Read 4 roll the accept back, against Term position (outcome); the other repeats open line 2026-11-08-a and is refining), cured, not clean, no sample; 2026-11-08 — Final Critique 8, delta, frozen at d805eac — foundational count 2 (Linus claimed 3: one stands, the Term candidates payload-cap gap; two are open lines already recorded, refined or refuted on the rules; and one the blind second triage found that no reader reported, the attempt a refusal erases in [Onboard]'s signature), both cured, not clean, no sample; 2026-11-08 — Final Critique 7, full, frozen at 28a3a20 — foundational count 2 (of 13 claimed, one of them the formal layer's counterexample before the freeze; 7 refuted on rules the page holds or the constituent declares, 4 refining), both cured, not clean, no sample; 2026-11-06 — Final Critique 6, delta, frozen at 47b6606 — foundational count 0 (the 1 claimed refuted on rules the page holds), clean, one sample; 2026-11-05 — Final Critique 5, delta, frozen at b1ae778 — foundational count 2 (of 3 claimed, 1 refuted on rules the page holds), all cured, not clean, no sample; 2026-11-04 — Final Critique 4, full, frozen at 25a720e — foundational count 5 (of 8 claimed, 3 refuted on rules the page holds), all cured, not clean, no sample; 2026-08-30 — third gate, fresh reader, under the frozen rules — 6 foundational corrected in-round, 13 refining and 3 rhetorical routed (2 refining since closed), 5 foundational closure residue corrected in a second pass
 
 open:
 - 2026-11-06-a · refining · Term position; Resume 50; Audit arm 15, 16 · the position term reads per invocation on the resume arm in Resume 29, 48 and 50 (intent: this call wrote nothing) and per arc in Audit arm 15 and 16 (outcome: the invitation write an earlier call committed), and Resume 50's read-back follows a step-4 refusal that Audit Trail's record action step 7.11 leaves committed, so the arm fires only on a lost record and the attestation stands → decide whether the term says per invocation, and whether Resume 50 carries intent or attempt-evidence once a rule decides which
@@ -871,7 +870,7 @@ open:
 - 2026-11-08-b · refining · Resume 17; Term aged acceptance · another token's record naming a party can be purged up to about three clock offset allowances before this arc counts as aged, so the foreign party record filter cannot read it inside that margin → decide whether Term aged acceptance and Term resume window floor age the arc earlier by a declared margin, or the margin is accepted
 - 2026-11-08-c · refining · Action wiring 28; Action wiring 31 · a constituent's invalid-request on enroll or register maps to storage-failure carrying outcome, and a skew between this composition's now and the constituent's now repeats the same mapping on every resume → decide whether the mapping carries invalid-request once a rule decides which
 - 2026-11-08-d · refining · Resume 40; Resume 41; Check 3.1 · a credential an external writer registered under the party's principal reference between the window's lower edge and the party's enrollment is kept as the sole chain root and completes the arc, and Check 3.1 then finds it registered before the enrollment → decide whether the reading keeps only credentials registered at or after the party's enrollment (less the allowance), or the administrator's review of the collision is owed before the resume continues
-- 2026-11-08-e · refining · Action wiring 27; Action wiring 30; Audit arm 18; Term position; Partial failure · Constituent failure 1 makes a constituent's storage-failure commit nothing, so the interruption records Action wiring 27 and 30 oblige on those refusals can never commit, and Audit arm 18, Term position (outcome) and the Partial failure edge case still describe a committed invitation write after them → decide which constituent refusals leave an arc partial (only duplicate-active-credential, on a fresh arc, now does) and restate Action wiring 27, 30 and Audit arm 18 to match, once a rule decides which
+- 2026-11-09-a · refining · Audit arm 5; Audit arm 22; Audit arm 25; Decisions 2026-10-20 · a refused acceptance or completion record on a fresh arc answers storage-failure carrying outcome, and Read 4 with Constituent failure 1 would refuse the whole call, the accept included, where Audit Trail's record action step 7.11 keeps only its own attestation and event; the 2026-10-20 Decision reads the accept as standing → decide whether the accept stands on those arms or the arms answer intent on a fresh arc, once a rule decides which
 - 2026-08-29-a · refining · formal · `external-onboarding.tla` predates the resume arm and the step-split landings → extend the model with the resume path, its in-flight bound, and the step-4 proceed arm
 ```
 
