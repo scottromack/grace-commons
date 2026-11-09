@@ -239,7 +239,7 @@ Term liveness sum: `((administration completion bound + reconciliation cadence) 
 
 NOTE: watch the reconciliation's own run (Term liveness sum).
 
-Term escalation reach: `((compensation window + reconciliation cadence) + reconciliation run bound)` — how long after a Consent record's grant instant, or, for its withdrawal, its revocation instant, the reconciliation may record the record's escalation.
+Term escalation reach: `((compensation window + reconciliation cadence) + reconciliation run bound)` — how long after a Consent record's grant instant, or, for its withdrawal, its revocation instant, the reconciliation makes its first attempt to record the record's escalation at the latest (Reconciliation 29, Reconciliation 30).
 
 Term field length cap: the byte length no payload string may exceed.
 
@@ -478,7 +478,7 @@ Term placement refusal: invalid-policy | policy-not-found | invalid-request — 
 
 Term record count: how many Consent records a history read returned.
 
-Term propagation set: [Affected Scopes] — the registered set as of the withdrawal intent: the pairs of the registration events carrying the consent id that PRECEDE the withdrawal intent in the Event Log, together with the purged downstream entries for the consent id whose registration event PRECEDES the withdrawal intent in the Event Log. The derivation reads inside the transaction that records the withdrawal intent, so what it reads is what precedes the intent (Execution Contract Database 2).
+Term propagation set: [Affected Scopes] — the registered set at the event's boundary: the pairs of the registration events carrying the consent id that PRECEDE the event's boundary in the Event Log, together with the purged downstream entries for the consent id whose registration event PRECEDES the event's boundary in the Event Log. An invocation's derivation reads inside the transaction that records the withdrawal intent, so what it reads is what precedes the intent (Execution Contract Database 2).
 
 Term validated grant: a [Record Consent] call whose permission check answered permitted and whose inputs cleared Primitive policy.
 
@@ -752,13 +752,11 @@ These emerge from the composition; none belongs to one constituent, and each nee
   Invariant 3.1: EVERY propagation event MUST name a consent the Consent records hold in Revoked.
   Invariant 3.2: Two propagation events MUST NOT carry one consent id.
   Invariant 3.3: A propagation event's propagation set MUST EQUAL the registered set at the event's boundary.
-  Invariant 3.4: IF an unpropagated record's surfacing bound PRECEDES now THEN the deployment MUST alert on the unpropagated record (Reconciliation 36).
+  Deleted: Invariant 3.4. Reconciliation 36 owns it: the deployment alerts on every orphan at every run, an unpropagated record past its surfacing bound included, and an Invariant MUST NOT oblige an act (GRACE-lang Standard label 14).
   Invariant 3.5: IF a paired unpropagated record's revocation instant plus the widened window PRECEDES now THEN the record MUST carry a propagation closure.
   Invariant 3.6: EVERY compensating event MUST carry the recovery flag.
   ```
   Term event's boundary: the position in the Event Log of the intent the event's intent reference names — the earliest where it names candidates.
-
-  Term surfacing bound: `(((revocation instant + administration completion bound) + reconciliation cadence) + reconciliation run bound)`.
 
   Term paired unpropagated record: an unpropagated record that is not an unpaired record.
 
@@ -1142,14 +1140,14 @@ The four constituents carry their own deep standards inheritance — see each co
 
 ## Status
 
-`partially resolved` — see the Ledger.
+`grounded (English) on Final Critique 18 — 2026-11-09 at c0f7c2a — formal layer pending` — see the Ledger.
 
 ## Ledger
 
 ```
-status: partially resolved
+status: grounded (English) on Final Critique 18 — 2026-11-09 at c0f7c2a — formal layer pending
 formal: pending — re-derivation, 2026-08-30: propagate-consent-revocation-downstream.tla + 1 twin verified 2026-08-27 over a single-writer invocation with no terminus; re-derive over the invocation and the scan as two processes over one act, the bound as the yield point (2026-08-29-a, 2026-08-30-k)
-last gate: 2026-11-09 — Final Critique 17, a delta round, frozen at aea99e2 — foundational count 2, all cured, not clean, no sample; 2026-11-09 — Final Critique 16, a delta round, frozen at fa8b27b — foundational count 4, all cured, not clean, no sample; 2026-11-09 — Final Critique 15, a full round, frozen at 887b20e — foundational count 4 and one more the formal-layer unit found, all cured, not clean, no sample; 2026-11-06 — Final Critique 14, a delta round, frozen at 85bc8fe — foundational count 0, clean, one sample; 2026-11-06 — Final Critique 13 — delta, foundational count 1, not clean, no sample
+last gate: 2026-11-09 — Final Critique 18, a delta round, frozen at c0f7c2a — foundational count 0 (Linus claimed 3: all refuted on text the page cites — Term unpropagated record, Term ungranted record and Term orphan exclude an aged record from Reconciliation 29 and 30; Execution Contract Database 1, Read 4 and Constituent failure 1 leave nothing committed by a crash before the retention placement; Database 1 and 2 keep a revoked record unread until its propagation event commits with it), refining cured or kept open (Invariant 3.4 deleted to Reconciliation 36 under Standard label 14; Term propagation set and Term escalation reach restated; open lines 2026-11-09-e and -f extended), clean, one sample, the blind second triage agreeing on all three and placing one standing open line (2026-11-09-f) foundational, which the settle placed refining against Audit Trail's kept refusal evidence; 2026-11-09 — Final Critique 17, a delta round, frozen at aea99e2 — foundational count 2, all cured, not clean, no sample; 2026-11-09 — Final Critique 16, a delta round, frozen at fa8b27b — foundational count 4, all cured, not clean, no sample; 2026-11-09 — Final Critique 15, a full round, frozen at 887b20e — foundational count 4 and one more the formal-layer unit found, all cured, not clean, no sample; 2026-11-06 — Final Critique 14, a delta round, frozen at 85bc8fe — foundational count 0, clean, one sample; 2026-11-06 — Final Critique 13 — delta, foundational count 1, not clean, no sample
 
 open:
 - 2026-08-29-a · refining · formal · the model's compensation action carries no identity, no intent record, and no age bound; the twin predates the scan's two edges → extend the model with the service-identity compensation behind `consent.recovery_intended` and the bounded scan
@@ -1162,8 +1160,8 @@ open:
 - 2026-11-09-b · refining · Term event id width, Term maximal envelope, Capability requirement 13, 14 · the event id width is a setting the substrate does not disclose and no read surface supplies, and the maximal envelope omits the recovery intent's overhead, so at cap-equality a maximal-shaped orphan can never land it → name the owner of the width and count the recovery intent in the envelope
 - 2026-11-09-c · refining · Check 3.4 · the conformance-failure arm swallows the stuck unescalated orphan Reconciliation 34 permits while every write fails → name the arm for an orphan past its escalation instant that no closure names; re-found by Final Critique 16 (the cure to Reconciliation 30 and 34 leaves an orphan whose escalation was refused with invalid-request unescalated for good)
 - 2026-11-09-d · refining · Edge cases · the revoke-committed, event-owed orphan is spec-format's cross-record consistency under partial failure case and has no entry in Edge cases → add the entry, or name Audit arm 12, 15 as its owner
-- 2026-11-09-e · refining · Reconciliation 2, 24, 28, closure table row recording-failure · a recovery intent refused with recording-failure leaves no compensating event, Reconciliation 12a compensates only at the run that first reads the orphan and Reconciliation 28 retries only a compensating event, yet the closure table says the next run retries the intent → name the retry in Reconciliation 28 or 12a, or delete the table's claim; found by the Final Critique 17 settle
-- 2026-11-09-f · refining · Reconciliation 28, 30, 34, 37 · the reconciliation decides on its earlier refused writes, and Reconciliation 37 admits only an answered read, so no rule names the read that supplies a refusal an earlier run met → name the read (Audit Trail's refusal evidence), or the attempt record the reconciliation keeps; found by the Final Critique 17 settle
+- 2026-11-09-e · refining · Reconciliation 2, 24, 28, closure table row recording-failure · a recovery intent refused with recording-failure leaves no compensating event, Reconciliation 12a compensates only at the run that first reads the orphan and Reconciliation 28 retries only a compensating event, yet the closure table says the next run retries the intent, and Reconciliation 30's `the orphan's compensation met a refusal` does not say whether the intent's own refusal counts → name the retry in Reconciliation 28 or 12a, or delete the table's claim, and say whether Reconciliation 30 reads the intent's refusal; found by the Final Critique 17 settle, extended by Final Critique 18
+- 2026-11-09-f · refining · Reconciliation 28, 30, 34, 37 · the reconciliation decides on its earlier refused writes, and Reconciliation 37 admits only an answered read, so no rule names the read that supplies a refusal an earlier run met, nor the attempt count and the last refusal Reconciliation 31 carries, and `recorded` in Reconciliation 29 and 30 does not say landed or attempted beside Reconciliation 34's retry → name the read (Audit Trail's refusal evidence), or the attempt record the reconciliation keeps, and say which Reconciliation 29 and 30 mean by `recorded`; found by the Final Critique 17 settle, extended by Final Critique 18
 ```
 
 <details markdown="block">
