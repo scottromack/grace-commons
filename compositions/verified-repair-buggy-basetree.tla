@@ -54,8 +54,8 @@
 \*
 \* THE BUDGET  MaxTries calls a round and MaxPerson person commits. Two calls give the
 \* second occurrence: a call whose reply was lost leaves its commit in flight while the
-\* next call of the same round reads, opens and sends. The deeper run, two person
-\* commits, holds too and passes the harness's state cap (263,067 states).
+\* next call of the same round reads, opens and sends. Two person commits is the
+\* .cfg's size: 263,067 states, 4 s on TLC, holds; it passed the old checker's state cap of 200,000.
 \*
 \* NOT MODELED
 \*   - The refusals that write nothing and order nothing here: Primitive policy, the

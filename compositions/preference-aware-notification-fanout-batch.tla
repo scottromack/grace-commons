@@ -7,9 +7,9 @@
 \*
 \* WHY A SECOND MODEL
 \* The first model (preference-aware-notification-fanout.tla) follows one disposition pair
-\* through its two writers, the lease, the gap run and the cap. It holds one subscriber: with two,
-\* the writers' states multiply over each pair and the space passes the checker's cap of 200,000
-\* states. The claims that need several subscribers are about the invocation's loop alone, so they
+\* through its two writers, the lease, the gap run and the cap. It held one subscriber: with two,
+\* the writers' states multiply over each pair and the space passed the old checker's cap of 200,000
+\* states. On TLC the first model takes two subscribers through its .cfg (11,564,902 states, 64 s). The claims that need several subscribers are about the invocation's loop alone, so they
 \* have their own small model here: the invocation, the clock, a foreign holder of a pair, and Event
 \* Log refusing an append.
 \*

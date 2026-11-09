@@ -114,9 +114,9 @@
 \* before it with any key and instant the host may give it, which breaks the symmetry
 \* between them and loses no behaviour up to renaming. MaxResolves operator resolutions,
 \* two by default, so a resolution of each invocation, or an abandonment and the outcome
-\* that supersedes it, fit. 1,475 states (the split model of 2026-10-19 took 3,956); at
-\* N = 3 the run passes the harness's cap of 200,000 states, not raised for the
-\* re-derivation.
+\* that supersedes it, fit. N = 3 is the .cfg's size: 211,083 states, 5 s on TLC, holds. The old
+\* checker's cap of 200,000 states left N = 3 out; at N = 2 the model has 1,475 states (the split
+\* model of 2026-10-19 took 3,956).
 \*
 \* TWINS AND PROBES  Each is this module byte for byte below its header, with one
 \* constant or one invariant changed in its .cfg: -buggy-equalnow, -buggy-probekey,

@@ -10,7 +10,9 @@
 \* an action's writes; this one holds what makes every action safe to repeat (Invariant 5): the
 \* token results map, Duplicate Prevention's window, the journal read on a token the guard has not
 \* seen, the attestation, and the outcome entry. They are two models because the space of the
-\* tokens' states times the arc's passes the checker's 200,000-state cap.
+\* tokens' states times the arc's passed the old checker's 200,000-state cap, and the arc is its
+\* own module that a .cfg cannot join to this one. This model's own size is three tokens and three
+\* digests: 262,144 states, 11 s on TLC, holds.
 \*
 \* WHAT THIS MODEL CHECKS
 \* One reservation action called again and again under two tokens, whatever the verdict, the window

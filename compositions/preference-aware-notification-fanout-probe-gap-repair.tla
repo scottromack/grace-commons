@@ -37,12 +37,14 @@
 \*                     event).
 \*
 \* BOUND
-\* One subscriber, Cap = 2 (a delivery, a retry and another fanout's delivery are not all admitted),
+\* Two subscribers, Cap = 2 (a delivery, a retry and another fanout's delivery are not all admitted),
 \* lease and invocation duration bound D = 2, create latency Cr = 1 (the gap leg's lower edge is
 \* 3). Exhaustive. The clock counts to the lower edge and holds there, and each lease counts down
-\* to expiry, so the space is finite without a clock bound. Two subscribers pass the checker's
-\* 200,000-state cap (the writers' states multiply over each pair), which is why the loop over
-\* several subscribers is its own model. The state counts and the bound-bump runs are in the .cfg.
+\* to expiry, so the space is finite without a clock bound. Two subscribers passed the old
+\* checker's 200,000-state cap (the writers' states multiply over each pair); on TLC they take
+\* 11,564,902 states and 64 s and hold, and the .cfg takes two. The loop over several subscribers
+\* has its own model, preference-aware-notification-fanout-batch.tla. The state counts and the
+\* bound-bump runs are in the .cfg.
 \*
 \* HOW AN INVARIANT IS READ
 \* The journal is the page's only truth, and a pair's reads derive from it (Composition state 13:
