@@ -18,7 +18,7 @@ Every invariant carries exactly one level.
 |---|---|---|
 | **L0** | Stated | Written in the canonical structured-English layer. |
 | **L1** | Bounded-checked | The TLA+/Alloy model holds at the configured bound **and** the buggy twin fails as expected. The launch grade — most of the corpus is here. |
-| **L2** | Proved | Mechanically proved for all N (Isabelle/HOL), modulo the named assumptions carried with the proof (section 5). |
+| **L2** | Proved | Mechanically proved for all N (TLAPS, over the TLA+ model), modulo the named assumptions carried with the proof (section 5). |
 
 L2 is a **grounding-maturity** state. It is carried on the Version field's pre-release axis — the same axis grounding maturity already lives on in Versioning — **not** in the MAJOR.MINOR.PATCH numbers. The numbers say what the behavior is; the grounding state says how far that behavior has been verified. The two are orthogonal: an invariant can be L1 at a fully grounded `1.2.0`, or L2 at the same number.
 

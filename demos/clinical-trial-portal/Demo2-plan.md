@@ -29,7 +29,7 @@ A separate axis from rendering: Grace Commons specs sit at the top of a layered 
 | TypeScript types   | implementation shape  |
 | Alloy              | relational validity   |
 | TLA+               | temporal validity     |
-| Coq/Lean           | critical truth proofs |
+| TLAPS              | critical truth proofs |
 
 The layers compose downward — a lower layer can mechanically verify an upper layer's claim, but cannot replace the upper layer's job of saying *what* to check. Structured English captures *what the user is trying to express*; types capture *what shape the code must have*; Alloy captures *what relations must hold*; TLA+ captures *what must hold over time*; Coq/Lean captures *what is provably true forever*.
 
@@ -37,7 +37,7 @@ This demo lives entirely in the top two layers. The compositions are structured 
 
 - **Alloy** — the cleanest candidate is the Permissions + Grants relational model. An Alloy spec could check invariants like *"no actor holds a `view_audit` grant with `scope='own'` and `scope='all'` simultaneously"* and *"every active grant has a non-revoked grantor."*
 - **TLA+** — the natural target is the session + invitation lifecycle. A TLA+ spec could verify that *"no request is observed as authorized after its session has been revoked, under concurrent revocation and handling."*
-- **Coq/Lean** — the highest-value first target is the audit chain's tamper-evidence property: *given an append-only `event_log` and the canonical hash construction in `domain/event_log.ts`, any single-row mutation to `payload_json` causes `verifyChain` to detect divergence in O(N) steps with no false negatives.* The proof effort is bounded and the property has regulatory weight under Part 11.
+- **TLAPS** — the highest-value first target is the audit chain's tamper-evidence property: *given an append-only `event_log` and the canonical hash construction in `domain/event_log.ts`, any single-row mutation to `payload_json` causes `verifyChain` to detect divergence in O(N) steps with no false negatives.* The proof effort is bounded and the property has regulatory weight under Part 11.
 
 Naming these targets is not a commitment to do them — it is the answer to the obvious question a formal-methods reader will ask: *"where could you take this if you wanted the audit guarantee provable rather than testable?"* The answer is on the page.
 

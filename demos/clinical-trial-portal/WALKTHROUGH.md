@@ -121,7 +121,7 @@ Structured English  →  semantic intent        [this demo]
 TypeScript types    →  implementation shape   [this demo]
 Alloy               →  relational validity    [first natural target: Permissions + Grants model]
 TLA+                →  temporal validity      [first natural target: session + invitation lifecycle]
-Coq / Lean          →  critical truth proofs  [first natural target: verifyChain tamper-evidence property]
+TLAPS               →  critical truth proofs  [first natural target: verifyChain tamper-evidence property]
 ```
 
 The lower three layers are deliberate future scope. Their first targets are named so the question *"where would you take this if you wanted the guarantee provable rather than testable?"* has a concrete answer on the page.
