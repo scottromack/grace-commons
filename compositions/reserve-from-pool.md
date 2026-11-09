@@ -865,13 +865,13 @@ The five constituents carry their own deep standards inheritance — see each co
 
 ## Status
 
-`grounded (English) on Final Critique 14 — 2026-11-06 at a896453 — formal layer pending` — see the Ledger.
+`grounded on Final Critique 14 — 2026-11-06 at a896453` — see the Ledger.
 
 ## Ledger
 
 ```
-status: grounded (English) on Final Critique 14 — 2026-11-06 at a896453 — formal layer pending
-formal: pending — reserve-from-pool.tla + 1 twin verified 2026-06-04 over the retired atomic trio; re-derive over the ordered slot-returning pair and the pool reconciliation (2026-08-29-a)
+status: grounded on Final Critique 14 — 2026-11-06 at a896453
+formal: verified — reserve-from-pool.tla + 23 twins and reserve-from-pool-retry.tla + 14 twins, re-derived 2026-11-09 (it was verified 2026-06-04 over four atomic steps and the retired atomic trio): one pool and its reservations as Provisional Commitment keeps them, the hold's window, the pool's allocated count, the binding entry outside the transaction with its rebuild, the journal's reserve and slot-returning outcome entries with their retention (Capability requirement 48, 49), and the order of the writes inside each action (the attestation, the intent entry, the allocate before the hold, the transition before the release, the outcome entry last); the retry layer as its own model: Duplicate Prevention's window, the token results map, the journal read on a token the guard has not seen, the attestation and the outcome entry; Invariants 1.1, 1.5, 2.1, 3.1, 4.1, 4.2, 5.1, 5.2, 5.3, 6.1, 6.3, 6.4, 8.1 and 8.2 checked, with Check 1.1, Wiring decision 2, 3 and 6, Action wiring 7, 18, 26, 45, 62, 80, 81, 87, 91, 106, 110, 125 and 126, Composition state 6 and 22, and Capability requirement 48 and 49; settled answers and every refusal leave the reservation and the pool as they were, and the pool's own answers, the entries' fields, the clock and the seam, the auditor's reads and the deployment's configuration are not modelled; the arc and the retry layer are two models because the tokens' states times the arc's pass the checker's 200,000-state cap, and the arc holds two reservations because a third passes its depth cap of 40; 2026-11-09
 last gate: 2026-11-06 — Final Critique 14, a delta round, frozen at a896453 — foundational count 0, clean, one sample; 2026-11-06 — Final Critique 13, full, three passes (GRID, EOS, Linus) — 2 foundational (a reserve or other own outcome entry journaled under a different digest met no rule, cured by widening Action wiring 125 and the digest condition of Action wiring 18; a slot-returning outcome entry could be destroyed while its binding entry stood, cured by Capability requirement 49), GRID's one foundational refuted (Execution Contract Database 1 and Read 4), not clean, no sample
 
 open:

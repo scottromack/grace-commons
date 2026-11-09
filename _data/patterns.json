@@ -1356,13 +1356,13 @@
   "models": {
    "als": false,
    "tla": true,
-   "twins": 1
+   "twins": 0
   },
   "regulated": true,
   "standards": [
    "PCI DSS"
   ],
-  "status": "grounded (English) on Final Critique 14 \u2014 2026-11-06 at a896453 \u2014 formal layer pending",
+  "status": "grounded on Final Critique 14 \u2014 2026-11-06 at a896453",
   "substrates": [],
   "title": "Reserve from Pool"
  },
