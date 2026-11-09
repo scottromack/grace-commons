@@ -61,6 +61,11 @@ a different sense, it must say so locally.
   by triage — promoted or rejected, never outliving Phase 1). Atom and composition
   are defined in [`why.md`](./why.md); the thesis phrase is claimed in
   [`the-spec-layer.md`](./the-spec-layer.md).
+- **particle (2026-11-09)** — short for *sub-atomic particle*: a chunk of Grace
+  logic smaller than an atom, such as Compensable Workflow's compensating action,
+  a recorded closure. It lives inside the atoms and compositions that use it and
+  is no artifact of its own, so the canonical layer keeps its two artifact kinds
+  (lint rule K). The corpus does not write *sub-atomic* or *sub-atom*.
 - **application** — a deployed build output; output-level vocabulary only, never
   a spec-layer artifact. The canonical layer has exactly two artifact kinds:
   atomic concepts and compositions thereof (lint rule K). Component / module /

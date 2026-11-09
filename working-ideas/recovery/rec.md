@@ -16,7 +16,7 @@
 
 Routing-test sweep: the delta record is **concept state**; `Apply`/`Invert` are its actions; there are **no values** (no clock, no id — see below), **no callers**, **no obligations**. `stringifyStable` is a secondary pure-function concept (canonicalization / the `equivalent`-under-normalization oracle, glossary sense). `rec` is pure algebra — unusually clean, because it has no runtime surface at all.
 
-**Ground-truth match — the honest result corrects the prediction.** The shortlist predicted `rec` → **Event Log**. It is *not* Event Log. `rec` has no log, no total order, no immutable store, and — tellingly — **no identity** (deltas are anonymous; every library atom gives records an opaque immutable id). The absence of identity is the structural reason it sits *below* Event Log: you cannot reference an anonymous delta, so you cannot log it. What `rec` actually is: the **invertible-delta primitive that Undo History's "compensating events" are instances of** — a sub-atomic concept one layer beneath Event Log + Undo History.
+**Ground-truth match — the honest result corrects the prediction.** The shortlist predicted `rec` → **Event Log**. It is *not* Event Log. `rec` has no log, no total order, no immutable store, and — tellingly — **no identity** (deltas are anonymous; every library atom gives records an opaque immutable id). The absence of identity is the structural reason it sits *below* Event Log: you cannot reference an anonymous delta, so you cannot log it. What `rec` actually is: the **invertible-delta primitive that Undo History's "compensating events" are instances of** — a particle, a concept one layer beneath Event Log + Undo History.
 
 → **Finding F1 (taxonomy):** the recovery surfaced a concept *below the library's current granularity* — candidate atom **Invertible Delta / Reversible Change** (state: a typed, path-addressed change with captured prior value; actions: apply, invert; invariants below). Not currently in the library. Whether it earns atomhood is a Gate-3 question (does it carry state/behavior no existing atom holds? — yes: reversible-change-with-captured-prior is not Event Log's append, nor Soft Delete's tombstone). Flag for the backlog, not auto-promote.
 
@@ -66,6 +66,6 @@ Mild but real evidence the library's invariants track the structure of reversibl
 
 ## Actions
 
-- Backlog (Grace Commons): consider **Invertible Delta / Reversible Change** as a candidate sub-atom; run the three gates properly before any promotion.
+- Backlog (Grace Commons): consider **Invertible Delta / Reversible Change** as a candidate particle; run the three gates properly before any promotion.
 - Upstream (optional, courtesy): `rec`'s `Apply` COMPOUND-returns-`d` is a likely one-character bug (`return d` → `return o`); a fresh-reader could file it. Recorded here as the run-1 finding regardless.
 - Next run: `asgi-idempotency-header` — the routing-half test; expect Idempotent Reservation / Duplicate Prevention + the `token_results` → Idempotency Result Memo prediction.
