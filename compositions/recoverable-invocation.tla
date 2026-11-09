@@ -994,7 +994,7 @@ SweepPrepareOutcome(s) ==
                    outcomeRecords, closingKind, closingState, closingReturnAt,
                    closingVisibleAt, closingRecords, sweepNextA, sweepNextB,
                    sweepDeaths, pauses, opPhase, opKind, opState,
-                   opReturnAt, opVisibleAt, opRecords, opSuperseded, opPendingNamed, secondOpened>>
+                   opReturnAt, opVisibleAt, opRecords, opSuperseded, opPendingNamed, secondOpened, outcomeIssuedAt, outcomeReplyLost>>
 
 \* The probe answers not-committed: abandoned under a fence, escalated without.
 SweepPrepareClosing(s) ==
@@ -1011,7 +1011,7 @@ SweepPrepareClosing(s) ==
                    outcomeRecords, closingKind, closingState, closingReturnAt,
                    closingVisibleAt, closingRecords, sweepNextA, sweepNextB,
                    sweepDeaths, pauses, opPhase, opKind, opState,
-                   opReturnAt, opVisibleAt, opRecords, opSuperseded, opPendingNamed, secondOpened>>
+                   opReturnAt, opVisibleAt, opRecords, opSuperseded, opPendingNamed, secondOpened, outcomeIssuedAt, outcomeReplyLost>>
 
 SweepIssueOutcome(s) ==
     /\ PhaseOf(s) = "prepOutcome"

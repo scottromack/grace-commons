@@ -165,7 +165,7 @@
 \*   recoverable-invocation-buggy-supersede.tla — SupersedesNamed = FALSE (gate 9, F6).
 \*   recoverable-invocation-buggy-opclock.tla  — OperatorSkew > 0 (gate 9, F7).
 
-EXTENDS Naturals
+EXTENDS Integers
 
 CONSTANTS
     CompletionBound,    \* the invocation's lease; the sweep's lower edge
@@ -181,7 +181,7 @@ CONSTANTS
     MaxPauses,          \* how many ticks a process may spend paused mid-write
     JournalFence,       \* TRUE: a journal write past the writer's lease is refused
     VisibleOnReturn,    \* TRUE: a returned write is visible to every later read
-    JournalSkew,        \* the substrate's clock less the section host's (may be < 0)
+    JournalSkewBehind,  \* how many ticks the substrate's clock runs behind the section host's (JournalSkew is its negative; a cfg cannot write one)
     FenceMargin,        \* subtracted from the fence instant when it is minted
     MaxLand,            \* the true worst case for a journal write (>= JournalWriteBound)
     PerWriteFence,      \* TRUE: a write is fenced at issue + JournalWriteBound too
@@ -379,6 +379,8 @@ FenceInstant(leaseEnd) ==
         perWrite == IF now + JournalWriteBound > FenceMargin
                     THEN now + JournalWriteBound - FenceMargin ELSE 0
     IN IF PerWriteFence /\ perWrite < held THEN perWrite ELSE held
+JournalSkew == 0 - JournalSkewBehind
+
 Fenced(v, leaseEnd) == JournalFence /\ (v + JournalSkew) > FenceInstant(leaseEnd)
 
 SweepScheduled(s) == now >= NextOf(s) /\ PhaseOf(s) = "idle"
@@ -707,7 +709,7 @@ SweepPrepareOutcome(s) ==
                    outcomeRecords, closingKind, closingState, closingReturnAt,
                    closingVisibleAt, closingRecords, sweepNextA, sweepNextB,
                    sweepDeaths, pauses, opPhase, opKind, opState,
-                   opReturnAt, opVisibleAt, opRecords, opNamed>>
+                   opReturnAt, opVisibleAt, opRecords, opNamed, outcomeIssuedAt, outcomeReplyLost>>
 
 \* The probe answers not-committed: abandoned under a fence, escalated without.
 SweepPrepareClosing(s) ==
@@ -724,7 +726,7 @@ SweepPrepareClosing(s) ==
                    outcomeRecords, closingKind, closingState, closingReturnAt,
                    closingVisibleAt, closingRecords, sweepNextA, sweepNextB,
                    sweepDeaths, pauses, opPhase, opKind, opState,
-                   opReturnAt, opVisibleAt, opRecords, opNamed>>
+                   opReturnAt, opVisibleAt, opRecords, opNamed, outcomeIssuedAt, outcomeReplyLost>>
 
 SweepIssueOutcome(s) ==
     /\ PhaseOf(s) = "prepOutcome"

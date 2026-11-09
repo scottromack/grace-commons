@@ -78,6 +78,8 @@ CONSTANTS Tk,           \* the idempotency tokens
 \* An attestation's action reference: the action type and the token joined (Term action reference).
 \* The buggy twin that names the type alone uses "any" for the token.
 Refs == Ty \X (Tk \cup {"any"})
+\* No attestation yet: a pair, as a ref is, because TLC will not compare a string with a tuple.
+NoRef == <<"none", "none">>
 
 VARIABLES
     dp,         \* Tk -> Duplicate Prevention's check answers seen (the window has not elapsed)
@@ -113,7 +115,7 @@ TypeOK ==
     /\ jty \in [Tk -> Ty \cup {"none"}]
     /\ jd \in [Tk -> Dg \cup {"none"}]
     /\ jres \in [Tk -> 0..2]
-    /\ att \in [Tk -> Refs \cup {"none"}]
+    /\ att \in [Tk -> Refs \cup {NoRef}]
     /\ na \in [Tk -> 0..2]
     /\ ex \in [Tk -> 0..2]
     /\ cm \in [Tk -> 0..2]
@@ -133,7 +135,7 @@ Init ==
     /\ jty = [t \in Tk |-> "none"]
     /\ jd = [t \in Tk |-> "none"]
     /\ jres = [t \in Tk |-> 0]
-    /\ att = [t \in Tk |-> "none"]
+    /\ att = [t \in Tk |-> NoRef]
     /\ na = [t \in Tk |-> 0]
     /\ ex = [t \in Tk |-> 0]
     /\ cm = [t \in Tk |-> 0]

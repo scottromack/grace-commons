@@ -1,10 +1,15 @@
 // Grace Commons — reproducible dual checker harness.
 //
 //   node check.mjs <model.tla|model.als> [--buggy] [--scope N]
+//                  [--engine tlc|wasm] [--workers N] [--heap MB] [--limit-min N]
 //
-// TLA+ (.tla): runs the tla-checker WASM model checker against the same-name
-//   .cfg. Constants come from a sibling <base>.constants.json if present (the
-//   tla-poc convention), otherwise from the .cfg's own CONSTANTS block ({}).
+// TLA+ (.tla): runs TLC (tools/tlc/tla2tools.jar, through tlc.mjs) on the model
+//   and its same-name .cfg as written: no state cap; a check still running at
+//   --limit-min minutes (15) stops as ERROR and names the states it reached.
+//   --workers N sets TLC's workers (auto: every core); --heap MB its heap.
+//   --engine wasm runs the tla-checker WASM model checker instead, for
+//   comparison only (one thread, a 200,000-state cap, constants from a sibling
+//   <base>.constants.json if present, otherwise the .cfg's own CONSTANTS block).
 //   - default twin: HOLDS iff every invariant holds (no violation).
 //   - --buggy twin: CAUGHT iff some invariant is violated (the vacuity guard:
 //     a deliberately-wrong model the checker MUST reject).
@@ -33,6 +38,7 @@ import { fileURLToPath } from "node:url";
 import { tmpdir } from "node:os";
 import { spawnSync } from "node:child_process";
 import { appendLedger } from "./ledger.mjs";
+import { runTlc, findJava as findJavaRaw, DEFAULT_LIMIT_MS } from "./tlc.mjs";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 
@@ -49,33 +55,7 @@ function findTlaPkg() {
   return p;
 }
 function findJava() {
-  // The JRE is provisioned on the native /tmp FS, not in the mounted repo
-  // node_modules: unpacking the JRE into the mount drops libjli.so and the
-  // launcher fails with exit 127. bootstrap.sh installs it to /tmp/javajre.
-  const candidates = [
-    "/tmp/javajre/node_modules/javajre-linux-64/jre/bin/java",
-    join(HERE, "node_modules/javajre-linux-64/jre/bin/java"),
-  ];
-  // macOS: the npm JRE is Linux-only, so take any installed JDK 17+.
-  if (process.env.JAVA_HOME) candidates.push(join(process.env.JAVA_HOME, "bin/java"));
-  if (process.platform === "darwin") {
-    const jh = spawnSync("/usr/libexec/java_home", ["-v", "17+"], { encoding: "utf8" });
-    if (jh.status === 0 && jh.stdout.trim()) candidates.push(join(jh.stdout.trim(), "bin/java"));
-    candidates.push(
-      "/opt/homebrew/opt/openjdk@17/bin/java",
-      "/usr/local/opt/openjdk@17/bin/java",
-      "/opt/homebrew/opt/openjdk/bin/java",
-      "/usr/local/opt/openjdk/bin/java",
-    );
-  }
-  const p = candidates.find((c) => existsSync(c) && javaMajor(c) >= 17);
-  if (!p) die("JRE 17 not found — on Linux run tools/harness/bootstrap.sh; on macOS install a JDK 17+ (brew install openjdk@17) or set JAVA_HOME to one.");
-  return p;
-}
-function javaMajor(java) {
-  const r = spawnSync(java, ["-version"], { encoding: "utf8" });
-  const m = /version "(\d+)/.exec(`${r.stderr || ""}${r.stdout || ""}`);
-  return m ? Number(m[1]) : 0;
+  try { return findJavaRaw(); } catch (e) { die(e.message); }
 }
 function findAlloyJar() {
   const candidates = [
@@ -88,7 +68,36 @@ function findAlloyJar() {
 }
 
 // ---- TLA+ -------------------------------------------------------------------
+function optArg(name) {
+  const i = process.argv.indexOf(name);
+  return i < 0 ? null : process.argv[i + 1];
+}
+
+function checkTlaTlc(modelPath, buggy) {
+  const limitMin = optArg("--limit-min");
+  const heap = optArg("--heap");
+  const res = runTlc(modelPath, {
+    workers: optArg("--workers") ?? "auto",
+    limitMs: limitMin ? Number(limitMin) * 60000 : DEFAULT_LIMIT_MS,
+    heapMb: heap ? Number(heap) : undefined,
+  });
+  console.log(`  TLA+  ${basename(modelPath)}${res.kind === "error" ? "" : `  (states: ${res.states}, TLC ${res.seconds.toFixed(1)} s)`}`);
+  if (res.kind === "error") {
+    console.log(`  MODEL/HARNESS ERROR: ${res.message}`);
+    return { pass: false, kind: "error", detail: res.message,
+      ledger: res.states == null ? null : { engine: "tla", checker: "tlc", states: res.states, capped: res.capped ? 1 : 0 } };
+  }
+  const violated = res.kind === "violated";
+  console.log(violated ? `  -> VIOLATION: ${res.message}` : `  -> all invariants hold`);
+  return { pass: buggy ? violated : !violated, kind: buggy ? "buggy" : "correct", violated,
+    ledger: { engine: "tla", checker: "tlc", states: res.states, capped: 0 } };
+}
+
 async function checkTla(modelPath, buggy) {
+  return optArg("--engine") === "wasm" ? checkTlaWasm(modelPath, buggy) : checkTlaTlc(modelPath, buggy);
+}
+
+async function checkTlaWasm(modelPath, buggy) {
   const base = modelPath.slice(0, -extname(modelPath).length);
   const cfgPath = base + ".cfg";
   if (!existsSync(cfgPath)) die(`no .cfg beside ${basename(modelPath)}`);
@@ -122,7 +131,7 @@ async function checkTla(modelPath, buggy) {
     console.log(`  MODEL/HARNESS ERROR: ${res.error_type} — ${res.error_message}`);
     const capped = res.error_type === "MaxStatesExceeded";
     return { pass: false, kind: "error", detail: res.error_message,
-      ledger: capped ? { engine: "tla", states: res.states_explored, capped: 1 } : null };
+      ledger: capped ? { engine: "tla", checker: "wasm", states: res.states_explored, capped: 1 } : null };
   }
 
   console.log(`  TLA+  ${basename(modelPath)}  (states: ${res.states_explored})`);
@@ -133,7 +142,7 @@ async function checkTla(modelPath, buggy) {
   }
   const pass = buggy ? violated : !violated;
   return { pass, kind: buggy ? "buggy" : "correct", violated,
-    ledger: { engine: "tla", states: res.states_explored, capped: 0 } };
+    ledger: { engine: "tla", checker: "wasm", states: res.states_explored, capped: 0 } };
 }
 
 // ---- Alloy ------------------------------------------------------------------
@@ -197,7 +206,7 @@ function checkAls(modelPath, buggy) {
     if (pass) console.log(`  -> all guarantees hold, all runs non-vacuous`);
   }
   return { pass, kind: buggy ? "buggy" : "correct", counterexamples, vacuousRuns,
-    ledger: { engine: "als", commands: cmds.length, holds: checks.length - counterexamples.length,
+    ledger: { engine: "als", checker: "alloy", commands: cmds.length, holds: checks.length - counterexamples.length,
       satisfiable: runs.length - vacuousRuns.length, counterexamples: counterexamples.length,
       vacuous: vacuousRuns.length } };
 }
@@ -205,7 +214,8 @@ function checkAls(modelPath, buggy) {
 // ---- main -------------------------------------------------------------------
 const args = process.argv.slice(2);
 const buggy = args.includes("--buggy");
-const model = args.find(a => !a.startsWith("--"));
+const valued = new Set(["--engine", "--workers", "--heap", "--limit-min", "--scope"]);
+const model = args.find((a, i) => !a.startsWith("--") && !valued.has(args[i - 1]));
 if (!model) die("usage: node check.mjs <model.tla|model.als> [--buggy]");
 if (!existsSync(model)) die(`no such file: ${model}`);
 

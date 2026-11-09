@@ -234,8 +234,8 @@ Live(s) == st[s] = "approved" /\ ~Consumed(s) /\ ~Mooted(s)
 \* Term re-bindable steps (Wiring decision 7): rejected or withdrawn, or approved and spent.
 Rebindable(g) ==
     \/ bound[g] = NoStep
-    \/ st[bound[g]] \in {"rejected", "withdrawn"}
-    \/ (st[bound[g]] = "approved" /\ (Consumed(bound[g]) \/ Mooted(bound[g])))
+    \/ (bound[g] /= NoStep /\ st[bound[g]] \in {"rejected", "withdrawn"})
+    \/ (bound[g] /= NoStep /\ st[bound[g]] = "approved" /\ (Consumed(bound[g]) \/ Mooted(bound[g])))
 
 \* Term moot plan. The steps of the other gate keys that are pending or a live approval.
 PlanFor(g) ==
@@ -291,7 +291,7 @@ OpenGate(g, s) ==
     /\ ws = "s0"
     /\ clk < Life
     /\ st[s] = "unused"
-    /\ (s = 1 \/ st[s - 1] /= "unused")
+    /\ (s = 1 \/ (s > 1 /\ st[s - 1] /= "unused"))
     /\ Rebindable(g)
     /\ clk' = clk + 1
     /\ nlog' = nlog + 1

@@ -2,10 +2,10 @@
 
 One reproducible checker for both formal-model flavors in the library:
 
-- **TLA+** (`.tla` + `.cfg`) via the [`tla-checker`](https://www.npmjs.com/package/tla-checker) WASM model checker.
+- **TLA+** (`.tla` + `.cfg`) via TLC, the TLA+ Foundation's model checker (`tools/tlc/tla2tools.jar`, v1.7.4 / TLC 2.19, committed like the Alloy jar), under the same JRE 17. The [`tla-checker`](https://www.npmjs.com/package/tla-checker) WASM checker stays behind `--engine wasm`, for comparison only: it runs one thread and stops at 200,000 states.
 - **Alloy** (`.als`) via the `org.alloytools.alloy.dist` jar running headless (`exec`) under a JRE 17.
 
-Both checkers are provisioned **from the npm registry only** — no Adoptium / GitHub / Maven downloads, which are blocked in the sandbox. The Alloy jar at `tools/alloy/alloy.jar` is committed, not downloaded.
+The JRE and the WASM checker are provisioned **from the npm registry only** — no Adoptium / GitHub / Maven downloads, which are blocked in the sandbox. The Alloy jar at `tools/alloy/alloy.jar` and the TLC jar at `tools/tlc/tla2tools.jar` are committed, not downloaded.
 
 ## Setup (once per session)
 
@@ -56,7 +56,7 @@ A correct model needs every `check` UNSAT and every `run` SAT. A vacuous `run` (
 
 The *authoring* pitfalls — vacuity, store-scoping transitions, deriving idealizations instead of lagging them with a flag, saturating the bound, and the "model present" bar — are methodology and live in the section titled *Formal-model authoring pitfalls* in [`pressure-testing.md`](../../pressure-testing.md) and section "The formal-layer vote → the model-present bar". Read those before authoring. What follows is purely operational — the harness/checker quirks that cost real time:
 
-**Checker dialect (the WASM `tla-checker`).** Mirror the idiom already proven in the repo, not generic TLA+:
+**Checker dialect.** The models run on TLC (standard TLA+) and, for comparison, on the WASM `tla-checker`, so a model must mean the same on both: TLC refuses a comparison across types (a string against an integer or a tuple, in `=`, `\in` or a set that mixes them), a function applied outside its domain (TLC evaluates both sides of a `\/` in an action, so guard the second with the first's negation: `s = 1 \/ (s > 1 /\ st[s - 1] ...)`), an action that leaves a variable out of its `UNCHANGED`, a negative number in a `.cfg` (write the magnitude and negate in the module), and a precedence conflict between `\/` and `/\` in one list (parenthesize). A `.cfg` constant written bare (`Ty = {R, C}`) is a TLC model value, never equal to the string `"R"` a module compares it with; write it quoted. The notes that follow describe the WASM checker's own dialect:
 
 - **Junction lists must be column-aligned.** Every `/\` (or `\/`) in a bulleted conjunction/disjunction list must start at the same column, or the parser errors. A multi-line `Next == A \/ B` continued on the next line at a different indent will fail (caught on `medication-order.tla`). Write each disjunct on its own line, all `\/` aligned.
 - **Avoid the `Sequences` module.** The checker handles `Naturals` / `FiniteSets` / functions reliably; the existing models avoid `Sequences`. Model an ordered log as an indexed function `1..MaxLen -> Elem` with a `len` counter, not a sequence.

@@ -125,7 +125,7 @@ VARIABLES
     nid,          \* how many commitments Provisional Commitment has placed (ids are never reused)
     gOn,          \* the window summary: TRUE once a window has opened
     gws,          \* the window's first instant
-    ga,           \* the first result answered to each action type and digest in the window, "-" for none
+    ga,           \* the first result answered to each action type and digest in the window, RNone for none
     gfresh,       \* how many fresh requests reached the constituent in the window (at most 2 is kept)
     gnon,         \* how many calls other than a re-entry reached the constituent in the window (at most 2 is kept)
     gid,          \* the commitment id the window's entries bound, 0 for none
@@ -138,11 +138,17 @@ vars == <<clk, calls, flt, down, dpOn, dpAt, ent, hid, hreq, nid, gOn, gws, ga, 
 Acts == {"place", "release"}
 Digs == {1, 2}
 Ids == 1..MaxId
+\* A result that is not a commitment id is a tag above every id, so a result is always an integer
+\* (TLC compares values of one type): ok, resource-unavailable, not-held, and none yet.
+ROk == MaxId + 1
+RUnavail == MaxId + 2
+RNothd == MaxId + 3
+RNone == MaxId + 4
 \* What a constituent answers: a commitment id, resource-unavailable, ok or not-held.
-Results == Ids \cup {"unavail", "ok", "nothd"}
+Results == Ids \cup {ROk, RUnavail, RNothd}
 
 \* The window summary with no answer given yet.
-Blank == [x \in Acts |-> [y \in Digs |-> "-"]]
+Blank == [x \in Acts |-> [y \in Digs |-> RNone]]
 
 \* The shape of every variable: the scalars from the sets above and the entry as one record.
 TypeOK ==
@@ -177,7 +183,7 @@ Init ==
     /\ down = FALSE
     /\ dpOn = FALSE
     /\ dpAt = 0
-    /\ ent = [has |-> FALSE, act |-> "place", d |-> 1, res |-> "ok", at |-> 0, mark |-> "first"]
+    /\ ent = [has |-> FALSE, act |-> "place", d |-> 1, res |-> ROk, at |-> 0, mark |-> "first"]
     /\ hid = 0
     /\ hreq = 0
     /\ nid = 0
@@ -242,11 +248,11 @@ EvFlags ==
 Deleg(a, d) ==
     IF a = "place"
     THEN IF hid /= 0
-         THEN [res |-> "unavail", hid |-> hid, hreq |-> hreq, nid |-> nid]
+         THEN [res |-> RUnavail, hid |-> hid, hreq |-> hreq, nid |-> nid]
          ELSE [res |-> nid + 1, hid |-> nid + 1, hreq |-> d, nid |-> nid + 1]
     ELSE IF hid = d
-         THEN [res |-> "ok", hid |-> 0, hreq |-> 0, nid |-> nid]
-         ELSE [res |-> "nothd", hid |-> hid, hreq |-> hreq, nid |-> nid]
+         THEN [res |-> ROk, hid |-> 0, hreq |-> 0, nid |-> nid]
+         ELSE [res |-> RNothd, hid |-> hid, hreq |-> hreq, nid |-> nid]
 
 \* The constituent can take the call: a new commitment needs an id left to give.
 CanDeleg(a) == (a = "place" /\ hid = 0) => (nid < MaxId)
@@ -262,12 +268,12 @@ ExpectedCand(d) == IF (hid /= 0) /\ (hreq = d) THEN {hid} ELSE {}
 \* each pair is kept, and a window not yet open is opened at this instant.
 GaAfter(a, d, r) ==
     IF InW
-    THEN (IF ga[a][d] = "-" THEN [ga EXCEPT ![a][d] = r] ELSE ga)
+    THEN (IF ga[a][d] = RNone THEN [ga EXCEPT ![a][d] = r] ELSE ga)
     ELSE [Blank EXCEPT ![a][d] = r]
 
 \* Two answers inside one window to one action type and digest differ (Invariant 1.1, 2.1).
 AlikeFlag(a, d, r) ==
-    IF InW /\ ga[a][d] /= "-" /\ ga[a][d] /= r
+    IF InW /\ ga[a][d] /= RNone /\ ga[a][d] /= r
     THEN {IF a = "place" THEN "Invariant_1_1" ELSE "Invariant_2_1"}
     ELSE {}
 
@@ -293,7 +299,7 @@ Replay(a, d) ==
         /\ calls' = calls + 1
         /\ hid' = dg.hid
         /\ hreq' = dg.hreq
-        /\ ga' = IF InW /\ ga[a][d] = "-" THEN [ga EXCEPT ![a][d] = dg.res] ELSE ga
+        /\ ga' = IF InW /\ ga[a][d] = RNone THEN [ga EXCEPT ![a][d] = dg.res] ELSE ga
         /\ gnon' = IF a = "place" THEN gnon ELSE (IF InW THEN (IF gnon >= 1 THEN 2 ELSE 1) ELSE 1)
         /\ viol' = viol \cup AlikeFlag(a, d, dg.res)
                          \cup (IF a /= "place" /\ InW /\ gnon >= 1 THEN {"Invariant_2_2"} ELSE {})

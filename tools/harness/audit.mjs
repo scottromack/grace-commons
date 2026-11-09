@@ -8,8 +8,13 @@
 //   node audit.mjs                    every model
 //   node audit.mjs --only <regex>     models whose repo-relative path matches
 //   node audit.mjs --except <regex>   models whose repo-relative path does not
+//   node audit.mjs --jobs N           checks run side by side, N at a time (default:
+//                                     one per core), each TLC run on one worker
+//   node audit.mjs --engine wasm      the WASM checker instead of TLC (comparison)
+//   node audit.mjs --limit-min N      stop a TLC check at N minutes (default 15)
 
-import { execFileSync } from "node:child_process";
+import { execFile } from "node:child_process";
+import { cpus } from "node:os";
 import { dirname, join, relative, basename } from "node:path";
 import { fileURLToPath } from "node:url";
 import { readdirSync, readFileSync, statSync } from "node:fs";
@@ -34,25 +39,46 @@ const models = walk(REPO).sort().filter((m) => {
   const rel = relative(REPO, m);
   return (!only || only.test(rel)) && (!except || !except.test(rel));
 });
-const rows = [];
-for (const m of models) {
+const optArg = (name) => { const i = process.argv.indexOf(name); return i < 0 ? null : process.argv[i + 1]; };
+const jobs = Math.max(1, Number(optArg("--jobs") ?? cpus().length));
+const passThrough = [["--engine"], ["--limit-min"]].flatMap(([f]) => optArg(f) ? [f, optArg(f)] : []);
+
+function run(m) {
   const expectsViolation = (readFileSync(m, "utf-8").split("\n")[1] ?? "").startsWith("\\* EXPECT: violation");
   const buggy = /buggy/i.test(basename(m)) || expectsViolation;
-  const argv = buggy ? [join(HERE, "check.mjs"), m, "--buggy"] : [join(HERE, "check.mjs"), m];
-  let code = 0, log = "";
-  try {
-    log = execFileSync("node", argv, { encoding: "utf-8", maxBuffer: 64 * 1024 * 1024 });
-  } catch (e) {
-    log = (e.stdout || "") + (e.stderr || "");
-    code = e.status ?? 2;
-  }
-  const verdict = code === 0 ? (buggy ? "CAUGHT" : "HOLDS")
-    : code === 1 ? (buggy ? "MISSED" : "BROKEN")
-    : "ERROR";
-  console.log("─".repeat(72));
-  console.log(log.trimEnd());
-  rows.push({ file: relative(REPO, m), buggy, verdict });
+  // Checks run side by side, so each TLC run takes one worker and a bounded heap.
+  const argv = [join(HERE, "check.mjs"), m, ...(buggy ? ["--buggy"] : []), "--workers", "1", "--heap", "2048", ...passThrough];
+  return new Promise((resolve) => {
+    execFile("node", argv, { encoding: "utf-8", maxBuffer: 64 * 1024 * 1024 }, (e, stdout, stderr) => {
+      const code = e ? (typeof e.code === "number" ? e.code : 2) : 0;
+      const log = e ? (stdout || "") + (stderr || "") : stdout;
+      const verdict = code === 0 ? (buggy ? "CAUGHT" : "HOLDS")
+        : code === 1 ? (buggy ? "MISSED" : "BROKEN")
+        : "ERROR";
+      resolve({ log, row: { file: relative(REPO, m), buggy, verdict } });
+    });
+  });
 }
+
+// A pool of `jobs` checks; the logs print in the models' order as each one's turn comes.
+const rows = [];
+const results = new Array(models.length);
+let next = 0, printed = 0;
+const flush = () => {
+  while (printed < models.length && results[printed]) {
+    console.log("─".repeat(72));
+    console.log(results[printed].log.trimEnd());
+    rows.push(results[printed].row);
+    printed++;
+  }
+};
+await Promise.all(Array.from({ length: Math.min(jobs, models.length) }, async () => {
+  while (next < models.length) {
+    const i = next++;
+    results[i] = await run(models[i]);
+    flush();
+  }
+}));
 
 console.log("═".repeat(72));
 console.log("AUDIT SUMMARY");

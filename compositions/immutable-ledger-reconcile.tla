@@ -120,7 +120,7 @@
 \* -buggy-emptyread, -buggy-settle; -probe-finding, -probe-inflight, -probe-lastlookup,
 \* -probe-collision. Retired 2026-10-21 under Database 1, which they no longer break:
 \* -buggy-agededge, -buggy-agedstrict, -buggy-agedallowance and -probe-falseclosing.
-EXTENDS Naturals, FiniteSets
+EXTENDS Integers, FiniteSets
 
 \* WE           the act kind's window end, in ticks: a record younger than it, read
 \*              from its disclosure instant, is young (Term young record).

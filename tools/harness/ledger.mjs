@@ -11,12 +11,13 @@
 //   file      repo-relative path of the model
 //   role      model | twin   (twin = run with --buggy)
 //   engine    tla | als
-//   states    TLA+: states explored
-//   capped    TLA+: 1 if the 200,000-state cap stopped the run, else 0
+//   states    TLA+: states explored (TLC: distinct states)
+//   capped    TLA+: 1 if a cap stopped the run (WASM: 200,000 states; TLC: the time limit), else 0
 //   commands  Alloy: check and run commands parsed
 //   holds     Alloy: checks UNSAT      satisfiable  Alloy: runs SAT
 //   counterexamples  Alloy: checks SAT   vacuous  Alloy: runs UNSAT
 //   verdict   HOLDS | CAUGHT | BROKEN | MISSED | ERROR
+//   checker   tlc | wasm | alloy   which checker ran it
 //
 // GRACE_STATES_LEDGER=<path> writes there instead; "off" writes nothing.
 
@@ -29,7 +30,7 @@ const REPO = join(HERE, "../..");
 
 export const COLUMNS = [
   "date", "file", "role", "engine", "states", "capped",
-  "commands", "holds", "satisfiable", "counterexamples", "vacuous", "verdict",
+  "commands", "holds", "satisfiable", "counterexamples", "vacuous", "verdict", "checker",
 ];
 
 export function ledgerLine(e, now = new Date()) {

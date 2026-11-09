@@ -1,6 +1,6 @@
 // Grace Commons — formal-coverage / twin-isolation checker  ("part 2").
 //
-//   node isolate.mjs [<correct-model.tla>]      (default: every TLA+ model)
+//   node isolate.mjs [<correct-model.tla>] [--engine wasm]   (default: every TLA+ model, on TLC)
 //
 // WHAT IT GUARDS
 // The base harness (audit.mjs) confirms each correct model holds and each buggy
@@ -20,10 +20,12 @@
 //   demonstration is fragile. Splitting into one twin per invariant is the fix.
 //
 // HOW
-//   The model checker (check_spec_with_cfg) takes the .cfg as a STRING, so we
-//   synthesize a single-invariant cfg per run (same SPECIFICATION / CONSTANTS /
+//   We synthesize a single-invariant cfg per run (same SPECIFICATION / CONSTANTS /
 //   CHECK_DEADLOCK, exactly one INVARIANT) and run each twin against each
-//   load-bearing invariant in isolation, in-process. No temp files.
+//   load-bearing invariant in isolation. The runs go through TLC (tlc.mjs: the
+//   twin and the synthesized cfg in a temporary directory, as check.mjs runs
+//   a model); `--engine wasm` runs the WASM checker's check_spec_with_cfg
+//   in-process instead, for comparison.
 //
 //   Load-bearing set = the named INVARIANTs in the correct model's .cfg, minus
 //   the aggregates {Safety, TypeOK}. (Models that name only Safety expose no
@@ -38,6 +40,7 @@
 
 import { readFileSync, existsSync, readdirSync } from "node:fs";
 import { dirname, join, basename, extname, relative } from "node:path";
+import { runTlc } from "./tlc.mjs";
 import { fileURLToPath } from "node:url";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
@@ -52,9 +55,13 @@ function findTlaPkg() {
   if (!p) die("tla-checker not found — run tools/harness/bootstrap.sh first.");
   return p;
 }
-const TLA_PKG = findTlaPkg();
-const checker = await import(join(TLA_PKG, "tla_checker.js"));
-checker.initSync({ module: readFileSync(join(TLA_PKG, "tla_checker_bg.wasm")) });
+const WASM = process.argv.includes("--engine") && process.argv[process.argv.indexOf("--engine") + 1] === "wasm";
+let checker;
+if (WASM) {
+  const TLA_PKG = findTlaPkg();
+  checker = await import(join(TLA_PKG, "tla_checker.js"));
+  checker.initSync({ module: readFileSync(join(TLA_PKG, "tla_checker_bg.wasm")) });
+}
 
 // ---- cfg parsing / synthesis ------------------------------------------------
 const AGGREGATE = new Set(["Safety", "TypeOK"]);
@@ -108,6 +115,11 @@ function constantsFor(modelPath) {
 
 /** Run `specPath` against a synthesized single-invariant cfg. */
 function violatesInIsolation(specPath, cfgString, constantsJson) {
+  if (!WASM) {
+    const r = runTlc(specPath, { cfgText: cfgString });
+    if (r.kind === "error") return { ok: false, error: r.message };
+    return { ok: true, violated: r.kind === "violated", states: r.states };
+  }
   const raw = checker.check_spec_with_cfg(
     readFileSync(specPath, "utf-8"), cfgString, constantsJson,
     1000000, 200, true, false,
@@ -145,7 +157,7 @@ function twinsFor(correctPath) {
 }
 
 // ---- main -------------------------------------------------------------------
-const onlyArg = process.argv.slice(2).find((a) => !a.startsWith("--"));
+const onlyArg = process.argv.slice(2).find((a, i, all) => !a.startsWith("--") && all[i - 1] !== "--engine");
 let correctModels = walkTla(join(REPO, "atoms"))
   .concat(walkTla(join(REPO, "compositions")))
   .filter((p) => !/buggy/i.test(basename(p)))

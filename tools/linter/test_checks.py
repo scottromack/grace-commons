@@ -1238,6 +1238,10 @@ def check_notation_synthetic(problems: list[str]) -> int:
             shutil.copytree(real / sub, root / sub, ignore=shutil.ignore_patterns("__pycache__"))
         for f in real.glob("*.md"):
             shutil.copy(f, root / f.name)
+        ledger = real / "tools/harness/states.tsv"          # stats.json totals it
+        if ledger.exists():
+            (root / "tools/harness").mkdir(parents=True)
+            shutil.copy(ledger, root / "tools/harness/states.tsv")
         if check_views_current(root):
             problems.append("V-views-current: fired on the current views")
         (root / "graph.md").write_text((root / "graph.md").read_text(encoding="utf-8") + "\nstale\n", encoding="utf-8")

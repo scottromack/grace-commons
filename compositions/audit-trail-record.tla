@@ -173,7 +173,7 @@ TakeUnretained1 ==
 \* A run that finds the section held or nothing to examine skips (Per-act critical section 5).
 Skip1 ==
     /\ spc1 = "idle"
-    /\ (holder # "none" \/ ~(att /\ ~ev) /\ ~(ev /\ plc = 0))
+    /\ (holder # "none" \/ (~(att /\ ~ev) /\ ~(ev /\ plc = 0)))
     /\ lr1' = now
     /\ UNCHANGED <<now, ipc, holder, exp, att, attAt, ev, evAt, plc, nO, cO, nU, cU, crashes, spc1, tgt1, spc2, tgt2, lr2>>
 
@@ -254,7 +254,7 @@ TakeUnretained2 ==
 \* A run that finds the section held or nothing to examine skips (Per-act critical section 5).
 Skip2 ==
     /\ spc2 = "idle"
-    /\ (holder # "none" \/ ~(att /\ ~ev) /\ ~(ev /\ plc = 0))
+    /\ (holder # "none" \/ (~(att /\ ~ev) /\ ~(ev /\ plc = 0)))
     /\ lr2' = now
     /\ UNCHANGED <<now, ipc, holder, exp, att, attAt, ev, evAt, plc, nO, cO, nU, cU, crashes, spc1, tgt1, lr1, spc2, tgt2>>
 

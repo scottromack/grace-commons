@@ -18,6 +18,7 @@
 
 import { readFileSync, writeFileSync, existsSync, mkdirSync, readdirSync } from "node:fs";
 import { join, basename, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 
 // kebab / snake / spaced -> lowerCamelCase; a valid TLA+ identifier is returned
 // unchanged (idempotent), so already-camelCase files pass through untouched.
@@ -28,7 +29,7 @@ export function toModuleName(raw) {
          parts.slice(1).map((p) => p[0].toUpperCase() + p.slice(1)).join("");
 }
 
-function adaptOne(tlaPath, outDir) {
+export function adaptOne(tlaPath, outDir, { quiet = false } = {}) {
   const src = readFileSync(tlaPath, "utf-8");
   const m = src.match(/MODULE\s+([\w-]+)/);                  // first = the declaration
   if (!m) { console.error(`  skip (no MODULE header): ${tlaPath}`); return null; }
@@ -43,7 +44,7 @@ function adaptOne(tlaPath, outDir) {
   for (const ext of [".cfg", ".constants.json"]) {
     if (existsSync(base + ext)) writeFileSync(join(outDir, safe + ext), readFileSync(base + ext));
   }
-  console.log(`  ${basename(tlaPath).padEnd(40)} -> ${safe}.tla` +
+  if (!quiet) console.log(`  ${basename(tlaPath).padEnd(40)} -> ${safe}.tla` +
               (safe !== rawName ? "   (renamed)" : "   (already TLC-safe)"));
   return outTla;
 }
@@ -52,27 +53,29 @@ function adaptOne(tlaPath, outDir) {
 // modules (Naturals, FiniteSets, …), not hyphenated repo modules, so no
 // inter-module reference rewriting is needed today; revisit if that changes.
 
-const args = process.argv.slice(2);
-const all = args.includes("--all");
-const pos = args.filter((a) => !a.startsWith("--"));
+if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+  const args = process.argv.slice(2);
+  const all = args.includes("--all");
+  const pos = args.filter((a) => !a.startsWith("--"));
 
-let inputs, outDir;
-if (all) {
-  outDir = resolve(pos[0] || "build-tlc");
-  inputs = [];
-  for (const d of ["atoms", "compositions"]) {
-    if (existsSync(d)) for (const f of readdirSync(d)) if (f.endsWith(".tla")) inputs.push(join(d, f));
+  let inputs, outDir;
+  if (all) {
+    outDir = resolve(pos[0] || "build-tlc");
+    inputs = [];
+    for (const d of ["atoms", "compositions"]) {
+      if (existsSync(d)) for (const f of readdirSync(d)) if (f.endsWith(".tla")) inputs.push(join(d, f));
+    }
+  } else {
+    if (!pos[0]) {
+      console.error("usage: node tla-adapter.mjs <model.tla> [outDir]  |  --all [outDir]");
+      process.exit(2);
+    }
+    inputs = [pos[0]];
+    outDir = resolve(pos[1] || "build-tlc");
   }
-} else {
-  if (!pos[0]) {
-    console.error("usage: node tla-adapter.mjs <model.tla> [outDir]  |  --all [outDir]");
-    process.exit(2);
-  }
-  inputs = [pos[0]];
-  outDir = resolve(pos[1] || "build-tlc");
+
+  console.log(`TLC-adapting ${inputs.length} file(s) -> ${outDir}`);
+  const made = [];
+  for (const f of inputs) { const o = adaptOne(f, outDir); if (o) made.push(o); }
+  console.log(`\nRun under standard TLC, e.g.:\n  java -jar tla2tools.jar ${made[0] || "<Module>.tla"}`);
 }
-
-console.log(`TLC-adapting ${inputs.length} file(s) -> ${outDir}`);
-const made = [];
-for (const f of inputs) { const o = adaptOne(f, outDir); if (o) made.push(o); }
-console.log(`\nRun under standard TLC, e.g.:\n  java -jar tla2tools.jar ${made[0] || "<Module>.tla"}`);
