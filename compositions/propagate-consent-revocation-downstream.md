@@ -251,9 +251,11 @@ Term event id width: the widest event id, in bytes, the wired Audit Trail instan
 
 Term maximal envelope: the largest compensating propagation event the composition could write — the registrations cap's pairs at the field length cap, the intent candidates cap's candidates at the event id width, every reference and the reason at the field length cap, and the fixed fields — serialized as the substrate sizes it.
 
+NOTE: open 2026-11-09-b — the event id width has no owner that supplies it, and the maximal envelope omits the recovery intent's overhead.
+
 Term clock offset allowance: the declared bound on the difference between the composition's seam clock and the substrate's clock.
 
-Term required setting: the compensation window, the reconciliation cadence, the reconciliation run bound, the administration completion bound, the field length cap, the registrations cap, the intent candidates cap, the event id width or the clock offset allowance.
+Term required setting: the compensation window, the reconciliation cadence, the reconciliation run bound, the administration completion bound, the field length cap, the registrations cap, the intent candidates cap, the event id width, the clock offset allowance or the recovery identity.
 
 Term recovery identity: the composition's registered actor reference and credential — `application_actor_ref` and `application_credential` — under which the reconciliation attests every write it makes.
 
@@ -330,6 +332,8 @@ Audit arm 16: IF Audit Trail answers invalid-request carrying the retention step
 Audit arm 17: IF Audit Trail answers invalid-request carrying step-1, step-2 or step-3 at an outcome THEN the action MUST answer recording-failure carrying outcome.
 ```
 
+NOTE: open 2026-11-09-a — Audit arm 7 lands an invalid-credential at a subsequent write as a refusal, though the intent and the Consent write have committed.
+
 Term intent: a grant intent or a withdrawal intent — the audit write an action makes before its first Consent write, the one that verifies the caller's credential.
 
 Term outcome: a grant event or a propagation event — the audit write an action owes after its Consent write.
@@ -342,22 +346,22 @@ Term retention step: the step naming the substrate's retention placement on an i
 
 Term position: intent | outcome — where a recording-failure sat: intent, a refusal, nothing committed and the whole action may be re-run; outcome, an answer and not a refusal, so the call is admitted and its writes commit with it, the Consent record among them, and its audit event is owed (Execution Contract Read 4).
 
-NOTE: watch the attempt a refusal erases (Term position).
+NOTE: watch the attempt a refusal erases (Term position, Action wiring 8, Action wiring 35, Action wiring 36).
 
 ### Action wiring
 
 ```
 record_consent(actor_ref, subject_ref, purpose, credential, retention_policy_ref, optional expires_at, optional metadata)
-  answers consent id | recording-failure(outcome)
-  refuses permission-denied | already-granted | invalid-credential | invalid-request | registry-unavailable | recording-failure(intent)
+  answers consent id | already-granted | recording-failure(outcome)
+  refuses permission-denied | invalid-credential | invalid-request | registry-unavailable | recording-failure(intent)
 
 register_processing(actor_ref, consent_id, processing_scope, processor_ref, credential)
   answers registered
   refuses permission-denied | not-known | registration-cap-exceeded | invalid-credential | invalid-request | recording-failure
 
 withdraw_consent(actor_ref, consent_id, credential, reason)
-  answers withdrawn | recording-failure(outcome)
-  refuses permission-denied | not-known | already-revoked | already-expired | invalid-credential | invalid-request | recording-failure(intent)
+  answers withdrawn | already-revoked | already-expired | recording-failure(outcome)
+  refuses permission-denied | not-known | invalid-credential | invalid-request | recording-failure(intent)
 
 read_consent_history(actor_ref, subject_ref, credential)
   answers consent history
@@ -417,6 +421,7 @@ Action wiring 37: IF the revoke write answers invalid-request THEN [Withdraw Con
 Action wiring 38: IF the revoke write answers storage-failure THEN [Withdraw Consent] MUST answer recording-failure carrying intent (Execution Contract Constituent failure 1).
 Action wiring 39: IF the revoke write answers not-known THEN [Withdraw Consent] MUST answer not-known.
 Action wiring 40: IF the revoke write answers not-known THEN the composition MUST open an index-anomaly finding for the consent id.
+Action wiring 40a: The deployment MUST alert on EVERY index-anomaly finding.
 Action wiring 41: A committed withdrawal MUST record the propagation event carrying the intent event id, the consent id, the subject reference, the purpose, the reason, the propagation set AND the revocation instant.
 Action wiring 42: A landed withdrawal MUST answer withdrawn.
 Deleted: Action wiring 43. Reconciliation 9 and Execution Contract Database 1 own it.
@@ -438,8 +443,6 @@ Action wiring 58: IF the retention placement answers storage-failure THEN [Recor
 ```
 
 NOTE: open 2026-11-04-c — Action wiring 12 and 37 land a bare invalid-request after the intent committed, so a caller cannot tell a malformed input from a clock-order refusal.
-
-NOTE: open 2026-11-04-e — a refused call's intent stands as residue (Check 6.4) where Execution Contract Read 4 has a refused call write nothing.
 
 Term administration action: [Record Consent], [Register Processing], [Withdraw Consent] or [Read Consent History].
 
@@ -521,7 +524,7 @@ Term index-anomaly finding: a finding that the subject index resolves a consent 
 
 #### Closure table
 
-Every input an action takes, and every answer a call of the five actions and of the reconciliation can meet — Permissions' permission check, Consent's consent check, grant write, revoke write and consent read, Retention Window's retention placement, and Audit Trail's audit write, record read and log read — with where the call lands it and the rule that owns the landing. A constituent call meets the answers its signature declares and the state-unavailable a failed read of the database gives every action (Execution Contract Read 1); a call that never answers is the lost answer of Execution Contract Error model 1, written no answer here. Each action is one transaction (Execution Contract Database 1), the state its guards decide on read inside it (Execution Contract Database 2), and the three indexes stay outside it (Composition state 8). A [Record Consent] or [Withdraw Consent] call landing recording-failure carrying outcome lands an answer, not a refusal, so the call is admitted and its writes commit with it, its Consent write among them, the outcome owed to the reconciliation (Audit arm 12, 15, 17); a refusal writes nothing (Execution Contract Read 4).
+Every input an action takes, and every answer a call of the five actions and of the reconciliation can meet — Permissions' permission check, Consent's consent check, grant write, revoke write and consent read, Retention Window's retention placement, and Audit Trail's audit write, record read and log read — with where the call lands it and the rule that owns the landing. A constituent call meets the answers its signature declares and the state-unavailable a failed read of the database gives every action (Execution Contract Read 1); a call that never answers is the lost answer of Execution Contract Error model 1, written no answer here. Each action is one transaction (Execution Contract Database 1), the state its guards decide on read inside it (Execution Contract Database 2), and the three indexes stay outside it (Composition state 8). A [Record Consent] or [Withdraw Consent] call landing recording-failure carrying outcome lands an answer, not a refusal, so the call is admitted and its writes commit with it, its Consent write among them, the outcome owed to the reconciliation (Audit arm 12, 15, 17); an already-granted, already-revoked or already-expired lands an answer too, the call admitted and its intent committed with it, nothing else written (Action wiring 8, 35, 36); a refusal writes nothing (Execution Contract Read 4).
 
 **Inputs.**
 
@@ -551,7 +554,7 @@ Every input an action takes, and every answer a call of the five actions and of 
 
 | Call | Answer | Lands | Owner |
 |---|---|---|---|
-| the consent check, at [Record Consent] | granted | already-granted | Action wiring 8 |
+| the consent check, at [Record Consent] | granted | already-granted, its grant intent committed | Action wiring 8 |
 | the consent check, at [Record Consent] | revoked, expired or not-known | the grant write | Action wiring 9, Term checked grant |
 | the grant write | a consent id | the retention placement | Action wiring 13, Term committed grant |
 | the grant write | invalid-request | invalid-request | Action wiring 12 |
@@ -561,9 +564,9 @@ Every input an action takes, and every answer a call of the five actions and of 
 | the retention placement | registry-unavailable | passed through unchanged | Execution Contract Constituent failure 2 |
 | the retention placement | storage-failure | recording-failure carrying intent, nothing committed | Action wiring 58, Execution Contract Constituent failure 1 |
 | the revoke write | revoked | the propagation event | Action wiring 41, Term committed withdrawal |
-| the revoke write | already-revoked or already-expired | the same refusal, relayed | Action wiring 35, 36 |
+| the revoke write | already-revoked or already-expired | the same answer, relayed, its withdrawal intent committed | Action wiring 35, 36 |
 | the revoke write | invalid-request | invalid-request; Primitive policy 1, 3 and 5 and the composition's own now meet its other grounds, so only Consent's clock order reaches it (Consent Operation 24, 25) | Action wiring 37 |
-| the revoke write | not-known | not-known, and an index-anomaly finding opened | Action wiring 39, 40 |
+| the revoke write | not-known | not-known, and an index-anomaly finding opened and alerted | Action wiring 39, 40, 40a |
 | the revoke write | storage-failure | recording-failure carrying intent, nothing committed | Action wiring 38, Execution Contract Constituent failure 1 |
 | the consent read, at [Read Consent History] | the consent history | the access event | Action wiring 50, Term fetched history read |
 | the consent read | invalid-query | invalid-request; not met, the query carrying one subject reference filter Primitive policy 1 has checked | Action wiring 49 |
@@ -635,6 +638,7 @@ Reconciliation 9: The reconciliation MUST NOT compensate a record whose owed out
 Reconciliation 10: The reconciliation MUST pair an unpropagated record to the withdrawal intents carrying the record's consent id whose intent instant EQUALS the record's revocation instant AND whose actor EQUALS the record's revoker.
 Reconciliation 11: IF the withdrawal candidate count EQUALS zero THEN the reconciliation MUST open a write-ownership finding for the record.
 Reconciliation 12: The reconciliation MUST NOT compensate an unpaired record.
+Reconciliation 12a: The reconciliation MUST compensate an orphan whose candidate count EXCEEDS zero AND DOES NOT EXCEED the intent candidates cap, at the run that first reads the orphan, other than by the retry Reconciliation 28 owes.
 Reconciliation 13: The reconciliation MUST derive a compensating propagation event's propagation set at the earliest candidate's boundary.
 Reconciliation 14: The reconciliation MUST re-derive EVERY other field of a compensating event from the indexes, the Consent record AND the retention placement.
 Reconciliation 15: The reconciliation MUST read EVERY Consent record against the grant events.
@@ -655,14 +659,16 @@ Reconciliation 29: IF an uncompensable cause holds for a record THEN the reconci
 Reconciliation 30: IF an orphan's escalation instant PRECEDES the reconciliation's now THEN the reconciliation MUST record an escalation carrying the last refusal the orphan's compensation met.
 Reconciliation 31: An escalation MUST carry the kind, the consent id, the intent reference, the cause AND the attempt count.
 Reconciliation 32: The reconciliation MUST NOT compensate an escalated record.
-Reconciliation 33: The reconciliation MUST NOT record a second escalation for one record.
+Reconciliation 33: The reconciliation MUST NOT record a second landed escalation for one record.
 Reconciliation 34: IF an escalation fails to land THEN the reconciliation MUST retry the escalation at the reconciliation's next run.
 Reconciliation 35: The reconciliation MUST report EVERY escalated record at EVERY run.
 Reconciliation 36: The deployment MUST alert on EVERY orphan as a high-priority finding.
 Reconciliation 37: The reconciliation MUST decide ONLY on an answered read.
 ```
 
-Term reconciliation: the leg the composition runs outside every invocation, whose output — a compensated orphan, an escalation or a finding — an auditor awaits within the compensation window.
+Term reconciliation: the leg the composition runs outside every invocation, whose output — a compensated orphan or a finding — an auditor awaits within the compensation window, and whose escalation an auditor awaits within the escalation reach.
+
+NOTE: watch the escalation outside the window (Term reconciliation).
 
 Term aged record: a Consent record whose grant instant — or, revoked, whose revocation instant — plus the audit horizon PRECEDES the reconciliation's now.
 
@@ -734,7 +740,7 @@ These emerge from the composition; none belongs to one constituent, and each nee
 
 - **Invariant 2 — Grant audit coverage.**
   ```
-  Invariant 2.1: IF a governed consent's escalation instant PRECEDES now THEN the governed consent MUST carry a grant closure.
+  Invariant 2.1: IF a governed consent's grant instant plus the widened window PRECEDES now THEN the governed consent MUST carry a grant closure.
   Invariant 2.2: EVERY grant event MUST carry an attestation AND a position in the Event Log sequence.
   ```
   Term grant closure: a grant event naming the consent, a purged key entry the consent's consent id keys, an escalation of kind grant naming the consent, or the consent's grant instant plus the audit horizon PRECEDING now, whether or not an escalation of kind grant naming the consent still stands, the horizon having by then destroyed its payload.
@@ -744,8 +750,8 @@ These emerge from the composition; none belongs to one constituent, and each nee
   Invariant 3.1: EVERY propagation event MUST name a consent the Consent records hold in Revoked.
   Invariant 3.2: Two propagation events MUST NOT carry one consent id.
   Invariant 3.3: A propagation event's propagation set MUST EQUAL the registered set at the event's boundary.
-  Invariant 3.4: IF an unpropagated record's surfacing bound PRECEDES now THEN the composition MUST NOT leave the unpropagated record unsurfaced.
-  Invariant 3.5: IF a paired unpropagated record's escalation instant PRECEDES now THEN the record MUST carry a propagation closure.
+  Invariant 3.4: IF an unpropagated record's surfacing bound PRECEDES now THEN the deployment MUST alert on the unpropagated record (Reconciliation 36).
+  Invariant 3.5: IF a paired unpropagated record's revocation instant plus the widened window PRECEDES now THEN the record MUST carry a propagation closure.
   Invariant 3.6: EVERY compensating event MUST carry the recovery flag.
   ```
   Term event's boundary: the position in the Event Log of the intent the event's intent reference names — the earliest where it names candidates.
@@ -809,7 +815,7 @@ A retail platform uses this composition to manage marketing consent. Configurati
 
 5. **Gate check after withdrawal.** `processing_permitted("user-4491", "marketing:email") → rejected(not-permitted(revoked))`. The email engine and the audience builder, consuming the propagation event or re-querying the gate, cease processing; deleting the derived lookalike audience is the audience builder's own obligation, signalled by the `consent.revoked` event's `affected_scopes`.
 
-6. **DSAR audit.** A data-subject access request calls `read_consent_history(actor_ref="dsr_officer", subject_ref="user-4491", credential=<dsr_officer>)` → the Granted-then-Revoked `cns-7001` record; a `consent.history-read` meta-event is recorded. The complete lifecycle — the grant and its intent, two registrations, the withdrawal-with-propagation and its intent, the access — is provable (Invariant 5), and each state-changing act's records show the operator was verified before it committed (Invariant 8).
+6. **Data subject access request (DSAR) audit.** A data-subject access request calls `read_consent_history(actor_ref="dsr_officer", subject_ref="user-4491", credential=<dsr_officer>)` → the Granted-then-Revoked `cns-7001` record; a `consent.history-read` meta-event is recorded. The complete lifecycle — the grant and its intent, two registrations, the withdrawal-with-propagation and its intent, the access — is provable (Invariant 5), and each state-changing act's records show the operator was verified before it committed (Invariant 8).
 
 ### Re-consent path
 
@@ -817,7 +823,7 @@ Six months after withdrawal the user re-enables marketing email. `record_consent
 
 ### Rejection path — a second grant for a pair that already holds one
 
-A retry of the walkthrough's first `record_consent(...)` after a timeout, or a second banner affirmation while `cns-7001` is Granted: the single-active-grant check `Consent.check("user-4491", "marketing:email") → granted` → `rejected(already-granted)`. No second Granted record is created for the pair (Invariant 1.3); the grant intent stands as ordinary residue. Where the first call had committed `cns-7001` and answered `recording-failure(outcome)`, that answer is also the caller's signal that the record exists and the scan owns its event — the caller does not grant again.
+A retry of the walkthrough's first `record_consent(...)` after a timeout, or a second banner affirmation while `cns-7001` is Granted: the single-active-grant check `Consent.check("user-4491", "marketing:email") → granted` → the answer already-granted. No second Granted record is created for the pair (Invariant 1.3); the grant intent commits with that answer. Where the first call had committed `cns-7001` and answered `recording-failure(outcome)`, that answer is also the caller's signal that the record exists and the scan owns its event — the caller does not grant again.
 
 ### Rejection path — withdrawal by an unauthorized operator
 
@@ -825,7 +831,7 @@ An operator lacking `consent:revoke` attempts `withdraw_consent(...)`: the permi
 
 ### Rejection path — withdrawing an already-revoked consent
 
-A retry after a timeout: `withdraw_consent(actor_ref="consent_svc", consent_id="cns-7001", credential=<consent_svc>, reason="retry")` → the withdrawal intent is written (the operator is real and their credential validates), then Consent's already-revoked is relayed as `rejected(already-revoked)`. No second propagation event is recorded; the single `consent.revoked` event from the first withdrawal stands. The retry therefore leaves a `consent.withdrawal_intended` event with no `consent.revoked` event carrying its `intent_event_id` — the expected residue of the authentication discipline, and the worked instance of the triage's other-invocation case (Check 6.4): the consent is Revoked, but by *another* invocation's propagation event, so nothing is owed and no compensating record may be written. (Consent Invariant 3 — terminal absorption — surfaced at the composition boundary.)
+A retry after a timeout: `withdraw_consent(actor_ref="consent_svc", consent_id="cns-7001", credential=<consent_svc>, reason="retry")` → the withdrawal intent is written (the operator is real and their credential validates), then Consent's already-revoked is relayed as the answer already-revoked. No second propagation event is recorded; the single `consent.revoked` event from the first withdrawal stands. The retry therefore leaves a `consent.withdrawal_intended` event with no `consent.revoked` event carrying its `intent_event_id` — the admitted retry's evidence, and the worked instance of the triage's other-invocation case (Check 6.4): the consent is Revoked, but by *another* invocation's propagation event, so nothing is owed and no compensating record may be written. (Consent Invariant 3 — terminal absorption — surfaced at the composition boundary.)
 
 ### Failure path — withdrawal whose propagation event fails to record
 
@@ -856,15 +862,14 @@ An implementation is acceptable — in the regulator-acceptance sense — when t
 ```
 Check 1.1: An auditor MUST find [Processing Permitted] AND the consent check agreeing over a sample of subject references AND purposes (Invariant 1.1).
 Check 1.2: An auditor MUST find no two governed consents in Granted carrying one subject reference AND one purpose (Invariant 1.3).
-Check 2.1: An auditor MUST find a grant closure for EVERY governed consent whose escalation instant PRECEDES the audit (Invariant 2.1).
-Check 2.2: An auditor MUST resolve EVERY Consent record carrying no grant event, other than a purged grant, to EXACTLY ONE OF an aged record, an orphan under compensation, an escalated grant orphan, a write-ownership finding (Invariant 2.1).
-NOTE: open 2026-11-05-b — an aged record whose escalation is still readable is both an aged record and an escalated grant orphan, so EXACTLY ONE OF cannot hold.
+Check 2.1: An auditor MUST find a grant closure for EVERY governed consent whose grant instant plus the widened window PRECEDES the audit (Invariant 2.1).
+Check 2.2: An auditor MUST resolve EVERY Consent record carrying no grant event, other than a purged grant, to EXACTLY ONE OF an aged record no escalation of kind grant names, an orphan under compensation, an escalated grant orphan, a write-ownership finding (Invariant 2.1).
 Check 2.3: An auditor MUST find a passing verification for EVERY grant event (Invariant 2.2).
 Check 3.1: An auditor MUST find no consent id two propagation events carry (Invariant 3.2).
 Check 3.2: An auditor MUST find EVERY propagation event's propagation set equal to the registered set at the event's boundary (Invariant 3.3).
 Check 3.3: An auditor MUST find a passing verification for EVERY propagation event (Invariant 5.1).
 Check 3.4: An auditor MUST resolve EVERY revoked Consent record carrying no propagation event to EXACTLY ONE OF propagation history purged, an orphan under compensation, an escalated orphan, a write-ownership finding, a conformance failure (Invariant 3.5).
-Check 3.5: IF an unpropagated record's escalation instant PRECEDES the audit THEN an auditor MUST find the record's propagation closure within the widened window (Invariant 3.5).
+Check 3.5: IF an unpropagated record's revocation instant plus the widened window PRECEDES the audit THEN an auditor MUST find the record's propagation closure within the widened window (Invariant 3.5).
 Check 3.6: An auditor MUST find EVERY compensating event attested under the recovery identity AND preceded by a recovery intent carrying the same intent reference (Invariant 3.6).
 Check 3.7: An auditor MUST find EVERY escalation carrying a cause (Reconciliation 31).
 Check 3.8: An auditor MUST find the compensation window exceeding the liveness sum (Capability requirement 10).
@@ -873,7 +878,7 @@ Check 4.1: An auditor MUST find a registration event preceding the event's bound
 Check 4.2: IF the record read answers Purged for a pair's registration event THEN an auditor MUST compare the event's surviving sequence number with the event's boundary (Invariant 4.1).
 Check 5.1: An auditor MUST find a consent retention in Retained for EVERY governed consent carrying a grant event (Invariant 6.1).
 Check 5.2: An auditor MUST find no consent retention in Purged (Invariant 6.1).
-Check 6.1: An auditor MUST resolve EVERY outcome's intent reference to an intent that PRECEDES the outcome in the Event Log AND names the same operator (Invariant 8.1).
+Check 6.1: An auditor MUST resolve EVERY outcome's intent reference to an intent that PRECEDES the outcome in the Event Log AND names the same operator, the operator of a compensating event being the operator the event carries and the operator of any other outcome being the outcome's attestation actor (Invariant 8.1, Reconciliation 26, 27).
 Check 6.2: An auditor MUST NOT join an outcome to an intent by any key weaker than the intent event id (Invariant 8.1).
 Check 6.3: An auditor MUST NOT order an intent AND the intent's outcome by instant (Clock semantics 1).
 Check 6.4: An auditor MUST NOT read an intent carrying no outcome as a conformance failure (Reconciliation 10).
@@ -889,19 +894,21 @@ Check 8.4: An auditor MUST clear Audit Trail's Generation acceptance over the Au
 
 NOTE: EVERY check names the rule the check tests.
 
+NOTE: open 2026-11-09-c — Check 3.4's conformance-failure arm takes in an orphan past its escalation instant that no closure names.
+
 Term passing verification: verified | failed-verification carrying purged | failed-verification carrying unsealed | unverifiable carrying partially-purged-coverage.
 
-Term orphan under compensation: an orphan younger than its escalation instant.
+Term orphan under compensation: an orphan younger than its escalation instant that a candidate intent pairs.
 
 Term escalated grant orphan: a Consent record an escalation of kind grant names.
 
 Term escalated orphan: a revoked Consent record an escalation of kind propagation names.
 
-Term propagation history purged: an aged revoked Consent record carrying no propagation event — its event lawfully destroyed.
+Term propagation history purged: an aged revoked Consent record carrying no propagation event, which no escalation of kind propagation names — its event lawfully destroyed.
 
 Term write-ownership finding: a Consent record no intent pairs — a direct write against a reserved surface (Composes 11 and 12).
 
-Term widened window: `(escalation reach + clock offset allowance)` from the record's revocation instant to the closure's recording instant — two seams' stamps.
+Term widened window: `(escalation reach + clock offset allowance)` from the record's grant instant — or, for its withdrawal, its revocation instant — to the closure's recording instant — two seams' stamps.
 
 ### External checks
 
@@ -965,6 +972,8 @@ Deleted: Concurrency 3. Execution Contract Database 2 owns it.
 Deleted: Concurrency 4. Execution Contract Database 2 owns it: an action's reads and the writes they decide are one transaction, and the composition names no exclusion for [Processing Permitted] to take.
 ```
 
+NOTE: open 2026-11-09-d — the revoke-committed, event-owed orphan has no entry among the Edge cases (Audit arm 12, 15).
+
 ### Retention asymmetry
 
 ```
@@ -1002,7 +1011,7 @@ Term composing patterns: [Customer Onboarding](./customer-onboarding.md); [Resol
 
 #### Record Consent
 
-The composition action that records a data subject's consent for a purpose under an authorized operator's authority: it checks the operator's [Consent Grant] permission, records a `consent.grant_intended` event — the write that verifies the operator's credential, before anything commits — then refuses already-granted where the subject already holds a Granted record for the purpose (single-active-grant, Invariant 1.3), calls `Consent.grant`, places the consent record under its retention floor, and audits the grant (`consent.granted`, carrying the intent event's id). Returns the consent_id.
+The composition action that records a data subject's consent for a purpose under an authorized operator's authority: it checks the operator's [Consent Grant] permission, records a `consent.grant_intended` event — the write that verifies the operator's credential, before anything commits — then answers already-granted where the subject already holds a Granted record for the purpose (single-active-grant, Invariant 1.3), calls `Consent.grant`, places the consent record under its retention floor, and audits the grant (`consent.granted`, carrying the intent event's id). Returns the consent_id.
 
 Kind: Operation
 
@@ -1131,24 +1140,26 @@ The four constituents carry their own deep standards inheritance — see each co
 
 ## Status
 
-`grounded on Final Critique 14 — 2026-11-06 at 85bc8fe — formal layer pending` — see the Ledger.
+`partially resolved` — see the Ledger.
 
 ## Ledger
 
 ```
-status: grounded on Final Critique 14 — 2026-11-06 at 85bc8fe — formal layer pending
+status: partially resolved
 formal: pending — re-derivation, 2026-08-30: propagate-consent-revocation-downstream.tla + 1 twin verified 2026-08-27 over a single-writer invocation with no terminus; re-derive over the invocation and the scan as two processes over one act, the bound as the yield point (2026-08-29-a, 2026-08-30-k)
-last gate: 2026-11-06 — Final Critique 14, a delta round, frozen at 85bc8fe — foundational count 0, clean, one sample; 2026-11-06 — Final Critique 13 — delta, foundational count 1, not clean, no sample
+last gate: 2026-11-09 — Final Critique 15, a full round, frozen at 887b20e — foundational count 4 and one more the formal-layer unit found, all cured, not clean, no sample; 2026-11-06 — Final Critique 14, a delta round, frozen at 85bc8fe — foundational count 0, clean, one sample; 2026-11-06 — Final Critique 13 — delta, foundational count 1, not clean, no sample
 
 open:
 - 2026-08-29-a · refining · formal · the model's compensation action carries no identity, no intent record, and no age bound; the twin predates the scan's two edges → extend the model with the service-identity compensation behind `consent.recovery_intended` and the bounded scan
 - 2026-08-30-k · refining · formal · the model has no second leg; single-active-grant, the third scan leg and the escalation record are unmodelled → extend it with the invocation and the scan as two processes over one act (with 2026-08-29-a)
-- 2026-11-04-a · refining · Capability requirement 4, Action wiring 13, 14 · no rule refuses a consent retention whose period exceeds the audit horizon at the placement, and Check 7.1 finds the breach only after the record stands → name the refusal the placement lands among the Action wiring, or name the policy registry the owner (External check 5)
-- 2026-11-04-b · refining · Composition state 12 · a rebuild reads the enumeration of Consent's records as a cross-check, and no rule says what the composition does where the enumeration and the log disagree → name the finding the disagreement opens
-- 2026-11-04-c · refining · Action wiring 12, 37 · a bare invalid-request lands after the grant or withdrawal intent committed, so a caller cannot tell a malformed input from a clock-order refusal (Consent Operation 24, 25) → give the refusal a position, or name the retry posture
-- 2026-11-04-d · refining · Primitive policy 7, Capability requirement 14 · the propagation envelope never exceeds the maximal envelope the start rule bounds, so the guard cannot fire → name which envelope Primitive policy 7 measures, or delete the guard to Capability requirement 14
-- 2026-11-04-e · refining · Action wiring 8, 12, 14, 35, 36, Check 6.4 · a refused call's intent stands as residue where Execution Contract Read 4 has a refused call write nothing → answer the refusal as Authenticated Actor and Login did, or keep the intent as the refused attempt's evidence (Scott, 2026-10-20) in a round that reads Check 6.4 with it
-- 2026-11-05-b · refining · Check 2.2 · an aged record whose escalation is still readable is also an escalated grant orphan, and the check asks for exactly one → name which of the two the auditor reads first, or drop the overlap
+- 2026-11-04-a · refining · Capability requirement 4, Action wiring 13, 14 · no rule refuses a consent retention whose period exceeds the audit horizon at the placement, and Check 7.1 finds the breach only after the record stands → name the refusal the placement lands among the Action wiring, or name the policy registry the owner (External check 5); re-found by Final Critique 15
+- 2026-11-04-b · refining · Composition state 12 · a rebuild reads the enumeration of Consent's records as a cross-check, and no rule says what the composition does where the enumeration and the log disagree → name the finding the disagreement opens; re-found by Final Critique 15
+- 2026-11-04-c · refining · Action wiring 12, 37 · a bare invalid-request lands after the grant or withdrawal intent committed, so a caller cannot tell a malformed input from a clock-order refusal (Consent Operation 24, 25) → give the refusal a position, or name the retry posture; re-found by Final Critique 15
+- 2026-11-04-d · refining · Primitive policy 7, Capability requirement 14 · the propagation envelope never exceeds the maximal envelope the start rule bounds, so the guard cannot fire → name which envelope Primitive policy 7 measures, or delete the guard to Capability requirement 14; re-found by Final Critique 15
+- 2026-11-09-a · refining · Audit arm 7 · an invalid-credential at a subsequent write lands as a refusal, so the caller of a withdrawal whose propagation event write answers it reads nothing happened though the intent and the Consent write committed → give the arm a position as Audit arm 12, 14, 15 and 17 give recording-failure at an outcome
+- 2026-11-09-b · refining · Term event id width, Term maximal envelope, Capability requirement 13, 14 · the event id width is a setting the substrate does not disclose and no read surface supplies, and the maximal envelope omits the recovery intent's overhead, so at cap-equality a maximal-shaped orphan can never land it → name the owner of the width and count the recovery intent in the envelope
+- 2026-11-09-c · refining · Check 3.4 · the conformance-failure arm swallows the stuck unescalated orphan Reconciliation 28 and 34 permit while every write fails → name the arm for an orphan past its escalation instant that no closure names
+- 2026-11-09-d · refining · Edge cases · the revoke-committed, event-owed orphan is spec-format's cross-record consistency under partial failure case and has no entry in Edge cases → add the entry, or name Audit arm 12, 15 as its owner
 ```
 
 <details markdown="block">
@@ -1160,7 +1171,7 @@ Directional changes only — the turns a future reader must know the pattern too
 
 - **2026-10-21 — The consent lifecycle reads as provable.** *Chose:* *provable* (`glossary.md`: shown by the records alone, never by a system's say-so) where the page wrote *from the records alone*, *records-alone* or their like: Invariant 5.1, under which every governed consent's lifecycle resolves provably from the Consent records, the Audit Trail instance and the indexes, with Invariant 5's heading, and, by wording alone, the Summary, the Wiring decision's principle, the invariants' closing paragraph, the DSAR and regulator examples, the acceptance bar, the [Affected Scopes] term entry and the Article 6(1)(a) standard; every *grant* on the page names a consent grant, a live authorization a withdrawal ends, so none changed; rules 233 to 233. *Over:* the phrase restated at each site. *Because:* the maintainer ruled 2026-10-21 that *shred*, *grant* and *provable* are declared domain terms, each defined once, in `glossary.md`, and that the specifications say them where their meaning stood; the wording of Invariant 5.1 changed and no obligation did.
 - **2026-11-04 — A recording failure at an outcome is answered, not refused, so the Consent record it follows stays committed.** *Chose:* [Record Consent] and [Withdraw Consent] answering recording-failure carrying outcome beside the consent id and withdrawn, and refusing only recording-failure carrying intent, so a call whose grant event or propagation event Audit Trail refuses is admitted and its writes commit together, its Consent write among them (Execution Contract Database 1), the outcome owed to the reconciliation (Audit arm 12, 15, 17, Term position, Reconciliation 9 through 17, 24 through 27). *Over:* recording-failure carrying outcome on the refuses line, read as a committed Consent record while Execution Contract Read 4 has a refused call write nothing (open line 2026-10-30-a), and landing it carrying intent, which would have rolled the grant or the revoke back and left a caller's withdrawal lost. *Because:* the ruling of 2026-10-31 16:48Z answered the (b) shape for this page: keep, in the form Authenticated Actor and Login took, the outcome answered so Read 4 holds as written.
-- **2026-10-21 — The store's guarantees cited, not restated, and a withdrawal's revoke and its propagation event one transaction.** *Chose:* Capability requirement 32 citing Execution Contract Store 1 through 4 for the store the Consent, Permissions, consent retention and Audit Trail instances and the three indexes keep their records in; to Store 3, the indexes' persistence and the index durability held at the Consent store's (Composition state 15, Capability requirement 24, 25); to Store 2, under which an action's reads and the writes they decide are one transaction, the consent exclusion and the pair exclusion with their supply, holding, release and lease and the refusal to run without them, every take of them, an invocation's release of them and the expiry of its lease, the reconciliation's take of the consent exclusion and its skip of a held record, and the bar on [Processing Permitted] taking one (Capability requirement 16 through 22, Action wiring 6, 20, 27, 45 through 47, Reconciliation 7, 8, Concurrency 1 through 4); to Store 1, under which an action's writes commit together, its constituents' included, the rule denying that the revoke and the propagation event form one atomic set, which Store 1 as ruled contradicts (Wiring decision 2), and the machinery that existed only because a crash, a split write or an invocation seen between its writes could leave a partial: the outcome retry attempts with the retry span the administration completion bound had to cover, the in-invocation retries of an outcome with their pre-check and adoption, the proceed-as-landed reading of a recording-failure at the substrate's retention step, which Audit Trail's own rewrite made commit nothing, the outcome position for a placement's storage failure, the consent exclusion a grant took only to keep the reconciliation off it, the reconciliation's run at every process start and its lower edge, and the placement re-run for a Granted record whose placement was refused, with the rule holding a compensating grant event behind it (Capability requirement 11, 12, Audit arm 5, 10, 11, Action wiring 15, 16, 43, 44, Reconciliation 1, 3, 18, 19). By clause, the consent check, the grant write, the derivation and the binding repair no longer name an exclusion (Action wiring 7, 9, 28, Reconciliation 22), and a recording-failure at an outcome's pre-append step lands as recording-failure carrying outcome with no retry ahead of it (Audit arm 12). Rules 268 to 233. *Over:* a revoke and a propagation event no transaction could span, ordered instead, with a consent exclusion and a pair exclusion the host held across an invocation's retries as a lease, and a reconciliation bounded below that compensated what a crash between the writes left — the turns of 2026-08-27 and 2026-08-30, below. *Because:* the maintainer ruled 2026-10-12 that the corpus takes a store's specification, never the store, and 2026-10-20 that Store 1 binds every store write of one composition action, its constituents' included, that a refused attempt a page keeps as evidence stays a domain choice, written in the same transaction as the refusal, and that Store 2 covers a guard decided across a lease check, the lease keeping its job only for an act outside the store. The revoke and the propagation event are store writes, Consent and Audit Trail each supplying theirs under Store 1 through 4, and downstream cessation is Non-goal 1, so the composition makes no act outside the store: a withdrawal's intent, revoke and propagation event commit together, as a grant's intent, grant write, placement and grant event do, and the two exclusions, host mutual exclusions over store-only work, are Store 2's. A placement refused after the grant write leaves only the grant intent standing, the refused attempt's evidence, so no Granted record waits unretained for a re-run. An Audit Trail refusal of an outcome still leaves the Consent record committed and its event owed (Audit arm 12, 15, 17), as Audit Trail's own refusals leave their evidence (Audit Trail record action step 7.11), so what closes it stays: the pairing on both sides with its candidates, the re-derived set, the pre-check, the recovery identity behind a recovery intent, the recovery flag, the compensation window, the cadence, the outcome write latency and the liveness sum the window must exceed, and the escalation (Capability requirement 6 through 8, 10, 23, Reconciliation 9 through 17, 20, 21, 24 through 35, Invariant 3.5, 3.6, Check 3.5, 3.6, 3.8, 6.4); the administration completion bound stays with them, since the liveness sum, the grant pairing window and the surfacing bound still read it (Capability requirement 9). Audit Trail's evidence rule leaves an invalid-request at its retention step with the event appended, so that answer still proceeds as landed, with the alert (Audit arm 6, 16). The three indexes stay derived indexes outside every action's transaction, as obligation 2 of the section titled Composition state in `execution-contract.md` keeps them, so an index entry still follows the event it derives from and a lost binding is still repaired (Action wiring 24, 25, 31, Reconciliation 20, 22, 23). The propagation set's boundary and the order of an intent and its outcome are the Event Log's own sequence numbers (Clock semantics 1), and no rule reads a record as it stood at a past commit, so the composition cites neither Store 5 nor Order 1. What the composition does for its domain is unchanged.
+- **2026-10-21 — The store's guarantees cited, not restated, and a withdrawal's revoke and its propagation event one transaction.** *Chose:* Capability requirement 32 citing Execution Contract Store 1 through 4 for the store the Consent, Permissions, consent retention and Audit Trail instances and the three indexes keep their records in; to Store 3, the indexes' persistence and the index durability held at the Consent store's (Composition state 15, Capability requirement 24, 25); to Store 2, under which an action's reads and the writes they decide are one transaction, the consent exclusion and the pair exclusion with their supply, holding, release and lease and the refusal to run without them, every take of them, an invocation's release of them and the expiry of its lease, the reconciliation's take of the consent exclusion and its skip of a held record, and the bar on [Processing Permitted] taking one (Capability requirement 16 through 22, Action wiring 6, 20, 27, 45 through 47, Reconciliation 7, 8, Concurrency 1 through 4); to Store 1, under which an action's writes commit together, its constituents' included, the rule denying that the revoke and the propagation event form one atomic set, which Store 1 as ruled contradicts (Wiring decision 2), and the machinery that existed only because a crash, a split write or an invocation seen between its writes could leave a partial: the outcome retry attempts with the retry span the administration completion bound had to cover, the in-invocation retries of an outcome with their pre-check and adoption, the proceed-as-landed reading of a recording-failure at the substrate's retention step, which Audit Trail's own rewrite made commit nothing, the outcome position for a placement's storage failure, the consent exclusion a grant took only to keep the reconciliation off it, the reconciliation's run at every process start and its lower edge, and the placement re-run for a Granted record whose placement was refused, with the rule holding a compensating grant event behind it (Capability requirement 11, 12, Audit arm 5, 10, 11, Action wiring 15, 16, 43, 44, Reconciliation 1, 3, 18, 19). By clause, the consent check, the grant write, the derivation and the binding repair no longer name an exclusion (Action wiring 7, 9, 28, Reconciliation 22), and a recording-failure at an outcome's pre-append step lands as recording-failure carrying outcome with no retry ahead of it (Audit arm 12). Rules 268 to 233. *Over:* a revoke and a propagation event no transaction could span, ordered instead, with a consent exclusion and a pair exclusion the host held across an invocation's retries as a lease, and a reconciliation bounded below that compensated what a crash between the writes left — the turns of 2026-08-27 and 2026-08-30, below. *Because:* the maintainer ruled 2026-10-12 that the corpus takes a store's specification, never the store, and 2026-10-20 that Store 1 binds every store write of one composition action, its constituents' included, that a refused attempt a page keeps as evidence stays a domain choice, written in the same transaction as the refusal, and that Store 2 covers a guard decided across a lease check, the lease keeping its job only for an act outside the store. The revoke and the propagation event are store writes, Consent and Audit Trail each supplying theirs under Store 1 through 4, and downstream cessation is Non-goal 1, so the composition makes no act outside the store: a withdrawal's intent, revoke and propagation event commit together, as a grant's intent, grant write, placement and grant event do, and the two exclusions, host mutual exclusions over store-only work, are Store 2's. A placement refused after the grant write is refused and writes nothing (Execution Contract Read 4), so no Granted record waits unretained for a re-run. An Audit Trail refusal of an outcome still leaves the Consent record committed and its event owed (Audit arm 12, 15, 17), as Audit Trail's own refusals leave their evidence (Audit Trail record action step 7.11), so what closes it stays: the pairing on both sides with its candidates, the re-derived set, the pre-check, the recovery identity behind a recovery intent, the recovery flag, the compensation window, the cadence, the outcome write latency and the liveness sum the window must exceed, and the escalation (Capability requirement 6 through 8, 10, 23, Reconciliation 9 through 17, 20, 21, 24 through 35, Invariant 3.5, 3.6, Check 3.5, 3.6, 3.8, 6.4); the administration completion bound stays with them, since the liveness sum, the grant pairing window and the surfacing bound still read it (Capability requirement 9). Audit Trail's evidence rule leaves an invalid-request at its retention step with the event appended, so that answer still proceeds as landed, with the alert (Audit arm 6, 16). The three indexes stay derived indexes outside every action's transaction, as obligation 2 of the section titled Composition state in `execution-contract.md` keeps them, so an index entry still follows the event it derives from and a lost binding is still repaired (Action wiring 24, 25, 31, Reconciliation 20, 22, 23). The propagation set's boundary and the order of an intent and its outcome are the Event Log's own sequence numbers (Clock semantics 1), and no rule reads a record as it stood at a past commit, so the composition cites neither Store 5 nor Order 1. What the composition does for its domain is unchanged.
 - **2026-08-30 — One Granted record per pair, one writer per act, the set derived from the events, the escalation a record, the pairing honest about whose clock stamped each side.** *Chose:* single-active-grant enforced at [Record Consent] step 4 by `Consent.check` under a per-`(subject_ref, purpose)` section, refusing already-granted, stated as Invariant 1(c) and tested by check 4, with the suppression claim made conditional on it; an in-invocation retry bounded by `outcome_retry_attempts` and a scan that takes the per-consent_id section for every consent it touches, so the invocation and the scan never both land a propagation event; `affected_scopes` derived at [Withdraw Consent] step 4 from the `processing.registered` events (the map supplying only its past-horizon entries) with a third scan leg repairing lost bindings; the grant-side scan pairing by actor, subject and purpose inside a symmetric window under a declared `clock_offset_allowance`, narrowing to candidates and escalating a zero-match as an unresolved grant orphan rather than concluding a bypass; check 6's case (v) requiring a *paired* intent, exact by pass-through, so a zero-match on the withdrawal side is the bypass signature; `consent.propagation_escalated` as composition-written audit content under the service identity, carrying the observed cause, in place of "an open compliance finding"; `registrations_cap`, `field_length_cap` and `intent_candidates_cap` with an envelope inequality checked at instance start, the digest withdrawn; the liveness inequality written out with `outcome_write_latency`; `recording-failure(intent | outcome)` on the two signatures that straddle a commit; "atomically" and "together or not at all" replaced at every site by revoke-then-event, ordered, bijective at quiescence modulo compensation; the log read declared once as the substrate's sequence-range read filtered composition-side; the purged answer counted as consistent ahead of any composition-side comparison; and `consent_to_downstream`'s past-horizon half re-homed from Erasure Tombstone to a Processing Register atom *(forthcoming)*, the two key-shaped maps staying with the tombstone; at the closure check, each map element carrying its registration `event_id` so that *past the horizon* is decided by `read_record` answering Purged and never by a timestamp, with check 3 carved out for a purged registration whose surviving `sequence_number` still precedes the boundary; checks 1 and 7 reading `kind: grant` escalations as escalated orphans, never as bypasses; `event_id_width` declared rather than attributed to the substrate; `per_key_serialization` declared as the instance capability the sections rest on, with lease semantics — a lease exactly `administration_completion_bound` long whose expiry is the invocation's terminus, the invocation re-taking the section before any pre-check and writing nothing after it has yielded — and `outcome_retry_attempts × outcome_write_latency ≤ administration_completion_bound` so the counted terminus fits the bound; and the scan's tie-break withdrawn for candidates never chosen. *Over:* a gate keyed per pair over a propagation keyed per consent_id with nothing holding the two to one record; "retry until it lands" beside a scan starting at the bound; a map read as gate input with "rebuild where its integrity is in doubt"; a bypass verdict landed on a comparison of two seams' stamps; an intent's existence standing in for its pairing; an escape branch living in no store; a digest no consumer can read; a bare token on both sides of the commit; atomicity language over two irreversible writes; a tombstone asked to carry a register; a past-horizon membership with no clock-free test; an escalation with no reader; a critical section attributed to the host and named nowhere, and a lost lease that could resume between a scan's look and its append. *Because:* Consent evaluates the latest grant and declines uniqueness for itself, so a composition that keys its two halves differently must supply it or contradict its own suppression claim; two compensators over one act land two outcomes the seal then protects; a short list is not an observable miss; a stamp another seam wrote can differ from this one's by a sign the bound does not have; a check that cannot see the escalation cannot count it; a set that only grows has no unreachable cap; a caller who cannot tell intent from outcome re-runs a committed act; a retention state is the substrate's to answer and a timestamp is not that answer; and a section nobody declared, with a lease nobody bounded, is a second writer waiting for a stall (the frozen rules of 2026-08-30 — *A compensator is exclusive*, *Lawful destruction is answered before absence*, *An outcome is sized before the intent*, *Liveness is arithmetic*, *A stamp from another seam never decides a write alone*, *A composition's own rejection arm carries the retry bit*, and *Capability provenance* frozen with its tells for uses — with §*A derived index is trustworthy only where a miss is observable*, §*Intents pair with outcomes*, §*Recovery commits under a declared service identity* and §*A derived index splits at the horizon*).
 - **2026-08-29 — The scan is bounded at both edges, writes as the composition, and pairs by the records; the indexes are truth-bearing past the horizon.** *Chose:* a declared `administration_completion_bound` below which the reconciliation scan and checks 1 and 7 examine nothing, with the audit horizon as their upper edge; every compensating write attested under a declared service identity behind a `consent.recovery_intended` record, the operator carried in `data`, the intent paired on `intended_at = revoked_at` and `actor_ref = revoked_by` (candidates named where undecidable); both grant-side orphan shapes resolved, the unretained one by re-running the placement from the intent's own retention_policy_ref; every `record_action` transcription carrying `(step)`, the `step-4` arm proceeding as landed and invalid-request never unreachable; and each index's past-horizon half classified truth-bearing under a declared `index_durability`, extraction-pending against Erasure Tombstone. *Over:* an unbounded scan attesting compensations as the absent operator, and "the map is not rebuildable" as the last word on the horizon. *Because:* an unbounded scan compensates in-flight withdrawals beside their own propagation events and reads lawfully purged history as orphans; a compensation the operator did not make cannot be attested as theirs; and a consent record outlives any audit horizon by Consent's own Invariant 8, so the only thing that keeps an old consent withdrawable is the index entry, which must therefore be declared for what it is (the frozen rules of 2026-08-29 — *A reconciliation is bounded at both ends*, *Recovery commits under a declared service identity*, *Intents pair with outcomes*, *A transcribed rejection arm keeps its payload*, *A derived index splits at the horizon*).
 - **2026-08-27 — Authentication happens at this composition's boundary, before the consent state changes.** *Chose:* [Record Consent] and [Withdraw Consent] open with an intent record whose substrate attestation verifies the credential; invalid-credential is a clean pre-state refusal. *Over:* the Action wiring preamble's declaration that the check "cannot be pre-empted at this composition's boundary" and belongs to a deployment pre-check. *Because:* the declaration was false — the composition reaches the same Actor Identity surface at whatever point it chooses to write — and a declared deployment obligation is the answer the methodology refuses.

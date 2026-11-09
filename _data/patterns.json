@@ -1218,7 +1218,7 @@
    "permissions",
    "retention-window"
   ],
-  "grounded": true,
+  "grounded": false,
   "invariants": 8,
   "kind": "composition",
   "models": {
@@ -1231,7 +1231,7 @@
    "GDPR",
    "HIPAA"
   ],
-  "status": "grounded on Final Critique 14 \u2014 2026-11-06 at 85bc8fe \u2014 formal layer pending",
+  "status": "partially resolved",
   "substrates": [
    "audit-trail"
   ],
