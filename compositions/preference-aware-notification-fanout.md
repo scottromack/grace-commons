@@ -1012,13 +1012,13 @@ It inherits from: **[Subscription](../atoms/subscription.md)** (Observer, pub-su
 
 ## Status
 
-`grounded (English) on Final Critique 18 — 2026-11-06 at a342d5e — formal layer pending` — see the Ledger.
+`grounded on Final Critique 18 — 2026-11-06 at a342d5e` — see the Ledger.
 
 ## Ledger
 
 ```
-status: grounded (English) on Final Critique 18 — 2026-11-06 at a342d5e — formal layer pending
-formal: pending — re-derivation, 2026-08-30: the invocation and [Reconcile Gaps] are now two processes over one disposition under a per-disposition section whose lease is the invocation's terminus, the deliver pair is ordered rather than atomic with an adoptable orphan, and the gap leg is age-bounded, none of which the model carries; was verified — preference-aware-notification-fanout.tla + 1 twin, 2026-06-12
+status: grounded on Final Critique 18 — 2026-11-06 at a342d5e
+formal: verified — preference-aware-notification-fanout.tla + 16 twins and preference-aware-notification-fanout-batch.tla + 5 twins, re-derived 2026-11-09 (it was verified 2026-06-12 over the frequency-cap race alone, one principal and one step): the invocation and a [Redispose] caller or the gap run's repair as two writers over one disposition pair under the per-disposition exclusion, its lease expiry the holder's terminus, a foreign holder refused and a lapsed writer's commit written by no one; the disposition's create and its delivery event as one commit; the gap leg bounded below by the young-invocation edge, writing its intent first, abandoning only a gap principal, and the abandonment record terminal; the invocation's loop over several subscribers, a lapse yielding every subscriber not yet reached; Invariants 1.1, 2.1, 4.1, 4.2, 5.1, 5.2, 8.1, 9.1, 10.1 and 10.2 checked, with Action wiring 13, 14, 45 and 60 and Reconciliation 3, 4, 8 and 20; the pure gate (quiet windows, channel selection, the suspended and no-record rules, replay: Invariants 2.2, 3 and 7.1), the best-effort arm of Invariant 4 (4.3, Check 2.4), the eventual accounting inside the reconciliation window (Composition state 12, Check 1.1), the retry and audit horizons and the delivery count index are not modelled, and the pair and the loop are two models because two subscribers with both writers pass the checker's 200,000-state cap; closes 2026-08-30-d, 2026-11-09
 last gate: 2026-11-06 — Final Critique 18, delta, one fresh reader (Linus), frozen at a342d5e — foundational count 0, clean, one sample (Linus reported 2 foundational, both refuted on the page's text; the blind second triage placed none foundational); refining recorded (open line 2026-11-06-f); 2026-11-06 — Final Critique 17, full, three fresh readers (GRID, EOS, Linus) — not clean, 6 foundational (GRID reported 7, EOS 1, Linus 1; GRID's fail-versus-expire finding recorded as refining and Linus's refuted against Database 1), cured in the patch (the next round is a delta round); refining recorded (open lines 2026-11-06-d and 2026-11-06-e); 2026-11-06 — Final Critique 16, delta, one fresh reader (Linus) — not clean, 1 foundational (the blind second triage's; Linus reported 3), cured by a held Execution Contract rule (Logic confinement 17) in the quiet window (the next round is a delta round); refining recorded (open line 2026-11-06-c), the Reconcile Gaps prose cured; 2026-11-06 — Final Critique 15, delta, one fresh reader (Linus) — not clean, 2 foundational (the blind second triage's; Linus reported 0), cured in the settle (the next round is a delta round); 2026-11-05 — Final Critique 14, delta, one fresh reader (Linus) — not clean, 1 foundational, cured in the settle (the next round is a delta round)
 
 open:
@@ -1029,7 +1029,6 @@ open:
 - 2026-11-06-b · refining · Capability requirement 9, Capability requirement 30 · the hold retry horizon is not ordered against the audit horizon, so a [Redispose] of a retryable suppression past the audit horizon would need a configuration version Capability requirement 9 no longer retains → order the two durations at start, or retain a configuration version through the hold retry horizon
 - 2026-11-04-b · refining · Term retryable disposition · a failure event is retryable unconditionally, so a pair whose earlier delivery event names a live record can be retried toward a second live record → admit a failure event only where no live record stands (Invariant 9.1)
 - 2026-11-04-c · refining · Examples (disputed delivery) · the scenario names Message Preference's in-effect reconstruction and an in-effect window, which no declared surface carries → rewrite the reconstruction over the declared read and set and deletion instants
-- 2026-08-30-d · refining · formal · the model has no [Reconcile Gaps] leg as a second process over one disposition, no per-disposition section with a lease terminus, and no age-bounded leg → extend it
 ```
 
 <details markdown="block">
