@@ -56,6 +56,7 @@ Composes 7: The composition MUST select the custody events through the custody e
 Deleted: Composes 8. Composes 9 owns it.
 Composes 9: The composition MUST NOT read Audit Trail records directly.
 Composes 10: IF the custody enumeration answers invalid-query THEN the deployment MUST alert on a deployment fault.
+NOTE: open 2026-11-10-d — the rule names no answer of [Verify Custody] whose binding rebuild meets the invalid-query.
 Deleted: Composes 11. Recoverable Invocation Action wiring 4 and Action wiring 6 own it: a bound custody action writes its intent, outcome and refusal records through the invocation open, close and refuse.
 Composes 12: EXACTLY ONE Recoverable Invocation instance MUST serve the composition.
 Composes 13: The Recoverable Invocation instance MUST write to the composition's Audit Trail instance.
@@ -71,12 +72,15 @@ Term constituents: [Provenance](../atoms/provenance.md), [Audit Trail](./audit-t
 Term transitive atoms: [Event Log](../atoms/event-log.md), [Actor Identity](../atoms/actor-identity.md), [Retention Window](../atoms/retention-window.md) and [Tamper Evidence](../atoms/tamper-evidence.md), reached through Audit Trail, and [Lease](../atoms/lease.md), reached through Recoverable Invocation.
 
 Term custody enumeration: Event Log's read by sequence-number range with an open upper bound, passed through Audit Trail unchanged, with every selection by action reference and payload field made in the composition's own code.
+NOTE: open 2026-11-10-c — Audit Trail's declared surfaces list no enumeration, so the passthrough this term and Capability requirement 25 name has no declared provider; Audit Trail Action wiring 1 is its only home, and the same form stands on four other pages.
 
 Term record read: Audit Trail's read_record on an event id — the substrate's declared consolidated read surface.
 
 Term audit write: Audit Trail's record_action.
 
 Term verification: Audit Trail's verify_record on an event id and a presentation.
+
+Term attestation verification: what a found verification carries for an entry in place of Audit Trail's answer — the verification's outcome and reason with its compensation-window qualifier (Action wiring 43, 44), or payload-not-supplied with the missing sequence numbers where the verification is not called (Action wiring 41).
 
 Term custody action: [Originate Custody], [Transfer Custody], [Transform Custody], [Disclose Custody] or [Archive Custody].
 
@@ -131,6 +135,8 @@ Term binding index: the composition's map from a custody entry to the outcome ev
 Term binding: one entry id with its outcome event id.
 
 Term outcome event: the custody.originate.originated, custody.originate.received, custody.transfer.transferred, custody.transform.transformed, custody.disclose.disclosed or custody.archive.archived event, carrying the entry id — one the invocation close wrote, one Recoverable Invocation's sweep recovered under the recovery identity, or one an operator wrote through the invocation resolve.
+
+Term invocation-written outcome event: an outcome event the invocation close wrote or one Recoverable Invocation's sweep wrote under the recovery identity — never one an operator wrote through the invocation resolve.
 
 Term live binding: a binding whose outcome event's payload the audit horizon has not reached.
 
@@ -299,23 +305,23 @@ Term recovery flag: Recoverable Invocation's recovery set to true — carried by
 ```
 originate_custody(artifact_ref, custodian_ref, genesis_type, credential, optional metadata)
   answers custody result | recording-failure(outcome)
-  refuses invalid-ref | invalid-genesis-type | invalid-credential | invalid-request | act-in-flight(invocation_id) | section-unavailable | journal-unavailable | recording-failure(intent) | storage-failure | state-unavailable | recording-failure(refusal, constituent_code)
+  refuses invalid-ref | invalid-genesis-type | invalid-credential | invalid-request | act-in-flight(invocation_id) | section-unavailable | journal-unavailable | recording-failure(intent) | storage-failure | state-unavailable | already-accounted(closing_event_id) | recording-failure(refusal, constituent_code)
 
 transfer_custody(chain_id, to_custodian_ref, credential)
   answers custody result | recording-failure(outcome)
-  refuses invalid-ref | invalid-credential | not-known | archived | state-unavailable | invalid-request | act-in-flight(invocation_id) | section-unavailable | journal-unavailable | recording-failure(intent) | not-current-custodian | storage-failure | recording-failure(refusal, constituent_code)
+  refuses invalid-ref | invalid-credential | not-known | archived | state-unavailable | invalid-request | act-in-flight(invocation_id) | section-unavailable | journal-unavailable | recording-failure(intent) | not-current-custodian | storage-failure | already-accounted(closing_event_id) | recording-failure(refusal, constituent_code)
 
 transform_custody(chain_id, custodian_ref, transformation_descriptor, credential)
   answers custody result | recording-failure(outcome)
-  refuses invalid-ref | invalid-descriptor | invalid-credential | invalid-request | act-in-flight(invocation_id) | section-unavailable | journal-unavailable | recording-failure(intent) | not-known | archived | not-current-custodian | storage-failure | state-unavailable | recording-failure(refusal, constituent_code)
+  refuses invalid-ref | invalid-descriptor | invalid-credential | invalid-request | act-in-flight(invocation_id) | section-unavailable | journal-unavailable | recording-failure(intent) | not-known | archived | not-current-custodian | storage-failure | state-unavailable | already-accounted(closing_event_id) | recording-failure(refusal, constituent_code)
 
 disclose_custody(chain_id, custodian_ref, recipient_ref, credential)
   answers custody result | recording-failure(outcome)
-  refuses invalid-ref | invalid-credential | invalid-request | act-in-flight(invocation_id) | section-unavailable | journal-unavailable | recording-failure(intent) | not-known | archived | not-current-custodian | storage-failure | state-unavailable | recording-failure(refusal, constituent_code)
+  refuses invalid-ref | invalid-credential | invalid-request | act-in-flight(invocation_id) | section-unavailable | journal-unavailable | recording-failure(intent) | not-known | archived | not-current-custodian | storage-failure | state-unavailable | already-accounted(closing_event_id) | recording-failure(refusal, constituent_code)
 
 archive_custody(chain_id, custodian_ref, credential)
   answers custody result | recording-failure(outcome)
-  refuses invalid-ref | invalid-credential | invalid-request | act-in-flight(invocation_id) | section-unavailable | journal-unavailable | recording-failure(intent) | not-known | already-archived | not-current-custodian | storage-failure | state-unavailable | recording-failure(refusal, constituent_code)
+  refuses invalid-ref | invalid-credential | invalid-request | act-in-flight(invocation_id) | section-unavailable | journal-unavailable | recording-failure(intent) | not-known | already-archived | not-current-custodian | storage-failure | state-unavailable | already-accounted(closing_event_id) | recording-failure(refusal, constituent_code)
 
 verify_custody(chain_id, original_event_payloads)
   answers custody proof
@@ -352,11 +358,13 @@ Action wiring 13: An admitted origination MUST call Provenance's originate with 
 Action wiring 14: A committed origination MUST read the genesis entry at sequence number one through Provenance's read, inside the origination transaction.
 Action wiring 15: [Originate Custody] MUST close a committed origination transaction through the invocation close naming custody.originate.originated for originated AND custody.originate.received for received (Recoverable Invocation commit 4).
 Action wiring 16: A validated transfer MUST NOT call the invocation open BEFORE resolving the outgoing custodian through Provenance's read.
+NOTE: open 2026-11-10-h — the refuses line of transfer_custody lists invalid-credential ahead of the read's refusals, which answer before the open validates the credential.
 Action wiring 17: IF Provenance's read answers not-known THEN [Transfer Custody] MUST answer not-known.
 Action wiring 18: IF the chain's latest entry carries archived THEN [Transfer Custody] MUST answer archived.
 Action wiring 19: A transfer refused ahead of the transfer intent MUST NOT write.
 Action wiring 20: A resolved transfer MUST call the invocation open with the act kind custody.transfer, the chain id as the act key, the resolved custodian as the actor reference, the credential AND the intent data carrying the chain id, the resolved custodian as the outgoing custodian, the incoming custodian AND now as the pairing datum.
 Action wiring 21: An admitted transfer MUST call Provenance's transfer with the chain id AND the incoming custodian, inside the transfer transaction.
+NOTE: open 2026-11-10-g — an incoming custodian equal to the resolved custodian is neither refused nor named permitted.
 Deleted: Action wiring 22. Action wiring 63 and Action wiring 65 own it: the transfer transaction re-reads the holder and refuses a holder other than the resolved custodian, so the committed entry's outgoing custodian is the resolved custodian.
 Deleted: Action wiring 23. Execution Contract Database 2 owns it.
 Deleted: Action wiring 24. Action wiring 65 owns it: a holder changed since the resolution is refused not-current-custodian inside the transfer transaction, so no transfer answers principal-divergence.
@@ -373,9 +381,10 @@ Action wiring 34: A found verification MUST replay the chain's entries in sequen
 Action wiring 35: A found verification MUST resolve EVERY entry's binding through the binding index.
 Action wiring 36: IF an entry carries no binding after the rebuild AND a purged later entry EXISTS THEN the entry MUST carry binding-unknown.
 Action wiring 37: IF an entry carries no binding after the rebuild AND no purged later entry EXISTS THEN the entry MUST carry binding-gap.
+NOTE: open 2026-11-10-e — Action wiring 36 and 37 land binding-gap on a young entry whose close has not landed, the state Cross-record consistency 1 names and Check 1.1 excuses.
 Action wiring 38: A found verification MUST read EVERY bound event through the record read.
 Action wiring 39: IF the record read answers Purged THEN [Verify Custody] MUST call the verification with the covering range's members the original event payloads carry.
-NOTE: open 2026-11-04-d — the call may present an empty payload, which Audit Trail Primitive policy 27 forbids a caller; the purged answer lands before the presentation is read.
+NOTE: open 2026-11-04-d — the call may present an empty payload, which Audit Trail Primitive policy 27 forbids a caller without exemption; Audit Trail never reads it here (Verify Record step 1.2, 1.3 for Purged; step 4.2, 4.3 for partially-purged coverage), and withholding the call would drop step 3's attestation outcome (Action wiring 43).
 Action wiring 40: [Verify Custody] MUST NOT check the original event payloads for an event the record read answers Purged for.
 Action wiring 56: IF the record read answers partially-purged coverage THEN [Verify Custody] MUST call the verification with the covering range's members the original event payloads carry.
 Action wiring 41: IF a member of a live event's whole covering range IS NOT IN the original event payloads THEN the entry MUST carry payload-not-supplied AND the missing sequence numbers as the attestation verification.
@@ -387,7 +396,7 @@ Action wiring 44: A found verification MUST carry the verification's compensatio
 Action wiring 45: IF the attestation verification EQUALS verified THEN a found verification MUST compare the entry's compared fields with the payload at the bound event's own position as the entry payload match.
 Action wiring 46: IF the attestation verification IS NOT IN verified and failed-verification carrying purged THEN the entry payload match MUST carry unanchored.
 Action wiring 57: IF the attestation verification EQUALS failed-verification carrying purged THEN the entry payload match MUST carry not-applicable carrying purged.
-Action wiring 47: IF the record read answers neither Purged nor not-known THEN a found verification MUST compare the bound event's attesting actor with the entry's attested custodian as the actor match.
+Action wiring 47: IF the record read answers neither Purged nor not-known THEN a found verification MUST decide the entry's actor match PER the actor match.
 Action wiring 48: IF the record read answers neither Purged nor not-known THEN a found verification MUST carry the bound event's recovery flag as the recovery attestation.
 Action wiring 49: IF the record read answers Purged THEN the recovery attestation MUST carry unknown carrying purged.
 Action wiring 58: IF the record read answers Purged THEN the actor match MUST carry unknown carrying purged.
@@ -461,7 +470,7 @@ Term compared fields: the custodian reference of an originated, received, transf
 
 Term attested custodian: a transferred entry's outgoing custodian, or another entry's custodian reference — the acting custodian of the action that appended the entry.
 
-Term actor match: match | match carrying recovery | attribution-mismatch carrying the actor reference | unknown carrying purged | unknown carrying not-known — match carrying recovery where the event carries the recovery flag, its acting actor reference names the entry's attested custodian, and its attesting actor is the recovery identity or the resolving actor the event names (Recoverable Invocation Invariant 5.2, Invariant 5.4).
+Term actor match: match | match carrying recovery | attribution-mismatch carrying the actor reference | unknown carrying purged | unknown carrying not-known — match where the event carries no recovery flag and the event's attesting actor names the entry's attested custodian; match carrying recovery where the event carries the recovery flag, its acting actor reference names the entry's attested custodian, and its attesting actor is the recovery identity or the resolving actor the event names (Recoverable Invocation Invariant 5.2, Invariant 5.4); attribution-mismatch carrying the actor reference where neither clause holds.
 
 Term recovery attestation: true | false | unknown carrying purged | unknown carrying not-known — whether the bound event carries the recovery flag.
 
@@ -502,6 +511,7 @@ Every input an action takes, and every answer a call of the seven actions and of
 |---|---|---|---|
 | the open | an intent event id | the commit | Action wiring 12, 20, 27, 29, 31, Term admitted origination, Term admitted transfer |
 | the open | invalid-credential, invalid-request, act-in-flight, section-unavailable, journal-unavailable, recording-failure(intent) | the same code, nothing committed | Action wiring 68, Recoverable Invocation Action wiring table |
+| the open | recording-failure(outcome) | recording-failure(outcome), the intent standing open, the commit never issued and the record the sweep's | Action wiring 68, Recoverable Invocation Action wiring table |
 | the open | act-landed | never: every kind is repeatable | Recoverable Invocation repeatable 1, Term custody bindings |
 | the close | an event id | the binding, and the custody result | Action wiring 11, 15, 26, 66 |
 | the close | recording-failure(outcome) | recording-failure(outcome), the act committed and its record the sweep's | Action wiring 68, Recoverable Invocation commit 4 |
@@ -526,7 +536,7 @@ Every input an action takes, and every answer a call of the seven actions and of
 | transfer | not-known, archived or invalid-ref | not met: the re-read in the same transaction found the chain open, and Primitive policy 2 and 7 refuse the reference first | Action wiring 63, 64, Primitive policy 9 |
 | transfer | storage-failure | storage-failure, the transaction rolled back, refused | Action wiring 8 |
 | transform, disclose or archive | an entry id | the close | Action wiring 66 |
-| transform, disclose or archive | not-known, archived, already-archived or not-current-custodian | the same code, refused | Action wiring 8, Term Provenance refusal |
+| transform, disclose or archive | not-known or not-current-custodian, archived (transform, disclose) or already-archived (archive) | the same code, refused | Action wiring 8, Term Provenance refusal |
 | transform, disclose or archive | invalid-ref or invalid-descriptor | not met: Primitive policy 2, 3, 4, 7 and 8 refuse them first | Primitive policy 9, 10 |
 | transform, disclose or archive | storage-failure | storage-failure, refused | Action wiring 8 |
 
@@ -553,7 +563,7 @@ Inside every action, a read that fails answers state-unavailable and writes noth
 ### Wiring decision
 
 ```
-Wiring decision 1: The composition MUST follow EVERY carried entry with EXACTLY ONE outcome event naming the entry id.
+Deleted: Wiring decision 1. Invariant 1.1 and Invariant 4.3 own it: the outcome event of a settled carried entry whose carrying intent stands neither escalated, abandoned nor refused, and no second invocation-written one.
 Deleted: Wiring decision 2. Execution Contract Database 1 owns it.
 Wiring decision 3: A validated origination MUST attest under the genesis custodian.
 Wiring decision 4: A validated transfer MUST attest under the outgoing custodian.
@@ -568,7 +578,7 @@ Wiring decision 6: The composition MUST NOT attest a transfer under the incoming
 
 *Likely objection.* Why not fold attribution, tamper evidence and retention into Provenance, so the chain itself carries all four?
 
-*Mechanism.* Those are exactly the concepts Provenance extracted in its EOS (Essence of Software — Daniel Jackson's framework for freestanding, composable concepts) pass to stay freestanding, naming each composing home in its own edge cases. The composition is where they re-converge, and efficiently: Audit Trail already wires all three into one substrate, so one binding — entry to event — carries the whole surface (Wiring decision 1). A step whose event never landed — a lost reply, or a crash between the Provenance write and its close — is closed by Recoverable Invocation's sweep, which writes the owed event from what the chain holds or escalates and never re-runs the write, so the four properties hold for it too, attested as recovered. Absorbing the three into Provenance would end its freestanding status and make every unregulated chain carry the regulated overhead.
+*Mechanism.* Those are exactly the concepts Provenance extracted in its EOS (Essence of Software — Daniel Jackson's framework for freestanding, composable concepts) pass to stay freestanding, naming each composing home in its own edge cases. The composition is where they re-converge, and efficiently: Audit Trail already wires all three into one substrate, so one binding — entry to event — carries the whole surface (Invariant 1.1). A step whose event never landed — a lost reply, or a crash between the Provenance write and its close — is closed by Recoverable Invocation's sweep, which writes the owed event from what the chain holds or escalates and never re-runs the write, so the four properties hold for it too, attested as recovered. Absorbing the three into Provenance would end its freestanding status and make every unregulated chain carry the regulated overhead.
 
 *Result.* Provable custody, which neither constituent gives alone: an auditor holding the binding index, the chain and the substrate answers the four questions — who held it, was the transfer unbroken, was the record altered, was it kept long enough.
 
@@ -666,6 +676,8 @@ Term incomplete-input class: payload-not-supplied | availability.
 
 Term standing class: partially-purged-coverage.
 
+Term attestation reason: a failed-verification reason IS NOT IN purged, unsealed, seal-proof-invalid, seal-record-set-mismatch and seal-not-known.
+
 Term failed attestation: failed-verification carrying an attestation reason.
 
 Term failed seal: failed-verification carrying seal-proof-invalid, seal-record-set-mismatch or seal-not-known.
@@ -678,7 +690,7 @@ These emerge from the composition; none belongs to one constituent, and each nee
 
 - **Invariant 1 — Attributed custody.**
   ```
-  Invariant 1.1: IF a settled entry IS a carried entry AND the state of the entry's carrying intent IS NOT IN escalated, abandoned and refused THEN the entry MUST carry EXACTLY ONE outcome event whose action reference matches the entry's event type.
+  Invariant 1.1: IF a settled entry IS a carried entry AND the state of the entry's carrying intent IS NOT IN escalated, abandoned and refused THEN the entry MUST carry an outcome event whose action reference matches the entry's event type.
   Invariant 1.2: IF an outcome event carries no recovery flag THEN the event MUST carry an attestation of the acting custodian.
   Deleted: Invariant 1.3. Recoverable Invocation Invariant 5.2, Recoverable Invocation Invariant 5.4 and Recoverable Invocation Term outcome shape own it: an outcome the sweep wrote carries the service identity's attestation and one an operator wrote the operator's, each with the recovery flag and the acting custodian as the acting actor reference.
   Deleted: Invariant 1.4. Recoverable Invocation Invariant 3.1, Recoverable Invocation Check 1.1 and Recoverable Invocation Primitive policy 11a own it: every outcome names its intent by the invocation id and the intent event id, the intent attested under the actor the outcome names.
@@ -699,11 +711,11 @@ These emerge from the composition; none belongs to one constituent, and each nee
   ```
   Invariant 4.1: The composition MUST NOT leave an orphan entry unsurfaced.
   Deleted: Invariant 4.2. Recoverable Invocation Invariant 4.2 and Recoverable Invocation Check 3.1 own it: an intent whose invocation died is closed within the closure window, by an outcome on a committed probe (Recoverable Invocation reconcile step 3.2), or escalated.
-  Invariant 4.3: Two outcome events MUST NOT name one entry id.
-  Invariant 4.4: EVERY outcome event MUST name an entry the Provenance chain carries.
+  Invariant 4.3: Two invocation-written outcome events MUST NOT name one entry id.
+  Invariant 4.4: EVERY invocation-written outcome event MUST name an entry the Provenance chain carries.
   Deleted: Invariant 4.5. Recoverable Invocation reconcile step 3.5, Recoverable Invocation reconcile step 3.8 and Reconciliation 11 own it: an intent the sweep cannot close is escalated, and an entry no intent carries opens a write-ownership finding.
   Deleted: Invariant 4.6. Reconciliation 11 owns it: a transferred entry no intent carries opens a write-ownership finding, and the sweep never closes it.
-  NOTE: the invocation resolve does not check an operator's outcome against Provenance (Recoverable Invocation resolve 28, Recoverable Invocation resolve 31), so Wiring decision 1, Invariant 4.3 and Invariant 4.4 are detected, not prevented, for an operator's closing: Composition state 9, Check 5.1 and Check 5.2 find it.
+  NOTE: the invocation resolve does not check an operator's outcome against Provenance (Recoverable Invocation resolve 28, Recoverable Invocation resolve 31), so Invariant 4.3 and Invariant 4.4 claim only the invocation-written outcome events, and an operator's closing is detected, not prevented: Composition state 9, Check 5.1 and Check 5.2 find it.
   ```
 
 - **Invariant 5 — Provable custody.**
@@ -822,6 +834,7 @@ Check 4.2: An auditor MUST find EVERY Purged outcome event carrying a Purged ret
 Check 5.1: An auditor MUST enumerate the chain's outcome events through the custody enumeration AND find no two outcome events carrying one entry id (Invariant 4.3).
 Check 5.2: An auditor MUST find EVERY outcome event naming an entry the chain carries (Invariant 4.4).
 Check 5.3: An auditor MUST find EVERY live binding's outcome event carrying the binding's entry id (Composition state 3).
+NOTE: open 2026-11-10-f — [Verify Custody] never checks this property, and the compared fields exclude the metadata (Primitive policy 15), so the anchor the Summary names stops short of it.
 NOTE: watch the check over a derived index (Check 1.1, Check 5.3).
 Deleted: Check 5.4. Execution Contract Database 3 and Execution Contract Database 4 own it.
 Deleted: Check 5.5. Reconciliation 11 owns it.
@@ -1088,10 +1101,10 @@ this composition inherits the broader standards compliance of its constituents:
 ```
 status: partially resolved
 formal: verified — chain-of-custody.tla + 11 twins + 7 reachability probes, re-derived 2026-11-10 over the split arc (each custody action an open, a commit and a close; [Transfer Custody]'s resolution read ahead of the open and its re-read inside the transfer transaction), against Recoverable Invocation's contracts (the sweep's closing by this page's originate and step probes, the escalation, an operator's resolve unchecked against Provenance), with a transfer written outside every invocation, the write-ownership leg and the binding rebuild's duplicate finding; one model under TLC, 478,490 states (one chain, two custodians, three invocations, one outside write, the genesis lookup chosen at the start); Invariant 1.2, 4.1, 4.3, 4.4, 7.2, Wiring decision 4, Action wiring 12 through 31 (the open before the commit), Composition state 9, the probes' pairing datum (Capability requirement 34, 35), the originate probe without a lookup (Term originate probe), the write-ownership finding (Reconciliation 11) and the false-closing alert (Reconciliation 32), each broken by a twin alone; the reconciliation's twins and probes retired to Recoverable Invocation (Invariant 1.3, 1.4, 4.2, 4.5 and 7.1 inherited: Invariant 1.3 through Recoverable Invocation Invariant 5.1, 5.2, which recoverable-invocation.tla checks from v8; Reconciliation 4's aged edge and Reconciliation 14, 15's cap move onto Recoverable Invocation Invariant 7.2 and 3.5a, which its model does not check — owed there, not paid in this unit, as Propagate Consent Revocation Downstream's unit paid none of its equivalents, and recorded in its coverage); not modeled: Recoverable Invocation's mechanism and the clock (the young, aged and settled entry, the closure window, the sweep cadence), disclosure and archival (the transformation stands for the three custodian-guarded steps) and the archived refusals, Provenance's other pre-commit refusals, [Verify Custody] and the binding index's content, a second chain; coverage 2026-11-10: owes Alloy (the static data model); owed rows: none new, 2026-11-10
-last gate: 2026-11-06 — Final Critique 17, a delta round, frozen at dbb9804 — foundational count 0, clean, one sample; 2026-11-06 — Final Critique 16, delta — foundational count 1, not clean, no sample
+last gate: 2026-11-10 — Final Critique 18, a full round, frozen at 234409b — foundational count 5, not clean, no sample; 2026-11-06 — Final Critique 17, a delta round, frozen at dbb9804 — foundational count 0, clean, one sample; 2026-11-06 — Final Critique 16, delta — foundational count 1, not clean, no sample
 
 open:
-- 2026-11-04-d · refining · Action wiring 39, 56 · the verification call may present an empty payload, which Audit Trail Primitive policy 27 forbids a caller, though Verify Record step 1.2 lands the purged answer before the presentation is read → decide whether Audit Trail states that order as a caller exemption
+- 2026-11-04-d · refining · Action wiring 39, 56 · the verification call may present an empty payload, which Audit Trail Primitive policy 27 forbids a caller with no exemption, though Audit Trail never reads it there (Verify Record step 1.2, 1.3 for Purged; step 4.2, 4.3 for partially-purged coverage) and answers an empty one only where step 5 runs; withholding the call instead would drop step 3's attestation outcome on partially-purged coverage (Action wiring 43, Verdict 10, 15) → decide whether Audit Trail scopes Audit Trail Primitive policy 27 to a call that reaches step 5, as a caller exemption
 - 2026-11-04-e · refining · Capability requirement 24 · the minted ids' width is no bound Provenance declares, so the payload cap sums capped inputs alone → decide whether Provenance declares an id width; sharper under Recoverable Invocation's outcome envelope, which wants every reference under its reference length cap (Recoverable Invocation Invariant 6)
 - 2026-11-04-f · refining · Action wiring 41, Verdict 2 · the missing sequence numbers and the named entries are set-valued outcomes with no stated cardinality cap (the sizing check) → state each as at most the covering range's size and the chain's entries
 - 2026-11-06-c · refining · Clock semantics 1 · the Event Log sequence and the Provenance sequence have no cross comparison, so the binding rebuild's order across them is the build's → decide the ordering key a rebuild across both sequences uses
@@ -1101,6 +1114,12 @@ open:
 - 2026-11-06-i · refining · Term original event payloads · the caller's map has no cardinality cap, so the verification input's size is unbounded for a large covering range → state the cap
 - 2026-11-10-a · refining · Composition notes; Term origination transaction, Term transfer transaction · Recoverable Invocation's bound commit is one constituent call, and the origination's is two calls and the transfer's a read, a comparison and a write, each in one database transaction, a case Recoverable Invocation's closed deviation list does not name (Recoverable Invocation Deviation 2) → carry to Recoverable Invocation's next revision as evidence, or declare it there
 - 2026-11-10-b · refining · Term originate probe, Term carried entry · a genesis entry does not carry the artifact reference, which only the genesis lookup ties to its chain, so whether the originate probe meets Recoverable Invocation act probe 8 (the matching record carries every field of the act key) is unsettled, and the leg reads a genesis entry as carried on its custodian, genesis type and recording instant alone, which two artifacts originated by one custodian at one now would share (Capability requirement 35 holds the now apart per act key, and the artifact is in the key) → decide whether the lookup's answer counts as the record carrying the artifact reference, or declare the originate probe undecidable for the kind
+- 2026-11-10-c · refining · Term custody enumeration, Capability requirement 25 · Audit Trail's declared surfaces list no enumeration, so the Event Log range read the term names as passed through Audit Trail has no declared provider (Audit Trail Action wiring 1 is its only home, and Audit Trail's own open line 2026-10-05-a records that the surface carries no entry for it); Immutable Ledger, Execute Gated Workflow, Multi-Party Approval and Propagate Consent Revocation Downstream carry the same form → decide whether Audit Trail declares the passthrough in its surface, or the four pages and this one read Event Log under the Execution Contract's direct-invocation rule
+- 2026-11-10-d · refining · Composes 10 · the invalid-query of the custody enumeration is alerted as a deployment fault and no rule names what [Verify Custody], whose binding rebuild meets it, answers → decide the answer (the read's state-unavailable, or a class)
+- 2026-11-10-e · refining · Action wiring 36, 37 · an entry whose close has not landed is a young entry (Cross-record consistency 1, Check 1.1 excuses it) and lands binding-gap, so a proof taken inside the closure window reads custody-proof-incomplete for a transient state → decide whether a young entry is exempt or a class of its own
+- 2026-11-10-f · refining · Check 5.3, Summary · [Verify Custody] never checks that a bound event carries the binding's entry id (the auditor's Check 5.3 does), and the Summary's "no entry was tampered with" reads past the compared fields, which exclude the metadata (Primitive policy 15) → decide whether [Verify Custody] checks the binding's entry id and whether the anchor's metadata carve-out is a Non-goal
+- 2026-11-10-g · refining · Action wiring 21, Term transfer · a retry of [Transfer Custody] after a lost answer lands a second entry transferring the holder to itself, which the continuity check reads continuous while Term Transfer says a transfer is a hand-to-hand change → decide whether an incoming custodian equal to the resolved custodian is refused or a permitted entry
+- 2026-11-10-h · refining · transfer_custody, Action wiring 16 through 18 · the refuses line lists invalid-credential ahead of not-known and archived while the read's refusals answer before the open validates the credential, so no order of the line expresses the flow → decide whether a rule names invalid-credential on the read's ground (Refusal 1)
 ```
 
 <details markdown="block">
