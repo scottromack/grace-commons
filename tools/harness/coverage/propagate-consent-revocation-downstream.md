@@ -1,98 +1,173 @@
 # Coverage matrix — `propagate-consent-revocation-downstream`
 
 - **Pattern:** `compositions/propagate-consent-revocation-downstream.md`
-- **Model:** two models. `propagate-consent-revocation-downstream.tla` (the arc) follows the acts against the Consent records: the gate, single-active-grant, the registered set a withdrawal carries, the downstream entry outside the transaction with the horizon's purge of a registration event, the order of the writes inside each action, and the owed outcome of a refused event, with nineteen buggy twins, `propagate-consent-revocation-downstream-<name>-buggy.tla` for `gate-cached`, `grant-no-check`, `event-before-revoke`, `second-event`, `set-from-index`, `set-live-only`, `bind-before-event`, `grant-before-credential`, `revoke-before-credential`, `bind-before-credential`, `history-before-event`, `write-denied`, `no-placement`, `purge-retention`, `grant-no-intent`, `owed-unannounced`, `owed-always`, `purge-before-binding` and `unbind`. `propagate-consent-revocation-downstream-reconciliation.tla` follows the reconciliation against the clock: one Consent record whose outcome event is owed, of either kind, the cadence, the run bound, the pairing, the compensation behind a recovery intent, the escalation and the closure each Invariant measures at the widened window, with fourteen twins, `propagate-consent-revocation-downstream-reconciliation-<name>-buggy.tla` for `escalate-early`, `never-escalate-late`, `no-recovery-intent`, `no-recovery-flag`, `no-precheck`, `compensate-unpaired`, `finding-for-ungranted`, `escalate-twice`, `compensate-escalated`, `set-at-now`, `compensate-over-cap`, `no-candidates-carried`, `index-before-event` and `retry-past-instant`. The first model's single twin, `propagate-consent-revocation-downstream-buggy.tla` (a withdrawal whose refused event is neither surfaced nor compensated), is replaced by the reconciliation model, where the owed outcome is closed.
-- **Reviewer / date:** the model's author, the session that landed it — 2026-11-09. Not a fresh-context read; the next scheduled rescan owes one.
-- **Formal-layer vote load-bearing claims:** the vote was cast yes in 2026-08 for Invariant 3 (revocation propagation completeness), and the model re-derived 2026-11-09 over what the Ledger's `formal:` line named (2026-08-29-a, 2026-08-30-k): the compensation behind a recovery intent under the service identity, the bounded scan, single-active-grant, the escalation record, and the invocation and the scan as two processes over one act. The last is gone: since Execution Contract Database 1 and 2 an invocation is one transaction and retries nothing, so it has no yield point, and the two processes the model keeps are the withdrawal (taking up to the administration completion bound) and the reconciliation (a run at least every cadence, landing within the run bound). What the page now stands on is the acts against the Consent records and the closure the reconciliation owes an owed outcome (Invariant 1.3, 2.1, 3.1 through 3.3, 3.5, 3.6 and 4.1, with Invariant 8 beside them).
+- **Model:** one model, `propagate-consent-revocation-downstream.tla`, re-derived 2026-11-10 for the page's composition of Recoverable Invocation (Composes 15 through 19, Term consent bindings). [Record Consent] and [Withdraw Consent] are each an open, a commit and a close (three commits, not one transaction: Non-goal 10), and an act whose outcome never landed is closed by Recoverable Invocation's sweep or an operator's resolve, both modelled as contracts. The model adds a write to Consent outside any invocation and the write-ownership leg (Reconciliation 11, 16, 40, 41). With it, **22 buggy twins** `propagate-consent-revocation-downstream-<name>-buggy.tla`: `bind-before-credential`, `bind-before-event`, `event-before-revoke`, `gate-cached`, `grant-no-check`, `grant-no-intent`, `history-before-event`, `no-placement`, `purge-before-binding`, `purge-retention`, `set-from-index`, `set-live-only`, `unbind`, `write-denied`, `second-event`, `owed-unannounced`, `index-before-event`, `probe-set-at-now`, `finding-for-carried`, `no-finding`, `no-false-closing-alert`, `equal-now`. And **15 reachability probes** `propagate-consent-revocation-downstream-probe-<name>.tla` (second line `\* EXPECT: violation`): `already-granted`, `already-revoked`, `bad-credential-refused`, `denied-refused`, `history-answered`, `owed-outcome`, `purged-pair-carried`, `registered-after`, `regranted`, `unbound-at-derivation`, `compensated-grant`, `registration-after-boundary`, `finding`, `operator-second-event`, `false-closing`. Each twin is the model with one defect; each probe is the model with one invariant added that the checker must find false.
+- **What retired.** The second model, `propagate-consent-revocation-downstream-reconciliation.tla`, its 12 other twins and its 9 other probes, retired 2026-11-10. Its subject was the cadence, the run bound, the compensation window, the pairing candidates, the recovery intent and the escalation timing. All of that is Recoverable Invocation's now (the inherited table below). Five of its files moved into the arc:
+  - twin `-reconciliation-index-before-event` became `-index-before-event` (Action wiring 24, on the grant event the close, the sweep or the operator writes);
+  - twin `-reconciliation-set-at-now` became `-probe-set-at-now` (the withdrawal probe's set at the sweep's now, not at the intent's position);
+  - probes `-reconciliation-probe-compensated-grant`, `-reconciliation-probe-registration-after-boundary` and `-reconciliation-probe-finding` became `-probe-compensated-grant`, `-probe-registration-after-boundary` and `-probe-finding`.
+
+  Three arc twins retired:
+  - `-grant-before-credential` and `-revoke-before-credential`: Invariant 8.1 and 8.2 are tombstoned to Recoverable Invocation Invariant 1.1, which recoverable-invocation.tla checks.
+  - `-owed-always` (a landed outcome still recorded as owing). Under Recoverable Invocation an outcome is owed while its intent stands open, and an intent's closing by its own [Close] is Recoverable Invocation's mechanism (open invocations 5). This model takes the closing as a contract, a landed close closing its intent by construction, so the defect cannot be stated here without re-modelling Recoverable Invocation's maps.
+- **Reviewer / date:** the model's author, the session that re-derived it — 2026-11-10. Not a fresh-context read; the next scheduled rescan owes one.
+- **Formal-layer vote load-bearing claims:** the vote was cast yes in 2026-08 for Invariant 3 (revocation propagation completeness). What the page now stands on:
+  - the acts against the Consent records, over the split commit: Invariant 1.1, 1.3, 3.1 through 3.3, 4.1, 5.1, 6.1, 7.1, 8.3, 8.4;
+  - the probe's derivation at the intent's position and the pairing datum's uniqueness (Term withdrawal probe, Term grant probe, Capability requirement 37, 38). Only this page can check these: Recoverable Invocation's model does not model an adopter's probe;
+  - the write-ownership leg (Reconciliation 11, 16, 40, 41).
 
 ## Step 1 — harness re-run (must pass)
 
-- Correct models: `node check.mjs ../../compositions/propagate-consent-revocation-downstream.tla` → `HOLDS` ✓ *(24,618 states)*; `node check.mjs ../../compositions/propagate-consent-revocation-downstream-reconciliation.tla` → `HOLDS` ✓ *(20,400 states)*
-- Buggy twins: each `node check.mjs ../../compositions/propagate-consent-revocation-downstream[-reconciliation]-<name>-buggy.tla --buggy` → `CAUGHT` ✓ *(Step 2 names the check that finds each)*
-- `node audit.mjs --only compositions/propagate-consent-revocation-downstream`: 57 models, 2 HOLDS, 55 CAUGHT, 0 BROKEN, 0 MISSED, 0 ERROR (33 twins and 22 reachability probes, which are rejected by design), 1 minute 51 seconds.
+- Correct model: `node check.mjs ../../compositions/propagate-consent-revocation-downstream.tla` → `HOLDS` ✓ *(5,538,855 states, 6 to 7 minutes on one TLC worker)*
+- Buggy twins and probes: each `node check.mjs ../../compositions/propagate-consent-revocation-downstream-<name>.tla --buggy` → `CAUGHT` ✓ *(Step 2 names the check that finds each)*
+- `node audit.mjs --only compositions/propagate-consent-revocation-downstream`: 38 models, 1 HOLDS, 37 CAUGHT, 0 BROKEN, 0 MISSED, 0 ERROR. That is 22 twins and 15 reachability probes, which are rejected by design. The largest rejected file is `-probe-purged-pair-carried`, at 31,922 states.
 
 ## Step 2 — coverage matrix
 
-The arc model has two Consent records for one subject and purpose, two downstream pairs the first consent's registrations bind, and a history read. A page action is one transaction (Execution Contract Database 1) and the store runs transactions one after another (Database 2), so at most one invocation is in flight; its permission check, credential check, derivation, constituent write and outcome event are separate staged flags (`ip`, `icr`, `fd`, `fi`, `fw`, `fe`), and the world changes at the commit step all together. The flags are separate booleans, not a position in a line, so a step that skips its predecessor is a state the order invariants can see. The downstream entry and the horizon's purge of a registration event are outside every transaction and run beside an invocation. The reconciliation model has one record of either kind with a clock: a counter in 0..11, a run that takes its now once and decides the record in one transaction between its start and the run bound later, and a fault budget on the compensation's audit writes. The two are separate models because the clock's states times the arc's pass the checker's 200,000-state cap.
+**The model in brief.**
+- **Records.** Two Consent records for one subject and purpose, so there is one grant key. Ids are minted in order. Two downstream pairs, which the first consent's registrations bind.
+- **Bound invocations: three slots.** Each is opened in order with a fresh now as its pairing datum: an ordinal clock, the host's injection (Capability requirement 27, 37, 38).
+  - Its status is live, committed, dead (yielded, died or close failed: the intent open for the sweep), closed, refused, escalated or abandoned.
+  - `cby` says who wrote the closing: the invocation, the sweep or the operator.
+  - The commit answers committed, already-* (pre-commit, a refusal record) or unknown. An unknown arm has written or not, as the environment chooses.
+- **The sweep.** It runs only on a dead intent. It runs the page's probe:
+  - withdrawal: Revoked at the datum gives committed, with the set derived at the intent's position; otherwise escalated;
+  - grant: one record at the datum gives committed; none or several, escalated.
+- **The operator.** The operator closes a dead or escalated intent with an outcome, or abandons it, and supersedes an abandonment with an outcome. The operator's outcome is not checked against the records (resolve 28, 31).
+- **One write outside any invocation:** a grant or a revoke, with no intent.
+- **The Event Log's order** is an ordinal given to the registration events, the withdrawal intents and the revoke's commit.
+- **Outside every transaction:** the registration is one step, as are the binding, the purge, the key entries (after a grant event) and the history read.
+- **The leg** is one step that reads every record against the intents. Its findings and alerts are compared with what the records hold (the write's own invocation, a ghost), as the gate's answer is compared with the consent check.
 
-| Spec invariant (no. + name) | Load-bearing (vote)? | Verdict | Model construct / reason |
+| Spec rule (no. + name) | Load-bearing (vote)? | Verdict | Model construct / reason |
 |---|---|---|---|
-| Invariant 1.1 — the gate answers permitted only if the consent check answers granted | YES | **covered** | arc: `Invariant_1_1`, read from the `Gate` step. Twin `-gate-cached` |
-| Invariant 1.2 — a processing system does not call the consent check | no | out-of-scope | the deployment's obligation (Capability requirement 30, 31, External check 1), not a behavior of the composition |
-| Invariant 1.3 — two Granted records never carry one subject reference and purpose | YES | **covered** | arc: `Invariant_1_3` (a grant is admitted only while no record is Granted, else already-granted). Twin `-grant-no-check`. Probes `-already-granted`, `-regranted` |
-| Invariant 2.1 — a Consent record past the widened window carries a grant closure | YES | **covered** | reconciliation: `Invariant_2_1` (kind G: a grant event, an escalation of kind grant, or the horizon passed). Twin `-finding-for-ungranted`. Probes `-grant-escalated`, `-compensated-grant` |
-| Invariant 2.2 — every grant event carries an attestation and a position in the Event Log | no | out-of-scope | the event's fields; the attestation's verification is Audit Trail's (Check 2.3) |
-| Invariant 3.1 — a propagation event names a Revoked record | YES | **covered** | arc: `Invariant_3_1` and `Action_wiring_order` (the event follows the revoke it records, Wiring decision 1). Twin `-event-before-revoke` |
-| Invariant 3.2 — two propagation events never carry one consent id | YES | **covered** | arc: `Invariant_3_2` (an admitted retry on a Revoked record writes no event, Action wiring 35); reconciliation: `Invariant_3_2` (the pre-check, Reconciliation 9). Twins `-second-event`, `-no-precheck` |
-| Invariant 3.3 — a propagation event's set is the registered set at the event's boundary | YES | **covered** | arc: `Invariant_3_3`, the derivation from the registration events and the purged downstream entries, a registration after the intent left out; reconciliation: `Invariant_3_3`, the compensating event's at the earliest candidate's boundary (Reconciliation 13). Twins `-set-from-index`, `-set-live-only`, `-set-at-now`. Probes `-unbound-at-derivation`, `-purged-pair-carried`, `-registered-after`, `-registration-after-boundary` |
-| Invariant 3.4 | no | deleted | Reconciliation 36 owns it (the page's tombstone) |
-| Invariant 3.5 — a paired unpropagated record past the widened window carries a propagation closure | YES | **covered** | reconciliation: `Invariant_3_5` (kind P, paired: a propagation event, or an escalation). Twin `-never-escalate-late`. Probes `-late-escalation` (the escalation of Reconciliation 30 is reachable), `-narrow-window` (the window without the run bound, `W + K`, is false: the closure lands one run bound later, as the 2026-11-09 03:05Z finding read it), `-escalation-refused` (a reading, below) |
-| Invariant 3.6 — every compensating event carries the recovery flag | YES | **covered** | reconciliation: `Invariant_3_6`, with Check 3.6's recovery intent first. Twins `-no-recovery-flag`, `-no-recovery-intent` |
-| Invariant 4.1 — a binding carries a registration event carrying its pair and consent id | YES | **covered** | arc: `Invariant_4_1` (the downstream entry is written after the event lands, Action wiring 25). Twin `-bind-before-event` |
-| Invariant 5.1 — the lifecycle resolves provably | no | **covered** | arc: `Invariant_5_1` (a Granted or Revoked record has its grant intent and grant event, a Revoked one its withdrawal intent and its propagation event or its owed outcome, every history answered its access event). Twins `-grant-no-intent`, `-owed-unannounced`, `-history-before-event` |
-| Invariant 6.1 — every consent retention carries Retained | no | **covered** | arc: `Invariant_6_1` (a governed consent carries its retention, placed in the grant's transaction, and no action purges it). Twins `-no-placement`, `-purge-retention` |
-| Invariant 6.2 — a governed consent past its escalation instant carries a retention closure | no | **covered** | arc: `Invariant_6_1`, a stronger claim: the placement and the grant commit together (Action wiring 13, Execution Contract Database 1), so the closure stands from the grant |
-| Invariant 6.3 — the proof-period end is read only as the retention deadline | no | out-of-scope | a read of Retention Window's record, not a behavior of the composition |
-| Invariant 7.1 — no constituent write for an actor the permission check denied | no | **covered** | arc: `Invariant_7_1`, read from each commit step. Twin `-write-denied` |
-| Invariant 7.2 — a validated gate query calls only the consent check | no | by-construction | the `Gate` step leaves the world as it was; the claim is the gate's shape, not a state the model can reach otherwise |
-| Invariant 8.1 — no grant write before Audit Trail validates the credential at the grant intent | no | **covered** | arc: `Invariant_8_1`. Twin `-grant-before-credential` |
-| Invariant 8.2 — no revoke write before the credential is validated at the withdrawal intent | no | **covered** | arc: `Invariant_8_2`. Twin `-revoke-before-credential` |
-| Invariant 8.3 — no binding before the credential is validated at the registration event | no | **covered** | arc: `Invariant_8_3`. Twin `-bind-before-credential` |
-| Invariant 8.4 — no consent history answered before the credential is validated at the access event | no | **covered** | arc: `Invariant_8_4` and `Invariant_5_1` (every history answered has its access event). Twin `-history-before-event` |
-| Wiring decision 1 — the propagation event follows the revoke | no | **covered** | arc: `Action_wiring_order`, `Invariant_3_1`. Twin `-event-before-revoke` |
+| Invariant 1.1 — the gate answers permitted only if the consent check answers granted | YES | **covered** | `Invariant_1_1`, read from the `Gate` step. Twin `-gate-cached` |
+| Invariant 1.2 — a processing system does not call the consent check | no | out-of-scope | the deployment's obligation (Capability requirement 30, 31, External check 1) |
+| Invariant 1.3 — two governed consents in Granted never carry one subject reference and purpose | YES | **covered** | `Invariant_1_3`: the consent check inside the grant transaction (one commit step). A record a direct write made is no governed consent (Term governed consent) and is the write-ownership finding's. Twin `-grant-no-check`. Probes `-already-granted`, `-regranted` |
+| Invariant 2.2 — every grant event carries an attestation and a position | no | out-of-scope | the event's fields; the verification is Audit Trail's (Check 2.3) |
+| Invariant 3.1 — a propagation event names a Revoked record | YES | **covered** (invocation, sweep); **detected** (operator) | `Invariant_3_1` over the events the close and the sweep write; `Action_wiring_order` (the close follows the commit, Wiring decision 1). An operator's outcome over an intent whose revoke never committed is reachable and carries the resolving actor: Check 3.10 is what finds it (the page's Invariant 3 NOTE). Twin `-event-before-revoke` |
+| Invariant 3.2 — two propagation events never carry one consent id | YES | **covered** (invocation, sweep); **detected** (operator) | `Invariant_3_2`: two events for one consent id are never both the invocation's or the sweep's. A retried withdrawal is refused already-revoked, and its probe answers not-committed at its own datum. Twins `-second-event`, `-equal-now`. Probe `-operator-second-event`: an operator's second event is reachable, and Check 3.1 detects it |
+| Invariant 3.3 — a propagation event's set is the registered set at the event's boundary | YES | **covered** (invocation, sweep); not checked for the operator | `Invariant_3_3`: the set equals the pairs whose registration event precedes the intent's position. A registration after the intent is out, and a purged pair is carried through its binding. The operator's set is fixed to its own probe run's, because no check reads it; the page's NOTE does not name 3.3 (see Readings 1). Twins `-set-from-index`, `-set-live-only`, `-probe-set-at-now`. Probes `-unbound-at-derivation`, `-purged-pair-carried`, `-registered-after`, `-registration-after-boundary` |
+| Invariant 4.1 — a binding carries a registration event | YES | **covered** | `Invariant_4_1` (the binding follows the event, Action wiring 25). Twin `-bind-before-event` |
+| Invariant 5.1 — the lifecycle resolves provably | no | **covered** | `Invariant_5_1`: a governed record is carried by the intent of its own grant; a Revoked one an invocation revoked by its withdrawal intent; every history answered has its access event. `Owed_outcome` gives the other half: a committed write without an outcome stands beside an open intent or a closing. Twins `-grant-no-intent`, `-history-before-event` |
+| Invariant 6.1 — every consent retention carries Retained | no | **covered** | `Invariant_6_1`: a governed consent carries its retention, placed inside the grant transaction, and no action purges it. Twins `-no-placement`, `-purge-retention` |
+| Invariant 6.3 — the proof-period end is read only as the retention deadline | no | out-of-scope | a read of Retention Window's record |
+| Invariant 7.1 — no constituent write for an actor the permission check denied | no | **covered** | `Invariant_7_1`, read at each commit. Twin `-write-denied` |
+| Invariant 7.2 — a validated gate query calls only the consent check | no | by-construction | the `Gate` step writes nothing; the claim is the gate's shape |
+| Invariant 8.3 — no binding before the credential is validated at the registration event | no | **covered** | `Invariant_8_3`. Twin `-bind-before-credential` |
+| Invariant 8.4 — no consent history before the credential is validated at the access event | no | **covered** | `Invariant_8_4`, `Invariant_5_1`. Twin `-history-before-event`. Probes `-history-answered`, `-denied-refused`, `-bad-credential-refused` |
+| Wiring decision 1 — the propagation event follows the revoke | no | **covered** | `Action_wiring_order`, `Invariant_3_1`. Twin `-event-before-revoke` |
 | Wiring decision 3, 4 — the one withdrawal surface and the one gate | no | out-of-scope | the deployment exposes the surfaces (Capability requirement 30) |
-| Action wiring 7 through 9 — the consent check before the grant write; already-granted | no | **covered** | arc: the `WriteGrant` guard and the `AlreadyGranted` step; `Invariant_1_3`. Twin `-grant-no-check`. Probe `-already-granted` |
-| Action wiring 13 — the placement follows a committed grant | no | **covered** | arc: the grant's commit; `Invariant_6_1`. Twin `-no-placement` |
-| Action wiring 24, 25 — an index entry is written after the event it derives from lands | no | **covered** | arc: the `Bind` step, only once the registration event stands; `Invariant_4_1`. Twin `-bind-before-event` |
-| Action wiring 28 through 31 — the derivation: from the events and the purged entries, never a live entry; a missing binding is added | no | **covered** | arc: the `Derive` step and the commit's binding repair; `Invariant_3_3`. Twins `-set-from-index`, `-set-live-only`. Probes `-unbound-at-derivation`, `-purged-pair-carried` |
-| Action wiring 35 — an already-revoked answer writes no event | no | **covered** | arc: the `AlreadyRevoked` step; `Invariant_3_2`. Twin `-second-event`. Probe `-already-revoked` |
-| Action wiring 50, 51 — the access event before the history is answered | no | **covered** | arc: `Invariant_5_1`, `Invariant_8_4`. Twin `-history-before-event`. Probe `-history-answered` |
-| Action wiring 53 through 57 — the gate reads the consent check and writes nothing | no | **covered** | arc: the `Gate` step and `Invariant_1_1`. Twin `-gate-cached` |
-| Audit arm 12, 15, 17 — recording-failure carrying outcome is an answer, the Consent record committed and its event owed | no | **covered** | arc: the withdrawal's `EventWd("refused")` arm, `Owed_outcome` and `Invariant_5_1`. Twins `-owed-unannounced`, `-owed-always`. Probe `-owed-outcome`. The reconciliation model starts from the same record |
-| Audit arm 1 through 4, 7 through 9, 13, 14, 16 | no | out-of-scope | the answers Audit Trail gives and their pass-through (the closure table); the model takes the audit write as landed or refused |
-| Composition state 6 — a binding is never removed | no | **covered** | arc: `Composition_state_6`. Twin `-unbind` |
-| Composition state 13, 14, 16, 18 — a purged downstream entry is truth-bearing | no | **covered** | arc: `Composition_state_13` (a purged registration event always has its downstream entry), the purge's guard. Twin `-purge-before-binding`. Probe `-purged-pair-carried` |
-| Reconciliation 2 — a run at least every cadence; Capability requirement 10, 34 — the windows | no | **covered** | reconciliation: the `Tick` guards (an idle reconciliation starts a run before the cadence passes, a run lands within the run bound), and the constants meet the two start rules |
-| Reconciliation 5 — an aged record is reported, not compensated | no | **covered** | reconciliation: the `ProcSkip` step. Probe `-aged` |
-| Reconciliation 9 — no compensation of a record whose owed outcome exists | no | **covered** | reconciliation: the `ProcComp` guard; `Invariant_3_2`. Twin `-no-precheck` |
-| Reconciliation 11, 12 — an unpaired record is a write-ownership finding and is not compensated | no | **covered** | reconciliation: the `ProcFinding` step; `Reconciliation_12`. Twin `-compensate-unpaired`. Probe `-finding` |
-| Reconciliation 12a — compensate an orphan whose candidates are within the cap; 29 — escalate the rest | no | **covered** | reconciliation: the `ProcComp` and `ProcEscalateNow` steps; `Reconciliation_12`. Twin `-compensate-over-cap`. Probe `-over-cap-escalated` |
-| Reconciliation 13 — the compensating event's set at the earliest candidate's boundary | YES | **covered** | reconciliation: `Invariant_3_3`. Twin `-set-at-now`. Probe `-registration-after-boundary` |
-| Reconciliation 16, 29 — an ungranted record no intent pairs is escalated, never a write-ownership finding | no | **covered** | reconciliation: the `ProcEscalateNow` step; `Invariant_2_1`. Twin `-finding-for-ungranted`. Probe `-grant-escalated` |
-| Reconciliation 20 — a compensated grant's index entries follow the compensating event | no | **covered** | reconciliation: `Reconciliation_20`. Twin `-index-before-event`. Probe `-compensated-grant` |
-| Reconciliation 21 — the compensating event names the candidates where more than one pairs | no | **covered** | reconciliation: `Reconciliation_21`. Twin `-no-candidates-carried`. Probe `-several-candidates` |
-| Reconciliation 24, 25, 27 — the recovery intent first; the flag on the compensating event | no | **covered** | reconciliation: `Invariant_3_6`. Twins `-no-recovery-intent`, `-no-recovery-flag` |
-| Reconciliation 28 — a refused compensating event is retried while the orphan is under compensation | no | **covered** | reconciliation: the `ProcComp` guard; `Reconciliation_28`. Twin `-retry-past-instant`. Probe `-compensated-after-refusal` |
-| Reconciliation 30 — a compensable orphan is escalated after its escalation instant and a refusal | no | **covered** | reconciliation: the `ProcEscalateLate` step; `Reconciliation_30`. Twins `-escalate-early`, `-never-escalate-late`. Probe `-late-escalation` |
-| Reconciliation 32, 33 — an escalated record is not compensated; no second escalation | no | **covered** | reconciliation: `Check_3_4`, `Reconciliation_32`, `Reconciliation_33`. Twins `-compensate-escalated`, `-escalate-twice` |
-| Reconciliation 22, 23 — the binding repair from the first registration event | no | **covered** | arc: the `Bind` step is the one write for a registration's own entry and a lost one (and the derivation's repair at commit); there is no audit event for it |
-| Reconciliation 26 — every write attested under the recovery identity | no | out-of-scope | the attestation's identity is Actor Identity's; the model carries the recovery intent as a boolean |
-| Reconciliation 34 through 37 — the escalation's retry; the report of every escalated record; the alert on every orphan; decide only on an answered read | no | out-of-scope | the escalation's own refusal is a reading (below); the reports and alerts are the deployment's; a step reads the world as it stands |
-| Check 3.4 — a revoked record with no event resolves to exactly one class | no | **covered** | reconciliation: `Check_3_4` (an escalated record names no event) and the closures of `Invariant_3_5`. The fifth arm, a conformance failure for an orphan past its escalation instant that no closure names, is open line 2026-11-09-c (a reading, below) |
-| Check 3.5 — the closure within the widened window | no | **covered** | reconciliation: `Invariant_3_5` |
-| Check 1.1 through 8.4, other than the rows above | no | out-of-scope | the auditor's reads of the records and the deployment's configuration; the model checks the state they read |
-| Composes 1 through 14; Composition state 1 through 5, 7 through 12, 15, 17, 19 through 22; Capability requirement 1 through 9, 11 through 33, 35, 36; Primitive policy 1 through 13; Audit arm 5, 6, 10, 11; Action wiring 1 through 6, 10 through 12, 14 through 23, 26, 27, 32 through 34, 36 through 49, 52, 58 | no | out-of-scope | wiring, the events' fields (the payload cap, the envelope, the field length cap), the clock and the seam (the arc has none; the reconciliation reads one), deployment configuration, and the refusals before any write. Action wiring 1 through 3 are the arc's permission step: a denied call can only abort (`Invariant_7_1`) |
-| Non-goal 1 through 9; Retention asymmetry 1; Clock semantics 1 through 3; Concurrency | no | out-of-scope | non-goals bound the claim; Retention asymmetry 2 is `Invariant_6_1`; the order of an intent and its outcome is the Event Log's sequence (the arc's staged flags); Concurrency is Database 2's |
+| Action wiring 4, 32 — the open before the commit, the now as the pairing datum | no | **covered** | `Action_wiring_order` (a commit follows its intent), `Invariant_5_1`. Twin `-grant-no-intent` |
+| Action wiring 7 through 9, 13, 58 — the grant transaction: the consent check, the grant write, the placement | no | **covered** | the `CommitGrant` step; `Invariant_1_3`, `Invariant_6_1`. Twins `-grant-no-check`, `-no-placement`. Probe `-already-granted` (a refusal with its refusal record) |
+| Action wiring 17, 41, 42 — the close after a committed arm | no | **covered** | `Action_wiring_order`. Twin `-event-before-revoke` |
+| Action wiring 18, 24 — the key entries after a grant event (the close's, the sweep's or an operator's) | no | **covered** | `Action_wiring_24`, read from the `Index` step. Twin `-index-before-event`. Probe `-compensated-grant` (the sweep's committed answer on the grant kind, then the key entries) |
+| Action wiring 25 — a binding after its registration event | no | **covered** | `Invariant_4_1`. Twin `-bind-before-event` |
+| Action wiring 28 through 30 — the derivation after the open, from the events and the purged entries, never a live entry | no | **covered** | the derivation at the close and in the withdrawal probe; `Invariant_3_3`, `Recovered_set_at_intent`. Twins `-set-from-index`, `-set-live-only`. Probes `-unbound-at-derivation`, `-purged-pair-carried` |
+| Action wiring 31; Reconciliation 22, 23 — the binding repair | no | by-construction | the `Bind` step writes a missing binding for any landed registration, with no audit event; no check reads the repair apart from `Invariant_4_1` |
+| Action wiring 34, 35 — the revoke with the intent's instant; already-revoked refused | no | **covered** | the `CommitWd` step; `Invariant_3_2`, `Pairing_unique`. Twin `-second-event`. Probe `-already-revoked` (a refusal with its refusal record) |
+| Action wiring 50, 51 — the access event before the history is answered | no | **covered** | `Invariant_8_4`. Twin `-history-before-event` |
+| Action wiring 53 through 57 — the gate reads the consent check and writes nothing | no | **covered** | `Invariant_1_1`. Twin `-gate-cached` |
+| Action wiring 59, 60, 61 — an unknown arm yields; a failed close answers recording-failure(outcome) | no | **covered** | the unknown arms and `Close("fail")` leave the intent open; `Owed_outcome`. Twin `-owed-unannounced` (a failed close refused instead). Probe `-owed-outcome` |
+| Cross-record consistency 1, 2 — a committed write whose close never landed stands beside an open intent, closed by the sweep | no | **covered** | `Owed_outcome` (Recoverable Invocation Invariant 4.1's shape), restated from the old `Owed_outcome`. Twin `-owed-unannounced`. Probes `-owed-outcome`, `-compensated-grant`. That the sweep closes it *within the closure window* is Recoverable Invocation's (not modelled: the clock) |
+| Cross-record consistency 3 — a propagation set carries no registration after the withdrawal intent | YES | **covered** | `Invariant_3_3`, `Recovered_set_at_intent`. Probes `-registered-after` (the close's event) and `-registration-after-boundary` (the sweep's): a pair registered between the intent and the revoke is not in the set, and Invariant 3.3 holds at the intent's boundary |
+| Term withdrawal probe; Recoverable Invocation act probe 6 — the recovered set at the intent's own position | YES | **covered** | `Recovered_set_at_intent` (new). Twin `-probe-set-at-now`. Probe `-registration-after-boundary` |
+| Capability requirement 37, 38; Term grant probe; Recoverable Invocation pairing datum 2, 4 — the pairing datum is the intent's injected now, never equal for two invocations of one act key | YES | **covered** | `Pairing_unique` (new): the probe answers committed only for the intent whose own commit wrote the record. Twin `-equal-now` (Capability requirement 38 dropped: a retried withdrawal, or a second grant, given the first's now, is recovered onto the first's record, with a second event). Probe `-compensated-grant` |
+| Reconciliation 6, 11, 15, 16 — a Consent record no intent of its key carries opens a write-ownership finding | no | **covered** | `Write_ownership_finding` (new): every record a write outside every invocation made has a finding, and no other record does. Twins `-finding-for-carried` (the leg reads only intents closed by an outcome: a record whose intent stands open is found) and `-no-finding` (the leg pairs on the act key alone: a direct grant after any grant intent opens no finding). Probe `-finding` |
+| Reconciliation 40, 41 — a record beside an intent of its key and datum closed by an abandonment or a refusal is alerted | no | **covered** | `False_closing_alert` (new): the leg alerts exactly the records whose own intent an abandonment or a refusal closed. Twin `-no-false-closing-alert` (refusals alerted, abandonments not). Probe `-false-closing` (an operator abandons a withdrawal whose revoke landed) |
+| Reconciliation 2, 4, 39 — the leg at the sweep cadence, never on a young record, on the sweep's now | no | out-of-scope | the clock (Not modelled). The leg reads a record's intents, which precede the record's write, so no young record is needed for the finding's truth here |
+| Reconciliation 38 — the leg decides only on an answered read | no | by-construction | a read that fails decides nothing: no step |
+| Composition state 6 — a binding is never removed | no | **covered** | `Composition_state_6`. Twin `-unbind` |
+| Composition state 13, 14, 16, 18 — a purged downstream entry is truth-bearing | no | **covered** | `Composition_state_13`, the purge's guard. Twin `-purge-before-binding`. Probe `-purged-pair-carried` |
+| Composition state 20 — no stored validity flag | no | **covered** | twin `-gate-cached` (`Invariant_1_1`) |
+| Retention asymmetry 2 — no purge on the consent retention instance | no | **covered** | `Invariant_6_1`. Twin `-purge-retention` |
+| Check 3.4, 2.2 — a record with no outcome resolves to one class | no | **covered**, partly | open intent, escalated, false closing and write-ownership finding are each a state here (`Owed_outcome`, `False_closing_alert`, `Write_ownership_finding`); young, aged and purged are the clock's (Not modelled) |
+| Check 6.4 — an intent with no outcome is open, awaiting the sweep, or closed by the sweep or an operator | no | **covered** | the slot's status; `Owed_outcome` |
+| Composes 1 through 19; Composition state 1 through 5, 7 through 12, 17, 19, 21, 23; Capability requirement 1 through 5, 9, 13, 14, 23, 26 through 28, 30 through 32, 35, 36, 39 through 42; Primitive policy 1 through 6, 8 through 13; Audit arm 6 through 9, 13, 16, 18; Action wiring 1 through 3, 5, 11, 12, 14, 19, 21 through 23, 26, 33, 36 through 40a, 48, 49, 52 | no | out-of-scope | wiring, the events' fields (the payload cap, the envelope, the field length cap), deployment configuration, the Recoverable Invocation instance's settings, and the refusals before any write. Action wiring 1 through 3 are the open's permission guard (`Invariant_7_1`). Primitive policy 5 is the subject-index guard on a withdrawal and a registration. Composes 11 and 12 are what the direct write breaks |
+| Check 1.1 through 8.5 other than the rows above; External check 1 through 7 | no | out-of-scope | the auditor's reads of the records and external evidence; the model checks the state they read |
+| Non-goal 1 through 11; Clock semantics 1 | no | out-of-scope | non-goals bound the claim. Non-goal 10 (open, commit and close are not atomic) is the model's shape. Clock semantics 1 is the ordinal order of an intent and its event |
+
+**Inherited: the rows that left.** The page tombstoned these rules, so the matrix carries no row for them. Each is owned by Recoverable Invocation, and recoverable-invocation.tla or its coverage carries it:
+
+| Former row | Owner now |
+|---|---|
+| Invariant 2.1, 3.5; Check 2.1, 3.5 — the closure of an orphan within the widened window | Recoverable Invocation Invariant 4.2, Check 3.1 |
+| Invariant 3.6; Check 3.6 — the recovery intent first, the recovery flag | Recoverable Invocation Invariant 5.1, 5.2, which recoverable-invocation.tla v8 checks (`Inv9_RecoveryIntentFirst`, `Inv10_RecoveryFlagged`, twins `-buggy-recoveryintent`, `-buggy-recoveryflag`; unit of 2026-11-10, beside this one). Invariant 5.3 (only what the probe re-derived) stays owed there; this page's `Recovered_set_at_intent` checks it for the propagation set |
+| Invariant 6.2 | Invariant 6.1 (the placement inside the grant transaction) |
+| Invariant 8.1, 8.2 (twins `-grant-before-credential`, `-revoke-before-credential`) | Recoverable Invocation Invariant 1.1 |
+| Reconciliation 5 (aged reported) | Recoverable Invocation Invariant 7.3, Check 7.1 |
+| Reconciliation 9 (no compensation over an existing outcome; twin `-no-precheck`) | Recoverable Invocation reconcile step 2.4 through 2.6, Invariant 2.1 |
+| Reconciliation 10, 12, 12a, 13, 14 (pairing, compensating an unpaired record, the first read, the set at the earliest candidate, re-derivation; twins `-compensate-unpaired`, `-compensate-over-cap`) | Recoverable Invocation Invariant 3.3, reconcile step 1.2, 3.1, 3.2, 3.12, act probe 6, Invariant 5.3. The set's position is this page's `Recovered_set_at_intent` |
+| Reconciliation 17 (grant skew in a pairing window) | forbidden: Recoverable Invocation Invariant 3.4 |
+| Reconciliation 20 (twin `-index-before-event`) | Recoverable Invocation Sweep never 1, Invariant 9.2; the twin moved to Action wiring 24 above |
+| Reconciliation 21 (candidates on the compensating event; twin `-no-candidates-carried`) | Recoverable Invocation Invariant 3.5a, reconcile step 3.8 through 3.10 |
+| Reconciliation 24 through 27 (recovery intent, its fields, the recovery identity, the flag; twins `-no-recovery-intent`, `-no-recovery-flag`) | Recoverable Invocation Invariant 5.1, 5.2, reconcile step 3.2a, Primitive policy 11a, the service identity |
+| Reconciliation 28 through 34 (retry, escalation, its instant, its fields, no compensation of an escalated record, no second escalation, the escalation's retry; twins `-retry-past-instant`, `-escalate-early`, `-never-escalate-late`, `-escalate-twice`, `-compensate-escalated`) | Recoverable Invocation reconcile step 2.5, 2.6, 3.5, 3.8 through 3.10, 3.17, 3.20, 3.23, Invariant 2.1, resolve 15 |
+| Reconciliation 35 through 37 (report, alert, answered read) | Recoverable Invocation reconcile step 3.13, 3.21, 5.1, 5.9, Term hard alert, act probe 4, 5; Reconciliation 38 for the leg |
+| Reconciliation 16's old reading (an ungranted record escalated, never a finding; twin `-finding-for-ungranted`) | reversed by the page (D7): the old twin's behaviour is now correct, and `Write_ownership_finding` checks it |
+| Audit arm 1 through 4, 12, 14, 15, 17 (the bound actions' positions) | Recoverable Invocation Primitive policy 19, 23, 30, 41 through 43, Invariant 8.3, 8.4 |
+
+## Twin × check matrix
+
+Each twin was run against each check it exists for, alone (a one-entry .cfg), 28 runs, and every one is `CAUGHT`. Every check but `TypeOK` rejects at least one twin on its own. The six twins of the new checks were also run with every other check on and their own check(s) off; Readings 4 gives the result. The full product of 22 twins and 22 checks was not run: a cell where the twin does not break the check explores the whole space, about 6 minutes on one worker.
+
+| Twin | Check(s) it breaks alone (states at the violation) |
+|---|---|
+| `-bind-before-credential` | `Invariant_8_3` (149) |
+| `-bind-before-event` | `Invariant_4_1` (147) |
+| `-event-before-revoke` | `Invariant_3_1` (339), `Action_wiring_order` (339) |
+| `-gate-cached` | `Invariant_1_1` (13) |
+| `-grant-no-check` | `Invariant_1_3` (167) |
+| `-grant-no-intent` | `Invariant_5_1` (8), `Action_wiring_order` (8) |
+| `-history-before-event` | `Invariant_8_4` (4), `Invariant_5_1` (4) |
+| `-no-placement` | `Invariant_6_1` (8) |
+| `-purge-before-binding` | `Composition_state_13` (347) |
+| `-purge-retention` | `Invariant_6_1` (336) |
+| `-set-from-index` | `Invariant_3_3` (2,904) |
+| `-set-live-only` | `Invariant_3_3` (31,933), `Recovered_set_at_intent` (31,983) |
+| `-unbind` | `Composition_state_6` (939) |
+| `-write-denied` | `Invariant_7_1` (13) |
+| `-second-event` | `Invariant_3_2` (30,745) |
+| `-owed-unannounced` | `Owed_outcome` (22) |
+| `-index-before-event` | `Action_wiring_24` (13) |
+| `-probe-set-at-now` | `Recovered_set_at_intent` (2,803), `Invariant_3_3` (2,803) |
+| `-finding-for-carried` | `Write_ownership_finding` (24) |
+| `-no-finding` | `Write_ownership_finding` (33) |
+| `-no-false-closing-alert` | `False_closing_alert` (66) |
+| `-equal-now` | `Pairing_unique` (387), `Invariant_3_2` (59,138) |
 
 ## Readings (named, not counterexamples)
 
-1. **The escalation's own refusal (open line 2026-11-09-c).** The reconciliation model takes the escalation's write to land at its first attempt. Reconciliation 34 retries a refused one at the next run, which lands the closure one run after the escalation reach and past the widened window; the probe `-escalation-refused` shows `Invariant_3_5` false there. The page already holds the line open, and its fifth arm of Check 3.4 (a conformance failure) is where such an orphan lands. An escalation refused with invalid-request is never retried (Audit arm 4), so the orphan stays unclosed for good: the same line.
-2. **A refused recovery intent (open line 2026-11-09-e).** Reconciliation 28 retries a compensating event; the closure table says the next run retries the intent. The model reads the closure table and counts the intent's refusal as the compensation meeting a refusal, so Reconciliation 30 escalates an orphan whose every attempt was refused. Whether Reconciliation 30 counts the intent's own refusal is the open line's second question; the model counts it.
-3. **Reconciliation 12a's first read.** The model's compensation fires at the run that reads the orphan and at each later run while the orphan is under compensation, one step for both. That the first read comes before the escalation instant is Capability requirement 10 (`W` exceeds `A + K + R`), which the constants meet.
-4. **Seams.** The composition, Consent and the substrate read one clock; the widened window's clock offset allowance is carried as the constant `O` and the model reads the closure's instant in true time. Two seams with a skew are not modeled.
-5. **The purge.** The arc's horizon purges a registration event only once its binding stands. The reconciliation's third leg repairs a missing binding within the cadence plus the run bound, and the audit horizon exceeds the escalation reach (Capability requirement 34), so no run is late for the purge; the twin `-purge-before-binding` is the model without that arithmetic.
-6. **A clean record.** A withdrawal or a grant whose event landed pairs exactly one intent (candidate count one).
+1. **The operator's set.** The invocation resolve checks neither an operator's outcome nor its data against the records (Recoverable Invocation resolve 28, 31). So Invariant 3.3 is detected for an operator's closing (Check 3.2), not prevented, exactly as Invariant 3.1 and 3.2 are. The page's Invariant 3 NOTE names only 3.1 and 3.2. The model fixes the operator's set to its own probe run's, because no check reads it.
+2. **The second event's detection.** An operator's second propagation event, or one naming a record not Revoked, is found by the auditor's Check 3.1 and 3.10 from the records: it carries the resolving actor. It is not found by the false-closing alert, which is the mirror case (a write that landed, beside an intent an abandonment or a refusal closed).
+3. **Distinct nows.** The model's clock gives every invocation and the direct write a distinct now. Capability requirement 38 asks this only per act key, and only of invocations. Two cases are therefore not explored:
+   - Two act keys sharing a now. Harmless to the leg's finding, which pairs on the key and the datum (Reconciliation 11, 16). It is not harmless to Reconciliation 40 and 41 as written, which pair on the datum alone (see the report).
+   - A direct write at an instant an intent of its key carries. That write would read as carried: no finding, and possibly a recovered outcome for the intent.
+4. **The new checks' twins break only their own checks.** Each was run with its target check(s) off and every other check on, and each holds:
+   - `-probe-set-at-now`, without `Recovered_set_at_intent` and `Invariant_3_3`: 6,762,465 states;
+   - `-finding-for-carried`, without `Write_ownership_finding`: 10,963,780;
+   - `-no-finding`, without `Write_ownership_finding`: 9,251,375;
+   - `-no-false-closing-alert`, without `False_closing_alert`: 8,503,510;
+   - `-owed-unannounced`, without `Owed_outcome`: 6,341,985;
+   - `-equal-now`, without `Pairing_unique`, `Invariant_3_2` and `False_closing_alert`: 13,905,365. Its retried refusal, carrying the first invocation's datum, also reads to the leg as a false closing.
+5. **The history read is taken first.** It touches nothing any other step reads, and no check relates it to them.
 
 ## Step 3 — bound saturation
 
-Raise each model's scope and confirm the explored-state count does not find a new behavior (the configs record each run):
+Each run explores the state space exhaustively under TLC and holds; the .cfg records them.
+- `NC = 2, Qs = {q1, q2}, N = 3, MaxDirect = 1` → 5,538,855 states. This is the canonical run.
+- `N = 2` → 140,285 states.
+- `N = 2, Qs = {q1, q2, q3}` → 1,852,805 states, with no new violation.
 
-- Arc: `Cs = {c1, c2}`, `Qs = {q1, q2}` → 24,618 states. A third pair, a third consent or a second history read → `MaxDepthExceeded` (the checker's depth cap of 40, each action three to six steps): the canonical run is the largest the cap admits. **saturated** ✓
-- Reconciliation: `W = 5, K = 2, R = 1, A = 1, O = 1, H = 10, FbP = 4, FbG = 1, MaxSeam = 0, MaxPos = 3, T = 11` → 20,400 states. `MaxSeam = 1` → 39,483; `FbP = 5, MaxPos = 4` → 24,272; `W = 4, K = 1, H = 9, T = 10, FbP = 5` → 16,608; all hold. `FbP = 2` is the fewest refusals that reach the late escalation (`FbP = 1` does not). **saturated** ✓
+Why these sizes:
+- `N = 3` is the fewest invocations that put two propagation events on one consent id: a grant, its withdrawal and a retried withdrawal. The operator's second event and the `-second-event` twin need it.
+- `N = 4` is not run. `N = 2` to `N = 3` multiplied the states by about forty, and at that rate `N = 4` is past the audit's fifteen-minute limit on one worker.
+- A third pair crosses no rule a second does not (the `N = 2` run above).
+
+**saturated** ✓ within the audit's reach. This is not a claim that `N = 3` is enough.
 
 ## Outcome
 
-- GAP rows: none. The two readings above (1, 2) are open lines the page already holds, 2026-11-09-c and 2026-11-09-e; no new finding.
-- by-construction flags on load-bearing invariants: none (Invariant 7.2 is not load-bearing).
-- Twin × check matrix: each check in each .cfg was run alone (a one-entry .cfg) against the twins Step 2 names for it, 37 runs, and every one is `CAUGHT`: every check but `TypeOK` rejects at least one twin on its own. The full product of 33 twins and 31 checks was not run: a cell where the twin does not break the check re-explores the whole space (about 12 seconds for the arc), and the product was estimated at well over an hour.
-- Result: clean — *Coverage cross-check 2026-11-09 — clean (all load-bearing invariants covered; saturation confirmed).*
+- GAP rows: none on the page's live rules. The two by-construction rows (Invariant 7.2; Action wiring 31 with Reconciliation 22, 23) are not load-bearing.
+- Inherited: Recoverable Invocation Invariant 5.1, 5.2 (formerly this page's Invariant 3.6) are checked by recoverable-invocation.tla v8 (`Inv9_RecoveryIntentFirst`, `Inv10_RecoveryFlagged`, twins `-buggy-recoveryintent` and `-buggy-recoveryflag`), landed in the same patch. Recoverable Invocation Invariant 5.3 stays owed in its own coverage.
+- Result: clean — *Coverage cross-check 2026-11-10 — clean (all load-bearing invariants covered on the invocation and the sweep; the operator's closing detected, not prevented; saturation confirmed).*

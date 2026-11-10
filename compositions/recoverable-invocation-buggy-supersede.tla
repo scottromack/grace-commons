@@ -1,7 +1,7 @@
 ---- MODULE recoverable-invocation-buggy-supersede ----
 \* Grace Commons — Recoverable Invocation: BUGGY TWIN (vacuity guard).
 \*
-\* THE NAME LEFT OFF. Identical to recoverable-invocation.tla (v7), with
+\* THE NAME LEFT OFF. Identical to recoverable-invocation.tla (v8), with
 \* SupersedesNamed = FALSE: an operator's resolution written over an escalated
 \* record carries resolving actor and no supersedes, so the two records read
 \* as two closings of one act. The page's answer is resolve 13 and resolve 15a
@@ -77,9 +77,13 @@ VARIABLES
     opRecords,        \* the operator's closing records
     opSuperseded,     \* how many records those resolutions superseded BY NAME
     opPendingNamed,   \* TRUE: the operator's write in flight names a record
-    secondOpened      \* TRUE: a second invocation of this act got past its
+    secondOpened,     \* TRUE: a second invocation of this act got past its
                       \* own under-section pre-check while the first's intent
                       \* was still in flight
+    recIntended,      \* TRUE: the sweep's recovery_intended record is on the journal
+    outcomeBy,        \* none inv sweep: who wrote the outcome record
+    outcomeRecovery   \* TRUE: the outcome carries the recovery flag and the service
+                      \* identity's attestation (Invariant 5.2)
 
 vars == <<now, fence, invPhase, holder, invExpiry, heldUntil,
           intentState, intentAt, intentReturnAt, intentVisibleAt, storeState, storeLandAt,
@@ -89,7 +93,8 @@ vars == <<now, fence, invPhase, holder, invExpiry, heldUntil,
           closingRecords, sweepNextA, sweepNextB, sweepPhaseA, sweepPhaseB,
           sweepDeaths, pauses,
           opPhase, opKind, opState, opReturnAt, opVisibleAt, opRecords,
-          opSuperseded, opPendingNamed, secondOpened>>
+          opSuperseded, opPendingNamed, secondOpened,
+          recIntended, outcomeBy, outcomeRecovery>>
 
 opVars == <<opPhase, opKind, opState, opReturnAt, opVisibleAt, opRecords,
             opSuperseded, opPendingNamed, secondOpened>>
@@ -98,6 +103,9 @@ Horizon == MaxTime + SweepLease + LateLanding + MaxLand
 
 TypeOK ==
     /\ now \in 0..MaxTime
+    /\ recIntended \in BOOLEAN
+    /\ outcomeBy \in {"none", "inv", "sweep"}
+    /\ outcomeRecovery \in BOOLEAN
     /\ fence \in BOOLEAN
     /\ invPhase \in {"idle", "reading", "checked", "prepIntent", "issuing", "opened", "committed", "prepared", "closing", "readback", "done", "crashed", "yielded"}
     /\ holder \in {"none", "inv", "A", "B", "op", "sec"}
@@ -175,6 +183,9 @@ Init ==
     /\ opSuperseded = 0
     /\ opPendingNamed = FALSE
     /\ secondOpened = FALSE
+    /\ recIntended = FALSE
+    /\ outcomeBy = "none"
+    /\ outcomeRecovery = FALSE
 
 \* ---- helpers -------------------------------------------------------------
 
@@ -297,7 +308,7 @@ OpenTake ==
     /\ invExpiry' = now + CompletionBound
     /\ heldUntil' = now + CompletionBound
     /\ invPhase' = "reading"
-    /\ UNCHANGED <<now, fence, intentState, intentAt, intentReturnAt, intentVisibleAt,
+    /\ UNCHANGED <<recIntended, outcomeBy, outcomeRecovery, now, fence, intentState, intentAt, intentReturnAt, intentVisibleAt,
                    storeState, storeLandAt,
                    outcomeState, outcomeReturnAt, outcomeVisibleAt,
                    outcomeRecords, closingKind, closingState, closingReturnAt,
@@ -316,7 +327,7 @@ OpenRead ==
     /\ invPhase = "reading"
     /\ now <= invExpiry - CompletionBound + ReadBound
     /\ invPhase' = "checked"
-    /\ UNCHANGED <<now, fence, holder, invExpiry, heldUntil,
+    /\ UNCHANGED <<recIntended, outcomeBy, outcomeRecovery, now, fence, holder, invExpiry, heldUntil,
                    intentState, intentAt, intentReturnAt, intentVisibleAt, storeState,
                    storeLandAt, outcomeState, outcomeReturnAt, outcomeVisibleAt,
                    outcomeRecords, closingKind, closingState, closingReturnAt,
@@ -333,7 +344,7 @@ PrepareIntent ==
     /\ invPhase = "checked"
     /\ IntentGated => InvGateOpen
     /\ invPhase' = "prepIntent"
-    /\ UNCHANGED <<now, fence, holder, invExpiry, heldUntil,
+    /\ UNCHANGED <<recIntended, outcomeBy, outcomeRecovery, now, fence, holder, invExpiry, heldUntil,
                    intentState, intentAt, intentReturnAt, intentVisibleAt, storeState,
                    storeLandAt, outcomeState, outcomeReturnAt, outcomeVisibleAt,
                    outcomeRecords, closingKind, closingState, closingReturnAt,
@@ -355,7 +366,7 @@ IssueIntent ==
     /\ intentState' = "pending"
     /\ intentAt' = now
     /\ invPhase' = "issuing"
-    /\ UNCHANGED <<now, fence, holder, invExpiry, heldUntil,
+    /\ UNCHANGED <<recIntended, outcomeBy, outcomeRecovery, now, fence, holder, invExpiry, heldUntil,
                    storeState, storeLandAt,
                    outcomeState, outcomeReturnAt, outcomeVisibleAt,
                    outcomeRecords, closingKind, closingState, closingReturnAt,
@@ -376,7 +387,7 @@ OpenReturn ==
     /\ invPhase = "issuing"
     /\ intentState \in {"returned", "visible"}
     /\ invPhase' = "opened"
-    /\ UNCHANGED <<now, fence, holder, invExpiry, heldUntil,
+    /\ UNCHANGED <<recIntended, outcomeBy, outcomeRecovery, now, fence, holder, invExpiry, heldUntil,
                    intentState, intentAt, intentReturnAt, intentVisibleAt,
                    storeState, storeLandAt, outcomeState, outcomeReturnAt,
                    outcomeVisibleAt, outcomeRecords, closingKind, closingState,
@@ -396,7 +407,7 @@ OpenYield ==
     /\ invPhase' = "yielded"
     /\ holder' = IF holder = "inv" THEN "none" ELSE holder
     /\ heldUntil' = IF holder = "inv" THEN 0 ELSE heldUntil
-    /\ UNCHANGED <<now, fence, invExpiry,
+    /\ UNCHANGED <<recIntended, outcomeBy, outcomeRecovery, now, fence, invExpiry,
                    intentState, intentAt, intentReturnAt, intentVisibleAt, storeState,
                    storeLandAt, outcomeState, outcomeReturnAt, outcomeVisibleAt,
                    outcomeRecords, closingKind, closingState, closingReturnAt,
@@ -425,7 +436,7 @@ SecondOpen ==
     /\ sweepPhaseA' = IF SweepOvertaken("A") THEN "idle" ELSE sweepPhaseA
     /\ sweepPhaseB' = IF SweepOvertaken("B") THEN "idle" ELSE sweepPhaseB
     /\ opPhase' = IF OpOvertaken THEN OpAfterRefusal ELSE opPhase
-    /\ UNCHANGED <<now, fence, invExpiry, intentAt, storeState, storeLandAt,
+    /\ UNCHANGED <<recIntended, outcomeBy, outcomeRecovery, now, fence, invExpiry, intentAt, storeState, storeLandAt,
                    sweepNextA, sweepNextB, sweepDeaths, pauses,
                    outcomeIssuedAt, outcomeReplyLost, opKind>>
 
@@ -444,7 +455,7 @@ IssueCommit ==
        \/ /\ ~fence
           /\ \E d \in 1..LateLanding :
                 storeState' = "pending" /\ storeLandAt' = now + d
-    /\ UNCHANGED <<now, fence, holder, invExpiry, heldUntil,
+    /\ UNCHANGED <<recIntended, outcomeBy, outcomeRecovery, now, fence, holder, invExpiry, heldUntil,
                    intentState, intentAt, intentReturnAt, intentVisibleAt, outcomeState,
                    outcomeReturnAt, outcomeVisibleAt, outcomeRecords,
                    closingKind, closingState, closingReturnAt, closingVisibleAt,
@@ -462,7 +473,7 @@ PrepareOutcome ==
     /\ ~OutcomeVisible
     /\ outcomeState = "absent"
     /\ invPhase' = "prepared"
-    /\ UNCHANGED <<now, fence, holder, invExpiry, heldUntil,
+    /\ UNCHANGED <<recIntended, outcomeBy, outcomeRecovery, now, fence, holder, invExpiry, heldUntil,
                    intentState, intentAt, intentReturnAt, intentVisibleAt, storeState,
                    storeLandAt, outcomeState, outcomeReturnAt, outcomeVisibleAt,
                    outcomeRecords, closingKind, closingState, closingReturnAt,
@@ -483,9 +494,11 @@ IssueOutcomeInv ==
     /\ outcomeState' = "pending"
     /\ outcomeIssuedAt' = now
     /\ outcomeReplyLost' \in BOOLEAN
+    /\ outcomeBy' = "inv"
+    /\ outcomeRecovery' = FALSE
     /\ outcomeRecords' = outcomeRecords + 1
     /\ invPhase' = "closing"
-    /\ UNCHANGED <<now, fence, holder, invExpiry, heldUntil,
+    /\ UNCHANGED <<recIntended, now, fence, holder, invExpiry, heldUntil,
                    intentState, intentAt, intentReturnAt, intentVisibleAt, storeState,
                    storeLandAt, closingKind, closingState, closingReturnAt,
                    closingVisibleAt, closingRecords, sweepNextA, sweepNextB,
@@ -499,7 +512,7 @@ Yield ==
     /\ invPhase' = "yielded"
     /\ holder' = IF holder = "inv" /\ ~(HoldUnanswered /\ invPhase = "committed" /\ storeState = "pending") THEN "none" ELSE holder
     /\ heldUntil' = IF holder = "inv" /\ ~(HoldUnanswered /\ invPhase = "committed" /\ storeState = "pending") THEN 0 ELSE heldUntil
-    /\ UNCHANGED <<now, fence, invExpiry, intentState,
+    /\ UNCHANGED <<recIntended, outcomeBy, outcomeRecovery, now, fence, invExpiry, intentState,
                    intentAt, intentReturnAt, intentVisibleAt, storeState, storeLandAt,
                    outcomeState, outcomeReturnAt, outcomeVisibleAt,
                    outcomeRecords, closingKind, closingState, closingReturnAt,
@@ -517,7 +530,7 @@ ReadBackDue ==
     /\ outcomeReplyLost
     /\ now >= outcomeIssuedAt + JournalWriteBound
     /\ invPhase' = "readback"
-    /\ UNCHANGED <<now, fence, holder, invExpiry, heldUntil, intentState,
+    /\ UNCHANGED <<recIntended, outcomeBy, outcomeRecovery, now, fence, holder, invExpiry, heldUntil, intentState,
                    intentAt, intentReturnAt, intentVisibleAt, storeState, storeLandAt,
                    outcomeState, outcomeIssuedAt, outcomeReplyLost,
                    outcomeReturnAt, outcomeVisibleAt, outcomeRecords,
@@ -533,7 +546,7 @@ ReadBackFound ==
     /\ invPhase' = "done"
     /\ holder' = IF holder = "inv" /\ ~HoldUnanswered THEN "none" ELSE holder
     /\ heldUntil' = IF holder = "inv" /\ ~HoldUnanswered THEN 0 ELSE heldUntil
-    /\ UNCHANGED <<now, fence, invExpiry, intentState, intentAt,
+    /\ UNCHANGED <<recIntended, outcomeBy, outcomeRecovery, now, fence, invExpiry, intentState, intentAt,
                    intentReturnAt, intentVisibleAt, storeState, storeLandAt, outcomeState,
                    outcomeIssuedAt, outcomeReplyLost, outcomeReturnAt,
                    outcomeVisibleAt, outcomeRecords, closingKind, closingState,
@@ -551,7 +564,7 @@ ReadBackGiveUp ==
     /\ invPhase' = "yielded"
     /\ holder' = IF holder = "inv" /\ ~HoldUnanswered THEN "none" ELSE holder
     /\ heldUntil' = IF holder = "inv" /\ ~HoldUnanswered THEN 0 ELSE heldUntil
-    /\ UNCHANGED <<now, fence, invExpiry, intentState, intentAt,
+    /\ UNCHANGED <<recIntended, outcomeBy, outcomeRecovery, now, fence, invExpiry, intentState, intentAt,
                    intentReturnAt, intentVisibleAt, storeState, storeLandAt, outcomeState,
                    outcomeIssuedAt, outcomeReplyLost, outcomeReturnAt,
                    outcomeVisibleAt, outcomeRecords, closingKind, closingState,
@@ -571,7 +584,7 @@ FinishInv ==
     /\ invPhase' = "done"
     /\ holder' = IF holder = "inv" THEN "none" ELSE holder
     /\ heldUntil' = IF holder = "inv" THEN 0 ELSE heldUntil
-    /\ UNCHANGED <<now, fence, invExpiry, intentState,
+    /\ UNCHANGED <<recIntended, outcomeBy, outcomeRecovery, now, fence, invExpiry, intentState,
                    intentAt, intentReturnAt, intentVisibleAt, storeState, storeLandAt,
                    outcomeState, outcomeReturnAt, outcomeVisibleAt,
                    outcomeRecords, closingKind, closingState, closingReturnAt,
@@ -584,7 +597,7 @@ FinishInv ==
 Crash ==
     /\ invPhase \in {"issuing", "opened", "committed", "prepared", "closing", "readback"}
     /\ invPhase' = "crashed"
-    /\ UNCHANGED <<now, fence, holder, invExpiry, heldUntil,
+    /\ UNCHANGED <<recIntended, outcomeBy, outcomeRecovery, now, fence, holder, invExpiry, heldUntil,
                    intentState, intentAt, intentReturnAt, intentVisibleAt, storeState,
                    storeLandAt, outcomeState, outcomeReturnAt, outcomeVisibleAt,
                    outcomeRecords, closingKind, closingState, closingReturnAt,
@@ -607,7 +620,7 @@ SweepSelect(s) ==
     /\ SweepDue(s)
     /\ SetPhase(s, "waiting")
     /\ SetNext(s, now + Cadence)
-    /\ UNCHANGED <<now, fence, invPhase, holder, invExpiry, heldUntil,
+    /\ UNCHANGED <<recIntended, outcomeBy, outcomeRecovery, now, fence, invPhase, holder, invExpiry, heldUntil,
                    intentState, intentAt, intentReturnAt, intentVisibleAt, storeState,
                    storeLandAt, outcomeState, outcomeReturnAt, outcomeVisibleAt,
                    outcomeRecords, closingKind, closingState, closingReturnAt,
@@ -627,7 +640,7 @@ SweepTake(s) ==
     /\ sweepPhaseB' = IF s = "B" THEN "holding"
                       ELSE IF SweepOvertaken("B") THEN "idle" ELSE sweepPhaseB
     /\ opPhase' = IF OpOvertaken THEN OpAfterRefusal ELSE opPhase
-    /\ UNCHANGED <<now, fence, invExpiry, intentAt, storeState, storeLandAt,
+    /\ UNCHANGED <<recIntended, outcomeBy, outcomeRecovery, now, fence, invExpiry, intentAt, storeState, storeLandAt,
                    sweepNextA, sweepNextB, sweepDeaths, pauses,
                    outcomeIssuedAt, outcomeReplyLost, opKind, secondOpened>>
 
@@ -640,7 +653,7 @@ SweepSeen(s) ==
     /\ SetPhase(s, "idle")
     /\ holder' = "none"
     /\ heldUntil' = 0
-    /\ UNCHANGED <<now, fence, invPhase, invExpiry,
+    /\ UNCHANGED <<recIntended, outcomeBy, outcomeRecovery, now, fence, invPhase, invExpiry,
                    intentState, intentAt, intentReturnAt, intentVisibleAt, storeState,
                    storeLandAt, outcomeState, outcomeReturnAt, outcomeVisibleAt,
                    outcomeRecords, closingKind, closingState, closingReturnAt,
@@ -657,7 +670,7 @@ SweepYield(s) ==
     /\ SetPhase(s, "idle")
     /\ holder' = "none"
     /\ heldUntil' = 0
-    /\ UNCHANGED <<now, fence, invPhase, invExpiry,
+    /\ UNCHANGED <<recIntended, outcomeBy, outcomeRecovery, now, fence, invPhase, invExpiry,
                    intentState, intentAt, intentReturnAt, intentVisibleAt, storeState,
                    storeLandAt, outcomeState, outcomeReturnAt, outcomeVisibleAt,
                    outcomeRecords, closingKind, closingState, closingReturnAt,
@@ -673,8 +686,9 @@ SweepPrepareOutcome(s) ==
     /\ SweepGateOpen(s)
     /\ ServiceIdentity
     /\ storeState = "committed"
+    /\ recIntended' = TRUE
     /\ SetPhase(s, "prepOutcome")
-    /\ UNCHANGED <<now, fence, invPhase, holder, invExpiry, heldUntil,
+    /\ UNCHANGED <<outcomeBy, outcomeRecovery, now, fence, invPhase, holder, invExpiry, heldUntil,
                    intentState, intentAt, intentReturnAt, intentVisibleAt, storeState,
                    storeLandAt, outcomeState, outcomeReturnAt, outcomeVisibleAt,
                    outcomeRecords, closingKind, closingState, closingReturnAt,
@@ -691,7 +705,7 @@ SweepPrepareClosing(s) ==
     /\ ServiceIdentity
     /\ storeState \in {"none", "pending", "dropped"}
     /\ SetPhase(s, "prepClosing")
-    /\ UNCHANGED <<now, fence, invPhase, holder, invExpiry, heldUntil,
+    /\ UNCHANGED <<recIntended, outcomeBy, outcomeRecovery, now, fence, invPhase, holder, invExpiry, heldUntil,
                    intentState, intentAt, intentReturnAt, intentVisibleAt, storeState,
                    storeLandAt, outcomeState, outcomeReturnAt, outcomeVisibleAt,
                    outcomeRecords, closingKind, closingState, closingReturnAt,
@@ -709,9 +723,11 @@ SweepIssueOutcome(s) ==
     /\ outcomeState' = "pending"
     /\ outcomeIssuedAt' = now
     /\ outcomeReplyLost' = FALSE
+    /\ outcomeBy' = "sweep"
+    /\ outcomeRecovery' = TRUE
     /\ outcomeRecords' = outcomeRecords + 1
     /\ SetPhase(s, "issued")
-    /\ UNCHANGED <<now, fence, invPhase, holder, invExpiry, heldUntil,
+    /\ UNCHANGED <<recIntended, now, fence, invPhase, holder, invExpiry, heldUntil,
                    intentState, intentAt, intentReturnAt, intentVisibleAt, storeState,
                    storeLandAt, closingKind, closingState, closingReturnAt,
                    closingVisibleAt, closingRecords, sweepNextA, sweepNextB,
@@ -729,7 +745,7 @@ SweepIssueClosing(s) ==
     /\ closingState' = "pending"
     /\ closingRecords' = closingRecords + 1
     /\ SetPhase(s, "issued")
-    /\ UNCHANGED <<now, fence, invPhase, holder, invExpiry, heldUntil,
+    /\ UNCHANGED <<recIntended, outcomeBy, outcomeRecovery, now, fence, invPhase, holder, invExpiry, heldUntil,
                    intentState, intentAt, intentReturnAt, intentVisibleAt, storeState,
                    storeLandAt, outcomeState, outcomeReturnAt, outcomeVisibleAt,
                    outcomeRecords, sweepNextA, sweepNextB, sweepDeaths, pauses, outcomeIssuedAt, outcomeReplyLost, opPhase, opKind, opState,
@@ -744,7 +760,7 @@ SweepReturn(s) ==
     /\ SetPhase(s, "idle")
     /\ holder' = IF holder = s THEN "none" ELSE holder
     /\ heldUntil' = IF holder = s THEN 0 ELSE heldUntil
-    /\ UNCHANGED <<now, fence, invPhase, invExpiry,
+    /\ UNCHANGED <<recIntended, outcomeBy, outcomeRecovery, now, fence, invPhase, invExpiry,
                    intentState, intentAt, intentReturnAt, intentVisibleAt, storeState,
                    storeLandAt, outcomeState, outcomeReturnAt, outcomeVisibleAt,
                    outcomeRecords, closingKind, closingState, closingReturnAt,
@@ -759,7 +775,7 @@ SweepCrash(s) ==
     /\ sweepDeaths < MaxSweepDeaths
     /\ sweepDeaths' = sweepDeaths + 1
     /\ SetPhase(s, "idle")
-    /\ UNCHANGED <<now, fence, invPhase, holder, invExpiry, heldUntil,
+    /\ UNCHANGED <<recIntended, outcomeBy, outcomeRecovery, now, fence, invPhase, holder, invExpiry, heldUntil,
                    intentState, intentAt, intentReturnAt, intentVisibleAt, storeState,
                    storeLandAt, outcomeState, outcomeReturnAt, outcomeVisibleAt,
                    outcomeRecords, closingKind, closingState, closingReturnAt,
@@ -771,7 +787,7 @@ SweepSkip(s) ==
     /\ SweepScheduled(s)
     /\ ~SweepDue(s)
     /\ SetNext(s, now + Cadence)
-    /\ UNCHANGED <<now, fence, invPhase, holder, invExpiry, heldUntil,
+    /\ UNCHANGED <<recIntended, outcomeBy, outcomeRecovery, now, fence, invPhase, holder, invExpiry, heldUntil,
                    intentState, intentAt, intentReturnAt, intentVisibleAt, storeState,
                    storeLandAt, outcomeState, outcomeReturnAt, outcomeVisibleAt,
                    outcomeRecords, closingKind, closingState, closingReturnAt,
@@ -825,7 +841,7 @@ OpDue ==
 OpSelect ==
     /\ OpDue
     /\ opPhase' = "waiting"
-    /\ UNCHANGED <<now, fence, invPhase, holder, invExpiry, heldUntil,
+    /\ UNCHANGED <<recIntended, outcomeBy, outcomeRecovery, now, fence, invPhase, holder, invExpiry, heldUntil,
                    intentState, intentAt, intentReturnAt, intentVisibleAt, storeState,
                    storeLandAt, outcomeState, outcomeIssuedAt, outcomeReplyLost,
                    outcomeReturnAt, outcomeVisibleAt, outcomeRecords,
@@ -846,7 +862,7 @@ OpTake ==
     /\ opPhase' = "holding"
     /\ sweepPhaseA' = IF SweepOvertaken("A") THEN "idle" ELSE sweepPhaseA
     /\ sweepPhaseB' = IF SweepOvertaken("B") THEN "idle" ELSE sweepPhaseB
-    /\ UNCHANGED <<now, fence, invExpiry, intentAt, storeState, storeLandAt,
+    /\ UNCHANGED <<recIntended, outcomeBy, outcomeRecovery, now, fence, invExpiry, intentAt, storeState, storeLandAt,
                    sweepNextA, sweepNextB, sweepDeaths, pauses,
                    outcomeIssuedAt, outcomeReplyLost, opKind, secondOpened>>
 
@@ -858,7 +874,7 @@ OpSeen ==
     /\ opPhase' = "done"
     /\ holder' = "none"
     /\ heldUntil' = 0
-    /\ UNCHANGED <<now, fence, invPhase, invExpiry,
+    /\ UNCHANGED <<recIntended, outcomeBy, outcomeRecovery, now, fence, invPhase, invExpiry,
                    intentState, intentAt, intentReturnAt, intentVisibleAt, storeState,
                    storeLandAt, outcomeState, outcomeIssuedAt, outcomeReplyLost,
                    outcomeReturnAt, outcomeVisibleAt, outcomeRecords,
@@ -877,7 +893,7 @@ OpYield ==
     /\ opPhase' = "done"
     /\ holder' = "none"
     /\ heldUntil' = 0
-    /\ UNCHANGED <<now, fence, invPhase, invExpiry,
+    /\ UNCHANGED <<recIntended, outcomeBy, outcomeRecovery, now, fence, invPhase, invExpiry,
                    intentState, intentAt, intentReturnAt, intentVisibleAt, storeState,
                    storeLandAt, outcomeState, outcomeIssuedAt, outcomeReplyLost,
                    outcomeReturnAt, outcomeVisibleAt, outcomeRecords,
@@ -896,7 +912,7 @@ OpPrepareOutcome ==
     /\ storeState = "committed"
     /\ opKind' = "outcome"
     /\ opPhase' = "prepared"
-    /\ UNCHANGED <<now, fence, invPhase, holder, invExpiry, heldUntil,
+    /\ UNCHANGED <<recIntended, outcomeBy, outcomeRecovery, now, fence, invPhase, holder, invExpiry, heldUntil,
                    intentState, intentAt, intentReturnAt, intentVisibleAt, storeState,
                    storeLandAt, outcomeState, outcomeIssuedAt, outcomeReplyLost,
                    outcomeReturnAt, outcomeVisibleAt, outcomeRecords,
@@ -918,7 +934,7 @@ OpPrepareAbandon ==
     /\ \E r \in OpReadings : r >= intentAt + CompletionBound
     /\ opKind' = "abandoned"
     /\ opPhase' = "prepared"
-    /\ UNCHANGED <<now, fence, invPhase, holder, invExpiry, heldUntil,
+    /\ UNCHANGED <<recIntended, outcomeBy, outcomeRecovery, now, fence, invPhase, holder, invExpiry, heldUntil,
                    intentState, intentAt, intentReturnAt, intentVisibleAt, storeState,
                    storeLandAt, outcomeState, outcomeIssuedAt, outcomeReplyLost,
                    outcomeReturnAt, outcomeVisibleAt, outcomeRecords,
@@ -939,7 +955,7 @@ OpIssue ==
     /\ opSuperseded' = opSuperseded + (IF OpWouldName THEN 1 ELSE 0)
     /\ opPendingNamed' = OpWouldName
     /\ opPhase' = "issued"
-    /\ UNCHANGED <<now, fence, invPhase, holder, invExpiry, heldUntil,
+    /\ UNCHANGED <<recIntended, outcomeBy, outcomeRecovery, now, fence, invPhase, holder, invExpiry, heldUntil,
                    intentState, intentAt, intentReturnAt, intentVisibleAt, storeState,
                    storeLandAt, outcomeState, outcomeIssuedAt, outcomeReplyLost,
                    outcomeReturnAt, outcomeVisibleAt, outcomeRecords,
@@ -961,7 +977,7 @@ OpReturn ==
     /\ opPhase' = IF opRecords < MaxResolves THEN "idle" ELSE "done"
     /\ holder' = IF holder = "op" THEN "none" ELSE holder
     /\ heldUntil' = IF holder = "op" THEN 0 ELSE heldUntil
-    /\ UNCHANGED <<now, fence, invPhase, invExpiry,
+    /\ UNCHANGED <<recIntended, outcomeBy, outcomeRecovery, now, fence, invPhase, invExpiry,
                    intentState, intentAt, intentReturnAt, intentVisibleAt, storeState,
                    storeLandAt, outcomeState, outcomeIssuedAt, outcomeReplyLost,
                    outcomeReturnAt, outcomeVisibleAt, outcomeRecords,
@@ -1037,7 +1053,7 @@ Tick ==
     /\ opState' = NextOp
     /\ opReturnAt' = AfterOpRet
     /\ opVisibleAt' = AfterOpVis
-    /\ UNCHANGED <<fence, invPhase, holder, invExpiry, heldUntil,
+    /\ UNCHANGED <<recIntended, outcomeBy, outcomeRecovery, fence, invPhase, holder, invExpiry, heldUntil,
                    intentAt, outcomeIssuedAt, outcomeReplyLost,
                    outcomeRecords, closingKind, closingRecords,
                    sweepNextA, sweepNextB, sweepPhaseA, sweepPhaseB,
@@ -1136,9 +1152,23 @@ Inv8_IntentUnderItsSection ==
 \* pre-check leaves no first intent to land beside its own.
 Inv7_OneLiveIntent == ServiceIdentity => ~(secondOpened /\ intentState /= "absent")
 
+\* v8 (2026-11-10). Invariant 5.1 and 5.2 of the page, which the Ledger owed. The sweep's
+\* recovery_intended record lands before any outcome the sweep writes, and the outcome the
+\* sweep writes carries the recovery flag and the service identity's attestation with the
+\* original caller as acting actor reference. The first is the order a recovered outcome can
+\* only follow (a recovery that dies after its recovery_intended leaves that record with no
+\* outcome, which this model reaches), the second is what tells an outcome the sweep
+\* recovered from one the invocation wrote (Invariant 3.6 of Propagate Consent Revocation
+\* Downstream moved here). Content, a recovery_intended record's own fields and its write
+\* latency are not modeled.
+Inv9_RecoveryIntentFirst == (outcomeBy = "sweep") => recIntended
+
+Inv10_RecoveryFlagged == (outcomeBy = "sweep") => outcomeRecovery
+
 Safety == TypeOK /\ Inv1_IntentFirst /\ Inv2_OneWriter /\ Inv4_BoundedClosure
           /\ Inv5_NoFalseAbandon /\ Inv6_SupersessionNamed
           /\ Inv7_OneLiveIntent /\ Inv8_IntentUnderItsSection
+          /\ Inv9_RecoveryIntentFirst /\ Inv10_RecoveryFlagged
 
 \* ---- reachability probes --------------------------------------------------
 \* Each of these is a DELIBERATE FALSEHOOD, and the checker must REJECT it.

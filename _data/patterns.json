@@ -1219,7 +1219,7 @@
    "permissions",
    "retention-window"
   ],
-  "grounded": true,
+  "grounded": false,
   "invariants": 8,
   "kind": "composition",
   "models": {
@@ -1232,9 +1232,10 @@
    "GDPR",
    "HIPAA"
   ],
-  "status": "grounded on Final Critique 18 \u2014 2026-11-09 at c0f7c2a",
+  "status": "partially resolved",
   "substrates": [
-   "audit-trail"
+   "audit-trail",
+   "recoverable-invocation"
   ],
   "title": "Propagate Consent Revocation Downstream"
  },
@@ -1306,7 +1307,7 @@
   "models": {
    "als": false,
    "tla": true,
-   "twins": 6
+   "twins": 8
   },
   "regulated": true,
   "standards": [
@@ -1320,6 +1321,7 @@
   "substrate_of": [
    "external-onboarding",
    "immutable-ledger",
+   "propagate-consent-revocation-downstream",
    "verified-repair"
   ],
   "substrates": [
