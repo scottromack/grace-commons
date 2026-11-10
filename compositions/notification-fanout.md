@@ -536,7 +536,7 @@ It inherits from:
 
 ```
 status: grounded on Final Critique 11 — 2026-11-05 at 63c13eb
-formal: not applicable — vote no 2026-06-03: single-invocation structural coverage properties, no ordering or concurrency claim
+formal: not applicable — vote no 2026-06-03: single-invocation structural coverage properties, no ordering or concurrency claim Coverage 2026-11-10 (unit formal: more coverage for the yes votes): the page states Invariant 1 (fanout coverage), 2 (payload consistency), 3 (no cross-notification coupling), 4 (at most one notification per subscriber per fanout), 5 (the subscription records are read-only), 8 (fanout invocation uniqueness) (both: coverage and at-most-one are static over a fanout's records, read-only and uniqueness are steps; the read-latency and create bounds (Action wiring 4, 11) are a deployment's (c)).
 last gate: 2026-11-05 — Final Critique 11, a delta round, frozen at 63c13eb — foundational count 0, clean, no sample; 2026-11-04 — Final Critique 10 — foundational count 4, not clean, no sample
 
 open: none

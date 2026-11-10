@@ -853,7 +853,7 @@ Projection: already-deleted
 
 ```
 status: grounded on Final Critique 11 — 2026-11-04 at cef41e2
-formal: verified — message-preference.tla + 1 twin, 2026-06-03
+formal: verified — message-preference.tla + 1 twin; coverage 2026-11-10 (unit formal: more coverage for the yes votes): owes Alloy (the static data model); owed rows: Invariant 1; Invariant 2; Invariant 5; Invariant 6; Invariant 7; Invariant 8; Invariant 9; the best-effort timestamp ordering, 2026-06-03
 last gate: 2026-11-04 — Final Critique 11, a delta round, frozen at cef41e2 — foundational count 0, clean, no sample; 2026-11-03 — Final Critique 10 — foundational count 3, not clean, no sample
 
 open:

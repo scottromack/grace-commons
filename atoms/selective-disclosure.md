@@ -616,7 +616,7 @@ Projection: invalid-query
 
 ```
 status: grounded on Final Critique 19 — 2026-11-06 at 368ce1f
-formal: not applicable — vote no 2026-06-03
+formal: not applicable — vote no 2026-06-03 Coverage 2026-11-10 (unit formal: more coverage for the yes votes): the page states Invariant 1 (record immutability), 2 and 3 (authority and field completeness), 4 (temporal soundness), 6 (record durability and append-only nature) (both: completeness is static, immutability and append-only are steps; Invariant 5 (unrecorded transmissions) is a claim about what no record shows (c)).
 last gate: 2026-11-06 — Final Critique 19, a delta round, frozen at 368ce1f — foundational count 0, clean, one sample; 2026-11-06 — Final Critique 18, a full round, frozen at 20c8fb1 — foundational count 1, cured, not clean, no sample; 2026-11-05 — Final Critique 17, a delta round, frozen at 8adbf07 — foundational count 2, both cured, not clean, no sample; 2026-11-05 — Final Critique 16, a delta round, frozen at 2db59c0 — foundational count 1, cured, not clean, no sample; 2026-11-04 — Final Critique 15, a delta round, frozen at 100a240 — foundational count 1, cured, not clean, no sample; 2026-11-04 — Final Critique 14, a delta round, frozen at 5961920 — foundational count 2, both cured, not clean, no sample; 2026-11-02 — Final Critique 13, a delta round, frozen at bba8734 — foundational count 2, both cured, not clean, no sample; 2026-10-31 — Final Critique 12 — foundational count 0, clean, one sample
 
 open:

@@ -818,7 +818,7 @@ Calendar Time is a primitive with no regulatory anchor of its own. It inherits f
 
 ```
 status: grounded on Final Critique 1 — 2026-11-08 at 4b0bd47
-formal: not applicable — vote no 2026-11-08: the atom reads one clock reading at the seam (Execution Contract Logic confinement 11) and claims no ordering of its own; every answer is a single-state function of the place, the time zone rules and now that each action's rules hold, and its concurrency is Execution Contract Database 2's
+formal: not applicable — vote no 2026-11-08: the atom reads one clock reading at the seam (Execution Contract Logic confinement 11) and claims no ordering of its own; every answer is a single-state function of the place, the time zone rules and now that each action's rules hold, and its concurrency is Execution Contract Database 2's Coverage 2026-11-10 (unit formal: more coverage for the yes votes): the page states Invariant 2 (a place keeps its id) and the stepping half of Invariant 3 and 4 (a month moved lands in its month) (TLA+ for Invariant 2 and the moved-month step over a bounded date range; Alloy for the zone and week shape (Invariant 1)).
 last gate: 2026-11-08 — Final Critique 1, frozen at 4b0bd47 — foundational count 0, clean, one sample
 
 open: none

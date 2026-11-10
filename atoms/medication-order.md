@@ -1355,7 +1355,7 @@ It inherits from:
 
 ```
 status: grounded on Final Critique 7 — 2026-11-05 at ec26ba5
-formal: verified — medication-order.als + medication-order.tla + 2 twins, 2026-06-04
+formal: verified — medication-order.als + medication-order.tla + 2 twins; coverage 2026-11-10 (unit formal: more coverage for the yes votes): owed rows: Invariant 1; Invariant 6; Invariant 7; Invariant 8; Invariant 9; Invariant 13; Invariant 14, 2026-06-04
 last gate: 2026-11-05 — Final Critique 7, a delta round, frozen at ec26ba5 — foundational count 0, clean, one sample
 
 open: none

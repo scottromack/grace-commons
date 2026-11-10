@@ -1239,7 +1239,7 @@ It inherits from:
 
 ```
 status: grounded on Final Critique 18 — 2026-11-06 at 56ae031
-formal: verified — multi-party-approval.tla + 8 twins + 7 probes, 2026-10-26
+formal: verified — multi-party-approval.tla + 8 twins + 7 probes; coverage 2026-11-10 (unit formal: more coverage for the yes votes): owes Alloy (the static data model); owed rows: Invariant 1.2; Invariant 1.3, 1.4; Invariant 1.5; Invariant 3.1 through 3.3; Invariant 4.3; Invariant 5.1 through 5.3; Invariant 7.1; Invariant 7.2; and 3 more in tools/harness/coverage/owed-2026-11-10.md, 2026-10-26
 last gate: 2026-11-06 — Final Critique 18 — full, frozen at 56ae031 — foundational count 0, clean, three fresh passes; 2026-11-06 — Final Critique 17 — delta — foundational count 2, not clean, no sample
 
 open:

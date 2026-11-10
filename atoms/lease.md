@@ -450,7 +450,7 @@ The concept is not itself regulated. It appears in regulated patterns as the mec
 
 ```
 status: grounded on Final Critique 4 — 2026-10-04 at 46804b7
-formal: verified — lease.tla + 4 twins + 1 probe (vote yes: one holder, the terminus, the fence and the write margin are temporal claims; 14,480 states, holding at clock bounds 8, 10 and 12), 2026-10-04
+formal: verified — lease.tla + 4 twins + 1 probe (vote yes: one holder, the terminus, the fence and the write margin are temporal claims; 14,480 states, holding at clock bounds 8, 10 and 12); coverage 2026-11-10 (unit formal: more coverage for the yes votes): owes Alloy (the static data model); owed rows: Invariant 4.2; 2a: Sizing 3a — held as an invariant: the model clock and Pause bound it (Inv_NoLateWrite, twin lease-buggy-margin); no row owed, 2026-10-04
 last gate: 2026-10-04 — Final Critique 4, fresh reader, three passes — 0 foundational, 44 refining reports, 13 rhetorical reports
 
 open:

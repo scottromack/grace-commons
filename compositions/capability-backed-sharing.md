@@ -882,7 +882,7 @@ Capability-Backed Sharing inherits the broader standards compliance of its const
 
 ```
 status: grounded on Final Critique 13 — 2026-11-06 at be596ef
-formal: verified — capability-backed-sharing.tla + 2 twins, 2026-08-27
+formal: verified — capability-backed-sharing.tla + 2 twins; coverage 2026-11-10 (unit formal: more coverage for the yes votes): owes Alloy (the static data model); owed rows: Invariant 1.1; Invariant 1.3; Invariant 1.4; Invariant 2.4; Invariant 3.1; Invariant 3.2; Invariant 3.3; Invariant 3.4; and 3 more in tools/harness/coverage/owed-2026-11-10.md; 2a: Invariant 2.4 and 3.4 — owed: 2.4 and 3.4 as invariants under a window counter, and the eventual sealing of every unsealed marker as a PROPERTY with weak fairness on the seal stated in the header (twin: a seal that never fires); Capability requirement 21 stays, a deployment duty (c), 2026-08-27
 last gate: 2026-11-06 — Final Critique 13, a delta round, frozen at be596ef — foundational count 0, clean, one sample; 2026-11-06 — Final Critique 12, full — foundational count 3 (a descriptor field over Selective Disclosure's string cap, an aged token's provenance and rebuild, the reconciliation's run bound), not clean, no sample
 
 open:

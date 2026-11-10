@@ -820,7 +820,7 @@ It inherits from:
 
 ```
 status: grounded on Final Critique 13 — 2026-10-24 at 142a72a
-formal: not applicable — vote no 2026-06-03
+formal: not applicable — vote no 2026-06-03 Coverage 2026-11-10 (unit formal: more coverage for the yes votes): the page states Invariant 1 (membership exclusivity), 3 (terminal absorption), 6 (retention window monotonicity), 7 (no early purge), 8 (purge timestamp consistency), 11 (purge-eligibility is derived, never stored) (both: the no-early-purge claim is a step under the clock; Invariant 10 (durability) is a host duty (c)).
 last gate: 2026-10-24 — Final Critique 13 — foundational count 0, clean, one sample
 
 open:

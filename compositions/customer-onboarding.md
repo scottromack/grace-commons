@@ -1241,7 +1241,7 @@ The three constituents carry their own deep standards inheritance — see each c
 
 ```
 status: grounded on Final Critique 5 — 2026-11-06 at 8736397
-formal: verified — customer-onboarding.tla + 1 twin, 2026-06-03
+formal: verified — customer-onboarding.tla + 1 twin; coverage 2026-11-10 (unit formal: more coverage for the yes votes): owes Alloy (the static data model); owed rows: Invariant 1.1; Invariant 1.2; Invariant 1.3; Invariant 2.1; Invariant 2.3; Invariant 2.4; Invariant 3.2; Invariant 4.2; and 12 more in tools/harness/coverage/owed-2026-11-10.md; 2a: Reconciliation 19 and Invariant 2.4 — owed: an invariant under a window counter, with the model's third state; twin: a marker that stays open past the window, 2026-06-03
 last gate: 2026-11-06 — Final Critique 5, delta round — 0 foundational (one refuted), clean, one fresh pass
 
 open:

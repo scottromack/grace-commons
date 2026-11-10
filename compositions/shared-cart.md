@@ -582,7 +582,7 @@ Shared Cart is a wiring of three primitives and not a regulated pattern, so it c
 
 ```
 status: grounded on Final Critique 2 — 2026-11-05 at b430bcf
-formal: not applicable — vote no 2026-10-30: the composition reads no clock and claims no ordering of its own; its permission, grant and attribution claims are single-invocation structural properties each action's rules hold in the one transaction Execution Contract Database 1 gives it, and its concurrency is Execution Contract Database 2's
+formal: not applicable — vote no 2026-10-30: the composition reads no clock and claims no ordering of its own; its permission, grant and attribution claims are single-invocation structural properties each action's rules hold in the one transaction Execution Contract Database 1 gives it, and its concurrency is Execution Contract Database 2's Coverage 2026-11-10 (unit formal: more coverage for the yes votes): the page states Invariant 1 (permission enforcement), 2 (every grant names an open cart), 3 (every change is attributed), 4 (unsharing keeps the lines) (both: the open-cart grant and attribution are static; unsharing keeps the lines, and permission before change, are steps).
 last gate: 2026-11-05 — Final Critique 2, delta, frozen at b430bcf — foundational count 0, clean, one sample; 2026-11-04 — Final Critique 1, frozen at d7d3b7a — foundational count 5, cured, not clean, no sample
 
 open:

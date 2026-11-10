@@ -797,7 +797,7 @@ It inherits from:
 
 ```
 status: grounded on Final Critique 13 — 2026-11-05 at 8adbf07
-formal: verified — provisional-commitment.tla + 2 twins, 2026-06-04
+formal: verified — provisional-commitment.tla + 2 twins; coverage 2026-11-10 (unit formal: more coverage for the yes votes): owes Alloy (the static data model); owed rows: Invariant 1; Invariant 4; Invariant 5; Invariant 6; Invariant 9; Invariant 10; 2a: Capability requirement 12 — owed: an invariant under the model clock (a lapsed Held commitment is resolved within the window of a cadence); the confirm-within-window rule (Inv_ConfirmWithinWindow) is held, 2026-06-04
 last gate: 2026-11-05 — Final Critique 13, a delta round, frozen at 8adbf07 — foundational count 0, clean, one sample; 2026-11-05 — Final Critique 12 — foundational count 3, not clean, no sample
 
 open:

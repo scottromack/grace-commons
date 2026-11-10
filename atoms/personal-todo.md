@@ -609,7 +609,7 @@ A formal-methods version of a similar concept exists in [concept-catalog](https:
 
 ```
 status: grounded on Final Critique 8 — 2026-11-04 at 17878a4
-formal: not applicable — vote no 2026-06-03
+formal: not applicable — vote no 2026-06-03 Coverage 2026-11-10 (unit formal: more coverage for the yes votes): the page states Invariant 1 (membership exclusivity), 2 and 3 (add then Pending, complete then Done persist), 4 (delete is terminal), 5 (edit preserves state), 6 (active-set description uniqueness), 7 (timestamp monotonicity) (both: description uniqueness and membership are static, the lifecycle is a state machine).
 last gate: 2026-11-04 — Final Critique 8, a delta round, frozen at 17878a4 — foundational count 0, clean, one sample; 2026-11-03 — Final Critique 7 — foundational count 3, not clean, no sample
 
 open:

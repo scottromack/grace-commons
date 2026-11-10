@@ -686,7 +686,7 @@ Projection: storage-failure
 
 ```
 status: grounded on Final Critique 11 — 2026-11-05 at 917cc95
-formal: verified — notification.als + 1 twin, 2026-06-03
+formal: verified — notification.als + 1 twin; coverage 2026-11-10 (unit formal: more coverage for the yes votes): owes TLA+ (everything across steps); owed rows: Invariant 5; Invariant 8; Invariant 9; 2a: Operation expire — a stepping claim; notification.als is static, so the rule is owed to a TLA+ model (2c); WITHIN the model clock bounds it as an invariant, 2026-06-03
 last gate: 2026-11-05 — Final Critique 11, a full round, frozen at 917cc95 — foundational count 0, clean, one sample; 2026-11-05 — Final Critique 10, a delta round, frozen at 82d4603 — foundational count 1, cured, not clean, no sample; 2026-11-05 — Final Critique 9, a delta round, frozen at 29128b6 — foundational count 1, cured, not clean, no sample; 2026-11-04 — Final Critique 8, a delta round, frozen at 075c6e4 — foundational count 1, cured, not clean, no sample; 2026-11-03 — Final Critique 7 — foundational count 2, not clean, no sample
 
 open:

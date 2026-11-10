@@ -630,7 +630,7 @@ Shared Todo is a wiring of three primitives and not a regulated pattern, so it c
 
 ```
 status: grounded on Final Critique 11 — 2026-11-05 at 227ba75
-formal: verified — shared-todo.tla + 1 twin, 2026-06-03
+formal: verified — shared-todo.tla + 1 twin; coverage 2026-11-10 (unit formal: more coverage for the yes votes): owes Alloy (the static data model); owed rows: Invariant 1; Invariant 4; Invariant 5; Invariant 6, 2026-06-03
 last gate: 2026-11-05 — Final Critique 11, a delta round, frozen at 227ba75 — foundational count 0, clean, no sample; 2026-11-04 — Final Critique 10, frozen at 493f80f — foundational count 4, cured, not clean, no sample; Final Critique 9, 2026-09-30, cold reader — 0 foundational, 14 refining (8 already open, 6 routed open), 3 rhetorical (routed open)
 
 open:

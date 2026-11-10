@@ -838,7 +838,7 @@ Inherited from:
 
 ```
 status: grounded on Final Critique 19 — 2026-11-04 at 260b6c6
-formal: not applicable — vote no 2026-06-03
+formal: not applicable — vote no 2026-06-03 Coverage 2026-11-10 (unit formal: more coverage for the yes votes): the page states Invariant 3 (the validity bound is conjunctive, by derivation), 4 and 5 (revocation and stored terminals absorbing), 6 (four distinct validate outcomes), 7 (token uniqueness), 10 to 12 (finite lifetime, expiry absorbing, expiry derived) (both: token uniqueness and the four outcomes are static, absorption and derived expiry are steps under the clock).
 last gate: 2026-11-04 — Final Critique 19 — delta — foundational count 0, clean, no sample
 
 open: none

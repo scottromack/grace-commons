@@ -701,7 +701,7 @@ It inherits from:
 
 ```
 status: grounded on Final Critique 17 — 2026-11-06 at 700b167
-formal: not applicable — vote no 2026-06-03
+formal: not applicable — vote no 2026-06-03 Coverage 2026-11-10 (unit formal: more coverage for the yes votes): the page states Invariant 1 (evidence immutability), 2 (detectability of tampering), 3 (record-set binding), 4 and 7 (verification self-containment and consistency under a fixed record set) (both: detectability over an abstract seal function is a check with a twin that forgets one record; Invariant 8 (mechanism opacity) and 9 (durability) stay (c)).
 last gate: 2026-11-06 — Final Critique 17, a delta round, frozen at 700b167 — foundational count 0, clean, one sample; 2026-11-05 — Final Critique 16, a full round, frozen at cd7c4bb — foundational count 3, all cured, not clean, no sample; 2026-11-05 — Final Critique 15, a delta round, frozen at b1ae778 — foundational count 1, cured, not clean, no sample; 2026-11-04 — Final Critique 14, a delta round, frozen at 36e6d47 — foundational count 1, cured, not clean, no sample; 2026-11-03 — Final Critique 13, a delta round, frozen at f84da63 — foundational count 1, cured, not clean, no sample; 2026-11-02 — Final Critique 12, a delta round, frozen at dd11876 — foundational count 1, cured, not clean, no sample; 2026-11-02 — Final Critique 11, a delta round, frozen at d28642a — foundational count 3, all cured, not clean, no sample; 2026-10-24 — Final Critique 10 — foundational count 0, clean, one sample
 
 open:

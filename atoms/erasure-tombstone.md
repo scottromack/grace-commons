@@ -533,7 +533,7 @@ Inherited from:
 
 ```
 status: grounded on Final Critique 2 — 2026-11-03 at aeea14e
-formal: not applicable — vote no 2026-11-02: no guard reads the clock, which only stamps the destruction instant, and the atom claims no commit order of its own; its permanence, one-record-per-destruction and no-content claims are single-state properties each action's rules hold, its listing order is a sort over stored fields, and its concurrency is Execution Contract Database 2's
+formal: not applicable — vote no 2026-11-02: no guard reads the clock, which only stamps the destruction instant, and the atom claims no commit order of its own; its permanence, one-record-per-destruction and no-content claims are single-state properties each action's rules hold, its listing order is a sort over stored fields, and its concurrency is Execution Contract Database 2's Coverage 2026-11-10 (unit formal: more coverage for the yes votes): the page states Invariant 1 (a tombstone never changes), 2 (one per destroyed record), 3 (no content of the destroyed record), 4 (authority and actor on every destruction) (both: the single tombstone per record is static, permanence is a step).
 last gate: 2026-11-03 — Final Critique 2, delta, frozen at aeea14e — foundational count 0, clean, one sample
 
 open:

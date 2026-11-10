@@ -512,7 +512,7 @@ State unclaimed-property laws, which may oblige a seller to report a balance lef
 
 ```
 status: grounded on Final Critique 3 — 2026-11-06 at 368ce1f
-formal: not applicable — vote no 2026-10-30: the atom reads no clock and claims no ordering of its own; its balance, code, currency and value claims are properties each action's rules hold, and its concurrency is Execution Contract Database 2's
+formal: not applicable — vote no 2026-10-30: the atom reads no clock and claims no ordering of its own; its balance, code, currency and value claims are properties each action's rules hold, and its concurrency is Execution Contract Database 2's Coverage 2026-11-10 (unit formal: more coverage for the yes votes): the page states Invariant 1 (the balance never goes below zero), 2 (nothing raises a balance), 3 (code, currency and value kept), 4 (a refused spend takes nothing) (TLA+ first: a conservation claim over spend and refusal; Alloy for the card's static shape; a TLAPS candidate for the balance law only if the page names it for every size).
 last gate: 2026-11-06 — Final Critique 3, a delta round, frozen at 368ce1f — foundational count 0, clean, one sample; 2026-11-05 — Final Critique 2, a delta round, frozen at 4f85e1c — foundational count 2, cured, not clean, no sample
 
 open: none

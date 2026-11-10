@@ -967,7 +967,7 @@ this composition inherits the broader standards compliance of its constituents:
 
 ```
 status: grounded on Final Critique 17 — 2026-11-06 at dbb9804
-formal: verified — chain-of-custody.tla + 8 twins + 6 probes, 2026-10-27
+formal: verified — chain-of-custody.tla + 8 twins + 6 probes; coverage 2026-11-10 (unit formal: more coverage for the yes votes): owes Alloy (the static data model); 2a: Invariant 4.2 and Check 5.7 — owed: 4.2 as an invariant under a window counter, and the liveness sum's eventuality as a PROPERTY with fairness in the header (twin: a reconciliation that never closes an orphan); Capability requirement 32 stays, a deployment duty (c), 2026-10-27
 last gate: 2026-11-06 — Final Critique 17, a delta round, frozen at dbb9804 — foundational count 0, clean, one sample; 2026-11-06 — Final Critique 16, delta — foundational count 1, not clean, no sample
 
 open:

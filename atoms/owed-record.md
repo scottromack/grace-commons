@@ -650,7 +650,7 @@ Inherited from:
 
 ```
 status: grounded on Final Critique 2 — 2026-11-03 at aeea14e
-formal: not applicable — vote no 2026-11-02: the one guard that reads the clock, [Flag]'s not-due refusal, compares now with a due-by instant stamped once and never changed, and the atom claims no commit order of its own; its flagged-only-when-due, discharged-once and one-record-per-obligation claims are single-state properties each action's rules hold, its listing order is a sort over stored fields, and its concurrency is Execution Contract Database 2's
+formal: not applicable — vote no 2026-11-02: the one guard that reads the clock, [Flag]'s not-due refusal, compares now with a due-by instant stamped once and never changed, and the atom claims no commit order of its own; its flagged-only-when-due, discharged-once and one-record-per-obligation claims are single-state properties each action's rules hold, its listing order is a sort over stored fields, and its concurrency is Execution Contract Database 2's Coverage 2026-11-10 (unit formal: more coverage for the yes votes): the page states Invariant 1 (what was owed never changes), 2 (one record per obligation), 3 (discharged once), 4 (flagged only when due), 5 (nothing is lost) (both: one record per obligation is static; discharged once and flagged only when due are steps under the clock).
 last gate: 2026-11-03 — Final Critique 2, delta, frozen at aeea14e — foundational count 0, clean, one sample
 
 open:

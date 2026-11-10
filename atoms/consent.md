@@ -856,7 +856,7 @@ Projection: invalid-query
 
 ```
 status: grounded on Final Critique 21 — 2026-11-05 at 4f85e1c
-formal: not applicable — vote no 2026-06-03
+formal: not applicable — vote no 2026-06-03 Coverage 2026-11-10 (unit formal: more coverage for the yes votes): the page states Invariant 2 (membership exclusivity), 3 (terminal absorption), 5 (temporal ordering on revocation), 6 (expiry coherence), 9 (revocation non-retroactivity), 10 (point-in-time faithfulness) (both: the lifecycle (Granted, Revoked, Expired) is a state machine; Invariant 8 (durability) is a host duty (c)).
 last gate: 2026-11-05 — Final Critique 21, a delta round, frozen at 4f85e1c — foundational count 0, clean, one sample
 
 open:

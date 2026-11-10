@@ -829,7 +829,7 @@ Projection: invalid-query
 
 ```
 status: grounded on Final Critique 8 — 2026-11-05 at 917cc95
-formal: verified — observation.als + 1 twin, 2026-06-03
+formal: verified — observation.als + 1 twin; coverage 2026-11-10 (unit formal: more coverage for the yes votes): owes TLA+ (everything across steps); owed rows: Invariant 1; Invariant 7; Invariant 8, 2026-06-03
 last gate: 2026-11-05 — Final Critique 8, a delta round, frozen at 917cc95 — foundational count 0, clean, no sample; 2026-11-04 — Final Critique 7, a delta round, frozen at 83cd9e0 — foundational count 1, cured, not clean, no sample; 2026-11-04 — Final Critique 6 — foundational count 7, not clean, one sample
 
 open:

@@ -850,7 +850,7 @@ Projection: invalid-query
 
 ```
 status: grounded on Final Critique 15 — 2026-11-05 at 00843d2
-formal: verified — approval-step.tla + 1 twin, 2026-06-03
+formal: verified — approval-step.tla + 1 twin; coverage 2026-11-10 (unit formal: more coverage for the yes votes): owes Alloy (the static data model); owed rows: Invariant 1; Invariant 3; Invariant 6; Invariant 7; Invariant 8; Invariant 9, 2026-06-03
 last gate: 2026-11-05 — Final Critique 15, a delta round, frozen at 00843d2 — foundational count 0, clean, no sample; 2026-11-04 — Final Critique 14, a delta round, frozen at 075c6e4 — foundational count 1, cured by a held cure, not clean, no sample; 2026-11-03 — Final Critique 13, a delta round, frozen at 30a4db8 — foundational count 1, cured, not clean, no sample; 2026-11-02 — Final Critique 12, a delta round, frozen at e63380b — foundational count 1, cured, not clean, no sample; 2026-10-29 — Final Critique 11 — foundational count 0, clean, one sample
 
 open:

@@ -1100,7 +1100,7 @@ Projection: invalid-credential
 
 ```
 status: grounded on Final Critique 9 — 2026-11-07 at fb5b973
-formal: verified — privileged-access-provisioning.tla, no twin, 2026-06-03
+formal: verified — privileged-access-provisioning.tla, no twin; coverage 2026-11-10 (unit formal: more coverage for the yes votes): owes Alloy (the static data model); owed rows: Invariant 2.2; Invariant 3.2; Invariant 6.1; Invariant 7.1; Invariant 7.3; Invariant 8.1; Invariant 10.1, 10.2; Liveness; and 3 more in tools/harness/coverage/owed-2026-11-10.md; 2a: Liveness — owed: a PROPERTY under TLC; the file's FairnessSpec already states the fairness (weak fairness on the withdraw and revoke steps), the header names it; twin: a model that never delivers the cascade, 2026-06-03
 last gate: 2026-11-07 — Final Critique 9, delta, frozen at fb5b973 — foundational count 0, clean, one sample, 2 refining left as open lines; 2026-11-07 — Final Critique 8, delta, one pass (Linus) — 1 foundational (cured this round), 1 refining cured, 0 rhetorical, not clean
 
 open:

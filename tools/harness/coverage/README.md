@@ -96,3 +96,7 @@ Inv 7 holds at 233 states when checked alone). Both are auto-discovered and
 required-to-reject by `audit.mjs`. No English-spec or correct-model change (the
 correct `credential.tla` already asserts both invariants and holds at 138 states);
 this was a vacuity-guard/coverage-artifact correction only.
+
+## Coverage unit, 2026-11-10
+
+The ten missing matrices (session-gated-authorization, login, party-identity, provenance, state-machine, authenticated-actor, capability-backed-sharing, customer-onboarding, privileged-access-provisioning, recoverable-invocation) were written in the unit `formal: more coverage for the yes votes`. `owed-2026-11-10.md` sorts every out-of-scope and by-construction row on every verified page (a: another page owns it, b: owed, c: cannot be stated), the EVENTUALLY and WITHIN rules, the fifteen pages that read `not applicable`, the pages with one tool only, and the Alloy files that step. Every page with an owed row or tool carries it on its `formal:` line.
