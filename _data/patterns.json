@@ -700,7 +700,7 @@
    "credential",
    "party-identity"
   ],
-  "grounded": false,
+  "grounded": true,
   "invariants": 5,
   "kind": "composition",
   "models": {
@@ -717,7 +717,7 @@
    "SCIM",
    "SOC 2"
   ],
-  "status": "partially resolved",
+  "status": "grounded on Final Critique 19 \u2014 2026-11-10 at 66da7e8",
   "substrates": [
    "audit-trail",
    "recoverable-invocation"
