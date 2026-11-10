@@ -1,5 +1,6 @@
 ---
 title: Capability
+id: 32
 parent: Atomic Concepts
 has_toc: true
 toc: true

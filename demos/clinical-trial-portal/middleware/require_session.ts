@@ -1,6 +1,6 @@
 // middleware/require_session.ts
 //
-// C14: Session-Gated Authorization — session lookup middleware.
+// Session-Gated Authorization: Session-Gated Authorization — session lookup middleware.
 //
 // Reads the session token from the HttpOnly "session" cookie, validates it
 // against the sessions table (not expired, not revoked), loads the associated

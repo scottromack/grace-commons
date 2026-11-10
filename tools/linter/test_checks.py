@@ -743,6 +743,52 @@ def check_history_file_synthetic(problems: list[str]) -> None:
             problems.append(f"history file: load_patterns read {loaded}, want the two specs alone")
 
 
+# ── G-id: a permanent id for every pattern, pinned synthetically ──────────── #
+# governance.md, *Permanent ids*: `id: N` in the front matter, listed once in
+# _data/pattern-ids.yml with the file that holds it. Each failure the gate names
+# fires on its own; the clean root, an index page and a history file stay silent.
+ID_LIST = "patterns:\n  - id: 1\n    file: atoms/a.md\n  - id: 2\n    file: compositions/c.md\n  - id: 3\n    retired: true\n    last_name: Gone\n"
+
+
+def check_pattern_ids_synthetic(problems: list[str]) -> int:
+    import tempfile
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "grace"))
+    from check import pattern_id_findings  # noqa: E402
+
+    def run(pages: dict[str, str], listing: str = ID_LIST) -> set[str]:
+        with tempfile.TemporaryDirectory() as d:
+            root = Path(d)
+            (root / "_data").mkdir()
+            (root / "_data" / "pattern-ids.yml").write_text(listing, encoding="utf-8")
+            for sub in ("atoms", "compositions"):
+                (root / sub).mkdir()
+            for name, text in pages.items():
+                (root / name).write_text(text, encoding="utf-8")
+            return {f.code for f in pattern_id_findings(root)}
+
+    def page(n) -> str:
+        return f"---\ntitle: T\n{'' if n is None else f'id: {n}' + chr(10)}parent: P\n---\n\n# T\n"
+
+    clean = {"atoms/a.md": page(1), "compositions/c.md": page(2)}
+    cases = [
+        ("a clean root", clean, ID_LIST, set()),
+        ("an index page and a history file carry no id", {**clean, "atoms/index.md": "# Index\n",
+         "atoms/TAXONOMY.md": "# T\n", "compositions/README.md": "# R\n", "atoms/a.hist.md": "# H\n"}, ID_LIST, set()),
+        ("a pattern with no id", {**clean, "atoms/b.md": page(None)}, ID_LIST, {"G-id-missing"}),
+        ("a pattern with no front matter", {**clean, "atoms/b.md": "# B\n"}, ID_LIST, {"G-id-missing"}),
+        ("two files share an id", {**clean, "atoms/b.md": page(1)}, ID_LIST, {"G-id-shared", "G-id-moved"}),
+        ("an id the list does not hold", {**clean, "atoms/b.md": page(4)}, ID_LIST, {"G-id-unlisted"}),
+        ("an id listed under another file", {"atoms/a.md": page(2), "compositions/c.md": page(1)}, ID_LIST,
+         {"G-id-moved"}),
+        ("a retired id on a live file", {**clean, "atoms/b.md": page(3)}, ID_LIST, {"G-id-moved"}),
+    ]
+    for label, pages, listing, want in cases:
+        got = run(pages, listing)
+        if got != want:
+            problems.append(f"G-id: {label}: fired {sorted(got)}, want {sorted(want)}")
+    return len(cases)
+
+
 # ── W-stale-census, both readings, pinned synthetically ───────────────────── #
 # The count reading was built at council read 33 against hand-written family
 # counts and compares only the counts somebody already wrote down. The list
@@ -3077,6 +3123,14 @@ def main(argv: list[str]) -> int:
     if not hist_problems:
         print("History file: 2 synthetic fixtures hold (a `.hist.md` beside an atom and beside "
               "a composition is no pattern) \u2713")
+
+    id_problems: list[str] = []
+    n_id = check_pattern_ids_synthetic(id_problems)
+    failures.extend(id_problems)
+    if not id_problems:
+        print(f"G-id: {n_id} synthetic fixtures hold (a clean root, an index page and a history file stay "
+              "silent; a missing id, a shared id, an unlisted id, an id under another file and a retired "
+              "id on a live file each fire) \u2713")
 
     req_problems: list[str] = []
     n_req = check_requirement_text_synthetic(req_problems, patterns)

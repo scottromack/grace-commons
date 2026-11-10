@@ -1,5 +1,6 @@
 ---
 title: Selective Disclosure
+id: 57
 parent: Atomic Concepts
 has_toc: true
 toc: true

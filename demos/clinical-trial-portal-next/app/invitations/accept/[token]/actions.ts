@@ -1,5 +1,5 @@
 "use server";
-// app/invitations/accept/[token]/actions.ts — C16 External Onboarding, onboard
+// app/invitations/accept/[token]/actions.ts — External Onboarding, onboard
 // step. Calls composition.acceptInvitation (the only mutation surface), which —
 // in one transaction — creates the Actor + Credential + Session, marks the
 // invitation accepted, and emits invitation.accepted / actor.enrolled /

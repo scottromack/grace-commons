@@ -1,4 +1,4 @@
-// auth/current.ts — C14 Session-Gated Authorization, part 1 (replaces render 1's
+// auth/current.ts — Session-Gated Authorization, part 1 (replaces render 1's
 // require_session middleware).
 //
 // Next's App Router has no Hono-style middleware chain for per-route gates, so

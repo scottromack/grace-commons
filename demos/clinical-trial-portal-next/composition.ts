@@ -40,7 +40,7 @@ const expiresIn = (days: number) => new Date(Date.now() + days * 86_400_000).toI
 // ── Invitation lifecycle ─────────────────────────────────────────────────────
 
 /**
- * External Onboarding (C16) — invite step. Creates the Party if new.
+ * External Onboarding — invite step. Creates the Party if new.
  * Emits: invitation.issued
  */
 export async function issueInvitation(
@@ -65,7 +65,7 @@ export async function issueInvitation(
 }
 
 /**
- * External Onboarding (C16) — onboard step. Argon2/scrypt hash runs BEFORE the
+ * External Onboarding — onboard step. Argon2/scrypt hash runs BEFORE the
  * transaction. Creates Actor + Credential + Session; marks the invitation
  * accepted; logs the invitee in.
  * Emits: invitation.accepted, actor.enrolled, credential.created, session.opened
@@ -117,10 +117,10 @@ export async function revokeInvitation(ctx: Ctx, input: { invitation_id: number 
   });
 }
 
-// ── Authentication (Login C13) ───────────────────────────────────────────────
+// ── Authentication (Login) ───────────────────────────────────────────────
 
 /**
- * Login (C13). Verify runs BEFORE the transaction. Every failure path emits an
+ * Login. Verify runs BEFORE the transaction. Every failure path emits an
  * anonymous login.failed; success emits login.succeeded.
  * Returns the generic "invalid_credentials" reason — the specific cause is only
  * in the audit log.

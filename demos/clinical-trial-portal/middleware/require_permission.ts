@@ -1,6 +1,6 @@
 // middleware/require_permission.ts
 //
-// C14: Session-Gated Authorization — permission check middleware.
+// Session-Gated Authorization: Session-Gated Authorization — permission check middleware.
 //
 // Applied after requireSession. Checks for an unrevoked grant covering any
 // of the named permission codes for the current actor. Attaches the matching

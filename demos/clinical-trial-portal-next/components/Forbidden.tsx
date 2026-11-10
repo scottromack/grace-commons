@@ -1,4 +1,4 @@
-// components/Forbidden.tsx — the C14 denial surface (render 1's require_permission
+// components/Forbidden.tsx — the Session-Gated Authorization denial surface (render 1's require_permission
 // 403 body). A protected page that fails `permit()` renders this inline, naming
 // the missing permission(s). No client JS.
 export function Forbidden({ codes }: { codes: string[] }) {

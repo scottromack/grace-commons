@@ -1,5 +1,6 @@
 ---
 title: Credential
+id: 37
 parent: Atomic Concepts
 has_toc: true
 toc: true

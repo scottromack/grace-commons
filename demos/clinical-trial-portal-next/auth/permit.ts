@@ -1,4 +1,4 @@
-// auth/permit.ts — C14 Session-Gated Authorization, part 2 (replaces render 1's
+// auth/permit.ts — Session-Gated Authorization, part 2 (replaces render 1's
 // require_permission middleware).
 //
 // The authorization SEMANTICS are unchanged from render 1 / section 4 of Demo2-plan/section 9:
@@ -27,7 +27,7 @@ export interface ActiveGrant {
 }
 
 /**
- * Pure C14 check. Returns the matching grant's scope, or null on denial.
+ * Pure Session-Gated Authorization check. Returns the matching grant's scope, or null on denial.
  * Non-throwing so a Server Component can render an inline 403 surface (the
  * <Forbidden/> component) at the same URL.
  */
@@ -47,7 +47,7 @@ export class ForbiddenError extends Error {
 }
 
 /**
- * Throwing C14 gate for Server Actions: returns the scope, or throws
+ * Throwing Session-Gated Authorization gate for Server Actions: returns the scope, or throws
  * ForbiddenError naming the missing permission. (Defense in depth — the page
  * that renders a mutation form is already gated, but the action re-checks.)
  */

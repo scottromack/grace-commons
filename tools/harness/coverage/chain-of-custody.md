@@ -1,11 +1,11 @@
-# Coverage matrix — Chain of Custody (C12)
+# Coverage matrix — Chain of Custody
 
 > Formal-layer **coverage cross-check** (the section titled *The coverage cross-check* in pressure-testing.md).
-> Emitted 2026-06-10 (Refactor 1, C6 batch round's mirror check): C6's Lineage names C12 as
+> Emitted 2026-06-10 (Refactor 1, Immutable Ledger batch round's mirror check): Immutable Ledger's Lineage names Chain of Custody as
 > sharing the binding-bijection model shape, so the compensated-arm finding class (atomic idealization
 > verified over a compensating design) was checked here. **It is present.** This matrix is
 > the Invariant-4 coverage-gap finding's record of record (the Refactor 1 staging handoff that first logged
-> it has since been dispersed and deleted); the fix rides C12's own touch-triggered round —
+> it has since been dispersed and deleted); the fix rides Chain of Custody's own touch-triggered round —
 > nothing was edited in-pattern by this check.
 >
 > **RESOLVED 2026-06-11.** The touch-triggered round landed: the model was revised to
@@ -30,7 +30,7 @@
 | Spec invariant (no. + name) | Load-bearing (vote)? | Verdict | Model construct / reason |
 |---|---|---|---|
 | Invariant 4 — binding bijection, **atomic-commit arm** | **yes** | covered | `CommitEntry`-style single atomic action; `Inv4_BindingBijection` / `Inv4_NoDanglingProv` / `Inv4_NoOrphanAudit` |
-| Invariant 4 — binding bijection, **compensated arm** ("or the failure is compensated": the *Cross-record consistency under partial failure* edge case mandates retry + surfacing + `cascade_recovery`, and the uniform rejection-mapping rule makes the orphan *reachable by design* — credential invalidity always manifests as `recording-failure` plus an orphan) | **yes** | **GAP → resolved (2026-06-11): covered** | *Was:* the correct model committed all three sub-writes as one atomic action — the spec-mandated sequential-with-compensation path unmodeled (the Invariant-4 coverage-gap finding, same class as C6's closed compensated-arm finding), and the third sub-write placed `entry_to_event` inside the atomicity surface against its derived-index classification. *Now:* the revised model is sequential-with-compensation per the C6 template — `FailPartial` makes the orphan reachable and surfaced, `RetryAudit` compensates (marked `recovered`/`cascade_recovery`, enabled in exactly the orphan configuration), and the derived index is omitted per execution-contract section Composition state obligation 2. Covered by `Inv4_SafetyBijection` / `Inv4_NoUnsurfacedOrphan` / `Inv4_RecoveryDistinguishable`; liveness's enabledness half is structural (no orphan dead end). |
+| Invariant 4 — binding bijection, **compensated arm** ("or the failure is compensated": the *Cross-record consistency under partial failure* edge case mandates retry + surfacing + `cascade_recovery`, and the uniform rejection-mapping rule makes the orphan *reachable by design* — credential invalidity always manifests as `recording-failure` plus an orphan) | **yes** | **GAP → resolved (2026-06-11): covered** | *Was:* the correct model committed all three sub-writes as one atomic action — the spec-mandated sequential-with-compensation path unmodeled (the Invariant-4 coverage-gap finding, same class as Immutable Ledger's closed compensated-arm finding), and the third sub-write placed `entry_to_event` inside the atomicity surface against its derived-index classification. *Now:* the revised model is sequential-with-compensation per the Immutable Ledger template — `FailPartial` makes the orphan reachable and surfaced, `RetryAudit` compensates (marked `recovered`/`cascade_recovery`, enabled in exactly the orphan configuration), and the derived index is omitted per execution-contract section Composition state obligation 2. Covered by `Inv4_SafetyBijection` / `Inv4_NoUnsurfacedOrphan` / `Inv4_RecoveryDistinguishable`; liveness's enabledness half is structural (no orphan dead end). |
 | Invariant 1 — attributed custody | no | out-of-scope (named reason) | Attribution is Audit Trail Invariant 1's property (substrate model + prose); not an interleaving. |
 | Invariant 2 — tamper-evident custody chain | no | out-of-scope (named reason) | Seal coverage is Audit Trail Invariant 3, modulo the unsealed tail; mechanism/records property, not TLC-class. |
 | Invariant 3 — retention-governed custody, honest disposal | no | out-of-scope (named reason) | The substrate's cascade-on-purge, modeled in `audit-trail.tla`; inherited by reference. |
@@ -40,10 +40,10 @@
 ## Step 3 — bound saturation
 
 - *Atomic-only model (historical):* `Entries = {e1, e2}` → 4 states; `{e1, e2, e3}` → 8, no new behavior.
-- **Revised compensated model (2026-06-11):** `Entries = {e1, e2}` → 16 states; `{e1, e2, e3}` → 64 — the 4ⁿ per-entry-independence form, matching the C6 precedent; all invariants hold at both bounds → saturated ☑
+- **Revised compensated model (2026-06-11):** `Entries = {e1, e2}` → 16 states; `{e1, e2, e3}` → 64 — the 4ⁿ per-entry-independence form, matching the Immutable Ledger precedent; all invariants hold at both bounds → saturated ☑
 
 ## Outcome
 
-- GAP rows: **zero** (was one — the compensated arm, the Invariant-4 coverage-gap finding, resolved 2026-06-11: Invariant 4 restated as safety + liveness; model revised to sequential-with-compensation per the C6 template; `entry_to_event` derived-index reclassification folded). The pattern returned to `grounded`.
+- GAP rows: **zero** (was one — the compensated arm, the Invariant-4 coverage-gap finding, resolved 2026-06-11: Invariant 4 restated as safety + liveness; model revised to sequential-with-compensation per the Immutable Ledger template; `entry_to_event` derived-index reclassification folded). The pattern returned to `grounded`.
 - by-construction flags on load-bearing invariants: none.
 - Result: **clean** — *"Coverage cross-check 2026-06-10 — GAP: Invariant 4's compensated arm unmodeled; routed as the Invariant-4 coverage-gap finding. Resolved 2026-06-11 — both arms covered; harness green (16 states; twin rejected at 2); pattern `grounded`."*

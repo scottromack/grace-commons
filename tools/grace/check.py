@@ -12,7 +12,9 @@ words (Timing 10, Timing 11), arithmetic in a rule outside an arithmetic express
 arithmetic in a declaration outside declared arithmetic (Hard invariant 35 through 37, Closed vocabulary 31 through 34), pronouns (Hard invariant 4), the copula after
 a modal (Closed vocabulary 8, Closed vocabulary 14), the record verb after the modal against the declared
 vocabulary (Closed vocabulary 8), a declared term nothing uses, and a cross-rule reference to a
-label no rule carries (Hard invariant 12).
+label no rule carries (Hard invariant 12). On the whole-corpus run it also reads each pattern's
+permanent id (governance.md, *Permanent ids*): a pattern with no id, two that share one, an id
+missing from _data/pattern-ids.yml, or listed under another file.
 
 Standard library only. `python3 tools/grace/check.py [paths...]`; with no path
 it reads GRACE-lang.md and every file under atoms/ and compositions/ that
@@ -1554,6 +1556,78 @@ def scan(path: Path) -> list[Finding]:
     return findings
 
 
+# the permanent id of each pattern (governance.md, *Permanent ids*): `id: N` in the
+# front matter, listed once in _data/pattern-ids.yml with the file that holds it
+INDEX_PAGES = {"atoms/index.md", "atoms/TAXONOMY.md", "compositions/README.md"}
+_FRONT_MATTER = re.compile(r"\A---\n(.*?)\n---\n", re.S)
+_ID_LINE = re.compile(r"^id:[ \t]*(\S*)[ \t]*$", re.M)
+
+
+def pattern_files(root: Path) -> list[Path]:
+    """Every atom and composition: not a history file, not an index page."""
+    out = []
+    for d in ("atoms", "compositions"):
+        for p in sorted((root / d).glob("*.md")):
+            if p.match(HISTORY) or p.relative_to(root).as_posix() in INDEX_PAGES:
+                continue
+            out.append(p)
+    return out
+
+
+def listed_ids(path: Path) -> dict[int, str | None]:
+    """The id list: id -> the file that holds it (None for a retired id)."""
+    listed: dict[int, str | None] = {}
+    current: dict[str, str] = {}
+
+    def close():
+        if "id" in current and current["id"].isdigit():
+            listed[int(current["id"])] = None if current.get("retired") == "true" else current.get("file")
+        current.clear()
+
+    if not path.exists():
+        return listed
+    for ln in path.read_text(encoding="utf-8").splitlines():
+        m = re.match(r"^  - id:[ \t]*(\S+)", ln)
+        if m:
+            close()
+            current["id"] = m.group(1)
+            continue
+        m = re.match(r"^    (file|retired):[ \t]*(\S+)", ln)
+        if m and current:
+            current[m.group(1)] = m.group(2)
+    close()
+    return listed
+
+
+def pattern_id_findings(root: Path) -> list[Finding]:
+    """A pattern with no id, two files that share one, an id the list does not hold,
+    or one the list holds under another file."""
+    listing = root / "_data" / "pattern-ids.yml"
+    listed = listed_ids(listing)
+    findings: list[Finding] = []
+    holders: dict[int, list[Path]] = {}
+    for p in pattern_files(root):
+        rel = p.relative_to(root).as_posix()
+        fm = _FRONT_MATTER.match(p.read_text(encoding="utf-8"))
+        m = _ID_LINE.search(fm.group(1)) if fm else None
+        if not m or not m.group(1).isdigit():
+            findings.append(Finding(p, 1, "G-id-missing", "the front matter carries no `id: N` (governance.md, Permanent ids)"))
+            continue
+        n = int(m.group(1))
+        holders.setdefault(n, []).append(p)
+        if n not in listed:
+            findings.append(Finding(p, 1, "G-id-unlisted", f"id {n} is not in _data/pattern-ids.yml"))
+        elif listed[n] != rel:
+            where = listed[n] if listed[n] else "retired"
+            findings.append(Finding(p, 1, "G-id-moved", f"id {n} is listed under {where}, not under this file"))
+    for n, files in holders.items():
+        if len(files) > 1:
+            for p in files:
+                others = ", ".join(q.relative_to(root).as_posix() for q in files if q != p)
+                findings.append(Finding(p, 1, "G-id-shared", f"id {n} is also on {others}"))
+    return findings
+
+
 def main(argv: list[str]) -> int:
     args = [a for a in argv[1:] if not a.startswith("--")]
     gate = "--gate" in argv
@@ -1573,6 +1647,8 @@ def main(argv: list[str]) -> int:
     for p in paths:
         if p.exists():
             findings += scan(p)
+    if not args:
+        findings += pattern_id_findings(root)
     findings.sort(key=lambda f: (str(f.path), f.line, f.code))
     for f in findings:
         try:

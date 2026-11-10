@@ -1,6 +1,6 @@
 "use server";
 // app/audit/actions.ts — the running-verdict verify action behind the VerifyChip
-// island. C14-gated on view_audit. verifyChain is a pure READ (it recomputes the
+// island. Session-Gated Authorization-gated on view_audit. verifyChain is a pure READ (it recomputes the
 // hash chain and reports), so this appends no event.
 import { db } from "@/lib/db.ts";
 import * as eventLog from "@/domain/event_log.ts";

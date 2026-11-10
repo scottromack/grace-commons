@@ -40,7 +40,7 @@ func main() {
 		})
 	})
 
-	// 3) issueInvitation — the C16 composition vertical (party + invitation + event).
+	// 3) issueInvitation — the External Onboarding composition vertical (party + invitation + event).
 	issueInvitation(&pi, &sess,
 		"maya@beacon.clinical", "Maya Chen", "coordinator",
 		"demo-fixed-token-0001",

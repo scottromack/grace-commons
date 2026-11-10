@@ -127,7 +127,7 @@ export const SCHEMA = {
     indexes: [[{ token: 1 }, { unique: true }]], // UNIQUE(token)
   },
 
-  // Event Log atom (C1 audit substrate).
+  // Event Log atom (Audit Trail audit substrate).
   // _id is the explicit chain position (render 2: "id is NOT an IDENTITY: it is
   // part of the hashed payload") — _id's implicit unique index is the fork
   // guard for the append serialization mechanism (portal.mjs).

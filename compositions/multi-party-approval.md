@@ -1,5 +1,6 @@
 ---
 title: Multi-Party Approval
+id: 4
 parent: Conceptual Compositions
 nav_order: 6
 has_toc: true

@@ -1,0 +1,146 @@
+# Permanent pattern ids (governance.md, *Permanent ids*). Given when a pattern is admitted, never changed, never reused.
+# A rename changes a title, a file name and the path below; the id stays. No human reads an id: anything a person sees names a pattern by its name.
+# `was` is a composition's old roadmap number, kept so an old commit that says C19 still finds it. Id 3 is retired.
+patterns:
+  - id: 1
+    file: compositions/defensible-retention.md
+    was: C1
+  - id: 2
+    file: compositions/propagate-consent-revocation-downstream.md
+    was: C2
+  - id: 3
+    retired: true
+    last_name: Forensic Recovery
+    was: C3
+  - id: 4
+    file: compositions/multi-party-approval.md
+    was: C4
+  - id: 5
+    file: compositions/notification-fanout.md
+    was: C5
+  - id: 6
+    file: compositions/immutable-ledger.md
+    was: C6
+  - id: 7
+    file: compositions/resolve-a-persons-data-rights.md
+    was: C7
+  - id: 8
+    file: compositions/customer-onboarding.md
+    was: C8
+  - id: 9
+    file: compositions/reserve-from-pool.md
+    was: C9
+  - id: 10
+    file: compositions/execute-gated-workflow.md
+    was: C10
+  - id: 11
+    file: compositions/preference-aware-notification-fanout.md
+    was: C11
+  - id: 12
+    file: compositions/chain-of-custody.md
+    was: C12
+  - id: 13
+    file: compositions/login.md
+    was: C13
+  - id: 14
+    file: compositions/session-gated-authorization.md
+    was: C14
+  - id: 15
+    file: compositions/capability-backed-sharing.md
+    was: C15
+  - id: 16
+    file: compositions/external-onboarding.md
+    was: C16
+  - id: 17
+    file: compositions/authenticated-actor.md
+    was: C17
+  - id: 18
+    file: compositions/actor-suspension.md
+    was: C18
+  - id: 19
+    file: compositions/compensable-workflow.md
+    was: C19
+  - id: 20
+    file: compositions/attributed-permissions-admin.md
+  - id: 21
+    file: compositions/audit-trail.md
+  - id: 22
+    file: compositions/idempotent-reservation.md
+  - id: 23
+    file: compositions/privileged-access-provisioning.md
+  - id: 24
+    file: compositions/recoverable-invocation.md
+  - id: 25
+    file: compositions/shared-cart.md
+  - id: 26
+    file: compositions/shared-todo.md
+  - id: 27
+    file: compositions/verified-repair.md
+  - id: 28
+    file: atoms/actor-identity.md
+  - id: 29
+    file: atoms/approval-step.md
+  - id: 30
+    file: atoms/assignment.md
+  - id: 31
+    file: atoms/calendar-time.md
+  - id: 32
+    file: atoms/capability.md
+  - id: 33
+    file: atoms/capacity-constraint-enforcement.md
+  - id: 34
+    file: atoms/cart.md
+  - id: 35
+    file: atoms/condition-register.md
+  - id: 36
+    file: atoms/consent.md
+  - id: 37
+    file: atoms/credential.md
+  - id: 38
+    file: atoms/duplicate-prevention.md
+  - id: 39
+    file: atoms/erasure-tombstone.md
+  - id: 40
+    file: atoms/event-log.md
+  - id: 41
+    file: atoms/gift-card.md
+  - id: 42
+    file: atoms/invitation.md
+  - id: 43
+    file: atoms/lease.md
+  - id: 44
+    file: atoms/legal-hold.md
+  - id: 45
+    file: atoms/medication-order.md
+  - id: 46
+    file: atoms/message-preference.md
+  - id: 47
+    file: atoms/notification.md
+  - id: 48
+    file: atoms/observation.md
+  - id: 49
+    file: atoms/owed-record.md
+  - id: 50
+    file: atoms/party-identity.md
+  - id: 51
+    file: atoms/permissions.md
+  - id: 52
+    file: atoms/personal-todo.md
+  - id: 53
+    file: atoms/provenance.md
+  - id: 54
+    file: atoms/provisional-commitment.md
+  - id: 55
+    file: atoms/recurrence.md
+  - id: 56
+    file: atoms/retention-window.md
+  - id: 57
+    file: atoms/selective-disclosure.md
+  - id: 58
+    file: atoms/session.md
+  - id: 59
+    file: atoms/state-machine.md
+  - id: 60
+    file: atoms/subscription.md
+  - id: 61
+    file: atoms/tamper-evidence.md

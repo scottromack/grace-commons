@@ -1,8 +1,8 @@
 // portal.mjs — THE ONLY mutation surface (Mongo ghost render).
 //
-// The spec-derived core of the clinical-trial-portal (External Onboarding C16,
-// Login C13, Session-Gated Authorization C14, Attributed Permissions Admin APA,
-// Audit Trail C1) ported onto the MongoDB driver. Headless — it exists to
+// The spec-derived core of the clinical-trial-portal (External Onboarding,
+// Login, Session-Gated Authorization, Attributed Permissions Admin APA,
+// Audit Trail) ported onto the MongoDB driver. Headless — it exists to
 // reveal structure, not to ship. Ops, action codes, audit payload fields, and
 // rejection checks are TRANSCRIBED from render 2's composition.ts
 // (demos/clinical-trial-portal-next) — an auditor diffing the two renders'
@@ -235,7 +235,7 @@ export async function open(uri, { dbName = "beacon" } = {}) {
       }
     },
 
-    // ── Invitation lifecycle (C16) ───────────────────────────────────────────
+    // ── Invitation lifecycle (External Onboarding) ───────────────────────────────────────────
 
     /** Emits: invitation.issued */
     async issueInvitation(ctx, { email, display_name, intended_role, expires_in_days = 7 }) {
@@ -314,7 +314,7 @@ export async function open(uri, { dbName = "beacon" } = {}) {
       });
     },
 
-    // ── Authentication (Login C13) ───────────────────────────────────────────
+    // ── Authentication (Login) ───────────────────────────────────────────
 
     /** Every failure path emits an anonymous login.failed; success emits login.succeeded. */
     async login(ctx, { email, password }) {

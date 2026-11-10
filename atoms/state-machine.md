@@ -1,5 +1,6 @@
 ---
 title: State Machine
+id: 59
 parent: Atomic Concepts
 has_toc: true
 toc: true

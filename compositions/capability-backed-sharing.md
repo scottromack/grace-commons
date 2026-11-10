@@ -1,5 +1,6 @@
 ---
 title: Capability-Backed Sharing
+id: 15
 parent: Conceptual Compositions
 nav_order: 23
 has_toc: true

@@ -123,7 +123,7 @@ English was stack-dependent (section 9) of BUILD_PLAN.
   are appended directly via `withTx` + `appendEvent` in the audit page / export
   route — the same sanctioned seam render 1 uses, deliberately *not* routed
   through `composition.ts`.
-- **C14 gates are helpers, not middleware.** `auth/current.ts` + `auth/permit.ts`
+- **Session-Gated Authorization gates are helpers, not middleware.** `auth/current.ts` + `auth/permit.ts`
   are called at the top of each protected page / Server Action; they read only and
   never import `composition.ts`.
 - **Bootstrap identities** (the seed's PI/CRA/permissions/study) are written

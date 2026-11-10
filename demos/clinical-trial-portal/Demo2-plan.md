@@ -77,12 +77,12 @@ Every composition the demo exercises, the seam it sits on, and what a user sees 
 
 | Composition | Atoms involved | Seam (code surface) | What the user does |
 |---|---|---|---|
-| **C16 External Onboarding** — invite step | Invitation + Party Identity + Audit Trail substrate | `composition.issueInvitation()` called from `POST /invitations`. Writes a `parties` row (if email is new), an `invitations` row with a random token, and an `event_log` row (`invitation.issued`) in one transaction. | PI opens `/people`, clicks "Invite Coordinator," enters email + display name + intended role. The next screen shows the invite link to copy. |
-| **C16 External Onboarding** — onboard step | Invitation + Credential + Party Identity + Audit Trail substrate | `composition.acceptInvitation()` called from `POST /invitations/accept/:token`. In one transaction: validates token, creates `actors` row bound to the party, creates `credentials` row, marks invitation accepted, opens a session, writes three `event_log` rows (`invitation.accepted`, `actor.enrolled`, `credential.created`, `session.opened`). | Invitee follows the link to a "Set your password" form. After submit they are logged in on `/dashboard`. |
-| **C13 Login** | Credential + Session | `composition.login()` from `POST /login`. Verifies password against `credentials.secret_hash`, writes a `sessions` row, emits `session.opened`. | Standard email + password form at `/login`. |
-| **C14 Session-Gated Authorization** | Session + Permissions | `requireSession()` middleware on every protected route. Looks up session by cookie token, checks not expired or revoked, attaches `ctx.actor`. `requirePermission(code)` middleware checks for an unrevoked `grants` row. | Unauthenticated → redirect to `/login`. Authenticated but lacking the permission → `403` page that names the missing permission. |
-| **APA — Attributed Permissions Admin** (library calls this C13 colloquially) | Permissions + Actor Identity | `composition.grantPermission()` / `composition.revokeGrant()` from `POST /grants` and `POST /grants/:id/revoke`. Each writes/updates a `grants` row and emits `grant.issued` or `grant.revoked`. | PI views `/people`, sees each coordinator as a row with their current grants and a "Grant" / "Revoke" affordance per permission. |
-| **C1 Audit Trail** | Event Log + Actor Identity + Retention Window + Tamper Evidence | Every mutation in `composition.ts` calls `appendEvent(ctx, action, target, payload)` *inside the same transaction*. The append computes `this_hash = sha256(canonicalJSON({occurred_at, actor_id, session_id, action, target_kind, target_id, payload_json, prev_hash}))` and reads `prev_hash` from the previous row's `this_hash`. The `event_log` table is append-only by convention; no UPDATE or DELETE statements reference it anywhere in the codebase. | CRA visits `/audit` to query, `/audit/verify` to recompute the chain, `/audit/export.csv` for a sealed export. |
+| **External Onboarding** — invite step | Invitation + Party Identity + Audit Trail substrate | `composition.issueInvitation()` called from `POST /invitations`. Writes a `parties` row (if email is new), an `invitations` row with a random token, and an `event_log` row (`invitation.issued`) in one transaction. | PI opens `/people`, clicks "Invite Coordinator," enters email + display name + intended role. The next screen shows the invite link to copy. |
+| **External Onboarding** — onboard step | Invitation + Credential + Party Identity + Audit Trail substrate | `composition.acceptInvitation()` called from `POST /invitations/accept/:token`. In one transaction: validates token, creates `actors` row bound to the party, creates `credentials` row, marks invitation accepted, opens a session, writes three `event_log` rows (`invitation.accepted`, `actor.enrolled`, `credential.created`, `session.opened`). | Invitee follows the link to a "Set your password" form. After submit they are logged in on `/dashboard`. |
+| **Login** | Credential + Session | `composition.login()` from `POST /login`. Verifies password against `credentials.secret_hash`, writes a `sessions` row, emits `session.opened`. | Standard email + password form at `/login`. |
+| **Session-Gated Authorization** | Session + Permissions | `requireSession()` middleware on every protected route. Looks up session by cookie token, checks not expired or revoked, attaches `ctx.actor`. `requirePermission(code)` middleware checks for an unrevoked `grants` row. | Unauthenticated → redirect to `/login`. Authenticated but lacking the permission → `403` page that names the missing permission. |
+| **APA — Attributed Permissions Admin** | Permissions + Actor Identity | `composition.grantPermission()` / `composition.revokeGrant()` from `POST /grants` and `POST /grants/:id/revoke`. Each writes/updates a `grants` row and emits `grant.issued` or `grant.revoked`. | PI views `/people`, sees each coordinator as a row with their current grants and a "Grant" / "Revoke" affordance per permission. |
+| **Audit Trail** | Event Log + Actor Identity + Retention Window + Tamper Evidence | Every mutation in `composition.ts` calls `appendEvent(ctx, action, target, payload)` *inside the same transaction*. The append computes `this_hash = sha256(canonicalJSON({occurred_at, actor_id, session_id, action, target_kind, target_id, payload_json, prev_hash}))` and reads `prev_hash` from the previous row's `this_hash`. The `event_log` table is append-only by convention; no UPDATE or DELETE statements reference it anywhere in the codebase. | CRA visits `/audit` to query, `/audit/verify` to recompute the chain, `/audit/export.csv` for a sealed export. |
 
 The seams are intentionally visible. The README points at the `composition.ts` boundary and says: *"Mutations only happen here. Every function in this file writes one or more atoms and one or more audit events. If a code path mutates state without going through `composition.ts`, it is a bug."*
 
@@ -248,7 +248,7 @@ CREATE TABLE invitations (
   revoked_at          TEXT
 );
 
--- Event Log atom (C1 audit substrate)
+-- Event Log atom (Audit Trail audit substrate)
 CREATE TABLE event_log (
   id            INTEGER PRIMARY KEY AUTOINCREMENT,  -- AUTOINCREMENT guarantees monotonic id reuse cannot happen
   occurred_at   TEXT NOT NULL,
@@ -497,8 +497,8 @@ demos/clinical-trial-portal/
     hash.ts                        # sha256hex + randomToken
     password.ts                    # Argon2id hash/verify (scrypt fallback)
   middleware/
-    require_session.ts             # C14: session lookup, attaches ctx.actor
-    require_permission.ts          # C14: grant lookup, scope enforcement
+    require_session.ts             # Session-Gated Authorization: session lookup, attaches ctx.actor
+    require_permission.ts          # Session-Gated Authorization: grant lookup, scope enforcement
   routes/
     auth.ts                        # /login, /logout
     invitations.ts                 # /invitations/accept/:token
@@ -681,7 +681,7 @@ import { withTx, type Ctx } from "./lib/db.ts";
 import { randomToken } from "./lib/hash.ts";
 
 /**
- * Composition: External Onboarding (C16) — invite step.
+ * Composition: External Onboarding — invite step.
  *
  * Library spec (quoted):
  *   "An invitation binds a known Party (email + display name) to a future
@@ -1125,7 +1125,7 @@ Deno.test("verifyChain flags a directly-mutated payload", () => {
 
 Two surfaces:
 
-1. **README.md.** Every composition name is a markdown link to the library entry: `[External Onboarding (C16)](https://grace-commons.example/compositions/c16-external-onboarding)`. Same for atoms.
+1. **README.md.** Every composition name is a markdown link to the library entry: `[External Onboarding](https://grace-commons.example/compositions/external-onboarding)`. Same for atoms.
 2. **Source code.** Every public function in `composition.ts`, every atom file header in `domain/`, carries a doc comment block that *quotes the library spec verbatim* above the implementation. The quoted text is the contract; the code below it is the render. If the quote and the code disagree, the quote wins and the code is a bug.
 
 ### A.14 What a "completed" file looks like

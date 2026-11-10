@@ -2,7 +2,7 @@
 
 > **Status: internal staging, not canonical.** Brainstorm output from a Cowork session sweep of the 27 grounded atoms and 24 grounded compositions. Nothing here is proposed, sequenced, or counted; each candidate is gate-sketched (pressure-testing.md section the three gates) but has had no pass run against it. This file dies into `roadmap.md` proposals for whichever candidates the author promotes, and into the trash for the rest.
 
-Selection bias, deliberate: candidates favor underused atoms (Observation, Medication Order, Capability, Provenance, Capacity Constraint Enforcement), substrate reuse, cross-domain reach in the C12 mold (one structure, several regulator-shaped domains), and emergent invariants with obvious formal-layer shapes.
+Selection bias, deliberate: candidates favor underused atoms (Observation, Medication Order, Capability, Provenance, Capacity Constraint Enforcement), substrate reuse, cross-domain reach in the Chain of Custody mold (one structure, several regulator-shaped domains), and emergent invariants with obvious formal-layer shapes.
 
 ---
 
@@ -30,7 +30,7 @@ Selection bias, deliberate: candidates favor underused atoms (Observation, Medic
 **The idea.** Authority delegated person-to-person, time-boxed, possibly re-delegated — with recall that forward-closes the *entire chain*. Delegation records reference their parent grant; the chain is derived state (transitive closure over existing records), never stored.
 
 **Emergent invariants:**
-- *Chain integrity* — no live delegated authority whose root (or any ancestor) is revoked: recall is transitive forward closure, the C17 cascade generalized from one hop to chains.
+- *Chain integrity* — no live delegated authority whose root (or any ancestor) is revoked: recall is transitive forward closure, the Authenticated Actor cascade generalized from one hop to chains.
 - *Dual attribution* — every delegated act is attributed to both the acting principal and the granting chain (pairing-map geometry, two columns).
 
 **Domains:** power of attorney, OAuth on-behalf-of, covering physician, corporate signing authority, ship's-master delegation.
@@ -46,11 +46,11 @@ Selection bias, deliberate: candidates favor underused atoms (Observation, Medic
 **The idea.** The eMAR/BCMA loop: order → pharmacist verification (Approval Step) → administration, where the administration action atomically reads order status + verification + a named contraindication predicate over Observations, and writes the attributed administration event paired to the order.
 
 **Emergent invariants:**
-- *No administration without a live verified order* — order revocation/expiry forward-closes the administration surface (C17's cascade pointed at a clinical act).
+- *No administration without a live verified order* — order revocation/expiry forward-closes the administration surface (Authenticated Actor's cascade pointed at a clinical act).
 - *Administration ⇔ order pairing* — every administration event pairs to exactly one order line it discharges (binding-bijection family).
 - *Observation-gated administration* — when the deployment declares a contraindication predicate (e.g., "hold if systolic < 90"), administration is blocked while the predicate fails, read atomically with the act.
 
-**Domains:** hospital eMAR (Joint Commission / FDA), corrections medication logs, veterinary, clinical-trial dosing compliance. First composition to use both healthcare atoms; the healthcare flagship the way C12 is the custody flagship.
+**Domains:** hospital eMAR (Joint Commission / FDA), corrections medication logs, veterinary, clinical-trial dosing compliance. First composition to use both healthcare atoms; the healthcare flagship the way Chain of Custody is the custody flagship.
 
 **Formal shape:** TLA+ — interleaving of order revocation vs. administration (the TOCTOU twin writes itself).
 
@@ -63,7 +63,7 @@ Selection bias, deliberate: candidates favor underused atoms (Observation, Medic
 **The idea.** A defective artifact is quarantined: the quarantine forward-closes new custody/issuance events, places preservation on the existing records (Legal Hold — evidence, not erasure), and notifies every downstream holder — where "every downstream holder" is *derived from the Provenance chain*, not from a maintained list.
 
 **Emergent invariants:**
-- *Containment completeness* — the notified set provably covers the custody-derived holder set (coverage-totality, C7's no-silent-omission shape). This is **Completeness Model**-shaped — second consumer after C7/C8, which is exactly the recurrence evidence that forthcoming atom needs.
+- *Containment completeness* — the notified set provably covers the custody-derived holder set (coverage-totality, Resolve a Person's Data Rights's no-silent-omission shape). This is **Completeness Model**-shaped — second consumer after Resolve a Person's Data Rights/Customer Onboarding, which is exactly the recurrence evidence that forthcoming atom needs.
 - *No custody after quarantine* — provenance append for the quarantined artifact is forward-closed except for the recall-return path.
 
 **Domains:** pharma batch recall (FDA 21 CFR 7), food safety (FSMA 204 traceability), package-registry yank / vulnerable-dependency containment, breached-data notification.

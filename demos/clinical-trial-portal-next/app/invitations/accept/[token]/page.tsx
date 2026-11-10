@@ -1,5 +1,5 @@
 // app/invitations/accept/[token]/page.tsx — GET /invitations/accept/:token.
-// C16 External Onboarding, invite-acceptance landing. No session required.
+// External Onboarding, invite-acceptance landing. No session required.
 // Validates the token (read-only) and renders the set-password form, or an
 // explanatory error for an invalid / used / expired invitation.
 import type { Metadata } from "next";

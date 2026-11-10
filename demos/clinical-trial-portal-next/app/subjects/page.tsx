@@ -1,4 +1,4 @@
-// app/subjects/page.tsx — GET /subjects. Study Coordinator surface. C14-gated on
+// app/subjects/page.tsx — GET /subjects. Study Coordinator surface. Session-Gated Authorization-gated on
 // enroll_subject OR record_visit; the granted scope decides own-vs-all rows
 // (render 1's rule). Reads only.
 import type { Metadata } from "next";

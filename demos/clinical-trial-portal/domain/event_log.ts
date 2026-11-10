@@ -1,6 +1,6 @@
 // domain/event_log.ts
 //
-// Atom: Event Log + Tamper Evidence (C1 audit substrate)
+// Atom: Event Log + Tamper Evidence (Audit Trail audit substrate)
 //
 // Library spec — Event Log (quoted from grace-commons/atoms/event-log.md):
 //   "Event Log is a foundational temporal atom that provides a single, simple

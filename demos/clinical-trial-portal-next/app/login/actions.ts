@@ -1,5 +1,5 @@
 "use server";
-// app/login/actions.ts — login (C13) + logout (session.revoked) Server Actions.
+// app/login/actions.ts — login (Login) + logout (session.revoked) Server Actions.
 //
 // Both call composition.ts (the only mutation surface) and never write atoms
 // directly. login emits login.failed / login.succeeded inside composition.login;
@@ -14,7 +14,7 @@ export interface LoginState {
   error?: string;
 }
 
-/** C13 Login. Returns an inline error, or sets the cookie and redirects. */
+/** Login. Returns an inline error, or sets the cookie and redirects. */
 export async function login(_prev: LoginState, formData: FormData): Promise<LoginState> {
   const email = String(formData.get("email") ?? "").trim();
   const password = String(formData.get("password") ?? "");

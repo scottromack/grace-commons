@@ -8,11 +8,11 @@ This demo demonstrates five Grace Commons compositions in a Phase II oncology tr
 
 | Composition | Library | Role |
 |---|---|---|
-| **C16 External Onboarding** | [Grace Commons](https://grace-commons.example) | Invite coordinators by email; coordinate password setup on acceptance |
-| **C14 Session-Gated Authorization** | [Grace Commons](https://grace-commons.example) | Enforce session validity and permission grants on every protected route |
+| **External Onboarding** | [Grace Commons](https://grace-commons.example) | Invite coordinators by email; coordinate password setup on acceptance |
+| **Session-Gated Authorization** | [Grace Commons](https://grace-commons.example) | Enforce session validity and permission grants on every protected route |
 | **APA — Attributed Permissions Admin** | [Grace Commons](https://grace-commons.example) | PI manages who can do what: issue and revoke grants |
-| **C1 Audit Trail** | [Grace Commons](https://grace-commons.example) | Every action is audited with tamper-evident hash chain. CRA reads and verifies |
-| **C13 Login** | [Grace Commons](https://grace-commons.example) | Authenticate with email + password (Argon2id) |
+| **Audit Trail** | [Grace Commons](https://grace-commons.example) | Every action is audited with tamper-evident hash chain. CRA reads and verifies |
+| **Login** | [Grace Commons](https://grace-commons.example) | Authenticate with email + password (Argon2id) |
 
 ---
 

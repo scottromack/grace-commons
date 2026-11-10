@@ -1,4 +1,4 @@
-// app/subjects/new/page.tsx — GET /subjects/new. C14-gated on enroll_subject.
+// app/subjects/new/page.tsx — GET /subjects/new. Session-Gated Authorization-gated on enroll_subject.
 // The subject code is auto-assigned (synthetic, no PII) — shown read-only.
 import type { Metadata } from "next";
 import { db } from "@/lib/db.ts";

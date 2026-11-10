@@ -1,6 +1,6 @@
 "use server";
 // app/subjects/actions.ts — Study Coordinator write side: enroll a subject
-// (subject.enrolled) and record a visit (visit.recorded). Both gate with C14
+// (subject.enrolled) and record a visit (visit.recorded). Both gate with Session-Gated Authorization
 // then call composition.ts; no atom is written here.
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";

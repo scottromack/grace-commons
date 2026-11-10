@@ -1,5 +1,5 @@
-// app/audit/page.tsx — GET /audit. The C1 Audit Trail surface: filterable event
-// list + the running verdict (VerifyChip). C14-gated on view_audit; scope='own'
+// app/audit/page.tsx — GET /audit. The Audit Trail surface: filterable event
+// list + the running verdict (VerifyChip). Session-Gated Authorization-gated on view_audit; scope='own'
 // shows only the viewer's events, scope='all' shows the whole chain.
 //
 // Part 11: viewing the regulated record is itself a regulated act, so this Server

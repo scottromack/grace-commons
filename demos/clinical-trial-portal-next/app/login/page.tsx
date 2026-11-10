@@ -1,4 +1,4 @@
-// app/login/page.tsx — GET /login (C13 entry). Standalone, centered, no top bar
+// app/login/page.tsx — GET /login (Login entry). Standalone, centered, no top bar
 // (pre-auth). Ports render 1's login.tsx; the form is the <LoginForm/> island.
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";

@@ -51,6 +51,14 @@ This is the library applying its own [Tamper Evidence](./atoms/tamper-evidence.m
 
 ---
 
+## Permanent ids
+
+Every atom and composition carries a permanent id: a bare number in its front matter (`id`), given when the pattern is admitted, never changed and never reused. A rename changes the title, the file name and the file's path in `_data/pattern-ids.yml`; it never changes the id. That list holds every id ever given with the file that holds it, and a retired pattern keeps its id there, marked retired with its last name, so no number is handed out twice. One sequence numbers atoms and compositions alike (the folder says which kind it is), and `python3 tools/grace/check.py --gate` fails when a pattern has no id, two files share one, or an id is missing from the list or listed under another file.
+
+The id is for machines and for AI sessions that need a key that survives a rename; no page shows it. Anything a person reads names a pattern by its name, never by an id or a code. An id appears only in machine and AI-only text, and there only where it saves real money. The seal above identifies one reviewed version of a pattern; the id identifies the pattern itself, whichever version it is at.
+
+---
+
 ## Open questions
 
 1. **Sealing mechanism.** Git-based content hashing is the simplest path. RFC 3161 external timestamping provides stronger legal provenance. The right answer depends on how far the library's institutional ambitions reach.
@@ -275,7 +283,7 @@ One line per reading, oldest first: the number, who read what, the date, and wha
 
 - **Council read 218 — Claude on the section sign, the Project Log pages and the register's undated text, 2026-09-26.** The second unit of the sweep, the one where the sign could not be judged until the record around it was: a historical record is a dated entry, and the undated text around it is not one.
 
-  *Where each page draws the line.* `discoveries.md` files every entry under a dated heading, `changelog.md` dates every bullet, and `ai-usage-log.md` dates every block: their 31 section signs are all inside records and stay. `risks.md` carries two in its standing mitigations, undated, and both are converted. The register's 70 are all inside `Council read` entries and stay; its three in the undated proposal above them are converted. `roadmap.md` is the page that needed reading, because it is the corpus's live state with its history woven through it: a status row carries dates as data, a debt carries the date it opened, and a progress note is history. Read that way, an entry is a record when its lead phrase is dated — *Progress 2026-06-25*, *Resolved 2026-06-16*, *C6 grounded — 2026-06-08* — or when it sits under a dated heading, and everything else is live: the status rows and tables, the debt headers, the orientation. Seventy section signs were live and are converted; 69 sit in records and stay, with four more inside code spans.
+  *Where each page draws the line.* `discoveries.md` files every entry under a dated heading, `changelog.md` dates every bullet, and `ai-usage-log.md` dates every block: their 31 section signs are all inside records and stay. `risks.md` carries two in its standing mitigations, undated, and both are converted. The register's 70 are all inside `Council read` entries and stay; its three in the undated proposal above them are converted. `roadmap.md` is the page that needed reading, because it is the corpus's live state with its history woven through it: a status row carries dates as data, a debt carries the date it opened, and a progress note is history. Read that way, an entry is a record when its lead phrase is dated — *Progress 2026-06-25*, *Resolved 2026-06-16*, *Immutable Ledger grounded — 2026-06-08* — or when it sits under a dated heading, and everything else is live: the status rows and tables, the debt headers, the orientation. Seventy section signs were live and are converted; 69 sit in records and stay, with four more inside code spans.
 
   *The forms.* The same as council read 216's, and one for the standards the status rows anchor to: a numbered part of a regulation reads *section* — *HIPAA section 164.312*, *SOX section 404* — and a part of an ISO standard reads *clause*, ISO's own word for it. Nine status rows sent the reader to *Lineage §Final Critique N*, a Lineage block deleted on 2026-09-04 and reachable only in git history; each now reads *the Lineage's Final Critique N*, and the page's dated note saying where such references resolve stays as written.
 

@@ -1,5 +1,6 @@
 ---
 title: Customer Onboarding
+id: 8
 parent: Conceptual Compositions
 nav_order: 16
 has_toc: true

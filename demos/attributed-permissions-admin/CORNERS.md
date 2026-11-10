@@ -190,7 +190,7 @@ remedy: compose with Idempotent Reservation.
 to serve two structurally distinct purposes: as the Actor Identity attest
 key (used for HMAC-signing attestation records in APA operations) and as
 the login credential (used for session establishment via the Login
-composition, C13).**
+composition, Login).**
 
 The Credential atom (atom #11) defines authentication credentials — the
 material a principal presents at login to prove identity and issue a
@@ -204,7 +204,7 @@ Three questions the spec does not answer:
 
 **1. Revocation cascade.** If a principal's Credential is revoked (via
 `Credential.revoke`), does that affect their Actor Identity attest
-capability? The Login composition (C13) cascades Credential revocation
+capability? The Login composition cascades Credential revocation
 to Sessions via the `credential_to_sessions` map. No composition
 cascades Credential revocation to Actor Identity. A principal whose
 login credential is revoked can still produce valid attestations in the

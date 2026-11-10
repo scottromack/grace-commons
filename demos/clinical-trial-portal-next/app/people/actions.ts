@@ -1,6 +1,6 @@
 "use server";
-// app/people/actions.ts — APA (Attributed Permissions Admin) + C16 invite, write
-// side. Every action gates with the C14 helpers, then calls composition.ts (the
+// app/people/actions.ts — APA (Attributed Permissions Admin) + External Onboarding invite, write
+// side. Every action gates with the Session-Gated Authorization helpers, then calls composition.ts (the
 // only mutation surface), then revalidates /people. No atom is written here.
 //
 // invitation delivery: SMTP is opt-in and not wired in this render (render 1's

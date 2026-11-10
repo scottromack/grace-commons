@@ -19,7 +19,7 @@ across a language boundary).
 canonical.go     canonicalize() — byte-identical port of lib/canonical.ts
 hash.go          sha256hex()
 eventlog.go      EventRow, appendEvent (serialized by sync.Mutex), verifyChain
-composition.go   issueInvitation (C16) — the one composition vertical; in-memory atoms
+composition.go   issueInvitation (External Onboarding) — the one composition vertical; in-memory atoms
 main.go          a fixed, deterministic 3-event lifecycle slice; emits the chain as JSONL
 verify.mjs       the JS verifier (canonical contract identical to render 2); recomputes the chain
 twin.py          the Python twin — same chain, used to verify the contract in the build sandbox

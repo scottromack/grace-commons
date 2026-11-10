@@ -1,5 +1,5 @@
 // app/people/page.tsx — GET /people. PI surface: actors + their grants,
-// pending invitations, and the invite form. C14-gated on invite_actor OR
+// pending invitations, and the invite form. Session-Gated Authorization-gated on invite_actor OR
 // grant_permission (render 1's canManagePeople). Reads only; every mutation is a
 // Server Action in ./actions.ts.
 import type { Metadata } from "next";

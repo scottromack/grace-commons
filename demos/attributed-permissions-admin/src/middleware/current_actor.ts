@@ -1,4 +1,4 @@
-// Session-gated actor middleware — Session-Gated Authorization (C14).
+// Session-gated actor middleware — Session-Gated Authorization.
 //
 // Reads the session_token cookie, validates it against the Session atom store,
 // and sets c.set("actor", ...) for every downstream handler.

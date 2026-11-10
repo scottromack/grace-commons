@@ -1,5 +1,5 @@
 /**
- * domain/event_log.ts — Event Log + Tamper Evidence (C1 audit substrate).
+ * domain/event_log.ts — Event Log + Tamper Evidence (Audit Trail audit substrate).
  *
  * Library spec — Event Log (atoms/event-log.md): "anything appended to
  * the log stays in the log, in the order it arrived, forever, unchanged … append

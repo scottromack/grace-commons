@@ -1,6 +1,6 @@
 // Auth routes — login and logout.
 //
-// Implements the Login composition surface (C13):
+// Implements the Login composition surface (Login):
 //   GET  /login  — serve login form (redirect to / if already authenticated)
 //   POST /login  — verify_login → issue_session → set cookie → redirect /
 //   POST /logout — revoke_session → clear cookie → redirect /login

@@ -27,15 +27,15 @@ Open http://localhost:3000 and sign in as the PI (`anya@beacon.clinical` /
 
 ## The lifecycle (click-through)
 
-1. **Login (C13).** Sign in as the PI. `composition.login` verifies the Argon2/
+1. **Login.** Sign in as the PI. `composition.login` verifies the Argon2/
    scrypt credential *before* opening the transaction, then emits
    `login.succeeded` and sets the opaque session cookie. A bad password emits an
    anonymous `login.failed` — the specific reason lives only in the audit log;
    the user sees a generic message.
-2. **Invite a coordinator (C16, APA).** Go to **People & Permissions** → *Invite
+2. **Invite a coordinator (External Onboarding, APA).** Go to **People & Permissions** → *Invite
    someone*. Submitting calls `composition.issueInvitation` → `invitation.issued`.
    SMTP is off by default, so the accept link is shown in-app for you to copy.
-3. **Accept the invitation (C16).** Open the accept link in a private window and
+3. **Accept the invitation (External Onboarding).** Open the accept link in a private window and
    set a password. `composition.acceptInvitation` does it all in **one**
    transaction — creates the Actor + Credential + Session, marks the invitation
    accepted, logs the invitee in — emitting `invitation.accepted`,
@@ -47,7 +47,7 @@ Open http://localhost:3000 and sign in as the PI (`anya@beacon.clinical` /
    *Enroll subject* (`subject.enrolled`), then open the subject and *Record
    visit* (`visit.recorded`). Subject codes are synthetic and sequential — no
    PII.
-6. **Walk the audit trail (C1).** As the CRA (`jordan@beacon.clinical` /
+6. **Walk the audit trail (Audit Trail).** As the CRA (`jordan@beacon.clinical` /
    `demo-cra`), open **Audit Trail**. Every step above is there, attributed and
    time-ordered. Click **Verify chain** for the running verdict, **Full report**
    for the recompute page, **Export CSV** to pull the chain (with
@@ -63,9 +63,9 @@ events, never start transactions, never call each other. That discipline is why
 "the records alone" can reconstruct what happened, and why a forced failure
 mid-function rolls back *both* the atom rows and the audit rows.
 
-## The C14 gates (the regulated-access pattern)
+## The Session-Gated Authorization gates (the regulated-access pattern)
 
-Render 1 enforced C14 with two Hono middlewares. Next has no middleware chain, so
+Render 1 enforced Session-Gated Authorization with two Hono middlewares. Next has no middleware chain, so
 the gates are helpers called at the top of each protected handler:
 
 ```ts
@@ -82,7 +82,7 @@ moved from `.use()` to a function call.
 
 ## The hash chain
 
-`domain/event_log.ts` is the C1 substrate. `this_hash = sha256hex(canonicalize({
+`domain/event_log.ts` is the Audit Trail substrate. `this_hash = sha256hex(canonicalize({
 id, occurred_at, actor_id, session_id, action, target_kind, target_id,
 payload_json, prev_hash }))`, with `prev_hash` the previous row's `this_hash`
 (`''` for row #1). `lib/canonical.ts` and `lib/hash.ts` are **byte-identical** to
@@ -126,7 +126,7 @@ one stack hid it) turned into a named render-layer obligation.
 ## Where to look next
 
 - `composition.ts` — the only mutation surface; the five compositions.
-- `auth/current.ts` + `auth/permit.ts` — the C14 gates.
+- `auth/current.ts` + `auth/permit.ts` — the Session-Gated Authorization gates.
 - `app/audit/*` — the audit surface (`page.tsx`, `verify/page.tsx`, `export.csv/route.ts`).
 - `lib/db.ts` — the transaction primitive + the advisory lock.
 - [`../clinical-trial-portal`](../clinical-trial-portal/) — the first render, to diff against.

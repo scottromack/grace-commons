@@ -70,7 +70,7 @@ CREATE TABLE IF NOT EXISTS invitations (
   revoked_at          TEXT
 );
 
--- Event Log atom (C1 audit substrate)
+-- Event Log atom (Audit Trail audit substrate)
 CREATE TABLE IF NOT EXISTS event_log (
   id            INTEGER PRIMARY KEY AUTOINCREMENT,
   occurred_at   TEXT NOT NULL,

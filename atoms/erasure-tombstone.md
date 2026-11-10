@@ -1,5 +1,6 @@
 ---
 title: Erasure Tombstone
+id: 39
 parent: Atomic Concepts
 has_toc: true
 toc: true

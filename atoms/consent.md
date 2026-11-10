@@ -1,5 +1,6 @@
 ---
 title: Consent
+id: 36
 parent: Atomic Concepts
 has_toc: true
 toc: true

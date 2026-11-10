@@ -64,7 +64,7 @@ validate.mjs  +  lib/score.mjs     the runner and the scoring kernel
 ```
 
 - **Manifest** — one entry per *Generation-acceptance* check across the
-  render's composition surface (C16 / C13 / C14 / APA / C1), each
+  render's composition surface (External Onboarding / Login / Session-Gated Authorization / APA / Audit Trail), each
   `{ id, claim (verbatim spec text), kind, render_scope, severity }`. It never
   names a table or an endpoint; it is stack-agnostic. Hand-authored for now;
   derive-from-prose is next-week.

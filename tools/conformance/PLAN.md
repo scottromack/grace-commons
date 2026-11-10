@@ -63,7 +63,7 @@ says "92%-good"; the runner *counts*. Author-proof and reproducible.
 - Pick render 1 (`demos/clinical-trial-portal`) as the spike target.
 - Hand-author `tools/conformance/manifests/clinical-trial-portal.manifest.json`:
   one entry per Generation-acceptance check across the composition surface
-  (C16 / C13 / C14 / APA / C1), each with `{id, claim, kind, severity}`.
+  (External Onboarding / Login / Session-Gated Authorization / APA / Audit Trail), each with `{id, claim, kind, severity}`.
 - Reuse the spec's own **record-clearable vs externally-clearable** split as the
   `kind` field — it already exists in every Generation-acceptance section.
 - Write down the **denominator definition** (equal-weight to start; externally-

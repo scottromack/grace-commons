@@ -24,7 +24,7 @@ These are the library-spec contracts. They are the same in both renders. The fir
 | Carried-over contract | Source of truth | Why it cannot change |
 |---|---|---|
 | **Domain story** (PI / Coordinator / CRA; invite → onboard → grant → enroll → record → audit-walk → verify) | section 1 of Demo2-plan | It is the demonstration, not the stack. |
-| **Composition coverage** (C16 External Onboarding, C13 Login, C14 Session-Gated Authorization, APA Attributed Permissions Admin, C1 Audit Trail) | section 2 of Demo2-plan | These are the library specs under test. |
+| **Composition coverage** (External Onboarding, Login, Session-Gated Authorization, APA Attributed Permissions Admin, Audit Trail) | section 2 of Demo2-plan | These are the library specs under test. |
 | **Actor roster + permission catalog + seed** (Dr. Anya Okonkwo / Jordan Lee seeded; Maya Chen onboarded; five permission codes) | section 3 of Demo2-plan | The walkthrough depends on it byte-for-byte. |
 | **Route *semantics*** (which action requires which permission; the public/PI/SC/audit surfaces) | section 4 of Demo2-plan | The authorization model is spec, not render. The *transport* (Hono route vs. Next route handler/server action) changes; the permission gates do not. |
 | **Action-code vocabulary** (the dotted strings `invitation.issued`, `invitation.accepted`, `invitation.revoked`, `login.succeeded`, `login.failed`, `session.revoked`, `grant.issued`, `grant.revoked`, `subject.enrolled`, `visit.recorded`, plus the route-layer meta-events `audit.viewed` / `audit.exported`) | first render's `composition.ts` header (canonical) | An auditor diffing the two renders' event logs must see identical `action` strings. **Transcribe from the first render's `composition.ts`, not from memory.** |
@@ -375,7 +375,7 @@ The header-comment-quotes-the-library-spec convention (first render A.13) is pre
 
 Every function: takes `Ctx` + typed input; wraps its body in `await withTx(ctx, async (tx) => …)`; calls atom helpers on `tx.sql`; calls `appendEvent(tx, …)` for **every** state change inside the same transaction; returns a plain data object; is preceded by the library-spec doc comment. The five mutating compositions (`issueInvitation`, `revokeInvitation`, `acceptInvitation`, `login`, `logout`/`revokeSession`, `grantPermission`, `revokeGrant`, `enrollSubject`, `recordVisit`) keep their exact names, inputs, emitted action codes, and audit payload fields from the first render. Argon2 work in `acceptInvitation`/`login` runs before `withTx`.
 
-### 7.4 `auth/current.ts` + `auth/permit.ts` — C14 without middleware
+### 7.4 `auth/current.ts` + `auth/permit.ts` — Session-Gated Authorization without middleware
 
 Next App Router has no Hono-style middleware chain for per-route permission gates; the equivalent is a helper called at the top of each protected Server Component / Server Action:
 
@@ -506,7 +506,7 @@ Items the spec itself already defers (named so they are not mistaken for cuts th
 
 | Carried-over contract | Enforced / reproduced where (this render) |
 |---|---|
-| Composition coverage (C16/C13/C14/APA/C1) | `composition.ts` (the five mutating compositions) + `auth/*` (C14 gates) |
+| Composition coverage (External Onboarding/Login/Session-Gated Authorization/APA/Audit Trail) | `composition.ts` (the five mutating compositions) + `auth/*` (Session-Gated Authorization gates) |
 | Action-code vocabulary | `composition.ts` (transcribed from first render) + `/audit` & export handlers (meta-events) |
 | Hash-chain contract | `lib/canonical.ts` + `lib/hash.ts` (byte-identical) + `domain/event_log.ts` (`appendEvent`, `verifyChain`) |
 | Global total ordering of the chain | `lib/db.ts` `withTx` → `pg_advisory_xact_lock` (section 4) |

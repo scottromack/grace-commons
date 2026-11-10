@@ -27,11 +27,11 @@ This render is one half of that experiment; read it next to the first render and
 
 | Composition | Library spec | Where it lives here |
 |---|---|---|
-| **C16 External Onboarding** | [`compositions/external-onboarding.md`](../../compositions/external-onboarding.md) | `composition.ts` `issueInvitation` / `acceptInvitation` / `revokeInvitation`; `app/people`, `app/invitations/accept/[token]` |
-| **C13 Login** | [`compositions/login.md`](../../compositions/login.md) | `composition.ts` `login` / `logout`; `app/login` |
-| **C14 Session-Gated Authorization** | [`compositions/session-gated-authorization.md`](../../compositions/session-gated-authorization.md) | `auth/current.ts` (session → Ctx) + `auth/permit.ts` (grant + scope), called at the top of every protected page / action |
+| **External Onboarding** | [`compositions/external-onboarding.md`](../../compositions/external-onboarding.md) | `composition.ts` `issueInvitation` / `acceptInvitation` / `revokeInvitation`; `app/people`, `app/invitations/accept/[token]` |
+| **Login** | [`compositions/login.md`](../../compositions/login.md) | `composition.ts` `login` / `logout`; `app/login` |
+| **Session-Gated Authorization** | [`compositions/session-gated-authorization.md`](../../compositions/session-gated-authorization.md) | `auth/current.ts` (session → Ctx) + `auth/permit.ts` (grant + scope), called at the top of every protected page / action |
 | **APA — Attributed Permissions Admin** | [`compositions/attributed-permissions-admin.md`](../../compositions/attributed-permissions-admin.md) | `composition.ts` `grantPermission` / `revokeGrant`; `app/people` |
-| **C1 Audit Trail** | [`compositions/audit-trail.md`](../../compositions/audit-trail.md) | `domain/event_log.ts` (`appendEvent`/`verifyChain`) + `app/audit/*` |
+| **Audit Trail** | [`compositions/audit-trail.md`](../../compositions/audit-trail.md) | `domain/event_log.ts` (`appendEvent`/`verifyChain`) + `app/audit/*` |
 
 Backing atoms: [party-identity](../../atoms/party-identity.md),
 [actor-identity](../../atoms/actor-identity.md),
@@ -84,10 +84,10 @@ Study: **BCN-OX-201** — *Beacon Oncology Phase II Trial*.
 
 ## Routes
 
-| Path | Surface | C14 gate |
+| Path | Surface | Session-Gated Authorization gate |
 |---|---|---|
-| `/login` | C13 sign-in | — |
-| `/invitations/accept/[token]` | C16 onboard (set password) | — (bearer token) |
+| `/login` | Login sign-in | — |
+| `/invitations/accept/[token]` | External Onboarding onboard (set password) | — (bearer token) |
 | `/dashboard` | role-aware tiles | session |
 | `/people` | actors, grants, invitations (APA) | `invite_actor` or `grant_permission` |
 | `/subjects`, `/subjects/new`, `/subjects/[id]` | enroll / record visits | `enroll_subject` or `record_visit` (scope-filtered) |
@@ -104,7 +104,7 @@ throws, the whole thing rolls back (atom rows *and* event rows). Atom files unde
 `domain/` are read/write helpers only — no audit emission, no transaction
 control, no cross-atom calls.
 
-**C14 without middleware.** Next has no Hono-style middleware chain, so the
+**Session-Gated Authorization without middleware.** Next has no Hono-style middleware chain, so the
 session and permission gates are helpers called at the top of each protected
 handler (section 7.4) of BUILD_PLAN:
 
@@ -163,7 +163,7 @@ than re-built through Tailwind's PostCSS in Next.
 
 - **What is this?** The thesis above, and [`BUILD_PLAN.md`](./BUILD_PLAN.md).
 - **The five-minute tour:** [`WALKTHROUGH.md`](./WALKTHROUGH.md).
-- **Show me the code:** start at `composition.ts` (mutations) → `auth/*` (C14
+- **Show me the code:** start at `composition.ts` (mutations) → `auth/*` (Session-Gated Authorization
   gates) → `app/audit/*` (the audit surface) → `lib/db.ts` (the transaction +
   advisory lock).
 - **The first render, to diff against:** [`../clinical-trial-portal`](../clinical-trial-portal/).

@@ -1,5 +1,5 @@
 // app/subjects/[id]/page.tsx — GET /subjects/:id. Subject detail + visit history
-// + record-visit form. C14-gated on enroll_subject OR record_visit; own-scope
+// + record-visit form. Session-Gated Authorization-gated on enroll_subject OR record_visit; own-scope
 // hides other coordinators' subjects (returns 404, same as render 1).
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";

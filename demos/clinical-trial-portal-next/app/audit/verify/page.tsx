@@ -1,5 +1,5 @@
 // app/audit/verify/page.tsx — GET /audit/verify. Full hash-chain recompute (the
-// no-JS counterpart to the VerifyChip). C14-gated on view_audit. Reads only
+// no-JS counterpart to the VerifyChip). Session-Gated Authorization-gated on view_audit. Reads only
 // (verifyChain recomputes; it appends nothing).
 import type { Metadata } from "next";
 import { db } from "@/lib/db.ts";

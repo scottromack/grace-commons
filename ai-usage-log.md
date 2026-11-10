@@ -81,7 +81,7 @@ Human decision: Author established the sequencing principle — atoms are ordere
 
 **2026-05-13**
 Model: Claude (opus)
-Work: Three compositions grounded: Defensible Retention (C1), Multi-Party Approval (C4), Notification Fanout (C5). Multi-Party Approval is the library's principal proof of concept — the Opus adversarial round (internally called "Super-Torvalds") generated 20+ findings across quorum algebra and trailing decision semantics; author adjudicated all findings before declaring `grounded`.
+Work: Three compositions grounded: Defensible Retention, Multi-Party Approval, Notification Fanout. Multi-Party Approval is the library's principal proof of concept — the Opus adversarial round (internally called "Super-Torvalds") generated 20+ findings across quorum algebra and trailing decision semantics; author adjudicated all findings before declaring `grounded`.
 Human decision: Author established trailing decision semantics as the canonical resolution rule for simultaneous yes votes in one-of-N quorums — a compliance-critical design choice.
 
 **2026-05-14**
@@ -105,16 +105,16 @@ Human decision: Author confirmed the bearer-token / identity-binding distinction
 
 **2026-05-20**
 Model: Claude (sonnet + opus)
-Work: Login (C13) and Session-Gated Authorization (C14) compositions grounded. TLA+ model for Privileged Access Provisioning authored with AI assistance; bounded checker confirmed key temporal invariants.
+Work: Login and Session-Gated Authorization compositions grounded. TLA+ model for Privileged Access Provisioning authored with AI assistance; bounded checker confirmed key temporal invariants.
 Human decision: Author decided to formally verify the session lifecycle before implementation rather than after — a methodology-level decision about when formal tools add value.
 
 **2026-05-20**
 Model: Claude (sonnet)
-Work: Privileged Access Provisioning composition (C12) authored and grounded. Included TLA+ model with author-supervised bounded verification.
+Work: Privileged Access Provisioning composition authored and grounded. Included TLA+ model with author-supervised bounded verification.
 
 **2026-05-21**
 Model: Claude (sonnet + opus)
-Work: External Onboarding (C16) grounded. Attributed Permissions Admin (APA) composition grounded — surfaced by implementation pressure on the demo. Session-Gated Authorization Alloy model authored.
+Work: External Onboarding grounded. Attributed Permissions Admin (APA) composition grounded — surfaced by implementation pressure on the demo. Session-Gated Authorization Alloy model authored.
 Human decision: Author confirmed APA as a distinct, library-level composition rather than an implementation detail — it was originally an implementation artifact that earned promotion.
 
 **2026-05-21**
@@ -182,7 +182,7 @@ Human decision: Author accepted the own-scope fix as a pre-submission blocker an
 
 **2026-06-02 to 2026-06-04**
 Model: Claude (opus — orchestration, gating, formal models; sonnet — drafting subagents)
-Work: The entire formal-model backlog landed — 18 TLA+ models and 4 Alloy structural models, each with a buggy twin the checker rejects; the formal-layer vote sweep, bar reconsideration, and inaugural coverage cross-check (6 genuine coverage GAPs surfaced and labeled). Net-new patterns grounded in an Opus-plan → Sonnet-draft → Opus-gate pipeline: Provenance, Workflow / State Machine, Chain of Custody (C12), Stateful Workflow Execution (C10), Forensic Recovery (C3), Consent & Preference Management (C2), Reservation Lifecycle (C9), KYC / Customer Onboarding (C8). Token spend per chunk recorded in `measurement.md` (drafter-side floors).
+Work: The entire formal-model backlog landed — 18 TLA+ models and 4 Alloy structural models, each with a buggy twin the checker rejects; the formal-layer vote sweep, bar reconsideration, and inaugural coverage cross-check (6 genuine coverage GAPs surfaced and labeled). Net-new patterns grounded in an Opus-plan → Sonnet-draft → Opus-gate pipeline: Provenance, Workflow / State Machine, Chain of Custody, Stateful Workflow Execution, Forensic Recovery, Consent & Preference Management, Reservation Lifecycle, KYC / Customer Onboarding. Token spend per chunk recorded in `measurement.md` (drafter-side floors).
 Human decision: Author set the gating bar (foundational findings block; refining/rhetorical recorded), adjudicated every Final Critique finding, approved each grounding, and made the bar-reconsideration call returning three clock/precedence patterns to English-only.
 
 **2026-06-05 to 2026-06-06**
@@ -206,7 +206,7 @@ Human decision: Author scoped the session to the constitutional cluster only (A7
 Model: Claude Fable 5 (conducting session, triage, folds); claude-sonnet-4-6 (council Pass 1 / Pass 2 agents); claude-opus-4-8 (council Pass 3 strict fresh-reader agents).
 Work: Canonicalized the automated council as the default scheduled-rescan executor in `pressure-testing.md` §Scheduled rescan (parameterized cost model: deployment-set weekly rescan budget; risk-weighted ordering — oldest rescan date first, tie-broken by composition fan-in; no corpus-size arithmetic per the no-snapshot rule). Ran the first real council-run rescan batch on the risk-weighted top three — Credential (fan-in 5), Session (4), Capability (2), all last rounded 2026-05-19. All three closed clean with `grounded` retained; findings folded per pattern (see each Lineage §Scheduled rescan 2026-06-10). The formal-layer portion re-verified `credential.tla` + both twins with a `MaxC` 3→4 saturation bump, surfaced and closed Capability's missing-buggy-twin model-present-bar violation (`capability-buggy.als` authored, rejected on the three expected counterexamples), and emitted/updated coverage matrices (`coverage/capability.md` new; `coverage/credential.md` updated).
 **Measured cost — the cost model's first data point:** Credential 13 agent invocations (8 Sonnet, 5 Opus) over 5 rounds, ≈850k subagent tokens; Session 9 (6S/3O) over 3 rounds, ≈470k; Capability 9 (6S/3O) over 3 rounds, ≈520k (plus twin authoring + 3 harness runs). Batch total: 31 agent invocations, ≈1.84M subagent tokens, wall time ≈25–220s per agent run in parallel batches. Rule of thumb pending more data: a clean-ish rescan ≈3 rounds / 9 agents / ≈0.5M subagent tokens; each round of folded findings adds ≈1–2 rounds. Round count, not pattern size, dominated cost. Council false positives occurred (Round-1 Pass 1 validated C-numbers against nav_order instead of the ROADMAP SSOT) — caught in triage and corrected in subsequent council prompts; triage is where human/conductor attention earned its keep, exactly as the new canon predicts.
-Human decision: Author scoped the session to A4 only (doc edit + proof batch; exclusions C6/C12/C3; hard stops on A5/A6, the pressure-testing split, and the linter) and set the convention that prompts and review outputs stay out of the repo. Commit pending author approval.
+Human decision: Author scoped the session to A4 only (doc edit + proof batch; exclusions Immutable Ledger/Chain of Custody/Forensic Recovery; hard stops on A5/A6, the pressure-testing split, and the linter) and set the convention that prompts and review outputs stay out of the repo. Commit pending author approval.
 
 **2026-06-12 (Alloy Round 4 + issue #1)**
 Model: Claude Fable 5 (Cowork session).

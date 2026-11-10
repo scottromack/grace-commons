@@ -1,7 +1,7 @@
 // Session atom — session store.
 //
 // Implements the Session atom surface used by the Login route and the
-// currentActorMiddleware (Session-Gated Authorization, C14).
+// currentActorMiddleware (Session-Gated Authorization).
 //
 // Operations (spec section Session):
 //   issue_session(principal_ref) → session_id (bearer token)

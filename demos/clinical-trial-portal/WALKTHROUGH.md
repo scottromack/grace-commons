@@ -26,12 +26,12 @@ The seam is: if you want to understand what the system does, read `composition.t
 
 | Composition | Entry point in the code | What you observe |
 |---|---|---|
-| **C16 External Onboarding** — invite step | `composition.issueInvitation()` called from `POST /invitations` | Party upserted, invitation row created, `invitation.issued` event committed. The PI's `/people` page shows the copy-link card. |
-| **C16 External Onboarding** — accept step | `composition.acceptInvitation()` called from `POST /invitations/accept/:token` | Actor created, credential hashed and stored, session opened, invitation marked accepted. Four events committed: `invitation.accepted`, `actor.enrolled`, `credential.created`, `session.opened` (via: "onboard"). |
-| **C13 Login** | `composition.login()` called from `POST /login` | Argon2id verification runs before `withTx`. Session row created, `login.succeeded` event committed. Failed attempts commit `login.failed` independently — they are not lost on rollback. |
-| **C14 Session-Gated Authorization** | `requireSession` + `requirePermission` middleware | Every protected route checks the session table (not expired, not revoked), then checks the grants table. `granted_scope` is attached to the Hono context so downstream handlers can filter `all` vs `own`. |
+| **External Onboarding** — invite step | `composition.issueInvitation()` called from `POST /invitations` | Party upserted, invitation row created, `invitation.issued` event committed. The PI's `/people` page shows the copy-link card. |
+| **External Onboarding** — accept step | `composition.acceptInvitation()` called from `POST /invitations/accept/:token` | Actor created, credential hashed and stored, session opened, invitation marked accepted. Four events committed: `invitation.accepted`, `actor.enrolled`, `credential.created`, `session.opened` (via: "onboard"). |
+| **Login** | `composition.login()` called from `POST /login` | Argon2id verification runs before `withTx`. Session row created, `login.succeeded` event committed. Failed attempts commit `login.failed` independently — they are not lost on rollback. |
+| **Session-Gated Authorization** | `requireSession` + `requirePermission` middleware | Every protected route checks the session table (not expired, not revoked), then checks the grants table. `granted_scope` is attached to the Hono context so downstream handlers can filter `all` vs `own`. |
 | **APA — Attributed Permissions Admin** | `composition.grantPermission()` / `composition.revokeGrant()` called from `POST /grants` and `POST /grants/:id/revoke` | Grant row created or revoked, `grant.issued` / `grant.revoked` event committed. The PI's `/people` page shows each actor's active grants with revoke affordances. |
-| **C1 Audit Trail** | `appendEvent()` called inside every `withTx` block in `composition.ts` | Every mutation writes an event. The event carries `actor_id`, `session_id`, `occurred_at`, `action`, `target_kind`, `target_id`, and a `payload_json`. The `this_hash` is SHA-256 over canonical JSON of all those fields plus the previous row's hash. |
+| **Audit Trail** | `appendEvent()` called inside every `withTx` block in `composition.ts` | Every mutation writes an event. The event carries `actor_id`, `session_id`, `occurred_at`, `action`, `target_kind`, `target_id`, and a `payload_json`. The `this_hash` is SHA-256 over canonical JSON of all those fields plus the previous row's hash. |
 
 ---
 

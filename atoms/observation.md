@@ -1,5 +1,6 @@
 ---
 title: Observation
+id: 48
 parent: Atomic Concepts
 has_toc: true
 toc: true

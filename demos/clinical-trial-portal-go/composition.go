@@ -41,7 +41,7 @@ func getOrCreateParty(email, displayName, now string) *Party {
 	return p
 }
 
-// issueInvitation — External Onboarding (C16), invite step. Mirrors
+// issueInvitation — External Onboarding, invite step. Mirrors
 // composition.ts issueInvitation: create the Party if new, create the Invitation,
 // emit invitation.issued — all in one transaction under the global audit lock.
 func issueInvitation(actorID, sessionID *int, email, displayName, role, token, expiresAt, occurredAt, now string) {

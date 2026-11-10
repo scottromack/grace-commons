@@ -1,6 +1,6 @@
 // app/audit/export.csv/route.ts — GET /audit/export.csv. Streams the audit chain
 // as RFC-4180 CSV with the prev_hash/this_hash columns intact (so an external
-// verifier can re-walk it). C14-gated on view_audit; scope='own' exports only the
+// verifier can re-walk it). Session-Gated Authorization-gated on view_audit; scope='own' exports only the
 // viewer's events. Exporting the regulated record is itself a regulated act, so
 // it emits audit.exported — identical contract to render 1's route handler.
 import { db, withTx } from "@/lib/db.ts";

@@ -76,7 +76,7 @@ CREATE TABLE IF NOT EXISTS invitations (
   revoked_at           TEXT
 );
 
--- Event Log atom (C1 audit substrate).
+-- Event Log atom (Audit Trail audit substrate).
 -- id is NOT an IDENTITY: it is part of the hashed payload, so it is assigned
 -- explicitly as MAX(id)+1 under the global advisory lock (section 4 of BUILD_PLAN/section 6.4),
 -- not delegated to a sequence.

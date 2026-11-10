@@ -1,5 +1,6 @@
 ---
 title: Recurrence
+id: 55
 parent: Atomic Concepts
 has_toc: true
 toc: true
