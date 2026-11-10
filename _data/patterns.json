@@ -376,13 +376,13 @@
   "composes": [
    "provenance"
   ],
-  "grounded": true,
+  "grounded": false,
   "invariants": 6,
   "kind": "composition",
   "models": {
    "als": false,
    "tla": true,
-   "twins": 8
+   "twins": 11
   },
   "regulated": true,
   "standards": [
@@ -394,9 +394,10 @@
    "SEC 17a-4",
    "SOX"
   ],
-  "status": "grounded on Final Critique 17 \u2014 2026-11-06 at dbb9804",
+  "status": "partially resolved",
   "substrates": [
-   "audit-trail"
+   "audit-trail",
+   "recoverable-invocation"
   ],
   "title": "Chain of Custody"
  },
@@ -1319,6 +1320,7 @@
   ],
   "status": "grounded on Final Critique 49 \u2014 2026-11-07 at 1451abf",
   "substrate_of": [
+   "chain-of-custody",
    "external-onboarding",
    "immutable-ledger",
    "propagate-consent-revocation-downstream",
