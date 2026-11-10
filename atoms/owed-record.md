@@ -355,7 +355,7 @@ Composition note 3: A composing pattern MUST own the meaning of an owed id.
 Composition note 4: A composing pattern MUST own the due-by window.
 ```
 
-NOTE: composing patterns — the compositions whose Composition state names an extraction-pending fact against this atom, under its former name Outbox: [Privileged Access Provisioning](../compositions/privileged-access-provisioning.md), [Resolve a Person's Data Rights](../compositions/resolve-a-persons-data-rights.md), [Execute Gated Workflow](../compositions/execute-gated-workflow.md), [Capability-Backed Sharing](../compositions/capability-backed-sharing.md), [Multi-Party Approval](../compositions/multi-party-approval.md); and [Recoverable Invocation](../compositions/recoverable-invocation.md), whose intent records are the same shape.
+NOTE: composing patterns — the compositions whose Composition state names an extraction-pending fact against this atom, under its former name Outbox: [Privileged Access Provisioning](../compositions/privileged-access-provisioning.md), [Resolve a Person's Data Rights](../compositions/resolve-a-persons-data-rights.md), [Execute Gated Workflow](../compositions/execute-gated-workflow.md), [Multi-Party Approval](../compositions/multi-party-approval.md); and [Recoverable Invocation](../compositions/recoverable-invocation.md), whose intent records are the same shape.
 
 ## Terms
 

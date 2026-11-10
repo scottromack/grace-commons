@@ -22,7 +22,7 @@ Capability-Backed Sharing is a regulated composition — a specification that wi
 
 This composition's insight is that the accountable party isn't the person who *used* the token — it's the person who *issued* it. So it records, with a cryptographic attestation that lasts as long as the audit record is kept, who authorized the share (the allocator), to whom they authorized it, what data, under what legal authority, and for how long — captured at the moment of issuance when that person is present to sign for it. When the token is later redeemed, the disclosure is logged against that authorizer, and the person who actually presented the token is — by design — never named, because the bearer model never asked.
 
-The composition's defining emergent guarantee is exactly this audit-subject asymmetry: the record always answers "who authorized this disclosure?" and never answers "who redeemed it?". Its second guarantee is about how that record and its tamper-evident seal (a cryptographic proof that the record has not been altered) are written: they are written in one transaction, so a seal you find always has a real disclosure behind it, and where the audit trail refuses the seal, the one gap that remains — a disclosure whose seal has not yet landed — is always visible, and is repaired, or escalated once its intent has aged past the audit horizon (the retention period after which a record may lawfully be destroyed).
+The composition's defining emergent guarantee is exactly this audit-subject asymmetry: the record always answers "who authorized this disclosure?" and never answers "who redeemed it?". Its second guarantee is about how that record and its tamper-evident seal (a cryptographic proof that the record has not been altered) are written: the disclosure record and the use it consumes are written in one transaction, so a seal written by the action or by its recovery always has a real disclosure behind it, and where the audit trail refuses the seal, the one gap that remains — a disclosure whose seal has not yet landed — is always visible as an open intent, and is repaired by [Recoverable Invocation](./recoverable-invocation.md)'s sweep, or escalated to an operator, within its closure window.
 
 Its common uses are exactly the places bearer sharing and regulated audit collide: a hospital sharing a scoped slice of a patient record with a referred specialist via a time-limited link (the minimum-necessary fields, logged against the authorizing clinician), a bank issuing a pre-signed link to disclose a customer's transaction subset to an auditor, or a controller sharing specific personal-data fields with a processor under a consent record. Any system that must share data by token *and* make it provable who authorized each disclosure — without being able to (or wanting to) name who consumed it — is a candidate for this composition.
 
@@ -38,7 +38,7 @@ This reframe carries a precise consequence for what the disclosure record names 
 
 No single constituent resolves this. Capability is the bearer-token primitive — it records the allocator, authorizes by possession, and refuses to record a redeemer — but it does not record *that a disclosure occurred*, does not carry the legal authority for the disclosure, and is not tamper-evident. Selective Disclosure is the disclosure-accounting record — to whom, what scope, under what authority, when — but it does not gate access, does not carry a redemption envelope (how many times, until when), and its append-only immutability is by specification, not cryptographically sealed. Audit Trail is the tamper-evident, attributed, retained substrate — but it knows nothing about bearer tokens or disclosure scope. The structure that allocates a bearer token whose scope *is* an authorized disclosure, performs the disclosure on redemption, records it accountably to the allocator while naming no redeemer, and seals the whole thing belongs to no single constituent. It belongs to the composition, and this composition is that structure.
 
-This is a composition, not a new primitive. Capability, Selective Disclosure, and Audit Trail are unchanged; this composition is the wiring that makes them coherent as one accountable-bearer-sharing surface. It introduces emergent actions — [Authorize Sharing] (allocate the capability and attest the allocator's authorization), [Redeem And Disclose] (the load-bearing surface: redeem by possession, then record the disclosure and seal it), [Revoke Sharing], and read-only queries — that belong to no single constituent. What it is *not*: it is not an identity-keyed access control surface (that is Permissions — this composition is bearer-keyed by design); it is not the disclosure-delivery mechanism (it records *that* and *to whom authorized* a disclosure occurred; retrieving, redacting, and transmitting the bytes is the host's job, exactly as Selective Disclosure records without performing); it is not the adjudicator of whether the declared authority is legally valid (that legitimacy is an externally-clearable check, as in Selective Disclosure and Resolve a Person's Data Rights); and it does not — cannot — identify the redeemer (the bearer-key design forecloses it). Each is named in Non-goals.
+This is a composition, not a new primitive. Capability, Selective Disclosure, Audit Trail and Recoverable Invocation are unchanged; this composition is the wiring that makes them coherent as one accountable-bearer-sharing surface. It introduces emergent actions — [Authorize Sharing] (allocate the capability and attest the allocator's authorization), [Redeem And Disclose] (the load-bearing surface: redeem by possession, then record the disclosure and seal it), [Revoke Sharing], and read-only queries — that belong to no single constituent. What it is *not*: it is not an identity-keyed access control surface (that is Permissions — this composition is bearer-keyed by design); it is not the disclosure-delivery mechanism (it records *that* and *to whom authorized* a disclosure occurred; retrieving, redacting, and transmitting the bytes is the host's job, exactly as Selective Disclosure records without performing); it is not the adjudicator of whether the declared authority is legally valid (that legitimacy is an externally-clearable check, as in Selective Disclosure and Resolve a Person's Data Rights); and it does not — cannot — identify the redeemer (the bearer-key design forecloses it). Each is named in Non-goals.
 
 ---
 
@@ -47,6 +47,7 @@ This is a composition, not a new primitive. Capability, Selective Disclosure, an
 - **[Capability](../atoms/capability.md)** — the bearer-token primitive and the source of the audit asymmetry.
 - **[Selective Disclosure](../atoms/selective-disclosure.md)** — the disclosure-accounting record.
 - **[Audit Trail](./audit-trail.md)** — the regulated-audit substrate every authorization, disclosure and revocation is sealed through.
+- **[Recoverable Invocation](./recoverable-invocation.md)** — the protocol the three acting actions follow around their constituent writes: an intent before the write, an outcome after it, and a sweep that closes the record of a write whose outcome never landed; this page restates none of it.
 
 ```
 Composes 1: EXACTLY ONE Capability instance MUST serve the composition.
@@ -64,15 +65,42 @@ Composes 12: The composition MUST read the substrate's events by an open-ended s
 Composes 13: The composition MUST select an event in the composition's own code.
 Composes 14: The composition MUST NOT query the substrate by a payload predicate.
 Composes 15: The composition MUST NOT record a second disclosure record for a consumed use (Selective Disclosure Composition note 7).
+Composes 16: EXACTLY ONE Recoverable Invocation instance MUST serve the composition.
+Composes 17: The Recoverable Invocation instance MUST write to the composition's Audit Trail instance.
+Composes 18: The composition MUST bind the act kinds PER the sharing bindings.
+Composes 19: The composition MUST NOT bind an action other than a sharing action as an act kind.
+Composes 20: The composition MUST NOT hold an instance of Lease, which Recoverable Invocation reaches.
 ```
 
-Term composition: this pattern's wiring of [Capability](../atoms/capability.md), [Selective Disclosure](../atoms/selective-disclosure.md) and the [Audit Trail](./audit-trail.md) substrate — the five actions, the two indexes, the sharing scope grammar and the reconciliation.
+Term composition: this pattern's wiring of [Capability](../atoms/capability.md), [Selective Disclosure](../atoms/selective-disclosure.md), the [Audit Trail](./audit-trail.md) substrate and [Recoverable Invocation](./recoverable-invocation.md) — the five actions, the two indexes, the sharing scope grammar, the sharing bindings and the write-ownership leg.
 
-Term constituents: [Capability](../atoms/capability.md), [Selective Disclosure](../atoms/selective-disclosure.md), [Audit Trail](./audit-trail.md).
+Term constituents: [Capability](../atoms/capability.md), [Selective Disclosure](../atoms/selective-disclosure.md), [Audit Trail](./audit-trail.md), [Recoverable Invocation](./recoverable-invocation.md).
+
+Term transitive atoms: [Event Log](../atoms/event-log.md), [Actor Identity](../atoms/actor-identity.md), [Retention Window](../atoms/retention-window.md) and [Tamper Evidence](../atoms/tamper-evidence.md), reached through Audit Trail, and [Lease](../atoms/lease.md), reached through Recoverable Invocation.
 
 Term substrate: the Audit Trail instance serving the composition.
 
 Term trail: the substrate's events, in sequence order, as the composition and an auditor read them.
+
+Term sharing action: [Authorize Sharing], [Redeem And Disclose] or [Revoke Sharing].
+
+Term act kind: sharing.authorize, sharing.disclosure or sharing.revocation — the three act kinds this composition binds on its Recoverable Invocation instance, one per sharing action, each with its own commit, outcome reference and probe.
+
+Term sharing bindings: each act kind's bindings, under the name Recoverable Invocation gives each. For sharing.authorize: act key — the authorization key; commit — Capability's allocate; journal events — sharing.authorize.intended, the one outcome sharing.authorize.authorized, sharing.authorize.refused; act probe — the authorization probe; actor at the open and the close — the allocator. For sharing.disclosure: act key — the disclosure key; commit — the disclosure transaction; journal events — sharing.disclosure.intended, the one outcome sharing.disclosure.disclosed, sharing.disclosure.refused; act probe — the disclosure probe; actor at the open and the close — the redemption identity. For sharing.revocation: act key — the capability token; commit — Capability's revoke; journal events — sharing.revocation.intended, the one outcome sharing.revocation.revoked, sharing.revocation.refused; act probe — the revocation probe; actor at the open and the close — the revoker. For all three: pairing datum — the invocation's now, which the host injects into Capability's seam and Selective Disclosure's seam and the composition passes to Selective Disclosure's record as disclosed_at, so that the allocation instant, the revocation instant or the disclosure instant equals it (Capability requirement 22); repeatable — yes; invocation completion bound — the authorization, the redemption or the revocation completion bound; commit round trip and probe round trip — the deployment's disclosed bounds; journal — the composition's Audit Trail instance; retention period — the audit horizon; settling period — the deployment's settling period; service identity — the recovery identity; outcome envelope — sized from the descriptor cap and the minted widths (Term descriptor cap).
+
+Term authorization key: the allocator reference and the encoded sharing descriptor. The capability token is minted by the allocate, so it is not known at the open — the minted-key deviation (Recoverable Invocation Deviation 4), declared here as Immutable Ledger declares it. Capability never refuses a second allocate of one scope, so two authorizations of one key are two acts, repeatable being yes.
+
+Term disclosure key: the subject reference, the intended recipient, the disclosed scope and the authority the sharing descriptor carries, in that order — Immutable Ledger's act key. The disclosure id is minted by the disclosure transaction, which is the minted-key deviation (Recoverable Invocation Deviation 4); the capability token does not key the act, since the disclosure record does not carry it (Recoverable Invocation act probe 8). Two redemptions of one share carry one key and take the critical section in turn, a second bearer meeting act-in-flight while the first stands open; two redemptions of one key that both commit are two acts, repeatable being yes.
+
+Term disclosure transaction: Capability's redeem of the capability token, then, on redeemed, Selective Disclosure's record and the pending disclosure-to-redemption entry, committed together or not at all (Execution Contract Database 1) — the one commit Recoverable Invocation's bound commit stands for for sharing.disclosure (Composition notes).
+
+Term commit partition: committed where the commit answers its record — the allocate a capability token, the disclosure transaction a disclosure id, the revoke revoked; pre-commit where Capability refuses the write — an allocate's invalid-request, a redeem's invalid carrying the redemption failure, which consumes nothing (Capability Operation 31), a revoke's not-known, already-terminal or invalid-request — where Selective Disclosure refuses the record inside the disclosure transaction, which then commits nothing (Action wiring 31), where a constituent answers storage-failure (Execution Contract Constituent failure 1), or where the database answers state-unavailable (Execution Contract Constituent failure 3); unknown where a call answers a code its constituent does not declare, or where its reply has not arrived when the commit round trip has elapsed since the call's issue (Recoverable Invocation commit 6, commit 7).
+
+Term authorization probe: the read that answers whether an open authorization intent's capability committed. Capability's read filtered to the intent's allocator reference, kept in the composition's code to the capabilities whose scope equals the intent's encoded sharing descriptor and whose allocation instant equals the intent's pairing datum. Exactly one answers committed carrying the capability token, the allocator reference, the sharing descriptor parsed back, the max redemptions, the ttl the expiry instant and the allocation instant give, and the allocation instant; none answers not-committed; more than one answers undecidable carrying them; a read refused or unanswered answers unavailable (Recoverable Invocation act probe 2 through 4; Deviation 4b).
+
+Term disclosure probe: the read that answers whether an open disclosure intent's disclosure committed. Selective Disclosure's read filtered to the intent's subject reference, intended recipient and the intent's pairing datum as the disclosure instant range, kept in the composition's code to a record whose scope and authority equal the intent's — Immutable Ledger's disclosure probe. Exactly one answers committed carrying the disclosure id, the subject reference, the recipient, the scope, the authority and the disclosure instant, with the allocator reference Capability's read of the intent's capability token answers; none answers not-committed; more than one answers undecidable carrying them; a read refused (invalid-query) or unanswered answers unavailable (Recoverable Invocation act probe 4), and an invalid-query is surfaced on the finding surface.
+
+Term revocation probe: the read that answers whether an open revocation intent's revoke committed. Capability's read filtered to the intent's capability token: a capability standing revoked whose revocation instant equals the intent's pairing datum and whose revoked by reference and revocation reason equal the intent's answers committed carrying the capability token, the revoked by reference, the revocation reason and the revocation instant; a capability not revoked, or revoked at another instant, answers not-committed; a read refused or unanswered answers unavailable.
 
 ---
 ## Composition logic
@@ -85,17 +113,21 @@ Composition state 2: The composition MUST key the capability-to-sharing index by
 Composition state 3: A capability-to-sharing entry MUST carry the allocator reference, the subject reference, the intended recipient, the disclosed scope, the authority, the authorization event id AND the allocation reading.
 Composition state 4: The composition MUST write a capability-to-sharing entry ONLY AFTER the authorization event lands.
 Composition state 5: IF no diverged entry EXISTS for the capability token THEN the composition MUST NOT change the token's capability-to-sharing entry.
-Composition state 6: IF no capability-to-sharing entry EXISTS for a capability token AND the token's authorization event IS NOT IN the aged events THEN the composition MUST rebuild the capability-to-sharing entry from the authorization events.
+Composition state 6: IF no capability-to-sharing entry EXISTS for a capability token AND the token's authorization event IS NOT IN the aged events THEN the composition MUST rebuild the capability-to-sharing entry from the authorization events carrying no recovery flag.
 Composition state 7: IF a capability token's authorization event IS IN the aged events THEN the composition MUST NOT rebuild the token's capability-to-sharing entry.
 Composition state 8: The composition MUST store the disclosure-to-redemption index.
 Composition state 9: The composition MUST key the disclosure-to-redemption index by disclosure id.
 Composition state 10: A disclosure-to-redemption entry MUST carry the capability token, the allocator reference, the intent event id, the invocation id, the seal marker AND the disclosure reading.
 Deleted: Composition state 11. Execution Contract Database 1 owns it.
-Composition state 12: The composition MUST write a disclosure-to-redemption entry carrying pending as the seal marker.
+Composition state 12: The composition MUST write a disclosure-to-redemption entry carrying pending as the seal marker inside the disclosure transaction.
 Composition state 13: The composition MUST set the seal marker to the disclosure event's id ONLY AFTER the disclosure event lands.
 Composition state 14: The composition MUST NOT carry a redeemer identity in either index.
 Deleted: Composition state 15. Execution Contract Database 3 owns it.
-Composition state 16: The composition MUST rebuild a sealed disclosure-to-redemption entry from the disclosure events.
+Composition state 16: The composition MUST rebuild a sealed disclosure-to-redemption entry from the disclosure events, the ones carrying the recovery flag included.
+Composition state 17: IF the disclosure-to-redemption rebuild finds a disclosure event naming no disclosure record OR two disclosure events naming one disclosure id THEN the composition MUST alert the finding surface carrying the disclosure id.
+Composition state 18: IF the capability-to-sharing rebuild finds two authorization events carrying one capability token THEN the composition MUST alert the finding surface carrying the capability token.
+Composition state 19: IF the disclosure-to-redemption rebuild finds two disclosure events naming one disclosure id THEN the rebuild MUST bind the first by sequence number.
+Composition state 20: The composition MUST NOT store a record of the Recoverable Invocation instance.
 ```
 
 Term capability-to-sharing index: the composition's map from a capability token to the share it authorizes — the authorization-provenance index.
@@ -106,50 +138,65 @@ Term seal marker: pending | the disclosure event's id — pending while a commit
 
 Term pending marker: a disclosure-to-redemption entry whose seal marker EQUALS pending.
 
-Term allocation reading: the invocation's now at [Authorize Sharing], stamped on the authorization event and the index entry.
+Term allocation reading: the invocation's now at [Authorize Sharing] — the authorization intent's pairing datum, which the capability's allocation instant equals (Capability requirement 22); stamped on the authorization event and the index entry.
 
-Term disclosure reading: the invocation's now at [Redeem And Disclose], stamped on the disclosure intent, the pending marker and the disclosure event — a reading of this composition's seam, never claimed equal to the disclosure record's own disclosure instant.
+Term disclosure reading: the invocation's now at [Redeem And Disclose] — the disclosure intent's pairing datum, passed to Selective Disclosure's record as disclosed_at, so that the disclosure record's disclosure instant equals it (Capability requirement 22, Action wiring 29); stamped on the pending marker and the disclosure event.
 
 Term intended recipient: the recipient the allocator declared in the sharing descriptor — the party the share was authorized to go to, never the bearer who presents the token — an [Intended Recipient].
 
 Term disclosed scope: the field subset a capability authorizes for disclosure, parsed from the capability's immutable scope by the sharing scope grammar — a [Disclosed Scope].
 
-NOTE: Contract classification, per the section titled Composition state in `execution-contract.md` — the capability-to-sharing index: derived index over the authorization events (Composition state 6), an entry not rebuilt past the audit horizon (Composition state 7); a disclosure-to-redemption entry: extraction-pending against [Owed Record](../atoms/owed-record.md) while it is a pending marker, derived index over the disclosure events once sealed (Composition state 16), and extraction-pending against [Erasure Tombstone](../atoms/erasure-tombstone.md) past the audit horizon (Capability requirement 5).
+Term seal alert: the alert Composition state 17 raises — an operator's disclosure outcome naming no disclosure record, or a second for one.
+
+Term duplicate-authorization alert: the alert Composition state 18 raises — an operator's authorization outcome naming a token another authorization event names.
+
+NOTE: Contract classification, per the section titled Composition state in `execution-contract.md` — the capability-to-sharing index: derived index over the authorization events carrying no recovery flag (Composition state 6), an entry not rebuilt past the audit horizon (Composition state 7); a disclosure-to-redemption entry: derived index over the disclosure intent and the disclosure record while it is a pending marker, every field it carries standing in the intent's payload or the record, derived index over the disclosure events once sealed (Composition state 16), and extraction-pending against [Erasure Tombstone](../atoms/erasure-tombstone.md) past the audit horizon (Capability requirement 5). Recoverable Invocation's maps and findings register are that instance's state, reached through the instance (Composition state 20).
 
 ---
 ### Capability requirement
 
 ```
 Capability requirement 1: A deployment MUST declare the sharing scope grammar.
-Capability requirement 2: A deployment MUST provision the service identity as a registered actor.
-Capability requirement 3: A deployment MUST rotate the service identity's credential.
+Capability requirement 2: A deployment MUST provision the redemption identity as a registered actor.
+Capability requirement 3: A deployment MUST rotate the redemption identity's credential.
 Capability requirement 4: A deployment MUST configure the Audit Trail instance with the audit horizon.
 Capability requirement 5: The longest disclosure-accounting obligation MUST NOT EXCEED the audit horizon.
 Capability requirement 6: A deployment MUST set the default max redemptions.
-Capability requirement 7: A deployment MUST set the compensation window.
-Capability requirement 8: A deployment MUST set the reconciliation cadence.
-Capability requirement 9: `(reconciliation cadence + reconciliation run bound)` MUST NOT EXCEED the compensation window.
-NOTE: watch the reconciliation's own run (Term escalation reach).
+Deleted: Capability requirement 7. Recoverable Invocation Instance start 4 owns it: the closure window.
+Deleted: Capability requirement 8. Recoverable Invocation sweep cadence 2 and Recoverable Invocation sweep cadence 3 own it.
+Deleted: Capability requirement 9. Recoverable Invocation Instance start 4 owns it: the worst closure against the closure window, the sweep's run counted in it.
 Deleted: Capability requirement 10. Execution Contract Database 1 owns it.
 Deleted: Capability requirement 11. Execution Contract Database 1 owns it.
-Capability requirement 12: IF the compensation window EQUALS blank THEN the composition MUST refuse to start.
+Deleted: Capability requirement 12. Recoverable Invocation Instance start 4 owns it: a blank closure window does not pass, and Capability requirement 24 refuses a start on the composition's own required settings.
 Deleted: Capability requirement 13. Execution Contract Database 1 owns it: the composition names no redemption completion bound for a deployment to leave blank.
-Capability requirement 14: A deployment MUST supply now AND the invocation id at the composition's seam.
+Capability requirement 14: The host MUST inject now, the invocation id, the run id AND the operator run id at the seam once PER invocation.
 Capability requirement 15: The composition MUST take EXACTLY ONE now PER invocation.
-Capability requirement 16: The composition MUST NOT pass now to a constituent.
+Capability requirement 16: The composition MUST NOT pass now to a constituent, Selective Disclosure's disclosed_at excepted (Action wiring 29).
 Capability requirement 17: The composition MUST NOT mint an id.
-Capability requirement 18: The deployment MUST supply the database PER Execution Contract Database 1 through 4.
-Capability requirement 19: IF the audit horizon DOES NOT EXCEED the escalation reach THEN the composition MUST refuse to start.
-Capability requirement 20: A deployment MUST declare the reconciliation run bound.
-Capability requirement 21: EVERY reconciliation run's last write MUST land WITHIN the reconciliation run bound.
-NOTE: watch the horizon against the escalation (Capability requirement 19).
+Capability requirement 18: The deployment MUST supply the database PER Execution Contract Database 1 through 4, AND the act section PER Execution Contract Database 7 AND Execution Contract Refusal 1 (Recoverable Invocation Capability requirement 12).
+Deleted: Capability requirement 19. Recoverable Invocation Instance start 5 owns it: the retention floor.
+Deleted: Capability requirement 20. Recoverable Invocation run bound owns it: the sweep's own, and the write-ownership leg runs inside it.
+Deleted: Capability requirement 21. Recoverable Invocation run bound and Recoverable Invocation Instance start 7 own it.
+Capability requirement 22: The host MUST inject the invocation's now into Capability's seam AND Selective Disclosure's seam for the commit of a sharing action.
+Capability requirement 23: The host MUST NOT inject an equal now into two invocations of one act key on any node of the instance.
+Capability requirement 24: IF a required setting EQUALS blank THEN the composition MUST refuse to start.
+Capability requirement 25: A deployment MUST set the authorization completion bound, the redemption completion bound AND the revocation completion bound.
+Capability requirement 26: A deployment MUST provision the recovery identity as a registered actor other than the redemption identity.
+Capability requirement 27: A deployment MUST rotate the recovery identity's credential.
+Capability requirement 28: A deployment MUST supply the act section Recoverable Invocation takes (Recoverable Invocation Capability requirement 11).
+Capability requirement 29: A deployment MUST disclose the commit round trip, the probe round trip AND the settling period.
+Capability requirement 30: A deployment MUST set the instance's bounds PER Recoverable Invocation Instance start 4 through 8.
+Capability requirement 31: A deployment MUST NOT remove a constituent record BEFORE the audit horizon destroys the payload of the record's outcome (Recoverable Invocation Binding 9).
+Capability requirement 32: A deployment MUST set the intent candidates cap.
 ```
 
 Term sharing scope grammar: the deployment-declared grammar that encodes a sharing descriptor as a capability scope and parses a capability scope back into the sharing descriptor — one grammar, read in both directions.
 
 Term sharing descriptor: the subject reference, the intended recipient, the disclosed scope and the authority — what a capability's scope means to this composition.
 
-Term service identity: the composition's own registered actor and credential, application_actor_ref and application_credential — the attesting actor of every event made when no caller-authenticated actor is present.
+Term redemption identity: the composition's own registered actor and credential, application_actor_ref and application_credential — the actor reference and credential [Redeem And Disclose] passes to the invocation open, under which the disclosure intent, its outcome and its refusal record are attested, the bearer presenting none.
+
+Term recovery identity: a deployment-provisioned actor reference and credential, recovery_identity — the service identity of the three act kinds, under which Recoverable Invocation's sweep attests every write it makes for them (Recoverable Invocation service identity 3), never the redemption identity, since the invocation open refuses an actor reference naming a kind's service identity.
 
 Term audit horizon: the horizon of the retention policy the wired Audit Trail instance places every sharing event under.
 
@@ -157,16 +204,29 @@ Term longest disclosure-accounting obligation: the longest a regulation in force
 
 Term default max redemptions: the max redemptions [Authorize Sharing] passes to Capability's allocate where the call supplies none — a whole number of one or more, inside Capability's own bounds.
 
-Term compensation window: the deployment-declared duration within which a committed-but-unsealed disclosure, or an allocated capability with no authorization event, must be compensated or escalated.
-NOTE: open 2026-11-05-c — the term promises an escalation inside the window, and Term overdue partial puts it after.
+Term authorization completion bound: the deployment's declared maximum for an [Authorize Sharing] invocation — sharing.authorize's invocation completion bound: the longest it takes from the invocation open's take of the critical section to the invocation close's last write (the invocation yield's return where the commit answers an unknown arm), Capability's round trip included.
 
-Term reconciliation cadence: the interval at which the reconciliation runs.
+Term redemption completion bound: sharing.disclosure's invocation completion bound, read as Term authorization completion bound reads, the disclosure transaction's round trip included.
 
-Term reconciliation run bound: the deployment's declared bound on one reconciliation run, from its start to its last write landing.
+Term revocation completion bound: sharing.revocation's invocation completion bound, read as Term authorization completion bound reads, Capability's revoke round trip included.
 
-Term escalation reach: `((compensation window + reconciliation cadence) + reconciliation run bound)` — the age an authorization intent may reach before the reconciliation has read the intent's actor to settle or escalate the intent's candidate capabilities (Reconciliation 17, Reconciliation 18, Reconciliation 23).
+Term required setting: the sharing scope grammar, the audit horizon, the default max redemptions, the three completion bounds, the intent candidates cap, the commit round trip, the probe round trip, the settling period, the redemption identity or the recovery identity.
 
-Term invocation id: the id the seam injects for one invocation, carried on the disclosure intent, the disclosure event and the recovery intent (Action wiring 23, Action wiring 36, Reconciliation 6).
+Term constituent record: a capability record or a disclosure record.
+
+Term reconciliation run bound: Recoverable Invocation's run bound on this composition's instance, inside which the write-ownership leg runs.
+
+Term intent candidates cap: Recoverable Invocation's intent candidates cap on this composition's instance — the most database candidates an escalation names.
+
+Term clock offset allowance: Recoverable Invocation's clock allowance on this composition's instance.
+
+Term invocation id: the fresh id the host injects at the seam per sharing action, carried by every record the invocation writes (Recoverable Invocation Term invocation id).
+
+Term commit round trip: the deployment's disclosed bound on one commit, from issue to reply — Capability's allocate, the disclosure transaction, or Capability's revoke.
+
+Term probe round trip: the deployment's disclosed bound on one act probe, from issue to answer.
+
+Term settling period: the time the deployment declares for an operator to settle an escalated act through the invocation resolve (Recoverable Invocation Term settling period).
 
 ### Primitive policy
 
@@ -185,6 +245,10 @@ Primitive policy 11: The composition MUST NOT normalize a capability token.
 Primitive policy 12: The composition MUST NOT accept a redeemer credential.
 Primitive policy 13: The composition MUST NOT persist a credential.
 Primitive policy 14: A refusal under Primitive policy 1 through 9 MUST NOT write.
+Primitive policy 15: IF the authorization key EXCEEDS the reference length cap AND the allocator reference DOES NOT EXCEED the reference length cap THEN [Authorize Sharing] MUST answer invalid-sharing-descriptor.
+Primitive policy 16: IF the allocator reference, the revoked by reference OR the capability token [Revoke Sharing] takes EXCEEDS the reference length cap THEN the action MUST answer invalid-request (Recoverable Invocation Primitive policy 1, Recoverable Invocation Primitive policy 8).
+Primitive policy 17: IF the disclosure key the descriptor gives EXCEEDS the reference length cap AND the allocator reference DOES NOT EXCEED the reference length cap THEN [Authorize Sharing] MUST answer invalid-sharing-descriptor.
+Primitive policy 18: A refusal under Primitive policy 15 through 17 MUST NOT write.
 ```
 
 Term out-of-bounds envelope: a supplied max redemptions or a supplied ttl outside Capability's own bounds.
@@ -195,65 +259,64 @@ Term required descriptor field: the subject reference, the intended recipient, t
 
 Term descriptor cap: the largest encoded descriptor whose events fit the substrate's payload cap — the substrate's payload cap less the largest event's fixed fields, so the caller's text is refused as the caller's fault before the substrate can refuse it as a deployment's.
 
+NOTE: a redemption's disclosure key is the descriptor's, fixed at the allocation, so Primitive policy 17 refuses an over-cap one at [Authorize Sharing] and no redemption meets it.
+
 ### Audit arm
 
 ```
-Audit arm 1: IF Audit Trail answers invalid-credential at an intent record THEN the action MUST answer invalid-credential.
-Audit arm 2: IF Audit Trail answers recording-failure at an intent record THEN the action MUST answer recording-failure carrying intent.
-NOTE: watch the retention step's recording failure (Audit arm 2).
+Deleted: Audit arm 1. Recoverable Invocation Primitive policy 19 owns it for the intent of the three bound actions.
+Deleted: Audit arm 2. Recoverable Invocation Primitive policy 23 owns it for the intent of the three bound actions.
 Deleted: Audit arm 3. Execution Contract Database 1 owns it.
-Audit arm 4: IF the landing read finds the record THEN the composition MUST proceed as landed.
+Deleted: Audit arm 4. Recoverable Invocation Primitive policy 36 owns it: a record the read-back finds is landed.
 Deleted: Audit arm 5. Execution Contract Database 1 owns it.
-Audit arm 6: IF Audit Trail answers invalid-request carrying a step below step-3 at an intent record THEN the action MUST answer invalid-request.
-Audit arm 7: The composition MUST NOT retry an invalid-request answer.
-Audit arm 8: IF Audit Trail answers recording-failure at an outcome record other than a refusal event THEN the action MUST answer recording-failure carrying outcome AND the orphan reference.
-NOTE: watch the retention step's recording failure (Audit arm 8).
+Deleted: Audit arm 6. Recoverable Invocation Primitive policy 41 owns it for the intent of the three bound actions.
+Deleted: Audit arm 7. Recoverable Invocation Primitive policy 43 owns it.
+Deleted: Audit arm 8. Recoverable Invocation commit 8d and Recoverable Invocation Primitive policy 31 own it: an outcome that does not land answers recording-failure(outcome), which carries no orphan reference.
 Deleted: Audit arm 9. Execution Contract Database 2 owns it.
-Audit arm 10: IF Audit Trail answers invalid-credential at a service-attested record THEN the action MUST answer invalid-credential.
-Audit arm 11: The composition MUST NOT retry a service-attested record Audit Trail answered with invalid-credential.
-NOTE: no invalid-credential reaches a human-attested outcome record — the invocation's intent and outcome records read the actor registry inside one transaction (Execution Contract Database 1, Database 2; Deleted: Audit arm 9).
-Audit arm 12: A caller MUST read recording-failure carrying intent as a committed nothing.
-Audit arm 13: A caller MUST read recording-failure carrying outcome as a committed act.
-Audit arm 14: A caller MUST NOT re-run an action answering recording-failure carrying outcome.
-Audit arm 15: The landing read MUST match the record by the invocation's intent event id.
-Audit arm 16: The deployment MUST alert on an invalid-request from Audit Trail as a deployment fault.
-Audit arm 17: The deployment MUST alert on a service-attested invalid-credential as a deployment fault.
+Deleted: Audit arm 10. Recoverable Invocation Primitive policy 19, Recoverable Invocation Primitive policy 31 and Recoverable Invocation reconcile step 3.18 own it: an invalid-credential lands by the record's position.
+Deleted: Audit arm 11. Recoverable Invocation reconcile step 3.19 owns it.
+Deleted: Audit arm 12. Recoverable Invocation Invariant 8.3 owns it: recording-failure(intent) is a committed nothing.
+Deleted: Audit arm 13. Recoverable Invocation Invariant 8.4 owns it: recording-failure(outcome) is an act that may exist, whose record the sweep closes.
+Deleted: Audit arm 14. Recoverable Invocation Invariant 8.4 owns it.
+Deleted: Audit arm 15. Recoverable Invocation Primitive policy 35 owns it: the read-back matches by invocation id, not by intent event id.
+Deleted: Audit arm 16. Recoverable Invocation Primitive policy 42 owns it: the hard alert on an invalid-request from the substrate.
+Audit arm 17: The deployment MUST alert on an invalid-credential at a record written under the redemption identity as a deployment fault.
 Deleted: Audit arm 18. Execution Contract Database 1 owns it.
-Audit arm 19: IF Audit Trail answers invalid-request(step-3) at an intent record THEN the action MUST answer recording-failure carrying intent.
-Audit arm 20: IF Audit Trail answers invalid-request carrying a step below step-4 at an outcome record other than a refusal event THEN the action MUST answer recording-failure carrying outcome AND the orphan reference.
-Audit arm 21: IF Audit Trail answers invalid-request(step-4) at a record THEN the composition MUST read the record's event id back.
-Audit arm 22: IF Audit Trail answers recording-failure OR invalid-request carrying a step below step-4 at a refusal event THEN [Redeem And Disclose] MUST answer recording-failure carrying refusal AND the orphan reference.
-Audit arm 23: A caller MUST read recording-failure carrying refusal as a refusal, never as a committed act.
+Deleted: Audit arm 19. Recoverable Invocation Primitive policy 41 owns it: an invalid-request(step-3) at the intent answers invalid-request.
+Deleted: Audit arm 20. Recoverable Invocation Primitive policy 42 owns it.
+Deleted: Audit arm 21. Recoverable Invocation Primitive policy 27 and Recoverable Invocation Primitive policy 28 own it: an invalid-request(step-4) is read back by invocation id.
+Deleted: Audit arm 22. Recoverable Invocation refuse step 3.5 through 3.8 own it: a refusal record that does not land answers recording-failure(refusal, constituent_code) with the intent left open.
+Deleted: Audit arm 23. Recoverable Invocation's Action wiring table owns it: recording-failure(refusal, constituent_code) is a refusal whose attempt the sweep records.
 ```
 
-Term landing read: the substrate read that matches a record by the invocation's intent event id and answers whether the record landed (Audit arm 4, Audit arm 15).
+Term intent record: a sharing action's record before its constituent commit — the sharing.authorize.intended, sharing.disclosure.intended or sharing.revocation.intended record the invocation open writes, the one that verifies the actor's credential (Recoverable Invocation Primitive policy 19); carrying the invocation's parameters other than the credential, the pairing datum, and no constituent-minted id.
 
-Term intent record: the record an action writes before the action's committing constituent call — the authorization intent, the disclosure intent or the revocation intent.
+Term outcome record: the sharing.authorize.authorized, sharing.disclosure.disclosed or sharing.revocation.revoked record — one the invocation close wrote, one Recoverable Invocation's sweep recovered under the recovery identity, or one an operator wrote through the invocation resolve.
 
-Term outcome record: the record an action writes after the action's committing constituent call — the authorization event, the disclosure event, the refusal event, the unfulfilled event or the revocation event.
+Term refusal record: the sharing.authorize.refused, sharing.disclosure.refused or sharing.revocation.refused record the invocation refuse writes for a pre-commit arm, carrying the constituent's code (Recoverable Invocation refuse step 3.1).
 
-Term position: intent | outcome | refusal — where a recording-failure sat: intent, nothing committed and the whole action may be retried; outcome, the domain write — an allocation, a consumed use and the use's disclosure, a revocation — exists, and a re-run would commit a second one; refusal, at the refusal event of a redemption Capability answered invalid, where nothing beyond the intent exists and no use was consumed.
+Term position: intent | outcome | refusal — Recoverable Invocation's (Recoverable Invocation Primitive policy 19 through 31): where a recording-failure of a sharing action sat.
 
-Term orphan reference: the reference a recording-failure carries at its position — the capability token at an outcome-position one at [Authorize Sharing], at [Revoke Sharing] or at the unfulfilled event of [Redeem And Disclose], the disclosure id at the disclosure event of [Redeem And Disclose] — the committed act the missing record was to seal — and the presented capability token at a refusal-position one, where no act committed; an intent-position one carries none.
+Term recovery flag: Recoverable Invocation's recovery set to true — carried by an outcome its sweep wrote under the recovery identity or an operator wrote through the invocation resolve, and by no other (Recoverable Invocation Term recovery).
 
-Term human-attested outcome record: the authorization event or the revocation event — attested under the calling actor's credential.
+Term human-attested record: a record of [Authorize Sharing] or [Revoke Sharing] the invocation writes — attested under the allocator's or the revoker's credential.
 
-Term service-attested record: the disclosure intent, the disclosure event, the refusal event, the unfulfilled event or any reconciliation record — attested under the service identity.
+Term service-attested record: a record of [Redeem And Disclose] the invocation writes, attested under the redemption identity, or a record the sweep writes, attested under the recovery identity.
 
 ### Action wiring
 
 ```
 authorize_sharing(allocator_ref, credential, sharing_descriptor, optional max_redemptions, optional ttl)
-  answers authorization result
-  refuses invalid-request | invalid-credential | invalid-sharing-descriptor | unknown-authority-type | storage-failure | recording-failure(position, orphan reference)
+  answers authorization result | recording-failure(outcome)
+  refuses invalid-request | invalid-credential | invalid-sharing-descriptor | unknown-authority-type | act-in-flight(invocation_id) | section-unavailable | journal-unavailable | recording-failure(intent) | storage-failure | state-unavailable | already-accounted(closing_event_id) | recording-failure(refusal, constituent_code)
 
 redeem_and_disclose(capability_token)
-  answers disclosure result | invalid(redemption failure)
-  refuses not-authorized-sharing | redemption-unfulfilled | invalid-credential | invalid-request | storage-failure | recording-failure(position, orphan reference)
+  answers disclosure result | recording-failure(outcome)
+  refuses invalid(redemption failure) | not-authorized-sharing | invalid-request | unknown-authority-type | invalid-credential | act-in-flight(invocation_id) | section-unavailable | journal-unavailable | recording-failure(intent) | storage-failure | state-unavailable | already-accounted(closing_event_id) | recording-failure(refusal, constituent_code)
 
 revoke_sharing(capability_token, revoked_by_ref, credential, reason)
-  answers revocation result
-  refuses invalid-request | invalid-credential | already-terminal | not-known | storage-failure | recording-failure(position, orphan reference)
+  answers revocation result | recording-failure(outcome)
+  refuses invalid-request | invalid-credential | already-terminal | not-known | act-in-flight(invocation_id) | section-unavailable | journal-unavailable | recording-failure(intent) | storage-failure | state-unavailable | already-accounted(closing_event_id) | recording-failure(refusal, constituent_code)
 
 sharing_disclosures(subject_ref)
   answers disclosure history
@@ -274,16 +337,16 @@ Term disclosure history: a subject's disclosure records, each joined to the allo
 Term provenance: a capability-to-sharing entry's allocator reference, sharing descriptor and authorization event id — what [Authorization Provenance] answers.
 
 ```
-Action wiring 1: [Authorize Sharing] MUST NOT call Capability's allocate BEFORE the authorization intent lands.
-Action wiring 2: A validated authorization MUST record an authorization intent carrying the sharing descriptor, the effective max redemptions, the effective ttl AND the allocation reading under the allocator's credential.
-Action wiring 3: The authorization intent MUST NOT carry a capability token.
+Deleted: Action wiring 1. Recoverable Invocation Action wiring 4 and Recoverable Invocation Invariant 1.1 own it: the allocate follows the invocation open, whose intent record verified the allocator's credential.
+Action wiring 2: A validated authorization MUST call the invocation open with the act kind sharing.authorize, the authorization key as the act key, the allocator reference as the actor reference, the credential AND the intent data carrying the sharing descriptor, the effective max redemptions, the effective ttl AND the allocation reading as the pairing datum (Recoverable Invocation Action wiring 4).
+Deleted: Action wiring 3. Recoverable Invocation Primitive policy 10 owns it.
 Action wiring 4: An admitted authorization MUST call Capability's allocate with the allocator reference, the encoded sharing descriptor as the scope, the effective max redemptions AND the effective ttl.
-Action wiring 5: IF Capability answers invalid-request for an allocate THEN [Authorize Sharing] MUST answer invalid-request.
+Action wiring 5: IF Capability answers invalid-request OR storage-failure for an allocate, OR the database answers state-unavailable, THEN [Authorize Sharing] MUST close the pre-commit arm through the invocation refuse AND answer that code (Recoverable Invocation commit 2, commit 3).
 Deleted: Action wiring 6. Execution Contract Constituent failure 1 owns it.
-Action wiring 7: A refused allocate MUST NOT write beyond the authorization intent.
-Action wiring 8: An allocating authorization MUST record an authorization event carrying the intent event id, the capability token, the sharing descriptor, the effective max redemptions, the effective ttl AND the allocation reading under the allocator's credential ONLY AFTER Capability's allocate answers the capability token.
+Deleted: Action wiring 7. Recoverable Invocation refuse step 3.1 and Action wiring 5 own it: a refused allocate writes the intent and its sharing.authorize.refused record, and nothing else.
+Action wiring 8: [Authorize Sharing] MUST close an allocate that answered the capability token through the invocation close naming sharing.authorize.authorized, the outcome carrying the capability token, the sharing descriptor, the effective max redemptions, the effective ttl AND the allocation reading (Recoverable Invocation commit 4).
 Deleted: Action wiring 9. Execution Contract Database 1 owns it.
-Action wiring 10: The composition MUST NOT attest an authorization event under an actor other than the allocator.
+Action wiring 10: The composition MUST NOT attest an authorization event carrying no recovery flag under an actor other than the allocator.
 Action wiring 11: An attested authorization MUST answer the capability token AND the authorization event's id.
 Action wiring 12: [Redeem And Disclose] MUST NOT call Capability's redeem BEFORE resolving the sharing descriptor.
 Action wiring 13: The composition MUST read a presented token's capability record through Capability's read filtered to the capability token.
@@ -296,32 +359,32 @@ Action wiring 19: IF a diverged entry EXISTS for the capability token AND the to
 Action wiring 20: [Redeem And Disclose] MUST answer not-authorized-sharing for an irreconcilable token.
 Action wiring 21: The deployment MUST alert on an irreconcilable token as a conformance fault.
 Action wiring 22: A refusal under Action wiring 14 through 21 MUST NOT write.
-Action wiring 23: An admitted redemption MUST record a disclosure intent carrying the invocation id, the capability token, the allocator reference, the sharing descriptor, the authorization event id AND the disclosure reading under the service identity.
+Action wiring 23: A resolved redemption MUST call the invocation open with the act kind sharing.disclosure, the disclosure key as the act key, the redemption identity as the actor reference AND the credential, AND the intent data carrying the capability token, the allocator reference, the sharing descriptor, the authorization event id AND the disclosure reading as the pairing datum.
 Action wiring 24: The composition MUST NOT read a disclosure intent as an authentication record.
-Action wiring 25: An admitted redemption MUST call Capability's redeem with the capability token ONLY AFTER the disclosure intent lands.
-Action wiring 26: IF Capability answers invalid THEN [Redeem And Disclose] MUST answer invalid carrying the redemption failure.
+Deleted: Action wiring 25. Recoverable Invocation Action wiring 4 owns it: the redeem follows the invocation open.
+Action wiring 26: IF Capability answers invalid for the redeem THEN [Redeem And Disclose] MUST close the pre-commit arm through the invocation refuse AND answer invalid carrying the redemption failure (Recoverable Invocation commit 2, commit 3).
 Deleted: Action wiring 54. Execution Contract Constituent failure 1 owns it.
-Action wiring 27: IF Capability answers invalid THEN the admitted redemption MUST record a refusal event carrying the intent event id, the capability token AND the redemption failure.
+Deleted: Action wiring 27. Recoverable Invocation refuse step 3.1 owns it: the refusal record is sharing.disclosure.refused, carrying the redemption failure as the constituent code.
 Action wiring 28: The deployment MUST alert on a diverged redemption as a conformance fault.
-Action wiring 29: A consuming redemption MUST call Selective Disclosure's record with the subject reference, the intended recipient as the recipient, the disclosed scope as the scope AND the authority.
-Action wiring 30: A consuming redemption MUST NOT pass a disclosure instant to Selective Disclosure's record.
-Action wiring 31: IF Selective Disclosure answers invalid-request OR unknown-authority-type THEN the consuming redemption MUST record an unfulfilled event carrying the intent event id, the capability token, the allocator reference AND the refusal as the reason.
-Action wiring 32: IF Selective Disclosure answers invalid-request OR unknown-authority-type THEN [Redeem And Disclose] MUST answer redemption-unfulfilled.
+Action wiring 29: A consuming redemption MUST call Selective Disclosure's record with the subject reference, the intended recipient as the recipient, the disclosed scope as the scope, the authority AND the disclosure reading as disclosed_at, inside the disclosure transaction.
+Deleted: Action wiring 30. Action wiring 29 and Capability requirement 22 own it, reversed: the disclosure reading is passed as disclosed_at, the disclosure probe's pairing datum.
+Action wiring 31: IF Selective Disclosure answers invalid-request OR unknown-authority-type THEN the disclosure transaction MUST commit no write AND [Redeem And Disclose] MUST close the pre-commit arm through the invocation refuse.
+Action wiring 32: IF Selective Disclosure answers invalid-request OR unknown-authority-type THEN [Redeem And Disclose] MUST answer that code (Recoverable Invocation commit 3).
 Deleted: Action wiring 55. Execution Contract Constituent failure 1 owns it.
 Deleted: Action wiring 33. Execution Contract Database 1 owns it.
-Action wiring 34: The composition MUST NOT record a disclosure event for an unfulfilled redemption.
+Deleted: Action wiring 34. Action wiring 31 owns it: a Selective Disclosure refusal consumes no use, so no unfulfilled redemption exists to seal.
 Action wiring 35: The deployment MUST alert on a foreclosed disclosure refusal as a conformance fault.
-Action wiring 36: A disclosing redemption MUST record a disclosure event carrying the intent event id, the invocation id, the disclosure id, the capability token, the allocator reference, the sharing descriptor, the authorization event id AND the disclosure reading under the service identity ONLY AFTER Selective Disclosure's record answers the disclosure id.
+Action wiring 36: [Redeem And Disclose] MUST close a disclosure transaction that answered the disclosure id through the invocation close naming sharing.disclosure.disclosed, the outcome carrying the disclosure id, the capability token, the allocator reference, the sharing descriptor, the authorization event id AND the disclosure reading (Recoverable Invocation commit 4).
 Deleted: Action wiring 37. Execution Contract Database 1 owns it.
 Action wiring 38: A sealed redemption MUST answer the disclosure id, the disclosure event's id, the disclosed scope AND the allocator reference.
-Action wiring 39: [Revoke Sharing] MUST NOT call Capability's revoke BEFORE the revocation intent lands.
-Action wiring 40: A validated revocation MUST record a revocation intent carrying the capability token, the revocation reason AND the revocation reading under the revoker's credential.
+Deleted: Action wiring 39. Recoverable Invocation Action wiring 4 and Recoverable Invocation Invariant 1.1 own it: the revoke follows the invocation open, whose intent record verified the revoker's credential.
+Action wiring 40: A validated revocation MUST call the invocation open with the act kind sharing.revocation, the capability token as the act key, the revoked by reference as the actor reference, the credential AND the intent data carrying the capability token, the revoked by reference, the revocation reason AND the revocation reading as the pairing datum.
 Action wiring 41: An admitted revocation MUST call Capability's revoke with the capability token, the revoked by reference AND the revocation reason.
-Action wiring 42: IF Capability answers already-terminal for a revoke THEN [Revoke Sharing] MUST answer already-terminal.
-Action wiring 43: IF Capability answers not-known for a revoke THEN [Revoke Sharing] MUST answer not-known.
+Action wiring 42: IF Capability answers already-terminal for a revoke THEN [Revoke Sharing] MUST close the pre-commit arm through the invocation refuse AND answer already-terminal.
+Action wiring 43: IF Capability answers not-known for a revoke THEN [Revoke Sharing] MUST close the pre-commit arm through the invocation refuse AND answer not-known.
 Deleted: Action wiring 44. Execution Contract Constituent failure 1 owns it.
-Action wiring 45: IF Capability answers invalid-request for a revoke THEN [Revoke Sharing] MUST answer invalid-request.
-Action wiring 46: A revoking revocation MUST record a revocation event carrying the intent event id, the capability token, the revocation reason AND the revocation reading under the revoker's credential ONLY AFTER Capability's revoke answers revoked.
+Action wiring 45: IF Capability answers invalid-request OR storage-failure for a revoke, OR the database answers state-unavailable, THEN [Revoke Sharing] MUST close the pre-commit arm through the invocation refuse AND answer that code.
+Action wiring 46: [Revoke Sharing] MUST close a revoke that answered revoked through the invocation close naming sharing.revocation.revoked, the outcome carrying the capability token, the revoked by reference, the revocation reason AND the revocation reading (Recoverable Invocation commit 4).
 Action wiring 47: A landed revocation MUST answer revoked AND the revocation event's id.
 Action wiring 48: [Revoke Sharing] MUST NOT refuse a token the capability-to-sharing index does not carry.
 Action wiring 49: [Sharing Disclosures] MUST answer Selective Disclosure's read for the subject reference, each disclosure record joined to the record's disclosure-to-redemption entry.
@@ -333,15 +396,19 @@ NOTE: watch the miss read before its rebuild (Action wiring 56).
 Action wiring 57: IF the capability token's authorization event IS NOT IN the aged events THEN [Authorization Provenance] MUST NOT answer a diverged entry BEFORE rebuilding the capability token's capability-to-sharing entry.
 Action wiring 58: [Authorization Provenance] MUST answer not-known for an irreconcilable token.
 Action wiring 53: A read-only query MUST NOT record an event.
+Action wiring 59: IF Capability's redeem answers redeemed THEN the disclosure transaction MUST call Selective Disclosure's record AND write the pending disclosure-to-redemption entry.
+Action wiring 60: IF a call of a sharing action's commit answers an arm of the unknown partition THEN the sharing action MUST call the invocation yield AND answer recording-failure(outcome) (Recoverable Invocation commit 8).
+Action wiring 61: IF the invocation open, refuse OR close answers a code of Recoverable Invocation's Action wiring table THEN the sharing action MUST answer that code.
+Action wiring 62: IF a read the action makes answers state-unavailable THEN the action MUST answer state-unavailable PER Execution Contract Read 1.
 ```
 
 Term validated authorization: an [Authorize Sharing] call whose inputs and descriptor clear Primitive policy.
 
-Term admitted authorization: a validated authorization whose authorization intent lands.
+Term admitted authorization: a validated authorization whose invocation open landed the authorization intent.
 
 Term allocating authorization: an admitted authorization Capability's allocate answered with a capability token.
 
-Term attested authorization: an allocating authorization whose authorization event landed or proceeds as landed.
+Term attested authorization: an allocating authorization whose invocation close landed its authorization event.
 
 Term effective max redemptions: the call's max redemptions, or the default max redemptions where the call supplies none.
 
@@ -349,33 +416,105 @@ Term effective ttl: the call's ttl, or Capability's default capability ttl where
 
 Term unparsed scope: a capability scope the sharing scope grammar does not parse.
 
-Term unattested token: a capability token carrying no capability-to-sharing entry after the entry's rebuild — a token whose authorization event is an aged event and whose entry is lost included.
+Term unattested token: a capability token carrying no capability-to-sharing entry after the entry's rebuild — a token whose authorization events each carry the recovery flag, and a token whose authorization event is an aged event and whose entry is lost, included.
 
 Term diverged entry: a capability-to-sharing entry whose sharing descriptor or allocator reference differs from the ones the capability record carries.
 
 Term irreconcilable token: a capability token whose capability-to-sharing entry still diverges from the capability record after the entry's rebuild — a token whose authorization event is an aged event and whose entry diverges included.
 
-Term admitted redemption: a [Redeem And Disclose] call whose sharing descriptor resolved and whose disclosure intent lands.
+Term resolved redemption: a [Redeem And Disclose] call whose sharing descriptor resolved and which Action wiring 14 through 21 did not refuse.
+
+Term admitted redemption: a resolved redemption whose invocation open landed the disclosure intent.
 
 Term diverged redemption: a redemption whose answered scope or allocator reference differs from the ones Action wiring 13 resolved.
 
-Term consuming redemption: an admitted redemption Capability's redeem answered redeemed — one use consumed, irreversibly.
+Term consuming redemption: an admitted redemption Capability's redeem answered redeemed — one use consumed, inside the disclosure transaction.
 
 Term foreclosed disclosure refusal: invalid-request | unknown-authority-type — the Selective Disclosure refusals a descriptor that cleared Primitive policy cannot reach.
 
-Term disclosing redemption: a consuming redemption Selective Disclosure's record answered with a disclosure id.
+Term disclosing redemption: a consuming redemption whose disclosure transaction committed with a disclosure id.
 
-Term sealed redemption: a disclosing redemption whose disclosure event landed or proceeds as landed.
+Term sealed redemption: a disclosing redemption whose invocation close landed its disclosure event.
 
 Term validated revocation: a [Revoke Sharing] call whose inputs clear Primitive policy.
 
-Term admitted revocation: a validated revocation whose revocation intent lands.
+Term admitted revocation: a validated revocation whose invocation open landed the revocation intent.
 
 Term revoking revocation: an admitted revocation Capability's revoke answered revoked.
 
-Term landed revocation: a revoking revocation whose revocation event landed or proceeds as landed.
+Term landed revocation: a revoking revocation whose invocation close landed its revocation event.
 
-Term revocation reading: the invocation's now at [Revoke Sharing], stamped on the revocation intent and the revocation event.
+Term revocation reading: the invocation's now at [Revoke Sharing] — the revocation intent's pairing datum, which the capability's revocation instant equals (Capability requirement 22); stamped on the revocation event.
+
+#### Closure table
+
+Every input an action takes, and every answer a call of the five actions and of the leg can meet — Capability's allocate, redeem, revoke and read, Selective Disclosure's record and read, the substrate's event read, and Recoverable Invocation's open, close, refuse and yield — with where the call lands it and the rule that owns the landing. A constituent call meets the answers its signature declares and the state-unavailable a failed read of the database gives every action (Execution Contract Read 1); a call that never answers is the lost answer of Execution Contract Error model 1, written no answer here. The three sharing actions are Recoverable Invocation's: the intent commits at the open, ahead of the constituent write (Execution Contract Constituent failure 1), the commit is Capability's allocate, the disclosure transaction or Capability's revoke, and the outcome lands at the close, so open, commit and close are three commits and not one transaction (Recoverable Invocation Non-goal 1); an act whose outcome never lands is the sweep's, closed within its closure window (Recoverable Invocation reconcile). The read-only queries write nothing (Action wiring 53), and the two indexes stay outside every action's transaction but the pending entry's write (Composition state 12). A refusal writes nothing, except that a pre-commit arm of a sharing action keeps the authenticated attempt in a refusal record (Recoverable Invocation commit 3).
+
+**Inputs.**
+
+| Action | Input | Lands | Owner |
+|---|---|---|---|
+| a sharing action | a blank allocator reference or credential | invalid-request, nothing written | Primitive policy 1, 2, 14 |
+| [Authorize Sharing] | an out-of-bounds envelope | invalid-request, nothing written | Primitive policy 3, 14 |
+| [Authorize Sharing] | a descriptor the grammar does not parse, carrying a blank required field, over the descriptor cap or a field over Selective Disclosure's string cap | invalid-sharing-descriptor, nothing written | Primitive policy 5, 6, 9, 14 |
+| [Authorize Sharing] | a descriptor whose authorization key or disclosure key exceeds the reference length cap | invalid-sharing-descriptor, nothing written | Primitive policy 15, 17, 18 |
+| [Authorize Sharing] | an authority type outside the authority types | unknown-authority-type, nothing written | Primitive policy 8, 14 |
+| [Revoke Sharing] | a blank revocation input | invalid-request, nothing written | Primitive policy 4, 14 |
+| [Authorize Sharing], [Revoke Sharing] | an allocator reference, revoked by reference or token over the reference length cap | invalid-request, nothing written | Primitive policy 16, 18 |
+| a sharing action | inputs whose outcome would exceed the substrate's payload cap | invalid-request at the open, nothing written | Recoverable Invocation Primitive policy 12, 13 |
+| every action | a capability token | compared byte-exact, never normalized | Primitive policy 10, 11 |
+| [Redeem And Disclose] | a redeemer credential | none is taken | Primitive policy 12 |
+
+**Capability: the resolution read**, at [Redeem And Disclose], ahead of the open (Action wiring 12, 13).
+
+| Answer | Lands | Owner |
+|---|---|---|
+| no capability record | invalid carrying not-known, nothing written | Action wiring 14, 22 |
+| a scope the grammar does not parse | not-authorized-sharing, alerted, nothing written | Action wiring 15, 16, 22 |
+| a token the index does not attest after its rebuild, its authorization events recovered included | not-authorized-sharing, nothing written | Action wiring 17, 18, 22, Composition state 6 |
+| an irreconcilable token | not-authorized-sharing, alerted, nothing written | Action wiring 19 through 22 |
+| an attested token whose entry agrees | the resolved redemption, then the open | Action wiring 23 |
+| state-unavailable | passed through unchanged, nothing written | Action wiring 62, Execution Contract Read 1 |
+| no answer | no answer to give | Execution Contract Error model 1 |
+
+**Recoverable Invocation: the open, the close, the refuse and the yield**, at the three sharing actions.
+
+| Call | Answer | Lands | Owner |
+|---|---|---|---|
+| the open | an intent event id | the commit | Action wiring 2, 23, 40, Term admitted authorization, Term admitted redemption, Term admitted revocation |
+| the open | invalid-credential, invalid-request, act-in-flight, section-unavailable, journal-unavailable, recording-failure(intent) | the same code, nothing committed; an invalid-credential under the redemption identity alerted | Action wiring 61, Audit arm 17, Recoverable Invocation Action wiring table |
+| the open | act-landed | never: every kind is repeatable | Recoverable Invocation repeatable 1, Term sharing bindings |
+| the close | an event id | the index entry or the seal marker, and the result | Action wiring 8, 11, 36, 38, 46, 47, Composition state 4, 13 |
+| the close | recording-failure(outcome) | recording-failure(outcome), the act committed and its record the sweep's; no token or disclosure id answered | Action wiring 61, Recoverable Invocation commit 4 |
+| the refuse | an event id | the constituent's own code, the attempt recorded | Action wiring 5, 26, 31, 32, 42, 43, 45 |
+| the refuse | already-accounted or recording-failure(refusal, constituent_code) | that code; the sweep records the attempt where the refusal did not land | Action wiring 61, Recoverable Invocation Action wiring table |
+| the yield | its return | recording-failure(outcome), the act possibly committed and its record the sweep's | Action wiring 60 |
+
+**The constituents inside a commit.** A state-unavailable or a storage-failure from any of these calls is a pre-commit arm (Execution Contract Constituent failure 1, 3) closed through the refuse, and a call with no answer, or with an answer its constituent does not declare, is the unknown partition, closed through the yield (Action wiring 60, Term commit partition). The other answers:
+
+| Call | Answer | Lands | Owner |
+|---|---|---|---|
+| allocate | a capability token | the close | Action wiring 8, Term allocating authorization |
+| allocate | invalid-request | invalid-request, refused | Action wiring 5 |
+| redeem, in the disclosure transaction | redeemed | Selective Disclosure's record and the pending entry | Action wiring 29, 59, Composition state 12 |
+| redeem | invalid carrying exhausted, expired, revoked or not-known | invalid carrying the redemption failure, nothing consumed, refused | Action wiring 26, Capability Operation 31 |
+| record, in the disclosure transaction | a disclosure id | the transaction commits, then the close | Action wiring 36, Term disclosing redemption |
+| record | invalid-request or unknown-authority-type | the same code, the transaction committing no write, nothing consumed, refused and alerted | Action wiring 31, 32, 35 |
+| revoke | revoked | the close | Action wiring 46, Term revoking revocation |
+| revoke | already-terminal, not-known or invalid-request | the same code, refused | Action wiring 42, 43, 45 |
+
+**The read-only queries.**
+
+| Call | Answer | Lands | Owner |
+|---|---|---|---|
+| Selective Disclosure's read, at [Sharing Disclosures] | the subject's records | the disclosure history, each joined to its entry | Action wiring 49 |
+| Selective Disclosure's read | invalid-query | invalid-query | Action wiring 50 |
+| the capability-to-sharing index, at [Authorization Provenance] | an entry, after the rebuild its miss or divergence triggers | the provenance | Action wiring 51, 56, 57 |
+| the index | no entry after the rebuild, or an irreconcilable token | not-known | Action wiring 52, 58 |
+
+**The composition's own records.** A capability-to-sharing entry is written after its authorization event lands, outside the action's transaction (Composition state 4): a write of one that fails or never answers is a rebuild trigger, not data loss (the section titled Composition state in `execution-contract.md`; Composition state 6), and an authorization outcome the sweep or an operator wrote binds no entry. The pending disclosure-to-redemption entry commits inside the disclosure transaction (Composition state 12); its seal marker is set after the disclosure event lands, and an outcome the sweep or an operator wrote seals it through the rebuild (Composition state 16).
+
+**The leg.** It answers no caller, and decides only on an answered read (Reconciliation 36): a capability read, a disclosure read or a log read that fails or gives no answer decides nothing, and the record is examined again at the next run (Reconciliation 2). It opens findings and alerts; it writes no outcome, which is the sweep's under the recovery identity.
 
 ### Wiring decision
 
@@ -390,7 +529,7 @@ Wiring decision 5: The composition MUST NOT fabricate a disclosure record for a 
 <details markdown="block">
 <summary>WHY</summary>
 
-*Principle:* regulated disclosure requires a named, non-repudiable *authorizing* party, not a named *consumer*; bearer-token sharing requires the consumer be anonymous. Both are satisfied at once by attaching accountability to the allocator. *Likely objection:* doesn't accountable disclosure mean recording who received the data? *Mechanism:* the regulator's question is *who authorized this disclosure, and under what authority?* — and that is the allocator and the authority, both recorded: the allocator at allocation under the allocator's own credential, the authority in the capability's scope and the disclosure record, and the disclosure attributed to the allocator in the disclosure event. The redeemer's identity is *structurally* unavailable — Capability's redeem accepts none and records none — so this composition records what it can prove and is honest about what bearer semantics make unprovable. *Result:* the disclosure is accountable to the allocator and the redeemer is never named — the asymmetry no constituent provides alone.
+*Principle:* regulated disclosure requires a named, non-repudiable *authorizing* party, not a named *consumer*; bearer-token sharing requires the consumer be anonymous. Both are satisfied at once by attaching accountability to the allocator. *Likely objection:* doesn't accountable disclosure mean recording who received the data? *Mechanism:* the regulator's question is *who authorized this disclosure, and under what authority?* — and that is the allocator and the authority, both recorded: the allocator at allocation under the allocator's own credential, the authority in the capability's scope and the disclosure record, and the disclosure attributed to the allocator in the disclosure event. The redeemer's identity is *structurally* unavailable — Capability's redeem accepts none and records none — so this composition records what it can prove and is honest about what bearer semantics make unprovable. A disclosure whose seal failed is closed by Recoverable Invocation's sweep, attested as recovered, and still names the allocator, read back from the capability. *Result:* the disclosure is accountable to the allocator and the redeemer is never named — the asymmetry no constituent provides alone.
 
 </details>
 
@@ -398,64 +537,66 @@ Wiring decision 5: The composition MUST NOT fabricate a disclosure record for a 
 
 ```
 Deleted: Reconciliation 1. Execution Contract Database 1 and Execution Contract Database 3 own it.
-Reconciliation 2: The reconciliation MUST run every reconciliation cadence.
+Reconciliation 2: The reconciliation MUST run every sweep cadence.
 Deleted: Reconciliation 3. Execution Contract Database 1 owns it.
-Reconciliation 4: The reconciliation MUST attest EVERY write the reconciliation makes under the service identity.
-Reconciliation 5: The reconciliation MUST NOT write a compensating event BEFORE the reconciliation's recovery intent lands.
-Reconciliation 6: The reconciliation MUST record a recovery intent carrying the invocation id, the direction, the capability token, the disclosure id where one stands AND the intent reference.
-Reconciliation 7: A compensating event MUST carry the recovery flag, the intent reference AND the capability token.
-Reconciliation 8: The reconciliation MUST re-derive a compensating event from the pending marker, the intent event AND the constituent records.
-Reconciliation 9: IF a pending marker's disclosure intent IS NOT IN the aged events AND no disclosure event EXISTS for the pending marker's disclosure id THEN the reconciliation MUST seal the pending marker by recording the marker's disclosure event.
-Reconciliation 28: IF a disclosure event EXISTS for a pending marker's disclosure id THEN the reconciliation MUST set the pending marker's seal marker to the disclosure event's id.
-Reconciliation 10: A compensating disclosure event MUST carry the pending marker's disclosure id, the pending marker's allocator reference AND the disclosure intent's sharing descriptor.
-Reconciliation 11: The reconciliation MUST read an unmatched disclosure intent as a candidate.
-Reconciliation 12: The reconciliation MUST NOT seal from a disclosure intent.
-Reconciliation 13: The reconciliation MUST record one unfulfilled event PER unit of a capability's remainder.
-NOTE: open 2026-11-05-d — the remainder's disclosure-event count has no age bound.
-Reconciliation 14: A reconciliation's unfulfilled event MUST name the capability's unmatched disclosure intents as the candidates.
-Reconciliation 15: IF a capability's remainder EQUALS zero THEN the reconciliation MUST record one abandonment event PER unmatched disclosure intent of the capability.
-Reconciliation 16: The reconciliation MUST NOT seal from a remainder.
-Reconciliation 17: The reconciliation MUST read an authorization intent's candidates as the capabilities the intent's actor allocated inside the pairing window carrying no authorization event.
-Reconciliation 18: IF a candidate capability of an authorization intent IS NOT IN the settled capabilities THEN the reconciliation MUST revoke the candidate capability with revoked by reference set to the service identity AND revocation reason set to the reconciliation revocation reason.
-Reconciliation 19: IF the candidate reading EQUALS several THEN the reconciliation MUST name the candidates on the finding.
-Reconciliation 27: IF no authorization event EXISTS for an authorization intent AND the authorization intent's `(recording instant + compensation window)` PRECEDES now THEN the reconciliation MUST record an abandonment event closing the authorization intent.
-Reconciliation 20: IF a capability's status EQUALS revoked AND no revocation event names the capability token THEN the reconciliation MUST record a compensating revocation event.
-NOTE: open 2026-11-05-a — the revoke and this event land a cadence apart.
-Reconciliation 21: A compensating revocation event MUST carry the capability record's revoked by reference as the revoked by reference.
-Reconciliation 22: The reconciliation MUST NOT record a revocation event for a capability token another revocation event names.
-Reconciliation 23: The reconciliation MUST escalate EVERY overdue partial as a compliance finding.
-Reconciliation 24: The reconciliation MUST escalate a pending marker whose disclosure intent is an aged event.
-Reconciliation 25: The reconciliation MUST NOT seal a pending marker whose disclosure intent is an aged event.
-Reconciliation 26: The reconciliation MUST NOT compensate a substrate partial.
-NOTE: open 2026-08-29-r — the formal model's compensation carries no service identity, no recovery intent and no age bound (Reconciliation 4, Reconciliation 6, Reconciliation 24, Reconciliation 25).
+Deleted: Reconciliation 4. Recoverable Invocation Invariant 5.2 and Recoverable Invocation service identity 3 own it: the sweep writes under the recovery identity, and the leg writes no event.
+Deleted: Reconciliation 5. Recoverable Invocation Invariant 5.1 and Recoverable Invocation reconcile step 3.2a own it: the recovery intent before any recovered outcome.
+Deleted: Reconciliation 6. Recoverable Invocation reconcile step 3.2a owns it: the kind's recovery_intended record carries the invocation id, the intent event id, the act key and the plan.
+Deleted: Reconciliation 7. Recoverable Invocation Invariant 5.2, Recoverable Invocation Primitive policy 11a and Recoverable Invocation Term recovered outcome payload own it: the recovered outcome carries the recovery flag, the acting actor reference and the intent event id.
+Deleted: Reconciliation 8. Term authorization probe, Term disclosure probe, Term revocation probe, Recoverable Invocation act probe 6 and Recoverable Invocation Invariant 5.3 own it: the probe re-derives the outcome's fields from the constituent records.
+Deleted: Reconciliation 9. Recoverable Invocation reconcile step 3.2 and Recoverable Invocation reconcile step 2.4 through 2.6 own it: a committed probe closes the intent with the outcome, after a re-read under the critical section.
+Deleted: Reconciliation 28. Recoverable Invocation Sweep never 1, Recoverable Invocation Invariant 9.2 and Composition state 16 own it: the sweep writes no adopter state, and the rebuild seals the marker from a recovered disclosure event.
+Deleted: Reconciliation 10. Term disclosure probe and Recoverable Invocation act probe 6 own it: a recovered disclosure outcome carries the disclosure record's fields and the allocator Capability's read answers.
+Deleted: Reconciliation 11. Recoverable Invocation reconcile step 1.1, Recoverable Invocation reconcile step 1.2 and Recoverable Invocation reconcile step 3.1 own it: the sweep runs the act probe for every open intent.
+Deleted: Reconciliation 12. Recoverable Invocation reconcile step 3.12, Recoverable Invocation act probe 6 and Recoverable Invocation Invariant 5.3 own it: the sweep writes only what the probe read.
+Deleted: Reconciliation 13. Action wiring 31 owns it: a consumed use and its disclosure record commit together, so no remainder exists.
+Deleted: Reconciliation 14. Recoverable Invocation Invariant 3.5a owns it: an outcome never carries candidates.
+Deleted: Reconciliation 15. Recoverable Invocation reconcile step 3.5 and Recoverable Invocation Invariant 4.9 own it: an intent whose invocation consumed nothing is escalated, and an operator abandons it.
+Deleted: Reconciliation 16. Action wiring 31 owns it: no remainder exists to seal from.
+Deleted: Reconciliation 17. Term authorization probe and Recoverable Invocation Invariant 3.3 own it: the pairing datum, the allocation instant, joins an intent to its capability by equality.
+Deleted: Reconciliation 18. Composition state 6 and Action wiring 18 own it: a recovered authorization binds no capability-to-sharing entry, so its token is refused not-authorized-sharing and lapses at its ttl, and nothing is revoked.
+Deleted: Reconciliation 19. Recoverable Invocation reconcile step 3.8 through 3.10 own it.
+Deleted: Reconciliation 27. Recoverable Invocation reconcile step 3.5 and Recoverable Invocation Invariant 4.9 own it: an authorization intent that allocated nothing is escalated, and an operator abandons it.
+Deleted: Reconciliation 20. Term revocation probe, Recoverable Invocation reconcile step 3.2 and Reconciliation 33 own it: a revocation an intent carries is closed by the sweep, and one no intent carries opens a write-ownership finding.
+Deleted: Reconciliation 21. Term revocation probe and Recoverable Invocation act probe 6 own it.
+Deleted: Reconciliation 22. Recoverable Invocation Invariant 2.1 owns it, and Capability's already-terminal refuses a second revoke of one token.
+Deleted: Reconciliation 23. Recoverable Invocation reconcile step 3.5, Recoverable Invocation reconcile step 3.8, Recoverable Invocation reconcile step 3.21 and Recoverable Invocation reconcile step 5.1 own it.
+Deleted: Reconciliation 24. Recoverable Invocation Invariant 7.2, Recoverable Invocation Instance start 5 and Recoverable Invocation reconcile step 5.9 own it.
+Deleted: Reconciliation 25. Recoverable Invocation Invariant 7.2 and Recoverable Invocation reconcile step 1.2 own it.
+Deleted: Reconciliation 26. Composes 6 owns it: the leg writes no event, so it compensates nothing, and a substrate partial is the substrate's own reconciliation's.
+Reconciliation 29: The reconciliation MUST NOT examine a young record.
+Reconciliation 30: The reconciliation MUST NOT examine an aged record.
+Reconciliation 31: The reconciliation MUST read EVERY capability through Capability's read naming no field, AND EVERY disclosure record through Selective Disclosure's read by the disclosure instant range Reconciliation 29 and Reconciliation 30 admit, against the intents.
+Reconciliation 32: IF a capability Reconciliation 29 and Reconciliation 30 admit IS NOT a carried capability THEN the reconciliation MUST open a write-ownership finding for the capability token.
+Reconciliation 33: IF a revoked capability Reconciliation 29 and Reconciliation 30 admit IS NOT a carried revocation THEN the reconciliation MUST open a write-ownership finding for the capability token.
+Reconciliation 34: IF a disclosure record Reconciliation 29 and Reconciliation 30 admit IS NOT a carried disclosure record THEN the reconciliation MUST open a write-ownership finding for the disclosure id.
+Reconciliation 35: The reconciliation MUST alert the finding surface carrying the carried record for EVERY false closing Reconciliation 29 and Reconciliation 30 admit.
+Reconciliation 36: The reconciliation MUST decide ONLY on an answered read.
+Reconciliation 37: The reconciliation MUST read the sweep's run reading of now AND MUST NOT read now at a seam of the reconciliation.
+Reconciliation 38: The reconciliation MUST take the enumeration of Reconciliation 31 once PER run, at the run's start.
 ```
 
-Term reconciliation: the leg this composition runs outside every action, each run an invocation of its own, whose output — a sealed disclosure or a landed partial — an auditor awaits within the compensation window, and whose escalation of an overdue partial an auditor awaits within the escalation reach.
-NOTE: watch the escalation outside the window (Term reconciliation).
+Term reconciliation: the leg the composition runs outside every invocation, beside Recoverable Invocation's sweep — the reading of the capability and disclosure records against the intents, whose output, a write-ownership finding or a false-closing alert, an auditor awaits at the sweep cadence and within no window of its own.
 
-Term recovery intent: the sharing.recovery_intended event — the reconciliation's intent record, naming the partial the reconciliation detected and what the reconciliation is about to append.
+Term carried capability: a capability an authorization intent carries — an intent of sharing.authorize whose act key carries the capability's allocator reference and scope and whose pairing datum EQUALS the capability's allocation instant.
 
-Term direction: what a recovery intent says the reconciliation is about to do — append a compensating event or an abandonment event, or revoke a candidate capability.
+Term carried revocation: a revoked capability a revocation intent carries — an intent of sharing.revocation whose act key is the capability token and whose pairing datum EQUALS the capability's revocation instant.
 
-Term reconciliation revocation reason: the fixed non-blank revocation reason "authorization intent had no authorization event within the compensation window" — the reason the reconciliation hands Capability's revoke.
+Term carried disclosure record: a disclosure record a disclosure intent carries — an intent of sharing.disclosure whose act key carries the record's subject reference, recipient, scope and authority and whose pairing datum EQUALS the record's disclosure instant.
 
-Term intent reference: the original intent's event id, or the candidate intents where attribution among concurrent intents is presumptive.
+Term carrying intent: the intent that makes a record a carried capability, a carried revocation or a carried disclosure record — one at most, an equal now never reaching two invocations of one act key (Capability requirement 23).
 
-Term recovery flag: cascade_recovery set to true — the payload field that tells a reader a compensating event from a clean one.
+Term young record: a capability, a revocation or a disclosure record whose instant — the allocation instant, the revocation instant or the disclosure instant — stands within the examine window end of the act kind it names, measured back from the sweep's now: a record whose invocation the sweep may still be closing (Recoverable Invocation Term examine window end).
+
+Term aged record: a capability, a revocation or a disclosure record for which the sweep's now DOES NOT PRECEDE `(((instant + audit horizon) - (2 * clock offset allowance)) - reconciliation run bound)`, the instant read as Term young record reads it — a record whose intent the audit horizon may have destroyed, which the reconciliation would read as no intent.
+
+Term write-ownership finding: a finding that a capability, a revocation or a disclosure record is not carried — a write against Capability or Selective Disclosure outside the composition's surface (Composes 8, Composes 11).
+
+Term false closing: a carried capability, carried revocation or carried disclosure record whose carrying intent an abandonment or a refusal closed — an act that committed, read as one that did not.
+
+Term finding surface: the deployment's compliance surface — the surface Recoverable Invocation's instance writes its register to. A write-ownership finding and this page's alerts are written beside that register and are no part of it (Recoverable Invocation findings 6).
 
 Term consumed count: `(max redemptions - remaining redemptions)` for one capability, read through Capability's read.
-
-Term remainder: `(((consumed count - disclosure events) - pending markers) - unfulfilled events)` for one capability — the consumed uses left unlanded.
-
-Term pairing window: from an authorization intent's recording instant to the end of the compensation window measured from the same instant.
-
-Term candidate reading: none | sole | several — how many capabilities an authorization intent's pairing names.
-
-Term partial: an allocated capability with no authorization event, a pending marker, a remainder, or an unmatched disclosure intent.
-
-Term unmatched disclosure intent: a disclosure intent no outcome record, pending marker or abandonment event names, by the intent event id or among an intent reference's candidates.
-
-Term overdue partial: a partial whose first record's `(recording instant + compensation window)` PRECEDES now.
 
 Term aged event: an event whose `(recording instant + audit horizon)` PRECEDES now — past which the event's payload may be lawfully destroyed.
 
@@ -478,18 +619,20 @@ These emerge from the composition; none belongs to a single constituent.
   ```
   Invariant 2.1: EVERY disclosure event MUST name a disclosure record in the Selective Disclosure records.
   Invariant 2.2: A disclosure record MUST NOT carry two disclosure events.
-  Invariant 2.3: EVERY committed disclosure whose disclosure event has not landed MUST stand as a pending marker.
-  Invariant 2.4: The composition MUST seal EVERY pending marker whose disclosure intent IS NOT IN the aged events WITHIN the compensation window.
-  Invariant 2.5: The composition MUST make the binding claim ONLY IF the deployment declares the compensation window, the reconciliation cadence AND the reconciliation run bound.
+  Invariant 2.3: EVERY committed disclosure whose disclosure event has not landed MUST stand as a pending marker AND an open sharing.disclosure intent.
+  Deleted: Invariant 2.4. Recoverable Invocation Invariant 4.2 and Recoverable Invocation Check 3.1 own it: an intent whose invocation died is closed within the closure window, by an outcome on a committed probe, or escalated.
+  Deleted: Invariant 2.5. Recoverable Invocation Instance start 4 through 8 and Recoverable Invocation Check 4.1 own it: the instance does not start without its bounds.
+  NOTE: the invocation resolve does not check an operator's outcome against Selective Disclosure (Recoverable Invocation resolve 28, Recoverable Invocation resolve 31), so Invariant 2.1 and Invariant 2.2 are detected, not prevented, for an operator's closing: the seal alert (Composition state 17), Check 2.1 and Check 2.2 find it.
   ```
 - **Invariant 3 — Allocation-authorization binding.**
   ```
   Invariant 3.1: EVERY authorization event MUST name a capability token in the Capability records.
   Invariant 3.2: EVERY capability-to-sharing entry MUST name EXACTLY ONE authorization event.
-  Invariant 3.3: EVERY authorization event MUST carry the allocator's own attestation.
-  Invariant 3.4: EVERY allocated capability MUST stand settled WITHIN the compensation window.
+  Invariant 3.3: EVERY authorization event carrying no recovery flag MUST carry the allocator's own attestation.
+  Deleted: Invariant 3.4. Recoverable Invocation Invariant 4.2 owns it: an authorization intent whose invocation died is closed within the closure window, by an outcome on a committed probe, or escalated.
+  Invariant 3.5: A disclosure MUST commit ONLY under a capability token whose capability-to-sharing entry names an authorization event carrying no recovery flag.
+  NOTE: the invocation resolve does not check an operator's outcome against Capability (Recoverable Invocation resolve 28, Recoverable Invocation resolve 31), so Invariant 3.1 and Invariant 3.2 are detected, not prevented, for an operator's closing: the duplicate-authorization alert (Composition state 18) and Check 3.2 find it, and an operator's outcome carries the recovery flag, so it binds no entry (Composition state 6).
   ```
-  Term settled capability: a capability carrying an authorization event, a capability the reconciliation or a revoker revoked, or a lapsed capability.
 
 - **Invariant 4 — Scope-bounded disclosure.**
   ```
@@ -498,8 +641,8 @@ These emerge from the composition; none belongs to a single constituent.
   ```
 - **Invariant 6 — Authentication precedes commitment at the actions that name an actor.**
   ```
-  Invariant 6.1: EVERY allocation the composition makes MUST follow a validation of the allocator's credential.
-  Invariant 6.2: EVERY revocation the composition makes MUST follow a validation of the revoker's credential.
+  Deleted: Invariant 6.1. Recoverable Invocation Invariant 1.1 owns it: the allocate follows the invocation open, whose intent record verified the allocator's credential.
+  Deleted: Invariant 6.2. Recoverable Invocation Invariant 1.1 owns it: the revoke follows the invocation open, whose intent record verified the revoker's credential.
   Deleted: Invariant 5. Composes 5 owns it.
   ```
 
@@ -509,22 +652,26 @@ These emerge from the composition; none belongs to a single constituent.
 
 ### Walkthrough — a clinician shares a scoped patient record with a referred specialist, end to end
 
-A hospital deploys this composition with `sharing_scope_grammar` encoding `subject::recipient::fields::authority`, the substrate's `audit_trail_retention_policy = hipaa_6_year`, and a provisioned service identity.
+A hospital deploys this composition with `sharing_scope_grammar` encoding `subject::recipient::fields::authority`, the substrate's `audit_trail_retention_policy = hipaa_6_year`, a provisioned redemption identity, a provisioned `recovery_identity`, and the Recoverable Invocation instance's bounds.
 
-1. **Authorization.** A treating clinician refers a patient to a specialist and authorizes a one-time, 24-hour share of the minimum-necessary fields: `authorize_sharing(allocator_ref = "dr_chen", credential = <chen-cred>, sharing_descriptor = {subject: "patient-7842", recipient: "dr-okafor-cardiology", fields: "cardiology-summary", authority: {type: consent, reference: "consent-8821"}}, max_redemptions: 1, ttl: 86400)`. This composition parses the descriptor, then — **before allocating anything** — records the intent: `AuditTrail.record_action(sharing.authorization_intended, actor_ref = "dr_chen", <chen-cred>, data = {subject: patient-7842, recipient: dr-okafor-cardiology, fields: cardiology-summary, authority: consent/consent-8821, max_redemptions: 1, ttl: 86400, intended_at})` → `ev_auth_int_01`. That write is where Dr. Chen's credential is checked against the actor registry; had it not validated, the call would have returned `rejected(invalid-credential)` with no capability minted (Invariant 6). Only then `Capability.allocate(...)` returns `capability_token = tok_share_x1`, and `AuditTrail.record_action(sharing.authorized, actor_ref = "dr_chen", <chen-cred>, data = {intent_event_id: ev_auth_int_01, tok_share_x1, subject: patient-7842, recipient: dr-okafor-cardiology, fields: cardiology-summary, authority: consent/consent-8821, …})` → `ev_auth_01` — **attested under Dr. Chen's credential** (Invariant 3). `capability_to_sharing[tok_share_x1]` is populated. Returns `{tok_share_x1, ev_auth_01}`. The hospital emails the specialist a link embedding `tok_share_x1`.
-2. **Redemption and disclosure.** The specialist's system opens the link within the day: `redeem_and_disclose(tok_share_x1)` — **no identity is presented**. This composition resolves the descriptor, records its intent, redeems, records the disclosure, and seals, in that order. **Descriptor:** `Capability.read({tok_share_x1})` → the scope parses to patient-7842 / dr-okafor-cardiology / cardiology-summary / consent-8821; `capability_to_sharing` supplies `ev_auth_01`. **Intent:** `AuditTrail.record_action(sharing.disclosure_intended, actor_ref = <service identity>, data = {tok_share_x1, allocator_ref: "dr_chen", subject: patient-7842, recipient: dr-okafor-cardiology, fields: cardiology-summary, …})` → `ev_disc_int_01` — naming no bearer. **Redemption:** `Capability.redeem(tok_share_x1) → redeemed(scope, allocator_ref = "dr_chen")`; the capability exhausts (single-use → `Redeemed`), irreversibly. **Domain mutation:** `SelectiveDisclosure.record(subject: "patient-7842", recipient: "dr-okafor-cardiology", scope: "cardiology-summary", authority: {consent, consent-8821})` → `disc_01`, with `disclosure_to_redemption[disc_01]` written pending in the same transaction. **Outcome:** `AuditTrail.record_action(sharing.disclosed, actor_ref = <service identity>, data = {disc_01, tok_share_x1, allocator_ref: "dr_chen", subject: patient-7842, recipient: dr-okafor-cardiology, fields: cardiology-summary, authority: consent/consent-8821})` → `ev_disc_01` — **attributed to the service identity, naming Dr. Chen as the authorizing allocator, naming no redeemer**; `disclosure_to_redemption[disc_01]`'s pending is replaced by `ev_disc_01`. Returns `{disc_01, ev_disc_01, "cardiology-summary", "dr_chen"}`. The hospital then transmits the cardiology-summary fields to the specialist.
-3. **The audit answer.** `sharing_disclosures("patient-7842")` returns `disc_01`: disclosed `cardiology-summary` to `dr-okafor-cardiology`, under consent `consent-8821`, **authorized by `dr_chen`** (Invariant 1). `authorization_provenance(tok_share_x1)` confirms Dr. Chen authorized it, and `ev_auth_01`'s `intent_event_id` resolves to `ev_auth_int_01` — which makes it provable that Dr. Chen was authenticated *before* the capability existed (Check 5.1). There is no field anywhere recording *who* at the specialist's office actually opened the link — by design.
+1. **Authorization.** A treating clinician refers a patient to a specialist and authorizes a one-time, 24-hour share of the minimum-necessary fields: `authorize_sharing(allocator_ref = "dr_chen", credential = <chen-cred>, sharing_descriptor = {subject: "patient-7842", recipient: "dr-okafor-cardiology", fields: "cardiology-summary", authority: {type: consent, reference: "consent-8821"}}, max_redemptions: 1, ttl: 86400)`. This composition parses the descriptor, then — **before allocating anything** — Recoverable Invocation's open records the intent: `sharing.authorize.intended` under `actor_ref = "dr_chen"`, `<chen-cred>`, carrying `{subject: patient-7842, recipient: dr-okafor-cardiology, fields: cardiology-summary, authority: consent/consent-8821, max_redemptions: 1, ttl: 86400}` and the invocation's now as its pairing datum → `ev_auth_int_01`. That write is where Dr. Chen's credential is checked against the actor registry; had it not validated, the call would have returned `rejected(invalid-credential)` with no capability minted (Recoverable Invocation Invariant 1.1). Only then `Capability.allocate(...)`, the same now injected at its seam, returns `capability_token = tok_share_x1`, and the invocation close records `sharing.authorize.authorized` under Dr. Chen's credential, carrying `{tok_share_x1, subject: patient-7842, recipient: dr-okafor-cardiology, fields: cardiology-summary, authority: consent/consent-8821, …}` and the intent's event id → `ev_auth_01` — **attested under Dr. Chen's credential** (Invariant 3). `capability_to_sharing[tok_share_x1]` is populated. Returns `{tok_share_x1, ev_auth_01}`. The hospital emails the specialist a link embedding `tok_share_x1`.
+2. **Redemption and disclosure.** The specialist's system opens the link within the day: `redeem_and_disclose(tok_share_x1)` — **no identity is presented**. This composition resolves the descriptor, opens its invocation, commits the disclosure transaction, and closes, in that order. **Descriptor:** `Capability.read({tok_share_x1})` → the scope parses to patient-7842 / dr-okafor-cardiology / cardiology-summary / consent-8821; `capability_to_sharing` supplies `ev_auth_01`. **Intent:** the open records `sharing.disclosure.intended` under the redemption identity, carrying `{tok_share_x1, allocator_ref: "dr_chen", subject: patient-7842, recipient: dr-okafor-cardiology, fields: cardiology-summary, …}` and its pairing datum → `ev_disc_int_01` — naming no bearer. **The disclosure transaction:** `Capability.redeem(tok_share_x1) → redeemed(scope, allocator_ref = "dr_chen")`, and the capability exhausts (single-use → `Redeemed`); `SelectiveDisclosure.record(subject: "patient-7842", recipient: "dr-okafor-cardiology", scope: "cardiology-summary", authority: {consent, consent-8821}, disclosed_at = the pairing datum)` → `disc_01`, with `disclosure_to_redemption[disc_01]` written pending in the same transaction. **Outcome:** the close records `sharing.disclosure.disclosed` under the redemption identity, carrying `{disc_01, tok_share_x1, allocator_ref: "dr_chen", subject: patient-7842, recipient: dr-okafor-cardiology, fields: cardiology-summary, authority: consent/consent-8821}` → `ev_disc_01` — **naming Dr. Chen as the authorizing allocator, naming no redeemer**; `disclosure_to_redemption[disc_01]`'s pending is replaced by `ev_disc_01`. Returns `{disc_01, ev_disc_01, "cardiology-summary", "dr_chen"}`. The hospital then transmits the cardiology-summary fields to the specialist.
+3. **The audit answer.** `sharing_disclosures("patient-7842")` returns `disc_01`: disclosed `cardiology-summary` to `dr-okafor-cardiology`, under consent `consent-8821`, **authorized by `dr_chen`** (Invariant 1). `authorization_provenance(tok_share_x1)` confirms Dr. Chen authorized it, and `ev_auth_01`'s intent event id resolves to `ev_auth_int_01` — which makes it provable that Dr. Chen was authenticated *before* the capability existed (Recoverable Invocation Check 1.1). There is no field anywhere recording *who* at the specialist's office actually opened the link — by design.
 
 ### Domain example — a multi-use pre-signed disclosure to an auditor
 
-A bank authorizes, under SOX (the US Sarbanes-Oxley Act) section 404, a 10-redemption, 7-day capability for an external auditor to pull a customer's transaction subset: `authorize_sharing("compliance_officer_m", <cred>, {subject: "acct-0187", recipient: "audit-firm-AF3", fields: "transactions:2024", authority: {type: regulatory, reference: "SOX §404"}}, max_redemptions: 10, ttl: 604800)`. Over the week the auditor's tooling redeems the token nine times from various systems; each [Redeem And Disclose] records a distinct Selective Disclosure record bound to its own sealed [Sharing Disclosed] event, every one attributed to `compliance_officer_m` as the allocator and **none recording which of the auditor's systems redeemed it**. The `remaining_redemptions` counter (Capability) decrements 10→1; the regulated-audit record shows nine accountable disclosures under one authorization. The audit-subject asymmetry holds across every redemption.
+A bank authorizes, under SOX (the US Sarbanes-Oxley Act) section 404, a 10-redemption, 7-day capability for an external auditor to pull a customer's transaction subset: `authorize_sharing("compliance_officer_m", <cred>, {subject: "acct-0187", recipient: "audit-firm-AF3", fields: "transactions:2024", authority: {type: regulatory, reference: "SOX §404"}}, max_redemptions: 10, ttl: 604800)`. Over the week the auditor's tooling redeems the token nine times from various systems; each [Redeem And Disclose] records a distinct Selective Disclosure record bound to its own sealed [Sharing Disclosed] event, every one attributed to `compliance_officer_m` as the allocator and **none recording which of the auditor's systems redeemed it**. Two of the auditor's systems that present the token at the same moment meet one disclosure key: the second is answered act-in-flight and retries once the first has closed. The `remaining_redemptions` counter (Capability) decrements 10→1; the regulated-audit record shows nine accountable disclosures under one authorization. The audit-subject asymmetry holds across every redemption.
 
 ### Rejection path — spent, lapsed, cancelled, foreign, and unrecorded tokens
 
-- **Exhausted / expired / revoked.** A bearer redeems a single-use token a second time: `redeem_and_disclose(tok_share_x1) → invalid(exhausted)`; **nothing is disclosed** (Capability returned `invalid(exhausted)` at step 3, and the intent is closed by a `sharing.disclosure_refused` record naming it). A token presented after its TTL → `invalid(expired)`; after [Revoke Sharing] → `invalid(revoked)`. These are first-class outcomes, not rejections — the bearer presented a token that no longer authorizes a disclosure, and no disclosure record is created (the no-disclosure-unrecorded direction holds: no disclosure occurred, so none is recorded).
-- **Unattested capability.** A token allocated by [Authorize Sharing] whose [Sharing Authorized] attestation never landed is redeemed: step 1 finds no `capability_to_sharing` entry after rebuild → `rejected(not-authorized-sharing)` **before `redeem` is called**, so nothing is consumed and nothing is disclosed. The Capability instance is exclusive to this composition (*Composes*), so there is no foreign token to refuse: a token the instance does not know is `invalid(not-known)`, and a scope that does not parse is a conformance fault, not another composition's share.
-- **Early revocation closes the window.** The referral is withdrawn before the specialist opens the link, so the hospital's privacy officer cancels a *still-live* token — `tok_share_x2`, allocated to the same specialist and never redeemed: `revoke_sharing(tok_share_x2, "privacy_officer_hosp", <cred>, "referral-withdrawn")` first records a [Sharing Revocation Intended] event → `ev_rev_int_01` (where the revoker's credential is verified — a live sharing is never cancelled on an unverified claim), then transitions the capability to `Revoked` via `Capability.revoke`, then records a [Sharing Revoked] event carrying `intent_event_id: ev_rev_int_01` under the revoker's credential; subsequent redemptions return `invalid(revoked)`.
-- **Revoking a token that is already spent.** The same officer, a day late, tries to cancel `tok_share_x1`, which the specialist already redeemed: the [Sharing Revocation Intended] event is written (the officer is a real actor and their credential validates), then `Capability.revoke` refuses already-terminal — Capability's redeemed state is absorbing — so the call returns `rejected(already-terminal)` and **no** [Sharing Revoked] event is written. That leaves an intent event with no outcome event — the third case of the revocation triage (Check 5.4): a capability record exists and is not in the revoked state (it is terminal by *redemption*), so nothing committed and nothing is owed. Nothing about the earlier disclosure is altered.
+- **Exhausted / expired / revoked.** A bearer redeems a single-use token a second time: `redeem_and_disclose(tok_share_x1) → rejected(invalid(exhausted))`; **nothing is disclosed**. The intent lands, Capability's redeem refuses on a pre-commit arm and consumes nothing, and the invocation refuse closes the intent with a `sharing.disclosure.refused` record carrying `exhausted`. A token presented after its TTL → `invalid(expired)`; after [Revoke Sharing] → `invalid(revoked)`. The bearer presented a token that no longer authorizes a disclosure, and no disclosure record is created (the no-disclosure-unrecorded direction holds: no disclosure occurred, so none is recorded).
+- **Unattested capability.** A token whose [Sharing Authorized] attestation never landed under the allocator's credential is redeemed — its invocation's close failed and the sweep later recovered the outcome under the recovery identity, or no outcome exists at all: step 1 finds no `capability_to_sharing` entry after rebuild, since the rebuild binds no outcome carrying the recovery flag → `rejected(not-authorized-sharing)` **before `redeem` is called**, so nothing is consumed and nothing is disclosed, and the token lapses at its ttl. The allocator was told `recording-failure(outcome)` and never held the token. The Capability instance is exclusive to this composition (*Composes*), so there is no foreign token to refuse: a token the instance does not know is `invalid(not-known)`, and a scope that does not parse is a conformance fault, not another composition's share.
+- **Early revocation closes the window.** The referral is withdrawn before the specialist opens the link, so the hospital's privacy officer cancels a *still-live* token — `tok_share_x2`, allocated to the same specialist and never redeemed: `revoke_sharing(tok_share_x2, "privacy_officer_hosp", <cred>, "referral-withdrawn")` first records a [Sharing Revocation Intended] event → `ev_rev_int_01` (where the revoker's credential is verified — a live sharing is never cancelled on an unverified claim), then transitions the capability to `Revoked` via `Capability.revoke`, its revocation instant the intent's pairing datum, then records a [Sharing Revoked] event carrying the intent's event id under the revoker's credential; subsequent redemptions return `invalid(revoked)`.
+- **Revoking a token that is already spent.** The same officer, a day late, tries to cancel `tok_share_x1`, which the specialist already redeemed: the [Sharing Revocation Intended] event is written (the officer is a real actor and their credential validates), then `Capability.revoke` refuses already-terminal — Capability's redeemed state is absorbing — a pre-commit arm, so the invocation refuse closes the intent with a `sharing.revocation.refused` record carrying already-terminal, the call returns rejected(already-terminal), and **no** [Sharing Revoked] event is written. Nothing about the earlier disclosure is altered.
+
+### Failure path — a disclosure whose seal is lost, recovered
+
+The specialist's system redeems `tok_share_x3`. The open lands `sharing.disclosure.intended` under the redemption identity carrying the invocation's now as its pairing datum; the disclosure transaction redeems and records `disc_07`, its disclosure instant the same now, with its pending entry. The close's write of `sharing.disclosure.disclosed` answers recording-failure carrying step-3 — the Event Log append answered nothing, its reply lost — and the read-back by invocation id finds nothing, so the call returns `recording-failure(outcome)`, which carries no disclosure id: the host does not deliver the bytes, and the bearer must not re-run, a re-run meeting act-in-flight while the intent stands open. Recovery is Recoverable Invocation's: once the intent ages past its examine edge, the sweep runs the disclosure probe — Selective Disclosure's read for patient and recipient at the intent's pairing datum, kept to the intent's scope and authority — finds `disc_07`, reads the allocator from `Capability.read({tok_share_x3})`, writes `sharing.disclosure.recovery_intended`, and lands `sharing.disclosure.disclosed` under `recovery_identity` with `recovery = true`, the redemption identity as the acting actor reference, and the allocator named (had the lost append landed after all, the sweep's re-read would have found it and written nothing). The rebuild seals `disc_07`'s pending entry from the recovered event (Composition state 16), and [Sharing Disclosures] answers it, authorized by its allocator, marked recovered for the auditor's judgment.
 
 ### Regulated adversarial scenarios
 
@@ -534,7 +681,7 @@ Three scenarios the composition must survive in regulated contexts.
 
 **Disputed disclosure — "I never received that data."** A named intended recipient claims they never received the data. The records show capability `tok_share_x1` was authorized for disclosure *to* `dr-okafor-cardiology` (the [Sharing Authorized] event, attested by Dr. Chen) and that a redemption-disclosure occurred ([Sharing Disclosed], bound to `disc_01`). What the records **cannot** establish is whether `dr-okafor-cardiology` — versus a party who obtained the forwarded or intercepted token — actually presented it: bearer semantics make the redeemer unknowable (Capability Invariant 3/5, surfaced as Invariant 1). The records bound the forensic window precisely — *this share was authorized to this recipient, by this allocator, and a bearer redeemed it at this time* — without resolving redeemer identity, which is exactly Capability's own disputed-disclosure boundary. Whether the recipient's denial is accurate (the token was taken before redemption) or not is a question the bearer design deliberately leaves open; the composition is honest that it does.
 
-**Breach investigation — "during the incident window, was any disclosure made under a capability that should have been revoked, or any sealed event altered?"** An investigator walks the [Sharing Disclosed] events in the window (reached through the substrate Audit Trail in Event Log insertion order), and for each, cross-reads the bound Selective Disclosure record and the capability's state. A disclosure under a capability whose `sharing.revoked` event predates it would be the smoking gun — but Invariant 2's binding plus Capability's terminal-absorbing revocation (a `Revoked` capability returns `invalid(revoked)` and discloses nothing) forecloses it: no [Sharing Disclosed] event exists for a redemption that occurred after revocation. Because each disclosure's descriptor is part of the sealed event payload, an attempt to silently widen a disclosed scope (to exfiltrate beyond what was authorized) breaks the seal (Invariant 4 + Tamper Evidence). The forensic window is bounded by the substrate's seal cadence; the newest disclosures in the unsealed tail carry per-event immutability and become seal-verifiable at the next cadence.
+**Breach investigation — "during the incident window, was any disclosure made under a capability that should have been revoked, or any sealed event altered?"** An investigator walks the [Sharing Disclosed] events in the window (reached through the substrate Audit Trail in Event Log insertion order), and for each, cross-reads the bound Selective Disclosure record and the capability's state. A disclosure under a capability whose `sharing.revocation.revoked` event predates it would be the smoking gun — but Invariant 2's binding plus Capability's terminal-absorbing revocation (a `Revoked` capability returns `invalid(revoked)` and discloses nothing) forecloses it: no [Sharing Disclosed] event exists for a redemption that occurred after revocation. Because each disclosure's descriptor is part of the sealed event payload, an attempt to silently widen a disclosed scope (to exfiltrate beyond what was authorized) breaks the seal (Invariant 4 + Tamper Evidence). A disclosure record or a revocation written against the constituents outside this composition's surface carries no intent and is a write-ownership finding (Reconciliation 32 through 34). The forensic window is bounded by the substrate's seal cadence; the newest disclosures in the unsealed tail carry per-event immutability and become seal-verifiable at the next cadence.
 
 ---
 
@@ -553,34 +700,33 @@ Check 2.1: An auditor MUST find EVERY disclosure event's disclosure id naming a 
 Check 2.2: An auditor MUST find no disclosure record carrying two disclosure events (Invariant 2.2).
 Check 2.3: An auditor MUST verify a disclosure event PER Audit Trail's verify record contract, presenting the event's original payload (Invariant 2.1).
 Deleted: Check 2.4. Check 2.3 owns it.
-Check 2.5: An auditor MUST find EVERY disclosure record no disclosure event names by comparing the Selective Disclosure records with the Audit Trail's disclosure events (Invariant 2.3).
+Check 2.5: An auditor MUST resolve EVERY disclosure record no disclosure event names that is neither a young record nor an aged record to EXACTLY ONE OF a carried disclosure record whose carrying intent stands open, a carried disclosure record whose carrying intent stands escalated, a false closing, a write-ownership finding, by comparing the Selective Disclosure records with the Audit Trail's disclosure events and intents (Invariant 2.3, Reconciliation 34, Reconciliation 35).
 NOTE: watch the check over a derived index (Check 2.5).
-Check 3.1: An auditor MUST enumerate EVERY authorization intent AND resolve the intent's closing record AND the intent's candidate capabilities (Invariant 3.4).
+Deleted: Check 3.1. Recoverable Invocation Check 3.1 and Recoverable Invocation Check 1.1 own it: every intent is closed or escalated within the closure window, and every outcome names its intent.
 Check 3.2: An auditor MUST find EXACTLY ONE authorization event PER capability-to-sharing entry (Invariant 3.2).
-Check 3.3: An auditor MUST find EVERY authorization event attested under the allocator reference the entry carries (Invariant 3.3).
-Check 3.4: An auditor MUST find EVERY disclosure event's capability token resolving to an authorization event (Invariant 3.2).
+Check 3.3: An auditor MUST find EVERY authorization event carrying no recovery flag attested under the allocator reference the entry carries (Invariant 3.3).
+Check 3.4: An auditor MUST find EVERY disclosure event's capability token, the token the event's intent carries, resolving to an authorization event carrying no recovery flag (Invariant 3.5).
 Deleted: Check 3.5. Check 3.1 owns it.
 Check 4.1: An auditor MUST find EVERY disclosure record's scope equal to the disclosed scope the capability's authorization event names (Invariant 4.1).
 Check 4.2: An auditor MUST find the disclosure events naming a capability token not exceeding the capability's consumed count (Invariant 4.2).
-Check 4.3: An auditor MUST find, at quiescence, EVERY capability's remainder EQUALS zero (Reconciliation 13).
-Check 5.1: An auditor MUST find EVERY human-attested outcome record preceded in trail order by the intent record the outcome's intent event id names (Invariant 6.1).
-Check 5.2: An auditor MUST find a human-attested outcome record AND the outcome's intent record carrying one acting actor (Invariant 6.2).
+Deleted: Check 4.3. Action wiring 31 owns it: a consumed use and its disclosure record commit together, so no remainder exists.
+Deleted: Check 5.1. Recoverable Invocation Check 1.1 owns it.
+Deleted: Check 5.2. Recoverable Invocation Check 1.1 owns it.
 Deleted: Check 5.3. Check 5.1 owns it.
-Check 5.4: An auditor MUST classify a revocation intent carrying no outcome record PER the revocation triage (Reconciliation 20).
+Deleted: Check 5.4. Term revocation probe and Recoverable Invocation reconcile step 3.5 own it: a revocation intent is closed by its outcome, its refusal record, a recovered outcome or an escalation.
 Deleted: Check 5.5. Action wiring 24 owns it.
-Check 6.1: An auditor MUST find no pending marker older than the compensation window standing unsealed AND unescalated (Invariant 2.4).
-Check 6.2: An auditor MUST find no disclosure event sealed from a remainder (Reconciliation 16).
-Check 6.3: An auditor MUST find EVERY compensating disclosure event carrying the pending marker's disclosure id, the pending marker's allocator reference AND the disclosure intent's sharing descriptor (Reconciliation 10).
-Check 6.4: An auditor MUST find no allocated capability older than the compensation window standing unsettled AND unescalated (Invariant 3.4).
-NOTE: open 2026-11-05-c — the check accepts an escalation that Invariant 3.4 does not count as settled.
+Deleted: Check 6.1. Recoverable Invocation Check 3.1 owns it.
+Deleted: Check 6.2. Action wiring 31 owns it: no remainder exists to seal from.
+Deleted: Check 6.3. Recoverable Invocation Check 6.1 owns it.
+Deleted: Check 6.4. Recoverable Invocation Check 3.1 owns it.
 Deleted: Check 6.5. Reconciliation 23 owns it.
 Deleted: Check 6.6. Execution Contract Database 1 owns it.
 Deleted: Check 6.7. Reconciliation 25 owns it.
+Check 7.1: An auditor MUST resolve EVERY capability AND EVERY revoked capability that is neither a young record nor an aged record AND that no outcome record names to EXACTLY ONE OF a carried record whose carrying intent stands open, a carried record whose carrying intent stands escalated, a false closing, a write-ownership finding (Reconciliation 32, Reconciliation 33, Reconciliation 35).
+Check 7.2: An auditor MUST clear Recoverable Invocation's Generation acceptance over the Recoverable Invocation instance (Composes 5).
 ```
 
 Term sharing record: a capability record, a disclosure record, an audit event or an index entry.
-
-Term revocation triage: four cases for a revocation intent with no outcome — the capability revoked and no revocation event names the token, owing a compensating event; the capability revoked and another invocation's revocation event names the token, owing nothing; the capability present and not revoked, owing nothing; no capability record for the token, owing nothing.
 
 NOTE: EVERY check names the rule the check tests.
 
@@ -591,10 +737,11 @@ External check 1: An auditor needing the redeemer's identity MUST read an identi
 External check 2: An auditor needing the declared authority confirmed as legally valid MUST read the authority's own records (Non-goal 4).
 External check 3: An auditor needing the delivered bytes confirmed against the disclosed scope MUST read the host's delivery records (Non-goal 3).
 External check 4: An auditor needing the allocator's permission to share confirmed MUST read the composed Permissions instance's records (Non-goal 5).
-External check 5: An auditor needing the compensation window, the reconciliation cadence AND the reconciliation run bound confirmed MUST read the deployment's own configuration (Capability requirement 7 and Capability requirement 20).
+External check 5: An auditor needing the closure window, the sweep cadence, the run bound AND the three completion bounds confirmed MUST clear Recoverable Invocation Check 4.1 AND Recoverable Invocation External check 3 over the instance (Capability requirement 25, Capability requirement 30).
 Deleted: External check 6. Execution Contract Database 3 owns it.
 External check 7: An auditor needing the exclusivity of the Capability instance AND the Selective Disclosure instance confirmed MUST read the deployment's own wiring (Composes 8 and Composes 11).
 External check 8: An auditor needing a constituent's own guarantee confirmed MUST read the constituent's own acceptance (Composes 5).
+External check 9: An auditor needing the obligation of Capability requirement 22 AND Capability requirement 23 confirmed MUST clear the obligation from external evidence (Recoverable Invocation External check 12).
 ```
 
 ---
@@ -610,6 +757,8 @@ Non-goal 5: The composition MUST NOT authorize an allocator.
 Non-goal 6: A deployment needing an authorized allocator MUST compose Permissions ahead of [Authorize Sharing].
 Non-goal 7: The composition MUST NOT record a read of the sharing history.
 Non-goal 8: The composition MUST NOT deliver a capability token.
+Non-goal 9: The composition MUST NOT describe the three commits of a sharing action as atomic (Recoverable Invocation Non-goal 1).
+Non-goal 10: The composition MUST NOT own a re-entry arm beyond Capability's own already-terminal refusal (Recoverable Invocation Non-goal 4).
 ```
 
 NOTE: the owners — [Permissions](../atoms/permissions.md) and [Session](../atoms/session.md), an identity-keyed access model (Non-goal 1, Non-goal 2, External check 1); [Permissions](../atoms/permissions.md) (Non-goal 5, Non-goal 6, External check 4); a composing access-log pattern (Non-goal 7); the deployment (Non-goal 8).
@@ -631,7 +780,7 @@ Deleted: Atomic writes 3. Execution Contract Database 1 owns it.
 ```
 Clock semantics 1: The composition MUST order a sharing event by the substrate's sequence number alone.
 Clock semantics 2: The composition MUST NOT compare a composition reading against the substrate's recording instant.
-Clock semantics 3: The composition MUST NOT compare the disclosure reading against the disclosure record's disclosure instant.
+Deleted: Clock semantics 3. Capability requirement 22 and Term disclosure probe own it, reversed: the disclosure reading is the disclosure record's disclosure instant, and the probe compares them by equality.
 ```
 
 Term composition reading: an allocation reading, a disclosure reading or a revocation reading.
@@ -647,64 +796,68 @@ Deleted: Concurrency 2. Execution Contract Database 2 owns it.
 
 ### Cross-record consistency under partial failure
 
-The orphan states a partial failure leaves between the records — an allocated capability with no authorization event, a pending marker, a remainder, an unmatched disclosure intent, an authorization intent with no authorization event — are Term partial's and the reconciliation closes them (Reconciliation 9 through 28); the records an action keeps as evidence of a refused call stay committed (Execution Contract Database 1).
+```
+Cross-record consistency 1: IF a sharing action's commit commits AND the invocation's close does not land THEN the record MUST carry an open intent, closed by the sweep within the closure window.
+```
+
+This is Recoverable Invocation's Cross-record consistency for the three act kinds, which the sweep closes: the capability, the revocation or the disclosure record is carried, its carrying intent open until the sweep's committed probe writes the outcome, and the records are honest throughout — a redemption reads the capability's state from Capability, and a disclosure's pending entry stands from its transaction. The records an action keeps as evidence of a refused call — its intent and its refusal record — stay committed (Recoverable Invocation commit 3).
 
 ### Multi-use capabilities
 
-A capability allowing more than one redemption produces one disclosure record and one disclosure event per redemption, each bound independently (Invariant 2 holds per redemption), all attributed to the same allocator (Invariant 1), all under the same authorized scope (Invariant 4). The redemption envelope bounds the count; the asymmetry holds across every redemption.
+A capability allowing more than one redemption produces one disclosure record and one disclosure event per redemption, each bound independently (Invariant 2 holds per redemption), all attributed to the same allocator (Invariant 1), all under the same authorized scope (Invariant 4). The redemption envelope bounds the count; the asymmetry holds across every redemption. Its redemptions share one disclosure key, so they take the critical section in turn: a redemption presented while another of the share stands open answers act-in-flight (Term disclosure key).
 
 ### Substrate partials
 
-The substrate has durable partials of its own — an orphan attestation where its append failed after its attestation committed, and an unretained event where its retention placement failed after its append. They are Audit Trail's, found and closed by its own reconciliation, and this composition's leg does not compensate them (Reconciliation 26). What this composition sees of them is the step on the refusal: an invalid-request at the substrate's retention step means the event is in the log and is read back as landed (Audit arm 21 and Audit arm 4).
+The substrate has durable partials of its own — an orphan attestation where its append failed after its attestation committed, and an unretained event where its retention placement failed after its append. They are Audit Trail's, found and closed by its own reconciliation, and this composition's leg writes no event, so it compensates none of them (Composes 6). What this composition sees of them is the step on the refusal: an invalid-request at the substrate's retention step means the event is in the log and is read back as landed (Recoverable Invocation Primitive policy 27, Recoverable Invocation Primitive policy 28).
+
+---
+
+## Composition notes
+
+**Recoverable Invocation.** The three acting actions follow [Recoverable Invocation](./recoverable-invocation.md) around their constituent writes (Composes 16 through 20): an intent before the commit, the one outcome as the close, a refusal record where Capability or Selective Disclosure refuses, the act's critical section over them, and a sweep and an operator's invocation resolve for what an invocation left open. The page binds the three act kinds once (Term sharing bindings) and restates none of the protocol. [Sharing Disclosures] and [Authorization Provenance] are not bound (Composes 19): each writes nothing, so nothing outlives the invocation.
+
+**A recovered authorization does not authorize.** The authorization event is the allocator's attestation, the thing no one else can produce. An authorization outcome the sweep recovered, or an operator wrote, carries the recovery flag and the recovery identity's or the operator's attestation, so the capability-to-sharing index does not bind it (Composition state 6) and the token stays unattested: refused not-authorized-sharing ahead of the redeem, and lapsing at its ttl. The allocator, told recording-failure(outcome), never held the token.
+
+**Recoverable Invocation's commit is one call.** Recoverable Invocation's bound commit is one constituent call whose arms the constituent partitions; the disclosure transaction is two constituent calls and an index write in one database transaction (Term disclosure transaction), whose partition belongs to the transaction. Recoverable Invocation's closed list of deviations has no entry for it, and the page treats the transaction as the commit and records the mismatch as an open line (Recoverable Invocation Deviation 2), as Chain of Custody and Propagate Consent Revocation Downstream do. One more reading is carried to Recoverable Invocation's next revision as evidence, not as a finding against this page: its Term pairing datum reads a seam-injected now as passed into the commit, while Capability's allocate and revoke take no instant and the host injects it at Capability's seam (Capability requirement 22).
 
 ---
 ## Terms
 
-Each `[Term]` marker above links to its term entry here; a term entry states what the concept *is*, in plain English, and its **Kind**, and — for a Field, a Parameter or a wire Member — carries the one **Projection** line where the concrete name stays visible on the page. The composition's own concepts are the five actions it exposes, the audit events it records, the two descriptor fields it interprets from a capability's scope, and its own refusals. The audit-subject asymmetry itself is a structural guarantee (Invariant 1), not a datum — there is no redeemer field to carry an entry. The deployment settings keep their wire spellings in configuration — `sharing_scope_grammar`, `application_actor_ref`, `application_credential`, `audit_trail_retention_policy`, `default_capability_ttl`, `default_max_redemptions`, `compensation_window`, `reconciliation_cadence`, `reconciliation_run_bound` — and the two indexes theirs in an implementation, `capability_to_sharing` and `disclosure_to_redemption`; the page names each in English where it declares it. *(annotation.md Terms registry; representational only — it changes no guarantee, invariant, or behavior of the composition above.)*
+Each `[Term]` marker above links to its term entry here; a term entry states what the concept *is*, in plain English, and its **Kind**, and — for a Field, a Parameter or a wire Member — carries the one **Projection** line where the concrete name stays visible on the page. The composition's own concepts are the five actions it exposes, the audit events it records, the two descriptor fields it interprets from a capability's scope, and its own refusals. The audit-subject asymmetry itself is a structural guarantee (Invariant 1), not a datum — there is no redeemer field to carry an entry. The deployment settings keep their wire spellings in configuration — `sharing_scope_grammar`, `application_actor_ref`, `application_credential`, `recovery_identity`, `audit_trail_retention_policy`, `default_capability_ttl`, `default_max_redemptions`, `authorization_completion_bound`, `redemption_completion_bound`, `revocation_completion_bound`, and the Recoverable Invocation instance's own settings under the names that page gives them — and the two indexes theirs in an implementation, `capability_to_sharing` and `disclosure_to_redemption`; the page names each in English where it declares it. *(annotation.md Terms registry; representational only — it changes no guarantee, invariant, or behavior of the composition above.)*
 
 ### Vocabulary
 
-Term actors: the composition; the constituents; the substrate; the host; the reconciliation; a deployment; an auditor; a caller; an allocator; a revoker; a bearer; an operator; an invocation; an action; a read-only query; an intent record; an outcome record; a validated authorization; an admitted authorization; an allocating authorization; an attested authorization; an admitted redemption; a consuming redemption; a disclosing redemption; a sealed redemption; a validated revocation; an admitted revocation; a revoking revocation; a landed revocation; a refused allocate; a refusal; the landing read; an authorization intent; an authorization event; a disclosure intent; a disclosure event; a refusal event; an unfulfilled event; a revocation intent; a revocation event; a recovery intent; an abandonment event; a compensating event; a compensating disclosure event; a compensating revocation event; a pending marker; a partial; an overdue partial; a capability; a capability record; a disclosure record; a capability-to-sharing entry; a disclosure-to-redemption entry; the capability-to-sharing index; the disclosure-to-redemption index; the sharing scope grammar; the service identity; the longest disclosure-accounting obligation; the reconciliation cadence.
+Term actors: the composition; the constituents; the substrate; the host; the reconciliation; Recoverable Invocation's sweep; a deployment; an auditor; a caller; an allocator; a revoker; a bearer; an operator; an invocation; an action; a sharing action; a read-only query; an intent record; an outcome record; a refusal record; a validated authorization; an admitted authorization; an allocating authorization; an attested authorization; a resolved redemption; an admitted redemption; a consuming redemption; a disclosing redemption; a sealed redemption; a validated revocation; an admitted revocation; a revoking revocation; a landed revocation; a refusal; an authorization intent; an authorization event; a disclosure intent; a disclosure event; a revocation intent; a revocation event; a pending marker; a capability; a capability record; a disclosure record; a capability-to-sharing entry; a disclosure-to-redemption entry; the capability-to-sharing index; the disclosure-to-redemption index; the sharing scope grammar; the redemption identity; the recovery identity; the longest disclosure-accounting obligation.
 
-Term records: the intent records, outcome records and reconciliation records the composition writes through the substrate — each an Audit Trail event carrying one event type below — and the two index entries.
+Term records: the intent records, outcome records and refusal records Recoverable Invocation writes for the three sharing actions through the substrate — each an Audit Trail event carrying one event type below, with the recovery intents, abandonments and escalations Recoverable Invocation derives from the three kinds — the capability and disclosure records the sharing actions write, and the two index entries.
 
-Term record verbs: serve, change, inherit, read, hold, answer, make, select, query, store, key, carry, write, rebuild, set, declare, provision, rotate, configure, refuse, supply, take, pass, mint, validate, parse, compare, normalize, accept, persist, proceed, retry, re-run, match, alert, call, record, attest, attach, fabricate, run, re-derive, seal, name, revoke, escalate, compensate, follow, stand, reach, find, verify, enumerate, anchor, join, classify, measure, identify, compose, deliver, adjudicate, authorize, order, resolve, land.
+Term record verbs: serve, change, inherit, read, hold, answer, make, select, query, store, key, carry, write, rebuild, set, declare, provision, rotate, configure, refuse, supply, take, pass, mint, validate, parse, compare, normalize, accept, persist, retry, re-run, match, alert, call, record, attest, attach, fabricate, run, re-derive, seal, name, revoke, escalate, compensate, follow, stand, reach, find, verify, enumerate, anchor, join, classify, measure, identify, compose, deliver, adjudicate, authorize, order, resolve, land, bind, close, commit, open, inject, disclose, examine, decide, describe, own, remove, start, clear, yield.
 
-Term value sets: event type = sharing.authorization_intended | sharing.authorized | sharing.disclosure_intended | sharing.disclosed | sharing.disclosure_refused | sharing.redemption_unfulfilled | sharing.revocation_intended | sharing.revoked | sharing.recovery_intended | sharing.intent_abandoned. The rest are declared where the section that owns each declares it: seal marker, position, foreclosed disclosure refusal, candidate reading.
+Term value sets: event type = sharing.authorize.intended | sharing.authorize.authorized | sharing.authorize.refused | sharing.disclosure.intended | sharing.disclosure.disclosed | sharing.disclosure.refused | sharing.revocation.intended | sharing.revocation.revoked | sharing.revocation.refused, with the references Recoverable Invocation derives under each kind. finding = write-ownership. The rest are declared where the section that owns each declares it: act kind, seal marker, position, foreclosed disclosure refusal.
 
-Term bounds: compensation window (compensation_window), audit horizon (audit_trail_retention_policy), reconciliation run bound (reconciliation_run_bound), descriptor cap, default max redemptions (default_max_redemptions).
+Term bounds: audit horizon (audit_trail_retention_policy), authorization completion bound (authorization_completion_bound), redemption completion bound (redemption_completion_bound), revocation completion bound (revocation_completion_bound), reconciliation run bound (Recoverable Invocation's run bound), clock offset allowance (Recoverable Invocation's clock allowance), intent candidates cap (Recoverable Invocation's intent candidates cap), commit round trip, probe round trip, settling period, descriptor cap, default max redemptions (default_max_redemptions).
 
-Term cadences: reconciliation cadence (reconciliation_cadence).
+Term cadences: Recoverable Invocation's sweep cadence.
 
 Term qualifiers: migrated — rewritten in GRACE lang v0.61 (2026-09-23).
 
-Term terms: composition, constituents, substrate, trail, capability-to-sharing index, disclosure-to-redemption index, seal marker, pending marker, allocation reading, disclosure reading, intended recipient, disclosed scope, sharing scope grammar, sharing descriptor, service identity, audit horizon, longest disclosure-accounting obligation, default max redemptions, compensation window, reconciliation cadence, reconciliation run bound, escalation reach, invocation id, out-of-bounds envelope, revocation input, required descriptor field, descriptor cap, landing read, intent record, outcome record, position, orphan reference, human-attested outcome record, service-attested record, authorization result, disclosure result, revocation result, disclosure history, provenance, validated authorization, admitted authorization, allocating authorization, attested authorization, effective max redemptions, effective ttl, unparsed scope, unattested token, diverged entry, irreconcilable token, admitted redemption, diverged redemption, consuming redemption, foreclosed disclosure refusal, disclosing redemption, sealed redemption, validated revocation, admitted revocation, revoking revocation, landed revocation, revocation reading, reconciliation, recovery intent, direction, intent reference, recovery flag, reconciliation revocation reason, consumed count, remainder, pairing window, candidate reading, partial, unmatched disclosure intent, overdue partial, aged event, substrate partial, settled capability, sharing record, revocation triage, composition reading, authority's own records, authorization intent, authorization event, disclosure intent, disclosure event, refusal event, unfulfilled event, revocation intent, revocation event, abandonment event, closing record, compensating event, redeemer identity, conformance fault, allocation, revocation, consumed use.
+Term terms: composition, constituents, transitive atoms, substrate, trail, sharing action, act kind, sharing bindings, authorization key, disclosure key, disclosure transaction, commit partition, authorization probe, disclosure probe, revocation probe, capability-to-sharing index, disclosure-to-redemption index, seal marker, pending marker, allocation reading, disclosure reading, intended recipient, disclosed scope, seal alert, duplicate-authorization alert, sharing scope grammar, sharing descriptor, redemption identity, recovery identity, audit horizon, longest disclosure-accounting obligation, default max redemptions, authorization completion bound, redemption completion bound, revocation completion bound, required setting, constituent record, reconciliation run bound, intent candidates cap, clock offset allowance, invocation id, commit round trip, probe round trip, settling period, out-of-bounds envelope, revocation input, required descriptor field, descriptor cap, intent record, outcome record, refusal record, position, recovery flag, human-attested record, service-attested record, authorization result, disclosure result, revocation result, disclosure history, provenance, validated authorization, admitted authorization, allocating authorization, attested authorization, effective max redemptions, effective ttl, unparsed scope, unattested token, diverged entry, irreconcilable token, resolved redemption, admitted redemption, diverged redemption, consuming redemption, foreclosed disclosure refusal, disclosing redemption, sealed redemption, validated revocation, admitted revocation, revoking revocation, landed revocation, revocation reading, reconciliation, carried capability, carried revocation, carried disclosure record, carrying intent, young record, aged record, write-ownership finding, false closing, finding surface, consumed count, aged event, substrate partial, sharing record, composition reading, authority's own records, authorization intent, authorization event, disclosure intent, disclosure event, revocation intent, revocation event, redeemer identity, conformance fault, allocation, revocation, consumed use.
 
-Term cited: Execution Contract Conformance 8 — the recursive inheritance of a constituent's guarantees. Execution Contract Logic confinement 7 — the clock's guarantees are the deployment's, which Term aged event and Term overdue partial rely on when they read the substrate's recording instant against now. The section titled Substrate composition invocation in `execution-contract.md` — the substrate relation and its instance topology. The section titled Composition state in `execution-contract.md` — the derived-index, truth-bearing and extraction-pending classifications. Execution Contract Constituent failure 4 — a substrate's recording-failure lands whatever step it carries, as Audit arm 2, 8, 19 and 20 land it at a position. record_action, verify_record, proceed as landed, compliance alert, payload cap, recording instant, event id, action reference: Audit Trail. capability token, allocator reference, scope, max redemptions, remaining redemptions, ttl, default capability ttl, expiry instant, status, lapsed, revoked by reference, revocation reason, redemption failure, filter, now: Capability. disclosure record, disclosure id, subject reference, recipient, authority, authority type, authority types, authority reference, disclosure instant, string cap: Selective Disclosure.
+Term cited: Execution Contract Conformance 8 — the recursive inheritance of a constituent's guarantees. Execution Contract Logic confinement 7 — the clock's guarantees are the deployment's, which Term aged event, Term young record and Term aged record rely on when they read an instant against now. Execution Contract Read 1 — a failed read answers state-unavailable. The section titled Substrate composition invocation in `execution-contract.md` — the substrate relation and its instance topology. The section titled Composition state in `execution-contract.md` — the derived-index and extraction-pending classifications. The section titled Compositions of compositions in `spec-format.md` — the transitive atoms. record_action, verify_record, compliance alert, payload cap, recording instant, event id, action reference, invalid-credential, invalid-request, recording-failure: Audit Trail. capability token, allocator reference, scope, max redemptions, remaining redemptions, ttl, default capability ttl, allocation instant, expiry instant, revocation instant, status, lapsed, revoked by reference, revocation reason, redemption failure, filter, already-terminal, not-known, storage-failure, now: Capability. disclosure record, disclosure id, subject reference, recipient, authority, authority type, authority types, authority reference, disclosure instant, disclosed_at, string cap, unknown-authority-type, invalid-query: Selective Disclosure. open, close, refuse, yield, resolve, sweep, act key, pairing datum, act probe, commit, repeatable, journal, service identity, outcome envelope, invocation completion bound, closure window, sweep cadence, run bound, clock allowance, examine window end, reference length cap, act-in-flight, section-unavailable, journal-unavailable, already-accounted, act-landed, recovery, acting actor reference, resolving actor, act section, compliance surface, run id, operator run id: Recoverable Invocation. Lease: reached through Recoverable Invocation.
 
-Term composing patterns: [Owed Record](../atoms/owed-record.md); [Erasure Tombstone](../atoms/erasure-tombstone.md); Trusted Timestamping *(forthcoming)*; [Permissions](../atoms/permissions.md); [Session](../atoms/session.md).
+Term composing patterns: [Erasure Tombstone](../atoms/erasure-tombstone.md); Trusted Timestamping *(forthcoming)*; [Permissions](../atoms/permissions.md); [Session](../atoms/session.md); [Immutable Ledger](./immutable-ledger.md).
 
-Term authorization intent: the sharing.authorization_intended event — a [Sharing Authorization Intended].
+Term authorization intent: the sharing.authorize.intended event — a [Sharing Authorization Intended].
 
-Term authorization event: the sharing.authorized event — a [Sharing Authorized].
+Term authorization event: the sharing.authorize.authorized event — a [Sharing Authorized].
 
-Term disclosure intent: the sharing.disclosure_intended event — a [Sharing Disclosure Intended].
+Term disclosure intent: the sharing.disclosure.intended event — a [Sharing Disclosure Intended].
 
-Term disclosure event: the sharing.disclosed event — a [Sharing Disclosed].
+Term disclosure event: the sharing.disclosure.disclosed event — a [Sharing Disclosed].
 
-Term refusal event: the sharing.disclosure_refused event — the record that closes a disclosure intent whose redemption Capability answered invalid.
+Term revocation intent: the sharing.revocation.intended event — a [Sharing Revocation Intended].
 
-Term unfulfilled event: the sharing.redemption_unfulfilled event — the record of a consumed use whose disclosure did not commit.
-
-Term revocation intent: the sharing.revocation_intended event — a [Sharing Revocation Intended].
-
-Term revocation event: the sharing.revoked event — a [Sharing Revoked].
-
-Term closing record: an authorization event or an abandonment event naming an authorization intent.
-
-Term abandonment event: the sharing.intent_abandoned event — the reconciliation's record, naming the intent it closes, closing a disclosure intent that consumed nothing, or an authorization intent carrying no authorization event.
-
-Term compensating event: an outcome record the reconciliation writes for a committed act whose own invocation did not record the outcome.
+Term revocation event: the sharing.revocation.revoked event — a [Sharing Revoked].
 
 Term redeemer identity: any value naming who presented a capability token — the one datum this composition never records.
 
@@ -718,19 +871,19 @@ Term consumed use: one redemption Capability's redeem answered redeemed.
 
 #### Authorize Sharing
 
-The allocation-with-attestation action: it parses the sharing descriptor by the sharing scope grammar, records the authorization intent under the allocator's credential — where the credential is verified — allocates a bearer capability whose scope *is* the authorized disclosure, and records the [Sharing Authorized] event under the allocator's own credential: intent, allocation, attestation, index, in that order (Action wiring 1 through 8, Action wiring 10, Action wiring 11, Invariant 3). Answers the authorization result, or [Invalid Sharing Descriptor] for a descriptor the grammar does not parse, leaves a required descriptor field blank, exceeds the descriptor cap or carries a field over Selective Disclosure's string cap (Primitive policy 5, 6 and 9).
+The allocation-with-attestation action: it parses the sharing descriptor by the sharing scope grammar, opens its invocation with the authorization intent under the allocator's credential — where the credential is verified — allocates a bearer capability whose scope *is* the authorized disclosure, and closes with the [Sharing Authorized] event under the allocator's own credential: intent, allocation, attestation, index, in that order (Action wiring 2 through 11, Invariant 3). Answers the authorization result, or [Invalid Sharing Descriptor] for a descriptor the grammar does not parse, leaves a required descriptor field blank, exceeds the descriptor cap, carries a field over Selective Disclosure's string cap or gives a key over the reference length cap (Primitive policy 5, 6, 9, 15 and 17), or recording-failure(outcome), carrying no token, where the attestation did not land.
 
 Kind: Operation
 
 #### Redeem And Disclose
 
-The load-bearing emergent action: it resolves the descriptor, records the disclosure intent, redeems the capability **by possession alone**, commits a disclosure record with its pending marker, and seals the [Sharing Disclosed] event, in one transaction (Action wiring 12 through 32, Action wiring 34 through 36, Action wiring 38, Invariant 2). Answers the disclosure result, or the constituent's invalid carrying the redemption failure for a spent, lapsed, cancelled or unknown token, [Not Authorized Sharing] for a token this composition did not attest, redemption-unfulfilled when the use was consumed and Selective Disclosure refused the record, or storage-failure when a write fails and nothing commits. Records the allocator, never the redeemer (Invariant 1).
+The load-bearing emergent action: it resolves the descriptor, opens its invocation with the disclosure intent, redeems the capability **by possession alone** and commits a disclosure record with its pending marker in one transaction, and closes with the [Sharing Disclosed] event (Action wiring 12 through 32, Action wiring 35, 36, 38, 59, Invariant 2). Answers the disclosure result, or the constituent's invalid carrying the redemption failure for a spent, lapsed, cancelled or unknown token, [Not Authorized Sharing] for a token this composition did not attest, Selective Disclosure's own code where it refused the record and nothing was consumed, storage-failure when a write fails and nothing commits, or recording-failure(outcome), carrying no disclosure id, where the seal did not land. Records the allocator, never the redeemer (Invariant 1).
 
 Kind: Operation
 
 #### Revoke Sharing
 
-The revocation action: it records a [Sharing Revocation Intended] event — where the revoker's credential is verified — closes the sharing capability early through Capability's revoke, and records a [Sharing Revoked] event under the revoker's credential (Action wiring 39 through 48). Later redemptions of the token answer invalid carrying revoked and disclose nothing.
+The revocation action: it opens its invocation with a [Sharing Revocation Intended] event — where the revoker's credential is verified — closes the sharing capability early through Capability's revoke, and closes with a [Sharing Revoked] event under the revoker's credential (Action wiring 40 through 48). Later redemptions of the token answer invalid carrying revoked and disclose nothing.
 
 Kind: Operation
 
@@ -748,57 +901,57 @@ Kind: Operation
 
 #### Sharing Authorized
 
-The Audit Trail event recorded at [Authorize Sharing], **attested under the allocator's own credential** — the allocator's non-repudiable commitment that they authorized this share (Invariant 3.3). The authorization half of the audit-subject asymmetry.
+The Audit Trail event the invocation close records at [Authorize Sharing], **attested under the allocator's own credential** — the allocator's non-repudiable commitment that they authorized this share (Invariant 3.3). The authorization half of the audit-subject asymmetry. One the sweep recovers or an operator writes carries the recovery flag and authorizes nothing (Composition state 6).
 
 Kind:       Member
 Member of:  the sharing event kinds
 Role:       Audit event kind (allocator-attested)
-Projection: sharing.authorized
+Projection: sharing.authorize.authorized
 
 #### Sharing Disclosed
 
-The Audit Trail event recorded at each [Redeem And Disclose] once Selective Disclosure records the disclosure, **attested under the service identity** — the allocator is absent and the bearer has no credential; it names the allocator reference and carries **no redeemer identity** (Invariant 1). The disclosure half of the asymmetry.
+The Audit Trail event the invocation close records at each [Redeem And Disclose] once the disclosure transaction commits, **attested under the redemption identity** — the allocator is absent and the bearer has no credential; it names the allocator reference and carries **no redeemer identity** (Invariant 1). The disclosure half of the asymmetry. One the sweep recovers is attested under the recovery identity, carries the recovery flag, and names the allocator Capability's read answers.
 
 Kind:       Member
 Member of:  the sharing event kinds
 Role:       Audit event kind (service-attested)
-Projection: sharing.disclosed
+Projection: sharing.disclosure.disclosed
 
 #### Sharing Authorization Intended
 
-The Audit Trail event [Authorize Sharing] records **before** it allocates, under the allocator's credential — what makes it provable that authentication preceded the allocation (Invariant 6.1). It deliberately carries **no capability token**, none existing when it is written; one with no [Sharing Authorized] event names an invocation that committed nothing, or the orphan the reconciliation pairs it to.
+The Audit Trail event the invocation open records for [Authorize Sharing] **before** it allocates, under the allocator's credential — what makes it provable that authentication preceded the allocation (Recoverable Invocation Invariant 1.1). It deliberately carries **no capability token**, none existing when it is written; one with no [Sharing Authorized] event stands open for the sweep, which closes it from the capability its pairing datum finds or escalates it.
 
 Kind:       Member
 Member of:  the sharing event kinds
 Role:       Audit event kind (intent, allocator-attested)
-Projection: sharing.authorization_intended
+Projection: sharing.authorize.intended
 
 #### Sharing Disclosure Intended
 
-The Audit Trail event [Redeem And Disclose] records **before** the redemption, under the service identity, carrying no redeemer identity. **A recovery marker, not an authentication record** (Action wiring 24): it is trail-resident, so a consumed use whose disclosure or seal did not land can be reconciled from the trail rather than from this composition's derived state, and it carries no disclosure id, so no seal is ever built from it alone (Reconciliation 12).
+The Audit Trail event the invocation open records for [Redeem And Disclose] **before** the disclosure transaction, under the redemption identity, carrying no redeemer identity. **Recoverable Invocation's intent, not an authentication record** (Action wiring 24): it is trail-resident, so a disclosure whose seal did not land is closed from the trail and the disclosure record its pairing datum finds rather than from this composition's derived state, and it carries no disclosure id, so no seal is built from it alone (Recoverable Invocation act probe 6).
 
 Kind:       Member
 Member of:  the sharing event kinds
 Role:       Audit event kind (intent, service-attested)
-Projection: sharing.disclosure_intended
+Projection: sharing.disclosure.intended
 
 #### Sharing Revocation Intended
 
-The Audit Trail event [Revoke Sharing] records **before** Capability's revoke, naming the token it is about to cancel, under the revoker's credential — a live sharing is never cancelled on an unverified claim (Invariant 6.2). Because it names the token, one with no [Sharing Revoked] event is classified directly against that capability's state (Check 5.4).
+The Audit Trail event the invocation open records for [Revoke Sharing] **before** Capability's revoke, naming the token it is about to cancel, under the revoker's credential — a live sharing is never cancelled on an unverified claim (Recoverable Invocation Invariant 1.1). Because it names the token and carries its pairing datum, one with no [Sharing Revoked] event is closed by the revocation probe against that capability's state (Term revocation probe).
 
 Kind:       Member
 Member of:  the sharing event kinds
 Role:       Audit event kind (intent, revoker-attested)
-Projection: sharing.revocation_intended
+Projection: sharing.revocation.intended
 
 #### Sharing Revoked
 
-The Audit Trail event recorded at [Revoke Sharing] after the capability is revoked, **attested under the revoker's own credential** and carrying the intent event id of its [Sharing Revocation Intended] event; a compensating one is attested under the service identity and carries the capability record's revoked by reference, the revoker's or, where the reconciliation revoked, the service identity's (Reconciliation 21).
+The Audit Trail event the invocation close records at [Revoke Sharing] after the capability is revoked, **attested under the revoker's own credential** and carrying the intent event id of its [Sharing Revocation Intended] event; one the sweep recovers is attested under the recovery identity, carries the recovery flag, and carries the capability record's revoked by reference (Term revocation probe).
 
 Kind:       Member
 Member of:  the sharing event kinds
 Role:       Audit event kind (revoker-attested)
-Projection: sharing.revoked
+Projection: sharing.revocation.revoked
 
 #### Intended Recipient
 
@@ -820,7 +973,7 @@ Projection: disclosed_scope
 
 #### Invalid Sharing Descriptor
 
-The composition's own refusal from [Authorize Sharing] for a descriptor the grammar does not parse, one leaving a required field blank, or one too long for the payload the events must carry, or carrying a field over Selective Disclosure's string cap (Primitive policy 5, 6 and 9). The share is refused before a capability is allocated.
+The composition's own refusal from [Authorize Sharing] for a descriptor the grammar does not parse, one leaving a required field blank, one too long for the payload the events must carry, one carrying a field over Selective Disclosure's string cap, or one whose keys exceed Recoverable Invocation's reference length cap (Primitive policy 5, 6, 9, 15 and 17). The share is refused before a capability is allocated.
 
 Kind:       Member
 Member of:  the authorize-sharing refusal
@@ -877,26 +1030,22 @@ Capability-Backed Sharing inherits the broader standards compliance of its const
 
 ## Status
 
-`grounded on Final Critique 13 — 2026-11-06 at be596ef` — see the Ledger.
+`partially resolved` — see the Ledger.
 
 ## Ledger
 
 ```
-status: grounded on Final Critique 13 — 2026-11-06 at be596ef
-formal: verified — capability-backed-sharing.tla + 2 twins; coverage 2026-11-10 (unit formal: more coverage for the yes votes): owes Alloy (the static data model); owed rows: Invariant 1.1; Invariant 1.3; Invariant 1.4; Invariant 2.4; Invariant 3.1; Invariant 3.2; Invariant 3.3; Invariant 3.4; and 3 more in tools/harness/coverage/owed-2026-11-10.md; 2a: Invariant 2.4 and 3.4 — owed: 2.4 and 3.4 as invariants under a window counter, and the eventual sealing of every unsealed marker as a PROPERTY with weak fairness on the seal stated in the header (twin: a seal that never fires); Capability requirement 21 stays, a deployment duty (c), 2026-08-27
+status: partially resolved
+formal: verified — capability-backed-sharing.tla + 11 twins + 8 reachability probes, re-derived 2026-11-10 over the split arc (each sharing action an open, a commit and a close; [Redeem And Disclose]'s resolution read and the capability-to-sharing index's rule ahead of the open, its commit the disclosure transaction), against Recoverable Invocation's contracts (the sweep's closing by this page's authorization, disclosure and revocation probes, the escalation, an operator's resolve unchecked against the constituents), with an allocation, a revocation or a disclosure record written outside every invocation, the write-ownership leg and the two rebuilds' alerts; one model under TLC, 88,044 states (two tokens, one use each, three invocations, one outside write); Invariant 2.1, 2.3, 3.1, 3.3, 3.5, 4.2, the probes' pairing datum (Capability requirement 22, 23), the write-ownership finding (Reconciliation 32 through 34), the false-closing alert (Reconciliation 35), the seal alert and the duplicate-authorization alert (Composition state 17, 18), each broken by a twin alone; the allocation half the 2026-08-27 model left out is in it; Invariant 2.4, 2.5, 3.4, 6.1 and 6.2 inherited from Recoverable Invocation (Invariant 4.2, Instance start 4 through 8, Invariant 1.1); not modelled: Recoverable Invocation's mechanism and the clock (ttl, the young and aged records, the closure window, the sweep cadence, the audit horizon), the fields (Invariant 1.1, 1.3, 1.4, 4.1), validation ahead of the open but the unattested token; coverage 2026-11-10: owes Alloy (the static data model); owed rows: Invariant 1.1; Invariant 1.3; Invariant 1.4; Invariant 4.1, 2026-11-10
 last gate: 2026-11-06 — Final Critique 13, a delta round, frozen at be596ef — foundational count 0, clean, one sample; 2026-11-06 — Final Critique 12, full — foundational count 3 (a descriptor field over Selective Disclosure's string cap, an aged token's provenance and rebuild, the reconciliation's run bound), not clean, no sample
 
 open:
-- 2026-08-29-r · refining · formal · the model's compensation carries no identity, no recovery record, and no age bound; the twins predate the scan's horizon edge → extend the model with the service-identity compensation behind `sharing.recovery_intended` and the scan's horizon edge
 - 2026-10-27-a · refining · Invariant 1.3 · Selective Disclosure's Term recipient is the party the data reached (its term entry: the party the data was disclosed to), and the composition records the intended recipient, whom a bearer's redemption need not reach → Selective Disclosure decides what its recipient carries, which this page may not change (Composes 4)
-- 2026-11-05-a · refining · Reconciliation 18, Reconciliation 20 · the revoke and its compensating revocation event land a cadence apart, and no rule names the delay → decide whether one run records both
-- 2026-11-05-c · refining · Check 6.4, Check 6.1, Check 3.1, Invariant 3.4, Term compensation window · Check 6.4 accepts an escalated capability that Invariant 3.4 does not count as settled, Check 6.1 accepts an escalated pending marker with no record in Term records that carries the escalation, Check 3.1 asks an auditor to resolve an aged intent's candidates whose actor may be destroyed, and Term compensation window, Invariant 3.4, Check 6.1 and Check 6.4 read an escalation or a settlement at the window's edge where Term overdue partial and Reconciliation 23 put it at the first run past the window (Term reconciliation now awaits the escalation at the escalation reach, Final Critique 13) → decide what the term, the invariant and the checks read at the escalation reach
-- 2026-11-05-d · refining · Reconciliation 13, Term remainder · the remainder counts disclosure events with no age bound, so one destroyed past the audit horizon inflates it, and the reconciliation's reads are not one transaction (Execution Contract Database 1 binds an action) → bound the count at the escalation reach and name the read
-- 2026-11-06-b · refining · Reconciliation 17, Term aged event, Term pairing window · the pairing window compares Capability's allocation instant with the substrate's recording instant, and Term aged event compares the substrate's recording instant with now, and neither names a clock offset allowance → decide whether the deployment declares an allowance across the seam
-- 2026-11-06-c · refining · Composes 12, Term cited · the page reads the substrate's events by a sequence range and cites payload cap, recording instant, proceed as landed, compliance alert and action reference as Audit Trail's, none of which Audit Trail's declared surfaces carry (the same Composes 12 stands in Defensible Retention, Actor Suspension, Customer Onboarding and External Onboarding; Login Composes 15 names the Event Log instance) → Audit Trail's declared surfaces decide whether the range read and those terms are declared, then each composition cites them
-- 2026-11-06-d · refining · Action wiring 3, Action wiring 8, Action wiring 36 · the authorization and disclosure events carry the live capability token, so a reader of the trail inside the ttl can redeem it → decide whether the trail's readers are bound (Permissions, Audit Trail's read) or the events carry a digest of the token
+- 2026-11-06-c · refining · Composes 12, Term cited · the page reads the substrate's events by a sequence range and cites payload cap, recording instant, compliance alert and action reference as Audit Trail's, none of which Audit Trail's declared surfaces carry (the same Composes 12 stands in Defensible Retention, Actor Suspension, Customer Onboarding and External Onboarding; Login Composes 15 names the Event Log instance) → Audit Trail's declared surfaces decide whether the range read and those terms are declared, then each composition cites them
+- 2026-11-06-d · refining · Action wiring 8, Action wiring 23, Action wiring 36, Term sharing bindings · the authorization and disclosure events and the disclosure intent carry the live capability token, and the revocation kind's act key is the token, which Recoverable Invocation writes on every record of the kind, keys the Lease by, and names on an act finding, so a reader of the trail, the Lease host or the compliance surface inside the ttl can redeem it; a digest key fails Recoverable Invocation act probe 8, the capability record carrying no digest → decide whether those readers are bound (Permissions, Audit Trail's read, the Lease host, the compliance surface) or the records carry a digest of the token
 - 2026-11-06-e · refining · Invariant 1.4 · the allocator-named claim rests on "the disclosure's events" and no rule names which events must lie inside the audit horizon → name the authorization event and the disclosure event, or the ones the claim reads
-- 2026-11-06-f · refining · Term escalation reach, Term reconciliation, Capability requirement 19, Reconciliation 23 · Term escalation reach names an authorization intent's candidates, and Term reconciliation, Capability requirement 19 and Reconciliation 23 read the reach for every overdue partial, a pending marker's escalation included → decide whether the term names the pending marker's escalation too
+- 2026-11-10-a · refining · Composition notes; Term disclosure transaction · Recoverable Invocation's bound commit is one constituent call, and the disclosure transaction is Capability's redeem, Selective Disclosure's record and the pending entry in one database transaction, a case Recoverable Invocation's closed deviation list does not name (Recoverable Invocation Deviation 2) → carry to Recoverable Invocation's next revision as evidence, or declare it there
+- 2026-11-10-b · refining · Reconciliation 31 through 34, Term carried capability · a capability, a revocation or a disclosure record written before the composition bound its act kinds carries the old vocabulary and no Recoverable Invocation intent, so the leg reads it as no carried record and opens a write-ownership finding for it until it ages past the horizon → decide whether the leg reads from a declared cut-over instant, or the findings stand as the honest reading of records no intent of this protocol carries
 ```
 
 <details markdown="block">
@@ -906,6 +1055,7 @@ open:
 
 Directional changes only — the turns a future reader must know the pattern took, and why. Everything smaller lives in the commit that made it: `git log -- compositions/capability-backed-sharing.md`; the migration that got it here is in [its history](./capability-backed-sharing.hist.md).
 
+- **2026-11-10 — The wait retired: the three sharing actions are three Recoverable Invocation act kinds.** *Chose:* (Scott, 2026-11-09 9:17 PM Central, "A", and 2026-11-10 7:15 AM Central, the wait ruling, "simple DRY"; the map rounds/cbs-ri-map-2026-11-10.md, its directions settled under A, 2026-11-10 7:55 AM Central) the three acting actions each bind one act kind, sharing.authorize keyed by the allocator reference and the encoded descriptor under the minted-key deviation, sharing.disclosure keyed by the descriptor's subject, recipient, scope and authority under the minted-key deviation with the disclosure transaction its commit, sharing.revocation keyed by the token, every kind repeatable (A: act kinds split by the wait, G3, G14); the intent commits at the open and the outcome at the close, so an Audit Trail fault at the outcome leaves an open intent the sweep closes, and a constituent's storage-failure is a pre-commit refusal (A: an audit failure composes rather than committing a partial); a Selective Disclosure refusal fails the disclosure transaction whole, so no use is consumed without its record and the unfulfilled path, the remainder and the unfulfilled event go (A, G6), the refusal answered by Selective Disclosure's own code (Recoverable Invocation commit 3); the invocation's now injected into Capability's seam and Selective Disclosure's seam and passed as disclosed_at, the pairing datum of every kind, so a lost reply closes itself (G2, Capability requirement 22, 23); every acting action's caller-visible codes Recoverable Invocation's, the orphan reference retired, recording-failure(outcome) answered and carrying no token or disclosure id, every Capability refusal leaving a refusal record, the events renamed sharing.<kind>.* with `recovery` for `cascade_recovery` (A: codes change to Recoverable Invocation's, G7); an operator's outcome detected, not prevented, by the seal alert and the duplicate-authorization alert (Composition state 17, 18), with the false-closing alert in the leg (A: detected, not prevented, with an alert, G8; Reconciliation 35); an intent whose invocation died before its commit escalated for an operator in place of the abandonment the reconciliation wrote (A, G9); a capability, a revocation or a disclosure record no intent carries a write-ownership finding (A: a record with no intent becomes a finding, G10; Reconciliation 32 through 34); the leg on Recoverable Invocation's cadence, run and run reading, its enumerations taken at the run's start by Capability's read naming no field and Selective Disclosure's read by disclosure instant range (G11); the mayor's derivable calls taken as the map recommends: a recovered authorization authorizes nothing, the capability-to-sharing index binding only an outcome carrying no recovery flag, so the reconciliation's revoke of an unattested capability goes and the token lapses at its ttl (G1 (ii); Composition state 6, Invariant 3.3, 3.5); a redemption identity for the bearer's invocation and a recovery identity for the sweep, distinct (G5; Capability requirement 2, 3, 26, 27); the act keys under the reference length cap, refused invalid-sharing-descriptor at the allocation that fixes them (G4; Primitive policy 15 through 18); a share's concurrent redemptions serialized by act-in-flight (G4); the pending entry kept, written in the disclosure transaction, and reclassified a derived index, a recovered disclosure outcome naming the allocator Capability's read answers and reaching the token through its intent (G13). Capability requirement 7 through 9, 12, 19 through 21, every live Audit arm rule but 17, Action wiring 1, 3, 7, 25, 27, 30, 34, 39, every live Reconciliation rule but 2, Invariant 2.4, 2.5, 3.4, 6.1, 6.2, Check 3.1, 4.3, 5.1, 5.2, 5.4, 6.1 through 6.4 and Clock semantics 3 tombstoned to what owns them; Composes 16 through 20, Composition state 17 through 20, Capability requirement 22 through 32, Primitive policy 15 through 18, Action wiring 59 through 62, Reconciliation 29 through 38, Invariant 3.5, Check 7.1, 7.2, External check 9, Non-goal 9, 10 and Cross-record consistency 1 new; the closure table drafted. Rules 217 to 189. Open lines 2026-08-29-r, 2026-11-05-a, 2026-11-05-c, 2026-11-05-d, 2026-11-06-b and 2026-11-06-f dissolve with the rules they named; 2026-11-06-d is carried, widened to the Lease host and the compliance surface; 2026-11-10-a and 2026-11-10-b are opened. *Over:* removing the wait by reversing 2026-10-20, so that an Audit Trail refusal of any outcome fails the whole sharing action, which nothing physical forbids here — the host delivers only after a disclosure result — but which would make the substrate's health a precondition of cancelling a live share, Propagate Consent Revocation Downstream's objection to it for a withdrawal; and keeping the page's own reconciliation beside Recoverable Invocation, which would have covered the intent-and-outcome pairing twice. *Because:* the wait was self-made: the 2026-10-20 decision left a committed sharing act with its record owed so an Audit Trail fault never undid a constituent write, and the page then built the pending marker's owed-record role, the pairing of authorization intents within a window, the three-direction reconciliation with its revoke, abandonments and unfulfilled events, the compensation window, its cadence, run bound and escalation reach to close it, which Recoverable Invocation owns; eleven of the seventeen foundational findings of Final Critique 7 through 13 sat in that machinery or in the audit-arm positions Recoverable Invocation's open, close and refuse own. It turns the 2026-10-20 entry's "what closes it stays" and, in part, the 2026-08-29 entry: an unattested capability is no longer recovered by revocation once its allocator is gone, and stays refused instead. *Costs:* a Lease host, the instance's bounds and a sweep; three completion bounds the page never had; every acting action's caller-visible codes; two service identities where the page had one; the pairing rests on a deployment obligation on Capability's and Selective Disclosure's seams; a share's concurrent redemptions answer act-in-flight to all but one; operator work for an intent whose invocation died before its commit, which the reconciliation had closed silently; Invariant 2.1, 2.2, 3.1 and 3.2 fall from prevented to detected against an operator's resolve.
 - **2026-10-20 — The store's guarantees cited, not restated, and a sharing action's writes one transaction.** *Chose:* Capability requirement 18 citing Execution Contract Store 1 through 4 for the store the three constituents and the two indexes keep their records in; the rules restating what that store guarantees tombstoned to it (Composition state 11, 15, External check 6, Atomic writes 1, Concurrency 1, 2); the four that kept the Audit Trail append and Capability's redeem out of the action's transaction, or denied that its writes commit together, which Store 1 as ruled contradicts (Wiring decision 3, 4, Atomic writes 2, 3); and the machinery that existed only because a crash, a split write or an invocation seen between its writes could leave a partial: the reconciliation's run at every process start, its lower edge and the auditor's inconclusive reading below it, the redemption completion bound with the slowest conforming invocation it bounds and the refusal to start without it, the in-invocation retries of the authorization, unfulfilled and disclosure events, the read-back of a recording-failure at the substrate's retention step, which Audit Trail's own rewrite made commit nothing, and an invalid-credential at a human-attested outcome, which the one transaction's read of the actor registry forecloses (Reconciliation 1, 3, Check 6.6, Capability requirement 10, 11, 13, Action wiring 9, 33, 37, Audit arm 3, 5, 18, 9). Rules 236 to 214. *Over:* an Audit Trail append and a Capability redeem no host transaction could enlist, so that each action was ordered across durability boundaries, the disclosure committed first and sealed second, with a process-start run, an in-flight edge and in-invocation retries against what a crash between the writes left. *Because:* the maintainer ruled 2026-10-12 that the corpus takes a store's specification, never the store, and 2026-10-20 that Store 1 binds every store write of one composition action, its constituents' included, while a refused attempt a page keeps as evidence stays a domain choice, written in the same transaction as the refusal. The redeem and the append are store writes, Capability and Audit Trail each supplying theirs under Store 1 through 4, so a sharing action's intent, constituent writes and outcome commit together, and the wiring decision's second half, the ordering, goes. An Audit Trail refusal at an outcome record still leaves the act committed and its record owed (Audit arm 13, 20), as Audit Trail's own refusals leave their evidence (Audit Trail record action step 7.11), so what closes it stays: the pending marker, the disclosure intent a compensating seal is built from, the pairing of authorization intents, the three-direction reconciliation, its window and its escalation. The capability-to-sharing index stays a derived index outside every action's transaction, as obligation 2 of the section titled Composition state in `execution-contract.md` keeps it, so its rebuild-on-miss, the refusal of a token the rebuild finds no entry for and revocation ungated by the index stay; the sealed disclosure-to-redemption entry keeps its named rebuild (Composition state 16), the derivation obligation 1 of that section asks of a derived index. Under Store 1 a Selective Disclosure storage failure fails the whole redemption, so the unfulfilled path answers only a refusal the descriptor's validation forecloses (Action wiring 31, 32), and the disclosure event follows Selective Disclosure's answer inside the one transaction (Action wiring 36). Sharing events are ordered by the substrate's sequence numbers and no rule reads a record as it stood at a past commit, so the composition cites neither Store 5 nor Order 1. What the composition does for its domain is unchanged.
 - **2026-08-29 — The scan is bounded at both edges, writes as the composition behind a recovery record, and an attestation nobody can re-derive is not re-emitted.** *Chose:* a declared `redemption_completion_bound` below which no direction of the scan examines anything, with the audit horizon above (a marker still pending there is escalated, never sealed); every scan write attested under the service identity behind a `sharing.recovery_intended` record, the revoker carried as `revoked_by` on a compensated [Sharing Revoked]; an unattested capability recovered by attestation only inside the invocation that holds the allocator's credential and by revocation once it is gone; every intent-record transcription carrying `recording-failure(step)` and [Revoke Sharing]'s outcome arms enumerated; `index_durability` declared and the two window knobs moved into Configuration; and a stale duplicate step 3 of [Redeem And Disclose] — the pre-repair wiring, which still described the decrement rolling back with a transaction — deleted. *Over:* an unbounded scan under an unnamed identity, and "retry the attestation" as a crash recovery. *Because:* an unbounded scan seals beside the seal an in-flight invocation is about to append and lands redemption-unfulfilled for a use whose disclosure is about to commit; a compensation the absent actor did not make cannot be attested as theirs; and an attestation under the allocator's credential is precisely the thing no one else can produce (the frozen rules of 2026-08-29 — *A reconciliation is bounded at both ends*, *Recovery commits under a declared service identity*, *A transcribed rejection arm keeps its payload*).
 - **2026-08-29 — The redemption is irreversible, the intent precedes it, and the third partial is landed rather than sealed.** *Chose:* [Redeem And Disclose] resolves the descriptor by the instance's declared token read, records intent, then redeems, then commits the disclosure with its marker, then seals; a consumed use with no disclosure is redemption-unfulfilled, never a fabricated seal; the pending marker is truth-bearing under a durability obligation and the only source a seal is written from; the Capability instance is exclusive; the `(step)` payload governs every retry. *Over:* a decrement described as rolling back with the transaction, a reconciliation that sealed every counter shortfall, a shared instance with a "foreign token" reading, and step-less retries. *Because:* Capability declares no enlistment or undo, so the rollback was attributed to a capability the atom does not have; sealing a shortfall appended seals for disclosures that never happened; a shared instance consumed foreign tokens on refusal and convicted them in the counter checks; and a step-less retry duplicated outcome events after a retention-arm failure.

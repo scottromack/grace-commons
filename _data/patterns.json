@@ -304,13 +304,13 @@
    "capability",
    "selective-disclosure"
   ],
-  "grounded": true,
+  "grounded": false,
   "invariants": 5,
   "kind": "composition",
   "models": {
    "als": false,
    "tla": true,
-   "twins": 2
+   "twins": 11
   },
   "regulated": true,
   "standards": [
@@ -322,9 +322,10 @@
    "SEC 17a-4",
    "SOX"
   ],
-  "status": "grounded on Final Critique 13 \u2014 2026-11-06 at be596ef",
+  "status": "partially resolved",
   "substrates": [
-   "audit-trail"
+   "audit-trail",
+   "recoverable-invocation"
   ],
   "title": "Capability-Backed Sharing"
  },
@@ -1320,6 +1321,7 @@
   ],
   "status": "grounded on Final Critique 49 \u2014 2026-11-07 at 1451abf",
   "substrate_of": [
+   "capability-backed-sharing",
    "chain-of-custody",
    "external-onboarding",
    "immutable-ledger",

@@ -66,7 +66,7 @@ constituents reached transitively). This is the load-bearing spine of the librar
 | Substrate | Named by | Composers |
 |---|---|---|
 | [Audit Trail](./compositions/audit-trail.html) | 14 | actor-suspension, capability-backed-sharing, chain-of-custody, customer-onboarding, defensible-retention, execute-gated-workflow, external-onboarding, immutable-ledger, login, multi-party-approval, privileged-access-provisioning, propagate-consent-revocation-downstream, recoverable-invocation, verified-repair |
-| [Recoverable Invocation](./compositions/recoverable-invocation.html) | 5 | chain-of-custody, external-onboarding, immutable-ledger, propagate-consent-revocation-downstream, verified-repair |
+| [Recoverable Invocation](./compositions/recoverable-invocation.html) | 6 | capability-backed-sharing, chain-of-custody, external-onboarding, immutable-ledger, propagate-consent-revocation-downstream, verified-repair |
 | [Defensible Retention](./compositions/defensible-retention.html) | 1 | resolve-a-persons-data-rights |
 | [Multi-Party Approval](./compositions/multi-party-approval.html) | 1 | privileged-access-provisioning |
 
@@ -91,11 +91,12 @@ flowchart LR
   multi_party_approval["Multi-Party Approval · 1"]
   privileged_access_provisioning["Privileged Access Provisioning"]
   propagate_consent_revocation_downstream["Propagate Consent Revocation Downstream"]
-  recoverable_invocation["Recoverable Invocation · 5"]
+  recoverable_invocation["Recoverable Invocation · 6"]
   resolve_a_persons_data_rights["Resolve a Person's Data Rights"]
   verified_repair["Verified Repair"]
   actor_suspension -.-> audit_trail
   capability_backed_sharing -.-> audit_trail
+  capability_backed_sharing -.-> recoverable_invocation
   chain_of_custody -.-> audit_trail
   chain_of_custody -.-> recoverable_invocation
   customer_onboarding -.-> audit_trail
@@ -259,6 +260,7 @@ flowchart LR
   c_shared_todo --> a_assignment
   c_actor_suspension -.-> c_audit_trail
   c_capability_backed_sharing -.-> c_audit_trail
+  c_capability_backed_sharing -.-> c_recoverable_invocation
   c_chain_of_custody -.-> c_audit_trail
   c_chain_of_custody -.-> c_recoverable_invocation
   c_customer_onboarding -.-> c_audit_trail
