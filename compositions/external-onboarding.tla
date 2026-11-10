@@ -1,7 +1,8 @@
 ---- MODULE external-onboarding ----
 \* Grace Commons — External Onboarding composition.
 \* Spec-level formal sibling of compositions/external-onboarding.md.
-\* Grounded on Final Critique 4.
+\* Re-derived 2026-11-10 for the resume arm's retirement: an onboarding is one
+\* Recoverable Invocation act (spec Composes 17 through 19, Term onboarding binding).
 \*
 \* This TLA+ model verifies the five application-level invariants from the
 \* spec under every reachable state interleaving at the chosen bounds. It
@@ -33,11 +34,19 @@
 \* * Credential rotation after onboarding. Outside the composition.
 \* * Background invitation expiry scheduling. Expire is modeled as an
 \*   action available to TLC but the composition does not own its trigger.
-\* * Partial-failure recovery paths (admin intervention after interrupted
-\*   onboarding). Modeled only enough to check Invariant 4 (audit coverage
-\*   for the interrupted event); recovery is outside scope.
+\* * Recoverable Invocation's own protocol: the critical section, the sweep,
+\*   the lease, the examine edge and the horizon. recoverable-invocation.tla
+\*   checks one writer per act, closure of an open intent and the refusal of
+\*   a stale writer; this model keeps only what onboarding adds: the three
+\*   writes commit together or not at all, a refusal leaves the invitation
+\*   pending, and an intent is closed by a completion record or a refusal
+\*   record or is open (the operator's resolve closes it, naming the arc the
+\*   transaction made).
+\* * The onboarding probe, the purge of an old completion record and the
+\*   operator's choice among candidates. The spec states these as detected,
+\*   not prevented (Invariant 4.6, Check 7.3); no model here checks them.
 \* * The Audit Trail's own tamper-evidence properties. The Audit Trail
-\*   substrate is represented as five sets tracking which events have been
+\*   substrate is represented as sets tracking which events have been
 \*   written; its internal hash chain is the Audit Trail composition's
 \*   concern.
 \*
@@ -79,9 +88,9 @@ InvStatuses == {"pending", "accepted", "declined", "revoked", "expired"}
 \*
 \* InvRec tracks the invitation's status and, on a successful onboard, the
 \* party_id and cred_id that were created. These two fields are NULL for
-\* invitations that are pending, declined, revoked, expired, or interrupted
-\* (accepted but enrollment failed). They are non-NULL only when a full
-\* successful Onboard has completed — which is exactly Invariant 5's
+\* invitations that are pending, declined, revoked or expired (a refused arc
+\* leaves the invitation pending). They are non-NULL only when the whole
+\* onboarding transaction has committed — which is exactly Invariant 5's
 \* completeness condition.
 \*
 \* inviter_ref is omitted from InvRec. The inviting actor's identity is
@@ -116,14 +125,17 @@ CredRec ==
 \*   credentials  — the Credential store (CredentialIds -> CredRec | NULL)
 \*
 \* Audit Trail state (simplified — sets of invitation IDs per event type):
-\*   audit_accepted    — invitations whose onboarding.invitation-accepted
-\*                       event has been written (Invariant 4a)
-\*   audit_declined    — invitations whose invitation.declined event has
-\*                       been written (Invariant 4b)
-\*   audit_revoked     — invitations whose invitation.revoked event has
-\*                       been written (Invariant 4c)
-\*   audit_interrupted — invitations whose onboarding.interrupted event has
-\*                       been written (GA check 5 detection surface)
+\*   audit_intended  — invitations with an onboarding.intended record, which
+\*                     Recoverable Invocation's open writes before the
+\*                     onboarding transaction (Action wiring 56)
+\*   audit_completed — invitations with an onboarding.completed record, the
+\*                     outcome the close or the operator's resolve writes
+\*   audit_refused   — invitations with an onboarding.refused record, the
+\*                     refusal that survives a pre-commit refusal
+\*   audit_declined  — invitations whose invitation.declined event has
+\*                     been written (Invariant 4b)
+\*   audit_revoked   — invitations whose invitation.revoked event has
+\*                     been written (Invariant 4c)
 \*
 \* Logical clock:
 \*   clock — monotone counter, bounded by MaxClock to keep state finite
@@ -133,14 +145,16 @@ VARIABLES
     invitations,
     parties,
     credentials,
-    audit_accepted,
+    audit_intended,
+    audit_completed,
+    audit_refused,
     audit_declined,
     audit_revoked,
-    audit_interrupted,
     clock
 
 vars == <<invitations, parties, credentials,
-          audit_accepted, audit_declined, audit_revoked, audit_interrupted,
+          audit_intended, audit_completed, audit_refused,
+          audit_declined, audit_revoked,
           clock>>
 
 \* --- TypeOK ---------------------------------------------------------------
@@ -149,10 +163,11 @@ TypeOK ==
     /\ invitations \in [InvitationIds -> InvRec \cup {NULL}]
     /\ parties     \in [PartyIds      -> PartyRec \cup {NULL}]
     /\ credentials \in [CredentialIds -> CredRec  \cup {NULL}]
-    /\ audit_accepted    \subseteq InvitationIds
-    /\ audit_declined    \subseteq InvitationIds
-    /\ audit_revoked     \subseteq InvitationIds
-    /\ audit_interrupted \subseteq InvitationIds
+    /\ audit_intended  \subseteq InvitationIds
+    /\ audit_completed \subseteq InvitationIds
+    /\ audit_refused   \subseteq InvitationIds
+    /\ audit_declined  \subseteq InvitationIds
+    /\ audit_revoked   \subseteq InvitationIds
     /\ clock \in 0..MaxClock
 
 \* --- Init -----------------------------------------------------------------
@@ -161,11 +176,12 @@ Init ==
     /\ invitations     = [i \in InvitationIds |-> NULL]
     /\ parties         = [p \in PartyIds      |-> NULL]
     /\ credentials     = [c \in CredentialIds |-> NULL]
-    /\ audit_accepted    = {}
-    /\ audit_declined    = {}
-    /\ audit_revoked     = {}
-    /\ audit_interrupted = {}
-    /\ clock             = 0
+    /\ audit_intended  = {}
+    /\ audit_completed = {}
+    /\ audit_refused   = {}
+    /\ audit_declined  = {}
+    /\ audit_revoked   = {}
+    /\ clock           = 0
 
 \* =========================================================================
 \* ACTIONS
@@ -173,16 +189,9 @@ Init ==
 
 \* --- Invite(actor, inv) ---------------------------------------------------
 \*
-\* Models the spec's `invite` action (Action wiring → invite).
-\* Writes the Audit Trail initiation record and creates the Invitation in
-\* Pending state. Both writes are atomic here (TLA+ action grain), matching
-\* the spec's same-transactional-boundary requirement.
-\*
-\* Audit-first note: the spec calls Audit Trail.record_action before
-\* Invitation.initiate. In the TLA+ model this ordering is collapsed into
-\* one atomic step. The partial-failure case (audit record exists but
-\* invitation creation failed) is noted in the file header as a known scope
-\* exclusion; GA check 6 surfaces it in a running system.
+\* Models the spec's `invite` action. The audit-first ordering (attempt
+\* record, then Invitation.initiate, then the initiated record) is collapsed
+\* into one atomic step; the partial-failure case is the spec's Check 6.2.
 \*
 Invite(actor, inv) ==
     /\ clock < MaxClock
@@ -192,29 +201,17 @@ Invite(actor, inv) ==
                    party_id |-> NULL,
                    cred_id  |-> NULL]]
     /\ clock' = clock + 1
-    /\ UNCHANGED <<parties, credentials,
-                   audit_accepted, audit_declined, audit_revoked,
-                   audit_interrupted>>
+    /\ UNCHANGED <<parties, credentials, audit_intended, audit_completed,
+                   audit_refused, audit_declined, audit_revoked>>
 
 \* --- Onboard(inv, party, cred, actor) ------------------------------------
 \*
-\* Models the spec's `onboard` action happy path (Action wiring → onboard,
-\* steps 3–8). The single-resolution gate fires first: the precondition
-\* `invitations[inv].status = "pending"` is the atomic check corresponding
-\* to Invitation.accept. Exactly one concurrent Onboard per invitation
-\* can satisfy this precondition — the first to execute sets status to
-\* "accepted"; all subsequent calls find status /= "pending" and are
-\* disabled, creating no permanent records.
-\*
-\* All writes are atomic at this action grain:
-\*   - Invitation status → "accepted" with party_id and cred_id filled in
-\*   - Party Identity record created
-\*   - Credential record created (principal_ref = party_id)
-\*   - onboarding.invitation-accepted event written to audit_accepted
-\*
-\* The onboarding.completed event is represented by the presence of
-\* non-NULL party_id and cred_id on the invitation record, which is
-\* the condition Invariant 5 checks.
+\* Models the spec's `onboard` happy path: the invocation open writes the
+\* intent, the onboarding transaction commits the accept, the enroll and the
+\* register together (Execution Contract Database 1), and the invocation
+\* close writes the completion record. The single-resolution gate is the
+\* precondition `invitations[inv].status = "pending"`: exactly one concurrent
+\* Onboard per invitation can satisfy it.
 \*
 Onboard(inv, party, cred, actor) ==
     /\ clock < MaxClock
@@ -233,36 +230,70 @@ Onboard(inv, party, cred, actor) ==
          ![cred] = [principal_ref |-> party,
                     registered_at |-> clock + 1,
                     from_inv      |-> inv]]
-    /\ audit_accepted' = audit_accepted \cup {inv}
+    /\ audit_intended'  = audit_intended \cup {inv}
+    /\ audit_completed' = audit_completed \cup {inv}
     /\ clock' = clock + 1
-    /\ UNCHANGED <<audit_declined, audit_revoked, audit_interrupted>>
+    /\ UNCHANGED <<audit_refused, audit_declined, audit_revoked>>
 
-\* --- OnboardInterrupted(inv, actor) ---------------------------------------
+\* --- OnboardCommittedOpen(inv, party, cred, actor) -----------------------
 \*
-\* Models partial failure after Invitation.accept (spec section onboard, steps
-\* 5–7 failure paths and section Edge cases → "Partial failure after
-\* Invitation.accept"). The gate clears (invitation → Accepted) but the
-\* downstream enrollment or credential registration fails.
+\* The transaction commits and the invocation close does not land (a lost
+\* reply, a failed close): the intent stands, the completion record is owed,
+\* and the arc is whole. The sweep reports it and an operator closes it.
 \*
-\* Invariant 1 (invitation gates enrollment) still holds: the invitation
-\* is Accepted but no Party Identity record exists for it.
-\* Invariant 4a (audit coverage for Accepted invitations) still holds:
-\* the onboarding.invitation-accepted event is written.
-\* The onboarding.interrupted event is written to audit_interrupted for
-\* GA check 5 (unresolved interruptions detectable).
-\*
-OnboardInterrupted(inv, actor) ==
+OnboardCommittedOpen(inv, party, cred, actor) ==
     /\ clock < MaxClock
     /\ invitations[inv] /= NULL
     /\ invitations[inv].status = "pending"
+    /\ parties[party]     = NULL
+    /\ credentials[cred]  = NULL
     /\ invitations' = [invitations EXCEPT
          ![inv] = [status   |-> "accepted",
-                   party_id |-> NULL,
-                   cred_id  |-> NULL]]
-    /\ audit_accepted'    = audit_accepted \cup {inv}
-    /\ audit_interrupted' = audit_interrupted \cup {inv}
+                   party_id |-> party,
+                   cred_id  |-> cred]]
+    /\ parties' = [parties EXCEPT
+         ![party] = [enrolled_at |-> clock + 1,
+                     from_inv    |-> inv]]
+    /\ credentials' = [credentials EXCEPT
+         ![cred] = [principal_ref |-> party,
+                    registered_at |-> clock + 1,
+                    from_inv      |-> inv]]
+    /\ audit_intended' = audit_intended \cup {inv}
     /\ clock' = clock + 1
-    /\ UNCHANGED <<parties, credentials, audit_declined, audit_revoked>>
+    /\ UNCHANGED <<audit_completed, audit_refused, audit_declined, audit_revoked>>
+
+\* --- OnboardRefused(inv, actor) -------------------------------------------
+\*
+\* A call of the onboarding transaction refuses (Credential's
+\* duplicate-active-credential, a constituent's invalid-request or
+\* storage-failure): the transaction rolls back (Action wiring 61), the
+\* invitation stays as the call found it, and the invocation refuse writes
+\* the refusal record beside the intent.
+\*
+OnboardRefused(inv, actor) ==
+    /\ clock < MaxClock
+    /\ invitations[inv] /= NULL
+    /\ invitations[inv].status = "pending"
+    /\ audit_intended' = audit_intended \cup {inv}
+    /\ audit_refused'  = audit_refused \cup {inv}
+    /\ clock' = clock + 1
+    /\ UNCHANGED <<invitations, parties, credentials, audit_completed,
+                   audit_declined, audit_revoked>>
+
+\* --- OperatorResolve(inv) -------------------------------------------------
+\*
+\* The operator closes an open intent through the invocation resolve, naming
+\* the arc's own party and credential as the outcome (the spec's Check 7.3
+\* detects the operator naming another token's party; no action here does).
+\*
+OperatorResolve(inv) ==
+    /\ invitations[inv] /= NULL
+    /\ invitations[inv].status = "accepted"
+    /\ inv \in audit_intended
+    /\ inv \notin audit_completed
+    /\ audit_completed' = audit_completed \cup {inv}
+    /\ UNCHANGED <<invitations, parties, credentials, audit_intended,
+                   audit_refused, audit_declined, audit_revoked, clock>>
 
 \* --- Decline(inv, actor) --------------------------------------------------
 \*
@@ -277,8 +308,8 @@ Decline(inv, actor) ==
          ![inv].status = "declined"]
     /\ audit_declined' = audit_declined \cup {inv}
     /\ clock' = clock + 1
-    /\ UNCHANGED <<parties, credentials,
-                   audit_accepted, audit_revoked, audit_interrupted>>
+    /\ UNCHANGED <<parties, credentials, audit_intended, audit_completed,
+                   audit_refused, audit_revoked>>
 
 \* --- Revoke(inv, actor) ---------------------------------------------------
 \*
@@ -293,18 +324,16 @@ Revoke(inv, actor) ==
          ![inv].status = "revoked"]
     /\ audit_revoked' = audit_revoked \cup {inv}
     /\ clock' = clock + 1
-    /\ UNCHANGED <<parties, credentials,
-                   audit_accepted, audit_declined, audit_interrupted>>
+    /\ UNCHANGED <<parties, credentials, audit_intended, audit_completed,
+                   audit_refused, audit_declined>>
 
 \* --- Expire(inv) ----------------------------------------------------------
 \*
-\* Models background expiry by the Invitation atom's scheduler.
-\* Per the Lineage's Round 3 Pass 3 finding R3F1 (in git history), expiry that occurs via the
-\* background scheduler (not through this composition's `onboard` action
-\* discovering an expired invitation) is outside the composition's surface
-\* and does not produce an audit event from this composition.
-\* Invariant 4 is qualified to cover only terminal transitions "that pass
-\* through this composition" — expiry via the scheduler is excluded.
+\* Models background expiry by the Invitation atom's scheduler. Expiry that
+\* the scheduler performs, not this composition's `onboard` action
+\* discovering an expired invitation, is outside the composition's surface
+\* and produces no audit event from this composition; Invariant 4 covers only
+\* terminal transitions that pass through this composition.
 \*
 Expire(inv) ==
     /\ clock < MaxClock
@@ -313,9 +342,8 @@ Expire(inv) ==
     /\ invitations' = [invitations EXCEPT
          ![inv].status = "expired"]
     /\ clock' = clock + 1
-    /\ UNCHANGED <<parties, credentials,
-                   audit_accepted, audit_declined, audit_revoked,
-                   audit_interrupted>>
+    /\ UNCHANGED <<parties, credentials, audit_intended, audit_completed,
+                   audit_refused, audit_declined, audit_revoked>>
 
 \* --- Next -----------------------------------------------------------------
 
@@ -325,8 +353,13 @@ Next ==
     \/ \E actor \in Actors, inv \in InvitationIds,
          party \in PartyIds, cred \in CredentialIds :
            Onboard(inv, party, cred, actor)
+    \/ \E actor \in Actors, inv \in InvitationIds,
+         party \in PartyIds, cred \in CredentialIds :
+           OnboardCommittedOpen(inv, party, cred, actor)
     \/ \E actor \in Actors, inv \in InvitationIds :
-           OnboardInterrupted(inv, actor)
+           OnboardRefused(inv, actor)
+    \/ \E inv \in InvitationIds :
+           OperatorResolve(inv)
     \/ \E actor \in Actors, inv \in InvitationIds :
            Decline(inv, actor)
     \/ \E actor \in Actors, inv \in InvitationIds :
@@ -386,24 +419,23 @@ Credential_Follows_Party ==
             IN  /\ parties[pr] /= NULL
                 /\ parties[pr].enrolled_at <= credentials[c].registered_at
 
-\* Invariant 4 — Full Audit Trail coverage.
+\* Invariant 4 — Audit Trail coverage as safety plus detectability.
 \* Every terminal Invitation transition that passes through this
-\* composition produces a corresponding Audit Trail event.
-\*   (a) Accepted invitations → onboarding.invitation-accepted event
+\* composition leaves a record, or a gap signature the checks enumerate.
+\*   (a) Accepted invitations → an intent record (Check 5.1): the completion
+\*       record follows it, or the intent is open and the operator closes it
 \*   (b) Declined invitations → invitation.declined event
 \*   (c) Revoked invitations → invitation.revoked event
 \*
-\* Note: Expired invitations (via background scheduler, Expire action above)
-\* are excluded per the spec's R3F1 finding. Invariant 4 is explicitly
-\* qualified: "every terminal state change that passes through this
-\* composition" — the Expire action models the scheduler-driven expiry,
-\* which is outside this qualification.
+\* Expired invitations (via the scheduler, Expire above) are excluded:
+\* Invariant 4 covers only terminal changes that pass through this
+\* composition.
 \*
 Audit_Coverage ==
     /\ \A inv \in InvitationIds :
            (invitations[inv] /= NULL /\
             invitations[inv].status = "accepted")
-           => inv \in audit_accepted
+           => inv \in audit_intended
     /\ \A inv \in InvitationIds :
            (invitations[inv] /= NULL /\
             invitations[inv].status = "declined")
@@ -412,6 +444,25 @@ Audit_Coverage ==
            (invitations[inv] /= NULL /\
             invitations[inv].status = "revoked")
            => inv \in audit_revoked
+
+\* Checks 4.1 and 4.2 — a completion record follows an intent record and
+\* names an accepted invitation.
+Completion_Follows_Intent ==
+    \A inv \in audit_completed :
+        /\ inv \in audit_intended
+        /\ invitations[inv] /= NULL
+        /\ invitations[inv].status = "accepted"
+
+\* Action wiring 61 and Execution Contract Database 1 — an accepted
+\* invitation is a whole arc: the accept, the enroll and the register commit
+\* together, so a refusal (a credential collision included) leaves the
+\* invitation pending and no party or credential behind. No committed partial
+\* arc exists for a resume to finish.
+Accepted_Is_Whole ==
+    \A inv \in InvitationIds :
+        (invitations[inv] /= NULL /\ invitations[inv].status = "accepted")
+        => /\ invitations[inv].party_id /= NULL
+           /\ invitations[inv].cred_id  /= NULL
 
 \* Invariant 5 — Completion record names the full arc.
 \* For every invitation that completed a full successful onboard
@@ -465,12 +516,33 @@ Credential_Party_Binding ==
 
 \* Audit events reference only existing invitations.
 Audit_Set_Integrity ==
-    /\ audit_accepted    \subseteq {inv \in InvitationIds : invitations[inv] /= NULL}
-    /\ audit_declined    \subseteq {inv \in InvitationIds : invitations[inv] /= NULL}
-    /\ audit_revoked     \subseteq {inv \in InvitationIds : invitations[inv] /= NULL}
-    /\ audit_interrupted \subseteq {inv \in InvitationIds : invitations[inv] /= NULL}
+    /\ audit_intended  \subseteq {inv \in InvitationIds : invitations[inv] /= NULL}
+    /\ audit_completed \subseteq {inv \in InvitationIds : invitations[inv] /= NULL}
+    /\ audit_refused   \subseteq {inv \in InvitationIds : invitations[inv] /= NULL}
+    /\ audit_declined  \subseteq {inv \in InvitationIds : invitations[inv] /= NULL}
+    /\ audit_revoked   \subseteq {inv \in InvitationIds : invitations[inv] /= NULL}
 
 \* =========================================================================
+\* COMBINED SAFETY PREDICATE
+\* All invariants from section Composition-level invariants plus structural guards.
+\* TLC checks Safety as a single invariant over the full state space.
+\* =========================================================================
+
+Safety ==
+    /\ TypeOK
+    /\ Invitation_Gates_Enrollment
+    /\ Single_Resolution
+    /\ Credential_Follows_Party
+    /\ Audit_Coverage
+    /\ Completion_Follows_Intent
+    /\ Accepted_Is_Whole
+    /\ Completion_Names_Full_Arc
+    /\ Status_Monotone
+    /\ Party_Invitation_Binding
+    /\ Credential_Party_Binding
+    /\ Audit_Set_Integrity
+
+=========================================================================
 \* COMBINED SAFETY PREDICATE
 \* All invariants from section Composition-level invariants plus structural guards.
 \* TLC checks Safety as a single invariant over the full state space.

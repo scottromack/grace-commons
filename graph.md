@@ -66,7 +66,7 @@ constituents reached transitively). This is the load-bearing spine of the librar
 | Substrate | Named by | Composers |
 |---|---|---|
 | [Audit Trail](./compositions/audit-trail.html) | 14 | actor-suspension, capability-backed-sharing, chain-of-custody, customer-onboarding, defensible-retention, execute-gated-workflow, external-onboarding, immutable-ledger, login, multi-party-approval, privileged-access-provisioning, propagate-consent-revocation-downstream, recoverable-invocation, verified-repair |
-| [Recoverable Invocation](./compositions/recoverable-invocation.html) | 2 | immutable-ledger, verified-repair |
+| [Recoverable Invocation](./compositions/recoverable-invocation.html) | 3 | external-onboarding, immutable-ledger, verified-repair |
 | [Defensible Retention](./compositions/defensible-retention.html) | 1 | resolve-a-persons-data-rights |
 | [Multi-Party Approval](./compositions/multi-party-approval.html) | 1 | privileged-access-provisioning |
 
@@ -91,7 +91,7 @@ flowchart LR
   multi_party_approval["Multi-Party Approval · 1"]
   privileged_access_provisioning["Privileged Access Provisioning"]
   propagate_consent_revocation_downstream["Propagate Consent Revocation Downstream"]
-  recoverable_invocation["Recoverable Invocation · 2"]
+  recoverable_invocation["Recoverable Invocation · 3"]
   resolve_a_persons_data_rights["Resolve a Person's Data Rights"]
   verified_repair["Verified Repair"]
   actor_suspension -.-> audit_trail
@@ -101,6 +101,7 @@ flowchart LR
   defensible_retention -.-> audit_trail
   execute_gated_workflow -.-> audit_trail
   external_onboarding -.-> audit_trail
+  external_onboarding -.-> recoverable_invocation
   immutable_ledger -.-> audit_trail
   immutable_ledger -.-> recoverable_invocation
   login -.-> audit_trail
@@ -261,6 +262,7 @@ flowchart LR
   c_defensible_retention -.-> c_audit_trail
   c_execute_gated_workflow -.-> c_audit_trail
   c_external_onboarding -.-> c_audit_trail
+  c_external_onboarding -.-> c_recoverable_invocation
   c_immutable_ledger -.-> c_audit_trail
   c_immutable_ledger -.-> c_recoverable_invocation
   c_login -.-> c_audit_trail

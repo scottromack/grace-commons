@@ -706,7 +706,7 @@
   "models": {
    "als": false,
    "tla": true,
-   "twins": 0
+   "twins": 10
   },
   "regulated": true,
   "standards": [
@@ -719,7 +719,8 @@
   ],
   "status": "partially resolved",
   "substrates": [
-   "audit-trail"
+   "audit-trail",
+   "recoverable-invocation"
   ],
   "title": "External Onboarding"
  },
@@ -1317,6 +1318,7 @@
   ],
   "status": "grounded on Final Critique 49 \u2014 2026-11-07 at 1451abf",
   "substrate_of": [
+   "external-onboarding",
    "immutable-ledger",
    "verified-repair"
   ],
