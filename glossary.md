@@ -66,6 +66,9 @@ a different sense, it must say so locally.
   a recorded closure. It lives inside the atoms and compositions that use it and
   is no artifact of its own, so the canonical layer keeps its two artifact kinds
   (lint rule K). The corpus does not write *sub-atomic* or *sub-atom*.
+- **ALL (2026-11-11)** — AI and humans reading and writing the corpus together,
+  each doing what it does best. Written in capitals; lowercase *all* keeps its
+  English sense, and the grammar's quantifier stays EVERY.
 - **application** — a deployed build output; output-level vocabulary only, never
   a spec-layer artifact. The canonical layer has exactly two artifact kinds:
   atomic concepts and compositions thereof (lint rule K). Component / module /
