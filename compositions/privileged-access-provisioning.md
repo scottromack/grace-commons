@@ -518,7 +518,7 @@ Term chain evaluation: the read of a request's chain and the transition, record 
 
 Term provisioning conjunction: the request state IS IN the open request states, no token in the Capability instance parses to the request, and no pending entry owing a provisioning-failure event is open.
 
-Term terminal chain action: chain_resolved | chain_withdrawn — the substrate's records of a chain reaching a terminal state.
+Term terminal chain action: chain.approval.approved | chain.rejection.rejected | chain.step_withdrawal.withdrawn | chain.withdrawal.withdrawn carrying a terminal summary — the substrate's records of a chain reaching a terminal state, a terminating act's outcome (Multi-Party Approval Composition state 6), its reason the terminal summary's rule reason or withdrawal reason.
 
 Term requests initiate: the scope admitting [Request Access] — a [Requests Initiate].
 
@@ -1035,7 +1035,7 @@ Projection: permission-denied
 
 #### Recording Failure
 
-The composition's rejection for a write the database refused or a constituent's recording failure relayed, carrying its position — intent, nothing committed and the action retryable in whole; outcome, the act committed and its record owed (Multi-Party Approval's Audit arm 14 and Audit arm 15). The composition's own refusal carries intent (Action wiring 15, Action wiring 98 and Action wiring 100); the approval substrate's carries its position unchanged (Action wiring 25, Action wiring 36 and Action wiring 71).
+The composition's rejection for a write the database refused or a constituent's recording failure relayed, carrying its position — intent, nothing committed and the action retryable in whole; outcome, the act committed and its record owed (Recoverable Invocation Invariant 8.3 and Recoverable Invocation Invariant 8.4, which Multi-Party Approval's acting actions follow). The composition's own refusal carries intent (Action wiring 15, Action wiring 98 and Action wiring 100); the approval substrate's carries its position unchanged (Action wiring 25, Action wiring 36 and Action wiring 71).
 
 Kind:       Member
 Member of:  the composition's refusals
@@ -1112,6 +1112,7 @@ open:
 - 2026-11-06-c · refining · request id on a refused outcome · [Request Access] answering recording-failure carrying outcome hands the requestor no request id, so a retry opens a second request and chain → decide whether the answer carries the request id or the retry is the requestor's cost, then state it
 - 2026-11-06-d · refining · seam vocabulary · the request states Pending, Approved and Withdrawn are reused as the chain's states with different meanings across the seam (Action wiring 47 through 57) → decide whether the chain's states take a Term of their own, then rename the reads
 - 2026-11-04-c · refining · withdrawal reason · Action wiring 55 records the terminal event's reason on the withdrawal event with no answer for a destroyed reason, where Action wiring 51 through 52 take blank and open a denial-reason entry → decide whether a blank withdrawal reason owes a recovery entry
+- 2026-11-10-a · refining · Action wiring 19 through 25, Action wiring 34 through 37, Action wiring 66 through 71, Action wiring 116; the request signatures · Multi-Party Approval composes Recoverable Invocation (its 2026-11-10 decision): initiate chain, the step decisions and withdraw chain now also answer act-in-flight, section-unavailable, journal-unavailable, storage-failure, state-unavailable, already-accounted and recording-failure carrying refusal, initiate chain already-assigned and the decisions chain-state-changed, each closed before or without a commit, and the wiring maps none of them → decide each one's landing (the initiation-failed withdrawal for a refused initiation, a relayed refusal for a decision or a withdrawal) and add them to the refuses lines
 - 2026-08-29-a · refining · formal · the model's sweep carries no pre-check, no identity, no recovery record, and no age bound → extend the model with the four sweep rules
 ```
 

@@ -955,13 +955,13 @@
    "permissions",
    "assignment"
   ],
-  "grounded": true,
+  "grounded": false,
   "invariants": 9,
   "kind": "composition",
   "models": {
    "als": false,
    "tla": true,
-   "twins": 8
+   "twins": 17
   },
   "regulated": true,
   "standards": [
@@ -971,12 +971,13 @@
    "SOC 2",
    "SOX"
   ],
-  "status": "grounded on Final Critique 18 \u2014 2026-11-06 at 56ae031",
+  "status": "partially resolved",
   "substrate_of": [
    "privileged-access-provisioning"
   ],
   "substrates": [
-   "audit-trail"
+   "audit-trail",
+   "recoverable-invocation"
   ],
   "title": "Multi-Party Approval"
  },
@@ -1325,6 +1326,7 @@
    "chain-of-custody",
    "external-onboarding",
    "immutable-ledger",
+   "multi-party-approval",
    "propagate-consent-revocation-downstream",
    "verified-repair"
   ],

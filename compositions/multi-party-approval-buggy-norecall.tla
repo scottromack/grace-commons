@@ -1,394 +1,619 @@
 ---- MODULE multi-party-approval-buggy-norecall ----
-\* BUGGY TWIN: a cascade recalls no assignment (Cascade 1 dropped), so a terminal chain's still-Pending steps keep their Active assignments.
-\* Grace Commons — Multi-Party Approval, the chain and its quorum.
-\* Spec-level formal sibling of compositions/multi-party-approval.md. Derived validator;
-\* the English spec is the single source of truth. On any disagreement, diagnose per the
-\* entry *The conflict protocol* in pressure-testing.md.
+\* BUGGY TWIN (norecall): a cascade recalls no still-Pending step's assignment (Cascade 1 dropped): a settled step keeps its Active assignment at quiescence (Inv4_2). The checker must reject it. Everything else is the correct model.
+\* Grace Commons — Multi-Party Approval, the chain, its quorum and its five act kinds.
+\* Approval Step + Permissions + Assignment + Audit Trail (substrate) + Recoverable Invocation.
+\* Spec-level formal sibling of compositions/multi-party-approval.md. Derived validator; the
+\* English spec is the single source of truth. On any disagreement, diagnose per the entry
+\* *The conflict protocol* in pressure-testing.md.
 \*
-\* ONE CHAIN of N approver slots, under a quorum rule the initial state chooses: [All Of N],
-\* or [M Of N] with every valid quorum count (Term valid quorum counts; [One Of N] is M = 1).
-\* Its initiation lands whole, or stops at a refused submit (disposition a) or a refused
-\* initiation event (disposition c) and runs the initiation recovery inside the invocation,
-\* whose initiation-failed record lands or is refused, the chain then standing quarantined
-\* for the initiation leg (Action wiring 9, 15; Reconciliation 8 through 16).
+\* Re-derived 2026-11-10 for the page's composition of Recoverable Invocation (Composes 13 to
+\* 17, Term chain bindings). The model of 2026-10-26 read each action as one transaction with
+\* an initiation recovery (dispositions a and c, the quarantine), the sweep's retry of a call a
+\* partial flag named, and the initiation leg. Those premises are gone: a state-changing action
+\* is an open, a commit and a close, three commits and not one transaction (Non-goal 15;
+\* Recoverable Invocation Non-goal 1); a refused submit or assign fails the initiation
+\* transaction whole (Action wiring 9, 12); a cascade's temporal refusal fails its commit
+\* (Cascade 14); and an act whose outcome never landed is Recoverable Invocation's sweep's.
 \*
-\* ONE TRANSACTION PER ACTION (Execution Contract Database 1, Capability requirement 26).
-\* Every write one action makes, its constituents' included, commits together, so each
-\* action below is one step and a reader sees all of it or none. A storage failure commits
-\* nothing and is not a step (Action wiring 23 answers it). With OneTxn = FALSE a refused
-\* submit's storage failure may leave the steps before it committed with no recovery: the
-\* reading the 2026-10-20 turn retired (-buggy-split).
+\* ONE CHAIN of N approver slots, under a quorum rule the initial state chooses: [All Of N], or
+\* [M Of N] with M below N ([One Of N] is M = 1; [M Of N] with M = N reads as [All Of N]).
+\*
+\* RECOVERABLE INVOCATION, AS A CONTRACT. Nothing of its mechanism is modelled: no lease, no
+\* critical section, no examine edge, no horizon, no clock arithmetic. What this model takes from
+\* it, and recoverable-invocation.tla checks:
+\*   - [Open] writes the intent before the commit, and refuses act-in-flight while an intent of
+\*     the same (kind, act key) stands live, committed or dead (open step 1.7, 3.5).
+\*   - The commit answers committed, pre-commit or unknown (commit 1): committed goes to
+\*     [Close], pre-commit to [Refuse] (a refusal record, nothing else written), unknown to
+\*     [Yield] (commit 8). An unknown arm may or may not have written: the environment chooses.
+\*   - A close that fails, or an invocation that dies after its commit, leaves the intent open
+\*     for the sweep (Cross-record consistency 1).
+\*   - The sweep examines only an intent whose invocation is gone, runs the page's act probe, and
+\*     writes the recovered outcome (behind a recovery intent, flagged, under the recovery
+\*     identity: one step here, reconcile step 3.2a) on committed, or an escalation otherwise
+\*     (reconcile step 3.2, 3.5, 3.8). An unavailable probe writes nothing: a stutter step.
+\*   - An operator, through the invocation resolve, may close a dead or escalated intent with an
+\*     outcome carrying any data, or abandon it, and may supersede an abandonment with an outcome
+\*     (resolve 14 to 16, 32). The resolve does not check the outcome against the chain records
+\*     or Approval Step (resolve 28, 31).
 \*
 \* THE CONSTITUENTS, as contracts. Approval Step: a step decides once, from Pending, by its
-\* approver (approve, reject) or its submitter (withdraw), and refuses a second decision
-\* not-pending; a cascade withdrawal may be refused with the temporal invalid-request, a
-\* transient arm cured by a later reading. Assignment: recall answers ok on an Active
-\* assignment and not-active on a Recalled one. Audit Trail: the outcome, cascade, resolution
-\* and withdrawal events land with their action; its refusals are not modelled but the one
-\* the recovery reads, the initiation-failed record's.
-\*
-\* THE ACTIONS. [Initiate Chain] (whole, disposition a, disposition c); a decision by an
-\* approver or the initiator, trailing where the chain is terminal (Action wiring 18, 19,
-\* 31), evaluating otherwise (Action wiring 30, 34 through 39) and cascading on a terminal
-\* answer; [Withdraw Chain]; a decision written around the composition (an out-of-band
-\* transition, which Composes 11 forbids and Wiring decision 6 and 7 must keep off the
-\* quorum); the sweep's retry of a call a partial flag names (Reconciliation 26, 30); the
-\* initiation leg (Reconciliation 8 through 16). A cascade recalls every still-Pending step's
-\* assignment and, on a Withdrawn chain, withdraws each, any subset of the withdrawals failing
-\* transiently and named by the partial flag (Cascade 1, 2, 8, 9).
+\* approver (approve, reject) or its submitter (withdraw), stamping the injected now as its
+\* decision instant (Capability requirement 37). Assignment: recall answers ok on an Active
+\* assignment and not-active on a Recalled one. Every refusal inside a commit (a submit's or an
+\* assign's, a step refusal, the re-reads' mismatches, a cascade's temporal invalid-request, a
+\* storage-failure) fails the commit whole and lands the refusal record: one action here,
+\* CommitPre, since what each writes is the same, nothing.
 \*
 \* WHAT THIS MODEL CHECKS
-\*   Inv1_1   a quiescent chain the recovery did not close has its full step list
-\*            (Invariant 1.1).
-\*   Inv2_1   a resolution-terminated chain's state is the quorum rule's answer on its
-\*            routed vector (Invariant 2.1, Check 2.1).
-\*   Inv2_2   the quorum rule answers Pending on a withdrawal-terminated chain's
-\*            pre-withdrawal vector (Invariant 2.2, Check 2.2).
-\*   Bypass   an Approved chain carries the quorum's routed, non-trailing approvals: the
-\*            bypass resistance the page claims under Invariant 1 and 2.
-\*   Inv4_1   at quiescence an open step carries its Active assignment (Invariant 4.1).
-\*   Inv4_2   at quiescence a settled step carries none, out-of-band decisions aside
-\*            (Invariant 4.2): a write around the composition breaks Composes 11, and the
-\*            model asks of it only that it never moves the quorum.
-\*   Inv7_1   a terminal chain's state never changes (Invariant 7.1).
-\*   NoStuck  every call a partial flag names closes with a closure mark (Reconciliation
-\*            30, Term closure mark, Check 5.4).
+\*   Inv1_1                 a quiescent chain has its full step list (Invariant 1.1).
+\*   Inv2_1                 a resolution-terminated chain's state is the quorum rule's answer on
+\*                          its routed vector (Invariant 2.1, Check 2.1).
+\*   Inv2_2                 the quorum rule answers Pending on a withdrawal-terminated chain's
+\*                          pre-withdrawal vector (Invariant 2.2, Check 2.2).
+\*   Bypass                 an Approved chain carries the quorum's routed, non-trailing
+\*                          approvals: the bypass resistance the page claims.
+\*   Inv4_1, Inv4_2         assignment coverage at quiescence (Invariant 4.1, 4.2).
+\*   Inv7_1                 a terminal chain's state never changes (Invariant 7.1).
+\*   No_withdrawn_residue   a Withdrawn chain carries no Pending step (Cascade 2, Cascade 14).
+\*   Trailing_matches       a decision commits only where its intent's trailing flag reads the
+\*                          chain state at the commit (Action wiring 64, 65).
+\*   Owed_outcome           an invocation whose commit wrote stands open or beside a closing
+\*                          (an outcome, an escalation, an abandonment), never a refusal
+\*                          (Invariant 5.1; Cross-record consistency 1).
+\*   Outcome_names_record   every outcome the invocation or the sweep wrote names the record of
+\*                          its kind its pairing datum finds (Term initiation probe, decision
+\*                          probe, withdrawal probe; Recoverable Invocation act probe 4, 5).
+\*   Terminal_outcome_matches  every outcome the invocation or the sweep wrote carries the
+\*                          chain record's terminal summary where its act terminated the chain,
+\*                          and none where it did not (Composition state 6, 7; Check 7.1).
+\*   Terminal_alert         the chain rebuild alerts a terminal outcome disagreeing with the
+\*                          chain record, and two for one chain (Composition state 22).
+\*   Shape_alert            the chain rebuild alerts an initiation outcome whose chain shape
+\*                          disagrees with the chain record (Composition state 23).
+\*   Pairing_unique         a record carries one intent at most, and the sweep answers committed
+\*                          only for the intent whose own commit wrote the record (Capability
+\*                          requirement 37, 38; Recoverable Invocation pairing datum 2, 4).
+\*   Write_ownership_finding  the leg opens a finding for every step decided outside every
+\*                          invocation, and for no other (Reconciliation 20).
+\*   False_closing_alert    the leg alerts exactly the records whose own intent an abandonment
+\*                          or a refusal closed (Reconciliation 50).
 \*
-\* THE RULES, as constants, each TRUE here; each twin is this module with one turned FALSE:
-\*   NIsApproverSet   N is the approver set's count (Term routed vector)            -buggy-steplist
-\*   NoTrailingCount  no trailing decision counts (Term routed vector)              -buggy-trailing
-\*   SupersedeAny     a not-pending retry closes superseded (Term closure mark)     -buggy-closure
-\*   OOBNotCounted    an out-of-band transition counts as Pending (Wiring decision 6, 7) -buggy-oob
-\*   OneTxn           an action's writes commit together (Execution Contract Database 1) -buggy-split
-\*   ShortRecovered   a short chain driven terminal is closed by the initiation-failed
-\*                    record (Reconciliation 10, 12, 13, 15; this model's finding)  -buggy-shortshape
-\*   RecallCascade    a cascade recalls every still-Pending step's assignment (Cascade 1) -buggy-norecall
-\*   StaffAll         a submitted initiation assigns every step (Action wiring 10, 11) -buggy-unstaffed
+\* BOUND
+\* N = 3 approver slots. NI = 3 bound invocations, taken in slot order, each an initiation, a
+\* decision (approve, reject or withdraw a step) or a chain withdrawal: the initiation and two
+\* more, which reach every check's violation in a twin (an [All Of N] chain is not Approved
+\* inside the bound; NI = 4 reaches it, a saturation run). MaxOob = 1 step decision written
+\* around the composition. MaxFail = 1 failure among the invocations: a pre-commit refusal, an
+\* unknown arm, or a close that does not land. Each invocation takes a fresh now from an ordinal
+\* clock as its pairing datum (the host's injection, Capability requirement 19, 37, 38), which
+\* the composition stamps on the chain record and Approval Step on the step; an out-of-band
+\* write reads the same clock. Exhaustive.
 \*
-\* NOT MODELLED, each with its reason: time, the horizon and aged chains (Reconciliation 5,
-\* 17, 26, 32 and Term aged chains are a rule's condition, not an interleaving; the model has
-\* no clock); the audit write's refusals at an intent or an outcome (Audit arm 1 through 16
-\* land each on the caller, and Recoverable Invocation-style re-emission is the transition
-\* leg's, a terminal chain's missing terminal event included (Reconciliation 35)); assign's refusals
-\* (disposition b, whose chain the recovery closes as it closes disposition c's); the derived
-\* indexes (a lost entry is rebuilt before a rule reads it, Composition state 21); [Read Chain].
+\* HOW A STEP IS READ
+\* A bound invocation is a slot; its status `st` is none, live (the intent landed), committed,
+\* dead (yielded, died, or its close failed: the intent open, the sweep's), closed (an outcome
+\* names it), refused (a refusal record), escalated or abandoned. `cby` says who wrote the
+\* closing (the invocation, the sweep or the operator), `osum` what terminal state the outcome's
+\* terminal summary carries ("none": no summary) and `osh` whether an initiation outcome's chain
+\* shape is the chain record's. `cw` says the invocation's own commit wrote and `tcs` what chain
+\* state its commit read (ghosts); `cmint`, `ctby` and `sby` say which invocation wrote the chain
+\* record, the chain's terminal and a step's decision (0: out of band; ghosts, except that the
+\* terminal summary carries the terminating invocation's id, Term terminal summary). The leg's
+\* and the rebuild's answers are compared with the ghosts by a name the step adds to `viol`.
+\*
+\* NOT MODELLED (named)
+\* - Recoverable Invocation's mechanism and its own invariants (one writer per act, the recovery
+\*   intent before a recovered outcome, the recovery flag, the service identity's attestation,
+\*   the closure window, the horizon edge, the escalation's candidates):
+\*   recoverable-invocation.tla, inherited here. Authentication before the commit (Recoverable
+\*   Invocation Invariant 1.1) is the open's, inherited.
+\* - The clock and its edges: the young and aged records, the sweep cadence, the retention
+\*   horizon, the aged chains (Reconciliation 5, 44; Invariant 9.1).
+\* - Permissions (Invariant 3) and validation ahead of the open (Primitive policy); [Read Chain].
+\*   An open names a Pending step; a decision on a decided step is the race the commit's
+\*   not-pending refuses.
+\* - A cascade call's deterministic arms (Cascade 8, 15) and the superseded arm (Cascade 10):
+\*   the cascade withdraws the steps Approval Step holds Pending, so it never meets not-pending
+\*   (open line 2026-11-06-c carries the other reading of still-Pending).
+\* - A chain record written or terminated outside every invocation (Reconciliation 48, 49): such
+\*   a write breaks the chain's own invariants, which hold over the composition's writes
+\*   (Composes 12); the leg's step finding is modelled.
+\* - The derived indexes (a lost entry is rebuilt before a rule reads it, Composition state 21).
 
 EXTENDS Naturals, FiniteSets
 
-CONSTANTS N, NIsApproverSet, NoTrailingCount, SupersedeAny, OOBNotCounted, OneTxn, ShortRecovered,
-          RecallCascade, StaffAll
+CONSTANTS N, NI, MaxOob, MaxFail
 
-Slots   == 1..N
+Slots == 1..N
+Is == 1..NI
+MaxT == NI + MaxOob
 Decided == {"Approved", "Rejected", "Withdrawn"}
+DecKinds == {"appr", "rej", "swd"}
+OpenSt == {"live", "committed", "dead"}
+Closed0 == {"abandoned", "refused"}
 
-\* rule, m: the quorum rule and its count. phase: none (not initiated), live (its chain-shape
-\* event landed), quarantined (a chain record with no chain-shape event), closed (its
-\* initiation-failed record landed). sub: the step list's length. cs: the chain state. term:
-\* the chain's terminal event. first: the first terminal state, for Inv7_1. Per slot: st the
-\* step's state; how its decision (routed, a cascade's, out-of-band); trl its trailing flag;
-\* asg its assignment; part a partial flag naming its cascade withdrawal; clo the closure.
-VARIABLES rule, m, phase, sub, cs, term, first, st, how, trl, asg, part, clo
-vars == <<rule, m, phase, sub, cs, term, first, st, how, trl, asg, part, clo>>
+Verb(k) == IF k = "appr" THEN "Approved" ELSE IF k = "rej" THEN "Rejected" ELSE "Withdrawn"
+
+VARIABLES
+    rule, m,                                                    \* the quorum rule
+    phase, sub, cs, cat, ctt, cterm, ctby, ccas, cmint, first,  \* the chain record
+    ss, how, sat, sby, asg,                                     \* the steps and assignments
+    ik, tgt, inow, st, trl, cw, tcs, cby, osum, osh,            \* the bound invocations
+    nx, clk, noob, nfail, viol
+vars == <<rule, m, phase, sub, cs, cat, ctt, cterm, ctby, ccas, cmint, first,
+          ss, how, sat, sby, asg, ik, tgt, inow, st, trl, cw, tcs, cby, osum, osh,
+          nx, clk, noob, nfail, viol>>
+
+qr == <<rule, m>>
+chain == <<phase, sub, cs, cat, ctt, cterm, ctby, ccas, cmint, first>>
+steps == <<ss, how, sat, sby, asg>>
+inv == <<ik, tgt, inow, st, trl, cw, tcs, cby, osum, osh>>
 
 \* ---- the routed vector and the quorum rule (Term routed vector, Wiring decision 1 to 7) ----
-Cnt(h, t) == \/ (h = "routed" /\ (NoTrailingCount => ~t))
-             \/ h = "cascade"
-             \/ (h = "oob" /\ ~OOBNotCounted)
-
-CntIn(s, h, t, k, x) == Cardinality({i \in Slots : i <= k /\ s[i] = x /\ Cnt(h[i], t[i])})
-
-NNof(k) == IF NIsApproverSet THEN N ELSE k
-
-Met(a, nn)     == IF rule = "all" THEN a = nn ELSE a >= m
-Lost(r, w, nn) == IF rule = "all" THEN r + w >= 1 ELSE nn < r + w + m
-
-Quorum(a, r, w, nn) ==
-    IF Met(a, nn) THEN "Approved"
-    ELSE IF Lost(r, w, nn) /\ r > 0 THEN "Rejected"
-    ELSE IF Lost(r, w, nn) THEN "Withdrawn"
+Met(a)     == IF rule = "all" THEN a = N ELSE a >= m
+Lost(r, w) == IF rule = "all" THEN r + w >= 1 ELSE N < r + w + m
+Quorum(a, r, w) ==
+    IF Met(a) THEN "Approved"
+    ELSE IF Lost(r, w) /\ r > 0 THEN "Rejected"
+    ELSE IF Lost(r, w) THEN "Withdrawn"
     ELSE "Pending"
 
-QOf(s, h, t, k) ==
-    Quorum(CntIn(s, h, t, k, "Approved"), CntIn(s, h, t, k, "Rejected"),
-           CntIn(s, h, t, k, "Withdrawn"), NNof(k))
+\* The page's count: a routed transition whose intent is not trailing, or a cascade withdrawal
+\* the terminal summary names; an out-of-band transition counts as Pending.
+VecIn(sv, hv, tv, x) == Cardinality({s \in Slots : sv[s] = x /\ ((hv[s] = "routed" /\ ~tv[s]) \/ hv[s] = "cascade")})
+QOf(sv, hv, tv) == Quorum(VecIn(sv, hv, tv, "Approved"), VecIn(sv, hv, tv, "Rejected"), VecIn(sv, hv, tv, "Withdrawn"))
 
-\* The pre-withdrawal vector: cascade withdrawals (a retry's included) and superseded closures
-\* counted back as Pending (Term pre-withdrawal vector).
-PwCnt(i) == Cnt(how[i], trl[i]) /\ how[i] # "cascade" /\ clo[i] # "superseded"
-PwIn(x)  == Cardinality({i \in Slots : i <= sub /\ st[i] = x /\ PwCnt(i)})
-PreQ     == Quorum(PwIn("Approved"), PwIn("Rejected"), PwIn("Withdrawn"), NNof(sub))
+\* The implementation's count, which the chain evaluation runs: the page's, in this model.
+EvVecIn(sv, hv, tv, x) == Cardinality({s \in Slots : sv[s] = x /\ ((hv[s] = "routed" /\ ~tv[s]) \/ hv[s] = "cascade")})
+EvQOf(sv, hv, tv) == Quorum(EvVecIn(sv, hv, tv, "Approved"), EvVecIn(sv, hv, tv, "Rejected"), EvVecIn(sv, hv, tv, "Withdrawn"))
 
-\* ---- the cascade (Cascade 1, 2, 3, 7, 8, 9) ----
-Pend(s, k)        == {i \in 1..k : s[i] = "Pending"}
-RecallAll(a, P)   == [i \in Slots |-> IF RecallCascade /\ i \in P /\ a[i] = "Active" THEN "Recalled" ELSE a[i]]
-WdSt(s, P, F)     == [i \in Slots |-> IF i \in P \ F THEN "Withdrawn" ELSE s[i]]
-WdHow(h, P, F)    == [i \in Slots |-> IF i \in P \ F THEN "cascade" ELSE h[i]]
-WdPart(p, F)      == [i \in Slots |-> IF i \in F THEN TRUE ELSE p[i]]
-FirstOf(q)        == IF first = "none" THEN q ELSE first
+\* A routed step's trailing flag, read from its decision intent (Term routed vector).
+TrlVec == [s \in Slots |-> how[s] = "routed" /\ sby[s] \in Is /\ trl[sby[s]]]
+
+\* The pre-withdrawal vector: the cascade withdrawals counted back as Pending.
+PwIn(x) == Cardinality({s \in Slots : ss[s] = x /\ how[s] = "routed" /\ ~TrlVec[s]})
+PreQ == Quorum(PwIn("Approved"), PwIn("Rejected"), PwIn("Withdrawn"))
+
+RecallAll(a, P) == a
+
+\* ---- the act key's open intent: [Open] refuses act-in-flight while one stands ----
+OpenOn(k, key) == \E j \in Is : ik[j] = k /\ st[j] \in OpenSt /\ (k \in DecKinds => tgt[j] = key)
+
+\* ---- the act probes (Term initiation probe, decision probe, withdrawal probe) ----
+Matches(i) ==
+    IF ik[i] = "init" THEN (IF phase = "live" /\ cat = inow[i] THEN {0} ELSE {})
+    ELSE IF ik[i] = "wdr" THEN (IF cterm = "withdrawal" /\ ctt = inow[i] THEN {0} ELSE {})
+    ELSE IF ik[i] \in DecKinds THEN
+        (IF ss[tgt[i]] = Verb(ik[i]) /\ sat[tgt[i]] = inow[i] THEN {tgt[i]} ELSE {})
+    ELSE {}
+
+Writer(i) ==
+    IF ik[i] = "init" THEN cmint ELSE IF ik[i] = "wdr" THEN ctby ELSE sby[tgt[i]]
+
+\* The terminal summary a probe or a close reads off the chain record for invocation i.
+SumFor(i) == IF ik[i] \in DecKinds \cup {"wdr"} /\ cterm # "none" /\ ctby = i THEN cs ELSE "none"
+
+\* ---- Term carried record: an intent of the record's kind whose act key the record carries and
+\* whose pairing datum equals the record's instant ----
+InitCarriers == {j \in Is : ik[j] = "init" /\ phase = "live" /\ inow[j] = cat}
+WdrCarriers == {j \in Is : ik[j] = "wdr" /\ cterm = "withdrawal" /\ inow[j] = ctt}
+StepCarriers(s) == {j \in Is : ik[j] \in DecKinds /\ tgt[j] = s /\ ss[s] = Verb(ik[j]) /\ sat[s] = inow[j]}
+
+\* ---- the write-ownership leg's reading (Reconciliation 20, 45 to 50) ----
+LegFindsStep(s) == ss[s] # "Pending" /\ ~(s \in ccas) /\ StepCarriers(s) = {}
+LegAlertsStep(s) == \E j \in StepCarriers(s) : st[j] \in Closed0
+LegAlertsChain == \E j \in InitCarriers : st[j] \in Closed0
+LegAlertsWdr == \E j \in WdrCarriers : st[j] \in Closed0
+
+\* ---- the truth the leg's answers are compared with ----
+FalseStep(s) == how[s] = "routed" /\ sby[s] \in Is /\ st[sby[s]] \in Closed0
+FalseChain == phase = "live" /\ cmint \in Is /\ st[cmint] \in Closed0
+FalseWdr == cterm = "withdrawal" /\ ctby \in Is /\ st[ctby] \in Closed0
+
+\* ---- the chain rebuild's readings (Composition state 22, 23) ----
+TermNamers == {j \in Is : st[j] = "closed" /\ osum[j] # "none"}
+TermWrong == (\E j \in TermNamers : ctby # j \/ osum[j] # cs) \/ Cardinality(TermNamers) >= 2
+TermAlerts == (\E j \in TermNamers : ctby # j \/ osum[j] # cs) \/ Cardinality(TermNamers) >= 2
+ShapeWrong == \E j \in Is : ik[j] = "init" /\ st[j] = "closed" /\ ~osh[j]
+ShapeAlerts == \E j \in Is : ik[j] = "init" /\ st[j] = "closed" /\ ~osh[j]
 
 TypeOK ==
     /\ rule \in {"all", "m"}
     /\ m \in Slots
-    /\ phase \in {"none", "live", "quarantined", "closed"}
+    /\ phase \in {"none", "live"}
     /\ sub \in 0..N
     /\ cs \in {"Pending"} \cup Decided
-    /\ term \in {"none", "resolution", "withdrawal"}
+    /\ cat \in 0..MaxT
+    /\ ctt \in 0..MaxT
+    /\ cterm \in {"none", "resolution", "withdrawal"}
+    /\ ctby \in 0..NI
+    /\ ccas \subseteq Slots
+    /\ cmint \in 0..NI
     /\ first \in {"none"} \cup Decided
-    /\ st \in [Slots -> {"Pending"} \cup Decided]
+    /\ ss \in [Slots -> {"Pending"} \cup Decided]
     /\ how \in [Slots -> {"none", "routed", "cascade", "oob"}]
-    /\ trl \in [Slots -> BOOLEAN]
+    /\ sat \in [Slots -> 0..MaxT]
+    /\ sby \in [Slots -> 0..NI]
     /\ asg \in [Slots -> {"none", "Active", "Recalled"}]
-    /\ part \in [Slots -> BOOLEAN]
-    /\ clo \in [Slots -> {"none", "retried", "superseded", "stuck"}]
+    /\ ik \in [Is -> {"-", "init", "appr", "rej", "swd", "wdr"}]
+    /\ tgt \in [Is -> 0..N]
+    /\ inow \in [Is -> 0..MaxT]
+    /\ st \in [Is -> {"none", "live", "committed", "dead", "closed", "refused", "escalated", "abandoned"}]
+    /\ trl \in [Is -> BOOLEAN]
+    /\ cw \in [Is -> BOOLEAN]
+    /\ tcs \in [Is -> {"-", "Pending"} \cup Decided]
+    /\ cby \in [Is -> {"-", "inv", "sweep", "op"}]
+    /\ osum \in [Is -> {"none"} \cup Decided]
+    /\ osh \in [Is -> BOOLEAN]
+    /\ nx \in 1..(NI + 1)
+    /\ clk \in 0..MaxT
+    /\ noob \in 0..MaxOob
+    /\ nfail \in 0..MaxFail
+    /\ viol \subseteq {"finding-false", "finding-missed", "alert-wrong", "term-missed", "shape-missed"}
 
 Init ==
     /\ rule \in {"all", "m"}
-    /\ m \in (IF rule = "all" THEN {N} ELSE Slots)
+    /\ m \in (IF rule = "all" THEN {N} ELSE 1..(N - 1))
     /\ phase = "none"
     /\ sub = 0
     /\ cs = "Pending"
-    /\ term = "none"
+    /\ cat = 0
+    /\ ctt = 0
+    /\ cterm = "none"
+    /\ ctby = 0
+    /\ ccas = {}
+    /\ cmint = 0
     /\ first = "none"
-    /\ st = [i \in Slots |-> "Pending"]
-    /\ how = [i \in Slots |-> "none"]
-    /\ trl = [i \in Slots |-> FALSE]
-    /\ asg = [i \in Slots |-> "none"]
-    /\ part = [i \in Slots |-> FALSE]
-    /\ clo = [i \in Slots |-> "none"]
+    /\ ss = [s \in Slots |-> "Pending"]
+    /\ how = [s \in Slots |-> "none"]
+    /\ sat = [s \in Slots |-> 0]
+    /\ sby = [s \in Slots |-> 0]
+    /\ asg = [s \in Slots |-> "none"]
+    /\ ik = [i \in Is |-> "-"]
+    /\ tgt = [i \in Is |-> 0]
+    /\ inow = [i \in Is |-> 0]
+    /\ st = [i \in Is |-> "none"]
+    /\ trl = [i \in Is |-> FALSE]
+    /\ cw = [i \in Is |-> FALSE]
+    /\ tcs = [i \in Is |-> "-"]
+    /\ cby = [i \in Is |-> "-"]
+    /\ osum = [i \in Is |-> "none"]
+    /\ osh = [i \in Is |-> TRUE]
+    /\ nx = 1
+    /\ clk = 0
+    /\ noob = 0
+    /\ nfail = 0
+    /\ viol = {}
 
-\* ---- [Initiate Chain] ----
-\* Lands whole: every submit and assign answered, the initiation event landed (Action wiring 16).
-InitWhole ==
+\* ---------------------------------------------------------------------------------------
+\* The state-changing actions: validate, open, commit, close (Recoverable Invocation Action
+\* wiring 4).
+
+\* The pairing datum the host injects: a fresh now (Capability requirement 19, 37, 38).
+Nows == {clk + 1}
+
+\* [Open] for an initiation (Action wiring 3): the intent lands under the initiator, keyed by
+\* the chain id the host injected, carrying the now and no step or assignment id.
+OpenInit(t) ==
+    LET i == nx IN
+    /\ i <= NI
+    /\ phase = "none"
+    /\ ~(\E j \in Is : ik[j] = "init" /\ st[j] = "live")
+    /\ ik' = [ik EXCEPT ![i] = "init"]
+    /\ inow' = [inow EXCEPT ![i] = t]
+    /\ clk' = t
+    /\ st' = [st EXCEPT ![i] = "live"]
+    /\ nx' = i + 1
+    /\ UNCHANGED <<qr, chain, steps, tgt, trl, cw, tcs, cby, osum, osh, noob, nfail, viol>>
+
+\* [Open] for a decision (Action wiring 17 to 20): the step resolved under the chain, the
+\* trailing flag computed from the chain state, the intent keyed by the decision key.
+OpenDec(k, s, t) ==
+    LET i == nx IN
+    /\ i <= NI
+    /\ phase = "live"
+    /\ s <= sub
+    /\ ss[s] = "Pending"
+    /\ ~OpenOn(k, s)
+    /\ ik' = [ik EXCEPT ![i] = k]
+    /\ tgt' = [tgt EXCEPT ![i] = s]
+    /\ inow' = [inow EXCEPT ![i] = t]
+    /\ trl' = [trl EXCEPT ![i] = (cs # "Pending")]
+    /\ clk' = t
+    /\ st' = [st EXCEPT ![i] = "live"]
+    /\ nx' = i + 1
+    /\ UNCHANGED <<qr, chain, steps, cw, tcs, cby, osum, osh, noob, nfail, viol>>
+
+\* [Open] for a chain withdrawal (Action wiring 44 to 46): the chain Pending ahead of the open.
+OpenWdr(t) ==
+    LET i == nx IN
+    /\ i <= NI
+    /\ phase = "live"
+    /\ cs = "Pending"
+    /\ ~OpenOn("wdr", 0)
+    /\ ik' = [ik EXCEPT ![i] = "wdr"]
+    /\ inow' = [inow EXCEPT ![i] = t]
+    /\ clk' = t
+    /\ st' = [st EXCEPT ![i] = "live"]
+    /\ nx' = i + 1
+    /\ UNCHANGED <<qr, chain, steps, tgt, trl, cw, tcs, cby, osum, osh, noob, nfail, viol>>
+
+\* The commits. a = "committed" or "unk-done" (an unknown arm that wrote: the invocation
+\* yields, the write landed).
+
+\* The initiation transaction: the chain record, every submit and every assign, together
+\* (Term initiation transaction).
+CommitInit(i, a) ==
+    /\ st[i] = "live"
+    /\ ik[i] = "init"
     /\ phase = "none"
     /\ phase' = "live"
     /\ sub' = N
-    /\ asg' = [i \in Slots |-> IF StaffAll \/ i < N THEN "Active" ELSE "none"]
-    /\ UNCHANGED <<rule, m, cs, term, first, st, how, trl, part, clo>>
+    /\ cat' = inow[i]
+    /\ cmint' = i
+    /\ asg' = [s \in Slots |-> "Active"]
+    /\ cw' = [cw EXCEPT ![i] = TRUE]
+    /\ (a = "committed" \/ nfail < MaxFail)
+    /\ nfail' = IF a = "committed" THEN nfail ELSE nfail + 1
+    /\ st' = [st EXCEPT ![i] = IF a = "committed" THEN "committed" ELSE "dead"]
+    /\ UNCHANGED <<qr, cs, ctt, cterm, ctby, ccas, first, ss, how, sat, sby,
+                   ik, tgt, inow, trl, tcs, cby, osum, osh, nx, clk, noob, viol>>
 
-\* Submit k refused invalid-request: the steps before it stand, unassigned (assigns follow every
-\* submit, Action wiring 10), and the initiation recovery runs inside the invocation carrying
-\* disposition a (Action wiring 9). Its evaluation (Reconciliation 9) finds no decision; on an
-\* open vector it quarantines the chain (11) and records the initiation-failed record (12),
-\* which lands, withdrawing the chain and cascading (13, 15), or is refused.
-InitA(k) ==
-    /\ phase = "none"
-    /\ sub' = k - 1
-    /\ LET q == QOf(st, how, trl, k - 1)
-           P == 1..(k - 1)
-       IN \/ /\ q # "Pending"
-             /\ q \in {"Approved", "Rejected"}
-             /\ phase' = "live"
-             /\ cs' = q
-             /\ term' = "resolution"
-             /\ first' = q
-             /\ UNCHANGED <<st, how, part>>
-          \/ /\ q = "Withdrawn"
-             /\ phase' = "live"
-             /\ cs' = q
-             /\ term' = "resolution"
-             /\ first' = q
-             /\ \E F \in SUBSET P : /\ st' = WdSt(st, P, F)
-                                    /\ how' = WdHow(how, P, F)
-                                    /\ part' = WdPart(part, F)
-          \/ /\ q = "Pending"
-             /\ phase' = "closed"
-             /\ cs' = "Withdrawn"
-             /\ term' = "withdrawal"
-             /\ first' = "Withdrawn"
-             /\ \E F \in SUBSET P : /\ st' = WdSt(st, P, F)
-                                    /\ how' = WdHow(how, P, F)
-                                    /\ part' = WdPart(part, F)
-          \/ /\ q = "Pending"
-             /\ phase' = "quarantined"
-             /\ UNCHANGED <<cs, term, first, st, how, part>>
-    /\ UNCHANGED <<rule, m, trl, asg, clo>>
+\* The decision transaction: the re-read of the chain state against the intent's trailing flag
+\* (Action wiring 64, 65), the step write and its recall, and, unless trailing, the chain
+\* evaluation with its cascade and the terminal summary (Term decision transaction).
+CommitDec(i, a) ==
+    LET s    == tgt[i]
+        ss1  == [ss EXCEPT ![s] = Verb(ik[i])]
+        how1 == [how EXCEPT ![s] = "routed"]
+        tv1  == [t \in Slots |-> IF t = s THEN trl[i] ELSE TrlVec[t]]
+        a1   == [asg EXCEPT ![s] = IF asg[s] = "Active" THEN "Recalled" ELSE asg[s]]
+        q    == EvQOf(ss1, how1, tv1)
+        P    == {t \in 1..sub : ss1[t] = "Pending"}
+        term == ~trl[i] /\ cs = "Pending" /\ q # "Pending"
+        wd   == term /\ q = "Withdrawn"
+    IN
+    /\ st[i] = "live"
+    /\ ik[i] \in DecKinds
+    /\ ss[s] = "Pending"
+    /\ (cs = "Pending" \/ trl[i])
+    /\ ss' = IF wd THEN [t \in Slots |-> IF t \in P THEN "Withdrawn" ELSE ss1[t]] ELSE ss1
+    /\ how' = IF wd THEN [t \in Slots |-> IF t \in P THEN "cascade" ELSE how1[t]] ELSE how1
+    /\ sat' = [t \in Slots |-> IF t = s \/ (wd /\ t \in P) THEN inow[i] ELSE sat[t]]
+    /\ sby' = [t \in Slots |-> IF t = s \/ (wd /\ t \in P) THEN i ELSE sby[t]]
+    /\ asg' = IF term THEN RecallAll(a1, P) ELSE a1
+    /\ cs' = IF term THEN q ELSE cs
+    /\ ctt' = IF term THEN inow[i] ELSE ctt
+    /\ cterm' = IF term THEN "resolution" ELSE cterm
+    /\ ctby' = IF term THEN i ELSE ctby
+    /\ ccas' = IF wd THEN P ELSE ccas
+    /\ first' = IF term /\ first = "none" THEN q ELSE first
+    /\ tcs' = [tcs EXCEPT ![i] = cs]
+    /\ cw' = [cw EXCEPT ![i] = TRUE]
+    /\ (a = "committed" \/ nfail < MaxFail)
+    /\ nfail' = IF a = "committed" THEN nfail ELSE nfail + 1
+    /\ st' = [st EXCEPT ![i] = IF a = "committed" THEN "committed" ELSE "dead"]
+    /\ UNCHANGED <<qr, phase, sub, cat, cmint, ik, tgt, inow, trl, cby, osum, osh, nx, clk, noob, viol>>
 
-\* The initiation event refused: every step submitted and assigned, the recovery inside the
-\* invocation carrying disposition c (Action wiring 15), as InitA on the full list.
-InitC ==
-    /\ phase = "none"
-    /\ sub' = N
-    /\ \/ /\ phase' = "closed"
-          /\ cs' = "Withdrawn"
-          /\ term' = "withdrawal"
-          /\ first' = "Withdrawn"
-          /\ asg' = RecallAll([i \in Slots |-> "Active"], Slots)
-          /\ \E F \in SUBSET Slots : /\ st' = WdSt(st, Slots, F)
-                                     /\ how' = WdHow(how, Slots, F)
-                                     /\ part' = WdPart(part, F)
-       \/ /\ phase' = "quarantined"
-          /\ asg' = [i \in Slots |-> "Active"]
-          /\ UNCHANGED <<cs, term, first, st, how, part>>
-    /\ UNCHANGED <<rule, m, trl, clo>>
-
-\* -buggy-split: a submit's storage failure leaves the steps before it committed and runs no
-\* recovery, the chain standing as initiated.
-InitSplit(k) ==
-    /\ ~OneTxn
-    /\ phase = "none"
-    /\ phase' = "live"
-    /\ sub' = k - 1
-    /\ UNCHANGED <<rule, m, cs, term, first, st, how, trl, asg, part, clo>>
-
-\* ---- a decision through the composition ----
-\* x = Approved or Rejected by the step's approver, Withdrawn by the initiator ([Withdraw
-\* Step]). Trailing where the chain is terminal: no evaluation, no chain write (Action wiring
-\* 18, 19, 31). Otherwise the evaluation (30, 34, 35) and, on a terminal answer, the cascade
-\* (37) and the resolution event (38). The decision recalls its own assignment (24, 26).
-Decide(i, x) ==
-    /\ phase \in {"live", "quarantined", "closed"}
-    /\ i <= sub
-    /\ st[i] = "Pending"
-    /\ LET t  == cs # "Pending"
-           s1 == [st EXCEPT ![i] = x]
-           h1 == [how EXCEPT ![i] = "routed"]
-           t1 == [trl EXCEPT ![i] = t]
-           a1 == [asg EXCEPT ![i] = IF asg[i] = "Active" THEN "Recalled" ELSE asg[i]]
-           q  == QOf(s1, h1, t1, sub)
-           P  == Pend(s1, sub)
-       IN \/ /\ (t \/ q = "Pending")
-             /\ st' = s1
-             /\ how' = h1
-             /\ trl' = t1
-             /\ asg' = a1
-             /\ UNCHANGED <<cs, term, first, part>>
-          \/ /\ ~t
-             /\ q \in {"Approved", "Rejected"}
-             /\ st' = s1
-             /\ how' = h1
-             /\ trl' = t1
-             /\ asg' = RecallAll(a1, P)
-             /\ cs' = q
-             /\ term' = "resolution"
-             /\ first' = FirstOf(q)
-             /\ UNCHANGED part
-          \/ /\ ~t
-             /\ q = "Withdrawn"
-             /\ trl' = t1
-             /\ asg' = RecallAll(a1, P)
-             /\ cs' = "Withdrawn"
-             /\ term' = "resolution"
-             /\ first' = FirstOf("Withdrawn")
-             /\ \E F \in SUBSET P : /\ st' = WdSt(s1, P, F)
-                                    /\ how' = WdHow(h1, P, F)
-                                    /\ part' = WdPart(part, F)
-    /\ UNCHANGED <<rule, m, phase, sub, clo>>
-
-\* ---- [Withdraw Chain] on a Pending chain (Action wiring 44 through 50) ----
-WithdrawChain ==
-    /\ phase \in {"live", "quarantined"}
+\* The withdrawal transaction: the re-read of Pending (Action wiring 66, 67), the chain
+\* Withdrawn, the cascade over every still-Pending step and the terminal summary.
+CommitWdr(i, a) ==
+    LET P == {t \in 1..sub : ss[t] = "Pending"} IN
+    /\ st[i] = "live"
+    /\ ik[i] = "wdr"
     /\ cs = "Pending"
     /\ cs' = "Withdrawn"
-    /\ term' = "withdrawal"
-    /\ first' = FirstOf("Withdrawn")
-    /\ LET P == Pend(st, sub)
-       IN /\ asg' = RecallAll(asg, P)
-          /\ \E F \in SUBSET P : /\ st' = WdSt(st, P, F)
-                                 /\ how' = WdHow(how, P, F)
-                                 /\ part' = WdPart(part, F)
-    /\ UNCHANGED <<rule, m, phase, sub, trl, clo>>
+    /\ ctt' = inow[i]
+    /\ cterm' = "withdrawal"
+    /\ ctby' = i
+    /\ ccas' = P
+    /\ first' = IF first = "none" THEN "Withdrawn" ELSE first
+    /\ ss' = [t \in Slots |-> IF t \in P THEN "Withdrawn" ELSE ss[t]]
+    /\ how' = [t \in Slots |-> IF t \in P THEN "cascade" ELSE how[t]]
+    /\ sat' = [t \in Slots |-> IF t \in P THEN inow[i] ELSE sat[t]]
+    /\ sby' = [t \in Slots |-> IF t \in P THEN i ELSE sby[t]]
+    /\ asg' = RecallAll(asg, P)
+    /\ tcs' = [tcs EXCEPT ![i] = cs]
+    /\ cw' = [cw EXCEPT ![i] = TRUE]
+    /\ (a = "committed" \/ nfail < MaxFail)
+    /\ nfail' = IF a = "committed" THEN nfail ELSE nfail + 1
+    /\ st' = [st EXCEPT ![i] = IF a = "committed" THEN "committed" ELSE "dead"]
+    /\ UNCHANGED <<qr, phase, sub, cat, cmint, ik, tgt, inow, trl, cby, osum, osh, nx, clk, noob, viol>>
 
-\* ---- a step decision written around the composition (an out-of-band transition) ----
-OutOfBand(i, x) ==
-    /\ phase # "none"
-    /\ i <= sub
-    /\ st[i] = "Pending"
-    /\ st' = [st EXCEPT ![i] = x]
-    /\ how' = [how EXCEPT ![i] = "oob"]
-    /\ UNCHANGED <<rule, m, phase, sub, cs, term, first, trl, asg, part, clo>>
+\* A pre-commit arm: a refused submit or assign, a step refusal, the re-reads' mismatches, a
+\* cascade's temporal invalid-request, a storage-failure or a state-unavailable. The commit
+\* writes nothing and [Refuse] lands the refusal record (Action wiring 9, 12, 22, 23, 65, 67;
+\* Cascade 14; Recoverable Invocation commit 2, 3).
+CommitPre(i) ==
+    /\ st[i] = "live"
+    /\ nfail < MaxFail
+    /\ nfail' = nfail + 1
+    /\ st' = [st EXCEPT ![i] = "refused"]
+    /\ UNCHANGED <<qr, chain, steps, ik, tgt, inow, trl, cw, tcs, cby, osum, osh, nx, clk, noob, viol>>
 
-\* ---- the sweep's retry of a call a partial flag names (Reconciliation 26, 30) ----
-\* The withdrawal lands under a later reading (closure mark retried), or meets a step already
-\* decided: not-pending, closed superseded (Term closure mark; Cascade 10's in-cascade form).
-\* With SupersedeAny = FALSE only a step its approver decided closes so (the closure mark as
-\* the page had it); a step the initiator withdrew has no mark, and the call stays open.
-SweepRetry(i) ==
-    /\ part[i]
-    /\ clo[i] = "none"
-    /\ \/ /\ st[i] = "Pending"
-          /\ st' = [st EXCEPT ![i] = "Withdrawn"]
-          /\ how' = [how EXCEPT ![i] = "cascade"]
-          /\ clo' = [clo EXCEPT ![i] = "retried"]
-       \/ /\ st[i] # "Pending"
-          /\ clo' = [clo EXCEPT ![i] = IF SupersedeAny \/ st[i] \in {"Approved", "Rejected"}
-                                       THEN "superseded" ELSE "stuck"]
-          /\ UNCHANGED <<st, how>>
-    /\ UNCHANGED <<rule, m, phase, sub, cs, term, first, trl, asg, part>>
+\* An unknown arm that wrote nothing: the invocation yields (Action wiring 68).
+CommitLost(i) ==
+    /\ st[i] = "live"
+    /\ nfail < MaxFail
+    /\ nfail' = nfail + 1
+    /\ st' = [st EXCEPT ![i] = "dead"]
+    /\ UNCHANGED <<qr, chain, steps, ik, tgt, inow, trl, cw, tcs, cby, osum, osh, nx, clk, noob, viol>>
 
-\* ---- the initiation leg on a quarantined chain (Reconciliation 8 through 16) ----
-\* A chain its approvers or its initiator drove terminal records its chain-shape event:
-\* the initiation event, disposition d, where its step list is full (Reconciliation 10); the
-\* initiation-failed record where it is short, closing the chain without withdrawing it
-\* (Reconciliation 12, 13, 15 as cured). With ShortRecovered = FALSE every terminal chain
-\* takes the initiation event, as the page had it. A Pending chain takes the initiation-failed
-\* record (12), withdrawn and cascaded (13, 15). A refused record is a stutter here.
-SweepRecover ==
-    /\ phase = "quarantined"
-    /\ \/ /\ cs # "Pending"
-          /\ (sub = N \/ ~ShortRecovered)
-          /\ phase' = "live"
-          /\ UNCHANGED <<cs, term, first, st, how, asg, part>>
-       \/ /\ cs # "Pending"
-          /\ sub < N
-          /\ ShortRecovered
-          /\ phase' = "closed"
-          /\ UNCHANGED <<cs, term, first, st, how, asg, part>>
-       \/ /\ cs = "Pending"
-          /\ phase' = "closed"
-          /\ cs' = "Withdrawn"
-          /\ term' = "withdrawal"
-          /\ first' = FirstOf("Withdrawn")
-          /\ LET P == Pend(st, sub)
-             IN /\ asg' = RecallAll(asg, P)
-                /\ \E F \in SUBSET P : /\ st' = WdSt(st, P, F)
-                                       /\ how' = WdHow(how, P, F)
-                                       /\ part' = WdPart(part, F)
-    /\ UNCHANGED <<rule, m, sub, trl, clo>>
+\* [Close] after a committed arm: the outcome carries the chain shape, or the terminal summary
+\* where the act terminated the chain (Action wiring 14, 29, 49). It may fail, or the invocation
+\* may die first: the intent stays open for the sweep (Action wiring 69; Cross-record
+\* consistency 1).
+Close(i, o) ==
+    /\ st[i] = "committed"
+    /\ \/ /\ o = "ok"
+          /\ st' = [st EXCEPT ![i] = "closed"]
+          /\ cby' = [cby EXCEPT ![i] = "inv"]
+          /\ osum' = [osum EXCEPT ![i] = SumFor(i)]
+          /\ UNCHANGED nfail
+       \/ /\ o = "fail"
+          /\ nfail < MaxFail
+          /\ nfail' = nfail + 1
+          /\ st' = [st EXCEPT ![i] = "dead"]
+          /\ UNCHANGED <<cby, osum>>
+    /\ UNCHANGED <<qr, chain, steps, ik, tgt, inow, trl, cw, tcs, osh, nx, clk, noob, viol>>
+
+\* ---------------------------------------------------------------------------------------
+\* Recoverable Invocation's sweep and the operator's resolve, as contracts.
+
+\* The sweep on an intent whose invocation is gone: the act probe answers committed where
+\* exactly one record matches, and the sweep writes the recovered outcome, its terminal summary
+\* read off the chain record (Term decision probe, withdrawal probe).
+SweepClose(i) ==
+    /\ st[i] = "dead"
+    /\ Cardinality(Matches(i)) = 1
+    /\ st' = [st EXCEPT ![i] = "closed"]
+    /\ cby' = [cby EXCEPT ![i] = "sweep"]
+    /\ osum' = [osum EXCEPT ![i] = SumFor(i)]
+    /\ UNCHANGED <<qr, chain, steps, ik, tgt, inow, trl, cw, tcs, osh, nx, clk, noob, nfail, viol>>
+
+\* Otherwise it escalates.
+SweepEscalate(i) ==
+    /\ st[i] = "dead"
+    /\ Cardinality(Matches(i)) # 1
+    /\ st' = [st EXCEPT ![i] = "escalated"]
+    /\ UNCHANGED <<qr, chain, steps, ik, tgt, inow, trl, cw, tcs, cby, osum, osh, nx, clk, noob, nfail, viol>>
+
+\* The operator's resolve: an abandonment of a dead or escalated intent.
+OpAbandon(i) ==
+    /\ st[i] \in {"dead", "escalated"}
+    /\ st' = [st EXCEPT ![i] = "abandoned"]
+    /\ cby' = [cby EXCEPT ![i] = "op"]
+    /\ UNCHANGED <<qr, chain, steps, ik, tgt, inow, trl, cw, tcs, osum, osh, nx, clk, noob, nfail, viol>>
+
+\* The operator's resolve: an outcome carrying the data the records hold ("faithful") or data they
+\* do not ("wrong": a terminal summary the chain record does not carry, or a chain shape it does
+\* not hold), superseding an abandonment where one stands.
+OpOutcome(i, x) ==
+    /\ st[i] \in {"dead", "escalated", "abandoned"}
+    /\ st' = [st EXCEPT ![i] = "closed"]
+    /\ cby' = [cby EXCEPT ![i] = "op"]
+    /\ osum' = [osum EXCEPT ![i] = IF x = "faithful" \/ ik[i] = "init" THEN SumFor(i)
+                                    ELSE IF SumFor(i) = "Approved" THEN "Rejected" ELSE "Approved"]
+    /\ osh' = [osh EXCEPT ![i] = (x = "faithful" \/ ik[i] # "init")]
+    /\ UNCHANGED <<qr, chain, steps, ik, tgt, inow, trl, cw, tcs, nx, clk, noob, nfail, viol>>
+
+\* ---------------------------------------------------------------------------------------
+\* A step decision written around the composition, with no intent: an out-of-band transition.
+OutOfBand(s, x) ==
+    /\ noob < MaxOob
+    /\ phase = "live"
+    /\ s <= sub
+    /\ ss[s] = "Pending"
+    /\ ss' = [ss EXCEPT ![s] = x]
+    /\ how' = [how EXCEPT ![s] = "oob"]
+    /\ sat' = [sat EXCEPT ![s] = clk + 1]
+    /\ sby' = [sby EXCEPT ![s] = 0]
+    /\ clk' = clk + 1
+    /\ noob' = noob + 1
+    /\ UNCHANGED <<qr, chain, asg, inv, nx, nfail, viol>>
+
+\* The write-ownership leg (Reconciliation 20, 45 to 50): every decided step of the step list,
+\* the chain record and its terminal read against the intents, on an answered read.
+LegRun ==
+    /\ viol' = viol
+         \cup (IF \E s \in 1..sub : LegFindsStep(s) /\ how[s] # "oob" THEN {"finding-false"} ELSE {})
+         \cup (IF \E s \in 1..sub : ~LegFindsStep(s) /\ how[s] = "oob" THEN {"finding-missed"} ELSE {})
+         \cup (IF \/ \E s \in 1..sub : LegAlertsStep(s) # FalseStep(s)
+                  \/ LegAlertsChain # FalseChain
+                  \/ LegAlertsWdr # FalseWdr
+               THEN {"alert-wrong"} ELSE {})
+    /\ UNCHANGED <<qr, chain, steps, inv, nx, clk, noob, nfail>>
+
+\* The chain rebuild (Composition state 22, 23): the terminal-data alert and the shape alert.
+Rebuild ==
+    /\ viol' = viol
+         \cup (IF TermWrong /\ ~TermAlerts THEN {"term-missed"} ELSE {})
+         \cup (IF ShapeWrong /\ ~ShapeAlerts THEN {"shape-missed"} ELSE {})
+    /\ UNCHANGED <<qr, chain, steps, inv, nx, clk, noob, nfail>>
 
 Next ==
-    \/ InitWhole
-    \/ \E k \in Slots : InitA(k)
-    \/ InitC
-    \/ \E k \in Slots : InitSplit(k)
-    \/ \E i \in Slots, x \in Decided : Decide(i, x)
-    \/ WithdrawChain
-    \/ \E i \in Slots, x \in Decided : OutOfBand(i, x)
-    \/ \E i \in Slots : SweepRetry(i)
-    \/ SweepRecover
-
+    \/ \E t \in Nows : OpenInit(t)
+    \/ \E k \in DecKinds, s \in Slots, t \in Nows : OpenDec(k, s, t)
+    \/ \E t \in Nows : OpenWdr(t)
+    \/ \E i \in Is, a \in {"committed", "unk-done"} : CommitInit(i, a)
+    \/ \E i \in Is, a \in {"committed", "unk-done"} : CommitDec(i, a)
+    \/ \E i \in Is, a \in {"committed", "unk-done"} : CommitWdr(i, a)
+    \/ \E i \in Is : CommitPre(i)
+    \/ \E i \in Is : CommitLost(i)
+    \/ \E i \in Is, o \in {"ok", "fail"} : Close(i, o)
+    \/ \E i \in Is : SweepClose(i)
+    \/ \E i \in Is : SweepEscalate(i)
+    \/ \E i \in Is : OpAbandon(i)
+    \/ \E i \in Is, x \in {"faithful", "wrong"} : OpOutcome(i, x)
+    \/ \E s \in Slots, x \in Decided : OutOfBand(s, x)
+    \/ LegRun
+    \/ Rebuild
 Spec == Init /\ [][Next]_vars
 
 \* ---- the invariants ----
-Quiescent ==
-    /\ phase \in {"live", "closed"}
-    /\ \A i \in Slots : (part[i] => clo[i] \in {"retried", "superseded"})
+Quiescent == phase = "live" /\ ~(\E j \in Is : st[j] \in OpenSt \cup {"escalated"})
 
-Inv1_1 == ((Quiescent /\ phase = "live") => sub = N)
+\* Invariant 1.1: a quiescent chain has its full step list.
+Inv1_1 == Quiescent => sub = N
 
-Inv2_1 == (term = "resolution" => cs = QOf(st, how, trl, sub))
+\* Invariant 2.1, 2.2: quorum determinism, split by terminal path.
+Inv2_1 == cterm = "resolution" => cs = QOf(ss, how, TrlVec)
+Inv2_2 == cterm = "withdrawal" => PreQ = "Pending"
 
-Inv2_2 == (term = "withdrawal" => PreQ = "Pending")
+\* Bypass resistance: an Approved chain carries the quorum's routed, non-trailing approvals.
+RoutedApprovals == Cardinality({s \in Slots : ss[s] = "Approved" /\ how[s] = "routed" /\ ~TrlVec[s]})
+Bypass == cs = "Approved" => RoutedApprovals >= (IF rule = "all" THEN N ELSE m)
 
-RoutedApprovals == Cardinality({i \in Slots : i <= sub /\ st[i] = "Approved" /\ how[i] = "routed" /\ ~trl[i]})
-Bypass == (cs = "Approved" => RoutedApprovals >= (IF rule = "all" THEN N ELSE m))
+\* Invariant 4.1, 4.2: assignment coverage at quiescence, out-of-band decisions aside.
+Inv4_1 == \A s \in Slots :
+    (Quiescent /\ s <= sub /\ cs = "Pending" /\ ss[s] = "Pending") => asg[s] = "Active"
+Inv4_2 == \A s \in Slots :
+    (Quiescent /\ s <= sub /\ how[s] # "oob" /\ (ss[s] # "Pending" \/ cs # "Pending")) => asg[s] # "Active"
 
-Inv4_1 == \A i \in Slots :
-    ((Quiescent /\ i <= sub /\ cs = "Pending" /\ st[i] = "Pending") => asg[i] = "Active")
+\* Invariant 7.1: a terminal chain's state never changes.
+Inv7_1 == first # "none" => cs = first
 
-Inv4_2 == \A i \in Slots :
-    ((Quiescent /\ i <= sub /\ how[i] # "oob" /\ (st[i] # "Pending" \/ cs # "Pending")) => asg[i] # "Active")
+\* Cascade 2, Cascade 14: a Withdrawn chain carries no Pending step.
+No_withdrawn_residue == cs = "Withdrawn" => \A s \in 1..sub : ss[s] # "Pending"
 
-Inv7_1 == (first # "none" => cs = first)
+\* Action wiring 64, 65: a decision commits only where its intent's trailing flag reads the
+\* chain state at the commit.
+Trailing_matches == \A j \in Is : (ik[j] \in DecKinds /\ cw[j]) => (trl[j] = (tcs[j] # "Pending"))
 
-NoStuck == \A i \in Slots : clo[i] # "stuck"
+\* Invariant 5.1, Cross-record consistency 1: an invocation whose commit wrote stands open or
+\* beside a closing, never a refusal.
+Owed_outcome ==
+    \A j \in Is : cw[j] => st[j] \in {"committed", "dead", "closed", "escalated", "abandoned"}
 
-\* ---- reachability probes (each a deliberate falsehood the checker must reject) ----
-Probe_NoResidue        == \A i \in Slots : ~part[i]
-Probe_NoTrailing       == \A i \in Slots : ~trl[i]
-Probe_NoSuperseded     == \A i \in Slots : clo[i] # "superseded"
-Probe_NoRecoveryClosed == phase # "closed"
-Probe_NoShortTerminal  == ~(phase = "closed" /\ term = "resolution")
-Probe_NoApproved       == cs # "Approved"
-Probe_NoOutOfBand      == \A i \in Slots : how[i] # "oob"
+\* Term initiation probe, decision probe, withdrawal probe: an outcome the invocation or the
+\* sweep wrote names the record its pairing datum finds. An operator's is detected.
+Outcome_names_record ==
+    \A j \in Is : (st[j] = "closed" /\ cby[j] # "op") => Matches(j) # {}
+
+\* Composition state 6, 7, Check 7.1: an outcome the invocation or the sweep wrote carries the
+\* chain record's terminal summary where its act terminated the chain, and none otherwise.
+Terminal_outcome_matches ==
+    \A j \in Is : (st[j] = "closed" /\ cby[j] # "op" /\ ik[j] \in DecKinds \cup {"wdr"})
+                     => osum[j] = SumFor(j)
+
+\* Composition state 22, 23: the rebuild's alerts.
+Terminal_alert == ~("term-missed" \in viol)
+Shape_alert == ~("shape-missed" \in viol)
+
+\* Capability requirement 37, 38: a record carries one intent at most, and the sweep answers
+\* committed only for the intent whose own commit wrote the record.
+Pairing_unique ==
+    /\ \A j \in Is : (st[j] = "closed" /\ cby[j] = "sweep") => Writer(j) = j
+    /\ Cardinality(InitCarriers) <= 1
+    /\ Cardinality(WdrCarriers) <= 1
+    /\ \A s \in Slots : Cardinality(StepCarriers(s)) <= 1
+
+\* Reconciliation 20: a finding for every out-of-band transition, and for no other step.
+Write_ownership_finding == ~("finding-false" \in viol) /\ ~("finding-missed" \in viol)
+
+\* Reconciliation 50: an alert for exactly the records whose own intent an abandonment or a
+\* refusal closed.
+False_closing_alert == ~("alert-wrong" \in viol)
 
 ====

@@ -66,7 +66,7 @@ constituents reached transitively). This is the load-bearing spine of the librar
 | Substrate | Named by | Composers |
 |---|---|---|
 | [Audit Trail](./compositions/audit-trail.html) | 14 | actor-suspension, capability-backed-sharing, chain-of-custody, customer-onboarding, defensible-retention, execute-gated-workflow, external-onboarding, immutable-ledger, login, multi-party-approval, privileged-access-provisioning, propagate-consent-revocation-downstream, recoverable-invocation, verified-repair |
-| [Recoverable Invocation](./compositions/recoverable-invocation.html) | 6 | capability-backed-sharing, chain-of-custody, external-onboarding, immutable-ledger, propagate-consent-revocation-downstream, verified-repair |
+| [Recoverable Invocation](./compositions/recoverable-invocation.html) | 7 | capability-backed-sharing, chain-of-custody, external-onboarding, immutable-ledger, multi-party-approval, propagate-consent-revocation-downstream, verified-repair |
 | [Defensible Retention](./compositions/defensible-retention.html) | 1 | resolve-a-persons-data-rights |
 | [Multi-Party Approval](./compositions/multi-party-approval.html) | 1 | privileged-access-provisioning |
 
@@ -91,7 +91,7 @@ flowchart LR
   multi_party_approval["Multi-Party Approval · 1"]
   privileged_access_provisioning["Privileged Access Provisioning"]
   propagate_consent_revocation_downstream["Propagate Consent Revocation Downstream"]
-  recoverable_invocation["Recoverable Invocation · 6"]
+  recoverable_invocation["Recoverable Invocation · 7"]
   resolve_a_persons_data_rights["Resolve a Person's Data Rights"]
   verified_repair["Verified Repair"]
   actor_suspension -.-> audit_trail
@@ -108,6 +108,7 @@ flowchart LR
   immutable_ledger -.-> recoverable_invocation
   login -.-> audit_trail
   multi_party_approval -.-> audit_trail
+  multi_party_approval -.-> recoverable_invocation
   privileged_access_provisioning -.-> audit_trail
   privileged_access_provisioning -.-> multi_party_approval
   propagate_consent_revocation_downstream -.-> audit_trail
@@ -272,6 +273,7 @@ flowchart LR
   c_immutable_ledger -.-> c_recoverable_invocation
   c_login -.-> c_audit_trail
   c_multi_party_approval -.-> c_audit_trail
+  c_multi_party_approval -.-> c_recoverable_invocation
   c_privileged_access_provisioning -.-> c_audit_trail
   c_privileged_access_provisioning -.-> c_multi_party_approval
   c_propagate_consent_revocation_downstream -.-> c_audit_trail
