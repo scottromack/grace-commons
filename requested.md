@@ -25,19 +25,19 @@ Daniel Jackson's [Concept Design Community forum](https://forum.essenceofsoftwar
 | Favorite | A user saves an item for their own review later. See also the case below. The library reads this as two patterns: Favorite, a toggle (usually drawn as a heart, and always named "Favorite") that marks what a person likes best, such as a song or a product; and Save for Later, the private list to come back to, below. | spdegabrielle, [Favorite(media): in which a user saves item for later review](https://forum.essenceofsoftware.com/t/favorite-media-in-which-a-user-saves-item-for-later-review/30) | requested |
 | Presence | Whether a user is on a system now, as Slack, Microsoft Teams and Skype show it. | kimmeyh, [Concept Ideas: Presence (of a user on a system)](https://forum.essenceofsoftware.com/t/concept-ideas-presence-of-a-user-on-a-system-example-concept-idea/50) | requested |
 | Save for Later | Put an item on a private list to come back to, as YouTube's "Save" does; the list says "Save for later" in words, and the item leaves it when the person is done. Raised in the same thread as Favorite. | spdegabrielle, [Favorite(media): in which a user saves item for later review](https://forum.essenceofsoftware.com/t/favorite-media-in-which-a-user-saves-item-for-later-review/30) | requested |
-| Comments, Notes and Tags | Highlight, tag and reference as concepts, and how they sit beside comments and notes. Requested as [Comment and Tag](#what-a-forum-would-need), the rows there. | pwilczynski, [Comments, Notes and Tags](https://forum.essenceofsoftware.com/t/comments-notes-and-tags/82) | requested |
+| Comments, Notes and Tags | Highlight, tag and reference as concepts, and how they sit beside comments and notes. The library reads the thread's seventeen boxes as four concepts: [Segment, Reference, Comment and Suggestion](#what-a-forum-would-need). A note (a Comment only its author sees) and an annotation (a Comment by someone who cannot edit the item) are requested as Comment, whose row gains the two settings, who can see it and whether its author can edit the item. A mention and a citation are References drawn differently; inline and anchored are where a reference is drawn, a rendering. A clip is Save for Later on a Segment. Their "label" is our Tag. | pwilczynski, [Comments, Notes and Tags](https://forum.essenceofsoftware.com/t/comments-notes-and-tags/82) | requested |
 | Order | Whether an order is a concept or an app. | Henri, ["Order" as an app](https://forum.essenceofsoftware.com/t/order-as-an-app/88) | requested |
 
 **Favorite, a case from practice.** At Norwex a private favorites list became a shared one because its users asked for it. That is the shape [Shared Cart](./compositions/shared-cart.md) now holds: a list one person keeps that others can come to share. The Favorite row asks whether the single-owner list underneath it is a pattern of its own.
 
 ## What a forum would need
 
-The first product the library is meant to build is a forum, and a sketch of it lists twelve patterns the library does not yet have. They are the maintainer's, from the forum sketch of 2026-10-31 ([the sketch](https://github.com/scottromack/grace-commons/blob/main/working-ideas/forum-demo.md)). The first seven are the core of version 1.0; the rest follow one a week.
+The first product the library is meant to build is a forum, and a sketch of it lists twelve patterns the library does not yet have. They are the maintainer's, from the forum sketch of 2026-10-31 ([the sketch](https://github.com/scottromack/grace-commons/blob/main/working-ideas/forum-demo.md)). The first seven are the core of version 1.0; the rest follow one a week. Three more rows (Segment, Reference and Suggestion) come from the Comments, Notes and Tags thread above, and are not the sketch's.
 
 | Pattern | What it would do | State |
 |---|---|---|
 | Post | A markdown body with its revisions and publish state; the address is derived from the title, the author may change it, and the old one redirects. | requested |
-| Comment | A reply tree on a target. | requested |
+| Comment | A reply tree on a target. Two settings make it the thread's note and annotation as well: who can see it (everyone, or only its author, a note), and whether its author can edit the item (an annotation is a Comment by someone who cannot). | requested |
 | Category | A tree; one home per post; carries the menu order. | requested |
 | Role | A named set of permissions; assigning it grants them and removing it revokes them. | requested |
 | Moderation | Flag, hide, lock and pin: a role over a target. | requested |
@@ -48,6 +48,9 @@ The first product the library is meant to build is a forum, and a sketch of it l
 | Attachment | An upload that returns an address. | requested |
 | Search | A derived index that never returns what the searcher could not read directly. | requested |
 | Reputation | A score derived from reactions and accepted answers. | requested |
+| Segment | A part of an item, of two kinds only ("inline and block. All else is trouble"): a block (a paragraph, heading or list item, anchored like a verse) or an inline span within one block, never a range across blocks. It is what comments, references and a plain highlight hang on. To pre-break: what happens to a segment when the text it spans is edited? and may two segments overlap, or does a new one merge with or replace the one beneath it, as most Bible software does? Raised in the thread [Comments, Notes and Tags](https://forum.essenceofsoftware.com/t/comments-notes-and-tags/82) by pwilczynski, with the concept map dnj commented on. | requested |
+| Reference | One item points to another, and the target can list what points to it. A mention and a citation are References drawn differently. To pre-break: does a reference survive its target's deletion? Raised in the thread [Comments, Notes and Tags](https://forum.essenceofsoftware.com/t/comments-notes-and-tags/82) by pwilczynski, with the concept map dnj commented on. | requested |
+| Suggestion | A proposed change on a segment, accepted or rejected by someone who can edit the item. Raised in the thread [Comments, Notes and Tags](https://forum.essenceofsoftware.com/t/comments-notes-and-tags/82) by pwilczynski, with the concept map dnj commented on. | requested |
 
 ## Compositions the library has imagined
 
