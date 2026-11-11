@@ -39,7 +39,7 @@
 
 | Spec rule (no. + name) | Load-bearing (vote)? | Verdict | Model construct / reason |
 |---|---|---|---|
-| Invariant 1.1, 1.3, 4.1 — the records name the allocator (a claimable disclosure), the intended recipient, the disclosed scope | no | `owed` out-of-scope | field claims; the descriptor and allocator are one value here. Alloy's (static), owed |
+| Invariant 1.1, 1.3, 4.1 — the records name the allocator (a claimable disclosure), the addressee, the disclosed scope | no | `owed` out-of-scope | field claims; the descriptor and allocator are one value here. Alloy's (static), owed |
 | Invariant 1.2 — no record carries a redeemer identity | no | `unstatable` out-of-scope | a rule about what no record carries; no redeemer exists in the model to record (Capability Invariant 3, by construction) |
 | Invariant 1.4 — the allocator-named claim only for a claimable disclosure | no | `owed` out-of-scope | an event aging is the clock's passage, which the model does not explore; that a disclosure is claimable when made is `Lapse_before_aged` with `Index_read_live` |
 | Invariant 2.1 — every disclosure event names a disclosure record | YES | `checked` **covered** (invocation, sweep); **detected** (operator) | `Outcome_names_record`. Twins `-close-on-refused` (a pre-commit arm closed), `-unanswered-committed` (a refused probe read mapped to committed). An operator's outcome naming no record opens the seal alert: `Seal_alert`, twin `-no-seal-alert` Broken by `capability-backed-sharing-buggy-close-on-refused.tla` (`Outcome_names_record`), `capability-backed-sharing-buggy-no-seal-alert.tla` (`Seal_alert`). |
