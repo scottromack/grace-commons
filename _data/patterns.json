@@ -919,7 +919,7 @@
   "models": {
    "als": true,
    "tla": true,
-   "twins": 5
+   "twins": 20
   },
   "regulated_by": [],
   "security": false,
