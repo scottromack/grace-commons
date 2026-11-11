@@ -428,7 +428,7 @@ It inherits from:
 
 ```
 status: grounded on Final Critique 7 — 2026-10-28 at 7c6ea61
-formal: verified — duplicate-prevention.tla + 1 twin; coverage 2026-11-10 (unit formal: more coverage for the yes votes): owes Alloy (the static data model); owed rows: Invariant 1; Invariant 3; Invariant 4, 2026-06-03
+formal: verified — duplicate-prevention.tla + 1 twin (2026-06-03); duplicate-prevention.als + 8 twins (the static data model, 2026-11-11: State 1, Operation 5, 6 and 7 and Invariant 2.1, 2.2, 2.3 and 3.1 checked on every recorded set and every answer the [Record] and [Check] calls leave, Invariant 2.1 and 2.2 a cross-check with the TLA+ model; the rules that own the deleted Invariant 1, 3.2 and 4 are among them); coverage 2026-11-10 (unit formal: more coverage for the yes votes), 2026-11-11
 last gate: 2026-10-28 — Final Critique 7 — foundational count 0, clean, one sample
 
 open:

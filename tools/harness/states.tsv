@@ -360,7 +360,6 @@
 2026-11-11	compositions/verified-repair-settle-buggy-oneactor.tla	twin	tla	16	0	-	-	-	-	-	CAUGHT	tlc
 2026-11-11	compositions/idempotent-reservation-buggy-rerun.tla	twin	tla	15	0	-	-	-	-	-	CAUGHT	tlc
 2026-11-11	compositions/reserve-from-pool-age-before-binding-buggy.tla	twin	tla	15	0	-	-	-	-	-	CAUGHT	tlc
-2026-11-11	atoms/duplicate-prevention.tla	model	tla	14	0	-	-	-	-	-	HOLDS	tlc
 2026-11-11	atoms/event-log-buggy.tla	twin	tla	14	0	-	-	-	-	-	CAUGHT	tlc
 2026-11-11	compositions/compensable-workflow-commit-early-buggy.tla	twin	tla	14	0	-	-	-	-	-	CAUGHT	tlc
 2026-11-11	compositions/external-onboarding-buggy-badstatus.tla	twin	tla	14	0	-	-	-	-	-	CAUGHT	tlc
@@ -376,7 +375,6 @@
 2026-11-11	atoms/provisional-commitment.tla	model	tla	12	0	-	-	-	-	-	HOLDS	tlc
 2026-11-11	compositions/actor-suspension-probe-sweep.tla	twin	tla	12	0	-	-	-	-	-	CAUGHT	tlc
 2026-11-11	compositions/verified-repair-budget-probe-ruled.tla	twin	tla	12	0	-	-	-	-	-	CAUGHT	tlc
-2026-11-11	atoms/duplicate-prevention-buggy.tla	twin	tla	11	0	-	-	-	-	-	CAUGHT	tlc
 2026-11-11	atoms/medication-order-buggy.tla	twin	tla	11	0	-	-	-	-	-	CAUGHT	tlc
 2026-11-11	compositions/actor-suspension-probe-resume.tla	twin	tla	11	0	-	-	-	-	-	CAUGHT	tlc
 2026-11-11	compositions/idempotent-reservation-buggy-collision.tla	twin	tla	11	0	-	-	-	-	-	CAUGHT	tlc
@@ -772,3 +770,14 @@
 2026-11-11	atoms/erasure-tombstone-buggy-ref-cap-unchecked.als	twin	als	-	-	22	14	7	1	0	CAUGHT	alloy
 2026-11-11	atoms/erasure-tombstone.als	model	als	-	-	22	15	7	0	0	HOLDS	alloy
 2026-11-11	atoms/erasure-tombstone.tla	model	tla	37202	0	-	-	-	-	-	HOLDS	tlc
+2026-11-11	atoms/duplicate-prevention.tla	model	tla	14	0	-	-	-	-	-	HOLDS	tlc
+2026-11-11	atoms/duplicate-prevention-buggy.tla	twin	tla	11	0	-	-	-	-	-	CAUGHT	tlc
+2026-11-11	atoms/duplicate-prevention-buggy-check-slides.als	twin	als	-	-	17	5	9	3	0	CAUGHT	alloy
+2026-11-11	atoms/duplicate-prevention-buggy-guard-extended.als	twin	als	-	-	17	6	8	2	1	CAUGHT	alloy
+2026-11-11	atoms/duplicate-prevention-buggy-elapse-ignored.als	twin	als	-	-	17	6	9	2	0	CAUGHT	alloy
+2026-11-11	atoms/duplicate-prevention-buggy-second-instant.als	twin	als	-	-	17	5	9	3	0	CAUGHT	alloy
+2026-11-11	atoms/duplicate-prevention.als	model	als	-	-	17	8	9	0	0	HOLDS	alloy
+2026-11-11	atoms/duplicate-prevention-buggy-zero-elapsed-missed.als	twin	als	-	-	17	7	7	1	2	CAUGHT	alloy
+2026-11-11	atoms/duplicate-prevention-buggy-both-answers.als	twin	als	-	-	17	7	8	1	1	CAUGHT	alloy
+2026-11-11	atoms/duplicate-prevention-buggy-boundary-seen.als	twin	als	-	-	17	7	8	1	1	CAUGHT	alloy
+2026-11-11	atoms/duplicate-prevention-buggy-check-purges.als	twin	als	-	-	17	7	8	1	1	CAUGHT	alloy
