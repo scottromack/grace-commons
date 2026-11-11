@@ -1071,7 +1071,7 @@ Actor Suspension inherits the broader standards compliance of its constituents:
 
 ```
 status: grounded on Final Critique 9 — 2026-11-05 at 917cc95
-formal: verified — actor-suspension.tla + 5 twins + 9 probes; coverage 2026-11-10 (unit formal: more coverage for the yes votes): owes Alloy (the static data model); owed rows: Primitive policy 19, 20; Composition state 32 through 40; 2a: Reconciliation 28 — owed: an invariant under a window counter (the model has no clock); its twin lets the cascade stay open past the window, 2026-10-27
+formal: verified — actor-suspension.tla + 6 twins + 9 probes; coverage 2026-11-10 (unit formal: more coverage for the yes votes): owes Alloy (the static data model); owed rows: Primitive policy 19, 20; Composition state 32 through 40; 2a: Reconciliation 28 — owed: an invariant under a window counter (the model has no clock); its twin lets the cascade stay open past the window, 2026-10-27
 last gate: 2026-11-05 — Final Critique 9, delta, frozen at 917cc95 — foundational count 0, clean, one sample; 2026-11-04 — Final Critique 8, a delta round, frozen at 92bff7a — foundational count 0 in the reader's report, open foundational line 2026-10-26-c cured by the settle, not clean, no sample; 2026-11-03 — Final Critique 7 — foundational count 7, not clean, no sample
 
 open:

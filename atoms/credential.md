@@ -1008,7 +1008,7 @@ It inherits from:
 
 ```
 status: grounded on Final Critique 21 — 2026-10-29 at cf02362
-formal: verified — credential.tla + 4 twins; coverage 2026-11-10 (unit formal: more coverage for the yes votes): owes Alloy (the static data model); owed rows: Invariant 1; Invariant 4, 5; Invariant 6; Invariant 11, 2026-09-29
+formal: verified — credential.tla + 6 twins; coverage 2026-11-10 (unit formal: more coverage for the yes votes): owes Alloy (the static data model); owed rows: Invariant 1; Invariant 4, 5; Invariant 6; Invariant 11, 2026-09-29
 last gate: 2026-11-02 — Final Critique 22 (delta) — foundational count 0, clean, one sample
 
 open:

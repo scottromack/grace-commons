@@ -10,6 +10,7 @@
 - Correct model: `node check.mjs ../../atoms/provisional-commitment.tla` → `PASS` ✓ *(12 states, all invariants hold — 2026-06-23 re-run with PlacedAt=1, ExpiresAt=2, MaxClock=3)*
 - Buggy twin (resolution hazard): `node check.mjs ../../atoms/provisional-commitment-buggy.tla --buggy` → `PASS` (rejected) ✓ *(9 states — `ConfirmBuggy` drops the `state = Held` guard; Release then ConfirmBuggy re-resolves an already-Released commitment; `Inv_SingleResolution` violated. Confirmed isolated: `Inv_ConfirmWithinWindow` holds in this twin.)*
 - Buggy twin (window hazard): `node check.mjs ../../atoms/provisional-commitment-buggy-window.tla --buggy` → `PASS` (rejected) ✓ *(6 states — `ConfirmBuggy` admits at `clock <= ExpiresAt`; tick to ExpiresAt then confirm a lapsed hold stamps `confirmedAt = ExpiresAt`; `Inv_ConfirmWithinWindow` violated. Confirmed isolated: `Inv_SingleResolution` holds in this twin.)*
+- 2026-11-10 (unit `tooling: every check has a twin that breaks it`): `audit.mjs` → HOLDS, four twins CAUGHT; `Inv_SingleResolution` broken by `provisional-commitment-buggy-rehold.tla` (and `provisional-commitment-buggy.tla`), `Inv_ConfirmWithinWindow` by `provisional-commitment-buggy-window.tla`, `Inv3_TerminalAbsorbing` broken by the new `provisional-commitment-buggy-rehold.tla` (a released commitment held again), `Inv8_TransitionsAfterPlacement` by the new `provisional-commitment-buggy-stamp.tla` (release leaves the release instant unstamped).
 
 ## Step 2 — coverage matrix
 
@@ -17,16 +18,16 @@ The spec has 10 invariants. The model covers single-resolution over the three st
 
 | Spec invariant (no. + name) | Load-bearing (vote)? | Verdict | Model construct / reason |
 |---|---|---|---|
-| Invariant 1 — Membership exclusivity | No | by-construction | `TypeOK` constrains `state \in States`; `state` is always one of {Held, Confirmed, Released, Expired}. Per model note: "Invariant 1 (membership exclusivity) is TypeOK." |
-| Invariant 2 — Single-resolution | YES | **covered** | `Inv_SingleResolution == (resolution # "none") => (state = resolution)`; ghost `resolution` records the first stored terminal reached, so a re-resolution is detectable. The resolution buggy twin (drops the `state = Held` guard) confirms the checker can reject a second resolution. |
-| Invariant 3 — Terminal absorption | YES (vote) | **covered** | `Inv3_TerminalAbsorbing == everTerminal => (state \in Terminals)` (history-flag form). A transition out of a terminal would violate it; downstream of the resolution twin's re-resolution. |
-| Invariant 4 — Id stability | No | out-of-scope (no id model; per model header: "id discipline…out of scope") | Acceptable. |
-| Invariant 5 — Resource and requester immutability | No | out-of-scope (no resource/requester fields modeled) | Acceptable: not load-bearing per vote. |
-| Invariant 6 — Hold window monotonicity (`placed_at < expires_at`) | No | out-of-scope (no `place_hold` action modeled; commitment starts in Held at PlacedAt with `ExpiresAt` fixed as a constant) | Acceptable: not load-bearing per vote. |
-| Invariant 7 — Confirmation within the window | YES | **covered** | `Inv_ConfirmWithinWindow == (state = "Confirmed") => (confirmedAt < ExpiresAt)`; ghost `confirmedAt` records clock value at confirm; `Confirm`/`Release` guard `clock < ExpiresAt`; `Expire` guards `clock >= ExpiresAt` (mutually exclusive). The window buggy twin (admit at `clock <= ExpiresAt`) confirms the checker can reject. |
-| Invariant 8 — Transition timestamps strictly after placement | YES (vote) | **covered** | `Inv8_TransitionsAfterPlacement`: asserts `confirmedAt >= PlacedAt`, `releasedAt >= PlacedAt`, `expiredAt >= PlacedAt` in respective terminal states. Ghost variables `confirmedAt`/`releasedAt`/`expiredAt`; `PlacedAt = 1` constant gives real teeth (sentinel 0 is strictly below PlacedAt). |
-| Invariant 9 — No id reuse | No | out-of-scope (no id model) | Acceptable. |
-| Invariant 10 — Commitment store durability | No | out-of-scope (single commitment model; no deletion surface; per model header) | Acceptable: not load-bearing per vote. |
+| Invariant 1 — Membership exclusivity | No | `owed` by-construction | `TypeOK` constrains `state \in States`; `state` is always one of {Held, Confirmed, Released, Expired}. Per model note: "Invariant 1 (membership exclusivity) is TypeOK." |
+| Invariant 2 — Single-resolution | YES | `checked` **covered** | `Inv_SingleResolution == (resolution # "none") => (state = resolution)`; ghost `resolution` records the first stored terminal reached, so a re-resolution is detectable. The resolution buggy twin (drops the `state = Held` guard) confirms the checker can reject a second resolution. Broken by `provisional-commitment-buggy-rehold.tla`, `provisional-commitment-buggy.tla`. |
+| Invariant 3 — Terminal absorption | YES (vote) | `checked` **covered** | `Inv3_TerminalAbsorbing == everTerminal => (state \in Terminals)` (history-flag form). The resolution twin does not break it (Released → Confirmed stays terminal); its own twin returns a released commitment to Held (2026-11-10). Broken by `provisional-commitment-buggy-rehold.tla`. |
+| Invariant 4 — Id stability | No | `owed` out-of-scope (no id model; per model header: "id discipline…out of scope") | Acceptable. |
+| Invariant 5 — Resource and requester immutability | No | `owed` out-of-scope (no resource/requester fields modeled) | Acceptable: not load-bearing per vote. |
+| Invariant 6 — Hold window monotonicity (`placed_at < expires_at`) | No | `owed` out-of-scope (no `place_hold` action modeled; commitment starts in Held at PlacedAt with `ExpiresAt` fixed as a constant) | Acceptable: not load-bearing per vote. |
+| Invariant 7 — Confirmation within the window | YES | `checked` **covered** | `Inv_ConfirmWithinWindow == (state = "Confirmed") => (confirmedAt < ExpiresAt)`; ghost `confirmedAt` records clock value at confirm; `Confirm`/`Release` guard `clock < ExpiresAt`; `Expire` guards `clock >= ExpiresAt` (mutually exclusive). The window buggy twin (admit at `clock <= ExpiresAt`) confirms the checker can reject. Broken by `provisional-commitment-buggy-window.tla`. |
+| Invariant 8 — Transition timestamps strictly after placement | YES (vote) | `checked` **covered** | `Inv8_TransitionsAfterPlacement`: asserts `confirmedAt >= PlacedAt`, `releasedAt >= PlacedAt`, `expiredAt >= PlacedAt` in respective terminal states. Ghost variables `confirmedAt`/`releasedAt`/`expiredAt`; `PlacedAt = 1` constant gives real teeth (sentinel 0 is strictly below PlacedAt). Broken by `provisional-commitment-buggy-stamp.tla`. |
+| Invariant 9 — No id reuse | No | `owed` out-of-scope (no id model) | Acceptable. |
+| Invariant 10 — Commitment store durability | No | `owed` out-of-scope (single commitment model; no deletion surface; per model header) | Acceptable: not load-bearing per vote. |
 
 ## Step 3 — bound saturation
 

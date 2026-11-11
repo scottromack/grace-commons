@@ -10,6 +10,7 @@
 
 - Correct model: `node check.mjs ../../atoms/capacity-constraint-enforcement.tla` → `PASS` ✓ *(7 states, all invariants hold; Capacity=2 Workers={w1,w2,w3})*
 - Buggy twin: `node check.mjs ../../atoms/capacity-constraint-enforcement-buggy.tla --buggy` → `PASS` (rejected) ✓ *(3 states, Inv5_NonNegativity violated — unguarded ReleaseBuggy drives allocated to -1)*
+- 2026-11-10 (unit `tooling: every check has a twin that breaks it`): `audit.mjs` → HOLDS; `Inv4_CapacityConstraint` is broken by `capacity-constraint-enforcement-buggy-toctou.tla`, `Inv5_NonNegativity` by `capacity-constraint-enforcement-buggy.tla` (both CAUGHT).
 
 ## Step 2 — coverage matrix
 
@@ -17,20 +18,20 @@ The spec has 14 invariants. The model now covers both the allocate-path (Inv4) a
 
 | Spec invariant (no. + name) | Load-bearing (vote)? | Verdict | Model construct / reason |
 |---|---|---|---|
-| Invariant 1 — Pool record permanence | No | out-of-scope (no pool lifecycle modeled; fixed capacity, no close/purge action) | Model focuses on allocate/release concurrency only. |
-| Invariant 2 — State membership exclusivity | No | out-of-scope (no state machine modeled) | Pool state (Open/Suspended/Closed) not in scope. |
-| Invariant 3 — Closed is absorbing | No | out-of-scope (no close action modeled) | Explicitly excluded per model header. |
-| Invariant 4 — Capacity constraint (`allocated ≤ capacity`) | YES | **covered** | `Inv4_CapacityConstraint == allocated <= Capacity`; checked under every interleaving of `Workers` concurrent atomic allocations. Buggy twin (TOCTOU overshoot, original twin) demonstrated the allocate guard is load-bearing; current twin isolates Inv5 violation. |
-| Invariant 5 — Non-negativity (`allocated ≥ 0`) | YES (vote) | **covered** | `Inv5_NonNegativity == allocated >= 0`; now non-vacuous — `ReleaseAtomic(w)` is in scope and the buggy twin (`ReleaseBuggy` with no guard) reachably drives `allocated` to -1, proving the check has teeth. The release guard (`status[w]="allocated" ∧ allocated≥1`) is the real enforcement surface. |
-| Invariant 6 — Capacity non-negativity (`capacity ≥ 0`) | No | out-of-scope (capacity is a fixed constant `Capacity`; no `declare_pool` or `adjust_capacity` modeled) | Acceptable: not load-bearing per vote. |
-| Invariant 7 — Declaration fields immutable | No | out-of-scope (structural; no declare/adjust modeled) | Acceptable. |
-| Invariant 8 — Audit-log two-surface split | No | out-of-scope (audit log not modeled; per model header) | Named explicitly out of scope. |
-| Invariant 9 — Audit-log append-only | No | out-of-scope (audit log not modeled) | Named explicitly out of scope. |
-| Invariant 10 — State-change events auditable | No | out-of-scope (no state changes modeled) | Named explicitly out of scope. |
-| Invariant 11 — Capacity-adjustment events auditable | No | out-of-scope (no adjust_capacity modeled) | Named explicitly out of scope. |
-| Invariant 12 — Id stability | No | out-of-scope (no id model; per model header) | Named explicitly out of scope. |
-| Invariant 13 — No id reuse | No | out-of-scope (no id model) | Named explicitly out of scope. |
-| Invariant 14 — Action atomicity | ~~YES (original vote)~~ → **out-of-scope (within-action, not an interleaving; vote reconsidered 2026-06-04)** | out-of-scope | See the section titled *Inv 14 reconsideration* below. |
+| Invariant 1 — Pool record permanence | No | `owed` out-of-scope (no pool lifecycle modeled; fixed capacity, no close/purge action) | Model focuses on allocate/release concurrency only. |
+| Invariant 2 — State membership exclusivity | No | `owed` out-of-scope (no state machine modeled) | Pool state (Open/Suspended/Closed) not in scope. |
+| Invariant 3 — Closed is absorbing | No | `owed` out-of-scope (no close action modeled) | Explicitly excluded per model header. |
+| Invariant 4 — Capacity constraint (`allocated ≤ capacity`) | YES | `checked` **covered** | `Inv4_CapacityConstraint == allocated <= Capacity`; checked under every interleaving of `Workers` concurrent atomic allocations. Buggy twin (TOCTOU overshoot, original twin) demonstrated the allocate guard is load-bearing; current twin isolates Inv5 violation. Broken by `capacity-constraint-enforcement-buggy-toctou.tla`. |
+| Invariant 5 — Non-negativity (`allocated ≥ 0`) | YES (vote) | `checked` **covered** | `Inv5_NonNegativity == allocated >= 0`; now non-vacuous — `ReleaseAtomic(w)` is in scope and the buggy twin (`ReleaseBuggy` with no guard) reachably drives `allocated` to -1, proving the check has teeth. The release guard (`status[w]="allocated" ∧ allocated≥1`) is the real enforcement surface. Broken by `capacity-constraint-enforcement-buggy.tla`. |
+| Invariant 6 — Capacity non-negativity (`capacity ≥ 0`) | No | `owed` out-of-scope (capacity is a fixed constant `Capacity`; no `declare_pool` or `adjust_capacity` modeled) | Acceptable: not load-bearing per vote. |
+| Invariant 7 — Declaration fields immutable | No | `owed` out-of-scope (structural; no declare/adjust modeled) | Acceptable. |
+| Invariant 8 — Audit-log two-surface split | No | `owed` out-of-scope (audit log not modeled; per model header) | Named explicitly out of scope. |
+| Invariant 9 — Audit-log append-only | No | `owed` out-of-scope (audit log not modeled) | Named explicitly out of scope. |
+| Invariant 10 — State-change events auditable | No | `owed` out-of-scope (no state changes modeled) | Named explicitly out of scope. |
+| Invariant 11 — Capacity-adjustment events auditable | No | `owed` out-of-scope (no adjust_capacity modeled) | Named explicitly out of scope. |
+| Invariant 12 — Id stability | No | `owed` out-of-scope (no id model; per model header) | Named explicitly out of scope. |
+| Invariant 13 — No id reuse | No | `owed` out-of-scope (no id model) | Named explicitly out of scope. |
+| Invariant 14 — Action atomicity | ~~YES (original vote)~~ → **out-of-scope (within-action, not an interleaving; vote reconsidered 2026-06-04)** | `unstatable` out-of-scope | See the section titled *Inv 14 reconsideration* below. |
 
 ## Inv 14 reconsideration
 

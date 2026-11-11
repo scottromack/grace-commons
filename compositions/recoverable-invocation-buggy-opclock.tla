@@ -15,6 +15,9 @@
 \* so each is the other's second defence, and the twin turns both off.
 \* Re-derived from v7 on 2026-10-27; until then a copy of v4 with
 \* OperatorSkew = 1 alone, rejected for a race v6 removed.
+\* Since 2026-11-10 the module below this header is recoverable-invocation.tla's
+\* (v8) byte for byte; two of its UNCHANGED lists had lost outcomeIssuedAt and
+\* outcomeReplyLost, which TLC would refuse had a run reached them.
 \*
 \* Expected result: Inv5_NoFalseAbandon VIOLATED at MaxTime = 2, the shortest
 \* horizon that reaches it (1,590 states); at MaxTime = 1 it holds (268).
@@ -701,7 +704,7 @@ SweepPrepareOutcome(s) ==
                    outcomeRecords, closingKind, closingState, closingReturnAt,
                    closingVisibleAt, closingRecords, sweepNextA, sweepNextB,
                    sweepDeaths, pauses, opPhase, opKind, opState,
-                   opReturnAt, opVisibleAt, opRecords, opSuperseded, opPendingNamed, secondOpened>>
+                   opReturnAt, opVisibleAt, opRecords, opSuperseded, opPendingNamed, secondOpened, outcomeIssuedAt, outcomeReplyLost>>
 
 \* The probe answers not-committed: abandoned under a fence, escalated without.
 SweepPrepareClosing(s) ==
@@ -718,7 +721,7 @@ SweepPrepareClosing(s) ==
                    outcomeRecords, closingKind, closingState, closingReturnAt,
                    closingVisibleAt, closingRecords, sweepNextA, sweepNextB,
                    sweepDeaths, pauses, opPhase, opKind, opState,
-                   opReturnAt, opVisibleAt, opRecords, opSuperseded, opPendingNamed, secondOpened>>
+                   opReturnAt, opVisibleAt, opRecords, opSuperseded, opPendingNamed, secondOpened, outcomeIssuedAt, outcomeReplyLost>>
 
 SweepIssueOutcome(s) ==
     /\ PhaseOf(s) = "prepOutcome"
@@ -1123,6 +1126,10 @@ Inv2_OneWriter ==
     /\ outcomeRecords <= 1
     /\ ClosingCount <= 1
 
+\* Not in Safety since 2026-11-10 (unit `tooling: every check has a twin that breaks it`):
+\* at the main constants (Window 12, MaxTime 5) its antecedent never fires, so it holds
+\* of every state and no twin can break it. Owed to a configuration whose horizon passes
+\* the window (Invariant 4 in tools/harness/coverage/recoverable-invocation.md).
 Inv4_BoundedClosure ==
     (/\ intentState = "visible"
      /\ invPhase \in {"crashed", "yielded"}
@@ -1172,7 +1179,7 @@ Inv9_RecoveryIntentFirst == (outcomeBy = "sweep") => recIntended
 
 Inv10_RecoveryFlagged == (outcomeBy = "sweep") => outcomeRecovery
 
-Safety == TypeOK /\ Inv1_IntentFirst /\ Inv2_OneWriter /\ Inv4_BoundedClosure
+Safety == TypeOK /\ Inv1_IntentFirst /\ Inv2_OneWriter
           /\ Inv5_NoFalseAbandon /\ Inv6_SupersessionNamed
           /\ Inv7_OneLiveIntent /\ Inv8_IntentUnderItsSection
           /\ Inv9_RecoveryIntentFirst /\ Inv10_RecoveryFlagged

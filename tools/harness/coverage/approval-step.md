@@ -9,6 +9,7 @@
 
 - Correct model: `node check.mjs ../../atoms/approval-step.tla` → `PASS` ☐ *(per Lineage: 16 states, holds)*
 - Buggy twin: `node check.mjs ../../atoms/approval-step-buggy.tla --buggy` → `PASS` (rejected) ☐ *(per Lineage: rejected at 4 states — wrong actor approves s1)*
+- 2026-11-10 (unit `tooling: every check has a twin that breaks it`): `audit.mjs` → the model HOLDS and each check has a twin that breaks it — `Inv4_ApproverExclusivity` by `approval-step-buggy-subject.tla` (and `approval-step-buggy.tla`), `Inv5_SubmitterExclusivity` by `approval-step-buggy-withdraw.tla` (withdraw without the submitter guard), `Inv9_StepIndependence` by `approval-step-buggy-subject.tla` (approve keyed by subject). All three twins CAUGHT.
 
 ## Step 2 — coverage matrix
 
@@ -16,16 +17,16 @@ The spec has 10 invariants. The model covers the three voted load-bearing claims
 
 | Spec invariant (no. + name) | Load-bearing (vote)? | Verdict | Model construct / reason |
 |---|---|---|---|
-| Invariant 1 — Submission immutability | No | out-of-scope (structural; no field model) | Per model header: "id immutability / no-reuse / store durability / timestamp ordering (Invariants 1,6-8,10 — structural / clock)." Acceptable. |
-| Invariant 2 — Membership exclusivity (exactly one state at all times) | No | covered | `TypeOK` constrains `state \in [Steps -> StepStates]`, so each step is always in exactly one named state. |
-| Invariant 3 — Terminal absorption | No | by-construction | Every action (`Approve`, `Reject`, `Withdraw`) guards `state[s] = "Pending"`; once a step transitions to Approved/Rejected/Withdrawn no further transitions apply. Per model note explicitly. Acceptable: not load-bearing per vote. |
-| Invariant 4 — Approver exclusivity | YES | covered | `Inv4_ApproverExclusivity == ∀ s ∈ Steps : state[s] ∈ {"Approved","Rejected"} ⇒ decidedBy[s] = approver[s]`; all three actors quantified over in `Next`, so any actor able to incorrectly approve would be caught. |
-| Invariant 5 — Submitter exclusivity | YES | covered | `Inv5_SubmitterExclusivity == ∀ s ∈ Steps : state[s] = "Withdrawn" ⇒ decidedBy[s] = submitter[s]`. |
-| Invariant 6 — Decision attribution complete for terminal steps | No | out-of-scope (field model not present; structural/clock per model header) | Acceptable: not load-bearing per vote. Note: `decidedBy` is modeled as a partial proxy for this but the non-whitespace and timestamp requirements are not checked. |
-| Invariant 7 — Temporal ordering (`decided_at ≥ submitted_at`) | No | out-of-scope (no clock modeled; per model header) | Acceptable. |
-| Invariant 8 — Submission attribution complete | No | out-of-scope (structural; per model header) | Acceptable. |
-| Invariant 9 — Concurrent step independence | YES | by-construction | Each action's `EXCEPT` touches only the targeted step `s`; the other step's `state` and `decidedBy` are UNCHANGED by the frame constraint. Per model note explicitly. **Flag: load-bearing per vote, held by-construction (frame property) rather than an explicit state predicate.** |
-| Invariant 10 — Step store durability | No | out-of-scope (structural; per model header) | Acceptable. |
+| Invariant 1 — Submission immutability | No | `owed` out-of-scope (structural; no field model) | Per model header: "id immutability / no-reuse / store durability / timestamp ordering (Invariants 1,6-8,10 — structural / clock)." Acceptable. |
+| Invariant 2 — Membership exclusivity (exactly one state at all times) | No | `owed` held by `TypeOK` only | `TypeOK` constrains `state \in [Steps -> StepStates]`, so each step is always in exactly one named state. No check states it: `TypeOK` is the model's typing, which the twin audit does not count (2026-11-10); a check with a twin that writes a fifth state is owed. |
+| Invariant 3 — Terminal absorption | No | `owed` by-construction | Every action (`Approve`, `Reject`, `Withdraw`) guards `state[s] = "Pending"`; once a step transitions to Approved/Rejected/Withdrawn no further transitions apply. Per model note explicitly. Acceptable: not load-bearing per vote. |
+| Invariant 4 — Approver exclusivity | YES | `checked` covered | `Inv4_ApproverExclusivity == ∀ s ∈ Steps : state[s] ∈ {"Approved","Rejected"} ⇒ decidedBy[s] = approver[s]`; all three actors quantified over in `Next`, so any actor able to incorrectly approve would be caught. Broken by `approval-step-buggy-subject.tla`, `approval-step-buggy.tla`. |
+| Invariant 5 — Submitter exclusivity | YES | `checked` covered | `Inv5_SubmitterExclusivity == ∀ s ∈ Steps : state[s] = "Withdrawn" ⇒ decidedBy[s] = submitter[s]`. Broken by `approval-step-buggy-withdraw.tla`. |
+| Invariant 6 — Decision attribution complete for terminal steps | No | `owed` out-of-scope (field model not present; structural/clock per model header) | Acceptable: not load-bearing per vote. Note: `decidedBy` is modeled as a partial proxy for this but the non-whitespace and timestamp requirements are not checked. |
+| Invariant 7 — Temporal ordering (`decided_at ≥ submitted_at`) | No | `owed` out-of-scope (no clock modeled; per model header) | Acceptable. |
+| Invariant 8 — Submission attribution complete | No | `owed` out-of-scope (structural; per model header) | Acceptable. |
+| Invariant 9 — Concurrent step independence | YES | `checked` covered (promoted 2026-07-12) | `Inv9_StepIndependence`: each action snapshots the other step's pre-action `state`/`decidedBy` (`lastOther`, `preState`, `preDecided`) and the check asserts the untouched step still carries it. A frame property, but a realistic defect breaks it: an approve keyed by subject rather than by step (`WHERE subject_ref = X`) resolves every pending step on the subject (2026-11-10). Broken by `approval-step-buggy-subject.tla`. |
+| Invariant 10 — Step store durability | No | `unstatable` out-of-scope (structural; per model header) | Acceptable. |
 
 ## Step 3 — bound saturation
 

@@ -2,8 +2,7 @@
 -- DELIBERATELY BROKEN twin of observation.als
 --
 -- WHAT WAS BROKEN
--- The LinearChain fact has been REMOVED and the successor field multiplicity has been
--- changed from "lone Obs" to "set Obs" (allowing zero or more successors per observation).
+-- The successor field multiplicity has been changed from "lone Obs" to "set Obs" (allowing zero or more successors per observation).
 -- This permits an observation to have TWO successors simultaneously — a branch in the
 -- amendment chain — which the spec explicitly prohibits via Invariant 3.
 --
@@ -12,13 +11,18 @@
 -- the Amended-state consistency fact; otherwise the model collapses to UNSAT and no
 -- counterexample can be shown.
 --
--- WHICH CHECKS ARE EXPECTED TO FAIL (return SAT / counterexample found):
---   A_Inv3_AtMostOneSuccessor  — an observation with two successors is now constructable.
---   A_Inv3_NoBranching         — two observations sharing the same successor is constructable.
+-- The one defect, in the page's terms: amend does not check the target's state, so
+-- an observation may be amended twice (two successors) or after it was retracted.
 --
--- All other checks should still pass (UNSAT) to confirm the bug is targeted:
--- the cycle, patient-ref, obsType, retraction-terminal, and metadata checks are not
--- affected by the branching mutation alone.
+-- WHICH CHECKS ARE EXPECTED TO FAIL (return SAT / counterexample found):
+--   A_Inv3_AtMostOneSuccessor      — an observation with two successors is now constructable.
+--   A_Inv2_AmendedHasSuccessor     — an Amended observation with two successors.
+--   A_Inv6_RetractedHasNoSuccessor — a Retracted observation with a successor (amend after
+--                                    retract). Updated 2026-11-10: the correct model no longer
+--                                    has the RetractedIsTerminal fact (it follows from
+--                                    AmendedIffHasSuccessor there), so this twin has none either.
+-- (A_Inv3_NoBranching still holds here: the inverse fact keeps one predecessor per
+-- observation. observation-buggy-link.als breaks it.)
 --
 -- HOW TO RUN (harness):
 --   node check.mjs ../../atoms/observation-buggy.als --buggy
@@ -59,10 +63,8 @@ fact NoCycles {
     all x : Obs | x not in x.^successor
 }
 
--- LinearChain fact: REMOVED.
--- In the correct model this fact states:
---   all x : Obs | lone (successor.x)
--- Removing it allows two distinct observations to share the same successor (branch).
+-- No LinearChain fact, as in the correct model since 2026-11-10 (it follows from
+-- the inverse fact there and here).
 
 -- Inverse consistency: still present.
 -- Note: with "set Obs" for successor, if a has two successors b and c, then both b and c
@@ -85,10 +87,8 @@ fact RecordedConsistency {
     all x : Obs | x.state = Recorded implies no x.successor
 }
 
--- Invariant 6: Retracted is terminal — still present.
-fact RetractedIsTerminal {
-    all x : Obs | x.state = Retracted implies no x.successor
-}
+-- Invariant 6: no RetractedIsTerminal fact, as in the correct model since
+-- 2026-11-10 (there it follows from AmendedIffHasSuccessor, which this twin relaxes).
 
 -- Invariant 9 metadata consistency: still present.
 fact AmendedByConsistency {
@@ -126,12 +126,6 @@ assert A_Inv3_AtMostOneSuccessor {
 }
 check A_Inv3_AtMostOneSuccessor for 8
 
--- A_Inv3_AtMostOnePredecessor: should still hold (predecessor is still "lone Obs").
-assert A_Inv3_AtMostOnePredecessor {
-    all x : Obs | lone x.predecessor
-}
-check A_Inv3_AtMostOnePredecessor for 8
-
 -- A_Inv3_NoBranching: EXPECTED TO FAIL (SAT — counterexample found).
 -- Two distinct observations can now both point to the same observation as successor,
 -- creating a branch; SuccessorPredecessorInverse forces both to have predecessor = original,
@@ -154,12 +148,6 @@ assert A_Inv3_NoBranching {
     all x : Obs | lone (successor.x)
 }
 check A_Inv3_NoBranching for 8
-
--- A_Inv3_NoCycles: should still hold (NoCycles fact is present).
-assert A_Inv3_NoCycles {
-    all x : Obs | x not in x.^successor
-}
-check A_Inv3_NoCycles for 8
 
 -- A_Inv2_AmendedHasSuccessor: relaxed fact means Amended implies some (not necessarily one).
 -- The assert says "one x.successor" — this will FAIL because a branching Amended obs
@@ -192,24 +180,6 @@ assert A_Inv6_RetractedHasNoSuccessor {
     all x : Obs | x.state = Retracted implies no x.successor
 }
 check A_Inv6_RetractedHasNoSuccessor for 8
-
--- A_Inv9_AmendedBySetOnSuccessorOnly: still holds.
-assert A_Inv9_AmendedBySetOnSuccessorOnly {
-    all x : Obs | (one x.amendedBy) iff (one x.predecessor)
-}
-check A_Inv9_AmendedBySetOnSuccessorOnly for 8
-
--- A_Inv9_RetractedBySetOnRetractedOnly: still holds.
-assert A_Inv9_RetractedBySetOnRetractedOnly {
-    all x : Obs | (one x.retractedBy) iff (x.state = Retracted)
-}
-check A_Inv9_RetractedBySetOnRetractedOnly for 8
-
--- A_SuccessorPredecessorAreInverse: still holds via fact.
-assert A_SuccessorPredecessorAreInverse {
-    all a, b : Obs | b in a.successor iff b.predecessor = a
-}
-check A_SuccessorPredecessorAreInverse for 8
 
 -- ─────────────────────────────────────────────────────────────────────────────
 -- Satisfiability runs

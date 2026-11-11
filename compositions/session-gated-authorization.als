@@ -47,6 +47,23 @@ module session_gated_authorization
  *    the spec-level property that makes the demo correct.
  *
  *    Fresh Dyn* sigs avoid perturbing the static model's facts.
+ *
+ *    Three more trace checks (2026-11-10): Dyn_Session_Gates_Authorization
+ *    (Invariant 1.1), Dyn_Principal_Binding (Invariant 2.1, in
+ *    place of the static Principal_Binding_Holds, which restated
+ *    its fact and could not fail) and Dyn_Call_Does_Not_Write
+ *    (Action wiring 15).
+ *
+ * 3. TWINS (2026-11-10), each this file with one defect; every
+ *    check is broken by one of them:
+ *      -buggy-validsuffices    Valid_Session_No_Grant_Is_Denied
+ *      -buggy-rejectreason     Revoked_/Expired_Session_Cannot_Authorize
+ *      -buggy-denialrejection  Denial_Is_Not_Rejection
+ *      -buggy-refresh          Dyn_Revocation_Terminal, Dyn_Expiry_Terminal
+ *      -buggy-cachedanswer     Dyn_Gate_Reflects_Current_Status,
+ *                              Dyn_Session_Gates_Authorization
+ *      -buggy-callerprincipal  Dyn_Principal_Binding
+ *      -buggy-callwrites       Dyn_Call_Does_Not_Write
  * ---------------------------------------------------------------
  */
 
@@ -294,11 +311,16 @@ fact Outcome_Coherence {
 -- the principal_ref extracted from the validated session — never
 -- a value the caller supplies independently.
 --
--- With this fact, the principal-binding attack surface documented
--- above is structurally unreachable: Principal_Binding_Holds
--- (the check below this fact) discharges clean. The original
+-- Here the fact is the static model's assumption. The original
 -- "Without_Invariant2" check was removed in Round 6 — see
 -- the Lineage of compositions/session-gated-authorization.md, Round 5 R5F1 (in git history).
+-- The static check Principal_Binding_Holds restated this fact
+-- word for word, so it could never fail; it went on 2026-11-10
+-- (unit `tooling: every check has a twin that breaks it`).
+-- Invariant 2.1 is now checked over the trace instead:
+-- dyn_check_permitted sets the gate principal from the resolved
+-- session (its effect, which a twin can get wrong), and
+-- Dyn_Principal_Binding below asserts it over every call.
 -- ==============================================================
 
 fact Invariant2_Principal_Binding {
@@ -306,20 +328,6 @@ fact Invariant2_Principal_Binding {
         (some c.resolved_session and some c.gate_principal) implies
             c.gate_principal = c.resolved_session.principal
 }
-
-
--- ==============================================================
--- CHECK: Principal binding holds with Invariant 2
--- EXPECTED: CLEAN
--- ==============================================================
-
-assert Principal_Binding_Holds {
-    all c : CheckPermittedCall |
-        (some c.resolved_session and some c.gate_principal) implies
-            c.gate_principal = c.resolved_session.principal
-}
-
-check Principal_Binding_Holds for 5
 
 
 -- ==============================================================
@@ -533,12 +541,16 @@ sig DynGrant {
 -- Each check_permitted call emits one DynCallRecord. Fields are
 -- immutable once created; the call log (in DynSystem) grows
 -- by one record per call transition and never shrinks.
+--
+-- rec_principal is the subject the call passed to
+-- Permissions.permitted: present only when the gate cleared.
 -- ==============================================================
 
 sig DynCallRecord {
-    rec_token   : one SessionToken,
-    rec_scope   : one ActionScope,
-    rec_outcome : one Outcome
+    rec_token     : one SessionToken,
+    rec_scope     : one ActionScope,
+    rec_principal : lone PrincipalRef,
+    rec_outcome   : one Outcome
 }
 
 
@@ -637,7 +649,9 @@ pred dyn_expire_session [s : DynSession] {
 --   Step 1 — gate: look up the session for tok; check its status.
 --   Step 2 — query: if gate cleared, call Permissions.permitted
 --                   using the session's own principal (never tok's
---                   caller — principal binding is implicit here).
+--                   caller): rec_principal is set from the resolved
+--                   session, and the grant lookup reads it
+--                   (Invariant 2.1, checked by Dyn_Principal_Binding).
 --
 -- Parameters:
 --   tok — session token presented by the caller
@@ -654,6 +668,13 @@ pred dyn_check_permitted [tok : SessionToken, scp : ActionScope, rec : DynCallRe
     -- Outcome derived from current state
     let resolved = { s : DynSession | s.dyn_token = tok } | {
 
+        -- Gate principal: the resolved session's own principal when
+        -- the gate clears; no principal reaches Permissions otherwise
+        (one resolved and resolved.dyn_status = Valid) implies
+            rec.rec_principal = resolved.dyn_principal
+        else
+            no rec.rec_principal
+
         -- Token not in the session store → RejectedNotKnown
         (no resolved) implies rec.rec_outcome = RejectedNotKnown
 
@@ -665,10 +686,10 @@ pred dyn_check_permitted [tok : SessionToken, scp : ActionScope, rec : DynCallRe
         (one resolved and resolved.dyn_status = Revoked) implies
             rec.rec_outcome = RejectedRevoked
 
-        -- Valid session + Active grant for (principal, scope) → Permitted
+        -- Valid session + Active grant for (gate principal, scope) → Permitted
         (one resolved and resolved.dyn_status = Valid and
          some g : DynGrant |
-             g.dyn_subject = resolved.dyn_principal and
+             g.dyn_subject = rec.rec_principal and
              g.dyn_scope   = scp and
              g.dyn_grant_status = Active)
         implies rec.rec_outcome = Permitted
@@ -676,7 +697,7 @@ pred dyn_check_permitted [tok : SessionToken, scp : ActionScope, rec : DynCallRe
         -- Valid session + no Active grant → Denied
         (one resolved and resolved.dyn_status = Valid and
          no g : DynGrant |
-             g.dyn_subject = resolved.dyn_principal and
+             g.dyn_subject = rec.rec_principal and
              g.dyn_scope   = scp and
              g.dyn_grant_status = Active)
         implies rec.rec_outcome = Denied
@@ -773,6 +794,53 @@ assert Dyn_Gate_Reflects_Current_Status {
     )
 }
 check Dyn_Gate_Reflects_Current_Status for 3 but 1..8 steps
+
+
+-- Invariant 1.1 over the trace: no call reaches Permissions (a
+-- gate principal, or a Permitted or Denied outcome) unless the
+-- presented token's session is Valid at the step of the call.
+-- Covers the not-known token too, which T3 does not name.
+-- Added 2026-11-10 (unit `tooling: every check has a twin that
+-- breaks it`). Expected result: CLEAN.
+assert Dyn_Session_Gates_Authorization {
+    always (
+        all rec : (DynSystem.dyn_call_log' - DynSystem.dyn_call_log) |
+            (some rec.rec_principal or rec.rec_outcome in (Permitted + Denied))
+            implies
+                (some s : DynSession |
+                    s.dyn_token = rec.rec_token and s.dyn_status = Valid)
+    )
+}
+check Dyn_Session_Gates_Authorization for 3 but 1..8 steps
+
+
+-- Invariant 2.1 over the trace: the subject a call passes to
+-- Permissions.permitted is the principal of the session its token
+-- resolved to. Replaces the static Principal_Binding_Holds, which
+-- restated fact Invariant2_Principal_Binding (2026-11-10).
+-- Expected result: CLEAN.
+assert Dyn_Principal_Binding {
+    always (
+        all rec : (DynSystem.dyn_call_log' - DynSystem.dyn_call_log) |
+        all s : DynSession |
+            (s.dyn_token = rec.rec_token and some rec.rec_principal)
+            implies rec.rec_principal = s.dyn_principal
+    )
+}
+check Dyn_Principal_Binding for 3 but 1..8 steps
+
+
+-- Action wiring 15: check_permitted does not write. A step that
+-- appends a call record leaves every session status and every
+-- grant status as it was. Added 2026-11-10. Expected result: CLEAN.
+assert Dyn_Call_Does_Not_Write {
+    always (
+        some (DynSystem.dyn_call_log' - DynSystem.dyn_call_log) implies (
+            (all s : DynSession | s.dyn_status' = s.dyn_status) and
+            (all g : DynGrant | g.dyn_grant_status' = g.dyn_grant_status))
+    )
+}
+check Dyn_Call_Does_Not_Write for 3 but 1..8 steps
 
 
 -- ==============================================================

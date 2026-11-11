@@ -865,7 +865,7 @@ Inherited from:
 
 ```
 status: grounded on Final Critique 11 — 2026-11-04 at 582c382
-formal: verified — capability.als + 1 twin; coverage 2026-11-10 (unit formal: more coverage for the yes votes): owes TLA+ (everything across steps); owed rows: Invariant 10, 2026-06-23
+formal: verified — capability.als + 12 twins; coverage 2026-11-10 (unit formal: more coverage for the yes votes): owes TLA+ (everything across steps); owed rows: Invariant 10; Invariant 12; Emergent — zero counter ⇒ Redeemed, 2026-06-23
 last gate: 2026-11-04 — Final Critique 11 — delta — foundational count 0, clean, no sample; 2026-11-01 — Final Critique 10 — foundational count 0, clean, one sample
 
 open:

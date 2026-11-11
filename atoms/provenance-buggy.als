@@ -1,36 +1,48 @@
 -- provenance-buggy.als
 -- BUGGY TWIN (vacuity guard) for provenance.als.
 --
--- Introduces TWO real hazards the spec defends against, so the checker finds
--- counterexamples (SAT on the corresponding `check`s):
+-- The correct model with ONE defect: the custody chain is recorded without the
+-- hand-to-hand rule. The `CustodyContinuity` fact is DROPPED, so an entry is
+-- appended without reading who holds the artifact (a custody gap / false
+-- predecessor, the hazard Invariant 4 guards against):
+--   - a Transferred entry may name a `fromC` that is not its predecessor's holder,
+--     and its new holder need not be its `toC`;
+--   - a non-transfer entry's holder may differ from its predecessor's (custody
+--     changes hands with no transfer), and its actor need not be the holder;
+--   - nothing then fills an entry's custodian fields, so an entry may name none.
+-- Checks this twin breaks (Alloy reports each): A_Inv4_CustodyUnbroken,
+-- A_Inv4_TransferHandToHand, A_Inv4_TransferSetsHolder, A_Inv4_OnlyHolderActs,
+-- A_Inv7_CustodianPresent.
 --
--- BUG 1 — custody gap / false predecessor (targets Invariant 4):
---   The `CustodyContinuity` fact is DROPPED. With it gone, a Transferred entry
---   may record a `fromC` that is NOT its predecessor's holder (a forged
---   predecessor / custody gap), and a non-transfer entry's holder may diverge
---   from its predecessor's holder (custody silently changes hands with no
---   transfer). A_Inv4_CustodyUnbroken, A_Inv4_TransferHandToHand, and
---   A_Inv4_OnlyHolderActs all find counterexamples.
---
--- BUG 2 — archived not absorbing (targets Invariant 6):
---   The `ArchivedTerminal` fact is DROPPED. An Archived entry may then have a
---   successor — an entry appended after terminal disposition. A_Inv6_ArchivedTerminal
---   finds a counterexample.
---
--- All other facts (linear backbone, genesis typing, field shape) are retained so
--- the model is non-degenerate and the violations are isolated to the two
--- load-bearing guarantees. If the checker reports all checks UNSAT here, the
--- harness is vacuous.
+-- Every other fact is the correct model's, so the violations are isolated to
+-- custody. (Rebuilt 2026-11-10 from the correct model; until then this twin also
+-- dropped ArchivedTerminal, whose check restated that fact and went.) If the
+-- checker reports all checks UNSAT here, the harness is vacuous.
 
 module provenance_buggy
+-- ─────────────────────────────────────────────────────────────────────────────
+-- Signatures
+-- ─────────────────────────────────────────────────────────────────────────────
 
+-- Event type enum: exactly one of six values (spec section State).
 abstract sig EventType {}
 one sig Originated, Received, Transferred, Transformed, Disclosed, Archived extends EventType {}
 
+-- The genesis event types (a chain opens with exactly one of these).
 fun GenesisType : set EventType { Originated + Received }
 
+-- Opaque custodian reference. Alloy generates concrete atoms freely
+-- (abstract sig with no extensions behaves as a normal sig).
 abstract sig Custodian {}
 
+-- A custody entry.
+-- successor/predecessor : lone — linear chain (Invariant 2/5; no branching).
+-- etype  : one — exactly one event type (spec section State).
+-- holder : one — the current custodian in effect immediately AFTER this entry.
+-- acting : lone — the custodian who performed a non-transfer action (genesis,
+--          transform, disclose, archive); absent on transfers.
+-- fromC  : lone — transfer only: the outgoing custodian (= predecessor.holder).
+-- toC    : lone — transfer only: the incoming custodian (= this.holder).
 sig Entry {
     successor   : lone Entry,
     predecessor : lone Entry,
@@ -41,48 +53,63 @@ sig Entry {
     toC         : lone Custodian
 }
 
--- Linear backbone retained.
+-- ─────────────────────────────────────────────────────────────────────────────
+-- Structural well-formedness facts (constrain the universe to VALID chains)
+-- ─────────────────────────────────────────────────────────────────────────────
+
+-- Linear backbone (Invariant 2/5): acyclic, singly-linked, no branching/merging.
+-- No merging (at most one entry names a given entry as its successor) is not a
+-- fact: it follows from SuccPredInverse with the `lone` predecessor, and
+-- A_Linear_NoBranching checks it (2026-11-10; the fact NoMerging restated it).
 fact NoCycles            { all x : Entry | x not in x.^successor }
 fact NoSelfLoop          { all x : Entry | x.successor != x }
-fact NoMerging           { all x : Entry | lone (successor.x) }
 fact SuccPredInverse     { all a, b : Entry | a.successor = b iff b.predecessor = a }
 
--- Genesis typing retained.
+-- Invariant 3 / 8 — genesis typing: an entry is genesis (no predecessor) iff its
+-- event type is a genesis type. Non-genesis entries carry a non-genesis type.
 fact GenesisTyping {
     all x : Entry | (no x.predecessor) iff (x.etype in GenesisType)
 }
 
--- Field shape retained (so transfers still carry from/to and others an acting).
+-- Invariant 6 — Archived is terminal: an Archived entry has no successor.
+fact ArchivedTerminal {
+    all x : Entry | x.etype = Archived implies no x.successor
+}
+
+-- Field shape by event type: which custodian fields an entry may carry.
+-- That the ones it carries are present (Invariant 7) is not assumed here: it
+-- follows from GenesisTyping and CustodyContinuity, and A_Inv7_CustodianPresent
+-- checks it (2026-11-10).
+-- Transfers carry no acting custodian.
 fact TransferFields {
-    all x : Entry | x.etype = Transferred implies (one x.fromC and one x.toC and no x.acting)
+    all x : Entry | x.etype = Transferred implies no x.acting
 }
+-- Non-transfer entries carry no from/to.
 fact NonTransferFields {
-    all x : Entry | x.etype != Transferred implies (no x.fromC and no x.toC and one x.acting)
+    all x : Entry | x.etype != Transferred implies (no x.fromC and no x.toC)
 }
 
--- BUG 1: `CustodyContinuity` fact is DROPPED (custody gap / false predecessor).
--- BUG 2: `ArchivedTerminal` fact is DROPPED (archived not absorbing).
+-- BUG: the CustodyContinuity fact is DROPPED (custody gap / false predecessor).
 
--- ── Assertions (identical to provenance.als). The dropped facts make several SAT. ──
+-- ─────────────────────────────────────────────────────────────────────────────
+-- Assertions — each "check" asks: is there a configuration satisfying the facts
+-- but violating this guarantee? UNSAT = holds. SAT = finding.
+-- ─────────────────────────────────────────────────────────────────────────────
 
-assert A_Linear_AtMostOneSuccessor   { all x : Entry | lone x.successor }
-check A_Linear_AtMostOneSuccessor for 8
+-- Checks that restated the model and went (2026-11-10, unit `tooling: every
+-- check has a twin that breaks it`): A_Linear_AtMostOneSuccessor and
+-- A_Linear_AtMostOnePredecessor (the `lone` fields), A_Linear_NoCycles (fact
+-- NoCycles), A_Inv3_SingleOriginTyping (fact GenesisTyping), A_Inv4_UniqueHolder
+-- (the `one` holder field) and A_Inv6_ArchivedTerminal (fact ArchivedTerminal).
+-- The facts stay as the model's assumptions; no twin of a static snapshot can
+-- break them.
 
-assert A_Linear_AtMostOnePredecessor { all x : Entry | lone x.predecessor }
-check A_Linear_AtMostOnePredecessor for 8
-
+-- Linear backbone (Invariant 2/5): no entry is named as successor by two entries.
 assert A_Linear_NoBranching          { all x : Entry | lone (successor.x) }
 check A_Linear_NoBranching for 8
 
-assert A_Linear_NoCycles             { all x : Entry | x not in x.^successor }
-check A_Linear_NoCycles for 8
-
-assert A_Inv3_SingleOriginTyping {
-    all x : Entry | (no x.predecessor) iff (x.etype in GenesisType)
-}
-check A_Inv3_SingleOriginTyping for 8
-
--- VIOLATED in this twin (BUG 1):
+-- Invariant 4 — Custody continuity (no gap), the load-bearing claim. At every
+-- link the incoming custody equals the predecessor's outgoing custody.
 assert A_Inv4_CustodyUnbroken {
     all x : Entry | some x.predecessor implies
         ( (x.etype = Transferred implies x.fromC = x.predecessor.holder)
@@ -91,35 +118,29 @@ assert A_Inv4_CustodyUnbroken {
 }
 check A_Inv4_CustodyUnbroken for 8
 
--- VIOLATED in this twin (BUG 1):
+-- Invariant 4 — a Transferred entry's hand-to-hand outgoing custodian equals the
+-- prior holder (the false-predecessor attack surface; cannot be forged).
 assert A_Inv4_TransferHandToHand {
     all x : Entry | x.etype = Transferred implies x.fromC = x.predecessor.holder
 }
 check A_Inv4_TransferHandToHand for 8
 
+-- Invariant 4 — a Transferred entry installs toC as the new holder.
 assert A_Inv4_TransferSetsHolder {
     all x : Entry | x.etype = Transferred implies x.holder = x.toC
 }
 check A_Inv4_TransferSetsHolder for 8
 
--- VIOLATED in this twin (BUG 1):
+-- Invariant 4 — only the current holder may transform/disclose/archive: a
+-- non-genesis non-transfer entry's acting custodian equals the prior holder.
 assert A_Inv4_OnlyHolderActs {
     all x : Entry | (some x.predecessor and x.etype != Transferred) implies
         x.acting = x.predecessor.holder
 }
 check A_Inv4_OnlyHolderActs for 8
 
-assert A_Inv4_UniqueHolder {
-    all x : Entry | one x.holder
-}
-check A_Inv4_UniqueHolder for 8
-
--- VIOLATED in this twin (BUG 2):
-assert A_Inv6_ArchivedTerminal {
-    all x : Entry | x.etype = Archived implies no x.successor
-}
-check A_Inv6_ArchivedTerminal for 8
-
+-- Invariant 7 — Custodian presence: every entry names a custodian; transfers name
+-- both from and to.
 assert A_Inv7_CustodianPresent {
     all x : Entry |
         (x.etype = Transferred implies (one x.fromC and one x.toC))
@@ -128,22 +149,63 @@ assert A_Inv7_CustodianPresent {
 }
 check A_Inv7_CustodianPresent for 8
 
--- Demonstration runs of the two hazards (each must be SAT in the twin).
-run ShowCustodyGapViolation {
-    some disj a, b : Entry, disj c1, c2, c3 : Custodian | {
-        a.etype = Originated   a.holder = c1   no a.predecessor
-        b.predecessor = a   a.successor = b
+-- ─────────────────────────────────────────────────────────────────────────────
+-- Satisfiability runs — each must be SAT (non-vacuity guards).
+-- ─────────────────────────────────────────────────────────────────────────────
+
+-- A single genesis (Originated) entry: the simplest valid chain.
+run ShowSingleGenesis {
+    some x : Entry | x.etype = Originated and no x.predecessor and no x.successor
+} for 3
+
+-- A genesis (Received) entry — intake from an external prior holder.
+run ShowReceivedGenesis {
+    some x : Entry | x.etype = Received and no x.predecessor and no x.successor
+} for 3
+
+-- A two-entry chain: Originated → Transferred, custody changes hands.
+-- Non-vacuity guard for the continuity / hand-to-hand checks.
+run ShowTransferChain {
+    some disj a, b : Entry, disj c1, c2 : Custodian | {
+        a.etype = Originated
+        no a.predecessor
+        a.holder = c1
+        a.acting = c1
+        b.predecessor = a
+        a.successor = b
         b.etype = Transferred
-        b.fromC = c3        -- forged: c3 was never the holder (predecessor holder is c1)
+        b.fromC = c1
         b.toC = c2
         b.holder = c2
     }
 } for 4
 
-run ShowArchivedNotAbsorbingViolation {
-    some disj a, b, c : Entry | {
-        a.etype = Originated    no a.predecessor    a.successor = b
-        b.etype = Archived      b.predecessor = a   b.successor = c
-        c.etype = Transferred   c.predecessor = b   -- entry after archive
+-- A full lifecycle: Originated → Transferred → Transformed → Disclosed → Archived.
+-- The critical non-vacuity run: a multi-link chain with a custody change and the
+-- terminal archive, all holders continuous.
+run ShowFullLifecycle {
+    some disj a, b, c, d, e : Entry, disj c1, c2 : Custodian | {
+        a.etype = Originated     a.holder = c1   a.acting = c1   no a.predecessor
+        a.successor = b
+        b.etype = Transferred    b.predecessor = a   b.fromC = c1   b.toC = c2   b.holder = c2
+        b.successor = c
+        c.etype = Transformed    c.predecessor = b   c.holder = c2   c.acting = c2
+        c.successor = d
+        d.etype = Disclosed      d.predecessor = c   d.holder = c2   d.acting = c2
+        d.successor = e
+        e.etype = Archived       e.predecessor = d   e.holder = c2   e.acting = c2
+        no e.successor
     }
-} for 4
+} for 6
+
+-- Two independent chains (different artifacts / custodians) coexisting in a store.
+run ShowTwoIndependentChains {
+    some disj a, b, c, d : Entry, disj c1, c2, c3, c4 : Custodian | {
+        a.etype = Originated   a.holder = c1   a.acting = c1   no a.predecessor
+        a.successor = b
+        b.etype = Transferred  b.predecessor = a   b.fromC = c1   b.toC = c2   b.holder = c2
+        c.etype = Originated   c.holder = c3   c.acting = c3   no c.predecessor
+        c.successor = d
+        d.etype = Transferred  d.predecessor = c   d.fromC = c3   d.toC = c4   d.holder = c4
+    }
+} for 6

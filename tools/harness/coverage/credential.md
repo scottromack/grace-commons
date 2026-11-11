@@ -13,22 +13,24 @@
 - `credential-buggy-overdue.tla --buggy` → rejected: a holder released as overdue still commits beside the next holder's credential.
 - `credential-buggy-rotate-race.tla --buggy` → rejected: without Operation 65, a rotate begun on an early reading commits its successor beside a credential a register on a later reading committed first.
 
+- 2026-11-10 (unit `tooling: every check has a twin that breaks it`): `audit.mjs` → HOLDS, six twins CAUGHT; `Inv_EffectiveActiveUniqueness` broken by `credential-buggy-overdue.tla` (and the toctou and rotate-race twins), `Inv_RotationChain` by `credential-buggy.tla`, `Inv_NoStoredExpired` by the new `credential-buggy-stored-expiry.tla` (an expiry sweep stores expired), `Inv_DerivedExpiryCoherent` by the new `credential-buggy-terminal-lapse.tla` (the window reading applied to a stored terminal).
+
 Isolation, checked with a configuration naming `TypeOK` and one invariant: each of the three uniqueness twins violates `Inv_EffectiveActiveUniqueness` and holds `Inv_RotationChain` (35,848; 40,394; 36,788 states). The rotation-chain twin shares the correct model's register and section, so its uniqueness holds.
 
 ## Step 2 — coverage matrix
 
 | Spec invariant | Load-bearing (vote)? | Verdict | Model construct / reason |
 |---|---|---|---|
-| Invariant 1 — Registration immutability | no | by-construction | No action rewrites `deadline` or `registered` on a used slot; only `status` and `successor` move. |
-| Invariant 2.1 — Effective-active uniqueness at a settled reading | YES | **covered** | `Inv_EffectiveActiveUniqueness == \A c : Settled(c) => EffActiveCount(c) <= 1`, over per-credential deadlines and every reading from 0 to `MaxClock`. |
-| Invariant 3 — Sole-holder verification | no | out-of-scope | Verify, the derivation and the check functions are not modelled. |
-| Invariant 4, 5 — Revocation and stored terminals absorbing | no | by-construction | No action leaves `Rotated` or `Revoked`. |
-| Invariant 6 — Rotation does not mutate | no | by-construction | A rotate writes the prior's `status` and `successor` only. |
-| Invariant 7.1 — Every rotated credential names a successor | YES | **covered** | `Inv_RotationChain`; twin `credential-buggy.tla`. Invariant 7.2 (same pair) holds by construction: the model is one pair. |
-| Invariant 8, 9, 10 — Material, revocation record, durability | no | out-of-scope | Storage and field properties, not state-machine ones. |
-| Invariant 11 — A lapse precludes verification | no | by-construction | Verify is not modelled; a lapsed credential is not effective-active at the reading, which is what every guard reads. |
-| Invariant 12 — Expiry derived, never written | YES | **covered** | `Inv_NoStoredExpired` and `Inv_DerivedExpiryCoherent` at every reading. |
-| Capability requirement 8, 22, 23; Operation 65 | mechanism | **covered by twins** | Each is removed in one twin, and each removal breaks Invariant 2.1. |
+| Invariant 1 — Registration immutability | no | `owed` by-construction | No action rewrites `deadline` or `registered` on a used slot; only `status` and `successor` move. |
+| Invariant 2.1 — Effective-active uniqueness at a settled reading | YES | `checked` **covered** | `Inv_EffectiveActiveUniqueness == \A c : Settled(c) => EffActiveCount(c) <= 1`, over per-credential deadlines and every reading from 0 to `MaxClock`. Broken by `credential-buggy-overdue.tla`, `credential-buggy-toctou.tla`, `credential-buggy-rotate-race.tla`. |
+| Invariant 3 — Sole-holder verification | no | `unstatable` out-of-scope | Verify, the derivation and the check functions are not modelled. |
+| Invariant 4, 5 — Revocation and stored terminals absorbing | no | `owed` by-construction | No action leaves `Rotated` or `Revoked`. |
+| Invariant 6 — Rotation does not mutate | no | `owed` by-construction | A rotate writes the prior's `status` and `successor` only. |
+| Invariant 7.1 — Every rotated credential names a successor | YES | `checked` **covered** | `Inv_RotationChain`; twin `credential-buggy.tla`. Invariant 7.2 (same pair) holds by construction: the model is one pair. Broken by `credential-buggy.tla`. |
+| Invariant 8, 9, 10 — Material, revocation record, durability | no | `unstatable` out-of-scope | Storage and field properties, not state-machine ones. |
+| Invariant 11 — A lapse precludes verification | no | `owed` by-construction | Verify is not modelled; a lapsed credential is not effective-active at the reading, which is what every guard reads. |
+| Invariant 12 — Expiry derived, never written | YES | `checked` **covered** | `Inv_NoStoredExpired` and `Inv_DerivedExpiryCoherent` at every reading. Broken by `credential-buggy-stored-expiry.tla` (`Inv_NoStoredExpired`), `credential-buggy-terminal-lapse.tla` (`Inv_DerivedExpiryCoherent`). |
+| Capability requirement 8, 22, 23; Operation 65 | mechanism | `checked` **covered by twins** | Each is removed in one twin, and each removal breaks Invariant 2.1. Broken by `credential-buggy-toctou.tla`, `credential-buggy-overdue.tla`, `credential-buggy-rotate-race.tla`. (each `Inv_EffectiveActiveUniqueness`) |
 
 ## Step 3 — bound saturation
 

@@ -635,7 +635,7 @@ It inherits from:
 
 ```
 status: grounded on Final Critique 10 — 2026-11-04 at 582c382
-formal: verified — permissions.als + 1 twin; coverage 2026-11-10 (unit formal: more coverage for the yes votes): owes TLA+ (everything across steps); owed rows: Invariant 4; Invariant 9, 2026-06-03
+formal: verified — permissions.als + 4 twins; coverage 2026-11-10 (unit formal: more coverage for the yes votes): owes TLA+ (everything across steps); owed rows: Invariant 4; Invariant 5; Invariant 9, 2026-06-03
 last gate: 2026-11-04 — Final Critique 10, delta, frozen at 582c382 — foundational count 0, clean, one sample
 
 open:

@@ -9,15 +9,16 @@
 
 - Correct model: `node check.mjs ../../atoms/duplicate-prevention.tla` → `PASS` ☐ *(not re-run in this pass; prior run verified in Lineage — 14 states)*
 - Buggy twin: `node check.mjs ../../atoms/duplicate-prevention-buggy.tla --buggy` → `PASS` (rejected) ☐ *(prior: rejected at 11 states)*
+- 2026-11-10 (unit `tooling: every check has a twin that breaks it`): `audit.mjs` → HOLDS; its one check `Inv2_SingleRecording` is broken by `duplicate-prevention-buggy.tla` (CAUGHT).
 
 ## Step 2 — coverage matrix
 
 | Spec invariant (no. + name) | Load-bearing (vote)? | Verdict | Model construct / reason |
 |---|---|---|---|
-| Invariant 1 — Window monotonicity | YES | by-construction | `Seen` is defined as `everRecorded /\ (clock - recordedAt < Window)` — membership is derived, so any `seen` identity is within window by definition. Violation is structurally impossible. **Flag for promotion:** load-bearing; currently an assumption baked into the derived predicate rather than an asserted check. |
-| Invariant 2 — Single-recording | YES | **covered** | `Inv2_SingleRecording == Seen => (recordedAt = firstRecordedAt)` — asserted directly. Ghost `firstRecordedAt` captures guard start; `RecordFresh` guards on `~Seen`, so re-record while seen is disabled (no-op). |
-| Invariant 3 — Idempotency of check | no | out-of-scope (read-only query; `check` is explicitly noted as not modeled — "NOT MODELED" comment in model) | — |
-| Invariant 4 — Eventual expiry | YES | by-construction | `Seen` is derived; once `clock - recordedAt >= Window`, `Seen` is `FALSE` regardless of `everRecorded`. Auto-expiry is a definitional consequence. **Flag for promotion:** load-bearing; currently structural, not an asserted safety property. |
+| Invariant 1 — Window monotonicity | YES | `owed` by-construction | `Seen` is defined as `everRecorded /\ (clock - recordedAt < Window)` — membership is derived, so any `seen` identity is within window by definition. Violation is structurally impossible. **Flag for promotion:** load-bearing; currently an assumption baked into the derived predicate rather than an asserted check. |
+| Invariant 2 — Single-recording | YES | `checked` **covered** | `Inv2_SingleRecording == Seen => (recordedAt = firstRecordedAt)` — asserted directly. Ghost `firstRecordedAt` captures guard start; `RecordFresh` guards on `~Seen`, so re-record while seen is disabled (no-op). Broken by `duplicate-prevention-buggy.tla`. |
+| Invariant 3 — Idempotency of check | no | `owed` out-of-scope (read-only query; `check` is explicitly noted as not modeled — "NOT MODELED" comment in model) | — |
+| Invariant 4 — Eventual expiry | YES | `owed` by-construction | `Seen` is derived; once `clock - recordedAt >= Window`, `Seen` is `FALSE` regardless of `everRecorded`. Auto-expiry is a definitional consequence. **Flag for promotion:** load-bearing; currently structural, not an asserted safety property. |
 
 ## Step 3 — bound saturation
 

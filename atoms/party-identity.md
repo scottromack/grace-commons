@@ -980,7 +980,7 @@ It inherits from:
 
 ```
 status: grounded on Final Critique 12 — 2026-11-05 at 29399d0
-formal: verified — party-identity.tla + 1 twin; coverage 2026-11-10 (unit formal: more coverage for the yes votes): owes Alloy (the static data model); owed rows: Invariant 1.1; Invariant 5.1; Invariant 6.2; Invariant 6.3; Invariant 8.2; Identity 7 through 9; Identity 5, 6; State 4, 5, 7, 2026-06-03
+formal: verified — party-identity.tla + 4 twins; coverage 2026-11-10 (unit formal: more coverage for the yes votes): owes Alloy (the static data model); owed rows: Invariant 1.1; Invariant 5.1; Invariant 6.2; Invariant 6.3; Invariant 8.2; Identity 7 through 9; Identity 5, 6; State 4, 5, 7, 2026-06-03
 last gate: 2026-11-05 — Final Critique 12, a delta round, frozen at 29399d0 — foundational count 0, clean, no sample; 2026-11-04 — Final Critique 11 — foundational count 1, not clean, no sample
 
 open:

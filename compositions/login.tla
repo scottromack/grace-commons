@@ -261,14 +261,15 @@ Cascade_Coverage ==
     \A c \in cascade_initiated :
         \A s \in cred_to_sessions[c] : IsTerminalSession(s)
 
-\* Invariant 3 — Session-credential traceability (login.md Invariant 3).
-\* session_to_cred is immutable once written: every entry points to a real
-\* credential. No action modifies a non-NULL session_to_cred slot — this
-\* holds by inspection of Next. The state-level check confirms structural
-\* soundness.
+\* Invariant 3 — Session-credential traceability (login.md Invariant 3,
+\* resting on Composition state 5: the composition does not change a
+\* session-to-credential entry). Once a token's entry names a credential,
+\* no step changes it, so the entry keeps naming the credential the login
+\* read. An action property (PROPERTY in the .cfg). That an entry names a
+\* real credential id is TypeOK's typing of session_to_cred.
 Session_Credential_Traceability ==
-    \A s \in SessionTokens :
-        session_to_cred[s] /= NULL => session_to_cred[s] \in CredentialIds
+    [][\A s \in SessionTokens :
+         session_to_cred[s] /= NULL => session_to_cred'[s] = session_to_cred[s]]_vars
 
 \* Invariant 4 — Login event log completeness (login.md Invariant 4).
 \* Every login call produces exactly one log entry. State-only proxy:
@@ -312,13 +313,13 @@ Map_Inverse_Consistency ==
          s \in cred_to_sessions[session_to_cred[s]]
 
 \* --- Combined safety ---------------------------------------------------------
+\* (Session_Credential_Traceability is a step formula, checked as a PROPERTY.)
 
 Safety ==
     /\ TypeOK
     /\ Credential_Gates_Issuance
     /\ Cascade_Completeness
     /\ Cascade_Coverage
-    /\ Session_Credential_Traceability
     /\ Login_Event_Log_Completeness
     /\ Cascade_Audit_Ordering
     /\ Map_Inverse_Consistency

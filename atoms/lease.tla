@@ -25,6 +25,8 @@
 \*   -buggy-margin    Margin = Pause       a lease reads live on one call pause of margin, not two (Sizing 2).
 \*   -buggy-fence     FenceCut = 0         the fence is expires_at bare, the allowance not minted in (Fence 5, Invariant 6.1).
 \*   -buggy-release   HoldInFlight = FALSE the holder releases with a call in flight (Composition note 5c).
+\*   -buggy-waiter    (a guard, not a constant) Tick runs past a free key with a waiter standing (Operation 2,
+\*                    Invariant 4.1); added 2026-11-10 so Inv_WaiterBound has a twin that breaks it.
 \*   -probe-both      a reachability probe: both writes land and party 2 reads, in one trace.
 \*
 \* NOT MODELED: a second waiter and arrival order (Operation 5a, Invariant 4.2); try_take; remaining and

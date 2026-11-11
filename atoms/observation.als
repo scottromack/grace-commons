@@ -90,18 +90,9 @@ fact NoCycles {
     all x : Obs | x not in x.^successor
 }
 
--- Invariant 3 (at-most-one-successor half): no observation has two successors.
--- This is the core linearity guarantee. "lone" on the field already enforces this
--- per-observation, but stating it here as an explicit fact makes it a named constraint
--- the assertions can reference directly.
--- (Note: "lone x.successor" is structurally guaranteed by the field's "lone" multiplicity,
--- but the branching constraint is the logical claim we want to name and test.)
-fact LinearChain {
-    -- Each obs has at most one successor (enforced by "lone" multiplicity on the field).
-    -- The inverse direction: no two distinct observations share the same successor.
-    -- i.e., no observation is the successor of two different observations (no merging either).
-    all x : Obs | lone (successor.x)
-}
+-- Invariant 3 (no-merging half): no observation is the successor of two. Not a
+-- fact: it follows from SuccessorPredecessorInverse with the `lone` predecessor,
+-- and A_Inv3_NoBranching checks it (2026-11-10; the fact LinearChain restated it).
 
 -- Inverse consistency: successor and predecessor are inverses of each other.
 -- If obs B is the successor of obs A, then A must be the predecessor of B (and vice versa).
@@ -127,11 +118,10 @@ fact RecordedConsistency {
     all x : Obs | x.state = Recorded implies (no x.successor)
 }
 
--- Invariant 6: Retracted is terminal — no further successor can be created from a
--- Retracted observation. (amend would be rejected as already-retracted.)
-fact RetractedIsTerminal {
-    all x : Obs | x.state = Retracted implies no x.successor
-}
+-- Invariant 6: Retracted is terminal. Not a fact: it follows from
+-- AmendedIffHasSuccessor (only an Amended observation has a successor), and
+-- A_Inv6_RetractedHasNoSuccessor checks it (2026-11-10; the fact
+-- RetractedIsTerminal restated it).
 
 -- Invariant 9 (transition metadata consistency — write-once structural analog):
 -- amendedBy is set iff the observation has a predecessor (it was created by amend).
@@ -168,19 +158,20 @@ fact NoSelfLoop {
 -- facts but violating this assertion? UNSAT = guarantee holds. SAT = spec finding.
 -- ─────────────────────────────────────────────────────────────────────────────
 
+-- Checks that restated the model and went (2026-11-10, unit `tooling: every
+-- check has a twin that breaks it`): A_Inv3_AtMostOnePredecessor (the `lone`
+-- field), A_Inv3_NoCycles (fact NoCycles), A_Inv9_AmendedBySetOnSuccessorOnly
+-- (fact AmendedByConsistency), A_Inv9_RetractedBySetOnRetractedOnly (fact
+-- RetractedByConsistency) and A_SuccessorPredecessorAreInverse (fact
+-- SuccessorPredecessorInverse). The facts stay as the model's assumptions; no
+-- twin of a static snapshot can break them.
+
 -- A_Inv3_AtMostOneSuccessor (Invariant 3):
 -- No observation has more than one direct successor.
 assert A_Inv3_AtMostOneSuccessor {
     all x : Obs | lone x.successor
 }
 check A_Inv3_AtMostOneSuccessor for 8
-
--- A_Inv3_AtMostOnePredecessor (Invariant 3):
--- No observation has more than one direct predecessor (no merging of chains).
-assert A_Inv3_AtMostOnePredecessor {
-    all x : Obs | lone x.predecessor
-}
-check A_Inv3_AtMostOnePredecessor for 8
 
 -- A_Inv3_NoBranching (Invariant 3):
 -- No two distinct observations have the same successor (the anti-branching direction).
@@ -189,13 +180,6 @@ assert A_Inv3_NoBranching {
     all x : Obs | lone (successor.x)
 }
 check A_Inv3_NoBranching for 8
-
--- A_Inv3_NoCycles (Invariant 3):
--- The amendment chain is acyclic — no observation can reach itself via successor steps.
-assert A_Inv3_NoCycles {
-    all x : Obs | x not in x.^successor
-}
-check A_Inv3_NoCycles for 8
 
 -- A_Inv2_AmendedHasSuccessor (Invariant 2):
 -- Every Amended observation has exactly one successor.
@@ -232,27 +216,6 @@ assert A_Inv6_RetractedHasNoSuccessor {
     all x : Obs | x.state = Retracted implies no x.successor
 }
 check A_Inv6_RetractedHasNoSuccessor for 8
-
--- A_Inv9_AmendedBySetOnSuccessorOnly (Invariant 9):
--- amendedBy is set iff the observation has a predecessor (created by amend).
-assert A_Inv9_AmendedBySetOnSuccessorOnly {
-    all x : Obs | (one x.amendedBy) iff (one x.predecessor)
-}
-check A_Inv9_AmendedBySetOnSuccessorOnly for 8
-
--- A_Inv9_RetractedBySetOnRetractedOnly (Invariant 9):
--- retractedBy is set iff the observation is in Retracted state.
-assert A_Inv9_RetractedBySetOnRetractedOnly {
-    all x : Obs | (one x.retractedBy) iff (x.state = Retracted)
-}
-check A_Inv9_RetractedBySetOnRetractedOnly for 8
-
--- A_SuccessorPredecessorAreInverse:
--- successor and predecessor relations are strict inverses of each other.
-assert A_SuccessorPredecessorAreInverse {
-    all a, b : Obs | a.successor = b iff b.predecessor = a
-}
-check A_SuccessorPredecessorAreInverse for 8
 
 -- ─────────────────────────────────────────────────────────────────────────────
 -- Satisfiability runs

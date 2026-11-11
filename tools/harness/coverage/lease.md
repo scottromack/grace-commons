@@ -13,22 +13,23 @@
 - `lease-buggy-fence` `--buggy` → `PASS` (rejected) ✓ *(3,281 states; Inv_NoLateWrite)*
 - `lease-buggy-release` `--buggy` → `PASS` (rejected) ✓ *(1,085 states; Inv_NoLateWrite)*
 - `lease-probe-both` → rejected ✓ *(3,496 states; an unfenced write lands, a fenced write lands and the next holder reads in one trace)*
+- 2026-11-10 (unit `tooling: every check has a twin that breaks it`): `audit.mjs` → HOLDS, five twins CAUGHT; `Inv_NoLateWrite` broken by `lease-buggy-fence.tla` (and margin, release), `Inv_Terminus` and `Inv_OneHolder` by `lease-buggy-death.tla`, `Inv_WaiterBound` by the new `lease-buggy-waiter.tla` (`Tick` runs past a free key with a waiter standing).
 
 ## Step 2 — coverage matrix
 
 | Spec invariant (no. + name) | Load-bearing (vote)? | Verdict | Model construct / reason |
 |---|---|---|---|
-| Invariant 1 — One holder | YES | **covered** | `Inv_OneHolder`, asserted from the two grants' own instants (`exp1`, `exp`, `rel1`) and not from the `holder` variable; and `Inv_NoLateWrite`, the same claim stated of the world: no write of the former holder lands after the next holder has read. |
-| Invariant 2 — The terminus is the instant | YES | **covered** | `Inv_Terminus`: the second take lands no earlier than the first grant's instant unless the first holder released. |
-| Invariant 3 — Death is not observable | YES | **covered** | `P1Die` changes nothing the host reads; twin `lease-buggy-death` frees the key on the death and is rejected by `Inv_Terminus`. |
-| Invariant 4.1 — A waiter's bound is fixed at arrival | no | **covered** | `Inv_WaiterBound`, with `Tick` withheld while a waiter stands at a free key (Operation 2). |
-| Invariant 4.2 — Admitting an earlier waiter does not extend a later waiter's bound | no | out-of-scope (a second waiter is a third party; the property is a liveness bound and no safety claim rests on it) | — |
-| Invariant 5 — Standing is answered, never assumed | no | out-of-scope (the answer to one call, within an action; `P1Ask` models only the holder's own reading) | — |
-| Invariant 6 — A fence instant carries its allowance | YES | **covered** | `StoreAdmits` with `FenceCut`; twin `lease-buggy-fence` hands the instant bare and is rejected by `Inv_NoLateWrite`. One fenced party only: Invariant 6.2 (each fence minted separately) is out of scope. |
-| Sizing 2, 3, 3a — the write margin | YES | **covered** | `P1Ask` (live only above `Margin`), `P1Issue` (within `Pause` of the asking), `ULand` (within `Pause` of the issue); twin `lease-buggy-margin` is rejected. |
-| Composition note 5c — no release with a call in flight | YES | **covered** | `P1Release` guard; twin `lease-buggy-release` is rejected. |
-| Sizing 5, 5a, 6 — a unit of work, the share term | no | out-of-scope (arithmetic over a pattern's own bounds; Audit Trail's closure enumerator carries its instance) | — |
-| Capability requirement 10, 11 — one application, one delivery | no | out-of-scope (the model delivers each call once by construction) | — |
+| Invariant 1 — One holder | YES | `checked` **covered** | `Inv_OneHolder`, asserted from the two grants' own instants (`exp1`, `exp`, `rel1`) and not from the `holder` variable; and `Inv_NoLateWrite`, the same claim stated of the world: no write of the former holder lands after the next holder has read. Broken by `lease-buggy-death.tla` (`Inv_OneHolder`), `lease-buggy-fence.tla` (`Inv_NoLateWrite`). |
+| Invariant 2 — The terminus is the instant | YES | `checked` **covered** | `Inv_Terminus`: the second take lands no earlier than the first grant's instant unless the first holder released. Broken by `lease-buggy-death.tla`. |
+| Invariant 3 — Death is not observable | YES | `checked` **covered** | `P1Die` changes nothing the host reads; twin `lease-buggy-death` frees the key on the death and is rejected by `Inv_Terminus`. Broken by `lease-buggy-death.tla`. |
+| Invariant 4.1 — A waiter's bound is fixed at arrival | no | `checked` **covered** | `Inv_WaiterBound`, with `Tick` withheld while a waiter stands at a free key (Operation 2). Broken by `lease-buggy-waiter.tla`. |
+| Invariant 4.2 — Admitting an earlier waiter does not extend a later waiter's bound | no | `owed` out-of-scope (a second waiter is a third party; the property is a liveness bound and no safety claim rests on it) | — |
+| Invariant 5 — Standing is answered, never assumed | no | `unstatable` out-of-scope (the answer to one call, within an action; `P1Ask` models only the holder's own reading) | — |
+| Invariant 6 — A fence instant carries its allowance | YES | `checked` **covered** | `StoreAdmits` with `FenceCut`; twin `lease-buggy-fence` hands the instant bare and is rejected by `Inv_NoLateWrite`. One fenced party only: Invariant 6.2 (each fence minted separately) is out of scope. Broken by `lease-buggy-fence.tla`. |
+| Sizing 2, 3, 3a — the write margin | YES | `checked` **covered** | `P1Ask` (live only above `Margin`), `P1Issue` (within `Pause` of the asking), `ULand` (within `Pause` of the issue); twin `lease-buggy-margin` is rejected. Broken by `lease-buggy-margin.tla`. |
+| Composition note 5c — no release with a call in flight | YES | `checked` **covered** | `P1Release` guard; twin `lease-buggy-release` is rejected. Broken by `lease-buggy-release.tla`. |
+| Sizing 5, 5a, 6 — a unit of work, the share term | no | `unstatable` out-of-scope (arithmetic over a pattern's own bounds; Audit Trail's closure enumerator carries its instance) | — |
+| Capability requirement 10, 11 — one application, one delivery | no | `unstatable` out-of-scope (the model delivers each call once by construction) | — |
 
 ## Step 3 — bound saturation
 

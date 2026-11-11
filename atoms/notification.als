@@ -366,12 +366,8 @@ check A_Trans_ImmutableFieldsPreserved for 6
 
 -- ── Invariant 6: Store-level id uniqueness ────────────────────────────────────
 
-assert A_Inv6_StoreIdUniqueness {
-    all s : Store |
-        all disj r1, r2 : s.records |
-            r1.notification_id != r2.notification_id
-}
-check A_Inv6_StoreIdUniqueness for 6
+-- Invariant 6 is assumed by fact StoreIdUniqueness. The check A_Inv6_StoreIdUniqueness restated
+-- that fact word for word, so no twin could break it; it went 2026-11-10.
 
 -- ─────────────────────────────────────────────────────────────────────────────
 -- Satisfiability runs (non-vacuity guards)

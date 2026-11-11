@@ -301,6 +301,10 @@ Next ==
 
 Spec == Init /\ [][Next]_vars
 
+\* 2026-11-10: each file's .cfg names only the check its parties can break. The gate file (OutOn = FALSE)
+\* runs neither the outcome nor the sweep, so outs stays 0 and Inv_OneOutcome is vacuous there; the record
+\* file (GateOn = FALSE) runs no placement, so hold and sib stay FALSE and Inv_Gate is vacuous there. Both
+\* definitions stay: each is checked, and broken by its twins, in the other file.
 Inv_Gate == bad = FALSE
 Inv_OneOutcome == outs <= 1
 

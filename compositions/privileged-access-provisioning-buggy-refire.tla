@@ -1,0 +1,467 @@
+---- MODULE privileged-access-provisioning-buggy-refire ----
+\* BUGGY TWIN: the chain evaluation fires the cascade on an Approved chain without the provisioning conjunction (Action wiring 48; Term provisioning conjunction). A decision racing onto a chain already Approved (the substrate answers not-pending, Action wiring 38) re-runs the evaluation and fires the cascade a second time; the token is the same, so the maps stay inverses, but the cascade fired twice: breaks CascadeFiresAtMostOnce (Invariant 2.1, Composition state 37).
+(*
+  TLA+ model for compositions/privileged-access-provisioning.md
+  Grounded on Final Critique 4.
+
+  PURPOSE
+  Verify the composition's three temporal commitments under concurrent action
+  interleavings that the English spec defends but the three-pass review cannot
+  exhaustively enumerate:
+
+    1. ApprovalGatesProvisioning  — a capability_token enters request_to_capability
+                                    only when the chain for that request is Approved.
+    2. CascadeFiresAtMostOnce     — the provisioning cascade fires at most once per
+                                    request, even when a decision lands on a chain
+                                    already Approved (the substrate answers
+                                    not-pending and the chain evaluation runs again,
+                                    Action wiring 38). The model counts the cascade's
+                                    firings per request in cascade_fired.
+    3. TerminalAbsorbingProp      — no request in a terminal request state (Denied,
+                                    Withdrawn, Revoked, ProvisioningFailed) ever
+                                    changes state, and a Provisioned request moves
+                                    only to Revoked (Composition state 6 and 7,
+                                    Invariant 8.2). An action property, checked as
+                                    a PROPERTY.
+    4. MapInverseConsistency      — request_to_capability and capability_to_request
+                                    are always strict inverses of each other.
+    5. DeniedNamesRejectedChain   — every Denied request names a chain whose state
+                                    is Rejected (Invariant 7.2).
+
+  SCOPE
+  Bounded: up to N_REQ requests, N_APP approvers, one Capability token per request.
+  Credential and Session checks are abstracted as always-passing (they gate entry
+  to actions; their correctness is an atom-level Alloy concern, not a composition-
+  level interleaving concern). Audit Trail writes are abstracted away (append-only;
+  their correctness is the Audit Trail composition's concern).
+
+  TOOL
+  TLA+ model checker (TLC). Run with TLC; all invariants should hold and no
+  deadlock should be reachable from Init. A violated invariant is a spec finding
+  for compositions/privileged-access-provisioning.md.
+
+  NOT MODELED
+  - Credential.verify / Session.validate / Permissions.permitted (abstracted as
+    always-pass; their guards are atom-level concerns)
+  - Audit Trail event writes (abstracted away; append-only, no state feedback)
+  - Clock / TTL / expiry (time is not a first-class value in this model)
+  - Capability.redeem counter (modeled as a binary redeemable/exhausted flag
+    sufficient for the composition-level temporal properties)
+*)
+
+EXTENDS Naturals, FiniteSets, TLC
+
+----
+
+CONSTANTS
+  RequestIDs,     \* finite set of request identifiers  e.g. {"r1","r2"}
+  ApproverIDs,    \* finite set of approver identifiers e.g. {"a1","a2"}
+  CapTokens,      \* finite set of capability tokens    e.g. {"cap1","cap2"}
+  QuorumSize      \* number of approvals required (e.g. 2 for all-of-2)
+
+ASSUME QuorumSize \in Nat /\ QuorumSize >= 1
+ASSUME Cardinality(ApproverIDs) >= QuorumSize
+ASSUME Cardinality(RequestIDs) >= 1
+ASSUME Cardinality(CapTokens) >= Cardinality(RequestIDs)
+
+----
+
+(* Request states *)
+RequestStates == {"Pending", "Approved", "Provisioned",
+                  "Denied", "Withdrawn", "Revoked", "ProvisioningFailed"}
+
+TerminalStates == {"Provisioned", "Denied", "Withdrawn", "Revoked", "ProvisioningFailed"}
+
+(* Chain states (simplified Multi-Party Approval model) *)
+ChainStates == {"Pending", "Approved", "Rejected", "Withdrawn"}
+
+----
+
+VARIABLES
+  \* --- Composition-level state ---
+  request_state,        \* request_id -> RequestState
+  request_to_cap,       \* request_id -> CapToken (partial function; defined only when Provisioned)
+  cap_to_request,       \* CapToken -> request_id (strict inverse of request_to_cap)
+
+  \* --- Multi-Party Approval (simplified) ---
+  chain_state,          \* request_id -> ChainState
+  approvals,            \* request_id -> SUBSET ApproverIDs (approvers who have decided)
+  rejections,           \* request_id -> SUBSET ApproverIDs
+
+  \* --- Capability atom (simplified) ---
+  cap_allocated,        \* SUBSET CapTokens: tokens that have been allocated
+  cap_exhausted,        \* SUBSET CapTokens: tokens that have been fully redeemed
+
+  \* --- Token supply ---
+  next_token,           \* function: request_id -> CapToken (pre-assigned for determinism)
+
+  \* --- History ---
+  cascade_fired         \* request_id -> 0..2: the cascade's firings for the request (2 = twice or more)
+
+vars == <<request_state, request_to_cap, cap_to_request,
+          chain_state, approvals, rejections,
+          cap_allocated, cap_exhausted, next_token, cascade_fired>>
+
+----
+
+(* ─── Type invariant ─────────────────────────────────────────────────────── *)
+
+TypeOK ==
+  /\ request_state  \in [RequestIDs -> RequestStates]
+  /\ request_to_cap \in [RequestIDs -> CapTokens \cup {"none"}]
+  /\ cap_to_request \in [CapTokens  -> RequestIDs \cup {"none"}]
+  /\ chain_state    \in [RequestIDs -> ChainStates]
+  /\ approvals      \in [RequestIDs -> SUBSET ApproverIDs]
+  /\ rejections     \in [RequestIDs -> SUBSET ApproverIDs]
+  /\ cap_allocated  \subseteq CapTokens
+  /\ cap_exhausted  \subseteq CapTokens
+  /\ cascade_fired  \in [RequestIDs -> 0..2]
+
+----
+
+(* ─── Initial state ──────────────────────────────────────────────────────── *)
+
+Init ==
+  /\ request_state  = [r \in RequestIDs |-> "Pending"]
+  /\ request_to_cap = [r \in RequestIDs |-> "none"]
+  /\ cap_to_request = [t \in CapTokens  |-> "none"]
+  /\ chain_state    = [r \in RequestIDs |-> "Pending"]
+  /\ approvals      = [r \in RequestIDs |-> {}]
+  /\ rejections     = [r \in RequestIDs |-> {}]
+  /\ cap_allocated  = {}
+  /\ cap_exhausted  = {}
+  /\ cascade_fired  = [r \in RequestIDs |-> 0]
+  \* Pre-assign one distinct token per request (tokens are a finite pool)
+  /\ next_token     \in [RequestIDs -> CapTokens]
+      \* Injectivity: each request gets a distinct token
+      /\ \A r1, r2 \in RequestIDs : r1 # r2 => next_token[r1] # next_token[r2]
+
+----
+
+(* ─── Helpers ────────────────────────────────────────────────────────────── *)
+
+QuorumReached(r) ==
+  Cardinality(approvals[r]) >= QuorumSize
+
+QuorumBlocked(r) ==
+  Cardinality(rejections[r]) > 0  \* any rejection blocks all-of-N quorum
+
+----
+
+(* ─── Actions ────────────────────────────────────────────────────────────── *)
+
+(*
+  Provisioning conjunction (Term provisioning conjunction): the request state is
+  open (Pending or Approved) and no token parses to the request. The pending-entry
+  clause is not modeled (no audit writes).
+*)
+ProvisioningConjunction(r) ==
+  /\ request_state[r] \in {"Pending", "Approved"}
+  /\ request_to_cap[r] = "none"
+
+(*
+  The provisioning cascade (Provisioning cascade 2 through 15): allocate answers a
+  token, and the maps and the request state are written in one transaction.
+*)
+Cascade(r) ==
+  LET tok == next_token[r]
+  IN
+    /\ request_state'  = [request_state EXCEPT ![r] = "Provisioned"]
+    /\ request_to_cap' = [request_to_cap EXCEPT ![r] = tok]
+    /\ cap_to_request' = [cap_to_request EXCEPT ![tok] = r]
+    /\ cap_allocated'  = cap_allocated \cup {tok}
+    /\ cascade_fired'  = [cascade_fired EXCEPT ![r] = IF @ = 0 THEN 1 ELSE 2]
+
+(*
+  The cascade's failure arm (Provisioning cascade 3 through 5): allocate answers
+  invalid-request; the request moves to ProvisioningFailed and nothing is allocated.
+*)
+CascadeFails(r) ==
+  /\ request_state'  = [request_state EXCEPT ![r] = "ProvisioningFailed"]
+  /\ request_to_cap' = request_to_cap
+  /\ cap_to_request' = cap_to_request
+  /\ cap_allocated'  = cap_allocated
+  /\ cascade_fired'  = [cascade_fired EXCEPT ![r] = IF @ = 0 THEN 1 ELSE 2]
+
+(*
+  The chain evaluation (Action wiring 47, 48, 57, 58): on a chain whose state is
+  cs, fire the cascade only if cs is Approved and the provisioning conjunction
+  holds; otherwise write nothing.
+*)
+ChainEvaluation(r, cs) ==
+  IF cs = "Approved"   \* BUG: the provisioning conjunction is not read
+  THEN Cascade(r) \/ CascadeFails(r)
+  ELSE /\ request_state'  = request_state
+       /\ request_to_cap' = request_to_cap
+       /\ cap_to_request' = cap_to_request
+       /\ cap_allocated'  = cap_allocated
+       /\ cascade_fired'  = cascade_fired
+
+(*
+  approve_step: an approver records a decision on a chain still in Pending state.
+  If quorum is now reached, chain transitions to Approved. The chain evaluation
+  then reads the chain's new state and fires the cascade if it is Approved.
+*)
+ApproveStep(r, a) ==
+  \* Preconditions
+  /\ request_state[r] \in {"Pending", "Approved"}  \* request still live
+  /\ chain_state[r] = "Pending"                    \* chain not yet terminal
+  /\ a \notin approvals[r]                         \* not yet decided
+  /\ a \notin rejections[r]
+  \* Record the approval
+  /\ approvals' = [approvals EXCEPT ![r] = approvals[r] \cup {a}]
+  /\ rejections' = rejections
+  \* The substrate evaluates quorum
+  /\ LET cs == IF Cardinality(approvals[r] \cup {a}) >= QuorumSize
+               THEN "Approved" ELSE "Pending"
+     IN
+       /\ chain_state' = [chain_state EXCEPT ![r] = cs]
+       /\ ChainEvaluation(r, cs)
+  /\ cap_exhausted' = cap_exhausted
+  /\ next_token'    = next_token
+
+(*
+  A decision that lands on a chain already Approved (two approve_step calls race;
+  the second reads the chain after the first moved it): the substrate answers
+  not-pending and records nothing, and the decision action runs the chain
+  evaluation again (Action wiring 38). The provisioning conjunction keeps the
+  cascade from firing a second time.
+*)
+DecisionNotPending(r, a) ==
+  /\ chain_state[r] = "Approved"
+  /\ a \in ApproverIDs
+  /\ ChainEvaluation(r, chain_state[r])
+  /\ chain_state'   = chain_state
+  /\ approvals'     = approvals
+  /\ rejections'    = rejections
+  /\ cap_exhausted' = cap_exhausted
+  /\ next_token'    = next_token
+
+(*
+  reject_step: an approver rejects. Any rejection blocks all-of-N quorum.
+  Chain transitions to Rejected; request transitions to Denied.
+*)
+RejectStep(r, a) ==
+  /\ request_state[r] = "Pending"
+  /\ chain_state[r]   = "Pending"
+  /\ a \notin approvals[r]
+  /\ a \notin rejections[r]
+  /\ rejections'     = [rejections EXCEPT ![r] = rejections[r] \cup {a}]
+  /\ approvals'      = approvals
+  /\ chain_state'    = [chain_state EXCEPT ![r] = "Rejected"]
+  /\ request_state'  = [request_state EXCEPT ![r] = "Denied"]
+  /\ request_to_cap' = request_to_cap
+  /\ cap_to_request' = cap_to_request
+  /\ cap_allocated'  = cap_allocated
+  /\ cap_exhausted'  = cap_exhausted
+  /\ next_token'     = next_token
+  /\ cascade_fired'  = cascade_fired
+
+(*
+  withdraw_request: requestor withdraws before approval completes.
+  Only valid when request is Pending and chain is Pending.
+*)
+WithdrawRequest(r) ==
+  /\ request_state[r] = "Pending"
+  /\ chain_state[r]   = "Pending"
+  /\ chain_state'    = [chain_state EXCEPT ![r] = "Withdrawn"]
+  /\ request_state'  = [request_state EXCEPT ![r] = "Withdrawn"]
+  /\ approvals'      = approvals
+  /\ rejections'     = rejections
+  /\ request_to_cap' = request_to_cap
+  /\ cap_to_request' = cap_to_request
+  /\ cap_allocated'  = cap_allocated
+  /\ cap_exhausted'  = cap_exhausted
+  /\ next_token'     = next_token
+  /\ cascade_fired'  = cascade_fired
+
+(*
+  exercise_access: bearer presents a valid capability token.
+  Session validation is abstracted as always-passing.
+  Redeem decrements the counter; here modeled as token -> exhausted.
+*)
+ExerciseAccess(r) ==
+  /\ request_state[r] = "Provisioned"
+  /\ request_to_cap[r] # "none"
+  /\ LET tok == request_to_cap[r]
+     IN
+       /\ tok \in cap_allocated
+       /\ tok \notin cap_exhausted         \* token not yet exhausted
+       /\ cap_exhausted' = cap_exhausted \cup {tok}
+  /\ request_state'  = request_state
+  /\ request_to_cap' = request_to_cap
+  /\ cap_to_request' = cap_to_request
+  /\ cap_allocated'  = cap_allocated
+  /\ chain_state'    = chain_state
+  /\ approvals'      = approvals
+  /\ rejections'     = rejections
+  /\ next_token'     = next_token
+  /\ cascade_fired'  = cascade_fired
+
+(*
+  revoke_access: administrator revokes a provisioned request.
+  Capability may already be exhausted (already-terminal path — non-fatal).
+*)
+RevokeAccess(r) ==
+  /\ request_state[r] = "Provisioned"
+  /\ request_state'  = [request_state EXCEPT ![r] = "Revoked"]
+  /\ request_to_cap' = request_to_cap   \* map entries are immutable
+  /\ cap_to_request' = cap_to_request
+  /\ cap_allocated'  = cap_allocated
+  /\ cap_exhausted'  = cap_exhausted
+  /\ chain_state'    = chain_state
+  /\ approvals'      = approvals
+  /\ rejections'     = rejections
+  /\ next_token'     = next_token
+  /\ cascade_fired'  = cascade_fired
+
+----
+
+(* ─── Next-state relation ────────────────────────────────────────────────── *)
+
+Next ==
+  \/ \E r \in RequestIDs, a \in ApproverIDs : ApproveStep(r, a)
+  \/ \E r \in RequestIDs, a \in ApproverIDs : DecisionNotPending(r, a)
+  \/ \E r \in RequestIDs, a \in ApproverIDs : RejectStep(r, a)
+  \/ \E r \in RequestIDs                    : WithdrawRequest(r)
+  \/ \E r \in RequestIDs                    : ExerciseAccess(r)
+  \/ \E r \in RequestIDs                    : RevokeAccess(r)
+
+Spec == Init /\ [][Next]_vars
+
+----
+
+(* ─── Safety invariants ──────────────────────────────────────────────────── *)
+
+(*
+  Invariant 1 — Approval-gates-provisioning.
+  Every request_id that has a capability token must have an Approved chain.
+  A token in request_to_cap without an Approved chain is a provisioning bypass.
+*)
+ApprovalGatesProvisioning ==
+  \A r \in RequestIDs :
+    request_to_cap[r] # "none" => chain_state[r] = "Approved"
+
+(*
+  Invariant 2 — Request-capability bijection.
+  Each request maps to at most one token; each token maps to at most one request.
+  request_to_cap and cap_to_request are strict inverses.
+*)
+MapInverseConsistency ==
+  /\ \A r \in RequestIDs :
+       request_to_cap[r] # "none" =>
+         cap_to_request[request_to_cap[r]] = r
+  /\ \A t \in CapTokens :
+       cap_to_request[t] # "none" =>
+         request_to_cap[cap_to_request[t]] = t
+
+(*
+  Invariant 8.2, Composition state 6 and 7 — Terminal state absorbing.
+  A request in a terminal request state (Denied, Withdrawn, Revoked,
+  ProvisioningFailed) never changes state, so never returns to Pending; a
+  Provisioned request moves only to Revoked (the request progression). A step
+  formula, checked as the action property TerminalAbsorbingProp.
+*)
+TerminalAbsorbingAction ==
+  \A r \in RequestIDs :
+    /\ (request_state[r] \in TerminalStates \ {"Provisioned"}) =>
+         (request_state'[r] = request_state[r])
+    /\ (request_state[r] = "Provisioned") =>
+         (request_state'[r] \in {"Provisioned", "Revoked"})
+
+TerminalAbsorbingProp == [][TerminalAbsorbingAction]_vars
+
+(*
+  CascadeFiresAtMostOnce (Invariant 2.1, Composition state 37).
+  The provisioning cascade fires at most once per request, whether it allocates
+  or fails: a second firing would allocate a second token (or reopen a failed
+  request). Read off the history counter cascade_fired, so a second firing that
+  writes the same token, and leaves the maps strict inverses, still breaks it.
+*)
+CascadeFiresAtMostOnce ==
+  \A r \in RequestIDs : cascade_fired[r] <= 1
+
+(*
+  DeniedNamesRejectedChain (Invariant 7.2).
+  Every Denied request names a chain whose state is Rejected.
+*)
+DeniedNamesRejectedChain ==
+  \A r \in RequestIDs :
+    request_state[r] = "Denied" => chain_state[r] = "Rejected"
+
+(*
+  TokensAllocatedOnlyForProvisioned.
+  Every allocated token corresponds to a request that is Provisioned or Revoked.
+  (Revoked is included because revoke_access does not remove the token from the map.)
+*)
+TokensAllocatedOnlyForProvisioned ==
+  \A t \in cap_allocated :
+    \E r \in RequestIDs :
+      /\ request_to_cap[r] = t
+      /\ request_state[r] \in {"Provisioned", "Revoked"}
+
+(*
+  NoPendingRequestHasToken.
+  A request in Pending state never has a capability token.
+*)
+NoPendingRequestHasToken ==
+  \A r \in RequestIDs :
+    request_state[r] = "Pending" => request_to_cap[r] = "none"
+
+(*
+  NoExhaustedTokenBeforeExercise.
+  A token cannot be exhausted unless it was allocated.
+*)
+ExhaustedSubsetAllocated ==
+  cap_exhausted \subseteq cap_allocated
+
+----
+
+(* ─── Liveness (optional; requires fairness assumption) ─────────────────── *)
+
+(*
+  Under weak fairness on all actions, a request with enough approvals
+  eventually reaches a terminal state.
+  Uncomment to check with TLC under fairness.
+
+FairnessSpec ==
+  /\ Spec
+  /\ \A r \in RequestIDs : WF_vars(WithdrawRequest(r))
+  /\ \A r \in RequestIDs : WF_vars(RevokeAccess(r))
+  /\ \A r \in RequestIDs, a \in ApproverIDs : WF_vars(ApproveStep(r, a))
+
+EventuallyTerminal ==
+  \A r \in RequestIDs :
+    <>(request_state[r] \in TerminalStates)
+*)
+
+----
+
+(* ─── TLC configuration ──────────────────────────────────────────────────── *)
+
+(*
+  Suggested TLC model values for a small but meaningful scope:
+    RequestIDs  <- {"r1", "r2"}
+    ApproverIDs <- {"a1", "a2", "a3"}
+    CapTokens   <- {"cap1", "cap2"}
+    QuorumSize  <- 2
+
+  Invariants to check:
+    TypeOK
+    ApprovalGatesProvisioning
+    MapInverseConsistency
+    CascadeFiresAtMostOnce
+    TokensAllocatedOnlyForProvisioned
+    NoPendingRequestHasToken
+    ExhaustedSubsetAllocated
+    DeniedNamesRejectedChain
+
+  Property (PROPERTY in the .cfg; not an ACTION_CONSTRAINT, which would only
+  prune transitions and assert nothing):
+    TerminalAbsorbingProp
+
+  Expected result: all invariants hold; no deadlock.
+  A violated invariant is a spec finding for the composition.
+*)
+
+====

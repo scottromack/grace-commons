@@ -522,7 +522,7 @@ It inherits from:
 
 ```
 status: grounded on Final Critique 13 — 2026-10-25 at bae1f12
-formal: verified — event-log.tla + 1 twin; coverage 2026-11-10 (unit formal: more coverage for the yes votes): owes Alloy (the static data model); owed rows: Invariant 1; Invariant 2; Invariant 5, 2026-06-03
+formal: verified — event-log.tla + 3 twins; coverage 2026-11-10 (unit formal: more coverage for the yes votes): owes Alloy (the static data model); owed rows: Invariant 2; Invariant 5, 2026-06-03
 last gate: 2026-10-25 — Final Critique 13 — foundational count 0, clean, one sample
 
 open:

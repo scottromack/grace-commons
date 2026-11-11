@@ -121,11 +121,8 @@ pred revoke_action[pre, post : GrantRecord] {
 -- No counterexample (UNSAT) = the guarantee holds in all configurations within scope.
 -- ─────────────────────────────────────────────────────────────────────────────
 
--- A_I5_GrantIdUniqueness: Invariant 5 — no two records in the store share a grant_id.
-assert A_I5_GrantIdUniqueness {
-    all disj r1, r2 : GrantRecord | r1.grant_id != r2.grant_id
-}
-check A_I5_GrantIdUniqueness for 6
+-- Invariant 5 is assumed by fact GrantIdUniqueness. The check A_I5_GrantIdUniqueness restated
+-- that fact word for word, so no twin could break it; it went 2026-11-10.
 
 -- A_I2_StatusMonotonicity: Invariant 2 — revoke_action always transitions to Revoked, never back to Active.
 -- This is the forward-only (monotonic) direction of the state machine.

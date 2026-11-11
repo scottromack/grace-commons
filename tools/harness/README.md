@@ -26,13 +26,33 @@ node check.mjs ../../compositions/session-gated-authorization.als
 # A buggy twin must be REJECTED (the vacuity guard):
 node check.mjs ../../atoms/party-identity-buggy.tla --buggy
 
-# Run every model in the repo:
+# Run every model in the repo, and ask which twin breaks each check:
 node audit.mjs
 ```
 
 Every run appends one line to `states.tsv` (written by `ledger.mjs`; columns in its header comment): the date, the model, whether it is a model or a twin, the states explored and whether the 200,000-state cap stopped it (TLA+), or the commands and their verdicts (Alloy). `_data/stats.json` totals each file's latest line (`states_models`, `states_twins`, `alloy_commands`), so the count of what the corpus's models have been checked over is kept. `GRACE_STATES_LEDGER=off` writes no line; `node --test test_states.mjs` tests the ledger.
 
 Each model ends in one verdict word: **HOLDS** (a correct model held), **CAUGHT** (a buggy model was rejected), **BROKEN** (a correct model was violated), **MISSED** (a buggy model was not rejected), or **ERROR** (the model was never checked — no Java, no `.cfg`, a parse or type error). HOLDS and CAUGHT exit `0`; BROKEN and MISSED exit `1`; ERROR exits `2`. `audit.mjs` counts each and exits non-zero on any problem.
+
+A model run outside the repository (a scratch copy in `../mx/`, say) writes no ledger line, so `states.tsv` holds the corpus's runs only and a sum of its latest lines is the corpus's number.
+
+## Every check has a twin that breaks it
+
+`audit.mjs` then asks the same of every check of every correct model (unit `tooling: every check has a twin that breaks it`, 2026-11-10): it must hold in the model and fail in at least one of the model's twins. A check is each `INVARIANT` and `PROPERTY` the `.cfg` names — an operator that is only a conjunction of operators (`Safety == TypeOK /\ Inv_A /\ Inv_B`) counts as its conjuncts, and `TypeOK`, the model's typing, is not counted — or each Alloy `check`. A model's twins are the `-buggy` files beside it whose names extend its own (the longest such model owns a twin); a model that is another's module in another configuration says `\* @twins-of <model>` in its header and takes that model's twins. `twins.mjs` holds these definitions.
+
+Which twin breaks which check comes from the runs: Alloy reports every `check` of a twin, and TLC names the one invariant a twin violates first. A TLA+ check no run named is asked of the twins, side by side: each twin runs against the checks still unbroken (its own constants, the checks listed one by one) until it violates none of them, and a check goes to the twin that first reports it. A twin that breaks nothing explores its whole space, which can far exceed its model's, so such a run stops at `--twin-limit-min` (10 minutes) and a check it leaves undecided stays red. The summary's **TWIN PER CHECK** section names the twin for every check; the coverage matrices cite it row by row.
+
+A check is **RED**, and the audit fails, when
+
+- no twin breaks it;
+- it restates its model: the same expression, once comments and whitespace are gone, as a `fact`, an `ASSUME`, a `CONSTRAINT` or an `ACTION_CONSTRAINT` of the same model (or `[][K]_v` over a constraint `K`), so no twin of that model can break it;
+- it is a `CONSTRAINT` or `ACTION_CONSTRAINT` the correct model never violates. The audit runs the model with the constraint taken out and stated as a check (an invariant, or `[][K]_vars` for an action); if that holds, the constraint prunes nothing the model reaches, and what it states is a property no twin can break. A bound (`now <= MaxTime`) is violated without itself and is not red.
+
+The cure is the model's: a fact that should be an action's guard becomes one, a constraint that should be a check becomes a check, a check with no twin gets one. Where the page has no rule a twin could break, the check goes, and its matrix row says why. `node --test test_audit.mjs` holds a fixture for each red.
+
+## The coverage figure
+
+`python3 coverage.py --summary` prints one line from the matrices in `coverage/`: the rules, how many a check of a model that holds states, how many another page's model checks, how many are owed, and how many no model can state. Each matrix row opens its Verdict cell with one word in backticks — `checked`, `elsewhere`, `owed`, `unstatable`, or `retired` for a deleted rule, which is not counted — and a `checked` row names the twin that breaks its check. `python3 coverage.py` prints each page's counts and every row with no word or a `checked` row with no twin, and exits `1` on any.
 
 ## The closure enumerator
 

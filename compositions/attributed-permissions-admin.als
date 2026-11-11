@@ -106,6 +106,16 @@ module attributed_permissions_admin
  * set of failing checks ever differs from the four above, the
  * model's semantics have shifted: stop and diagnose before
  * shipping.
+ *
+ * TWINS FOR THE OTHER CHECKS (2026-11-10, a twin for every check),
+ * each this file with one defect, named in its header:
+ *   -buggy-optionalpairing  Attribution_Recoverability, Invariant_1_Always
+ *   -buggy-issuenopair      Invariant_1_Always
+ *   -buggy-revokenopair     Invariant_2_Always
+ *   -buggy-unattested       Wellformed_Always, Attest_Before_Record
+ *   -buggy-reissue          Pairing_Durability, Revocation_Terminal,
+ *                           Invariant_2_Always
+ *   -buggy-completeorphan   Orphan_Log_Durability
  * ---------------------------------------------------------------
  */
 
@@ -212,11 +222,12 @@ sig Attestation {
 -- their ranges contain only Attestation atoms. A fact entailed by
 -- a declaration is inert; worse, if a later edit weakens the
 -- declaration, the leftover fact silently re-imposes the
--- constraint and masks the edit. The fact is removed. The intent
--- is documented here, and its checkable form is the
--- Pairing_Map_Range_Valid assert + check at the end of this file
--- — the right instrument for "redundant today, loud if it ever
--- stops being redundant."
+-- constraint and masks the edit. The fact is removed. Round 4
+-- kept its intent as a Pairing_Map_Range_Valid assert + check;
+-- that check restated the two declarations (their range type),
+-- so no twin could break it, and it went on 2026-11-10 (unit
+-- `tooling: every check has a twin that breaks it`). The
+-- declarations are the model's statement of it.
 -- ==============================================================
 
 one sig System {
@@ -788,29 +799,3 @@ pred from_empty_lifecycle {
 }
 
 run from_empty_lifecycle for 4 but 1..6 steps
-
-
--- ==============================================================
--- CHECK: Pairing-map range validity (Invariant 6, structural
--- aspect) — documented redundancy, kept loud
---
--- The ranges of both attribution maps contain only Attestation
--- atoms. Today this is entailed by the System field declarations
--- (`Grant -> lone Attestation`), so this check is expected CLEAN
--- by typing alone — it is deliberately redundant. It exists
--- because Round 3 stated the same intent as a fact, and a
--- redundant FACT is the wrong instrument: inert while the
--- declarations hold, silently load-bearing (and edit-masking) if
--- they are ever weakened. As an assert + check, the same intent
--- stays documented and becomes a loud failure instead of a silent
--- constraint if a future edit weakens the declared field types.
--- ==============================================================
-
-assert Pairing_Map_Range_Valid {
-    always (
-        System.grant_attribution[Grant] in Attestation
-        and System.revocation_attribution[Grant] in Attestation
-    )
-}
-
-check Pairing_Map_Range_Valid for 5 but 1..2 steps

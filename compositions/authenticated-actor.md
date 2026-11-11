@@ -676,7 +676,7 @@ Authenticated Actor inherits the broader standards compliance of its constituent
 
 ```
 status: grounded on Final Critique 10 — 2026-11-06 at 368ce1f
-formal: verified — authenticated-actor.tla + 4 twins + 6 probes; coverage 2026-11-10 (unit formal: more coverage for the yes votes): owes Alloy (the static data model), 2026-10-27
+formal: verified — authenticated-actor.tla + 5 twins + 6 probes; coverage 2026-11-10 (unit formal: more coverage for the yes votes): owes Alloy (the static data model), 2026-10-27
 last gate: 2026-11-06 — Final Critique 10, a delta round, frozen at 368ce1f — foundational count 0, clean, one sample; 2026-11-05 — Final Critique 9, a delta round, frozen at ec26ba5 — foundational count 1, cured, not clean, no sample; 2026-11-04 — Final Critique 8 — foundational count 4, not clean, no sample
 
 open:

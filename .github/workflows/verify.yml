@@ -99,7 +99,7 @@ jobs:
   formal-models:
     name: Formal models — hold; twins rejected
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 150
     defaults:
       run:
         working-directory: tools/harness
@@ -113,8 +113,8 @@ jobs:
       - name: Bootstrap checkers (npm-only; JRE 17 to /tmp)
         run: bash bootstrap.sh
 
-      - name: Test the state ledger
-        run: GRACE_STATES_LEDGER=off node --test test_states.mjs
+      - name: Test the state ledger and the twin audit
+        run: GRACE_STATES_LEDGER=off node --test test_states.mjs test_audit.mjs
 
-      - name: Audit every model but Recoverable Invocation's — correct hold, buggy twins rejected
-        run: node audit.mjs --except "$(cat recoverable-invocation.pattern)"
+      - name: Audit every model but Recoverable Invocation's — correct hold, buggy twins rejected, every check broken by a twin
+        run: node audit.mjs --limit-min 45 --except "$(cat recoverable-invocation.pattern)"

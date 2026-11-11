@@ -935,7 +935,7 @@ It inherits from:
 
 ```
 status: grounded on Final Critique 13 — 2026-11-03 at e0a85af
-formal: verified — provenance.als + 1 twin; coverage 2026-11-10 (unit formal: more coverage for the yes votes): owes TLA+ (everything across steps); owed rows: Invariant 1.1; Invariant 2.1; Invariant 2.2; Invariant 3.2; Invariant 3.3; Invariant 5.3; Invariant 10.1, 2026-06-04
+formal: verified — provenance.als + 2 twins; coverage 2026-11-10 (unit formal: more coverage for the yes votes): owes TLA+ (everything across steps); owed rows: Invariant 1.1; Invariant 2.1; Invariant 2.2; Invariant 3.1; Invariant 3.2; Invariant 3.3; Invariant 4.1; Invariant 5.2; Invariant 5.3; Invariant 6.1; Invariant 6.2; Invariant 8.2; Invariant 8.3; Invariant 8.4; Invariant 10.1, 2026-06-04
 last gate: 2026-11-03 — Final Critique 13, frozen at e0a85af — foundational count 0, clean, one sample
 
 open:

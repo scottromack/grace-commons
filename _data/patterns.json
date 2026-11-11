@@ -56,7 +56,7 @@
   "models": {
    "als": false,
    "tla": true,
-   "twins": 5
+   "twins": 6
   },
   "regulated": true,
   "standards": [
@@ -90,7 +90,7 @@
   "models": {
    "als": false,
    "tla": true,
-   "twins": 1
+   "twins": 3
   },
   "regulated_by": [
    "execute-gated-workflow",
@@ -153,7 +153,7 @@
   "models": {
    "als": true,
    "tla": true,
-   "twins": 6
+   "twins": 16
   },
   "regulated": true,
   "standards": [
@@ -182,7 +182,7 @@
   "models": {
    "als": false,
    "tla": true,
-   "twins": 2
+   "twins": 3
   },
   "regulated": true,
   "standards": [
@@ -232,7 +232,7 @@
   "models": {
    "als": false,
    "tla": true,
-   "twins": 4
+   "twins": 5
   },
   "regulated": true,
   "standards": [
@@ -279,7 +279,7 @@
   "models": {
    "als": true,
    "tla": false,
-   "twins": 1
+   "twins": 12
   },
   "regulated_by": [
    "capability-backed-sharing",
@@ -487,7 +487,7 @@
   "models": {
    "als": false,
    "tla": true,
-   "twins": 4
+   "twins": 6
   },
   "regulated_by": [
    "actor-suspension",
@@ -639,7 +639,7 @@
   "models": {
    "als": false,
    "tla": true,
-   "twins": 1
+   "twins": 3
   },
   "regulated_by": [
    "audit-trail",
@@ -681,7 +681,7 @@
   "models": {
    "als": false,
    "tla": true,
-   "twins": 10
+   "twins": 13
   },
   "regulated": true,
   "standards": [
@@ -755,7 +755,7 @@
   "models": {
    "als": false,
    "tla": true,
-   "twins": 11
+   "twins": 13
   },
   "regulated": true,
   "standards": [
@@ -809,7 +809,7 @@
   "models": {
    "als": false,
    "tla": true,
-   "twins": 2
+   "twins": 4
   },
   "regulated_by": [
    "external-onboarding"
@@ -837,7 +837,7 @@
   "models": {
    "als": false,
    "tla": true,
-   "twins": 4
+   "twins": 5
   },
   "regulated_by": [
    "recoverable-invocation"
@@ -892,7 +892,7 @@
   "models": {
    "als": false,
    "tla": true,
-   "twins": 0
+   "twins": 7
   },
   "regulated": true,
   "standards": [
@@ -919,7 +919,7 @@
   "models": {
    "als": true,
    "tla": true,
-   "twins": 2
+   "twins": 5
   },
   "regulated_by": [],
   "security": false,
@@ -994,7 +994,7 @@
   "models": {
    "als": true,
    "tla": false,
-   "twins": 1
+   "twins": 5
   },
   "regulated_by": [
    "notification-fanout",
@@ -1035,7 +1035,7 @@
   "models": {
    "als": true,
    "tla": false,
-   "twins": 1
+   "twins": 3
   },
   "regulated_by": [],
   "security": false,
@@ -1072,7 +1072,7 @@
   "models": {
    "als": false,
    "tla": true,
-   "twins": 1
+   "twins": 4
   },
   "regulated_by": [
    "customer-onboarding",
@@ -1112,7 +1112,7 @@
   "models": {
    "als": true,
    "tla": false,
-   "twins": 1
+   "twins": 4
   },
   "regulated_by": [
    "actor-suspension",
@@ -1200,7 +1200,7 @@
   "models": {
    "als": false,
    "tla": true,
-   "twins": 0
+   "twins": 8
   },
   "regulated": true,
   "standards": [
@@ -1254,7 +1254,7 @@
   "models": {
    "als": true,
    "tla": false,
-   "twins": 1
+   "twins": 2
   },
   "regulated_by": [
    "chain-of-custody"
@@ -1284,7 +1284,7 @@
   "models": {
    "als": false,
    "tla": true,
-   "twins": 2
+   "twins": 4
   },
   "regulated_by": [
    "idempotent-reservation",
@@ -1311,7 +1311,7 @@
   "models": {
    "als": false,
    "tla": true,
-   "twins": 8
+   "twins": 9
   },
   "regulated": true,
   "standards": [
@@ -1346,7 +1346,7 @@
   "models": {
    "als": true,
    "tla": false,
-   "twins": 1
+   "twins": 10
   },
   "regulated_by": [],
   "security": false,
@@ -1389,7 +1389,7 @@
   "models": {
    "als": false,
    "tla": true,
-   "twins": 9
+   "twins": 12
   },
   "regulated": true,
   "standards": [
@@ -1538,7 +1538,7 @@
   "models": {
    "als": true,
    "tla": false,
-   "twins": 0
+   "twins": 7
   },
   "regulated": true,
   "standards": [
@@ -1605,7 +1605,7 @@
   "models": {
    "als": true,
    "tla": false,
-   "twins": 1
+   "twins": 2
   },
   "regulated_by": [
    "compensable-workflow",
@@ -1635,7 +1635,7 @@
   "models": {
    "als": true,
    "tla": false,
-   "twins": 1
+   "twins": 2
   },
   "regulated_by": [
    "notification-fanout",

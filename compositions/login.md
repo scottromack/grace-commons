@@ -644,7 +644,7 @@ Inherited from:
 
 ```
 status: grounded on Final Critique 14 — 2026-11-06 at efa2db9
-formal: verified — login.tla, no twin; coverage 2026-11-10 (unit formal: more coverage for the yes votes): owes Alloy (the static data model); owed rows: Invariant 1.1; Invariant 1.2; Invariant 2.2; Invariant 2.3; Invariant 2.4, 2026-05-23
+formal: verified — login.tla + 7 twins; coverage 2026-11-10 (unit formal: more coverage for the yes votes): owes Alloy (the static data model); owed rows: Invariant 1.1; Invariant 1.2; Invariant 2.2; Invariant 2.3; Invariant 2.4, 2026-05-23
 last gate: 2026-11-06 — Final Critique 14 — delta, frozen at efa2db9 — foundational count 0, clean, no sample; Linus's one finding (Capability requirement 16, no cross-instance id source) refuted against Logic confinement 16 by both triages, and the Final Critique 13 cure (Audit arm 9 through 11) was read whole with no finding, so the page grounds; 2026-11-05 — Final Critique 13 — delta, frozen at 82d4603 — foundational count 0, clean, no sample; the settle cured Ledger open line 2026-10-29-b, a foundational line no reader had read (Scott's ruling of 2026-11-03 21:53Z), so the page is not grounded and owes a delta round; 2026-11-04 — Final Critique 12 — delta, foundational count 1, not clean, no sample
 
 open:

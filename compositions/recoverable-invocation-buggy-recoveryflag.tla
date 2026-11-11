@@ -1113,6 +1113,10 @@ Inv2_OneWriter ==
     /\ outcomeRecords <= 1
     /\ ClosingCount <= 1
 
+\* Not in Safety since 2026-11-10 (unit `tooling: every check has a twin that breaks it`):
+\* at the main constants (Window 12, MaxTime 5) its antecedent never fires, so it holds
+\* of every state and no twin can break it. Owed to a configuration whose horizon passes
+\* the window (Invariant 4 in tools/harness/coverage/recoverable-invocation.md).
 Inv4_BoundedClosure ==
     (/\ intentState = "visible"
      /\ invPhase \in {"crashed", "yielded"}
@@ -1162,7 +1166,7 @@ Inv9_RecoveryIntentFirst == (outcomeBy = "sweep") => recIntended
 
 Inv10_RecoveryFlagged == (outcomeBy = "sweep") => outcomeRecovery
 
-Safety == TypeOK /\ Inv1_IntentFirst /\ Inv2_OneWriter /\ Inv4_BoundedClosure
+Safety == TypeOK /\ Inv1_IntentFirst /\ Inv2_OneWriter
           /\ Inv5_NoFalseAbandon /\ Inv6_SupersessionNamed
           /\ Inv7_OneLiveIntent /\ Inv8_IntentUnderItsSection
           /\ Inv9_RecoveryIntentFirst /\ Inv10_RecoveryFlagged

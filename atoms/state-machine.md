@@ -944,7 +944,7 @@ Guard evaluation, non-repudiable attribution, tamper-evidence, and retention are
 
 ```
 status: grounded on Final Critique 16 — 2026-11-06 at ad732c0
-formal: verified — state-machine.als + 1 twin; coverage 2026-11-10 (unit formal: more coverage for the yes votes): owes TLA+ (everything across steps); owed rows: Invariant 1.1; Invariant 1.2; Invariant 5.1; Invariant 5.2; Invariant 6.3; Invariant 8.1; Invariant 8.3; Invariant 10.1, 10.2, 2026-06-04
+formal: verified — state-machine.als + 2 twins; coverage 2026-11-10 (unit formal: more coverage for the yes votes): owes TLA+ (everything across steps); owed rows: Invariant 1.1; Invariant 1.2; Invariant 2.1; Invariant 3.1; Invariant 3.2; Invariant 4.2; Invariant 5.1; Invariant 5.2; Invariant 6.2; Invariant 6.3; Invariant 7.3; Invariant 8.1; Invariant 8.3; Invariant 10.1, 10.2, 2026-06-04
 last gate: 2026-11-06 — Final Critique 16, delta — foundational count 0, clean, one sample
 
 open:

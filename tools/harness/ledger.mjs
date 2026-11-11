@@ -19,10 +19,12 @@
 //   verdict   HOLDS | CAUGHT | BROKEN | MISSED | ERROR
 //   checker   tlc | wasm | alloy   which checker ran it
 //
-// GRACE_STATES_LEDGER=<path> writes there instead; "off" writes nothing.
+// GRACE_STATES_LEDGER=<path> writes there instead; "off" writes nothing. A model
+// outside the repository writes nothing either: the file is the corpus's runs, so
+// its sum is the corpus's number (a scratch run from ../mx/ once added 120 rows).
 
 import { appendFileSync, existsSync } from "node:fs";
-import { dirname, join, relative, resolve, sep } from "node:path";
+import { dirname, isAbsolute, join, relative, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
@@ -41,8 +43,9 @@ export function ledgerLine(e, now = new Date()) {
 export function appendLedger(e, now = new Date()) {
   const target = process.env.GRACE_STATES_LEDGER ?? join(HERE, "states.tsv");
   if (target === "off") return;
-  const fresh = !existsSync(target);
   const file = relative(REPO, resolve(e.file)).split(sep).join("/");
+  if (file.startsWith("../") || isAbsolute(file)) return;
+  const fresh = !existsSync(target);
   const head = fresh ? "# " + COLUMNS.join("\t") + "\n" : "";
   appendFileSync(target, head + ledgerLine({ ...e, file }, now) + "\n");
 }

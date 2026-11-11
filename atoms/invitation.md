@@ -839,7 +839,7 @@ It inherits from:
 
 ```
 status: grounded on Final Critique 10 — 2026-11-04 at cd9d6f3
-formal: verified — invitation.tla + 2 twins; coverage 2026-11-10 (unit formal: more coverage for the yes votes): owes Alloy (the static data model); owed rows: Invariant 1; Invariant 3; Invariant 7; Invariant 8; Invariant 11, 2026-06-03
+formal: verified — invitation.tla + 4 twins; coverage 2026-11-10 (unit formal: more coverage for the yes votes): owes Alloy (the static data model); owed rows: Invariant 1; Invariant 3; Invariant 7; Invariant 8; Invariant 11, 2026-06-03
 last gate: 2026-11-04 — Final Critique 10, a delta round, frozen at cd9d6f3 — foundational count 0, clean, one sample; 2026-11-03 — Final Critique 9 (delta) — foundational count 3, cured, not clean, no sample
 
 open:

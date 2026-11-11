@@ -64,9 +64,11 @@ sig Entry {
 -- ─────────────────────────────────────────────────────────────────────────────
 
 -- Linear history chain (mirror provenance.als): acyclic, singly-linked, no merge.
+-- No merging is not a fact: it follows from SuccPredInverse with the `lone`
+-- predecessor (and again from SingleHistoryChain with NoCycles), and
+-- A_Linear_NoBranching checks it (2026-11-10; the fact NoMerging restated it).
 fact NoCycles        { all x : Entry | x not in x.^successor }
 fact NoSelfLoop      { all x : Entry | x.successor != x }
-fact NoMerging       { all x : Entry | lone (successor.x) }
 fact SuccPredInverse { all a, b : Entry | a.successor = b iff b.predecessor = a }
 
 -- A single history chain per instance: at most one head (entry with no predecessor).
@@ -106,55 +108,24 @@ fact HeadFromInitial {
 -- Assertions — each "check" must be UNSAT.
 -- ─────────────────────────────────────────────────────────────────────────────
 
-assert A_Linear_AtMostOneSuccessor   { all x : Entry | lone x.successor }
-check A_Linear_AtMostOneSuccessor for 7
+-- Checks that restated the model and went (2026-11-10, unit `tooling: every
+-- check has a twin that breaks it`): A_Linear_AtMostOneSuccessor and
+-- A_Linear_AtMostOnePredecessor (the `lone` fields), A_Linear_NoCycles (fact
+-- NoCycles), A_Inv3_OnlyDeclaredTransitions (fact EveryEntryDeclared),
+-- A_DeterministicDecl (fact DeterministicDecl), A_ChainConsistency (fact
+-- ChainConsistency), A_Inv7_ReplayUniqueTail (fact SingleHistoryChain) and
+-- A_Inv7_HeadFromInitial (fact HeadFromInitial). The facts stay as the model's
+-- assumptions; no twin of a static snapshot can break them.
 
-assert A_Linear_AtMostOnePredecessor { all x : Entry | lone x.predecessor }
-check A_Linear_AtMostOnePredecessor for 7
-
+-- Linear history: no entry is named as successor by two entries.
 assert A_Linear_NoBranching          { all x : Entry | lone (successor.x) }
 check A_Linear_NoBranching for 7
-
-assert A_Linear_NoCycles             { all x : Entry | x not in x.^successor }
-check A_Linear_NoCycles for 7
-
--- Invariant 3 — only-declared-transitions fire.
-assert A_Inv3_OnlyDeclaredTransitions {
-    all e : Entry | some t : Trans |
-        t.tfrom = e.efrom and t.tact = e.eact and t.tto = e.eto
-}
-check A_Inv3_OnlyDeclaredTransitions for 7
-
--- Declaration determinism — at most one transition per (from, action).
-assert A_DeterministicDecl {
-    all disj t1, t2 : Trans | not (t1.tfrom = t2.tfrom and t1.tact = t2.tact)
-}
-check A_DeterministicDecl for 7
 
 -- Invariant 4 — terminal absorption: no entry fires from a terminal state.
 assert A_Inv4_TerminalAbsorption {
     no e : Entry | e.efrom in Config.terminal
 }
 check A_Inv4_TerminalAbsorption for 7
-
--- Chain consistency — consecutive entries agree on the shared state.
-assert A_ChainConsistency {
-    all a, b : Entry | a.successor = b implies a.eto = b.efrom
-}
-check A_ChainConsistency for 7
-
--- Invariant 7 — replay determinism (uniqueness half): the history has at most one
--- tail, so current_state (the tail's to_state, or initial if empty) is unique.
-assert A_Inv7_ReplayUniqueTail {
-    lone (Entry - Entry.successor)
-}
-check A_Inv7_ReplayUniqueTail for 7
-
--- Invariant 7 — the head starts at the declared initial state.
-assert A_Inv7_HeadFromInitial {
-    all e : Entry | (no e.predecessor) implies e.efrom = Config.initial
-}
-check A_Inv7_HeadFromInitial for 7
 
 -- ─────────────────────────────────────────────────────────────────────────────
 -- Satisfiability runs — each must be SAT (non-vacuity guards).

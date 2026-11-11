@@ -132,12 +132,9 @@ fact NoCycles {
 }
 
 -- Invariant 4 (no-merging half): no two distinct orders share the same successor.
--- i.e., every order is the successor of at most one other order.
--- This enforces that chains do not converge (two different originals amended to
--- the same successor is structurally prohibited).
-fact LinearChain {
-    all x : Order | lone (successor.x)
-}
+-- Not a fact: it follows from SuccessorPredecessorInverse with the `lone`
+-- predecessor, and A_Inv4_NoBranching checks it (2026-11-10; the fact
+-- LinearChain restated it).
 
 -- Inverse consistency: successor and predecessor are inverses of each other.
 -- If order B is the successor of order A, then A must be the predecessor of B.
@@ -174,11 +171,11 @@ fact NoSelfLoop {
 -- ─────────────────────────────────────────────────────────────────────────────
 
 -- Invariant 3 (core structural form): orders that have passed the dispensing
--- boundary — or were cancelled, discontinued, or put on hold — cannot be amended.
--- This is the structural invariant: no order in a NoSuccessorState has a successor.
-fact PreDispensingOnlyAmendment {
-    all x : Order | x.state in NoSuccessorState implies no x.successor
-}
+-- boundary — or were cancelled, discontinued, or put on hold — cannot be amended:
+-- no order in a NoSuccessorState has a successor. Not a fact: it follows from
+-- AmendedIffHasSuccessor (only an Amended order has a successor), and
+-- A_Inv3_NoSuccessorAfterDispensing checks it (2026-11-10; the fact
+-- PreDispensingOnlyAmendment restated it).
 
 -- Successor state constraint: a successor order (one with a predecessor) always
 -- starts in Ordered state. The spec's [Amend] operation: "The successor starts in Ordered
@@ -235,19 +232,19 @@ fact MedicationRefInherited {
 -- facts but violating this assertion? UNSAT = guarantee holds. SAT = spec finding.
 -- ─────────────────────────────────────────────────────────────────────────────
 
+-- Checks that restated the model and went (2026-11-10, unit `tooling: every
+-- check has a twin that breaks it`): A_Inv4_AtMostOnePredecessor (the `lone`
+-- field), A_Inv4_NoCycles (fact NoCycles), A_Inv12_AmendedBySetOnSuccessorOnly
+-- (fact AmendedByConsistency) and A_SuccessorPredecessorAreInverse (fact
+-- SuccessorPredecessorInverse). The facts stay as the model's assumptions; no
+-- twin of a static snapshot can break them.
+
 -- A_Inv4_AtMostOneSuccessor (Invariant 4):
 -- No order has more than one direct successor.
 assert A_Inv4_AtMostOneSuccessor {
     all x : Order | lone x.successor
 }
 check A_Inv4_AtMostOneSuccessor for 8
-
--- A_Inv4_AtMostOnePredecessor (Invariant 4):
--- No order has more than one direct predecessor (no merging of chains).
-assert A_Inv4_AtMostOnePredecessor {
-    all x : Order | lone x.predecessor
-}
-check A_Inv4_AtMostOnePredecessor for 8
 
 -- A_Inv4_NoBranching (Invariant 4):
 -- No two distinct orders have the same successor (the anti-branching direction:
@@ -256,13 +253,6 @@ assert A_Inv4_NoBranching {
     all x : Order | lone (successor.x)
 }
 check A_Inv4_NoBranching for 8
-
--- A_Inv4_NoCycles (Invariant 4):
--- The amendment chain is acyclic — no order can reach itself via successor steps.
-assert A_Inv4_NoCycles {
-    all x : Order | x not in x.^successor
-}
-check A_Inv4_NoCycles for 8
 
 -- A_Inv3_NoSuccessorAfterDispensing (Invariant 3):
 -- Orders that have crossed the dispensing boundary (or been cancelled/discontinued
@@ -323,20 +313,6 @@ assert A_Inv2_MedicationRefChainConsistency {
     all x, y : Order | y in x.*successor implies y.medication = x.medication
 }
 check A_Inv2_MedicationRefChainConsistency for 8
-
--- A_Inv12_AmendedBySetOnSuccessorOnly:
--- amendedBy is set iff the order has a predecessor (created by amend).
-assert A_Inv12_AmendedBySetOnSuccessorOnly {
-    all x : Order | (one x.amendedBy) iff (one x.predecessor)
-}
-check A_Inv12_AmendedBySetOnSuccessorOnly for 8
-
--- A_SuccessorPredecessorAreInverse:
--- successor and predecessor relations are strict inverses of each other.
-assert A_SuccessorPredecessorAreInverse {
-    all a, b : Order | a.successor = b iff b.predecessor = a
-}
-check A_SuccessorPredecessorAreInverse for 8
 
 -- ─────────────────────────────────────────────────────────────────────────────
 -- Satisfiability runs

@@ -9,19 +9,20 @@
 
 - Correct model: `node check.mjs ../../atoms/legal-hold.tla` → `PASS` ✓ *(370 states, MaxH=2, MaxClock=3)*
 - Buggy twin: `node check.mjs ../../atoms/legal-hold-buggy.tla --buggy` → `PASS` (rejected) ✓ *(18 states — Tick→Place→Release stamps releasedAt=0 < placedAt=1; Inv_TemporalOrdering violated)*
+- 2026-11-10 (unit `tooling: every check has a twin that breaks it`): `audit.mjs` → HOLDS; `Inv_HoldIndependence` broken by `legal-hold-buggy-cascade.tla`, `Inv_TemporalOrdering` by `legal-hold-buggy.tla` (both CAUGHT).
 
 ## Step 2 — coverage matrix
 
 | Spec invariant (no. + name) | Load-bearing (vote)? | Verdict | Model construct / reason |
 |---|---|---|---|
-| Invariant 1 — Hold immutability | no | by-construction | The model has no action that modifies `hold_id`, `record_ref`, `placed_by`, `hold_reason`, `placed_at`, or `case_ref` — these fields are not modeled as state variables (acknowledged: "NOT MODELED: id discipline, attribution fields"). Mutation is structurally absent. |
-| Invariant 2 — Membership exclusivity | no | by-construction | Each hold slot is `{none, Active, Released}` — exactly one value at all times. A tripartite enum is exclusive by definition; no invariant asserts it explicitly, but the `HoldState` type makes overlap impossible. |
-| Invariant 3 — Terminal absorption | no | by-construction | `Release` transitions `Active → Released` only; no re-activate action exists. Terminal absorption is structurally guaranteed. |
-| Invariant 4 — Concurrent holds are independent | YES | **covered** | `Inv_HoldIndependence == \A k \in 1..MaxH : holds[k] = "Released" => releasedByOwn[k]` — asserted directly. Ghost `releasedByOwn[k]` is `TRUE` only if hold `k` was the explicit target of a `Release` action. Still checked in `Safety` after the 2026-06-04 extension. |
-| Invariant 5 — Release attribution is complete | no | out-of-scope (attribution fields not modeled — "NOT MODELED: attribution fields") | — |
-| Invariant 6 — Temporal ordering | YES | **covered** (GAP closed 2026-06-04) | `Inv_TemporalOrdering == \A k \in 1..MaxH : holds[k] = "Released" => releasedAt[k] >= placedAt[k]`. Ghost `placedAt[k]` stamped with `now` on `Place`; ghost `releasedAt[k]` stamped with `now` on `Release`; global clock `now` is a monotonically-advancing Naturals counter in `0..MaxClock`. The correct model holds (370 states); buggy twin rejected by this invariant (18 states). |
-| Invariant 7 — Placement attribution is complete | no | out-of-scope (attribution fields not modeled) | — |
-| Invariant 8 — Hold store durability | no | out-of-scope (storage durability; not a state-machine property) | — |
+| Invariant 1 — Hold immutability | no | `owed` by-construction | The model has no action that modifies `hold_id`, `record_ref`, `placed_by`, `hold_reason`, `placed_at`, or `case_ref` — these fields are not modeled as state variables (acknowledged: "NOT MODELED: id discipline, attribution fields"). Mutation is structurally absent. |
+| Invariant 2 — Membership exclusivity | no | `unstatable` by-construction | Each hold slot is `{none, Active, Released}` — exactly one value at all times. A tripartite enum is exclusive by definition; no invariant asserts it explicitly, but the `HoldState` type makes overlap impossible. |
+| Invariant 3 — Terminal absorption | no | `owed` by-construction | `Release` transitions `Active → Released` only; no re-activate action exists. Terminal absorption is structurally guaranteed. |
+| Invariant 4 — Concurrent holds are independent | YES | `checked` **covered** | `Inv_HoldIndependence == \A k \in 1..MaxH : holds[k] = "Released" => releasedByOwn[k]` — asserted directly. Ghost `releasedByOwn[k]` is `TRUE` only if hold `k` was the explicit target of a `Release` action. Still checked in `Safety` after the 2026-06-04 extension. Broken by `legal-hold-buggy-cascade.tla`. |
+| Invariant 5 — Release attribution is complete | no | `owed` out-of-scope (attribution fields not modeled — "NOT MODELED: attribution fields") | — |
+| Invariant 6 — Temporal ordering | YES | `checked` **covered** (GAP closed 2026-06-04) | `Inv_TemporalOrdering == \A k \in 1..MaxH : holds[k] = "Released" => releasedAt[k] >= placedAt[k]`. Ghost `placedAt[k]` stamped with `now` on `Place`; ghost `releasedAt[k]` stamped with `now` on `Release`; global clock `now` is a monotonically-advancing Naturals counter in `0..MaxClock`. The correct model holds (370 states); buggy twin rejected by this invariant (18 states). Broken by `legal-hold-buggy.tla`. |
+| Invariant 7 — Placement attribution is complete | no | `owed` out-of-scope (attribution fields not modeled) | — |
+| Invariant 8 — Hold store durability | no | `unstatable` out-of-scope (storage durability; not a state-machine property) | — |
 
 ## Step 3 — bound saturation
 

@@ -50,7 +50,9 @@
 \*
 \* TWINS AND PROBES  Each is this module byte for byte below its header, with one constant or one
 \* invariant changed in its .cfg: -buggy-unserialized, -buggy-late, -buggy-edge, -buggy-backdated,
-\* -buggy-unbudgeted; -probe-held, -probe-restart, -probe-open.
+\* -buggy-unbudgeted; -probe-held, -probe-restart, -probe-open. Two twins of 2026-11-10 change one
+\* action instead, each named in its header: -buggy-unredriven (Inv_ReDriveAfterRelease),
+\* -buggy-restart (Inv_ClosureAfterRestart).
 EXTENDS Naturals
 
 CONSTANTS LeaseLen, SweepLease, Cadence, MaxTime, MaxPlace, Faults, HoldTerm, SlowPlacer,

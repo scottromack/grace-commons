@@ -4,6 +4,7 @@
 - **Model:** `kyc-customer-onboarding.tla` + buggy twin `kyc-customer-onboarding-buggy.tla`
 - **Reviewer / date:** Claude Sonnet 4.6 — 2026-06-03
 - **Formal-layer vote load-bearing claims:** Invariant 3 (adverse-trigger ordering — monitoring-triggered event precedes any resulting suspend), Invariant 7 (open-trigger ⟺ Suspended biconditional)
+- **Retired 2026-11-10** (unit `tooling: every check has a twin that breaks it`): the page is `compositions/customer-onboarding.md` and its model `customer-onboarding.tla`; `kyc-customer-onboarding.tla` and its twin no longer exist. That page's matrix counts its rules, so every row here reads `retired` and `coverage.py` counts none of them.
 
 ## Step 1 — harness re-run (must pass)
 
@@ -16,13 +17,13 @@ The model bounds: one party; `state ∈ {Verified, Suspended}`; `openTriggers` c
 
 | Spec invariant (no. + name) | Load-bearing (vote)? | Verdict | Model construct / reason |
 |---|---|---|---|
-| Invariant 1 — Verification gates activity | No | out-of-scope (gate query is a read-only property over `party_to_kyc_case` + Party Identity state; the TLA+ model tracks only the trigger/state coupling — no gate query, no case index) | The gate precondition rests on Party Identity verification, which is out-of-scope per model header |
-| Invariant 2 — Verification audit coverage | No | out-of-scope (Audit Trail substrate omitted per model header; Audit Trail is explicitly out-of-scope) | Model header: "NOT MODELED: the Audit Trail substrate (see audit-trail.tla)" |
-| **Invariant 3 — Adverse trigger precedes state transition** | **Yes** | **covered** | `RaiseTrigger` atomically increments `openTriggers` and drives `state = "Suspended"` in the same step, so a trigger-increment always precedes (or is simultaneous with) the suspend; `Inv_OpenTriggerIffSuspended` asserts the biconditional — no suspend without a trigger; `Safety` checks this as a trace-wide invariant |
-| Invariant 4 — Reinstatement reflects fresh evidence | No | out-of-scope (verification evidence and Audit Trail records not modeled; Party Identity lifecycle out-of-scope per header) | Model header: "NOT MODELED: the Party Identity verification lifecycle" |
-| Invariant 5 — Post-closure retention floor | No | out-of-scope (Retention Window not modeled; `state` set contains only `{Verified, Suspended}` — no `Closed` state) | Model encodes only the trigger/suspend coupling; closure arc is beyond its scope |
-| Invariant 6 — Monitoring continuity for active parties | No | out-of-scope (`case_to_monitoring` application state not modeled; model tracks only `openTriggers` and `state`) | Model is a minimal trigger-state coupler; monitoring schedule map not represented |
-| **Invariant 7 — Open-trigger/suspension correspondence** | **Yes** | **covered** | `Inv_OpenTriggerIffSuspended == (openTriggers > 0) = (state = "Suspended")` is the exact biconditional; `Safety == TypeOK /\ Inv_OpenTriggerIffSuspended` holds for all reachable states |
+| Invariant 1 — Verification gates activity | No | `retired` out-of-scope (gate query is a read-only property over `party_to_kyc_case` + Party Identity state; the TLA+ model tracks only the trigger/state coupling — no gate query, no case index) | The gate precondition rests on Party Identity verification, which is out-of-scope per model header |
+| Invariant 2 — Verification audit coverage | No | `retired` out-of-scope (Audit Trail substrate omitted per model header; Audit Trail is explicitly out-of-scope) | Model header: "NOT MODELED: the Audit Trail substrate (see audit-trail.tla)" |
+| **Invariant 3 — Adverse trigger precedes state transition** | **Yes** | `retired` **covered** | `RaiseTrigger` atomically increments `openTriggers` and drives `state = "Suspended"` in the same step, so a trigger-increment always precedes (or is simultaneous with) the suspend; `Inv_OpenTriggerIffSuspended` asserts the biconditional — no suspend without a trigger; `Safety` checks this as a trace-wide invariant |
+| Invariant 4 — Reinstatement reflects fresh evidence | No | `retired` out-of-scope (verification evidence and Audit Trail records not modeled; Party Identity lifecycle out-of-scope per header) | Model header: "NOT MODELED: the Party Identity verification lifecycle" |
+| Invariant 5 — Post-closure retention floor | No | `retired` out-of-scope (Retention Window not modeled; `state` set contains only `{Verified, Suspended}` — no `Closed` state) | Model encodes only the trigger/suspend coupling; closure arc is beyond its scope |
+| Invariant 6 — Monitoring continuity for active parties | No | `retired` out-of-scope (`case_to_monitoring` application state not modeled; model tracks only `openTriggers` and `state`) | Model is a minimal trigger-state coupler; monitoring schedule map not represented |
+| **Invariant 7 — Open-trigger/suspension correspondence** | **Yes** | `retired` **covered** | `Inv_OpenTriggerIffSuspended == (openTriggers > 0) = (state = "Suspended")` is the exact biconditional; `Safety == TypeOK /\ Inv_OpenTriggerIffSuspended` holds for all reachable states |
 
 **Note on Invariant 3 vs Invariant 7 encoding.** The model encodes both as a single `Inv_OpenTriggerIffSuspended` check. Invariant 3 (ordering) is satisfied *by construction* within `RaiseTrigger` — the trigger increment and suspend happen in one atomic step; there is no interleaving in which a suspend precedes its trigger. The biconditional (`Inv_OpenTriggerIffSuspended`) is the stronger assertion that subsumes the ordering claim. The spec's Invariant 3 prose distinguishes "ordering" from "biconditional" but the model handles both with one invariant; this is adequate given the single-party, counter-based abstraction.
 

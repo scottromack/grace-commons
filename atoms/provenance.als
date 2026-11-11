@@ -79,9 +79,11 @@ sig Entry {
 -- ─────────────────────────────────────────────────────────────────────────────
 
 -- Linear backbone (Invariant 2/5): acyclic, singly-linked, no branching/merging.
+-- No merging (at most one entry names a given entry as its successor) is not a
+-- fact: it follows from SuccPredInverse with the `lone` predecessor, and
+-- A_Linear_NoBranching checks it (2026-11-10; the fact NoMerging restated it).
 fact NoCycles            { all x : Entry | x not in x.^successor }
 fact NoSelfLoop          { all x : Entry | x.successor != x }
-fact NoMerging           { all x : Entry | lone (successor.x) }
 fact SuccPredInverse     { all a, b : Entry | a.successor = b iff b.predecessor = a }
 
 -- Invariant 3 / 8 — genesis typing: an entry is genesis (no predecessor) iff its
@@ -95,14 +97,17 @@ fact ArchivedTerminal {
     all x : Entry | x.etype = Archived implies no x.successor
 }
 
--- Field shape by event type.
--- Transfers carry fromC and toC and no acting custodian.
+-- Field shape by event type: which custodian fields an entry may carry.
+-- That the ones it carries are present (Invariant 7) is not assumed here: it
+-- follows from GenesisTyping and CustodyContinuity, and A_Inv7_CustodianPresent
+-- checks it (2026-11-10).
+-- Transfers carry no acting custodian.
 fact TransferFields {
-    all x : Entry | x.etype = Transferred implies (one x.fromC and one x.toC and no x.acting)
+    all x : Entry | x.etype = Transferred implies no x.acting
 }
--- Non-transfer entries carry an acting custodian and no from/to.
+-- Non-transfer entries carry no from/to.
 fact NonTransferFields {
-    all x : Entry | x.etype != Transferred implies (no x.fromC and no x.toC and one x.acting)
+    all x : Entry | x.etype != Transferred implies (no x.fromC and no x.toC)
 }
 
 -- Invariant 4 — Custody continuity (the load-bearing fact). At every link the
@@ -128,26 +133,17 @@ fact CustodyContinuity {
 -- but violating this guarantee? UNSAT = holds. SAT = finding.
 -- ─────────────────────────────────────────────────────────────────────────────
 
--- Linear backbone (Invariant 2/5).
-assert A_Linear_AtMostOneSuccessor   { all x : Entry | lone x.successor }
-check A_Linear_AtMostOneSuccessor for 8
+-- Checks that restated the model and went (2026-11-10, unit `tooling: every
+-- check has a twin that breaks it`): A_Linear_AtMostOneSuccessor and
+-- A_Linear_AtMostOnePredecessor (the `lone` fields), A_Linear_NoCycles (fact
+-- NoCycles), A_Inv3_SingleOriginTyping (fact GenesisTyping), A_Inv4_UniqueHolder
+-- (the `one` holder field) and A_Inv6_ArchivedTerminal (fact ArchivedTerminal).
+-- The facts stay as the model's assumptions; no twin of a static snapshot can
+-- break them.
 
-assert A_Linear_AtMostOnePredecessor { all x : Entry | lone x.predecessor }
-check A_Linear_AtMostOnePredecessor for 8
-
+-- Linear backbone (Invariant 2/5): no entry is named as successor by two entries.
 assert A_Linear_NoBranching          { all x : Entry | lone (successor.x) }
 check A_Linear_NoBranching for 8
-
-assert A_Linear_NoCycles             { all x : Entry | x not in x.^successor }
-check A_Linear_NoCycles for 8
-
--- Invariant 3 — Single origin: genesis iff genesis-type; every non-genesis entry
--- has a predecessor (a strictly-earlier entry). In a linear component this makes
--- the genesis the unique source.
-assert A_Inv3_SingleOriginTyping {
-    all x : Entry | (no x.predecessor) iff (x.etype in GenesisType)
-}
-check A_Inv3_SingleOriginTyping for 8
 
 -- Invariant 4 — Custody continuity (no gap), the load-bearing claim. At every
 -- link the incoming custody equals the predecessor's outgoing custody.
@@ -179,18 +175,6 @@ assert A_Inv4_OnlyHolderActs {
         x.acting = x.predecessor.holder
 }
 check A_Inv4_OnlyHolderActs for 8
-
--- Invariant 4 — custody is never held by nobody: every entry has exactly one holder.
-assert A_Inv4_UniqueHolder {
-    all x : Entry | one x.holder
-}
-check A_Inv4_UniqueHolder for 8
-
--- Invariant 6 — Archived is terminal and absorbing: no successor after Archived.
-assert A_Inv6_ArchivedTerminal {
-    all x : Entry | x.etype = Archived implies no x.successor
-}
-check A_Inv6_ArchivedTerminal for 8
 
 -- Invariant 7 — Custodian presence: every entry names a custodian; transfers name
 -- both from and to.

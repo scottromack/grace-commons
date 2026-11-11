@@ -1,4 +1,5 @@
 ---- MODULE resolve-a-persons-data-rights-access ----
+\* @twins-of resolve-a-persons-data-rights   (this module is that model's byte for byte, in another configuration: its twins break these checks; audit.mjs, 2026-11-10)
 \* Grace Commons — Resolve a Person's Data Rights. Spec-level formal sibling of
 \* compositions/resolve-a-persons-data-rights.md. Derived validator; the English spec is the single
 \* source of truth. On any disagreement, diagnose per the entry *The conflict protocol* in pressure-testing.md.

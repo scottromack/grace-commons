@@ -2,67 +2,64 @@
 -- Deliberately broken twin of subscription.als for the Grace Commons harness.
 --
 -- WHAT IS BROKEN
--- The fact `AtMostOneActivePerKey` — which enforces Invariant 6 (at most one Active
--- subscription per (subscriber_ref, event_scope) pair) — has been REMOVED.
--- The store is no longer constrained to prevent two Active records sharing the same
--- (subscriber, event_scope) pair.
+-- The fact `AtMostOneActivePerKey` — Invariant 6, at most one Active subscription per
+-- (subscriber_ref, event_scope) pair — is REMOVED: subscribe no longer refuses a second
+-- Active subscription for a pair (already-subscribed), so two Active records can share
+-- a pair. Rebuilt 2026-11-10 from the current subscription.als (its checks had drifted).
 --
--- EXPECTED HARNESS RESULT
---   node check.mjs subscription-buggy.als --buggy   =>   PASS
--- Because check A_AtMostOneActivePerKey will find a counterexample (SAT) — the model
--- can now produce two Active records for the same (subscriber, scope) pair, which
--- violates Invariant 6. The --buggy flag expects at least one check to be SAT, so the
--- harness reports PASS (the bug is correctly detected).
---
--- All other checks remain identical to subscription.als. Only Invariant 6 / the
--- at-most-one-active fact is weakened.
+-- BREAKS: A_NoDualActiveForSameKey (two Active records for one pair).
 
 module subscription_buggy
 
 open util/integer
 
 -- ─────────────────────────────────────────────────────────────────────────────
--- Signatures (identical to subscription.als)
+-- Signatures (types / record fields)
 -- ─────────────────────────────────────────────────────────────────────────────
 
+-- Status enum: the two states from the spec state machine.
 abstract sig Status {}
 one sig Active, Cancelled extends Status {}
 
+-- Opaque reference types. Alloy generates instances freely; the atom treats
+-- subscriber_ref and event_scope as opaque identifiers (exact match only).
 abstract sig SubscriptionId  {}
 abstract sig SubscriberRef   {}
 abstract sig EventScope      {}
 
+-- The subscription record. Fields mirror the spec's State section exactly.
+-- "lone" = 0 or 1 (nullable in the spec: cancelled_at is absent while Active).
+-- "one"  = always present.
 sig SubscriptionRecord {
-    sub_id        : one SubscriptionId,
-    subscriber    : one SubscriberRef,
-    event_scope   : one EventScope,
-    subscribed_at : one Int,
-    status        : one Status,
-    cancelled_at  : lone Int
+    sub_id        : one SubscriptionId,   -- opaque immutable system-generated id (Inv 1, 5)
+    subscriber    : one SubscriberRef,    -- who holds the subscription, immutable (Inv 1)
+    event_scope   : one EventScope,       -- what class of events, immutable (Inv 1)
+    subscribed_at : one Int,              -- wall-time when recorded, immutable (Inv 1, 9)
+    status        : one Status,           -- Active | Cancelled (Inv 2)
+    cancelled_at  : lone Int              -- absent while Active; set on cancel (Inv 9)
 }
 
 -- ─────────────────────────────────────────────────────────────────────────────
--- Facts
--- NOTE: AtMostOneActivePerKey is intentionally ABSENT here.
--- This breaks Invariant 6 and allows two Active records for the same (subscriber, scope).
+-- Structural well-formedness facts
+-- (Alloy treats facts as always true for all instances — they define the valid
+--  configuration space. Assertions below check that nothing in this space
+--  violates the named invariants.)
 -- ─────────────────────────────────────────────────────────────────────────────
 
--- Invariant 5: No id reuse — kept intact.
+-- Invariant 5: No id reuse.
+-- No two subscription records share a subscription_id across the system's lifetime.
 fact NoIdReuse {
     all disj r1, r2 : SubscriptionRecord | r1.sub_id != r2.sub_id
 }
 
--- BUG: fact AtMostOneActivePerKey is intentionally removed.
--- The correct model has:
---   fact AtMostOneActivePerKey {
---       all s : SubscriberRef, e : EventScope |
---           lone r : SubscriptionRecord |
---               r.subscriber = s and r.event_scope = e and r.status = Active
---   }
--- Without this fact, nothing prevents two Active records with the same
--- (subscriber, event_scope) pair, so A_AtMostOneActivePerKey will find a counterexample.
+-- Invariant 6: At most one Active subscription per (subscriber_ref, event_scope) pair.
+-- A second subscribe for a pair with an existing Active subscription is rejected as
+-- already-subscribed; the atom enforces this structurally.
+-- BUG: fact AtMostOneActivePerKey is removed (see the header).
 
--- Invariant 2 / 9: Status-field consistency — kept intact.
+-- Invariant 2 / 9: Status-field consistency.
+-- cancelled_at is absent iff Active; present iff Cancelled.
+-- (Invariant 2: Active → Cancelled is the only direction; enforced structurally.)
 fact CancelledAtConsistency {
     all r : SubscriptionRecord | {
         r.status = Active    implies no  r.cancelled_at
@@ -70,100 +67,72 @@ fact CancelledAtConsistency {
     }
 }
 
--- Invariant 9: Timestamp ordering — kept intact.
+-- Invariant 9: Timestamp ordering (best-effort — see spec Edge cases).
+-- For any Cancelled subscription, subscribed_at <= cancelled_at.
 fact TimestampOrdering {
     all r : SubscriptionRecord |
         r.status = Cancelled implies r.subscribed_at <= r.cancelled_at
 }
 
 -- ─────────────────────────────────────────────────────────────────────────────
--- Assertions (identical to subscription.als — A_AtMostOneActivePerKey will fail)
+-- Assertions
+-- (Each "check" asks: is there any configuration satisfying the facts but
+--  violating this assertion? UNSAT = the guarantee holds. SAT = spec finding.)
 -- ─────────────────────────────────────────────────────────────────────────────
 
-assert A_NoIdReuse {
-    all disj r1, r2 : SubscriptionRecord | r1.sub_id != r2.sub_id
-}
-check A_NoIdReuse for 6
+-- Invariant 5 is assumed by fact NoIdReuse. The checks A_NoIdReuse and A_IdsDistinctAcrossStatuses
+-- restated that fact word for word, so no twin could break them; they went 2026-11-10.
 
--- This check WILL find a counterexample because the enforcing fact was removed.
--- The harness expects this SAT result when run with --buggy.
-assert A_AtMostOneActivePerKey {
-    all s : SubscriberRef, e : EventScope |
-        lone r : SubscriptionRecord |
-            r.subscriber = s and r.event_scope = e and r.status = Active
-}
-check A_AtMostOneActivePerKey for 6
+-- Invariant 6 is assumed by fact AtMostOneActivePerKey. The check A_AtMostOneActivePerKey restated
+-- that fact word for word; it went 2026-11-10. A_NoDualActiveForSameKey, below, states the rule
+-- pairwise, and subscription-buggy.als (which drops the fact) breaks it.
 
+-- A_CancelledHasCancelledAt: Structural half of Invariant 2 / 3.
+-- Every Cancelled record carries a cancelled_at timestamp.
 assert A_CancelledHasCancelledAt {
     all r : SubscriptionRecord |
         r.status = Cancelled implies one r.cancelled_at
 }
 check A_CancelledHasCancelledAt for 6
 
+-- A_ActiveHasNoCancelledAt: Counterpart — Active records never have cancelled_at.
 assert A_ActiveHasNoCancelledAt {
     all r : SubscriptionRecord |
         r.status = Active implies no r.cancelled_at
 }
 check A_ActiveHasNoCancelledAt for 6
 
-assert A_TimestampOrdering {
-    all r : SubscriptionRecord |
-        r.status = Cancelled implies r.subscribed_at <= r.cancelled_at
-}
-check A_TimestampOrdering for 6
+-- Invariant 9 is assumed by fact TimestampOrdering. The check A_TimestampOrdering restated that
+-- fact word for word, so no twin could break it; it went 2026-11-10.
 
-assert A_CancelTerminal {
-    all pre, post : SubscriptionRecord |
-        cancel_success[pre, post] implies pre.status = Active
+-- A_CancelledKeyCanCoexistWithActive: Invariant 4 / 6 interaction.
+-- Two records for the same (subscriber, scope) can coexist only when one is
+-- Cancelled and the other is Active (the cancel-then-resubscribe case).
+-- Stated contrapositively: two records for the same key cannot both be Active.
+assert A_NoDualActiveForSameKey {
+    all disj r1, r2 : SubscriptionRecord |
+        (r1.subscriber = r2.subscriber and r1.event_scope = r2.event_scope)
+            implies not (r1.status = Active and r2.status = Active)
 }
-check A_CancelTerminal for 6
-
-assert A_CancelPreservesImmutable {
-    all pre, post : SubscriptionRecord |
-        cancel_success[pre, post] implies {
-            post.sub_id        = pre.sub_id
-            post.subscriber    = pre.subscriber
-            post.event_scope   = pre.event_scope
-            post.subscribed_at = pre.subscribed_at
-        }
-}
-check A_CancelPreservesImmutable for 6
+check A_NoDualActiveForSameKey for 6
 
 -- ─────────────────────────────────────────────────────────────────────────────
--- Transition predicates (identical to subscription.als)
+-- Satisfiability runs
+-- (Confirm the configuration space is non-empty. SAT = non-vacuous.
+--  UNSAT = a fact over-constrains the model — must be fixed.)
 -- ─────────────────────────────────────────────────────────────────────────────
 
-pred subscribe_success[r : SubscriptionRecord, s : SubscriberRef, e : EventScope, t : Int] {
-    r.status        = Active
-    r.subscriber    = s
-    r.event_scope   = e
-    r.subscribed_at = t
-    no r.cancelled_at
-}
-
-pred cancel_success[pre, post : SubscriptionRecord] {
-    pre.status = Active
-    post.sub_id        = pre.sub_id
-    post.subscriber    = pre.subscriber
-    post.event_scope   = pre.event_scope
-    post.subscribed_at = pre.subscribed_at
-    post.status        = Cancelled
-    one post.cancelled_at
-    post.cancelled_at >= pre.subscribed_at
-}
-
--- ─────────────────────────────────────────────────────────────────────────────
--- Satisfiability runs (identical to subscription.als)
--- ─────────────────────────────────────────────────────────────────────────────
-
+-- At least one Active subscription exists.
 run ShowOneActive {
     some r : SubscriptionRecord | r.status = Active
 } for 3 but 3 Int
 
+-- At least one Cancelled subscription exists.
 run ShowOneCancelled {
     some r : SubscriptionRecord | r.status = Cancelled
 } for 3 but 3 Int
 
+-- Both statuses coexist in the same store.
 run ShowActiveAndCancelled {
     some disj r1, r2 : SubscriptionRecord | {
         r1.status = Active
@@ -171,19 +140,28 @@ run ShowActiveAndCancelled {
     }
 } for 4 but 3 Int
 
+-- Cancel-then-resubscribe (Invariant 4): the same (subscriber, scope) pair has one
+-- Cancelled record and one new Active record with a DISTINCT sub_id.
+-- This is the key cancel-and-resubscribe scenario the spec describes.
 run ShowCancelThenResubscribe {
     some disj old_rec, new_rec : SubscriptionRecord |
     some s : SubscriberRef | some e : EventScope | {
+        -- old subscription was cancelled
         old_rec.subscriber  = s
         old_rec.event_scope = e
         old_rec.status      = Cancelled
+        -- new subscription is Active for the same pair
         new_rec.subscriber  = s
         new_rec.event_scope = e
         new_rec.status      = Active
+        -- the two records have distinct ids (Invariant 4 / 5)
         old_rec.sub_id != new_rec.sub_id
     }
 } for 4 but 3 Int
 
+-- Two subscribers, same scope, both Active — a valid fanout scenario.
+-- Confirms the model allows multiple Active records for DIFFERENT subscribers
+-- on the same scope (needed for subscribers_for to return a list).
 run ShowTwoActiveSubscribersForSameScope {
     some disj r1, r2 : SubscriptionRecord |
     some e : EventScope | {
@@ -191,21 +169,23 @@ run ShowTwoActiveSubscribersForSameScope {
         r2.status      = Active
         r1.event_scope = e
         r2.event_scope = e
-        r1.subscriber != r2.subscriber
-        r1.sub_id     != r2.sub_id
+        r1.subscriber != r2.subscriber   -- different subscribers
+        r1.sub_id     != r2.sub_id       -- distinct ids
     }
 } for 4 but 3 Int
 
-run ShowSubscribeTransition {
-    some r : SubscriptionRecord | some s : SubscriberRef | some e : EventScope | {
-        subscribe_success[r, s, e, 1]
+-- Active subscription: a single Active record with no cancelled_at.
+run ShowActiveNoCancelledAt {
+    some r : SubscriptionRecord | {
+        r.status = Active
+        no r.cancelled_at
     }
-} for 4 but 3 Int
+} for 3 but 3 Int
 
-run ShowCancelTransition {
-    some pre, post : SubscriptionRecord | {
-        cancel_success[pre, post]
-        pre.status  = Active
-        post.status = Cancelled
+-- Cancelled subscription: a Cancelled record with cancelled_at >= subscribed_at.
+run ShowCancelledWithTimestamp {
+    some r : SubscriptionRecord | {
+        r.status = Cancelled
+        r.cancelled_at >= r.subscribed_at
     }
-} for 4 but 3 Int
+} for 3 but 3 Int

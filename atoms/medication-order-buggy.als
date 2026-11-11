@@ -1,6 +1,15 @@
 -- medication-order-buggy.als
 -- DELIBERATELY BROKEN twin of medication-order.als
 --
+-- NOTE 2026-11-10 (unit `tooling: every check has a twin that breaks it`): the
+-- correct model no longer has the LinearChain and PreDispensingOnlyAmendment facts
+-- either (there they follow from SuccessorPredecessorInverse and
+-- AmendedIffHasSuccessor), so the defect this twin carries is, in the page's terms,
+-- one: amend does not check the target's state (the `set` successor and the
+-- relaxed AmendedIffHasSuccessor below), so an order may be amended twice or after
+-- dispensing. Its checks for the four restating assertions that went are gone too.
+-- (A_Inv4_NoBranching still holds here; medication-order-buggy-link.als breaks it.)
+--
 -- WHAT WAS BROKEN
 -- Two independent mutations have been introduced, each targeting one of the two
 -- new load-bearing invariants verified by medication-order.als.
@@ -166,12 +175,6 @@ assert A_Inv4_AtMostOneSuccessor {
 }
 check A_Inv4_AtMostOneSuccessor for 8
 
--- A_Inv4_AtMostOnePredecessor: should still hold (predecessor is still "lone Order").
-assert A_Inv4_AtMostOnePredecessor {
-    all x : Order | lone x.predecessor
-}
-check A_Inv4_AtMostOnePredecessor for 8
-
 -- A_Inv4_NoBranching: may or may not fail depending on whether the convergence
 -- direction is exploited. With predecessor still "lone", each order has at most
 -- one predecessor, so (successor.x) is at most one per x — this still holds.
@@ -180,12 +183,6 @@ assert A_Inv4_NoBranching {
     all x : Order | lone (successor.x)
 }
 check A_Inv4_NoBranching for 8
-
--- A_Inv4_NoCycles: should still hold (NoCycles fact is present).
-assert A_Inv4_NoCycles {
-    all x : Order | x not in x.^successor
-}
-check A_Inv4_NoCycles for 8
 
 -- A_Inv3_NoSuccessorAfterDispensing: EXPECTED TO FAIL (SAT — counterexample found).
 -- With PreDispensingOnlyAmendment removed and AmendedIffHasSuccessor relaxed
@@ -237,18 +234,6 @@ assert A_Inv2_MedicationRefChainConsistency {
     all x, y : Order | y in x.*successor implies y.medication = x.medication
 }
 check A_Inv2_MedicationRefChainConsistency for 8
-
--- A_Inv12_AmendedBySetOnSuccessorOnly: still holds.
-assert A_Inv12_AmendedBySetOnSuccessorOnly {
-    all x : Order | (one x.amendedBy) iff (one x.predecessor)
-}
-check A_Inv12_AmendedBySetOnSuccessorOnly for 8
-
--- A_SuccessorPredecessorAreInverse: still holds via fact.
-assert A_SuccessorPredecessorAreInverse {
-    all a, b : Order | b in a.successor iff b.predecessor = a
-}
-check A_SuccessorPredecessorAreInverse for 8
 
 -- ─────────────────────────────────────────────────────────────────────────────
 -- Satisfiability runs

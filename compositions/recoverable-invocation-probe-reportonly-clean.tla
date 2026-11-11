@@ -1,15 +1,20 @@
 ---- MODULE recoverable-invocation-probe-reportonly-clean ----
 \* Grace Commons — Recoverable Invocation: PASSING SIBLING.
+\* @twins-of recoverable-invocation
 \*
 \* NOT A TWIN — the PASSING SIBLING of recoverable-invocation-buggy-opclock:
-\* the same report-only configuration of recoverable-invocation.tla (v7,
+\* the same report-only configuration of recoverable-invocation.tla (v8,
 \* ServiceIdentity = FALSE, HoldUnanswered = FALSE), with OperatorSkew = 0,
 \* `now` injected at a declared operator seam (resolve 19). It must HOLD:
 \* resolve 19 alone keeps Inv5_NoFalseAbandon, here at MaxTime = 5. Its other
 \* sibling, the reading one tick ahead with the hold on (act section 15),
-\* holds as well (29,826 states). A twin that differs from nothing is evidence
-\* of nothing. Re-derived from v7 on 2026-10-27, with the twin; until then a
-\* copy of v6.
+\* holds as well (29,826 states under v7). A twin that differs from nothing is
+\* evidence of nothing. Re-derived from v7 on 2026-10-27, with the twin; until
+\* then a copy of v6. Re-derived from v8 on 2026-11-10 (unit `tooling: every
+\* check has a twin that breaks it`): the module is the twin's, byte for byte
+\* below this header, so the two differ by their configurations alone; it is a
+\* configuration of recoverable-invocation.tla, whose twins break its checks
+\* (the @twins-of line above tells audit.mjs).
 
 EXTENDS Naturals
 
@@ -693,7 +698,7 @@ SweepPrepareOutcome(s) ==
                    outcomeRecords, closingKind, closingState, closingReturnAt,
                    closingVisibleAt, closingRecords, sweepNextA, sweepNextB,
                    sweepDeaths, pauses, opPhase, opKind, opState,
-                   opReturnAt, opVisibleAt, opRecords, opSuperseded, opPendingNamed, secondOpened>>
+                   opReturnAt, opVisibleAt, opRecords, opSuperseded, opPendingNamed, secondOpened, outcomeIssuedAt, outcomeReplyLost>>
 
 \* The probe answers not-committed: abandoned under a fence, escalated without.
 SweepPrepareClosing(s) ==
@@ -710,7 +715,7 @@ SweepPrepareClosing(s) ==
                    outcomeRecords, closingKind, closingState, closingReturnAt,
                    closingVisibleAt, closingRecords, sweepNextA, sweepNextB,
                    sweepDeaths, pauses, opPhase, opKind, opState,
-                   opReturnAt, opVisibleAt, opRecords, opSuperseded, opPendingNamed, secondOpened>>
+                   opReturnAt, opVisibleAt, opRecords, opSuperseded, opPendingNamed, secondOpened, outcomeIssuedAt, outcomeReplyLost>>
 
 SweepIssueOutcome(s) ==
     /\ PhaseOf(s) = "prepOutcome"
@@ -1115,6 +1120,10 @@ Inv2_OneWriter ==
     /\ outcomeRecords <= 1
     /\ ClosingCount <= 1
 
+\* Not in Safety since 2026-11-10 (unit `tooling: every check has a twin that breaks it`):
+\* at the main constants (Window 12, MaxTime 5) its antecedent never fires, so it holds
+\* of every state and no twin can break it. Owed to a configuration whose horizon passes
+\* the window (Invariant 4 in tools/harness/coverage/recoverable-invocation.md).
 Inv4_BoundedClosure ==
     (/\ intentState = "visible"
      /\ invPhase \in {"crashed", "yielded"}
@@ -1164,7 +1173,7 @@ Inv9_RecoveryIntentFirst == (outcomeBy = "sweep") => recIntended
 
 Inv10_RecoveryFlagged == (outcomeBy = "sweep") => outcomeRecovery
 
-Safety == TypeOK /\ Inv1_IntentFirst /\ Inv2_OneWriter /\ Inv4_BoundedClosure
+Safety == TypeOK /\ Inv1_IntentFirst /\ Inv2_OneWriter
           /\ Inv5_NoFalseAbandon /\ Inv6_SupersessionNamed
           /\ Inv7_OneLiveIntent /\ Inv8_IntentUnderItsSection
           /\ Inv9_RecoveryIntentFirst /\ Inv10_RecoveryFlagged

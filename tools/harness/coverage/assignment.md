@@ -9,21 +9,22 @@
 
 - Correct model: `node check.mjs ../../atoms/assignment.tla` → `PASS` ☐ *(per Lineage: 47 states, holds)*
 - Buggy twin: `node check.mjs ../../atoms/assignment-buggy.tla --buggy` → `PASS` (rejected) ☐ *(per Lineage: rejected at 6 states — two-Active window detected)*
+- 2026-11-10 (unit `tooling: every check has a twin that breaks it`): `audit.mjs` → HOLDS; its one check `Inv1_AtMostOneActive` is broken by `assignment-buggy.tla` (CAUGHT).
 
 ## Step 2 — coverage matrix
 
 | Spec invariant (no. + name) | Load-bearing (vote)? | Verdict | Model construct / reason |
 |---|---|---|---|
-| Invariant 1 — At most one Active assignment per task | YES | covered | `Inv1_AtMostOneActive == ActiveCount <= 1`; checked under every interleaving of `Assign`, `Recall`, `ReassignAtomic`. |
-| Invariant 2 — Assignment immutability | No | out-of-scope (structural; no field model) | Per model header: "id immutability/no-reuse/timestamp ordering (Invariants 2,5,6,8 — structural / clock, not interleaving)." Acceptable. |
-| Invariant 3 — Status monotonicity (Active → Recalled or Transferred only) | No | by-construction | Every action transitions to a non-Active state or creates a fresh slot; no action moves Recalled/Transferred back to Active. Acceptable: not load-bearing per vote. |
-| Invariant 4 — Terminal states absorbing | No | by-construction | `Recall` and `Reassign` only operate on `status[k] = "Active"` slots; no action touches Recalled or Transferred slots. Acceptable. |
-| Invariant 5 — Id stability | No | out-of-scope (structural; per model header) | Acceptable. |
-| Invariant 6 — No id reuse | No | out-of-scope (structural; per model header) | Acceptable. |
-| Invariant 7 — Reassign atomicity | YES | covered | `ReassignAtomic` is a single TLA+ step (one EXCEPT updating two slots simultaneously); `Inv1_AtMostOneActive` is what makes the "no-two-Active, no-neither-Active" window observable. The buggy twin splits the step and Inv1 catches the resulting window. Inv7 is thus covered via Inv1 under the atomic-step encoding. |
-| Invariant 8 — Timestamp ordering | No | out-of-scope (clock; per model header) | Acceptable. |
-| Invariant 9 — Complete responsibility history | No | out-of-scope (history completeness; structural/query property not modeled) | Acceptable: not load-bearing per vote. |
-| Invariant 10 — Assignment store durability | No | out-of-scope (no deletion surface to model; total slot count is monotonically non-decreasing by construction since only `"unused" → non-unused` transitions occur) | Acceptable: not load-bearing per vote. |
+| Invariant 1 — At most one Active assignment per task | YES | `checked` covered | `Inv1_AtMostOneActive == ActiveCount <= 1`; checked under every interleaving of `Assign`, `Recall`, `ReassignAtomic`. Broken by `assignment-buggy.tla`. |
+| Invariant 2 — Assignment immutability | No | `owed` out-of-scope (structural; no field model) | Per model header: "id immutability/no-reuse/timestamp ordering (Invariants 2,5,6,8 — structural / clock, not interleaving)." Acceptable. |
+| Invariant 3 — Status monotonicity (Active → Recalled or Transferred only) | No | `owed` by-construction | Every action transitions to a non-Active state or creates a fresh slot; no action moves Recalled/Transferred back to Active. Acceptable: not load-bearing per vote. |
+| Invariant 4 — Terminal states absorbing | No | `owed` by-construction | `Recall` and `Reassign` only operate on `status[k] = "Active"` slots; no action touches Recalled or Transferred slots. Acceptable. |
+| Invariant 5 — Id stability | No | `owed` out-of-scope (structural; per model header) | Acceptable. |
+| Invariant 6 — No id reuse | No | `owed` out-of-scope (structural; per model header) | Acceptable. |
+| Invariant 7 — Reassign atomicity | YES | `checked` covered | `ReassignAtomic` is a single TLA+ step (one EXCEPT updating two slots simultaneously); `Inv1_AtMostOneActive` is what makes the "no-two-Active, no-neither-Active" window observable. The buggy twin splits the step and Inv1 catches the resulting window. Inv7 is thus covered via Inv1 under the atomic-step encoding. Broken by `assignment-buggy.tla`. (`Inv1_AtMostOneActive`) |
+| Invariant 8 — Timestamp ordering | No | `owed` out-of-scope (clock; per model header) | Acceptable. |
+| Invariant 9 — Complete responsibility history | No | `owed` out-of-scope (history completeness; structural/query property not modeled) | Acceptable: not load-bearing per vote. |
+| Invariant 10 — Assignment store durability | No | `owed` out-of-scope (no deletion surface to model; total slot count is monotonically non-decreasing by construction since only `"unused" → non-unused` transitions occur) | Acceptable: not load-bearing per vote. |
 
 ## Step 3 — bound saturation
 

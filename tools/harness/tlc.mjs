@@ -10,13 +10,16 @@
 //   else, or a run still going at the time limit  -> kind "error"
 // No state cap: the limit is time, 15 minutes unless the caller says otherwise.
 // `-deadlock` turns TLC's deadlock check off, as the harness has always allowed
-// deadlock. `states` is TLC's distinct-states count.
+// deadlock. `states` is TLC's distinct-states count; a violation names its check
+// (`check`) where TLC says which. `append` is module text added before the closing
+// line of the copy (audit.mjs states a constraint as a check there).
 
 import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join, basename } from "node:path";
 import { fileURLToPath } from "node:url";
 import { spawnSync } from "node:child_process";
+import { Worker, isMainThread, parentPort, workerData } from "node:worker_threads";
 import { adaptOne } from "./tla-adapter.mjs";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
@@ -65,7 +68,7 @@ export function statesIn(out) {
   return last;
 }
 
-export function runTlc(tlaPath, { cfgText, workers = "auto", limitMs = DEFAULT_LIMIT_MS, heapMb } = {}) {
+export function runTlc(tlaPath, { cfgText, workers = "auto", limitMs = DEFAULT_LIMIT_MS, heapMb, append } = {}) {
   const started = Date.now();
   const done = (r) => ({ ...r, seconds: (Date.now() - started) / 1000 });
   if (!existsSync(TLC_JAR)) return done({ kind: "error", message: `TLC not found at ${TLC_JAR}` });
@@ -80,6 +83,11 @@ export function runTlc(tlaPath, { cfgText, workers = "auto", limitMs = DEFAULT_L
     const tla = adaptOne(tlaPath, work, { quiet: true });
     if (!tla) return done({ kind: "error", message: `no MODULE header in ${basename(tlaPath)}` });
     if (cfgText !== undefined) writeFileSync(tla.replace(/\.tla$/, ".cfg"), cfgText);
+    if (append) {
+      const src = readFileSync(tla, "utf-8");
+      const end = src.lastIndexOf("\n====");
+      writeFileSync(tla, end < 0 ? `${src}\n${append}\n` : `${src.slice(0, end)}\n${append}\n${src.slice(end)}`);
+    }
     // TLC unpacks the standard modules (Naturals.tla and the rest) into java.io.tmpdir; side by
     // side, in the shared system directory, one run rewrites a module another is parsing.
     const args = ["-XX:+UseParallelGC", `-Djava.io.tmpdir=${work}`, ...(heapMb ? [`-Xmx${heapMb}m`] : []),
@@ -94,10 +102,26 @@ export function runTlc(tlaPath, { cfgText, workers = "auto", limitMs = DEFAULT_L
     }
     if (r.status === 0) return done({ kind: "hold", states, out });
     const viol = /Error: (Invariant \S+ is violated|Temporal properties were violated|Action property \S+ is violated)/.exec(out);
-    if ((r.status === 12 || r.status === 13) && viol) return done({ kind: "violated", states, message: viol[1], out });
+    if ((r.status === 12 || r.status === 13) && viol) {
+      const check = /^(?:Invariant|Action property) (\S+) is violated/.exec(viol[1])?.[1] ?? null;
+      return done({ kind: "violated", states, message: viol[1], check, out });
+    }
     const err = (out.split("\n").find((l) => /^Error:/.test(l)) || out.trim().split("\n").slice(-1)[0] || `exit ${r.status}`).trim();
     return done({ kind: "error", states, message: `TLC exit ${r.status}: ${err}`, out });
   } finally {
     rmSync(work, { recursive: true, force: true });
   }
+}
+
+/** runTlc on a worker thread, so audit.mjs keeps several runs going at once (the output is cut to its tail). */
+export function runTlcAsync(tlaPath, opts = {}) {
+  return new Promise((resolve, reject) => {
+    const w = new Worker(new URL(import.meta.url), { workerData: { runTlc: [tlaPath, opts] } });
+    w.once("message", resolve);
+    w.once("error", reject);
+  });
+}
+if (!isMainThread && workerData?.runTlc) {
+  const r = runTlc(...workerData.runTlc);
+  parentPort.postMessage({ ...r, out: (r.out || "").slice(-4000) });
 }

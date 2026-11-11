@@ -100,3 +100,7 @@ this was a vacuity-guard/coverage-artifact correction only.
 ## Coverage unit, 2026-11-10
 
 The ten missing matrices (session-gated-authorization, login, party-identity, provenance, state-machine, authenticated-actor, capability-backed-sharing, customer-onboarding, privileged-access-provisioning, recoverable-invocation) were written in the unit `formal: more coverage for the yes votes`. `owed-2026-11-10.md` sorts every out-of-scope and by-construction row on every verified page (a: another page owns it, b: owed, c: cannot be stated), the EVENTUALLY and WITHIN rules, the fifteen pages that read `not applicable`, the pages with one tool only, and the Alloy files that step. Every page with an owed row or tool carries it on its `formal:` line.
+
+## Twin unit, 2026-11-10
+
+Unit `tooling: every check has a twin that breaks it`. Every row of every matrix opens its Verdict cell with one word in backticks, which `tools/harness/coverage.py` counts: `checked` (a check of a model that holds states it, and the row names the twin that breaks that check, from `audit.mjs`'s TWIN PER CHECK), `elsewhere` (another page's model checks it), `owed`, `unstatable`, and `retired` for a deleted rule, which is not counted. The words replace the a, b and c of `owed-2026-11-10.md`, which stays as that day's record. `python3 tools/harness/coverage.py --summary` prints the figure in one line. A row whose only check restated its model (a fact, an ASSUME, a constraint) and went with this unit says so and reads `owed`.

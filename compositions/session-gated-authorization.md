@@ -466,7 +466,7 @@ Projection: length_bound
 
 ```
 status: grounded on Final Critique 10 — 2026-11-05 at 7f57305
-formal: verified — session-gated-authorization.als, no twin; coverage 2026-11-10 (unit formal: more coverage for the yes votes): owes TLA+ (everything across steps); owed rows: Invariant 1.1; Invariant 2.1; Action wiring 14; 2d: stepping (`dyn_status` and `dyn_call_log` are var fields): Dyn_Revocation_Terminal, Dyn_Expiry_Terminal and Dyn_Gate_Reflects_Current_Status are owed to a new TLA+ model of this page; the static checks stay (Principal_Binding_Holds restates its fact and is a finding in the matrix), 2026-06-03
+formal: verified — session-gated-authorization.als + 7 twins; coverage 2026-11-10 (unit formal: more coverage for the yes votes): owes TLA+ (everything across steps); owed rows: none (Invariant 1.1, 2.1 and Action wiring 14 checked over the trace, 2026-11-10); 2d: stepping (`dyn_status` and `dyn_call_log` are var fields): Dyn_Revocation_Terminal, Dyn_Expiry_Terminal and Dyn_Gate_Reflects_Current_Status are owed to a new TLA+ model of this page; the static checks stay (Principal_Binding_Holds restated its fact and went, 2026-11-10), 2026-06-03
 last gate: 2026-11-05 — Final Critique 10, delta, frozen at 7f57305 — foundational count 0, clean, one sample
 
 open:

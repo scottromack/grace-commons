@@ -86,8 +86,9 @@ Spec == Init /\ [][Next]_vars
 Inv_SingleResolution == (resolution # "none") => (state = resolution)
 Inv_ConfirmWithinWindow == (state = "Confirmed") => (confirmedAt < ExpiresAt)
 \* Window guard intact here, so this continues to hold — only Inv_SingleResolution
-\* (and, downstream, Inv3 terminal absorption) is violated, giving a clean
-\* resolution-hazard rejection signal.
+\* is violated, giving a clean resolution-hazard rejection signal. (Inv3 terminal
+\* absorption holds here: Released -> Confirmed stays terminal. Its own twin is
+\* provisional-commitment-buggy-rehold.tla, 2026-11-10.)
 Inv3_TerminalAbsorbing == everTerminal => (state \in Terminals)
 Inv8_TransitionsAfterPlacement ==
     /\ (state = "Confirmed") => (confirmedAt >= PlacedAt)

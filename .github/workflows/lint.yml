@@ -33,3 +33,6 @@ jobs:
 
       - name: Test the state totals
         run: python3 tools/taxonomy/test_stats.py
+
+      - name: Every coverage row carries its verdict word, and a checked row its twin
+        run: python3 tools/harness/test_coverage.py && python3 tools/harness/coverage.py

@@ -185,12 +185,9 @@ fact ZeroCounterImpliesRedeemed {
 -- Static assertions
 -- ─────────────────────────────────────────────────────────────────────────────
 
--- A12: Token uniqueness holds within each store snapshot.
-assert A_TokenUniqueness {
-    all s : Store |
-        all disj r1, r2 : s.records | r1.cap_token != r2.cap_token
-}
-check A_TokenUniqueness for 6
+-- A12 (token uniqueness within a snapshot) is assumed by fact StoreTokenUniqueness. The check
+-- A_TokenUniqueness restated that fact word for word, so no twin could break it; it went
+-- 2026-11-10 (unit: every check has a twin that breaks it).
 
 -- A2a: Counter never exceeds max.
 assert A_CounterNotExceedsMax {
@@ -216,11 +213,9 @@ assert A_RedeemedIsExhausted {
 }
 check A_RedeemedIsExhausted for 6
 
--- A4c: Zero counter implies stored Redeemed (the emergent property).
-assert A_ZeroCounterMeansRedeemed {
-    all r : CapabilityRecord | r.remRed = 0 implies r.status = Redeemed
-}
-check A_ZeroCounterMeansRedeemed for 6
+-- A4c (zero counter implies stored Redeemed) is assumed by fact ZeroCounterImpliesRedeemed,
+-- which the other facts do not imply (a stored Revoked record at zero is otherwise allowed).
+-- The check A_ZeroCounterMeansRedeemed restated that fact word for word; it went 2026-11-10.
 
 -- A9a: Revoked records always have full attribution.
 assert A_RevokedHasAttribution {
@@ -382,12 +377,9 @@ assert A_RedeemDecrementsCounterByOne {
 }
 check A_RedeemDecrementsCounterByOne for 5 but 4 Int
 
--- Counter never goes negative under redeem.
-assert A_CounterNeverNegativeAfterRedeem {
-    all pre, post : CapabilityRecord, clock : Int |
-        redeem_success[pre, post, clock] implies post.remRed >= 0
-}
-check A_CounterNeverNegativeAfterRedeem for 5 but 4 Int
+-- A redeem's post is a CapabilityRecord, so fact CounterBounds already keeps it non-negative:
+-- the check A_CounterNeverNegativeAfterRedeem restated A_CounterNonNegative on the post record,
+-- and no single defect could break it; it went 2026-11-10. A_CounterNonNegative stays.
 
 -- Redeem fires only while the window is open — a lapsed (now >= expiresAt) capability
 -- can never be redeemed. This is the load-bearing "lapsed cannot be redeemed" guarantee.

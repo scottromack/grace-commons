@@ -104,21 +104,12 @@ fact TimestampOrdering {
 --  violating this assertion? UNSAT = the guarantee holds. SAT = spec finding.)
 -- ─────────────────────────────────────────────────────────────────────────────
 
--- A_NoIdReuse: Invariant 5.
--- No two records share a subscription_id anywhere in the store.
-assert A_NoIdReuse {
-    all disj r1, r2 : SubscriptionRecord | r1.sub_id != r2.sub_id
-}
-check A_NoIdReuse for 6
+-- Invariant 5 is assumed by fact NoIdReuse. The checks A_NoIdReuse and A_IdsDistinctAcrossStatuses
+-- restated that fact word for word, so no twin could break them; they went 2026-11-10.
 
--- A_AtMostOneActivePerKey: Invariant 6.
--- For every (subscriber, scope) pair, at most one Active record exists.
-assert A_AtMostOneActivePerKey {
-    all s : SubscriberRef, e : EventScope |
-        lone r : SubscriptionRecord |
-            r.subscriber = s and r.event_scope = e and r.status = Active
-}
-check A_AtMostOneActivePerKey for 6
+-- Invariant 6 is assumed by fact AtMostOneActivePerKey. The check A_AtMostOneActivePerKey restated
+-- that fact word for word; it went 2026-11-10. A_NoDualActiveForSameKey, below, states the rule
+-- pairwise, and subscription-buggy.als (which drops the fact) breaks it.
 
 -- A_CancelledHasCancelledAt: Structural half of Invariant 2 / 3.
 -- Every Cancelled record carries a cancelled_at timestamp.
@@ -135,13 +126,8 @@ assert A_ActiveHasNoCancelledAt {
 }
 check A_ActiveHasNoCancelledAt for 6
 
--- A_TimestampOrdering: Invariant 9.
--- For every Cancelled record, subscribed_at <= cancelled_at.
-assert A_TimestampOrdering {
-    all r : SubscriptionRecord |
-        r.status = Cancelled implies r.subscribed_at <= r.cancelled_at
-}
-check A_TimestampOrdering for 6
+-- Invariant 9 is assumed by fact TimestampOrdering. The check A_TimestampOrdering restated that
+-- fact word for word, so no twin could break it; it went 2026-11-10.
 
 -- A_CancelledKeyCanCoexistWithActive: Invariant 4 / 6 interaction.
 -- Two records for the same (subscriber, scope) can coexist only when one is
@@ -153,14 +139,6 @@ assert A_NoDualActiveForSameKey {
             implies not (r1.status = Active and r2.status = Active)
 }
 check A_NoDualActiveForSameKey for 6
-
--- A_IdsDistinctAcrossStatuses: Invariants 4 / 5 interaction.
--- Even when the same (subscriber, scope) pair appears in both Active and Cancelled
--- records (cancel-then-resubscribe), the two records have different sub_ids.
-assert A_IdsDistinctAcrossStatuses {
-    all disj r1, r2 : SubscriptionRecord | r1.sub_id != r2.sub_id
-}
-check A_IdsDistinctAcrossStatuses for 6
 
 -- ─────────────────────────────────────────────────────────────────────────────
 -- Satisfiability runs

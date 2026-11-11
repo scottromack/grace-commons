@@ -77,6 +77,11 @@
 \*   PairPurge    a pair-scoped purge takes the pair as one unit (Comp. state 27)    -buggy-attestpurge
 \*   PurgeNamed   an absent attestation the purge record names reads purged
 \*                (Action wiring 62, 63)                                            -buggy-tamperpurged
+\* Four twins change one action instead (2026-11-10, a twin for every check):
+\*   Issue leaves out its pairing (Inv1_1)                                         -buggy-issuenopair
+\*   Revoke leaves out its pairing (Inv2_1)                                        -buggy-revokenopair
+\*   a refused revocation writes its revocation entry (NoActiveRevEntry)          -buggy-refusedpair
+\*   VR reads every absent attestation purged under the per-store scope (TamperFound) -buggy-absentpurged
 \*
 \* NOT MODELLED: the boundary predicate, credentials and the verify outcomes Actor Identity
 \* computes for a held attestation (each reads verified here), the evaluation passthrough,

@@ -9,6 +9,7 @@
 
 - Correct model: `node check.mjs ../../atoms/message-preference.tla` → `PASS` ☐ *(per Lineage: clean)*
 - Buggy twin: `node check.mjs ../../atoms/message-preference-buggy.tla --buggy` → `PASS` (rejected) ☐ *(per Lineage: splits supersession, Inv3 catches two-in-effect window)*
+- 2026-11-10 (unit `tooling: every check has a twin that breaks it`): `audit.mjs` → HOLDS; its one check `Inv3_AtMostOneInEffect` is broken by `message-preference-buggy.tla` (CAUGHT).
 
 ## Step 2 — coverage matrix
 
@@ -16,17 +17,17 @@ The spec has 10 hard invariants plus Temporal property 11 (best-effort). The mod
 
 | Spec invariant (no. + name) | Load-bearing (vote)? | Verdict | Model construct / reason |
 |---|---|---|---|
-| Invariant 1 — Message Preference record immutability | No | by-construction | Status is the only mutable field in the model (slot goes from `unused` → `Active` → `Suspended`/`Deleted`); no field rewriting occurs. Acceptable: not load-bearing per vote. |
-| Invariant 2 — Status monotonicity (Active→Suspended/Deleted; Suspended→Deleted only) | No | by-construction | `SetFresh` creates Active; `Suspend` moves Active→Suspended; `Delete` moves Active-or-Suspended→Deleted; `SetSupersede` moves prior to Deleted; no action returns from Deleted or Suspended→Active. Acceptable. |
-| Invariant 3 — At most one currently-in-effect record per principal | YES | covered | `Inv3_AtMostOneInEffect == InEffectCount <= 1`; checked under every interleaving of `SetFresh`, `SetSupersede`, `Suspend`, `Delete`. |
-| Invariant 4 — Supersession atomicity | YES | covered | `SetSupersede` is a single TLA+ step that sets prior→Deleted AND new→Active simultaneously; `Inv3_AtMostOneInEffect` is what catches any split that would momentarily show two in-effect records. Mechanized via atomic step + Inv3 catch on the buggy twin. |
-| Invariant 5 — Channel preferences reference declared channels | No | out-of-scope (no channel-set model; per model header: "id immutability/no-reuse, field retention, timestamp ordering (structural / clock)") | Acceptable: not load-bearing per vote. |
-| Invariant 6 — Suspension is value-preserving | No | by-construction | `Suspend` changes only the slot's status from Active to Suspended; no preference-value fields are modeled (model is status-only). Acceptable. |
-| Invariant 7 — `current_for` determinism | No | by-construction (follows from Inv3) | Uniqueness of the in-effect record is guaranteed by Inv3. Acceptable. |
-| Invariant 8 — No id reuse | No | out-of-scope (structural; per model header) | Acceptable. |
-| Invariant 9 — Message Preference store durability | No | by-construction | `Delete` moves a slot to Deleted state but does not remove it from the `status` array; all `MaxP` slots are retained. `unused` → non-`unused` is a one-way transition. Acceptable. |
-| Invariant 10 — Configuration record integrity | No | out-of-scope (deployment-contract property; not enforced by atom's runtime actions; channel set not modeled) | Acceptable: not load-bearing per vote. |
-| Temporal property 11 — Timestamp ordering (best-effort) | No | out-of-scope (no clock modeled; explicitly best-effort in spec) | Acceptable. |
+| Invariant 1 — Message Preference record immutability | No | `owed` by-construction | Status is the only mutable field in the model (slot goes from `unused` → `Active` → `Suspended`/`Deleted`); no field rewriting occurs. Acceptable: not load-bearing per vote. |
+| Invariant 2 — Status monotonicity (Active→Suspended/Deleted; Suspended→Deleted only) | No | `owed` by-construction | `SetFresh` creates Active; `Suspend` moves Active→Suspended; `Delete` moves Active-or-Suspended→Deleted; `SetSupersede` moves prior to Deleted; no action returns from Deleted or Suspended→Active. Acceptable. |
+| Invariant 3 — At most one currently-in-effect record per principal | YES | `checked` covered | `Inv3_AtMostOneInEffect == InEffectCount <= 1`; checked under every interleaving of `SetFresh`, `SetSupersede`, `Suspend`, `Delete`. Broken by `message-preference-buggy.tla`. |
+| Invariant 4 — Supersession atomicity | YES | `checked` covered | `SetSupersede` is a single TLA+ step that sets prior→Deleted AND new→Active simultaneously; `Inv3_AtMostOneInEffect` is what catches any split that would momentarily show two in-effect records. Mechanized via atomic step + Inv3 catch on the buggy twin. Broken by `message-preference-buggy.tla`. (`Inv3_AtMostOneInEffect`) |
+| Invariant 5 — Channel preferences reference declared channels | No | `owed` out-of-scope (no channel-set model; per model header: "id immutability/no-reuse, field retention, timestamp ordering (structural / clock)") | Acceptable: not load-bearing per vote. |
+| Invariant 6 — Suspension is value-preserving | No | `owed` by-construction | `Suspend` changes only the slot's status from Active to Suspended; no preference-value fields are modeled (model is status-only). Acceptable. |
+| Invariant 7 — `current_for` determinism | No | `owed` by-construction (follows from Inv3) | Uniqueness of the in-effect record is guaranteed by Inv3. Acceptable. |
+| Invariant 8 — No id reuse | No | `owed` out-of-scope (structural; per model header) | Acceptable. |
+| Invariant 9 — Message Preference store durability | No | `owed` by-construction | `Delete` moves a slot to Deleted state but does not remove it from the `status` array; all `MaxP` slots are retained. `unused` → non-`unused` is a one-way transition. Acceptable. |
+| Invariant 10 — Configuration record integrity | No | `unstatable` out-of-scope (deployment-contract property; not enforced by atom's runtime actions; channel set not modeled) | Acceptable: not load-bearing per vote. |
+| Temporal property 11 — Timestamp ordering (best-effort) | No | `owed` out-of-scope (no clock modeled; explicitly best-effort in spec) | Acceptable. |
 
 ## Step 3 — bound saturation
 
