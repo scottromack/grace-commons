@@ -341,7 +341,6 @@
 2026-11-11	compositions/audit-trail-binding.tla	model	tla	27	0	-	-	-	-	-	HOLDS	tlc
 2026-11-11	compositions/authenticated-actor-probe-refused.tla	twin	tla	27	0	-	-	-	-	-	CAUGHT	tlc
 2026-11-11	compositions/execute-gated-workflow-buggy-unrecorded.tla	twin	tla	27	0	-	-	-	-	-	CAUGHT	tlc
-2026-11-11	atoms/approval-step.tla	model	tla	25	0	-	-	-	-	-	HOLDS	tlc
 2026-11-11	atoms/legal-hold-buggy-cascade.tla	twin	tla	25	0	-	-	-	-	-	CAUGHT	tlc
 2026-11-11	compositions/capability-backed-sharing-buggy-unanswered-committed.tla	twin	tla	25	0	-	-	-	-	-	CAUGHT	tlc
 2026-11-11	compositions/capability-backed-sharing-buggy-default-past-horizon.tla	twin	tla	24	0	-	-	-	-	-	CAUGHT	tlc
@@ -426,7 +425,6 @@
 2026-11-11	compositions/reserve-from-pool-allocate-before-intent-buggy.tla	twin	tla	5	0	-	-	-	-	-	CAUGHT	tlc
 2026-11-11	compositions/propagate-consent-revocation-downstream-probe-denied-refused.tla	twin	tla	5	0	-	-	-	-	-	CAUGHT	tlc
 2026-11-11	compositions/verified-repair-settle-probe-opens.tla	twin	tla	5	0	-	-	-	-	-	CAUGHT	tlc
-2026-11-11	atoms/approval-step-buggy.tla	twin	tla	4	0	-	-	-	-	-	CAUGHT	tlc
 2026-11-11	compositions/actor-suspension-buggy-unresolved.tla	twin	tla	4	0	-	-	-	-	-	CAUGHT	tlc
 2026-11-11	compositions/actor-suspension-probe-issue.tla	twin	tla	4	0	-	-	-	-	-	CAUGHT	tlc
 2026-11-11	compositions/attributed-permissions-admin-probe-orphan.tla	twin	tla	4	0	-	-	-	-	-	CAUGHT	tlc
@@ -458,8 +456,6 @@
 2026-11-11	compositions/reserve-from-pool-retry-probe-seen.tla	twin	tla	2	0	-	-	-	-	-	CAUGHT	tlc
 2026-11-11	compositions/reserve-from-pool-retry-probe-unbound.tla	twin	tla	2	0	-	-	-	-	-	CAUGHT	tlc
 2026-11-11	compositions/reserve-from-pool-retry-shared-ref-buggy.tla	twin	tla	2	0	-	-	-	-	-	CAUGHT	tlc
-2026-11-11	atoms/approval-step-buggy-subject.tla	twin	tla	2	0	-	-	-	-	-	CAUGHT	tlc
-2026-11-11	atoms/approval-step-buggy-withdraw.tla	twin	tla	4	0	-	-	-	-	-	CAUGHT	tlc
 2026-11-11	atoms/capability-buggy-counter-unbounded.als	twin	als	-	-	31	19	10	2	0	CAUGHT	alloy
 2026-11-11	atoms/capability-buggy-attribution-unbound.als	twin	als	-	-	31	18	10	3	0	CAUGHT	alloy
 2026-11-11	atoms/capability-buggy-fields-not-carried.als	twin	als	-	-	31	19	10	2	0	CAUGHT	alloy
@@ -579,3 +575,18 @@
 2026-11-11	compositions/session-gated-authorization-buggy-callerprincipal.als	twin	als	-	-	15	9	5	1	0	CAUGHT	alloy
 2026-11-11	compositions/preference-aware-notification-fanout.tla	model	tla	11564902	0	-	-	-	-	-	HOLDS	tlc
 2026-11-11	compositions/propagate-consent-revocation-downstream.tla	model	tla	5538855	0	-	-	-	-	-	HOLDS	tlc
+2026-11-11	atoms/approval-step-buggy.tla	twin	tla	4	0	-	-	-	-	-	CAUGHT	tlc
+2026-11-11	atoms/approval-step.tla	model	tla	25	0	-	-	-	-	-	HOLDS	tlc
+2026-11-11	atoms/approval-step-buggy-withdraw.tla	twin	tla	4	0	-	-	-	-	-	CAUGHT	tlc
+2026-11-11	atoms/approval-step-buggy-subject.tla	twin	tla	2	0	-	-	-	-	-	CAUGHT	tlc
+2026-11-11	atoms/approval-step-buggy-instant-misfiled.als	twin	als	-	-	22	11	10	1	0	CAUGHT	alloy
+2026-11-11	atoms/approval-step-buggy-approver-unguarded.als	twin	als	-	-	22	10	10	2	0	CAUGHT	alloy
+2026-11-11	atoms/approval-step-buggy-blank-scope.als	twin	als	-	-	22	11	10	1	0	CAUGHT	alloy
+2026-11-11	atoms/approval-step-buggy-actor-not-written.als	twin	als	-	-	22	10	10	2	0	CAUGHT	alloy
+2026-11-11	atoms/approval-step-buggy-instant-unresolved.als	twin	als	-	-	22	11	10	1	0	CAUGHT	alloy
+2026-11-11	atoms/approval-step-buggy-backdated.als	twin	als	-	-	22	11	10	1	0	CAUGHT	alloy
+2026-11-11	atoms/approval-step-buggy-state-added.als	twin	als	-	-	22	10	7	2	3	CAUGHT	alloy
+2026-11-11	atoms/approval-step-buggy-stray-attribution.als	twin	als	-	-	22	11	10	1	0	CAUGHT	alloy
+2026-11-11	atoms/approval-step-buggy-reason-unguarded.als	twin	als	-	-	22	10	10	2	0	CAUGHT	alloy
+2026-11-11	atoms/approval-step-buggy-submitter-unguarded.als	twin	als	-	-	22	11	10	1	0	CAUGHT	alloy
+2026-11-11	atoms/approval-step.als	model	als	-	-	22	12	10	0	0	HOLDS	alloy
