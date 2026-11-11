@@ -66,7 +66,7 @@ constituents reached transitively). This is the load-bearing spine of the librar
 | Substrate | Named by | Composers |
 |---|---|---|
 | [Audit Trail](./compositions/audit-trail.html) | 14 | actor-suspension, capability-backed-sharing, chain-of-custody, customer-onboarding, defensible-retention, execute-gated-workflow, external-onboarding, immutable-ledger, login, multi-party-approval, privileged-access-provisioning, propagate-consent-revocation-downstream, recoverable-invocation, verified-repair |
-| [Recoverable Invocation](./compositions/recoverable-invocation.html) | 7 | capability-backed-sharing, chain-of-custody, external-onboarding, immutable-ledger, multi-party-approval, propagate-consent-revocation-downstream, verified-repair |
+| [Recoverable Invocation](./compositions/recoverable-invocation.html) | 8 | capability-backed-sharing, chain-of-custody, customer-onboarding, external-onboarding, immutable-ledger, multi-party-approval, propagate-consent-revocation-downstream, verified-repair |
 | [Defensible Retention](./compositions/defensible-retention.html) | 1 | resolve-a-persons-data-rights |
 | [Multi-Party Approval](./compositions/multi-party-approval.html) | 1 | privileged-access-provisioning |
 
@@ -91,7 +91,7 @@ flowchart LR
   multi_party_approval["Multi-Party Approval · 1"]
   privileged_access_provisioning["Privileged Access Provisioning"]
   propagate_consent_revocation_downstream["Propagate Consent Revocation Downstream"]
-  recoverable_invocation["Recoverable Invocation · 7"]
+  recoverable_invocation["Recoverable Invocation · 8"]
   resolve_a_persons_data_rights["Resolve a Person's Data Rights"]
   verified_repair["Verified Repair"]
   actor_suspension -.-> audit_trail
@@ -100,6 +100,7 @@ flowchart LR
   chain_of_custody -.-> audit_trail
   chain_of_custody -.-> recoverable_invocation
   customer_onboarding -.-> audit_trail
+  customer_onboarding -.-> recoverable_invocation
   defensible_retention -.-> audit_trail
   execute_gated_workflow -.-> audit_trail
   external_onboarding -.-> audit_trail
@@ -265,6 +266,7 @@ flowchart LR
   c_chain_of_custody -.-> c_audit_trail
   c_chain_of_custody -.-> c_recoverable_invocation
   c_customer_onboarding -.-> c_audit_trail
+  c_customer_onboarding -.-> c_recoverable_invocation
   c_defensible_retention -.-> c_audit_trail
   c_execute_gated_workflow -.-> c_audit_trail
   c_external_onboarding -.-> c_audit_trail

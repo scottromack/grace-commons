@@ -3,10 +3,10 @@
  "atoms": 34,
  "commits": 1593,
  "compositions": 26,
- "grounded": 56,
+ "grounded": 55,
  "grounded_atoms": 34,
- "grounded_compositions": 22,
+ "grounded_compositions": 21,
  "patterns": 60,
- "states_models": 21971471,
- "states_twins": 2798625
+ "states_models": 22035488,
+ "states_twins": 2838921
 }

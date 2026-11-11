@@ -523,13 +523,13 @@
    "party-identity",
    "retention-window"
   ],
-  "grounded": true,
+  "grounded": false,
   "invariants": 8,
   "kind": "composition",
   "models": {
    "als": false,
    "tla": true,
-   "twins": 1
+   "twins": 10
   },
   "regulated": true,
   "standards": [
@@ -540,9 +540,10 @@
    "GDPR",
    "HIPAA"
   ],
-  "status": "grounded on Final Critique 5 \u2014 2026-11-06 at 8736397",
+  "status": "partially resolved",
   "substrates": [
-   "audit-trail"
+   "audit-trail",
+   "recoverable-invocation"
   ],
   "title": "Customer Onboarding"
  },
@@ -1324,6 +1325,7 @@
   "substrate_of": [
    "capability-backed-sharing",
    "chain-of-custody",
+   "customer-onboarding",
    "external-onboarding",
    "immutable-ledger",
    "multi-party-approval",
