@@ -452,9 +452,9 @@
   "invariants": 10,
   "kind": "atom",
   "models": {
-   "als": false,
-   "tla": false,
-   "twins": 0
+   "als": true,
+   "tla": true,
+   "twins": 30
   },
   "regulated_by": [
    "propagate-consent-revocation-downstream",
