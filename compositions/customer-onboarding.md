@@ -920,6 +920,7 @@ Deleted: Reconciliation 32. Term reconciliation owns it: the reconciliation runs
 Deleted: Reconciliation 33. Execution Contract Scheduled leg 1 owns it.
 Reconciliation 34: The reconciliation MUST NOT examine a young record.
 Reconciliation 35: The reconciliation MUST read the sweep's run reading of now AND MUST NOT read now at a seam of the reconciliation.
+NOTE: watch the sweep's run reading (Reconciliation 35).
 Reconciliation 36: The reconciliation MUST take the enumeration of Reconciliation 37 once PER run, at the run's start.
 Reconciliation 37: The reconciliation MUST read EVERY verification event, state change event AND placement over an active case's party that Reconciliation 5, Reconciliation 34 AND Reconciliation 41 admit, against the intents.
 Reconciliation 38: IF a record Reconciliation 37 reads IS NOT a carried record THEN the reconciliation MUST open a write-ownership finding for the record.

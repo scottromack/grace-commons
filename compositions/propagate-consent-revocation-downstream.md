@@ -715,6 +715,7 @@ Deleted: Reconciliation 36. Recoverable Invocation Term hard alert, reconcile st
 Deleted: Reconciliation 37. Recoverable Invocation act probe 4, Recoverable Invocation act probe 5 and Recoverable Invocation reconcile step 3.13 own it for the sweep; Reconciliation 38 states it for the leg.
 Reconciliation 38: The reconciliation MUST decide ONLY on an answered read.
 Reconciliation 39: The reconciliation MUST read the sweep's run reading of now AND MUST NOT read now at a seam of the reconciliation.
+NOTE: watch the sweep's run reading (Reconciliation 39).
 Reconciliation 40: IF an abandonment OR a refusal closes a withdrawal intent of a Consent record's consent id whose pairing datum EQUALS a revoked Consent record's revocation instant THEN the reconciliation MUST alert the finding surface carrying the consent id.
 Reconciliation 41: IF an abandonment OR a refusal closes a grant intent of a Consent record's grant key whose pairing datum EQUALS a Consent record's grant instant THEN the reconciliation MUST alert the finding surface carrying the consent id.
 ```

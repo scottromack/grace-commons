@@ -590,6 +590,7 @@ Reconciliation 34: IF a disclosure record Reconciliation 29 and Reconciliation 3
 Reconciliation 35: The reconciliation MUST alert the finding surface carrying the carried record for EVERY false closing Reconciliation 29 and Reconciliation 30 admit.
 Reconciliation 36: The reconciliation MUST decide ONLY on an answered read.
 Reconciliation 37: The reconciliation MUST read the sweep's run reading of now AND MUST NOT read now at a seam of the reconciliation.
+NOTE: watch the sweep's run reading (Reconciliation 37).
 Reconciliation 38: The reconciliation MUST take the enumeration of Reconciliation 31 once PER run, at the run's start.
 ```
 
