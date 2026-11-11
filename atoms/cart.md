@@ -592,7 +592,7 @@ Rules on showing and confirming a price before a purchase, such as the Consumer 
 
 ```
 status: grounded on Final Critique 6 — 2026-11-04 at cd6400b
-formal: not applicable — vote no 2026-10-23: the atom reads no clock and claims no ordering of its own; its one-line-per-item and fixed-price claims are single-state properties each action's rules hold, and its concurrency is Execution Contract Database 2's Coverage 2026-11-10 (unit formal: more coverage for the yes votes): the page states Invariant 1 (one line per item), 2 (the price taken when added), 3 and 4 (a line keeps its cart and item, a cart keeps its currency), 5 and 6 (every line belongs to a cart, counts whole) (both: one-line-per-item and line membership are static, the price and currency are kept across add, change and remove steps).
+formal: verified — cart.als + 14 twins (the static data model: State 1 and 2, Identity 3, 4, 6 and 8, Invariant 1.1, 5.1, 6.1 and 6.2, Operation 1, 5 and 24 checked on every state an ordered sequence of admitted calls leaves, Identity 5 caught by the Identity 4 check and Identity 9 by the Operation 1 check); cart.tla + 9 twins (across steps, while the shop's price moves: Invariant 2.1, 3.1, 3.2 and 4.1, State 3, Identity 7, Operation 14, 18 and 23); the vote no of 2026-10-23 superseded by the maintainer's ruling of 2026-11-09 (both models; only the writing vetoes one), and neither vetoed; owed rows: Operation 21 and 22, 2026-11-11
 last gate: 2026-11-04 — Final Critique 6, a delta round, frozen at cd6400b — foundational count 0, clean, one sample; 2026-11-03 — Final Critique 5 (delta) — foundational count 1, not clean, one sample
 
 open:

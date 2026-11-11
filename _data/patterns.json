@@ -361,9 +361,9 @@
   "invariants": 6,
   "kind": "atom",
   "models": {
-   "als": false,
-   "tla": false,
-   "twins": 0
+   "als": true,
+   "tla": true,
+   "twins": 23
   },
   "regulated_by": [
    "shared-cart"
