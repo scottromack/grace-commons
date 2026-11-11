@@ -1008,7 +1008,7 @@ It inherits from:
 
 ```
 status: grounded on Final Critique 21 — 2026-10-29 at cf02362
-formal: verified — credential.tla + 6 twins; coverage 2026-11-10 (unit formal: more coverage for the yes votes): owes Alloy (the static data model); owed rows: Invariant 1; Invariant 4, 5; Invariant 6; Invariant 11, 2026-09-29
+formal: verified — credential.tla + 6 twins (2026-09-29); credential.als + 13 twins (the static data model, 2026-11-11: Invariant 3.1, 5.1, 7.1, 7.2, 9.1, 9.2, 9.3, State 3, 5, 9 and Identity 5 checked on every record an admitted [Register], [Rotate] or [Revoke] leaves and on every answer [Verify] gives over such records, Invariant 3.1 checking the cases of the deleted 4.1 and 11.1, Invariant 5.1 read off one record, Invariant 7.1 a cross-check with the TLA+ model; nothing testable in Alloy for Invariant 1, 6 and 10 or for 5.1 across versions: each compares a credential with a later version of it, which a single state cannot show, and Invariant 2.1 rests on the order of the calls that wrote the pair's records, so they are the TLA+ model's); coverage 2026-11-10 (unit formal: more coverage for the yes votes): owes TLA+ checks of Invariant 1 and 6 (across steps); owed rows: Invariant 1; Invariant 6, 2026-11-11
 last gate: 2026-11-02 — Final Critique 22 (delta) — foundational count 0, clean, one sample
 
 open:

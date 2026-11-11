@@ -12,7 +12,6 @@
 2026-11-11	compositions/execute-gated-workflow-buggy-mispaired.tla	twin	tla	110253	0	-	-	-	-	-	CAUGHT	tlc
 2026-11-11	compositions/authenticated-actor.tla	model	tla	43655	0	-	-	-	-	-	HOLDS	tlc
 2026-11-11	compositions/resolve-a-persons-data-rights-admission-probe-again.tla	twin	tla	38960	0	-	-	-	-	-	CAUGHT	tlc
-2026-11-11	atoms/credential.tla	model	tla	36772	0	-	-	-	-	-	HOLDS	tlc
 2026-11-11	compositions/multi-party-approval-probe-temporal-refused.tla	twin	tla	37920	0	-	-	-	-	-	CAUGHT	tlc
 2026-11-11	compositions/chain-of-custody.tla	model	tla	478490	0	-	-	-	-	-	HOLDS	tlc
 2026-11-11	compositions/actor-suspension.tla	model	tla	36044	0	-	-	-	-	-	HOLDS	tlc
@@ -47,7 +46,6 @@
 2026-11-11	compositions/resolve-a-persons-data-rights-access.tla	model	tla	17796	0	-	-	-	-	-	HOLDS	tlc
 2026-11-11	compositions/recoverable-invocation-buggy-visible.tla	twin	tla	13676	0	-	-	-	-	-	CAUGHT	tlc
 2026-11-11	compositions/immutable-ledger-rebuild.tla	model	tla	12100	0	-	-	-	-	-	HOLDS	tlc
-2026-11-11	atoms/credential-buggy-rotate-race.tla	twin	tla	12465	0	-	-	-	-	-	CAUGHT	tlc
 2026-11-11	compositions/preference-aware-notification-fanout-ghost-write-buggy.tla	twin	tla	11487	0	-	-	-	-	-	CAUGHT	tlc
 2026-11-11	compositions/recoverable-invocation-probe-operatorneversupersedes.tla	twin	tla	11376	0	-	-	-	-	-	CAUGHT	tlc
 2026-11-11	compositions/immutable-ledger-rebuild-buggy-replace.tla	twin	tla	11143	0	-	-	-	-	-	CAUGHT	tlc
@@ -61,7 +59,6 @@
 2026-11-11	compositions/execute-gated-workflow-buggy-reuse.tla	twin	tla	10798	0	-	-	-	-	-	CAUGHT	tlc
 2026-11-11	compositions/execute-gated-workflow-buggy-unmooted.tla	twin	tla	10351	0	-	-	-	-	-	CAUGHT	tlc
 2026-11-11	compositions/immutable-ledger-rebuild-probe-purgedbound.tla	twin	tla	9881	0	-	-	-	-	-	CAUGHT	tlc
-2026-11-11	atoms/credential-buggy-overdue.tla	twin	tla	9550	0	-	-	-	-	-	CAUGHT	tlc
 2026-11-11	compositions/audit-trail-record.tla	model	tla	9103	0	-	-	-	-	-	HOLDS	tlc
 2026-11-11	compositions/chain-of-custody-buggy-no-duplicate-finding.tla	twin	tla	9366	0	-	-	-	-	-	CAUGHT	tlc
 2026-11-11	compositions/immutable-ledger-rebuild-buggy-tight.tla	twin	tla	8686	0	-	-	-	-	-	CAUGHT	tlc
@@ -89,7 +86,6 @@
 2026-11-11	compositions/immutable-ledger-rebuild-buggy-onwrite.tla	twin	tla	4400	0	-	-	-	-	-	CAUGHT	tlc
 2026-11-11	compositions/preference-aware-notification-fanout-redispose-live-buggy.tla	twin	tla	4741	0	-	-	-	-	-	CAUGHT	tlc
 2026-11-11	compositions/defensible-retention-outcome-buggy-floor.tla	twin	tla	4363	0	-	-	-	-	-	CAUGHT	tlc
-2026-11-11	atoms/credential-buggy-toctou.tla	twin	tla	4322	0	-	-	-	-	-	CAUGHT	tlc
 2026-11-11	compositions/preference-aware-notification-fanout-batch.tla	model	tla	4233	0	-	-	-	-	-	HOLDS	tlc
 2026-11-11	compositions/defensible-retention-outcome.tla	model	tla	4222	0	-	-	-	-	-	HOLDS	tlc
 2026-11-11	compositions/defensible-retention.tla	model	tla	4206	0	-	-	-	-	-	HOLDS	tlc
@@ -220,7 +216,6 @@
 2026-11-11	compositions/audit-trail-buggy.tla	twin	tla	302	0	-	-	-	-	-	CAUGHT	tlc
 2026-11-11	compositions/compensable-workflow-cancel-past-pivot-buggy.tla	twin	tla	296	0	-	-	-	-	-	CAUGHT	tlc
 2026-11-11	compositions/immutable-ledger-buggy-probekey.tla	twin	tla	296	0	-	-	-	-	-	CAUGHT	tlc
-2026-11-11	atoms/credential-buggy.tla	twin	tla	269	0	-	-	-	-	-	CAUGHT	tlc
 2026-11-11	compositions/preference-aware-notification-fanout-payload-mismatch-buggy.tla	twin	tla	253	0	-	-	-	-	-	CAUGHT	tlc
 2026-11-11	compositions/authenticated-actor-probe-reopen.tla	twin	tla	243	0	-	-	-	-	-	CAUGHT	tlc
 2026-11-11	compositions/actor-suspension-buggy-unordered.tla	twin	tla	242	0	-	-	-	-	-	CAUGHT	tlc
@@ -451,8 +446,6 @@
 2026-11-11	compositions/reserve-from-pool-retry-probe-seen.tla	twin	tla	2	0	-	-	-	-	-	CAUGHT	tlc
 2026-11-11	compositions/reserve-from-pool-retry-probe-unbound.tla	twin	tla	2	0	-	-	-	-	-	CAUGHT	tlc
 2026-11-11	compositions/reserve-from-pool-retry-shared-ref-buggy.tla	twin	tla	2	0	-	-	-	-	-	CAUGHT	tlc
-2026-11-11	atoms/credential-buggy-stored-expiry.tla	twin	tla	59	0	-	-	-	-	-	CAUGHT	tlc
-2026-11-11	atoms/credential-buggy-terminal-lapse.tla	twin	tla	17	0	-	-	-	-	-	CAUGHT	tlc
 2026-11-11	atoms/event-log-buggy-eid.tla	twin	tla	15	0	-	-	-	-	-	CAUGHT	tlc
 2026-11-11	atoms/invitation-buggy-stored-expiry.tla	twin	tla	14	0	-	-	-	-	-	CAUGHT	tlc
 2026-11-11	atoms/event-log-buggy-remove.tla	twin	tla	6	0	-	-	-	-	-	CAUGHT	tlc
@@ -695,3 +688,24 @@
 2026-11-11	atoms/cart-buggy-string-cap-unchecked.als	twin	als	-	-	22	12	9	1	0	CAUGHT	alloy
 2026-11-11	atoms/cart.als	model	als	-	-	22	13	9	0	0	HOLDS	alloy
 2026-11-11	atoms/cart.tla	model	tla	3543064	0	-	-	-	-	-	HOLDS	tlc
+2026-11-11	atoms/credential.tla	model	tla	36772	0	-	-	-	-	-	HOLDS	tlc
+2026-11-11	atoms/credential-buggy-rotate-race.tla	twin	tla	12465	0	-	-	-	-	-	CAUGHT	tlc
+2026-11-11	atoms/credential-buggy-overdue.tla	twin	tla	9550	0	-	-	-	-	-	CAUGHT	tlc
+2026-11-11	atoms/credential-buggy-toctou.tla	twin	tla	4322	0	-	-	-	-	-	CAUGHT	tlc
+2026-11-11	atoms/credential-buggy.tla	twin	tla	269	0	-	-	-	-	-	CAUGHT	tlc
+2026-11-11	atoms/credential-buggy-stored-expiry.tla	twin	tla	59	0	-	-	-	-	-	CAUGHT	tlc
+2026-11-11	atoms/credential-buggy-terminal-lapse.tla	twin	tla	17	0	-	-	-	-	-	CAUGHT	tlc
+2026-11-11	atoms/credential-buggy-id-reused.als	twin	als	-	-	23	9	10	2	2	CAUGHT	alloy
+2026-11-11	atoms/credential-buggy-successor-unrecorded.als	twin	als	-	-	23	10	12	1	0	CAUGHT	alloy
+2026-11-11	atoms/credential-buggy-blank-revoker.als	twin	als	-	-	23	10	12	1	0	CAUGHT	alloy
+2026-11-11	atoms/credential-buggy-successor-pair-unset.als	twin	als	-	-	23	10	12	1	0	CAUGHT	alloy
+2026-11-11	atoms/credential-buggy-rotation-unstamped.als	twin	als	-	-	23	10	12	1	0	CAUGHT	alloy
+2026-11-11	atoms/credential-buggy-blank-reason.als	twin	als	-	-	23	10	12	1	0	CAUGHT	alloy
+2026-11-11	atoms/credential-buggy-revoke-unstamped.als	twin	als	-	-	23	10	12	1	0	CAUGHT	alloy
+2026-11-11	atoms/credential-buggy-material-retained.als	twin	als	-	-	23	10	12	1	0	CAUGHT	alloy
+2026-11-11	atoms/credential-buggy-revoke-rotated.als	twin	als	-	-	23	10	12	1	0	CAUGHT	alloy
+2026-11-11	atoms/credential-buggy-verify-lapsed.als	twin	als	-	-	23	10	11	1	1	CAUGHT	alloy
+2026-11-11	atoms/credential-buggy-verify-earliest.als	twin	als	-	-	23	10	12	1	0	CAUGHT	alloy
+2026-11-11	atoms/credential-buggy-verify-revoked.als	twin	als	-	-	23	10	12	1	0	CAUGHT	alloy
+2026-11-11	atoms/credential.als	model	als	-	-	23	11	12	0	0	HOLDS	alloy
+2026-11-11	atoms/credential-buggy-revoke-unstood.als	twin	als	-	-	23	9	9	2	3	CAUGHT	alloy
