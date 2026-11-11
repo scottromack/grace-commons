@@ -20,7 +20,7 @@ toc: true
 
 Multi-Party Approval enforces an approval requiring several named approvers, over a single thing, in a way that cannot be bypassed through the composition and is provable.
 
-The rule for how many approvers are needed is a quorum rule — all of them, a majority, or any one of them. It combines four patterns: the single-approver gate (Approval Step), a permission system controlling who may start, withdraw, or read an approval chain (Permissions), a task-tracker that puts each pending approval in the right approver's queue (Assignment), and the tamper-evident audit record (Audit Trail) that stamps and seals every step. Each action that changes a chain follows [Recoverable Invocation](./recoverable-invocation.md): an audit intent before the change, an audit outcome after it, and a sweep that recovers the outcome of a change whose record never landed — so a change is never left both made and unrecorded without that standing visible.
+The rule for how many approvers are needed is a quorum rule — all of them, a majority, or any one of them. It combines four patterns, and the fifth, Recoverable Invocation, is the protocol each change follows: the single-approver gate (Approval Step), a permission system controlling who may start, withdraw, or read an approval chain (Permissions), a task-tracker that puts each pending approval in the right approver's queue (Assignment), and the tamper-evident audit record (Audit Trail) that stamps and seals every step. Each action that changes a chain follows [Recoverable Invocation](./recoverable-invocation.md): an audit intent before the change, an audit outcome after it, and a sweep that recovers the outcome of a change whose record never landed — so a change is never left both made and unrecorded without that standing visible.
 
 The load-bearing addition is checking, after each individual decision, whether the quorum has now been met or has become impossible, and ending the chain accordingly — something none of the parts can do, because the single-gate pattern does not count approvals across steps and the others know nothing about quorum at all.
 
@@ -70,6 +70,7 @@ Composes 14: The Recoverable Invocation instance MUST write to the composition's
 Composes 15: The composition MUST bind the act kinds PER the chain bindings.
 Composes 16: The composition MUST NOT bind [Read Chain] as an act kind.
 Composes 17: The composition MUST NOT hold an instance of Lease, which Recoverable Invocation reaches.
+Composes 18: A deployment MUST NOT call Assignment's reassign on a chain's step assignment.
 ```
 
 Term composition: this pattern's wiring of [Approval Step](../atoms/approval-step.md), [Permissions](../atoms/permissions.md), [Assignment](../atoms/assignment.md), [Audit Trail](./audit-trail.md) and [Recoverable Invocation](./recoverable-invocation.md) — the chain, the quorum rule, the cascade, the read, the chain bindings and the write-ownership leg.
@@ -108,7 +109,7 @@ Term commit partition: committed where the commit answers its record — the ini
 
 Term initiation probe: the read that answers whether an open initiation intent's chain committed — the composition's read of the chain records by the intent's chain id. A chain record whose initiated instant EQUALS the intent's pairing datum answers committed carrying the chain shape the chain record holds; none answers not-committed; a read that fails or gives no answer answers unavailable (Recoverable Invocation act probe 4).
 
-Term decision probe: the read that answers whether an open decision intent's step write committed — Approval Step's read filtered to the act key's step id and to the intent's pairing datum as the decision instant range, or the withdrawal instant range for chain.step_withdrawal, kept in the composition's code to a step whose state is the kind's (Approved, Rejected or Withdrawn) and whose deciding actor or withdrawing actor EQUALS the intent's actor. Exactly one answers committed carrying the chain id, the step id, the decider and the reason, and the terminal summary where the chain record's terminal summary names the intent's invocation id; none answers not-committed; a read that answers invalid-query or gives no answer answers unavailable (Recoverable Invocation act probe 4, act probe 5), and an invalid-query is surfaced on the finding surface. The trailing flag stays on the intent, where the routed vector reads it (Term routed vector).
+Term decision probe: the read that answers whether an open decision intent's step write committed — Approval Step's read filtered to the act key's step id and to a range whose start and end are the intent's pairing datum, on the decision instant or, for chain.step_withdrawal, on the withdrawal instant, kept in the composition's code to a step whose state is the kind's (Approved, Rejected or Withdrawn) and whose deciding actor or withdrawing actor EQUALS the intent's actor. Exactly one answers committed carrying the chain id, the step id, the decider and the reason, and the terminal summary where the chain record's terminal summary names the intent's invocation id; none answers not-committed; a read that answers invalid-query or gives no answer answers unavailable (Recoverable Invocation act probe 4, act probe 5), and an invalid-query is surfaced on the finding surface. The trailing flag stays on the intent, where the routed vector reads it (Term routed vector).
 
 Term withdrawal probe: the read that answers whether an open withdrawal intent's withdrawal committed — the composition's read of the chain record by the intent's chain id. A chain record Withdrawn by a chain withdrawal, its terminal summary naming the withdrawal path, whose terminal instant EQUALS the intent's pairing datum, answers committed carrying the reason and the terminal summary; any other answers not-committed; a read that fails or gives no answer answers unavailable.
 
@@ -152,6 +153,8 @@ Composition state 22: IF the chain rebuild finds a terminal event whose terminal
 Composition state 23: IF the chain rebuild finds an initiation event whose chain shape differs from the chain record's THEN the composition MUST alert the finding surface carrying the chain id.
 Composition state 24: IF the chain rebuild finds two initiation events OR two terminal events for one chain THEN the rebuild MUST bind the first by sequence number.
 Composition state 25: The composition MUST NOT store a record of the Recoverable Invocation instance.
+Composition state 26: A rebuild MUST NOT change a terminal chain record's chain state (Invariant 7.1).
+Composition state 27: A rebuild MUST NOT change a terminal chain record's terminal instant (Invariant 7.2).
 ```
 
 Term chain records: the set of chain records — `chain_store` in an implementation.
@@ -169,6 +172,8 @@ Term terminal instant: the now of the invocation whose commit moved the chain ou
 Term landed ids: the step ids and assignment ids an initiation appended to the chain record as each was minted.
 
 Term step list index: the map from a chain id to the chain's ordered step ids — `chain_to_steps` in an implementation.
+
+Term step list: a chain's ordered step ids as the step list index holds them.
 
 Term step-chain index: the map from a step id to its chain id — `step_to_chain` in an implementation.
 
@@ -190,7 +195,7 @@ Term live index entry: an index entry whose source event the record read answers
 
 Term purged index entry: a chain record, step list entry or event index entry whose source event the record read answers Purged, a held event included (Audit Trail Invariant 8.2b).
 
-Term chain rebuild: the log read kept to the chain-shape events, each recorded as its chain shape — the initiator from the initiation intent's actor, the act key giving the chain id — with the chain state, the terminal instant and the terminal summary from the chain's terminal event, Pending where none exists. A decision's outcome may precede its chain's initiation event in the log, the sweep recovering the one after the other landed, so the rebuild reads no order between a chain's initiation event and its other events.
+Term chain rebuild: the log read kept to the chain-shape events, each recorded as its chain shape — the initiator from the initiation intent's actor, the act key giving the chain id — with the chain state, the terminal instant and the terminal summary from the chain's terminal event, Pending where none exists AND no terminal chain record stands, a terminal chain record keeping its chain state and terminal instant (Composition state 26, Composition state 27). A decision's outcome may precede its chain's initiation event in the log, the sweep recovering the one after the other landed, so the rebuild reads no order between a chain's initiation event and its other events.
 
 Term event rebuild: the log read kept to the chain namespace, each record entered against the chain id its act key carries with the step id it names — the records the invocation wrote, the ones Recoverable Invocation's sweep recovered and the ones an operator wrote through the invocation resolve, each rebuilt rather than written by the composition (Recoverable Invocation Sweep never 1).
 
@@ -228,7 +233,7 @@ Capability requirement 20: The host MUST inject the chain id at [Initiate Chain]
 Capability requirement 21: The wired Audit Trail instance MUST expose the log read.
 Capability requirement 22: A deployment MUST declare the id widths.
 Capability requirement 23: The composition MUST stamp EVERY instant one invocation writes from the invocation's now.
-Capability requirement 24: A deployment composing Legal Hold MUST place a subject's hold over the event ids the event index names for the subject's chains.
+Capability requirement 24: A deployment composing Legal Hold MUST place a subject's hold over the event ids the event index names for the subject's chains ONLY AFTER rebuilding each such chain's event index entry.
 Capability requirement 25: A deployment needing reader authentication MUST bind the actor reference to an authenticated caller above the composition.
 Capability requirement 26: The deployment MUST supply the database PER Execution Contract Database 1 through 4, Execution Contract Query 1 through 4 and Execution Contract Read 6, AND the act section PER Execution Contract Database 7 AND Execution Contract Refusal 1 (Recoverable Invocation Capability requirement 12).
 Capability requirement 27: A deployment MUST declare the operating skew.
@@ -306,6 +311,8 @@ Primitive policy 14: The composition MUST NOT normalize a caller string.
 Primitive policy 15: The composition MUST NOT inspect a credential.
 Primitive policy 16: The composition MUST NOT write a credential into an event payload.
 Primitive policy 17: The composition MUST read a chain id's order ONLY as [Read Chain]'s tiebreak (Execution Contract Logic confinement 10).
+Primitive policy 18: IF the reason's length EXCEEDS Approval Step's string cap THEN [Withdraw Chain] MUST answer invalid-request AND MUST NOT write.
+Primitive policy 19: The composition MUST NOT call a constituent BEFORE Primitive policy 18 passes.
 ```
 
 Term reference: an actor reference or an approver reference — each becomes the actor reference of some audit write.
@@ -366,7 +373,7 @@ Term intent: an initiation intent, a decision intent or a withdrawal intent — 
 
 Term outcome: an initiation event, a decision's outcome or a withdrawal event — the record the invocation close writes after the commit, one Recoverable Invocation's sweep recovered under the recovery identity, or one an operator wrote through the invocation resolve.
 
-Term refusal record: the chain.initiation.refused, chain.approval.refused, chain.rejection.refused, chain.step_withdrawal.refused or chain.withdrawal.refused record the invocation refuse writes for a pre-commit arm, carrying the constituent's code (Recoverable Invocation refuse step 3.1).
+Term refusal record: the chain.initiation.refused, chain.approval.refused, chain.rejection.refused, chain.step_withdrawal.refused or chain.withdrawal.refused record the invocation refuse writes for a pre-commit arm, carrying the code the pre-commit arm answered — the constituent's, or the composition's own for a re-read refusal such as chain-state-changed (Recoverable Invocation refuse step 3.1).
 
 Term position: intent | outcome | refusal — Recoverable Invocation's (Recoverable Invocation Primitive policy 19 through 31): where a recording-failure of a state-changing action sat.
 
@@ -422,6 +429,7 @@ Action wiring 11: A submitted initiation MUST append EVERY assignment id assign 
 Action wiring 12: IF assign answers invalid-request OR already-assigned THEN the initiation transaction MUST commit no write AND [Initiate Chain] MUST close the pre-commit arm through the invocation refuse AND answer that code.
 Action wiring 13: IF assign answers already-assigned THEN the deployment MUST alert on the answer as id reuse in a constituent.
 Action wiring 14: [Initiate Chain] MUST close a staffed initiation through the invocation close naming chain.initiation.initiated, the outcome carrying the chain shape AND the reason (Recoverable Invocation commit 4).
+NOTE: open 2026-11-10-e — the invocation's initiation outcome carries the chain shape and the reason, and the one the sweep recovers carries the chain shape alone (Term initiation probe); the page does not say whether the two payloads are one shape.
 Deleted: Action wiring 15. Action wiring 68, Action wiring 69 and Recoverable Invocation Invariant 8.4 own it: an initiation whose close does not land answers recording-failure(outcome) carrying the chain id, the chain stays live, and its initiation event is the sweep's.
 Action wiring 16: A landed initiation MUST answer the chain id.
 Action wiring 17: IF the step-chain index's chain id for the step id DOES NOT EQUAL the chain id THEN the decision action MUST answer not-known.
@@ -460,7 +468,7 @@ Action wiring 49: [Withdraw Chain] MUST close a committed chain withdrawal throu
 Action wiring 50: A landed chain withdrawal MUST answer withdrawn.
 Action wiring 51: A validated read MUST call the permission check with the actor reference AND [Chains Read].
 Action wiring 52: IF the query is malformed THEN [Read Chain] MUST answer invalid-query.
-Action wiring 53: A permitted read MUST answer the chain results.
+Action wiring 53: A permitted read MUST answer the chain results ONLY AFTER rebuilding the event index entry of EVERY chain the results carry.
 Action wiring 54: A permitted read MUST read a step's assignment records through the step's assignment history.
 Action wiring 55: A permitted read MUST order chains by initiated instant AND then by chain id ascending (Execution Contract Logic confinement 10).
 Action wiring 56: [Read Chain] MUST NOT record an audit event.
@@ -479,11 +487,13 @@ Action wiring 68: IF a call of a state-changing action's commit answers an arm o
 Action wiring 69: IF the invocation open, refuse OR close answers a code of Recoverable Invocation's Action wiring table THEN the action MUST answer that code.
 Action wiring 70: An admitted chain withdrawal MUST write the terminal summary onto the chain record inside the withdrawal transaction.
 Action wiring 71: IF a read the action makes answers state-unavailable THEN the action MUST answer state-unavailable PER Execution Contract Read 1.
+Action wiring 72: A chain evaluation MUST NOT compute the routed vector BEFORE reading the chain's decision intents through the record read on the event ids the event index names.
+Action wiring 73: [Read Chain] MUST NOT answer a step's out-of-band mark BEFORE reading the chain's decision intents through the record read on the event ids the event index names.
 ```
 
 Term minted id: a chain id, a step id or an assignment id.
 
-Term prefixed reason: "chain:" and the chain id, then ": " and the caller's reason where supplied — the step's stored reason, which names its chain on the atom's own record.
+Term prefixed reason: "chain:" and the chain id, then, where the caller supplies a reason, even a blank one, ": " and that reason — the step's stored reason, which names its chain on the atom's own record.
 
 Term initiation intent: the chain.initiation.intended record.
 
@@ -576,6 +586,7 @@ Every input an action takes, and every answer a call of the six actions, of the 
 | [Initiate Chain] | a quorum rule outside the allowed quorum rules, or a quorum count outside the valid quorum counts | invalid-request, nothing written | Primitive policy 7, 8, 11 |
 | [Initiate Chain] | an approver set naming the initiator reference | admitted | Non-goal 13 |
 | [Reject Step], [Withdraw Step], [Withdraw Chain] | a blank reason | invalid-request, nothing written | Primitive policy 9, 11 |
+| [Withdraw Chain] | a reason longer than Approval Step's string cap, which the cascade's withdraw would refuse inside the commit | invalid-request, nothing written and no constituent called | Primitive policy 18, 19 |
 | [Initiate Chain], [Approve Step] | a reason supplied blank | carried as supplied, never normalized; at [Initiate Chain] the prefixed reason stays non-blank, and at [Approve Step] a refusal of the step write is relayed | Primitive policy 14, Term prefixed reason, Action wiring 22 |
 | every action but [Read Chain] | a larger payload over the payload budget | invalid-request, nothing written; the open's own sizing never meets it, and an invalid-request the open answers is alerted | Primitive policy 10, 11, Audit arm 5, Recoverable Invocation Primitive policy 12, 13 |
 | every action but [Read Chain] | the credential | consumed by the invocation open's intent record alone, never inspected or written into a payload | Primitive policy 15, 16 |
@@ -631,7 +642,7 @@ Every input an action takes, and every answer a call of the six actions, of the 
 | a cascade's withdraw | not-pending | the step named among the superseded step ids | Cascade 10 |
 | a cascade's withdraw | unauthorized or not-known | a deterministic arm: alerted, the cascade proceeds, the step named among the deterministic-arm step ids | Cascade 8, 12, 15, Action wiring 28 |
 | a cascade's withdraw | the temporal invalid-request | invalid-request, the commit writing nothing, refused; the chain stays Pending | Cascade 14 |
-| a cascade's withdraw | any other invalid-request | not met: the withdrawer is the step's submitter and the cascade reason is non-blank | Cascade 2, Term cascade reason |
+| a cascade's withdraw | any other invalid-request | not met: the withdrawer is the step's submitter and the cascade reason is non-blank and within Approval Step's string cap | Cascade 2, Term cascade reason, Primitive policy 18 |
 | a cascade's recall | ok | the recalled step ids | Cascade 13 |
 | a cascade's recall | not-active | read as done | Cascade 11 |
 | a cascade's recall | not-known | a deterministic arm: alerted, the cascade proceeds, the step named among the deterministic-arm step ids | Cascade 8, 15, Action wiring 28 |
@@ -646,12 +657,13 @@ Every input an action takes, and every answer a call of the six actions, of the 
 |---|---|---|---|
 | the record read, on an index entry's source event | Retained or Purged | the entry live, or purged | Composition state 20, Term live index entry, Term purged index entry |
 | the record read, on an event id the event index names | not-known | not met: the event index names landed events alone | Action wiring 57 |
-| the log read, from one with an open upper bound | the events | the chain rebuild, the event rebuild and their alerts | Composition state 12, 18, 22, 23 |
+| the record read, on the event ids the event index names under a chain's decision intents | each intent's actor, pairing datum and trailing flag, or Purged with the surviving reference and actor | the routed vector, the out-of-band marks | Action wiring 72, 73 |
+| the log read, from one with an open upper bound | the events | the chain rebuild, the event rebuild and their alerts | Composition state 12, 18, 22, 23, Action wiring 53 |
 | the log read | invalid-query | not met: the range has a start and no end | Term log read |
 
 Inside an action, a read that fails passes through unchanged and writes nothing (Execution Contract Read 1 through 3), and a read with no answer leaves the action none to give (Execution Contract Error model 1).
 
-**The composition's own records.** A chain record or index entry the action writes commits inside the action's commit (Execution Contract Database 1), and a write of them that fails answers storage-failure, closed through the refuse (Execution Contract Read 4, Action wiring 23); a key found carrying no index entry is rebuilt before any rule reads it so (Composition state 21). The event index takes the event ids the open, the close and the refuse return (Action wiring 57); a record the sweep or an operator wrote reaches it only through the event rebuild.
+**The composition's own records.** A chain record or index entry the action writes commits inside the action's commit (Execution Contract Database 1), and a write of them that fails answers storage-failure, closed through the refuse (Execution Contract Read 4, Action wiring 23); a key found carrying no index entry is rebuilt before any rule reads it so (Composition state 21). The event index takes the event ids the open, the close and the refuse return (Action wiring 57); a record the sweep or an operator wrote reaches it only through the event rebuild, which [Read Chain] runs on every chain it answers (Action wiring 53).
 
 **The leg.** It answers no caller, and decides only on an answered read (Reconciliation 39): a chain-record read, a step read or a log read that fails or gives no answer decides nothing, and the record is examined again at the next run (Reconciliation 2). It opens findings and alerts; it writes no outcome, which is the sweep's under the recovery identity.
 
@@ -683,13 +695,15 @@ Term lost vectors: under [All Of N], `(R + W) ≥ 1`; under [M Of N], `((N - R) 
 
 Term open vectors: the vectors neither met nor lost.
 
-Term routed transition: a step decision a decision intent carries — an intent of the decision's kind whose act key names the chain id and the step id, whose actor equals the step record's decider and whose pairing datum EQUALS the step's decision instant or withdrawal instant — or, past the retention horizon, one whose event index entry names an event the record read answers Purged with a surviving action reference of the decision kind's intended record and a surviving actor equal to the decider; or a cascade withdrawal the chain record's terminal summary names.
+Term routed transition: a step decision a decision intent carries — an intent of the decision's kind whose act key names the chain id and the step id, whose actor equals the step record's decider, whose pairing datum EQUALS the step's decision instant for an approval or rejection intent and the step's withdrawal instant for a step_withdrawal intent, the step excluded where the chain record's terminal summary names the step among its cascade-withdrawn step ids — or, past the retention horizon, a step whose event index entries name more purged events with a surviving action reference of the decision kind's intended record and a surviving actor equal to the decider than purged events with a surviving action reference of the decision kind's refused record or of an abandoned reference the kind derives and a surviving actor equal to the decider; or a cascade withdrawal the chain record's terminal summary names.
 
 Term out-of-band transition: a step decision in the Approval Step records no routed transition covers — written around the composition.
 
 Term out-of-band mark: a step's mark, set where an out-of-band transition decided the step and clear on every other step — read at each [Read Chain] from the Approval Step records and the chain's routed transitions, and kept in no record.
 
 Term rule reason: the generated reason a chain evaluation carries — "quorum met: A of N approved under" and the rule, for Approved; "quorum unreachable:" and the rule, then "N − R − W remain achievable; rejections present", for Rejected; "chain withdrawn by cascade:" and the rule, then "quorum unreachable by withdrawal alone", for Withdrawn — non-blank by construction (2026-08-26-g, 2026-08-29-g, 2026-08-29-p).
+
+NOTE: open 2026-11-10-d — the Rejected arm's "N − R − W remain achievable" is M-of-N arithmetic and the Withdrawn arm names no counts, against Wiring decision 9's "AND the counts"; which string each arm carries is not written.
 
 <details markdown="block">
 <summary>WHY</summary>
@@ -753,8 +767,8 @@ Deleted: Reconciliation 41. Recoverable Invocation reconcile step 2.3 owns it.
 Deleted: Reconciliation 42. Recoverable Invocation act section 15 owns it.
 Deleted: Reconciliation 43. Recoverable Invocation reconcile step 3.8 and Recoverable Invocation Invariant 3.5a own it: an escalation carries the database candidates, and an outcome never does.
 Reconciliation 44: The reconciliation MUST NOT examine a young record.
-Reconciliation 45: The reconciliation MUST read EVERY chain record AND EVERY decided step of the chain record's step list that Reconciliation 5 AND Reconciliation 44 admit, against the intents.
-Reconciliation 46: The reconciliation MUST read the sweep's run reading of now AND MUST NOT read now at a seam of the reconciliation.
+Reconciliation 45: The reconciliation MUST read EVERY chain record AND EVERY decided step of a chain record's step list that Reconciliation 5 AND Reconciliation 44 admit, each by the instant Term young record reads, against the intents.
+Reconciliation 46: The reconciliation MUST read the sweep's run reading of now, which Recoverable Invocation's run takes once at the sweep's own seam, AND MUST NOT read now at a seam of the reconciliation.
 Reconciliation 47: The reconciliation MUST take the enumeration of Reconciliation 45 once PER run, at the run's start.
 Reconciliation 48: IF a chain record Reconciliation 45 reads IS NOT a carried chain record THEN the reconciliation MUST open a write-ownership finding for the chain id.
 Reconciliation 49: IF a terminal chain record Reconciliation 45 reads IS NOT a carried terminal THEN the reconciliation MUST open a write-ownership finding for the chain id.
@@ -769,7 +783,7 @@ Term carried terminal: a terminal chain record whose terminating commit an inten
 
 Term carrying intent: the intent that makes a chain record a carried chain record, a terminal a carried terminal, or a step decision a routed transition — one at most, an equal now never reaching two invocations of one act key (Capability requirement 38).
 
-Term young record: a chain record whose initiated instant, a terminal chain record whose terminal instant, or a decided step whose decision instant or withdrawal instant stands within the examine window end of the act kind it names, measured back from the sweep's now: a record whose invocation the sweep may still be closing (Recoverable Invocation Term examine window end).
+Term young record: a chain record whose initiated instant, a terminal chain record whose terminal instant, or a decided step whose decision instant or withdrawal instant stands within the examine window end of the act kind of the intent that carries it — chain.initiation for an initiated instant, the terminating act's kind for a terminal instant, the decision's kind for a decision instant or withdrawal instant — measured back from the sweep's now: a record whose invocation the sweep may still be closing (Recoverable Invocation Term examine window end).
 
 Term aged record: a chain record or a decided step for which the sweep's now DOES NOT PRECEDE `(((instant + retention horizon) - (2 * clock offset allowance)) - reconciliation run bound)`, the instant read as Term young record reads it — a record whose intent the retention horizon may have destroyed, which the reconciliation would read as no intent.
 
@@ -797,8 +811,8 @@ Scope vocabulary 2: The composition MUST NOT gate a decision action on a Permiss
 ### Cascade
 
 ```
-Cascade 1: A cascade MUST call recall on the assignment of EVERY still-Pending step in the step list's order.
-Cascade 2: IF the chain state EQUALS Withdrawn THEN the cascade MUST call Approval Step's withdraw on EVERY still-Pending step with the initiator reference as the withdrawer AND the cascade reason.
+Cascade 1: A cascade MUST call recall on the assignment of EVERY still-Pending step of the chain's step list, in the step list's order.
+Cascade 2: IF the chain state EQUALS Withdrawn THEN the cascade MUST call Approval Step's withdraw on EVERY still-Pending step of the chain's step list with the initiator reference as the withdrawer AND the cascade reason.
 Cascade 3: The cascade MUST NOT call recall on a withdrawn step BEFORE the step's withdraw answers.
 Deleted: Cascade 4. Composition state 6 and Recoverable Invocation Action wiring 6 own it: the cascade's withdrawals ride the terminal summary in the terminating act's outcome, and the act writes no other journal record.
 Deleted: Cascade 5. Composition state 6 owns it: no cascade record exists to attest; the terminating act's outcome is attested at the invocation close under the caller's credential.
@@ -812,13 +826,14 @@ Cascade 12: IF withdraw answers unauthorized THEN the deployment MUST alert on t
 Cascade 13: The recalled step ids MUST list the steps whose recall answered ok, in recall order.
 Cascade 14: IF a cascade's withdraw answers the temporal invalid-request THEN the commit MUST commit no write AND the action MUST close the pre-commit arm through the invocation refuse AND answer invalid-request.
 Cascade 15: IF a cascade call answers a deterministic arm THEN the cascade MUST name the step id among the terminal summary's deterministic-arm step ids.
+Cascade 16: The terminal summary's cascade-withdrawn, superseded AND deterministic-arm step ids MUST list the steps in the step list's order.
 ```
 
 Term cascade: the secondary calls a terminal chain owes its still-Pending steps, run inside the terminating commit.
 
-NOTE: open 2026-11-06-c — "still-Pending" is not said to be the step's Approval Step state or Wiring decision 7's count, which differ for a step decided outside the composition; the cascade now runs inside the terminating commit, and Cascade 10's superseded arm is reachable only where it names Wiring decision 7's count.
+Term still-Pending step: a step of the chain's step list that the routed vector counts as Pending — a step no routed transition counted among A, R or W, a step decided out of band among them (Wiring decision 7), read at the terminating commit.
 
-Term cascade reason: the rule reason, or the initiator's validated reason on the [Withdraw Chain] path — non-blank by construction, so Approval Step never refuses a cascade withdrawal over its reason.
+Term cascade reason: the rule reason, or the initiator's validated reason on the [Withdraw Chain] path — non-blank by construction and, on the [Withdraw Chain] path, within Approval Step's string cap by Primitive policy 18, so Approval Step never refuses a cascade withdrawal over its reason.
 
 Term recalled step ids: the steps whose assignments a cascade recalled — always present in a terminal summary, empty where none.
 
@@ -892,7 +907,7 @@ These emerge from the composition; none belongs to one constituent, and each nee
   ```
   Invariant 9.1: IF a chain IS NOT IN the aged chains THEN the chain's lifecycle MUST resolve from the chain records, the Approval Step records, the Assignment records AND the chain's events alone.
   ```
-  Term lifecycle: the chain record; the ordered step records with each decision, decider, decision instant and reason; each step's assignment records; and the verified attestation of every chain-level and step-level act through the event index.
+  Term lifecycle: the chain record; the ordered step records with each decision, decider, decision instant and reason; each step's assignment records; and the verified attestation of every chain-level and step-level act through the chain's event index entry, rebuilt before [Read Chain] answers it (Action wiring 53).
 
 - **Invariant 10 — Authentication precedes commitment.**
   ```
@@ -944,9 +959,9 @@ Three one-paragraph runs over branches the walkthroughs above do not reach — c
 
 **A trailing decision — the third Qualified Person approves after the chain closed.** Continuing the batch-release example: two days after `chain-2026-0412` reached Approved on the second approval, QP Kim reviews the batch anyway and calls `approve_step(actor_ref=qp_kim, credential=kim_credential, chain_id=chain-2026-0412, step_id=step-kim, reason="Independent review complete; concur")`. Resolution finds the chain terminal — the call is *not* refused (the step's own Pending state is the gate) — and computes `trailing = true`, which the `chain.approval.intended` record carries. The transaction re-reads the chain, finds it terminal as the flag says, and the atom records the approval; the already-Recalled assignment's recall returns `not-active` (idempotent success), and the close records `chain.approval.approved` with `trailing = true` and no terminal summary. The chain evaluation does not run: no re-evaluation, no second resolution event, `chain_store` untouched. An auditor later walking the trail sees a `chain.approval.approved` after the chain's resolution event and reads the flag, not a contradiction. Had Kim's call resolved a moment before the second approval terminated the chain, its intent would carry `trailing = false`, the re-read would find the chain Approved, and the call would answer chain-state-changed with nothing written; Kim's retry is the trailing decision above (Action wiring 65).
 
-**A cascade a clock step refuses, and the initiator's retry.** An `all-of-N` chain of four is withdrawn by its initiator moments after it opened. The host injected the invocation's now into Approval Step's seam, but the node's clock had stepped back between the initiation and the withdrawal, so that now precedes the third step's submission instant, and Approval Step refuses the third cascade withdrawal with its temporal invalid-request. The withdrawal transaction commits no write (Cascade 14): the chain stays Pending, all four steps and their assignments stand, the refuse lands `chain.withdrawal.refused` carrying invalid-request, and the initiator receives invalid-request. A moment later the initiator retries under a later now; the cascade lands whole, and `chain.withdrawal.withdrawn` carries a terminal summary naming four cascade withdrawals and four recalls. No Pending step ever stands on a terminal chain, so no sweep has a residue to retry.
+**A cascade a clock step refuses, and the initiator's retry.** An `all-of-N` chain of four is withdrawn by its initiator moments after it opened. The host injected the invocation's now into Approval Step's seam, but the node's clock had stepped back between the initiation and the withdrawal, so that now precedes the third step's submission instant, and Approval Step refuses the third cascade withdrawal with its temporal invalid-request. The withdrawal transaction commits no write (Cascade 14): the chain stays Pending, all four steps and their assignments stand, the refuse lands `chain.withdrawal.refused` carrying invalid-request, and the initiator receives invalid-request. A moment later the initiator retries under a later now; the cascade lands whole, and `chain.withdrawal.withdrawn` carries a terminal summary naming four cascade withdrawals and four recalls. No Pending step stands on the chain this withdrawal terminated, so no sweep has a residue to retry.
 
-**A lost outcome on a terminating approval, recovered.** In the M-of-N(2) batch release, QP Lopez's approval is the second: the decision transaction commits — Lopez's step Approved, its decision instant the invocation's now, the chain Approved, the terminal summary on the chain record naming the invocation — but the close's write of `chain.approval.approved` answers recording-failure carrying step-3, its reply lost, and the read-back by invocation id finds nothing, so Lopez's call returns `recording-failure(outcome)` and is not re-run. The chain is already Approved for every reader of [Read Chain]. Recovery is Recoverable Invocation's: once the intent ages past its examine edge, the sweep runs the decision probe — Approval Step's read of Lopez's step at the intent's pairing datum, kept to an Approved step decided by `qp_lopez` — finds the step, reads the terminal summary off the chain record because it names the intent's invocation id, writes `chain.approval.recovery_intended`, and lands `chain.approval.approved` under the recovery identity with `recovery = true`, `qp_lopez` as the acting actor reference, and the terminal summary: the chain's resolution event, recovered.
+**A lost outcome on a terminating approval, recovered.** In the M-of-N(2) batch release, QP Lopez's approval is the second: the decision transaction commits — Lopez's step Approved, its decision instant the invocation's now, the chain Approved, the terminal summary on the chain record naming the invocation — but the close's write of `chain.approval.approved` answers recording-failure carrying step-3, its reply lost, and the read-back by invocation id finds nothing, so Lopez's call returns `recording-failure(outcome)` and is not re-run. The chain is already Approved for every reader of [Read Chain]. Recovery is Recoverable Invocation's: once the intent ages past its examine edge, the sweep runs the decision probe — Approval Step's read of Lopez's step at the intent's pairing datum, kept to an Approved step decided by `qp_lopez` — finds the step, reads the terminal summary off the chain record because it names the intent's invocation id, writes `chain.approval.recovery_intended`, and lands `chain.approval.approved` under the recovery identity with `recovery = true`, `qp_lopez` as the acting actor reference, and the terminal summary: the chain's resolution event, recovered. The next [Read Chain] rebuilds the chain's event index entry before answering it, so the chain's event ids name the recovered event (Action wiring 53).
 
 ### Regulated adversarial scenarios
 
@@ -986,7 +1001,7 @@ Check 6.2: An auditor MUST clear Permissions' Generation acceptance over the Per
 Check 6.3: An auditor MUST clear Assignment's Generation acceptance over the Assignment instance (Composes 5).
 Check 6.4: An auditor MUST clear Audit Trail's Generation acceptance over the Audit Trail instance (Composes 5).
 Check 6.5: An auditor MUST clear Recoverable Invocation's Generation acceptance over the Recoverable Invocation instance (Composes 5).
-Check 7.1: An auditor MUST find EXACTLY ONE terminal event for EVERY terminal chain whose terminating act's intent stands closed, carrying the chain record's terminal summary (Invariant 7.1).
+Check 7.1: An auditor MUST find EXACTLY ONE terminal event for EVERY terminal chain whose terminating act's intent stands closed, carrying the chain record's terminal summary (Invariant 7.3, Invariant 5.1).
 Check 7.2: An auditor MUST find no chain id two terminal events carry (Invariant 7.3).
 Check 8.1: An auditor MUST find EVERY chain record's declared fields equal to the chain shape the chain's chain-shape event carries (Invariant 8.1).
 Check 9.1: An auditor MUST resolve EVERY chain record AND EVERY decided step of a step list that is neither a young record nor an aged record to EXACTLY ONE OF a carried record whose carrying intent stands open, a carried record whose carrying intent stands escalated, a carried record an outcome names, a false closing, a write-ownership finding (Reconciliation 20, Reconciliation 48, Reconciliation 49, Reconciliation 50).
@@ -1118,6 +1133,8 @@ Term cadences: Recoverable Invocation's sweep cadence.
 
 Term qualifiers: migrated — rewritten in GRACE lang v0.61 (2026-09-24).
 
+NOTE: open 2026-11-10-f — the grammar this page is read against is v0.69; the page's migration to it is the maintainer's.
+
 Term terms: composition, constituents, transitive atoms, log read, record read, audit write, verification, step write, chain namespace, state-changing action, act kind, chain bindings, decision key, initiation transaction, decision transaction, withdrawal transaction, commit partition, initiation probe, decision probe, withdrawal probe, terminal summary, recovery identity, chain records, chain record, declared fields, chain id, chain state, terminal instant, landed ids, step list index, step-chain index, step-assignment index, event index, index entry, chain-shape event, chain shape, open initiation window, source event, live index entry, purged index entry, chain rebuild, event rebuild, terminal-data alert, shape alert, assignment history, approver set minimum, approver set uniqueness, allowed quorum rules, audit retention policy, retention horizon, decision completion bound, reconciliation run bound, intent candidates cap, clock offset allowance, invocation id, commit round trip, probe round trip, settling period, probed record, seam, now, id widths, operating skew, reference, capped string, actor reference, subject reference, scope, approver set, approver reference, quorum rule, quorum count, valid quorum counts, reason, reason-bearing action, field length cap, larger payload, payload budget, credential, intent, outcome, refusal record, position, recovery flag, chain results, query, minted id, prefixed reason, initiation intent, initiation event, decision intent, withdrawal intent, approval event, rejection event, step withdrawal event, withdrawal event, resolution event, terminal event, terminating act, decision's outcome, decision, decision's step write, step refusal, initiated instant, trailing flag, validated initiation, permitted initiation, admitted initiation, submitted initiation, staffed initiation, landed initiation, resolved decision, admitted decision, decided decision, landed decision, decision action, chain evaluation, terminating evaluation, validated chain withdrawal, found chain withdrawal, open chain withdrawal, admitted chain withdrawal, committed chain withdrawal, landed chain withdrawal, validated read, permitted read, routed vector, approved count, rejected count, withdrawn count, met vectors, lost vectors, open vectors, routed transition, out-of-band transition, out-of-band mark, rule reason, reconciliation, carried chain record, carried terminal, carrying intent, young record, aged record, write-ownership finding, false closing, finding surface, aged chains, aged chain, settled step, chainless step, cascade, cascade reason, recalled step ids, temporal invalid-request, deterministic arm, quiescent chains, quiescent chain, pre-withdrawal vector, open steps, audit record, committed transition, lifecycle, resolution-terminated chain, withdrawal-terminated chain, pre-intent refusal.
 
 Term cited: Execution Contract Conformance 8 — the recursive inheritance of a constituent's guarantees. Execution Contract Logic confinement 7 — the clock's guarantees are the deployment's. The section titled Composition state in `execution-contract.md` — the derived-index and extraction-pending classifications. The section titled Logic Confinement Principle in `execution-contract.md` — the seam. The section titled Compositions of compositions in `spec-format.md` — the transitive atoms. The section titled Structural-relation invariant templates in `spec-format.md` — the three relations. Execution Contract Read 1 — a failed read answers state-unavailable. record_action, read_record, verify_record, payload cap, reference length cap, attestation id width, step-2, step-3, step-4, invalid-credential, invalid-request, recording-failure, verified, failed-verification, purged, Retained, Purged, committed ids, alerting surface, Erasure Tombstone, Reverse Index, Failed-Attempt Log, Trusted Timestamping, Compromise Disclosure: Audit Trail. submit, approve, reject, withdraw, read, submitted_at, decided_by, withdrawn_by, approved, rejected_outcome, withdrawn, Pending, Approved, Rejected, Withdrawn, invalid-request, not-known, not-pending, unauthorized, storage-failure, invalid-query, string cap, decision instant, withdrawal instant: Approval Step. assign, recall, active_for, history_for, ok, not-active, already-assigned, Active, Recalled: Assignment. permitted, denied: Permissions. open, close, refuse, yield, resolve, sweep, act key, pairing datum, act probe, commit, repeatable, journal, service identity, outcome envelope, invocation completion bound, closure window, sweep cadence, run bound, clock allowance, examine window end, reference length cap, act-in-flight, section-unavailable, journal-unavailable, already-accounted, act-landed, recovery, acting actor reference, act section, compliance surface, run id, operator run id: Recoverable Invocation. Lease: reached through Recoverable Invocation. read: Event Log. Sequenced Approval Chain, Delegation, Deadline Escalation: forthcoming.
@@ -1156,7 +1173,7 @@ Kind: Operation
 
 #### Read Chain
 
-The read-only query returning chain records and their composed step / assignment / attestation surface — the chain's audit `event_id`s from `chain_to_events` included, and the terminal summary on a terminal chain — in declared order (ascending `initiated_at`, tie-broken by chain_id). Gated by [Chains Read]; produces no audit event, takes no credential, and is not an act kind (Composes 16).
+The read-only query returning chain records and their composed step / assignment / attestation surface — the chain's audit `event_id`s from `chain_to_events`, each answered chain's entry rebuilt first, included, and the terminal summary on a terminal chain — in declared order (ascending `initiated_at`, tie-broken by chain_id). Gated by [Chains Read]; produces no audit event, takes no credential, and is not an act kind (Composes 16).
 
 Kind: Operation
 
@@ -1304,14 +1321,16 @@ It inherits from:
 ```
 status: partially resolved
 formal: verified — multi-party-approval.tla + 17 twins + 8 reachability probes, re-derived 2026-11-10 over the split arc (each state-changing action an open, a commit and a close; the initiation, decision and withdrawal transactions one commit each, a refusal inside one writing nothing), against Recoverable Invocation's contracts (the sweep's closing by this page's initiation, decision and withdrawal probes, the escalation, an operator's resolve unchecked against the records), with a step decided out of band, the write-ownership leg and the chain rebuild's alerts; one model under TLC, 926,652 states (one chain of three slots, the quorum rule chosen at the start, three invocations, one failure, one out-of-band decision); Invariant 1.1, 2.1, 2.2, bypass resistance, 4.1, 4.2, 7.1, the cascade's withdrawn residue (Cascade 2, 14), the trailing re-read (Action wiring 64, 65), the owed outcome (Invariant 5.1), the probes' outcomes and terminal summary (Composition state 6, 7), the terminal-data and shape alerts (Composition state 22, 23), the pairing datum (Capability requirement 37, 38), the write-ownership finding (Reconciliation 20) and the false-closing alert (Reconciliation 50), each broken by a twin alone; Invariant 10.1 through 10.3 inherited from Recoverable Invocation Invariant 1.1, the closure window from Recoverable Invocation Invariant 4.2; not modelled: Recoverable Invocation's mechanism, the clock (the young and aged records, the horizon, Invariant 7.2), Permissions, validation ahead of the open, the cascade's deterministic and superseded arms, a chain record written outside every invocation (Reconciliation 48, 49), the derived indexes; coverage 2026-11-10: owes Alloy (the static data model); owed rows: Invariant 1.3, 1.4; Invariant 1.5; Invariant 3.1 through 3.3; Invariant 4.3; Invariant 5.2, 5.3; Invariant 7.2; Invariant 8.1; Invariant 9.1, 2026-11-10
-last gate: 2026-11-06 — Final Critique 18 — full, frozen at 56ae031 — foundational count 0, clean, three fresh passes; 2026-11-06 — Final Critique 17 — delta — foundational count 2, not clean, no sample
+last gate: 2026-11-11 — Final Critique 19 — full, frozen at 6ea0894 — foundational count 7, not clean, no sample; 2026-11-06 — Final Critique 18 — full, frozen at 56ae031 — foundational count 0, clean, three fresh passes; 2026-11-06 — Final Critique 17 — delta — foundational count 2, not clean, no sample
 
 open:
 - 2026-11-05-a · refining · Retention asymmetry 2a; Audit Trail Invariant 8.2b · a held event answers failed-verification carrying purged as a purged one does, and the page does not say where an auditor reads that a hold keeps the event → name the record the auditor reads, a decision on what a hold is
-- 2026-11-06-c · refining · Term cascade; Cascade 1; Cascade 2; Cascade 10; Invariant 4.2 · "still-Pending" is read from Approval Step's state by one build and from Wiring decision 7's count by another, so a step decided outside the composition keeps or loses its assignment at a terminal chain's cascade, and Cascade 10's superseded arm is reachable only under the second reading, now that the cascade runs inside the terminating commit → decide which count the cascade's still-Pending names; a gloss that excludes every routed transition would stop the cascade recalling the steps it withdraws (Cascade 3)
 - 2026-11-06-b · refining · Term field length cap; Term query; Primitive policy 4 · a deployment's smaller field length cap makes a query filter malformed that another deployment answers, and the cap's floor does not reach a reference filter → decide whether the cap's floor covers a query filter
 - 2026-11-10-a · refining · Composition notes; Term initiation transaction; Term decision transaction; Term withdrawal transaction · Recoverable Invocation's bound commit is one constituent call, and each of this page's three commits is many calls in one database transaction (the initiation up to twice the approver set's count, a decision's cascade up to twice the approver set's count more), a case Recoverable Invocation's closed deviation list does not name (Recoverable Invocation Deviation 2) → carry to Recoverable Invocation's next revision as evidence, or declare it there
 - 2026-11-10-b · refining · Reconciliation 20, Reconciliation 45, Reconciliation 48, Reconciliation 49; Term routed transition · a chain record, a terminal or a step decision written before the composition bound its act kinds carries the old vocabulary and no Recoverable Invocation intent, so the leg reads it as uncarried and opens a write-ownership finding until it ages past the horizon, and the routed vector reads such a step decision as out-of-band → decide whether the leg and the routed vector read from a declared cut-over instant, or the old decision intents are read as carrying by a rule of their own
+- 2026-11-10-d · refining · Term rule reason; Wiring decision 9 · the Rejected arm's "N − R − W remain achievable" is M-of-N arithmetic (under all-of-N one rejection rejects whatever remains) and the Withdrawn arm names no counts → decide the string each arm carries
+- 2026-11-10-e · refining · Action wiring 14; Term initiation probe · the invocation's initiation outcome carries the chain shape and the reason, and the sweep-recovered one the chain shape alone, one reference with two payload shapes → decide whether the recovered outcome carries the reason, read from the first step's stored reason, or the shape is one
+- 2026-11-10-f · refining · Term qualifiers · migrated in GRACE lang v0.61, read against v0.69 → migrate
 - 2026-11-10-c · refining · Invariant 1.5; Check 1.3; Reconciliation 45; Term chainless step · the leg reads the steps a chain record's step list names, and a chainless step no step list names is left to the auditor's Check 1.3; Approval Step's read has no reason axis, so the leg cannot find a step by its chain-id prefix → decide whether the leg reads by subject reference and submitter, or the auditor's check stays the only reader
 ```
 
