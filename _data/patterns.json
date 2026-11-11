@@ -807,9 +807,9 @@
   "invariants": 11,
   "kind": "atom",
   "models": {
-   "als": false,
+   "als": true,
    "tla": true,
-   "twins": 4
+   "twins": 17
   },
   "regulated_by": [
    "external-onboarding"
