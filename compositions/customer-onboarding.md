@@ -1501,14 +1501,14 @@ The three constituents carry their own deep standards inheritance — see each c
 
 ## Status
 
-`partially resolved` — see the Ledger.
+`grounded on Final Critique 8 — 2026-11-11 at 1537770` — see the Ledger.
 
 ## Ledger
 
 ```
-status: partially resolved
+status: grounded on Final Critique 8 — 2026-11-11 at 1537770
 formal: verified — customer-onboarding.tla + 10 twins + 7 reachability probes, re-derived 2026-11-10 over the split arc (each acting action an open, a commit and a close; the suspension, clearance and closure transactions one commit each with the re-read the page puts inside it, a refusal inside one writing nothing), against Recoverable Invocation's contracts (the sweep's closing by this page's suspension, clearance and closure probes on the pairing datum, the escalation, an operator's resolve unchecked against the records), with a state change written on Party Identity outside every invocation and the reconciliation's write-ownership finding and false-closing alert; one model under TLC, 64,020 states (one party verified under an active case, two adverse triggers, three invocations, one outside write); Invariant 7.1 and 7.2 at the restated quiescence, the trigger set's rebuild (Composition state 31 through 34), the clearance's and the closure's re-reads (Action wiring 164 through 167, the in-flight adverse intent among them), Invariant 7.4 and 7.5, the owed outcome (Cross-record consistency 1), the pairing datum (Capability requirement 48, 49), the write-ownership finding (Reconciliation 38) and the false-closing alert (Reconciliation 39), each broken by a twin alone; Invariant 3.1's order inherited from Recoverable Invocation Invariant 1.1, the closure window from Recoverable Invocation Invariant 4.2; not modelled: Recoverable Invocation's mechanism, the clock (the young and aged records, the cut-over instant, the horizon), the enrollment, admission, verification and periodic review kinds, Retention Window, the gate, validation ahead of the open, the derived indexes other than the open-trigger set; coverage 2026-11-10: owes Alloy (the static data model); owed rows: Invariant 1.1 through 1.3; Invariant 2.1, 2.3; Invariant 4.1 through 4.3; Invariant 5.1 through 5.4, 5.6; Invariant 6.1; Reconciliation 22, 23, 25, 43 and the leg's edges, 2026-11-10
-last gate: 2026-11-11 — Final Critique 7, delta round — 4 foundational, not clean, one fresh pass
+last gate: 2026-11-11 — Final Critique 8, a delta round, frozen at 1537770 — foundational count 0 after the blind second triage, clean, one fresh pass (Linus's one report claimed one, an operator's resolve through Composition state 34 leaving a suspended party with an empty open-trigger set; both triages refuted it: the NOTE after Invariant 8.7 and the 2026-11-10 decision record that an operator's closing is detected, not prevented, by Reconciliation 23 and Check 7.3)
 
 open:
 - 2026-11-11-a · refining · Invariant 7.5; Composition state 33, 34; Action wiring 83 · the closed triggers and the open triggers at close ride the intent in full, so a case whose open triggers outnumber what one intent carries under Audit Trail's payload cap can be neither cleared nor closed by an action; the refusal at the open is the answer for a payload past the cap, and Final Critique 6 deleted Primitive policy 20's digest for it → decide whether an operator's resolve is the way out of such a case, or the sets split across more than one intent
