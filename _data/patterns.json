@@ -1223,7 +1223,7 @@
    "permissions",
    "retention-window"
   ],
-  "grounded": false,
+  "grounded": true,
   "invariants": 8,
   "kind": "composition",
   "models": {
@@ -1236,7 +1236,7 @@
    "GDPR",
    "HIPAA"
   ],
-  "status": "partially resolved",
+  "status": "grounded on Final Critique 24 \u2014 2026-11-11 at 79168ca",
   "substrates": [
    "audit-trail",
    "recoverable-invocation"
