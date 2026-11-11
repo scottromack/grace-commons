@@ -80,7 +80,7 @@ Term audit write: Audit Trail's record_action.
 
 Term verification: Audit Trail's verify_record on an event id and a presentation.
 
-Term attestation verification: what a found verification carries for an entry in place of Audit Trail's answer — the verification's outcome and reason with its compensation-window qualifier (Action wiring 43, 44), or payload-not-supplied with the missing sequence numbers where the verification is not called (Action wiring 41).
+Term attestation verification: what a found verification carries for an entry in place of Audit Trail's answer — the verification's outcome and reason, with the verification's compensation-window qualifier riding beside it (Action wiring 43, 44), or payload-not-supplied with the missing sequence numbers where the verification is not called (Action wiring 41).
 
 Term custody action: [Originate Custody], [Transfer Custody], [Transform Custody], [Disclose Custody] or [Archive Custody].
 
@@ -393,6 +393,7 @@ NOTE: watch the purged co-member (Action wiring 41, Action wiring 56).
 NOTE: open 2026-11-04-f — Action wiring 41's missing sequence numbers and Verdict 2's named entries carry no stated cardinality cap.
 Action wiring 43: A found verification MUST carry the verification's outcome AND reason unchanged as the attestation verification.
 Action wiring 44: A found verification MUST carry the verification's compensation-window qualifier beside the attestation verification.
+NOTE: watch the side-channel qualifier (Term attestation verification, Action wiring 44).
 Action wiring 45: IF the attestation verification EQUALS verified THEN a found verification MUST compare the entry's compared fields with the payload at the bound event's own position as the entry payload match.
 Action wiring 46: IF the attestation verification IS NOT IN verified and failed-verification carrying purged THEN the entry payload match MUST carry unanchored.
 Action wiring 57: IF the attestation verification EQUALS failed-verification carrying purged THEN the entry payload match MUST carry not-applicable carrying purged.
@@ -470,7 +471,7 @@ Term compared fields: the custodian reference of an originated, received, transf
 
 Term attested custodian: a transferred entry's outgoing custodian, or another entry's custodian reference — the acting custodian of the action that appended the entry.
 
-Term actor match: match | match carrying recovery | attribution-mismatch carrying the actor reference | unknown carrying purged | unknown carrying not-known — match where the event carries no recovery flag and the event's attesting actor names the entry's attested custodian; match carrying recovery where the event carries the recovery flag, its acting actor reference names the entry's attested custodian, and its attesting actor is the recovery identity or the resolving actor the event names (Recoverable Invocation Invariant 5.2, Invariant 5.4); attribution-mismatch carrying the actor reference where neither clause holds.
+Term actor match: match | match carrying recovery | attribution-mismatch carrying the actor reference | unknown carrying purged | unknown carrying not-known — match where the event carries no recovery flag and the event's attesting actor names the entry's attested custodian; match carrying recovery where the event carries the recovery flag, its acting actor reference names the entry's attested custodian, and its attesting actor is the recovery identity or the resolving actor the event names (Recoverable Invocation reconcile, Recoverable Invocation resolve); attribution-mismatch carrying the actor reference where neither clause holds.
 
 Term recovery attestation: true | false | unknown carrying purged | unknown carrying not-known — whether the bound event carries the recovery flag.
 
@@ -551,7 +552,7 @@ Every input an action takes, and every answer a call of the seven actions and of
 | the custody enumeration | invalid-query | a deployment fault, alerted | Composes 10 |
 | the record read, on a bound event | Retained, unresolved in its compensation window, Purged, or partially-purged coverage | the verification, or none, as Action wiring 39 through 42 and 56 decide | Action wiring 38 through 42, 56 |
 | the record read | not-known | binding-gap, the actor match and the recovery attestation unknown, the entry payload match unanchored | Action wiring 62, Verdict 13 |
-| the verification | its outcome and reason | the attestation verification, unchanged, with its compensation-window qualifier | Action wiring 43, 44 |
+| the verification | its outcome and reason | the attestation verification, unchanged, with its compensation-window qualifier riding beside it | Action wiring 43, 44 |
 | the read passthrough | Provenance's answer | the same answer, unchanged | Action wiring 54 |
 
 Inside every action, a read that fails answers state-unavailable and writes nothing (Action wiring 59, Execution Contract Read 1 through 3), and a read with no answer leaves the action none to give (Execution Contract Error model 1).
@@ -677,6 +678,7 @@ Term incomplete-input class: payload-not-supplied | availability.
 Term standing class: partially-purged-coverage.
 
 Term attestation reason: a failed-verification reason IS NOT IN purged, unsealed, seal-proof-invalid, seal-record-set-mismatch and seal-not-known.
+NOTE: open 2026-11-11-a — the term defines the base set by exclusion, and no declared surface of Audit Trail enumerates the reasons its attestation step returns.
 
 Term failed attestation: failed-verification carrying an attestation reason.
 
@@ -832,7 +834,7 @@ Check 4.1: IF no invalid-request(step-4) refusal kept a custody event THEN an au
 NOTE: open 2026-11-06-f — the check names Retained and Purged, while Term live event adds unresolved in its compensation window.
 Check 4.2: An auditor MUST find EVERY Purged outcome event carrying a Purged retention record whose purge instant DOES NOT PRECEDE the retention deadline (Invariant 3.2).
 Check 5.1: An auditor MUST enumerate the chain's outcome events through the custody enumeration AND find no two outcome events carrying one entry id (Invariant 4.3).
-Check 5.2: An auditor MUST find EVERY outcome event naming an entry the chain carries (Invariant 4.4).
+Check 5.2: An auditor MUST find EVERY outcome event naming an entry the Provenance chain carries (Invariant 4.4).
 Check 5.3: An auditor MUST find EVERY live binding's outcome event carrying the binding's entry id (Composition state 3).
 NOTE: open 2026-11-10-f — [Verify Custody] never checks this property, and the compared fields exclude the metadata (Primitive policy 15), so the anchor the Summary names stops short of it.
 NOTE: watch the check over a derived index (Check 1.1, Check 5.3).
@@ -852,7 +854,7 @@ Check 7.3: An auditor MUST clear Recoverable Invocation's Generation acceptance 
 
 NOTE: EVERY check names the rule the check tests.
 
-Term passing verification: verified | failed-verification carrying purged | failed-verification carrying unsealed | unverifiable carrying partially-purged-coverage.
+Term passing verification: verified | failed-verification carrying purged | failed-verification carrying unsealed | unverifiable carrying partially-purged-coverage — the outcome alone, a compensation-window qualifier riding beside it changing none of the four (Verdict 18).
 
 ### External checks
 
@@ -1101,7 +1103,7 @@ this composition inherits the broader standards compliance of its constituents:
 ```
 status: partially resolved
 formal: verified — chain-of-custody.tla + 11 twins + 7 reachability probes, re-derived 2026-11-10 over the split arc (each custody action an open, a commit and a close; [Transfer Custody]'s resolution read ahead of the open and its re-read inside the transfer transaction), against Recoverable Invocation's contracts (the sweep's closing by this page's originate and step probes, the escalation, an operator's resolve unchecked against Provenance), with a transfer written outside every invocation, the write-ownership leg and the binding rebuild's duplicate finding; one model under TLC, 478,490 states (one chain, two custodians, three invocations, one outside write, the genesis lookup chosen at the start); Invariant 1.2, 4.1, 4.3, 4.4, 7.2, Wiring decision 4, Action wiring 12 through 31 (the open before the commit), Composition state 9, the probes' pairing datum (Capability requirement 34, 35), the originate probe without a lookup (Term originate probe), the write-ownership finding (Reconciliation 11) and the false-closing alert (Reconciliation 32), each broken by a twin alone; the reconciliation's twins and probes retired to Recoverable Invocation (Invariant 1.3, 1.4, 4.2, 4.5 and 7.1 inherited: Invariant 1.3 through Recoverable Invocation Invariant 5.1, 5.2, which recoverable-invocation.tla checks from v8; Reconciliation 4's aged edge and Reconciliation 14, 15's cap move onto Recoverable Invocation Invariant 7.2 and 3.5a, which its model does not check — owed there, not paid in this unit, as Propagate Consent Revocation Downstream's unit paid none of its equivalents, and recorded in its coverage); not modeled: Recoverable Invocation's mechanism and the clock (the young, aged and settled entry, the closure window, the sweep cadence), disclosure and archival (the transformation stands for the three custodian-guarded steps) and the archived refusals, Provenance's other pre-commit refusals, [Verify Custody] and the binding index's content, a second chain; coverage 2026-11-10: owes Alloy (the static data model); owed rows: none new, 2026-11-10
-last gate: 2026-11-10 — Final Critique 18, a full round, frozen at 234409b — foundational count 5, not clean, no sample; 2026-11-06 — Final Critique 17, a delta round, frozen at dbb9804 — foundational count 0, clean, one sample; 2026-11-06 — Final Critique 16, delta — foundational count 1, not clean, no sample
+last gate: 2026-11-11 — Final Critique 19, a delta round, frozen at f10d9ab — foundational count 1, not clean, no sample; 2026-11-10 — Final Critique 18, a full round, frozen at 234409b — foundational count 5, not clean, no sample; 2026-11-06 — Final Critique 17, a delta round, frozen at dbb9804 — foundational count 0, clean, one sample; 2026-11-06 — Final Critique 16, delta — foundational count 1, not clean, no sample
 
 open:
 - 2026-11-04-d · refining · Action wiring 39, 56 · the verification call may present an empty payload, which Audit Trail Primitive policy 27 forbids a caller with no exemption, though Audit Trail never reads it there (Verify Record step 1.2, 1.3 for Purged; step 4.2, 4.3 for partially-purged coverage) and answers an empty one only where step 5 runs; withholding the call instead would drop step 3's attestation outcome on partially-purged coverage (Action wiring 43, Verdict 10, 15) → decide whether Audit Trail scopes Audit Trail Primitive policy 27 to a call that reaches step 5, as a caller exemption
@@ -1120,6 +1122,7 @@ open:
 - 2026-11-10-f · refining · Check 5.3, Summary · [Verify Custody] never checks that a bound event carries the binding's entry id (the auditor's Check 5.3 does), and the Summary's "no entry was tampered with" reads past the compared fields, which exclude the metadata (Primitive policy 15) → decide whether [Verify Custody] checks the binding's entry id and whether the anchor's metadata carve-out is a Non-goal
 - 2026-11-10-g · refining · Action wiring 21, Term transfer · a retry of [Transfer Custody] after a lost answer lands a second entry transferring the holder to itself, which the continuity check reads continuous while Term Transfer says a transfer is a hand-to-hand change → decide whether an incoming custodian equal to the resolved custodian is refused or a permitted entry
 - 2026-11-10-h · refining · transfer_custody, Action wiring 16 through 18 · the refuses line lists invalid-credential ahead of not-known and archived while the read's refusals answer before the open validates the credential, so no order of the line expresses the flow → decide whether a rule names invalid-credential on the read's ground (Refusal 1)
+- 2026-11-11-a · refining · Term attestation reason · the term defines a failed-verification reason by exclusion from the five seal and retention reasons, a base set Audit Trail's declared surfaces do not enumerate, so if those five are the substrate's whole reason set Verdict 10 never applies → carry to Audit Trail: declare the reasons its attestation step returns, then name them here
 ```
 
 <details markdown="block">
