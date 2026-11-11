@@ -199,7 +199,6 @@
 2026-11-11	compositions/propagate-consent-revocation-downstream-equal-now-buggy.tla	twin	tla	386	0	-	-	-	-	-	CAUGHT	tlc
 2026-11-11	compositions/immutable-ledger-buggy-equalnow.tla	twin	tla	380	0	-	-	-	-	-	CAUGHT	tlc
 2026-11-11	compositions/customer-onboarding-probe-clear-refused.tla	twin	tla	375	0	-	-	-	-	-	CAUGHT	tlc
-2026-11-11	atoms/legal-hold.tla	model	tla	370	0	-	-	-	-	-	HOLDS	tlc
 2026-11-11	compositions/compensable-workflow-close-over-attempt-buggy.tla	twin	tla	355	0	-	-	-	-	-	CAUGHT	tlc
 2026-11-11	compositions/capability-backed-sharing-buggy-redeem-kept.tla	twin	tla	365	0	-	-	-	-	-	CAUGHT	tlc
 2026-11-11	compositions/capability-backed-sharing-buggy-close-on-refused.tla	twin	tla	350	0	-	-	-	-	-	CAUGHT	tlc
@@ -334,7 +333,6 @@
 2026-11-11	compositions/audit-trail-binding.tla	model	tla	27	0	-	-	-	-	-	HOLDS	tlc
 2026-11-11	compositions/authenticated-actor-probe-refused.tla	twin	tla	27	0	-	-	-	-	-	CAUGHT	tlc
 2026-11-11	compositions/execute-gated-workflow-buggy-unrecorded.tla	twin	tla	27	0	-	-	-	-	-	CAUGHT	tlc
-2026-11-11	atoms/legal-hold-buggy-cascade.tla	twin	tla	25	0	-	-	-	-	-	CAUGHT	tlc
 2026-11-11	compositions/capability-backed-sharing-buggy-unanswered-committed.tla	twin	tla	25	0	-	-	-	-	-	CAUGHT	tlc
 2026-11-11	compositions/capability-backed-sharing-buggy-default-past-horizon.tla	twin	tla	24	0	-	-	-	-	-	CAUGHT	tlc
 2026-11-11	atoms/party-identity-buggy.tla	twin	tla	22	0	-	-	-	-	-	CAUGHT	tlc
@@ -351,7 +349,6 @@
 2026-11-11	compositions/attributed-permissions-admin-buggy-attestpurge.tla	twin	tla	19	0	-	-	-	-	-	CAUGHT	tlc
 2026-11-11	compositions/attributed-permissions-admin-probe-tamperread.tla	twin	tla	19	0	-	-	-	-	-	CAUGHT	tlc
 2026-11-11	compositions/verified-repair-budget-buggy-ruledany.tla	twin	tla	19	0	-	-	-	-	-	CAUGHT	tlc
-2026-11-11	atoms/legal-hold-buggy.tla	twin	tla	18	0	-	-	-	-	-	CAUGHT	tlc
 2026-11-11	compositions/actor-suspension-probe-secondcascade.tla	twin	tla	18	0	-	-	-	-	-	CAUGHT	tlc
 2026-11-11	compositions/attributed-permissions-admin-probe-directrevoke.tla	twin	tla	17	0	-	-	-	-	-	CAUGHT	tlc
 2026-11-11	compositions/capability-backed-sharing-buggy-close-skipped.tla	twin	tla	18	0	-	-	-	-	-	CAUGHT	tlc
@@ -825,3 +822,23 @@
 2026-11-11	atoms/invitation.als	model	als	-	-	24	13	11	0	0	HOLDS	alloy
 2026-11-11	atoms/invitation-buggy-revoke-unstamped.als	twin	als	-	-	24	12	11	1	0	CAUGHT	alloy
 2026-11-11	atoms/invitation-buggy-re-resolved.als	twin	als	-	-	24	11	9	2	2	CAUGHT	alloy
+2026-11-11	atoms/legal-hold.tla	model	tla	370	0	-	-	-	-	-	HOLDS	tlc
+2026-11-11	atoms/legal-hold-buggy-cascade.tla	twin	tla	25	0	-	-	-	-	-	CAUGHT	tlc
+2026-11-11	atoms/legal-hold-buggy.tla	twin	tla	18	0	-	-	-	-	-	CAUGHT	tlc
+2026-11-11	atoms/legal-hold-buggy-blank-releaser.als	twin	als	-	-	23	15	7	1	0	CAUGHT	alloy
+2026-11-11	atoms/legal-hold-buggy-blank-hold-reason.als	twin	als	-	-	23	15	7	1	0	CAUGHT	alloy
+2026-11-11	atoms/legal-hold-buggy-blank-case.als	twin	als	-	-	23	15	7	1	0	CAUGHT	alloy
+2026-11-11	atoms/legal-hold-buggy-hold-reason-rewritten.als	twin	als	-	-	23	15	7	1	0	CAUGHT	alloy
+2026-11-11	atoms/legal-hold-buggy-blank-record.als	twin	als	-	-	23	15	7	1	0	CAUGHT	alloy
+2026-11-11	atoms/legal-hold-buggy-blank-release-reason.als	twin	als	-	-	23	15	7	1	0	CAUGHT	alloy
+2026-11-11	atoms/legal-hold-buggy-blank-placer.als	twin	als	-	-	23	15	7	1	0	CAUGHT	alloy
+2026-11-11	atoms/legal-hold-buggy-place-presets-release.als	twin	als	-	-	23	15	7	1	0	CAUGHT	alloy
+2026-11-11	atoms/legal-hold-buggy-keyed-by-record.als	twin	als	-	-	23	15	7	1	0	CAUGHT	alloy
+2026-11-11	atoms/legal-hold-buggy-place-unstamped.als	twin	als	-	-	23	15	7	1	0	CAUGHT	alloy
+2026-11-11	atoms/legal-hold-buggy-release-predates.als	twin	als	-	-	23	15	7	1	0	CAUGHT	alloy
+2026-11-11	atoms/legal-hold-buggy-state-added.als	twin	als	-	-	23	14	4	2	3	CAUGHT	alloy
+2026-11-11	atoms/legal-hold-buggy-release-unstamped.als	twin	als	-	-	23	15	7	1	0	CAUGHT	alloy
+2026-11-11	atoms/legal-hold-buggy-re-released.als	twin	als	-	-	23	15	7	1	0	CAUGHT	alloy
+2026-11-11	atoms/legal-hold-buggy-release-by-record.als	twin	als	-	-	23	15	7	1	0	CAUGHT	alloy
+2026-11-11	atoms/legal-hold.als	model	als	-	-	23	16	7	0	0	HOLDS	alloy
+2026-11-11	atoms/legal-hold-buggy-reinstated.als	twin	als	-	-	23	14	7	2	0	CAUGHT	alloy

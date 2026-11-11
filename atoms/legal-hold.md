@@ -679,7 +679,7 @@ Projection: invalid-query
 
 ```
 status: grounded on Final Critique 8 — 2026-10-24 at c39a73f
-formal: verified — legal-hold.tla + 2 twins; coverage 2026-11-10 (unit formal: more coverage for the yes votes): owes Alloy (the static data model); owed rows: Invariant 1; Invariant 3; Invariant 5; Invariant 7, 2026-06-04
+formal: verified — legal-hold.tla + 2 twins (2026-06-04); legal-hold.als + 16 twins (the static data model, 2026-11-11: Invariant 1.1, 1.2, 2.1, 3.1, 4.2, 5.1, 5.2, 5.3, 6.1, 7.1, 7.2 and 7.3, State 5, Operation 4 and 7 and Instance 2 checked on every hold record an admitted [Place] or [Release] leaves, Invariant 1 and 3.1 read against the versions that built the record, Invariant 4.2 and 6.1 a cross-check with the TLA+ model; nothing testable in Alloy for Invariant 3.2, 4.1, 4.3 and 8: 3.2 names what the signature offers, not a state, and its twin is caught by 3.1; 4.1 and 8 compare two readings, a deleted hold leaving nothing in one state; 4.3 defines a reading over stored fields with no stored aggregate to hold it to); coverage 2026-11-10 (unit formal: more coverage for the yes votes), 2026-11-11
 last gate: 2026-11-02 — Final Critique 9, a delta round, frozen at d1e9f55 — foundational count 0, clean, no sample; 2026-10-24 — Final Critique 8 — foundational count 0, clean, one sample
 
 open:

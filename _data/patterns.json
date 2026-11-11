@@ -862,9 +862,9 @@
   "invariants": 8,
   "kind": "atom",
   "models": {
-   "als": false,
+   "als": true,
    "tla": true,
-   "twins": 2
+   "twins": 18
   },
   "regulated_by": [
    "defensible-retention"
