@@ -865,7 +865,7 @@ Inherited from:
 
 ```
 status: grounded on Final Critique 11 — 2026-11-04 at 582c382
-formal: verified — capability.als + 12 twins; coverage 2026-11-10 (unit formal: more coverage for the yes votes): owes TLA+ (everything across steps); owed rows: Invariant 10; Invariant 12; Emergent — zero counter ⇒ Redeemed, 2026-06-23
+formal: verified — capability.als + 12 twins (the static data model, 2026-06-23; coverage 2026-11-10, unit formal: more coverage for the yes votes); capability.tla + 12 twins (across steps: Invariant 1.1, 2.1, 2.3, 2.5, 4.4, 6.1, 7.1 through 7.3, 9, 10, 11.2, 12.1 and 13.3, Operation 31 and 71, and the two entailed properties, a zero counter only in redeemed and a revoked capability's counter above zero, over every sequence of calls as the clock moves), 2026-11-11
 last gate: 2026-11-04 — Final Critique 11 — delta — foundational count 0, clean, no sample; 2026-11-01 — Final Critique 10 — foundational count 0, clean, one sample
 
 open:

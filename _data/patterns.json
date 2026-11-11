@@ -278,8 +278,8 @@
   "kind": "atom",
   "models": {
    "als": true,
-   "tla": false,
-   "twins": 12
+   "tla": true,
+   "twins": 24
   },
   "regulated_by": [
    "capability-backed-sharing",
