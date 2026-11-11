@@ -534,7 +534,7 @@ Inherited from:
 
 ```
 status: grounded on Final Critique 2 — 2026-11-03 at aeea14e
-formal: not applicable — vote no 2026-11-02: no guard reads the clock, which only stamps the destruction instant, and the atom claims no commit order of its own; its permanence, one-record-per-destruction and no-content claims are single-state properties each action's rules hold, its listing order is a sort over stored fields, and its concurrency is Execution Contract Database 2's Coverage 2026-11-10 (unit formal: more coverage for the yes votes): the page states Invariant 1 (a tombstone never changes), 2 (one per destroyed record), 3 (no content of the destroyed record), 4 (authority and actor on every destruction) (both: the single tombstone per record is static, permanence is a step).
+formal: verified — erasure-tombstone.als + 16 twins (the static data model: State 1, Invariant 2.1, 3.1, 3.2, 4.1, 4.2 and 4.3, Identity 2, 3 and 4, Operation 1, 2, 5, 8 and 9 checked on every database a run of admitted [Record Destruction] calls leaves, State 4 through Invariant 3.1); erasure-tombstone.tla + 13 twins (across steps: Invariant 1.1, 1.2, 2.1 and 5.1, Identity 1, Operation 1, 4, 12, 15, 16, 18, 20 and 24 over every sequence of record, read and list calls, retries and refused writes included, at a page size of 1 and of 2); the vote no of 2026-11-02 superseded by the maintainer's ruling of 2026-11-09 (both models; only the writing vetoes one), and neither vetoed; owed rows: Operation 11; Operation 14, 19 and 25 through 27; Clock dependence 1, 2026-11-11
 last gate: 2026-11-03 — Final Critique 2, delta, frozen at aeea14e — foundational count 0, clean, one sample
 
 open:
