@@ -1194,7 +1194,7 @@
    "permissions",
    "capability"
   ],
-  "grounded": false,
+  "grounded": true,
   "invariants": 10,
   "kind": "composition",
   "models": {
@@ -1210,7 +1210,7 @@
    "PCI DSS",
    "SOX"
   ],
-  "status": "partially resolved",
+  "status": "grounded on Final Critique 11 \u2014 2026-11-11 at 30dbd60",
   "substrates": [
    "multi-party-approval",
    "audit-trail"
