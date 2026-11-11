@@ -296,7 +296,6 @@
 2026-11-11	compositions/compensable-workflow-onset-on-indeterminate-buggy.tla	twin	tla	50	0	-	-	-	-	-	CAUGHT	tlc
 2026-11-11	compositions/multi-party-approval-probe-false-closing.tla	twin	tla	50	0	-	-	-	-	-	CAUGHT	tlc
 2026-11-11	compositions/multi-party-approval-probe-initiation-recovered.tla	twin	tla	49	0	-	-	-	-	-	CAUGHT	tlc
-2026-11-11	atoms/assignment.tla	model	tla	47	0	-	-	-	-	-	HOLDS	tlc
 2026-11-11	compositions/compensable-workflow-storage-fail-resolves-buggy.tla	twin	tla	47	0	-	-	-	-	-	CAUGHT	tlc
 2026-11-11	compositions/customer-onboarding-buggy-no-finding.tla	twin	tla	46	0	-	-	-	-	-	CAUGHT	tlc
 2026-11-11	compositions/customer-onboarding-buggy-onsuspended-dropped.tla	twin	tla	45	0	-	-	-	-	-	CAUGHT	tlc
@@ -407,7 +406,6 @@
 2026-11-11	compositions/actor-suspension-probe-latewrite.tla	twin	tla	7	0	-	-	-	-	-	CAUGHT	tlc
 2026-11-11	compositions/customer-onboarding-buggy.tla	twin	tla	7	0	-	-	-	-	-	CAUGHT	tlc
 2026-11-11	compositions/propagate-consent-revocation-downstream-probe-history-answered.tla	twin	tla	7	0	-	-	-	-	-	CAUGHT	tlc
-2026-11-11	atoms/assignment-buggy.tla	twin	tla	6	0	-	-	-	-	-	CAUGHT	tlc
 2026-11-11	compositions/verified-repair-settle-buggy-onesort.tla	twin	tla	7	0	-	-	-	-	-	CAUGHT	tlc
 2026-11-11	atoms/provisional-commitment-buggy-window.tla	twin	tla	6	0	-	-	-	-	-	CAUGHT	tlc
 2026-11-11	compositions/attributed-permissions-admin-probe-direct.tla	twin	tla	6	0	-	-	-	-	-	CAUGHT	tlc
@@ -590,3 +588,17 @@
 2026-11-11	atoms/approval-step-buggy-reason-unguarded.als	twin	als	-	-	22	10	10	2	0	CAUGHT	alloy
 2026-11-11	atoms/approval-step-buggy-submitter-unguarded.als	twin	als	-	-	22	11	10	1	0	CAUGHT	alloy
 2026-11-11	atoms/approval-step.als	model	als	-	-	22	12	10	0	0	HOLDS	alloy
+2026-11-11	atoms/assignment-buggy.tla	twin	tla	6	0	-	-	-	-	-	CAUGHT	tlc
+2026-11-11	atoms/assignment.tla	model	tla	47	0	-	-	-	-	-	HOLDS	tlc
+2026-11-11	atoms/assignment-buggy-state-added.als	twin	als	-	-	21	10	7	1	3	CAUGHT	alloy
+2026-11-11	atoms/assignment-buggy-recall-misfiled.als	twin	als	-	-	21	10	9	1	1	CAUGHT	alloy
+2026-11-11	atoms/assignment-buggy-id-minted.als	twin	als	-	-	21	9	10	2	0	CAUGHT	alloy
+2026-11-11	atoms/assignment-buggy-assignee-copied.als	twin	als	-	-	21	10	9	1	1	CAUGHT	alloy
+2026-11-11	atoms/assignment-buggy-task-not-carried.als	twin	als	-	-	21	10	10	1	0	CAUGHT	alloy
+2026-11-11	atoms/assignment-buggy-recall-backdated.als	twin	als	-	-	21	10	10	1	0	CAUGHT	alloy
+2026-11-11	atoms/assignment-buggy-id-reused.als	twin	als	-	-	21	10	10	1	0	CAUGHT	alloy
+2026-11-11	atoms/assignment-buggy-instant-copied.als	twin	als	-	-	21	10	10	1	0	CAUGHT	alloy
+2026-11-11	atoms/assignment-buggy-transfer-backdated.als	twin	als	-	-	21	10	10	1	0	CAUGHT	alloy
+2026-11-11	atoms/assignment-buggy-transfer-unstamped.als	twin	als	-	-	21	10	9	1	1	CAUGHT	alloy
+2026-11-11	atoms/assignment.als	model	als	-	-	21	11	10	0	0	HOLDS	alloy
+2026-11-11	atoms/assignment-buggy-old-left-active.als	twin	als	-	-	21	10	7	1	3	CAUGHT	alloy
