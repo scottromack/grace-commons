@@ -177,9 +177,20 @@ def uses(text: str, spec: Spec, lab_re, holder: str) -> tuple[set[str], set[str]
                 labels |= {lab for lab in spec.rules if lab != holder
                            and in_range(lab, m.group(1), m.group(2), end.group(1))}
     for name in spec.terms:
-        if name != holder and re.search(r"(?<![\w-])" + re.escape(name) + r"(?![\w-])", text):
+        if name != holder and _term_use(name).search(text):
             terms.add(name)
     return labels, terms
+
+
+def _term_use(name: str) -> re.Pattern:
+    """A use of a declared term in prose: its name, or its name in the plural
+    (Privileged Access Provisioning Final Critique 10: `Term terminal chain action` was
+    read as the terminal chain actions by two rules that a reach built on the
+    singular alone missed; the reading set missed them with it)."""
+    forms = [re.escape(name) + "(?:e?s)?"]
+    if name.endswith("y"):
+        forms.append(re.escape(name[:-1]) + "ies")
+    return re.compile(r"(?<![\w-])(?:" + "|".join(forms) + r")(?![\w-])")
 
 
 def term_chain(spec: Spec, seed_terms: set[str]) -> set[str]:

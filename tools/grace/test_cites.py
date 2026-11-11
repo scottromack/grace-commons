@@ -292,5 +292,34 @@ class AcrossTest(unittest.TestCase):
         self.assertEqual(cites.across(specs, {atom.path: {"`records`"}}), {})
 
 
+class PluralTermTest(unittest.TestCase):
+    """A term read in the plural is a use of the term (Privileged Access Provisioning
+    Final Critique 10: Term terminal event and Action wiring 50 read the terminal chain
+    actions, so a change to Term terminal chain action reached neither)."""
+
+    def test_the_plural_of_a_term_is_a_use_of_it(self) -> None:
+        use = cites._term_use("terminal chain action")
+        self.assertTrue(use.search("reads the terminal chain actions of the chain"))
+        self.assertTrue(use.search("the terminal chain action"))
+
+    def test_a_term_ending_in_y_has_an_ies_plural(self) -> None:
+        use = cites._term_use("boundary")
+        self.assertTrue(use.search("two boundaries"))
+        self.assertTrue(use.search("a boundary"))
+
+    def test_a_longer_word_or_a_compound_is_no_use(self) -> None:
+        use = cites._term_use("seam")
+        self.assertFalse(use.search("seamless"))
+        self.assertFalse(use.search("the seam-like edge"))
+        self.assertFalse(cites._term_use("record").search("a recorded value"))
+
+    def test_a_rule_that_reads_the_plural_rests_on_the_term(self) -> None:
+        spec = cites.Spec(Path("x.md"), terms={"terminal chain action": (1, "the act"), "other": (2, "x")})
+        _, terms = cites.uses("EVERY terminal chain actions list MUST name the chain.", spec, None, "")
+        self.assertEqual(terms, {"terminal chain action"})
+        _, terms = cites.uses("the terminal chain action alone", spec, None, "terminal chain action")
+        self.assertEqual(terms, set())
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=1)
