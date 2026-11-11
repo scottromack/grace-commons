@@ -602,3 +602,17 @@
 2026-11-11	atoms/assignment-buggy-transfer-unstamped.als	twin	als	-	-	21	10	9	1	1	CAUGHT	alloy
 2026-11-11	atoms/assignment.als	model	als	-	-	21	11	10	0	0	HOLDS	alloy
 2026-11-11	atoms/assignment-buggy-old-left-active.als	twin	als	-	-	21	10	7	1	3	CAUGHT	alloy
+2026-11-11	atoms/calendar-time-buggy-cases-overlap.tla	twin	tla	-	0	-	-	-	-	-	CAUGHT	tlc
+2026-11-11	atoms/calendar-time-buggy-hours.tla	twin	tla	66	0	-	-	-	-	-	CAUGHT	tlc
+2026-11-11	atoms/calendar-time-buggy-id-reused.als	twin	als	-	-	11	4	6	1	0	CAUGHT	alloy
+2026-11-11	atoms/calendar-time-buggy-week-start-dropped.als	twin	als	-	-	11	4	6	1	0	CAUGHT	alloy
+2026-11-11	atoms/calendar-time-buggy-change-week-unguarded.als	twin	als	-	-	11	4	6	1	0	CAUGHT	alloy
+2026-11-11	atoms/calendar-time-buggy-change-zone-unguarded.als	twin	als	-	-	11	4	6	1	0	CAUGHT	alloy
+2026-11-11	atoms/calendar-time-buggy-zone-case-folded.als	twin	als	-	-	11	4	6	1	0	CAUGHT	alloy
+2026-11-11	atoms/calendar-time.als	model	als	-	-	11	5	6	0	0	HOLDS	alloy
+2026-11-11	atoms/calendar-time-buggy-zone-normalized.als	twin	als	-	-	11	4	6	1	0	CAUGHT	alloy
+2026-11-11	atoms/calendar-time-buggy-roll-over.tla	twin	tla	61772	0	-	-	-	-	-	CAUGHT	tlc
+2026-11-11	atoms/calendar-time-buggy-change-replaces.tla	twin	tla	361692	0	-	-	-	-	-	CAUGHT	tlc
+2026-11-11	atoms/calendar-time-buggy-id-reallocated.tla	twin	tla	361692	0	-	-	-	-	-	CAUGHT	tlc
+2026-11-11	atoms/calendar-time-buggy-reject-clamps.tla	twin	tla	182300	0	-	-	-	-	-	CAUGHT	tlc
+2026-11-11	atoms/calendar-time.tla	model	tla	363539	0	-	-	-	-	-	HOLDS	tlc

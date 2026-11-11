@@ -819,7 +819,7 @@ Calendar Time is a primitive with no regulatory anchor of its own. It inherits f
 
 ```
 status: grounded on Final Critique 1 — 2026-11-08 at 4b0bd47
-formal: not applicable — vote no 2026-11-08: the atom reads one clock reading at the seam (Execution Contract Logic confinement 11) and claims no ordering of its own; every answer is a single-state function of the place, the time zone rules and now that each action's rules hold, and its concurrency is Execution Contract Database 2's Coverage 2026-11-10 (unit formal: more coverage for the yes votes): the page states Invariant 2 (a place keeps its id) and the stepping half of Invariant 3 and 4 (a month moved lands in its month) (TLA+ for Invariant 2 and the moved-month step over a bounded date range; Alloy for the zone and week shape (Invariant 1)).
+formal: verified — calendar-time.als + 6 twins (the static data model: State 1, Invariant 1.1, 1.2, Identity 2 and 3 checked on every place an admitted [Open] or [Change] leaves, Identity 4 through Invariant 1.1); calendar-time.tla + 6 twins (across steps: Invariant 2.1 and State 2 over [Open] and [Change]; Invariant 3.1 and Operation 28 through 36 as now moves an hour a step over a window crossing midnight in every zone; Invariant 4.1 and Operation 24 over one [Shift] call on a date range scaled to 2027 and 2028); the vote no of 2026-11-08 superseded by the maintainer's ruling of 2026-11-09 (both models; only the writing vetoes one), and neither vetoed; owed rows: Operation 7; Operation 12 through 21, 2026-11-11
 last gate: 2026-11-08 — Final Critique 1, frozen at 4b0bd47 — foundational count 0, clean, one sample
 
 open: none
