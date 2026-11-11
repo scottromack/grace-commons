@@ -338,9 +338,9 @@
   "invariants": 14,
   "kind": "atom",
   "models": {
-   "als": false,
+   "als": true,
    "tla": true,
-   "twins": 2
+   "twins": 16
   },
   "regulated_by": [
    "reserve-from-pool"

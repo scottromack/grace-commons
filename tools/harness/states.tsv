@@ -336,7 +336,6 @@
 2026-11-11	compositions/multi-party-approval-probe-outofband.tla	twin	tla	30	0	-	-	-	-	-	CAUGHT	tlc
 2026-11-11	compositions/audit-trail-binding-buggy-order.tla	twin	tla	29	0	-	-	-	-	-	CAUGHT	tlc
 2026-11-11	compositions/multi-party-approval-buggy-unstaffed.tla	twin	tla	29	0	-	-	-	-	-	CAUGHT	tlc
-2026-11-11	atoms/capacity-constraint-enforcement-buggy-toctou.tla	twin	tla	27	0	-	-	-	-	-	CAUGHT	tlc
 2026-11-11	compositions/audit-trail-binding.tla	model	tla	27	0	-	-	-	-	-	HOLDS	tlc
 2026-11-11	compositions/authenticated-actor-probe-refused.tla	twin	tla	27	0	-	-	-	-	-	CAUGHT	tlc
 2026-11-11	compositions/execute-gated-workflow-buggy-unrecorded.tla	twin	tla	27	0	-	-	-	-	-	CAUGHT	tlc
@@ -401,7 +400,6 @@
 2026-11-11	compositions/immutable-ledger-probe-sharedinstant.tla	twin	tla	8	0	-	-	-	-	-	CAUGHT	tlc
 2026-11-11	compositions/propagate-consent-revocation-downstream-grant-no-intent-buggy.tla	twin	tla	8	0	-	-	-	-	-	CAUGHT	tlc
 2026-11-11	compositions/propagate-consent-revocation-downstream-no-placement-buggy.tla	twin	tla	8	0	-	-	-	-	-	CAUGHT	tlc
-2026-11-11	atoms/capacity-constraint-enforcement.tla	model	tla	7	0	-	-	-	-	-	HOLDS	tlc
 2026-11-11	atoms/invitation-buggy.tla	twin	tla	7	0	-	-	-	-	-	CAUGHT	tlc
 2026-11-11	compositions/actor-suspension-probe-latewrite.tla	twin	tla	7	0	-	-	-	-	-	CAUGHT	tlc
 2026-11-11	compositions/customer-onboarding-buggy.tla	twin	tla	7	0	-	-	-	-	-	CAUGHT	tlc
@@ -434,7 +432,6 @@
 2026-11-11	compositions/reserve-from-pool-retry-refuse-writes-buggy.tla	twin	tla	4	0	-	-	-	-	-	CAUGHT	tlc
 2026-11-11	compositions/reserve-from-pool-write-before-attest-buggy.tla	twin	tla	4	0	-	-	-	-	-	CAUGHT	tlc
 2026-11-11	compositions/shared-todo-buggy.tla	twin	tla	4	0	-	-	-	-	-	CAUGHT	tlc
-2026-11-11	atoms/capacity-constraint-enforcement-buggy.tla	twin	tla	3	0	-	-	-	-	-	CAUGHT	tlc
 2026-11-11	compositions/actor-suspension-buggy-rollback.tla	twin	tla	3	0	-	-	-	-	-	CAUGHT	tlc
 2026-11-11	compositions/actor-suspension-probe-stop.tla	twin	tla	3	0	-	-	-	-	-	CAUGHT	tlc
 2026-11-11	compositions/attributed-permissions-admin-probe-issue.tla	twin	tla	3	0	-	-	-	-	-	CAUGHT	tlc
@@ -629,3 +626,21 @@
 2026-11-11	atoms/capability-buggy-token-shared.tla	twin	tla	18	0	-	-	-	-	-	CAUGHT	tlc
 2026-11-11	atoms/capability-buggy-token-upsert.tla	twin	tla	18	0	-	-	-	-	-	CAUGHT	tlc
 2026-11-11	atoms/capability.tla	model	tla	94330	0	-	-	-	-	-	HOLDS	tlc
+2026-11-11	atoms/capacity-constraint-enforcement-buggy-toctou.tla	twin	tla	27	0	-	-	-	-	-	CAUGHT	tlc
+2026-11-11	atoms/capacity-constraint-enforcement.tla	model	tla	7	0	-	-	-	-	-	HOLDS	tlc
+2026-11-11	atoms/capacity-constraint-enforcement-buggy.tla	twin	tla	3	0	-	-	-	-	-	CAUGHT	tlc
+2026-11-11	atoms/capacity-constraint-enforcement-buggy-adjust-unlogged.als	twin	als	-	-	24	13	8	1	2	CAUGHT	alloy
+2026-11-11	atoms/capacity-constraint-enforcement-buggy-negative-capacity.als	twin	als	-	-	24	12	10	2	0	CAUGHT	alloy
+2026-11-11	atoms/capacity-constraint-enforcement-buggy-blank-reason.als	twin	als	-	-	24	13	10	1	0	CAUGHT	alloy
+2026-11-11	atoms/capacity-constraint-enforcement-buggy-blank-adjuster.als	twin	als	-	-	24	13	10	1	0	CAUGHT	alloy
+2026-11-11	atoms/capacity-constraint-enforcement-buggy-allocate-on-closed.als	twin	als	-	-	24	12	10	2	0	CAUGHT	alloy
+2026-11-11	atoms/capacity-constraint-enforcement-buggy-over-release.als	twin	als	-	-	24	12	10	2	0	CAUGHT	alloy
+2026-11-11	atoms/capacity-constraint-enforcement-buggy-adjust-on-closed.als	twin	als	-	-	24	12	10	2	0	CAUGHT	alloy
+2026-11-11	atoms/capacity-constraint-enforcement-buggy-over-allocated.als	twin	als	-	-	24	13	10	1	0	CAUGHT	alloy
+2026-11-11	atoms/capacity-constraint-enforcement-buggy-event-id-reused.als	twin	als	-	-	24	13	10	1	0	CAUGHT	alloy
+2026-11-11	atoms/capacity-constraint-enforcement-buggy-over-capacity.als	twin	als	-	-	24	13	10	1	0	CAUGHT	alloy
+2026-11-11	atoms/capacity-constraint-enforcement-buggy-pool-id-minted.als	twin	als	-	-	24	13	10	1	0	CAUGHT	alloy
+2026-11-11	atoms/capacity-constraint-enforcement-buggy-reopened.als	twin	als	-	-	24	10	10	4	0	CAUGHT	alloy
+2026-11-11	atoms/capacity-constraint-enforcement-buggy-suspend-unlogged.als	twin	als	-	-	24	13	9	1	1	CAUGHT	alloy
+2026-11-11	atoms/capacity-constraint-enforcement.als	model	als	-	-	24	14	10	0	0	HOLDS	alloy
+2026-11-11	atoms/capacity-constraint-enforcement-buggy-state-added.als	twin	als	-	-	24	11	6	3	4	CAUGHT	alloy
