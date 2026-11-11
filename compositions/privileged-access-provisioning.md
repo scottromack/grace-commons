@@ -172,7 +172,7 @@ Term access scope: the part of the resource a requestor names and the capability
 
 Term justification: the requestor's stated reason for the access, carried on the request and read by no rule.
 
-Term terminal event: the chain's event whose action reference IS IN the terminal chain actions.
+Term terminal event: the chain's event whose action reference IS IN the terminal chain actions AND whose record carries a terminal summary OR IS a purged event — a trailing decision's outcome and a decision's outcome short of the chain's end carry the same action reference and no summary, so neither is the terminal event while its payload stands; past the audit horizon the summary is destroyed with the payload, and a purged event under a terminal chain action is read as the terminal event with its reason destroyed (Action wiring 51, Reconciliation 40).
 
 Term event envelope: the bytes the audit substrate adds around the data the composition supplies.
 
@@ -404,12 +404,12 @@ Action wiring 46: A read chain refusal MUST NOT change the decision action's ans
 Action wiring 47: IF the chain's state EQUALS Approved AND the provisioning conjunction holds THEN the chain evaluation MUST set the request state to Approved.
 Action wiring 48: IF the chain's state EQUALS Approved AND the provisioning conjunction holds THEN the chain evaluation MUST fire the provisioning cascade.
 Action wiring 49: IF the chain's state EQUALS Rejected AND the request state EQUALS Pending THEN the chain evaluation MUST read the chain's terminal event.
-Action wiring 50: The chain evaluation MUST find the chain's terminal event by reading the chain's event ids from the tail to the first event whose action reference IS IN the terminal chain actions.
-Action wiring 51: IF Audit Trail's read record answers not-known OR the terminal event's reason is destroyed THEN the chain evaluation MUST take blank as the denial reason.
+Action wiring 50: The chain evaluation MUST find the chain's terminal event by reading the chain's event ids from the tail to the first terminal event.
+Action wiring 51: IF Audit Trail's read record answers not-known OR the terminal event's reason is destroyed OR the chain's event ids name no terminal event THEN the chain evaluation MUST take blank as the denial reason.
 Action wiring 52: IF the denial reason EQUALS blank THEN the chain evaluation MUST open a denial-reason entry ONLY IF the request carries no open denial-reason entry.
 Action wiring 53: IF the chain's state EQUALS Rejected AND the request state EQUALS Pending THEN the chain evaluation MUST record a denial event carrying Denied AND the denial reason under the service identity.
 Action wiring 54: IF the chain's state EQUALS Rejected AND the request state EQUALS Pending THEN the chain evaluation MUST set the request state to Denied.
-Action wiring 55: IF the chain's state EQUALS Withdrawn AND the request state EQUALS Pending THEN the chain evaluation MUST record a withdrawal event carrying Withdrawn AND the terminal event's reason under the service identity.
+Action wiring 55: IF the chain's state EQUALS Withdrawn AND the request state EQUALS Pending AND the chain's event ids name a terminal event THEN the chain evaluation MUST record a withdrawal event carrying Withdrawn AND the terminal event's reason under the service identity.
 Action wiring 56: IF the chain's state EQUALS Withdrawn AND the request state EQUALS Pending THEN the chain evaluation MUST set the request state to Withdrawn.
 Action wiring 57: IF the chain's state EQUALS Pending THEN the chain evaluation MUST NOT write.
 Action wiring 58: IF the request state IS IN the terminal request states THEN the chain evaluation MUST NOT write.
@@ -476,9 +476,12 @@ Action wiring 118: IF Capability's redeem answers invalid THEN [Exercise Access]
 Action wiring 119: IF Audit Trail refuses the failed exercise event carrying blank as the request id THEN [Exercise Access] MUST answer capability-invalid carrying not-known (Execution Contract Constituent failure 1).
 Action wiring 120: IF Audit Trail refuses the failed exercise event carrying blank as the request id THEN [Exercise Access] MUST NOT open a pending entry.
 Action wiring 121: A resolved exercise MUST take the exercised instant from the invocation's now.
+Action wiring 122: IF the chain's state EQUALS Withdrawn AND the request state EQUALS Pending AND the chain's event ids name no terminal event THEN the chain evaluation MUST record a withdrawal event carrying Withdrawn AND blank as the reason under the service identity.
 ```
 
 NOTE: open 2026-11-04-c (Action wiring 55).
+
+NOTE: open 2026-11-11-a (Action wiring 50).
 
 NOTE: open 2026-11-06-c (Action wiring 25).
 
@@ -518,7 +521,7 @@ Term chain evaluation: the read of a request's chain and the transition, record 
 
 Term provisioning conjunction: the request state IS IN the open request states, no token in the Capability instance parses to the request, and no pending entry owing a provisioning-failure event is open.
 
-Term terminal chain action: chain.approval.approved | chain.rejection.rejected | chain.step_withdrawal.withdrawn | chain.withdrawal.withdrawn carrying a terminal summary — the substrate's records of a chain reaching a terminal state, a terminating act's outcome (Multi-Party Approval Composition state 6), its reason the terminal summary's rule reason or withdrawal reason.
+Term terminal chain action: chain.approval.approved | chain.rejection.rejected | chain.step_withdrawal.withdrawn | chain.withdrawal.withdrawn — the action references a terminating act's outcome carries (Multi-Party Approval Composition state 6); the record among them carrying the terminal summary is the terminal event, its reason the terminal summary's rule reason or withdrawal reason.
 
 Term requests initiate: the scope admitting [Request Access] — a [Requests Initiate].
 
@@ -913,7 +916,7 @@ Term qualifiers: migrated — rewritten in GRACE lang v0.61 (2026-09-23).
 
 Term terms: composition, constituents, approval substrate, audit substrate, trail, chains initiate, chains withdraw, chains read, request record, request id, request state, request progression, open request state, terminal request state, refused state, identity field, request shape, shape-bearing event, state-transition event, latest state-transition event, denial reason, requested instant, access scope, justification, terminal event, event envelope, bearer material, request-to-chain map, request-to-capability map, capability-to-request map, session access log, session access entry, transactional index writes, request-to-events map, audit pending list, pending entry, closing occasion, aged event, quiescence, default ttl, max redemptions default, credential type, credential check on request, approver set minimum, audit horizon, retention floor, longest token lifetime, provisioning proof period, refused ttls, composed scope, service identity, reference caps, seam, now, invocation id, remaining ttl, request ttl, expiry instant, payload budget, validation failure, exercise failure, request results, credentialed action, decision action, load-bearing act, validated request, admitted withdrawal, validated exercise, verified revocation, admitted revocation, permitted read, admitted request, initiation entry, evaluation entry, denial-reason entry, exercise entry, resolved exercise, chain evaluation, provisioning conjunction, terminal chain action, requests initiate, requests revoke, requests read, reconciliation, recovery intent, recovery record, refusing chain state, provisioning cascade, delivery channel, bypass token, operating skew, request event, decision event, provisioning event, denial event, withdrawal event, initiation-failed withdrawal event, provisioning-failure event, exercise event, failed exercise event, revocation event, read query, unavailable, mapped refusal, recording failure.
 
-Term cited: Execution Contract Conformance 8 — the recursive inheritance of a constituent's guarantees. Execution Contract Database 1 — an index write and its event commit together. The section titled Substrate composition invocation in `execution-contract.md` — the substrate relation and its instance topology. The section titled Composition state in `execution-contract.md` — the derived-index, truth-bearing and extraction-pending classifications. The section titled Logic Confinement Principle in `execution-contract.md` — the seam. initiate chain, approve step, reject step, withdraw chain, read chain, chain id, step id, subject reference, approver set, quorum rule, chain_resolved, chain_withdrawn, Approved, Rejected, Withdrawn, Pending, not-pending, unauthorized, position: Multi-Party Approval. record action, read record, verify record, event id, payload cap, actor registry, invalid-credential, recording-failure: Audit Trail. verify, failed-verification, verified, Active: Credential. validate, valid, invalid, session token, principal reference: Session. permitted, denied: Permissions. allocate, redeem, revoke, read, capability token, scope, max redemptions, remaining redemptions, ttl, allocator reference, redeemed, effective status, redemption failure, exhausted, expired, revoked, already-terminal, Redeemed, Expired: Capability.
+Term cited: Execution Contract Conformance 8 — the recursive inheritance of a constituent's guarantees. Execution Contract Database 1 — an index write and its event commit together. The section titled Substrate composition invocation in `execution-contract.md` — the substrate relation and its instance topology. The section titled Composition state in `execution-contract.md` — the derived-index, truth-bearing and extraction-pending classifications. The section titled Logic Confinement Principle in `execution-contract.md` — the seam. initiate chain, approve step, reject step, withdraw chain, read chain, chain id, step id, subject reference, approver set, quorum rule, terminal summary, chain_resolved, chain_withdrawn, Approved, Rejected, Withdrawn, Pending, not-pending, unauthorized, position: Multi-Party Approval. record action, read record, purged, verify record, event id, payload cap, actor registry, invalid-credential, recording-failure: Audit Trail. verify, failed-verification, verified, Active: Credential. validate, valid, invalid, session token, principal reference: Session. permitted, denied: Permissions. allocate, redeem, revoke, read, capability token, scope, max redemptions, remaining redemptions, ttl, allocator reference, redeemed, effective status, redemption failure, exhausted, expired, revoked, already-terminal, Redeemed, Expired: Capability.
 
 Term composing patterns: [Login](./login.md); [Session-Gated Authorization](./session-gated-authorization.md); [External Onboarding](./external-onboarding.md); [Capability-Backed Sharing](./capability-backed-sharing.md); Failed-Attempt Log *(forthcoming)*; [Owed Record](../atoms/owed-record.md); [Erasure Tombstone](../atoms/erasure-tombstone.md); Trusted Timestamping *(forthcoming)*; Compromise Disclosure *(forthcoming)*.
 
@@ -1095,14 +1098,14 @@ Projection: invalid-credential
 
 ## Status
 
-`grounded on Final Critique 9 — 2026-11-07 at fb5b973` — see the Ledger.
+`partially resolved` — see the Ledger.
 
 ## Ledger
 
 ```
-status: grounded on Final Critique 9 — 2026-11-07 at fb5b973
+status: partially resolved
 formal: verified — privileged-access-provisioning.tla + 8 twins; coverage 2026-11-10 (unit formal: more coverage for the yes votes): owes Alloy (the static data model); owed rows: Invariant 3.2; Invariant 6.1; Invariant 7.1; Invariant 7.3; Invariant 8.1; Invariant 10.1, 10.2; Liveness; 2a: Liveness — owed: a PROPERTY under TLC; the file's FairnessSpec already states the fairness (weak fairness on the withdraw and revoke steps), the header names it; twin: a model that never delivers the cascade, 2026-06-03
-last gate: 2026-11-07 — Final Critique 9, delta, frozen at fb5b973 — foundational count 0, clean, one sample, 2 refining left as open lines; 2026-11-07 — Final Critique 8, delta, one pass (Linus) — 1 foundational (cured this round), 1 refining cured, 0 rhetorical, not clean
+last gate: 2026-11-11 — Final Critique 10, delta, frozen at cb1e424 — foundational count 1, not clean, one fresh pass (Linus's one report returned none on the one reached term, Term terminal chain action; the blind second triage on Opus 5.5 placed one foundational on the Term's use, a trailing decision's outcome read as the chain's terminal event by Action wiring 50, cured this round); 2026-11-07 — Final Critique 9, delta, frozen at fb5b973 — foundational count 0, clean, one sample, 2 refining left as open lines; 2026-11-07 — Final Critique 8, delta, one pass (Linus) — 1 foundational (cured this round), 1 refining cured, 0 rhetorical, not clean
 
 open:
 - 2026-11-07-a · refining · derived-index classification · the Contract classification NOTE calls the request-to-events map (and the session access log) a derived index inside the audit horizon, while Composition state 24 and 27 write each as a peer write in the event's transaction, which the section titled Composition state in `execution-contract.md` (obligations 2 and 3) says a derived index is not → decide whether the NOTE names the departure (an index written with its event so that it is complete before the event ages) or the in-transaction write is struck, then state it once
@@ -1111,7 +1114,8 @@ open:
 - 2026-11-06-b · refining · terminal-chain leg · Reconciliation 23 lands a recovery record for every step decision in the chain's events that no decision event names, with no scope: every chain, or only the Rejected and Withdrawn chains Reconciliation 22 runs for, so a decision whose substrate recording-failure carrying outcome landed on a Pending or Approved chain may keep no decision event → decide the scope, then state it in Reconciliation 23's condition
 - 2026-11-06-c · refining · request id on a refused outcome · [Request Access] answering recording-failure carrying outcome hands the requestor no request id, so a retry opens a second request and chain → decide whether the answer carries the request id or the retry is the requestor's cost, then state it
 - 2026-11-06-d · refining · seam vocabulary · the request states Pending, Approved and Withdrawn are reused as the chain's states with different meanings across the seam (Action wiring 47 through 57) → decide whether the chain's states take a Term of their own, then rename the reads
-- 2026-11-04-c · refining · withdrawal reason · Action wiring 55 records the terminal event's reason on the withdrawal event with no answer for a destroyed reason, where Action wiring 51 through 52 take blank and open a denial-reason entry → decide whether a blank withdrawal reason owes a recovery entry
+- 2026-11-04-c · refining · withdrawal reason · Action wiring 55 records the terminal event's reason on the withdrawal event with no answer for a destroyed reason, and Action wiring 122 records blank where the chain's event ids name no terminal event yet, where Action wiring 51 through 52 take blank and open a denial-reason entry → decide whether a blank withdrawal reason owes a recovery entry
+- 2026-11-11-a · refining · Action wiring 50; Term terminal event · two events of one chain can both carry a terminal summary only where an operator writes a second terminal event, which Multi-Party Approval alerts on (Composition state 22) and binds the first of by sequence number (Composition state 24), where Action wiring 50 reads from the tail and binds the later → decide whether the terminal event is the first by sequence number, or the one the chain record's terminal summary names by its invocation id
 - 2026-11-10-a · refining · Action wiring 19 through 25, Action wiring 34 through 37, Action wiring 66 through 71, Action wiring 116; the request signatures · Multi-Party Approval composes Recoverable Invocation (its 2026-11-10 decision): initiate chain, the step decisions and withdraw chain now also answer act-in-flight, section-unavailable, journal-unavailable, storage-failure, state-unavailable, already-accounted and recording-failure carrying refusal, initiate chain already-assigned and the decisions chain-state-changed, each closed before or without a commit, and the wiring maps none of them → decide each one's landing (the initiation-failed withdrawal for a refused initiation, a relayed refusal for a decision or a withdrawal) and add them to the refuses lines
 - 2026-08-29-a · refining · formal · the model's sweep carries no pre-check, no identity, no recovery record, and no age bound → extend the model with the four sweep rules
 ```
