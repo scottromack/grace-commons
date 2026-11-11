@@ -100,7 +100,7 @@ test("TLC: a model with no .cfg beside it is an error, not a hold", () => {
 });
 
 test("audit.mjs runs checks side by side and prints them in the models' order", () => {
-  const r = spawnSync("node", [join(HERE, "audit.mjs"), "--only", "atoms/approval-step", "--jobs", "2"],
+  const r = spawnSync("node", [join(HERE, "audit.mjs"), "--only", "atoms/approval-step.*\\.tla$", "--jobs", "2"],
     { env: { ...process.env, GRACE_STATES_LEDGER: "off" }, encoding: "utf8" });
   assert.equal(r.status, 0, r.stdout);
   assert.match(r.stdout, /\d+ models: 1 HOLDS, \d+ CAUGHT, 0 BROKEN, 0 MISSED, 0 ERROR/);
