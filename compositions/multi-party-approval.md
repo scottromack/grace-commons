@@ -71,6 +71,7 @@ Composes 15: The composition MUST bind the act kinds PER the chain bindings.
 Composes 16: The composition MUST NOT bind [Read Chain] as an act kind.
 Composes 17: The composition MUST NOT hold an instance of Lease, which Recoverable Invocation reaches.
 Composes 18: A deployment MUST NOT call Assignment's reassign on a chain's step assignment.
+NOTE: open 2026-11-11-c — Composes 18 forbids a deployment's reassign and not its recall of a chain's step assignment, and no leg reads Assignment's records; whether the recall is forbidden or read is not decided.
 ```
 
 Term composition: this pattern's wiring of [Approval Step](../atoms/approval-step.md), [Permissions](../atoms/permissions.md), [Assignment](../atoms/assignment.md), [Audit Trail](./audit-trail.md) and [Recoverable Invocation](./recoverable-invocation.md) — the chain, the quorum rule, the cascade, the read, the chain bindings and the write-ownership leg.
@@ -253,6 +254,8 @@ Capability requirement 40: A deployment MUST disclose the commit round trip, the
 Capability requirement 41: A deployment MUST set the instance's bounds PER Recoverable Invocation Instance start 4 through 8.
 Capability requirement 42: A deployment MUST NOT remove a probed record BEFORE the retention horizon destroys the payload of the record's outcome (Recoverable Invocation Binding 9).
 Capability requirement 43: A deployment MUST declare id widths under which the decision key DOES NOT EXCEED Audit Trail's reference length cap (Recoverable Invocation Primitive policy 1).
+Capability requirement 44: A deployment MUST NOT declare Approval Step's string cap under which the rule reason's length EXCEEDS the cap.
+NOTE: watch the generated value against the cap (Capability requirement 44).
 ```
 
 Term approver set minimum: the smallest approver set a chain may declare — `approver_set_minimum`, default one; a single-gate chain is degenerate and valid.
@@ -642,7 +645,7 @@ Every input an action takes, and every answer a call of the six actions, of the 
 | a cascade's withdraw | not-pending | the step named among the superseded step ids | Cascade 10 |
 | a cascade's withdraw | unauthorized or not-known | a deterministic arm: alerted, the cascade proceeds, the step named among the deterministic-arm step ids | Cascade 8, 12, 15, Action wiring 28 |
 | a cascade's withdraw | the temporal invalid-request | invalid-request, the commit writing nothing, refused; the chain stays Pending | Cascade 14 |
-| a cascade's withdraw | any other invalid-request | not met: the withdrawer is the step's submitter and the cascade reason is non-blank and within Approval Step's string cap | Cascade 2, Term cascade reason, Primitive policy 18 |
+| a cascade's withdraw | any other invalid-request | not met: the withdrawer is the step's submitter and the cascade reason is non-blank and within Approval Step's string cap | Cascade 2, Term cascade reason, Primitive policy 18, Capability requirement 44 |
 | a cascade's recall | ok | the recalled step ids | Cascade 13 |
 | a cascade's recall | not-active | read as done | Cascade 11 |
 | a cascade's recall | not-known | a deterministic arm: alerted, the cascade proceeds, the step named among the deterministic-arm step ids | Cascade 8, 15, Action wiring 28 |
@@ -683,6 +686,8 @@ Wiring decision 9: A rule reason MUST name the firing arm AND the counts.
 
 Term routed vector: the counts (A, R, W, P) over a chain's step list — A the steps Approved by a routed transition, R Rejected by one, W Withdrawn by one, a routed transition whose decision intent carries the trailing flag as true counting in none of the three, and P `= (((N - A) - R) - W)`, where N is the approver set's count.
 
+NOTE: open 2026-11-11-b — past the retention horizon the trailing flag of a purged decision intent is not a surviving field (the record read answers Purged with the surviving reference and actor), so a trailing decision counts in A, R or W; which reference survives is not decided.
+
 Term approved count: A.
 
 Term rejected count: R.
@@ -696,6 +701,8 @@ Term lost vectors: under [All Of N], `(R + W) ≥ 1`; under [M Of N], `((N - R) 
 Term open vectors: the vectors neither met nor lost.
 
 Term routed transition: a step decision a decision intent carries — an intent of the decision's kind whose act key names the chain id and the step id, whose actor equals the step record's decider, whose pairing datum EQUALS the step's decision instant for an approval or rejection intent and the step's withdrawal instant for a step_withdrawal intent, the step excluded where the chain record's terminal summary names the step among its cascade-withdrawn step ids — or, past the retention horizon, a step whose event index entries name more purged events with a surviving action reference of the decision kind's intended record and a surviving actor equal to the decider than purged events with a surviving action reference of the decision kind's refused record or of an abandoned reference the kind derives and a surviving actor equal to the decider; or a cascade withdrawal the chain record's terminal summary names.
+
+NOTE: open 2026-11-11-a — a step written outside the composition by the approver's own credential at the intent's pairing instant matches the intent, so it counts as a routed transition and the leg opens no write-ownership finding (Composes 11); the reason cannot be compared, since an approval's reason is optional and the seam may canonicalize it; detecting the write needs a provenance Approval Step's seam does not declare.
 
 Term out-of-band transition: a step decision in the Approval Step records no routed transition covers — written around the composition.
 
@@ -833,7 +840,7 @@ Term cascade: the secondary calls a terminal chain owes its still-Pending steps,
 
 Term still-Pending step: a step of the chain's step list that the routed vector counts as Pending — a step no routed transition counted among A, R or W, a step decided out of band among them (Wiring decision 7), read at the terminating commit.
 
-Term cascade reason: the rule reason, or the initiator's validated reason on the [Withdraw Chain] path — non-blank by construction and, on the [Withdraw Chain] path, within Approval Step's string cap by Primitive policy 18, so Approval Step never refuses a cascade withdrawal over its reason.
+Term cascade reason: the rule reason, or the initiator's validated reason on the [Withdraw Chain] path — non-blank by construction and within Approval Step's string cap, on the [Withdraw Chain] path by Primitive policy 18 and on the chain evaluation's path by Capability requirement 44, so Approval Step never refuses a cascade withdrawal over its reason.
 
 Term recalled step ids: the steps whose assignments a cascade recalled — always present in a terminal summary, empty where none.
 
@@ -1321,7 +1328,7 @@ It inherits from:
 ```
 status: partially resolved
 formal: verified — multi-party-approval.tla + 17 twins + 8 reachability probes, re-derived 2026-11-10 over the split arc (each state-changing action an open, a commit and a close; the initiation, decision and withdrawal transactions one commit each, a refusal inside one writing nothing), against Recoverable Invocation's contracts (the sweep's closing by this page's initiation, decision and withdrawal probes, the escalation, an operator's resolve unchecked against the records), with a step decided out of band, the write-ownership leg and the chain rebuild's alerts; one model under TLC, 926,652 states (one chain of three slots, the quorum rule chosen at the start, three invocations, one failure, one out-of-band decision); Invariant 1.1, 2.1, 2.2, bypass resistance, 4.1, 4.2, 7.1, the cascade's withdrawn residue (Cascade 2, 14), the trailing re-read (Action wiring 64, 65), the owed outcome (Invariant 5.1), the probes' outcomes and terminal summary (Composition state 6, 7), the terminal-data and shape alerts (Composition state 22, 23), the pairing datum (Capability requirement 37, 38), the write-ownership finding (Reconciliation 20) and the false-closing alert (Reconciliation 50), each broken by a twin alone; Invariant 10.1 through 10.3 inherited from Recoverable Invocation Invariant 1.1, the closure window from Recoverable Invocation Invariant 4.2; not modelled: Recoverable Invocation's mechanism, the clock (the young and aged records, the horizon, Invariant 7.2), Permissions, validation ahead of the open, the cascade's deterministic and superseded arms, a chain record written outside every invocation (Reconciliation 48, 49), the derived indexes; coverage 2026-11-10: owes Alloy (the static data model); owed rows: Invariant 1.3, 1.4; Invariant 1.5; Invariant 3.1 through 3.3; Invariant 4.3; Invariant 5.2, 5.3; Invariant 7.2; Invariant 8.1; Invariant 9.1, 2026-11-10
-last gate: 2026-11-11 — Final Critique 19 — full, frozen at 6ea0894 — foundational count 7, not clean, no sample; 2026-11-06 — Final Critique 18 — full, frozen at 56ae031 — foundational count 0, clean, three fresh passes; 2026-11-06 — Final Critique 17 — delta — foundational count 2, not clean, no sample
+last gate: 2026-11-11 — Final Critique 20 — delta, frozen at dfeb11d — foundational count 1, not clean, no sample; 2026-11-11 — Final Critique 19 — full, frozen at 6ea0894 — foundational count 7, not clean, no sample; 2026-11-06 — Final Critique 18 — full, frozen at 56ae031 — foundational count 0, clean, three fresh passes; 2026-11-06 — Final Critique 17 — delta — foundational count 2, not clean, no sample
 
 open:
 - 2026-11-05-a · refining · Retention asymmetry 2a; Audit Trail Invariant 8.2b · a held event answers failed-verification carrying purged as a purged one does, and the page does not say where an auditor reads that a hold keeps the event → name the record the auditor reads, a decision on what a hold is
@@ -1332,6 +1339,9 @@ open:
 - 2026-11-10-e · refining · Action wiring 14; Term initiation probe · the invocation's initiation outcome carries the chain shape and the reason, and the sweep-recovered one the chain shape alone, one reference with two payload shapes → decide whether the recovered outcome carries the reason, read from the first step's stored reason, or the shape is one
 - 2026-11-10-f · refining · Term qualifiers · migrated in GRACE lang v0.61, read against v0.69 → migrate
 - 2026-11-10-c · refining · Invariant 1.5; Check 1.3; Reconciliation 45; Term chainless step · the leg reads the steps a chain record's step list names, and a chainless step no step list names is left to the auditor's Check 1.3; Approval Step's read has no reason axis, so the leg cannot find a step by its chain-id prefix → decide whether the leg reads by subject reference and submitter, or the auditor's check stays the only reader
+- 2026-11-11-a · refining · Term routed transition; Term decision probe; Composes 11 · a step decision written outside the composition by the approver's own credential, at the pairing instant of that approver's open decision intent, matches the intent on act key, actor and pairing datum, so it is a routed transition and no write-ownership finding opens; the reason cannot be compared (an approval's reason is optional, and the seam may canonicalize it) → decide whether Approval Step's seam offers a provenance the match can read, or the residual is accepted under Composes 11
+- 2026-11-11-b · refining · Term routed vector; Term routed transition · past the retention horizon the trailing flag of a purged decision intent is not a surviving field, so a trailing decision counts in A, R or W → decide whether the surviving reference carries the flag
+- 2026-11-11-c · refining · Composes 18; Action wiring 26 · a deployment's recall of a chain's step assignment passes Action wiring 26 and no leg reads Assignment's records (Reconciliation 20 reads decided steps, Reconciliation 48 and 49 chain records) → decide whether Composes 18 forbids the recall or a leg reads the assignment
 ```
 
 <details markdown="block">
