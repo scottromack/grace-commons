@@ -15,6 +15,12 @@
 \* one model follows the split arc for all three acting actions, and the allocation half the
 \* old model left out ([Authorize Sharing], [Revoke Sharing], Invariant 3 and 4.2) is in it.
 \*
+\* Extended 2026-11-10 for the ttl cap (Scott's ruling, "cap it"): an effective ttl no longer
+\* than the ttl cap, `(audit horizon - (2 * clock offset allowance))` (Term ttl cap; Primitive
+\* policy 3 for a supplied ttl, Capability requirement 33 for the default, checked at the
+\* instance's start), and [Redeem And Disclose] reading the capability-to-sharing index only
+\* for a live token (Action wiring 65, 66).
+\*
 \* RECOVERABLE INVOCATION, AS A CONTRACT. Nothing of its mechanism is modelled: no lease, no
 \* critical section, no examine edge, no horizon, no clock arithmetic. What this model takes
 \* from it, and recoverable-invocation.tla checks:
@@ -68,6 +74,18 @@
 \*   - Duplicate_detected       the capability-to-sharing rebuild alerts two authorization
 \*                              outcomes naming one token (Composition state 18; Invariant 3.2
 \*                              NOTE).
+\*   - Lapse_before_aged        every capability an allocator attested lapses no later than its
+\*                              authorization event becomes an aged event: its expiry instant
+\*                              does not pass `(recording instant + audit horizon) - clock offset
+\*                              allowance` (Term ttl cap, Term aged event; Primitive policy 3,
+\*                              Capability requirement 33). Capability's lapse and the aged
+\*                              event both hold from the instant they reach, so the inequality
+\*                              is the claim at every reading of now: no live token outlives the
+\*                              record of its authorization, a ttl equal to the cap included.
+\*   - Index_read_live          [Redeem And Disclose] reads the capability-to-sharing index only
+\*                              for a token whose capability stands allocated (Action wiring 65,
+\*                              66), so, with Lapse_before_aged, only while the token's
+\*                              authorization event is inside the audit horizon.
 \*
 \* BOUND
 \* Tokens 1..NT = 1..2, minted at an allocation's commit (an invocation's or the outside
@@ -78,6 +96,13 @@
 \* Capability requirement 14, 22, 23), which Capability stamps as the allocation or
 \* revocation instant and Selective Disclosure as the disclosure instant; a write outside any
 \* invocation reads the same clock. Exhaustive.
+\* The ttl cap's arithmetic: Hz = 3 is the audit horizon and A = 1 the clock offset
+\* allowance, both in the clock's units, so the cap is 1; an authorization supplies no ttl
+\* (the default, DefTtl = 1, the cap exactly), the cap exactly, or Hz + 1, past the horizon.
+\* The substrate stamps the authorization event's recording instant at the close from its own
+\* clock, any value within A of the reading then (the allowance covering every pair of clocks).
+\* The clock is ordinal, so no token lapses in the model: the cap is checked as the inequality
+\* Lapse_before_aged states, at the stamps the close can give.
 \*
 \* HOW A STEP IS READ
 \* A bound invocation is a slot; its status `st` is none, rejected (refused ahead of its open,
@@ -97,23 +122,26 @@
 \*   recovery intent before a recovered outcome, the recovery flag, the service identity's
 \*   attestation, the closure window, the horizon edge, the escalation's candidates):
 \*   recoverable-invocation.tla, inherited here.
-\* - The clock and its edges: ttl and lapse, the young and aged records (Reconciliation 29,
-\*   30), the sweep cadence, the audit horizon (Invariant 1.4). A commit landing after its
-\*   invocation yielded is the unknown arm that wrote; the operator's abandonment over it
-\*   stands for Recoverable Invocation's stall.
+\* - The clock's passage: a lapse, the young and aged records (Reconciliation 29, 30), the
+\*   sweep cadence, an event aging past the audit horizon (Invariant 1.4), and so Composition
+\*   state 7 and 21 and [Authorization Provenance]; the ttl and the horizon enter only as the
+\*   inequality Lapse_before_aged checks. A commit landing after its invocation yielded is the
+\*   unknown arm that wrote; the operator's abandonment over it stands for Recoverable
+\*   Invocation's stall.
 \* - Fields: the sharing descriptor, the allocator, the recipient, the scope and the authority
 \*   (Invariant 1, 4.1) are one value; no redeemer identity exists to record (Invariant 1.2).
 \*   The capability-to-sharing index is read only through its rule (Composition state 6);
 \*   the disclosure-to-redemption index is read only for its rebuild's alert.
-\* - Validation ahead of the open (Primitive policy, Action wiring 12 to 22) other than the
-\*   unattested token; an allocation's pre-commit arms (a Capability storage-failure writes
+\* - Validation ahead of the open (Primitive policy, Action wiring 12 to 22) other than a
+\*   supplied ttl over the cap, the spent token and the unattested token; an allocation's
+\*   pre-commit arms (a Capability storage-failure writes
 \*   what a refused redemption writes); Capability's not-known (the model opens only on a
 \*   token Capability holds).
 \* - The read-only queries, which write nothing (Action wiring 53).
 
 EXTENDS Naturals, FiniteSets
 
-CONSTANTS NT, N, MaxRed, MaxDirect
+CONSTANTS NT, N, MaxRed, MaxDirect, Hz, A, DefTtl
 
 Ts == 1..NT
 Is == 1..N
@@ -122,18 +150,30 @@ MaxD == N + MaxDirect
 Ds == 1..MaxD
 OpenSt == {"live", "committed", "dead"}
 
+\* Term ttl cap: the audit horizon less twice the clock offset allowance.
+Cap == Hz - 2 * A
+\* The ttl an authorization supplies: none (0, the default applies), the cap, past the horizon.
+Offers == {0, Cap, Hz + 1}
+\* The substrate's recording instant for a reading c of the composition's clock (Term clock
+\* offset allowance: any pair of clocks within A).
+Stamps(c) == {s \in 0..(c + A) : s >= c - A}
+
 VARIABLES
     cst, cat, crt, crem, cmint, crby,          \* the Capability records
+    cexp, crec,                                 \* expiry instants; authorization events' stamps
     nd, dtok, dat, dby,                         \* the Selective Disclosure records
     ik, itok, inow, st, iw, cw, ie, oe, cby,    \* the bound invocations
+    ittl, iread,                                \* effective ttl; the index read's token (ghost)
     nx, clk, ndir,                              \* the next slot, the clock, outside writes
     viol
-vars == <<cst, cat, crt, crem, cmint, crby, nd, dtok, dat, dby,
-          ik, itok, inow, st, iw, cw, ie, oe, cby, nx, clk, ndir, viol>>
+vars == <<cst, cat, crt, crem, cmint, crby, cexp, crec, nd, dtok, dat, dby,
+          ik, itok, inow, st, iw, cw, ie, oe, cby, ittl, iread, nx, clk, ndir, viol>>
 
 cap == <<cst, cat, crt, crem, cmint, crby>>
 sd == <<nd, dtok, dat, dby>>
 inv == <<ik, itok, inow, st, iw, cw, ie, oe, cby>>
+tt == <<cexp, crec>>
+gx == <<ittl, iread>>
 
 Discs == 1..nd
 
@@ -213,6 +253,10 @@ TypeOK ==
     /\ clk \in 0..MaxT
     /\ ndir \in 0..MaxDirect
     /\ viol \subseteq {"finding-false", "finding-missed", "alert-wrong", "seal-missed", "dup-missed"}
+    /\ cexp \in [Ts -> 0..(MaxT + Hz + 1)]
+    /\ crec \in [Ts -> 0..(MaxT + A)]
+    /\ ittl \in [Is -> 0..(Hz + 1)]
+    /\ iread \in [Is -> {"-", "live", "spent"}]
 
 Init ==
     /\ cst = [t \in Ts |-> "none"]
@@ -238,6 +282,12 @@ Init ==
     /\ clk = 0
     /\ ndir = 0
     /\ viol = {}
+    /\ cexp = [t \in Ts |-> 0]
+    /\ crec = [t \in Ts |-> 0]
+    /\ ittl = [i \in Is |-> 0]
+    /\ iread = [i \in Is |-> "-"]
+    \* Capability requirement 33: the instance starts only with a default ttl inside the cap.
+    /\ DefTtl <= Cap
 
 \* ---------------------------------------------------------------------------------------
 \* The sharing actions: validate, open, commit, close (Recoverable Invocation Action wiring 4).
@@ -246,48 +296,69 @@ Init ==
 Nows == {clk + 1}
 
 \* [Open] for an authorization (Action wiring 2): the intent lands under the allocator,
-\* carrying the now, and no token (Recoverable Invocation Primitive policy 10).
-OpenAuth(t) ==
+\* carrying the now, the effective ttl, and no token (Recoverable Invocation Primitive policy
+\* 10). A supplied ttl over the cap is an out-of-bounds envelope, refused invalid-request
+\* with nothing written (Primitive policy 3, 14): no step.
+OpenAuth(t, x) ==
     LET i == nx IN
     /\ i <= N
+    /\ x = 0 \/ x <= Cap
     /\ ~OpenOn("auth", 0)
     /\ ik' = [ik EXCEPT ![i] = "auth"]
     /\ inow' = [inow EXCEPT ![i] = t]
+    /\ ittl' = [ittl EXCEPT ![i] = IF x = 0 THEN DefTtl ELSE x]
     /\ clk' = t
     /\ iw' = [iw EXCEPT ![i] = TRUE]
     /\ st' = [st EXCEPT ![i] = "live"]
     /\ nx' = i + 1
-    /\ UNCHANGED <<itok, cw, ie, oe, cby, ndir, cap, sd, viol>>
+    /\ UNCHANGED <<itok, cw, ie, oe, cby, ndir, cap, sd, viol, tt, iread>>
 
-\* [Redeem And Disclose]'s validation ahead of the open (Action wiring 12 to 22): a token
-\* the capability-to-sharing index does not attest is refused not-authorized-sharing, and
-\* nothing is written (Action wiring 18, 22).
-Reject(tk) ==
+\* [Redeem And Disclose]'s validation ahead of the open (Action wiring 12 to 22, 65, 66). A
+\* spent token (Capability's read answers it redeemed or revoked; a lapse is the clock's) is
+\* refused invalid carrying its redemption failure, the index unread, and nothing is written
+\* (Action wiring 65, 66, 22).
+RejectSpent(tk) ==
     LET i == nx IN
     /\ i <= N
-    /\ cst[tk] # "none"
-    /\ ~AttestedRule(tk)
+    /\ cst[tk] \in {"redeemed", "revoked"}
     /\ ik' = [ik EXCEPT ![i] = "disc"]
     /\ itok' = [itok EXCEPT ![i] = tk]
     /\ st' = [st EXCEPT ![i] = "rejected"]
     /\ nx' = i + 1
-    /\ UNCHANGED <<inow, iw, cw, ie, oe, cby, clk, ndir, cap, sd, viol>>
+    /\ UNCHANGED <<inow, iw, cw, ie, oe, cby, clk, ndir, cap, sd, viol, tt, gx>>
 
-\* [Open] for an attested token's redemption (Action wiring 23): the intent lands under the
-\* redemption identity, carrying the token and the now.
+\* A live token the capability-to-sharing index does not attest is refused
+\* not-authorized-sharing, and nothing is written (Action wiring 18, 22). The index is read
+\* here, and the ghost records whether the token stood allocated when it was.
+Reject(tk) ==
+    LET i == nx IN
+    /\ i <= N
+    /\ cst[tk] = "alloc"
+    /\ ~AttestedRule(tk)
+    /\ ik' = [ik EXCEPT ![i] = "disc"]
+    /\ itok' = [itok EXCEPT ![i] = tk]
+    /\ st' = [st EXCEPT ![i] = "rejected"]
+    /\ iread' = [iread EXCEPT ![i] = IF cst[tk] = "alloc" THEN "live" ELSE "spent"]
+    /\ nx' = i + 1
+    /\ UNCHANGED <<inow, iw, cw, ie, oe, cby, clk, ndir, cap, sd, viol, tt, ittl>>
+
+\* [Open] for a live, attested token's redemption (Action wiring 23): the intent lands under
+\* the redemption identity, carrying the token and the now.
 OpenDisc(tk, t) ==
     LET i == nx IN
     /\ i <= N
+    /\ cst[tk] = "alloc"
     /\ AttestedRule(tk)
     /\ ~OpenOn("disc", 0)
     /\ ik' = [ik EXCEPT ![i] = "disc"]
     /\ itok' = [itok EXCEPT ![i] = tk]
     /\ inow' = [inow EXCEPT ![i] = t]
+    /\ iread' = [iread EXCEPT ![i] = IF cst[tk] = "alloc" THEN "live" ELSE "spent"]
     /\ clk' = t
     /\ iw' = [iw EXCEPT ![i] = TRUE]
     /\ st' = [st EXCEPT ![i] = "live"]
     /\ nx' = i + 1
-    /\ UNCHANGED <<cw, ie, oe, cby, ndir, cap, sd, viol>>
+    /\ UNCHANGED <<cw, ie, oe, cby, ndir, cap, sd, viol, tt, ittl>>
 
 \* [Open] for a revocation (Action wiring 40): no refusal for a token the index does not
 \* carry (Action wiring 48); the intent lands under the revoker, carrying the token and now.
@@ -303,7 +374,7 @@ OpenRev(tk, t) ==
     /\ iw' = [iw EXCEPT ![i] = TRUE]
     /\ st' = [st EXCEPT ![i] = "live"]
     /\ nx' = i + 1
-    /\ UNCHANGED <<cw, ie, oe, cby, ndir, cap, sd, viol>>
+    /\ UNCHANGED <<cw, ie, oe, cby, ndir, cap, sd, viol, tt, gx>>
 
 \* The commits. a = "committed" or "unk-done" writes (the latter yields, the write landed).
 \* The authorization's commit: Capability's allocate, the now injected at its seam
@@ -317,11 +388,12 @@ CommitAuth(i, a) ==
     /\ cat' = [cat EXCEPT ![t] = inow[i]]
     /\ crem' = [crem EXCEPT ![t] = MaxRed]
     /\ cmint' = [cmint EXCEPT ![t] = i]
+    /\ cexp' = [cexp EXCEPT ![t] = inow[i] + ittl[i]]
     /\ itok' = [itok EXCEPT ![i] = t]
     /\ cw' = [cw EXCEPT ![i] = TRUE]
     /\ ie' = [ie EXCEPT ![i] = t]
     /\ st' = [st EXCEPT ![i] = IF a = "committed" THEN "committed" ELSE "dead"]
-    /\ UNCHANGED <<crt, crby, sd, ik, inow, iw, oe, cby, nx, clk, ndir, viol>>
+    /\ UNCHANGED <<crt, crby, sd, ik, inow, iw, oe, cby, nx, clk, ndir, viol, crec, gx>>
 
 \* The disclosure transaction: Capability's redeem, then Selective Disclosure's record with
 \* disclosed_at the now, in one transaction (Term disclosure transaction; Action wiring 29).
@@ -343,7 +415,7 @@ CommitDisc(i, a) ==
     /\ cw' = [cw EXCEPT ![i] = TRUE]
     /\ ie' = [ie EXCEPT ![i] = d]
     /\ st' = [st EXCEPT ![i] = IF a = "committed" THEN "committed" ELSE "dead"]
-    /\ UNCHANGED <<cat, crt, cmint, crby, ik, itok, inow, iw, oe, cby, nx, clk, ndir, viol>>
+    /\ UNCHANGED <<cat, crt, cmint, crby, ik, itok, inow, iw, oe, cby, nx, clk, ndir, viol, tt, gx>>
 
 \* The revocation's commit: Capability's revoke, the now injected at its seam (Action wiring
 \* 41; Capability requirement 22).
@@ -358,7 +430,7 @@ CommitRev(i, a) ==
     /\ cw' = [cw EXCEPT ![i] = TRUE]
     /\ ie' = [ie EXCEPT ![i] = tk]
     /\ st' = [st EXCEPT ![i] = IF a = "committed" THEN "committed" ELSE "dead"]
-    /\ UNCHANGED <<cat, crem, cmint, sd, ik, itok, inow, iw, oe, cby, nx, clk, ndir, viol>>
+    /\ UNCHANGED <<cat, crem, cmint, sd, ik, itok, inow, iw, oe, cby, nx, clk, ndir, viol, tt, gx>>
 
 \* A pre-commit arm Capability's own guard gives: a redeem answered invalid (exhausted,
 \* revoked), a revoke answered already-terminal. Closed through [Refuse] with its refusal
@@ -368,7 +440,7 @@ CommitPre(i) ==
     /\ ik[i] \in {"disc", "rev"}
     /\ (cst[itok[i]] # "alloc" \/ (ik[i] = "disc" /\ crem[itok[i]] = 0))
     /\ st' = [st EXCEPT ![i] = "refused"]
-    /\ UNCHANGED <<cap, sd, ik, itok, inow, iw, cw, ie, oe, cby, nx, clk, ndir, viol>>
+    /\ UNCHANGED <<cap, sd, ik, itok, inow, iw, cw, ie, oe, cby, nx, clk, ndir, viol, tt, gx>>
 
 \* Selective Disclosure refuses the record (a foreclosed disclosure refusal): the disclosure
 \* transaction fails whole, so the redeem rolls back and nothing is consumed; closed through
@@ -380,27 +452,34 @@ SdRefuse(i) ==
     /\ cst[tk] = "alloc"
     /\ crem[tk] > 0
     /\ st' = [st EXCEPT ![i] = "refused"]
-    /\ UNCHANGED <<cap, sd, ik, itok, inow, iw, cw, ie, oe, cby, nx, clk, ndir, viol>>
+    /\ UNCHANGED <<cap, sd, ik, itok, inow, iw, cw, ie, oe, cby, nx, clk, ndir, viol, tt, gx>>
 
 \* An unknown arm that wrote nothing: the invocation yields (Action wiring 60).
 CommitLost(i) ==
     /\ st[i] = "live"
     /\ st' = [st EXCEPT ![i] = "dead"]
-    /\ UNCHANGED <<cap, sd, ik, itok, inow, iw, cw, ie, oe, cby, nx, clk, ndir, viol>>
+    /\ UNCHANGED <<cap, sd, ik, itok, inow, iw, cw, ie, oe, cby, nx, clk, ndir, viol, tt, gx>>
 
 \* [Close] after a committed arm: the outcome names what the commit wrote (Action wiring 8,
 \* 36, 46). It may fail, or the invocation may die first: the intent stays open for the
-\* sweep (Action wiring 61; Cross-record consistency 1).
-Close(i, o) ==
+\* sweep (Action wiring 61; Cross-record consistency 1). The substrate stamps an
+\* authorization event's recording instant from its own clock, within A of the reading.
+Close(i, o, s) ==
     /\ st[i] = "committed"
     /\ \/ /\ o = "ok"
           /\ st' = [st EXCEPT ![i] = "closed"]
           /\ cby' = [cby EXCEPT ![i] = "inv"]
           /\ oe' = [oe EXCEPT ![i] = ie[i]]
+          /\ IF ik[i] = "auth"
+                THEN /\ s \in Stamps(clk)
+                     /\ crec' = [crec EXCEPT ![ie[i]] = s]
+                ELSE /\ s = clk
+                     /\ UNCHANGED crec
        \/ /\ o = "fail"
+          /\ s = clk
           /\ st' = [st EXCEPT ![i] = "dead"]
-          /\ UNCHANGED <<cby, oe>>
-    /\ UNCHANGED <<cap, sd, ik, itok, inow, iw, cw, ie, nx, clk, ndir, viol>>
+          /\ UNCHANGED <<cby, oe, crec>>
+    /\ UNCHANGED <<cap, sd, ik, itok, inow, iw, cw, ie, nx, clk, ndir, viol, cexp, gx>>
 
 \* ---------------------------------------------------------------------------------------
 \* Recoverable Invocation's sweep and the operator's resolve, as contracts.
@@ -413,21 +492,21 @@ SweepClose(i) ==
     /\ st' = [st EXCEPT ![i] = "closed"]
     /\ cby' = [cby EXCEPT ![i] = "sweep"]
     /\ oe' = [oe EXCEPT ![i] = CHOOSE x \in Matches(i) : TRUE]
-    /\ UNCHANGED <<cap, sd, ik, itok, inow, iw, cw, ie, nx, clk, ndir, viol>>
+    /\ UNCHANGED <<cap, sd, ik, itok, inow, iw, cw, ie, nx, clk, ndir, viol, tt, gx>>
 
 \* Otherwise (none, or several) it escalates.
 SweepEscalate(i) ==
     /\ st[i] = "dead"
     /\ Cardinality(Matches(i)) # 1
     /\ st' = [st EXCEPT ![i] = "escalated"]
-    /\ UNCHANGED <<cap, sd, ik, itok, inow, iw, cw, ie, oe, cby, nx, clk, ndir, viol>>
+    /\ UNCHANGED <<cap, sd, ik, itok, inow, iw, cw, ie, oe, cby, nx, clk, ndir, viol, tt, gx>>
 
 \* The operator's resolve: an abandonment of an open or escalated intent.
 OpAbandon(i) ==
     /\ st[i] \in {"dead", "escalated"}
     /\ st' = [st EXCEPT ![i] = "abandoned"]
     /\ cby' = [cby EXCEPT ![i] = "op"]
-    /\ UNCHANGED <<cap, sd, ik, itok, inow, iw, cw, ie, oe, nx, clk, ndir, viol>>
+    /\ UNCHANGED <<cap, sd, ik, itok, inow, iw, cw, ie, oe, nx, clk, ndir, viol, tt, gx>>
 
 \* The operator's resolve: an outcome naming any record id of the kind the operator
 \* chooses, superseding an abandonment where one stands (resolve 14 to 16, 21, 32).
@@ -437,7 +516,7 @@ OpOutcome(i, x) ==
     /\ st' = [st EXCEPT ![i] = "closed"]
     /\ cby' = [cby EXCEPT ![i] = "op"]
     /\ oe' = [oe EXCEPT ![i] = x]
-    /\ UNCHANGED <<cap, sd, ik, itok, inow, iw, cw, ie, nx, clk, ndir, viol>>
+    /\ UNCHANGED <<cap, sd, ik, itok, inow, iw, cw, ie, nx, clk, ndir, viol, tt, gx>>
 
 \* ---------------------------------------------------------------------------------------
 \* A write outside every invocation, with no intent and no outcome, stamped from the same
@@ -452,7 +531,7 @@ DirectAlloc ==
     /\ cmint' = [cmint EXCEPT ![t] = 0]
     /\ clk' = clk + 1
     /\ ndir' = ndir + 1
-    /\ UNCHANGED <<crt, crby, sd, inv, nx, viol>>
+    /\ UNCHANGED <<crt, crby, sd, inv, nx, viol, tt, gx>>
 
 DirectRevoke(tk) ==
     /\ ndir < MaxDirect
@@ -462,7 +541,7 @@ DirectRevoke(tk) ==
     /\ crby' = [crby EXCEPT ![tk] = 0]
     /\ clk' = clk + 1
     /\ ndir' = ndir + 1
-    /\ UNCHANGED <<cat, crem, cmint, sd, inv, nx, viol>>
+    /\ UNCHANGED <<cat, crem, cmint, sd, inv, nx, viol, tt, gx>>
 
 DirectDisclose ==
     LET d == nd + 1 IN
@@ -474,7 +553,7 @@ DirectDisclose ==
     /\ dby' = [dby EXCEPT ![d] = 0]
     /\ clk' = clk + 1
     /\ ndir' = ndir + 1
-    /\ UNCHANGED <<cap, inv, nx, viol>>
+    /\ UNCHANGED <<cap, inv, nx, viol, tt, gx>>
 
 \* The write-ownership leg (Reconciliation 31 to 35): every capability and disclosure record
 \* read against the intents, on an answered read. It opens a finding and alerts by the page's
@@ -496,7 +575,7 @@ LegRun ==
                   \/ \E t \in revd : LegAlertsRev(t) # FalseRev(t)
                   \/ \E d \in Discs : LegAlertsDisc(d) # FalseDisc(d)
                THEN {"alert-wrong"} ELSE {})
-    /\ UNCHANGED <<cap, sd, inv, nx, clk, ndir>>
+    /\ UNCHANGED <<cap, sd, inv, nx, clk, ndir, tt, gx>>
 
 \* The two index rebuilds (Composition state 16 to 18): the seal alert and the
 \* duplicate-authorization alert.
@@ -504,10 +583,11 @@ Rebuild ==
     /\ viol' = viol
          \cup (IF \E x \in Ds : SealWrong(x) /\ ~SealAlerts(x) THEN {"seal-missed"} ELSE {})
          \cup (IF \E t \in Ts : DupWrong(t) /\ ~DupAlerts(t) THEN {"dup-missed"} ELSE {})
-    /\ UNCHANGED <<cap, sd, inv, nx, clk, ndir>>
+    /\ UNCHANGED <<cap, sd, inv, nx, clk, ndir, tt, gx>>
 
 Next ==
-    \/ \E t \in Nows : OpenAuth(t)
+    \/ \E t \in Nows, x \in Offers : OpenAuth(t, x)
+    \/ \E tk \in Ts : RejectSpent(tk)
     \/ \E tk \in Ts : Reject(tk)
     \/ \E tk \in Ts, t \in Nows : OpenDisc(tk, t)
     \/ \E tk \in Ts, t \in Nows : OpenRev(tk, t)
@@ -517,7 +597,7 @@ Next ==
     \/ \E i \in Is : CommitPre(i)
     \/ \E i \in Is : SdRefuse(i)
     \/ \E i \in Is : CommitLost(i)
-    \/ \E i \in Is, o \in {"ok", "fail"} : Close(i, o)
+    \/ \E i \in Is, o \in {"ok", "fail"}, s \in Stamps(clk) : Close(i, o, s)
     \/ \E i \in Is : SweepClose(i)
     \/ \E i \in Is : SweepEscalate(i)
     \/ \E i \in Is : OpAbandon(i)
@@ -581,5 +661,15 @@ Duplicate_detected == ~("dup-missed" \in viol)
 
 \* Reachability probe: the correct model, this one invariant added, which the checker must find false.
 Probe_false == ~(\E i \in Is : ik[i] = "disc" /\ st[i] = "closed" /\ cby[i] = "sweep")
+
+\* Term ttl cap, Primitive policy 3, Capability requirement 33: a capability an allocator
+\* attested lapses no later than its authorization event ages (Term aged event), so no live
+\* token outlives the record of its authorization.
+Lapse_before_aged ==
+    \A t \in Ts : AllocatorAttested(t) => cexp[t] <= (crec[t] + Hz) - A
+
+\* Action wiring 65, 66: the redemption reads the capability-to-sharing index only for a
+\* token whose capability stands allocated.
+Index_read_live == \A i \in Is : iread[i] # "spent"
 
 ====
