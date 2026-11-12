@@ -1175,9 +1175,9 @@
   "invariants": 9,
   "kind": "composition",
   "models": {
-   "als": false,
+   "als": true,
    "tla": true,
-   "twins": 0
+   "twins": 15
   },
   "regulated": true,
   "standards": [
