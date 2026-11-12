@@ -835,9 +835,9 @@
   "invariants": 6,
   "kind": "atom",
   "models": {
-   "als": false,
+   "als": true,
    "tla": true,
-   "twins": 5
+   "twins": 14
   },
   "regulated_by": [
    "recoverable-invocation"

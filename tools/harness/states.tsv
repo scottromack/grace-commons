@@ -1,11 +1,4 @@
 # date	file	role	engine	states	capped	commands	holds	satisfiable	counterexamples	vacuous	verdict	checker
-2026-11-11	atoms/lease.tla	model	tla	14480	0	-	-	-	-	-	HOLDS	tlc
-2026-11-11	atoms/lease-buggy-margin.tla	twin	tla	5707	0	-	-	-	-	-	CAUGHT	tlc
-2026-11-11	atoms/lease-probe-both.tla	twin	tla	3496	0	-	-	-	-	-	CAUGHT	tlc
-2026-11-11	atoms/lease-buggy-fence.tla	twin	tla	3281	0	-	-	-	-	-	CAUGHT	tlc
-2026-11-11	atoms/lease-buggy-release.tla	twin	tla	1085	0	-	-	-	-	-	CAUGHT	tlc
-2026-11-11	atoms/lease-buggy-death.tla	twin	tla	110	0	-	-	-	-	-	CAUGHT	tlc
-2026-11-11	atoms/lease-buggy-waiter.tla	twin	tla	14	0	-	-	-	-	-	CAUGHT	tlc
 2026-11-11	atoms/permissions-buggy-permitted-ignores-status.als	twin	als	-	-	14	4	7	2	1	CAUGHT	alloy
 2026-11-11	atoms/permissions-buggy-revoke-rewrites-scope.als	twin	als	-	-	14	5	8	1	0	CAUGHT	alloy
 2026-11-11	atoms/permissions-buggy-status-not-written.als	twin	als	-	-	14	4	7	2	1	CAUGHT	alloy
@@ -1600,3 +1593,20 @@
 2026-11-12	atoms/event-log-buggy-next-dropped.als	twin	als	-	-	23	8	10	4	1	CAUGHT	alloy
 2026-11-12	atoms/event-log-buggy-id-minted.als	twin	als	-	-	23	11	11	1	0	CAUGHT	alloy
 2026-11-12	atoms/event-log-buggy-filters-any-of.als	twin	als	-	-	23	11	10	1	1	CAUGHT	alloy
+2026-11-12	atoms/lease.tla	model	tla	14480	0	-	-	-	-	-	HOLDS	tlc
+2026-11-12	atoms/lease-buggy-margin.tla	twin	tla	5707	0	-	-	-	-	-	CAUGHT	tlc
+2026-11-12	atoms/lease-probe-both.tla	twin	tla	3496	0	-	-	-	-	-	CAUGHT	tlc
+2026-11-12	atoms/lease-buggy-fence.tla	twin	tla	3281	0	-	-	-	-	-	CAUGHT	tlc
+2026-11-12	atoms/lease-buggy-release.tla	twin	tla	1085	0	-	-	-	-	-	CAUGHT	tlc
+2026-11-12	atoms/lease-buggy-death.tla	twin	tla	110	0	-	-	-	-	-	CAUGHT	tlc
+2026-11-12	atoms/lease-buggy-waiter.tla	twin	tla	14	0	-	-	-	-	-	CAUGHT	tlc
+2026-11-12	atoms/lease-buggy-free-late.als	twin	als	-	-	19	7	10	1	1	CAUGHT	alloy
+2026-11-12	atoms/lease-buggy-fence-bare.als	twin	als	-	-	19	7	11	1	0	CAUGHT	alloy
+2026-11-12	atoms/lease-buggy-fence-handed-on.als	twin	als	-	-	19	6	11	2	0	CAUGHT	alloy
+2026-11-12	atoms/lease-buggy-release-any.als	twin	als	-	-	19	7	9	1	2	CAUGHT	alloy
+2026-11-12	atoms/lease-buggy-remaining-passed.als	twin	als	-	-	19	7	10	1	1	CAUGHT	alloy
+2026-11-12	atoms/lease-buggy-report-death.als	twin	als	-	-	19	6	11	2	0	CAUGHT	alloy
+2026-11-12	atoms/lease-buggy-take-beside.als	twin	als	-	-	19	6	11	2	0	CAUGHT	alloy
+2026-11-12	atoms/lease-buggy-free-on-death.als	twin	als	-	-	19	5	10	3	1	CAUGHT	alloy
+2026-11-12	atoms/lease-buggy-free-on-margin.als	twin	als	-	-	19	6	11	2	0	CAUGHT	alloy
+2026-11-12	atoms/lease.als	model	als	-	-	19	8	11	0	0	HOLDS	alloy
