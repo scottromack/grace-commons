@@ -635,7 +635,7 @@ It inherits from:
 
 ```
 status: grounded on Final Critique 10 — 2026-11-04 at 582c382
-formal: verified — permissions.als + 4 twins; coverage 2026-11-10 (unit formal: more coverage for the yes votes): owes TLA+ (everything across steps); owed rows: Invariant 4; Invariant 5; Invariant 9, 2026-06-03
+formal: verified — permissions.als + 10 twins (the static data model, re-derived 2026-11-12 as every version an ordered sequence of admitted [Grant] and [Revoke] calls leaves: State 1 through 5, Identity 1, Invariant 8.1, Operation 2, 4 and 5, String 6; the 2026-06-03 model's pre/post checks of Invariant 1, 2, 3 and 10 and its checks of [Check]'s answer taken over by the TLA+ model); permissions.tla + 23 twins (the operation sequences, 2026-11-12, while the clock moves: Invariant 1.1, 2.2, 4.1, 4.2, 5.1, 7.1, 9.1, 9.2 and 10.1, Identity 8, Check 2.1, Operation 1, 6, 7, 9, 10, 11, 15, 17, 20, 26 and 28, with Invariant 1.2, 3.2 and 6.1, Identity 3, 6 and 7, Operation 3, 13, 18, 21 and 22 checked through them); Invariant 9.2 at an instant a grant was both granted and revoked in is a finding (the grant stood in active at that instant and is not live at it; the model reads an instant at its end); Invariant 6.2 cannot be stated; coverage 2026-11-12 (unit `atoms/permissions.md formal layer`): owed rows: Operation 27; String 1 through 4 and 7, 2026-11-12
 last gate: 2026-11-04 — Final Critique 10, delta, frozen at 582c382 — foundational count 0, clean, one sample
 
 open:

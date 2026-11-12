@@ -1,35 +1,66 @@
 -- permissions.als
 -- Alloy structural model for the Permissions atom (Grace Commons atoms/permissions.md)
--- Grounded (English) — formal layer authored 2026-06-03.
+-- Grounded on Final Critique 10, 2026-11-04 at 582c382 — Alloy layer authored 2026-06-03,
+-- re-derived 2026-11-12 as a single-state model.
+-- Derived validator; the English spec is the single source of truth. On any
+-- disagreement, diagnose per the entry *The conflict protocol* in pressure-testing.md.
 --
 -- PURPOSE
--- Verify the load-bearing invariants of the Permissions atom by bounded exhaustive search.
--- Primary focus: the grant lifecycle's monotonicity and terminal-absorption properties.
+-- Verify, by bounded exhaustive search, the STATIC data model of Permissions: what the grant
+-- records the database holds must satisfy in any one state, whatever calls wrote them. The
+-- page's single-state rules are checked here; everything that happens across steps (a
+-- recorded grant's fields and grant id never change, revocation is terminal, no id shared,
+-- the timestamp ordering and the reconstruction of a past instant, nothing deleted, what
+-- [Grant], [Revoke], [Check] and [Read] answer and write) is the TLA+ model's,
+-- permissions.tla.
 --
--- INVARIANTS ENCODED
---   Invariant 2 — Status monotonicity: Active → Revoked only; a grant never returns to Active.
---   Invariant 3 — Revocation is terminal: once Revoked, no transition leaves Revoked.
---   Invariant 5 — No id reuse: no two grants share a grant_id across the system lifetime.
---   Invariant 7 — Denial by absence: permitted returns denied iff no Active grant matches.
---   Invariant 8 — Revoked grants confer no permission: a Revoked grant never satisfies permitted.
---   Invariant 10 — Grant store durability: revoke produces a post-record; it does not delete.
+-- RULES ENCODED (named by the page's own labels)
+--   State 1        — every grant stands in exactly one of active, revoked.
+--   State 2        — every grant carries grant id, subject reference, action scope, grant
+--                    instant and status (Check 1.1).
+--   State 3        — a revoked grant carries a revocation instant (Check 1.2).
+--   State 4        — the grant instant is the now injected into the [Grant] that recorded it.
+--   State 5        — the revocation instant is the now injected into the [Revoke] that
+--                    revoked it.
+--   Identity 1     — a grant is identified by its grant id: the grant a [Revoke] writes
+--                    carries the id that call named.
+--   Invariant 8.1  — no revoked grant stands in the active grant set.
+--   Operation 2    — the grant a [Grant] records stands in active.
+--   Operation 4    — no grant carries a blank subject reference.
+--   Operation 5    — no grant carries a blank action scope.
+--   String 6       — no grant carries a subject reference or an action scope over the
+--                    string cap.
+--
+-- NOT CHECKED HERE (across steps or calls' answers; the TLA+ model's)
+--   Invariant 1.1, 1.2, 2.2, 4.1, 4.2, 5.1, 7.1, 9.1, 9.2 and 10.1, Identity 8, Check 2.1,
+--   Operation 1, 6, 7, 9 to 11, 15, 17, 20, 26 and 28: each compares a grant with a later
+--   state of itself, or reads what a call answered or wrote. The 2026-06-03 model's
+--   pre/post checks (A_I1, A_I2, A_I3, A_I10) and its checks of [Check]'s answer (A_I7,
+--   A_I8) are taken over there.
 --
 -- SCOPE
--- Static structural model (snapshots). Each GrantRecord sig is one record in the store.
--- Transitions are modeled as predicates over pre/post record pairs — no temporal trace steps.
--- The GrantIdUniqueness fact applies to the global store; the revoke_action predicate
--- does NOT carry the grant_id from pre to post, because pre and post are distinct snapshot
--- records (the pre-record and the post-record of a single grant across two store snapshots).
--- Immutability of the other fields (subject_ref, action_scope) IS carried through.
--- The grant_id uniqueness assertion covers the store as a whole; immutability of grant_id
--- across a lifecycle is an unconditional structural invariant, not a transition constraint.
+-- A state is what a sequence of admitted calls leaves. Each call is one atom, in the order
+-- Execution Contract Order 1 gives every commit. [Grant] records a grant in active
+-- (Operation 1, 2); [Revoke] records a later version of a grant over the version it found
+-- (Operation 11). A call finds only what was committed before it (Execution Contract
+-- Database 2). The model does not ask whether the version a [Revoke] found was still the
+-- latest one, so it builds every record a state can hold and some no state reaches; a check
+-- that holds over all of them holds over the records. Every version is checked, since each
+-- was the record once. A before/after pair builds a version; nothing is checked across
+-- the pair. No trace, no `var`, no stepping.
+-- Subject references and action scopes are opaque strings (Term subject reference, Term
+-- action scope); a string in Strings.blank is an empty or whitespace-only one (String 5).
+-- Grant ids are opaque tokens the host allocates at the seam (Identity 2). Instants are
+-- whole numbers of seconds.
 --
 -- NOT MODELED HERE
---   - Clock-skew violations of Invariant 9 (granted_at ≤ revoked_at is best-effort per spec)
---   - Storage-failure rejection paths (infrastructure concern, not structural)
---   - subject_ref and action_scope content validation (opaque types, exact-match only)
---   - Grantor attribution (belongs to Actor Identity composition)
---   - Scope hierarchy, delegation, time-bounded grants (all composing-pattern concerns)
+--   - The refusals themselves (invalid-request, not-known, not-active, storage-failure) and
+--     which one answers (Execution Contract Refusal 1): a refused call writes nothing
+--     (Execution Contract Read 4), so the model needs only whether a call is admitted.
+--   - [Check] and [Read]: reads write nothing (Operation 20, 28), so they add no record;
+--     what they answer is the TLA+ model's.
+--   - The string cap's value (256 code points unless declared, Capability requirement 5):
+--     the model needs only which strings exceed it.
 --
 -- HOW TO READ RESULTS
 -- Every "check A_*" must return "No counterexample found" (UNSAT) — the asserted guarantee holds.
@@ -38,226 +69,273 @@
 
 module permissions
 
+open util/ordering[Call] as C
+
 -- ─────────────────────────────────────────────────────────────────────────────
 -- Signatures (types)
 -- ─────────────────────────────────────────────────────────────────────────────
 
--- Status: the two named states from the spec (Section: State).
--- Active  — grant is in force; contributes to permitted evaluations.
--- Revoked — grant has been withdrawn; terminal; contributes nothing.
+-- Str: a string a [Grant] carries: a subject reference or an action scope. The atom never
+-- interprets one and compares them byte-exactly (String 1), so a string is an
+-- uninterpreted token and two different strings are two different atoms.
+sig Str {}
+
+-- Strings: which strings the page's guards refuse: the blank ones, whitespace-only
+-- included (String 5), and the ones longer than the string cap (String 6).
+one sig Strings {
+    blank    : set Str,
+    overCap  : set Str
+}
+
+-- GrantId: an opaque grant id the host allocates at the seam (Identity 2, Term grant id).
+sig GrantId {}
+
+-- Status: the grant's status (Term status): active or revoked.
 abstract sig Status {}
+
+-- Active, Revoked: the two statuses: in force, or withdrawn and terminal.
 one sig Active, Revoked extends Status {}
 
--- Opaque reference types. Alloy generates instances freely; the atom treats them as
--- uninterpreted tokens (exact-match semantics, no hierarchy — per spec Behavior section).
-abstract sig GrantId    {}
-abstract sig SubjectRef {}
-abstract sig ActionScope {}
+-- Call: one call of a writing action ([Grant], [Revoke]). The host injects the clock
+-- reading, now, at the seam (Capability requirement 1; Term now). Calls happen in one
+-- order, the order Execution Contract Order 1 gives every commit.
+abstract sig Call {
+    now : one Int   -- the injected now
+}
 
--- The grant record. Each field mirrors a named field in the spec's State section.
--- Fields always present: "one". Status transitions from Active to Revoked via revoke_action.
-sig GrantRecord {
-    grant_id     : one GrantId,      -- opaque immutable system-generated identity (Inv 1, 4, 5)
-    subject_ref  : one SubjectRef,   -- who holds the grant — opaque, immutable (Inv 1)
-    action_scope : one ActionScope,  -- what the grant covers — opaque, immutable (Inv 1)
-    status       : one Status        -- Active | Revoked (Inv 2, 3)
+-- GrantCall: one [Grant] call, grant(subject_ref, action_scope), with the grant id the host
+-- allocated for it at the seam (Identity 2, 4: the business caller supplies none).
+sig GrantCall extends Call {
+    subjIn  : one Str,       -- subject_ref
+    scopeIn : one Str,       -- action_scope
+    idIn    : one GrantId    -- the host's allocation
+}
+
+-- RevokeCall: one [Revoke] call, revoke(grant_id).
+sig RevokeCall extends Call {
+    gidIn : one GrantId      -- grant_id
+}
+
+-- Rec: one version of a grant record (Term records), as the call that wrote it left it.
+-- Every field the page names may be absent, and the status is a set, so a write that forgot
+-- a field or left two statuses would show; what the page promises (State 1 to 5) is
+-- checked, never built into the type. The last two fields are the model's own: which call
+-- wrote this version, and which version a [Revoke] found.
+sig Rec {
+    grantId   : lone GrantId,   -- grant id
+    subject   : lone Str,       -- subject reference
+    scope     : lone Str,       -- action scope
+    grantedAt : lone Int,       -- grant instant
+    status    : set Status,     -- status
+    revokedAt : lone Int,       -- revocation instant
+    writtenBy : one Call,
+    found     : lone Rec
 }
 
 -- ─────────────────────────────────────────────────────────────────────────────
--- Structural well-formedness facts
+-- Facts: what the page takes from outside
 -- ─────────────────────────────────────────────────────────────────────────────
 
--- Invariant 5: No id reuse.
--- No two distinct grant records in the store share a grant_id.
-fact GrantIdUniqueness {
-    all disj r1, r2 : GrantRecord | r1.grant_id != r2.grant_id
+-- The host's clock reads an instant from 0 to 7 seconds into the model's span (Capability
+-- requirement 1: the deployment supplies now).
+fact ClockReadsTheModelsSpan {
+    all c : Call | c.now >= 0 and c.now <= 7
 }
 
 -- ─────────────────────────────────────────────────────────────────────────────
--- Permission evaluation predicate
--- Models the permitted(subject_ref, action_scope) query (Invariants 6, 7, 8).
+-- Helpers
 -- ─────────────────────────────────────────────────────────────────────────────
 
--- permitted_holds: the permitted query returns "permitted".
--- Requires: at least one Active grant matching the (subject, scope) pair exists.
--- This is a pure read over the grant store; no state change (per spec Behavior).
-pred permitted_holds[sub : SubjectRef, scope : ActionScope] {
-    some r : GrantRecord | {
-        r.subject_ref  = sub
-        r.action_scope = scope
-        r.status       = Active
+-- usable: a string [Grant]'s guards accept: not blank and not over the string cap.
+pred usable[s : Str] {
+    s not in Strings.blank + Strings.overCap
+}
+
+-- first: the first version of the grant this version belongs to, the one [Grant] wrote.
+fun first[r : Rec] : set Rec {
+    { v : r.*found | no v.found }
+}
+
+-- origin: the [Grant] call that recorded the grant this version belongs to.
+fun origin[r : Rec] : set GrantCall {
+    first[r].writtenBy & GrantCall
+}
+
+-- ─────────────────────────────────────────────────────────────────────────────
+-- The writing actions: their guards and their writes
+-- ─────────────────────────────────────────────────────────────────────────────
+
+-- grantWrites: the grant an admitted [Grant] records, and the guards it passes first: the
+-- subject reference and the action scope not blank (Operation 4, 5) and within the string
+-- cap (String 6). The grant carries the grant id the host allocated (Identity 2, Invariant
+-- 4.1), the pair as the call carries it, the injected now as its grant instant (State 4),
+-- status active (Operation 2), and no revocation instant. A pair an active grant already
+-- covers is no ground for refusal (Operation 6).
+pred grantWrites[c : GrantCall, r : Rec] {
+    usable[c.subjIn]                                                  -- Operation 4, String 6
+    usable[c.scopeIn]                                                 -- Operation 5, String 6
+    r.grantId   = c.idIn                                              -- Identity 2
+    r.subject   = c.subjIn                                            -- Operation 1
+    r.scope     = c.scopeIn                                           -- Operation 1
+    r.grantedAt = c.now                                               -- State 4
+    r.status    = Active                                              -- Operation 2
+    no r.revokedAt
+}
+
+-- revokeWrites: the version an admitted [Revoke] records over the version it found: the
+-- call's grant id names the grant (Operation 9, Identity 1), and the grant stands in active
+-- (Operation 10). The version stands in revoked (Operation 11), carries the injected now as
+-- its revocation instant (State 5), and keeps the grant id, the pair and the grant instant.
+pred revokeWrites[pre : Rec, c : RevokeCall, r : Rec] {
+    pre.grantId = c.gidIn                                             -- Operation 9, Identity 1
+    pre.status  = Active                                              -- Operation 10
+    r.grantId   = pre.grantId
+    r.subject   = pre.subject
+    r.scope     = pre.scope
+    r.grantedAt = pre.grantedAt
+    r.status    = Revoked                                             -- Operation 11
+    r.revokedAt = c.now                                               -- State 5
+}
+
+-- written: the version is what its call's write left: a [Grant] writes a first version; a
+-- [Revoke] writes over a version an earlier call wrote (a call finds only what was
+-- committed before it, Execution Contract Database 2).
+pred written[v : Rec] {
+    let c = v.writtenBy {
+        (c in GrantCall and no v.found and grantWrites[c, v])
+        or (c in RevokeCall and some v.found
+            and C/lt[v.found.writtenBy, c] and revokeWrites[v.found, c, v])
     }
 }
 
--- ─────────────────────────────────────────────────────────────────────────────
--- Transition predicate: revoke_action
--- Pre/post record pair modeling the Active → Revoked state change.
---
--- Note on the snapshot modeling convention (mirrors capability.als):
--- In a static snapshot model, pre and post are two distinct GrantRecord instances
--- representing the same logical grant before and after revocation. Because GrantIdUniqueness
--- applies globally, pre and post cannot share grant_id while being distinct records.
--- Therefore, grant_id is NOT carried from pre to post in this predicate — the identity
--- continuity is modeled by the (subject_ref, action_scope) pair being preserved.
--- The unconditional grant_id uniqueness invariant is verified separately via A_I5.
--- ─────────────────────────────────────────────────────────────────────────────
-
--- revoke_action: Active grant transitions to Revoked.
--- Pre: status = Active (Invariant 3: Revoked grants cannot be revoked again — not-active).
--- Post: status = Revoked; subject_ref and action_scope are preserved (Invariant 1).
-pred revoke_action[pre, post : GrantRecord] {
-    -- precondition: grant must be Active
-    pre.status  = Active
-    -- status transitions to Revoked (Invariant 2 — monotonicity: Active → Revoked)
-    post.status = Revoked
-    -- immutable semantic fields are preserved (Invariant 1)
-    post.subject_ref  = pre.subject_ref
-    post.action_scope = pre.action_scope
+-- recorded: a version the page lets the records hold (see SCOPE): it and every version it
+-- was built from are what an admitted call wrote.
+pred recorded[r : Rec] {
+    all v : r.*found | written[v]
 }
 
 -- ─────────────────────────────────────────────────────────────────────────────
 -- Assertions (verified guarantees)
--- Each "check" asks: is there any valid configuration that violates this assertion?
--- No counterexample (UNSAT) = the guarantee holds in all configurations within scope.
+-- Each "check" asks: is there any state the page's calls can leave that violates this
+-- assertion? No counterexample (UNSAT) = the guarantee holds within scope.
 -- ─────────────────────────────────────────────────────────────────────────────
 
--- Invariant 5 is assumed by fact GrantIdUniqueness. The check A_I5_GrantIdUniqueness restated
--- that fact word for word, so no twin could break it; it went 2026-11-10.
-
--- A_I2_StatusMonotonicity: Invariant 2 — revoke_action always transitions to Revoked, never back to Active.
--- This is the forward-only (monotonic) direction of the state machine.
-assert A_I2_StatusMonotonicity {
-    all pre, post : GrantRecord |
-        revoke_action[pre, post] implies post.status = Revoked
+-- A_State_1: every grant stands in exactly one of active and revoked (State 1).
+assert A_State_1 {
+    all r : Rec | recorded[r] implies one r.status
 }
-check A_I2_StatusMonotonicity for 6
+check A_State_1 for 4 but 4 Int
 
--- A_I3_RevocationTerminal: Invariant 3 — a Revoked record cannot be the pre-record of a revoke_action.
--- (revoke_action requires pre.status = Active; so firing it on a Revoked pre-record is impossible.)
-assert A_I3_RevocationTerminal {
-    all pre, post : GrantRecord |
-        pre.status = Revoked implies not revoke_action[pre, post]
+-- A_State_2: every grant carries its grant id, subject reference, action scope, grant
+-- instant and status, whichever call last wrote it (State 2, Check 1.1).
+assert A_State_2 {
+    all r : Rec | recorded[r] implies {
+        some r.grantId
+        some r.subject
+        some r.scope
+        some r.grantedAt
+        some r.status
+    }
 }
-check A_I3_RevocationTerminal for 6
+check A_State_2 for 4 but 4 Int
 
--- A_I1_RevokePreservesSemanticFields: Invariant 1 — revoke does not alter subject_ref or action_scope.
--- (grant_id uniqueness is enforced globally by GrantIdUniqueness, not by this transition.)
-assert A_I1_RevokePreservesSemanticFields {
-    all pre, post : GrantRecord |
-        revoke_action[pre, post] implies {
-            post.subject_ref  = pre.subject_ref
-            post.action_scope = pre.action_scope
-        }
+-- A_State_3: a revoked grant carries a revocation instant, so an auditor reads when the
+-- access ended (State 3, Check 1.2).
+assert A_State_3 {
+    all r : Rec | (recorded[r] and Revoked in r.status) implies some r.revokedAt
 }
-check A_I1_RevokePreservesSemanticFields for 6
+check A_State_3 for 4 but 4 Int
 
--- A_I8_RevokedGrantsConferNoPermission: Invariant 8 — a Revoked grant does not, by itself, satisfy permitted.
--- If a record is Revoked and it is the only record for that (subject_ref, action_scope) pair,
--- then permitted_holds is false for that pair.
-assert A_I8_RevokedGrantsConferNoPermission {
-    all r : GrantRecord |
-        (r.status = Revoked and
-         no other : GrantRecord | {
-             other != r
-             other.subject_ref  = r.subject_ref
-             other.action_scope = r.action_scope
-             other.status       = Active
-         })
-        implies not permitted_holds[r.subject_ref, r.action_scope]
+-- A_State_4: every version's grant instant is the now the host injected into the [Grant]
+-- that recorded the grant, a revoked version included (State 4).
+assert A_State_4 {
+    all r : Rec | recorded[r] implies r.grantedAt = origin[r].now
 }
-check A_I8_RevokedGrantsConferNoPermission for 6
+check A_State_4 for 4 but 4 Int
 
--- A_I7_DenialByAbsence: Invariant 7 — permitted_holds is true iff some Active grant for the pair exists.
--- This encodes the bidirectional "if and only if" — no false positives, no false negatives.
-assert A_I7_DenialByAbsence {
-    all sub : SubjectRef, scope : ActionScope |
-        permitted_holds[sub, scope] iff
-        (some r : GrantRecord | r.subject_ref = sub and r.action_scope = scope and r.status = Active)
+-- A_State_5: a version a [Revoke] wrote carries, as its revocation instant, the now the host
+-- injected into that [Revoke] (State 5).
+assert A_State_5 {
+    all r : Rec | (recorded[r] and r.writtenBy in RevokeCall) implies
+        r.revokedAt = r.writtenBy.now
 }
-check A_I7_DenialByAbsence for 6
+check A_State_5 for 4 but 4 Int
 
--- A_I10_RevokeProducesDistinctPost: Invariant 10 (structural half) — revoke produces a post-record
--- that is distinct from the pre-record. Records are never deleted; a revoked record AND its
--- post-state both exist in the store (non-decreasing count).
-assert A_I10_RevokeProducesDistinctPost {
-    all pre, post : GrantRecord |
-        revoke_action[pre, post] implies pre != post
+-- A_Identity_1: a version a [Revoke] wrote carries the grant id that call named: a grant is
+-- reached by its id, never by anything else it carries (Identity 1).
+assert A_Identity_1 {
+    all r : Rec | (recorded[r] and r.writtenBy in RevokeCall) implies
+        r.grantId = r.writtenBy.gidIn
 }
-check A_I10_RevokeProducesDistinctPost for 6
+check A_Identity_1 for 4 but 4 Int
+
+-- A_Invariant_8_1: no grant whose status holds revoked stands in the active grant set, the
+-- grants whose status holds active (Invariant 8.1, Term active grant set).
+assert A_Invariant_8_1 {
+    all r : Rec | (recorded[r] and Revoked in r.status) implies Active not in r.status
+}
+check A_Invariant_8_1 for 4 but 4 Int
+
+-- A_Operation_2: the grant a [Grant] records stands in active (Operation 2).
+assert A_Operation_2 {
+    all r : Rec | (recorded[r] and r.writtenBy in GrantCall) implies r.status = Active
+}
+check A_Operation_2 for 4 but 4 Int
+
+-- A_Operation_4: no grant carries a blank subject reference (Operation 4, String 5).
+assert A_Operation_4 {
+    all r : Rec | recorded[r] implies no (r.subject & Strings.blank)
+}
+check A_Operation_4 for 4 but 4 Int
+
+-- A_Operation_5: no grant carries a blank action scope (Operation 5, String 5).
+assert A_Operation_5 {
+    all r : Rec | recorded[r] implies no (r.scope & Strings.blank)
+}
+check A_Operation_5 for 4 but 4 Int
+
+-- A_String_6: no grant carries a subject reference or an action scope longer than the
+-- string cap (String 6).
+assert A_String_6 {
+    all r : Rec | recorded[r] implies no ((r.subject + r.scope) & Strings.overCap)
+}
+check A_String_6 for 4 but 4 Int
 
 -- ─────────────────────────────────────────────────────────────────────────────
--- Satisfiability runs — non-vacuity guards
+-- Satisfiability runs — non-vacuity guards, one for each shape the page admits
 -- Each run must find at least one instance (SAT).
--- UNSAT means a fact is over-constraining the model.
+-- UNSAT means the model forbids a state the page admits.
 -- ─────────────────────────────────────────────────────────────────────────────
 
--- ShowActive: at least one Active grant exists in the store.
+-- ShowActive: a grant in force, as g1 binding teller_t9 to initiate:transfer.
 run ShowActive {
-    some r : GrantRecord | r.status = Active
-} for 4
+    some r : Rec | recorded[r] and r.status = Active
+} for 4 but 4 Int
 
--- ShowRevoked: at least one Revoked grant exists in the store.
+-- ShowRevoked: a grant withdrawn, its revocation instant stamped, as g14 after Dr. Chen's
+-- patient is transferred.
 run ShowRevoked {
-    some r : GrantRecord | r.status = Revoked
-} for 4
+    some r : Rec | recorded[r] and r.status = Revoked and some r.revokedAt
+} for 4 but 4 Int
 
--- ShowBothStatuses: Active and Revoked grants coexist — the normal steady state.
-run ShowBothStatuses {
-    some disj r1, r2 : GrantRecord | {
-        r1.status = Active
-        r2.status = Revoked
-    }
-} for 4
+-- ShowTwoGrantsOnePair: two independent grants over one pair, each with its own grant id,
+-- which the page admits (Identity 7, Operation 6).
+run ShowTwoGrantsOnePair {
+    some r1, r2 : Rec | recorded[r1] and recorded[r2] and origin[r1] != origin[r2]
+        and r1.subject = r2.subject and r1.scope = r2.scope
+        and r1.grantId != r2.grantId
+} for 4 but 4 Int
 
--- ShowRevokeTransition: a valid revoke_action pre/post pair is constructible.
--- pre is Active; post is Revoked; they carry the same (subject_ref, action_scope).
-run ShowRevokeTransition {
-    some pre, post : GrantRecord | {
-        revoke_action[pre, post]
-        pre.status  = Active
-        post.status = Revoked
-    }
-} for 5
-
--- ShowPermittedHolds: permitted_holds returns true for some (subject, scope) pair.
-run ShowPermittedHolds {
-    some sub : SubjectRef, scope : ActionScope | permitted_holds[sub, scope]
-} for 4
-
--- ShowPermittedDenied: permitted_holds is false when the only grant for a pair is Revoked.
-run ShowPermittedDenied {
-    some r : GrantRecord | {
-        r.status = Revoked
-        not permitted_holds[r.subject_ref, r.action_scope]
-        no other : GrantRecord | {
-            other != r
-            other.subject_ref  = r.subject_ref
-            other.action_scope = r.action_scope
-            other.status       = Active
-        }
-    }
-} for 4
-
--- ShowMultipleGrantsSamePair: two Active grants for the same (subject, scope) — independent records.
--- Per spec: duplicate grants are allowed; each has its own grant_id (Invariant 5 + Behavior).
-run ShowMultipleGrantsSamePair {
-    some disj r1, r2 : GrantRecord | {
-        r1.status = Active
-        r2.status = Active
-        r1.subject_ref  = r2.subject_ref
-        r1.action_scope = r2.action_scope
-    }
-} for 5
-
--- ShowPartialRevocation: two grants for same (subject, scope), one Revoked, one still Active.
--- Models: revoking one grant does not affect others for the same pair (Behavior section).
--- permitted_holds still returns true because one Active grant remains.
+-- ShowPartialRevocation: two grants over one pair, one revoked and one still active: a
+-- revoke reaches one grant (Identity 8), and the pair stays covered.
 run ShowPartialRevocation {
-    some disj r1, r2 : GrantRecord | {
-        r1.subject_ref  = r2.subject_ref
-        r1.action_scope = r2.action_scope
-        r1.status = Active
-        r2.status = Revoked
-        permitted_holds[r1.subject_ref, r1.action_scope]
-    }
-} for 5
+    some r1, r2 : Rec | recorded[r1] and recorded[r2] and origin[r1] != origin[r2]
+        and r1.subject = r2.subject and r1.scope = r2.scope
+        and r1.status = Active and r2.status = Revoked
+} for 4 but 4 Int
+
+-- ShowRevokedAtItsGrantInstant: a grant revoked at the clock reading it was granted at,
+-- which the page admits (Invariant 9.1 forbids only a revocation instant before it).
+run ShowRevokedAtItsGrantInstant {
+    some r : Rec | recorded[r] and r.status = Revoked and r.revokedAt = r.grantedAt
+} for 4 but 4 Int
