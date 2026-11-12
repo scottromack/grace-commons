@@ -1500,9 +1500,9 @@
   "invariants": 12,
   "kind": "atom",
   "models": {
-   "als": false,
-   "tla": false,
-   "twins": 0
+   "als": true,
+   "tla": true,
+   "twins": 31
   },
   "regulated_by": [
    "actor-suspension",
