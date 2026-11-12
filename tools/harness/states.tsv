@@ -27,8 +27,6 @@
 2026-11-11	compositions/verified-repair-budget-buggy-unbounded.tla	twin	tla	11	0	-	-	-	-	-	CAUGHT	tlc
 2026-11-11	compositions/verified-repair-settle-buggy-onesort.tla	twin	tla	7	0	-	-	-	-	-	CAUGHT	tlc
 2026-11-11	compositions/verified-repair-settle-probe-opens.tla	twin	tla	5	0	-	-	-	-	-	CAUGHT	tlc
-2026-11-11	compositions/shared-todo-buggy.tla	twin	tla	4	0	-	-	-	-	-	CAUGHT	tlc
-2026-11-11	compositions/shared-todo.tla	model	tla	3	0	-	-	-	-	-	HOLDS	tlc
 2026-11-11	atoms/event-log-buggy-eid.tla	twin	tla	15	0	-	-	-	-	-	CAUGHT	tlc
 2026-11-11	atoms/event-log-buggy-remove.tla	twin	tla	6	0	-	-	-	-	-	CAUGHT	tlc
 2026-11-11	atoms/lease-buggy-waiter.tla	twin	tla	14	0	-	-	-	-	-	CAUGHT	tlc
@@ -1532,3 +1530,14 @@
 2026-11-12	compositions/shared-cart-buggy-unshare-any-grant.als	twin	als	-	-	38	27	10	1	0	CAUGHT	alloy
 2026-11-12	compositions/shared-cart.als	model	als	-	-	38	28	10	0	0	HOLDS	alloy
 2026-11-12	compositions/shared-cart.tla	model	tla	37141	0	-	-	-	-	-	HOLDS	tlc
+2026-11-12	compositions/shared-todo-buggy.tla	twin	tla	4	0	-	-	-	-	-	CAUGHT	tlc
+2026-11-12	compositions/shared-todo.tla	model	tla	3	0	-	-	-	-	-	HOLDS	tlc
+2026-11-12	compositions/shared-todo-buggy-delete-no-recall.als	twin	als	-	-	20	4	13	2	1	CAUGHT	alloy
+2026-11-12	compositions/shared-todo-buggy-finer-unchecked.als	twin	als	-	-	20	5	14	1	0	CAUGHT	alloy
+2026-11-12	compositions/shared-todo-buggy-read-before-gate.als	twin	als	-	-	20	5	14	1	0	CAUGHT	alloy
+2026-11-12	compositions/shared-todo-buggy-answer-from-history.als	twin	als	-	-	20	5	14	1	0	CAUGHT	alloy
+2026-11-12	compositions/shared-todo-buggy-assign-unchecked.als	twin	als	-	-	20	5	14	1	0	CAUGHT	alloy
+2026-11-12	compositions/shared-todo-buggy-wrong-scope.als	twin	als	-	-	20	5	14	1	0	CAUGHT	alloy
+2026-11-12	compositions/shared-todo-buggy-delete-revokes.als	twin	als	-	-	20	5	14	1	0	CAUGHT	alloy
+2026-11-12	compositions/shared-todo-buggy-unassigned-for-unknown.als	twin	als	-	-	20	5	13	1	1	CAUGHT	alloy
+2026-11-12	compositions/shared-todo.als	model	als	-	-	20	6	14	0	0	HOLDS	alloy
