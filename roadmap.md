@@ -151,7 +151,7 @@ All of atoms #7–#14 are now grounded; none remains on the planned sequence. Th
 
 **Category:** `workflow`
 
-**Status:** `grounded` 2026-06-04 (Alloy model `state-machine.als` + buggy twin verified in `tools/harness/`). Sonnet-drafted against an Opus plan; Opus-gated through Pass 1 / 2 / 3 + Final Critique (one foundational + one refining finding closed). Unblocks Execute Gated Workflow and **resolves the workflow-category one-atom open question** (it is the second workflow atom). The descriptive entry below is retained as roadmap history.
+**Status:** `grounded` 2026-06-04 (Alloy model `state-machine.als` + buggy twin verified in `tools/harness/`; the TLA+ model of its operation sequences, `state-machine.tla` + twenty-one twins, verified 2026-11-11). Sonnet-drafted against an Opus plan; Opus-gated through Pass 1 / 2 / 3 + Final Critique (one foundational + one refining finding closed). Unblocks Execute Gated Workflow and **resolves the workflow-category one-atom open question** (it is the second workflow atom). The descriptive entry below is retained as roadmap history.
 
 **What it is.** A workflow primitive: a named entity moving through a defined, finite set of states via explicitly declared transitions. The atom does not know what the entity is — it knows the entity's current state, the transitions that are valid from that state, and the history of how it got there. States and transitions are declared at instantiation; the atom enforces that only declared transitions are applied and that the full transition history is auditable. A workflow has exactly one current state at all times; concurrent active states and fork-join constructs are composing concepts, not part of the atom.
 

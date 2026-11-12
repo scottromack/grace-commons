@@ -944,7 +944,7 @@ Guard evaluation, non-repudiable attribution, tamper-evidence, and retention are
 
 ```
 status: grounded on Final Critique 16 — 2026-11-06 at ad732c0
-formal: verified — state-machine.als + 2 twins; coverage 2026-11-10 (unit formal: more coverage for the yes votes): owes TLA+ (everything across steps); owed rows: Invariant 1.1; Invariant 1.2; Invariant 2.1; Invariant 3.1; Invariant 3.2; Invariant 4.2; Invariant 5.1; Invariant 5.2; Invariant 6.2; Invariant 6.3; Invariant 7.3; Invariant 8.1; Invariant 8.3; Invariant 10.1, 10.2, 2026-06-04
+formal: verified — state-machine.als + 2 twins; coverage 2026-11-10 (unit formal: more coverage for the yes votes); state-machine.tla + 21 twins (across steps, 2026-11-11: one workflow under [Instantiate], offered every declaration of two state names, two actions and one guard with up to two declared transitions, and up to two admitted [Fire] calls, refusals in each refuses line's order, with what [History] and [Read Declaration] answer in every state they leave: Invariant 1.1 through 7.3, 8.1, 8.3, 9.1, 10.1 and 10.2); nothing testable in TLA+ for Invariant 8.2: it states a computation the atom does not make, and no model holds the condition a guard names; coverage 2026-11-11 (unit `atoms/state-machine.md formal layer`): no owed rows, 2026-11-11
 last gate: 2026-11-06 — Final Critique 16, delta — foundational count 0, clean, one sample
 
 open:
