@@ -1034,8 +1034,8 @@
   "kind": "atom",
   "models": {
    "als": true,
-   "tla": false,
-   "twins": 3
+   "tla": true,
+   "twins": 15
   },
   "regulated_by": [],
   "security": false,
