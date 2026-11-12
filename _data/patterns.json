@@ -1070,9 +1070,9 @@
   "invariants": 9,
   "kind": "atom",
   "models": {
-   "als": false,
+   "als": true,
    "tla": true,
-   "twins": 4
+   "twins": 18
   },
   "regulated_by": [
    "customer-onboarding",
