@@ -4,8 +4,6 @@
 2026-11-11	compositions/immutable-ledger-reconcile.tla	model	tla	97512	0	-	-	-	-	-	HOLDS	tlc
 2026-11-11	compositions/resolve-a-persons-data-rights.tla	model	tla	162645	0	-	-	-	-	-	HOLDS	tlc
 2026-11-11	compositions/resolve-a-persons-data-rights-admission.tla	model	tla	56552	0	-	-	-	-	-	HOLDS	tlc
-2026-11-11	compositions/execute-gated-workflow.tla	model	tla	66525	0	-	-	-	-	-	HOLDS	tlc
-2026-11-11	compositions/execute-gated-workflow-buggy-mispaired.tla	twin	tla	110253	0	-	-	-	-	-	CAUGHT	tlc
 2026-11-11	compositions/resolve-a-persons-data-rights-admission-probe-again.tla	twin	tla	38960	0	-	-	-	-	-	CAUGHT	tlc
 2026-11-11	compositions/multi-party-approval-probe-temporal-refused.tla	twin	tla	37920	0	-	-	-	-	-	CAUGHT	tlc
 2026-11-11	compositions/immutable-ledger-buggy-split.tla	twin	tla	32092	0	-	-	-	-	-	CAUGHT	tlc
@@ -43,8 +41,6 @@
 2026-11-11	compositions/idempotent-reservation.tla	model	tla	10872	0	-	-	-	-	-	HOLDS	tlc
 2026-11-11	compositions/immutable-ledger-rebuild-buggy-storeblocks.tla	twin	tla	10146	0	-	-	-	-	-	CAUGHT	tlc
 2026-11-11	compositions/immutable-ledger-rebuild-probe-honestloss.tla	twin	tla	9948	0	-	-	-	-	-	CAUGHT	tlc
-2026-11-11	compositions/execute-gated-workflow-buggy-reuse.tla	twin	tla	10798	0	-	-	-	-	-	CAUGHT	tlc
-2026-11-11	compositions/execute-gated-workflow-buggy-unmooted.tla	twin	tla	10351	0	-	-	-	-	-	CAUGHT	tlc
 2026-11-11	compositions/immutable-ledger-rebuild-probe-purgedbound.tla	twin	tla	9881	0	-	-	-	-	-	CAUGHT	tlc
 2026-11-11	compositions/immutable-ledger-rebuild-buggy-tight.tla	twin	tla	8686	0	-	-	-	-	-	CAUGHT	tlc
 2026-11-11	compositions/resolve-a-persons-data-rights-buggy-plan.tla	twin	tla	9362	0	-	-	-	-	-	CAUGHT	tlc
@@ -83,7 +79,6 @@
 2026-11-11	compositions/multi-party-approval-buggy-oob.tla	twin	tla	2601	0	-	-	-	-	-	CAUGHT	tlc
 2026-11-11	compositions/immutable-ledger-probe-recoveredsent.tla	twin	tla	2551	0	-	-	-	-	-	CAUGHT	tlc
 2026-11-11	compositions/reserve-from-pool-ungated-reserve-buggy.tla	twin	tla	2550	0	-	-	-	-	-	CAUGHT	tlc
-2026-11-11	compositions/execute-gated-workflow-buggy-unbounded-sweep.tla	twin	tla	2533	0	-	-	-	-	-	CAUGHT	tlc
 2026-11-11	compositions/recoverable-invocation-buggy-fence.tla	twin	tla	2420	0	-	-	-	-	-	CAUGHT	tlc
 2026-11-11	compositions/multi-party-approval-buggy-no-finding.tla	twin	tla	2311	0	-	-	-	-	-	CAUGHT	tlc
 2026-11-11	compositions/multi-party-approval-buggy-terminal-data.tla	twin	tla	2260	0	-	-	-	-	-	CAUGHT	tlc
@@ -119,7 +114,6 @@
 2026-11-11	compositions/multi-party-approval-buggy-no-shape-alert.tla	twin	tla	734	0	-	-	-	-	-	CAUGHT	tlc
 2026-11-11	compositions/multi-party-approval-buggy-no-false-closing-alert.tla	twin	tla	716	0	-	-	-	-	-	CAUGHT	tlc
 2026-11-11	compositions/verified-repair-settle.tla	model	tla	628	0	-	-	-	-	-	HOLDS	tlc
-2026-11-11	compositions/execute-gated-workflow-buggy-unmarked.tla	twin	tla	634	0	-	-	-	-	-	CAUGHT	tlc
 2026-11-11	compositions/idempotent-reservation-buggy-seen.tla	twin	tla	547	0	-	-	-	-	-	CAUGHT	tlc
 2026-11-11	compositions/resolve-a-persons-data-rights-access-probe-abandon.tla	twin	tla	552	0	-	-	-	-	-	CAUGHT	tlc
 2026-11-11	compositions/verified-repair-probe-inflight.tla	twin	tla	522	0	-	-	-	-	-	CAUGHT	tlc
@@ -161,7 +155,6 @@
 2026-11-11	compositions/reserve-from-pool-probe-released.tla	twin	tla	164	0	-	-	-	-	-	CAUGHT	tlc
 2026-11-11	compositions/reserve-from-pool-two-outcomes-buggy.tla	twin	tla	164	0	-	-	-	-	-	CAUGHT	tlc
 2026-11-11	compositions/reserve-from-pool-unbind-buggy.tla	twin	tla	161	0	-	-	-	-	-	CAUGHT	tlc
-2026-11-11	compositions/execute-gated-workflow-buggy-decision-join.tla	twin	tla	152	0	-	-	-	-	-	CAUGHT	tlc
 2026-11-11	compositions/idempotent-reservation-buggy-candidates.tla	twin	tla	151	0	-	-	-	-	-	CAUGHT	tlc
 2026-11-11	compositions/propagate-consent-revocation-downstream-bind-before-credential-buggy.tla	twin	tla	149	0	-	-	-	-	-	CAUGHT	tlc
 2026-11-11	compositions/reserve-from-pool-confirm-no-outcome-buggy.tla	twin	tla	148	0	-	-	-	-	-	CAUGHT	tlc
@@ -176,7 +169,6 @@
 2026-11-11	compositions/preference-aware-notification-fanout-create-on-suppress-buggy.tla	twin	tla	118	0	-	-	-	-	-	CAUGHT	tlc
 2026-11-11	compositions/preference-aware-notification-fanout-silent-suppress-buggy.tla	twin	tla	118	0	-	-	-	-	-	CAUGHT	tlc
 2026-11-11	compositions/preference-aware-notification-fanout-cap-split-buggy.tla	twin	tla	114	0	-	-	-	-	-	CAUGHT	tlc
-2026-11-11	compositions/execute-gated-workflow-buggy-norecall.tla	twin	tla	115	0	-	-	-	-	-	CAUGHT	tlc
 2026-11-11	atoms/lease-buggy-death.tla	twin	tla	110	0	-	-	-	-	-	CAUGHT	tlc
 2026-11-11	compositions/reserve-from-pool-release-before-transition-buggy.tla	twin	tla	112	0	-	-	-	-	-	CAUGHT	tlc
 2026-11-11	compositions/immutable-ledger-rebuild-probe-storedown.tla	twin	tla	102	0	-	-	-	-	-	CAUGHT	tlc
@@ -202,7 +194,6 @@
 2026-11-11	compositions/reserve-from-pool-retry-replay-reruns-buggy.tla	twin	tla	40	0	-	-	-	-	-	CAUGHT	tlc
 2026-11-11	compositions/immutable-ledger-buggy-bounded.tla	twin	tla	39	0	-	-	-	-	-	CAUGHT	tlc
 2026-11-11	compositions/reserve-from-pool-retry-early-evict-buggy.tla	twin	tla	39	0	-	-	-	-	-	CAUGHT	tlc
-2026-11-11	compositions/execute-gated-workflow-buggy-second-outcome.tla	twin	tla	38	0	-	-	-	-	-	CAUGHT	tlc
 2026-11-11	compositions/idempotent-reservation-buggy-unmarked.tla	twin	tla	37	0	-	-	-	-	-	CAUGHT	tlc
 2026-11-11	compositions/idempotent-reservation-buggy-failopen.tla	twin	tla	36	0	-	-	-	-	-	CAUGHT	tlc
 2026-11-11	compositions/idempotent-reservation-buggy-place-rerun.tla	twin	tla	36	0	-	-	-	-	-	CAUGHT	tlc
@@ -213,7 +204,6 @@
 2026-11-11	compositions/multi-party-approval-buggy-close-skipped.tla	twin	tla	30	0	-	-	-	-	-	CAUGHT	tlc
 2026-11-11	compositions/multi-party-approval-probe-outofband.tla	twin	tla	30	0	-	-	-	-	-	CAUGHT	tlc
 2026-11-11	compositions/multi-party-approval-buggy-unstaffed.tla	twin	tla	29	0	-	-	-	-	-	CAUGHT	tlc
-2026-11-11	compositions/execute-gated-workflow-buggy-unrecorded.tla	twin	tla	27	0	-	-	-	-	-	CAUGHT	tlc
 2026-11-11	compositions/propagate-consent-revocation-downstream-finding-for-carried-buggy.tla	twin	tla	24	0	-	-	-	-	-	CAUGHT	tlc
 2026-11-11	compositions/propagate-consent-revocation-downstream-owed-unannounced-buggy.tla	twin	tla	22	0	-	-	-	-	-	CAUGHT	tlc
 2026-11-11	compositions/reserve-from-pool-audit-traversal-only-buggy.tla	twin	tla	22	0	-	-	-	-	-	CAUGHT	tlc
@@ -238,7 +228,6 @@
 2026-11-11	compositions/idempotent-reservation-buggy-digest.tla	twin	tla	11	0	-	-	-	-	-	CAUGHT	tlc
 2026-11-11	compositions/idempotent-reservation-buggy.tla	twin	tla	11	0	-	-	-	-	-	CAUGHT	tlc
 2026-11-11	compositions/verified-repair-budget-buggy-unbounded.tla	twin	tla	11	0	-	-	-	-	-	CAUGHT	tlc
-2026-11-11	compositions/execute-gated-workflow-buggy.tla	twin	tla	10	0	-	-	-	-	-	CAUGHT	tlc
 2026-11-11	compositions/reserve-from-pool-audit-bindings-only-buggy.tla	twin	tla	10	0	-	-	-	-	-	CAUGHT	tlc
 2026-11-11	compositions/multi-party-approval-buggy-split.tla	twin	tla	10	0	-	-	-	-	-	CAUGHT	tlc
 2026-11-11	compositions/reserve-from-pool-probe-unbound.tla	twin	tla	10	0	-	-	-	-	-	CAUGHT	tlc
@@ -288,11 +277,8 @@
 2026-11-11	atoms/provenance-buggy.als	twin	als	-	-	11	1	5	5	0	CAUGHT	alloy
 2026-11-11	atoms/provenance-buggy-link.als	twin	als	-	-	11	5	5	1	0	CAUGHT	alloy
 2026-11-11	atoms/provenance.als	model	als	-	-	11	6	5	0	0	HOLDS	alloy
-2026-11-11	compositions/execute-gated-workflow-buggy-double-moot.tla	twin	tla	695	0	-	-	-	-	-	CAUGHT	tlc
-2026-11-11	compositions/execute-gated-workflow-buggy-unassigned.tla	twin	tla	2	0	-	-	-	-	-	CAUGHT	tlc
 2026-11-11	compositions/idempotent-reservation-buggy-replace.tla	twin	tla	57	0	-	-	-	-	-	CAUGHT	tlc
 2026-11-11	compositions/idempotent-reservation-buggy-unknown-unseen.tla	twin	tla	3	0	-	-	-	-	-	CAUGHT	tlc
-2026-11-11	compositions/execute-gated-workflow-buggy-stale-history.tla	twin	tla	4569	0	-	-	-	-	-	CAUGHT	tlc
 2026-11-11	compositions/login-buggy-mapcleared.tla	twin	tla	25	0	-	-	-	-	-	CAUGHT	tlc
 2026-11-11	compositions/login-buggy-reissue.tla	twin	tla	150	0	-	-	-	-	-	CAUGHT	tlc
 2026-11-11	compositions/login-buggy-ungated.tla	twin	tla	100	0	-	-	-	-	-	CAUGHT	tlc
@@ -1277,3 +1263,31 @@
 2026-11-12	compositions/defensible-retention-buggy-sweep-recovers-closed.als	twin	als	-	-	39	22	16	1	0	CAUGHT	alloy
 2026-11-12	compositions/defensible-retention-buggy-unavailable-as-zero.als	twin	als	-	-	39	20	15	3	1	CAUGHT	alloy
 2026-11-12	compositions/defensible-retention.als	model	als	-	-	39	23	16	0	0	HOLDS	alloy
+2026-11-12	compositions/execute-gated-workflow.tla	model	tla	66525	0	-	-	-	-	-	HOLDS	tlc
+2026-11-12	compositions/execute-gated-workflow-buggy-mispaired.tla	twin	tla	110253	0	-	-	-	-	-	CAUGHT	tlc
+2026-11-12	compositions/execute-gated-workflow-buggy-reuse.tla	twin	tla	10798	0	-	-	-	-	-	CAUGHT	tlc
+2026-11-12	compositions/execute-gated-workflow-buggy-unmooted.tla	twin	tla	10351	0	-	-	-	-	-	CAUGHT	tlc
+2026-11-12	compositions/execute-gated-workflow-buggy-unbounded-sweep.tla	twin	tla	2533	0	-	-	-	-	-	CAUGHT	tlc
+2026-11-12	compositions/execute-gated-workflow-buggy-unmarked.tla	twin	tla	634	0	-	-	-	-	-	CAUGHT	tlc
+2026-11-12	compositions/execute-gated-workflow-buggy-decision-join.tla	twin	tla	152	0	-	-	-	-	-	CAUGHT	tlc
+2026-11-12	compositions/execute-gated-workflow-buggy-norecall.tla	twin	tla	115	0	-	-	-	-	-	CAUGHT	tlc
+2026-11-12	compositions/execute-gated-workflow-buggy-second-outcome.tla	twin	tla	38	0	-	-	-	-	-	CAUGHT	tlc
+2026-11-12	compositions/execute-gated-workflow-buggy-unrecorded.tla	twin	tla	27	0	-	-	-	-	-	CAUGHT	tlc
+2026-11-12	compositions/execute-gated-workflow-buggy.tla	twin	tla	10	0	-	-	-	-	-	CAUGHT	tlc
+2026-11-12	compositions/execute-gated-workflow-buggy-double-moot.tla	twin	tla	695	0	-	-	-	-	-	CAUGHT	tlc
+2026-11-12	compositions/execute-gated-workflow-buggy-unassigned.tla	twin	tla	2	0	-	-	-	-	-	CAUGHT	tlc
+2026-11-12	compositions/execute-gated-workflow-buggy-stale-history.tla	twin	tla	4569	0	-	-	-	-	-	CAUGHT	tlc
+2026-11-12	compositions/execute-gated-workflow-buggy-norecall.als	twin	als	-	-	28	12	15	1	0	CAUGHT	alloy
+2026-11-12	compositions/execute-gated-workflow-buggy-found-by-machine.als	twin	als	-	-	28	12	14	1	1	CAUGHT	alloy
+2026-11-12	compositions/execute-gated-workflow-buggy-leg-ignores-key-count.als	twin	als	-	-	28	12	14	1	1	CAUGHT	alloy
+2026-11-12	compositions/execute-gated-workflow-buggy-leg-refires.als	twin	als	-	-	28	11	15	2	0	CAUGHT	alloy
+2026-11-12	compositions/execute-gated-workflow-buggy-mark-from-intent.als	twin	als	-	-	28	12	15	1	0	CAUGHT	alloy
+2026-11-12	compositions/execute-gated-workflow-buggy-assignment-from-openings.als	twin	als	-	-	28	12	15	1	0	CAUGHT	alloy
+2026-11-12	compositions/execute-gated-workflow-buggy-leg-rerecords.als	twin	als	-	-	28	10	15	3	0	CAUGHT	alloy
+2026-11-12	compositions/execute-gated-workflow-buggy-pair-by-opener.als	twin	als	-	-	28	11	15	2	0	CAUGHT	alloy
+2026-11-12	compositions/execute-gated-workflow-buggy-rebuild-first-opening.als	twin	als	-	-	28	12	15	1	0	CAUGHT	alloy
+2026-11-12	compositions/execute-gated-workflow-buggy-rebuild-from-empty.als	twin	als	-	-	28	12	15	1	0	CAUGHT	alloy
+2026-11-12	compositions/execute-gated-workflow-buggy-unassigned.als	twin	als	-	-	28	12	15	1	0	CAUGHT	alloy
+2026-11-12	compositions/execute-gated-workflow-buggy-record-before-event.als	twin	als	-	-	28	12	15	1	0	CAUGHT	alloy
+2026-11-12	compositions/execute-gated-workflow.als	model	als	-	-	28	13	15	0	0	HOLDS	alloy
+2026-11-12	compositions/execute-gated-workflow-buggy-unpaired-unflagged.als	twin	als	-	-	28	12	15	1	0	CAUGHT	alloy
