@@ -1465,9 +1465,9 @@
   "invariants": 6,
   "kind": "atom",
   "models": {
-   "als": false,
-   "tla": false,
-   "twins": 0
+   "als": true,
+   "tla": true,
+   "twins": 37
   },
   "regulated_by": [
    "capability-backed-sharing",
