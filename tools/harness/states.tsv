@@ -10,7 +10,6 @@
 2026-11-11	compositions/capability-backed-sharing-probe-operator-duplicate.tla	twin	tla	53670	0	-	-	-	-	-	CAUGHT	tlc
 2026-11-11	compositions/defensible-retention-audit-hold.tla	model	tla	43688	0	-	-	-	-	-	HOLDS	tlc
 2026-11-11	compositions/execute-gated-workflow-buggy-mispaired.tla	twin	tla	110253	0	-	-	-	-	-	CAUGHT	tlc
-2026-11-11	compositions/authenticated-actor.tla	model	tla	43655	0	-	-	-	-	-	HOLDS	tlc
 2026-11-11	compositions/resolve-a-persons-data-rights-admission-probe-again.tla	twin	tla	38960	0	-	-	-	-	-	CAUGHT	tlc
 2026-11-11	compositions/multi-party-approval-probe-temporal-refused.tla	twin	tla	37920	0	-	-	-	-	-	CAUGHT	tlc
 2026-11-11	compositions/chain-of-custody.tla	model	tla	478490	0	-	-	-	-	-	HOLDS	tlc
@@ -207,7 +206,6 @@
 2026-11-11	compositions/compensable-workflow-cancel-past-pivot-buggy.tla	twin	tla	296	0	-	-	-	-	-	CAUGHT	tlc
 2026-11-11	compositions/immutable-ledger-buggy-probekey.tla	twin	tla	296	0	-	-	-	-	-	CAUGHT	tlc
 2026-11-11	compositions/preference-aware-notification-fanout-payload-mismatch-buggy.tla	twin	tla	253	0	-	-	-	-	-	CAUGHT	tlc
-2026-11-11	compositions/authenticated-actor-probe-reopen.tla	twin	tla	243	0	-	-	-	-	-	CAUGHT	tlc
 2026-11-11	compositions/capability-backed-sharing-probe-revocation-recovered.tla	twin	tla	232	0	-	-	-	-	-	CAUGHT	tlc
 2026-11-11	compositions/compensable-workflow-onset-on-roll-forward-buggy.tla	twin	tla	209	0	-	-	-	-	-	CAUGHT	tlc
 2026-11-11	compositions/chain-of-custody-buggy-no-false-closing-alert.tla	twin	tla	192	0	-	-	-	-	-	CAUGHT	tlc
@@ -252,9 +250,7 @@
 2026-11-11	compositions/compensable-workflow-halt-resolves-buggy.tla	twin	tla	97	0	-	-	-	-	-	CAUGHT	tlc
 2026-11-11	compositions/immutable-ledger-probe-recovered.tla	twin	tla	99	0	-	-	-	-	-	CAUGHT	tlc
 2026-11-11	compositions/capability-backed-sharing-buggy-spent-opened.tla	twin	tla	96	0	-	-	-	-	-	CAUGHT	tlc
-2026-11-11	compositions/authenticated-actor-buggy-staleread.tla	twin	tla	92	0	-	-	-	-	-	CAUGHT	tlc
 2026-11-11	compositions/immutable-ledger-rebuild-probe-erased.tla	twin	tla	85	0	-	-	-	-	-	CAUGHT	tlc
-2026-11-11	compositions/authenticated-actor-probe-stampgap.tla	twin	tla	84	0	-	-	-	-	-	CAUGHT	tlc
 2026-11-11	compositions/chain-of-custody-probe-genesis.tla	twin	tla	77	0	-	-	-	-	-	CAUGHT	tlc
 2026-11-11	compositions/preference-aware-notification-fanout-no-initiation-buggy.tla	twin	tla	77	0	-	-	-	-	-	CAUGHT	tlc
 2026-11-11	compositions/compensable-workflow-double-apply-buggy.tla	twin	tla	74	0	-	-	-	-	-	CAUGHT	tlc
@@ -284,7 +280,6 @@
 2026-11-11	compositions/reserve-from-pool-retry-no-type-check-buggy.tla	twin	tla	40	0	-	-	-	-	-	CAUGHT	tlc
 2026-11-11	compositions/reserve-from-pool-retry-probe-two-tokens.tla	twin	tla	40	0	-	-	-	-	-	CAUGHT	tlc
 2026-11-11	compositions/reserve-from-pool-retry-replay-reruns-buggy.tla	twin	tla	40	0	-	-	-	-	-	CAUGHT	tlc
-2026-11-11	compositions/authenticated-actor-buggy-race.tla	twin	tla	39	0	-	-	-	-	-	CAUGHT	tlc
 2026-11-11	compositions/customer-onboarding-buggy-escalated-dropped.tla	twin	tla	39	0	-	-	-	-	-	CAUGHT	tlc
 2026-11-11	compositions/customer-onboarding-probe-escalated.tla	twin	tla	39	0	-	-	-	-	-	CAUGHT	tlc
 2026-11-11	compositions/immutable-ledger-buggy-bounded.tla	twin	tla	39	0	-	-	-	-	-	CAUGHT	tlc
@@ -308,7 +303,6 @@
 2026-11-11	compositions/multi-party-approval-buggy-close-skipped.tla	twin	tla	30	0	-	-	-	-	-	CAUGHT	tlc
 2026-11-11	compositions/multi-party-approval-probe-outofband.tla	twin	tla	30	0	-	-	-	-	-	CAUGHT	tlc
 2026-11-11	compositions/multi-party-approval-buggy-unstaffed.tla	twin	tla	29	0	-	-	-	-	-	CAUGHT	tlc
-2026-11-11	compositions/authenticated-actor-probe-refused.tla	twin	tla	27	0	-	-	-	-	-	CAUGHT	tlc
 2026-11-11	compositions/execute-gated-workflow-buggy-unrecorded.tla	twin	tla	27	0	-	-	-	-	-	CAUGHT	tlc
 2026-11-11	compositions/capability-backed-sharing-buggy-unanswered-committed.tla	twin	tla	25	0	-	-	-	-	-	CAUGHT	tlc
 2026-11-11	compositions/capability-backed-sharing-buggy-default-past-horizon.tla	twin	tla	24	0	-	-	-	-	-	CAUGHT	tlc
@@ -316,7 +310,6 @@
 2026-11-11	compositions/capability-backed-sharing-buggy-finding-for-carried.tla	twin	tla	22	0	-	-	-	-	-	CAUGHT	tlc
 2026-11-11	compositions/propagate-consent-revocation-downstream-owed-unannounced-buggy.tla	twin	tla	22	0	-	-	-	-	-	CAUGHT	tlc
 2026-11-11	compositions/reserve-from-pool-audit-traversal-only-buggy.tla	twin	tla	22	0	-	-	-	-	-	CAUGHT	tlc
-2026-11-11	compositions/authenticated-actor-probe-rotated.tla	twin	tla	21	0	-	-	-	-	-	CAUGHT	tlc
 2026-11-11	compositions/customer-onboarding-probe-triggers-changed.tla	twin	tla	21	0	-	-	-	-	-	CAUGHT	tlc
 2026-11-11	compositions/reserve-from-pool-probe-lapsed-bound.tla	twin	tla	21	0	-	-	-	-	-	CAUGHT	tlc
 2026-11-11	compositions/verified-repair-budget-probe-reset.tla	twin	tla	20	0	-	-	-	-	-	CAUGHT	tlc
@@ -330,9 +323,7 @@
 2026-11-11	compositions/compensable-workflow-commit-early-buggy.tla	twin	tla	14	0	-	-	-	-	-	CAUGHT	tlc
 2026-11-11	compositions/external-onboarding-buggy-badstatus.tla	twin	tla	14	0	-	-	-	-	-	CAUGHT	tlc
 2026-11-11	compositions/external-onboarding-buggy-resolvewild.tla	twin	tla	14	0	-	-	-	-	-	CAUGHT	tlc
-2026-11-11	compositions/authenticated-actor-buggy-adopt.tla	twin	tla	13	0	-	-	-	-	-	CAUGHT	tlc
 2026-11-11	compositions/verified-repair-settle-probe-parted.tla	twin	tla	14	0	-	-	-	-	-	CAUGHT	tlc
-2026-11-11	compositions/authenticated-actor-probe-reentry.tla	twin	tla	13	0	-	-	-	-	-	CAUGHT	tlc
 2026-11-11	compositions/external-onboarding-buggy-partial.tla	twin	tla	13	0	-	-	-	-	-	CAUGHT	tlc
 2026-11-11	compositions/propagate-consent-revocation-downstream-gate-cached-buggy.tla	twin	tla	13	0	-	-	-	-	-	CAUGHT	tlc
 2026-11-11	compositions/propagate-consent-revocation-downstream-index-before-event-buggy.tla	twin	tla	13	0	-	-	-	-	-	CAUGHT	tlc
@@ -348,8 +339,6 @@
 2026-11-11	compositions/reserve-from-pool-audit-bindings-only-buggy.tla	twin	tla	10	0	-	-	-	-	-	CAUGHT	tlc
 2026-11-11	compositions/multi-party-approval-buggy-split.tla	twin	tla	10	0	-	-	-	-	-	CAUGHT	tlc
 2026-11-11	compositions/reserve-from-pool-probe-unbound.tla	twin	tla	10	0	-	-	-	-	-	CAUGHT	tlc
-2026-11-11	compositions/authenticated-actor-buggy-unlogged.tla	twin	tla	8	0	-	-	-	-	-	CAUGHT	tlc
-2026-11-11	compositions/authenticated-actor-probe-attest.tla	twin	tla	8	0	-	-	-	-	-	CAUGHT	tlc
 2026-11-11	compositions/immutable-ledger-probe-sharedinstant.tla	twin	tla	8	0	-	-	-	-	-	CAUGHT	tlc
 2026-11-11	compositions/propagate-consent-revocation-downstream-grant-no-intent-buggy.tla	twin	tla	8	0	-	-	-	-	-	CAUGHT	tlc
 2026-11-11	compositions/propagate-consent-revocation-downstream-no-placement-buggy.tla	twin	tla	8	0	-	-	-	-	-	CAUGHT	tlc
@@ -400,7 +389,6 @@
 2026-11-11	atoms/provenance-buggy.als	twin	als	-	-	11	1	5	5	0	CAUGHT	alloy
 2026-11-11	atoms/provenance-buggy-link.als	twin	als	-	-	11	5	5	1	0	CAUGHT	alloy
 2026-11-11	atoms/provenance.als	model	als	-	-	11	6	5	0	0	HOLDS	alloy
-2026-11-11	compositions/authenticated-actor-buggy-firstcred.tla	twin	tla	22	0	-	-	-	-	-	CAUGHT	tlc
 2026-11-11	compositions/defensible-retention-audit-hold-buggy-unredriven.tla	twin	tla	11936	0	-	-	-	-	-	CAUGHT	tlc
 2026-11-11	compositions/execute-gated-workflow-buggy-double-moot.tla	twin	tla	695	0	-	-	-	-	-	CAUGHT	tlc
 2026-11-11	compositions/defensible-retention-audit-hold-buggy-restart.tla	twin	tla	30902	0	-	-	-	-	-	CAUGHT	tlc
@@ -1188,3 +1176,29 @@
 2026-11-12	compositions/audit-trail-buggy-verify-seal-skipped.als	twin	als	-	-	33	16	16	1	0	CAUGHT	alloy
 2026-11-12	compositions/audit-trail-buggy-verify-reads-absence.als	twin	als	-	-	33	16	16	1	0	CAUGHT	alloy
 2026-11-12	compositions/audit-trail.als	model	als	-	-	33	17	16	0	0	HOLDS	alloy
+2026-11-12	compositions/authenticated-actor.tla	model	tla	43655	0	-	-	-	-	-	HOLDS	tlc
+2026-11-12	compositions/authenticated-actor-probe-reopen.tla	twin	tla	243	0	-	-	-	-	-	CAUGHT	tlc
+2026-11-12	compositions/authenticated-actor-buggy-staleread.tla	twin	tla	92	0	-	-	-	-	-	CAUGHT	tlc
+2026-11-12	compositions/authenticated-actor-probe-stampgap.tla	twin	tla	84	0	-	-	-	-	-	CAUGHT	tlc
+2026-11-12	compositions/authenticated-actor-buggy-race.tla	twin	tla	39	0	-	-	-	-	-	CAUGHT	tlc
+2026-11-12	compositions/authenticated-actor-probe-refused.tla	twin	tla	27	0	-	-	-	-	-	CAUGHT	tlc
+2026-11-12	compositions/authenticated-actor-probe-rotated.tla	twin	tla	21	0	-	-	-	-	-	CAUGHT	tlc
+2026-11-12	compositions/authenticated-actor-buggy-adopt.tla	twin	tla	13	0	-	-	-	-	-	CAUGHT	tlc
+2026-11-12	compositions/authenticated-actor-probe-reentry.tla	twin	tla	13	0	-	-	-	-	-	CAUGHT	tlc
+2026-11-12	compositions/authenticated-actor-buggy-unlogged.tla	twin	tla	8	0	-	-	-	-	-	CAUGHT	tlc
+2026-11-12	compositions/authenticated-actor-probe-attest.tla	twin	tla	8	0	-	-	-	-	-	CAUGHT	tlc
+2026-11-12	compositions/authenticated-actor-buggy-firstcred.tla	twin	tla	22	0	-	-	-	-	-	CAUGHT	tlc
+2026-11-12	compositions/authenticated-actor-buggy-bound-cred.als	twin	als	-	-	27	14	9	3	1	CAUGHT	alloy
+2026-11-12	compositions/authenticated-actor-buggy-cna-unobserved.als	twin	als	-	-	27	15	9	2	1	CAUGHT	alloy
+2026-11-12	compositions/authenticated-actor-buggy-guard-actor.als	twin	als	-	-	27	15	10	2	0	CAUGHT	alloy
+2026-11-12	compositions/authenticated-actor-buggy-caller-actor.als	twin	als	-	-	27	16	10	1	0	CAUGHT	alloy
+2026-11-12	compositions/authenticated-actor-buggy-firstcred.als	twin	als	-	-	27	16	10	1	0	CAUGHT	alloy
+2026-11-12	compositions/authenticated-actor-buggy-guard-principal.als	twin	als	-	-	27	15	10	2	0	CAUGHT	alloy
+2026-11-12	compositions/authenticated-actor-buggy-keyed-on-id.als	twin	als	-	-	27	16	9	1	1	CAUGHT	alloy
+2026-11-12	compositions/authenticated-actor-buggy-logs-failed.als	twin	als	-	-	27	16	10	1	0	CAUGHT	alloy
+2026-11-12	compositions/authenticated-actor-buggy-no-action.als	twin	als	-	-	27	16	10	1	0	CAUGHT	alloy
+2026-11-12	compositions/authenticated-actor-buggy-no-inverse.als	twin	als	-	-	27	16	10	1	0	CAUGHT	alloy
+2026-11-12	compositions/authenticated-actor-buggy-notbound-unstamped.als	twin	als	-	-	27	15	9	2	1	CAUGHT	alloy
+2026-11-12	compositions/authenticated-actor-buggy-reentry-any.als	twin	als	-	-	27	16	10	1	0	CAUGHT	alloy
+2026-11-12	compositions/authenticated-actor.als	model	als	-	-	27	17	10	0	0	HOLDS	alloy
+2026-11-12	compositions/authenticated-actor-buggy-staleread.als	twin	als	-	-	27	11	10	6	0	CAUGHT	alloy
