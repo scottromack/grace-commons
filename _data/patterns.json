@@ -1418,9 +1418,9 @@
   "invariants": 11,
   "kind": "atom",
   "models": {
-   "als": false,
-   "tla": false,
-   "twins": 0
+   "als": true,
+   "tla": true,
+   "twins": 36
   },
   "regulated_by": [
    "audit-trail",
