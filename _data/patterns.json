@@ -993,8 +993,8 @@
   "kind": "atom",
   "models": {
    "als": true,
-   "tla": false,
-   "twins": 5
+   "tla": true,
+   "twins": 35
   },
   "regulated_by": [
    "notification-fanout",
