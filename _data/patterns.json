@@ -1152,9 +1152,9 @@
   "invariants": 8,
   "kind": "atom",
   "models": {
-   "als": false,
-   "tla": false,
-   "twins": 0
+   "als": true,
+   "tla": true,
+   "twins": 29
   },
   "regulated_by": [
    "shared-todo"
