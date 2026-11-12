@@ -1282,9 +1282,9 @@
   "invariants": 8,
   "kind": "atom",
   "models": {
-   "als": false,
+   "als": true,
    "tla": true,
-   "twins": 4
+   "twins": 17
   },
   "regulated_by": [
    "idempotent-reservation",

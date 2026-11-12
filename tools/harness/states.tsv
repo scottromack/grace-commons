@@ -364,7 +364,6 @@
 2026-11-11	compositions/propagate-consent-revocation-downstream-index-before-event-buggy.tla	twin	tla	13	0	-	-	-	-	-	CAUGHT	tlc
 2026-11-11	compositions/propagate-consent-revocation-downstream-write-denied-buggy.tla	twin	tla	13	0	-	-	-	-	-	CAUGHT	tlc
 2026-11-11	compositions/reserve-from-pool-probe-lapsed-unbound.tla	twin	tla	13	0	-	-	-	-	-	CAUGHT	tlc
-2026-11-11	atoms/provisional-commitment.tla	model	tla	12	0	-	-	-	-	-	HOLDS	tlc
 2026-11-11	compositions/actor-suspension-probe-sweep.tla	twin	tla	12	0	-	-	-	-	-	CAUGHT	tlc
 2026-11-11	compositions/verified-repair-budget-probe-ruled.tla	twin	tla	12	0	-	-	-	-	-	CAUGHT	tlc
 2026-11-11	compositions/actor-suspension-probe-resume.tla	twin	tla	11	0	-	-	-	-	-	CAUGHT	tlc
@@ -377,7 +376,6 @@
 2026-11-11	compositions/reserve-from-pool-audit-bindings-only-buggy.tla	twin	tla	10	0	-	-	-	-	-	CAUGHT	tlc
 2026-11-11	compositions/multi-party-approval-buggy-split.tla	twin	tla	10	0	-	-	-	-	-	CAUGHT	tlc
 2026-11-11	compositions/reserve-from-pool-probe-unbound.tla	twin	tla	10	0	-	-	-	-	-	CAUGHT	tlc
-2026-11-11	atoms/provisional-commitment-buggy.tla	twin	tla	9	0	-	-	-	-	-	CAUGHT	tlc
 2026-11-11	compositions/authenticated-actor-buggy-unlogged.tla	twin	tla	8	0	-	-	-	-	-	CAUGHT	tlc
 2026-11-11	compositions/authenticated-actor-probe-attest.tla	twin	tla	8	0	-	-	-	-	-	CAUGHT	tlc
 2026-11-11	compositions/immutable-ledger-probe-sharedinstant.tla	twin	tla	8	0	-	-	-	-	-	CAUGHT	tlc
@@ -387,7 +385,6 @@
 2026-11-11	compositions/customer-onboarding-buggy.tla	twin	tla	7	0	-	-	-	-	-	CAUGHT	tlc
 2026-11-11	compositions/propagate-consent-revocation-downstream-probe-history-answered.tla	twin	tla	7	0	-	-	-	-	-	CAUGHT	tlc
 2026-11-11	compositions/verified-repair-settle-buggy-onesort.tla	twin	tla	7	0	-	-	-	-	-	CAUGHT	tlc
-2026-11-11	atoms/provisional-commitment-buggy-window.tla	twin	tla	6	0	-	-	-	-	-	CAUGHT	tlc
 2026-11-11	compositions/attributed-permissions-admin-probe-direct.tla	twin	tla	6	0	-	-	-	-	-	CAUGHT	tlc
 2026-11-11	compositions/compensable-workflow-cancel-nofire-buggy.tla	twin	tla	6	0	-	-	-	-	-	CAUGHT	tlc
 2026-11-11	compositions/preference-aware-notification-fanout-double-initiate-buggy.tla	twin	tla	6	0	-	-	-	-	-	CAUGHT	tlc
@@ -440,8 +437,6 @@
 2026-11-11	atoms/permissions-buggy-status-not-written.als	twin	als	-	-	14	4	7	2	1	CAUGHT	alloy
 2026-11-11	atoms/permissions.als	model	als	-	-	14	6	8	0	0	HOLDS	alloy
 2026-11-11	atoms/permissions-buggy.als	twin	als	-	-	15	5	8	2	0	CAUGHT	alloy
-2026-11-11	atoms/provisional-commitment-buggy-rehold.tla	twin	tla	9	0	-	-	-	-	-	CAUGHT	tlc
-2026-11-11	atoms/provisional-commitment-buggy-stamp.tla	twin	tla	4	0	-	-	-	-	-	CAUGHT	tlc
 2026-11-11	atoms/provenance-buggy.als	twin	als	-	-	11	1	5	5	0	CAUGHT	alloy
 2026-11-11	atoms/provenance-buggy-link.als	twin	als	-	-	11	5	5	1	0	CAUGHT	alloy
 2026-11-11	atoms/provenance.als	model	als	-	-	11	6	5	0	0	HOLDS	alloy
@@ -999,3 +994,22 @@
 2026-11-12	atoms/personal-todo-buggy-edit-blank-unguarded.als	twin	als	-	-	20	13	6	1	0	CAUGHT	alloy
 2026-11-12	atoms/personal-todo-buggy-edit-done-unguarded.als	twin	als	-	-	20	13	6	1	0	CAUGHT	alloy
 2026-11-12	atoms/personal-todo.als	model	als	-	-	20	14	6	0	0	HOLDS	alloy
+2026-11-12	atoms/provisional-commitment.tla	model	tla	12	0	-	-	-	-	-	HOLDS	tlc
+2026-11-12	atoms/provisional-commitment-buggy.tla	twin	tla	9	0	-	-	-	-	-	CAUGHT	tlc
+2026-11-12	atoms/provisional-commitment-buggy-window.tla	twin	tla	6	0	-	-	-	-	-	CAUGHT	tlc
+2026-11-12	atoms/provisional-commitment-buggy-rehold.tla	twin	tla	9	0	-	-	-	-	-	CAUGHT	tlc
+2026-11-12	atoms/provisional-commitment-buggy-stamp.tla	twin	tla	4	0	-	-	-	-	-	CAUGHT	tlc
+2026-11-12	atoms/provisional-commitment-buggy-placement-misfiled.als	twin	als	-	-	23	11	8	3	1	CAUGHT	alloy
+2026-11-12	atoms/provisional-commitment-buggy-confirm-unstamped.als	twin	als	-	-	23	13	8	1	1	CAUGHT	alloy
+2026-11-12	atoms/provisional-commitment-buggy-instant-misfiled.als	twin	als	-	-	23	13	9	1	0	CAUGHT	alloy
+2026-11-12	atoms/provisional-commitment-buggy-confirm-late.als	twin	als	-	-	23	13	9	1	0	CAUGHT	alloy
+2026-11-12	atoms/provisional-commitment-buggy-duration-unbounded.als	twin	als	-	-	23	13	9	1	0	CAUGHT	alloy
+2026-11-12	atoms/provisional-commitment-buggy-expire-early.als	twin	als	-	-	23	13	9	1	0	CAUGHT	alloy
+2026-11-12	atoms/provisional-commitment-buggy-expire-unstamped.als	twin	als	-	-	23	13	8	1	1	CAUGHT	alloy
+2026-11-12	atoms/provisional-commitment-buggy-id-from-resource.als	twin	als	-	-	23	13	9	1	0	CAUGHT	alloy
+2026-11-12	atoms/provisional-commitment-buggy-boundary.als	twin	als	-	-	23	12	9	2	0	CAUGHT	alloy
+2026-11-12	atoms/provisional-commitment-buggy-requester-unrecorded.als	twin	als	-	-	23	13	9	1	0	CAUGHT	alloy
+2026-11-12	atoms/provisional-commitment-buggy-stray-instant.als	twin	als	-	-	23	12	9	2	0	CAUGHT	alloy
+2026-11-12	atoms/provisional-commitment-buggy-state-added.als	twin	als	-	-	23	12	7	2	2	CAUGHT	alloy
+2026-11-12	atoms/provisional-commitment.als	model	als	-	-	23	14	9	0	0	HOLDS	alloy
+2026-11-12	atoms/provisional-commitment-buggy-resolve-unguarded.als	twin	als	-	-	23	11	9	3	0	CAUGHT	alloy
