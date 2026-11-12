@@ -180,9 +180,9 @@
   "invariants": 8,
   "kind": "composition",
   "models": {
-   "als": false,
+   "als": true,
    "tla": true,
-   "twins": 3
+   "twins": 20
   },
   "regulated": true,
   "standards": [
