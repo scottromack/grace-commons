@@ -1537,8 +1537,8 @@
   "kind": "composition",
   "models": {
    "als": true,
-   "tla": false,
-   "twins": 7
+   "tla": true,
+   "twins": 18
   },
   "regulated": true,
   "standards": [
