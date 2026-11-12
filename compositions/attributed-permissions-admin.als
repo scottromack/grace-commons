@@ -1,801 +1,930 @@
+-- attributed-permissions-admin.als
+-- Alloy structural model for the Attributed Permissions Admin composition (Grace Commons
+-- compositions/attributed-permissions-admin.md)
+-- Grounded on Final Critique 10, 2026-11-05 at a6a6920 — Alloy layer re-derived 2026-11-11.
+-- Derived validator; the English spec is the single source of truth. On any
+-- disagreement, diagnose per the entry *The conflict protocol* in pressure-testing.md.
+--
+-- PURPOSE
+-- Verify, by bounded exhaustive search, the STATIC data model of the composition: what the
+-- records one state holds must satisfy, whatever calls wrote them — the Permissions grant
+-- records, the Actor Identity attestations and their proposals, the two attribution maps,
+-- the orphan log and the retention layer's purge records — and what the failed-grant leg
+-- reports when it reads one state. Everything that happens across steps (an entry or an
+-- orphan log entry never changed or dropped, a revocation never undone, the order of the
+-- attest and the record as steps, the pair-scoped purge's unit, the attribution query's
+-- purge and tamper readings as attestations disappear, a grant committed after a sweep) is
+-- the TLA+ model's, attributed-permissions-admin.tla.
+--
+-- This file replaces the Alloy 6 trace model of 2026-06-12 (its `var` fields, `always`
+-- checks and `eventually` runs; the formal layer's ruling of 2026-11-09 keeps Alloy to one
+-- state). Its static checks are re-derived here over records a call wrote, rather than over
+-- facts that stated the page's Invariants 1, 2 and 7 (a fact holds only what the page takes
+-- from outside: Scott, 2026-11-10); its stepping checks moved to the TLA+ model.
+--
+-- RULES ENCODED (named by the page's own labels)
+--   Invariant 1.1        — a grant the composition's surface issued carries a grant
+--                          attribution entry (Check 1.1).
+--   Invariant 2.1, 9.2   — a grant the composition revoked carries a revocation attribution
+--                          entry; so does every grant of a sweep's enumerated set (Check 2.1,
+--                          7.2).
+--   Invariant 4.1, 4.2   — an issuance (revocation) attestation's stamp does not exceed the
+--                          grant's grant (revocation) instant taken with the clock offset
+--                          allowance (Check 3.1, 3.2).
+--   Invariant 7.1, 7.2   — each attribution map is injective (Check 6.1, 6.2).
+--   Invariant 7.3        — the two maps' attestations are disjoint (Check 6.3).
+--   Invariant 7.5, 7.6   — no two grant proposals are equal; no revocation proposal equals a
+--                          grant proposal.
+--   Invariant 9.1        — every grant of a sweep's enumerated set stands revoked (Check 7.1).
+--   Composition state 11, 12 — an attribution entry names exactly one attestation.
+--   Composition state 13 — a grant carries at most one revocation attribution entry.
+--   Composition state 19 — an orphan log entry carries the attestation, its proposal, the
+--                          request instant and the underlying reason.
+--   Composition state 28 — an orphan attestation is purged under its own retention: past its
+--                          own horizon.
+--   Identity 9           — every attestation of one pair-scoped revocation carries one
+--                          request instant.
+--   Identity 11, 12, 13  — what an issuance and a revocation proposal carry, and that an
+--                          issuance proposal carries no grant handle.
+--   Housekeeping 3, 4    — the failed-grant leg reports only this composition's
+--                          attestations, and every unpaired one inside the horizon as an
+--                          orphan (Check 5.2, 5.3; Composition state 23, Check 5.9).
+--   Housekeeping 13      — the leg ages an attestation by its proposal's request instant.
+--   Housekeeping 15 to 18 — an aged-out unpaired attestation is never an orphan, is a
+--                          purge-pending orphan with an orphan log entry and a
+--                          non-conformant purge without one, and is never benign (Check 5.6
+--                          to 5.8).
+--
+-- NOT CHECKED HERE
+--   Across steps, the TLA+ model's: Invariant 6 and 8 (entries and orphan log entries never
+--   changed or dropped), the order of attest and record as steps (Composes 16 to 18, Wiring
+--   decision 1, 2), Invariant 1.2 and 2.2 with the pair-scoped purge's unit (Composition
+--   state 27) and an adversary's removal of an attestation, Invariant 3 with the attribution
+--   query's verify results (Action wiring 56 to 66), the orphan logged and never completed
+--   (Wiring decision 4, 5, Atomic writes 8, Housekeeping 7, 8), Concurrency 7.
+--   Housekeeping 14 — the leg widens its bound by the clock offset allowance only if it ages
+--   by a constituent's stamp. Nothing testable in Alloy: Housekeeping 13 obliges the leg to
+--   age by the request instant, so 14's antecedent never holds of a conforming leg (see the
+--   finding below).
+--   Identity 10 — the auditor's grouping key. A run below (ShowTwoSweepsOneKey) shows two
+--   sweeps that share it; the page says nothing a check could hold (a finding).
+--   Invariant 4.3, 4.4 — the clock is taken monotonic (the fact ClockIsMonotonic), so 4.3's
+--   carve-out never applies; no write in the model reads a stamp (4.4).
+--
+-- SCOPE
+-- A state is what a set of calls wrote. Each call is one atom: [Issue Grant], [Revoke
+-- Grant], [Revoke Permission] (a sweep), a direct database write around the composition, and
+-- a foreign composing system's attest in the shared Actor Identity records. Every action is
+-- one transaction (Execution Contract Database 1), so a call's records all stand or none
+-- does; a storage failure commits nothing and leaves no record, so it is not modelled.
+-- A constituent's refusal after the attest (Permissions' invalid-request at an issuance, its
+-- not-active at a revocation) is an answer, and the call commits its attestation and its
+-- orphan log entry (Action wiring 8, 10, 26, 101, 102). A call reads the clock twice: early,
+-- its seam reading, which is the request instant (Identity 8), and late, a later reading in
+-- the same act (the clock moves while an act runs); Actor Identity and Permissions each
+-- stamp at their own seam, off the composition's by an offset the clock offset allowance
+-- bounds (Clock semantics 9 to 11). The model does not order calls: it builds every state a
+-- set of calls can leave and some no sequence reaches; a check that holds over all of them
+-- holds over the records. The retention layer's per-store purge of a paired attestation and
+-- its purge of an orphan are records here; the pair-scoped purge of a grant's whole unit
+-- removes the grant and its entries, which only a step can show (the TLA+ model's
+-- PurgePair). The failed-grant leg is a read at one reading of the clock, Leg.now; its
+-- checks range over EVERY state of the records it reads, conforming or not, since
+-- Housekeeping 17 exists for a state the composition's own writes never leave.
+--
+-- NOT MODELED HERE
+--   - The boundary predicate, credentials, and an attest Actor Identity refuses: a refused
+--     attest writes nothing (Action wiring 6, 21).
+--   - A [Revoke Grant] of a handle Permissions does not hold (not-known): its writes are
+--     not-active's with another reason (Action wiring 26, 102), and the model has no handle
+--     outside the grant records.
+--   - The evaluation passthrough (Action wiring 81 to 86): it writes nothing.
+--   - Actor Identity's verify (Invariant 3): the TLA+ model's verify result.
+--   - The length cap (Capability requirement 29, 30, 36): it is why Permissions may refuse an
+--     issuance, which the model takes as Permissions' answer.
+--
+-- FINDINGS (recorded for the page's next round, not cured here)
+--   - Identity 10: two pair-scoped revocations of one pair by one revoker at one request
+--     instant share the auditor's grouping key (request instant, revoker, pair), so the
+--     grouping reads two administrative acts as one; the page makes the request instant no
+--     unique stamp (Clock semantics 7) and names no other key (run ShowTwoSweepsOneKey).
+--   - Housekeeping 13 and 14: 13 obliges the leg to age by the request instant, so 14's
+--     "only if the leg ages by a constituent's stamp" names a leg 13 forbids; and a leg that
+--     did age by a stamp widened by the allowance would hold an aged-out attestation inside
+--     the horizon, which Housekeeping 15 forbids (the term aged-out attestation is taken from
+--     the request instant).
+--
+-- HOW TO READ RESULTS
+-- Every "check A_*" must return "No counterexample found" (UNSAT) — the asserted guarantee holds.
+-- Every "run Show*" must return at least one instance (SAT) — confirms non-vacuity.
+-- A "check" returning a counterexample is a spec finding.
+
 module attributed_permissions_admin
 
-/*
- * Alloy model: Attributed Permissions Admin
- * Corresponds to: compositions/attributed-permissions-admin.md
- * Status: Round 4 — unified temporal model (Alloy 6 `var` state)
- *
- * ---------------------------------------------------------------
- * HOW TO READ THIS FILE
- *
- * Alloy thinks in possible worlds. With Alloy 6's `var` keyword a
- * world is no longer a single snapshot: it is a *trace* — an
- * initial state plus a successor state for every time step,
- * looping back on itself so every trace is infinite. Non-`var`
- * sigs and fields hold the same value in every state of a trace;
- * `var` fields may change between states.
- *
- * Two semantic rules carry this whole file. Both are easy to get
- * wrong, so both are stated up front:
- *
- *   RULE 1. A formula with NO temporal operators speaks only
- *           about the FIRST state of the trace. `fact { P }`
- *           means "P holds at time zero" — nothing more.
- *   RULE 2. To speak about every state, you must say `always P`.
- *
- * Round 3 worked around Rule 1 by giving the dynamic model its
- * own Dyn*-prefixed sigs, so the static facts could stay
- * non-temporal in the same file without being reinterpreted.
- * Round 4 — this file — removes that workaround and instead uses
- * Rule 1 deliberately:
- *
- *   - The spec's snapshot invariants are stated as non-temporal
- *     facts. By Rule 1 they constrain the INITIAL state only:
- *     every trace begins in an arbitrary valid snapshot (not
- *     necessarily an empty one).
- *   - The composition's operations (issue_grant, revoke_grant)
- *     are the only dynamics, imposed by one temporal fact:
- *     `always (some transition fires)`.
- *   - That the invariants then hold in EVERY state is not assumed
- *     anywhere. It is PROVEN: each invariant fact has a matching
- *     assertion under `always`, checked against the transition
- *     system (see PRESERVATION CHECKS below).
- *
- * So nothing here silently weakened from "all states" to "initial
- * state" in the Alloy 6 move: every initial-state fact has a
- * corresponding preservation check, and the checks are the
- * evidence. This is the inductive-invariant idiom — the facts are
- * the base case, the transitions are the inductive step, and the
- * `check` commands discharge the induction within scope.
- *
- * If a `check` comes back clean: no counterexample within scope.
- * That's strong evidence, not a proof. (For proofs: Alloy* or
- * TLA+ — see the TLA+ sibling, attributed-permissions-admin.tla.)
- * If a `check` finds a counterexample: a real trace violates the
- * claim. Either the claim is wrong or a constraint is missing.
- *
- * `run` asks for a satisfying instance — the sanity check that
- * the constraints aren't so tight they make everything impossible
- * (and the vacuity guard each `check` is paired against).
- *
- * ---------------------------------------------------------------
- * WHAT THIS MODEL COVERS
- *
- *   - The two constituent atoms' core structure (Grant,
- *     Attestation) and store membership over time
- *   - The composition's emergent state (grant_attribution,
- *     revocation_attribution, orphan log)
- *   - Application-level Invariants 1, 2, and 7 as initial-state
- *     facts, each with a preservation check under `always`
- *   - The Round 1/2 snapshot checks, preserved as initial-state
- *     checks (the regression gate — see below)
- *   - The temporal claims T1–T6, restated over the unified model.
- *     Traces now start from any valid snapshot rather than only
- *     the empty state, so every `always` claim is strictly
- *     stronger than its Round 3 counterpart, and orphan-log
- *     durability (T6) is no longer vacuous — traces may begin
- *     with a populated orphan log whose entries must persist.
- *   - Invariant 4 (time monotonicity) deferred — requires
- *     timestamps; discharged on the TLA+ sibling under a logical
- *     clock. Invariant 5 (constituent invariants preserved) is
- *     implicit in typing. Failure-path orphan CREATION remains
- *     unmodeled: happy-path transitions discharge the load-bearing
- *     temporal claims; rejection branches that populate the orphan
- *     log are the natural later extension if a failure-case
- *     evidence requirement arises.
- *
- * ---------------------------------------------------------------
- * REGRESSION GATE — the Round 1 evidentiary record, kept live
- *
- * Invariant 7 (Attestation Exclusivity) exists because the Round 1
- * model found it missing. That evidence is preserved as an
- * executable property of this file:
- *
- *   With the Invariant7_Attestation_Exclusivity fact commented
- *   out, EXACTLY these four commands find counterexamples:
- *       Issuance_Revocation_Attestations_Differ
- *       Grant_Attribution_Injective
- *       Issuance_Revocation_Pools_Disjoint
- *       Invariant_7_Always
- *   With the fact present, every check in the file is clean and
- *   every run is satisfiable.
- *
- * The committed buggy twin (attributed-permissions-admin-buggy.als)
- * is exactly this file with that fact commented out; the harness
- * must reject it (tools/harness/check.mjs <twin> --buggy). If the
- * set of failing checks ever differs from the four above, the
- * model's semantics have shifted: stop and diagnose before
- * shipping.
- *
- * TWINS FOR THE OTHER CHECKS (2026-11-10, a twin for every check),
- * each this file with one defect, named in its header:
- *   -buggy-optionalpairing  Attribution_Recoverability, Invariant_1_Always
- *   -buggy-issuenopair      Invariant_1_Always
- *   -buggy-revokenopair     Invariant_2_Always
- *   -buggy-unattested       Wellformed_Always, Attest_Before_Record
- *   -buggy-reissue          Pairing_Durability, Revocation_Terminal,
- *                           Invariant_2_Always
- *   -buggy-completeorphan   Orphan_Log_Durability
- * ---------------------------------------------------------------
- */
+-- ─────────────────────────────────────────────────────────────────────────────
+-- Signatures (types)
+-- ─────────────────────────────────────────────────────────────────────────────
 
+-- Str: an opaque reference a call carries: a subject reference, an action scope, a grantor
+-- or a revoker reference. The composition compares them case-sensitively and never reads
+-- inside one (Primitive policy 9, 10), so a reference is an uninterpreted token.
+sig Str {}
 
--- ==============================================================
--- BASE TYPES
---
--- The spec treats all of these as opaque references — we don't
--- care what's inside a SubjectRef. Alloy models them as
--- uninterpreted atoms. We care only about the *relations* between
--- things, not their internal content. None of these vary over
--- time.
--- ==============================================================
+-- Nonce: the value the host supplies at the seam for each issuance (Capability requirement
+-- 2), which carries a grant proposal's uniqueness (Clock semantics 6).
+sig Nonce {}
 
-sig SubjectRef {}   -- who receives the permission
-sig ActionScope {}  -- what the permission covers
-sig ActorRef {}     -- who grants or revokes
-sig ActionRef {}    -- the proposal_ref passed to Actor Identity's attest
+-- Pfx: a namespace prefix on a proposal. Ours is this deployment's (Capability requirement
+-- 11, 13); a Foreign one marks another composing system's attestation in a shared Actor
+-- Identity records (Term namespace prefix).
+abstract sig Pfx {}
 
+-- Ours: this deployment's namespace prefix.
+one sig Ours extends Pfx {}
 
--- ==============================================================
--- GRANT STATUS
---
--- `enum` is shorthand for the abstract-sig pattern:
---
---     abstract sig GrantStatus {}
---     one sig Active, Revoked extends GrantStatus {}
---
--- i.e., exactly one Active atom and one Revoked atom exist, every
--- GrantStatus is one of the two, and no atom is a bare
--- GrantStatus. The formal layer prefers the compressed canonical
--- form; the teaching burden lives here in the comment, not in the
--- syntax. (Round 4 — same rationale as preferring pure TLA+ over
--- PlusCal on the TLA+ sibling.)
--- ==============================================================
+-- Foreign: a prefix another composing system put on its proposals.
+sig Foreign extends Pfx {}
 
-enum GrantStatus { Active, Revoked }
+-- Reason: the underlying reason an orphan log entry carries (Term underlying reason).
+abstract sig Reason {}
 
+-- InvalidRequest, NotKnown, NotActive: Permissions' refusal at the grant, and its two at
+-- the revoke.
+one sig InvalidRequest, NotKnown, NotActive extends Reason {}
 
--- ==============================================================
--- ATOM: PERMISSIONS — the grant store
---
--- subject and scope are a grant's immutable identity, so they are
--- plain fields. status is the one thing about a grant that
--- changes over its life, so it is `var`. It is `lone` rather than
--- `one` because Alloy atoms exist for the whole trace: a Grant
--- atom that has not (yet) been issued is simply outside
--- grants_in_store and has NO status. The WELL-FORMED SNAPSHOT
--- fact pins that discipline at time zero; Wellformed_Always
--- proves the operations keep it.
---
--- In Alloy, fields on a sig are *relations*, not slots —
--- status is a relation Grant -> GrantStatus, kept a partial
--- function by `lone`.
--- ==============================================================
+-- RetScope: the retention scope the deployment declares (Capability requirement 27, Term
+-- retention scope).
+abstract sig RetScope {}
 
+-- PairScoped, PerStore: a grant, its attestations and its entries purged as one unit; or
+-- each record on its own.
+one sig PairScoped, PerStore extends RetScope {}
+
+-- Deploy: what the deployment declares and supplies: the clock offset allowance
+-- (Capability requirement 20), the retention horizon (Capability requirement 35) and the
+-- retention scope (Capability requirement 27); and how far Actor Identity's seam and
+-- Permissions' seam read off the composition's own (each constituent stamps at its own seam,
+-- Clock semantics 9).
+one sig Deploy {
+    allowance : one Int,       -- the clock offset allowance
+    horizon   : one Int,       -- the retention horizon
+    retention : one RetScope,  -- the retention scope
+    offA      : one Int,       -- Actor Identity's seam, read against the composition's
+    offP      : one Int        -- Permissions' seam, read against the composition's
+}
+
+-- Call: one call of an action that writes, or a write around the composition. actor is the
+-- grantor or the revoker the call names; early is the composition's seam reading at the
+-- invocation, the request instant (Identity 7, 8); late is a later reading inside the same
+-- act, since the clock moves while an act runs.
+abstract sig Call {
+    actor : one Str,
+    early : one Int,
+    late  : one Int
+}
+
+-- IssueCall: one [Issue Grant] call whose attest landed: issue_grant(subject_ref,
+-- action_scope, grantor_ref, grantor_credential), with the nonce the host supplied.
+sig IssueCall extends Call {
+    isubj : one Str,    -- subject_ref
+    iscp  : one Str,    -- action_scope
+    nonce : one Nonce   -- the host's nonce for this issuance
+}
+
+-- IssueRefused: the issuances Permissions answered invalid-request after the attest landed
+-- (Action wiring 8): Permissions' answer, taken from outside.
+sig IssueRefused in IssueCall {}
+
+-- RevokeCall: one [Revoke Grant] call whose attest landed: revoke_grant(grant_id,
+-- revoker_ref, revoker_credential); target is the grant the handle names.
+sig RevokeCall extends Call {
+    target : one Grant
+}
+
+-- RevokeRefused: the revocations Permissions answered not-active (Action wiring 24):
+-- Permissions' answer, taken from outside.
+sig RevokeRefused in RevokeCall {}
+
+-- SweepCall: one [Revoke Permission] call: revoke_permission(subject_ref, action_scope,
+-- revoker_ref, revoker_credential); enumerated is the pair's active grants as Permissions'
+-- declared read answered them, inside the transaction that revokes (Action wiring 42,
+-- Execution Contract Database 2).
+sig SweepCall extends Call {
+    ssubj      : one Str,
+    sscp       : one Str,
+    enumerated : set Grant
+}
+
+-- DirectWrite: a grant issued or revoked by a direct database write, around the
+-- composition (Composes 19, Invariant 1.4, 2.4).
+sig DirectWrite extends Call {}
+
+-- ForeignCall: another composing system's attest in the shared Actor Identity records.
+sig ForeignCall extends Call {}
+
+-- Grant: one Permissions grant record: its pair, the call that issued it and Permissions'
+-- grant instant (its own seam's stamp), and, once revoked, the call that revoked it and the
+-- revocation instant. Permissions revokes a grant at most once (its own invariant), so
+-- revoked is lone.
 sig Grant {
-    subject    : one SubjectRef,
-    scope      : one ActionScope,
-    var status : lone GrantStatus
+    gsubj     : one Str,
+    gscp      : one Str,
+    issued    : one Call,
+    grantedAt : one Int,
+    revoked   : lone Call,
+    revokedAt : lone Int
 }
 
-
--- ==============================================================
--- ATOM: ACTOR IDENTITY — the attestation store
---
--- Each Attestation binds one actor to one action_ref, immutably:
--- attestations are point-in-time records, so nothing on this sig
--- is `var`. Whether an attestation is currently *stored* is store
--- membership (attestations_in_store below), not a property of the
--- record. (Credential validation is Authenticated Actor's
--- concern — not modeled here.)
--- ==============================================================
-
-sig Attestation {
-    actor      : one ActorRef,
-    action_ref : one ActionRef
+-- Prop: a proposal an attestation binds its actor's proof to. Every field the two formats
+-- name may be absent, so a write that left one out would show; what a proposal carries is
+-- checked, never built into the type (Identity 11, 12, 13; Term grant proposal format,
+-- Term revocation proposal format).
+sig Prop {
+    pfx    : lone Pfx,     -- the namespace prefix
+    psubj  : lone Str,     -- subject_ref (a grant proposal)
+    pscp   : lone Str,     -- action_scope (a grant proposal)
+    pnonce : lone Nonce,   -- nonce (a grant proposal)
+    pgrant : lone Grant,   -- grant_id (a revocation proposal)
+    preq   : lone Int      -- requested_at, the request instant
 }
 
-
--- ==============================================================
--- SYSTEM STATE — the stores plus the composition's emergent state
---
--- `one sig System` is a singleton holding all mutable state:
---
---   grants_in_store / attestations_in_store — which atoms are
---   live in the Permissions store / Actor Identity store at the
---   current time. This is the store-scoping discipline from
---   the section titled *Formal-model authoring pitfalls* in pressure-testing.md: a
---   pre/post pair is the same entity at two times, never two
---   entities at one time, so facts quantify over store members,
---   not over all atoms.
---
---   grant_attribution / revocation_attribution — the composition's
---   emergent state: the pairing maps. `Grant -> lone Attestation`
---   is a *partial function* — each Grant maps to at most one
---   Attestation (`lone` = zero or one).
---
---   orphan_log — attestations recorded as orphaned by failed
---   issuance/revocation attempts: Invariant 8's surface.
---
--- NOTE (Round 4): Round 3 carried a Pairing_Map_Range_Valid fact
--- restating what the two map declarations already enforce — that
--- their ranges contain only Attestation atoms. A fact entailed by
--- a declaration is inert; worse, if a later edit weakens the
--- declaration, the leftover fact silently re-imposes the
--- constraint and masks the edit. The fact is removed. Round 4
--- kept its intent as a Pairing_Map_Range_Valid assert + check;
--- that check restated the two declarations (their range type),
--- so no twin could break it, and it went on 2026-11-10 (unit
--- `tooling: every check has a twin that breaks it`). The
--- declarations are the model's statement of it.
--- ==============================================================
-
-one sig System {
-    var grants_in_store        : set Grant,
-    var attestations_in_store  : set Attestation,
-    var grant_attribution      : Grant -> lone Attestation,
-    var revocation_attribution : Grant -> lone Attestation,
-    var orphan_log             : set Attestation
+-- Att: one Actor Identity attestation record: its proposal, the call whose attest minted it
+-- and Actor Identity's stamp (its own seam's). Actor Identity mints a distinct attestation
+-- per attest call (Invariant 7.4, its own guarantee), so every Att is one call's.
+sig Att {
+    prop  : one Prop,
+    by    : one Call,
+    stamp : one Int
 }
 
-
--- ==============================================================
--- WELL-FORMED SNAPSHOT (initial state)
---
--- Modeling scaffolding, not a spec invariant: this says what "a
--- snapshot of this system" means, so traces start from a
--- meaningful state rather than arbitrary garbage (a status on a
--- grant no store contains; a pairing pointing at an attestation
--- that was never recorded).
---
--- Per RULE 1 in the header, this fact constrains ONLY the initial
--- state — and that is not a silent weakening, because
--- Wellformed_Always below proves the operations preserve every
--- conjunct in every reachable state.
--- ==============================================================
-
-fact Wellformed_Snapshot {
-    -- status is defined exactly for stored grants
-    all g : System.grants_in_store | one g.status
-    all g : Grant - System.grants_in_store | no g.status
-
-    -- the pairing maps speak only of stored grants...
-    System.grant_attribution.Attestation in System.grants_in_store
-    System.revocation_attribution.Attestation in System.grants_in_store
-
-    -- ...and point only at stored attestations (the structural
-    -- consequence of attest-before-record; see Attest_Before_Record)
-    System.grant_attribution[Grant] in System.attestations_in_store
-    System.revocation_attribution[Grant] in System.attestations_in_store
-
-    -- the orphan log records stored attestations
-    System.orphan_log in System.attestations_in_store
+-- GEntry: one grant attribution entry: the grant it is keyed by (Composition state 5), the
+-- attestations it names (a set, so an entry naming two would show: Composition state 11)
+-- and the call that wrote it.
+sig GEntry {
+    eg : one Grant,
+    ea : set Att,
+    ew : one Call
 }
 
-
--- ==============================================================
--- INVARIANT 1 — Attribution completeness (initial state)
---
--- Every stored Grant has *exactly one* grant_attribution entry.
--- `one` in a quantified expression means exactly one atom
--- satisfies it — here, exactly one Attestation is related to g
--- via grant_attribution.
---
--- This is the central invariant: no grant without its
--- attribution. The spec qualifies it as conditional on the
--- pairing-write durability requirement; we model the nominal
--- (non-failure) case.
---
--- Initial state only (RULE 1); preservation by the operations is
--- proven at Invariant_1_Always.
--- ==============================================================
-
-fact Attribution_Completeness {
-    all g : System.grants_in_store | one System.grant_attribution[g]
+-- REntry: one revocation attribution entry, the same shape (Composition state 12).
+sig REntry {
+    rg : one Grant,
+    ra : set Att,
+    rw : one Call
 }
 
-
--- ==============================================================
--- INVARIANT 2 — Revocation attribution (initial state)
---
--- Every stored Revoked grant has exactly one
--- revocation_attribution entry; Active grants have none.
--- `implies` is logical implication; `no` means the relation is
--- empty for that Grant.
---
--- Initial state only (RULE 1); preservation is proven at
--- Invariant_2_Always.
--- ==============================================================
-
-fact Revocation_Attribution {
-    all g : System.grants_in_store |
-        g.status = Revoked implies one System.revocation_attribution[g]
+-- OLE: one orphan log entry: the attestation, the proposal, the request instant and the
+-- underlying reason it carries (Composition state 19), each a set so a missing or doubled
+-- field would show, and the call that wrote it.
+sig OLE {
+    oa  : set Att,
+    op  : set Prop,
+    ot  : set Int,
+    ors : set Reason,
+    ow  : one Call
 }
 
-fact Active_Grants_Have_No_Revocation_Attribution {
-    all g : System.grants_in_store |
-        g.status = Active implies no System.revocation_attribution[g]
+-- Purge: one purge record, the retention layer's record that a named attestation was
+-- lawfully destroyed (Capability requirement 28, Term purge record), with its instant.
+sig Purge {
+    pa : one Att,
+    pt : one Int
 }
 
-
--- ==============================================================
--- CHECK: INVARIANT 3 — Attribution recoverability (initial state)
---
--- The spec states: given any grant_id, the composition's records
--- yield the issuance attestation. This follows trivially from
--- Invariant 1 — if grant_attribution is total over stored grants,
--- recoverability is guaranteed. We assert it and let Alloy verify
--- the entailment.
---
--- Expected result: CLEAN (no counterexample) — it depends only on
--- the Invariant 1 fact, so it stays clean even in the buggy twin.
---
--- The `1..1 steps` scope makes this a pure snapshot check: a
--- one-state trace (held in place by the stutter transition), so
--- the command searches exactly the space of valid initial states,
--- as the Round 1 static model did.
--- ==============================================================
-
-assert Attribution_Recoverability {
-    all g : System.grants_in_store | some System.grant_attribution[g]
+-- AI: the attestations Actor Identity holds in this state.
+one sig AI {
+    held : set Att
 }
 
-check Attribution_Recoverability for 6 but 1..1 steps
+-- Report: what the failed-grant leg reports an attestation as (Housekeeping 5, 16, 17), and
+-- Benign, the reading Housekeeping 18 forbids, in the type so a leg that gave it would show.
+abstract sig Report {}
 
+-- RptOrphan, RptPurgePending, RptNonConformant, RptBenign: an orphan; a purge-pending
+-- orphan; a non-conformant purge; benign.
+one sig RptOrphan, RptPurgePending, RptNonConformant, RptBenign extends Report {}
 
--- ==============================================================
--- CHECK: Are issuance and revocation attestations always distinct?
---
--- For a stored Revoked grant, Invariant 1 gives an issuance
--- attestation and Invariant 2 gives a revocation attestation. Are
--- these guaranteed to be *different* Attestation atoms?
---
--- The spec relies on the proposal format to ensure this: the
--- grant proposal includes a nonce and the revocation proposal is
--- {grant_id, requested_at} — structurally different action_refs.
--- Round 1 found that argument lived in Configuration but was
--- never promoted to a named invariant — so the state space
--- *permitted* the violation, and any conforming implementation
--- was allowed to produce it.
---
--- Expected result: CLEAN with the Invariant 7 fact below present.
--- With that fact commented out (the buggy twin), COUNTEREXAMPLE:
--- the same Attestation atom in both grant_attribution[g] and
--- revocation_attribution[g] for a Revoked grant — one attestation
--- double-spent across two administrative acts. This check is part
--- of the regression gate (see header).
--- ==============================================================
-
-assert Issuance_Revocation_Attestations_Differ {
-    all g : System.grants_in_store | g.status = Revoked implies
-        System.grant_attribution[g] != System.revocation_attribution[g]
+-- Leg: the failed-grant leg's one run, at its own clock reading.
+one sig Leg {
+    now : one Int
 }
 
-check Issuance_Revocation_Attestations_Differ for 5 but 1..1 steps
+-- ─────────────────────────────────────────────────────────────────────────────
+-- Facts: what the page takes from outside
+-- ─────────────────────────────────────────────────────────────────────────────
 
-
--- ==============================================================
--- CHECK: Is grant_attribution injective?
---
--- Injectivity: no two different grants share the same issuance
--- attestation. The spec's nonce mechanism guarantees this in
--- practice — every grant proposal gets a fresh nonce, so every
--- attestation binds a distinct proposal_ref. But a mechanism
--- argument in Configuration is not an invariant over the state
--- space.
---
--- Expected result: CLEAN with the Invariant 7 fact present.
--- Without it (buggy twin), COUNTEREXAMPLE: two stored grants
--- (g1, g2) with grant_attribution[g1] = grant_attribution[g2] —
--- e.g., a retried issue_grant pairing one attestation with two
--- grant records. Part of the regression gate.
--- ==============================================================
-
-assert Grant_Attribution_Injective {
-    all a : Attestation | lone System.grant_attribution.a
+-- The deployment's clock is monotonic and reads an instant from 0 to 3 in the model's span
+-- (Capability requirement 1); a later reading inside one act reads no earlier (Invariant 4.3
+-- claims nothing under a clock that does). Every proposal's request instant is such a
+-- reading. The leg and the retention layer read the same clock, up to 7. The span is the
+-- model's bound, not a rule of the page.
+fact ClockIsMonotonic {
+    all c : Call | c.early >= 0 and c.early <= 3 and c.late >= c.early and c.late <= 3
+    all p : Prop, t : p.preq | t >= 0 and t <= 3
+    Leg.now >= 0 and Leg.now <= 7
+    all p : Purge | p.pt >= 0 and p.pt <= 7
 }
 
-check Grant_Attribution_Injective for 5 but 1..1 steps
-
-
--- ==============================================================
--- CHECK: Do issuance and revocation attestation pools overlap?
---
--- Can the same Attestation be the issuance proof for one grant
--- AND the revocation proof for a different grant — e.g., a
--- revocation reusing an issuance attestation as its proof?
---
--- Expected result: CLEAN with the Invariant 7 fact present.
--- Without it (buggy twin), COUNTEREXAMPLE: the two ranges are
--- otherwise unconstrained and overlap freely, breaking the audit
--- chain. Part of the regression gate.
--- ==============================================================
-
-assert Issuance_Revocation_Pools_Disjoint {
-    no (System.grant_attribution[Grant] & System.revocation_attribution[Grant])
+-- Each constituent stamps at its own seam (Clock semantics 9), within one instant of the
+-- composition's, and the two constituents' seams within the clock offset allowance of each
+-- other: the envelope the deployment declares (Capability requirement 20, Term clock offset
+-- allowance). The allowance is 0 or 1 and the horizon 0 to 2 (Capability requirement 35):
+-- the model's bounds.
+fact SeamsWithinTheAllowance {
+    Deploy.allowance >= 0 and Deploy.allowance <= 1
+    Deploy.horizon >= 0 and Deploy.horizon <= 2
+    Deploy.offA >= -1 and Deploy.offA <= 1
+    Deploy.offP >= -1 and Deploy.offP <= 1
+    minus[Deploy.offA, Deploy.offP] <= Deploy.allowance
+    minus[Deploy.offP, Deploy.offA] <= Deploy.allowance
+    all a : Att | a.stamp >= -1 and a.stamp <= 4
 }
 
-check Issuance_Revocation_Pools_Disjoint for 5 but 1..1 steps
-
-
--- ==============================================================
--- INVARIANT 7 — Attestation Exclusivity (initial state)
---
--- Surfaced by the Round 1 model; closed in the spec before
--- Round 2. The three checks above all found counterexamples
--- without this fact; with it, all three pass clean. The prose
--- review had argued exclusivity held via the nonce mechanism in
--- Configuration; the model showed that a mechanism argument does
--- not substitute for a named, checkable invariant — Invariant 7
--- moved it from "our mechanism happens to prevent it" to "any
--- conforming implementation must."
---
--- Three properties in one fact:
---   (1) grant_attribution is injective — no shared issuance proofs
---   (2) revocation_attribution is injective — no shared
---       revocation proofs
---   (3) the two ranges are disjoint — no attestation serves both
---       roles
---
--- Initial state only (RULE 1). That the OPERATIONS maintain
--- exclusivity from a valid start — i.e., that the spec's nonce
--- mechanism, rendered as the freshness precondition on the
--- transitions below, actually enforces this invariant over time —
--- is proven at Invariant_7_Always.
---
--- THE REGRESSION GATE LIVES HERE: commenting out this one fact
--- must flip exactly the three checks above plus Invariant_7_Always
--- to COUNTEREXAMPLE (that is the committed buggy twin), and
--- nothing else.
--- ==============================================================
-
-fact Invariant7_Attestation_Exclusivity {
-    -- (1) Each Attestation appears at most once in grant_attribution
-    all a : Attestation | lone System.grant_attribution.a
-
-    -- (2) Each Attestation appears at most once in revocation_attribution
-    all a : Attestation | lone System.revocation_attribution.a
-
-    -- (3) The two pools are disjoint: no attestation serves both roles
-    no (System.grant_attribution[Grant] & System.revocation_attribution[Grant])
+-- The host supplies one nonce per issuance at the seam, never another issuance's
+-- (Capability requirement 2, Identity 5).
+fact HostSuppliesAFreshNonce {
+    all disj c1, c2 : IssueCall | c1.nonce != c2.nonce
 }
 
-
--- ==============================================================
--- RUN: Show a valid snapshot with at least one Active grant
---
--- `run` finds a satisfying instance — a world where the predicate
--- holds and all facts are satisfied. This is the sanity check: if
--- `run` finds nothing, the facts are contradictory
--- (over-constrained). Each snapshot check above is non-vacuous
--- because these runs are satisfiable over the same initial-state
--- space.
--- ==============================================================
-
-pred has_active_grant {
-    some g : System.grants_in_store | g.status = Active
+-- Permissions answers not-active only for a grant another call already revoked (its own
+-- contract: Action wiring 24 relays it).
+fact PermissionsAnswersNotActiveTruly {
+    all c : RevokeRefused | some c.target.revoked and c.target.revoked != c
 }
 
-run has_active_grant for 4 but 1..1 steps
-
-
--- ==============================================================
--- RUN: Show a valid snapshot with both Active and Revoked grants
--- (the full attribution picture — two grants, two issuance
--- attestations, one revocation attestation)
--- ==============================================================
-
-pred full_lifecycle {
-    some g1 : System.grants_in_store | g1.status = Active
-    some g2 : System.grants_in_store | g2.status = Revoked
+-- Permissions' declared read answers a sweep the pair's grants: each enumerated grant
+-- carries the sweep's subject and scope (Action wiring 42).
+fact PermissionsEnumeratesThePair {
+    all c : SweepCall, g : c.enumerated | g.gsubj = c.ssubj and g.gscp = c.sscp
 }
 
-run full_lifecycle for 5 but 1..1 steps
+-- ─────────────────────────────────────────────────────────────────────────────
+-- Helpers
+-- ─────────────────────────────────────────────────────────────────────────────
 
-
--- ==============================================================
--- RUN: Show orphan attestations
---
--- An attestation in the Actor Identity store that appears in
--- neither pairing map is an orphan — the spec explicitly models
--- these as evidence of failed issuance or revocation attempts.
--- This run confirms they're possible within the model (not
--- excluded by any fact) and shows what the orphan population
--- looks like.
--- ==============================================================
-
-pred has_orphan_attestations {
-    some a : System.attestations_in_store |
-        a not in System.grant_attribution[Grant]
-        and a not in System.revocation_attribution[Grant]
+-- attOf: the attestations one call's attest (or attests) minted.
+fun attOf[c : Call] : set Att {
+    by.c
 }
 
-run has_orphan_attestations for 5 but 1..1 steps
-
-
--- ==============================================================
--- TRANSITIONS — the composition's operations
---
--- Each transition is atomic: it relates one state to the next in
--- a single step. The `'` (prime) operator names a field's value
--- in the next state. Every transition constrains EVERY var field
--- — anything left unconstrained would be free to change
--- arbitrarily between states (the frame conditions are the
--- `= unchanged` lines and the `all h : Grant - g` quantifications).
---
--- The freshness precondition `a not in attestations_in_store` is
--- the model's rendering of the spec's nonce mechanism
--- (Configuration): every issue_grant / revoke_grant call attests
--- a structurally fresh proposal_ref, so the attestation it
--- records is new — never a reused record. Invariant_7_Always
--- below is the proof that this mechanism preserves Invariant 7
--- over time: mechanism and named invariant, both present, neither
--- substituting for the other.
--- ==============================================================
-
--- Stutter: no state change. Also what makes one-state snapshot
--- traces (the `1..1 steps` commands above) and lasso loops
--- possible.
-pred stutter {
-    System.grants_in_store'        = System.grants_in_store
-    System.attestations_in_store'  = System.attestations_in_store
-    all g : Grant | g.status'      = g.status
-    System.grant_attribution'      = System.grant_attribution
-    System.revocation_attribution' = System.revocation_attribution
-    System.orphan_log'             = System.orphan_log
+-- named: the attestations an attribution entry names.
+fun named : set Att {
+    GEntry.ea + REntry.ra
 }
 
--- issue_grant happy path: atomically add the attestation, add the
--- grant with status Active, write the issuance pairing.
-pred issue_grant [g : Grant, a : Attestation] {
-    -- Preconditions
-    g not in System.grants_in_store
-    a not in System.attestations_in_store   -- freshness: the nonce
-
-    -- Postconditions (next state)
-    System.grants_in_store'        = System.grants_in_store + g
-    System.attestations_in_store'  = System.attestations_in_store + a
-    g.status'                      = Active
-    all h : Grant - g | h.status'  = h.status
-    System.grant_attribution'      = System.grant_attribution + (g -> a)
-    System.revocation_attribution' = System.revocation_attribution
-    System.orphan_log'             = System.orphan_log
+-- sameProp: two proposals carry the same fields: one serialized proposal, as Invariant 7.5
+-- and 7.6 compare them.
+pred sameProp[p, q : Prop] {
+    p.pfx = q.pfx and p.psubj = q.psubj and p.pscp = q.pscp
+    p.pnonce = q.pnonce and p.pgrant = q.pgrant and p.preq = q.preq
 }
 
--- revoke_grant happy path: atomically add the revocation
--- attestation, flip status Active -> Revoked, write the
--- revocation pairing.
-pred revoke_grant [g : Grant, a : Attestation] {
-    -- Preconditions
-    g in System.grants_in_store
-    g.status = Active
-    a not in System.attestations_in_store   -- freshness: the nonce
-
-    -- Postconditions (next state)
-    System.grants_in_store'        = System.grants_in_store
-    System.attestations_in_store'  = System.attestations_in_store + a
-    g.status'                      = Revoked
-    all h : Grant - g | h.status'  = h.status
-    System.grant_attribution'      = System.grant_attribution
-    System.revocation_attribution' = System.revocation_attribution + (g -> a)
-    System.orphan_log'             = System.orphan_log
+-- grantProp: a proposal per the grant proposal format: the namespace prefix, the subject,
+-- the scope and the host's nonce, and no grant handle (Identity 11, 13; Capability
+-- requirement 10, 11). The request instant is set by the writer.
+pred grantProp[c : IssueCall, p : Prop] {
+    p.pfx = Ours
+    p.psubj = c.isubj
+    p.pscp = c.iscp
+    p.pnonce = c.nonce
+    no p.pgrant
 }
 
-
--- ==============================================================
--- TRACE FACT
---
--- Every step of every trace is one of {stutter, issue_grant,
--- revoke_grant}. `always` in a fact constrains every state
--- transition along every trace (RULE 2).
---
--- Note what is NOT here: an init conjunct. Round 3's dyn_trace
--- pinned the initial state to empty; Round 4 lets traces begin in
--- ANY valid snapshot (any state satisfying the initial-state
--- facts above). Every trace property checked below is therefore
--- strictly stronger than its Round 3 counterpart — it holds from
--- every valid starting point, not just from the clean slate. The
--- from_empty_lifecycle run below keeps the clean-slate case
--- exercised.
--- ==============================================================
-
-fact Transitions {
-    always (
-        stutter or
-        (some g : Grant, a : Attestation | issue_grant[g, a]) or
-        (some g : Grant, a : Attestation | revoke_grant[g, a])
-    )
+-- revokeProp: a proposal per the fixed revocation proposal format: the namespace prefix and
+-- the grant's handle (Identity 12; Capability requirement 12, 13). The request instant is
+-- set by the writer.
+pred revokeProp[g : Grant, p : Prop] {
+    p.pfx = Ours
+    no p.psubj
+    no p.pscp
+    no p.pnonce
+    p.pgrant = g
 }
 
+-- ─────────────────────────────────────────────────────────────────────────────
+-- The writes: what each call leaves in the records
+-- ─────────────────────────────────────────────────────────────────────────────
 
--- ==============================================================
--- PRESERVATION CHECKS — the snapshot invariants, proven over time
---
--- Round 3 checked Invariants 1 and 2 as temporal assertions (T2,
--- T3) against the empty-init trace model, and never checked
--- Invariant 7 temporally at all — exclusivity held there only
--- by construction of the transitions, an assumption rather than a
--- verified property. Round 4 promotes all three to explicit
--- `always` checks over traces that start in arbitrary valid
--- snapshots.
---
--- ON THE `1..2 steps` BOUND — deliberate, and stronger than it
--- looks. Because the initial state is an ARBITRARY valid snapshot
--- (every state satisfying the facts, not just states reachable
--- from empty), a two-state trace is exactly the inductive step:
---   base case   — the facts give the invariant at state 0;
---   inductive   — these checks prove no single transition from
---   step          ANY fact-satisfying state reaches a violating
---                 state (the violating successor would appear at
---                 state 1 of a two-state counterexample trace,
---                 closed into a lasso by stutter).
--- UNSAT here therefore proves the invariant at EVERY trace depth,
--- not merely within an unrolled window — strictly stronger than
--- the same check at `1..6 steps`, and far cheaper to solve. The
--- empty-init Round 3 model could not use this idiom: its deep
--- states were reachable-only, so short traces proved nothing
--- beyond the first steps from empty.
--- ==============================================================
-
--- Invariant 1 over time (subsumes Round 3's T2 /
--- Dyn_Invariant_1_Always): every stored grant has its issuance
--- pairing in every state.
-assert Invariant_1_Always {
-    always (all g : System.grants_in_store |
-        one System.grant_attribution[g])
-}
-check Invariant_1_Always for 4 but 1..2 steps
-
--- Invariant 2 over time (subsumes Round 3's T3 /
--- Dyn_Invariant_2_Always, and now also covers the Active half of
--- the invariant pair, which Round 3's T3 omitted): Revoked stored
--- grants have exactly one revocation pairing; Active ones have
--- none.
-assert Invariant_2_Always {
-    always (all g : System.grants_in_store |
-        (g.status = Revoked implies one System.revocation_attribution[g])
-        and (g.status = Active implies no System.revocation_attribution[g]))
-}
-check Invariant_2_Always for 4 but 1..2 steps
-
--- Invariant 7 over time (NEW in Round 4): the freshness
--- precondition — the spec's nonce mechanism — preserves
--- attestation exclusivity through every operation. This is the
--- promotion of Invariant 7's temporal half from "true by
--- construction of the transitions" to "verified property"
--- (pressure-testing.md section The coverage cross-check: by-construction
--- → covered). Part of the regression gate: in the buggy twin this
--- check fails at the unseeded initial state.
-assert Invariant_7_Always {
-    always (
-        (all a : Attestation | lone System.grant_attribution.a)
-        and (all a : Attestation | lone System.revocation_attribution.a)
-        and no (System.grant_attribution[Grant] & System.revocation_attribution[Grant])
-    )
-}
-check Invariant_7_Always for 4 but 1..2 steps
-
--- Well-formedness over time: the snapshot scaffolding
--- (Wellformed_Snapshot) is preserved by every operation. This is
--- the explicit guard against RULE 1's trap — the initial-state
--- facts cannot silently fail to propagate, because this check
--- would catch the first operation that breaks them.
-assert Wellformed_Always {
-    always (
-        (all g : System.grants_in_store | one g.status)
-        and (all g : Grant - System.grants_in_store | no g.status)
-        and System.grant_attribution.Attestation in System.grants_in_store
-        and System.revocation_attribution.Attestation in System.grants_in_store
-        and System.grant_attribution[Grant] in System.attestations_in_store
-        and System.revocation_attribution[Grant] in System.attestations_in_store
-        and System.orphan_log in System.attestations_in_store
-    )
-}
-check Wellformed_Always for 4 but 1..2 steps
-
-
--- ==============================================================
--- TEMPORAL CLAIMS — T1, T4, T5, T6 (Round 3 names: Dyn_*)
---
--- T2 and T3 do not appear here: they are subsumed by
--- Invariant_1_Always and Invariant_2_Always above.
---
--- These use the same `1..2 steps` inductive bound as the
--- preservation checks, and for the same reason: the initial-state
--- facts are exactly the conjunction the preservation checks prove
--- invariant, so every reachable state at every depth is itself a
--- fact-satisfying state — and a durability or terminality
--- violation, if any transition could produce one, therefore
--- appears within one step of some fact-satisfying initial state.
--- UNSAT at `1..2 steps` covers all trace depths. The trace runs
--- at the end of the file keep multi-step behavior exercised.
--- ==============================================================
-
--- T4: Pairing-map durability over time (Invariant 6 stated
--- temporally). Once a pairing entry (g -> a) exists in either
--- map, it persists in every subsequent state.
-assert Pairing_Durability {
-    always (all g : Grant, a : Attestation |
-        (g -> a) in System.grant_attribution implies
-            always ((g -> a) in System.grant_attribution))
-    always (all g : Grant, a : Attestation |
-        (g -> a) in System.revocation_attribution implies
-            always ((g -> a) in System.revocation_attribution))
-}
-check Pairing_Durability for 4 but 1..2 steps
-
--- T5: Revocation is terminal. Once a grant's status flips to
--- Revoked, it stays Revoked.
-assert Revocation_Terminal {
-    always (all g : Grant |
-        g.status = Revoked implies always (g.status = Revoked))
-}
-check Revocation_Terminal for 4 but 1..2 steps
-
--- T1: Attest-before-record (consequence form). The atomic
--- issue_grant transition collapses the attestation write and the
--- grant write into one step, so the ordering itself is not
--- directly observable; its *consequence* is: at every reachable
--- state, every stored grant's issuance pairing points at a
--- currently-stored attestation — never at a phantom reference.
---
--- This is STRICTLY STRONGER than Invariant_1_Always, which only
--- requires that a pairing exists in the map relation; this
--- additionally requires the pairing's target to be in
--- attestations_in_store. Both hold on the current transition set
--- only because no transition removes from attestations_in_store.
--- Absent that monotonicity — exactly what an adversarial deletion
--- of an Actor Identity record would produce, and what Invariant 6
--- + Actor Identity's Invariant 9 jointly forbid — the two
--- assertions diverge. (The revocation-side twin of this property
--- is covered by Wellformed_Always.)
-assert Attest_Before_Record {
-    always (all g : System.grants_in_store |
-        System.grant_attribution[g] in System.attestations_in_store)
-}
-check Attest_Before_Record for 4 but 1..2 steps
-
--- T6: Orphan-log durability over time (Invariant 8 stated
--- temporally). Once an attestation appears in the orphan log, it
--- persists in every subsequent state.
---
--- Round 3 noted this assertion was vacuously satisfied: with the
--- empty init and happy-path-only transitions, the log was always
--- empty. Round 4 narrows that caveat — traces may now BEGIN with
--- a populated orphan log, so the durability discipline is
--- exercised on real entries. What remains unmodeled is failure-
--- path orphan CREATION (transitions that add to the log
--- mid-trace), still the natural later extension.
-assert Orphan_Log_Durability {
-    always (all a : Attestation |
-        a in System.orphan_log implies
-            always (a in System.orphan_log))
-}
-check Orphan_Log_Durability for 4 but 1..2 steps
-
-
--- ==============================================================
--- RUN: trace witnesses — the temporal checks are non-vacuous
--- ==============================================================
-
--- A trace reaching a state with a Revoked stored grant exists.
-pred trace_with_revoked {
-    eventually (some g : System.grants_in_store |
-        g.status = Revoked)
+-- issueWrites: an [Issue Grant] whose attest landed. The attest comes first, at the act's
+-- first reading: one attestation over a grant proposal carrying the request instant
+-- (Action wiring 1, 2; Composes 15, 16; Identity 8). Where Permissions grants, the grant is
+-- recorded after it, at the act's later reading, with its grant attribution entry naming
+-- the call's attestation (Action wiring 7, 15; Composition state 25). Where Permissions
+-- answers invalid-request, no grant and no entry; the attestation stands and the orphan log
+-- entry is written (Action wiring 8, 10, 101; Wiring decision 4).
+pred issueWrites[c : IssueCall] {
+    one attOf[c]
+    all a : attOf[c] {
+        grantProp[c, a.prop]
+        a.prop.preq = c.early                                      -- Identity 7, 8
+        a.stamp = plus[c.early, Deploy.offA]                       -- attest first
+    }
+    no revoked.c
+    no rw.c
+    c not in IssueRefused implies {
+        one issued.c
+        all g : issued.c {
+            g.gsubj = c.isubj
+            g.gscp = c.iscp
+            g.grantedAt = plus[c.late, Deploy.offP]                -- the grant after
+        }
+        one ew.c
+        all e : ew.c | e.eg = issued.c and e.ea = attOf[c]         -- Action wiring 15
+        no ow.c
+    }
+    c in IssueRefused implies {
+        no issued.c
+        no ew.c
+        one ow.c
+        all o : ow.c {
+            o.oa = attOf[c]
+            o.op = attOf[c].prop
+            o.ot = c.early
+            o.ors = InvalidRequest
+        }
+    }
 }
 
-run trace_with_revoked for 4 but 1..6 steps
-
--- The Round 3 clean-slate case, kept as an explicit witness: from
--- the empty state (which satisfies all the initial-state facts
--- vacuously), an issue_grant followed by a revoke_grant is
--- reachable. If this run returns no instance, the transition
--- preconditions are over-constrained.
-pred from_empty_lifecycle {
-    no System.grants_in_store
-    no System.attestations_in_store
-    eventually (some g : System.grants_in_store |
-        g.status = Revoked)
+-- revokeWrites: a [Revoke Grant] whose attest landed: one attestation over the revocation
+-- proposal, first (Action wiring 16, 17). Where Permissions revokes, the grant stands revoked
+-- by this call at the act's later reading, with its revocation attribution entry naming
+-- the call's attestation (Action wiring 22, 41). Where Permissions answers not-active, no
+-- revocation and no entry; the attestation stands and the orphan log entry is written
+-- (Action wiring 24, 26, 102).
+pred revokeWrites[c : RevokeCall] {
+    one attOf[c]
+    all a : attOf[c] {
+        revokeProp[c.target, a.prop]
+        a.prop.preq = c.early                                      -- Identity 7, 8
+        a.stamp = plus[c.early, Deploy.offA]                       -- attest first
+    }
+    no issued.c
+    no ew.c
+    c not in RevokeRefused implies {
+        revoked.c = c.target
+        c.target.revokedAt = plus[c.late, Deploy.offP]             -- the revoke after
+        one rw.c
+        all r : rw.c | r.rg = c.target and r.ra = attOf[c]
+        no ow.c
+    }
+    c in RevokeRefused implies {
+        no revoked.c
+        no rw.c
+        one ow.c
+        all o : ow.c {
+            o.oa = attOf[c]
+            o.op = attOf[c].prop
+            o.ot = c.early
+            o.ors = NotActive
+        }
+    }
 }
 
-run from_empty_lifecycle for 4 but 1..6 steps
+-- sweepWrites: a [Revoke Permission]. An empty enumerated set attests nothing and writes
+-- nothing (Action wiring 43, 44). Otherwise every enumerated grant is revoked by this call
+-- (Action wiring 46), each under an attestation of its own over its revocation proposal, all
+-- carrying the invocation's one request instant (Composes 23, 24; Identity 8, 9), and each
+-- paired by one revocation attribution entry; no attestation is minted beside them.
+pred sweepWrites[c : SweepCall] {
+    no issued.c
+    no ew.c
+    no ow.c
+    revoked.c = c.enumerated                                       -- Action wiring 46
+    all g : c.enumerated | g.revokedAt = plus[c.late, Deploy.offP]
+    rw.c.rg = c.enumerated                                         -- each one paired
+    all g : c.enumerated | one (rw.c & rg.g)
+    all r : rw.c | one r.ra and r.ra in attOf[c]
+    all disj r1, r2 : rw.c | no (r1.ra & r2.ra)                    -- Composes 24
+    rw.c.ra = attOf[c]
+    all r : rw.c {
+        revokeProp[r.rg, r.ra.prop]
+        r.ra.prop.preq = c.early                                   -- Identity 9
+        r.ra.stamp = plus[c.early, Deploy.offA]                    -- attest first
+    }
+}
+
+-- directWrites: a write around the composition issues or revokes grants and nothing else:
+-- no attestation, no entry, no orphan log entry (Composes 19).
+pred directWrites[c : DirectWrite] {
+    no attOf[c]
+    no ew.c
+    no rw.c
+    no ow.c
+}
+
+-- foreignWrites: another composing system's attest: one attestation under its own prefix,
+-- and nothing of this composition's.
+pred foreignWrites[c : ForeignCall] {
+    one attOf[c]
+    attOf[c].prop.pfx in Foreign
+    no issued.c
+    no revoked.c
+    no ew.c
+    no rw.c
+    no ow.c
+}
+
+-- purgeWrites: the retention layer's lawful destruction of one of this composition's
+-- attestations, recorded in the purge record: only past the attestation's retention horizon
+-- from its request instant (Term retention horizon); a paired attestation goes alone only
+-- under the per-store scope (Composition state 27: under the pair-scoped scope it goes with
+-- its unit, which the TLA+ model's PurgePair is); an orphan under its own retention
+-- (Composition state 28).
+pred purgeWrites[p : Purge] {
+    p.pa.prop.pfx = Ours
+    p.pt > plus[p.pa.prop.preq, Deploy.horizon]
+    p.pa in named implies Deploy.retention = PerStore
+}
+
+-- Built: the state is what its calls wrote. Every call wrote what its action writes; every
+-- grant was issued by an issuance or a direct write and revoked, if at all, by a revocation,
+-- a sweep or a direct write, with a revocation instant exactly when revoked; every purge
+-- record is the retention layer's, one per purged attestation; and Actor Identity holds
+-- every attestation no purge took.
+pred Built {
+    all c : IssueCall | issueWrites[c]
+    all c : RevokeCall | revokeWrites[c]
+    all c : SweepCall | sweepWrites[c]
+    all c : DirectWrite | directWrites[c]
+    all c : ForeignCall | foreignWrites[c]
+    all g : Grant | g.issued in IssueCall + DirectWrite
+    all g : Grant | g.revoked in RevokeCall + SweepCall + DirectWrite
+    all g : Grant | (some g.revoked) iff (some g.revokedAt)
+    all p : Purge | purgeWrites[p]
+    all a : Att | lone pa.a
+    AI.held = Att - Purge.pa
+}
+
+-- ─────────────────────────────────────────────────────────────────────────────
+-- The failed-grant leg: what it reports, as the Housekeeping rules have it run
+-- ─────────────────────────────────────────────────────────────────────────────
+
+-- legPop: the leg's population: the attestations Actor Identity's declared read enumerates
+-- (Housekeeping 2), filtered to this deployment's namespace prefix (Housekeeping 3), that no
+-- attribution entry names (Housekeeping 4), detected against the records and the maps,
+-- never the orphan log (Composition state 23, 24).
+fun legPop : set Att {
+    { a : AI.held | a.prop.pfx = Ours and a not in named }
+}
+
+-- legAged: the leg reads the attestation as past the horizon: aged by the request instant
+-- its proposal carries (Housekeeping 13).
+pred legAged[a : Att] {
+    minus[Leg.now, a.prop.preq] > Deploy.horizon
+}
+
+-- report: what the leg reports a population member as: inside the horizon an orphan
+-- (Housekeeping 5); aged out, a purge-pending orphan where its orphan log entry stands
+-- (Housekeeping 16) and a non-conformant purge where none does (Housekeeping 17). Nothing
+-- for an attestation outside the population.
+fun report[a : Att] : set Report {
+    a in legPop
+        => (legAged[a] => (a in OLE.oa => RptPurgePending else RptNonConformant)
+                       else RptOrphan)
+        else none
+}
+
+-- agedOut: the term aged-out attestation: its age, taken from the request instant its
+-- proposal carries, exceeds the retention horizon.
+pred agedOut[a : Att] {
+    one a.prop.preq
+    minus[Leg.now, a.prop.preq] > Deploy.horizon
+}
+
+-- unpairedOurs: an attestation Actor Identity holds under this deployment's prefix that no
+-- attribution entry names: what the page calls unpaired.
+pred unpairedOurs[a : Att] {
+    a in AI.held
+    a.prop.pfx = Ours
+    no (GEntry.ea + REntry.ra) & a
+}
+
+-- ─────────────────────────────────────────────────────────────────────────────
+-- Assertions (verified guarantees)
+-- Each "check" asks: is there any state the calls can leave (or, for the leg, any state it
+-- can read) that violates this assertion? No counterexample (UNSAT) = the guarantee holds
+-- within scope.
+-- ─────────────────────────────────────────────────────────────────────────────
+
+-- A_Invariant_1_1: every grant an [Issue Grant] recorded carries a grant attribution entry
+-- (Invariant 1.1, Check 1.1). A grant a direct write produced is not claimed (Invariant 1.4).
+assert A_Invariant_1_1 {
+    Built implies all g : Grant | g.issued in IssueCall implies some eg.g
+}
+check A_Invariant_1_1 for 4 but 5 Int
+
+-- A_Invariant_2_1: every grant a [Revoke Grant] or a [Revoke Permission] revoked carries a
+-- revocation attribution entry (Invariant 2.1, Check 2.1). A direct revocation is not
+-- claimed (Invariant 2.4).
+assert A_Invariant_2_1 {
+    Built implies all g : Grant | (some g.revoked and g.revoked in RevokeCall + SweepCall) implies some rg.g
+}
+check A_Invariant_2_1 for 4 but 5 Int
+
+-- A_Invariant_4_1: an issuance attestation's stamp does not exceed its grant's grant instant
+-- taken with the clock offset allowance (Invariant 4.1, Check 3.1, 3.2): the attest comes
+-- before the grant, and the two seams differ by no more than the allowance.
+assert A_Invariant_4_1 {
+    Built implies all e : GEntry, a : e.ea | a.stamp <= plus[e.eg.grantedAt, Deploy.allowance]
+}
+check A_Invariant_4_1 for 4 but 5 Int
+
+-- A_Invariant_4_2: a revocation attestation's stamp does not exceed its grant's revocation
+-- instant taken with the clock offset allowance (Invariant 4.2).
+assert A_Invariant_4_2 {
+    Built implies all r : REntry, a : r.ra, t : r.rg.revokedAt | a.stamp <= plus[t, Deploy.allowance]
+}
+check A_Invariant_4_2 for 4 but 5 Int
+
+-- A_Invariant_7_1: the grant attribution map is injective: no attestation is named by the
+-- entries of two grants (Invariant 7.1, Check 6.1, 6.4).
+assert A_Invariant_7_1 {
+    Built implies all a : Att | lone (ea.a).eg
+}
+check A_Invariant_7_1 for 4 but 5 Int
+
+-- A_Invariant_7_2: the revocation attribution map is injective (Invariant 7.2, Check 6.2).
+assert A_Invariant_7_2 {
+    Built implies all a : Att | lone (ra.a).rg
+}
+check A_Invariant_7_2 for 4 but 5 Int
+
+-- A_Invariant_7_3: no attestation is named in both maps (Invariant 7.3, Check 6.3).
+assert A_Invariant_7_3 {
+    Built implies no (GEntry.ea & REntry.ra)
+}
+check A_Invariant_7_3 for 4 but 5 Int
+
+-- A_Invariant_7_5: no two issuance attestations carry the same grant proposal (Invariant
+-- 7.5): the nonce carries its uniqueness, not the request instant (Clock semantics 6, 7).
+assert A_Invariant_7_5 {
+    Built implies all disj a1, a2 : Att |
+        (a1.by in IssueCall and a2.by in IssueCall) implies not sameProp[a1.prop, a2.prop]
+}
+check A_Invariant_7_5 for 4 but 5 Int
+
+-- A_Invariant_7_6: no revocation proposal equals a grant proposal (Invariant 7.6).
+assert A_Invariant_7_6 {
+    Built implies all a1, a2 : Att |
+        (a1.by in IssueCall and a2.by in RevokeCall + SweepCall) implies not sameProp[a1.prop, a2.prop]
+}
+check A_Invariant_7_6 for 4 but 5 Int
+
+-- A_Invariant_9_1: every grant of a sweep's enumerated set stands revoked by that sweep
+-- (Invariant 9.1, Check 7.1). It is stated over the enumerated set, never the pair
+-- (Invariant 9.3).
+assert A_Invariant_9_1 {
+    Built implies all c : SweepCall, g : c.enumerated | g.revoked = c
+}
+check A_Invariant_9_1 for 4 but 5 Int
+
+-- A_Invariant_9_2: every grant of a sweep's enumerated set carries a revocation attribution
+-- entry naming one of that sweep's attestations (Invariant 9.2, Check 7.2).
+assert A_Invariant_9_2 {
+    Built implies all c : SweepCall, g : c.enumerated | some r : rg.g | r.ra in attOf[c] and some r.ra
+}
+check A_Invariant_9_2 for 4 but 5 Int
+
+-- A_Composition_state_11: a grant attribution entry names exactly one attestation
+-- (Composition state 11).
+assert A_Composition_state_11 {
+    Built implies all e : GEntry | one e.ea
+}
+check A_Composition_state_11 for 4 but 5 Int
+
+-- A_Composition_state_12: a revocation attribution entry names exactly one attestation
+-- (Composition state 12).
+assert A_Composition_state_12 {
+    Built implies all r : REntry | one r.ra
+}
+check A_Composition_state_12 for 4 but 5 Int
+
+-- A_Composition_state_13: a grant carries at most one revocation attribution entry
+-- (Composition state 13).
+assert A_Composition_state_13 {
+    Built implies all g : Grant | lone rg.g
+}
+check A_Composition_state_13 for 4 but 5 Int
+
+-- A_Composition_state_19: an orphan log entry carries one attestation, that attestation's
+-- proposal, the proposal's request instant and one underlying reason (Composition state 19).
+assert A_Composition_state_19 {
+    Built implies all o : OLE {
+        one o.oa
+        o.op = o.oa.prop
+        one o.ot
+        o.ot = o.oa.prop.preq
+        one o.ors
+    }
+}
+check A_Composition_state_19 for 4 but 5 Int
+
+-- A_Composition_state_28: a purge record naming one of this composition's orphan
+-- attestations was written past the orphan's own retention horizon, taken from its own
+-- request instant (Composition state 28, Term retention horizon).
+assert A_Composition_state_28 {
+    Built implies all p : Purge | p.pa not in named implies p.pt > plus[p.pa.prop.preq, Deploy.horizon]
+}
+check A_Composition_state_28 for 4 but 5 Int
+
+-- A_Identity_9: every attestation of one pair-scoped revocation carries one request instant
+-- (Identity 9), the key the auditor groups them by (Identity 10).
+assert A_Identity_9 {
+    Built implies all c : SweepCall | lone attOf[c].prop.preq
+}
+check A_Identity_9 for 4 but 5 Int
+
+-- A_Identity_11: an issuance proposal carries the subject, the scope, the nonce and the
+-- request instant (Identity 11).
+assert A_Identity_11 {
+    Built implies all a : Att | a.by in IssueCall implies {
+        one a.prop.psubj
+        one a.prop.pscp
+        one a.prop.pnonce
+        one a.prop.preq
+    }
+}
+check A_Identity_11 for 4 but 5 Int
+
+-- A_Identity_12: a revocation proposal carries the grant's handle and the request instant
+-- (Identity 12).
+assert A_Identity_12 {
+    Built implies all a : Att | a.by in RevokeCall + SweepCall implies {
+        one a.prop.pgrant
+        one a.prop.preq
+    }
+}
+check A_Identity_12 for 4 but 5 Int
+
+-- A_Identity_13: an issuance proposal carries no grant handle: the grant does not exist when
+-- the attestation is written (Identity 13).
+assert A_Identity_13 {
+    Built implies all a : Att | a.by in IssueCall implies no a.prop.pgrant
+}
+check A_Identity_13 for 4 but 5 Int
+
+-- A_Housekeeping_3: the leg reports only attestations under this deployment's namespace
+-- prefix, never a foreign composing system's (Housekeeping 3, Check 5.2). Over every state.
+assert A_Housekeeping_3 {
+    all a : Att | some report[a] implies a.prop.pfx = Ours
+}
+check A_Housekeeping_3 for 4 but 5 Int
+
+-- A_Housekeeping_4: every unpaired attestation of ours inside the horizon is reported as an
+-- orphan, whether or not the orphan log holds it (Housekeeping 4, 5; Check 5.3, 5.9;
+-- Composition state 23). Over every state.
+assert A_Housekeeping_4 {
+    all a : Att | (unpairedOurs[a] and one a.prop.preq and not agedOut[a]) implies report[a] = RptOrphan
+}
+check A_Housekeeping_4 for 4 but 5 Int
+
+-- A_Housekeeping_13: the leg reads an unpaired attestation of ours as aged out exactly when
+-- the term does: by the request instant its proposal carries (Housekeeping 13). Over every
+-- state.
+assert A_Housekeeping_13 {
+    all a : Att | (unpairedOurs[a] and one a.prop.preq) implies
+        (agedOut[a] iff report[a] in RptPurgePending + RptNonConformant + RptBenign)
+}
+check A_Housekeeping_13 for 4 but 5 Int
+
+-- A_Housekeeping_15: no aged-out attestation is reported as an orphan (Housekeeping 15).
+-- Over every state.
+assert A_Housekeeping_15 {
+    all a : Att | agedOut[a] implies RptOrphan not in report[a]
+}
+check A_Housekeeping_15 for 4 but 5 Int
+
+-- A_Housekeeping_16: an aged-out unpaired attestation carrying an orphan log entry is
+-- reported as a purge-pending orphan (Housekeeping 16, Check 5.6). Over every state.
+assert A_Housekeeping_16 {
+    all a : Att | (unpairedOurs[a] and agedOut[a] and a in OLE.oa) implies report[a] = RptPurgePending
+}
+check A_Housekeeping_16 for 4 but 5 Int
+
+-- A_Housekeeping_17: an aged-out unpaired attestation carrying no orphan log entry is
+-- reported as a non-conformant purge (Housekeeping 17, Check 5.7). Over every state.
+assert A_Housekeeping_17 {
+    all a : Att | (unpairedOurs[a] and agedOut[a] and a not in OLE.oa) implies report[a] = RptNonConformant
+}
+check A_Housekeeping_17 for 4 but 5 Int
+
+-- A_Housekeeping_18: no aged-out unpaired attestation is read as benign (Housekeeping 18,
+-- Check 5.8). Over every state.
+assert A_Housekeeping_18 {
+    all a : Att | (unpairedOurs[a] and agedOut[a]) implies RptBenign not in report[a]
+}
+check A_Housekeeping_18 for 4 but 5 Int
+
+-- ─────────────────────────────────────────────────────────────────────────────
+-- Satisfiability runs — non-vacuity guards, one for each shape the page admits
+-- Each run must find at least one instance (SAT).
+-- UNSAT means the model forbids a state the page admits.
+-- ─────────────────────────────────────────────────────────────────────────────
+
+-- ShowAttributedGrant: a grant issued through the composition with its attestation and its
+-- entry, as the nurse's read grant in the walkthrough.
+run ShowAttributedGrant {
+    Built
+    some g : Grant | g.issued in IssueCall
+} for 4 but 5 Int
+
+-- ShowTwoGrantsOnePair: two issuances over one pair, two grants and two attestations
+-- (Concurrency 1, 2, 3; Wiring decision 8).
+run ShowTwoGrantsOnePair {
+    Built
+    some disj g1, g2 : Grant | g1.issued in IssueCall and g2.issued in IssueCall
+        and g1.gsubj = g2.gsubj and g1.gscp = g2.gscp
+} for 4 but 5 Int
+
+-- ShowRevokedGrant: a grant issued and revoked through the composition, with both entries.
+run ShowRevokedGrant {
+    Built
+    some g : Grant | g.issued in IssueCall and g.revoked in RevokeCall
+} for 4 but 5 Int
+
+-- ShowSweepTwo: one [Revoke Permission] revoking two grants of a pair under two
+-- attestations and one request instant (the permission, not the grant).
+run ShowSweepTwo {
+    Built
+    some c : SweepCall | #c.enumerated = 2
+} for 4 but 5 Int
+
+-- ShowEmptySweep: a [Revoke Permission] over a pair holding no active grant attests and
+-- writes nothing (Action wiring 43, 44: not-permitted).
+run ShowEmptySweep {
+    Built
+    some c : SweepCall | no c.enumerated
+} for 4 but 5 Int
+
+-- ShowIssueOrphan: an issuance Permissions refused after the attest: the attestation stands
+-- unpaired with its orphan log entry (the failure path the ordering accepts).
+run ShowIssueOrphan {
+    Built
+    some IssueRefused
+} for 4 but 5 Int
+
+-- ShowRevokeOrphan: a [Revoke Grant] of a grant already revoked: answered not-active, the
+-- attestation stands with its orphan log entry (Action wiring 28, 30, 102).
+run ShowRevokeOrphan {
+    Built
+    some RevokeRefused
+} for 4 but 5 Int
+
+-- ShowDirectGrant: a grant written around the composition carries no entry (Composes 19,
+-- Invariant 1.4): the attribution-inconsistency the forensic finding reads.
+run ShowDirectGrant {
+    Built
+    some g : Grant | g.issued in DirectWrite and no eg.g
+} for 4 but 5 Int
+
+-- ShowPerStorePurge: under the per-store scope an issuance attestation purged while its
+-- grant stands; its entry stays and the purge record names it (the lawfully purged
+-- attestation).
+run ShowPerStorePurge {
+    Built
+    some p : Purge | p.pa in GEntry.ea
+} for 4 but 5 Int
+
+-- ShowOrphanPurged: an orphan attestation purged under its own retention, its orphan log
+-- entry standing (Composition state 28; open line 2026-10-27-b).
+run ShowOrphanPurged {
+    Built
+    some p : Purge | p.pa in OLE.oa
+} for 4 but 5 Int
+
+-- ShowTwoSweepsOneKey: two [Revoke Permission] calls over one pair, by one revoker, at one
+-- request instant, each revoking a grant: the auditor's grouping key (Identity 10) reads
+-- them as one administrative act. A finding (see the header).
+run ShowTwoSweepsOneKey {
+    Built
+    some disj c1, c2 : SweepCall | some c1.enumerated and some c2.enumerated
+        and c1.ssubj = c2.ssubj and c1.sscp = c2.sscp
+        and c1.actor = c2.actor and c1.early = c2.early
+} for 4 but 5 Int
+
+-- ShowForeignUnreported: a foreign composing system's attestation in the shared records,
+-- unpaired, which the leg does not report.
+run ShowForeignUnreported {
+    Built
+    some a : Att | a.by in ForeignCall and a in AI.held and no report[a]
+} for 4 but 5 Int
+
+-- ShowLegOrphan: the leg reports an orphan inside the horizon.
+run ShowLegOrphan {
+    Built
+    some a : Att | report[a] = RptOrphan
+} for 4 but 5 Int
+
+-- ShowLegPurgePending: the leg reports an aged-out orphan whose orphan log entry stands as a
+-- purge-pending orphan: a purge the retention layer still owes.
+run ShowLegPurgePending {
+    Built
+    some a : Att | report[a] = RptPurgePending
+} for 4 but 5 Int
+
+-- ShowLegNonConformant: a state the composition's own writes never leave — an attestation of
+-- ours past the horizon, no entry naming it and no orphan log entry (a pairing purged
+-- without its attestation) — which the leg reports as a non-conformant purge.
+run ShowLegNonConformant {
+    some a : Att | report[a] = RptNonConformant
+} for 4 but 5 Int

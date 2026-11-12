@@ -1,5 +1,5 @@
 ---- MODULE attributed-permissions-admin-buggy-absentpurged ----
-\* BUGGY TWIN: under the per-store scope the attribution query reads every absent attestation as not-applicable(purged) without consulting the purge record, so an attestation removed outside any purge never reads as tamper (Action wiring 62 to 64, 73).
+\* BUGGY TWIN: the attribution query reads every absent attestation as not-applicable(purged) without consulting the purge record, so an attestation removed outside any purge never reads as tamper (Action wiring 62 to 64, 73).
 \* Grace Commons — Attributed Permissions Admin: the three administrative actions, the
 \* orphan they leave, writes made around the composition, the retention purge and the
 \* attribution query's purge and tamper readings.
@@ -41,13 +41,15 @@
 \*
 \* THE ATTRIBUTION QUERY ([Verify Grant Attribution]) is a read, so it is no step: VR(a) is
 \* the verify result an attribution record carries for the attestation a names (Action
-\* wiring 61 to 67): verified while Actor Identity holds the record; for an absent one the
-\* tamper reading under the pair-scoped scope (Action wiring 67), and under the per-store
-\* scope not-applicable(purged) where the purge record names it (Action wiring 62, 63;
-\* with PurgeNamed = FALSE an absent attestation always reads as tamper, the reading the
-\* 2026-09-15 Decision retired, -buggy-tamperpurged) and the tamper reading where it does
-\* not (Action wiring 64). The record is answered over a consistent attribution (Action
-\* wiring 56 to 60, 79; Term consistent attribution).
+\* wiring 61 to 66): verified while Actor Identity holds the record; for an absent one,
+\* under either retention scope, not-applicable(purged) where the purge record names it
+\* (Action wiring 62, 63; with PurgeNamed = FALSE an absent attestation always reads as
+\* tamper, the reading the 2026-09-15 Decision retired, -buggy-tamperpurged) and the tamper
+\* reading where it does not (Action wiring 64, 65). (Until 2026-11-11 the pair-scoped arm
+\* read every absent attestation as tamper, after the deleted Action wiring 67: open line
+\* 2026-11-04-b. No check moved, since under that scope no consistent attribution names an
+\* attestation the purge record names: PairScopeHeld.) The record is answered over a
+\* consistent attribution (Action wiring 56 to 60, 79; Term consistent attribution).
 \*
 \* WHAT THIS MODEL CHECKS
 \*   Inv1_1         a grant the composition issued carries a grant attribution entry
@@ -69,7 +71,23 @@
 \*   NoFalseTamper  the tamper reading never stands for a lawful destruction (Action wiring
 \*                  65; Term lawful destruction).
 \*   TamperFound    an attestation removed outside a purge reads as the tamper reading
-\*                  (Action wiring 64, 67, 73).
+\*                  (Action wiring 64, 73).
+\*   WellFormed     an attribution entry stands only beside its standing grant (a revocation
+\*                  entry beside a revoked one) and the orphan log names only minted
+\*                  attestations (Composition state 26, 27; the .als's Wellformed_Always of
+\*                  2026-06-12).
+\* and four action properties, each over every step (the .als's stepping checks of
+\* 2026-06-12, moved here on 2026-11-11 when Alloy kept to one state):
+\*   PairingDurable     a written attribution entry never changes, and goes only with its
+\*                      grant's pair-scoped purge (Invariant 6.1, 6.2; Composition state 14,
+\*                      15, 26, 27).
+\*   RevocationTerminal a revoked grant is never active again (Composes 14; Permissions'
+\*                      own invariant, inherited by Invariant 5.1).
+\*   AttestBeforeRecord a grant (a revocation) the composition records lands paired with an
+\*                      attestation of its kind that Actor Identity holds (Composes 16, 17,
+\*                      18; Wiring decision 1, 2; Action wiring 6, 21).
+\*   OrphanLogDurable   an orphan log entry is never dropped (Invariant 8.1, 8.2;
+\*                      Composition state 16, 17).
 \*
 \* THE RULES, as constants, each TRUE here; each twin is this module with one turned FALSE:
 \*   OneTxn       a storage failure commits nothing (Database 1; Constituent failure 1)  -buggy-storageorphan
@@ -78,13 +96,27 @@
 \*   PairPurge    a pair-scoped purge takes the pair as one unit (Comp. state 27)    -buggy-attestpurge
 \*   PurgeNamed   an absent attestation the purge record names reads purged
 \*                (Action wiring 62, 63)                                            -buggy-tamperpurged
+\* Four twins change one action instead (2026-11-10, a twin for every check):
+\*   Issue leaves out its pairing (Inv1_1)                                         -buggy-issuenopair
+\*   Revoke leaves out its pairing (Inv2_1)                                        -buggy-revokenopair
+\*   a refused revocation writes its revocation entry (NoActiveRevEntry)          -buggy-refusedpair
+\*   VR reads every absent attestation purged, the purge record unread (TamperFound) -buggy-absentpurged
+\* and five on 2026-11-11, for the five checks above them:
+\*   a pair-scoped purge leaves the grant's entries standing (WellFormed)          -buggy-entrystays
+\*   a not-active [Revoke Grant] rewrites the revocation entry (PairingDurable)    -buggy-rerevoke
+\*   an issuance takes a revoked grant's id again (RevocationTerminal)             -buggy-reissue
+\*   a grant recorded though Actor Identity refused the attest (AttestBeforeRecord) -buggy-attestrefused
+\*   a retried issuance clears the orphan log (OrphanLogDurable)                   -buggy-retryclears
 \*
 \* NOT MODELLED: the boundary predicate, credentials and the verify outcomes Actor Identity
 \* computes for a held attestation (each reads verified here), the evaluation passthrough,
-\* the clock and its offset allowance (Invariant 4), the request instant and the auditor's
-\* grouping (Identity 9, 10), the failed-grant leg's ages and horizon (Housekeeping 13 to 18),
 \* a second pair, and writes to the composition's own maps around it (Invariant 6.4,
-\* External check 5).
+\* External check 5). The clock is not modelled here: what one state holds of it is the
+\* static model's, attributed-permissions-admin.als — the stamps under the clock offset
+\* allowance (Invariant 4), the request instant a sweep's attestations share and the
+\* auditor's grouping (Identity 9, 10), the failed-grant leg's ages, horizon and report
+\* (Housekeeping 13 to 18) and an orphan's own retention (Composition state 28); so a
+\* purge here may come at any time, the horizon unread.
 
 EXTENDS Naturals, FiniteSets
 
@@ -120,7 +152,6 @@ Consistent(g) == /\ Stands(g)
 
 \* The verify result the attribution record carries for the attestation a names.
 VR(a) == IF a \notin agone THEN "verified"
-         ELSE IF scope = "pair" THEN "tamper"
          ELSE "purged"
 
 TypeOK ==
@@ -319,6 +350,43 @@ TamperFound ==
         (/\ ((gmap[g] \in agone /\ gmap[g] \notin precord) => VR(gmap[g]) = "tamper")
          /\ ((gstat[g] = "revoked" /\ rmap[g] \in agone /\ rmap[g] \notin precord) => VR(rmap[g]) = "tamper")))
 
+\* An attribution entry stands only beside a standing grant, a revocation entry only beside a
+\* revoked one, and the orphan log names only attestations Actor Identity minted
+\* (Composition state 26, 27).
+WellFormed ==
+    /\ \A g \in G : (gmap[g] # NONE => Stands(g))
+    /\ \A g \in G : (rmap[g] # NONE => gstat[g] = "revoked")
+    /\ \A a \in olog : att[a] # "free"
+
+\* Every step leaves a written attribution entry as it was, unless the step is the pair-scoped
+\* purge of its grant, which takes the grant and its entries as one unit (Invariant 6.1, 6.2;
+\* Composition state 14, 15, 26, 27).
+PairingDurable ==
+    [][\A g \in G :
+        /\ (gmap[g] # NONE => (gmap'[g] = gmap[g] \/ gstat'[g] = "purged"))
+        /\ (rmap[g] # NONE => (rmap'[g] = rmap[g] \/ gstat'[g] = "purged"))]_vars
+
+\* Every step leaves a revoked grant revoked, or purges it: no step makes it active again
+\* (Composes 14, the composition never reverses a committed constituent write; Permissions'
+\* own invariant, which Invariant 5.1 inherits).
+RevocationTerminal ==
+    [][\A g \in G : (gstat[g] = "revoked" => gstat'[g] \in {"revoked", "purged"})]_vars
+
+\* A step that records a grant through the composition (one no direct write produced) leaves
+\* it paired with an issuance attestation Actor Identity holds, and one that records a
+\* revocation through the composition leaves it paired with a revocation attestation Actor
+\* Identity holds: no state change without its landed attestation (Composes 16, 17, 18;
+\* Wiring decision 1, 2; Action wiring 6, 21).
+AttestBeforeRecord ==
+    [][\A g \in G :
+        /\ ((gstat[g] = "none" /\ gstat'[g] = "active" /\ ~gdirect'[g])
+              => (gmap'[g] # NONE /\ att'[gmap'[g]] = "issue" /\ gmap'[g] \notin agone'))
+        /\ ((gstat[g] = "active" /\ gstat'[g] = "revoked" /\ ~rdirect'[g])
+              => (rmap'[g] # NONE /\ att'[rmap'[g]] = "revoke" /\ rmap'[g] \notin agone'))]_vars
+
+\* Every step keeps every orphan log entry (Invariant 8.1, 8.2; Composition state 16, 17).
+OrphanLogDurable == [][olog \subseteq olog']_vars
+
 \* ---- reachability probes (each must be violated) ----------------------------
 
 \* an attributed grant stands.
@@ -341,5 +409,9 @@ Probe_NoTamperRead == \A g \in G : (Consistent(g) => VR(gmap[g]) # "tamper")
 \* a standing grant's entry names an attestation a lawful destruction took: Invariant 1.2
 \* as it read before Final Critique 8's model unit (the Actor Identity records hold it).
 Probe_EntryHeld == \A g \in G : ((Stands(g) /\ gmap[g] # NONE) => gmap[g] \notin precord)
+
+\* a grant issued and revoked through the composition: from the empty start, an issuance and
+\* then a revocation (the two `eventually` runs of the .als of 2026-06-12).
+Probe_NoRevoked == \A g \in G : ~(gstat[g] = "revoked" /\ rmap[g] # NONE)
 
 ====
