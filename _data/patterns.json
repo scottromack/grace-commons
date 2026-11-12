@@ -1253,8 +1253,8 @@
   "kind": "atom",
   "models": {
    "als": true,
-   "tla": false,
-   "twins": 2
+   "tla": true,
+   "twins": 19
   },
   "regulated_by": [
    "chain-of-custody"

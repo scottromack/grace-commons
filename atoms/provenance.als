@@ -1,248 +1,338 @@
 -- provenance.als
--- Alloy structural model for the Grace Commons Provenance atom
--- (atoms/provenance.md)
+-- Alloy structural model for the Provenance atom (Grace Commons atoms/provenance.md)
+-- Grounded on Final Critique 13, 2026-11-03 at e0a85af — Alloy layer authored 2026-06-04,
+-- re-derived 2026-11-12.
+-- Derived validator; the English spec is the single source of truth. On any
+-- disagreement, diagnose per the entry *The conflict protocol* in pressure-testing.md.
 --
 -- PURPOSE
--- Verify the load-bearing structural invariants of the Provenance atom by bounded
--- exhaustive search. The model encodes the custody chain of ONE artifact as a
--- linear sequence of entries and verifies:
---   (a) custody continuity / no gap (Invariant 4) — the load-bearing claim,
---   (b) single origin (Invariant 3),
---   (c) archived-is-terminal/absorbing (Invariant 6),
---   (d) the linear-chain backbone (Invariants 2/5 — append-only, total order),
---   (e) custodian presence (Invariant 7) and event-type validity (Invariant 8).
+-- Verify, by bounded exhaustive search, the STATIC data model of Provenance: what one
+-- chain's entries, and its chain record, must satisfy in any one state, whatever admitted
+-- calls wrote them. Custody continuity is read here as the page's auditor reads it
+-- (Check 3.1 to 3.3): replay the entries in sequence number order and compare each entry
+-- with the custodian the replay carried in. Everything that happens across steps (an
+-- entry never edited or removed, one genesis per chain, archived for ever, the order a
+-- read answers, what a refused write leaves) is the TLA+ model's, provenance.tla.
 --
--- MODELING APPROACH (mirrors atoms/observation.als)
--- Static structural snapshot. Each Entry is one custody record. The chain is a
--- directed linear relation (successor/predecessor). `holder` is the current
--- custodian in effect immediately AFTER an entry (the cached current_custodian
--- projection, here made explicit per entry so continuity can be checked
--- structurally). Custody continuity is the hand-to-hand rule across every link:
--- the custody coming INTO an entry equals the custody going OUT of its
--- predecessor. For a Transferred entry the incoming custody is `fromC`; for any
--- other entry it is `holder` (unchanged). A Transferred entry sets the new
--- holder to `toC`.
+-- RULES CHECKED (named by the page's own labels)
+--   Invariant 4.2 — every custodian-guarded entry's custodian reference is the current
+--                   custodian the entry found (Check 3.3).
+--   Invariant 4.3 — every transferred entry's from custodian reference is the current
+--                   custodian the entry found (Check 3.2).
+--   Invariant 4.4 — every transferred entry's to custodian reference is the current
+--                   custodian the entry set.
+--   Invariant 5.1 — no two entries of a chain share a sequence number (Check 4.3).
+--   Invariant 7.1 — every non-transferred entry's custodian reference is non-blank
+--                   (Check 1.1).
+--   Invariant 7.2 — every transferred entry's from and to custodian references are
+--                   non-blank (Check 1.2).
+--
+-- RE-DERIVED 2026-11-12 (unit `atoms/provenance.md formal layer`)
+-- The model of 2026-06-04 gave each entry a free `holder` field and stated custody
+-- continuity as a fact (CustodyContinuity), so its Invariant 4 checks restated that fact
+-- and its twin broke them only by dropping it. Here the facts are gone: each entry is
+-- what the admitted call that appended it wrote (Operation rules, below), the current
+-- custodian an entry found is replayed from the entries before it by sequence number
+-- (Term current custodian), and each Invariant is a check its twins break by breaking a
+-- write or a guard. The successor/predecessor backbone is replaced by sequence numbers.
+--
+-- SCOPE
+-- One chain. A state is what an ordered sequence of admitted calls on it leaves: each
+-- call is one atom, in the order Execution Contract Order 1 gives every commit (the one
+-- fact, CommitOrder); each
+-- appends one entry and leaves one version of the chain record (chain state, current
+-- custodian, next sequence number), and each call after the first finds the version the
+-- call before it left (Execution Contract Database 2). Every version is checked, since
+-- each was the chain record once. No trace, no `var`, no stepping. References are opaque
+-- tokens (Identity 11 to 13); a token in Refs.blank is a blank or whitespace-only one
+-- (String 5).
 --
 -- NOT MODELED HERE
--- - Clock semantics / recorded_at ordering (sequence_number is the order source;
---   linear position models it; Invariant 5 is the linear backbone)
--- - Cryptographic tamper-evidence (Tamper Evidence — composing concern)
--- - Non-repudiable custodian identity (Actor Identity — composing concern)
--- - Disclosure scope/authority (Selective Disclosure — composing concern)
--- - Storage-failure atomicity (implementation obligation, not a structural invariant)
--- - Multi-store routing / id-uniqueness across stores (deployment concern)
+--   - The refusals (Operation 1 to 3, 10 to 17, 23 to 26, 41): a refused call writes
+--     nothing (Execution Contract Read 4), so only admitted calls are modeled. What a
+--     refused write leaves is the TLA+ model's (Operation 42 to 44).
+--   - Artifact reference, metadata, descriptor and recipient reference (Operation 61 to
+--     65): opaque values no custody rule reads.
+--   - Recording instant (Operation 40, 58): no rule here reads it; that order never rests
+--     on it is the TLA+ model's (Invariant 5.3).
+--   - Invariant 8.1: by typing (`etype : one EventType`), so no twin could break it.
+--   - Two chains (Identity 10, 15): each chain is checked alone.
 --
--- HOW TO READ THE RESULTS
--- Every "check A_*" should return UNSAT ("No counterexample found") — the
--- guarantee holds for all configurations in scope. Every "run Show*" should
--- return SAT — the configuration space is non-empty (no fact over-constrains).
--- A check that returns SAT is a spec finding; a run that returns UNSAT means the
--- facts are too restrictive.
+-- HOW TO READ RESULTS
+-- Every "check A_*" must return "No counterexample found" (UNSAT) — the asserted guarantee
+-- holds. Every "run Show*" must return at least one instance (SAT) — confirms non-vacuity.
+-- A "check" returning a counterexample is a spec finding.
 
 module provenance
 
 -- ─────────────────────────────────────────────────────────────────────────────
--- Signatures
+-- Signatures (types)
 -- ─────────────────────────────────────────────────────────────────────────────
 
--- Event type enum: exactly one of six values (spec section State).
+-- Ref: a custodian reference a call carries or an entry holds. The atom matches it
+-- exactly and never normalizes it (Identity 11, 12), so a reference is an uninterpreted
+-- token and two different references are two different atoms.
+sig Ref {}
+
+-- Refs: which references the page's guards refuse: the blank ones, whitespace-only
+-- included (String 5).
+one sig Refs {
+    blank : set Ref
+}
+
+-- EventType: an entry's event type (Term event type).
 abstract sig EventType {}
+
+-- Originated .. Archived: the six event types; the first two are the genesis types.
 one sig Originated, Received, Transferred, Transformed, Disclosed, Archived extends EventType {}
 
--- The genesis event types (a chain opens with exactly one of these).
-fun GenesisType : set EventType { Originated + Received }
+-- ChainState: the chain's state (Term chain state), open or archived.
+abstract sig ChainState {}
 
--- Opaque custodian reference. Alloy generates concrete atoms freely
--- (abstract sig with no extensions behaves as a normal sig).
-abstract sig Custodian {}
+-- OpenState, ArchivedState: accepting entries, or at terminal disposition.
+one sig OpenState, ArchivedState extends ChainState {}
 
--- A custody entry.
--- successor/predecessor : lone — linear chain (Invariant 2/5; no branching).
--- etype  : one — exactly one event type (spec section State).
--- holder : one — the current custodian in effect immediately AFTER this entry.
--- acting : lone — the custodian who performed a non-transfer action (genesis,
---          transform, disclose, archive); absent on transfers.
--- fromC  : lone — transfer only: the outgoing custodian (= predecessor.holder).
--- toC    : lone — transfer only: the incoming custodian (= this.holder).
-sig Entry {
-    successor   : lone Entry,
-    predecessor : lone Entry,
-    etype       : one  EventType,
-    holder      : one  Custodian,
-    acting      : lone Custodian,
-    fromC       : lone Custodian,
-    toC         : lone Custodian
+-- Call: one admitted call on the chain, with the entry it appended and the version of
+-- the chain record it left, and the call whose version it found (prev; none for the call
+-- that opened the chain). The entry's fields may be absent (lone), so a write that
+-- forgot one would show; what the page promises is checked, never built into the type.
+abstract sig Call {
+    prev  : lone Call,       -- the call whose chain record this call found
+    sn    : one Int,         -- the entry's sequence number
+    etype : one EventType,   -- the entry's event type
+    cust  : lone Ref,        -- the entry's custodian reference
+    fromC : lone Ref,        -- the entry's from custodian reference
+    toC   : lone Ref,        -- the entry's to custodian reference
+    state : one ChainState,  -- the chain record as the call left it: chain state,
+    cur   : lone Ref,        --   current custodian
+    nextSn : one Int         --   and next sequence number
+}
+
+-- OriginateCall: an [Originate] call, originate(artifact_ref, custodian_ref,
+-- genesis_type); the artifact reference is not modeled.
+sig OriginateCall extends Call {
+    genCust : one Ref,       -- custodian_ref
+    genType : one EventType  -- genesis_type
+}
+
+-- TransferCall: a [Transfer] call, transfer(chain_id, to_custodian_ref). It carries no
+-- from custodian reference (Operation 18).
+sig TransferCall extends Call {
+    toIn : one Ref           -- to_custodian_ref
+}
+
+-- GuardedCall: a custodian-guarded call (Term custodian-guarded action), carrying the
+-- caller's custodian reference.
+abstract sig GuardedCall extends Call {
+    actIn : one Ref          -- custodian_ref
+}
+
+-- TransformCall, DiscloseCall, ArchiveCall: [Transform], [Disclose] and [Archive].
+sig TransformCall, DiscloseCall, ArchiveCall extends GuardedCall {}
+
+-- ─────────────────────────────────────────────────────────────────────────────
+-- Facts: what the page takes from outside
+-- ─────────────────────────────────────────────────────────────────────────────
+
+-- CommitOrder: calls on one chain commit one after another, each finding what the call
+-- before it committed (Execution Contract Order 1, Database 2): no call comes after
+-- itself, and no two calls found the same version of the chain record.
+fact CommitOrder {
+    no c : Call | c in c.^prev
+    all c : Call | lone prev.c
 }
 
 -- ─────────────────────────────────────────────────────────────────────────────
--- Structural well-formedness facts (constrain the universe to VALID chains)
+-- Helpers
 -- ─────────────────────────────────────────────────────────────────────────────
 
--- Linear backbone (Invariant 2/5): acyclic, singly-linked, no branching/merging.
--- No merging (at most one entry names a given entry as its successor) is not a
--- fact: it follows from SuccPredInverse with the `lone` predecessor, and
--- A_Linear_NoBranching checks it (2026-11-10; the fact NoMerging restated it).
-fact NoCycles            { all x : Entry | x not in x.^successor }
-fact NoSelfLoop          { all x : Entry | x.successor != x }
-fact SuccPredInverse     { all a, b : Entry | a.successor = b iff b.predecessor = a }
-
--- Invariant 3 / 8 — genesis typing: an entry is genesis (no predecessor) iff its
--- event type is a genesis type. Non-genesis entries carry a non-genesis type.
-fact GenesisTyping {
-    all x : Entry | (no x.predecessor) iff (x.etype in GenesisType)
+-- eventOf: the event type a custodian-guarded call's entry takes (Operation 69, 71, 73).
+fun eventOf[c : GuardedCall] : EventType {
+    c in TransformCall => Transformed else (c in DiscloseCall => Disclosed else Archived)
 }
 
--- Invariant 6 — Archived is terminal: an Archived entry has no successor.
-fact ArchivedTerminal {
-    all x : Entry | x.etype = Archived implies no x.successor
-}
-
--- Field shape by event type: which custodian fields an entry may carry.
--- That the ones it carries are present (Invariant 7) is not assumed here: it
--- follows from GenesisTyping and CustodyContinuity, and A_Inv7_CustodianPresent
--- checks it (2026-11-10).
--- Transfers carry no acting custodian.
-fact TransferFields {
-    all x : Entry | x.etype = Transferred implies no x.acting
-}
--- Non-transfer entries carry no from/to.
-fact NonTransferFields {
-    all x : Entry | x.etype != Transferred implies (no x.fromC and no x.toC)
-}
-
--- Invariant 4 — Custody continuity (the load-bearing fact). At every link the
--- custody coming INTO an entry equals the custody going OUT of its predecessor:
---   * Transferred entry: fromC = predecessor.holder, and the new holder = toC.
---   * any other non-genesis entry: holder = predecessor.holder (custody unchanged)
---     and the acting custodian = the holder (only the current holder may act).
--- Genesis entry: acting = holder (the originating custodian); holder is the
--- genesis custodian by construction.
-fact CustodyContinuity {
-    all x : Entry |
-        (some x.predecessor and x.etype = Transferred) implies
-            (x.fromC = x.predecessor.holder and x.holder = x.toC)
-    all x : Entry |
-        (some x.predecessor and x.etype != Transferred) implies
-            (x.holder = x.predecessor.holder and x.acting = x.holder)
-    all x : Entry |
-        (no x.predecessor) implies (x.acting = x.holder)
+-- custodyFound: the current custodian an entry found, replayed from the chain's entries
+-- before it by sequence number (Check 3.1, Term current custodian): the to custodian
+-- reference of the latest transferred entry, or the genesis entry's custodian reference
+-- where no transfer came before.
+fun custodyFound[e : Call] : set Ref {
+    let earlier = { x : Call | x.sn < e.sn },
+        ts = earlier & TransferCall,
+        latest = { t : ts | no u : ts | u.sn > t.sn } |
+        some ts => latest.toC else (earlier & OriginateCall).cust
 }
 
 -- ─────────────────────────────────────────────────────────────────────────────
--- Assertions — each "check" asks: is there a configuration satisfying the facts
--- but violating this guarantee? UNSAT = holds. SAT = finding.
+-- The writing actions: their guards and their writes
 -- ─────────────────────────────────────────────────────────────────────────────
 
--- Checks that restated the model and went (2026-11-10, unit `tooling: every
--- check has a twin that breaks it`): A_Linear_AtMostOneSuccessor and
--- A_Linear_AtMostOnePredecessor (the `lone` fields), A_Linear_NoCycles (fact
--- NoCycles), A_Inv3_SingleOriginTyping (fact GenesisTyping), A_Inv4_UniqueHolder
--- (the `one` holder field) and A_Inv6_ArchivedTerminal (fact ArchivedTerminal).
--- The facts stay as the model's assumptions; no twin of a static snapshot can
--- break them.
-
--- Linear backbone (Invariant 2/5): no entry is named as successor by two entries.
-assert A_Linear_NoBranching          { all x : Entry | lone (successor.x) }
-check A_Linear_NoBranching for 8
-
--- Invariant 4 — Custody continuity (no gap), the load-bearing claim. At every
--- link the incoming custody equals the predecessor's outgoing custody.
-assert A_Inv4_CustodyUnbroken {
-    all x : Entry | some x.predecessor implies
-        ( (x.etype = Transferred implies x.fromC = x.predecessor.holder)
-          and
-          (x.etype != Transferred implies x.holder = x.predecessor.holder) )
+-- originateWrites: what an admitted [Originate] writes. It is the chain's first call (the
+-- host allocated a chain id no chain held, Identity 3); its custodian reference is not
+-- blank (Operation 2) and its genesis type is one of the two (Operation 3). The genesis
+-- entry takes the next sequence number a chain begins with, one (Operation 36, Term next
+-- sequence number), the genesis type as its event type (Operation 7) and the call's
+-- custodian reference (Operation 63); the chain stands open (Operation 8) with that
+-- custodian current (Operation 75) and next sequence number raised (Operation 37).
+pred originateWrites[c : OriginateCall] {
+    no c.prev                                          -- Identity 3
+    c.genCust not in Refs.blank                        -- Operation 2
+    c.genType in Originated + Received                 -- Operation 3
+    c.sn   = 1                                        -- Operation 36
+    c.etype = c.genType                                -- Operation 7
+    c.cust  = c.genCust                                -- Operation 63
+    no c.fromC
+    no c.toC
+    c.state = OpenState                                -- Operation 8
+    c.cur   = c.genCust                                -- Operation 75
+    c.nextSn  = plus[c.sn, 1]                           -- Operation 37
 }
-check A_Inv4_CustodyUnbroken for 8
 
--- Invariant 4 — a Transferred entry's hand-to-hand outgoing custodian equals the
--- prior holder (the false-predecessor attack surface; cannot be forged).
-assert A_Inv4_TransferHandToHand {
-    all x : Entry | x.etype = Transferred implies x.fromC = x.predecessor.holder
+-- transferWrites: what an admitted [Transfer] writes over the chain record it found: the
+-- chain is open (Operation 12) and the to custodian reference not blank (Operation 17).
+-- The transferred entry (Operation 20, 66) takes next sequence number (Operation 36),
+-- carries no custodian reference (State 5), reads its from custodian reference from the
+-- current custodian (Operation 19, 67) and carries the call's to custodian reference
+-- (Operation 68); the current custodian becomes it (Operation 21).
+pred transferWrites[p : Call, c : TransferCall] {
+    p.state = OpenState                                -- Operation 12
+    c.toIn not in Refs.blank                           -- Operation 17
+    c.sn   = p.nextSn                                   -- Operation 36
+    c.etype = Transferred                              -- Operation 66
+    no c.cust                                          -- State 5
+    c.fromC = p.cur                                    -- Operation 19, 67
+    c.toC   = c.toIn                                   -- Operation 68
+    c.state = p.state
+    c.cur   = c.toIn                                   -- Operation 21
+    c.nextSn  = plus[p.nextSn, 1]                          -- Operation 37
 }
-check A_Inv4_TransferHandToHand for 8
 
--- Invariant 4 — a Transferred entry installs toC as the new holder.
-assert A_Inv4_TransferSetsHolder {
-    all x : Entry | x.etype = Transferred implies x.holder = x.toC
+-- guardedWrites: what an admitted [Transform], [Disclose] or [Archive] writes over the
+-- chain record it found: the chain is open (Operation 13 to 15), the custodian reference
+-- is not blank (Operation 23) and is the current custodian (Operation 26). The entry
+-- takes next sequence number (Operation 36), its own event type (Operation 69, 71, 73)
+-- and the call's custodian reference (Operation 70, 72, 74); [Archive] stands the chain
+-- archived (Operation 31), and none moves the current custodian (Operation 32 to 34).
+pred guardedWrites[p : Call, c : GuardedCall] {
+    p.state = OpenState                                -- Operation 13 to 15
+    c.actIn not in Refs.blank                          -- Operation 23
+    c.actIn = p.cur                                    -- Operation 26
+    c.sn   = p.nextSn                                   -- Operation 36
+    c.etype = eventOf[c]                               -- Operation 69, 71, 73
+    c.cust  = c.actIn                                  -- Operation 70, 72, 74
+    no c.fromC
+    no c.toC
+    c.state = (c in ArchiveCall => ArchivedState else p.state)   -- Operation 31
+    c.cur   = p.cur                                    -- Operation 32 to 34
+    c.nextSn  = plus[p.nextSn, 1]                          -- Operation 37
 }
-check A_Inv4_TransferSetsHolder for 8
 
--- Invariant 4 — only the current holder may transform/disclose/archive: a
--- non-genesis non-transfer entry's acting custodian equals the prior holder.
-assert A_Inv4_OnlyHolderActs {
-    all x : Entry | (some x.predecessor and x.etype != Transferred) implies
-        x.acting = x.predecessor.holder
+-- written: the call's entry and chain record are what its write left: [Originate] opens
+-- the chain; every other call writes over the chain record the call before it left.
+pred written[c : Call] {
+    c in OriginateCall => originateWrites[c]
+    else (some c.prev and
+          (c in TransferCall => transferWrites[c.prev, c]
+           else guardedWrites[c.prev, c]))
 }
-check A_Inv4_OnlyHolderActs for 8
 
--- Invariant 7 — Custodian presence: every entry names a custodian; transfers name
--- both from and to.
-assert A_Inv7_CustodianPresent {
-    all x : Entry |
-        (x.etype = Transferred implies (one x.fromC and one x.toC))
-        and
-        (x.etype != Transferred implies one x.acting)
+-- recorded: a state the page lets the chain hold: one chain, opened by one call, and
+-- every call on it an admitted call whose write left what the page says.
+pred recorded {
+    lone c : Call | no c.prev
+    all c : Call | written[c]
 }
-check A_Inv7_CustodianPresent for 8
 
 -- ─────────────────────────────────────────────────────────────────────────────
--- Satisfiability runs — each must be SAT (non-vacuity guards).
+-- Assertions (verified guarantees)
+-- Each "check" asks: is there any state the page's calls can leave that violates this
+-- assertion? No counterexample (UNSAT) = the guarantee holds within scope.
 -- ─────────────────────────────────────────────────────────────────────────────
 
--- A single genesis (Originated) entry: the simplest valid chain.
+-- A_Inv4_2: every custodian-guarded entry names, as its custodian reference, the custodian
+-- the replay carried into it (Invariant 4.2, Check 3.3).
+assert A_Inv4_2 {
+    recorded implies all g : GuardedCall | g.cust = custodyFound[g]
+}
+check A_Inv4_2 for 5 but 4 Int
+
+-- A_Inv4_3: every transferred entry's from custodian reference is the custodian the replay
+-- carried into it: no transfer names a false predecessor (Invariant 4.3, Check 3.2).
+assert A_Inv4_3 {
+    recorded implies all t : TransferCall | t.fromC = custodyFound[t]
+}
+check A_Inv4_3 for 5 but 4 Int
+
+-- A_Inv4_4: every transferred entry's to custodian reference is the current custodian the
+-- chain record holds after it (Invariant 4.4).
+assert A_Inv4_4 {
+    recorded implies all t : TransferCall | t.toC = t.cur
+}
+check A_Inv4_4 for 5 but 4 Int
+
+-- A_Inv5_1: no two entries of the chain share a sequence number (Invariant 5.1,
+-- Check 4.3).
+assert A_Inv5_1 {
+    recorded implies all disj a, b : Call | a.sn != b.sn
+}
+check A_Inv5_1 for 5 but 4 Int
+
+-- A_Inv7_1: every non-transferred entry carries one custodian reference, and it is not
+-- blank (Invariant 7.1, Check 1.1).
+assert A_Inv7_1 {
+    recorded implies all e : Call - TransferCall | one e.cust and e.cust not in Refs.blank
+}
+check A_Inv7_1 for 5 but 4 Int
+
+-- A_Inv7_2: every transferred entry carries one from and one to custodian reference,
+-- neither blank (Invariant 7.2, Check 1.2).
+assert A_Inv7_2 {
+    recorded implies all t : TransferCall |
+        one t.fromC and one t.toC and no (t.fromC + t.toC) & Refs.blank
+}
+check A_Inv7_2 for 5 but 4 Int
+
+-- ─────────────────────────────────────────────────────────────────────────────
+-- Satisfiability runs — non-vacuity guards, one for each shape the page admits
+-- Each run must find at least one instance (SAT).
+-- UNSAT means the model forbids a state the page admits.
+-- ─────────────────────────────────────────────────────────────────────────────
+
+-- ShowSingleGenesis: a chain just opened by an originated genesis entry, as chain-0041 at
+-- manuf-lab-7.
 run ShowSingleGenesis {
-    some x : Entry | x.etype = Originated and no x.predecessor and no x.successor
-} for 3
+    recorded
+    one Call
+    Call.etype = Originated
+} for 5 but 4 Int
 
--- A genesis (Received) entry — intake from an external prior holder.
+-- ShowReceivedGenesis: a chain opened by a received genesis entry, a second custody
+-- episode for a returned batch, as chain-0052 at qa-returns-2.
 run ShowReceivedGenesis {
-    some x : Entry | x.etype = Received and no x.predecessor and no x.successor
-} for 3
+    recorded
+    one Call
+    Call.etype = Received
+} for 5 but 4 Int
 
--- A two-entry chain: Originated → Transferred, custody changes hands.
--- Non-vacuity guard for the continuity / hand-to-hand checks.
+-- ShowTransferChain: custody handed from one custodian to another.
 run ShowTransferChain {
-    some disj a, b : Entry, disj c1, c2 : Custodian | {
-        a.etype = Originated
-        no a.predecessor
-        a.holder = c1
-        a.acting = c1
-        b.predecessor = a
-        a.successor = b
-        b.etype = Transferred
-        b.fromC = c1
-        b.toC = c2
-        b.holder = c2
-    }
-} for 4
+    recorded
+    some t : TransferCall | t.fromC != t.toC
+} for 5 but 4 Int
 
--- A full lifecycle: Originated → Transferred → Transformed → Disclosed → Archived.
--- The critical non-vacuity run: a multi-link chain with a custody change and the
--- terminal archive, all holders continuous.
+-- ShowGuardedAfterTransfer: the incoming custodian transforms the artifact after a
+-- transfer, as the forensic lab on chain-0107.
+run ShowGuardedAfterTransfer {
+    recorded
+    some t : TransferCall, g : TransformCall | t.fromC != t.toC and g.sn > t.sn
+} for 5 but 4 Int
+
+-- ShowFullLifecycle: originated, transferred, transformed, disclosed and archived, custody
+-- changing once and the chain closed by its current custodian.
 run ShowFullLifecycle {
-    some disj a, b, c, d, e : Entry, disj c1, c2 : Custodian | {
-        a.etype = Originated     a.holder = c1   a.acting = c1   no a.predecessor
-        a.successor = b
-        b.etype = Transferred    b.predecessor = a   b.fromC = c1   b.toC = c2   b.holder = c2
-        b.successor = c
-        c.etype = Transformed    c.predecessor = b   c.holder = c2   c.acting = c2
-        c.successor = d
-        d.etype = Disclosed      d.predecessor = c   d.holder = c2   d.acting = c2
-        d.successor = e
-        e.etype = Archived       e.predecessor = d   e.holder = c2   e.acting = c2
-        no e.successor
-    }
-} for 6
-
--- Two independent chains (different artifacts / custodians) coexisting in a store.
-run ShowTwoIndependentChains {
-    some disj a, b, c, d : Entry, disj c1, c2, c3, c4 : Custodian | {
-        a.etype = Originated   a.holder = c1   a.acting = c1   no a.predecessor
-        a.successor = b
-        b.etype = Transferred  b.predecessor = a   b.fromC = c1   b.toC = c2   b.holder = c2
-        c.etype = Originated   c.holder = c3   c.acting = c3   no c.predecessor
-        c.successor = d
-        d.etype = Transferred  d.predecessor = c   d.fromC = c3   d.toC = c4   d.holder = c4
-    }
-} for 6
+    recorded
+    some TransferCall
+    some TransformCall
+    some DiscloseCall
+    some a : ArchiveCall | a.state = ArchivedState
+    some t : TransferCall | t.fromC != t.toC
+} for 5 but 4 Int

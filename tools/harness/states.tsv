@@ -1,7 +1,4 @@
 # date	file	role	engine	states	capped	commands	holds	satisfiable	counterexamples	vacuous	verdict	checker
-2026-11-11	atoms/provenance-buggy.als	twin	als	-	-	11	1	5	5	0	CAUGHT	alloy
-2026-11-11	atoms/provenance-buggy-link.als	twin	als	-	-	11	5	5	1	0	CAUGHT	alloy
-2026-11-11	atoms/provenance.als	model	als	-	-	11	6	5	0	0	HOLDS	alloy
 2026-11-11	atoms/approval-step-buggy.tla	twin	tla	4	0	-	-	-	-	-	CAUGHT	tlc
 2026-11-11	atoms/approval-step.tla	model	tla	25	0	-	-	-	-	-	HOLDS	tlc
 2026-11-11	atoms/approval-step-buggy-withdraw.tla	twin	tla	4	0	-	-	-	-	-	CAUGHT	tlc
@@ -1643,3 +1640,26 @@
 2026-11-12	atoms/permissions-buggy-revoke-stamps-grant-instant.als	twin	als	-	-	16	10	5	1	0	CAUGHT	alloy
 2026-11-12	atoms/permissions-buggy-revoke-unstamped.als	twin	als	-	-	16	9	3	2	2	CAUGHT	alloy
 2026-11-12	atoms/permissions.tla	model	tla	177317	0	-	-	-	-	-	HOLDS	tlc
+2026-11-11	atoms/provenance-buggy.als	twin	als	-	-	11	1	5	5	0	CAUGHT	alloy
+2026-11-11	atoms/provenance-buggy-link.als	twin	als	-	-	11	5	5	1	0	CAUGHT	alloy
+2026-11-12	atoms/provenance.als	model	als	-	-	11	6	5	0	0	HOLDS	alloy
+2026-11-12	atoms/provenance-buggy-disclose-amends.tla	twin	tla	15	0	-	-	-	-	-	CAUGHT	tlc
+2026-11-12	atoms/provenance-buggy-archive-unrecorded.tla	twin	tla	16	0	-	-	-	-	-	CAUGHT	tlc
+2026-11-12	atoms/provenance-buggy-archive-deletes.tla	twin	tla	16	0	-	-	-	-	-	CAUGHT	tlc
+2026-11-12	atoms/provenance-buggy-genesis-unchecked.tla	twin	tla	7	0	-	-	-	-	-	CAUGHT	tlc
+2026-11-12	atoms/provenance-buggy-newest-first.tla	twin	tla	12	0	-	-	-	-	-	CAUGHT	tlc
+2026-11-12	atoms/provenance-buggy-archive-toggles.tla	twin	tla	155	0	-	-	-	-	-	CAUGHT	tlc
+2026-11-12	atoms/provenance-buggy-read-by-instant.tla	twin	tla	1349	0	-	-	-	-	-	CAUGHT	tlc
+2026-11-12	atoms/provenance-buggy-reoriginate.tla	twin	tla	12	0	-	-	-	-	-	CAUGHT	tlc
+2026-11-12	atoms/provenance-buggy-storage-takes-number.tla	twin	tla	17	0	-	-	-	-	-	CAUGHT	tlc
+2026-11-12	atoms/provenance-buggy-storage-rollback.tla	twin	tla	17	0	-	-	-	-	-	CAUGHT	tlc
+2026-11-12	atoms/provenance-buggy-transfer-cache-stale.tla	twin	tla	13	0	-	-	-	-	-	CAUGHT	tlc
+2026-11-12	atoms/provenance-buggy-transfer-received.tla	twin	tla	12	0	-	-	-	-	-	CAUGHT	tlc
+2026-11-12	atoms/provenance-buggy-transfer-on-archived.tla	twin	tla	155	0	-	-	-	-	-	CAUGHT	tlc
+2026-11-12	atoms/provenance-buggy-guard-unchecked.als	twin	als	-	-	11	5	5	1	0	CAUGHT	alloy
+2026-11-12	atoms/provenance-buggy-originate-blank-custodian.als	twin	als	-	-	11	4	5	2	0	CAUGHT	alloy
+2026-11-12	atoms/provenance-buggy-transfer-keeps-custodian.als	twin	als	-	-	11	3	5	3	0	CAUGHT	alloy
+2026-11-12	atoms/provenance-buggy-transfer-from-caller.als	twin	als	-	-	11	4	5	2	0	CAUGHT	alloy
+2026-11-12	atoms/provenance-buggy-counter-unraised.als	twin	als	-	-	11	5	5	1	0	CAUGHT	alloy
+2026-11-12	atoms/provenance.tla	model	tla	8314	0	-	-	-	-	-	HOLDS	tlc
+2026-11-12	atoms/provenance-buggy-transfer-blank-to.als	twin	als	-	-	11	5	5	1	0	CAUGHT	alloy
