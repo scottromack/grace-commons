@@ -953,7 +953,7 @@
  "money": {
   "composed_by": [],
   "domain": null,
-  "grounded": false,
+  "grounded": true,
   "invariants": 7,
   "kind": "atom",
   "models": {
@@ -964,7 +964,7 @@
   "regulated_by": [],
   "security": false,
   "standards": [],
-  "status": "draft",
+  "status": "grounded (English) on Final Critique 4 \u2014 2026-11-13 at 8b6954c \u2014 formal layer pending",
   "title": "Money"
  },
  "multi-party-approval": {

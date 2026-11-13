@@ -83,7 +83,7 @@ Term capped number: a whole number whose size is no more than the number cap.
 
 Term capped count: a positive count that is no more than the number cap.
 
-NOTE: the atom holds no record, so the floor Execution Contract Input 2 sets under a cap finds no record of the atom's own to protect; Capability requirement 3 carries the floor to the moneys, the numerators, the denominators and the shares the composing patterns hold, so no lowered cap leaves a held money refused as invalid-money, a held rate's number refused as invalid-rate or a held share refused as invalid-shares.
+NOTE: the atom holds no record, so the floor Execution Contract Input 2 sets under a cap finds no record of the atom's own to protect; Capability requirement 3 carries the floor to the moneys, the numerators, the denominators and the shares the composing patterns hold, so no lowered cap leaves a held money refused as invalid-money, a held rate's number refused as invalid-rate or a held share refused as invalid-shares. A money a composing pattern comes to hold after a declaration is bounded by that pattern's own amount rules (Execution Contract Input 2, Composition note 1), and a call naming one over the cap answers invalid-money (Operation 1).
 
 NOTE: watch the cap's floor (Capability requirement 4, Capability requirement 5). A number cap of zero refuses every nonzero amount and numerator, every denominator and every share, and a part cap of zero refuses every split, so each is held above zero as Execution Contract Input 2 holds a string cap.
 
@@ -386,7 +386,7 @@ NOTE: EVERY check names the rule the check tests.
 ### External checks
 
 ```
-External check 1: An auditor needing the number cap confirmed against the moneys, the numerators, the denominators and the shares held MUST read the records of the composing patterns that hold a money, a numerator, a denominator or a share (Capability requirement 3).
+External check 1: An auditor needing the number cap confirmed against the moneys, the numerators, the denominators and the shares held MUST read the number cap the deployment declares and the records of the composing patterns that hold a money, a numerator, a denominator or a share (Capability requirement 3).
 External check 2: An auditor needing the number cap and the part cap confirmed above zero MUST read the caps the deployment declares (Capability requirement 4, Capability requirement 5).
 External check 3: An auditor needing a money's currency and amount confirmed held together MUST read the records of the composing patterns that hold a money (Composition note 3).
 External check 4: An auditor needing every action confirmed to write and read no record MUST read the database log of the deployment across the calls of the actions (Operation 23, Operation 24).
@@ -659,14 +659,14 @@ The euro conversion rules of Council Regulation (EC) No 1103/97, a rate used unr
 
 ## Status
 
-`draft` — see the Ledger.
+`grounded (English) on Final Critique 4 — 2026-11-13 at 8b6954c — formal layer pending` — see the Ledger.
 
 ## Ledger
 
 ```
-status: draft
-formal: pending — no model yet; Invariant 2.1, 3.1, 4.1, 6.1 and 6.2 are claimed at every size and each is owed a proof
-last gate: 2026-11-13 — Final Critique 3 (delta), frozen at 18002aa — foundational count 1, cured, not clean, no sample
+status: grounded (English) on Final Critique 4 — 2026-11-13 at 8b6954c — formal layer pending
+formal: pending — vote yes, 2026-11-13, on the maintainer's ruling of 2026-11-09 (the formal layer is not optional: both models, an Alloy model of the static data model and a TLA+ model across steps; only the writing vetoes one); owes both models; Invariant 2.1, 3.1, 4.1, 6.1 and 6.2 are claimed at every size and each is owed a proof
+last gate: 2026-11-13 — Final Critique 4, a delta round, one reader (Linus mimo-v2.6-pro), frozen at 8b6954c — foundational count 0, clean, one sample, the blind second triage agreeing (it placed no item foundational; it raised External check 1's missing source for the declared cap as refining, cured, and the later holding of a money past the cap as refining Kind C, recorded in the NOTE beside Capability requirement 3); 2026-11-13 — Final Critique 3 (delta), frozen at 18002aa — foundational count 1, cured, not clean, no sample
 
 open:
 - 2026-11-13-a · refining · Term currency; Term well-formed money · a currency is a string of one or more codepoints with no length bound, where the corpus's atoms bound a string input by a string cap (Execution Contract Input 2), so a build that refuses a currency past a limit of its own answers differently from one that admits it → settle whether the atom bounds a currency by a string cap, and what the refusal is, the corpus's default being 1,024 code points
