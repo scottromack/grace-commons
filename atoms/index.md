@@ -23,7 +23,7 @@ toc: true
 
 The freestanding semantic units of Grace Commons — each fully specifiable without naming another atom. Atoms are stored flat (`atoms/<name>.md`); their classification is not a folder but a set of **lenses** over the Intent Graph. Overlays (regulated · security · standards) are read off the composition graph and **report usage, not essence** — a standard shows as *HIPAA via audit-trail*, an uncomposed atom as *composed by: (none yet)*, never a bare boolean. **Domain** is the one intrinsic axis: an optional, EOS-gated tag, default absent. The design and its rationale are in [the taxonomy note](./TAXONOMY.md).
 
-_26 compositions (26 regulated) · 35 atoms · 64 composition→atom edges. Generated from `tools/taxonomy/reverse_index.py`; regenerate with `python3 tools/taxonomy/generate_views.py .`_
+_26 compositions (26 regulated) · 36 atoms · 64 composition→atom edges. Generated from `tools/taxonomy/reverse_index.py`; regenerate with `python3 tools/taxonomy/generate_views.py .`_
 
 ## All atoms
 
@@ -48,6 +48,7 @@ _26 compositions (26 regulated) · 35 atoms · 64 composition→atom edges. Gene
 | [Legal Hold](./legal-hold.md) | — | yes (1) | — | defensible-retention |
 | [Medication Order](./medication-order.md) | healthcare | — | — | *(none yet)* |
 | [Message Preference](./message-preference.md) | — | yes (1) | — | preference-aware-notification-fanout |
+| [Money](./money.md) | — | — | — | *(none yet)* |
 | [Notification](./notification.md) | — | yes (2) | — | notification-fanout, preference-aware-notification-fanout |
 | [Observation](./observation.md) | — | — | — | *(none yet)* |
 | [Owed Record](./owed-record.md) | — | — | — | *(none yet)* |
@@ -156,6 +157,7 @@ Atoms no composition yet composes. The overlays say nothing about them — an ho
 - [Erasure Tombstone](./erasure-tombstone.md)
 - [Gift Card](./gift-card.md)
 - [Medication Order](./medication-order.md)
+- [Money](./money.md)
 - [Observation](./observation.md)
 - [Owed Record](./owed-record.md)
 - [Punch Card](./punch-card.md)

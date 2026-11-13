@@ -75,4 +75,4 @@ Money and ledgers: amounts, the books that add up, and the rules around them. Th
 
 | Pattern | What it would do | State |
 |---|---|---|
-| Money | Amounts of money held and moved, to be drafted as small patterns first and wired into compositions after. | requested |
+| [Money](./atoms/money.md) | Amounts of money held and moved, to be drafted as small patterns first and wired into compositions after. | in rounds |

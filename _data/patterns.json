@@ -950,6 +950,23 @@
   "status": "grounded on Final Critique 11 \u2014 2026-11-04 at cef41e2",
   "title": "Message Preference"
  },
+ "money": {
+  "composed_by": [],
+  "domain": null,
+  "grounded": false,
+  "invariants": 7,
+  "kind": "atom",
+  "models": {
+   "als": false,
+   "tla": false,
+   "twins": 0
+  },
+  "regulated_by": [],
+  "security": false,
+  "standards": [],
+  "status": "draft",
+  "title": "Money"
+ },
  "multi-party-approval": {
   "composes": [
    "approval-step",

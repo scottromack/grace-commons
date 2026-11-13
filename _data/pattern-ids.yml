@@ -146,3 +146,5 @@ patterns:
     file: atoms/tamper-evidence.md
   - id: 62
     file: atoms/punch-card.md
+  - id: 63
+    file: atoms/money.md
