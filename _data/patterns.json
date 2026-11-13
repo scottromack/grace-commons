@@ -1304,7 +1304,7 @@
  "punch-card": {
   "composed_by": [],
   "domain": null,
-  "grounded": false,
+  "grounded": true,
   "invariants": 3,
   "kind": "atom",
   "models": {
@@ -1315,7 +1315,7 @@
   "regulated_by": [],
   "security": false,
   "standards": [],
-  "status": "draft",
+  "status": "grounded (English) on Final Critique 2 \u2014 2026-11-13 at a3fb226 \u2014 formal layer pending",
   "title": "Punch Card"
  },
  "recoverable-invocation": {
