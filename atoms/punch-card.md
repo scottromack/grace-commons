@@ -17,7 +17,7 @@ toc: true
 
 ## Summary
 
-Punch Card is a shop's punch card: a punch card collects one stamp per purchase, and a punch card that has reached its goal, five stamps where the shop sets no other number, is traded for one free item. Whoever holds the punch card's code collects the stamps and claims the free item, so the code is drawn at random where nobody can guess it, and the shop's own records name the punch card by a separate card id that claims nothing. A stamp adds exactly one, and a full punch card takes no more stamps until its free item is claimed. Claiming the free item empties the punch card, so the same punch card starts on the next five, and the punch card counts every free item it has given. What counts as a purchase, which item is free, who at the shop may stamp, and extras such as double-stamp days or expiry each belong to another pattern, which is why one punch card serves a thrift store, a café and a car wash alike.
+Punch Card is a shop's punch card: a punch card collects one stamp per purchase, and a punch card that has reached its goal, five stamps where the shop sets no other number, is traded for one free item. Whoever holds the punch card's code collects the stamps and claims the free item, so the code is drawn at random, so that nobody can guess it, and the shop's own records name the punch card by a separate card id that carries no meaning of its own. A stamp adds exactly one, and a full punch card takes no more stamps until its free item is claimed. Claiming the free item empties the punch card, so the same punch card starts on the next five, and the punch card counts every free item it has given. What counts as a purchase, which item is free, who at the shop may stamp, and extras such as double-stamp days or expiry each belong to another pattern, which is why one punch card serves a thrift store, a café and a car wash alike.
 
 ---
 
@@ -122,7 +122,7 @@ read(card_id)
 
 ```
 Operation 1: [Issue] MUST record EXACTLY ONE punch card carrying the card id AND the card code the seam supplied.
-Operation 2: [Issue] MUST set the punch card's goal to the stamp goal.
+Operation 2: [Issue] MUST set the punch card's goal to the stamp goal PER Execution Contract Logic confinement 17.
 Operation 3: [Issue] MUST set the punch card's stamps to zero.
 Operation 4: [Issue] MUST set the punch card's redemptions to zero.
 Operation 5: [Issue] MUST answer the card id AND the card code.
@@ -191,7 +191,7 @@ A thrift store that declares no stamp goal hands a shopper a punch card: `issue(
 
 ### Café
 
-A café declares a stamp goal of 6. `issue()` answers `issued(c3, "Q4WN8ZT2HC6PLM3R")`. Six coffees bring the stamps to 6, `redeem("Q4WN8ZT2HC6PLM3R")` answers 1, and the seventh coffee is free. The café later raises its stamp goal to 8; punch card `c3` keeps its goal of 6, and a punch card issued from then on carries a goal of 8.
+A café declares a stamp goal of 6. `issue()` answers `issued(c3, "Q4WN8ZT2HC6PLM3R")`. Six coffees bring the stamps to 6, `redeem("Q4WN8ZT2HC6PLM3R")` answers 1, and the seventh coffee is free. The café later raises its stamp goal to 8 and the instance restarts (Execution Contract Logic confinement 17); punch card `c3` keeps its goal of 6, and a punch card issued after the restart carries a goal of 8.
 
 ### Rejection paths
 
@@ -373,7 +373,7 @@ Projection: redemptions
 
 #### Stamp Goal
 
-The number of stamps the deployment asks for one free item; five where a deployment declares none. A change reaches the punch cards issued from then on.
+The number of stamps the deployment asks for one free item; five where a deployment declares none. A change reaches the punch cards issued from the instance's next start on (Execution Contract Logic confinement 17).
 
 Kind:       Parameter
 Parameter of: Issue
@@ -464,7 +464,7 @@ Punch Card is a primitive with no regulatory anchor: a punch card holds no money
 ```
 status: draft
 formal: pending — the vote is not cast at intake; the first council round casts it, and a vote of yes owes a model
-last gate: none
+last gate: 2026-11-13 — Final Critique 1, full, three fresh readers (GRID glm-5.3-flash, EOS minimax-m3, Linus mimo-v2.6-pro), frozen at 331116c — foundational count 1, not clean (the stamp goal's read moment: two passes foundational, GRID refining; cured by citing Execution Contract Logic confinement 17 at Operation 2, the Stamp Goal entry and the Café example), 12 refining and 5 rhetorical reported (the two summary wordings cured, the rest settled by Gift Card precedent), one sample
 
 open: none
 ```
