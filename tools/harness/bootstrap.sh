@@ -32,6 +32,55 @@ echo "TLA+ checker : $(ls node_modules/tla-checker/tla_checker_bg.wasm >/dev/nul
 echo "JRE 17       : $("$JAVA" -version 2>&1 | head -1)"
 echo "TLC jar      : $(ls ../tlc/tla2tools.jar >/dev/null 2>&1 && echo OK || echo 'MISSING — tools/tlc/tla2tools.jar is committed')"
 echo "Alloy jar    : $(ls ../alloy/alloy.jar >/dev/null 2>&1 && echo OK || echo 'MISSING — save org.alloytools.alloy.dist.jar from the AlloyTools releases as tools/alloy/alloy.jar')"
+# TLAPS (tlapm), the TLA+ Proof System — the 1.6.0 rolling pre-release, pinned by
+# checksum (unit `tooling: TLAPS installed and wired`, Scott 2026-11-10: a named
+# exception to "only stable versions", since the last stable build, 1.5.0, is an
+# Intel-only installer). The release is rolling: the tag may be moved to newer
+# bytes, and a checksum that no longer matches stops this script rather than
+# installing them. Pinned: tlaplus/tlapm tag 1.6.0-pre at commit
+# ff40755301b84455d368f9f8b13fe9fdb0bc9407 (`tlapm --version` prints ff40755).
+# It unpacks outside the repo: $TLAPM_HOME, default ~/.local/share/tlapm/1.6.0-pre.
+TLAPM_HOME="${TLAPM_HOME:-$HOME/.local/share/tlapm/1.6.0-pre}"
+case "$(uname -s)-$(uname -m)" in
+  Darwin-arm64)   TLAPM_ASSET=tlapm-1.6.0-pre-arm64-darwin.tar.gz
+                  TLAPM_SHA256=76c2b7871fce30f26543e432d0e2cff506450fc90f70d18f7a032cf05a614a16 ;;
+  Linux-x86_64)   TLAPM_ASSET=tlapm-1.6.0-pre-x86_64-linux-gnu.tar.gz
+                  TLAPM_SHA256=99db29f119cb6f43ffed653b212ba2d005e5bf8e242c53468876cb0d08da6bcc ;;
+  *)              TLAPM_ASSET= ;;
+esac
+TLAPM_BIN="$TLAPM_HOME/tlapm/bin/tlapm"
+if [ -z "$TLAPM_ASSET" ]; then
+  echo "TLAPS        : no pinned build for $(uname -s)-$(uname -m); the audit proves nothing until one is installed (TLAPM=<path> overrides)"
+elif [ -x "$TLAPM_BIN" ]; then
+  echo "TLAPS        : $("$TLAPM_BIN" --version) already in $TLAPM_HOME"
+else
+  mkdir -p "$TLAPM_HOME"
+  TLAPM_TGZ="$TLAPM_HOME/$TLAPM_ASSET"
+  curl -fsSL -o "$TLAPM_TGZ" "https://github.com/tlaplus/tlapm/releases/download/1.6.0-pre/$TLAPM_ASSET"
+  TLAPM_GOT="$(shasum -a 256 "$TLAPM_TGZ" | cut -d' ' -f1)"
+  if [ "$TLAPM_GOT" != "$TLAPM_SHA256" ]; then
+    echo "TLAPS        : checksum mismatch for $TLAPM_ASSET (got $TLAPM_GOT, pinned $TLAPM_SHA256): the rolling release moved; not installed" >&2
+    rm -f "$TLAPM_TGZ"
+    exit 1
+  fi
+  tar -xzf "$TLAPM_TGZ" -C "$TLAPM_HOME"
+  rm -f "$TLAPM_TGZ"
+  echo "TLAPS        : $("$TLAPM_BIN" --version) installed in $TLAPM_HOME"
+fi
+# The arm64 archive ships an x86_64 z3, which needs Rosetta (sudo to install). Without
+# Rosetta, put Homebrew's native z3 in its place (brew install z3); the original stays as z3.x86_64.
+TLAPM_Z3="$TLAPM_HOME/tlapm/lib/tlapm/backends/bin/z3"
+if [ -x "$TLAPM_BIN" ] && [ "$(uname -s)-$(uname -m)" = Darwin-arm64 ] && ! "$TLAPM_Z3" --version >/dev/null 2>&1; then
+  BREW_Z3="$(brew --prefix z3 2>/dev/null || true)/bin/z3"
+  if [ -x "$BREW_Z3" ]; then
+    mv "$TLAPM_Z3" "$TLAPM_Z3.x86_64"
+    ln -s "$BREW_Z3" "$TLAPM_Z3"
+    echo "TLAPS z3     : the archive's x86_64 z3 needs Rosetta; linked Homebrew's $("$BREW_Z3" --version)"
+  else
+    echo "TLAPS z3     : the archive's x86_64 z3 needs Rosetta and no native z3 was found — run: brew install z3, then bootstrap.sh again"
+  fi
+fi
+
 echo
 echo "Ready. Examples:"
 echo "  node check.mjs ../../grants/tla-poc/MultiPartyApproval.tla"

@@ -25,6 +25,7 @@
 //   node audit.mjs --engine wasm      the WASM checker instead of TLC (comparison)
 //   node audit.mjs --limit-min N      stop a TLC check at N minutes (default 15)
 //   node audit.mjs --twin-limit-min N stop a twin asked about its model's checks at N minutes (10)
+//   node audit.mjs --proof-limit-min N stop a TLAPS proof at N minutes (15)
 //   node audit.mjs --root <dir>       walk <dir> instead of the repo (the tests' fixtures)
 
 import { execFile } from "node:child_process";
@@ -33,6 +34,7 @@ import { dirname, join, relative, basename, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { runTlcAsync, DEFAULT_LIMIT_MS } from "./tlc.mjs";
+import { runTlapm, hasProof } from "./tlapm.mjs";
 import { checksOf, twinsOf, tautologies, constraintsOf, cfgWithChecks, parseCfg, tlaDefinitions, tlaVariables, isTla } from "./twins.mjs";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
@@ -41,7 +43,7 @@ const REPO = optArg("--root") ? resolve(optArg("--root")) : join(HERE, "../..");
 
 function walk(dir, acc = []) {
   for (const e of readdirSync(dir)) {
-    if (e === "node_modules" || e === ".git" || e.endsWith(".work")) continue;
+    if (e === "node_modules" || e === ".git" || e === ".tlacache" || e.endsWith(".work")) continue;
     const p = join(dir, e);
     const st = statSync(p);
     if (st.isDirectory()) walk(p, acc);
@@ -69,6 +71,8 @@ const limitMs = optArg("--limit-min") ? Number(optArg("--limit-min")) * 60000 : 
 // twin's space can be far larger than its model's; such a run stops at --twin-limit-min (10),
 // and a check it leaves undecided stays red.
 const twinLimitMs = Number(optArg("--twin-limit-min") ?? 10) * 60000;
+// A proof is stopped at --proof-limit-min (15), as a TLC check is at --limit-min.
+const proofLimitMs = Number(optArg("--proof-limit-min") ?? 15) * 60000;
 
 // The checks a run's log says were broken: TLC's one named violation, or each Alloy check with a counterexample.
 const brokenIn = (log) => [
@@ -225,6 +229,20 @@ correct.forEach((m, i) => {
   for (const r of red) reds.push({ file: relative(REPO, m), ...r });
 });
 
+// ---- proofs ---------------------------------------------------------------------
+// A correct model holds a theorem with a proof: tlapm proves every obligation, or it is a problem.
+const proofs = [];
+for (const m of models.filter((m) => isCorrect(m) && isTla(m) && hasProof(readFileSync(m, "utf-8")))) {
+  proofs.push({ file: relative(REPO, m), ...runTlapm(m, { limitMs: proofLimitMs }) });
+}
+console.log("═".repeat(72));
+console.log("PROOFS (TLAPS)");
+console.log("═".repeat(72));
+for (const p of proofs) {
+  console.log(`  ${p.kind === "proved" ? "PROVED" : p.kind === "failed" ? "FAILED" : "ERROR "} ${p.file}  ${p.kind === "proved" ? `${p.obligations} obligations` : p.message}`);
+  if (p.kind !== "proved") console.log((p.out || "").trimEnd().split("\n").slice(-30).join("\n"));
+}
+
 console.log("═".repeat(72));
 console.log("AUDIT SUMMARY");
 console.log("═".repeat(72));
@@ -237,9 +255,11 @@ for (const r of rows) {
   console.log(`  ${r.verdict.padEnd(6)} ${tag.padEnd(10)} ${r.file}`);
 }
 for (const r of reds) console.log(`  RED    ${r.file}  ${r.check}: ${r.why}`);
-const problems = count.BROKEN + count.MISSED + count.ERROR;
+const proofFailures = proofs.filter((p) => p.kind !== "proved").length;
+const problems = count.BROKEN + count.MISSED + count.ERROR + proofFailures;
 console.log("─".repeat(72));
 console.log(`  ${rows.length} models: ${Object.entries(count).map(([k, v]) => `${v} ${k}`).join(", ")}`);
 console.log(`  ${verdicts.reduce((n, v) => n + v.breaker.size, 0)} checks in ${correct.length} correct models, ${reds.length} red`);
+console.log(`  ${proofs.length} proofs, ${proofFailures} failures`);
 console.log(`  ${problems + reds.length} problem${problems + reds.length === 1 ? "" : "s"}`);
 process.exit(problems + reds.length ? 1 : 0);

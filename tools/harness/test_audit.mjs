@@ -9,6 +9,7 @@ import { fileURLToPath } from "node:url";
 import { spawnSync } from "node:child_process";
 import { parseCfg, cfgWithChecks, checksOf, twinsOf, tautologies, tlaDefinitions } from "./twins.mjs";
 import { appendLedger } from "./ledger.mjs";
+import { hasProof, findTlapm } from "./tlapm.mjs";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 
@@ -21,8 +22,8 @@ function corpus(files) {
   }
   return root;
 }
-const audit = (root) => spawnSync("node", [join(HERE, "audit.mjs"), "--root", root, "--jobs", "4"],
-  { env: { ...process.env, GRACE_STATES_LEDGER: "off" }, encoding: "utf8" });
+const audit = (root, env = {}) => spawnSync("node", [join(HERE, "audit.mjs"), "--root", root, "--jobs", "4"],
+  { env: { ...process.env, GRACE_STATES_LEDGER: "off", ...env }, encoding: "utf8" });
 
 // A counter that climbs to 3. `step` is what a twin changes.
 const counter = (name, { step = "x' = x + 1", extra = "", guard = "x < 3" } = {}) => `---- MODULE ${name} ----
@@ -73,6 +74,8 @@ test("every check broken by a twin, one of them found past the first violation: 
   assert.match(r.stdout, /Bounded\s+c-buggy\.tla/);
   assert.match(r.stdout, /NotFive\s+c-buggy\.tla/);
   assert.match(r.stdout, /2 checks in 1 correct models, 0 red/);
+  // No page holds a proof, so tlapm is not asked for.
+  assert.match(r.stdout, /0 proofs, 0 failures/);
 });
 
 test("a check no twin breaks is red, named with its file", () => {
@@ -142,4 +145,39 @@ test("the ledger keeps no line for a model outside the repository", () => {
   appendLedger({ file: join(HERE, "../../atoms/approval-step.tla"), role: "model", engine: "tla", states: 9, capped: 0, verdict: "HOLDS" });
   assert.equal(readFileSync(path, "utf8").trim().split("\n").length, 2);
   delete process.env.GRACE_STATES_LEDGER;
+});
+
+// ---- TLAPS: a theorem with a proof goes to tlapm (tlapm.mjs) ----------------------------
+const twin = (extra) => ({
+  "atoms/t.tla": counter("t", { extra }), "atoms/t.cfg": cfg(["Bounded"]),
+  "atoms/t-buggy.tla": counter("t-buggy", { extra, guard: "x < 4" }), "atoms/t-buggy.cfg": cfg(["Bounded"]),
+});
+const THEOREM_TRUE = "THEOREM ZeroIsNat == 0 \\in Nat\nPROOF OBVIOUS";
+const THEOREM_FALSE = "THEOREM AllPositive == \\A n \\in Nat : n > 0\nPROOF OBVIOUS";
+
+test("tlapm.mjs: a theorem with a proof is one tlapm is asked for; a comment, a bare statement or a check is not", () => {
+  assert.equal(hasProof(counter("c", { extra: THEOREM_TRUE })), true);
+  assert.equal(hasProof(counter("c", { extra: "THEOREM Lemma1 == TRUE\n<1>1. QED\n  OBVIOUS" })), true);
+  assert.equal(hasProof(counter("c", { extra: "THEOREM Bare == TRUE" })), false);
+  assert.equal(hasProof(counter("c", { extra: "\\* THEOREM Said == TRUE PROOF OBVIOUS" })), false);
+  assert.equal(hasProof(counter("c", { extra: "(* THEOREM Said == TRUE\n   PROOF OBVIOUS *)" })), false);
+  assert.equal(hasProof(counter("c")), false);
+});
+
+test("a theorem with a proof tlapm cannot prove is a problem; one it proves is not", { skip: findTlapm() ? false : "tlapm not installed: run bootstrap.sh" }, () => {
+  const proved = audit(corpus(twin(THEOREM_TRUE)));
+  assert.equal(proved.status, 0, proved.stdout);
+  assert.match(proved.stdout, /PROVED {1,2}atoms\/t\.tla/);
+  assert.match(proved.stdout, /1 proofs, 0 failures/);
+  const failed = audit(corpus(twin(THEOREM_FALSE)));
+  assert.equal(failed.status, 1, failed.stdout);
+  assert.match(failed.stdout, /FAILED {1,2}atoms\/t\.tla/);
+  assert.match(failed.stdout, /1 proofs, 1 failures/);
+});
+
+test("a proof no tlapm is installed for is an error, not a pass", () => {
+  const r = audit(corpus(twin(THEOREM_TRUE)), { TLAPM: "", TLAPM_HOME: join(tmpdir(), "no-tlapm-here") });
+  assert.equal(r.status, 1, r.stdout);
+  assert.match(r.stdout, /ERROR {1,2}atoms\/t\.tla {2}tlapm not found/);
+  assert.match(r.stdout, /1 proofs, 1 failures/);
 });

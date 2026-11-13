@@ -4,6 +4,7 @@ One reproducible checker for both formal-model flavors in the library:
 
 - **TLA+** (`.tla` + `.cfg`) via TLC, the TLA+ Foundation's model checker (`tools/tlc/tla2tools.jar`, v1.7.4 / TLC 2.19, committed like the Alloy jar), under the same JRE 17. The [`tla-checker`](https://www.npmjs.com/package/tla-checker) WASM checker stays behind `--engine wasm`, for comparison only: it runs one thread and stops at 200,000 states.
 - **Alloy** (`.als`) via the `org.alloytools.alloy.dist` jar running headless (`exec`) under a JRE 17.
+- **TLAPS** (`tlapm`), the TLA+ Proof System, for a correct `.tla` model that holds a `THEOREM` with a `PROOF`: a law that must hold at every size, where TLC can only check the sizes it is given. `audit.mjs` hands each such model to `tlapm --strict` (`tlapm.mjs`); every obligation proved, or the audit is red. No page holds a proof yet, so the audit reports `0 proofs, 0 failures`, and tlapm need not be installed to run it.
 
 The JRE and the WASM checker are provisioned **from the npm registry only** — no Adoptium / GitHub / Maven downloads, which are blocked in the sandbox. The Alloy jar at `tools/alloy/alloy.jar` and the TLC jar at `tools/tlc/tla2tools.jar` are committed, not downloaded.
 
@@ -15,6 +16,8 @@ bash bootstrap.sh
 ```
 
 This installs `tla-checker` into `tools/harness/node_modules` and the JRE 17 into `/tmp/javajre`. The JRE must live on the native `/tmp` FS: unpacking it into the mounted repo drops `libjli.so` and the launcher dies with exit 127. `node_modules` is git-ignored; the jar and JRE are never committed.
+
+`bootstrap.sh` also unpacks **tlapm 1.6.0-pre** outside the repo, into `$TLAPM_HOME` (default `~/.local/share/tlapm/1.6.0-pre`; no sudo, nothing under `/usr/local`). The build is pinned by sha256 for macOS arm64 and Linux x86_64 and fetched from the tlaplus/tlapm release (the one GitHub download in the setup, a named exception to "only stable versions": the last stable TLAPS, 1.5.0, is an Intel-only installer; Scott, 2026-11-10). The release is rolling, so a changed archive fails the checksum and the script stops; the build is commit `ff40755` (`tlapm --version`). The macOS archive's bundled `z3` is x86_64 and needs Rosetta; without it, `bootstrap.sh` links Homebrew's native `z3` (`brew install z3`) in its place. `TLAPM=<path>` points the audit at another `tlapm`. Smoke test: tlapm proves the tlaplus/tlapm repo's `examples/Euclid.tla`, "All 37 obligations proved".
 
 ## Use
 
