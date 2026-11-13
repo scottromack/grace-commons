@@ -17,7 +17,7 @@ toc: true
 
 ## Summary
 
-Money is an amount of money as a value: a whole number of a currency's smallest unit, together with the currency. Because the amount is a whole number of cents and never a decimal, nothing rounds by accident. Two moneys in the same currency are added, subtracted and compared; a money is negated, which turns a charge into its refund; a money is multiplied by a rate, with the rounding named on every call; and a money is split into parts by shares, where the parts always add back up to the original and no part is a whole cent off its exact share. Money refuses to mix two currencies, refuses a multiply that names no rounding, refuses a split into more parts than the deployment allows, and refuses a number past the deployment's cap. An amount may be negative, and every rounding works on the size of an amount and keeps its sign, so a refund is always the exact negation of its charge. Money stores nothing: a cart, a gift card or a ledger entry holds a money and leans on these rules. Converting between currencies, knowing which currencies exist, pricing, tax, taking and refunding payment, settlement and the ledger each belong to another pattern.
+Money is an amount of money as a value: a whole number of a currency's smallest unit, together with the currency. Because the amount is a whole number of minor units and never a decimal, nothing rounds by accident. Two moneys in the same currency are added, subtracted and compared; a money is negated, which turns a charge into its refund; a money is multiplied by a rate, with the rounding named on every call; and a money is split into parts by shares, where the parts always add back up to the original and no part is a whole minor unit off its exact share. Money refuses to mix two currencies, refuses a multiply that names no rounding, refuses a split into more parts than the deployment allows, and refuses a number past the deployment's cap. An amount may be negative, and every rounding works on the size of an amount and keeps its sign, so a refund is always the exact negation of its charge. Money stores nothing: a cart, a gift card or a ledger entry holds a money and leans on these rules. Converting between currencies, knowing which currencies exist, pricing, tax, taking and refunding payment, settlement and the ledger each belong to another pattern.
 
 ---
 
@@ -26,7 +26,7 @@ Money is an amount of money as a value: a whole number of a currency's smallest 
 <details markdown="block">
 <summary>WHY</summary>
 
-Every pattern that moves value needs the same few facts, and each one that states them alone states them a little differently: Cart and Gift Card each say what a whole number of a minor unit is. This atom is those facts once. Four decisions carry the weight. A rate is a number and never a money, and a rounding is named on every multiply, so no amount is rounded where a law or a contract did not say to. Every rounding and every split works on the size of an amount and keeps the sign, so a refund is the exact negation of its charge. The minor units a split leaves over go, in the order the caller gave, only to the parts the rounding down took from: a part due a whole number of minor units is never handed an extra one, which keeps every part under one minor unit from its exact share. That rule has a known lean: across repeated splits in one order the earlier parts come out ahead, and a caller who must spread the leftover turns the order of the shares. And the arithmetic is exact before anything is rounded or refused: under the default number cap the product of an amount and a numerator runs to thirty-six digits, so a build that multiplies in sixty-four bits overflows before the atom can refuse, and a build that refuses early refuses calls the atom admits.
+Every pattern that moves value needs the same few facts, and each one that states them alone states them a little differently: Cart and Gift Card each say what a whole number of a minor unit is. This atom states those facts once, for the patterns that come to lean on it; Cart and Gift Card keep their own statements until the maintainer reopens them (Composition notes). Four decisions carry the weight. A rate is a number and never a money, and a rounding is named on every multiply, so no amount is rounded where a law or a contract did not say to. Every rounding and every split works on the size of an amount and keeps the sign, so a refund is the exact negation of its charge. The minor units a split leaves over go, in the order the caller gave, only to the parts the rounding down took from: a part due a whole number of minor units is never handed an extra one, which keeps every part under one minor unit from its exact share. That rule has a known lean: across repeated splits in one order the earlier parts come out ahead, and a caller who must spread the leftover turns the order of the shares. And the arithmetic is exact before anything is rounded or refused: under the default number cap the product of an amount and a numerator runs to thirty-six digits, so a build that multiplies in sixty-four bits overflows before the atom can refuse, and a build that refuses early refuses calls the atom admits.
 
 </details>
 
@@ -42,7 +42,9 @@ Identity 3: The atom MUST NOT normalize a currency.
 
 Term money: an amount in one currency — a [Money]; a value, held by the pattern that needs one. In a rule, the money is the money a call names first.
 
-Term currency: the unit of account an amount is counted in, such as a code from ISO 4217 (the International Organization for Standardization's standard for currency codes) — a [Currency]; a string of one or more codepoints, held as supplied.
+Term currency: the unit of account an amount is counted in, such as a code from ISO 4217 (the International Organization for Standardization's standard for currency codes) — a [Currency]; a string of one or more codepoints, held as supplied; a string of spaces is one, since which strings name a currency is Currency's to say (Non-goal 2).
+
+NOTE: open 2026-11-13-a — a currency has no length bound (Term currency, Term well-formed money).
 
 Term amount: how many of the currency's minor unit a money holds — an [Amount]; a whole number, negative, zero or positive.
 
@@ -69,6 +71,8 @@ Term negation: the whole number of the same size with the sign turned — the ne
 Capability requirement 1: The deployment MAY declare the number cap PER Execution Contract Input 2.
 Capability requirement 2: The deployment MAY declare the part cap PER Execution Contract Input 2.
 Capability requirement 3: The deployment MUST NOT declare a number cap that the size of a money a composing pattern holds EXCEEDS.
+Capability requirement 4: The deployment MAY declare the number cap ONLY IF the number cap EXCEEDS 0.
+Capability requirement 5: The deployment MAY declare the part cap ONLY IF the part cap EXCEEDS 0.
 ```
 
 Term number cap: the largest size of a whole number a call names or answers, an amount, a numerator, a denominator or a share alike — a [Number Cap]; 999999999999999999 where a deployment declares none, which is eighteen digits — a default cap a deployment may override as Execution Contract Input 2 allows, though a call naming a number over the number cap answers invalid-money, invalid-rate or invalid-shares (Operation 1, Operation 2, Operation 12, Operation 13, Operation 19), this atom's own answers in place of Input 2's invalid-request.
@@ -81,7 +85,9 @@ Term capped count: a positive count that is no more than the number cap.
 
 NOTE: the atom holds no record, so the floor Execution Contract Input 2 sets under a cap finds no record of the atom's own to protect; Capability requirement 3 carries the floor to the moneys the composing patterns hold, so no lowered cap leaves a held money refused as invalid-money.
 
-NOTE: the atom asks the deployment for no database, no clock and no random source (State 2, Operation 23).
+NOTE: watch the cap's floor (Capability requirement 4, Capability requirement 5). A number cap of zero refuses every denominator and every share, and a part cap of zero refuses every split, so each is held above zero as Execution Contract Input 2 holds a string cap.
+
+NOTE: the atom asks the deployment for no database, no clock and no random source (State 2, Operation 23, Operation 24). An action reads no record, so Execution Contract Read 1 has no read of the atom's to answer (Operation 24).
 
 ### Operations
 
@@ -102,7 +108,7 @@ negate(money)
   answers money
   refuses invalid-money
 
-multiply(money, numerator, denominator, rounding)
+multiply(money, numerator, denominator, optional rounding)
   answers money
   refuses invalid-money | invalid-rate | invalid-rounding | over-cap
 
@@ -133,11 +139,12 @@ Operation 18: IF the share count EQUALS zero THEN [Split] MUST answer invalid-sh
 Operation 19: IF a share IS NOT IN the capped counts THEN [Split] MUST answer invalid-shares.
 Operation 20: [Split] MUST answer EXACTLY ONE part PER share, in the order of the shares.
 Operation 21: A first part MUST carry the part's stepped share as amount PER Execution Contract Logic confinement 9.
-Operation 22: A part outside the first parts MUST carry the part's base share as amount.
+Operation 22: A part outside the first parts MUST carry the part's base share as amount PER Execution Contract Logic confinement 9.
 Operation 23: An action MUST NOT write.
+Operation 24: An action MUST NOT read a record.
 ```
 
-Term action: [Add] | [Subtract] | [Compare] | [Negate] | [Multiply] | [Split] — every action of the atom; none writes.
+Term action: [Add] | [Subtract] | [Compare] | [Negate] | [Multiply] | [Split] — every action of the atom; none writes and none reads a record.
 
 Term pair action: [Add] | [Subtract] | [Compare] — the actions that name two moneys.
 
@@ -205,7 +212,7 @@ Term base share: the part's base size, negated where the money's amount is below
 
 Term leftover: the money's size less the base sizes of the parts, added up — how many minor units the base sizes leave over.
 
-Term first parts: as many short parts as the leftover counts, taken from the front of the order of the shares; one of the first parts is a first part.
+Term first parts: as many short parts as the leftover counts, taken from the front of the order of the shares; each of the first parts is a first part.
 
 Term step: one minor unit in the direction of the money's amount — 1 for a money above zero, -1 for a money below zero.
 
@@ -302,7 +309,7 @@ A deployment that declares neither cap, so the number cap is eighteen digits and
 - `add(money("USD", 100), money("usd", 100))` — rejected as [Mixed Currency]: two currencies are compared codepoint for codepoint, and the atom normalizes neither (Identity 2, Identity 3).
 - `add(money("USD", 10.5), money("EUR", 100))` — rejected as [Invalid Money], the refusal listed first: an amount is a whole number of the minor unit, so $10.50 is 1050.
 - `add(money("USD", 999999999999999999), money("USD", 1))` — rejected as [Over Cap].
-- `multiply(money("USD", 100), 1, 0, down)` — rejected as [Invalid Rate]; so is a denominator of -4.
+- `multiply(money("USD", 100), 1, 0, down)` — rejected as [Invalid Rate]; so is a denominator of -4, and so is `multiply(money("USD", 100), 1.5, 2, down)`, a numerator that is no whole number.
 - `multiply(money("USD", 100), 1, 2, nearest)` — rejected as [Invalid Rounding]; so is `multiply(money("USD", 100), 1, 2)`, a call without a rounding.
 - `split(money("USD", 100), [])` — rejected as [Invalid Shares].
 - `split(money("USD", 100), [2, 0, 3])` — rejected as [Invalid Shares].
@@ -312,7 +319,7 @@ This covers every refusal.
 
 ## Generation acceptance
 
-Acceptable when the checks below hold for every call an auditor makes: the atom stores nothing, so the calls are the whole evidence. Invariant 2.1, Invariant 3.1, Invariant 4.1, Invariant 6.1 and Invariant 6.2 are claimed for a money of any size and a split into any number of parts, so each is owed a proof over every size and not a test at a few.
+Acceptable when the checks below hold for every call an auditor makes: the atom stores nothing, so the calls and the deployment's database log are the whole evidence. Invariant 2.1, Invariant 3.1, Invariant 4.1, Invariant 6.1 and Invariant 6.2 are claimed for a money of any size and a split into any number of parts, so each is owed a proof over every size and not a test at a few.
 
 The conformance table, each row a call and the answer the atom owes, under the default caps and in US dollars but for the row in yen:
 
@@ -346,22 +353,24 @@ The conformance table, each row a call and the answer the atom owes, under the d
 | `split(money("USD", 0), [1, 1])` | 0, 0 | Term leftover |
 | `add(money("USD", 100), money("EUR", 100))` | mixed-currency | Operation 3 |
 | `add(money("USD", 10.5), money("EUR", 100))` | invalid-money | Operation 1, Execution Contract Refusal 1 |
+| `add(money("USD", 100), money("USD", 10.5))` | invalid-money | Operation 2 |
 | `add(money("USD", 999999999999999999), money("USD", 1))` | over-cap | Operation 4 |
 | `subtract(money("USD", -999999999999999999), money("USD", 1))` | over-cap | Operation 6 |
 | `multiply(money("USD", 999999999999999999), 2, 1, down)` | over-cap | Operation 15 |
+| `multiply(money("USD", 100), 1.5, 2, down)` | invalid-rate | Operation 12 |
 | `multiply(money("USD", 100), 1, 0, down)` | invalid-rate | Operation 13 |
 | `multiply(money("USD", 100), 1, 2)` | invalid-rounding | Operation 14 |
 | `split(money("USD", 100), [])` | invalid-shares | Operation 18 |
 | `split(money("USD", 100), [2, 0, 3])` | invalid-shares | Operation 19 |
 
-Term conformance table: the table above, each row a call and the answer the atom owes.
+Term conformance table: the table above, each row a call and the answer the atom owes under the default caps and in US dollars but for the row in yen.
 
 ### Conformance checks
 
 ```
 Check 1.1: An auditor MUST find EVERY result carrying the money's currency (Invariant 1.1).
 Check 1.2: An auditor MUST find EVERY part carrying the money's currency (Invariant 1.2).
-Check 2.1: An auditor MUST find no [Split] answer whose total DOES NOT EQUAL the money's amount (Invariant 2.1).
+Check 2.1: An auditor MUST find EVERY [Split] answer's total EQUALS the money's amount (Invariant 2.1).
 Check 3.1: An auditor MUST find no part whose gap's size EXCEEDS the share total (Invariant 3.1).
 Check 3.2: An auditor MUST find no part whose gap's size EQUALS the share total (Invariant 3.1).
 Check 4.1: An auditor MUST find no [Split] call whose leftover EXCEEDS the short count (Invariant 4.1).
@@ -369,7 +378,7 @@ Check 5.1: An auditor MUST find EVERY round trip answering the money (Invariant 
 Check 6.1: An auditor MUST find EVERY negated [Multiply] call answering the negation of the result (Invariant 6.1).
 Check 6.2: An auditor MUST find EVERY negated [Split] call answering the negation of EVERY part (Invariant 6.2).
 Check 7.1: An auditor MUST find no result whose size EXCEEDS the number cap (Invariant 7.1).
-Check 8.1: An auditor MUST find, for EVERY row of the conformance table, the row's answer on the row's call (Operation 1 through 22).
+Check 8.1: An auditor MUST find, for EVERY row of the conformance table, the row's answer on the row's call under the default caps and in United States dollars but for the row in yen (Operation 1 through 22).
 ```
 
 NOTE: EVERY check names the rule the check tests.
@@ -378,6 +387,9 @@ NOTE: EVERY check names the rule the check tests.
 
 ```
 External check 1: An auditor needing the number cap confirmed against the moneys held MUST read the records of the composing patterns that hold a money (Capability requirement 3).
+External check 2: An auditor needing the number cap and the part cap confirmed above zero MUST read the caps the deployment declares (Capability requirement 4, Capability requirement 5).
+External check 3: An auditor needing a money's currency and amount confirmed held together MUST read the records of the composing patterns that hold a money (Composition note 3).
+External check 4: An auditor needing every action confirmed to write and read no record MUST read the database log of the deployment across the calls of the actions (Operation 23, Operation 24).
 ```
 
 ## Non-goals
@@ -398,14 +410,14 @@ Non-goal 12: The atom MUST NOT limit a money's sign.
 Non-goal 13: The atom MUST NOT format a money for display.
 ```
 
-NOTE: the owners — Currency *(forthcoming)* (Non-goal 1, 2, 3); the composing pattern that names the rate and the rounding, such as Tax *(forthcoming)* or Currency *(forthcoming)* (Non-goal 4, 5); Pricing *(forthcoming)* (Non-goal 6); Tax *(forthcoming)* (Non-goal 7); Payment *(forthcoming)*, a chargeback included (Non-goal 8, 9, 10); Ledger *(forthcoming)* (Non-goal 11); the composing pattern that stores the money, as [Gift Card](./gift-card.md) does for a balance (Non-goal 12); the deployment (Non-goal 13).
+NOTE: the owners — Currency *(forthcoming)* (Non-goal 1, 2, 3); the composing pattern that names the rate and the rounding, such as Tax *(forthcoming)* or Currency *(forthcoming)* (Non-goal 4, 5); Pricing *(forthcoming)* (Non-goal 6); Tax *(forthcoming)* (Non-goal 7); Payment *(forthcoming)*, a chargeback included (Non-goal 8, 9, 10); Ledger *(forthcoming)* (Non-goal 11); the pattern that stores the money, as [Gift Card](./gift-card.md) does for a balance (Non-goal 12); the deployment (Non-goal 13).
 
-Where the atom breaks down: a calculation across two currencies; a price or a rate finer than the minor unit, which is a number until a [Multiply] brings a money back; a split whose parts must each come to a round figure; a split repeated in one order, where the earlier parts take the leftover every time and come out ahead by up to a minor unit a split, so that a composing pattern that must spread the leftover turns the order of the shares; a money carried between two deployments whose number caps differ, where the one with the lower cap refuses a size past its own.
+Where the atom breaks down: a calculation across two currencies; a price or a rate finer than the minor unit, which stays a rate, a numerator with a denominator, until a [Multiply] scales a money by it and brings a money back; a split whose parts must each come to a round figure; a split repeated in one order, where the first parts take the leftover every time and come out ahead by up to a minor unit a split, so that a composing pattern that must spread the leftover turns the order of the shares; a money carried between two deployments whose number caps differ, where the one with the lower cap refuses a size past its own.
 
 ## Composition notes
 
 ```
-Composition note 1: A composing pattern MUST own what this atom declines.
+Composition note 1: A composing pattern MUST own a declined responsibility the composing pattern needs where the Non-goals name no other owner.
 Composition note 2: A composing pattern MUST name the rounding on EVERY [Multiply] call.
 Composition note 3: A composing pattern MUST store a money's currency AND the money's amount together.
 ```
@@ -424,7 +436,7 @@ Term records: empty.
 
 Term record verbs: identify, compare, normalize, carry, store, declare, answer, write, fall, own, name, convert, tell, hold, choose, price, calculate, take, refund, settle, keep, limit, format, find, read.
 
-Term value sets: action, pair action, order and roundings are declared above and cited here (GRACE-lang Closed vocabulary 15).
+Term value sets: action, pair action, order and roundings are declared above and cited here (GRACE-lang Closed vocabulary 15); the action rejection is every code on the refuses lines of the Operations.
 
 Term bounds: positive count (one, the floor of a denominator and a share); number cap (the largest size of a whole number a call names or answers, eighteen digits where a deployment declares none); part cap (the most shares one [Split] call names, 1,000 where a deployment declares none).
 
@@ -526,7 +538,7 @@ Projection:   shares
 
 #### Number Cap
 
-The largest size of a whole number a call names or answers: an amount, a numerator, a denominator or a share; 999999999999999999 where a deployment declares none, which is eighteen digits. A deployment never declares one below the size of a money a composing pattern holds.
+The largest size of a whole number a call names or answers: an amount, a numerator, a denominator or a share; 999999999999999999 where a deployment declares none, which is eighteen digits. A deployment never declares one below the size of a money a composing pattern holds, and never one of zero.
 
 Kind:         Parameter
 Parameter of: every action ([Add], [Subtract], [Compare], [Negate], [Multiply], [Split])
@@ -534,7 +546,7 @@ Projection:   number_cap
 
 #### Part Cap
 
-The most shares one [Split] call names; 1,000 where a deployment declares none.
+The most shares one [Split] call names; 1,000 where a deployment declares none. A deployment never declares one of zero.
 
 Kind:         Parameter
 Parameter of: Split
@@ -636,7 +648,7 @@ Projection: invalid-shares
 Money is a primitive that stays below regulation: the rules that bind money bind the patterns that hold and move it. It inherits from:
 
 - **ISO 4217** — the codes a currency is commonly named by, and the minor unit every amount is counted in. The atom reads neither the list of codes nor a minor unit exponent (Non-goal 2, Non-goal 3).
-- **ISO 20022** — the payment message standard, whose currency-and-amount type holds eighteen digits in all; the number cap's default follows it (Capability requirement 1).
+- **ISO 20022** — the payment message standard, whose currency-and-amount type holds eighteen digits in all, the fraction digits counted; the number cap's default follows it, as eighteen digits of the minor unit (Capability requirement 1).
 - **The quota rule of apportionment** — every part is its exact share rounded down or up, the rule the largest remainder method, Alexander Hamilton's of 1792, was built to keep. [Split] keeps the rule (Invariant 3.1) and hands the leftover by the caller's order where that method hands it by the size of the remainder.
 - **Java's `RoundingMode`** — the four rounding names as widely shipped: down toward zero, up away from zero, half-up for an exact half away from zero, half-even for an exact half to the even neighbour.
 - **Daniel Jackson, *The Essence of Software*** — the concept as a freestanding, composable unit of software design, leaving currency, pricing, tax, payment and the ledger to concepts of their own.
@@ -654,9 +666,10 @@ The euro conversion rules of Council Regulation (EC) No 1103/97, a rate used unr
 ```
 status: draft
 formal: pending — no model yet; Invariant 2.1, 3.1, 4.1, 6.1 and 6.2 are claimed at every size and each is owed a proof
-last gate: none
+last gate: 2026-11-13 — Final Critique 1, frozen at 7803f21 — foundational count 3, cured, not clean, no sample
 
-open: none
+open:
+- 2026-11-13-a · refining · Term currency; Term well-formed money · a currency is a string of one or more codepoints with no length bound, where the corpus's atoms bound a string input by a string cap (Execution Contract Input 2), so a build that refuses a currency past a limit of its own answers differently from one that admits it → settle whether the atom bounds a currency by a string cap, and what the refusal is, the corpus's default being 1,024 code points
 ```
 
 ## Decisions
