@@ -222,7 +222,7 @@ Term total: the amounts of the parts of one [Split] answer, added up.
 
 Term gap: the part's size times the share total, less the part's share product — the part's distance from the part's exact share, scaled by the share total so that no fraction appears; a gap whose size is below the share total is a part under one minor unit from the exact share.
 
-Term round trip: an [Add] of the other money to the money, then a [Subtract] of the same other money from the result; an [Add] that answers a refusal has no round trip.
+Term round trip: an [Add] of the other money to the money, then a [Subtract] of the same other money from the result; an [Add] or a [Subtract] that answers a refusal has no round trip.
 
 Term negated call: a [Multiply] or a [Split] call naming the money's negation where another call names the money, every other input the same.
 
@@ -386,7 +386,7 @@ NOTE: EVERY check names the rule the check tests.
 ### External checks
 
 ```
-External check 1: An auditor needing the number cap confirmed against the moneys, the rates and the shares held MUST read the records of the composing patterns that hold a money, a rate or a share (Capability requirement 3).
+External check 1: An auditor needing the number cap confirmed against the moneys, the numerators, the denominators and the shares held MUST read the records of the composing patterns that hold a money, a numerator, a denominator or a share (Capability requirement 3).
 External check 2: An auditor needing the number cap and the part cap confirmed above zero MUST read the caps the deployment declares (Capability requirement 4, Capability requirement 5).
 External check 3: An auditor needing a money's currency and amount confirmed held together MUST read the records of the composing patterns that hold a money (Composition note 3).
 External check 4: An auditor needing every action confirmed to write and read no record MUST read the database log of the deployment across the calls of the actions (Operation 23, Operation 24).
@@ -666,7 +666,7 @@ The euro conversion rules of Council Regulation (EC) No 1103/97, a rate used unr
 ```
 status: draft
 formal: pending — no model yet; Invariant 2.1, 3.1, 4.1, 6.1 and 6.2 are claimed at every size and each is owed a proof
-last gate: 2026-11-13 — Final Critique 2 (delta), frozen at 03c8c0c — foundational count 1, cured, not clean, no sample
+last gate: 2026-11-13 — Final Critique 3 (delta), frozen at 18002aa — foundational count 1, cured, not clean, no sample
 
 open:
 - 2026-11-13-a · refining · Term currency; Term well-formed money · a currency is a string of one or more codepoints with no length bound, where the corpus's atoms bound a string input by a string cap (Execution Contract Input 2), so a build that refuses a currency past a limit of its own answers differently from one that admits it → settle whether the atom bounds a currency by a string cap, and what the refusal is, the corpus's default being 1,024 code points
