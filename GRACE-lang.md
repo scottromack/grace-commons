@@ -1,6 +1,8 @@
 # GRACE lang v0.69 — Minimal Earned Grammar
 
-Grace lang is a controlled semantic metalanguage for domain specifications. Grace UX is abstracted microcopy and interaction behavior derived from verified logical state.
+Grace lang is a controlled semantic metalanguage for domain specifications.
+
+Grace UX is abstracted microcopy and interaction behavior derived from verified logical state.
 
 NOTE: self-classification — this document obeys itself: fences classify by first line (Surface 18), everything outside fences and `Term` lines carries nothing (Surface 3), and this document's own vocabulary is Section 13's.
 
