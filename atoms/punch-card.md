@@ -457,13 +457,13 @@ Punch Card is a primitive with no regulatory anchor: a punch card holds no money
 
 ## Status
 
-`grounded (English) on Final Critique 2 — 2026-11-13 at a3fb226 — formal layer pending` — see the Ledger.
+`grounded on Final Critique 2 — 2026-11-13 at a3fb226` — see the Ledger.
 
 ## Ledger
 
 ```
-status: grounded (English) on Final Critique 2 — 2026-11-13 at a3fb226 — formal layer pending
-formal: pending — vote yes, 2026-11-13, on the maintainer's ruling of 2026-11-09 (the formal layer is not optional: both models, an Alloy model of the static data model and a TLA+ model across steps; only the writing vetoes one); owes both models
+status: grounded on Final Critique 2 — 2026-11-13 at a3fb226
+formal: verified — punch-card.als + 11 twins (the static data model: State 1, Identity 6 through 9, Operation 1 through 4, Invariant 1.1 and 1.2 checked on every version a sequence of admitted calls leaves, Identity 1 caught by the Identity 6 check, Identity 2, 4 and 5 by the Identity 9 check); punch-card.tla + 23 twins (across steps and restarts: State 2, Invariant 2.1 through 2.3 and 3.1 through 3.3, Operation 1 and 5 through 19, Identity 3 caught by the Operation 6 and 7 checks, Identity 10 by the Operation 16 check); the vote yes of 2026-11-13, on the maintainer's ruling of 2026-11-09 (both models; only the writing vetoes one), and neither vetoed, 2026-11-13
 last gate: 2026-11-13 — Final Critique 2, a delta round, one reader (Linus kimi-k3.1-pro), frozen at a3fb226 — foundational count 0, clean, one sample, the blind second triage agreeing (it placed no foundational item; it raised Capability requirement 5's citation of Execution Contract Input 2 as refining and the NOTE beside Term stamp goal as rhetorical, both worded as Gift Card's Capability requirement 6 and its NOTE are, so settled by that precedent, not cured); 2026-11-13 — Final Critique 1, full, three fresh readers (GRID glm-5.3-flash, EOS minimax-m3, Linus mimo-v2.6-pro), frozen at 331116c — foundational count 1, not clean (the stamp goal's read moment: two passes foundational, GRID refining; cured by citing Execution Contract Logic confinement 17 at Operation 2, the Stamp Goal entry and the Café example), 12 refining and 5 rhetorical reported (the two summary wordings cured, the rest settled by Gift Card precedent), one sample
 
 open: none
