@@ -957,14 +957,14 @@
   "invariants": 7,
   "kind": "atom",
   "models": {
-   "als": false,
-   "tla": false,
-   "twins": 0
+   "als": true,
+   "tla": true,
+   "twins": 34
   },
   "regulated_by": [],
   "security": false,
   "standards": [],
-  "status": "grounded (English) on Final Critique 4 \u2014 2026-11-13 at 8b6954c \u2014 formal layer pending",
+  "status": "grounded on Final Critique 4 \u2014 2026-11-13 at 8b6954c",
   "title": "Money"
  },
  "multi-party-approval": {
