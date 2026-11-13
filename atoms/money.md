@@ -70,7 +70,7 @@ Term negation: the whole number of the same size with the sign turned — the ne
 ```
 Capability requirement 1: The deployment MAY declare the number cap PER Execution Contract Input 2.
 Capability requirement 2: The deployment MAY declare the part cap PER Execution Contract Input 2.
-Capability requirement 3: The deployment MUST NOT declare a number cap that the size of a money a composing pattern holds EXCEEDS.
+Capability requirement 3: The deployment MUST NOT declare a number cap that the size of a money, a numerator, a denominator or a share a composing pattern holds EXCEEDS.
 Capability requirement 4: The deployment MAY declare the number cap ONLY IF the number cap EXCEEDS 0.
 Capability requirement 5: The deployment MAY declare the part cap ONLY IF the part cap EXCEEDS 0.
 ```
@@ -83,9 +83,9 @@ Term capped number: a whole number whose size is no more than the number cap.
 
 Term capped count: a positive count that is no more than the number cap.
 
-NOTE: the atom holds no record, so the floor Execution Contract Input 2 sets under a cap finds no record of the atom's own to protect; Capability requirement 3 carries the floor to the moneys the composing patterns hold, so no lowered cap leaves a held money refused as invalid-money.
+NOTE: the atom holds no record, so the floor Execution Contract Input 2 sets under a cap finds no record of the atom's own to protect; Capability requirement 3 carries the floor to the moneys, the numerators, the denominators and the shares the composing patterns hold, so no lowered cap leaves a held money refused as invalid-money, a held rate's number refused as invalid-rate or a held share refused as invalid-shares.
 
-NOTE: watch the cap's floor (Capability requirement 4, Capability requirement 5). A number cap of zero refuses every denominator and every share, and a part cap of zero refuses every split, so each is held above zero as Execution Contract Input 2 holds a string cap.
+NOTE: watch the cap's floor (Capability requirement 4, Capability requirement 5). A number cap of zero refuses every nonzero amount and numerator, every denominator and every share, and a part cap of zero refuses every split, so each is held above zero as Execution Contract Input 2 holds a string cap.
 
 NOTE: the atom asks the deployment for no database, no clock and no random source (State 2, Operation 23, Operation 24). An action reads no record, so Execution Contract Read 1 has no read of the atom's to answer (Operation 24).
 
@@ -212,9 +212,9 @@ Term base share: the part's base size, negated where the money's amount is below
 
 Term leftover: the money's size less the base sizes of the parts, added up — how many minor units the base sizes leave over.
 
-Term first parts: as many short parts as the leftover counts, taken from the front of the order of the shares; each of the first parts is a first part.
+Term first parts: as many short parts as the leftover counts, taken from the front of the order of the shares.
 
-Term step: one minor unit in the direction of the money's amount — 1 for a money above zero, -1 for a money below zero.
+Term step: one minor unit in the direction of the money's amount — 1 for a money above zero, -1 for a money below zero; a money of zero has no step, since its leftover is zero and no part is a first part.
 
 Term stepped share: the part's base share plus the step — the base share moved one minor unit away from zero.
 
@@ -222,7 +222,7 @@ Term total: the amounts of the parts of one [Split] answer, added up.
 
 Term gap: the part's size times the share total, less the part's share product — the part's distance from the part's exact share, scaled by the share total so that no fraction appears; a gap whose size is below the share total is a part under one minor unit from the exact share.
 
-Term round trip: an [Add] of the other money to the money, then a [Subtract] of the same other money from the result.
+Term round trip: an [Add] of the other money to the money, then a [Subtract] of the same other money from the result; an [Add] that answers a refusal has no round trip.
 
 Term negated call: a [Multiply] or a [Split] call naming the money's negation where another call names the money, every other input the same.
 
@@ -352,7 +352,7 @@ The conformance table, each row a call and the answer the atom owes, under the d
 | `split(money("USD", -1), [1, 1])` | -1, 0 | Term step |
 | `split(money("USD", 0), [1, 1])` | 0, 0 | Term leftover |
 | `add(money("USD", 100), money("EUR", 100))` | mixed-currency | Operation 3 |
-| `add(money("USD", 10.5), money("EUR", 100))` | invalid-money | Operation 1, Execution Contract Refusal 1 |
+| `add(money("USD", 10.5), money("EUR", 100))` | invalid-money | Operation 1, Operation 3, Execution Contract Refusal 1 |
 | `add(money("USD", 100), money("USD", 10.5))` | invalid-money | Operation 2 |
 | `add(money("USD", 999999999999999999), money("USD", 1))` | over-cap | Operation 4 |
 | `subtract(money("USD", -999999999999999999), money("USD", 1))` | over-cap | Operation 6 |
@@ -363,7 +363,7 @@ The conformance table, each row a call and the answer the atom owes, under the d
 | `split(money("USD", 100), [])` | invalid-shares | Operation 18 |
 | `split(money("USD", 100), [2, 0, 3])` | invalid-shares | Operation 19 |
 
-Term conformance table: the table above, each row a call and the answer the atom owes under the default caps and in US dollars but for the row in yen.
+Term conformance table: the table above, each row a call and the answer the atom owes under the default caps, in the currencies the call names.
 
 ### Conformance checks
 
@@ -378,7 +378,7 @@ Check 5.1: An auditor MUST find EVERY round trip answering the money (Invariant 
 Check 6.1: An auditor MUST find EVERY negated [Multiply] call answering the negation of the result (Invariant 6.1).
 Check 6.2: An auditor MUST find EVERY negated [Split] call answering the negation of EVERY part (Invariant 6.2).
 Check 7.1: An auditor MUST find no result whose size EXCEEDS the number cap (Invariant 7.1).
-Check 8.1: An auditor MUST find, for EVERY row of the conformance table, the row's answer on the row's call under the default caps and in United States dollars but for the row in yen (Operation 1 through 22).
+Check 8.1: An auditor MUST find, for EVERY row of the conformance table, the row's answer on the row's call under the default caps, in the currencies the call names (Operation 1 through 22).
 ```
 
 NOTE: EVERY check names the rule the check tests.
@@ -386,7 +386,7 @@ NOTE: EVERY check names the rule the check tests.
 ### External checks
 
 ```
-External check 1: An auditor needing the number cap confirmed against the moneys held MUST read the records of the composing patterns that hold a money (Capability requirement 3).
+External check 1: An auditor needing the number cap confirmed against the moneys, the rates and the shares held MUST read the records of the composing patterns that hold a money, a rate or a share (Capability requirement 3).
 External check 2: An auditor needing the number cap and the part cap confirmed above zero MUST read the caps the deployment declares (Capability requirement 4, Capability requirement 5).
 External check 3: An auditor needing a money's currency and amount confirmed held together MUST read the records of the composing patterns that hold a money (Composition note 3).
 External check 4: An auditor needing every action confirmed to write and read no record MUST read the database log of the deployment across the calls of the actions (Operation 23, Operation 24).
@@ -538,7 +538,7 @@ Projection:   shares
 
 #### Number Cap
 
-The largest size of a whole number a call names or answers: an amount, a numerator, a denominator or a share; 999999999999999999 where a deployment declares none, which is eighteen digits. A deployment never declares one below the size of a money a composing pattern holds, and never one of zero.
+The largest size of a whole number a call names or answers: an amount, a numerator, a denominator or a share; 999999999999999999 where a deployment declares none, which is eighteen digits. A deployment never declares one below the size of a money, a numerator, a denominator or a share a composing pattern holds, and never one of zero.
 
 Kind:         Parameter
 Parameter of: every action ([Add], [Subtract], [Compare], [Negate], [Multiply], [Split])
@@ -666,7 +666,7 @@ The euro conversion rules of Council Regulation (EC) No 1103/97, a rate used unr
 ```
 status: draft
 formal: pending — no model yet; Invariant 2.1, 3.1, 4.1, 6.1 and 6.2 are claimed at every size and each is owed a proof
-last gate: 2026-11-13 — Final Critique 1, frozen at 7803f21 — foundational count 3, cured, not clean, no sample
+last gate: 2026-11-13 — Final Critique 2 (delta), frozen at 03c8c0c — foundational count 1, cured, not clean, no sample
 
 open:
 - 2026-11-13-a · refining · Term currency; Term well-formed money · a currency is a string of one or more codepoints with no length bound, where the corpus's atoms bound a string input by a string cap (Execution Contract Input 2), so a build that refuses a currency past a limit of its own answers differently from one that admits it → settle whether the atom bounds a currency by a string cap, and what the refusal is, the corpus's default being 1,024 code points
