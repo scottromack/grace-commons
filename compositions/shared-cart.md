@@ -61,14 +61,6 @@ Term constituents: [Cart](../atoms/cart.md), [Permissions](../atoms/permissions.
 
 Drafted before any rule (the section titled *Workflow for adding a new pattern* in [`contributing.md`](../contributing.md), step 3). Every rule the draft writes fills a cell of the closure table under Action wiring.
 
-**Constituents grounded first.** Every constituent is grounded.
-
-| Constituent | Kind | Status | Grounded |
-|---|---|---|---|
-| Cart | atom | `grounded on Final Critique 4 — 2026-10-24` | yes |
-| Permissions | atom | `grounded on Final Critique 8 — 2026-10-26` | yes |
-| Event Log | atom | `grounded on Final Critique 13 — 2026-10-25` | yes |
-
 **Bindings.** Each constituent parameter the composition binds, and to what.
 
 | Constituent | Parameter | Bound to |
@@ -80,25 +72,6 @@ Drafted before any rule (the section titled *Workflow for adding a new pattern* 
 | Permissions | string cap | the deployment's, unchanged |
 | Event Log | data | a cart event (Action wiring 22) |
 | Event Log | payload cap | the deployment's, unchanged |
-
-**Constituent surface.** What each call can answer, and where the Execution Contract lands it by default.
-
-| Call | Answers | Refuses | Default landing |
-|---|---|---|---|
-| Cart.open | cart_id | invalid-currency \| storage-failure | storage-failure: Execution Contract Constituent failure 1 |
-| Cart.add | line_id | not-known \| invalid-item-reference \| invalid-quantity \| invalid-price \| already-in-cart \| cart-full \| storage-failure | storage-failure: Execution Contract Constituent failure 1 |
-| Cart.change_quantity | ok | not-known \| invalid-quantity \| storage-failure | storage-failure: Execution Contract Constituent failure 1 |
-| Cart.remove | ok | not-known \| storage-failure | storage-failure: Execution Contract Constituent failure 1 |
-| Cart.clear | ok | not-known \| storage-failure | storage-failure: Execution Contract Constituent failure 1 |
-| Cart.read | cart | not-known | failed read: Execution Contract Read 1 |
-| Permissions.grant | grant_id | invalid-request \| storage-failure | storage-failure: Execution Contract Constituent failure 1 |
-| Permissions.revoke | ok | not-known \| not-active \| storage-failure | storage-failure: Execution Contract Constituent failure 1 |
-| Permissions.permitted | permitted \| denied | — | failed read: Execution Contract Read 1 |
-| Permissions.read | every grant | — | failed read: Execution Contract Read 1 |
-| Event Log.append | event_id | invalid-payload \| storage-failure | storage-failure: Execution Contract Constituent failure 1 |
-| Event Log.read | events | invalid-query | failed read: Execution Contract Read 1 |
-
-Every call that never answers lands under Execution Contract Error model 1, and every failed read under Execution Contract Read 1.
 
 ---
 
@@ -256,24 +229,24 @@ Term permitted history: a [Cart History] call whose view scope check answered pe
 
 #### Closure table
 
-Every action, every constituent call it makes, and for each call its answer, its refusals, a failed read and a call that never answers, each with the rule that lands it. A refusal is answered unchanged (Composes 11, Action wiring 24); every storage-failure is Execution Contract Constituent failure 1, and an action's writes commit together or not at all (Execution Contract Database 1).
+Every action, every constituent call it makes, and for each call its answer, its refusals, a failed read and a call that never answers, each with the rule that lands it. On every row a failed read lands under Execution Contract Read 1 and a call that never answers under Execution Contract Error model 1, so those two columns are stated here once and left out. A refusal is answered unchanged (Composes 11, Action wiring 24); every storage-failure is Execution Contract Constituent failure 1, and an action's writes commit together or not at all (Execution Contract Database 1).
 
-| Action | Call | Answer | Refusals | Failed read | No answer |
-|---|---|---|---|---|---|
-| [Open Cart] | Cart.open | the cart id, answered (Action wiring 8) | invalid-currency: Action wiring 24 | Execution Contract Read 1 | Execution Contract Error model 1 |
-| [Open Cart] | Permissions.grant, once per verb scope | kept by Permissions (Action wiring 7) | invalid-request: Action wiring 24 for an actor reference or cart scope over Permissions' string cap (Permissions String 6); unreachable for a blank actor reference, which Action wiring 5 refuses first | Execution Contract Read 1 | Execution Contract Error model 1 |
-| every changing action | Event Log.append | kept by Event Log (Action wiring 22) | invalid-payload: unreachable under Capability requirement 2 and Capability requirement 3 | Execution Contract Read 1 | Execution Contract Error model 1 |
-| every gated action | Permissions.permitted | permitted: the action proceeds (Action wiring 1); denied: Action wiring 2, Action wiring 3, and Action wiring 29 for a cart id no grant names | — | Execution Contract Read 1 | Execution Contract Error model 1 |
-| [Share Cart] | Permissions.grant | the grant id, answered (Action wiring 12) | invalid-request: Action wiring 24 for a friend reference or cart scope over Permissions' string cap (Permissions String 6); unreachable otherwise, since Action wiring 9 and 10 refuse the call before it is made, behind permission-denied (Execution Contract Refusal 1) | Execution Contract Read 1 | Execution Contract Error model 1 |
-| [Unshare Cart] | Permissions.read | the grant, found or not (Action wiring 13) | — | Execution Contract Read 1 | Execution Contract Error model 1 |
-| [Unshare Cart] | Permissions.revoke | ok, answered (Action wiring 30) | not-known: unreachable, Action wiring 13 answers first; not-active: Action wiring 24 | Execution Contract Read 1 | Execution Contract Error model 1 |
-| [Add Line] | Cart.add | the line id, answered (Action wiring 16) | not-known: unreachable under Action wiring 29 and Invariant 2.1; every other refusal but storage-failure, cart-full among them: Action wiring 24 | Execution Contract Read 1 | Execution Contract Error model 1 |
-| [Change Quantity], [Remove Line] | Cart.read | the cart's lines (Action wiring 17, Action wiring 19) | not-known: unreachable under Action wiring 29 and Invariant 2.1 | Execution Contract Read 1 | Execution Contract Error model 1 |
-| [Change Quantity] | Cart.change_quantity | ok, answered (Action wiring 30) | not-known: unreachable, Action wiring 17 answers first; invalid-quantity: Action wiring 24 | Execution Contract Read 1 | Execution Contract Error model 1 |
-| [Remove Line] | Cart.remove | ok, answered (Action wiring 30) | not-known: unreachable, Action wiring 19 answers first | Execution Contract Read 1 | Execution Contract Error model 1 |
-| [Clear Cart] | Cart.clear | ok, answered (Action wiring 30) | not-known: unreachable under Action wiring 29 and Invariant 2.1 | Execution Contract Read 1 | Execution Contract Error model 1 |
-| [View Cart] | Cart.read | the cart (Action wiring 25) | not-known: unreachable under Action wiring 29 and Invariant 2.1 | Execution Contract Read 1 | Execution Contract Error model 1 |
-| [View Cart], [Cart History] | Event Log.read | the events, filtered to the cart events of the cart (Action wiring 25, Action wiring 26, Action wiring 27) | invalid-query: unreachable under Action wiring 27, which no refused query meets; the whole-log query is a query Event Log admits that meets Action wiring 27 | Execution Contract Read 1 | Execution Contract Error model 1 |
+| Action | Call | Answer | Refusals |
+|---|---|---|---|
+| [Open Cart] | Cart.open | the cart id, answered (Action wiring 8) | invalid-currency: Action wiring 24 |
+| [Open Cart] | Permissions.grant, once per verb scope | kept by Permissions (Action wiring 7) | invalid-request: Action wiring 24 for an actor reference or cart scope over Permissions' string cap (Permissions String 6); unreachable for a blank actor reference, which Action wiring 5 refuses first |
+| every changing action | Event Log.append | kept by Event Log (Action wiring 22) | invalid-payload: unreachable under Capability requirement 2 and Capability requirement 3 |
+| every gated action | Permissions.permitted | permitted: the action proceeds (Action wiring 1); denied: Action wiring 2, Action wiring 3, and Action wiring 29 for a cart id no grant names | — |
+| [Share Cart] | Permissions.grant | the grant id, answered (Action wiring 12) | invalid-request: Action wiring 24 for a friend reference or cart scope over Permissions' string cap (Permissions String 6); unreachable otherwise, since Action wiring 9 and 10 refuse the call before it is made, behind permission-denied (Execution Contract Refusal 1) |
+| [Unshare Cart] | Permissions.read | the grant, found or not (Action wiring 13) | — |
+| [Unshare Cart] | Permissions.revoke | ok, answered (Action wiring 30) | not-known: unreachable, Action wiring 13 answers first; not-active: Action wiring 24 |
+| [Add Line] | Cart.add | the line id, answered (Action wiring 16) | not-known: unreachable under Action wiring 29 and Invariant 2.1; every other refusal but storage-failure, cart-full among them: Action wiring 24 |
+| [Change Quantity], [Remove Line] | Cart.read | the cart's lines (Action wiring 17, Action wiring 19) | not-known: unreachable under Action wiring 29 and Invariant 2.1 |
+| [Change Quantity] | Cart.change_quantity | ok, answered (Action wiring 30) | not-known: unreachable, Action wiring 17 answers first; invalid-quantity: Action wiring 24 |
+| [Remove Line] | Cart.remove | ok, answered (Action wiring 30) | not-known: unreachable, Action wiring 19 answers first |
+| [Clear Cart] | Cart.clear | ok, answered (Action wiring 30) | not-known: unreachable under Action wiring 29 and Invariant 2.1 |
+| [View Cart] | Cart.read | the cart (Action wiring 25) | not-known: unreachable under Action wiring 29 and Invariant 2.1 |
+| [View Cart], [Cart History] | Event Log.read | the events, filtered to the cart events of the cart (Action wiring 25, Action wiring 26, Action wiring 27) | invalid-query: unreachable under Action wiring 27, which no refused query meets; the whole-log query is a query Event Log admits that meets Action wiring 27 |
 
 ### Wiring decision
 
