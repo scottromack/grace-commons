@@ -144,3 +144,5 @@ patterns:
     file: atoms/subscription.md
   - id: 61
     file: atoms/tamper-evidence.md
+  - id: 62
+    file: atoms/punch-card.md

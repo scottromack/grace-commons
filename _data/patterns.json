@@ -1301,6 +1301,23 @@
   "status": "grounded on Final Critique 13 \u2014 2026-11-05 at 8adbf07",
   "title": "Provisional Commitment"
  },
+ "punch-card": {
+  "composed_by": [],
+  "domain": null,
+  "grounded": false,
+  "invariants": 3,
+  "kind": "atom",
+  "models": {
+   "als": false,
+   "tla": false,
+   "twins": 0
+  },
+  "regulated_by": [],
+  "security": false,
+  "standards": [],
+  "status": "draft",
+  "title": "Punch Card"
+ },
  "recoverable-invocation": {
   "composes": [
    "lease"
