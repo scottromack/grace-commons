@@ -17,7 +17,7 @@ toc: true
 
 ## Summary
 
-Punch Card is a shop's punch card: a punch card collects one stamp per purchase, and a punch card that has reached its goal, five stamps where the shop sets no other number, is traded for one free item. Whoever holds the punch card's code collects the stamps and claims the free item, so the code is drawn at random, so that nobody can guess it, and the shop's own records name the punch card by a separate card id that carries no meaning of its own. A stamp adds exactly one, and a full punch card takes no more stamps until its free item is claimed. Claiming the free item empties the punch card, so the same punch card starts on the next five, and the punch card counts every free item it has given. What counts as a purchase, which item is free, who at the shop may stamp, and extras such as double-stamp days or expiry each belong to another pattern, which is why one punch card serves a thrift store, a café and a car wash alike.
+Punch Card is a shop's punch card: a punch card collects one stamp per purchase, and a punch card that has reached its goal, five stamps where the shop sets no other number, is traded for one free item. Whoever holds the punch card's code collects the stamps and claims the free item, so the code is drawn at random, so that nobody can guess it, and the shop's own records name the punch card by a separate card id that carries no meaning of its own. A stamp adds exactly one, and a full punch card takes no more stamps until its free item is claimed. Claiming the free item empties the punch card, so the same punch card starts again from no stamps, and the punch card counts every free item it has given. What counts as a purchase, which item is free, who at the shop may stamp, and extras such as double-stamp days or expiry each belong to another pattern, which is why one punch card serves a thrift store, a café and a car wash alike.
 
 ---
 
@@ -136,7 +136,7 @@ Operation 12: IF the punch card's stamps DOES NOT EQUAL the punch card's goal TH
 Operation 13: [Redeem] MUST set stamps to zero.
 Operation 14: [Redeem] MUST set redemptions to (the punch card's redemptions + 1) PER Execution Contract Logic confinement 9.
 Operation 15: [Redeem] MUST answer the punch card's new redemptions.
-Operation 16: IF no punch card EXISTS for the card id THEN [Read] MUST answer not-known.
+Operation 16: IF no punch card EXISTS for the card id, including a card id that is not a string, THEN [Read] MUST answer not-known.
 Operation 17: [Read] MUST answer the punch card's card id, goal, stamps AND redemptions.
 Operation 18: [Read] MUST NOT answer the card code.
 Operation 19: [Read] MUST NOT write.
@@ -321,7 +321,7 @@ Kind: Operation
 
 #### Read
 
-Answers a punch card for the shop's records, named by its [Card Id]: its [Goal], [Stamps] and [Redemptions], never its [Card Code]; changes nothing.
+Answers a punch card for the shop's records, named by its [Card Id]: the card id, its [Goal], [Stamps] and [Redemptions], never its [Card Code]; changes nothing.
 
 Kind: Operation
 
@@ -457,14 +457,14 @@ Punch Card is a primitive with no regulatory anchor: a punch card holds no money
 
 ## Status
 
-`grounded on Final Critique 2 — 2026-11-13 at a3fb226` — see the Ledger.
+`grounded on Final Critique 3 — 2026-11-13 at b82922c` — see the Ledger.
 
 ## Ledger
 
 ```
-status: grounded on Final Critique 2 — 2026-11-13 at a3fb226
+status: grounded on Final Critique 3 — 2026-11-13 at b82922c
 formal: verified — punch-card.als + 11 twins (the static data model: State 1, Identity 6 through 9, Operation 1 through 4, Invariant 1.1 and 1.2 checked on every version a sequence of admitted calls leaves, Identity 1 caught by the Identity 6 check, Identity 2, 4 and 5 by the Identity 9 check); punch-card.tla + 23 twins (across steps and restarts: State 2, Invariant 2.1 through 2.3 and 3.1 through 3.3, Operation 1 and 5 through 19, Identity 3 caught by the Operation 6 and 7 checks, Identity 10 by the Operation 16 check); the vote yes of 2026-11-13, on the maintainer's ruling of 2026-11-09 (both models; only the writing vetoes one), and neither vetoed, 2026-11-13
-last gate: 2026-11-13 — Final Critique 2, a delta round, one reader (Linus kimi-k3.1-pro), frozen at a3fb226 — foundational count 0, clean, one sample, the blind second triage agreeing (it placed no foundational item; it raised Capability requirement 5's citation of Execution Contract Input 2 as refining and the NOTE beside Term stamp goal as rhetorical, both worded as Gift Card's Capability requirement 6 and its NOTE are, so settled by that precedent, not cured); 2026-11-13 — Final Critique 1, full, three fresh readers (GRID glm-5.3-flash, EOS minimax-m3, Linus mimo-v2.6-pro), frozen at 331116c — foundational count 1, not clean (the stamp goal's read moment: two passes foundational, GRID refining; cured by citing Execution Contract Logic confinement 17 at Operation 2, the Stamp Goal entry and the Café example), 12 refining and 5 rhetorical reported (the two summary wordings cured, the rest settled by Gift Card precedent), one sample
+last gate: 2026-11-13 — Final Critique 3, full, three fresh readers (GRID glm-5.3-flash, EOS minimax-m3, Linus mimo-v2.6-pro), frozen at b82922c — foundational count 0, clean, one sample, the blind second triage agreeing (it placed no item foundational; Linus's two foundational ratings were placed refining Kind D, [Read]'s non-string card id, whose answer Operation 16 already gave and which Operation 16 now states as Operation 6 does, and not a finding Kind C, a shred over Checks 4.1 and 4.2, which Execution Contract Database 5 and Database 6 own; the Summary's "next five" and the Read entry's missing card id cured, the rest settled by Gift Card precedent); 2026-11-13 — Final Critique 2, a delta round, one reader (Linus kimi-k3.1-pro), frozen at a3fb226 — foundational count 0, clean, one sample, the blind second triage agreeing (it placed no foundational item; it raised Capability requirement 5's citation of Execution Contract Input 2 as refining and the NOTE beside Term stamp goal as rhetorical, both worded as Gift Card's Capability requirement 6 and its NOTE are, so settled by that precedent, not cured); 2026-11-13 — Final Critique 1, full, three fresh readers (GRID glm-5.3-flash, EOS minimax-m3, Linus mimo-v2.6-pro), frozen at 331116c — foundational count 1, not clean (the stamp goal's read moment: two passes foundational, GRID refining; cured by citing Execution Contract Logic confinement 17 at Operation 2, the Stamp Goal entry and the Café example), 12 refining and 5 rhetorical reported (the two summary wordings cured, the rest settled by Gift Card precedent), one sample
 
 open: none
 ```
