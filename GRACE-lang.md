@@ -4,7 +4,7 @@ nav_order: 2
 parent: The Library
 ---
 
-# GRACE lang v0.72 — Minimal Earned Grammar
+# GRACE lang v0.73 — Minimal Earned Grammar
 
 Grace lang is a controlled semantic metalanguage for domain specifications.
 
@@ -31,6 +31,9 @@ Principle 11: A writer MUST declare a meaning locally ONLY IF the domain forces 
 Principle 12: The corpus MUST NOT carry a retired form outside a historical record.
 Principle 13: A code span MAY name a retired form.
 Principle 14: The maintainer MAY mark a retirement closed ONLY IF no use of the retired form EXISTS outside the historical records.
+Principle 15: The grammar MUST express a form in the most natural English that keeps the form's meaning exact.
+Principle 16: A writer MUST express a name and a rule in the most natural English that keeps the meaning exact.
+Principle 17: IF the most natural wording leaves the meaning inexact THEN the grammar and a writer MUST keep the meaning exact.
 ```
 
 Term contested: the concept's free-prose expression drifted, was read two ways, OR produced a finding.
@@ -46,7 +49,7 @@ Term retirement: the change that forbids a form, open from the version that reco
 Term historical record: a dated entry on a page whose front matter names Project Log as its parent, a dated entry in the register in `governance.md`, a dated entry in a specification's Decisions section, or a dated entry in this document's Changes section; the undated text around such an entry is not one, and neither is an open Ledger line, which is live work.
 
 WHY:
-The test is the concept, not the token; recurrence alone admits noise (*Measure the form, not the word*, `pressure-testing.md`). The council advises and never admits; its process is `governance.md`'s, not the grammar's. *Notation is law*: a retired form survives nowhere a reader learns it, because a half-done retirement is itself the defect. Local specs declare domain meaning; a spec that restates a grammar-owned concept adds a second owner for something it does not own.
+The test is the concept, not the token; recurrence alone admits noise (*Measure the form, not the word*, `pressure-testing.md`). The council advises and never admits; its process is `governance.md`'s, not the grammar's. *Notation is law*: a retired form survives nowhere a reader learns it, because a half-done retirement is itself the defect. Local specs declare domain meaning; a spec that restates a grammar-owned concept adds a second owner for something it does not own. Natural wording is the default and meaning is king: the instances stand where they are, sugar that shortens a rule and may not add to it (Sugar 2), and Strict Caveman, which gives up a natural turn, the pronoun, where meaning needs it.
 
 ---
 
