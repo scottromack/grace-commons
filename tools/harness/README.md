@@ -6,6 +6,8 @@ One reproducible checker for both formal-model flavors in the library:
 - **Alloy** (`.als`) via the `org.alloytools.alloy.dist` jar running headless (`exec`) under a JRE 17.
 - **TLAPS** (`tlapm`), the TLA+ Proof System, for a correct `.tla` model that holds a `THEOREM` with a `PROOF`: a law that must hold at every size, where TLC can only check the sizes it is given. `audit.mjs` hands each such model to `tlapm --strict` (`tlapm.mjs`); every obligation proved, or the audit is red. No page holds a proof yet, so the audit reports `0 proofs, 0 failures`, and tlapm need not be installed to run it.
 
+A pattern's models sit in its folder's models folder, `atoms/models/` or `compositions/models/` (Scott, 2026-11-13): the model, its `-buggy` twins and probes, and each `.tla`'s same-name `.cfg` beside it. A twin belongs to the model in the same folder whose name it extends (`twins.mjs`). `audit.mjs --only` and `--except` take a model's path or its page's (`--only atoms/gift-card` picks `atoms/models/gift-card*`).
+
 The JRE and the WASM checker are provisioned **from the npm registry only** — no Adoptium / GitHub / Maven downloads, which are blocked in the sandbox. The Alloy jar at `tools/alloy/alloy.jar` and the TLC jar at `tools/tlc/tla2tools.jar` are committed, not downloaded.
 
 ## Setup (once per session)
@@ -23,11 +25,11 @@ This installs `tla-checker` into `tools/harness/node_modules` and the JRE 17 int
 
 ```bash
 # A correct model must hold (TLA+) / have all checks UNSAT and all runs SAT (Alloy):
-node check.mjs ../../atoms/party-identity.tla
-node check.mjs ../../compositions/session-gated-authorization.als
+node check.mjs ../../atoms/models/party-identity.tla
+node check.mjs ../../compositions/models/session-gated-authorization.als
 
 # A buggy twin must be REJECTED (the vacuity guard):
-node check.mjs ../../atoms/party-identity-buggy.tla --buggy
+node check.mjs ../../atoms/models/party-identity-buggy.tla --buggy
 
 # Run every model in the repo, and ask which twin breaks each check:
 node audit.mjs

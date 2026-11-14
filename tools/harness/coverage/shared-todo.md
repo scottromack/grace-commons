@@ -7,9 +7,9 @@
 
 ## Step 1 — harness re-run (must pass)
 
-- Correct model: `node check.mjs ../../compositions/shared-todo.tla` → `PASS` ☐ *(not re-run here; lineage records green run 2026-06-03, 3 states exhaustive)*
-- Buggy twin: `node check.mjs ../../compositions/shared-todo-buggy.tla --buggy` → `PASS` (rejected) ☐
-- Alloy (2026-11-12): `node check.mjs ../../compositions/shared-todo.als` → `HOLDS` ✓ *(20 commands: 6 checks UNSAT, 14 runs SAT, at `for 3 but 3 Call, 9 Scope`, about 5 s)*; each `shared-todo-buggy-<defect>.als --buggy` → `CAUGHT` ✓ *(8 twins)*. Three facts, each from outside the page's promises: Assignment's active_for answers at most one active assignment per task id (Assignment's own guarantee, inherited under Composes 6); an assignment Assignment records is a new one; a deployment's finer scope gates only actions the scope it refines gates (Scope vocabulary 11). The gate, the scopes it asks and every action's constituent calls are the page's rules, in `wired`, never facts.
+- Correct model: `node check.mjs ../../compositions/models/shared-todo.tla` → `PASS` ☐ *(not re-run here; lineage records green run 2026-06-03, 3 states exhaustive)*
+- Buggy twin: `node check.mjs ../../compositions/models/shared-todo-buggy.tla --buggy` → `PASS` (rejected) ☐
+- Alloy (2026-11-12): `node check.mjs ../../compositions/models/shared-todo.als` → `HOLDS` ✓ *(20 commands: 6 checks UNSAT, 14 runs SAT, at `for 3 but 3 Call, 9 Scope`, about 5 s)*; each `shared-todo-buggy-<defect>.als --buggy` → `CAUGHT` ✓ *(8 twins)*. Three facts, each from outside the page's promises: Assignment's active_for answers at most one active assignment per task id (Assignment's own guarantee, inherited under Composes 6); an assignment Assignment records is a new one; a deployment's finer scope gates only actions the scope it refines gates (Scope vocabulary 11). The gate, the scopes it asks and every action's constituent calls are the page's rules, in `wired`, never facts.
 - **The Alloy model's finding** (recorded, not cured): Scope vocabulary 11 has a deployment gate "that action" on its finer scope but names no action, only the vocabulary scope refined; for tasks:assign, which gates both [Assign Task] and [Reassign Task], the page does not say whether a finer scope refining it gates one or both. The model lets the deployment choose and checks Invariant 1.1 over every choice.
 
 ## Step 2 — coverage matrix

@@ -7,8 +7,8 @@
 
 ## Step 1 — harness run
 
-- Correct model: `node check.mjs ../../atoms/provenance.als` → `HOLDS` ✓ *(11 commands: 6 checks UNSAT, 5 runs SAT, at `for 5 but 4 Int`, about 20 s)*
-- Correct model: `node check.mjs ../../atoms/provenance.tla` → `HOLDS` ✓ *(8,314 states, TLC about 20 s on one worker)*
+- Correct model: `node check.mjs ../../atoms/models/provenance.als` → `HOLDS` ✓ *(11 commands: 6 checks UNSAT, 5 runs SAT, at `for 5 but 4 Int`, about 20 s)*
+- Correct model: `node check.mjs ../../atoms/models/provenance.tla` → `HOLDS` ✓ *(8,314 states, TLC about 20 s on one worker)*
 - Alloy twins, one defect each, each `CAUGHT` on the check it targets: `-guard-unchecked` (`A_Inv4_2`), `-transfer-from-caller` (`A_Inv4_3`), `-transfer-keeps-custodian` (`A_Inv4_4`), `-counter-unraised` (`A_Inv5_1`), `-originate-blank-custodian` (`A_Inv7_1`), `-transfer-blank-to` (`A_Inv7_2`).
 - TLA+ twins, one defect each, each `CAUGHT` on the check it targets when run against that check alone: `-disclose-amends` (`Inv1_1_EntryFixed`), `-storage-rollback` (`Inv2_1_CountNeverFalls`), `-newest-first` (`Inv2_2_SequenceFixed`, `Inv3_2_GenesisAtOne`), `-reoriginate` (`Inv3_3_NoSecondOriginate`, `Inv3_1_OneGenesis`), `-transfer-cache-stale` (`Inv4_1_OneCurrentCustodian`), `-storage-takes-number` (`Inv5_2_DenseFromOne`, `Op42_RefusedLeavesChain`), `-read-by-instant` (`Inv5_3_OrderBySequence`), `-archive-toggles` (`Inv6_1_ArchivedStays`), `-transfer-on-archived` (`Inv6_2_ArchivedAdmitsNothing`), `-genesis-unchecked` (`Inv8_2_GenesisTyped`), `-transfer-received` (`Inv8_3_LaterNotGenesis`), `-archive-unrecorded` (`Inv8_4_ArchivedLast`), `-archive-deletes` (`Inv10_1_ChainsNeverFall`).
 - `node audit.mjs --only atoms/provenance --limit-min 50` (2026-11-12): 21 models, 2 HOLDS, 19 CAUGHT, 22 checks in 2 correct models, 0 red. Where a twin breaks several checks, its TWIN PER CHECK section may name another breaking twin than the row below; each row's twin was also run against its check alone and breaks it.

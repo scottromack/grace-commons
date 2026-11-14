@@ -63,6 +63,9 @@ from lint import (  # noqa: E402
     check_requirement_text,
     DECORATING_FORTHCOMING,
     load_patterns,
+    check_models_present,
+    check_formal_siblings,
+    check_stray_directory,
 )
 
 # ── The motivating case, pinned SYNTHETICALLY ─────────────────────────────── #
@@ -565,6 +568,78 @@ def check_history_file_synthetic(problems: list[str]) -> None:
         loaded = sorted(p.relative_to(root).as_posix() for p in load_patterns(root))
         if loaded != ["atoms/x.md", "compositions/x.md"]:
             problems.append(f"history file: load_patterns read {loaded}, want the two specs alone")
+
+
+# ── The models folder: a pattern's models, found where they sit ───────────── #
+# Scott, 2026-11-13, ruling 6: the models (the model, its twins, their
+# configurations) sit in one models folder inside atoms/ and one inside
+# compositions/. C-model-missing, C-twin-missing, M-model-name, M-model-unnamed
+# and M-model-misplaced read a spec's models there, and M-stray-directory lets
+# `models/` alone inside a pattern folder.
+MODEL_PAGE = ("# X\n\nThe model `x.tla` runs in tools/harness with its buggy twin.\n\n"
+              "## Status\n\n`done — 2026-11-13` — see the Ledger.\n\n## Ledger\n\n"
+              "formal: verified — x.tla + 1 twin, 2026-11-13\n")
+X_TLA = "---- MODULE {name} ----\nVARIABLE v\nInit == v = 0\nNext == v' = v\n====\n"
+
+
+def model_findings(files: dict[str, str]) -> list[tuple[str, str]]:
+    """(code, file) of every model and stray-directory finding over a synthetic root."""
+    import tempfile
+    with tempfile.TemporaryDirectory() as d:
+        root = Path(d)
+        for sub in ("atoms", "compositions"):
+            (root / sub).mkdir()
+        for rel, text in files.items():
+            (root / rel).parent.mkdir(parents=True, exist_ok=True)
+            (root / rel).write_text(text, encoding="utf-8")
+        pats = load_patterns(root)
+        found = check_models_present(pats) + check_formal_siblings(root, pats) + check_stray_directory(root)
+        return sorted((f.code, Path(f.path).relative_to(root).as_posix()) for f in found)
+
+
+MODEL_FIXTURES = [
+    # (what, files, the findings it must give)
+    ("the model and its twin in atoms/models/", {
+        "atoms/x.md": MODEL_PAGE, "atoms/models/x.tla": X_TLA.format(name="x"),
+        "atoms/models/x-buggy.tla": X_TLA.format(name="x-buggy"), "atoms/models/x.cfg": "INIT Init\n"}, []),
+    ("the same in compositions/models/", {
+        "compositions/x.md": MODEL_PAGE, "compositions/models/x.tla": X_TLA.format(name="x"),
+        "compositions/models/x-buggy.tla": X_TLA.format(name="x-buggy")}, []),
+    ("no model anywhere", {"atoms/x.md": MODEL_PAGE},
+     [("C-model-missing", "atoms/x.md"), ("M-model-misplaced", "atoms/x.md")]),
+    ("a model with no twin in its folder", {
+        "atoms/x.md": MODEL_PAGE, "atoms/models/x.tla": X_TLA.format(name="x")},
+     [("C-twin-missing", "atoms/x.md")]),
+    ("a model in another pattern folder's models folder", {
+        "atoms/x.md": MODEL_PAGE, "compositions/models/x.tla": X_TLA.format(name="x"),
+        "compositions/models/x-buggy.tla": X_TLA.format(name="x-buggy")},
+     [("C-model-missing", "atoms/x.md"), ("M-model-misplaced", "atoms/x.md")]),
+    ("a module name that is not its file's, and a model with none, in a models folder", {
+        "atoms/models/y.tla": X_TLA.format(name="z"), "atoms/models/w.als": "sig A {}\n"},
+     [("M-model-name", "atoms/models/y.tla"), ("M-model-unnamed", "atoms/models/w.als")]),
+    ("a directory in a pattern folder other than models/", {
+        "atoms/drafts/x.tla": X_TLA.format(name="x"), "compositions/models/keep.cfg": "INIT Init\n"},
+     [("M-stray-directory", "atoms/drafts")]),
+]
+# A model file beside the patterns is misplaced, and is not read as the page's model.
+MODEL_FIXTURES_BESIDE = [
+    ("the model, its twin and its configuration beside the spec", {
+        "atoms/x.md": MODEL_PAGE, "atoms/x.tla": X_TLA.format(name="x"),
+        "atoms/x-buggy.tla": X_TLA.format(name="x-buggy"), "atoms/x.cfg": "INIT Init\n"},
+     [("C-model-missing", "atoms/x.md"), ("M-model-misplaced", "atoms/x.md"), ("M-model-misplaced", "atoms/x.tla"),
+      ("M-model-misplaced", "atoms/x-buggy.tla"), ("M-model-misplaced", "atoms/x.cfg")]),
+    ("an Alloy model beside a composition, its name not read", {"compositions/y.als": "module z\n"},
+     [("M-model-misplaced", "compositions/y.als")]),
+]
+
+
+def check_models_folder_synthetic(problems: list[str]) -> int:
+    fixtures = MODEL_FIXTURES + MODEL_FIXTURES_BESIDE
+    for what, files, want in fixtures:
+        got = model_findings(files)
+        if got != sorted(want):
+            problems.append(f"models folder: {what}: got {got}, want {sorted(want)}")
+    return len(fixtures)
 
 
 # ── G-id: a permanent id for every pattern, pinned synthetically ──────────── #
@@ -3219,6 +3294,15 @@ def main(argv: list[str]) -> int:
     if not hist_problems:
         print("History file: 2 synthetic fixtures hold (a `.hist.md` beside an atom and beside "
               "a composition is no pattern) \u2713")
+
+    model_problems: list[str] = []
+    n_model = check_models_folder_synthetic(model_problems)
+    failures.extend(model_problems)
+    if not model_problems:
+        print(f"Models folder: {n_model} synthetic fixtures hold (a model and its twin in atoms/models/ "
+              "or compositions/models/ stay silent; a missing model, a missing twin, a model in the "
+              "other folder, a wrong or missing module name, a stray directory and a model file "
+              "beside the patterns each fire) \u2713")
 
     id_problems: list[str] = []
     n_id = check_pattern_ids_synthetic(id_problems)

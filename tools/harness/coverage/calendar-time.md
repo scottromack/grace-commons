@@ -7,8 +7,8 @@
 
 ## Step 1 — harness re-run (must pass)
 
-- Correct model: `node check.mjs ../../atoms/calendar-time.als` → `HOLDS` ✓ *(11 commands: 5 checks UNSAT, 6 runs SAT, at `for 4 but 4 Place, 3 Call`)*
-- Correct model: `node check.mjs ../../atoms/calendar-time.tla` → `HOLDS` ✓ *(363,539 states, TLC about 34 s)*
+- Correct model: `node check.mjs ../../atoms/models/calendar-time.als` → `HOLDS` ✓ *(11 commands: 5 checks UNSAT, 6 runs SAT, at `for 4 but 4 Place, 3 Call`)*
+- Correct model: `node check.mjs ../../atoms/models/calendar-time.tla` → `HOLDS` ✓ *(363,539 states, TLC about 34 s)*
 - Alloy twins, one defect each, each `CAUGHT` by the one check it targets and no other: `-week-start-dropped` (`A_State_1`), `-change-zone-unguarded` (`A_Invariant_1_1`), `-zone-case-folded` (`A_Invariant_1_1`), `-change-week-unguarded` (`A_Invariant_1_2`), `-id-reused` (`A_Identity_2`), `-zone-normalized` (`A_Identity_3`).
 - TLA+ twins, one defect each, each `CAUGHT`: `-id-reallocated` (`Inv2_1_KeepsId`), `-change-replaces` (`State2_NeverRemoved`), `-hours` (`Inv3_1_CalendarNotHours`), `-cases-overlap` (`ShowOneRelativeDay`), `-roll-over` (`Inv4_1_LandsInItsMonth`), `-reject-clamps` (`Op24_NoSuchDay`).
 - Two facts in the Alloy model, both from outside the page: the time zone rules' shape (a link is a zone name naming a zone that is no link; Capability requirement 2) and the seam's fresh place id for each [Open] (Capability requirement 1). The TLA+ model has no ASSUME and no CONSTRAINT; the time zone rules (the zone names, a link, the 2026 offsets of Chicago and Berlin) are its definitions. Every rule the page promises is checked, none assumed.

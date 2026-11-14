@@ -11,6 +11,9 @@ import { statesIn, runTlc } from "./tlc.mjs";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const DAY = new Date("2026-11-09T13:00:00Z");
+// A pattern's models sit in its folder's models folder (atoms/models/; Scott, 2026-11-13, ruling 6).
+const REL = (name) => "atoms/models/" + name;
+const MODEL = (name) => join(HERE, "../..", REL(name));
 
 test("a TLA+ line carries the states and the cap, and dashes for Alloy's columns", () => {
   const f = ledgerLine({ file: "atoms/x.tla", role: "model", engine: "tla", states: 25, capped: 0, verdict: "HOLDS" }, DAY);
@@ -32,13 +35,13 @@ test("the first append writes the header; the file is the repo-relative path; of
   const dir = mkdtempSync(join(tmpdir(), "ledger-"));
   const path = join(dir, "states.tsv");
   process.env.GRACE_STATES_LEDGER = path;
-  const abs = join(HERE, "../../atoms/approval-step.tla");
+  const abs = MODEL("approval-step.tla");
   appendLedger({ file: abs, role: "model", engine: "tla", states: 25, capped: 0, verdict: "HOLDS" }, DAY);
   appendLedger({ file: abs, role: "model", engine: "tla", states: 26, capped: 0, verdict: "HOLDS" }, DAY);
   const lines = readFileSync(path, "utf8").trim().split("\n");
   assert.equal(lines.length, 3);
   assert.ok(lines[0].startsWith("# date\tfile"));
-  assert.equal(lines[1].split("\t")[1], "atoms/approval-step.tla");
+  assert.equal(lines[1].split("\t")[1], REL("approval-step.tla"));
   process.env.GRACE_STATES_LEDGER = "off";
   appendLedger({ file: abs, role: "model", engine: "tla", states: 1, capped: 0, verdict: "HOLDS" }, DAY);
   assert.equal(readFileSync(path, "utf8").trim().split("\n").length, 3);
@@ -50,13 +53,13 @@ test("check.mjs appends one line for a TLA+ model and one for its twin", () => {
   const path = join(dir, "states.tsv");
   const env = { ...process.env, GRACE_STATES_LEDGER: path };
   const run = (...a) => spawnSync("node", [join(HERE, "check.mjs"), ...a], { env, encoding: "utf8" });
-  assert.equal(run(join(HERE, "../../atoms/approval-step.tla")).status, 0);
-  assert.equal(run(join(HERE, "../../atoms/approval-step-buggy.tla"), "--buggy").status, 0);
+  assert.equal(run(MODEL("approval-step.tla")).status, 0);
+  assert.equal(run(MODEL("approval-step-buggy.tla"), "--buggy").status, 0);
   assert.ok(existsSync(path));
   const rows = readFileSync(path, "utf8").trim().split("\n").slice(1).map((l) => l.split("\t"));
   assert.deepEqual(rows.map((r) => [r[1], r[2], r[11]]), [
-    ["atoms/approval-step.tla", "model", "HOLDS"],
-    ["atoms/approval-step-buggy.tla", "twin", "CAUGHT"],
+    [REL("approval-step.tla"), "model", "HOLDS"],
+    [REL("approval-step-buggy.tla"), "twin", "CAUGHT"],
   ]);
   assert.ok(Number(rows[0][4]) > 0);
   assert.equal(rows[0][12], "tlc");
@@ -65,7 +68,7 @@ test("check.mjs appends one line for a TLA+ model and one for its twin", () => {
 test("--engine wasm runs the WASM checker, and the ledger says so", () => {
   const dir = mkdtempSync(join(tmpdir(), "ledger-"));
   const path = join(dir, "states.tsv");
-  const r = spawnSync("node", [join(HERE, "check.mjs"), join(HERE, "../../atoms/approval-step.tla"), "--engine", "wasm"],
+  const r = spawnSync("node", [join(HERE, "check.mjs"), MODEL("approval-step.tla"), "--engine", "wasm"],
     { env: { ...process.env, GRACE_STATES_LEDGER: path }, encoding: "utf8" });
   assert.equal(r.status, 0);
   const row = readFileSync(path, "utf8").trim().split("\n")[1].split("\t");
@@ -79,9 +82,9 @@ test("statesIn reads the last count, progress lines with thousands separators in
 });
 
 test("TLC: a correct model holds, a twin is violated, a run past the limit is an error naming why", () => {
-  const model = join(HERE, "../../atoms/approval-step.tla");
+  const model = MODEL("approval-step.tla");
   assert.equal(runTlc(model).kind, "hold");
-  const twin = runTlc(join(HERE, "../../atoms/approval-step-buggy.tla"));
+  const twin = runTlc(MODEL("approval-step-buggy.tla"));
   assert.equal(twin.kind, "violated");
   assert.match(twin.message, /Invariant Safety is violated/);
   const slow = runTlc(model, { limitMs: 50 });

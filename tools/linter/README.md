@@ -31,7 +31,7 @@ every push to `main` and every pull request.
 |---|---|
 | **A-dangling-link** | A relative `.md` link whose target file does not exist. |
 | **B-invariant-count** | "all *N* invariants from [Pattern](path)" where *N* does not equal the real count of `**Invariant N —**` headers in Pattern. (The nine-vs-ten drift hazard.) |
-| **C-model-missing / C-twin-missing** | A pattern whose Status claims a verified model (mentions `tools/harness` or a buggy twin) names a `.tla`/`.als` file that is absent, or has no `-buggy` twin beside it (the vacuity guard). |
+| **C-model-missing / C-twin-missing** | A pattern whose Status claims a verified model (mentions `tools/harness` or a buggy twin) names a `.tla`/`.als` file that is absent from its folder's models folder, or has no `-buggy` twin there (the vacuity guard). |
 | **D-stale-forthcoming** | A link whose own `*(forthcoming)*` marker decorates a pattern file that is already `done`. |
 | **E-count-drift** | The latest "*NN* done patterns (*NN* done compositions)" claim in `readme.md` does not match the real file count. (Earlier dated claims are history and are allowed to be stale. `roadmap.md` is not read: it prints each pattern's state from `_data/patterns.json`.) |
 | **F-invariant-ref** | A "*Pattern* Invariant *N*" cross-reference where *N* exceeds that pattern's real invariant count — the mechanical slice of the capability-provenance rule (`pressure-testing.md` section Capability provenance). Name/number *mismatches* within range stay fresh-reader Pass-2 work. A range, `Event Log Invariant 1 through 7`, is read to its last number. A tombstoned invariant still counts, on the page or in the history file's *Deleted rules*. |

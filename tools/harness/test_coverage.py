@@ -49,6 +49,14 @@ class Coverage(unittest.TestCase):
         self.assertEqual(sum(pages["x"].values()), 6)
         self.assertEqual(len(problems), 1)
 
+    def test_a_twin_named_by_its_path_is_named_in_the_models_folder_or_beside(self):
+        # A matrix links its models from tools/harness/coverage/ (atoms/models/; Scott, 2026-11-13, ruling 6).
+        for link in ("../../atoms/models/x-buggy.tla", "../../atoms/x-buggy.als"):
+            row = f"| Invariant 1 — one | yes | `checked` covered | `Inv1`. Broken by [`x-buggy`]({link}). |\n"
+            pages, problems = run(MATRIX.split("| Invariant 2")[0].replace(MATRIX.split("\n")[4] + "\n", row))
+            self.assertEqual(pages["x"]["checked"], 1, link)
+            self.assertEqual(problems, [], link)
+
     def test_a_pipe_inside_a_code_span_does_not_split_a_cell(self):
         self.assertEqual(cells("| a | `x | y` | b |"), ["a", "`x | y`", "b"])
 

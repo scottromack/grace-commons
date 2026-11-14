@@ -7,10 +7,10 @@
 
 ## Step 1 — harness re-run (must pass)
 
-- Correct model: `node check.mjs ../../atoms/assignment.tla` → `PASS` ☐ *(per Lineage: 47 states, holds)*
-- Buggy twin: `node check.mjs ../../atoms/assignment-buggy.tla --buggy` → `PASS` (rejected) ☐ *(per Lineage: rejected at 6 states — two-Active window detected)*
+- Correct model: `node check.mjs ../../atoms/models/assignment.tla` → `PASS` ☐ *(per Lineage: 47 states, holds)*
+- Buggy twin: `node check.mjs ../../atoms/models/assignment-buggy.tla --buggy` → `PASS` (rejected) ☐ *(per Lineage: rejected at 6 states — two-Active window detected)*
 - 2026-11-10 (unit `tooling: every check has a twin that breaks it`): `audit.mjs` → HOLDS; its one check `Inv1_AtMostOneActive` is broken by `assignment-buggy.tla` (CAUGHT).
-- 2026-11-11 (unit `atoms/assignment.md formal layer`): `assignment.als` added, the page's static data model: every version of an assignment record an admitted [Assign], [Recall] or [Reassign] leaves, built from the version its call found back to the call that recorded the assignment (whether that version was still the latest is the sequence, the TLA+ model's). `node check.mjs ../../atoms/assignment.als` → `HOLDS` (21 commands: 11 checks UNSAT, 10 runs SAT), at `for 4 but 5 Assignment, 3 Call`. Eleven twins, one defect each, each `CAUGHT`: `-state-added`, `-task-not-carried`, `-recall-misfiled`, `-transfer-unstamped`, `-id-minted`, `-id-reused`, `-old-left-active`, `-recall-backdated`, `-transfer-backdated`, `-assignee-copied`, `-instant-copied`. Two facts, both the Execution Contract's: the clock never runs backward (Logic confinement 7) and the host supplies an allocated id to one call (Logic confinement 16); every rule the page promises is checked, none assumed.
+- 2026-11-11 (unit `atoms/assignment.md formal layer`): `assignment.als` added, the page's static data model: every version of an assignment record an admitted [Assign], [Recall] or [Reassign] leaves, built from the version its call found back to the call that recorded the assignment (whether that version was still the latest is the sequence, the TLA+ model's). `node check.mjs ../../atoms/models/assignment.als` → `HOLDS` (21 commands: 11 checks UNSAT, 10 runs SAT), at `for 4 but 5 Assignment, 3 Call`. Eleven twins, one defect each, each `CAUGHT`: `-state-added`, `-task-not-carried`, `-recall-misfiled`, `-transfer-unstamped`, `-id-minted`, `-id-reused`, `-old-left-active`, `-recall-backdated`, `-transfer-backdated`, `-assignee-copied`, `-instant-copied`. Two facts, both the Execution Contract's: the clock never runs backward (Logic confinement 7) and the host supplies an allocated id to one call (Logic confinement 16); every rule the page promises is checked, none assumed.
 
 ## Step 2 — coverage matrix
 

@@ -9,7 +9,7 @@ import tempfile
 import unittest
 
 sys.path.insert(0, str(pathlib.Path(__file__).parent))
-from generate_graph import invariant_count, is_done, states_ledger_stats  # noqa: E402
+from generate_graph import invariant_count, is_done, models_of, states_ledger_stats  # noqa: E402
 
 HEAD = "# date\tfile\trole\tengine\tstates\tcapped\tcommands\tholds\tsatisfiable\tcounterexamples\tvacuous\tverdict\n"
 
@@ -48,6 +48,38 @@ class StatesLedger(unittest.TestCase):
         t = totals(HEAD + tla("2026-11-08", "a.tla", "model", 100)
                    + tla("2026-11-09", "a.tla", "model", 200001, verdict="ERROR", capped=1))
         self.assertEqual(t["states_models"], 0)
+
+    def test_a_path_that_takes_the_models_folder_keeps_the_totals(self):
+        # The move to atoms/models/ rewrites each path in place: one line a file, the same totals.
+        lines = [tla("2026-11-09", "atoms/a.tla", "model", 100), tla("2026-11-09", "atoms/a-buggy.tla", "twin", 7),
+                 als("2026-11-09", "compositions/b.als", "model", 4)]
+        moved = [l.replace("\tatoms/", "\tatoms/models/").replace("\tcompositions/", "\tcompositions/models/")
+                 for l in lines]
+        self.assertEqual(totals(HEAD + "".join(lines)), totals(HEAD + "".join(moved)))
+
+
+class ModelsOf(unittest.TestCase):
+    """A card's models are read in its folder's models folder (Scott, 2026-11-13,
+    ruling 6), and a model file beside the spec is not the card's."""
+
+    def card(self, files):
+        with tempfile.TemporaryDirectory() as d:
+            for rel in ["atoms/x.md", *files]:
+                p = pathlib.Path(d) / rel
+                p.parent.mkdir(parents=True, exist_ok=True)
+                p.write_text("", encoding="utf-8")
+            return models_of(pathlib.Path(d) / "atoms" / "x.md")
+
+    def test_the_models_folder(self):
+        self.assertEqual(self.card(["atoms/models/x.tla", "atoms/models/x.als", "atoms/models/x-buggy.tla",
+                                    "atoms/models/x-buggy-y.als", "atoms/models/xy-buggy.tla"]),
+                         {"tla": True, "als": True, "twins": 2})
+
+    def test_beside_the_spec_is_not_read(self):
+        self.assertEqual(self.card(["atoms/x.tla", "atoms/x-buggy.tla"]), {"tla": False, "als": False, "twins": 0})
+
+    def test_none(self):
+        self.assertEqual(self.card(["compositions/models/x.tla"]), {"tla": False, "als": False, "twins": 0})
 
 
 class DoneToken(unittest.TestCase):

@@ -9,7 +9,7 @@ See `../README.md` and the section titled *Implementation-discovered findings* i
 
 ## The three intentionally-failing Alloy checks
 
-The Alloy model (`compositions/attributed-permissions-admin.als`) contains three
+The Alloy model (`compositions/models/attributed-permissions-admin.als`) contains three
 assertions that **are expected to produce counterexamples** when Invariant 7 is
 not yet asserted as a fact. They are included deliberately to document the gap
 the model exposed.
@@ -143,7 +143,7 @@ problems follow:
 
 1. **The application-layer check is non-atomic.** The SELECT runs before
    `tx()`, so two concurrent actors can both pass it and race. The TLA+
-   model in `compositions/attributed-permissions-admin.tla` does not
+   model in `compositions/models/attributed-permissions-admin.tla` does not
    model the SQL UNIQUE INDEX; in that model two concurrent
    `IssueGrant` actions produce two active grants for the same pair —
    which the spec allows, so no invariant is violated. With the UNIQUE

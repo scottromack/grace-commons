@@ -7,10 +7,10 @@
 
 ## Step 1 — harness re-run (must pass)
 
-- Correct model: `node check.mjs ../../atoms/approval-step.tla` → `PASS` ☐ *(per Lineage: 16 states, holds)*
-- Buggy twin: `node check.mjs ../../atoms/approval-step-buggy.tla --buggy` → `PASS` (rejected) ☐ *(per Lineage: rejected at 4 states — wrong actor approves s1)*
+- Correct model: `node check.mjs ../../atoms/models/approval-step.tla` → `PASS` ☐ *(per Lineage: 16 states, holds)*
+- Buggy twin: `node check.mjs ../../atoms/models/approval-step-buggy.tla --buggy` → `PASS` (rejected) ☐ *(per Lineage: rejected at 4 states — wrong actor approves s1)*
 - 2026-11-10 (unit `tooling: every check has a twin that breaks it`): `audit.mjs` → the model HOLDS and each check has a twin that breaks it — `Inv4_ApproverExclusivity` by `approval-step-buggy-subject.tla` (and `approval-step-buggy.tla`), `Inv5_SubmitterExclusivity` by `approval-step-buggy-withdraw.tla` (withdraw without the submitter guard), `Inv9_StepIndependence` by `approval-step-buggy-subject.tla` (approve keyed by subject). All three twins CAUGHT.
-- 2026-11-11 (unit `atoms/approval-step.md formal layer`): `approval-step.als` added, the page's static data model: one step record as [Submit] leaves it, or as one admitted resolve leaves it over that (Operation 13 and 36 allow no other history; that it has none is Invariant 3's, the TLA+ model's). `node check.mjs ../../atoms/approval-step.als` → `HOLDS` (22 commands: 12 checks UNSAT, 10 runs SAT), at `for 4 but 3 Step, 2 SubmitCall, 2 ResolveCall`. Ten twins, one defect each, each `CAUGHT`: `-state-added`, `-approver-unguarded`, `-submitter-unguarded`, `-actor-not-written`, `-instant-misfiled`, `-reason-unguarded`, `-backdated`, `-blank-scope`, `-instant-unresolved`, `-stray-attribution`. The one fact is the host's non-blank step id (Execution Contract Input 2); every Invariant is checked, none assumed.
+- 2026-11-11 (unit `atoms/approval-step.md formal layer`): `approval-step.als` added, the page's static data model: one step record as [Submit] leaves it, or as one admitted resolve leaves it over that (Operation 13 and 36 allow no other history; that it has none is Invariant 3's, the TLA+ model's). `node check.mjs ../../atoms/models/approval-step.als` → `HOLDS` (22 commands: 12 checks UNSAT, 10 runs SAT), at `for 4 but 3 Step, 2 SubmitCall, 2 ResolveCall`. Ten twins, one defect each, each `CAUGHT`: `-state-added`, `-approver-unguarded`, `-submitter-unguarded`, `-actor-not-written`, `-instant-misfiled`, `-reason-unguarded`, `-backdated`, `-blank-scope`, `-instant-unresolved`, `-stray-attribution`. The one fact is the host's non-blank step id (Execution Contract Input 2); every Invariant is checked, none assumed.
 
 ## Step 2 — coverage matrix
 

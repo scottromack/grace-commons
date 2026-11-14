@@ -46,6 +46,6 @@ The regeneration found eight more, none of them predicted:
 - **The two maps are not held disjoint** (Invariant 7.3); each map's attestation is unique within the map only.
 - **Nothing reads a purge record** or reports `registry-unavailable`, and there is no failed-grant leg (Action wiring 62 through 67 and 75; Housekeeping).
 
-The old render also cited its formal model at an `alloy/` path that does not exist; the model is `compositions/attributed-permissions-admin.als`, and the citations are corrected.
+The old render also cited its formal model at an `alloy/` path that does not exist; the model is `compositions/models/attributed-permissions-admin.als`, and the citations are corrected.
 
 Test counts are not comparable: the old render's 35 tests cover its HTTP routes and login sessions as well as its domain; this render's 28 cover the domain only.

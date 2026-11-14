@@ -126,14 +126,14 @@ cd ../harness
 bash bootstrap.sh      # fetches the checkers from npm; installs a JRE 17 to /tmp — no system Java
 
 # A correct model must hold:
-node check.mjs ../../atoms/event-log.tla
+node check.mjs ../../atoms/models/event-log.tla
 
 # Its sabotaged twin must be REJECTED:
-node check.mjs ../../atoms/event-log-buggy.tla --buggy
+node check.mjs ../../atoms/models/event-log-buggy.tla --buggy
 
 # Same discipline on the Alloy side:
-node check.mjs ../../compositions/session-gated-authorization.als
-node check.mjs ../../atoms/permissions-buggy.als --buggy
+node check.mjs ../../compositions/models/session-gated-authorization.als
+node check.mjs ../../atoms/models/permissions-buggy.als --buggy
 ```
 
 Expected shape (2026-07-06 run):

@@ -7,10 +7,10 @@
 
 ## Step 1 — harness re-run (must pass)
 
-- Correct models: `node check.mjs ../../compositions/reserve-from-pool.tla` → `HOLDS` ✓ *(2,101 states)*; `node check.mjs ../../compositions/reserve-from-pool-retry.tla` → `HOLDS` ✓ *(1,849 states)*
+- Correct models: `node check.mjs ../../compositions/models/reserve-from-pool.tla` → `HOLDS` ✓ *(2,101 states)*; `node check.mjs ../../compositions/models/reserve-from-pool-retry.tla` → `HOLDS` ✓ *(1,849 states)*
 - Buggy twins: each `node check.mjs ../../compositions/reserve-from-pool[-retry]-<name>-buggy.tla --buggy` → `CAUGHT` ✓ *(Step 2 names the check that finds each)*
 - `node audit.mjs --only compositions/reserve-from-pool`: 54 models, 2 HOLDS, 52 CAUGHT, 0 BROKEN, 0 MISSED, 0 ERROR (37 twins and 15 reachability probes, which are rejected by design).
-- 2026-11-12 (unit `compositions/reserve-from-pool.md formal layer`): `node check.mjs ../../compositions/reserve-from-pool.als` → `HOLDS` (37 commands: 23 checks UNSAT, 14 runs SAT, about 45 s). Seventeen twins, one defect each, each `CAUGHT` (the Alloy twins' table, below). Facts, all from outside the page: the store's serial order and Event Log's sequence order (Execution Contract Database 2), the caller's parameters, the seam's digest function, Duplicate Prevention's check, Actor Identity's one id per attest, Provisional Commitment's answers and records, and Capacity Constraint Enforcement's arithmetic and capacity (its floor at zero is not assumed). The model's finding is under Outcome.
+- 2026-11-12 (unit `compositions/reserve-from-pool.md formal layer`): `node check.mjs ../../compositions/models/reserve-from-pool.als` → `HOLDS` (37 commands: 23 checks UNSAT, 14 runs SAT, about 45 s). Seventeen twins, one defect each, each `CAUGHT` (the Alloy twins' table, below). Facts, all from outside the page: the store's serial order and Event Log's sequence order (Execution Contract Database 2), the caller's parameters, the seam's digest function, Duplicate Prevention's check, Actor Identity's one id per attest, Provisional Commitment's answers and records, and Capacity Constraint Enforcement's arithmetic and capacity (its floor at zero is not assumed). The model's finding is under Outcome.
 
 ## Step 2 — coverage matrix
 

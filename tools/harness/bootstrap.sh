@@ -85,5 +85,5 @@ echo
 echo "Ready. Examples:"
 echo "  node check.mjs ../../grants/tla-poc/MultiPartyApproval.tla"
 echo "  node check.mjs ../../grants/tla-poc/MultiPartyApprovalBuggy.tla --buggy"
-echo "  node check.mjs ../../compositions/session-gated-authorization.als"
+echo "  node check.mjs ../../compositions/models/session-gated-authorization.als"
 echo "  node audit.mjs        # run every existing model"

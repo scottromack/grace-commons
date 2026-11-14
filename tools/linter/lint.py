@@ -13,7 +13,8 @@ the three-pass review otherwise has to catch by eye —
                               actual count of `**Invariant N —**` headers in
                               <Pattern>. (The nine-vs-ten drift hazard.)
   C. Model-present bar      — a Status line that names a `.tla`/`.als` model has
-                              that file present AND a `-buggy` twin beside it.
+                              that file present in its folder's models folder AND
+                              a `-buggy` twin there.
   D. Stale forthcoming      — a `*(forthcoming)*` marker in a list item that also
                               links to a file which is already `done`.
   E. Count honesty          — a "NN done patterns / NN compositions" claim in
@@ -148,6 +149,24 @@ PATTERN_DIRS = ("atoms", "compositions")
 # a spec's history sits beside it as `<spec name>.hist.md` and is no pattern:
 # every walk that reads atoms/ and compositions/ as specs skips it
 HISTORY_FILE = "*.hist.md"
+# a pattern's formal models (the model, its twins, their configurations) sit in
+# its folder's models folder, `atoms/models/` or `compositions/models/` (Scott,
+# 2026-11-13, ruling 6), and nowhere else: a model file beside the patterns is
+# M-model-misplaced
+MODELS_DIR = "models"
+MODEL_EXTS = (".als", ".tla", ".cfg")
+
+
+def model_homes(spec_dir: Path) -> list[Path]:
+    """The folders a spec's models are read from: its folder's models folder."""
+    return [spec_dir / MODELS_DIR]
+
+
+def find_model(spec_dir: Path, name: str) -> Path | None:
+    """The model file `name` of a spec in `spec_dir`, where it sits, else None."""
+    return next((h / name for h in model_homes(spec_dir) if (h / name).exists()), None)
+
+
 # a section heading is `## Name`, or the HTML `<h2>` that a section folded into a
 # <details> carries at the start of its line (Cart's Decisions, 2026-10-28; the
 # form LINEAGE_HEADING below reads), and every check that finds a section by its
@@ -384,11 +403,12 @@ def check_models_present(patterns: dict[Path, Pattern]) -> list[Finding]:
             continue
         for m in MODEL_REF.finditer(status_zone):
             ref = m.group(1)
-            # resolve relative to the pattern file's directory
-            model = (p.path.parent / ref).resolve() if "/" in ref else (p.path.parent / ref).resolve()
             if "buggy" in ref:
                 continue
-            if not model.exists():
+            # a path resolves from the pattern file's directory; a bare name is
+            # read in the pattern's models folder
+            model = (p.path.parent / ref).resolve() if "/" in ref else find_model(p.path.parent, ref)
+            if model is None or not model.exists():
                 findings.append(Finding(
                     p.path, line_of(p.text, m.start()), "C-model-missing",
                     f"Status names model {ref} but file is absent",
@@ -400,7 +420,7 @@ def check_models_present(patterns: dict[Path, Pattern]) -> list[Finding]:
             if not twins:
                 findings.append(Finding(
                     p.path, line_of(p.text, m.start()), "C-twin-missing",
-                    f"model {ref} has no -buggy twin beside it (vacuity guard)",
+                    f"model {ref} has no -buggy twin in its folder (vacuity guard)",
                 ))
     return findings
 
@@ -1158,21 +1178,37 @@ def check_stray_directory(root: Path) -> list[Finding]:
             d, 1, "M-stray-directory",
             f"`{d.name}/` is not in the repo's closed top-level set and holds "
             f"{n} file(s) — a file belongs in an existing home or in the chat"))
+    # The pattern folders hold one directory each, their models folder
+    # (`atoms/models/`, `compositions/models/`; Scott, 2026-11-13, ruling 6).
+    for top in PATTERN_DIRS:
+        if not (root / top).is_dir():
+            continue
+        for d in sorted(p for p in (root / top).iterdir() if p.is_dir()):
+            if d.name.startswith(".") or d.name == MODELS_DIR:
+                continue
+            n = sum(1 for _ in d.rglob("*") if _.is_file())
+            findings.append(Finding(
+                d, 1, "M-stray-directory",
+                f"`{top}/{d.name}/` is not in the closed set (`{top}/` holds one "
+                f"directory, `{top}/{MODELS_DIR}/`) and holds {n} file(s) — a file "
+                f"belongs in an existing home or in the chat"))
     return findings
 
 
 def check_formal_siblings(root: Path, patterns: dict[Path, Pattern]) -> list[Finding]:
-    """M. The formal-model family, which no instrument read until now. Two checks:
-    a model's declared module name must match its file stem, and a spec's Ledger
-    `formal:` line must name models that sit beside the spec. The rename of
+    """M. The formal-model family, which no instrument read until now. Three checks:
+    a model's declared module name must match its file stem, no model file sits
+    beside the patterns (M-model-misplaced), and a spec's Ledger
+    `formal:` line must name models that sit in the spec's folder's models folder
+    (`atoms/models/`, `compositions/models/`; Scott, 2026-11-13, ruling 6). The rename of
     2026-09-13 had to edit two Alloy module declarations by hand precisely because
     nothing checked the first, which is the fix loop's boundary stated as a
     symptom (council read 37)."""
     findings: list[Finding] = []
     ALS = re.compile(r"^module\s+([A-Za-z_0-9]+)", re.M)
     TLA = re.compile(r"^-+\s*MODULE\s+([A-Za-z_0-9-]+)", re.M)
-    for d in ("atoms", "compositions"):
-        for f in sorted((root / d).glob("*.als")) + sorted((root / d).glob("*.tla")):
+    for d in PATTERN_DIRS:
+        for f in [f for h in model_homes(root / d) for ext in ("*.als", "*.tla") for f in sorted(h.glob(ext))]:
             text = f.read_text(encoding="utf-8", errors="replace")
             m = (ALS if f.suffix == ".als" else TLA).search(text)
             if not m:
@@ -1184,18 +1220,24 @@ def check_formal_siblings(root: Path, patterns: dict[Path, Pattern]) -> list[Fin
                 findings.append(Finding(f, line_of(text, m.start()), "M-model-name",
                     f"module is `{m.group(1)}` and the file is `{f.name}` — a rename "
                     f"that misses the declaration leaves the model orphaned from its spec"))
+    for d in PATTERN_DIRS:
+        for f in sorted(root.glob(f"{d}/*")):
+            if f.is_file() and f.suffix in MODEL_EXTS:
+                findings.append(Finding(f, 1, "M-model-misplaced",
+                    f"a model file sits beside the patterns; it belongs in `{d}/{MODELS_DIR}/`"))
     for p in patterns.values():
         fm = re.search(r"^formal:\s*(.+)$", p.text, re.M)
         if not fm:
             continue
         for name in dict.fromkeys(re.findall(r"([A-Za-z0-9_-]+\.(?:als|tla))", fm.group(1))):
-            if (p.path.parent / name).exists():
+            if find_model(p.path.parent, name):
                 continue
             found = next((q for q in root.rglob(name) if ".git" not in q.parts), None)
             where = f"; it sits at {found.relative_to(root)}" if found else ""
             findings.append(Finding(
                 p.path, line_of(p.text, fm.start()), "M-model-misplaced",
-                f"the Ledger names `{name}`, which is not beside this spec{where}"))
+                f"the Ledger names `{name}`, which is not in "
+                f"`{p.path.parent.name}/{MODELS_DIR}/`{where}"))
     return findings
 
 

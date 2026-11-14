@@ -7,7 +7,7 @@ name: Verify Recoverable Invocation's models
 # models or the harness change, and weekly, and is never cancelled by a newer
 # push: every run reports. tools/harness/recoverable-invocation.pattern names
 # the models, for this workflow's --only and verify.yml's --except alike; the
-# push paths below are its four prefixes.
+# push paths below are its four prefixes, in compositions/models/.
 
 on:
   workflow_dispatch:
@@ -15,10 +15,10 @@ on:
     branches:
       - main
     paths:
-      - 'compositions/recoverable-invocation*'
-      - 'compositions/iso-*'
-      - 'compositions/probe-*'
-      - 'compositions/reach-*'
+      - 'compositions/models/recoverable-invocation*'
+      - 'compositions/models/iso-*'
+      - 'compositions/models/probe-*'
+      - 'compositions/models/reach-*'
       - 'tools/harness/**'
       - '.github/workflows/verify-recoverable-invocation.yml'
   schedule:

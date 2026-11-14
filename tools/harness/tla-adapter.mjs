@@ -12,7 +12,7 @@
 //
 // USAGE:
 //   node tla-adapter.mjs <model.tla> [outDir]   # one file (+ its .cfg / .constants.json)
-//   node tla-adapter.mjs --all [outDir]         # every .tla under atoms/ + compositions/
+//   node tla-adapter.mjs --all [outDir]         # every .tla in atoms/models/ + compositions/models/
 // Default outDir: build-tlc/  (git-ignored). Then, e.g.:
 //   java -jar tla2tools.jar build-tlc/undoHistory.tla
 
@@ -62,7 +62,8 @@ if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.ur
   if (all) {
     outDir = resolve(pos[0] || "build-tlc");
     inputs = [];
-    for (const d of ["atoms", "compositions"]) {
+    // a pattern's models sit in its folder's models folder (Scott, 2026-11-13, ruling 6)
+    for (const d of ["atoms/models", "compositions/models"]) {
       if (existsSync(d)) for (const f of readdirSync(d)) if (f.endsWith(".tla")) inputs.push(join(d, f));
     }
   } else {

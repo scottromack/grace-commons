@@ -22,7 +22,7 @@ function corpus(files) {
   }
   return root;
 }
-const audit = (root, env = {}) => spawnSync("node", [join(HERE, "audit.mjs"), "--root", root, "--jobs", "4"],
+const audit = (root, env = {}, more = []) => spawnSync("node", [join(HERE, "audit.mjs"), "--root", root, "--jobs", "4", ...more],
   { env: { ...process.env, GRACE_STATES_LEDGER: "off", ...env }, encoding: "utf8" });
 
 // A counter that climbs to 3. `step` is what a twin changes.
@@ -61,6 +61,36 @@ test("twins.mjs: a twin belongs to the longest model name it extends", () => {
   assert.deepEqual(f.get("/r/a/x.tla"), ["/r/a/x-buggy.tla"]);
   assert.deepEqual(f.get("/r/a/x-settle.tla"), ["/r/a/x-settle-buggy-y.tla", "/r/a/x-settle-z-buggy.tla"]);
   assert.deepEqual(f.get("/r/a/x.als"), ["/r/a/x-buggy.als"]);
+});
+
+// A pattern's models sit in its folder's models folder (atoms/models/, compositions/models/;
+// Scott, 2026-11-13, ruling 6): a twin is its model's in the same folder, there as beside a page.
+test("twins.mjs: in a models folder a twin is its model's, and a twin in another folder is not", () => {
+  const m = ["/r/atoms/models/x.tla", "/r/compositions/models/x.tla"];
+  const t = ["/r/atoms/models/x-buggy.tla", "/r/compositions/models/x-buggy-y.tla", "/r/atoms/x-buggy-z.tla"];
+  const f = twinsOf(m, t);
+  assert.deepEqual(f.get("/r/atoms/models/x.tla"), ["/r/atoms/models/x-buggy.tla"]);
+  assert.deepEqual(f.get("/r/compositions/models/x.tla"), ["/r/compositions/models/x-buggy-y.tla"]);
+});
+
+test("models in a models folder are audited, and --only and --except name them by their page", () => {
+  const root = corpus({
+    "atoms/models/c.tla": counter("c"), "atoms/models/c.cfg": cfg(["Safety"]),
+    "atoms/models/c-buggy.tla": counter("c-buggy", { guard: "x < 5" }), "atoms/models/c-buggy.cfg": cfg(["Safety"]),
+    "compositions/models/d.tla": counter("d"), "compositions/models/d.cfg": cfg(["Bounded"]),
+    "compositions/models/d-buggy.tla": counter("d-buggy", { guard: "x < 4" }), "compositions/models/d-buggy.cfg": cfg(["Bounded"]),
+  });
+  const all = audit(root);
+  assert.equal(all.status, 0, all.stdout);
+  assert.match(all.stdout, /4 models: 2 HOLDS, 2 CAUGHT/);
+  assert.match(all.stdout, /HOLDS  \[correct\] {2}atoms\/models\/c\.tla/);
+  for (const [flag, re] of [["--only", "^atoms/c"], ["--only", "^atoms/models/c"], ["--except", "^compositions/d"]]) {
+    const r = audit(root, {}, [flag, re]);
+    assert.equal(r.status, 0, r.stdout);
+    assert.match(r.stdout, /2 models: 1 HOLDS, 1 CAUGHT/, `${flag} ${re}`);
+    assert.match(r.stdout, /atoms\/models\/c-buggy\.tla/);
+    assert.doesNotMatch(r.stdout, /compositions\/models\/d/);
+  }
 });
 
 test("every check broken by a twin, one of them found past the first violation: no red", () => {
@@ -142,7 +172,7 @@ test("the ledger keeps no line for a model outside the repository", () => {
   process.env.GRACE_STATES_LEDGER = path;
   appendLedger({ file: join(dir, "elsewhere.tla"), role: "model", engine: "tla", states: 9, capped: 0, verdict: "HOLDS" });
   assert.equal(existsSync(path), false);
-  appendLedger({ file: join(HERE, "../../atoms/approval-step.tla"), role: "model", engine: "tla", states: 9, capped: 0, verdict: "HOLDS" });
+  appendLedger({ file: join(HERE, "../../atoms/models/approval-step.tla"), role: "model", engine: "tla", states: 9, capped: 0, verdict: "HOLDS" });
   assert.equal(readFileSync(path, "utf8").trim().split("\n").length, 2);
   delete process.env.GRACE_STATES_LEDGER;
 });

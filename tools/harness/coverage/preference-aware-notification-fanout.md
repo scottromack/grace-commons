@@ -7,10 +7,10 @@
 
 ## Step 1 — harness re-run (must pass)
 
-- Correct models: `node check.mjs ../../compositions/preference-aware-notification-fanout.tla` → `HOLDS` ✓ *(20,514 states)*; `node check.mjs ../../compositions/preference-aware-notification-fanout-batch.tla` → `HOLDS` ✓ *(4,233 states)*
+- Correct models: `node check.mjs ../../compositions/models/preference-aware-notification-fanout.tla` → `HOLDS` ✓ *(20,514 states)*; `node check.mjs ../../compositions/models/preference-aware-notification-fanout-batch.tla` → `HOLDS` ✓ *(4,233 states)*
 - Buggy twins: each `node check.mjs ../../compositions/preference-aware-notification-fanout[-batch]-<name>-buggy.tla --buggy` → `CAUGHT` ✓ *(Step 2 names the check that finds each)*
 - `node audit.mjs --only compositions/preference-aware-notification-fanout`: the result is recorded in the commit that lands the model.
-- Alloy (2026-11-12): `node check.mjs ../../compositions/preference-aware-notification-fanout.als` → `HOLDS` ✓ *(31 commands: 14 checks UNSAT, 17 runs SAT, at `for 3 but 4 Int`)*; each `node check.mjs ../../compositions/preference-aware-notification-fanout-buggy-<name>.als --buggy` → `CAUGHT` ✓ *(15 twins)*. Facts hold only what the page takes from outside: Message Preference's current_for answers a record of the principal asked, in effect at the read, with the status it observed; the interpretation's caps are not negative; the deployment's durations are not negative (the scope bounds the liveness sum's four addends to 0 or 1).
+- Alloy (2026-11-12): `node check.mjs ../../compositions/models/preference-aware-notification-fanout.als` → `HOLDS` ✓ *(31 commands: 14 checks UNSAT, 17 runs SAT, at `for 3 but 4 Int`)*; each `node check.mjs ../../compositions/preference-aware-notification-fanout-buggy-<name>.als --buggy` → `CAUGHT` ✓ *(15 twins)*. Facts hold only what the page takes from outside: Message Preference's current_for answers a record of the principal asked, in effect at the read, with the status it observed; the interpretation's caps are not negative; the deployment's durations are not negative (the scope bounds the liveness sum's four addends to 0 or 1).
 
 ## Step 2 — coverage matrix
 

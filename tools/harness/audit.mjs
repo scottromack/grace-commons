@@ -18,8 +18,12 @@
 //
 //   node audit.mjs                    every model
 //   node audit.mjs --only <regex>     models whose repo-relative path matches
-//                                     (a correct model brings its twins)
-//   node audit.mjs --except <regex>   models whose repo-relative path does not
+//                                     (a correct model brings its twins); a model in
+//                                     a models folder also answers to its page's
+//                                     folder, so `--only atoms/gift-card` picks
+//                                     atoms/models/gift-card*.{tla,als}
+//   node audit.mjs --except <regex>   models whose repo-relative path does not (in
+//                                     either spelling)
 //   node audit.mjs --jobs N           checks run side by side, N at a time (default:
 //                                     one per core), each TLC run on one worker
 //   node audit.mjs --engine wasm      the WASM checker instead of TLC (comparison)
@@ -30,7 +34,7 @@
 
 import { execFile } from "node:child_process";
 import { cpus } from "node:os";
-import { dirname, join, relative, basename, resolve } from "node:path";
+import { dirname, join, relative, basename, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { runTlcAsync, DEFAULT_LIMIT_MS } from "./tlc.mjs";
@@ -58,9 +62,13 @@ const flag = (name) => optArg(name) === null ? null : new RegExp(optArg(name));
 const only = flag("--only"), except = flag("--except");
 const all = walk(REPO).sort();
 const families = twinsOf(all.filter((m) => !isTwin(m) && !expectsViolation(m)), all.filter(isTwin));
+// A pattern's models sit in its folder's models folder (atoms/models/, compositions/models/;
+// Scott, 2026-11-13, ruling 6). A model answers --only and --except by its path and by its
+// page's folder, so a pattern is named by its page's path without `.md`, as before the move.
+const spellings = (rel) => [rel, rel.split(sep).join("/").replace(/^(atoms|compositions)\/models\//, "$1/")];
 const picked = new Set(all.filter((m) => {
-  const rel = relative(REPO, m);
-  return (!only || only.test(rel)) && (!except || !except.test(rel));
+  const names = spellings(relative(REPO, m));
+  return (!only || names.some((n) => only.test(n))) && (!except || !names.some((n) => except.test(n)));
 }));
 for (const m of [...picked]) for (const t of families.get(m) ?? []) picked.add(t);
 const models = all.filter((m) => picked.has(m));

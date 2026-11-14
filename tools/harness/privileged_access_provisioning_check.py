@@ -6,7 +6,7 @@ BFS over all reachable states within scope. Checks all safety invariants.
 Scope: RequestIDs={"r1","r2"}, ApproverIDs={"a1","a2","a3"},
        CapTokens={"cap1","cap2"}, QuorumSize=2
 
-Run: python3 compositions/privileged_access_provisioning_check.py
+Run: python3 tools/harness/privileged_access_provisioning_check.py
 All invariants should hold. A violation is a spec finding for
 compositions/privileged-access-provisioning.md.
 """
