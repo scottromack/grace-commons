@@ -44,6 +44,7 @@ from lint import (  # noqa: E402
     check_stripped_links,
     check_contract_labels,
     check_section_titles,
+    check_provenance_drift,
     check_composes_list,
     check_constituents_agree,
     check_invariant_numbers,
@@ -136,7 +137,7 @@ def check_q_synthetic(problems: list[str]) -> None:
         ("FIXTURE_Q_BOUNDED", FIXTURE_Q_BOUNDED, False),
     ):
         pat = Pattern(path=Path(f"synthetic/{name}.md"), text=text,
-                      invariant_count=1, grounded=False)
+                      invariant_count=1, done=False)
         fired = bool(check_rebuild_bound({pat.path: pat}))
         if fired != want_fire:
             problems.append(
@@ -158,7 +159,7 @@ def check_synthetic(problems: list[str]) -> None:
         ("FIXTURE_ACKNOWLEDGED", FIXTURE_ACKNOWLEDGED, False),
     ):
         pat = Pattern(path=Path(f"synthetic/{name}.md"), text=text,
-                      invariant_count=1, grounded=False)
+                      invariant_count=1, done=False)
         fired = bool(check_atomicity_over_audit({pat.path: pat}))
         if fired != want_fire:
             problems.append(
@@ -389,55 +390,60 @@ def _fold(page: str) -> str:
 R_FIXTURES = [
     # name, page text, code expected (None = must be silent)
     ("R_CLEAN", _ledger_page(
-        "partially resolved", "partially resolved",
+        "doing", "doing",
         "\n- 2026-08-27-a · foundational · step 4 · x is unset → set it"), None),
+    ("R_CLEAN_TODO", _ledger_page("todo", "todo", " none"), None),
     ("R_CLEAN_NONE", _ledger_page(
-        "grounded on Final Critique 4 — 2026-06-04",
-        "grounded on Final Critique 4 — 2026-06-04", " none"), None),
-    ("R_CLEAN_PINNED", _ledger_page(
+        "done — 2026-06-04",
+        "done — 2026-06-04", " none"), None),
+    ("R_DONE_NO_DATE", _ledger_page("done", "done", " none"), "R-ledger-grammar"),
+    ("R_DONE_PINNED", _ledger_page(
+        "done — 2026-06-04 at 1719092",
+        "done — 2026-06-04 at 1719092", " none"), "R-ledger-grammar"),
+    ("R_OLD_WORD", _ledger_page(
         "grounded on Final Critique 4 — 2026-06-04 at 1719092",
-        "grounded on Final Critique 4 — 2026-06-04 at 1719092", " none"), None),
-    ("R_PIN_NOT_A_SHA", _ledger_page(
-        "grounded on Final Critique 4 — 2026-06-04 at nowhere",
-        "grounded on Final Critique 4 — 2026-06-04 at nowhere", " none"), "R-ledger-grammar"),
-    ("R_GROUNDED_OPEN", _ledger_page(
-        "grounded on Final Critique 4 — 2026-06-04",
-        "grounded on Final Critique 4 — 2026-06-04",
+        "grounded on Final Critique 4 — 2026-06-04 at 1719092", " none"), "R-ledger-grammar"),
+    ("R_OLD_DOING", _ledger_page(
+        "partially resolved", "partially resolved", " none"), "R-ledger-grammar"),
+    ("R_OLD_TODO", _ledger_page("draft", "draft", " none"), "R-ledger-grammar"),
+    ("R_DONE_OPEN", _ledger_page(
+        "done — 2026-06-04",
+        "done — 2026-06-04",
         "\n- 2026-08-27-a · foundational · step 4 · x is unset → set it"),
-     "R-ledger-grounded-open"),
+     "R-ledger-done-open"),
     ("R_STATUS_MISMATCH", _ledger_page(
-        "partially resolved", "grounded on Final Critique 4 — 2026-06-04", " none"),
+        "doing", "done — 2026-06-04", " none"),
      "R-ledger-status"),
     ("R_FOUR_FIELDS", _ledger_page(
-        "partially resolved", "partially resolved",
+        "doing", "doing",
         "\n- 2026-08-27-a · foundational · x is unset → set it"), "R-ledger-grammar"),
     ("R_NO_ARROW", _ledger_page(
-        "partially resolved", "partially resolved",
+        "doing", "doing",
         "\n- 2026-08-27-a · foundational · step 4 · x is unset, set it"), "R-ledger-grammar"),
     ("R_BAD_CLASS", _ledger_page(
-        "partially resolved", "partially resolved",
+        "doing", "doing",
         "\n- 2026-08-27-a · blocking · step 4 · x is unset → set it"), "R-ledger-grammar"),
     ("R_DUP_ID", _ledger_page(
-        "partially resolved", "partially resolved",
+        "doing", "doing",
         "\n- 2026-08-27-a · refining · step 4 · x → y\n- 2026-08-27-a · refining · step 5 · x → y"),
      "R-ledger-grammar"),
     ("R_GATE_ID", _ledger_page(
-        "partially resolved", "partially resolved",
+        "doing", "doing",
         "\n- FC7-F2 · foundational · step 4 · x is unset → set it"), "R-ledger-grammar"),
     ("R_EMPTY_OPEN", _ledger_page(
-        "partially resolved", "partially resolved", ""), "R-ledger-grammar"),
+        "doing", "doing", ""), "R-ledger-grammar"),
     ("R_DECISION_FORM", _ledger_page(
-        "partially resolved", "partially resolved", " none",
+        "doing", "doing", " none",
         decisions="- **2026-08-26 — Title.** We chose a because c."), "R-decisions-grammar"),
     ("R_DECISIONS_MISSING", _ledger_page(
-        "partially resolved", "partially resolved", " none").split("## Decisions")[0],
+        "doing", "doing", " none").split("## Decisions")[0],
      "R-decisions-missing"),
     ("R_DECISIONS_FOLDED", _fold(_ledger_page(
-        "partially resolved", "partially resolved", " none")), None),
+        "doing", "doing", " none")), None),
     ("R_DECISION_FORM_FOLDED", _fold(_ledger_page(
-        "partially resolved", "partially resolved", " none",
+        "doing", "doing", " none",
         decisions="- **2026-08-26 — Title.** We chose a because c.")), "R-decisions-grammar"),
-    ("R_LEDGER_MISSING", "# Synthetic\n\n## Status\n\n`partially resolved` — see the Ledger.\n",
+    ("R_LEDGER_MISSING", "# Synthetic\n\n## Status\n\n`doing` — see the Ledger.\n",
      "R-ledger-missing"),
 ]
 
@@ -499,7 +505,7 @@ def check_s_synthetic(problems: list[str]) -> None:
         ("FIXTURE_S_PEER", FIXTURE_S_PEER, False),
     ):
         pat = Pattern(path=Path(f"synthetic/compositions/{name}.md"), text=text,
-                      invariant_count=1, grounded=False)
+                      invariant_count=1, done=False)
         fired = bool(check_recording_step({pat.path: pat}))
         if fired != want_fire:
             problems.append(
@@ -532,7 +538,7 @@ def check_t_synthetic(problems: list[str]) -> None:
         ("FIXTURE_T_POSITION", FIXTURE_T_POSITION, False),
     ):
         pat = Pattern(path=Path(f"synthetic/compositions/{name}.md"), text=text,
-                      invariant_count=1, grounded=False)
+                      invariant_count=1, done=False)
         fired = bool(check_seal_key({pat.path: pat}))
         if fired != want_fire:
             problems.append(
@@ -605,7 +611,7 @@ def check_u_synthetic(problems: list[str]) -> None:
         ("FIXTURE_U_BOTH_BEFORE", FIXTURE_U_BOTH_BEFORE, False),
     ):
         pat = Pattern(path=Path(f"synthetic/compositions/{name}.md"), text=text,
-                      invariant_count=1, grounded=False)
+                      invariant_count=1, done=False)
         fired = bool(check_retry_bit({pat.path: pat}))
         if fired != want_fire:
             problems.append(
@@ -674,7 +680,7 @@ def check_w_synthetic(problems: list[str]) -> None:
         ("FIXTURE_W_FOREIGN", FIXTURE_W_FOREIGN, False),
     ):
         pat = Pattern(path=Path(f"synthetic/compositions/{name}.md"), text=text,
-                      invariant_count=1, grounded=False)
+                      invariant_count=1, done=False)
         fired = bool(check_step_reference({pat.path: pat}))
         if fired != want_fire:
             problems.append(
@@ -692,7 +698,7 @@ def check_v_synthetic(problems: list[str]) -> None:
         ("FIXTURE_V_NESTED_MULTILINE", FIXTURE_V_NESTED_MULTILINE, False),
     ):
         pat = Pattern(path=Path(f"synthetic/compositions/{name}.md"), text=text,
-                      invariant_count=1, grounded=False)
+                      invariant_count=1, done=False)
         fired = bool(check_signature_alternation({pat.path: pat}))
         if fired != want_fire:
             problems.append(
@@ -718,7 +724,7 @@ U_FIRING: set[str] = set()
 def check_r_synthetic(problems: list[str]) -> None:
     for name, text, want in R_FIXTURES:
         pat = Pattern(path=Path(f"synthetic/{name}.md"), text=text,
-                      invariant_count=1, grounded=False)
+                      invariant_count=1, done=False)
         codes = {f.code for f in check_ledger({pat.path: pat})}
         if want is None and codes:
             problems.append(f"R-ledger: {name} should be silent; fired {sorted(codes)}")
@@ -827,7 +833,7 @@ def check_census_synthetic(problems: list[str]) -> None:
                 path = root / f"{stem}.md"
                 text = CENSUS_PATTERN.format(family=fam)
                 pats[path] = Pattern(path=path, text=text,
-                                     invariant_count=1, grounded=False)
+                                     invariant_count=1, done=False)
             return {f.code + "|" + f.message for f in check_stale_census(root, pats)}
 
     three = [("a", "Ghost"), ("b", "Ghost"), ("c", "Ghost")]
@@ -881,7 +887,7 @@ def check_orphan_synthetic(problems: list[str]) -> None:
             path = root / "ghost.md"
             text = ORPHAN_SPEC.format(body=body, qualifier=qualifier)
             pats = {path: Pattern(path=path, text=text,
-                                  invariant_count=1, grounded=False)}
+                                  invariant_count=1, done=False)}
             return {f.message for f in check_orphan_forthcoming(root, pats)}
 
     # (1) a named forthcoming the roadmap does not carry must fire
@@ -959,7 +965,7 @@ An implementation is acceptable when an auditor can read the store.
 def check_acceptance_synthetic(problems: list[str]) -> None:
     def run(name: str, text: str) -> set[str]:
         path = Path(f"synthetic/atoms/{name}.md")
-        pat = Pattern(path=path, text=text, invariant_count=1, grounded=False)
+        pat = Pattern(path=path, text=text, invariant_count=1, done=False)
         return {f.message for f in check_acceptance_surface({path: pat})}
 
     # (1) a section carrying a Check rule is the ordinary satisfying shape
@@ -1000,7 +1006,7 @@ def check_doubled_section_synthetic(problems: list[str]) -> None:
     that look like doubling to a careless reader stay silent."""
     def run(name: str, text: str) -> set[str]:
         path = Path(f"synthetic/atoms/{name}.md")
-        pat = Pattern(path=path, text=text, invariant_count=1, grounded=False)
+        pat = Pattern(path=path, text=text, invariant_count=1, done=False)
         return {f.message for f in check_migration_seam({path: pat})}
 
     # (1) the specimen the narrow check was built on, still caught
@@ -1069,7 +1075,7 @@ def check_heading_synthetic(problems: list[str]) -> None:
 
     def run(name: str, names: list[str], text: str | None = None) -> set[str]:
         path = Path(f"synthetic/atoms/{name}.md")
-        pat = Pattern(path=path, text=page(names) if text is None else text, invariant_count=1, grounded=False)
+        pat = Pattern(path=path, text=page(names) if text is None else text, invariant_count=1, done=False)
         return {f.message for f in check_heading_standard(root, {path: pat})}
 
     if run("good", good):
@@ -1272,11 +1278,16 @@ def check_notation_synthetic(problems: list[str]) -> int:
         (root / "p.md").write_text(
             "the section titled *Real heading* in `t.md`\n"
             "the entry *An entry* in [T](./t.md)\n"
-            "the section titled *No such heading* in `t.md`\n", encoding="utf-8")
-        lines = {f.line for f in check_page_citations(root)}
-        if lines != {3}:
-            problems.append(f"X-page-citation: fired on lines {sorted(lines)}, want [3]")
-        n += 3
+            "the section titled *No such heading* in `t.md`\n"
+            "the section titled *Moved heading* in `t.md`\n", encoding="utf-8")
+        # t.md's history file: its sections are t.md's, and it cites t.md's own
+        (root / "t.hist.md").write_text(
+            "# h\n\n## Moved heading\n\nthe section titled *Real heading*\n"
+            "the section titled *Nowhere at all*\n", encoding="utf-8")
+        hits = {(f.path.name, f.line) for f in check_page_citations(root)}
+        if hits != {("p.md", 3), ("t.hist.md", 6)}:
+            problems.append(f"X-page-citation: fired at {sorted(hits)}, want p.md 3 and t.hist.md 6")
+        n += 6
     with tempfile.TemporaryDirectory() as d:
         root = Path(d)
         real = Path(__file__).resolve().parents[2]
@@ -1314,13 +1325,14 @@ def check_notation_synthetic(problems: list[str]) -> int:
             "On 2026-11-06 the library held 58 patterns.\n"
             "the `58 patterns` form is quoted.\n"
             "```\n52 grounded\n```\n"
-            "Three patterns share it.\n", encoding="utf-8")
+            "Three patterns share it.\n"
+            "61 done today.\n", encoding="utf-8")
         (root / "roadmap.md").write_text("A ledger: 52 grounded, 58 patterns.\n", encoding="utf-8")
         (root / "open-questions.md").write_text("A register: thirty-seven grounded patterns.\n", encoding="utf-8")
         hits = {(f.path.name, f.line) for f in check_live_counts(root)}
-        if hits != {("readme.md", 1), ("readme.md", 3)}:
-            problems.append(f"N-live-count: fired at {sorted(hits)}, want readme.md lines 1 and 3")
-        n += 9
+        if hits != {("readme.md", 1), ("readme.md", 3), ("readme.md", 10)}:
+            problems.append(f"N-live-count: fired at {sorted(hits)}, want readme.md lines 1, 3 and 10")
+        n += 10
     return n
 
 
@@ -2104,7 +2116,7 @@ def check_fence_form_synthetic(problems: list[str]) -> int:
     rules = "```\nOperation 1: The atom MUST read the store.\n```\n"
     silent = [
         ("a bare fence of rules", rules),
-        ("a Ledger-shaped block", rules + "```\nstatus: draft\nopen:\n- none\n```\n"),
+        ("a Ledger-shaped block", rules + "```\nstatus: todo\nopen:\n- none\n```\n"),
         ("another language's code", rules + "```bash\nOperation 1: echo not a rule\n```\n"),
         ("a rule quoted under a NOTE", rules + "```\nNOTE: an exemplar\nOperation 9: The atom MUST read.\n```\n"),
     ]
@@ -2238,6 +2250,56 @@ def check_contract_labels_synthetic(problems: list[str]) -> int:
     return 3
 
 
+def check_provenance_drift_synthetic(problems: list[str]) -> int:
+    """R-provenance-drift, in a throwaway git repository: the rewrite of the
+    status words (`grounded on Final Critique N — D at <sha>` to `done — D`, with
+    `, frozen at <sha>` written into round N's `last gate:` entry, or round N's
+    entry restored as git last held it) is silent; a moved date, any other gate
+    change and a restored entry git never held fire. Returns the fixture count."""
+    import subprocess
+    import tempfile
+
+    def page(status, gate):
+        return f"# X\n\n## Ledger\n\n```\nstatus: {status}\nformal: pending — x\nlast gate: {gate}\nopen: none\n```\n"
+
+    def sh(d, *args):
+        subprocess.run(args, cwd=d, check=True, capture_output=True)
+
+    old = "grounded on Final Critique 4 — 2026-06-04 at abcdef1"
+    g4 = "2026-06-04 — Final Critique 4 — clean, one sample"
+    g5 = "2026-06-09 — Final Critique 5 (delta) — clean, no sample"
+    head = {"rewrite": [page(old, g4)], "date": [page(old, g4)], "gate": [page(old, g4)],
+            "restored": [page(old, g4), page(old, g5)], "invented": [page(old, g4), page(old, g5)]}
+    now = {
+        "rewrite": page("done — 2026-06-04", "2026-06-04 — Final Critique 4, frozen at abcdef1 — clean, one sample"),
+        "date": page("done — 2026-06-05", "2026-06-04 — Final Critique 4, frozen at abcdef1 — clean, one sample"),
+        "gate": page("done — 2026-06-04", "2026-06-04 — Final Critique 4, frozen at abcdef1 — clean, confirmed"),
+        "restored": page("done — 2026-06-04", g5 + "; 2026-06-04 — Final Critique 4, frozen at abcdef1 — clean, one sample"),
+        "invented": page("done — 2026-06-04", g5 + "; 2026-06-04 — Final Critique 4, frozen at abcdef1 — clean, confirmed"),
+    }
+    with tempfile.TemporaryDirectory() as d:
+        root = Path(d)
+        (root / "atoms").mkdir()
+        sh(d, "git", "init", "-q")
+        sh(d, "git", "config", "user.email", "t@t")
+        sh(d, "git", "config", "user.name", "t")
+        for stage in (0, 1):
+            for name, texts in head.items():
+                (root / "atoms" / f"{name}.md").write_text(texts[min(stage, len(texts) - 1)], encoding="utf-8")
+            sh(d, "git", "add", "-A")
+            sh(d, "git", "commit", "-q", "--allow-empty", "-m", f"stage {stage}")
+        pats = {}
+        for name, text in now.items():
+            f = root / "atoms" / f"{name}.md"
+            f.write_text(text, encoding="utf-8")
+            pats[f] = Pattern(path=f, text=text, invariant_count=0, done=True)
+        got = {(x.path.stem, x.message.split("`")[1]) for x in check_provenance_drift(root, pats)}
+    want = {("date", "status:"), ("gate", "last gate:"), ("invented", "last gate:")}
+    if got != want:
+        problems.append(f"R-provenance-drift: fired at {sorted(got)}, want {sorted(want)}")
+    return len(now)
+
+
 def check_section_titles_synthetic(problems: list[str]) -> int:
     """X-section-title (council read 126): a citation naming a heading of the
     file it names, a heading of its own page, or the start of a long heading is
@@ -2248,16 +2310,20 @@ def check_section_titles_synthetic(problems: list[str]) -> int:
         (root / "atoms").mkdir()
         (root / "pressure-testing.md").write_text(
             "## A compensator is exclusive — one writer per act\n", encoding="utf-8")
+        # a section moved whole to the page's history file is still the page's
+        (root / "pressure-testing.hist.md").write_text(
+            "# h\n\n## What \"grounded\" means\n", encoding="utf-8")
         (root / "atoms" / "a.md").write_text(
             "## Which closing stands\n\n"
             "Read the section titled Which closing stands for both keys.\n"
             "Per the section titled *A compensator is exclusive* in `pressure-testing.md`.\n"
             "Per the section titled Where the money goes in `pressure-testing.md`.\n"
-            "Per the section titled Which opening stands.\n", encoding="utf-8")
+            "Per the section titled Which opening stands.\n"
+            "Per the section titled *What \"grounded\" means* in `pressure-testing.md`.\n", encoding="utf-8")
         lines = {f.line for f in check_section_titles(root)}
     if lines != {5, 6}:
         problems.append(f"X-section-title: fired on lines {sorted(lines)}, wanted [5, 6]")
-    return 4
+    return 5
 
 
 def check_generated_views_synthetic(problems: list[str]) -> int:
@@ -2290,7 +2356,7 @@ def check_generated_views_synthetic(problems: list[str]) -> int:
         for name, text in (("listed", listed), ("bare", bare)):
             f = comp / f"{name}.md"
             f.write_text(text, encoding="utf-8")
-            pats[f] = Pattern(path=f, text=text, invariant_count=0, grounded=False)
+            pats[f] = Pattern(path=f, text=text, invariant_count=0, done=False)
         got = {f.path.stem for f in check_composes_list(pats)}
         n += 2
         if got != {"bare"}:
@@ -2338,11 +2404,11 @@ def check_constituents_synthetic(problems: list[str]) -> int:
         for n, stem in (P, S):
             f = root / "atoms" / f"{stem}.md"
             f.write_text(f"# {n}\n", encoding="utf-8")
-            pats[f] = Pattern(path=f, text=f"# {n}\n", invariant_count=0, grounded=False)
+            pats[f] = Pattern(path=f, text=f"# {n}\n", invariant_count=0, done=False)
         for name, text, _ in cases:
             f = root / "compositions" / (name.replace(" ", "-") + ".md")
             f.write_text(text, encoding="utf-8")
-            pats[f] = Pattern(path=f, text=text, invariant_count=0, grounded=False)
+            pats[f] = Pattern(path=f, text=text, invariant_count=0, done=False)
         fired = {f.path.stem.replace("-", " ") for f in check_constituents_agree(pats)}
     for name, _, should in cases:
         if (name in fired) != should:
@@ -2403,7 +2469,7 @@ def check_renumber_synthetic(problems: list[str]) -> int:
         pats = {}
         for name in files:
             f = root / "atoms" / f"{name}.md"
-            pats[f] = Pattern(path=f, text=f.read_text(encoding="utf-8"), invariant_count=0, grounded=False)
+            pats[f] = Pattern(path=f, text=f.read_text(encoding="utf-8"), invariant_count=0, done=False)
         got: dict[str, list[str]] = {}
         for x in check_invariant_numbers(root, pats):
             got.setdefault(x.path.stem, []).append(x.message)
@@ -2475,7 +2541,7 @@ Term integer width: the largest count the deployment's integers carry without lo
 
 ## Status
 
-`draft`
+`todo`
 
 ```
 Operation 12: The atom MUST answer as appropriate.
@@ -2510,7 +2576,7 @@ def check_requirement_text_synthetic(problems: list[str], patterns) -> int:
     nowhere else, and the corpus exemplars stay silent. Returns the fixture
     count."""
     pat = Pattern(path=Path("synthetic/atoms/gizmo.md"), text=REQ_PAGE,
-                  invariant_count=0, grounded=False)
+                  invariant_count=0, done=False)
     found = [(f.code, f.message.split(": ", 1)[0]) for f in check_requirement_text({pat.path: pat})]
     if sorted(found) != REQ_FIRING:
         problems.append(f"Z: the synthetic page fired {sorted(found)}, want {REQ_FIRING}")
@@ -2604,7 +2670,7 @@ Kind:       Type
 
 ## Status
 
-`draft` — see the Ledger.
+`todo` — see the Ledger.
 """
 
 IR_COMPOSITION = """# Gadget Line
@@ -2688,7 +2754,7 @@ def check_ir_synthetic(problems: list[str]) -> None:
         and list(widget["vocabulary"]) == ["actors"],
         "composes": [e["path"] for x in docs if x["spec"] == "compositions/gadget-line.md"
                      for e in x["composes"]] == ["atoms/widget.md"],
-        "status": [x["status"] for x in docs] == ["draft", None],
+        "status": [x["status"] for x in docs] == ["todo", None],
     }
     for what, held in want.items():
         if not held:
@@ -2884,12 +2950,21 @@ def main(argv: list[str]) -> int:
               "silent; an extra list item, a declaration naming more, and a serve rule naming more "
               "fire) \u2713")
 
+    drift_problems: list[str] = []
+    n_drift = check_provenance_drift_synthetic(drift_problems)
+    failures.extend(drift_problems)
+    if not drift_problems:
+        print(f"R-provenance-drift: {n_drift} synthetic pages hold (the status-word rewrite and a "
+              "restored gate entry git held silent; a moved date, another gate change and an "
+              "invented entry fire) \u2713")
+
     title_problems: list[str] = []
     n_title = check_section_titles_synthetic(title_problems)
     failures.extend(title_problems)
     if not title_problems:
         print(f"X-section-title: {n_title} synthetic fixtures hold (a named file's heading, an own "
-              "page's heading and a long heading's opening silent; a title no file carries fires) \u2713")
+              "page's heading, a long heading's opening and a heading of the named file's history "
+              "silent; a title no file carries fires) \u2713")
 
     contract_problems: list[str] = []
     n_contract = check_contract_labels_synthetic(contract_problems)
@@ -3115,7 +3190,7 @@ def main(argv: list[str]) -> int:
     failures.extend(r_problems)
     if not r_problems:
         print(f"R-ledger: {len(R_FIXTURES)} synthetic fixtures hold "
-              f"(three clean pages silent, twelve malformed pages fire their code) \u2713")
+              f"(four clean pages silent, seventeen malformed pages fire their code) \u2713")
 
     hist_problems: list[str] = []
     check_history_file_synthetic(hist_problems)

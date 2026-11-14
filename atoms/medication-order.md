@@ -1350,12 +1350,12 @@ It inherits from:
 
 ## Status
 
-`grounded on Final Critique 7 — 2026-11-05 at ec26ba5` — see the Ledger.
+`done — 2026-11-05` — see the Ledger.
 
 ## Ledger
 
 ```
-status: grounded on Final Critique 7 — 2026-11-05 at ec26ba5
+status: done — 2026-11-05
 formal: verified — medication-order.als + 3 twins (the static data model: the amendment chain's shape, Invariant 2, 3 and 4 in one state, 2026-06-04); medication-order.tla + 17 twins (re-derived 2026-11-11 over one order's amendment chain under every order action, refusals in each refuses line's order, while the clock moves: Invariant 1.1, 2.1, 3.1, 4.1, 5.1, 6.1, 6.2, 7.1, 8.1, 9.1, 12.1 through 12.3, 13.1, 13.2 and 14.1, Invariant 2.1, 3.1 and 4.1 a cross-check with the Alloy model); nothing testable in Alloy for Invariant 1, 5 through 9 and 12 through 14: each compares an order with a later version of it or reads what a call answers, which a single state cannot show, so they are the TLA+ model's; coverage 2026-11-11 (unit `atoms/medication-order.md formal layer`): no owed rows, Invariant 10 and 11 unstatable (blank strings not modeled), 2026-11-11
 last gate: 2026-11-05 — Final Critique 7, a delta round, frozen at ec26ba5 — foundational count 0, clean, one sample
 

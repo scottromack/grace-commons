@@ -845,12 +845,12 @@ Projection: invalid-query
 
 ## Status
 
-`grounded on Final Critique 15 — 2026-11-05 at 00843d2` — see the Ledger.
+`done — 2026-11-05` — see the Ledger.
 
 ## Ledger
 
 ```
-status: grounded on Final Critique 15 — 2026-11-05 at 00843d2
+status: done — 2026-11-05
 formal: verified — approval-step.tla + 3 twins (2026-06-03); approval-step.als + 10 twins (the static data model, 2026-11-11: Invariant 2.1, 4.1, 4.2, 5.1, 6.1 through 6.4, 7.1, 8.1, 8.2 and State 13 checked on every record [Submit] or one admitted resolve leaves, Invariant 4 and 5 a cross-check with the TLA+ model; nothing testable in Alloy for Invariant 1, 3, 9 and 10: each compares a step with a later version of it or with a second step, which a single state cannot show, so they are the TLA+ model's); coverage 2026-11-10 (unit formal: more coverage for the yes votes): owes TLA+ checks of Invariant 1 and Invariant 3 (across steps); owed rows: Invariant 1; Invariant 3, 2026-11-11
 last gate: 2026-11-05 — Final Critique 15, a delta round, frozen at 00843d2 — foundational count 0, clean, no sample; 2026-11-04 — Final Critique 14, a delta round, frozen at 075c6e4 — foundational count 1, cured by a held cure, not clean, no sample; 2026-11-03 — Final Critique 13, a delta round, frozen at 30a4db8 — foundational count 1, cured, not clean, no sample; 2026-11-02 — Final Critique 12, a delta round, frozen at e63380b — foundational count 1, cured, not clean, no sample; 2026-10-29 — Final Critique 11 — foundational count 0, clean, one sample
 

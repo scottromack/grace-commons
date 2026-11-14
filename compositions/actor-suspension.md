@@ -1065,12 +1065,12 @@ Actor Suspension inherits the broader standards compliance of its constituents:
 
 ## Status
 
-`grounded on Final Critique 9 — 2026-11-05 at 917cc95` — see the Ledger.
+`done — 2026-11-05` — see the Ledger.
 
 ## Ledger
 
 ```
-status: grounded on Final Critique 9 — 2026-11-05 at 917cc95
+status: done — 2026-11-05
 formal: verified — actor-suspension.tla + 6 twins + 9 probes (across steps); actor-suspension.als + 24 twins (the static data model, 2026-11-11: Primitive policy 19, Invariant 1.1 through 1.3, 1.5 through 1.7, 1.10, 2.2 through 2.5, 2.7 through 2.9, 5.4 and 5.5, Reconciliation 22 and 33, Action wiring 50, Composition state 5 through 7, 21, 22, 29, 32, 33 and 44 and Check 3.2 checked on every state of the trail, the constituents' records, the index and the mark the writers can leave, Invariant 1.1 through 1.3, 1.10 and Composition state 21 a cross-check with the TLA+ model; nothing testable in Alloy for Primitive policy 20 (an alert writes no record), Invariant 1.4 (two stores' writes ordered), 1.8, 1.9 and Reconciliation 28 (lateness turns on when the sweep last ran), 1.12, 2.1's existence and 3.1 through 3.5 (across steps), 2.6 and 4 (Audit Trail's and the constituents' own), Composition state 36, 37 and 56 (the page gives no state such a misreading answers) and 40 (a destroyed payload leaves nothing to read); the model found that an intent aged out above the mark, never indexed, reads its actor active by Composition state 29, no rule bounding the reconciliation cadence below the audit horizon); coverage 2026-11-10 (unit formal: more coverage for the yes votes), 2026-11-11; owed rows: 2a: Reconciliation 28 — owed: an invariant under a window counter (the model has no clock); its twin lets the cascade stay open past the window, 2026-10-27
 last gate: 2026-11-05 — Final Critique 9, delta, frozen at 917cc95 — foundational count 0, clean, one sample; 2026-11-04 — Final Critique 8, a delta round, frozen at 92bff7a — foundational count 0 in the reader's report, open foundational line 2026-10-26-c cured by the settle, not clean, no sample; 2026-11-03 — Final Critique 7 — foundational count 7, not clean, no sample
 

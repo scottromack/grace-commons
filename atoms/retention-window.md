@@ -815,14 +815,14 @@ It inherits from:
 
 ## Status
 
-`grounded on Final Critique 13 — 2026-10-24 at 142a72a` — see the Ledger.
+`done — 2026-10-24` — see the Ledger.
 
 ## Ledger
 
 ```
-status: grounded on Final Critique 13 — 2026-10-24 at 142a72a
+status: done — 2026-10-24
 formal: verified — retention-window.als + 18 twins (the static data model: Invariant 1.1, 4.1, 6.1, 6.2, 8.1, 9.1 and 11.1, State 2 through 6 with 4a and 6a, State 10, Identity 1, Operation 4, 5, 7, 8c and 13 checked on every version an ordered sequence of admitted calls leaves, with State 7, Identity 6 and Operation 8 checked through them); retention-window.tla + 18 twins (across steps, while the clock moves: Invariant 2.1, 2.2, 3.1, 4.2, 5.1 through 5.3, 7.1, 8.3, 10.2, 11.2 and 11.3, Identity 5, Operation 1, 13b, 15, 20, 29 and 32, Simultaneous retention 2, with Invariant 3.2 and 10.1, State 8 and 9, Identity 9 and Simultaneous retention 3 checked through them); the vote no of 2026-06-03 superseded by the maintainer's ruling of 2026-11-09 (both models; only the writing vetoes one), and neither vetoed; Identity 10, Operation 11, 21 and 26, Record divergence 3 and Simultaneous retention 4 through 8 (joint enforcement, the composing pattern's) cannot be stated; owed rows: Operation 6, 8b, 14, 24b and 30, 2026-11-12
-last gate: 2026-10-24 — Final Critique 13 — foundational count 0, clean, one sample
+last gate: 2026-10-24 — Final Critique 13, frozen at 142a72a — foundational count 0, clean, one sample
 
 open:
 - 2026-10-03-b · refining · Capability requirement; Operation 24, 24a; Term owns the destruction; Simultaneous retention 5; Purge persistence 3 · the policy registry and its resolved lengths, the ownership setting and the alert are the deployment's and sit outside the capability list → list them

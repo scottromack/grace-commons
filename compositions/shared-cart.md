@@ -550,12 +550,12 @@ Shared Cart is a wiring of three primitives and not a regulated pattern, so it c
 
 ## Status
 
-`grounded on Final Critique 2 — 2026-11-05 at b430bcf` — see the Ledger.
+`done — 2026-11-05` — see the Ledger.
 
 ## Ledger
 
 ```
-status: grounded on Final Critique 2 — 2026-11-05 at b430bcf
+status: done — 2026-11-05
 formal: verified — shared-cart.als + 26 twins (the static data model: Invariant 2.1 and 3.1, Scope vocabulary 2 and 3 through 7, Action wiring 1 through 22, 24 through 27, 29 and 30, Wiring decision 1 and 2 and Non-goal 3 and 10 checked on every call's permitted check, constituent calls, cart event and answer and on the carts, lines, grants and events they leave, with Composes 7 through 11, Composition state 2 and 3 and Scope vocabulary 1 checked through them); shared-cart.tla + 4 twins (across steps, while an opener and a friend share, unshare, add, change, remove, clear, view and read back: Invariant 1.1, 3.2 and 4.1 and Action wiring 28, with Action wiring 23 checked through them); the vote no of 2026-10-30 superseded by the maintainer's ruling of 2026-11-09 (both models; only the writing vetoes one), and neither vetoed; Action wiring 30 checked as Action wiring 2, 13, 17 and 19 read it (its condition does not exclude the composition's own refusals); owed rows: none, 2026-11-12
 last gate: 2026-11-05 — Final Critique 2, delta, frozen at b430bcf — foundational count 0, clean, one sample; 2026-11-04 — Final Critique 1, frozen at d7d3b7a — foundational count 5, cured, not clean, no sample
 

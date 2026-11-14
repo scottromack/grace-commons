@@ -833,14 +833,14 @@ Inherited from:
 
 ## Status
 
-`grounded on Final Critique 19 — 2026-11-04 at 260b6c6` — see the Ledger.
+`done — 2026-11-04` — see the Ledger.
 
 ## Ledger
 
 ```
-status: grounded on Final Critique 19 — 2026-11-04 at 260b6c6
+status: done — 2026-11-04
 formal: verified — session.als + 17 twins (the static data model: State 1, 2 and 4 through 7, Identity 1, Invariant 7.1, 8.1 through 8.3, 10.1, 12.1 and 12.2, Check 1.3, Operation 4, 5, 10 and 58 checked on every version an ordered sequence of admitted calls leaves); session.tla + 14 twins (across steps, while the clock moves: Invariant 1.1, 2.1, 3.1, 3.3, 4.1, 5.1, 6.1, 7.2, 9.2, 11.1, 12.3 and 12.4, Operation 20, 27 and 39, Concurrency 4, with Invariant 1.2 and 9.1, State 10 and 11, Identity 5 and 6 checked through them); the vote no of 2026-06-03 superseded by the maintainer's ruling of 2026-11-09 (both models; only the writing vetoes one), and neither vetoed; Invariant 6.2 cannot be stated (External check 2); owed rows: Operation 52; Operation 37, 53 and 61, 2026-11-11
-last gate: 2026-11-04 — Final Critique 19 — delta — foundational count 0, clean, no sample
+last gate: 2026-11-04 — Final Critique 19, frozen at 260b6c6 — delta — foundational count 0, clean, no sample
 
 open: none
 ```

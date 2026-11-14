@@ -645,12 +645,12 @@ Inherited from:
 
 ## Status
 
-`grounded on Final Critique 2 — 2026-11-03 at aeea14e` — see the Ledger.
+`done — 2026-11-03` — see the Ledger.
 
 ## Ledger
 
 ```
-status: grounded on Final Critique 2 — 2026-11-03 at aeea14e
+status: done — 2026-11-03
 formal: verified — owed-record.als + 17 twins (the static data model: State 1 through 6, Identity 1, Invariant 2.1 and 4.1, Operation 4, 7, 8, 9, 10, 14, 25 and 27 checked on every version an ordered sequence of admitted calls leaves); owed-record.tla + 10 twins (across steps, while the clock moves: Invariant 1.1, 1.2, 2.2, 3.1, 3.2 and 5.1, State 8, Concurrency 2, Operation 24 and 36, with State 7, State 9 and Concurrency 1 checked through them); the vote no of 2026-11-02 superseded by the maintainer's ruling of 2026-11-09 (both models; only the writing vetoes one), and neither vetoed; owed rows: Operation 31, 32 and 39, Clock dependence 1, 2026-11-11
 last gate: 2026-11-03 — Final Critique 2, delta, frozen at aeea14e — foundational count 0, clean, one sample
 

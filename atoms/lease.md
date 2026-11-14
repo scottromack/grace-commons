@@ -445,14 +445,14 @@ The concept is not itself regulated. It appears in regulated patterns as the mec
 
 ## Status
 
-`grounded on Final Critique 4 — 2026-10-04 at 46804b7` — see the Ledger.
+`done — 2026-10-04` — see the Ledger.
 
 ## Ledger
 
 ```
-status: grounded on Final Critique 4 — 2026-10-04 at 46804b7
+status: done — 2026-10-04
 formal: verified — lease.tla + 5 twins + 1 probe (vote yes: one holder, the terminus, the fence and the write margin are temporal claims; 14,480 states, holding at clock bounds 8, 10 and 12; 2026-10-04); lease.als + 9 twins (the static data model, 2026-11-12: Invariant 1.1, 2.1, 2.2, 3.1, 3.2, 5.1, 6.1 and 6.2 checked on every lease state a successful take or a release answered released leaves, on what the host derives from it at one reading (State 2) and answers there whatever is believed about a holder's death, and on every instant a holder mints and hands a fenced party; Invariant 1, 2, 3.2 and 6.1 a cross-check with the TLA+ model; nothing testable in Alloy for Invariant 1.2, 2.1's release arm, 4.1 and 4.2: 1.2 orders two takes and a release is a step that stores free, and 4.1 and 4.2 compare a waiter's bound with the one its arrival set, which the host does not keep beside the bound (State 4), so one state cannot show them and they are the TLA+ model's); coverage 2026-11-10 (unit formal: more coverage for the yes votes): owes a TLA+ check of Invariant 4.2 (a second waiter, across steps); owed rows: Invariant 4.2; 2a: Sizing 3a — held as an invariant: the model clock and Pause bound it (Inv_NoLateWrite, twin lease-buggy-margin); no row owed, 2026-11-12
-last gate: 2026-10-04 — Final Critique 4, fresh reader, three passes — 0 foundational, 44 refining reports, 13 rhetorical reports
+last gate: 2026-10-04 — Final Critique 4, fresh reader, three passes, frozen at 46804b7 — 0 foundational, 44 refining reports, 13 rhetorical reports
 
 open:
 - 2026-10-04-a · refining · Sizing 1 through 9; Composition note 8 · the sizing is a holder-side discipline with its own latched reading, the atom says a lease does not know what the holder does, and a composer restates the rules as its own → an extraction candidate; decide once a second composer binds it

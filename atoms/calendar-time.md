@@ -813,12 +813,12 @@ Calendar Time is a primitive with no regulatory anchor of its own. It inherits f
 
 ## Status
 
-`grounded on Final Critique 1 — 2026-11-08 at 4b0bd47` — see the Ledger.
+`done — 2026-11-08` — see the Ledger.
 
 ## Ledger
 
 ```
-status: grounded on Final Critique 1 — 2026-11-08 at 4b0bd47
+status: done — 2026-11-08
 formal: verified — calendar-time.als + 6 twins (the static data model: State 1, Invariant 1.1, 1.2, Identity 2 and 3 checked on every place an admitted [Open] or [Change] leaves, Identity 4 through Invariant 1.1); calendar-time.tla + 6 twins (across steps: Invariant 2.1 and State 2 over [Open] and [Change]; Invariant 3.1 and Operation 28 through 36 as now moves an hour a step over a window crossing midnight in every zone; Invariant 4.1 and Operation 24 over one [Shift] call on a date range scaled to 2027 and 2028); the vote no of 2026-11-08 superseded by the maintainer's ruling of 2026-11-09 (both models; only the writing vetoes one), and neither vetoed; owed rows: Operation 7; Operation 12 through 21, 2026-11-11
 last gate: 2026-11-08 — Final Critique 1, frozen at 4b0bd47 — foundational count 0, clean, one sample
 

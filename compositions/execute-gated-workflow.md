@@ -1201,12 +1201,12 @@ It inherits from:
 
 ## Status
 
-`grounded on Final Critique 15 — 2026-11-05 at 776c44e` — see the Ledger.
+`done — 2026-11-05` — see the Ledger.
 
 ## Ledger
 
 ```
-status: grounded on Final Critique 15 — 2026-11-05 at 776c44e
+status: done — 2026-11-05
 formal: verified — execute-gated-workflow.tla + 13 twins, re-derived 2026-11-08 (it was verified 2026-06-04 over an unbounded consumption arm, Pending-only mooting and a single-writer invocation with no terminus): the mooted mark, the horizon-bounded consumption arm, the moot cascade, the invocation and the sweep as two processes, and the sweep's four legs with the recovery record and the age bound, leg (4) joined on the step's own decision; every composition-level Invariant the model can carry (1.1 to 1.3, 3.1, 3.2, 4.1, 4.2, 6.1) checked, with the rules they stand on; the invocation is one transaction since 2026-10-20 (Store 1 and 2), so the completion bound's yield point is not modelled; closes 2026-08-29-a and 2026-08-30-e; execute-gated-workflow.als + 13 twins (the static data model, 2026-11-12: Invariant 3.1, 3.3, 4.1 and 4.2, Reconciliation 15, 16 and 17 (with 31) and Composition state 9, 11, 12 (with 10), 13, 14 and 15 checked on every state the starts, openings, decisions, firings and moot cascades, the opening and firing legs and the index writes can leave, each index as stored and as its rebuild reproduces it, Invariant 3.1, 4.1 and 4.2 a cross-check with the TLA+ model; nothing testable in Alloy for Invariant 2.1 through 2.3 (a denied attempt writes no record), 5.1 and 5.2 (State Machine's) and 8.1 through 8.4 (the order of a call, which no record keeps); Invariant 1.1 through 1.3, 3.2 and 6.1 left to the TLA+ model (each holds by what the fire and the cascade read before they wrote); the model found that no rule writes the gate binding of an opening the opening leg records, so over an earlier step's binding the stored entry stays live naming that step while the binding rebuild names the recovered one, as a failed re-bind write also leaves it (Composition state 12; Action wiring 14, 74); that a moot cascade whose withdraw Approval Step refuses lands its recall and moot record and leaves the step Pending and bound with nothing to retry the withdraw (Cascade 10, Reconciliation 14), against Invariant 4.1; that a Retained outcome can name a workflow whose start event is Purged and whose record's write failed (Invariant 3.3); and that a step submitted outside the composition coinciding with an unmatched open intent is recorded as its opening, not found (Reconciliation 16, 17)); coverage 2026-11-10 (unit formal: more coverage for the yes votes), 2026-11-12: owed rows: Reconciliation 24 through 26, 2026-11-08
 last gate: 2026-11-05 — Final Critique 15 — delta, frozen at 776c44e — foundational count 0, clean, one sample
 

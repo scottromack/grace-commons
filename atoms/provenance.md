@@ -929,12 +929,12 @@ It inherits from:
 
 ## Status
 
-`grounded on Final Critique 13 — 2026-11-03 at e0a85af` — see the Ledger.
+`done — 2026-11-03` — see the Ledger.
 
 ## Ledger
 
 ```
-status: grounded on Final Critique 13 — 2026-11-03 at e0a85af
+status: done — 2026-11-03
 formal: verified — provenance.als + 6 twins (the static data model, re-derived 2026-11-12 as the entries and chain record versions an ordered sequence of admitted calls leaves, custody replayed by sequence number as Check 3.1 reads it; the 2026-06-04 fact CustodyContinuity, which its checks restated, and its 2 twins gone: Invariant 4.2, 4.3, 4.4, 5.1, 7.1 and 7.2); provenance.tla + 13 twins (the operation sequences, 2026-11-12, while the clock reads any instant, backwards included: Invariant 1.1, 2.1, 2.2, 3.1, 3.2, 3.3, 4.1, 5.2, 5.3, 6.1, 6.2, 8.2, 8.3, 8.4 and 10.1, Operation 42 through 44, with State 11 and 18 checked through them); Invariant 8.1 holds by both models' typing; coverage 2026-11-12 (unit `atoms/provenance.md formal layer`): owed rows: none, 2026-11-12
 last gate: 2026-11-03 — Final Critique 13, frozen at e0a85af — foundational count 0, clean, one sample
 

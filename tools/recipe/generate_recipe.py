@@ -50,7 +50,8 @@ def is_grounded(repo, rel_path):
     full = os.path.join(repo, rel_path)
     if not os.path.isfile(full):
         return False
-    return bool(re.search(r'`?grounded', open(full, encoding="utf-8").read().lower()))
+    # the Status token is `done — YYYY-MM-DD` (pressure-testing.md, *What DONE means*)
+    return bool(re.search(r'^## Status\s*\n\s*`done\b', open(full, encoding="utf-8").read(), re.M))
 
 
 def composes_section(repo, comp_rel):
@@ -204,7 +205,7 @@ def main():
                      "declare `// Atom:` headers, so this is what it SHOULD contain, not what it proves)_")
         L.append("")
         for a in recipe["atoms"]:
-            g = "grounded" if a["grounded"] else "UNGROUNDED?"
+            g = "done" if a["grounded"] else "NOT DONE?"
             mods = (" - module(s): " + ", ".join(a["modules"])) if a["modules"] else ""
             L.append(f"- **{a['name']}** - `{a['spec']}` ({g}){mods}")
         if app_entities:

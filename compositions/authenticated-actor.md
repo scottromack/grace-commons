@@ -670,12 +670,12 @@ Authenticated Actor inherits the broader standards compliance of its constituent
 
 ## Status
 
-`grounded on Final Critique 10 — 2026-11-06 at 368ce1f` — see the Ledger.
+`done — 2026-11-06` — see the Ledger.
 
 ## Ledger
 
 ```
-status: grounded on Final Critique 10 — 2026-11-06 at 368ce1f
+status: done — 2026-11-06
 formal: verified — authenticated-actor.tla + 5 twins + 6 probes (across steps); authenticated-actor.als + 13 twins (the static data model, 2026-11-11: Invariant 1.1, 3.1 through 3.3, 4.2 and 4.3, Composition state 4, 5, 12 and 13, Action wiring 7, 18, 20, 24 and 34 and Check 2.2 and 3.2 checked on every state of the credential records, the binding maps, the attestations and the attest log the writers can leave, Invariant 1.1, 3.1 through 3.3 and Action wiring 34 a cross-check with the TLA+ model; nothing testable in Alloy for Invariant 2.1 and 2.2 (what a call passes is no record), Action wiring 45 (a call is no record), Action wiring 5 and 6 (verify writes nothing) and Composition state 6, 9 and 10 (across steps; an entry names no writer); the model found that Action wiring 46's arm, a bound pair with no credential, is reached by no rule, every binding naming a credential of its pair and only a purge, open line 2026-11-04-a, removing one); coverage 2026-11-10 (unit formal: more coverage for the yes votes), 2026-11-11
 last gate: 2026-11-06 — Final Critique 10, a delta round, frozen at 368ce1f — foundational count 0, clean, one sample; 2026-11-05 — Final Critique 9, a delta round, frozen at ec26ba5 — foundational count 1, cured, not clean, no sample; 2026-11-04 — Final Critique 8 — foundational count 4, not clean, no sample
 

@@ -851,12 +851,12 @@ Projection: invalid-query
 
 ## Status
 
-`grounded on Final Critique 21 — 2026-11-05 at 4f85e1c` — see the Ledger.
+`done — 2026-11-05` — see the Ledger.
 
 ## Ledger
 
 ```
-status: grounded on Final Critique 21 — 2026-11-05 at 4f85e1c
+status: done — 2026-11-05
 formal: verified — consent.als + 21 twins (the static data model: State 3, 4, 5, 6, 9 and 16, Expiry 5, Stored state 3, Invariant 2.1, 2.2, 4.1 through 4.3, 5.1, 6.2, 7.1, 7.2, 10.1 and 10.2, Instance 2, Operation 2 and 26 checked on every record admitted calls leave, at every instant it can be read against; Expiry 1 through 4 caught by the Invariant 2.1 check and Identity 3, 4 and 6 by the Instance 2 check); consent.tla + 9 twins (across steps, as the clock moves: Invariant 1.1, 1.2, 3.1, 3.2, 8.1, 9.1 and 10.3, Operation 1, 18, 36 and 49); the vote no of 2026-06-03 superseded by the maintainer's ruling of 2026-11-09 (both models; only the writing vetoes one), and neither vetoed; owed rows: Identity 5; Operation 47, 48, 50 through 59, 64, 65 and 76 ([Read]'s query); Operation 66 through 75 and 77 (malformed and over-cap inputs), 2026-11-11
 last gate: 2026-11-05 — Final Critique 21, a delta round, frozen at 4f85e1c — foundational count 0, clean, one sample
 

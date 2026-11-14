@@ -41,7 +41,7 @@
    "SOX",
    "eIDAS"
   ],
-  "status": "grounded on Final Critique 16 \u2014 2026-11-06 at ad732c0",
+  "status": "done \u2014 2026-11-06",
   "title": "Actor Identity"
  },
  "actor-suspension": {
@@ -72,7 +72,7 @@
    "SEC 17a-4",
    "SOX"
   ],
-  "status": "grounded on Final Critique 9 \u2014 2026-11-05 at 917cc95",
+  "status": "done \u2014 2026-11-05",
   "substrates": [
    "audit-trail"
   ],
@@ -106,7 +106,7 @@
    "SOC 2",
    "SOX"
   ],
-  "status": "grounded on Final Critique 15 \u2014 2026-11-05 at 00843d2",
+  "status": "done \u2014 2026-11-05",
   "title": "Approval Step"
  },
  "assignment": {
@@ -139,7 +139,7 @@
    "SOC 2",
    "SOX"
   ],
-  "status": "grounded on Final Critique 7 \u2014 2026-10-26 at 207f9b2",
+  "status": "done \u2014 2026-10-26",
   "title": "Assignment"
  },
  "attributed-permissions-admin": {
@@ -165,7 +165,7 @@
    "PCI DSS",
    "SOX"
   ],
-  "status": "grounded on Final Critique 10 \u2014 2026-11-05 at a6a6920",
+  "status": "done \u2014 2026-11-05",
   "substrates": [],
   "title": "Attributed Permissions Admin"
  },
@@ -201,7 +201,7 @@
    "SOX",
    "eIDAS"
   ],
-  "status": "grounded on Final Critique 60 \u2014 2026-11-06 at 21ece33",
+  "status": "done \u2014 2026-11-06",
   "substrate_of": [
    "actor-suspension",
    "capability-backed-sharing",
@@ -246,7 +246,7 @@
    "SOX",
    "eIDAS"
   ],
-  "status": "grounded on Final Critique 10 \u2014 2026-11-06 at 368ce1f",
+  "status": "done \u2014 2026-11-06",
   "substrates": [],
   "title": "Authenticated Actor"
  },
@@ -264,7 +264,7 @@
   "regulated_by": [],
   "security": false,
   "standards": [],
-  "status": "grounded on Final Critique 1 \u2014 2026-11-08 at 4b0bd47",
+  "status": "done \u2014 2026-11-08",
   "title": "Calendar Time"
  },
  "capability": {
@@ -296,7 +296,7 @@
    "SEC 17a-4",
    "SOX"
   ],
-  "status": "grounded on Final Critique 11 \u2014 2026-11-04 at 582c382",
+  "status": "done \u2014 2026-11-04",
   "title": "Capability"
  },
  "capability-backed-sharing": {
@@ -322,7 +322,7 @@
    "SEC 17a-4",
    "SOX"
   ],
-  "status": "grounded on Final Critique 16 \u2014 2026-11-11 at 6db7319",
+  "status": "done \u2014 2026-11-11",
   "substrates": [
    "audit-trail",
    "recoverable-invocation"
@@ -349,7 +349,7 @@
   "standards": [
    "PCI DSS"
   ],
-  "status": "grounded on Final Critique 11 \u2014 2026-11-04 at 5506e77",
+  "status": "done \u2014 2026-11-04",
   "title": "Capacity Constraint Enforcement"
  },
  "cart": {
@@ -370,7 +370,7 @@
   ],
   "security": false,
   "standards": [],
-  "status": "grounded on Final Critique 6 \u2014 2026-11-04 at cd6400b",
+  "status": "done \u2014 2026-11-04",
   "title": "Cart"
  },
  "chain-of-custody": {
@@ -395,7 +395,7 @@
    "SEC 17a-4",
    "SOX"
   ],
-  "status": "grounded on Final Critique 23 \u2014 2026-11-11 at 42f1cff",
+  "status": "done \u2014 2026-11-11",
   "substrates": [
    "audit-trail",
    "recoverable-invocation"
@@ -421,7 +421,7 @@
    "ISO 27001",
    "NIST 800-92"
   ],
-  "status": "grounded on Final Critique 8 \u2014 2026-11-06 at ef1f25a",
+  "status": "done \u2014 2026-11-06",
   "substrates": [],
   "title": "Compensable Workflow"
  },
@@ -439,7 +439,7 @@
   "regulated_by": [],
   "security": false,
   "standards": [],
-  "status": "grounded on Final Critique 4 \u2014 2026-11-04 at 7f522a9",
+  "status": "done \u2014 2026-11-04",
   "title": "Condition Register"
  },
  "consent": {
@@ -469,7 +469,7 @@
    "SEC 17a-4",
    "SOX"
   ],
-  "status": "grounded on Final Critique 21 \u2014 2026-11-05 at 4f85e1c",
+  "status": "done \u2014 2026-11-05",
   "title": "Consent"
  },
  "credential": {
@@ -515,7 +515,7 @@
    "SOX",
    "eIDAS"
   ],
-  "status": "grounded on Final Critique 21 \u2014 2026-10-29 at cf02362",
+  "status": "done \u2014 2026-10-29",
   "title": "Credential"
  },
  "customer-onboarding": {
@@ -540,7 +540,7 @@
    "GDPR",
    "HIPAA"
   ],
-  "status": "grounded on Final Critique 8 \u2014 2026-11-11 at 1537770",
+  "status": "done \u2014 2026-11-11",
   "substrates": [
    "audit-trail",
    "recoverable-invocation"
@@ -569,7 +569,7 @@
    "SEC 17a-4",
    "SOX"
   ],
-  "status": "grounded on Final Critique 18 \u2014 2026-11-05 at 4e61dc9",
+  "status": "done \u2014 2026-11-05",
   "substrate_of": [
    "resolve-a-persons-data-rights"
   ],
@@ -604,7 +604,7 @@
    "PCI DSS",
    "SOX"
   ],
-  "status": "grounded on Final Critique 7 \u2014 2026-10-28 at 7c6ea61",
+  "status": "done \u2014 2026-10-28",
   "title": "Duplicate Prevention"
  },
  "erasure-tombstone": {
@@ -621,7 +621,7 @@
   "regulated_by": [],
   "security": false,
   "standards": [],
-  "status": "grounded on Final Critique 2 \u2014 2026-11-03 at aeea14e",
+  "status": "done \u2014 2026-11-03",
   "title": "Erasure Tombstone"
  },
  "event-log": {
@@ -665,7 +665,7 @@
    "SOX",
    "eIDAS"
   ],
-  "status": "grounded on Final Critique 13 \u2014 2026-10-25 at bae1f12",
+  "status": "done \u2014 2026-10-25",
   "title": "Event Log"
  },
  "execute-gated-workflow": {
@@ -691,7 +691,7 @@
    "PCI DSS",
    "SOX"
   ],
-  "status": "grounded on Final Critique 15 \u2014 2026-11-05 at 776c44e",
+  "status": "done \u2014 2026-11-05",
   "substrates": [
    "audit-trail"
   ],
@@ -720,7 +720,7 @@
    "SCIM",
    "SOC 2"
   ],
-  "status": "grounded on Final Critique 19 \u2014 2026-11-10 at 66da7e8",
+  "status": "done \u2014 2026-11-10",
   "substrates": [
    "audit-trail",
    "recoverable-invocation"
@@ -741,7 +741,7 @@
   "regulated_by": [],
   "security": false,
   "standards": [],
-  "status": "grounded on Final Critique 3 \u2014 2026-11-06 at 368ce1f",
+  "status": "done \u2014 2026-11-06",
   "title": "Gift Card"
  },
  "idempotent-reservation": {
@@ -765,7 +765,7 @@
    "PCI DSS",
    "SOX"
   ],
-  "status": "grounded on Final Critique 7 \u2014 2026-11-05 at 63c13eb",
+  "status": "done \u2014 2026-11-05",
   "substrates": [],
   "title": "Idempotent Reservation"
  },
@@ -791,7 +791,7 @@
    "SEC 17a-4",
    "SOX"
   ],
-  "status": "grounded on Final Critique 20 \u2014 2026-11-06 at 13edae6",
+  "status": "done \u2014 2026-11-06",
   "substrates": [
    "audit-trail",
    "recoverable-invocation"
@@ -823,7 +823,7 @@
    "SCIM",
    "SOC 2"
   ],
-  "status": "grounded on Final Critique 10 \u2014 2026-11-04 at cd9d6f3",
+  "status": "done \u2014 2026-11-04",
   "title": "Invitation"
  },
  "lease": {
@@ -850,7 +850,7 @@
    "PCI DSS",
    "SOX"
   ],
-  "status": "grounded on Final Critique 4 \u2014 2026-10-04 at 46804b7",
+  "status": "done \u2014 2026-10-04",
   "title": "Lease"
  },
  "legal-hold": {
@@ -878,7 +878,7 @@
    "SEC 17a-4",
    "SOX"
   ],
-  "status": "grounded on Final Critique 8 \u2014 2026-10-24 at c39a73f",
+  "status": "done \u2014 2026-10-24",
   "title": "Legal Hold"
  },
  "login": {
@@ -904,7 +904,7 @@
    "PCI DSS",
    "SOX"
   ],
-  "status": "grounded on Final Critique 14 \u2014 2026-11-06 at efa2db9",
+  "status": "done \u2014 2026-11-06",
   "substrates": [
    "audit-trail"
   ],
@@ -924,7 +924,7 @@
   "regulated_by": [],
   "security": false,
   "standards": [],
-  "status": "grounded on Final Critique 7 \u2014 2026-11-05 at ec26ba5",
+  "status": "done \u2014 2026-11-05",
   "title": "Medication Order"
  },
  "message-preference": {
@@ -947,7 +947,7 @@
   "standards": [
    "GDPR"
   ],
-  "status": "grounded on Final Critique 11 \u2014 2026-11-04 at cef41e2",
+  "status": "done \u2014 2026-11-04",
   "title": "Message Preference"
  },
  "money": {
@@ -964,7 +964,7 @@
   "regulated_by": [],
   "security": false,
   "standards": [],
-  "status": "grounded on Final Critique 4 \u2014 2026-11-13 at 8b6954c",
+  "status": "done \u2014 2026-11-13",
   "title": "Money"
  },
  "multi-party-approval": {
@@ -989,7 +989,7 @@
    "SOC 2",
    "SOX"
   ],
-  "status": "grounded on Final Critique 21 \u2014 2026-11-11 at 1537770",
+  "status": "done \u2014 2026-11-11",
   "substrate_of": [
    "privileged-access-provisioning"
   ],
@@ -1021,7 +1021,7 @@
   "standards": [
    "GDPR"
   ],
-  "status": "grounded on Final Critique 11 \u2014 2026-11-05 at 917cc95",
+  "status": "done \u2014 2026-11-05",
   "title": "Notification"
  },
  "notification-fanout": {
@@ -1039,7 +1039,7 @@
   },
   "regulated": true,
   "standards": [],
-  "status": "grounded on Final Critique 11 \u2014 2026-11-05 at 63c13eb",
+  "status": "done \u2014 2026-11-05",
   "substrates": [],
   "title": "Notification Fanout"
  },
@@ -1057,7 +1057,7 @@
   "regulated_by": [],
   "security": false,
   "standards": [],
-  "status": "grounded on Final Critique 8 \u2014 2026-11-05 at 917cc95",
+  "status": "done \u2014 2026-11-05",
   "title": "Observation"
  },
  "owed-record": {
@@ -1074,7 +1074,7 @@
   "regulated_by": [],
   "security": false,
   "standards": [],
-  "status": "grounded on Final Critique 2 \u2014 2026-11-03 at aeea14e",
+  "status": "done \u2014 2026-11-03",
   "title": "Owed Record"
  },
  "party-identity": {
@@ -1107,7 +1107,7 @@
    "SCIM",
    "SOC 2"
   ],
-  "status": "grounded on Final Critique 12 \u2014 2026-11-05 at 29399d0",
+  "status": "done \u2014 2026-11-05",
   "title": "Party Identity"
  },
  "permissions": {
@@ -1157,7 +1157,7 @@
    "SOC 2",
    "SOX"
   ],
-  "status": "grounded on Final Critique 10 \u2014 2026-11-04 at 582c382",
+  "status": "done \u2014 2026-11-04",
   "title": "Permissions"
  },
  "personal-todo": {
@@ -1178,7 +1178,7 @@
   ],
   "security": false,
   "standards": [],
-  "status": "grounded on Final Critique 8 \u2014 2026-11-04 at 17878a4",
+  "status": "done \u2014 2026-11-04",
   "title": "Personal Todo"
  },
  "preference-aware-notification-fanout": {
@@ -1200,7 +1200,7 @@
   "standards": [
    "GDPR"
   ],
-  "status": "grounded on Final Critique 18 \u2014 2026-11-06 at a342d5e",
+  "status": "done \u2014 2026-11-06",
   "substrates": [],
   "title": "Preference-Aware Notification Fanout"
  },
@@ -1227,7 +1227,7 @@
    "PCI DSS",
    "SOX"
   ],
-  "status": "grounded on Final Critique 11 \u2014 2026-11-11 at 30dbd60",
+  "status": "done \u2014 2026-11-11",
   "substrates": [
    "multi-party-approval",
    "audit-trail"
@@ -1253,7 +1253,7 @@
    "GDPR",
    "HIPAA"
   ],
-  "status": "grounded on Final Critique 24 \u2014 2026-11-11 at 79168ca",
+  "status": "done \u2014 2026-11-11",
   "substrates": [
    "audit-trail",
    "recoverable-invocation"
@@ -1286,7 +1286,7 @@
    "SEC 17a-4",
    "SOX"
   ],
-  "status": "grounded on Final Critique 13 \u2014 2026-11-03 at e0a85af",
+  "status": "done \u2014 2026-11-03",
   "title": "Provenance"
  },
  "provisional-commitment": {
@@ -1315,7 +1315,7 @@
    "PCI DSS",
    "SOX"
   ],
-  "status": "grounded on Final Critique 13 \u2014 2026-11-05 at 8adbf07",
+  "status": "done \u2014 2026-11-05",
   "title": "Provisional Commitment"
  },
  "punch-card": {
@@ -1332,7 +1332,7 @@
   "regulated_by": [],
   "security": false,
   "standards": [],
-  "status": "grounded on Final Critique 3 \u2014 2026-11-13 at b82922c",
+  "status": "done \u2014 2026-11-13",
   "title": "Punch Card"
  },
  "recoverable-invocation": {
@@ -1355,7 +1355,7 @@
    "PCI DSS",
    "SOX"
   ],
-  "status": "grounded on Final Critique 49 \u2014 2026-11-07 at 1451abf",
+  "status": "done \u2014 2026-11-07",
   "substrate_of": [
    "capability-backed-sharing",
    "chain-of-custody",
@@ -1385,7 +1385,7 @@
   "regulated_by": [],
   "security": false,
   "standards": [],
-  "status": "grounded on Final Critique 2 \u2014 2026-11-08 at 237cc22",
+  "status": "done \u2014 2026-11-08",
   "title": "Recurrence"
  },
  "reserve-from-pool": {
@@ -1408,7 +1408,7 @@
   "standards": [
    "PCI DSS"
   ],
-  "status": "grounded on Final Critique 14 \u2014 2026-11-06 at a896453",
+  "status": "done \u2014 2026-11-06",
   "substrates": [],
   "title": "Reserve from Pool"
  },
@@ -1434,7 +1434,7 @@
    "SEC 17a-4",
    "SOX"
   ],
-  "status": "grounded on Final Critique 2 \u2014 2026-11-05 at 776c44e",
+  "status": "done \u2014 2026-11-05",
   "substrates": [
    "defensible-retention"
   ],
@@ -1485,7 +1485,7 @@
    "SOX",
    "eIDAS"
   ],
-  "status": "grounded on Final Critique 13 \u2014 2026-10-24 at 142a72a",
+  "status": "done \u2014 2026-10-24",
   "title": "Retention Window"
  },
  "selective-disclosure": {
@@ -1519,7 +1519,7 @@
    "SEC 17a-4",
    "SOX"
   ],
-  "status": "grounded on Final Critique 19 \u2014 2026-11-06 at 368ce1f",
+  "status": "done \u2014 2026-11-06",
   "title": "Selective Disclosure"
  },
  "session": {
@@ -1558,7 +1558,7 @@
    "SEC 17a-4",
    "SOX"
   ],
-  "status": "grounded on Final Critique 19 \u2014 2026-11-04 at 260b6c6",
+  "status": "done \u2014 2026-11-04",
   "title": "Session"
  },
  "session-gated-authorization": {
@@ -1583,7 +1583,7 @@
    "OWASP ASVS",
    "PCI DSS"
   ],
-  "status": "grounded on Final Critique 10 \u2014 2026-11-05 at 7f57305",
+  "status": "done \u2014 2026-11-05",
   "substrates": [],
   "title": "Session-Gated Authorization"
  },
@@ -1603,7 +1603,7 @@
   },
   "regulated": true,
   "standards": [],
-  "status": "grounded on Final Critique 2 \u2014 2026-11-05 at b430bcf",
+  "status": "done \u2014 2026-11-05",
   "substrates": [],
   "title": "Shared Cart"
  },
@@ -1623,7 +1623,7 @@
   },
   "regulated": true,
   "standards": [],
-  "status": "grounded on Final Critique 11 \u2014 2026-11-05 at 227ba75",
+  "status": "done \u2014 2026-11-05",
   "substrates": [],
   "title": "Shared Todo"
  },
@@ -1654,7 +1654,7 @@
    "PCI DSS",
    "SOX"
   ],
-  "status": "grounded on Final Critique 16 \u2014 2026-11-06 at ad732c0",
+  "status": "done \u2014 2026-11-06",
   "title": "State Machine"
  },
  "subscription": {
@@ -1679,7 +1679,7 @@
   "standards": [
    "GDPR"
   ],
-  "status": "grounded on Final Critique 10 \u2014 2026-11-04 at c904915",
+  "status": "done \u2014 2026-11-04",
   "title": "Subscription"
  },
  "tamper-evidence": {
@@ -1715,7 +1715,7 @@
    "SOX",
    "eIDAS"
   ],
-  "status": "grounded on Final Critique 17 \u2014 2026-11-06 at 700b167",
+  "status": "done \u2014 2026-11-06",
   "title": "Tamper Evidence"
  },
  "verified-repair": {
@@ -1730,7 +1730,7 @@
   },
   "regulated": true,
   "standards": [],
-  "status": "grounded on Final Critique 27 \u2014 2026-11-07 at 93b19f5",
+  "status": "done \u2014 2026-11-07",
   "substrates": [
    "recoverable-invocation",
    "audit-trail"

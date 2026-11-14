@@ -656,12 +656,12 @@ Inherited from:
 
 ## Status
 
-`grounded on Final Critique 4 — 2026-11-04 at 7f522a9` — see the Ledger.
+`done — 2026-11-04` — see the Ledger.
 
 ## Ledger
 
 ```
-status: grounded on Final Critique 4 — 2026-11-04 at 7f522a9
+status: done — 2026-11-04
 formal: verified — condition-register.als + 14 twins (the static data model: State 1 through 5 and 8, Invariant 2.1, 3.1, 4.1, 4.2, 5.1, 5.2, Identity 4 and a condition's one shape checked on every database a run of admitted calls leaves); condition-register.tla + 10 twins (across steps: Invariant 1.1 through 1.4, 2.1, 3.1, 4.1 through 4.3 and Operation 22 over every sequence of calls, each call carrying any clock reading); the vote no of 2026-11-02 superseded by the maintainer's ruling of 2026-11-09 (both models; only the writing vetoes one), and neither vetoed; owed rows: Operation 28, 29 and 31; Concurrency 1 through 3, 2026-11-11
 last gate: 2026-11-04 — Final Critique 4, a delta round, frozen at 7f522a9 — foundational count 0, clean, no sample; 2026-11-03 — Final Critique 3, frozen at aeea14e — foundational count 2, all cured, not clean, no sample; Final Critique 2, a delta round, frozen at dd11876 — foundational count 0, clean, no sample; Final Critique 1, frozen at ebdfc8e — foundational count 7, all cured, not clean, no sample
 

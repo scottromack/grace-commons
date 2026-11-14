@@ -507,12 +507,12 @@ State unclaimed-property laws, which may oblige a seller to report a balance lef
 
 ## Status
 
-`grounded on Final Critique 3 — 2026-11-06 at 368ce1f` — see the Ledger.
+`done — 2026-11-06` — see the Ledger.
 
 ## Ledger
 
 ```
-status: grounded on Final Critique 3 — 2026-11-06 at 368ce1f
+status: done — 2026-11-06
 formal: verified — gift-card.als + 12 twins (the static data model: State 1, Identity 5 through 9, Invariant 1.1 and 2.2, Operation 1, 2, 3 and 5 checked on every version a sequence of admitted calls leaves, Identity 1 caught by the Identity 5 check, Identity 2 and 4 by the Identity 8 check, Identity 10 by the Operation 1 check and Operation 11 by the Invariant 1.1 check); gift-card.tla + 16 twins (across steps: Invariant 2.1, 3.1 through 3.3 and 4.1, State 2, Term balance (the value less every spend), Operation 4, 6 through 10, 12, 13, 16 and 17); the vote no of 2026-10-30 superseded by the maintainer's ruling of 2026-11-09 (both models; only the writing vetoes one), and neither vetoed; owed rows: Identity 11, Operation 14 and 15, 2026-11-11
 last gate: 2026-11-06 — Final Critique 3, a delta round, frozen at 368ce1f — foundational count 0, clean, one sample; 2026-11-05 — Final Critique 2, a delta round, frozen at 4f85e1c — foundational count 2, cured, not clean, no sample
 

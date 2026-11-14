@@ -531,12 +531,12 @@ It inherits from:
 
 ## Status
 
-`grounded on Final Critique 11 — 2026-11-05 at 63c13eb` — see the Ledger.
+`done — 2026-11-05` — see the Ledger.
 
 ## Ledger
 
 ```
-status: grounded on Final Critique 11 — 2026-11-05 at 63c13eb
+status: done — 2026-11-05
 formal: verified — notification-fanout.als + 16 twins (the static data model: Invariant 1.1, 1.2, 1.3, 2.1, 4.1, 4.2, 8.1 and 8.3, Composition state 6, Action wiring 1, 2, 4, 5, 13, 14 and 18, Primitive policy 1 through 6 and Clock semantics 1 checked on every [Fanout] call's read, creates and answer, with Action wiring 3, 7 through 11, Wiring decision 3, Clock semantics 4 and Non-goal 7 and 8 checked through them); notification-fanout.tla + 10 twins (across steps, while subscribers join and cancel, creates fail and the delivery layer moves records: Invariant 3.1, 3.2, 5.1 and 8.2, Wiring decision 1 and 2, Non-goal 3 through 6 and Composes 6, with Action wiring 15 checked through them); the vote no of 2026-06-03 superseded by the maintainer's ruling of 2026-11-09 (both models; only the writing vetoes one), and neither vetoed; Invariant 3.3 cannot be stated (Notification's record names no other record, so only the payload could, which Invariant 2.1 holds to the caller's); the read-latency and create bounds (Action wiring 4, 11) are a deployment's; owed rows: Primitive policy 7, 2026-11-12
 last gate: 2026-11-05 — Final Critique 11, a delta round, frozen at 63c13eb — foundational count 0, clean, no sample; 2026-11-04 — Final Critique 10 — foundational count 4, not clean, no sample
 

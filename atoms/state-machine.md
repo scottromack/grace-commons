@@ -938,14 +938,14 @@ Guard evaluation, non-repudiable attribution, tamper-evidence, and retention are
 
 ## Status
 
-`grounded on Final Critique 16 — 2026-11-06 at ad732c0` — see the Ledger.
+`done — 2026-11-06` — see the Ledger.
 
 ## Ledger
 
 ```
-status: grounded on Final Critique 16 — 2026-11-06 at ad732c0
+status: done — 2026-11-06
 formal: verified — state-machine.als + 2 twins; coverage 2026-11-10 (unit formal: more coverage for the yes votes); state-machine.tla + 21 twins (across steps, 2026-11-11: one workflow under [Instantiate], offered every declaration of two state names, two actions and one guard with up to two declared transitions, and up to two admitted [Fire] calls, refusals in each refuses line's order, with what [History] and [Read Declaration] answer in every state they leave: Invariant 1.1 through 7.3, 8.1, 8.3, 9.1, 10.1 and 10.2); nothing testable in TLA+ for Invariant 8.2: it states a computation the atom does not make, and no model holds the condition a guard names; coverage 2026-11-11 (unit `atoms/state-machine.md formal layer`): no owed rows, 2026-11-11
-last gate: 2026-11-06 — Final Critique 16, delta — foundational count 0, clean, one sample
+last gate: 2026-11-06 — Final Critique 16, delta, frozen at ad732c0 — foundational count 0, clean, one sample
 
 open:
 - 2026-11-05-a · refining · the Watch list in GRACE-lang.md · the page carries watch flags whose names the list's census does not hold, and the list is a shared method page the mayor edits → the mayor rules whether a flag on one specification enters the census, then enters each with its count or the page drops the flag

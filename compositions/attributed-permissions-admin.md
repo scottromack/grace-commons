@@ -845,12 +845,12 @@ It inherits from:
 
 ## Status
 
-`grounded on Final Critique 10 — 2026-11-05 at a6a6920` — see the Ledger.
+`done — 2026-11-05` — see the Ledger.
 
 ## Ledger
 
 ```
-status: grounded on Final Critique 10 — 2026-11-05 at a6a6920
+status: done — 2026-11-05
 formal: verified — attributed-permissions-admin.als + 25 twins (the static data model, re-derived 2026-11-11 over the records a set of calls leaves, the 2026-06-12 trace model's `var` state, `always` checks and `eventually` runs gone: Invariant 1.1, 2.1, 4.1, 4.2, 7.1 through 7.3, 7.5, 7.6, 9.1 and 9.2, Composition state 11 through 13, 19 and 28, Identity 9, 11, 12 and 13, and the failed-grant leg's report over every state it can read, Housekeeping 3, 4, 13 and 15 through 18); attributed-permissions-admin.tla + 13 twins + 10 probes (the operation sequences, 2026-06-12, extended 2026-11-11 with the .als's stepping checks as WellFormed and the action properties PairingDurable, RevocationTerminal, AttestBeforeRecord and OrphanLogDurable, its two `eventually` runs as -probe-revoked, and the attribution query's pair-scoped arm re-pointed to Action wiring 63 through 65, closing 2026-11-04-b); nothing testable in Alloy or TLA+ for Housekeeping 14: Housekeeping 13 obliges the leg to age by the request instant, so its antecedent never holds of a conforming leg; Identity 10 states no rule a check could hold (the .als's ShowTwoSweepsOneKey: two pair-scoped revocations of one pair by one revoker at one request instant share the grouping key, a finding); closes 2026-08-30-b; coverage 2026-11-11 (unit `compositions/attributed-permissions-admin.md formal layer`): owed rows: Composition state 28's orphan log entry (open line 2026-10-27-b), 2026-11-11
 last gate: 2026-11-05 — Final Critique 10, delta, frozen at a6a6920 — foundational count 0, clean, one sample
 

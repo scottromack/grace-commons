@@ -974,12 +974,12 @@ It inherits from:
 
 ## Status
 
-`grounded on Final Critique 12 — 2026-11-05 at 29399d0` — see the Ledger.
+`done — 2026-11-05` — see the Ledger.
 
 ## Ledger
 
 ```
-status: grounded on Final Critique 12 — 2026-11-05 at 29399d0
+status: done — 2026-11-05
 formal: verified — party-identity.tla + 4 twins (2026-06-03); party-identity.als + 14 twins (the static data model, 2026-11-11: State 1, 4, 5 and 7, Operation 21 and 36, Invariant 2.1, 3.1, 4.1 and 8.1 and Identity 5, 7, 8 and 9 checked on every party record an admitted [Enroll], [Verify], [Suspend], [Reinstate] or [Close] leaves, with its verification event list and state change log, insertion order read as the calls' commit order and a recorded instant free of it; Invariant 3.1 and 8.1 read off one record's state change log, Invariant 2.1, 3.1 and 4.1 a cross-check with the TLA+ model, Identity 7 through 9 resting on the deployment's id material, never supplied to two calls (Capability requirement 12, 15); nothing testable in Alloy for Invariant 1.1, 5.1, 6.1 through 6.3 and 8.2, Identity 6 or Non-goal 3: each compares a record with a later version of it, which a single state cannot show, so they are the TLA+ model's); coverage 2026-11-10 (unit formal: more coverage for the yes votes): owes TLA+ checks of Invariant 1.1, 5.1, 6.2, 6.3 and 8.2 and Identity 6 (across steps); owed rows: Invariant 1.1; Invariant 5.1; Invariant 6.2; Invariant 6.3; Invariant 8.2; Identity 6, 2026-11-11
 last gate: 2026-11-05 — Final Critique 12, a delta round, frozen at 29399d0 — foundational count 0, clean, no sample; 2026-11-04 — Final Critique 11 — foundational count 1, not clean, no sample
 

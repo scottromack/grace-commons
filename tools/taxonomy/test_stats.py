@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-"""Tests for the state totals in _data/stats.json (generate_graph.states_ledger_stats):
+"""Tests for the state totals in _data/stats.json (generate_graph.states_ledger_stats)
+and for the Status token a card counts as done (generate_graph.is_done):
 python3 tools/taxonomy/test_stats.py"""
 import pathlib
 import sys
@@ -7,7 +8,7 @@ import tempfile
 import unittest
 
 sys.path.insert(0, str(pathlib.Path(__file__).parent))
-from generate_graph import states_ledger_stats  # noqa: E402
+from generate_graph import is_done, states_ledger_stats  # noqa: E402
 
 HEAD = "# date\tfile\trole\tengine\tstates\tcapped\tcommands\tholds\tsatisfiable\tcounterexamples\tvacuous\tverdict\n"
 
@@ -46,6 +47,18 @@ class StatesLedger(unittest.TestCase):
         t = totals(HEAD + tla("2026-11-08", "a.tla", "model", 100)
                    + tla("2026-11-09", "a.tla", "model", 200001, verdict="ERROR", capped=1))
         self.assertEqual(t["states_models"], 0)
+
+
+class DoneToken(unittest.TestCase):
+    def test_done_with_its_date_counts(self):
+        self.assertTrue(is_done("done — 2026-11-13"))
+
+    def test_todo_doing_and_none_do_not(self):
+        for token in ("todo", "doing", None, ""):
+            self.assertFalse(is_done(token), token)
+
+    def test_the_old_word_does_not(self):
+        self.assertFalse(is_done("grounded on Final Critique 4 — 2026-06-04 at 1719092"))
 
 
 if __name__ == "__main__":

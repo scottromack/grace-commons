@@ -94,7 +94,7 @@ The table under the section titled *Atom headings* owns each heading's name, lev
 
 2. **Title and summary blockquote.** The atom's name as an H1, followed immediately by a one-paragraph blockquote summarizing what the atom is, what responsibility it isolates, and what its load-bearing contribution to a composing system is. The blockquote is the elevator pitch a reader sees before scrolling.
 
-3. **Summary.** *(Grounded specs only — write the Summary as part of grounding confirmation, when the spec is stable enough to anchor from.)* **Tier 1 — plain language for anyone.** 3–6 sentences answering: what is this, what does it do, and what does it guarantee? Zero unexplained jargon. Every acronym spelled out and defined inline at first use, except the short common-acronym whitelist (see Authoring conventions). Every technical term that is not everyday English — including "invariant", "state machine", "composition", "atom" — defined in plain language the first time it appears in the Summary. The formal layer and the main text carry the precision; the Summary carries the accessibility. A Summary that a non-engineer with domain knowledge cannot read without a glossary is a Pass 1 finding.
+3. **Summary.** *(Done specs only — write the Summary as part of grounding confirmation, when the spec is stable enough to anchor from.)* **Tier 1 — plain language for anyone.** 3–6 sentences answering: what is this, what does it do, and what does it guarantee? Zero unexplained jargon. Every acronym spelled out and defined inline at first use, except the short common-acronym whitelist (see Authoring conventions). Every technical term that is not everyday English — including "invariant", "state machine", "composition", "atom" — defined in plain language the first time it appears in the Summary. The formal layer and the main text carry the precision; the Summary carries the accessibility. A Summary that a non-engineer with domain knowledge cannot read without a glossary is a Pass 1 finding.
 
 4. **Intent.** Several paragraphs of prose explaining the business or regulatory problem the atom addresses, why that problem recurs across domains, and what the atom does and does not commit to. The Intent must be testable — falsifiable by observable behavior of an implementation. This is GRID's Intent node.
 
@@ -126,7 +126,7 @@ The table under the section titled *Atom headings* owns each heading's name, lev
 
 12. **Standards references.** The regulatory or industry standards the atom's invariants satisfy or contribute toward, with section anchors where applicable. Cite only standards that genuinely apply at this layer; frame standards that belong to a composing pattern as the composing pattern's obligation.
 
-13. **Status.** One line: exactly one token of the canonical status grammar, then `— see the Ledger.` The entry *Status line format* in [`pressure-testing.md`](./pressure-testing.md) owns the token forms and their semantics; this document requires only the container (`## Status` section, token-first line). The token is derived from the Ledger and the linter refuses disagreement.
+13. **Status.** One line: exactly one token of the canonical status grammar, then `— see the Ledger.` The section titled *What DONE means* in [`pressure-testing.md`](./pressure-testing.md) owns the token forms and their semantics; this document requires only the container (`## Status` section, token-first line). The token is derived from the Ledger and the linter refuses disagreement.
 
 14. **Ledger.** The countable record of the pattern's health, in a fenced block with a fixed grammar the linter parses (the section titled *Where the journey gets recorded* in [`pressure-testing.md`](./pressure-testing.md)): `status:` (identical to the Status token), `formal:` (the model files and their verification date, or why none applies), `last gate:` (date, kind, result), and `open:` — one line per open finding, `id · class · where · defect → fix`, ids date-based, or `open: none`. A closed finding's line is deleted; that it existed is in git.
 
@@ -144,7 +144,7 @@ The table under the section titled *Composition headings* owns each heading's na
 
 1. **Frontmatter, title, summary blockquote.** Same as atom shape. The blockquote captures what the composition wires together and what the emergent guarantee is.
 
-2. **Summary.** *(Grounded specs only.)* Same Tier 1 rule as the atom shape: plain language for anyone, 3–6 sentences, zero unexplained jargon, every acronym spelled out and defined inline. For compositions, name what the composition wires together and what the resulting guarantee is — the property no single constituent can provide alone — in plain terms. "Composition guarantees that only appear when the atoms work together" is the plain-language form of "emergent invariant"; use whichever fits the sentence, but define the term the first time it appears.
+2. **Summary.** *(Done specs only.)* Same Tier 1 rule as the atom shape: plain language for anyone, 3–6 sentences, zero unexplained jargon, every acronym spelled out and defined inline. For compositions, name what the composition wires together and what the resulting guarantee is — the property no single constituent can provide alone — in plain terms. "Composition guarantees that only appear when the atoms work together" is the plain-language form of "emergent invariant"; use whichever fits the sentence, but define the term the first time it appears.
 
 3. **Intent.** Several paragraphs explaining the friction at the boundary between the composed atoms, the emergent rule the composition exists to enforce, and what the composition is *not* (typically: not a new primitive — the constituent atoms are unchanged).
 
@@ -242,13 +242,13 @@ A spec's headings are its structure. Each heading is an element and its level is
 
 **Order.** Rows appear in table order. Inside a parent, the unplaced headings follow every placed one, in alphabetical order — compared case-insensitively, letter by letter, punctuation ignored and a space sorting before any letter. Alphabetical is the interim order for what the table does not place; ordering them by importance is the stated upgrade, and it changes this paragraph and nothing else. `Examples` is the one parent whose children keep the author's order, because a walkthrough reads first. Order carries no normative meaning (`GRACE-lang.md` Timing 13).
 
-**Required.** `yes` — the heading is present. `when grounded` — present once the Status token is `grounded`. `no` — present only when the spec has something to put there. A required heading that the spec cannot fill is a finding against the spec, never a reason to drop the row.
+**Required.** `yes` — the heading is present. `when done` — present once the Status token is `done`. `no` — present only when the spec has something to put there. A required heading that the spec cannot fill is a finding against the spec, never a reason to drop the row.
 
 ### Atom headings
 
 | Heading | Level | Inside | Required | Unplaced children |
 |---|---|---|---|---|
-| Summary | 2 | | when grounded | no |
+| Summary | 2 | | when done | no |
 | Intent | 2 | | yes | no |
 | Structure | 2 | | yes | yes |
 | Identity model | 3 | Structure | yes | no |
@@ -281,7 +281,7 @@ A spec's headings are its structure. Each heading is an element and its level is
 
 | Heading | Level | Inside | Required | Unplaced children |
 |---|---|---|---|---|
-| Summary | 2 | | when grounded | no |
+| Summary | 2 | | when done | no |
 | Intent | 2 | | yes | no |
 | Composes | 2 | | yes | yes |
 | Composition logic | 2 | | yes | yes |

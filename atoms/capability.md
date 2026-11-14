@@ -859,14 +859,14 @@ Inherited from:
 
 ## Status
 
-`grounded on Final Critique 11 — 2026-11-04 at 582c382` — see the Ledger.
+`done — 2026-11-04` — see the Ledger.
 
 ## Ledger
 
 ```
-status: grounded on Final Critique 11 — 2026-11-04 at 582c382
+status: done — 2026-11-04
 formal: verified — capability.als + 12 twins (the static data model, 2026-06-23; coverage 2026-11-10, unit formal: more coverage for the yes votes); capability.tla + 12 twins (across steps: Invariant 1.1, 2.1, 2.3, 2.5, 4.4, 6.1, 7.1 through 7.3, 9, 10, 11.2, 12.1 and 13.3, Operation 31 and 71, and the two entailed properties, a zero counter only in redeemed and a revoked capability's counter above zero, over every sequence of calls as the clock moves), 2026-11-11
-last gate: 2026-11-04 — Final Critique 11 — delta — foundational count 0, clean, no sample; 2026-11-01 — Final Critique 10 — foundational count 0, clean, one sample
+last gate: 2026-11-04 — Final Critique 11, frozen at 582c382 — delta — foundational count 0, clean, no sample; 2026-11-01 — Final Critique 10 — foundational count 0, clean, one sample
 
 open:
 - 2026-10-21-e · refining · Term value sets; the term entries · the term entries name member-of targets (the action outcome, the Revoke rejection, the action rejection, the derived effective status), none of which Term value sets declares → declare each target

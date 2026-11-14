@@ -1002,14 +1002,14 @@ It inherits from:
 
 ## Status
 
-`grounded on Final Critique 21 — 2026-10-29 at cf02362` — see the Ledger.
+`done — 2026-10-29` — see the Ledger.
 
 ## Ledger
 
 ```
-status: grounded on Final Critique 21 — 2026-10-29 at cf02362
+status: done — 2026-10-29
 formal: verified — credential.tla + 6 twins (2026-09-29); credential.als + 13 twins (the static data model, 2026-11-11: Invariant 3.1, 5.1, 7.1, 7.2, 9.1, 9.2, 9.3, State 3, 5, 9 and Identity 5 checked on every record an admitted [Register], [Rotate] or [Revoke] leaves and on every answer [Verify] gives over such records, Invariant 3.1 checking the cases of the deleted 4.1 and 11.1, Invariant 5.1 read off one record, Invariant 7.1 a cross-check with the TLA+ model; nothing testable in Alloy for Invariant 1, 6 and 10 or for 5.1 across versions: each compares a credential with a later version of it, which a single state cannot show, and Invariant 2.1 rests on the order of the calls that wrote the pair's records, so they are the TLA+ model's); coverage 2026-11-10 (unit formal: more coverage for the yes votes): owes TLA+ checks of Invariant 1 and 6 (across steps); owed rows: Invariant 1; Invariant 6, 2026-11-11
-last gate: 2026-11-02 — Final Critique 22 (delta) — foundational count 0, clean, one sample
+last gate: 2026-11-02 — Final Critique 22 (delta) — foundational count 0, clean, one sample; 2026-10-29 — Final Critique 21, frozen at cf02362 — foundational count 0, clean, one sample
 
 open:
 - 2026-11-02-a · refining · Capability requirement 27, 31, 32; Term material bound · the material bound is a cap the deployment MUST declare per credential type and states no default, where Execution Contract Input 2 (the host obligations sweep, 690b048) gives every bound a stated default a deployment may override → state a default and its measure per credential type (the sweep's 4,096 for key material is the nearest precedent), or rule that a per-type material bound is outside Input 2; found by Final Critique 22 (Linus, delta round)

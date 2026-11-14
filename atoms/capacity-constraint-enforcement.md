@@ -1068,12 +1068,12 @@ The atom inherits from:
 
 ## Status
 
-`grounded on Final Critique 11 — 2026-11-04 at 5506e77` — see the Ledger.
+`done — 2026-11-04` — see the Ledger.
 
 ## Ledger
 
 ```
-status: grounded on Final Critique 11 — 2026-11-04 at 5506e77
+status: done — 2026-11-04
 formal: verified — capacity-constraint-enforcement.tla + 2 twins (2026-06-04); capacity-constraint-enforcement.als + 14 twins (the static data model, 2026-11-11: Invariant 2.1, 3.1 through 3.4, 4.1, 5.1, 6.1, 10.1, 10.2, 11.1, 11.2, 13.1 and 13.2 checked on every pool record and audit log an admitted action leaves, Invariant 4.1 and 5.1 a cross-check with the TLA+ model; nothing testable in Alloy for Invariant 1, 7, 8, 9 and 12: each compares a record or a log with a later version of it and the change appends no event, so a single state cannot show it, and 8.4, 8.5 and 9.4 are a permission or an auditor's procedure, so they are the TLA+ model's); coverage 2026-11-10 (unit formal: more coverage for the yes votes): owes TLA+ checks of Invariant 1, 7, 8, 9 and 12 (across steps); owed rows: Invariant 1; Invariant 7; Invariant 8; Invariant 9; Invariant 12, 2026-11-11
 last gate: 2026-11-04 — Final Critique 11, a delta round, frozen at 5506e77 — foundational count 0, clean, no sample; 2026-11-03 — Final Critique 10, a full round, frozen at 383178a — foundational count 3, cured, not clean, no sample; 2026-10-22 — Final Critique 9, the council's first round on the page and the first on its Store-contract rewrite (ec7ffec) and the refusal-order sweep (c2f4e9a), three fresh readers on free models (GRID Nemotron 3 Ultra, EOS MiniMax M3.1 Flash, Linus GLM-5.3 Flash), each handed only the round's reading set, three passes on one text (frozen at 973e2e3); the round rests on three counted passes — foundational count 5 after triage (9 reports: 5 standing; 3 sent down; 1 rejected), Kind A: conformance checks no pool record could clear once a deployment wired in, scrubbed or purged what the page admits, and a capacity past the integer width and a reason past its cap, which every build had to refuse with no refusal named; 12 refining reports, 5 rhetorical reports; not clean; every foundational and refining finding cured in place; 2026-08-26 — Final Critique 8, fresh reader — clean
 

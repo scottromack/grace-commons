@@ -604,12 +604,12 @@ A formal-methods version of a similar concept exists in [concept-catalog](https:
 
 ## Status
 
-`grounded on Final Critique 8 — 2026-11-04 at 17878a4` — see the Ledger.
+`done — 2026-11-04` — see the Ledger.
 
 ## Ledger
 
 ```
-status: grounded on Final Critique 8 — 2026-11-04 at 17878a4
+status: done — 2026-11-04
 formal: verified — personal-todo.als + 18 twins (the static data model: State 1, 2 and 4 through 7, Identity 5, Invariant 6.1 and 7.1 through 7.3, Description 1, 2, 4 and 5 checked on every state a sequence of admitted calls leaves, Identity 4 and 6 caught by the Identity 5 check, Operation 9 and Description 7 by the Invariant 6.1 check, Operation 8 by the Invariant 7.3 check, Operation 32 and 33 by the Description 4 and 5 checks); personal-todo.tla + 11 twins (across steps, as the clock moves: Invariant 2.1, 3.1, 4.1, 5.2, 8.2 and 8.3, State 9, Operation 4 (Description 6, Re-adding 1), 12 and 30); the vote no of 2026-06-03 superseded by the maintainer's ruling of 2026-11-09 (both models; only the writing vetoes one), and neither vetoed; owed rows: Operation 28 and 29, Description 3, 2026-11-11
 last gate: 2026-11-04 — Final Critique 8, a delta round, frozen at 17878a4 — foundational count 0, clean, one sample; 2026-11-03 — Final Critique 7 — foundational count 3, not clean, no sample
 

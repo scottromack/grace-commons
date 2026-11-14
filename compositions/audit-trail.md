@@ -1904,12 +1904,12 @@ The composition is the structural form of what every major audit regime requires
 
 ## Status
 
-`grounded on Final Critique 60 — 2026-11-06 at 21ece33` — see the Ledger.
+`done — 2026-11-06` — see the Ledger.
 
 ## Ledger
 
 ```
-status: grounded on Final Critique 60 — 2026-11-06 at 21ece33
+status: done — 2026-11-06
 formal: verified — audit-trail.tla + 3 twins (cascade; scan first half) and audit-trail-record.tla + 5 twins (record action, one step under Execution Contract Store 1; scan second and third halves; re-derived 2026-10-20) and audit-trail-binding.tla + 3 twins (binding-set predicate against an in-flight cascade), re-derived against the fresh-reader gates of rounds 9 to 18, derived from the page as it stands; the legal hold over an open cascade entry (its model, five twins and three probes, 43,688 states within 15 ticks) moved with the gate to Defensible Retention, and audit-trail.tla and its twins, which check the cascade's order and Invariant 8 together, are cited by both pages; the closure arithmetic — a leg's lease against its work (Instance start 18, 19, Per-act critical section 13a, 13b, 13d) and a finding's closure against closure sum with one dead run and one hold placement (Instance start 16) — enumerated by tools/harness/audit-trail-closure.py + 5 twins over 5,184 leg tuples and 5,184 schedule tuples at conforming constants, which no model reaches; the other cures of rounds 19 to 26 are carried on the NOT MODELED lists, not re-derived; the cascade models commit steps 1 and 2 apart, a superset of the one transaction Invariant 4.2 states since Final Critique 59; models and enumerator last run; audit-trail.als + 17 twins (the static data model, 2026-11-11: Invariant 1.3, 1.5a, 1.6a, 1.7a, 2.1, 2.3, 2.4a, 3.1, 3.2 and 4.5 checked on every state the admitted writes leave, Invariant 6.1, 6.2, 7.1, 7.3, 8.2b, 8.4 and 8.5 on what [Read Record] and [Verify Record] land over one state, Invariant 1, 4.5 and 8 a cross-check with the TLA+ models; nothing testable in Alloy for Invariant 1.1, whose content in one state is 1.3's, 1.2, 1.8, 1.10 through 1.12 and 4.2, orders of writes and calls, 1.7b, 1.7c and 5.4, an auditor's reading, 2.4a's at-least-one half and 8.1a, the scan's liveness, 5.2 and 5.3, which compare two readings, 7.2, the signature, and 8.2 and 8.2a, which define event standing; 5.1 is each constituent's own); coverage 2026-11-10 (unit formal: more coverage for the yes votes), 2026-11-11: owed rows: Invariant 5.2; Invariant 5.3; 2a: Reconciliation 4 — held as an invariant: the model clock (now, MaxTime) bounds it, and the Invariant 8 liveness arm is bounded; no row owed, 2026-11-02
 last gate: 2026-11-06 — Final Critique 60, a delta round, frozen at 21ece33 — foundational count 0, clean, one sample; 2026-11-01 — Final Critique 59 — foundational count 2, not clean, no sample
 

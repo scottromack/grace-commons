@@ -422,14 +422,14 @@ It inherits from:
 
 ## Status
 
-`grounded on Final Critique 7 — 2026-10-28 at 7c6ea61` — see the Ledger.
+`done — 2026-10-28` — see the Ledger.
 
 ## Ledger
 
 ```
-status: grounded on Final Critique 7 — 2026-10-28 at 7c6ea61
+status: done — 2026-10-28
 formal: verified — duplicate-prevention.tla + 1 twin (2026-06-03); duplicate-prevention.als + 8 twins (the static data model, 2026-11-11: State 1, Operation 5, 6 and 7 and Invariant 2.1, 2.2, 2.3 and 3.1 checked on every recorded set and every answer the [Record] and [Check] calls leave, Invariant 2.1 and 2.2 a cross-check with the TLA+ model; the rules that own the deleted Invariant 1, 3.2 and 4 are among them); coverage 2026-11-10 (unit formal: more coverage for the yes votes), 2026-11-11
-last gate: 2026-10-28 — Final Critique 7 — foundational count 0, clean, one sample
+last gate: 2026-10-28 — Final Critique 7, frozen at 7c6ea61 — foundational count 0, clean, one sample
 
 open:
 - 2026-10-21-c · refining · Invariant 2.3; Operation 1; Non-goal 1; Operation 12; Clock semantics 1; Operation 2; Invariant 2.2 · three propositions each owned twice: a fresh guard for an identity not under guard, the response left to the containing pattern, and a guard anchored to the opening record's now → one owner each (GRACE-lang Authority 3)

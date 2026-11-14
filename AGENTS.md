@@ -33,7 +33,7 @@ When drafting a new pattern, additionally read the most structurally adjacent ex
 
 - [`why.md`](./why.md) — the vision page (former home content, moved 2026-07-06): three-layers framing, atom/composition vocabulary. [`readme.md`](./readme.md) — the Start Here landing/tour at the site root.
 - [`the-spec-layer.md`](./the-spec-layer.md) — the architectural manifesto; principles, bridges, tone.
-- [`pressure-testing.md`](./pressure-testing.md) — three-pass methodology; round structure and `grounded` semantics; formal models, the formal-layer vote, the coverage cross-check; capability provenance; regulated-pattern conventions; the no-snapshot rule.
+- [`pressure-testing.md`](./pressure-testing.md) — three-pass methodology; the section titled *What DONE means* (the round and the status words); formal models, the formal-layer vote, the coverage cross-check; capability provenance; regulated-pattern conventions; the no-snapshot rule.
 - [`spec-format.md`](./spec-format.md) — the three spec shapes, required sections, reading tiers, authoring conventions.
 - [`contributing.md`](./contributing.md) — contribution lifecycle; workflow for adding a new pattern; implementation-discovered findings; formal-model artifact conventions.
 - [`execution-contract.md`](./execution-contract.md) — runtime semantics; composition state; substrate invocation; testing model; conformance.
@@ -57,7 +57,7 @@ Moved — owned by the section titled *Cross-cutting authoring conventions* in [
 
 ## The three-pass review
 
-Moved — owned by [`pressure-testing.md`](./pressure-testing.md): pass definitions, the section titled *Order and iteration* (round structure and naming; `grounded on Final Critique N` is the canonical marker), and the section titled *What "grounded" means* (the formal-layer vote and Opus clearance gate).
+Moved — owned by [`pressure-testing.md`](./pressure-testing.md): pass definitions, and the section titled *What DONE means* (the round, the rule that makes a pattern done, and the status words `todo`, `doing`, `done`).
 
 ## Regulated-pattern conventions
 

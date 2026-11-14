@@ -15,8 +15,8 @@ the three-pass review otherwise has to catch by eye —
   C. Model-present bar      — a Status line that names a `.tla`/`.als` model has
                               that file present AND a `-buggy` twin beside it.
   D. Stale forthcoming      — a `*(forthcoming)*` marker in a list item that also
-                              links to a file which is already `grounded`.
-  E. Count honesty          — "NN grounded patterns / NN compositions" claims in
+                              links to a file which is already `done`.
+  E. Count honesty          — "NN done patterns / NN compositions" claims in
                               roadmap.md and readme.md match the real file counts.
   F. Rests-on refs          — a "<Pattern> Invariant N" cross-reference (as used in
                               invariant *Rests on:* clauses) resolves: N <= the cited
@@ -45,7 +45,7 @@ the three-pass review otherwise has to catch by eye —
   G. Status grammar         — every pattern has a `## Status` section whose first
                               line starts with exactly one backticked status token
                               conforming to the pinned grammar (pressure-testing.md
-                              section Status line format, pinned 2026-06-11).
+                              section What DONE means).
   H. Status mirror          — a roadmap.md list entry that links a pattern and carries
                               a backticked status token mirrors the pattern file's own
                               token exactly (the pattern file is the source of truth).
@@ -218,8 +218,6 @@ def invariant_numbers(text: str) -> set[int]:
 # Model extensions are included so a renamed .tla/.als leaving a spec→model link
 # dangling is caught — the original .md-only form missed it (debt #14 lint gap).
 MD_LINK = re.compile(r"\[[^\]]+\]\((\.{1,2}/[^)]+?\.(?:md|tla|als|cfg))(#[^)]*)?\)")
-# Status line: the first paragraph starting with `grounded` (back-tick optional)
-STATUS_GROUNDED = re.compile(r"^`?grounded", re.M)
 # model files named in a Status / Lineage line, e.g. `provenance.als`, `kyc.tla`
 MODEL_REF = re.compile(r"`([\w\-/]+\.(?:tla|als))`")
 # "all ten invariants from [Name](link)" / "[Name](link)'s ten checks" etc.
@@ -316,7 +314,7 @@ class Pattern:
     path: Path
     text: str
     invariant_count: int
-    grounded: bool
+    done: bool
 
 
 def load_patterns(root: Path) -> dict[Path, Pattern]:
@@ -334,7 +332,7 @@ def load_patterns(root: Path) -> dict[Path, Pattern]:
                 path=md,
                 text=text,
                 invariant_count=len(invariant_numbers(text)),
-                grounded=bool(STATUS_GROUNDED.search(text)),
+                done=is_done(status_token_of(text)[0]),
             )
     return out
 
@@ -390,7 +388,7 @@ def check_invariant_counts(patterns: dict[Path, Pattern], md_files: list[Path]) 
 
 
 def check_models_present(patterns: dict[Path, Pattern]) -> list[Finding]:
-    """C. A named `.tla`/`.als` model in a grounded pattern exists, with a twin.
+    """C. A named `.tla`/`.als` model in a done pattern exists, with a twin.
 
     Fires only when the pattern actually CLAIMS a verified model (its Status zone
     mentions the harness or a buggy twin) — so an incidental prose mention of a
@@ -398,7 +396,7 @@ def check_models_present(patterns: dict[Path, Pattern]) -> list[Finding]:
     """
     findings: list[Finding] = []
     for p in patterns.values():
-        if not p.grounded:
+        if not p.done:
             continue
         # only inspect the Status section's first ~3000 chars to avoid Lineage
         # back-references to other patterns' models
@@ -441,11 +439,11 @@ DECORATING_FORTHCOMING = re.compile(
 
 
 def check_stale_forthcoming(root: Path, patterns: dict[Path, Pattern], md_files: list[Path]) -> list[Finding]:
-    """D. A link whose own '(forthcoming)' marker decorates an already-grounded file.
+    """D. A link whose own '(forthcoming)' marker decorates an already-done file.
 
     High precision: the marker must immediately decorate the link (within ~40
     chars after it), not merely appear somewhere on the line — so prose that
-    *retires* forthcoming-links, or lists a grounded pattern beside a different
+    *retires* forthcoming-links, or lists a done pattern beside a different
     forthcoming one, does not false-positive.
     """
     findings: list[Finding] = []
@@ -455,11 +453,11 @@ def check_stale_forthcoming(root: Path, patterns: dict[Path, Pattern], md_files:
         for m in DECORATING_FORTHCOMING.finditer(text):
             target = (md.parent / m.group(1)).resolve()
             tgt = by_resolved.get(target)
-            if tgt and tgt.grounded:
+            if tgt and tgt.done:
                 findings.append(Finding(
                     md, line_of(text, m.start()), "D-stale-forthcoming",
                     f"link marked '(forthcoming)' but {Path(m.group(1)).name} "
-                    f"is grounded",
+                    f"is done",
                 ))
     return findings
 
@@ -523,14 +521,14 @@ def check_orphan_forthcoming(root: Path, patterns: dict[Path, Pattern]) -> list[
 
 
 def check_counts(root: Path, patterns: dict[Path, Pattern]) -> list[Finding]:
-    """E. 'NN grounded patterns / NN compositions' claims match reality."""
+    """E. 'NN done patterns / NN compositions' claims match reality."""
     findings: list[Finding] = []
     atoms = [p for p in patterns.values() if "/atoms/" in p.path.as_posix()]
     comps = [p for p in patterns.values() if "/compositions/" in p.path.as_posix()]
     real_total = len(atoms) + len(comps)
     real_comps = len(comps)
 
-    claim = re.compile(r"\*\*(\d+)\s+grounded\s+patterns\s*\(\s*(\d+)\s+grounded\s+compositions?\)\*\*")
+    claim = re.compile(r"\*\*(\d+)\s+done\s+patterns\s*\(\s*(\d+)\s+done\s+compositions?\)\*\*")
     for fname in ("roadmap.md", "readme.md"):
         f = root / fname
         if not f.exists():
@@ -1209,15 +1207,18 @@ def check_retry_bit(patterns: dict[Path, Pattern]) -> list[Finding]:
 # Status grammar / mirror (G, H, I)
 # --------------------------------------------------------------------------- #
 
-# the pinned status-token grammar (pressure-testing.md section Status line format)
+# the pinned status-token grammar (pressure-testing.md section What DONE means):
+# three words, and `done` carries the date of its clean round
 STATUS_TOKEN_FORMS = [
-    re.compile(r"^draft$"),
-    re.compile(r"^unresolved$"),
-    re.compile(r"^partially resolved$"),
-    re.compile(r"^grounded on Final Critique \d+ — \d{4}-\d{2}-\d{2}(?: at [0-9a-f]{7,40})?$"),
-    re.compile(r"^grounded \(English\) on Final Critique \d+ — \d{4}-\d{2}-\d{2}(?: at [0-9a-f]{7,40})? — formal layer pending$"),
-    re.compile(r"^grounded on Final Critique \d+ — \d{4}-\d{2}-\d{2}(?: at [0-9a-f]{7,40})? — .+ pending$"),
+    re.compile(r"^todo$"),
+    re.compile(r"^doing$"),
+    re.compile(r"^done — \d{4}-\d{2}-\d{2}$"),
 ]
+
+
+def is_done(token: str | None) -> bool:
+    """A status token in the `done` form (the date is G-status-grammar's)."""
+    return bool(token) and (token == "done" or token.startswith("done "))
 STATUS_SECTION = re.compile(r"^(?:## Status|[ \t]*<h2\b[^>]*>[ \t]*Status[ \t]*</h2>)\s*$", re.M)
 LEADING_TOKEN = re.compile(r"^`([^`]+)`")
 
@@ -1695,6 +1696,37 @@ def check_provenance_drift(root: Path, patterns: dict[Path, Pattern]) -> list[Fi
     if not touched:
         return findings
 
+    # The status words (unit `method: what DONE means, and the status words`):
+    # `grounded on Final Critique N — D at <sha>` is written `done — D`, and the
+    # round and its frozen commit go to the `last gate:` line. That rewrite is
+    # not a gate, so it is not drift: the token keeps its date, and the gate line
+    # gains only `, frozen at <sha>` in round N's entry, or round N's entry back
+    # as git last held it. It applies only while HEAD carries the old token.
+    OLD_TOKEN = re.compile(r"^status: grounded on Final Critique (\d+) — "
+                           r"(\d{4}-\d{2}-\d{2}) at ([0-9a-f]{7,40})$")
+
+    def token_rewrite(rel: str, was: dict[str, str], now: dict[str, str], k: str) -> bool:
+        m = OLD_TOKEN.match(was.get("status:", ""))
+        if not m:
+            return False
+        n, d, sha = m.groups()
+        if k == "status:":
+            return now[k] == f"status: done — {d}"
+        if k != "last gate:":
+            return False
+        pin = f", frozen at {sha}"
+        if now[k].count(pin) != 1:
+            return False
+        bare = now[k].replace(pin, "")
+        if bare == was[k]:
+            return True
+        entry = bare[len(was[k]) + 2:]
+        if (bare.startswith(was[k] + "; ") and "; " not in entry
+                and entry.startswith(f"{d} — Final Critique {n} — ")):
+            held = git("log", "-S", f"last gate: {entry}", "--format=%h", "--", rel)
+            return bool(held and held.returncode == 0 and held.stdout.strip())
+        return False
+
     for p in patterns.values():
         rel = p.path.relative_to(root).as_posix()
         if rel not in touched:
@@ -1704,7 +1736,7 @@ def check_provenance_drift(root: Path, patterns: dict[Path, Pattern]) -> list[Fi
             continue  # new file; nothing to compare against
         was, now = provenance(show.stdout), provenance(p.text)
         for k in KEYS:
-            if k in was and k in now and was[k] != now[k]:
+            if k in was and k in now and was[k] != now[k] and not token_rewrite(rel, was, now, k):
                 findings.append(Finding(
                     p.path, line_of(p.text, p.text.find(now[k])),
                     "R-provenance-drift",
@@ -1904,7 +1936,7 @@ def check_status_grammar(patterns: dict[Path, Pattern]) -> list[Finding]:
             findings.append(Finding(
                 p.path, line, "G-status-grammar",
                 f"token `{token}` matches no form of the pinned grammar "
-                f"(pressure-testing.md section Status line format)",
+                f"(pressure-testing.md section What DONE means)",
             ))
     return findings
 
@@ -2303,7 +2335,7 @@ def check_term_registry(patterns: dict[Path, Pattern]) -> list[Finding]:
 #
 # `open: none` when nothing is open. When a finding closes its line is deleted;
 # the fact that it existed is in git. Derived rules the check refuses by
-# construction: a grounded token with an open foundational line; a Ledger
+# construction: a done token with an open foundational line; a Ledger
 # status that disagrees with the Status line; an open line with the wrong
 # field count, an unknown class, a malformed or duplicate id.
 
@@ -2456,18 +2488,17 @@ def check_ledger(patterns: dict[Path, Pattern]) -> list[Finding]:
                 p.path, led.line, "R-ledger-status",
                 f"Ledger says `{led.status}` but the Status line says `{token}`",
             ))
-        if led.status and led.status.startswith("grounded") and led.count("foundational"):
+        if is_done(led.status) and led.count("foundational"):
             findings.append(Finding(
-                p.path, led.line, "R-ledger-grounded-open",
-                f"status is grounded with {led.count('foundational')} open foundational "
-                f"line(s); grounding requires zero (pressure-testing.md section The 92%-good "
-                f"grounding threshold)",
+                p.path, led.line, "R-ledger-done-open",
+                f"status is done with {led.count('foundational')} open foundational "
+                f"line(s); done requires zero (pressure-testing.md section What DONE means)",
             ))
-        if led.status == "partially resolved" and not led.open and led.gate == "none":
+        if led.status == "doing" and not led.open and led.gate == "none":
             findings.append(Finding(
                 p.path, led.line, "R-ledger-status",
-                "partially resolved with nothing open and no gate on record — "
-                "either an open line is missing or the status is `draft`",
+                "doing with nothing open and no gate on record — "
+                "either an open line is missing or the status is `todo`",
             ))
         # Decisions: required alongside a Ledger; entries, if any, in the fixed form
         d = DECISIONS_SECTION.search(p.text)
@@ -2512,7 +2543,7 @@ def census(root: Path, patterns: dict[Path, Pattern]) -> int:
     tf = sum(r[2] for r in rows); tr = sum(r[3] for r in rows); th = sum(r[4] for r in rows)
     by_status: dict[str, int] = {}
     for r in rows:
-        key = r[1].split(" on ")[0].split(" (")[0]
+        key = r[1].split(" — ")[0]  # `done — YYYY-MM-DD` counts as `done`
         by_status[key] = by_status.get(key, 0) + 1
     print()
     print(f"— {len(rows)} pattern(s) with a Ledger: "
@@ -2536,7 +2567,7 @@ _HEADING_TABLES = {"atom": "### Atom headings", "composition": "### Composition 
 def heading_standard(spec_format_text: str) -> dict[str, list[dict]]:
     """The two heading tables, read from spec-format.md rather than held here.
 
-    Each row: name, level, inside, required (`yes` | `no` | `when grounded`),
+    Each row: name, level, inside, required (`yes` | `no` | `when done`),
     unplaced (`yes` | `no` | `any order`). The linter holds no copy, so a
     heading renamed in spec-format is renamed for the instrument in the same
     edit (the lesson check.py learned from its category set, council read 29)."""
@@ -2694,7 +2725,7 @@ def check_heading_standard(root: Path, patterns: dict[Path, Pattern]) -> list[Fi
                               f"under `## {parent['name']}` run in alphabetical order")
                 last_child = (len(names), name)
         for r in rows:
-            if r["required"] == "no" or (r["required"] == "when grounded" and not p.grounded):
+            if r["required"] == "no" or (r["required"] == "when done" and not p.done):
                 continue
             if r["level"] == 3 and ("", r["inside"]) not in present:
                 continue  # the parent's own absence is the finding
@@ -2919,6 +2950,17 @@ def _titles(path: Path) -> set[str]:
     return {t.lower().replace("*", "").replace("`", "") for t in out if t}
 
 
+def _history_sibling(path: Path) -> Path:
+    """A page's history file and the page itself name each other: a section moved
+    whole to `<page>.hist.md` (pressure-testing.md's *What "grounded" means*, unit
+    `method: what DONE means, and the status words`) is still the section a dated
+    citation of the page names, and the moved text's own citations still name the
+    page's other sections."""
+    if path.name.endswith(".hist.md"):
+        return path.with_name(path.name[:-len(".hist.md")] + ".md")
+    return path.with_name(path.name[:-len(".md")] + ".hist.md")
+
+
 def check_section_titles(root: Path) -> list[Finding]:
     """X-section-title: a citation `the section titled X` names a heading of the
     file it names, or of its own page where it names none (council read 126). A
@@ -2944,7 +2986,7 @@ def check_section_titles(root: Path) -> list[Finding]:
                         named = md.parent / fm.group(1)
                         if not named.exists():
                             named = root / fm.group(1)
-                        known |= titles(named)
+                        known |= titles(named) | titles(_history_sibling(named))
                     cited = re.split(r" in \[?[\w./-]+\.md|[.,;:)]", seg)[0].strip()
                     if any(seg.startswith(t) for t in known) or (
                             len(cited) > 8 and any(t.startswith(cited) for t in known)):
@@ -3282,6 +3324,9 @@ def check_page_citations(root: Path) -> list[Finding]:
     cache: dict[Path, set[str]] = {}
 
     def titles(p: Path) -> set[str]:
+        return own_titles(p) | own_titles(_history_sibling(p))
+
+    def own_titles(p: Path) -> set[str]:
         if p not in cache:
             ts = set(_titles(p))
             try:
@@ -3330,8 +3375,8 @@ def check_page_citations(root: Path) -> list[Finding]:
 _LIVE_NUM = (r"(?:\d{2,}|twenty|thirty|forty|fifty|sixty|seventy|eighty|ninety)"
              r"(?:[- ](?:one|two|three|four|five|six|seven|eight|nine))?(?:-plus)?")
 _LIVE_COUNT = re.compile(
-    r"\b" + _LIVE_NUM + r"\s+(?:(?:grounded|canonical|distinct)\s+)?patterns\b"
-    r"|\b" + _LIVE_NUM + r"\s+grounded\b"
+    r"\b" + _LIVE_NUM + r"\s+(?:(?:grounded|done|canonical|distinct)\s+)?patterns\b"
+    r"|\b" + _LIVE_NUM + r"\s+(?:grounded|done)\b"
     r"|\b(?:\d{2,}|twenty|thirty|forty|fifty|sixty|seventy|eighty|ninety)-plus\s+"
     r"(?:specifications|specs)\b", re.IGNORECASE)
 # the dated ledgers and registers, where a number is the count at the date it was written
@@ -3341,7 +3386,7 @@ _LIVE_LEDGERS = {"roadmap.md", "changelog.md", "project-log.md", "ai-usage-log.m
 
 def check_live_counts(root: Path) -> list[Finding]:
     """N-live-count: a site page outside the library (atoms/, compositions/) and outside
-    the dated ledgers states the corpus's pattern or grounded count as a number it must read
+    the dated ledgers states the corpus's pattern or done count as a number it must read
     from `_data/stats.json` instead (`{{ site.data.stats.patterns }}`; unit `site: live
     numbers`, Scott 2026-11-06: a library that never desyncs does not hand-write its
     own count). A line carrying an ISO date is a dated record, a code span and a fenced

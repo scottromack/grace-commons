@@ -619,14 +619,14 @@ It inherits from:
 
 ## Status
 
-`grounded on Final Critique 7 — 2026-10-26 at 207f9b2` — see the Ledger.
+`done — 2026-10-26` — see the Ledger.
 
 ## Ledger
 
 ```
-status: grounded on Final Critique 7 — 2026-10-26 at 207f9b2
+status: done — 2026-10-26
 formal: verified — assignment.tla + 1 twin (2026-06-03); assignment.als + 11 twins (the static data model, 2026-11-11: State 1 through 4 and Invariant 5.1, 6.1, 7.2, 8.1, 8.2, 9.1 and 9.2 checked on every record an admitted [Assign], [Recall] or [Reassign] leaves, Invariant 7.2 a cross-check with the TLA+ model; nothing testable in Alloy for Invariant 1.1, 2.1, 3.2, 4.1, 4.2, 8.3 and 10.1: whether two active assignments co-exist depends on the order of the calls that wrote them, and the others each compare a record with a later version of it, which a single state cannot show, so they are the TLA+ model's); coverage 2026-11-10 (unit formal: more coverage for the yes votes): owes TLA+ checks of Invariant 2, 3, 4, 8.3 and 10 (across steps); owed rows: Invariant 2; Invariant 3; Invariant 4; Invariant 8.3; Invariant 10, 2026-11-11
-last gate: 2026-10-26 — Final Critique 7 — foundational count 0, clean, one sample
+last gate: 2026-10-26 — Final Critique 7, frozen at 207f9b2 — foundational count 0, clean, one sample
 
 open:
 - 2026-10-21-a · refining · Term seam; Term transition; Term business caller · each says the section titled Logic Confinement Principle in `execution-contract.md` declares it, and that section declares none of the three and calls the composition layer the seam (Logic confinement 2); seam, transition and business caller have no term entry → declare the three there, the corpus's one seam wording, or point each at its declaration, and give each a term entry

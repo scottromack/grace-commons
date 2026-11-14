@@ -19,11 +19,15 @@ Two artifacts, both DERIVED from the corpus (never hand-edited — regenerate):
                       same discipline as diagrams-are-views-not-truth.
 
   _data/stats.json    The corpus's size and progress as numbers (patterns, atoms,
-                      compositions, grounded of each kind, commits, and the states and Alloy commands
+                      compositions, done of each kind, commits, and the states and Alloy commands
                       the harness has checked, from tools/harness/states.tsv), written with
                       patterns.json from the same cards, so a site page states a
                       count as {{ site.data.stats.patterns }} and cannot drift from
                       the library (unit `site: live numbers`, Scott 2026-11-06).
+                      The done counts keep the key names `grounded`,
+                      `grounded_atoms` and `grounded_compositions`, which Start
+                      Here prints; a card's `grounded` is true when its Status
+                      token is `done`.
 
 Every field is read off the files (Status token, Invariant headers, sibling
 .tla/.als models and their -buggy twins, Composes edges) or off the usage-derived
@@ -76,6 +80,11 @@ def status_token(text):
             t = LEADING_TOKEN.search(line)
             return t.group(1) if t else None
     return None
+
+
+def is_done(token):
+    """The Status token is `done — YYYY-MM-DD` (pressure-testing.md, *What DONE means*)."""
+    return bool(re.match(r"done\b", token or ""))
 
 
 def models_of(path):
@@ -181,7 +190,7 @@ def main():
         cards[a] = {
             "title": frontmatter_title(text, a), "kind": "atom",
             "status": status_token(text),
-            "grounded": bool(re.match(r"grounded", status_token(text) or "")),
+            "grounded": is_done(status_token(text)),
             "invariants": invariant_count(text),
             "models": models_of(p),
             "composed_by": e["composed_by"], "domain": e["domain"],
@@ -196,7 +205,7 @@ def main():
         cards[c["name"]] = {
             "title": frontmatter_title(text, c["name"]), "kind": "composition",
             "status": status_token(text),
-            "grounded": bool(re.match(r"grounded", status_token(text) or "")),
+            "grounded": is_done(status_token(text)),
             "invariants": invariant_count(text),
             "models": models_of(p),
             "composes": c["atoms"], "substrates": subs,
