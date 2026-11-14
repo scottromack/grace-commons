@@ -229,7 +229,7 @@ def walk_terms(spec: cites.Spec, lines: list[str], where) -> tuple[list[dict], d
     vocabulary lines (`Term actors:` and the other categories) and the terms;
     and the term entries under `## Terms`. A declaration owns its definition,
     and the term entry its marker lands on (`— a [Cart]`) carries the reader's
-    copy and the Kind (spec-format.md, *A term entry is the reader's copy*)."""
+    copy and the Kind (spec-format.md, *The term entry*)."""
     entries: list[dict] = []
     terms_at = section_lines(lines, "Terms")
     entry = None

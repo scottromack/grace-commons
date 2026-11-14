@@ -87,7 +87,7 @@ Term code span: text between backticks outside a fence; it quotes literal text �
 
 Term bare fence: a fenced block whose opening line carries no info string — the one fence kind a normative block, a surface block and a signature block take; a block's first line, not its fence, says which it is.
 
-Term term entry: a Terms registry entry — a heading, prose and a `Kind` line — the reader's copy of a declaration (the entry *A term entry is the reader's copy* in `spec-format.md`).
+Term term entry: a Terms registry entry — a heading, prose and a `Kind` line — the reader's copy of a declaration (the section titled *The term entry* in `spec-format.md`).
 
 Term bracket marker: `[Name]` in prose or in a rule, naming an action or a term the specification declares, and the link line that lands it on the name's term entry; a pointer to the declaration, never a second copy of the declaration. Another specification is named without brackets — a rule sits in a fence, where a link does not render, so `[Permissions](./permissions.md)` there reads as a bracket marker with nothing to resolve to.
 

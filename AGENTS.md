@@ -61,7 +61,7 @@ Moved — owned by [`pressure-testing.md`](./pressure-testing.md): pass definiti
 
 ## Regulated-pattern conventions
 
-Moved — owned by the section titled *Regulated-pattern conventions* in [`pressure-testing.md`](./pressure-testing.md) (the two required sections and when they apply); section placement by the section titled *Regulated overlay* in [`spec-format.md`](./spec-format.md).
+Moved — owned by the section titled *Regulated-pattern conventions* in [`pressure-testing.md`](./pressure-testing.md) (the two required sections and when they apply); the overlay's one Examples subsection sits in the shapes of [`spec-format.md`](./spec-format.md).
 
 ## Current state of the library
 

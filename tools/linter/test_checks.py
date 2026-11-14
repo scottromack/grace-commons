@@ -40,6 +40,8 @@ from lint import (  # noqa: E402
     check_views_current,
     check_live_counts,
     check_audit_claim,
+    check_term_kind,
+    heading_standard,
     check_migration_seam,
     check_heading_standard,
     check_range_form,
@@ -1454,6 +1456,48 @@ def check_notation_synthetic(problems: list[str]) -> int:
         (root / "why.md").unlink()
         if check_audit_claim(root):
             problems.append("S-audit-claim: fired with no why.md")
+        n += 7
+    with tempfile.TemporaryDirectory() as d:
+        # O-term-kind reads the two tables of spec-format.md's section *The term entry*; heading_standard
+        # reads the one table of shapes (unit `spec-format.md: the term entry, and the leftovers`)
+        root = Path(d)
+        (root / "spec-format.md").write_text(
+            "## The term entry\n\n"
+            "| Field | What it says | Required with | Also found with |\n|---|---|---|---|\n"
+            "| `Kind` | the kind | every kind | |\n"
+            "| `Field of` | the type | Field | |\n"
+            "| `Projection` | the spelling | Field | Member (2 of 3), Type (1 of 4) |\n"
+            "| `Role` | the role | Member | Field (1 of 5) |\n\n"
+            "| Kind | What it means | Entries |\n|---|---|---|\n"
+            "| Type | a type | 4 |\n| Field | a field | 5 |\n| Member | a member | 3 |\n| Operation | an action | 9 |\n\n"
+            "## Heading standard\n\n### Heading tables\n\n"
+            "| Shape | Heading | Level | Inside | Required | Unplaced children |\n|---|---|---|---|---|---|\n"
+            "| atom | Intent | 2 | | yes | no |\n| atom | State | 3 | Structure | yes | no |\n"
+            "| composition | Composes | 2 | | yes | yes |\n\n### Rule families\n", encoding="utf-8")
+        shapes = heading_standard((root / "spec-format.md").read_text(encoding="utf-8"))
+        if [r["name"] for r in shapes["atom"]] != ["Intent", "State"] or [r["name"] for r in shapes["composition"]] != ["Composes"] \
+                or shapes["atom"][1] != {"name": "State", "level": 3, "inside": "Structure", "required": "yes", "unplaced": "no"}:
+            problems.append(f"H-heading: the one table of shapes read as {shapes}")
+
+        def entries(*blocks):
+            text = "Term qualifiers: migrated — rewritten in GRACE lang v0.72.\n\n## Terms\n\n" + "\n".join(blocks) + "\n## Status\n"
+            path = root / "p.md"
+            return sorted(f.message.split("`")[1] + " " + f.message.split("`")[-2] for f in
+                          check_term_kind(root, {path: Pattern(path=path, text=text, invariant_count=1, done=False)}))
+        good = ["#### A\n\nx\n\nKind: Field\nField of: T\nProjection: a\n", "#### B\n\nx\n\nKind: Member\nProjection: b\nRole: Outcome\n",
+                "#### C\n\nx\n\nKind: Operation\n", "#### D\n\nx\n\nKind: Type\nProjection: d\n"]
+        if entries(*good):
+            problems.append(f"O-term-kind: fired on entries that keep the tables: {entries(*good)}")
+        for name, block, want in (
+            ("no Kind", "#### E\n\nx\n", ["E Kind"]),
+            ("a kind outside the five", "#### E\n\nx\n\nKind: Widget\n", ["E Widget"]),
+            ("a field the kind requires, missing", "#### E\n\nx\n\nKind: Field\nProjection: e\n", ["E Field of"]),
+            ("a field the kind neither requires nor lists", "#### E\n\nx\n\nKind: Operation\nProjection: e\n", ["E Operation"]),
+            ("a field of another kind", "#### E\n\nx\n\nKind: Member\nField of: T\nRole: Outcome\n", ["E Member"]),
+        ):
+            got = entries(*good, block)
+            if len(got) != len(want):
+                problems.append(f"O-term-kind: {name} read as {got}, wanted {want}")
         n += 7
     with tempfile.TemporaryDirectory() as d:
         # M-register-number and M-register-citation read the register in governance.hist.md

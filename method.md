@@ -54,6 +54,17 @@ These three together solve the multi-artifact-truth-distribution problem the Spe
 
 **The litmus test for every future addition:** *Does this build a bridge, or does it build a wall?* Walls exclude an audience to optimize for another. Bridges accommodate both. The architecture optimizes for bridges by default — that is what *appropriate technology* means in this context.
 
+## Thresholds
+
+Four numbers decide when the method acts on a recurrence. Each has one owner, named in its row, and every other page that states one cites this table.
+
+| Threshold | Number | What it decides | The rule that owns it |
+|---|---|---|---|
+| A rule freezes | three | a rule on the page is closed to amendment once the third fresh-reader gates return findings of its shape and its text is complete for the evidence in hand | the entry *No abstraction without recurrence* in [`pressure-testing.md`](./pressure-testing.md), and each `FROZEN` note there |
+| A label family is a candidate | three | a label family three specifications name stands as a promotion candidate, which the maintainer decides | [`GRACE-lang.md`](./GRACE-lang.md) Standard label 4 |
+| A repeat is stated once | five | a cure five specifications repeat is stated once, in the Execution Contract or the grammar, and each specification cites it | the note on the [Watch list](./watch-list.md), under [`GRACE-lang.md`](./GRACE-lang.md) Section 18 |
+| A compound needs | five | a higher-order composition is extracted only on five exact instances of one problem | the entry *No abstraction without recurrence* in [`pressure-testing.md`](./pressure-testing.md) |
+
 ## The two documents
 
 1. **[Pressure Testing](./pressure-testing.md)** — the review discipline that takes a spec from draft to `grounded`, including the formal layer that proves it.

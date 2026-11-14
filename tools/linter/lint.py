@@ -281,7 +281,7 @@ TRAILING_PAREN = re.compile(r"\s*\([^)]*\)\s*$")
 # patterns, 16 on 15, and 1 on Audit Trail. They are not swept: each site is a
 # finding for its page's next round, and a code leaves this set in the change
 # that cures its last site.
-ADVISORY_CODES: frozenset[str] = frozenset({"Z-vague", "Z-unit", "Z-pronoun"})
+ADVISORY_CODES: frozenset[str] = frozenset({"Z-vague", "Z-unit", "Z-pronoun", "O-term-kind"})
 
 
 @dataclass
@@ -1514,6 +1514,88 @@ def check_term_coverage(patterns: dict[Path, Pattern]) -> list[Finding]:
     return findings
 
 
+def term_entry_tables(spec_format_text: str) -> tuple[dict[str, dict], set[str]] | None:
+    """The two tables of the section titled *The term entry* in spec-format.md: the
+    fields (each with the kinds that require it and the kinds it is also found
+    with, `*` for every kind) and the five kinds. None where the section is absent.
+    The linter holds no copy of either, so a field or a kind added there is added
+    for the instrument in the same edit."""
+    start = spec_format_text.find("## The term entry\n")
+    if start < 0:
+        return None
+    end = re.search(r"^## ", spec_format_text[start + 3:], re.M)
+    section = spec_format_text[start: start + 3 + end.start()] if end else spec_format_text[start:]
+    fields: dict[str, dict] = {}
+    kinds: set[str] = set()
+    table = None
+    for line in section.split("\n"):
+        if not line.startswith("|"):
+            table = None
+            continue
+        cells = [c.strip() for c in line.strip().strip("|").split("|")]
+        if len(cells) > 1 and cells[1] in ("What it says", "What it means"):
+            table = "Field" if cells[1] == "What it says" else "Kind"
+            continue
+        if set(cells[0]) <= set("-") or table is None:
+            continue
+        if table == "Field" and len(cells) == 4:
+            name = cells[0].strip("`")
+            required = {"*"} if cells[2] == "every kind" else {k.strip() for k in cells[2].split(",") if k.strip()}
+            also = {k.strip().split(" ")[0] for k in re.split(r",(?![^()]*\))", cells[3]) if k.strip()}
+            fields[name] = {"required": required, "also": also}
+        elif table == "Kind" and len(cells) == 3:
+            kinds.add(cells[0])
+    return fields, kinds
+
+
+def check_term_kind(root: Path, patterns: dict[Path, Pattern]) -> list[Finding]:
+    """O-term-kind (advisory): a term entry that breaks the two tables of the section
+    titled *The term entry* in spec-format.md: no `Kind` line, a kind outside the
+    five, a field its kind neither requires nor lists, or a field its kind requires
+    and the entry lacks (unit `spec-format.md: the term entry, and the leftovers`,
+    Scott 2026-11-14). Advisory because a done pattern is not edited for it; the
+    entries it finds are the council's v3 batch (entry 15)."""
+    try:
+        tables = term_entry_tables((root / "spec-format.md").read_text(encoding="utf-8"))
+    except OSError:
+        return []
+    if tables is None:
+        return []
+    fields, kinds = tables
+    field_re = re.compile(r"^(" + "|".join(re.escape(f) for f in sorted(fields, key=len, reverse=True)) + r"):[ \t]+(.*?)\s*$", re.M)
+    out: list[Finding] = []
+    for p in patterns.values():
+        if not re.search(r"^Term qualifiers:.*\bmigrated\b", p.text, re.M):
+            continue
+        head = re.search(r"^## Terms\s*$", p.text, re.M)
+        if not head:
+            continue
+        tail = re.search(r"^## ", p.text[head.end():], re.M)
+        body = p.text[head.end(): head.end() + tail.start()] if tail else p.text[head.end():]
+        parts = re.split(r"^#### (.+?)\s*$", body, flags=re.M)
+        for name, text in zip(parts[1::2], parts[2::2]):
+            have = {m.group(1): m.group(2) for m in field_re.finditer(text)}
+            at = line_of(p.text, p.text.find(f"#### {name}\n"))
+            kind = have.get("Kind")
+            if kind is None:
+                out.append(Finding(p.path, at, "O-term-kind", f"the term entry `{name}` has no `Kind` line"))
+                continue
+            if kind not in kinds:
+                out.append(Finding(p.path, at, "O-term-kind",
+                    f"the term entry `{name}` has Kind `{kind}`, which is none of {', '.join(sorted(kinds))}"))
+                continue
+            for f in have:
+                rule = fields[f]
+                if f != "Kind" and kind not in rule["required"] | rule["also"] and "*" not in rule["required"]:
+                    out.append(Finding(p.path, at, "O-term-kind",
+                        f"the term entry `{name}` carries `{f}`, which Kind `{kind}` neither requires nor lists"))
+            for f, rule in fields.items():
+                if (kind in rule["required"] or "*" in rule["required"]) and f not in have:
+                    out.append(Finding(p.path, at, "O-term-kind",
+                        f"the term entry `{name}` has no `{f}`, which Kind `{kind}` requires"))
+    return out
+
+
 def check_dead_anchors(patterns: dict[Path, Pattern]) -> list[Finding]:
     """O. A term-registry link line pointing at a heading the page does not have.
 
@@ -2387,32 +2469,32 @@ def census(root: Path, patterns: dict[Path, Pattern]) -> int:
 # H. The heading standard — the section titled *Heading standard* in spec-format.md
 # --------------------------------------------------------------------------- #
 
-_HEADING_TABLES = {"atom": "### Atom headings", "composition": "### Composition headings"}
+_HEADING_TABLE = "### Heading tables"
 
 
 def heading_standard(spec_format_text: str) -> dict[str, list[dict]]:
-    """The two heading tables, read from spec-format.md rather than held here.
+    """The heading table, read from spec-format.md rather than held here.
 
-    Each row: name, level, inside, required (`yes` | `no` | `when done`),
-    unplaced (`yes` | `no` | `any order`). The linter holds no copy, so a
-    heading renamed in spec-format is renamed for the instrument in the same
-    edit (the lesson check.py learned from its category set, council read 29)."""
-    out: dict[str, list[dict]] = {}
-    for shape, title in _HEADING_TABLES.items():
-        start = spec_format_text.find(title + "\n")
-        if start < 0:
-            raise SystemExit(f"lint.py: spec-format.md carries no `{title}` table; "
-                             "the heading standard has no authority to read (H-heading)")
-        rows = []
-        for line in spec_format_text[start:].split("\n")[1:]:
-            if line.startswith("#"):
-                break
-            cells = [c.strip() for c in line.strip().strip("|").split("|")]
-            if len(cells) != 5 or cells[0] in ("Heading", "") or set(cells[0]) <= set("-"):
-                continue
-            rows.append({"name": cells[0], "level": int(cells[1]), "inside": cells[2],
-                         "required": cells[3], "unplaced": cells[4]})
-        out[shape] = rows
+    One table, one row a heading, the shape that carries it first (unit
+    `spec-format.md: the term entry, and the leftovers`, Scott 2026-11-14: the atom
+    and composition tables became one). Each row: shape, name, level, inside,
+    required (`yes` | `no` | `when done`), unplaced (`yes` | `no` | `any order`).
+    The result is keyed by shape, the rows in table order. The linter holds no
+    copy, so a heading renamed in spec-format is renamed for the instrument in the
+    same edit (the lesson check.py learned from its category set, council read 29)."""
+    start = spec_format_text.find(_HEADING_TABLE + "\n")
+    if start < 0:
+        raise SystemExit(f"lint.py: spec-format.md carries no `{_HEADING_TABLE}` table; "
+                         "the heading standard has no authority to read (H-heading)")
+    out: dict[str, list[dict]] = {"atom": [], "composition": []}
+    for line in spec_format_text[start:].split("\n")[1:]:
+        if line.startswith("#"):
+            break
+        cells = [c.strip() for c in line.strip().strip("|").split("|")]
+        if len(cells) != 6 or cells[0] in ("Shape", "") or set(cells[0]) <= set("-"):
+            continue
+        out.setdefault(cells[0], []).append({"name": cells[1], "level": int(cells[2]), "inside": cells[3],
+                                              "required": cells[4], "unplaced": cells[5]})
     return out
 
 
@@ -3575,6 +3657,7 @@ def main(argv: list[str]) -> int:
     findings += check_views_current(root)
     findings += check_live_counts(root)
     findings += check_audit_claim(root)
+    findings += check_term_kind(root, patterns)
     findings += check_requirement_text(patterns)
 
     findings.sort(key=lambda f: (f.code, str(f.path), f.line))
