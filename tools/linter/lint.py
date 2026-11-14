@@ -97,48 +97,11 @@ the three-pass review otherwise has to catch by eye —
                               being true on a schedule the composition does not
                               control. Exemplar: Audit Trail's "Bound on the
                               rebuild's totality, stated rather than assumed".
-  S. Recording-failure step — in a composition that composes Audit Trail, a bare
-                              `recording-failure` on the left of a mapping arrow
-                              (→), on a line that also names `record_action`,
-                              above the Status section. The substrate's contract
-                              carries the step that refused — step-4 means the
-                              event is already appended, so a retry that cannot
-                              see the step duplicates outcome events. A bare
-                              token in that position is a transcription of the
-                              substrate arm with its payload dropped
-                              (pressure-testing.md section A transcribed rejection arm
-                              keeps its payload, frozen 2026-08-29). Signature
-                              blocks, examples, prose, and a peer composition's
-                              own bare arm mapped on a line with no substrate
-                              call are not flagged: compositions re-export
-                              `recording-failure` bare at their own boundary.
-  T. Seal presentation key  — an `original_event_payloads` map subscripted or
-                              described as keyed by an identifier (`[event_id]`,
-                              `[entry_id]`, "keyed by `disclosure_id`"). The
-                              record set a seal commits to is a sequence range
-                              (Audit Trail Invariant 7), so a map keyed by an id
-                              can present at most one payload per event and
-                              every verification under interval cadence returns
-                              a seal-record-set mismatch (pressure-testing.md
-                              section A seal presentation is keyed by log position,
-                              frozen 2026-08-29). Bare-payload `verify_record`
-                              calls are NOT flagged — the substrate's own
-                              contract uses the singular parameter name.
-  U. Retry bit at boundary   — within one action's numbered step list, in a
-                              composition that composes Audit Trail, a bare
-                              `rejected(recording-failure)` landed at a step
-                              BEFORE the action's first qualified constituent
-                              commit call and at a step AFTER it. Read calls
-                              (`read`, `read_record`, `check`, `verify_*`,
-                              `history_for`, `active_for`, …) and
-                              `AuditTrail.record_action` (the intent record) do
-                              not count as the commit. One token on both sides
-                              of the commit tells the caller nothing about
-                              whether a retry is safe (pressure-testing.md
-                              section A composition's own rejection arm carries the
-                              retry bit, frozen 2026-08-30). Landed advisory
-                              2026-08-30 (baseline: 10 actions, 5 patterns) and
-                              promoted to gating the same day at zero sites.
+  S, T, U.                  — retired 2026-11-13: the recording-failure step,
+                              the seal presentation key and the retry bit at the
+                              boundary. Their trigger shapes occur nowhere in the
+                              patterns; tools/linter/README.md names the pattern
+                              rule that holds each property now.
   O. Term registry resolver — on any page carrying an annotation.md `## Terms`
                               registry, every `[Term]` shortcut-reference marker
                               resolves to a `[Term]: …` definition (no dangling)
@@ -287,6 +250,11 @@ TRAILING_PAREN = re.compile(r"\s*\([^)]*\)\s*$")
 # (Capability-Backed Sharing, Customer Onboarding) in the change after, and it
 # fires zero times corpus-wide.
 # EMPTY as of 2026-08-30: every check is gating.
+#
+# S-recording-step, T-seal-key and U-retry-bit were RETIRED on 2026-11-13, not
+# demoted: their trigger shapes occur nowhere in the patterns, and the rules
+# they defended are Recoverable Invocation's and Audit Trail's and the Execution
+# Contract's (tools/linter/README.md, *Retired checks*).
 #
 # The requirement-text checks (Z) landed 2026-10-29. Z-escape, Z-open-ended and
 # Z-and-or fired zero times and are gating from the day they landed. Z-vague,
@@ -1041,170 +1009,20 @@ def check_rebuild_bound(patterns: dict[Path, Pattern]) -> list[Finding]:
     return findings
 
 # --------------------------------------------------------------------------- #
-# S-recording-step — the substrate's arm transcribed without its payload
+# S-recording-step, T-seal-key and U-retry-bit — retired 2026-11-13
 # --------------------------------------------------------------------------- #
-# Only Audit Trail (compositions/audit-trail.md) emits `recording-failure`, and
-# its projected contract is `recording-failure(step)`: step-2 committed nothing,
-# step-3 left an orphan attestation, step-4 left THE EVENT APPENDED. A composition
-# that maps the arm to a bare token cannot tell a caller whether a retry will
-# duplicate the record — which is exactly what one second gate found the retry
-# doing. Precision: the trigger is a bare backticked token immediately followed
-# by a mapping arrow, ON A LINE THAT ALSO NAMES `record_action`, in the body of
-# a composition that links audit-trail.md. A bare token anywhere else (a
-# signature block declaring the composition's own code, an example, a Ledger
-# line quoting the defect) is not flagged — and neither is a bare token mapped
-# from a PEER composition's call: Multi-Party Approval, Immutable Ledger
-# and their kin re-export `recording-failure` bare at their own caller
-# boundary, so a composer transcribing that arm is transcribing it correctly.
-# The first draft assumed only Audit Trail emits the token and fired on
-# Privileged Access Provisioning's transcription of Multi-Party Approval's
-# arm (2026-08-29); the same-line `record_action` condition is what isolates
-# the substrate's arm from its composers' — the step lists put the call and
-# its mapping on one line, which is the corpus convention this leans on.
-RECORDING_BARE_MAPPED = re.compile(r"(?<![\w-])`?recording-failure`?\s*→")
-SUBSTRATE_CALL = re.compile(r"record_action")
-AUDIT_TRAIL_LINK = re.compile(r"\(\.{0,2}/?(?:compositions/)?audit-trail\.md")
-
-
-def check_recording_step(patterns: dict[Path, Pattern]) -> list[Finding]:
-    """S. A bare `recording-failure` on the left of a mapping arrow, in a
-    composition that composes Audit Trail, above the Status section."""
-    findings: list[Finding] = []
-    for p in patterns.values():
-        if "/compositions/" not in p.path.as_posix() or p.path.stem == "audit-trail":
-            continue
-        cut = p.text.find("\n## Status")
-        body = p.text if cut == -1 else p.text[:cut]
-        if not AUDIT_TRAIL_LINK.search(body):
-            continue
-        for m in RECORDING_BARE_MAPPED.finditer(body):
-            ls = body.rfind("\n", 0, m.start()) + 1
-            le = body.find("\n", m.start())
-            le = len(body) if le == -1 else le
-            if not SUBSTRATE_CALL.search(body[ls:le]):
-                continue
-            findings.append(Finding(
-                p.path, line_of(body, m.start()), "S-recording-step",
-                "substrate arm transcribed without its payload — the contract "
-                "is `recording-failure(step)`, and step-4 means the event is "
-                "already appended (retry duplicates it); carry the step and "
-                "land each arm",
-            ))
-    return findings
-
-
-# --------------------------------------------------------------------------- #
-# T-seal-key — a seal presentation keyed by an identifier, not by log position
-# --------------------------------------------------------------------------- #
-# `verify_record` takes the payloads of every event in the covering seal range,
-# in ascending sequence_number order (Audit Trail Invariant 7). A map keyed by
-# the composition's own identifier holds at most one payload per event, so under
-# interval cadence every verification fails with a seal-record-set mismatch and
-# the acceptance check reports tampering on an intact log. Two shapes: a
-# subscript `original_event_payloads[<x>_id]`, and the phrase "keyed by
-# `<x>_id`" within a short distance after the map's name. Keying by `n`, `lo`,
-# `hi`, or `sequence_number` is the exemplar (Chain of Custody) and is
-# silent.
-SEAL_MAP_ID_SUBSCRIPT = re.compile(r"original_event_payloads\[\s*`?\w*_id`?\s*\]")
-SEAL_MAP_KEYED_BY_ID = re.compile(
-    r"original_event_payloads`?[^.\n]{0,80}?keyed by (?:the )?`\w*_id`", re.I)
-
-
-def check_seal_key(patterns: dict[Path, Pattern]) -> list[Finding]:
-    """T. An `original_event_payloads` map keyed by an identifier."""
-    findings: list[Finding] = []
-    for p in patterns.values():
-        cut = p.text.find("\n## Status")
-        body = p.text if cut == -1 else p.text[:cut]
-        seen: set[int] = set()
-        for rx in (SEAL_MAP_ID_SUBSCRIPT, SEAL_MAP_KEYED_BY_ID):
-            for m in rx.finditer(body):
-                ln = line_of(body, m.start())
-                if ln in seen:
-                    continue
-                seen.add(ln)
-                findings.append(Finding(
-                    p.path, ln, "T-seal-key",
-                    "seal presentation keyed by an identifier — a seal commits "
-                    "to a sequence range, so the map is keyed by "
-                    "`sequence_number` over the covering range `read_record` "
-                    "names (exemplar: Chain of Custody [Verify Custody])",
-                ))
-    return findings
-
-
-# --------------------------------------------------------------------------- #
-# U-retry-bit — one exported token on both sides of the commit
-# --------------------------------------------------------------------------- #
-# A composition's signature is a transcription of its own steps to a caller who
-# cannot see them. Where the same bare `rejected(recording-failure)` lands at a
-# step before the act's irreversible constituent commit (nothing on disk; retry
-# is safe) and at a step after it (the constituent record exists; a retry
-# re-runs the act), the caller who receives the token has been told nothing.
-# The check walks each `#### `action`` section's numbered steps above Status:
-# the first step carrying a qualified constituent call that is neither a read
-# (`read`, `read_record`, `check`, `verify_*`, `history_for`, `active_for`,
-# `get`, `query`, `list`, `enumerate`, `lookup`, `is_*`, `has_*`, `status`,
-# `current`, `resolve`, `evaluate`, `permitted`, `find`, `peek`) nor `AuditTrail.record_action` (the intent
-# record precedes the act by design and its own arm is retry-safe) is the
-# commit; a bare landing strictly before it and one strictly after it fire.
-# The step-2/step-3 rejection at the commit step itself is on neither side —
-# the constituent refused, so nothing landed — and is not counted.
+# Each read a step-list shape the patterns no longer write: a bare
+# `recording-failure` mapped on a `record_action` line, an
+# `original_event_payloads` map keyed by an identifier, and a bare
+# `rejected(recording-failure)` landed in a numbered step list under a
+# `#### `action`` heading. Measured 2026-11-13 on the 62 patterns, their
+# triggers occurred 0, 0 and 0 times, so each passed because nothing it can read
+# is left. The property each defended is now a rule of a pattern, which
+# tools/linter/README.md names under *Retired checks* (unit `pressure-testing.md:
+# the August essays go to the record`).
+#
+# The action heading the U check walked is still read by V and W.
 ACTION_HEADING = re.compile(r"(?m)^#### `([a-z_]+)`")
-STEP_LINE = re.compile(r"(?m)^(\d+)\.[^\n]*")
-QUALIFIED_CALL = re.compile(r"\b([A-Z][A-Za-z]+)\.([a-z_]+)\(")
-READ_METHOD = re.compile(
-    r"^(read|verify|check|history|active|get|query|list|enumerate|lookup|is_|"
-    r"has_|status|current|resolve|evaluate|permitted|find|peek)")
-BARE_BOUNDARY_TOKEN = re.compile(r"`rejected\(recording-failure\)`")
-
-
-def _commit_calls(line: str) -> list[tuple[str, str]]:
-    return [c for c in QUALIFIED_CALL.findall(line)
-            if c != ("AuditTrail", "record_action") and not READ_METHOD.match(c[1])]
-
-
-def check_retry_bit(patterns: dict[Path, Pattern]) -> list[Finding]:
-    """U. A bare `rejected(recording-failure)` landed on both sides of an
-    action's first constituent commit, in a composition that composes Audit
-    Trail."""
-    findings: list[Finding] = []
-    for p in patterns.values():
-        if "/compositions/" not in p.path.as_posix() or p.path.stem == "audit-trail":
-            continue
-        cut = p.text.find("\n## Status")
-        body = p.text if cut == -1 else p.text[:cut]
-        if not AUDIT_TRAIL_LINK.search(body):
-            continue
-        heads = list(ACTION_HEADING.finditer(body))
-        for i, h in enumerate(heads):
-            start = h.end()
-            end = heads[i + 1].start() if i + 1 < len(heads) else len(body)
-            sec = body[start:end]
-            commit: int | None = None
-            before: list[tuple[int, int]] = []
-            after: list[tuple[int, int]] = []
-            for m in STEP_LINE.finditer(sec):
-                step = int(m.group(1))
-                line = m.group(0)
-                if commit is None and _commit_calls(line):
-                    commit = step
-                if BARE_BOUNDARY_TOKEN.search(line):
-                    if commit is None or step < commit:
-                        before.append((step, start + m.start()))
-                    elif step > commit:
-                        after.append((step, start + m.start()))
-            if commit is None or not before or not after:
-                continue
-            findings.append(Finding(
-                p.path, line_of(body, after[0][1]), "U-retry-bit",
-                f"`{h.group(1)}` lands a bare `rejected(recording-failure)` at "
-                f"step {before[0][0]} (before the commit at step {commit}) and "
-                f"at step {after[0][0]} (after it) — the caller cannot tell "
-                "whether a retry is safe; carry the position "
-                "(`recording-failure(intent | outcome)`) in the signature",
-            ))
-    return findings
 
 
 # --------------------------------------------------------------------------- #
@@ -3574,9 +3392,6 @@ def main(argv: list[str]) -> int:
     findings += check_constituent_calls(patterns)
     findings += check_atomicity_over_audit(patterns)
     findings += check_rebuild_bound(patterns)
-    findings += check_recording_step(patterns)
-    findings += check_seal_key(patterns)
-    findings += check_retry_bit(patterns)
     findings += check_stray_directory(root)
     findings += check_formal_siblings(root, patterns)
     findings += check_stale_census(root, patterns)

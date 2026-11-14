@@ -58,6 +58,14 @@ every push to `main` and every pull request.
 | **Z-pronoun** *(advisory)* | INCOSE GtWR R24, a pronoun standing for a noun: *it*, *they* or *them* in a rule (the gate's P-pronoun rejects them as well), and *this* or *that* standing alone in a rule or a Term line — closing a sentence or a clause, or opening one, at its start or after a subordinating conjunction, before a verb (*where that is later*). A relative *that* and a *this* before a noun are no pronoun (GRACE-lang Term pronoun). On a Term line the personal pronouns are not read: there *it* is nearly always the declared term. |
 | **Z-unit** *(advisory)* | INCOSE GtWR R6, common units: a `Term` declaring a length, size or width of data, or an amount of money, that names no unit — bytes, code points, the currency's minor unit, *the measure the deployment declares* — itself or through a Term of the page that does. A duration's measure is time and a count's the thing it counts, so neither is read. |
 
+### Retired checks
+
+Retired on 2026-11-13, when no pattern wrote the shape any of them reads (0 sites each); the property each defended is a pattern rule now.
+
+- **S-recording-step** (a substrate arm transcribed without its step): Execution Contract Constituent failure 4, with Recoverable Invocation Invariant 9.3.
+- **T-seal-key** (a seal presentation keyed by an identifier): Audit Trail Primitive policy 26, the presentation being the covering range in sequence-number order.
+- **U-retry-bit** (one bare code on both sides of the commit): Recoverable Invocation Invariant 8.1 and Invariant 8.2.
+
 ## Design principles (this tool is meant to be maintained by a small/cheap model)
 
 - **Standard library only.** Legibility and zero-friction execution beat cleverness.
