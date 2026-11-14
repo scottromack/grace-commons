@@ -145,7 +145,7 @@ Operation 17: [Read] MUST NOT write.
 
 Term amount: what a [Spend] call takes from a gift card, in the gift card's currency — an [Amount]; a positive amount.
 
-Term spent balance: (the gift card's balance - the amount) — the balance a [Spend] call that lands leaves on the gift card.
+Term spent balance: (the gift card's balance - the amount) — the balance a [Spend] call that lands leaves on the gift card, taken from the balance the call finds.
 
 Term code action: [Check Balance] | [Spend] — the actions that name a gift card by the card code.
 
@@ -158,7 +158,7 @@ The case space, and the rule that owns each case:
 | [Issue] | value not a positive amount | [Invalid Value] | none (Operation 2) |
 | [Issue] | value over the card cap | [Over Cap] | none (Operation 3) |
 | [Check Balance] | the code names a gift card | the balance and the currency | none (Operation 8, Operation 9) |
-| [Spend] | amount a positive amount, within the balance, database accepts | the new balance | the balance falls by the amount (Operation 12) |
+| [Spend] | amount a positive amount, not over the balance, database accepts | the new balance | the balance falls by the amount (Operation 12) |
 | [Spend] | amount not a positive amount | [Invalid Amount] | none (Operation 10) |
 | [Spend] | amount over the balance | [Insufficient Balance] | none (Operation 11, Invariant 4.1) |
 | a code action | the code names nothing | [Not Known] | none (Operation 7) |
@@ -516,7 +516,7 @@ State unclaimed-property laws, which may oblige a seller to report a balance lef
 ```
 status: done — 2026-11-06
 formal: verified — gift-card.als + 12 twins (the static data model: State 1, Identity 5 through 9, Invariant 1.1 and 2.2, Operation 1, 2, 3 and 5 checked on every version a sequence of admitted calls leaves, Identity 1 caught by the Identity 5 check, Identity 2 and 4 by the Identity 8 check, Identity 10 by the Operation 1 check and Operation 11 by the Invariant 1.1 check); gift-card.tla + 16 twins (across steps: Invariant 2.1, 3.1 through 3.3 and 4.1, State 2, Term balance (the value less every spend), Operation 4, 6 through 10, 12, 13, 16 and 17); the vote no of 2026-10-30 superseded by the maintainer's ruling of 2026-11-09 (both models; only the writing vetoes one), and neither vetoed; owed rows: Identity 11, Operation 14 and 15, 2026-11-11
-last gate: 2026-11-06 — Final Critique 3, a delta round, frozen at 368ce1f — foundational count 0, clean, one sample; 2026-11-05 — Final Critique 2, a delta round, frozen at 4f85e1c — foundational count 2, cured, not clean, no sample
+last gate: 2026-11-14 — Final Critique 4, a delta round, one reader (Linus mimo-v2.6-pro), frozen at c725410 — foundational count 0, clean, one sample, the blind second triage agreeing (it placed no item foundational; Linus's one foundational rating, a second [Spend] meeting Logic confinement 16 twice, was placed not a finding, since [Spend] takes the card code as a caller's input and the host supplies the id and the code once, at [Issue] (Operation 4), and Logic confinement 16 says an id a call carries onward on a later call's input is not supplied again; its refining rating, Term spent balance, and its two others, the [Spend] row's "within the balance" and the NOTE beside Capability requirement 10 and 11, were placed refining Kind B and rhetorical Kind D; the term and the row cured by a clause and a word, the NOTE left as the corpus's one watched name); 2026-11-06 — Final Critique 3, a delta round, frozen at 368ce1f — foundational count 0, clean, one sample; 2026-11-05 — Final Critique 2, a delta round, frozen at 4f85e1c — foundational count 2, cured, not clean, no sample
 
 open: none
 ```
