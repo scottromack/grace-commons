@@ -12,7 +12,7 @@ parent: Evidence
 
 | Gate | What it enforces | Live |
 |---|---|---|
-| **Verify corpus claims** | Five independent renders built from a cold checkout must agree 100% on the conformance checks; the injected-defect negative control must be caught and localized; every formal model outside Recoverable Invocation's must hold and every buggy twin and probe must be rejected. Runs on every push touching the corpus, and weekly on the rescan cadence. | <span id="gate-verify-yml">⏳ …</span> |
+| **Verify corpus claims** | Five independent renders built from a cold checkout must agree 100% on the conformance checks; the injected-defect negative control must be caught and localized; every formal model outside Recoverable Invocation's must hold and every buggy twin and probe must be rejected. The whole library is audited every night at 08:00 UTC, on Saturdays and on demand, in a run no push can cancel: that run is the library's proof. A push audits only what it changed, and says so when that is nothing: that run is the proof of a change. | <span id="gate-verify-yml">⏳ …</span> |
 | **Verify Recoverable Invocation's models** | Recoverable Invocation's model, its twins, its isolations and its probes — about 37 minutes of model checking: every correct model must hold and every twin and probe must be rejected. Runs when those models or the harness change, and weekly; a newer push never cancels it. | <span id="gate-verify-recoverable-invocation-yml">⏳ …</span> |
 | **Lint spec corpus** | The mechanical cross-reference gate: dangling links, invariant-count drift, missing models and twins, stale forthcoming-markers, count drift, out-of-range invariant references, vocabulary rules. Runs on every push and pull request. | <span id="gate-lint-yml">⏳ …</span> |
 
@@ -23,41 +23,58 @@ parent: Evidence
 <script>
 (function () {
   var repo = "scottromack/grace-commons";
-  var workflows = ["verify.yml", "verify-recoverable-invocation.yml", "lint.yml"];
   var el = document.getElementById("live-status");
+  // verify.yml has two kinds of run (unit `tooling: the public audit finishes`): the whole library, nightly, on
+  // Saturdays and by hand, which no push cancels and which is the library's proof; and the push run, which audits
+  // what the push changed and is the proof of a change. Each gets its own row.
+  var items = [
+    { wf: "verify.yml", label: "the whole library (nightly)", events: ["schedule", "workflow_dispatch"], gate: "gate-verify-yml" },
+    { wf: "verify.yml", label: "the latest push", events: ["push"] },
+    { wf: "verify-recoverable-invocation.yml", gate: "gate-verify-recoverable-invocation-yml" },
+    { wf: "lint.yml", gate: "gate-lint-yml" }
+  ];
 
   function fmtDuration(a, b) {
     var s = Math.round((new Date(b) - new Date(a)) / 1000);
     return s >= 60 ? Math.floor(s / 60) + "m " + (s % 60) + "s" : s + "s";
   }
 
-  var gateIds = {
-    "verify.yml": "gate-verify-yml",
-    "verify-recoverable-invocation.yml": "gate-verify-recoverable-invocation-yml",
-    "lint.yml": "gate-lint-yml"
-  };
+  var gateIds = {};
+  items.forEach(function (it) { if (it.gate) gateIds[it.wf] = it.gate; });
 
-  Promise.all(workflows.map(function (wf) {
-    return fetch("https://api.github.com/repos/" + repo + "/actions/workflows/" + wf + "/runs?branch=main&per_page=1")
-      .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
-      .then(function (d) { return { wf: wf, run: (d.workflow_runs || [])[0] }; });
+  var cache = {};
+  function runsOf(wf) {
+    if (!cache[wf]) {
+      cache[wf] = fetch("https://api.github.com/repos/" + repo + "/actions/workflows/" + wf + "/runs?branch=main&per_page=30")
+        .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
+        .then(function (d) { return d.workflow_runs || []; });
+    }
+    return cache[wf];
+  }
+
+  Promise.all(items.map(function (it) {
+    return runsOf(it.wf).then(function (runs) {
+      var picked = runs.filter(function (r) { return !it.events || it.events.indexOf(r.event) >= 0; });
+      return { it: it, wf: it.wf, run: picked[0] };
+    });
   })).then(function (results) {
     results.forEach(function (x) {
-      var g = document.getElementById(gateIds[x.wf]);
+      var g = x.it.gate && document.getElementById(x.it.gate);
       if (!g) return;
       if (!x.run) { g.textContent = "— no runs yet"; return; }
       var r = x.run;
       var mark = r.conclusion === "success" ? "✅ passing"
+        : r.conclusion === "cancelled" ? "⏹ cancelled"
         : (r.conclusion ? "❌ " + r.conclusion : "⏳ running");
       g.innerHTML = "<a href='" + r.html_url + "'>" + mark + "</a>";
     });
     var rows = results.map(function (x) {
-      if (!x.run) return "<tr><td>" + x.wf + "</td><td colspan='4'>no runs yet</td></tr>";
+      if (!x.run) return "<tr><td>" + x.wf + (x.it.label ? " — " + x.it.label : "") + "</td><td colspan='4'>no runs yet</td></tr>";
       var r = x.run;
       var ok = r.conclusion === "success";
-      var mark = ok ? "✅" : (r.conclusion ? "❌" : "⏳");
+      var mark = ok ? "✅" : (r.conclusion === "cancelled" ? "⏹" : (r.conclusion ? "❌" : "⏳"));
       return "<tr>" +
-        "<td><a href='" + r.html_url + "'>" + (r.name || x.wf) + "</a></td>" +
+        "<td><a href='" + r.html_url + "'>" + (r.name || x.wf) + (x.it.label ? " — " + x.it.label : "") + "</a></td>" +
         "<td>" + mark + " " + (r.conclusion || r.status) + "</td>" +
         "<td>" + new Date(r.run_started_at).toISOString().replace("T", " ").slice(0, 16) + " UTC</td>" +
         "<td>" + fmtDuration(r.run_started_at, r.updated_at) + "</td>" +

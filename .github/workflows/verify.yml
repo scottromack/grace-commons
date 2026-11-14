@@ -20,8 +20,20 @@ name: Verify corpus claims
 #
 # status.md publishes these runs' live state via the GitHub API — the page
 # renders GitHub's record of the actual runs, never a hand-written mirror.
-# The weekly cron echoes the scheduled-rescan cadence: claims are re-verified
-# on a rhythm independent of anyone's attention.
+#
+# Two kinds of run (unit `tooling: the public audit finishes`, 2026-11-13). The
+# whole-library audit takes over two hours, and a run that every new push cancels
+# proves nothing (thirteen in a row were cancelled on 2026-11-13). So:
+#
+#   a push        audits what it changed: the patterns whose page, history or
+#                 model files the push touched (tools/harness/changed-patterns.mjs),
+#                 or the whole library when the push touched tools/harness or this
+#                 file; a push that touches neither audits nothing and says so. It
+#                 is the proof of a change, and a newer push may cancel it.
+#   the nightly   the whole library, every night at 08:00 UTC (2:00 AM Central, the
+#                 council's quiet window), on Saturdays at 06:00 UTC, and by hand
+#                 (workflow_dispatch), in a group no push cancels. It is the library's
+#                 proof.
 
 on:
   workflow_dispatch:
@@ -34,11 +46,14 @@ on:
       - 'tools/**'
       - '.github/workflows/verify.yml'
   schedule:
+    - cron: '0 8 * * *'   # every night 08:00 UTC — the whole library, uncancellable
     - cron: '0 6 * * 6'   # Saturdays 06:00 UTC — the weekend rescan window
 
 concurrency:
-  group: verify-${{ github.ref }}
-  cancel-in-progress: true
+  # a push's run may be cancelled by the next push; the whole-library run (the nightly, Saturday's, a dispatch) is in
+  # its own group and is never cancelled, by a push or by another night's run
+  group: verify-${{ github.event_name == 'push' && 'push' || 'full' }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'push' }}
 
 jobs:
   conformance:
@@ -105,16 +120,55 @@ jobs:
         working-directory: tools/harness
     steps:
       - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0   # a push's range (before..after) needs its history
 
       - uses: actions/setup-node@v5
         with:
           node-version: '22'
 
+      - name: Choose what this run audits
+        id: choose
+        working-directory: .
+        run: |
+          # the nightly, Saturday's run and a dispatch audit the whole library; a push audits what it changed
+          mode=all
+          if [ "${{ github.event_name }}" = "push" ]; then
+            before="${{ github.event.before }}"
+            if [ -n "$before" ] && git cat-file -e "${before}^{commit}" 2>/dev/null; then
+              chosen=$(git diff --name-only "$before" "${{ github.sha }}" | node tools/harness/changed-patterns.mjs --root .)
+            else
+              chosen=all   # no usable base (a new branch, a rewritten history): audit everything
+            fi
+          else
+            chosen=all
+          fi
+          case "$chosen" in
+            only\ *) mode=only; echo "only=${chosen#only }" >> "$GITHUB_OUTPUT" ;;
+            none)     mode=none ;;
+            *)        mode=all ;;
+          esac
+          echo "mode=$mode" >> "$GITHUB_OUTPUT"
+          echo "This run audits: $chosen"
+
+      - name: Nothing to audit
+        if: steps.choose.outputs.mode == 'none'
+        run: echo "This push touched no pattern, no history file, no model and nothing in tools/harness, so it audits nothing. The nightly run audits the whole library."
+
       - name: Bootstrap checkers (npm-only; JRE 17 to /tmp)
+        if: steps.choose.outputs.mode != 'none'
         run: bash bootstrap.sh
 
-      - name: Test the state ledger and the twin audit
-        run: GRACE_STATES_LEDGER=off node --test test_states.mjs test_audit.mjs
+      - name: Test the state ledger, the twin audit and the changed-paths selector
+        if: steps.choose.outputs.mode != 'none'
+        run: GRACE_STATES_LEDGER=off node --test test_states.mjs test_audit.mjs test_changed_patterns.mjs
+
+      - name: Audit what this push changed — correct hold, buggy twins rejected, every check broken by a twin
+        if: steps.choose.outputs.mode == 'only'
+        env:
+          ONLY: ${{ steps.choose.outputs.only }}
+        run: node audit.mjs --limit-min 45 --only "$ONLY" --except "$(cat recoverable-invocation.pattern)"
 
       - name: Audit every model but Recoverable Invocation's — correct hold, buggy twins rejected, every check broken by a twin
+        if: steps.choose.outputs.mode == 'all'
         run: node audit.mjs --limit-min 45 --except "$(cat recoverable-invocation.pattern)"
