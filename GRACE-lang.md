@@ -176,7 +176,7 @@ Rule shape 8: A label MUST NOT carry an abbreviation.
 NOTE: a copula enumeration is *X is one of a, b, c*.
 
 WHY:
-A label is read by people before a parser: *Non-goal 4* says where to look, *NG4* says nothing. Never mint an acronym (`naming.md`).
+A label is read by people before a parser: *Non-goal 4* says where to look, *NG4* says nothing. Never mint an acronym (the entry *Never mint an acronym* in `spec-format.md`).
 
 #### Standard label families
 

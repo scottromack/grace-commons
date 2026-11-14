@@ -49,6 +49,15 @@ a different sense, it must say so locally.
 - **should** — recommended; a deviation must be justified. (Avoid in invariants —
   an invariant is `must` or it is not an invariant.)
 
+## Concept, atom, composition, candidate concept
+
+The four terms the library is organized by, drawn as a diagram on [The Corpus](./corpus.md).
+
+- A **concept** is the unit of separation (Jackson's word, and this library's): one purpose, its own state, actions, and invariants, specifiable without naming anything else.
+- An **atom** is a concept realized in this library — freestanding, stored flat, naming no other pattern.
+- A **composition** is the wiring of concepts, never a new concept — it names atoms (or other compositions, as substrates) and owns only the emergent guarantees that appear when they work together.
+- A **candidate concept** is a proposal that has not yet survived triage — promoted to an atom by the freestanding test, or routed to reuse. It never outlives that decision.
+
 ## Separation
 
 - **tombstone (2026-06-11)** — the corpus does not use the working noun from
@@ -59,7 +68,7 @@ a different sense, it must say so locally.
   structural by the composition-state rule); a
   pre-triage item in the guided tool is a **candidate concept** (a stage, consumed
   by triage — promoted or rejected, never outliving Phase 1). Atom and composition
-  are defined in [`spec-format.md`](./spec-format.md); the thesis phrase is claimed in
+  are defined under *Concept, atom, composition, candidate concept* above; the thesis phrase is claimed in
   [`the-spec-layer.md`](./the-spec-layer.md).
 - **particle (2026-11-09)** — short for *sub-atomic particle*: a chunk of Grace
   logic smaller than an atom, such as Compensable Workflow's compensating action,

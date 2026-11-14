@@ -6,12 +6,7 @@ has_children: true
 
 # The Corpus
 
-The library itself, and the one page that states its lattice — the four terms everything below is organized by, defined nowhere else and implied everywhere:
-
-- A **concept** is the unit of separation (Jackson's word, and this library's): one purpose, its own state, actions, and invariants, specifiable without naming anything else.
-- An **atom** is a concept realized in this library — freestanding, stored flat, naming no other pattern.
-- A **composition** is the wiring of concepts, never a new concept — it names atoms (or other compositions, as substrates) and owns only the emergent guarantees that appear when they work together.
-- A **candidate concept** is a proposal that has not yet survived triage — promoted to an atom by the freestanding test, or routed to reuse. It never outlives that decision.
+The library itself, and the one page that draws its lattice — the four terms everything below is organized by, concept, atom, composition and candidate concept, which the [Glossary](./glossary.md#concept-atom-composition-candidate-concept) defines:
 
 ```mermaid
 %%{init: {"theme": "dark"} }%%

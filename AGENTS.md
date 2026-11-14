@@ -49,7 +49,7 @@ When drafting a new pattern, additionally read the most structurally adjacent ex
 
 ## Vocabulary — load-bearing terms
 
-Moved — no mirror kept. Atom (atomic concept), composition, freestanding, and emergent invariant are defined in [`spec-format.md`](./spec-format.md); GRID, the three passes, `grounded`, and the Ledger in [`pressure-testing.md`](./pressure-testing.md); the three shapes and regulated overlay in [`spec-format.md`](./spec-format.md); strict spec-language terms in [`glossary.md`](./glossary.md).
+Moved — no mirror kept. Atom (atomic concept), composition and freestanding are defined in [`glossary.md`](./glossary.md), emergent invariant in [`spec-format.md`](./spec-format.md); GRID, the three passes, `grounded`, and the Ledger in [`pressure-testing.md`](./pressure-testing.md); the three shapes and regulated overlay in [`spec-format.md`](./spec-format.md); strict spec-language terms in [`glossary.md`](./glossary.md).
 
 ## Authoring conventions
 
@@ -69,7 +69,7 @@ Moved — a pattern's own Status line is the source of its state, and [`roadmap.
 
 ## Workflow for adding a new pattern
 
-Moved — owned by the section titled *Workflow for adding a new pattern* in [`contributing.md`](./contributing.md) (as of 2026-06-11).
+Moved — owned by the section titled *Workflow for adding a new pattern* in [`spec-format.md`](./spec-format.md) (as of 2026-11-14; before that, [`contributing.md`](./contributing.md)).
 
 ## Open architectural questions
 
@@ -77,7 +77,7 @@ Moved — [`open-questions.md`](./open-questions.md) lists what is open, and [`o
 
 ## Implementation-discovered findings
 
-Moved — owned by the section titled *Implementation-discovered findings* in [`contributing.md`](./contributing.md) (as of 2026-06-11). The one-line form: a **finding** names a contradiction inside the spec and routes through the review channel; everything else is a **preference** and belongs in the build's own tracker; builds proceed against the spec as written.
+Moved — owned by the section titled *Implementation-discovered findings* in [`pressure-testing.md`](./pressure-testing.md) (as of 2026-11-14; before that, [`contributing.md`](./contributing.md)). The one-line form: a **finding** names a contradiction inside the spec and routes through the review channel; everything else is a **preference** and belongs in the build's own tracker; builds proceed against the spec as written.
 
 ## Tone
 

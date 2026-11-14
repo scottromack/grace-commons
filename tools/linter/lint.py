@@ -78,7 +78,7 @@ the three-pass review otherwise has to catch by eye —
                               docs that cite `Cn` as an example are out of scope.
   M. Internal sigils        — no coined finding-ID sigil (FCn, FC-Fn, MC-Cn-N,
                               Rn-Fn, Cn-N, OG-n) survives in an atom/composition
-                              live body (debt #15, naming.md Rule zero). High
+                              live body (debt #15, spec-format.md *Never mint an acronym*). High
                               precision: these shapes have no legitimate collision.
   P. Atomicity over audit   — an all-or-nothing claim ("together or not at all")
                               whose member set names an audit write, with no
@@ -2088,7 +2088,7 @@ def check_internal_ids(patterns: dict[Path, Pattern]) -> list[Finding]:
                     findings.append(Finding(
                         p.path, i, "M-internal-sigil",
                         f'coined finding-ID "{m.group(0)}" ({label}) — spell the '
-                        f"concept out or describe it (naming.md Rule zero)",
+                        f"concept out or describe it (spec-format.md, *Never mint an acronym*)",
                     ))
                 cn_line = rx.sub("", cn_line)  # don't double-report its C-prefix
             # L — bare composition C-number (example credential IDs scrubbed)

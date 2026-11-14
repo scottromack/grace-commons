@@ -6,7 +6,7 @@ This file tracks every place where the demo's implementation falls short of, def
 - New entries land *during* the build, not after — the moment the implementation makes a choice that deviates from the spec, the entry is written.
 - This file is the honest counterpart to the demo. A reader who has only the demo and `CORNERS.md` knows exactly how the demo deviates from the spec.
 
-The rule for *what* belongs here vs. what belongs as a spec finding is in the section titled *Implementation-discovered findings* in [`contributing.md`](../../contributing.md): contradictions go to the spec's Ledger via a review pass; preferences and rendering-target collapses go here.
+The rule for *what* belongs here vs. what belongs as a spec finding is in the section titled *Implementation-discovered findings* in [`pressure-testing.md`](../../pressure-testing.md): contradictions go to the spec's Ledger via a review pass; preferences and rendering-target collapses go here.
 
 ---
 
