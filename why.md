@@ -21,7 +21,7 @@ Grace Commons writes each one down once, in plain English anyone in the business
 
 Set the common parts aside and what's left is how you work: your pricing, your approvals, your way with customers. That's your real IP.
 
-Describe it the way you'd explain it to a new hire. Grace asks what a good developer would ask ("What if the order is cancelled after it ships?") and writes your answers down – clear, dated, in your name.
+Describe it the way you'd explain it to a new hire. Grace asks what a good developer would ask ("What if the order is cancelled after it ships?") and writes your answers down – clear, dated, in your name. [Read a real interview](./interview.md)
 
 Your part stays yours. The common parts go to the commons; your edge never does unless you choose to give it. [Read the pledge](./ip-pledge.md)
 
