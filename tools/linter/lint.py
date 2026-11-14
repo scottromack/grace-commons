@@ -1802,9 +1802,11 @@ def check_council_register(root: Path) -> list[Finding]:
     subject (council read 39). Two checks, both mechanical: the register must
     not assign one number twice, and a `council read N` citation must name a
     read the register carries. Nothing here checks that a citation aims at the
-    *right* read — that is the human reading Principle 8 holds."""
+    *right* read — that is the human reading Principle 8 holds. The register
+    is record since it closed on 2026-09-30, and it is read where it moved:
+    governance.hist.md (unit `governance.md: the register moves to the record`)."""
     findings: list[Finding] = []
-    reg = root / "governance.md"
+    reg = root / "governance.hist.md"
     try:
         text = reg.read_text(encoding="utf-8")
     except OSError:
@@ -3254,7 +3256,8 @@ def _record_lines(root: Path, path: Path, lines: list[str]) -> set[int]:
                 on = h2_name(l) == "Changes"
             if on:
                 rec.add(i)
-    elif rel == "governance.md":
+    elif rel == "governance.hist.md":
+        # the register, moved whole out of governance.md on 2026-11-13
         on = False
         for i, l in enumerate(lines):
             if l.startswith(("- ", "#")):
@@ -3381,7 +3384,7 @@ _LIVE_COUNT = re.compile(
     r"(?:specifications|specs)\b", re.IGNORECASE)
 # the dated ledgers and registers, where a number is the count at the date it was written
 _LIVE_LEDGERS = {"roadmap.md", "changelog.md", "project-log.md", "ai-usage-log.md",
-                 "governance.md", "measurement.md", "open-questions.md", "discoveries.md"}
+                 "governance.hist.md", "measurement.md", "open-questions.md", "discoveries.md"}
 
 
 def check_live_counts(root: Path) -> list[Finding]:

@@ -20,7 +20,6 @@ reading, the human does it (GRACE-lang Principle 8).
     python3 tools/grace/cites.py --changed HEAD~1   # what today's edits re-open
     python3 tools/grace/cites.py --changed HEAD~1 --paths atoms/lease.md
     python3 tools/grace/cites.py --reach compositions/audit-trail.md --changed HEAD~1
-    python3 tools/grace/cites.py --unread            # migrated, but no council read
     python3 tools/grace/cites.py --standard          # which families ARE standard, and what each means
     python3 tools/grace/cites.py --promote Housekeeping
     python3 tools/grace/cites.py --promote 'Action wiring' --means 'what the promotion would declare'
@@ -60,7 +59,6 @@ LABEL = re.compile(
     r"^((?:[A-Za-z_][\w'’-]*)(?: [A-Za-z_][\w'’-]*){0,4} [\d½]+(?:\.\d+)?[a-z]?):\s*(.*)$")
 TERM_DECL = re.compile(r"^\s*Term ([^:`]+?): (.*)$")
 FENCE = re.compile(r"^\s*```(\w*)")
-REGISTER = re.compile(r"\*\*Council read (?P<n>\d+) — \w+ on (?P<spec>[^,]+),")
 MIGRATED = re.compile(r"^Term qualifiers:[^\n]*\bmigrated\b", re.M)
 # a spec's history sits beside it as `<spec name>.hist.md` and is no spec
 HISTORY = "*.hist.md"
@@ -794,39 +792,6 @@ def run(root: Path, argv: list[str]) -> int:
         print("unmigrated specs the corpus cites, most-cited first:")
         for target, n in sorted(counts.items(), key=lambda kv: -kv[1]):
             print(f"  {target}: {n} citation(s)")
-        return 0
-    if "--unread" in argv:
-        # what the rewrite outran: a migrated spec no council read has read.
-        # The register names every read and the qualifiers line names every
-        # migration, so the gap is derived rather than kept by hand — the same
-        # discipline open-questions.md section Generated index asks for. The register's
-        # subject is prose ("Lease as rewritten and relabelled"), so a spec is
-        # read when its name appears in that phrase; a version there is a read
-        # of the grammar.
-        reg = (root / "governance.md").read_text(encoding="utf-8")
-        reads = [(m.group("n"), m.group("spec").strip()) for m in REGISTER.finditer(reg)]
-        rows = []
-        for path in [root / "GRACE-lang.md"] + sorted(root.glob("atoms/*.md")) + \
-                    sorted(root.glob("compositions/*.md")):
-            if not path.exists() or path.match(HISTORY) or \
-                    not MIGRATED.search(path.read_text(encoding="utf-8")):
-                continue
-            name = spec_name(path)
-            # A register subject is prose, so it spells a multi-word name the way
-            # English wants it — Session-Gated Authorization for the spec this
-            # tool calls Session Gated Authorization. Match on a hyphen- and
-            # case-insensitive form so a hyphen does not read as an unread spec.
-            flat = lambda t: t.replace("-", " ").casefold()
-            hits = [n for n, phrase in reads
-                    if flat(name) in flat(phrase)
-                    or (name == "GRACE-lang" and phrase.startswith("v0."))]
-            rows.append((name, path, hits))
-        unread = [r for r in rows if not r[2]]
-        print(f"{len(rows)} migrated; {len(unread)} carry no council read.")
-        for name, path, _ in unread:
-            print(f"  {path.relative_to(root).as_posix()}: {name} — unread")
-        if not unread:
-            print("  — every migrated spec has been read.")
         return 0
     if "--into" in argv:
         i = argv.index("--into")

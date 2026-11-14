@@ -36,6 +36,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from lint import (  # noqa: E402
     check_retired_sign,
     check_page_citations,
+    check_council_register,
     check_views_current,
     check_live_counts,
     check_migration_seam,
@@ -1262,9 +1263,17 @@ def check_notation_synthetic(problems: list[str]) -> int:
         (root / "GRACE-lang.hist.md").write_text(
             "# h\n\n## Changes\n\nNOTE:\nv0.37 (2026-09-12): per " + S + "21\n\n"
             "## The Watch list at v0.65\n\nlive " + S + "D\n", encoding="utf-8")
+        # the register, moved out of governance.md into its history file on 2026-11-13
+        (root / "governance.hist.md").write_text(
+            "# h\n\nopening " + S + "E\n\n### The register\n\n"
+            "- **Council read 1 \u2014 x, 2026-09-10.** per " + S + "21\n  more " + S + "22\n", encoding="utf-8")
+        (root / "governance.md").write_text(
+            "- **Council read 1 \u2014 x, 2026-09-10.** per " + S + "21\n", encoding="utf-8")
         hits = {(f.path.name, f.line) for f in check_retired_sign(root)}
-        want = {("a.md", 3), ("log.md", 15), ("tool.py", 2), ("GRACE-lang.hist.md", 10)}
-        quiet = {("a.md", 5), ("a.md", 9), ("log.md", 7), ("log.md", 11), ("GRACE-lang.hist.md", 6)}
+        want = {("a.md", 3), ("log.md", 15), ("tool.py", 2), ("GRACE-lang.hist.md", 10),
+                ("governance.hist.md", 3), ("governance.md", 1)}
+        quiet = {("a.md", 5), ("a.md", 9), ("log.md", 7), ("log.md", 11), ("GRACE-lang.hist.md", 6),
+                 ("governance.hist.md", 7), ("governance.hist.md", 8)}
         for w in want:
             if w not in hits:
                 problems.append(f"N-retired-sign: did not fire at {w}")
@@ -1329,10 +1338,28 @@ def check_notation_synthetic(problems: list[str]) -> int:
             "61 done today.\n", encoding="utf-8")
         (root / "roadmap.md").write_text("A ledger: 52 grounded, 58 patterns.\n", encoding="utf-8")
         (root / "open-questions.md").write_text("A register: thirty-seven grounded patterns.\n", encoding="utf-8")
+        # the register is record in governance.hist.md; governance.md keeps only rules
+        (root / "governance.hist.md").write_text("A register: 41 grounded patterns.\n", encoding="utf-8")
+        (root / "governance.md").write_text("Rules: 41 grounded patterns.\n", encoding="utf-8")
         hits = {(f.path.name, f.line) for f in check_live_counts(root)}
-        if hits != {("readme.md", 1), ("readme.md", 3), ("readme.md", 10)}:
-            problems.append(f"N-live-count: fired at {sorted(hits)}, want readme.md lines 1, 3 and 10")
-        n += 10
+        if hits != {("readme.md", 1), ("readme.md", 3), ("readme.md", 10), ("governance.md", 1)}:
+            problems.append(f"N-live-count: fired at {sorted(hits)}, want readme.md lines 1, 3 and 10 and governance.md line 1")
+        n += 12
+    with tempfile.TemporaryDirectory() as d:
+        # M-register-number and M-register-citation read the register in governance.hist.md
+        root = Path(d)
+        (root / "governance.hist.md").write_text(
+            "### The register\n\n"
+            "- **Council read 1 \u2014 x, 2026-09-10.** a\n"
+            "- **Council read 2 \u2014 y, 2026-09-10.** b\n"
+            "- **Council read 2 \u2014 z, 2026-09-11.** c\n", encoding="utf-8")
+        (root / "governance.md").write_text("- **Council read 9 \u2014 w, 2026-09-12.** d\n", encoding="utf-8")
+        (root / "p.md").write_text("per council read 1\nper council read 9\n", encoding="utf-8")
+        hits = {(f.path.name, f.line, f.code) for f in check_council_register(root)}
+        want = {("governance.hist.md", 5, "M-register-number"), ("p.md", 2, "M-register-citation")}
+        if hits != want:
+            problems.append(f"M-register: fired at {sorted(hits)}, want {sorted(want)}")
+        n += 3
     return n
 
 
