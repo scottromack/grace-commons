@@ -1467,7 +1467,7 @@ def check_notation_synthetic(problems: list[str]) -> int:
             "| `Kind` | the kind | every kind | |\n"
             "| `Field of` | the type | Field | |\n"
             "| `Projection` | the spelling | Field, Member | Type (1 of 4) |\n"
-            "| `Role` | the role: one value of the closed value set of `Outcome` and `Scope` | Member | |\n\n"
+            "| `Role` | the role: one value of the closed value set of `Outcome` and `Scope` | | Member |\n\n"
             "| Kind | What it means | Entries |\n|---|---|---|\n"
             "| Type | a type | 4 |\n| Field | a field | 5 |\n| Member | a member | 3 |\n| Operation | an action | 9 |\n\n"
             "## Heading standard\n\n### Heading tables\n\n"

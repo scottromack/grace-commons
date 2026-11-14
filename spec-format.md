@@ -237,7 +237,7 @@ Every term the registry declares has an entry under `## Terms`: a `####` heading
 | `Parameter of` | the operation, or the operations, the parameter belongs to | Parameter | |
 | `Member of` | the value set the member belongs to | Member | |
 | `Projection` | the spelling the term takes where a record or a call carries it: a field's name, a parameter's name, a member's token | Field, Parameter, Member | Type (11 of 40) |
-| `Role` | what a member is in the pattern's answers: one value of the closed value set of `Outcome`, `Rejection` and `Scope` | Member | |
+| `Role` | what a member is in the pattern's answers, one value of the closed value set of `Outcome`, `Rejection` and `Scope`; a Member that is not something in the pattern's answers, such as an audit event kind, a quorum rule or a holding state, carries none | | Member |
 | `Wire` | `pinned`: the Projection is a literal the wire fixes | | Member (1 of 472) |
 
 | Kind | What it means | Entries |
