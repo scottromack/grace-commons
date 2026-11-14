@@ -49,7 +49,7 @@ cut a versioned release, so everything below sits under **Unreleased**.
 
 ### Added
 
-- **Conformance validator** ([`tools/conformance/`](./tools/conformance/README.md)) —
+- **Conformance validator** ([`tools/conformance/`](https://github.com/scottromack/grace-commons/blob/main/tools/conformance/README.md)) —
   the level-1 feedback loop made into an artifact: it takes a running *render*
   (an implementation) plus its spec-derived manifest and returns a measured
   `correctness(%)` — the fraction of the spec's checkable claims the render
@@ -67,10 +67,10 @@ cut a versioned release, so everything below sits under **Unreleased**.
     Next.js-shaped), an append-only flat-file JSONL log, and MongoDB. **Two**
     were authored from the spec in isolation, without sight of the other
     renders. The sixth is not a test fixture but the **real deployable app**
-    ([`demos/clinical-trial-portal-next`](./demos/clinical-trial-portal-next/)) —
+    ([`demos/clinical-trial-portal-next`](https://github.com/scottromack/grace-commons/tree/main/demos/clinical-trial-portal-next)) —
     the harness is pointed at the shipping store itself.
   - **Mongo ghost render**
-    ([`demos/clinical-trial-portal-mongo/`](./demos/clinical-trial-portal-mongo/)) —
+    ([`demos/clinical-trial-portal-mongo/`](https://github.com/scottromack/grace-commons/tree/main/demos/clinical-trial-portal-mongo)) —
     the first document-store render: no foreign keys, no CHECKs, no schema-level
     delete discipline. Ships the invariant → enforcer discovery table (which
     Postgres-carried guarantees move to `$jsonSchema`, which to app code, which
@@ -83,14 +83,14 @@ cut a versioned release, so everything below sits under **Unreleased**.
     claim counts only if it holds identically on every render. Currently
     **20/20** across all seven.
 - **Demo 2 — second render of the clinical-trial portal**
-  ([`demos/clinical-trial-portal-next/`](./demos/clinical-trial-portal-next/)) —
+  ([`demos/clinical-trial-portal-next/`](https://github.com/scottromack/grace-commons/tree/main/demos/clinical-trial-portal-next)) —
   a Next.js App Router + PostgreSQL build of the same surface as the Deno+SQLite
   demo. The atoms, composition, action codes, and hash-chain contract are a
   faithful port (dialect + async, not redesign); the audit chain is serialized
   by a global `pg_advisory_xact_lock` (Postgres MVCC needs the explicit lock
   SQLite gave for free). Backend, audit surface, and App Router UI complete and
   conformance-clean (render 6 above); the Fly.io deploy
-  ([`DEPLOY.md`](./demos/clinical-trial-portal-next/DEPLOY.md)) is the remaining
+  ([`DEPLOY.md`](https://github.com/scottromack/grace-commons/blob/main/demos/clinical-trial-portal-next/DEPLOY.md)) is the remaining
   piece.
 
 ### Changed
@@ -138,7 +138,7 @@ cut a versioned release, so everything below sits under **Unreleased**.
   (additive, no constituent cascade). With no spec left on the legacy form, the
   **§Grandfathered-patterns clause and the legacy `grounded — YYYY-MM-DD` status
   form** are removed from [`pressure-testing.md`](./pressure-testing.md), the
-  legacy-form regex is removed from [`tools/linter/lint.py`](./tools/linter/lint.py),
+  legacy-form regex is removed from [`tools/linter/lint.py`](https://github.com/scottromack/grace-commons/blob/main/tools/linter/lint.py),
   and roadmap methodology-debt #3 is resolved.
 
 - **Refactor 1, constitutional cluster (2026-06-10)** — three core-doc
@@ -168,7 +168,7 @@ cut a versioned release, so everything below sits under **Unreleased**.
     conformance. Pressure-tested against the fourteen substrate-using
     compositions.
   - **No-snapshot rule (A1).** Core docs carry no library-state snapshots;
-    the rule is stated once ([`CLAUDE.md`](./CLAUDE.md) §Current state of the
+    the rule is stated once ([`CLAUDE.md`](https://github.com/scottromack/grace-commons/blob/main/CLAUDE.md) §Current state of the
     library) and the drifted snapshots were removed from spec-format's Status
     line and the Contract's composition-types and fan-out passages.
 - **Refactor 1, methodology cluster (2026-06-10)** — the A4/A5/A6 methodology

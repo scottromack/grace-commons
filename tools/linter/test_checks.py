@@ -41,6 +41,7 @@ from lint import (  # noqa: E402
     check_live_counts,
     check_audit_claim,
     check_term_kind,
+    check_unserved_links,
     heading_standard,
     check_migration_seam,
     check_heading_standard,
@@ -1501,6 +1502,28 @@ def check_notation_synthetic(problems: list[str]) -> int:
             if len(got) != len(want):
                 problems.append(f"O-term-kind: {name} read as {got}, wanted {want}")
         n += 9
+    with tempfile.TemporaryDirectory() as d:
+        # A-unserved-link and A-github-path (unit `site: no link leads where the site does not serve`)
+        root = Path(d)
+        (root / "_config.yml").write_text("title: x\nexclude:\n  - AGENTS.md\n  - demos/\n  - tools/\n  - working-ideas/\n", encoding="utf-8")
+        for rel in ("tools/a.mjs", "demos/x/README.md", "working-ideas/n.md", "AGENTS.md", "served.md"):
+            (root / rel).parent.mkdir(parents=True, exist_ok=True)
+            (root / rel).write_text("x\n" if rel != "served.md" else "---\ntitle: s\n---\n", encoding="utf-8")
+        gh = "https://github.com/scottromack/grace-commons"
+        (root / "page.md").write_text(
+            "---\ntitle: p\n---\n"
+            "[a](./tools/a.mjs) [b](./demos/x/) [c](./working-ideas/n.md#sec) [d](./AGENTS.md)\n"   # 4
+            "[ok](./served.md) [out](https://example.org/tools/a.mjs) [anchor](#top)\n"
+            "`[code](./tools/a.mjs)`\n```\n[fenced](./tools/a.mjs)\n```\n"
+            "[ref]: ./tools/a.mjs\n"                                                                   # 1
+            f"[gh]({gh}/blob/main/tools/a.mjs) [ghtree]({gh}/tree/main/demos/x) [ghmissing]({gh}/blob/main/tools/nope.mjs) [ghwrong]({gh}/blob/main/demos/x)\n",  # 2 A-github-path
+            encoding="utf-8")
+        (root / "tools" / "t.md").write_text("---\ntitle: t\n---\n[x](./a.mjs)\n[y](../demos/x/)\n", encoding="utf-8")   # an excluded page is not a page
+        got = sorted((f.code, f.line) for f in check_unserved_links(root))
+        want = sorted([("A-unserved-link", 4)] * 4 + [("A-unserved-link", 10)] + [("A-github-path", 11)] * 2)
+        if got != want:
+            problems.append(f"A-unserved-link: fired at {got}, want {want}")
+        n += 8
     with tempfile.TemporaryDirectory() as d:
         # M-register-number and M-register-citation read the register in governance.hist.md
         root = Path(d)

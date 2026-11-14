@@ -357,6 +357,101 @@ def check_links(root: Path, md_files: list[Path]) -> list[Finding]:
     return findings
 
 
+_PAGE_LINK = re.compile(r"\]\(([^)\s]+)(?:\s+\"[^\"]*\")?\)|^\[[^\]]+\]:[ \t]*(\S+)", re.M)
+_OWN_GITHUB = re.compile(r"^https://github\.com/[^/]+/grace-commons/(blob|tree)/main/([^#?]+)")
+
+
+def config_excludes(root: Path) -> list[str]:
+    """The paths `_config.yml` keeps out of the built site, as it lists them under
+    `exclude:`; a trailing slash marks a folder."""
+    try:
+        text = (root / "_config.yml").read_text(encoding="utf-8")
+    except OSError:
+        return []
+    m = re.search(r"^exclude:[ \t]*\n((?:[ \t]+- .*\n?)+)", text, re.M)
+    return [ln.strip()[2:].strip() for ln in m.group(1).splitlines()] if m else []
+
+
+def _is_excluded(rel: str, excl: list[str]) -> bool:
+    for e in excl:
+        if e.endswith("/"):
+            if rel.startswith(e) or rel + "/" == e:
+                return True
+        elif rel == e:
+            return True
+    return False
+
+
+def published_pages(root: Path) -> list[Path]:
+    """The Markdown files the site builds into pages: a front matter, no hidden or
+    underscore path, nothing `_config.yml` excludes."""
+    excl = config_excludes(root)
+    out = []
+    for p in sorted(root.rglob("*.md")):
+        rel = p.relative_to(root).as_posix()
+        if any(part.startswith((".", "_")) or part in ("node_modules", "build") for part in rel.split("/")):
+            continue
+        if _is_excluded(rel, excl):
+            continue
+        try:
+            if p.read_text(encoding="utf-8").startswith("---"):
+                out.append(p)
+        except (OSError, UnicodeDecodeError):
+            continue
+    return out
+
+
+def page_links(text: str):
+    """(line, start, target) of every link and link definition outside a code fence or a code span."""
+    fence = False
+    for ln, line in enumerate(text.split("\n"), 1):
+        if line.lstrip().startswith("```"):
+            fence = not fence
+            continue
+        if fence:
+            continue
+        masked = re.sub(r"`[^`]*`", lambda m: " " * len(m.group(0)), line)
+        for m in _PAGE_LINK.finditer(masked):
+            g = 1 if m.group(1) else 2
+            yield ln, m.start(g), line[m.start(g): m.end(g)]
+
+
+def check_unserved_links(root: Path) -> list[Finding]:
+    """A-unserved-link: a relative link on a published page whose target falls under a
+    path `_config.yml` excludes from the site, so the link is dead for a visitor (unit
+    `site: no link leads where the site does not serve`, Scott 2026-11-14: 66 such
+    links on 24 pages while check A, which asks only that the file exist in the
+    repository, passed). The cure is the address a reader can open, the file's page
+    on GitHub. A-github-path: a link to this repository's own GitHub address whose
+    path does not exist at HEAD, so the cure cannot rot unseen."""
+    excl = config_excludes(root)
+    out: list[Finding] = []
+    for md in published_pages(root):
+        text = md.read_text(encoding="utf-8")
+        for ln, _, target in page_links(text):
+            gh = _OWN_GITHUB.match(target)
+            if gh:
+                kind, path = gh.groups()
+                at = root / path.rstrip("/")
+                if not (at.is_dir() if kind == "tree" else at.is_file()):
+                    out.append(Finding(md, ln, "A-github-path",
+                        f"the GitHub address names {path}, which is not a {'folder' if kind == 'tree' else 'file'} of this repository"))
+                continue
+            if re.match(r"[a-z][a-z0-9+.-]*:|#|//|\{\{", target):
+                continue
+            path = target.split("#")[0].split("?")[0]
+            if not path:
+                continue
+            try:
+                rel = (md.parent / path).resolve().relative_to(root.resolve()).as_posix()
+            except ValueError:
+                continue
+            if _is_excluded(rel, excl) or _is_excluded(rel + "/", excl):
+                out.append(Finding(md, ln, "A-unserved-link",
+                    f"link target {target} falls under a path _config.yml excludes from the site; link its page on GitHub instead"))
+    return out
+
+
 def check_invariant_counts(patterns: dict[Path, Pattern], md_files: list[Path]) -> list[Finding]:
     """B. 'N invariants from [Pattern](path)' matches Pattern's real count."""
     findings: list[Finding] = []
@@ -3620,6 +3715,7 @@ def main(argv: list[str]) -> int:
 
     findings: list[Finding] = []
     findings += check_links(root, scan)
+    findings += check_unserved_links(root)
     findings += check_invariant_counts(patterns, scan)
     findings += check_models_present(patterns)
     findings += check_stale_forthcoming(root, patterns, scan)
