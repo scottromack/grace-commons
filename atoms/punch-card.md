@@ -130,17 +130,21 @@ Operation 6: IF no punch card EXISTS for the card code, including a card code th
 Operation 7: [Check Stamps] MUST answer the punch card's stamps AND the punch card's goal.
 Operation 8: [Check Stamps] MUST NOT write.
 Operation 9: IF the punch card's stamps EQUALS the punch card's goal THEN [Stamp] MUST answer full.
-Operation 10: [Stamp] MUST set stamps to (the punch card's stamps + 1) PER Execution Contract Logic confinement 9.
+Operation 10: [Stamp] MUST set stamps to the stamped total PER Execution Contract Logic confinement 9.
 Operation 11: [Stamp] MUST answer the punch card's new stamps.
 Operation 12: IF the punch card's stamps DOES NOT EQUAL the punch card's goal THEN [Redeem] MUST answer not-full.
 Operation 13: [Redeem] MUST set stamps to zero.
-Operation 14: [Redeem] MUST set redemptions to (the punch card's redemptions + 1) PER Execution Contract Logic confinement 9.
+Operation 14: [Redeem] MUST set redemptions to the redeemed total PER Execution Contract Logic confinement 9.
 Operation 15: [Redeem] MUST answer the punch card's new redemptions.
 Operation 16: IF no punch card EXISTS for the card id, including a card id that is not a string, THEN [Read] MUST answer not-known.
 Operation 17: [Read] MUST answer the punch card's card id, goal, stamps AND redemptions.
 Operation 18: [Read] MUST NOT answer the card code.
 Operation 19: [Read] MUST NOT write.
 ```
+
+Term stamped total: (the punch card's stamps + 1) — the stamps a [Stamp] call that lands leaves on the punch card.
+
+Term redeemed total: (the punch card's redemptions + 1) — the redemptions a [Redeem] call that lands leaves on the punch card.
 
 Term code action: [Check Stamps] | [Stamp] | [Redeem] — the actions that name a punch card by the card code.
 
@@ -293,7 +297,7 @@ Term cadences: empty.
 
 Term qualifiers: migrated — drafted in GRACE lang v0.69 (2026-11-13) through the Grace connector.
 
-Term terms: punch card, card id, card code, code entropy, seam, goal, stamps, redemptions, whole count, positive count, stamp goal, code action, version.
+Term terms: punch card, card id, card code, code entropy, seam, goal, stamps, redemptions, whole count, positive count, stamp goal, stamped total, redeemed total, code action, version.
 
 #### Issue
 

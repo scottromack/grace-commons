@@ -6,7 +6,7 @@ search_exclude: true
 
 # GRACE lang — history
 
-The dated record of how [GRACE lang](./GRACE-lang.md) got here, moved out of the grammar because a reader does not need it to use the grammar today: the Watch list's history on 2026-10-22, and the Changes section, Section 23, on 2026-10-23 at v0.66; and the v1 baseline, frozen on 2026-10-30 and released on 2026-11-05, with the empty v2 list it held. The grammar keeps its rules and its live Watch list, and its Section 23 points here; everything smaller is in `git log -- GRACE-lang.md`.
+The dated record of how [GRACE lang](./GRACE-lang.md) got here, moved out of the grammar because a reader does not need it to use the grammar today: the Watch list's history on 2026-10-22, and the Changes section, Section 23, on 2026-10-23 at v0.66; and the v1 baseline, frozen on 2026-10-30 and released on 2026-11-05, with the empty v2 list it held. The grammar keeps its rules, and its Section 23 points here; its live Watch list has had its own page, [the Watch list](./watch-list.md), since v0.70; everything smaller is in `git log -- GRACE-lang.md`.
 
 ## The v1 baseline (released)
 
@@ -15,6 +15,12 @@ GRACE-lang v0.69 and the Execution Contract at grace-commons `cab291d` were the 
 ## Changes
 
 The grammar's Changes section, newest first. From v0.66 each version's entry is written here; the entries from v0.65 back moved from Section 23 on 2026-10-23, word for word.
+
+NOTE:
+v0.70 (2026-11-13): a rule carries no arithmetic. Arithmetic lives only in a declaration's definition, as declared arithmetic (Closed vocabulary 31 through 34, Hard invariant 35 through 37), and a rule names the term (Closed vocabulary 9, which loses its allowance of one arithmetic expression). Sugar 4 through 12 and Hard invariant 24, the inline arithmetic expression admitted at v0.66 and held to one operator at v0.68, are tombstones naming those rules as owner; Term arithmetic expression is deleted, Term rule symbol, Term operand, Earned vocabulary 16 and the lock list lose the form, and Term arithmetic operator keeps the reading of `×` as `*` that Sugar 12 gave, inside declared arithmetic. Three rules on two specifications carried the form, and each now names a term its page declares with the same value: Gift Card Operation 12 (Term spent balance), Punch Card Operation 10 (Term stamped total) and Punch Card Operation 14 (Term redeemed total); no canonical example carried it. `tools/grace/check.py`'s `A-arith` fires on any arithmetic in a rule, and `normalize.py` leaves such a rule unlowered. Ruled by the maintainer on 2026-11-13 at 6:47 PM Central ("go"), on his ruling 7 of 2:55 PM on the review of 2026-11-10: arithmetic inside a rule is cut, and arithmetic lives in Term lines. In the same unit Section 18's Watch list moved, byte for byte, to its own page beside the grammar, `watch-list.md`, which `check.py` and `lint.py`'s `W-stale-census` now read; Section 18 keeps the rule and a link.
+
+NOTE:
+v0.70 (2026-11-13): Term locked forms names four forms the sections admit and the list left out while Lock 1 accepts only the locked forms: DOES NOT EXCEED, PRECEDES and DOES NOT PRECEDE beside the other condition operators (Earned vocabulary 17 through 19), the tombstone (Term tombstone) and the range citation (Term range citation). The term is not redefined, and no specification changes. Found by the review of 2026-11-10, which counted PRECEDES in 29 specifications and the range citation in 58.
 
 NOTE:
 v0.69, editorial (2026-10-30): Term MAY rule says what an ONLY IF tail does: a MAY rule carrying one leaves the act unpermitted wherever the tail's condition does not hold, cited beside Timing 12, which writes a strict lower bound in that form; every other MAY rule is satisfied vacuously and obliges nothing, as before. The 27 rules in nine specifications that carry Timing 12's form already oblige it, so the sentence states once what the pages oblige: the version stands and no round is owed. Ruled by the maintainer on 2026-10-30 at 21:09Z, on the escalation of 19:28Z (R3), after readers on four model families had read Session's Capability requirement 11 as binding nothing, four rounds running.

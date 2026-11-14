@@ -1188,13 +1188,19 @@ def check_stale_census(root: Path, patterns: dict[Path, Pattern]) -> list[Findin
     """W. A label-family count written into the grammar's watch list that no
     longer matches the corpus. Section 18 carried these by hand and they went
     stale on arrival three council reads running; the census is mechanical, so
-    disagreeing with it is a finding rather than a discovery (council read 33)."""
+    disagreeing with it is a finding rather than a discovery (council read 33).
+    The list is its own page, `watch-list.md`, since GRACE-lang v0.70; the
+    standard set it is read against stays the grammar's."""
     findings: list[Finding] = []
-    grammar = root / "GRACE-lang.md"
+    watch = root / "watch-list.md"
     try:
-        text = grammar.read_text(encoding="utf-8")
+        text = watch.read_text(encoding="utf-8")
     except OSError:
         return findings
+    try:
+        grammar_text = (root / "GRACE-lang.md").read_text(encoding="utf-8")
+    except OSError:
+        grammar_text = ""
     census: dict[str, int] = {}
     for p in patterns.values():
         for m in re.finditer(r"^\s*([A-Z][A-Za-z ]*?) \d+(?:\.\d+)?[a-z]?:", p.text, re.M):
@@ -1215,7 +1221,7 @@ def check_stale_census(root: Path, patterns: dict[Path, Pattern]) -> list[Findin
     gm = re.search(r"(\d+) term entries across (\d+) specs carry `\u2265`", text)
     if gm and (int(gm.group(1)), int(gm.group(2))) != (ge_entries, len(ge_specs)):
         findings.append(Finding(
-            grammar, line_of(text, gm.start()), "W-stale-census",
+            watch, line_of(text, gm.start()), "W-stale-census",
             f"the watch list says {gm.group(1)} term entries across "
             f"{gm.group(2)} specs carry `\u2265`; the corpus has "
             f"{ge_entries} across {len(ge_specs)}"))
@@ -1223,7 +1229,7 @@ def check_stale_census(root: Path, patterns: dict[Path, Pattern]) -> list[Findin
         actual = len(census.get(name, ()))
         if actual != int(spec):
             findings.append(Finding(
-                grammar, line_of(text, text.index(f"`{name}` ({spec})")),
+                watch, line_of(text, text.index(f"`{name}` ({spec})")),
                 "W-stale-census",
                 f"the watch list says `{name}` is in {spec} specs; the corpus "
                 f"has {actual} (tools/grace/cites.py --drift)"))
@@ -1236,7 +1242,7 @@ def check_stale_census(root: Path, patterns: dict[Path, Pattern]) -> list[Findin
     # promotion candidates (council read 63).
     listed = {n for n, _ in re.findall(r"`([A-Z][A-Za-z ]+)` \((\d+)\)", text)}
     std: set[str] = set()
-    sm = re.search(r"^Term standard label family: (.+)$", text, re.M)
+    sm = re.search(r"^Term standard label family: (.+)$", grammar_text, re.M)
     if sm:
         # the family line's value set, names bare since v0.51: `Name (gloss) | …`
         std = {x.strip().strip("`") for x in re.findall(r"(?:^|\|)\s*([^|(]+?)\s*\(", sm.group(1))}
@@ -1246,7 +1252,7 @@ def check_stale_census(root: Path, patterns: dict[Path, Pattern]) -> list[Findin
         if name in listed or name in std or len(specs) < 3:
             continue
         findings.append(Finding(
-            grammar, clause_line, "W-stale-census",
+            watch, clause_line, "W-stale-census",
             f"the watch list names no `{name}`; the corpus carries it in "
             f"{len(specs)} specs, at or past the promotion threshold "
             f"(Standard label 4; tools/grace/cites.py --drift)"))
@@ -3126,7 +3132,8 @@ _LIVE_COUNT = re.compile(
     r"(?:specifications|specs)\b", re.IGNORECASE)
 # the dated ledgers and registers, where a number is the count at the date it was written
 _LIVE_LEDGERS = {"roadmap.hist.md", "changelog.md", "project-log.md", "ai-usage-log.md",
-                 "governance.hist.md", "measurement.md", "open-questions.md", "discoveries.md"}
+                 "governance.hist.md", "measurement.md", "open-questions.md", "discoveries.md",
+                 "watch-list.md"}
 
 
 def check_live_counts(root: Path) -> list[Finding]:

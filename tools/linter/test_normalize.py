@@ -142,12 +142,16 @@ class Hard18And19Sugar(unittest.TestCase):
             self.assertEqual(a, b)
             self.assertEqual(a["obligations"][0]["timing"], [{"kind": "ONLY AFTER", "term": "the edge"}])
 
-    def test_multiply_sign_is_star_and_the_expression_an_unnamed_term(self):
-        a = one("IF the line total EXCEEDS (unit price × quantity) THEN [Check] MUST answer over-limit.")
-        b = one("IF the line total EXCEEDS (unit price * quantity) THEN [Check] MUST answer over-limit.")
-        self.assertEqual(a, b)
-        self.assertEqual(a["terms"], [{"op": "*", "left": "unit price", "right": "quantity"}])
-        self.assertIn("(unit price * quantity)", n.render(a))
+    def test_arithmetic_in_a_rule_is_no_sugar_and_is_unlowered(self):
+        # GRACE-lang v0.70: a rule carries no arithmetic (Closed vocabulary 9); the
+        # inline arithmetic expression (Sugar 4 through 12) is deleted, so a
+        # parenthesized operator leaves the rule unlowered and a named term lowers
+        for group in ("(unit price × quantity)", "(unit price * quantity)", "(spent + input)", "(balance - input)"):
+            a = one(f"IF the line total EXCEEDS {group} THEN [Check] MUST answer over-limit.")
+            self.assertEqual(a["kind"], "unlowered", group)
+        b = one("IF the line total EXCEEDS the line cap THEN [Check] MUST answer over-limit.")
+        self.assertEqual(b["kind"], "rule")
+        self.assertNotIn("terms", b)
 
     def test_the_tails_read_in_one_order(self):
         a = one("[Sweep] MUST run WITHIN the bound ONLY AFTER the edge.")
@@ -278,7 +282,7 @@ class ReverseDiff(unittest.TestCase):
     """GRACE-lang section 17."""
 
     BASE = ("Operation 1: [Add] MUST answer added.", "Operation 2: [Sweep] MUST run AFTER the edge.",
-            "Operation 3: IF the unit price EXCEEDS (a × b) THEN [Add] MUST answer too-dear.")
+            "Operation 3: IF the unit price EXCEEDS the line cap THEN [Add] MUST answer too-dear.")
 
     def run_diff(self, old, new):
         return [(r, lab) for r, lab, _, _ in rdiff.diff(rdiff.forms_of(spec(*old)), rdiff.forms_of(spec(*new)))]
@@ -289,8 +293,7 @@ class ReverseDiff(unittest.TestCase):
         self.assertEqual(self.run_diff(self.BASE, self.BASE[:2]), [("REMOVED", "Operation 3")])
 
     def test_forms_that_normalize_identically_are_equivalent(self):
-        new = (self.BASE[0], "Operation 2: [Sweep] MUST run ONLY AFTER the edge.",
-               "Operation 3: IF the unit price EXCEEDS (a * b) THEN [Add] MUST answer too-dear.")
+        new = (self.BASE[0], "Operation 2: [Sweep] MUST run ONLY AFTER the edge.", self.BASE[2])
         self.assertEqual(self.run_diff(self.BASE, new), [])
 
     def test_a_change_to_why_or_ux_is_not_reported(self):
@@ -299,7 +302,7 @@ class ReverseDiff(unittest.TestCase):
         self.assertEqual(rdiff.diff(rdiff.forms_of(old), rdiff.forms_of(new)), [])
 
     def test_a_rule_moved_to_another_label_unchanged_is_equivalent(self):
-        new = (self.BASE[0], self.BASE[1], "Operation 9: IF the unit price EXCEEDS (a * b) THEN [Add] MUST answer too-dear.")
+        new = (self.BASE[0], self.BASE[1], "Operation 9: IF the unit price EXCEEDS the line cap THEN [Add] MUST answer too-dear.")
         self.assertEqual(self.run_diff(self.BASE, new), [])
 
     def test_an_unlowered_rule_is_compared_by_its_text(self):

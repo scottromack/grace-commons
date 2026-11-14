@@ -135,7 +135,7 @@ Operation 8: [Check Balance] MUST answer the gift card's balance AND the gift ca
 Operation 9: [Check Balance] MUST NOT write.
 Operation 10: IF the amount IS NOT IN the positive amounts THEN [Spend] MUST answer invalid-amount.
 Operation 11: IF the amount EXCEEDS the gift card's balance THEN [Spend] MUST answer insufficient-balance.
-Operation 12: [Spend] MUST set balance to (the gift card's balance - the amount) PER Execution Contract Logic confinement 9.
+Operation 12: [Spend] MUST set balance to the spent balance PER Execution Contract Logic confinement 9.
 Operation 13: [Spend] MUST answer the gift card's new balance.
 Operation 14: IF no gift card EXISTS for the card id THEN [Read] MUST answer not-known.
 Operation 15: [Read] MUST answer the gift card's card id, currency, value AND balance.
@@ -144,6 +144,8 @@ Operation 17: [Read] MUST NOT write.
 ```
 
 Term amount: what a [Spend] call takes from a gift card, in the gift card's currency — an [Amount]; a positive amount.
+
+Term spent balance: (the gift card's balance - the amount) — the balance a [Spend] call that lands leaves on the gift card.
 
 Term code action: [Check Balance] | [Spend] — the actions that name a gift card by the card code.
 
@@ -306,7 +308,7 @@ Term cadences: empty.
 
 Term qualifiers: migrated — drafted in GRACE lang v0.69 (2026-10-30) through the Grace connector.
 
-Term terms: gift card, card id, card code, code entropy, seam, value, balance, currency, minor unit, whole amount, positive amount, accepted currencies, card cap, amount, code action, version.
+Term terms: gift card, card id, card code, code entropy, seam, value, balance, currency, minor unit, whole amount, positive amount, accepted currencies, card cap, amount, spent balance, code action, version.
 
 #### Issue
 

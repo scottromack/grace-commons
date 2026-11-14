@@ -8,7 +8,7 @@ fence classification (Surface 18, Surface 19) and signature blocks (Surface 20),
 and tombstone reuse (Hard invariant 25, Hard invariant 27), the rule form and the statement shapes (Rule shape 1, Rule shape 2,
 Rule shape 6, Hard invariant 2, Hard invariant 3), WHEN blocks (WHEN block 3, Hard invariant 6), mixed AND/OR and OR outside a condition (Hard invariant 7,
 Hard invariant 8), BEFORE and AFTER outside their admitted places (Hard invariant 9 through 11), the banned
-words (Timing 10, Timing 11), arithmetic in a rule outside an arithmetic expression (Hard invariant 24, Sugar 4 through 12),
+words (Timing 10, Timing 11), arithmetic in a rule (Closed vocabulary 9; a rule carries none since v0.70),
 arithmetic in a declaration outside declared arithmetic (Hard invariant 35 through 37, Closed vocabulary 31 through 34), pronouns (Hard invariant 4), the copula after
 a modal (Closed vocabulary 8, Closed vocabulary 14), the record verb after the modal against the declared
 vocabulary (Closed vocabulary 8), a declared term nothing uses, and a cross-rule reference to a
@@ -91,11 +91,14 @@ def reserved_capitals(grammar_path=None):
 
     reserved: every upper-case word on the declarations that enumerate the
     reserved tokens (bare since v0.51; a code span still counts). grammar-shaped: the upper-case words of the
-    provisional forms and of the watch list (section 18) — forms the grammar has named
-    and not admitted, so one in a rule is a finding and never a proper noun.
+    provisional forms and of the watch list (section 18, its own page `watch-list.md`
+    beside the grammar since v0.70) — forms the grammar has named and not admitted, so
+    one in a rule is a finding and never a proper noun.
     """
     p = grammar_path or os.path.join(os.path.dirname(__file__), "..", "..", "GRACE-lang.md")
     g = open(p, encoding="utf-8").read()
+    wp = os.path.join(os.path.dirname(p), "watch-list.md")
+    w = open(wp, encoding="utf-8").read() if os.path.exists(wp) else ""
     reserved: set[str] = set()
     for name in _RESERVED_SOURCES:
         m = re.search(r"^Term " + re.escape(name) + r":(.*)$", g, re.M)
@@ -106,7 +109,7 @@ def reserved_capitals(grammar_path=None):
     shaped: set[str] = set()
     for line in re.findall(r"^PROVISIONAL: (.*)$", g, re.M):
         shaped.update(re.findall(r"\b[A-Z]{2,}\b", line))
-    watch = re.search(r"^#### Watch list.*?(?=^---$)", g, re.M | re.S)
+    watch = re.search(r"^#### Watch list: .*", w, re.M | re.S)
     if watch:
         shaped.update(re.findall(r"`([A-Z]{2,})`", watch.group(0)))
     return reserved, shaped - reserved
@@ -326,22 +329,15 @@ SOFT_MODAL = re.compile(r"\b(can|could|would|should|might)\b")
 # comparison in an IF is a condition the normalizer cannot read (council read 26).
 COND_ENGLISH = re.compile(r"^IF .*?\b(is not|is no|are not|does not|do not|is a|are a|is negative|is positive|is zero)\b.*? THEN ")
 ARITH = re.compile(r"[+×−]|\s-\s")
-# Inline arithmetic (GRACE-lang v0.66, Sugar 4 through 12; one operator from
-# v0.68): a rule may carry one of `+`, `-` and `*`, a space on each side,
-# between two operands — declared fields, declared terms and numbers, never a
-# negative literal — inside one pair of parentheses that holds no other pair,
-# reading no clock; `×` reads as `*` (Sugar 12), and a division belongs in a
-# declaration (Closed vocabulary 33). A-arith and D-rule-symbol read the rule
-# with each parenthesized group that carries arithmetic taken out, so only
-# arithmetic outside a pair is theirs; a group in any other shape is A-arith here.
+# Arithmetic in a rule (GRACE-lang v0.70, Closed vocabulary 9): a rule carries
+# none. The inline arithmetic expression of v0.66 (Sugar 4 through 12, Hard
+# invariant 24) is deleted to declared arithmetic (Closed vocabulary 31 through
+# 34, Hard invariant 35 through 37): a value a rule computes is a declared term,
+# and the rule names the term. A-arith reads a rule for an arithmetic operator
+# inside a pair of parentheses and outside one; a hyphen inside a word, an
+# outcome's hyphen and a parenthesized citation are no arithmetic.
 ARITH_GROUP = re.compile(r"[+*/×÷−]| - ")
-_ARITH_WORD = r"[\w'’.]+(?:-[\w'’.]+)*"
-_ARITH_OPERAND = _ARITH_WORD + r"(?: " + _ARITH_WORD + r")*"
-ARITH_EXPRESSION = re.compile(r"^" + _ARITH_OPERAND + r" [-+*×] " + _ARITH_OPERAND + r"$")
-ARITH_OPERATOR = re.compile(r" [-+*×] ")
-ARITH_DIVISION = re.compile(r"[/÷]")
 NEGATIVE_LITERAL = re.compile(r"(?:^|[\s(,])[-−]\d")
-ARITH_CLOCK = re.compile(r"\bclocks?\b")
 
 
 def h2_name(ln: str) -> str | None:
@@ -354,7 +350,8 @@ def h2_name(ln: str) -> str | None:
 
 def inline_arithmetic(text: str) -> tuple[str, list[str]]:
     """The text with each parenthesized group that carries arithmetic taken
-    out, and why each such group is no arithmetic expression."""
+    out, and a finding for each such group: a rule carries no arithmetic
+    (Closed vocabulary 9), so every one is a value to declare as a term."""
     kept, why = [], []
     depth = start = last = 0
     for i, ch in enumerate(text):
@@ -369,23 +366,9 @@ def inline_arithmetic(text: str) -> tuple[str, list[str]]:
                 continue
             kept.append(text[last:start] + "(expression)")
             last = i + 1
-            if "(" in group:
-                why.append(f"'({group})' nests a pair of parentheses; name a term "
-                           f"(Sugar 5, Closed vocabulary 9)")
-            elif ARITH_DIVISION.search(group):
-                why.append(f"'({group})' divides; a division belongs in a declaration, which names "
-                           f"the division's rounding (Closed vocabulary 33, Hard invariant 36)")
-            elif NEGATIVE_LITERAL.search(group):
-                why.append(f"'({group})' carries a negative literal; declare the negative constant "
-                           f"as a term (Closed vocabulary 34)")
-            elif len(ARITH_OPERATOR.findall(group)) > 1:
-                why.append(f"'({group})' carries more than one operator; name a term "
-                           f"(Sugar 11, Hard invariant 24, Closed vocabulary 9)")
-            elif not ARITH_EXPRESSION.match(group):
-                why.append(f"'({group})' is no arithmetic expression: two operands joined by one of "
-                           f"`+`, `-` and `*`, a space on each side (Term arithmetic expression)")
-            elif ARITH_CLOCK.search(group):
-                why.append(f"'({group})' reads a clock (Sugar 6)")
+            why.append(f"'({group})' is arithmetic in a rule; declare the value as a term in "
+                       f"declared arithmetic and name the term in the rule (Closed vocabulary 9, "
+                       f"Closed vocabulary 31 through 34, Hard invariant 35 through 37)")
     kept.append(text[last:])
     return "".join(kept), why
 
@@ -482,9 +465,9 @@ ADVISORY = {"W-or-word", "W-watch-word", "W-term-unused", "W-lowercase-after",
             "K-check-bare", "S-action-unused", "E-not-exclusive",
             "W-unstated-exception"}
 # D-tombstone-form gates: a tombstone in any other shape reserves nothing
-# A declaration may carry arithmetic and comparison where a rule carries only an
-# arithmetic expression (Closed vocabulary 9, Closed vocabulary 11) — which is
-# where complexity goes when a rule cannot hold it, and the one place nothing read it.
+# A declaration may carry arithmetic and comparison where a rule carries no
+# arithmetic (Closed vocabulary 9, Closed vocabulary 11) — which is where
+# complexity goes when a rule cannot hold it, and the one place nothing read it.
 DECL_ARITH = re.compile(r"[−+×÷]|(?<= )[-*/](?= )|\bmax\(|\bmin\(")
 DECL_TOKEN = re.compile(r"[a-z_][a-z0-9_]*")
 DECL_SKIP = {"max", "min", "of", "the", "a", "an", "and", "or", "per", "less", "true", "false"}
@@ -1222,8 +1205,8 @@ def scan(path: Path) -> list[Finding]:
         if re.search(r"\bMUST EXCEED\b|\bMAY EXCEED\b", stmt):
             add(r.line, "B-exceed", f"{r.label}: ≥ is written MUST NOT EXCEED (Timing 9)")
         if ARITH.search(inline_arithmetic(stmt)[0]) or ARITH.search(inline_arithmetic(cond)[0]):
-            add(r.line, "A-arith", f"{r.label}: arithmetic in a rule outside one pair of parentheses; "
-                f"write an arithmetic expression or name a term (Hard invariant 24, Closed vocabulary 9)")
+            add(r.line, "A-arith", f"{r.label}: arithmetic in a rule; declare the value as a term and "
+                f"name the term in the rule (Closed vocabulary 9, Closed vocabulary 31)")
         if PRONOUN.search(stmt) or PRONOUN.search(cond):
             add(r.line, "P-pronoun", f"{r.label}: pronoun in a rule (Hard invariant 4)")
         if re.search(r"\b(MUST NOT|MUST|MAY)\s+(be|is|are|been|being)\b", stmt):

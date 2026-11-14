@@ -21,8 +21,9 @@ the grammar's sections 5, 8, 9 and 12:
   * the WHEN block (section 9): each child an independent rule that carries
     the block's condition;
   * the sugar (section 12): `AFTER` under `MUST` or `MAY` is `ONLY AFTER`
-    (Timing 2, Timing 3), `×` is `*` (Sugar 12), and each arithmetic expression
-    is an unnamed term (Sugar 10).
+    (Timing 2, Timing 3). A rule carries no arithmetic (Closed vocabulary 9,
+    v0.70): a parenthesized group carrying an arithmetic operator leaves the
+    rule unlowered, since the value belongs in a declared term.
 
 The form is the same whatever the order of the rules or the order of a rule's
 tails (Hard invariant 15), exclusive only where `EXACTLY ONE OF` states it
@@ -114,12 +115,14 @@ def squeeze(text: str) -> str:
     return re.sub(r"\s+", " ", text).strip()
 
 
-def lower_arithmetic(text: str) -> tuple[str, list[dict], list[str]]:
-    """The text with each arithmetic expression written in its one canonical
-    form, `×` as `*` (Sugar 12), the expressions as unnamed terms (Sugar 10),
-    and why each parenthesized group that carries arithmetic is none."""
-    terms, problems, out = [], [], []
-    depth = start = last = 0
+def lower_arithmetic(text: str) -> list[str]:
+    """Why the text cannot be lowered for its arithmetic: each parenthesized
+    group that carries an arithmetic operator is arithmetic in a rule, which
+    the grammar deleted at v0.70 (Closed vocabulary 9; Sugar 4 through 12 and
+    Hard invariant 24 deleted to Closed vocabulary 31 through 34 and Hard
+    invariant 35 through 37)."""
+    problems = []
+    depth = start = 0
     for i, ch in enumerate(text):
         if ch == "(":
             if depth == 0:
@@ -130,19 +133,8 @@ def lower_arithmetic(text: str) -> tuple[str, list[dict], list[str]]:
             group = text[start + 1:i]
             if depth or not check.ARITH_GROUP.search(group):
                 continue
-            if "(" in group or check.ARITH_DIVISION.search(group) or check.NEGATIVE_LITERAL.search(group) \
-                    or len(check.ARITH_OPERATOR.findall(group)) > 1 or not check.ARITH_EXPRESSION.match(group) \
-                    or check.ARITH_CLOCK.search(group):
-                problems.append(f"the group ({group}) is no arithmetic expression")
-                continue
-            op = check.ARITH_OPERATOR.search(group)
-            left, right = group[:op.start()].strip(), group[op.end():].strip()
-            symbol = "*" if op.group().strip() == "×" else op.group().strip()
-            terms.append({"op": symbol, "left": left, "right": right})
-            out += [text[last:start], f"({left} {symbol} {right})"]
-            last = i + 1
-    out.append(text[last:])
-    return "".join(out), terms, problems
+            problems.append(f"the group ({group}) is arithmetic in a rule; a rule names a declared term")
+    return problems
 
 
 def split_top(text: str, sep: re.Pattern | str) -> list[str]:
@@ -263,12 +255,10 @@ def lower_statement(text: str) -> tuple[dict, list[str]]:
     m = check.PREFIX.match(text)
     if m:
         return {"kind": "excluded", "prefix": m.group(1)}, []
-    text, terms, bad = lower_arithmetic(text)
-    problems += bad
+    problems += lower_arithmetic(text)
     m = WHEN_RULE.match(text)
     if m:
-        return {"kind": "when", "condition": lower_condition(m.group(1), problems),
-                "terms": terms}, problems
+        return {"kind": "when", "condition": lower_condition(m.group(1), problems)}, problems
     form: dict = {"kind": "rule"}
     masked = mask(text)
     cut = masked.find(" THEN ")
@@ -304,8 +294,6 @@ def lower_statement(text: str) -> tuple[dict, list[str]]:
             chunks[0] = chunks[0][first.start():]
             obligations = [lower_obligation(squeeze(c), problems) for c in chunks]
             form["obligations"] = [o for o in obligations if o]
-    if terms:
-        form["terms"] = terms
     if problems:
         return {"kind": "unlowered", "text": written}, problems
     return form, problems

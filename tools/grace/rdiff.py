@@ -4,7 +4,7 @@
 It compares two commits' normalized rules, not their text (Reverse diff 1) and
 reports each rule ADDED, REMOVED or CHANGED (Reverse diff 2). A rule is the
 label's form, so two forms that normalize identically are equivalent (Reverse
-diff 3): `AFTER` against `ONLY AFTER`, `×` against `*`, a reworded WHY: or UX:
+diff 3): `AFTER` against `ONLY AFTER`, a reworded WHY: or UX:
 or NOTE: beside it, a rule that moved to another label with its form unchanged.
 Equivalence is assumed from nothing else (Reverse diff 4), so a rule the
 normalizer cannot lower (normalize.py, `N-unlowered`) is compared by its text

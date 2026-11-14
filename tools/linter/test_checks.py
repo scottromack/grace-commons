@@ -619,14 +619,18 @@ def check_pattern_ids_synthetic(problems: list[str]) -> int:
 # reading was added at council read 63, when `Reconciliation` crossed Standard
 # label 4's threshold of three in silence because section 18 named it nowhere — the
 # census list being the second hand-census, which is read 58's lesson one layer
-# out. Pinned without a victim: a throwaway grammar and two throwaway patterns,
-# so the fixtures cannot die when a corpus family's count moves.
-CENSUS_GRAMMAR = """### 18. Candidate Forms
-
-NOTE:
-Also watched, and counted: a label family recurring across specs outside the standard set: {listing}.
+# out. Pinned without a victim: a throwaway grammar, a throwaway watch list and
+# two throwaway patterns, so the fixtures cannot die when a corpus family's count
+# moves. The list is its own page, watch-list.md, since GRACE-lang v0.70; the
+# standard set stays the grammar's.
+CENSUS_GRAMMAR = """### 5. Core Rule Shape
 
 Term standard label family: `Identity` (what identifies an instance) | `Invariant` (a property of every reachable state).
+"""
+
+CENSUS_WATCH_LIST = """#### Watch list: repeated cures, counted until stated once
+
+- **a label family recurring across specs outside the standard set**: {listing}.
 """
 
 CENSUS_PATTERN = """Term qualifiers: `migrated` — rewritten in GRACE lang v0.40 (2026-09-14).
@@ -644,8 +648,9 @@ def check_census_synthetic(problems: list[str]) -> None:
     def run(listing: str, families: list[tuple[str, str]]) -> set[str]:
         with tempfile.TemporaryDirectory() as d:
             root = Path(d)
-            (root / "GRACE-lang.md").write_text(
-                CENSUS_GRAMMAR.format(listing=listing), encoding="utf-8")
+            (root / "GRACE-lang.md").write_text(CENSUS_GRAMMAR, encoding="utf-8")
+            (root / "watch-list.md").write_text(
+                CENSUS_WATCH_LIST.format(listing=listing), encoding="utf-8")
             pats = {}
             for stem, fam in families:
                 path = root / f"{stem}.md"
@@ -1192,6 +1197,8 @@ def check_notation_synthetic(problems: list[str]) -> int:
         (root / "roadmap.hist.md").write_text("A ledger: 52 grounded, 58 patterns.\n", encoding="utf-8")
         (root / "roadmap.md").write_text("State: 52 grounded patterns.\n", encoding="utf-8")
         (root / "open-questions.md").write_text("A register: thirty-seven grounded patterns.\n", encoding="utf-8")
+        # the grammar's Watch list, its own page since GRACE-lang v0.70, counts at the read it names
+        (root / "watch-list.md").write_text("Fifty-three documents at council read 101; 12 patterns.\n", encoding="utf-8")
         # the register is record in governance.hist.md; governance.md keeps only rules
         (root / "governance.hist.md").write_text("A register: 41 grounded patterns.\n", encoding="utf-8")
         (root / "governance.md").write_text("Rules: 41 grounded patterns.\n", encoding="utf-8")
@@ -1200,7 +1207,7 @@ def check_notation_synthetic(problems: list[str]) -> int:
                     ("roadmap.md", 1)}:
             problems.append(f"N-live-count: fired at {sorted(hits)}, want readme.md lines 1, 3 and 10, "
                             "governance.md line 1 and roadmap.md line 1")
-        n += 13
+        n += 14
     with tempfile.TemporaryDirectory() as d:
         # M-register-number and M-register-citation read the register in governance.hist.md
         root = Path(d)
@@ -1758,14 +1765,15 @@ def check_rule_symbol_synthetic(problems: list[str]) -> int:
 
 
 def check_inline_arithmetic_synthetic(problems: list[str]) -> int:
-    """A-arith and D-rule-symbol (tools/grace/check.py) — inline arithmetic
-    admitted as sugar at GRACE-lang v0.66, one operator a pair from v0.68
-    (Sugar 4 through 12, Hard invariant 24, Hard invariant 36): one of `+`,
-    `-` and `*` between two operands inside one pair of parentheses stays
-    silent, `×` read as `*`, a parenthesized citation and an outcome's hyphen
-    are no arithmetic, and arithmetic outside a pair, a nested pair, a
-    function, a second operator, a division, a negative literal, another
-    symbol and a clock fire. Returns the fixture count."""
+    """A-arith and D-rule-symbol (tools/grace/check.py) — arithmetic in a rule.
+    Admitted as sugar at GRACE-lang v0.66 (Sugar 4 through 12, Hard invariant
+    24) and deleted at v0.70 to declared arithmetic (Closed vocabulary 9, 31
+    through 34, Hard invariant 35 through 37): a rule names a declared term, a
+    parenthesized citation and an outcome's hyphen are no arithmetic and stay
+    silent, and every arithmetic in a rule fires — the one-operator expression
+    v0.66 admitted, `×` included, as well as arithmetic outside a pair, a nested
+    pair, a function, a second operator, a division, a negative literal, another
+    symbol and a clock. Returns the fixture count."""
     import tempfile
     sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "grace"))
     from check import scan  # noqa: E402
@@ -1778,14 +1786,16 @@ def check_inline_arithmetic_synthetic(problems: list[str]) -> int:
             f.write_text(head + "```\n" + rule + "\n```\n", encoding="utf-8")
             return [x for x in scan(f) if x.code in ("A-arith", "D-rule-symbol")]
     silent = [
-        ("a difference", "Operation 1: A call MUST write balance set to (balance - input)."),
-        ("a product", "Operation 1: A call MUST write total set to (unit price * quantity)."),
-        ("a product written ×", "Operation 1: A call MUST write total set to (unit price × quantity)."),
-        ("in a condition", "Operation 1: IF (spent + input) EXCEEDS the cap THEN a call MUST answer over-cap."),
+        ("a named term", "Operation 1: A call MUST write balance set to the spent balance."),
+        ("a named term in a condition", "Operation 1: IF the spent total EXCEEDS the cap THEN a call MUST answer over-cap."),
         ("a citation", "Operation 1: A call MUST read the store (Execution Contract Read 4)."),
         ("an outcome's hyphen", "Operation 1: A call MUST answer recording-failure(step-2)."),
     ]
     firing = [
+        ("a difference", "Operation 1: A call MUST write balance set to (balance - input)."),
+        ("a product", "Operation 1: A call MUST write total set to (unit price * quantity)."),
+        ("a product written ×", "Operation 1: A call MUST write total set to (unit price × quantity)."),
+        ("in a condition", "Operation 1: IF (spent + input) EXCEEDS the cap THEN a call MUST answer over-cap."),
         ("outside a pair", "Operation 1: A call MUST write balance set to balance - input."),
         ("an asterisk outside a pair", "Operation 1: A call MUST write total set to unit price * quantity."),
         ("a nested pair", "Operation 1: A call MUST write fee set to ((balance - input) * rate)."),
@@ -1800,10 +1810,10 @@ def check_inline_arithmetic_synthetic(problems: list[str]) -> int:
     for name, rule in silent:
         got = run(rule)
         if got:
-            problems.append(f"inline arithmetic: fired on {name}: {got[0].code} {got[0].message}")
+            problems.append(f"arithmetic in a rule: fired on {name}: {got[0].code} {got[0].message}")
     for name, rule in firing:
         if not run(rule):
-            problems.append(f"inline arithmetic: {name} did not fire")
+            problems.append(f"arithmetic in a rule: {name} did not fire")
     return len(silent) + len(firing)
 
 
@@ -2985,11 +2995,11 @@ def main(argv: list[str]) -> int:
     n_arith = check_inline_arithmetic_synthetic(arith_problems)
     failures.extend(arith_problems)
     if not arith_problems:
-        print(f"inline arithmetic: {n_arith} synthetic fixtures hold (a difference, a product, a "
-              "product written \u00d7 and a condition inside one pair, a citation and an outcome's "
-              "hyphen silent; arithmetic and an asterisk outside a pair, a nested pair, a function, "
-              "a second operator, a quotient, a negative literal, another symbol, an operator with "
-              "no spaces and a clock fire) \u2713")
+        print(f"arithmetic in a rule: {n_arith} synthetic fixtures hold (a named term, in a "
+              "condition too, a citation and an outcome's hyphen silent; a difference, a product, a "
+              "product written \u00d7 and a condition inside one pair, arithmetic and an asterisk "
+              "outside a pair, a nested pair, a function, a second operator, a quotient, a negative "
+              "literal, another symbol, an operator with no spaces and a clock fire) \u2713")
 
     decl_arith_problems: list[str] = []
     n_decl_arith = check_declared_arithmetic_synthetic(decl_arith_problems)
