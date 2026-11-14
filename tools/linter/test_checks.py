@@ -697,10 +697,25 @@ def check_pattern_ids_synthetic(problems: list[str]) -> int:
 # out. Pinned without a victim: a throwaway grammar, a throwaway watch list and
 # two throwaway patterns, so the fixtures cannot die when a corpus family's count
 # moves. The list is its own page, watch-list.md, since GRACE-lang v0.70; the
-# standard set stays the grammar's.
+# standard set is spec-format.md's table *Rule families* since v0.72, and a
+# grammar still carrying the old `Term standard label family` list is no
+# longer read for it (fixture 5).
+CENSUS_SPEC_FORMAT = """## Heading standard
+
+### Rule families
+
+| Family | Heading it labels | Shape | Meaning |
+|---|---|---|---|
+| Identity | Identity model | both | what identifies a record |
+| Invariant | Invariants | both | a property of every reachable state |
+| Promoted | Promoted | composition | a family the table promoted |
+
+### Retired heading names
+"""
+
 CENSUS_GRAMMAR = """### 5. Core Rule Shape
 
-Term standard label family: `Identity` (what identifies an instance) | `Invariant` (a property of every reachable state).
+Term standard label family: `Identity` (what identifies an instance) | `Invariant` (a property of every reachable state) | `Relic` (a family only the old grammar line listed).
 """
 
 CENSUS_WATCH_LIST = """#### Watch list: repeated cures, counted until stated once
@@ -724,6 +739,7 @@ def check_census_synthetic(problems: list[str]) -> None:
         with tempfile.TemporaryDirectory() as d:
             root = Path(d)
             (root / "GRACE-lang.md").write_text(CENSUS_GRAMMAR, encoding="utf-8")
+            (root / "spec-format.md").write_text(CENSUS_SPEC_FORMAT, encoding="utf-8")
             (root / "watch-list.md").write_text(
                 CENSUS_WATCH_LIST.format(listing=listing), encoding="utf-8")
             pats = {}
@@ -746,12 +762,23 @@ def check_census_synthetic(problems: list[str]) -> None:
     if got_named:
         problems.append("W-stale-census: fired on a family at two specs — "
                         "below Standard label 4's threshold, so it is not a candidate")
-    # (3) a standard family at three must stay silent: the grammar owns it and
-    #     it is not a promotion candidate
+    # (3) a standard family at three must stay silent: the table *Rule families*
+    #     owns it and it is not a promotion candidate
     got = run("", [("a", "Identity"), ("b", "Identity"), ("c", "Identity")])
     if any("Identity" in m for m in got):
         problems.append("W-stale-census: fired on a standard label family — "
-                        "the grammar owns those and they never stand as candidates")
+                        "the table *Rule families* owns those and they never stand as candidates")
+    # (3b) a family the table promoted leaves the census: silent at three
+    got = run("", [("a", "Promoted"), ("b", "Promoted"), ("c", "Promoted")])
+    if any("Promoted" in m for m in got):
+        problems.append("W-stale-census: fired on a family the table *Rule families* "
+                        "lists — a promoted family leaves the census of candidates")
+    # (5) the grammar's old Term line is no authority since v0.72: a family only
+    #     it lists stands as a candidate at three, and fires unnamed
+    got = run("", [("a", "Relic"), ("b", "Relic"), ("c", "Relic")])
+    if not any("names no `Relic`" in m for m in got):
+        problems.append("W-stale-census: a family only the grammar's old Term line "
+                        "lists was read as standard — the table is the one list (v0.72)")
     # (4) the count reading still works: a listed family whose count is wrong
     got = run("`Wraith` (9)", [("a", "Wraith"), ("b", "Wraith")])
     if not any("`Wraith` is in 9 specs" in m for m in got):
@@ -2303,7 +2330,8 @@ def check_code_span_synthetic(problems: list[str]) -> int:
         ({"actors", "records", "record verbs", "value sets", "terms", "qualifiers"},
          VOCABULARY_CATEGORIES, "category set"),
         ({"MUST", "NOT", "MAY", "EVERY", "EXISTS", "IF", "WHEN"}, reserved_capitals()[0], "reserved tokens"),
-        ({"Identity", "Invariant", "External check", "Housekeeping"}, STANDARD_FAMILIES, "standard families"),
+        ({"Identity", "Invariant", "External check", "Housekeeping", "Action wiring",
+          "Composition state", "Concurrency", "String"}, STANDARD_FAMILIES, "standard families"),
     ):
         readers += 1
         if not want <= set(have):
@@ -3007,9 +3035,10 @@ def main(argv: list[str]) -> int:
     check_census_synthetic(census_problems)
     failures.extend(census_problems)
     if not census_problems:
-        print("W-stale-census: 4 synthetic fixtures hold (an unlisted family at "
-              "three fires; the same family at two, a standard family at three "
-              "and a correct listing silent; a stale listed count fires) \u2713")
+        print("W-stale-census: 6 synthetic fixtures hold (an unlisted family at "
+              "three fires; the same family at two, a standard family at three, "
+              "a promoted family at three and a correct listing silent; a stale "
+              "listed count fires; the grammar's old family line is no authority) \u2713")
 
     heading_problems: list[str] = []
     check_heading_synthetic(heading_problems)

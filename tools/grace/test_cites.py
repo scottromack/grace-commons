@@ -521,5 +521,75 @@ class PluralTermTest(unittest.TestCase):
         self.assertEqual(terms, set())
 
 
+RULE_FAMILIES = """## Heading standard
+
+### Composition headings
+
+| Heading | Level | Inside | Required | Unplaced children |
+|---|---|---|---|---|
+| Action wiring | 3 | Composition logic | yes | no |
+
+### Rule families
+
+| Family | Heading it labels | Shape | Meaning |
+|---|---|---|---|
+| Identity | Identity model (atom); Identity (composition) | both | what identifies a record |
+| Action wiring | Action wiring | composition | the flow of an orchestrating action a composition exposes |
+
+### Retired heading names
+
+| Retired name | Row |
+|---|---|
+| Configuration | Capability requirement |
+"""
+
+
+class RuleFamiliesTest(unittest.TestCase):
+    """GRACE-lang v0.72, Standard label 1: the standard label families are the table
+    titled *Rule families* in spec-format.md, one list beside the heading tables;
+    the grammar's `Term standard label family` names the table and keeps no list."""
+
+    def setUp(self) -> None:
+        self._tmp = tempfile.TemporaryDirectory()
+        self.dir = Path(self._tmp.name)
+
+    def tearDown(self) -> None:
+        self._tmp.cleanup()
+
+    def write(self, text: str) -> Path:
+        path = self.dir / "spec-format.md"
+        path.write_text(text, encoding="utf-8")
+        return path
+
+    def test_the_table_is_read_row_by_row_and_nothing_beside_it(self) -> None:
+        rows = cites.rule_families(self.write(RULE_FAMILIES))
+        self.assertEqual([r["family"] for r in rows], ["Identity", "Action wiring"])
+        self.assertEqual(rows[1], {"family": "Action wiring", "heading": "Action wiring",
+                                   "shape": "composition",
+                                   "meaning": "the flow of an orchestrating action a composition exposes"})
+        self.assertEqual(cites.standard_families(self.dir / "spec-format.md"), {"Identity", "Action wiring"})
+        self.assertEqual(list(cites.standard_glosses(self.dir / "spec-format.md")), ["Identity", "Action wiring"])
+
+    def test_no_table_exits_rather_than_guess(self) -> None:
+        path = self.write(RULE_FAMILIES.split("### Rule families")[0])
+        with self.assertRaises(SystemExit):
+            cites.rule_families(path)
+        with self.assertRaises(SystemExit):
+            cites.rule_families(self.dir / "absent.md")
+
+    def test_the_library_table_carries_the_seventeen_and_the_four_promoted(self) -> None:
+        std = cites.standard_families()
+        self.assertTrue({"Identity", "Operation", "Housekeeping", "Verdict", "Retention asymmetry",
+                         "Action wiring", "Composition state", "Concurrency", "String"} <= std)
+        self.assertFalse({"Clock semantics", "Primitive policy", "Clock dependence"} & std)
+        self.assertEqual(len(std), 21)
+
+    def test_the_family_set_is_read_on_first_use_not_on_import(self) -> None:
+        # the reach walks a corpus with no table (a throwaway repo) without it
+        self.assertEqual(cites.STANDARD_FAMILIES, cites.standard_families())
+        with self.assertRaises(AttributeError):
+            cites.NO_SUCH_NAME  # noqa: B018
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=1)

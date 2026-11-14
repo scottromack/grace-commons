@@ -1,4 +1,4 @@
-# GRACE lang v0.71 — Minimal Earned Grammar
+# GRACE lang v0.72 — Minimal Earned Grammar
 
 Grace lang is a controlled semantic metalanguage for domain specifications.
 
@@ -180,10 +180,10 @@ A label is read by people before a parser: *Non-goal 4* says where to look, *NG4
 
 #### Standard label families
 
-Term standard label family: Identity (what identifies a record) | State (what the spec holds) | Operation (one action's rules) | Invariant (a property of every reachable state) | Check (an acceptance check) | External check (a check needing evidence the records do not carry) | Non-goal (what the spec does not do, and who owns it instead) | Composition note (an obligation on a composing pattern) | Composes (a constituent's role) | Capability requirement (what the deployment supplies) | Wiring decision (the decision a composition exists to make, and the wiring the decision rejects) | Audit arm (how a composition maps the audit substrate's rejection taxonomy at the composition's own boundary) | Reconciliation (the leg running outside every invocation whose output something awaits within a promised window) | Housekeeping (the leg running outside every invocation whose output nothing awaits) | Scope vocabulary (the scopes a composition defines for its Permissions instance, and which action each gates) | Verdict (how a verification read resolves the evidence it reads into its answer) | Retention asymmetry (how a spec answers where a record outlives the audit events that attest it).
+Term standard label family: a label family the table titled Rule families in `spec-format.md` lists.
 
 ```
-Standard label 1: The grammar IS AUTHORITATIVE FOR the standard label families.
+Standard label 1: The table titled Rule families in `spec-format.md` IS AUTHORITATIVE FOR the standard label families.
 Standard label 2: A specification MUST NOT redeclare a standard label family.
 Standard label 3: A label family outside the standard set MUST carry the meaning of the heading the family names.
 Standard label 4: A label family three specifications name MUST stand as a promotion candidate.
@@ -204,7 +204,7 @@ NOTE: the promotion census is `tools/grace/cites.py --drift`'s, checked by `lint
 NOTE: a page writes a move as what may not happen, *a cancelled status MUST NOT move to active*, or as where a record stands, the State family's EXACTLY ONE OF, never as a move a record owes; `tools/grace/check.py`'s `R-invariant-move` gates `MUST move` inside the Invariant family (Standard label 14).
 
 WHY:
-Standard label 4 through 8 are the promotion path; the threshold is a count because the grammar carries no `≥`. Standard label 7 is the gate that matters: three names prove recurrence and nothing about meaning — the drift pass separates *the same word* from *the same concept*. Standard label 9 and 10 settle position from the dependence order a spec's sections already follow; Standard label 11 and 12 let an instrument read a spec's shape without a spec declaring it. A family carries meaning the rule's own words leave out, and declaring the families once here makes that meaning owned rather than conventional (Principle 9 through 11). Standard label 13 and 14 keep a safety claim from reading as a liveness claim: *A status MUST move from pending to …* obliges every pending record to move, so a pending record nobody resolves breaks a rule meant only to say which way a move goes.
+Standard label 4 through 8 are the promotion path; the threshold is a count because the grammar carries no `≥`. Standard label 7 is the gate that matters: three names prove recurrence and nothing about meaning — the drift pass separates *the same word* from *the same concept*. Standard label 9 and 10 settle position from the dependence order a spec's sections already follow; Standard label 11 and 12 let an instrument read a spec's shape without a spec declaring it. A family carries meaning the rule's own words leave out, and declaring the families once makes that meaning owned rather than conventional (Principle 9 through 11). They are declared beside the heading tables rather than here because a family is the label of a heading: one list, in the document that owns the headings, where the instruments already read them, and two lists of one thing drift. Standard label 13 and 14 keep a safety claim from reading as a liveness claim: *A status MUST move from pending to …* obliges every pending record to move, so a pending record nobody resolves breaks a rule meant only to say which way a move goes.
 
 #### Casing tiers
 

@@ -1241,13 +1241,38 @@ def check_formal_siblings(root: Path, patterns: dict[Path, Pattern]) -> list[Fin
     return findings
 
 
+def standard_label_families(spec_format_text: str) -> set[str]:
+    """The standard label families: the first cell of every row of the table
+    titled *Rule families* in spec-format.md's section *Heading standard*
+    (GRACE-lang v0.72, Standard label 1). Until v0.72 the set was the
+    grammar's `Term standard label family` line, a second list that disagreed
+    with the heading tables; the table is the one list now, and this reads it
+    as `heading_standard` reads the heading tables, holding no copy. No table,
+    no standard set: every family then reads as a candidate."""
+    start = spec_format_text.find("### Rule families\n")
+    out: set[str] = set()
+    if start < 0:
+        return out
+    for line in spec_format_text[start:].split("\n")[1:]:
+        if line.startswith("#") or line.strip() == "---":
+            break
+        if not line.lstrip().startswith("|"):
+            continue
+        cells = [c.strip() for c in line.strip().strip("|").split("|")]
+        if len(cells) == 4 and cells[0] not in ("Family", "") and set(cells[0]) - set("-:"):
+            out.add(cells[0])
+    return out
+
+
 def check_stale_census(root: Path, patterns: dict[Path, Pattern]) -> list[Finding]:
     """W. A label-family count written into the grammar's watch list that no
     longer matches the corpus. Section 18 carried these by hand and they went
     stale on arrival three council reads running; the census is mechanical, so
     disagreeing with it is a finding rather than a discovery (council read 33).
     The list is its own page, `watch-list.md`, since GRACE-lang v0.70; the
-    standard set it is read against stays the grammar's."""
+    standard set it is read against is the table titled *Rule families* in
+    spec-format.md since v0.72 (Standard label 1), read by
+    `standard_label_families`."""
     findings: list[Finding] = []
     watch = root / "watch-list.md"
     try:
@@ -1255,9 +1280,9 @@ def check_stale_census(root: Path, patterns: dict[Path, Pattern]) -> list[Findin
     except OSError:
         return findings
     try:
-        grammar_text = (root / "GRACE-lang.md").read_text(encoding="utf-8")
+        spec_format_text = (root / "spec-format.md").read_text(encoding="utf-8")
     except OSError:
-        grammar_text = ""
+        spec_format_text = ""
     census: dict[str, int] = {}
     for p in patterns.values():
         for m in re.finditer(r"^\s*([A-Z][A-Za-z ]*?) \d+(?:\.\d+)?[a-z]?:", p.text, re.M):
@@ -1295,14 +1320,11 @@ def check_stale_census(root: Path, patterns: dict[Path, Pattern]) -> list[Findin
     # name at all. The comparison above only ever reads counts somebody already
     # wrote down, so a family can cross three in silence -- which is read 58's
     # lesson one layer out, the census *list* being the second hand-census.
-    # Standard families are excluded: the grammar owns those and they are not
-    # promotion candidates (council read 63).
+    # Standard families are excluded: spec-format's table *Rule families* owns
+    # those (the grammar did until v0.72) and they are not promotion
+    # candidates (council read 63).
     listed = {n for n, _ in re.findall(r"`([A-Z][A-Za-z ]+)` \((\d+)\)", text)}
-    std: set[str] = set()
-    sm = re.search(r"^Term standard label family: (.+)$", grammar_text, re.M)
-    if sm:
-        # the family line's value set, names bare since v0.51: `Name (gloss) | …`
-        std = {x.strip().strip("`") for x in re.findall(r"(?:^|\|)\s*([^|(]+?)\s*\(", sm.group(1))}
+    std = standard_label_families(spec_format_text)
     clause = re.search(r"a label family recurring across specs outside the standard set", text)
     clause_line = line_of(text, clause.start()) if clause else 1
     for name, specs in sorted(census.items()):

@@ -389,11 +389,14 @@ def across(specs: list[Spec], seeds: dict[Path, set[str]]) -> dict[str, list[str
 
 CATEGORY_NAMES = {"actors", "records", "record verbs", "value sets", "bounds",
                   "cadences", "terms", "qualifiers", "composing patterns", "cited"}
-_FAMILY_LINE = re.compile(r"^Term standard label family:(.+)$", re.M)
+_RULE_FAMILIES = "### Rule families"
 
 
-def standard_families(grammar_path=None):
-    """The standard label families, from GRACE-lang.md rather than from a copy.
+def rule_families(spec_format_path=None) -> list[dict[str, str]]:
+    """The standard label families, read from the table titled *Rule families*
+    in spec-format.md's section *Heading standard*: one row a family, its
+    `family`, the `heading` it labels, the `shape` (atom, composition or both)
+    and its `meaning` (GRACE-lang v0.72, Standard label 1).
 
     This set was hand-copied here for four versions. It happened to be correct
     every time it was read, which is the only reason the drift never showed:
@@ -402,42 +405,52 @@ def standard_families(grammar_path=None):
     that the grammar has dropped is silently exempt from that report. Council
     read 35 asked whether the tools knew `Capability requirement`; they did,
     by luck rather than by derivation. Same cure as check.py's category set —
-    read the declaration, exit rather than guess (Closed vocabulary 1)."""
-    g = Path(grammar_path) if grammar_path else Path(__file__).resolve().parents[2] / "GRACE-lang.md"
+    read the declaration, exit rather than guess (Closed vocabulary 1). Until
+    v0.72 the declaration was the grammar's `Term standard label family` line,
+    a second list beside spec-format's heading tables that disagreed with them
+    (the review of 2026-11-10); the table now holds the one list, beside the
+    headings its families label, and the Term line names the table."""
+    f = Path(spec_format_path) if spec_format_path else Path(__file__).resolve().parents[2] / "spec-format.md"
     try:
-        m = _FAMILY_LINE.search(g.read_text(encoding="utf-8"))
+        text = f.read_text(encoding="utf-8")
     except OSError:
-        m = None
-    if not m:
+        text = ""
+    start = text.find(_RULE_FAMILIES + "\n")
+    rows: list[dict[str, str]] = []
+    if start >= 0:
+        for line in text[start:].split("\n")[1:]:
+            if line.startswith("#") or line.strip() == "---":
+                break
+            if not line.lstrip().startswith("|"):
+                continue
+            cells = [c.strip() for c in line.strip().strip("|").split("|")]
+            if len(cells) != 4 or cells[0] in ("Family", "") or set(cells[0]) <= set("-:"):
+                continue
+            rows.append({"family": cells[0], "heading": cells[1], "shape": cells[2], "meaning": cells[3]})
+    if not rows:
         raise SystemExit(
-            "cites.py: GRACE-lang.md carries no `Term standard label family` "
-            "line; the standard set has no authority to derive from "
-            "(GRACE-lang Standard label 1)")
-    return set(_family_glosses(m.group(1)))
+            "cites.py: spec-format.md carries no `### Rule families` table; the "
+            "standard set has no authority to derive from (GRACE-lang Standard label 1)")
+    return rows
 
 
-def _family_glosses(body: str) -> dict[str, str]:
-    """`Name (gloss) | Name (gloss)` — the family line's value set, its names bare
-    since v0.51. The `|` inside a gloss's parentheses is not a separator."""
-    out: dict[str, str] = {}
-    depth, cur, parts = 0, "", []
-    for ch in body.strip().rstrip("."):
-        depth += ch == "("
-        depth -= ch == ")"
-        if ch == "|" and depth == 0:
-            parts.append(cur)
-            cur = ""
-        else:
-            cur += ch
-    parts.append(cur)
-    for part in parts:
-        pm = re.match(r"^\s*`?([^`(]+?)`?\s*\((.*)\)\s*$", part, re.S)
-        if pm:
-            out[pm.group(1).strip()] = pm.group(2)
-    return out
+def standard_families(spec_format_path=None) -> set[str]:
+    """The standard label families' names, from the table `rule_families` reads."""
+    return {r["family"] for r in rule_families(spec_format_path)}
 
 
-STANDARD_FAMILIES = standard_families()
+def __getattr__(name: str):
+    # STANDARD_FAMILIES is read on first use, not on import: the reach and the
+    # citation walk need no family list, and a corpus without the table (a
+    # test's throwaway repo) can still be walked; every reader of the set
+    # still exits rather than guess.
+    if name == "STANDARD_FAMILIES":
+        value = standard_families()
+        globals()[name] = value
+        return value
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
+
+
 LABEL_PARTS = re.compile(
     r"^(?P<name>.+?)(?: step (?P<step>[\d½]+)\.(?P<sn>\d+)| (?P<major>\d+)\.(?P<minor>\d+)| (?P<num>\d+))(?P<letter>[a-z]?)$")
 CROSS_REF = re.compile(
@@ -451,16 +464,11 @@ _GLOSS_STOP = frozenset(
     "any no not nothing something whose which than then from".split())
 
 
-def standard_glosses(grammar_path=None) -> dict[str, str]:
-    """Each standard family with the meaning the grammar declares for it —
-    the parenthetical on the same `Term standard label family` line
-    `standard_families` reads the names from. Derived, never copied, for the
-    reason that function's docstring gives."""
-    g = Path(grammar_path) if grammar_path else Path(__file__).resolve().parents[2] / "GRACE-lang.md"
-    m = _FAMILY_LINE.search(g.read_text(encoding="utf-8"))
-    if not m:
-        raise SystemExit("cites.py: GRACE-lang.md carries no `Term standard label family` line")
-    return _family_glosses(m.group(1))
+def standard_glosses(spec_format_path=None) -> dict[str, str]:
+    """Each standard family with the meaning the table titled *Rule families*
+    states for it, in the table's order. Derived, never copied, for the
+    reason `rule_families` gives."""
+    return {r["family"]: r["meaning"] for r in rule_families(spec_format_path)}
 
 
 def _content(s: str) -> set[str]:
@@ -491,7 +499,7 @@ def promote(specs: list["Spec"], family: str, means: str | None) -> int:
     standard = family in glosses
     if standard:
         means = means or glosses[family]
-        print(f"{family} — already standard. The grammar declares it: {means}")
+        print(f"{family} — already standard. spec-format.md's table *Rule families* states it: {means}")
         print("  (this run is a standing audit, not a hearing)")
     else:
         print(f"{family} — not in the standard set.")
@@ -805,10 +813,11 @@ def run(root: Path, argv: list[str]) -> int:
     total = 0
 
     if "--standard" in argv:
-        glosses = standard_glosses()
-        print(f"the standard label families — {len(glosses)}, as GRACE-lang declares them:")
-        for i, (fam, gl) in enumerate(glosses.items(), start=1):
-            print(f"  {i:>2}. {fam} — {gl}")
+        rows = rule_families()
+        print(f"the standard label families — {len(rows)}, as spec-format.md's table "
+              f"*Rule families* lists them (GRACE-lang Standard label 1):")
+        for i, r in enumerate(rows, start=1):
+            print(f"  {i:>2}. {r['family']} — {r['meaning']} [{r['heading']}; {r['shape']}]")
         print("— a family here is standard; a specification MUST NOT redeclare one "
               "(Standard label 2).")
         return 0
@@ -884,8 +893,9 @@ def run(root: Path, argv: list[str]) -> int:
                     families.setdefault(parts.group("name"), set()).add(spec.path.name)
         term_drift = {n: v for n, v in decls.items()
                       if len(v) > 1 and len({b for _, b in v}) > 1}
+        standard = standard_families()
         family_spread = {f: s for f, s in families.items()
-                         if len(s) > 1 and f not in STANDARD_FAMILIES}
+                         if len(s) > 1 and f not in standard}
         if term_drift:
             print(f"terms declared more than one way — {len(term_drift)}:")
             for name in sorted(term_drift):
