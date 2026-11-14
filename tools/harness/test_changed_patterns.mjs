@@ -49,6 +49,15 @@ test("a page alone, and a model beside the page before the move, both name the p
   assert.deepEqual(selection(["compositions/shared-cart.tla"], NAMES).patterns, ["compositions/shared-cart"]);
 });
 
+test("a pattern's coverage matrix names the pattern, and no other harness file does", () => {
+  const sel = selection(["tools/harness/coverage/gift-card.md", "atoms/models/gift-card.tla"], NAMES);
+  assert.deepEqual(sel.patterns, ["atoms/gift-card"]);
+  assert.deepEqual(selection(["tools/harness/coverage/shared-cart.md"], NAMES).patterns, ["compositions/shared-cart"]);
+  assert.deepEqual(selection(["tools/harness/coverage/unknown.md"], NAMES), { mode: "none" }); // a matrix of no page
+  assert.deepEqual(selection(["tools/harness/coverage/gift-card.md", "tools/harness/audit.mjs"], NAMES), { mode: "all" });
+  assert.deepEqual(selection(["tools/harness/coverage/event-log-extra.md"], NAMES).patterns, ["atoms/event-log-extra"]);
+});
+
 test("Recoverable Invocation is left to its own workflow", () => {
   assert.deepEqual(selection(["compositions/models/recoverable-invocation.tla"], NAMES), { mode: "none" });
   const both = selection(["compositions/models/recoverable-invocation.tla", "atoms/models/cart.als"], NAMES);
