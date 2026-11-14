@@ -35,14 +35,20 @@ name: Verify corpus claims
 #                 (workflow_dispatch), in a group no push cancels. It is the library's
 #                 proof.
 #
-# The whole library audits only what is new (unit `tooling: lighter on GitHub`, Scott
-# 2026-11-14, "we should also be good citizens and stop hammering github"). The
-# `decide` job compares HEAD with the commit of the last whole-library run that
-# succeeded (a schedule or a workflow_dispatch run); when they are the same, the
-# nightly and a dispatch end green in seconds and say "nothing changed since <sha>".
-# Saturday's 06:00 UTC rescan, the weekly run that depends on nobody's attention,
-# stays unconditional, and that night's 08:00 UTC run does not also run: one
-# whole-library audit on a Saturday. A push is not touched by any of this.
+# The whole library audits only what it reads (unit `tooling: the nightly skips unless what it
+# reads changed`, Scott 2026-11-14, "we should also be good citizens and stop hammering
+# github"). The `decide` job compares the commit of the last whole-library run that
+# succeeded (a schedule or a workflow_dispatch run) with HEAD, by path: when no file
+# under this workflow's own `on.push.paths` differs, the nightly and a dispatch end green
+# in seconds, saying "nothing the audit reads changed since <sha>"; a site page alone
+# never starts an audit. The list is the push filter's, read from this file by
+# .github/scripts/audit-guard.sh, so the two cannot differ. In doubt it audits (no run
+# found, that commit not an ancestor of HEAD, the comparison failing). Saturday's 06:00
+# UTC rescan, the weekly run that depends on nobody's attention, runs whatever changed,
+# and that night's 08:00 UTC run does not also run: one whole-library audit on a Saturday.
+# A change to this file alone is proved once, by the night's run, and not also by the push
+# (see "Choose what this run audits"); a change under tools/harness still audits the whole
+# library on the push.
 
 on:
   workflow_dispatch:
@@ -76,7 +82,11 @@ jobs:
     outputs:
       skip: ${{ steps.guard.outputs.skip }}
     steps:
-      - name: Compare HEAD with the last whole-library run that succeeded
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0   # the last run's commit must be reachable to compare paths
+
+      - name: Compare what the audit reads with the last whole-library run that succeeded
         id: guard
         env:
           GH_TOKEN: ${{ github.token }}
@@ -93,13 +103,11 @@ jobs:
             last=$( { gh run list --workflow verify.yml --event schedule --status success --limit 1 --json headSha,createdAt
                       gh run list --workflow verify.yml --event workflow_dispatch --status success --limit 1 --json headSha,createdAt; } \
                     | jq -s 'add | sort_by(.createdAt) | last | .headSha // empty' -r)
-            if [ -n "$last" ] && [ "$last" = "${{ github.sha }}" ]; then
-              skip=true
-              echo "::notice::nothing changed since $last"
-              echo "nothing changed since $last" >> "$GITHUB_STEP_SUMMARY"
-            else
-              echo "Last whole-library run that succeeded: ${last:-none}; HEAD ${{ github.sha }}; auditing."
-            fi
+            verdict=$(bash .github/scripts/audit-guard.sh .github/workflows/verify.yml "$last" "${{ github.sha }}")
+            echo "$verdict"
+            case "$verdict" in
+              skip:*) skip=true; echo "::notice::${verdict#skip: }"; echo "${verdict#skip: }" >> "$GITHUB_STEP_SUMMARY" ;;
+            esac
           fi
           echo "skip=$skip" >> "$GITHUB_OUTPUT"
 
@@ -187,7 +195,13 @@ jobs:
           if [ "${{ github.event_name }}" = "push" ]; then
             before="${{ github.event.before }}"
             if [ -n "$before" ] && git cat-file -e "${before}^{commit}" 2>/dev/null; then
-              chosen=$(git diff --name-only "$before" "${{ github.sha }}" | node tools/harness/changed-patterns.mjs --root .)
+              files=$(git diff --name-only "$before" "${{ github.sha }}")
+              # a change to this workflow file alone is proved once, by the night's run: unless the push also
+              # changed something under tools/harness, the file is not what the push audits
+              if ! printf '%s\n' "$files" | grep -q '^tools/harness/'; then
+                files=$(printf '%s\n' "$files" | grep -v '^\.github/workflows/verify\.yml$' || true)
+              fi
+              chosen=$(printf '%s\n' "$files" | node tools/harness/changed-patterns.mjs --root .)
             else
               chosen=all   # no usable base (a new branch, a rewritten history): audit everything
             fi

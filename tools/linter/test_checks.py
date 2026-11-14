@@ -1525,6 +1525,54 @@ def check_notation_synthetic(problems: list[str]) -> int:
             problems.append(f"A-unserved-link: fired at {got}, want {want}")
         n += 8
     with tempfile.TemporaryDirectory() as d:
+        # .github/scripts/audit-guard.sh (unit `tooling: the nightly skips unless what it reads changed`): the
+        # guard reads the workflow's own push paths; a site page alone is skipped, anything the audit reads is not
+        import subprocess
+        root = Path(d)
+        script = Path(__file__).resolve().parents[2] / ".github" / "scripts" / "audit-guard.sh"
+        wf = root / ".github" / "workflows" / "verify.yml"
+        wf.parent.mkdir(parents=True)
+        wf.write_text("on:\n  push:\n    branches:\n      - main\n    paths:\n      - 'atoms/**'\n      - 'compositions/models/probe-*'   # a prefix\n"
+                      "      - 'tools/**'\n      - '.github/workflows/verify.yml'\n  schedule:\n    - cron: '0 8 * * *'\n", encoding="utf-8")
+
+        def git(*a):
+            return subprocess.run(["git", "-C", str(root), "-c", "user.name=t", "-c", "user.email=t@t", *a],
+                                  capture_output=True, text=True).stdout.strip()
+
+        def commit(files):
+            for rel, text in files.items():
+                p = root / rel
+                p.parent.mkdir(parents=True, exist_ok=True)
+                p.write_text(text, encoding="utf-8")
+            git("add", "-A")
+            git("commit", "-q", "-m", "c")
+            return git("rev-parse", "HEAD")
+
+        git("init", "-q")
+        base = commit({"atoms/a.md": "a", "site.md": "s", "compositions/models/probe-x.tla": "p"})
+        site = commit({"site.md": "s2", "why.md": "w"})
+        pattern = commit({"atoms/a.md": "a2"})
+        model = commit({"compositions/models/probe-y.tla": "q"})
+        other_model = commit({"compositions/models/iso-y.tla": "q"})
+        tool = commit({"tools/t.py": "t"})
+        flow = commit({".github/workflows/verify.yml": wf.read_text() + "# edited\n"})
+
+        def verdict(last, head, workflow=wf):
+            r = subprocess.run(["bash", str(script), str(workflow), last, head], capture_output=True, text=True, cwd=root)
+            return r.stdout.split(":")[0]
+        want = [("site pages only", verdict(base, site), "skip"), ("a pattern page", verdict(site, pattern), "audit"),
+                ("a model under a listed prefix", verdict(pattern, model), "audit"),
+                ("a model outside every listed prefix", verdict(model, other_model), "skip"),
+                ("a file under tools", verdict(other_model, tool), "audit"), ("the workflow file", verdict(tool, flow), "audit"),
+                ("a range that holds a pattern", verdict(base, pattern), "audit"), ("the same commit", verdict(flow, flow), "skip"),
+                ("no run found", verdict("", flow), "audit"),
+                ("a commit that is no ancestor", verdict(pattern, site), "audit"),
+                ("a commit not in the clone", verdict("0" * 40, flow), "audit")]
+        for name, got, expected in want:
+            if got != expected:
+                problems.append(f"audit-guard: {name} read as {got}, wanted {expected}")
+        n += len(want)
+    with tempfile.TemporaryDirectory() as d:
         # M-register-number and M-register-citation read the register in governance.hist.md
         root = Path(d)
         (root / "governance.hist.md").write_text(
