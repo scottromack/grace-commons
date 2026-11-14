@@ -34,8 +34,9 @@ When drafting a new pattern, additionally read the most structurally adjacent ex
 - [`why.md`](./why.md) — the front door's argument, cut to about 300 words on 2026-11-14 (the atom and composition vocabulary lives in [`spec-format.md`](./spec-format.md)). [`readme.md`](./readme.md) — the Start Here landing/tour at the site root.
 - [`the-spec-layer.md`](./the-spec-layer.md) — the architectural manifesto, a dated essay that owns no rule. [`method.md`](./method.md) — the method's loops and its principles: the information-management triad and the bridge test.
 - [`pressure-testing.md`](./pressure-testing.md) — three-pass methodology; the section titled *What DONE means* (the round and the status words); formal models, the formal-layer vote, the coverage cross-check; capability provenance; regulated-pattern conventions; the no-snapshot rule.
-- [`spec-format.md`](./spec-format.md) — the three spec shapes, required sections, reading tiers, authoring conventions.
-- [`contributing.md`](./contributing.md) — contribution lifecycle; workflow for adding a new pattern; implementation-discovered findings; formal-model artifact conventions.
+- [`spec-format.md`](./spec-format.md) — the two spec shapes, required sections, reading tiers, authoring conventions, the term entry, the workflow for adding a new pattern.
+- [`contributing.md`](./contributing.md) — contribution lifecycle, and where each kind of contribution goes; the workflow, the findings rule and the model conventions it once held are in `spec-format.md` and `pressure-testing.md`.
+- [`marketing.md`](./marketing.md) — the rules for anything said in Grace's name outside the library; read before writing or changing a front-door page.
 - [`execution-contract.md`](./execution-contract.md) — runtime semantics; composition state; substrate invocation; testing model; conformance.
 - [`roadmap.md`](./roadmap.md) — the library's state, printed: a pattern's own Status line is the source of its state and roadmap.md prints it, beside the retired names, the forthcoming patterns and the open method work.
 - [`open-questions.md`](./open-questions.md) — only what is open: the deliberately-deferred decisions and the classes the grammar is still accumulating, each with what would decide it; the answered ones are in [`open-questions.hist.md`](./open-questions.hist.md). Read before touching anything it names.
