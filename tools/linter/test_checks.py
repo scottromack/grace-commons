@@ -39,6 +39,7 @@ from lint import (  # noqa: E402
     check_council_register,
     check_views_current,
     check_live_counts,
+    check_audit_claim,
     check_migration_seam,
     check_heading_standard,
     check_range_form,
@@ -1423,6 +1424,37 @@ def check_notation_synthetic(problems: list[str]) -> int:
             problems.append(f"N-live-count: fired at {sorted(hits)}, want readme.md lines 1, 3 and 10, "
                             "governance.md line 1 and roadmap.md line 1")
         n += 14
+    with tempfile.TemporaryDirectory() as d:
+        # S-audit-claim: why.md's "zero failures" holds only while the ledger's latest lines are green
+        root = Path(d)
+        (root / "tools" / "harness").mkdir(parents=True)
+        head = "# date\tfile\trole\tengine\tstates\tcapped\tcommands\tholds\tsatisfiable\tcounterexamples\tvacuous\tverdict\tchecker\n"
+
+        def line(day, f, role, verdict):
+            return f"{day}\t{f}\t{role}\ttla\t9\t0\t-\t-\t-\t-\t-\t{verdict}\ttlc\n"
+
+        def audit(*lines, claim=True):
+            (root / "why.md").write_text("so far, zero failures.\n" if claim else "Nothing about failures here.\n", encoding="utf-8")
+            (root / "tools" / "harness" / "states.tsv").write_text(head + "".join(lines), encoding="utf-8")
+            return sorted((f.code, f.message.split(" is ")[0].split(", but ")[-1]) for f in check_audit_claim(root))
+
+        green = [line("2026-11-13", "a.tla", "model", "HOLDS"), line("2026-11-13", "a-buggy.tla", "twin", "CAUGHT")]
+        if audit(*green):
+            problems.append("S-audit-claim: fired on a green ledger")
+        if audit(*green, line("2026-11-14", "b.tla", "model", "COUNTEREXAMPLE")) != [("S-audit-claim", "b.tla (model)")]:
+            problems.append("S-audit-claim: did not fire on a model that does not hold")
+        if audit(*green, line("2026-11-14", "b-buggy.tla", "twin", "HOLDS")) != [("S-audit-claim", "b-buggy.tla (twin)")]:
+            problems.append("S-audit-claim: did not fire on a twin that was not caught")
+        if audit(line("2026-11-12", "a.tla", "model", "COUNTEREXAMPLE"), *green):
+            problems.append("S-audit-claim: fired on a red line a later run of the same file replaced")
+        if audit(*green, line("2026-11-14", "b.tla", "model", "ERROR")) != [("S-audit-claim", "b.tla (model)")]:
+            problems.append("S-audit-claim: did not fire on a model whose latest run errored")
+        if audit(*green, line("2026-11-14", "b.tla", "model", "COUNTEREXAMPLE"), claim=False):
+            problems.append("S-audit-claim: fired on a page that makes no claim")
+        (root / "why.md").unlink()
+        if check_audit_claim(root):
+            problems.append("S-audit-claim: fired with no why.md")
+        n += 7
     with tempfile.TemporaryDirectory() as d:
         # M-register-number and M-register-citation read the register in governance.hist.md
         root = Path(d)

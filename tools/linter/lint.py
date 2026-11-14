@@ -3280,6 +3280,34 @@ def check_live_counts(root: Path) -> list[Finding]:
     return out
 
 
+def check_audit_claim(root: Path) -> list[Finding]:
+    """S-audit-claim: why.md says the machine checks found "zero failures", and that is
+    true only while the latest whole-library audit is green (unit `site: Why says less`,
+    Scott 2026-11-14): every model's latest line in tools/harness/states.tsv says HOLDS
+    and every twin's says CAUGHT. While why.md carries the claim, a latest line that
+    says otherwise fails the build; a page without the claim is not checked, and a line
+    a later run of the same file replaced does not count."""
+    page = root / "why.md"
+    ledger = root / "tools" / "harness" / "states.tsv"
+    try:
+        if "zero failures" not in page.read_text(encoding="utf-8"):
+            return []
+        rows = ledger.read_text(encoding="utf-8").splitlines()
+    except (OSError, UnicodeDecodeError):
+        return []
+    latest: dict[str, list[str]] = {}
+    for row in rows:
+        c = row.split("\t")
+        if not row.startswith("#") and len(c) >= 12:
+            latest[c[1]] = c
+    want = {"model": "HOLDS", "twin": "CAUGHT"}
+    return [Finding(page, 1, "S-audit-claim",
+                    f"says zero failures, but {c[1]} ({c[2]}) is {c[11]} in tools/harness/states.tsv, "
+                    f"where its verdict should be {want[c[2]]} — fix the model or the claim")
+            for c in sorted(latest.values(), key=lambda c: c[1])
+            if c[2] in want and c[11] != want[c[2]]]
+
+
 def check_views_current(root: Path) -> list[Finding]:
     """V-views-current: the generated views — `graph.md`, `atoms/index.md`,
     `_data/patterns.json`, `_data/stats.json` — match what their generators produce
@@ -3546,6 +3574,7 @@ def main(argv: list[str]) -> int:
     findings += check_page_citations(root)
     findings += check_views_current(root)
     findings += check_live_counts(root)
+    findings += check_audit_claim(root)
     findings += check_requirement_text(patterns)
 
     findings.sort(key=lambda f: (f.code, str(f.path), f.line))

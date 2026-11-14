@@ -16,7 +16,7 @@ A public library of **atoms** and **compositions** expressed as structured natur
 
 If you have no prior context, read in this order:
 
-1. **[`why.md`](./why.md)** — architecture overview, atoms vs. compositions, the three-layers framing. Brief. (`readme.md` is the Start Here landing/tour — orientation for humans, not canon.)
+1. **[`why.md`](./why.md)** — the front door's argument, in five minutes: why Grace exists and what it checks. (Atoms, compositions and the three layers: [`spec-format.md`](./spec-format.md) and the [Roadmap](./roadmap.md).) (`readme.md` is the Start Here landing/tour — orientation for humans, not canon.)
 2. **[`the-spec-layer.md`](./the-spec-layer.md)** — the manifesto, a dated essay: the argument, which owns no rule. The rules it once owned are on [`method.md`](./method.md) (the information-management triad and the bridge test), [`pressure-testing.md`](./pressure-testing.md) (the minimum-formalism principle and the three-tier formal verification stack) and [`spec-format.md`](./spec-format.md) (every visual has a plain text source; atoms are stored flat).
 3. **[`pressure-testing.md`](./pressure-testing.md)** — the three-pass methodology, round structure and grounding semantics, formal-layer machinery, regulated-pattern conventions, capability provenance, the no-snapshot rule.
 4. **[`spec-format.md`](./spec-format.md)** — the three spec shapes, required sections in order, and the cross-cutting authoring conventions (owned there as of 2026-06-11).
@@ -31,7 +31,7 @@ When drafting a new pattern, additionally read the most structurally adjacent ex
 
 ## Canonical documents — where every rule lives
 
-- [`why.md`](./why.md) — the vision page (former home content, moved 2026-07-06): three-layers framing, atom/composition vocabulary. [`readme.md`](./readme.md) — the Start Here landing/tour at the site root.
+- [`why.md`](./why.md) — the front door's argument, cut to about 300 words on 2026-11-14 (the atom and composition vocabulary lives in [`spec-format.md`](./spec-format.md)). [`readme.md`](./readme.md) — the Start Here landing/tour at the site root.
 - [`the-spec-layer.md`](./the-spec-layer.md) — the architectural manifesto, a dated essay that owns no rule. [`method.md`](./method.md) — the method's loops and its principles: the information-management triad and the bridge test.
 - [`pressure-testing.md`](./pressure-testing.md) — three-pass methodology; the section titled *What DONE means* (the round and the status words); formal models, the formal-layer vote, the coverage cross-check; capability provenance; regulated-pattern conventions; the no-snapshot rule.
 - [`spec-format.md`](./spec-format.md) — the three spec shapes, required sections, reading tiers, authoring conventions.
@@ -49,7 +49,7 @@ When drafting a new pattern, additionally read the most structurally adjacent ex
 
 ## Vocabulary — load-bearing terms
 
-Moved — no mirror kept. Atom (atomic concept), composition, freestanding, and emergent invariant are defined in [`why.md`](./why.md); GRID, the three passes, `grounded`, and the Ledger in [`pressure-testing.md`](./pressure-testing.md); the three shapes and regulated overlay in [`spec-format.md`](./spec-format.md); strict spec-language terms in [`glossary.md`](./glossary.md).
+Moved — no mirror kept. Atom (atomic concept), composition, freestanding, and emergent invariant are defined in [`spec-format.md`](./spec-format.md); GRID, the three passes, `grounded`, and the Ledger in [`pressure-testing.md`](./pressure-testing.md); the three shapes and regulated overlay in [`spec-format.md`](./spec-format.md); strict spec-language terms in [`glossary.md`](./glossary.md).
 
 ## Authoring conventions
 

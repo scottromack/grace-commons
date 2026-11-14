@@ -138,7 +138,10 @@ def states_ledger_stats(root):
     rechecked is counted once, at its latest size; a latest line whose verdict is
     ERROR counts nothing (a run the 200,000-state cap stopped is one). States are
     kept apart for models and twins; Alloy counts its commands, models and twins
-    together."""
+    together. `models` counts the models whose latest verdict is HOLDS and `twins` the
+    twins whose latest verdict is CAUGHT (unit `site: Why says less`: the home page
+    prints them), and `states_millions` is both state totals in millions to one decimal,
+    as text, rounded half up in integers so it cannot drift on a float."""
     latest = {}
     path = pathlib.Path(root) / "tools" / "harness" / "states.tsv"
     if path.exists():
@@ -147,14 +150,20 @@ def states_ledger_stats(root):
             if line.startswith("#") or len(c) < 12:
                 continue
             latest[c[1]] = c
-    out = {"states_models": 0, "states_twins": 0, "alloy_commands": 0}
+    out = {"states_models": 0, "states_twins": 0, "alloy_commands": 0, "models": 0, "twins": 0}
     for c in latest.values():
         if c[11] == "ERROR":
             continue
+        if c[2] == "model" and c[11] == "HOLDS":
+            out["models"] += 1
+        elif c[2] == "twin" and c[11] == "CAUGHT":
+            out["twins"] += 1
         if c[3] == "tla" and c[4].isdigit():
             out["states_twins" if c[2] == "twin" else "states_models"] += int(c[4])
         elif c[3] == "als" and c[6].isdigit():
             out["alloy_commands"] += int(c[6])
+    tenths = (out["states_models"] + out["states_twins"] + 50_000) // 100_000
+    out["states_millions"] = f"{tenths // 10}.{tenths % 10}"
     return out
 
 

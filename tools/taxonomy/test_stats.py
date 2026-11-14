@@ -33,12 +33,14 @@ def totals(text=None):
 
 class StatesLedger(unittest.TestCase):
     def test_no_ledger_is_zero(self):
-        self.assertEqual(totals(), {"states_models": 0, "states_twins": 0, "alloy_commands": 0})
+        self.assertEqual(totals(), {"states_models": 0, "states_twins": 0, "alloy_commands": 0,
+                                    "models": 0, "twins": 0, "states_millions": "0.0"})
 
     def test_models_and_twins_apart_alloy_together(self):
         t = totals(HEAD + tla("2026-11-09", "a.tla", "model", 100) + tla("2026-11-09", "a-buggy.tla", "twin", 7)
                    + als("2026-11-09", "b.als", "model", 4) + als("2026-11-09", "b-buggy.als", "twin", 5))
-        self.assertEqual(t, {"states_models": 100, "states_twins": 7, "alloy_commands": 9})
+        self.assertEqual(t, {"states_models": 100, "states_twins": 7, "alloy_commands": 9,
+                             "models": 2, "twins": 0, "states_millions": "0.0"})   # a twin that HOLDS was not caught
 
     def test_a_file_counts_its_latest_line_only(self):
         t = totals(HEAD + tla("2026-11-08", "a.tla", "model", 100) + tla("2026-11-09", "a.tla", "model", 160))
@@ -56,6 +58,24 @@ class StatesLedger(unittest.TestCase):
         moved = [l.replace("\tatoms/", "\tatoms/models/").replace("\tcompositions/", "\tcompositions/models/")
                  for l in lines]
         self.assertEqual(totals(HEAD + "".join(lines)), totals(HEAD + "".join(moved)))
+
+    def test_models_that_hold_and_twins_caught(self):
+        t = totals(HEAD + tla("2026-11-09", "a.tla", "model", 100) + tla("2026-11-09", "b.tla", "model", 5, verdict="ERROR")
+                   + tla("2026-11-09", "a-buggy.tla", "twin", 7, verdict="CAUGHT")
+                   + tla("2026-11-09", "b-buggy.tla", "twin", 7, verdict="HOLDS"))
+        self.assertEqual((t["models"], t["twins"]), (1, 1))
+
+    def test_a_file_counts_once_at_its_latest_verdict(self):
+        t = totals(HEAD + tla("2026-11-08", "a.tla", "model", 100, verdict="COUNTEREXAMPLE")
+                   + tla("2026-11-09", "a.tla", "model", 100))
+        self.assertEqual(t["models"], 1)
+
+    def test_states_millions_is_text_to_one_decimal_rounded_half_up(self):
+        for states, want in ((28_868_653, "28.9"), (50_000, "0.1"), (49_999, "0.0"), (1_050_000, "1.1"),
+                             (25_622_047 + 3_246_606, "28.9"), (100_000_000, "100.0")):
+            t = totals(HEAD + tla("2026-11-09", "a.tla", "model", states))
+            self.assertEqual(t["states_millions"], want, states)
+            self.assertIsInstance(t["states_millions"], str)
 
 
 class ModelsOf(unittest.TestCase):

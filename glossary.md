@@ -59,7 +59,7 @@ a different sense, it must say so locally.
   structural by the composition-state rule); a
   pre-triage item in the guided tool is a **candidate concept** (a stage, consumed
   by triage — promoted or rejected, never outliving Phase 1). Atom and composition
-  are defined in [`why.md`](./why.md); the thesis phrase is claimed in
+  are defined in [`spec-format.md`](./spec-format.md); the thesis phrase is claimed in
   [`the-spec-layer.md`](./the-spec-layer.md).
 - **particle (2026-11-09)** — short for *sub-atomic particle*: a chunk of Grace
   logic smaller than an atom, such as Compensable Workflow's compensating action,
