@@ -42,7 +42,7 @@ cd grace-commons
 
 ## Step 1 — Measure one implementation (~2 minutes)
 
-Build the reference store for the clinical-trial-portal surface and point the conformance validator at it. The validator's checks are lifted from the specs' own *Generation acceptance* sections — the records-alone questions an external auditor would ask.
+Build the reference store for the clinical-trial-portal surface and point the conformance validator at it. The validator's checks are lifted from the specs' own *Generation acceptance* sections — the records-alone questions an external auditor would ask. The twenty were lifted on 2026-06-05, and the patterns have moved since: 20/20 counts those twenty checks as they were then, and the reconcile of that list against today's specs reports 106 differences (`node extract-manifest.mjs --reconcile clinical-trial-portal`; the public gate holds the count to the number recorded beside the manifest, and it only falls).
 
 ```bash
 cd tools/conformance

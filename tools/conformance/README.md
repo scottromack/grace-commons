@@ -155,10 +155,14 @@ render's composition coverage) enforces three things:
   a *hard* finding **unless** the entry carries an explicit `kind_override`
   reason (a documented divergence is reported as info).
 
-Render 1 reconciles at **0 drift findings** with **1 documented override**
-(principal-binding is externally-clearable in the bare spec but
-records-clearable here because render 1 composes Audit Trail). Running it after a
-spec edit tells you immediately whether the manifest drifted. Full
+Render 1's manifest was hand-authored on 2026-06-05, and the specs have moved
+since: run today (2026-11-14) the reconcile reports **106 drift findings**, 72
+spec checks with no manifest entry and 34 manifest claims no longer found verbatim
+in the spec. Running it after a spec edit tells you immediately whether the manifest
+drifted. The public gate (`drift-gate.mjs`, a step of `verify.yml`) runs it on every
+push and fails when the count is above the number recorded in
+`manifests/clinical-trial-portal.drift-record`; the number only falls, and lowering
+it is a commit. Full
 auto-generation of the manifest from prose builds on this; today it keeps the
 hand-authored manifest provably faithful.
 

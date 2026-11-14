@@ -39,7 +39,7 @@ What to notice:
 
 ## Stop 3 — Run the evidence: [Verify It Yourself](./verify.md) *(~20 minutes hands-on, or 5 skimming)*
 
-The auditor checks you just read are not aspirational prose — they are the literal source of a conformance validator, and this library's claims are built to be re-run by strangers. The verify page walks you through measuring an implementation (20/20, counted by a program), watching five independent implementations on unrelated storage engines agree identically, injecting a real historical bug and watching the machinery catch and localize it, and running the formal models with their deliberately-sabotaged twins.
+The auditor checks you just read are not aspirational prose — they are the literal source of a conformance validator, and this library's claims are built to be re-run by strangers. The verify page walks you through measuring an implementation (20/20, counted by a program, on twenty checks lifted on 2026-06-05; the patterns have moved since, and the verify page says by how much), watching five independent implementations on unrelated storage engines agree identically, injecting a real historical bug and watching the machinery catch and localize it, and running the formal models with their deliberately-sabotaged twins.
 
 If you only have five minutes, read the *negative control* step and the *what each number means* section — the failure behavior is more persuasive than the passes.
 

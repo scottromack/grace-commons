@@ -9,6 +9,10 @@ name: Verify corpus claims
 #                  the historical genesis-hash defect and require the harness to
 #                  catch it and localize it to check C1-2b — a gate that cannot
 #                  fail is not a gate.
+#                  It also reconciles the render's manifest with the specs as they
+#                  stand and fails when the differences exceed the number recorded
+#                  in tools/conformance/manifests/clinical-trial-portal.drift-record
+#                  (the twenty checks were lifted on 2026-06-05; the number only falls).
 #
 #   formal-models  bootstrap the checkers (npm-only; JRE 17 to /tmp) and audit
 #                  every .tla/.als model in the corpus: correct models must
@@ -138,6 +142,11 @@ jobs:
 
       - name: Validate render 1
         run: node validate.mjs clinical-trial-portal
+
+      - name: Reconcile the manifest with the specs — the drift must not grow
+        # the manifest's twenty checks were lifted on 2026-06-05; the specs have moved since. The count may
+        # fall (lower manifests/clinical-trial-portal.drift-record in a commit) and never rises past the record.
+        run: node drift-gate.mjs clinical-trial-portal
 
       - name: Multi-render agreement
         run: |
