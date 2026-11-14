@@ -1,12 +1,13 @@
 ---
 title: Earning Source of Truth
-nav_order: 2
-parent: The Method
+nav_exclude: true
 has_toc: true
 toc: true
 ---
 
 # Earning "Source of Truth"
+
+*An essay of 2026-11-05, kept as written; the argument today is [Why](./why.md).*
 
 <details markdown="block">
 <summary>Table of contents</summary>

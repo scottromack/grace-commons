@@ -17,7 +17,7 @@ A public library of **atoms** and **compositions** expressed as structured natur
 If you have no prior context, read in this order:
 
 1. **[`why.md`](./why.md)** — architecture overview, atoms vs. compositions, the three-layers framing. Brief. (`readme.md` is the Start Here landing/tour — orientation for humans, not canon.)
-2. **[`the-spec-layer.md`](./the-spec-layer.md)** — the manifesto. *Principles* and *Bridges* anchor the framing.
+2. **[`the-spec-layer.md`](./the-spec-layer.md)** — the manifesto, a dated essay: the argument, which owns no rule. The rules it once owned are on [`method.md`](./method.md) (the information-management triad and the bridge test), [`pressure-testing.md`](./pressure-testing.md) (the minimum-formalism principle and the three-tier formal verification stack) and [`spec-format.md`](./spec-format.md) (every visual has a plain text source; atoms are stored flat).
 3. **[`pressure-testing.md`](./pressure-testing.md)** — the three-pass methodology, round structure and grounding semantics, formal-layer machinery, regulated-pattern conventions, capability provenance, the no-snapshot rule.
 4. **[`spec-format.md`](./spec-format.md)** — the three spec shapes, required sections in order, and the cross-cutting authoring conventions (owned there as of 2026-06-11).
 5. **[`contributing.md`](./contributing.md)** — contribution shape, the three perspectives, quality bar, lifecycle, the workflow for adding a new pattern, and the implementation-discovered-findings discipline.
@@ -32,7 +32,7 @@ When drafting a new pattern, additionally read the most structurally adjacent ex
 ## Canonical documents — where every rule lives
 
 - [`why.md`](./why.md) — the vision page (former home content, moved 2026-07-06): three-layers framing, atom/composition vocabulary. [`readme.md`](./readme.md) — the Start Here landing/tour at the site root.
-- [`the-spec-layer.md`](./the-spec-layer.md) — the architectural manifesto; principles, bridges, tone.
+- [`the-spec-layer.md`](./the-spec-layer.md) — the architectural manifesto, a dated essay that owns no rule. [`method.md`](./method.md) — the method's loops and its principles: the information-management triad and the bridge test.
 - [`pressure-testing.md`](./pressure-testing.md) — three-pass methodology; the section titled *What DONE means* (the round and the status words); formal models, the formal-layer vote, the coverage cross-check; capability provenance; regulated-pattern conventions; the no-snapshot rule.
 - [`spec-format.md`](./spec-format.md) — the three spec shapes, required sections, reading tiers, authoring conventions.
 - [`contributing.md`](./contributing.md) — contribution lifecycle; workflow for adding a new pattern; implementation-discovered findings; formal-model artifact conventions.
@@ -81,7 +81,7 @@ Moved — owned by the section titled *Implementation-discovered findings* in [`
 
 ## Tone
 
-Moved — the verbosity-preserves-meaning and bridges-over-walls principles are owned by [`the-spec-layer.md`](./the-spec-layer.md) (the sections titled *The Architecture*, *Principles* and *Bridges*); complete-over-concise and the reading tiers by [`spec-format.md`](./spec-format.md). The litmus test for any addition: *does this build a bridge, or does it build a wall?*
+Moved — the bridges-over-walls principle (the bridge test) and the information-management triad are owned by the section titled *Principles* in [`method.md`](./method.md); complete-over-concise and the reading tiers by [`spec-format.md`](./spec-format.md). The verbosity-preserves-meaning argument is in the essay [`the-spec-layer.md`](./the-spec-layer.md) (the section titled *The Architecture*), which owns no rule. The litmus test for any addition: *does this build a bridge, or does it build a wall?*
 
 ---
 

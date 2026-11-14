@@ -109,6 +109,8 @@ Because the spec is the source and the code is derived, Grace binds to no stack,
 
 And it does not claim to be finished — it says so in the open. Every pattern carries a measured quality grade, today 92–99%, against a published rubric anyone can re-run, and it names the assumptions and the work it still owes. The methodology follows the pattern it teaches: strong now, evolving under discipline as more authors and real use bear on it. The homework is done in public, and the means to prove it wrong come with it.
 
+For the long form, two dated essays: [The Spec Layer](./the-spec-layer.md), the architecture argued in full, and [Earning "Source of Truth"](./positioning.md), where Grace sits in the lineage.
+
 ---
 
 *Grace Commons is the open foundation. The patterns that belong to everyone should live somewhere everyone can see them.*

@@ -1,12 +1,13 @@
 ---
 title: The Spec Layer
-nav_order: 1
-parent: The Method
+nav_exclude: true
 has_toc: true
 toc: true
 ---
 
 # The Spec Layer
+
+*An essay of 2026-11-09, kept as written; the argument today is [Why](./why.md); the rules it once owned live on [Pressure Testing](./pressure-testing.md#formal-models--the-parallel-verification-surface), [Spec Format](./spec-format.md) and [The Method](./method.md#principles).*
 
 <details markdown="block">
 <summary>Table of contents</summary>
@@ -62,9 +63,7 @@ English here means *structured* natural language — organized into definitions,
 
 **Round-trip is load-bearing.** The canonical layer is canonical only if every formal target round-trips back (can be translated into another format and translated back again without losing meaning). Grace Commons → Alloy → Grace Commons should yield an equivalent spec; Grace Commons → OpenAPI → Grace Commons should yield the same. One-way translation makes the spec a label on a code artifact; bidirectional translation makes the spec the source. *Symmetric* round-trips (between canonical English and formal notation) are ideally lossless, with any deliberate loss documented. *Asymmetric* round-trips (legacy code → spec → fresh code) are lossy on the inbound leg because intent is never fully in the code; both halves are still meaningful on their own. Both flavors are essential for the architecture to mean what it claims.
 
-**Every visual representation has a plain text source. The text is canonical. The visual is a view.** Diagrams, models, entity maps, flow charts — all are generated from the spec, not maintained alongside it. A diagram that exists independently of its plain text source is an artifact waiting to drift. The failure mode is familiar: a Lucidchart box-and-arrow drawing becomes the de facto spec, nobody knows if the system still matches it, and the drawing is too far from the code to verify. In the Spec Layer, diagrams are rendered from text the same way code is compiled from spec — on demand, from the canonical source, never hand-maintained in parallel.
-
-Exploration can be multimodal. Truth must be textual. Sketch in anything. Canonize in text.
+The rule that every visual representation has a plain text source, and that the text is canonical, lives on [Spec Format](./spec-format.md#every-visual-has-a-plain-text-source).
 
 **The UI spec occupies a distinct axis from the composition hierarchy.** Leaf specs compose into behaviors, behaviors into capabilities, capabilities into systems — that is the vertical axis, describing what the domain *does*. The UI spec is perpendicular: it describes how a human *perceives, understands, acts on, and recovers from* the domain at a given surface. The same underlying business logic can surface through React, SwiftUI, a PDF report, a CLI dashboard, or an HTML email. Different host bodies. Same interface truth.
 
@@ -151,7 +150,7 @@ Patterns are vocabulary-neutral and structurally defined. The credit limit check
 
 Recognition is taxonomic intelligence (the ability to correctly classify things by choosing the right dimensions of similarity). Linnaeus's contribution (Carl Linnaeus invented the modern system for classifying all living things — grouping whales with mammals, not fish) was not observing whales but deciding that reproductive structure is a more fundamental classifier than habitat. The equivalent for business patterns is deciding which dimensions of business logic carry cross-domain signal. Candidate axes: resource lifecycle, trust boundaries, temporal coupling, failure semantics, consistency requirements. The axes are where the intellectual work lives. Once the axes are right, patterns cluster cleanly.
 
-*The axes question — resolved (2026-06-08).* The Grace Commons categories began as folders that deliberately mixed conceptual axes — some behavioral (temporal), some regulatory (compliance), some tier-of-difficulty (productivity primitives), some structural (resource-lifecycle). That mixing is now resolved structurally rather than by re-cutting folders: atoms are stored flat, cross-cutting classification (regulated, security, standards) is **derived** from the composition graph as overlays, and `domain` is the single intrinsic, EOS-gated axis. The earlier discipline — defer the structural cut until content forces it, rather than relocate the same confusion under new labels — is exactly what made the derivation trustworthy when the cut finally came: the usage-derived taxonomy ([`atoms/TAXONOMY.md`](./atoms/TAXONOMY.md)) reads classification off a reviewed substrate (the composition graph) instead of guessing one folder per atom. The same posture pressure-testing applies to atoms holds one level up — and here it paid off as a derivation that needed no relabeling.
+The axes question was resolved on 2026-06-08, atoms stored flat and classification derived, and the ruling lives on [Spec Format](./spec-format.md#atoms-are-stored-flat-classification-is-derived).
 
 The architecture separates the commodity 90% from the proprietary 10%. Universal patterns belong in an open commons: **Grace Commons**, a shared library named for Grace Hopper. Domain-specific patterns extracted from real systems are the proprietary moat. This is structurally trustworthy: customers don't have to trust that vendor data handling preserves their secrets, because the architecture makes the trust question moot. The open foundation legitimizes the standard. The proprietary patterns earn their keep through engagement work.
 
@@ -245,13 +244,7 @@ The novel contributions, against this inherited background, are bounded and spec
 
 This architecture is software engineering done one level up. The principles that discipline good code also discipline good intent — but in two different ways, depending on the principle.
 
-**The information-management triad** is the architecture's specific contribution. These three principles produce most of the Spec Layer's shape when applied at the intent level rather than the code level:
-
-- **DRY** (Don't Repeat Yourself) → *Don't Repeat Intent.* Every concept is defined once and referenced, not duplicated. The atom-and-composition split makes this structural rather than aspirational: an atom is freestanding intent named in one place; a composition names the atoms it composes by reference, never by re-stating them.
-- **SSOT** (Single Source of Truth) → *One Canonical Intent Layer.* The spec is canonical; code, tests, documentation, contracts, runbooks are derived. Competing sources of truth disappear by construction — there is one place where the system's intent lives, and everything else regenerates from it.
-- **Explicit over Implicit** → *No Hidden Semantics Across Boundaries.* The load-bearing decisions — identity, normalization, atomicity, clock semantics, what an action returns, what gets rejected and why — are stated, not inferred. Decisions deferred dressed up as ambiguity are a defect that pressure-testing catches.
-
-These three together solve the multi-artifact-truth-distribution problem the Spec Layer exists to solve. They are what makes this architecture different from existing requirements engineering, BDD, design-by-contract, and the other traditions the Inheritance section names. Each of those touches one or two of the three; only the synthesis applies all three simultaneously.
+**The information-management triad**, the architecture's specific contribution, lives on [The Method](./method.md#the-information-management-triad).
 
 **The design-quality principles** are inherited rather than reinvented. They apply at every abstraction level — code, design, architecture, intent — without needing a special intent-level reframing:
 
@@ -266,21 +259,7 @@ These show up in well-formed patterns automatically, the same way they show up i
 
 The honest framing: the information-management triad is what we are claiming as novel. The design-quality principles are what we are inheriting. Both matter; only the first is the contribution.
 
-**The minimum-formalism principle** is the operating discipline that governs how rigor is introduced into a spec. We embrace the smallest possible formalism when irreducible complexity requires it, defaulting to plain English but employing high-logic tooling under the hood. The result satisfies human readability and the highest possible verification output simultaneously — not as a compromise between the two but as a consequence of the correct architecture.
-
-Plain English is the canonical representation and the default. Formalism is introduced only at the layer where it provides coverage the layer above cannot: decision tables and decision trees are inline constructs — self-evident enough to require no prose gloss — that compress complex conditional logic without cost to readability. Alloy, TLA+, and mechanized proof assistants are sibling artifacts that check structural invariants, behavioral sequences, and inductive correctness properties exhaustively against the spec, catching unknown unknowns no prose reviewer thought to probe. Property-based tests are downstream artifacts that verify the compiled implementation against the spec's stated properties. Each layer operates without burdening the layers above it. A reader of a Grace Commons spec never needs to know Alloy; the Alloy model catches what the reader would not have caught.
-
-**The three-tier formal verification stack.** When a pattern or composition warrants formal verification — typically at the compliance and security-critical end of the catalog — the architecture provides three tiers, each reaching further than the one before it:
-
-- **Alloy** (the static data model). Static structural checks over the data model only: what the records may hold at one instant. Whatever happens across steps belongs to TLA+. Catches: malformed identity models, invariant violations over snapshots, structural attacks the prose didn't articulate (e.g., principal-binding exploits in Session-Gated Authorization). Tool: Alloy Analyzer / Alloy 6. Sibling files: `.als`. First natural targets: any composition with a rich relational structure — attribution maps, session-credential bindings, grant pairing maps.
-
-- **TLA+** (everything across steps). Everything that happens across steps, eventually included in every pattern's model. Exhaustive interleaving over every reachable state within bounded constants. Catches: race conditions, cascade-ordering violations, map-consistency failures under concurrent writes, TOCTOU races the action wiring must explicitly handle. Tool: TLC model checker. Sibling files: `.tla` + `.cfg`. Natural fit: any composition whose invariants involve ordering across actions; the TLA+ models for Login, External Onboarding, Attributed Permissions Admin, and Session-Gated Authorization are worked examples.
-
-- **TLAPS** (TLA+'s own proof system: mechanized proof over the same TLA+ model). Proofs that hold for *all* sizes, not just bounded ones, used only for a law a page names as holding for every size (a conservation law, say), checked first by TLC at small sizes. The natural target is any such law whose correctness argument is genuinely inductive — where "it held for N=2,3,4" is not the same as "it holds for all N." First natural target: the `verifyChain` tamper-evidence property in the Tamper Evidence atom and Audit Trail composition. The inductive structure is: if every link in a hash chain has an unbroken predecessor, and the chain was written append-only, then no intermediate record can be silently modified. TLC confirms this at small chain lengths; TLAPS closes the induction.
-
-Every page carries both models, an Alloy model of its data and a TLA+ model of its behavior, unless writing one finds nothing to check; there is no vote on it. TLAPS is added only for a law a page names as holding for every size, after TLC has checked it at small sizes. The minimum-formalism principle governs the proof tier: introduce it only where a bounded check cannot say what the pattern needs said.
-
-This is what makes the architecture both rigorous and accessible — not *rigorous for specialists, accessible for everyone else* but rigorous *and* accessible simultaneously, because the formalism is under the hood and the plain English is on top. The formal tools serve the spec; they do not compete with it, and they are never prerequisites for authoring it.
+The minimum-formalism principle and the three-tier formal verification stack live on [Pressure Testing](./pressure-testing.md#the-minimum-formalism-principle), under *Formal models*.
 
 ## Bridges
 
@@ -296,7 +275,7 @@ The bridges, in order of architectural significance:
 - **Between roles within organizations.** Engineers, designers, auditors, business stakeholders, regulators read the same canonical artifact. Silos that previously translated through lossy handoffs now share one canonical text.
 - **Between solo and enterprise.** Same library, same patterns, same vocabulary. A solo developer and a Fortune 500 use the canonical artifact identically; only the composition count differs.
 
-**The litmus test for every future addition:** *Does this build a bridge, or does it build a wall?* Walls exclude an audience to optimize for another. Bridges accommodate both. The architecture optimizes for bridges by default — that is what *appropriate technology* means in this context.
+**The litmus test for every future addition**, *does this build a bridge, or does it build a wall?*, lives on [The Method](./method.md#the-bridge-test).
 
 ## Why This Will Happen
 

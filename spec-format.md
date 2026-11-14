@@ -45,6 +45,18 @@ Three shapes are canonical:
 
 The overlay is *additive*: a regulated atom carries the atom shape's sections plus the overlay's two extra sections. A regulated composition carries the composition shape's sections plus the overlay's two extras.
 
+### Atoms are stored flat; classification is derived
+
+*The axes question — resolved (2026-06-08).* The Grace Commons categories began as folders that deliberately mixed conceptual axes — some behavioral (temporal), some regulatory (compliance), some tier-of-difficulty (productivity primitives), some structural (resource-lifecycle). That mixing is now resolved structurally rather than by re-cutting folders: atoms are stored flat, cross-cutting classification (regulated, security, standards) is **derived** from the composition graph as overlays, and `domain` is the single intrinsic, EOS-gated axis. The earlier discipline — defer the structural cut until content forces it, rather than relocate the same confusion under new labels — is exactly what made the derivation trustworthy when the cut finally came: the usage-derived taxonomy ([`atoms/TAXONOMY.md`](./atoms/TAXONOMY.md)) reads classification off a reviewed substrate (the composition graph) instead of guessing one folder per atom. The same posture pressure-testing applies to atoms holds one level up — and here it paid off as a derivation that needed no relabeling.
+
+---
+
+## Every visual has a plain text source
+
+**Every visual representation has a plain text source. The text is canonical. The visual is a view.** Diagrams, models, entity maps, flow charts — all are generated from the spec, not maintained alongside it. A diagram that exists independently of its plain text source is an artifact waiting to drift. The failure mode is familiar: a Lucidchart box-and-arrow drawing becomes the de facto spec, nobody knows if the system still matches it, and the drawing is too far from the code to verify. In the Spec Layer, diagrams are rendered from text the same way code is compiled from spec — on demand, from the canonical source, never hand-maintained in parallel.
+
+Exploration can be multimodal. Truth must be textual. Sketch in anything. Canonize in text.
+
 ---
 
 ## Ownership seam with the Execution Contract
@@ -53,7 +65,7 @@ Two core documents describe a Grace Commons spec, and every rule about specs liv
 
 **The Contract's mapping tables are the SSOT bridge.** The Contract's two section-mapping tables — atom section → compilation target, and spec section → test type — are the canonical record of the correspondence between this document's section names and the runtime, together with the section-name classification that accompanies them there (the section titled *Section-name classification* in `execution-contract.md`). This document never restates that correspondence. A section renamed or added here without a corresponding classification entry there is silent drift — the same failure class as a mirrored library-state count — and the section-name lint check specified alongside the Contract's classification exists to catch it mechanically.
 
-**Merge the view, not the source.** If a single unified "language reference" spanning containers and semantics is ever wanted, it is generated as a projection of this document and the Contract — text-canonical / views-derived, the library's own diagram discipline applied to its own documentation. The two sources do not merge: they serve different audiences (drafters versus implementers) and change at different rates, and a merged source would bury the human-bridge material in runtime semantics.
+**Merge the view, not the source.** If a single unified "language reference" spanning containers and semantics is ever wanted, it is generated as a projection of this document and the Contract — text-canonical / views-derived, the library's own diagram discipline (the section titled *Every visual has a plain text source* above) applied to its own documentation. The two sources do not merge: they serve different audiences (drafters versus implementers) and change at different rates, and a merged source would bury the human-bridge material in runtime semantics.
 
 ### Where a rule lives
 

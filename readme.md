@@ -55,7 +55,7 @@ If you only have five minutes, read the *negative control* step and the *what ea
 
 ## Stop 4 — Read the why: [The Spec Layer](./the-spec-layer.md) *(~25 minutes)*
 
-Now the manifesto will read as a description of things you have touched rather than an ambition. The sections worth the closest read: **The Problem** (why software's truth is scattered across eight artifacts that silently disagree), **The Architecture** (why verbose structured English is the canonical form and code is derived), and **Bridges** (the litmus test every addition here must pass). You have already seen each principle operating — the three-tier Event Log spec, the emergent invariants, the validator.
+Now the manifesto will read as a description of things you have touched rather than an ambition. The sections worth the closest read: **The Problem** (why software's truth is scattered across eight artifacts that silently disagree), **The Architecture** (why verbose structured English is the canonical form and code is derived), and **Bridges** (the litmus test every addition here must pass, which now lives on [The Method](./method.md#the-bridge-test)). You have already seen each principle operating — the three-tier Event Log spec, the emergent invariants, the validator.
 
 ---
 
