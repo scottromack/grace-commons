@@ -1,7 +1,7 @@
 ---
 title: Governance
-nav_order: 2
-parent: Community
+nav_order: 7
+parent: The Library
 has_toc: true
 toc: true
 ---

@@ -1,7 +1,7 @@
 ---
 title: Atomic Concepts
-nav_order: 1
-parent: The Corpus
+nav_order: 8
+parent: The Library
 has_children: true
 permalink: /atoms/
 has_toc: true

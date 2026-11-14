@@ -1,7 +1,7 @@
 ---
 title: Glossary
 nav_order: 5
-parent: The Corpus
+parent: The Library
 ---
 
 # Glossary
@@ -51,7 +51,7 @@ a different sense, it must say so locally.
 
 ## Concept, atom, composition, candidate concept
 
-The four terms the library is organized by, drawn as a diagram on [The Corpus](./corpus.md).
+The four terms the library is organized by, drawn as a diagram on [The Library](./corpus.md).
 
 - A **concept** is the unit of separation (Jackson's word, and this library's): one purpose, its own state, actions, and invariants, specifiable without naming anything else.
 - An **atom** is a concept realized in this library — freestanding, stored flat, naming no other pattern.

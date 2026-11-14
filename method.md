@@ -1,12 +1,12 @@
 ---
 title: The Method
-nav_order: 2
-has_children: true
+nav_order: 1
+parent: The Library
 ---
 
 # The Method
 
-How canonical intent gets authored, defended, verified, and compiled here. The two documents below are a **sequence, not a menu** — each assumes the one before it — and this ordering is the piece of intent a flat sidebar could never carry.
+How canonical intent gets authored, defended, verified, and compiled here.
 
 ## Grace closes loops
 
@@ -64,10 +64,3 @@ Four numbers decide when the method acts on a recurrence. Each has one owner, na
 | A label family is a candidate | three | a label family three specifications name stands as a promotion candidate, which the maintainer decides | [`GRACE-lang.md`](./GRACE-lang.md) Standard label 4 |
 | A repeat is stated once | five | a cure five specifications repeat is stated once, in the Execution Contract or the grammar, and each specification cites it | the note on the [Watch list](./watch-list.md), under [`GRACE-lang.md`](./GRACE-lang.md) Section 18 |
 | A compound needs | five | a higher-order composition is extracted only on five exact instances of one problem | the entry *No abstraction without recurrence* in [`pressure-testing.md`](./pressure-testing.md) |
-
-## The two documents
-
-1. **[Pressure Testing](./pressure-testing.md)** — the review discipline that takes a spec from draft to `grounded`, including the formal layer that proves it.
-2. **[Execution Contract](./execution-contract.md)** — the deterministic compilation target a grounded spec lowers to.
-
-Read in order.

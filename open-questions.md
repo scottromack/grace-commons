@@ -1,7 +1,7 @@
 ---
 title: Open Questions
-nav_order: 3
-parent: Community
+nav_order: 11
+parent: The Library
 ---
 
 # Open questions

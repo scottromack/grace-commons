@@ -1,3 +1,9 @@
+---
+title: GRACE lang
+nav_order: 2
+parent: The Library
+---
+
 # GRACE lang v0.72 — Minimal Earned Grammar
 
 Grace lang is a controlled semantic metalanguage for domain specifications.

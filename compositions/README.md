@@ -1,7 +1,7 @@
 ---
 title: Conceptual Compositions
-nav_order: 2
-parent: The Corpus
+nav_order: 9
+parent: The Library
 has_children: true
 permalink: /compositions/
 has_toc: true

@@ -1,7 +1,7 @@
 ---
 title: Execution Contract
-nav_order: 4
-parent: The Method
+nav_order: 3
+parent: The Library
 has_toc: true
 toc: true
 ---
