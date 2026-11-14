@@ -1,0 +1,416 @@
+---
+title: Favorite
+id: 64
+parent: Atomic Concepts
+has_toc: true
+toc: true
+---
+
+# Favorite
+
+<details markdown="block">
+<summary>Table of contents</summary>
+{: .text-delta }
+1. TOC
+{:toc}
+</details>
+
+## Summary
+
+Favorite lets a person mark an item so they can find it again later: a product, a recipe, an article, anything the business shows them. On a screen it is a heart: one tap fills it, the next tap empties it. A person's favorites are that person's own list, and an item is on the list once or not at all. Emptying a heart does not throw the favorite away: it keeps the moment it was first marked, so filling the heart again puts the item back exactly where it was, and a slip of the finger costs one tap. The same tap arriving twice changes nothing the second time. A favorite stays on the list even when the item is discontinued or taken down, because the person saved it and should see what became of it. There is no limit on how many a person may keep. Whether an item is in stock, who is signed in, sharing a list with someone else, and counting how many people like an item each belong to another pattern, which is why one favorite serves a shop, a recipe site and a library alike.
+
+---
+
+## Intent
+
+<details markdown="block">
+<summary>WHY</summary>
+
+A person browsing more than they can use today wants to come back to some of it, and the shape recurs wherever a business shows people items: a heart on a product, a star on a recipe, a bookmark on an article. This atom is that and nothing more. Two decisions carry the weight. Marking and unmarking are two requests, each safe to repeat, so a double tap or a slow connection never undoes what the person meant; the screen sends whichever fits the heart it is showing. And unmarking keeps the favorite with the moment it was first marked, so marking it again restores it where it stood; the list a person sees never reshuffles because of a slip. What the item is, whether it can still be had, and who may look are other patterns' questions, and declining them is what lets one favorite serve products, recipes and articles alike.
+
+</details>
+
+## Structure
+
+### Identity model
+
+```
+Identity 1: The atom MUST identify a favorite by the favorite's pair.
+Identity 2: The atom MUST NOT normalize a person reference.
+Identity 3: The atom MUST compare two person references codepoint for codepoint.
+Identity 4: The atom MUST NOT normalize an item reference.
+Identity 5: The atom MUST compare two item references codepoint for codepoint.
+```
+
+Term favorite: one person's mark on one item, kept from the first mark on — a [Favorite].
+
+Term pair: the person reference and the item reference a favorite carries, or a call names.
+
+Term person reference: the value naming the person a favorite belongs to, in the deployment's own scheme — a [Person Reference]; the atom reads nothing in it.
+
+Term item reference: the value naming the item a favorite is for, such as a product, a recipe or an article, in the deployment's own scheme — an [Item Reference]; the atom reads nothing in it.
+
+Term string cap: the bound on a person reference's length and on an item reference's length in Unicode code points; 1,024 code points where a deployment declares none.
+
+Term seam: the atom's I/O boundary as the section titled Logic Confinement Principle in `execution-contract.md` declares it; the host injects the clock reading, now, here.
+
+NOTE: the atom declares no value a reference, so Execution Contract Logic confinement 13 canonicalizes neither the person reference nor the item reference, and each is recorded as the call carries it (Execution Contract Input 4; Identity 2 through 5).
+
+### State
+
+```
+State 1: EVERY favorite MUST carry person reference, item reference, first marked instant and status.
+State 2: EVERY favorite MUST stand in EXACTLY ONE OF marked, unmarked.
+State 3: The atom MUST NOT remove a favorite.
+```
+
+Term first marked instant: the instant of the first [Mark] call that recorded a favorite — the [First Marked Instant]; set once, never changed.
+
+Term status: where a favorite stands, marked or unmarked — the [Status].
+
+Term marked: the status of a favorite the person keeps — [Marked]; the heart is filled.
+
+Term unmarked: the status of a favorite the person has let go — [Unmarked]; the heart is empty, and the favorite keeps its first marked instant.
+
+### Capability requirement
+
+```
+Capability requirement 1: The deployment MUST supply the database PER Execution Contract Database 1 through 7, Execution Contract Read 1 through 4 and Execution Contract Refusal 1.
+Capability requirement 2: The deployment MUST supply now at the seam PER Execution Contract Logic confinement 11.
+Capability requirement 3: The deployment MAY declare the string cap PER Execution Contract Input 2.
+```
+
+### Operations
+
+```
+mark(person_reference, item_reference)
+  answers ok
+  refuses invalid-person-reference | invalid-item-reference | storage-failure
+
+unmark(person_reference, item_reference)
+  answers ok
+  refuses invalid-person-reference | invalid-item-reference | storage-failure
+
+look_up(person_reference, item_reference)
+  answers marked | unmarked
+
+list(person_reference)
+  answers favorites
+```
+
+```
+Operation 1: IF the person reference EQUALS blank OR the person reference EXCEEDS the string cap THEN a writing action MUST answer invalid-person-reference.
+Operation 2: IF the item reference EQUALS blank OR the item reference EXCEEDS the string cap THEN a writing action MUST answer invalid-item-reference.
+Operation 3: IF no favorite EXISTS for the pair THEN [Mark] MUST record EXACTLY ONE favorite carrying the person reference AND the item reference of the call.
+Operation 4: IF no favorite EXISTS for the pair THEN [Mark] MUST stamp first marked instant from the injected now.
+Operation 5: IF no favorite EXISTS for the pair THEN [Mark] MUST stand the favorite in marked.
+Operation 6: IF the favorite's status EQUALS unmarked THEN [Mark] MUST stand the favorite in marked.
+Operation 7: IF the favorite's status EQUALS marked THEN [Mark] MUST NOT write.
+Operation 8: [Mark] MUST answer ok.
+Operation 9: IF the favorite's status EQUALS marked THEN [Unmark] MUST stand the favorite in unmarked.
+Operation 10: IF the favorite's status EQUALS unmarked THEN [Unmark] MUST NOT write.
+Operation 11: IF no favorite EXISTS for the pair THEN [Unmark] MUST NOT write.
+Operation 12: [Unmark] MUST answer ok.
+Operation 13: [Look Up] MUST answer EXACTLY ONE OF marked, unmarked.
+Operation 14: [Look Up] MUST answer marked ONLY IF a marked favorite EXISTS for the pair.
+Operation 15: [Look Up] MUST NOT write.
+Operation 16: [List] MUST answer EVERY marked favorite carrying the person reference.
+Operation 17: [List] MUST answer a favorite's item reference AND first marked instant.
+Operation 18: [List] MUST answer an empty list for a person reference no marked favorite carries.
+Operation 19: [List] MUST NOT write.
+```
+
+Term writing action: [Mark] | [Unmark] — the actions that change a favorite.
+
+The case space, and the rule that owns each case:
+
+| Call | Case | Answer | Effect on the favorites |
+|---|---|---|---|
+| [Mark] | no favorite for the pair, database accepts | ok | one favorite lands, marked, its first marked instant now (Operation 3 through 5) |
+| [Mark] | the favorite stands unmarked | ok | the favorite stands marked; its first marked instant stands (Operation 6, Invariant 2.1) |
+| [Mark] | the favorite stands marked | ok | none, no write (Operation 7) |
+| [Unmark] | the favorite stands marked | ok | the favorite stands unmarked; nothing is removed (Operation 9, State 3) |
+| [Unmark] | the favorite stands unmarked, or no favorite for the pair | ok | none, no write (Operation 10, Operation 11) |
+| a writing action | person reference blank or over the string cap | [Invalid Person Reference] | none (Operation 1) |
+| a writing action | item reference blank or over the string cap | [Invalid Item Reference] | none (Operation 2) |
+| [Look Up] | a marked favorite for the pair | marked | none (Operation 14, Operation 15) |
+| [Look Up] | an unmarked favorite, or none, for the pair | unmarked | none (Operation 13, Operation 15) |
+| [List] | the person keeps marked favorites | each one's item reference and first marked instant | none (Operation 16, Operation 17, Operation 19) |
+| [List] | the person keeps none | an empty list | none (Operation 18) |
+| any writing call | database refuses the write | [Storage Failure] | none (Execution Contract Read 4) |
+| any call | its read of the database fails | `state-unavailable` | none (Execution Contract Read 1, Execution Contract Read 3) |
+| any call | more than one refusal applies | the refusal listed first on the action's refuses line | none (Execution Contract Refusal 1) |
+
+### Invariants
+
+- **Invariant 1 — An item is a person's favorite once or not at all.**
+  ```
+  Invariant 1.1: Two favorites MUST NOT share a pair.
+  ```
+- **Invariant 2 — A favorite never moves.**
+  ```
+  Invariant 2.1: The atom MUST NOT change a favorite's first marked instant.
+  Invariant 2.2: The atom MUST NOT change a favorite's person reference.
+  Invariant 2.3: The atom MUST NOT change a favorite's item reference.
+  ```
+
+## Examples
+
+The same pattern in two domains, then the rejection paths.
+
+### Online store
+
+A shopper, `ana`, taps the heart on a blue kettle: `mark("ana", "kettle-blue")` answers ok, and the favorite's first marked instant is that moment, 9:14 on Monday. She marks a teapot on Tuesday. Her favorites page asks `list("ana")` and is answered both items, each with its first marked instant, and shows the teapot above the kettle. On Wednesday she taps the kettle's heart by mistake: `unmark("ana", "kettle-blue")` answers ok, and the screen leaves the row in place with an empty heart. She taps it again: `mark("ana", "kettle-blue")` answers ok, and the kettle is marked with the first marked instant it always had, 9:14 on Monday. Nothing moved. A week later the shop discontinues the kettle; `list("ana")` still answers it, and the page shows it as discontinued from the shop's own catalog.
+
+### Recipe site
+
+A cook, `r7`, stars a lentil soup: `mark("r7", "recipe-lentil-soup")` answers ok. The page checks the star for each recipe it shows: `look_up("r7", "recipe-lentil-soup")` answers marked, and `look_up("r7", "recipe-flatbread")` answers unmarked, since `r7` never marked the flatbread. A slow connection sends the same star twice; the second `mark("r7", "recipe-lentil-soup")` answers ok and writes nothing.
+
+### Rejection paths
+
+- `mark("", "kettle-blue")` — rejected as [Invalid Person Reference]: the reference is blank.
+- `mark("ana", "   ")` — rejected as [Invalid Item Reference]: the reference is blank.
+- `mark("", "")` — rejected as [Invalid Person Reference]: two refusals apply, and the one listed first on [Mark]'s refuses line answers (Execution Contract Refusal 1).
+- `unmark("ana", "Kettle-Blue")` — answers ok and writes nothing: two item references are compared codepoint for codepoint, and `ana` holds no favorite for that one (Identity 5, Operation 11).
+
+This covers every refusal but [Storage Failure], which answers when the database refuses a write.
+
+## Generation acceptance
+
+Acceptable when the checks below are provable to an external auditor from the favorites the database holds, with their earlier versions (Execution Contract Database 5). The atom is not regulated and carries no adversarial scenarios.
+
+### Conformance checks
+
+```
+Check 1.1: An auditor MUST find EVERY favorite carrying person reference, item reference, first marked instant AND status (State 1).
+Check 1.2: An auditor MUST find EVERY favorite standing in EXACTLY ONE OF marked, unmarked (State 2).
+Check 2.1: An auditor MUST find no two favorites sharing a pair (Invariant 1.1).
+Check 3.1: An auditor MUST find EVERY version of a favorite carrying the first marked instant of the favorite's first version (Invariant 2.1).
+Check 3.2: An auditor MUST find EVERY version of a favorite carrying the person reference of the favorite's first version (Invariant 2.2).
+Check 3.3: An auditor MUST find EVERY version of a favorite carrying the item reference of the favorite's first version (Invariant 2.3).
+```
+
+Term version: a record as it stood at the commit that wrote it, which Execution Contract Database 5 keeps readable after the record changes.
+
+NOTE: EVERY check names the rule the check tests.
+
+### External checks
+
+```
+External check 1: An auditor needing an item reference confirmed as naming a real item MUST read the deployment's catalog (Non-goal 3).
+```
+
+## Non-goals
+
+```
+Non-goal 1: The atom MUST NOT tell who may read a person's favorites.
+Non-goal 2: The atom MUST NOT tell who may change a person's favorites.
+Non-goal 3: The atom MUST NOT check an item reference against a catalog.
+Non-goal 4: The atom MUST NOT hold an item's availability.
+Non-goal 5: The atom MUST NOT share a person's favorites.
+Non-goal 6: The atom MUST NOT order a person's favorites.
+Non-goal 7: The atom MUST NOT count the persons marking an item.
+Non-goal 8: The atom MUST NOT hold a save-for-later list.
+```
+
+NOTE: the owners — the composing pattern that knows the caller, such as one built on [Session](./session.md) or [Permissions](./permissions.md) (Non-goal 1, 2); Catalog *(forthcoming)* (Non-goal 3, 4; External check 1); Favorite Sharing *(forthcoming)* (Non-goal 5); the composing pattern that shows the list (Non-goal 6); Reaction *(forthcoming)* (Non-goal 7); Save For Later *(forthcoming)* (Non-goal 8).
+
+Where the atom breaks down: a list an item leaves when the person is done with it, which is save for later; a mark other people are meant to see and count, which is a reaction.
+
+## Edge cases
+
+### Concurrency
+
+Two [Mark] calls for one pair are serialized (Execution Contract Database 2): the later reads the favorite the earlier recorded and writes nothing, so a person never holds two favorites for one item (Invariant 1.1). A [Mark] and an [Unmark] for one pair are serialized the same way, and the favorite stands where the later call left it.
+
+### Indeterminate outcome
+
+A caller whose answer is lost may call again, and the repeat is a second call (Execution Contract Error model 1). A repeated [Mark] where the first landed writes nothing and answers ok; a repeated [Unmark] where the first landed writes nothing and answers ok. So a caller repeats either call freely, and a caller needing the truth asks [Look Up].
+
+### An item that is no longer offered
+
+The atom keeps a favorite whatever becomes of the item (State 3, Non-goal 4). The composing pattern that shows the list reads the item's availability from the deployment's catalog and shows it beside the favorite.
+
+## Composition notes
+
+```
+Composition note 1: A composing pattern MUST own what this atom declines.
+Composition note 2: A composing pattern MUST supply the person reference of the caller the composing pattern authenticated.
+```
+
+NOTE: composing patterns — none yet. Forthcoming: Catalog, Favorite Sharing.
+
+## Terms
+
+Each `[Term]` marker above links to its term entry here; a term entry states what the concept *is* and its **Kind**.
+
+### Vocabulary
+
+Term actors: the atom; the host; the deployment (also: a deployment); a composing pattern; the database; a favorite; a writing action; an auditor.
+
+Term records: favorite — one person's mark on one item, carrying person reference, item reference, first marked instant and status.
+
+Term record verbs: identify, normalize, compare, carry, stand, remove, supply, declare, record, stamp, answer, write, change, share, find, read, tell, check, hold, order, count, own, refuse.
+
+Term value sets: writing action is declared above and cited here (GRACE-lang Closed vocabulary 15); status — marked | unmarked.
+
+Term bounds: string cap (the bound on a person reference's length and on an item reference's length in Unicode code points, 1,024 where a deployment declares none).
+
+Term cadences: empty.
+
+Term qualifiers: migrated — drafted in GRACE lang through the Grace connector (2026-11-14).
+
+Term terms: favorite, pair, person reference, item reference, string cap, seam, first marked instant, status, marked, unmarked, writing action, version.
+
+#### Mark
+
+Marks an item as a person's favorite: records the [Favorite] where the pair has none, stamping its [First Marked Instant], or stands an [Unmarked] favorite back in [Marked], leaving its first marked instant as it was. A favorite already marked is left as it is. Answers ok.
+
+Kind: Operation
+
+#### Unmark
+
+Lets a favorite go: stands a [Marked] favorite in [Unmarked] and removes nothing. A favorite already unmarked, or a pair with no favorite, is left as it is. Answers ok.
+
+Kind: Operation
+
+#### Look Up
+
+Answers whether one item is a person's favorite now, [Marked] or [Unmarked], and changes nothing; a pair with no favorite answers unmarked.
+
+Kind: Operation
+
+#### List
+
+Answers every [Marked] favorite of one person, each with its [Item Reference] and [First Marked Instant], and changes nothing; an empty list where the person keeps none.
+
+Kind: Operation
+
+#### Favorite
+
+One person's mark on one item: recorded by the first [Mark], stood in [Unmarked] by [Unmark] and back in [Marked] by [Mark]; never removed by the atom.
+
+Kind: Type
+
+#### Person Reference
+
+Names the person a favorite belongs to, in the deployment's own scheme. Stored as supplied and compared codepoint for codepoint; the atom reads nothing in it, and whether the caller is that person is the composing pattern's question.
+
+Kind:       Field
+Field of:   Favorite
+Projection: person_reference
+
+#### Item Reference
+
+Names the item a favorite is for, in the deployment's own scheme. Stored as supplied and compared codepoint for codepoint; the atom reads nothing in it, and whether it names a real item, and whether that item can still be had, are a catalog's questions.
+
+Kind:       Field
+Field of:   Favorite
+Projection: item_reference
+
+#### First Marked Instant
+
+The instant of the [Mark] call that recorded the favorite, stamped from the injected now; never changed, so a favorite unmarked and marked again keeps it.
+
+Kind:       Field
+Field of:   Favorite
+Projection: first_marked_instant
+
+#### Status
+
+Where a favorite stands: [Marked] or [Unmarked].
+
+Kind:       Field
+Field of:   Favorite
+Projection: status
+
+#### Marked
+
+The status of a favorite the person keeps, and [Look Up]'s answer for one.
+
+Kind:       Member
+Member of:  the status
+Projection: marked
+
+#### Unmarked
+
+The status of a favorite the person has let go, and [Look Up]'s answer for one and for a pair with no favorite.
+
+Kind:       Member
+Member of:  the status
+Projection: unmarked
+
+#### Invalid Person Reference
+
+The refusal of a blank [Person Reference], or one over the string cap, on [Mark] or [Unmark] (Operation 1).
+
+Kind:       Member
+Member of:  the action rejection
+Role:       Outcome
+Projection: invalid-person-reference
+
+#### Invalid Item Reference
+
+The refusal of a blank [Item Reference], or one over the string cap, on [Mark] or [Unmark] (Operation 2).
+
+Kind:       Member
+Member of:  the action rejection
+Role:       Outcome
+Projection: invalid-item-reference
+
+#### Storage Failure
+
+The refusal [Mark] or [Unmark] answers when the database refuses its write after every precondition passes: the Execution Contract's Step 3 failure.
+
+Kind:       Member
+Member of:  the action rejection
+Role:       Outcome
+Projection: storage-failure
+
+<!-- Term registry — shortcut-reference definitions. These produce no visible
+     output; each resolves a [Term] marker to its term entry heading above. -->
+
+[Mark]: #mark
+[Unmark]: #unmark
+[Look Up]: #look-up
+[List]: #list
+[Favorite]: #favorite
+[Person Reference]: #person-reference
+[Item Reference]: #item-reference
+[First Marked Instant]: #first-marked-instant
+[Status]: #status
+[Marked]: #marked
+[Unmarked]: #unmarked
+[Invalid Person Reference]: #invalid-person-reference
+[Invalid Item Reference]: #invalid-item-reference
+[Storage Failure]: #storage-failure
+
+---
+
+## Standards references
+
+Favorite is a primitive with no regulatory anchor. It inherits from:
+
+- **Daniel Jackson, *The Essence of Software*** — the concept as a freestanding, composable unit of software design. The concept was raised in the Concept Design Community forum's concept catalog, where a favorite is a user saving an item for their own review later.
+
+---
+
+## Status
+
+`todo` — see the Ledger.
+
+## Ledger
+
+```
+status: todo
+formal: pending — no model yet
+last gate: none
+
+open: none
+```
+
+## Decisions
+
+- **2026-11-14 — Drafted through the Grace connector mirroring Punch Card, from an interview with the maintainer.** *Chose:* a favorite as one person's mark on one item, a simple toggle on the screen (the submitter, 2026-11-14: "It is a simple toggle usually a heart filled and unfilled"); marking and unmarking as two requests, each safe to repeat (Operation 7, Operation 10, Operation 11); an unmarked favorite kept with its first marked instant, so marking again restores it where it stood (the submitter: "it never 'moves' in my mind"; State 3, Invariant 2.1); a favorite kept whatever becomes of the item, its availability shown from the catalog (the submitter: "product availability status ... should be shown"; Non-goal 4); no limit on a person's favorites (the submitter: "I can't think of a business that would want to limit your hearts"). *Over:* one toggle request (a repeated tap would undo the first); a favorite removed on unmark and recorded anew on mark (the item would jump to the newest place on every slip); the statuses of an item held by the favorite (a recipe has no stock). *Because:* the EOS test keeps one freestanding concept, a person's mark on an item, and names an owner for the catalog, the caller, sharing, counting and save for later (Non-goal 1 through 8); as simple as possible without losing fidelity keeps one record and two statuses.
+
+NOTE: End of Favorite.

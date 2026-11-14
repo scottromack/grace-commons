@@ -148,3 +148,5 @@ patterns:
     file: atoms/punch-card.md
   - id: 63
     file: atoms/money.md
+  - id: 64
+    file: atoms/favorite.md

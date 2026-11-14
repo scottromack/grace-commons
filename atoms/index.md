@@ -23,7 +23,7 @@ toc: true
 
 The freestanding semantic units of Grace Commons — each fully specifiable without naming another atom. Atoms are stored flat (`atoms/<name>.md`); their classification is not a folder but a set of **lenses** over the Intent Graph. Overlays (regulated · security · standards) are read off the composition graph and **report usage, not essence** — a standard shows as *HIPAA via audit-trail*, an uncomposed atom as *composed by: (none yet)*, never a bare boolean. **Domain** is the one intrinsic axis: an optional, EOS-gated tag, default absent. The design and its rationale are in [the taxonomy note](./TAXONOMY.md).
 
-_26 compositions (26 regulated) · 36 atoms · 64 composition→atom edges. Generated from `tools/taxonomy/reverse_index.py`; regenerate with `python3 tools/taxonomy/generate_views.py .`_
+_26 compositions (26 regulated) · 37 atoms · 64 composition→atom edges. Generated from `tools/taxonomy/reverse_index.py`; regenerate with `python3 tools/taxonomy/generate_views.py .`_
 
 ## All atoms
 
@@ -42,6 +42,7 @@ _26 compositions (26 regulated) · 36 atoms · 64 composition→atom edges. Gene
 | [Duplicate Prevention](./duplicate-prevention.md) | — | yes (2) | — | idempotent-reservation, reserve-from-pool |
 | [Erasure Tombstone](./erasure-tombstone.md) | — | — | — | *(none yet)* |
 | [Event Log](./event-log.md) | — | yes (5) | — | audit-trail, compensable-workflow, preference-aware-notification-fanout, reserve-from-pool, shared-cart |
+| [Favorite](./favorite.md) | — | — | — | *(none yet)* |
 | [Gift Card](./gift-card.md) | — | — | — | *(none yet)* |
 | [Invitation](./invitation.md) | — | yes (1) | yes | external-onboarding |
 | [Lease](./lease.md) | — | yes (1) | — | recoverable-invocation |
@@ -155,6 +156,7 @@ Atoms no composition yet composes. The overlays say nothing about them — an ho
 - [Calendar Time](./calendar-time.md)
 - [Condition Register](./condition-register.md)
 - [Erasure Tombstone](./erasure-tombstone.md)
+- [Favorite](./favorite.md)
 - [Gift Card](./gift-card.md)
 - [Medication Order](./medication-order.md)
 - [Money](./money.md)

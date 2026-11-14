@@ -727,6 +727,23 @@
   ],
   "title": "External Onboarding"
  },
+ "favorite": {
+  "composed_by": [],
+  "domain": null,
+  "grounded": false,
+  "invariants": 2,
+  "kind": "atom",
+  "models": {
+   "als": false,
+   "tla": false,
+   "twins": 0
+  },
+  "regulated_by": [],
+  "security": false,
+  "standards": [],
+  "status": "todo",
+  "title": "Favorite"
+ },
  "gift-card": {
   "composed_by": [],
   "domain": null,
