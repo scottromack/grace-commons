@@ -81,7 +81,7 @@ A change to a **precondition** that lives only in prose (no canonical section ow
 
 ### Pre-release suffix — a single `-beta`, derived from the status grammar
 
-There is **one** pre-release suffix, `-beta`, and it is **not** a second maturity track: it is read off the canonical, CI-pinned Status grammar ([`pressure-testing.md`](../pressure-testing.md) section Status line format; SSOT [`open-questions.md`](../open-questions.md) section Status-line grammar). The projection is **total over the canonical tokens** and trivial:
+There is **one** pre-release suffix, `-beta`, and it is **not** a second maturity track: it is read off the canonical, CI-pinned Status grammar ([`pressure-testing.md`](../pressure-testing.md) section Status line format; its history [`open-questions.hist.md`](../open-questions.hist.md) section Status-line grammar). The projection is **total over the canonical tokens** and trivial:
 
 | Status token (canonical) | → version |
 |---|---|

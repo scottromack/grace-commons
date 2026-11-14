@@ -38,7 +38,7 @@ When drafting a new pattern, additionally read the most structurally adjacent ex
 - [`contributing.md`](./contributing.md) — contribution lifecycle; workflow for adding a new pattern; implementation-discovered findings; formal-model artifact conventions.
 - [`execution-contract.md`](./execution-contract.md) — runtime semantics; composition state; substrate invocation; testing model; conformance.
 - [`roadmap.md`](./roadmap.md) — the library's state, printed: a pattern's own Status line is the source of its state and roadmap.md prints it, beside the retired names, the forthcoming patterns and the open method work.
-- [`open-questions.md`](./open-questions.md) — SSOT for deliberately-deferred architectural decisions. Read before touching anything it names.
+- [`open-questions.md`](./open-questions.md) — only what is open: the deliberately-deferred decisions and the classes the grammar is still accumulating, each with what would decide it; the answered ones are in [`open-questions.hist.md`](./open-questions.hist.md). Read before touching anything it names.
 - [`discoveries.md`](./discoveries.md) — dated findings log (the mirror of open-questions: found things vs. open things).
 - [`risks.md`](./risks.md) — the risk register and dated maturity estimate; owned, re-assessed on dated markers.
 - [`changelog.md`](./changelog.md) — dated change records through 2026-07-12; closed 2026-10-07. What changed since is in the commit that made it and in each pattern's Decisions.
@@ -73,7 +73,7 @@ Moved — owned by the section titled *Workflow for adding a new pattern* in [`c
 
 ## Open architectural questions
 
-Moved — [`open-questions.md`](./open-questions.md) is the SSOT. No list is mirrored here: the last mirrored list in this file went stale (it carried two questions as open after they were resolved and executed on 2026-06-08).
+Moved — [`open-questions.md`](./open-questions.md) lists what is open, and [`open-questions.hist.md`](./open-questions.hist.md) what was answered. No list is mirrored here: the last mirrored list in this file went stale (it carried two questions as open after they were resolved and executed on 2026-06-08).
 
 ## Implementation-discovered findings
 
