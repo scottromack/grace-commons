@@ -34,6 +34,15 @@ name: Verify corpus claims
 #                 council's quiet window), on Saturdays at 06:00 UTC, and by hand
 #                 (workflow_dispatch), in a group no push cancels. It is the library's
 #                 proof.
+#
+# The whole library audits only what is new (unit `tooling: lighter on GitHub`, Scott
+# 2026-11-14, "we should also be good citizens and stop hammering github"). The
+# `decide` job compares HEAD with the commit of the last whole-library run that
+# succeeded (a schedule or a workflow_dispatch run); when they are the same, the
+# nightly and a dispatch end green in seconds and say "nothing changed since <sha>".
+# Saturday's 06:00 UTC rescan, the weekly run that depends on nobody's attention,
+# stays unconditional, and that night's 08:00 UTC run does not also run: one
+# whole-library audit on a Saturday. A push is not touched by any of this.
 
 on:
   workflow_dispatch:
@@ -56,8 +65,48 @@ concurrency:
   cancel-in-progress: ${{ github.event_name == 'push' }}
 
 jobs:
+  decide:
+    name: Is there anything new to audit?
+    if: github.event_name != 'push'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      actions: read
+      contents: read
+    outputs:
+      skip: ${{ steps.guard.outputs.skip }}
+    steps:
+      - name: Compare HEAD with the last whole-library run that succeeded
+        id: guard
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          EVENT_SCHEDULE: ${{ github.event.schedule }}
+        run: |
+          skip=false
+          if [ "$EVENT_SCHEDULE" = "0 6 * * 6" ]; then
+            echo "Saturday's rescan runs whatever changed."
+          elif [ "$EVENT_SCHEDULE" = "0 8 * * *" ] && [ "$(date -u +%u)" = "6" ]; then
+            skip=true
+            echo "::notice::Saturday's whole-library audit ran at 06:00 UTC; this run has nothing to add"
+          else
+            last=$( { gh run list --workflow verify.yml --event schedule --status success --limit 1 --json headSha,createdAt
+                      gh run list --workflow verify.yml --event workflow_dispatch --status success --limit 1 --json headSha,createdAt; } \
+                    | jq -s 'add | sort_by(.createdAt) | last | .headSha // empty' -r)
+            if [ -n "$last" ] && [ "$last" = "${{ github.sha }}" ]; then
+              skip=true
+              echo "::notice::nothing changed since $last"
+              echo "nothing changed since $last" >> "$GITHUB_STEP_SUMMARY"
+            else
+              echo "Last whole-library run that succeeded: ${last:-none}; HEAD ${{ github.sha }}; auditing."
+            fi
+          fi
+          echo "skip=$skip" >> "$GITHUB_OUTPUT"
+
   conformance:
     name: Conformance — renders agree
+    needs: decide
+    if: ${{ !cancelled() && needs.decide.outputs.skip != 'true' }}
     runs-on: ubuntu-latest
     timeout-minutes: 20
     defaults:
@@ -113,6 +162,8 @@ jobs:
 
   formal-models:
     name: Formal models — hold; twins rejected
+    needs: decide
+    if: ${{ !cancelled() && needs.decide.outputs.skip != 'true' }}
     runs-on: ubuntu-latest
     timeout-minutes: 360   # the hosted maximum: the whole library took 142 min on 32428b2 and passed 150 on 2026-11-14
     defaults:

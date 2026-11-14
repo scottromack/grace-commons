@@ -8,6 +8,12 @@ name: Verify Recoverable Invocation's models
 # push: every run reports. tools/harness/recoverable-invocation.pattern names
 # the models, for this workflow's --only and verify.yml's --except alike; the
 # push paths below are its four prefixes, in compositions/models/.
+#
+# A run by hand audits only what is new (unit `tooling: lighter on GitHub`, Scott
+# 2026-11-14): the `decide` job compares HEAD with the commit of the last run of
+# this workflow that succeeded, and when they are the same the run ends green in
+# seconds and says "nothing changed since <sha>". The Saturday rescan, the weekly
+# run that depends on nobody's attention, stays unconditional, and so does a push.
 
 on:
   workflow_dispatch:
@@ -29,8 +35,38 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  decide:
+    name: Is there anything new to audit?
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      actions: read
+      contents: read
+    outputs:
+      skip: ${{ steps.guard.outputs.skip }}
+    steps:
+      - name: Compare HEAD with the last run that succeeded
+        id: guard
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          skip=false
+          last=$(gh run list --workflow verify-recoverable-invocation.yml --status success --limit 1 --json headSha --jq '.[0].headSha // empty')
+          if [ -n "$last" ] && [ "$last" = "${{ github.sha }}" ]; then
+            skip=true
+            echo "::notice::nothing changed since $last"
+            echo "nothing changed since $last" >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "Last run that succeeded: ${last:-none}; HEAD ${{ github.sha }}; auditing."
+          fi
+          echo "skip=$skip" >> "$GITHUB_OUTPUT"
+
   formal-models:
     name: Formal models — Recoverable Invocation
+    needs: decide
+    if: ${{ !cancelled() && needs.decide.outputs.skip != 'true' }}
     runs-on: ubuntu-latest
     timeout-minutes: 90
     defaults:
