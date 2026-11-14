@@ -456,7 +456,7 @@ What a write's input carries is the same for every specification whose writing a
 
 ### A family for every write: Undo
 
-Which writes cannot be undone, and what a caller is told before one runs, is the same for every specification, so it is written once, here, and holds for every specification as the Input rules do: a specification that relies on one of these rules cites it by its label, `Execution Contract Undo 1`, and does not restate it.
+Which writes cannot be undone, what a caller is told before one runs, and what a specification says of the rest is the same for every specification, so it is written once, here, and holds for every specification as the Input rules do: a specification that relies on one of these rules cites it by its label, `Execution Contract Undo 1`, and does not restate it.
 
 **Undo 1: An action that erases or discloses is irreversible.** An action is irreversible where it erases, purges or shreds a record or a value, or hands a value to a party outside the deployment.
 
@@ -465,6 +465,8 @@ Which writes cannot be undone, and what a caller is told before one runs, is the
 **Undo 3: An irreversible action runs on a confirmed warning.** Where a business caller starts an irreversible action, the surface that takes the call warns the caller, naming what cannot be undone, and passes the call only on the caller's confirmation of that warning. A scheduled leg has no caller to warn (Scheduled leg 1) and its starter needs none.
 
 Undo 3 binds the surface, so no action gains an input and no pattern's signature changes.
+
+**Undo 4: A pattern says how each write is undone.** For each writing action Undo 1 does not make irreversible, a specification says in one sentence what undoes it: the action that reverses it, or the record that offsets it, or the rule that keeps the record or makes the state final, so that no undo is owed. A specification whose writing actions share one answer says it once. No specification gains an action to meet this rule.
 
 ---
 
