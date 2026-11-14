@@ -1024,11 +1024,16 @@ THEOREM Invariant_4_1 ==
   <2>3. T * d >= 0  BY <1>1, <2>1, SMT
   <2>4. (T - 1) * C = T * C - C  BY <1>1, <1>4, SMT
   <2> HIDE DEF d
-  \* the contradiction in three linear steps over the products T * L, T * C and (T - 1) * C, each with the typing it needs,
-  \* so no one solver call has to reason about all five facts at once (the one call that did failed on a slower runner)
-  <2>5. T * L >= T * C + T  BY <1>1, <1>4, <2>1, <2>2, <2>3, SMT
-  <2>6. T * C + T > (T - 1) * C  BY <1>1, <1>3, <1>4, <2>4, SMT
-  <2> QED  BY <1>1, <1>2, <1>3, <1>4, <2>5, <2>6, SMT
+  \* The contradiction in linear steps. The three products are named and then hidden, so the last step is linear
+  \* arithmetic over four integers and no product reaches the solver there (the single call that reasoned about the
+  \* products and the bound together failed on CI's solver, first as one step and then as two linear ones).
+  <2> DEFINE P == T * L  Q == T * C  R == (T - 1) * C
+  <2>5. P >= Q + T  BY <1>1, <1>4, <2>1, <2>2, <2>3, SMT DEF P, Q
+  <2>6. Q + T > R  BY <1>1, <1>3, <1>4, <2>4, SMT DEF Q, R
+  <2>7. X = P /\ X <= R  BY <1>2, <1>3 DEF P, R
+  <2>8. P \in Int /\ Q \in Int /\ R \in Int  BY <1>1, <1>4, SMT DEF P, Q, R
+  <2> HIDE DEF P, Q, R
+  <2> QED  BY <1>1, <1>4, <2>5, <2>6, <2>7, <2>8, SMT
 <1> QED  BY <1>0, <1>5, <1>6
 
 \* FirstCount: the first parts are as many as the leftover.
