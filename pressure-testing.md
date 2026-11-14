@@ -1065,7 +1065,7 @@ The status words:
 
 - `todo`: written, and no round has read it yet.
 - `doing`: rounds are reading it.
-- `done`: a clean round, and not queued for more work.
+- `done`: a clean round. A done pattern stays done when a change reopens it; current is the number that says nothing is owed since.
 
 The status line is the first line of the `## Status` section. It starts with exactly one token in backticks: `` `todo` ``, `` `doing` ``, or `` `done — YYYY-MM-DD` ``, where the date is the date of the clean round. Prose MAY follow the token, and MUST NOT be inside the backticks. The Ledger's `status:` line MUST repeat the token, and its `last gate:` line MUST name the round and the commit that the round froze.
 
