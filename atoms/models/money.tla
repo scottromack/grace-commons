@@ -1024,7 +1024,11 @@ THEOREM Invariant_4_1 ==
   <2>3. T * d >= 0  BY <1>1, <2>1, SMT
   <2>4. (T - 1) * C = T * C - C  BY <1>1, <1>4, SMT
   <2> HIDE DEF d
-  <2> QED  BY <2>1, <2>2, <2>3, <2>4, <1>1, <1>2, <1>3, <1>4, SMT
+  \* the contradiction in three linear steps over the products T * L, T * C and (T - 1) * C, each with the typing it needs,
+  \* so no one solver call has to reason about all five facts at once (the one call that did failed on a slower runner)
+  <2>5. T * L >= T * C + T  BY <1>1, <1>4, <2>1, <2>2, <2>3, SMT
+  <2>6. T * C + T > (T - 1) * C  BY <1>1, <1>3, <1>4, <2>4, SMT
+  <2> QED  BY <1>1, <1>2, <1>3, <1>4, <2>5, <2>6, SMT
 <1> QED  BY <1>0, <1>5, <1>6
 
 \* FirstCount: the first parts are as many as the leftover.
