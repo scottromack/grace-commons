@@ -114,7 +114,7 @@ jobs:
   formal-models:
     name: Formal models — hold; twins rejected
     runs-on: ubuntu-latest
-    timeout-minutes: 150
+    timeout-minutes: 360   # the hosted maximum: the whole library took 142 min on 32428b2 and passed 150 on 2026-11-14
     defaults:
       run:
         working-directory: tools/harness
