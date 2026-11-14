@@ -16,8 +16,9 @@ the three-pass review otherwise has to catch by eye —
                               that file present AND a `-buggy` twin beside it.
   D. Stale forthcoming      — a `*(forthcoming)*` marker in a list item that also
                               links to a file which is already `done`.
-  E. Count honesty          — "NN done patterns / NN compositions" claims in
-                              roadmap.md and readme.md match the real file counts.
+  E. Count honesty          — a "NN done patterns / NN compositions" claim in
+                              readme.md matches the real file counts (roadmap.md
+                              prints its state from the patterns and is not read).
   F. Rests-on refs          — a "<Pattern> Invariant N" cross-reference (as used in
                               invariant *Rests on:* clauses) resolves: N <= the cited
                               pattern's real invariant count. The tractable mechanical
@@ -46,11 +47,6 @@ the three-pass review otherwise has to catch by eye —
                               line starts with exactly one backticked status token
                               conforming to the pinned grammar (pressure-testing.md
                               section What DONE means).
-  H. Status mirror          — a roadmap.md list entry that links a pattern and carries
-                              a backticked status token mirrors the pattern file's own
-                              token exactly (the pattern file is the source of truth).
-  I. Duplicate table rows   — no roadmap.md table names the same pattern twice
-                              (the duplicated-Login-row class).
   J. Banned working noun    — "concern" (any case, any inflection) is banned
                               corpus-wide as working vocabulary (vocabulary
                               directive 2026-06-11: the unit of separation is the
@@ -68,7 +64,7 @@ the three-pass review otherwise has to catch by eye —
                               exactly two artifact kinds — atomic concepts and
                               compositions thereof. Not scanned: execution-
                               contract.md (the output level is its domain),
-                              roadmap.md (dated history), glossary.md (the
+                              roadmap.hist.md (dated history), glossary.md (the
                               definition site). Inline code spans and the API
                               acronym's canonical expansion are scrubbed first
                               (naming an external project's literal
@@ -245,7 +241,7 @@ TRAILING_PAREN = re.compile(r"\s*\([^)]*\)\s*$")
 # defending the property instead of measuring it.
 #
 # P-atomic-audit and Q-rebuild-bound landed 2026-08-27 with a recorded baseline
-# (roadmap.md methodology debt #19): 3 patterns and 8 patterns respectively.
+# (methodology debt #19, roadmap.hist.md): 3 patterns and 8 patterns respectively.
 # Their propagation is debt #19 step (iii); they become gating when it closes.
 # EMPTY as of 2026-08-27: both checks are gating. Q-rebuild-bound was promoted
 # when the retention-horizon class closed on every known instance — including the
@@ -256,7 +252,7 @@ TRAILING_PAREN = re.compile(r"\s*\([^)]*\)\s*$")
 #
 # P-atomic-audit was promoted to GATING on 2026-08-27, when the last of its three
 # instances closed and it fired zero times corpus-wide. That is the condition
-# roadmap.md set for promotion: a check becomes gating at the moment it stops
+# roadmap.hist.md (debt #19) set for promotion: a check becomes gating at the moment it stops
 # measuring a backlog and starts defending a property. From here a firing means a
 # NEW instance has been introduced, which is exactly the event that should stop a
 # build — the class took three rounds and one protocol repair to clear, and
@@ -476,10 +472,10 @@ def check_orphan_forthcoming(root: Path, patterns: dict[Path, Pattern]) -> list[
     The sibling of D-stale-forthcoming, which reads *linked* markers that have
     since landed. This one reads the *named* markers — the ones an extraction
     flag, a declined delegation or a Non-goal points at — and asks whether the
-    home exists on the planning surface at all. `roadmap.md` is the single
-    source of truth for library state (AGENTS.md), so a name it does not carry
-    is a pointer into nothing: the spec says *someone else owns this* and no
-    one is listed. Linked markers are skipped; they are D's.
+    home exists on the planning surface at all. `roadmap.md`'s
+    *Forthcoming-pattern backlog* is where such a home is listed, so a name it
+    does not carry is a pointer into nothing: the spec says *someone else owns
+    this* and no one is listed. Linked markers are skipped; they are D's.
     """
     findings: list[Finding] = []
     roadmap = root / "roadmap.md"
@@ -493,6 +489,12 @@ def check_orphan_forthcoming(root: Path, patterns: dict[Path, Pattern]) -> list[
         ln.lower() for ln in roadmap.read_text(encoding="utf-8").splitlines()
         if ln.lstrip().startswith(("|", "- ", "* ", "#"))
     )
+    # its State table prints a row for every pattern in the library from
+    # _data/patterns.json, so a pattern that exists has its row by construction
+    for p in patterns.values():
+        m = H1_TITLE.search(p.text)
+        if m:
+            road += "\n" + TRAILING_PAREN.sub("", m.group(1).strip()).strip().lower()
     for p in patterns.values():
         if not re.search(r"^Term qualifiers:.*\bmigrated\b", p.text, re.M):
             continue  # the unmigrated corpus is not held to this
@@ -521,7 +523,9 @@ def check_orphan_forthcoming(root: Path, patterns: dict[Path, Pattern]) -> list[
 
 
 def check_counts(root: Path, patterns: dict[Path, Pattern]) -> list[Finding]:
-    """E. 'NN done patterns / NN compositions' claims match reality."""
+    """E. A 'NN done patterns / NN compositions' claim in readme.md matches reality.
+    roadmap.md is not read: its state is printed from the patterns
+    (unit `roadmap.md: state is generated, history goes to the record`)."""
     findings: list[Finding] = []
     atoms = [p for p in patterns.values() if "/atoms/" in p.path.as_posix()]
     comps = [p for p in patterns.values() if "/compositions/" in p.path.as_posix()]
@@ -529,7 +533,7 @@ def check_counts(root: Path, patterns: dict[Path, Pattern]) -> list[Finding]:
     real_comps = len(comps)
 
     claim = re.compile(r"\*\*(\d+)\s+done\s+patterns\s*\(\s*(\d+)\s+done\s+compositions?\)\*\*")
-    for fname in ("roadmap.md", "readme.md"):
+    for fname in ("readme.md",):
         f = root / fname
         if not f.exists():
             continue
@@ -1943,89 +1947,6 @@ def check_status_grammar(patterns: dict[Path, Pattern]) -> list[Finding]:
     return findings
 
 
-# a roadmap list entry that links a pattern AND carries a token after the em-dash:
-#   - **[Name](./compositions/x.md)** — `token` ...
-ROADMAP_LIST_ENTRY = re.compile(
-    r"^- \*\*\[[^\]]+\]\((\./(?:atoms|compositions)/[^)]+?\.md)\)\*\* — `([^`]+)`",
-    re.M,
-)
-
-
-def check_status_mirror(root: Path, patterns: dict[Path, Pattern]) -> list[Finding]:
-    """H. roadmap.md linked list entries mirror the pattern file's status token.
-
-    High precision: fires only on list entries that both link a pattern file and
-    carry a backticked token immediately after the em-dash. Unlinked table rows
-    are not checked (no machine-resolvable file mapping); the table is covered by
-    the duplicate-row check (I) and by review.
-    """
-    findings: list[Finding] = []
-    roadmap = root / "roadmap.md"
-    if not roadmap.exists():
-        return findings
-    text = roadmap.read_text(encoding="utf-8")
-    by_resolved = {p.path.resolve(): p for p in patterns.values()}
-    for m in ROADMAP_LIST_ENTRY.finditer(text):
-        rel, cell_token = m.group(1), m.group(2)
-        tgt = by_resolved.get((root / rel).resolve())
-        if tgt is None:
-            continue  # dangling link is check A's finding
-        file_token, _ = status_token_of(tgt.text)
-        if file_token is None:
-            continue  # grammar violation is check G's finding
-        if cell_token != file_token:
-            findings.append(Finding(
-                roadmap, line_of(text, m.start()), "H-status-mirror",
-                f"{Path(rel).name}: roadmap says `{cell_token}` but the pattern's "
-                f"Status line says `{file_token}` (pattern file is the source of truth)",
-            ))
-    return findings
-
-
-def check_duplicate_rows(root: Path) -> list[Finding]:
-    """I. No roadmap.md *status* table names the same pattern twice.
-
-    High precision: only tables whose header row contains a 'Status' column are
-    inspected (the duplicated-Login-row class lives there); the name column is
-    the cell to the left of nothing in particular — column 2 by the status
-    table's shape. Inventory tables whose second column legitimately repeats
-    (Type, tool names) are not status tables and are skipped.
-    """
-    findings: list[Finding] = []
-    roadmap = root / "roadmap.md"
-    if not roadmap.exists():
-        return findings
-    text = roadmap.read_text(encoding="utf-8")
-    seen: dict[str, int] = {}
-    in_table = False
-    is_status_table = False
-    for i, raw in enumerate(text.split("\n"), start=1):
-        line = raw.strip()
-        if line.startswith("|") and line.endswith("|"):
-            cells = [c.strip() for c in line.strip("|").split("|")]
-            if not in_table:
-                in_table = True
-                seen = {}
-                is_status_table = any(c.lower() == "status" for c in cells)
-                continue  # header row
-            if not is_status_table or len(cells) < 3:
-                continue
-            if set(cells[1]) <= {"-", " ", ":"}:
-                continue  # separator row
-            name = cells[1]
-            if name in seen:
-                findings.append(Finding(
-                    roadmap, i, "I-duplicate-row",
-                    f"status table names '{name}' twice (also at line {seen[name]})",
-                ))
-            else:
-                seen[name] = i
-        else:
-            in_table = False
-            is_status_table = False
-    return findings
-
-
 BANNED_TOKEN = re.compile(r"(?i)\bconcern\w*")
 ANCESTOR_PROPER_NOUN = "Separation of Concerns"
 # Ordinary-English "concern" — a deployment-level matter/responsibility, not the
@@ -2098,7 +2019,7 @@ def check_banned_application(root: Path) -> list[Finding]:
     """K: "application" names only a deployed build output. The canonical layer
     has exactly two artifact kinds — atomic concepts and compositions thereof —
     so the word is banned there (vocabulary direction 2026-06-11). Excluded by
-    design: execution-contract.md (output level is its domain), roadmap.md
+    design: execution-contract.md (output level is its domain), roadmap.hist.md
     (dated history), glossary.md (the definition site). Code spans scrubbed:
     a backticked external path like `applications/` is mention, not use."""
     scoped: list[Path] = []
@@ -3256,6 +3177,9 @@ def _record_lines(root: Path, path: Path, lines: list[str]) -> set[int]:
                 on = h2_name(l) == "Changes"
             if on:
                 rec.add(i)
+    elif rel == "roadmap.hist.md":
+        # the roadmap's dated record, moved whole out of roadmap.md on 2026-11-13
+        rec |= set(range(len(lines)))
     elif rel == "governance.hist.md":
         # the register, moved whole out of governance.md on 2026-11-13
         on = False
@@ -3383,7 +3307,7 @@ _LIVE_COUNT = re.compile(
     r"|\b(?:\d{2,}|twenty|thirty|forty|fifty|sixty|seventy|eighty|ninety)-plus\s+"
     r"(?:specifications|specs)\b", re.IGNORECASE)
 # the dated ledgers and registers, where a number is the count at the date it was written
-_LIVE_LEDGERS = {"roadmap.md", "changelog.md", "project-log.md", "ai-usage-log.md",
+_LIVE_LEDGERS = {"roadmap.hist.md", "changelog.md", "project-log.md", "ai-usage-log.md",
                  "governance.hist.md", "measurement.md", "open-questions.md", "discoveries.md"}
 
 
@@ -3667,8 +3591,6 @@ def main(argv: list[str]) -> int:
     findings += check_signature_alternation(patterns)
     findings += check_step_reference(patterns)
     findings += check_status_grammar(patterns)
-    findings += check_status_mirror(root, patterns)
-    findings += check_duplicate_rows(root)
     findings += check_banned_token(root)
     findings += check_banned_application(root)
     findings += check_internal_ids(patterns)

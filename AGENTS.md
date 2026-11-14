@@ -37,7 +37,7 @@ When drafting a new pattern, additionally read the most structurally adjacent ex
 - [`spec-format.md`](./spec-format.md) — the three spec shapes, required sections, reading tiers, authoring conventions.
 - [`contributing.md`](./contributing.md) — contribution lifecycle; workflow for adding a new pattern; implementation-discovered findings; formal-model artifact conventions.
 - [`execution-contract.md`](./execution-contract.md) — runtime semantics; composition state; substrate invocation; testing model; conformance.
-- [`roadmap.md`](./roadmap.md) — **single source of truth for library state**: counts, per-pattern status rows (mirroring each pattern file's Status line), sequencing, structural milestones on the pattern rows.
+- [`roadmap.md`](./roadmap.md) — the library's state, printed: a pattern's own Status line is the source of its state and roadmap.md prints it, beside the retired names, the forthcoming patterns and the open method work.
 - [`open-questions.md`](./open-questions.md) — SSOT for deliberately-deferred architectural decisions. Read before touching anything it names.
 - [`discoveries.md`](./discoveries.md) — dated findings log (the mirror of open-questions: found things vs. open things).
 - [`risks.md`](./risks.md) — the risk register and dated maturity estimate; owned, re-assessed on dated markers.
@@ -65,7 +65,7 @@ Moved — owned by the section titled *Regulated-pattern conventions* in [`press
 
 ## Current state of the library
 
-Moved — [`roadmap.md`](./roadmap.md) is the single source of truth for counts, statuses, and sequencing; structural milestones are recorded on each pattern's roadmap row. The no-snapshot rule that used to live here is owned by the section titled *The no-snapshot rule* in [`pressure-testing.md`](./pressure-testing.md).
+Moved — a pattern's own Status line is the source of its state, and [`roadmap.md`](./roadmap.md) prints it. The no-snapshot rule that used to live here is owned by the section titled *The no-snapshot rule* in [`pressure-testing.md`](./pressure-testing.md).
 
 ## Workflow for adding a new pattern
 

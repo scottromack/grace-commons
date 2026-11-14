@@ -62,6 +62,7 @@ from lint import (  # noqa: E402
     check_stale_census,
     check_acceptance_surface,
     check_orphan_forthcoming,
+    check_counts,
     check_requirement_text,
     DECORATING_FORTHCOMING,
     load_patterns,
@@ -217,7 +218,7 @@ P_RETIRED_SITES = [
 # having first said that synchronous rollback is unavailable and the orphan
 # state is therefore reachable. Nothing to flag.
 P_SILENT = {"chain-of-custody"}
-# Firing: the three routed instances (roadmap.md debt #19, pre-campaign survey).
+# Firing: the three routed instances (roadmap.hist.md debt #19, pre-campaign survey).
 # Resolve a Person's Data Rights was here until 2026-08-27; its four sites closed
 # when Invariant 1 was restated (debt #19 step (iii), atomicity class). It must
 # now stay OUT of this set — the `exact` comparison below turns that into a real
@@ -919,6 +920,37 @@ def check_orphan_synthetic(problems: list[str]) -> None:
     if got:
         problems.append("M-orphan-forthcoming: fired on a single-word fragment — "
                         "a pattern name carries a space or a hyphen")
+    # (6) a pattern that exists has its row: roadmap.md's State table prints every
+    # pattern from _data/patterns.json, so its title needs no hand-kept row
+    got = run("A **Ghost Pattern** *(forthcoming)* owns the rest.", "# Roadmap\n")
+    if got:
+        problems.append("M-orphan-forthcoming: fired on the name of a pattern that "
+                        "exists — the generated State table carries its row")
+    # (7) roadmap.hist.md is record, not the planning surface: a name only it carries is an orphan
+    with tempfile.TemporaryDirectory() as d:
+        root = Path(d)
+        (root / "roadmap.md").write_text("# Roadmap\n", encoding="utf-8")
+        (root / "roadmap.hist.md").write_text("- **Spectre Ledger** — a row.\n", encoding="utf-8")
+        path = root / "ghost.md"
+        text = ORPHAN_SPEC.format(body="A **Spectre Ledger** *(forthcoming)* owns the rest.",
+                                  qualifier="`migrated` — rewritten in GRACE lang v0.41 (2026-09-15).")
+        got = {f.message for f in check_orphan_forthcoming(
+            root, {path: Pattern(path=path, text=text, invariant_count=1, done=False)})}
+    if not any("Spectre Ledger" in m for m in got):
+        problems.append("M-orphan-forthcoming: read roadmap.hist.md as the planning "
+                        "surface — the record lists no home")
+    # (8) E-count-drift reads readme.md and not roadmap.md, which prints its state
+    with tempfile.TemporaryDirectory() as d:
+        root = Path(d)
+        claim = "**9 done patterns (4 done compositions)**\n"
+        (root / "roadmap.md").write_text(claim, encoding="utf-8")
+        (root / "readme.md").write_text(claim, encoding="utf-8")
+        path = root / "atoms" / "ghost.md"
+        got = {f.path.name for f in check_counts(
+            root, {path: Pattern(path=path, text="# Ghost\n", invariant_count=1, done=True)})}
+    if got != {"readme.md"}:
+        problems.append(f"E-count-drift: fired in {sorted(got)}, want readme.md only — "
+                        "roadmap.md prints its state and is not read")
 
 
 # ── D-stale-forthcoming's window, pinned synthetically ───────────────────── #
@@ -1269,11 +1301,15 @@ def check_notation_synthetic(problems: list[str]) -> int:
             "- **Council read 1 \u2014 x, 2026-09-10.** per " + S + "21\n  more " + S + "22\n", encoding="utf-8")
         (root / "governance.md").write_text(
             "- **Council read 1 \u2014 x, 2026-09-10.** per " + S + "21\n", encoding="utf-8")
+        # the roadmap's dated record, moved whole out of roadmap.md on 2026-11-13
+        (root / "roadmap.hist.md").write_text(
+            "# h\n\nopening " + S + "F\n\n## Current state\n\nundated " + S + "G\n", encoding="utf-8")
         hits = {(f.path.name, f.line) for f in check_retired_sign(root)}
         want = {("a.md", 3), ("log.md", 15), ("tool.py", 2), ("GRACE-lang.hist.md", 10),
                 ("governance.hist.md", 3), ("governance.md", 1)}
         quiet = {("a.md", 5), ("a.md", 9), ("log.md", 7), ("log.md", 11), ("GRACE-lang.hist.md", 6),
-                 ("governance.hist.md", 7), ("governance.hist.md", 8)}
+                 ("governance.hist.md", 7), ("governance.hist.md", 8),
+                 ("roadmap.hist.md", 3), ("roadmap.hist.md", 7)}
         for w in want:
             if w not in hits:
                 problems.append(f"N-retired-sign: did not fire at {w}")
@@ -1336,15 +1372,19 @@ def check_notation_synthetic(problems: list[str]) -> int:
             "```\n52 grounded\n```\n"
             "Three patterns share it.\n"
             "61 done today.\n", encoding="utf-8")
-        (root / "roadmap.md").write_text("A ledger: 52 grounded, 58 patterns.\n", encoding="utf-8")
+        # the roadmap's record is in roadmap.hist.md; roadmap.md prints its state
+        (root / "roadmap.hist.md").write_text("A ledger: 52 grounded, 58 patterns.\n", encoding="utf-8")
+        (root / "roadmap.md").write_text("State: 52 grounded patterns.\n", encoding="utf-8")
         (root / "open-questions.md").write_text("A register: thirty-seven grounded patterns.\n", encoding="utf-8")
         # the register is record in governance.hist.md; governance.md keeps only rules
         (root / "governance.hist.md").write_text("A register: 41 grounded patterns.\n", encoding="utf-8")
         (root / "governance.md").write_text("Rules: 41 grounded patterns.\n", encoding="utf-8")
         hits = {(f.path.name, f.line) for f in check_live_counts(root)}
-        if hits != {("readme.md", 1), ("readme.md", 3), ("readme.md", 10), ("governance.md", 1)}:
-            problems.append(f"N-live-count: fired at {sorted(hits)}, want readme.md lines 1, 3 and 10 and governance.md line 1")
-        n += 12
+        if hits != {("readme.md", 1), ("readme.md", 3), ("readme.md", 10), ("governance.md", 1),
+                    ("roadmap.md", 1)}:
+            problems.append(f"N-live-count: fired at {sorted(hits)}, want readme.md lines 1, 3 and 10, "
+                            "governance.md line 1 and roadmap.md line 1")
+        n += 13
     with tempfile.TemporaryDirectory() as d:
         # M-register-number and M-register-citation read the register in governance.hist.md
         root = Path(d)
@@ -2916,9 +2956,10 @@ def main(argv: list[str]) -> int:
     check_orphan_synthetic(orphan_problems)
     failures.extend(orphan_problems)
     if not orphan_problems:
-        print("M-orphan-forthcoming: 5 synthetic fixtures hold (an unlisted "
-              "forthcoming fires; a listed one, a linked one, an unmigrated "
-              "spec and a single-word fragment stay silent) \u2713")
+        print("M-orphan-forthcoming / E-count-drift: 8 synthetic fixtures hold (an unlisted "
+              "forthcoming fires, and so does one only roadmap.hist.md lists; a listed one, a "
+              "linked one, an unmigrated spec, a single-word fragment and a pattern that exists "
+              "stay silent; a count claim fires in readme.md and not in roadmap.md) \u2713")
 
     window_problems: list[str] = []
     check_stale_forthcoming_window(window_problems)

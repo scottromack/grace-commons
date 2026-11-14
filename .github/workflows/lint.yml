@@ -5,10 +5,8 @@ name: Lint spec corpus
 # drift, out-of-range invariant references. Stdlib-only, runs in milliseconds,
 # exits 1 on any finding.
 #
-# Follow-ups that ride this same gate when they land: the status-mirror and
-# table-duplicate checks (open-questions.md "Status-line grammar"). The
-# tools/harness/ and tools/conformance/ gates landed 2026-07-06 as their own
-# workflow — see verify.yml; status.md publishes both gates' live state.
+# The tools/harness/ and tools/conformance/ gates landed 2026-07-06 as their
+# own workflow — see verify.yml; status.md publishes both gates' live state.
 
 on:
   workflow_dispatch:
