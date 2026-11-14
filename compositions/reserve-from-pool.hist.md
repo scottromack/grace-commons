@@ -20,3 +20,203 @@ The gate records the Ledger's `last gate:` line carried behind its latest until 
 
 - 2026-08-26 authentication-precedence gate — 3 foundational routed (all since closed), 4 foundational and 8 refining/rhetorical corrected in-round, 9 refining routed (3 since closed)
 - Final Critique 8's 7 refining and 3 rhetorical also routed
+
+## Deleted rules
+
+The spec's tombstones, moved here from the page on 2026-11-13 because the spec is done (GRACE-lang Hard invariant 25 and Hard invariant 27, since v0.71): each `Deleted:` line byte for byte and in the page's order, under the heading it stood under there. A tombstone carries no obligation, and each still reserves its label: no rule of [Reserve from Pool](./reserve-from-pool.md) may carry it again.
+
+### Composition logic › Composition state
+
+```
+Deleted: Composition state 5. Execution Contract Database 1 owns it.
+Deleted: Composition state 8. Execution Contract Database 1 owns it.
+Deleted: Composition state 9. Execution Contract Database 1 owns it.
+Deleted: Composition state 12. Execution Contract Database 1 owns it.
+Deleted: Composition state 13. Execution Contract Database 1 owns it.
+Deleted: Composition state 14. Execution Contract Database 1 owns it.
+```
+
+### Composition logic › Capability requirement
+
+```
+Deleted: Capability requirement 4. Execution Contract Database 1 owns it.
+Deleted: Capability requirement 5. Execution Contract Database 1 and Execution Contract Database 2 own it.
+Deleted: Capability requirement 6. Execution Contract Database 1 owns it.
+Deleted: Capability requirement 7. Execution Contract Database 1 owns it.
+Deleted: Capability requirement 8. Execution Contract Database 1 owns it.
+Deleted: Capability requirement 9. Execution Contract Database 1 owns it: the composition names no liveness sum for the compensation window to exceed.
+Deleted: Capability requirement 10. Execution Contract Database 1 owns it.
+Deleted: Capability requirement 11. Execution Contract Database 1 owns it.
+Deleted: Capability requirement 12. Execution Contract Database 3 owns it.
+Deleted: Capability requirement 13. Execution Contract Database 3 owns it.
+Deleted: Capability requirement 14. Execution Contract Database 3 owns it.
+Deleted: Capability requirement 16. Execution Contract Database 1 owns it.
+Deleted: Capability requirement 18. Execution Contract Database 1 owns it.
+Deleted: Capability requirement 20. Execution Contract Database 2 owns it.
+Deleted: Capability requirement 21. Execution Contract Database 2 owns it.
+Deleted: Capability requirement 22. Execution Contract Database 2 owns it.
+Deleted: Capability requirement 23. Execution Contract Database 2 owns it: an action's reads and the writes they decide are one transaction, and the composition names no exclusion to release.
+Deleted: Capability requirement 24. Execution Contract Database 2 owns it: an action's reads and the writes they decide are one transaction, and the composition names no exclusion to release.
+Deleted: Capability requirement 25. Execution Contract Database 2 owns it: an action's reads and the writes they decide are one transaction, and the composition names no exclusion to lease.
+Deleted: Capability requirement 26. Execution Contract Database 2 owns it: an action's reads and the writes they decide are one transaction, and the composition names no lease to expire.
+Deleted: Capability requirement 30. Execution Contract Database 3 owns it.
+Deleted: Capability requirement 32. Execution Contract Database 3 owns it.
+Deleted: Capability requirement 33. Execution Contract Database 3 owns it.
+Deleted: Capability requirement 34. Execution Contract Database 3 owns it.
+Deleted: Capability requirement 36. Execution Contract Database 3 owns it.
+Deleted: Capability requirement 38. Execution Contract Database 3 owns it.
+```
+
+### Composition logic › Action wiring
+
+```
+Deleted: Action wiring 2. Execution Contract Database 2 owns it.
+Deleted: Action wiring 3. Execution Contract Database 2 owns it.
+Deleted: Action wiring 4. Execution Contract Database 2 owns it: an action's reads and the writes they decide are one transaction, and the composition names no exclusion to release.
+Deleted: Action wiring 16. Execution Contract Database 1 owns it.
+Deleted: Action wiring 17. Execution Contract Database 1 owns it.
+Deleted: Action wiring 33. Execution Contract Database 2 owns it.
+Deleted: Action wiring 34. Execution Contract Database 2 owns it.
+Deleted: Action wiring 35. Execution Contract Database 2 owns it: an action's reads and the writes they decide are one transaction, and the composition names no exclusion for a later write to hold.
+Deleted: Action wiring 36. Execution Contract Database 2 owns it: an action's reads and the writes they decide are one transaction, and the composition names no exclusion to lose.
+Deleted: Action wiring 37. Execution Contract Database 2 owns it: an action's reads and the writes they decide are one transaction, and the composition names no exclusion to take again.
+Deleted: Action wiring 38. Execution Contract Database 1 and Execution Contract Database 2 own it.
+Deleted: Action wiring 39. Execution Contract Database 1 and Execution Contract Database 2 own it.
+Deleted: Action wiring 40. Execution Contract Database 1 owns it.
+Deleted: Action wiring 41. Execution Contract Database 1 owns it.
+Deleted: Action wiring 42. Execution Contract Database 1 owns it.
+Deleted: Action wiring 43. Execution Contract Database 1 and Execution Contract Database 2 own it.
+Deleted: Action wiring 44. Execution Contract Database 1 owns it.
+Deleted: Action wiring 57. Execution Contract Database 1 owns it.
+Deleted: Action wiring 58. Execution Contract Database 1 owns it.
+Deleted: Action wiring 59. Execution Contract Database 1 owns it.
+Deleted: Action wiring 60. Execution Contract Database 1 owns it.
+Deleted: Action wiring 61. Execution Contract Read 4 owns it: a place hold refusal refuses [Reserve], which writes nothing, its allocate and its reserve intent included.
+Deleted: Action wiring 65. Execution Contract Database 1 owns it.
+Deleted: Action wiring 66. Execution Contract Database 1 owns it.
+Deleted: Action wiring 67. Execution Contract Database 1 owns it.
+Deleted: Action wiring 68. Execution Contract Database 1 owns it.
+Deleted: Action wiring 69. Execution Contract Database 1 owns it.
+Deleted: Action wiring 70. Execution Contract Database 1 owns it.
+Deleted: Action wiring 71. Execution Contract Database 1 owns it.
+Deleted: Action wiring 72. Execution Contract Database 1 owns it.
+Deleted: Action wiring 73. Execution Contract Database 1 owns it.
+Deleted: Action wiring 74. Execution Contract Database 1 owns it.
+Deleted: Action wiring 75. Execution Contract Database 1 owns it.
+Deleted: Action wiring 76. Execution Contract Database 1 owns it.
+Deleted: Action wiring 77. Execution Contract Database 1 owns it.
+Deleted: Action wiring 83. Execution Contract Read 4 owns it: a recording-failure carrying inconsistency refuses the action, which writes nothing.
+Deleted: Action wiring 94. Execution Contract Database 1 owns it.
+Deleted: Action wiring 99. Execution Contract Database 1 owns it.
+Deleted: Action wiring 100. Execution Contract Database 1 and Execution Contract Database 2 own it.
+Deleted: Action wiring 101. Execution Contract Database 1 owns it.
+Deleted: Action wiring 102. Execution Contract Database 1 and Execution Contract Database 2 own it.
+Deleted: Action wiring 103. Execution Contract Database 1 and Execution Contract Database 2 own it.
+Deleted: Action wiring 104. Execution Contract Database 1 and Execution Contract Database 2 own it.
+Deleted: Action wiring 105. Execution Contract Database 1 and Execution Contract Database 2 own it.
+Deleted: Action wiring 107. Execution Contract Database 1 owns it.
+Deleted: Action wiring 108. Execution Contract Database 1 owns it.
+Deleted: Action wiring 109. Execution Contract Database 1 owns it.
+Deleted: Action wiring 112. Execution Contract Database 1 owns it.
+```
+
+### Composition logic › Wiring decision
+
+```
+Deleted: Wiring decision 4. Execution Contract Database 1 owns it.
+Deleted: Wiring decision 5. Execution Contract Database 1 owns it.
+```
+
+### Composition logic › Reconciliation
+
+```
+Deleted: Reconciliation 1. Execution Contract Database 1 and Execution Contract Database 3 own it.
+Deleted: Reconciliation 2. Execution Contract Database 1 owns it.
+Deleted: Reconciliation 3. Execution Contract Database 1 owns it.
+Deleted: Reconciliation 4. Execution Contract Database 1 owns it.
+Deleted: Reconciliation 5. Execution Contract Database 1 owns it.
+Deleted: Reconciliation 6. Execution Contract Database 1 owns it.
+Deleted: Reconciliation 7. Execution Contract Database 1 owns it.
+Deleted: Reconciliation 8. Execution Contract Database 1 owns it.
+Deleted: Reconciliation 9. Execution Contract Database 1 owns it.
+Deleted: Reconciliation 10. Execution Contract Database 1 and Execution Contract Database 2 own it.
+Deleted: Reconciliation 11. Execution Contract Database 1 and Execution Contract Database 2 own it.
+Deleted: Reconciliation 12. Execution Contract Database 1 owns it.
+Deleted: Reconciliation 13. Execution Contract Database 1 and Execution Contract Database 2 own it.
+Deleted: Reconciliation 14. Execution Contract Database 1 and Execution Contract Database 2 own it.
+Deleted: Reconciliation 15. Execution Contract Database 1 owns it.
+Deleted: Reconciliation 16. Execution Contract Database 1 owns it.
+Deleted: Reconciliation 17. Execution Contract Database 1 owns it.
+Deleted: Reconciliation 18. Execution Contract Database 1 owns it.
+Deleted: Reconciliation 19. Execution Contract Database 1 owns it.
+Deleted: Reconciliation 20. Execution Contract Database 1 owns it.
+Deleted: Reconciliation 21. Execution Contract Database 1 owns it.
+Deleted: Reconciliation 22. Execution Contract Database 1 owns it.
+Deleted: Reconciliation 23. Execution Contract Database 1 owns it.
+Deleted: Reconciliation 24. Execution Contract Database 1 owns it.
+Deleted: Reconciliation 25. Execution Contract Database 1 owns it.
+Deleted: Reconciliation 26. Execution Contract Database 1 owns it.
+Deleted: Reconciliation 27. Execution Contract Database 1 owns it.
+Deleted: Reconciliation 28. Execution Contract Database 1 owns it.
+Deleted: Reconciliation 29. Execution Contract Database 1 owns it.
+Deleted: Reconciliation 30. Execution Contract Database 1 owns it.
+Deleted: Reconciliation 31. Execution Contract Database 1 owns it.
+Deleted: Reconciliation 32. Execution Contract Database 1 owns it.
+Deleted: Reconciliation 33. Execution Contract Database 1 owns it.
+Deleted: Reconciliation 34. Execution Contract Database 1 owns it.
+Deleted: Reconciliation 35. Execution Contract Database 1 owns it.
+Deleted: Reconciliation 36. Execution Contract Database 1 owns it.
+Deleted: Reconciliation 37. Execution Contract Database 1 owns it.
+Deleted: Reconciliation 38. Execution Contract Database 1 owns it.
+Deleted: Reconciliation 39. Execution Contract Database 1 and Execution Contract Database 2 own it.
+```
+
+### Composition-level invariants › Invariant 1 — Allocation coherence
+
+```
+  Deleted: Invariant 1.2. Execution Contract Database 1 owns it.
+  Deleted: Invariant 1.3. Execution Contract Database 1 owns it.
+  Deleted: Invariant 1.4. Execution Contract Database 1 owns it.
+```
+
+### Composition-level invariants › Invariant 8 — Authentication precedes commitment
+
+```
+  Deleted: Invariant 7. Composes 5 owns it.
+```
+
+### Generation acceptance › Conformance checks
+
+```
+Deleted: Check 1.5. Execution Contract Database 1 owns it.
+Deleted: Check 1.7. Execution Contract Database 1 owns it.
+Deleted: Check 3.2. Execution Contract Database 1 owns it.
+Deleted: Check 3.3. Execution Contract Database 1 owns it.
+Deleted: Check 3.4. Execution Contract Database 1 owns it.
+Deleted: Check 3.5. Execution Contract Database 1 owns it.
+Deleted: Check 3.6. Execution Contract Database 1 owns it.
+Deleted: Check 3.7. Execution Contract Database 1 owns it.
+Deleted: Check 3.8. Execution Contract Database 1 owns it.
+```
+
+### Generation acceptance › External checks
+
+```
+Deleted: External check 3. Execution Contract Database 1 owns it.
+Deleted: External check 4. Execution Contract Database 2 owns it.
+Deleted: External check 5. Execution Contract Database 3 owns it.
+```
+
+### Edge cases › Concurrency
+
+```
+Deleted: Concurrency 2. Execution Contract Database 1 owns it.
+Deleted: Concurrency 3. Execution Contract Database 2 owns it.
+```
+
+### Edge cases › Expiry sweep
+
+```
+Deleted: Expiry sweep 2. Execution Contract Database 1 owns it.
+Deleted: Expiry sweep 3. Execution Contract Database 1 owns it.
+```

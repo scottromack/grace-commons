@@ -54,7 +54,6 @@ Identity 4: The atom MUST NOT reuse a consent id.
 Identity 5: The atom MUST NOT change a consent id.
 Identity 6: The atom MUST NOT identify a consent record by the subject reference and the purpose.
 Identity 7: EVERY consent id MUST stand non-blank.
-Deleted: Identity 8. Execution Contract Logic confinement 10 owns it.
 Identity 9: The atom MUST NOT interpret a subject reference.
 Identity 10: The atom MUST NOT interpret a purpose.
 Identity 11: The atom MUST NOT confirm that a subject reference names a known data subject.
@@ -81,16 +80,8 @@ State 4: IF expiry instant DOES NOT EQUAL blank THEN [Grant] MUST record the exp
 State 5: IF metadata DOES NOT EQUAL blank THEN [Grant] MUST record the metadata on the consent record.
 State 6: IF expiry instant EQUALS blank THEN [Grant] MUST NOT record an expiry instant on the consent record.
 State 7: A revoked consent record MUST carry revoking actor, revocation reason and revocation instant.
-Deleted: State 8. Expiry 1 and Invariant 2.1 own it.
 State 9: An expired consent record MUST NOT carry revocation instant.
-Deleted: State 10. Invariant 1.2 and Invariant 9.1 own it.
-Deleted: State 11. Invariant 3.1 owns it.
-Deleted: State 12. Invariant 3.2 owns it.
-Deleted: State 13. Non-goal 23 owns it.
-Deleted: State 14. Non-goal 11 owns it.
-Deleted: State 15. Non-goal 24 owns it.
 State 16: IF metadata EQUALS blank THEN [Grant] MUST NOT record metadata on the consent record.
-Deleted: State 1. Invariant 2.1 owns it.
 ```
 
 Term state: granted | revoked | expired — in effect, withdrawn, or run out; a [State], derived per Expiry 1 through 4 against the evaluation instant.
@@ -110,16 +101,12 @@ Expiry 3: A consent record MUST stand in expired ONLY IF the consent record is n
 Expiry 4: IF a consent record is not withdrawn AND the consent record is not elapsed THEN the consent record MUST stand in granted.
 Expiry 5: The atom MUST NOT offer an action that stands a consent record in expired.
 Expiry 6: The atom MUST NOT poll for an elapsed consent record.
-Deleted: Expiry 7. Composition note 9 owns it.
 ```
 
 #### Stored state
 
 ```
-Deleted: Stored state 1. Expiry 5 and Execution Contract Database 4 own it.
-Deleted: Stored state 2. Operation 36 and Operation 49 own it.
 Stored state 3: The implementation MUST NOT answer a granted result for an elapsed consent record.
-Deleted: Stored state 4. Execution Contract Database 2 owns it.
 ```
 
 ### Capability requirement
@@ -128,9 +115,6 @@ Deleted: Stored state 4. Execution Contract Database 2 owns it.
 Capability requirement 1: The deployment MUST supply now at the seam.
 Capability requirement 5: The deployment MUST supply the consent records PER Execution Contract Database 1 through 7, Execution Contract Read 1 through 4, Execution Contract Refusal 1, Execution Contract Query 1 through 4 and Execution Contract Input 1.
 Capability requirement 6: The deployment MAY declare the string cap PER Execution Contract Input 2.
-Deleted: Capability requirement 2. Execution Contract Logic confinement 7 owns it.
-Deleted: Capability requirement 3. Execution Contract Logic confinement 7 owns it.
-Deleted: Capability requirement 4. Execution Contract Logic confinement 7 owns it.
 ```
 
 ### Operations
@@ -161,7 +145,6 @@ Operation 3: [Grant] MUST answer the consent id.
 Operation 4: IF subject reference EQUALS blank THEN [Grant] MUST answer invalid-request.
 Operation 5: IF purpose EQUALS blank THEN [Grant] MUST answer invalid-request.
 Operation 6: IF granting actor EQUALS blank THEN [Grant] MUST answer invalid-request.
-Deleted: Operation 7. State 4, Operation 8 and Operation 9 own it.
 Operation 8: IF expiry instant PRECEDES now THEN [Grant] MUST answer invalid-request.
 Operation 9: IF expiry instant EQUALS now THEN [Grant] MUST answer invalid-request.
 Operation 66: IF a supplied expiry instant is malformed THEN [Grant] MUST answer invalid-request (Execution Contract Input 1).
@@ -169,18 +152,14 @@ Operation 70: IF subject reference EXCEEDS the string cap THEN [Grant] MUST answ
 Operation 71: IF purpose EXCEEDS the string cap THEN [Grant] MUST answer invalid-request (Execution Contract Input 2).
 Operation 72: IF granting actor EXCEEDS the string cap THEN [Grant] MUST answer invalid-request (Execution Contract Input 2).
 Operation 10: [Grant] MUST stamp grant instant from the injected now.
-Deleted: Operation 11. State 5 and State 16 own it.
 Operation 12: [Grant] MUST NOT interpret metadata.
 Operation 13: IF the database refuses the write THEN [Grant] MUST answer storage-failure.
-Deleted: Operation 14. Execution Contract Refusal 1 owns it.
 Operation 15: IF consent id EQUALS blank THEN [Revoke] MUST answer invalid-request.
 Operation 73: IF consent id EXCEEDS the string cap THEN [Revoke] MUST answer invalid-request (Execution Contract Input 2).
 Operation 16: IF the consent id names no consent record THEN [Revoke] MUST answer not-known.
-Deleted: Operation 17. Execution Contract Refusal 1 owns it.
 Operation 18: IF the consent record is withdrawn THEN [Revoke] MUST answer already-revoked.
 Operation 19: IF the consent record is elapsed AND the consent record is not withdrawn THEN [Revoke] MUST answer already-expired.
 Operation 20: IF revocation instant DOES NOT EQUAL blank THEN [Revoke] MUST resolve revocation instant from the call.
-Deleted: Operation 21. Execution Contract Logic confinement 12 owns it.
 Operation 22: IF a consent record EXISTS for the consent id AND the consent record is not withdrawn AND the consent record is not elapsed AND revoking actor EQUALS blank THEN [Revoke] MUST answer invalid-request.
 Operation 23: IF a consent record EXISTS for the consent id AND the consent record is not withdrawn AND the consent record is not elapsed AND reason EQUALS blank THEN [Revoke] MUST answer invalid-request.
 Operation 24: IF a consent record EXISTS for the consent id AND the consent record is not withdrawn AND the consent record is not elapsed AND now PRECEDES the resolved revocation instant THEN [Revoke] MUST answer invalid-request.
@@ -198,12 +177,10 @@ Operation 29: [Revoke] MUST record the resolved revocation instant on the consen
 Operation 30: [Revoke] MUST answer revoked.
 Operation 31: IF the database refuses the write THEN [Revoke] MUST answer storage-failure.
 Operation 32: IF the database refuses the [Revoke] write THEN the consent record MUST stand in granted.
-Deleted: Operation 33. Execution Contract Database 3 owns it.
 Operation 34: [Check] MUST answer EXACTLY ONE OF granted, revoked, expired, not-known.
 Operation 35: [Check] MUST NOT refuse a call.
 Operation 36: [Check] MUST NOT write.
 Operation 37: IF at time DOES NOT EQUAL blank THEN [Check] MUST resolve at time from the call.
-Deleted: Operation 38. Execution Contract Logic confinement 12 owns it.
 Operation 39: [Check] MUST accept EVERY at time.
 Operation 40: IF no candidate record EXISTS THEN [Check] MUST answer not-known.
 Operation 41: IF the candidate record is withdrawn THEN [Check] MUST answer revoked.
@@ -218,17 +195,11 @@ Operation 49: [Read] MUST NOT write.
 Operation 50: [Read] MUST order two consent records sharing a grant instant by consent id ascending (Execution Contract Logic confinement 10).
 Operation 51: [Read] MUST answer an empty sequence for a well-formed query no consent record matches.
 Operation 52: [Read] MUST accept EVERY combination of the supported filter axes.
-Deleted: Operation 53. Execution Contract Query 4 and Operation 47 own it.
-Deleted: Operation 54. Instance 2, Operation 47 and Execution Contract Query 3 own it.
 Operation 55: IF the query carries a filter key outside the supported filter axes THEN [Read] MUST answer invalid-query.
 Operation 56: [Read] MUST NOT ignore a filter key outside the supported filter axes.
 Operation 57: IF a reference filter's value EQUALS blank THEN [Read] MUST answer invalid-query.
 Operation 58: IF a state filter's value IS NOT IN state THEN [Read] MUST answer invalid-query.
 Operation 59: IF a time range's end PRECEDES the time range's start THEN [Read] MUST answer invalid-query.
-Deleted: Operation 60. Execution Contract Query 3 owns it.
-Deleted: Operation 61. Capability requirement 1 owns it.
-Deleted: Operation 62. Execution Contract Logic confinement 3 owns it.
-Deleted: Operation 63. Execution Contract Logic confinement 3 owns it.
 Operation 64: [Read] MUST evaluate a state filter against the consent record's state.
 Operation 65: IF the query is malformed THEN [Read] MUST answer invalid-query (Execution Contract Query 1).
 Operation 76: IF a reference filter's value EXCEEDS the string cap THEN [Read] MUST answer invalid-query.
@@ -337,9 +308,7 @@ The case space, and the rule that owns each case:
   ```
 - **Invariant 6 — Expiry coherence.**
   ```
-  Deleted: Invariant 6.1. Operation 42 and Invariant 6.2 own it.
   Invariant 6.2: IF the candidate record is withdrawn AND the candidate record is elapsed THEN [Check] MUST answer revoked.
-  Deleted: Invariant 6.3. Operation 36 and Operation 49 own it.
   ```
 - **Invariant 7 — Grant attribution is complete.**
   ```
@@ -349,26 +318,21 @@ The case space, and the rule that owns each case:
 - **Invariant 8 — Consent record durability.**
   ```
   Invariant 8.1: The atom MUST NOT remove a consent record from the database.
-  Deleted: Invariant 8.2. Invariant 8.1 and Execution Contract Database 6 own it.
-  Deleted: Invariant 8.3. Execution Contract Database 1 owns it.
   ```
 - **Invariant 9 — Revocation non-retroactivity.**
   ```
   Invariant 9.1: [Revoke] MUST NOT change a grant field.
-  Deleted: Invariant 9.2. Invariant 9.1 and Invariant 10.3 own it.
   ```
 - **Invariant 10 — Point-in-time faithfulness.**
   ```
   Invariant 10.1: [Check] MUST answer from the candidate record alone.
   Invariant 10.2: A tie on grant instant MUST resolve to the greatest consent id (Execution Contract Logic confinement 10).
   Invariant 10.3: A later write MUST NOT change a [Check] answer for the at time.
-  Deleted: Invariant 10.4. Invariant 10.1 and Invariant 10.3 own it.
   ```
 
 ### Database instance model
 
 ```
-Deleted: Instance 1. Execution Contract Database 7 owns it.
 Instance 2: Two consent records in one database instance MUST NOT share a consent id.
 Instance 3: A database name MUST name one database instance.
 Instance 4: The atom MUST NOT accept a database name as an input.
@@ -438,12 +402,7 @@ Check 3.1: An auditor MUST find EVERY revoked consent record's revoking actor an
 Check 3.2: An auditor MUST find no revoked consent record whose revocation instant PRECEDES the consent record's grant instant (Invariant 5.1).
 Check 4.1: An auditor MUST find [Check] answering granted, then revoked once a [Revoke] lands on the candidate record with a revocation instant the at time DOES NOT PRECEDE, then granted once a fresh [Grant]'s consent record is the candidate record (Invariant 3.1, Operation 44).
 Check 5.1: An auditor MUST find [Check] answering granted for an at time that PRECEDES the candidate record's expiry instant, and expired for an at time that DOES NOT PRECEDE the candidate record's expiry instant, where the candidate record carries no revocation instant (Operation 42, Operation 44).
-Deleted: Check 5.2. Invariant 2.2 and Stored state 3 own it.
-Deleted: Check 6.1. Operation 18 and Invariant 3.1 own it.
-Deleted: Check 6.2. Operation 19 and Invariant 3.2 own it.
-Deleted: Check 6.3. Operation 32 owns it.
 Check 7.1: An auditor MUST find EVERY revoked and expired consent record still answering to [Read] (Invariant 8.1; Execution Contract Generation acceptance 1).
-Deleted: Check 8.1. Check 8.2 through 8.4 own it.
 Check 8.2: An auditor MUST find a [Check] carrying an at time answering alike across a later [Grant] for the pair, where the at time PRECEDES the later consent record's grant instant (Invariant 10.3).
 Check 8.3: An auditor MUST find a [Check] carrying an at time answering alike across a later [Revoke] for the pair, where the at time PRECEDES the revocation instant (Invariant 10.3).
 Check 8.4: An auditor MUST find [Check] answering from the consent record carrying the call's subject reference and purpose whose grant instant is the latest the at time DOES NOT PRECEDE (Invariant 10.1).
@@ -488,20 +447,9 @@ NOTE: the owners — [Duplicate Prevention](./duplicate-prevention.md) (Non-goal
 
 ### Clock dependence
 
-```
-Deleted: Clock dependence 1. Execution Contract Logic confinement 11 owns it.
-```
-
 ### Clock semantics
 
 ```
-Deleted: Clock semantics 5. Operation 8 and Operation 9 own it.
-Deleted: Clock semantics 1. Execution Contract Logic confinement 7 owns it.
-Deleted: Clock semantics 2. Execution Contract Logic confinement 7 owns it.
-Deleted: Clock semantics 3. Capability requirement 1 and Execution Contract Logic confinement 7 own it: the seam supplies now, and the reading's honesty is the deployment's.
-Deleted: Clock semantics 4. Execution Contract Logic confinement 11 owns it.
-Deleted: Clock semantics 7. Operation 10 owns it: `now` is never supplied by the business caller, so a grant instant stamped from the injected now is never a caller-supplied instant.
-Deleted: Clock semantics 6. Operation 24 owns it.
 Clock semantics 8: [Revoke] MAY record a revocation instant that PRECEDES now.
 ```
 
@@ -510,9 +458,6 @@ NOTE: a revocation instant earlier than now ends the agreement from that instant
 ### Concurrency
 
 ```
-Deleted: Concurrency 1. Execution Contract Database 2 owns it.
-Deleted: Concurrency 2. Execution Contract Database 2 owns it.
-Deleted: Concurrency 3. Execution Contract Database 2 owns it.
 Concurrency 4: Two concurrent [Grant] calls carrying one subject reference and one purpose MUST record two consent records.
 ```
 
@@ -538,7 +483,6 @@ Composition note 4: A composing pattern MUST own the propagation of a withdrawal
 Composition note 5: A composing pattern MUST own the purpose taxonomy.
 Composition note 6: A composing pattern MUST own the retention of the consent records.
 Composition note 7: A composing pattern MUST own the authority to grant for a data subject.
-Deleted: Composition note 8. Execution Contract Atom interface 1 owns it.
 Composition note 9: A composing pattern MUST NOT poll for an elapsed consent record.
 ```
 

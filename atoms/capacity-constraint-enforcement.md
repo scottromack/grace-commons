@@ -49,8 +49,6 @@ Identity 1: The atom MUST identify a pool by the pool id.
 Identity 2: The atom MUST identify an audit event by the event id.
 Identity 3: The host MUST allocate a pool id at the seam.
 Identity 4: The host MUST allocate an event id at the seam.
-Deleted: Identity 5. Execution Contract Logic confinement 3 owns it.
-Deleted: Identity 6. Execution Contract Logic confinement 3 owns it.
 Identity 7: The atom MUST NOT change a pool id.
 Identity 8: The atom MUST NOT change an event id.
 Identity 9: The atom MUST NOT identify a pool by a pool's name.
@@ -133,15 +131,6 @@ NOTE: open 2026-11-03-i — the attribution surface does not name the declaring 
 Capability requirement 1: The deployment MUST supply now at the seam.
 Capability requirement 5: The deployment MUST supply the pool records PER Execution Contract Database 1 through 4, Execution Contract Database 6, Execution Contract Order 1, Execution Contract Read 1 through 3, Execution Contract Refusal 1 and Execution Contract Conformance 9.
 Capability requirement 6: The deployment MAY declare the actor reference cap PER Execution Contract Input 2.
-Deleted: Capability requirement 2. Execution Contract Logic confinement 7 owns it.
-Deleted: Capability requirement 3. Execution Contract Logic confinement 7 owns it.
-Deleted: Capability requirement 4. Execution Contract Logic confinement 7 owns it.
-Deleted: Clock semantics 1. Execution Contract Logic confinement 7 owns it.
-Deleted: Clock semantics 2. Execution Contract Logic confinement 7 owns it.
-Deleted: Clock semantics 3. Capability requirement 1 and Execution Contract Logic confinement 7 own it: the seam supplies now, and the reading's honesty is the deployment's.
-Deleted: Clock semantics 4. Clock dependence 1 owns it.
-Deleted: Clock semantics 5. Clock dependence 2 owns it.
-Deleted: Clock semantics 6. Non-goal 29 owns it.
 ```
 
 ### Operations
@@ -194,7 +183,6 @@ Operation 10: IF the pool state EQUALS suspended THEN [Allocate] MUST answer sus
 Operation 11: IF the pool state EQUALS closed THEN [Allocate] MUST answer closed.
 Operation 12: IF count IS NOT IN the positive counts THEN [Allocate] MUST answer invalid-request.
 Operation 13: IF the requested total EXCEEDS capacity THEN [Allocate] MUST answer over-capacity.
-Deleted: Operation 14. Execution Contract Refusal 1 owns it.
 Operation 15: [Allocate] MUST raise allocated to the requested total.
 Operation 16: [Allocate] MUST append an allocation event.
 Operation 17: [Allocate] MUST answer the allocation event id.
@@ -235,16 +223,9 @@ Operation 51: [Query] MUST answer the pool snapshot.
 Operation 52: [Query] MUST NOT write.
 Operation 53: [Query] MUST NOT append an audit event.
 Operation 54: [Query] MUST admit a call in EVERY pool state.
-Deleted: Operation 55. Operation 51 and Execution Contract Read 1 own it.
-Deleted: Operation 56. Execution Contract Read 1 owns it.
 Operation 57: IF the database refuses a write THEN a writing action MUST answer storage-failure.
 Operation 58: A refused action MUST leave the pool as the call found the pool.
 Operation 59: A refused action MUST NOT append an audit event.
-Deleted: Operation 60. Execution Contract Refusal 1 owns it.
-Deleted: Operation 61. Capability requirement 1 owns it.
-Deleted: Operation 62. Execution Contract Logic confinement 3 owns it.
-Deleted: Operation 63. Execution Contract Logic confinement 3 owns it.
-Deleted: Operation 64. Clock dependence 1 owns it.
 ```
 
 Term now: the deployment's clock reading at the call — a [Now], as Execution Contract Logic confinement 11 declares it.
@@ -314,7 +295,6 @@ The case space, and the rule that owns each case:
   ```
   Invariant 1.1: The atom MUST NOT offer an action that removes a pool.
   Invariant 1.2: The count of pools MUST NOT fall under the atom's actions.
-  Deleted: Invariant 1.3. Execution Contract Database 1 owns it.
   ```
 - **Invariant 2 — State membership exclusivity.**
   ```
@@ -387,11 +367,6 @@ The case space, and the rule that owns each case:
   Invariant 13.3: Invariant 13.2 MUST rest on the generator the deployment declares.
   ```
 - **Invariant 14 — Action atomicity.**
-  ```
-  Deleted: Invariant 14.1. Execution Contract Database 1 owns it.
-  Deleted: Invariant 14.2. Execution Contract Database 1 owns it.
-  Deleted: Invariant 14.3. Execution Contract Database 1 owns it: an action's writes commit together or not at all, and the atom names no host obligation left for the commit to rest on.
-  ```
 
 Invariants 4 and 5 together give the *bounded-arithmetic* property — at every reachable state the running total sits between zero and the bound, under the host obligations Invariant 4.4 names. That is what a composing pattern may treat as a precondition; without it every caller defends the bound at its own call site. Invariant 8 through 11 give the *successful-change-audit* property — every successful change to a pool's capacity, total or state is an attributed event in insertion order whose identifier surface nothing rewrites. *Rejected* calls produce no event here, deliberately (Non-goal 26, Non-goal 27). Invariant 3 gives *terminal closure* — a closed pool cannot be quietly reopened, and post-close unwinding through [Release] is the only mutation that survives it.
 
@@ -450,11 +425,6 @@ Check 3.1: An auditor MUST find EVERY allocation event's closing balance equal t
 Check 3.2: An auditor MUST find the closing balance of EVERY allocation event the replay reaches no higher than the capacity the replay holds at the audit event (Invariant 4.1, Check 2.1).
 Check 4.1: An auditor MUST find EVERY release event's closing balance equal to the released total (Operation 23).
 Check 4.2: An auditor MUST find no release event's closing balance below zero (Invariant 5.1).
-Deleted: Check 5.1. Execution Contract Database 6 owns it.
-Deleted: Check 5.2. Execution Contract Database 6 owns it.
-Deleted: Check 5.3. Execution Contract Database 6 owns it.
-Deleted: Check 5.4. Execution Contract Database 6 owns it.
-Deleted: Check 6.1. Execution Contract Conformance 9 owns it.
 ```
 
 NOTE: EVERY check names the rule the check tests. The capacity at a purge boundary is read beside the pool records, from the deployment's anchor (External check 6).
@@ -471,8 +441,6 @@ NOTE: open 2026-11-03-c — no check verifies the adjustment and state-change ev
 External check 1: An auditor needing a refused call MUST read the refusal from a composing Event Log (Non-goal 26).
 External check 2: An auditor needing a per-unit history MUST read the history from a composing Provisional Commitment (Non-goal 1).
 External check 3: An auditor needing an attested actor MUST read the attestation from a composing Actor Identity (Non-goal 12).
-Deleted: External check 4. Execution Contract Conformance 9 owns it.
-Deleted: External check 5. Execution Contract Database 6 owns it.
 External check 6: An auditor needing Invariant 4.1 cleared across a purge MUST read the capacity at the purge boundary from the anchor Check 2.3 names (Invariant 9.4).
 ```
 
@@ -530,9 +498,6 @@ Clock dependence 2: A rejection MUST NOT rest on now.
 ### Concurrency
 
 ```
-Deleted: Concurrency 1. Execution Contract Database 2 owns it.
-Deleted: Concurrency 2. Execution Contract Database 1 and Execution Contract Database 2 own it.
-Deleted: Concurrency 3. Execution Contract Database 2 owns it: the arithmetic guard and the write are one transaction, and the atom names no rule left for a compare-and-set to discharge.
 Concurrency 4: The atom MUST NOT order two contending calls fairly.
 Concurrency 5: The atom MUST NOT offer a multi-action transaction.
 ```
@@ -542,7 +507,6 @@ Concurrency 5: The atom MUST NOT offer a multi-action transaction.
 ```
 String 1: EVERY required string field MUST carry a codepoint outside the whitespace category.
 String 2: IF a required string field EQUALS blank THEN the action MUST answer invalid-request.
-Deleted: String 3. Execution Contract Input 2 owns it, and Term actor reference cap supplies the default.
 String 4: IF a reason EXCEEDS the reason cap THEN the action MUST answer invalid-request.
 String 5: IF a string field EXCEEDS the field's maximum length THEN the action MUST answer invalid-request.
 String 6: IF a string field carries a control character THEN the action MUST answer invalid-request.
@@ -582,25 +546,15 @@ Arithmetic 5: IF new capacity EXCEEDS the integer width THEN [Adjust Capacity] M
 
 ### Crash atomicity
 
-```
-Deleted: Crash atomicity 1. Execution Contract Database 1 owns it.
-Deleted: Crash atomicity 2. Execution Contract Database 1 and Execution Contract Database 3 own it.
-Deleted: Crash atomicity 3. Execution Contract Database 1 and Execution Contract Database 3 own it.
-Deleted: Crash atomicity 5. Execution Contract Database 1 and Execution Contract Database 3 own it.
-Deleted: Crash atomicity 4. Execution Contract Database 3 owns it.
-```
-
 ## Composition notes
 
 ```
-Deleted: Composition note 1. Execution Contract Conformance 9 owns it.
 Composition note 2: A composing pattern MUST own the per-unit lifecycle.
 Composition note 3: A composing pattern MUST call [Release] when the pattern's own allocation reaches a terminal state.
 Composition note 4: A composing pattern MUST record the event id the atom answered.
 Composition note 5: A composing pattern MUST own the authority to call an action.
 Composition note 6: A composing pattern MUST own the refusal record.
 Composition note 7: A composing pattern MUST own the retention of the pool records.
-Deleted: Composition note 8. Execution Contract Atom interface 1 owns it.
 ```
 
 ## Terms

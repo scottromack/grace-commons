@@ -20,3 +20,147 @@ Entries that record a round, a repair or an authoring choice rather than a turn 
 - **2026-09-13 — Effective-active uniqueness is enforced by a critical section over the pair, not by a unique partial index.** *Chose:* Capability requirement 8 — the store runs the effective-active check and the register write for one pair as one critical section. *Over:* the store constraint the prose named, *a unique partial index on `(principal_ref, credential_type)` where `status = Active` and the credential is not past expiry instant*. *Because:* an index predicate cannot reference now, and the half of it that can — `where status = Active` — forbids exactly the case Operation 8 permits, a lapsed record standing in active beside its successor. The obligation the prose was reaching for is unchanged; only the mechanism is, and the formal twin built against the old reading is an open Ledger line rather than a silent inheritance.
 - **2026-09-13 — Every bound, guard and lookup means effective-active, declared once.** *Chose:* window reading: live | lapsed, and effective-active credential as a credential standing in active that reads live. *Over:* restating *stored active and now < expiry instant* at the uniqueness guard, the verify lookup, the rotate precondition and the revoke precondition, which is how the prose carried it four times. *Because:* a spec pays for a proposition once (GRACE-lang Authority 3), and this is the atom's single most misreadable claim — an implementation that reads the stored flag at any one of those four sites is the hazard `credential-buggy-toctou.tla` exists to catch.
 - **2026-09-13 — live admits an absent deadline, which the corpus's other two window readings do not.** *Chose:* a two-member reading whose live member covers both *no deadline* and *deadline not yet reached*. *Over:* a three-member reading separating the unbounded case. *Because:* nothing in this atom treats an unbounded credential differently from one inside its window — every guard asks the same question and gets the same answer — so a third member would be a distinction no rule consumes. It is worth recording because [Provisional Commitment](./provisional-commitment.md) and [Invitation](./invitation.md) both declare a window reading over a *mandatory* deadline, and this is the first where the deadline is optional.
+
+## Deleted rules
+
+The spec's tombstones, moved here from the page on 2026-11-13 because the spec is done (GRACE-lang Hard invariant 25 and Hard invariant 27, since v0.71): each `Deleted:` line byte for byte and in the page's order, under the heading it stood under there. A tombstone carries no obligation, and each still reserves its label: no rule of [Credential](./credential.md) may carry it again.
+
+### Structure › Identity model
+
+```
+Deleted: Identity 12. Execution Contract Database 7 owns it.
+Deleted: Identity 13. Capability requirement 34 owns it.
+Deleted: Identity 14. Capability requirement 35 owns it.
+Deleted: Identity 15. Execution Contract Database 7 owns it.
+```
+
+### Structure › State
+
+```
+Deleted: State 4. Invariant 9.1 through 9.3 own it.
+```
+
+### Structure › Capability requirement
+
+```
+Deleted: Capability requirement 8. Execution Contract Database 2 owns it.
+Deleted: Capability requirement 9. Execution Contract Database 2 owns it: the pair's check and write are one transaction, and the atom names no section to release.
+Deleted: Capability requirement 10. Execution Contract Database 2 owns it: the pair's check and write are one transaction, and the atom names no section to release.
+Deleted: Capability requirement 11. Execution Contract Database 3 owns it.
+Deleted: Capability requirement 12. Execution Contract Database 1 owns it.
+Deleted: Capability requirement 15. Execution Contract Logic confinement 7 owns it.
+Deleted: Capability requirement 16. Execution Contract Logic confinement 7 owns it.
+Deleted: Clock semantics 4. Execution Contract Logic confinement 7 owns it.
+Deleted: Clock semantics 1. Execution Contract Logic confinement 3 owns it.
+Deleted: Clock semantics 2. Execution Contract Logic confinement 3 owns it.
+Deleted: Clock semantics 3. Execution Contract Logic confinement 3 owns it.
+Deleted: Clock semantics 5. Execution Contract Logic confinement 7 owns it.
+Deleted: Clock semantics 6. Non-goal 27 owns it.
+Deleted: Clock semantics 7. Non-goal 28 owns it.
+Deleted: Capability requirement 17. Execution Contract Database 2 owns it.
+Deleted: Capability requirement 21. Execution Contract Database 2 owns it: the pair's check and write are one transaction, and the atom names no section to lease.
+Deleted: Capability requirement 22. Execution Contract Database 2 owns it: the pair's check and write are one transaction, and the atom names no section to release.
+Deleted: Capability requirement 23. Execution Contract Database 2 owns it.
+Deleted: Capability requirement 33. Execution Contract Database 7 owns it.
+Deleted: Capability requirement 36. Execution Contract Database 7 owns it.
+```
+
+### Structure › Operations
+
+```
+Deleted: Operation 7. Execution Contract Refusal 1 owns it.
+Deleted: Operation 24. Capability requirement 40 owns it.
+Deleted: Operation 30. Execution Contract Refusal 1 owns it.
+Deleted: Operation 34. Execution Contract Refusal 1 owns it.
+Deleted: Operation 40. Execution Contract Database 1 owns it.
+Deleted: Operation 44. Execution Contract Database 1 owns it.
+Deleted: Operation 46. Execution Contract Refusal 1 owns it.
+Deleted: Operation 47. Execution Contract Read 4 and Execution Contract Database 3 own it: a refused call writes nothing, and a write that did not commit leaves nothing.
+Deleted: Operation 48. Execution Contract Read 4 and Execution Contract Database 3 own it: a refused call writes nothing, and a write that did not commit leaves nothing.
+Deleted: Operation 49. Execution Contract Read 4 and Execution Contract Database 3 own it: a refused call writes nothing, and a write that did not commit leaves nothing.
+Deleted: Operation 55. Operation 51 and Execution Contract Read 2 own it.
+Deleted: Operation 56. Execution Contract Logic confinement 3 owns it.
+Deleted: Operation 57. Execution Contract Logic confinement 3 owns it.
+Deleted: Operation 74. Execution Contract Read 1 owns it.
+Deleted: Operation 75. Execution Contract Refusal 1 owns it.
+Deleted: Operation 76. Execution Contract Refusal 1 owns it.
+Deleted: Operation 77. Execution Contract Refusal 1 owns it.
+Deleted: Operation 78. Execution Contract Input 1 owns it.
+Deleted: Operation 79. Execution Contract Input 1 owns it.
+```
+
+### Structure › Invariants › Invariant 4 — Revocation is absorbing
+
+```
+  Deleted: Invariant 4.1. Invariant 3.1 owns it: a verify answers verified only against the effective-active credential, which a revoked credential is not.
+```
+
+### Structure › Invariants › Invariant 8 — Credential material is never persisted
+
+```
+  Deleted: Invariant 8.2. Capability requirement 5 owns the one-way derivation function.
+```
+
+### Structure › Invariants › Invariant 10 — Credential durability
+
+```
+  Deleted: Invariant 10.2. Execution Contract Database 1 owns it.
+```
+
+### Structure › Invariants › Invariant 11 — A lapse precludes verification
+
+```
+  Deleted: Invariant 11.1. Invariant 3.1 owns it: a verify answers verified only against the effective-active credential, which a lapsed credential is not.
+```
+
+### Generation acceptance › Conformance checks
+
+```
+Deleted: Check 8.2. Check 8.1 owns it.
+```
+
+### Generation acceptance › External checks
+
+```
+Deleted: External check 9. Execution Contract Database 1 owns it.
+```
+
+### Edge cases › Atomic writes
+
+```
+Deleted: Atomic writes 1. Execution Contract Database 1 owns it.
+Deleted: Atomic writes 2. Execution Contract Database 1 and Execution Contract Database 3 own it.
+Deleted: Atomic writes 3. Execution Contract Database 1 owns it.
+Deleted: Atomic writes 4. Execution Contract Database 1 owns it.
+Deleted: Atomic writes 5. Execution Contract Read 4 and Execution Contract Database 1 own it.
+```
+
+### Edge cases › Concurrency
+
+```
+Deleted: Concurrency 1. Execution Contract Database 1 and Execution Contract Database 2 own it.
+Deleted: Concurrency 2. Execution Contract Database 2 owns it.
+Deleted: Concurrency 3. Execution Contract Database 2 owns it.
+Deleted: Concurrency 4. Execution Contract Database 3 owns it.
+```
+
+### Edge cases › Indeterminate outcome
+
+```
+Deleted: Indeterminate outcome 2. Execution Contract Error model 1 owns it.
+Deleted: Indeterminate outcome 3. Execution Contract Error model 1 owns it.
+Deleted: Indeterminate outcome 4. Execution Contract Error model 1 owns it.
+```
+
+### Edge cases › String policy
+
+```
+Deleted: String 8. Operation 27 owns it.
+Deleted: String 10. Term empty material owns it: material is missing only where the material is absent or carries no character, and material of whitespace alone is material, which the derivation function normalizes.
+```
+
+### Composition notes
+
+```
+Deleted: Composition note 2. Non-goal 8 owns it.
+```

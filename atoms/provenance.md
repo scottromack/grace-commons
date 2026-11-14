@@ -51,8 +51,6 @@ Identity 1: The atom MUST identify a chain by the chain id.
 Identity 2: The atom MUST identify an entry by the entry id.
 Identity 3: The host MUST allocate a chain id at the seam.
 Identity 4: The host MUST allocate an entry id at the seam.
-Deleted: Identity 5. Execution Contract Logic confinement 3 owns it.
-Deleted: Identity 6. Execution Contract Logic confinement 3 owns it.
 Identity 7: The atom MUST NOT change a chain id.
 Identity 8: The atom MUST NOT change an entry id.
 Identity 9: The atom MUST NOT identify a chain by the artifact reference.
@@ -63,7 +61,6 @@ Identity 13: The atom MUST NOT interpret an artifact reference.
 Identity 14: The atom MUST NOT confirm that an artifact reference names a known artifact.
 Identity 15: Two chains in one database instance MUST NOT share a chain id.
 Identity 16: Two entries in one chain MUST NOT share an entry id.
-Deleted: Identity 17. Execution Contract Database 7 owns it.
 ```
 
 NOTE: watch the allocation ban (Identity 5, Identity 6).
@@ -109,7 +106,6 @@ State 15: The atom MUST NOT offer a removal surface.
 State 16: The atom MUST NOT offer a reorder surface.
 State 17: The atom MUST NOT offer an edit surface.
 State 18: The chain's entries IS AUTHORITATIVE FOR the current custodian.
-Deleted: State 19. Execution Contract Database 3 owns it.
 ```
 
 ### Capability requirement
@@ -119,9 +115,6 @@ Capability requirement 1: The deployment MUST supply now at the seam.
 Capability requirement 5: The deployment MUST supply the chain records PER Execution Contract Database 1 through 4, Execution Contract Database 7, Execution Contract Read 1 through 4, Execution Contract Refusal 1 and Execution Contract Query 1 through 4.
 Capability requirement 6: The deployment MAY declare a maximum length per string input PER Execution Contract Input 2.
 Capability requirement 7: The deployment MUST declare which composing patterns the deployment wired in.
-Deleted: Capability requirement 2. Execution Contract Logic confinement 7 owns it.
-Deleted: Capability requirement 3. Execution Contract Logic confinement 7 owns it.
-Deleted: Capability requirement 4. Execution Contract Logic confinement 7 owns it.
 ```
 
 NOTE: watch the deployment's composition note (Capability requirement 7).
@@ -158,7 +151,6 @@ read(chain_id, optional query)
 Operation 1: IF artifact reference EQUALS blank THEN [Originate] MUST answer invalid-ref.
 Operation 2: IF custodian reference EQUALS blank THEN [Originate] MUST answer invalid-ref.
 Operation 3: IF genesis type IS NOT IN the genesis types THEN [Originate] MUST answer invalid-genesis-type.
-Deleted: Operation 4. Execution Contract Refusal 1 owns it.
 Operation 5: An admitted originate MUST record EXACTLY ONE chain.
 Operation 6: An admitted originate MUST append the genesis entry.
 Operation 7: An admitted originate MUST set the genesis entry's event type to the call's genesis type.
@@ -170,7 +162,6 @@ Operation 12: IF the chain state EQUALS archived THEN [Transfer] MUST answer arc
 Operation 13: IF the chain state EQUALS archived THEN [Transform] MUST answer archived.
 Operation 14: IF the chain state EQUALS archived THEN [Disclose] MUST answer archived.
 Operation 15: IF the chain state EQUALS archived THEN [Archive] MUST answer already-archived.
-Deleted: Operation 16. Execution Contract Refusal 1 owns it.
 Operation 17: IF to custodian reference EQUALS blank THEN [Transfer] MUST answer invalid-ref.
 Operation 18: [Transfer] MUST NOT accept a from custodian reference from the caller.
 Operation 19: An admitted transfer MUST read from custodian reference from the current custodian.
@@ -181,7 +172,6 @@ Operation 23: IF custodian reference EQUALS blank THEN a custodian-guarded actio
 Operation 24: IF transformation descriptor EQUALS blank THEN [Transform] MUST answer invalid-descriptor.
 Operation 25: IF recipient reference EQUALS blank THEN [Disclose] MUST answer invalid-ref.
 Operation 26: IF custodian reference DOES NOT EQUAL the current custodian THEN a custodian-guarded action MUST answer not-current-custodian.
-Deleted: Operation 27. Execution Contract Refusal 1 owns it.
 Operation 28: An admitted transform MUST append a transformed entry.
 Operation 29: An admitted disclose MUST append a disclosed entry.
 Operation 30: An admitted archive MUST append an archived entry.
@@ -189,29 +179,21 @@ Operation 31: An admitted archive MUST stand the chain in archived.
 Operation 32: An admitted archive MUST NOT change the current custodian.
 Operation 33: An admitted transform MUST NOT change the current custodian.
 Operation 34: An admitted disclose MUST NOT change the current custodian.
-Deleted: Operation 35. Operation 34 owns it.
 Operation 36: An appending action MUST take the entry's sequence number from next sequence number.
 Operation 37: An appending action MUST raise next sequence number by one.
-Deleted: Operation 38. Execution Contract Database 1 owns it.
 Operation 39: An appending action MUST answer the entry id.
 Operation 40: An appending action MUST stamp recording instant from the injected now.
 Operation 41: IF the database refuses the write THEN an appending action MUST answer storage-failure.
 Operation 42: A refused action MUST leave the chain as the call found the chain.
 Operation 43: A refused action MUST NOT append an entry.
 Operation 44: A refused action MUST NOT take a sequence number.
-Deleted: Operation 45. Execution Contract Refusal 1 owns it.
 Operation 46: [Read] MUST answer the chain's entries in sequence number ascending order.
 Operation 47: [Read] MUST answer an empty entry sequence for a well-formed query no entry matches.
 Operation 48: IF a sequence number range's start EXCEEDS the range's end THEN [Read] MUST answer invalid-query.
 Operation 49: IF a query's event type IS NOT IN the event types THEN [Read] MUST answer invalid-query.
 Operation 50: [Read] MUST NOT write.
 Operation 51: [Read] MUST NOT answer storage-failure.
-Deleted: Operation 52. Execution Contract Read 1 owns it.
 Operation 53: [Read] MUST NOT answer archived.
-Deleted: Operation 54. Capability requirement 1 owns it.
-Deleted: Operation 55. Execution Contract Logic confinement 3 owns it.
-Deleted: Operation 56. Execution Contract Logic confinement 3 owns it.
-Deleted: Operation 57. Clock dependence 2 owns it.
 Operation 58: An ordering rule MUST NOT rest on recording instant.
 Operation 59: IF the query is malformed THEN [Read] MUST answer invalid-query.
 Operation 60: IF a recording instant range's end PRECEDES the range's start THEN [Read] MUST answer invalid-query.
@@ -372,9 +354,7 @@ The case space, and the rule that owns each case:
   ```
 - **Invariant 10 — Chain durability over this atom's own surface.**
   ```
-  Deleted: Invariant 9. Identity 15 and Identity 16 own id uniqueness.
   Invariant 10.1: The chain count MUST NOT fall under the atom's actions.
-  Deleted: Invariant 10.2. Execution Contract Database 1 owns it.
   ```
 
 ---
@@ -456,10 +436,6 @@ Term committed version: a record as it stood at the commit that wrote it, as Exe
 
 ### External checks
 
-```
-Deleted: External check 1. Execution Contract Conformance 9 owns it.
-```
-
 ## Non-goals
 
 ```
@@ -496,16 +472,6 @@ NOTE: the owners — [Actor Identity](./actor-identity.md) (Non-goal 1, Non-goal
 
 ### Atomic writes
 
-```
-Deleted: Atomic writes 1. Execution Contract Database 1 owns it.
-Deleted: Atomic writes 2. Execution Contract Database 1 owns it.
-Deleted: Atomic writes 3. Execution Contract Database 1 owns it.
-Deleted: Atomic writes 4. Execution Contract Database 1 and Execution Contract Database 3 own it.
-Deleted: Atomic writes 5. Execution Contract Database 1 owns it.
-Deleted: Atomic writes 6. Execution Contract Database 1 owns it.
-Deleted: Atomic writes 7. Execution Contract Database 1 owns it.
-```
-
 ### Clock dependence
 
 ```
@@ -517,19 +483,12 @@ Clock dependence 2: A guard MUST NOT read now.
 
 ```
 Clock semantics 4: A guard MUST NOT rest on recording instant.
-Deleted: Clock semantics 1. Execution Contract Logic confinement 7 owns it.
-Deleted: Clock semantics 2. Execution Contract Logic confinement 7 owns it.
-Deleted: Clock semantics 3. Execution Contract Logic confinement 7 owns it.
-Deleted: Clock semantics 5. Clock dependence 1 owns it.
-Deleted: Clock semantics 6. Non-goal 23 owns it.
 ```
 
 ### Concurrency
 
 ```
-Deleted: Concurrency 1. Execution Contract Database 2 owns it.
 Concurrency 2: EVERY serialized transfer against one open chain MUST append.
-Deleted: Concurrency 3. Execution Contract Database 2 owns it.
 Concurrency 4: A host needing a transfer conditional on the current custodian MUST serialize the host's own calls.
 ```
 
@@ -541,7 +500,6 @@ String 2: The atom MUST NOT trim a string input.
 String 3: The atom MUST NOT normalize a string input.
 String 4: The atom MUST NOT case-fold a string input.
 String 5: The atom MUST read a whitespace-only string input as blank.
-Deleted: String 6. Capability requirement 6 owns it.
 String 7: IF a reference EXCEEDS the maximum length THEN the action MUST answer invalid-ref.
 String 8: IF transformation descriptor EXCEEDS the maximum length THEN [Transform] MUST answer invalid-descriptor.
 String 9: IF metadata EXCEEDS the maximum length THEN [Originate] MUST answer invalid-ref.
@@ -570,14 +528,12 @@ NOTE: open 2026-11-03-a — the descriptor is opaque to the atom, so no check re
 ## Composition notes
 
 ```
-Deleted: Composition note 1. Capability requirement 7 owns it.
 Composition note 2: A composing pattern MUST own the authorization of a call.
 Composition note 3: A composing pattern MUST own the attestation binding a custodian reference to an actor.
 Composition note 4: A composing pattern MUST own the tamper seal over the chain's entries.
 Composition note 5: A composing pattern MUST own the retention of the chain records.
 Composition note 6: A composing pattern MUST own a disclosure's scope and authority.
 Composition note 7: A composing pattern MUST own the relationship between two chains.
-Deleted: Composition note 8. Execution Contract Atom interface 1 owns it.
 ```
 
 NOTE: composing patterns — [Chain of Custody](../compositions/chain-of-custody.md).

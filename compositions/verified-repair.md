@@ -110,7 +110,6 @@ Capability requirement 12: The repository MUST NOT accept a push from the compos
 Capability requirement 13: The repository's commit MUST refuse with conflict where the head DOES NOT EQUAL the commit's parent.
 Capability requirement 14: A deployment MUST settle EVERY council.commit.escalated through Recoverable Invocation's resolve, under the maintainer's actor reference, BEFORE the journal's retention period purges the escalated invocation's intent.
 Capability requirement 15: The repository's refusal with nothing written MUST carry EXACTLY ONE OF lock-held, conflict, hook-rejected.
-Deleted: Capability requirement 16. Execution Contract Database 2 and Execution Contract Database 3 own it: a read inside an action's transaction shows every record committed ahead of it, and a record whose write is still in flight commits behind every record a read has shown.
 Capability requirement 17: A deployment MUST place EVERY council record under the retention policy the journal applies to the act kind council.commit.
 Capability requirement 18: IF a commit carries a council trailer AND the committing actor DOES NOT EQUAL the writer THEN the repository MUST refuse the commit.
 Capability requirement 19: IF a commit's council nonce IS IN the council nonces the repository's commits carry THEN the repository MUST refuse the commit.
@@ -226,16 +225,12 @@ repair(round, patches, actor_ref, credential)
 #### [Freeze]
 
 ```
-Deleted: Action wiring 1. Action wiring 2 owns it: the round is recorded from the page the repository holds at the base commit, never from a checked-out copy.
 Action wiring 2: An admitted freeze MUST record the round with the page, the base commit, the snapshot hash, the round budget AND the round key.
 Action wiring 3: An admitted freeze MUST answer the round id AND the snapshot: the snapshot hash AND the base commit.
 Action wiring 34: WHEN the round budget DOES NOT EXCEED the page's round count AND the page carries no standing ruling:
     Action wiring 34a: [Freeze] MUST answer budget-spent.
     Action wiring 34b: [Freeze] MUST escalate the page to the maintainer's queue.
 Action wiring 57: IF the page at the base commit DOES NOT EQUAL the page at the repository's head THEN [Freeze] MUST answer stale; a page absent at the head equals no page at the base commit.
-Deleted: Action wiring 59. Execution Contract Refusal 1 owns it: the budget answers last, after Primitive policy and staleness.
-Deleted: Action wiring 67. Execution Contract Refusal 1 owns it: staleness answers after Primitive policy 2.
-Deleted: Action wiring 72. Execution Contract Refusal 1 owns it.
 ```
 
 #### [Report]
@@ -248,11 +243,8 @@ Action wiring 6: IF the verdict carries malformed THEN [Report] MUST escalate th
 NOTE: open 2026-10-10-x — the escalation is a council.escalation record, written through Audit Trail's record_action as every council record is (Composes 6, Capability requirement 27) and read from the maintainer's queue; it asks no action of the maintainer, since a malformed verdict counts toward no round (Verdict 9) and the findings it carries stand (Term counted finding); no rule closes an escalation record.
 Action wiring 7: An admitted report MUST record the verdict with the verdict key, the round id AND the round's position.
 Action wiring 47: IF the round IS IN the round index's settled rounds THEN [Report] AND [Triage] MUST answer round-closed.
-Deleted: Action wiring 48. Action wiring 34 and Execution Contract Database 2 own it: [Freeze]'s read of the round count and its record of the round are one transaction, so no round is recorded past the round budget but one a standing ruling admits.
 Action wiring 51: [Report] MUST NOT evaluate Action wiring 6 BEFORE EVERY rule of the report refusal order has answered no refusal.
-Deleted: Action wiring 58. Execution Contract Database 2 and Execution Contract Database 3 own it: every round ahead of the round's record committed ahead of it, so [Report] reads the round position with no round still landing.
 Action wiring 60: [Report] MUST NOT evaluate Action wiring 7 BEFORE Action wiring 6 has answered.
-Deleted: Action wiring 73. Execution Contract Refusal 1 owns it.
 ```
 
 Term sound verdict: a recorded verdict of a round carrying holds or counterexample — a reader's or a formal engine's.
@@ -284,10 +276,6 @@ Action wiring 36: IF the round carries a counted triage of the finding in the re
 Action wiring 37: IF the round carries a triage record of the finding in another role under the caller's actor reference THEN [Triage] MUST answer invalid-request.
 Action wiring 43: IF the record's role EQUALS second AND the round carries no counted triage of the finding in the role first THEN [Triage] MUST answer invalid-request.
 Action wiring 44: IF the record's role EQUALS third AND the finding IS NOT IN the parted findings THEN [Triage] MUST answer invalid-request.
-Deleted: Action wiring 64. Action wiring 74 owns it: not-known is evaluated last.
-Deleted: Action wiring 65. Action wiring 74 owns it: already-triaged is evaluated after the invalid requests.
-Deleted: Action wiring 70. Action wiring 74 owns it: round-closed is evaluated ahead of the rest of [Triage]'s Action wiring.
-Deleted: Action wiring 71. Action wiring 74 owns it: round-closed is evaluated after Primitive policy.
 Action wiring 74: [Triage] MUST NOT evaluate a rule of the triage refusal order BEFORE EVERY earlier rule of the triage refusal order has answered no refusal.
 ```
 
@@ -332,7 +320,6 @@ Term triage refusal order: Primitive policy 16, Primitive policy 18, Primitive p
 ```
 Action wiring 38: IF the actor reference DOES NOT EQUAL the maintainer's actor reference THEN [Rule] MUST answer invalid-credential.
 Action wiring 39: An admitted ruling MUST record the ruling with the page, the page's latest round AND, where given, the round AND the patch whole.
-Deleted: Action wiring 66. Action wiring 75 owns it: the maintainer's credential is evaluated after Primitive policy.
 Action wiring 75: [Rule] MUST NOT evaluate a rule of the ruling refusal order BEFORE EVERY earlier rule of the ruling refusal order has answered no refusal.
 ```
 
@@ -346,14 +333,12 @@ Term ruling refusal order: Primitive policy 14, Primitive policy 11, Primitive p
 
 ```
 Action wiring 15: IF the page at the repository's head DOES NOT EQUAL the snapshot's bytes THEN [Repair] MUST answer stale; a page absent at the head equals no snapshot.
-Deleted: Action wiring 16. Action wiring 15 and Capability requirement 13 own it: the page at the head is the snapshot, and the commit lands only on the head it was built from.
 Action wiring 17: IF the count of sites a fragment's target resolves to on the round's page DOES NOT EQUAL one THEN [Repair] MUST answer unresolved.
 NOTE: open 2026-10-17-y — a fragment's target names the site the fragment changes as Term site names a site, by the site's rule label, Term name, heading or records site, and this rule counts the sites of the round's page carrying that name; a Term target worded so would sit in the claim families, which wait on the maintainer's ruling.
 Action wiring 18: IF the count of a fragment's old text in the fragment's resolved site, verbatim, DOES NOT EQUAL one THEN [Repair] MUST answer mismatch.
 Action wiring 19: IF a fragment's target IS IN the claim families AND no maintainer's ruling carries the fragment's patch byte-exact for the round THEN [Repair] MUST answer gated.
 Action wiring 20: IF a patch answers a finding whose settled triage's side EQUALS model THEN [Repair] MUST answer gated.
 NOTE: open 2026-10-10-z — a patch answering a model-sided finding stops here and goes to no queue: its cure is the model's re-derivation, which the deployment owns (Capability requirement 6) and no action of this page carries, so the page patch a kind-A model-sided triage carries (Primitive policy 18, 19) is never committed.
-Deleted: Action wiring 21. Action wiring 34 owns it: the budget is read where a round starts.
 Action wiring 22: An admitted repair MUST call the invocation open with the act kind, the repository as the act key, the writer's actor reference AND credential, AND the round key, the snapshot hash, EVERY patch whole AND the council nonce as intent data.
 Action wiring 23: An admitted repair MUST build the repair tree from the head Action wiring 15 read, with EVERY fragment of EVERY patch applied as one change.
 Action wiring 24: IF a finding the corpus gate reports over the repair tree IS NOT IN the gate's findings over the head Action wiring 15 read OR the gate gives no answer THEN [Repair] MUST answer gate-red.
@@ -373,10 +358,7 @@ Action wiring 40: IF a patch answers a finding that carries no settled triage of
 Action wiring 41: IF a patch answers no finding AND a fragment of the patch IS NOT IN the records fragments THEN [Repair] MUST answer unresolved.
 Action wiring 42: IF the invocation open, close OR refusal refuses THEN [Repair] MUST answer the code Recoverable Invocation Action wiring 2 exports for the refusal.
 Action wiring 45: IF the invocation refusal answers a refusal event id THEN [Repair] MUST answer the database's code (Recoverable Invocation commit 3).
-Deleted: Action wiring 46. Action wiring 76 owns it: staleness and settlement are evaluated before every check on the patches.
 Action wiring 49: IF the actor reference DOES NOT EQUAL the writer's actor reference THEN [Repair] MUST answer invalid-credential.
-Deleted: Action wiring 50. Action wiring 76 owns it: the claim gate is evaluated last.
-Deleted: Action wiring 52. Execution Contract Database 2 owns it: [Repair]'s read of the round's journal records and the intent its invocation open records are one transaction, so no record lands ahead of the settling record that read yields.
 Action wiring 53: IF the stated count of a records fragment's new last gate line EQUALS blank OR the stated count DOES NOT EQUAL the round's foundational count THEN [Repair] MUST answer mismatch.
 Action wiring 54: [Repair] MUST NOT evaluate Action wiring 31 BEFORE reading the round's journal records.
 Action wiring 55: IF the old texts of two fragments of the change set share a byte of one site THEN [Repair] MUST answer mismatch.
@@ -386,7 +368,6 @@ Action wiring 62: IF a patch answers a finding AND the patch DOES NOT EQUAL, byt
 Action wiring 63: IF a records fragment removes a Ledger open line AND no maintainer's ruling carries the fragment's patch byte-exact for the round THEN [Repair] MUST answer gated.
 Action wiring 77: IF a finding of the round carries a settled triage with disposition route AND the change set carries no records fragment that adds a Ledger open line naming the finding id THEN [Repair] MUST answer unresolved.
 NOTE: open 2026-10-31-c — a settled cure the change set leaves out, as a cure gated under Action wiring 19, 56 or 63, or refused under Action wiring 18, 24 or 25, must be for the round's records to land, leaves no trace on the page; this rule traces a routed finding alone.
-Deleted: Action wiring 68. Action wiring 76 owns it: purged is evaluated before unsettled.
 Action wiring 76: [Repair] MUST NOT evaluate a rule of the repair refusal order BEFORE EVERY earlier rule of the repair refusal order has answered no refusal.
 ```
 
@@ -598,7 +579,6 @@ Concurrency 1: Two [Repair] calls on one repository MUST serialize on the act's 
 
 ```
 Indeterminate outcome 1: The commit probe MUST answer Recoverable Invocation's sweep for a council commit whose reply was lost (Recoverable Invocation reconcile step 3, Execution Contract Error model 1).
-Deleted: Indeterminate outcome 2. Action wiring 23 owns it: a repair builds its own tree, so a crash leaves nothing a later call reads.
 ```
 
 ---

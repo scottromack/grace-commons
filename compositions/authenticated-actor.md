@@ -73,12 +73,10 @@ Term constituents: [Credential](../atoms/credential.md), [Actor Identity](../ato
 ```
 Composition state 1: The composition MUST store a principal binding map.
 Composition state 2: The composition MUST store the strict inverse of the principal binding map.
-Deleted: Composition state 3. Execution Contract Database 1 owns it.
 Composition state 4: The composition MUST hold the principal binding map's key unique.
 Composition state 5: The composition MUST hold the inverse map's key unique.
 Composition state 6: The composition MUST NOT change a binding.
 Composition state 7: The composition MUST store an attest log.
-Deleted: Composition state 8. Action wiring 45 owns it.
 Composition state 9: The composition MUST NOT change an attest log entry.
 Composition state 10: EXACTLY ONE writer MUST write an attest log entry.
 Composition state 11: The composition MUST NOT store a constituent's record.
@@ -106,19 +104,10 @@ Term bijection: the principal binding and the inverse together, unique on both k
 ```
 Capability requirement 1: A deployment MUST declare the attest surface separation.
 Capability requirement 2: A deployment MUST set the gating credential type default.
-Deleted: Capability requirement 3. Execution Contract Database 2 owns it.
-Deleted: Capability requirement 4. Execution Contract Database 2 owns it: an action's guard reads and the writes they decide are one transaction, and the composition names no critical section to release.
-Deleted: Capability requirement 5. Execution Contract Database 2 owns it: an action's guard reads and the writes they decide are one transaction, and the composition names no critical section to release.
-Deleted: Capability requirement 6. Execution Contract Database 2 owns it: an action's guard reads and the writes they decide are one transaction, and the composition names no critical section to lease.
-Deleted: Capability requirement 7. Execution Contract Database 1 and Execution Contract Database 2 own it.
-Deleted: Capability requirement 8. Execution Contract Database 1 and Execution Contract Database 2 own it.
-Deleted: Capability requirement 9. Execution Contract Database 1 owns it.
 Capability requirement 10: The deployment MUST declare the clock offset allowance.
-Deleted: Capability requirement 11. Execution Contract Database 1 and Execution Contract Database 2 own it: the composition names no completion bound or cadence for a deployment to leave unset.
 Capability requirement 12: The deployment MUST supply the database PER Execution Contract Database 1 through 5.
 Capability requirement 13: A deployment MUST authenticate the caller of [Register Authenticated Actor] as Credential's authorized caller (Credential Composition note 12).
 Capability requirement 14: A deployment MUST provision the attest credential distinct from the credential material.
-Deleted: Capability requirement 15. Execution Contract Conformance 9 owns it.
 ```
 
 
@@ -180,7 +169,6 @@ Term storage position: credential | binding — the write that failed: the crede
 Term attest position: attestation | log — where an attest failed: at the attestation or at the log write.
 
 ```
-Deleted: Action wiring 1. Execution Contract Database 2 owns it.
 Action wiring 2: An admitted registration MUST answer namespace-conflict naming the guard for a principal reference the principal binding carries.
 Action wiring 3: An admitted registration MUST answer namespace-conflict naming the guard for an actor reference the inverse map carries.
 Action wiring 4: An admitted registration MUST call Credential's register ONLY AFTER the guard clears.
@@ -190,13 +178,9 @@ Action wiring 7: IF Credential's verify answers verified THEN an admitted regist
 Action wiring 8: The composition MUST NOT answer duplicate-active-credential.
 Action wiring 9: IF Credential's register answers a credential id THEN an admitted registration MUST write the principal binding AND the inverse map entry ONLY AFTER Credential's register answers, in the one transaction of Execution Contract Database 1.
 Action wiring 41: An admitted registration MUST record the registration's own clock reading as the bound instant (Execution Contract Logic confinement 3).
-Deleted: Action wiring 10. Execution Contract Database 2 owns it.
 Action wiring 11: IF the binding write fails THEN an admitted registration MUST answer storage-failure naming the binding.
-Deleted: Action wiring 12. Execution Contract Database 2 owns it: an action's guard reads and the writes they decide are one transaction, and the composition names no critical section to lapse.
-Deleted: Action wiring 13. Execution Contract Database 2 owns it: an action's guard reads and the writes they decide are one transaction, so no guard runs again over a committed credential.
 Action wiring 14: An admitted attestation MUST resolve the actor reference from the principal binding.
 Action wiring 15: IF no principal binding EXISTS for the principal reference THEN an admitted attestation MUST answer not-bound.
-Deleted: Action wiring 16. Execution Contract Database 2 owns it.
 Action wiring 17: An admitted attestation MUST read Credential's effective status, of each credential, for the principal reference AND the bound credential type; the gate read answers effective-active where an effective-active credential EXISTS for the principal reference AND the bound credential type (Action wiring 18; Credential Operation 52).
 Action wiring 18: IF no effective-active credential EXISTS THEN an admitted attestation MUST answer credential-not-active.
 Action wiring 19: An admitted attestation MUST call Actor Identity's attest ONLY AFTER the gate read answers effective-active.
@@ -204,7 +188,6 @@ Action wiring 20: An admitted attestation MUST call Actor Identity's attest with
 Action wiring 21: An admitted attestation MUST NOT call Actor Identity's attest with a caller-supplied actor reference.
 Action wiring 22: An admitted attestation MUST call Actor Identity's attest with the caller's attest credential.
 Action wiring 23: An admitted attestation MUST NOT call Actor Identity's attest with the credential material.
-Deleted: Action wiring 38. Action wiring 47 owns it.
 Action wiring 47: IF Actor Identity's attest answers registry-unavailable THEN an admitted attestation MUST answer registry-unavailable (Execution Contract Constituent failure 2).
 Action wiring 49: IF Actor Identity's attest answers mechanism-unavailable THEN an admitted attestation MUST answer mechanism-unavailable.
 Action wiring 39: IF Actor Identity's attest answers invalid-credential THEN an admitted attestation MUST answer invalid-attest-credential.
@@ -224,12 +207,8 @@ Action wiring 30: An admitted registration MUST pass the gating credential type 
 Action wiring 31: IF Credential's register answers invalid-request THEN an admitted registration MUST answer invalid-request.
 Action wiring 32: IF Credential's register answers storage-failure THEN an admitted registration MUST answer storage-failure naming the credential (Execution Contract Constituent failure 1).
 Action wiring 43: IF Credential's register answers state-unavailable THEN an admitted registration MUST answer storage-failure naming the credential (Execution Contract Constituent failure 3).
-Deleted: Action wiring 33. Execution Contract Database 2 owns it: an action's guard reads and the writes they decide are one transaction, so no guard runs again over a committed credential.
 Action wiring 34: IF the gate read answers a credential AND no effective-active credential EXISTS THEN the attest log entry MUST carry the observed status AND the credential id of the credential Credential's read answers last for the principal reference AND the bound credential type (Execution Contract Read 5).
 Action wiring 46: IF the gate read answers no credential THEN the attest log entry MUST carry the observed status none.
-Deleted: Action wiring 35. Action wiring 25 owns it.
-Deleted: Action wiring 36. Execution Contract Database 2 owns it: an action's guard reads and the writes they decide are one transaction, and the composition names no critical section to lapse.
-Deleted: Action wiring 37. Execution Contract Database 2 owns it: an action's guard reads and the writes they decide are one transaction, and the composition names no critical section to lapse.
 ```
 
 NOTE: watch the constituent's failed read (Action wiring 43, Action wiring 44).
@@ -337,8 +316,6 @@ Every input an action takes, and every answer a call of the three actions can me
 
 ```
 Wiring decision 1: The composition MUST gate an attestation on the gating credential's effective-active status.
-Deleted: Wiring decision 2. Execution Contract Database 2 owns it.
-Deleted: Wiring decision 3. Execution Contract Database 2 owns it.
 Wiring decision 4: The composition MUST NOT close an attestation Actor Identity already recorded.
 Wiring decision 5: The composition MUST NOT ask Actor Identity to refuse a revoked principal's attestation.
 ```
@@ -358,16 +335,6 @@ Wiring decision 5: The composition MUST NOT ask Actor Identity to refuse a revok
 
 ### Housekeeping
 
-```
-Deleted: Housekeeping 1. Execution Contract Database 1 and Execution Contract Database 3 own it.
-Deleted: Housekeeping 2. Execution Contract Database 1 owns it.
-Deleted: Housekeeping 3. Execution Contract Database 1 owns it.
-Deleted: Housekeeping 4. Execution Contract Database 1 owns it.
-Deleted: Housekeeping 5. Execution Contract Database 1 owns it.
-Deleted: Housekeeping 6. Execution Contract Database 1 owns it.
-Deleted: Housekeeping 7. Execution Contract Database 1 owns it.
-```
-
 ---
 
 ## Composition-level invariants
@@ -377,14 +344,11 @@ Each emerges from the composition; none belongs to one constituent.
 - **Invariant 1 — Revocation cascade, attest-surface closure.**
   ```
   Invariant 1.1: The composition MUST NOT produce an attestation for a principal reference carrying no effective-active gating credential at the gate read.
-  Deleted: Invariant 1.2. Action wiring 19 and Execution Contract Database 2 own it.
-  Deleted: Invariant 1.3. Invariant 1.1 owns it: a revoked credential never reads effective-active again (Credential Invariant 5.1), and a new credential for the principal reference AND the credential type opens the gate (Composes 9).
   ```
 - **Invariant 2 — Secret-surface separation.**
   ```
   Invariant 2.1: The composition MUST NOT pass the credential material to Actor Identity's attest.
   Invariant 2.2: The composition MUST NOT pass Credential's verifier to Actor Identity's attest.
-  Deleted: Invariant 2.3. Capability requirement 14 owns it.
   ```
 - **Invariant 3 — Namespace binding.**
   ```
@@ -394,10 +358,8 @@ Each emerges from the composition; none belongs to one constituent.
   ```
 - **Invariant 4 — Attestation traceability.**
   ```
-  Deleted: Invariant 4.1. Action wiring 45 owns it.
   Invariant 4.2: An [Attest As Actor] call answering attest-failed MUST NOT append an attest log entry.
   Invariant 4.3: EVERY success entry MUST carry the attestation id AND the current credential's credential id.
-  Deleted: Invariant 5. Composes 4 owns it.
   ```
 
 ---
@@ -448,12 +410,9 @@ Check 1.2: An auditor MUST find EVERY bound actor reference carrying one princip
 Check 1.3: An auditor MUST find the principal binding AND the inverse map agreeing (Invariant 3.3).
 Check 2.1: An auditor MUST find EVERY success entry carrying the attestation id AND the current credential's credential id (Invariant 4.3).
 Check 2.2: An auditor MUST read a success entry whose credential id names a credential standing in revoked at the entry's commit as an Invariant 1.1 violation (Execution Contract Database 5).
-Deleted: Check 2.3. Execution Contract Database 2 owns it.
 Check 3.1: An auditor MUST find EVERY [Attest As Actor] call answering an attest answer carrying one attest log entry (Action wiring 45).
 Check 3.2: An auditor MUST find EVERY credential-not-active entry carrying the observed status (Action wiring 34, Action wiring 46).
-Deleted: Check 4.1. Execution Contract Database 1 owns it.
 Check 5.1: An auditor MUST find no attest log entry changed (Composition state 9).
-Deleted: Check 6.1. Execution Contract Database 1 owns it.
 ```
 
 NOTE: EVERY check names the rule the check tests.
@@ -462,7 +421,6 @@ NOTE: EVERY check names the rule the check tests.
 
 ```
 External check 1: An auditor needing the two secret surfaces confirmed distinct MUST read the deployment's own provisioning (Capability requirement 14).
-Deleted: External check 2. Execution Contract Database 2 owns it.
 External check 3: An auditor needing an actor reference confirmed in the actor registry MUST read the actor registry (Composes 8).
 External check 4: An auditor needing a verification read recorded MUST read a composed access log (Non-goal 12).
 External check 5: An auditor needing a constituent's own guarantee confirmed MUST read the constituent's own acceptance (Composes 4).
@@ -486,7 +444,6 @@ Non-goal 10: A deployment needing an authorized action MUST compose Permissions.
 Non-goal 11: The composition MUST NOT rebind a bound principal reference.
 Non-goal 12: The composition MUST NOT record a verification read.
 Non-goal 13: The composition MUST NOT resolve an attestation carrying an actor reference the inverse map does not carry.
-Deleted: Non-goal 14. Execution Contract Database 1 owns it.
 Non-goal 15: The composition MUST NOT set a retention policy.
 NOTE: watch the adopter's policy note (Non-goal 15).
 NOTE: open 2026-11-04-a (Non-goal 15).
@@ -500,27 +457,14 @@ NOTE: the owners — the attestation records themselves, as the tamper-evident e
 
 ### Concurrency
 
-```
-Deleted: Concurrency 1. Execution Contract Database 2 owns it.
-Deleted: Concurrency 2. Execution Contract Database 2 owns it: an action's guard reads and the writes they decide are one transaction, so a revoke of the credential a gate read commits before the read or after the attestation.
-Deleted: Concurrency 3. Execution Contract Database 2 owns it.
-Deleted: Concurrency 4. Execution Contract Database 2 owns it: an action's guard reads and the writes they decide are one transaction, so the composition declares no residue to bound.
-Deleted: Concurrency 5. Execution Contract Database 2 owns it.
-Deleted: Concurrency 6. Execution Contract Database 2 owns it: an action's guard reads and the writes they decide are one transaction, so the composition declares no residue for a deployment to close.
-```
-
 ---
 
 ## Composition notes
 
 ```
-Deleted: Composition note 1. Execution Contract Conformance 9 owns it.
-Deleted: Composition note 2. Capability requirement 14 owns it.
 Composition note 3: A deployment MUST own an actor reference's provisioning in the actor registry.
 Composition note 4: A deployment MUST own a credential's revocation AND rotation.
 Composition note 7: A deployment MUST own Credential's register of a new credential for a bound principal reference.
-Deleted: Composition note 5. Execution Contract Database 2 owns it: an action's guard reads and the writes they decide are one transaction, so the composition declares no residue for a deployment to close.
-Deleted: Composition note 6. Execution Contract Database 1 owns it: a registration's credential and binding commit together, so the composition reports no orphaned credential.
 ```
 
 ---

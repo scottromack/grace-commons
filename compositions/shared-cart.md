@@ -403,7 +403,6 @@ A caller whose answer is lost may call again, and the repeat is a second call (E
 ## Composition notes
 
 ```
-Deleted: Composition note 1. Execution Contract Conformance 9 owns the declaration of the composing patterns a deployment wired in.
 Composition note 2: A deployment MUST bind an actor reference to an authenticated caller.
 Composition note 3: A deployment MUST revoke a departing actor's grants through [Unshare Cart].
 NOTE: open 2026-11-04-a — a departing sharer holding a cart's last share scope, or a departing opener, has grants whose ids no action answers to the sweep.

@@ -96,12 +96,8 @@ Operation 4: [Record] MUST NOT refuse an identity under guard.
 Operation 5: [Check] MUST answer EXACTLY ONE OF seen, not-seen.
 Operation 6: [Check] MUST answer seen for an identity under guard.
 Operation 7: [Check] MUST answer not-seen for an identity that is not under guard.
-Deleted: Operation 8. Capability requirement 1 owns it.
-Deleted: Operation 9. Execution Contract Logic confinement 3 owns it.
-Deleted: Operation 10. Execution Contract Logic confinement 3 owns it.
 Operation 11: The containing pattern MUST supply EXACTLY ONE window duration per instance of the atom.
 Operation 12: The containing pattern MUST own the response to an answer.
-Deleted: Operation 13. Execution Contract Read 1 owns it.
 Operation 14: IF the database refuses the write THEN [Record] MUST answer storage-failure.
 ```
 
@@ -134,18 +130,12 @@ NOTE: open 2026-10-28-a — Term seam, Term transition and Term business caller 
   Invariant 2.1: [Record] MUST NOT extend the guard of an identity under guard.
   Invariant 2.2: [Record] MUST preserve the recording instant of an identity under guard.
   Invariant 2.3: A landed record MUST open a fresh guard for an identity that is not under guard.
-  Deleted: Invariant 1. Operation 6 and Operation 7 own it.
   ```
 - **Invariant 3 — Idempotency of check.**
   ```
   Invariant 3.1: [Check] MUST NOT alter the recorded set.
-  Deleted: Invariant 3.2. Operation 6, Operation 7 and Invariant 3.1 own it.
   ```
 - **Invariant 4 — Eventual expiry.**
-  ```
-  Deleted: Invariant 4.1. Operation 7 and Execution Contract Database 4 own it.
-  Deleted: Invariant 4.2. Operation 7 owns it.
-  ```
 
 NOTE: open 2026-10-21-c — three propositions are each owned twice: a fresh guard for an identity that is not under guard (Invariant 2.3, Operation 1), the response to an answer left to the containing pattern (Non-goal 1, Operation 12), and a guard anchored to the opening record's now (Clock semantics 1, Operation 2, Invariant 2.2).
 
@@ -185,16 +175,9 @@ An implementation is acceptable when the checks below are provable to an externa
 
 ```
 Check 1.1: An auditor MUST find EXACTLY ONE recording instant PER identity the recorded set holds (State 1).
-Deleted: Check 1.2. Invariant 2.2 owns it.
-Deleted: Check 1.3. Invariant 2.1 owns it.
-Deleted: Check 1.4. Invariant 2.3 owns it.
-Deleted: Check 2.1. Invariant 3.1 owns it.
-Deleted: Check 2.2. Invariant 3.1, Check 3.2 and Check 3.3 own it.
 Check 3.1: An auditor MUST find EVERY check answering EXACTLY ONE OF seen, not-seen (Operation 5).
 Check 3.2: An auditor MUST find a check answering seen for an identity under guard (Operation 6).
 Check 3.3: An auditor MUST find a check answering not-seen for an identity that is not under guard (Operation 7).
-Deleted: Check 3.4. Check 3.3 owns it.
-Deleted: Check 4.1. Operation 3 owns it.
 ```
 
 NOTE: EVERY check names the rule the check tests.
@@ -205,20 +188,14 @@ NOTE: EVERY check names the rule the check tests.
 External check 1: An auditor needing the window duration confirmed MUST read the containing pattern's own declaration (Operation 11).
 External check 2: An auditor needing the matching rule confirmed MUST read the containing pattern's own declaration (Identity 5).
 External check 3: An auditor needing a guard miss confirmed MUST read the deployment's own database (Record failure 2).
-Deleted: External check 4. Execution Contract Database 3 owns it.
-Deleted: External check 5. Operation 12 owns it.
-Deleted: External check 6. Execution Contract Logic confinement 7 owns it: the page relies on no guarantee of the clock.
 ```
 
 ## Non-goals
 
 ```
 Non-goal 1: The atom MUST NOT decide the containing pattern's response to an answer.
-Deleted: Non-goal 2. Execution Contract Database 3 owns it.
-Deleted: Non-goal 3. Execution Contract Database 3 owns it.
 Non-goal 4: The atom MUST NOT reconcile two recorded sets.
 Non-goal 5: A pattern needing one guard across every instance MUST compose a coordination pattern.
-Deleted: Non-goal 6. Operation 7 and Execution Contract Database 4 own it.
 Non-goal 7: A pattern needing long-term history MUST compose an audit pattern.
 Non-goal 8: The atom MUST NOT supply the matching rule.
 Non-goal 9: A pattern needing a guard that resets on every sighting MUST compose a sliding-window pattern.
@@ -238,26 +215,11 @@ Where the pattern breaks down: when *recent* is measured by something other than
 
 ```
 Clock semantics 1: The atom MUST anchor a guard to the injected now of the opening record.
-Deleted: Clock semantics 2. Non-goal 12 owns it.
-Deleted: Clock semantics 3. Non-goal 13 owns it.
 ```
 
 ### Check database unavailability
 
-```
-Deleted: Check unavailability 1. Operation 12 and Operation 13 own it.
-Deleted: Check unavailability 2. Operation 12 and Operation 13 own it.
-Deleted: Check unavailability 3. Operation 12 and Operation 13 own it.
-Deleted: Check unavailability 4. Non-goal 1 owns it.
-```
-
 ### Lazy expiry
-
-```
-Deleted: Lazy expiry 1. Execution Contract Database 4 owns it.
-Deleted: Lazy expiry 2. Execution Contract Database 4 owns it.
-Deleted: Lazy expiry 3. Operation 7 owns it.
-```
 
 <details markdown="block">
 <summary>WHY</summary>
@@ -269,10 +231,8 @@ The atom claims behaviour and not storage: Operation 7 answers not-seen for an i
 ### Record storage failure
 
 ```
-Deleted: Record failure 1. Operation 14 owns it.
 Record failure 2: The atom MUST treat a failed write as a guard miss for an identity that is not under guard.
 Record failure 3: The atom MUST NOT treat a failed write as a safety violation.
-Deleted: Record failure 4. Execution Contract Database 3 owns it.
 ```
 
 ## Composition notes

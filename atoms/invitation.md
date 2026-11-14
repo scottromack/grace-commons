@@ -51,7 +51,6 @@ Identity 10: The atom MUST NOT confirm that an inviter reference names a known a
 Identity 11: The atom MUST NOT confirm that an invitee reference names a known actor.
 Identity 12: The atom MUST NOT confirm that an accepting identity reference names a known identity.
 Identity 13: The atom MUST NOT match an accepting identity reference against an invitee reference.
-Deleted: Identity 14. Execution Contract Database 7 owns it.
 ```
 
 Term invitation: the record this atom holds — one invitation issued by one inviter to join one context, resolved by at most one write.
@@ -84,12 +83,10 @@ State 4: EVERY declined invitation MUST carry declination instant.
 State 5: EVERY revoked invitation MUST carry revoked by reference, revocation reason and revocation instant.
 State 6: A pending invitation MUST NOT carry a resolution field.
 State 7: The atom MUST NOT store expired as a status.
-Deleted: State 8. Invariant 12.1 owns it.
 State 9: The atom MUST NOT record the ttl under the ttl's own name.
 State 10: The atom MUST NOT offer a re-open surface.
 State 11: The atom MUST NOT offer a window extension surface.
 State 12: The atom MUST NOT offer an invitation removal surface.
-Deleted: State 13. Invariant 10.1 owns it.
 ```
 
 Term resolution field: accepting identity reference | acceptance instant | declination instant | revocation instant | revoked by reference | revocation reason — every field a resolving write records.
@@ -110,20 +107,9 @@ Capability requirement 3: The deployment MUST supply token material drawn from a
 Capability requirement 4: The deployment MUST declare the default ttl inside the ttl bounds.
 Capability requirement 5: The deployment MUST declare the ttl bounds.
 Capability requirement 6: The database MUST refuse a write carrying an invitation token the database holds.
-Deleted: Capability requirement 7. Execution Contract Database 3 owns it.
-Deleted: Capability requirement 8. Execution Contract Logic confinement 13 owns it.
 Capability requirement 9: The deployment MUST deliver the invitation token to the invitee.
 Capability requirement 12: The deployment MUST supply the invitation records PER Execution Contract Database 1 through 7, Execution Contract Read 4, Execution Contract Read 5 and Execution Contract Refusal 1.
 Capability requirement 13: The deployment MAY declare the string cap PER Execution Contract Input 2.
-Deleted: Capability requirement 10. Execution Contract Logic confinement 7 owns it.
-Deleted: Capability requirement 11. Execution Contract Logic confinement 7 owns it.
-Deleted: Clock semantics 4. Execution Contract Logic confinement 7 owns it.
-Deleted: Clock semantics 1. Execution Contract Logic confinement 3 owns it.
-Deleted: Clock semantics 2. Execution Contract Logic confinement 3 owns it.
-Deleted: Clock semantics 3. Execution Contract Logic confinement 3 owns it.
-Deleted: Clock semantics 5. Execution Contract Logic confinement 7 owns it.
-Deleted: Clock semantics 6. Non-goal 25 owns it.
-Deleted: Clock semantics 7. Non-goal 26 owns it.
 ```
 
 ### Operations
@@ -168,14 +154,10 @@ Operation 15: IF the invitation token names no invitation THEN a resolving write
 Operation 16: IF the invitation's status IS IN the stored terminals THEN a resolving write MUST answer already-resolved.
 Operation 17: A resolving write answering already-resolved MUST name the invitation's status.
 Operation 18: A resolving write MUST NOT name expired as a stored terminal.
-Deleted: Operation 19. Execution Contract Refusal 1 owns it.
 Operation 20: IF the invitation reads lapsed THEN a resolving write MUST answer expired.
-Deleted: Operation 21. Execution Contract Refusal 1 owns it.
-Deleted: Operation 22. Execution Contract Read 4 owns it: a refused call writes nothing.
 Operation 23: IF accepting identity reference EQUALS blank THEN [Accept] MUST answer invalid-request.
 Operation 24: IF revoked by reference EQUALS blank THEN [Revoke] MUST answer invalid-request.
 Operation 25: IF reason EQUALS blank THEN [Revoke] MUST answer invalid-request.
-Deleted: Operation 26. Execution Contract Refusal 1 owns it.
 Operation 27: [Decline] MUST NOT accept an acting reference.
 Operation 28: An admitted accept MUST stand the invitation in accepted.
 Operation 29: An admitted accept MUST record accepting identity reference and now as acceptance instant.
@@ -183,19 +165,12 @@ Operation 30: An admitted decline MUST stand the invitation in declined.
 Operation 31: An admitted decline MUST record now as declination instant.
 Operation 32: An admitted revoke MUST stand the invitation in revoked.
 Operation 33: An admitted revoke MUST record revoked by reference, reason as revocation reason and now as revocation instant.
-Deleted: Operation 34. Execution Contract Database 1 owns it.
 Operation 35: IF the database refuses the write THEN an action MUST answer storage-failure.
-Deleted: Operation 36. Execution Contract Refusal 1 owns it.
-Deleted: Operation 37. Execution Contract Read 4 owns it: a refused call writes nothing.
-Deleted: Operation 38. Execution Contract Read 4 owns it: a refused call writes nothing.
-Deleted: Operation 39. Execution Contract Read 4 owns it: a refused call writes nothing.
 Operation 40: The atom MUST NOT offer an expire action.
 Operation 41: An admitted read MUST answer EVERY matching invitation.
 Operation 42: An admitted read MUST answer the effective status PER matching invitation.
 Operation 43: [Read] MUST NOT record a field.
 Operation 44: [Read] MUST NOT refuse a filter.
-Deleted: Operation 45. Execution Contract Logic confinement 3 owns it.
-Deleted: Operation 46. Execution Contract Logic confinement 3 owns it.
 Operation 47: IF a filter names a field whose value EQUALS blank THEN [Read] MUST answer no invitation.
 Operation 48: IF a supplied ttl is malformed THEN [Initiate] MUST answer invalid-request (Execution Contract Input 1).
 Operation 49: IF a string input EXCEEDS the string cap THEN [Initiate] MUST answer invalid-request (Execution Contract Input 2).
@@ -254,7 +229,6 @@ Term filter: the selection a [Read] call scopes the answer by — a [Filter] nam
 - **Invariant 1 — Initiation immutability.**
   ```
   Invariant 1.1: An admitted resolving write MUST NOT change a property.
-  Deleted: Invariant 1.2. State 6 and Operation 16 leave a resolving write no resolution field to find.
   ```
 - **Invariant 2 — Single-resolution by write.**
   ```
@@ -264,8 +238,6 @@ Term filter: the selection a [Read] call scopes the answer by — a [Filter] nam
 - **Invariant 3 — Acceptance binds identity.**
   ```
   Invariant 3.1: EVERY accepted invitation MUST carry a non-blank accepting identity reference.
-  Deleted: Invariant 3.2. Execution Contract Database 1 owns it.
-  Deleted: Invariant 4. Identity 13, State 2 and Operation 6 own the opaque invitee.
   ```
 - **Invariant 5 — The stored terminals are structurally distinct.**
   ```
@@ -293,7 +265,6 @@ Term filter: the selection a [Read] call scopes the answer by — a [Filter] nam
 - **Invariant 10 — Invitation durability.**
   ```
   Invariant 10.1: The atom MUST NOT remove an invitation from the database.
-  Deleted: Invariant 10.2. Execution Contract Database 1 owns it.
   ```
 - **Invariant 11 — Token uniqueness is database-enforced.**
   ```
@@ -352,7 +323,6 @@ Check 1.1: An auditor MUST find no invitation carrying two resolution instants (
 Check 1.2: An auditor MUST find EXACTLY ONE resolution instant on EVERY invitation whose status IS IN the stored terminals (State 3 through 5).
 Check 1.3: An auditor MUST find no resolution field on a pending invitation (State 6).
 Check 2.1: An auditor MUST find no invitation storing expired as a status (State 7).
-Deleted: Check 2.2. Invariant 12.1 owns it.
 Check 2.3: An auditor MUST reproduce an admitted read's effective status from the invitation's expiry instant and a clock reading the auditor supplies as that read's now (Invariant 12.2).
 Check 3.1: An auditor MUST find a non-blank accepting identity reference on EVERY accepted invitation (Invariant 3.1).
 Check 3.2: An auditor MUST find an acceptance instant on EVERY accepted invitation (State 3).
@@ -365,7 +335,6 @@ Check 6.2: An auditor MUST find EVERY invitation's expiry instant unchanged acro
 Check 7.1: An auditor MUST find no invitation token on two invitations (Identity 5, Invariant 11.1).
 Check 7.2: An auditor MUST find EVERY invitation's properties unchanged across EVERY committed version of the invitation (Invariant 1.1; Execution Contract Generation acceptance 1).
 Check 8.1: An auditor MUST find an unfiltered read answering EVERY invitation with a committed version (Invariant 10.1; Execution Contract Database 6, Execution Contract Generation acceptance 1).
-Deleted: Check 8.2. Check 8.1 owns it.
 Check 9.1: An auditor MUST reconstruct EVERY invitation of one context from the database (State 1, Invariant 10.1; Execution Contract Database 6).
 ```
 
@@ -428,20 +397,7 @@ NOTE: the owners — [Capability](./capability.md) (Non-goal 11, Non-goal 23, Co
 
 ### Atomic writes
 
-```
-Deleted: Atomic writes 1. Execution Contract Database 1 owns it.
-Deleted: Atomic writes 2. Execution Contract Database 1 and Execution Contract Database 3 own it.
-Deleted: Atomic writes 3. Execution Contract Database 1 owns it.
-Deleted: Atomic writes 4. Execution Contract Database 1 owns it.
-```
-
 ### Concurrency
-
-```
-Deleted: Concurrency 1. Execution Contract Database 1 and Execution Contract Database 2 own it.
-Deleted: Concurrency 2. Execution Contract Database 2 owns it.
-Deleted: Concurrency 3. Execution Contract Database 2 owns it.
-```
 
 ### String policy
 

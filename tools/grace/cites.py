@@ -65,6 +65,56 @@ HISTORY = "*.hist.md"
 NAME_NUM = re.compile(r"( step [\d½]+(?:\.\d+[a-z]?)?| \d+(?:\.\d+)?[a-z]?)$")
 # the last number of a range citation, `Operation 3 through 7` (Hard invariant 29)
 RANGE_END = re.compile(r" through ([\d½]+(?:\.\d+)?[a-z]?)(?![\w.]\d)")
+# A tombstone is its own line (GRACE-lang v0.46): `Deleted: Label. The owner, and why.`
+# check.py, ir.py and lint.py read the form from here.
+TOMBSTONE = re.compile(r"^Deleted: ((?:[A-Za-z_][\w'’-]*)(?: [A-Za-z_][\w'’-]*){0,4} [\d½]+(?:\.\d+)?[a-z]?)"
+                       r"\. \S.*\.$")
+# Where a tombstone lives (GRACE-lang Hard invariant 25, v0.71): on the page
+# until the pattern is done, then in the section titled *Deleted rules* of its
+# history file, each group under the heading it sat under, in a bare fence.
+# Every tool that reads a tombstone reads both places, through deleted_rules.
+DELETED_RULES = "Deleted rules"
+_H2 = re.compile(r"^## (.*?)\s*$")
+
+
+def history_file(path: Path) -> Path:
+    """A spec's history file, `<spec name>.hist.md` beside it."""
+    if path.name.endswith(".hist.md"):
+        return path
+    return path.with_name(path.name[:-len(".md")] + ".hist.md")
+
+
+def deleted_rules_of(text: str) -> list[tuple[int, str]]:
+    """The lines inside the bare fences of the section titled *Deleted rules* in
+    a history file's text: (1-based line, the line as written). A heading inside
+    a fence opens no section."""
+    out: list[tuple[int, str]] = []
+    on = fence = bare = False
+    for i, raw in enumerate(text.split("\n"), start=1):
+        fm = FENCE.match(raw)
+        if fm:
+            if fence:
+                fence = False
+            else:
+                fence, bare = True, fm.group(1) == ""
+            continue
+        if fence:
+            if on and bare:
+                out.append((i, raw))
+            continue
+        h2 = _H2.match(raw)
+        if h2:
+            on = h2.group(1) == DELETED_RULES
+    return out
+
+
+def deleted_rules(path: Path) -> list[tuple[int, str]]:
+    """deleted_rules_of the history file beside the spec at `path`; nothing when
+    the spec has no history file."""
+    hist = history_file(path)
+    if hist == path or not hist.is_file():
+        return []
+    return deleted_rules_of(hist.read_text(encoding="utf-8"))
 
 
 def _num_key(num: str) -> tuple[int, ...]:
@@ -104,6 +154,9 @@ class Spec:
     rules: dict[str, int] = field(default_factory=dict)      # label -> line
     text_of: dict[str, str] = field(default_factory=dict)    # label -> statement
     terms: dict[str, tuple[int, str]] = field(default_factory=dict)
+    # label -> (the file the tombstone stands in, its line, the owner and why):
+    # the page's own, then its history file's *Deleted rules*
+    tombstones: dict[str, tuple[Path, int, str]] = field(default_factory=dict)
 
 
 def parse_contract(path: Path) -> Spec:
@@ -146,10 +199,19 @@ def parse(path: Path) -> Spec:
             continue
         if not normative:
             continue
+        tm = TOMBSTONE.match(raw.strip())
+        if tm:
+            spec.tombstones.setdefault(tm.group(1), (path, i, raw.strip()[len("Deleted: " + tm.group(1) + ". "):]))
+            continue
         lm = LABEL.match(raw.strip())
         if lm and not raw.strip().startswith(("NOTE:", "WHY:", "UX:", "PROVISIONAL:")):
             spec.rules[lm.group(1)] = i
             spec.text_of[lm.group(1)] = lm.group(2)
+    for i, raw in deleted_rules(path):
+        tm = TOMBSTONE.match(raw.strip())
+        if tm:
+            spec.tombstones.setdefault(tm.group(1), (history_file(path), i,
+                                                     raw.strip()[len("Deleted: " + tm.group(1) + ". "):]))
     return spec
 
 
@@ -843,6 +905,14 @@ def run(root: Path, argv: list[str]) -> int:
                 for site in sorted(elsewhere[ref]):
                     print(f"  {site}")
     if not found:
+        # a tombstoned label names no rule; say whose it was and who owns it now
+        # (GRACE-lang Hard invariant 25), wherever the tombstone stands
+        for spec in specs:
+            if seed in spec.tombstones:
+                where, line, why = spec.tombstones[seed]
+                print(f"— no rule named {seed}: {spec_name(spec.path)} tombstones it "
+                      f"({where.relative_to(root).as_posix() if where.is_relative_to(root) else where}:{line}): {why}")
+                return 2
         print(f"— no rule or term named {seed}.")
         return 2
     return 0

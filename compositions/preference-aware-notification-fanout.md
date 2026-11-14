@@ -130,7 +130,6 @@ Capability requirement 20: A deployment MUST set the payload digest function.
 Capability requirement 21: A deployment MUST set the reconciliation window.
 Capability requirement 22: A deployment MUST set the reconciliation cadence.
 Capability requirement 23: A deployment MUST disclose the notification create latency.
-Deleted: Capability requirement 24. Term reconciliation run bound owns it: the run bound counts every write's landing.
 Capability requirement 25: A deployment MUST disclose the max query latency.
 Capability requirement 26: A deployment MUST set the abandonment principals cap.
 Capability requirement 27: A deployment MUST set the invocation duration bound.
@@ -147,7 +146,6 @@ Capability requirement 36: The composition MUST read a lease's expiry as the hol
 Capability requirement 37: The per-disposition exclusion MUST admit the holder's own nested call.
 Capability requirement 38: The per-disposition exclusion MUST NOT admit a foreign holder.
 Capability requirement 39: IF the host supplies no per-disposition exclusion THEN the composition MUST refuse to start.
-Deleted: Capability requirement 40. Execution Contract Database 1 owns it: a disposition's create and its delivery event commit together, and the composition names no orphan for a lookup to find.
 Capability requirement 41: A deployment whose deliveries on a statutorily time-restricted channel fall within the restriction's scope MUST declare the statutory quiet window.
 Capability requirement 42: A deployment omitting the statutory quiet window MUST disclose the omission as the deployment's legal posture.
 Capability requirement 43: The host MUST inject now at the seam once per call of an action.
@@ -285,7 +283,6 @@ Action wiring 5: A validated fanout MUST record the initiation entry carrying th
 Action wiring 6: IF Event Log refuses the initiation entry THEN [Fanout Shaped] MUST answer journal-rejected.
 Action wiring 7: IF Event Log refuses the initiation entry THEN [Fanout Shaped] MUST NOT call Notification's create.
 Action wiring 8: An initiated fanout MUST dispose EVERY queried subscriber.
-Deleted: Action wiring 9. Execution Contract Database 2 owns it.
 Action wiring 10: An initiated fanout MUST read the pair's latest disposition event under the per-disposition exclusion.
 Action wiring 11: IF the read finds a disposition event THEN the initiated fanout MUST answer the event's disposition for the subscriber.
 Action wiring 12: IF the read finds a disposition event THEN the initiated fanout MUST NOT write for the subscriber.
@@ -317,7 +314,6 @@ Action wiring 37: A validated redisposition MUST resolve the fanout id to an ini
 Action wiring 38: IF no initiation entry carries the fanout id THEN [Redispose] MUST answer not-known.
 Action wiring 39: IF the journal read fails THEN [Redispose] MUST answer journal-rejected carrying read.
 Action wiring 40: IF the payload content's digest DOES NOT EQUAL the initiation entry's payload digest THEN [Redispose] MUST answer payload-mismatch.
-Deleted: Action wiring 41. Execution Contract Database 2 owns it.
 Action wiring 42: IF a foreign holder holds the per-disposition exclusion THEN [Redispose] MUST answer yielded.
 Action wiring 43: IF the lease expires ahead of the commit THEN [Redispose] MUST answer yielded.
 Action wiring 44: A [Redispose] answering yielded MUST NOT write.
@@ -325,16 +321,12 @@ Action wiring 45: IF an abandonment record covers the principal THEN [Redispose]
 Action wiring 46: IF the pair carries a disposition event AND the pair's operative disposition IS NOT IN the retryable dispositions THEN [Redispose] MUST answer not-retryable.
 Action wiring 47: IF the pair carries no disposition event AND the principal IS NOT IN the queried list THEN [Redispose] MUST answer not-retryable.
 Action wiring 48: A validated redisposition MUST read a delivery event's record status through the status read.
-Deleted: Action wiring 49. Execution Contract Database 1 owns it.
-Deleted: Action wiring 50. Execution Contract Database 1 owns it.
-Deleted: Action wiring 51. Execution Contract Database 1 owns it.
 Action wiring 52: An admitted redisposition MUST call Subscription's subscribed with the principal AND the initiation entry's event scope.
 Action wiring 53: IF subscribed answers not-subscribed THEN [Redispose] MUST record a suppression event carrying unsubscribed, false as the retry eligibility, none as the preference id AND the audience check with the now as the evaluation inputs.
 Action wiring 54: IF subscribed answers subscribed THEN [Redispose] MUST read the preference read for the principal AND dispose the principal PER Action wiring 16 through 23, 25 through 29, 31 through 34 AND 61 under a fresh now.
 NOTE: watch rule inheritance (Action wiring 54) — [Redispose] makes no read of Action wiring 10, so Action wiring 15 is not inherited, and Action wiring 56 owns a refused append, so Action wiring 24 and 30 are not.
 Action wiring 55: A redisposition event MUST carry the original fanout id AND the redisposition flag.
 Action wiring 56: IF Event Log refuses a redisposition event THEN [Redispose] MUST answer journal-rejected carrying the outcome position.
-Deleted: Action wiring 57. Execution Contract Database 1 owns it: a redisposition's writes commit together, so no journal-rejected carries a notification id.
 Action wiring 58: An admitted redisposition MUST answer the committed disposition.
 Action wiring 59: IF the read of Action wiring 10 answers state-unavailable THEN the initiated fanout MUST answer the subscriber as yielded (Execution Contract Constituent failure 3).
 Action wiring 60: IF a foreign holder holds the per-disposition exclusion at the read of Action wiring 10 THEN the initiated fanout MUST answer the subscriber as yielded.
@@ -411,7 +403,6 @@ Wiring decision 4: The composition MUST NOT remove a queried subscriber from the
 
 ```
 Reconciliation 1: The reconciliation MUST run every reconciliation cadence.
-Deleted: Reconciliation 2. Execution Contract Scheduled leg 1 owns it.
 Reconciliation 3: IF the fanout id names a young invocation THEN [Reconcile Gaps] MUST answer too-young.
 Reconciliation 4: [Reconcile Gaps] MUST NOT write for a young invocation.
 Reconciliation 5: [Reconcile Gaps] MUST NOT write for an invocation whose initiation entry is an aged entry.
@@ -421,11 +412,6 @@ Reconciliation 8: A gap run MUST NOT repair BEFORE the gap run's reconcile inten
 Reconciliation 9: A reconcile intent MUST carry the fanout id AND the decided instant.
 Reconciliation 10: A gap run MUST take the per-disposition exclusion for EVERY gap principal.
 Reconciliation 11: IF the re-read under the exclusion finds a disposition event THEN the gap run MUST NOT write for the principal.
-Deleted: Reconciliation 12. Execution Contract Database 1 owns it.
-Deleted: Reconciliation 13. Execution Contract Database 1 owns it.
-Deleted: Reconciliation 14. Execution Contract Database 1 owns it.
-Deleted: Reconciliation 15. Execution Contract Database 1 owns it.
-Deleted: Reconciliation 16. Execution Contract Database 1 owns it.
 Reconciliation 17: IF the payload content EXISTS AND abandon EQUALS false THEN the gap run MUST call [Redispose] as the exclusion's holder.
 Reconciliation 18: IF [Redispose] answers yielded, journal-rejected OR not-retryable to a gap run THEN the gap run MUST carry the principal to the next run.
 Reconciliation 19: A gap run MUST NOT abandon a principal the gap run carries to the next run.
@@ -436,14 +422,11 @@ Reconciliation 23: The principals one abandonment record names MUST NOT EXCEED t
 Reconciliation 24: IF a gap run abandons a principal THEN the gap run MUST record an abandonment record under the per-disposition exclusion.
 Reconciliation 25: IF a gap run's lease expires THEN the gap run MUST NOT write for the principal.
 Reconciliation 26: IF Event Log refuses the reconcile intent THEN [Reconcile Gaps] MUST answer journal-rejected carrying intent.
-Deleted: Reconciliation 27. Execution Contract Database 1 owns it.
 Reconciliation 28: IF Event Log refuses an abandonment record THEN [Reconcile Gaps] MUST answer journal-rejected carrying abandonment.
 Reconciliation 29: A refused append MUST NOT withdraw the gap run's earlier redispositions.
 Reconciliation 30: An overshoot run MUST read the principal's delivery events under each journaled configuration version's window-and-cap pairs.
 Reconciliation 31: IF a delivery event IS an overshoot AND no overshoot record already carries the delivery event's id for the pair AND the window's start IS NOT IN the aged instants THEN the overshoot run MUST record an overshoot record carrying the principal, the configuration version, the window, the cap, the committed count, the delivery event's id AND the decided instant.
 Reconciliation 32: The overshoot run MUST NOT record an overshoot record for a delivery event id AND window-and-cap pair an overshoot record already carries.
-Deleted: Reconciliation 33. Execution Contract Database 2 owns it.
-Deleted: Reconciliation 34. Execution Contract Database 2 owns it.
 Reconciliation 35: The overshoot run MUST NOT record a window whose start is an aged instant.
 Reconciliation 36: The reconciliation MUST NOT store composition state.
 Reconciliation 37: IF the payload content EQUALS blank AND abandon EQUALS false THEN the gap run MUST abandon EVERY gap principal carrying payload-unavailable as the abandonment reason.
@@ -577,7 +560,6 @@ These emerge from the composition; none belongs to one constituent.
   ```
   Invariant 10.1: Two initiation entries MUST NOT carry one fanout id.
   Invariant 10.2: An initiated fanout MUST NOT commit a disposition BEFORE the initiation entry lands.
-  Deleted: Invariant 6. Composes 5 owns it.
   ```
 
 Trichotomy with no silent disposition gives the *accountable fanout* property; quiet-window safety, cap safety and suppression precedence give *shaping is unbypassable*; replayability gives *the verdict is defensible*.
@@ -659,23 +641,19 @@ An implementation is acceptable when the checks below are provable to an externa
 
 ```
 Check 1.1: IF no abandonment record names a principal of the initiation entry's queried list THEN an auditor MUST find the principal's latest disposition event under the fanout id at quiescence once the reconciliation window has passed from the fired instant (Composition state 12).
-Deleted: Check 1.2. Execution Contract Database 1 owns it.
 Check 1.3: An auditor MUST read an abandonment record as accounting for the principals the record covers (Reconciliation 22).
 Check 1.4: An auditor MUST reconstruct the Active set across the fired instant's reconstruction window AND compare the set with the queried list (Action wiring 5).
 Check 1.5: An auditor MUST report a queried list diverging from EVERY reconstruction in the window as a fidelity finding (Action wiring 5).
 Check 1.6: An auditor MUST find EVERY delivery event's notification id naming a record whose recipient EQUALS the event's principal (Action wiring 22).
 Check 2.1: An auditor MUST find EVERY delivery event's observed count below EVERY cap the event records (Invariant 4.1).
 Check 2.2: IF the cap serialization EQUALS serialized-per-principal THEN an auditor MUST find EVERY delivery event's observed count derivable from the preceding delivery events in the window (Invariant 4.2).
-Deleted: Check 2.3. Execution Contract Database 1 owns it.
 Check 2.4: IF the cap serialization EQUALS best-effort THEN an auditor MUST find EVERY overshoot matched by an overshoot record WITHIN the reconciliation window (Invariant 4.3).
 NOTE: open 2026-11-06-f — Invariant 4.3 and Check 2.4 do not state the instant the reconciliation window counts from for an overshoot.
 Check 3.1: An auditor MUST find EVERY suppression event carrying a suppression reason (Invariant 5.1).
 Check 3.2: An auditor MUST find EVERY suppression event's preference id naming a record in effect at the decided instant within the clock tolerance (Composition state 15).
 Check 3.3: An auditor MUST find EVERY failure event carrying a failure cause (Invariant 5.2).
 Check 3.4: An auditor MUST find EVERY delivery event carrying the gate's evaluation inputs (Action wiring 31).
-Deleted: Check 3.5. Execution Contract Database 1 owns it.
 Check 4.1: An auditor MUST find EVERY disposition event's fanout id naming EXACTLY ONE initiation entry (Invariant 10.1).
-Deleted: Check 4.2. Execution Contract Database 1 owns it.
 Check 4.3: IF a redisposition event is the pair's first disposition event THEN an auditor MUST find the principal in the queried list (Action wiring 47).
 Check 5.1: An auditor MUST replay a sample of verdict-bearing events AND find EVERY recorded verdict reproduced (Invariant 7.1).
 Check 6.1: An auditor MUST find EVERY created record's envelope content digesting to the initiation entry's payload digest (Invariant 8.1).
@@ -738,7 +716,6 @@ Clock semantics 2: A deployment needing a mid-invocation window change honoured 
 
 ```
 Concurrency 1: A [Redispose] deliver MUST hold the per-disposition exclusion AND the per-principal exclusion alike.
-Deleted: Concurrency 2. Execution Contract Database 2 owns it.
 Concurrency 3: The composition MUST NOT roll back one subscriber's disposition for another's failure.
 NOTE: open 2026-11-06-e — the page declares no transaction boundary for a fanout's per-subscriber commits.
 ```

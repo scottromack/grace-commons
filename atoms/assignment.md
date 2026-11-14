@@ -41,10 +41,8 @@ Identity 1: The atom MUST identify an assignment by the assignment id.
 Identity 2: The host MUST allocate an assignment id at the atom's seam.
 Identity 3: The transition MUST NOT allocate an assignment id.
 Identity 4: The business caller MUST NOT supply an assignment id.
-Deleted: Identity 5. Invariant 6.1 owns it.
 Identity 6: The atom MUST NOT identify an assignment by the task reference.
 Identity 7: The atom MUST NOT identify an assignment by the task reference with the assignee reference.
-Deleted: Identity 8. Invariant 6.1 owns it.
 ```
 
 NOTE: open 2026-10-26-a — the assignment id's source is named as the host's allocation (Identity 2) and not among what the deployment supplies (Capability requirement 1, Capability requirement 4).
@@ -77,9 +75,6 @@ State 4: A transferred assignment MUST carry transfer instant.
 State 5: [Assign] MUST stamp assignment instant from the injected now.
 State 6: [Recall] MUST stamp recall instant from the injected now.
 State 7: [Reassign] MUST stamp transfer instant from the injected now.
-Deleted: State 8. Invariant 4.1 owns it.
-Deleted: State 9. Invariant 4.2 owns it.
-Deleted: State 10. Invariant 10.1 owns it.
 State 11: The atom MUST NOT hold a task's lifecycle.
 State 12: The atom MUST NOT hold an assignee's workload.
 State 13: The atom MUST NOT re-derive an instant an assignment carries from a later reading.
@@ -98,11 +93,6 @@ Term transfer instant: the instant the assignment was handed on — a [Transfer 
 ```
 Capability requirement 1: The deployment MUST supply now at the seam.
 Capability requirement 4: The deployment MUST supply the assignment records PER Execution Contract Database 1 through 6, Execution Contract Order 1, Execution Contract Read 1 through 4, Execution Contract Refusal 1, Execution Contract Error model 1 and Execution Contract Conformance 9.
-Deleted: Capability requirement 2. Execution Contract Logic confinement 7 owns it.
-Deleted: Capability requirement 3. Execution Contract Logic confinement 7 owns it.
-Deleted: Clock semantics 1. Execution Contract Logic confinement 7 owns it.
-Deleted: Clock semantics 2. Execution Contract Logic confinement 7 owns it.
-Deleted: Clock semantics 3. State 13 owns it.
 ```
 
 ### Operations
@@ -147,11 +137,8 @@ Operation 16: IF the assignment's status EQUALS transferred THEN [Reassign] MUST
 Operation 17: IF new assignee reference EQUALS blank THEN [Reassign] MUST answer invalid-request.
 Operation 18: [Reassign] MUST stand the old assignment in transferred.
 Operation 19: [Reassign] MUST record EXACTLY ONE active assignment for the task reference.
-Deleted: Operation 20. Execution Contract Database 1 owns it.
 Operation 21: [Reassign] MUST answer the new assignment id.
 Operation 22: IF the database refuses either write THEN [Reassign] MUST answer storage-failure.
-Deleted: Operation 23. Execution Contract Database 1 and Execution Contract Database 3 own it.
-Deleted: Operation 24. Execution Contract Read 4 and Execution Contract Database 3 own it: a refused call writes nothing, and a write that did not commit leaves nothing.
 Operation 25: [Active For] MUST answer the active assignment for the task reference.
 Operation 26: [Active For] MUST answer none for a task reference with no active assignment.
 Operation 27: [History For] MUST answer EVERY assignment carrying the task reference.
@@ -159,15 +146,7 @@ Operation 28: [History For] MUST order the answer by assignment instant, earlies
 Operation 28a: [History For] MUST order two assignments sharing an assignment instant by recording commit, earliest first.
 Operation 29: [Active For] MUST NOT write.
 Operation 30: [History For] MUST NOT write.
-Deleted: Operation 30a. Execution Contract Logic confinement 3 owns it.
 Operation 30b: [Reassign] MUST stamp the new assignment's assignment instant from the injected now.
-Deleted: Operation 31. Capability requirement 1 owns it.
-Deleted: Operation 32. Execution Contract Logic confinement 3 owns it.
-Deleted: Operation 33. Execution Contract Logic confinement 3 owns it.
-Deleted: Operation 34. Execution Contract Read 1 owns it.
-Deleted: Operation 35. Execution Contract Refusal 1 owns it.
-Deleted: Operation 36. Execution Contract Refusal 1 owns it.
-Deleted: Operation 37. Execution Contract Refusal 1 owns it.
 Operation 38: [Reassign] MUST set the new assignment's assignee reference to the new assignee reference.
 ```
 
@@ -212,7 +191,6 @@ Where two cases of one action hold at once, the refusal listed first on the acti
   ```
 - **Invariant 3 — Status monotonicity.**
   ```
-  Deleted: Invariant 3.1. State 1 owns it.
   Invariant 3.2: A status MUST NOT move to active from a terminal status.
   ```
 - **Invariant 4 — Terminal states are absorbing.**
@@ -223,7 +201,6 @@ Where two cases of one action hold at once, the refusal listed first on the acti
 - **Invariant 5 — Id stability.**
   ```
   Invariant 5.1: [Assign] MUST set the assignment id.
-  Deleted: Invariant 5.2. Invariant 2.1 owns it.
   ```
 - **Invariant 6 — No id reuse.**
   ```
@@ -231,10 +208,7 @@ Where two cases of one action hold at once, the refusal listed first on the acti
   ```
 - **Invariant 7 — Reassign atomicity.**
   ```
-  Deleted: Invariant 7.1. Operation 18, Operation 19 and Invariant 1.1 own it: a landed reassign leaves the task reference one active assignment, the one the reassign recorded, and a later recall may leave none.
   Invariant 7.2: The reassigned assignment MUST stand in transferred once [Reassign] lands.
-  Deleted: Invariant 7.3. Execution Contract Database 1 owns it.
-  Deleted: Invariant 7.4. Execution Contract Database 1 owns it.
   ```
 - **Invariant 8 — Timestamp ordering.**
   ```
@@ -246,12 +220,10 @@ Where two cases of one action hold at once, the refusal listed first on the acti
   ```
   Invariant 9.1: The assignments carrying one task reference MUST record EVERY actor who held the task.
   Invariant 9.2: The assignments carrying one task reference MUST record when each holding began.
-  Deleted: Invariant 9.3. State 3 and State 4 own it: an ended holding carries its recall instant or its transfer instant, and an active one has not ended.
   ```
 - **Invariant 10 — Assignment record durability.**
   ```
   Invariant 10.1: The atom MUST NOT delete an assignment record.
-  Deleted: Invariant 10.2. Invariant 10.1 owns it (Execution Contract Database 6).
   ```
 
 At-most-one and reassign atomicity give the *unambiguous accountability* property — *who is responsible for this task?* has one answer or none, never two. Immutability, the complete history and durability give *auditability* — the chain is the database, and nothing leaves it quietly.
@@ -303,7 +275,6 @@ Check 2.2: An auditor MUST read a recalled assignment as the recalling call leav
 Check 2.3: An auditor MUST read a transferred assignment as handed on to the assignment the transferring call recorded for the same task reference (Operation 18, Operation 19, Invariant 7.2).
 Check 3.1: An auditor MUST find no assignment whose status moved out of a terminal status (Invariant 3.2, Invariant 4.1, Invariant 4.2).
 Check 4.1: An auditor MUST find no assignment carrying an instant that PRECEDES the assignment's assignment instant (Invariant 8.1, Invariant 8.2).
-Deleted: Check 5.1. Execution Contract Conformance 9 owns it.
 ```
 
 ### External checks
@@ -312,8 +283,6 @@ Deleted: Check 5.1. Execution Contract Conformance 9 owns it.
 External check 1: An auditor MUST read the assigner's authority from the composing Permissions records (Non-goal 5).
 External check 2: An auditor MUST read who issued an assignment from the composing Actor Identity attestations (Non-goal 7).
 External check 3: An auditor MUST read a task's completion from the host's task system (Non-goal 11).
-Deleted: External check 4. Execution Contract Database 1 and Execution Contract Database 2 own it.
-Deleted: External check 5. Execution Contract Conformance 9 owns it.
 ```
 
 NOTE: EVERY check names the rule the check tests. The assignment records answer *who holds this and who held it*; who was allowed to hand it over is in the composing patterns' records, and whether the work is done in the host's task system.
@@ -343,26 +312,12 @@ Where the atom breaks down: when responsibility is genuinely shared at the same 
 
 ### Reassign atomicity
 
-```
-Deleted: Reassign atomicity 1. Execution Contract Database 1 owns it.
-Deleted: Reassign atomicity 2. Execution Contract Database 1 and Execution Contract Database 3 own it.
-Deleted: Reassign atomicity 3. Execution Contract Database 1 and Execution Contract Database 3 own it.
-Deleted: Reassign atomicity 4. Execution Contract Database 1 owns it.
-```
-
 ### The assign race
-
-```
-Deleted: Assign race 1. Execution Contract Database 1 and Execution Contract Database 2 own it.
-Deleted: Assign race 2. Execution Contract Database 2 owns it.
-Deleted: Assign race 3. Execution Contract Database 2 owns it.
-```
 
 ## Composition notes
 
 ```
 Composition note 1: A deployment MUST declare which composing patterns the deployment wired in.
-Deleted: Composition note 2. Term task reference owns it: the host owns what a task is.
 Composition note 3: A composing pattern MUST own whether an assignee may hold the task.
 Composition note 4: A composing pattern MUST own whether a completed task's assignment is recalled.
 Composition note 5: A composing pattern needing assigner attribution MUST attest [Assign] and [Reassign] under the assigner's credential.

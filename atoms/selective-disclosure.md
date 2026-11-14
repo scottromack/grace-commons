@@ -51,10 +51,8 @@ The authority field is where the atom earns its name. Three types and no others 
 ```
 Identity 1: The atom MUST identify a disclosure record by the disclosure id.
 Identity 2: The host MUST allocate a disclosure id that DOES NOT EXCEED the string cap, at the seam.
-Deleted: Identity 3. Execution Contract Logic confinement 3 owns it.
 Identity 4: The atom MUST NOT change a disclosure id.
 Identity 5: Two disclosure records in one database instance MUST NOT share a disclosure id.
-Deleted: Identity 6. Execution Contract Database 7 owns it.
 Identity 7: The atom MUST NOT identify a disclosure record by the subject reference.
 Identity 8: The atom MUST admit a second disclosure record carrying a recorded subject reference.
 Identity 9: The atom MUST match a subject reference exactly, as the seam has canonicalized the subject reference (Execution Contract Logic confinement 13).
@@ -63,7 +61,6 @@ Identity 11: The atom MUST NOT normalize a subject reference.
 Identity 12: The atom MUST NOT confirm that a subject reference names a known subject.
 Identity 13: The atom MUST NOT interpret a scope.
 Identity 14: The atom MUST NOT interpret a recipient.
-Deleted: Identity 15. Execution Contract Logic confinement 10 owns it.
 ```
 
 NOTE: watch the allocation ban (Identity 3).
@@ -96,8 +93,6 @@ State 4: The atom MUST NOT offer an edit surface.
 State 5: The atom MUST NOT offer a removal surface.
 State 6: The atom MUST NOT offer a retraction surface.
 State 7: The atom MUST NOT offer a batch record surface.
-Deleted: State 8. Invariant 6.1 and Execution Contract Database 4 own it.
-Deleted: State 9. Operation 27, Execution Contract Query 4, Invariant 6.1 and Execution Contract Database 4 own it.
 State 10: The atom MUST NOT record a receipt instant.
 ```
 
@@ -109,17 +104,8 @@ Term receipt instant: the instant the deployment received a [Record] call, which
 Capability requirement 1: The deployment MUST supply now at the seam PER Execution Contract Logic confinement 3.
 Capability requirement 5: The deployment MUST supply the disclosure records PER Execution Contract Database 1, Execution Contract Database 2, Execution Contract Database 3, Execution Contract Database 4, Execution Contract Database 5, Execution Contract Database 6, Execution Contract Database 7, Execution Contract Read 1 through 4, Execution Contract Refusal 1, Execution Contract Query 1 through 4 and Execution Contract Input 1.
 Capability requirement 6: The deployment MUST call [Record] for EVERY transmission of a subject's data to a party beside the subject.
-Deleted: Capability requirement 7. Execution Contract Conformance 9 owns it.
 Capability requirement 8: The deployment MAY declare the string cap PER Execution Contract Input 2.
 Capability requirement 9: The deployment MUST supply the disclosure id at the seam PER Execution Contract Logic confinement 3 and Execution Contract Logic confinement 16 (Term disclosure id).
-Deleted: Capability requirement 2. Execution Contract Logic confinement 7 owns it.
-Deleted: Capability requirement 3. Execution Contract Logic confinement 7 owns it.
-Deleted: Capability requirement 4. Execution Contract Logic confinement 7 owns it.
-Deleted: Clock semantics 1. Execution Contract Logic confinement 7 owns it.
-Deleted: Clock semantics 2. Execution Contract Logic confinement 7 owns it.
-Deleted: Clock semantics 3. Execution Contract Logic confinement 7 owns it.
-Deleted: Clock semantics 4. State 10 owns it.
-Deleted: Clock semantics 5. Non-goal 23 owns it.
 ```
 
 NOTE: watch the id the host supplies to two calls (Capability requirement 9).
@@ -146,40 +132,27 @@ Operation 4: IF authority EQUALS blank THEN [Record] MUST answer invalid-request
 Operation 5: IF authority type EQUALS blank THEN [Record] MUST answer invalid-request.
 Operation 6: IF authority reference EQUALS blank THEN [Record] MUST answer invalid-request.
 Operation 7: IF now PRECEDES the resolved disclosure instant THEN [Record] MUST answer invalid-request.
-Deleted: Operation 8. Execution Contract Refusal 1 owns it.
 Operation 9: IF authority type IS NOT IN the authority types THEN [Record] MUST answer unknown-authority-type.
 Operation 10: An admitted record MUST record EXACTLY ONE disclosure record.
 Operation 11: An admitted record MUST take the disclosure record's disclosure id from the injected disclosure id.
 Operation 12: An admitted record MUST stamp the disclosure record's disclosure instant from the resolved disclosure instant.
 Operation 13: An admitted record MUST answer the disclosure id.
 Operation 14: IF the database refuses the write THEN [Record] MUST answer storage-failure.
-Deleted: Operation 15. Execution Contract Refusal 1 owns it.
 Operation 16: A refused [Record] MUST NOT record a disclosure record.
 Operation 17: A refused [Record] MUST leave the database as the call found the database.
 Operation 18: An admitted read MUST answer the matching disclosure records in disclosure instant ascending order.
 Operation 19: An admitted read MUST order two disclosure records sharing a disclosure instant by disclosure id ascending (Execution Contract Logic confinement 10).
 Operation 20: IF no disclosure record matches THEN an admitted read MUST answer an empty record sequence.
-Deleted: Operation 21. Execution Contract Query 4 and Operation 27 own it.
 Operation 22: IF a filter's axis IS NOT IN the filter axes THEN [Read] MUST answer invalid-query.
 Operation 23: IF a disclosure id, subject reference OR recipient filter's value EQUALS blank THEN [Read] MUST answer invalid-query.
 Operation 24: IF an authority type filter's value IS NOT IN the authority types THEN [Read] MUST answer invalid-query.
 Operation 25: IF a disclosure instant range's before PRECEDES the range's after THEN [Read] MUST answer invalid-query.
-Deleted: Operation 26. Execution Contract Query 2 owns it.
 Operation 27: An admitted read MUST answer EVERY disclosure record matching the supplied filters.
 Operation 28: An admitted read MUST NOT answer a disclosure record failing a supplied filter.
 Operation 29: [Read] MUST NOT write.
 Operation 30: [Read] MUST NOT answer storage-failure.
-Deleted: Operation 31. Capability requirement 1 owns it.
-Deleted: Operation 32. Execution Contract Logic confinement 3 owns it.
-Deleted: Operation 33. Execution Contract Logic confinement 3 owns it.
-Deleted: Operation 34. Execution Contract Logic confinement 3 owns it.
-Deleted: Operation 35. Execution Contract Refusal 1 owns it.
 Operation 36: IF a filter is malformed THEN [Read] MUST answer invalid-query.
-Deleted: Operation 37. Execution Contract Input 1 owns it.
 Operation 38: IF the resolved disclosure instant is malformed THEN [Record] MUST answer invalid-request (Execution Contract Input 1).
-Deleted: Operation 39. Execution Contract Input 4 owns it.
-Deleted: Operation 40. Execution Contract Input 4 owns it.
-Deleted: Operation 41. Execution Contract Input 4 owns it.
 Operation 42: An admitted record MUST take the disclosure record's authority type from the call's authority type.
 Operation 43: An admitted record MUST take the disclosure record's authority reference from the call's authority reference.
 Operation 44: IF a string input EXCEEDS the string cap THEN [Record] MUST answer invalid-request.
@@ -231,11 +204,9 @@ Term record sequence: the run of disclosure records an admitted read answers, in
 - **Invariant 2 — Authority completeness.**
   ```
   Invariant 2.1: EVERY disclosure record's authority type MUST stand in the authority types.
-  Deleted: Invariant 2.2. Invariant 3.2 owns it.
   ```
 - **Invariant 3 — Field completeness.**
   ```
-  Deleted: Invariant 3.1. State 1 owns it.
   Invariant 3.2: EVERY disclosure record's subject reference, recipient, scope and authority reference MUST stand non-blank.
   ```
 - **Invariant 4 — Temporal soundness.**
@@ -244,14 +215,11 @@ Term record sequence: the run of disclosure records an admitted read answers, in
   ```
 - **Invariant 5 — Unrecorded transmissions.**
   ```
-  Deleted: Invariant 5.1. Capability requirement 6 owns it.
   Invariant 5.2: The atom MUST NOT detect a transmission the atom's caller does not record.
   ```
 - **Invariant 6 — Record durability and append-only nature.**
   ```
   Invariant 6.1: The atom MUST NOT remove a disclosure record from the database.
-  Deleted: Invariant 6.2. Execution Contract Database 1 owns it.
-  Deleted: Invariant 6.3. Execution Contract Database 3 owns it.
   ```
 
 NOTE: open 2026-11-06-a — Invariant 4.1 is kept at the write by Operation 7 and cleared by no check over the records, since no record keeps the now its creation read (State 1, State 10); the owner that would clear it, External check 3's receipt-instant read or a Non-goal, is undecided (Ledger open 2026-11-06-a).
@@ -312,14 +280,9 @@ Check 2.2: An auditor MUST find EVERY disclosure record's subject reference, rec
 Check 2.3: An auditor MUST find EVERY disclosure record's authority type standing in the authority types (Invariant 2.1).
 Check 2.4: An auditor MUST find EVERY disclosure record's disclosure id distinct from the disclosure id of every other disclosure record in one database instance (Identity 5).
 Check 3.1: An auditor MUST find EVERY disclosure record's fields unchanged across EVERY committed version of the disclosure record (Invariant 1.1; Execution Contract Generation acceptance 1).
-Deleted: Check 3.2. Execution Contract Database 6 owns it.
-Deleted: Check 4.1. Operation 9 owns it.
-Deleted: Check 4.2. Operation 16 owns it.
 Check 5.1: An auditor MUST find a subject reference query answering EVERY disclosure record carrying the subject reference (Operation 27).
 Check 5.2: An auditor MUST find an authority type query answering ONLY the disclosure records carrying the authority type (Operation 28).
 Check 5.3: An auditor MUST find an unmatched well-formed query answering an empty record sequence (Operation 20).
-Deleted: Check 6.1. Operation 7 owns it.
-Deleted: Check 6.2. Operation 7 owns it.
 ```
 
 NOTE: EVERY check names the rule the check tests.
@@ -333,8 +296,6 @@ External check 1: A deployment needing a disclosure's authority legitimacy clear
 External check 2: A deployment needing Capability requirement 6 cleared MUST read the egress record beside the disclosure records.
 External check 3: A deployment needing a backdated disclosure instant detected MUST read the composing Event Log's receipt instant (State 10).
 External check 6: A deployment needing a correction's narrative cleared MUST read the correcting disclosure record's correction narrative beside the corrected disclosure record (Correction 4; Identity 13).
-Deleted: External check 4. Execution Contract Database 3 owns it.
-Deleted: External check 5. Execution Contract Database 6 owns it.
 ```
 
 Term authority records: the composing pattern's own records of the authorities a disclosure's authority reference names (Non-goal 7, Non-goal 8).
@@ -381,7 +342,6 @@ NOTE: the owners — the calling system (Non-goal 4, Non-goal 5, Non-goal 6); [C
 ```
 Concurrency 1: The atom MUST NOT serialize two [Record] calls against one subject reference.
 Concurrency 2: A [Record] call's answer MUST NOT rest on a concurrent [Record] call's answer.
-Deleted: Concurrency 3. Identity 2, Identity 5, Operation 10 and Operation 11 own it.
 ```
 
 ### String policy
@@ -393,7 +353,6 @@ String 3: The atom MUST NOT normalize a string input.
 String 4: The atom MUST NOT case-fold a string input.
 String 5: The atom MUST read a whitespace-only string input as blank.
 String 6: The atom MUST read an absent string input as blank.
-Deleted: String 7. Execution Contract Logic confinement 13 owns it.
 ```
 
 NOTE: the canonicalization Logic confinement 13 carries at the seam is the deployment's, not a normalization of a string input the atom makes.
@@ -420,7 +379,6 @@ Term correction narrative: the prose a correcting disclosure record's scope OR a
 ## Composition notes
 
 ```
-Deleted: Composition note 1. Execution Contract Conformance 9 owns it.
 Composition note 2: A composing pattern MUST own the authorization of a call.
 Composition note 3: A composing pattern MUST own the attestation binding the recording actor.
 Composition note 4: A composing pattern MUST own the legitimacy of an authority reference.
@@ -428,7 +386,6 @@ Composition note 5: A composing pattern MUST own the tamper seal over the disclo
 Composition note 6: A composing pattern MUST own the retention of the disclosure records.
 Composition note 7: A composing pattern MUST own at-most-once recording.
 Composition note 8: A composing pattern closing Capability requirement 6 MUST own the only disclosure surface.
-Deleted: Composition note 9. Execution Contract Atom interface 1 owns it.
 ```
 
 <details markdown="block">

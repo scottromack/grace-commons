@@ -88,8 +88,6 @@ Composition state 7: The composition MUST rebuild a map from the substrate's log
 Composition state 8: The composition MUST NOT rest a session's validity on a map write.
 Composition state 9: The composition MUST store a login event log.
 Composition state 10: The composition MUST append a login event log entry per login call answering the login result or invalid-credential.
-Deleted: Composition state 11. Execution Contract Database 3 owns it.
-Deleted: Composition state 12. Execution Contract Database 3 and Execution Contract Database 4 own it.
 Composition state 13: EVERY session MUST rest on EXACTLY ONE credential.
 Composition state 14: A credential MAY carry a session beside another session.
 Composition state 15: A credential MAY carry no session.
@@ -115,8 +113,6 @@ Term login event: the login-family event an admitted login records — login_fai
 
 ```
 Capability requirement 1: The deployment MUST supply now at the seam.
-Deleted: Capability requirement 2. Execution Contract Logic confinement 3 owns it.
-Deleted: Capability requirement 3. Execution Contract Logic confinement 3 owns it.
 Capability requirement 4: The composition MUST NOT mint an id.
 Capability requirement 5: The composition MUST NOT generate cryptographic material.
 Capability requirement 6: A deployment MUST set the default session duration.
@@ -127,12 +123,9 @@ Capability requirement 10: A deployment MUST declare the issuer references.
 Capability requirement 11: A deployment MUST set the reconciliation window.
 Capability requirement 12: A deployment MUST set the reconciliation cadence.
 Capability requirement 13: The reconciliation cadence MUST NOT EXCEED the reconciliation window.
-Deleted: Capability requirement 14. Execution Contract Database 1 owns it.
-Deleted: Capability requirement 15. Action wiring 13 owns it: every admitted login records its login event.
 Capability requirement 16: The host MUST supply one entry id at the seam PER login call PER Execution Contract Logic confinement 16, distinct from every entry id supplied for a login call of any other instance of the composition.
 Capability requirement 17: A deployment MUST NOT revoke a session under the issuer references outside the composition.
 Capability requirement 18: The deployment MUST supply the database PER Execution Contract Database 1 through 4.
-Deleted: Capability requirement 19. Primitive policy 18 owns it.
 Capability requirement 20: A deployment MUST supply the surface the sweep escalates to.
 ```
 
@@ -159,7 +152,6 @@ Primitive policy 10: IF a principal reference EXCEEDS Credential's length bound 
 Primitive policy 11: IF a credential type EXCEEDS Credential's length bound THEN the composition MUST answer invalid-request.
 Primitive policy 12: The composition MUST answer invalid-request for an issued by reference outside the issuer references.
 Primitive policy 13: The composition MUST answer invalid-request for a logout reason beginning with the cascade reason's prefix.
-Deleted: Primitive policy 14. Execution Contract Database 1 owns it: a login's session and its records commit together, so the sweep revokes no session under a reason of its own.
 Primitive policy 15: The composition MUST answer invalid-request for a blank credential id.
 Primitive policy 16: The composition MUST answer invalid-request for a blank revoked by reference on a cascade.
 Primitive policy 17: The composition MUST answer invalid-request for a blank reason on a cascade.
@@ -172,17 +164,12 @@ Term opaque input: principal reference | credential type | session token | crede
 ### Audit arm
 
 ```
-Deleted: Audit arm 1. Execution Contract Database 1 owns it: an action's writes commit together, so no invocation retries an owed record.
 Audit arm 2: The composition MUST NOT retry a landed record.
-Deleted: Audit arm 3. Execution Contract Database 1 and Execution Contract Database 3 own it.
 Audit arm 4: The composition MUST read an invalid-credential answer as a deployment fault.
 Audit arm 5: The composition MUST alert on an invalid-credential answer.
 Audit arm 6: The composition MUST read an invalid-request answer as a deployment fault.
 Audit arm 7: The composition MUST NOT read an invalid-request answer as unreachable.
 Audit arm 8: The composition MUST NOT retry an invalid-request answer in a loop.
-Deleted: Audit arm 9. Execution Contract Database 1 owns it: an action that fails commits nothing, so no record stays landed beside it.
-Deleted: Audit arm 10. Execution Contract Database 1 owns it: an action that fails commits nothing, so no record stays owed beside it.
-Deleted: Audit arm 11. Execution Contract Database 1 owns it: an action that fails commits nothing, so no record stays owed beside it.
 Audit arm 12: The composition MUST NOT retry an invalid-request(step-3) or invalid-request(step-4) answer.
 Audit arm 13: IF Audit Trail answers invalid-credential, invalid-request OR recording-failure at a login event, a logout event OR a cascade event THEN the action MUST answer storage-failure, naming the login-event-record stage at a login (Execution Contract Constituent failure 1, Execution Contract Constituent failure 4).
 ```
@@ -213,12 +200,9 @@ Action wiring 2: IF Credential's verify answers failed-verification THEN an admi
 Action wiring 3: An admitted login MUST NOT answer Credential's verify reason to the caller.
 Action wiring 4: An admitted login MUST call Session's issue ONLY AFTER Credential's verify answers verified.
 Action wiring 5: An admitted login MUST read the credential id of the effective-active credential for the pair.
-Deleted: Action wiring 6. Execution Contract Database 2 owns it: the credential id read and Session's issue sit in one transaction, so no session commits against a credential the read did not see.
-Deleted: Action wiring 7. Execution Contract Database 2 owns it.
 Action wiring 8: An admitted login MUST call Session's issue with the principal reference, the issued by reference AND the session duration.
 Action wiring 9: An admitted login MUST write both maps ONLY AFTER Session's issue commits.
 Action wiring 10: IF the map write fails THEN an admitted login MUST answer the session token.
-Deleted: Action wiring 11. Execution Contract Database 1 owns it: the login's records commit before its map write, and the login succeeded event already carries the pair a rebuild restores.
 Action wiring 12: An admitted login MUST append a login event log entry.
 Action wiring 13: An admitted login MUST record a login event under the service identity.
 Action wiring 14: IF the session-to-credential map, rebuilt as Composition state 7 says, carries an entry for the session token THEN an admitted logout MUST call Session's revoke with the session token, the revoked by reference AND the reason.
@@ -235,12 +219,10 @@ Action wiring 24: An admitted cascade MUST NOT change the credential-to-sessions
 Action wiring 25: An admitted cascade MUST record a cascade completion event carrying the initiation event's id AND the four counts.
 Action wiring 26: An admitted cascade MUST answer the revocation tally.
 Action wiring 27: IF Session's revoke answers already-terminal THEN an admitted logout MUST answer already-terminal.
-Deleted: Action wiring 28. Execution Contract Constituent failure 1 owns it.
 Action wiring 29: IF Session's revoke answers invalid-request THEN an admitted logout MUST answer invalid-request.
 Action wiring 30: IF the credential id read finds no effective-active credential THEN an admitted login MUST answer storage-failure naming the credential-id-lookup stage.
 Action wiring 31: IF Session's issue answers storage-failure THEN an admitted login MUST answer storage-failure naming the session-issue stage (Execution Contract Constituent failure 1).
 Action wiring 32: A cascade initiation event MUST carry the credential id, the revoked by reference AND the reason.
-Deleted: Action wiring 33. Audit arm 13 owns it.
 Action wiring 34: IF Session's validate answers valid for a session token the cascade set carries THEN an admitted cascade MUST call Session's revoke with the cascade reason.
 Action wiring 35: IF Session's validate answers not-known THEN an admitted cascade MUST count the session token as not-found AND record a session not found event.
 Action wiring 36: IF Session's revoke answers invalid-request THEN an admitted cascade MUST count the session token as failed AND record a revoke failure event.
@@ -251,7 +233,6 @@ Action wiring 40: IF Session's issue answers invalid-request THEN an admitted lo
 Action wiring 41: IF Session's revoke answers already-terminal THEN an admitted cascade MUST count the session token as skipped.
 Action wiring 42: IF Session's revoke answers not-known THEN an admitted cascade MUST count the session token as not-found AND record a session not found event.
 Action wiring 43: IF the session-to-credential map, rebuilt as Composition state 7 says, carries no entry for the session token THEN an admitted logout MUST answer not-known.
-Deleted: Action wiring 44. Action wiring 14 owns it.
 ```
 
 NOTE: watch the attempt a refusal erases (Action wiring 2, Term login result).
@@ -371,22 +352,14 @@ Wiring decision 4: The composition MUST NOT read a cascade as complete for a ses
 ### Reconciliation
 
 ```
-Deleted: Reconciliation 1. Execution Contract Database 1 and Execution Contract Database 3 own it.
 Reconciliation 2: The sweep MUST run every reconciliation cadence.
 Reconciliation 3: The sweep MUST NOT store a record of the sweep's own.
 Reconciliation 4: The sweep MUST close a discrepancy through an ordinary record_action.
 Reconciliation 5: The sweep MUST re-emit an owed record the login event log carries.
-Deleted: Reconciliation 6. Execution Contract Database 1 owns it.
 Reconciliation 7: The sweep MUST NOT examine a session issued outside the issuer references.
-Deleted: Reconciliation 8. Execution Contract Database 1 owns it: a login's session, its login event log entry and its login event commit together, so no session outruns every record.
-Deleted: Reconciliation 9. Execution Contract Database 1 owns it.
-Deleted: Reconciliation 10. Reconciliation 15 owns it.
-Deleted: Reconciliation 11. Execution Contract Database 1 owns it.
 Reconciliation 12: The sweep MUST record a cascade abandoned event for an initiation carrying no completion.
 Reconciliation 15: The sweep MUST record the stored-reason member for a revoked session carrying no revocation-family event.
-Deleted: Reconciliation 16. Execution Contract Database 1 owns it.
 Reconciliation 17: The sweep MUST call [Revoke Sessions For Credential] again for an abandoned initiation's credential id with the initiation's revoked by reference AND reason.
-Deleted: Reconciliation 18. Execution Contract Database 1 owns it.
 Reconciliation 19: The sweep MUST call a cascade again ONLY AFTER recording a recovery intent.
 Reconciliation 20: IF both maps lack the pair a login succeeded event carries THEN the sweep MUST write the pair into both maps.
 Reconciliation 13: The sweep MUST escalate a discrepancy the reconciliation window did not close to the surface Capability requirement 20 supplies.
@@ -426,10 +399,6 @@ Each emerges from the composition; none belongs to one constituent.
   ```
   *Rests on:* Action wiring 5 and 9; Composition state 5; Credential's read.
 - **Invariant 4 — Login event log completeness.**
-  ```
-  Deleted: Invariant 4.2. Execution Contract Database 1 owns it.
-  Deleted: Invariant 4.1. Composition state 10 owns it.
-  ```
 - **Invariant 5 — Audit trail completeness.**
   ```
   Invariant 5.1: EVERY login succeeded event MUST name a session token the rebuilt session-to-credential map carries.
@@ -500,7 +469,6 @@ Check 3.3: An auditor MUST rebuild a principal reference's session set from the 
 Check 4.1: An auditor MUST find EVERY cascade initiation event carrying EXACTLY ONE OF a completion event, an abandoned event (Reconciliation 12).
 Check 4.2: An auditor MUST find EVERY session revoked event naming a session the cascade set carried (Invariant 5.2).
 Check 5.1: An auditor MUST find EVERY revoked session under the issuer references carrying a revocation-family event (Reconciliation 15).
-Deleted: Check 5.2. Execution Contract Database 1 owns it.
 Check 6.1: An auditor MUST find EVERY audit event of the composition attested under the service identity (Composes 12).
 ```
 
@@ -511,9 +479,7 @@ NOTE: watch the check over a derived index — Check 1.1 reads the rebuilt map I
 ### External checks
 
 ```
-Deleted: External check 1. Execution Contract Database 3 owns it.
 External check 2: An auditor needing the issuer references confirmed MUST read the deployment's own declaration (Capability requirement 10).
-Deleted: External check 3. Execution Contract Database 1 owns it.
 External check 4: An auditor needing the service identity's provisioning confirmed MUST read the substrate's actor registry (Capability requirement 8).
 External check 5: An auditor needing a constituent's own guarantee confirmed MUST read the constituent's own acceptance (Composes 5).
 External check 6: An auditor needing the substrate's own guarantee confirmed MUST read Audit Trail's own acceptance (Composes 6).
@@ -526,7 +492,6 @@ External check 6: An auditor needing the substrate's own guarantee confirmed MUS
 ```
 Non-goal 1: The composition MUST NOT register a credential.
 Non-goal 2: The composition MUST NOT rotate a credential.
-Deleted: Non-goal 3. Wiring decision 3 owns it.
 Non-goal 4: The composition MUST NOT offer Session's validate.
 Non-goal 5: The composition MUST NOT authorize an action.
 Non-goal 6: A deployment needing an authorized action MUST compose Permissions.
@@ -537,7 +502,6 @@ Non-goal 10: The composition MUST NOT limit a login's rate.
 Non-goal 11: The composition MUST NOT hold a second factor.
 Non-goal 12: The composition MUST NOT adopt a session issued outside the issuer references.
 Non-goal 13: The composition MUST NOT revoke a session issued outside the issuer references.
-Deleted: Non-goal 14. Invariant 2.2 owns it.
 ```
 
 NOTE: the owners — [Session](../atoms/session.md), whose validate callers call directly (Non-goal 4); the surface that issued a session outside the issuer references (Non-goal 12, Non-goal 13).

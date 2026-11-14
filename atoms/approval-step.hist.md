@@ -21,3 +21,105 @@ Entries that record a migration or a repair rather than a turn the pattern took.
 ## Migration notes
 
 - **2026-09-15 — Capability requirement 1, moved from Operation.** What the deployment supplies, which is what the family means. The rule stood under `Operation` — one action's rules — while naming no action, because this spec was migrated before the standard family had a home in an atom; the five atoms migrated a day later put the same obligation here. The words are the words the rule carried (council read 76).
+
+## Deleted rules
+
+The spec's tombstones, moved here from the page on 2026-11-13 because the spec is done (GRACE-lang Hard invariant 25 and Hard invariant 27, since v0.71): each `Deleted:` line byte for byte and in the page's order, under the heading it stood under there. A tombstone carries no obligation, and each still reserves its label: no rule of [Approval Step](./approval-step.md) may carry it again.
+
+### Structure › Identity model
+
+```
+Deleted: Identity 3. Execution Contract Logic confinement 3 owns it.
+Deleted: Identity 6. Execution Contract Logic confinement 10 owns it.
+Deleted: Identity 7. Execution Contract Database 7 owns it.
+Deleted: Identity 14. Execution Contract Logic confinement 13 owns it.
+```
+
+### Structure › State
+
+```
+Deleted: State 1. Invariant 3.1 owns it.
+```
+
+### Structure › Capability requirement
+
+```
+Deleted: Capability requirement 2. Execution Contract Logic confinement 7 owns it.
+Deleted: Capability requirement 3. Execution Contract Logic confinement 7 owns it.
+Deleted: Capability requirement 4. Execution Contract Logic confinement 7 owns it.
+Deleted: Clock semantics 1. Execution Contract Logic confinement 7 owns it.
+Deleted: Clock semantics 2. Execution Contract Logic confinement 7 owns it.
+Deleted: Clock semantics 3. Execution Contract Logic confinement 7 owns it.
+Deleted: Clock semantics 4. State 15 owns it.
+Deleted: Clock semantics 5. Non-goal 21 owns it.
+```
+
+### Structure › Operations
+
+```
+Deleted: Operation 59. Execution Contract Input 1 owns it.
+Deleted: Operation 12. Execution Contract Refusal 1 owns it.
+Deleted: Operation 14. Execution Contract Refusal 1 owns it.
+Deleted: Operation 60. Execution Contract Input 1 owns it, among the attribution checks (Term attribution check).
+Deleted: Operation 23. Execution Contract Refusal 1 owns it.
+Deleted: Operation 31. Execution Contract Database 1 owns it.
+Deleted: Operation 35. Execution Contract Refusal 1 owns it.
+Deleted: Operation 43. Execution Contract Query 3 and Operation 41 own it: a step carrying no instant on a range filter's axis fails the filter.
+Deleted: Operation 49. Capability requirement 1 owns it.
+Deleted: Operation 50. Execution Contract Logic confinement 3 owns it.
+Deleted: Operation 51. Execution Contract Logic confinement 3 owns it.
+Deleted: Operation 52. Execution Contract Logic confinement 3 owns it.
+Deleted: Operation 53. Execution Contract Read 1 owns it.
+Deleted: Operation 54. Execution Contract Read 1 owns it: after the read, every refusal rule of [Submit] answers invalid-request.
+Deleted: Operation 55. Execution Contract Refusal 1 and Operation 20 own it.
+Deleted: Operation 56. Execution Contract Read 1 owns it: after the read, every refusal rule of [Read] answers invalid-query.
+```
+
+### Structure › Invariants › Invariant 10 — Record durability
+
+```
+  Deleted: Invariant 10.2. Execution Contract Database 1 owns it.
+  Deleted: Invariant 10.3. Execution Contract Database 3 owns it.
+```
+
+### Generation acceptance › External checks
+
+```
+Deleted: External check 1. Execution Contract Database 3 owns it.
+```
+
+### Edge cases › Atomic writes
+
+```
+Deleted: Atomic writes 1. Execution Contract Database 1 owns it.
+Deleted: Atomic writes 2. Execution Contract Database 1 and Execution Contract Database 3 own it.
+Deleted: Atomic writes 3. Execution Contract Database 1 owns it.
+Deleted: Atomic writes 4. Execution Contract Database 1 owns it.
+```
+
+### Edge cases › Concurrency
+
+```
+Deleted: Concurrency 1. Execution Contract Database 2 owns it.
+Deleted: Concurrency 2. Execution Contract Database 2 owns it.
+Deleted: Concurrency 3. Execution Contract Database 2 owns it.
+```
+
+### Edge cases › Indeterminate outcome
+
+```
+Deleted: Indeterminate outcome 2. Execution Contract Error model 1 owns it.
+Deleted: Indeterminate outcome 3. Execution Contract Error model 1 owns it.
+```
+
+### Edge cases › String policy
+
+```
+Deleted: String 7. Execution Contract Logic confinement 13 owns it.
+```
+
+### Composition notes
+
+```
+Deleted: Composition note 11. Execution Contract Atom interface 1 owns it.
+```

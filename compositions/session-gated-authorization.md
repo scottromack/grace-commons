@@ -99,7 +99,6 @@ check_permitted(session_token, action_scope)
 Action wiring 1: The composition MUST validate the inputs against the boundary predicate.
 Action wiring 2: The composition MUST call Session's validate ONLY AFTER the inputs clear the boundary predicate.
 Action wiring 3: The composition MUST call Session's validate with the session token.
-Deleted: Action wiring 4. Wiring decision 1 owns it.
 Action wiring 5: An admitted gate MUST call Permissions' permitted with the valid answer's principal reference.
 Action wiring 6: An admitted gate MUST call Permissions' permitted with the action scope.
 Action wiring 7: [Check Permitted] MUST NOT accept a principal reference.
@@ -178,9 +177,6 @@ Wiring decision 1: The composition MUST call Permissions' permitted ONLY AFTER S
 - **Invariant 1 — Session gates authorization.**
   ```
   Invariant 1.1: The composition MUST NOT call Permissions' permitted in a call for which Session's validate gave no valid answer.
-  Deleted: Invariant 1.2. Session Composition note 4 owns it.
-  Deleted: Invariant 1.3. Session Composition note 4 owns it.
-  Deleted: Invariant 1.4. Session Composition note 4 owns it.
   ```
 - **Invariant 2 — Principal binding.**
   ```
@@ -299,8 +295,6 @@ This composition introduces no per-call event log, so the acceptance bar has two
 
 ```
 Check 1.1: An auditor MUST find Session's state naming a disputed session token's status at the instant the gate's validate call answered (Invariant 1.1, Concurrency 1).
-Deleted: Check 1.2. External check 6 owns it.
-Deleted: Check 1.3. External check 7 owns it.
 Check 2.1: An auditor MUST find Session's state naming the principal reference a disputed permitted answer rests on (Invariant 2.1).
 Check 2.2: An auditor MUST find Permissions' state carrying an active grant for the pair a disputed permitted answer rests on, at the disputed instant (Invariant 4.1).
 Check 3.1: An auditor MUST find EVERY answer of the composition that EQUALS EXACTLY ONE OF permitted, denied, invalid-request, session-invalid, state-unavailable (Invariant 3.1, Invariant 3.2, Execution Contract Constituent failure 3).
@@ -367,7 +361,6 @@ Concurrency 3: A deployment needing a bound on a revocation's effect MUST bound 
 
 ```
 Composition note 1: A deployment MUST declare which composing patterns the deployment wired in.
-Deleted: Composition note 2. Composition state 4 owns it.
 Composition note 3: A deployment MUST own the action scope vocabulary.
 Composition note 4: A deployment MUST NOT read this composition as a session lifecycle surface.
 Composition note 5: A deployment composing Audit Trail MUST record EVERY [Check Permitted] call and the call's answer.

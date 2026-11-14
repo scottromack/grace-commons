@@ -21,3 +21,90 @@ Entries that record a round or a migration rather than a turn the pattern took.
 The gate records the Ledger's `last gate:` line carried behind its latest until 2026-10-21, newest first:
 
 - 2026-10-06: thirteen passes, 16 foundational, each cured in its pass
+
+## Deleted rules
+
+The spec's tombstones, moved here from the page on 2026-11-13 because the spec is done (GRACE-lang Hard invariant 25 and Hard invariant 27, since v0.71): each `Deleted:` line byte for byte and in the page's order, under the heading it stood under there. A tombstone carries no obligation, and each still reserves its label: no rule of [Resolve a Person's Data Rights](./resolve-a-persons-data-rights.md) may carry it again.
+
+### Composition logic › Composition state
+
+```
+Deleted: Composition state 23. Execution Contract Read 3 owns it.
+```
+
+### Composition logic › Capability requirement
+
+```
+Deleted: Capability requirement 14. Capability requirement 37 owns it.
+Deleted: Capability requirement 15. Capability requirement 37 owns it.
+Deleted: Capability requirement 19. Capability requirement 39 owns it.
+Deleted: Capability requirement 38. Execution Contract Scheduled leg 1 owns it.
+Deleted: Capability requirement 43. Execution Contract Scheduled leg 1 owns it.
+Deleted: Capability requirement 50. Execution Contract Database 3 and Execution Contract Database 4 own it.
+```
+
+### Composition logic › Audit arm
+
+```
+Deleted: Audit arm 1. Execution Contract Database 1 owns it.
+Deleted: Audit arm 3. Execution Contract Database 1 owns it.
+Deleted: Audit arm 4. Audit arm 21 owns it.
+Deleted: Audit arm 5. Execution Contract Database 1 owns it.
+Deleted: Audit arm 8. Audit arm 2 owns it.
+Deleted: Audit arm 9. Audit arm 21 owns it.
+Deleted: Audit arm 10. Action wiring 29 owns it.
+Deleted: Audit arm 11. Audit arm 21 owns it.
+Deleted: Audit arm 12. Execution Contract Database 1 owns it.
+Deleted: Audit arm 13. Audit arm 21 owns it.
+Deleted: Audit arm 14. Concurrency 18 owns it.
+```
+
+### Composition logic › Action wiring
+
+```
+Deleted: Action wiring 30. Action wiring 19 owns it.
+Deleted: Action wiring 32. Primitive policy 13 owns it.
+```
+
+### Composition logic › Wiring decision
+
+```
+Deleted: Wiring decision 3. Execution Contract Database 1 owns it.
+```
+
+### Composition logic › Reconciliation
+
+```
+Deleted: Reconciliation 6. Check 1.4 owns it.
+Deleted: Reconciliation 7. Reconciliation 22 owns it.
+Deleted: Reconciliation 19. Defensible Retention Reconciliation 11 owns it.
+Deleted: Reconciliation 20. Defensible Retention Action wiring 70 owns it.
+Deleted: Reconciliation 21. Defensible Retention Reconciliation 11 owns it.
+```
+
+### Composition logic › Disposition
+
+```
+Deleted: Disposition 23. Disposition 22 owns it.
+Deleted: Disposition 24. Disposition 42 owns it.
+Deleted: Disposition 25. Disposition 42 owns it.
+Deleted: Disposition 26. Disposition 20 owns it.
+Deleted: Disposition 27. Disposition 41 owns it.
+Deleted: Disposition 28. Disposition 43 owns it.
+Deleted: Disposition 29. Disposition 42 owns it.
+Deleted: Disposition 30. Disposition 43 owns it.
+Deleted: Disposition 31. Disposition 44 owns it.
+Deleted: Disposition 37. Disposition 47 owns it.
+```
+
+### Composition-level invariants › Invariant 8 — Authentication precedes destruction, disclosure and commitment
+
+```
+  Deleted: Invariant 9. Composes 6 owns it.
+```
+
+### Edge cases › Concurrency
+
+```
+Deleted: Concurrency 20. Execution Contract Database 2 owns it: an audit write's lease check and append are one transaction, so no append lands beside another holder's closing.
+```

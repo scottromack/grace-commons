@@ -1,4 +1,4 @@
-# GRACE lang v0.70 — Minimal Earned Grammar
+# GRACE lang v0.71 — Minimal Earned Grammar
 
 Grace lang is a controlled semantic metalanguage for domain specifications.
 
@@ -66,7 +66,7 @@ Surface 14: A provisional form MUST NOT carry normative force.
 Surface 15: The parser MUST ignore WHY:, UX:, NOTE: and PROVISIONAL: lines.
 Surface 16: A system MUST obey EVERY normative line.
 Surface 17: A system MUST NOT obey WHY:, UX: or NOTE:.
-Surface 18: The parser MUST classify a bare fence by the block's first line: a labelled rule opens a normative block; a tombstone opens a normative block; a surface prefix opens that surface; a signature opens a signature block.
+Surface 18: The parser MUST classify a bare fence by the block's first line: a labelled rule opens a normative block; a tombstone opens a normative block, in the spec and in the section titled Deleted rules of the spec's history file; a surface prefix opens that surface; a signature opens a signature block.
 Surface 19: The parser MUST reject a fenced block that carries a labelled rule under a first line that opens no normative block and no surface.
 Surface 20: The parser MUST read a signature block as a declaration.
 Surface 21: The parser MUST read EVERY other fenced block as the surface nothing.
@@ -407,7 +407,7 @@ Deleted: Hard invariant 24. Closed vocabulary 31 through 34 and Hard invariant 3
 Hard invariant 35: The parser MUST reject an arithmetic operator in a definition outside the operator's own pair of parentheses.
 Hard invariant 36: The parser MUST reject a division outside a definition.
 Hard invariant 37: The parser MUST reject a division whose definition names no rounding.
-Hard invariant 25: The parser MUST reserve the label a tombstone carries.
+Hard invariant 25: The parser MUST reserve the label a tombstone carries, from the section titled Deleted rules of the spec's history file once the spec is done and from the spec for any other status.
 Hard invariant 26: A writer MUST NOT renumber an invariant.
 Hard invariant 27: A writer MUST NOT reuse a tombstoned label.
 Hard invariant 28: A cross-spec reference in a normative block MUST name the spec before the label — `Lease Operation 2`, `Audit Trail Invariant 1.2`.
@@ -421,7 +421,7 @@ Hard invariant 34: The parser MUST reject `NOT EXCEEDS`.
 
 Term pronoun: it | its | itself | they | their | them | he | she | his | her, and this, that, these, those standing alone — the set Hard invariant 4 rejects and `tools/grace/check.py` enforces; a relative whose, that or which opening a clause is not a pronoun.
 
-Term tombstone: a line inside a normative block in the form `Deleted: Label. The owner, and why.` — the label, a period, one space, and a sentence ending with a period; it reserves the label (Hard invariant 25, Hard invariant 27), carries no obligation, and is recognized by that form alone.
+Term tombstone: a line inside a normative block in the form `Deleted: Label. The owner, and why.` — the label, a period, one space, and a sentence ending with a period; it reserves the label (Hard invariant 25, Hard invariant 27), carries no obligation, and is recognized by that form alone. It stands in the spec until the spec is done, and then under the heading *Deleted rules* at the end of the spec's history file (`<spec>.hist.md`, beside the spec), byte for byte and under the heading it stood under; the label stays reserved, and only where the line lives changes.
 
 Term range citation: a run of labels of one family written as the first label, the word through and the last number — `Operation 3 through 7`, `Invariant 2.1 through 2.4`, `reconcile step 5.2 through 5.4`; a cross-spec range names the spec first (Hard invariant 28); the family is written once and singular, the last number carries the first number's shape, and both ends are included.
 
@@ -675,7 +675,7 @@ Caveman 2: A writer MUST NOT express complex behavior as a more complicated sent
 
 ### 21. What the grammar locks
 
-Term locked forms: Strict Caveman normative prose; WHAT / WHY / HOW separation; `WHY:` and `UX:` with zero normative force; MUST / MUST NOT / MAY; EVERY / EXACTLY ONE / EXACTLY ONE OF; flat IF and flat WHEN; flat AND, flat OR, never both in one condition; OR only inside conditions and term declarations; EQUALS / DOES NOT EQUAL / EXISTS / the absence form / IS IN / IS NOT IN / EXCEEDS / DOES NOT EXCEED / PRECEDES / DOES NOT PRECEDE; blank; `=` and `|` only in a value set; ONLY AFTER / ONLY IF / WITHIN / PER; MUST NOT EXCEED for ≥, no AT LEAST, no STRICTLY; the strict lower bound as `MAY … ONLY IF … EXCEEDS …`; IS AUTHORITATIVE FOR (introduced, labelled); one site is one spec; forbidden-before (`MUST NOT … BEFORE`); deterministic AFTER sugar under MUST and MAY; positive `MUST … BEFORE` illegal; one obligation per sentence; labels named for their heading, never abbreviated; the tombstone; the range citation; closed vocabulary including record verbs; the `Term` declaration form; the signature block as a declaration form, one line per action; the standard label families; the casing tiers; the term entry and the bracket marker as reader sugar; a declaration may cite its owner; arithmetic only in term declarations, as declared arithmetic, every operator in the operator's own pair of parentheses and a division only there, naming the division's rounding, and never in a rule; nothing read by precedence; closed value sets; no pronouns, Section 13 rejects the passive; no inference; normalized representation; reverse diff over normalized rules; admission by Principle 2 — recurrence AND contested.
+Term locked forms: Strict Caveman normative prose; WHAT / WHY / HOW separation; `WHY:` and `UX:` with zero normative force; MUST / MUST NOT / MAY; EVERY / EXACTLY ONE / EXACTLY ONE OF; flat IF and flat WHEN; flat AND, flat OR, never both in one condition; OR only inside conditions and term declarations; EQUALS / DOES NOT EQUAL / EXISTS / the absence form / IS IN / IS NOT IN / EXCEEDS / DOES NOT EXCEED / PRECEDES / DOES NOT PRECEDE; blank; `=` and `|` only in a value set; ONLY AFTER / ONLY IF / WITHIN / PER; MUST NOT EXCEED for ≥, no AT LEAST, no STRICTLY; the strict lower bound as `MAY … ONLY IF … EXCEEDS …`; IS AUTHORITATIVE FOR (introduced, labelled); one site is one spec; forbidden-before (`MUST NOT … BEFORE`); deterministic AFTER sugar under MUST and MAY; positive `MUST … BEFORE` illegal; one obligation per sentence; labels named for their heading, never abbreviated; the tombstone, in the spec or in the spec's history file; the range citation; closed vocabulary including record verbs; the `Term` declaration form; the signature block as a declaration form, one line per action; the standard label families; the casing tiers; the term entry and the bracket marker as reader sugar; a declaration may cite its owner; arithmetic only in term declarations, as declared arithmetic, every operator in the operator's own pair of parentheses and a division only there, naming the division's rounding, and never in a rule; nothing read by precedence; closed value sets; no pronouns, Section 13 rejects the passive; no inference; normalized representation; reverse diff over normalized rules; admission by Principle 2 — recurrence AND contested.
 
 ```
 Lock 1: The parser MUST accept only the locked forms and the locked forms' deterministic sugar.

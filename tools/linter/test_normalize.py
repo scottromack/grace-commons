@@ -315,6 +315,41 @@ class ReverseDiff(unittest.TestCase):
         self.assertEqual(self.run_diff(self.BASE, new), [("CHANGED", "Operation 2")])
 
 
+class TombstonePlace(unittest.TestCase):
+    """GRACE-lang Hard invariant 25 (v0.71): a tombstone stands on the page, or in
+    the section titled *Deleted rules* of the history file once the pattern is
+    done. Where it stands is no rule: the forms, the reverse diff and the
+    tombstones the IR reads do not change when it moves."""
+
+    RULES = ("Operation 2: [Add] MUST answer added.", "Operation 4: [Sweep] MUST run AFTER the edge.")
+    TOMBS = ("Deleted: Operation 1. Operation 2 owns it.", "Deleted: Operation 3. Operation 4 owns it.")
+
+    def both(self):
+        on_page = spec(self.TOMBS[0], self.RULES[0], self.TOMBS[1], self.RULES[1])
+        moved = spec(*self.RULES)
+        history = ("# Probe — history\n\n## Deleted rules\n\n### Probe\n\n```\n" + "\n".join(self.TOMBS)
+                   + "\n```\n")
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "probe.md"
+            path.write_text(on_page, encoding="utf-8")
+            before = ir.parse(path, Path(tmp))
+            path.write_text(moved, encoding="utf-8")
+            (Path(tmp) / "probe.hist.md").write_text(history, encoding="utf-8")
+            after = ir.parse(path, Path(tmp))
+        return on_page, moved, before, after
+
+    def test_the_forms_are_the_same_in_either_place(self):
+        _, _, before, after = self.both()
+        self.assertEqual(before["normalized"], after["normalized"])
+        self.assertEqual([(t["label"], t["text"]) for t in before["tombstones"]],
+                         [(t["label"], t["text"]) for t in after["tombstones"]])
+        self.assertEqual([t["file"] for t in after["tombstones"]], ["probe.hist.md"] * 2)
+
+    def test_the_reverse_diff_reports_no_rule(self):
+        on_page, moved, _, _ = self.both()
+        self.assertEqual(rdiff.diff(rdiff.forms_of(on_page), rdiff.forms_of(moved)), [])
+
+
 class Corpus(unittest.TestCase):
     def test_every_rule_has_a_form_and_the_advisories_name_no_missing_rule(self):
         docs, _ = ir.build(ROOT)

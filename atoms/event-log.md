@@ -69,7 +69,6 @@ State 3: The log MUST carry log name.
 State 4: The log MUST carry next sequence number.
 State 5: A fresh log instance MUST begin next sequence number at one.
 State 6: [Append] MUST raise next sequence number by one.
-Deleted: State 7. Execution Contract Database 3 owns it.
 State 8: The atom MUST NOT offer a delete surface.
 State 9: The atom MUST NOT offer an edit surface.
 ```
@@ -118,20 +117,12 @@ Operation 3: [Append] MUST carry next sequence number into the event.
 Operation 4: [Append] MUST answer event id.
 Operation 5: IF data EXCEEDS the payload cap THEN [Append] MUST answer invalid-payload.
 Operation 6: [Append] MUST accept empty data.
-Deleted: Operation 7. Execution Contract Database 2 owns it.
-Deleted: Operation 8. Execution Contract Database 2 owns it.
 Operation 9: IF the database refuses the write THEN [Append] MUST answer storage-failure.
 Operation 10: [Append] MUST NOT answer event id with storage-failure.
 Operation 11: A caller MUST read storage-failure as the event not landing.
-Deleted: Operation 12. Execution Contract Database 2 owns it.
-Deleted: Operation 13. Invariant 5.1 owns it.
-Deleted: Operation 14. Invariant 5.2 owns it.
 Operation 15: IF the query is malformed THEN [Read] MUST answer invalid-query.
 Operation 16: [Read] MUST answer an empty sequence for a well-formed query matching nothing.
 Operation 17: [Read] MUST NOT write.
-Deleted: Operation 18. Term query and Execution Contract Query 1 through 4 own it: what a query holds and when it is malformed is one thing in every build.
-Deleted: Operation 19. Capability requirement 1 owns it.
-Deleted: Operation 20. Execution Contract Logic confinement 3 owns it.
 Operation 21: The business caller MUST NOT supply recording instant.
 ```
 
@@ -176,7 +167,6 @@ The case space, and the rule that owns each case:
   ```
   Invariant 5.1: A read MUST answer EVERY landed event the read's query matches.
   Invariant 5.2: A read MUST answer the events by sequence number, rising.
-  Deleted: Invariant 5.3. Execution Contract Database 1 owns it: a refused append writes nothing, so no sequence number is consumed.
   ```
 - **Invariant 6 — No id reuse.**
   ```
@@ -184,7 +174,6 @@ The case space, and the rule that owns each case:
   ```
 - **Invariant 7 — Wall-time best-effort monotonicity.**
   ```
-  Deleted: Invariant 7.1. Invariant 7.2 owns it: two appends the database serializes can land in the order opposite to their clock readings, so recording instant can fall along append order under a non-decreasing clock.
   Invariant 7.2: sequence number IS AUTHORITATIVE FOR the log's order.
   ```
 
@@ -241,15 +230,12 @@ Check 1.2: An auditor MUST find EVERY event field of EVERY event unchanged acros
 Check 2.1: An auditor MUST find no two landed events sharing a sequence number (Invariant 3.1).
 Check 2.2: An auditor MUST find no two events sharing an event id (Invariant 6.1).
 Check 2.3: An auditor MUST find a landed event's sequence number above EVERY sequence number an earlier landed event carries (Invariant 4.1).
-Deleted: Check 2.4. Execution Contract Database 1 owns it: a refused append writes nothing, so the sequence numbers carry no gap.
 Check 3.1: An auditor MUST find a read answering the events by sequence number, rising (Invariant 5.2).
 Check 3.2: IF no event landing between two reads of one query EXISTS THEN an auditor MUST find the two reads answering alike (Invariant 5.1).
 Check 3.3: An auditor MUST find a read answering an empty sequence for a well-formed query matching nothing (Operation 16).
 Check 3.4: An auditor MUST find a read answering invalid-query for a malformed query (Operation 15).
-Deleted: Check 3.5. Execution Contract Database 1 owns it: a refused append writes nothing, so no sequence number is consumed.
 Check 4.1: An auditor MUST find EVERY event carrying event id, sequence number, recording instant AND data (State 2).
 Check 4.2: An auditor MUST find a fresh log instance beginning next sequence number at one (State 5).
-Deleted: Check 5.1. Check 5.2 owns it: a falling recording instant is no clock finding either, since two appends the database serializes can land in the order opposite to their clock readings.
 Check 5.2: An auditor MUST NOT read a falling recording instant as an order finding (Invariant 7.2).
 ```
 
@@ -260,9 +246,6 @@ Term committed version: a record as it stood at the commit that wrote it, as Exe
 ### External checks
 
 ```
-Deleted: External check 1. Execution Contract Database 3 owns it.
-Deleted: External check 2. Execution Contract Database 2 owns it.
-Deleted: External check 3. Execution Contract Logic confinement 7 owns it: the page relies on no guarantee of the clock.
 External check 4: An auditor needing the log untampered confirmed MUST compose Tamper Evidence (Non-goal 4).
 External check 5: An auditor needing an event's writer confirmed MUST compose Actor Identity (Non-goal 6).
 External check 6: An auditor needing the payload cap confirmed MUST read the deployment's own declaration (Operation 5).
@@ -286,7 +269,6 @@ Non-goal 12: A pattern needing schema validation MUST compose a schema-evolution
 Non-goal 13: The atom MUST NOT collapse events into a snapshot.
 Non-goal 14: The atom MUST NOT push an event to a subscriber.
 Non-goal 15: The atom MUST NOT append two events atomically.
-Deleted: Non-goal 16. Execution Contract Database 1 owns it.
 ```
 
 NOTE: the owners — [Retention Window](./retention-window.md) (Non-goal 1, Non-goal 2) and a Storage Tier *(forthcoming)* for cold events; [Tamper Evidence](./tamper-evidence.md) (Non-goal 3, Non-goal 4); [Actor Identity](./actor-identity.md) (Non-goal 5, Non-goal 6); a Reverse Index *(forthcoming)* (Non-goal 7, Non-goal 8); a Consensus pattern *(forthcoming)* (Non-goal 10); a Schema Evolution pattern *(forthcoming)* (Non-goal 12); a Snapshot pattern *(forthcoming)* (Non-goal 13); a Change Feed pattern *(forthcoming)* (Non-goal 14); Erasure Coordination *(forthcoming)* (Erasure 2, Erasure 3).
@@ -297,18 +279,7 @@ Where the pattern breaks down: when the host cannot supply atomic, serialized ap
 
 ### Indeterminate outcome
 
-```
-Deleted: Indeterminate outcome 1. Execution Contract Error model 1 owns it.
-```
-
 ### Durability across crashes
-
-```
-Deleted: Durability 1. Execution Contract Database 3 owns it.
-Deleted: Durability 2. Execution Contract Database 3 owns it.
-Deleted: Durability 3. Execution Contract Database 3 owns it.
-Deleted: Durability 4. Execution Contract Database 3 owns it.
-```
 
 ### Erasure where law requires it
 
@@ -319,13 +290,6 @@ Erasure 3: A deployment under an erasure obligation MUST NOT read this atom as s
 ```
 
 ### Sequence-number gaps on storage failure
-
-```
-Deleted: Sequence gap 1. Execution Contract Database 1 owns it: a refused append writes nothing, so no sequence number is consumed.
-Deleted: Sequence gap 2. Execution Contract Database 1 owns it: a refused append writes nothing, so no sequence number is consumed.
-Deleted: Sequence gap 3. Execution Contract Database 1 owns it: a refused append writes nothing, so the sequence numbers carry no gap.
-Deleted: Sequence gap 4. Execution Contract Database 1 owns it: a refused append writes nothing, so no sequence number is consumed.
-```
 
 ## Composition notes
 

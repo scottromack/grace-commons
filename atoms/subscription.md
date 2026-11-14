@@ -47,7 +47,6 @@ A subscription is a standing answer to *who wants to hear about this?* — recor
 ```
 Identity 1: The atom MUST identify a subscription by the subscription id.
 Identity 2: The host MUST allocate a subscription id at the atom's seam.
-Deleted: Identity 3. Execution Contract Logic confinement 3 owns it.
 Identity 4: The atom MUST NOT reuse a subscription id.
 Identity 5: The atom MUST NOT identify a subscription by the subscriber reference and the event scope.
 Identity 6: The deployment MUST draw a subscription id from a cryptographically secure source.
@@ -78,7 +77,6 @@ State 2: EVERY subscription MUST carry subscription id, subscriber reference, ev
 State 3: A cancelled subscription MUST carry cancellation instant.
 State 4: [Subscribe] MUST stamp subscription instant from the injected now.
 State 5: [Cancel] MUST stamp cancellation instant from the injected now.
-Deleted: State 6. Invariant 2.2 owns it.
 State 7: The atom MUST NOT delete a subscription.
 State 8: The atom MUST NOT hold an event.
 State 9: The atom MUST NOT hold a delivery.
@@ -102,12 +100,6 @@ Capability requirement 5: The deployment MUST supply the subscription records PE
 Capability requirement 6: The id entropy MUST NOT EXCEED the subscription id's random material.
 Capability requirement 7: The deployment MAY declare the string cap PER Execution Contract Input 2.
 Capability requirement 8: The deployment MUST declare which composing patterns the deployment wired in PER Execution Contract Conformance 9.
-Deleted: Capability requirement 2. Execution Contract Logic confinement 7 owns it.
-Deleted: Capability requirement 3. Execution Contract Logic confinement 7 owns it.
-Deleted: Capability requirement 4. Execution Contract Logic confinement 7 owns it.
-Deleted: Clock semantics 1. Execution Contract Logic confinement 7 owns it.
-Deleted: Clock semantics 2. Execution Contract Logic confinement 7 owns it.
-Deleted: Clock semantics 3. Capability requirement 1 and Execution Contract Logic confinement 7 own it: the seam supplies now, and the reading's honesty is the deployment's.
 ```
 
 ### Operations
@@ -143,20 +135,15 @@ Operation 11: [Cancel] MUST stand the subscription in cancelled.
 Operation 12: [Cancel] MUST accept the subscription id as the whole authorization.
 Operation 13: IF the database refuses the write THEN [Subscribe] MUST answer storage-failure.
 Operation 14: IF the database refuses the write THEN [Cancel] MUST answer storage-failure.
-Deleted: Operation 15. Execution Contract Database 3 owns it.
 Operation 16: [Subscribed] MUST answer EXACTLY ONE OF subscribed, not-subscribed.
 Operation 17: [Subscribed] MUST answer subscribed ONLY IF an active subscription EXISTS for the pair.
 Operation 18: [Subscribed] MUST NOT refuse a blank input.
 Operation 19: [Subscribers For] MUST answer the subscriber reference of EVERY active subscription matching the event scope.
 Operation 20: [Subscribers For] MUST answer a subscriber reference ONLY IF an active subscription matching the event scope carries the subscriber reference.
-Deleted: Operation 21. Term event scope owns it.
 Operation 22: [Subscribers For] MUST answer an empty list for an event scope no active subscription matches.
 Operation 23: [Subscribers For] MUST NOT order the answer.
 Operation 24: [Subscribed] MUST NOT write.
 Operation 25: [Subscribers For] MUST NOT write.
-Deleted: Operation 26. Capability requirement 1 owns it.
-Deleted: Operation 27. Execution Contract Logic confinement 3 owns it.
-Deleted: Operation 28. Execution Contract Logic confinement 3 owns it.
 Operation 29: IF a string input EXCEEDS the string cap THEN [Subscribe] MUST answer invalid-request.
 Operation 30: IF a subscriber reference is malformed OR an event scope is malformed THEN [Subscribe] MUST answer invalid-request (Execution Contract Input 1).
 Operation 31: IF a subscription id is malformed THEN [Cancel] MUST answer not-known (Execution Contract Input 1).
@@ -205,14 +192,9 @@ The case space, and the rule that owns each case:
   ```
 - **Invariant 2 — Status monotonicity.**
   ```
-  Deleted: Invariant 2.1. State 1 owns it.
   Invariant 2.2: A status MUST NOT move from cancelled to active.
   ```
 - **Invariant 3 — Cancellation is terminal.**
-  ```
-  Deleted: Invariant 3.1. Operation 10 owns it.
-  Deleted: Invariant 3.2. Operation 20 owns it.
-  ```
 - **Invariant 4 — New subscribe after cancel produces a new id.**
   ```
   Invariant 4.1: A subscription recorded for a pair whose earlier subscription's status EQUALS cancelled MUST carry a fresh subscription id.
@@ -234,7 +216,6 @@ The case space, and the rule that owns each case:
 - **Invariant 8 — Absence means not-subscribed.**
   ```
   Invariant 8.1: [Subscribed] MUST answer not-subscribed ONLY IF no active subscription matches the pair.
-  Deleted: Invariant 8.2. Operation 20 owns it.
   ```
 - **Invariant 9 — Timestamp ordering.**
   ```
@@ -286,7 +267,6 @@ Check 3.1: An auditor MUST find cancellation instant present on EVERY cancelled 
 Check 3.2: An auditor MUST find EVERY subscriber reference a [Subscribers For] call answers carried by an active subscription matching the event scope (Operation 20).
 Check 3.3: An auditor MUST find no subscription whose status moves out of cancelled across the subscription's committed versions (Invariant 2.2; Execution Contract Generation acceptance 1).
 Check 4.1: An auditor MUST find a fresh subscription id on EVERY re-subscription of a pair (Invariant 4.1, Invariant 5.1).
-Deleted: Check 5.1. Execution Contract Conformance 9 owns it.
 ```
 
 Term committed version: a record as it stood at the commit that wrote it, as Execution Contract Generation acceptance 1 declares it.
@@ -296,7 +276,6 @@ NOTE: EVERY check names the rule the check tests.
 ### External checks
 
 ```
-Deleted: External check 1. Execution Contract Conformance 9 owns it.
 External check 2: An auditor MUST clear from the deployment's own random source that EVERY subscription id is drawn from a cryptographically secure source carrying the id entropy (Identity 6, Identity 7, Capability requirement 6).
 ```
 
@@ -331,12 +310,6 @@ Where the atom breaks down: when the audience cannot be named in advance — a r
 
 ### Atomicity of a cancel
 
-```
-Deleted: Cancel atomicity 1. Execution Contract Database 1 owns it.
-Deleted: Cancel atomicity 2. Execution Contract Database 1 and Execution Contract Database 3 own it.
-Deleted: Cancel atomicity 3. Execution Contract Database 1 and Execution Contract Database 3 own it.
-```
-
 ### Cancel as a capability
 
 ```
@@ -358,21 +331,11 @@ NOTE: open 2026-11-03-a — Lost ledger 4 names an administrative-recovery patte
 
 ### The pair race
 
-```
-Deleted: Pair race 1. Execution Contract Database 1 and Execution Contract Database 2 own it.
-Deleted: Pair race 2. Execution Contract Database 2 owns it.
-Deleted: Pair race 3. Execution Contract Database 2 owns it: the pair check and the write are one transaction, and the atom names no rule left for a uniqueness constraint to discharge.
-```
-
 ## Composition notes
 
 ```
-Deleted: Composition note 1. Capability requirement 8 owns it.
 Composition note 2: A composing pattern MUST call [Subscribers For] when an event fires.
 Composition note 3: A composing pattern MUST record the subscription id at subscribe time.
-Deleted: Composition note 3a. Lost ledger 2 owns it.
-Deleted: Composition note 3b. Lost ledger 3 owns it.
-Deleted: Composition note 4. Non-goal 12 owns it.
 Composition note 5: A composing pattern MUST own scope semantics beyond exact match.
 ```
 

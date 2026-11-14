@@ -75,3 +75,62 @@ The gate records the Ledger's `last gate:` line carried behind its latest until 
 - 2026-10-10 — Final Critique 3, three fresh readers, three passes on one text (round 2's cures, frozen at fa017b5) — 12 foundational after deduplication from the two sound passes (16 reports), six of them in text round 2's cures wrote and six older; the Linus reader lapsed, reading the Status heading and its one line past its range and no Ledger line, so under Verdict 5 its verdict is malformed and counts for nothing: the four of its findings the sound passes also reported are cured on theirs, and its one other is routed, not cured (Invariant 6.1); 46 refining reports, 12 rhetorical reports; not clean; every foundational finding of a sound pass cured in place
 - 2026-10-10 — Final Critique 2, three fresh readers, three passes on one text (round 1's cures, frozen at 660ecec) — 13 foundational after deduplication (25 reports), nine reached by two or three passes, all fresh, ten of them in text round 1's cures wrote; 35 refining reports, 9 rhetorical reports; not clean, so no count decided anything; every foundational finding cured in place
 - 2026-10-10 — Final Critique 1, three fresh readers, three passes on one text (the first draft, frozen at 47128cc) — 12 foundational after deduplication, every one reported by two or three passes, all fresh; 32 refining reports, 9 rhetorical reports; not clean, so no count decided anything and no second triage was owed (Action wiring 11); every foundational finding cured in place
+
+## Deleted rules
+
+The spec's tombstones, moved here from the page on 2026-11-13 because the spec is done (GRACE-lang Hard invariant 25 and Hard invariant 27, since v0.71): each `Deleted:` line byte for byte and in the page's order, under the heading it stood under there. A tombstone carries no obligation, and each still reserves its label: no rule of [Verified Repair](./verified-repair.md) may carry it again.
+
+### Composition logic › Capability requirement
+
+```
+Deleted: Capability requirement 16. Execution Contract Database 2 and Execution Contract Database 3 own it: a read inside an action's transaction shows every record committed ahead of it, and a record whose write is still in flight commits behind every record a read has shown.
+```
+
+### Composition logic › Action wiring › [Freeze]
+
+```
+Deleted: Action wiring 1. Action wiring 2 owns it: the round is recorded from the page the repository holds at the base commit, never from a checked-out copy.
+Deleted: Action wiring 59. Execution Contract Refusal 1 owns it: the budget answers last, after Primitive policy and staleness.
+Deleted: Action wiring 67. Execution Contract Refusal 1 owns it: staleness answers after Primitive policy 2.
+Deleted: Action wiring 72. Execution Contract Refusal 1 owns it.
+```
+
+### Composition logic › Action wiring › [Report]
+
+```
+Deleted: Action wiring 48. Action wiring 34 and Execution Contract Database 2 own it: [Freeze]'s read of the round count and its record of the round are one transaction, so no round is recorded past the round budget but one a standing ruling admits.
+Deleted: Action wiring 58. Execution Contract Database 2 and Execution Contract Database 3 own it: every round ahead of the round's record committed ahead of it, so [Report] reads the round position with no round still landing.
+Deleted: Action wiring 73. Execution Contract Refusal 1 owns it.
+```
+
+### Composition logic › Action wiring › [Triage]
+
+```
+Deleted: Action wiring 64. Action wiring 74 owns it: not-known is evaluated last.
+Deleted: Action wiring 65. Action wiring 74 owns it: already-triaged is evaluated after the invalid requests.
+Deleted: Action wiring 70. Action wiring 74 owns it: round-closed is evaluated ahead of the rest of [Triage]'s Action wiring.
+Deleted: Action wiring 71. Action wiring 74 owns it: round-closed is evaluated after Primitive policy.
+```
+
+### Composition logic › Action wiring › [Rule]
+
+```
+Deleted: Action wiring 66. Action wiring 75 owns it: the maintainer's credential is evaluated after Primitive policy.
+```
+
+### Composition logic › Action wiring › [Repair]
+
+```
+Deleted: Action wiring 16. Action wiring 15 and Capability requirement 13 own it: the page at the head is the snapshot, and the commit lands only on the head it was built from.
+Deleted: Action wiring 21. Action wiring 34 owns it: the budget is read where a round starts.
+Deleted: Action wiring 46. Action wiring 76 owns it: staleness and settlement are evaluated before every check on the patches.
+Deleted: Action wiring 50. Action wiring 76 owns it: the claim gate is evaluated last.
+Deleted: Action wiring 52. Execution Contract Database 2 owns it: [Repair]'s read of the round's journal records and the intent its invocation open records are one transaction, so no record lands ahead of the settling record that read yields.
+Deleted: Action wiring 68. Action wiring 76 owns it: purged is evaluated before unsettled.
+```
+
+### Edge cases › Indeterminate outcome
+
+```
+Deleted: Indeterminate outcome 2. Action wiring 23 owns it: a repair builds its own tree, so a crash leaves nothing a later call reads.
+```

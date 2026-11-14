@@ -163,11 +163,7 @@ Capability requirement 6: The host MUST exclude a second holder of one compensab
 Capability requirement 7: The host MUST release a critical section on the holder's return.
 Capability requirement 8: The host MUST release a critical section on the holder's death.
 Capability requirement 9: A host MAY hold a critical section ONLY IF the lease length EXCEEDS the step completion bound.
-Deleted: Capability requirement 10. Capability requirement 9 owns it.
 Capability requirement 11: IF the critical section EQUALS blank THEN the composition MUST refuse to start.
-Deleted: Capability requirement 12. Execution Contract Database 3 owns it.
-Deleted: Capability requirement 13. Execution Contract Database 3 owns it.
-Deleted: Capability requirement 14. Execution Contract Database 3 owns it: the composition names no constituent record durability for a deployment to leave blank.
 Capability requirement 15: A deployment MUST front EVERY target a definition names with the target key discipline.
 Capability requirement 16: A deployment MUST set the effect key horizon.
 Capability requirement 17: The longest attempt gap MUST NOT EXCEED the effect key horizon.
@@ -210,7 +206,6 @@ Term captured input cap: the largest input envelope a definition may declare for
 Primitive policy 1: A section-taking action AND [Read Log] MUST answer invalid-request for a blank compensable workflow id.
 Primitive policy 2: [Start Compensable Workflow] MUST answer invalid-request for a blank subject reference.
 Primitive policy 3: [Start Compensable Workflow] MUST answer invalid-request for a blank definition.
-Deleted: Primitive policy 4. Primitive policy 12 owns it: a step declaring no compensating action is refused invalid-definition when it is an unmarked irreversible step, and admitted when it is marked.
 Primitive policy 5: The composition MUST NOT run an effect under a blank effect key.
 Primitive policy 6: The composition MUST answer invalid-request for a blank supplied reason.
 Primitive policy 7: IF the phase EQUALS halted AND the horizon assertion DOES NOT EQUAL true THEN [Advance] MUST answer invalid-request.
@@ -307,14 +302,10 @@ Action wiring 3: An invocation whose critical section expired MUST NOT write.
 Action wiring 4: An invocation whose critical section expired MUST NOT take the critical section again.
 Action wiring 5: An invocation whose critical section expired MUST discard an effect reply still in flight.
 Action wiring 6: An invocation MUST read a critical section lost to a host fault as an expired critical section.
-Deleted: Action wiring 7. Execution Contract Database 1 and Execution Contract Database 2 own it: a start's instantiate, start event and record commit together, in one transaction the database serializes.
 Action wiring 8: The composition MUST fire a transition-bearing event's declared transition ONLY AFTER appending the transition-bearing event.
 Action wiring 9: The composition MUST answer not-known for a compensable workflow id State Machine's current answers not-known for.
 Action wiring 10: IF a terminal marker EXISTS THEN [Advance] MUST answer already-terminal.
 Action wiring 11: [Advance] MUST NOT run an effect BEFORE running the re-entry arm.
-Deleted: Action wiring 12. Execution Contract Database 1 owns it: a transition-bearing event and its fire commit together, so no transition is ever owed.
-Deleted: Action wiring 13. Execution Contract Database 1 owns it: a transition-bearing event and its fire commit together, so no transition is ever owed.
-Deleted: Action wiring 14. Execution Contract Database 1 owns it: a transition-bearing event and its fire commit together, so no transition is ever owed.
 Action wiring 15: The re-entry arm MUST re-run the effect of EVERY unresolved attempt under the attempt's own effect key EXACTLY ONE time PER re-entry arm execution PER effect key.
 Action wiring 16: The re-entry arm MUST re-run the unresolved attempts PER the compensation order.
 Action wiring 17: The re-entry arm MUST take a re-run's captured inputs from the target's answer to the re-run.
@@ -353,12 +344,10 @@ Action wiring 49: A halted advance MUST append a resume marker for EVERY named s
 Action wiring 50: A halted advance MUST fire the transition back to the phase the halt event the halted advance found standing names ONLY AFTER appending the resume markers.
 Action wiring 85: IF the halt event a halted advance finds standing names the forward phase THEN the halted advance MUST append each resume marker as a step attempt event carrying the named step's effect key.
 Action wiring 86: IF the halt event a halted advance finds standing names the compensating phase THEN the halted advance MUST append each resume marker as a compensation attempt event carrying the effect key of the named step's compensation.
-Deleted: Action wiring 51. Replay 11 and Action wiring 15 own it: a resume marker is an attempt marker, held unresolved unless its effect key is already applied, and the re-entry arm re-runs every unresolved attempt, once per re-entry arm execution per effect key.
 Action wiring 52: IF Event Log's append answers storage-failure for a completion record THEN the invocation MUST re-attempt the append WITHIN the step completion bound.
 Action wiring 53: IF the step completion bound elapses on a completion record's append THEN the invocation MUST answer storage-failure naming effect-landed.
 Action wiring 54: IF Event Log's append answers storage-failure for a marker AND no unrecorded effect EXISTS THEN the invocation MUST answer storage-failure naming none (Execution Contract Constituent failure 1).
 Action wiring 55: IF Event Log's append answers storage-failure for a marker AND an unrecorded effect EXISTS THEN the invocation MUST answer storage-failure naming effect-landed (Execution Contract Constituent failure 1).
-Deleted: Action wiring 56. Action wiring 52 through 55 and Execution Contract Database 1 own it: a transition-bearing event and its fire commit together, so a fire's storage failure leaves its event unlanded.
 Action wiring 57: IF State Machine's fire answers a spine refusal for a landed transition-bearing event THEN the invocation MUST append a fault halt carrying the finding AND naming the phase AND the step of the landed event.
 Action wiring 58: IF State Machine's fire answers a spine refusal for a landed transition-bearing event THEN the invocation MUST NOT fire a further transition.
 Action wiring 59: IF State Machine's fire answers a spine refusal for a landed transition-bearing event THEN the invocation MUST answer spine-fault.
@@ -368,11 +357,8 @@ Action wiring 62: A validated start MUST instantiate the spine with the phases A
 Action wiring 63: A validated start MUST instantiate the spine with forward as the initial state.
 Action wiring 64: A validated start MUST append the start event ONLY AFTER State Machine's instantiate answers.
 Action wiring 65: A validated start MUST write the compensable workflow record ONLY AFTER appending the start event.
-Deleted: Action wiring 66. Execution Contract Constituent failure 1 owns it.
 Action wiring 67: IF [Start Compensable Workflow] answers storage-failure THEN [Start Compensable Workflow] MUST NOT answer a compensable workflow id.
 Action wiring 68: An admitted start MUST answer the compensable workflow id State Machine's instantiate issued.
-Deleted: Action wiring 69. Execution Contract Database 1 owns it: a transition-bearing event and its fire commit together, so no transition is ever owed.
-Deleted: Action wiring 70. Execution Contract Database 1 owns it: a transition-bearing event and its fire commit together, so no transition is ever owed.
 Action wiring 71: IF a terminal marker EXISTS THEN [Cancel] MUST answer already-terminal.
 Action wiring 72: IF an unresolved attempt EXISTS THEN [Cancel] MUST answer step-unresolved.
 Action wiring 73: IF a step completion event for a roll-forward step EXISTS THEN [Cancel] MUST answer roll-forward.
@@ -383,8 +369,6 @@ Action wiring 77: An admitted cancel MUST answer compensating.
 Action wiring 78: [Read Progress] MUST derive the progress from the step log PER the replay.
 Action wiring 79: [Read Log] MUST answer Event Log's read for the query.
 Action wiring 80: [Read Log] MUST NOT write.
-Deleted: Action wiring 81. Execution Contract Database 1 owns it: a transition-bearing event and its fire commit together, so no transition is ever owed.
-Deleted: Action wiring 82. Execution Contract Database 1 owns it: a transition-bearing event and its fire commit together, so no transition is ever owed.
 Action wiring 83: An advance landing a terminal marker MUST answer the advance result.
 Action wiring 84: A halted advance that answers no refusal MUST answer the advance result.
 Action wiring 87: A [Cancel] call in the forward phase, with no terminal marker, no unresolved attempt and no completed roll-forward step, MUST append a compensation onset event.
@@ -518,13 +502,10 @@ These emerge from the composition; none belongs to a single constituent atom. Ea
   ```
   Invariant 1.1: The composition MUST append EXACTLY ONE event PER recorded act.
   Invariant 1.2: EVERY event of the step log MUST follow a recorded act.
-  Deleted: Invariant 1.3. Execution Contract Database 3 owns it.
   ```
 - **Invariant 2 — Progress equivalence.**
   ```
   Invariant 2.1: IF no fault halt EXISTS THEN the spine's current state MUST equal the replayed state at EVERY quiescent point.
-  Deleted: Invariant 2.2. Execution Contract Database 1 owns it.
-  Deleted: Invariant 2.3. Execution Contract Database 1 and Execution Contract Database 3 own it.
   ```
 - **Invariant 3 — Compensation pairing.**
   ```
@@ -557,7 +538,6 @@ These emerge from the composition; none belongs to a single constituent atom. Ea
 - **Invariant 8 — Forward-closed after abort.**
   ```
   Invariant 8.1: IF a compensation onset event EXISTS THEN the composition MUST NOT append a step completion event.
-  Deleted: Invariant 9. Composes 10 owns it.
   ```
 
 Term recorded act: an attempt, a step completion, a compensation run, a definite compensation failure under the continue policy, a phase change or a terminal outcome.
@@ -639,7 +619,6 @@ External check 1: An auditor needing the target key discipline confirmed MUST re
 External check 2: An auditor needing the effect key horizon confirmed MUST read the deployment's own configuration (Capability requirement 17).
 External check 3: An auditor needing the critical section's cross-node exclusion confirmed MUST read the deployment's own host (Capability requirement 6).
 External check 4: An auditor needing the lease length confirmed MUST read the deployment's own host (Capability requirement 9).
-Deleted: External check 5. Execution Contract Database 3 owns it.
 External check 6: An auditor needing the at-most-once claim confirmed MUST read External check 1 AND External check 3 (Invariant 7.1).
 External check 7: An auditor needing a constituent's own guarantee confirmed MUST read the constituent's own acceptance (Composes 10).
 ```

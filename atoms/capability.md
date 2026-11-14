@@ -45,15 +45,11 @@ Identity 1: The atom MUST identify a capability by the capability token.
 Identity 2: The capability token MUST serve as the bearer credential [Redeem] accepts.
 Identity 3: The capability token MUST serve as the bearer credential [Revoke] accepts.
 Identity 4: The host MUST allocate a capability token at the seam.
-Deleted: Identity 5. Execution Contract Logic confinement 3 owns it.
 Identity 6: The atom MUST NOT reuse a capability token any retained capability carries.
 Identity 7: The atom MUST NOT change a capability token.
-Deleted: Identity 8. Invariant 12.1 owns it.
 Identity 9: The deployment MUST draw a capability token from a cryptographically secure random source.
 Identity 10: The deployment MUST NOT draw a capability token from the capability's public properties.
-Deleted: Identity 11. Invariant 12.2 owns it.
 Identity 12: The atom MUST NOT interpret an allocator reference.
-Deleted: Identity 13. Non-goal 1 owns it.
 ```
 
 NOTE: watch the allocation ban (Execution Contract Logic confinement 3).
@@ -75,18 +71,12 @@ Term transition: the atom's evaluation of one call against the capability record
 ```
 State 1: EVERY capability MUST stand in EXACTLY ONE OF allocated, redeemed, revoked.
 State 2: EVERY capability MUST carry capability token, allocator reference, scope, max redemptions, remaining redemptions, allocation instant, expiry instant and status.
-Deleted: State 3. Invariant 10.1 owns it.
 State 4: A redeemed capability MUST carry a redemption instant.
-Deleted: State 5. Invariant 6.2 owns it.
 State 6: An allocated capability MUST NOT carry a redemption instant.
 State 7: An allocated capability MUST NOT carry a revocation field.
-Deleted: State 8. Invariant 13.1 owns it.
-Deleted: State 9. Invariant 13.2 owns it.
-Deleted: State 10. Invariant 3.4 owns it.
 State 11: The atom MUST NOT offer a transition out of redeemed.
 State 12: The atom MUST NOT offer a transition out of revoked.
 State 13: The atom MUST NOT remove a capability from the database.
-Deleted: State 14. Non-goal 3 owns it.
 State 15: The atom MUST NOT hold an authorization policy.
 ```
 
@@ -97,15 +87,12 @@ Term status: allocated | redeemed | revoked — redeemable, exhausted, or cancel
 #### Expiry
 
 ```
-Deleted: Expiry 1. Invariant 13.3 owns it.
 Expiry 2: A lapse MUST NOT fire a transition.
 Expiry 3: A lapse MUST NOT lower remaining redemptions.
 Expiry 4: The atom MUST NOT stamp an expiry.
 Expiry 5: The deployment MUST NOT schedule a lapse.
 Expiry 6: The atom MUST derive a lapse from expiry instant against now.
 Expiry 7: [Read] MUST surface a lapse as the effective status.
-Deleted: Expiry 8. Operation 26 owns it.
-Deleted: Expiry 9. Operation 38 owns it.
 ```
 
 ### Capability requirement
@@ -117,15 +104,6 @@ Capability requirement 6: The deployment MAY configure a default capability ttl 
 Capability requirement 7: The deployment MUST configure a default capability ttl.
 Capability requirement 8: The token entropy MUST NOT EXCEED the capability token's random material.
 Capability requirement 9: The deployment MUST declare which composing patterns the deployment wired in.
-Deleted: Capability requirement 2. Execution Contract Logic confinement 7 owns it.
-Deleted: Capability requirement 3. Execution Contract Logic confinement 7 owns it.
-Deleted: Capability requirement 4. Execution Contract Logic confinement 7 owns it.
-Deleted: Clock semantics 1. Execution Contract Logic confinement 7 owns it.
-Deleted: Clock semantics 2. Execution Contract Logic confinement 7 owns it.
-Deleted: Clock semantics 3. Execution Contract Logic confinement 7 owns it.
-Deleted: Clock semantics 4. Clock dependence 1 owns it.
-Deleted: Clock semantics 5. Clock dependence 2 owns it.
-Deleted: Clock semantics 6. Non-goal 28 owns it.
 ```
 
 NOTE: watch the deployment's composition note (Capability requirement 9).
@@ -173,7 +151,6 @@ Operation 16: [Allocate] MUST NOT recompute expiry instant from a later clock re
 Operation 17: [Allocate] MUST set remaining redemptions to the max redemptions.
 Operation 18: IF the database refuses the write THEN [Allocate] MUST answer storage-failure.
 Operation 19: [Redeem] MUST answer EXACTLY ONE OF redeemed, exhausted, expired, revoked, not-known, storage-failure.
-Deleted: Operation 20. Invariant 3.1 owns it.
 Operation 21: [Redeem] MUST NOT accept an identity input.
 Operation 22: [Redeem] MUST NOT record a redeemer's identity.
 Operation 23: IF no capability EXISTS for the capability token THEN [Redeem] MUST answer not-known.
@@ -183,12 +160,10 @@ Operation 26: IF the capability is lapsed THEN [Redeem] MUST answer expired.
 Operation 27: [Redeem] MUST answer expired ONLY IF the capability's status EQUALS allocated.
 Operation 28: [Redeem] MUST answer redeemed ONLY IF the capability's status EQUALS allocated AND the capability is not lapsed.
 Operation 29: [Redeem] MUST carry the scope and the allocator reference in a redeemed answer.
-Deleted: Operation 30. Operation 71 owns it.
 Operation 71: A redeeming [Redeem] MUST lower remaining redemptions by one.
 Operation 31: A refused [Redeem] MUST NOT lower remaining redemptions.
 Operation 32: IF remaining redemptions reaches zero THEN [Redeem] MUST stand the capability in redeemed.
 Operation 33: IF remaining redemptions reaches zero THEN [Redeem] MUST stamp redemption instant from the injected now.
-Deleted: Operation 34. Execution Contract Database 1 owns it.
 Operation 35: IF no capability EXISTS for the capability token THEN [Revoke] MUST answer not-known.
 Operation 36: IF the capability's status EQUALS redeemed THEN [Revoke] MUST answer already-terminal.
 Operation 37: IF the capability's status EQUALS revoked THEN [Revoke] MUST answer already-terminal.
@@ -199,29 +174,19 @@ Operation 41: [Revoke] MUST stand the capability in revoked.
 Operation 42: [Revoke] MUST stamp revocation instant from the injected now.
 Operation 43: [Revoke] MUST record revoked by reference on the capability.
 Operation 44: [Revoke] MUST record the reason as the revocation reason.
-Deleted: Operation 45. Execution Contract Database 1 owns it.
 Operation 46: [Revoke] MUST NOT lower remaining redemptions.
 Operation 47: [Revoke] MUST answer revoked.
 Operation 48: IF the database refuses the write THEN [Revoke] MUST answer storage-failure.
-Deleted: Operation 49. Execution Contract Database 3 owns it.
 Operation 50: [Read] MUST answer EVERY capability the filter matches.
 Operation 51: [Read] MUST carry the effective status on EVERY answered capability.
 Operation 52: [Read] MUST NOT write.
 Operation 53: A liveness query MUST rest on the effective status.
 Operation 54: A liveness query MUST NOT rest on the stored status alone.
-Deleted: Operation 55. Capability requirement 1 owns it.
-Deleted: Operation 56. Execution Contract Logic confinement 3 owns it.
-Deleted: Operation 57. Execution Contract Logic confinement 3 owns it.
 Operation 58: The atom MUST NOT offer an expire action.
 Operation 59: The atom MUST NOT offer a re-scope action.
 Operation 60: The atom MUST NOT offer an extend action.
-Deleted: Operation 61. Execution Contract Input 1 owns it.
-Deleted: Operation 62. Execution Contract Read 1 owns it.
 Operation 63: IF the database refuses the write THEN [Redeem] MUST answer storage-failure.
-Deleted: Operation 64. Execution Contract Read 1 owns it: after the read, every refusal rule of [Allocate] answers invalid-request.
 Operation 65: [Redeem] MUST NOT evaluate a rule of the redeem refusal order BEFORE EVERY earlier rule of the redeem refusal order has answered no refusal.
-Deleted: Operation 66. Execution Contract Refusal 1 owns it.
-Deleted: Operation 67. Execution Contract Input 1 owns it.
 Operation 70: IF a supplied max redemptions is malformed OR a supplied ttl is malformed THEN [Allocate] MUST answer invalid-request (Execution Contract Input 1).
 Operation 68: IF a filter names a field whose value EQUALS blank THEN [Read] MUST answer no capability.
 Operation 69: IF the capability's effective status EQUALS allocated THEN [Redeem] MUST answer redeemed.
@@ -312,9 +277,7 @@ The case space, and the rule that owns each case:
 - **Invariant 2 — Redemption counter monotonic.**
   ```
   Invariant 2.1: A capability's remaining redemptions MUST NOT rise.
-  Deleted: Invariant 2.2. Operation 17 owns it.
   Invariant 2.3: A capability's remaining redemptions MUST NOT EXCEED the max redemptions.
-  Deleted: Invariant 2.4. Operation 71 owns it.
   Invariant 2.5: A capability's remaining redemptions MUST NOT fall below zero.
   ```
 - **Invariant 3 — Bearer redemption.**
@@ -326,13 +289,7 @@ The case space, and the rule that owns each case:
   ```
 - **Invariant 4 — Exhaustion atomicity.**
   ```
-  Deleted: Invariant 4.1. Execution Contract Database 1 owns it.
-  Deleted: Invariant 4.2. Execution Contract Database 2 owns it.
-  Deleted: Invariant 4.3. Execution Contract Database 2 owns it.
   Invariant 4.4: The successful [Redeem] calls on one capability MUST NOT EXCEED the max redemptions.
-  Deleted: Invariant 4.5. Execution Contract Database 1 and Execution Contract Database 3 own it.
-  Deleted: Invariant 4.6. Execution Contract Database 3 owns it.
-  Deleted: Invariant 4.7. Execution Contract Database 1 owns it.
   ```
 - **Invariant 5 — Audit asymmetry.**
   ```
@@ -360,7 +317,6 @@ The case space, and the rule that owns each case:
 - **Invariant 8 — Scope immutability.**
   ```
   Invariant 8.1: A recorded scope MUST NOT change.
-  Deleted: Invariant 8.2. Non-goal 29 owns it.
   ```
 - **Invariant 9 — Revocation attribution completeness.**
   ```
@@ -377,13 +333,11 @@ The case space, and the rule that owns each case:
   ```
   Invariant 11.1: The atom MUST NOT offer a removal surface.
   Invariant 11.2: An action the atom offers MUST NOT reduce the capability count.
-  Deleted: Invariant 11.3. Execution Contract Database 1 owns it.
   ```
 - **Invariant 12 — Capability token uniqueness.**
   ```
   Invariant 12.1: Two capabilities MUST NOT share a capability token.
   Invariant 12.2: IF a write would reuse a capability token any retained capability carries THEN the database MUST refuse the write.
-  Deleted: Invariant 12.3. Identity 6 owns it.
   Invariant 12.4: Invariant 12.1 MUST range over the capabilities the database retains.
   ```
 - **Invariant 13 — Expiry is derived, never written.**
@@ -465,7 +419,6 @@ Term committed version: a record as it stood at the commit that wrote it, as Exe
 ```
 External check 1: An auditor MUST read a refused [Redeem] from the composing Audit Trail (Invariant 7.3).
 External check 2: An auditor needing a redemption's attribution MUST read the attribution from the composing pattern's records (Invariant 5.2, Non-goal 6).
-Deleted: External check 3. Check 1.2 owns it.
 ```
 
 NOTE: open 2026-10-21-f — External check 1 sends the auditor to records no rule obliges the composing Audit Trail to keep, and Check 5.2 cites Invariant 7.2 for a property [Revoke]'s guard and Operation 46 entail.
@@ -476,7 +429,6 @@ NOTE: open 2026-10-21-f — External check 1 sends the auditor to records no rul
 Non-goal 1: The atom MUST NOT confirm an allocator reference's authority.
 Non-goal 2: A deployment gating allocation MUST compose Permissions.
 Non-goal 3: The atom MUST NOT evaluate a scope.
-Deleted: Non-goal 4. Composition note 2 owns it.
 Non-goal 5: The atom MUST NOT record a redeemer's identity.
 Non-goal 6: A deployment needing redemption attribution MUST record the attribution outside the atom.
 Non-goal 7: The atom MUST NOT deliver a capability token.
@@ -517,12 +469,6 @@ Clock dependence 2: A guard MUST NOT read now to admit a caller-supplied instant
 
 ### Concurrency
 
-```
-Deleted: Concurrency 1. Execution Contract Database 2 owns it.
-Deleted: Concurrency 2. Execution Contract Database 1 and Execution Contract Database 2 own it.
-Deleted: Concurrency 3. Execution Contract Database 2 owns it: the counter's read and write are one transaction, and the atom names no rule left for a compare-and-set to discharge.
-```
-
 ### String policy
 
 ```
@@ -533,7 +479,6 @@ String 4: The atom MUST NOT case-fold a string input.
 String 5: The atom MUST read a whitespace-only string input as blank.
 String 6: The deployment MUST set a maximum length per string input.
 String 7: IF a string input EXCEEDS the maximum length THEN [Allocate] MUST answer invalid-request.
-Deleted: String 8. Execution Contract Logic confinement 13 owns it.
 String 9: IF the capability is revocable AND revoked by reference EXCEEDS the maximum length THEN [Revoke] MUST answer invalid-request.
 String 10: IF the capability is revocable AND reason EXCEEDS the maximum length THEN [Revoke] MUST answer invalid-request.
 ```
@@ -541,13 +486,11 @@ String 10: IF the capability is revocable AND reason EXCEEDS the maximum length 
 ## Composition notes
 
 ```
-Deleted: Composition note 1. Capability requirement 9 owns it.
 Composition note 2: A composing pattern MUST own the scope's meaning.
 Composition note 3: A composing pattern MUST own the authority to allocate for a scope.
 Composition note 4: A composing pattern MUST own the redemption's attribution.
 Composition note 5: A composing pattern MUST own the capability token's delivery.
 Composition note 6: A composing pattern MUST own the retention of the capability records.
-Deleted: Composition note 7. Execution Contract Atom interface 1 owns it.
 Composition note 8: A composing pattern MUST NOT record a redeemer's identity on a capability.
 ```
 

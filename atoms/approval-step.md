@@ -57,18 +57,14 @@ Three adjacent concepts are distinguished, and every distinction is load-bearing
 ```
 Identity 1: The atom MUST identify a step by the step id.
 Identity 2: The host MUST allocate a step id for a [Submit] at the seam.
-Deleted: Identity 3. Execution Contract Logic confinement 3 owns it.
 Identity 4: The atom MUST NOT change a step id.
 Identity 5: Two steps in one database instance MUST NOT share a step id.
-Deleted: Identity 6. Execution Contract Logic confinement 10 owns it.
-Deleted: Identity 7. Execution Contract Database 7 owns it.
 Identity 8: The atom MUST NOT identify a step by the subject reference.
 Identity 9: The atom MUST admit a second step carrying a recorded subject reference.
 Identity 10: The atom MUST compare a reference byte-exactly.
 Identity 11: The atom MUST NOT normalize a reference.
 Identity 12: The atom MUST NOT confirm that a subject reference names a known subject.
 Identity 13: The atom MUST NOT interpret a scope.
-Deleted: Identity 14. Execution Contract Logic confinement 13 owns it.
 ```
 
 Term step: one authorization gate — one subject, one approver, one submitter, one scope and one outcome; an [Approval Step], the record this atom holds.
@@ -94,7 +90,6 @@ Term transition: the atom's evaluation of one call against the step records.
 ### State
 
 ```
-Deleted: State 1. Invariant 3.1 owns it.
 State 2: The atom MUST NOT offer a re-open surface.
 State 3: The atom MUST NOT offer a decision reversal surface.
 State 4: The atom MUST NOT offer a re-submission surface on a recorded step.
@@ -118,14 +113,6 @@ Capability requirement 1: The deployment MUST supply now at the seam (Execution 
 Capability requirement 5: The deployment MUST supply the step records PER Execution Contract Database 1 through 5, Execution Contract Database 7, Execution Contract Read 1 through 4, Execution Contract Refusal 1, Execution Contract Query 1 through 4 and Execution Contract Input 1.
 Capability requirement 6: The deployment MAY declare the string cap PER Execution Contract Input 2.
 Capability requirement 7: The deployment MUST supply at the seam a step id no step in the database instance has carried PER Execution Contract Logic confinement 3 and Execution Contract Logic confinement 16.
-Deleted: Capability requirement 2. Execution Contract Logic confinement 7 owns it.
-Deleted: Capability requirement 3. Execution Contract Logic confinement 7 owns it.
-Deleted: Capability requirement 4. Execution Contract Logic confinement 7 owns it.
-Deleted: Clock semantics 1. Execution Contract Logic confinement 7 owns it.
-Deleted: Clock semantics 2. Execution Contract Logic confinement 7 owns it.
-Deleted: Clock semantics 3. Execution Contract Logic confinement 7 owns it.
-Deleted: Clock semantics 4. State 15 owns it.
-Deleted: Clock semantics 5. Non-goal 21 owns it.
 ```
 
 ### Operations
@@ -159,7 +146,6 @@ Operation 3: IF submitter reference EQUALS blank THEN [Submit] MUST answer inval
 Operation 4: IF scope EQUALS blank THEN [Submit] MUST answer invalid-request.
 Operation 5: IF a supplied reason EQUALS blank THEN [Submit] MUST answer invalid-request.
 Operation 6: IF now PRECEDES the resolved submission instant THEN [Submit] MUST answer invalid-request.
-Deleted: Operation 59. Execution Contract Input 1 owns it.
 Operation 63: IF the resolved submission instant is malformed THEN [Submit] MUST answer invalid-request (Execution Contract Input 1).
 Operation 7: An admitted submit MUST record EXACTLY ONE step.
 Operation 8: An admitted submit MUST stand the step in pending.
@@ -168,21 +154,17 @@ Operation 61: An admitted submit MUST record a supplied reason.
 Operation 62: An admitted submit MUST record subject reference, approver reference, submitter reference, scope and the resolved submission instant as submission instant.
 Operation 10: IF step id EQUALS blank THEN a resolving action MUST answer invalid-request.
 Operation 11: IF the step id names no step THEN a resolving action MUST answer not-known.
-Deleted: Operation 12. Execution Contract Refusal 1 owns it.
 Operation 13: IF the step's state IS IN the terminal states THEN a resolving action MUST answer not-pending.
-Deleted: Operation 14. Execution Contract Refusal 1 owns it.
 Operation 15: IF the deciding reference EQUALS blank THEN a resolving action MUST answer invalid-request.
 Operation 16: IF reason EQUALS blank THEN [Reject] MUST answer invalid-request.
 Operation 17: IF reason EQUALS blank THEN [Withdraw] MUST answer invalid-request.
 Operation 18: IF now PRECEDES the resolved decision instant THEN a resolving action MUST answer invalid-request.
 Operation 19: IF the resolved decision instant PRECEDES the step's submission instant THEN a resolving action MUST answer invalid-request.
-Deleted: Operation 60. Execution Contract Input 1 owns it, among the attribution checks (Term attribution check).
 Operation 64: IF the resolved decision instant is malformed THEN a resolving action MUST answer invalid-request (Execution Contract Input 1).
 Operation 65: IF the deciding reference EXCEEDS the string cap OR reason EXCEEDS the string cap THEN a resolving action MUST answer invalid-request.
 Operation 20: A resolving action MUST answer invalid-request on an attribution fault ONLY IF the step's state EQUALS pending.
 Operation 21: IF deciding actor DOES NOT EQUAL approver reference THEN a deciding action MUST answer unauthorized.
 Operation 22: IF withdrawing actor DOES NOT EQUAL submitter reference THEN [Withdraw] MUST answer unauthorized.
-Deleted: Operation 23. Execution Contract Refusal 1 owns it.
 Operation 24: An admitted approve MUST stand the step in approved.
 Operation 25: An admitted reject MUST stand the step in rejected.
 Operation 26: An admitted withdraw MUST stand the step in withdrawn.
@@ -190,11 +172,9 @@ Operation 27: An admitted approve MUST record deciding actor and the resolved de
 Operation 28: An admitted reject MUST record deciding actor, reason as decision reason and the resolved decision instant as decision instant.
 Operation 29: An admitted withdraw MUST record withdrawing actor, reason as withdrawal reason and the resolved decision instant as withdrawal instant.
 Operation 30: An admitted approve MUST record a supplied reason as decision reason.
-Deleted: Operation 31. Execution Contract Database 1 owns it.
 Operation 32: An admitted resolve MUST answer the action's success token.
 Operation 33: A resolving action MUST NOT change a submission field.
 Operation 34: IF the database refuses the write THEN a writing action MUST answer storage-failure.
-Deleted: Operation 35. Execution Contract Refusal 1 owns it.
 Operation 36: A refused action MUST leave the step as the call found the step.
 Operation 37: A refused action MUST NOT record an attribution field.
 Operation 38: An admitted read MUST answer the matching steps in submission instant ascending order.
@@ -202,20 +182,11 @@ Operation 39: An admitted read MUST order two steps sharing a submission instant
 Operation 40: An admitted read MUST answer EVERY step matching the supplied filters.
 Operation 41: An admitted read MUST NOT answer a step failing a supplied filter.
 Operation 42: IF no step matching the supplied filters EXISTS THEN an admitted read MUST answer an empty step sequence.
-Deleted: Operation 43. Execution Contract Query 3 and Operation 41 own it: a step carrying no instant on a range filter's axis fails the filter.
 Operation 44: IF a filter's axis IS NOT IN the filter axes THEN [Read] MUST answer invalid-query.
 Operation 45: IF a filter's axis IS IN the string axes AND the filter's value EQUALS blank THEN [Read] MUST answer invalid-query.
 Operation 46: IF a state filter's value IS NOT IN the states THEN [Read] MUST answer invalid-query.
 Operation 47: IF a range filter's end PRECEDES the range's start THEN [Read] MUST answer invalid-query.
 Operation 48: [Read] MUST NOT write.
-Deleted: Operation 49. Capability requirement 1 owns it.
-Deleted: Operation 50. Execution Contract Logic confinement 3 owns it.
-Deleted: Operation 51. Execution Contract Logic confinement 3 owns it.
-Deleted: Operation 52. Execution Contract Logic confinement 3 owns it.
-Deleted: Operation 53. Execution Contract Read 1 owns it.
-Deleted: Operation 54. Execution Contract Read 1 owns it: after the read, every refusal rule of [Submit] answers invalid-request.
-Deleted: Operation 55. Execution Contract Refusal 1 and Operation 20 own it.
-Deleted: Operation 56. Execution Contract Read 1 owns it: after the read, every refusal rule of [Read] answers invalid-query.
 Operation 57: IF a supplied reason EQUALS blank THEN [Approve] MUST answer invalid-request.
 Operation 58: IF the query is malformed THEN [Read] MUST answer invalid-query (Execution Contract Query 1).
 Operation 66: IF a filter's value EXCEEDS the string cap THEN [Read] MUST answer invalid-query.
@@ -339,8 +310,6 @@ NOTE: watch condition negation — invalid-request occupies rows 1 and 4 of one 
 - **Invariant 10 — Record durability.**
   ```
   Invariant 10.1: The atom MUST NOT remove a step from the database.
-  Deleted: Invariant 10.2. Execution Contract Database 1 owns it.
-  Deleted: Invariant 10.3. Execution Contract Database 3 owns it.
   ```
 
 ---
@@ -418,7 +387,6 @@ Term committed version: a record as it stood at the commit that wrote it, as Exe
 ### External checks
 
 ```
-Deleted: External check 1. Execution Contract Database 3 owns it.
 External check 2: A deployment needing the subjects carrying no step identified MUST read the subject set beside the step records (Non-goal 19).
 External check 3: A deployment needing a deciding actor bound to an actor MUST read the composing Actor Identity attestation (Non-goal 14).
 External check 4: A deployment needing a refused call's attempt recorded MUST read the composing Audit Trail (Operation 37).
@@ -461,27 +429,12 @@ NOTE: open 2026-10-21-e — the owners NOTE names no owner for Non-goal 7 or Non
 
 ### Atomic writes
 
-```
-Deleted: Atomic writes 1. Execution Contract Database 1 owns it.
-Deleted: Atomic writes 2. Execution Contract Database 1 and Execution Contract Database 3 own it.
-Deleted: Atomic writes 3. Execution Contract Database 1 owns it.
-Deleted: Atomic writes 4. Execution Contract Database 1 owns it.
-```
-
 ### Concurrency
-
-```
-Deleted: Concurrency 1. Execution Contract Database 2 owns it.
-Deleted: Concurrency 2. Execution Contract Database 2 owns it.
-Deleted: Concurrency 3. Execution Contract Database 2 owns it.
-```
 
 ### Indeterminate outcome
 
 ```
 Indeterminate outcome 1: A caller receiving no answer MUST NOT retry BEFORE the caller reads the step records (Execution Contract Error model 1).
-Deleted: Indeterminate outcome 2. Execution Contract Error model 1 owns it.
-Deleted: Indeterminate outcome 3. Execution Contract Error model 1 owns it.
 ```
 
 NOTE: open 2026-10-21-d — a caller with no answer is sent to the step records, and no read says whether its submit landed, where two submits carrying one field set are two steps (Non-goal 1).
@@ -495,7 +448,6 @@ String 3: The atom MUST NOT normalize a string input.
 String 4: The atom MUST NOT case-fold a string input.
 String 5: The atom MUST read a whitespace-only string input as blank.
 String 6: The atom MUST read an absent string input as blank.
-Deleted: String 7. Execution Contract Logic confinement 13 owns it.
 ```
 
 Term string input: a reference, reason OR a filter's value — every caller-supplied string this atom accepts.
@@ -519,7 +471,6 @@ Composition note 7: A composing pattern MUST own the delegation of an approver r
 Composition note 8: A composing pattern MUST own the tamper seal over the step records.
 Composition note 9: A composing pattern MUST own at-most-once submission.
 Composition note 10: A composing pattern MUST own the required gate mapping for a subject.
-Deleted: Composition note 11. Execution Contract Atom interface 1 owns it.
 ```
 
 NOTE: composing patterns — [Multi-Party Approval](../compositions/multi-party-approval.md), [Execute Gated Workflow](../compositions/execute-gated-workflow.md).

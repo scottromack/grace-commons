@@ -5,7 +5,8 @@ Reads a spec's normative surface the way section 2 and section 17 of the grammar
 must — a bare fenced block classified by its first line, `Term`
 declarations — and reports what a form-reader can decide without semantics:
 fence classification (Surface 18, Surface 19) and signature blocks (Surface 20), unlabelled lines (Hard invariant 1, Sugar 3), label uniqueness
-and tombstone reuse (Hard invariant 25, Hard invariant 27), the rule form and the statement shapes (Rule shape 1, Rule shape 2,
+and tombstone reuse (Hard invariant 25, Hard invariant 27) — a tombstone read on the page and in the
+section titled *Deleted rules* of the history file beside it, where a done pattern keeps it — the rule form and the statement shapes (Rule shape 1, Rule shape 2,
 Rule shape 6, Hard invariant 2, Hard invariant 3), WHEN blocks (WHEN block 3, Hard invariant 6), mixed AND/OR and OR outside a condition (Hard invariant 7,
 Hard invariant 8), BEFORE and AFTER outside their admitted places (Hard invariant 9 through 11), the banned
 words (Timing 10, Timing 11), arithmetic in a rule (Closed vocabulary 9; a rule carries none since v0.70),
@@ -301,7 +302,9 @@ BOLD_BULLET_DECL = re.compile(r"^\s*- \*\*`?[a-z][a-z0-9_ -]*`?\*\* — ")
 MODAL = re.compile(r"\b(MUST NOT|MUST|MAY)\b")
 _LABEL_TEXT = r"((?:[A-Za-z_][\w'’-]*)(?: [A-Za-z_][\w'’-]*){0,4} [\d½]+(?:\.\d+)?[a-z]?)"
 # A tombstone is its own line (GRACE-lang v0.46): `Deleted: Label. The owner, and why.`
-TOMBSTONE = re.compile(r"^Deleted: " + _LABEL_TEXT + r"\. \S.*\.$")
+# It stands on the page, or in the history file's *Deleted rules* once the
+# pattern is done (Hard invariant 25, v0.71); cites.py reads both places.
+TOMBSTONE = cites.TOMBSTONE
 # the retired shape, a NOTE whose text began with a label and the word deleted
 LEGACY_TOMBSTONE = re.compile(r"^NOTE:\s*" + _LABEL_TEXT + r"\s+deleted\b")
 # the last number of a range citation, `Operation 3 through 7` (Hard invariant 29)
@@ -825,7 +828,7 @@ def scan(path: Path) -> list[Finding]:
     findings: list[Finding] = []
     rules: list[Rule] = []
     labels: dict[str, int] = {}
-    tombstones: dict[str, int] = {}
+    tombstones: dict[str, str] = {}   # label -> where it stands, `line N` or `<history file>:N`
     exemplars: set[str] = set()
     signatures: list[tuple[int, str]] = []
 
@@ -1060,7 +1063,7 @@ def scan(path: Path) -> list[Finding]:
                     lab = t.group(1)
                     if lab in tombstones:
                         add(k, "L-dup-tombstone", f"{lab} tombstoned twice")
-                    tombstones[lab] = k
+                    tombstones[lab] = f"line {k}"
                     continue
                 if PREFIX.match(s):
                     if LEGACY_TOMBSTONE.match(s):
@@ -1109,10 +1112,31 @@ def scan(path: Path) -> list[Finding]:
                     add(r.line, "R-when-empty", f"{r.label}: WHEN block with no child rule")
         i = j + 1
 
+    # a done pattern's tombstones, in its history file's *Deleted rules*
+    # (Hard invariant 25, v0.71): every line there is a tombstone in the one form,
+    # and each reserves its label on this page as one written here does
+    hist = cites.history_file(path)
+    for k, raw in cites.deleted_rules(path):
+        line = raw.strip()
+        if not line:
+            continue
+        t = TOMBSTONE.match(line)
+        if not t:
+            findings.append(Finding(hist, k, "D-tombstone-form",
+                                    f"not the tombstone form `Deleted: Label. The owner, and why.` in the "
+                                    f"section titled {cites.DELETED_RULES}: {line[:70]}"))
+            continue
+        lab = t.group(1)
+        if lab in tombstones:
+            findings.append(Finding(hist, k, "L-dup-tombstone",
+                                    f"{lab} tombstoned twice (and at {tombstones[lab]} of {path.name})"
+                                    if tombstones[lab].startswith("line ") else f"{lab} tombstoned twice"))
+        tombstones.setdefault(lab, f"{hist.name}:{k}")
+
     # tombstone reuse (Hard invariant 25, Hard invariant 27)
-    for lab, k in tombstones.items():
+    for lab, where in tombstones.items():
         if lab in labels:
-            add(labels[lab], "L-tombstone-reuse", f"{lab} is tombstoned at line {k} and used as a rule (Hard invariant 27)")
+            add(labels[lab], "L-tombstone-reuse", f"{lab} is tombstoned at {where} and used as a rule (Hard invariant 27)")
 
     verbs = declared_verbs(text)
     # a declared name's own words are not verbs: *and hold reason* names a term,

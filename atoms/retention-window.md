@@ -70,7 +70,6 @@ NOTE: open 2026-10-03-j — Term seam, Term transition and Term business caller 
 ### State
 
 ```
-Deleted: State 1. Invariant 1.1 owns it.
 State 2: EVERY retention MUST carry retention id, record reference, policy reference, retention instant, retention deadline and purge deadline.
 State 3: A purged retention MUST carry purge instant.
 State 4: [Place Under Retention] MUST set retention instant from the injected now.
@@ -116,10 +115,7 @@ Term purge eligible: yes | no — a [Purge Eligible]; yes exactly when the reten
 
 ```
 Capability requirement 1: The deployment MUST supply now at the seam.
-Deleted: Capability requirement 4. The composing pattern that owns the destruction owns it (Record divergence 4 through 6).
-Deleted: Capability requirement 4a. The composing pattern that owns the destruction owns it (Record divergence 4 through 6).
 Capability requirement 5: The deployment MUST declare the time resolution.
-Deleted: Capability requirement 6. The composing pattern that owns the destruction owns it (Record divergence 4 through 6).
 Capability requirement 6a: IF a composing pattern owns the destruction THEN the deployment MUST destroy a record a retention names through that pattern alone.
 Capability requirement 7: The deployment MUST retain the instant of EVERY destruction of a record a retention names, read from the clock that supplies now, for the life of the instance.
 Capability requirement 8: The deployment MUST supply EVERY placement a retention id naming no retention of the retention records.
@@ -131,8 +127,6 @@ Capability requirement 13: The deployment MUST NOT reuse a record reference for 
 Capability requirement 14: The deployment MUST supply a database that holds EVERY purge instant [Purge] stamps, for the life of the instance.
 Capability requirement 15: The deployment MUST NOT supply a placement the record reference of a destroyed record.
 Capability requirement 16: The deployment MUST supply a record reference that names EVERY version of the record in the database.
-Deleted: Capability requirement 2. Execution Contract Logic confinement 7 owns it.
-Deleted: Capability requirement 3. Execution Contract Logic confinement 7 owns it.
 ```
 
 NOTE: open 2026-10-03-b — the policy registry and the lengths the host resolves from it (Operation 24, Operation 24a), which composing pattern owns the destruction (Term owns the destruction), the joint-enforcement pattern (Simultaneous retention 5) and the alert (Purge persistence 3) are the deployment's, and no Capability requirement lists them.
@@ -159,16 +153,12 @@ Operation 3: [Place Under Retention] MUST answer retention id.
 Operation 4: IF record reference EQUALS blank THEN [Place Under Retention] MUST answer invalid-request.
 Operation 5: IF policy reference EQUALS blank THEN [Place Under Retention] MUST answer invalid-request.
 Operation 6: IF the policy reference IS NOT IN the policy registry THEN [Place Under Retention] MUST answer policy-not-found.
-Deleted: Operation 6a. Execution Contract Refusal 1 owns it.
 Operation 7: IF the policy's duration DOES NOT EXCEED the zero duration THEN [Place Under Retention] MUST answer invalid-policy.
 Operation 7a: IF the policy's duration EQUALS degenerate duration THEN [Place Under Retention] MUST answer invalid-policy.
 Operation 8: IF the zero duration EXCEEDS the policy's max purge delay THEN [Place Under Retention] MUST answer invalid-policy.
-Deleted: Operation 8a. Execution Contract Refusal 1 owns it.
 Operation 8b: IF the policy's max purge delay EQUALS degenerate max purge delay THEN [Place Under Retention] MUST answer invalid-policy.
 Operation 8c: IF retention deadline IS NOT IN the instants the database holds OR purge deadline IS NOT IN the instants the database holds THEN [Place Under Retention] MUST answer invalid-policy.
 Operation 9: IF the database refuses the write THEN [Place Under Retention] MUST answer storage-failure.
-Deleted: Operation 9a. Execution Contract Refusal 1 owns it.
-Deleted: Operation 10. Execution Contract Database 1 owns it.
 Operation 11: [Place Under Retention] MUST NOT read the host's records.
 Operation 12: [Purge] MUST stand the retention in purged.
 Operation 13: [Purge] MUST stamp purge instant from the injected now.
@@ -180,27 +170,16 @@ Operation 16: IF the retention state EQUALS retained AND purge eligible EQUALS n
 Operation 17: [Purge] MUST NOT write on retention-period-not-elapsed.
 Operation 18: [Purge] MUST NOT refuse a retention whose purge deadline has passed.
 Operation 19: IF the database refuses the write THEN [Purge] MUST answer storage-failure.
-Deleted: Operation 19a. Execution Contract Refusal 1 owns it.
 Operation 20: [Purge] MUST leave the retention in retained on storage-failure.
 Operation 21: [Purge] MUST judge against one injected now per call.
-Deleted: Operation 22. Operation 13 and Operation 21 own it: [Purge] judges against one injected now per call and stamps purge instant from the injected now.
-Deleted: Operation 23. Capability requirement 1 owns it.
 Operation 24: The host MUST resolve the policy at the seam of [Place Under Retention] alone.
 Operation 24a: The host MUST resolve the policy's duration and the policy's max purge delay to elapsed lengths at the atom's seam.
 Operation 24b: IF the host cannot read the policy registry at a placement THEN [Place Under Retention] MUST answer registry-unavailable.
-Deleted: Operation 24c. Execution Contract Refusal 1 owns it.
-Deleted: Operation 25. Execution Contract Logic confinement 3 owns it.
 Operation 26: The transition MUST NOT read the policy registry.
-Deleted: Operation 27. Execution Contract Logic confinement 3 owns it.
-Deleted: Operation 28. Invariant 11.2 owns it.
 Operation 29: [Read] MUST answer EVERY retention, retained AND purged.
 Operation 30: [Read] MUST answer a retention's stored fields.
 Operation 31: [Read] MUST answer purge eligible PER retained retention.
 Operation 32: [Read] MUST NOT write.
-Deleted: Operation 33. Operation 29 and Execution Contract Read 2 own it.
-Deleted: Operation 34. Execution Contract Read 1 owns it.
-Deleted: Operation 35. Execution Contract Refusal 1 owns it.
-Deleted: Operation 36. Execution Contract Refusal 1 owns it.
 ```
 
 NOTE: watch the unadmitted modal (Operation 8b).
@@ -272,7 +251,6 @@ Where two cases of one action hold at once, the refusal listed first on the acti
   ```
   Invariant 6.1: retention deadline MUST NOT PRECEDE retention instant.
   Invariant 6.2: purge deadline MUST NOT PRECEDE retention deadline.
-  Deleted: Invariant 6.3. Operation 7 and Operation 7a own a duration that does not advance the deadline, and an invariant restating a precondition is a second owner.
   ```
 - **Invariant 7 — No early purge.**
   ```
@@ -281,7 +259,6 @@ Where two cases of one action hold at once, the refusal listed first on the acti
 - **Invariant 8 — Purge timestamp consistency.**
   ```
   Invariant 8.1: A purged retention's purge instant MUST NOT PRECEDE the retention's retention deadline.
-  Deleted: Invariant 8.2. Execution Contract Logic confinement 7 owns it.
   Invariant 8.3: The atom MUST NOT bound purge instant by purge deadline.
   ```
 - **Invariant 9 — No id reuse.**
@@ -292,7 +269,6 @@ Where two cases of one action hold at once, the refusal listed first on the acti
   ```
   Invariant 10.1: The atom MUST NOT delete a retention record.
   Invariant 10.2: The retention set MUST NOT shrink.
-  Deleted: Invariant 10.3. Execution Contract Database 1 owns it.
   ```
 - **Invariant 11 — Purge-eligibility is derived, never stored.**
   ```
@@ -372,7 +348,6 @@ Check 3.2: An auditor MUST derive purge eligible from the retention state, reten
 Check 4.1: An auditor MUST compute a purged retention's overshoot from purge instant and purge deadline (Invariant 8.3).
 Check 4.2: An auditor MUST compute a retained retention's active overdue from purge deadline and the auditor's own clock (State 2).
 Check 5.1: An auditor MUST reconstruct a record's policy history from the retentions sharing the record reference (Identity 9).
-Deleted: Check 6.1. Execution Contract Conformance 9 owns it.
 ```
 
 NOTE: watch the comparator written in English (Check 2.1).
@@ -385,7 +360,6 @@ External check 2: An auditor MUST read the composing pattern's joint-enforcement
 External check 3: An auditor MUST read the deployment's declared time resolution (Capability requirement 5, State 6a).
 External check 4: An auditor MUST read EVERY standing record from the owning pattern's confirmations (Record divergence 5).
 External check 5: An auditor MUST confirm from the deployment's own destruction records that no destruction instant PRECEDES the retention deadline of a retention in place at the destruction (Operation 13b, Capability requirement 6a, Capability requirement 7, Capability requirement 15, Simultaneous retention 4).
-Deleted: External check 6. Execution Contract Conformance 9 owns it.
 ```
 
 NOTE: open 2026-10-03-g — the checks cover Invariant 7, Invariant 8 and Invariant 11 alone, none reads the deployment's record references (Capability requirement 10, Capability requirement 13), and External check 5 subsumes External check 1.
@@ -429,18 +403,9 @@ Where the atom breaks down: when the obligation is a function of the record's co
 
 ```
 Clock semantics 3: Two readers judging purge eligible under skewed clocks MAY disagree near retention deadline.
-Deleted: Clock semantics 1. Execution Contract Logic confinement 7 owns it.
-Deleted: Clock semantics 2. Execution Contract Logic confinement 7 owns it.
-Deleted: Clock semantics 4. Non-goal 13 owns it.
 ```
 
 ### Concurrency
-
-```
-Deleted: Concurrency 1. Execution Contract Database 1 and Execution Contract Database 2 own it.
-Deleted: Concurrency 2. Execution Contract Database 2 owns it.
-Deleted: Concurrency 3. Execution Contract Database 2 owns it.
-```
 
 ### Purge persistence
 
@@ -457,11 +422,6 @@ NOTE: open 2026-10-03-d — the retry is excused by Simultaneous retention 4a al
 ### Record divergence
 
 ```
-Deleted: Record divergence 1. The composing pattern that owns the destruction owns it (Record divergence 4 through 6).
-Deleted: Record divergence 1a. The composing pattern that owns the destruction owns it (Record divergence 4 through 6).
-Deleted: Record divergence 2. The composing pattern that owns the destruction owns it (Record divergence 4 through 6).
-Deleted: Record divergence 2a. The composing pattern that owns the destruction owns it (Record divergence 4 through 6).
-Deleted: Record divergence 2b. The composing pattern that owns the destruction owns it (Record divergence 4 through 6).
 Record divergence 3: The atom MUST NOT read the record's existence.
 Record divergence 4: A composing pattern MAY own the destruction ONLY IF the composing pattern declares the ownership as a capability requirement over the instance the composing pattern wires.
 Record divergence 4a: A composing pattern that owns the destruction MUST destroy a record ONLY IF the record is a standing record.
@@ -508,7 +468,6 @@ Term joint enforcement: the rule over every retention on one record that Simulta
 ```
 Composition note 1: A deployment MUST declare which composing patterns the deployment wired in.
 Composition note 2: A composing pattern over a regulated Event Log instance MUST place an appended event under retention.
-Deleted: Composition note 3. Simultaneous retention 5 and Simultaneous retention 6a own it: a deployment that places two retentions over one record composes the pattern that owns joint enforcement, and a pattern that owns the destruction owns joint enforcement.
 Composition note 4: A composing pattern MUST own the policy the pattern places a record under.
 Composition note 5: This atom's invariant numbers MUST stand as a frozen contract surface.
 ```

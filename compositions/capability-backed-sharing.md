@@ -118,11 +118,9 @@ Composition state 7: IF a capability token's authorization event IS IN the aged 
 Composition state 8: The composition MUST store the disclosure-to-redemption index.
 Composition state 9: The composition MUST key the disclosure-to-redemption index by disclosure id.
 Composition state 10: A disclosure-to-redemption entry MUST carry the capability token, the allocator reference, the intent event id, the invocation id, the seal marker AND the disclosure reading.
-Deleted: Composition state 11. Execution Contract Database 1 owns it.
 Composition state 12: The composition MUST write a disclosure-to-redemption entry carrying pending as the seal marker inside the disclosure transaction.
 Composition state 13: The composition MUST set the seal marker to the disclosure event's id ONLY AFTER the disclosure event lands.
 Composition state 14: The composition MUST NOT carry a redeemer identity in either index.
-Deleted: Composition state 15. Execution Contract Database 3 owns it.
 Composition state 16: The composition MUST rebuild a sealed disclosure-to-redemption entry from the disclosure events, the ones carrying the recovery flag included.
 Composition state 17: IF the disclosure-to-redemption rebuild finds a disclosure event naming no disclosure record OR two disclosure events naming one disclosure id THEN the composition MUST alert the finding surface carrying the disclosure id.
 Composition state 18: IF the capability-to-sharing rebuild finds two authorization events carrying one capability token THEN the composition MUST alert the finding surface carrying the capability token AND the rebuild MUST bind the first by sequence number.
@@ -164,21 +162,11 @@ Capability requirement 3: A deployment MUST rotate the redemption identity's cre
 Capability requirement 4: A deployment MUST configure the Audit Trail instance with the audit horizon.
 Capability requirement 5: The longest disclosure-accounting obligation MUST NOT EXCEED the audit horizon.
 Capability requirement 6: A deployment MUST set the default max redemptions.
-Deleted: Capability requirement 7. Recoverable Invocation Instance start 4 owns it: the closure window.
-Deleted: Capability requirement 8. Recoverable Invocation sweep cadence 2 and Recoverable Invocation sweep cadence 3 own it.
-Deleted: Capability requirement 9. Recoverable Invocation Instance start 4 owns it: the worst closure against the closure window, the sweep's run counted in it.
-Deleted: Capability requirement 10. Execution Contract Database 1 owns it.
-Deleted: Capability requirement 11. Execution Contract Database 1 owns it.
-Deleted: Capability requirement 12. Recoverable Invocation Instance start 4 owns it: a blank closure window does not pass, and Capability requirement 24 refuses a start on the composition's own required settings.
-Deleted: Capability requirement 13. Execution Contract Database 1 owns it: the composition names no redemption completion bound for a deployment to leave blank.
 Capability requirement 14: The host MUST inject now, the invocation id, the run id AND the operator run id at the seam once PER invocation.
 Capability requirement 15: The composition MUST take EXACTLY ONE now PER invocation.
 Capability requirement 16: The composition MUST NOT pass now to a constituent, Selective Disclosure's disclosed_at (Action wiring 29) AND the pairing datum in the intent data of the invocation open (Action wiring 2, Action wiring 23, Action wiring 40) excepted.
 Capability requirement 17: The composition MUST NOT mint an id.
 Capability requirement 18: The deployment MUST supply the database PER Execution Contract Database 1 through 4, AND the act section PER Execution Contract Database 7 AND Execution Contract Refusal 1 (Recoverable Invocation Capability requirement 12).
-Deleted: Capability requirement 19. Recoverable Invocation Instance start 5 owns it: the retention floor.
-Deleted: Capability requirement 20. Recoverable Invocation run bound owns it: the sweep's own, and the write-ownership leg runs inside it.
-Deleted: Capability requirement 21. Recoverable Invocation run bound and Recoverable Invocation Instance start 7 own it.
 Capability requirement 22: The host MUST inject the invocation's now into Capability's seam AND Selective Disclosure's seam for the commit of a sharing action AND for the read of Action wiring 13.
 Capability requirement 23: The host MUST NOT inject an equal now into two invocations of one act key anywhere in the instance, whatever node each runs on.
 Capability requirement 24: IF a required setting EQUALS blank THEN the composition MUST refuse to start.
@@ -269,29 +257,7 @@ NOTE: a redemption's disclosure key is the descriptor's, fixed at the allocation
 ### Audit arm
 
 ```
-Deleted: Audit arm 1. Recoverable Invocation Primitive policy 19 owns it for the intent of the three bound actions.
-Deleted: Audit arm 2. Recoverable Invocation Primitive policy 23 owns it for the intent of the three bound actions.
-Deleted: Audit arm 3. Execution Contract Database 1 owns it.
-Deleted: Audit arm 4. Recoverable Invocation Primitive policy 36 owns it: a record the read-back finds is landed.
-Deleted: Audit arm 5. Execution Contract Database 1 owns it.
-Deleted: Audit arm 6. Recoverable Invocation Primitive policy 41 owns it for the intent of the three bound actions.
-Deleted: Audit arm 7. Recoverable Invocation Primitive policy 43 owns it.
-Deleted: Audit arm 8. Recoverable Invocation commit 8d and Recoverable Invocation Primitive policy 31 own it: an outcome that does not land answers recording-failure(outcome), which carries no orphan reference.
-Deleted: Audit arm 9. Execution Contract Database 2 owns it.
-Deleted: Audit arm 10. Recoverable Invocation Primitive policy 19, Recoverable Invocation Primitive policy 31 and Recoverable Invocation reconcile step 3.18 own it: an invalid-credential lands by the record's position.
-Deleted: Audit arm 11. Recoverable Invocation reconcile step 3.19 owns it.
-Deleted: Audit arm 12. Recoverable Invocation Invariant 8.3 owns it: recording-failure(intent) is a committed nothing.
-Deleted: Audit arm 13. Recoverable Invocation Invariant 8.4 owns it: recording-failure(outcome) is an act that may exist, whose record the sweep closes.
-Deleted: Audit arm 14. Recoverable Invocation Invariant 8.4 owns it.
-Deleted: Audit arm 15. Recoverable Invocation Primitive policy 35 owns it: the read-back matches by invocation id, not by intent event id.
-Deleted: Audit arm 16. Recoverable Invocation Primitive policy 42 owns it: the hard alert on an invalid-request from the substrate.
 Audit arm 17: The deployment MUST alert on an invalid-credential at a record written under the redemption identity as a deployment fault.
-Deleted: Audit arm 18. Execution Contract Database 1 owns it.
-Deleted: Audit arm 19. Recoverable Invocation Primitive policy 41 owns it: an invalid-request(step-3) at the intent answers invalid-request.
-Deleted: Audit arm 20. Recoverable Invocation Primitive policy 42 owns it.
-Deleted: Audit arm 21. Recoverable Invocation Primitive policy 27 and Recoverable Invocation Primitive policy 28 own it: an invalid-request(step-4) is read back by invocation id.
-Deleted: Audit arm 22. Recoverable Invocation refuse step 3.5 through 3.8 own it: a refusal record that does not land answers recording-failure(refusal, constituent_code) with the intent left open.
-Deleted: Audit arm 23. Recoverable Invocation's Action wiring table owns it: recording-failure(refusal, constituent_code) is a refusal whose attempt the sweep records.
 ```
 
 Term intent record: a sharing action's record before its constituent commit — the sharing.authorize.intended, sharing.disclosure.intended or sharing.revocation.intended record the invocation open writes, the one that verifies the actor's credential (Recoverable Invocation Primitive policy 19); carrying the invocation's parameters other than the credential, the pairing datum, and no constituent-minted id.
@@ -342,15 +308,10 @@ Term disclosure history: a subject's disclosure records, each claimable disclosu
 Term provenance: a capability-to-sharing entry's allocator reference, sharing descriptor and authorization event id — what [Authorization Provenance] answers.
 
 ```
-Deleted: Action wiring 1. Recoverable Invocation Action wiring 4 and Recoverable Invocation Invariant 1.1 own it: the allocate follows the invocation open, whose intent record verified the allocator's credential.
 Action wiring 2: A validated authorization MUST call the invocation open with the act kind sharing.authorize, the authorization key as the act key, the allocator reference as the actor reference, the credential AND the intent data carrying the sharing descriptor, the effective max redemptions, the effective ttl AND the allocation reading as the pairing datum (Recoverable Invocation Action wiring 4).
-Deleted: Action wiring 3. Recoverable Invocation Primitive policy 10 owns it.
 Action wiring 4: An admitted authorization MUST call Capability's allocate with the allocator reference, the encoded sharing descriptor as the scope, the effective max redemptions AND the effective ttl.
 Action wiring 5: IF Capability answers invalid-request OR storage-failure for an allocate, OR the database answers state-unavailable, THEN [Authorize Sharing] MUST close the pre-commit arm through the invocation refuse AND answer that code (Recoverable Invocation commit 2, commit 3).
-Deleted: Action wiring 6. Execution Contract Constituent failure 1 owns it.
-Deleted: Action wiring 7. Recoverable Invocation refuse step 3.1 and Action wiring 5 own it: a refused allocate writes the intent and its sharing.authorize.refused record, and nothing else.
 Action wiring 8: [Authorize Sharing] MUST close an allocate that answered the capability token through the invocation close naming sharing.authorize.authorized, the outcome carrying the capability token, the sharing descriptor, the effective max redemptions, the effective ttl AND the allocation reading (Recoverable Invocation commit 4).
-Deleted: Action wiring 9. Execution Contract Database 1 owns it.
 Action wiring 10: The composition MUST NOT attest an authorization event carrying no recovery flag under an actor other than the allocator.
 Action wiring 11: An attested authorization MUST answer the capability token AND the authorization event's id.
 Action wiring 12: [Redeem And Disclose] MUST NOT call Capability's redeem BEFORE resolving the sharing descriptor.
@@ -366,29 +327,19 @@ Action wiring 21: The composition MUST alert the finding surface on an irreconci
 Action wiring 22: A refusal under Action wiring 14 through 21 MUST NOT write, the alerts of Action wiring 16 and Action wiring 21 and the rebuild of an index entry (Execution Contract Derived index 1) excepted.
 Action wiring 23: A resolved redemption MUST call the invocation open with the act kind sharing.disclosure, the disclosure key as the act key, the redemption identity as the actor reference AND the credential, AND the intent data carrying the capability token, the allocator reference, the sharing descriptor, the authorization event id AND the disclosure reading as the pairing datum.
 Action wiring 24: The composition MUST NOT read a disclosure intent as an authentication record.
-Deleted: Action wiring 25. Recoverable Invocation Action wiring 4 owns it: the redeem follows the invocation open.
 Action wiring 26: IF Capability answers invalid for the redeem THEN [Redeem And Disclose] MUST close the pre-commit arm through the invocation refuse AND answer invalid carrying the redemption failure (Recoverable Invocation commit 2, commit 3).
-Deleted: Action wiring 54. Execution Contract Constituent failure 1 owns it.
-Deleted: Action wiring 27. Recoverable Invocation refuse step 3.1 owns it: the refusal record is sharing.disclosure.refused, carrying the redemption failure as the constituent code.
 Action wiring 28: The composition MUST alert the finding surface on a diverged redemption as a conformance fault.
 Action wiring 29: A consuming redemption MUST call Selective Disclosure's record with the subject reference, the addressee as the recipient, the disclosed scope as the scope, the authority AND the disclosure reading as disclosed_at, inside the disclosure transaction.
 NOTE: open 2026-11-10-d — Selective Disclosure's Term Record rejects the disclosure instant if no instant while a blank instant resolves to the injected now (Execution Contract Logic confinement 12); Selective Disclosure decides.
-Deleted: Action wiring 30. Action wiring 29 and Capability requirement 22 own it, reversed: the disclosure reading is passed as disclosed_at, the disclosure probe's pairing datum.
 Action wiring 31: IF Selective Disclosure answers invalid-request OR unknown-authority-type THEN the disclosure transaction MUST commit no write AND [Redeem And Disclose] MUST close the pre-commit arm through the invocation refuse.
 Action wiring 32: IF Selective Disclosure answers invalid-request OR unknown-authority-type THEN [Redeem And Disclose] MUST answer that code (Recoverable Invocation commit 3).
-Deleted: Action wiring 55. Execution Contract Constituent failure 1 owns it.
-Deleted: Action wiring 33. Execution Contract Database 1 owns it.
-Deleted: Action wiring 34. Action wiring 31 owns it: a Selective Disclosure refusal consumes no use, so no unfulfilled redemption exists to seal.
 Action wiring 35: The composition MUST alert the finding surface on a foreclosed disclosure refusal as a conformance fault.
 Action wiring 36: [Redeem And Disclose] MUST close a disclosure transaction that answered the disclosure id through the invocation close naming sharing.disclosure.disclosed, the outcome carrying the disclosure id, the capability token, the allocator reference, the sharing descriptor, the authorization event id AND the disclosure reading (Recoverable Invocation commit 4).
-Deleted: Action wiring 37. Execution Contract Database 1 owns it.
 Action wiring 38: A sealed redemption MUST answer the disclosure id, the disclosure event's id, the disclosed scope AND the allocator reference.
-Deleted: Action wiring 39. Recoverable Invocation Action wiring 4 and Recoverable Invocation Invariant 1.1 own it: the revoke follows the invocation open, whose intent record verified the revoker's credential.
 Action wiring 40: A validated revocation MUST call the invocation open with the act kind sharing.revocation, the capability token as the act key, the revoked by reference as the actor reference, the credential AND the intent data carrying the capability token, the revoked by reference, the revocation reason AND the revocation reading as the pairing datum.
 Action wiring 41: An admitted revocation MUST call Capability's revoke with the capability token, the revoked by reference AND the revocation reason.
 Action wiring 42: IF Capability answers already-terminal for a revoke THEN [Revoke Sharing] MUST close the pre-commit arm through the invocation refuse AND answer already-terminal.
 Action wiring 43: IF Capability answers not-known for a revoke THEN [Revoke Sharing] MUST close the pre-commit arm through the invocation refuse AND answer not-known.
-Deleted: Action wiring 44. Execution Contract Constituent failure 1 owns it.
 Action wiring 45: IF Capability answers invalid-request OR storage-failure for a revoke, OR the database answers state-unavailable, THEN [Revoke Sharing] MUST close the pre-commit arm through the invocation refuse AND answer that code.
 Action wiring 46: [Revoke Sharing] MUST close a revoke that answered revoked through the invocation close naming sharing.revocation.revoked, the outcome carrying the capability token, the revoked by reference, the revocation reason AND the revocation reading (Recoverable Invocation commit 4).
 Action wiring 47: A landed revocation MUST answer revoked AND the revocation event's id.
@@ -538,8 +489,6 @@ Every input an action takes, and every answer a call of the five actions and of 
 ```
 Wiring decision 1: The composition MUST attach a disclosure's accountability to the allocator's authorization.
 Wiring decision 2: The composition MUST NOT attach a disclosure's accountability to the bearer.
-Deleted: Wiring decision 3. Execution Contract Database 1 owns it.
-Deleted: Wiring decision 4. Execution Contract Database 1 owns it.
 Wiring decision 5: The composition MUST NOT fabricate a disclosure record for a consumed use.
 ```
 
@@ -553,34 +502,7 @@ Wiring decision 5: The composition MUST NOT fabricate a disclosure record for a 
 ### Reconciliation
 
 ```
-Deleted: Reconciliation 1. Execution Contract Database 1 and Execution Contract Database 3 own it.
 Reconciliation 2: The reconciliation MUST run every sweep cadence.
-Deleted: Reconciliation 3. Execution Contract Database 1 owns it.
-Deleted: Reconciliation 4. Recoverable Invocation Invariant 5.2 and Recoverable Invocation service identity 3 own it: the sweep writes under the recovery identity, and the leg writes no event.
-Deleted: Reconciliation 5. Recoverable Invocation Invariant 5.1 and Recoverable Invocation reconcile step 3.2a own it: the recovery intent before any recovered outcome.
-Deleted: Reconciliation 6. Recoverable Invocation reconcile step 3.2a owns it: the kind's recovery_intended record carries the invocation id, the intent event id, the act key and the plan.
-Deleted: Reconciliation 7. Recoverable Invocation Invariant 5.2, Recoverable Invocation Primitive policy 11a and Recoverable Invocation Term recovered outcome payload own it: the recovered outcome carries the recovery flag, the acting actor reference and the intent event id.
-Deleted: Reconciliation 8. Term authorization probe, Term disclosure probe, Term revocation probe, Recoverable Invocation act probe 6 and Recoverable Invocation Invariant 5.3 own it: the probe re-derives the outcome's fields from the constituent records.
-Deleted: Reconciliation 9. Recoverable Invocation reconcile step 3.2 and Recoverable Invocation reconcile step 2.4 through 2.6 own it: a committed probe closes the intent with the outcome, after a re-read under the critical section.
-Deleted: Reconciliation 28. Recoverable Invocation Sweep never 1, Recoverable Invocation Invariant 9.2 and Composition state 16 own it: the sweep writes no adopter state, and the rebuild seals the marker from a recovered disclosure event.
-Deleted: Reconciliation 10. Term disclosure probe and Recoverable Invocation act probe 6 own it: a recovered disclosure outcome carries the disclosure record's fields and the allocator Capability's read answers.
-Deleted: Reconciliation 11. Recoverable Invocation reconcile step 1.1, Recoverable Invocation reconcile step 1.2 and Recoverable Invocation reconcile step 3.1 own it: the sweep runs the act probe for every open intent.
-Deleted: Reconciliation 12. Recoverable Invocation reconcile step 3.12, Recoverable Invocation act probe 6 and Recoverable Invocation Invariant 5.3 own it: the sweep writes only what the probe read.
-Deleted: Reconciliation 13. Action wiring 31 owns it: a consumed use and its disclosure record commit together, so no remainder exists.
-Deleted: Reconciliation 14. Recoverable Invocation Invariant 3.5a owns it: an outcome never carries candidates.
-Deleted: Reconciliation 15. Recoverable Invocation reconcile step 3.5 and Recoverable Invocation Invariant 4.9 own it: an intent whose invocation consumed nothing is escalated, and an operator abandons it.
-Deleted: Reconciliation 16. Action wiring 31 owns it: no remainder exists to seal from.
-Deleted: Reconciliation 17. Term authorization probe and Recoverable Invocation Invariant 3.3 own it: the pairing datum, the allocation instant, joins an intent to its capability by equality.
-Deleted: Reconciliation 18. Composition state 6 and Action wiring 18 own it: a recovered authorization binds no capability-to-sharing entry, so its token is refused not-authorized-sharing and lapses at its ttl, and nothing is revoked.
-Deleted: Reconciliation 19. Recoverable Invocation reconcile step 3.8 through 3.10 own it.
-Deleted: Reconciliation 27. Recoverable Invocation reconcile step 3.5 and Recoverable Invocation Invariant 4.9 own it: an authorization intent that allocated nothing is escalated, and an operator abandons it.
-Deleted: Reconciliation 20. Term revocation probe, Recoverable Invocation reconcile step 3.2 and Reconciliation 33 own it: a revocation an intent carries is closed by the sweep, and one no intent carries opens a write-ownership finding.
-Deleted: Reconciliation 21. Term revocation probe and Recoverable Invocation act probe 6 own it.
-Deleted: Reconciliation 22. Recoverable Invocation Invariant 2.1 owns it, and Capability's already-terminal refuses a second revoke of one token.
-Deleted: Reconciliation 23. Recoverable Invocation reconcile step 3.5, Recoverable Invocation reconcile step 3.8, Recoverable Invocation reconcile step 3.21 and Recoverable Invocation reconcile step 5.1 own it.
-Deleted: Reconciliation 24. Recoverable Invocation Invariant 7.2, Recoverable Invocation Instance start 5 and Recoverable Invocation reconcile step 5.9 own it.
-Deleted: Reconciliation 25. Recoverable Invocation Invariant 7.2 and Recoverable Invocation reconcile step 1.2 own it.
-Deleted: Reconciliation 26. Composes 6 owns it: the leg writes no event, so it compensates nothing, and a substrate partial is the substrate's own reconciliation's.
 Reconciliation 29: The reconciliation MUST NOT examine a young record.
 Reconciliation 30: The reconciliation MUST NOT examine an aged record.
 Reconciliation 31: The reconciliation MUST read EVERY capability through Capability's read naming no field, AND EVERY disclosure record through Selective Disclosure's read by the disclosure instant range Reconciliation 29 and Reconciliation 30 admit, against the intents.
@@ -639,8 +561,6 @@ These emerge from the composition; none belongs to a single constituent.
   Invariant 2.1: EVERY disclosure event MUST name a disclosure record in the Selective Disclosure records.
   Invariant 2.2: A disclosure record MUST NOT carry two disclosure events.
   Invariant 2.3: EVERY committed disclosure whose disclosure event has not landed MUST stand as a pending marker AND an open sharing.disclosure intent.
-  Deleted: Invariant 2.4. Recoverable Invocation Invariant 4.2 and Recoverable Invocation Check 3.1 own it: an intent whose invocation died is closed within the closure window, by an outcome on a committed probe, or escalated.
-  Deleted: Invariant 2.5. Recoverable Invocation Instance start 4 through 8 and Recoverable Invocation Check 4.1 own it: the instance does not start without its bounds.
   NOTE: the invocation resolve does not check an operator's outcome against Selective Disclosure (Recoverable Invocation resolve 28, Recoverable Invocation resolve 31), so Invariant 2.1 and Invariant 2.2 are detected, not prevented, for an operator's closing: the seal alert (Composition state 17), Check 2.1 and Check 2.2 find it.
   ```
 - **Invariant 3 — Allocation-authorization binding.**
@@ -648,7 +568,6 @@ These emerge from the composition; none belongs to a single constituent.
   Invariant 3.1: EVERY authorization event MUST name a capability token in the Capability records.
   Invariant 3.2: EVERY capability-to-sharing entry MUST name EXACTLY ONE authorization event.
   Invariant 3.3: EVERY authorization event carrying no recovery flag MUST carry the allocator's own attestation.
-  Deleted: Invariant 3.4. Recoverable Invocation Invariant 4.2 owns it: an authorization intent whose invocation died is closed within the closure window, by an outcome on a committed probe, or escalated.
   Invariant 3.5: A disclosure MUST commit ONLY under a capability token whose capability-to-sharing entry names an authorization event carrying no recovery flag.
   NOTE: the invocation resolve does not check an operator's outcome against Capability (Recoverable Invocation resolve 28, Recoverable Invocation resolve 31), so Invariant 3.1 and Invariant 3.2 are detected, not prevented, for an operator's closing: the duplicate-authorization alert (Composition state 18) and Check 3.2 find it, and an operator's outcome carries the recovery flag, so it binds no entry (Composition state 6).
   ```
@@ -659,11 +578,6 @@ These emerge from the composition; none belongs to a single constituent.
   Invariant 4.2: The disclosure events naming a capability token whose authorization event IS NOT IN the aged events MUST NOT EXCEED the capability's consumed count.
   ```
 - **Invariant 6 — Authentication precedes commitment at the actions that name an actor.**
-  ```
-  Deleted: Invariant 6.1. Recoverable Invocation Invariant 1.1 owns it: the allocate follows the invocation open, whose intent record verified the allocator's credential.
-  Deleted: Invariant 6.2. Recoverable Invocation Invariant 1.1 owns it: the revoke follows the invocation open, whose intent record verified the revoker's credential.
-  Deleted: Invariant 5. Composes 5 owns it.
-  ```
 
 Term claimable disclosure: a capability-backed disclosure whose authorization event is not an aged event and whose disclosure event, where one has landed, is not an aged event — the two events the allocator-named claim reads, the disclosure event naming the allocator and the authorization event attesting the allocator's authorization. A disclosure is claimable when it is made: a redemption whose token's authorization event has aged finds no capability-to-sharing entry and discloses nothing (Composition state 21, Action wiring 18), and the ttl cap leaves that state only to a token allocated before the cap, ending every other token's life first (Term ttl cap, Action wiring 65, 66). It stays claimable until either event ages.
 
@@ -723,30 +637,14 @@ Check 1.5: An auditor MUST find the allocator-named claim made ONLY for a disclo
 Check 2.1: An auditor MUST find EVERY disclosure event's disclosure id naming a disclosure record in the Selective Disclosure records (Invariant 2.1).
 Check 2.2: An auditor MUST find no disclosure record carrying two disclosure events (Invariant 2.2).
 Check 2.3: An auditor MUST verify a disclosure event PER Audit Trail's verify record contract, presenting the original event payload Audit Trail's term of that name gives for the event (Invariant 2.1).
-Deleted: Check 2.4. Check 2.3 owns it.
 Check 2.5: An auditor MUST resolve EVERY disclosure record no disclosure event names that is neither a young record nor an aged record to EXACTLY ONE OF a carried disclosure record whose carrying intent stands open, a carried disclosure record whose carrying intent stands escalated, a false closing, a write-ownership finding, by comparing the Selective Disclosure records with the Audit Trail's disclosure events and intents (Invariant 2.3, Reconciliation 34, Reconciliation 35).
 NOTE: watch the check over a derived index (Check 2.5).
-Deleted: Check 3.1. Recoverable Invocation Check 3.1 and Recoverable Invocation Check 1.1 own it: every intent is closed or escalated within the closure window, and every outcome names its intent.
 Check 3.2: An auditor MUST find EXACTLY ONE authorization event PER capability-to-sharing entry (Invariant 3.2).
 Check 3.3: An auditor MUST find EVERY authorization event carrying no recovery flag attested under the allocator reference the entry carries (Invariant 3.3).
 Check 3.4: An auditor MUST find EVERY disclosure event's capability token, the token the event's intent carries, resolving to an authorization event carrying no recovery flag (Invariant 3.5).
-Deleted: Check 3.5. Check 3.1 owns it.
 Check 3.6: An auditor MUST find EVERY authorization event naming a capability token in the Capability records (Invariant 3.1).
 Check 4.1: An auditor MUST find EVERY disclosure record's scope equal to the disclosed scope the capability's authorization event names (Invariant 4.1).
 Check 4.2: An auditor MUST find the disclosure events naming a capability token not exceeding the capability's consumed count (Invariant 4.2).
-Deleted: Check 4.3. Action wiring 31 owns it: a consumed use and its disclosure record commit together, so no remainder exists.
-Deleted: Check 5.1. Recoverable Invocation Check 1.1 owns it.
-Deleted: Check 5.2. Recoverable Invocation Check 1.1 owns it.
-Deleted: Check 5.3. Check 5.1 owns it.
-Deleted: Check 5.4. Term revocation probe and Recoverable Invocation reconcile step 3.5 own it: a revocation intent is closed by its outcome, its refusal record, a recovered outcome or an escalation.
-Deleted: Check 5.5. Action wiring 24 owns it.
-Deleted: Check 6.1. Recoverable Invocation Check 3.1 owns it.
-Deleted: Check 6.2. Action wiring 31 owns it: no remainder exists to seal from.
-Deleted: Check 6.3. Recoverable Invocation Check 6.1 owns it.
-Deleted: Check 6.4. Recoverable Invocation Check 3.1 owns it.
-Deleted: Check 6.5. Reconciliation 23 owns it.
-Deleted: Check 6.6. Execution Contract Database 1 owns it.
-Deleted: Check 6.7. Reconciliation 25 owns it.
 Check 7.1: An auditor MUST resolve EVERY capability AND EVERY revoked capability that is neither a young record nor an aged record AND that no outcome record names to EXACTLY ONE OF a carried record whose carrying intent stands open, a carried record whose carrying intent stands escalated, a false closing, a write-ownership finding (Reconciliation 32, Reconciliation 33, Reconciliation 35).
 Check 7.2: An auditor MUST clear Recoverable Invocation's Generation acceptance over the Recoverable Invocation instance (Composes 5).
 Check 7.3: IF a capability token's authorization event IS IN the aged events THEN an auditor MUST NOT find the token failing Check 1.3, Check 1.4, Check 3.2 through 3.4, Check 3.6, Check 4.1 AND Check 4.2 (Capability requirement 31, Invariant 4.2).
@@ -764,7 +662,6 @@ External check 2: An auditor needing the declared authority confirmed as legally
 External check 3: An auditor needing the delivered bytes confirmed against the disclosed scope MUST read the host's delivery records (Non-goal 3).
 External check 4: An auditor needing the allocator's permission to share confirmed MUST read the composed Permissions instance's records (Non-goal 5).
 External check 5: An auditor needing the closure window, the sweep cadence, the run bound AND the three completion bounds confirmed MUST clear Recoverable Invocation Check 4.1 AND Recoverable Invocation External check 3 over the instance (Capability requirement 25, Capability requirement 30).
-Deleted: External check 6. Execution Contract Database 3 owns it.
 External check 7: An auditor needing the exclusivity of the Capability instance AND the Selective Disclosure instance confirmed MUST read the deployment's own wiring (Composes 8 and Composes 11).
 External check 8: An auditor needing a constituent's own guarantee confirmed MUST read the constituent's own acceptance (Composes 5).
 External check 9: An auditor needing the obligation of Capability requirement 22 AND Capability requirement 23 confirmed MUST clear the obligation from external evidence (Recoverable Invocation External check 12).
@@ -795,18 +692,11 @@ NOTE: the owners — [Permissions](../atoms/permissions.md) and [Session](../ato
 
 ### Atomic writes
 
-```
-Deleted: Atomic writes 1. Execution Contract Database 1 owns it.
-Deleted: Atomic writes 2. Execution Contract Database 1 owns it.
-Deleted: Atomic writes 3. Execution Contract Database 1 owns it.
-```
-
 ### Clock semantics
 
 ```
 Clock semantics 1: The composition MUST order a sharing event by the substrate's sequence number alone.
 Clock semantics 2: The composition MUST NOT compare a composition reading against the substrate's recording instant, Term aged event's comparison under the clock offset allowance excepted.
-Deleted: Clock semantics 3. Capability requirement 22 and Term disclosure probe own it, reversed: the disclosure reading is the disclosure record's disclosure instant, and the probe compares them by equality.
 ```
 
 Term composition reading: an allocation reading, a disclosure reading or a revocation reading.
@@ -814,11 +704,6 @@ Term composition reading: an allocation reading, a disclosure reading or a revoc
 Term authority's own records: the Consent records, the Legal Hold records or the deployment's legal analysis — whichever the authority type names.
 
 ### Concurrency
-
-```
-Deleted: Concurrency 1. Execution Contract Database 2 owns it.
-Deleted: Concurrency 2. Execution Contract Database 2 owns it.
-```
 
 ### Cross-record consistency under partial failure
 

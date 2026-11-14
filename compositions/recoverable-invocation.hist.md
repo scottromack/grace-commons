@@ -67,3 +67,263 @@ The gate records the Ledger's `last gate:` line carried behind its latest until 
 
 - **2026-09-11 — The walkthrough's closure latency, above an earlier draft's.** An earlier draft bound `closure_latency = 5 s`, which breaches condition 5: the second gate fails for any probe latency, the sweep re-opens a recovery intent every cadence and never lands a closing.
 - **2026-09-14 — refuse step 0.1 restating close 4 (council read 50).** Council read 50's repoint made refuse step 0.1 an EXACT restatement of close 4: both now oblige the adopter's action, where before they differed by naming [Close] and [Refuse], so `W-duplicate-proposition` reports it where it did not. That is the watch gaining its sharpest specimen rather than a defect arriving — one proposition, two labels, no form to inherit with — and it is left standing as the evidence the inheritance ruling will need.
+
+## Deleted rules
+
+The spec's tombstones, moved here from the page on 2026-11-13 because the spec is done (GRACE-lang Hard invariant 25 and Hard invariant 27, since v0.71): each `Deleted:` line byte for byte and in the page's order, under the heading it stood under there. A tombstone carries no obligation, and each still reserves its label: no rule of [Recoverable Invocation](./recoverable-invocation.md) may carry it again.
+
+### Composes › Journal fence (optional)
+
+```
+Deleted: journal fence 1. Execution Contract Database 2 owns it: a writer's re-read, lease check and append are one transaction, and no deployment declares a fence on the journal.
+Deleted: journal fence 2. Execution Contract Database 2 owns it: a writer's re-read, lease check and append are one transaction, and the page mints no instant for a fence on the journal.
+Deleted: journal fence 3. Execution Contract Database 2 owns it.
+Deleted: journal fence 4. Execution Contract Database 2 owns it.
+```
+
+### Composes › Under journal fence set to none — the case in this library today
+
+```
+Deleted: journal fence none 1. Execution Contract Database 2 owns it: a writer's re-read, lease check and append are one transaction, so no append lands beside another writer's closing.
+Deleted: journal fence none 1a. Execution Contract Database 2 owns it: a writer's re-read, lease check and append are one transaction, so no append lands beside another writer's closing.
+Deleted: journal fence none 1b. Execution Contract Database 2 owns it: a writer's re-read, lease check and append are one transaction, so no act carries a binding duplicate.
+Deleted: journal fence none 2. Execution Contract Database 2 owns it: a writer's re-read, lease check and append are one transaction, so no act carries a binding duplicate.
+Deleted: journal fence none 3. Execution Contract Database 2 owns it: a writer's re-read, lease check and append are one transaction, so no act carries a binding duplicate.
+Deleted: journal fence none 4. Execution Contract Database 2 owns it: a writer's re-read, lease check and append are one transaction, so no act carries a binding duplicate.
+Deleted: journal fence none 5. Execution Contract Database 2 owns it: a writer's re-read, lease check and append are one transaction, so no act carries a binding duplicate.
+Deleted: journal fence none 6. Execution Contract Database 2 owns it: a writer's re-read, lease check and append are one transaction, so no act carries a binding duplicate.
+```
+
+### Composition logic › Capability requirement
+
+```
+Deleted: Capability requirement 2. Non-goal 3 owns it: the range read answers as Event Log's read declares, every record the range holds, passed through Audit Trail unchanged (Audit Trail Action wiring 1 and 5), and no rule here reads a page.
+Deleted: Capability requirement 7. Execution Contract Database 2 and Execution Contract Database 3 own it.
+Deleted: Capability requirement 16. Execution Contract Scheduled leg 1 owns it.
+Deleted: Capability requirement 17. Execution Contract Scheduled leg 1 owns it.
+```
+
+### Composition logic › Capability requirement › act section
+
+```
+      Deleted: act section 10c. act section 10a owns it: nothing is written on a reply that arrives after the expiry.
+      Deleted: act section 10d. open step 4.2b, open step 5.6, close step 1.2c and refuse step 1.2b own it: each action returns its own arm where the lease no longer covers the write.
+  Deleted: act section 14. Lease Non-goal 1 owns it: a party takes no key the party holds, the holder included.
+  Deleted: act section 18a. act section 16 owns it: Lease Sizing 8, bound for every unfenced write.
+```
+
+### Composition logic › Capability requirement › pause bound
+
+```
+  Deleted: call pause bound 1. pause bound 1 owns it: the binding is renamed pause bound, a name Audit Trail does not declare (the maintainer's ruling of 2026-10-27).
+  Deleted: call pause bound 2. pause bound 2 owns it: the binding is renamed pause bound.
+```
+
+### Composition logic › Capability requirement › sweep cadence
+
+```
+  Deleted: sweep cadence 1. Execution Contract Scheduled leg 1 owns it.
+```
+
+### Composition logic › Capability requirement › intent candidates cap
+
+```
+  Deleted: intent candidates cap 1. Execution Contract Logic confinement 15 owns it.
+```
+
+### Composition logic › Capability requirement › read cap
+
+```
+  Deleted: read cap 1. Execution Contract Logic confinement 15 owns it.
+```
+
+### Composition logic › Primitive policy
+
+```
+Deleted: Primitive policy 16. Composes 1 owns it: a stamp the composition takes from now is neither the substrate's nor the constituent's.
+Deleted: Primitive policy 24. Execution Contract Database 1 owns it.
+Deleted: Primitive policy 25. Execution Contract Database 1 owns it.
+Deleted: Primitive policy 26. Execution Contract Database 1 owns it.
+Deleted: Primitive policy 29a. Execution Contract Database 2 and Primitive policy 32a own it: no deployment declares a fence on the journal, and recording-failure(step-3) is a lost reply at every position.
+    Deleted: Primitive policy 37a. Execution Contract Database 2 and Primitive policy 37b own it: no deployment declares a fence on the journal, and a read-back that finds nothing lands the position's existing arm.
+```
+
+### Composition logic › Action wiring
+
+```
+Deleted: Action wiring 5. commit 2 and commit 9 own it: the adopter closes through [Refuse] every arm the constituent declares pre-commit, and no other.
+```
+
+### Composition logic › Action wiring › Open contract
+
+```
+   Deleted: open step 2.2. Lease Operation 3 and Operation 4 own it: the host ends a waiting take at the waiter's bound, which no waiter reads; a take unanswered past the longest duration declared for the key and call pause bound is no answer (Lease Term no answer), which act section 17 lands.
+   Deleted: open step 5.7. No adopter binds a declared commit fence, whose deadline it minted; an adopter that needs it reopens it with a Decisions entry.
+   Deleted: open step 5.8. No adopter binds a declared commit fence, whose deadline it returned; an adopter that needs it reopens it with a Decisions entry.
+```
+
+### Composition logic › Action wiring › Close contract
+
+```
+   Deleted: close step 1.3. No adopter binds the counted(n) deviation, the one retry terminus beside the lease; an adopter that needs it reopens it with a Decisions entry.
+   Deleted: close step 2.5. Execution Contract Database 2 owns it: a writer's re-read, lease check and append are one transaction, and no deployment declares a fence on the journal.
+   Deleted: close step 3.6. No adopter binds the counted(n) deviation; an adopter that needs it reopens it with a Decisions entry.
+   Deleted: close step 3.6a. No adopter binds the counted(n) deviation; an adopter that needs it reopens it with a Decisions entry.
+```
+
+### Composition logic › Action wiring › Refuse contract
+
+```
+   Deleted: refuse step 3.2. refuse step 3.3 through 3.8 and refuse step 3.12 own it: each arm of the refusal record is landed there.
+```
+
+### Composition logic › Action wiring › Resolve contract
+
+```
+Deleted: resolve 5. Lease Operation 3 and Operation 4 own it, as for open step 2.2.
+Deleted: resolve 9a. Execution Contract Database 2 owns it: a writer's re-read, lease check and append are one transaction, so no act carries a binding duplicate.
+Deleted: resolve 17. resolve 16b owns it: every disposition but outcome over a standing abandonment answers already-abandoned, an abandoned one among them.
+Deleted: resolve 20. resolve 32 owns it: no adopter binds a declared commit fence, so the condition it opened held for every kind.
+Deleted: resolve 20a. resolve 32 owns it, for every kind.
+```
+
+### Composition logic › Action wiring › Reconcile contract
+
+```
+   Deleted: reconcile step 1.4. Execution Contract Database 2 owns it: a writer's re-read, lease check and append are one transaction, so the run keeps no closing record for a duplicate scan.
+   Deleted: reconcile step 1.5. Execution Contract Database 2 owns it: a writer's re-read, lease check and append are one transaction, so the run keeps no closing record for a duplicate scan.
+   Deleted: reconcile step 2.2. Lease Operation 3 and Operation 4 own it, as for open step 2.2.
+   Deleted: reconcile step 3.4. No adopter binds a declared commit fence, the one kind the sweep abandoned; an adopter that needs it reopens it with a Decisions entry.
+   Deleted: reconcile step 3.4a. No adopter binds a declared commit fence, the one kind the sweep abandoned; an adopter that needs it reopens it with a Decisions entry.
+   Deleted: reconcile step 3.4b. No adopter binds a declared commit fence, the one kind the sweep abandoned; an adopter that needs it reopens it with a Decisions entry.
+   Deleted: reconcile step 3.6. No adopter binds a declared commit fence, the one kind whose not-committed the sweep held short of abandon edge; an adopter that needs it reopens it with a Decisions entry.
+   Deleted: reconcile step 3.6a. No adopter binds a declared commit fence, the one kind whose not-committed the sweep held short of abandon edge; an adopter that needs it reopens it with a Decisions entry.
+   Deleted: reconcile step 3.6b. No adopter binds a declared commit fence, the one kind whose not-committed the sweep held short of abandon edge; an adopter that needs it reopens it with a Decisions entry.
+       Deleted: reconcile step 3.8b. reconcile step 3.21 owns it, for every cause.
+   Deleted: reconcile step 3.14. Invariant 4.9 owns it: no adopter binds a declared commit fence, so the sweep writes no abandoned record, for an outage or otherwise; an adopter that needs the fence reopens it with a Decisions entry.
+   Deleted: reconcile step 5.2. Execution Contract Database 2 owns it: a writer's re-read, lease check and append are one transaction, so no act carries a binding duplicate.
+   Deleted: reconcile step 5.3. Execution Contract Database 2 owns it: a writer's re-read, lease check and append are one transaction, so no act carries a binding duplicate.
+   Deleted: reconcile step 5.4. Execution Contract Database 2 owns it: a writer's re-read, lease check and append are one transaction, so no act carries a binding duplicate.
+   Deleted: reconcile step 5.5. Execution Contract Database 2 owns it: a writer's re-read, lease check and append are one transaction, so no act carries a binding duplicate.
+   Deleted: reconcile step 5.6. Execution Contract Database 2 owns it: a writer's re-read, lease check and append are one transaction, so no act carries a binding duplicate.
+   Deleted: reconcile step 5.7. Execution Contract Database 2 owns it: a writer's re-read, lease check and append are one transaction, so no act carries a binding duplicate.
+```
+
+### Composition logic › Action wiring › Read Invocation contract
+
+```
+Deleted: read invocation 7. Execution Contract Database 2 owns it: a writer's re-read, lease check and append are one transaction, so no act carries a binding duplicate.
+Deleted: read invocation 8. Execution Contract Database 2 owns it: a writer's re-read, lease check and append are one transaction, so no act carries a binding duplicate.
+Deleted: read invocation 9. Execution Contract Database 2 owns it: a writer's re-read, lease check and append are one transaction, so no act carries a binding duplicate.
+Deleted: read invocation 9a. Execution Contract Database 2 owns it: a writer's re-read, lease check and append are one transaction, so no act carries a binding duplicate.
+```
+
+### Composition logic › Bindings › commit
+
+```
+  Deleted: commit 10. No adopter binds a declared commit fence, so commit fence is no binding; an adopter that needs it reopens it with a Decisions entry.
+  Deleted: commit 11. No adopter binds a declared commit fence, whose conveyance it declared; an adopter that needs it reopens it with a Decisions entry.
+  Deleted: commit 12. No adopter binds a declared commit fence; an adopter that needs it reopens it with a Decisions entry.
+  Deleted: commit 13. No adopter binds a declared commit fence; an adopter that needs it reopens it with a Decisions entry.
+  Deleted: commit 13a. No adopter binds a declared commit fence, the one kind the sweep abandoned; an adopter that needs it reopens it with a Decisions entry.
+  Deleted: commit 13b. No adopter binds a declared commit fence, whose deadline the commit carried; an adopter that needs it reopens it with a Decisions entry.
+  Deleted: commit 14. commit 15, Invariant 4.9 and reconcile step 3.5 own it: no adopter binds a declared commit fence, so the condition it opened held for every kind.
+  Deleted: commit 14a. Invariant 4.9 owns it, for every kind.
+  Deleted: commit 14b. reconcile step 3.5 owns it, for every kind.
+  Deleted: commit 14c. commit 15 owns it, for every kind.
+```
+
+### Composition logic › Bindings › act probe
+
+```
+  Deleted: probe 1. act probe 1 owns it: the binding is renamed act probe, since Audit Trail declares probe in another sense (the maintainer's ruling of 2026-10-27).
+  Deleted: probe 2. act probe 2 owns it: the binding is renamed act probe.
+  Deleted: probe 3. act probe 3 owns it: the binding is renamed act probe.
+  Deleted: probe 4. act probe 4 owns it: the binding is renamed act probe.
+  Deleted: probe 5. act probe 5 owns it: the binding is renamed act probe.
+  Deleted: probe 6. act probe 6 owns it: the binding is renamed act probe.
+  Deleted: probe 7. act probe 7 owns it: the binding is renamed act probe.
+  Deleted: probe 7a. act probe 7a owns it: the binding is renamed act probe.
+  Deleted: probe 8. act probe 8 owns it: the binding is renamed act probe.
+```
+
+### Composition logic › Bindings › retry terminus
+
+```
+  Deleted: retry terminus 1. journal write bound 1 owns it: [Close] writes only on a remaining queried for the write that exceeds write floor.
+  Deleted: retry terminus 2. journal write bound 1 owns it: [Close] writes only on a remaining queried for the write that exceeds write floor.
+  Deleted: retry terminus 3. No adopter binds the counted(n) deviation, so retry terminus is no binding and the lease is every invocation's terminus; an adopter that needs it reopens it with a Decisions entry.
+```
+
+### Composition logic › Where the allowance goes
+
+```
+Deleted: Allowance 3. No adopter binds a declared commit fence, whose deadline was the page's one minted instant, so every cross-seam comparison takes the allowance at the reading (Allowance 4); an adopter that needs it reopens it with a Decisions entry.
+Deleted: Allowance 5. Allowance 4 owns it: every cross-seam comparison takes the allowance at the reading, against a stamp of the substrate's or the constituent's (Composes 1); [Open] and [Resolve] decide the writes it gates under the critical section, no pairing rests on a stamp within a window (Invariant 3.4), and the sweep abandons nothing (Invariant 4.9).
+Deleted: Allowance 7. No adopter binds a declared commit fence, whose deadline was the page's one minted instant; an adopter that needs it reopens it with a Decisions entry.
+Deleted: Allowance 8. No adopter binds a declared commit fence, whose deadline was the page's one minted instant; an adopter that needs it reopens it with a Decisions entry.
+Deleted: Allowance 9. No adopter binds a declared commit fence, whose deadline was the page's one minted instant; an adopter that needs it reopens it with a Decisions entry.
+Deleted: Allowance 10. No adopter binds a declared commit fence, whose deadline was the page's one minted instant; an adopter that needs it reopens it with a Decisions entry.
+Deleted: Allowance 11. No adopter binds a declared commit fence, the one kind condition 3 charged an allowance for; an adopter that needs it reopens it with a Decisions entry.
+Deleted: Allowance 12. Invariant 4.9 owns it: no adopter binds a declared commit fence, so the sweep writes no abandoned record; an adopter that needs the fence reopens it with a Decisions entry.
+Deleted: Allowance 13. Execution Contract Database 2 owns it: a writer's re-read, lease check and append are one transaction, and the page mints no instant for a fence on the journal.
+```
+
+### Composition logic › Which closing stands
+
+```
+Deleted: Which closing stands 6. Execution Contract Database 2 owns it: a writer's re-read, lease check and append are one transaction, so no act carries a binding duplicate.
+Deleted: Which closing stands 8. Which closing stands 7 owns it: the lowest sequence number stands among unsuperseded closings alone, so no sequence number stands a closing another closing names in supersedes.
+Deleted: Which closing stands 9. Execution Contract Database 2 owns it: a writer's re-read, lease check and append are one transaction, so no act carries a binding duplicate.
+Deleted: Which closing stands 10. Execution Contract Database 2 owns it: a writer's re-read, lease check and append are one transaction, so no act carries a binding duplicate.
+Deleted: Which closing stands 11. Execution Contract Database 2 owns it: a writer's re-read, lease check and append are one transaction, so no act carries a binding duplicate.
+```
+
+### Composition-level invariants › Invariant 2 — One writer per act
+
+```
+  Deleted: Invariant 2.4. Execution Contract Database 2 owns it: a writer's re-read, lease check and append are one transaction, so Invariant 2.1 binds every deployment.
+  Deleted: Invariant 2.5. Execution Contract Database 2 owns it: a writer's re-read, lease check and append are one transaction, so Invariant 2.1 binds every deployment.
+```
+
+### Composition-level invariants › Invariant 4 — Bounded closure (safety + liveness)
+
+```
+      Deleted: Invariant 4.3b. open step 1.8, open step 3.13, Primitive policy 23 and Capability requirement 6 own it: an outage that fails [Open]'s read lands journal-unavailable, and one that fails the intent record's write or the write's read-back lands recording-failure(intent).
+  Deleted: Invariant 4.10. No adopter binds a declared commit fence, the one kind the sweep abandoned, so no abandoned arm degrades: Invariant 4.8 and 4.9 hold for every kind; an adopter that needs it reopens it with a Decisions entry.
+```
+
+### Composition-level invariants › Invariant 5 — Recovery is derived, never remembered
+
+```
+  Deleted: Invariant 5.6. No adopter binds a declared commit fence, under which the database could say the act did not happen; an adopter that needs it reopens it with a Decisions entry.
+  Deleted: Invariant 5.7. Invariant 4.9 owns it: no adopter binds a declared commit fence, so the sweep writes no abandoned record; an adopter that needs the fence reopens it with a Decisions entry.
+```
+
+### Generation acceptance › Conformance checks
+
+```
+Deleted: Check 6.3. Check 6.4 owns it: no adopter binds a declared commit fence, the one kind the sweep abandoned, so no abandoned record carrying no resolving actor conforms; an adopter that needs the fence reopens it with a Decisions entry.
+```
+
+### Generation acceptance › External checks
+
+```
+Deleted: External check 6. No adopter binds a declared commit fence, which the database had to honour; an adopter that needs it reopens it with a Decisions entry.
+```
+
+### Edge cases › Clock semantics
+
+```
+Deleted: Clock semantics 2. Composes 1 owns it.
+Deleted: Clock semantics 1. Execution Contract Logic confinement 3 owns it.
+```
+
+### Edge cases › Declared deviations
+
+```
+Deleted: Deviation 3. No adopter binds the counted(n) deviation; an adopter that needs it reopens it with a Decisions entry.
+Deleted: Deviation 3a. No adopter binds the counted(n) deviation; an adopter that needs it reopens it with a Decisions entry.
+Deleted: Deviation 3b. No adopter binds the counted(n) deviation; an adopter that needs it reopens it with a Decisions entry.
+Deleted: Deviation 3c. No adopter binds the counted(n) deviation; an adopter that needs it reopens it with a Decisions entry.
+```

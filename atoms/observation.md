@@ -55,10 +55,8 @@ The atom imposes no semantics on what a value means. It imposes the structural g
 ```
 Identity 1: The atom MUST identify an observation by the observation id.
 Identity 2: The host MUST allocate an observation id at the seam that no observation in the database instance carries and that DOES NOT EXCEED the string cap.
-Deleted: Identity 3. Execution Contract Logic confinement 3 owns it.
 Identity 4: The atom MUST NOT change an observation id.
 Identity 5: Two observations in one database instance MUST NOT share an observation id.
-Deleted: Identity 6. Execution Contract Database 7 owns it.
 Identity 7: The atom MUST NOT identify an observation by the subject reference.
 Identity 8: The atom MUST admit a second observation carrying a recorded subject reference.
 Identity 9: A subject reference MUST carry one meaning across EVERY database instance.
@@ -111,7 +109,6 @@ State 8: EVERY observation MUST carry observation id, subject reference, recordi
 State 9: EVERY amended observation MUST carry a successor id.
 State 10: EVERY successor observation MUST carry predecessor id, amending actor and amendment reason.
 State 11: EVERY retracted observation MUST carry retracting actor and retraction reason.
-Deleted: State 12. Invariant 7.1 and Execution Contract Database 4 own it.
 State 13: The atom MUST store a resolved recording instant standing within the future bound as the call supplied the value.
 State 14: The atom MUST NOT normalize a recording instant's timezone.
 ```
@@ -119,21 +116,10 @@ State 14: The atom MUST NOT normalize a recording instant's timezone.
 ### Capability requirement
 
 ```
-Deleted: Capability requirement 1. Execution Contract Logic confinement 11 owns it.
-Deleted: Capability requirement 2. Execution Contract Logic confinement 7 owns it.
-Deleted: Capability requirement 3. Execution Contract Logic confinement 7 owns it.
-Deleted: Capability requirement 4. Execution Contract Logic confinement 7 owns it.
 Capability requirement 5: The deployment MUST declare the clock offset allowance.
 Capability requirement 6: The deployment MUST supply the observation records PER Execution Contract Database 1 through 4, Execution Contract Database 6, Execution Contract Database 7, Execution Contract Refusal 1 and Execution Contract Query 1 through 4.
 Capability requirement 7: The deployment MUST declare a value constraint per observation type.
 Capability requirement 8: The deployment MAY declare the string cap PER Execution Contract Input 2.
-Deleted: Clock semantics 1. Execution Contract Logic confinement 7 owns it.
-Deleted: Clock semantics 2. Execution Contract Logic confinement 7 owns it.
-Deleted: Clock semantics 3. Execution Contract Logic confinement 7 owns it.
-Deleted: Clock semantics 4. Capability requirement 5 owns it.
-Deleted: Clock semantics 5. State 13 owns it.
-Deleted: Clock semantics 6. State 14 owns it.
-Deleted: Clock semantics 7. Non-goal 23 owns it.
 ```
 
 ### Operations
@@ -171,12 +157,9 @@ Operation 11: IF the observation id names no observation THEN a chain action MUS
 Operation 12: A chain action MUST answer not-known ONLY IF the observation id names no observation.
 Operation 13: IF the observation's state EQUALS retracted THEN a chain action MUST answer already-retracted.
 Operation 14: IF the observation's state EQUALS amended THEN [Amend] MUST answer already-amended.
-Deleted: Operation 15. Execution Contract Refusal 1 owns it.
 Operation 16: IF amending actor EQUALS blank THEN [Amend] MUST answer invalid-request.
 Operation 17: IF reason EQUALS blank THEN a chain action MUST answer invalid-request.
 Operation 18: IF retracting actor EQUALS blank THEN [Retract] MUST answer invalid-request.
-Deleted: Operation 19. Execution Contract Refusal 1 owns it.
-Deleted: Operation 20. Execution Contract Refusal 1 owns it.
 Operation 21: [Amend] MUST NOT accept a subject reference.
 Operation 22: [Amend] MUST NOT accept an observation type.
 Operation 23: [Amend] MUST NOT accept a recording instant.
@@ -189,15 +172,12 @@ Operation 29: An admitted amend MUST set the successor's predecessor id to the o
 Operation 30: An admitted amend MUST record amending actor and reason as amendment reason on the successor.
 Operation 31: An admitted amend MUST stand the original in amended.
 Operation 32: An admitted amend MUST set the original's successor id to the successor's observation id.
-Deleted: Operation 33. Execution Contract Database 1 owns it.
 Operation 34: An admitted amend MUST answer the successor's observation id.
 Operation 35: An admitted retract MUST stand the observation in retracted.
 Operation 36: An admitted retract MUST record retracting actor and reason as retraction reason.
 Operation 37: An admitted retract MUST answer retracted.
 Operation 38: [Retract] MUST NOT refuse an observation whose state EQUALS amended.
 Operation 39: IF the database refuses the write THEN a writing action MUST answer storage-failure.
-Deleted: Operation 40. Execution Contract Refusal 1 owns it.
-Deleted: Operation 41. Execution Contract Read 4 owns it.
 Operation 42: An admitted read MUST answer the matching observations in recording instant ascending order.
 Operation 43: An admitted read MUST order two observations sharing a recording instant in observation id order, each id compared as a string PER Execution Contract Logic confinement 10.
 Operation 44: An admitted read MUST answer EVERY observation matching the supplied filters.
@@ -208,9 +188,6 @@ Operation 48: IF a filter's value EQUALS blank THEN [Read] MUST answer invalid-q
 Operation 49: IF a state filter's value IS NOT IN the states THEN [Read] MUST answer invalid-query.
 Operation 50: IF a range filter's end PRECEDES the range's start THEN [Read] MUST answer invalid-query.
 Operation 51: [Read] MUST NOT write.
-Deleted: Operation 52. Execution Contract Logic confinement 11 owns it.
-Deleted: Operation 53. Execution Contract Logic confinement 3 owns it.
-Deleted: Operation 54. Execution Contract Logic confinement 3 owns it.
 Operation 55: An ordering rule MUST NOT rest on a causal claim.
 Operation 56: An admitted amend MUST take the successor's recording actor from the original.
 Operation 57: An admitted amend MUST record value and unit on the successor.
@@ -311,8 +288,6 @@ Term matching observations: the observations meeting EVERY supplied filter — w
 - **Invariant 7 — Record durability.**
   ```
   Invariant 7.1: The atom MUST NOT remove an observation from the database.
-  Deleted: Invariant 7.2. Execution Contract Database 1 owns it.
-  Deleted: Invariant 7.3. Execution Contract Database 1 and Execution Contract Database 3 own it.
   ```
 - **Invariant 8 — Recording Instant is set once.**
   ```
@@ -386,7 +361,6 @@ Check 2.4: An auditor MUST find EVERY observation in one amendment chain sharing
 Check 2.5: An auditor MUST find no observation carrying two successor ids (Invariant 3.1).
 Check 2.6: An auditor MUST find no observation carrying two predecessor ids (Invariant 3.2).
 Check 3.1: An auditor MUST find no observation leaving retracted across two committed versions of the observation (Invariant 6.1; Execution Contract Generation acceptance 1).
-Deleted: Check 4.1. Execution Contract Database 6 owns it.
 Check 5.1: An auditor MUST find EVERY observation's recording actor non-blank (Operation 2, String 5).
 Check 5.2: An auditor MUST find EVERY retracted observation's retracting actor and retraction reason non-blank (Operation 17, Operation 18).
 Check 5.3: An auditor MUST find EVERY successor observation's amending actor and amendment reason non-blank (Operation 16, Operation 17).
@@ -405,14 +379,12 @@ External check 1: A deployment needing EVERY issued observation id found in the 
 External check 2: A deployment needing a recording actor confirmed authorized MUST read the composing Permissions record (Non-goal 13).
 External check 3: A deployment needing a reference bound to an actor MUST read the composing Actor Identity attestation (Non-goal 11).
 External check 4: A deployment needing a value confirmed correct MUST read outside the observation records (Non-goal 5).
-Deleted: External check 5. Execution Contract Database 6 owns it.
 ```
 
 ## Non-goals
 
 ```
 Non-goal 1: The atom MUST NOT define a value constraint.
-Deleted: Non-goal 2. Capability requirement 7 owns it.
 Non-goal 3: The atom MUST NOT bound the look-back on a recording instant.
 Non-goal 4: The atom MUST NOT interpret a value.
 Non-goal 5: The atom MUST NOT confirm that a value stands correct.
@@ -444,23 +416,9 @@ NOTE: the owners — [Actor Identity](./actor-identity.md) (Non-goal 10, Non-goa
 
 ### Atomic writes
 
-```
-Deleted: Atomic writes 1. Execution Contract Database 1 owns it.
-Deleted: Atomic writes 2. Execution Contract Database 1 owns it.
-Deleted: Atomic writes 3. Execution Contract Database 1 and Execution Contract Database 3 own it.
-Deleted: Atomic writes 4. Execution Contract Database 1 owns it.
-```
-
 ### Concurrency
 
 ```
-Deleted: Concurrency 1. Execution Contract Database 2 owns it.
-Deleted: Concurrency 2. Execution Contract Database 2 owns it.
-Deleted: Concurrency 3. Execution Contract Database 2 owns it.
-Deleted: Concurrency 4. Execution Contract Database 2 owns it.
-Deleted: Concurrency 5. Execution Contract Database 2 owns it: a chain action's state check and transition are one transaction, and the atom names no section to release.
-Deleted: Concurrency 6. Execution Contract Database 2 owns it: a chain action's state check and transition are one transaction, and the atom names no section to lapse.
-Deleted: Concurrency 7. Execution Contract Database 2 owns it.
 Concurrency 8: The atom MUST admit two concurrent [Record] calls against one subject reference.
 ```
 
@@ -473,7 +431,6 @@ String 3: The atom MUST NOT normalize a string input.
 String 4: The atom MUST NOT case-fold a string input.
 String 5: The atom MUST read a whitespace-only string input as blank.
 String 6: The atom MUST read an absent string input as blank.
-Deleted: String 7. Execution Contract Logic confinement 13 owns it.
 ```
 
 Term string input: a reference, observation type, unit, reason OR a filter's value — every caller-supplied string this atom accepts.
@@ -494,7 +451,6 @@ Composition note 6: A composing pattern MUST own the retention of the observatio
 Composition note 7: A composing pattern MUST own at-most-once recording.
 Composition note 8: A composing pattern MUST own a trend across two observations.
 Composition note 9: A composing pattern MUST own the routing across two database instances.
-Deleted: Composition note 10. Execution Contract Atom interface 1 owns it.
 ```
 
 ---

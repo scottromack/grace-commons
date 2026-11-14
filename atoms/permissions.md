@@ -39,7 +39,6 @@ Identity 1: The atom MUST identify a grant by the grant id.
 Identity 2: The host MUST allocate a grant id at the atom's seam.
 Identity 3: The transition MUST NOT allocate a grant id.
 Identity 4: The business caller MUST NOT supply a grant id to [Grant].
-Deleted: Identity 5. Invariant 5.1 owns it.
 Identity 6: The atom MUST NOT identify a grant by the subject reference with the action scope.
 Identity 7: A subject reference MAY hold two active grants over one action scope.
 Identity 8: [Revoke] MUST reach EXACTLY ONE grant.
@@ -75,11 +74,6 @@ State 2: EVERY grant MUST carry grant id, subject reference, action scope, grant
 State 3: A revoked grant MUST carry revocation instant.
 State 4: [Grant] MUST stamp grant instant from the injected now.
 State 5: [Revoke] MUST stamp revocation instant from the injected now.
-Deleted: State 6. Invariant 2.2 owns it.
-Deleted: State 7. Invariant 10.1 owns durability.
-Deleted: State 8. Non-goal 1 owns it.
-Deleted: State 9. Non-goal 3 owns it.
-Deleted: State 10. Non-goal 6 owns it.
 ```
 
 Term status: active | revoked — in force, or withdrawn and terminal.
@@ -95,11 +89,6 @@ Capability requirement 1: The deployment MUST supply now at the seam.
 Capability requirement 4: The deployment MUST supply the grant records PER Execution Contract Database 1 through 4, Execution Contract Database 6, Execution Contract Read 1 through 6, Execution Contract Refusal 1 and Execution Contract Conformance 9.
 Capability requirement 5: The deployment MAY declare the string cap PER Execution Contract Input 2.
 Capability requirement 6: The deployment MUST NOT change the string cap for the life of the instance.
-Deleted: Capability requirement 2. Execution Contract Logic confinement 7 owns it.
-Deleted: Capability requirement 3. Execution Contract Logic confinement 7 owns it.
-Deleted: Clock semantics 1. Execution Contract Logic confinement 7 owns it.
-Deleted: Clock semantics 2. Execution Contract Logic confinement 7 owns it.
-Deleted: Clock semantics 3. Non-goal 17 owns it.
 ```
 
 ### Operations
@@ -130,31 +119,20 @@ Operation 4: IF subject reference EQUALS blank THEN [Grant] MUST answer invalid-
 Operation 5: IF action scope EQUALS blank THEN [Grant] MUST answer invalid-request.
 Operation 6: [Grant] MUST NOT refuse a pair an active grant already covers.
 Operation 7: IF the database refuses the write THEN [Grant] MUST answer storage-failure.
-Deleted: Operation 8. Execution Contract Database 1 owns it.
 Operation 9: IF no grant EXISTS for the grant id THEN [Revoke] MUST answer not-known.
 Operation 10: IF the grant's status EQUALS revoked THEN [Revoke] MUST answer not-active.
 Operation 11: [Revoke] MUST stand the grant in revoked.
-Deleted: Operation 12. Execution Contract Database 1 and Execution Contract Database 2 own it.
 Operation 13: IF the database refuses the write THEN [Revoke] MUST answer storage-failure.
-Deleted: Operation 14. Execution Contract Database 3 owns it.
 Operation 15: A caller MUST read storage-failure from [Revoke] as a grant whose status EQUALS active.
 Operation 16: [Check] MUST answer EXACTLY ONE OF permitted, denied.
 Operation 17: [Check] MUST answer permitted ONLY IF an active grant matches the pair.
 Operation 18: [Check] MUST answer denied for a pair no active grant matches.
-Deleted: Operation 19. Operation 16 and Execution Contract Read 2 own it.
 Operation 20: [Check] MUST NOT write.
 Operation 21: [Check] MUST match a subject reference exactly.
 Operation 22: [Check] MUST match an action scope exactly.
-Deleted: Operation 23. Capability requirement 1 owns it.
-Deleted: Operation 24. Execution Contract Logic confinement 3 owns it.
-Deleted: Operation 25. Execution Contract Logic confinement 3 owns it.
 Operation 26: [Read] MUST answer EVERY grant, active AND revoked.
 Operation 27: [Read] MUST answer a grant's grant id, subject reference, action scope, grant instant, status AND revocation instant.
 Operation 28: [Read] MUST NOT write.
-Deleted: Operation 29. Operation 26 and Execution Contract Read 2 own it.
-Deleted: Operation 30. Execution Contract Read 1 owns it.
-Deleted: Operation 31. Execution Contract Read 1 owns it: after the read, every refusal rule of [Grant] before the write answers invalid-request.
-Deleted: Operation 32. Execution Contract Refusal 1 owns it.
 ```
 
 Term pair: one subject reference with one action scope — what [Check] matches over.
@@ -193,13 +171,11 @@ Where two [Revoke] cases hold at once, the refusal listed first on [Revoke]'s re
   ```
 - **Invariant 2 — Status monotonicity.**
   ```
-  Deleted: Invariant 2.1. State 1 owns it.
   Invariant 2.2: A status MUST NOT move from revoked to active.
   ```
 - **Invariant 3 — Revocation is terminal.**
   ```
   Invariant 3.2: [Check] MUST NOT answer permitted on a revoked grant.
-  Deleted: Invariant 3.1. Operation 10 owns it.
   ```
 - **Invariant 4 — Id stability.**
   ```
@@ -231,8 +207,6 @@ Where two [Revoke] cases hold at once, the refusal listed first on [Revoke]'s re
 - **Invariant 10 — Grant record durability.**
   ```
   Invariant 10.1: The atom MUST NOT delete a grant record.
-  Deleted: Invariant 10.2. Invariant 10.1 owns it (Execution Contract Database 6).
-  Deleted: Invariant 10.3. Execution Contract Database 1 owns it.
   ```
 
 Self-containment and denial-by-absence give the *determinism* property — one query against one active set answers one way, always. Immutability and monotonicity give *auditability* — the authorization history is provable from the database.
@@ -301,7 +275,6 @@ Check 3.2: An auditor MUST find no permitted answer for which no matching active
 Check 3.3: An auditor MUST find permitted for a pair an active grant matches (Invariant 7.1).
 Check 4.1: An auditor MUST find no grant whose status moved out of revoked (Invariant 2.2, Operation 10).
 Check 5.1: An auditor MUST find the grant set never shrinking across two readings (Invariant 10.1).
-Deleted: Check 6.1. Execution Contract Conformance 9 owns it.
 ```
 
 ### External checks
@@ -310,8 +283,6 @@ Deleted: Check 6.1. Execution Contract Conformance 9 owns it.
 External check 1: An auditor MUST read who issued a grant from the composing Actor Identity attestations (Non-goal 9).
 External check 2: An auditor MUST read whether an access was attempted from the composing Event Log records (Non-goal 11).
 External check 3: An auditor MUST read a departing subject's full revocation from the composing pattern's deprovisioning records (Deprovisioning 2 through 5).
-Deleted: External check 5. Execution Contract Conformance 9 owns it.
-Deleted: External check 4. Execution Contract Database 2 owns it.
 ```
 
 NOTE: EVERY check names the rule the check tests. The grant records answer *who could do what, and since when*; who authorized it, who tried, and whether a leaver's access was fully removed are the composing patterns' records.
@@ -367,7 +338,6 @@ Deprovisioning 2: A composing pattern MUST enumerate a departing subject's activ
 Deprovisioning 3: A composing pattern MUST call [Revoke] for EVERY grant the enumeration returns.
 Deprovisioning 4: A composing pattern MUST NOT read one revoke as a subject's deprovisioning.
 Deprovisioning 5: A composing pattern MUST record a subject's deprovisioning ONLY IF no active grant EXISTS for the subject.
-Deleted: Deprovisioning 1. Identity 8 owns one revoke reaching one grant.
 ```
 
 ### Grant concurrency and revoke concurrency
@@ -375,8 +345,6 @@ Deleted: Deprovisioning 1. Identity 8 owns one revoke reaching one grant.
 ```
 Grant concurrency 1: Two concurrent [Grant] calls on one pair MUST record two grants.
 Grant concurrency 2: A composing pattern intending one authoritative grant MUST guard against a concurrent issue.
-Deleted: Revoke concurrency 1. Execution Contract Database 2 owns it.
-Deleted: Revoke concurrency 2. Execution Contract Database 2 owns it.
 ```
 
 NOTE: open 2026-10-21-e — one authoritative grant and the guard against a concurrent issue (Grant concurrency 2) name neither what the composing pattern guards nor how, while the atom refuses no covered pair (Operation 6).
@@ -384,7 +352,6 @@ NOTE: open 2026-10-21-e — one authoritative grant and the guard against a conc
 ### Revoke persistence failure
 
 ```
-Deleted: Revoke persistence 1. Operation 15 owns it.
 Revoke persistence 2: A caller MUST retry a revoke that answered storage-failure.
 Revoke persistence 3: A caller MUST read not-active from a retried revoke as the revocation standing.
 Revoke persistence 4: A high-assurance deployment MUST raise a security alert on storage-failure from [Revoke].

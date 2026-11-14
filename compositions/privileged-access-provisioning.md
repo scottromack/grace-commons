@@ -112,7 +112,6 @@ Composition state 11: A shape-bearing event MUST carry the request shape.
 Composition state 12: A state-transition event MUST carry the resulting request state.
 Composition state 13: IF a denial reason stands THEN a state-transition event MUST carry the denial reason.
 Composition state 14: The composition MUST NOT write bearer material into an audit event.
-Deleted: Composition state 15. Execution Contract Database 3 and Execution Contract Database 4 own it.
 Composition state 16: The rebuild MUST take a request's identity fields from the request's shape-bearing event.
 Composition state 17: The rebuild MUST take a request's state from the request's latest state-transition event.
 Composition state 18: The rebuild, EVERY invariant, EVERY check, the pre-check of Reconciliation 4 AND the request-to-events map MUST read a recovery record as the event the recovery record names.
@@ -133,8 +132,6 @@ Composition state 29: The composition MUST NOT rebuild an index entry from an ag
 Composition state 30: The composition MUST leave standing an index entry whose event is an aged event AND MUST classify the index entry as extraction-pending against Erasure Tombstone.
 Composition state 31: A pending entry other than an evaluation entry MUST carry the action reference AND the invocation id of the record the pending entry owes, AND, once the act the entry records resolves, the event data of that record.
 Composition state 32: The composition MUST close a pending entry ONLY AFTER the pending entry's closing occasion.
-Deleted: Composition state 33. Execution Contract Database 2 owns it.
-Deleted: Composition state 34. Execution Contract Database 2 owns it.
 Composition state 35: A request carrying a chain id MUST name EXACTLY ONE chain.
 Composition state 36: EVERY chain in the approval substrate MUST belong to EXACTLY ONE request.
 Composition state 37: A request MUST NOT acquire two capability tokens.
@@ -219,8 +216,6 @@ Capability requirement 7: A deployment MUST set the credential check on request.
 Capability requirement 8: A deployment MUST set the approver set minimum.
 Capability requirement 9: The composition MUST configure the approval substrate with the approver set minimum.
 Capability requirement 10: The retention floor MUST NOT EXCEED the audit horizon.
-Deleted: Capability requirement 11. Execution Contract Database 1 owns it.
-Deleted: Capability requirement 12. Execution Contract Database 3 owns it.
 Capability requirement 13: A deployment MUST NOT purge a request record.
 Capability requirement 14: A deployment MUST NOT purge a record of the Capability instance.
 Capability requirement 15: A deployment MUST declare the composed-scope encoding.
@@ -228,9 +223,6 @@ Capability requirement 16: The composition MUST parse a composed scope back to t
 Capability requirement 17: A deployment MUST supply the service identity.
 Capability requirement 18: A deployment MUST register a caller's credential material in the Credential records AND the audit substrate's actor registry alike.
 Capability requirement 19: A deployment MUST set the reference caps.
-Deleted: Capability requirement 20. Execution Contract Database 2 owns it.
-Deleted: Capability requirement 21. Execution Contract Database 2 owns it: an action's reads of a request and the writes they decide are one transaction, and the composition names no exclusion to release.
-Deleted: Capability requirement 22. Execution Contract Database 2 owns it: an action's reads of a request and the writes they decide are one transaction, and the composition names no exclusion to release.
 Capability requirement 23: The host MUST inject now at the composition's seam once per invocation.
 Capability requirement 24: The composition MUST NOT read the clock inside a transition.
 Capability requirement 25: An admitted request MUST stamp the requested instant as now AND compute the expiry instant from that same now.
@@ -358,7 +350,6 @@ Term mapped refusal: the refusal [Request Access] answers for the initiate chain
 Action wiring 1: A credentialed action MUST call Credential's verify with the actor reference, the credential type AND the credential.
 Action wiring 2: A credentialed action MUST NOT resolve the request BEFORE Credential's verify answers verified.
 Action wiring 3: IF Credential's verify answers failed-verification THEN the action MUST answer invalid-credential.
-Deleted: Action wiring 4. Execution Contract Database 3 and Execution Contract Database 4 own it.
 Action wiring 5: IF a credentialed action's request id names no request record THEN the action MUST answer not-known.
 Action wiring 6: IF the action's load-bearing act answers the act's success THEN the action MUST answer the action's success.
 Action wiring 7: IF Audit Trail refuses the record following a committed load-bearing act THEN the action MUST open a pending entry carrying the record.
@@ -368,7 +359,6 @@ Action wiring 10: A validated request MUST call Permissions' permitted with the 
 Action wiring 11: IF Permissions answers denied THEN the action MUST answer permission-denied.
 Action wiring 12: IF the credential check on request EQUALS true THEN [Request Access] MUST call Credential's verify with the requestor reference, the credential type AND the credential.
 Action wiring 13: An admitted request MUST write the request record carrying Pending AND an initiation entry.
-Deleted: Action wiring 14. Execution Contract Database 1 owns it.
 Action wiring 15: IF the database refuses the request record THEN [Request Access] MUST answer recording-failure carrying intent.
 Action wiring 16: An admitted request MUST call Multi-Party Approval's initiate chain with the requestor reference, the credential, the request id, the access scope, the approver set AND the quorum rule.
 Action wiring 17: IF initiate chain answers the chain id OR recording-failure carrying outcome THEN [Request Access] MUST write the chain id onto the request record.
@@ -384,7 +374,6 @@ Action wiring 26: The deployment MUST alert on a substrate permission-denied as 
 Action wiring 27: An admitted request MUST record the request event ONLY AFTER initiate chain answers the chain id.
 Action wiring 28: IF the request event lands THEN [Request Access] MUST close the initiation entry.
 Action wiring 29: IF Audit Trail refuses the request event THEN [Request Access] MUST leave the initiation entry open.
-Deleted: Action wiring 30. Execution Contract Database 1 owns it.
 Action wiring 31: IF the request's chain id EQUALS blank THEN a decision action MUST answer not-pending.
 Action wiring 32: [Approve Step] MUST call Multi-Party Approval's approve step with the actor reference, the credential, the chain id, the step id AND the reason.
 Action wiring 33: [Reject Step] MUST call Multi-Party Approval's reject step with the actor reference, the credential, the chain id, the step id AND the reason.
@@ -396,7 +385,6 @@ Action wiring 38: IF the approval substrate answers not-pending to a decision TH
 Action wiring 39: A decision action MUST record a decision event carrying the request id, the chain id, the step id, the decision AND the reason ONLY AFTER the approval substrate answers the decision.
 Action wiring 40: A decision action MUST run the chain evaluation ONLY AFTER the approval substrate answers the decision.
 Action wiring 41: A decision action MUST answer the decision ONLY AFTER the approval substrate answers the decision.
-Deleted: Action wiring 42. Execution Contract Database 2 owns it.
 Action wiring 43: The chain evaluation MUST read the chain through Multi-Party Approval's read chain with a query on the chain id.
 Action wiring 44: IF read chain answers permission-denied OR invalid-query OR an empty result THEN the chain evaluation MUST open an evaluation entry ONLY IF the chain evaluation is not the retry of an open evaluation entry.
 Action wiring 45: The deployment MUST alert on a read chain refusal inside the chain evaluation as a wiring fault.
@@ -437,7 +425,6 @@ Action wiring 79: IF Capability's read finds no record for the token OR the reco
 Action wiring 80: IF Capability's read finds no record for the token OR the record's composed scope parses to no request THEN [Exercise Access] MUST answer capability-invalid carrying not-known.
 Action wiring 81: IF Capability's read finds no record for the token OR the record's composed scope parses to no request THEN [Exercise Access] MUST record a failed exercise event carrying blank as the request id.
 Action wiring 82: A resolved exercise MUST open an exercise entry carrying the session principal reference AND the exercised instant.
-Deleted: Action wiring 83. Execution Contract Database 1 owns it.
 Action wiring 84: IF the database refuses the exercise entry THEN [Exercise Access] MUST answer capability-invalid carrying recording-failure.
 Action wiring 85: A resolved exercise MUST call Capability's redeem.
 Action wiring 86: IF Capability's redeem answers redeemed THEN [Exercise Access] MUST mark the exercise entry redeemed.
@@ -558,13 +545,9 @@ Wiring decision 6: The composition MUST NOT check a bearer's identity at redempt
 ```
 Reconciliation 1: The reconciliation MUST run at EVERY process start.
 Reconciliation 2: The reconciliation MUST retry EVERY open pending entry on EVERY run.
-Deleted: Reconciliation 3. Execution Contract Database 2 owns it.
 Reconciliation 4: The reconciliation MUST NOT emit a record BEFORE reading the trail for an event carrying the record's action reference AND invocation id.
 Reconciliation 5: IF the pre-check finds the event THEN the reconciliation MUST close the entry.
 Reconciliation 6: IF the pre-check finds the event THEN the reconciliation MUST NOT emit the record.
-Deleted: Reconciliation 7. Composition state 31 owns it: every pending entry carries an invocation id, so no entry is paired by its payload fields.
-Deleted: Reconciliation 8. Composition state 31 owns it.
-Deleted: Reconciliation 9. Execution Contract Database 1 owns it.
 Reconciliation 10: The reconciliation MUST NOT write for an aged event.
 Reconciliation 11: The reconciliation MUST attest EVERY write under the service identity.
 Reconciliation 12: A leg MUST NOT commit constituent state BEFORE the leg's recovery intent lands.
@@ -572,24 +555,14 @@ Reconciliation 13: A leg MUST NOT record a state-transition event BEFORE the leg
 Reconciliation 14: A recovery intent MUST carry the invocation id, the request id, the leg AND the plan.
 Reconciliation 15: A recovery record MUST carry the owed record's action reference, the owed record's data AND the owed record's invocation id.
 Reconciliation 16: The reconciliation MUST NOT take a recovery record's data from a composition index.
-Deleted: Reconciliation 17. Execution Contract Database 1 owns it.
-Deleted: Reconciliation 18. Execution Contract Database 1 owns it.
-Deleted: Reconciliation 19. Execution Contract Database 1 owns it.
-Deleted: Reconciliation 20. Execution Contract Database 1 owns it.
 Reconciliation 21: The approval leg MUST run the chain evaluation for EVERY request in an open request state whose chain's state EQUALS Approved.
 Reconciliation 22: IF the request state IS IN the open request states AND the chain's state IS IN the refusing chain states THEN the terminal-chain leg MUST run the chain evaluation.
 Reconciliation 23: The terminal-chain leg MUST land a recovery record for EVERY step decision in the chain's events that no decision event names.
 Reconciliation 24: The redemption leg MUST land a recovery record for the exercise event of EVERY exercise entry marked redeemed.
-Deleted: Reconciliation 25. Execution Contract Database 1 owns it.
-Deleted: Reconciliation 26. Execution Contract Database 1 owns it.
-Deleted: Reconciliation 27. Execution Contract Database 1 owns it.
-Deleted: Reconciliation 28. Execution Contract Database 1 owns it.
 Reconciliation 29: The redemption leg MUST land a recovery record for the failed exercise event of EVERY open exercise entry carrying a redemption failure.
 Reconciliation 30: IF the request record carries no chain id THEN the initiation leg MUST read the approval substrate for a chain whose subject reference EQUALS the request id.
-Deleted: Reconciliation 31. Execution Contract Database 1 owns it.
 Reconciliation 32: IF the request carries an open initiation entry AND the request record carries the chain id THEN the initiation leg MUST land a recovery record for the request event.
 Reconciliation 33: IF the initiation leg finds no chain THEN the initiation leg MUST record an initiation-failed withdrawal event carrying the request shape AND initiation-failed as the reason.
-Deleted: Reconciliation 34. Execution Contract Database 1 owns it.
 Reconciliation 35: IF the initiation leg finds the chain AND the request record carries no chain id AND the request state EQUALS Withdrawn THEN the initiation leg MUST land a recovery record for the initiation-failed withdrawal event carrying initiation-failed as the reason.
 Reconciliation 36: IF the initiation leg finds the chain AND the request record carries no chain id AND the request state EQUALS Withdrawn THEN the initiation leg MUST report the live chain as a finding.
 Reconciliation 37: IF the initiation leg finds the chain AND the request record carries no chain id AND the request state EQUALS Withdrawn THEN the initiation leg MUST NOT land a request event.
@@ -619,7 +592,6 @@ Scope vocabulary 2: The composition MUST NOT define a withdraw scope.
 ### Provisioning cascade
 
 ```
-Deleted: Provisioning cascade 1. Execution Contract Database 2 owns it.
 Provisioning cascade 2: The provisioning cascade MUST call Capability's allocate with the service identity, the composed scope, the max redemptions default AND the remaining ttl.
 Provisioning cascade 3: IF Capability's allocate answers invalid-request THEN the provisioning cascade MUST open a pending entry carrying the provisioning-failure event.
 Provisioning cascade 4: IF Capability's allocate answers invalid-request THEN the provisioning cascade MUST record a provisioning-failure event carrying ProvisioningFailed AND the denial reason under the service identity.
@@ -855,12 +827,6 @@ Clock semantics 2: A deployment needing a verifiable wall-time anchor MUST compo
 ```
 
 ### Concurrency
-
-```
-Deleted: Concurrency 1. Execution Contract Database 2 owns it.
-Deleted: Concurrency 2. Execution Contract Database 2 owns it: an action's reads of a request and the writes they decide are one transaction, and the composition names no exclusion for [Read Request] to take.
-Deleted: Concurrency 3. Execution Contract Database 2 owns it: an action's reads of a request and the writes they decide are one transaction, and the composition names no exclusion for an exercise's record write to run outside.
-```
 
 ### Expiry
 

@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
-"""Tests for the state totals in _data/stats.json (generate_graph.states_ledger_stats)
-and for the Status token a card counts as done (generate_graph.is_done):
+"""Tests for the state totals in _data/stats.json (generate_graph.states_ledger_stats),
+for the Status token a card counts as done (generate_graph.is_done), and for a
+card's invariant count where a tombstone stands (generate_graph.invariant_count):
 python3 tools/taxonomy/test_stats.py"""
 import pathlib
 import sys
@@ -8,7 +9,7 @@ import tempfile
 import unittest
 
 sys.path.insert(0, str(pathlib.Path(__file__).parent))
-from generate_graph import is_done, states_ledger_stats  # noqa: E402
+from generate_graph import invariant_count, is_done, states_ledger_stats  # noqa: E402
 
 HEAD = "# date\tfile\trole\tengine\tstates\tcapped\tcommands\tholds\tsatisfiable\tcounterexamples\tvacuous\tverdict\n"
 
@@ -59,6 +60,20 @@ class DoneToken(unittest.TestCase):
 
     def test_the_old_word_does_not(self):
         self.assertFalse(is_done("grounded on Final Critique 4 — 2026-06-04 at 1719092"))
+
+
+class InvariantCount(unittest.TestCase):
+    """A tombstoned invariant is not counted, and its heading is: the count is
+    the same whether the tombstones stand on the page or have moved to the
+    history file (GRACE-lang Hard invariant 25, v0.71) and taken their fence."""
+
+    HEAD = "- **Invariant 1 — A.**\n  ```\n  Invariant 1.1: x.\n  ```\n- **Invariant 2 — B.**\n"
+    ON_PAGE = HEAD + "  ```\n  Deleted: Invariant 2.1. Invariant 1.1 owns it.\n  ```\n```\nDeleted: Invariant 3. Gone.\n```\n"
+    MOVED = HEAD
+
+    def test_the_count_is_the_same_in_either_place(self):
+        self.assertEqual(invariant_count(self.ON_PAGE), 2)
+        self.assertEqual(invariant_count(self.MOVED), 2)
 
 
 if __name__ == "__main__":

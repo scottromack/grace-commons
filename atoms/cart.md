@@ -94,7 +94,6 @@ NOTE: watch a term entry's kind — the total is computed at each read and never
 Capability requirement 1: The deployment MUST supply at the seam, for each [Open] call, a cart id no cart has carried PER Execution Contract Logic confinement 3.
 Capability requirement 2: The deployment MUST supply at the seam, for each [Add] call, a line id no line has carried PER Execution Contract Logic confinement 3.
 Capability requirement 3: The deployment MUST supply the accepted currencies.
-Deleted: Capability requirement 4. Execution Contract Logic confinement 9 owns it.
 Capability requirement 5: The deployment MUST supply the database PER Execution Contract Database 1 through 6, Execution Contract Read 1 through 4 and Execution Contract Refusal 1.
 Capability requirement 6: The deployment MAY declare the string cap PER Execution Contract Input 2.
 Capability requirement 7: The deployment MAY declare the line cap PER Execution Contract Input 2.
@@ -151,7 +150,6 @@ Operation 16: [Remove] MUST remove the line.
 Operation 17: [Remove] MUST answer ok.
 Operation 18: [Clear] MUST remove EVERY line of the cart.
 Operation 19: [Clear] MUST answer ok.
-Deleted: Operation 20. Execution Contract Read 4 owns it.
 Operation 21: [Read] MUST answer the cart's currency, EVERY line of the cart AND the cart's total.
 Operation 22: [Read] MUST answer a line's line id, item reference, quantity AND unit price.
 Operation 23: [Read] MUST NOT write.

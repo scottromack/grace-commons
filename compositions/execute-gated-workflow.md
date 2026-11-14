@@ -125,7 +125,6 @@ Composition state 16: The composition MUST classify a purged mark as truth-beari
 Composition state 17: The composition MUST classify the marks as extraction-pending against Binding Registry.
 Composition state 21: The composition MUST classify a purged index entry as extraction-pending against Erasure Tombstone.
 NOTE: watch the unnamed purged half (Composition state 21).
-Deleted: Composition state 18. Execution Contract Database 3 and Execution Contract Database 4 own it.
 Composition state 19: The composition MUST NOT store a clock-derived flag.
 Composition state 20: The composition MUST NOT duplicate a constituent's records.
 ```
@@ -187,14 +186,7 @@ Capability requirement 7: A deployment MUST disclose the reconciliation run boun
 Capability requirement 8: The composition MUST start ONLY IF the compensation window EXCEEDS the liveness sum.
 Capability requirement 25: The composition MUST start ONLY IF the audit horizon EXCEEDS the escalation reach.
 Capability requirement 9: A deployment MUST provision the service identity.
-Deleted: Capability requirement 10. Execution Contract Database 2 owns it.
-Deleted: Capability requirement 11. Execution Contract Database 2 owns it: an action's reads of a workflow and the writes they decide are one transaction, and the composition names no exclusion to release.
-Deleted: Capability requirement 12. Execution Contract Database 2 owns it: an action's reads of a workflow and the writes they decide are one transaction, and the composition names no exclusion to release.
-Deleted: Capability requirement 13. Execution Contract Database 2 owns it: an action's reads of a workflow and the writes they decide are one transaction, and the composition names no exclusion to lease.
-Deleted: Capability requirement 14. Execution Contract Database 2 owns it: an action's reads of a workflow and the writes they decide are one transaction, and the composition names no lease to expire.
-Deleted: Capability requirement 15. Execution Contract Database 2 owns it: an action's reads of a workflow and the writes they decide are one transaction, and the composition names no exclusion for a host to lack.
 Capability requirement 16: A deployment MUST set the clock offset allowance.
-Deleted: Capability requirement 17. Execution Contract Database 3 and Execution Contract Database 4 own it.
 Capability requirement 18: A deployment MUST set the intent candidates cap.
 Capability requirement 19: A deployment MUST declare the id widths.
 Capability requirement 20: The host MUST inject now at the seam once per invocation.
@@ -294,15 +286,12 @@ Audit arm 2: IF Audit Trail answers recording-failure at an intent THEN the acti
 Audit arm 3: IF Audit Trail answers invalid-request carrying a step below step-3 at an intent THEN the action MUST answer invalid-request.
 Audit arm 4: The composition MUST NOT retry an invalid-request answer.
 Audit arm 5: The deployment MUST alert on EVERY invalid-request from the audit write as a deployment fault.
-Deleted: Audit arm 6. Execution Contract Database 1 owns it.
 Audit arm 7: IF Audit Trail answers invalid-request(step-4) at an outcome THEN the invocation MUST read the outcome back.
 Audit arm 8: A read-back MUST match the outcome carrying the act's minted id.
 Audit arm 9: IF the read-back finds the outcome THEN the invocation MUST proceed as landed.
-Deleted: Audit arm 10. Execution Contract Database 2 owns it.
 Audit arm 11: IF Audit Trail answers recording-failure at an outcome THEN the action MUST answer recording-failure carrying post-commit.
 NOTE: watch the retention step's recording failure (Audit arm 11).
 NOTE: open 2026-10-31-b — whether an Audit Trail refusal at an outcome leaves the act committed, as this arm reads it, or leaves nothing committed, as Execution Contract Read 4 reads a refused call.
-Deleted: Audit arm 12. Execution Contract Database 1 owns it: an action's writes commit together, so no invocation retries an outcome.
 Audit arm 13: A caller MUST read recording-failure carrying pre-commit as a committed nothing.
 Audit arm 14: A caller MUST NOT re-invoke an instance action on recording-failure carrying post-commit.
 Audit arm 15: IF [Start Workflow] answers recording-failure carrying post-commit THEN the caller MAY re-invoke [Start Workflow].
@@ -380,7 +369,6 @@ Action wiring 14: A failed index write MUST NOT change an action's answer.
 Action wiring 15: A validated opening MUST call the permission check with the actor reference AND [Workflows Open Gate].
 Action wiring 16: An instance action MUST NOT answer not-known BEFORE rebuilding the instance's workflow record.
 Action wiring 17: IF the workflow records carry no record for the instance id THEN the instance action MUST answer not-known.
-Deleted: Action wiring 18. Execution Contract Database 2 owns it.
 Action wiring 19: A found action MUST read the workflow machine's current state AND declaration.
 Action wiring 20: IF a read-side call refuses THEN the action MUST answer recording-failure carrying the call's stage.
 Action wiring 21: The deployment MUST alert on EVERY read-side refusal as an index anomaly.
@@ -395,9 +383,6 @@ Action wiring 26: IF the gate key's bound step IS IN the live approvals THEN [Op
 Action wiring 27: A guarded opening MUST record the open intent carrying the gate key, the guard label, the approver reference, the scope AND now as the intent instant.
 Action wiring 28: An admitted opening MUST call submit with the gate subject, the entry's approver reference, the workflow's initiator reference as the submitter, the entry's scope AND now as the submitted instant.
 Action wiring 29: A submitted opening MUST call assign with the step id as the task AND the entry's approver reference as the assignee.
-Deleted: Action wiring 30. Execution Contract Database 1 owns it.
-Deleted: Action wiring 31. Execution Contract Database 1 owns it.
-Deleted: Action wiring 32. Execution Contract Database 1 owns it.
 Action wiring 33: A staffed opening MUST record the opening event carrying the intent event id, the gate key, the step id, the assignment id, the approver reference, the scope AND the submitted instant.
 Action wiring 34: A landed opening MUST write the gate binding AND the gate-assignment entry.
 Action wiring 35: A landed opening MUST answer the gate handle.
@@ -408,7 +393,6 @@ Action wiring 39: IF the step write answers not-pending OR unauthorized THEN [De
 Action wiring 40: IF the step write answers not-known THEN [Decide Gate] MUST answer recording-failure carrying pre-commit.
 Action wiring 41: A decided decision MUST call recall on the step's assignment id.
 Action wiring 42: IF recall answers not-active THEN the decided decision MUST proceed.
-Deleted: Action wiring 43. Execution Contract Database 1 owns it.
 Action wiring 44: IF recall answers not-known THEN the decided decision MUST rebuild the gate-assignment index AND call recall once more.
 Action wiring 45: IF recall answers not-known after the rebuild THEN the deployment MUST alert on the answer as a conformance fault.
 Action wiring 46: A decided decision MUST record the decision event carrying the intent event id, the gate key, the step id, the decision, the reason AND the decided instant.
@@ -550,7 +534,6 @@ Wiring decision 2: The composition MUST NOT accept a guard assertion from a call
 Wiring decision 3: The composition MUST read a bound step as consumed PER the consumption rule.
 Wiring decision 4: The composition MUST read a bound step as mooted PER the mooting rule.
 Wiring decision 5: The consumption rule MUST NOT read an aged entry as an unrecorded firing.
-Deleted: Wiring decision 6. Term consumption rule owns it.
 Wiring decision 7: The composition MUST re-bind a gate key ONLY IF the bound step IS IN the re-bindable steps.
 Wiring decision 8: The composition MUST NOT evaluate a guard other than an approval guard.
 Wiring decision 9: A re-bind MUST write the gate binding with the consumed mark AND the mooted mark blank.
@@ -590,13 +573,9 @@ Term spent step: a bound step that is consumed or mooted.
 ### Reconciliation
 
 ```
-Deleted: Reconciliation 1. Execution Contract Database 1 and Execution Contract Database 3 own it.
 Reconciliation 2: The sweep MUST run every reconciliation cadence.
 Reconciliation 3: The sweep MUST enumerate the workflows from the start events.
-Deleted: Reconciliation 4. Execution Contract Database 1 owns it.
 Reconciliation 5: The sweep MUST NOT examine an aged record.
-Deleted: Reconciliation 6. Execution Contract Database 2 owns it.
-Deleted: Reconciliation 7. Execution Contract Database 2 owns it: the sweep's reads of a workflow and the writes they decide are one transaction, and the composition names no exclusion for another holder to hold.
 Reconciliation 8: The sweep MUST NOT commit constituent state BEFORE the sweep's recovery intent for the closure lands.
 Reconciliation 9: A recovery intent MUST carry the instance id, the leg, the intent reference AND the plan.
 Reconciliation 10: The sweep MUST attest EVERY write the sweep makes under the service identity carrying the recovery flag AND the human actor.
@@ -613,7 +592,6 @@ Reconciliation 19: IF one decision intent matches THEN the decision leg MUST rec
 Reconciliation 20: IF no decision intent matches THEN the decision leg MUST NOT record a decision event.
 Reconciliation 21: IF no decision intent matches AND the step IS IN the planned steps THEN the sweep MUST leave the step to the cascade leg.
 Reconciliation 22: IF no decision intent matches AND the step IS NOT IN the planned steps THEN the sweep MUST open an out-of-band finding for the step on Audit Trail's alerting surface.
-Deleted: Reconciliation 23. Execution Contract Database 1 owns it.
 Reconciliation 24: IF the candidate count EXCEEDS one THEN the re-emitted record MUST carry the intent candidates.
 Reconciliation 25: IF the firing leg's candidate count EXCEEDS one THEN the cascade leg MUST run over the union of the candidates' moot plans.
 Reconciliation 26: IF the candidate count EXCEEDS the intent candidates cap THEN the sweep MUST open an unresolved finding for the record on Audit Trail's alerting surface.
@@ -686,7 +664,6 @@ Cascade 8: A landed moot record MUST set the entry's mooted mark.
 Cascade 9: The moot cascade MUST NOT change a gate binding's bound step.
 Cascade 10: IF a cascade call answers a refusal other than storage-failure THEN the moot cascade MUST proceed through the remaining calls.
 Cascade 11: A cascade call refused other than by storage-failure MUST NOT change the firing's answer.
-Deleted: Cascade 12. Execution Contract Database 1 owns it: a cascade call's storage failure fails the whole firing, so no invocation retries a cascade call.
 ```
 
 Term moot cascade: the secondary calls a committed firing owes the gates it left behind.
@@ -751,7 +728,6 @@ These emerge from the composition; none belongs to one constituent, and each nee
   Invariant 8.2: The composition MUST NOT call submit BEFORE Audit Trail validates the caller's credential at the open intent.
   Invariant 8.3: The composition MUST NOT call a decision's step write BEFORE Audit Trail validates the caller's credential at the decision intent.
   Invariant 8.4: The composition MUST NOT call fire BEFORE Audit Trail validates the caller's credential at the fire intent.
-  Deleted: Invariant 7. Composes 6 owns it.
   ```
 
 ---
@@ -959,11 +935,6 @@ Clock semantics 3: A comparison of the composition's instant with the substrate'
 ```
 
 ### Concurrency
-
-```
-Deleted: Concurrency 1. Execution Contract Database 2 owns it.
-Deleted: Concurrency 2. Execution Contract Database 2 owns it.
-```
 
 ### Indeterminate outcome
 

@@ -118,7 +118,6 @@ Composition state 19: IF a fulfilled event carrying the request id EXISTS THEN t
 Composition state 20: The composition MUST NOT answer not-known BEFORE rebuilding the request index.
 Composition state 21: The composition MUST read a fulfilled event carrying no fulfillment entry as a rebuild trigger.
 Composition state 22: IF the state read fails THEN the action MUST answer state-unavailable.
-Deleted: Composition state 23. Execution Contract Read 3 owns it.
 Composition state 24: IF an unbound disclosure EXISTS for the request THEN the request's state MUST carry Committing.
 Composition state 25: An index write that fails MUST NOT change an action's answer.
 Composition state 26: IF a stall mark EXISTS for the request THEN the request's state MUST carry Committing.
@@ -184,12 +183,9 @@ Capability requirement 10: The Defensible Retention instance MUST run strict as 
 Capability requirement 11: The composition MUST NOT claim the hold guarantee over a Defensible Retention instance running advisory.
 Capability requirement 12: A deployment MUST provision the service identity.
 Capability requirement 13: The composition MUST attest EVERY audit write the composition makes outside a caller's invocation under the service identity.
-Deleted: Capability requirement 14. Capability requirement 37 owns it.
-Deleted: Capability requirement 15. Capability requirement 37 owns it.
 Capability requirement 16: A deployment MUST set the compensation window.
 Capability requirement 17: A deployment MUST set the fulfillment completion bound.
 Capability requirement 18: A deployment MUST set the reconciliation cadence.
-Deleted: Capability requirement 19. Capability requirement 39 owns it.
 Capability requirement 20: A deployment MUST declare the clock offset allowance.
 Capability requirement 21: The host MUST inject now at the seam once per invocation.
 Capability requirement 22: The host MUST inject a request id that names no other request at [Receive Request]'s seam.
@@ -208,19 +204,16 @@ Capability requirement 34: The section term MUST NOT EXCEED the fulfillment comp
 Capability requirement 35: A deployment MUST disclose the planned call latency.
 Capability requirement 36: A deployment MUST supply a Selective Disclosure instance, a Defensible Retention instance, a host delete AND an audit instance bound by Lease Capability requirement 8 and 10 for EVERY call the composition issues under the request section.
 Capability requirement 37: A deployment MUST supply the alerting surface.
-Deleted: Capability requirement 38. Execution Contract Scheduled leg 1 owns it.
 Capability requirement 39: A deployment MAY start an instance ONLY IF the compensation window EXCEEDS the closure floor.
 Capability requirement 40: A deployment MUST set the text cap.
 Capability requirement 41: A deployment MUST route EVERY disclosure write carrying a request scope through the composition alone.
 Capability requirement 42: A deployment MUST route EVERY audit write carrying a composition action reference through the composition alone.
-Deleted: Capability requirement 43. Execution Contract Scheduled leg 1 owns it.
 Capability requirement 44: EVERY registered record MUST carry a record reference no other registered record carries.
 Capability requirement 45: A deployment MUST disclose the audit write latency PER Defensible Retention Capability requirement 22.
 Capability requirement 46: The host MUST inject now at the seam once PER leg.
 Capability requirement 47: EVERY registered source MUST answer a retention id for a record a retention of the business retention instance covers.
 Capability requirement 48: A deployment MAY start an instance ONLY IF the audit horizon EXCEEDS the alert floor.
 Capability requirement 49: A deployment MUST set an audit retention policy that answers one policy for EVERY event of the audit instance (Defensible Retention Capability requirement 57).
-Deleted: Capability requirement 50. Execution Contract Database 3 and Execution Contract Database 4 own it.
 Capability requirement 51: EVERY registered source MUST answer EVERY source text within the text cap.
 Capability requirement 52: A deployment MUST NOT serve two instances of the composition by one Defensible Retention instance.
 Capability requirement 53: A deployment MUST NOT serve two instances of the composition by one Selective Disclosure instance.
@@ -356,20 +349,9 @@ Term largest record: the larger of a fulfillment's intent and the compensating f
 ### Audit arm
 
 ```
-Deleted: Audit arm 1. Execution Contract Database 1 owns it.
 Audit arm 2: The composition MUST read an invalid-request carrying step-4 as a landed record.
-Deleted: Audit arm 3. Execution Contract Database 1 owns it.
-Deleted: Audit arm 4. Audit arm 21 owns it.
-Deleted: Audit arm 5. Execution Contract Database 1 owns it.
 Audit arm 6: IF Audit Trail answers invalid-credential at a pre-effect record THEN the action MUST answer invalid-credential.
 Audit arm 7: IF Audit Trail answers recording-failure carrying a step below step-4 OR no answer at a pre-effect record THEN the action MUST answer recording-failure carrying intent.
-Deleted: Audit arm 8. Audit arm 2 owns it.
-Deleted: Audit arm 9. Audit arm 21 owns it.
-Deleted: Audit arm 10. Action wiring 29 owns it.
-Deleted: Audit arm 11. Audit arm 21 owns it.
-Deleted: Audit arm 12. Execution Contract Database 1 owns it.
-Deleted: Audit arm 13. Audit arm 21 owns it.
-Deleted: Audit arm 14. Concurrency 18 owns it.
 Audit arm 15: The composition MUST read a closing record Audit Trail refuses on a credential as an owed record.
 Audit arm 16: A caller MUST read recording-failure carrying intent as no disclosure AND no destruction made by the call.
 Audit arm 17: A caller MUST read recording-failure carrying outcome as an irreversible act possibly committed.
@@ -449,9 +431,7 @@ Action wiring 26: An intended erasure MUST call the host delete PER record of th
 Action wiring 27: An intended erasure MUST settle each planned record's disposition from the planned call's answer.
 Action wiring 28: An executed erasure MUST call the disclosure write with the subject reference, the requester as the recipient, the erasure scope AND the response authority.
 Action wiring 29: IF a possibly committed act EXISTS for an unsealed fulfillment THEN the fulfillment MUST answer recording-failure carrying outcome.
-Deleted: Action wiring 30. Action wiring 19 owns it.
 Action wiring 31: A disclosed erasure MUST record the erasure fulfilled event carrying the request id, the invocation id, the subject reference, the requester, the dispositions, the universe cardinality, the response disclosure id AND now as the fulfilled instant.
-Deleted: Action wiring 32. Primitive policy 13 owns it.
 Action wiring 33: A landed fulfillment MUST write the fulfillment entry AND answer the fulfillment result.
 Action wiring 34: IF the rebuild of Composition state 20 answers no request entry for the request id THEN [Disposition Report] MUST answer not-known.
 Action wiring 35: IF the state read answers the request's state THEN [Disposition Report] MUST answer the report.
@@ -537,7 +517,6 @@ Term unsealed fulfillment: a fulfillment whose intent landed and that returns wi
 ```
 Wiring decision 1: A fulfillment MUST disposition EVERY record of the subject's enumerated universe.
 Wiring decision 2: The composition MUST bind the dispositions, the response disclosure AND the fulfilled event as one fulfillment.
-Deleted: Wiring decision 3. Execution Contract Database 1 owns it.
 Wiring decision 4: The composition MUST read an erasure's preservation dispositions off Defensible Retention's purge.
 Wiring decision 5: The composition MUST NOT evaluate a hold.
 ```
@@ -571,8 +550,6 @@ Reconciliation 2: The reconciliation MUST run every reconciliation cadence.
 Reconciliation 3: The reconciliation MUST NOT examine a young intent.
 Reconciliation 4: The reconciliation MUST NOT examine an aged event, the index write of Reconciliation 25 excepted.
 Reconciliation 5: The reconciliation MUST attest EVERY audit write the reconciliation makes under the service identity.
-Deleted: Reconciliation 6. Check 1.4 owns it.
-Deleted: Reconciliation 7. Reconciliation 22 owns it.
 Reconciliation 8: The reconciliation MUST pair a request-scoped disclosure to the open intent carrying the disclosure's request id.
 Reconciliation 9: The reconciliation MUST NOT close an open erasure intent BEFORE taking the retention reading of EVERY purge plan pair.
 Reconciliation 10: The reconciliation MUST NOT record a fulfilled event BEFORE the reconciliation's recovery intent lands.
@@ -584,9 +561,6 @@ Reconciliation 15: IF no request-scoped disclosure carries the open intent's req
 Reconciliation 16: A compensating fulfilled event MUST carry the intent's disposition for EVERY record outside the plans.
 Reconciliation 17: The reconciliation MUST NOT close an open intent BEFORE taking the request section over the intent's request id.
 Reconciliation 18: IF the reconciliation records a compensating fulfilled event THEN the reconciliation MUST write the fulfillment entry ONLY AFTER the compensating fulfilled event lands.
-Deleted: Reconciliation 19. Defensible Retention Reconciliation 11 owns it.
-Deleted: Reconciliation 20. Defensible Retention Action wiring 70 owns it.
-Deleted: Reconciliation 21. Defensible Retention Reconciliation 11 owns it.
 Reconciliation 22: The reconciliation MUST alert on an overdue intent.
 Reconciliation 23: The reconciliation MUST read the request's events AND the disclosure read of the intent's subject reference again under the request section.
 Reconciliation 24: IF a purge plan pair's retention reading EQUALS purged THEN a compensating fulfilled event MUST carry the pair's record erased carrying the retention id, the purge instant AND the intent's reason.
@@ -656,21 +630,11 @@ Disposition 19: A planned record's provisional disposition MUST carry planned.
 Disposition 20: IF a planned record's purge reading EQUALS destroyed THEN the record MUST carry erased carrying the retention id.
 Disposition 21: IF a planned record's purge reading EQUALS held THEN the record MUST carry retained carrying legal-hold, the hold ids AND the count.
 Disposition 22: IF a planned record's purge reading EQUALS obliged THEN the record MUST carry retained carrying retention-obligation AND the retention id.
-Deleted: Disposition 23. Disposition 22 owns it.
-Deleted: Disposition 24. Disposition 42 owns it.
-Deleted: Disposition 25. Disposition 42 owns it.
-Deleted: Disposition 26. Disposition 20 owns it.
-Deleted: Disposition 27. Disposition 41 owns it.
-Deleted: Disposition 28. Disposition 43 owns it.
-Deleted: Disposition 29. Disposition 42 owns it.
-Deleted: Disposition 30. Disposition 43 owns it.
-Deleted: Disposition 31. Disposition 44 owns it.
 Disposition 32: IF the host delete answers deleted THEN the record MUST carry erased carrying the attestation reference.
 Disposition 33: IF the host delete answers retained AND the host's basis DOES NOT EXCEED the text cap AND the host's basis DOES NOT EQUAL blank THEN the record MUST carry retained carrying other-lawful-basis AND the host's basis.
 Disposition 34: IF the host delete answers not-known THEN the record MUST carry anomaly carrying host-record-not-found.
 Disposition 35: IF the host delete answers delete-failed OR invalid-credential THEN the record MUST carry anomaly carrying unsettled.
 Disposition 36: IF the host delete answers outside the host delete's contract THEN the record MUST carry anomaly carrying unsettled.
-Deleted: Disposition 37. Disposition 47 owns it.
 Disposition 38: The composition MUST read a fulfillment carrying an anomaly as Fulfilled.
 Disposition 39: IF an erasure-due record's retention reading EQUALS purged THEN the record MUST carry erased carrying the retention id AND the purge instant.
 Disposition 40: IF a record's basis reading EQUALS unread THEN the record MUST carry anomaly carrying determination-unavailable.
@@ -761,7 +725,6 @@ These emerge from the composition; none belongs to one constituent.
   ```
   Invariant 8.1: The composition MUST NOT call the disclosure write BEFORE Audit Trail validates the caller's credential at the fulfillment's intent.
   Invariant 8.2: The composition MUST NOT call a destroying surface BEFORE Audit Trail validates the caller's credential at the erasure intent.
-  Deleted: Invariant 9. Composes 6 owns it.
   ```
 
 The binding and no-silent-omission give *accountable completeness*; erasure validity and groundedness give *defensible resolution*; the recorded response makes the fulfillment itself an accountable disclosure; terminality and consent non-mutation close the lifecycle and hold the oracle boundary; authentication before the act makes the attribution exact.
@@ -998,7 +961,6 @@ Concurrency 16: The composition MUST NOT issue a second time, under one grant, a
 Concurrency 17: IF the record start floor admits no call of the intent THEN the fulfillment MUST answer section-unavailable.
 Concurrency 18: A yielded fulfillment MUST NOT issue a call, the release of Concurrency 22 excepted.
 Concurrency 19: IF a call in flight EXISTS under the grant THEN the composition MUST NOT release the request section (Lease Composition note 5c).
-Deleted: Concurrency 20. Execution Contract Database 2 owns it: an audit write's lease check and append are one transaction, so no append lands beside another holder's closing.
 Concurrency 21: The composition MUST NOT issue a call under a grant the composition released (Lease Composition note 5f).
 Concurrency 22: A fulfillment whose EVERY call answered MUST release the request section.
 Concurrency 23: The reconciliation MUST issue EVERY call of a leg PER Concurrency 8 through 19 and Concurrency 21.

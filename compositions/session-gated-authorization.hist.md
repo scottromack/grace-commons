@@ -17,3 +17,34 @@ Entries that record a migration rather than a turn the pattern took.
 ## Migration notes
 
 - **2026-09-15 — Wiring decision 1, moved from Action wiring.** Wiring decision 1 is Action wiring 4's words, moved to the heading that names what it is when the headings were standardized (council read 80).
+
+## Deleted rules
+
+The spec's tombstones, moved here from the page on 2026-11-13 because the spec is done (GRACE-lang Hard invariant 25 and Hard invariant 27, since v0.71): each `Deleted:` line byte for byte and in the page's order, under the heading it stood under there. A tombstone carries no obligation, and each still reserves its label: no rule of [Session-Gated Authorization](./session-gated-authorization.md) may carry it again.
+
+### Composition logic › Action wiring
+
+```
+Deleted: Action wiring 4. Wiring decision 1 owns it.
+```
+
+### Composition-level invariants › Invariant 1 — Session gates authorization
+
+```
+  Deleted: Invariant 1.2. Session Composition note 4 owns it.
+  Deleted: Invariant 1.3. Session Composition note 4 owns it.
+  Deleted: Invariant 1.4. Session Composition note 4 owns it.
+```
+
+### Generation acceptance › Conformance checks
+
+```
+Deleted: Check 1.2. External check 6 owns it.
+Deleted: Check 1.3. External check 7 owns it.
+```
+
+### Composition notes
+
+```
+Deleted: Composition note 2. Composition state 4 owns it.
+```

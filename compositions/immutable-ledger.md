@@ -55,7 +55,6 @@ Composes 5: The composition MUST inherit a constituent's invariants PER Executio
 Composes 6: The composition MUST NOT change a constituent's spec.
 Composes 7: The composition MUST select the ledger events through the ledger enumeration.
 Composes 8: The composition MUST read an event by id ONLY through the record read.
-Deleted: Composes 9. Recoverable Invocation Action wiring 4 owns it: an adopter's action runs validate, open, commit, close.
 Composes 10: A deployment MUST NOT record an event under the ledger namespace outside the composition.
 Composes 11: A deployment MUST NOT call the disclosure write of the composition's Selective Disclosure instance outside the composition AND MUST record a transmission of a subject's data the composition does not perform on another Selective Disclosure instance (Selective Disclosure Capability requirement 6).
 Composes 12: EXACTLY ONE Recoverable Invocation instance MUST serve the composition.
@@ -112,7 +111,6 @@ Composition state 6: The composition MUST classify a live binding as a derived i
 Composition state 7: The composition MUST rebuild the live bindings PER the binding rebuild.
 Composition state 8: The composition MUST classify a purged binding as extraction-pending against Erasure Tombstone.
 Composition state 9: A rebuild MUST NOT remove a purged binding.
-Deleted: Composition state 10. Execution Contract Database 3 owns it.
 Composition state 11: An intent's disclosed entry ids MUST NOT EQUAL blank.
 Composition state 12: The count of ledger entries one intent names MUST NOT EXCEED the disclosed entries cap.
 Composition state 13: An intent MUST NOT name an event outside the ledger entries.
@@ -153,21 +151,7 @@ Capability requirement 2: The composition MUST NOT pass a retention input to the
 Capability requirement 3: A regulated deployment MUST set a ledger retention policy encoding the regime's minimum retention.
 Capability requirement 4: A deployment MUST set the seal cadence on the Audit Trail instance.
 Capability requirement 5: The composition MUST NOT override the seal cadence.
-Deleted: Capability requirement 6. Execution Contract Logic confinement 15 owns it.
-Deleted: Capability requirement 7. Recoverable Invocation close step 3.5 owns it: a retry ends at the lease, not at a count.
-Deleted: Capability requirement 8. Recoverable Invocation Instance start 4 owns it: the cadence is the instance's.
-Deleted: Capability requirement 9. Recoverable Invocation journal write bound 1 owns it.
-Deleted: Capability requirement 10. Execution Contract Logic confinement 15 owns it.
-Deleted: Capability requirement 11. Recoverable Invocation Instance start 5 owns it.
-Deleted: Capability requirement 12. Recoverable Invocation act section 1 owns it, keyed by the act key (Recoverable Invocation open step 2.1).
-Deleted: Capability requirement 13. Recoverable Invocation close step 4.2 owns it.
-Deleted: Capability requirement 14. Recoverable Invocation act section 2 owns it, and reverses it: a host never frees the section on a holder's death.
-Deleted: Capability requirement 15. Recoverable Invocation open step 2.1 owns it.
-Deleted: Capability requirement 16. Recoverable Invocation act section 10 owns it.
-Deleted: Capability requirement 17. Recoverable Invocation Capability requirement 11 owns it.
 Capability requirement 18: A deployment MUST provision the recovery identity.
-Deleted: Capability requirement 19. Execution Contract Database 3 owns it.
-Deleted: Capability requirement 20. Execution Contract Database 3 owns it.
 Capability requirement 21: A deployment MUST declare the partial disclosure capability.
 Capability requirement 22: The wired Audit Trail instance MUST expose the ledger enumeration.
 Capability requirement 23: The host MUST inject now AND the invocation id at the seam once per invocation.
@@ -178,11 +162,9 @@ Capability requirement 27: A deployment MUST disclose the commit round trip, the
 Capability requirement 28: The host MUST NOT inject an equal now into two invocations of one act key on any node of the instance.
 Capability requirement 29: An operator MUST NOT leave an unsettled escalation whose intent's horizon edge PRECEDES now.
 Capability requirement 30: A deployment MUST persist EVERY write-ownership finding for the audit horizon.
-Deleted: Capability requirement 31. Recoverable Invocation Instance start 5 owns it: the act kind's retention period, the audit horizon, exceeds the retention floor, which carries the settling period and the run bound past the examine window end.
 Capability requirement 32: A reconciliation run MUST NOT EXCEED the reconciliation run bound.
 Capability requirement 33: A deployment MAY set the audit horizon ONLY IF the audit horizon EXCEEDS twice the sweep cadence added to three times the reconciliation run bound, the clock allowance and Recoverable Invocation's journal write bound AND EXCEEDS the act kind's examine window end added to twice the clock allowance, the reconciliation run bound and the sweep cadence.
 Capability requirement 34: A deployment MUST NOT disclose the entries to the disclosure's recipient BEFORE an outcome event carrying the disclosure id lands.
-Deleted: Capability requirement 35. Execution Contract Database 2 and Execution Contract Database 3 own it.
 Capability requirement 36: The deployment MUST supply the database PER Execution Contract Database 1 through 4.
 Capability requirement 37: IF the partial disclosure capability EQUALS true THEN the deployment MUST supply the ledger seal reference to the recipient (Invariant 2.1).
 ```
@@ -224,7 +206,6 @@ Primitive policy 3: IF the disclosed entry ids EQUALS blank THEN [Disclose Subse
 Primitive policy 4: IF the count of disclosed entry ids EXCEEDS the disclosed entries cap THEN [Disclose Subset] MUST answer invalid-request.
 Primitive policy 5: IF the subject reference, the recipient, the scope, the authority type OR the authority reference EQUALS blank THEN [Disclose Subset] MUST answer invalid-request.
 Primitive policy 6: IF a disclosed entry id names no ledger entry through the record read THEN [Disclose Subset] MUST answer unknown-entry naming EVERY such id.
-Deleted: Primitive policy 7. Recoverable Invocation open step 1.4 owns it, sizing against the maximal envelope.
 Primitive policy 8: An action refused under Primitive policy MUST NOT write.
 Primitive policy 9: [Disclose Subset] MUST NOT call the invocation open BEFORE Primitive policy 2 through 6, 14 and 16 pass.
 Primitive policy 10: The composition MUST compare an event id, a disclosure id AND an invocation id byte-exact.
@@ -232,11 +213,8 @@ Primitive policy 11: The composition MUST NOT normalize a caller string.
 Primitive policy 12: The composition MUST NOT inspect a credential.
 Primitive policy 13: The composition MUST NOT interpret the entry data.
 Primitive policy 14: IF the act key OR the actor reference EXCEEDS the reference length cap THEN [Disclose Subset] MUST answer invalid-request.
-Deleted: Primitive policy 15. Primitive policy 8 owns it.
 Primitive policy 16: IF the record read answers no answer at the membership check THEN [Disclose Subset] MUST answer journal-unavailable.
-Deleted: Primitive policy 17. Primitive policy 8 owns it.
 Primitive policy 18: IF the actor reference names the recovery identity THEN [Record Entry] MUST answer invalid-request.
-Deleted: Primitive policy 19. Execution Contract Database 1 owns it.
 Primitive policy 20: [Disclose Subset] MUST answer the first refusal in the order Primitive policy 2, 3, 4, 5, 14, 16, 6.
 Primitive policy 21: IF the disclosure id EQUALS blank THEN the action MUST answer not-known.
 ```
@@ -264,20 +242,6 @@ Term caller string: a subject reference, a recipient, a scope, an authority refe
 ### Audit arm
 
 ```
-Deleted: Audit arm 1. Recoverable Invocation Primitive policy 19 owns it.
-Deleted: Audit arm 2. Recoverable Invocation Primitive policy 41 owns it.
-Deleted: Audit arm 3. Recoverable Invocation Primitive policy 23 owns it.
-Deleted: Audit arm 4. Recoverable Invocation Primitive policy 43 owns it.
-Deleted: Audit arm 5. Recoverable Invocation Primitive policy 27 owns it.
-Deleted: Audit arm 6. Recoverable Invocation Primitive policy 27 owns it.
-Deleted: Audit arm 7. Recoverable Invocation Primitive policy 35 owns it, reading back by invocation id.
-Deleted: Audit arm 8. Recoverable Invocation Primitive policy 28 owns it.
-Deleted: Audit arm 9. Recoverable Invocation Primitive policy 28 owns it, as the hard alert.
-Deleted: Audit arm 10. Recoverable Invocation Primitive policy 29 owns it.
-Deleted: Audit arm 11. Recoverable Invocation Primitive policy 29 owns it: the retry ends at the terminus.
-Deleted: Audit arm 12. Recoverable Invocation Primitive policy 30 owns it.
-Deleted: Audit arm 13. Recoverable Invocation Primitive policy 31 owns it.
-Deleted: Audit arm 14. Execution Contract Database 1 owns it.
 Audit arm 15: IF Audit Trail answers invalid-request(step-4) at a ledger entry THEN [Record Entry] MUST answer the event id the refusal carries.
 Audit arm 16: An entry read-back MUST match the ledger entry carrying the invocation id.
 Audit arm 17: IF the entry read-back finds the entry THEN [Record Entry] MUST answer the entry id.
@@ -285,10 +249,6 @@ Audit arm 18: IF Audit Trail answers invalid-request carrying a step below step-
 Audit arm 19: IF Audit Trail answers recording-failure carrying a pre-append step at a ledger entry THEN [Record Entry] MUST answer recording-failure.
 Audit arm 20: IF Audit Trail answers invalid-credential at a ledger entry THEN [Record Entry] MUST answer invalid-credential.
 Audit arm 21: An entry read-back MUST read the ledger enumeration from sequence one.
-Deleted: Audit arm 22. Recoverable Invocation Invariant 8.3 owns it.
-Deleted: Audit arm 23. Recoverable Invocation Invariant 8.4 owns it.
-Deleted: Audit arm 24. Recoverable Invocation Primitive policy 20 owns it, and Recoverable Invocation Primitive policy 21a proceeds where the read-back finds the intent.
-Deleted: Audit arm 25. Recoverable Invocation Primitive policy 42 owns it.
 Audit arm 26: IF [Record Entry] answers an entry id under Audit arm 15 OR Audit arm 17 THEN [Record Entry] MUST alert the finding surface carrying the entry id.
 Audit arm 27: IF the entry read-back answers no answer THEN [Record Entry] MUST answer entry-unconfirmed carrying the invocation id.
 Audit arm 28: IF the entry read-back finds no entry THEN [Record Entry] MUST answer entry-unconfirmed carrying the invocation id.
@@ -383,24 +343,11 @@ Term invocation pair: the invocation id and the intent event id the invocation o
 Action wiring 1: A validated entry MUST record the ledger entry carrying the invocation id, the entry data AND now as the payload instant under the actor's credential.
 Action wiring 2: A landed entry MUST answer the entry id.
 Action wiring 3: A validated disclosure MUST call the invocation open with the act kind, the act key, the actor reference, the credential AND the intent data.
-Deleted: Action wiring 4. Recoverable Invocation Primitive policy 10 owns it.
-Deleted: Action wiring 5. Recoverable Invocation Invariant 1.1 owns it.
 Action wiring 6: An admitted disclosure MUST call the disclosure write with the subject reference, the recipient, the scope, the authority AND now as the disclosure instant.
-Deleted: Action wiring 7. Recoverable Invocation commit 3 owns it: a pre-commit arm answers the constituent's own code, storage-failure included.
-Deleted: Action wiring 8. Recoverable Invocation commit 3 owns it.
-Deleted: Action wiring 9. Recoverable Invocation commit 2 owns it, and reverses it: a refused commit is closed by a refusal record.
-Deleted: Action wiring 10. Recoverable Invocation open step 2.1 owns it, taking the section ahead of the intent.
-Deleted: Action wiring 11. Recoverable Invocation act section 10 owns it, and reverses it: an invocation whose lease expired never takes the section again.
-Deleted: Action wiring 12. Recoverable Invocation close step 2.1 owns it.
-Deleted: Action wiring 13. Recoverable Invocation close step 2.2 owns it.
-Deleted: Action wiring 14. Recoverable Invocation act section 10 owns it.
-Deleted: Action wiring 15. Recoverable Invocation close step 3.1 owns it.
 Action wiring 16: A landed disclosure MUST write the binding.
 Action wiring 17: A landed disclosure MUST construct the verification bundle over the disclosed set.
 Action wiring 18: IF the read of the disclosed set from the intent OR the bundle construction fails THEN the landed disclosure MUST carry unavailable carrying the reason as the verification bundle.
-Deleted: Action wiring 19. Recoverable Invocation Invariant 3.5 owns it: a sweep that cannot pair writes no outcome, so no outcome carries an unresolved set.
 Action wiring 20: A landed disclosure MUST answer the disclosure result.
-Deleted: Action wiring 21. Recoverable Invocation yield 3 owns it: no adopter touches the section.
 Action wiring 22: IF no live outcome event carries the disclosure id AND no purged binding names the disclosure id THEN [Reissue Bundle] MUST answer not-known.
 Action wiring 23: A found reissue MUST construct the verification bundle over the disclosed set.
 Action wiring 24: [Verify Disclosure] MUST check EVERY presented entry against the verification bundle AND the ledger seal reference.
@@ -410,8 +357,6 @@ Action wiring 27: [Verify Disclosure] MUST NOT read the binding index.
 Action wiring 28: IF the accounting records carry no record for the disclosure id THEN [Verify Ledger] MUST answer not-known.
 Action wiring 29: A found ledger verification MUST resolve the binding through the ledger enumeration kept to the outcome events carrying the disclosure id.
 Action wiring 30: A found ledger verification MUST NOT rest a verdict on the binding index alone.
-Deleted: Action wiring 31. Action wiring 29 owns it: the enumeration runs on a hit and on a miss alike.
-Deleted: Action wiring 32. Action wiring 29 owns it, and reverses it: the purged verdict's first clause needs the enumeration a purged hit was denied.
 Action wiring 33: A bound ledger verification MUST read the outcome event's covering range through the record read.
 Action wiring 34: IF the record read answers partially-purged coverage THEN the bound ledger verification MUST call the verification with the covering range's members the original event payloads carry, original event payloads carrying no member of the covering range excepted.
 Action wiring 35: IF a member of a whole covering range IS NOT IN the original event payloads THEN the attestation verification MUST carry payload-not-supplied AND the missing sequence numbers.
@@ -426,7 +371,6 @@ Action wiring 42: The read passthrough MUST route an event-id query to the recor
 Action wiring 43: IF the query conforms to no routed shape THEN the read passthrough MUST answer invalid-query.
 Action wiring 44: IF the routed read answers invalid-query THEN the read passthrough MUST answer invalid-query.
 Action wiring 45: A read-only action MUST NOT record an audit event.
-Deleted: Action wiring 46. Recoverable Invocation Primitive policy 4 owns it, and Action wiring 1 for a ledger entry.
 Action wiring 47: IF the invocation open refuses THEN [Disclose Subset] MUST answer the invocation open's refusal.
 Action wiring 48: IF the disclosure write answers a disclosure refusal THEN [Disclose Subset] MUST call the invocation refusal with the act kind, the act key, the invocation pair, the caller's actor reference AND credential, AND the disclosure refusal as the reason AND as the constituent code.
 Action wiring 49: IF the invocation refusal answers THEN [Disclose Subset] MUST answer the disclosure refusal.
@@ -684,8 +628,6 @@ An aged record is no orphan record and no reconciliation rule reads it for a fin
 ### Wiring decision
 
 ```
-Deleted: Wiring decision 1. Invariant 1.3 owns it: no disclosure id under two live outcome events at act quiescence, a purged and an escalated disclosure carrying none beside it.
-Deleted: Wiring decision 2. Execution Contract Database 1 owns it.
 Wiring decision 3: The composition MUST NOT expose a disclosure surface other than [Disclose Subset].
 Wiring decision 4: The composition MUST NOT require a particular proof mechanism.
 ```
@@ -718,28 +660,9 @@ Reconciliation 1: The reconciliation MUST run at EVERY process start.
 Reconciliation 2: The reconciliation MUST run every sweep cadence.
 Reconciliation 3: EVERY reconciliation run the ledger enumeration answers MUST write the binding rebuild into the binding index.
 Reconciliation 4: The reconciliation MUST NOT examine a young record.
-Deleted: Reconciliation 5. Recoverable Invocation Invariant 7.2 owns it.
 Reconciliation 6: The reconciliation MUST read EVERY accounting record Reconciliation 4 admits against the outcome events.
 Reconciliation 7: The reconciliation MUST read EVERY outcome event against a read of the accounting records the ledger enumeration PRECEDES.
-Deleted: Reconciliation 8. Recoverable Invocation reconcile step 2.1 owns it.
-Deleted: Reconciliation 9. Recoverable Invocation reconcile step 2.3 owns it.
-Deleted: Reconciliation 10. Recoverable Invocation reconcile step 2.5 owns it.
-Deleted: Reconciliation 11. Recoverable Invocation Invariant 3.3 owns it, through the disclosure probe.
-Deleted: Reconciliation 12. Recoverable Invocation reconcile step 3.8 owns it.
-Deleted: Reconciliation 13. Recoverable Invocation reconcile step 3.10 owns it.
 Reconciliation 14: IF no intent carries an orphan record's act key AND disclosure instant THEN the reconciliation MUST open a write-ownership finding for the record.
-Deleted: Reconciliation 15. Recoverable Invocation reconcile step 3.11 owns it.
-Deleted: Reconciliation 16. Recoverable Invocation Invariant 5.1 owns it.
-Deleted: Reconciliation 17. Recoverable Invocation reconcile step 3.2 owns it.
-Deleted: Reconciliation 18. Recoverable Invocation Invariant 5.2 owns it.
-Deleted: Reconciliation 19. Recoverable Invocation Invariant 5.2 owns it.
-Deleted: Reconciliation 20. Recoverable Invocation Invariant 5.3 owns it, and narrows it: a recovered outcome carries what the database re-derives and nothing of the intent's.
-Deleted: Reconciliation 21. Recoverable Invocation Invariant 3.5 owns it.
-Deleted: Reconciliation 22. Recoverable Invocation reconcile step 3.20 owns it.
-Deleted: Reconciliation 23. Recoverable Invocation reconcile step 3.20 owns it.
-Deleted: Reconciliation 24. Recoverable Invocation reconcile step 3.17 owns it.
-Deleted: Reconciliation 25. Reconciliation 3 owns it.
-Deleted: Reconciliation 26. Recoverable Invocation reconcile step 5.1 owns it.
 Reconciliation 27: The reconciliation MUST NOT record an audit event.
 Reconciliation 28: A reconciliation run the ledger enumeration gives no answer MUST NOT write the binding rebuild.
 Reconciliation 29: A reconciliation run a read gives no answer MUST NOT open a write-ownership finding.
@@ -788,7 +711,6 @@ Verdict 2: IF the count of live outcome events carrying the disclosure id EXCEED
 Verdict 3: IF no live outcome event carries the disclosure id AND the binding index names an event the record read answers Purged THEN the binding verdict MUST carry binding-purged.
 Verdict 4: IF no live outcome event carries the disclosure id AND no purged binding names the disclosure id AND an escalated closing stands for the record's invocation THEN the binding verdict MUST carry binding-escalated carrying the cause.
 Verdict 5: IF no live outcome event carries the disclosure id AND no purged binding names the disclosure id AND no escalated closing stands for the record's invocation THEN the binding verdict MUST carry binding-gap.
-Deleted: Verdict 6. Recoverable Invocation Which closing stands 2 owns it: an outcome supersedes an escalation it names.
 Verdict 7: IF the binding verdict carries binding-purged THEN the attestation verification MUST carry failed-verification carrying purged.
 Verdict 8: An entry's authenticity MUST carry EXACTLY ONE OF authentic, altered, not-in-ledger, unverifiable carrying the reason.
 Verdict 9: IF a disclosed entry sits in the unsealed tail at the bundle's construction THEN the bundle MUST mark the entry unverifiable carrying unsealed.
@@ -811,11 +733,8 @@ These emerge from the composition; none belongs to one constituent, and each nee
 
 - **Invariant 1 — Disclosure-accountability binding bijection.**
   ```
-  Deleted: Invariant 1.1. Recoverable Invocation Invariant 4.1 owns it.
-  Deleted: Invariant 1.2. Recoverable Invocation Invariant 4.2 owns it.
   Invariant 1.3: Two live outcome events MUST NOT carry one disclosure id at act quiescence.
   Invariant 1.4: EVERY outcome event MUST carry a disclosure id the accounting records carry.
-  Deleted: Invariant 1.5. Recoverable Invocation Invariant 5.2 owns it.
   Invariant 1.6: IF an accounting record's outcome event carries Purged THEN the binding index MUST keep the record's binding.
   Invariant 1.7: EVERY outcome event's subject reference, recipient, scope, authority AND disclosure instant MUST EQUAL the fields of the accounting record the outcome event's disclosure id names.
   ```
@@ -835,12 +754,8 @@ These emerge from the composition; none belongs to one constituent, and each nee
 - **Invariant 4 — No disclosure unrecorded, structurally closed.**
   ```
   Invariant 4.1: A disclosure through the composition MUST NOT answer success BEFORE the accounting record AND the outcome event land.
-  Deleted: Invariant 5. Composes 5 owns it.
   ```
 - **Invariant 6 — Authentication precedes commitment.**
-  ```
-  Deleted: Invariant 6.1. Recoverable Invocation Invariant 1.1 owns it.
-  ```
 
 The binding and no-disclosure-unrecorded give *accountable disclosure*; verifiable partial disclosure gives *the slice is provably genuine and the rest stays hidden*; the immutable ledger underlies both; authentication before commitment makes the accounting exact.
 
@@ -952,24 +867,15 @@ An implementation is acceptable — in the regulator-acceptance sense — when t
 Check 1.1: An auditor MUST read EVERY accounting record against the outcome events (Reconciliation 6).
 Check 1.2: An auditor MUST resolve EVERY accounting record carrying no live outcome event, a young record excepted, to EXACTLY ONE OF binding-purged, binding-escalated, an open invocation inside the instance's closure window, an open invocation outside that window Recoverable Invocation Check 3.3 exempts, an open invocation outside that window no check exempts, an aged record whose invocation's intent the horizon destroyed with no closing, which Recoverable Invocation Invariant 7.3 excludes and Verdict 5 reads as binding-gap, a false closing, a write-ownership finding (Verdict 3 through 5, Reconciliation 14, Reconciliation 33).
 Check 1.3: An auditor MUST read a young record as inconclusive (Reconciliation 4).
-Deleted: Check 1.9. Check 1.2 owns it: an escalation left past its intent's horizon reads as the gap, and a second check of the same records overlapped the first.
 Check 1.4: An auditor MUST find EVERY outcome event's disclosure id carried by the accounting records (Invariant 1.4).
 Check 1.5: An auditor MUST find no disclosure id two live outcome events carry at act quiescence (Invariant 1.3).
 Check 1.10: An auditor MUST find EVERY outcome event's subject reference, recipient, scope, authority AND disclosure instant EQUALing the fields of the accounting record the outcome event's disclosure id names (Invariant 1.7).
-Deleted: Check 1.6. Recoverable Invocation Check 2.5 owns it.
-Deleted: Check 1.7. Recoverable Invocation Check 2.5 owns it.
-Deleted: Check 1.8. Recoverable Invocation Check 4.1 owns it.
 Check 2.1: IF the partial disclosure capability EQUALS true THEN an auditor MUST find [Verify Disclosure] answering authentic for EVERY sealed disclosed entry a presented bundle covers, an entry the bundle marks entry-purged excepted, an entry the bundle marks unsealed excepted (Invariant 2.1).
 Check 2.2: IF the partial disclosure capability EQUALS false THEN an auditor MUST find the bundle declaring the degradation (Invariant 2.3).
 Check 3.1: An auditor MUST find EVERY ledger event attested AND placed in the Event Log sequence (Invariant 3.1).
 Check 3.2: An auditor MUST find a passing verification for EVERY ledger event whose covering range the auditor presents (Invariant 3.1).
 Check 3.3: An auditor MUST find EVERY ledger event under a retention record, an event unresolved in Audit Trail's compensation window for the event excepted (Invariant 3.4).
 Check 4.1: An auditor MUST find [Disclose Subset] the composition's only disclosure surface (Wiring decision 3).
-Deleted: Check 5.1. Recoverable Invocation Check 1.1 owns it.
-Deleted: Check 5.2. Recoverable Invocation Primitive policy 5 owns it.
-Deleted: Check 5.3. Recoverable Invocation Check 1.1 owns it.
-Deleted: Check 5.4. Recoverable Invocation Check 3.1 owns it: an aged intent carries a closing inside the window.
-Deleted: Check 5.5. Recoverable Invocation Check 1.4 owns it.
 Check 5.6: An auditor MUST read a disclosure's disclosed set from the intent the outcome event names (Composition state 16).
 Check 5.7: IF the record read answers Purged for an outcome event's intent THEN an auditor MUST read the disclosed set as unavailable carrying entry-set-purged (Composition state 16, Action wiring 55).
 Check 6.1: An auditor MUST clear Audit Trail's Generation acceptance over the Audit Trail instance (Composes 5).

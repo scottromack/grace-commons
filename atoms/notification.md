@@ -37,7 +37,6 @@ A notification is a promise to tell somebody something, and the interesting part
 ```
 Identity 1: The atom MUST identify a notification by the notification id.
 Identity 2: The host MUST allocate a notification id at the atom's seam.
-Deleted: Identity 3. Execution Contract Logic confinement 3 owns it.
 Identity 4: The business caller MUST NOT supply a notification id.
 Identity 5: The atom MUST NOT reuse a notification id.
 Identity 6: The atom MUST NOT identify a notification by the recipient reference with the payload.
@@ -99,11 +98,6 @@ Capability requirement 6: The deployment MUST NOT change the string cap for the 
 Capability requirement 7: The deployment MUST declare which composing patterns the deployment wired in PER Execution Contract Conformance 9.
 Capability requirement 8: The deployment MUST declare the deployment's fail-versus-expire policy.
 Capability requirement 9: The deployment MUST supply at the seam a notification id no notification has carried PER Execution Contract Logic confinement 3.
-Deleted: Capability requirement 2. Execution Contract Logic confinement 7 owns it.
-Deleted: Capability requirement 3. Execution Contract Logic confinement 7 owns it.
-Deleted: Clock semantics 1. Execution Contract Logic confinement 7 owns it.
-Deleted: Clock semantics 2. Execution Contract Logic confinement 7 owns it.
-Deleted: Clock semantics 3. Non-goal 16 owns it.
 ```
 
 NOTE: watch the deployment's composition note (Capability requirement 7).
@@ -160,16 +154,8 @@ Operation 18: IF no notification EXISTS for the notification id THEN [Status Of]
 Operation 18b: IF a notification id is malformed THEN [Status Of] MUST answer not-known (Execution Contract Query 1, Query 5).
 Operation 19: [Pending For] MUST answer the notification id of EVERY pending notification carrying the recipient reference.
 Operation 20: [Pending For] MUST NOT answer a terminal notification's notification id.
-Deleted: Operation 21. Execution Contract Read 5 owns it.
 Operation 22: [Status Of] MUST NOT write.
 Operation 23: [Pending For] MUST NOT write.
-Deleted: Operation 24. Capability requirement 1 owns it.
-Deleted: Operation 25. Execution Contract Logic confinement 3 owns it.
-Deleted: Operation 26. Execution Contract Logic confinement 3 owns it.
-Deleted: Operation 27. Execution Contract Read 1 owns it.
-Deleted: Operation 28. Execution Contract Read 1 owns it: after the read, every refusal rule of [Create] answers invalid-request.
-Deleted: Operation 29. Execution Contract Refusal 1 owns it.
-Deleted: Operation 30. Execution Contract Input 4 owns it.
 Operation 31: IF a recipient reference is malformed THEN [Create] MUST answer invalid-request (Execution Contract Input 1).
 Operation 32: IF a notification id is malformed THEN a terminal transition MUST answer not-known (Execution Contract Input 1).
 ```
@@ -214,7 +200,6 @@ The case space, and the rule that owns each case:
   ```
 - **Invariant 2 — Status monotonicity.**
   ```
-  Deleted: Invariant 2.1. State 1 owns it.
   Invariant 2.2: A status MUST NOT move to pending from a terminal status.
   Invariant 2.3: A status MUST NOT move between two terminal statuses.
   Invariant 2.4: A notification MUST read as pending at an instant ONLY IF the notification is pending at an instant.
@@ -222,30 +207,22 @@ The case space, and the rule that owns each case:
 - **Invariant 3 — Terminal states are exclusive.**
   ```
   Invariant 3.1: A notification whose status DOES NOT EQUAL pending MUST carry EXACTLY ONE terminal stamp.
-  Deleted: Invariant 3.2. State 6 owns it.
   ```
 - **Invariant 4 — Terminal timestamps match status.**
   ```
-  Deleted: Invariant 4.1. State 3 owns it.
   Invariant 4.2: A notification carrying delivery instant MUST stand in delivered.
-  Deleted: Invariant 4.3. State 4 owns it.
   Invariant 4.4: A notification carrying failure instant MUST stand in failed.
-  Deleted: Invariant 4.5. State 5 owns it.
   Invariant 4.6: A notification carrying lapse instant MUST stand in expired.
   ```
 - **Invariant 5 — Id stability.**
   ```
   Invariant 5.1: [Create] MUST set the notification id.
-  Deleted: Invariant 5.2. Invariant 1.1 owns it.
   ```
 - **Invariant 6 — No id reuse.**
   ```
   Invariant 6.1: Two notifications MUST NOT share a notification id.
   ```
 - **Invariant 7 — Pending query excludes terminals.**
-  ```
-  Deleted: Invariant 7.1. Operation 20 owns it.
-  ```
 - **Invariant 8 — Timestamp ordering.**
   ```
   Invariant 8.1: IF delivery instant DOES NOT EQUAL blank THEN delivery instant MUST NOT PRECEDE creation instant.
@@ -314,7 +291,6 @@ Check 3.1: An auditor MUST find EVERY notification whose status DOES NOT EQUAL p
 Check 3.2: An auditor MUST find no pending notification carrying a terminal stamp (State 6).
 Check 4.1: An auditor MUST find EVERY terminal stamp matching the notification's status (Invariant 4.2, Invariant 4.4, Invariant 4.6).
 Check 5.1: An auditor MUST find the notification set never shrinking across the notifications' committed versions (Invariant 9.1, Invariant 9.2; Execution Contract Generation acceptance 1).
-Deleted: Check 6.1. Execution Contract Conformance 9 owns it.
 Check 6.2: An auditor MUST find no two notifications sharing a notification id (Invariant 6.1).
 ```
 
@@ -327,7 +303,6 @@ External check 1: An auditor MUST read the deployment's fail-versus-expire polic
 External check 2: An auditor MUST read a payload's retention from the composing Retention Window records (Non-goal 13).
 External check 3: An auditor MUST read who created a notification from the composing Actor Identity attestations (Non-goal 11).
 External check 4: An auditor MUST read the transport's own outcome from the deployment's delivery layer (Non-goal 5).
-Deleted: External check 5. Execution Contract Conformance 9 owns it.
 ```
 
 NOTE: EVERY check names the rule the check tests. External check 1 is the one that makes cross-deployment audit possible: without the declared policy, one shop's failure instant and another's lapse instant record the same operational event and no reader can tell.
@@ -341,7 +316,6 @@ Non-goal 3: The atom MUST NOT retry a failed notification.
 Non-goal 4: A composing pattern retrying MUST create a second notification.
 Non-goal 5: The atom MUST NOT deliver a notification.
 Non-goal 6: The atom MUST NOT hold a transport's mechanism.
-Deleted: Non-goal 7. Execution Contract Read 5 owns it.
 Non-goal 8: The atom MUST NOT record a recipient's reading.
 Non-goal 9: A deployment needing a read acknowledgement MUST create a second notification for the acknowledgement.
 Non-goal 10: The atom MUST NOT validate a payload.
@@ -366,7 +340,6 @@ String 1: The atom MUST compare a string input byte-exactly.
 String 2: The atom MUST NOT trim a string input.
 String 3: The atom MUST NOT normalize a string input.
 String 4: The atom MUST NOT case-fold a string input.
-Deleted: String 5. GRACE-lang Term blank owns it.
 String 6: IF the recipient reference EXCEEDS the string cap THEN [Create] MUST answer invalid-request.
 String 7: The business caller MUST own a recipient reference's canonical form.
 String 8: [Pending For] MUST read an over-length recipient reference as matching nothing.
@@ -378,13 +351,6 @@ Term string cap: the bound on the recipient reference's length, measured in Unic
 NOTE: watch the cap's floor (Term string cap).
 
 ### Atomicity of a terminal transition
-
-```
-Deleted: Terminal atomicity 1. Execution Contract Database 1 owns it.
-Deleted: Terminal atomicity 2. Execution Contract Database 1 and Execution Contract Database 3 own it.
-Deleted: Terminal atomicity 3. Execution Contract Database 1 and Execution Contract Database 3 own it.
-Deleted: Terminal atomicity 4. Execution Contract Database 2 owns it.
-```
 
 ### Bulk expiry
 
@@ -427,13 +393,10 @@ What a composed purge can do is a shred, as [Audit Trail](../compositions/audit-
 ## Composition notes
 
 ```
-Deleted: Composition note 1. Capability requirement 7 owns it.
-Deleted: Composition note 2. Capability requirement 8 owns it.
 Composition note 3: A composing pattern MUST own who is notified.
 Composition note 4: A composing pattern MUST own the transport.
 Composition note 5: A composing pattern needing at-most-once notification MUST guard [Create] with Duplicate Prevention.
 Composition note 6: A composing pattern MUST own a payload's retention.
-Deleted: Composition note 7. Operation 14b owns it.
 ```
 
 NOTE: composing patterns — [Notification Fanout](../compositions/notification-fanout.md), [Preference-Aware Notification Fanout](../compositions/preference-aware-notification-fanout.md).

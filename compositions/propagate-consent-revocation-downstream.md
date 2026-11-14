@@ -139,7 +139,6 @@ Composition state 11: The composition MUST NOT rebuild an index entry from Conse
 Composition state 12: A rebuild MUST read the enumeration of Consent's records ONLY as a cross-check.
 Composition state 13: The composition MUST classify a purged index entry as truth-bearing.
 Composition state 14: A rebuild MUST NOT remove a purged index entry.
-Deleted: Composition state 15. Execution Contract Database 3 owns it.
 Composition state 16: The composition MUST classify a purged downstream entry as extraction-pending against Processing Register.
 Composition state 17: The composition MUST classify a purged key entry as extraction-pending against Erasure Tombstone.
 Composition state 18: The composition MUST decide a downstream entry's horizon by the record read on the entry's registration event.
@@ -147,7 +146,6 @@ Composition state 19: The composition MUST NOT decide a downstream entry's horiz
 Composition state 20: The composition MUST NOT store a consent validity flag.
 Composition state 21: The composition MUST NOT duplicate a constituent's records.
 Composition state 23: The composition MUST NOT store a record of the Recoverable Invocation instance.
-Deleted: Composition state 22. Execution Contract Derived index 1 owns it.
 ```
 
 NOTE: open 2026-11-04-b — Composition state 12 makes the enumeration of Consent's records a cross-check, and no rule says what the composition does where it and the log disagree.
@@ -206,35 +204,16 @@ Capability requirement 2: A deployment MUST set the audit retention policy on th
 Capability requirement 3: The composition MUST NOT pass a retention input to the audit write.
 Capability requirement 4: EVERY consent retention period MUST NOT EXCEED the audit horizon.
 Capability requirement 5: A regulated deployment MUST pass a retention policy reference encoding the regime's proof period.
-Deleted: Capability requirement 6. Recoverable Invocation Instance start 4 owns it: the closure window.
-Deleted: Capability requirement 7. Recoverable Invocation sweep cadence 2 and 3 own it.
-Deleted: Capability requirement 8. Term reconciliation run bound owns it: the run bound counts every write's landing.
 Capability requirement 9: A deployment MUST set the administration completion bound.
-Deleted: Capability requirement 10. Recoverable Invocation Instance start 4 and Instance start 5 own it: the worst closure against the closure window, and the retention floor.
-Deleted: Capability requirement 11. Execution Contract Database 1 owns it.
-Deleted: Capability requirement 12. Execution Contract Database 1 owns it: the composition names no retry span for the administration completion bound to cover.
 Capability requirement 13: A deployment MUST set the field length cap, the registrations cap, the event id width AND the id width.
 Capability requirement 14: The composition MUST start ONLY IF the maximal envelope DOES NOT EXCEED Audit Trail's payload cap.
-Deleted: Capability requirement 15. Recoverable Invocation clock allowance owns it: one allowance, set at the instance, covering the widest pair of the clocks.
-Deleted: Capability requirement 16. Execution Contract Database 2 owns it.
-Deleted: Capability requirement 17. Execution Contract Database 2 owns it.
-Deleted: Capability requirement 18. Execution Contract Database 2 owns it: an action's reads and the writes they decide are one transaction, and the composition names no exclusion to release.
-Deleted: Capability requirement 19. Execution Contract Database 2 owns it: an action's reads and the writes they decide are one transaction, and the composition names no exclusion to release.
-Deleted: Capability requirement 20. Execution Contract Database 2 owns it: an action's reads and the writes they decide are one transaction, and the composition names no exclusion to lease.
-Deleted: Capability requirement 21. Execution Contract Database 2 owns it: an action's reads and the writes they decide are one transaction, and the composition names no lease to expire.
-Deleted: Capability requirement 22. Execution Contract Database 2 owns it: an action's reads and the writes they decide are one transaction, and the composition names no exclusion for a host to lack.
 Capability requirement 23: A deployment MUST provision the recovery identity.
-Deleted: Capability requirement 24. Execution Contract Database 3 owns it.
-Deleted: Capability requirement 25. Execution Contract Database 3 owns it.
 Capability requirement 26: The wired Audit Trail instance MUST expose the log read.
 Capability requirement 27: The host MUST inject now, the invocation id, the run id AND the operator run id at the seam once per invocation.
 Capability requirement 28: The composition MUST stamp EVERY instant one invocation writes from the invocation's now.
-Deleted: Capability requirement 29. Recoverable Invocation Primitive policy 18 owns it for the sweep, and the write-ownership leg reads the sweep's run reading (Reconciliation 39).
 Capability requirement 30: A deployment MUST expose [Processing Permitted] ONLY to processing systems.
 Capability requirement 31: A processing activity MUST NOT process on a consent basis BEFORE a registration event carrying the activity's processing scope AND the consent id of the governed consent in Granted, at the instant the activity processes, for the subject reference AND purpose the activity processes under lands.
 Capability requirement 32: The deployment MUST supply the database PER Execution Contract Database 1 through 4, AND the act section PER Execution Contract Database 7 AND Refusal 1 (Recoverable Invocation Capability requirement 12).
-Deleted: Capability requirement 33. Recoverable Invocation run bound owns it: the sweep's own, and the write-ownership leg runs inside it.
-Deleted: Capability requirement 34. Recoverable Invocation Instance start 5 owns it: the retention floor.
 Capability requirement 35: A deployment MUST run the composition and the Consent instance against a single clock (Execution Contract Logic confinement 7, Consent Operation 24, 25).
 Capability requirement 36: IF a required setting EQUALS blank THEN the composition MUST refuse to start.
 NOTE: watch the unset setting (Capability requirement 36).
@@ -312,7 +291,6 @@ Primitive policy 3: IF the actor reference EQUALS blank THEN the action MUST ans
 Primitive policy 4: IF the credential EQUALS blank THEN the action MUST answer invalid-request.
 Primitive policy 5: IF the subject index misses the consent id once rebuilt THEN the action MUST answer not-known.
 Primitive policy 6: IF the pair IS NOT IN the registered set AND the registered set's count EQUALS the registrations cap THEN [Register Processing] MUST answer registration-cap-exceeded.
-Deleted: Primitive policy 7. Recoverable Invocation Primitive policy 12 and Primitive policy 13 own it: the invocation open sizes the kind's largest record against the substrate's payload cap and refuses invalid-request for an act whose largest record would not fit.
 Primitive policy 8: An action refused under Primitive policy 1 through 6 MUST NOT write.
 Primitive policy 9: The composition MUST NOT record an audit event for a call BEFORE Primitive policy 1 through 6 pass.
 Primitive policy 10: The composition MUST compare a consent id, an event id AND a caller string byte-exact.
@@ -346,23 +324,12 @@ Term registered set: the pairs of every registration event carrying the consent 
 ### Audit arm
 
 ```
-Deleted: Audit arm 1. Recoverable Invocation Primitive policy 19 owns it for the intent of the two bound actions.
-Deleted: Audit arm 2. Recoverable Invocation Primitive policy 41 owns it for the intent of the two bound actions.
-Deleted: Audit arm 3. Recoverable Invocation Primitive policy 23 owns it for the intent of the two bound actions.
-Deleted: Audit arm 4. Recoverable Invocation Primitive policy 43 owns it for the two bound actions; a single write is never retried either (Audit arm 8).
-Deleted: Audit arm 5. Execution Contract Database 1 owns it.
 Audit arm 6: The deployment MUST alert on EVERY single write landed with the retention step failed.
 Audit arm 7: IF Audit Trail answers invalid-credential at a single write THEN the action MUST answer invalid-credential.
 Audit arm 8: IF Audit Trail answers invalid-request carrying step-1, step-2 or step-3 at a single write THEN the action MUST answer invalid-request.
 Audit arm 9: The deployment MUST alert on EVERY invalid-request carrying step-1, step-2 or step-3 at a single write as a deployment fault.
-Deleted: Audit arm 10. Execution Contract Database 1 owns it.
-Deleted: Audit arm 11. Execution Contract Database 1 owns it: an action's writes commit together, so no invocation retries an outcome.
-Deleted: Audit arm 12. Recoverable Invocation Primitive policy 30 owns it for the outcome of the two bound actions.
 Audit arm 13: IF Audit Trail answers recording-failure at a single write THEN the action MUST answer recording-failure.
-Deleted: Audit arm 14. Recoverable Invocation Invariant 8.3 owns it: recording-failure(intent) is a committed nothing.
-Deleted: Audit arm 15. Recoverable Invocation Invariant 8.4 owns it: recording-failure(outcome) is a committed act whose record the sweep closes.
 Audit arm 16: IF Audit Trail answers invalid-request carrying the retention step at a single write THEN the invocation MUST proceed as landed.
-Deleted: Audit arm 17. Recoverable Invocation Primitive policy 42 owns it for the outcome of the two bound actions.
 Audit arm 18: [Record Consent] AND [Withdraw Consent] MUST answer PER Recoverable Invocation's Action wiring table, AND the Audit arm's rules MUST NOT answer for either, whose intent, outcome and refusal records Recoverable Invocation writes.
 ```
 
@@ -418,28 +385,22 @@ Action wiring 2: IF the permission check answers denied THEN the administration 
 Action wiring 3: An administration action MUST NOT write BEFORE the permission check answers permitted.
 Action wiring 4: A validated grant MUST call the invocation open with the act kind consent.grant, the subject reference with the purpose as the act key, the actor reference, the credential AND the intent data carrying the subject reference, the purpose, the retention policy reference, the expiry, the metadata AND now as the pairing datum (Recoverable Invocation Action wiring 4).
 Action wiring 5: A grant intent MUST NOT carry a consent id.
-Deleted: Action wiring 6. Execution Contract Database 2 owns it.
 Action wiring 7: An admitted grant MUST call the consent check with the subject reference AND the purpose, inside the grant transaction.
 Action wiring 8: IF the consent check answers granted THEN the grant transaction MUST commit no write AND [Record Consent] MUST close the pre-commit arm through the invocation refuse AND answer already-granted (Recoverable Invocation commit 2, commit 3).
 Action wiring 9: A checked grant MUST call the grant write with the subject reference, the purpose, the actor reference as the grantor, the expiry AND the metadata.
-Deleted: Action wiring 10. Consent Operation 10 owns it: the grant write stamps the grant instant from Consent's own now, and the expiry is the caller's, passed unchanged (Action wiring 9).
 Action wiring 11: IF the grant write answers storage-failure THEN the grant transaction MUST commit no write AND [Record Consent] MUST close the pre-commit arm through the invocation refuse AND answer storage-failure.
 Action wiring 12: IF the grant write answers invalid-request THEN the grant transaction MUST commit no write AND [Record Consent] MUST close the pre-commit arm through the invocation refuse AND answer invalid-request.
 Action wiring 13: A committed grant MUST call the retention placement with the consent id AND the retention policy reference.
 Action wiring 14: IF the retention placement answers a placement refusal THEN the grant transaction MUST commit no write AND [Record Consent] MUST close the pre-commit arm through the invocation refuse AND answer invalid-request.
-Deleted: Action wiring 15. Execution Contract Database 1 owns it.
-Deleted: Action wiring 16. Execution Contract Database 1 owns it.
 Action wiring 17: [Record Consent] MUST close a committed grant transaction through the invocation close naming consent.grant.granted AND carrying the consent id, the subject reference, the purpose, the expiry AND the retention id (Recoverable Invocation commit 4).
 Action wiring 18: A closed grant MUST write the retention entry AND the subject entry.
 Action wiring 19: A closed grant MUST answer the consent id.
-Deleted: Action wiring 20. Execution Contract Database 2 owns it.
 Action wiring 21: A validated registration MUST record the registration event carrying the consent id, the processing scope, the processor reference AND now as the registration instant.
 Action wiring 22: A landed registration whose registration event is not a repeat registration MUST add the binding carrying the registration event's registration instant AND event id.
 Action wiring 23: A landed registration MUST answer registered.
 Action wiring 24: The composition MUST write an index entry for a consent id ONLY AFTER the consent id's grant event lands.
 Action wiring 25: The composition MUST add a binding ONLY AFTER the binding's registration event lands.
 Action wiring 26: [Register Processing] MUST NOT call the consent check.
-Deleted: Action wiring 27. Execution Contract Database 2 owns it.
 Action wiring 28: An opened withdrawal MUST derive the propagation set.
 Action wiring 29: The composition MUST derive a propagation set from the registration events AND the purged downstream entries.
 Action wiring 30: The composition MUST NOT derive a propagation set from a live downstream entry.
@@ -456,11 +417,6 @@ Action wiring 40: IF the revoke write answers not-known THEN the composition MUS
 Action wiring 40a: The deployment MUST alert on EVERY index-anomaly finding.
 Action wiring 41: [Withdraw Consent] MUST close a committed revoke through the invocation close naming consent.withdrawal.revoked AND carrying the consent id, the subject reference, the purpose, the reason, the propagation set AND the revocation instant (Recoverable Invocation commit 4).
 Action wiring 42: A closed withdrawal MUST answer withdrawn.
-Deleted: Action wiring 43. Reconciliation 9 and Execution Contract Database 1 own it.
-Deleted: Action wiring 44. Reconciliation 9 and Execution Contract Database 1 own it.
-Deleted: Action wiring 45. Execution Contract Database 2 owns it: an action's reads and the writes they decide are one transaction, and the composition names no lease to expire.
-Deleted: Action wiring 46. Execution Contract Database 2 owns it: an action's reads and the writes they decide are one transaction, and the composition names no lease to expire.
-Deleted: Action wiring 47. Execution Contract Database 2 owns it: an action's reads and the writes they decide are one transaction, and the composition names no exclusion to release.
 Action wiring 48: A validated history read MUST call the consent read with the subject reference.
 Action wiring 49: IF the consent read answers invalid-query THEN [Read Consent History] MUST answer invalid-request.
 Action wiring 50: A fetched history read MUST record the access event carrying the subject reference AND the record count.
@@ -654,7 +610,6 @@ Inside an action, a read that fails passes through unchanged and writes nothing 
 
 ```
 Wiring decision 1: The composition MUST append a propagation event ONLY AFTER the revoke write answers revoked.
-Deleted: Wiring decision 2. Execution Contract Database 1 owns it.
 Wiring decision 3: The composition MUST NOT expose a withdrawal surface other than [Withdraw Consent].
 Wiring decision 4: The composition MUST NOT expose a consent gate other than [Processing Permitted].
 ```
@@ -675,44 +630,14 @@ Wiring decision 4: The composition MUST NOT expose a consent gate other than [Pr
 ### Reconciliation
 
 ```
-Deleted: Reconciliation 1. Execution Contract Database 1 and Execution Contract Database 3 own it.
 Reconciliation 2: The reconciliation MUST run every sweep cadence.
-Deleted: Reconciliation 3. Execution Contract Database 1 owns it.
 Reconciliation 4: IF a Consent record IS a young record OR IS an aged record THEN the reconciliation MUST NOT examine the record.
-Deleted: Reconciliation 5. Recoverable Invocation Invariant 7.3 and Recoverable Invocation Check 7.1 own it: the sweep excludes a purged intent, and propagation history purged stays an auditor's class (Check 3.4).
 Reconciliation 6: The reconciliation MUST read EVERY revoked Consent record Reconciliation 4 admits against the withdrawal intents (Reconciliation 11 states the key).
-Deleted: Reconciliation 7. Execution Contract Database 2 owns it.
-Deleted: Reconciliation 8. Execution Contract Database 2 owns it: the reconciliation's reads of a record and the writes they decide are one transaction, and the composition names no exclusion for another holder to hold.
-Deleted: Reconciliation 9. Recoverable Invocation reconcile step 2.4 through 2.6 and Recoverable Invocation Invariant 2.1 own it: no closed invocation is written for again.
-Deleted: Reconciliation 10. Recoverable Invocation Invariant 3.3 owns it, through the withdrawal probe: the pairing datum, the revocation instant, joins an intent to the record by equality.
 Reconciliation 11: IF no withdrawal intent carries a revoked Consent record's consent id AND revocation instant THEN the reconciliation MUST open a write-ownership finding for the record.
-Deleted: Reconciliation 12. Recoverable Invocation reconcile step 1.2 and Recoverable Invocation reconcile step 3.12 own it: the sweep writes only for an intent, and only what it read.
-Deleted: Reconciliation 12a. Recoverable Invocation reconcile step 3.1 and Recoverable Invocation reconcile step 3.2 own it: the probe runs at every run while the intent is open.
-Deleted: Reconciliation 13. The withdrawal probe owns it: its outcome data derives the propagation set at the intent's own position (Recoverable Invocation act probe 6).
-Deleted: Reconciliation 14. Recoverable Invocation act probe 6 and Recoverable Invocation Invariant 5.3 own it: the probe re-derives the outcome's other fields from the database.
 Reconciliation 15: The reconciliation MUST read EVERY Consent record Reconciliation 4 admits against the grant intents.
 Reconciliation 16: IF no grant intent carries a Consent record's subject reference AND purpose as the act key AND the record's grant instant as the pairing datum THEN the reconciliation MUST open a write-ownership finding for the record.
-Deleted: Reconciliation 17. Recoverable Invocation Invariant 3.4 forbids it: the act probe pairs on a pairing datum by equality and never on a stamp within a window.
-Deleted: Reconciliation 18. Execution Contract Database 1 owns it.
-Deleted: Reconciliation 19. Execution Contract Database 1 owns it.
-Deleted: Reconciliation 20. Recoverable Invocation Sweep never 1 and Recoverable Invocation Invariant 9.2 own it: the sweep writes no adopter state, and the grant rebuild reads a recovered grant event (Composition state 10).
-Deleted: Reconciliation 21. Recoverable Invocation Invariant 3.5a and Recoverable Invocation reconcile step 3.8 through 3.10 own it: an escalation carries the database candidates, and an outcome never does.
 Reconciliation 22: IF a registration event's pair IS NOT IN the downstream index THEN the reconciliation MUST add the binding from the payload of the pair's first registration event.
 Reconciliation 23: The reconciliation MUST NOT record an audit event for a binding repair.
-Deleted: Reconciliation 24. Recoverable Invocation Invariant 5.1 and Recoverable Invocation reconcile step 3.2a own it: the recovery intent before any recovered outcome.
-Deleted: Reconciliation 25. Recoverable Invocation reconcile step 3.2a owns it: the recovery intent's invocation id, intent event id, act key and plan.
-Deleted: Reconciliation 26. Recoverable Invocation Invariant 5.2 and the service identity own it: the recovery identity is the binding's service identity.
-Deleted: Reconciliation 27. Recoverable Invocation Invariant 5.2, Recoverable Invocation Primitive policy 11a and Term outcome shape own it: the recovered outcome carries the recovery flag, the acting actor reference and the intent event id.
-Deleted: Reconciliation 28. Recoverable Invocation reconcile step 3.17 and Recoverable Invocation Primitive policy 29 own it: a closing-position write refused is left for the next run.
-Deleted: Reconciliation 29. Recoverable Invocation reconcile step 3.5, step 3.8 through 3.10 and Recoverable Invocation Invariant 2.1 own it: an uncompensable cause is an escalation, once.
-Deleted: Reconciliation 30. Recoverable Invocation reconcile step 3.20 and step 3.17 with Recoverable Invocation Invariant 5.1 own it: there is no escalation instant, and a closing the substrate refuses is surfaced as closure-at-risk or outcome-unrecordable.
-Deleted: Reconciliation 31. Recoverable Invocation reconcile step 3.5a, Recoverable Invocation reconcile step 3.8a and Recoverable Invocation reconcile step 3.20 own it: an escalation carries its cause and its candidates.
-Deleted: Reconciliation 32. Recoverable Invocation reconcile step 2.5 and Recoverable Invocation reconcile step 2.6 own it: only the invocation resolve supersedes an escalation.
-Deleted: Reconciliation 33. Recoverable Invocation Invariant 2.1 owns it.
-Deleted: Reconciliation 34. Recoverable Invocation reconcile step 3.17 and Recoverable Invocation reconcile step 3.23 own it.
-Deleted: Reconciliation 35. Recoverable Invocation reconcile step 3.21, Recoverable Invocation reconcile step 5.9 and the findings register own it.
-Deleted: Reconciliation 36. Recoverable Invocation Term hard alert, reconcile step 5.1 and Recoverable Invocation Primitive policy 40 own it.
-Deleted: Reconciliation 37. Recoverable Invocation act probe 4, Recoverable Invocation act probe 5 and Recoverable Invocation reconcile step 3.13 own it for the sweep; Reconciliation 38 states it for the leg.
 Reconciliation 38: The reconciliation MUST decide ONLY on an answered read.
 Reconciliation 39: The reconciliation MUST read the sweep's run reading of now AND MUST NOT read now at a seam of the reconciliation.
 NOTE: watch the sweep's run reading (Reconciliation 39).
@@ -755,7 +680,6 @@ These emerge from the composition; none belongs to one constituent, and each nee
 
 - **Invariant 2 — Grant audit coverage.**
   ```
-  Deleted: Invariant 2.1. Recoverable Invocation Invariant 4.2 and Recoverable Invocation Check 3.1 own it: an intent is open, awaiting the sweep, or closed.
   Invariant 2.2: EVERY grant event MUST carry an attestation AND a position in the Event Log sequence.
   ```
 - **Invariant 3 — Revocation propagation completeness.**
@@ -763,9 +687,6 @@ These emerge from the composition; none belongs to one constituent, and each nee
   Invariant 3.1: EVERY propagation event MUST name a consent the Consent records hold in Revoked.
   Invariant 3.2: Two propagation events MUST NOT carry one consent id.
   Invariant 3.3: A propagation event's propagation set MUST EQUAL the registered set at the event's boundary.
-  Deleted: Invariant 3.4. Recoverable Invocation Term hard alert and reconcile step 5.1 own it: the sweep alerts on every orphan, and an Invariant MUST NOT oblige an act (GRACE-lang Standard label 14).
-  Deleted: Invariant 3.5. Recoverable Invocation Invariant 4.2 and Recoverable Invocation Check 3.1 own it: no intent stands open past the closure window.
-  Deleted: Invariant 3.6. Recoverable Invocation Invariant 5.1 and Recoverable Invocation Invariant 5.2 own it: a recovered outcome is written behind a recovery intent under the service identity and carries the recovery flag.
   NOTE: the invocation resolve does not check an operator's outcome against the database (Recoverable Invocation resolve 28, Recoverable Invocation resolve 31), so Invariant 3.1, Invariant 3.2 and Invariant 3.3 are detected, not prevented, for an operator's closing: Check 3.1, Check 3.2 and Check 3.10 find it.
   ```
   Term event's boundary: the position in the Event Log of the intent the event's intent event id names.
@@ -783,7 +704,6 @@ These emerge from the composition; none belongs to one constituent, and each nee
 - **Invariant 6 — Consent-record retention floor.**
   ```
   Invariant 6.1: EVERY consent retention MUST carry Retained.
-  Deleted: Invariant 6.2. Invariant 6.1 owns it: the retention placement is inside the grant transaction (Action wiring 13), so a committed Consent record carries a consent retention.
   Invariant 6.3: The composition MUST read a consent retention's proof-period end ONLY as the consent retention's retention deadline.
   ```
   Term consent retention: the consent retention instance's record over one consent record.
@@ -795,8 +715,6 @@ These emerge from the composition; none belongs to one constituent, and each nee
   ```
 - **Invariant 8 — Authentication precedes commitment.**
   ```
-  Deleted: Invariant 8.1. Recoverable Invocation Invariant 1.1 owns it: the commit follows the intent, whose record verified the credential.
-  Deleted: Invariant 8.2. Recoverable Invocation Invariant 1.1 owns it: the commit follows the intent, whose record verified the credential.
   Invariant 8.3: The composition MUST NOT add a binding BEFORE Audit Trail validates the caller's credential at the registration event.
   Invariant 8.4: The composition MUST NOT answer a consent history BEFORE Audit Trail validates the caller's credential at the access event.
   ```
@@ -868,18 +786,12 @@ An implementation is acceptable — in the regulator-acceptance sense — when t
 ```
 Check 1.1: An auditor MUST find [Processing Permitted] AND the consent check agreeing over a sample of subject references AND purposes (Invariant 1.1).
 Check 1.2: An auditor MUST find no two governed consents in Granted carrying one subject reference AND one purpose (Invariant 1.3).
-Deleted: Check 2.1. Recoverable Invocation Check 3.1 owns it.
 Check 2.2: An auditor MUST resolve EVERY ungranted record to EXACTLY ONE OF a record whose grant intent stands open, an escalated grant other than a false closing, a false closing, a write-ownership finding (Reconciliation 15, Reconciliation 16, Reconciliation 41).
 Check 2.3: An auditor MUST find a passing verification for EVERY grant event (Invariant 2.2).
 Check 3.1: An auditor MUST find no consent id two propagation events carry (Invariant 3.2).
 Check 3.2: An auditor MUST find EVERY propagation event's propagation set equal to the registered set at the event's boundary (Invariant 3.3).
 Check 3.3: An auditor MUST find a passing verification for EVERY propagation event (Invariant 5.1).
 Check 3.4: An auditor MUST resolve EVERY revoked Consent record carrying no propagation event, other than a young record, to EXACTLY ONE OF propagation history purged other than a false closing, an unpropagated record whose withdrawal intent stands open, an escalated withdrawal other than a false closing AND other than propagation history purged, a false closing, an unpropagated record that is a write-ownership finding, a conformance failure (Reconciliation 6, Reconciliation 11, Reconciliation 40, Reconciliation 41).
-Deleted: Check 3.5. Recoverable Invocation Check 3.1 owns it.
-Deleted: Check 3.6. Recoverable Invocation Check 1.1, Recoverable Invocation Check 2.5 and Recoverable Invocation Check 5.1 own it.
-Deleted: Check 3.7. Recoverable Invocation reconcile step 3.5a and step 3.20 own it: an escalation carries its cause.
-Deleted: Check 3.8. Recoverable Invocation Check 4.1 owns it.
-Deleted: Check 3.9. Recoverable Invocation Check 4.1 owns it.
 Check 3.10: An auditor MUST find EVERY propagation event naming a consent the Consent records hold in Revoked (Invariant 3.1).
 Check 4.1: An auditor MUST find a registration event preceding the event's boundary for EVERY pair a propagation set carries (Invariant 4.1).
 Check 4.2: IF the record read answers Purged for a pair's registration event THEN an auditor MUST compare the event's surviving sequence number with the event's boundary (Invariant 4.1).
@@ -968,18 +880,9 @@ NOTE: the owners — [Message Preference / Personalization](../atoms/message-pre
 
 ```
 Clock semantics 1: The composition MUST read the Event Log sequence as the order of an intent AND the intent's outcome.
-Deleted: Clock semantics 2. Recoverable Invocation Primitive policy 5 owns it: every join pairs on the invocation id.
-Deleted: Clock semantics 3. Recoverable Invocation Allowance 4 and Allowance 6 own it.
 ```
 
 ### Concurrency
-
-```
-Deleted: Concurrency 1. Execution Contract Database 2 owns it.
-Deleted: Concurrency 2. Execution Contract Database 2 owns it.
-Deleted: Concurrency 3. Execution Contract Database 2 owns it.
-Deleted: Concurrency 4. Execution Contract Database 2 owns it: an action's reads and the writes they decide are one transaction, and the composition names no exclusion for [Processing Permitted] to take.
-```
 
 
 ### Retention asymmetry

@@ -33,3 +33,300 @@ Entries that record a round, a sweep or a migration rather than a turn the patte
 ## Migration notes
 
 - **2026-09-15 — The reconciliation scan given its own section.** The scan sat inside the wiring decision, under a label family of its own, until the heading standard gave the leg its address (council read 83).
+
+## Deleted rules
+
+The spec's tombstones, moved here from the page on 2026-11-13 because the spec is done (GRACE-lang Hard invariant 25 and Hard invariant 27, since v0.71): each `Deleted:` line byte for byte and in the page's order, under the heading it stood under there. A tombstone carries no obligation, and each still reserves its label: no rule of [Audit Trail](./audit-trail.md) may carry it again.
+
+### Composes
+
+```
+Deleted: Composes 11. Defensible Retention Composes 19 owns it.
+Deleted: Composes 12. Defensible Retention Composes 20 owns it.
+```
+
+### Composition logic › Composition state › event to attestation
+
+```
+  Deleted: event to attestation 3c. Execution Contract Database 1, Execution Contract Database 3 and Execution Contract Database 4 own it.
+```
+
+### Composition logic › Composition state › seal coverage
+
+```
+  Deleted: seal coverage 12. Execution Contract Database 1, Execution Contract Database 3 and Execution Contract Database 4 own it.
+```
+
+### Composition logic › Composition state › compensated attestations
+
+```
+  Deleted: compensated attestations 6. compensated attestations 2 owns it.
+```
+
+### Composition logic › Composition state › reported beyond horizon
+
+```
+  Deleted: reported beyond horizon 3. reported beyond horizon 2 owns it.
+```
+
+### Composition logic › Composition state › outage record
+
+```
+  Deleted: outage record 3. Execution Contract Database 3 and Execution Contract Database 4 own it.
+```
+
+### Composition logic › Capability requirement
+
+```
+Deleted: Capability requirement 1. Event Log Invariant 5.1 owns it: under Event Log's Term query a sequence-number range carrying no upper end holds its lower end and everything above it, so every conforming Event Log instance answers the open-upper-bound read.
+Deleted: Capability requirement 4. Execution Contract Database 3 owns it.
+Deleted: Capability requirement 4a. Execution Contract Database 3 owns it.
+Deleted: Capability requirement 7. Defensible Retention Capability requirement 69 owns it.
+    Deleted: Capability requirement 7a. Defensible Retention Capability requirement 69a owns it.
+    Deleted: Capability requirement 7b. Defensible Retention Capability requirement 69b owns it.
+    Deleted: Capability requirement 7c. Defensible Retention Capability requirement 69c owns it.
+    Deleted: Capability requirement 7d. Defensible Retention Capability requirement 69d owns it.
+    Deleted: Capability requirement 7e. Defensible Retention Capability requirement 69e owns it.
+    Deleted: Capability requirement 7f. Execution Contract Database 2 owns it: a hold placement's re-read, lease check and write are one transaction, and a hold placement makes no abandoned call for Defensible Retention Cascade critical section 1 to bind.
+    Deleted: Capability requirement 7g. Defensible Retention Capability requirement 69g owns it.
+    Deleted: Capability requirement 7h. Defensible Retention Capability requirement 69h owns it.
+    Deleted: Capability requirement 7i. Defensible Retention Capability requirement 69i owns it.
+```
+
+### Composition logic › Capability requirement › retention policy
+
+```
+  Deleted: retention policy 7. Instance start 33 owns it: Instance start 21 resolves horizon from retention policy, and Instance start 22 reads horizon.
+```
+
+### Composition logic › Capability requirement › reconciliation cadence
+
+```
+  Deleted: reconciliation cadence 2. Execution Contract Scheduled leg 1 owns it.
+  Deleted: reconciliation cadence 6. Execution Contract Scheduled leg 1 and reconciliation cadence 1a own it.
+```
+
+### Composition logic › Capability requirement › clock offset allowance
+
+```
+  Deleted: clock offset allowance 4. clock offset allowance 3 owns it.
+```
+
+### Composition logic › Capability requirement › Per-act critical section
+
+```
+  Deleted: Per-act critical section 2a. Defensible Retention Cascade critical section 1 owns it.
+  Deleted: Per-act critical section 7. Defensible Retention Cascade critical section 2 owns it.
+  Deleted: Per-act critical section 8. Defensible Retention Cascade critical section 3 owns it.
+  Deleted: Per-act critical section 9. Defensible Retention Cascade critical section 4 owns it.
+      Deleted: Per-act critical section 9a. Defensible Retention Cascade critical section 4a owns it.
+      Deleted: Per-act critical section 9b. Defensible Retention Cascade critical section 4b owns it.
+  Deleted: Per-act critical section 9c. Execution Contract Database 1 owns it.
+  Deleted: Per-act critical section 10. Lease Invariant 3.2 owns it.
+  Deleted: Per-act critical section 10a. Lease Invariant 3.2 owns it.
+  Deleted: Per-act critical section 10b. Lease Invariant 3.2 owns it.
+  Deleted: Per-act critical section 10c. Lease Invariant 3.2 owns it.
+  Deleted: Per-act critical section 10d. Lease Invariant 3.2 owns it.
+  Deleted: Per-act critical section 10e. Lease Invariant 3.2 owns it.
+    Deleted: Per-act critical section 13f. Execution Contract Database 2 owns it: a leg's re-read, lease check and write are one transaction, and the composition names no margin for a [Record Action] to start on.
+    Deleted: Per-act critical section 13h. Execution Contract Database 2 owns it.
+    Deleted: Per-act critical section 13g. Execution Contract Database 2 owns it: a leg's re-read, lease check and write are one transaction, and the composition names no start for a leg to decline.
+Deleted: Per-act critical section 14. Defensible Retention Cascade critical section 5 owns it.
+Deleted: Per-act critical section 15a. Defensible Retention Cascade critical section 6 owns it.
+Deleted: Per-act critical section 15b. Defensible Retention Cascade critical section 7 owns it.
+```
+
+### Composition logic › Action wiring › Record Action contract
+
+```
+   Deleted: record action step 2.6. Execution Contract Database 1 owns it.
+   Deleted: record action step 2.7. Execution Contract Database 1 owns it.
+   Deleted: record action step 2.8. Execution Contract Database 1 owns it: a [Record Action]'s writes commit together, and the composition names no section for it to release.
+   Deleted: record action step 2.9. Execution Contract Database 1 owns it.
+   Deleted: record action step 2.10. Execution Contract Database 1 owns it.
+   Deleted: record action step 2.11. Execution Contract Database 1 owns it.
+   Deleted: record action step 2.12. Execution Contract Database 1 owns it.
+   Deleted: record action step 3.5. Execution Contract Database 1 owns it.
+   Deleted: record action step 3.6. Execution Contract Database 1 owns it.
+   Deleted: record action step 4.1. Execution Contract Database 1 owns it.
+   Deleted: record action step 4.2. Execution Contract Database 1 owns it.
+   Deleted: record action step 4.4. Execution Contract Database 1 owns it.
+   Deleted: record action step 5.7. record action step 5.2 owns it: Event Log's append answers event id alone, so the read-back is the one source of sequence number.
+   Deleted: record action step 7.2. record action step 3.3 and Execution Contract Database 1 own it.
+   Deleted: record action step 7.3. record action step 4.8 and Execution Contract Database 1 own it.
+   Deleted: record action step 7.4. Execution Contract Database 1 and Execution Contract Database 3 own it.
+   Deleted: record action step 7.17. Execution Contract Database 1 owns it.
+   Deleted: record action step 7.6. Execution Contract Database 1 owns it.
+   Deleted: record action step 7.6a. Execution Contract Database 1 owns it.
+   Deleted: record action step 7.6b. Execution Contract Database 1 owns it.
+   Deleted: record action step 7.6c. Execution Contract Database 1 owns it: a [Record Action]'s writes commit together, and the composition names no section for it to release.
+   Deleted: record action step 7.7. Execution Contract Database 1 owns it.
+```
+
+### Composition logic › Action wiring › Read Record contract
+
+```
+Deleted: read record 5. Execution Contract Error model 1 owns it: a constituent read whose answer never arrives leaves [Read Record] no answer to give, and none to read as not-known.
+   Deleted: read record step 4.4d. Execution Contract Database 1 owns it.
+   Deleted: read record step 4.4e. Execution Contract Database 1 owns it.
+   Deleted: read record step 4.4f. Execution Contract Database 1 owns it.
+```
+
+### Composition logic › Action wiring › Verify Record contract
+
+```
+Deleted: verify record 7. Execution Contract Error model 1 owns it: a constituent read whose answer never arrives leaves [Verify Record] no answer to give, and none to read as not-known or as unverifiable.
+```
+
+### Composition logic › Reconciliation › The reconciliation scan — three halves
+
+```
+Deleted: Reconciliation scan 1. Reconciliation 1 owns it.
+Deleted: Reconciliation scan 2. Reconciliation 2 owns it.
+Deleted: Reconciliation scan 3. Reconciliation 3 owns it.
+Deleted: Reconciliation scan 4. Reconciliation 4 owns it.
+Deleted: Reconciliation scan 5. Reconciliation 5 owns it.
+Deleted: Reconciliation scan 6. Reconciliation 6 owns it.
+Deleted: Reconciliation scan 7. Reconciliation 7 owns it.
+Deleted: Second half 3. Execution Contract Database 1 owns it.
+Deleted: Second half 16. Execution Contract Database 1 owns it.
+Deleted: Third half 4. Execution Contract Database 1 owns it.
+Deleted: Compensation 12. Defensible Retention First half 13 owns it.
+```
+
+### Composition logic › Instance start
+
+```
+Deleted: Instance start 1. Execution Contract Logic confinement 15 owns it.
+Deleted: Instance start 2. Execution Contract Logic confinement 15 owns it.
+Deleted: Instance start 3. Execution Contract Logic confinement 15 owns it.
+Deleted: Instance start 4. Defensible Retention Capability requirement 70 owns it.
+Deleted: Instance start 5. Execution Contract Logic confinement 15 owns it.
+Deleted: Instance start 7. Execution Contract Logic confinement 15 owns it.
+Deleted: Instance start 8. Execution Contract Logic confinement 15 owns it.
+Deleted: Instance start 9. Execution Contract Logic confinement 15 owns it.
+Deleted: Instance start 10. Execution Contract Logic confinement 15 owns it.
+Deleted: Instance start 11. Execution Contract Logic confinement 15 owns it.
+Deleted: Instance start 13. Execution Contract Logic confinement 15 owns it.
+Deleted: Instance start 14. Execution Contract Logic confinement 15 owns it.
+Deleted: Instance start 20. Execution Contract Logic confinement 15 owns it.
+Deleted: Instance start 24. Execution Contract Logic confinement 15 owns it.
+Deleted: Instance start 26. Execution Contract Scheduled leg 1 owns it.
+Deleted: Instance start 29. Execution Contract Scheduled leg 1 owns it.
+Deleted: Instance start 30. Execution Contract Logic confinement 15 owns it.
+Deleted: Instance start 31. Defensible Retention Capability requirement 71 owns it.
+Deleted: Instance start 32. Defensible Retention Capability requirement 72 owns it.
+```
+
+### Composition-level invariants
+
+```
+Deleted: Composition-level invariant 1e. Defensible Retention Invariant 12.1 owns it.
+Deleted: Composition-level invariant 1h. Defensible Retention Invariant 12.2 owns it.
+Deleted: Composition-level invariant 1i. Defensible Retention Invariant 12.3 owns it.
+Deleted: Composition-level invariant 1g. Execution Contract Database 3 and Execution Contract Database 4 own it.
+```
+
+### Composition-level invariants › Invariant 1 — Attribution coverage (safety + liveness at quiescence)
+
+```
+  Deleted: Invariant 1.4. Reconciliation 2 and Reconciliation 4 own it.
+      Deleted: Invariant 1.5b. Second half 2, Compensation 1 and Reconciliation 2 own it.
+  Deleted: Invariant 1.9. Second half 2, Second half 13 and Compensation 15 own it.
+```
+
+### Composition-level invariants › Invariant 2 — Retention coverage (safety + liveness at quiescence)
+
+```
+  Deleted: Invariant 2.2. Reconciliation 4, Third half 2 and Third half 15 own it.
+```
+
+### Composition-level invariants › Invariant 4 — The destruction record commits with the retention's transition
+
+```
+  Deleted: Invariant 4.1. Defensible Retention purge event step 4.1 and Defensible Retention purge event 4 own it.
+  Deleted: Invariant 4.2a. Defensible Retention Invariant 11.1 owns it.
+  Deleted: Invariant 4.3. Defensible Retention Invariant 11.2 owns it.
+  Deleted: Invariant 4.4. Defensible Retention Invariant 11.3 owns it.
+```
+
+### Composition-level invariants › Invariant 6 — Forensic completability
+
+```
+  Deleted: Invariant 6.3. Actor Identity Invariant 7.1 and Tamper Evidence Invariant 7.1 own it through Invariant 5.1, and verify record step 1.2, verify record step 2.3, verify record step 4.2 and verify record step 4.4 own what a purge, a placement or a seal between two calls changes.
+```
+
+### Composition-level invariants › Invariant 8 — Honest representation of destruction (at quiescence)
+
+```
+  Deleted: Invariant 8.3. Defensible Retention Invariant 13.1 owns it.
+```
+
+### Generation acceptance › Conformance checks
+
+```
+Deleted: Check 3.2. Event Log Check 5.2 and Event Log Invariant 7.2 own it: a recording instant falling along append order is no order finding, and the database's serialization can leave one under a non-decreasing clock.
+Deleted: Check 5.1. Defensible Retention Check 8.1 owns it.
+Deleted: Check 5.2. Defensible Retention Check 8.2 owns it.
+Deleted: Check 5.3. Defensible Retention Check 8.3 owns it.
+Deleted: Check 5.4. Defensible Retention Check 8.4 owns it.
+Deleted: Check 5.5. Defensible Retention Check 8.5 owns it.
+Deleted: Check 5.6. Defensible Retention Check 8.6 owns it.
+Deleted: Check 5.7. Defensible Retention Check 8.7 owns it.
+Deleted: Check 5.8. Defensible Retention Check 8.8 owns it.
+Deleted: Check 5.9. Defensible Retention Check 8.9 owns it.
+Deleted: Check 5.13. Defensible Retention Check 8.10 owns it.
+Deleted: Check 5.14. Defensible Retention Check 8.11 owns it.
+Deleted: Check 5.15. Defensible Retention Check 8.12 owns it.
+Deleted: Check 7.5. Defensible Retention Check 8.13 owns it.
+Deleted: Check 7.6. Defensible Retention Check 8.14 owns it.
+```
+
+### Generation acceptance › External checks
+
+```
+Deleted: External check 1. Defensible Retention External check 15 owns it.
+Deleted: External check 5. Execution Contract Logic confinement 7 owns it.
+Deleted: External check 7. Execution Contract Database 3 owns it.
+Deleted: External check 9. Defensible Retention External check 16 owns it.
+Deleted: External check 12. Execution Contract Database 2 owns it.
+```
+
+### Non-goals
+
+```
+Deleted: Non-goal 13. slice cap 2 owns it.
+Deleted: Non-goal 15. Defensible Retention Non-goal 30 owns it.
+```
+
+### Edge cases › Concurrency
+
+```
+Deleted: Concurrency 1e. Execution Contract Database 2 owns it: [Seal Now]'s re-read, lock check and seal are one transaction, and [Seal Now] makes no abandoned call for the sealing lock to be kept through.
+Deleted: Concurrency 2. Defensible Retention Concurrency 35 owns it.
+Deleted: Concurrency 3. Execution Contract Database 2 owns it.
+Deleted: Concurrency 3a. Execution Contract Database 2 owns it: the destruction-record write reads the purged events it adds to inside its own transaction, and the composition names no serialization to hold.
+Deleted: Concurrency 3b. Execution Contract Database 2 owns it: the destruction-record write reads the purged events it adds to inside its own transaction, and the composition names no serialization to take.
+Deleted: Concurrency 3d. Execution Contract Database 2 owns it: the destruction-record write reads the purged events it adds to inside its own transaction, and the composition names no serialization to take.
+Deleted: Concurrency 3c. Execution Contract Database 2 owns it: the destruction-record write reads the purged events it adds to inside its own transaction, and the composition names no serialization whose lease can expire.
+Deleted: Concurrency 4. Execution Contract Database 2 owns it: the destruction-record write reads the purged events it adds to inside its own transaction, and the composition names no rule left for a serialization to discharge.
+Deleted: Concurrency 5. Execution Contract Database 2 owns it: the destruction-record write reads the purged events it adds to inside its own transaction, and the composition names no rule left for an atomic set-add to discharge.
+Deleted: Concurrency 6. Execution Contract Database 1 owns it: a [Record Action]'s writes commit together, and the composition names no section for it to run under.
+Deleted: Concurrency 7. Execution Contract Database 1 owns it: a [Record Action]'s writes commit together, and the composition names no section for steps 1 and 2 to run outside.
+```
+
+### Edge cases › Clock source for cadence and purge
+
+```
+Deleted: Clock source 2. Execution Contract Logic confinement 3 owns it.
+Deleted: Clock source 3. Execution Contract Logic confinement 3 owns it.
+Deleted: Clock source 4. Execution Contract Logic confinement 7 owns it.
+```
+
+### Edge cases › Durability across crashes
+
+```
+Deleted: Durability 6. Execution Contract Database 1, Execution Contract Database 3 and Execution Contract Database 4 own it.
+Deleted: Durability 7. Execution Contract Database 1 owns it.
+Deleted: Durability 8. Execution Contract Database 3 owns it.
+```

@@ -59,20 +59,14 @@ Identity 1: The atom MUST identify a workflow by the instance id.
 Identity 2: The atom MUST identify a history entry by the transition id.
 Identity 3: The host MUST allocate an instance id at the seam.
 Identity 4: The host MUST allocate a transition id at the seam.
-Deleted: Identity 5. Execution Contract Logic confinement 3 owns it.
-Deleted: Identity 6. Execution Contract Logic confinement 3 owns it.
 Identity 7: The atom MUST NOT change an instance id.
 Identity 8: The atom MUST NOT change a transition id.
 Identity 9: Two workflows in one database instance MUST NOT share an instance id.
 Identity 10: Two history entries in one workflow MUST NOT share a transition id.
-Deleted: Identity 11. Execution Contract Logic confinement 10 owns it.
-Deleted: Identity 12. Execution Contract Database 7 owns it.
 Identity 13: The atom MUST NOT identify a workflow by the subject reference.
 Identity 14: The atom MUST admit a second workflow carrying a recorded subject reference.
 Identity 15: The atom MUST NOT confirm that a subject reference names a known subject.
 Identity 16: The atom MUST NOT interpret an instance metadata.
-Deleted: Identity 17. Execution Contract Input 2 owns it.
-Deleted: Identity 18. Execution Contract Input 2 owns it.
 ```
 
 Term workflow: one running workflow — one declaration, one current state and one transition history; the record this atom holds.
@@ -113,9 +107,6 @@ State 10: The atom MUST NOT offer a transition out of a terminal state.
 State 11: The atom MUST NOT offer an action that stands a workflow in two states.
 State 15: A workflow MAY carry actor reference.
 State 16: A history entry MAY carry guard satisfied.
-Deleted: State 12. Invariant 10.1 and Execution Contract Database 4 own it.
-Deleted: State 13. Invariant 10.2 and Execution Contract Database 4 own it.
-Deleted: State 14. Execution Contract Database 3 owns it.
 ```
 
 ### Capability requirement
@@ -123,12 +114,7 @@ Deleted: State 14. Execution Contract Database 3 owns it.
 ```
 Capability requirement 1: The deployment MUST supply now at the seam.
 Capability requirement 5: The deployment MUST supply the workflow records PER Execution Contract Database 1 through 7, Execution Contract Read 1 through 4, Execution Contract Read 6, Execution Contract Refusal 1, Execution Contract Query 1 through 5, Execution Contract Input 1 through 4 and Execution Contract Conformance 9.
-Deleted: Capability requirement 6. Execution Contract Conformance 9 owns it.
 Capability requirement 7: The deployment MAY declare the string cap ONLY IF the string cap EXCEEDS 0 PER Execution Contract Input 2.
-Deleted: Capability requirement 2. Execution Contract Logic confinement 7 owns it.
-Deleted: Capability requirement 3. Execution Contract Logic confinement 7 owns it.
-Deleted: Capability requirement 4. Execution Contract Logic confinement 7 owns it.
-Deleted: Capability requirement 8. Execution Contract Input 2 owns it.
 ```
 
 ### Operations
@@ -156,13 +142,10 @@ read_declaration(instance_id)
 ```
 
 ```
-Deleted: Operation 1. Execution Contract Refusal 1 owns it.
 Operation 2: IF actor reference IS IN whitespace strings THEN a writing action MUST answer invalid-request.
 Operation 77: IF actor reference EXCEEDS the string cap THEN a writing action MUST answer invalid-request (Execution Contract Input 2).
 Operation 78: IF subject reference EXCEEDS the string cap THEN [Instantiate] MUST answer invalid-request (Execution Contract Input 2).
 Operation 3: IF now PRECEDES the resolved instantiation instant THEN [Instantiate] MUST answer invalid-request.
-Deleted: Operation 62. Execution Contract Input 1 owns it.
-Deleted: Operation 65. Execution Contract Input 3 owns it.
 Operation 4: An admitted instantiate MUST record EXACTLY ONE workflow.
 Operation 5: An admitted instantiate MUST stand the workflow in the initial state.
 Operation 6: An admitted instantiate MUST set next sequence number to one.
@@ -175,22 +158,16 @@ Operation 71: IF instance metadata EQUALS blank THEN an admitted instantiate MUS
 Operation 60: IF actor reference DOES NOT EQUAL blank THEN an admitted instantiate MUST record actor reference on the workflow.
 Operation 67: An admitted instantiate MUST record the resolved instantiation instant.
 Operation 72: An admitted instantiate MUST record on the workflow the instance id the host allocates (Identity 3).
-Deleted: Operation 74. Execution Contract Input 4 owns it.
 Operation 9: IF instance id EQUALS blank THEN an addressed action MUST answer invalid-request.
 Operation 75: IF instance id EXCEEDS the string cap THEN an addressed action MUST answer invalid-request (Execution Contract Input 2).
 Operation 10: IF action EQUALS blank THEN [Fire] MUST answer invalid-request.
 Operation 76: IF action EXCEEDS the string cap THEN [Fire] MUST answer invalid-request (Execution Contract Input 2).
 Operation 11: IF the instance id names no workflow THEN an addressed action MUST answer not-known.
-Deleted: Operation 12. Execution Contract Refusal 1 owns it.
 Operation 13: IF the current state IS IN the terminal states THEN [Fire] MUST answer terminal.
-Deleted: Operation 14. Execution Contract Refusal 1 owns it.
 Operation 15: IF no declared transition matches the current state and action THEN [Fire] MUST answer invalid-transition.
-Deleted: Operation 16. Execution Contract Refusal 1 owns it.
 Operation 17: IF the matched transition carries a guard AND guard satisfied DOES NOT EQUAL true THEN [Fire] MUST answer guard-not-satisfied.
-Deleted: Operation 18. Execution Contract Refusal 1 owns it.
 Operation 19: IF now PRECEDES the resolved firing instant THEN [Fire] MUST answer invalid-request.
 Operation 20: IF the resolved firing instant PRECEDES the workflow's instantiation instant THEN [Fire] MUST answer invalid-request.
-Deleted: Operation 63. Execution Contract Input 1 owns it, among the firing checks (Term firing check).
 Operation 66: IF the resolved firing instant is malformed THEN [Fire] MUST answer invalid-request (Execution Contract Input 1).
 Operation 69: IF the matched transition carries no guard AND the call carries guard satisfied AND guard satisfied is malformed THEN [Fire] MUST answer invalid-request (Execution Contract Input 1).
 Operation 64: [Fire] MUST answer invalid-request on a firing fault ONLY IF the call is a cleared fire.
@@ -200,7 +177,6 @@ Operation 23: An admitted fire MUST raise next sequence number by one.
 Operation 24: An admitted fire MUST set the history entry's from state to the current state the call found.
 Operation 25: An admitted fire MUST set the history entry's to state to the matched transition's to state.
 Operation 26: An admitted fire MUST stand the workflow in the matched transition's to state.
-Deleted: Operation 27. Execution Contract Database 1 owns it.
 Operation 28: An admitted fire MUST answer the matched transition's to state.
 Operation 29: An admitted fire over a guarded transition MUST record guard satisfied on the history entry.
 Operation 30: An admitted fire over an unguarded transition MUST NOT record guard satisfied on the history entry.
@@ -208,32 +184,21 @@ Operation 61: IF actor reference DOES NOT EQUAL blank THEN an admitted fire MUST
 Operation 68: An admitted fire MUST record the resolved firing instant on the history entry.
 Operation 73: An admitted fire MUST record the transition id the host allocates on the history entry (Identity 4).
 Operation 31: [Fire] MUST NOT evaluate a guard.
-Deleted: Operation 32. Operation 15 and Declaration 10 own it.
 Operation 33: IF the database refuses the write THEN a writing action MUST answer storage-failure.
-Deleted: Operation 34. Execution Contract Refusal 1 owns it.
 Operation 35: A refused action MUST leave the workflow as the call found the workflow.
 Operation 36: A refused action MUST NOT append a history entry.
 Operation 37: A refused action MUST NOT raise next sequence number.
 Operation 38: [Current] MUST answer the workflow's current state.
 Operation 39: An admitted history MUST answer the matching history entries in sequence number ascending order.
-Deleted: Operation 40. Execution Contract Read 6 owns it.
-Deleted: Operation 41. Execution Contract Query 3 through 4 own it.
 Operation 42: IF no history entry matches THEN an admitted history MUST answer an empty entry sequence.
 Operation 57: IF the query is malformed THEN [History] MUST answer invalid-query.
 Operation 43: IF a filter's axis IS NOT IN the filter axes THEN [History] MUST answer invalid-query.
-Deleted: Operation 44. Execution Contract Query 5 owns it.
-Deleted: Operation 79. Execution Contract Query 5 owns it.
 Operation 45: IF a sequence number range's start EXCEEDS the range's end THEN [History] MUST answer invalid-query.
 Operation 58: IF a firing instant range's end PRECEDES the range's start THEN [History] MUST answer invalid-query.
-Deleted: Operation 46. Execution Contract Refusal 1 owns it.
 Operation 47: [Read Declaration] MUST answer the workflow's declaration.
 Operation 48: [Read Declaration] MUST NOT normalize the declaration.
 Operation 49: [Read Declaration] MUST NOT reorder the declaration.
 Operation 50: A reading action MUST NOT write.
-Deleted: Operation 51. Capability requirement 1 owns it.
-Deleted: Operation 52. Execution Contract Logic confinement 3 owns it.
-Deleted: Operation 53. Execution Contract Logic confinement 3 owns it.
-Deleted: Operation 54. Execution Contract Logic confinement 3 owns it.
 Operation 55: An ordering rule MUST NOT rest on firing instant.
 ```
 
@@ -362,13 +327,11 @@ NOTE: watch condition negation — invalid-request occupies two rows of one prec
   ```
   Invariant 10.1: The atom MUST NOT remove a workflow from the database.
   Invariant 10.2: The atom MUST NOT remove a history entry from a workflow.
-  Deleted: Invariant 10.3. Execution Contract Database 1 owns it.
   ```
 
 ### The declaration
 
 ```
-Deleted: Declaration 1. Declaration 5 and Declaration 8 own it.
 Declaration 2: The atom MUST NOT change a recorded declaration.
 Declaration 3: The atom MUST NOT offer a declaration edit surface.
 Declaration 4: EVERY enforcement decision MUST rest on the workflow's declaration.
@@ -454,7 +417,6 @@ This atom's acceptance is provable: an external auditor clears it from the workf
 
 ```
 Check 1.1: An auditor MUST find EVERY workflow's declaration unchanged across EVERY committed version of the workflow (Invariant 1.1; Execution Contract Generation acceptance 1).
-Deleted: Check 1.2. Check 1.1 owns it.
 Check 2.1: An auditor MUST find EVERY history entry's from state, action and to state standing as a declared transition in the workflow's declaration (Invariant 3.1).
 Check 2.2: An auditor MUST find no two declared transitions in one declaration sharing one from state and one action (Invariant 3.2).
 Check 3.1: An auditor MUST find EVERY workflow whose current state EQUALS EXACTLY ONE member of the workflow's states (Invariant 2.1).
@@ -481,7 +443,6 @@ Term committed version: a record as it stood at the commit that wrote it, as Exe
 External check 1: A deployment needing a guard's condition confirmed MUST read the composing pattern that evaluates the guard (Invariant 8.2).
 External check 2: A deployment needing a workflow's history entry count matched against the workflow's admitted fire count MUST capture the fire answers (Invariant 5.2).
 External check 3: A deployment needing an actor reference bound to an actor MUST read the composing Actor Identity attestation (Non-goal 11).
-Deleted: External check 4. Execution Contract Conformance 9 owns it.
 ```
 
 ## Non-goals
@@ -519,30 +480,13 @@ NOTE: the owners — [Execute Gated Workflow](../compositions/execute-gated-work
 
 ### Atomic writes
 
-```
-Deleted: Atomic writes 1. Execution Contract Database 1 owns it.
-Deleted: Atomic writes 2. Execution Contract Database 1 owns it.
-Deleted: Atomic writes 3. Execution Contract Database 1 and Execution Contract Database 3 own it.
-Deleted: Atomic writes 4. Execution Contract Database 1 owns it.
-Deleted: Atomic writes 5. Execution Contract Database 1 owns it.
-```
-
 ### Clock semantics
 
 ```
 Clock semantics 4: A firing instant MUST NOT bound a later history entry's firing instant.
-Deleted: Clock semantics 1. Execution Contract Logic confinement 7 owns it.
-Deleted: Clock semantics 2. Execution Contract Logic confinement 7 owns it.
-Deleted: Clock semantics 3. Execution Contract Logic confinement 7 owns it.
-Deleted: Clock semantics 5. Non-goal 22 owns it.
 ```
 
 ### Concurrency
-
-```
-Deleted: Concurrency 1. Execution Contract Database 2 owns it.
-Deleted: Concurrency 2. Execution Contract Database 2 owns it.
-```
 
 ### String policy
 
@@ -553,7 +497,6 @@ String 3: The atom MUST NOT normalize a string input.
 String 4: The atom MUST NOT case-fold a string input.
 String 5: The atom MUST read a whitespace-only string input as blank.
 String 6: The atom MUST read an absent string input as blank.
-Deleted: String 7. Execution Contract Logic confinement 13 owns it.
 ```
 
 Term string input: instance id, action, actor reference, subject reference, a state name, a guard OR a filter's value — every caller-supplied string this atom accepts.
@@ -571,7 +514,6 @@ NOTE: watch the cap's floor (Capability requirement 7).
 ## Composition notes
 
 ```
-Deleted: Composition note 1. Execution Contract Conformance 9 owns it.
 Composition note 2: A composing pattern MUST own a guard's evaluation.
 Composition note 3: A composing pattern asserting guard satisfied MUST own the evidence.
 Composition note 4: A composing pattern MUST own the authorization of a call.
@@ -580,7 +522,6 @@ Composition note 6: A composing pattern MUST own the tamper seal over a transiti
 Composition note 7: A composing pattern MUST own the retention of the workflow records.
 Composition note 8: A composing pattern MUST own an idempotency key.
 Composition note 9: A composing pattern MUST own a declaration template.
-Deleted: Composition note 10. Execution Contract Atom interface 1 owns it.
 ```
 
 NOTE: composing patterns — [Execute Gated Workflow](../compositions/execute-gated-workflow.md).

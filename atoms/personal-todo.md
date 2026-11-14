@@ -37,7 +37,6 @@ One person, a list of things to do, and nothing else. The atom exists because ev
 ```
 Identity 1: The atom MUST identify a unit by the id.
 Identity 2: The host MUST allocate an id at the atom's seam.
-Deleted: Identity 3. Execution Contract Logic confinement 3 owns it.
 Identity 4: [Add] MUST NOT take an id from the business caller.
 Identity 5: The atom MUST NOT reuse an id.
 Identity 6: The atom MUST NOT identify a unit by the description.
@@ -91,11 +90,6 @@ Term active set: the units whose unit state EQUALS pending together with the uni
 Capability requirement 1: The deployment MUST supply now at the seam.
 Capability requirement 4: The deployment MUST supply the database PER Execution Contract Database 1 through 7 and Execution Contract Input 1.
 Capability requirement 5: The deployment MAY declare the description cap.
-Deleted: Capability requirement 2. Execution Contract Logic confinement 7 owns it.
-Deleted: Capability requirement 3. Execution Contract Logic confinement 7 owns it.
-Deleted: Clock semantics 1. Execution Contract Logic confinement 7 owns it.
-Deleted: Clock semantics 2. Execution Contract Logic confinement 7 owns it.
-Deleted: Clock semantics 3. Non-goal 16 owns it.
 ```
 
 ### Operations
@@ -127,13 +121,10 @@ Operation 2: [Add] MUST stand the unit in pending.
 Operation 3: [Add] MUST answer id.
 Operation 4: IF the normalized description matches a unit in the active set THEN [Add] MUST answer duplicate-active.
 Operation 5: IF the database refuses the write THEN [Add] MUST answer storage-failure.
-Deleted: Operation 6. Execution Contract Database 3 owns it.
 Operation 7: IF no unit EXISTS for the id THEN [Edit] MUST answer not-known.
 Operation 8: IF the unit state EQUALS done THEN [Edit] MUST answer not-editable.
 Operation 9: IF the unit state EQUALS pending AND the normalized new description matches another unit in the active set THEN [Edit] MUST answer duplicate-active.
-Deleted: Operation 9a. Operation 32 and Operation 33 own it.
 Operation 10: IF the unit state EQUALS pending AND the normalized new description EQUALS the unit's description THEN [Edit] MUST answer ok.
-Deleted: Operation 11. Execution Contract Conformance 1 owns the admitted call's write.
 Operation 12: IF the normalized new description EQUALS the unit's description THEN [Edit] MUST NOT stamp last edit instant.
 Operation 13: IF the normalized new description DOES NOT EQUAL the unit's description THEN [Edit] MUST replace the unit's description with the normalized new description.
 Operation 14: [Edit] MUST leave the unit standing in pending.
@@ -146,10 +137,6 @@ Operation 20: [Delete] MUST take a done unit out of the list.
 Operation 21: IF the database refuses the write THEN [Edit] MUST answer storage-failure.
 Operation 22: IF the database refuses the write THEN [Complete] MUST answer storage-failure.
 Operation 23: IF the database refuses the write THEN [Delete] MUST answer storage-failure.
-Deleted: Operation 24. Execution Contract Read 4 owns it.
-Deleted: Operation 25. Capability requirement 1 owns it.
-Deleted: Operation 26. Execution Contract Logic confinement 3 owns it.
-Deleted: Operation 27. Execution Contract Logic confinement 3 owns it.
 Operation 28: [Read] MUST answer EVERY unit, pending AND done.
 Operation 29: [Read] MUST answer a unit's id, description, state, addition instant, last edit instant AND completion instant.
 Operation 30: [Read] MUST NOT write.
@@ -191,9 +178,6 @@ The case space, and the rule that owns each case:
 ### Invariants
 
 - **Invariant 1 — Membership exclusivity.**
-  ```
-  Deleted: Invariant 1.1. State 1 owns it.
-  ```
 - **Invariant 2 — Add-then-Pending persistence.**
   ```
   Invariant 2.1: A recorded unit MUST stand in pending ONLY IF no [Complete] EXISTS for the unit AND no [Delete] EXISTS for the unit.
@@ -205,11 +189,9 @@ The case space, and the rule that owns each case:
 - **Invariant 4 — Delete is terminal.**
   ```
   Invariant 4.1: A deleted unit's id MUST NOT stand in the list.
-  Deleted: Invariant 4.2. Identity 5 owns id reuse for every id, deleted or not.
   ```
 - **Invariant 5 — Edit preserves state.**
   ```
-  Deleted: Invariant 5.1. Invariant 5.2 and Operation 8 own it.
   Invariant 5.2: [Edit] MUST NOT change a field other than description and last edit instant.
   ```
 - **Invariant 6 — Active-set description uniqueness.**
@@ -224,7 +206,6 @@ The case space, and the rule that owns each case:
   ```
 - **Invariant 8 — Id stability.**
   ```
-  Deleted: Invariant 8.1. State 2 owns it.
   Invariant 8.2: An id MUST NOT change.
   Invariant 8.3: [Edit] MUST NOT change the id.
   ```
@@ -297,13 +278,11 @@ Check 2.1: An auditor MUST find no deleted unit whose id IS IN the list (Invaria
 Check 2.2: An auditor MUST find no two units sharing an id across the list's committed versions (Identity 5; Execution Contract Generation acceptance 1).
 Check 2.3: An auditor MUST find a unit's id unchanged across an edit (Invariant 8.3; Execution Contract Generation acceptance 1).
 Check 3.1: An auditor MUST find no two units in the active set sharing a normalized description (Invariant 6.1).
-Deleted: Check 3.2. Check 3.3 owns it.
 Check 3.3: An auditor MUST find an edit changing no field beside description AND last edit instant (Invariant 5.2; Execution Contract Generation acceptance 1).
 Check 3.4: An auditor MUST find no last edit instant stamped for an edit answering ok on an unchanged description (Operation 12; Execution Contract Generation acceptance 1).
 Check 4.1: An auditor MUST find no unit whose last edit instant PRECEDES the unit's addition instant (Invariant 7.1).
 Check 4.2: An auditor MUST find no unit whose completion instant PRECEDES the unit's addition instant (Invariant 7.2).
 Check 4.3: An auditor MUST find no unit whose completion instant PRECEDES the unit's last edit instant (Invariant 7.3).
-Deleted: Check 5.1. Execution Contract Read 4 owns it.
 ```
 
 NOTE: EVERY check names the rule the check tests.
@@ -314,8 +293,6 @@ NOTE: open 2026-11-03-b — Invariant 2.1 and Invariant 3.1 carry no conformance
 
 ```
 External check 1: An auditor needing the clock's monotonicity confirmed MUST read the deployment's own clock discipline (Invariant 7.1 through 7.3; Execution Contract Logic confinement 7).
-Deleted: External check 2. Execution Contract Database 1 owns it.
-Deleted: External check 3. Execution Contract Database 2 owns it.
 ```
 
 ## Non-goals
@@ -327,7 +304,6 @@ Non-goal 3: The atom MUST NOT assign a unit to an actor.
 Non-goal 4: The atom MUST NOT remember a deleted description.
 Non-goal 5: A deployment needing a recency guard MUST compose Duplicate Prevention.
 Non-goal 6: The atom MUST NOT restore a deleted unit.
-Deleted: Non-goal 7. Execution Contract Database 5 owns it.
 Non-goal 8: The atom MUST NOT reopen a done unit.
 Non-goal 9: The atom MUST NOT regenerate a unit on a schedule.
 Non-goal 10: The atom MUST NOT order units.
@@ -349,8 +325,6 @@ Where the atom breaks down: any system with more than one actor; a system where 
 
 ```
 Concurrency 1: The atom MUST assume a linear sequence of calls from one actor.
-Deleted: Concurrency 2. Execution Contract Database 1 owns it.
-Deleted: Concurrency 3. Execution Contract Database 2 owns it.
 ```
 
 ### Re-adding a deleted description
@@ -366,7 +340,6 @@ Re-adding 2: [Add] MUST answer a fresh id for such a unit.
 Composition note 1: A composing pattern MUST own what this atom declines.
 Composition note 2: A composing pattern needing a recency guard MUST record a deleted description with Duplicate Prevention.
 Composition note 3: A composing pattern needing a recency guard MUST NOT call [Add] BEFORE a Duplicate Prevention check.
-Deleted: Composition note 4. Execution Contract Database 5 owns it.
 Composition note 5: A composing pattern needing a shared list MUST compose Permissions and Assignment.
 ```
 

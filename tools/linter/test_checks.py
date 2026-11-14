@@ -1009,6 +1009,119 @@ def check_tombstone_form_synthetic(problems: list[str]) -> None:
             problems.append(f"D-tombstone-form: {name} did not fire")
 
 
+TOMB_PAGE = ("Term qualifiers: `migrated` — rewritten in GRACE lang v0.46 (2026-09-15).\n\n"
+             "Term record verbs: read.\n\n## Structure\n\n### Operations\n\n```\n{page}```\n")
+TOMB_HISTORY = "# Synthetic — history\n\n## {section}\n\n### Structure › Operations\n\n```\n{hist}```\n"
+
+
+def check_tombstone_places_synthetic(problems: list[str]) -> int:
+    """GRACE-lang Hard invariant 25 (v0.71): a tombstone reserves its label on
+    the page, or from the section titled *Deleted rules* of the history file
+    beside it once the pattern is done, and every reader reads both places. In
+    check.py: a citation of a moved label resolves; a rule reusing it, a line
+    there not in the form, and a label tombstoned in both places fire; a
+    tombstone in another section of the history file reserves nothing. In
+    lint.py: F-invariant-ref counts a moved invariant tombstone as reserved, and
+    the range form reads the same families in either place. In ir.py: the
+    IR carries a moved tombstone with its file, and a check naming it is told the
+    owner the tombstone names. Returns the fixture count."""
+    import tempfile
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "grace"))
+    from check import scan  # noqa: E402
+    import ir  # noqa: E402
+    from lint import check_rests_on_refs, label_families  # noqa: E402
+
+    def run(page: str, hist: str | None, section: str = "Deleted rules"):
+        with tempfile.TemporaryDirectory() as d:
+            f = Path(d) / "atoms" / "synthetic.md"
+            f.parent.mkdir(exist_ok=True)
+            f.write_text(TOMB_PAGE.format(page=page), encoding="utf-8")
+            if hist is not None:
+                (Path(d) / "atoms" / "synthetic.hist.md").write_text(
+                    TOMB_HISTORY.format(section=section, hist=hist), encoding="utf-8")
+            return [(x.path.name, x.code, x.message) for x in scan(f)]
+
+    cite = "Operation 2: The atom MUST read the store (Operation 1).\n"
+    moved = "Deleted: Operation 1. Operation 2 owns it.\n"
+    n = 0
+    cases = [
+        # (name, page, history, section, the codes that must fire, in which file)
+        ("a citation of a tombstone on the page", "Deleted: Operation 1. Operation 2 owns it.\n" + cite,
+         None, "Deleted rules", set()),
+        ("a citation of a moved tombstone", cite, moved, "Deleted rules", set()),
+        ("a rule reusing a moved label", cite + "Operation 1: The atom MUST read the log.\n", moved,
+         "Deleted rules", {("synthetic.md", "L-tombstone-reuse")}),
+        ("a line in the section not in the form", cite, moved + "Deleted: the old rule. Gone.\n",
+         "Deleted rules", {("synthetic.hist.md", "D-tombstone-form")}),
+        ("a label tombstoned in both places", "Deleted: Operation 1. Operation 2 owns it.\n" + cite, moved,
+         "Deleted rules", {("synthetic.hist.md", "L-dup-tombstone")}),
+        ("a tombstone in another section", cite, moved, "Decisions", {("synthetic.md", "X-ref")}),
+    ]
+    gating = {"L-tombstone-reuse", "D-tombstone-form", "L-dup-tombstone", "X-ref", "F-unlabelled",
+              "F-fence-first"}
+    for name, page, hist, section, want in cases:
+        n += 1
+        got = {(fn, code) for fn, code, _ in run(page, hist, section) if code in gating}
+        if got != want:
+            problems.append(f"tombstone places: {name} gave {sorted(got)}, want {sorted(want)}")
+    reuse = [m for fn, code, m in run(cite + "Operation 1: The atom MUST read the log.\n", moved)
+             if code == "L-tombstone-reuse"]
+    n += 1
+    if not reuse or "synthetic.hist.md:" not in reuse[0]:
+        problems.append(f"tombstone places: the reuse message names no history file: {reuse}")
+
+    # lint.py: the reserved invariant numbers, and the families a tombstone alone names
+    with tempfile.TemporaryDirectory() as d:
+        root = Path(d)
+        (root / "atoms").mkdir()
+        page = root / "atoms" / "x.md"
+        text = ("# X\n\n- **Invariant 1 — A.**\n  ```\n  Invariant 1.1: The atom MUST keep it.\n  ```\n")
+        page.write_text(text, encoding="utf-8")
+        (root / "atoms" / "x.hist.md").write_text(TOMB_HISTORY.format(
+            section="Deleted rules", hist="Deleted: Invariant 3. Invariant 1 owns it.\n"
+                                          "Deleted: Fence 2. Invariant 1 owns it.\n"), encoding="utf-8")
+        citer = root / "atoms" / "y.md"
+        citer.write_text("# Y\n\nRests on X Invariant 3 and on X Invariant 4.\n", encoding="utf-8")
+        pats = {page: Pattern(path=page, text=text, invariant_count=1, done=True)}
+        got = sorted(f.message for f in check_rests_on_refs(pats, [citer]))
+        n += 2
+        if got != ["cites X Invariant 4, but X declares 3"]:
+            problems.append(f"F-invariant-ref: a moved tombstone read wrong: {got}")
+        n += 1
+        moved_fams = label_families(root)
+        page.write_text(text + "```\nDeleted: Invariant 3. Invariant 1 owns it.\nDeleted: Fence 2. Invariant 1 "
+                        "owns it.\n```\n", encoding="utf-8")
+        (root / "atoms" / "x.hist.md").unlink()
+        if label_families(root) != moved_fams:
+            problems.append(f"F-range-form: the families differ with the tombstones moved: {sorted(moved_fams)}")
+
+    # ir.py: the IR's tombstones and the proof's message
+    with tempfile.TemporaryDirectory() as d:
+        root = Path(d)
+        for sub in ("atoms", "compositions"):
+            (root / sub).mkdir()
+        (root / "atoms" / "widget.md").write_text(
+            IR_ATOM.format(dup="", bad="\nCheck 1.5: An auditor MUST find nothing (Operation 3).")
+            .replace("Deleted: Operation 3. Execution Contract Read 4 owns it.\n", ""), encoding="utf-8")
+        (root / "atoms" / "widget.hist.md").write_text(TOMB_HISTORY.format(
+            section="Deleted rules", hist="Deleted: Operation 3. Execution Contract Read 4 owns it.\n"),
+            encoding="utf-8")
+        (root / "compositions" / "gadget-line.md").write_text(IR_COMPOSITION.format(link=""), encoding="utf-8")
+        (root / "execution-contract.md").write_text("**Read 4:** A refused write writes nothing.\n",
+                                                   encoding="utf-8")
+        docs, findings = ir.build(root)
+        findings += ir.prove(root, docs)
+    widget = next(x for x in docs if x["spec"] == "atoms/widget.md")
+    n += 2
+    if widget["tombstones"] != [{"label": "Operation 3", "text": "Execution Contract Read 4 owns it.",
+                                  "line": 8, "file": "atoms/widget.hist.md"}]:
+        problems.append(f"IR: a moved tombstone read wrong: {widget['tombstones']}")
+    if [f[3] for f in findings] != ["Check 1.5 names Operation 3, which the page tombstones "
+                                    "(atoms/widget.hist.md:8: Execution Contract Read 4 owns it.)"]:
+        problems.append(f"IR: a check naming a moved tombstone was told {findings}")
+    return n
+
+
 def check_range_form_synthetic(problems: list[str]) -> int:
     """F-range-form, the range resolvers — landed with `Family N through M` at
     council read 88. The form, a quoted retired form, a label-shaped phrase from
@@ -2324,6 +2437,11 @@ def check_renumber_synthetic(problems: list[str]) -> int:
         body += "".join(f"```\nDeleted: Invariant {n}. Identity 1 owns it.\n```\n" for n in tomb)
         return head + body
 
+    def hist(tomb):
+        # the tombstones of a done pattern, in its history file (Hard invariant 25, v0.71)
+        return ("# X — history\n\n## Deleted rules\n\n### Invariants\n\n```\n"
+                + "".join(f"Deleted: Invariant {n}. Identity 1 owns it.\n" for n in tomb) + "```\n")
+
     def sh(d, *args):
         subprocess.run(args, cwd=d, check=True, capture_output=True)
 
@@ -2341,9 +2459,18 @@ def check_renumber_synthetic(problems: list[str]) -> int:
             "reused": [inv([(1, "Entry immutability")], migrated=True, tomb=(2,)),
                        inv([(1, "Entry immutability")], migrated=True, tomb=(2,))],
         }
+        # the tombstones moved to the history file: at the migration for one, at
+        # HEAD for the other, whose working tree then declares the number again
+        files["kept-moved"] = [inv([(1, "Entry immutability"), (2, "No id reuse"), (3, "Chain and store durability")]),
+                               inv([(1, "Entry immutability"), (3, "Chain durability")], migrated=True)]
+        files["reused-moved"] = [inv([(1, "Entry immutability")], migrated=True),
+                                 inv([(1, "Entry immutability")], migrated=True)]
+        histories = {"kept-moved": [None, hist((2,))], "reused-moved": [hist((2,)), hist((2,))]}
         for stage in (0, 1):
             for name, texts in files.items():
                 (root / "atoms" / f"{name}.md").write_text(texts[stage], encoding="utf-8")
+                if name in histories and histories[name][stage] is not None:
+                    (root / "atoms" / f"{name}.hist.md").write_text(histories[name][stage], encoding="utf-8")
             sh(d, "git", "add", "-A")
             sh(d, "git", "commit", "-q", "-m", f"stage {stage}")
         # a spec migrated under one name and renamed afterwards is read at its old name
@@ -2359,6 +2486,8 @@ def check_renumber_synthetic(problems: list[str]) -> int:
         # the working tree declares the tombstoned number again
         (root / "atoms" / "reused.md").write_text(
             inv([(1, "Entry immutability"), (2, "Order density")], migrated=True), encoding="utf-8")
+        (root / "atoms" / "reused-moved.md").write_text(
+            inv([(1, "Entry immutability"), (2, "Order density")], migrated=True), encoding="utf-8")
         pats = {}
         for name in files:
             f = root / "atoms" / f"{name}.md"
@@ -2367,7 +2496,8 @@ def check_renumber_synthetic(problems: list[str]) -> int:
         for x in check_invariant_numbers(root, pats):
             got.setdefault(x.path.stem, []).append(x.message)
     wants = [("kept", 0, ""), ("moved", 2, "now stands at Invariant 2"), ("reused", 1, "tombstoned at HEAD"),
-             ("renamed", 2, "now stands at Invariant 2")]
+             ("renamed", 2, "now stands at Invariant 2"), ("kept-moved", 0, ""),
+             ("reused-moved", 1, "tombstoned at HEAD")]
     for name, count, needle in wants:
         msgs = got.get(name, [])
         if len(msgs) != count or (needle and not any(needle in m for m in msgs)):
@@ -2814,13 +2944,24 @@ def main(argv: list[str]) -> int:
               "its block live; the retired shape, a missing period, a missing close and "
               "a missing label fire) \u2713")
 
+    place_problems: list[str] = []
+    n_place = check_tombstone_places_synthetic(place_problems)
+    failures.extend(place_problems)
+    if not place_problems:
+        print(f"Tombstone places: {n_place} synthetic fixtures hold (a tombstone on the page and one in the "
+              "history file's Deleted rules each reserve their label: a citation resolves, a reuse, a line "
+              "out of form and a label tombstoned twice fire, another section reserves nothing; "
+              "F-invariant-ref, the range families and the IR read the history file too, and the IR names "
+              "the owner the tombstone names) \u2713")
+
     renumber_problems: list[str] = []
     n_renumber = check_renumber_synthetic(renumber_problems)
     failures.extend(renumber_problems)
     if not renumber_problems:
         print(f"F-renumber: {n_renumber} synthetic repositories hold (a migration that tombstones what it "
               "removes silent; one that drops an invariant and moves another into its number fires "
-              "twice, and again after a rename; a working-tree edit declaring a tombstoned number fires) \u2713")
+              "twice, and again after a rename; a working-tree edit declaring a tombstoned number fires; "
+              "the same two with the tombstones in the history file) \u2713")
 
     constituent_problems: list[str] = []
     n_const = check_constituents_synthetic(constituent_problems)

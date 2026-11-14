@@ -50,7 +50,6 @@ Composes 3: The composition MUST NOT change a constituent's spec.
 Composes 5: The composition MUST read the subscription records through Subscription's subscribers_for.
 Composes 6: The composition MUST NOT write to the notification records beside Notification's create.
 Composes 7: The composition MUST inherit a constituent's invariants PER Execution Contract Conformance 8.
-Deleted: Composes 4. Invariant 5.1 owns it.
 ```
 
 Term composition: this pattern's wiring of [Subscription](../atoms/subscription.md) and [Notification](../atoms/notification.md) — the one action below, its fan-out and its two result lists.
@@ -73,7 +72,6 @@ Composition state 5: A deployment composing Duplicate Prevention MUST supply the
 Composition state 5a: A deployment composing Duplicate Prevention MUST call a fanout ONLY AFTER Duplicate Prevention's check of the caller's event identity answers not-seen AND Duplicate Prevention's record of that identity answers ok.
 Composition state 5b: A deployment needing one guard across every instance of the fanout MUST compose a coordination pattern (Duplicate Prevention Non-goal 5).
 Composition state 6: EVERY notification record of a fanout MUST name EXACTLY ONE subscriber reference.
-Deleted: Composition state 7. Wiring decision 3 owns it.
 ```
 
 ### Capability requirement
@@ -82,8 +80,6 @@ Deleted: Composition state 7. Wiring decision 3 owns it.
 Capability requirement 1: The deployment MUST supply now at the seam.
 Capability requirement 2: The host MUST supply one fanout id at the seam for EVERY admitted fanout.
 Capability requirement 3: The host MUST draw a fanout id meeting the entropy floor.
-Deleted: Capability requirement 4. Execution Contract Logic confinement 3 owns it.
-Deleted: Capability requirement 5. Execution Contract Logic confinement 3 owns it.
 Capability requirement 6: A deployment MUST disclose the deployment's read latency bound.
 Capability requirement 7: The deployment MUST declare the clock offset allowance.
 Capability requirement 8: A deployment MUST bound EVERY Notification create call.
@@ -132,13 +128,11 @@ Action wiring 3: An admitted fanout MUST take the fanout id from the seam's id.
 Action wiring 4: IF Subscription's subscribers_for answers state-unavailable OR answers nothing within the read latency bound THEN [Fanout] MUST answer subscribers-unavailable (Execution Contract Constituent failure 3).
 NOTE: watch the constituent's failed read (Action wiring 4).
 Action wiring 5: A subscribers-unavailable answer MUST NOT carry a fanout id.
-Deleted: Action wiring 6. Action wiring 9 owns it.
 Action wiring 7: An admitted fanout MUST call Notification's create EXACTLY ONE time per subscriber reference the subscribers_for answer carries.
 Action wiring 8: IF the subscribers_for answer carries a subscriber reference THEN an admitted fanout MUST call Notification's create with that subscriber reference as the recipient reference and with the payload.
 Action wiring 9: An admitted fanout MUST NOT call Notification's create for a subscriber reference the subscribers_for answer does not carry.
 Action wiring 10: IF Notification's create answers a notification id THEN an admitted fanout MUST record the notification id in the created list.
 Action wiring 11: IF Notification's create answers otherwise OR answers nothing within the create bound THEN an admitted fanout MUST record the subscriber reference in the failed list (Execution Contract Constituent failure 1).
-Deleted: Action wiring 12. Action wiring 7 owns it.
 Action wiring 13: An admitted fanout answering a result MUST answer the fanout id, the created list, the failed list AND the firing instant.
 Action wiring 14: An admitted fanout MUST answer an empty created list AND an empty failed list for an empty subscribers_for answer.
 Action wiring 15: An admitted fanout MUST NOT commit two creates under one transaction PER the section titled Boundary rules in `execution-contract.md`.
@@ -219,8 +213,6 @@ Invariant 1 through 5 and Invariant 8 emerge from the composition; neither const
 - **Invariant 5 — The subscription records are read-only.**
   ```
   Invariant 5.1: The composition MUST NOT write to the subscription records.
-  Deleted: Invariant 6. Composes 7 owns it.
-  Deleted: Invariant 7. Composes 7 owns it.
   ```
 - **Invariant 8 — Fanout invocation uniqueness.**
   ```
@@ -327,7 +319,6 @@ Term boundary window: the instants from (firing instant - clock offset allowance
 External check 1: An auditor needing create-time isolation confirmed MUST read the deployment's own transaction configuration (Invariant 3.1).
 External check 2: An auditor needing a fanout grouped MUST read a composed Event Log (Composition state 3, Composition state 3a).
 External check 3: An auditor needing the boundary window computed MUST read the deployment's disclosed bounds (Capability requirement 6, Capability requirement 7).
-Deleted: External check 4. Execution Contract Conformance 9 owns it.
 External check 5: An auditor needing a notification record verified MUST read Notification's own acceptance (Composes 7).
 ```
 
@@ -344,7 +335,6 @@ Check 1.3 pairs each created notification id with its subscriber at a cost: the 
 
 ```
 Non-goal 1: The composition MUST NOT guarantee idempotency across two fanouts.
-Deleted: Non-goal 2. Composition state 4 owns it.
 Non-goal 3: The composition MUST NOT answer a result for a fanout that crashed.
 Non-goal 4: The composition MUST NOT read the subscriber set twice in one fanout.
 Non-goal 5: The composition MUST NOT skip a subscriber reference the subscribers_for answer carried.
@@ -377,10 +367,7 @@ Clock semantics 4: The composition MUST answer the firing instant to the caller.
 ### Indeterminate outcome
 
 ```
-Deleted: Indeterminate outcome 1. Execution Contract Error model 1 owns it.
-Deleted: Indeterminate outcome 2. Execution Contract Error model 1 owns it.
 Indeterminate outcome 3: A caller retrying a failed subscriber reference MUST call Notification's create for the subscriber reference.
-Deleted: Indeterminate outcome 4. Execution Contract Error model 1 owns it.
 Indeterminate outcome 5: A caller MAY read every subscriber reference failing alike as the payload's fault.
 Indeterminate outcome 6: A caller MAY read one subscriber reference failing alone as the subscriber reference's fault.
 Indeterminate outcome 7: A caller needing at-most-once across an indeterminate create MUST compose Duplicate Prevention PER Composition state 5 AND Composition state 5a (Notification Composition note 5).

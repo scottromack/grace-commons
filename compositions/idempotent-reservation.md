@@ -70,13 +70,8 @@ Term constituents: [Provisional Commitment](../atoms/provisional-commitment.md),
 Composition state 1: The composition MUST store a token results map.
 Composition state 2: The composition MUST key the token results map by idempotency token.
 Composition state 3: An entry MUST carry an action type, a parameters digest, a result, a pending instant AND a recovery mark.
-Deleted: Composition state 4. Execution Contract Database 1 owns it.
-Deleted: Composition state 5. Execution Contract Database 1 owns it.
 Composition state 6: EXACTLY ONE invocation MUST write an entry per act, a re-entry (Indeterminate outcome 8) writing the entry ONLY IF the first invocation left no entry.
-Deleted: Composition state 7. Execution Contract Database 1 owns it: an action's writes commit together, and the composition names no overwrite to keep the pending instant across.
 Composition state 9: The composition MUST take the parameters digest from the seam (Execution Contract Logic confinement 8).
-Deleted: Composition state 10. Execution Contract Logic confinement 8 owns it.
-Deleted: Composition state 8. Housekeeping 5 owns it.
 ```
 
 Term token results map: the composition's own map from an idempotency token to a recorded outcome — a token results map; the element the section titled Composition state in `execution-contract.md` classifies extraction-pending.
@@ -98,19 +93,7 @@ Capability requirement 1: A deployment MUST set the idempotency window.
 Capability requirement 2: A deployment MUST set the token max length.
 Capability requirement 3: A deployment MUST set the digest function.
 Capability requirement 4: A deployment MUST set the digest function alike for EVERY call of one instance.
-Deleted: Capability requirement 5. Execution Contract Database 2 owns it.
-Deleted: Capability requirement 6. Execution Contract Database 2 owns it.
-Deleted: Capability requirement 7. Execution Contract Database 2 owns it: an action's reads of a token and the writes they decide are one transaction, and the composition names no critical section to release.
-Deleted: Capability requirement 8. Execution Contract Database 2 owns it: an action's reads of a token and the writes they decide are one transaction, and the composition names no critical section to release.
-Deleted: Capability requirement 9. Execution Contract Database 1 and Execution Contract Database 2 own it.
-Deleted: Capability requirement 10. Execution Contract Database 1 and Execution Contract Database 2 own it: the composition names no reservation completion bound for the idempotency window to exceed.
-Deleted: Capability requirement 11. Execution Contract Database 1 and Execution Contract Database 2 own it: the composition names no reservation completion bound for the idempotency window to exceed.
-Deleted: Capability requirement 12. Execution Contract Database 3 owns it.
-Deleted: Capability requirement 13. Execution Contract Database 3 and Execution Contract Database 4 own it.
-Deleted: Capability requirement 14. Execution Contract Database 3 owns it.
-Deleted: Capability requirement 15. Execution Contract Database 3 owns it.
 Capability requirement 16: A deployment MUST resolve Duplicate Prevention's check fail-closed.
-Deleted: Capability requirement 17. Execution Contract Database 3 owns it.
 Capability requirement 18: The deployment MUST supply the database PER Execution Contract Database 1 through 4.
 ```
 
@@ -135,7 +118,6 @@ Primitive policy 3: The composition MUST compare an idempotency token byte-exact
 Primitive policy 4: The composition MUST NOT normalize an idempotency token.
 Primitive policy 5: The composition MUST NOT case-fold an idempotency token.
 Primitive policy 6: The composition MUST call Duplicate Prevention's check ONLY AFTER the idempotency token clears the boundary predicate.
-Deleted: Primitive policy 7. Wiring decision 3 owns it.
 ```
 
 Term boundary predicate: the test an idempotency token clears before Duplicate Prevention's check — the token is not blank AND does not exceed the token max length (Primitive policy 1, Primitive policy 2).
@@ -165,29 +147,14 @@ read()
 
 ```
 Action wiring 1: [Place Hold], [Confirm], [Release] AND [Expire] MUST take an idempotency token.
-Deleted: Action wiring 2. Execution Contract Database 2 owns it.
-Deleted: Action wiring 3. Execution Contract Database 2 owns it.
-Deleted: Action wiring 4. Execution Contract Database 2 owns it.
-Deleted: Action wiring 5. Execution Contract Database 2 owns it: an action's reads of a token and the writes they decide are one transaction, and the composition names no critical section to release.
-Deleted: Action wiring 6. Execution Contract Database 2 owns it: an action's reads of a token and the writes they decide are one transaction, and the composition names no critical section to lapse.
 Action wiring 7: IF a live entry's action type differs from the call's action type THEN the composition MUST answer token-collision.
 Action wiring 8: IF a live entry's parameters digest differs from the call's parameters digest THEN the composition MUST answer token-collision.
 Action wiring 9: The composition MUST answer a matching complete entry's result.
 Action wiring 10: The composition MUST NOT call a constituent for a matching complete entry.
-Deleted: Action wiring 11. Execution Contract Database 1 owns it.
 Action wiring 12: The composition MUST evict a complete entry the idempotency window elapsed for AND Duplicate Prevention's check answers not-seen for.
-Deleted: Action wiring 13. Execution Contract Database 1 owns it.
-Deleted: Action wiring 14. Execution Contract Database 1 owns it.
-Deleted: Action wiring 15. Execution Contract Database 1 owns it.
-Deleted: Action wiring 16. Execution Contract Database 1 owns it.
-Deleted: Action wiring 17. Execution Contract Database 1 owns it.
-Deleted: Action wiring 18. Execution Contract Database 1 owns it.
-Deleted: Action wiring 19. Execution Contract Database 1 owns it: an action's writes commit together, so no recording failure names the outcome.
-Deleted: Action wiring 20. Execution Contract Database 1 owns it.
 Action wiring 21: The composition MUST answer Provisional Commitment's answer to the caller.
 Action wiring 22: A read-only query MUST NOT take an idempotency token.
 Action wiring 23: A read-only query MUST NOT consult the token results map.
-Deleted: Action wiring 24. Action wiring 1 owns it.
 Action wiring 25: The composition MUST call Duplicate Prevention's record for EVERY result recorded against an idempotency token (Wiring decision 1).
 Action wiring 26: A read MUST answer every commitment Provisional Commitment's read answers.
 Action wiring 27: IF Duplicate Prevention's check answers state-unavailable THEN the composition MUST resolve the check as seen (Capability requirement 16) AND MUST NOT answer state-unavailable for the check.
@@ -208,7 +175,6 @@ Wiring decision 1: The composition MUST record EVERY constituent answer to a cal
 Wiring decision 2: The composition MUST record a constituent's rejection against the token.
 Wiring decision 3: The composition MUST NOT record an answer for a malformed idempotency token.
 Wiring decision 4: The composition MUST NOT record a [Place Hold] answer the composition returned on a seen token carrying no entry.
-Deleted: Wiring decision 5. Execution Contract Database 1 owns it: an action's writes commit together, so the composition answers no recording failure to record.
 ```
 
 <details markdown="block">
@@ -227,9 +193,6 @@ Deleted: Wiring decision 5. Execution Contract Database 1 owns it: an action's w
 ### Housekeeping
 
 ```
-Deleted: Housekeeping 1. Execution Contract Database 2 owns it.
-Deleted: Housekeeping 2. Execution Contract Database 2 owns it: the eviction leg's reads of a token and the eviction they decide are one transaction, and the composition names no critical section for another holder to hold.
-Deleted: Housekeeping 3. Execution Contract Database 1 owns it.
 Housekeeping 4: The eviction leg MUST evict an entry ONLY IF Duplicate Prevention's check answers not-seen.
 Housekeeping 5: The eviction leg MUST evict an entry ONLY IF the idempotency window elapsed since the entry's pending instant.
 Housekeeping 6: The eviction leg MUST NOT evict a seen token's entry.
@@ -269,8 +232,6 @@ These emerge from the composition; none belongs to one constituent.
   ```
   Invariant 7.1: The eviction leg MUST evict an entry ONLY AFTER Duplicate Prevention's guard elapsed AND the idempotency window elapsed since the entry's pending instant.
   Invariant 7.2: A call carrying an evicted idempotency token MUST stand as a fresh request.
-  Deleted: Invariant 5. Composes 5 owns it.
-  Deleted: Invariant 6. Composes 5 and Composes 7 own it.
   ```
 - **Invariant 8 — Exactly-once effect within the window.**
   ```
@@ -331,11 +292,8 @@ Check 1.1: An auditor MUST find EVERY token results entry carrying one action ty
 Check 1.2: An auditor MUST find EVERY token results entry carrying one parameters digest (Invariant 4.2).
 Check 2.1: An auditor MUST find no idempotency token bound to two commitment ids inside the idempotency window (Invariant 3.1).
 Check 3.1: An auditor MUST find EVERY complete entry carrying the result the constituent answered (Wiring decision 1).
-Deleted: Check 3.2. Execution Contract Database 1 owns it.
 Check 4.1: An auditor MUST find no evicted entry, read at the evicted entry's last version (Execution Contract Database 5), whose token Duplicate Prevention's check answers seen for (Housekeeping 6).
 Check 4.2: An auditor MUST find no evicted entry, read at the evicted entry's last version (Execution Contract Database 5), younger than the idempotency window (Housekeeping 5).
-Deleted: Check 5.1. Indeterminate outcome 8 owns it.
-Deleted: Check 5.2. Execution Contract Database 1 owns it: an action's writes commit together, so no entry records outcome-unknown.
 ```
 
 NOTE: EVERY check names the rule the check tests.
@@ -343,10 +301,7 @@ NOTE: EVERY check names the rule the check tests.
 ### External checks
 
 ```
-Deleted: External check 1. Execution Contract Database 2 owns it.
-Deleted: External check 2. Execution Contract Database 3 owns it.
 External check 3: An auditor needing Duplicate Prevention's fail-closed posture confirmed MUST read the deployment's own configuration (Capability requirement 16).
-Deleted: External check 4. Execution Contract Database 3 owns it.
 External check 5: An auditor needing the exactly-once claim confirmed MUST read the deployment's own database AND External check 3 (Invariant 8.1).
 External check 6: An auditor needing a constituent's own guarantee confirmed MUST read the constituent's own acceptance (Composes 5).
 External check 7: An auditor needing the idempotency window confirmed MUST read the deployment's own configuration (Capability requirement 1).
@@ -364,7 +319,6 @@ Non-goal 2: The composition MUST NOT bound the idempotency window.
 Non-goal 3: The composition MUST NOT mint an idempotency token.
 Non-goal 4: A caller MUST mint an idempotency token.
 Non-goal 5: The composition MUST NOT interpret an idempotency token.
-Deleted: Non-goal 6. Execution Contract Database 1 owns it.
 Non-goal 7: A deployment needing a multi-commitment transaction MUST compose a transaction pattern.
 Non-goal 8: The composition MUST NOT resolve the candidates.
 Non-goal 9: The composition MUST NOT record an authorization.
@@ -381,20 +335,13 @@ Non-goal 13: The composition MUST NOT promise a closure window for a stale entry
 ### Indeterminate outcome
 
 ```
-Deleted: Indeterminate outcome 1. Execution Contract Database 1 owns it.
-Deleted: Indeterminate outcome 2. Execution Contract Database 1 owns it: an action's writes commit together, so no call finds a pending entry.
 Indeterminate outcome 3: The composition MUST compute the candidates from Provisional Commitment's held commitments.
 Indeterminate outcome 4: The composition MUST keep a held commitment whose resource AND requester equal the call's in the candidates.
-Deleted: Indeterminate outcome 5. Execution Contract Database 1 owns it: an action's writes commit together, so no call finds a pending entry.
-Deleted: Indeterminate outcome 6. Execution Contract Database 1 owns it: an action's writes commit together, so no call finds a pending entry.
 Indeterminate outcome 7: An outcome-unknown answer MUST carry the candidates.
 Indeterminate outcome 8: The composition MUST mark a recovered entry.
-Deleted: Indeterminate outcome 9. Execution Contract Database 1 owns it: an action's writes commit together, so no call finds a pending entry.
 Indeterminate outcome 10: The composition MUST answer outcome-unknown for a [Place Hold] carrying a seen token AND no entry.
 Indeterminate outcome 11: A caller MUST resolve the candidates.
-Deleted: Indeterminate outcome 12. Execution Contract Database 1 owns it: an action's writes commit together, so no caller receives a recording failure naming the outcome.
 Indeterminate outcome 13: A resolving action MUST run again for a seen token carrying no entry.
-Deleted: Indeterminate outcome 14. Execution Contract Database 3 owns it: the database acknowledges a write only once it commits, so no resolving action answers outcome-unknown.
 ```
 
 Term candidates: for a [Place Hold], the held commitments of the Provisional Commitment instance whose resource and requester equal the call's — a candidates set; the composition's own filter over a constituent read, never a constituent's answer. The set holds at most one commitment, since the registry refuses a resource a held commitment carries (Provisional Commitment Capability requirement 17, Operation 5).

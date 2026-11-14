@@ -34,7 +34,6 @@ Identity 1: The atom MUST identify a lease by the pair (key, holder).
 Identity 2: The atom MUST compare keys by byte identity.
 Identity 3: The atom MUST NOT normalize a key.
 Identity 4: The atom MUST compare holders by byte identity.
-Deleted: Identity 5. Identity 6 owns it.
 Identity 6: A caller MUST mint a fresh holder value for EVERY take.
 Identity 7: A process that restarts MUST NOT carry a holder value across the restart.
 ```
@@ -246,7 +245,6 @@ Fence 4: The fenced party MUST judge the fence on the fenced party's own clock.
 Fence 4a: The fenced party MUST judge the fence and apply the work item in one atomic step.
 Fence 5: The fence ceiling MUST NOT PRECEDE a fence.
 Fence 6: The fenced party MUST compare the fence bare.
-Deleted: Fence 7. Fence 6 owns it.
 Fence 8: A holder fencing two parties MUST mint EVERY fence separately.
 Fence 9: A holder MUST NOT derive a second fence bare from a minted fence.
 Fence 10: A work item MUST NOT carry an effect instant.
@@ -307,8 +305,6 @@ NOTE: EVERY check names the rule the check tests. A check that names none is a c
 ```
 Non-goal 1: A party MUST NOT take a key the party already holds.
 Non-goal 2: The atom MUST NOT offer a depth count.
-Deleted: Non-goal 3. Operation 5a owns it.
-Deleted: Non-goal 4. Operation 5b owns it.
 Non-goal 5: The atom MUST NOT make the work under a lease atomic.
 Non-goal 6: The atom MUST NOT roll back work done under a lease.
 Non-goal 7: The atom MUST NOT isolate a holder's partial work from a reader.
@@ -328,8 +324,6 @@ Term call in flight: a call a holder issued under a grant that has returned neit
 
 ```
 Composition note 1: A composing pattern MUST name this atom as a capability requirement.
-Deleted: Composition note 2. Capability requirement 1 owns it.
-Deleted: Composition note 3. Capability requirement 2 owns it.
 Composition note 4: A composing pattern MUST own which key protects which work.
 Composition note 5: A composing pattern MUST own how long the grant lasts.
 Composition note 5a: A composing pattern MUST own the holder value.

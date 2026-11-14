@@ -31,3 +31,164 @@ The gate records the Ledger's `last gate:` line carried behind its latest until 
 
 - 2026-10-19 — Final Critique 15, the council's first round on the page, reading it unchanged since its fourteenth gate against Recoverable Invocation as that page's rounds 13 through 17 cured it, three fresh readers on free models (GRID Nemotron 3 Ultra, EOS LongCat 2.5 Preview, Linus MiMo V2.6 Flash), each handed only the round's reading set, three passes on one text (frozen at 6ac02aa); the round rests on three counted passes — foundational count 0 after triage (6 reports, 1 sent down to refining, 5 rejected on the text), the count adjudicated a second time by a reader blind to what it would decide, which placed none of the round's 16 reports foundational; 7 refining reports, 3 rhetorical reports; clean, the second clean round running
 - 2026-10-09 — Final Critique 14, fresh reader, three passes on one text — 0 foundational (one reported, rejected by a second triage blind to what it would decide), 31 refining reports, 20 rhetorical reports; one sample
+
+## Deleted rules
+
+The spec's tombstones, moved here from the page on 2026-11-13 because the spec is done (GRACE-lang Hard invariant 25 and Hard invariant 27, since v0.71): each `Deleted:` line byte for byte and in the page's order, under the heading it stood under there. A tombstone carries no obligation, and each still reserves its label: no rule of [Immutable Ledger with Selective Disclosure](./immutable-ledger.md) may carry it again.
+
+### Composes
+
+```
+Deleted: Composes 9. Recoverable Invocation Action wiring 4 owns it: an adopter's action runs validate, open, commit, close.
+```
+
+### Composition logic › Composition state
+
+```
+Deleted: Composition state 10. Execution Contract Database 3 owns it.
+```
+
+### Composition logic › Capability requirement
+
+```
+Deleted: Capability requirement 6. Execution Contract Logic confinement 15 owns it.
+Deleted: Capability requirement 7. Recoverable Invocation close step 3.5 owns it: a retry ends at the lease, not at a count.
+Deleted: Capability requirement 8. Recoverable Invocation Instance start 4 owns it: the cadence is the instance's.
+Deleted: Capability requirement 9. Recoverable Invocation journal write bound 1 owns it.
+Deleted: Capability requirement 10. Execution Contract Logic confinement 15 owns it.
+Deleted: Capability requirement 11. Recoverable Invocation Instance start 5 owns it.
+Deleted: Capability requirement 12. Recoverable Invocation act section 1 owns it, keyed by the act key (Recoverable Invocation open step 2.1).
+Deleted: Capability requirement 13. Recoverable Invocation close step 4.2 owns it.
+Deleted: Capability requirement 14. Recoverable Invocation act section 2 owns it, and reverses it: a host never frees the section on a holder's death.
+Deleted: Capability requirement 15. Recoverable Invocation open step 2.1 owns it.
+Deleted: Capability requirement 16. Recoverable Invocation act section 10 owns it.
+Deleted: Capability requirement 17. Recoverable Invocation Capability requirement 11 owns it.
+Deleted: Capability requirement 19. Execution Contract Database 3 owns it.
+Deleted: Capability requirement 20. Execution Contract Database 3 owns it.
+Deleted: Capability requirement 31. Recoverable Invocation Instance start 5 owns it: the act kind's retention period, the audit horizon, exceeds the retention floor, which carries the settling period and the run bound past the examine window end.
+Deleted: Capability requirement 35. Execution Contract Database 2 and Execution Contract Database 3 own it.
+```
+
+### Composition logic › Primitive policy
+
+```
+Deleted: Primitive policy 7. Recoverable Invocation open step 1.4 owns it, sizing against the maximal envelope.
+Deleted: Primitive policy 15. Primitive policy 8 owns it.
+Deleted: Primitive policy 17. Primitive policy 8 owns it.
+Deleted: Primitive policy 19. Execution Contract Database 1 owns it.
+```
+
+### Composition logic › Audit arm
+
+```
+Deleted: Audit arm 1. Recoverable Invocation Primitive policy 19 owns it.
+Deleted: Audit arm 2. Recoverable Invocation Primitive policy 41 owns it.
+Deleted: Audit arm 3. Recoverable Invocation Primitive policy 23 owns it.
+Deleted: Audit arm 4. Recoverable Invocation Primitive policy 43 owns it.
+Deleted: Audit arm 5. Recoverable Invocation Primitive policy 27 owns it.
+Deleted: Audit arm 6. Recoverable Invocation Primitive policy 27 owns it.
+Deleted: Audit arm 7. Recoverable Invocation Primitive policy 35 owns it, reading back by invocation id.
+Deleted: Audit arm 8. Recoverable Invocation Primitive policy 28 owns it.
+Deleted: Audit arm 9. Recoverable Invocation Primitive policy 28 owns it, as the hard alert.
+Deleted: Audit arm 10. Recoverable Invocation Primitive policy 29 owns it.
+Deleted: Audit arm 11. Recoverable Invocation Primitive policy 29 owns it: the retry ends at the terminus.
+Deleted: Audit arm 12. Recoverable Invocation Primitive policy 30 owns it.
+Deleted: Audit arm 13. Recoverable Invocation Primitive policy 31 owns it.
+Deleted: Audit arm 14. Execution Contract Database 1 owns it.
+Deleted: Audit arm 22. Recoverable Invocation Invariant 8.3 owns it.
+Deleted: Audit arm 23. Recoverable Invocation Invariant 8.4 owns it.
+Deleted: Audit arm 24. Recoverable Invocation Primitive policy 20 owns it, and Recoverable Invocation Primitive policy 21a proceeds where the read-back finds the intent.
+Deleted: Audit arm 25. Recoverable Invocation Primitive policy 42 owns it.
+```
+
+### Composition logic › Action wiring
+
+```
+Deleted: Action wiring 4. Recoverable Invocation Primitive policy 10 owns it.
+Deleted: Action wiring 5. Recoverable Invocation Invariant 1.1 owns it.
+Deleted: Action wiring 7. Recoverable Invocation commit 3 owns it: a pre-commit arm answers the constituent's own code, storage-failure included.
+Deleted: Action wiring 8. Recoverable Invocation commit 3 owns it.
+Deleted: Action wiring 9. Recoverable Invocation commit 2 owns it, and reverses it: a refused commit is closed by a refusal record.
+Deleted: Action wiring 10. Recoverable Invocation open step 2.1 owns it, taking the section ahead of the intent.
+Deleted: Action wiring 11. Recoverable Invocation act section 10 owns it, and reverses it: an invocation whose lease expired never takes the section again.
+Deleted: Action wiring 12. Recoverable Invocation close step 2.1 owns it.
+Deleted: Action wiring 13. Recoverable Invocation close step 2.2 owns it.
+Deleted: Action wiring 14. Recoverable Invocation act section 10 owns it.
+Deleted: Action wiring 15. Recoverable Invocation close step 3.1 owns it.
+Deleted: Action wiring 19. Recoverable Invocation Invariant 3.5 owns it: a sweep that cannot pair writes no outcome, so no outcome carries an unresolved set.
+Deleted: Action wiring 21. Recoverable Invocation yield 3 owns it: no adopter touches the section.
+Deleted: Action wiring 31. Action wiring 29 owns it: the enumeration runs on a hit and on a miss alike.
+Deleted: Action wiring 32. Action wiring 29 owns it, and reverses it: the purged verdict's first clause needs the enumeration a purged hit was denied.
+Deleted: Action wiring 46. Recoverable Invocation Primitive policy 4 owns it, and Action wiring 1 for a ledger entry.
+```
+
+### Composition logic › Wiring decision
+
+```
+Deleted: Wiring decision 1. Invariant 1.3 owns it: no disclosure id under two live outcome events at act quiescence, a purged and an escalated disclosure carrying none beside it.
+Deleted: Wiring decision 2. Execution Contract Database 1 owns it.
+```
+
+### Composition logic › Reconciliation
+
+```
+Deleted: Reconciliation 5. Recoverable Invocation Invariant 7.2 owns it.
+Deleted: Reconciliation 8. Recoverable Invocation reconcile step 2.1 owns it.
+Deleted: Reconciliation 9. Recoverable Invocation reconcile step 2.3 owns it.
+Deleted: Reconciliation 10. Recoverable Invocation reconcile step 2.5 owns it.
+Deleted: Reconciliation 11. Recoverable Invocation Invariant 3.3 owns it, through the disclosure probe.
+Deleted: Reconciliation 12. Recoverable Invocation reconcile step 3.8 owns it.
+Deleted: Reconciliation 13. Recoverable Invocation reconcile step 3.10 owns it.
+Deleted: Reconciliation 15. Recoverable Invocation reconcile step 3.11 owns it.
+Deleted: Reconciliation 16. Recoverable Invocation Invariant 5.1 owns it.
+Deleted: Reconciliation 17. Recoverable Invocation reconcile step 3.2 owns it.
+Deleted: Reconciliation 18. Recoverable Invocation Invariant 5.2 owns it.
+Deleted: Reconciliation 19. Recoverable Invocation Invariant 5.2 owns it.
+Deleted: Reconciliation 20. Recoverable Invocation Invariant 5.3 owns it, and narrows it: a recovered outcome carries what the database re-derives and nothing of the intent's.
+Deleted: Reconciliation 21. Recoverable Invocation Invariant 3.5 owns it.
+Deleted: Reconciliation 22. Recoverable Invocation reconcile step 3.20 owns it.
+Deleted: Reconciliation 23. Recoverable Invocation reconcile step 3.20 owns it.
+Deleted: Reconciliation 24. Recoverable Invocation reconcile step 3.17 owns it.
+Deleted: Reconciliation 25. Reconciliation 3 owns it.
+Deleted: Reconciliation 26. Recoverable Invocation reconcile step 5.1 owns it.
+```
+
+### Composition logic › Verdict
+
+```
+Deleted: Verdict 6. Recoverable Invocation Which closing stands 2 owns it: an outcome supersedes an escalation it names.
+```
+
+### Composition-level invariants › Invariant 1 — Disclosure-accountability binding bijection
+
+```
+  Deleted: Invariant 1.1. Recoverable Invocation Invariant 4.1 owns it.
+  Deleted: Invariant 1.2. Recoverable Invocation Invariant 4.2 owns it.
+  Deleted: Invariant 1.5. Recoverable Invocation Invariant 5.2 owns it.
+```
+
+### Composition-level invariants › Invariant 4 — No disclosure unrecorded, structurally closed
+
+```
+  Deleted: Invariant 5. Composes 5 owns it.
+```
+
+### Composition-level invariants › Invariant 6 — Authentication precedes commitment
+
+```
+  Deleted: Invariant 6.1. Recoverable Invocation Invariant 1.1 owns it.
+```
+
+### Generation acceptance › Conformance checks
+
+```
+Deleted: Check 1.9. Check 1.2 owns it: an escalation left past its intent's horizon reads as the gap, and a second check of the same records overlapped the first.
+Deleted: Check 1.6. Recoverable Invocation Check 2.5 owns it.
+Deleted: Check 1.7. Recoverable Invocation Check 2.5 owns it.
+Deleted: Check 1.8. Recoverable Invocation Check 4.1 owns it.
+Deleted: Check 5.1. Recoverable Invocation Check 1.1 owns it.
+Deleted: Check 5.2. Recoverable Invocation Primitive policy 5 owns it.
+Deleted: Check 5.3. Recoverable Invocation Check 1.1 owns it.
+Deleted: Check 5.4. Recoverable Invocation Check 3.1 owns it: an aged intent carries a closing inside the window.
+Deleted: Check 5.5. Recoverable Invocation Check 1.4 owns it.
+```

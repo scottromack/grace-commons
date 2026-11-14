@@ -212,6 +212,87 @@ class ContractTest(unittest.TestCase):
                                                   cites.contract_labels(self.corpus.root)), [])
 
 
+# a pattern whose tombstones stand on the page and in its history file
+TOMBED = """# Eta Atom
+
+Term qualifiers: migrated.
+
+```
+Deleted: Operation 5. Operation 2 owns it.
+Operation 2: The atom MUST keep the record.
+```
+"""
+
+TOMBED_HISTORY = """# Eta Atom — history
+
+## Decisions
+
+```
+Deleted: Operation 7. A line outside the section reserves nothing.
+```
+
+## Deleted rules
+
+### Structure
+
+```
+Deleted: Operation 3. Operation 2 owns it.
+  Deleted: Operation 4. Alpha Atom Invariant 1 owns it.
+```
+"""
+
+
+class TombstoneTest(unittest.TestCase):
+    """A tombstone reserves its label on the page and from the section titled
+    *Deleted rules* in the history file beside it (GRACE-lang Hard invariant 25,
+    v0.71), and a query for a tombstoned label names the owner the tombstone
+    names, wherever it stands."""
+
+    def setUp(self) -> None:
+        self.corpus = Corpus()
+        self.addCleanup(self.corpus.close)
+        self.corpus.write("atoms/eta-atom.md", TOMBED)
+        self.corpus.write("atoms/eta-atom.hist.md", TOMBED_HISTORY)
+
+    def seed(self, label: str) -> tuple[int, str]:
+        out = io.StringIO()
+        with contextlib.redirect_stdout(out):
+            code = cites.run(self.corpus.root, ["cites.py", label])
+        return code, out.getvalue()
+
+    def test_both_places_are_read_and_no_tombstone_is_a_rule(self) -> None:
+        spec = cites.parse(self.corpus.root / "atoms/eta-atom.md")
+        self.assertEqual(set(spec.rules), {"Operation 2"})
+        hist = self.corpus.root / "atoms/eta-atom.hist.md"
+        self.assertEqual({k: (v[0].name, v[2]) for k, v in spec.tombstones.items()}, {
+            "Operation 5": ("eta-atom.md", "Operation 2 owns it."),
+            "Operation 3": (hist.name, "Operation 2 owns it."),
+            "Operation 4": (hist.name, "Alpha Atom Invariant 1 owns it.")})
+
+    def test_the_section_is_read_alone(self) -> None:
+        lines = cites.deleted_rules(self.corpus.root / "atoms/eta-atom.md")
+        self.assertEqual([raw for _, raw in lines],
+                         ["Deleted: Operation 3. Operation 2 owns it.",
+                          "  Deleted: Operation 4. Alpha Atom Invariant 1 owns it."])
+        self.assertEqual(cites.deleted_rules(self.corpus.root / "atoms/alpha-atom.md"), [])
+
+    def test_a_moved_label_names_its_owner(self) -> None:
+        code, out = self.seed("Operation 4")
+        self.assertEqual(code, 2)
+        self.assertIn("no rule named Operation 4: Eta Atom tombstones it (atoms/eta-atom.hist.md:15): "
+                      "Alpha Atom Invariant 1 owns it.", out)
+
+    def test_a_label_on_the_page_names_its_owner_too(self) -> None:
+        code, out = self.seed("Operation 5")
+        self.assertEqual(code, 2)
+        self.assertIn("Eta Atom tombstones it (atoms/eta-atom.md:6): Operation 2 owns it.", out)
+
+    def test_a_line_outside_the_section_reserves_nothing(self) -> None:
+        code, out = self.seed("Operation 7")
+        self.assertEqual(code, 2)
+        self.assertIn("no rule or term named", out)
+
+
 class ReachTest(unittest.TestCase):
     def setUp(self) -> None:
         self.corpus = Corpus()

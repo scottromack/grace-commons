@@ -193,7 +193,6 @@ Composition state 42: A case MAY carry no open trigger.
 Composition state 43: A case MAY carry two open triggers.
 Composition state 44: A party-to-case entry of an active case MUST name a party the Party Identity instance holds.
 Composition state 45: A case-to-retentions entry of an active case MUST name a retention the party retention instance holds.
-Deleted: Composition state 46. Composition state 47 owns it: the entry of a closed case stands, since the composition never drops one.
 Composition state 47: The composition MUST NOT drop a case-to-monitoring entry.
 Composition state 48: The composition MUST NOT store a review due flag.
 Composition state 49: The composition MUST NOT store an overdue flag.
@@ -252,9 +251,7 @@ NOTE: open 2026-11-10-e — a pre-switch record carries its own pairing (an inte
 Capability requirement 1: The host MUST inject now, the invocation id, the run id AND the operator run id at the seam once PER invocation.
 Capability requirement 2: The host MUST supply a case id at the seam PER admitted initiation.
 Capability requirement 3: The host MUST supply a trigger id at the seam PER admitted trigger.
-Deleted: Capability requirement 4. Execution Contract Logic confinement 3 owns it.
 Capability requirement 5: The transition MUST NOT mint an id.
-Deleted: Capability requirement 6. Execution Contract Logic confinement 3 owns it.
 Capability requirement 7: The composition MUST NOT mint a party id.
 Capability requirement 8: The composition MUST NOT mint a verification id.
 Capability requirement 9: The composition MUST NOT mint a state change id.
@@ -273,15 +270,10 @@ Capability requirement 20a: A deployment MAY start an instance ONLY IF the activ
 Capability requirement 21: A deployment MUST set the adverse trigger types.
 Capability requirement 22: The adverse trigger types MUST NOT carry the periodic trigger type.
 Capability requirement 23: A deployment MUST set the onboarding completion bound as EVERY act kind's invocation completion bound.
-Deleted: Capability requirement 24. Recoverable Invocation Instance start 4 owns it: the closure window.
-Deleted: Capability requirement 25. Recoverable Invocation sweep cadence 2 and Recoverable Invocation sweep cadence 3 own it.
-Deleted: Capability requirement 26. Recoverable Invocation run bound owns it: the sweep's own, and the reconciliation runs inside it.
-Deleted: Capability requirement 27. Recoverable Invocation Instance start 4 owns it: the worst closure against the closure window, the sweep's run counted in it.
 Capability requirement 28: A deployment MUST provision the recovery identity as a registered actor.
 Capability requirement 29: A deployment MUST rotate the recovery identity's credential.
 Capability requirement 30: A deployment MUST set a field cap PER payload field.
 Capability requirement 31: A field cap MUST NOT EXCEED the audit instance's payload cap.
-Deleted: Capability requirement 32. Primitive policy 20 went with its cap: the trigger sets ride the intents in full, bounded by Audit Trail's payload cap (Capability requirement 31).
 Capability requirement 33: The audit instance MUST serve an open-ended sequence range read.
 Capability requirement 34: The audit instance MUST serve read_record for an aged-out event.
 Capability requirement 35: The party retention instance MUST serve a placement read carrying the policy reference, the retention instant, the retention deadline AND the purge eligibility.
@@ -295,9 +287,6 @@ Capability requirement 41: The composition MUST NOT fire a review.
 Capability requirement 42: A deployment under the Bank Secrecy Act and Anti-Money Laundering rules MUST treat EVERY open verification intent the sweep examines as a hard alerting condition.
 Capability requirement 43: A deployment MUST NOT set the monitoring interval PER party at this composition.
 Capability requirement 45: The deployment MUST supply the database PER Execution Contract Database 1 through 4 and Execution Contract Read 1 through 3, AND the act section PER Execution Contract Database 7 AND Execution Contract Refusal 1 (Recoverable Invocation Capability requirement 12).
-Deleted: Capability requirement 44. Execution Contract Logic confinement 7 owns it.
-Deleted: Capability requirement 46. Recoverable Invocation Instance start 5 owns it: the retention floor.
-Deleted: Capability requirement 47. Recoverable Invocation clock allowance owns it: the pairing datum is injected into every constituent's seam (Capability requirement 48), so no recovery comparison reads two clocks.
 Capability requirement 48: The host MUST inject the invocation's now into Party Identity's seam AND Retention Window's seam for the commit of an acting action.
 Capability requirement 49: The host MUST NOT inject an equal now into two invocations of one act key on any node of the instance.
 Capability requirement 50: A deployment MUST supply the act section Recoverable Invocation takes (Recoverable Invocation Capability requirement 11).
@@ -381,7 +370,6 @@ Primitive policy 16: The composition MUST NOT judge an enrollment field.
 Primitive policy 17: The composition MUST NOT cap a reason beside Party Identity's reason cap.
 Primitive policy 18: The composition MUST truncate a payload field exceeding the field's cap ONLY IF the field IS NOT IN the probe-matched fields.
 Primitive policy 19: A truncated payload field MUST carry the truncation marker.
-Deleted: Primitive policy 20. Recoverable Invocation Primitive policy 12 and Primitive policy 13 own it: an intent whose data exceeds Audit Trail's payload cap, the trigger sets in full included, refuses invalid-request at the open.
 Primitive policy 21: The boundary predicate MUST refuse a blank retention policy reference.
 Primitive policy 22: The boundary predicate MUST refuse a probe-matched field exceeding the field's cap.
 ```
@@ -417,14 +405,7 @@ Identity 6: The seam MUST allocate a trigger id.
 Identity 7: A trigger id MUST stand immutable.
 Identity 8: The composition MUST NOT reuse a trigger id.
 Identity 9: An intent MUST carry the case id.
-Deleted: Identity 10. Recoverable Invocation Primitive policy 9 owns it.
-Deleted: Identity 11. Recoverable Invocation Primitive policy 10 owns it.
 Identity 12: An intent MUST carry the injected now as the pairing datum.
-Deleted: Identity 13. Recoverable Invocation Primitive policy 11a owns it.
-Deleted: Identity 14. Recoverable Invocation Primitive policy 5 and Recoverable Invocation Invariant 3.2 own it: a journal join pairs on the invocation id.
-Deleted: Identity 15. Recoverable Invocation Invariant 3.2 and Recoverable Invocation act probe 3a own it.
-Deleted: Identity 16. Recoverable Invocation Primitive policy 5 owns it: a journal join pairs on the invocation id and no other field.
-Deleted: Identity 17. Recoverable Invocation journal 2 owns it: a trigger's intent is the adverse trigger kind's or the periodic review kind's own intended record.
 Identity 18: A case MUST NOT identify a party.
 Identity 19: A party id MUST NOT identify a case.
 ```
@@ -482,31 +463,7 @@ Term committing call: `PartyIdentity.enroll` | `PartyIdentity.verify` | `PartyId
 ### Audit arm
 
 ```
-Deleted: Audit arm 1. Recoverable Invocation Action wiring 4 and Recoverable Invocation Invariant 1.1 own it for the intent of the seven act kinds.
-Deleted: Audit arm 2. Recoverable Invocation Primitive policy 19 owns it.
-Deleted: Audit arm 3. Recoverable Invocation Primitive policy 41 owns it.
-Deleted: Audit arm 4. Recoverable Invocation Primitive policy 23 owns it.
-Deleted: Audit arm 5. Execution Contract Database 1 owns it.
-Deleted: Audit arm 6. Execution Contract Database 1 owns it.
-Deleted: Audit arm 7. Recoverable Invocation Invariant 4.1 owns it: an intent stands open until a closing names its invocation, and the sweep closes it.
-Deleted: Audit arm 8. Execution Contract Database 2 owns it.
-Deleted: Audit arm 9. Recoverable Invocation Primitive policy 42 owns it.
-Deleted: Audit arm 10. Recoverable Invocation Primitive policy 29 through 31 own it: an outcome that does not land answers recording-failure(outcome).
-Deleted: Audit arm 11. Recoverable Invocation Invariant 8.3 owns it: recording-failure(intent) is a committed nothing, and the caller may retry.
-Deleted: Audit arm 12. Recoverable Invocation Invariant 8.4 owns it: recording-failure(outcome) is an act that may exist, whose record the sweep closes.
-Deleted: Audit arm 13. Recoverable Invocation Invariant 8.4 owns it: the caller does not re-run an act whose invocation is unclosed.
-Deleted: Audit arm 14. Execution Contract Database 1 owns it.
-Deleted: Audit arm 15. Execution Contract Database 1 owns it: an action's writes commit together, so no invocation retries an owed record.
-Deleted: Audit arm 16. Recoverable Invocation reconcile step 3.2 and Execution Contract Database 1 own it.
-Deleted: Audit arm 17. Execution Contract Database 1 owns it: an action's writes commit together, so no invocation retries an owed record.
-Deleted: Audit arm 18. Execution Contract Database 1 owns it.
 Audit arm 19: The composition MUST alert on EVERY recording-failure carrying outcome an acting action answers.
-Deleted: Audit arm 20. Recoverable Invocation Primitive policy 41 through 43 own it: an invalid-request at the intent is the caller's, at the outcome a hard alert.
-Deleted: Audit arm 21. Recoverable Invocation Primitive policy 40 and Recoverable Invocation Primitive policy 42 own it: the hard alert.
-Deleted: Audit arm 22. Recoverable Invocation Invariant 5.2 owns it: a recovered outcome carries the recovery flag.
-Deleted: Audit arm 23. Recoverable Invocation Invariant 5.2 owns it: a recovered outcome names the caller in the acting actor reference.
-Deleted: Audit arm 24. Recoverable Invocation Primitive policy 20 through 22 and Recoverable Invocation Primitive policy 41 own it: an intent's invalid-request(step-4) is read back by invocation id, a found record proceeding with a hard alert and none answering invalid-request.
-Deleted: Audit arm 25. Recoverable Invocation Primitive policy 43 owns it.
 ```
 
 Term position: intent | outcome | refusal — Recoverable Invocation's (Recoverable Invocation Primitive policy 19 through 31): where a recording-failure of an acting action sat.
@@ -547,7 +504,6 @@ Action wiring 2: [Initiate Onboarding] MUST answer invalid-request for a call ca
 Action wiring 3: [Initiate Onboarding] MUST answer invalid-request for an unset monitoring interval.
 Action wiring 4: An external path call MUST read the party through Party Identity's declared read.
 Action wiring 5: IF no party EXISTS for the party id THEN [Initiate Onboarding] MUST answer party-not-known.
-Deleted: Action wiring 154. Execution Contract Read 1 owns it.
 Action wiring 6: IF the party's state IS NOT IN the admissible states THEN [Initiate Onboarding] MUST answer party-not-admissible carrying the state.
 Action wiring 7: IF an active case EXISTS for the party THEN [Initiate Onboarding] MUST answer already-onboarded.
 Action wiring 8: A validated initiation MUST call the invocation open with the path's act kind, the act key, the actor reference, the credential AND the intent data carrying the case id, the invocation's inputs, the next review due AND now as the pairing datum (Recoverable Invocation Action wiring 4).
@@ -561,7 +517,6 @@ Action wiring 15: IF Retention Window answers invalid-policy for an initiation T
 Action wiring 16: IF Retention Window answers policy-not-found for an initiation THEN [Initiate Onboarding] MUST answer invalid-request.
 Action wiring 17: IF Retention Window answers storage-failure for an initiation THEN [Initiate Onboarding] MUST answer storage-failure (Execution Contract Constituent failure 1).
 Action wiring 17a: IF Retention Window answers registry-unavailable for an initiation THEN [Initiate Onboarding] MUST answer registry-unavailable (Execution Contract Constituent failure 2).
-Deleted: Action wiring 18. Execution Contract Database 1 owns it.
 Action wiring 19: [Initiate Onboarding] MUST close a committed initiation through the invocation close naming the path's initiation outcome, the outcome carrying the party id, the current placement AND the opening instant (Recoverable Invocation commit 4).
 Action wiring 20: An admitted initiation MUST answer the case id.
 Action wiring 21: The composition MUST read the case-to-monitoring index at [Record Verification].
@@ -577,14 +532,12 @@ Action wiring 30: A verification intent MUST carry the next review due the invoc
 Action wiring 31: A verification outcome MUST NOT carry a next review due.
 Action wiring 32: A transitioning verification MUST advance the next review due.
 Action wiring 33: A verification carrying no state change id MUST NOT advance the next review due.
-Deleted: Action wiring 34. Recoverable Invocation Primitive policy 29 through 31 and Action wiring 157 own it: a close that does not land answers recording-failure(outcome).
 Action wiring 35: An admitted verification MUST answer recorded.
 Action wiring 36: A reader MUST NOT read recorded as a verified state.
 Action wiring 37: The composition MUST read the case-to-monitoring index at [Trigger Monitoring Review].
 Action wiring 38: IF no case EXISTS for the case id THEN [Trigger Monitoring Review] MUST answer not-known.
 Action wiring 39: IF the case's active flag EQUALS false THEN [Trigger Monitoring Review] MUST answer not-active.
 Action wiring 40: The composition MUST read the party through Party Identity's declared read at [Trigger Monitoring Review].
-Deleted: Action wiring 41. Execution Contract Read 1 owns it.
 Action wiring 42: IF Party Identity answers invalid-query THEN [Trigger Monitoring Review] MUST answer invalid-request.
 Action wiring 43: The composition MUST read an invalid-query answer as the composition's own defect.
 Action wiring 44: IF the trigger type belongs to the adverse trigger types AND the party's state IS NOT IN the suspendable states THEN [Trigger Monitoring Review] MUST answer not-verified carrying the state.
@@ -593,8 +546,6 @@ Action wiring 46: A validated trigger MUST call the invocation open with custome
 Action wiring 47: An admitted periodic trigger against an unsuspended party MUST carry the next review due on the periodic review intent.
 Action wiring 48: An admitted trigger against a suspended party MUST NOT carry a next review due on the trigger intent.
 Action wiring 49: An adverse trigger MUST NOT carry a next review due on the trigger intent.
-Deleted: Action wiring 50. Recoverable Invocation Primitive policy 23 owns it: a trigger intent that does not land answers recording-failure(intent).
-Deleted: Action wiring 51. Recoverable Invocation Invariant 1.1 and Recoverable Invocation Action wiring 4 own it: no commit is issued ahead of a landed intent.
 Action wiring 52: An adverse trigger MUST call Party Identity's suspend with the party id, the actor reference AND the composed suspend reason.
 Action wiring 53: IF Party Identity answers already-suspended for a suspend THEN [Trigger Monitoring Review] MUST answer already-suspended.
 Action wiring 54: IF an adverse trigger intent's refusal record carries already-suspended THEN the composition MUST add the trigger to the open-trigger set.
@@ -605,10 +556,8 @@ Action wiring 58: IF Party Identity answers already-closed for a suspend THEN [T
 Action wiring 59: IF Party Identity answers not-known for a suspend THEN [Trigger Monitoring Review] MUST answer not-known.
 Action wiring 60: IF Party Identity answers invalid-request for a suspend THEN [Trigger Monitoring Review] MUST answer invalid-request.
 Action wiring 61: IF Party Identity answers storage-failure for a suspend THEN [Trigger Monitoring Review] MUST answer storage-failure (Execution Contract Constituent failure 1).
-Deleted: Action wiring 62. Recoverable Invocation's refuse owns it: a refusal record that does not land answers recording-failure(refusal, constituent_code), and the sweep records the attempt.
 Action wiring 63: [Trigger Monitoring Review] MUST close a suspending trigger through the invocation close naming the suspension outcome, the outcome carrying the state change id AND the suspension instant.
 Action wiring 64: A suspending trigger MUST add the trigger to the open-trigger set ONLY AFTER the suspension outcome lands (Atomic writes 2), a close that does not land leaving the trigger to the rebuild, which selects the trigger's open intent (Composition state 31).
-Deleted: Action wiring 65. Recoverable Invocation Primitive policy 29 through 31 and Action wiring 157 own it.
 Action wiring 66: A periodic trigger MUST read the current placement's policy reference through Retention Window's declared read.
 Action wiring 67: A periodic trigger MUST call Retention Window's place_under_retention with the party id AND the current placement's policy reference.
 Action wiring 68: A periodic trigger MUST renew the placement whatever the party's state.
@@ -618,12 +567,10 @@ Action wiring 70a: IF Retention Window answers registry-unavailable for a renewa
 Action wiring 71: IF Retention Window answers invalid-policy for a renewal THEN [Trigger Monitoring Review] MUST answer invalid-request.
 Action wiring 72: IF Retention Window answers policy-not-found for a renewal THEN [Trigger Monitoring Review] MUST answer invalid-request.
 Action wiring 73: [Trigger Monitoring Review] MUST close a renewing trigger through the invocation close naming the renewal outcome, the outcome carrying the renewed placement AND the renewal instant.
-Deleted: Action wiring 74. Recoverable Invocation Primitive policy 29 through 31 and Action wiring 157 own it.
 Action wiring 75: A renewing trigger MUST repoint the case-to-retentions index ONLY AFTER the renewal outcome lands.
 Action wiring 76: A renewing trigger against an unsuspended party MUST advance the next review due.
 Action wiring 76a: A periodic trigger that IS NOT a renewing trigger MUST NOT advance the next review due.
 Action wiring 77: A periodic trigger against a suspended party MUST NOT advance the next review due.
-Deleted: Action wiring 78. Term renewal probe owns it: a renewal is recovered on the act key and the pairing datum.
 Action wiring 79: An admitted trigger MUST answer recorded.
 ```
 
@@ -641,36 +588,23 @@ Action wiring 87: IF Party Identity answers not-known for a clearance verify THE
 Action wiring 88: IF Party Identity answers invalid-request for a clearance verify THEN [Clear Review] MUST answer invalid-request.
 Action wiring 89: IF Party Identity answers storage-failure for a clearance verify THEN [Clear Review] MUST answer storage-failure (Execution Contract Constituent failure 1).
 Action wiring 90: [Clear Review] MUST close a committed clearance through the invocation close naming the clearance outcome, the outcome carrying the verification id, the state change id, the reason AND the clearance instant.
-Deleted: Action wiring 91. Action wiring 83 owns it: the next review due rides the clearance intent, and the clearance outcome carries none.
-Deleted: Action wiring 92. Recoverable Invocation Primitive policy 29 through 31 and Action wiring 157 own it.
-Deleted: Action wiring 93. Term clearance transaction owns it: the verify and the reinstate commit together, and no record stands between them (Recoverable Invocation Action wiring 6).
-Deleted: Action wiring 94. Term clearance transaction owns it: the verify and the reinstate commit together, and no record stands between them (Recoverable Invocation Action wiring 6).
 Action wiring 95: An admitted clearance MUST call Party Identity's reinstate with the party id, the actor reference AND the reason.
 Action wiring 96: IF Party Identity answers no-passed-verification-since-suspend for a reinstate THEN [Clear Review] MUST answer verification-failed.
 Action wiring 97: IF Party Identity answers not-suspended for a reinstate THEN [Clear Review] MUST answer verification-failed.
 Action wiring 98: IF Party Identity answers already-closed for a reinstate THEN [Clear Review] MUST answer already-closed.
 Action wiring 99: IF Party Identity answers not-known for a reinstate THEN [Clear Review] MUST answer not-known.
 Action wiring 100: IF Party Identity answers invalid-request for a reinstate THEN [Clear Review] MUST answer invalid-request.
-Deleted: Action wiring 101. Execution Contract Database 1 owns it.
-Deleted: Action wiring 102. Action wiring 90 owns it: the clearance's one outcome carries the reinstate's state change id.
-Deleted: Action wiring 103. Recoverable Invocation Primitive policy 29 through 31 and Action wiring 157 own it.
 Action wiring 104: An admitted clearance MUST drop the closed triggers from the open-trigger set ONLY AFTER the clearance outcome lands.
 Action wiring 105: An admitted clearance MUST drop exactly the closed triggers the clearance intent names.
 Action wiring 106: An admitted clearance MUST NOT drop a trigger the clearance intent does not name.
 Action wiring 107: An admitted clearance MUST advance the next review due to the clearance intent's next review due.
-Deleted: Action wiring 108. Execution Contract Database 1 owns it.
-Deleted: Action wiring 109. Execution Contract Database 1 owns it.
-Deleted: Action wiring 110. Execution Contract Database 1 and Execution Contract Database 3 own it.
 Action wiring 111: An admitted clearance MUST answer cleared.
 Action wiring 112: The composition MUST read the case-to-monitoring index at [Close Party].
 Action wiring 113: IF no case EXISTS for the case id THEN [Close Party] MUST answer not-known.
 Action wiring 114: IF the case's active flag EQUALS false THEN [Close Party] MUST answer not-active.
 Action wiring 115: A validated closure MUST call the invocation open with customer-onboarding.closure, the party id as the act key, the closing actor reference, the credential AND the intent data carrying the case id, the reason, the open-trigger set as the open triggers at close AND now as the pairing datum.
 Action wiring 116: An admitted closure MUST call Party Identity's close with the party id, the closing actor reference AND the reason.
-Deleted: Action wiring 117. Recoverable Invocation reconcile step 3.2 and Execution Contract Database 1 own it.
-Deleted: Action wiring 118. Execution Contract Database 1 owns it: a closure's close, floor and record commit together, so no invocation completes an earlier closure.
 Action wiring 119: IF Party Identity answers already-closed for a close THEN [Close Party] MUST answer not-active.
-Deleted: Action wiring 119a. Recoverable Invocation open step 3.5 owns it: an earlier closure whose outcome has not landed is an open closure intent, so a second closure meets act-in-flight while the first is in flight, and the second's close answers already-closed once the first committed (Action wiring 119).
 Action wiring 120: IF Party Identity answers not-known for a close THEN [Close Party] MUST answer not-known.
 Action wiring 121: IF Party Identity answers invalid-request for a close THEN [Close Party] MUST answer invalid-request.
 Action wiring 122: IF Party Identity answers storage-failure for a close THEN [Close Party] MUST answer storage-failure (Execution Contract Constituent failure 1).
@@ -679,23 +613,18 @@ Action wiring 124: IF Retention Window answers invalid-policy for a closure THEN
 Action wiring 125: IF Retention Window answers policy-not-found for a closure THEN [Close Party] MUST answer invalid-request.
 Action wiring 125a: IF Retention Window answers storage-failure for a closure THEN [Close Party] MUST answer storage-failure (Execution Contract Constituent failure 1).
 Action wiring 125b: IF Retention Window answers registry-unavailable for a closure THEN [Close Party] MUST answer registry-unavailable (Execution Contract Constituent failure 2).
-Deleted: Action wiring 126. Execution Contract Database 1 owns it.
 Action wiring 127: [Close Party] MUST close a committing closure through the invocation close naming the closure outcome, the outcome carrying the state change id, the post closure placement, the reason AND the closure instant.
-Deleted: Action wiring 128. Recoverable Invocation Primitive policy 29 through 31 and Action wiring 157 own it.
 Action wiring 129: An admitted closure MUST populate the case-to-retentions index's post closure placement ONLY AFTER the closure outcome lands.
 Action wiring 130: An admitted closure MUST write the case's active flag set to false ONLY AFTER the closure outcome lands.
 Action wiring 131: An admitted closure MUST empty the open-trigger set ONLY AFTER the closure outcome lands.
 Action wiring 132: An admitted closure MUST answer closed.
-Deleted: Action wiring 133. Execution Contract Database 1 owns it.
 Action wiring 134: The composition MUST read the party-to-case index at [Activity Permitted].
 Action wiring 135: IF the party id IS NOT IN the party-to-case index THEN [Activity Permitted] MUST answer not-known.
 Action wiring 136: The composition MUST read the party through Party Identity's declared read at [Activity Permitted].
 Action wiring 136a: IF Party Identity's read at [Activity Permitted] answers invalid-query THEN [Activity Permitted] MUST answer state-unavailable, read as the composition's own defect (Action wiring 43).
 Action wiring 137: IF the party's state EQUALS verified THEN [Activity Permitted] MUST answer permitted.
 Action wiring 138: IF the party's state DOES NOT EQUAL verified THEN [Activity Permitted] MUST answer not-verified carrying the state.
-Deleted: Action wiring 139. Execution Contract Read 1 owns it.
 Action wiring 140: IF the read answers no party THEN [Activity Permitted] MUST answer state-unavailable.
-Deleted: Action wiring 141. Execution Contract Read 1 and Execution Contract Read 2 own it.
 Action wiring 142: [Activity Permitted] MUST NOT write.
 Action wiring 143: [Activity Permitted] MUST NOT record an audit event.
 Action wiring 144: [Activity Permitted] MUST NOT read a clock.
@@ -775,11 +704,6 @@ Term renewed placement: the placement a renewal makes, which becomes the case's 
 ```
 Action wiring 146: An outcome MUST carry the intent's pairing datum as the kind's instant.
 Action wiring 147: A trigger intent MUST carry the injected now as the trigger instant AND as the pairing datum.
-Deleted: Action wiring 148. Action wiring 146 owns it.
-Deleted: Action wiring 149. Action wiring 146 owns it.
-Deleted: Action wiring 150. Action wiring 146 owns it.
-Deleted: Action wiring 151. Action wiring 146 and Action wiring 90 own it: the clearance's one outcome carries the clearance instant, the reinstate's state change instant.
-Deleted: Action wiring 152. Action wiring 146 owns it.
 Action wiring 153: IF an invocation that carries a next review due IS NOT IN the cover-bound invocations THEN the invocation MUST derive the next review due as the injected now plus the monitoring interval.
 Action wiring 153a: IF an invocation IS IN the cover-bound invocations AND the injected now plus the monitoring interval PRECEDES the current placement's cover THEN the invocation MUST derive the next review due as that sum.
 Action wiring 153b: IF an invocation IS IN the cover-bound invocations AND the injected now plus the monitoring interval DOES NOT PRECEDE the current placement's cover THEN the invocation MUST carry the entry's standing next review due.
@@ -885,39 +809,11 @@ Term regulated activity: an account opening, a transaction, a service provisioni
 ### Reconciliation
 
 ```
-Deleted: Reconciliation 1. Execution Contract Database 1 and Execution Contract Database 3 own it.
 Reconciliation 2: The reconciliation MUST run every sweep cadence.
-Deleted: Reconciliation 3. Recoverable Invocation reconcile step 1.1 owns it: the sweep selects every open intent of the act kinds.
-Deleted: Reconciliation 4. Execution Contract Database 1 owns it.
 Reconciliation 5: The reconciliation MUST NOT examine an aged record.
-Deleted: Reconciliation 6. Recoverable Invocation reconcile step 3.1 and the act probes own it: the sweep runs the kind's act probe against Party Identity's and Retention Window's declared reads (Recoverable Invocation Sweep never 3).
-Deleted: Reconciliation 7. Recoverable Invocation reconcile step 3.5 owns it: an intent whose invocation died before its commit is escalated, and an operator who finds the constituents quiet abandons it through the invocation resolve (Recoverable Invocation Invariant 4.9).
-Deleted: Reconciliation 8. Recoverable Invocation reconcile step 3.2 owns it: a committed probe answer is closed by the recovered outcome.
-Deleted: Reconciliation 9. Recoverable Invocation Invariant 5.1 and Recoverable Invocation reconcile step 3.2a own it: the recovery intent before any recovered outcome.
-Deleted: Reconciliation 10. Recoverable Invocation reconcile step 2.4 through 2.6 own it: the sweep re-reads the invocation's closings under the critical section before it writes.
-Deleted: Reconciliation 11. Recoverable Invocation reconcile step 3.2a, Recoverable Invocation reconcile step 3.2b, Recoverable Invocation Invariant 5.2 and Recoverable Invocation service identity 3 own it: the sweep writes under the recovery identity.
-Deleted: Reconciliation 12. Execution Contract Database 1 owns it.
-Deleted: Reconciliation 13. Execution Contract Database 1 owns it.
-Deleted: Reconciliation 14. Reconciliation 42 and Recoverable Invocation Sweep never 1 own it: neither the sweep nor the reconciliation calls a constituent's write.
-Deleted: Reconciliation 15. Reconciliation 42 and Recoverable Invocation Sweep never 1 own it.
-Deleted: Reconciliation 16. Reconciliation 42 and Recoverable Invocation Sweep never 1 own it.
-Deleted: Reconciliation 17. Reconciliation 42 and Recoverable Invocation Sweep never 1 own it.
-Deleted: Reconciliation 18. Reconciliation 42 and Recoverable Invocation Sweep never 1 own it.
-Deleted: Reconciliation 19. Recoverable Invocation Invariant 4.2 and Recoverable Invocation Instance start 4 own it: an open intent is closed within the closure window.
-Deleted: Reconciliation 20. Recoverable Invocation reconcile step 3.5, Recoverable Invocation reconcile step 3.8 and Recoverable Invocation reconcile step 5.1 own it: an intent the sweep cannot close is escalated once and reported at risk.
-Deleted: Reconciliation 21. Execution Contract Database 1 owns it.
 Reconciliation 22: The reconciliation MUST alert on an active case carrying an elapsed placement.
 Reconciliation 23: The reconciliation MUST alert on a suspended party under an active case carrying an empty open-trigger set.
-Deleted: Reconciliation 24. Recoverable Invocation Invariant 4.1, Recoverable Invocation reconcile step 3.5 and Recoverable Invocation reconcile step 3.21 own it: a trigger intent carrying no closing stands open until the sweep closes or escalates it.
 Reconciliation 25: The reconciliation MUST alert on a verified party under an active case carrying no transitioning verification standing an aged record, no verification outcome naming a state change id AND no open intent of customer-onboarding.verification.
-Deleted: Reconciliation 26. Execution Contract Database 2 owns it.
-Deleted: Reconciliation 27. Term verification probe and Recoverable Invocation Invariant 3.3 own it: the probe pairs on the act key and the pairing datum by equality.
-Deleted: Reconciliation 28. Term admission probe, Term renewal probe and Recoverable Invocation Invariant 3.3 own it.
-Deleted: Reconciliation 29. Term enrollment probe and Recoverable Invocation Deviation 4b own it, reversed: the probe finds the minted party through Party Identity's enrollment instant range.
-Deleted: Reconciliation 30. Recoverable Invocation reconcile step 3.5 and Recoverable Invocation reconcile step 3.8 own it: what the enrollment probe cannot decide is escalated.
-Deleted: Reconciliation 31. Recoverable Invocation Invariant 3.2 and Recoverable Invocation act probe 3a own it.
-Deleted: Reconciliation 32. Term reconciliation owns it: the reconciliation runs inside the sweep's run, which answers its tally to its starter alone.
-Deleted: Reconciliation 33. Execution Contract Scheduled leg 1 owns it.
 Reconciliation 34: The reconciliation MUST NOT examine a young record.
 Reconciliation 35: The reconciliation MUST read the sweep's run reading of now AND MUST NOT read now at a seam of the reconciliation.
 NOTE: watch the sweep's run reading (Reconciliation 35).
@@ -960,7 +856,6 @@ Invariant 1.3: A party MUST reach regulated activity ONLY IF [Activity Permitted
 Invariant 2.1: A transitioning verification MUST carry EXACTLY ONE OF a verification outcome naming the verification id and the state change id, an open carrying intent, an escalated carrying intent, a false closing alert, a write-ownership finding.
 Invariant 2.2: A verification outcome MUST stand under a seal PER Audit Trail's seal cadence.
 Invariant 2.3: A quiescent verified party MUST carry a verification outcome.
-Deleted: Invariant 2.4. Recoverable Invocation Invariant 4.2 owns it: an open verification intent is closed within the closure window.
 Invariant 3.1: A suspension outcome MUST stand later in the log than the outcome's adverse trigger intent.
 Invariant 3.2: A refusal record carrying already-suspended MUST stand later in the log than the record's adverse trigger intent.
 Invariant 3.3: A reader MUST read later in the log as the Event Log's insertion order.
@@ -979,10 +874,8 @@ Invariant 6.1: A verified party under an active case MUST carry a case-to-monito
 Invariant 6.2: A case-to-monitoring entry MUST carry a next review due.
 Invariant 7.1: A quiescent active case MUST carry a non-empty open-trigger set ONLY IF the state of the case's party EQUALS suspended.
 Invariant 7.2: A quiescent suspended party under an active case MUST carry a non-empty open-trigger set.
-Deleted: Invariant 7.3. Term clearance transaction owns it: the verify and the reinstate commit together, so no clearance window stands for a verified party to carry a closed trigger inside.
 Invariant 7.4: A quiescent closed case MUST carry an empty open-trigger set.
 Invariant 7.5: A closure intent MUST name EVERY trigger the closure swept.
-Deleted: Invariant 8.1. Recoverable Invocation Invariant 1.1 owns it: no commit stands ahead of the intent the caller's credential attested.
 Invariant 8.2: An action MUST validate EXACTLY ONE actor's credential.
 Invariant 8.3: The composition MUST NOT claim a recorded actor reference stands authenticated.
 Invariant 8.4: A credential validation MUST NOT establish the presenter's identity.
@@ -1100,13 +993,11 @@ Check 1.5: An auditor MUST read Check 1.3 against activity records carrying no l
 Check 1.6: An auditor MUST confirm the party-to-case index names EVERY party the gate answered permitted for (Invariant 1.1).
 Check 2.1: An auditor MUST resolve EVERY transitioning verification in Party Identity's records that IS NOT an aged record to EXACTLY ONE OF a verification outcome naming the verification id and the state change id, an open carrying intent, an escalated carrying intent, a false closing alert, a write-ownership finding (Invariant 2.1).
 Check 2.2: An auditor MUST find a verification outcome PER quiescent verified party carrying no transitioning verification standing an aged record (Invariant 2.3).
-Deleted: Check 2.3. Recoverable Invocation Check 3.1 owns it: an intent carrying no outcome is closed or escalated within the closure window.
 Check 3.1: An auditor MUST find the adverse trigger intent the outcome carries the intent event id of earlier in the log PER suspension outcome (Invariant 3.1).
 Check 3.2: An auditor MUST find the adverse trigger intent the record carries the intent event id of earlier in the log PER refusal record carrying already-suspended (Invariant 3.2).
 Check 4.1: An auditor MUST find a clearance outcome naming a verification id AND the reinstate's state change id PER reinstatement in Party Identity's records (Invariant 4.2).
 Check 4.2: An auditor MUST confirm the named verification stands passed in Party Identity's records (Invariant 4.1).
 Check 4.3: An auditor MUST confirm the named verification stands later in the log than the party's most recent suspension (Invariant 4.1).
-Deleted: Check 4.4. Invariant 4.3 and Recoverable Invocation Check 1.1 own it: the clearance writes one intent, attested under the clearing actor, and one outcome naming it.
 Check 5.1: An auditor MUST find a post closure placement whose retention state EQUALS retained PER closed party outside lawful destruction (Invariant 5.3).
 Check 5.2: An auditor MUST read a closed party's record destroyed inside the post closure floor as a conformance failure (Invariant 5.6).
 Check 5.3: An auditor MUST find a current placement standing unelapsed PER quiescent active case (Invariant 5.1).
@@ -1122,13 +1013,6 @@ Check 7.2: An auditor MUST confirm the party's state EQUALS suspended PER active
 Check 7.3: An auditor MUST confirm the reproduced set stands non-empty PER quiescent suspended party under an active case (Invariant 7.2).
 Check 7.4: An auditor MUST find a closing PER adverse trigger intent of a quiescent case (Invariant 7.1).
 Check 7.5: An auditor MUST confirm a closure intent's open triggers at close names EVERY trigger the reproduced set carried at the closure's commit (Invariant 7.5).
-Deleted: Check 7.6. Term clearance transaction owns it: no clearance stands recorded beside a trigger it left open.
-Deleted: Check 8.1. Recoverable Invocation Check 1.1 owns it.
-Deleted: Check 8.2. Recoverable Invocation Primitive policy 11 and Identity 9 own it: every record of an invocation carries the act key, and the intent the case id.
-Deleted: Check 8.3. Recoverable Invocation Check 1.1 and Recoverable Invocation Invariant 5.2 own it: a recovered outcome is compared against the acting actor reference.
-Deleted: Check 8.4. Recoverable Invocation Invariant 5.2 owns it.
-Deleted: Check 8.5. Recoverable Invocation Check 3.1 owns it.
-Deleted: Check 8.6. Recoverable Invocation Check 6.1 owns it.
 Check 9.1: An auditor MUST clear Party Identity's conformance checks over the Party Identity records (Composes 5).
 Check 9.2: An auditor MUST clear Retention Window's conformance checks over the party retention instance (Composes 5).
 Check 9.3: An auditor MUST clear Audit Trail's conformance checks over the audit instance (Composes 5).
@@ -1200,15 +1084,7 @@ NOTE: the owners — Risk Tiering / EDD *(forthcoming)* (Non-goal 3 through 5); 
 ### Atomic writes
 
 ```
-Deleted: Atomic writes 1. Recoverable Invocation Action wiring 4 owns it: the close follows the commit.
 Atomic writes 2: An invocation MUST populate an index ONLY AFTER the invocation's landed closing.
-Deleted: Atomic writes 3. Execution Contract Database 1 owns it.
-Deleted: Atomic writes 4. Execution Contract Database 1 owns it.
-Deleted: Atomic writes 5. Execution Contract Database 1 owns it.
-Deleted: Atomic writes 6. Execution Contract Database 1 owns it.
-Deleted: Atomic writes 7. Execution Contract Database 1 owns it.
-Deleted: Atomic writes 8. Execution Contract Database 1 owns it.
-Deleted: Atomic writes 9. Execution Contract Database 1 owns it.
 Atomic writes 10: The composition MUST NOT reverse a committed constituent write.
 Atomic writes 11: The composition MUST surface an orphan.
 Atomic writes 12: A deployment MUST treat an orphan as an alerting condition.
@@ -1224,16 +1100,9 @@ Term orphan: a committed act carrying an index the composition has not populated
 
 ```
 Clock semantics 4: The next review due MUST PRECEDE the placement's cover.
-Deleted: Clock semantics 2. Action wiring 146 through 152 own it, one outcome at a time.
-Deleted: Clock semantics 1. Capability requirement 1 owns it.
-Deleted: Clock semantics 3. Action wiring 153 owns it.
-Deleted: Clock semantics 5. Execution Contract Logic confinement 3 owns it.
-Deleted: Clock semantics 6. Execution Contract Logic confinement 3 owns it.
 Clock semantics 7: A reader MUST read insertion order as authoritative.
 Clock semantics 8: A reader MUST read a timestamp as advisory.
 Clock semantics 9: A reader MUST read a divergence between a trigger's trigger instant and the trigger's suspension instant as a conformance failure.
-Deleted: Clock semantics 10. Capability requirement 1 and Execution Contract Logic confinement 7 own it: the seam supplies now, and the reading's honesty is the deployment's.
-Deleted: Clock semantics 11. Non-goal 21 owns it.
 ```
 
 Term placement's cover: `(the current placement's retention_until - scheduler_tolerance)` — the instant past which a review would fire too late to renew the placement before the placement lapses.
@@ -1241,14 +1110,9 @@ Term placement's cover: `(the current placement's retention_until - scheduler_to
 ### Concurrency
 
 ```
-Deleted: Concurrency 1. Execution Contract Database 2 owns it.
 Concurrency 2: A deployment MUST NOT serialize [Activity Permitted].
 Concurrency 3: [Activity Permitted]'s two reads MUST NOT stand atomic.
-Deleted: Concurrency 4. Invariant 1.1 owns it: a skewed gate read answers permitted only where Party Identity's read reports the party verified, so the skew fails safe.
-Deleted: Concurrency 5. Execution Contract Database 2 owns it.
 Concurrency 6: The composition MUST read a state rejection the suspension transaction's re-read forecloses as a serialization breach.
-Deleted: Concurrency 7. Execution Contract Database 2 owns it.
-Deleted: Concurrency 8. Execution Contract Database 2 owns it.
 ```
 
 ### Cross-record consistency under partial failure

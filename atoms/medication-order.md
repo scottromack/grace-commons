@@ -56,7 +56,6 @@ Identity 10: The atom MUST NOT confirm that a patient reference names a known pa
 Identity 11: The atom MUST NOT confirm that a medication reference names a known medication.
 Identity 12: The atom MUST NOT confirm that an attribution reference names a known actor.
 Identity 13: The atom MUST NOT read a medication reference's clinical meaning.
-Deleted: Identity 14. Execution Contract Database 7 owns it.
 Identity 15: The atom MUST NOT resolve an order id across two database instances.
 ```
 
@@ -97,7 +96,6 @@ State 11: EVERY on-hold order MUST carry prior state, holding actor, hold reason
 State 12: EVERY reinstated order MUST carry reinstating actor and reinstatement instant.
 State 13: An order MUST carry EVERY field group a prior transition wrote.
 State 14: The atom MUST NOT offer a purged state.
-Deleted: State 15. Invariant 14.1 and Execution Contract Database 4 own it.
 ```
 
 ### Capability requirement
@@ -107,17 +105,8 @@ Capability requirement 1: The deployment MUST supply now at the seam.
 Capability requirement 2: The deployment MUST supply the id material at the seam.
 Capability requirement 3: The deployment MUST declare the clock offset allowance.
 Capability requirement 4: The deployment MUST supply the clock offset allowance at the seam.
-Deleted: Capability requirement 5. Execution Contract Database 2 owns it.
-Deleted: Capability requirement 6. Execution Contract Database 2 owns it.
-Deleted: Capability requirement 7. Execution Contract Database 2 owns it: an order action's state check and state change are one transaction, and the atom names no section to release.
-Deleted: Capability requirement 8. Execution Contract Database 2 owns it: an order action's state check and state change are one transaction, and the atom names no section to release.
-Deleted: Capability requirement 9. Execution Contract Database 3 owns it.
-Deleted: Capability requirement 10. Execution Contract Database 1 owns it.
-Deleted: Capability requirement 11. Execution Contract Logic confinement 13 owns it.
 Capability requirement 12: The deployment MAY declare the length bound PER Execution Contract Input 2.
 Capability requirement 15: The deployment MUST supply the order records PER Execution Contract Database 1 through 7, Execution Contract Read 4 and Execution Contract Refusal 1.
-Deleted: Capability requirement 13. Execution Contract Logic confinement 7 owns it.
-Deleted: Capability requirement 14. Execution Contract Logic confinement 7 owns it.
 Capability requirement 16: The deployment MUST supply id material whose assigned order id DOES NOT EXCEED the length bound.
 ```
 
@@ -176,7 +165,6 @@ Operation 1: IF a required string input EQUALS blank THEN an action MUST answer 
 Operation 2: IF the dose DOES NOT EXCEED zero THEN [Order] MUST answer invalid-order.
 Operation 3: IF the future bound PRECEDES a supplied order instant THEN [Order] MUST answer invalid-order.
 Operation 86: IF the dose is malformed OR a supplied order instant is malformed THEN [Order] MUST answer invalid-order (Execution Contract Input 1).
-Deleted: Operation 4. Execution Contract Logic confinement 12 owns it.
 Operation 5: An admitted order MUST assign a fresh order id.
 Operation 6: An admitted order MUST record EVERY supplied core field.
 Operation 87: An admitted order MUST record the resolved order instant.
@@ -188,8 +176,6 @@ Operation 11: IF the order id names no order THEN an order action MUST answer no
 Operation 12: An order action MUST answer not-known ONLY IF order id DOES NOT EQUAL blank.
 Operation 13: IF the order's state EQUALS on-hold THEN an order action MUST answer on-hold.
 Operation 14: IF the order's state IS IN the inactive states THEN a state-changing action MUST answer the inactive state's rejection.
-Deleted: Operation 83. Operation 14 and GRACE-lang Closed vocabulary 29 own it.
-Deleted: Operation 15. Execution Contract Refusal 1 owns it.
 Operation 16: IF the order's state DOES NOT EQUAL ordered THEN [Verify] MUST answer not-in-ordered-state.
 Operation 17: IF the order's state IS NOT IN the pre-dispensing states THEN [Amend] MUST answer already-dispensed.
 Operation 18: IF the order's state IS NOT IN the pre-dispensing states THEN [Cancel] MUST answer already-dispensed.
@@ -200,10 +186,8 @@ Operation 21: IF the order's state IS IN the pre-dispensing states THEN [Adminis
 Operation 22: IF the order's state EQUALS administered THEN [Administer] MUST answer already-administered.
 Operation 23: IF the order's state DOES NOT EQUAL administered THEN [Complete] MUST answer not-administered.
 Operation 24: IF the order's state IS NOT IN the post-dispensing states THEN [Discontinue] MUST answer not-dispensed.
-Deleted: Operation 25. Operation 14 and Operation 26 own it.
 Operation 26: IF the order's state EQUALS on-hold THEN [Hold] MUST answer already-on-hold.
 Operation 27: IF the order's state DOES NOT EQUAL on-hold THEN [Reinstate] MUST answer not-on-hold.
-Deleted: Operation 28. Execution Contract Refusal 1 owns it.
 Operation 29: IF [Amend] supplies no dosing parameter OR EVERY supplied dosing parameter matches the order's dosing parameter THEN [Amend] MUST answer invalid-request.
 Operation 30: [Amend] MUST NOT accept a medication reference.
 Operation 31: [Amend] MUST NOT accept a patient reference.
@@ -217,7 +201,6 @@ Operation 81: An admitted amend MUST record now as the successor's order instant
 Operation 38: An admitted amend MUST stand the successor in ordered.
 Operation 39: An admitted amend MUST stand the original in amended.
 Operation 40: An admitted amend MUST record the successor's order id as the original's successor id.
-Deleted: Operation 41. Execution Contract Database 1 owns it.
 Operation 42: An admitted amend MUST answer the successor's order id.
 Operation 43: An admitted verify MUST record verifier reference and now as verification instant.
 Operation 44: An admitted verify MUST stand the order in verified.
@@ -237,9 +220,7 @@ Operation 57: An admitted cancel MUST record cancelling actor, reason as cancell
 Operation 58: An admitted cancel MUST stand the order in cancelled.
 Operation 59: An admitted discontinue MUST record discontinuing actor, reason as discontinuation reason and now as discontinuation instant.
 Operation 60: An admitted discontinue MUST stand the order in discontinued.
-Deleted: Operation 61. Execution Contract Database 1 owns it.
 Operation 62: IF the database refuses the write THEN an action MUST answer storage-failure.
-Deleted: Operation 63. Execution Contract Refusal 1 owns it.
 Operation 64: A refused action MUST leave the order as the call found the order.
 Operation 65: A refused [Order] MUST NOT record an order.
 Operation 66: A refused [Amend] MUST NOT record a successor order.
@@ -257,8 +238,6 @@ Operation 82: An admitted read MUST order two orders sharing an order instant by
 Operation 75: An admitted read MUST answer EVERY field group the order carries.
 Operation 76: An admitted read MUST answer an empty sequence where no order matches.
 Operation 77: [Read] MUST NOT record a field.
-Deleted: Operation 78. Execution Contract Logic confinement 3 owns it.
-Deleted: Operation 79. Execution Contract Logic confinement 3 owns it.
 ```
 
 NOTE: watch the blank id (Operation 12).
@@ -393,8 +372,6 @@ Term admitted read: a [Read] call that answers.
 - **Invariant 14 — Order record durability.**
   ```
   Invariant 14.1: The atom MUST NOT remove an order from the database.
-  Deleted: Invariant 14.2. Execution Contract Database 1 owns it.
-  Deleted: Invariant 14.3. Execution Contract Database 1 owns it.
   ```
 
 ---
@@ -455,9 +432,6 @@ Check 5.2: An auditor MUST find a dispense field group on EVERY administered ord
 Check 5.3: An auditor MUST find an administration field group on EVERY completed order (State 5, State 13).
 Check 5.4: An auditor MUST find EVERY field group a committed version of an order carries on EVERY later committed version of the order (State 13, Invariant 12.1; Execution Contract Generation acceptance 1).
 Check 6.1: An auditor MUST find prior state, holding actor, hold reason and hold instant on EVERY on-hold order (State 11).
-Deleted: Check 7.1. Execution Contract Database 6 owns it.
-Deleted: Check 7.2. Execution Contract Database 6 owns it.
-Deleted: Check 7.3. Execution Contract Database 1 owns it.
 Check 8.1: An auditor MUST find no order id on two orders of one database instance (Identity 5).
 Check 8.2: An auditor MUST reconstruct EVERY order's chain of custody from one read (State 13).
 ```
@@ -477,7 +451,6 @@ External check 5: A deployment needing a medication reference's controlled-subst
 External check 6: A deployment needing a duplicate order prevented MUST read the composing Duplicate Prevention (Non-goal 9).
 External check 7: A deployment needing an order's retention bounded MUST read the composing Retention Window (Non-goal 22).
 External check 8: A deployment needing an attribution reference bound to an actor MUST read the composing Actor Identity attestation (Identity 12, Non-goal 13).
-Deleted: External check 9. Execution Contract Database 6 owns it.
 ```
 
 ---
@@ -520,41 +493,19 @@ NOTE: the owners — a decision-support pattern (Non-goal 4 through 7); a dose-e
 
 ### Atomic writes
 
-```
-Deleted: Atomic writes 1. Execution Contract Database 1 owns it.
-Deleted: Atomic writes 2. Execution Contract Database 1 and Execution Contract Database 3 own it.
-Deleted: Atomic writes 3. Execution Contract Database 1 owns it.
-Deleted: Atomic writes 4. Execution Contract Database 1 owns it.
-Deleted: Atomic writes 5. Operation 64 and Execution Contract Database 1 own it.
-```
-
 ### Clock semantics
 
 ```
 Clock semantics 4: The atom MUST bound a supplied order instant from above by the future bound.
-Deleted: Clock semantics 3. Execution Contract Logic confinement 12 owns it.
-Deleted: Clock semantics 1. Execution Contract Logic confinement 3 owns it.
-Deleted: Clock semantics 2. Execution Contract Logic confinement 3 owns it.
 Clock semantics 5: The atom MUST NOT bound a supplied event instant.
-Deleted: Clock semantics 6. Execution Contract Logic confinement 7 owns it.
-Deleted: Clock semantics 7. Execution Contract Logic confinement 7 owns it.
-Deleted: Clock semantics 8. Non-goal 25 owns it.
 ```
 
 ### Concurrency
-
-```
-Deleted: Concurrency 1. Execution Contract Database 2 owns it.
-Deleted: Concurrency 2. Execution Contract Database 2 owns it.
-Deleted: Concurrency 3. Execution Contract Database 2 owns it.
-Deleted: Concurrency 4. Execution Contract Database 2 owns it: an order action's state check and state change are one transaction, and the atom names no section for a race to fall outside.
-```
 
 ### Indeterminate outcome
 
 ```
 Indeterminate outcome 1: A caller MUST NOT retry an action whose answer the caller lost BEFORE reading the order (Execution Contract Error model 1).
-Deleted: Indeterminate outcome 2. Execution Contract Error model 1 owns it.
 Indeterminate outcome 3: A caller MUST retry a lost [Amend] ONLY IF the original's state IS IN the pre-dispensing states (Execution Contract Error model 1).
 ```
 
@@ -568,7 +519,6 @@ String 4: The atom MUST NOT case-fold a string input.
 String 5: The atom MUST read a whitespace-only string input as blank.
 String 6: The atom MUST read an absent string input as blank.
 String 7: IF a string input EXCEEDS the length bound THEN an action MUST answer a blank-input rejection.
-Deleted: String 8. String 7 and GRACE-lang Closed vocabulary 29 own it.
 ```
 
 Term string input: a required string input OR a filter value — every caller-supplied string this atom accepts.

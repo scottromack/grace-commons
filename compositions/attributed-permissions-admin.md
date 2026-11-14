@@ -108,9 +108,6 @@ Composition state 16: The composition MUST NOT change an orphan log entry.
 Composition state 17: The composition MUST NOT drop an orphan log entry.
 Composition state 18: The composition MUST NOT derive an attribution entry from a constituent's records.
 Composition state 19: An orphan log entry MUST carry the attestation, the proposal, the request instant AND the underlying reason.
-Deleted: Composition state 20. Execution Contract Database 1 owns it.
-Deleted: Composition state 21. Execution Contract Database 1 owns it.
-Deleted: Composition state 22. Execution Contract Database 1 owns it: an administrative act's attestations, constituent writes and pairing entries commit together, and the composition names no unpaired grant for a stamp to join to an orphan log entry.
 Composition state 23: The composition MUST NOT read the orphan log as the orphan detection surface.
 Composition state 24: An auditor MUST detect an orphan against the constituents AND the attribution maps.
 Composition state 25: The composition MUST write an attribution entry ONLY AFTER the entry's constituent write.
@@ -141,9 +138,7 @@ Term binding registry: the proposed atom that would own a write-once, durable pa
 ```
 Capability requirement 1: The deployment MUST supply now at the seam.
 Capability requirement 2: The host MUST supply one nonce at the seam PER issuance.
-Deleted: Capability requirement 3. Execution Contract Logic confinement 3 owns it.
 Capability requirement 4: The transition MUST NOT mint a nonce.
-Deleted: Capability requirement 5. Execution Contract Logic confinement 3 owns it.
 Capability requirement 6: The composition MUST NOT mint a grant handle.
 Capability requirement 7: The composition MUST NOT mint an attestation handle.
 Capability requirement 8: The composition MUST NOT generate cryptographic material.
@@ -154,22 +149,11 @@ Capability requirement 12: The revocation proposal format MUST stand fixed.
 Capability requirement 13: The revocation proposal format MUST carry the namespace prefix.
 Capability requirement 14: A deployment MUST NOT set the revocation proposal format.
 Capability requirement 15: A deployment MUST serialize a proposal canonically.
-Deleted: Capability requirement 16. Execution Contract Database 1 owns it.
-Deleted: Capability requirement 17. Execution Contract Database 1 owns it.
-Deleted: Capability requirement 18. Execution Contract Database 1 owns it.
-Deleted: Capability requirement 19. Execution Contract Database 1 owns it.
 Capability requirement 20: The deployment MUST declare the clock offset allowance (Execution Contract Logic confinement 7).
-Deleted: Capability requirement 21. Execution Contract Database 1 owns it.
-Deleted: Capability requirement 22. Execution Contract Database 1 owns it.
-Deleted: Capability requirement 23. Execution Contract Database 1 owns it.
-Deleted: Capability requirement 24. Execution Contract Database 1 owns it.
-Deleted: Capability requirement 25. Execution Contract Database 1 owns it: an administrative act's attestations, constituent writes and pairing entries commit together, and the composition names no pairing write atomicity for an instance to lack.
-Deleted: Capability requirement 26. Execution Contract Database 3 owns it.
 Capability requirement 27: A deployment MUST declare the retention scope.
 Capability requirement 28: A deployment MUST serve a purge record PER purged attestation.
 Capability requirement 29: The composition's length cap MUST NOT EXCEED the Permissions instance's length cap.
 Capability requirement 30: A deployment MUST check the length caps at an instance's start.
-Deleted: Capability requirement 31. Execution Contract Database 2 owns it: a pair-scoped revocation's enumeration and the revocations it decides are one transaction, and the composition names no race for a critical section keyed by the pair to close.
 Capability requirement 32: The composition MUST NOT require a critical section keyed by the pair.
 Capability requirement 33: A deployment MUST NOT gate a grantor's authority at this composition.
 Capability requirement 34: The deployment MUST supply the database PER Execution Contract Database 1 through 4.
@@ -283,30 +267,20 @@ Action wiring 2: An issuance MUST call Actor Identity's attest with the proposal
 Action wiring 3: IF Actor Identity answers invalid-credential THEN [Issue Grant] MUST answer invalid-credential.
 Action wiring 4: IF Actor Identity answers invalid-request THEN [Issue Grant] MUST answer invalid-request.
 Action wiring 5: IF Actor Identity answers storage-failure THEN [Issue Grant] MUST answer attribution-storage-failure (Execution Contract Constituent failure 1).
-Deleted: Action wiring 87. Execution Contract Constituent failure 2 owns it.
 Action wiring 6: IF Actor Identity refuses the attest THEN the invocation MUST NOT call Permissions' grant.
 Action wiring 7: An admitted issuance MUST call Permissions' grant with the subject AND the scope.
 Action wiring 8: IF Permissions answers invalid-request THEN [Issue Grant] MUST answer orphan-attestation carrying pre-grant.
-Deleted: Action wiring 88. Execution Contract Constituent failure 1 owns it.
-Deleted: Action wiring 9. Execution Contract Database 1 owns it.
 Action wiring 10: IF Permissions answers invalid-request THEN the invocation MUST log the orphan.
-Deleted: Action wiring 11. Execution Contract Database 1 owns it.
-Deleted: Action wiring 12. Execution Contract Database 3 owns it.
-Deleted: Action wiring 13. Execution Contract Database 1 owns it.
-Deleted: Action wiring 14. Execution Contract Database 1 owns it.
 Action wiring 15: An admitted issuance MUST answer the grant's handle AND the attestation.
 Action wiring 16: A revocation MUST assemble the proposal PER the revocation proposal format.
 Action wiring 17: A revocation MUST call Actor Identity's attest with the proposal, the revoker AND the revoker's credential.
 Action wiring 18: IF Actor Identity answers invalid-credential THEN [Revoke Grant] MUST answer invalid-credential.
 Action wiring 19: IF Actor Identity answers invalid-request THEN [Revoke Grant] MUST answer invalid-request.
 Action wiring 20: IF Actor Identity answers storage-failure THEN [Revoke Grant] MUST answer attribution-storage-failure (Execution Contract Constituent failure 1).
-Deleted: Action wiring 89. Execution Contract Constituent failure 2 owns it.
 Action wiring 21: IF Actor Identity refuses the attest THEN the invocation MUST NOT call Permissions' revoke.
 Action wiring 22: An admitted revocation MUST call Permissions' revoke with the grant's handle.
 Action wiring 23: IF Permissions answers not-known THEN [Revoke Grant] MUST answer not-known.
 Action wiring 24: IF Permissions answers not-active THEN [Revoke Grant] MUST answer not-active.
-Deleted: Action wiring 90. Execution Contract Constituent failure 1 owns it.
-Deleted: Action wiring 25. Execution Contract Database 1 owns it.
 Action wiring 26: IF Permissions answers not-known OR not-active THEN the invocation MUST log the orphan.
 Action wiring 101: IF [Issue Grant] answers orphan-attestation THEN the invocation MUST commit the landed attestation AND the orphan log entry (Execution Contract Read 4).
 Action wiring 102: IF [Revoke Grant] answers not-known OR not-active THEN the invocation MUST commit the landed attestation AND the orphan log entry (Execution Contract Read 4).
@@ -314,12 +288,6 @@ Action wiring 27: A caller MUST read a not-known answer from [Revoke Grant] as a
 Action wiring 28: A caller MUST read a not-active answer from [Revoke Grant] as a caller fault.
 Action wiring 29: A caller MUST read a not-known answer from [Revoke Grant] as an orphan the composition logged as well as a caller fault (Action wiring 27).
 Action wiring 30: A caller MUST read a not-active answer from [Revoke Grant] as an orphan the composition logged as well as a caller fault (Action wiring 28).
-Deleted: Action wiring 31. Execution Contract Database 1 owns it.
-Deleted: Action wiring 32. Execution Contract Database 1 owns it.
-Deleted: Action wiring 33. Execution Contract Database 1 owns it.
-Deleted: Action wiring 34. Execution Contract Database 1 owns it.
-Deleted: Action wiring 35. Execution Contract Database 1 owns it.
-Deleted: Action wiring 36. Execution Contract Database 1 owns it.
 Action wiring 37: A caller MAY retry a pre-grant landing.
 Action wiring 91: A caller MUST retry a [Revoke Grant] that answered storage-failure.
 Action wiring 38: A retry MUST stand as a fresh administrative act.
@@ -332,19 +300,13 @@ Action wiring 44: IF the enumerated set stands empty THEN the invocation MUST NO
 Action wiring 45: The composition MUST NOT answer not-known for an empty enumerated set.
 Action wiring 46: A pair-scoped revocation MUST perform a revocation PER enumerated grant.
 Action wiring 92: IF Actor Identity answers invalid-credential THEN [Revoke Permission] MUST answer invalid-credential.
-Deleted: Action wiring 93. Execution Contract Constituent failure 2 owns it.
 Action wiring 94: IF Actor Identity answers storage-failure THEN [Revoke Permission] MUST answer attribution-storage-failure (Execution Contract Constituent failure 1).
 Action wiring 96: IF Actor Identity answers mechanism-unavailable THEN [Issue Grant] MUST answer mechanism-unavailable.
 Action wiring 97: IF Actor Identity answers mechanism-unavailable THEN [Revoke Grant] MUST answer mechanism-unavailable.
 Action wiring 98: IF Actor Identity answers mechanism-unavailable THEN [Revoke Permission] MUST answer mechanism-unavailable.
-Deleted: Action wiring 95. Execution Contract Constituent failure 1 owns it.
-Deleted: Action wiring 47. Execution Contract Database 2 owns it.
 Action wiring 48: IF EVERY enumerated grant reached a committed revocation THEN [Revoke Permission] MUST answer the revoked grants AND the attestations.
-Deleted: Action wiring 49. Execution Contract Database 1 and Execution Contract Database 2 own it.
-Deleted: Action wiring 50. Execution Contract Database 1 and Execution Contract Database 2 own it.
 Action wiring 51: A caller MUST read the evaluation answering denied as the terminal condition.
 Action wiring 52: A caller MUST NOT read a revoked count as the terminal condition.
-Deleted: Action wiring 53. Execution Contract Database 1 owns it.
 Action wiring 54: A post-enumeration grant MUST stand outside the invocation.
 Action wiring 55: The composition MUST read the grant through Permissions' declared read at [Verify Grant Attribution].
 Action wiring 56: IF no grant EXISTS for the grant id THEN [Verify Grant Attribution] MUST answer not-known.
@@ -358,7 +320,6 @@ Action wiring 63: IF the purge record names the attestation THEN the attestation
 Action wiring 64: IF the purge record names no attestation THEN [Verify Grant Attribution] MUST answer the attribution record, the absent attestation's verify result being not-known (the tamper reading).
 Action wiring 65: [Verify Grant Attribution] MUST NOT answer the tamper reading for a lawful destruction.
 Action wiring 66: The composition MUST read the purge record ONLY AFTER an absent attestation.
-Deleted: Action wiring 67. Action wiring 63 through 65 own it: an absent attestation the purge record names answers not-applicable(purged) under either retention scope, and one it does not name answers the tamper reading.
 Action wiring 68: A caller MUST read not-applicable carrying purged as consistent.
 Action wiring 69: A caller MUST NOT read not-applicable carrying purged as a forensic finding.
 Action wiring 70: A caller MUST read attribution-inconsistency as a forensic finding.
@@ -409,7 +370,6 @@ Term forensic finding: an outcome a caller logs and hands to the forensic proces
 ```
 Wiring decision 1: The composition MUST record an administrative act's state change ONLY AFTER the administrative act's landed attestation.
 Wiring decision 2: The composition MUST NOT record a state change BEFORE the administrative act's landed attestation.
-Deleted: Wiring decision 3. Execution Contract Database 1 owns it.
 Wiring decision 4: The composition MUST NOT delete an orphan attestation.
 Wiring decision 5: The composition MUST read an orphan attestation as evidence of an attempted act.
 Wiring decision 6: The composition MUST expose a pair-scoped revocation.
@@ -443,15 +403,12 @@ Housekeeping 7: The failed-grant leg MUST NOT repair an orphan.
 Housekeeping 8: The failed-grant leg MUST NOT complete an orphan's administrative act.
 Housekeeping 9: The failed-grant leg MUST NOT call a constituent's write.
 Housekeeping 10: The failed-grant leg MUST NOT promise a closure window.
-Deleted: Housekeeping 11. Execution Contract Database 1 owns it.
-Deleted: Housekeeping 12. Execution Contract Database 1 owns it.
 Housekeeping 13: The failed-grant leg MUST age an attestation by the request instant the attestation's proposal carries.
 Housekeeping 14: The failed-grant leg MUST widen the bound by the clock offset allowance ONLY IF the leg ages an attestation by a constituent's stamp.
 Housekeeping 15: The failed-grant leg MUST NOT report an aged-out attestation as an orphan.
 Housekeeping 16: The failed-grant leg MUST report an aged-out unpaired attestation carrying an orphan log entry as a purge-pending orphan.
 Housekeeping 17: The failed-grant leg MUST report an aged-out unpaired attestation carrying no orphan log entry as a non-conformant purge.
 Housekeeping 18: The failed-grant leg MUST NOT read an aged-out unpaired attestation as benign.
-Deleted: Housekeeping 19. Action wiring 38 owns it: a retry stands as a fresh administrative act, and no rule obliges a caller to retry an orphan's act.
 Housekeeping 20: EXACTLY ONE writer MUST land an administrative act.
 ```
 
@@ -476,11 +433,9 @@ Term non-conformant purge: an aged-out unpaired attestation carrying no orphan l
 ```
 Invariant 1.1: A grant this composition's own surface issued MUST carry a grant attribution entry.
 Invariant 1.2: IF no purge record EXISTS for the attestation a grant attribution entry names THEN the Actor Identity records MUST hold the attestation.
-Deleted: Invariant 1.3. Execution Contract Database 1 owns it.
 Invariant 1.4: The composition MUST NOT claim Invariant 1.1 over a grant a direct database write produced.
 Invariant 2.1: An administered revoked grant MUST carry a revocation attribution entry.
 Invariant 2.2: IF no purge record EXISTS for the attestation a revocation attribution entry names THEN the Actor Identity records MUST hold the attestation.
-Deleted: Invariant 2.3. Execution Contract Database 1 owns it.
 Invariant 2.4: The composition MUST NOT claim Invariant 2.1 over a grant a direct database write revoked.
 Invariant 3.1: The composition MUST answer a grant's record, the grant's issuance attestation AND the issuance verification PER consistent attribution.
 Invariant 3.2: The composition MUST answer a revoked grant's revocation attestation AND revocation verification PER consistent attribution.
@@ -510,7 +465,6 @@ Invariant 8.3: The composition MUST NOT expose a surface that changes an orphan 
 Invariant 9.1: EVERY grant of an enumerated set a pair-scoped revocation answered ok for MUST stand revoked.
 Invariant 9.2: EVERY grant of an enumerated set a pair-scoped revocation answered ok for MUST carry a revocation attribution entry.
 Invariant 9.3: The composition MUST NOT state Invariant 9.1 over the pair.
-Deleted: Invariant 9.4. Execution Contract Database 1 and Execution Contract Database 2 own it.
 ```
 
 ---
@@ -574,7 +528,6 @@ A derived implementation is *acceptable* — in the regulator-acceptance sense �
 ```
 Check 1.1: An auditor MUST find a grant attribution entry PER grant this composition's own surface issued (Invariant 1.1).
 Check 1.2: An auditor MUST call Actor Identity's verify for the named attestation (Invariant 3.1).
-Deleted: Check 1.3. Execution Contract Database 1 owns it.
 Check 1.4: An auditor MUST read an unpaired grant as an attribution inconsistency (Invariant 1.1).
 Check 1.5: An auditor MUST NOT read a purged grant as a population member (Composition state 27).
 Check 2.1: An auditor MUST find a revocation attribution entry PER administered revoked grant (Invariant 2.1).
@@ -590,8 +543,6 @@ Check 4.3: An auditor MUST NOT count a constituent's conformance checks (Invaria
 Check 5.1: An auditor MUST enumerate Actor Identity's declared read (Composes 20).
 Check 5.2: An auditor MUST filter the enumeration by the namespace prefix (Capability requirement 11, Capability requirement 13).
 Check 5.3: An auditor MUST read a filtered attestation no attribution entry names as an orphan (the reading Housekeeping 4 states).
-Deleted: Check 5.4. Execution Contract Database 1 owns it.
-Deleted: Check 5.5. Execution Contract Database 1 owns it.
 Check 5.6: An auditor MUST read an aged-out unpaired attestation carrying an orphan log entry as a purge-pending orphan (the reading Housekeeping 16 states).
 Check 5.7: An auditor MUST read an aged-out unpaired attestation carrying no orphan log entry as a non-conformant purge (the reading Housekeeping 17 states).
 Check 5.8: An auditor MUST NOT read an aged-out unpaired attestation as benign (the reading Housekeeping 18 states).
@@ -610,8 +561,6 @@ Check 7.3: An auditor MUST NOT read a post-enumeration grant as the enumeration'
 ```
 External check 1: The deployment MUST establish the grantor's authority to issue the grant (Capability requirement 33).
 External check 2: The deployment MUST establish the grantor's credential integrity since the attestation (Invariant 3.1).
-Deleted: External check 3. Execution Contract Database 1 owns it.
-Deleted: External check 4. Execution Contract Database 3 owns it.
 External check 5: The deployment MUST establish tamper-evidence over the composition's own state (Invariant 6.4).
 External check 6: The deployment MUST establish that a grant's scope stood in the deployment's scope vocabulary (Non-goal 16).
 External check 7: The deployment MUST establish the retention scope the purge ran under (Capability requirement 27).
@@ -653,15 +602,11 @@ NOTE: the owners — the organization (Non-goal 8); a deduplication layer (Non-g
 ```
 Atomic writes 1: An invocation MUST attest ONLY AFTER the boundary predicate.
 Atomic writes 2: An invocation MUST call a constituent's write ONLY AFTER the invocation's landed attestation.
-Deleted: Atomic writes 3. Execution Contract Database 1 owns it.
 Atomic writes 4: The composition MUST NOT withdraw a landed attestation.
 Atomic writes 5: An invocation MUST NOT retry a constituent write.
 Atomic writes 6: An invocation MUST answer on a constituent's first refusal.
 Atomic writes 7: A retry MUST stand outside the refused invocation.
 Atomic writes 8: The composition MUST log an orphan PER administrative act carrying a landed attestation whose constituent write a constituent refused.
-Deleted: Atomic writes 9. Execution Contract Database 1 owns it.
-Deleted: Atomic writes 10. Execution Contract Database 1 owns it.
-Deleted: Atomic writes 11. Execution Contract Database 1 owns it.
 ```
 
 ### Clock dependence
@@ -674,13 +619,8 @@ Clock dependence 1: A guard MUST NOT rest on now at this composition.
 
 ```
 Clock semantics 5: The request instant MUST NOT gate a write.
-Deleted: Clock semantics 2. Identity 8 owns it: a proposal carries the request instant (Identity 7), and the request instant is the invocation's seam reading.
-Deleted: Clock semantics 1. Capability requirement 1 owns it.
-Deleted: Clock semantics 3. Execution Contract Logic confinement 3 owns it.
-Deleted: Clock semantics 4. Execution Contract Logic confinement 3 owns it.
 Clock semantics 6: The nonce MUST carry a grant proposal's uniqueness.
 Clock semantics 7: The request instant MUST NOT carry a grant proposal's uniqueness.
-Deleted: Clock semantics 8. Clock dependence 1 owns it.
 Clock semantics 9: A reader MUST read a constituent's stamp as that constituent's own seam reading.
 Clock semantics 10: A reader MUST NOT read two constituents' stamps as one clock.
 Clock semantics 11: A check comparing two seams' stamps MUST run under the clock offset allowance.
@@ -692,12 +632,9 @@ Clock semantics 11: A check comparing two seams' stamps MUST run under the clock
 Concurrency 1: Two issuances over one pair MUST produce two grants.
 Concurrency 2: Two issuances over one pair MUST produce two attestations.
 Concurrency 3: The composition MUST NOT read a second grant on one pair as a defect.
-Deleted: Concurrency 4. Execution Contract Database 2 owns it.
-Deleted: Concurrency 5. Execution Contract Database 2 owns it.
 Concurrency 6: A pair-scoped revocation MUST NOT serialize over the pair.
 Concurrency 7: A post-enumeration grant MUST survive the enumeration's invocation.
 Concurrency 8: A caller MUST call a pair-scoped revocation again ONLY IF the evaluation answers permitted.
-Deleted: Concurrency 9. Execution Contract Database 2 owns it: a pair-scoped revocation's enumeration and the revocations it decides are one transaction, so no issuance commits inside the sweep for a critical section to keep out.
 ```
 
 ---

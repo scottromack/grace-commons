@@ -50,9 +50,7 @@ Identity 4: The transition MUST NOT allocate a session token.
 Identity 5: The atom MUST NOT reuse a session token.
 Identity 6: The atom MUST NOT change a session token.
 Identity 7: The atom MUST NOT carry a session identifier beside the session token.
-Deleted: Identity 8. Invariant 7.1 owns it.
 Identity 9: The deployment MUST draw the session token's random material from a cryptographically secure random source.
-Deleted: Identity 10. Identity 9 and Capability requirement 4 own it.
 Identity 11: The atom MUST NOT interpret an opaque reference.
 Identity 12: The atom MUST NOT confirm an opaque reference.
 ```
@@ -74,13 +72,10 @@ Term transition: the atom's evaluation of one call against the session records.
 ```
 State 1: EVERY session MUST stand in EXACTLY ONE OF active, revoked.
 State 2: EVERY session MUST carry session token, principal reference, issued by reference, issuance instant, expiry instant and status.
-Deleted: State 3. Invariant 10.1 owns it.
 State 4: A revoked session MUST carry revocation instant, revoked by reference and revocation reason.
 State 5: An active session MUST NOT carry revocation instant.
 State 6: An active session MUST NOT carry revoked by reference.
 State 7: An active session MUST NOT carry revocation reason.
-Deleted: State 8. Invariant 12.1 owns it.
-Deleted: State 9. Invariant 12.2 owns it.
 State 10: The atom MUST NOT offer a transition out of revoked.
 State 11: The atom MUST NOT remove a session from the database.
 State 12: The atom MUST NOT hold a permission.
@@ -93,14 +88,9 @@ Term status: active | revoked — the stored status; in force, or cancelled and 
 #### Expiry
 
 ```
-Deleted: Expiry 1. Invariant 12.3 owns it.
 Expiry 2: A lapse MUST NOT fire a transition.
-Deleted: Expiry 3. Invariant 12.2 and Invariant 12.3 own it.
 Expiry 4: The deployment MUST NOT schedule a lapse.
 Expiry 5: The atom MUST derive a lapse from expiry instant against now.
-Deleted: Expiry 6. Invariant 12.3 owns it.
-Deleted: Expiry 7. Operation 38 and Term effective status own it.
-Deleted: Expiry 8. Operation 16 owns it.
 ```
 
 ### Capability requirement
@@ -113,24 +103,6 @@ Capability requirement 4: The session token's random material MUST NOT fall belo
 Capability requirement 5: The deployment MUST own the session token's format.
 Capability requirement 6: The deployment MUST own whether the database holds a session token raw.
 Capability requirement 10: The deployment MUST supply the session records PER Execution Contract Database 1 through 7, Execution Contract Read 5, Execution Contract Read 6 and Execution Contract Input 1.
-Deleted: Capability requirement 11. Operation 56 owns it.
-Deleted: Capability requirement 7. Execution Contract Logic confinement 7 owns it.
-Deleted: Capability requirement 8. Execution Contract Logic confinement 7 owns it.
-Deleted: Capability requirement 9. Execution Contract Logic confinement 7 owns it.
-Deleted: Configuration 1. Capability requirement 2 owns it.
-Deleted: Configuration 2. Operation 48 owns it.
-Deleted: Configuration 3. Capability requirement 3 owns it.
-Deleted: Configuration 4. Operation 49 owns it.
-Deleted: Configuration 5. Capability requirement 4 owns it.
-Deleted: Configuration 6. Capability requirement 5 owns it.
-Deleted: Configuration 7. Capability requirement 6 owns it.
-Deleted: Clock semantics 1. Execution Contract Logic confinement 7 owns it.
-Deleted: Clock semantics 2. Execution Contract Logic confinement 7 owns it.
-Deleted: Clock semantics 3. Execution Contract Logic confinement 7 owns it.
-Deleted: Clock semantics 4. Execution Contract Logic confinement 3 owns it.
-Deleted: Clock semantics 5. Clock dependence 2 owns it.
-Deleted: Clock semantics 6. Non-goal 25 owns it.
-Deleted: Clock semantics 7. Non-goal 26 owns it.
 ```
 
 Term default session duration: the window [Issue] applies where the call supplies no session duration, a window length; deployment configuration (Capability requirement 2), and its absence, or a value that does not exceed the zero duration, is a misconfiguration rather than an operating state, so [Issue] refuses every call while it stands, a call supplying its own session duration included (Operation 48, Operation 56).
@@ -166,13 +138,11 @@ Operation 3: [Issue] MUST answer the session token.
 Operation 4: IF principal reference EQUALS blank THEN [Issue] MUST answer invalid-request.
 Operation 5: IF issued by reference EQUALS blank THEN [Issue] MUST answer invalid-request.
 Operation 6: IF session duration EQUALS blank AND the default session duration DOES NOT EQUAL blank THEN [Issue] MUST apply the default session duration.
-Deleted: Operation 7. Operation 8 and Operation 56 own it.
 Operation 8: IF session duration DOES NOT EQUAL blank AND the session duration DOES NOT EXCEED the zero duration THEN [Issue] MUST answer invalid-request.
 Operation 9: [Issue] MUST stamp issuance instant from the injected now.
 Operation 10: [Issue] MUST stamp expiry instant from the expiry deadline.
 Operation 11: [Issue] MUST NOT recompute expiry instant from a later clock reading.
 Operation 12: IF the database refuses the write THEN [Issue] MUST answer storage-failure.
-Deleted: Operation 13. Invariant 6.1 owns it.
 Operation 14: IF the session token names no session THEN [Validate] MUST answer not-known.
 Operation 15: IF the session's status EQUALS revoked THEN [Validate] MUST answer revoked.
 Operation 16: IF the session is lapsed THEN [Validate] MUST answer expired.
@@ -180,7 +150,6 @@ Operation 17: [Validate] MUST answer expired ONLY IF the session's status EQUALS
 Operation 18: IF the session's effective status EQUALS active THEN [Validate] MUST answer valid.
 Operation 19: [Validate] MUST carry principal reference and expiry instant in a valid answer.
 Operation 20: [Validate] MUST NOT write.
-Deleted: Operation 21. Invariant 6.1 owns it.
 Operation 22: IF the session token names no session THEN [Revoke] MUST answer not-known.
 Operation 23: IF the session's status EQUALS revoked THEN [Revoke] MUST answer already-terminal.
 Operation 24: [Revoke] MUST answer already-terminal ONLY IF the session's status EQUALS revoked.
@@ -191,21 +160,15 @@ Operation 28: [Revoke] MUST stand the session in revoked.
 Operation 29: [Revoke] MUST stamp revocation instant from the injected now.
 Operation 30: [Revoke] MUST record the revoked by reference the call supplies on the session.
 Operation 31: [Revoke] MUST record the reason as the revocation reason.
-Deleted: Operation 32. Execution Contract Database 1 owns it.
 Operation 33: [Revoke] MUST answer revoked.
 Operation 34: IF the database refuses the write THEN [Revoke] MUST answer storage-failure.
-Deleted: Operation 35. Execution Contract Database 3 owns it.
 Operation 36: [Revoke] MUST accept the session token as the whole authorization.
 Operation 37: [Read] MUST answer EVERY session the filter matches.
 Operation 38: [Read] MUST carry the effective status on EVERY answered session.
 Operation 39: [Read] MUST NOT write.
 Operation 40: A liveness query MUST rest on the effective status.
 Operation 41: A liveness query MUST NOT rest on the stored status alone.
-Deleted: Operation 42. Capability requirement 1 owns it.
-Deleted: Operation 43. Execution Contract Logic confinement 3 owns it.
-Deleted: Operation 44. Execution Contract Logic confinement 3 owns it.
 Operation 45: The atom MUST NOT offer an expire action.
-Deleted: Operation 46. Non-goal 7 owns it.
 Operation 47: The atom MUST NOT offer an un-revoke action.
 Operation 48: IF the default session duration EQUALS blank THEN [Issue] MUST answer invalid-request.
 Operation 49: The transition MUST NOT generate the session token's random material.
@@ -213,7 +176,6 @@ Operation 50: [Issue] MUST record the principal reference the call supplies.
 Operation 51: [Issue] MUST record the issued by reference the call supplies.
 Operation 52: [Read] MUST NOT carry the session token on an answered session.
 Operation 53: IF a filter names a field whose value EQUALS blank THEN [Read] MUST answer no session.
-Deleted: Operation 54. Execution Contract Input 1 owns it.
 Operation 55: IF a supplied session duration is malformed THEN [Issue] MUST answer invalid-request (Execution Contract Input 1).
 Operation 56: IF the default session duration DOES NOT EQUAL blank AND the default session duration DOES NOT EXCEED the zero duration THEN [Issue] MUST answer invalid-request.
 Operation 57: IF the session's status EQUALS active AND reason is malformed THEN [Revoke] MUST answer invalid-request (Execution Contract Input 1).
@@ -293,12 +255,10 @@ The case space, and the rule that owns each case:
 - **Invariant 2 — Expiry instant immutability.**
   ```
   Invariant 2.1: An action MUST NOT change a recorded expiry instant.
-  Deleted: Invariant 2.2. Non-goal 7 and Non-goal 8 own it.
   ```
 - **Invariant 3 — Validity bound conjunctive, by derivation.**
   ```
   Invariant 3.1: [Validate] MUST answer valid ONLY IF the session token names a session AND the session's status EQUALS active AND the session is not lapsed.
-  Deleted: Invariant 3.2. Expiry 5 owns it.
   Invariant 3.3: [Validate] MUST NOT answer expired for a revoked session.
   ```
 - **Invariant 4 — Revocation absorbing.**
@@ -308,8 +268,6 @@ The case space, and the rule that owns each case:
 - **Invariant 5 — Stored terminal absorbing.**
   ```
   Invariant 5.1: A revoked session MUST NOT leave revoked.
-  Deleted: Invariant 5.2. Operation 23 owns it.
-  Deleted: Invariant 5.3. Operation 27 owns it.
   ```
 - **Invariant 6 — Four structurally distinct validate outcomes.**
   ```
@@ -331,17 +289,14 @@ The case space, and the rule that owns each case:
   ```
   Invariant 9.1: The atom MUST NOT offer a removal surface.
   Invariant 9.2: An action the atom offers MUST NOT reduce the session count.
-  Deleted: Invariant 9.3. Execution Contract Database 1 owns it.
   ```
 - **Invariant 10 — Every session has a finite lifetime.**
   ```
   Invariant 10.1: EVERY session MUST carry an expiry instant.
-  Deleted: Invariant 10.2. Invariant 10.1 owns it.
   ```
 - **Invariant 11 — Expiry absorbing, by derivation.**
   ```
   Invariant 11.1: [Validate] MUST NOT answer valid for a lapsed session.
-  Deleted: Invariant 11.2. Invariant 11.1 and Invariant 4.1 own it.
   ```
 - **Invariant 12 — Expiry is derived, never written.**
   ```
@@ -405,7 +360,6 @@ Check 2.3: An auditor MUST find no session with two committed versions whose sta
 Check 2.4: An auditor MUST reproduce the effective status from the stored status, expiry instant and the read-time clock (Invariant 12.4).
 Check 3.1: An auditor MUST reconstruct the sessions in force at a past instant from issuance instant, expiry instant and revocation instant (Invariant 3.1, Expiry 5).
 Check 4.1: An auditor MUST find a revocation instant, a non-blank revoked by reference and a non-blank revocation reason on EVERY revoked session (Invariant 8.1 through 8.3).
-Deleted: Check 5.1. External check 2 owns it.
 Check 6.1: An auditor MUST find no session leaving revoked across two committed versions of the session (Invariant 5.1; Execution Contract Generation acceptance 1).
 ```
 
@@ -445,7 +399,6 @@ Non-goal 19: The atom MUST NOT seal a session against modification.
 Non-goal 20: The atom MUST NOT bound how long a session is kept.
 Non-goal 21: A deployment needing a retention bound MUST compose Retention Window.
 Non-goal 22: A deployment needing court-admissible records MUST compose Tamper Evidence.
-Deleted: Non-goal 23. Non-goal 24 and Composition note 3 own it.
 Non-goal 24: A deployment needing attribution on issuance MUST compose Actor Identity.
 Non-goal 25: The atom MUST NOT reconcile two readers disagreeing across the deadline.
 Non-goal 26: A deployment needing an externally verifiable timestamp MUST compose a trusted timestamping pattern.
@@ -462,16 +415,12 @@ NOTE: the owners — [Credential](./credential.md) (Non-goal 1, Non-goal 2); [Lo
 ### Clock dependence
 
 ```
-Deleted: Clock dependence 1. Execution Contract Logic confinement 3 owns it.
 Clock dependence 2: A rejection MUST NOT rest on now.
 ```
 
 ### Concurrency
 
 ```
-Deleted: Concurrency 1. Execution Contract Database 2 owns it.
-Deleted: Concurrency 2. Execution Contract Database 2 owns it.
-Deleted: Concurrency 3. Execution Contract Database 2 owns it.
 Concurrency 4: Two concurrent [Issue] calls carrying one principal reference MUST record two sessions.
 ```
 
@@ -485,7 +434,6 @@ String 4: The atom MUST NOT case-fold a string input.
 String 5: The atom MUST read a whitespace-only string input as blank.
 String 6: The deployment MAY declare a maximum length per string input PER Execution Contract Input 2; a filter's value on principal reference or issued by reference takes the cap of that field's string input.
 String 7: IF a string input EXCEEDS the maximum length THEN [Issue] MUST answer invalid-request.
-Deleted: String 8. Execution Contract Logic confinement 13 owns it.
 String 9: IF the session's status EQUALS active AND the revoked by reference the call supplies EXCEEDS the maximum length THEN [Revoke] MUST answer invalid-request.
 String 10: IF the session's status EQUALS active AND reason EXCEEDS the maximum length THEN [Revoke] MUST answer invalid-request.
 ```
@@ -521,8 +469,6 @@ Composition note 7: A composing pattern MUST own the device binding.
 Composition note 8: A composing pattern MUST own the concurrency bound per principal reference.
 Composition note 9: A composing pattern MUST own the retention of the session records.
 Composition note 12: A composing pattern MUST own the attribution of a revocation.
-Deleted: Composition note 10. Execution Contract Atom interface 1 owns it.
-Deleted: Composition note 11. Non-goal 27 owns it.
 ```
 
 NOTE: composing patterns — [Login](../compositions/login.md), [Session-Gated Authorization](../compositions/session-gated-authorization.md), [Privileged Access Provisioning](../compositions/privileged-access-provisioning.md), [Actor Suspension](../compositions/actor-suspension.md).

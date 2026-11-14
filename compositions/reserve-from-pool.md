@@ -89,16 +89,10 @@ Composition state 1: The composition MUST store the reservation-to-pool binding.
 Composition state 2: The composition MUST key the reservation-to-pool binding by reservation id.
 Composition state 3: A binding entry MUST carry the pool id.
 Composition state 4: The composition MUST write a binding entry ONLY AFTER the reservation's reserve outcome entry lands.
-Deleted: Composition state 5. Execution Contract Database 1 owns it.
 Composition state 6: The composition MUST NOT remove a binding entry.
 Composition state 7: The composition MUST NOT change a binding entry's pool id.
-Deleted: Composition state 8. Execution Contract Database 1 owns it.
-Deleted: Composition state 9. Execution Contract Database 1 owns it.
 Composition state 10: The composition MUST rebuild a missing binding entry from the journal.
 Composition state 11: The rebuild MUST take a binding entry's pool id from the reservation's reserve outcome entry.
-Deleted: Composition state 12. Execution Contract Database 1 owns it.
-Deleted: Composition state 13. Execution Contract Database 1 owns it.
-Deleted: Composition state 14. Execution Contract Database 1 owns it.
 Composition state 15: The rebuild MUST leave standing a binding entry whose reserve outcome entry is an aged entry.
 Composition state 16: The composition MUST store the token results map.
 Composition state 17: The composition MUST key the token results map by idempotency token.
@@ -131,41 +125,15 @@ NOTE: Contract classification, per the section titled Composition state in `exec
 Capability requirement 1: A deployment MUST set the idempotency window.
 Capability requirement 2: A deployment MUST declare a pool's capacity through Capacity Constraint Enforcement's declare pool.
 Capability requirement 3: A deployment MUST declare the expiry sweep.
-Deleted: Capability requirement 4. Execution Contract Database 1 owns it.
-Deleted: Capability requirement 5. Execution Contract Database 1 and Execution Contract Database 2 own it.
-Deleted: Capability requirement 6. Execution Contract Database 1 owns it.
-Deleted: Capability requirement 7. Execution Contract Database 1 owns it.
-Deleted: Capability requirement 8. Execution Contract Database 1 owns it.
-Deleted: Capability requirement 9. Execution Contract Database 1 owns it: the composition names no liveness sum for the compensation window to exceed.
-Deleted: Capability requirement 10. Execution Contract Database 1 owns it.
-Deleted: Capability requirement 11. Execution Contract Database 1 owns it.
-Deleted: Capability requirement 12. Execution Contract Database 3 owns it.
-Deleted: Capability requirement 13. Execution Contract Database 3 owns it.
-Deleted: Capability requirement 14. Execution Contract Database 3 owns it.
 Capability requirement 15: The composition MUST find a journal entry by the idempotency token, the reservation id, the pool id AND the action among the events Event Log's read answers.
-Deleted: Capability requirement 16. Execution Contract Database 1 owns it.
 Capability requirement 17: A deployment MUST supply the pool event read.
-Deleted: Capability requirement 18. Execution Contract Database 1 owns it.
 Capability requirement 19: The pool event read MUST address an audit event by the event id the call answered.
-Deleted: Capability requirement 20. Execution Contract Database 2 owns it.
-Deleted: Capability requirement 21. Execution Contract Database 2 owns it.
-Deleted: Capability requirement 22. Execution Contract Database 2 owns it.
-Deleted: Capability requirement 23. Execution Contract Database 2 owns it: an action's reads and the writes they decide are one transaction, and the composition names no exclusion to release.
-Deleted: Capability requirement 24. Execution Contract Database 2 owns it: an action's reads and the writes they decide are one transaction, and the composition names no exclusion to release.
-Deleted: Capability requirement 25. Execution Contract Database 2 owns it: an action's reads and the writes they decide are one transaction, and the composition names no exclusion to lease.
-Deleted: Capability requirement 26. Execution Contract Database 2 owns it: an action's reads and the writes they decide are one transaction, and the composition names no lease to expire.
 Capability requirement 27: A deployment MUST set the token max length.
 Capability requirement 28: A deployment MUST set the digest function.
 Capability requirement 29: The retention floor MUST NOT EXCEED the audit horizon.
-Deleted: Capability requirement 30. Execution Contract Database 3 owns it.
 Capability requirement 31: A deployment MUST set the digest function alike across EVERY instance sharing the token results map.
-Deleted: Capability requirement 32. Execution Contract Database 3 owns it.
-Deleted: Capability requirement 33. Execution Contract Database 3 owns it.
-Deleted: Capability requirement 34. Execution Contract Database 3 owns it.
 Capability requirement 35: A deployment MUST resolve Duplicate Prevention's check fail-closed.
-Deleted: Capability requirement 36. Execution Contract Database 3 owns it.
 Capability requirement 37: A deployment MUST retain the actor registry's historical public material.
-Deleted: Capability requirement 38. Execution Contract Database 3 owns it.
 Capability requirement 39: The host MUST inject now at the composition's seam once per invocation.
 Capability requirement 40: The composition MUST NOT read the clock inside a transition.
 Capability requirement 41: The composition MUST stamp EVERY journal entry an invocation writes from the invocation's now.
@@ -258,9 +226,6 @@ Term slot-held reading: true | false — whether the reservation holds a pool sl
 
 ```
 Action wiring 1: EVERY state-changing action MUST take an idempotency token.
-Deleted: Action wiring 2. Execution Contract Database 2 owns it.
-Deleted: Action wiring 3. Execution Contract Database 2 owns it.
-Deleted: Action wiring 4. Execution Contract Database 2 owns it: an action's reads and the writes they decide are one transaction, and the composition names no exclusion to release.
 Action wiring 5: IF Duplicate Prevention's check answers seen AND a matching token results entry EXISTS THEN the action MUST answer the entry's result.
 Action wiring 6: IF a token results entry's action type DOES NOT EQUAL the call's action type THEN the action MUST answer token-collision.
 Action wiring 7: IF a token results entry's parameters digest DOES NOT EQUAL the call's parameters digest THEN the action MUST answer token-collision.
@@ -272,8 +237,6 @@ Action wiring 12: IF Duplicate Prevention's check answers not-seen THEN the acti
 Action wiring 13: An action MUST NOT call Actor Identity's attest BEFORE reading the journal for a not-seen token.
 Action wiring 14: IF the journal holds the action's outcome entry for the token AND the journaled digest EQUALS the call's parameters digest THEN the action MUST settle the outcome entry's result.
 Action wiring 15: IF the journal holds an entry for the token that IS NOT an own entry THEN the action MUST answer token-collision.
-Deleted: Action wiring 16. Execution Contract Database 1 owns it.
-Deleted: Action wiring 17. Execution Contract Database 1 owns it.
 Action wiring 18: IF the journal holds a reserve outcome entry for the token AND the journaled digest EQUALS the call's parameters digest AND no binding entry EXISTS for the entry's reservation id THEN [Reserve] MUST write the binding entry from the outcome entry.
 Action wiring 19: IF the journal holds the action's intent entry for the token AND the journaled digest EQUALS the call's parameters digest AND no outcome entry names the token THEN the action MUST answer recording-failure carrying outcome.
 Action wiring 20: IF Duplicate Prevention's check answers not-seen AND the journal holds no entry for the token THEN [Reserve] MUST call Actor Identity's attest with the action reference, the actor reference AND the credential.
@@ -289,18 +252,6 @@ Action wiring 29: IF Event Log answers storage-failure at an intent entry THEN t
 Action wiring 30: The composition MUST NOT settle an intent entry whose recording was refused.
 Action wiring 31: IF Event Log answers invalid-payload THEN the composition MUST answer recording-failure carrying the entry's position.
 Action wiring 32: The deployment MUST alert on an invalid-payload as the composition's own defect.
-Deleted: Action wiring 33. Execution Contract Database 2 owns it.
-Deleted: Action wiring 34. Execution Contract Database 2 owns it.
-Deleted: Action wiring 35. Execution Contract Database 2 owns it: an action's reads and the writes they decide are one transaction, and the composition names no exclusion for a later write to hold.
-Deleted: Action wiring 36. Execution Contract Database 2 owns it: an action's reads and the writes they decide are one transaction, and the composition names no exclusion to lose.
-Deleted: Action wiring 37. Execution Contract Database 2 owns it: an action's reads and the writes they decide are one transaction, and the composition names no exclusion to take again.
-Deleted: Action wiring 38. Execution Contract Database 1 and Execution Contract Database 2 own it.
-Deleted: Action wiring 39. Execution Contract Database 1 and Execution Contract Database 2 own it.
-Deleted: Action wiring 40. Execution Contract Database 1 owns it.
-Deleted: Action wiring 41. Execution Contract Database 1 owns it.
-Deleted: Action wiring 42. Execution Contract Database 1 owns it.
-Deleted: Action wiring 43. Execution Contract Database 1 and Execution Contract Database 2 own it.
-Deleted: Action wiring 44. Execution Contract Database 1 owns it.
 Action wiring 45: An admitted reserve MUST call Capacity Constraint Enforcement's allocate with the pool id, a count of one AND the actor reference ONLY AFTER the intent entry lands.
 Action wiring 46: IF Capacity Constraint Enforcement answers not-known for an allocate THEN [Reserve] MUST answer not-known.
 Action wiring 47: IF Capacity Constraint Enforcement answers over-capacity THEN [Reserve] MUST answer pool-capacity-exceeded.
@@ -313,33 +264,14 @@ Action wiring 53: An admitted reserve MUST call Provisional Commitment's place h
 Action wiring 54: IF Provisional Commitment answers invalid-request for a place hold THEN [Reserve] MUST answer invalid-request.
 Action wiring 55: IF Provisional Commitment answers resource-unavailable THEN [Reserve] MUST answer resource-unavailable.
 Action wiring 56: IF Provisional Commitment answers storage-failure for a place hold THEN [Reserve] MUST answer recording-failure carrying intent (Execution Contract Constituent failure 1).
-Deleted: Action wiring 57. Execution Contract Database 1 owns it.
-Deleted: Action wiring 58. Execution Contract Database 1 owns it.
-Deleted: Action wiring 59. Execution Contract Database 1 owns it.
-Deleted: Action wiring 60. Execution Contract Database 1 owns it.
-Deleted: Action wiring 61. Execution Contract Read 4 owns it: a place hold refusal refuses [Reserve], which writes nothing, its allocate and its reserve intent included.
 Action wiring 62: An admitted reserve MUST record the reserve outcome entry ONLY AFTER place hold answers the reservation id.
 Action wiring 63: A reserve outcome entry MUST carry the idempotency token, the reservation id, the pool id, Held as the new state, the pool event balances, the allocation event id, the attestation id, the actor reference AND the parameters digest.
 Action wiring 64: An outcome entry citing a pool event MUST copy the pool event balances from the pool event through the pool event read.
-Deleted: Action wiring 65. Execution Contract Database 1 owns it.
-Deleted: Action wiring 66. Execution Contract Database 1 owns it.
-Deleted: Action wiring 67. Execution Contract Database 1 owns it.
-Deleted: Action wiring 68. Execution Contract Database 1 owns it.
-Deleted: Action wiring 69. Execution Contract Database 1 owns it.
-Deleted: Action wiring 70. Execution Contract Database 1 owns it.
-Deleted: Action wiring 71. Execution Contract Database 1 owns it.
-Deleted: Action wiring 72. Execution Contract Database 1 owns it.
-Deleted: Action wiring 73. Execution Contract Database 1 owns it.
-Deleted: Action wiring 74. Execution Contract Database 1 owns it.
-Deleted: Action wiring 75. Execution Contract Database 1 owns it.
-Deleted: Action wiring 76. Execution Contract Database 1 owns it.
-Deleted: Action wiring 77. Execution Contract Database 1 owns it.
 Action wiring 78: An admitted reserve MUST write the binding entry carrying the pool id ONLY AFTER the reserve outcome entry lands.
 Action wiring 79: An admitted reserve MUST settle the reservation id ONLY AFTER place hold answers the reservation id.
 Action wiring 80: IF a resolving action's reservation id names no binding entry THEN the action MUST answer not-known.
 Action wiring 81: A resolving action MUST NOT write for a reservation id naming no binding entry.
 Action wiring 82: IF Provisional Commitment answers not-known to a resolving action's transition THEN the action MUST answer recording-failure carrying inconsistency.
-Deleted: Action wiring 83. Execution Contract Read 4 owns it: a recording-failure carrying inconsistency refuses the action, which writes nothing.
 Action wiring 84: The deployment MUST alert on a recording-failure carrying inconsistency as the composition's own defect.
 Action wiring 85: IF Provisional Commitment answers not-held to a resolving action's transition THEN the action MUST answer not-held.
 Action wiring 86: IF Provisional Commitment answers window-elapsed to a resolving action's transition THEN the action MUST answer window-elapsed.
@@ -350,25 +282,13 @@ Action wiring 90: [Confirm Reservation] MUST call Provisional Commitment's confi
 Action wiring 91: [Confirm Reservation] MUST NOT call a Capacity Constraint Enforcement write.
 Action wiring 92: [Confirm Reservation] MUST record the confirm outcome entry ONLY AFTER confirm answers ok.
 Action wiring 93: A confirm outcome entry MUST carry the idempotency token, the reservation id, the pool id, Held as the prior state, Confirmed as the new state, the witness balance, the attestation id, the actor reference AND the parameters digest.
-Deleted: Action wiring 94. Execution Contract Database 1 owns it.
 Action wiring 95: The composition MUST NOT compensate a confirm.
 Action wiring 96: [Confirm Reservation] MUST settle ok ONLY AFTER confirm answers ok.
 Action wiring 97: [Cancel Reservation] MUST call Provisional Commitment's release with the reservation id ONLY AFTER the intent entry lands.
 Action wiring 98: [Expire Reservation] MUST call Provisional Commitment's expire with the reservation id ONLY AFTER the intent entry lands.
-Deleted: Action wiring 99. Execution Contract Database 1 owns it.
-Deleted: Action wiring 100. Execution Contract Database 1 and Execution Contract Database 2 own it.
-Deleted: Action wiring 101. Execution Contract Database 1 owns it.
-Deleted: Action wiring 102. Execution Contract Database 1 and Execution Contract Database 2 own it.
-Deleted: Action wiring 103. Execution Contract Database 1 and Execution Contract Database 2 own it.
-Deleted: Action wiring 104. Execution Contract Database 1 and Execution Contract Database 2 own it.
-Deleted: Action wiring 105. Execution Contract Database 1 and Execution Contract Database 2 own it.
 Action wiring 106: A slot-returning action MUST call Capacity Constraint Enforcement's release with the pool id, a count of one AND the actor reference ONLY AFTER the action's transition answers ok.
-Deleted: Action wiring 107. Execution Contract Database 1 owns it.
-Deleted: Action wiring 108. Execution Contract Database 1 owns it.
-Deleted: Action wiring 109. Execution Contract Database 1 owns it.
 Action wiring 110: A slot-returning action MUST record the action's outcome entry ONLY AFTER Capacity Constraint Enforcement's release answers the release event id.
 Action wiring 111: A slot-returning outcome entry MUST carry the idempotency token, the reservation id, the pool id, Held as the prior state, the terminal state, the pool event balances, the release event id, the attestation id, the actor reference AND the parameters digest.
-Deleted: Action wiring 112. Execution Contract Database 1 owns it.
 Action wiring 113: A slot-returning action MUST settle ok ONLY AFTER Capacity Constraint Enforcement's release answers the release event id.
 Action wiring 114: [Query Reservation] MUST NOT take an idempotency token.
 Action wiring 115: [Query Reservation] MUST NOT write.
@@ -425,8 +345,6 @@ Term terminal state: Released for [Cancel Reservation]; Expired for [Expire Rese
 Wiring decision 1: The composition MUST record the reservation holding a pool slot in the reservation-to-pool binding.
 Wiring decision 2: The composition MUST NOT place a hold BEFORE allocating the hold's slot.
 Wiring decision 3: The composition MUST NOT release a Confirmed reservation's slot.
-Deleted: Wiring decision 4. Execution Contract Database 1 owns it.
-Deleted: Wiring decision 5. Execution Contract Database 1 owns it.
 Wiring decision 6: The composition MUST release a slot ONLY IF a slot-returning transition owes the slot.
 ```
 
@@ -451,48 +369,6 @@ Term constituent-terminal state: Confirmed | Released | Expired — Provisional 
 
 ### Reconciliation
 
-```
-Deleted: Reconciliation 1. Execution Contract Database 1 and Execution Contract Database 3 own it.
-Deleted: Reconciliation 2. Execution Contract Database 1 owns it.
-Deleted: Reconciliation 3. Execution Contract Database 1 owns it.
-Deleted: Reconciliation 4. Execution Contract Database 1 owns it.
-Deleted: Reconciliation 5. Execution Contract Database 1 owns it.
-Deleted: Reconciliation 6. Execution Contract Database 1 owns it.
-Deleted: Reconciliation 7. Execution Contract Database 1 owns it.
-Deleted: Reconciliation 8. Execution Contract Database 1 owns it.
-Deleted: Reconciliation 9. Execution Contract Database 1 owns it.
-Deleted: Reconciliation 10. Execution Contract Database 1 and Execution Contract Database 2 own it.
-Deleted: Reconciliation 11. Execution Contract Database 1 and Execution Contract Database 2 own it.
-Deleted: Reconciliation 12. Execution Contract Database 1 owns it.
-Deleted: Reconciliation 13. Execution Contract Database 1 and Execution Contract Database 2 own it.
-Deleted: Reconciliation 14. Execution Contract Database 1 and Execution Contract Database 2 own it.
-Deleted: Reconciliation 15. Execution Contract Database 1 owns it.
-Deleted: Reconciliation 16. Execution Contract Database 1 owns it.
-Deleted: Reconciliation 17. Execution Contract Database 1 owns it.
-Deleted: Reconciliation 18. Execution Contract Database 1 owns it.
-Deleted: Reconciliation 19. Execution Contract Database 1 owns it.
-Deleted: Reconciliation 20. Execution Contract Database 1 owns it.
-Deleted: Reconciliation 21. Execution Contract Database 1 owns it.
-Deleted: Reconciliation 22. Execution Contract Database 1 owns it.
-Deleted: Reconciliation 23. Execution Contract Database 1 owns it.
-Deleted: Reconciliation 24. Execution Contract Database 1 owns it.
-Deleted: Reconciliation 25. Execution Contract Database 1 owns it.
-Deleted: Reconciliation 26. Execution Contract Database 1 owns it.
-Deleted: Reconciliation 27. Execution Contract Database 1 owns it.
-Deleted: Reconciliation 28. Execution Contract Database 1 owns it.
-Deleted: Reconciliation 29. Execution Contract Database 1 owns it.
-Deleted: Reconciliation 30. Execution Contract Database 1 owns it.
-Deleted: Reconciliation 31. Execution Contract Database 1 owns it.
-Deleted: Reconciliation 32. Execution Contract Database 1 owns it.
-Deleted: Reconciliation 33. Execution Contract Database 1 owns it.
-Deleted: Reconciliation 34. Execution Contract Database 1 owns it.
-Deleted: Reconciliation 35. Execution Contract Database 1 owns it.
-Deleted: Reconciliation 36. Execution Contract Database 1 owns it.
-Deleted: Reconciliation 37. Execution Contract Database 1 owns it.
-Deleted: Reconciliation 38. Execution Contract Database 1 owns it.
-Deleted: Reconciliation 39. Execution Contract Database 1 and Execution Contract Database 2 own it.
-```
-
 Term bound slot-holding count: the count of a pool's bound reservations in a slot-holding state.
 
 ---
@@ -504,9 +380,6 @@ These emerge from the composition; none belongs to one constituent.
 - **Invariant 1 — Allocation coherence.**
   ```
   Invariant 1.1: At quiescence a pool's allocated MUST NOT EXCEED the pool's bound slot-holding count.
-  Deleted: Invariant 1.2. Execution Contract Database 1 owns it.
-  Deleted: Invariant 1.3. Execution Contract Database 1 owns it.
-  Deleted: Invariant 1.4. Execution Contract Database 1 owns it.
   Invariant 1.5: At quiescence a pool's bound slot-holding count MUST NOT EXCEED the pool's allocated.
   ```
   Term quiescence: a pool state in which no [Reserve] against the pool is in flight.
@@ -544,7 +417,6 @@ These emerge from the composition; none belongs to one constituent.
   ```
   Invariant 8.1: The composition MUST NOT reach a constituent call that commits BEFORE Actor Identity's attest answers the attestation id.
   Invariant 8.2: An attestation MUST bind the action reference of one invocation.
-  Deleted: Invariant 7. Composes 5 owns it.
   ```
 
 Allocation coherence with slot-returned-at-most-once gives the *no leak, no double release* property — the pool count is a faithful image of the live set. Never-exceed-capacity with no-confirmation-of-a-lapsed-hold gives the *no oversell* property across the confirm and expire race. Idempotency makes both hold under retry; attribution and journaling make the whole arc provable.
@@ -598,19 +470,10 @@ Check 1.1: An auditor MUST count a pool's slot-holding reservations among the re
 Check 1.2: An auditor MUST resolve EVERY traversed reservation id through the binding as a keyed lookup, rebuilding on a miss (Composition state 10).
 Check 1.3: An auditor MUST NOT count binding entries in place of the traversal (Invariant 1.1).
 Check 1.4: An auditor MUST report a divergence the rebuild closes as an index gap (Composition state 10).
-Deleted: Check 1.5. Execution Contract Database 1 owns it.
 Check 1.6: An auditor MUST report a divergence the rebuild does not close as a coherence finding (Invariant 1.1).
-Deleted: Check 1.7. Execution Contract Database 1 owns it.
 Check 2.1: An auditor MUST find a pool's Confirmed reservations not exceeding the pool's capacity at quiescence (Invariant 3.1).
 Check 2.2: An auditor MUST take a pool's allocated not exceeding the pool's capacity from Capacity Constraint Enforcement's own acceptance (Composes 5).
 Check 3.1: An auditor MUST NOT find two slot-returning outcome entries naming one reservation (Invariant 2.1).
-Deleted: Check 3.2. Execution Contract Database 1 owns it.
-Deleted: Check 3.3. Execution Contract Database 1 owns it.
-Deleted: Check 3.4. Execution Contract Database 1 owns it.
-Deleted: Check 3.5. Execution Contract Database 1 owns it.
-Deleted: Check 3.6. Execution Contract Database 1 owns it.
-Deleted: Check 3.7. Execution Contract Database 1 owns it.
-Deleted: Check 3.8. Execution Contract Database 1 owns it.
 Check 4.1: An auditor MUST read a Confirmed reservation's in-window admission from the Provisional Commitment record (Invariant 4.1).
 Check 4.2: An auditor MUST NOT report a skew between a confirm outcome entry's now AND the hold's expiry instant (Capability requirement 42).
 Check 5.1: An auditor MUST find EVERY idempotency token inside the idempotency window bound to one answer (Invariant 5.1).
@@ -640,9 +503,6 @@ Term registry condition: actor-unknown-in-registry | registry-unavailable — a 
 ```
 External check 1: An auditor needing whether a pool's capacity reflects the physical unit count MUST read the pool's declaration AND adjustment history (Capability requirement 2).
 External check 2: An auditor needing the resource-availability determination confirmed MUST read Provisional Commitment's registry (Non-goal 1).
-Deleted: External check 3. Execution Contract Database 1 owns it.
-Deleted: External check 4. Execution Contract Database 2 owns it.
-Deleted: External check 5. Execution Contract Database 3 owns it.
 External check 6: An auditor needing Duplicate Prevention's obligations confirmed MUST read the deployment's own configuration (Capability requirement 35).
 External check 7: An auditor needing the actor registry's historical material confirmed MUST read the registry (Capability requirement 37).
 External check 8: An auditor needing a constituent's own guarantee confirmed MUST read the constituent's own acceptance (Composes 5).
@@ -698,8 +558,6 @@ Clock semantics 3: IF no Trusted Timestamping anchor EXISTS THEN the composition
 
 ```
 Concurrency 1: The composition MUST rest a race between two resolving actions on one reservation on Provisional Commitment's single resolution.
-Deleted: Concurrency 2. Execution Contract Database 1 owns it.
-Deleted: Concurrency 3. Execution Contract Database 2 owns it.
 Concurrency 4: The composition MUST NOT serialize a single pool call of the composition's own.
 ```
 
@@ -707,8 +565,6 @@ Concurrency 4: The composition MUST NOT serialize a single pool call of the comp
 
 ```
 Expiry sweep 1: An expiry sweep MUST call [Expire Reservation] for a reservation whose window reading EQUALS lapsed.
-Deleted: Expiry sweep 2. Execution Contract Database 1 owns it.
-Deleted: Expiry sweep 3. Execution Contract Database 1 owns it.
 Expiry sweep 4: A deployment needing a tight free count MUST declare the eager expiry sweep.
 ```
 

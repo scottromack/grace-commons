@@ -155,9 +155,7 @@ Operation 26: IF subject EXCEEDS the id cap OR scope EXCEEDS the id cap OR run i
 Operation 27: IF the database refuses the write THEN EVERY writing action MUST answer storage-failure.
 Operation 28: [List Conditions] MUST answer the matching records with the earliest listing keys, up to the page size.
 Operation 29: [List Conditions] MUST NOT answer a record that is not a matching record.
-Deleted: Operation 30. Term matching record owns it.
 Operation 31: [List Conditions] MUST order the answer by the listing key.
-Deleted: Operation 32. Term matching record owns it.
 Operation 33: IF window end PRECEDES window start THEN [List Conditions] MUST answer invalid-request.
 Operation 34: IF condition IS NOT IN the declared conditions THEN [List Conditions] MUST answer invalid-request.
 Operation 35: [List Conditions] MUST NOT write.
@@ -307,7 +305,6 @@ Check 4.1: IF a standing record's last seen PRECEDES the standing record's first
 Check 4.2: An auditor MUST find EVERY standing record's record id, condition, scope, first run id and first seen unchanged across EVERY committed version of the standing record (Invariant 1.2; Execution Contract Generation acceptance 1).
 Check 4.3: IF a standing record's last seen PRECEDES the standing record's last seen in an earlier committed version THEN an auditor MUST report the standing record (Invariant 4.3; Execution Contract Generation acceptance 1).
 Check 4.4: IF a closed standing record's closing instant PRECEDES the standing record's last seen THEN an auditor MUST report the standing record (Invariant 4.2).
-Deleted: Check 5.1. Execution Contract Database 6 owns it.
 Check 5.2: An auditor MUST find a non-blank run id on EVERY sighting and a non-blank first run id and last run id on EVERY standing record (Invariant 5.1, Invariant 5.2).
 ```
 

@@ -62,7 +62,6 @@ Identity 13: The atom MUST NOT confirm that a document reference names a known d
 Identity 14: The atom MUST NOT confirm that an evidence reference names a known evidence record.
 Identity 15: The atom MUST NOT confirm that an acting reference names a known actor.
 Identity 16: The atom MUST NOT match two parties as one natural person.
-Deleted: Identity 17. Execution Contract Database 7 owns it.
 ```
 
 
@@ -111,10 +110,6 @@ State 7: EVERY state change event a reasoned action appended MUST carry a reason
 ```
 Capability requirement 1: The deployment MUST supply now at the seam.
 Capability requirement 2: The deployment MUST supply the id material at the seam.
-Deleted: Capability requirement 3. Execution Contract Database 2 owns it.
-Deleted: Capability requirement 4. Execution Contract Database 3 owns it.
-Deleted: Capability requirement 5. Execution Contract Database 1 owns it.
-Deleted: Capability requirement 6. Execution Contract Logic confinement 13 owns it.
 Capability requirement 7: The deployment MAY declare the length bound PER Execution Contract Input 2.
 Capability requirement 10: The deployment MUST supply the party records PER Execution Contract Database 1 through 7, Execution Contract Order 1, Execution Contract Read 4, Execution Contract Refusal 1 and Execution Contract Query 1 through 4.
 Capability requirement 11: The deployment MUST supply id material naming no record of the database instance.
@@ -122,8 +117,6 @@ Capability requirement 12: The deployment MUST NOT supply the same id material t
 Capability requirement 13: The deployment MUST NOT supply blank id material.
 Capability requirement 14: The deployment MUST supply id material whose assigned party id DOES NOT EXCEED the length bound.
 Capability requirement 15: The deployment MUST supply id material whose verification id DOES NOT EQUAL the state change id.
-Deleted: Capability requirement 8. Execution Contract Logic confinement 7 owns it.
-Deleted: Capability requirement 9. Execution Contract Logic confinement 7 owns it.
 ```
 
 NOTE: open 2026-11-04-e
@@ -177,10 +170,7 @@ Operation 13: IF the party's state EQUALS closed THEN a party action MUST answer
 Operation 14: IF the party's state EQUALS unverified THEN [Suspend] MUST answer not-verifiable.
 Operation 15: IF the party's state EQUALS suspended THEN [Suspend] MUST answer already-suspended.
 Operation 16: IF the party's state EQUALS unverified OR the party's state EQUALS verified THEN [Reinstate] MUST answer not-suspended.
-Deleted: Operation 17. Execution Contract Refusal 1 owns it.
 Operation 18: IF the party's state EQUALS suspended AND no fresh verification EXISTS THEN [Reinstate] MUST answer no-passed-verification-since-suspend.
-Deleted: Operation 19. Execution Contract Refusal 1 owns it.
-Deleted: Operation 20. Execution Contract Refusal 1 owns it.
 Operation 21: IF the verification result DOES NOT EQUAL passed AND the verification result DOES NOT EQUAL failed THEN [Verify] MUST answer invalid-request.
 Operation 22: An admitted verify MUST append a verification event carrying a fresh verification id.
 Operation 23: An admitted verify MUST record verifying actor reference, verification method, verification result and evidence reference on the verification event.
@@ -188,7 +178,6 @@ Operation 24: An admitted verify MUST record now as the verification event's ver
 Operation 25: IF the party's state EQUALS unverified AND the verification result EQUALS passed THEN an admitted verify MUST stand the party in verified.
 Operation 26: An admitted verify MUST NOT change the party's state outside the unverified-to-verified transition.
 Operation 27: An admitted verify MUST answer the verification id.
-Deleted: Operation 28. Operation 37 owns it.
 Operation 29: An admitted verify driving no transition MUST NOT answer a state change id.
 Operation 30: An admitted suspend MUST stand the party in suspended.
 Operation 31: An admitted reinstate MUST stand the party in verified.
@@ -198,9 +187,7 @@ Operation 34: A transitioning action MUST record the prior state, the new state,
 Operation 35: A reasoned action MUST record reason on the state change event.
 Operation 36: An admitted verify MUST NOT record a reason on a state change event.
 Operation 37: A transitioning action MUST answer the state change id.
-Deleted: Operation 38. Execution Contract Database 1 owns it.
 Operation 39: IF the database refuses the write THEN an action MUST answer storage-failure.
-Deleted: Operation 40. Execution Contract Refusal 1 owns it.
 Operation 41: A refused action MUST leave the party as the call found the party.
 Operation 42: A refused [Enroll] MUST NOT record a party.
 Operation 43: A refused action MUST NOT append an event.
@@ -217,9 +204,6 @@ Operation 53: An admitted read MUST answer the matching parties in insertion ord
 Operation 54: An admitted read MUST answer an empty sequence where no party matches.
 Operation 55: [Read] MUST NOT record a field.
 Operation 56: [Read] MUST NOT answer storage-failure.
-Deleted: Operation 57. Execution Contract Logic confinement 3 owns it.
-Deleted: Operation 58. Execution Contract Logic confinement 3 owns it.
-Deleted: Operation 59. Operation 6, Operation 24 and Operation 34 own it.
 Operation 60: [Read] MUST NOT answer invalid-request.
 Operation 61: An admitted read MUST NOT answer a party that is not a matching party.
 ```
@@ -275,8 +259,6 @@ Term admitted read: a [Read] call whose every filter axis and filter value the g
 - **Invariant 1 — Party record permanence.**
   ```
   Invariant 1.1: The atom MUST NOT remove a party from the database.
-  Deleted: Invariant 1.2. Execution Contract Database 1 owns it.
-  Deleted: Invariant 1.3. Invariant 1.1 and Execution Contract Database 4 own it.
   ```
 - **Invariant 2 — State membership exclusivity.**
   ```
@@ -301,21 +283,12 @@ Term admitted read: a [Read] call whose every filter axis and filter value the g
   Invariant 6.3: A party's verification event list length MUST NOT fall.
   ```
 - **Invariant 7 — Enrollment fields are immutable under the atom's actions.**
-  ```
-  Deleted: Invariant 7.1. Non-goal 3 owns it.
-  ```
 - **Invariant 8 — No transition is silent.**
   ```
   Invariant 8.1: EVERY transitioning action MUST append a state change event.
   Invariant 8.2: A party's state change log length MUST NOT fall.
-  Deleted: Invariant 9. Identity 6 owns assigned id stability.
-  Deleted: Invariant 10. Identity 7, Identity 8 and Identity 9 own assigned id uniqueness.
   ```
 - **Invariant 11 — Action atomicity.**
-  ```
-  Deleted: Invariant 11.1. Execution Contract Database 1 owns it.
-  Deleted: Invariant 11.2. Execution Contract Database 1 and Execution Contract Database 3 own it.
-  ```
 NOTE: open 2026-11-04-b
 
 NOTE: open 2026-11-04-d
@@ -323,8 +296,6 @@ NOTE: open 2026-11-04-d
 ### Ordering
 
 ```
-Deleted: Ordering 1. Execution Contract Order 1 owns it.
-Deleted: Ordering 2. Execution Contract Order 1 owns it.
 Ordering 3: The atom MUST read the most recent event from insertion order.
 Ordering 4: The atom MUST NOT read an ordering from a recorded instant.
 Ordering 5: A recorded instant MUST NOT bound a reconstruction.
@@ -373,21 +344,16 @@ This atom's acceptance is provable: an external auditor clears it from the party
 Check 1.1: An auditor MUST find EVERY party whose state EQUALS EXACTLY ONE OF unverified, verified, suspended, closed (Invariant 2.1).
 Check 1.2: An auditor MUST find no party leaving closed across two committed versions of the party (Invariant 3.1; Execution Contract Generation acceptance 1).
 Check 2.1: An auditor MUST find a fresh verification on EVERY party whose state EQUALS verified (Invariant 4.1).
-Deleted: Check 2.2. Ordering 3 and Ordering 4 own it.
 Check 3.1: An auditor MUST find verification id, verifying actor reference, verification method, verification result, evidence reference and verification instant on EVERY verification event (State 4).
 Check 3.2: An auditor MUST find EVERY verification event unchanged across EVERY committed version of the party carrying the verification event (Invariant 5.1; Execution Contract Generation acceptance 1).
 Check 3.3: An auditor MUST find no fall in a party's verification event list length across two committed versions of the party (Invariant 6.3; Execution Contract Generation acceptance 1).
 Check 3.4: An auditor MUST find EVERY verification event whose verification result EQUALS EXACTLY ONE OF passed, failed (Operation 21).
-Deleted: Check 4.1. Check 5.1 owns it.
 Check 4.2: An auditor MUST find the prior state, the new state, an acting reference and an instant on EVERY state change event (State 5).
 Check 4.3: An auditor MUST find a reason on EVERY state change event a reasoned action appended (State 7).
 Check 4.4: An auditor MUST find no fall in a party's state change log length across two committed versions of the party (Invariant 8.2; Execution Contract Generation acceptance 1).
 Check 4.5: An auditor MUST find no reason on a state change event an admitted verify appended (Operation 36).
 Check 5.1: An auditor MUST replay a party's state change log in insertion order from unverified to the party's state (Invariant 8.1, Ordering 3, Operation 7).
 Check 5.2: An auditor MUST reconstruct EVERY party's enrollment, verification history and state history from one read (State 1, State 2, State 3).
-Deleted: Check 6.1. Execution Contract Database 6 owns it.
-Deleted: Check 6.2. Execution Contract Database 6 owns it.
-Deleted: Check 6.3. Execution Contract Database 6 owns it.
 Check 6.4: An auditor MUST find EVERY enrollment field unchanged across EVERY committed version of the party carrying the enrollment field (Non-goal 3; Execution Contract Generation acceptance 1).
 Check 7.1: An auditor MUST find no party id on two parties (Identity 7).
 Check 7.2: An auditor MUST find no verification id on two verification events (Identity 8).
@@ -406,14 +372,11 @@ Term committed version: a record as it stood at the commit that wrote it, as Exe
 ```
 External check 1: A deployment needing an identity check performed MUST read the composing verification workflow (Non-goal 7).
 External check 2: A deployment needing two parties resolved as one natural person MUST read the composing identity resolution (Identity 16, Non-goal 1).
-Deleted: External check 3. Non-goal 12 and Composition note 8 own it.
 External check 4: A deployment needing an acting reference bound to an actor MUST read the composing Actor Identity attestation (Identity 15, Non-goal 15).
 External check 5: A deployment needing a recorded instant anchored to wall time MUST read the composing trusted timestamping pattern (Ordering 5, Ordering 6).
 External check 6: A deployment needing a document reference resolved MUST read the composing pattern's document records (Identity 13).
 External check 7: A deployment needing a party's record retention bounded MUST read the composing Retention Window (Non-goal 13).
 External check 8: A deployment needing an answer observed MUST read the composing Event Log (Non-goal 19).
-Deleted: External check 9. Execution Contract Database 6 owns it.
-Deleted: External check 10. Execution Contract Database 6 owns it.
 External check 11: A deployment needing an evidence reference resolved MUST read the composing pattern's document records (Identity 14).
 
 ```
@@ -456,36 +419,18 @@ NOTE: the owners — an identity resolution pattern (Non-goal 1, Non-goal 2); an
 
 ### Atomic writes
 
-```
-Deleted: Atomic writes 1. Execution Contract Database 1 owns it.
-Deleted: Atomic writes 2. Execution Contract Database 1 and Execution Contract Database 3 own it.
-Deleted: Atomic writes 3. Execution Contract Database 1 owns it.
-Deleted: Atomic writes 4. Execution Contract Database 1 owns it.
-```
-
 ### Clock semantics
 
 ```
 Clock semantics 5: A recorded instant MUST NOT carry an ordering.
-Deleted: Clock semantics 3. Execution Contract Logic confinement 7 owns it.
-Deleted: Clock semantics 1. Execution Contract Logic confinement 3 owns it.
-Deleted: Clock semantics 2. Execution Contract Logic confinement 3 owns it.
-Deleted: Clock semantics 4. Execution Contract Logic confinement 7 owns it.
 ```
 
 ### Concurrency
-
-```
-Deleted: Concurrency 1. Execution Contract Database 1 and Execution Contract Database 2 own it.
-Deleted: Concurrency 2. Execution Contract Database 2 owns it.
-Deleted: Concurrency 3. Execution Contract Database 2 owns it.
-```
 
 ### Indeterminate outcome
 
 ```
 Indeterminate outcome 1: A caller MUST NOT retry an action whose answer the caller lost BEFORE reading the party (Execution Contract Error model 1).
-Deleted: Indeterminate outcome 2. Execution Contract Error model 1 owns it.
 Indeterminate outcome 3: A caller MUST NOT retry a lost [Enroll] BEFORE reading the database (Execution Contract Error model 1).
 ```
 
@@ -501,7 +446,6 @@ String 4: The atom MUST NOT case-fold a string input.
 String 5: The atom MUST read a whitespace-only string input as blank.
 String 6: The atom MUST read an absent string input as blank.
 String 7: IF a string input EXCEEDS the length bound THEN a writing action MUST answer invalid-request.
-Deleted: String 8. String 7 and GRACE-lang Closed vocabulary 29 own it.
 ```
 
 Term string input: a required string input, date of birth, verification result OR a filter value — every caller-supplied string this atom accepts.
@@ -521,8 +465,6 @@ Composition note 5: A composing Actor Identity MUST bind an attestation to a sta
 Composition note 6: A composing Audit Trail MUST record EVERY verification event and EVERY state change event.
 Composition note 7: A composing Consent MUST name the party id as the data subject reference.
 Composition note 8: A composing pattern MUST NOT scrub an enrollment field.
-Deleted: Composition note 9. Composition note 8 owns it.
-Deleted: Composition note 10. Composition note 8 owns it.
 Composition note 11: A composing Event Log MUST append an event on EVERY admitted action.
 Composition note 12: A composing Event Log MUST append an event on EVERY refused action.
 ```

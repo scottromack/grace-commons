@@ -37,7 +37,6 @@ A regulated record set must answer one question provably: *have these been alter
 ```
 Identity 1: The atom MUST identify evidence by the evidence id.
 Identity 2: The host MUST allocate an evidence id at the atom's seam.
-Deleted: Identity 3. Execution Contract Logic confinement 3 owns it.
 Identity 4: The business caller MUST NOT supply an evidence id.
 Identity 5: The atom MUST NOT reuse an evidence id.
 Identity 6: The atom MUST NOT identify evidence by the record set reference.
@@ -143,7 +142,6 @@ Operation 8: [Seal] MUST accept a blank mechanism credential for an unkeyed mech
 Operation 9: IF mechanism failure reason DOES NOT EQUAL blank THEN [Seal] MUST answer mechanism-failure carrying the mechanism failure reason.
 Operation 10: IF the database refuses the write THEN [Seal] MUST answer storage-failure.
 Operation 11: [Seal] MUST discard the proof on storage-failure.
-Deleted: Operation 12. Invariant 1.1 owns it.
 Operation 13: [Verify] MUST take the original record set.
 Operation 14: [Verify] MUST answer EXACTLY ONE OF verified, failed-verification, not-known.
 Operation 15: IF no evidence EXISTS for the evidence id THEN [Verify] MUST answer not-known.
@@ -152,20 +150,12 @@ Operation 17: IF record set match EQUALS yes AND seal check EQUALS unavailable T
 Operation 18: IF record set match EQUALS yes AND seal check EQUALS failed THEN [Verify] MUST answer failed-verification carrying proof-invalid.
 Operation 19: IF record set match EQUALS yes AND seal check EQUALS held THEN [Verify] MUST answer verified.
 Operation 20: [Verify] MUST NOT write.
-Deleted: Operation 21. Capability requirement 1 owns it.
-Deleted: Operation 22. Capability requirement 4 owns it.
-Deleted: Operation 22a. Capability requirement 5 owns it.
 Operation 22b: The atom MUST NOT judge record set match.
-Deleted: Operation 23. Execution Contract Logic confinement 3 owns it.
-Deleted: Operation 24. Execution Contract Logic confinement 3 owns it.
 Operation 25: The business caller MUST NOT supply sealing instant.
 Operation 26: The implementation MUST own the mechanism.
 Operation 27: [Read] MUST answer EVERY evidence.
 Operation 28: [Read] MUST answer EVERY evidence field an evidence carries.
 Operation 29: [Read] MUST NOT write.
-Deleted: Operation 30. Operation 27 and Execution Contract Read 2 own it.
-Deleted: Operation 31. Execution Contract Read 1 owns it.
-Deleted: Operation 32. Execution Contract Refusal 1 owns it.
 Operation 33: [Verify] MUST answer verified ONLY IF seal check EQUALS held.
 Operation 34: IF a string input EXCEEDS the string cap THEN [Seal] MUST answer invalid-request.
 ```
@@ -213,7 +203,6 @@ Where two [Seal] cases hold at once, the refusal listed first on [Seal]'s refuse
   ```
   Invariant 2.1: IF record set match EQUALS yes AND seal check DOES NOT EQUAL unavailable AND the original record set differs from the record set presented at [Seal] THEN [Verify] MUST answer failed-verification carrying proof-invalid.
   Invariant 2.2: A deployment MUST NOT rest detectability on a mechanism that is not sound.
-  Deleted: Invariant 2.3. Non-goal 17 owns it.
   ```
 - **Invariant 3 — Record-set binding.**
   ```
@@ -223,7 +212,6 @@ Where two [Seal] cases hold at once, the refusal listed first on [Seal]'s refuse
 - **Invariant 4 — Verification self-containment given the originating records.**
   ```
   Invariant 4.1: [Verify] MUST consult the verification set.
-  Deleted: Invariant 4.2. Invariant 4.3 owns it.
   Invariant 4.3: [Verify] MUST NOT consult a source outside the verification set.
   ```
 - **Invariant 5 — Id stability.**
@@ -247,8 +235,6 @@ Where two [Seal] cases hold at once, the refusal listed first on [Seal]'s refuse
 - **Invariant 9 — Seal record durability.**
   ```
   Invariant 9.1: The atom MUST NOT delete an evidence.
-  Deleted: Invariant 9.2. Invariant 9.1 and Execution Contract Database 6 own it.
-  Deleted: Invariant 9.3. Execution Contract Database 1 owns it.
   ```
 
 NOTE: watch the external answer that moves (Invariant 3.1, Invariant 7.1).
@@ -341,10 +327,6 @@ Check 3.1: IF the record set match of a verification over an original record set
 NOTE: open 2026-11-02-a — Check 3.1 exercises the failure direction alone, over one named differing set (a single-byte change) where Invariant 2.1 covers any, and no check has the record set presented at [Seal] answer verified (Operation 19, Invariant 3.1).
 Check 4.1: An auditor MUST read verified, failed-verification and not-known as three distinct answers (Operation 14).
 Check 4.2: An auditor MUST read record-set-mismatch, proof-invalid and mechanism-verification-unavailable as three distinct reasons (Operation 16, Operation 17, Operation 18).
-Deleted: Check 5.1. A trusted-timestamping pattern owns it (Non-goal 9, Non-goal 15): an anchored bound on when a record set changed.
-Deleted: Check 5.2. A forensic-attribution pattern owns it (Non-goal 15, Non-goal 16): a bound between two seals on when a record set changed.
-Deleted: Check 6.1. Execution Contract Conformance 9 owns it.
-Deleted: Check 6.2. External check 4 owns it.
 ```
 
 ### External checks
@@ -352,7 +334,6 @@ Deleted: Check 6.2. External check 4 owns it.
 ```
 External check 1: An auditor MUST read whether the mechanism is sound from the Mechanism Registry's evidence (Invariant 2.2).
 External check 2: An auditor MUST read the anchor's trust from the anchoring authority's own records (Non-goal 1, Non-goal 2).
-Deleted: External check 3. Execution Contract Conformance 9 owns it.
 External check 4: An auditor MUST read the deployment's mechanism from the deployment's own declaration (Operation 26, Capability requirement 3).
 ```
 
@@ -392,12 +373,6 @@ NOTE: open 2026-11-05-d — the headings *Atomicity of a seal* and *Retention co
 
 ### Atomicity of a seal
 
-```
-Deleted: Seal atomicity 1. Execution Contract Database 1 owns it.
-Deleted: Seal atomicity 2. Execution Contract Database 1 and Execution Contract Database 3 own it.
-Deleted: Seal atomicity 3. Execution Contract Database 3 owns it.
-```
-
 ### Concurrent seals
 
 ```
@@ -414,9 +389,7 @@ NOTE: open 2026-10-21-f — *seal* names both the action [Seal] and the evidence
 ### Retention coupling
 
 ```
-Deleted: Retention coupling 1. The composing pattern that owns the purge owns it (Retention coupling 2): a copy of a purged record set can still verify.
 Retention coupling 2: A composing pattern MUST own the cascading purge of an evidence alongside the records.
-Deleted: Retention coupling 3. The composing pattern that owns the purge owns it (Retention coupling 2): what a seal over destroyed records proves.
 ```
 
 ### Verification caching
@@ -424,7 +397,6 @@ Deleted: Retention coupling 3. The composing pattern that owns the purge owns it
 ```
 Verification caching 1: An implementation MAY cache a verification result ONLY IF the mechanism's verification function consults no external anchor.
 Verification caching 2: An implementation MAY answer a cached verification result ONLY IF the evidence id, the original record set and the record set match of the call EQUAL the evidence id, the original record set and the record set match the cached result was verified over.
-Deleted: Verification caching 3. An external-anchoring pattern owns it (Non-goal 2): what a seal answers once its anchor changes.
 ```
 
 ## Composition notes
@@ -434,7 +406,6 @@ Composition note 1: A deployment MUST declare which composing patterns the deplo
 Composition note 2: An integrity-relevant Event Log instance MUST compose this atom.
 Composition note 3: A deployment needing an attributable seal MUST supply an actor's credential as the mechanism credential.
 Composition note 4: A composing pattern MUST own the decision to purge an evidence alongside the records the evidence commits to.
-Deleted: Composition note 5. GRACE-lang Hard invariant 26 owns it.
 ```
 
 NOTE: composing patterns — [Audit Trail](../compositions/audit-trail.md). Forthcoming: External Anchoring, Trusted Timestamping, Forensic Attribution, Mechanism Registry.

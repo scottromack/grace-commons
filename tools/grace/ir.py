@@ -183,6 +183,22 @@ def walk_rules(lines: list[str], where) -> tuple[list[dict], list[dict]]:
     return rules, tombstones
 
 
+def history_tombstones(path: Path, root: Path) -> list[dict]:
+    """The tombstones in the section titled *Deleted rules* of the history file
+    beside the spec, where a done pattern keeps them (GRACE-lang Hard invariant
+    25, v0.71), in file order, each with the file it stands in."""
+    hist = cites.history_file(path)
+    where = repo_path(hist, root) or hist.as_posix()
+    out = []
+    for k, raw in cites.deleted_rules(path):
+        s = raw.strip()
+        t = check.TOMBSTONE.match(s)
+        if t:
+            out.append({"label": t.group(1), "text": s[len("Deleted: " + t.group(1) + ". "):],
+                        "line": k, "file": where})
+    return out
+
+
 def walk_signatures(lines: list[str]) -> list[dict]:
     """Every signature in a signature block (Closed vocabulary 24): the action,
     its inputs, its answers arms and its refuses codes, as written."""
@@ -453,6 +469,8 @@ def parse(path: Path, root: Path) -> dict:
     where = outline(lines)
     spec = cites.parse(path)
     rules, tombstones = walk_rules(lines, where)
+    # a tombstone stands on the page or in the history file: each says which
+    tombstones = [dict(t, file=rel or path.as_posix()) for t in tombstones] + history_tombstones(path, root)
     terms, vocabulary, entries = walk_terms(spec, lines, where)
     summary = "\n".join(lines[k].strip() for k in section_lines(lines, "Summary") if lines[k].strip() != "---")
     doc = {
@@ -505,7 +523,7 @@ def prove(root: Path, docs: list[dict]) -> list[tuple[str, int, str, str]]:
     entry resolves to a spec."""
     findings = []
     live = {d["name"]: {r["label"] for r in d["rules"]} for d in docs}
-    dead = {d["name"]: {t["label"] for t in d["tombstones"]} for d in docs}
+    dead = {d["name"]: {t["label"]: t for t in d["tombstones"]} for d in docs}
     by_path = {d["spec"] for d in docs}
     try:
         contract = {f"{m.group(1)} {m.group(2)}" for m in
@@ -525,7 +543,9 @@ def prove(root: Path, docs: list[dict]) -> list[tuple[str, int, str, str]]:
         for x in d["rules"] + d["tombstones"]:
             seen[x["label"]] += 1
             if seen[x["label"]] == 2:
-                findings.append((rel, x["line"], "IR-label", f"label {x['label']} is used more than once on the page"))
+                findings.append((x.get("file", rel), x["line"], "IR-label",
+                                 f"label {x['label']} is used more than once on the page"
+                                 + (" and its history file" if x.get("file", rel) != rel else "")))
         for c in d["checks"]:
             for cited in c["tests"]:
                 why = unresolved(cited, d["name"], live, dead, contract)
@@ -543,21 +563,22 @@ def unresolved(cited: str, page: str, live: dict, dead: dict, contract: set) -> 
     on its own page first, then on the spec whose name it opens with, or on the
     Execution Contract's labels as lint.py reads them."""
     if cited.startswith("Execution Contract "):
-        return resolve(cited[len("Execution Contract "):], contract, set(), "the Execution Contract")
+        return resolve(cited[len("Execution Contract "):], contract, {}, "the Execution Contract")
     why = resolve(cited, live[page], dead[page], "the page")
     family = cites.NAME_NUM.sub("", cited.partition(" through ")[0])
-    if not why or any(split_label(lab)[0] == family for lab in live[page] | dead[page]):
+    if not why or any(split_label(lab)[0] == family for lab in live[page] | set(dead[page])):
         return why  # the page's own family: `Capability requirement 7f` is no Capability rule
     owner = next((n for n in sorted(live, key=len, reverse=True)
                   if n != page and cited.startswith(n + " ")), None)
     return resolve(cited[len(owner) + 1:], live[owner], dead[owner], owner) if owner else why
 
 
-def resolve(cited: str, labels: set, gone: set, where: str) -> str | None:
+def resolve(cited: str, labels: set, gone: dict, where: str) -> str | None:
     """A label resolves to a rule, or to a group: `Invariant 2` names `Invariant
     2.1` and on, as a range of majors covers its minors (cites.py's in_range),
     and `Operation 5` names a WHEN block's children. A range resolves when both
-    its ends do (GRACE-lang Hard invariant 29)."""
+    its ends do (GRACE-lang Hard invariant 29). A tombstoned end is named with
+    the owner its tombstone names, wherever the tombstone stands."""
     first, _, last = cited.partition(" through ")
     ends = [first]
     if last:
@@ -568,7 +589,10 @@ def resolve(cited: str, labels: set, gone: set, where: str) -> str | None:
         if end in labels or any(lab.startswith(end + ".") or re.fullmatch(re.escape(end) + "[a-z]", lab)
                                 for lab in labels):
             continue
-        return f"which {where} tombstones" if end in gone else f"which no rule of {where} carries"
+        if end in gone:
+            t = gone[end]
+            return f"which {where} tombstones ({t['file']}:{t['line']}: {t['text']})"
+        return f"which no rule of {where} carries"
     return None
 
 

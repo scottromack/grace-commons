@@ -57,8 +57,6 @@ Composes 8: The composition MUST NOT delete an attestation.
 Composes 9: The composition MUST call RetentionWindow.place_under_retention at [Record Action] step 4 and at the third half's compensating placement alone.
 Composes 9a: The composition MUST NOT place a retention over an event a retention already stands over.
 Composes 10: The composition MUST call RetentionWindow.purge at [Record Destruction] step 1 alone.
-Deleted: Composes 11. Defensible Retention Composes 19 owns it.
-Deleted: Composes 12. Defensible Retention Composes 20 owns it.
 Composes 13: The composition MUST call TamperEvidence.seal from [Seal Now] alone.
 Composes 14: The composition MUST call TamperEvidence.verify at [Verify Record] step 5 alone.
 Composes 15: The composition MUST NOT write an entry into the seal records other than through TamperEvidence.seal.
@@ -124,7 +122,6 @@ Term closed-state marker: compensated attestations and reported beyond horizon.
   event to attestation 3: WHEN a destruction record EXISTS for the event:
       event to attestation 3a: The composition MUST classify the entry as extraction-pending against Erasure Tombstone.
       event to attestation 3b: The destruction record MUST carry the pair (event id, attestation id).
-  Deleted: event to attestation 3c. Execution Contract Database 1, Execution Contract Database 3 and Execution Contract Database 4 own it.
   ```
 - **event to retention**
   Term event to retention: map from event id to the retention id Retention Window produced at record time; the policy the event is held under.
@@ -159,7 +156,6 @@ Term closed-state marker: compensated attestations and reported beyond horizon.
   seal coverage 9: The composition MUST classify purged events as extraction-pending against Erasure Tombstone.
   seal coverage 10: [Record Destruction] MUST record the records-purged fact at event granularity.
   seal coverage 11: [Record Destruction] MUST NOT flag a whole seal coverage entry as purged.
-  Deleted: seal coverage 12. Execution Contract Database 1, Execution Contract Database 3 and Execution Contract Database 4 own it.
   seal coverage 13: The slice reference MUST encode the slice's first and last sequence number.
   seal coverage 14: The slice reference MUST carry the count of events the slice holds.
   ```
@@ -196,7 +192,6 @@ Term closed-state marker: compensated attestations and reported beyond horizon.
   compensated attestations 3: The rebuild MUST filter on the subject-kind discriminator.
   compensated attestations 4: The rebuild MUST filter in composition code.
   compensated attestations 5: A deployment composing Reverse Index MAY filter through Reverse Index as an instance optimization.
-  Deleted: compensated attestations 6. compensated attestations 2 owns it.
   ```
   Term reconciled: an orphan whose attestation id is a member of compensated attestations.
 
@@ -207,39 +202,24 @@ Term closed-state marker: compensated attestations and reported beyond horizon.
   reported beyond horizon 1a: The composition MUST classify a member taken from the destruction record of a purged beyond-horizon report as extraction-pending against Erasure Tombstone.
   reported beyond horizon 2: The rebuild MUST keep, from the full enumeration, EVERY event no destruction record names whose action reference EQUALS audit.reconciliation AND whose payload subject EQUALS attestation AND whose payload disposition EQUALS beyond-horizon, and take the attestation id each names.
   reported beyond horizon 2a: The rebuild MUST take the id the subject names from EVERY destruction record whose action reference EQUALS audit.reconciliation AND whose subject EQUALS attestation AND whose disposition EQUALS beyond-horizon.
-  Deleted: reported beyond horizon 3. reported beyond horizon 2 owns it.
   ```
 - **outage record**
   Term outage record: for each dependency outage, the dependency, the outage's start instant and end instant and the rule that joined its failures (Composition-level invariant 1d, 1f); for each suspended entry, the instant of each run that landed the entry under-legal-hold and of the hold-free run after it (Defensible Retention Invariant 12.2) â€” what an auditor reads a late closure against.
   ```
   outage record 1: The composition MUST classify the outage record as extraction-pending against Condition Register.
   outage record 2: The deployment MUST NOT modify an entry of the outage record once written.
-  Deleted: outage record 3. Execution Contract Database 3 and Execution Contract Database 4 own it.
   ```
 
 ### Capability requirement
 
 ```
-Deleted: Capability requirement 1. Event Log Invariant 5.1 owns it: under Event Log's Term query a sequence-number range carrying no upper end holds its lower end and everything above it, so every conforming Event Log instance answers the open-upper-bound read.
 Capability requirement 2: The deployment MUST alert on invalid-query from a composition-built query as a deployment fault.
 Capability requirement 3: The composition MUST NOT surface invalid-query from a composition-built query as an outcome of any action.
 Capability requirement 3a: The composition MUST land an invalid-query from a composition-built query where a failed read of that query lands.
-Deleted: Capability requirement 4. Execution Contract Database 3 owns it.
-Deleted: Capability requirement 4a. Execution Contract Database 3 owns it.
 Capability requirement 5: The deployment MUST supply record set match at TamperEvidence's seam from the presented record set and the evidence's record set reference.
 Capability requirement 6: The deployment MUST judge record set match against the record set reference the seal committed to.
 Capability requirement 6a: IF the presented record set's count of events DOES NOT EQUAL the count the slice reference carries THEN the deployment MUST answer record set match no.
 Capability requirement 6b: The deployment MUST NOT answer record set match no on a ground other than Capability requirement 6a.
-Deleted: Capability requirement 7. Defensible Retention Capability requirement 69 owns it.
-    Deleted: Capability requirement 7a. Defensible Retention Capability requirement 69a owns it.
-    Deleted: Capability requirement 7b. Defensible Retention Capability requirement 69b owns it.
-    Deleted: Capability requirement 7c. Defensible Retention Capability requirement 69c owns it.
-    Deleted: Capability requirement 7d. Defensible Retention Capability requirement 69d owns it.
-    Deleted: Capability requirement 7e. Defensible Retention Capability requirement 69e owns it.
-    Deleted: Capability requirement 7f. Execution Contract Database 2 owns it: a hold placement's re-read, lease check and write are one transaction, and a hold placement makes no abandoned call for Defensible Retention Cascade critical section 1 to bind.
-    Deleted: Capability requirement 7g. Defensible Retention Capability requirement 69g owns it.
-    Deleted: Capability requirement 7h. Defensible Retention Capability requirement 69h owns it.
-    Deleted: Capability requirement 7i. Defensible Retention Capability requirement 69i owns it.
 Capability requirement 8: The deployment MUST supply content readable at the seam of EventLog.read and of Actor Identity's declared read, for EVERY event and EVERY attestation the read answers.
 Capability requirement 9: The deployment MUST wire a Retention Window instance whose purge is the state transition alone, the destruction of the content being Defensible Retention's (Defensible Retention Boundary one 2, Retention Window Record divergence 4).
 Capability requirement 10: The deployment MUST supply, at TamperEvidence.verify's seam, the cryptographic material of the mechanism that cut the seal.
@@ -279,7 +259,6 @@ Nineteen knobs and two instance capability requirements: the per-act critical se
   retention policy 4: The composition MUST NOT hold an attestation meta-retention policy.
   retention policy 5: The composition MUST retain a seal indefinitely.
   retention policy 6: The deployment MUST set retention policy so that retention policy's answer for an audit.compensation reference and for an audit.reconciliation reference does not vary with the payload.
-  Deleted: retention policy 7. Instance start 33 owns it: Instance start 21 resolves horizon from retention policy, and Instance start 22 reads horizon.
   ```
   Term reconciled policy: the longest applicable retention across every regulation in force, the strictest data-minimization posture, and any conflicting destruction rules reconciled â€” produced by Policy Reconciliation *(forthcoming)*.
 
@@ -358,11 +337,9 @@ Nineteen knobs and two instance capability requirements: the per-act critical se
   ```
   reconciliation cadence 1: The reconciliation scan MUST run PER reconciliation cadence.
   reconciliation cadence 1a: A run MUST start no later than reconciliation cadence after the previous run's start.
-  Deleted: reconciliation cadence 2. Execution Contract Scheduled leg 1 owns it.
   reconciliation cadence 3: IF time arm EQUALS blank THEN the deployment MUST set reconciliation cadence.
   reconciliation cadence 4: IF time arm DOES NOT EQUAL blank AND reconciliation cadence EQUALS blank THEN the instance MUST take the time arm as reconciliation cadence.
   reconciliation cadence 5: reconciliation cadence MUST govern all three halves of the scan.
-  Deleted: reconciliation cadence 6. Execution Contract Scheduled leg 1 and reconciliation cadence 1a own it.
   ```
 - **reconciliation operator**
   Term reconciliation operator: an actor reference: the deployment's maintenance actor authorized to record under the reserved `audit.*` namespace; the discriminator [Record Action] step 1's namespace gate turns on. *Default:* none.
@@ -453,7 +430,6 @@ Nineteen knobs and two instance capability requirements: the per-act critical se
   clock offset allowance 1: The deployment MUST set clock offset allowance from the deployment's clock discipline.
   clock offset allowance 2: The scan MUST widen EVERY comparison of now with a constituent-stamped time by clock offset allowance.
   clock offset allowance 3: The scan MUST NOT decide a write by a cross-seam comparison alone.
-  Deleted: clock offset allowance 4. clock offset allowance 3 owns it.
   ```
 - **Per-act critical section** â€” an instance capability requirement, not a knob: a per-key mutual exclusion the host supplies, keyed by an act's id â€” the attestation id [Record Action] step 2 returns for a record action, the event id for a cascade. *Default:* none.
   ```
@@ -464,24 +440,11 @@ Nineteen knobs and two instance capability requirements: the per-act critical se
   NOTE: watch the fresh holder value (Per-act critical section 1c).
   Per-act critical section 1d: The composition MUST bind Lease Sizing 1 through 9, with call pause bound as Lease's call pause bound and EVERY completion bound and the half's work bound as Lease's work bounds.
   Per-act critical section 2: The host MUST release the critical section ONLY on the holder's release or at the lease's instant.
-  Deleted: Per-act critical section 2a. Defensible Retention Cascade critical section 1 owns it.
   Per-act critical section 2b: A holder MUST release the critical section on return WHEN the holder abandoned no call.
   Per-act critical section 3: The host MUST NOT release the critical section on a belief that the holder has died.
   Per-act critical section 4: The host MUST end the critical section at the lease's instant WHEN the holder has not returned.
   Per-act critical section 5: A leg that finds an act's critical section held MUST skip the act for the rest of the run.
   Per-act critical section 6: A leg MUST NOT block on a held critical section.
-  Deleted: Per-act critical section 7. Defensible Retention Cascade critical section 2 owns it.
-  Deleted: Per-act critical section 8. Defensible Retention Cascade critical section 3 owns it.
-  Deleted: Per-act critical section 9. Defensible Retention Cascade critical section 4 owns it.
-      Deleted: Per-act critical section 9a. Defensible Retention Cascade critical section 4a owns it.
-      Deleted: Per-act critical section 9b. Defensible Retention Cascade critical section 4b owns it.
-  Deleted: Per-act critical section 9c. Execution Contract Database 1 owns it.
-  Deleted: Per-act critical section 10. Lease Invariant 3.2 owns it.
-  Deleted: Per-act critical section 10a. Lease Invariant 3.2 owns it.
-  Deleted: Per-act critical section 10b. Lease Invariant 3.2 owns it.
-  Deleted: Per-act critical section 10c. Lease Invariant 3.2 owns it.
-  Deleted: Per-act critical section 10d. Lease Invariant 3.2 owns it.
-  Deleted: Per-act critical section 10e. Lease Invariant 3.2 owns it.
   Per-act critical section 11: A writer without the critical section MUST NOT read a pre-check BEFORE re-taking the critical section.
   Per-act critical section 12: A writer MUST re-read the pre-check under the re-taken critical section.
 Per-act critical section 13: The host MUST hold a scan leg's critical section as a lease:
@@ -490,14 +453,8 @@ Per-act critical section 13: The host MUST hold a scan leg's critical section as
     Per-act critical section 13c: A leg whose lease EQUALS expired MUST skip the act for the rest of the run.
     Per-act critical section 13d: IF that remainder DOES NOT EXCEED the half's work bound THEN the leg MUST NOT take the critical section AND MUST skip the act for the rest of the run.
     Per-act critical section 13e: A skip under 13d, a leg stopped by an expired lease under 13b or a run in which an enumeration took longer than measured enumeration MUST surface a compliance alert as a deployment fault AND the deployment MUST re-declare compensation closure latency AND the instance MUST re-run Instance start 16, 18, 19 and 28.
-    Deleted: Per-act critical section 13f. Execution Contract Database 2 owns it: a leg's re-read, lease check and write are one transaction, and the composition names no margin for a [Record Action] to start on.
-    Deleted: Per-act critical section 13h. Execution Contract Database 2 owns it.
-    Deleted: Per-act critical section 13g. Execution Contract Database 2 owns it: a leg's re-read, lease check and write are one transaction, and the composition names no start for a leg to decline.
     Per-act critical section 13i: IF a re-run of Instance start 16, 18, 19 or 28 fails on a running instance THEN the deployment MUST surface a compliance alert as a deployment fault until a re-declaration passes the failed check AND the instance MUST go on accepting [Record Action].
-Deleted: Per-act critical section 14. Defensible Retention Cascade critical section 5 owns it.
 Per-act critical section 15: A scan leg MUST take the critical section by Lease's try_take.
-Deleted: Per-act critical section 15a. Defensible Retention Cascade critical section 6 owns it.
-Deleted: Per-act critical section 15b. Defensible Retention Cascade critical section 7 owns it.
 Per-act critical section 15c: The composition MUST declare compensation closure latency as the longest duration of a take on a per-act critical section AND seal completion bound as the longest on the sealing lock (Lease Composition note 5d).
 Per-act critical section 16: IF a `take`, `try_take`, `remaining` or `release` on a lease this composition takes â€” the per-act critical section, the sealing lock â€” answers no answer THEN the holder MUST treat the lease as expired for the rest of the grant (Lease Sizing 7).
 Per-act critical section 17: A holder MUST NOT re-issue, within the holder's lease, a call that answered no answer (Lease Sizing 8).
@@ -812,14 +769,7 @@ Steps:
    record action step 2.3: [Record Action] step 2 MUST land invalid-request as invalid-request(step-2).
    record action step 2.4: [Record Action] step 2 MUST land storage-failure as [Recording Failure].
    record action step 2.5: A step-2 refusal MUST record nothing further.
-   Deleted: record action step 2.6. Execution Contract Database 1 owns it.
-   Deleted: record action step 2.7. Execution Contract Database 1 owns it.
-   Deleted: record action step 2.8. Execution Contract Database 1 owns it: a [Record Action]'s writes commit together, and the composition names no section for it to release.
-   Deleted: record action step 2.9. Execution Contract Database 1 owns it.
-   Deleted: record action step 2.10. Execution Contract Database 1 owns it.
    record action step 2.13: IF the attest call answers no answer THEN [Record Action] MUST land recording-failure(step-2).
-   Deleted: record action step 2.11. Execution Contract Database 1 owns it.
-   Deleted: record action step 2.12. Execution Contract Database 1 owns it.
    record action step 2.14: [Record Action] step 2 MUST land registry-unavailable as [Recording Failure] (Execution Contract Constituent failure 2).
    ```
 3. **Append.**
@@ -828,16 +778,11 @@ Steps:
    record action step 3.2: The composition MUST NOT supply recording instant.
    record action step 3.3: [Record Action] step 3 MUST land storage-failure as [Recording Failure].
    record action step 3.4: [Record Action] step 3 MUST land invalid-payload as invalid-request(step-3).
-   Deleted: record action step 3.5. Execution Contract Database 1 owns it.
-   Deleted: record action step 3.6. Execution Contract Database 1 owns it.
    record action step 3.7: IF the append answers no answer THEN [Record Action] step 3 MUST land recording-failure(step-3).
    ```
 4. **Place under retention.**
    ```
-   Deleted: record action step 4.1. Execution Contract Database 1 owns it.
-   Deleted: record action step 4.2. Execution Contract Database 1 owns it.
    record action step 4.3: [Record Action] step 4 MUST call RetentionWindow.place_under_retention(event id, resolved policy) with record reference set to event id, answering retention id.
-   Deleted: record action step 4.4. Execution Contract Database 1 owns it.
    record action step 4.5: [Record Action] step 4 MUST land invalid-request as invalid-request(step-4).
    record action step 4.6: [Record Action] step 4 MUST land invalid-policy and policy-not-found as invalid-request(step-4).
    record action step 4.7: The deployment MUST alert on invalid-policy and policy-not-found as a deployment fault.
@@ -853,7 +798,6 @@ Steps:
    record action step 5.4: The read-back MUST match the returned event id by equality.
    record action step 5.5: IF the read-back returns no event carrying the event id THEN [Record Action] step 5 MUST fall back to the rebuild of event to sequence.
    record action step 5.6: [Record Action] step 5 MUST NOT guess a sequence number.
-   Deleted: record action step 5.7. record action step 5.2 owns it: Event Log's append answers event id alone, so the read-back is the one source of sequence number.
    record action step 5.8: The composition MUST NOT depend on the append result surfacing sequence number.
    record action step 5.9: The composition MUST treat a step-5 failure as a rebuild trigger.
    record action step 5.10: A step-5 failure MUST NOT land [Recording Failure].
@@ -874,18 +818,9 @@ Steps:
 7. **Return.**
    ```
    record action step 7.1: [Record Action] step 7 MUST return event id.
-   Deleted: record action step 7.2. record action step 3.3 and Execution Contract Database 1 own it.
-   Deleted: record action step 7.3. record action step 4.8 and Execution Contract Database 1 own it.
-   Deleted: record action step 7.4. Execution Contract Database 1 and Execution Contract Database 3 own it.
-   Deleted: record action step 7.17. Execution Contract Database 1 owns it.
    record action step 7.15: An invalid-request(step-3) refusal MUST carry the step-2 attestation id.
    record action step 7.16: An invalid-request(step-4) refusal MUST carry the step-2 attestation id and the step-3 event id.
    record action step 7.5: [Record Action] MUST NOT land a non-storage refusal of steps 3 through 4 as [Recording Failure].
-   Deleted: record action step 7.6. Execution Contract Database 1 owns it.
-   Deleted: record action step 7.6a. Execution Contract Database 1 owns it.
-   Deleted: record action step 7.6b. Execution Contract Database 1 owns it.
-   Deleted: record action step 7.6c. Execution Contract Database 1 owns it: a [Record Action]'s writes commit together, and the composition names no section for it to release.
-   Deleted: record action step 7.7. Execution Contract Database 1 owns it.
    record action step 7.8: The invocation MUST NOT write a compensation for the partial state the invocation left.
    record action step 7.9: An invalid-request refusal MUST carry the step that landed the refusal: step-1, step-2, step-3 or step-4.
    record action step 7.10: An invalid-request(step-1) or invalid-request(step-2) refusal MUST leave nothing committed.
@@ -963,7 +898,6 @@ read record 1: [Read Record] MUST NOT change state.
 read record 2: [Read Record] MUST NOT produce an audit event.
 read record 3: [Read Record] MUST NOT carry a permissions layer at this composition.
 read record 4: [Read Record] MUST NOT verify.
-Deleted: read record 5. Execution Contract Error model 1 owns it: a constituent read whose answer never arrives leaves [Read Record] no answer to give, and none to read as not-known.
 ```
 
 Steps:
@@ -995,9 +929,6 @@ Steps:
        read record step 4.4h: IF no destruction record EXISTS for the event AND the event's data IS unreadable THEN [Read Record] step 4 MUST answer no answer, the unreadable payload standing as an outage of Event Log (Term dependency outage).
        read record step 4.4i: IF a destruction record EXISTS for the event OR the event's data IS NOT unreadable THEN [Read Record] step 4 MUST assemble and return the audit record.
        read record step 4.4j: IF a destruction record EXISTS for the event OR the event's data IS NOT unreadable THEN [Read Record] step 4 MUST report coverage status per event.
-   Deleted: read record step 4.4d. Execution Contract Database 1 owns it.
-   Deleted: read record step 4.4e. Execution Contract Database 1 owns it.
-   Deleted: read record step 4.4f. Execution Contract Database 1 owns it.
    read record step 4.5: IF retention state EQUALS Retained AND the event's data IS unreadable THEN [Read Record] step 4 MUST NOT return BEFORE re-reading the retention.
    read record step 4.6: IF the retention state EQUALS Purged at the re-read THEN [Read Record] step 4 MUST answer as for step 4.4.
    read record step 4.7: IF the retention state EQUALS Retained at the re-read THEN [Read Record] step 4 MUST answer no answer, the unreadable payload standing as an outage of Event Log (Term dependency outage).
@@ -1039,7 +970,6 @@ verify record 3: The composition MUST NOT promote the qualifier to an outcome.
 verify record 4: not-known MUST NOT carry the qualifier.
 verify record 5: IF the outcome is failed-verification or unverifiable THEN [Verify Record] MUST NOT return BEFORE re-reading the retention through event to retention.
 verify record 6: IF the retention state EQUALS Purged at the re-read THEN [Verify Record] MUST land failed-verification(purged).
-Deleted: verify record 7. Execution Contract Error model 1 owns it: a constituent read whose answer never arrives leaves [Verify Record] no answer to give, and none to read as not-known or as unverifiable.
 ```
 
 Steps:
@@ -1193,13 +1123,6 @@ Reconciliation 1: The reconciliation scan MUST run a first half over Purged rete
 Reconciliation 1b: A leg MUST NOT wait on the probe of Invariant 1.10 BEFORE taking the leg's critical section.
 Reconciliation 1a: A leg MUST NOT wait for another leg's closure BEFORE the leg starts, within a half or across halves, the probe of Invariant 1.10 excepted.
 Reconciliation 1c: A half's enumeration MUST NOT wait for another half's enumeration.
-Deleted: Reconciliation scan 1. Reconciliation 1 owns it.
-Deleted: Reconciliation scan 2. Reconciliation 2 owns it.
-Deleted: Reconciliation scan 3. Reconciliation 3 owns it.
-Deleted: Reconciliation scan 4. Reconciliation 4 owns it.
-Deleted: Reconciliation scan 5. Reconciliation 5 owns it.
-Deleted: Reconciliation scan 6. Reconciliation 6 owns it.
-Deleted: Reconciliation scan 7. Reconciliation 7 owns it.
 Reconciliation 2: The scan MUST surface EVERY unreconciled finding as a compliance alert.
 Reconciliation 3: The scan MUST NOT carry an unreconciled finding silently.
 Reconciliation 4: The scan MUST close EVERY finding WITHIN compensation window of the finding's creation.
@@ -1233,7 +1156,6 @@ The second half's lower edge, and the third half's for an unretained event, is t
 Second half 1: The second half MUST build the binding set.
 Second half 1a: The second half MUST NOT start the full enumeration BEFORE enumerating the attestation records.
 Second half 2: The second half MUST treat an attestation absent from the binding set as an orphan.
-Deleted: Second half 3. Execution Contract Database 1 owns it.
 Second half 4: IF attestation age EXCEEDS horizon AND the orphan's attestation id IS NOT IN compensated attestations AND the orphan's attestation id IS NOT IN reported beyond horizon THEN the second half MUST report the orphan as beyond the horizon.
 Second half 5: IF attestation age EXCEEDS horizon THEN the second half MUST NOT write a compensation.
 Second half 6: A beyond-horizon report MUST carry subject set to attestation, the attestation id and disposition set to beyond-horizon, as an audit.reconciliation record.
@@ -1244,7 +1166,6 @@ Second half 10: The second half MUST NOT write a compensation for a reconciled o
 Second half 11: The second half MUST hold the critical section through the compensating write.
 Second half 12: A writer other than the scan MUST NOT write an orphan's compensation.
 Second half 13: IF attestation age DOES NOT EXCEED horizon THEN the second half MUST write EXACTLY ONE compensation per orphan, a duplicate of Durability 5 excepted.
-Deleted: Second half 16. Execution Contract Database 1 owns it.
 Second half 17: The second half MUST serve the marker reads of Second half 4 and Second half 9 and the narrated read of Compensation 10 from ONE enumeration read under the critical section.
 Second half 14: The second half MUST take, for EVERY event the full enumeration returns whose data IS NOT unreadable, the payload's attestation id, whatever the event's retention state.
 Second half 15: The second half MUST read the destruction records AFTER the full enumeration.
@@ -1261,7 +1182,6 @@ Term orphan: an attestation in the database whose attestation id is in neither e
 Third half 1: The third half MUST enumerate the audit log by the full enumeration.
 Third half 2: The third half MUST test EVERY returned event against event to retention with rebuild-on-miss.
 Third half 3: The third half MUST NOT conclude a missing retention BEFORE rebuilding event to retention.
-Deleted: Third half 4. Execution Contract Database 1 owns it.
 Third half 5: The third half MUST take the critical section keyed by the event's payload attestation id for a true miss.
 Third half 6: The third half MUST NOT place BEFORE re-reading event to retention under the critical section.
 Third half 7: The third half MUST hold the critical section through the placement.
@@ -1301,7 +1221,6 @@ Compensation 9: A finding's audit.reconciliation record MUST carry subject and t
 Compensation 10: The scan MUST NOT record a finding's audit.reconciliation record BEFORE reading narrated under the critical section.
 Compensation 11: IF the finding is narrated THEN the scan MUST NOT record a second audit.reconciliation record for the finding, the beyond-horizon report of Second half 6 over an orphan whose only record is the orphan's intent excepted.
 NOTE: open 2026-11-01-c â€” an intent purged between the run's reading of now and the narrated read is not narrated, so near the horizon a second audit.reconciliation record can land for the finding (Compensation 2, Compensation 10, Term narrated).
-Deleted: Compensation 12. Defensible Retention First half 13 owns it.
 Compensation 13: The scan MUST NOT retry within a run a reconciliation-path [Record Action] refused with invalid-request(step-3) or invalid-request(step-4).
 Compensation 14: The deployment MUST alert on an invalid-request refusal of a reconciliation-path [Record Action] as a deployment fault.
 Compensation 15: The scan MUST retry a finding whose reconciliation-path [Record Action] was refused with invalid-request or recording-failure on the next run.
@@ -1318,38 +1237,19 @@ Term narrated: a finding whose subject and id an `audit.reconciliation` record l
 ### Instance start
 
 ```
-Deleted: Instance start 1. Execution Contract Logic confinement 15 owns it.
-Deleted: Instance start 2. Execution Contract Logic confinement 15 owns it.
-Deleted: Instance start 3. Execution Contract Logic confinement 15 owns it.
-Deleted: Instance start 4. Defensible Retention Capability requirement 70 owns it.
-Deleted: Instance start 5. Execution Contract Logic confinement 15 owns it.
 Instance start 6: IF reconciliation cadence EQUALS blank AND time arm EQUALS blank THEN the instance MUST NOT start.
-Deleted: Instance start 7. Execution Contract Logic confinement 15 owns it.
-Deleted: Instance start 8. Execution Contract Logic confinement 15 owns it.
-Deleted: Instance start 9. Execution Contract Logic confinement 15 owns it.
-Deleted: Instance start 10. Execution Contract Logic confinement 15 owns it.
-Deleted: Instance start 11. Execution Contract Logic confinement 15 owns it.
 Instance start 12: IF purge completion bound EQUALS blank THEN the instance MUST NOT start.
-Deleted: Instance start 13. Execution Contract Logic confinement 15 owns it.
-Deleted: Instance start 14. Execution Contract Logic confinement 15 owns it.
 Instance start 15: IF no per-act critical section EXISTS THEN the instance MUST NOT start.
 Instance start 16: The instance MAY start ONLY IF compensation window EXCEEDS closure sum.
 Instance start 17: The instance MUST read EVERY term of closure sum at start.
 Instance start 18: The instance MAY start ONLY IF compensation closure latency EXCEEDS closure spend.
 Instance start 19: The instance MAY start ONLY IF compensation closure latency EXCEEDS re-drive spend.
-Deleted: Instance start 20. Execution Contract Logic confinement 15 owns it.
 Instance start 21: The instance MUST resolve horizon at start from retention policy for an audit.compensation event AND for an audit.reconciliation event by action reference and actor reference alone (retention policy 6), and take the lesser of the two retention periods the deployment supplies (Capability requirement 11).
 Instance start 22: The instance MAY start ONLY IF horizon EXCEEDS compensation window.
 Instance start 23: The instance MAY start ONLY IF purge completion bound EXCEEDS twice seal completion bound.
-Deleted: Instance start 24. Execution Contract Logic confinement 15 owns it.
 Instance start 25: The instance MAY start ONLY IF EVERY completion bound EXCEEDS twice call pause bound (Lease Sizing 9).
-Deleted: Instance start 26. Execution Contract Scheduled leg 1 owns it.
 Instance start 27: IF no sealing lock EXISTS THEN the instance MUST NOT start.
 Instance start 28: The instance MUST run one enumeration of the audit log followed by one read of the destruction records, one of the attestation records and one of the retention records at start.
-Deleted: Instance start 29. Execution Contract Scheduled leg 1 owns it.
-Deleted: Instance start 30. Execution Contract Logic confinement 15 owns it.
-Deleted: Instance start 31. Defensible Retention Capability requirement 71 owns it.
-Deleted: Instance start 32. Defensible Retention Capability requirement 72 owns it.
 Instance start 33: A change to a setting MUST NOT take effect on a running instance BEFORE EVERY Instance start rule reading the setting, directly and through the terms resolved from the setting, has passed against the change.
 ```
 
@@ -1378,10 +1278,6 @@ Composition-level invariant 1: WHEN dependency outage EXISTS:
     Composition-level invariant 1c: A finding's compensation window MUST run to the later of the window's own end and closure sum counted from the latest end among the dependency outages whose start PRECEDES the window's end as the window then stood, AND MUST NOT carry the window's end past the later of the window's own end and the horizon counted from the finding's creation (Second half 4, Second half 5).
     Composition-level invariant 1d: The deployment MUST record the start instant and the end instant of every dependency outage in the outage record, AND the rule by which the deployment joins intermittent failures into one outage.
     Composition-level invariant 1f: The deployment MUST NOT record as one dependency outage two failures of a dependency between which a run's calls to that dependency all answered.
-Deleted: Composition-level invariant 1e. Defensible Retention Invariant 12.1 owns it.
-Deleted: Composition-level invariant 1h. Defensible Retention Invariant 12.2 owns it.
-Deleted: Composition-level invariant 1i. Defensible Retention Invariant 12.3 owns it.
-Deleted: Composition-level invariant 1g. Execution Contract Database 3 and Execution Contract Database 4 own it.
 ```
 
 Term dependency outage: a dependency whose calls answer no answer, state-unavailable or storage-failure over an interval longer than call pause bound â€” a constituent's records, the actor registry, the policy registry, the Legal Hold records, the erasure mechanism or the lease host. A standing unreadable payload no destruction record names (Second half 18) reads as an outage of Event Log, from the first run that met it to the first run that does not; the deployment owns clearing it by restoring the destruction record or, for an event no cascade reached, the content's readability.
@@ -1399,10 +1295,8 @@ Term recorded through [Record Action]: the quantifier of Invariants 1, 2 and 8 â
   Invariant 1.1: An action of this composition MUST NOT leave an event in the audit log with the event's attestation side unbound and unsurfaced.
   Invariant 1.2: [Record Action] MUST NOT append BEFORE attesting.
   Invariant 1.3: EVERY appended event MUST carry a committed attestation id inside the event's own payload.
-  Deleted: Invariant 1.4. Reconciliation 2 and Reconciliation 4 own it.
   Invariant 1.5: WHEN quiescence EXISTS:
       Invariant 1.5a: For EVERY event id recorded through [Record Action], event to attestation's entry MUST reference a recorded attestation carrying a readable action reference and actor reference.
-      Deleted: Invariant 1.5b. Second half 2, Compensation 1 and Reconciliation 2 own it.
   Invariant 1.6: WHEN retention state DOES NOT EQUAL Purged:
       Invariant 1.6a: The attestation's action reference and actor reference MUST match the event payload's, byte for byte.
   Invariant 1.7: WHEN retention state EQUALS Purged:
@@ -1410,7 +1304,6 @@ Term recorded through [Record Action]: the quantifier of Invariants 1, 2 and 8 â
       Invariant 1.7b: An auditor MUST evaluate Invariant 1.5a against the attestation records' surviving fields alone.
       Invariant 1.7c: An auditor MUST NOT read the who, the what and the when from the destruction record.
   Invariant 1.8: A new orphan a compensating write leaves MUST count as a new finding with the new orphan's own attestation instant.
-  Deleted: Invariant 1.9. Second half 2, Second half 13 and Compensation 15 own it.
   Invariant 1.10: A run MUST issue the run's first reconciliation-path [Record Action] alone.
   Invariant 1.11: A run MUST NOT start a further reconciliation-path [Record Action] BEFORE the first has returned.
   Invariant 1.12: IF a refusal of a reconciliation-path [Record Action] of the run left committed state, an attested orphan or an unretained event, THEN the run MUST NOT start a further reconciliation-path [Record Action].
@@ -1420,7 +1313,6 @@ Term recorded through [Record Action]: the quantifier of Invariants 1, 2 and 8 â
 - **Invariant 2 â€” Retention coverage (safety + liveness at quiescence).**
   ```
   Invariant 2.1: A successful [Record Action] MUST NOT return an event id with no retention record.
-  Deleted: Invariant 2.2. Reconciliation 4, Third half 2 and Third half 15 own it.
   Invariant 2.3: The reconciliation path MAY place a retention ONLY IF true miss EXISTS for the event id.
   Invariant 2.4: WHEN quiescence EXISTS:
       Invariant 2.4a: For EVERY event id recorded through [Record Action], event to retention's entry MUST reference EXACTLY ONE recorded retention of either retention state.
@@ -1436,11 +1328,7 @@ Term recorded through [Record Action]: the quantifier of Invariants 1, 2 and 8 â
 
 - **Invariant 4 â€” The destruction record commits with the retention's transition.**
   ```
-  Deleted: Invariant 4.1. Defensible Retention purge event step 4.1 and Defensible Retention purge event 4 own it.
   Invariant 4.2: [Record Destruction] MUST commit step 2's destruction record in one transaction with step 1's transition (Execution Contract Database 1).
-  Deleted: Invariant 4.2a. Defensible Retention Invariant 11.1 owns it.
-  Deleted: Invariant 4.3. Defensible Retention Invariant 11.2 owns it.
-  Deleted: Invariant 4.4. Defensible Retention Invariant 11.3 owns it.
   Invariant 4.5: EVERY member of a covering seal's purged events MUST name an event whose retention state EQUALS Purged.
   ```
   *Rests on:* [Record Destruction] steps 1 and 2, defended by the destruction-record wiring decision; Retention Window Invariants 3 (terminal absorption), 7 (no early purge) and 8 (purge timestamp consistency); Tamper Evidence Invariant 1. The cascade around it, and the delegation of the destruction of the content, rest on Defensible Retention Invariant 11.
@@ -1458,7 +1346,6 @@ Term recorded through [Record Action]: the quantifier of Invariants 1, 2 and 8 â
   ```
   Invariant 6.1: For EVERY event id, IF every constituent read answers AND the event's data IS NOT unreadable under a Retained retention (read record step 4.7) AND the event's data IS NOT unreadable with no retention record (read record step 5.3) AND the event's data IS NOT unreadable under a Purged retention no destruction record names (read record step 4.4h) THEN [Read Record] MUST return EXACTLY ONE OF the audit record, not-known.
   Invariant 6.2: For EVERY event id, IF every constituent read answers AND the event's data IS NOT unreadable under a Retained retention (verify record step 2.6) AND the event's data IS NOT unreadable with no retention record (verify record step 2.6) THEN [Verify Record] MUST return EXACTLY ONE OF verified, failed-verification(reason), unverifiable(reason), not-known.
-  Deleted: Invariant 6.3. Actor Identity Invariant 7.1 and Tamper Evidence Invariant 7.1 own it through Invariant 5.1, and verify record step 1.2, verify record step 2.3, verify record step 4.2 and verify record step 4.4 own what a purge, a placement or a seal between two calls changes.
   ```
 
   NOTE: watch the external answer that moves (Invariant 6.3).
@@ -1480,7 +1367,6 @@ Term recorded through [Record Action]: the quantifier of Invariants 1, 2 and 8 â
   Invariant 8.2: A retained event MUST carry a retention record in Retained.
   Invariant 8.2a: A held event MUST carry a retention record in Purged and a hold.
   Invariant 8.2b: [Read Record] and [Verify Record] MUST answer a held event as a purged event.
-  Deleted: Invariant 8.3. Defensible Retention Invariant 13.1 owns it.
   Invariant 8.4: [Verify Record] MUST NOT read purged off the absence of content.
   Invariant 8.5: The composition MUST reserve not-known for an event id no constituent has heard of.
   ```
@@ -1573,34 +1459,19 @@ Check 2.12: An auditor MUST read an orphan not in compensated attestations, past
 Check 2.13: IF compensation window EQUALS blank THEN an instance MUST fail Check 2.
 Check 2.14: An auditor MUST read the attestation id of an event payload in any retention state, and the destruction records after the full enumeration.
 Check 3.1: An auditor MUST verify all seven Event Log invariants over the audit log instance.
-Deleted: Check 3.2. Event Log Check 5.2 and Event Log Invariant 7.2 own it: a recording instant falling along append order is no order finding, and the database's serialization can leave one under a non-decreasing clock.
 Check 3.3: An auditor MUST verify Actor Identity's and Tamper Evidence's Generation-acceptance bars over the respective instances for EVERY event whose retention state DOES NOT EQUAL Purged, reading a bar clause that needs a re-presented record set as discharged for a live member of a partly-purged seal (Invariant 5.4), and Retention Window's over the Retention Window instance for EVERY event.
 Check 4.1: An auditor MUST bound the forensic window of any detected tampering by the latest verified seal and the first failed seal, with the seal stamps.
 Check 4.2: An auditor MUST walk EVERY entry in the seal records.
 Check 4.3: An auditor MUST step over a seal answering unverifiable(partially-purged-coverage) to the nearest presentable seal.
 Check 4.4: An auditor MUST read the mechanism's chaining posture from the deployment's declaration.
-Deleted: Check 5.1. Defensible Retention Check 8.1 owns it.
-Deleted: Check 5.2. Defensible Retention Check 8.2 owns it.
-Deleted: Check 5.3. Defensible Retention Check 8.3 owns it.
-Deleted: Check 5.4. Defensible Retention Check 8.4 owns it.
-Deleted: Check 5.5. Defensible Retention Check 8.5 owns it.
-Deleted: Check 5.6. Defensible Retention Check 8.6 owns it.
-Deleted: Check 5.7. Defensible Retention Check 8.7 owns it.
-Deleted: Check 5.8. Defensible Retention Check 8.8 owns it.
-Deleted: Check 5.9. Defensible Retention Check 8.9 owns it.
 Check 5.10: An auditor MUST confirm the live members of a partly-purged seal answer unverifiable(partially-purged-coverage).
 Check 5.11: An auditor MUST read an instance answering verified for a live member of a partly-purged seal as composing Seal Lifecycle, audited against that pattern's bar.
 Check 5.12: An auditor MUST confirm an event with no retention record carries retention status unresolved (compensation window), an event whose data IS unreadable excepted (read record step 5.3).
-Deleted: Check 5.13. Defensible Retention Check 8.10 owns it.
-Deleted: Check 5.14. Defensible Retention Check 8.11 owns it.
-Deleted: Check 5.15. Defensible Retention Check 8.12 owns it.
 Check 6.1: An auditor MUST confirm that verification could not be performed surfaces as unverifiable(reason) and never as failed-verification(reason), for attestation-registry-unavailable, seal-mechanism-verification-unavailable and partially-purged-coverage.
 Check 7.1: An auditor MUST discard event to retention, event to sequence, sealed through, the uncovered mark, seal coverage's ranges, compensated attestations and reported beyond horizon, run the rebuild procedures against the constituent records and the destruction records, and reproduce EVERY traversal answer.
 Check 7.2: An auditor MUST discard event to sequence first.
 Check 7.3: An auditor MUST confirm EVERY member of compensated attestations came from an event carrying an `audit.*` action reference whose actor reference EQUALS reconciliation operator, read from the event's payload where no destruction record names the event and from the attestation the destruction record's pair names where one does.
 Check 7.4: An auditor MUST regenerate event to attestation's entry for EVERY live event from the event's payload, an event whose data IS unreadable excepted (event to attestation 2b; Term dependency outage).
-Deleted: Check 7.5. Defensible Retention Check 8.13 owns it.
-Deleted: Check 7.6. Defensible Retention Check 8.14 owns it.
 Check 7.7: An auditor MUST confirm the scan's binding set and event to attestation's two halves agree.
 Check 7.8: An auditor MUST NOT expect a rebuild of an extraction-pending fact.
 Check 8.1: An auditor MUST identify the composing patterns active in the deployment and the patterns' configuration.
@@ -1620,18 +1491,13 @@ Term extraction-pending fact: purged events and the entries of event to attestat
 ### External checks
 
 ```
-Deleted: External check 1. Defensible Retention External check 15 owns it.
 External check 2: An auditor MUST clear from external evidence that the actor registry retained the registry's historical public material across key rotation.
 External check 3: An auditor MUST clear from external evidence that the seal mechanism is cryptographically sound for EVERY seal's audit horizon.
 External check 4: An auditor MUST clear from external evidence that the mechanism's seal-time rendering agrees with the verify-time presentation.
-Deleted: External check 5. Execution Contract Logic confinement 7 owns it.
 External check 6: An auditor MUST clear from external evidence that the configured retention policy was the correct one for the record class.
-Deleted: External check 7. Execution Contract Database 3 owns it.
 External check 8: An auditor MUST clear from the deployment's own matching logic that record set match judges the presented record set against the reference the seal committed to.
-Deleted: External check 9. Defensible Retention External check 16 owns it.
 External check 10: An auditor MUST clear from the deployment's own lock that the sealing lock is a lease held under a fresh holder value, and that the sealing lock is shared by every process serving the instance, is a lease of seal completion bound, and that the uncovered mark is carried across a restart and past the lease's expiry, stored apart from the grant (Concurrency 1a, Concurrency 1b, Concurrency 1h, Concurrency 1c).
 External check 11: An auditor MUST clear from the deployment's own lock that the per-act critical section is a lease of compensation closure latency less the run's elapsed time at the take and call pause bound for a scan leg, shared by every process serving the instance, keyed by the act's id namespaced by the act's kind, and held under a holder value minted fresh for each attempt (Per-act critical section 1, 1a, 1b, 1c, 13a, 13d), and that no scan leg's start waits on another leg's closure (Reconciliation 1a); a cascade's section is the lease Defensible Retention's External check 17 clears.
-Deleted: External check 12. Execution Contract Database 2 owns it.
 External check 13: An auditor MUST clear from the outage record that every dependency outage's start instant and end instant is recorded with the rule that joins intermittent failures (Composition-level invariant 1d, 1f), that the instant of each run that landed an entry under-legal-hold and of the hold-free run after that run is recorded (Defensible Retention Invariant 12.2), and that the call pause bound is not exceeded by the worst call the clients make (call pause bound 1).
 External check 14: An auditor MUST clear from the deployment's own read path that content readable answers no for content the erasure mechanism destroyed and for no other content (Capability requirement 8, Defensible Retention erasure mechanism 6c).
 External check 15: An auditor MUST clear from the deployment's own record which mechanism cut EVERY seal in the seal records (Capability requirement 10a).
@@ -1666,9 +1532,7 @@ Non-goal 9: seal mechanism MUST govern seals cut from the time of setting on.
 Non-goal 10: The composition MUST NOT treat a storage tier differently at [Verify Record].
 Non-goal 11: The composition MUST NOT place a retention on, or destroy, an attestation that has no event.
 Non-goal 12: The composition MUST NOT bound the population the composition's scan enumerates; the deployment bounds the population by rotating the audit instance (Non-goal 1) before measured enumeration outgrows Instance start 16, 18 and 19, and a failing re-run of those checks raises the alert of Per-act critical section 13i.
-Deleted: Non-goal 13. slice cap 2 owns it.
 Non-goal 14: The composition MUST NOT bound the seal records the rebuild of seal now 13 enumerates; the deployment bounds the seal records by rotating the audit instance (Non-goal 1).
-Deleted: Non-goal 15. Defensible Retention Non-goal 30 owns it.
 ```
 
 An orphan attestation, one step 3 never bound to an event, is the one record this composition cannot retire: it has no log entry to cascade through and Composes 9 forbids placing it, so its proof and its action and actor references stay readable for the life of the attestation records, and it stands in the reconciled set rather than in a lifetime. Its retirement joins what Erasure Tombstone *(forthcoming)* owns; until then the lifetime the Summary claims is the lifetime of every event.
@@ -1698,20 +1562,9 @@ Concurrency 1h: The implementation MUST store the uncovered mark apart from the 
 Concurrency 1c: The implementation MUST hold the sealing lock as a Lease of seal completion bound.
 Concurrency 1d: The implementation MUST NOT take the sealing lock outside [Seal Now].
 Concurrency 1g: [Seal Now] MUST take the sealing lock by Lease's take, waiting no longer than Lease's arrival term (Lease Operation 3).
-Deleted: Concurrency 1e. Execution Contract Database 2 owns it: [Seal Now]'s re-read, lock check and seal are one transaction, and [Seal Now] makes no abandoned call for the sealing lock to be kept through.
 Concurrency 1f: A [Seal Now] MUST present a holder value minted fresh for EVERY attempt.
 NOTE: watch the fresh holder value (Concurrency 1f).
-Deleted: Concurrency 2. Defensible Retention Concurrency 35 owns it.
-Deleted: Concurrency 3. Execution Contract Database 2 owns it.
-Deleted: Concurrency 3a. Execution Contract Database 2 owns it: the destruction-record write reads the purged events it adds to inside its own transaction, and the composition names no serialization to hold.
-Deleted: Concurrency 3b. Execution Contract Database 2 owns it: the destruction-record write reads the purged events it adds to inside its own transaction, and the composition names no serialization to take.
-Deleted: Concurrency 3d. Execution Contract Database 2 owns it: the destruction-record write reads the purged events it adds to inside its own transaction, and the composition names no serialization to take.
-Deleted: Concurrency 3c. Execution Contract Database 2 owns it: the destruction-record write reads the purged events it adds to inside its own transaction, and the composition names no serialization whose lease can expire.
-Deleted: Concurrency 4. Execution Contract Database 2 owns it: the destruction-record write reads the purged events it adds to inside its own transaction, and the composition names no rule left for a serialization to discharge.
-Deleted: Concurrency 5. Execution Contract Database 2 owns it: the destruction-record write reads the purged events it adds to inside its own transaction, and the composition names no rule left for an atomic set-add to discharge.
 NOTE: watch cardinality â€” the pressure at Second half 12 (one writer) and Compensation 2 (one record per finding).
-Deleted: Concurrency 6. Execution Contract Database 1 owns it: a [Record Action]'s writes commit together, and the composition names no section for it to run under.
-Deleted: Concurrency 7. Execution Contract Database 1 owns it: a [Record Action]'s writes commit together, and the composition names no section for steps 1 and 2 to run outside.
 Concurrency 8: [Record Action] step 6 MUST take the per-instance sealing lock of Concurrency 1 through [Seal Now] alone.
 Concurrency 9: The scan MUST serialize an orphan's compensation per attestation id.
 Concurrency 10: [Read Record] and [Verify Record] MUST NOT take a serialization lock.
@@ -1725,9 +1578,6 @@ Term probe: a run's first reconciliation-path [Record Action], issued alone (Inv
 
 ```
 Clock source 1: The composition MUST NOT read now other than for the seal cadence timer, the scan's once-per-run reading, and a scan leg's reading at the leg's take to size the leg's lease (Per-act critical section 13a).
-Deleted: Clock source 2. Execution Contract Logic confinement 3 owns it.
-Deleted: Clock source 3. Execution Contract Logic confinement 3 owns it.
-Deleted: Clock source 4. Execution Contract Logic confinement 7 owns it.
 ```
 
 Term invocation: a [Record Action] or a [Record Destruction] between the invocation's first write and the invocation's return.
@@ -1750,9 +1600,6 @@ Durability 2: The reconciliation path MUST NOT read a lost event to retention en
 Durability 3: An id-addressed action MUST NOT treat an event to sequence miss as not-known.
 Durability 4: A short rebuild of a closed-state marker MUST NOT produce a false record.
 Durability 5: A short rebuild of a closed-state marker MAY produce a duplicate record.
-Deleted: Durability 6. Execution Contract Database 1, Execution Contract Database 3 and Execution Contract Database 4 own it.
-Deleted: Durability 7. Execution Contract Database 1 owns it.
-Deleted: Durability 8. Execution Contract Database 3 owns it.
 ```
 
 ### Partial attestation on step failure

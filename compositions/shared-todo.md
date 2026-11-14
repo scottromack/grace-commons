@@ -155,8 +155,6 @@ Action wiring 8: An admitted complete MUST NOT recall the task's active assignme
 Action wiring 9: An admitted delete MUST call Assignment's active_for with the task id, and ONLY IF active_for answers an assignment MUST call Assignment's recall with that assignment's id.
 Action wiring 10: An admitted delete of a task whose active_for answers an assignment MUST call Personal Todo's delete ONLY AFTER the recall answers ok.
 Action wiring 10a: An admitted delete of a task whose active_for answers none MUST call Personal Todo's delete.
-Deleted: Action wiring 11. Execution Contract Constituent failure 1 owns it.
-Deleted: Action wiring 12. Execution Contract Database 1 owns it.
 Action wiring 13: An admitted assign MUST answer not-known for a task id the Personal Todo instance does not carry.
 Action wiring 14: An admitted assign MUST call Assignment's assign ONLY AFTER Action wiring 13's existence check clears.
 Action wiring 15: An admitted assign MUST accept a task id whose unit state EQUALS done.
@@ -166,7 +164,6 @@ Action wiring 18: An admitted state-changing action MUST answer a constituent ca
 Action wiring 19: The composition MUST NOT answer an empty task set for a denied tasks:view.
 Action wiring 20: [Responsible Actor] MUST answer not-known for a task id the Personal Todo instance does not carry.
 Action wiring 21: [Responsible Actor] MUST answer unassigned for a task id the Personal Todo instance carries where Assignment's active_for answers none.
-Deleted: Action wiring 22. Execution Contract Database 2 owns it.
 Action wiring 23: [Active Assignment] MUST answer not-known and unassigned on the conditions Action wiring 20 and Action wiring 21 state for [Responsible Actor].
 Action wiring 24: [Active Assignment] MUST call Assignment's active_for with the task id.
 Action wiring 25: [Active Assignment] MUST answer the assignment id of the assignment active_for answers.
@@ -244,8 +241,6 @@ Every input an action takes, and every answer a constituent call can meet, with 
 
 ```
 Wiring decision 1: The composition MUST delete a task carrying an active assignment ONLY AFTER the task's active assignment is recalled.
-Deleted: Wiring decision 2. Execution Contract Database 1 owns it.
-Deleted: Wiring decision 3. Execution Contract Database 1 owns it.
 ```
 
 <details markdown="block">
@@ -308,9 +303,6 @@ Each of these needs two or all three constituents working together. None is avai
   ```
   Invariant 5.1: The Permissions instance MUST answer an actor reference's grant history.
   Invariant 5.2: A task's delete MUST NOT change a grant record.
-  Deleted: Invariant 6. Composes 6 owns it.
-  Deleted: Invariant 7. Composes 6 owns it.
-  Deleted: Invariant 8. Composes 6 owns it.
   ```
 
 Permission enforcement and the cascade together give the coherent multi-actor surface: no actor acts beyond the actor's grants, and no assignment is left dangling against a deleted task. Responsibility queryability and authorization-history completeness together give recoverable accountability — for any task and any actor, what the actor was allowed to do and who held the task is provable.
@@ -372,7 +364,6 @@ Check 2.1: An auditor MUST find no task id carrying two active assignments in th
 Check 3.1: An auditor MUST find a task's responsible actor from the Personal Todo and Assignment records, through [Responsible Actor] (Invariant 4.1).
 Check 3.2: An auditor MUST find a task's responsibility sequence from the Assignment records (Invariant 4.2).
 Check 4.1: An auditor MUST find an actor reference's grant history in the Permissions records (Invariant 5.1).
-Deleted: Check 4.2. External check 5 owns it.
 Check 5.1: An auditor MUST find [Responsible Actor] answering unassigned for a task id the Personal Todo records carry where the Assignment records carry no active assignment for the task id (Action wiring 21).
 Check 5.2: An auditor MUST find [Responsible Actor] answering not-known for a task id the Personal Todo records do not carry (Action wiring 20).
 Check 5.3: An auditor MUST find [Active Assignment] answering the assignment id the Assignment records carry active for a task id (Action wiring 25).
@@ -388,7 +379,6 @@ External check 2: An auditor needing a denied call confirmed unreached MUST read
 External check 3: An auditor needing an enumeration of authorization attempts MUST read a composed Audit Trail (Non-goal 7).
 External check 4: An auditor needing the actor reference bound to a caller MUST read the deployment's authentication layer (Non-goal 12).
 External check 5: An auditor needing a task's delete confirmed clear of the grants MUST read the deployment's own implementation (Invariant 5.2).
-Deleted: External check 6. Execution Contract Database 2 owns it.
 ```
 
 ---
@@ -401,7 +391,6 @@ Non-goal 2: The composition MUST NOT grant tasks:view with an assignment.
 Non-goal 3: The composition MUST NOT refuse a self-assignment.
 Non-goal 4: The composition MUST NOT own whether a completed task's assignment is recalled.
 Non-goal 5: The composition MUST NOT offer an undo.
-Deleted: Non-goal 6. Execution Contract Database 5 owns it.
 Non-goal 7: The composition MUST NOT record an action.
 Non-goal 8: A deployment needing a tamper-evident record MUST compose Audit Trail.
 Non-goal 9: The composition MUST NOT carry a task's priority.
@@ -422,12 +411,7 @@ NOTE: the owners — [Audit Trail](./audit-trail.md) (Non-goal 7, Non-goal 8, Ex
 ### Concurrency
 
 ```
-Deleted: Concurrency 1. Execution Contract Database 2 owns it.
-Deleted: Concurrency 2. Execution Contract Database 2 owns it.
-Deleted: Concurrency 3. Execution Contract Database 2 owns it.
 Concurrency 4: The composition MUST check permitted at a call's start.
-Deleted: Concurrency 5. Execution Contract Database 2 owns it: an action's guard reads and the writes they decide are one transaction, so a revoke of the grant a gate read commits either before the gate's read or after the action's writes.
-Deleted: Concurrency 6. Execution Contract Database 2 owns it.
 ```
 
 ---
@@ -440,7 +424,6 @@ Composition note 2: A deployment MUST bind an actor reference to an authenticate
 Composition note 3: A deployment MUST own whether a completed task's assignment is recalled.
 Composition note 4: A deployment MUST administer the Permissions instance's grants.
 Composition note 5: A deployment MUST NOT wire a second Assignment instance over the task list.
-Deleted: Composition note 6. Execution Contract Database 2 owns it.
 ```
 
 ---

@@ -123,23 +123,12 @@ Capability requirement 6: The slowest conforming invocation MUST NOT EXCEED the 
 Capability requirement 7: A deployment MUST set the clock offset allowance.
 Capability requirement 8: The seam skew MUST NOT EXCEED the clock offset allowance.
 Capability requirement 9: A deployment MUST configure the Audit Trail instance with the audit horizon.
-Deleted: Capability requirement 10. Recoverable Invocation Instance start 4 and Instance start 5 own it: the closure window and the retention period bound how long an intent stays open before the sweep reports it, and the resume arm whose gap this bounded retired (Scott, 2026-11-09 9:17 PM Central, option A).
 Capability requirement 11: A deployment MUST declare the minted-id width bounds.
 Capability requirement 12: The minted-id width bounds MUST agree with the widths the wired constituents allocate.
-Deleted: Capability requirement 13. Execution Contract Database 2 owns it.
-Deleted: Capability requirement 14. Execution Contract Database 2 owns it.
-Deleted: Capability requirement 15. Execution Contract Database 2 owns it: an arc's reads and the writes they decide are one transaction, and the composition names no critical section to release.
-Deleted: Capability requirement 16. Execution Contract Database 2 owns it: an arc's reads and the writes they decide are one transaction, and the composition names no critical section to release.
-Deleted: Capability requirement 17. Execution Contract Database 2 owns it: an arc's reads and the writes they decide are one transaction, and the composition names no critical section to lease.
 Capability requirement 18: IF the onboarding completion bound EQUALS blank THEN the composition MUST refuse to start.
 Capability requirement 19: IF the clock offset allowance EQUALS blank THEN the composition MUST refuse to start.
-Deleted: Capability requirement 20. Execution Contract Database 2 owns it: an arc's reads and the writes they decide are one transaction, and the composition names no critical section for a deployment to leave blank.
 Capability requirement 21: The deployment MUST supply the database PER Execution Contract Database 1 through 4, Execution Contract Database 7 AND Execution Contract Refusal 1.
 Capability requirement 22: IF the minted-id width bounds EQUALS blank THEN the composition MUST refuse to start.
-Deleted: Capability requirement 23. Recoverable Invocation Instance start 5 owns it: the audit horizon, the act kind's retention period, exceeds the retention floor.
-Deleted: Capability requirement 24. Recoverable Invocation Instance start 4 owns it: the resume arm and its longest gap retired.
-Deleted: Capability requirement 25. The foreign party read the max purge delay protected retired with the resume arm; Check 7.3 detects a party on two tokens' completion records inside the horizon (Invariant 4.5).
-Deleted: Capability requirement 26. Capability requirement 25 retired; no max purge delay remains to leave blank.
 Capability requirement 27: The host MUST inject the invocation id, the run id AND the operator run id at the composition's seam.
 Capability requirement 28: A deployment MUST supply the act section Recoverable Invocation takes (Recoverable Invocation Capability requirement 11).
 Capability requirement 29: A deployment MUST disclose the commit round trip, the probe round trip, the reconciliation run bound AND the settling period.
@@ -179,9 +168,6 @@ Primitive policy 3: The composition MUST answer invalid-request for EVERY field 
 Primitive policy 4: An action MUST NOT record the action's attempt record BEFORE validating the action's inputs.
 Primitive policy 5: IF the data of an event the action will emit EXCEEDS the payload cap THEN the composition MUST answer invalid-request.
 Primitive policy 6: The composition MUST size an id a constituent minted, where the payload carries the id, at the id's minted-id width bound.
-Deleted: Primitive policy 7. The resume choice retired with the resume arm: [Onboard] takes no resume party id and no resume credential id, and always runs the onboarding transaction (Scott, 2026-11-09 9:17 PM Central, option A).
-Deleted: Primitive policy 8. Primitive policy 7 retired; [Onboard] records no accept attempt, and its intent follows validation (Recoverable Invocation Action wiring 4).
-Deleted: Primitive policy 9. Primitive policy 7 retired; the call carries no resume choice.
 Primitive policy 10: An action refused under Primitive policy 1 through 6 MUST NOT write.
 ```
 
@@ -205,21 +191,14 @@ Audit arm 2: IF Audit Trail answers recording-failure at an attempt record THEN 
 Audit arm 3: IF Audit Trail answers invalid-request carrying a step below step-3 at an attempt record THEN the action MUST answer storage-failure carrying intent.
 Audit arm 4: A refused attempt record MUST stop the action.
 Audit arm 5: IF Audit Trail answers recording-failure at a post-write record THEN the action MUST answer storage-failure carrying intent (Execution Contract Constituent failure 1).
-Deleted: Audit arm 6. Execution Contract Database 1 owns it.
-Deleted: Audit arm 7. Execution Contract Database 1 owns it.
 Audit arm 8: IF Audit Trail answers invalid-request(step-4) at a post-write record THEN the composition MUST read the record back.
 Audit arm 9: The landing read MUST run from the sequence number of the invocation's own attempt record to the open end.
 Audit arm 10: The landing read MUST match the post-write record by action reference AND invitation token.
 Audit arm 11: IF the landing read finds the post-write record THEN the action MUST proceed as landed.
-Deleted: Audit arm 12. Execution Contract Database 1 owns it.
 Audit arm 13: IF Audit Trail answers invalid-credential at a post-write record THEN the action MUST answer invalid-credential.
 Audit arm 14: IF Invitation answers storage-failure THEN the action MUST answer storage-failure carrying intent (Execution Contract Constituent failure 1).
-Deleted: Audit arm 15. Recoverable Invocation commit 3 owns it: Party Identity's storage-failure is a pre-commit arm of the onboarding transaction, answered as its own code.
-Deleted: Audit arm 16. Recoverable Invocation commit 3 owns it: Credential's storage-failure is a pre-commit arm of the onboarding transaction, answered as its own code.
 Audit arm 17: A caller MUST read storage-failure carrying intent as a committed nothing.
-Deleted: Audit arm 18. No action answers storage-failure carrying outcome: Audit arm 5, 22 and 25 carry intent, and [Onboard]'s outcome-position failure is Recoverable Invocation's recording-failure(outcome).
 Audit arm 19: The deployment MUST alert on an invalid-request from Audit Trail as a deployment fault.
-Deleted: Audit arm 20. Execution Contract Database 1 owns it.
 Audit arm 21: IF Audit Trail answers invalid-request carrying a step above step-2 at an attempt record THEN the action MUST answer storage-failure carrying attempt-evidence.
 Audit arm 22: IF Audit Trail answers invalid-request carrying a step below step-4 at a post-write record THEN the action MUST answer storage-failure carrying intent (Execution Contract Read 4).
 Audit arm 23: A caller MUST read storage-failure carrying attempt-evidence as a committed attestation AND no constituent write.
@@ -272,38 +251,20 @@ Action wiring 4: An admitted invite MUST call Invitation's initiate with the inv
 Action wiring 5: IF Invitation answers invalid-request for an initiate THEN [Invite] MUST answer invalid-request.
 Action wiring 6: An admitted invite MUST record an initiated record carrying the invitation token, the invitee reference, the context AND the ttl, blank where the call supplies none, ONLY AFTER Invitation's initiate answers the invitation token.
 Action wiring 7: A landed invite MUST answer the invitation token.
-Deleted: Action wiring 8. Recoverable Invocation open step 4.3 owns it: the invocation open records the intent carrying the intent data (Action wiring 56 and 57), and the intent is the attempt record.
 Action wiring 9: An admitted onboard MUST call Invitation's accept with the invitation token AND the accepting identity reference as the onboarding transaction's first call.
-Deleted: Action wiring 10. Execution Contract Database 1 owns it.
-Deleted: Action wiring 11. Execution Contract Database 1 owns it: a fresh arc's writes commit together, and the composition names no critical section for the host to refuse.
-Deleted: Action wiring 12. Execution Contract Database 2 owns it.
-Deleted: Action wiring 13. Execution Contract Database 2 owns it: an arc's reads and the writes they decide are one transaction, and the composition names no lease to expire.
-Deleted: Action wiring 14. Execution Contract Database 2 owns it: an arc's reads and the writes they decide are one transaction, and the composition names no critical section to lose.
-Deleted: Action wiring 15. Execution Contract Database 1 owns it: a fresh arc's writes commit together, so no resumer re-enters an arc a fresh arc is still running.
-Deleted: Action wiring 16. Execution Contract Database 1 owns it: a fresh arc's writes commit together, so no resumer re-enters an arc a fresh arc is still running.
 Action wiring 17: IF Invitation answers expired THEN [Onboard] MUST answer invitation-invalid carrying expired.
 Action wiring 18: IF Invitation answers not-known THEN [Onboard] MUST answer invitation-invalid carrying not-known.
 Action wiring 19: IF Invitation answers already-resolved AND the stored terminal DOES NOT EQUAL accepted THEN [Onboard] MUST answer invitation-invalid carrying already-resolved AND the stored terminal.
 Action wiring 20: IF Invitation answers already-resolved AND the stored terminal EQUALS accepted THEN [Onboard] MUST answer invitation-invalid carrying already-resolved AND accepted.
 Action wiring 21: IF Invitation answers invalid-request for an accept THEN [Onboard] MUST answer invalid-request.
-Deleted: Action wiring 22. Recoverable Invocation owns it, and retires it: no resumable acceptance is read, and an open intent is closed by the invocation resolve (Scott, 2026-11-09 9:17 PM Central, option A).
-Deleted: Action wiring 23. Action wiring 20 owns it: the stored terminal accepted answers invitation-invalid carrying already-resolved AND accepted, whatever the acceptor.
 Action wiring 24: A refused onboarding transaction MUST write nothing beyond the intent record AND the refusal record.
-Deleted: Action wiring 25. Recoverable Invocation Action wiring 6 owns it: an adopter writes to the journal for the act only through the invocation open, the invocation close and the invocation refuse, so no acceptance record is written; the intent carries the document pair (Action wiring 57).
 Action wiring 26: An onboarding transaction MUST call Party Identity's enroll with the name, the date of birth, the document type, the document reference AND the enrolling actor reference ONLY AFTER Invitation's accept answers accepted.
-Deleted: Action wiring 27. Execution Contract Constituent failure 1 and Read 4 own it: a Party Identity refusal fails the whole call, so no interruption record commits for it.
 Action wiring 28: IF Party Identity answers invalid-request for an enroll THEN [Onboard] MUST answer invalid-request.
 Action wiring 29: An onboarding transaction MUST call Credential's register with the party id Party Identity's enroll answered as the principal reference, the credential material, the credential type AND the call's expiry instant, passed unchanged (blank where the call supplies none), ONLY AFTER Party Identity's enroll answers the party id.
-Deleted: Action wiring 30. Unreachable: duplicate-active-credential refuses the onboarding transaction and rolls it back (Action wiring 32), so no interruption record is written; the interruption record retired with the resume arm.
 Action wiring 31: IF Credential answers invalid-request for a register THEN [Onboard] MUST answer invalid-request.
 Action wiring 32: IF Credential answers duplicate-active-credential THEN [Onboard] MUST answer duplicate-active-credential, the onboarding transaction having rolled back.
-Deleted: Action wiring 33. The resume arm retired; an open intent is closed by the invocation resolve (Scott, 2026-11-09 9:17 PM Central, option A).
-Deleted: Action wiring 34. Resume 41 and Resume 45 own it, because the arc continues with the credential the arc registered, never the credential standing active.
-Deleted: Action wiring 35. The resume arm retired; no call reads an arc's credential back.
-Deleted: Action wiring 36. No interruption record is written (Action wiring 30).
 Action wiring 37: [Onboard] MUST close a committed onboarding transaction through the invocation close naming onboarding.completed AND carrying the invitation token, the accepting identity reference, the party id AND the credential id (Recoverable Invocation commit 4).
 Action wiring 38: A completing arc MUST answer the party id AND the credential id.
-Deleted: Action wiring 39. Execution Contract Database 2 owns it: an arc's reads and the writes they decide are one transaction, and the composition names no critical section to release.
 Action wiring 40: A validated decline MUST record a decline attempt carrying the invitation token under the service actor reference.
 Action wiring 41: An admitted decline MUST call Invitation's decline with the invitation token.
 Action wiring 42: IF Invitation answers expired for a decline THEN [Decline] MUST answer invitation-invalid carrying expired.
@@ -462,7 +423,6 @@ Every input an action takes and every answer a call of the four actions can meet
 ```
 Wiring decision 1: The composition MUST call Party Identity's enroll ONLY AFTER Invitation's accept answers accepted for the arc.
 Wiring decision 2: The composition MUST call Credential's register ONLY AFTER Party Identity's enroll answers the arc's party id.
-Deleted: Wiring decision 3. Invitation Invariant 2 owns it, inherited (Composes 6): a second accept of an accepted token commits nothing and answers already-resolved (Action wiring 20), and a rolled-back accept is no acceptance (Execution Contract Database 3).
 Wiring decision 4: The composition MUST pass the call's accepting identity reference to Invitation's accept.
 Wiring decision 5: A deployment MUST NOT complete an arc's constituent steps outside the composition.
 Wiring decision 6: A deployment MUST close an open onboarding intent through Recoverable Invocation's the invocation resolve AND through no constituent call.
@@ -485,65 +445,6 @@ The result: invitation-gates-enrollment (Invariant 1) and credential-follows-par
 
 The resume arm retired (Scott, 2026-11-09 9:17 PM Central, option A): an onboarding is one Recoverable Invocation act, a credential collision is a pre-commit refusal, and a stopped onboarding is an open intent the operator closes through the invocation resolve. Every rule keeps its tombstone, naming what owns it.
 
-```
-Deleted: Resume 1. Execution Contract Database 2 owns it.
-Deleted: Resume 2. Execution Contract Database 2 owns it: an arc's reads and the writes they decide are one transaction, and the composition names no critical section for the host to refuse.
-Deleted: Resume 3. Execution Contract Database 2 owns it: an arc's reads and the writes they decide are one transaction, and the composition names no critical section to release.
-Deleted: Resume 4. Recoverable Invocation Invariant 7.2 and reconcile step 1.2 own it: an intent past its horizon edge is no longer read, and a second call is refused by Invitation's single resolution through the invocation refuse (Action wiring 20).
-Deleted: Resume 5. Recoverable Invocation Invariant 7.3 owns it: a purged intent is excluded before any read.
-Deleted: Resume 6. Recoverable Invocation open step 3 owns it: the invocation open reads the act key's records in sequence order.
-Deleted: Resume 7. Recoverable Invocation open step 3.9 owns it: the invocation open answers act-landed, which [Onboard] answers as invitation-invalid carrying already-resolved AND accepted (Action wiring 59).
-Deleted: Resume 8. Recoverable Invocation open step 3.5 owns it: a young open intent answers act-in-flight.
-Deleted: Resume 9. Recoverable Invocation open step 3.8 owns it: an aged open intent never blocks the invocation open, the sweep surfaces it and the operator closes it through the invocation resolve.
-Deleted: Resume 10. Unreachable: an onboarding's writes commit together (Execution Contract Database 1), so no stage stops between them; the stage and the interruption record retired with the resume arm.
-Deleted: Resume 11. Unreachable: Recoverable Invocation Action wiring 6 admits no adopter write to the journal beyond the invocation open, the invocation close and the invocation refuse, so no acceptance record is written or missing.
-Deleted: Resume 12. Resume 11 owns it, as unreachable.
-Deleted: Resume 13. Recoverable Invocation Primitive policy 9 owns it: the intent data carries the document pair (Action wiring 57).
-Deleted: Resume 14. Resume 11 owns it, as unreachable: the intent is the arc's one record of the documents.
-Deleted: Resume 15. Unreachable: no call resumes an arc, and the operator's disposition replaces it.
-Deleted: Resume 16. Term onboarding probe owns it: the probe reads Party Identity with a query carrying no filter and selects the parties by the intent's document pair and enrolling actor reference.
-Deleted: Resume 17. Term onboarding probe owns it, without the foreign party exclusion: a party on another token's records is found by Check 7.3, not excluded by the read (Scott, 2026-11-09 9:17 PM Central, option A).
-Deleted: Resume 18. Term onboarding probe owns it: the probe selects the parties by the intent's enrolling actor reference, the original caller's.
-Deleted: Resume 19. Term onboarding probe owns it: the probe reads a party in any state.
-Deleted: Resume 20. Recoverable Invocation act probe 6a owns it: the probe never answers committed with pairing datum none, so a sole candidate is undecidable and the operator decides.
-Deleted: Resume 21. Recoverable Invocation reconcile step 3.8 owns it: several candidates are undecidable and escalated.
-Deleted: Resume 22. Recoverable Invocation resolve 1 owns it: the operator's disposition names the outcome, and the chosen party is detected against the candidates by Check 7.3, not prevented (Scott, 2026-11-09 9:17 PM Central, option A).
-Deleted: Resume 22a. Resume 22 owns it.
-Deleted: Resume 22b. Unreachable: no acceptance record exists.
-Deleted: Resume 22c. Unreachable: no acceptance record exists.
-Deleted: Resume 23. Resume 22 owns it.
-Deleted: Resume 24. Recoverable Invocation reconcile step 3.11 owns it.
-Deleted: Resume 25. Recoverable Invocation act probe 4 owns it: a read rejection answers unavailable.
-Deleted: Resume 26. Recoverable Invocation act probe 4 owns it: the rejected query reaches the compliance surface.
-Deleted: Resume 27. Execution Contract Database 1 owns it.
-Deleted: Resume 28. Recoverable Invocation open step 4.3 owns it: every [Onboard] writes its own intent.
-Deleted: Resume 29. Recoverable Invocation Primitive policy 23 owns it: recording-failure(intent).
-Deleted: Resume 30. Unreachable: no acceptance record is written (Action wiring 25).
-Deleted: Resume 30a. Resume 30 owns it, as unreachable.
-Deleted: Resume 31. Recoverable Invocation reconcile step 3.7 owns it: the sweep never re-runs an act, and Party Identity's enroll runs only inside the onboarding transaction.
-Deleted: Resume 32. Resume 31 owns it.
-Deleted: Resume 33. Recoverable Invocation Primitive policy 4 and Invariant 3.1 own it: an outcome pairs with its intent by invocation id.
-Deleted: Resume 34. Execution Contract Database 1 owns it.
-Deleted: Resume 35. Recoverable Invocation Primitive policy 19 owns it.
-Deleted: Resume 36. Recoverable Invocation Primitive policy 20 owns it.
-Deleted: Resume 37. Execution Contract Database 1 owns it.
-Deleted: Resume 38. Execution Contract Database 2 owns it: an arc's reads and the writes they decide are one transaction, and the composition names no critical section to take again.
-Deleted: Resume 39. Term onboarding probe owns it: the probe reads the party's credentials of the intent's type; duplicate-active-credential is a pre-commit refusal now (Action wiring 32).
-Deleted: Resume 40. Term onboarding probe owns it.
-Deleted: Resume 41. Recoverable Invocation act probe 6a owns it: a sole credential candidate is undecidable.
-Deleted: Resume 42. Recoverable Invocation reconcile step 3.8 owns it: the next action is the operator's the invocation resolve disposition (outcome, abandoned or escalated).
-Deleted: Resume 43. Recoverable Invocation reconcile step 3.8 owns it.
-Deleted: Resume 44. Resume 22 owns it.
-Deleted: Resume 45. Resume 22 owns it.
-Deleted: Resume 46. Recoverable Invocation reconcile step 3.11 owns it.
-Deleted: Resume 47. Recoverable Invocation reconcile step 3.8a owns it; under service identity none the case reaches the compliance surface (Recoverable Invocation service identity 1b).
-Deleted: Resume 48. Recoverable Invocation Primitive policy 41 owns it: invalid-request.
-Deleted: Resume 49. Recoverable Invocation Primitive policy 41 and 43 own it.
-Deleted: Resume 50. Recoverable Invocation Primitive policy 22 owns it.
-Deleted: Resume 51. Resume 17 owns it: the foreign party read retired (Scott, 2026-11-09 9:17 PM Central, option A).
-Deleted: Resume 52. Unreachable: an accepted invitation with no party cannot commit; the onboarding transaction is atomic (Execution Contract Database 1).
-```
-
 ---
 
 ## Composition-level invariants
@@ -553,8 +454,6 @@ These emerge from the composition; none belongs to a single constituent.
 - **Invariant 1 — Invitation gates enrollment.**
   ```
   Invariant 1.1: EVERY enroll the composition makes MUST follow an accepted invitation carrying the arc's accepting identity reference.
-  Deleted: Invariant 1.2. Recoverable Invocation reconcile step 3.7 owns it: no arc is resumed, the sweep never re-runs an act, and the invocation resolve calls no constituent.
-  Deleted: Invariant 1.3. Invitation's single resolution owns it, whatever the clock: exactly one accept answers accepted for one token; and Recoverable Invocation's critical section keeps a second call off the act while the first runs.
   ```
 
 - **Invariant 2 — Identity binding at accept, linked by the completion record.**
@@ -723,16 +622,12 @@ Check 4.1: An auditor MUST find no completion record for an invitation whose sta
 Check 4.2: An auditor MUST find no completion record without an intent record for the invitation token (Invariant 1.1).
 Check 5.1: An auditor MUST enumerate EVERY accepted invitation carrying no completion record AND no intent record for the invitation token (Invariant 4.1).
 Check 5.2: An auditor MUST enumerate EVERY intent record followed by no completion record AND no refusal record for the invitation token, which Recoverable Invocation's checks read against the closure window (Invariant 4.1).
-Deleted: Check 5.3. Unreachable: no interruption record is written (Action wiring 30).
-Deleted: Check 5.4. Unreachable: no resume record is written (Resume 33).
 Check 6.1: An auditor MUST find a decline record for EVERY declined invitation AND a revoke record for EVERY revoked invitation (Invariant 4.1).
 Check 6.2: An auditor MUST find an initiated record carrying the invitation token for EVERY invitation (Invariant 4.2).
 Check 6.3: An auditor MUST find EVERY initiated record naming an invitation that exists (Invariant 4.2).
 Check 6.4: An auditor MUST NOT read an initiate attempt as a per-invitation signature (Action wiring 3).
 Check 7.1: An auditor MUST find no invitation token carrying two completion records (Invariant 4.4).
-Deleted: Check 7.2. Unreachable: no interruption record or resume record is written, and a completion record's party id is the one the operator or the transaction names once (Check 7.3).
 Check 7.3: An auditor MUST find no party id on the completion records of two invitation tokens (Invariant 4.5).
-Deleted: Check 7.4. External check 10 owns it, because no record carries a second writer.
 Check 8.1: An auditor MUST read Recoverable Invocation's checks over the act kind's records as this composition's own (Composes 6).
 ```
 
@@ -745,13 +640,10 @@ External check 1: An auditor needing the onboarding completion bound confirmed M
 External check 2: An auditor needing the clock offset allowance confirmed MUST read the deployment's own configuration (Capability requirement 7).
 External check 3: An auditor needing the audit horizon confirmed MUST read the Audit Trail instance's retention policy (Capability requirement 9).
 External check 4: An auditor needing the minted-id width bounds confirmed MUST read the deployment's own declaration (Capability requirement 11).
-Deleted: External check 5. Execution Contract Database 2 owns it.
-Deleted: External check 6. Execution Contract Database 2 owns it.
 External check 7: An auditor needing the routing obligation confirmed MUST read the deployment's own wiring (Composes 9).
 External check 8: An auditor needing an actor reference's authorization confirmed MUST read the composed Permissions instance's records (Non-goal 2).
 External check 9: An auditor needing a constituent's own guarantee confirmed MUST read the constituent's own acceptance (Composes 6).
 External check 10: An auditor needing a second writer ruled out MUST read the deployment's own wiring (Wiring decision 5).
-Deleted: External check 11. The longest resume gap retired with the resume arm (Capability requirement 24).
 External check 12: An auditor needing the commit round trip, the probe round trip, the reconciliation run bound AND the settling period confirmed MUST read the deployment's own declaration (Capability requirement 29).
 External check 13: An auditor needing the retention of the Invitation, Party Identity AND Credential records confirmed MUST read the deployment's own configuration (Capability requirement 31).
 ```
@@ -765,7 +657,6 @@ Standing rule 3: An auditor MUST read a discrepancy inside the clock offset allo
 Standing rule 4: An auditor MUST quantify an Invitation-record check over the dedicated Invitation instance alone.
 Standing rule 5: An auditor MUST quantify a trail-walking check over the arcs inside the horizon.
 Standing rule 6: An auditor MUST read a purged event as lawful destruction.
-Deleted: Standing rule 7. Execution Contract Database 1 owns it.
 Standing rule 8: An auditor MUST join the Audit Trail's records and the Invitation's record on the invitation token, and the party and credential records on the party id (Check 2.2, Check 7.3).
 Standing rule 9: An auditor MUST NOT pair an attempt record with an outcome, an intent record paired with the intent record's outcome by invocation id excepted (Recoverable Invocation Primitive policy 5).
 ```
@@ -806,16 +697,12 @@ NOTE: the owners — a [Permissions](../atoms/permissions.md) instance over the 
 
 ```
 Clock semantics 1: The composition MUST take the clock offset allowance at the reading of a cross-seam comparison (Recoverable Invocation Allowance 4).
-Deleted: Clock semantics 2. Recoverable Invocation Allowance 4 and Allowance 6 own it: in-flight and aged are read at the reading, and an edge excludes a record from a pass.
-Deleted: Clock semantics 3. Recoverable Invocation Invariant 7 owns it: the horizon edge is read toward not reading.
 ```
 
 ### Concurrency
 
 ```
 Concurrency 1: Two fresh accepts of one invitation token MUST resolve through Invitation's single resolution.
-Deleted: Concurrency 2. Execution Contract Database 2 owns it.
-Deleted: Concurrency 3. Execution Contract Database 2 owns it: an arc's reads and the writes they decide are one transaction, and the composition names no holder for a resumer to race.
 Concurrency 4: Two [Onboard] calls of one invitation token in flight MUST resolve through the act's critical section, the second answering act-in-flight (Recoverable Invocation open step 3.5).
 ```
 

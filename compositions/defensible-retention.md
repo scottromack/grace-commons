@@ -61,7 +61,6 @@ Composes 7: The composition MUST NOT hold an instance Audit Trail reaches.
 Composes 8: The business retention instance MUST NOT govern an audit event.
 Composes 9: The composition MUST reach a constituent through the constituent's declared surface.
 Composes 10: The composition MUST NOT read a constituent's records beside the constituent's declared read.
-Deleted: Composes 11. Composes 21 owns it: the audit instance's end of life is this composition's own, reached through Audit Trail's record_destruction.
 Composes 12: The composition MUST read the substrate's events by an open-ended sequence range.
 Composes 13: The composition MUST select an event in the composition's own code.
 Composes 14: The composition MUST NOT query the substrate by a payload predicate.
@@ -126,7 +125,6 @@ Composition state 30: A record MAY carry a hold beside another hold.
 Composition state 31: A record MAY carry no hold.
 Composition state 32: A hold MUST NOT rest on a retention.
 Composition state 33: The sweep MUST remove a retention the sweep purged from the record-to-retentions index AND the retention-to-record index.
-Deleted: Composition state 34. Execution Contract Database 1 owns it.
 ```
 
 Term record-to-retentions index: record_to_retentions — the composition's index from a record reference to the retentions whose retention state EQUALS retained over the record — the auditor's first query surface and a read-path convenience, never the gate's input.
@@ -162,7 +160,6 @@ The audit cascade keeps one composition-state element of its own, moved here fro
   erasure outcomes 2: erasure outcomes MUST address an outcome per event id.
   erasure outcomes 3: The composition MUST classify erasure outcomes as extraction-pending against Erasure Tombstone.
   erasure outcomes 4: The outcome record MUST land under the event id alone AND MUST NOT rewrite the covering seal's purged events.
-  Deleted: erasure outcomes 5. Execution Contract Database 1, Execution Contract Database 3 and Execution Contract Database 4 own it.
   erasure outcomes 6: A destruction-failed record MUST NOT close an entry.
   ```
   The instant of a destruction is no part of erasure outcomes: Retention Window Capability requirement 7 asks the deployment to retain it, read from the clock that supplies now, which the composition reads only for the seal cadence timer and the scan (Audit Trail Clock source 1), and Retention Window External check 5 reads it from the deployment's own destruction records.
@@ -176,9 +173,7 @@ The audit cascade keeps one composition-state element of its own, moved here fro
 ```
 Capability requirement 1: The deployment MUST supply now at the seam.
 Capability requirement 2: The host MUST supply one invocation id at the seam PER state-changing invocation.
-Deleted: Capability requirement 3. Execution Contract Logic confinement 3 owns it.
 Capability requirement 4: The transition MUST NOT mint an invocation id.
-Deleted: Capability requirement 5. Execution Contract Logic confinement 3 owns it.
 Capability requirement 6: The composition MUST NOT accept an invocation id as an input.
 Capability requirement 7: The composition MUST NOT mint a retention id.
 Capability requirement 8: The composition MUST NOT mint a hold id.
@@ -207,8 +202,6 @@ Capability requirement 30: A deployment needing two hold check modes MUST run tw
 Capability requirement 31: A deployment MUST resolve a policy reference at Retention Window's seam.
 Capability requirement 32: The composition MUST NOT reconcile two policies.
 Capability requirement 33: The composition MUST NOT store an override authorization.
-Deleted: Capability requirement 34. Concurrency 5 owns it.
-Deleted: Capability requirement 35. Concurrency 5 owns it.
 Capability requirement 36: The deployment MUST declare the clock offset allowance.
 Capability requirement 37: A deployment MUST supply a Lease host PER Lease Capability requirement 1, 2, 4, 5, 7 and 11.
 Capability requirement 38: A deployment MUST set the call pause bound.
@@ -222,14 +215,10 @@ Capability requirement 45: A deployment MUST place a retention of the business r
 Capability requirement 46: A deployment MUST purge a retention of the business retention instance through [Purge Record] alone (Retention Window Simultaneous retention 5).
 Capability requirement 47: A deployment MUST place a hold of the hold records through [Place Hold] alone.
 Capability requirement 48: A deployment MUST declare the hold database name.
-Deleted: Capability requirement 49. Execution Contract Database 3 owns it.
 Capability requirement 50: A deployment MUST supply the alerting surface.
-Deleted: Capability requirement 51. Execution Contract Scheduled leg 1 owns it.
-Deleted: Capability requirement 52. Execution Contract Scheduled leg 1 owns it.
 Capability requirement 53: A deployment MUST release a hold of the hold records through [Release Hold] alone.
 Capability requirement 54: A deployment MUST supply hold records, a business retention instance, an audit instance AND a record destruction pattern bound by Lease Capability requirement 8 and 10 for EVERY call the composition issues under the record section.
 Capability requirement 55: A deployment MUST supply the business retention instance PER Retention Window Capability requirement 1, 5 and 6a through 16, the composition owning the destruction (Retention Window Record divergence 4).
-Deleted: Capability requirement 56. Execution Contract Database 2 owns it: Audit Trail names no margin for a record action to start on.
 Capability requirement 57: A deployment MUST set an audit retention policy that answers one policy for EVERY event of the audit instance.
 Capability requirement 58: A deployment MAY start an instance ONLY IF the audit horizon EXCEEDS the alert floor.
 Capability requirement 59: A deployment MUST NOT serve two instances of the composition by one constituent instance.
@@ -389,7 +378,6 @@ Primitive policy 11: The composition MUST answer invalid-request for a malformed
 Primitive policy 12: IF a payload field EXCEEDS the field's cap THEN the composition MUST answer invalid-request.
 Primitive policy 13: The composition MUST NOT call a constituent BEFORE judging the boundary predicate.
 Primitive policy 14: An action MUST NOT issue a record_action BEFORE sizing the largest record against the audit instance's payload cap.
-Deleted: Primitive policy 15. Primitive policy 14 owns it.
 Primitive policy 16: The composition MUST compare an opaque input byte-exact.
 Primitive policy 17: The composition MUST NOT normalize an opaque input.
 Primitive policy 18: The composition MUST NOT store a credential.
@@ -426,8 +414,6 @@ Identity 8: A deployment MAY canonicalize a record reference ahead of a call.
 ```
 Audit arm 1: IF the record start floor admits a further call THEN the composition MUST retry a recording-failure carrying step-2.
 Audit arm 2: The composition MUST NOT retry a recording-failure carrying step-3.
-Deleted: Audit arm 3. Execution Contract Database 1 owns it.
-Deleted: Audit arm 4. Execution Contract Database 1 owns it.
 Audit arm 5: The composition MUST read a landed record back by the invocation id.
 Audit arm 6: The composition MUST alert on a landed record carrying no retention.
 Audit arm 7: IF the substrate refuses an intent on a credential THEN the action MUST answer invalid-credential.
@@ -497,13 +483,11 @@ Action wiring 12: IF a committed placement's outcome landed THEN [Place Record U
 Action wiring 13: IF Retention Window answers invalid-policy THEN [Place Record Under Retention] MUST answer invalid-request.
 Action wiring 14: IF Retention Window answers policy-not-found THEN [Place Record Under Retention] MUST answer invalid-request.
 Action wiring 15: IF Retention Window answers invalid-request THEN [Place Record Under Retention] MUST answer invalid-request.
-Deleted: Action wiring 16. Execution Contract Constituent failure 1 owns it.
 Action wiring 16a: IF Retention Window answers registry-unavailable THEN [Place Record Under Retention] MUST answer storage-failure (Execution Contract Constituent failure 2).
 Action wiring 17: An admitted hold placement MUST call Legal Hold's place with the record reference, the placing actor, the reason, the case reference AND the supplied placement instant, where the call supplies one (Primitive policy 10).
 Action wiring 18: A committed hold placement MUST record a hold placed outcome carrying the hold id, the record reference, the placing actor, the reason, the case reference AND the placement instant.
 Action wiring 19: IF a committed hold placement's outcome landed THEN [Place Hold] MUST answer the hold id.
 Action wiring 20: IF Legal Hold answers invalid-request THEN [Place Hold] MUST answer invalid-request.
-Deleted: Action wiring 21. Execution Contract Constituent failure 1 owns it.
 Action wiring 22: The composition MUST NOT record a hold release intent BEFORE reading the hold through Legal Hold's read.
 Action wiring 23: IF no hold EXISTS for the hold id THEN [Release Hold] MUST answer not-known.
 Action wiring 24: IF the hold state EQUALS released THEN [Release Hold] MUST answer already-released.
@@ -513,7 +497,6 @@ Action wiring 27: IF a committed hold release's outcome landed THEN [Release Hol
 Action wiring 28: IF Legal Hold answers not-known THEN [Release Hold] MUST answer not-known.
 Action wiring 29: IF Legal Hold answers already-released THEN [Release Hold] MUST answer already-released.
 Action wiring 30: IF Legal Hold answers invalid-request THEN [Release Hold] MUST answer invalid-request.
-Deleted: Action wiring 31. Execution Contract Constituent failure 1 owns it.
 Action wiring 32: [Purge Eligible] MUST read the retentions from Retention Window's declared read.
 Action wiring 33: [Purge Eligible] MUST NOT answer a retention outside elapsed retention.
 Action wiring 34: [Purge Eligible] MUST call Legal Hold's read with the record reference AND the active state PER answered retention.
@@ -524,7 +507,6 @@ Action wiring 38: [Purge Eligible] MUST answer the retention deadline AND the pu
 Action wiring 39: [Purge Eligible] MUST order the answer by retention deadline, rising.
 Action wiring 40: [Purge Eligible] MUST order two retentions sharing a retention deadline by retention id, rising.
 Action wiring 41: [Purge Eligible] MUST NOT write.
-Deleted: Action wiring 42. Action wiring 111 owns it.
 Action wiring 43: A reader MUST NOT read [Purge Eligible]'s answer as a sibling statement.
 Action wiring 44: The composition MUST NOT answer not-known for a purge BEFORE reading the retention id from Retention Window's declared read.
 Action wiring 45: IF Retention Window's declared read answers no retention for the retention id THEN [Purge Record] MUST answer not-known.
@@ -548,7 +530,6 @@ Action wiring 63: IF a committed purge's outcome landed THEN [Purge Record] MUST
 Action wiring 64: IF Retention Window answers not-retained for the named retention THEN a purge MUST answer not-known.
 Action wiring 65: IF Retention Window answers not-known for the named retention THEN a purge MUST answer not-known.
 Action wiring 66: IF Retention Window answers retention-period-not-elapsed for the named retention THEN a purge MUST answer not-eligible.
-Deleted: Action wiring 67. Execution Contract Constituent failure 1 owns it.
 Action wiring 68: IF Retention Window answers a refusal for a sibling AND the refusal DOES NOT EQUAL not-retained THEN a purge MUST mark the sibling pending.
 Action wiring 69: The composition MUST remove a purged retention from an index whatever the outcome record's answer.
 Action wiring 70: The composition MUST alert on a destroyed record carrying an owed record.
@@ -559,7 +540,6 @@ Action wiring 74: IF Legal Hold's read answers invalid-query THEN the compositio
 Action wiring 75: The composition MUST answer hold-check-unavailable for a hold-record fault outside Legal Hold's read contract ahead of an act's first committing call.
 Action wiring 76: A purge intent MUST carry the hold check result.
 Action wiring 77: IF the database name a read of Legal Hold answers DOES NOT EQUAL the hold database name THEN the composition MUST read the read as refused (Legal Hold Instance 7).
-Deleted: Action wiring 78. Action wiring 77 owns it.
 Action wiring 79: IF an act's first committing call answers no answer THEN the action MUST answer storage-failure.
 NOTE: open 2026-10-06-c — a storage-failure answers where nothing committed and where the call may still land, with nothing to tell the two apart (Execution Contract Constituent failure 1; Action wiring 16a, 79, 96).
 Action wiring 80: IF Retention Window's purge answers no answer OR state-unavailable for a sibling THEN a purge MUST mark the sibling pending.
@@ -585,12 +565,7 @@ Action wiring 98: IF a constituent answers state-unavailable to an act's first c
 Action wiring 99: IF a read a committed act makes for the act's outcome answers a refusal OR state-unavailable OR no answer THEN the composition MUST read the outcome as an owed record.
 Action wiring 100: A purge MUST NOT make the gate read BEFORE judging the not-known refusals of Action wiring 45 and Action wiring 94.
 Action wiring 101: [Purge Eligible] MUST NOT answer a retention whose retention state Retention Window's declared read answers purged.
-Deleted: Action wiring 102. Execution Contract Database 1 owns it.
-Deleted: Action wiring 103. Execution Contract Database 1 owns it.
-Deleted: Action wiring 104. Execution Contract Database 1 owns it: a hold placement's intent, hold and outcome commit together, and the composition names no read ahead of the intent for Legal Hold to refuse.
-Deleted: Action wiring 105. Execution Contract Database 1 owns it: a placement's intent, act and outcome commit together, and the composition names no id list for a placement intent to carry.
 Action wiring 106: A committed purge MUST read the named retention's purge instant from Retention Window's declared read.
-Deleted: Action wiring 107. Execution Contract Database 1 owns it.
 Action wiring 108: A purge MUST NOT record an intent BEFORE judging the refusals of Action wiring 47, Action wiring 50, Action wiring 53 and Action wiring 57.
 NOTE: open 2026-10-05-j — the refusals ahead of the intent, not-known and not-eligible among them, and the take precede any check of the credential (Action wiring 44, Action wiring 45, Action wiring 94, Action wiring 108).
 Action wiring 109: IF Retention Window's declared read answers state-unavailable OR no answer ahead of an act's first committing call THEN the action MUST answer storage-failure.
@@ -598,8 +573,6 @@ Action wiring 110: [Purge Eligible] MUST answer EVERY elapsed retention Retentio
 Action wiring 111: IF Retention Window's declared read answers state-unavailable OR no answer to a call of [Purge Eligible] THEN the action MUST answer storage-failure.
 NOTE: watch the constituent's failed read (Action wiring 98, Action wiring 109, Action wiring 111).
 Action wiring 112: IF the remaining term the destruction call's reading answers EXCEEDS the sibling floor THEN a committed purge MUST call the record destruction pattern with the record reference.
-Deleted: Action wiring 46. Composition state 19 owns it.
-Deleted: Action wiring 51. Invariant 1.3 owns it.
 ```
 
 Term intent: the record_action call naming what an invocation is about to do, written before any committing call — retention_placement_intended | hold_placement_intended | hold_release_intended | purge_intended.
@@ -758,7 +731,6 @@ purge eligible events 3: [Purge Eligible Events] MUST NOT re-derive eligibility.
 purge eligible events 4: [Purge Eligible Events] MUST NOT share the projection's now reading with a later RetentionWindow.purge.
 purge eligible events 5: [Purge Eligible Events] MUST NOT answer a refusal, the storage-failure of a failed read (Action wiring 111) excepted.
 purge eligible events 6: [Purge Eligible Events] MUST NOT filter by legal hold.
-Deleted: purge eligible events 7. Execution Contract Error model 1 owns it: a declared read of Retention Window whose answer never arrives leaves [Purge Eligible Events] no answer to give, and none to read as an empty list.
 purge eligible events 8: The deployment MUST call [Purge Event] for EVERY event [Purge Eligible Events] answers.
 purge eligible events 9: IF a Retained retention's purge deadline PRECEDES now AND no hold EXISTS over the event THEN the deployment MUST surface a compliance alert.
 ```
@@ -920,12 +892,10 @@ The cascade-on-purge rule, moved here from Audit Trail's wiring decision, is thi
 The class boundary's home; erasure mechanism 1 through 9, [Purge Event] step 3, Audit Trail Invariant 5 and the [Purge Event] term entry cite it.
 
 ```
-Deleted: Boundary one 1. Audit Trail record destruction step 2.9 owns it.
 Boundary one 2: The composition MUST NOT condition RetentionWindow.purge's outcome on the erasure mechanism's answer.
 Boundary one 3: The composition MUST record a divergence between a Purged retention and readable content.
 Boundary one 4: The composition MUST surface a divergence as a compliance alert.
 Boundary one 5: IF purge age EXCEEDS audit edge THEN an auditor MUST read a divergence as a residual finding against the erasure mechanism.
-Deleted: Boundary one 6. First half 5 owns it.
 ```
 
 Term divergence: a retention in *Purged* over content still readable — `cascade-failure(step-3)`; a destruction-failed outcome in erasure outcomes.
@@ -942,13 +912,10 @@ Reconciliation 6: The sweep MUST match an intent to an outcome by the invocation
 Reconciliation 7: The sweep MUST NOT match an intent to an outcome by an input.
 Reconciliation 8: The sweep MUST read the constituent records for the act an open marker names.
 Reconciliation 9: IF the act did not commit THEN the sweep MUST close the open marker as intent abandoned.
-Deleted: Reconciliation 10. Execution Contract Database 1 owns it.
 Reconciliation 11: IF the constituents' records carry EVERY datum a recovery outcome needs THEN the sweep MUST emit EXACTLY ONE recovery outcome PER committed act carrying no outcome.
-Deleted: Reconciliation 12. Reconciliation 9 owns it.
 Reconciliation 13: A recovery outcome MUST carry the candidate marker's invocation id.
 Reconciliation 14: A recovery outcome MUST carry the candidate marker's actor reference as attributed actors.
 Reconciliation 15: A recovery outcome MUST carry the recovery marker.
-Deleted: Reconciliation 16. Reconciliation 14 owns it.
 Reconciliation 17: The sweep MUST NOT emit a recovery outcome BEFORE recording a recovery intent.
 Reconciliation 18: The sweep MUST NOT make a committing call BEFORE recording a recovery intent.
 Reconciliation 19: The sweep MUST call Retention Window's purge PER pending sibling.
@@ -1017,11 +984,9 @@ Term candidate marker: the open marker that committed the act, a young marker in
 First half 1: The first half MUST enumerate Purged retentions.
 First half 2: IF purge edge EXCEEDS purge age THEN the first half MUST NOT examine the retention.
 First half 3: The first half MUST test EVERY examined retention for a purged events membership, a pair in the destruction record, and a destroyed outcome in erasure outcomes.
-Deleted: First half 4. First half 3 owns it.
 First half 5: The first half MUST re-drive a retention failing First half 3 through [Purge Event].
 First half 6: The first half MUST NOT re-read the predicate BEFORE taking the critical section keyed by event id.
 First half 7: The first half MUST NOT write BEFORE re-reading the predicate under the critical section.
-Deleted: First half 8. First half 5 owns it.
 First half 9: IF a re-drive lands under-legal-hold THEN the first half MUST leave the entry open and MUST NOT count the entry against Audit Trail's compensation window.
 First half 10: The first half MUST re-drive an entry left open under a hold on the first run after the hold is released.
 First half 11: IF a hold over an open entry is released THEN the first half MUST count the entry's Audit Trail compensation window from the instant of the first run that reads no active hold over the event, AND MUST NOT count the window from a release instant the Legal Hold records carry, which a caller may have supplied and backdated (Legal Hold Operation 39, Operation 41).
@@ -1049,7 +1014,6 @@ Each emerges from the composition; none belongs to one constituent.
   Invariant 1.1: IF an active hold covers a record outside the destroyed records AND the hold check mode EQUALS strict THEN the composition MUST NOT call Retention Window's purge.
   Invariant 1.2: IF an active hold covers a record outside the destroyed records AND the hold check mode EQUALS strict THEN a purge MUST NOT answer ok.
   Invariant 1.3: The composition MUST NOT read unreadable hold records as an empty hold check result.
-  Deleted: Invariant 1.4. Wiring decision 1 owns it.
   Invariant 1.5: IF an active hold covers a record outside the destroyed records AND the hold check mode EQUALS strict THEN a purge MUST NOT answer not-eligible.
   Invariant 1.6: IF an active hold covers a record outside the destroyed records AND the hold check mode EQUALS strict THEN a purge MUST NOT answer under-active-retention.
   ```
@@ -1099,7 +1063,6 @@ Each emerges from the composition; none belongs to one constituent.
   Invariant 7.1: IF an active hold covers the record THEN a release MUST NOT make the record purge-eligible.
   Invariant 7.2: [Purge Eligible] MUST answer a record carrying an active hold as hold-blocked.
   Invariant 7.3: [Purge Eligible] MUST answer a record carrying the unavailable sentinel as hold-blocked.
-  Deleted: Invariant 7.4. Action wiring 53 owns it.
   ```
 - **Invariant 8 — Defensible destruction.**
   ```
@@ -1116,7 +1079,6 @@ Each emerges from the composition; none belongs to one constituent.
   Invariant 9.3: The composition MUST NOT leave a sibling retained over a destroyed record at quiescence.
   Invariant 9.4: A pending sibling MUST stand named in the record purged outcome.
   Invariant 9.5: The gate MUST NOT rest on the audit horizon.
-  Deleted: Invariant 9.2. Composition state 19 owns it.
   ```
 - **Invariant 10 — Authentication precedes destruction and commitment.**
   ```
@@ -1254,7 +1216,6 @@ Check 1.10: An auditor MUST read an aged-out hold as unknown for Check 1.3 (Inva
 Check 1.11: An auditor MUST read Check 1.3 over a record carrying an open marker inside the compensation window as an open obligation (Invariant 5.3).
 Check 2.1: An auditor MUST find a hold placed outcome PER hold whose placement stands within the audit horizon (Invariant 3.1).
 Check 2.2: An auditor MUST find a hold released outcome PER released hold whose release stands within the audit horizon (Invariant 3.2).
-Deleted: Check 2.3. Check 2.4 owns it.
 Check 2.4: An auditor MUST read an aged-out hold as covered by the count of surviving attestations alone (Invariant 3.4).
 Check 2.5: An auditor MUST find Audit Trail's verify_record answering verified PER outcome the seal cadence covers, an outcome Check 2.6 covers AND an outcome Check 2.7 covers excepted (Invariant 3.5).
 Check 2.6: An auditor MUST read a failed-verification carrying purged as a lawful destruction (Invariant 3.4).
@@ -1322,9 +1283,7 @@ External check 8: An auditor needing a record's fate under an abandoned purge in
 External check 9: An auditor needing the single surface confirmed MUST read the deployment's own access control over the hold records and the business retention instance (Capability requirement 45 through 47, Capability requirement 53).
 External check 10: An auditor needing the call pause bound confirmed MUST read the deployment's own constituent clients (Capability requirement 38, Capability requirement 54).
 External check 11: An auditor needing the hold database name confirmed MUST read the deployment's own declaration (Capability requirement 48).
-Deleted: External check 12. Execution Contract Database 3 owns it.
 External check 13: An auditor needing the alerting surface confirmed MUST read the deployment's own alert records (Capability requirement 13, Capability requirement 50).
-Deleted: External check 14. Execution Contract Scheduled leg 1 owns it.
 External check 15: An auditor MUST clear from external evidence that the erasure mechanism was authorized to destroy, shreds, and completed each destruction.
 External check 16: IF Legal Hold EQUALS composed THEN an auditor MUST clear from the deployment's own concurrency control that a hold placement over an event id and a cascade on that event id serialize, the placement a bounded holder of the section, that no hold over an event id of this instance is placed outside the hold placement, and that the placement gate bounds the hold placements over an open entry to one displacement of the entry's first-half leg WITHIN compensation window of the finding's creation (Capability requirement 69a, 69b, 69c, 69d, 69e, 69g, 69i).
 External check 17: An auditor MUST clear from the deployment's own lock that the cascade's critical section is a lease of the act's completion bound, a [Purge Event] re-driven by the first half excepted, and for a hold placement, shared by every process serving the instance, keyed by the event id namespaced by the act's kind, held under a holder value minted fresh for each attempt, and not released early by an abandoned call (Audit Trail Per-act critical section 1, 1a, 1b, 1c, Cascade critical section 1, 4a, 5).
@@ -1355,7 +1314,6 @@ Non-goal 16: A deployment needing a shred MUST compose a shred pattern.
 Non-goal 17: The composition MUST NOT record an outcome for a rejection outside the gate, an intent abandoned excepted.
 Non-goal 18: A deployment needing an attempted-action record MUST compose a Failed-Attempt Log pattern.
 Non-goal 19: The composition MUST NOT govern a Legal Hold record's own retention.
-Deleted: Non-goal 20. Capability requirement 69 owns it: this composition gates the audit instance's cascade, which moved here from Audit Trail.
 Non-goal 21: The composition MUST NOT keep an aged-out event.
 Non-goal 22: A deployment whose hold outlives the audit horizon MUST hold the audit events proving the hold through the hold placement of Capability requirement 69g.
 Non-goal 23: A deployment that admits an unbounded hold MUST alert for a hold approaching the audit horizon (Capability requirement 13, Term horizon alert).
@@ -1377,10 +1335,6 @@ NOTE: the owners — Policy Reconciliation *(forthcoming)* (Non-goal 1, Non-goal
 ### Atomic writes
 
 ```
-Deleted: Atomic writes 1. Execution Contract Database 1 owns it.
-Deleted: Atomic writes 2. Execution Contract Database 1 owns it.
-Deleted: Atomic writes 3. Execution Contract Database 1 owns it.
-Deleted: Atomic writes 4. Execution Contract Database 1 owns it.
 Atomic writes 5: An admitted purge MUST record the outcome ONLY AFTER the constituent commit.
 Atomic writes 6: The composition MUST NOT reverse Retention Window's purge.
 Atomic writes 7: A destroyed record carrying an owed record MUST stand as the composition's own partial.
@@ -1392,22 +1346,11 @@ Atomic writes 9: The composition MUST NOT read a storage-failure from Retention 
 
 ```
 Clock semantics 4: The composition MUST judge elapsed retention against the injected now.
-Deleted: Clock semantics 2. Action wiring 8 owns it.
-Deleted: Clock semantics 1. Execution Contract Logic confinement 3 owns it.
-Deleted: Clock semantics 3. Action wiring 106 owns it.
 Clock semantics 5: The composition MUST judge a sibling set member's eligibility against the injected now.
-Deleted: Clock semantics 6. Composes 18 owns it.
-Deleted: Clock semantics 7. Retention Window Operation 13 owns it.
-Deleted: Clock semantics 8. Execution Contract Logic confinement 12 owns it.
-Deleted: Clock semantics 9. Execution Contract Logic confinement 12 owns it.
-Deleted: Clock semantics 10. Event Log Operation 2 owns it, reached through Audit Trail.
 Clock semantics 11: A reader MUST read a record purged outcome's purge instant as the instant Retention Window stamped the purge.
-Deleted: Clock semantics 12. Action wiring 106 owns it.
-Deleted: Clock semantics 13. Action wiring 106 owns it.
 Clock semantics 14: The composition MUST NOT read a supplied placement instant as the entry instant.
 Clock semantics 15: A reader MUST read the recording instant of a hold placement's intent as the entry instant.
 Clock semantics 16: The gate MUST NOT read a clock.
-Deleted: Clock semantics 17. Capability requirement 36 owns it.
 ```
 
 Term clock offset allowance: clock offset allowance — the deployment's declared envelope between two seams' readings of one moment — what this composition allows wherever a reading at its own seam is set against an instant another seam stamped (Term elapsed retention, Term young marker).
@@ -1431,9 +1374,6 @@ Term historical hold set: the holds over a destroyed record that Legal Hold's re
 ### Concurrency
 
 ```
-Deleted: Concurrency 1. Concurrency 5 owns it.
-Deleted: Concurrency 2. Concurrency 5 owns it.
-Deleted: Concurrency 3. Concurrency 5 owns it.
 Concurrency 4: Two sweeps MUST NOT emit two outcomes for one act.
 Concurrency 5: The composition MUST NOT make a committing call BEFORE taking the record section over the call's record reference.
 Concurrency 6: A purge MUST NOT make the gate read BEFORE taking the record section.

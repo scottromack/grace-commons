@@ -46,7 +46,6 @@ This is a freestanding atom in the EOS (Essence of Software — Daniel Jackson's
 ```
 Identity 1: The atom MUST identify a commitment by the id.
 Identity 2: The atom MUST assign the id from the id material the seam supplies.
-Deleted: Identity 3. Execution Contract Logic confinement 3 owns it.
 Identity 4: The atom MUST NOT change a commitment's id.
 Identity 5: Two commitments MUST NOT share an id.
 Identity 6: The atom MUST NOT identify a commitment by a property.
@@ -56,7 +55,6 @@ Identity 9: The atom MUST NOT normalize a reference.
 Identity 10: The atom MUST NOT confirm that a resource names a known registry entry.
 Identity 11: The atom MUST NOT confirm that a requester names a known actor.
 Identity 12: The atom MUST NOT hold the resource's content.
-Deleted: Identity 13. Execution Contract Database 7 owns it.
 ```
 
 Term commitment: the record this atom holds — one resource held for one requester for a bounded window, then resolved to exactly one terminal state.
@@ -107,13 +105,10 @@ Capability requirement 2: The deployment MUST supply the id material at the seam
 Capability requirement 16: The deployment MUST supply the registry's availability verdict and the availability read span at the seam.
 Capability requirement 3: The registry MUST run the availability read and the hold write for one resource as one critical section.
 Capability requirement 4: The registry MUST release the critical section on the caller's return.
-Deleted: Capability requirement 5. Capability requirement 18 and Capability requirement 19 own it.
 Capability requirement 18: The registry MUST bound the critical section's availability read by the critical section bound the registry declares.
 Capability requirement 19: IF a hold write in flight EXISTS for the resource THEN the registry MUST NOT release the critical section.
-Deleted: Capability requirement 6. Execution Contract Database 3 owns it.
 Capability requirement 7: A deployment firing [Expire] on a cadence MUST declare the expire cadence.
 Capability requirement 8: A deployment firing [Expire] on a cadence MUST declare the reclamation window the expire cadence falls inside.
-Deleted: Capability requirement 9. Execution Contract Logic confinement 13 owns it.
 Capability requirement 10: The registry MUST return the resource to availability on a releasing action.
 Capability requirement 11: The registry MUST NOT return the resource to availability on an admitted confirm.
 Capability requirement 17: The registry MUST refuse a resource a held commitment carries.
@@ -127,14 +122,6 @@ Capability requirement 23: The deployment MUST supply id material naming no comm
 Capability requirement 24: A deployment firing [Expire] on a cadence MUST declare the expire run bound.
 Capability requirement 25: IF the reclamation sum EXCEEDS the reclamation window THEN a deployment MUST NOT declare the reclamation window.
 Capability requirement 26: A deployment firing [Expire] on a cadence MUST declare the restart delay bound.
-Deleted: Capability requirement 13. Execution Contract Logic confinement 7 owns it.
-Deleted: Capability requirement 14. Execution Contract Logic confinement 7 owns it.
-Deleted: Clock semantics 4. Execution Contract Logic confinement 7 owns it.
-Deleted: Clock semantics 1. Execution Contract Logic confinement 3 owns it.
-Deleted: Clock semantics 2. Execution Contract Logic confinement 3 owns it.
-Deleted: Clock semantics 3. Execution Contract Logic confinement 3 owns it.
-Deleted: Clock semantics 5. Execution Contract Logic confinement 7 owns it.
-Deleted: Clock semantics 6. Non-goal 26 owns it.
 ```
 
 Term hold write: the database write by which a [Place Hold] records a commitment.
@@ -177,7 +164,6 @@ Operation 3: IF duration EQUALS blank THEN [Place Hold] MUST answer invalid-requ
 Operation 4: IF the duration IS NOT IN the duration bounds THEN [Place Hold] MUST answer invalid-request.
 Operation 5: IF the registry refuses the resource THEN [Place Hold] MUST answer resource-unavailable.
 Operation 42: IF the critical section bound DOES NOT EXCEED the availability read span THEN [Place Hold] MUST answer registry-unavailable.
-Deleted: Operation 6. Execution Contract Refusal 1 owns it.
 Operation 7: [Place Hold] MUST NOT answer not-known.
 Operation 8: An admitted place hold MUST assign a fresh id.
 Operation 9: An admitted place hold MUST record resource and requester.
@@ -187,28 +173,20 @@ Operation 12: An admitted place hold MUST stand the commitment in held.
 Operation 13: An admitted place hold MUST answer the id.
 Operation 14: IF the id names no commitment THEN a resolving action MUST answer not-known.
 Operation 15: IF the commitment's state IS IN the terminal states THEN a resolving action MUST answer not-held.
-Deleted: Operation 16. Execution Contract Refusal 1 owns it.
 Operation 17: IF the commitment reads lapsed THEN [Confirm] MUST answer window-elapsed.
 Operation 18: IF the commitment reads lapsed THEN [Release] MUST answer window-elapsed.
 Operation 19: IF the commitment reads open THEN [Expire] MUST answer window-not-elapsed.
-Deleted: Operation 20. Execution Contract Refusal 1 owns it.
 Operation 21: An admitted confirm MUST stand the commitment in confirmed.
 Operation 22: An admitted release MUST stand the commitment in released.
 Operation 23: An admitted expire MUST stand the commitment in expired.
 Operation 24: An admitted confirm MUST record now as confirmation instant.
 Operation 25: An admitted release MUST record now as release instant.
 Operation 26: An admitted expire MUST record now as lapse instant.
-Deleted: Operation 27. Execution Contract Database 1 owns it.
-Deleted: Operation 28. Execution Contract Read 4 owns it.
-Deleted: Operation 29. Execution Contract Refusal 1 owns it.
 Operation 30: A refused action MUST leave the commitment as the call found the commitment.
 Operation 31: A refused [Place Hold] MUST NOT record a commitment.
-Deleted: Operation 32. Operation 30 owns it.
 Operation 33: A resolving action MUST NOT accept a resource.
 Operation 34: A resolving action MUST NOT accept a requester.
 Operation 35: A resolving action MUST NOT accept a duration.
-Deleted: Operation 36. Execution Contract Logic confinement 3 owns it.
-Deleted: Operation 37. Execution Contract Logic confinement 3 owns it.
 Operation 38: [Read] MUST answer EVERY commitment, held AND terminal.
 Operation 39: [Read] MUST answer a commitment's stored fields.
 Operation 40: [Read] MUST NOT write.
@@ -279,12 +257,10 @@ NOTE: watch the reconciliation's own run (Term reclamation sum).
 - **Invariant 3 — Terminal absorption.**
   ```
   Invariant 3.1: A commitment whose state IS IN the terminal states MUST NOT leave the terminal state.
-  Deleted: Invariant 4. Identity 4 owns id stability.
   ```
 - **Invariant 5 — Property immutability.**
   ```
   Invariant 5.1: An admitted resolving action MUST NOT change a property.
-  Deleted: Invariant 5.2. Operation 8 owns it.
   ```
 - **Invariant 6 — Hold window monotonicity.**
   ```
@@ -300,13 +276,10 @@ NOTE: watch the reconciliation's own run (Term reclamation sum).
   ```
   Invariant 8.1: A commitment's confirmation instant MUST NOT PRECEDE the commitment's placement instant.
   Invariant 8.2: A commitment's release instant MUST NOT PRECEDE the commitment's placement instant.
-  Deleted: Invariant 9. Identity 5 owns id reuse for every id, resolved or not.
   ```
 - **Invariant 10 — Commitment record durability.**
   ```
   Invariant 10.1: The atom MUST NOT remove a commitment from the database.
-  Deleted: Invariant 10.2. Invariant 10.1 and Execution Contract Database 4 own it.
-  Deleted: Invariant 10.3. Execution Contract Database 1 owns it.
   ```
 
 Term degenerate window: a commitment whose expiry instant does not exceed the commitment's placement instant.
@@ -372,8 +345,6 @@ Check 4.1: An auditor MUST find no commitment's confirmation instant preceding t
 Check 4.2: An auditor MUST find no commitment's release instant preceding the commitment's placement instant (Invariant 8.2).
 Check 5.1: An auditor MUST find EVERY commitment's properties unchanged across EVERY committed version of the commitment (Invariant 5.1; Execution Contract Generation acceptance 1).
 Check 5.2: An auditor MUST find no id on two commitments (Identity 5).
-Deleted: Check 6.1. Execution Contract Database 6 owns it.
-Deleted: Check 6.2. Execution Contract Database 6 owns it.
 Check 7.1: An auditor MUST find a resource and a requester on EVERY commitment (State 1).
 Check 7.2: An auditor MUST find a placement instant and an expiry instant on EVERY commitment (State 1).
 ```
@@ -390,8 +361,6 @@ External check 2: A deployment needing the transitions of one commitment ordered
 External check 3: A deployment needing a rejection observed MUST read the composing Event Log (Non-goal 23).
 External check 4: A deployment needing a requester bound to an actor MUST read the composing Actor Identity attestation (Non-goal 14).
 External check 5: A deployment needing the reclamation lag bounded MUST read the declared reclamation window (Capability requirement 8).
-Deleted: External check 6. Execution Contract Conformance 9 owns it.
-Deleted: External check 7. Execution Contract Database 6 owns it.
 ```
 
 ---
@@ -435,18 +404,9 @@ NOTE: the owners — [Idempotent Reservation](../compositions/idempotent-reserva
 
 ### Atomic writes
 
-```
-Deleted: Atomic writes 1. Execution Contract Database 1 owns it.
-Deleted: Atomic writes 2. Execution Contract Database 1 and Execution Contract Database 3 own it.
-Deleted: Atomic writes 3. Execution Contract Database 1 owns it.
-Deleted: Atomic writes 4. Execution Contract Database 1 owns it.
-```
-
 ### Concurrency
 
 ```
-Deleted: Concurrency 1. Execution Contract Database 1 and Execution Contract Database 2 own it.
-Deleted: Concurrency 2. Execution Contract Database 2 owns it.
 Concurrency 3: A losing [Place Hold] racing on one resource MUST answer resource-unavailable.
 ```
 

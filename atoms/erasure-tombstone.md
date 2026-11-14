@@ -126,7 +126,6 @@ Operation 13: IF no erasure tombstone EXISTS for the destroyed pattern and the d
 Operation 14: IF destroyed pattern EQUALS blank OR destroyed id EQUALS blank OR destroyed pattern EXCEEDS the pattern name cap OR destroyed id EXCEEDS the reference cap THEN [Read Tombstone] MUST answer invalid-request.
 Operation 15: [List Destroyed] MUST answer the matching erasure tombstones with the earliest listing keys, up to the page size.
 Operation 16: [List Destroyed] MUST order the answer by destruction instant, then by destroyed id.
-Deleted: Operation 17. Term matching erasure tombstone owns it.
 Operation 18: IF window end PRECEDES window start THEN [List Destroyed] MUST answer invalid-request.
 Operation 19: IF destroyed pattern EQUALS blank OR destroyed pattern EXCEEDS the pattern name cap THEN [List Destroyed] MUST answer invalid-request.
 Operation 20: [Read Tombstone] MUST NOT write.
@@ -255,7 +254,6 @@ Check 1.2: An auditor MUST find one set of field values per erasure tombstone ac
 Check 2.1: An auditor MUST find no two erasure tombstones sharing a destroyed pattern and a destroyed id (Invariant 2.1).
 Check 3.1: An auditor MUST find no field on any erasure tombstone beside the six State 1 names (Invariant 3.1, State 4).
 Check 4.1: An auditor MUST find no erasure tombstone whose authority kind IS NOT IN the recognized kinds (Invariant 4.1).
-Deleted: Check 5.1. Execution Contract Database 6 owns it: a purge another specification declares is answered by that specification's records.
 Check 6.1: An auditor MUST find destroyed pattern, destroyed id, authority reference and actor reference non-blank on EVERY erasure tombstone (Invariant 4.2, Invariant 4.3).
 Check 7.1: An auditor MUST find two [List Destroyed] calls with one destroyed pattern, one window and one continuation key answering one sequence over one database state (Invariant 5.1).
 ```

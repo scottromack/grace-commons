@@ -305,6 +305,20 @@ def line_of(text: str, idx: int) -> int:
     return text.count("\n", 0, idx) + 1
 
 
+def deleted_text(path: Path, hist_text: str | None = None) -> str:
+    """The lines of the section titled *Deleted rules* in a spec's history file,
+    where a done pattern keeps its tombstones (GRACE-lang Hard invariant 25,
+    v0.71), as one text: every check that reads a tombstone off a page reads
+    these too. `hist_text` is the history file's text where it was read from
+    somewhere other than the disk (git); else the file beside `path` is read."""
+    grace = str(Path(__file__).resolve().parents[1] / "grace")
+    if grace not in sys.path:
+        sys.path.insert(0, grace)
+    import cites
+    lines = cites.deleted_rules_of(hist_text) if hist_text is not None else cites.deleted_rules(path)
+    return "\n".join(raw for _, raw in lines)
+
+
 # --------------------------------------------------------------------------- #
 # Checks
 # --------------------------------------------------------------------------- #
@@ -549,7 +563,8 @@ def check_rests_on_refs(patterns: dict[Path, Pattern], md_files: list[Path]) -> 
         if not m or not p.invariant_count:
             continue
         live = sorted(invariant_numbers(p.text))
-        reserved = live + [int(n) for n in TOMBSTONED_INV.findall(p.text)]
+        # a tombstone on the page, or in the history file's *Deleted rules*
+        reserved = live + [int(n) for n in TOMBSTONED_INV.findall(p.text + "\n" + deleted_text(p.path))]
         name = TRAILING_PAREN.sub("", m.group(1).strip()).strip()
         if name and reserved:
             by_name[name] = max(reserved)
@@ -2561,6 +2576,12 @@ def label_families(root: Path) -> set[str]:
             m = _RANGE_LABEL.match(line) if in_text else None
             if m and m.group(1) not in _RANGE_NOT_FAMILY:
                 fams.add(m.group(1))
+        # a family a tombstone alone still names, in the history file's *Deleted rules*
+        if src.parent.name in ("atoms", "compositions"):
+            for line in deleted_text(src).splitlines():
+                m = _RANGE_LABEL.match(line)
+                if m and m.group(1) not in _RANGE_NOT_FAMILY:
+                    fams.add(m.group(1))
     return fams
 
 
@@ -2851,9 +2872,12 @@ def _title_words(t: str) -> set[str]:
     return {w.rstrip("s") for w in t.split() if w not in _TITLE_STOP and len(w) > 2}
 
 
-def _invariant_shape(text: str) -> tuple[set[int], set[int], dict[int, str]]:
+def _invariant_shape(text: str, deleted: str = "") -> tuple[set[int], set[int], dict[int, str]]:
+    """The invariants a spec declares, the numbers its tombstones reserve (on
+    the page, or in `deleted`, its history file's *Deleted rules*), and the
+    titles."""
     live = invariant_numbers(text)
-    tomb = {int(n) for n in INVARIANT_TOMBSTONE.findall(text)} - live
+    tomb = {int(n) for n in INVARIANT_TOMBSTONE.findall(text + "\n" + deleted)} - live
     titles = {int(n): t.strip() for n, t in INVARIANT_TITLE.findall(text)}
     return live, tomb, titles
 
@@ -2885,9 +2909,14 @@ def check_invariant_numbers(root: Path, patterns: dict[Path, Pattern]) -> list[F
     out: list[Finding] = []
     for p in patterns.values():
         rel = p.path.relative_to(root).as_posix()
-        refs: list[tuple[str, str]] = []
-        if rel in changed and (head := git("show", f"HEAD:{rel}")) is not None:
-            refs.append(("at HEAD", head))
+        hist_rel = rel[:-len(".md")] + ".hist.md"
+        refs: list[tuple[str, str, str]] = []   # where, the page, its history file's *Deleted rules*
+
+        def deleted_at(rev: str, name: str) -> str:
+            body = git("show", f"{rev}:{name[:-len('.md')]}.hist.md")
+            return deleted_text(p.path, body) if body is not None else ""
+        if (rel in changed or hist_rel in changed) and (head := git("show", f"HEAD:{rel}")) is not None:
+            refs.append(("at HEAD", head, deleted_at("HEAD", rel)))
         if MIGRATED_LINE.search(p.text):
             def migration(name: str):
                 for c in candidates.get(name, []):
@@ -2895,7 +2924,7 @@ def check_invariant_numbers(root: Path, patterns: dict[Path, Pattern]) -> list[F
                     if body is not None and MIGRATED_LINE.search(body):
                         prior = git("show", f"{c}^:{name}")
                         if prior is not None and not MIGRATED_LINE.search(prior):
-                            return c, prior
+                            return c, prior, deleted_at(f"{c}^", name)
                         return None
                 return None
             before = migration(rel)
@@ -2910,10 +2939,10 @@ def check_invariant_numbers(root: Path, patterns: dict[Path, Pattern]) -> list[F
                         if before is not None:
                             break
             if before is not None:
-                refs.append((f"before its migration ({before[0]})", before[1]))
+                refs.append((f"before its migration ({before[0]})", before[1], before[2]))
         if not refs:
             continue
-        live, tomb, titles = _invariant_shape(p.text)
+        live, tomb, titles = _invariant_shape(p.text, deleted_text(p.path))
         reported: set[tuple[str, int]] = set()
 
         def add(kind: str, n: int, msg: str, at: int | None = None) -> None:
@@ -2922,8 +2951,8 @@ def check_invariant_numbers(root: Path, patterns: dict[Path, Pattern]) -> list[F
                 hm = re.search(r"^\s*-?\s*\*\*Invariant\s+" + str(at or n) + r"\b", p.text, re.M)
                 out.append(Finding(p.path, line_of(p.text, hm.start()) if hm else 1, "F-renumber", msg))
 
-        for where, ref in refs:
-            r_live, r_tomb, r_titles = _invariant_shape(ref)
+        for where, ref, ref_deleted in refs:
+            r_live, r_tomb, r_titles = _invariant_shape(ref, ref_deleted)
             for n in sorted(r_live - live - tomb):
                 add("lost", n, f"Invariant {n} was declared {where} and is neither declared nor "
                     f"tombstoned now (Hard invariant 26, Hard invariant 27)")

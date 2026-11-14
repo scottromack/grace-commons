@@ -148,7 +148,6 @@ Operation 29: [Flag] MUST answer flagged.
 Operation 30: IF the database refuses the write THEN [Flag] MUST answer storage-failure.
 Operation 31: [List Owed] MUST answer the matching owed records with the earliest listing keys, up to the page size.
 Operation 32: [List Owed] MUST order the answer by due-by instant, then by owed id.
-Deleted: Operation 33. Term matching owed record owns it.
 Operation 34: IF owing pattern EQUALS blank THEN [List Owed] MUST answer invalid-request.
 Operation 35: IF listed status IS NOT IN open, flagged THEN [List Owed] MUST answer invalid-request.
 Operation 36: [List Owed] MUST NOT write.

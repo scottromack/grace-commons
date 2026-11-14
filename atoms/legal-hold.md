@@ -40,7 +40,6 @@ Identity 2: The host MUST allocate a hold id at the atom's seam.
 Identity 3: The transition MUST NOT allocate a hold id.
 Identity 4: The atom MUST NOT reuse a hold id within one database instance.
 Identity 5: The atom MUST NOT reassign a hold id.
-Deleted: Identity 6. Execution Contract Logic confinement 10 owns it.
 Identity 7: The atom MUST NOT identify a hold by the record reference.
 Identity 8: Two holds over one record MUST carry two hold ids.
 ```
@@ -70,8 +69,6 @@ State 4: A released hold MUST carry releasing actor, release reason and release 
 State 5: An active hold MUST NOT carry a release field.
 State 7: The atom MUST NOT delete a hold.
 State 8: The atom MUST NOT hold an aggregate for a record.
-Deleted: State 6. Invariant 3.2 owns the absent re-activation.
-Deleted: State 9. Non-goal 9 owns the case lifecycle.
 ```
 
 Term hold state: active | released — the obligation in effect, or documented as ended.
@@ -98,11 +95,6 @@ Term release field: releasing actor | release reason | release instant — every
 Capability requirement 1: The deployment MUST supply now at the seam PER Execution Contract Logic confinement 7.
 Capability requirement 4: The deployment MUST supply the hold records PER Execution Contract Database 1 through 4, Execution Contract Refusal 1, Execution Contract Query 1 through 4 and Execution Contract Conformance 9.
 Capability requirement 5: The deployment MAY declare the string cap PER Execution Contract Input 2.
-Deleted: Capability requirement 2. Execution Contract Logic confinement 7 owns it.
-Deleted: Capability requirement 3. Execution Contract Logic confinement 7 owns it.
-Deleted: Clock semantics 1. Execution Contract Logic confinement 7 owns it.
-Deleted: Clock semantics 2. Execution Contract Logic confinement 7 owns it.
-Deleted: Clock semantics 3. Non-goal 17 owns it.
 ```
 
 ### Operations
@@ -130,7 +122,6 @@ Operation 5: IF placing actor EQUALS blank THEN [Place] MUST answer invalid-requ
 Operation 6: IF hold reason EQUALS blank THEN [Place] MUST answer invalid-request.
 Operation 7: IF a supplied case reference EQUALS blank THEN [Place] MUST answer invalid-request.
 Operation 8: IF now PRECEDES a supplied placement instant THEN [Place] MUST answer invalid-request.
-Deleted: Operation 9. Execution Contract Logic confinement 12 owns it.
 Operation 10: [Place] MUST accept a placement instant below now.
 Operation 11: IF the database refuses the write THEN [Place] MUST answer storage-failure.
 Operation 12: IF hold id EQUALS blank THEN [Release] MUST answer invalid-request.
@@ -140,11 +131,9 @@ Operation 15: IF releasing actor EQUALS blank THEN [Release] MUST answer invalid
 Operation 16: IF release reason EQUALS blank THEN [Release] MUST answer invalid-request.
 Operation 17: IF the resolved release instant PRECEDES the hold's placement instant THEN [Release] MUST answer invalid-request.
 Operation 18: IF now PRECEDES a supplied release instant THEN [Release] MUST answer invalid-request.
-Deleted: Operation 18a. Execution Contract Logic confinement 12 owns it.
 Operation 19: [Release] MUST stand the hold in released.
 Operation 20: [Release] MUST NOT reach another hold over the record.
 Operation 21: IF the database refuses the write THEN [Release] MUST answer storage-failure.
-Deleted: Operation 22. Execution Contract Database 3 owns it.
 Operation 23: [Read] MUST answer the holds the query matches.
 Operation 24: [Read] MUST order the answer by placement instant, rising.
 Operation 25: [Read] MUST order two holds sharing a placement instant by hold id, rising (Execution Contract Logic confinement 10).
@@ -155,17 +144,11 @@ Operation 28: IF a filter value EQUALS blank THEN [Read] MUST answer invalid-que
 Operation 29: IF a hold state filter value falls outside the hold state set THEN [Read] MUST answer invalid-query.
 Operation 30: IF a range's end PRECEDES the range's start THEN [Read] MUST answer invalid-query.
 Operation 31: [Read] MUST answer an empty sequence for a well-formed query matching nothing.
-Deleted: Operation 32. Execution Contract Query 3 and Operation 23 own it.
-Deleted: Operation 33. Execution Contract Query 3 and Operation 23 own it.
 Operation 34: [Read] MUST NOT write.
-Deleted: Operation 35. Capability requirement 1 owns it.
-Deleted: Operation 36. Execution Contract Logic confinement 3 owns it.
-Deleted: Operation 37. Execution Contract Logic confinement 3 owns it.
 Operation 38: The business caller MAY supply placement instant.
 Operation 39: The business caller MAY supply release instant.
 Operation 40: The atom MUST judge a supplied placement instant against the injected now.
 Operation 41: The atom MUST judge a supplied release instant against the injected now.
-Deleted: Operation 42. Execution Contract Refusal 1 owns it.
 ```
 
 NOTE: watch the blank id (Operation 13).
@@ -243,7 +226,6 @@ Where two [Release] rows hold at once, the earlier row answers: the refuses line
   ```
   Invariant 8.1: The atom MUST NOT delete a hold record.
   Invariant 8.2: The hold set MUST NOT shrink.
-  Deleted: Invariant 8.3. Execution Contract Database 1 owns it.
   ```
 
 Immutability and durability give the *preservation record* property — the full arc of an obligation, from recognition to lifting, provable. Independence gives the property a multi-authority matter needs: one record, many obligations, each ending on its own day.
@@ -330,7 +312,6 @@ Check 5.2: An auditor MUST find a released hold's fields unchanged by that refus
 Check 6.1: An auditor MUST find the hold set never shrinking across two readings (Invariant 8.2).
 Check 6.2: An auditor MUST find EVERY placement field unchanged across two readings (Invariant 1.1).
 Check 6.3: An auditor MUST read an active-to-released move between two readings as conformant (Invariant 2.1).
-Deleted: Check 7.1. Execution Contract Conformance 9 owns it.
 ```
 
 ### External checks
@@ -340,7 +321,6 @@ External check 1: An auditor MUST read whether a held record was purged from the
 External check 2: An auditor MUST read who was permitted to place a hold from the composing Permissions records (Non-goal 7).
 External check 3: An auditor MUST read a hold record's integrity from the composing Tamper Evidence seals (Non-goal 11).
 External check 4: An auditor MUST read the matter a case reference names from the deployment's case-management system (Non-goal 9).
-Deleted: External check 5. Execution Contract Conformance 9 owns it.
 ```
 
 NOTE: EVERY check names the rule the check tests. The hold records answer *what was preserved, by whom, and for how long*; whether the preservation was honoured at the purge surface is the composing pattern's record, because this atom deliberately enforces nothing (Non-goal 1).
@@ -363,7 +343,6 @@ Non-goal 12: A deployment needing court-admissible hold records MUST compose Tam
 Non-goal 13: The atom MUST NOT place one hold over two records.
 Non-goal 14: The atom MUST NOT import a retention policy.
 Non-goal 15: The atom MUST NOT purge a hold record.
-Deleted: Non-goal 16. Execution Contract Database 4 owns it.
 Non-goal 17: A deployment needing a defensible timeline MUST compose a trusted timestamping pattern.
 ```
 
@@ -376,8 +355,6 @@ Where the atom breaks down: when the preservation duty is defined by a query rat
 ### Concurrency
 
 ```
-Deleted: Concurrency 1. Execution Contract Database 2 owns it.
-Deleted: Concurrency 2. Execution Contract Database 2 owns it.
 Concurrency 3: Two placements over one record MUST record two holds.
 ```
 

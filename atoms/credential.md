@@ -55,10 +55,6 @@ Identity 8: The atom MUST NOT normalize a reference.
 Identity 9: The atom MUST NOT confirm that a principal reference names a known principal.
 Identity 10: The atom MUST NOT confirm that a revoked by reference names a known actor.
 Identity 11: The atom MUST confirm that a credential type names a derivation function in the derivation registry.
-Deleted: Identity 12. Execution Contract Database 7 owns it.
-Deleted: Identity 13. Capability requirement 34 owns it.
-Deleted: Identity 14. Capability requirement 35 owns it.
-Deleted: Identity 15. Execution Contract Database 7 owns it.
 ```
 
 Term credential: the record this atom holds — one principal's binding to one verifier, for one credential type.
@@ -91,7 +87,6 @@ NOTE: open 2026-10-21-b — Term seam, Term transition and Term cited cite the s
 State 1: EVERY credential MUST carry credential id, principal reference, credential type, verifier, registration instant and a status.
 State 2: A credential MAY carry an expiry instant.
 State 3: EVERY rotated credential MUST carry rotation instant and successor credential id.
-Deleted: State 4. Invariant 9.1 through 9.3 own it.
 State 5: An active credential MUST NOT carry a terminal field.
 State 6: The atom MUST NOT store expired as a status.
 State 7: A credential MUST NOT carry a lapse instant.
@@ -117,29 +112,11 @@ Capability requirement 4: The deployment MUST declare a derivation function PER 
 Capability requirement 5: The deployment MUST declare a derivation function whose verifier alone produces no material the check function matches.
 Capability requirement 6: The deployment MUST NOT declare two credential types differing only by a foldable difference.
 Capability requirement 7: The deployment MUST declare the default validity.
-Deleted: Capability requirement 8. Execution Contract Database 2 owns it.
-Deleted: Capability requirement 9. Execution Contract Database 2 owns it: the pair's check and write are one transaction, and the atom names no section to release.
-Deleted: Capability requirement 10. Execution Contract Database 2 owns it: the pair's check and write are one transaction, and the atom names no section to release.
-Deleted: Capability requirement 11. Execution Contract Database 3 owns it.
-Deleted: Capability requirement 12. Execution Contract Database 1 owns it.
 Capability requirement 13: The deployment MUST canonicalize an opaque reference, rewriting every spelling that differs by a foldable difference to one (Execution Contract Logic confinement 13).
 Capability requirement 14: The deployment MAY declare the length bound PER Execution Contract Input 2.
-Deleted: Capability requirement 15. Execution Contract Logic confinement 7 owns it.
-Deleted: Capability requirement 16. Execution Contract Logic confinement 7 owns it.
-Deleted: Clock semantics 4. Execution Contract Logic confinement 7 owns it.
-Deleted: Clock semantics 1. Execution Contract Logic confinement 3 owns it.
-Deleted: Clock semantics 2. Execution Contract Logic confinement 3 owns it.
-Deleted: Clock semantics 3. Execution Contract Logic confinement 3 owns it.
-Deleted: Clock semantics 5. Execution Contract Logic confinement 7 owns it.
-Deleted: Clock semantics 6. Non-goal 27 owns it.
-Deleted: Clock semantics 7. Non-goal 28 owns it.
-Deleted: Capability requirement 17. Execution Contract Database 2 owns it.
 Capability requirement 18: The deployment MUST declare a check function PER credential type the deployment serves.
 Capability requirement 19: The deployment MUST NOT change the derivation function declared for a credential type a credential carries.
 Capability requirement 20: The deployment MUST NOT change the check function declared for a credential type a credential carries.
-Deleted: Capability requirement 21. Execution Contract Database 2 owns it: the pair's check and write are one transaction, and the atom names no section to lease.
-Deleted: Capability requirement 22. Execution Contract Database 2 owns it: the pair's check and write are one transaction, and the atom names no section to release.
-Deleted: Capability requirement 23. Execution Contract Database 2 owns it.
 Capability requirement 24: The deployment MUST supply at the seam the entropy a derivation function consumes.
 Capability requirement 25: The host MUST run a derivation function at the seam (Execution Contract Logic confinement 8).
 Capability requirement 26: The host MUST run a check function at the seam against the verifier of the credential a proceeding verify checks against (Execution Contract Logic confinement 8).
@@ -149,10 +126,8 @@ Capability requirement 29: The deployment MUST declare a check function that mat
 Capability requirement 30: The check function MUST normalize presented material as the credential type's derivation function normalizes credential material.
 Capability requirement 31: IF material EXCEEDS the material bound THEN the derivation function MUST refuse the material.
 Capability requirement 32: IF presented material EXCEEDS the material bound THEN the check function MUST refuse the presented material.
-Deleted: Capability requirement 33. Execution Contract Database 7 owns it.
 Capability requirement 34: The deployment MUST supply id material naming no credential of the database instance.
 Capability requirement 35: The deployment MUST NOT supply the same id material to two calls.
-Deleted: Capability requirement 36. Execution Contract Database 7 owns it.
 Capability requirement 37: The deployment MUST supply the credential records PER Execution Contract Database 1 through 7, Execution Contract Read 1 through 4, Execution Contract Refusal 1 and Execution Contract Input 1.
 Capability requirement 38: The deployment MUST NOT supply blank id material.
 Capability requirement 39: The deployment MUST supply id material whose assigned credential id DOES NOT EXCEED the length bound.
@@ -199,7 +174,6 @@ Operation 3: IF credential type EQUALS blank THEN [Register] MUST answer invalid
 Operation 4: IF the credential type names no derivation function THEN [Register] MUST answer invalid-request.
 Operation 5: IF now DOES NOT PRECEDE a supplied expiry instant THEN [Register] MUST answer invalid-request.
 Operation 6: IF an effective-active credential EXISTS for the pair THEN [Register] MUST answer duplicate-active-credential.
-Deleted: Operation 7. Execution Contract Refusal 1 owns it.
 Operation 8: A lapsed credential MUST NOT block a register for the credential's pair.
 Operation 9: An admitted register MUST assign a fresh credential id.
 Operation 10: An admitted register MUST record principal reference and credential type.
@@ -216,40 +190,28 @@ Operation 20: [Verify] MUST NOT check presented material BEFORE the window readi
 Operation 21: A proceeding verify MUST check the presented material against the recorded verifier PER the credential type's check function.
 Operation 22: IF the check function answers no match THEN [Verify] MUST answer material-mismatch.
 Operation 23: IF the check function answers a match THEN [Verify] MUST answer verified.
-Deleted: Operation 24. Capability requirement 40 owns it.
 Operation 25: [Verify] MUST NOT retain presented material.
 Operation 26: [Verify] MUST NOT record a field.
 Operation 27: IF the credential id names no credential THEN a transitioning write MUST answer not-known.
 Operation 28: IF no effective-active credential EXISTS for the credential id THEN [Rotate] MUST answer not-active.
 Operation 29: IF no effective-active credential EXISTS for the credential id THEN [Revoke] MUST answer already-terminal.
-Deleted: Operation 30. Execution Contract Refusal 1 owns it.
 Operation 31: IF new credential material IS IN the empty materials THEN [Rotate] MUST answer invalid-request.
 Operation 32: IF revoked by reference EQUALS blank THEN [Revoke] MUST answer invalid-request.
 Operation 33: IF reason EQUALS blank THEN [Revoke] MUST answer invalid-request.
-Deleted: Operation 34. Execution Contract Refusal 1 owns it.
 Operation 35: An admitted rotate MUST record a successor credential carrying the prior credential's pair.
 Operation 36: An admitted rotate MUST stand the successor credential in active.
 Operation 37: An admitted rotate MUST stand the prior credential in rotated.
 Operation 38: An admitted rotate MUST record now as the prior credential's rotation instant.
 Operation 39: An admitted rotate MUST record the successor's credential id as the prior credential's successor credential id.
-Deleted: Operation 40. Execution Contract Database 1 owns it.
 Operation 41: An admitted rotate MUST answer the successor's credential id.
 Operation 42: An admitted revoke MUST stand the credential in revoked.
 Operation 43: An admitted revoke MUST record revoked by reference, reason as revocation reason and now as revocation instant.
-Deleted: Operation 44. Execution Contract Database 1 owns it.
 Operation 45: IF the database refuses the write THEN an action MUST answer storage-failure.
-Deleted: Operation 46. Execution Contract Refusal 1 owns it.
-Deleted: Operation 47. Execution Contract Read 4 and Execution Contract Database 3 own it: a refused call writes nothing, and a write that did not commit leaves nothing.
-Deleted: Operation 48. Execution Contract Read 4 and Execution Contract Database 3 own it: a refused call writes nothing, and a write that did not commit leaves nothing.
-Deleted: Operation 49. Execution Contract Read 4 and Execution Contract Database 3 own it: a refused call writes nothing, and a write that did not commit leaves nothing.
 Operation 50: The atom MUST NOT offer an expire action.
 Operation 51: [Read] MUST answer EVERY matching credential.
 Operation 52: [Read] MUST answer the effective status PER matching credential.
 Operation 53: [Read] MUST NOT answer a verifier.
 Operation 54: [Read] MUST NOT record a field.
-Deleted: Operation 55. Operation 51 and Execution Contract Read 2 own it.
-Deleted: Operation 56. Execution Contract Logic confinement 3 owns it.
-Deleted: Operation 57. Execution Contract Logic confinement 3 owns it.
 Operation 58: An admitted rotate MUST assign the successor a fresh credential id.
 Operation 59: An admitted rotate MUST record the successor's derived verifier.
 Operation 60: An admitted rotate MUST record now as the successor's registration instant.
@@ -266,12 +228,6 @@ Operation 70: A proceeding verify MUST check against the credential carrying the
 Operation 71: IF expiry instant EQUALS blank AND the default validity EQUALS unbounded THEN an admitted register MUST record no expiry instant.
 Operation 72: IF expiry instant EQUALS blank AND the default validity EQUALS unbounded THEN an admitted rotate MUST record no expiry instant on the successor.
 Operation 73: IF a filter names a field whose value EQUALS blank THEN [Read] MUST answer no credential.
-Deleted: Operation 74. Execution Contract Read 1 owns it.
-Deleted: Operation 75. Execution Contract Refusal 1 owns it.
-Deleted: Operation 76. Execution Contract Refusal 1 owns it.
-Deleted: Operation 77. Execution Contract Refusal 1 owns it.
-Deleted: Operation 78. Execution Contract Input 1 owns it.
-Deleted: Operation 79. Execution Contract Input 1 owns it.
 Operation 80: IF a supplied expiry instant is malformed THEN [Register] MUST answer invalid-request (Execution Contract Input 1).
 Operation 81: IF a supplied expiry instant is malformed THEN [Rotate] MUST answer invalid-request (Execution Contract Input 1).
 ```
@@ -346,9 +302,6 @@ Term admitted revoke: a [Revoke] call the action admits (Execution Contract Read
   Invariant 3.1: [Verify] MUST answer verified ONLY IF the presented material matches the verifier of the credential a proceeding verify checks against PER the check function.
   ```
 - **Invariant 4 — Revocation is absorbing.**
-  ```
-  Deleted: Invariant 4.1. Invariant 3.1 owns it: a verify answers verified only against the effective-active credential, which a revoked credential is not.
-  ```
 - **Invariant 5 — A stored terminal is absorbing.**
   ```
   Invariant 5.1: A credential whose status IS IN the stored terminals MUST NOT leave the stored terminal.
@@ -366,7 +319,6 @@ Term admitted revoke: a [Revoke] call the action admits (Execution Contract Read
 - **Invariant 8 — Credential material is never persisted.**
   ```
   Invariant 8.1: The atom MUST NOT answer credential material.
-  Deleted: Invariant 8.2. Capability requirement 5 owns the one-way derivation function.
   ```
 - **Invariant 9 — The revocation record is complete.**
   ```
@@ -377,12 +329,8 @@ Term admitted revoke: a [Revoke] call the action admits (Execution Contract Read
 - **Invariant 10 — Credential durability.**
   ```
   Invariant 10.1: The atom MUST NOT remove a credential from the database.
-  Deleted: Invariant 10.2. Execution Contract Database 1 owns it.
   ```
 - **Invariant 11 — A lapse precludes verification.**
-  ```
-  Deleted: Invariant 11.1. Invariant 3.1 owns it: a verify answers verified only against the effective-active credential, which a lapsed credential is not.
-  ```
 - **Invariant 12 — Expiry is derived, never written.**
   ```
   Invariant 12.1: The atom MUST NOT write a field when a credential lapses.
@@ -453,7 +401,6 @@ Check 7.1: An auditor MUST find EVERY credential's properties unchanged across E
 Check 7.2: An auditor MUST find EVERY terminal field a credential carries unchanged across EVERY committed version of the credential carrying the field (Invariant 1.2; Execution Contract Generation acceptance 1).
 Check 7.3: An auditor MUST find EVERY rotated credential's fields beside status, rotation instant and successor credential id unchanged across EVERY committed version of the credential (Invariant 6.2; Execution Contract Generation acceptance 1).
 Check 8.1: An auditor MUST find an unfiltered read answering EVERY credential with a committed version (Invariant 10.1, State 15; Execution Contract Generation acceptance 1).
-Deleted: Check 8.2. Check 8.1 owns it.
 Check 9.1: An auditor MUST reconstruct EVERY credential of one pair from the database (State 1, State 15, Invariant 10.1).
 Check 10.1: An auditor MUST find no two credentials sharing a credential id (Identity 5).
 ```
@@ -473,7 +420,6 @@ External check 5: A deployment needing a principal reference bound to a real par
 External check 6: A deployment needing a failed verify counted MUST read the deployment's own lockout surface (Non-goal 8).
 External check 7: A deployment needing the database confirmed free of a retroactive edit MUST read the composing Tamper Evidence (Non-goal 21).
 External check 8: A deployment needing a verified answer confirmed against the credential's standing MUST read the composing Event Log's verify events beside the database (Invariant 3.1).
-Deleted: External check 9. Execution Contract Database 1 owns it.
 External check 10: A deployment needing a revoked by reference confirmed as the authenticated caller MUST read the composing pattern's authentication (Composition note 15).
 External check 11: A deployment needing a credential write confirmed to an authorized caller MUST read the composing pattern's authentication (Composition note 12 through 14).
 External check 12: A deployment needing [Read] confirmed to an authorized caller MUST read the composing pattern's authorization (Composition note 16).
@@ -536,21 +482,9 @@ NOTE: the owners — Compromise Disclosure *(forthcoming)* (Non-goal 19, Composi
 
 ### Atomic writes
 
-```
-Deleted: Atomic writes 1. Execution Contract Database 1 owns it.
-Deleted: Atomic writes 2. Execution Contract Database 1 and Execution Contract Database 3 own it.
-Deleted: Atomic writes 3. Execution Contract Database 1 owns it.
-Deleted: Atomic writes 4. Execution Contract Database 1 owns it.
-Deleted: Atomic writes 5. Execution Contract Read 4 and Execution Contract Database 1 own it.
-```
-
 ### Concurrency
 
 ```
-Deleted: Concurrency 1. Execution Contract Database 1 and Execution Contract Database 2 own it.
-Deleted: Concurrency 2. Execution Contract Database 2 owns it.
-Deleted: Concurrency 3. Execution Contract Database 2 owns it.
-Deleted: Concurrency 4. Execution Contract Database 3 owns it.
 Concurrency 5: IF a verify's read PRECEDES a transitioning write's commit THEN the verify MAY answer verified.
 ```
 
@@ -558,9 +492,6 @@ Concurrency 5: IF a verify's read PRECEDES a transitioning write's commit THEN t
 
 ```
 Indeterminate outcome 1: A caller receiving no answer to a credential write MUST NOT retry the credential write BEFORE the caller reads the database (Execution Contract Error model 1).
-Deleted: Indeterminate outcome 2. Execution Contract Error model 1 owns it.
-Deleted: Indeterminate outcome 3. Execution Contract Error model 1 owns it.
-Deleted: Indeterminate outcome 4. Execution Contract Error model 1 owns it.
 ```
 
 ### String policy
@@ -573,9 +504,7 @@ String 4: The atom MUST NOT case-fold a string input.
 String 5: The atom MUST read a whitespace-only string input as blank.
 String 6: The atom MUST read an absent string input as blank.
 String 7: IF a string input EXCEEDS the length bound THEN [Register] MUST answer invalid-request.
-Deleted: String 8. Operation 27 owns it.
 String 9: IF a string input EXCEEDS the length bound THEN [Revoke] MUST answer invalid-request.
-Deleted: String 10. Term empty material owns it: material is missing only where the material is absent or carries no character, and material of whitespace alone is material, which the derivation function normalizes.
 ```
 
 Term string input: a reference, credential type OR reason — every caller-supplied string this atom accepts beside material.
@@ -592,7 +521,6 @@ Term empty material: material that is absent OR carries no character — the mat
 
 ```
 Composition note 1: A composing Login MUST issue a session ONLY AFTER a verified answer.
-Deleted: Composition note 2. Non-goal 8 owns it.
 Composition note 3: A deployment revoking a credential Login composes MUST call Login's revoke sessions for credential.
 Composition note 4: A composing External Onboarding MUST call [Register] ONLY AFTER a party record EXISTS.
 Composition note 5: A composing Event Log MUST append an event on EVERY admitted action.

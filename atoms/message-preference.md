@@ -43,7 +43,6 @@ Updates are not retroactive in the sense the atom commits to. A new set produces
 ```
 Identity 1: The atom MUST identify a preference record by the preference id.
 Identity 2: The host MUST allocate a preference id at the seam.
-Deleted: Identity 3. Execution Contract Logic confinement 3 owns it.
 Identity 4: The atom MUST NOT reuse a preference id in one database instance (Instance 2).
 Identity 5: The atom MUST NOT change a preference id.
 Identity 6: The atom MUST NOT identify a preference record by the principal reference.
@@ -51,7 +50,6 @@ Identity 7: The atom MUST NOT identify a preference record by the principal refe
 Identity 8: The atom MUST NOT interpret a principal reference.
 Identity 9: The atom MUST NOT normalize a principal reference.
 Identity 10: The atom MUST match a principal reference exactly.
-Deleted: Identity 11. Execution Contract Logic confinement 13 owns it.
 ```
 
 NOTE: watch the allocation ban (Identity 3).
@@ -112,19 +110,11 @@ Term deletion instant: the instant the preference record was retired — a [Dele
 
 ```
 Capability requirement 1: The deployment MUST supply now at the seam.
-Deleted: Capability requirement 2. Execution Contract Logic confinement 7 owns it.
-Deleted: Capability requirement 3. Execution Contract Logic confinement 7 owns it.
-Deleted: Capability requirement 4. Execution Contract Logic confinement 7 owns it.
-Deleted: Capability requirement 5. State 11 and State 12 own it: one injected now stamps both instants of a supersession.
 Capability requirement 6: The deployment MUST supply the preference records PER Execution Contract Database 1 through 4, Execution Contract Database 6, Execution Contract Database 7, Execution Contract Refusal 1 and Execution Contract Conformance 9.
 Capability requirement 7: The deployment MUST disclose the fanout-on-no-record policy.
 Capability requirement 8: The deployment MUST supply the declared channel set at the seam.
 Capability requirement 9: The deployment MUST supply at the seam a preference id no preference record in the database instance has carried PER Execution Contract Logic confinement 3.
 Capability requirement 10: The deployment MUST declare which composing patterns the deployment wired in PER Execution Contract Conformance 9.
-Deleted: Clock semantics 1. Execution Contract Logic confinement 7 owns it.
-Deleted: Clock semantics 2. Execution Contract Logic confinement 7 owns it.
-Deleted: Clock semantics 3. Capability requirement 1 and Execution Contract Logic confinement 7 own it: the seam supplies now, and the reading's honesty is the deployment's.
-Deleted: Clock semantics 4. Capability requirement 5 owns it.
 ```
 
 NOTE: watch the deployment's composition note (Capability requirement 10).
@@ -161,16 +151,12 @@ Operation 2: [Set] MUST stand the new preference record in active.
 Operation 3: [Set] MUST answer the preference id.
 Operation 4: IF principal reference EQUALS blank AND the injected declared channel set DOES NOT EQUAL degenerate THEN [Set] MUST answer invalid-request.
 Operation 5: IF EVERY preference field EQUALS blank AND the injected declared channel set DOES NOT EQUAL degenerate THEN [Set] MUST answer invalid-request.
-Deleted: Operation 6. State 4 owns it: an empty channel preferences map EQUALS blank.
-Deleted: Operation 7. State 4 owns it: an empty channel preferences map EQUALS blank.
 Operation 8: IF the injected declared channel set DOES NOT EQUAL degenerate AND a channel preferences key IS NOT IN the injected declared channel set THEN [Set] MUST answer undeclared-channel.
-Deleted: Operation 9. Execution Contract Refusal 1 owns it.
 Operation 10: [Set] MUST NOT interpret a preference field.
 Operation 11: [Set] MUST NOT interpret metadata.
 Operation 12: [Set] MUST NOT read metadata as a preference field.
 Operation 13: [Set] MUST NOT compare the preference fields of two preference records.
 Operation 14: IF a preference record currently in effect EXISTS for the principal reference THEN [Set] MUST stand the prior preference record in deleted.
-Deleted: Operation 15. Execution Contract Database 1 owns it.
 Operation 16: IF the database refuses the write THEN [Set] MUST answer storage-failure.
 Operation 17: IF no preference record EXISTS for the preference id THEN [Suspend] MUST answer not-known.
 Operation 18: IF the preference record's status EQUALS suspended THEN [Suspend] MUST answer not-active.
@@ -185,7 +171,6 @@ Operation 26: [Delete] MUST stand the preference record in deleted.
 Operation 27: [Delete] MUST NOT remove the preference record from the database.
 Operation 28: [Delete] MUST accept the preference id as the whole authorization.
 Operation 29: IF the database refuses the write THEN [Delete] MUST answer storage-failure.
-Deleted: Operation 30. Execution Contract Database 1 and Execution Contract Database 3 own it.
 Operation 31: [Current For] MUST answer EXACTLY ONE OF the preference record currently in effect, none.
 Operation 32: [Current For] MUST NOT answer a deleted preference record.
 Operation 33: [Current For] MUST NOT refuse a blank input.
@@ -194,11 +179,6 @@ Operation 35: [Read] MUST answer a deleted preference record in full.
 Operation 36: [Read] MUST NOT refuse a blank input.
 Operation 37: [Current For] MUST NOT write.
 Operation 38: [Read] MUST NOT write.
-Deleted: Operation 39. Capability requirement 1 owns it.
-Deleted: Operation 40. Execution Contract Logic confinement 3 owns it.
-Deleted: Operation 41. Execution Contract Logic confinement 3 owns it.
-Deleted: Operation 42. Clock dependence 1 owns it.
-Deleted: Operation 43. Clock dependence 2 owns it.
 Operation 44: IF a principal reference is malformed AND the injected declared channel set DOES NOT EQUAL degenerate THEN [Set] MUST answer invalid-request (Execution Contract Input 1).
 Operation 45: IF a channel preferences is malformed AND the injected declared channel set DOES NOT EQUAL degenerate THEN [Set] MUST answer invalid-request (Execution Contract Input 1).
 Operation 46: IF a preference id is malformed THEN [Suspend] MUST answer not-known (Execution Contract Input 1).
@@ -255,8 +235,6 @@ The case space, and the rule that owns each case:
   ```
 - **Invariant 2 — Status monotonicity.**
   ```
-  Deleted: Invariant 2.1. State 1 owns it.
-  Deleted: Invariant 2.2. State 1 and Invariant 2.3 own it.
   Invariant 2.3: A status MUST NOT move from suspended to active.
   Invariant 2.4: A status MUST NOT move from deleted to active.
   Invariant 2.5: A status MUST NOT move from deleted to suspended.
@@ -266,22 +244,14 @@ The case space, and the rule that owns each case:
   Invariant 3.1: Two preference records currently in effect MUST NOT share a principal reference.
   ```
 - **Invariant 4 — Supersession atomicity.**
-  ```
-  Deleted: Invariant 4.1. Execution Contract Database 1 owns it.
-  Deleted: Invariant 4.2. Execution Contract Database 1 owns it.
-  Deleted: Invariant 4.3. Execution Contract Database 1 and Execution Contract Database 3 own it.
-  Deleted: Invariant 4.4. Execution Contract Database 1 and Execution Contract Database 3 own it.
-  ```
 - **Invariant 5 — Channel preferences reference declared channels, and the proof is on the record.**
   ```
   Invariant 5.1: EVERY channel preferences key MUST stand in the preference record's own declared channels.
-  Deleted: Invariant 5.2. Check 5.1 owns it.
   Invariant 5.3: A change to the deployment's declared channel set MUST NOT change a recorded declared channels.
   ```
 - **Invariant 6 — Suspension is value-preserving.**
   ```
   Invariant 6.1: [Suspend] MUST change status and suspension instant alone.
-  Deleted: Invariant 6.2. Operation 21 owns it.
   Invariant 6.3: [Suspend] MUST NOT change principal reference.
   ```
 - **Invariant 7 — Current For determinism.**
@@ -291,20 +261,15 @@ The case space, and the rule that owns each case:
   Invariant 7.3: [Current For] MUST rest on the preference record set alone.
   ```
 - **Invariant 8 — No id reuse.**
-  ```
-  Deleted: Invariant 8.1. Instance 2 owns it: the rule ranges over one database instance.
-  ```
 - **Invariant 9 — Record durability over this atom's own surface.**
   ```
   Invariant 9.1: The atom MUST NOT offer a removal surface.
-  Deleted: Invariant 9.2. State 17 and Execution Contract Database 4 own it.
   Invariant 9.3: [Read] MUST answer a deleted preference record.
   ```
 - **Invariant 10 — Validation-context self-containment.**
   ```
   Invariant 10.1: EVERY preference record MUST carry declared channels.
   Invariant 10.2: A recorded declared channels MUST NOT stand empty.
-  Deleted: Invariant 10.3. Check 5.1 owns it: a conformance check reads the records alone.
   Invariant 10.4: The atom MUST NOT hold the declared channel set's governance.
   ```
 - **Temporal property — Timestamp ordering.**
@@ -312,8 +277,6 @@ The case space, and the rule that owns each case:
   Temporal property 1: IF suspension instant DOES NOT EQUAL blank THEN suspension instant MUST NOT PRECEDE set instant.
   Temporal property 2: IF deletion instant DOES NOT EQUAL blank THEN deletion instant MUST NOT PRECEDE set instant.
   Temporal property 3: IF suspension instant DOES NOT EQUAL blank AND deletion instant DOES NOT EQUAL blank THEN deletion instant MUST NOT PRECEDE suspension instant.
-  Deleted: Temporal property 4. State 11 and State 12 own it: one injected now stamps both instants of a supersession.
-  Deleted: Temporal property 5. Execution Contract Logic confinement 7 owns it: the deployment owns the clock's guarantees, the implementation none of them.
   ```
 
 Immutability and durability together give *auditability* — the full history of every principal's preferences is provable, with no gap but what a separate retention pattern disposes of on its own declared schedule. At-most-one-in-effect and supersession atomicity together give *unambiguous currency* — at any moment a principal has at most one record governing delivery, and the moment of transition is recorded. Suspension being value-preserving gives *cheap resumption* — a principal who pauses and later returns loses nothing but a channel the deployment withdrew in the meantime.
@@ -321,7 +284,6 @@ Immutability and durability together give *auditability* — the full history of
 ### Database instance model
 
 ```
-Deleted: Instance 1. Execution Contract Database 7 owns it.
 Instance 2: Two preference records in one database instance MUST NOT share a preference id.
 Instance 3: The atom MUST read one principal reference in two database instances as two principals.
 Instance 4: A database name MUST name one database instance.
@@ -409,22 +371,13 @@ Check 1.2: An auditor MUST find EVERY supplied preference field that DOES NOT EQ
 Check 2.1: An auditor MUST reconstruct the preference record currently in effect for a principal reference at an instant from set instant, status and deletion instant (Invariant 3.1).
 Check 2.2: An auditor MUST read a currency interval as half-open from set instant to deletion instant, and as open-ended where deletion instant EQUALS blank (State 11, State 12, State 13).
 Check 3.1: An auditor MUST find no two preference records currently in effect sharing a principal reference (Invariant 3.1).
-Deleted: Check 4.1. State 11 and State 12 own it: one injected now stamps both instants of a supersession.
-Deleted: Check 4.2. State 11 and State 12 own it: one injected now stamps both instants of a supersession.
-Deleted: Check 4.3. Capability requirement 5 owns it; a deployment obligation is not an auditor's check.
 Check 5.1: An auditor MUST find EVERY channel preferences key in the preference record's own declared channels (Invariant 5.1, Invariant 10.1).
 Check 5.2: An auditor MUST mark a declared channels that EQUALS blank a conformance failure (Invariant 10.1, Invariant 10.2).
-Deleted: Check 6.1. Execution Contract Conformance 9 owns it.
-Deleted: Check 6.2. Capability requirement 7 owns it; a deployment obligation is not an auditor's check.
 ```
 
 NOTE: EVERY check names the rule the check tests.
 
 ### External checks
-
-```
-Deleted: External check 1. Execution Contract Conformance 9 owns it.
-```
 
 ## Non-goals
 
@@ -477,9 +430,7 @@ Clock dependence 2: A rejection MUST NOT rest on now.
 ### Concurrency
 
 ```
-Deleted: Concurrency 1. Execution Contract Database 2 owns it.
 Concurrency 2: The recorded timestamps MUST witness the serialization order.
-Deleted: Concurrency 3. Execution Contract Database 1 owns it.
 Concurrency 4: A composing pattern MUST own how competing callers reach the atom.
 ```
 
@@ -522,21 +473,9 @@ Resumption 4: IF a replayed channel name IS NOT IN the injected declared channel
 
 ### Supersession atomicity
 
-```
-Deleted: Supersession atomicity 1. Execution Contract Database 1 and Execution Contract Database 2 own it.
-Deleted: Supersession atomicity 2. Execution Contract Database 2 owns it.
-Deleted: Supersession atomicity 3. Execution Contract Database 2 owns it.
-Deleted: Supersession atomicity 4. Execution Contract Database 1 and Execution Contract Database 3 own it.
-Deleted: Supersession atomicity 5. Execution Contract Database 1 and Execution Contract Database 3 own it.
-Deleted: Supersession atomicity 6. Execution Contract Database 1 and Execution Contract Database 3 own it.
-Deleted: Supersession atomicity 7. Execution Contract Database 1 and Execution Contract Database 3 own it.
-Deleted: Supersession atomicity 8. Execution Contract Database 3 owns it.
-```
-
 ## Composition notes
 
 ```
-Deleted: Composition note 1. Capability requirement 10 owns it.
 Composition note 2: A composing pattern MUST call [Current For] when a notification is queued.
 Composition note 3: A composing pattern MUST capture the preference record's values at queue time.
 Composition note 4: A composing pattern MUST read a suspended preference record as delivery-suppress.
@@ -548,7 +487,6 @@ Composition note 9: A composing pattern MUST interpret quiet hours at delivery t
 Composition note 10: A composing pattern MUST interpret format at delivery time.
 Composition note 11: A composing pattern MUST interpret a per-channel preference value at delivery time.
 Composition note 12: A composing pattern MUST apply a deployment default for a preference field the preference record does not carry.
-Deleted: Composition note 13. Channel set evolution 1 owns it: the declared channel set and its change history are the deployment's.
 ```
 
 NOTE: composing patterns — [Preference-Aware Notification Fanout](../compositions/preference-aware-notification-fanout.md).
