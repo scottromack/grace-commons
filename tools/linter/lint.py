@@ -2808,16 +2808,37 @@ def check_section_titles(root: Path) -> list[Finding]:
 
 CONTRACT_CITE = re.compile(r"\bExecution Contract ((?:[A-Z][a-z]+)(?: [a-z]+)*) (\d+)\b")
 CONTRACT_LABEL = re.compile(r"\*\*((?:[A-Z][a-z]+)(?: [a-z]+)*) (\d+):")
+CONTRACT_TOMBSTONE = re.compile(r"^Deleted: ((?:[A-Z][a-z]+)(?: [a-z]+)*) (\d+)\. ")
+
+
+def contract_label_set(root: Path) -> set[str] | None:
+    """The labels a citation `Execution Contract <Family> <N>` may name: each
+    bold label `execution-contract.md` carries, and each label a tombstone in
+    the section titled *Deleted rules* of execution-contract.hist.md reserves.
+    The contract's tombstones stood on the page as bold labels until they moved
+    there (unit `execution-contract.md: history and stale names go to the
+    record`), and a citation of one still resolves. None where the root carries
+    no contract."""
+    ec = root / "execution-contract.md"
+    try:
+        text = ec.read_text(encoding="utf-8")
+    except OSError:
+        return None
+    labels = {f"{m.group(1)} {m.group(2)}" for m in CONTRACT_LABEL.finditer(text)}
+    for line in deleted_text(ec).splitlines():
+        m = CONTRACT_TOMBSTONE.match(line.strip())
+        if m:
+            labels.add(f"{m.group(1)} {m.group(2)}")
+    return labels
 
 
 def check_contract_labels(root: Path) -> list[Finding]:
     """X-contract-label: a citation `Execution Contract <Family> <N>` names a
-    label `execution-contract.md` carries (council read 124). The contract's
-    rules are labelled prose, so no rule block resolves them."""
-    try:
-        labels = {f"{m.group(1)} {m.group(2)}" for m in
-                  CONTRACT_LABEL.finditer((root / "execution-contract.md").read_text(encoding="utf-8"))}
-    except OSError:
+    label `execution-contract.md` carries or its history file reserves (council
+    read 124). The contract's rules are labelled prose, so no rule block
+    resolves them."""
+    labels = contract_label_set(root)
+    if labels is None:
         return []
     out: list[Finding] = []
     for sub in ("atoms", "compositions"):

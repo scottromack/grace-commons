@@ -2314,21 +2314,30 @@ def check_code_span_synthetic(problems: list[str]) -> int:
 def check_contract_labels_synthetic(problems: list[str]) -> int:
     """X-contract-label (council read 124): a spec citing the contract by a
     label it carries is silent; a label it does not carry fires, and a code
-    span is ignored. Returns the fixture count."""
+    span is ignored. A label a tombstone in the section titled *Deleted rules*
+    of execution-contract.hist.md reserves is carried (unit `execution-contract.md:
+    history and stale names go to the record`); a `Deleted:` line elsewhere in
+    that file reserves nothing. Returns the fixture count."""
     import tempfile
     with tempfile.TemporaryDirectory() as d:
         root = Path(d)
         (root / "atoms").mkdir()
         (root / "execution-contract.md").write_text(
             "**Logic confinement 3: Explicit inputs only.** Time is injected.\n", encoding="utf-8")
+        (root / "execution-contract.hist.md").write_text(
+            "# H\n\n## Moved\n\n```\nDeleted: Store 9. Nothing.\n```\n\n"
+            "## Deleted rules\n\n### The Database contract\n\n```\nDeleted: Store 1. Database 1 owns it.\n```\n",
+            encoding="utf-8")
         (root / "atoms" / "a.md").write_text(
             "Deleted: Operation 4. Execution Contract Logic confinement 3 owns it.\n"
             "Deleted: Operation 5. Execution Contract Logic confinement 9 owns it.\n"
-            "A quoted `Execution Contract Logic confinement 8` is text.\n", encoding="utf-8")
+            "A quoted `Execution Contract Logic confinement 8` is text.\n"
+            "Chose: the store supplied under Execution Contract Store 1.\n"
+            "Chose: the store supplied under Execution Contract Store 9.\n", encoding="utf-8")
         lines = {f.line for f in check_contract_labels(root)}
-    if lines != {2}:
-        problems.append(f"X-contract-label: fired on lines {sorted(lines)}, wanted [2]")
-    return 3
+    if lines != {2, 5}:
+        problems.append(f"X-contract-label: fired on lines {sorted(lines)}, wanted [2, 5]")
+    return 5
 
 
 def check_provenance_drift_synthetic(problems: list[str]) -> int:
@@ -3067,7 +3076,8 @@ def main(argv: list[str]) -> int:
     failures.extend(contract_problems)
     if not contract_problems:
         print(f"X-contract-label: {n_contract} synthetic fixtures hold (a carried contract label "
-              "silent, a missing one fires, a code span ignored) \u2713")
+              "silent, a missing one fires, a code span ignored, a label the history file's "
+              "Deleted rules reserve silent and a Deleted: line outside it reserving nothing) \u2713")
 
     view_problems: list[str] = []
     n_view = check_generated_views_synthetic(view_problems)

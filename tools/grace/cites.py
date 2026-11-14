@@ -28,8 +28,12 @@ The Execution Contract and the grammar are read as specs here: their labelled
 rules (`Logic confinement 7`, `Hard invariant 28`) resolve as a pattern's do, and
 a rule that cites one by the cross-spec form (`Execution Contract Logic confinement
 7`, GRACE-lang Hard invariant 28) is what rests on it. The contract writes its
-rules as bold labelled paragraphs; a citation of a label neither document carries
-is what `contract_citations` finds, and `check.py` gates it.
+rules as bold labelled paragraphs and keeps its tombstones in the section titled
+*Deleted rules* of execution-contract.hist.md, where a citation of a deleted label
+still resolves, as it did while the tombstones stood on the page in the bold form
+(unit `execution-contract.md: history and stale names go to the record`); a
+citation of a label neither document carries or reserves is what
+`contract_citations` finds, and `check.py` gates it.
 
 `--reach <spec path>` prints the one spec's share of that change, a label a line:
 its own changed rules and terms, the rules in it that rest on them (a changed
@@ -49,6 +53,7 @@ tool supplies the reading order (Principle 8, Standard label 6).
 """
 from __future__ import annotations
 
+import difflib
 import re
 import subprocess
 import sys
@@ -161,7 +166,8 @@ class Spec:
 
 def parse_contract(path: Path) -> Spec:
     """The Execution Contract's labelled rules, as a pattern's are read: a label,
-    the line it stands on and its statement. It carries no terms."""
+    the line it stands on and its statement, and its tombstones, from the section
+    titled *Deleted rules* of its history file. It carries no terms."""
     spec = Spec(path)
     in_fence = False
     for i, raw in enumerate(path.read_text(encoding="utf-8").split("\n"), start=1):
@@ -172,6 +178,11 @@ def parse_contract(path: Path) -> Spec:
         if m:
             spec.rules[m.group(1)] = i
             spec.text_of[m.group(1)] = m.group(2).replace("**", "")
+    for i, raw in deleted_rules(path):
+        tm = TOMBSTONE.match(raw.strip())
+        if tm:
+            spec.tombstones.setdefault(tm.group(1), (history_file(path), i,
+                                                     raw.strip()[len("Deleted: " + tm.group(1) + ". "):]))
     return spec
 
 
@@ -521,7 +532,11 @@ def into(specs: list[Spec], target: str) -> dict[str, list[str]]:
     """Every rule in the corpus citing the named spec, by cited label. Run it
     before rewriting a spec: a label the corpus cites is a label that keeps its
     number, or a citation that breaks silently (Hard invariant 28)."""
-    theirs = next((set(s.rules) for s in specs if spec_name(s.path) == target), set())
+    # a range's labels between its ends: the rules, and for the contract the labels
+    # its history file's tombstones reserve, which stood on the page as bold labels
+    # until they moved (`Execution Contract Store 1 through 4`)
+    theirs = next((set(s.rules) | (set(s.tombstones) if s.path.name == CONTRACT else set())
+                   for s in specs if spec_name(s.path) == target), set())
 
     def cited(text: str, own: set[str]) -> list[str]:
         found: list[str] = []
@@ -579,11 +594,18 @@ def specs_with_rules(root: Path, paths: list[Path] | None) -> list[Spec]:
 def contract_labels(root: Path) -> dict[str, set[str]]:
     """The labels a citation by the cross-spec form can name in the two documents
     every specification cites: `Execution Contract <label>` and `GRACE-lang <label>`.
-    An empty set for a document the root does not carry."""
+    The contract's include the labels its history file's *Deleted rules* reserve:
+    its tombstones stood on the page as bold labels, citable, until they moved there,
+    and a pattern's dated Decisions still cite them (`Execution Contract Store 1
+    through 4`). An empty set for a document the root does not carry."""
     out: dict[str, set[str]] = {}
     for owner, name in (("Execution Contract", CONTRACT), ("GRACE-lang", "GRACE-lang.md")):
         path = root / name
-        out[owner] = set(parse(path).rules) if path.exists() else set()
+        if not path.exists():
+            out[owner] = set()
+            continue
+        spec = parse(path)
+        out[owner] = set(spec.rules) | (set(spec.tombstones) if name == CONTRACT else set())
     return out
 
 
@@ -630,7 +652,68 @@ def changed_seeds(root: Path, rev: str, spec: Spec) -> set[str]:
         dm = TERM_DECL.match(body)
         if dm and dm.group(1) in spec.terms:
             seeds.add(f"`{dm.group(1)}`")
+    if spec.path.name == CONTRACT:
+        seeds -= moved_to_record(root, rev, spec, seeds)
     return seeds
+
+
+def _squash(text: str) -> str:
+    return " ".join(text.split())
+
+
+def moved_to_record(root: Path, rev: str, spec: Spec, seeds: set[str]) -> set[str]:
+    """The contract labels among `seeds` whose paragraph differs from its text at
+    `rev` only by sentences that now stand in the contract's history file: a
+    sentence of history moved to the record is no change to the rule (unit
+    `execution-contract.md: history and stale names go to the record`, which owed
+    no round), as a tombstone moved to a history file is none."""
+    hist = history_file(spec.path)
+    if not hist.exists():
+        return set()
+    rel = spec.path.relative_to(root).as_posix()
+    shown = subprocess.run(["git", "--no-optional-locks", "-C", str(root), "show", f"{rev}:{rel}"],
+                           capture_output=True, text=True)
+    if shown.returncode != 0:
+        return set()
+    record = _squash(hist.read_text(encoding="utf-8"))
+
+    def paragraphs(text: str) -> dict[str, str]:
+        out: dict[str, str] = {}
+        for line in text.split("\n"):
+            lm = CONTRACT_RULE.match(line.strip())
+            if lm:
+                out.setdefault(lm.group(1), line.strip())
+        return out
+
+    before = paragraphs(shown.stdout)
+    after = paragraphs(spec.path.read_text(encoding="utf-8"))
+    same: set[str] = set()
+    for label in seeds:
+        if label not in before or label not in after:
+            continue
+        kept = [sentence for sentence in re.split(r"(?<=[.!?])\s+", before[label])
+                if _squash(sentence) not in record]
+        if _squash(" ".join(kept)) == _squash(after[label]) or _only_cut(before[label], after[label], record):
+            same.add(label)
+    return same
+
+
+# a cut of fewer words than this is a change to a rule, whatever the record holds
+CUT_WORDS = 8
+
+
+def _only_cut(before: str, after: str, record: str) -> bool:
+    """True when `after` is `before` with whole runs of words cut, each run of at
+    least CUT_WORDS words and found, in the same order, in the record: a clause
+    of history moved out of a sentence that stays (case and punctuation aside)."""
+    words = lambda text: re.findall(r"\w+", text.lower())
+    old, new, held = words(before), words(after), " " + " ".join(words(record)) + " "
+    for tag, i1, i2, _j1, _j2 in difflib.SequenceMatcher(None, old, new, autojunk=False).get_opcodes():
+        if tag == "equal":
+            continue
+        if tag != "delete" or i2 - i1 < CUT_WORDS or " " + " ".join(old[i1:i2]) + " " not in held:
+            return False
+    return True
 
 
 def expanded(spec: Spec, seeds: set[str]) -> set[str]:

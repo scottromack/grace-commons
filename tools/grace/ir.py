@@ -51,7 +51,7 @@ sys.path.insert(0, str(HERE.parent / "linter"))
 import check  # noqa: E402
 import cites  # noqa: E402
 import normalize  # noqa: E402
-from lint import CONTRACT_CITE, CONTRACT_LABEL, HISTORY_FILE, PATTERN_DIRS, status_token_of  # noqa: E402
+from lint import CONTRACT_CITE, HISTORY_FILE, PATTERN_DIRS, contract_label_set, status_token_of  # noqa: E402
 
 # the shape of a document; a change a reader of the IR must know about moves it,
 # and an added field is none
@@ -525,11 +525,7 @@ def prove(root: Path, docs: list[dict]) -> list[tuple[str, int, str, str]]:
     live = {d["name"]: {r["label"] for r in d["rules"]} for d in docs}
     dead = {d["name"]: {t["label"]: t for t in d["tombstones"]} for d in docs}
     by_path = {d["spec"] for d in docs}
-    try:
-        contract = {f"{m.group(1)} {m.group(2)}" for m in
-                    CONTRACT_LABEL.finditer((root / "execution-contract.md").read_text(encoding="utf-8"))}
-    except OSError:
-        contract = set()
+    contract = contract_label_set(root) or set()
     for d in docs:
         rel = d["spec"]
         counted = cites.parse(root / rel).rules

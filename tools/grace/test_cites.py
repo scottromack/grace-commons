@@ -198,6 +198,50 @@ class ContractTest(unittest.TestCase):
         self.assertEqual(code, 0)
         self.assertEqual(lines, ["Rule 1"])
 
+    HISTORY = ("Nine specifications once stated it for themselves, each in the Final Critique "
+               "that found the page silent")
+
+    def test_a_sentence_of_history_moved_to_the_record_reaches_nothing(self) -> None:
+        self.corpus.edit("execution-contract.md", "as Logic confinement 1 says.",
+                         f"as Logic confinement 1 says. {self.HISTORY}.")
+        git(self.corpus.root, "add", ".")
+        git(self.corpus.root, "commit", "-q", "-m", "history")
+        self.corpus.base = git(self.corpus.root, "rev-parse", "HEAD")
+        self.corpus.edit("execution-contract.md", f" {self.HISTORY}.", "")
+        self.corpus.write("execution-contract.hist.md", f"# Execution Contract: history\n\n{self.HISTORY}.\n")
+        code, lines = self.corpus.reach("compositions/zeta-comp.md")
+        self.assertEqual((code, lines), (1, ["nothing"]))
+
+    def test_a_clause_of_history_cut_from_a_sentence_that_stays_reaches_nothing(self) -> None:
+        self.corpus.edit("execution-contract.md", "as Logic confinement 1 says.",
+                         "as Logic confinement 1 says, as nine specifications did before the cure was written down.")
+        git(self.corpus.root, "add", ".")
+        git(self.corpus.root, "commit", "-q", "-m", "clause")
+        self.corpus.base = git(self.corpus.root, "rev-parse", "HEAD")
+        self.corpus.edit("execution-contract.md", ", as nine specifications did before the cure was written down", "")
+        self.corpus.write("execution-contract.hist.md",
+                          "# history\n\nAs nine specifications did before the cure was written down.\n")
+        code, lines = self.corpus.reach("compositions/zeta-comp.md")
+        self.assertEqual((code, lines), (1, ["nothing"]))
+
+    def test_a_cut_the_record_does_not_hold_still_reaches_the_rule(self) -> None:
+        self.corpus.write("execution-contract.hist.md", "# history\n\nNothing moved here.\n")
+        self.corpus.edit("execution-contract.md", "Explicit inputs only.", "Inputs.")
+        code, lines = self.corpus.reach("compositions/zeta-comp.md")
+        self.assertEqual((code, lines), (0, ["Rule 1"]))
+
+    def test_a_changed_word_beside_a_moved_sentence_still_reaches_the_rule(self) -> None:
+        self.corpus.edit("execution-contract.md", "as Logic confinement 1 says.",
+                         f"as Logic confinement 1 says. {self.HISTORY}.")
+        git(self.corpus.root, "add", ".")
+        git(self.corpus.root, "commit", "-q", "-m", "history")
+        self.corpus.base = git(self.corpus.root, "rev-parse", "HEAD")
+        self.corpus.edit("execution-contract.md", f" {self.HISTORY}.", "")
+        self.corpus.edit("execution-contract.md", "Time is injected", "Time is read")
+        self.corpus.write("execution-contract.hist.md", f"# history\n\n{self.HISTORY}.\n")
+        code, lines = self.corpus.reach("compositions/zeta-comp.md")
+        self.assertEqual((code, lines), (0, ["Rule 1"]))
+
     def test_a_citation_of_a_missing_label_is_found(self) -> None:
         labels = cites.contract_labels(self.corpus.root)
         text = ("Execution Contract Logic confinement 3 and Execution Contract Logic confinement 99, "
@@ -210,6 +254,81 @@ class ContractTest(unittest.TestCase):
     def test_a_document_the_root_lacks_resolves_nothing(self) -> None:
         self.assertEqual(cites.contract_citations("GRACE-lang Hard invariant 28",
                                                   cites.contract_labels(self.corpus.root)), [])
+
+
+# the contract's tombstones, in the section titled *Deleted rules* of its history
+# file (unit `execution-contract.md: history and stale names go to the record`)
+CONTRACT_HISTORY = """# Execution Contract — history
+
+## Moved from the contract
+
+```
+Deleted: Store 9. A line outside the section reserves nothing.
+```
+
+## Deleted rules
+
+### The Database contract
+
+```
+Deleted: Store 1. Database 1 owns it.
+Deleted: Store 2. Database 2 owns it.
+```
+"""
+
+CONTRACT_TOMB_CITER = """# Theta Comp
+
+Term qualifiers: migrated.
+
+```
+Rule 1: The composition MUST keep its own record, as Execution Contract Logic confinement 3 holds.
+```
+
+## Decisions
+
+- The store supplied under Execution Contract Store 1 through 2, and Execution Contract Store 9.
+"""
+
+
+class ContractHistoryTest(unittest.TestCase):
+    """The contract's tombstones moved from the page, where they stood as bold
+    labels, to its history file's *Deleted rules*; a pattern's citation of one
+    still resolves, a range over them still names each, and a query for one
+    names the owner it names."""
+
+    def setUp(self) -> None:
+        self.corpus = Corpus()
+        self.addCleanup(self.corpus.close)
+        self.corpus.write("execution-contract.md", CONTRACT)
+        self.corpus.write("execution-contract.hist.md", CONTRACT_HISTORY)
+        self.corpus.write("compositions/theta-comp.md", CONTRACT_TOMB_CITER)
+
+    def test_the_tombstones_are_read_and_are_no_rules(self) -> None:
+        spec = cites.parse(self.corpus.root / "execution-contract.md")
+        self.assertEqual(set(spec.rules), {"Logic confinement 1", "Logic confinement 3", "Conformance 1"})
+        self.assertEqual({k: (v[0].name, v[2]) for k, v in spec.tombstones.items()}, {
+            "Store 1": ("execution-contract.hist.md", "Database 1 owns it."),
+            "Store 2": ("execution-contract.hist.md", "Database 2 owns it.")})
+
+    def test_a_citation_of_a_moved_label_resolves(self) -> None:
+        labels = cites.contract_labels(self.corpus.root)
+        self.assertIn("Store 1", labels["Execution Contract"])
+        self.assertEqual(cites.contract_citations(
+            "Execution Contract Store 1 through 2, Execution Contract Store 9", labels),
+            [("Execution Contract Store 9", "Store 9")])
+
+    def test_a_range_over_moved_labels_names_each(self) -> None:
+        cited = cites.into(cites.specs_with_rules(self.corpus.root, None), "Execution Contract")
+        self.assertIn("Store 1", cited)
+        self.assertIn("Store 2", cited)
+
+    def test_a_moved_label_names_its_owner(self) -> None:
+        out = io.StringIO()
+        with contextlib.redirect_stdout(out):
+            code = cites.run(self.corpus.root, ["cites.py", "Store 2"])
+        self.assertEqual(code, 2)
+        self.assertIn("no rule named Store 2: Execution Contract tombstones it "
+                      "(execution-contract.hist.md:15): Database 2 owns it.", out.getvalue())
 
 
 # a pattern whose tombstones stand on the page and in its history file
