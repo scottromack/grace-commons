@@ -1542,7 +1542,8 @@ def term_entry_tables(spec_format_text: str) -> tuple[dict[str, dict], set[str]]
             name = cells[0].strip("`")
             required = {"*"} if cells[2] == "every kind" else {k.strip() for k in cells[2].split(",") if k.strip()}
             also = {k.strip().split(" ")[0] for k in re.split(r",(?![^()]*\))", cells[3]) if k.strip()}
-            fields[name] = {"required": required, "also": also}
+            values = set(re.findall(r"`([^`]+)`", cells[1])) if "closed value set" in cells[1] else None
+            fields[name] = {"required": required, "also": also, "values": values}
         elif table == "Kind" and len(cells) == 3:
             kinds.add(cells[0])
     return fields, kinds
@@ -1551,7 +1552,7 @@ def term_entry_tables(spec_format_text: str) -> tuple[dict[str, dict], set[str]]
 def check_term_kind(root: Path, patterns: dict[Path, Pattern]) -> list[Finding]:
     """O-term-kind (advisory): a term entry that breaks the two tables of the section
     titled *The term entry* in spec-format.md: no `Kind` line, a kind outside the
-    five, a field its kind neither requires nor lists, or a field its kind requires
+    five, a field its kind neither requires nor lists, a Role outside its closed value set, or a field its kind requires
     and the entry lacks (unit `spec-format.md: the term entry, and the leftovers`,
     Scott 2026-11-14). Advisory because a done pattern is not edited for it; the
     entries it finds are the council's v3 batch (entry 15)."""
@@ -1589,6 +1590,11 @@ def check_term_kind(root: Path, patterns: dict[Path, Pattern]) -> list[Finding]:
                 if f != "Kind" and kind not in rule["required"] | rule["also"] and "*" not in rule["required"]:
                     out.append(Finding(p.path, at, "O-term-kind",
                         f"the term entry `{name}` carries `{f}`, which Kind `{kind}` neither requires nor lists"))
+            for f, value in have.items():
+                if fields[f]["values"] and value not in fields[f]["values"]:
+                    out.append(Finding(p.path, at, "O-term-kind",
+                        f"the term entry `{name}` has {f} `{value}`, outside the closed value set "
+                        f"{', '.join(sorted(fields[f]['values']))}"))
             for f, rule in fields.items():
                 if (kind in rule["required"] or "*" in rule["required"]) and f not in have:
                     out.append(Finding(p.path, at, "O-term-kind",

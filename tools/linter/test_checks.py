@@ -1466,8 +1466,8 @@ def check_notation_synthetic(problems: list[str]) -> int:
             "| Field | What it says | Required with | Also found with |\n|---|---|---|---|\n"
             "| `Kind` | the kind | every kind | |\n"
             "| `Field of` | the type | Field | |\n"
-            "| `Projection` | the spelling | Field | Member (2 of 3), Type (1 of 4) |\n"
-            "| `Role` | the role | Member | Field (1 of 5) |\n\n"
+            "| `Projection` | the spelling | Field, Member | Type (1 of 4) |\n"
+            "| `Role` | the role: one value of the closed value set of `Outcome` and `Scope` | Member | |\n\n"
             "| Kind | What it means | Entries |\n|---|---|---|\n"
             "| Type | a type | 4 |\n| Field | a field | 5 |\n| Member | a member | 3 |\n| Operation | an action | 9 |\n\n"
             "## Heading standard\n\n### Heading tables\n\n"
@@ -1493,12 +1493,14 @@ def check_notation_synthetic(problems: list[str]) -> int:
             ("a kind outside the five", "#### E\n\nx\n\nKind: Widget\n", ["E Widget"]),
             ("a field the kind requires, missing", "#### E\n\nx\n\nKind: Field\nProjection: e\n", ["E Field of"]),
             ("a field the kind neither requires nor lists", "#### E\n\nx\n\nKind: Operation\nProjection: e\n", ["E Operation"]),
-            ("a field of another kind", "#### E\n\nx\n\nKind: Member\nField of: T\nRole: Outcome\n", ["E Member"]),
+            ("a Role outside the closed value set", "#### E\n\nx\n\nKind: Member\nProjection: e\nRole: Verdict\n", ["E Verdict"]),
+            ("a Role on a Field", "#### E\n\nx\n\nKind: Field\nField of: T\nProjection: e\nRole: Outcome\n", ["E Field"]),
+            ("a field of another kind", "#### E\n\nx\n\nKind: Member\nField of: T\nProjection: e\nRole: Outcome\n", ["E Member"]),
         ):
             got = entries(*good, block)
             if len(got) != len(want):
                 problems.append(f"O-term-kind: {name} read as {got}, wanted {want}")
-        n += 7
+        n += 9
     with tempfile.TemporaryDirectory() as d:
         # M-register-number and M-register-citation read the register in governance.hist.md
         root = Path(d)

@@ -236,8 +236,8 @@ Every term the registry declares has an entry under `## Terms`: a `####` heading
 | `Field of` | the Type the field belongs to | Field | |
 | `Parameter of` | the operation, or the operations, the parameter belongs to | Parameter | |
 | `Member of` | the value set the member belongs to | Member | |
-| `Projection` | the spelling the term takes where a record or a call carries it: a field's name, a parameter's name, a member's token | Field, Parameter | Member (402 of 472), Type (11 of 40) |
-| `Role` | what the term does in the pattern: for a member, its class (`Outcome`, `Rejection`, `Scope`, and others); for any other kind, a short description | Member | Field (34 of 410), Type (5 of 40), Parameter (2 of 86) |
+| `Projection` | the spelling the term takes where a record or a call carries it: a field's name, a parameter's name, a member's token | Field, Parameter, Member | Type (11 of 40) |
+| `Role` | what a member is in the pattern's answers: one value of the closed value set of `Outcome`, `Rejection` and `Scope` | Member | |
 | `Wire` | `pinned`: the Projection is a literal the wire fixes | | Member (1 of 472) |
 
 | Kind | What it means | Entries |
@@ -248,7 +248,7 @@ Every term the registry declares has an entry under `## Terms`: a `####` heading
 | Operation | an action or a query the pattern declares; it carries no field beside `Kind` | 296 |
 | Parameter | an input an operation takes | 86 |
 
-Where the patterns differ and no rule decides, the table states what the majority does. The linter's `O-term-kind` advisory reads these two tables and reports an entry with no `Kind`, a kind outside the five, or a field the entry's kind neither requires nor lists; it is advisory because a done pattern is not edited for it.
+Where the patterns differed and no rule decided, the maintainer ruled (2026-11-14): a Member carries a Projection, and Role stands with a Member only and takes one of three values; the patterns that do not yet keep to it are cured as each next reopens. The linter's `O-term-kind` advisory reads these two tables and reports an entry with no `Kind`, a kind outside the five, or a field the entry's kind neither requires nor lists; it is advisory because a done pattern is not edited for it.
 
 ---
 
