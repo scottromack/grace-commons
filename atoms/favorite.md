@@ -134,10 +134,10 @@ The case space, and the rule that owns each case:
 
 | Call | Case | Answer | Effect on the favorites |
 |---|---|---|---|
-| [Mark] | both references valid, no favorite for the pair, database accepts | ok | one favorite lands, marked, its first marked instant now (Operation 3 through 5) |
-| [Mark] | both references valid, the favorite stands unmarked | ok | the favorite stands marked; its first marked instant stands (Operation 6, Invariant 2.1) |
+| [Mark] | both references valid, no favorite for the pair, database accepts | ok | one favorite lands, marked, its first marked instant now (Operation 3 through 5, Invariant 1.1) |
+| [Mark] | both references valid, the favorite stands unmarked | ok | the favorite stands marked; its first marked instant, person reference and item reference stand (Operation 6, Invariant 2.1, Invariant 2.2, Invariant 2.3) |
 | [Mark] | both references valid, the favorite stands marked | ok | none, no write (Operation 7) |
-| [Unmark] | both references valid, the favorite stands marked | ok | the favorite stands unmarked; nothing is removed (Operation 9, State 3) |
+| [Unmark] | both references valid, the favorite stands marked | ok | the favorite stands unmarked; its person reference and item reference stand; nothing is removed (Operation 9, State 3, Invariant 2.2, Invariant 2.3) |
 | [Unmark] | both references valid, the favorite stands unmarked or no favorite for the pair | ok | none, no write (Operation 10, Operation 11) |
 | a writing action | person reference blank, over the string cap, or not a string | [Invalid Person Reference] | none (Operation 1, Operation 20) |
 | a writing action | item reference blank, over the string cap, or not a string | [Invalid Item Reference] | none (Operation 2, Operation 21) |

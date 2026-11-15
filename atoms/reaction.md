@@ -161,13 +161,13 @@ The case space, and the rule that owns each case:
 
 | Call | Case | Answer | Effect on the reactions |
 |---|---|---|---|
-| [React] | all three valid, the name in the reaction set, no reaction for the triple, database accepts | ok | one reaction lands, held, its first reacted instant now (Operation 5 through 7) |
-| [React] | all three valid, the name in the reaction set, the reaction stands withdrawn | ok | the reaction stands held; its first reacted instant stands (Operation 8, Invariant 2.1) |
+| [React] | all three valid, the name in the reaction set, no reaction for the triple, database accepts | ok | one reaction lands, held, its first reacted instant now (Operation 5 through 7, Invariant 1.1) |
+| [React] | all three valid, the name in the reaction set, the reaction stands withdrawn | ok | the reaction stands held; its first reacted instant, person reference, item reference and reaction name stand (Operation 8, Invariant 2.1, Invariant 2.2, Invariant 2.3, Invariant 2.4) |
 | [React] | all three valid, the name in the reaction set, the reaction stands held | ok | the reaction is left as it is (Operation 9); under one-per-item any rival still held stands withdrawn (Operation 10) |
 | [React] | the holding rule is one-per-item and the person holds another reaction on the item | ok | every rival stands withdrawn, in the same commit (Operation 10, Execution Contract Database 1) |
 | [React] | the holding rule is one-of-each and the person holds another reaction on the item | ok | the rivals are left as they are (Operation 11) |
 | [React] | the reaction name is not in the reaction set | [Invalid Reaction Name] | none (Operation 4) |
-| [Withdraw] | all three valid, the reaction stands held | ok | the reaction stands withdrawn; nothing is removed (Operation 13, State 3) |
+| [Withdraw] | all three valid, the reaction stands held | ok | the reaction stands withdrawn; its person reference, item reference and reaction name stand; nothing is removed (Operation 13, State 3, Invariant 2.2, Invariant 2.3, Invariant 2.4) |
 | [Withdraw] | all three valid, the reaction stands withdrawn or no reaction for the triple | ok | none, no write (Operation 14, Operation 15) |
 | a writing action | person reference blank, over the string cap, or not a string | [Invalid Person Reference] | none (Operation 1, Operation 23) |
 | a writing action | item reference blank, over the string cap, or not a string | [Invalid Item Reference] | none (Operation 2, Operation 24) |
