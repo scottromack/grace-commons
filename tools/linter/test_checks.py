@@ -3226,6 +3226,105 @@ def check_ir_reader_carries(problems: list[str]) -> None:
         problems.append(f"IR reader: a list naming a thing that is no Field entry gave {bare['keys']}, not a gap")
 
 
+# A composition and its constituent, for what the reader carries of a composition's wiring:
+# a call's arguments bound to the callee's inputs through the callee's term entries, the tests
+# on a constituent's answer, the composition's own records and their keys, and the writes of
+# one transaction. A phrase that binds to no input, an answer that is no arm, a record with no
+# key: each is a reader gap, and nothing is guessed.
+IR_WIRING_LAMP = """# Lamp
+
+## Structure
+
+```
+turn(switch_ref, level)
+  answers lit
+  refuses jammed
+```
+
+## Terms
+
+#### Switch Reference
+
+Names the switch.
+
+Kind:       Field
+Field of:   Lamp
+Projection: switch_ref
+
+#### Level
+
+How bright.
+
+Kind:       Parameter
+Parameter of: Turn
+Projection: level
+
+## Status
+
+`todo` — see the Ledger.
+"""
+
+IR_WIRING_ROOM = """# Room
+
+## Composes
+
+- [Lamp](../atoms/lamp.md) — the light.
+
+## Structure
+
+```
+Action wiring 1: An admitted switch MUST call Lamp's turn with the switch reference, the level AND the colour.
+Action wiring 2: IF Lamp's turn answers jammed OR dim THEN an admitted switch MUST answer fault.
+Action wiring 3: An admitted switch MUST write the lamp entry AND the lamp event in one transaction (Execution Contract Database 1).
+Action wiring 4: IF Lamp's turn answers lit THEN an admitted switch MUST write the lamp record in the transaction of Action wiring 3.
+Action wiring 5: An admitted switch MUST call Lamp's snuff.
+Composition state 1: The composition MUST store a lamp log.
+Composition state 2: The composition MUST key the lamp log by switch reference.
+Composition state 3: The composition MUST store the strict inverse of the lamp log.
+```
+
+## Status
+
+`todo` — see the Ledger.
+"""
+
+
+def check_ir_wiring(problems: list[str]) -> None:
+    import tempfile
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "grace"))
+    import ir
+    with tempfile.TemporaryDirectory() as d:
+        root = Path(d)
+        (root / "atoms").mkdir()
+        (root / "compositions").mkdir()
+        (root / "execution-contract.md").write_text(IR_READER_CONTRACT, encoding="utf-8")
+        (root / "atoms" / "lamp.md").write_text(IR_WIRING_LAMP, encoding="utf-8")
+        (root / "compositions" / "room.md").write_text(IR_WIRING_ROOM, encoding="utf-8")
+        doc = ir.parse(root / "compositions" / "room.md", root)
+        atom = ir.parse(root / "atoms" / "lamp.md", root)
+    calls = {c["rule"]: c for c in doc["calls"]}
+    want = {
+        "a call, bound through the callee's entries": [(a["phrase"], a["binds"]) for a in calls["Action wiring 1"]["args"]]
+        == [("the switch reference", "switch_ref"), ("the level", "level"), ("the colour", None)],
+        "the callee as its signature names it": (calls["Action wiring 1"]["constituent"], calls["Action wiring 1"]["action"],
+                                                 calls["Action wiring 1"]["path"]) == ("Lamp", "turn", "atoms/lamp.md"),
+        "a modal": calls["Action wiring 1"]["modal"] == "MUST",
+        "a test on an answer": [(t["rule"], t["arms"]) for t in doc["answer_tests"]]
+        == [("Action wiring 2", ["jammed"]), ("Action wiring 4", ["lit"])],
+        "a record and its key": [(r["name"], r["key"], r.get("key_rule")) for r in doc["records"]]
+        == [("lamp log", "switch reference", "Composition state 2"), ("inverse of lamp log", None, None)],
+        "a transaction and what joins it": [(t["rule"], t["writes"], t.get("joins")) for t in doc["transactions"]]
+        == [("Action wiring 3", ["lamp entry", "lamp event"], None), ("Action wiring 4", ["lamp record"], "Action wiring 3")],
+        "a gap for each thing the reader cannot bind": sorted((g["rule"], g["what"].split(" ")[0]) for g in doc["reader_gaps"])
+        == [("Action wiring 1", "'the"), ("Action wiring 2", "'dim'"), ("Action wiring 5", "Lamp"),
+            ("Composition state 3", "no")],
+        "an atom carries none": not (atom["calls"] or atom["answer_tests"] or atom["records"] or atom["transactions"]),
+    }
+    for what, held in want.items():
+        if not held:
+            problems.append(f"IR wiring: {what} read wrong: {doc['calls']} {doc['answer_tests']} {doc['records']} {doc['transactions']} {doc['reader_gaps']}")
+
+
 def check_ir_corpus(root: Path, problems: list[str]) -> tuple[int, int]:
     sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "grace"))
     import ir
@@ -3674,11 +3773,12 @@ def main(argv: list[str]) -> int:
     ir_problems: list[str] = []
     check_ir_synthetic(ir_problems)
     check_ir_reader_carries(ir_problems)
+    check_ir_wiring(ir_problems)
     n_specs, n_rules = check_ir_corpus(root, ir_problems)
     failures.extend(ir_problems)
     if not ir_problems:
         print(f"IR: the synthetic pair reads clean, as drafts outside the repo too, and its broken twin "
-              f"fires every finding, and the reader's key, cited meaning and completed-by read from a pin; "
+              f"fires every finding, and the reader's key, cited meaning, completed-by and a composition's wiring read from a pin; "
               f"the corpus parses, {n_specs} specs and {n_rules} rules, with its "
               f"{len(IR_FIRING)} pinned finding(s) \u2713")
 
