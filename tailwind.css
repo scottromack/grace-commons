@@ -1,0 +1,16 @@
+/* The site's own stylesheet, built by its own workflow (.github/workflows/pages.yml) into
+   assets/css/app.css, which is never committed. Its sources are named here and in the theme's
+   _tailwind/theme.css, and nowhere else: source(none) turns Tailwind's own detection off,
+   because node_modules is ignored by git and a theme reached through it would be scanned as
+   empty. The theme brings its fonts, `raised` and `reveal-on-scroll`, the base colors and its own
+   templates as sources; this file adds the site's pages and templates. */
+@import "tailwindcss" source(none);
+@import "@mus/inks";
+@plugin "@tailwindcss/typography";
+@import "./node_modules/jtd-inks/_tailwind/theme.css";
+
+/* The site's own templates (what it overrides in the theme) and its pages. */
+@source "./_includes";
+@source "./*.md";
+@source "./atoms/*.md";
+@source "./compositions/*.md";

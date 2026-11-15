@@ -1,0 +1,17 @@
+{
+  "name": "grace-commons-site",
+  "private": true,
+  "description": "The Grace Commons site's own stylesheet build: Tailwind, INKs and the jtd-inks theme. Nothing here is a library; the pages are the product.",
+  "scripts": {
+    "css": "tailwindcss -i tailwind.css -o assets/css/app.css",
+    "css:watch": "tailwindcss -i tailwind.css -o assets/css/app.css --watch",
+    "serve": "bundle exec jekyll serve"
+  },
+  "devDependencies": {
+    "@mus/inks": "git+https://github.com/scottromack/inks.git#41ae94138be74bd01908a9e6f274d9ae224443f4",
+    "@tailwindcss/cli": "^4.3.2",
+    "@tailwindcss/typography": "^0.5.16",
+    "jtd-inks": "github:scottromack/jtd-inks#687f7ab299f18e1d05f9a66129cc7f37aee0c939",
+    "tailwindcss": "^4.3.2"
+  }
+}

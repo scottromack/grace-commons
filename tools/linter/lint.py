@@ -1252,10 +1252,13 @@ def _unseparated(region: str) -> list[str]:
 SIGNATURE_BLOCK = re.compile(r"```\n(.*?)\n```", re.S)
 
 
-# `build` holds the IR tools/grace/ir.py derives, ignored by git (2026-10-29)
+# `build` holds the IR tools/grace/ir.py derives, ignored by git (2026-10-29).
+# `node_modules` and `_site` are the site's own build, ignored by git: the stylesheet's
+# dependencies and Jekyll's output (2026-11-15), so a tree where the site has been built
+# lints as clean as a fresh checkout.
 KNOWN_DIRS = {"atoms", "compositions", "demos", "grants", "internal", "tools",
               "working-ideas", "build-terms", "build", "_data", "_includes", "_layouts",
-              "_sass", "assets", ".github"}
+              "_sass", "assets", ".github", "node_modules", "_site"}
 
 
 def check_stray_directory(root: Path) -> list[Finding]:

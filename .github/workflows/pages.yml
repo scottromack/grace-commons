@@ -1,0 +1,70 @@
+name: Deploy the site to Pages
+
+# The site builds its own stylesheet (tailwind.css, from the jtd-inks theme's templates and
+# this repository's pages) and then its own Jekyll site, and deploys the result to GitHub
+# Pages. The Pages source is "GitHub Actions": a deploy replaces the live site only when
+# every step here succeeds. No built stylesheet is committed.
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# One deployment at a time; a run that is already deploying is allowed to finish.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: Build the stylesheet and the site
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "4.0"
+          bundler-cache: true
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: lts/*
+          cache: npm
+
+      - name: Let npm fetch GitHub dependencies over HTTPS
+        # npm writes a GitHub dependency's resolved address into package-lock.json as
+        # ssh://git@github.com/..., whatever package.json says; the runner has no SSH key.
+        run: git config --global url."https://github.com/".insteadOf ssh://git@github.com/
+
+      - run: npm ci
+
+      - name: Build the stylesheet
+        run: npm run css
+
+      - id: pages
+        uses: actions/configure-pages@v6
+
+      - name: Build the site
+        run: bundle exec jekyll build --baseurl "${{ steps.pages.outputs.base_path }}"
+        env:
+          JEKYLL_ENV: production
+
+      - uses: actions/upload-pages-artifact@v5
+
+  deploy:
+    name: Deploy to Pages
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v5

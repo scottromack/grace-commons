@@ -624,6 +624,8 @@ MODEL_FIXTURES = [
     ("a directory in a pattern folder other than models/", {
         "atoms/drafts/x.tla": X_TLA.format(name="x"), "compositions/models/keep.cfg": "INIT Init\n"},
      [("M-stray-directory", "atoms/drafts")]),
+    ("the site's build directories at the top level", {
+        "node_modules/p/index.js": "x\n", "_site/index.html": "x\n"}, []),
 ]
 # A model file beside the patterns is misplaced, and is not read as the page's model.
 MODEL_FIXTURES_BESIDE = [

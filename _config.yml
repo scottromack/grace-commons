@@ -5,39 +5,42 @@ url: https://gracecommons.dev
 
 image: /og.webp
 
-remote_theme: just-the-docs/just-the-docs
+# The theme is jtd-inks (Just the Docs on Tailwind and INKs), a gem from GitHub pinned in
+# package.json (see Gemfile). The site builds its own stylesheet from the theme's templates and
+# its own pages: tailwind.css, built by .github/workflows/pages.yml. Light and dark follow the
+# reader's system, so there is no color_scheme.
+theme: just-the-docs
 
 author: Scott Romack
 
 plugins:
-  - jekyll-remote-theme
+  - jekyll-include-cache
+  - jekyll-seo-tag
   - jekyll-sitemap
 
-# Just the Docs theme settings
-search_enabled: true
-heading_anchors: true
-color_scheme: dark
-
-# Aux nav (top right)
-aux_links:
-  "GitHub":
-    - "https://github.com/scottromack/grace-commons"
-
-# Footer
-footer_content: 'Grace Commons — open foundation for business logic patterns.'
-
-markdown: kramdown
-
-# Mermaid rendering for generated graph views (graph.md). Just the Docs loads it
-# from CDN when this key is present.
+# Everything else the theme's templates read (search, the logo, heading anchors, the copy button,
+# the GitHub link top right) comes from the theme's own _config.yml: Jekyll reads it beneath this
+# one when the theme gem is a checkout. This file holds only what the site changes.
 mermaid:
   version: "10.9.1"
 
-# Derived pattern cards: atoms/ and compositions/ pages get the `pattern` layout
-# (which injects _includes/pattern-card.html from _data/patterns.json) via defaults,
+# The site's own nav: GitHub is in the top bar, so not again in the sidebar, and the order the
+# site has had.
+nav_external_links: []
+nav_sort: case_insensitive
+
+markdown: kramdown
+
+# Derived pattern cards: atoms/ and compositions/ pages get the theme's `pattern` layout
+# (which injects its pattern-card.html from _data/patterns.json) via defaults,
 # so the canonical pattern files themselves are never edited. Regenerate the data
 # with `python3 tools/taxonomy/generate_graph.py .`.
 defaults:
+  - scope:
+      path: "" # all pages (GitHub Pages adds this implicitly; plain Jekyll does not)
+      type: "pages"
+    values:
+      layout: "default"
   - scope:
       path: "atoms"
     values:
@@ -54,5 +57,8 @@ exclude:
   - grants/
   - internal/
   - node_modules/
+  - package.json
+  - package-lock.json
+  - tailwind.css
   - tools/
   - working-ideas/

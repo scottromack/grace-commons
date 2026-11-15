@@ -43,3 +43,12 @@ __pycache__/
 .gemini/
 .gc/
 .opencode/
+
+# The site's own build (tailwind.css, Gemfile, package.json): dependencies and generated files.
+node_modules/
+assets/css/app.css
+_site/
+.jekyll-cache/
+.jekyll-metadata
+.bundle/
+vendor/bundle/
