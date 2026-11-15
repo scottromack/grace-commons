@@ -11,7 +11,7 @@ and every rule lowered to its normalized form (normalize.py, GRACE-lang section
 16). Beside a rule it carries what the rule rests on: the Execution Contract rule
 it cites for what a word means (label and text), the key an Identity rule names
 as the fields of the Term that names it, and the term entries that give the half
-of an operation a rule states only as a necessary condition. Where the page does
+of an operation a rule states only as a necessary condition, the settings a deployment may declare with their defaults, and the sets a Term defines from the call. Where the page does
 not give enough to carry one of these, `reader_gaps` says so and nothing is
 guessed.
 README.md, section *The IR*, gives the shape.
@@ -752,6 +752,80 @@ def member_answers(entry: dict) -> list[dict]:
     return out
 
 
+# a setting a deployment may declare, and what stands where it declares none; a set the page defines
+# from the record type, one field's value and the call
+SETTING_DECLARE = re.compile(r"MAY declare the (?P<term>[a-z ]+?) PER\b")
+SETTING_DEFAULT = re.compile(r";\s*(?P<text>[^;—]+?) where a deployment declares none")
+SETTING_NAMES = re.compile(r"^the (?P<of>[a-z ]+?) names\b")
+SETTING_VALUES = re.compile(r"\b[a-z]+(?:-[a-z]+)+\b")
+TERM_SET = re.compile(r"^an? (?P<what>.+?) carrying the (?P<by>.+?) of the call and an? (?P<other>.+?) other than the (?P<same>.+?) of the call\.?$")
+
+
+def settings_of(doc: dict, cx: dict) -> tuple[list[dict], list[dict]]:
+    """The settings a deployment may declare (`The deployment MAY declare the
+    reaction set`), each with what stands where it declares none, as the Term's
+    definition says it (`the single name like where a deployment declares none`),
+    the values the Term lists where it lists them, and the Field a set holds
+    where the Term says `the reaction names`. A setting whose Term gives no
+    default is a gap, and nothing is guessed."""
+    terms = cx["terms"]
+    out, gaps = [], []
+    for r in doc["rules"]:
+        m = SETTING_DECLARE.search(r["text"]) if r["family"] == "Capability requirement" else None
+        if not m:
+            continue
+        t = terms.get(m.group("term"))
+        d = SETTING_DEFAULT.search(t["definition"]) if t else None
+        if not d:
+            gaps.append({"rule": r["label"], "line": r["line"],
+                         "what": f"no default read: the Term `{m.group('term')}` does not say what stands where a deployment declares none"})
+            continue
+        text = d.group("text").strip()
+        value: object = text
+        n = re.fullmatch(r"([\d,]+)(?: [a-z ]+)?", text)
+        names = re.fullmatch(r"the single name (.+)", text)
+        if names:
+            value = [names.group(1)]
+        elif n:
+            value = int(n.group(1).replace(",", ""))
+        setting = {"term": t["name"], "rule": r["label"], "line": r["line"], "default": {"text": text, "value": value}}
+        head = t["definition"].split("—")[0].split(";")[0]
+        vals = SETTING_VALUES.findall(head)
+        if vals:
+            setting["values"] = vals
+        of = SETTING_NAMES.match(t["definition"])
+        if of:
+            f = field_of(of.group("of") + " name", cx)
+            if f:
+                setting["of"] = f
+        out.append(setting)
+    return out, gaps
+
+
+def term_sets_of(doc: dict, cx: dict) -> tuple[list[dict], list[dict]]:
+    """A Term that defines a set of records from the call (`a held reaction
+    carrying the pair of the call and a reaction name other than the reaction
+    name of the call`): the record type and the Member tests (`where`), the
+    Fields the set shares with the call (`carrying`) and the Field that differs
+    (`other_than`)."""
+    out, gaps = [], []
+    for t in doc["terms"]:
+        if " other than " not in t["definition"] or not re.search(r" carrying the .+ of the call and ", t["definition"]):
+            continue
+        m = TERM_SET.match(t["definition"].strip())
+        if not m:
+            gaps.append({"rule": f"Term {t['name']}", "line": t["line"], "what": "no set read: the definition says `other than` and does not fit `a <member> <thing> carrying the <term> of the call and a <field> other than the <field> of the call`"})
+            continue
+        where, why = what_of(m.group("what"), cx)
+        carrying, why2 = carrying_of(m.group("by"), cx)
+        other, same = field_of(m.group("other"), cx), field_of(m.group("same"), cx)
+        if why or why2 or not other or other != same:
+            gaps.append({"rule": f"Term {t['name']}", "line": t["line"], "what": "no set read: " + (why or why2 or "the field that differs is not the field the call names")})
+            continue
+        out.append({"term": t["name"], "line": t["line"], "thing": cx["type"], "where": where, "carrying": carrying, "other_than": other})
+    return out, gaps
+
+
 def repo_path(path: Path, root: Path) -> str | None:
     """A spec's path in the repo, or None for a draft outside it. Compared as
     given, then resolved, so a root reached through a symlink still holds."""
@@ -855,6 +929,10 @@ def carry(doc: dict, root: Path) -> None:
             else:
                 gaps.append({"rule": r["label"], "line": r["line"], "what": "no key read: " + why})
     doc["keys"] = keys
+    doc["settings"], more = settings_of(doc, cx)
+    gaps += more
+    doc["term_sets"], more = term_sets_of(doc, cx)
+    gaps += more
     doc["reader_gaps"] = gaps
 
 
