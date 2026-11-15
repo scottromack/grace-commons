@@ -54,7 +54,7 @@ Term person reference: the string naming the person a reaction belongs to, in th
 
 Term item reference: the string naming the item a reaction answers, such as a post, a review or a message, in the deployment's own scheme — an [Item Reference]; the atom reads no scheme in it.
 
-Term reaction name: the word naming which reaction a person chose, such as like — a [Reaction Name]; a word, never a picture.
+Term reaction name: the string naming which reaction a person chose, such as like — a [Reaction Name]; a word, never a picture.
 
 Term reaction set: the reaction names a deployment offers; the single name like where a deployment declares none.
 
@@ -361,7 +361,7 @@ Projection: item_reference
 
 #### Reaction Name
 
-The word naming which reaction the person chose, one of the reaction set the deployment offered when the reaction was recorded, such as like. Stored as supplied and compared codepoint for codepoint; how it is drawn is the page's.
+The string naming which reaction the person chose, one of the reaction set the deployment offered when the reaction was recorded, such as like. Stored as supplied and compared codepoint for codepoint; how it is drawn is the page's.
 
 Kind:       Field
 Field of:   Reaction
