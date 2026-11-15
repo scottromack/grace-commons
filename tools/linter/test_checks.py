@@ -3325,6 +3325,89 @@ def check_ir_wiring(problems: list[str]) -> None:
             problems.append(f"IR wiring: {what} read wrong: {doc['calls']} {doc['answer_tests']} {doc['records']} {doc['transactions']} {doc['reader_gaps']}")
 
 
+# An atom whose key is an id the system makes (`identify a pin by the pin id`): carried with the Field entry named for the id and the
+# rule that says the host allocates it at the seam; an id no rule allocates is a reader gap, and so is one with no Field entry. A case
+# row whose Owner cell gives a family once and bare numbers after it (`Operation 2, 3`) names every label in it.
+IR_ID_KEY = """# Tag
+
+## Structure
+
+### Identity model
+
+```
+Identity 1: The atom MUST identify a tag by the tag id.
+Identity 2: The host MUST allocate a tag id at the atom's seam.
+```
+
+### Operations
+
+```
+stick(label)
+  answers tag_id
+```
+
+```
+Operation 1: [Stick] MUST record EXACTLY ONE tag.
+Operation 2: [Stick] MUST answer tag_id.
+Operation 3: [Stick] MUST stamp placed instant from the injected now.
+```
+
+| Call | Case | Answer | Effect |
+|---|---|---|---|
+| [Stick] | label present | tag id | one tag lands (Operation 1, 2, 3) |
+
+## Terms
+
+#### Tag
+
+One mark.
+
+Kind:       Type
+
+#### Tag Id
+
+Names the tag.
+
+Kind:       Field
+Field of:   Tag
+Projection: tag_id
+
+## Status
+
+`todo` — see the Ledger.
+"""
+
+
+def check_ir_id_key(problems: list[str]) -> None:
+    import tempfile
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "grace"))
+    import ir
+
+    def read(text: str):
+        with tempfile.TemporaryDirectory() as d:
+            root = Path(d)
+            (root / "atoms").mkdir()
+            (root / "execution-contract.md").write_text(IR_READER_CONTRACT, encoding="utf-8")
+            (root / "atoms" / "tag.md").write_text(text, encoding="utf-8")
+            return ir.parse(root / "atoms" / "tag.md", root)
+
+    doc = read(IR_ID_KEY)
+    want = {
+        "the id key": doc["keys"] == [{"rule": "Identity 1", "line": 8, "thing": "tag", "term": "tag id", "names": ["tag id"],
+                                       "fields": ["tag_id"], "id": True, "source": {"how": "fresh", "rule": "Identity 2", "line": 9}}],
+        "a row names every label of its list": doc["case_tables"][0]["rows"][0]["rules"] == ["Operation 1", "Operation 2", "Operation 3"],
+        "no gap": not [g for g in doc["reader_gaps"] if g["rule"] == "Identity 1"],
+    }
+    for what, held in want.items():
+        if not held:
+            problems.append(f"IR id key: {what} read wrong: {doc['keys']} {doc['case_tables'][0]['rows'][0]['rules']} {doc['reader_gaps']}")
+    nosrc = read(IR_ID_KEY.replace("Identity 2: The host MUST allocate a tag id at the atom's seam.\n", ""))
+    nofield = read(IR_ID_KEY.replace("#### Tag Id\n\nNames the tag.\n\nKind:       Field\nField of:   Tag\nProjection: tag_id\n\n", ""))
+    for what, twin in (("an id no rule allocates", nosrc), ("an id with no Field entry", nofield)):
+        if twin["keys"] or "Identity 1" not in [g["rule"] for g in twin["reader_gaps"]]:
+            problems.append(f"IR id key: {what} gave {twin['keys']}, not a gap")
+
+
 def check_ir_corpus(root: Path, problems: list[str]) -> tuple[int, int]:
     sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "grace"))
     import ir
@@ -3774,11 +3857,12 @@ def main(argv: list[str]) -> int:
     check_ir_synthetic(ir_problems)
     check_ir_reader_carries(ir_problems)
     check_ir_wiring(ir_problems)
+    check_ir_id_key(ir_problems)
     n_specs, n_rules = check_ir_corpus(root, ir_problems)
     failures.extend(ir_problems)
     if not ir_problems:
         print(f"IR: the synthetic pair reads clean, as drafts outside the repo too, and its broken twin "
-              f"fires every finding, and the reader's key, cited meaning, completed-by and a composition's wiring read from a pin; "
+              f"fires every finding, and the reader's key, cited meaning, completed-by, a composition's wiring and an id key read from a pin; "
               f"the corpus parses, {n_specs} specs and {n_rules} rules, with its "
               f"{len(IR_FIRING)} pinned finding(s) \u2713")
 

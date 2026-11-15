@@ -294,6 +294,15 @@ def walk_tables(lines: list[str], where, spec: cites.Spec) -> list[dict]:
                 named, _ = cites.uses(lines[j], spec, lab_re, "")
                 contract = [f"Execution Contract {m.group(1)} {m.group(2)}"
                             for m in CONTRACT_CITE.finditer(lines[j])]
+                # a list that gives a family once and bare numbers after it (`Action wiring 2, 3, 12`) names every label in it:
+                # cites.uses reads the first, so the rest are read here, with the same family-carrying reading as `references`
+                for cell in cells(lines[j]):
+                    # the cell as a list (an Owner cell), and each parenthesis in it (`one tag lands (Operation 1, 2, 3)`)
+                    for item in references(cell) + [i for g in re.findall(r"\(([^()]*)\)", cell) for i in references(g)]:
+                        if item in spec.rules:
+                            named = set(named) | {item}
+                        elif item.startswith("Execution Contract ") and " through " not in item and item not in contract:
+                            contract.append(item)
                 table["rows"].append({"line": j + 1, "cells": cells(lines[j]),
                                       "rules": sorted(named, key=lambda lab: spec.rules[lab]) + contract})
                 j += 1
@@ -584,7 +593,35 @@ def term_fields(term: dict, entries: list[dict]) -> tuple[list[dict], str]:
     return got, ""
 
 
-def key_of(rule: dict, terms: list[dict], entries: list[dict]) -> tuple[dict | None, str]:
+ID_KEY = re.compile(r"the (?P<id>(?!.* and )[a-z]+(?: [a-z]+)* id)")
+
+
+def id_key_of(rule: dict, thing: str, idterm: str, entries: list[dict], rules: list[dict] | None,
+              forms: dict) -> tuple[dict | None, str]:
+    """A key that is an id the system makes (`identify an event by the event id`): the Field entry named for the id, and the rule
+    that says where it comes from, one that has the host or the atom `allocate` or `assign` it from the seam (`The host MUST allocate
+    an event id at the atom's seam`). The key is carried only with both: the Field entry gives the field, the rule the source (`fresh`:
+    a value the seam supplies, which the atom never makes). An id with no such rule, or no Field entry, is a reader gap."""
+    field = next((e for e in entries if e["name"].lower() == idterm and e["kind"].get("Kind") == "Field"), None)
+    if not field:
+        return None, f"the key `the {idterm}` has no Field entry `{idterm}`"
+    src = None
+    for r in rules or []:
+        f = forms.get(r["label"], {})
+        if r["family"] != "Identity" or f.get("kind") != "rule":
+            continue
+        for o in f.get("obligations", []):
+            if (o["modal"] == "MUST" and o["act"] in ("allocate", "assign")
+                    and re.match(r"(?:an?|the) %s\b" % re.escape(idterm), o.get("object", ""))):
+                src = {"how": "fresh", "rule": r["label"], "line": r["line"]}
+    if not src:
+        return None, f"the key `the {idterm}` is an id, and no Identity rule says the host or the seam allocates it"
+    return ({"rule": rule["label"], "line": rule["line"], "thing": thing, "term": idterm, "names": [idterm],
+             "fields": [field["kind"].get("Projection") or field["name"]], "id": True, "source": src}, "")
+
+
+def key_of(rule: dict, terms: list[dict], entries: list[dict], rules: list[dict] | None = None,
+           forms: dict | None = None) -> tuple[dict | None, str]:
     """The key an Identity rule names: `identify a favorite by the favorite's
     pair` names the Term pair, and the fields are those the Term's definition
     lists at its start (`the person reference and the item reference ...`),
@@ -593,6 +630,9 @@ def key_of(rule: dict, terms: list[dict], entries: list[dict]) -> tuple[dict | N
     m = IDENTIFY.search(rule["text"])
     if not m:
         return None, "the rule does not say `identify a <thing> by <the thing's term>`"
+    mid = ID_KEY.fullmatch(m.group("by"))
+    if mid:
+        return id_key_of(rule, m.group("thing"), mid.group("id"), entries, rules, forms or {})
     k = KEY_TERM.fullmatch(m.group("by"))
     if not k or k.group("thing") != m.group("thing"):
         return None, f"the key `{m.group('by')}` is not named through a Term of the form `the {m.group('thing')}'s <term>`"
@@ -1109,7 +1149,7 @@ def carry(doc: dict, root: Path) -> None:
             else:
                 gaps.append({"rule": r["label"], "line": r["line"], "what": "no answer shape read: " + why})
         if r["family"] == "Identity" and IDENTIFY.search(r["text"]):
-            key, why = key_of(r, doc["terms"], doc["term_entries"])
+            key, why = key_of(r, doc["terms"], doc["term_entries"], doc["rules"], forms)
             if key:
                 keys.append(key)
             else:
