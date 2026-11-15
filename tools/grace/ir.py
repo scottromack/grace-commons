@@ -8,7 +8,12 @@ page: its title, kind and status, its Summary, every labelled rule, every Term
 with its term entry's Kind, every signature, every case-table row, every Check
 with the rules it tests, the Non-goals with their owners, the Composes list,
 and every rule lowered to its normalized form (normalize.py, GRACE-lang section
-16).
+16). Beside a rule it carries what the rule rests on: the Execution Contract rule
+it cites for what a word means (label and text), the key an Identity rule names
+as the fields of the Term that names it, and the term entries that give the half
+of an operation a rule states only as a necessary condition. Where the page does
+not give enough to carry one of these, `reader_gaps` says so and nothing is
+guessed.
 README.md, section *The IR*, gives the shape.
 
 It reads with the readers the corpus already has, not a second copy of their
@@ -38,6 +43,7 @@ Standard library only. One finding per line, `path:line: [CODE] message`; exit
 """
 from __future__ import annotations
 
+import functools
 import json
 import posixpath
 import re
@@ -442,6 +448,144 @@ def walk_composes(rel: str, lines: list[str]) -> list[dict]:
     return out
 
 
+CONTRACT_PARA = re.compile(r"^\*\*((?:[A-Z][a-z]+)(?: [a-z]+)*) (\d+[a-z]?): (.*?)\*\*\s*(.*)$")
+IDENTIFY = re.compile(r"identify (?:a|an|the) (?P<thing>.+?) by (?P<by>.+?)\.?$")
+KEY_TERM = re.compile(r"(?:the|a|an) (?P<thing>.+?)'s (?P<term>.+)$")
+LIST_SEP = re.compile(r"\s*(?:,\s*and\s+|,\s*|and\s+)")
+
+
+@functools.lru_cache(maxsize=8)
+def contract_rules(root: str, stamp: int) -> dict[str, dict]:
+    """Each rule of execution-contract.md by its label (`Query 5`): its title,
+    its text, its line. Empty where the root carries no contract. `stamp`, the
+    file's mtime, keeps a cached read from outliving an edit."""
+    try:
+        lines = (Path(root) / "execution-contract.md").read_text(encoding="utf-8").split("\n")
+    except OSError:
+        return {}
+    out = {}
+    for k, ln in enumerate(lines):
+        m = CONTRACT_PARA.match(ln)
+        if m:
+            out[f"{m.group(1)} {m.group(2)}"] = {"title": m.group(3).strip(), "text": m.group(4).strip(),
+                                                  "line": k + 1}
+    return out
+
+
+def contract_of(root: Path) -> dict[str, dict]:
+    try:
+        stamp = (root / "execution-contract.md").stat().st_mtime_ns
+    except OSError:
+        return {}
+    return contract_rules(str(root.resolve()), stamp)
+
+
+def predicates(form) -> list[str]:
+    """The text of every predicate clause a normalized form carries, in order:
+    a clause the grammar's operators do not give a meaning to (`the person
+    reference is malformed`), whose meaning the page leaves to the rule it cites."""
+    out: list[str] = []
+    if isinstance(form, dict):
+        if form.get("kind") == "predicate":
+            out.append(form["text"])
+        for v in form.values():
+            out += predicates(v)
+    elif isinstance(form, list):
+        for v in form:
+            out += predicates(v)
+    return out
+
+
+def cited_meaning(rule: dict, form: dict, contract: dict[str, dict]) -> list[dict]:
+    """For a rule with a predicate clause, the Execution Contract rules its
+    text cites, each with its label, title and text; and the rule the cited
+    text sends the predicate's own word on to (`malformed (Query 1)` in Query
+    5), with the citing rule in `via`. Nothing is carried for a rule with no
+    predicate, nor for a label the contract does not carry."""
+    words = {p.split()[-1] for p in predicates(form)}
+    if not words:
+        return []
+    out: list[dict] = []
+    seen: set[str] = set()
+
+    def take(key: str, via: str | None) -> None:
+        if key in seen or key not in contract:
+            return
+        seen.add(key)
+        c = contract[key]
+        out.append({"label": "Execution Contract " + key, "title": c["title"], "text": c["text"], "via": via})
+        for w in words:
+            for m in re.finditer(r"\b%s\b[^.()]{0,40}\((?:Execution Contract )?([A-Z][a-z]+(?: [a-z]+)* \d+[a-z]?)\)"
+                                 % re.escape(w), c["text"]):
+                take(m.group(1), "Execution Contract " + key)
+
+    for m in CONTRACT_CITE.finditer(rule["text"]):
+        take(f"{m.group(1)} {m.group(2)}", None)
+    return out
+
+
+def completed_by(form: dict, entries: list[dict]) -> list[dict]:
+    """For a rule that states only a necessary condition on an answer (`EXACTLY
+    ONE OF`, `ONLY IF`), the term entries that give the rest: the Operation
+    entry its subject names, and the Member entry of each value it answers.
+    The text is the entry's own; ir.py does not read it for a rule."""
+    by_name = {e["name"].lower(): e for e in entries}
+    obs = form.get("obligations", []) if form.get("kind") == "rule" else []
+    if not any(o.get("exclusive") or o.get("only_if") for o in obs):
+        return []
+    subject = re.fullmatch(r"\[(.+)\]", form.get("subject", "").strip())
+    head = by_name.get(subject.group(1).lower()) if subject else None
+    if not head or head["kind"].get("Kind") != "Operation":
+        return []
+    out = [{"entry": head["name"], "kind": "Operation", "line": head["line"], "text": head["text"]}]
+    names = []
+    for o in obs:
+        names += list(o.get("exclusive", [])) + ([o["object"]] if o.get("object") else [])
+    for n in names:
+        e = by_name.get(n.lower())
+        if e and e["kind"].get("Kind") == "Member" and e["name"] not in [x["entry"] for x in out]:
+            out.append({"entry": e["name"], "kind": "Member", "line": e["line"], "text": e["text"]})
+    return out
+
+
+def key_of(rule: dict, terms: list[dict], entries: list[dict]) -> tuple[dict | None, str]:
+    """The key an Identity rule names: `identify a favorite by the favorite's
+    pair` names the Term pair, and the fields are those the Term's definition
+    lists at its start (`the person reference and the item reference ...`),
+    each a Field entry, in the order the definition gives them. Returns the key,
+    or None and what the page does not give."""
+    m = IDENTIFY.search(rule["text"])
+    if not m:
+        return None, "the rule does not say `identify a <thing> by <the thing's term>`"
+    k = KEY_TERM.fullmatch(m.group("by"))
+    if not k or k.group("thing") != m.group("thing"):
+        return None, f"the key `{m.group('by')}` is not named through a Term of the form `the {m.group('thing')}'s <term>`"
+    term = next((t for t in terms if t["name"].lower() == k.group("term").lower()), None)
+    if not term:
+        return None, f"no Term `{k.group('term')}` is declared"
+    fields = {e["name"].lower(): e for e in entries if e["kind"].get("Kind") == "Field"}
+    rest, got, after_sep = term["definition"].strip(), [], False
+    while True:
+        hit = next((n for n in sorted(fields, key=len, reverse=True)
+                    if re.match(r"(?:the |a |an )?%s\b" % re.escape(n), rest, re.I)), None)
+        if not hit and after_sep:
+            return None, (f"the definition of Term {term['name']} lists `{rest[:30].strip()}` after "
+                          f"`{got[-1]['name']}`, which is no Field entry: the list is not carried in part")
+        if not hit:
+            break
+        got.append(fields[hit])
+        rest = rest[re.match(r"(?:the |a |an )?%s" % re.escape(hit), rest, re.I).end():]
+        sep = LIST_SEP.match(rest)
+        if not sep:
+            break
+        rest, after_sep = rest[sep.end():], True
+    if not got:
+        return None, f"the definition of Term {term['name']} does not begin with a list of Field entries"
+    return ({"rule": rule["label"], "line": rule["line"], "thing": m.group("thing"), "term": term["name"],
+             "names": [e["name"].lower() for e in got],
+             "fields": [e["kind"].get("Projection") or e["name"] for e in got]}, "")
+
+
 def repo_path(path: Path, root: Path) -> str | None:
     """A spec's path in the repo, or None for a draft outside it. Compared as
     given, then resolved, so a root reached through a symlink still holds."""
@@ -493,7 +637,41 @@ def parse(path: Path, root: Path) -> dict:
         "composes": walk_composes(home, lines),
     }
     doc["normalized"] = normalize.lower_doc(doc)
+    carry(doc, root)
     return doc
+
+
+def carry(doc: dict, root: Path) -> None:
+    """What the reader adds beside the rules (additions only): `cited_meaning`
+    and `completed_by` on the rules that need them, `keys` for the Identity
+    rules that name a key, and `reader_gaps` for each place the page gives too
+    little to carry one, which no gate reads."""
+    forms, contract = doc["normalized"]["rules"], contract_of(root)
+    gaps: list[dict] = []
+    keys: list[dict] = []
+    for r in doc["rules"]:
+        form = forms.get(r["label"], {})
+        cm = cited_meaning(r, form, contract)
+        if cm:
+            r["cited_meaning"] = cm
+        elif predicates(form) and CONTRACT_CITE.search(r["text"]) and contract:
+            gaps.append({"rule": r["label"], "line": r["line"],
+                         "what": "a predicate rests on an Execution Contract rule the contract does not carry"})
+        cb = completed_by(form, doc["term_entries"])
+        if cb:
+            r["completed_by"] = cb
+        elif (form.get("kind") == "rule" and r["family"] == "Operation"
+              and any(o.get("exclusive") or o.get("only_if") for o in form.get("obligations", []))):
+            gaps.append({"rule": r["label"], "line": r["line"],
+                         "what": "a necessary condition on an answer, and no Operation or Member term entry gives the rest"})
+        if r["family"] == "Identity" and IDENTIFY.search(r["text"]):
+            key, why = key_of(r, doc["terms"], doc["term_entries"])
+            if key:
+                keys.append(key)
+            else:
+                gaps.append({"rule": r["label"], "line": r["line"], "what": "no key read: " + why})
+    doc["keys"] = keys
+    doc["reader_gaps"] = gaps
 
 
 def specs(root: Path) -> list[Path]:
@@ -622,8 +800,10 @@ def main(argv: list[str]) -> int:
     n_rules = sum(len(d["rules"]) for d in docs)
     n_checks = sum(len(d["checks"]) for d in docs)
     untested = sum(1 for d in docs for c in d["checks"] if not c["tests"])
+    gaps = sum(len(d["reader_gaps"]) for d in docs)
     print(f"ir: {len(docs)} specs, {n_rules} rules, {n_checks} checks ({untested} naming no rule in a closing "
           f"citation); {len(findings)} finding(s); {advisory} advisory from normalize.py "
+          f"(none gates); {gaps} reader gap(s) in {sum(1 for d in docs if d['reader_gaps'])} spec(s) "
           f"(none gates)", file=sys.stderr)
     return 1 if findings else 0
 

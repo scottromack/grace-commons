@@ -3065,6 +3065,129 @@ def check_ir_synthetic(problems: list[str]) -> None:
         problems.append(f"IR: the broken pair made {got}, want {expect}")
 
 
+# What the reader carries beside the rules (unit `tooling: the reader carries what the projector lacked`,
+# 2026-11-15): the key an Identity rule names as the fields of its Term, the Execution Contract rule a
+# predicate rests on (and the rule its word is sent on to), and the term entries that give the rest of a
+# rule stating only a necessary condition. Pinned on a small atom, and a twin whose key is named no way
+# the reader can read says so in reader_gaps and carries no key.
+IR_READER = """# Pin
+
+## Structure
+
+### Identity model
+
+```
+Identity 1: The atom MUST identify a pin by the pin's slot.
+```
+
+Term pin: one mark on a board — a [Pin].
+
+Term slot: the board and the number a pin carries, or a call names.
+
+Term board: the string naming a board — a [Board].
+
+Term number: the string naming a place on a board — a [Number].
+
+### Operations
+
+```
+look(board, number)
+  answers set | clear
+```
+
+```
+Operation 1: [Look] MUST answer EXACTLY ONE OF set, clear.
+Operation 2: [Look] MUST answer set ONLY IF a set pin EXISTS for the slot.
+Operation 3: IF the board is malformed THEN [Look] MUST answer clear (Execution Contract Query 5).
+```
+
+## Terms
+
+#### Look
+
+Answers whether a place on a board holds a pin, [Set] or [Clear]; a slot with no pin answers clear.
+
+Kind: Operation
+
+#### Pin
+
+One mark on a board.
+
+Kind:       Type
+
+#### Board
+
+Names the board.
+
+Kind:       Field
+Field of:   Pin
+Projection: board
+
+#### Number
+
+Names the place.
+
+Kind:       Field
+Field of:   Pin
+Projection: place
+
+#### Set
+
+The answer for a place that holds a pin.
+
+Kind:       Member
+Member of:  the answer
+
+## Status
+
+`todo` — see the Ledger.
+"""
+
+IR_READER_CONTRACT = (
+    "**Query 1: A filter carries a value of its axis.** A filter carrying anything else is malformed.\n\n"
+    "**Query 5: A filter value is held to the cap.** A value over the cap is malformed (Query 1).\n\n"
+    "**Input 2: A bound is a cap.** A value over it is malformed.\n")
+
+
+def check_ir_reader_carries(problems: list[str]) -> None:
+    import tempfile
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "grace"))
+    import ir
+
+    def read(text: str):
+        with tempfile.TemporaryDirectory() as d:
+            root = Path(d)
+            (root / "atoms").mkdir()
+            (root / "execution-contract.md").write_text(IR_READER_CONTRACT, encoding="utf-8")
+            (root / "atoms" / "pin.md").write_text(text, encoding="utf-8")
+            return ir.parse(root / "atoms" / "pin.md", root)
+
+    doc = read(IR_READER)
+    rules = {r["label"]: r for r in doc["rules"]}
+    want = {
+        "key": doc["keys"] == [{"rule": "Identity 1", "line": 8, "thing": "pin", "term": "slot",
+                                "names": ["board", "number"], "fields": ["board", "place"]}],
+        "no gaps": doc["reader_gaps"] == [],
+        "cited meaning": [(c["label"], c["via"]) for c in rules["Operation 3"].get("cited_meaning", [])] == [
+            ("Execution Contract Query 5", None), ("Execution Contract Query 1", "Execution Contract Query 5")],
+        "its text": rules["Operation 3"]["cited_meaning"][1]["text"].startswith("A filter carrying anything else"),
+        "completed by": [(c["entry"], c["kind"]) for c in rules["Operation 2"].get("completed_by", [])] == [
+            ("Look", "Operation"), ("Set", "Member")],
+        "a rule needing neither carries neither": "completed_by" not in rules["Operation 3"]
+        and "cited_meaning" not in rules["Operation 2"] and "cited_meaning" not in rules["Operation 1"],
+    }
+    for what, held in want.items():
+        if not held:
+            problems.append(f"IR reader: {what} read wrong: {doc['keys']} {doc['reader_gaps']}")
+    twin = read(IR_READER.replace("the pin's slot", "its id"))
+    if twin["keys"] or [g["rule"] for g in twin["reader_gaps"]] != ["Identity 1"]:
+        problems.append(f"IR reader: a key named no way the reader reads gave {twin['keys']} {twin['reader_gaps']}")
+    bare = read(IR_READER.replace("#### Number\n\nNames the place.\n\nKind:       Field\nField of:   Pin\n"
+                                  "Projection: place\n\n", ""))
+    if bare["keys"] or "Identity 1" not in [g["rule"] for g in bare["reader_gaps"]]:
+        problems.append(f"IR reader: a list naming a thing that is no Field entry gave {bare['keys']}, not a gap")
+
+
 def check_ir_corpus(root: Path, problems: list[str]) -> tuple[int, int]:
     sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "grace"))
     import ir
@@ -3512,11 +3635,13 @@ def main(argv: list[str]) -> int:
 
     ir_problems: list[str] = []
     check_ir_synthetic(ir_problems)
+    check_ir_reader_carries(ir_problems)
     n_specs, n_rules = check_ir_corpus(root, ir_problems)
     failures.extend(ir_problems)
     if not ir_problems:
         print(f"IR: the synthetic pair reads clean, as drafts outside the repo too, and its broken twin "
-              f"fires every finding; the corpus parses, {n_specs} specs and {n_rules} rules, with its "
+              f"fires every finding, and the reader's key, cited meaning and completed-by read from a pin; "
+              f"the corpus parses, {n_specs} specs and {n_rules} rules, with its "
               f"{len(IR_FIRING)} pinned finding(s) \u2713")
 
     for f in failures:
