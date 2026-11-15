@@ -12,7 +12,7 @@ NOTE: open 2026-11-05-b — the atom shape asks a `nav_order` and a summary bloc
 
 <details markdown="block">
 <summary>Table of contents</summary>
-{: .text-delta }
+{: .text-xs .font-medium .uppercase .tracking-wide .opacity-50 }
 1. TOC
 {:toc}
 </details>

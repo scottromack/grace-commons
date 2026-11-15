@@ -68,7 +68,7 @@ def main():
     P("")
     P('<details markdown="block">')
     P("  <summary>Table of contents</summary>")
-    P("  {: .text-delta }")
+    P("  {: .text-xs .font-medium .uppercase .tracking-wide .opacity-50 }")
     P("1. TOC")
     P("{:toc}")
     P("</details>")
