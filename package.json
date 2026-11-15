@@ -12,7 +12,7 @@
     "@mus/inks": "git+https://github.com/scottromack/inks.git#41ae94138be74bd01908a9e6f274d9ae224443f4",
     "@tailwindcss/cli": "^4.3.2",
     "@tailwindcss/typography": "^0.5.16",
-    "jtd-inks": "github:scottromack/jtd-inks#687f7ab299f18e1d05f9a66129cc7f37aee0c939",
+    "jtd-inks": "github:scottromack/jtd-inks#e1b8b82446706c2b5cb6bdbff26dac15ca9f509d",
     "tailwindcss": "^4.3.2"
   }
 }
