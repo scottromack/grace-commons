@@ -638,12 +638,15 @@ PROVISIONAL: ONLY UNDER
 PROVISIONAL: IS DERIVED FROM
 PROVISIONAL: COMPOSES / BINDS
 PROVISIONAL: positive MUST … BEFORE
+PROVISIONAL: WHILE condition THEN statement
 PROVISIONAL: <strong rule> DEGRADES TO <weak rule>
 PROVISIONAL: a code span inside a rule quotes text — the grammar's own meta-rules (Timing 1 through 12, Earned vocabulary 1 through 4, Hard invariant 7 through 11, Authority 1, Closed vocabulary 18) mention the tokens they govern
 ```
 
 WHY:
 `DEGRADES TO` is a pairing slot: the condition stays on the strong rule's ONLY IF, so the pairing adds no third rule and the reverse diff sees only the two rules. The signature block was admitted on recurrence across specs and a parse-error finding; the release-and-reject idiom was withdrawn the same day, and its withdrawal stands on Principle 2 — two sites in one specification are not recurrence. A claim of absence later found false was corrected in the Changes section rather than quietly repaired: a grammar that misreports its own corpus is the one document that cannot afford to.
+
+`WHILE condition THEN statement` is admitted as provisional (Scott, 2026-11-15, "Y Y"), beside `IF condition THEN statement`: the rule holds for as long as the condition stands. It is a scope word standing where IF stands and brings no new shape of obligation, so a rule written with it still carries one modal and one obligation. The rules that wanted it are those that say *for the rest of the run*, *through the outage*, *for as long as* and *until the scan closes it*: Audit Trail's Per-act critical section 5 and Composition-level invariant 1b, Defensible Retention's purge event 3c and its purge event 4b, Capacity Constraint Enforcement's Invariant 8.3, and Recoverable Invocation's family scoped by `IF position = …` (Primitive policy 19 through 23 and 27 through 43): five rules in three specifications, a sixth family in a fourth, under the five specifications at which the Watch list's Repeats rule states a cure once (the Watch list's *persistent state* entry stands at one). `UNTIL` is not added: `WHILE the scan EQUALS open` says it. The lowercase *while* stays a watch word. No controlled use yet: no rule in any specification is changed and nothing is swept; the next rule that needs the form is its first controlled use, in that rule's own unit. What makes the form permanent is Candidate form 1 with Principle 2, and no other criterion is written here.
 
 #### Watch list
 
