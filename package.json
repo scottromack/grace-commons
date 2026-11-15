@@ -5,7 +5,8 @@
   "scripts": {
     "css": "tailwindcss -i tailwind.css -o assets/css/app.css",
     "css:watch": "tailwindcss -i tailwind.css -o assets/css/app.css --watch",
-    "serve": "bundle exec jekyll serve"
+    "serve": "bundle exec jekyll serve",
+    "dev": "npm run css && (trap 'kill 0' INT TERM EXIT; tailwindcss -i tailwind.css -o assets/css/app.css --watch=always & bundle exec jekyll serve --port ${PORT:-4001} --livereload --livereload-port ${LIVERELOAD_PORT:-35729} $JEKYLL_FLAGS; wait)"
   },
   "devDependencies": {
     "@mus/inks": "git+https://github.com/scottromack/inks.git#41ae94138be74bd01908a9e6f274d9ae224443f4",

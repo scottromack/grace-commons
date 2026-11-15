@@ -104,6 +104,12 @@ The only prompt-shaped content that belongs in the repo is methodology — the t
 
 ---
 
+## Building the site
+
+`npm ci && bundle install`, then `npm run dev` serves the site on port 4001 and rebuilds its stylesheet and its pages on every change (`PORT=` names another port; `JEKYLL_FLAGS=--incremental` rebuilds faster, and leaves other pages' navigation stale after a title edit until the next restart); one Ctrl-C stops both. `.github/workflows/pages.yml` builds the same way and deploys; `tailwind.css` is the stylesheet's entry, and the theme is pinned in `package.json`.
+
+---
+
 ## Sandbox notes (environment-specific — not Grace Commons content)
 
 Operational quirks of running this repo from a sandboxed or bridged session. These are environment facts, not canonical content, and do not apply to a local machine / Claude Code. Recorded so a session need not rediscover them. Two shapes exist, and they differ: the **Cowork Linux sandbox** (the repo mounted into the agent's own filesystem) and a **bridged cloud session** (the agent runs in a cloud container, the repo stays on the user's machine and is reached through a device shell). The notes below are marked where they diverge.

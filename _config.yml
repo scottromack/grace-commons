@@ -50,10 +50,27 @@ defaults:
     values:
       layout: "pattern"
 
+# What is not the site. This list replaces Jekyll's own default one, so it names the build's files
+# too (Gemfile, vendor/, node_modules/). Jekyll's watcher takes it as the paths to ignore: the
+# council's folders (.beads writes a log every few seconds, the skill folders under .claude and
+# .opencode are links the watcher cannot follow) and the build's own state must not rebuild the site.
 exclude:
+  - .beads/
+  - .beads.gate.lock
+  - .claude/
+  - .gc/
+  - .gemini/
+  - .opencode/
+  - .pytest_cache/
+  - .vscode/
   - AGENTS.md
   - CLAUDE.md
+  - Gemfile
+  - Gemfile.lock
+  - build/
+  - build-terms/
   - demos/
+  - fly.toml
   - grants/
   - internal/
   - node_modules/
@@ -61,4 +78,5 @@ exclude:
   - package-lock.json
   - tailwind.css
   - tools/
+  - vendor/
   - working-ideas/
