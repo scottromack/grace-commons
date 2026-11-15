@@ -1,6 +1,6 @@
 # Assurance Direction
 
-**Status:** Direction — enforced at the codebase level.
+**Status:** Direction, enforced in part. What is in force lives in the canon: [`pressure-testing.md`](../pressure-testing.md), the section titled *The three-tier formal verification stack* (every pattern carries both models; a TLAPS proof only for a law a page names as holding for every size), and `tools/harness/audit.mjs`, which runs the proofs that exist. The rest of this page is direction and no tool holds it: the levels L0 to L2 as labels an audit derives, the invalidation of a proof by a version bump, the proof re-run worklist from blast radius, and the fanout-weighted metric.
 **Covers:** the assurance level every invariant carries, how the top level (mechanized proof) relates to versioning, and how the audit keeps it honest.
 
 ## Principles
