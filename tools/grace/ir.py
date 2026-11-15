@@ -651,6 +651,7 @@ def key_of(rule: dict, terms: list[dict], entries: list[dict], rules: list[dict]
 SHAPE_COUNT = re.compile(r"the (?P<count>.+?) of EVERY (?P<by>.+?) an? (?P<what>.+?) carrying (?P<x>.+?) carries$")
 SHAPE_EVERY = re.compile(r"(?:the (?P<of>.+?) of )?EVERY (?P<what>.+?) carrying (?P<x>.+)$")
 SHAPE_FIELDS = re.compile(r"an? (?P<thing>.+?)'s (?P<fields>.+? AND .+)$")
+SHAPE_STORED = re.compile(r"the (?P<thing>.+?)'s stored fields$")
 SHAPE_EMPTY = re.compile(r"an empty list(?: for (?:an?|the) (?P<x>.+?) no (?P<what>.+?) carries)?$")
 SHAPE_BY = re.compile(r"(?P<arm>.+?) by (?P<by>.+)$")
 SHAPE_CODEPOINT = re.compile(r"(?P<arm>.+?) in codepoint order(?: of (?P<of>.+))?$")
@@ -659,11 +660,28 @@ DIRECTIONS = {"earliest first": "ascending", "oldest first": "ascending", "ascen
 MEMBER_ANSWER = re.compile(r"\[(?P<op>[^\]]+)\]'s answer for one(?: and for (?:an?|the) [^.;,]*? with no (?P<none>[a-z ]+?))?(?=[.;,]|$)")
 
 
+def field_types(entries: list[dict]) -> list[str]:
+    """The record types the Field entries name, each once, in page order: `Field of: the notification record` names `notification`."""
+    out: list[str] = []
+    for e in entries:
+        if e["kind"].get("Kind") == "Field":
+            t = re.sub(r"^(?:the|a|an) ", "", e["kind"].get("Field of", "").strip().lower())
+            t = t.removesuffix(" record")
+            if t and t not in out:
+                out.append(t)
+    return out
+
+
 def shape_context(doc: dict) -> dict:
     """The names a shape resolves through: the record type, its Field entries,
-    and the Member entries of its status, each by lower-cased name."""
+    and the Member entries of its status, each by lower-cased name. The record
+    type is the Type entry's name; a page with none gives it through its Field
+    entries (`Field of: the <type> record`), and only where they name one type."""
     entries = doc["term_entries"]
     rtype = next((e for e in entries if e["kind"].get("Kind") == "Type" and "Projection" not in e["kind"]), None)
+    named = field_types(entries)
+    if not rtype and len(named) == 1:
+        rtype = {"name": named[0]}
     fields = {e["name"].lower(): e["kind"].get("Projection") or e["name"]
               for e in entries if e["kind"].get("Kind") == "Field"}
     members = {e["name"].lower(): (e["kind"].get("Member of", "").removeprefix("the ").lower(), e["kind"].get("Projection") or e["name"].lower())
@@ -698,6 +716,8 @@ def what_of(phrase: str, cx: dict) -> tuple[list[dict], str]:
         if w not in cx["members"]:
             return [], f"`{w}` is no Member entry"
         field, value = cx["members"][w]
+        if field not in cx["fields"] and field.startswith(cx["type"] + " "):
+            field = field[len(cx["type"]) + 1:]       # `Member of: the notification status` is the Field entry `status`
         if field not in cx["fields"]:
             return [], f"`{w}` is a Member of `{field}`, which is no Field entry"
         where.append({"field": cx["fields"][field], "value": value})
@@ -727,7 +747,18 @@ def answer_shape(form: dict, doc: dict, cx: dict) -> tuple[dict | None, str]:
             arms.append({"name": m.group(1), "fields": [x.strip() for x in m.group(2).split(",") if x.strip()]})
     arm = arms[0] if len(arms) == 1 else None
     out: dict | None = None
-    m = SHAPE_COUNT.fullmatch(ob)
+    m = SHAPE_STORED.fullmatch(ob)
+    if m:
+        own = next((x for x in sig["answers"] if re.sub(r"[^a-z0-9]+", "_", x.lower()).strip("_") == re.sub(r"[^a-z0-9]+", "_", cx["type"] or "").strip("_")), None)
+        stored = [e["kind"].get("Projection") or e["name"] for e in cx["entries"]
+                  if e["kind"].get("Kind") == "Field" and cx["type"]
+                  and re.sub(r"^(?:the|a|an) ", "", e["kind"].get("Field of", "").strip().lower()).removesuffix(" record") == cx["type"]]
+        if m.group("thing").lower() != cx["type"] or not stored:
+            return None, f"`{ob}` names a thing that is not the record type, or the record has no Field entry"
+        if not own:
+            return None, f"`{ob}`: no answer arm of {sig['action']} is named for the record type `{cx['type']}`"
+        out = {"shape": "record", "thing": cx["type"], "fields": stored, "arm": own}
+    m = None if out else SHAPE_COUNT.fullmatch(ob)
     if m:
         by, what, x = field_of(m.group("by"), cx), what_of(m.group("what"), cx), carrying_of(m.group("x"), cx)
         if not by or what[1] or x[1]:
@@ -779,6 +810,40 @@ def answer_shape(form: dict, doc: dict, cx: dict) -> tuple[dict | None, str]:
     out["arm"] = out.get("arm") or (arm["name"] if arm else None)
     out["arm_fields"] = arm["fields"] if arm else []
     return out, ""
+
+
+# the order Execution Contract Read 5 states for a read that answers many records and names none
+READ_5 = re.compile(r"answers them by each record's creation instant, earliest first, then by id ascending")
+
+
+def read_orders(doc: dict, cx: dict, keys: list[dict], contract: dict[str, dict]) -> list[dict]:
+    """A read that answers many records, whose page names no order but cites Execution Contract Read 5 on the read's own Operation
+    entry (`in the order Execution Contract Read 5 states`), answers them in the order Read 5 states: the records' creation instant
+    (the Field entry the contract's words name, `creation instant`), earliest first, then the id the page's key is, ascending. Added to the
+    shape as `order_default`; where the page lacks either field the order is a reader gap and the shape carries none."""
+    gaps: list[dict] = []
+    read5 = contract.get("Read 5")
+    ids = [k for k in keys if k.get("id") and k["thing"].lower() == cx["type"]]
+    for r in doc["rules"]:
+        sh = r.get("answer_shape")
+        if not sh or sh["shape"] != "every" or not read5 or not READ_5.search(read5["text"]):
+            continue
+        acts = r.get("actions", [])
+        if any(o.get("answer_shape", {}).get("shape") == "order" and set(o.get("actions", [])) & set(acts) for o in doc["rules"]):
+            continue                 # the page names an order for this read
+        entry = next((e for e in doc["term_entries"] if e["kind"].get("Kind") == "Operation"
+                      and re.sub(r"[^a-z0-9]+", "_", e["name"].lower()).strip("_") in acts), None)
+        if not entry or "Execution Contract Read 5" not in [c["label"] for c in cited_texts({"text": entry["text"]}, contract)]:
+            continue
+        made = cx["fields"].get("creation instant")
+        if not made or len(ids) != 1:
+            gaps.append({"rule": r["label"], "line": r["line"],
+                         "what": "the read's order is Execution Contract Read 5's, which needs the record's creation instant "
+                                 f"and its id: {'no Field entry `creation instant`' if not made else 'no one id key'}"})
+            continue
+        sh["order_default"] = {"rule": "Execution Contract Read 5",
+                               "by": [{"field": made, "direction": "ascending"}, {"field": ids[0]["fields"][0], "direction": "ascending"}]}
+    return gaps
 
 
 def member_answers(entry: dict) -> list[dict]:
@@ -1272,6 +1337,7 @@ def carry(doc: dict, root: Path) -> None:
             else:
                 gaps.append({"rule": r["label"], "line": r["line"], "what": "no key read: " + why})
     doc["keys"] = keys
+    gaps += read_orders(doc, cx, keys, contract)
     doc["settings"], more = settings_of(doc, cx)
     gaps += more
     doc["term_sets"], more = term_sets_of(doc, cx)

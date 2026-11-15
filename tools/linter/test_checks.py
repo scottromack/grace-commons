@@ -3545,6 +3545,134 @@ def check_ir_transitions(problems: list[str]) -> None:
             problems.append(f"IR transitions: {what} gave {[t['action'] for t in twin['transitions']]} and gaps {bad}, not a gap for the action")
 
 
+IR_RECORD_TYPE = """# Tag
+
+## Structure
+
+### Identity model
+
+```
+Identity 1: The atom MUST identify a tag by the tag id.
+Identity 2: The host MUST allocate a tag id at the atom's seam.
+```
+
+### Operations
+
+```
+show(tag_id)
+  answers tag | not-known
+
+live_for(owner_ref)
+  answers tag_ids
+```
+
+```
+Operation 1: [Show] MUST answer the tag's stored fields.
+Operation 2: [Live For] MUST answer the tag id of EVERY live tag carrying the owner reference.
+Operation 3: [Show] MUST NOT write.
+Operation 4: [Live For] MUST NOT write.
+```
+
+## Terms
+
+#### Tag Id
+
+Names the tag.
+
+Kind:       Field
+Field of:   the tag record
+Projection: tag_id
+
+#### Live For
+
+The read-only query returning the ids of all live tags of an owner (in the order Execution Contract Read 5 states).
+
+Kind: Operation
+
+#### Creation Instant
+
+When the tag was made.
+
+Kind:       Field
+Field of:   the tag record
+Projection: made_at
+
+#### Owner Reference
+
+Whose the tag is.
+
+Kind:       Field
+Field of:   the tag record
+Projection: owner_ref
+
+#### Status
+
+The tag's state.
+
+Kind:       Field
+Field of:   the tag record
+Projection: status
+
+#### Live
+
+Kind:       Member
+Member of:  the tag status
+Role:       Outcome
+
+## Status
+
+`todo` — see the Ledger.
+"""
+
+
+def check_ir_record_type(problems: list[str]) -> None:
+    import tempfile
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "grace"))
+    import ir
+
+    def read(text: str):
+        with tempfile.TemporaryDirectory() as d:
+            root = Path(d)
+            (root / "atoms").mkdir()
+            (root / "execution-contract.md").write_text(IR_READER_CONTRACT + "\n**Read 5: A read answering many records answers them in one order.** Where a specification's read answers more than one record and names no order, it answers them by each record's creation instant, earliest first, then by id ascending (Logic confinement 10).\n", encoding="utf-8")
+            (root / "atoms" / "tag.md").write_text(text, encoding="utf-8")
+            return ir.parse(root / "atoms" / "tag.md", root)
+
+    def shapes(doc):
+        return {r["label"]: r.get("answer_shape") for r in doc["rules"] if r["label"] in ("Operation 1", "Operation 2")}
+
+    doc = read(IR_RECORD_TYPE)
+    got = shapes(doc)
+    one, two = got.get("Operation 1") or {}, got.get("Operation 2") or {}
+    want = {
+        "the record type from `Field of: the tag record`": one.get("thing") == "tag" and two.get("thing") == "tag",
+        "`stored fields` is every Field entry of the record, in page order": one.get("fields") == ["tag_id", "made_at", "owner_ref", "status"] and one.get("shape") == "record",
+        "the arm it answers under is the one named for the record": one.get("arm") == "tag",
+        "a status test through `Member of: the tag status`": two.get("where") == [{"field": "status", "value": "live"}],
+        "the ids of every record carrying the call's field": two.get("shape") == "every" and two.get("of") == ["tag_id"] and two.get("carrying") == ["owner_ref"],
+        "the order Read 5 states, by the creation instant and then the id": two.get("order_default") == {
+            "rule": "Execution Contract Read 5", "by": [{"field": "made_at", "direction": "ascending"}, {"field": "tag_id", "direction": "ascending"}]},
+        "no gap": not doc["reader_gaps"],
+    }
+    for what, held in want.items():
+        if not held:
+            problems.append(f"IR record type: {what} read wrong: {got} {doc['reader_gaps']}")
+    twins = {
+        "two record types named by the Field entries": IR_RECORD_TYPE.replace(
+            "#### Status\n\nThe tag's state.\n\nKind:       Field\nField of:   the tag record", "#### Status\n\nThe tag's state.\n\nKind:       Field\nField of:   the lamp record"),
+        "no answer arm named for the record": IR_RECORD_TYPE.replace("answers tag | not-known", "answers fields | not-known"),
+        "a Member of a field that is no Field entry": IR_RECORD_TYPE.replace("Member of:  the tag status", "Member of:  the tag colour"),
+    }
+    for what, text in twins.items():
+        twin = read(text)
+        if not any(g["rule"] in ("Operation 1", "Operation 2") for g in twin["reader_gaps"]) or not any(v is None for v in shapes(twin).values()):
+            problems.append(f"IR record type: {what} gave {shapes(twin)} and gaps {twin['reader_gaps']}, not a gap")
+    nocite = shapes(read(IR_RECORD_TYPE.replace("(in the order Execution Contract Read 5 states)", "")))["Operation 2"]
+    nofield = read(IR_RECORD_TYPE.replace("#### Creation Instant\n\nWhen the tag was made.\n\nKind:       Field\nField of:   the tag record\nProjection: made_at\n\n", ""))
+    if "order_default" in nocite or "order_default" in (shapes(nofield)["Operation 2"] or {}) or not [g for g in nofield["reader_gaps"] if "Read 5" in g["what"]]:
+        problems.append(f"IR record type: a read whose page does not cite Read 5 got an order, or one with no creation instant got no gap: {nocite} {nofield['reader_gaps']}")
+
+
 def check_ir_corpus(root: Path, problems: list[str]) -> tuple[int, int]:
     sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "grace"))
     import ir
@@ -3996,11 +4124,12 @@ def main(argv: list[str]) -> int:
     check_ir_wiring(ir_problems)
     check_ir_id_key(ir_problems)
     check_ir_transitions(ir_problems)
+    check_ir_record_type(ir_problems)
     n_specs, n_rules = check_ir_corpus(root, ir_problems)
     failures.extend(ir_problems)
     if not ir_problems:
         print(f"IR: the synthetic pair reads clean, as drafts outside the repo too, and its broken twin "
-              f"fires every finding, and the reader's key, cited meaning, completed-by, a composition's wiring an id key and a transition read from a pin; "
+              f"fires every finding, and the reader's key, cited meaning, completed-by, a composition's wiring an id key and a transition read from a pin, the record type read from its Field entries; "
               f"the corpus parses, {n_specs} specs and {n_rules} rules, with its "
               f"{len(IR_FIRING)} pinned finding(s) \u2713")
 
