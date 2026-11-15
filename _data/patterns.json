@@ -1355,7 +1355,7 @@
  "reaction": {
   "composed_by": [],
   "domain": null,
-  "grounded": false,
+  "grounded": true,
   "invariants": 2,
   "kind": "atom",
   "models": {
@@ -1366,7 +1366,7 @@
   "regulated_by": [],
   "security": false,
   "standards": [],
-  "status": "todo",
+  "status": "done \u2014 2026-11-14",
   "title": "Reaction"
  },
  "recoverable-invocation": {

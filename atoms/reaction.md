@@ -17,7 +17,7 @@ toc: true
 
 ## Summary
 
-Reaction lets a person answer an item with one word from a short list the business offers: "Like" on a post, "Thanks" on an answer, or a small set such as Like, Love and Angry. Choosing a reaction holds it; choosing a different one replaces the first; taking a reaction back leaves the item as if the person had never reacted. Everyone can see how many people hold each reaction on an item. The business makes two choices. The first is the list of reactions, from a single Like to a handful. The second is how many a person may hold on one item: one in all, as on Facebook, or one of each, as on Slack and GitHub. The same request arriving twice changes nothing the second time. A reaction says the item drew a person's attention, an angry one included; it is not approval, not a vote and not a saved item. Who may react, what the item is, telling the item's author, and any score built from the counts each belong to another pattern, which is why one reaction serves a forum, a shop's reviews and a team chat alike.
+Reaction lets a person answer an item with one word from a short list the business offers: "Like" on a post, "Thanks" on an answer, or a small set such as Like, Love and Angry. Choosing a reaction holds it; where a person may hold one in all, choosing a different one replaces the first; taking a reaction back leaves the item as if the person had never reacted. Everyone can see how many people hold each reaction on an item. The business makes two choices. The first is the list of reactions, from a single Like to a handful. The second is how many a person may hold on one item: one in all, as on Facebook, or one of each, as on Slack and GitHub. The same request arriving twice changes nothing the second time, unless another request on the same item landed between them. A reaction says the item drew a person's attention, an angry one included; it is not approval, not a vote and not a saved item. Who may react, what the item is, telling the item's author, and any score built from the counts each belong to another pattern — another separately specified building block of the same kind — which is why one reaction serves a forum, a shop's reviews and a team chat alike.
 
 ---
 
@@ -50,9 +50,9 @@ Term triple: the person reference, the item reference and the reaction name a re
 
 Term pair: the person reference and the item reference a reaction carries, or a call names.
 
-Term person reference: the string naming the person a reaction belongs to, in the deployment's own scheme — a [Person Reference]; the atom reads nothing in it.
+Term person reference: the string naming the person a reaction belongs to, in the deployment's own scheme — a [Person Reference]; the atom reads no scheme in it.
 
-Term item reference: the string naming the item a reaction answers, such as a post, a review or a message, in the deployment's own scheme — an [Item Reference]; the atom reads nothing in it.
+Term item reference: the string naming the item a reaction answers, such as a post, a review or a message, in the deployment's own scheme — an [Item Reference]; the atom reads no scheme in it.
 
 Term reaction name: the word naming which reaction a person chose, such as like — a [Reaction Name]; a word, never a picture.
 
@@ -62,7 +62,7 @@ Term holding rule: how many reactions a person may hold on one item, one-per-ite
 
 Term string cap: the bound on a person reference's length, on an item reference's length and on a reaction name's length in Unicode code points; 1,024 code points where a deployment declares none.
 
-Term seam: the atom's I/O boundary as the section titled Logic Confinement Principle in `execution-contract.md` declares it; the host injects the clock reading, now, at the seam.
+Term seam: the atom's input and output boundary as the section titled Logic Confinement Principle in `execution-contract.md` declares it; the host injects the clock reading, now, at the seam.
 
 NOTE: Capability requirement 4 through 6 are the atom's own rule for the canonical form of each reference and of the reaction name, which stands in place of Execution Contract Logic confinement 13 (as that rule's last sentence allows a specification that gives the canonical form another owner), so each is recorded as the call carries it (Execution Contract Input 4; Identity 2 through 7).
 
@@ -93,6 +93,7 @@ Capability requirement 5: The deployment MUST NOT normalize an item reference at
 Capability requirement 6: The deployment MUST NOT normalize a reaction name at the seam.
 Capability requirement 7: The deployment MAY declare the reaction set PER Execution Contract Logic confinement 17.
 Capability requirement 8: The deployment MAY declare the holding rule PER Execution Contract Logic confinement 17.
+Capability requirement 9: IF a member of the reaction set EQUALS blank OR a member of the reaction set EXCEEDS the string cap THEN the deployment MUST NOT declare the reaction set.
 ```
 
 ### Operations
@@ -112,6 +113,8 @@ look_up(person_reference, item_reference)
 count(item_reference)
   answers tallies(reaction_name, tally)
 ```
+
+NOTE: open 2026-11-14-b — the answer arm ok is declared by no Term; 167 atoms write it.
 
 ```
 Operation 1: IF the person reference EQUALS blank OR the person reference EXCEEDS the string cap THEN a writing action MUST answer invalid-person-reference.
@@ -146,6 +149,8 @@ Operation 29: [Look Up] MUST answer reaction names in codepoint order (Execution
 Operation 30: [Count] MUST answer tallies in codepoint order of reaction name (Execution Contract Read 5, Execution Contract Logic confinement 10).
 ```
 
+NOTE: open 2026-11-14-a — Operation 23 through 28 write "is malformed", which Term condition operator does not list; Execution Contract Input 1 and Query 5 own the predicate.
+
 Term writing action: [React] | [Withdraw] — the actions that change a reaction.
 
 Term rival: a held reaction carrying the pair of the call and a reaction name other than the reaction name of the call.
@@ -158,7 +163,7 @@ The case space, and the rule that owns each case:
 |---|---|---|---|
 | [React] | all three valid, the name in the reaction set, no reaction for the triple, database accepts | ok | one reaction lands, held, its first reacted instant now (Operation 5 through 7) |
 | [React] | all three valid, the name in the reaction set, the reaction stands withdrawn | ok | the reaction stands held; its first reacted instant stands (Operation 8, Invariant 2.1) |
-| [React] | all three valid, the name in the reaction set, the reaction stands held | ok | the reaction is left as it is (Operation 9) |
+| [React] | all three valid, the name in the reaction set, the reaction stands held | ok | the reaction is left as it is (Operation 9); under one-per-item any rival still held stands withdrawn (Operation 10) |
 | [React] | the holding rule is one-per-item and the person holds another reaction on the item | ok | every rival stands withdrawn, in the same commit (Operation 10, Execution Contract Database 1) |
 | [React] | the holding rule is one-of-each and the person holds another reaction on the item | ok | the rivals are left as they are (Operation 11) |
 | [React] | the reaction name is not in the reaction set | [Invalid Reaction Name] | none (Operation 4) |
@@ -177,7 +182,7 @@ The case space, and the rule that owns each case:
 
 ### Invariants
 
-- **Invariant 1 — A person holds a reaction on an item once or not at all.**
+- **Invariant 1 — A person holds a reaction for one triple once or not at all.**
   ```
   Invariant 1.1: Two reactions MUST NOT share a triple.
   ```
@@ -257,7 +262,7 @@ Non-goal 10: The atom MUST NOT list the persons holding a reaction.
 
 NOTE: the owners — the composing pattern that knows the caller, such as one built on [Session](./session.md) or [Permissions](./permissions.md) (Non-goal 1, 2); Catalog *(forthcoming)* (Non-goal 3; External check 1); the composing pattern that tells the author, such as one built on [Notification](./notification.md) (Non-goal 4); Reputation *(forthcoming)* (Non-goal 5); Vote *(forthcoming)* (Non-goal 6); [Favorite](./favorite.md) (Non-goal 7); Save For Later *(forthcoming)* (Non-goal 8); the composing pattern that shows the item, which draws each reaction name as it likes (Non-goal 9); Reactor List *(forthcoming)* (Non-goal 10).
 
-Where the atom breaks down: a mark a person keeps for themselves to find an item again, which is a favorite; a choice that is counted to decide something, which is a vote; an answer in the person's own words, which is a comment.
+Where the atom breaks down: a mark a person keeps for themselves to find an item again, which is a favorite; a choice that is counted to decide something, which is a vote; an answer in the person's own words, which is a comment *(forthcoming)*.
 
 ## Edge cases
 
@@ -267,11 +272,11 @@ Two [React] calls for one triple are serialized (Execution Contract Database 2):
 
 ### Indeterminate outcome
 
-A caller whose answer is lost may call again, and the repeat is a second call (Execution Contract Error model 1). A repeated [React] where the first landed changes nothing and answers ok; a repeated [Withdraw] where the first landed writes nothing and answers ok. So a caller repeats either call freely, and a caller needing the truth asks [Look Up].
+A caller whose answer is lost may call again, and the repeat is a second call (Execution Contract Error model 1). A repeated [React] where the first landed and nothing else on the item has changed since changes nothing and answers ok; a repeated [Withdraw] where the first landed and nothing else on the item has changed since writes nothing and answers ok. Where another call on the item landed between the two, the repeat meets what that call left (Operation 8, Operation 10, Operation 13); where the reaction set dropped the reaction name between the two, a repeated [React] is refused (Operation 4). So a caller repeats either call freely where nothing else changed, and a caller needing the truth asks [Look Up].
 
 ### A reaction set or a holding rule that changes
 
-A deployment that drops a reaction name from the reaction set stops new reactions in that name (Operation 4); the reactions already held in it stay held and counted, and each person may still withdraw theirs. A deployment that moves from one-of-each to one-per-item withdraws nothing by itself: a person's several held reactions stay until that person's next [React] on the item, which withdraws every rival (Operation 10).
+A deployment that drops a reaction name from the reaction set stops every [React] in that name (Operation 4), a repeat on a reaction already held in it included; the reactions already held in it stay held and counted, and each person may still withdraw theirs. A deployment that moves from one-of-each to one-per-item withdraws nothing by itself: a person's several held reactions stay until that person's next [React] on the item, which withdraws every rival (Operation 10).
 
 ### What undoes a write
 
@@ -306,7 +311,7 @@ Term cadences: empty.
 
 Term qualifiers: migrated — drafted in GRACE lang v0.73 (2026-11-14) through the Grace connector.
 
-Term terms: reaction, reactions, triple, pair, person reference, item reference, reaction name, reaction set, holding rule, string cap, seam, first reacted instant, status, held, withdrawn, writing action, rival, tally, version.
+Term terms: reaction, reactions, triple, pair, person reference, item reference, reaction name, reaction names, reaction set, holding rule, string cap, seam, first reacted instant, status, held, withdrawn, writing action, rival, tally, tallies, version.
 
 #### React
 
@@ -340,7 +345,7 @@ Kind: Type
 
 #### Person Reference
 
-Names the person a reaction belongs to, in the deployment's own scheme. Stored as supplied and compared codepoint for codepoint; the atom reads nothing in it, and whether the caller is that person is the composing pattern's question.
+Names the person a reaction belongs to, in the deployment's own scheme. Stored as supplied and compared codepoint for codepoint; the atom reads no scheme in it, and whether the caller is that person is the composing pattern's question.
 
 Kind:       Field
 Field of:   Reaction
@@ -348,7 +353,7 @@ Projection: person_reference
 
 #### Item Reference
 
-Names the item a reaction answers, in the deployment's own scheme. Stored as supplied and compared codepoint for codepoint; the atom reads nothing in it, and whether it names a real item is a catalog's question.
+Names the item a reaction answers, in the deployment's own scheme. Stored as supplied and compared codepoint for codepoint; the atom reads no scheme in it, and whether it names a real item is a catalog's question.
 
 Kind:       Field
 Field of:   Reaction
@@ -356,7 +361,7 @@ Projection: item_reference
 
 #### Reaction Name
 
-The word naming which reaction the person chose, one of the deployment's reaction set, such as like. Stored as supplied and compared codepoint for codepoint; how it is drawn is the page's.
+The word naming which reaction the person chose, one of the reaction set the deployment offered when the reaction was recorded, such as like. Stored as supplied and compared codepoint for codepoint; how it is drawn is the page's.
 
 Kind:       Field
 Field of:   Reaction
@@ -398,14 +403,14 @@ Projection: withdrawn
 
 The deployment's setting for how many reactions a person may hold on one item: one in all (one-per-item, the rule where none is declared) or one in each reaction name (one-of-each).
 
-Kind: Parameter
+Kind:       Type
+Projection: holding_rule
 
 #### Tally
 
 The number of held reactions carrying one item reference and one reaction name, as [Count] answers it.
 
-Kind:       Field
-Field of:   Reaction
+Kind:       Type
 Projection: tally
 
 #### Invalid Person Reference
@@ -478,16 +483,18 @@ Reaction is a primitive with no regulatory anchor. It inherits from:
 
 ## Status
 
-`todo` — see the Ledger.
+`done — 2026-11-14` — see the Ledger.
 
 ## Ledger
 
 ```
-status: todo
+status: done — 2026-11-14
 formal: pending — no model yet
-last gate: none
+last gate: 2026-11-14 — Final Critique 1, a full round, frozen at b585a81 — foundational count 0, clean, one sample
 
-open: none
+open:
+- 2026-11-14-a · refining · Operation 23 through 28 · each writes "the reference is malformed", a predicate Term condition operator (a closed value set) does not list, and the form stands in 23 atoms; Execution Contract Input 1 and Query 5 own the predicate and each line cites it → decide whether the grammar admits the predicate or each atom writes the refusal over the type its input carries, then rewrite the lines
+- 2026-11-14-b · refining · the signature form; Operation 1 through 30 · the answer arm ok resolves to no declaration (Closed vocabulary 4), and 167 atoms write it → decide whether the grammar declares ok as a family answer or each atom declares it
 ```
 
 ## Decisions
