@@ -3093,12 +3093,20 @@ Term number: the string naming a place on a board — a [Number].
 ```
 look(board, number)
   answers set | clear
+
+show(board)
+  answers pins(place)
 ```
 
 ```
 Operation 1: [Look] MUST answer EXACTLY ONE OF set, clear.
 Operation 2: [Look] MUST answer set ONLY IF a set pin EXISTS for the slot.
 Operation 3: IF the board is malformed THEN [Look] MUST answer clear (Execution Contract Query 5).
+Operation 4: [Show] MUST answer EVERY lit pin carrying the board.
+Operation 5: [Show] MUST answer a pin's number AND status.
+Operation 6: [Show] MUST answer an empty list for a board no lit pin carries.
+Operation 7: [Show] MUST answer pins by number, latest first, then by board (Execution Contract Query 5).
+Operation 8: [Show] MUST answer the glow of EVERY status.
 ```
 
 ## Terms
@@ -3130,6 +3138,22 @@ Names the place.
 Kind:       Field
 Field of:   Pin
 Projection: place
+
+#### Status
+
+Where a pin stands: [Lit] or dark.
+
+Kind:       Field
+Field of:   Pin
+Projection: status
+
+#### Lit
+
+The status of a pin that burns, and [Look]'s answer for one and for a slot with no pin.
+
+Kind:       Member
+Member of:  the status
+Projection: lit
 
 #### Set
 
@@ -3167,12 +3191,24 @@ def check_ir_reader_carries(problems: list[str]) -> None:
     want = {
         "key": doc["keys"] == [{"rule": "Identity 1", "line": 8, "thing": "pin", "term": "slot",
                                 "names": ["board", "number"], "fields": ["board", "place"]}],
-        "no gaps": doc["reader_gaps"] == [],
         "cited meaning": [(c["label"], c["via"]) for c in rules["Operation 3"].get("cited_meaning", [])] == [
             ("Execution Contract Query 5", None), ("Execution Contract Query 1", "Execution Contract Query 5")],
         "its text": rules["Operation 3"]["cited_meaning"][1]["text"].startswith("A filter carrying anything else"),
         "completed by": [(c["entry"], c["kind"]) for c in rules["Operation 2"].get("completed_by", [])] == [
             ("Look", "Operation"), ("Set", "Member")],
+        "shapes": {l: rules[l].get("answer_shape", {}).get("shape") for l in ("Operation 4", "Operation 5", "Operation 6", "Operation 7")}
+        == {"Operation 4": "every", "Operation 5": "fields", "Operation 6": "empty", "Operation 7": "order"},
+        "every, resolved": {k: rules["Operation 4"]["answer_shape"][k] for k in ("where", "carrying", "arm", "arm_fields")}
+        == {"where": [{"field": "status", "value": "lit"}], "carrying": ["board"], "arm": "pins", "arm_fields": ["place"]},
+        "empty, for": rules["Operation 6"]["answer_shape"]["carrying"] == ["board"],
+        "order": rules["Operation 7"]["answer_shape"]["by"] == [{"field": "place", "direction": "descending"},
+                                                                {"field": "board", "direction": None}],
+        "order cites": [c["label"] for c in rules["Operation 7"]["answer_shape"]["cited"]] == ["Execution Contract Query 5"],
+        "a member's answers": [(e["name"], e["answers"][0]["operation"], e["answers"][0]["for"])
+                               for e in doc["term_entries"] if e.get("answers")]
+        == [("Lit", "Look", ["a record standing in the member", "no record"])],
+        "a shape the reader cannot read is a gap, not a guess": "answer_shape" not in rules["Operation 8"]
+        and [g["rule"] for g in doc["reader_gaps"]] == ["Operation 8"],
         "a rule needing neither carries neither": "completed_by" not in rules["Operation 3"]
         and "cited_meaning" not in rules["Operation 2"] and "cited_meaning" not in rules["Operation 1"],
     }
@@ -3180,7 +3216,7 @@ def check_ir_reader_carries(problems: list[str]) -> None:
         if not held:
             problems.append(f"IR reader: {what} read wrong: {doc['keys']} {doc['reader_gaps']}")
     twin = read(IR_READER.replace("the pin's slot", "its id"))
-    if twin["keys"] or [g["rule"] for g in twin["reader_gaps"]] != ["Identity 1"]:
+    if twin["keys"] or [g["rule"] for g in twin["reader_gaps"]] != ["Identity 1", "Operation 8"]:
         problems.append(f"IR reader: a key named no way the reader reads gave {twin['keys']} {twin['reader_gaps']}")
     bare = read(IR_READER.replace("#### Number\n\nNames the place.\n\nKind:       Field\nField of:   Pin\n"
                                   "Projection: place\n\n", ""))

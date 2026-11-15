@@ -524,6 +524,17 @@ def cited_meaning(rule: dict, form: dict, contract: dict[str, dict]) -> list[dic
     return out
 
 
+def cited_texts(rule: dict, contract: dict[str, dict]) -> list[dict]:
+    """The Execution Contract rules a rule's text cites, each with its label,
+    title and text: what an order or a shape the rule leaves to them means."""
+    out: list[dict] = []
+    for m in CONTRACT_CITE.finditer(rule["text"]):
+        key = f"{m.group(1)} {m.group(2)}"
+        if key in contract and not any(o["label"] == "Execution Contract " + key for o in out):
+            out.append({"label": "Execution Contract " + key, "title": contract[key]["title"], "text": contract[key]["text"]})
+    return out
+
+
 def completed_by(form: dict, entries: list[dict]) -> list[dict]:
     """For a rule that states only a necessary condition on an answer (`EXACTLY
     ONE OF`, `ONLY IF`), the term entries that give the rest: the Operation
@@ -548,6 +559,31 @@ def completed_by(form: dict, entries: list[dict]) -> list[dict]:
     return out
 
 
+def term_fields(term: dict, entries: list[dict]) -> tuple[list[dict], str]:
+    """The Field entries a Term's definition lists at its start (`the person
+    reference and the item reference ...`), in the order it gives them, or
+    the reason it gives none: the list is not carried in part."""
+    fields = {e["name"].lower(): e for e in entries if e["kind"].get("Kind") == "Field"}
+    rest, got, after_sep = term["definition"].strip(), [], False
+    while True:
+        hit = next((n for n in sorted(fields, key=len, reverse=True)
+                    if re.match(r"(?:the |a |an )?%s\b" % re.escape(n), rest, re.I)), None)
+        if not hit and after_sep:
+            return [], (f"the definition of Term {term['name']} lists `{rest[:30].strip()}` after "
+                        f"`{got[-1]['name']}`, which is no Field entry: the list is not carried in part")
+        if not hit:
+            break
+        got.append(fields[hit])
+        rest = rest[re.match(r"(?:the |a |an )?%s" % re.escape(hit), rest, re.I).end():]
+        sep = LIST_SEP.match(rest)
+        if not sep:
+            break
+        rest, after_sep = rest[sep.end():], True
+    if not got:
+        return [], f"the definition of Term {term['name']} does not begin with a list of Field entries"
+    return got, ""
+
+
 def key_of(rule: dict, terms: list[dict], entries: list[dict]) -> tuple[dict | None, str]:
     """The key an Identity rule names: `identify a favorite by the favorite's
     pair` names the Term pair, and the fields are those the Term's definition
@@ -563,27 +599,157 @@ def key_of(rule: dict, terms: list[dict], entries: list[dict]) -> tuple[dict | N
     term = next((t for t in terms if t["name"].lower() == k.group("term").lower()), None)
     if not term:
         return None, f"no Term `{k.group('term')}` is declared"
-    fields = {e["name"].lower(): e for e in entries if e["kind"].get("Kind") == "Field"}
-    rest, got, after_sep = term["definition"].strip(), [], False
-    while True:
-        hit = next((n for n in sorted(fields, key=len, reverse=True)
-                    if re.match(r"(?:the |a |an )?%s\b" % re.escape(n), rest, re.I)), None)
-        if not hit and after_sep:
-            return None, (f"the definition of Term {term['name']} lists `{rest[:30].strip()}` after "
-                          f"`{got[-1]['name']}`, which is no Field entry: the list is not carried in part")
-        if not hit:
-            break
-        got.append(fields[hit])
-        rest = rest[re.match(r"(?:the |a |an )?%s" % re.escape(hit), rest, re.I).end():]
-        sep = LIST_SEP.match(rest)
-        if not sep:
-            break
-        rest, after_sep = rest[sep.end():], True
+    got, why = term_fields(term, entries)
     if not got:
-        return None, f"the definition of Term {term['name']} does not begin with a list of Field entries"
+        return None, why
     return ({"rule": rule["label"], "line": rule["line"], "thing": m.group("thing"), "term": term["name"],
              "names": [e["name"].lower() for e in got],
              "fields": [e["kind"].get("Projection") or e["name"] for e in got]}, "")
+
+
+# an answer that is a shape, not an arm of the signature: what the read side of a page says it answers
+SHAPE_COUNT = re.compile(r"the (?P<count>.+?) of EVERY (?P<by>.+?) an? (?P<what>.+?) carrying (?P<x>.+?) carries$")
+SHAPE_EVERY = re.compile(r"(?:the (?P<of>.+?) of )?EVERY (?P<what>.+?) carrying (?P<x>.+)$")
+SHAPE_FIELDS = re.compile(r"an? (?P<thing>.+?)'s (?P<fields>.+? AND .+)$")
+SHAPE_EMPTY = re.compile(r"an empty list(?: for (?:an?|the) (?P<x>.+?) no (?P<what>.+?) carries)?$")
+SHAPE_BY = re.compile(r"(?P<arm>.+?) by (?P<by>.+)$")
+SHAPE_CODEPOINT = re.compile(r"(?P<arm>.+?) in codepoint order(?: of (?P<of>.+))?$")
+DIRECTIONS = {"earliest first": "ascending", "oldest first": "ascending", "ascending": "ascending",
+              "latest first": "descending", "newest first": "descending", "descending": "descending"}
+MEMBER_ANSWER = re.compile(r"\[(?P<op>[^\]]+)\]'s answer for one(?: and for (?:an?|the) [^.;,]*? with no (?P<none>[a-z ]+?))?(?=[.;,]|$)")
+
+
+def shape_context(doc: dict) -> dict:
+    """The names a shape resolves through: the record type, its Field entries,
+    and the Member entries of its status, each by lower-cased name."""
+    entries = doc["term_entries"]
+    rtype = next((e for e in entries if e["kind"].get("Kind") == "Type" and "Projection" not in e["kind"]), None)
+    fields = {e["name"].lower(): e["kind"].get("Projection") or e["name"]
+              for e in entries if e["kind"].get("Kind") == "Field"}
+    members = {e["name"].lower(): (e["kind"].get("Member of", "").removeprefix("the ").lower(), e["kind"].get("Projection") or e["name"].lower())
+               for e in entries if e["kind"].get("Kind") == "Member"}
+    return {"type": rtype["name"].lower() if rtype else None, "fields": fields, "members": members,
+            "terms": {t["name"].lower(): t for t in doc["terms"]}, "entries": entries}
+
+
+def field_of(phrase: str, cx: dict) -> str | None:
+    return cx["fields"].get(re.sub(r"^(?:the|a|an) ", "", phrase.strip()).lower())
+
+
+def carrying_of(phrase: str, cx: dict) -> tuple[list[str], str]:
+    """`the person reference`, or a Term (`the pair`) whose definition lists Field entries -> projection names"""
+    name = re.sub(r"^(?:the|a|an) ", "", phrase.strip()).lower()
+    if name in cx["fields"]:
+        return [cx["fields"][name]], ""
+    t = cx["terms"].get(name)
+    if t:
+        got, why = term_fields(t, cx["entries"])
+        return [e["kind"].get("Projection") or e["name"] for e in got], why
+    return [], f"`{phrase.strip()}` is neither a Field entry nor a Term"
+
+
+def what_of(phrase: str, cx: dict) -> tuple[list[dict], str]:
+    """`marked favorite`, `held reaction` -> the record type and the Member entries before it, each a status test"""
+    words = phrase.strip().lower().split()
+    if not cx["type"] or not words or " ".join(words[-len(cx["type"].split()):]) != cx["type"]:
+        return [], f"`{phrase.strip()}` does not end in the record type"
+    where = []
+    for w in words[:-len(cx["type"].split())]:
+        if w not in cx["members"]:
+            return [], f"`{w}` is no Member entry"
+        field, value = cx["members"][w]
+        if field not in cx["fields"]:
+            return [], f"`{w}` is a Member of `{field}`, which is no Field entry"
+        where.append({"field": cx["fields"][field], "value": value})
+    return where, ""
+
+
+def answer_shape(form: dict, doc: dict, cx: dict) -> tuple[dict | None, str]:
+    """For an Operation rule that answers something that is no arm of its
+    action's signature, the shape it says, with every noun resolved to the
+    projection of the Field entry or Member entry it names: `every` (the
+    records carrying a field set, a status test, and the fields answered),
+    `fields` (the fields of one record), `empty` (an empty list), `count_by`
+    (a count of the records by one field) and `order` (the arm's rows ordered by fields,
+    each with a direction). Returns the shape, or None and what the page does
+    not give; nothing is guessed."""
+    sigs = {re.sub(r"[^a-z0-9]+", "_", s["action"].lower()).strip("_"): s for s in doc["signatures"]}
+    sub = re.fullmatch(r"\[(.+)\]", form.get("subject", "").strip())
+    action = re.sub(r"[^a-z0-9]+", "_", sub.group(1).lower()).strip("_") if sub else None
+    sig = sigs.get(action)
+    if not sig:
+        return None, "the rule's subject is no action of the signatures"
+    ob = form["obligations"][0]["object"]
+    arms = []
+    for a in sig["answers"]:
+        m = re.fullmatch(r"([a-z_]+)\((.*)\)", a)
+        if m:
+            arms.append({"name": m.group(1), "fields": [x.strip() for x in m.group(2).split(",") if x.strip()]})
+    arm = arms[0] if len(arms) == 1 else None
+    out: dict | None = None
+    m = SHAPE_COUNT.fullmatch(ob)
+    if m:
+        by, what, x = field_of(m.group("by"), cx), what_of(m.group("what"), cx), carrying_of(m.group("x"), cx)
+        if not by or what[1] or x[1]:
+            return None, (what[1] or x[1] or f"`{m.group('by')}` is no Field entry")
+        out = {"shape": "count_by", "count": m.group("count"), "by": by, "thing": cx["type"], "where": what[0], "carrying": x[0]}
+    m = None if out else SHAPE_EVERY.fullmatch(ob)
+    if m:
+        what, x = what_of(m.group("what"), cx), carrying_of(m.group("x"), cx)
+        of = [field_of(m.group("of"), cx)] if m.group("of") else []
+        if what[1] or x[1] or (m.group("of") and not of[0]):
+            return None, what[1] or x[1] or f"`{m.group('of')}` is no Field entry"
+        out = {"shape": "every", "thing": cx["type"], "where": what[0], "carrying": x[0], "of": of}
+    m = None if out else SHAPE_FIELDS.fullmatch(ob)
+    if m:
+        fs = [field_of(x, cx) for x in re.split(r"\s+AND\s+", m.group("fields"))]
+        if m.group("thing").lower() != cx["type"] or not all(fs):
+            return None, f"`{m.group('fields')}` names a thing that is no Field entry of the record"
+        out = {"shape": "fields", "thing": cx["type"], "fields": fs}
+    m = None if out else SHAPE_EMPTY.fullmatch(ob)
+    if m:
+        out = {"shape": "empty"}
+        if m.group("x"):
+            what, x = what_of(m.group("what"), cx), carrying_of(m.group("x"), cx)
+            if what[1] or x[1]:
+                return None, what[1] or x[1]
+            out.update({"thing": cx["type"], "where": what[0], "carrying": x[0]})
+    m = None if out else SHAPE_CODEPOINT.fullmatch(ob)
+    if m:
+        name = re.sub(r"[^a-z0-9]+", "_", m.group("arm").lower()).strip("_")
+        own = next((a for a in arms if a["name"] == name), None)
+        by = [field_of(m.group("of"), cx)] if m.group("of") else (own["fields"][:1] if own and len(own["fields"]) == 1 else [])
+        if not own or not by or not by[0]:
+            return None, f"`{m.group('arm')}` names no arm of the signature with one field to order by"
+        out = {"shape": "order", "arm": own["name"], "by": [{"field": by[0], "direction": "ascending"}]}
+    m = None if out else SHAPE_BY.fullmatch(ob)
+    if m:
+        name = re.sub(r"[^a-z0-9]+", "_", m.group("arm").lower()).strip("_")
+        own = next((a for a in arms if a["name"] == name), None)
+        keys = []
+        for part in re.split(r",? then by ", m.group("by")):
+            direction = next((d for d in DIRECTIONS if part.endswith(", " + d)), None)
+            f = field_of(re.sub(r", %s$" % re.escape(direction), "", part) if direction else part, cx)
+            keys.append({"field": f, "direction": DIRECTIONS[direction] if direction else None})
+        if not own or not all(k["field"] for k in keys):
+            return None, f"`{ob}` orders by something that is no Field entry, or an arm that is no arm of the signature"
+        out = {"shape": "order", "arm": own["name"], "by": keys}
+    if not out:
+        return None, f"the reader reads no shape in `{ob}`"
+    out["arm"] = out.get("arm") or (arm["name"] if arm else None)
+    out["arm_fields"] = arm["fields"] if arm else []
+    return out, ""
+
+
+def member_answers(entry: dict) -> list[dict]:
+    """On a Member entry whose text says `[Look Up]'s answer for one` (and
+    for a pair with no favorite), what it answers for: a record standing in
+    the member, and where the text says so, no record."""
+    out = []
+    for m in MEMBER_ANSWER.finditer(entry["text"]):
+        out.append({"operation": m.group("op"), "value": entry["kind"].get("Projection") or entry["name"].lower(),
+                    "for": ["a record standing in the member"] + (["no record"] if m.group("none") else [])})
+    return out
 
 
 def repo_path(path: Path, root: Path) -> str | None:
@@ -649,6 +815,11 @@ def carry(doc: dict, root: Path) -> None:
     forms, contract = doc["normalized"]["rules"], contract_of(root)
     gaps: list[dict] = []
     keys: list[dict] = []
+    cx = shape_context(doc)
+    for e in doc["term_entries"]:
+        ma = member_answers(e) if e["kind"].get("Kind") == "Member" else []
+        if ma:
+            e["answers"] = ma
     for r in doc["rules"]:
         form = forms.get(r["label"], {})
         cm = cited_meaning(r, form, contract)
@@ -664,6 +835,19 @@ def carry(doc: dict, root: Path) -> None:
               and any(o.get("exclusive") or o.get("only_if") for o in form.get("obligations", []))):
             gaps.append({"rule": r["label"], "line": r["line"],
                          "what": "a necessary condition on an answer, and no Operation or Member term entry gives the rest"})
+        obs = form.get("obligations", []) if form.get("kind") == "rule" and r["family"] == "Operation" else []
+        if (len(obs) == 1 and obs[0]["act"] == "answer" and obs[0].get("object") and not obs[0].get("exclusive")
+                and not obs[0].get("only_if") and re.fullmatch(r"\[.+\]", form.get("subject", "").strip())
+                and not re.fullmatch(r"[a-z]+(?:-[a-z]+)*", obs[0]["object"])
+                and obs[0]["object"] not in {a.split("(")[0] for s in doc["signatures"] for a in s["answers"]}):
+            shape, why = answer_shape(form, doc, cx)
+            if shape:
+                cited = cited_texts(r, contract)
+                if cited:
+                    shape["cited"] = cited
+                r["answer_shape"] = shape
+            else:
+                gaps.append({"rule": r["label"], "line": r["line"], "what": "no answer shape read: " + why})
         if r["family"] == "Identity" and IDENTIFY.search(r["text"]):
             key, why = key_of(r, doc["terms"], doc["term_entries"])
             if key:
