@@ -1361,6 +1361,81 @@ def parse(path: Path, root: Path) -> dict:
     return doc
 
 
+def guard_test(cl: dict, doc: dict, cx: dict, keys: list[dict], inputs: set[str], rule: dict) -> dict:
+    """What one clause of a guard reads, nothing guessed: `record_by_id` (a record EXISTS, or none does, for the key's term), `input` (a call's input is
+    blank, exceeds a bound a Term of the page names, is malformed, or is, or is not, a value), `record_state` (the record is, or is not, a Member entry's
+    value), `database_refusal` (the database refuses the write), `seam_value` (a Term of the page that is a list of values, `material | unknown-actor | unreachable`, which the outside supplies, is, or is not,
+    one of them), or `prose` (the clause rests on a Term's sentence, or on nothing the reader resolves), with `why`."""
+    k, text = cl["kind"], cl["text"]
+    key = keys[0] if keys else None
+    if k in ("presence", "absence") and key and cl.get("qualifier") == f"for the {key['term']}":
+        if re.sub(r"^(?:a|an|the|no) ", "", cl.get("thing", "").strip().lower()) == key["thing"]:
+            return {"clause": text, "reads": "record_by_id", "present": k == "presence"}
+    if k == "comparison":
+        left, op, right = cl["left"], cl["op"], cl["right"]
+        neg = op == "DOES NOT EQUAL"
+        field = field_of(left, cx)
+        term = cx["terms"].get(re.sub(r"^(?:the|a|an) ", "", left.strip().lower()))
+        values = re.match(r"^([a-z-]+(?: \| [a-z-]+)+)\b", term["definition"]) if term else None
+        if field in inputs and op in ("EQUALS", "DOES NOT EQUAL") and right == "blank":
+            return {"clause": text, "reads": "input", "input": field, "test": "blank", "negated": neg}
+        if field in inputs and op == "EXCEEDS" and re.sub(r"^(?:the|a|an) ", "", right.strip().lower()) in cx["terms"]:
+            return {"clause": text, "reads": "input", "input": field, "test": "exceeds", "bound": re.sub(r"^(?:the|a|an) ", "", right.strip().lower())}
+        if field in inputs and op in ("EQUALS", "DOES NOT EQUAL") and re.fullmatch(r"[a-z-]+", right):
+            return {"clause": text, "reads": "input", "input": field, "test": "value", "value": right, "negated": neg}
+        rec = re.match(r"^the (?P<rec>.+?)'s (?P<f>.+)$", left.strip())
+        if rec and key and rec.group("rec") in (key["thing"], key["thing"].removesuffix(" record")) and op in ("EQUALS", "DOES NOT EQUAL") and right in cx["members"]:
+            fld, value = cx["members"][right]
+            rtype = key["thing"].removesuffix(" record")
+            fld = fld[len(rtype) + 1:] if fld not in cx["fields"] and fld.startswith(rtype + " ") else fld
+            if cx["fields"].get(fld) and cx["fields"].get(fld) == field_of(rec.group("f"), cx):
+                return {"clause": text, "reads": "record_state", "field": cx["fields"][fld], "value": value, "negated": neg}
+        if left == "a string input" and op == "EXCEEDS" and re.sub(r"^(?:the|a|an) ", "", right.strip().lower()) in cx["terms"]:
+            return {"clause": text, "reads": "input", "input": "every string input", "test": "exceeds", "bound": re.sub(r"^(?:the|a|an) ", "", right.strip().lower())}
+        if values and op in ("EQUALS", "DOES NOT EQUAL") and right in values.group(1).split(" | "):
+            return {"clause": text, "reads": "seam_value", "term": term["name"], "value": right, "negated": neg}
+    if k == "predicate" and re.fullmatch(r"the database refuses the (?:\[[^\]]+\] )?write", text):
+        return {"clause": text, "reads": "database_refusal"}
+    if k == "predicate":
+        m = re.fullmatch(r"(?:a supplied )?(.+) is malformed", text)
+        field = field_of(m.group(1), cx) if m else None
+        if field in inputs:
+            return {"clause": text, "reads": "input", "input": field, "test": "malformed", "cited": bool(rule.get("cited_meaning"))}
+        m = re.fullmatch(r"the (?P<rec>.+?) is (?P<not>not )?(?P<word>[a-z-]+)", text)
+        if m and key and m.group("rec") in (key["thing"], key["thing"].removesuffix(" record")) and m.group("word") in cx["members"]:
+            fld, value = cx["members"][m.group("word")]
+            rtype = key["thing"].removesuffix(" record")
+            if fld not in cx["fields"] and fld.startswith(rtype + " "):
+                fld = fld[len(rtype) + 1:]
+            if fld in cx["fields"]:
+                return {"clause": text, "reads": "record_state", "field": cx["fields"][fld], "value": value, "negated": bool(m.group("not"))}
+        if m and m.group("word") in cx["terms"]:
+            return {"clause": text, "reads": "prose", "why": f"`{m.group('word')}` is a Term whose sentence says what it tests"}
+    return {"clause": text, "reads": "prose", "why": "the clause rests on a Term's sentence or on nothing the reader resolves"}
+
+
+def guards_of(doc: dict, cx: dict, keys: list[dict]) -> list[dict]:
+    """Each Operation rule that says `IF <tests> THEN [X] MUST answer <an arm of the signature>`: the guard (`join`, `tests` each with what it reads, `whole`
+    where none rests on prose) and `answer`, the arm, with `refusal` true where the signature lists it among the action's refusals."""
+    forms = doc["normalized"]["rules"]
+    sigs = {snake_of(s["action"]): s for s in doc["signatures"]}
+    out: list[dict] = []
+    for r in doc["rules"]:
+        f = forms.get(r["label"], {})
+        if r["family"] != "Operation" or f.get("kind") != "rule" or not f.get("if") or len(f.get("obligations", [])) != 1 or not r.get("actions"):
+            continue
+        o = f["obligations"][0]
+        arms = {x.split("(")[0] for act in r["actions"] if act in sigs for x in sigs[act]["answers"] + sigs[act]["refuses"]}
+        if o["act"] != "answer" or o["modal"] != "MUST" or o.get("object") not in arms:
+            continue
+        inputs = {snake_of(i["name"]) for act in r["actions"] if act in sigs for i in sigs[act]["inputs"]}
+        tests = [guard_test(c, doc, cx, keys, inputs, r) for c in f["if"]["clauses"]]
+        out.append({"rule": r["label"], "line": r["line"], "actions": r["actions"], "join": f["if"]["join"], "tests": tests,
+                    "answer": o["object"], "refusal": any(o["object"] in sigs[act]["refuses"] for act in r["actions"] if act in sigs),
+                    "whole": all(t["reads"] != "prose" for t in tests)})
+    return out
+
+
 def carry(doc: dict, root: Path) -> None:
     """What the reader adds beside the rules (additions only): `cited_meaning`
     and `completed_by` on the rules that need them, `keys` for the Identity
@@ -1413,6 +1488,7 @@ def carry(doc: dict, root: Path) -> None:
             else:
                 gaps.append({"rule": r["label"], "line": r["line"], "what": "no key read: " + why})
     doc["keys"] = keys
+    doc["guards"] = guards_of(doc, cx, keys)
     gaps += read_orders(doc, cx, keys, contract)
     doc["settings"], more = settings_of(doc, cx)
     gaps += more

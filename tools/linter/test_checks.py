@@ -3799,6 +3799,111 @@ def check_ir_read_answers(problems: list[str]) -> None:
             problems.append(f"IR read answers: {what} gave {shapes(twin)[rule]} and gaps {twin['reader_gaps']}, not a gap on {rule}")
 
 
+IR_GUARDS = """# Tag
+
+## Structure
+
+### Identity model
+
+```
+Identity 1: The atom MUST identify a tag by the tag id.
+Identity 2: The host MUST allocate a tag id at the atom's seam.
+```
+
+### Operations
+
+```
+retire(tag_id, retired_by)
+  answers ok
+  refuses invalid-request | not-live | stale | storage-failure | verdict-held
+```
+
+Term stale: a tag whose live instant the clock reading has passed.
+
+Term verdict: held | failed — what the outside gives a retiring call for a tag.
+
+```
+Operation 1: IF retired by EQUALS blank THEN [Retire] MUST answer invalid-request.
+Operation 2: IF the tag is not live THEN [Retire] MUST answer not-live.
+Operation 3: IF the database refuses the write THEN [Retire] MUST answer storage-failure.
+Operation 4: IF a tag EXISTS for the tag id AND retired by EQUALS blank THEN [Retire] MUST answer invalid-request.
+Operation 5: IF the tag is stale THEN [Retire] MUST answer stale.
+Operation 6: IF verdict EQUALS held THEN [Retire] MUST answer verdict-held.
+Operation 7: IF retired by EQUALS blank THEN [Retire] MUST answer ok.
+```
+
+## Terms
+
+#### Tag Id
+
+Names the tag.
+
+Kind:       Field
+Field of:   the tag record
+Projection: tag_id
+
+#### Retired By
+
+Who retired it.
+
+Kind:       Field
+Field of:   the tag record
+Projection: retired_by
+
+#### Status
+
+The tag's state.
+
+Kind:       Field
+Field of:   the tag record
+Projection: status
+
+#### Live
+
+Kind:       Member
+Member of:  the tag status
+Role:       Outcome
+
+## Status
+
+`todo` \u2014 see the Ledger.
+"""
+
+
+def check_ir_guards(problems: list[str]) -> None:
+    import tempfile
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "grace"))
+    import ir
+
+    def read(text: str):
+        with tempfile.TemporaryDirectory() as d:
+            root = Path(d)
+            (root / "atoms").mkdir()
+            (root / "execution-contract.md").write_text(IR_READER_CONTRACT, encoding="utf-8")
+            (root / "atoms" / "tag.md").write_text(text, encoding="utf-8")
+            return ir.parse(root / "atoms" / "tag.md", root)
+
+    doc = read(IR_GUARDS)
+    got = {g["rule"]: g for g in doc.get("guards", [])}
+    reads = lambda n: [t["reads"] for t in got.get(f"Operation {n}", {}).get("tests", [])]
+    want = {
+        "a call's input that is blank": reads(1) == ["input"] and got["Operation 1"]["tests"][0].get("input") == "retired_by" and got["Operation 1"]["tests"][0].get("test") == "blank",
+        "the record standing in a Member entry's value, negated": reads(2) == ["record_state"] and got["Operation 2"]["tests"][0].get("value") == "live" and got["Operation 2"]["tests"][0].get("negated") is True,
+        "the database's refusal of the write": reads(3) == ["database_refusal"],
+        "the record by its id, then an input": reads(4) == ["record_by_id", "input"] and got["Operation 4"]["tests"][0].get("present") is True,
+        "a Term's sentence is prose and the guard is not whole": reads(5) == ["prose"] and got["Operation 5"]["whole"] is False,
+        "a value the outside supplies, from a Term that lists values": reads(6) == ["seam_value"] and got["Operation 6"]["tests"][0].get("value") == "held",
+        "an answer that is no refusal is a guard but no refusal": "Operation 7" in got and got["Operation 7"]["refusal"] is False,
+        "refusals carried whole: every test is read": [n for n, g in got.items() if g["refusal"] and g["whole"]] == ["Operation 1", "Operation 2", "Operation 3", "Operation 4", "Operation 6"],
+    }
+    for what, held in want.items():
+        if not held:
+            problems.append(f"IR guards: {what} read wrong: {got}")
+    twin = read(IR_GUARDS.replace("IF retired by EQUALS blank THEN [Retire] MUST answer invalid-request.\nOperation 2", "IF the maker EQUALS blank THEN [Retire] MUST answer invalid-request.\nOperation 2"))
+    if {g["rule"]: g for g in twin["guards"]}["Operation 1"]["whole"] is not False:
+        problems.append("IR guards: a test on a word that is no Field entry of an input read whole")
+
+
 def check_ir_corpus(root: Path, problems: list[str]) -> tuple[int, int]:
     sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "grace"))
     import ir
@@ -4252,6 +4357,7 @@ def main(argv: list[str]) -> int:
     check_ir_transitions(ir_problems)
     check_ir_record_type(ir_problems)
     check_ir_read_answers(ir_problems)
+    check_ir_guards(ir_problems)
     n_specs, n_rules = check_ir_corpus(root, ir_problems)
     failures.extend(ir_problems)
     if not ir_problems:
