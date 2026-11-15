@@ -69,7 +69,7 @@ Grace is the Modulor for software. Le Corbusier's Modulor gave architects a scal
 
 ## The lineage — what each solved, where each stopped
 
-Every row below contributed something this library inherits; none is dismissed. The last column is the specific gap, not a verdict.
+Every row below contributed something this library inherits; none is dismissed. The last column is the specific gap, not a verdict. What we took from whom, in one page: [On the Shoulders of Giants](./giants.html).
 
 | Tradition | What it does at the spec level | Where it stops short of earned source-of-truth |
 |---|---|---|
