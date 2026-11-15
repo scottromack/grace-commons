@@ -3408,6 +3408,143 @@ def check_ir_id_key(problems: list[str]) -> None:
             problems.append(f"IR id key: {what} gave {twin['keys']}, not a gap")
 
 
+IR_TRANSITION = """# Tag
+
+## Structure
+
+### Identity model
+
+```
+Identity 1: The atom MUST identify a tag by the tag id.
+Identity 2: The host MUST allocate a tag id at the atom's seam.
+```
+
+Term terminal call: a [Retire] or a [Lapse] call — the two that end a tag.
+
+### Operations
+
+```
+retire(tag_id)
+  answers ok
+  refuses not-known | not-live
+
+lapse(tag_id)
+  answers ok
+  refuses not-known | not-live
+```
+
+```
+Operation 1: [Retire] MUST stand the tag in retired.
+Operation 2: IF no tag EXISTS for the tag id THEN a terminal call MUST answer not-known.
+Operation 3: IF the tag's status DOES NOT EQUAL live THEN a terminal call MUST answer not-live.
+Operation 4: [Lapse] MUST stand the tag in lapsed.
+State 1: A terminal call MUST stamp the call's end stamp from the injected now.
+Invariant 1.1: A tag carrying retired instant MUST stand in retired.
+Invariant 1.2: A tag carrying lapse instant MUST stand in lapsed.
+```
+
+Term end stamp: retired instant | lapse instant — the one stamp an ended tag carries.
+
+## Terms
+
+#### Tag Id
+
+Names the tag.
+
+Kind:       Field
+Field of:   the tag record
+Projection: tag_id
+
+#### Status
+
+The tag's state.
+
+Kind:       Field
+Field of:   the tag record
+Projection: status
+
+#### Retired Instant
+
+When it was retired.
+
+Kind:       Field
+Field of:   the tag record
+Projection: retired_at
+
+#### Lapse Instant
+
+When it lapsed.
+
+Kind:       Field
+Field of:   the tag record
+Projection: lapsed_at
+
+#### Live
+
+Kind:       Member
+Member of:  the tag status
+Role:       Outcome
+
+#### Retired
+
+Kind:       Member
+Member of:  the tag status
+Role:       Outcome
+
+#### Lapsed
+
+Kind:       Member
+Member of:  the tag status
+Role:       Outcome
+
+## Status
+
+`todo` — see the Ledger.
+"""
+
+
+def check_ir_transitions(problems: list[str]) -> None:
+    import tempfile
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "grace"))
+    import ir
+
+    def read(text: str):
+        with tempfile.TemporaryDirectory() as d:
+            root = Path(d)
+            (root / "atoms").mkdir()
+            (root / "execution-contract.md").write_text(IR_READER_CONTRACT, encoding="utf-8")
+            (root / "atoms" / "tag.md").write_text(text, encoding="utf-8")
+            return ir.parse(root / "atoms" / "tag.md", root)
+
+    doc = read(IR_TRANSITION)
+    got = {t["action"]: t for t in doc["transitions"]}
+    want = {
+        "two transitions, one for each action": sorted(got) == ["lapse", "retire"],
+        "the state it stands and the field": got.get("retire", {}).get("stands") == {"rule": "Operation 1", "line": 27, "value": "retired", "field": "status"},
+        "the state it may stand from": got.get("lapse", {}).get("from", {}).get("values") == ["live"] and got["lapse"]["from"]["answer"] == "not-live",
+        "the answer where no record carries the id": got.get("retire", {}).get("absent", {}).get("answer") == "not-known",
+        "the stamp paired with its state by an Invariant": [got.get(a, {}).get("stamp", {}).get("field") for a in ("retire", "lapse")] == ["retired_at", "lapsed_at"]
+                                                          and got["lapse"]["stamp"]["paired_by"] == "Invariant 1.2",
+        "the subject a Term lists names every action": doc["rules"][[r["label"] for r in doc["rules"]].index("Operation 2")]["actions"] == ["retire", "lapse"],
+        "the record's fields": got.get("retire", {}).get("record_fields") == ["tag_id", "status", "retired_at", "lapsed_at"],
+        "no gap": not [g for g in doc["reader_gaps"] if g["what"].startswith("no transition read")],
+    }
+    for what, held in want.items():
+        if not held:
+            problems.append(f"IR transitions: {what} read wrong: {doc['transitions']} {doc['reader_gaps']}")
+    twins = {
+        "no rule for the state it may stand from": IR_TRANSITION.replace("Operation 3: IF the tag's status DOES NOT EQUAL live THEN a terminal call MUST answer not-live.\n", ""),
+        "no rule for the answer where no record carries the id": IR_TRANSITION.replace("Operation 2: IF no tag EXISTS for the tag id THEN a terminal call MUST answer not-known.\n", ""),
+        "a stamp no Invariant pairs with its state": IR_TRANSITION.replace("Invariant 1.2: A tag carrying lapse instant MUST stand in lapsed.\n", ""),
+        "a state that is no Member entry": IR_TRANSITION.replace("#### Lapsed\n\nKind:       Member\nMember of:  the tag status\nRole:       Outcome\n\n", ""),
+    }
+    for what, text in twins.items():
+        twin = read(text)
+        bad = [g for g in twin["reader_gaps"] if g["what"].startswith("no transition read")]
+        if not bad or len(twin["transitions"]) == 2:
+            problems.append(f"IR transitions: {what} gave {[t['action'] for t in twin['transitions']]} and gaps {bad}, not a gap for the action")
+
+
 def check_ir_corpus(root: Path, problems: list[str]) -> tuple[int, int]:
     sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "grace"))
     import ir
@@ -3858,11 +3995,12 @@ def main(argv: list[str]) -> int:
     check_ir_reader_carries(ir_problems)
     check_ir_wiring(ir_problems)
     check_ir_id_key(ir_problems)
+    check_ir_transitions(ir_problems)
     n_specs, n_rules = check_ir_corpus(root, ir_problems)
     failures.extend(ir_problems)
     if not ir_problems:
         print(f"IR: the synthetic pair reads clean, as drafts outside the repo too, and its broken twin "
-              f"fires every finding, and the reader's key, cited meaning, completed-by, a composition's wiring and an id key read from a pin; "
+              f"fires every finding, and the reader's key, cited meaning, completed-by, a composition's wiring an id key and a transition read from a pin; "
               f"the corpus parses, {n_specs} specs and {n_rules} rules, with its "
               f"{len(IR_FIRING)} pinned finding(s) \u2713")
 

@@ -994,6 +994,120 @@ def snake_of(s: str) -> str:
     return re.sub(r"[^a-z0-9]+", "_", s.lower()).strip("_")
 
 
+ACTION_LIST = re.compile(r"(?:(?:an?|the) )?\[[^\]]+\](?:(?:,\s*|\s+(?:and|or)\s+)(?:(?:an?|the) )?\[[^\]]+\])*(?:\s+calls?)?")
+
+
+def actions_of(subject: str, terms: list[dict]) -> list[str]:
+    """The actions a rule's subject names, as the signatures spell them: a bracketed action (`[Deliver]`), or a Term whose
+    definition begins with a list of them (`a terminal transition` is `a [Deliver], a [Fail] or an [Expire] call`). A subject
+    that names none (`A refused call`, `A caller`) names none; an action named and on no signature is still named here, for
+    the reader of the document to say."""
+    m = re.fullmatch(r"\[(.+)\]", subject.strip())
+    if m:
+        return [snake_of(m.group(1))]
+    t = next((t for t in terms if t["name"].lower() == re.sub(r"^(?:a|an|the) ", "", subject.strip(), flags=re.I).lower()), None)
+    head = t["definition"].split(" \u2014 ")[0].strip() if t else ""
+    if head and ACTION_LIST.fullmatch(head):
+        return [snake_of(x) for x in re.findall(r"\[([^\]]+)\]", head)]
+    return []
+
+
+def transitions_of(doc: dict, cx: dict) -> tuple[list[dict], list[dict]]:
+    """For each action whose call names an existing record by its id (every field of an id key is an input of the signature) and
+    stands it in a state (`[Deliver] MUST stand the notification in delivered`): the state it stands (a Member entry of a Field
+    entry), the states it may stand from (the rule that refuses every other: `IF the notification's status DOES NOT EQUAL pending
+    THEN ... answer not-pending`), the answer where no record carries the id, and the stamp the transition makes (the Term the stamp
+    rule names lists Field entries, and the Invariant `A <thing> carrying <stamp> MUST stand in <state>` pairs each with its state).
+    A part the page does not give is a reader gap and the transition is not carried; nothing is guessed."""
+    keys = [k for k in doc.get("keys", []) if k.get("id")]
+    if len(keys) != 1:
+        return [], []
+    key, thing = keys[0], keys[0]["thing"]
+    forms = doc["normalized"]["rules"]
+    sigs = {snake_of(s["action"]): s for s in doc["signatures"]}
+    fields = {e["name"].lower(): e for e in doc["term_entries"] if e["kind"].get("Kind") == "Field"}
+    of_thing = {thing, f"the {thing} record", f"a {thing} record"}
+    record_fields = [e["kind"].get("Projection") or e["name"] for e in fields.values()
+                     if e["kind"].get("Field of", "").lower() in of_thing]
+    pairs = {}      # a stamp's Field entry name -> (the state a record carrying it stands in, the rule)
+    for r in doc["rules"]:
+        f = forms.get(r["label"], {})
+        for o in f.get("obligations", []) if f.get("kind") == "rule" else []:
+            m = re.fullmatch(r"an? %s carrying (.+)" % re.escape(thing), f.get("subject", ""), re.I)
+            n = re.fullmatch(r"in (.+)", o.get("object", ""))
+            if m and n and o["modal"] == "MUST" and o["act"] == "stand":
+                pairs[m.group(1).lower()] = (n.group(1), r["label"])
+    out, gaps = [], []
+    for action, sig in sigs.items():
+        if not set(key["fields"]) <= {snake_of(i["name"]) for i in sig["inputs"]}:
+            continue
+        mine = [r for r in doc["rules"] if action in r.get("actions", []) and r["family"] in ("Operation", "State")]
+        stands = []
+        for r in mine:
+            f = forms.get(r["label"], {})
+            obs = f.get("obligations", []) if f.get("kind") == "rule" and not f.get("if") else []
+            m = re.fullmatch(r"the %s in ([a-z-]+)" % re.escape(thing), obs[0].get("object", "")) if len(obs) == 1 and obs[0]["act"] == "stand" and obs[0]["modal"] == "MUST" else None
+            if m:
+                stands.append((r, m.group(1)))
+        if not stands:
+            continue                    # a call that only reads the record: no transition
+        if len(stands) != 1:
+            gaps.append({"rule": stands[1][0]["label"], "line": stands[1][0]["line"],
+                         "what": f"no transition read: {action} names a {thing} by its id and stands it in {len(stands)} states: the reader carries one"})
+            continue
+        (sr, value), = stands
+        member = cx["members"].get(value)
+        fname = (member[0] if member else "").removeprefix("the ")
+        fent = fields.get(fname) or fields.get(fname.removeprefix(thing + " "))
+        if not member or not fent:
+            gaps.append({"rule": sr["label"], "line": sr["line"], "what": f"no transition read: `{value}` is no Member entry of a Field entry"})
+            continue
+        refusals = set(sig["refuses"]) | set(a.split("(")[0] for a in sig["answers"])
+
+        def answer_of(f):
+            o = f.get("obligations", [{}])[0]
+            return o.get("object") if len(f.get("obligations", [])) == 1 and o.get("act") == "answer" and o["modal"] == "MUST" and o.get("object") in refusals else None
+        absent = frm = None
+        for r in mine:
+            f = forms.get(r["label"], {})
+            if f.get("kind") != "rule" or not f.get("if") or len(f["if"]["clauses"]) != 1 or not answer_of(f):
+                continue
+            cl = f["if"]["clauses"][0]
+            if cl["kind"] == "absence" and cl.get("thing") == thing and cl.get("qualifier") == "for the " + key["term"]:
+                absent = {"rule": r["label"], "line": r["line"], "answer": answer_of(f)}
+            elif (cl["kind"] == "comparison" and cl["op"] == "DOES NOT EQUAL" and cl["left"] == f"the {thing}'s {fent['name'].lower()}"
+                  and cl["right"] in cx["members"]):
+                frm = {"rule": r["label"], "line": r["line"], "values": [cl["right"]], "answer": answer_of(f)}
+        stamp, spend = None, None
+        for r in mine:
+            f = forms.get(r["label"], {})
+            o = f.get("obligations", [{}])[0] if f.get("kind") == "rule" and len(f.get("obligations", [])) == 1 else {}
+            m = re.fullmatch(r"(.+) from the injected (?:now|clock)", o.get("object", "")) if o.get("act") == "stamp" and o["modal"] == "MUST" and not f.get("if") else None
+            if not m:
+                continue
+            term = cx["terms"].get(re.sub(r"^(?:the |a |an )?(?:[a-z -]+'s )?", "", m.group(1).strip(), flags=re.I).lower())
+            names = [x.strip().lower() for x in term["definition"].split(" \u2014 ")[0].split("|")] if term else []
+            if m.group(1).strip().lower() in fields:
+                names = [m.group(1).strip().lower()]
+            paired = [n for n in names if n in pairs and pairs[n][0] == value and n in fields]
+            if len(paired) == 1:
+                stamp = {"rule": r["label"], "line": r["line"], "field": fields[paired[0]]["kind"].get("Projection") or fields[paired[0]]["name"],
+                         "paired_by": pairs[paired[0]][1]}
+            else:
+                spend = {"rule": r["label"], "line": r["line"], "what": f"no transition read: the stamp `{m.group(1)}` is paired with `{value}` by no Invariant of the form `a {thing} carrying <stamp> MUST stand in <state>`"}
+        missing = [name for part, name in ((absent, "what is answered where no %s carries the id" % thing), (frm, "which states it may stand it from")) if not part]
+        if spend:
+            gaps.append(spend)
+        if missing:
+            gaps.append({"rule": sr["label"], "line": sr["line"],
+                         "what": f"no transition read: {action} stands the {thing} its id names in {value}, and no rule says {' or '.join(missing)}"})
+        if absent and frm and not spend:
+            out.append({"action": action, "thing": thing, "key": key["rule"], "id": list(key["fields"]),
+                        "stands": {"rule": sr["label"], "line": sr["line"], "value": value, "field": fent["kind"].get("Projection") or fent["name"].lower()},
+                        "from": frm, "absent": absent, "stamp": stamp, "record_fields": record_fields})
+    return out, gaps
+
+
 def records_of(doc: dict) -> tuple[list[dict], list[dict], list[dict]]:
     """A composition's own records, from its Composition state rules (`store a <record>`, `store
     the strict inverse of the <record>`, `append a <record> entry`), the key a `key the <record>
@@ -1122,6 +1236,9 @@ def carry(doc: dict, root: Path) -> None:
             e["answers"] = ma
     for r in doc["rules"]:
         form = forms.get(r["label"], {})
+        acts = actions_of(form.get("subject", ""), doc["terms"]) if form.get("kind") == "rule" else []
+        if acts:
+            r["actions"] = acts
         cm = cited_meaning(r, form, contract)
         if cm:
             r["cited_meaning"] = cm
@@ -1162,6 +1279,8 @@ def carry(doc: dict, root: Path) -> None:
     doc["calls"], doc["answer_tests"], more = wiring_of(doc, root)
     gaps += more
     doc["records"], doc["transactions"], more = records_of(doc)
+    gaps += more
+    doc["transitions"], more = transitions_of(doc, cx)
     gaps += more
     doc["reader_gaps"] = gaps
 
