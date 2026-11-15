@@ -1,7 +1,7 @@
 GIT
   remote: https://github.com/scottromack/jtd-inks.git
-  revision: e1b8b82446706c2b5cb6bdbff26dac15ca9f509d
-  ref: e1b8b82446706c2b5cb6bdbff26dac15ca9f509d
+  revision: 981a4fcc7bc6f5960864b53b86ce804b8678dc99
+  ref: 981a4fcc7bc6f5960864b53b86ce804b8678dc99
   specs:
     just-the-docs (0.12.0)
       jekyll (>= 3.8.5)
