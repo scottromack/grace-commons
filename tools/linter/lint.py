@@ -3491,14 +3491,14 @@ def check_audit_claim(root: Path) -> list[Finding]:
 
 def check_views_current(root: Path) -> list[Finding]:
     """V-views-current: the generated views — `graph.md`, `atoms/index.md`,
-    `_data/patterns.json`, `_data/stats.json` — match what their generators produce
+    `_data/patterns.json`, `_data/stats.json`, `enforcement.md` — match what their generators produce
     from the corpus now (council read 204: thirteen migrations passed with the views
     behind). stats.json is compared without `commits`, which counts the repository's
     history and so is no function of the corpus's text."""
     import shutil
     import subprocess
     import tempfile
-    views = ["graph.md", "atoms/index.md", "_data/patterns.json", "_data/stats.json"]
+    views = ["graph.md", "atoms/index.md", "_data/patterns.json", "_data/stats.json", "enforcement.md"]
 
     def view_text(path: Path, name: str) -> str:
         text = path.read_text(encoding="utf-8")
@@ -3511,8 +3511,9 @@ def check_views_current(root: Path) -> list[Finding]:
     out: list[Finding] = []
     with tempfile.TemporaryDirectory() as tmp:
         t = Path(tmp)
-        for d in ("atoms", "compositions", "tools/taxonomy"):
-            shutil.copytree(root / d, t / d, ignore=shutil.ignore_patterns("__pycache__"))
+        for d in ("atoms", "compositions", "tools/taxonomy", "tools/grace", "tools/linter"):
+            if (root / d).is_dir():       # a fixture root carries only what its case reads
+                shutil.copytree(root / d, t / d, ignore=shutil.ignore_patterns("__pycache__"))
         for f in root.glob("*.md"):
             shutil.copy(f, t / f.name)
         ledger = root / "tools/harness/states.tsv"      # stats.json totals it
@@ -3522,6 +3523,15 @@ def check_views_current(root: Path) -> list[Finding]:
         for gen in ("generate_graph.py", "generate_views.py"):
             subprocess.run([sys.executable, str(t / "tools/taxonomy" / gen), str(t)],
                            capture_output=True, text=True, timeout=120)
+        # the scoreboard reads GRACE-lang.md and the checker's own codes; a page whose rows
+        # and sources disagree is stale however it reads
+        scoreboard = t / "tools/grace/scoreboard.py"
+        sb = (subprocess.run([sys.executable, str(scoreboard), str(t)], capture_output=True, text=True, timeout=120)
+              if scoreboard.exists() else None)
+        if sb and sb.returncode:
+            out.append(Finding(root / "enforcement.md", 1, "V-views-current",
+                "scoreboard.py cannot generate the page: " + sb.stderr.strip().splitlines()[-1][:200]
+                if sb.stderr.strip() else "scoreboard.py cannot generate the page"))
         for v in views:
             a, b = root / v, t / v
             if not b.exists():
@@ -3529,7 +3539,8 @@ def check_views_current(root: Path) -> list[Finding]:
             if not a.exists() or view_text(a, v) != view_text(b, v):
                 out.append(Finding(a, 1, "V-views-current",
                     "the generated view differs from what its generator produces now — "
-                    "regenerate with tools/taxonomy/generate_graph.py and generate_views.py"))
+                    + ("regenerate with tools/grace/scoreboard.py" if v == "enforcement.md"
+                       else "regenerate with tools/taxonomy/generate_graph.py and generate_views.py")))
     return out
 
 

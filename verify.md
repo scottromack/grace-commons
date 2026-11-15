@@ -156,6 +156,7 @@ node audit.mjs
 - **Twin isolation** — one twin can mask another invariant's rejection (the checker reports only the shortest counterexample). `node isolate.mjs credential.tla` re-runs each twin against each invariant in isolation and classifies the coverage.
 - **Coverage matrices** — [`tools/harness/coverage/`](https://github.com/scottromack/grace-commons/tree/main/tools/harness/coverage) maps every spec invariant to the model construct that checks it, including the ones honestly marked out-of-scope.
 - **The document-store proof** — the MongoDB render (no foreign keys, no CHECK constraints) rebuilds the same surface and its README carries the invariant → enforcer table: every spec invariant survived; only the enforcement locus moved. Requires a mongod binary download; see [`demos/clinical-trial-portal-mongo`](https://github.com/scottromack/grace-commons/tree/main/demos/clinical-trial-portal-mongo).
+- **What the spec checker enforces** — the grammar's rules that say the parser MUST reject, each with the check that holds it and whether that check gates, gates in part or only counts: [What the checker enforces](./enforcement.html).
 - **The live demos** — the same specs, deployed: see [Demos](./demos.html).
 
 ---

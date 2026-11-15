@@ -215,46 +215,4 @@ It lands advisory, as `check.py` landed in September: no finding gates, `check.p
 
 ## The hard invariants, and what holds each
 
-GRACE-lang section 11 is the parser's contract; this is how far the parser fulfils it. *Gating* is a finding that fails `check.py --gate` (`lint.py` for its own codes, `ir.py --check` for the proof's). *Advisory* is read and counted, and gates nothing. *Not yet* has no tool. A gating check reads the specs that declare themselves migrated, which today is every one.
-
-| # | The parser MUST … | Status | Held by |
-|---|---|---|---|
-| 1 | reject an unprefixed line in a normative block that does not parse | gating | `check.py` F-unlabelled, F-fence-first |
-| 2 | reject a rule with no explicit subject | advisory | `normalize.py` N-unlowered (*no subject*); `check.py` reads the modal, not the subject |
-| 3 | reject a rule with no explicit modal where the shape requires one | gating | `check.py` R-no-modal |
-| 4 | reject a rule carrying a pronoun | gating, in part | `check.py` P-pronoun; *these* and *those* standing alone are advisory W-demonstrative, and *this* and *that* are not read |
-| 5 | reject a sentence carrying two obligations | advisory | `check.py` W-two-obligations; `normalize.py` carries a second obligation as its own `obligations` entry |
-| 6 | reject a nested WHEN block | gating | `check.py` R-nested-when |
-| 7 | reject a condition mixing `AND` and `OR` | gating | `check.py` V-mixed; `normalize.py` N-unlowered |
-| 8 | reject `OR` outside a condition or a term declaration | gating | `check.py` V-or-obligation; advisory W-or-word |
-| 9 | reject `BEFORE` outside `MUST NOT` | gating, in part | `check.py` B-before, with the reach Hard invariant 11's row names; `normalize.py` N-unlowered |
-| 10 | reject `AFTER` outside `ONLY AFTER` or the deterministic sugar | gating, in part | `check.py` B-after reads `AFTER` under `MUST NOT`; advisory W-watch-word reads a lower-case one; `normalize.py` N-unlowered |
-| 11 | reject a positive `MUST … BEFORE` ordering | gating, in part | `check.py` B-before, whose pattern stops at a full stop, so a label or step number (`step 0.1a`) before the `BEFORE` hides it; `normalize.py` N-unlowered reads all of it |
-| 12 | resolve a cross-rule reference by label | gating | `check.py` X-ref; `ir.py` IR-check for a check's citations |
-| 13 | reject a cross-rule reference by ordinal | advisory | `normalize.py` N-ordinal-ref |
-| 14 | reject a value used with `EQUALS` or `DOES NOT EQUAL` that is not blank and belongs to no declared closed value set | advisory | `normalize.py` N-value-set |
-| 15 | not infer from rule order | advisory | `normalize.py`: the form is keyed and ordered by label; `test_normalize.py` shuffles a spec's rules |
-| 16 | not infer from the absence of a rule | advisory, in part | `normalize.py` lowers only what a rule states; `check.py` V-unpartnered-reservation reads one case |
-| 17 | not infer exclusivity among outcomes unless `EXACTLY ONE OF` states it | advisory | `normalize.py` carries `exclusive` only from `EXACTLY ONE OF`; `test_normalize.py`; advisory E-not-exclusive |
-| 18 | normalize sugar without adding meaning | advisory | `normalize.py`; `test_normalize.py` lowers every rule of the corpus twice |
-| 19 | normalize every sugar form to exactly one canonical form | advisory | `normalize.py`: `AFTER`, a tail's order; `test_normalize.py` |
-| 20 | not infer missing semantics | advisory | `check.py` W-unstated-exception reads the unstated exception; `normalize.py` adds no field the source lacks |
-| 21 | not give `WHY:` normative force | advisory | `normalize.py`: a `WHY:` line is no rule and never enters the form; `test_normalize.py` |
-| 22 | not give `UX:` normative force | advisory | the same |
-| 23 | not infer normative meaning from `WHY:` or `UX:` | advisory | the same |
-| 24 | deleted at v0.70 to Closed vocabulary 31 through 34 and Hard invariant 35 through 37: a rule carries no arithmetic (Closed vocabulary 9) | — | `check.py` A-arith still gates arithmetic in a rule, under Closed vocabulary 9 |
-| 25 | reserve the label a tombstone carries, from the history file once the spec is done | gating | `check.py` L-tombstone-reuse, D-tombstone-form, on the page and in the history file's *Deleted rules* |
-| 26 | not renumber an invariant | gating | `lint.py` F-renumber |
-| 27 | not reuse a tombstoned label | gating | `check.py` L-tombstone-reuse; `lint.py` F-renumber |
-| 28 | name the spec before the label in a cross-spec reference | gating, in part | `lint.py` X-contract-label and `ir.py` IR-check resolve a citation that names its spec; no tool flags a bare label that should have named one |
-| 29 | read a range citation as every label from the first number through the last | gating | `check.py` X-ref; `cites.py`; `ir.py` IR-check |
-| 30 | reject a range citation whose last number does not follow the first | gating | `lint.py` F-range-form |
-| 31 | reject a run of labels written other than as a range citation | gating | `lint.py` F-range-form |
-| 32 | reject `NOT EXISTS` | gating | `check.py` D-condition-form |
-| 33 | read `no thing EXISTS` as the thing's absence | advisory | `normalize.py` lowers it to an `absence`; `test_normalize.py` |
-| 34 | reject `NOT EXCEEDS` | gating | `check.py` D-condition-form |
-| 35 | reject an arithmetic operator in a definition outside its own pair of parentheses | gating | `check.py` A-decl-arith |
-| 36 | reject a division outside a definition | gating | `check.py` A-arith, A-decl-arith |
-| 37 | reject a division whose definition names no rounding | gating | `check.py` A-decl-arith |
-
-Of the 37, 24 is deleted (v0.70) and 36 stand: 17 gating, 5 gating in part (4, 9, 10, 11, 28), 13 advisory and 1 advisory in part (16), 0 not yet. Where the table says advisory, the invariant holds by the normalizer's construction and the tests, or is read and counted without gating; promoting any to gating is a decision of its own. Hard invariants 15, 17, 18, 19, 21, 22, 23 and 33 are properties of the normalizer, not findings: nothing fires when they fail except `test_normalize.py`.
+[What the checker enforces](../../enforcement.md) is the table: one row for each rule of GRACE-lang.md that says the parser MUST reject, with the check that holds it and whether that check gates, gates in part or only counts. It is generated by [`scoreboard.py`](scoreboard.py) from the grammar and from the checker's own codes, `lint.py` fails when it is stale (`V-views-current`), and [`test_scoreboard.py`](test_scoreboard.py) runs each row's claim against the checker. This README keeps no copy: a copy kept by hand is how the last one came to say a bare `÷` in a rule was gated when nothing reads it.
