@@ -420,7 +420,7 @@ Favorite is a primitive with no regulatory anchor. It inherits from:
 
 ```
 status: done — 2026-11-14
-formal: pending — no model yet
+formal: verified — favorite.als + 7 twins (the static data model: State 1 and 2, Identity 3 and 5, Operation 3, 4 and 5, Invariant 1.1 checked on every version a sequence of admitted calls leaves, Identity 1 caught by the Invariant 1.1 check, Identity 2 and 4 by the Operation 3 check); favorite.tla + 24 twins (across steps: State 3, Invariant 2.1 through 2.3, Operation 1 through 3 and 6 through 25, the other half of Operation 14 and 16 read from the terms Look Up and List); on the maintainer's ruling of 2026-11-09 (both models; only the writing vetoes one), neither vetoed, 2026-11-14
 last gate: 2026-11-14 — Final Critique 2, a delta round, frozen at f823313 — foundational count 0, clean, one sample
 
 open: none
