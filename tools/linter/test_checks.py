@@ -3673,6 +3673,132 @@ def check_ir_record_type(problems: list[str]) -> None:
         problems.append(f"IR record type: a read whose page does not cite Read 5 got an order, or one with no creation instant got no gap: {nocite} {nofield['reader_gaps']}")
 
 
+IR_READ_ANSWERS = """# Gift
+
+## Structure
+
+### Identity model
+
+```
+Identity 1: The atom MUST identify a gift by the gift id.
+Identity 2: The host MUST allocate a gift id at the atom's seam.
+```
+
+### Operations
+
+```
+open(owner_ref)
+  answers gift_id
+
+show(gift_id)
+  answers gift | not-known
+
+read()
+  answers gifts
+
+page()
+  answers gift_ids
+```
+
+Term query: what a read asks for.
+
+Term matching gift: a gift the query matches.
+
+Term listing key: a gift's creation instant paired with its gift id.
+
+Term page size: 100 gifts.
+
+```
+Operation 1: [Open] MUST answer the gift id.
+Operation 2: [Show] MUST answer the gift's gift id, owner reference AND status.
+Operation 3: [Show] MUST answer a gift's stored fields.
+Operation 4: [Read] MUST answer EVERY gift the query matches.
+Operation 5: [Read] MUST answer an empty sequence for a well-formed query matching nothing.
+Operation 6: IF the query is blank THEN [Read] MUST answer no gift.
+Operation 7: [Page] MUST answer the matching gifts with the earliest listing keys, up to the page size.
+Operation 8: [Show] MUST NOT write.
+Operation 9: [Read] MUST NOT write.
+```
+
+## Terms
+
+#### Gift Id
+
+Names the gift.
+
+Kind:       Field
+Field of:   the gift record
+Projection: gift_id
+
+#### Owner Reference
+
+Whose the gift is.
+
+Kind:       Field
+Field of:   the gift record
+Projection: owner_ref
+
+#### Status
+
+The gift's state.
+
+Kind:       Field
+Field of:   the gift record
+Projection: status
+
+## Status
+
+`todo` — see the Ledger.
+"""
+
+
+def check_ir_read_answers(problems: list[str]) -> None:
+    import tempfile
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "grace"))
+    import ir
+
+    def read(text: str):
+        with tempfile.TemporaryDirectory() as d:
+            root = Path(d)
+            (root / "atoms").mkdir()
+            (root / "execution-contract.md").write_text(IR_READER_CONTRACT, encoding="utf-8")
+            (root / "atoms" / "gift.md").write_text(text, encoding="utf-8")
+            return ir.parse(root / "atoms" / "gift.md", root)
+
+    def shapes(doc):
+        return {r["label"]: r.get("answer_shape") for r in doc["rules"] if r["label"] in tuple(f"Operation {n}" for n in range(1, 8))}
+
+    doc = read(IR_READ_ANSWERS)
+    got = shapes(doc)
+    g = lambda n: got.get(f"Operation {n}") or {}
+    want = {
+        "an answer that is an arm in another spelling is no shape and no gap": got.get("Operation 1") is None and not any(x["rule"] == "Operation 1" for x in doc["reader_gaps"]),
+        "the fields of a record, joined by commas and AND": g(2).get("shape") == "fields" and g(2).get("thing") == "gift" and g(2).get("fields") == ["gift_id", "owner_ref", "status"],
+        "`a gift's stored fields`": g(3).get("shape") == "record" and g(3).get("arm") == "gift" and g(3).get("fields") == ["gift_id", "owner_ref", "status"],
+        "every record a Term of the page selects": g(4) .get("shape") == "matching" and g(4).get("thing") == "gift" and g(4).get("by") == "query",
+        "an empty sequence for a well-formed query matching nothing": g(5).get("shape") == "empty" and g(5).get("query") == "query",
+        "no record": g(6).get("shape") == "none" and g(6).get("thing") == "gift",
+        "a page of the matching records by the listing key, up to the page size": g(7).get("shape") == "page" and g(7).get("matching") == "matching gift"
+        and g(7).get("order") == "listing key" and g(7).get("limit") == "page size",
+        "no gap": not doc["reader_gaps"],
+    }
+    for what, held in want.items():
+        if not held:
+            problems.append(f"IR read answers: {what} read wrong: {got} {doc['reader_gaps']}")
+    twins = {
+        "a record the page names no type for": (IR_READ_ANSWERS.replace("Operation 2: [Show] MUST answer the gift's", "Operation 2: [Show] MUST answer the present's"), "Operation 2"),
+        "a field of another record": (IR_READ_ANSWERS.replace("Field of:   the gift record\nProjection: status", "Field of:   the lamp record\nProjection: status"), "Operation 2"),
+        "a query the page declares no Term for": (IR_READ_ANSWERS.replace("Term query: what a read asks for.\n\n", ""), "Operation 5"),
+        "a filter the page declares no Term for": (IR_READ_ANSWERS.replace("EVERY gift the query matches", "EVERY gift the filter matches"), "Operation 4"),
+        "a page with no listing key Term": (IR_READ_ANSWERS.replace("Term listing key: a gift's creation instant paired with its gift id.\n\n", ""), "Operation 7"),
+        "no gift of a type the page does not name": (IR_READ_ANSWERS.replace("MUST answer no gift", "MUST answer no present"), "Operation 6"),
+    }
+    for what, (text, rule) in twins.items():
+        twin = read(text)
+        if shapes(twin)[rule] is not None or not any(x["rule"] == rule for x in twin["reader_gaps"]):
+            problems.append(f"IR read answers: {what} gave {shapes(twin)[rule]} and gaps {twin['reader_gaps']}, not a gap on {rule}")
+
+
 def check_ir_corpus(root: Path, problems: list[str]) -> tuple[int, int]:
     sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "grace"))
     import ir
@@ -4125,6 +4251,7 @@ def main(argv: list[str]) -> int:
     check_ir_id_key(ir_problems)
     check_ir_transitions(ir_problems)
     check_ir_record_type(ir_problems)
+    check_ir_read_answers(ir_problems)
     n_specs, n_rules = check_ir_corpus(root, ir_problems)
     failures.extend(ir_problems)
     if not ir_problems:

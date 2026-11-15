@@ -650,9 +650,13 @@ def key_of(rule: dict, terms: list[dict], entries: list[dict], rules: list[dict]
 # an answer that is a shape, not an arm of the signature: what the read side of a page says it answers
 SHAPE_COUNT = re.compile(r"the (?P<count>.+?) of EVERY (?P<by>.+?) an? (?P<what>.+?) carrying (?P<x>.+?) carries$")
 SHAPE_EVERY = re.compile(r"(?:the (?P<of>.+?) of )?EVERY (?P<what>.+?) carrying (?P<x>.+)$")
-SHAPE_FIELDS = re.compile(r"an? (?P<thing>.+?)'s (?P<fields>.+? AND .+)$")
-SHAPE_STORED = re.compile(r"the (?P<thing>.+?)'s stored fields$")
+SHAPE_FIELDS = re.compile(r"(?:an?|the) (?P<thing>.+?)'s (?P<fields>.+)$")
+SHAPE_STORED = re.compile(r"(?:an?|the) (?P<thing>.+?)'s stored fields$")
 SHAPE_EMPTY = re.compile(r"an empty list(?: for (?:an?|the) (?P<x>.+?) no (?P<what>.+?) carries)?$")
+SHAPE_EMPTY_QUERY = re.compile(r"an empty (?:[a-z]+ )?(?:list|sequence) for a well-formed query (?:matching nothing|no (?P<what>.+?) matches)$")
+SHAPE_MATCHING = re.compile(r"(?:EVERY (?P<thing>.+?)|the (?P<things>.+?)) the (?P<by>.+?) matches$")
+SHAPE_PAGE = re.compile(r"the matching (?P<thing>.+?) with the earliest (?P<key>.+?), up to the (?P<limit>.+)$")
+SHAPE_NONE = re.compile(r"no (?P<thing>.+)$")
 SHAPE_BY = re.compile(r"(?P<arm>.+?) by (?P<by>.+)$")
 SHAPE_CODEPOINT = re.compile(r"(?P<arm>.+?) in codepoint order(?: of (?P<of>.+))?$")
 DIRECTIONS = {"earliest first": "ascending", "oldest first": "ascending", "ascending": "ascending",
@@ -686,8 +690,44 @@ def shape_context(doc: dict) -> dict:
               for e in entries if e["kind"].get("Kind") == "Field"}
     members = {e["name"].lower(): (e["kind"].get("Member of", "").removeprefix("the ").lower(), e["kind"].get("Projection") or e["name"].lower())
                for e in entries if e["kind"].get("Kind") == "Member"}
-    return {"type": rtype["name"].lower() if rtype else None, "fields": fields, "members": members,
+    owners = {e["name"].lower(): re.sub(r"^(?:the|a|an) ", "", e["kind"].get("Field of", "").strip().lower()).removesuffix(" record")
+              for e in entries if e["kind"].get("Kind") == "Field"}
+    return {"type": rtype["name"].lower() if rtype else None, "fields": fields, "members": members, "owners": owners,
+            "types": ([rtype["name"].lower()] if rtype else []) + [t for t in named if not rtype or t != rtype["name"].lower()],
             "terms": {t["name"].lower(): t for t in doc["terms"]}, "entries": entries}
+
+
+def thing_of(phrase: str, cx: dict) -> str | None:
+    """The record type a shape's noun names: the record type or a type a Field entry names, the noun read as written, without a trailing `record`, or as the
+    regular plural of either (`the holds` is `hold`, `owed records` is `owed record`). None where the page names no such type; nothing is guessed."""
+    t = re.sub(r"^(?:the|a|an) ", "", phrase.strip().lower())
+    for c in (t, t.removesuffix(" record"), t.removesuffix("s"), t.removesuffix("s").removesuffix(" record")):
+        if c in cx["types"]:
+            return c
+    return None
+
+
+def fields_of(thing: str, parts: list[str], cx: dict) -> tuple[list[str], str]:
+    """Each part names a Field entry of the record type `thing` (`the gift card's balance` names it with its possessive); -> the projections, or what the page does not give"""
+    out = []
+    for part in parts:
+        m = re.match(r"^(?:an?|the) (?P<t>.+?)'s (?P<f>.+)$", part.strip())
+        if m and thing_of(m.group("t"), cx) != thing:
+            return [], f"`{part.strip()}` names a record that is not `{thing}`"
+        name = (m.group("f") if m else part).strip()
+        f = field_of(name, cx)
+        if not f:
+            return [], f"`{name}` is no Field entry"
+        if cx["owners"].get(re.sub(r"^(?:the|a|an) ", "", name).lower()) != thing:
+            return [], f"`{name}` is a Field entry of another record than `{thing}`"
+        out.append(f)
+    return out, ""
+
+
+def names_an_arm(obj: str, doc: dict) -> bool:
+    """An answer that is an arm of the signatures in another spelling (`the notification id` for `notification_id`, `EVERY attestation` for `every attestation`) is the arm, not a shape"""
+    spell = lambda x: re.sub(r"[^a-z0-9]+", "_", re.sub(r"^(?:the|a|an) ", "", x.strip().lower())).strip("_")
+    return spell(obj) in {spell(a.split("(")[0]) for sg in doc["signatures"] for a in sg["answers"]}
 
 
 def field_of(phrase: str, cx: dict) -> str | None:
@@ -729,8 +769,11 @@ def answer_shape(form: dict, doc: dict, cx: dict) -> tuple[dict | None, str]:
     action's signature, the shape it says, with every noun resolved to the
     projection of the Field entry or Member entry it names: `every` (the
     records carrying a field set, a status test, and the fields answered),
-    `fields` (the fields of one record), `empty` (an empty list), `count_by`
-    (a count of the records by one field) and `order` (the arm's rows ordered by fields,
+    `fields` (the fields of one record), `record` (all of them), `empty` (an empty
+    list, or an empty sequence for a well-formed query), `count_by` (a count of the
+    records by one field), `matching` (the records a Term of the page says match),
+    `page` (the matching records by a listing key, up to a page size, each a Term of
+    the page), `none` (no record) and `order` (the arm's rows ordered by fields,
     each with a direction). Returns the shape, or None and what the page does
     not give; nothing is guessed."""
     sigs = {re.sub(r"[^a-z0-9]+", "_", s["action"].lower()).strip("_"): s for s in doc["signatures"]}
@@ -749,15 +792,15 @@ def answer_shape(form: dict, doc: dict, cx: dict) -> tuple[dict | None, str]:
     out: dict | None = None
     m = SHAPE_STORED.fullmatch(ob)
     if m:
-        own = next((x for x in sig["answers"] if re.sub(r"[^a-z0-9]+", "_", x.lower()).strip("_") == re.sub(r"[^a-z0-9]+", "_", cx["type"] or "").strip("_")), None)
+        thing = thing_of(m.group("thing"), cx)
+        own = next((x for x in sig["answers"] if thing and re.sub(r"[^a-z0-9]+", "_", x.lower()).strip("_") == re.sub(r"[^a-z0-9]+", "_", thing).strip("_")), None)
         stored = [e["kind"].get("Projection") or e["name"] for e in cx["entries"]
-                  if e["kind"].get("Kind") == "Field" and cx["type"]
-                  and re.sub(r"^(?:the|a|an) ", "", e["kind"].get("Field of", "").strip().lower()).removesuffix(" record") == cx["type"]]
-        if m.group("thing").lower() != cx["type"] or not stored:
-            return None, f"`{ob}` names a thing that is not the record type, or the record has no Field entry"
+                  if e["kind"].get("Kind") == "Field" and thing and cx["owners"].get(e["name"].lower()) == thing]
+        if not thing or not stored:
+            return None, f"`{ob}` names a thing that is not a record type of the page, or the record has no Field entry"
         if not own:
-            return None, f"`{ob}`: no answer arm of {sig['action']} is named for the record type `{cx['type']}`"
-        out = {"shape": "record", "thing": cx["type"], "fields": stored, "arm": own}
+            return None, f"`{ob}`: no answer arm of {sig['action']} is named for the record type `{thing}`"
+        out = {"shape": "record", "thing": thing, "fields": stored, "arm": own}
     m = None if out else SHAPE_COUNT.fullmatch(ob)
     if m:
         by, what, x = field_of(m.group("by"), cx), what_of(m.group("what"), cx), carrying_of(m.group("x"), cx)
@@ -773,10 +816,11 @@ def answer_shape(form: dict, doc: dict, cx: dict) -> tuple[dict | None, str]:
         out = {"shape": "every", "thing": cx["type"], "where": what[0], "carrying": x[0], "of": of}
     m = None if out else SHAPE_FIELDS.fullmatch(ob)
     if m:
-        fs = [field_of(x, cx) for x in re.split(r"\s+AND\s+", m.group("fields"))]
-        if m.group("thing").lower() != cx["type"] or not all(fs):
-            return None, f"`{m.group('fields')}` names a thing that is no Field entry of the record"
-        out = {"shape": "fields", "thing": cx["type"], "fields": fs}
+        thing = thing_of(m.group("thing"), cx)
+        fs, why = fields_of(thing, re.split(r",\s*(?:AND\s+)?|\s+AND\s+", m.group("fields")), cx) if thing else ([], f"`{m.group('thing')}` is no record type of the page")
+        if why:
+            return None, why
+        out = {"shape": "fields", "thing": thing, "fields": fs}
     m = None if out else SHAPE_EMPTY.fullmatch(ob)
     if m:
         out = {"shape": "empty"}
@@ -785,6 +829,37 @@ def answer_shape(form: dict, doc: dict, cx: dict) -> tuple[dict | None, str]:
             if what[1] or x[1]:
                 return None, what[1] or x[1]
             out.update({"thing": cx["type"], "where": what[0], "carrying": x[0]})
+    m = None if out else SHAPE_EMPTY_QUERY.fullmatch(ob)
+    if m:
+        thing = thing_of(m.group("what"), cx) if m.group("what") else None
+        if "query" not in cx["terms"] or (m.group("what") and not thing):
+            return None, f"`{ob}`: the page declares no Term `query`, or `{m.group('what')}` is no record type of the page"
+        out = {"shape": "empty", "query": "query"}
+        if thing:
+            out["thing"] = thing
+    m = None if out else SHAPE_MATCHING.fullmatch(ob)
+    if m:
+        thing, by = thing_of(m.group("thing") or m.group("things"), cx), (m.group("by") or "").strip().lower()
+        if not thing or by not in cx["terms"]:
+            return None, f"`{ob}`: `{m.group('thing') or m.group('things')}` is no record type of the page, or the page declares no Term `{by}`"
+        out = {"shape": "matching", "thing": thing, "by": by}
+    m = None if out else SHAPE_PAGE.fullmatch(ob)
+    if m:
+        thing = thing_of(m.group("thing"), cx)
+        said = m.group("thing").strip().lower()
+        matching = next((f"matching {c}" for c in (said, said.removesuffix("s")) if f"matching {c}" in cx["terms"]), f"matching {said}")
+        key = m.group("key").strip().lower()
+        key = next((c for c in (key, key.removesuffix("s")) if c in cx["terms"]), key)
+        names = {"matching": matching, "order": key, "limit": m.group("limit").strip().lower()} if thing else {}
+        if not thing or not all(n in cx["terms"] for n in names.values()):
+            return None, f"`{ob}`: `{m.group('thing')}` is no record type of the page, or a Term of the three it names is not declared"
+        out = {"shape": "page", "thing": thing, "direction": "ascending", **{k: v for k, v in names.items()}}
+    m = None if out else SHAPE_NONE.fullmatch(ob)
+    if m:
+        thing = thing_of(m.group("thing"), cx)
+        if not thing:
+            return None, f"`{ob}`: `{m.group('thing')}` is no record type of the page"
+        out = {"shape": "none", "thing": thing}
     m = None if out else SHAPE_CODEPOINT.fullmatch(ob)
     if m:
         name = re.sub(r"[^a-z0-9]+", "_", m.group("arm").lower()).strip("_")
@@ -1321,7 +1396,8 @@ def carry(doc: dict, root: Path) -> None:
         if (len(obs) == 1 and obs[0]["act"] == "answer" and obs[0].get("object") and not obs[0].get("exclusive")
                 and not obs[0].get("only_if") and re.fullmatch(r"\[.+\]", form.get("subject", "").strip())
                 and not re.fullmatch(r"[a-z]+(?:-[a-z]+)*", obs[0]["object"])
-                and obs[0]["object"] not in {a.split("(")[0] for s in doc["signatures"] for a in s["answers"]}):
+                and obs[0]["object"] not in {a.split("(")[0] for s in doc["signatures"] for a in s["answers"]}
+                and not names_an_arm(obs[0]["object"], doc)):
             shape, why = answer_shape(form, doc, cx)
             if shape:
                 cited = cited_texts(r, contract)
