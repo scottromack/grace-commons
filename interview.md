@@ -11,11 +11,7 @@ It took about fifteen minutes.
 
 ## The questions
 
-**Grace: What exactly does a person favorite?** A starting answer: any one item the business shows them, such as a product, a recipe or an article. One tap marks it, a second tap unmarks it, and the favorite belongs to that one person. Nobody else sees it.
-
-**Scott:** Remove "Nobody else sees it." Most humans would miss that.
-
-He was right. Who else can see a favorite is exactly what a person would not think to say – so it should be a question Grace asks, not something slipped into an answer. It comes back below.
+**Grace: What exactly does a person favorite?** A starting answer: any one item the business shows them, such as a product, a recipe or an article. One tap marks it, a second tap unmarks it, and the favorite belongs to that one person.
 
 **Grace: What must never be possible?** A starting answer: the same person can never have the same item in their favorites twice. Tapping an item that's already a favorite just leaves it a favorite.
 
