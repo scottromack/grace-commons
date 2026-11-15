@@ -146,8 +146,8 @@ def render(root: Path, advisory: set[str], date: str) -> str:
         "",
         "Each row is one rule of the grammar, in its own words, the check that holds it, and one of three states:",
         "",
-        "- **gates** — a finding makes `check.py --gate` exit 1, the corpus gate every change reports 0 findings on before it merges "
-        "(the pull-request template asks for it; no workflow runs it), or, for a `lint.py` code, fails the public lint workflow.",
+        "- **gates** — a finding fails the public Lint run: `check.py --gate` runs in that workflow beside the linter, "
+        "so a finding of a gating `check.py` code, or of a `lint.py` code, turns the run red.",
         "- **gates in part** — one reading of the sentence gates, and another is read by nothing that gates; what slips through is listed under the table.",
         "- **only counted** — the check is advisory or the normalizer's: it is read and counted, and no run fails on it. This is the list of what is still owed.",
         "",
