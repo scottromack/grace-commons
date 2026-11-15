@@ -54,7 +54,7 @@ Term string cap: the bound on a person reference's length and on an item referen
 
 Term seam: the atom's I/O boundary as the section titled Logic Confinement Principle in `execution-contract.md` declares it; the host injects the clock reading, now, at the seam.
 
-NOTE: Capability requirement 4 and Capability requirement 5 are the atom's own rule for the canonical form of each reference, which stands in place of Execution Contract Logic confinement 13 (that rule's last sentence), so each person reference and each item reference is recorded as the call carries it (Execution Contract Input 4; Identity 2 through 5).
+NOTE: Capability requirement 4 and Capability requirement 5 are the atom's own rule for the canonical form of each reference, which stands in place of Execution Contract Logic confinement 13 (as that rule's last sentence allows a specification that gives the canonical form another owner), so each person reference and each item reference is recorded as the call carries it (Execution Contract Input 4; Identity 2 through 5).
 
 ### State
 
@@ -77,7 +77,7 @@ Term unmarked: the status of a favorite the person has let go — [Unmarked]; th
 ```
 Capability requirement 1: The deployment MUST supply the database PER Execution Contract Database 1 through 7, Execution Contract Read 1 through 6, Execution Contract Refusal 1, Execution Contract Input 1 and Execution Contract Query 5.
 Capability requirement 2: The deployment MUST supply now at the seam PER Execution Contract Logic confinement 11.
-Capability requirement 3: The deployment MAY declare the string cap PER Execution Contract Input 2.
+Capability requirement 3: The deployment MAY declare the string cap PER Execution Contract Input 2 and Execution Contract Logic confinement 17.
 Capability requirement 4: The deployment MUST NOT normalize a person reference at the seam.
 Capability requirement 5: The deployment MUST NOT normalize an item reference at the seam.
 ```
@@ -134,17 +134,17 @@ The case space, and the rule that owns each case:
 
 | Call | Case | Answer | Effect on the favorites |
 |---|---|---|---|
-| [Mark] | no favorite for the pair, database accepts | ok | one favorite lands, marked, its first marked instant now (Operation 3 through 5) |
-| [Mark] | the favorite stands unmarked | ok | the favorite stands marked; its first marked instant stands (Operation 6, Invariant 2.1) |
-| [Mark] | the favorite stands marked | ok | none, no write (Operation 7) |
-| [Unmark] | the favorite stands marked | ok | the favorite stands unmarked; nothing is removed (Operation 9, State 3) |
-| [Unmark] | the favorite stands unmarked, or no favorite for the pair | ok | none, no write (Operation 10, Operation 11) |
+| [Mark] | both references valid, no favorite for the pair, database accepts | ok | one favorite lands, marked, its first marked instant now (Operation 3 through 5) |
+| [Mark] | both references valid, the favorite stands unmarked | ok | the favorite stands marked; its first marked instant stands (Operation 6, Invariant 2.1) |
+| [Mark] | both references valid, the favorite stands marked | ok | none, no write (Operation 7) |
+| [Unmark] | both references valid, the favorite stands marked | ok | the favorite stands unmarked; nothing is removed (Operation 9, State 3) |
+| [Unmark] | both references valid, the favorite stands unmarked or no favorite for the pair | ok | none, no write (Operation 10, Operation 11) |
 | a writing action | person reference blank, over the string cap, or not a string | [Invalid Person Reference] | none (Operation 1, Operation 20) |
 | a writing action | item reference blank, over the string cap, or not a string | [Invalid Item Reference] | none (Operation 2, Operation 21) |
 | [Look Up] | a marked favorite for the pair | marked | none (Operation 14, Operation 15) |
 | [Look Up] | an unmarked favorite, or none, for the pair | unmarked | none (Operation 13, Operation 15) |
 | [Look Up] | a person reference or an item reference blank, over the string cap, or not a string | unmarked | none (Operation 22, Operation 23) |
-| [List] | the person keeps marked favorites | each one's item reference and first marked instant, earliest first | none (Operation 16, Operation 17, Operation 19, Operation 25) |
+| [List] | the person keeps marked favorites | each one's item reference and first marked instant, earliest first, then by item reference | none (Operation 16, Operation 17, Operation 19, Operation 25) |
 | [List] | the person keeps none, or the person reference is blank, over the string cap, or not a string | an empty list | none (Operation 18, Operation 24) |
 | any writing call | database refuses the write | [Storage Failure] | none (Execution Contract Read 4) |
 | any call | its read of the database fails | `state-unavailable` | none (Execution Contract Read 1, Execution Contract Read 3) |
@@ -414,14 +414,14 @@ Favorite is a primitive with no regulatory anchor. It inherits from:
 
 ## Status
 
-`doing` — see the Ledger.
+`done — 2026-11-14` — see the Ledger.
 
 ## Ledger
 
 ```
-status: doing
+status: done — 2026-11-14
 formal: pending — no model yet
-last gate: 2026-11-14 — Final Critique 1, a full round, frozen at 1a6b667 — foundational count 5, not clean, one sample
+last gate: 2026-11-14 — Final Critique 2, a delta round, frozen at f823313 — foundational count 0, clean, one sample
 
 open: none
 ```
