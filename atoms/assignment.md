@@ -164,10 +164,10 @@ The case space, and the rule that owns each case:
 | [Assign] | blank task reference or assignee reference | [Invalid Request] | none (Operation 4, Operation 5) |
 | [Assign] | task already has an active assignment | [Already Assigned] | none (Operation 6) |
 | [Assign] | database refuses the write | [Storage Failure] | none (Operation 7) |
-| [Recall] | assignment is active | ok | [Active] → [Recalled]; the task is nobody's (Operation 11, Operation 12) |
+| [Recall] | assignment is active | ok | [Active] → [Recalled]; the task is nobody's; its assignment id, task reference, assignee reference and assignment instant stand (Operation 11, Operation 12, Invariant 2.1) |
 | [Recall] | assignment is recalled or transferred | [Not Active] | none (Operation 9, Operation 10) |
 | [Recall] | database refuses the write | [Storage Failure] | none — the assignment stays [Active] (Operation 13) |
-| [Reassign] | assignment active, new assignee reference present, database accepts | the new assignment id | old → [Transferred] and a new [Active] one carrying the new assignee reference (Operation 18, Operation 19, Operation 21, Operation 38) |
+| [Reassign] | assignment active, new assignee reference present, database accepts | the new assignment id | old → [Transferred], its assignment id, task reference, assignee reference and assignment instant standing, and a new [Active] one carrying the new assignee reference (Operation 18, Operation 19, Operation 21, Operation 38, Invariant 2.1) |
 | [Reassign] | blank new assignee reference | [Invalid Request] | none (Operation 17) |
 | [Reassign] | assignment is recalled or transferred | [Not Active] | none (Operation 15, Operation 16) |
 | [Reassign] | either write refused | [Storage Failure] | none — the old stays [Active] (Operation 22) |

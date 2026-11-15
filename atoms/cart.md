@@ -173,17 +173,17 @@ The case space, and the rule that owns each case:
 |---|---|---|---|
 | [Open] | currency accepted, database accepts | the cart id | one cart lands, carrying the currency and no line (Operation 2) |
 | [Open] | currency not accepted | [Invalid Currency] | none (Operation 1) |
-| [Add] | inputs valid, no line for the item, database accepts | the line id | one line lands, carrying the line id and the call's cart id, item reference, quantity and unit price (Operation 9) |
+| [Add] | inputs valid, no line for the item, database accepts | the line id | one line lands, carrying the line id and the call's cart id, item reference, quantity and unit price; the cart's currency stands (Operation 9, Invariant 4.1) |
 | [Add] | item reference blank or over the string cap | [Invalid Item Reference] | none (Operation 5) |
 | [Add] | quantity not a positive count | [Invalid Quantity] | none (Operation 6) |
 | [Add] | unit price not a whole amount | [Invalid Price] | none (Operation 7) |
 | [Add] | the cart already carries a line for the item | [Already In Cart] | none (Operation 8) |
 | [Add] | the cart already holds as many lines as the line cap allows | [Cart Full] | none (Operation 24) |
-| [Change Quantity] | new quantity a positive count, different from the line's | ok | the quantity changes; the unit price stands (Operation 13, Invariant 2.1) |
+| [Change Quantity] | new quantity a positive count, different from the line's | ok | the quantity changes; the unit price, the cart id and the item reference stand (Operation 13, Invariant 2.1, Invariant 3.1, Invariant 3.2) |
 | [Change Quantity] | new quantity equal to the line's | ok | none — no write (Operation 14) |
 | [Change Quantity] | new quantity not a positive count | [Invalid Quantity] | none (Operation 12) |
 | [Remove] | the line is on a cart | ok | the line leaves the cart; its line id is retired (Operation 16, Identity 4) |
-| [Clear] | the cart exists | ok | every line leaves the cart and its line id is retired; the cart stays (Operation 18, Identity 4, State 3) |
+| [Clear] | the cart exists | ok | every line leaves the cart and its line id is retired; the cart stays, its currency standing (Operation 18, Identity 4, State 3, Invariant 4.1) |
 | a cart action or a line action | the id names nothing | [Not Known] | none (Operation 4, Operation 11) |
 | any writing call | database refuses the write | [Storage Failure] | none (Execution Contract Read 4) |
 | [Read] | the cart exists | the cart's currency, its lines and its total | none (Operation 21 through 23) |

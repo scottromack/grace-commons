@@ -262,16 +262,16 @@ The case space, and the rule that owns each case:
 | [Grant] | three references present, no expiry instant, database accepts | the new consent id | one record lands in [Granted] (Operation 1, Operation 2) |
 | [Grant] | as above with an expiry instant after [Now] | the new consent id | as above, with [Expiry Instant] recorded (State 4) |
 | [Grant] | a blank, over-cap or non-string subject reference, purpose or granting actor, or an expiry instant at or before [Now] or malformed | [Invalid Request] | none (Operation 4 through 6, Operation 8, Operation 9, Operation 66, Operation 70 through 72, Execution Contract Input 1, Execution Contract Input 2) |
-| [Revoke] | id names a record in [Granted], attribution present, times ordered | revoked | [Granted] → [Revoked], three fields stamped (Operation 26 through 29) |
+| [Revoke] | id names a record in [Granted], attribution present, times ordered | revoked | [Granted] → [Revoked], three fields stamped; every grant field stands (Operation 26 through 29, Invariant 1.1, Invariant 9.1) |
 | [Revoke] | a blank, over-cap or non-string consent id | [Invalid Request] | none — answered ahead of not-known (Operation 15, Operation 73, Execution Contract Input 1, Execution Contract Input 2, Execution Contract Refusal 1) |
 | [Revoke] | id names nothing | [Not Known] | none (Operation 16, Operation 77) |
 | [Revoke] | id names a record in [Revoked] | [Already Revoked] | none (Operation 18, Operation 77) |
 | [Revoke] | id names a record in [Expired] | [Already Expired] | none (Operation 19, Operation 77) |
 | [Revoke] | record in [Granted], blank or over-cap attribution, a malformed revoking actor or reason, or a time out of order or malformed | [Invalid Request] | none (Operation 22 through 25, Operation 67 through 69, Operation 74, Operation 75, Operation 77) |
 | either write | database refuses | [Storage Failure] | none (Operation 13, Operation 31, Operation 32) |
-| [Check] | the candidate record is withdrawn by [At Time] | revoked | none — the call reads (Operation 41, Operation 36) |
-| [Check] | the candidate record is elapsed by [At Time], never withdrawn | expired | none (Operation 42, Operation 43) |
-| [Check] | the candidate record is neither | granted | none (Operation 44) |
+| [Check] | the candidate record is withdrawn by [At Time] | revoked | none — the call reads; a later write leaves the answer for that time as it is (Operation 41, Operation 36, Invariant 10.3) |
+| [Check] | the candidate record is elapsed by [At Time], never withdrawn | expired | none; a later write leaves the answer for that time as it is (Operation 42, Operation 43, Invariant 10.3) |
+| [Check] | the candidate record is neither | granted | none; a later write leaves the answer for that time as it is (Operation 44, Invariant 10.3) |
 | [Check] | no record for the pair was granted by [At Time], or an [At Time] neither blank nor an instant | not-known | none (Operation 40) |
 | [Read] | a well-formed query | the matching records, oldest first, each carrying its state at [Now] | none (Operation 47, Operation 48, Invariant 2.2) |
 | [Read] | a well-formed query matching nothing | an empty sequence | none (Operation 51) |

@@ -212,11 +212,11 @@ The case space, and the rule that owns each case:
 | Call | Case | Answer | Effect on the database |
 |---|---|---|---|
 | [Record Sighting] | a declared sighting condition, subject and run present, no sighting for the pair | recorded | one sighting lands, seen instant stamped (Operation 5, Operation 6, Operation 7, Operation 38) |
-| [Record Sighting] | the pair already sighted | [Duplicate] | none (Operation 4) |
-| [Report Standing] | a declared standing condition, no open record for condition and scope | opened | one standing record lands in [Open], first and last seen stamped (Operation 15 through 18, Operation 39 through 41) |
-| [Report Standing] | an open record for condition and scope | advanced | last run id and last seen move (Operation 12, Operation 13, Operation 14) |
-| [Report Clear] | an open record for condition and scope | closed | the record moves to [Closed], closing run and instant written, last seen unchanged (Operation 19 through 23) |
-| [Report Clear] | no open record for condition and scope | [None Open] | none (Operation 24) |
+| [Record Sighting] | the pair already sighted | [Duplicate] | none; the sighting stands as recorded (Operation 4, Invariant 1.1) |
+| [Report Standing] | a declared standing condition, no open record for condition and scope | opened | one standing record lands in [Open], first and last seen stamped; a closed record for the pair stands as it was (Operation 15 through 18, Operation 39 through 41, Invariant 1.3) |
+| [Report Standing] | an open record for condition and scope | advanced | last run id and last seen move; the record id, condition, scope, first run id and first seen stand (Operation 12, Operation 13, Operation 14, Invariant 1.2) |
+| [Report Clear] | an open record for condition and scope | closed | the record moves to [Closed], closing run and instant written, last seen unchanged; the record id, condition, scope, first run id and first seen stand (Operation 19 through 23, Invariant 1.2) |
+| [Report Clear] | no open record for condition and scope | [None Open] | none; a closed record stands as it was (Operation 24, Invariant 1.3) |
 | any writing action | an undeclared condition, a condition of the other shape, a blank or over-long input | [Invalid Request] | none (Operation 1 through 3, Operation 8 through 11, Operation 25, Operation 26, Operation 45) |
 | any writing action | database refuses the write | [Storage Failure] | none (Operation 27) |
 | [Report Standing], [Report Clear] | an open record whose last seen follows now | [Storage Failure] | none (Invariant 4.2, Invariant 4.3, Operation 27) |

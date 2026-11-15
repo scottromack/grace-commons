@@ -192,7 +192,7 @@ Term record sequence: the run of disclosure records an admitted read answers, in
 | 1 | a field is blank, a string input exceeds the string cap, a non-blank supplied disclosure instant is no instant, or the resolved disclosure instant follows now | invalid-request |
 | 2 | every field passes, authority type stands outside the authority types | unknown-authority-type |
 | 3 | every precondition passes, the database refuses the write | storage-failure |
-| 4 | every precondition passes, the database accepts the write | `recorded(disclosure_id)` |
+| 4 | every precondition passes, the database accepts the write | `recorded(disclosure_id)`, the stored record's fields standing from then on (Invariant 1.1) |
 
 ### Invariants
 

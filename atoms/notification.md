@@ -179,10 +179,10 @@ The case space, and the rule that owns each case:
 | [Create] | recipient present, database accepts | notification id | one notification lands in [Pending] (Operation 1, Operation 2, Execution Contract Input 4) |
 | [Create] | blank or malformed recipient, or over the cap | [Invalid Request] | none (Operation 4, Operation 31, String 6) |
 | [Create] | empty payload | notification id | one notification lands — the payload is the caller's business (Operation 5, Operation 6) |
-| [Deliver] | notification is pending | ok | [Pending] → [Delivered], delivery instant stamped (Operation 10, State 8) |
-| [Fail] | notification is pending | ok | [Pending] → [Failed], failure instant stamped (Operation 11) |
-| [Expire] | notification is pending, attempted or not | ok | [Pending] → [Expired], lapse instant stamped (Operation 12, Operation 13) |
-| any terminal transition | notification already terminal | [Not Pending] | none — including a second [Deliver] (Operation 9) |
+| [Deliver] | notification is pending | ok | [Pending] → [Delivered], delivery instant stamped; the notification id, recipient reference, payload and creation instant stand (Operation 10, State 8, Invariant 1.1) |
+| [Fail] | notification is pending | ok | [Pending] → [Failed], failure instant stamped; the notification id, recipient reference, payload and creation instant stand (Operation 11, Invariant 1.1) |
+| [Expire] | notification is pending, attempted or not | ok | [Pending] → [Expired], lapse instant stamped; the notification id, recipient reference, payload and creation instant stand (Operation 12, Operation 13, Invariant 1.1) |
+| any terminal transition | notification already terminal | [Not Pending] | none — including a second [Deliver]; the landed terminal stamp stands (Operation 9, Invariant 1.2) |
 | any terminal transition | id names nothing, or is malformed | [Not Known] | none (Operation 8, Operation 32) |
 | any write | database refuses | [Storage Failure] | none (Operation 7, Operation 15, Operation 16) |
 | [Status Of] | id names a notification | its stored fields | none — the call reads (Operation 17, Operation 22) |

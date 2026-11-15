@@ -235,7 +235,7 @@ The case space, and the rule that owns each case:
 | [Validate] | stored status is [Revoked] | [Invalid Revoked] | none — returned even where the window is still open (Operation 15) |
 | [Validate] | stored [Active], now has reached expiry instant | [Invalid Expired] | none — derived, nothing written (Operation 16, Operation 17) |
 | [Validate] | stored [Active], now short of expiry instant | [Valid], carrying [Principal Reference] and [Expiry Instant] | none (Operation 18, Operation 19) |
-| [Revoke] | token names a session in [Active], attribution present | revoked | [Active] → [Revoked], three fields stamped (Operation 28 through 31) |
+| [Revoke] | token names a session in [Active], attribution present | revoked | [Active] → [Revoked], three fields stamped; the session token, principal reference, issued by reference, issuance instant and expiry instant stand (Operation 28 through 31, Invariant 1.1, Invariant 2.1) |
 | [Revoke] | token names a session in [Active] past its deadline | revoked | as above — a lapse is not a stored terminal (Operation 27) |
 | [Revoke] | token names nothing | [Not Known] | none (Operation 22) |
 | [Revoke] | stored status is already [Revoked] | [Already Terminal] | none (Operation 23, Operation 24) |

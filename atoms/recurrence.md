@@ -233,12 +233,12 @@ The case space, and the rule that owns each case:
 | [Open] | a day entry the frequency does not admit, such as 2 tuesday on a weekly series | [Invalid Day Entry] | none (Operation 8) |
 | [Open] | a position outside 1 through 366 and -366 through -1, or positions with no selector | [Invalid Position] | none (Operation 9, Operation 10) |
 | [Open] | a limit and an end date both, a limit not a positive count or over the limit cap, or an end date not a range date or earlier than the start | [Invalid End] | none (Operation 11 through 14, Operation 37) |
-| [Except] | the date not yet taken out | ok | the date joins the exceptions (Operation 19) |
+| [Except] | the date not yet taken out | ok | the date joins the exceptions; the series' fixed parts stand (Operation 19, Invariant 2.1) |
 | [Except] | the date already taken out | ok | none — no write (Operation 20) |
-| [Restore] | the date taken out | ok | the date leaves the exceptions (Operation 22) |
+| [Restore] | the date taken out | ok | the date leaves the exceptions; the series' fixed parts stand (Operation 22, Invariant 2.1) |
 | [Restore] | the date not taken out | ok | none — no write (Operation 23) |
 | an exception action | the date not a range date | [Invalid Date] | none (Operation 18) |
-| [End] | an end date from the start through the end bound, different from the series' | ok | the series carries the end date and no limit (Operation 28) |
+| [End] | an end date from the start through the end bound, different from the series' | ok | the series carries the end date and no limit; the series' fixed parts stand (Operation 28, Invariant 2.1) |
 | [End] | the series' own end date | ok | none — no write (Operation 29) |
 | [End] | the end date not a range date | [Invalid Date] | none (Operation 25) |
 | [End] | the end date earlier than the start, or later than the end bound | [Invalid End] | none (Operation 26, Operation 27) |

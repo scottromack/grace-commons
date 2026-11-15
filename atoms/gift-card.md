@@ -158,7 +158,7 @@ The case space, and the rule that owns each case:
 | [Issue] | value not a positive amount | [Invalid Value] | none (Operation 2) |
 | [Issue] | value over the card cap | [Over Cap] | none (Operation 3) |
 | [Check Balance] | the code names a gift card | the balance and the currency | none (Operation 8, Operation 9) |
-| [Spend] | amount a positive amount, not over the balance, database accepts | the new balance | the balance falls by the amount (Operation 12) |
+| [Spend] | amount a positive amount, not over the balance, database accepts | the new balance | the balance falls by the amount; the card code, the currency and the value stand (Operation 12, Invariant 3.1, Invariant 3.2, Invariant 3.3) |
 | [Spend] | amount not a positive amount | [Invalid Amount] | none (Operation 10) |
 | [Spend] | amount over the balance | [Insufficient Balance] | none (Operation 11, Invariant 4.1) |
 | a code action | the code names nothing | [Not Known] | none (Operation 7) |

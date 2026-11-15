@@ -256,9 +256,9 @@ The case space, and the rule that owns each case:
 | [Redeem] | stored status is [Redeemed] | `invalid(exhausted)` | none (Operation 24) |
 | [Redeem] | stored status is [Revoked] | `invalid(revoked)` | none (Operation 25) |
 | [Redeem] | stored [Allocated], now has reached expiry instant | `invalid(expired)` | **none** — derived, and the counter is untouched (Operation 26, Operation 31) |
-| [Redeem] | stored [Allocated], window open, counter above one | `redeemed(scope, allocator_ref)` | the counter falls by one; status unchanged (Operation 69, Operation 71) |
-| [Redeem] | stored [Allocated], window open, counter at one | `redeemed(scope, allocator_ref)` | the counter reaches zero and the status moves to [Redeemed] (Operation 69, Operation 32, Operation 33) |
-| [Revoke] | token names a revocable capability, attribution present | revoked | [Allocated] → [Revoked], three fields stamped, counter untouched (Operation 41 through 44, Operation 46) |
+| [Redeem] | stored [Allocated], window open, counter above one | `redeemed(scope, allocator_ref)` | the counter falls by one; status unchanged; the capability's other recorded fields stand (Operation 69, Operation 71, Invariant 1.1, Invariant 8.1) |
+| [Redeem] | stored [Allocated], window open, counter at one | `redeemed(scope, allocator_ref)` | the counter reaches zero and the status moves to [Redeemed]; the capability's other recorded fields stand (Operation 69, Operation 32, Operation 33, Invariant 1.1, Invariant 8.1) |
+| [Revoke] | token names a revocable capability, attribution present | revoked | [Allocated] → [Revoked], three fields stamped, counter untouched; the capability's other recorded fields stand (Operation 41 through 44, Operation 46, Invariant 1.1, Invariant 8.1) |
 | [Revoke] | token names nothing | [Not Known] | none (Operation 35) |
 | [Revoke] | stored status is [Redeemed] or [Revoked] | [Already Terminal] | none (Operation 36, Operation 37) |
 | [Revoke] | stored [Allocated] past its deadline | [Already Terminal] | none — derived, nothing written (Operation 38) |

@@ -168,7 +168,7 @@ The case space, and the rule that owns each case:
 
 | Call | Case | Answer | Effect on the database |
 |---|---|---|---|
-| [Record Destruction] | every field present, within its cap, a recognized kind, no erasure tombstone for the pair, database accepts | recorded | one erasure tombstone lands, destruction instant stamped from now (Operation 1, Operation 2, Operation 3) |
+| [Record Destruction] | every field present, within its cap, a recognized kind, no erasure tombstone for the pair, database accepts | recorded | one erasure tombstone lands, destruction instant stamped from now, and no field of it changes afterward (Operation 1, Operation 2, Operation 3, Invariant 1.1) |
 | [Record Destruction] | an erasure tombstone already names the pair | [Duplicate] | none (Operation 4) |
 | [Record Destruction] | a blank field, a field over its cap, or a kind not recognized | [Invalid Request] | none (Operation 5 through 9), and the caller's delete is not made (Composition note 6) |
 | [Record Destruction] | database refuses the write | [Storage Failure] | none, and the caller's delete in the same transaction rolls back with it (Operation 10, Execution Contract Constituent failure 1) |

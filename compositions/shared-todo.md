@@ -218,7 +218,7 @@ Every input an action takes, and every answer a constituent call can meet, with 
 | [Delete Task] | Assignment's active_for | none | the delete call, no recall | Action wiring 9, 10a |
 | [Delete Task] | Assignment's recall | ok | the delete call | Action wiring 9, 10 |
 | [Delete Task] | Assignment's recall | not-known, not-active | none arises: the assignment the read found active is active when the recall runs, since the read and the recall are one transaction | Execution Contract Database 1, 2 |
-| [Delete Task] | Personal Todo's delete | ok | ok | Action wiring 10, 10a, 18 |
+| [Delete Task] | Personal Todo's delete | ok | ok, no grant record changed | Action wiring 10, 10a, 18; Invariant 5.2 |
 | [Delete Task] | Personal Todo's delete | not-known | not-known, nothing written: no active assignment names a task id the Personal Todo instance does not carry | Action wiring 18; Invariant 3.2 |
 | [Assign Task] | Personal Todo's read, filtered for the task id | the task id carried | the assign call | Action wiring 13, 14, 26 |
 | [Assign Task] | Personal Todo's read, filtered for the task id | the task id not carried | not-known | Action wiring 13, 26 |

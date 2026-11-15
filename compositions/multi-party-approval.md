@@ -550,7 +550,7 @@ Every input an action takes, and every answer a call of the six actions, of the 
 | every action but [Read Chain] | a larger payload over the payload budget | invalid-request, nothing written; the open's own sizing never meets it, and an invalid-request the open answers is alerted | Primitive policy 10, 11, Audit arm 5, Recoverable Invocation Primitive policy 12, 13 |
 | every action but [Read Chain] | the credential | consumed by the invocation open's intent record alone, never inspected or written into a payload | Primitive policy 15, 16 |
 | a decision action | a step id the step-chain index does not name under the chain id, a missing entry rebuilt first | not-known, nothing written, ahead of the open | Action wiring 17, Composition state 21 |
-| a decision action | a step whose chain is terminal | admitted, the trailing flag true in the intent and the chain record unchanged | Action wiring 18, 19, 31 |
+| a decision action | a step whose chain is terminal | admitted, the trailing flag true in the intent and the chain record unchanged | Action wiring 18, 19, 31, Invariant 7.1, Invariant 7.2, Invariant 8.1 |
 | [Withdraw Chain] | a chain id the chain records carry no record for, a missing record rebuilt first | not-known, ahead of the open | Action wiring 41, Composition state 21 |
 | [Withdraw Chain] | a chain that is not Pending | not-pending, ahead of the open | Action wiring 44 |
 | [Withdraw Chain] | an actor reference other than the chain's initiator reference | unauthorized, ahead of the open | Action wiring 45 |

@@ -171,10 +171,10 @@ The case space, and the rule that owns each case:
 | [Place] | blank record reference, placing actor, reason, or supplied case reference, or a string input over the string cap | [Invalid Request] | none (Operation 4 through 7, Execution Contract Input 2) |
 | [Place] | supplied placement instant in the future | [Invalid Request] | none (Operation 8) |
 | [Place] | supplied placement instant in the past | hold id | one hold lands, back-dated as supplied (Operation 10) |
-| [Release] | hold active, attribution present, time in range | released | [Active] → [Released], release fields stamped (Operation 19, State 4) |
+| [Release] | hold active, attribution present, time in range | released | [Active] → [Released], release fields stamped; the hold's id, record reference, placing actor, reason, placement instant and case reference stand, and no other hold's state changes (Operation 19, State 4, Invariant 1.1, Invariant 4.1) |
 | [Release] | blank hold id | [Invalid Request] | none — the caller passed nothing, not a missing hold (Operation 12) |
 | [Release] | id names nothing | [Not Known] | none (Operation 13) |
-| [Release] | hold already released | [Already Released] | none (Operation 14) |
+| [Release] | hold already released | [Already Released] | none; the release fields stand as stamped (Operation 14, Invariant 1.2) |
 | [Release] | blank releasing actor or release reason, or a string input over the string cap | [Invalid Request] | none (Operation 15, Operation 16, Execution Contract Input 2) |
 | [Release] | resolved release instant before placement instant, or supplied one in the future | [Invalid Request] | none (Operation 17, Operation 18) |
 | either write | database refuses | [Storage Failure] | none — a release leaves the hold [Active] (Operation 11, Operation 21, Place persistence 4) |

@@ -258,7 +258,7 @@ Term success token: approved on [Approve], rejected_outcome on [Reject] and with
 | 4 | the step stands in pending, an attribution check fails | [Invalid Request] | Operation 20; Operation 15 through 19, Operation 57, Operation 64 through 65 |
 | 5 | every attribution check passes, the deciding reference is not the authorization anchor | [Unauthorized] | Operation 21, Operation 22 |
 | 6 | every precondition passes, the database refuses the write | [Storage Failure] | Operation 34 |
-| 7 | every precondition passes, the database accepts the write | the success token | Operation 32 |
+| 7 | every precondition passes, the database accepts the write | the success token | Operation 32; Invariant 1.1, Invariant 9.1 |
 
 Where two rows hold at once, the earlier row answers: the rows follow the refuses line (Execution Contract Refusal 1), and row 4 answers only on a pending step (Operation 20).
 

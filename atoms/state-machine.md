@@ -269,7 +269,7 @@ Term admitted history: a [History] call whose instance id names a workflow and w
 | 5 | a declared transition matches, it carries a guard, guard satisfied is not true | guard-not-satisfied | Operation 17 |
 | 6 | the call is a cleared fire, a firing check fails | invalid-request | Operation 64; Operation 2, Operation 19, Operation 20, Operation 66, Operation 69, Operation 77 |
 | 7 | every precondition passes, the database refuses the write | storage-failure | Operation 33 |
-| 8 | every precondition passes, the database accepts the write | new_state | Operation 28 |
+| 8 | every precondition passes, the database accepts the write | new_state | Operation 28; Invariant 1.1, Invariant 5.1 |
 
 Where two rows hold at once, the earlier row answers: the rows follow the refuses line (Execution Contract Refusal 1), except that row 6 answers only on a cleared fire (Operation 64) and so stands below rows 2 through 5.
 

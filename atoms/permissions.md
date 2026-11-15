@@ -151,7 +151,7 @@ The case space, and the rule that owns each case:
 | [Grant] | empty or whitespace-only ref, or over the cap | [Invalid Request] | none (Operation 4, Operation 5, String 6) |
 | [Grant] | refs present, an active grant already covers the pair, database accepts | grant id | a second, independent grant lands (Operation 6, Identity 7) |
 | [Grant] | database refuses the write | [Storage Failure] | none (Operation 7) |
-| [Revoke] | id names an active grant | ok | [Active] → [Revoked], revocation instant stamped (Operation 11, State 5) |
+| [Revoke] | id names an active grant | ok | [Active] → [Revoked], revocation instant stamped; the grant id, subject reference, action scope and grant instant stand (Operation 11, State 5, Invariant 1.1, Invariant 4.2) |
 | [Revoke] | id names a revoked grant | [Not Active] | none — and the answer a retry of a landed revoke gets (Operation 10) |
 | [Revoke] | id names nothing | [Not Known] | none (Operation 9) |
 | [Revoke] | database refuses the write | [Storage Failure] | none — **the subject keeps the access** (Operation 13, Operation 15) |

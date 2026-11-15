@@ -162,12 +162,12 @@ The case space, and the rule that owns each case:
 | [Add] | description valid, no active match, database accepts | id | one unit lands in [Pending] (Operation 1, Operation 2) |
 | [Add] | description blank, over the cap or malformed | [Invalid Description] | none (Description 4, Description 5, Description 9) |
 | [Add] | description matches a unit in the active set | [Duplicate Active] | none (Operation 4) |
-| [Edit] | valid, different, no active match, database accepts | ok | description and last edit instant change (Operation 13, State 6) |
+| [Edit] | valid, different, no active match, database accepts | ok | description and last edit instant change, no other field and not the id (Operation 13, State 6, Invariant 5.2, Invariant 8.2, Invariant 8.3) |
 | [Edit] | same normalized text | ok | no field changes (Operation 10, Operation 12) |
 | [Edit] | new description malformed, or blank or over the cap and different | [Invalid Description] | none (Operation 32, Operation 33, Operation 34) |
 | [Edit] | new description matches another unit in the active set | [Duplicate Active] | none (Operation 9) |
 | [Edit] | unit is done | [Not Editable] | none (Operation 8) |
-| [Complete] | unit is pending | ok | [Pending] → [Done], completion instant stamped (Operation 17, State 7) |
+| [Complete] | unit is pending | ok | [Pending] → [Done], completion instant stamped; its id stands (Operation 17, State 7, Invariant 8.2) |
 | [Complete] | unit is done | [Not Pending] | none (Operation 16) |
 | [Delete] | unit is pending or done | ok | the unit leaves; its id is not reused (Operation 19, Operation 20, Identity 5) |
 | [Edit], [Complete] or [Delete] | id names nothing, or is malformed | [Not Known] | none (Operation 7, Operation 15, Operation 18, Operation 35 through 37) |

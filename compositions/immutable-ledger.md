@@ -477,7 +477,7 @@ Every input an action takes, and every answer a call of the five actions, the re
 
 | Answer | Lands | Owner |
 |---|---|---|
-| an event id | the entry id | Action wiring 2 |
+| an event id | the entry id | Action wiring 2, Invariant 3.2 |
 | invalid-credential | invalid-credential | Audit arm 20 |
 | invalid-request carrying step-1, step-2 or step-3 | invalid-request, the event not in the log | Audit arm 18 |
 | invalid-request carrying step-4 | the event id the refusal carries, the entry appended and attested, and an alert | Audit arm 15, 26 |

@@ -154,10 +154,10 @@ The case space, and the rule that owns each case:
 |---|---|---|---|
 | [Issue] | database accepts | the card id and the card code | one punch card lands, its goal the stamp goal, its stamps and redemptions zero (Operation 1 through 4) |
 | [Check Stamps] | the code names a punch card | the stamps and the goal | none (Operation 7, Operation 8) |
-| [Stamp] | stamps below the goal, database accepts | the new stamps | the stamps rise by one (Operation 10) |
+| [Stamp] | stamps below the goal, database accepts | the new stamps | the stamps rise by one; the card code and the goal stand (Operation 10, Invariant 2.1, Invariant 2.2) |
 | [Stamp] | stamps at the goal | [Full] | none (Operation 9, Invariant 3.1) |
-| [Redeem] | stamps at the goal, database accepts | the new redemptions | the stamps fall to zero and the redemptions rise by one (Operation 13, Operation 14) |
-| [Redeem] | stamps below the goal | [Not Full] | none (Operation 12, Invariant 3.2) |
+| [Redeem] | stamps at the goal, database accepts | the new redemptions | the stamps fall to zero and the redemptions rise by one; the card code and the goal stand (Operation 13, Operation 14, Invariant 2.1, Invariant 2.2) |
+| [Redeem] | stamps below the goal | [Not Full] | none (Operation 12, Invariant 3.2, Invariant 3.3) |
 | a code action | the code names nothing | [Not Known] | none (Operation 6) |
 | [Read] | the card id names a punch card | the card id, goal, stamps and redemptions, never the code | none (Operation 17 through 19) |
 | [Read] | the card id names nothing | [Not Known] | none (Operation 16) |

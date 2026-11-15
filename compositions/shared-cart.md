@@ -239,7 +239,7 @@ Every action, every constituent call it makes, and for each call its answer, its
 | every gated action | Permissions.permitted | permitted: the action proceeds (Action wiring 1); denied: Action wiring 2, Action wiring 3, and Action wiring 29 for a cart id no grant names | — |
 | [Share Cart] | Permissions.grant | the grant id, answered (Action wiring 12) | invalid-request: Action wiring 24 for a friend reference or cart scope over Permissions' string cap (Permissions String 6); unreachable otherwise, since Action wiring 9 and 10 refuse the call before it is made, behind permission-denied (Execution Contract Refusal 1) |
 | [Unshare Cart] | Permissions.read | the grant, found or not (Action wiring 13) | — |
-| [Unshare Cart] | Permissions.revoke | ok, answered (Action wiring 30) | not-known: unreachable, Action wiring 13 answers first; not-active: Action wiring 24 |
+| [Unshare Cart] | Permissions.revoke | ok, answered (Action wiring 30); no Cart call is made, so no line changes (Invariant 4.1) | not-known: unreachable, Action wiring 13 answers first; not-active: Action wiring 24 |
 | [Add Line] | Cart.add | the line id, answered (Action wiring 16) | not-known: unreachable under Action wiring 29 and Invariant 2.1; every other refusal but storage-failure, cart-full among them: Action wiring 24 |
 | [Change Quantity], [Remove Line] | Cart.read | the cart's lines (Action wiring 17, Action wiring 19) | not-known: unreachable under Action wiring 29 and Invariant 2.1 |
 | [Change Quantity] | Cart.change_quantity | ok, answered (Action wiring 30) | not-known: unreachable, Action wiring 17 answers first; invalid-quantity: Action wiring 24 |

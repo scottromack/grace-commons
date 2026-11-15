@@ -175,7 +175,7 @@ The case space, and the rule that owns each case:
 | [Subscribe] | refs present, no active subscription for the pair, database accepts | subscription id | one subscription lands in [Active] (Operation 1, Operation 2) |
 | [Subscribe] | blank or malformed subscriber reference or event scope, or a string input over the string cap | [Invalid Request] | none (Operation 4, Operation 5, Operation 29, Operation 30) |
 | [Subscribe] | the pair already has an active subscription | [Already Subscribed] | none (Operation 6) |
-| [Cancel] | id names an active subscription | ok | [Active] → [Cancelled], cancellation instant stamped (Operation 11, Operation 32, State 5) |
+| [Cancel] | id names an active subscription | ok | [Active] → [Cancelled], cancellation instant stamped; the subscription id, subscriber reference, event scope and subscription instant stand (Operation 11, Operation 32, State 5, Invariant 1.1) |
 | [Cancel] | id names a cancelled subscription | [Not Active] | none (Operation 10) |
 | [Cancel] | id names nothing, a malformed id included | [Not Known] | none (Operation 9, Operation 31) |
 | either write | database refuses | [Storage Failure] | none (Operation 13, Operation 14) |

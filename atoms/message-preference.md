@@ -206,19 +206,19 @@ The case space, and the rule that owns each case:
 | Call | Case | Answer | Effect on the database |
 |---|---|---|---|
 | [Set] | principal present, a preference field present, every key declared, database accepts, no prior | the new preference id | one record lands in [Active] (Operation 1, Operation 2) |
-| [Set] | as above, with a prior currently in effect | the new preference id | the new record lands in [Active], the prior moves to [Deleted] (Operation 14) |
+| [Set] | as above, with a prior currently in effect | the new preference id | the new record lands in [Active], the prior moves to [Deleted]; the prior's preference id, principal reference, declared channels, set instant, preference fields and metadata stand (Operation 14, Invariant 1.1, Invariant 1.2, Invariant 1.3) |
 | [Set] | blank or malformed principal reference, a malformed channel preferences, or every preference field blank (an empty map is blank) | [Invalid Request] | none (Operation 4, Operation 5, Operation 44, Operation 45) |
 | [Set] | a channel preferences key outside the injected set | [Undeclared Channel] | none (Operation 8, Execution Contract Refusal 1) |
 | [Set] | the injected declared channel set is degenerate | no conforming outcome — fail-stop | none (Instance 13 through 16; Operation 4, Operation 5, Operation 8, Operation 44 and Operation 45 stand aside) |
-| [Suspend] | id names a record in [Active] | ok | [Active] → [Suspended], suspension instant stamped (Operation 20, State 9) |
-| [Suspend] | id names a record in [Suspended] or [Deleted] | [Not Active] | none (Operation 18, Operation 19) |
-| [Delete] | id names a record in [Active] or [Suspended] | ok | → [Deleted], deletion instant stamped (Operation 26, State 10) |
-| [Delete] | id names a record in [Deleted] | [Already Deleted] | none (Operation 25) |
+| [Suspend] | id names a record in [Active] | ok | [Active] → [Suspended], suspension instant stamped; the principal reference and the other recorded fields stand (Operation 20, State 9, Invariant 1.1, Invariant 1.2, Invariant 1.3, Invariant 6.3) |
+| [Suspend] | id names a record in [Suspended] or [Deleted] | [Not Active] | none; a recorded suspension instant stands (Operation 18, Operation 19, Invariant 1.5) |
+| [Delete] | id names a record in [Active] or [Suspended] | ok | → [Deleted], deletion instant stamped; a suspension instant the record carries stands (Operation 26, State 10, Invariant 1.5) |
+| [Delete] | id names a record in [Deleted] | [Already Deleted] | none; the recorded deletion instant stands (Operation 25, Invariant 1.6) |
 | either write | id names nothing, or is malformed | [Not Known] | none (Operation 17, Operation 24, Operation 46, Operation 47) |
 | any write | database refuses | [Storage Failure] | none (Operation 16, Operation 23, Operation 29) |
 | [Current For] | a record currently in effect matches the principal | that record, in full | none — the call reads (Operation 31, Operation 37) |
 | [Current For] | nothing in effect, blank argument included | [None] | none (Operation 32, Operation 33) |
-| [Read] | id names a record in any state | that record, in full | none — [Deleted] included (Operation 34, Operation 35) |
+| [Read] | id names a record in any state | that record, in full | none — [Deleted] included; a change to the deployment's declared channel set leaves its declared channels as recorded (Operation 34, Operation 35, Invariant 5.3) |
 | [Read] | id names nothing, blank argument included | [Not Known] | none (Operation 36) |
 
 ### Invariants

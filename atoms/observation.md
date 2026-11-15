@@ -255,7 +255,7 @@ Term matching observations: the observations meeting EVERY supplied filter — w
 | 4 | the state admits the action, a request field is blank or over the string cap | [Invalid Request] | Operation 16, Operation 17, Operation 18; Execution Contract Input 2 |
 | 5 | [Amend], the request is well-formed, the unit is blank or over the string cap, a string value is over the string cap, or the value fails the constraint | [Invalid Observation] | Operation 4, Operation 6, Operation 60 |
 | 6 | every precondition passes, the database refuses the write | [Storage Failure] | Operation 39 |
-| 7 | every precondition passes, the database accepts the write | the success answer | Operation 34, Operation 37 |
+| 7 | every precondition passes, the database accepts the write | the success answer | Operation 34, Operation 37, Invariant 1.1, Invariant 2.2, Invariant 8.1, Invariant 9.1 |
 
 ### Invariants
 

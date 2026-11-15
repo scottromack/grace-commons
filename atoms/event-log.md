@@ -136,7 +136,7 @@ The case space, and the rule that owns each case:
 
 | Call | Case | Answer | Effect on the log |
 |---|---|---|---|
-| [Append] | data within the cap, database accepts | event id | one event lands carrying next sequence number, and next sequence number rises (Operation 1, Operation 3, State 6) |
+| [Append] | data within the cap, database accepts | event id | one event lands carrying next sequence number, and next sequence number rises; no field of the landed event changes afterward (Operation 1, Operation 3, State 6, Invariant 2.1) |
 | [Append] | data over the cap | [Invalid Payload] | none — the precondition failed before the write (Operation 5, Execution Contract Read 4) |
 | [Append] | database refuses the write | [Storage Failure] | nothing lands; next sequence number is unchanged (Operation 9, Execution Contract Database 1) |
 | [Read] | query well-formed, events match | the events, ascending | none — the call reads (Invariant 5.1, Operation 17) |

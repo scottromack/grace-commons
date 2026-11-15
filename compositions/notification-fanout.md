@@ -160,7 +160,7 @@ Every constituent call [Fanout] makes, and for each call its answer, its refusal
 | Action | Call | Answer | Refusals | Failed read | No answer |
 |---|---|---|---|---|---|
 | [Fanout] | Subscription.subscribers_for | the subscriber references, answered (Action wiring 1, Action wiring 7) | none declared: subscribers_for refuses nothing | state-unavailable: Action wiring 4 (Execution Contract Constituent failure 3) | Action wiring 4 |
-| [Fanout] | Notification.create, once per subscriber reference | the notification id, recorded in the created list (Action wiring 10) | invalid-request: Action wiring 11; storage-failure: Action wiring 11 (Execution Contract Constituent failure 1) | state-unavailable: Action wiring 11 | Action wiring 11, Execution Contract Error model 1 |
+| [Fanout] | Notification.create, once per subscriber reference | the notification id, recorded in the created list (Action wiring 10) | invalid-request: Action wiring 11; storage-failure: Action wiring 11 (Execution Contract Constituent failure 1) | state-unavailable: Action wiring 11 | Action wiring 11, Invariant 3.1, Execution Contract Error model 1 |
 
 ### Wiring decision
 

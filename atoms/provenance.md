@@ -285,10 +285,10 @@ The case space, and the rule that owns each case:
 | [Originate] | refs present, genesis type admitted | the new chain id | a chain opens, genesis entry at sequence one (Operation 5 through 9, Operation 61 through 63, Operation 75) |
 | [Originate] | a blank reference | [Invalid Reference] | none (Operation 1, Operation 2) |
 | [Originate] | genesis type outside the two | [Invalid Genesis Type] | none (Operation 3, Execution Contract Refusal 1) |
-| [Transfer] | open chain, to custodian reference present | the entry id | transferred entry; the from-side read from the current custodian; custody moves (Operation 19 through 21, Operation 66 through 68) |
-| [Transform] | open chain, refs present, custodian current | the entry id | transformed entry; custody unchanged (Operation 28, Operation 33, Operation 64, Operation 69, Operation 70) |
-| [Disclose] | open chain, refs present, custodian current | the entry id | disclosed entry; custody unchanged (Operation 29, Operation 34, Operation 65, Operation 71, Operation 72) |
-| [Archive] | open chain, custodian current | the entry id | archived entry; chain closes; custody unchanged (Operation 30 through 32, Operation 73, Operation 74) |
+| [Transfer] | open chain, to custodian reference present | the entry id | transferred entry; the from-side read from the current custodian; custody moves; every recorded entry's fields and sequence number stand (Operation 19 through 21, Operation 66 through 68, Invariant 1.1, Invariant 2.2) |
+| [Transform] | open chain, refs present, custodian current | the entry id | transformed entry; custody unchanged; every recorded entry's fields and sequence number stand (Operation 28, Operation 33, Operation 64, Operation 69, Operation 70, Invariant 1.1, Invariant 2.2) |
+| [Disclose] | open chain, refs present, custodian current | the entry id | disclosed entry; custody unchanged; every recorded entry's fields and sequence number stand (Operation 29, Operation 34, Operation 65, Operation 71, Operation 72, Invariant 1.1, Invariant 2.2) |
+| [Archive] | open chain, custodian current | the entry id | archived entry; chain closes; custody unchanged; every recorded entry's fields and sequence number stand (Operation 30 through 32, Operation 73, Operation 74, Invariant 1.1, Invariant 2.2) |
 | any writer | chain is archived | [Archived] | none (Operation 12 through 14) |
 | [Archive] | chain is archived | [Already Archived] | none (Operation 15) |
 | custodian-guarded | custodian reference present and not the current custodian | [Not Current Custodian] | none (Operation 26) |

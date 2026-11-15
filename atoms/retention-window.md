@@ -211,10 +211,10 @@ The case space, and the rule that owns each case:
 | [Purge] | no retention under that id | [Not Known] | none (Operation 14) |
 | [Purge] | retention already purged | [Not Retained] | none (Operation 15) |
 | [Purge] | retention period not elapsed | [Retention Period Not Elapsed] | none — the guard writes nothing (Operation 16, Operation 17) |
-| [Purge] | eligible, no composing pattern owns the destruction, database accepts | ok | [Retained] → [Purged], purge instant stamped, every version of the record removed from the database in the same write (Operation 12, Operation 13, Operation 13b) |
+| [Purge] | eligible, no composing pattern owns the destruction, database accepts | ok | [Retained] → [Purged], purge instant stamped, every version of the record removed from the database in the same write; the retention id, record reference, policy reference and the instants set earlier stand (Operation 12, Operation 13, Operation 13b, Invariant 4.2, Invariant 5.1, Invariant 5.2, Invariant 5.3) |
 | [Purge] | eligible, past purge deadline | ok | the same — lateness is observable, never refused (Operation 18) |
 | [Purge] | eligible, database refuses the write | [Storage Failure] | none — the retention stays [Retained] (Operation 19, Operation 20) |
-| [Purge] | eligible, a composing pattern owns the destruction, database accepts | ok | [Retained] → [Purged]; the record stands until the pattern confirms the destruction (Record divergence 4, Record divergence 5) |
+| [Purge] | eligible, a composing pattern owns the destruction, database accepts | ok | [Retained] → [Purged]; the record stands until the pattern confirms the destruction; the retention id, record reference, policy reference and the instants set earlier stand (Record divergence 4, Record divergence 5, Invariant 4.2, Invariant 5.1, Invariant 5.2, Invariant 5.3) |
 | *a retention crossing retention deadline* | — | *nothing* | nothing is written; eligibility is read (State 7, Invariant 11.2) |
 | [Read] | any call | every retention, with its stored fields and, while retained, purge eligible | none (Operation 29 through 32) |
 

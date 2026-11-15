@@ -180,7 +180,7 @@ The case space, and the rule that owns each case:
 
 | Call | Case | Answer | Effect on the seal records |
 |---|---|---|---|
-| [Seal] | credential and reference well-formed, mechanism computes, database accepts | evidence id | one evidence lands in [Sealed] (Operation 1, Operation 2) |
+| [Seal] | credential and reference well-formed, mechanism computes, database accepts | evidence id | one evidence lands in [Sealed], its id and every field fixed from then on (Operation 1, Operation 2, Invariant 1.1, Invariant 5.2) |
 | [Seal] | blank reference, blank credential for a keyed mechanism, or a string input over the string cap | [Invalid Request] | none (Operation 6, Operation 7, Operation 34, Execution Contract Input 2) |
 | [Seal] | mechanism cannot compute the proof | [Mechanism Failure] | none (Operation 9) |
 | [Seal] | database refuses the write | [Storage Failure] | none — the proof is discarded (Operation 10, Operation 11) |

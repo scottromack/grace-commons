@@ -245,7 +245,7 @@ The case space, and the rule that owns each case:
 | [Open] | time zone among the zone names, week start a day of the week, database accepts | the place id | one place lands, carrying the time zone and the week start (Operation 3) |
 | a zone action | time zone not among the zone names | [Unknown Time Zone] | none (Operation 1) |
 | a zone action | week start not a day of the week | [Invalid Week Start] | none (Operation 2) |
-| [Change] | time zone or week start differs from the place's | ok | the place carries the call's time zone and week start (Operation 6) |
+| [Change] | time zone or week start differs from the place's | ok | the place carries the call's time zone and week start; its place id stands (Operation 6, Invariant 2.1) |
 | [Change] | both equal to the place's | ok | none — no write (Operation 7) |
 | [Read] | the place exists | the place id, time zone and week start | none (Operation 9) |
 | [Day] | a calendar date in the date range | the day start and the day end | none (Operation 12) |

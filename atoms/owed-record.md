@@ -201,11 +201,11 @@ The case space, and the rule that owns each case:
 | [Record Owed] | every id present and within its cap, a window above zero, no owed record for the pair, database accepts | recorded | one owed record lands in [Open], recording instant and due-by instant stamped (Operation 1 through 5) |
 | [Record Owed] | an owed record already names the pair | [Duplicate] | none (Operation 6) |
 | [Record Owed] | a blank or over-long id, a blank or malformed window, or a window of zero or less | [Invalid Request] | none (Operation 7 through 10, Operation 41) |
-| [Discharge] | the record is [Open] or [Flagged], a fulfilment id present | discharged | the record moves to [Discharged], fulfilment id and discharge instant written (Operation 15 through 19) |
+| [Discharge] | the record is [Open] or [Flagged], a fulfilment id present | discharged | the record moves to [Discharged], fulfilment id and discharge instant written; the owing pattern, owed id, cause id, recording instant and due-by instant stand (Operation 15 through 19, Invariant 1.1) |
 | [Discharge] | a pair that is not blank and names nothing | [Not Known] | none (Operation 12) |
 | [Discharge], [Flag] | a blank owing pattern or a blank owed id | [Invalid Request] | none (Operation 42, Operation 43) |
-| [Discharge] | the record is [Discharged] | [Already Discharged] | none (Operation 13) |
-| [Flag] | the record is [Open], its due-by instant reached, an actor present | flagged | the record moves to [Flagged], flag instant and actor written (Operation 26 through 29) |
+| [Discharge] | the record is [Discharged] | [Already Discharged] | none; the written settlement fields stand (Operation 13, Invariant 1.2) |
+| [Flag] | the record is [Open], its due-by instant reached, an actor present | flagged | the record moves to [Flagged], flag instant and actor written; the owing pattern, owed id, cause id, recording instant and due-by instant stand (Operation 26 through 29, Invariant 1.1) |
 | [Flag] | the record is [Open] and its due-by instant still ahead | [Not Due] | none (Operation 24) |
 | [Flag] | the record is [Flagged] or [Discharged] | [Already Flagged] or [Already Discharged] | none (Operation 22, Operation 23) |
 | [Record Owed], [Discharge], [Flag] | database refuses the write | [Storage Failure] | none, and the caller's transaction rolls back with it (Operation 11, Operation 20, Operation 30) |

@@ -266,24 +266,24 @@ The case space, and the rule that owns each case:
 
 | Call | Case | Answer | Effect on the pool |
 |---|---|---|---|
-| [Declare Pool] | capacity a whole count within the integer width, fields valid, database accepts | the new pool id | pool lands in [Open], allocated zero (Operation 1 through 5) |
+| [Declare Pool] | capacity a whole count within the integer width, fields valid, database accepts | the new pool id | pool lands in [Open], allocated zero, and no declaration field changes afterward (Operation 1 through 5, Invariant 7.1) |
 | [Declare Pool] | capacity not a whole count or past the integer width, or a field invalid | [Invalid Request] | none (Operation 7, Arithmetic 4, String 2) |
-| [Allocate] | [Open], count positive, requested total within capacity | the allocation event id | allocated rises, one event appended (Operation 15 through 17) |
+| [Allocate] | [Open], count positive, requested total within capacity | the allocation event id | allocated rises, one event appended; the pool id and the event id stand once recorded (Operation 15 through 17, Invariant 12.1, Invariant 12.2) |
 | [Allocate] | [Open], count not positive or past the integer width, or requested total past the integer width | [Invalid Request] | none (Operation 12, Arithmetic 3) |
 | [Allocate] | [Open], requested total past capacity | [Over Capacity] | none (Operation 13) |
 | [Allocate] | [Suspended] | [Suspended] | none (Operation 10) |
 | [Allocate] | [Closed] | [Closed] | none (Operation 11) |
-| [Release] | any state, count positive and within allocated | the release event id | allocated falls, one event appended (Operation 20, Operation 23) |
+| [Release] | any state, count positive and within allocated | the release event id | allocated falls, one event appended; the pool id and the event id stand once recorded (Operation 20, Operation 23, Invariant 12.1, Invariant 12.2) |
 | [Release] | count not positive or past the integer width | [Invalid Request] | none (Operation 21) |
 | [Release] | count past allocated | [Over Release] | none (Operation 22) |
-| [Adjust Capacity] | [Open] or [Suspended], new value a whole count within the integer width that differs and covers allocated | the adjustment event id | capacity replaced, one event appended (Operation 33, Operation 34) |
+| [Adjust Capacity] | [Open] or [Suspended], new value a whole count within the integer width that differs and covers allocated | the adjustment event id | capacity replaced, one event appended; the pool id and the event id stand once recorded (Operation 33, Operation 34, Invariant 12.1, Invariant 12.2) |
 | [Adjust Capacity] | new value equals current | [Invalid Request] | none (Operation 31) |
 | [Adjust Capacity] | new value not a whole count, or past the integer width | [Invalid Request] | none (Operation 30, Arithmetic 5) |
 | [Adjust Capacity] | new value a whole count below allocated | [Over Allocated] | none (Operation 32) |
 | [Adjust Capacity] | [Closed] | [Closed] | none (Operation 29) |
-| [Suspend Pool] | [Open] | the state change id | → [Suspended] (Operation 41) |
-| [Resume Pool] | [Suspended] | the state change id | → [Open] (Operation 44) |
-| [Close Pool] | [Open] or [Suspended] | the state change id | → [Closed] (Operation 46) |
+| [Suspend Pool] | [Open] | the state change id | → [Suspended]; the pool id stands (Operation 41, Invariant 12.1) |
+| [Resume Pool] | [Suspended] | the state change id | → [Open]; the pool id stands (Operation 44, Invariant 12.1) |
+| [Close Pool] | [Open] or [Suspended] | the state change id | → [Closed]; the pool id stands (Operation 46, Invariant 12.1) |
 | any state change | already in the target state, or [Closed] | [Not Open], [Not Suspended], [Already Closed] | none (Operation 39 through 45) |
 | any addressed action | id names nothing | [Not Known] | none (Operation 8) |
 | any writing action | database refuses | [Storage Failure] | none (Operation 57 through 59) |

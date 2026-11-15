@@ -690,7 +690,7 @@ Audit Trail's record_destruction commits step 1's transition only with step 2's 
 | Half | What the reads answer | Lands | Owner |
 |---|---|---|---|
 | first | a Purged retention younger than purge edge | not examined | First half 2 |
-| first | a Purged retention carrying its sequence number in purged events, the pair and a destroyed outcome | left alone | First half 3 |
+| first | a Purged retention carrying its sequence number in purged events, the pair and a destroyed outcome | left alone, a hold placed after its destruction changing nothing of it | First half 3; Invariant 6.1 |
 | first | one of the three missing, at the read under the critical section keyed by event id as well | the cascade re-driven through [Purge Event] | First half 3, 5 through 7 |
 
 **The first half's re-drive.**

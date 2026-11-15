@@ -204,7 +204,7 @@ The case space, and the rule that owns each case:
 
 | Call | Case | Answer | Effect on the attestation records |
 |---|---|---|---|
-| [Attest] | action reference, actor reference and credential not blank, registry answers material, credential validates, no revocation status names the credential revoked, database accepts | attestation id | one attestation lands in [Attested] (Operation 1, Operation 2, Operation 38, Operation 39) |
+| [Attest] | action reference, actor reference and credential not blank, registry answers material, credential validates, no revocation status names the credential revoked, database accepts | attestation id | one attestation lands in [Attested], and no field of it changes afterward (Operation 1, Operation 2, Operation 38, Operation 39, Invariant 1.1) |
 | [Attest] | blank action reference, actor reference or credential, or a string input over the string cap | [Invalid Request] | none (Operation 6 through 8, Operation 37, Execution Contract Input 2) |
 | [Attest] | registry unreachable | [Registry Unavailable] | none (Operation 33) |
 | [Attest] | registry answers material, the credential mechanism supplies no credential check or no proof, a live revocation service the mechanism rests on being down included | [Mechanism Unavailable] | none (Operation 40) |
