@@ -201,7 +201,7 @@ Action wiring 3: An admitted login MUST NOT answer Credential's verify reason to
 Action wiring 4: An admitted login MUST call Session's issue ONLY AFTER Credential's verify answers verified.
 Action wiring 5: An admitted login MUST read the credential id of the effective-active credential for the pair.
 Action wiring 8: An admitted login MUST call Session's issue with the principal reference, the issued by reference AND the session duration.
-Action wiring 9: An admitted login MUST write both maps ONLY AFTER Session's issue commits.
+Action wiring 9: An admitted login MUST write both maps ONLY AFTER the login transaction commits.
 Action wiring 10: IF the map write fails THEN an admitted login MUST answer the session token.
 Action wiring 12: An admitted login MUST append a login event log entry.
 Action wiring 13: An admitted login MUST record a login event under the service identity.
@@ -226,24 +226,28 @@ Action wiring 32: A cascade initiation event MUST carry the credential id, the r
 Action wiring 34: IF Session's validate answers valid for a session token the cascade set carries THEN an admitted cascade MUST call Session's revoke with the cascade reason.
 Action wiring 35: IF Session's validate answers not-known THEN an admitted cascade MUST count the session token as not-found AND record a session not found event.
 Action wiring 36: IF Session's revoke answers invalid-request THEN an admitted cascade MUST count the session token as failed AND record a revoke failure event.
-Action wiring 37: An admitted login MUST record the login event ONLY AFTER the login event log entry lands.
+Action wiring 37: An admitted login MUST record the login event ONLY AFTER the login event log entry lands in the login transaction.
 Action wiring 38: IF the login event log append fails THEN an admitted login MUST answer storage-failure naming the login-event-log stage.
 Action wiring 39: A login event MUST carry the login event log entry's entry id.
 Action wiring 40: IF Session's issue answers invalid-request THEN an admitted login MUST answer invalid-request.
 Action wiring 41: IF Session's revoke answers already-terminal THEN an admitted cascade MUST count the session token as skipped.
 Action wiring 42: IF Session's revoke answers not-known THEN an admitted cascade MUST count the session token as not-found AND record a session not found event.
 Action wiring 43: IF the session-to-credential map, rebuilt as Composition state 7 says, carries no entry for the session token THEN an admitted logout MUST answer not-known.
+Action wiring 45: An admitted login MUST write the login event log entry AND the login event in one transaction (Execution Contract Database 1).
+Action wiring 46: IF Credential's verify answers verified THEN an admitted login MUST write the session record in the transaction of Action wiring 45.
 ```
 
 NOTE: watch the attempt a refusal erases (Action wiring 2, Term login result).
 
 Term admitted login: a login call whose inputs cleared the boundary predicate.
 
+Term login transaction: the one transaction of Action wiring 45 and 46 — an admitted login's one commit, holding the login event log entry, the login event and, where Credential's verify answered verified, the session record; the two maps are written after it, in a transaction of their own (Composition state 3).
+
 Term admitted logout: a logout call whose inputs cleared the boundary predicate.
 
 Term admitted cascade: a [Revoke Sessions For Credential] call whose inputs cleared the boundary predicate.
 
-Term cascade reason: "credential-revocation-cascade:" and the cascade initiation event's id, then ": " and the caller's reason — the join key the revoked Session record keeps.
+Term cascade reason: "credential-revocation-cascade:" and the cascade initiation event's id, then ": " and the caller's reason — the join key the revoked Session record keeps, and what a cascade passes Session's revoke as its reason.
 Term stage: credential-id-lookup | session-issue | login-event-log | login-event-record — the stage storage-failure(stage) names (Action wiring 30, 31, 38, Audit arm 13).
 Term cascade reason prefix: "credential-revocation-cascade:" — the leading text of a cascade reason (Primitive policy 13).
 Term session revoked event: session_revoked_by_cascade — the cascade's per-session event (Action wiring 23, Invariant 5.2, Check 4.2).
@@ -273,7 +277,7 @@ Every input an action takes and every answer a call of the three actions can mee
 | Answer | Lands | Owner |
 |---|---|---|
 | verified | the credential id read, then Session's issue | Action wiring 1, 4, 5 |
-| failed-verification | invalid-credential answered, the login event log entry and the login failed event written, no session issued | Action wiring 2, 3, 12, 13, 37 |
+| failed-verification | invalid-credential answered, the login event log entry and the login failed event committed together, no session issued | Action wiring 2, 3, 12, 13, 37, 45 |
 | state-unavailable | state-unavailable, nothing written | Execution Contract Constituent failure 3 |
 
 **The credential id read**, at login once verify answers verified.
@@ -288,7 +292,7 @@ Every input an action takes and every answer a call of the three actions can mee
 
 | Answer | Lands | Owner |
 |---|---|---|
-| a session token | the login event log entry, the login succeeded event, then the maps written; the token answered | Action wiring 8, 9, 12, 13, 37 |
+| a session token | the session, the login event log entry and the login succeeded event committed together, then the maps written; the token answered | Action wiring 8, 9, 12, 13, 37, 45, 46 |
 | invalid-request | invalid-request, nothing written | Action wiring 40 |
 | storage-failure | storage-failure naming session-issue, nothing written | Action wiring 31, Execution Contract Constituent failure 1 |
 | state-unavailable | state-unavailable, nothing written | Execution Contract Constituent failure 3 |
@@ -298,7 +302,7 @@ Every input an action takes and every answer a call of the three actions can mee
 | Outcome | Lands | Owner |
 |---|---|---|
 | the map write fails | the session token answered; the pair stays on the login succeeded event for the rebuild and the sweep's backfill | Action wiring 10, Reconciliation 20 |
-| the login event log append fails | storage-failure naming login-event-log, nothing written | Action wiring 38 |
+| the login event log append fails | storage-failure naming login-event-log, nothing written, the session included | Action wiring 38, 45, 46 |
 
 **Session's revoke**, at logout, after the map read.
 
@@ -633,6 +637,8 @@ Directional changes only — the turns a future reader must know the pattern too
 - **2026-10-21 — The store's guarantees cited, not restated, the orphan-session comparison among them.** *Chose:* the store supplied under Execution Contract Store 1 through 4 (Capability requirement 18), and the seventeen rules that restated it, or existed only for a store that could lose or split a write, tombstoned to their owner — to Store 1, under which a login's session, its login event log entry and its login event commit together: the sweep's revoke of a session no record names, with its event, its reason, the boundary rule reserving that reason, its recovery intent and the invariant making the gap the sweep's (Reconciliation 8, 9, 16, 18, Primitive policy 14, Invariant 4.2), the lower edges below which the sweep examined no session and no cascade initiation, the login completion bound they read and its external check, and the auditor's twin of the orphan comparison (Reconciliation 6, 11, Capability requirement 14, External check 3, Check 5.2), and the invocation's own retry of a recording failure (Audit arm 1); to Store 1 and Store 3, the sweep's run at an instance's start and an owed record derived again at a restart (Reconciliation 1, Audit arm 3); to Store 3, the login event log's durability across a restart and its external check (Composition state 11, External check 1); and to Store 3 and Store 4, the bar on rebuilding the log at a restart (Composition state 12); with them Check 3.3 rebuilds a principal reference's session set from the log alone and Check 4.1 reads every cascade initiation, not only one older than the bound; rules 187 to 171. *Over:* a session committed apart from its records and found by a sweep once it outlived a declared completion bound, revoked under a reserved reason, and a login event log held across a restart by a rule of its own — the turns of 2026-08-28 and 2026-08-29, above. *Because:* the maintainer ruled 2026-10-12 that the corpus takes a store's specification, never the store, and 2026-10-20 that Store 1 binds every store write of one composition action, its constituents' included: Session's records, the login event log and the audit trail's records are one store, so a login that stops commits nothing and a login that commits leaves its session, its entry and its event together. The other calls a rule decided: the two maps stay a derived index outside the action's atomicity surface (obligation 2 of the section titled Composition state in `execution-contract.md`, which the ruling left as it was), so the maps' own transaction, the map write's failure arm and its event, the cascade's union read, the sweep's backfill and the check that waits on it stay (Composition state 3, 8, Action wiring 10, 11, 18, Reconciliation 20, Invariant 2.3, 2.4, Check 2.3); the audit trail's invalid-request at a record still leaves the action's other writes committed and the record owed, or at step-4 landed (Audit arm 9 through 12), so the re-emission, the comparison of revocations against their events and the cascade's abandon-and-re-run stay (Reconciliation 5, 10, 12, 15, 17, 19); and no kept rule reads a record's earlier version or compares two commits, so Store 5 and Order 1 are not cited. What the composition does for its domain is otherwise unchanged.
 
 - **2026-10-29 — A failed map write is a rebuild trigger, not a recorded outcome.** *Chose:* the maps written after the login's one commit, a failed map write answering the token and leaving its pair on the login succeeded event for the rebuild and the sweep's backfill (Action wiring 10, Reconciliation 20, Check 2.3); the map write failure event, the Success With Map Failure outcome and the confirm read tombstoned (Action wiring 6, 7, 11). *Over:* the map-failure arm the 2026-10-21 entry kept, which logged the map's outcome in the login's own entry and event. *Because:* Execution Contract Database 1 commits a login's session, entry and event together, before the map write that the section titled Composition state in `execution-contract.md` makes evidence of that commit, never a peer write whose failure is recorded; recording the failure would be a second commit of one login, and the login succeeded event already carries the pair (Final Critique 10).
+
+- **2026-11-15 — The rules say what the login's one commit holds.** *Chose:* Action wiring 45 and 46, the login event log entry, the login event and, where Credential's verify answered verified, the session record written in one transaction (Execution Contract Database 1), with Action wiring 9 and 37 saying where their order stands: the maps after the login transaction commits, the login event after the entry lands inside it. *Over:* the one commit living only in the Decisions of 2026-10-21 and 2026-10-29, the case table's *nothing written* and Capability requirement 18's citation, which a reader of the rules alone read as a session committed before its log entry (*ONLY AFTER Session's issue commits*). *Because:* the intent never changed, and no rule said it; the seam trial built the orphan session from the rules as written. Action wiring and Composition state hold 54 rules before and 56 after; the two maps, the map write's failure arm and every other rule stand.
 
 </details>
 
