@@ -131,7 +131,7 @@ Every Grace Commons pattern — atom or composition — is reviewed through thre
 - **Pass 2 — Conceptual independence (EOS — *The Essence of Software*, Daniel Jackson's framework of freestanding, composable concepts).** Does the spec absorb any responsibility that belongs in a separate freestanding atom?
 - **Pass 3 — Adversarial scrutiny (Linus mode — named for Linus Torvalds's blunt, unsparing code reviews).** Are there muddled identities, sloppy invariants, happy-path-only examples, or hidden load-bearing decisions?
 
-Each pass catches a different class of gap; none substitutes for the others. One clean sweep of the three is not grounding. The full bar is a **3×3 baseline** — three rounds of the three passes, nine passes — followed by a **Final Critique**, an AI-conducted adversarial round run at Opus *Happy Torvalds X2* depth and repeated until foundational findings reach zero, plus the **formal-layer vote** (and, where it votes *yes*, a verifying derived model). See [`pressure-testing.md`](./pressure-testing.md) for the full methodology and [`atoms/personal-todo.md`](./atoms/personal-todo.md) for a worked example.
+Each pass catches a different class of gap; none substitutes for the others. One clean sweep of the three is not grounding. The full bar is a **3×3 baseline** — three rounds of the three passes, nine passes — followed by a **Final Critique**, an AI-conducted adversarial round run at Opus *Happy Torvalds X2* depth and repeated until foundational findings reach zero; every pattern also carries both formal models. See [`pressure-testing.md`](./pressure-testing.md) for the full methodology and [`atoms/personal-todo.md`](./atoms/personal-todo.md) for a worked example.
 
 A pattern that has only survived part of that arc is *in process* — and that is a respectable state, provided the actual state is declared honestly per the status taxonomy (`unresolved`, `partially resolved`, `grounded (English) — formal layer pending`, `grounded`).
 
@@ -149,7 +149,7 @@ Grace Commons is a specification library. The implementations come later, elsewh
 
 ## Contribution lifecycle
 
-A pattern moves through four states: **Proposal** (an issue describing the recurring pattern) → **Draft** (a first spec, almost certainly `unresolved` or `partially resolved`) → **Pressure-tested** (the 3×3 baseline run, gaps fixed or deferred) → **Grounded** (the Final Critique clean — foundational findings at zero — with the formal-layer vote cast and any required model verifying; Ledger and Decisions current). The lifecycle is iterative; a `grounded` pattern can return to `partially resolved` if LIVE evidence later contradicts an invariant, or if a touch or scheduled rescan surfaces a finding.
+A pattern moves through four states: **Proposal** (an issue describing the recurring pattern) → **Draft** (a first spec, almost certainly `unresolved` or `partially resolved`) → **Pressure-tested** (the 3×3 baseline run, gaps fixed or deferred) → **Grounded** (the Final Critique clean — foundational findings at zero; Ledger and Decisions current). The lifecycle is iterative; a `grounded` pattern can return to `partially resolved` if LIVE evidence later contradicts an invariant, or if a touch or scheduled rescan surfaces a finding.
 
 ---
 

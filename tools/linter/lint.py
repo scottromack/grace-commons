@@ -2334,8 +2334,7 @@ def check_term_registry(patterns: dict[Path, Pattern]) -> list[Finding]:
 #
 #   ```
 #   status: <token — identical to the Status line's token>
-#   formal: <verified — model.tla + N twin(s), YYYY-MM-DD | pending — <why> |
-#            not applicable — <why>>
+#   formal: <verified — model.tla + N twin(s), YYYY-MM-DD | pending — <why>>
 #   last gate: <YYYY-MM-DD — <kind> — <result>> | none
 #
 #   open:
@@ -2355,8 +2354,7 @@ LEDGER_ID = re.compile(r"^\d{4}-\d{2}-\d{2}-[a-z]+$")
 LEDGER_CLASSES = ("foundational", "refining", "rhetorical")
 LEDGER_FORMAL = re.compile(
     r"^(?:verified — .+\d{4}-\d{2}-\d{2}"
-    r"|pending — .+"
-    r"|not applicable — .+)$"
+    r"|pending — .+)$"
 )
 LEDGER_GATE = re.compile(r"^(?:none|\d{4}-\d{2}-\d{2} — [^—]+ — .+)$")
 DECISION_ENTRY = re.compile(
@@ -2448,7 +2446,7 @@ def parse_ledger(text: str) -> Ledger | None:
             led.formal = val
             if not LEDGER_FORMAL.match(val):
                 led.problems.append((ln, "formal line is not `verified — … YYYY-MM-DD` / "
-                                         "`pending — …` / `not applicable — …`"))
+                                         "`pending — …`"))
         elif key == "last gate":
             led.gate = val
             if not LEDGER_GATE.match(val):

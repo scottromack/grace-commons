@@ -33,7 +33,7 @@ When drafting a new pattern, additionally read the most structurally adjacent ex
 
 - [`why.md`](./why.md) — the front door's argument, cut to about 300 words on 2026-11-14 (the atom and composition vocabulary lives in [`spec-format.md`](./spec-format.md)). [`readme.md`](./readme.md) — the Start Here landing/tour at the site root.
 - [`the-spec-layer.md`](./the-spec-layer.md) — the architectural manifesto, a dated essay that owns no rule. [`method.md`](./method.md) — the method's loops and its principles: the information-management triad and the bridge test.
-- [`pressure-testing.md`](./pressure-testing.md) — three-pass methodology; the section titled *What DONE means* (the round and the status words); formal models, the formal-layer vote, the coverage cross-check; capability provenance; regulated-pattern conventions; the no-snapshot rule.
+- [`pressure-testing.md`](./pressure-testing.md) — three-pass methodology; the section titled *What DONE means* (the round and the status words); formal models (every pattern carries both), the coverage cross-check; capability provenance; regulated-pattern conventions; the no-snapshot rule.
 - [`spec-format.md`](./spec-format.md) — the two spec shapes, required sections, reading tiers, authoring conventions, the term entry, the workflow for adding a new pattern.
 - [`contributing.md`](./contributing.md) — contribution lifecycle, and where each kind of contribution goes; the workflow, the findings rule and the model conventions it once held are in `spec-format.md` and `pressure-testing.md`.
 - [`marketing.md`](./marketing.md) — the rules for anything said in Grace's name outside the library; read before writing or changing a front-door page.
