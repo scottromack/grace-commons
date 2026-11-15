@@ -214,7 +214,7 @@ Action wiring 19: An admitted cascade MUST call Session's validate for EVERY ses
 Action wiring 20: An admitted cascade MUST call Session's revoke for EVERY session token Session's validate answers valid for.
 Action wiring 21: An admitted cascade MUST NOT call Session's revoke for a session token Session's validate answers invalid for.
 Action wiring 22: IF Session's validate answers expired OR revoked THEN an admitted cascade MUST count the session token as skipped.
-Action wiring 23: An admitted cascade MUST record a session revoked event per revoked session token, carrying the session token, the revoked by reference, the cascade reason AND now.
+Action wiring 23: An admitted cascade MUST record a session revoked event per session token the cascade revoked, carrying the session token, the revoked by reference, the cascade reason AND now.
 Action wiring 24: An admitted cascade MUST NOT change the credential-to-sessions map.
 Action wiring 25: An admitted cascade MUST record a cascade completion event carrying the initiation event's id AND the four counts.
 Action wiring 26: An admitted cascade MUST answer the revocation tally.
@@ -241,15 +241,15 @@ NOTE: watch the attempt a refusal erases (Action wiring 2, Term login result).
 
 Term admitted login: a login call whose inputs cleared the boundary predicate.
 
-Term login transaction: the one transaction of Action wiring 45 and 46 — an admitted login's one commit, holding the login event log entry, the login event and, where Credential's verify answered verified, the session record; the two maps are written after it, in a transaction of their own (Composition state 3).
+Term login transaction: the one transaction of Action wiring 45 and 46 — the commit holding the login event log entry, the login event and, where Credential's verify answered verified, the session record; the two maps are written after it, in a transaction of their own (Composition state 3).
 
 Term admitted logout: a logout call whose inputs cleared the boundary predicate.
 
 Term admitted cascade: a [Revoke Sessions For Credential] call whose inputs cleared the boundary predicate.
 
-Term cascade reason: "credential-revocation-cascade:" and the cascade initiation event's id, then ": " and the caller's reason — the join key the revoked Session record keeps, and what a cascade passes Session's revoke as its reason.
+Term cascade reason: "credential-revocation-cascade:" and the cascade initiation event's id, then ": " and the caller's reason — the join key the revoked Session record keeps, matched whole and never split back into its parts, since an event id is opaque, and what a cascade passes Session's revoke as its reason.
 Term stage: credential-id-lookup | session-issue | login-event-log | login-event-record — the stage storage-failure(stage) names (Action wiring 30, 31, 38, Audit arm 13).
-Term cascade reason prefix: "credential-revocation-cascade:" — the leading text of a cascade reason (Primitive policy 13).
+Term cascade reason prefix: "credential-revocation-cascade:" — the leading text of a cascade reason (Primitive policy 13), compared character for character: case-sensitive, nothing trimmed, nothing normalized.
 Term session revoked event: session_revoked_by_cascade — the cascade's per-session event (Action wiring 23, Invariant 5.2, Check 4.2).
 Term cascade events: credential_revocation_cascade_initiated, session_revoked_by_cascade, session_revoke_failure_during_cascade, session_not_found_during_cascade, credential_revocation_cascade_completed and credential_revocation_cascade_abandoned — the substrate's events a cascade and the sweep's abandonment record.
 Term cascade set: the union of the credential-to-sessions map's entry for a credential id and the event-derived set the substrate's login succeeded events carry for it.
@@ -606,14 +606,14 @@ Inherited from:
 
 ## Status
 
-`done — 2026-11-06` — see the Ledger.
+`done — 2026-11-15` — see the Ledger.
 
 ## Ledger
 
 ```
-status: done — 2026-11-06
+status: done — 2026-11-15
 formal: verified — login.tla + 7 twins; login.als + 11 twins (the static data model, 2026-11-12: Invariant 1.1, 1.2, 2.1, 2.2, 2.3, 2.4, 3.1, 5.1, 5.2 and 6.1, with Composition state 13 and Check 3.2 and 4.1, checked on every state of the credential and session records, the login event log with each entry's login event, the two maps (each login's map write a commit of its own, which may fail, and the sweep's backfill), the logouts and the cascades with their sets, answers, counts and events; nothing testable in Alloy for Composition state 4 and 5 (two states compared), Action wiring 17 and 37 (an order inside one transaction) and Check 2.3 (the reconciliation window, a clock); the model found that no state the page's rules reach holds a cascade initiation without its completion, since the cascade is one transaction and its every failure arm commits nothing (Audit arm 13, Execution Contract Constituent failure 1), so Reconciliation 12, 17 and 19 and Check 4.1's abandoned arm have no state to act on, as Reconciliation 5 has none for a login's entry, since Audit arm 9 through 11 were deleted); coverage 2026-11-10 (unit formal: more coverage for the yes votes), 2026-11-12: no owed rows, 2026-11-12
-last gate: 2026-11-06 — Final Critique 14 — delta, frozen at efa2db9 — foundational count 0, clean, no sample; Linus's one finding (Capability requirement 16, no cross-instance id source) refuted against Logic confinement 16 by both triages, and the Final Critique 13 cure (Audit arm 9 through 11) was read whole with no finding, so the page grounds; 2026-11-05 — Final Critique 13 — delta, frozen at 82d4603 — foundational count 0, clean, no sample; the settle cured Ledger open line 2026-10-29-b, a foundational line no reader had read (Scott's ruling of 2026-11-03 21:53Z), so the page is not grounded and owes a delta round; 2026-11-04 — Final Critique 12 — delta, foundational count 1, not clean, no sample
+last gate: 2026-11-15 — Final Critique 15 — delta, frozen at 5ff50de — foundational count 0, clean, no sample; Linus's three foundational reports placed by both triages: one refuted against Action wiring 10, one refining (Action wiring 23) and one rhetorical (Term login transaction), both cured in wording, and the five refining items cured or left as written, so the page grounds; 2026-11-06 — Final Critique 14 — delta, frozen at efa2db9 — foundational count 0, clean, no sample; Linus's one finding (Capability requirement 16, no cross-instance id source) refuted against Logic confinement 16 by both triages, and the Final Critique 13 cure (Audit arm 9 through 11) was read whole with no finding, so the page grounds; 2026-11-05 — Final Critique 13 — delta, frozen at 82d4603 — foundational count 0, clean, no sample; the settle cured Ledger open line 2026-10-29-b, a foundational line no reader had read (Scott's ruling of 2026-11-03 21:53Z), so the page is not grounded and owes a delta round; 2026-11-04 — Final Critique 12 — delta, foundational count 1, not clean, no sample
 
 open:
 - 2026-08-29-a · refining · formal · the model's sweep carries no upper edge and no recovery record → extend it
