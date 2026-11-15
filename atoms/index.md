@@ -23,7 +23,7 @@ toc: true
 
 The freestanding semantic units of Grace Commons — each fully specifiable without naming another atom. Atoms are stored flat (`atoms/<name>.md`); their classification is not a folder but a set of **lenses** over the Intent Graph. Overlays (regulated · security · standards) are read off the composition graph and **report usage, not essence** — a standard shows as *HIPAA via audit-trail*, an uncomposed atom as *composed by: (none yet)*, never a bare boolean. **Domain** is the one intrinsic axis: an optional, EOS-gated tag, default absent. The design and its rationale are in [the taxonomy note](./TAXONOMY.md).
 
-_26 compositions (26 regulated) · 37 atoms · 64 composition→atom edges. Generated from `tools/taxonomy/reverse_index.py`; regenerate with `python3 tools/taxonomy/generate_views.py .`_
+_26 compositions (26 regulated) · 38 atoms · 64 composition→atom edges. Generated from `tools/taxonomy/reverse_index.py`; regenerate with `python3 tools/taxonomy/generate_views.py .`_
 
 ## All atoms
 
@@ -59,6 +59,7 @@ _26 compositions (26 regulated) · 37 atoms · 64 composition→atom edges. Gene
 | [Provenance](./provenance.md) | — | yes (1) | — | chain-of-custody |
 | [Provisional Commitment](./provisional-commitment.md) | — | yes (2) | — | idempotent-reservation, reserve-from-pool |
 | [Punch Card](./punch-card.md) | — | — | — | *(none yet)* |
+| [Reaction](./reaction.md) | — | — | — | *(none yet)* |
 | [Recurrence](./recurrence.md) | — | — | — | *(none yet)* |
 | [Retention Window](./retention-window.md) | — | yes (4) | — | audit-trail, customer-onboarding, defensible-retention, propagate-consent-revocation-downstream |
 | [Selective Disclosure](./selective-disclosure.md) | — | yes (3) | — | capability-backed-sharing, immutable-ledger, resolve-a-persons-data-rights |
@@ -163,6 +164,7 @@ Atoms no composition yet composes. The overlays say nothing about them — an ho
 - [Observation](./observation.md)
 - [Owed Record](./owed-record.md)
 - [Punch Card](./punch-card.md)
+- [Reaction](./reaction.md)
 - [Recurrence](./recurrence.md)
 
 ---

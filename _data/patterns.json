@@ -1352,6 +1352,23 @@
   "status": "done \u2014 2026-11-13",
   "title": "Punch Card"
  },
+ "reaction": {
+  "composed_by": [],
+  "domain": null,
+  "grounded": false,
+  "invariants": 2,
+  "kind": "atom",
+  "models": {
+   "als": false,
+   "tla": false,
+   "twins": 0
+  },
+  "regulated_by": [],
+  "security": false,
+  "standards": [],
+  "status": "todo",
+  "title": "Reaction"
+ },
  "recoverable-invocation": {
   "composes": [
    "lease"
