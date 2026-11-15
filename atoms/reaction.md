@@ -489,7 +489,7 @@ Reaction is a primitive with no regulatory anchor. It inherits from:
 
 ```
 status: done — 2026-11-14
-formal: pending — no model yet
+formal: verified — reaction.als + 8 twins (the static data model: State 1 and 2, Identity 3, 5 and 7, Operation 4 through 7, Invariant 1.1 checked on every version a sequence of admitted calls leaves, Identity 1 caught by the Invariant 1.1 check, Identity 2, 4 and 6 by the Operation 5 check); reaction.tla + 30 twins (across steps, under either holding rule and a reaction set the deployment may change between calls: State 3, Invariant 2.1 through 2.4, Operation 1 through 5 and 8 through 30, the other half of Operation 17 and 20 read from the terms Look Up and Count); on the maintainer's ruling of 2026-11-09 (both models; only the writing vetoes one), neither vetoed, 2026-11-15
 last gate: 2026-11-14 — Final Critique 1, a full round, frozen at b585a81 — foundational count 0, clean, one sample
 
 open:
