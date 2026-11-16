@@ -112,7 +112,7 @@ Term withdrawn: the status of a communication taken back as logged by mistake �
 ### Capability requirement
 
 ```
-Capability requirement 1: The deployment MUST supply the database PER Execution Contract Database 1 through 7, Execution Contract Read 1 through 6, Execution Contract Refusal 1, Execution Contract Input 1 and Execution Contract Query 5.
+Capability requirement 1: The deployment MUST supply the database PER Execution Contract Database 1 through 7, Execution Contract Read 1 through 6, Execution Contract Refusal 1, Execution Contract Input 1, Execution Contract Query 1 and Execution Contract Query 5.
 Capability requirement 2: The deployment MUST supply now at the seam PER Execution Contract Logic confinement 11.
 Capability requirement 3: The deployment MAY declare the string cap PER Execution Contract Input 2 and Execution Contract Logic confinement 17.
 Capability requirement 4: The deployment MUST NOT normalize a person reference at the seam.
@@ -123,6 +123,7 @@ Capability requirement 8: The deployment MAY declare the medium set PER Executio
 Capability requirement 9: The deployment MAY declare the outcome set PER Execution Contract Logic confinement 17.
 Capability requirement 10: IF a member of the medium set EQUALS blank OR a member of the medium set EXCEEDS the string cap THEN the deployment MUST NOT declare the medium set.
 Capability requirement 11: IF a member of the outcome set EQUALS blank OR a member of the outcome set EXCEEDS the string cap THEN the deployment MUST NOT declare the outcome set.
+Capability requirement 12: The deployment MUST supply each communication id PER Execution Contract Logic confinement 16.
 ```
 
 ### Operations
@@ -149,16 +150,16 @@ history_for(reference, optional start_instant, optional end_instant)
 ```
 
 ```
-Operation 1: IF the medium of the call EQUALS blank OR the medium of the call EXCEEDS the string cap THEN a detail action MUST answer invalid-medium.
-Operation 2: IF the call carries a medium AND no member of the medium set EQUALS the medium of the call THEN a detail action MUST answer invalid-medium.
-Operation 3: IF the call carries an occurred instant AND the injected now PRECEDES the occurred instant of the call THEN a detail action MUST answer invalid-occurred-instant.
-Operation 4: IF the call carries outside participants AND the outside participants of the call EQUALS an empty list THEN a detail action MUST answer invalid-outside-participants.
+Operation 1: IF the medium of the call EXCEEDS the string cap THEN a detail action MUST answer invalid-medium.
+Operation 2: IF the medium of the call DOES NOT EQUAL blank AND no member of the medium set EQUALS the medium of the call THEN a detail action MUST answer invalid-medium.
+Operation 3: IF the occurred instant of the call DOES NOT EQUAL blank AND the injected now PRECEDES the occurred instant of the call THEN a detail action MUST answer invalid-occurred-instant.
+Operation 4: IF the outside participants of the call EQUALS blank THEN [Record] MUST answer invalid-outside-participants.
 Operation 5: IF a member of the outside participants of the call EQUALS blank OR a member of the outside participants of the call EXCEEDS the string cap THEN a detail action MUST answer invalid-outside-participants.
 Operation 6: IF a member of the inside participants of the call EQUALS blank OR a member of the inside participants of the call EXCEEDS the string cap THEN a detail action MUST answer invalid-inside-participants.
-Operation 7: IF the summary of the call EQUALS blank OR the summary of the call EXCEEDS the string cap THEN a detail action MUST answer invalid-summary.
+Operation 7: IF the summary of the call EXCEEDS the string cap THEN a detail action MUST answer invalid-summary.
 Operation 8: IF a member of the item references of the call EQUALS blank OR a member of the item references of the call EXCEEDS the string cap THEN a detail action MUST answer invalid-item-references.
-Operation 9: IF the outcome of the call EQUALS blank OR the outcome of the call EXCEEDS the string cap THEN a detail action MUST answer invalid-outcome.
-Operation 10: IF the call carries an outcome AND no member of the outcome set EQUALS the outcome of the call THEN a detail action MUST answer invalid-outcome.
+Operation 9: IF the outcome of the call EXCEEDS the string cap THEN a detail action MUST answer invalid-outcome.
+Operation 10: IF the outcome of the call DOES NOT EQUAL blank AND no member of the outcome set EQUALS the outcome of the call THEN a detail action MUST answer invalid-outcome.
 Operation 11: IF the medium of the call is malformed THEN a detail action MUST answer invalid-medium (Execution Contract Input 1).
 Operation 12: IF the occurred instant of the call is malformed THEN a detail action MUST answer invalid-occurred-instant (Execution Contract Input 1).
 Operation 13: IF the outside participants of the call is malformed THEN a detail action MUST answer invalid-outside-participants (Execution Contract Input 1).
@@ -174,9 +175,9 @@ Operation 22: IF the call omits item references THEN [Record] MUST record an emp
 Operation 23: [Record] MUST answer the communication id.
 Operation 24: IF the communication id of the call is malformed OR no communication carries the communication id of the call THEN a keyed action MUST answer not-known.
 Operation 25: IF the communication's status EQUALS withdrawn THEN [Change] MUST answer not-active.
-Operation 26: IF the call carries a detail THEN [Change] MUST set EVERY detail the call carries.
+Operation 26: IF the call supplies a detail THEN [Change] MUST set EVERY detail the call supplies.
 Operation 27: [Change] MUST NOT change a detail the call omits.
-Operation 28: IF the call carries no detail THEN [Change] MUST NOT write.
+Operation 28: IF the call supplies no detail THEN [Change] MUST NOT write.
 Operation 29: [Change] MUST answer ok.
 Operation 30: IF the communication's status EQUALS withdrawn THEN [Withdraw] MUST answer not-active.
 Operation 31: IF the communication's status EQUALS active THEN [Withdraw] MUST stand the communication in withdrawn.
@@ -190,8 +191,10 @@ Operation 38: [History For] MUST answer an empty list for a reference no match c
 Operation 39: [History For] MUST answer matches in order of occurred instant (Execution Contract Read 5, Execution Contract Logic confinement 10).
 Operation 40: [History For] MUST answer two matches sharing an occurred instant in codepoint order of communication id (Execution Contract Read 5, Execution Contract Logic confinement 10).
 Operation 41: IF the reference is malformed OR the reference EQUALS blank OR the reference EXCEEDS the string cap THEN [History For] MUST answer an empty list (Execution Contract Query 5).
-Operation 42: IF the start instant is malformed OR the end instant is malformed THEN [History For] MUST answer an empty list (Execution Contract Query 5).
+Operation 42: IF the start instant is malformed OR the end instant is malformed THEN [History For] MUST answer an empty list (Execution Contract Query 1).
 Operation 43: [History For] MUST NOT write.
+Operation 44: IF the medium of the call EQUALS blank THEN [Record] MUST answer invalid-medium.
+Operation 45: IF the occurred instant of the call EQUALS blank THEN [Record] MUST answer invalid-occurred-instant (Execution Contract Input 1, Execution Contract Logic confinement 12).
 ```
 
 Term detail action: [Record] | [Change] — the actions that carry details.
@@ -206,27 +209,32 @@ Term start instant: the earliest occurred instant a [History For] call asks for;
 
 Term end instant: the latest occurred instant a [History For] call asks for; a call with none asks for no latest.
 
-Term range: the start instant and the end instant of a [History For] call; an occurred instant lies inside the range where the occurred instant is neither earlier than the start instant nor later than the end instant.
+Term range: the start instant and the end instant of a [History For] call; an occurred instant lies inside the range where the occurred instant is neither earlier than the start instant nor later than the end instant; a call carrying no start instant or no end instant leaves the range open at that end, which Execution Contract Query 1 would read as malformed, and the atom's own rule stands in place of it.
 
 Term match: an active communication carrying the reference as an outside participant, an inside participant or an item reference, with an occurred instant inside the range.
+
+Term history: the matches a [History For] call answers for a reference.
 
 The case space, and the rule that owns each case:
 
 | Call | Case | Answer | Effect on the communications |
 |---|---|---|---|
 | [Record] | every detail valid, the medium in the medium set, any outcome in the outcome set, the occurred instant no later than now, database accepts | the communication id | one communication lands, active, carrying the details of the call (Operation 19, Operation 20, Operation 23, State 1) |
-| [Record] | the call omits inside participants or item references | the communication id | each omitted list is recorded empty (Operation 21, Operation 22) |
+| [Record] | the call leaves inside participants or item references blank, omitted or an empty list | the communication id | each such list is recorded empty (Operation 21, Operation 22, GRACE-lang Earned vocabulary 22) |
 | a detail action | the occurred instant later than now | [Invalid Occurred Instant] | none (Operation 3) |
 | a detail action | the occurred instant not an instant | [Invalid Occurred Instant] | none (Operation 12) |
-| a detail action | the medium blank, over the string cap, not a string, or not in the medium set | [Invalid Medium] | none (Operation 1, Operation 2, Operation 11) |
-| a detail action | the outside participants an empty list, a member blank or over the string cap, or not a list of strings | [Invalid Outside Participants] | none (Operation 4, Operation 5, Operation 13) |
+| [Record] | the occurred instant blank | [Invalid Occurred Instant] | none (Operation 45) |
+| a detail action | the medium over the string cap, not a string, or not in the medium set | [Invalid Medium] | none (Operation 1, Operation 2, Operation 11) |
+| [Record] | the medium blank | [Invalid Medium] | none (Operation 44) |
+| [Record] | the outside participants blank, omitted or an empty list | [Invalid Outside Participants] | none (Operation 4) |
+| a detail action | an outside participant blank or over the string cap, or not a list of strings | [Invalid Outside Participants] | none (Operation 5, Operation 13) |
 | a detail action | an inside participant blank or over the string cap, or not a list of strings | [Invalid Inside Participants] | none (Operation 6, Operation 14) |
 | a detail action | the direction neither inbound nor outbound | [Invalid Direction] | none (Operation 15) |
-| a detail action | the summary blank, over the string cap, or not a string | [Invalid Summary] | none (Operation 7, Operation 16) |
+| a detail action | the summary over the string cap, or not a string | [Invalid Summary] | none (Operation 7, Operation 16) |
 | a detail action | an item reference blank or over the string cap, or not a list of strings | [Invalid Item References] | none (Operation 8, Operation 17) |
-| a detail action | the outcome blank, over the string cap, not a string, or not in the outcome set | [Invalid Outcome] | none (Operation 9, Operation 10, Operation 18) |
-| [Change] | the communication stands active, every carried detail valid, database accepts | ok | every carried detail is set, every other detail stands, and the earlier version stays readable (Operation 26, Operation 27, Operation 29, Execution Contract Database 5) |
-| [Change] | the communication stands active and the call carries no detail | ok | none, no write (Operation 28) |
+| a detail action | the outcome over the string cap, not a string, or not in the outcome set | [Invalid Outcome] | none (Operation 9, Operation 10, Operation 18) |
+| [Change] | the communication stands active, every supplied detail valid, database accepts | ok | every supplied detail is set, every other detail stands, and the earlier version stays readable (Operation 26, Operation 27, Operation 29, Execution Contract Database 5) |
+| [Change] | the communication stands active and the call supplies no detail | ok | none, no write (Operation 28) |
 | [Change] | the communication stands withdrawn | [Not Active] | none (Operation 25) |
 | [Withdraw] | the communication stands active | ok | the communication stands withdrawn; every detail stands; nothing is removed (Operation 31, Operation 32, State 4) |
 | [Withdraw] | the communication stands withdrawn | [Not Active] | none (Operation 30) |
@@ -275,10 +283,10 @@ The sales team's calls, made on Monday 2026-11-16:
 - `record("fax", "2026-11-10T10:15:00-06:00", ["jane-ruiz"])` — rejected as [Invalid Medium]: the team's medium set has no fax (Operation 2).
 - `record("phone", "2026-11-10T10:15:00-06:00", ["jane-ruiz"], outcome="busy")` — rejected as [Invalid Outcome]: busy is not in the team's outcome set (Operation 10).
 - `record("phone", "2026-11-10T10:15:00-06:00", ["jane-ruiz"], direction="sideways")` — rejected as [Invalid Direction]: a direction is inbound or outbound (Operation 15).
-- `record("phone", "2026-11-10T10:15:00-06:00", ["jane-ruiz"], summary="")` — rejected as [Invalid Summary]: the summary is blank (Operation 7).
+- `record("phone", "2026-11-10T10:15:00-06:00", ["jane-ruiz"], summary=s)`, where `s` runs to 1,025 code points — rejected as [Invalid Summary]: the summary exceeds the string cap (Operation 7). A blank summary is an omitted one, so `summary=""` records no summary (GRACE-lang Earned vocabulary 22).
 - `record("phone", "2026-11-10T10:15:00-06:00", ["jane-ruiz"], inside_participants=[""])` — rejected as [Invalid Inside Participants]: the member is blank (Operation 6).
 - `record("phone", "2026-11-10T10:15:00-06:00", ["jane-ruiz"], item_references=[""])` — rejected as [Invalid Item References]: the member is blank (Operation 8).
-- `record("phone", "", ["jane-ruiz"])` — rejected as [Invalid Occurred Instant]: an empty string is not an instant (Operation 12).
+- `record("phone", "", ["jane-ruiz"])` — rejected as [Invalid Occurred Instant]: a blank instant is refused on [Record] (Operation 45), and `record("phone", "last Tuesday", ["jane-ruiz"])` is rejected the same way because the words are not an instant (Operation 12).
 - `record("fax", "", [])` — rejected as [Invalid Medium]: three refusals apply, and the one listed first on [Record]'s refuses line answers (Execution Contract Refusal 1).
 - `change("c-404", summary="Renewal")` — rejected as [Not Known]: no communication carries c-404 (Operation 24).
 - `change("c-73", summary="Renewal")` — rejected as [Not Active]: c-73 stands withdrawn (Operation 25).
@@ -350,11 +358,11 @@ A caller whose answer is lost may call again, and the repeat is a second call (E
 
 ### A detail once given
 
-A [Change] corrects a detail but cannot take a direction, a summary or an outcome off a communication, and cannot empty the outside participants (Operation 4, Invariant 1.1); a [Change] can empty the inside participants or the item references. A communication that should carry less is withdrawn and recorded again.
+A [Change] corrects a detail but cannot take a detail off a communication: a detail the call leaves blank, an empty list among them, is a detail the call omits, and the detail stands (Operation 27, GRACE-lang Earned vocabulary 22), so `change("c-71", inside_participants=[])` answers ok and writes nothing (Operation 28), and the outside participants never empty (Invariant 1.1). A communication that should carry less is withdrawn and recorded again.
 
 ### A medium set or an outcome set that changes
 
-A deployment that drops a medium from the medium set stops every [Record] and every [Change] carrying that medium (Operation 2); communications already recorded in that medium keep the medium and stay in every history they match, and a [Change] carrying no medium leaves the medium as it stands. The outcome set works the same way (Operation 10).
+A deployment that drops a medium from the medium set stops, at the next start, every [Record] and every [Change] carrying that medium (Operation 2; Execution Contract Logic confinement 17); communications already recorded in that medium keep the medium and stay in every history they match, and a [Change] carrying no medium leaves the medium as it stands. The outcome set works the same way (Operation 10).
 
 ### A range or a reference that matches nothing
 
@@ -393,17 +401,17 @@ Term cadences: empty.
 
 Term qualifiers: migrated — drafted in GRACE lang unknown (2026-11-16) through the Grace connector.
 
-Term terms: communication, communications, communication id, detail, details, medium, media, medium set, outcome, outcomes, outcome set, person reference, person references, outside participant, outside participants, inside participant, inside participants, item reference, item references, string cap, seam, occurred instant, direction, inbound, outbound, summary, status, active, withdrawn, detail action, keyed action, writing action, reference, start instant, end instant, range, match, matches, version.
+Term terms: communication, communications, communication id, detail, details, medium, media, medium set, outcome, outcomes, outcome set, person reference, person references, outside participant, outside participants, inside participant, inside participants, item reference, item references, string cap, seam, occurred instant, direction, inbound, outbound, summary, status, active, withdrawn, detail action, keyed action, writing action, reference, start instant, end instant, range, match, matches, history, version.
 
 #### Record
 
-Logs one exchange that already happened: records a [Communication] carrying the details of the call, stands the communication in [Active], and answers the [Communication Id] the host allocated. An omitted list of inside participants or item references is recorded empty.
+Logs one exchange that already happened: records a [Communication] carrying the details of the call, stands the communication in [Active], and answers the [Communication Id] the host allocated. An omitted list of inside participants or item references is recorded empty; a blank medium, blank outside participants or a blank occurred instant is refused.
 
 Kind: Operation
 
 #### Change
 
-Sets each detail the call carries on an [Active] communication and leaves every other detail as it stands; the earlier version stays readable. A call carrying no detail writes nothing. Answers ok.
+Sets each detail the call supplies on an [Active] communication and leaves every other detail as it stands, a detail the call leaves blank, an empty list among them, included; the earlier version stays readable. A call supplying no detail writes nothing. Answers ok.
 
 Kind: Operation
 
@@ -545,7 +553,7 @@ Projection: withdrawn
 
 #### Invalid Medium
 
-The refusal of a blank [Medium], one over the string cap, one that is not a string, or one the medium set does not offer, on [Record] or [Change] (Operation 1, Operation 2, Operation 11).
+The refusal of a [Medium] over the string cap, one that is not a string, or one the medium set does not offer, on [Record] or [Change], and of a blank one on [Record] (Operation 1, Operation 2, Operation 11, Operation 44).
 
 Kind:       Member
 Member of:  the action rejection
@@ -554,7 +562,7 @@ Projection: invalid-medium
 
 #### Invalid Occurred Instant
 
-The refusal of an [Occurred Instant] later than now, or one that is not an instant, on [Record] or [Change] (Operation 3, Operation 12).
+The refusal of an [Occurred Instant] later than now, or one that is not an instant, on [Record] or [Change], and of a blank one on [Record] (Operation 3, Operation 12, Operation 45).
 
 Kind:       Member
 Member of:  the action rejection
@@ -563,7 +571,7 @@ Projection: invalid-occurred-instant
 
 #### Invalid Outside Participants
 
-The refusal of [Outside Participants] that are an empty list, hold a blank member or one over the string cap, or are not a list of strings, on [Record] or [Change] (Operation 4, Operation 5, Operation 13).
+The refusal of [Outside Participants] that hold a blank member or one over the string cap, or are not a list of strings, on [Record] or [Change], and of blank ones, omitted or an empty list, on [Record] (Operation 4, Operation 5, Operation 13).
 
 Kind:       Member
 Member of:  the action rejection
@@ -590,7 +598,7 @@ Projection: invalid-direction
 
 #### Invalid Summary
 
-The refusal of a blank [Summary], one over the string cap, or one that is not a string, on [Record] or [Change] (Operation 7, Operation 16).
+The refusal of a [Summary] over the string cap, or one that is not a string, on [Record] or [Change] (Operation 7, Operation 16).
 
 Kind:       Member
 Member of:  the action rejection
@@ -608,7 +616,7 @@ Projection: invalid-item-references
 
 #### Invalid Outcome
 
-The refusal of a blank [Outcome], one over the string cap, one that is not a string, or one the outcome set does not offer, on [Record] or [Change] (Operation 9, Operation 10, Operation 18).
+The refusal of an [Outcome] over the string cap, one that is not a string, or one the outcome set does not offer, on [Record] or [Change] (Operation 9, Operation 10, Operation 18).
 
 Kind:       Member
 Member of:  the action rejection
@@ -690,14 +698,14 @@ Communication is a primitive with no regulatory anchor. It inherits from:
 
 ## Status
 
-`todo` — see the Ledger.
+`doing` — see the Ledger.
 
 ## Ledger
 
 ```
-status: todo
+status: doing
 formal: pending — no model yet
-last gate: none
+last gate: 2026-11-16 — Final Critique 1, a full round, frozen at 5756d0f — foundational count 4, cured, not clean, no sample
 
 open: none
 ```
