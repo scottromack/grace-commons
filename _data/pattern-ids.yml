@@ -154,3 +154,5 @@ patterns:
     file: atoms/reaction.md
   - id: 66
     file: atoms/communication.md
+  - id: 67
+    file: atoms/tenure.md

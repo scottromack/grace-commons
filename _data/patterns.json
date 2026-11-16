@@ -1769,6 +1769,23 @@
   "status": "done \u2014 2026-11-06",
   "title": "Tamper Evidence"
  },
+ "tenure": {
+  "composed_by": [],
+  "domain": null,
+  "grounded": false,
+  "invariants": 4,
+  "kind": "atom",
+  "models": {
+   "als": false,
+   "tla": false,
+   "twins": 0
+  },
+  "regulated_by": [],
+  "security": false,
+  "standards": [],
+  "status": "todo",
+  "title": "Tenure"
+ },
  "verified-repair": {
   "composes": [],
   "grounded": true,
