@@ -192,7 +192,7 @@ Term read-your-writes: Capability requirement 8 and Capability requirement 12 to
   act section 3: The deployment MUST share act section across every node of the instance.
   act section 4: EVERY action but [Reconcile] MUST take kind as the first input.
   act section 5: [Open] step 2 and [Resolve] MUST transcribe the atom's unavailable arm as section-unavailable.
-  act section 6: EVERY caller on this page MUST discard the atom's not-held arm.
+  act section 6: EVERY caller on this pattern MUST discard the atom's not-held arm.
   act section 7: The composition MUST NOT use try_take.
   act section 8: [Open] MUST NOT write the intent record BEFORE taking the critical section.
   act section 9: The invocation MUST hold the critical section through [Close]'s last write.
@@ -231,7 +231,7 @@ Term read-your-writes: Capability requirement 8 and Capability requirement 12 to
 - **pause bound**
   Term pause bound: this composition's value of [Lease](../atoms/lease.md)'s call pause bound: the longest time from a holder's decision to issue one call — a lease call, the issue of a journal write, the issue of the bound commit — to the moment the call has taken effect or failed. *Default:* none.
   ```
-  pause bound 1: The deployment MUST supply Lease Capability requirement 7 for EVERY lease call on this page and for this page's unfenced writes, the bound commit and every journal write, with pause bound as the atom's call pause bound.
+  pause bound 1: The deployment MUST supply Lease Capability requirement 7 for EVERY lease call on this pattern and for this pattern's unfenced writes, the bound commit and every journal write, with pause bound as the atom's call pause bound.
   pause bound 2: A writer MUST issue a journal write WITHIN pause bound of asking for the write's remaining.
   ```
   A journal write is a unit of work in Lease's sense, its bound the pause from the reading to the issue (pause bound 2) and journal write bound from the issue to the landing (Lease Term unit's bound); the pause bound bounds the write's issue, as the atom's Term unit of work allows, and not the whole record action.
@@ -1038,7 +1038,7 @@ Binding 11: A change to a kind's retention period MUST NOT take effect on a runn
 Binding 12: A lengthening of a kind's retention period MUST NOT take effect BEFORE EVERY record placed under the old period is past the retention end the old period gives the record.
 NOTE: open line 2026-11-07-a — a lengthening waits for every record placed under the old period, and a record is placed under the old period for as long as the lengthening is pending, so on an instance that keeps placing records the change may never take effect; no rule says whether it waits only for the records present when it is requested or accepts the deferral (Binding 12).
 Binding 13: A shortening of a kind's retention period MAY take effect at once, Binding 11 holding.
-Binding 14: EVERY rule of this page reading retention period MUST read the retention period in force, the old period until Binding 11 and Binding 12 let the change take effect.
+Binding 14: EVERY rule of this pattern reading retention period MUST read the retention period in force, the old period until Binding 11 and Binding 12 let the change take effect.
 ```
 
 - **act key**
@@ -1456,12 +1456,12 @@ The reachable partials and their closers. *Crash after [Open], before the commit
 
 ```
 Deviation 1: An adopter MUST declare a deviation as EXACTLY ONE OF: minted key; journal without attribution.
-Deviation 2: An adopter MUST record a need outside Deviation 1 first, as a finding against the adopter or as evidence for the next revision of this page.
+Deviation 2: An adopter MUST record a need outside Deviation 1 first, as a finding against the adopter or as evidence for the next revision of this pattern.
 Deviation 4: WHEN the act's key is minted by the commit:
     Deviation 4a: The adopter MUST bind the key the adopter can name before the commit.
     Deviation 4b: The adopter MUST declare the act probe that finds the minted record from the bound key.
     Deviation 4c: IF no such read of the constituent EXISTS THEN the adopter MUST declare act probe set to undecidable for the kind.
-Deviation 5: An adopter journaling to a bare Event Log MUST declare that the adopter is not an adopter of this page.
+Deviation 5: An adopter journaling to a bare Event Log MUST declare that the adopter is not an adopter of this pattern.
 ```
 
 ### Repeatable and non-repeatable acts
