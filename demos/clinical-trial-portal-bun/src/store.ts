@@ -16,6 +16,13 @@ export type Value = string | number | boolean | null;
 export type Row = Record<string, Value>;
 export type Stmt = { text: string; params: Value[] };
 
+/** The database could not serve a read: the action answers state-unavailable and writes nothing (Execution Contract Read 1). */
+export class Unavailable extends Error {
+  constructor(message = "state-unavailable") {
+    super(message);
+  }
+}
+
 /** A guard that held when the action read, and no longer holds inside the transaction. */
 export class Guard extends Error {
   constructor(public readonly guard: string) {
@@ -57,7 +64,7 @@ export class Store {
       return rows.map((r) => ({ ...r })) as unknown as T[];
     } catch (e) {
       if (/Table not found/.test((e as Error).message)) return [];
-      throw e;
+      throw new Unavailable((e as Error).message);
     }
   }
 

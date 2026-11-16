@@ -14,7 +14,7 @@
 //
 // Not rendered here, said so: the sweep (Reconciliation 2 to 23) and the deployment's escalation
 // surface (Capability requirement 20), which is the next part.
-import { Store, Guard, type Stmt, type Row } from "./store.ts";
+import { Store, Guard, Unavailable, type Stmt, type Row } from "./store.ts";
 import { type Seam, isBlank } from "./seam.ts";
 import { Credential } from "./credential.ts";
 import { Session } from "./session.ts";
@@ -41,9 +41,10 @@ export type LoginAnswer =
   | { session_token: string }
   | "invalid-credential"
   | { refused: "invalid-request" }
-  | { refused: "storage-failure"; stage: Stage };
-export type LogoutAnswer = "ok" | { refused: "invalid-request" | "not-known" | "already-terminal" | "storage-failure" };
-export type CascadeAnswer = { revoked: number; skipped: number; failed: number; not_found: number } | { refused: "invalid-request" | "storage-failure" };
+  | { refused: "storage-failure"; stage: Stage }
+  | { refused: "state-unavailable" };
+export type LogoutAnswer = "ok" | { refused: "invalid-request" | "not-known" | "already-terminal" | "storage-failure" | "state-unavailable" };
+export type CascadeAnswer = { revoked: number; skipped: number; failed: number; not_found: number } | { refused: "invalid-request" | "storage-failure" | "state-unavailable" };
 
 const ENTRIES = "login_event_log";
 const S2C = "session_credential";
@@ -101,7 +102,16 @@ export class Login {
 
   // ---------------------------------------------------------------- login
 
-  async login(principal_ref: string, credential_type: string, presented_material: string, issued_by_ref: string, session_duration?: number): Promise<LoginAnswer> {
+  /** A read a constituent or the database could not serve answers state-unavailable and writes nothing (Execution Contract Constituent failure 3, Read 1). */
+  private async unserved<T>(fn: () => Promise<T>): Promise<T | { refused: "state-unavailable" }> {
+    try { return await fn(); } catch (e) { if (e instanceof Unavailable) return { refused: "state-unavailable" }; throw e; }
+  }
+
+  login(principal_ref: string, credential_type: string, presented_material: string, issued_by_ref: string, session_duration?: number): Promise<LoginAnswer> {
+    return this.unserved(() => this.doLogin(principal_ref, credential_type, presented_material, issued_by_ref, session_duration));
+  }
+
+  private async doLogin(principal_ref: string, credential_type: string, presented_material: string, issued_by_ref: string, session_duration?: number): Promise<LoginAnswer> {
     // The boundary predicate: nothing is written for an input that does not clear it.
     if (isBlank(principal_ref) || isBlank(credential_type) || isBlank(presented_material)) return { refused: "invalid-request" }; // Primitive policy 1 to 3
     if (this.long(principal_ref) || this.long(credential_type)) return { refused: "invalid-request" };            // Primitive policy 10, 11
@@ -171,7 +181,11 @@ export class Login {
 
   // ---------------------------------------------------------------- logout
 
-  async logout(session_token: string, revoked_by_ref: string, reason: string): Promise<LogoutAnswer> {
+  logout(session_token: string, revoked_by_ref: string, reason: string): Promise<LogoutAnswer> {
+    return this.unserved(() => this.doLogout(session_token, revoked_by_ref, reason));
+  }
+
+  private async doLogout(session_token: string, revoked_by_ref: string, reason: string): Promise<LogoutAnswer> {
     if (isBlank(session_token)) return { refused: "invalid-request" };                                            // Primitive policy 4
     if (typeof reason === "string" && reason.startsWith(CASCADE_REASON_PREFIX)) return { refused: "invalid-request" }; // Primitive policy 13
     if (!(await this.credentialOf(session_token))) return { refused: "not-known" };                              // Action wiring 43: Session's revoke is not called
@@ -186,7 +200,11 @@ export class Login {
 
   // ---------------------------------------------------------------- cascade
 
-  async revokeSessionsForCredential(credential_id: string, revoked_by_ref: string, reason: string): Promise<CascadeAnswer> {
+  revokeSessionsForCredential(credential_id: string, revoked_by_ref: string, reason: string): Promise<CascadeAnswer> {
+    return this.unserved(() => this.doCascade(credential_id, revoked_by_ref, reason));
+  }
+
+  private async doCascade(credential_id: string, revoked_by_ref: string, reason: string): Promise<CascadeAnswer> {
     if (isBlank(credential_id) || isBlank(revoked_by_ref) || isBlank(reason)) return { refused: "invalid-request" }; // Primitive policy 15 to 17
     // Action wiring 17, 32: the initiation event first, and only then the cascade set is read.
     const init = await this.commitWithEvent([], "credential_revocation_cascade_initiated", { credential_id, revoked_by_ref, reason });
@@ -208,6 +226,7 @@ export class Login {
       }
       const p = await this.session.planRevoke(token, revoked_by_ref, cascadeReason);                              // Action wiring 20, 34
       if ("refused" in p) {
+        if (p.refused === "storage-failure") return { refused: "storage-failure" };                               // Execution Contract Constituent failure 1: nothing more is written; the initiation stands for the sweep
         if (p.refused === "already-terminal") tally.skipped++;                                                    // Action wiring 41
         else if (p.refused === "not-known") { tally.not_found++; await note("session_not_found_during_cascade", { credential_id, session_token: token }); } // Action wiring 42
         else { tally.failed++; await note("session_revoke_failure_during_cascade", { credential_id, session_token: token, refused: p.refused }); }     // Action wiring 36
