@@ -642,7 +642,7 @@ def key_of(rule: dict, terms: list[dict], entries: list[dict], rules: list[dict]
         return None, f"the reader could not read the key `{m.group('by')}` as named through a Term of the form `the {m.group('thing')}'s <term>`"
     term = next((t for t in terms if t["name"].lower() == k.group("term").lower()), None)
     if not term:
-        return None, f"the reader found no Term `{k.group('term')}` among the page's Terms"
+        return None, f"the reader found no Term `{k.group('term')}` among the pattern's Terms"
     got, why = term_fields(term, entries)
     if not got:
         return None, why
@@ -785,7 +785,7 @@ def answer_shape(form: dict, doc: dict, cx: dict) -> tuple[dict | None, str]:
     action = re.sub(r"[^a-z0-9]+", "_", sub.group(1).lower()).strip("_") if sub else None
     sig = sigs.get(action)
     if not sig:
-        return None, "the reader read the rule's subject as no action of the page's signatures"
+        return None, "the reader read the rule's subject as no action of the pattern's signatures"
     ob = form["obligations"][0]["object"]
     arms = []
     for a in sig["answers"]:
@@ -801,7 +801,7 @@ def answer_shape(form: dict, doc: dict, cx: dict) -> tuple[dict | None, str]:
         stored = [e["kind"].get("Projection") or e["name"] for e in cx["entries"]
                   if e["kind"].get("Kind") == "Field" and thing and cx["owners"].get(e["name"].lower()) == thing]
         if not thing or not stored:
-            return None, f"the reader read `{ob}` as naming no record type of the page, or a record with no Field entry"
+            return None, f"the reader read `{ob}` as naming no record type of the pattern, or a record with no Field entry"
         if not own:
             return None, f"`{ob}`: the reader read no answer arm of {sig['action']} named for the record type `{thing}`"
         out = {"shape": "record", "thing": thing, "fields": stored, "arm": own}
@@ -821,7 +821,7 @@ def answer_shape(form: dict, doc: dict, cx: dict) -> tuple[dict | None, str]:
     m = None if out else SHAPE_FIELDS.fullmatch(ob)
     if m:
         thing = thing_of(m.group("thing"), cx)
-        fs, why = fields_of(thing, re.split(r",\s*(?:AND\s+)?|\s+AND\s+", m.group("fields")), cx) if thing else ([], f"the reader read `{m.group('thing')}` as no record type of the page")
+        fs, why = fields_of(thing, re.split(r",\s*(?:AND\s+)?|\s+AND\s+", m.group("fields")), cx) if thing else ([], f"the reader read `{m.group('thing')}` as no record type of the pattern")
         if why:
             return None, why
         out = {"shape": "fields", "thing": thing, "fields": fs}
@@ -837,7 +837,7 @@ def answer_shape(form: dict, doc: dict, cx: dict) -> tuple[dict | None, str]:
     if m:
         thing = thing_of(m.group("what"), cx) if m.group("what") else None
         if "query" not in cx["terms"] or (m.group("what") and not thing):
-            return None, f"`{ob}`: the reader found no Term `query` on the page, or read `{m.group('what')}` as no record type of the page"
+            return None, f"`{ob}`: the reader found no Term `query` on the pattern, or read `{m.group('what')}` as no record type of the pattern"
         out = {"shape": "empty", "query": "query"}
         if thing:
             out["thing"] = thing
@@ -845,7 +845,7 @@ def answer_shape(form: dict, doc: dict, cx: dict) -> tuple[dict | None, str]:
     if m:
         thing, by = thing_of(m.group("thing") or m.group("things"), cx), (m.group("by") or "").strip().lower()
         if not thing or by not in cx["terms"]:
-            return None, f"`{ob}`: the reader read `{m.group('thing') or m.group('things')}` as no record type of the page, or found no Term `{by}` on it"
+            return None, f"`{ob}`: the reader read `{m.group('thing') or m.group('things')}` as no record type of the pattern, or found no Term `{by}` on it"
         out = {"shape": "matching", "thing": thing, "by": by}
     m = None if out else SHAPE_PAGE.fullmatch(ob)
     if m:
@@ -856,13 +856,13 @@ def answer_shape(form: dict, doc: dict, cx: dict) -> tuple[dict | None, str]:
         key = next((c for c in (key, key.removesuffix("s")) if c in cx["terms"]), key)
         names = {"matching": matching, "order": key, "limit": m.group("limit").strip().lower()} if thing else {}
         if not thing or not all(n in cx["terms"] for n in names.values()):
-            return None, f"`{ob}`: the reader read `{m.group('thing')}` as no record type of the page, or found none of the three Terms it names"
+            return None, f"`{ob}`: the reader read `{m.group('thing')}` as no record type of the pattern, or found none of the three Terms it names"
         out = {"shape": "page", "thing": thing, "direction": "ascending", **{k: v for k, v in names.items()}}
     m = None if out else SHAPE_NONE.fullmatch(ob)
     if m:
         thing = thing_of(m.group("thing"), cx)
         if not thing:
-            return None, f"`{ob}`: the reader read `{m.group('thing')}` as no record type of the page"
+            return None, f"`{ob}`: the reader read `{m.group('thing')}` as no record type of the pattern"
         out = {"shape": "none", "thing": thing}
     m = None if out else SHAPE_CODEPOINT.fullmatch(ob)
     if m:
@@ -1074,7 +1074,7 @@ def wiring_of(doc: dict, root: Path) -> tuple[list[dict], list[dict], list[dict]
 
     def callee(who: str, act: str, rule: dict, where: str):
         if who not in view or view[who][1] is None:
-            gaps.append({"rule": rule["label"], "line": rule["line"], "kind": "no-constituent", "what": f"the reader read {who} as no constituent the Composes section links, or found its page absent"})
+            gaps.append({"rule": rule["label"], "line": rule["line"], "kind": "no-constituent", "what": f"the reader read {who} as no constituent the Composes section links, or found its pattern absent"})
             return None
         c, v = view[who]
         sig = next((s for s in v["signatures"] if snake_of(s["action"]) == snake_of(act)), None)
@@ -1237,7 +1237,7 @@ def transitions_of(doc: dict, cx: dict) -> tuple[list[dict], list[dict]]:
     keys = [k for k in doc.get("keys", []) if k.get("id")]
     if len(keys) > 1:
         return [], [{"rule": keys[1]["rule"], "line": keys[1]["line"], "kind": "no-transition",
-                     "what": f"no transition read: the page names {len(keys)} id keys ({', '.join(k['thing'] for k in keys)}), and the reader carries transitions for a page that names one"}]
+                     "what": f"no transition read: the pattern names {len(keys)} id keys ({', '.join(k['thing'] for k in keys)}), and the reader carries transitions for a pattern that names one"}]
     if not keys:
         return [], []
     key, thing = keys[0], keys[0]["thing"]
@@ -1566,7 +1566,7 @@ def projectable_of(doc: dict, gaps: list[dict]) -> list[dict]:
             took("not-carried", "a rule with more than one obligation" if f.get("kind") == "rule" and len(obs) > 1 else
                  f"the reader reads {len(obs)} obligations in it" + ("" if f.get("kind") == "rule" else f", and reads the rule as a {f.get('kind')}, not a rule"))
         elif acts and not set(acts) <= sigs:
-            took("not-carried", "the subject names an action (%s) that the reader found on no signature of the page" % ", ".join(sorted(set(acts) - sigs)))
+            took("not-carried", "the subject names an action (%s) that the reader found on no signature of the pattern" % ", ".join(sorted(set(acts) - sigs)))
         elif label in stepped:
             took("transition")
         elif (obs[0]["modal"], obs[0]["act"]) in (("MUST NOT", "answer"), ("MUST NOT", "require"), ("MUST", "accept")):
@@ -1616,7 +1616,7 @@ def carry(doc: dict, root: Path) -> None:
             r["actions"] = acts
         elif form.get("kind") == "rule" and (unresolved_set(form.get("subject", ""), doc) or bracketed_head(form.get("subject", ""), doc)):
             gaps.append({"rule": r["label"], "line": r["line"],
-                         "kind": "no-action", "what": (f"no action read: {form['subject'].strip()!r} is a Term that names a set of actions, which the reader could not resolve against the page's signatures"
+                         "kind": "no-action", "what": (f"no action read: {form['subject'].strip()!r} is a Term that names a set of actions, which the reader could not resolve against the pattern's signatures"
                                                        if unresolved_set(form.get("subject", ""), doc) else
                                                        f"no action read: {form['subject'].strip()!r} is a Term whose definition begins with a bracketed action ({bracketed_head(form.get('subject', ''), doc)!r}), and the reader reads that as no list of actions")})
         cm = cited_meaning(r, form, contract)
@@ -1659,7 +1659,7 @@ def carry(doc: dict, root: Path) -> None:
         if named:
             r.pop("answer_shape")
             gaps.append({"rule": r["label"], "line": r["line"], "kind": "record-types",
-                         "what": f"no answer shape read: the page names {len(cx['types'])} record types ({', '.join(cx['types'])}), the reader reads a shape's record as "
+                         "what": f"no answer shape read: the pattern names {len(cx['types'])} record types ({', '.join(cx['types'])}), the reader reads a shape's record as "
                                  f"`{cx['type']}`, and the rule's words name {', '.join(named)} too"})
     doc["settings"], setting_gaps = settings_of(doc, cx)       # before the guards: a guard test reads a setting's set
     doc["guards"] = guards_of(doc, cx, keys)
@@ -1723,11 +1723,11 @@ def prove(root: Path, docs: list[dict]) -> list[tuple[str, int, str, str]]:
                              f"{len(d['rules'])} rules in the IR, {len(counted)} by cites.py's count; "
                              f"cites.py only: {', '.join(gone) or 'none'}; IR only: {', '.join(extra) or 'none'}"))
         if [x["rule"] for x in d["projectable"]] != [r["label"] for r in d["rules"]] or any(x["as"] not in PROJECTABLE for x in d["projectable"]):
-            findings.append((rel, 1, "IR-projectable", "the projectable table is not one entry of a known class for each rule, in the page's order"))
+            findings.append((rel, 1, "IR-projectable", "the projectable table is not one entry of a known class for each rule, in the pattern's order"))
         named: dict[str, int] = {}
         for e in d["term_entries"]:
             if e["name"].lower() in named:
-                findings.append((rel, e["line"], "IR-entry", f"the term entry {e['name']} is declared twice on the page (first at line {named[e['name'].lower()]}): "
+                findings.append((rel, e["line"], "IR-entry", f"the term entry {e['name']} is declared twice on the pattern (first at line {named[e['name'].lower()]}): "
                                  f"the reader would take the later one and drop the first"))
             named.setdefault(e["name"].lower(), e["line"])
         seen: Counter = Counter()
@@ -1735,7 +1735,7 @@ def prove(root: Path, docs: list[dict]) -> list[tuple[str, int, str, str]]:
             seen[x["label"]] += 1
             if seen[x["label"]] == 2:
                 findings.append((x.get("file", rel), x["line"], "IR-label",
-                                 f"label {x['label']} is used more than once on the page"
+                                 f"label {x['label']} is used more than once on the pattern"
                                  + (" and its history file" if x.get("file", rel) != rel else "")))
         for c in d["checks"]:
             for cited in c["tests"]:
@@ -1755,7 +1755,7 @@ def unresolved(cited: str, page: str, live: dict, dead: dict, contract: set) -> 
     Execution Contract's labels as lint.py reads them."""
     if cited.startswith("Execution Contract "):
         return resolve(cited[len("Execution Contract "):], contract, {}, "the Execution Contract")
-    why = resolve(cited, live[page], dead[page], "the page")
+    why = resolve(cited, live[page], dead[page], "the pattern")
     family = cites.NAME_NUM.sub("", cited.partition(" through ")[0])
     if not why or any(split_label(lab)[0] == family for lab in live[page] | set(dead[page])):
         return why  # the page's own family: `Capability requirement 7f` is no Capability rule

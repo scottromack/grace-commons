@@ -47,7 +47,7 @@ This is a composition, not a new primitive. Capability, Selective Disclosure, Au
 - **[Capability](../atoms/capability.md)** — the bearer-token primitive and the source of the audit asymmetry.
 - **[Selective Disclosure](../atoms/selective-disclosure.md)** — the disclosure-accounting record.
 - **[Audit Trail](./audit-trail.md)** — the regulated-audit substrate every authorization, disclosure and revocation is sealed through.
-- **[Recoverable Invocation](./recoverable-invocation.md)** — the protocol the three acting actions follow around their constituent writes: an intent before the write, an outcome after it, and a sweep that closes the record of a write whose outcome never landed; this page restates none of it.
+- **[Recoverable Invocation](./recoverable-invocation.md)** — the protocol the three acting actions follow around their constituent writes: an intent before the write, an outcome after it, and a sweep that closes the record of a write whose outcome never landed; this pattern restates none of it.
 
 ```
 Composes 1: EXACTLY ONE Capability instance MUST serve the composition.
@@ -536,7 +536,7 @@ Term write-ownership finding: a finding that a capability, a revocation or a dis
 
 Term false closing: a carried capability, carried revocation or carried disclosure record whose carrying intent an abandonment or a refusal closed — an act that committed, read as one that did not.
 
-Term finding surface: the deployment's compliance surface — the surface Recoverable Invocation's instance writes its register to. A write-ownership finding and this page's alerts are written beside that register and are no part of it (Recoverable Invocation findings 6).
+Term finding surface: the deployment's compliance surface — the surface Recoverable Invocation's instance writes its register to. A write-ownership finding and this pattern's alerts are written beside that register and are no part of it (Recoverable Invocation findings 6).
 
 Term consumed count: `(max redemptions - remaining redemptions)` for one capability, read through Capability's read.
 
@@ -725,16 +725,16 @@ The substrate has durable partials of its own — an orphan attestation where it
 
 ## Composition notes
 
-**Recoverable Invocation.** The three acting actions follow [Recoverable Invocation](./recoverable-invocation.md) around their constituent writes (Composes 16 through 20): an intent before the commit, the one outcome as the close, a refusal record where Capability or Selective Disclosure refuses, the act's critical section over them, and a sweep and an operator's invocation resolve for what an invocation left open. The page binds the three act kinds once (Term sharing bindings) and restates none of the protocol. [Sharing Disclosures] and [Authorization Provenance] are not bound (Composes 19): each writes nothing, so nothing outlives the invocation.
+**Recoverable Invocation.** The three acting actions follow [Recoverable Invocation](./recoverable-invocation.md) around their constituent writes (Composes 16 through 20): an intent before the commit, the one outcome as the close, a refusal record where Capability or Selective Disclosure refuses, the act's critical section over them, and a sweep and an operator's invocation resolve for what an invocation left open. The pattern binds the three act kinds once (Term sharing bindings) and restates none of the protocol. [Sharing Disclosures] and [Authorization Provenance] are not bound (Composes 19): each writes nothing, so nothing outlives the invocation.
 
 **A recovered authorization does not authorize.** The authorization event is the allocator's attestation, the thing no one else can produce. An authorization outcome the sweep recovered, or an operator wrote, carries the recovery flag and the recovery identity's or the operator's attestation, so the capability-to-sharing index does not bind it (Composition state 6) and the token stays unattested: refused not-authorized-sharing ahead of the redeem, and lapsing at its ttl. The allocator, told recording-failure(outcome), never held the token.
 
-**Recoverable Invocation's commit is one call.** Recoverable Invocation's bound commit is one constituent call whose arms the constituent partitions; the disclosure transaction is two constituent calls and an index write in one database transaction (Term disclosure transaction), whose partition belongs to the transaction. Recoverable Invocation's closed list of deviations has no entry for it, and the page treats the transaction as the commit and records the mismatch as an open line (Recoverable Invocation Deviation 2), as Chain of Custody and Propagate Consent Revocation Downstream do. One more reading is carried to Recoverable Invocation's next revision as evidence, not as a finding against this page: its Term pairing datum reads a seam-injected now as passed into the commit, while Capability's allocate and revoke take no instant and the host injects it at Capability's seam (Capability requirement 22).
+**Recoverable Invocation's commit is one call.** Recoverable Invocation's bound commit is one constituent call whose arms the constituent partitions; the disclosure transaction is two constituent calls and an index write in one database transaction (Term disclosure transaction), whose partition belongs to the transaction. Recoverable Invocation's closed list of deviations has no entry for it, and the pattern treats the transaction as the commit and records the mismatch as an open line (Recoverable Invocation Deviation 2), as Chain of Custody and Propagate Consent Revocation Downstream do. One more reading is carried to Recoverable Invocation's next revision as evidence, not as a finding against this pattern: its Term pairing datum reads a seam-injected now as passed into the commit, while Capability's allocate and revoke take no instant and the host injects it at Capability's seam (Capability requirement 22).
 
 ---
 ## Terms
 
-Each `[Term]` marker above links to its term entry here; a term entry states what the concept *is*, in plain English, and its **Kind**, and — for a Field, a Parameter or a wire Member — carries the one **Projection** line where the concrete name stays visible on the page. The composition's own concepts are the five actions it exposes, the audit events it records, the two descriptor fields it interprets from a capability's scope, and its own refusals. The audit-subject asymmetry itself is a structural guarantee (Invariant 1), not a datum — there is no redeemer field to carry an entry. The deployment settings keep their wire spellings in configuration — `sharing_scope_grammar`, `application_actor_ref`, `application_credential`, `recovery_identity`, `audit_trail_retention_policy`, `default_capability_ttl`, `default_max_redemptions`, `authorization_completion_bound`, `redemption_completion_bound`, `revocation_completion_bound`, and the Recoverable Invocation instance's own settings under the names that page gives them — and the two indexes theirs in an implementation, `capability_to_sharing` and `disclosure_to_redemption`; the page names each in English where it declares it. *(annotation.md Terms registry; representational only — it changes no guarantee, invariant, or behavior of the composition above.)*
+Each `[Term]` marker above links to its term entry here; a term entry states what the concept *is*, in plain English, and its **Kind**, and — for a Field, a Parameter or a wire Member — carries the one **Projection** line where the concrete name stays visible on the pattern. The composition's own concepts are the five actions it exposes, the audit events it records, the two descriptor fields it interprets from a capability's scope, and its own refusals. The audit-subject asymmetry itself is a structural guarantee (Invariant 1), not a datum — there is no redeemer field to carry an entry. The deployment settings keep their wire spellings in configuration — `sharing_scope_grammar`, `application_actor_ref`, `application_credential`, `recovery_identity`, `audit_trail_retention_policy`, `default_capability_ttl`, `default_max_redemptions`, `authorization_completion_bound`, `redemption_completion_bound`, `revocation_completion_bound`, and the Recoverable Invocation instance's own settings under the names that pattern gives them — and the two indexes theirs in an implementation, `capability_to_sharing` and `disclosure_to_redemption`; the pattern names each in English where it declares it. *(annotation.md Terms registry; representational only — it changes no guarantee, invariant, or behavior of the composition above.)*
 
 ### Vocabulary
 
@@ -772,7 +772,7 @@ Term revocation event: the sharing.revocation.revoked event — a [Sharing Revok
 
 Term redeemer identity: any value naming who presented a capability token — the one datum this composition never records.
 
-Term conformance fault: a state the page's own declarations foreclose, reached anyway — alerted, never a caller's fault.
+Term conformance fault: a state the pattern's own declarations foreclose, reached anyway — alerted, never a caller's fault.
 
 Term allocation: one capability Capability's allocate committed.
 

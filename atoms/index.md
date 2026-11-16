@@ -121,7 +121,7 @@ The one intrinsic axis. A domain earns a tag only when stripping it fails to lea
 
 ## Lens — by standard
 
-The union of standards each atom's composers carry, attributed per composer in the atom's own page.
+The union of standards each atom's composers carry, attributed per composer in the atom's own pattern.
 
 - **21 CFR Part 11**: [Actor Identity](./actor-identity.md), [Approval Step](./approval-step.md), [Assignment](./assignment.md), [Capability](./capability.md), [Credential](./credential.md), [Event Log](./event-log.md), [Lease](./lease.md), [Permissions](./permissions.md), [Provenance](./provenance.md), [Retention Window](./retention-window.md), [Selective Disclosure](./selective-disclosure.md), [Session](./session.md), [State Machine](./state-machine.md), [Tamper Evidence](./tamper-evidence.md)
 - **AMLD**: [Party Identity](./party-identity.md), [Retention Window](./retention-window.md)

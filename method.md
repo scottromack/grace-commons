@@ -60,7 +60,7 @@ Four numbers decide when the method acts on a recurrence. Each has one owner, na
 
 | Threshold | Number | What it decides | The rule that owns it |
 |---|---|---|---|
-| A rule freezes | three | a rule on the page is closed to amendment once the third fresh-reader gates return findings of its shape and its text is complete for the evidence in hand | the entry *No abstraction without recurrence* in [`pressure-testing.md`](./pressure-testing.md), and each `FROZEN` note there |
+| A rule freezes | three | a rule on the pattern is closed to amendment once the third fresh-reader gates return findings of its shape and its text is complete for the evidence in hand | the entry *No abstraction without recurrence* in [`pressure-testing.md`](./pressure-testing.md), and each `FROZEN` note there |
 | A label family is a candidate | three | a label family three specifications name stands as a promotion candidate, which the maintainer decides | [`GRACE-lang.md`](./GRACE-lang.md) Standard label 4 |
 | A repeat is stated once | five | a cure five specifications repeat is stated once, in the Execution Contract or the grammar, and each specification cites it | the note on the [Watch list](./watch-list.md), under [`GRACE-lang.md`](./GRACE-lang.md) Section 18 |
 | A compound needs | five | a higher-order composition is extracted only on five exact instances of one problem | the entry *No abstraction without recurrence* in [`pressure-testing.md`](./pressure-testing.md) |

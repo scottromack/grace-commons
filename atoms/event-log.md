@@ -220,7 +220,7 @@ NOTE: open 2026-10-20-e — the Examples invoke regulated domains (a patient cha
 
 ## Generation acceptance
 
-An implementation is acceptable when the checks below are provable to an external auditor given one log instance, with its events' committed versions (Execution Contract Generation acceptance 1), and the atom's own read surface. This atom claims append-only, total order and read consistency while the evidence for those claims has until now lived in a formal model, a twin suite and five independent renders, none of which a reader of this page has met. This section is the bridge: the same claims, provable from the log.
+An implementation is acceptable when the checks below are provable to an external auditor given one log instance, with its events' committed versions (Execution Contract Generation acceptance 1), and the atom's own read surface. This atom claims append-only, total order and read consistency while the evidence for those claims has until now lived in a formal model, a twin suite and five independent renders, none of which a reader of this pattern has met. This section is the bridge: the same claims, provable from the log.
 
 ### Conformance checks
 

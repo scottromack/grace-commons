@@ -281,7 +281,7 @@ TRAILING_PAREN = re.compile(r"\s*\([^)]*\)\s*$")
 # patterns, 16 on 15, and 1 on Audit Trail. They are not swept: each site is a
 # finding for its page's next round, and a code leaves this set in the change
 # that cures its last site.
-ADVISORY_CODES: frozenset[str] = frozenset({"Z-vague", "Z-unit", "Z-pronoun", "O-term-kind"})
+ADVISORY_CODES: frozenset[str] = frozenset({"Z-vague", "Z-unit", "Z-pronoun", "O-term-kind", "Y-pattern-not-page"})
 
 
 @dataclass
@@ -1730,7 +1730,7 @@ def check_dead_anchors(patterns: dict[Path, Pattern]) -> list[Finding]:
                 findings.append(Finding(
                     p.path, line_of(p.text, m.start()), "O-term-anchor",
                     f"`[{m.group(1)}]` links to `#{m.group(2)}`, which names no "
-                    f"term entry on this page — the marker renders as a dead "
+                    f"term entry on this pattern — the marker renders as a dead "
                     f"link rather than as a missing one"))
     return findings
 
@@ -2311,7 +2311,7 @@ def check_term_registry(patterns: dict[Path, Pattern]) -> list[Finding]:
                 findings.append(Finding(
                     p.path, line, "O-term-dangling",
                     f"[{name}] marker has no registry definition "
-                    f"([{name}]: …) in this page's Terms section",
+                    f"([{name}]: …) in this pattern's Terms section",
                 ))
         # O-term-orphan — a definition no marker uses
         def_lines = {m.group(1): line_of(p.text, m.start()) for m in TERM_DEF.finditer(p.text)}
@@ -3708,6 +3708,78 @@ def check_requirement_text(patterns: dict[Path, Pattern]) -> list[Finding]:
     return out
 
 
+# Y-pattern-not-page (advisory): the living text says `pattern`, not `page`, for a pattern
+# (unit `library: a pattern is not a page`, Scott 2026-11-15 9:15 PM Central: "Y"). What stays a
+# page: a root page, a method page, a front-door page, a page of the site, GitHub Pages, a
+# screen in an example, a page of results, and the verb to page. The check reads the patterns'
+# prose (outside the Ledger, Decisions, Deleted rules, Status and the dated open notes), the
+# four method pages and the messages the tools print; it never reads a history file.
+_PAGE_WORD = re.compile(r"\bpages?\b", re.I)
+_PAGE_STAYS = re.compile(
+    r"GitHub Pages|page size|a page at a time|page by page|next page|listing page|fifty pages|read in pages"
+    r"|no page, limit or cap|answer in pages|pages together|MUST page on|, page,"
+    r"|site page|published page|Markdown page|index page|teaching pages|a page whose front matter"
+    r"|no page to the Jekyll build|link its page on GitHub|generate the page|X-page-citation|Y-pattern-not-page"
+    r"|page shows|is the page's|preferences page|settings page|\{pages?\b[^}]*\}|\"page\"", re.I)
+_PAGE_DATED = re.compile(r"^(NOTE: open \d{4}-|Status:|\*\*Status)")
+_PAGE_SKIP_SECTIONS = {"Ledger", "Decisions", "Deleted rules", "Examples"}
+_PAGE_METHOD = ("execution-contract.md", "GRACE-lang.md", "pressure-testing.md", "spec-format.md")
+_PAGE_TOOLS = ("tools/grace/check.py", "tools/grace/ir.py", "tools/grace/cites.py",
+               "tools/linter/lint.py", "tools/harness/coverage.py")
+
+
+_PAGE_ROOT = re.compile(r"\bthis page\b", re.I)  # a root page or a method page speaks of itself
+
+
+def _page_message(path: Path, line: int, text: str) -> Finding:
+    return Finding(path, line, "Y-pattern-not-page",
+                   "`page` for a pattern: say `pattern` (or `the pattern's file` where the file is meant); "
+                   f"a root page, a page of the site or of results, GitHub Pages and a screen in an example stay pages: {text.strip()[:90]}")
+
+
+def check_pattern_not_page(root: Path, patterns: dict[Path, Pattern]) -> list[Finding]:
+    """Y-pattern-not-page (advisory): `page` used for a pattern, in the patterns' prose, the
+    four method pages or a message a tool prints. A line that says a root page, a page of the
+    site or of results, GitHub Pages or a verb passes (`_PAGE_STAYS`); a screen in an example
+    is read by section, since the section titled *Examples* is skipped."""
+    out: list[Finding] = []
+    texts = [(p.path, p.text) for p in patterns.values()]
+    texts += [(root / n, (root / n).read_text(encoding="utf-8")) for n in _PAGE_METHOD if (root / n).exists()]
+    for path, text in texts:
+        section = ""
+        for i, raw in enumerate(text.splitlines(), 1):
+            m = re.match(r"## (.*)", raw)
+            if m:
+                section = m.group(1).split(" ")[0] if m.group(1).split(" ")[0] in _PAGE_SKIP_SECTIONS else m.group(1)
+                continue
+            if section in _PAGE_SKIP_SECTIONS or _PAGE_DATED.match(raw) or not _PAGE_WORD.search(raw):
+                continue
+            rest = _PAGE_STAYS.sub("", raw)
+            if path.parent == root:
+                rest = _PAGE_ROOT.sub("", rest)
+            if _PAGE_WORD.search(rest):
+                out.append(_page_message(path, i, raw))
+    import io
+    import tokenize
+    for rel in _PAGE_TOOLS:
+        path = root / rel
+        if not path.exists():
+            continue
+        src = path.read_text(encoding="utf-8")
+        own = (src.count("\n", 0, src.find("# Y-pattern-not-page (advisory)")), src.count("\n", 0, src.find("\ndef main("))) if path.name == "lint.py" else (0, 0)
+        toks = list(tokenize.generate_tokens(io.StringIO(src).readline))
+        for k, t in enumerate(toks):
+            if t.type != tokenize.STRING or not _PAGE_WORD.search(t.string) or own[0] < t.start[0] <= own[1]:
+                continue
+            before = next((x.type for x in reversed(toks[:k]) if x.type not in (tokenize.NL, tokenize.COMMENT)), tokenize.NEWLINE)
+            after = next((x.type for x in toks[k + 1:] if x.type not in (tokenize.NL, tokenize.COMMENT)), tokenize.NEWLINE)
+            if before in (tokenize.NEWLINE, tokenize.INDENT, tokenize.DEDENT) and after == tokenize.NEWLINE:
+                continue  # a docstring is not a message
+            if _PAGE_WORD.search(_PAGE_STAYS.sub("", t.string)):
+                out.append(_page_message(path, t.start[0], t.string))
+    return out
+
+
 def main(argv: list[str]) -> int:
     args = [a for a in argv[1:] if not a.startswith("--")]
     flags = {a for a in argv[1:] if a.startswith("--")}
@@ -3773,6 +3845,7 @@ def main(argv: list[str]) -> int:
     findings += check_audit_claim(root)
     findings += check_term_kind(root, patterns)
     findings += check_requirement_text(patterns)
+    findings += check_pattern_not_page(root, patterns)
 
     findings.sort(key=lambda f: (f.code, str(f.path), f.line))
     for f in findings:

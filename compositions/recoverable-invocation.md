@@ -31,7 +31,7 @@ An irreversible act and its account are two writes no transaction spans (the lib
 
 By 2026-08-30 twenty compositions had each solved this in their own words, and two days of fresh-reader gates found the same defects in every one: two writers landing an outcome for one act; a sweep reading in-flight work as a crash; a sweep re-emitting an outcome it could not have known; a rejection code saying nothing had committed when something had; a closure window that could not be met. One protocol, carried once. The rule: **one act, one intent, one standing closing, one writer at a time** — the invocation while it holds the critical section, the sweep after the invocation has yielded, an operator through [Resolve] under the same section, never two at once.
 
-Not a transaction, not the adopter's database, not an audit journal, not a class. An adopter names it in *Composes*, binds its parameters, declares any deviation, and deletes the paragraphs this page replaces.
+Not a transaction, not the adopter's database, not an audit journal, not a class. An adopter names it in *Composes*, binds its parameters, declares any deviation, and deletes the paragraphs this pattern replaces.
 
 </details>
 
@@ -39,8 +39,8 @@ Not a transaction, not the adopter's database, not an audit journal, not a class
 
 ## Composes
 
-- **[Lease](../atoms/lease.md)** — the per-key grant of exclusive standing whose terminus is an instant. The act's critical section is a lease. This page binds the atom's parameters — which key, which holder, how long, which arm maps to which code — and restates none of its semantics but the sizing the atom obliges a composer to state as its own (act section 16 through 18). What the atom refuses to own and this page adds: which key protects which work, and how long a grant must last.
-- **[Audit Trail](./audit-trail.md)** — the regulated-audit substrate and this composition's journal, its four constituents (Event Log, Actor Identity, Tamper Evidence, Retention Window) reached transitively per *Compositions of compositions* ([`spec-format.md`](../spec-format.md)). Consumed at the declared contract `record_action(action_ref, actor_ref, credential, data)`, which answers event id and refuses `invalid-credential | invalid-request(step, committed_ids) | recording-failure(step)`, for every record this page writes; `read_record(event_id)`, which answers `audit_record | not-known`, or no answer where a constituent read gives none (Execution Contract Error model 1), where an event id is in hand; and the open-upper-bound sequence-range read, for every other read of the journal (Capability requirement 1). Attribution, retention and sealing of every record here are Audit Trail Invariants 1, 2 and 3; destruction of a payload at the horizon is Audit Trail Invariants 4 and 8.
+- **[Lease](../atoms/lease.md)** — the per-key grant of exclusive standing whose terminus is an instant. The act's critical section is a lease. This pattern binds the atom's parameters — which key, which holder, how long, which arm maps to which code — and restates none of its semantics but the sizing the atom obliges a composer to state as its own (act section 16 through 18). What the atom refuses to own and this pattern adds: which key protects which work, and how long a grant must last.
+- **[Audit Trail](./audit-trail.md)** — the regulated-audit substrate and this composition's journal, its four constituents (Event Log, Actor Identity, Tamper Evidence, Retention Window) reached transitively per *Compositions of compositions* ([`spec-format.md`](../spec-format.md)). Consumed at the declared contract `record_action(action_ref, actor_ref, credential, data)`, which answers event id and refuses `invalid-credential | invalid-request(step, committed_ids) | recording-failure(step)`, for every record this pattern writes; `read_record(event_id)`, which answers `audit_record | not-known`, or no answer where a constituent read gives none (Execution Contract Error model 1), where an event id is in hand; and the open-upper-bound sequence-range read, for every other read of the journal (Capability requirement 1). Attribution, retention and sealing of every record here are Audit Trail Invariants 1, 2 and 3; destruction of a payload at the horizon is Audit Trail Invariants 4 and 8.
 - **The bound act** — not a constituent. The adopter's constituent commit call, supplied as a binding together with the read that tells whether it committed. The constituent's own contract governs the commit.
 - **The act's critical section** — keyed by the act, supplied by the deployment (*Capability requirement*, act section). No constituent's records provide it: Lease states what it is, and the deployment supplies the host.
 
@@ -126,7 +126,7 @@ Five elements, each carrying the Contract classification of the section titled C
   findings 12: The register MUST hold one record per standing condition.
   findings 13: A reader MUST NOT rely on an order across act keys.
   findings 14: The deployment MUST persist a finding naming a kind the bindings table does not serve for at least the instance's longest retention period.
-  NOTE: until the register moves onto the [Condition Register](../atoms/condition-register.md) (a draft; `roadmap.md`), the deployment persists the register (findings 1, findings 2 and findings 14) and this page states its records (findings 3 through 13); the debt is that no atom owns either yet, and the atom, when it lands, takes both, as Audit Trail classifies its write-once outage record and Immutable Ledger its write-ownership findings against it too.
+  NOTE: until the register moves onto the [Condition Register](../atoms/condition-register.md) (a draft; `roadmap.md`), the deployment persists the register (findings 1, findings 2 and findings 14) and this pattern states its records (findings 3 through 13); the debt is that no atom owns either yet, and the atom, when it lands, takes both, as Audit Trail classifies its write-once outage record and Immutable Ledger its write-ownership findings against it too.
   ```
   Term act finding: {finding, kind, act_key, invocation_id, first_seen, run_id}; deduplicates on (invocation id, finding); carries no last seen and no span. An act finding records a sighting; whether the act still stands escalated is [Read Invocation]'s answer, not the register's.
 
@@ -217,9 +217,9 @@ Term read-your-writes: Capability requirement 8 and Capability requirement 12 to
 
   Term critical section duration: invocation completion bound for an invocation; sweep lease for a sweep run or an operator; the longest a take on a key asks for is the larger of the two (Lease Composition note 5d).
 
-  Term release: to issue Lease's release for the grant where no call in flight exists under the grant, and to issue nothing where one does — the grant then ends at its instant (act section 15). EVERY release on this page reads so.
+  Term release: to issue Lease's release for the grant where no call in flight exists under the grant, and to issue nothing where one does — the grant then ends at its instant (act section 15). EVERY release on this pattern reads so.
 
-  Term unfenced write: a write issued under a lease that carries no fence a fenced party judges (Lease Term unfenced write); on this page the bound commit and every journal write, which no fence reaches.
+  Term unfenced write: a write issued under a lease that carries no fence a fenced party judges (Lease Term unfenced write); on this pattern the bound commit and every journal write, which no fence reaches.
 
   Term terminus: the end of the critical section's grant, at its release or at its instant (Lease Invariant 2.1) — an invocation's standing to write ends there.
 - **journal write bound**
@@ -387,7 +387,7 @@ Action wiring 6: An adopter's action MUST NOT write to the journal for the act o
 
 #### Closure table
 
-Every input an action takes and every answer its calls can meet — what Audit Trail's record_action, read_record and range read, Lease's take, remaining and release, and the adopter's act probe can answer — with where the action lands it and the rule that owns the landing. The enumeration is exhaustive: an answer a constituent adds is a row this table lacks, and a cell no rule owns is a finding against the page.
+Every input an action takes and every answer its calls can meet — what Audit Trail's record_action, read_record and range read, Lease's take, remaining and release, and the adopter's act probe can answer — with where the action lands it and the rule that owns the landing. The enumeration is exhaustive: an answer a constituent adds is a row this table lacks, and a cell no rule owns is a finding against the pattern.
 
 **Inputs.** [Reconcile] takes none.
 
@@ -1015,7 +1015,7 @@ read invocation 17: IF kind IS NOT IN the bindings table THEN [Read Invocation] 
 <details markdown="block">
 <summary>WHY</summary>
 
-An irreversible act and its account are two writes no transaction spans, and closing the partial after the opening process is dead is a second writer by definition. The protocol is sound exactly when the two writers cannot both write for one act, the second cannot mistake in-flight work for a dead invocation's, and the second cannot write what it did not read — properties of the critical section, the edges and the act probe, none of the adopter's act. A methodology rule does not stop twenty authors writing it twenty ways or spare the formal layer twenty models; the higher-order composition test's threshold is five exact instances and this clears it several times over ([`tools/survey/protocol_prose.py`](https://github.com/scottromack/grace-commons/blob/main/tools/survey/protocol_prose.py)). What differs between adopters is the binding set; anything else is a deviation from a closed list. One page carries the protocol, one model proves it, one gate attacks it; an adopter's action shrinks to *validate, open, commit, close*.
+An irreversible act and its account are two writes no transaction spans, and closing the partial after the opening process is dead is a second writer by definition. The protocol is sound exactly when the two writers cannot both write for one act, the second cannot mistake in-flight work for a dead invocation's, and the second cannot write what it did not read — properties of the critical section, the edges and the act probe, none of the adopter's act. A methodology rule does not stop twenty authors writing it twenty ways or spare the formal layer twenty models; the higher-order composition test's threshold is five exact instances and this clears it several times over ([`tools/survey/protocol_prose.py`](https://github.com/scottromack/grace-commons/blob/main/tools/survey/protocol_prose.py)). What differs between adopters is the binding set; anything else is a deviation from a closed list. One pattern carries the protocol, one model proves it, one gate attacks it; an adopter's action shrinks to *validate, open, commit, close*.
 
 </details>
 
@@ -1080,7 +1080,7 @@ Binding 14: EVERY rule of this page reading retention period MUST read the reten
   <details markdown="block">
   <summary>WHY</summary>
 
-  a journal join is a join between two records this composition writes; an adopter's own lookup of its intent by act key and pairing datum is the adopter's read, not a join of this page's.
+  a journal join is a join between two records this composition writes; an adopter's own lookup of its intent by act key and pairing datum is the adopter's read, not a join of this pattern's.
 
   </details>
 - **repeatable**
@@ -1184,9 +1184,9 @@ Allowance 6: A cross-seam comparison MAY exclude a record from a pass.
 
 Term cross-seam comparison: a comparison between a reading taken at one seam and a stamp or instant minted at another (Allowance 1).
 
-Six clocks meet on this page: the adopter's seam ([Open] step 1 and step 3), the sweep's seam ([Reconcile]), the operator's seam ([Resolve]), the reader's seam ([Read Invocation]), the substrate's recording instant, and the critical section host's expiry instant. One allowance covers every pair, set to cover the widest.
+Six clocks meet on this pattern: the adopter's seam ([Open] step 1 and step 3), the sweep's seam ([Reconcile]), the operator's seam ([Resolve]), the reader's seam ([Read Invocation]), the substrate's recording instant, and the critical section host's expiry instant. One allowance covers every pair, set to cover the widest.
 
-Every cross-seam comparison on this page takes the allowance at the reading: [Open]'s age of an open intent, at step 1 and step 3; the retention drop on every read of open invocations; [Resolve]'s too-young guard; the sequence high water advance; the sweep's edges and window; [Read Invocation]'s rebuild. Those that gate a write are read under the critical section the writer holds, after the re-read under it (open step 2.1, open step 3.1, resolve 4, resolve 8), and the sweep's edges exclude a record from a pass (Allowance 6).
+Every cross-seam comparison on this pattern takes the allowance at the reading: [Open]'s age of an open intent, at step 1 and step 3; the retention drop on every read of open invocations; [Resolve]'s too-young guard; the sequence high water advance; the sweep's edges and window; [Read Invocation]'s rebuild. Those that gate a write are read under the critical section the writer holds, after the re-read under it (open step 2.1, open step 3.1, resolve 4, resolve 8), and the sweep's edges exclude a record from a pass (Allowance 6).
 
 ### Which closing stands
 
@@ -1312,7 +1312,7 @@ An escalated entry becomes resolved when an operator's abandonment names it, and
 
 ### Walkthrough — a disclosure, three ways
 
-The adopter is [Immutable Ledger](./immutable-ledger.md)'s `disclose_subset`, the pilot adopter, as that page binds the kind `ledger.disclosure`:
+The adopter is [Immutable Ledger](./immutable-ledger.md)'s `disclose_subset`, the pilot adopter, as that pattern binds the kind `ledger.disclosure`:
 
 - act key = `(subject_ref, recipient, scope, authority)` — the minted-key deviation, the disclosure id being minted by the commit.
 - commit = `SelectiveDisclosure.record(subject_ref, recipient, scope, authority, disclosed_at = now)`; invalid-request, `unknown-authority-type` and `storage-failure` are pre-commit as the constituent declares them; a lost reply is unknown.
@@ -1596,7 +1596,7 @@ Projection: section_unavailable
 
 #### Not Open
 
-[Close]'s precondition (close 4) and [Refuse]'s step 0, and theirs alone: an invocation id and intent event id pair the adopter's action did not receive from its own [Open]. An adopter's programming error, not a protocol state; nothing is written. It is the adopter's action that decides it and no action of this page returns it, so neither signature lists it.
+[Close]'s precondition (close 4) and [Refuse]'s step 0, and theirs alone: an invocation id and intent event id pair the adopter's action did not receive from its own [Open]. An adopter's programming error, not a protocol state; nothing is written. It is the adopter's action that decides it and no action of this pattern returns it, so neither signature lists it.
 
 ```
 Not Open 1: The composition MUST NOT decide not-open.

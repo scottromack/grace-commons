@@ -45,22 +45,22 @@ def read_page(path=PAGE):
     for name in ['closure spend', 're-drive spend', 'record edge', 'purge edge']:
         m = re.search(r'^\s*Term %s: `([^`]+)`' % re.escape(name), text, re.M)
         if not m:
-            sys.exit('page changed: Term %s has no formula in a code span' % name)
+            sys.exit('pattern changed: Term %s has no formula in a code span' % name)
         terms[name] = m.group(1)
     m = re.search(r'^Term closure sum: `([^`]+)`, plus `([^`]+)` WHERE Legal Hold EQUALS composed', text, re.M)
     if not m:
-        sys.exit('page changed: Term closure sum is not "`formula`, plus `formula` WHERE Legal Hold EQUALS composed"')
+        sys.exit('pattern changed: Term closure sum is not "`formula`, plus `formula` WHERE Legal Hold EQUALS composed"')
     terms['closure sum'], terms['closure sum legal-hold'] = m.group(1), m.group(2)
     m = re.search(r'^Term closure floor: `([^`]+)`, plus `([^`]+)` WHERE seal cadence EQUALS per-event', text, re.M)
     if not m:
-        sys.exit('page changed: Term closure floor is not "`formula`, plus `formula` WHERE seal cadence EQUALS per-event"')
+        sys.exit('pattern changed: Term closure floor is not "`formula`, plus `formula` WHERE seal cadence EQUALS per-event"')
     terms['closure floor'], terms['closure floor per-event'] = m.group(1), m.group(2)
     for f in terms.values():
         if not SAFE.match(f) or '__' in f:
-            sys.exit('page changed: formula not in the controlled form: %s' % f)
+            sys.exit('pattern changed: formula not in the controlled form: %s' % f)
     missing = [lab for lab in CITED if not re.search(r'^\s*(?:Term )?%s:' % re.escape(lab), text, re.M)]
     if missing:
-        sys.exit('page changed: cited labels missing: %s' % ', '.join(missing))
+        sys.exit('pattern changed: cited labels missing: %s' % ', '.join(missing))
     return terms
 
 def ev(formula, env):
@@ -251,7 +251,7 @@ def run(terms, reading='sequential', schedule=True, stop_at_first=False):
 
 TWINS = [
  ('spend-three',   'closure spend',  'closure_floor + call_pause_bound + 3 * measured_enumeration',
-  'the third half\'s rebuild before the take uncounted (the page as it stood at b9c3e04)'),
+  'the third half\'s rebuild before the take uncounted (the pattern as it stood at b9c3e04)'),
  ('spend-no-pause', 'closure spend', 'closure_floor + 4 * measured_enumeration',
   'the take\'s own call pause uncounted'),
  ('floor-no-probe', 'closure floor', '3 * record_action_completion_bound + 6 * call_pause_bound',
@@ -275,10 +275,10 @@ def main():
         n, c1, c3, slack, first = run(terms, reading, schedule=(reading == 'sequential'))
         verdict = 'HOLDS' if not (c1 or c3) else 'BREACH'
         if reading == 'sequential':
-            print('  page, enumerations before the take one after another: %d leg tuples x 3 halves, leg cannot finish on %d; %d schedule tuples, a finding outlives closure sum on %d, least slack %d  -> %s'
+            print('  pattern, enumerations before the take one after another: %d leg tuples x 3 halves, leg cannot finish on %d; %d schedule tuples, a finding outlives closure sum on %d, least slack %d  -> %s'
                   % (n[0], c1, n[1], c3, slack, verdict))
         else:
-            print('  page, enumerations before the take together:          %d leg tuples x 3 halves, leg cannot finish on %d  -> %s' % (n[0], c1, verdict))
+            print('  pattern, enumerations before the take together:          %d leg tuples x 3 halves, leg cannot finish on %d  -> %s' % (n[0], c1, verdict))
         if c1 or c3:
             ok = False
             for k, (p, lat, why) in first.items():

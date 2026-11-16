@@ -20,7 +20,7 @@ Designers are taught to copy. The rule that goes with it: understand what you co
 
 ## Common practice, applied one layer up
 
-None of these is ours, and none was a revelation. They are ordinary engineering practice for code. We apply them to the page above the code.
+None of these is ours, and none was a revelation. They are ordinary engineering practice for code. We apply them to the pattern above the code.
 
 - **RFC 2119.** MUST, MUST NOT and MAY as words with fixed meaning.
 - **Mutation testing** (DeMillo, Lipton and Sayward, 1978). Plant a fault and see whether the checks notice.
@@ -31,6 +31,6 @@ None of these is ours, and none was a revelation. They are ordinary engineering 
 
 ## What we added
 
-The pages are the source and the code is derived.
+The patterns are the source and the code is derived.
 
 The full lineage is on [The Spec Layer](the-spec-layer.html).

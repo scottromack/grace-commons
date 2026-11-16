@@ -146,7 +146,7 @@ def main():
     P("## Lens — by standard")
     P("")
     P("The union of standards each atom's composers carry, attributed per composer in the atom's "
-      "own page.")
+      "own pattern.")
     P("")
     std_atoms = defaultdict(set)
     for a in atoms:

@@ -667,7 +667,7 @@ Role:      Outcome
 
 #### Invalid Observation
 
-The refusal [Record] or [Amend] returns when observation content fails. Either answers it for an empty or whitespace-only [Unit], a [Value] failing the per-type constraint, an [Observation Type] with no declared constraint, or a [Unit] or string [Value] over the string cap (Operation 4, Operation 60: the page's own answer, which stands in place of Execution Contract Input 2); [Record] alone also answers it for an empty, whitespace-only or over-cap [Subject Reference], [Recording Actor] or [Observation Type], or a supplied [Recording Instant] that is malformed (Operation 63) or past the future bound, since [Amend] accepts none of these (Operation 1 through 3, Operation 7, Operation 59, Operation 63).
+The refusal [Record] or [Amend] returns when observation content fails. Either answers it for an empty or whitespace-only [Unit], a [Value] failing the per-type constraint, an [Observation Type] with no declared constraint, or a [Unit] or string [Value] over the string cap (Operation 4, Operation 60: the pattern's own answer, which stands in place of Execution Contract Input 2); [Record] alone also answers it for an empty, whitespace-only or over-cap [Subject Reference], [Recording Actor] or [Observation Type], or a supplied [Recording Instant] that is malformed (Operation 63) or past the future bound, since [Amend] accepts none of these (Operation 1 through 3, Operation 7, Operation 59, Operation 63).
 
 Kind:       Member
 Member of:  the action rejection

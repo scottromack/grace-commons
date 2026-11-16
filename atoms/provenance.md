@@ -224,7 +224,7 @@ NOTE: Operation 39 binds the four appending actions whose signatures answer the 
 
 Term writer action: an appending action — [Originate], [Transfer], [Transform], [Disclose] or [Archive]; [Read] is no writer action.
 
-Term refused action: an action whose call a rule of this page refuses, answering a refusal code and writing nothing.
+Term refused action: an action whose call a rule of this pattern refuses, answering a refusal code and writing nothing.
 
 Term ordering rule: a rule that places one entry before another; the sequence number places entries, never the recording instant (Operation 58).
 

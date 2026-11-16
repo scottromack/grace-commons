@@ -98,7 +98,7 @@ def summary(pages):
     pct = lambda k: f"{t[k]} ({round(100 * t[k] / rules) if rules else 0}%)"
     counted = sum(1 for p in pages.values() if p["checked"] + p["elsewhere"] + p["owed"] + p["unstatable"])
     return (f"Of {rules} rules on {counted} matrices: {pct('checked')} checked by a model that holds, "
-            f"{pct('elsewhere')} checked on another page, {pct('owed')} owed, {pct('unstatable')} cannot be stated")
+            f"{pct('elsewhere')} checked on another pattern, {pct('owed')} owed, {pct('unstatable')} cannot be stated")
 
 
 def main(argv):
@@ -106,7 +106,7 @@ def main(argv):
     if "--summary" in argv:
         print(summary(pages))
         return 0
-    print(f"{'page':44} " + " ".join(f"{w:>10}" for w in WORDS))
+    print(f"{'pattern':44} " + " ".join(f"{w:>10}" for w in WORDS))
     for page, n in pages.items():
         print(f"{page:44} " + " ".join(f"{n[w]:>10}" for w in WORDS))
     print(summary(pages))

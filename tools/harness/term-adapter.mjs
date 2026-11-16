@@ -143,4 +143,4 @@ if (all) {
 console.log(`Term-adapting ${inputs.length} file(s) -> ${outDir}`);
 let made = 0;
 for (const f of inputs) { if (adaptOne(f, outDir)) made += 1; }
-console.log(`\nDerived ${made} manifest(s). (Pages with no Terms registry are skipped.)`);
+console.log(`\nDerived ${made} manifest(s). (Patterns with no Terms registry are skipped.)`);

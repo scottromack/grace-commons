@@ -41,6 +41,8 @@ from lint import (  # noqa: E402
     check_live_counts,
     check_audit_claim,
     check_term_kind,
+    check_pattern_not_page,
+    load_patterns,
     check_unserved_links,
     heading_standard,
     check_migration_seam,
@@ -694,6 +696,38 @@ def check_pattern_ids_synthetic(problems: list[str]) -> int:
     return len(cases)
 
 
+# ── Y-pattern-not-page, pinned synthetically ──────────────────────────────── #
+# A pattern is not a page (unit `library: a pattern is not a page`, Scott 2026-11-15): the
+# check reports `page` said of a pattern in its prose, and passes a root page, a page of the
+# site or of results, GitHub Pages, a screen in an example, the verb, and every dated entry.
+def check_pattern_not_page_synthetic(problems: list[str]) -> int:
+    import tempfile
+
+    def run(text: str, name: str = "atoms/a.md") -> int:
+        with tempfile.TemporaryDirectory() as d:
+            root = Path(d)
+            for sub in ("atoms", "compositions"):
+                (root / sub).mkdir()
+            (root / name).write_text(text, encoding="utf-8")
+            return len(check_pattern_not_page(root, load_patterns(root)))
+
+    cases = [
+        ("a pattern said to be a page", "# A\n\n## Summary\n\nThe page says what it keeps.\n", 1),
+        ("this page, in a pattern", "# A\n\n## Summary\n\nA rule of this page refuses it.\n", 1),
+        ("a rule that says page for a pattern", "# A\n\n## Bindings\n\nBinding 1: EVERY rule of the page MUST hold.\n", 1),
+        ("the same words as pattern", "# A\n\n## Summary\n\nThe pattern says what it keeps.\n", 0),
+        ("GitHub Pages, a page size and a page at a time", "# A\n\n## Summary\n\nGitHub Pages renders it; the page size caps a page at a time.\n", 0),
+        ("a screen in an example", "# A\n\n## Examples\n\nHer favorites page shows the list.\n", 0),
+        ("the Ledger, the Decisions and a dated open note", "# A\n\n## Ledger\n\nThe page failed.\n\n## Decisions\n\nThe page changed.\n\n## Edge\n\nNOTE: open 2026-11-16-a — the page declares nothing.\n", 0),
+        ("a history file is not read", "# A\n\nThe page says it.\n", 0),
+    ]
+    for label, text, want in cases:
+        got = run(text, "atoms/a.hist.md" if label.startswith("a history") else "atoms/a.md")
+        if got != want:
+            problems.append(f"Y-pattern-not-page: {label}: {got} finding(s), want {want}")
+    return len(cases)
+
+
 # ── W-stale-census, both readings, pinned synthetically ───────────────────── #
 # The count reading was built at council read 33 against hand-written family
 # counts and compares only the counts somebody already wrote down. The list
@@ -1224,7 +1258,7 @@ def check_tombstone_places_synthetic(problems: list[str]) -> int:
     if widget["tombstones"] != [{"label": "Operation 3", "text": "Execution Contract Read 4 owns it.",
                                   "line": 8, "file": "atoms/widget.hist.md"}]:
         problems.append(f"IR: a moved tombstone read wrong: {widget['tombstones']}")
-    if [f[3] for f in findings] != ["Check 1.5 names Operation 3, which the page tombstones "
+    if [f[3] for f in findings] != ["Check 1.5 names Operation 3, which the pattern tombstones "
                                     "(atoms/widget.hist.md:8: Execution Contract Read 4 owns it.)"]:
         problems.append(f"IR: a check naming a moved tombstone was told {findings}")
     return n
@@ -4527,6 +4561,14 @@ def main(argv: list[str]) -> int:
         print(f"G-id: {n_id} synthetic fixtures hold (a clean root, an index page and a history file stay "
               "silent; a missing id, a shared id, an unlisted id, an id under another file and a retired "
               "id on a live file each fire) \u2713")
+
+    page_problems: list[str] = []
+    n_page = check_pattern_not_page_synthetic(page_problems)
+    failures.extend(page_problems)
+    if not page_problems:
+        print(f"Y-pattern-not-page: {n_page} synthetic fixtures hold (a pattern, a rule and this pattern said to be a "
+              "page each fire; GitHub Pages, a page size, a screen in an example, the Ledger, Decisions, "
+              "a dated open note and a history file stay silent) \u2713")
 
     req_problems: list[str] = []
     n_req = check_requirement_text_synthetic(req_problems, patterns)

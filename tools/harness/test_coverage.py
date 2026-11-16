@@ -38,7 +38,7 @@ class Coverage(unittest.TestCase):
         pages, _ = run(MATRIX)
         self.assertEqual(pages["x"], {"checked": 2, "elsewhere": 1, "owed": 1, "unstatable": 1, "retired": 1})
         self.assertEqual(summary(pages), "Of 5 rules on 1 matrices: 2 (40%) checked by a model that holds, "
-                         "1 (20%) checked on another page, 1 (20%) owed, 1 (20%) cannot be stated")
+                         "1 (20%) checked on another pattern, 1 (20%) owed, 1 (20%) cannot be stated")
 
     def test_a_row_with_no_word_and_a_checked_row_with_no_twin_are_problems(self):
         _, problems = run(MATRIX)

@@ -44,7 +44,7 @@ What the composition is *not*: it is not a redaction or transmission engine (Sel
 
 - **[Audit Trail](./audit-trail.md)** — the regulated-audit substrate that *is* the immutable ledger: every entry, every disclosure intent and every disclosure outcome is an attributed, sealed, retention-governed Audit Trail event.
 - **[Selective Disclosure](../atoms/selective-disclosure.md)** — the disclosure-accountability surface: the durable, append-only record of every disclosure — recipient, scope, authority, instant.
-- **[Recoverable Invocation](./recoverable-invocation.md)** — the protocol [Disclose Subset] follows around its accounting write: an intent before it, an outcome after it, the act's critical section over both, and a sweep that closes what an invocation left open. Bound once, for the act kind, on an instance that writes to this composition's Audit Trail instance. The bindings are the disclosure binding below; this page restates none of the protocol.
+- **[Recoverable Invocation](./recoverable-invocation.md)** — the protocol [Disclose Subset] follows around its accounting write: an intent before it, an outcome after it, the act's critical section over both, and a sweep that closes what an invocation left open. Bound once, for the act kind, on an instance that writes to this composition's Audit Trail instance. The bindings are the disclosure binding below; this pattern restates none of the protocol.
 
 ```
 Composes 1: EXACTLY ONE Audit Trail instance MUST serve the composition.
@@ -412,9 +412,9 @@ Term invocation close: Recoverable Invocation's close — writing the outcome, o
 
 Term invocation refusal: Recoverable Invocation's refuse — closing an intent whose commit a pre-commit arm refused.
 
-Term invocation yield: Recoverable Invocation's yield — nothing written, the intent left to the sweep, and the critical section released or left to end at its instant as that page's yield decides.
+Term invocation yield: Recoverable Invocation's yield — nothing written, the intent left to the sweep, and the critical section released or left to end at its instant as that pattern's yield decides.
 
-Term invocation read: Recoverable Invocation's read_invocation on the act kind, an act key and an invocation id — answering the invocation's state as that page reads which closing stands.
+Term invocation read: Recoverable Invocation's read_invocation on the act kind, an act key and an invocation id — answering the invocation's state as that pattern reads which closing stands.
 
 Term sweep: Recoverable Invocation's reconcile on the composition's instance, run at every restart and every sweep cadence.
 
@@ -450,7 +450,7 @@ Term read-only action: [Verify Disclosure], [Verify Ledger], [Reissue Bundle] or
 
 #### Closure table
 
-Every input an action takes, and every answer a call of the five actions, the read passthrough and the reconciliation can meet — Audit Trail's record_action, read_record, verify_record and range read, Selective Disclosure's record and read, Recoverable Invocation's open, close, refuse, yield and read_invocation, the binding index's read and write, the verification routine and the finding surface — with where the call lands it and the rule that owns the landing. A constituent call meets the answers its signature declares, the state-unavailable a failed read of the database gives every action (Execution Contract Read 1), which Term no answer reads as no answer at a read, and a lost answer (Execution Contract Error model 1). The calls Recoverable Invocation makes inside its open, close, refuse and yield, to the journal and to Lease, land in that page's own closure table (Composes 12). A cell no rule owns is a finding against the page.
+Every input an action takes, and every answer a call of the five actions, the read passthrough and the reconciliation can meet — Audit Trail's record_action, read_record, verify_record and range read, Selective Disclosure's record and read, Recoverable Invocation's open, close, refuse, yield and read_invocation, the binding index's read and write, the verification routine and the finding surface — with where the call lands it and the rule that owns the landing. A constituent call meets the answers its signature declares, the state-unavailable a failed read of the database gives every action (Execution Contract Read 1), which Term no answer reads as no answer at a read, and a lost answer (Execution Contract Error model 1). The calls Recoverable Invocation makes inside its open, close, refuse and yield, to the journal and to Lease, land in that pattern's own closure table (Composes 12). A cell no rule owns is a finding against the pattern.
 
 **Inputs.**
 
@@ -685,7 +685,7 @@ Term false closing: an invocation closed by an abandonment or a refusal over an 
 
 Term write-ownership finding: the reconciliation's report of an orphan record no intent carries — the record's disclosure id and the run that first met the record; one per record, deduplicated on the disclosure id so two runs that meet the record write one, standing for as long as the record is an orphan, on the finding surface.
 
-Term finding surface: the deployment's compliance surface — the surface Recoverable Invocation's instance writes its register to. A write-ownership finding and this page's alerts are written beside that register and are no part of it (Recoverable Invocation findings 6); an auditor reads them there (External check 1).
+Term finding surface: the deployment's compliance surface — the surface Recoverable Invocation's instance writes its register to. A write-ownership finding and this pattern's alerts are written beside that register and are no part of it (Recoverable Invocation findings 6); an auditor reads them there (External check 1).
 
 Term settling closing: an outcome or an abandonment an operator writes through Recoverable Invocation's resolve, naming an escalated closing in supersedes — an outcome where the accounting record exists, an abandonment where the operator's disclosure probe shows none. An escalation whose cause is outcome-unrecordable is settled by an outcome once the deployment has repaired what refused the write, an abandonment there being false.
 
@@ -971,7 +971,7 @@ Degraded bundle 4: IF [Verify Disclosure] receives a degraded bundle THEN the ov
 
 ## Terms
 
-Each `[Term]` marker above links to its term entry here; a term entry states what the concept *is*, in plain English, and its **Kind**, and — for a Field, a Parameter or a wire Member — carries the one **Projection** line where the concrete name stays visible on the page. The composition's own concepts are its actions — [Record Entry], [Disclose Subset], [Verify Disclosure], [Verify Ledger] and [Reissue Bundle]; the [Verification Bundle] and the [Confidentiality Preserved] assertion; the binding verdicts ([Bound], [Binding Duplicate], [Binding Purged], [Binding Escalated], [Binding Gap]); the authenticity verdicts ([Authentic], [Altered], [Not In Ledger]); and its own refusal, [Unknown Entry]. The binding bijection and verifiable partial disclosure are structural properties, not data. The deployment settings keep their wire spellings in configuration — `ledger_retention_policy`, `seal_cadence`, `disclosure_completion_bound`, `commit_round_trip`, `probe_round_trip`, `disclosed_entry_ids_cap`, `application_actor_ref`, `application_credential`, `tamper_evidence_supports_partial_disclosure` — and the binding index its own in an implementation, `disclosure_to_event`; the page names each in English where it declares it. *(annotation.md Terms registry; representational only — it changes no guarantee, invariant, or behavior of the composition above.)*
+Each `[Term]` marker above links to its term entry here; a term entry states what the concept *is*, in plain English, and its **Kind**, and — for a Field, a Parameter or a wire Member — carries the one **Projection** line where the concrete name stays visible on the pattern. The composition's own concepts are its actions — [Record Entry], [Disclose Subset], [Verify Disclosure], [Verify Ledger] and [Reissue Bundle]; the [Verification Bundle] and the [Confidentiality Preserved] assertion; the binding verdicts ([Bound], [Binding Duplicate], [Binding Purged], [Binding Escalated], [Binding Gap]); the authenticity verdicts ([Authentic], [Altered], [Not In Ledger]); and its own refusal, [Unknown Entry]. The binding bijection and verifiable partial disclosure are structural properties, not data. The deployment settings keep their wire spellings in configuration — `ledger_retention_policy`, `seal_cadence`, `disclosure_completion_bound`, `commit_round_trip`, `probe_round_trip`, `disclosed_entry_ids_cap`, `application_actor_ref`, `application_credential`, `tamper_evidence_supports_partial_disclosure` — and the binding index its own in an implementation, `disclosure_to_event`; the pattern names each in English where it declares it. *(annotation.md Terms registry; representational only — it changes no guarantee, invariant, or behavior of the composition above.)*
 
 ### Vocabulary
 
