@@ -31,6 +31,6 @@ None of these is ours, and none was a revelation. They are ordinary engineering 
 
 ## What we added
 
-The pages are the source and the code is derived. We have begun building throwaway code from a page to prove the page is complete.
+The pages are the source and the code is derived.
 
 The full lineage is on [The Spec Layer](the-spec-layer.html).
