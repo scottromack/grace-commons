@@ -375,6 +375,8 @@ Rules:
 - UI components have no local state that is not derivable from Q. Hidden component state is a violation of the contract.
 - Subscriptions, reactive bindings, and implicit update triggers are not permitted. When state changes (after a successful Step 3), Q is re-invoked and render is called with the new result. The mechanism that re-invokes Q is explicit and named — it is not a framework lifecycle.
 - A UI component that caches a result and displays stale state after a transition has violated the contract.
+- Every word the UI shows a person is the plainest wording that keeps the meaning: the render words each answer and each refusal from what the specification names, and a specification carries no wording for people.
+- Where a call is refused or fails, the UI tells the person what happened and what the person can do next, and says no more than the answer names.
 
 ---
 
