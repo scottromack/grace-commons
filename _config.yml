@@ -15,8 +15,16 @@ author: Scott Romack
 
 plugins:
   - jekyll-include-cache
+  - jekyll-relative-links
   - jekyll-seo-tag
   - jekyll-sitemap
+
+# A link written as a file path (`./method.md`, `../atoms/favorite.md#intent`) reads on GitHub and in an editor, and the site
+# turns it into the page's address. GitHub's own Pages build did this by default; the workflow that replaced it does not, so
+# the plugin is named here. A link to a file the site does not build is left as it was written. Nothing in a page changes.
+relative_links:
+  enabled: true
+  collections: false
 
 # Everything else the theme's templates read (search, the logo, heading anchors, the copy button,
 # the GitHub link top right) comes from the theme's own _config.yml: Jekyll reads it beneath this

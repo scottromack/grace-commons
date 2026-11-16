@@ -86,6 +86,8 @@ GEM
       webrick (~> 1.7)
     jekyll-include-cache (0.3.2)
       jekyll (>= 3.7, < 5.0)
+    jekyll-relative-links (0.9.2)
+      jekyll (>= 3.3, < 5.0)
     jekyll-sass-converter (3.1.0)
       sass-embedded (~> 1.75)
     jekyll-seo-tag (2.9.1)
@@ -178,6 +180,7 @@ DEPENDENCIES
   base64
   csv
   jekyll-include-cache
+  jekyll-relative-links
   jekyll-seo-tag
   jekyll-sitemap
   just-the-docs!
@@ -217,6 +220,7 @@ CHECKSUMS
   i18n (1.15.2) sha256=00f9eb62412fe593b2a65a97daa75300d37abb8f7202ec748e94b6d46a9dd1b5
   jekyll (4.4.1) sha256=4c1144d857a5b2b80d45b8cf5138289579a9f8136aadfa6dd684b31fe2bc18c1
   jekyll-include-cache (0.3.2) sha256=43ede7567207b9aaeee3c4eed211b54bf52e35dd8acdfb2c78f4e4964ba06c2d
+  jekyll-relative-links (0.9.2) sha256=9a1e7c58465f4fc63827a6d59ff95e1386b5f6b7683b633ec0230a144859c38c
   jekyll-sass-converter (3.1.0) sha256=83925d84f1d134410c11d0c6643b0093e82e3a3cf127e90757a85294a3862443
   jekyll-seo-tag (2.9.1) sha256=ed5c757a091048b6ef9109f856f84a29beaeb70f531ba5775a5e92129a28093e
   jekyll-sitemap (1.4.0) sha256=0de08c5debc185ea5a8f980e1025c7cd3f8e0c35c8b6ef592f15c46235cf4218

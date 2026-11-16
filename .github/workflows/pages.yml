@@ -56,6 +56,11 @@ jobs:
         env:
           JEKYLL_ENV: production
 
+      - name: Check every internal link of the built site
+        # A page that links to another by a file path (./method.md) reads on GitHub and in an editor; the site turns it into the page's
+        # address (jekyll-relative-links). A link or an anchor that names nothing the build wrote fails the run before anything deploys.
+        run: python3 tools/linter/site_links.py _site
+
       - uses: actions/upload-pages-artifact@v5
 
   deploy:

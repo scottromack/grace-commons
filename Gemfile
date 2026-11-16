@@ -16,5 +16,6 @@ gem "csv"
 gem "webrick"
 
 gem "jekyll-include-cache"
+gem "jekyll-relative-links"
 gem "jekyll-seo-tag"
 gem "jekyll-sitemap"
