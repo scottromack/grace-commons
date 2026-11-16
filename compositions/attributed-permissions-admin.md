@@ -717,7 +717,7 @@ Role: the append-only orphan record
 
 #### Orphan Attestation
 
-The composition's outcome of [Issue Grant], answered and not refused, when Permissions turned the grant away with invalid-request (Action wiring 8) or answered a handle the grant attribution map already names (Concurrency 10) after the attestation landed, leaving an attestation no attribution entry names: the call's attestation and orphan log entry commit (Action wiring 101). **Its payload carries the position:** pre-grant means no grant committed and the caller may retry.
+The composition's outcome of [Issue Grant], answered and not refused, when Permissions turned the grant away with invalid-request (Action wiring 8) or answered a handle the grant attribution map already names (Concurrency 10) after the attestation landed, leaving an attestation no attribution entry names: the call's attestation and orphan log entry commit (Action wiring 101). **The orphan-attestation answer's payload carries the position:** pre-grant means this call committed no grant of its own, and the caller may retry; where Permissions answered a handle the grant attribution map already names (Concurrency 10), the pair's grant is another call's.
 
 Kind:       Member
 Member of:  the administration outcome
@@ -787,14 +787,14 @@ It inherits from:
 
 ## Status
 
-`doing` — see the Ledger.
+`done — 2026-11-16` — see the Ledger.
 
 ## Ledger
 
 ```
-status: doing
+status: done — 2026-11-16
 formal: pending — attributed-permissions-admin.als + 25 twins and attributed-permissions-admin.tla + twins (verified 2026-11-11) model the rule of 2026-11-16 reversed: Wiring decision 8 and Concurrency 1 through 3 as they stood (two issuances over one pair, two grants) and an issuance with no read of the pair; owed over Action wiring 1, 2, 7, 15 and 103 through 106, Concurrency 1, 2, 10 and 11 and the underlying reason already-held, the twins re-derived with them
-last gate: 2026-11-16 — Final Critique 11, a delta round, one reader (Linus minimax-m3), frozen at 1619f21 — foundational count 1, cured, not clean, no sample; 2026-11-05 — Final Critique 10, delta, frozen at a6a6920 — foundational count 0, clean, one sample
+last gate: 2026-11-16 — Final Critique 12, a delta round, one reader (Linus minimax-m3), frozen at e98bc218 — foundational count 0 after the blind second triage, clean, one sample; 2026-11-16 — Final Critique 11, a delta round, one reader (Linus minimax-m3), frozen at 1619f21 — foundational count 1, cured, not clean, no sample; 2026-11-05 — Final Critique 10, delta, frozen at a6a6920 — foundational count 0, clean, one sample
 
 open:
 - 2026-11-04-a · refining · Action wiring · the section carries no closure table as the subsection's first block (spec-format, composition shape): for every action, every constituent call it makes and each call's answer, refusals, failed read and call that never answers, each with the rule that lands it → draft the table in Recoverable Invocation's form before any further rule, in a unit of its own
