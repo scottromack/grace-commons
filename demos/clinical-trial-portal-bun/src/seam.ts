@@ -5,11 +5,16 @@ export interface Seam {
   now(): string;
   /** Id material naming nothing yet held (Credential Capability requirement 2, 34, 35, 38). */
   idMaterial(): string;
+  /** A session token's random material, at least 128 bits from a secure source (Session Capability requirement 3, 4; Identity 9). */
+  sessionToken(): string;
 }
+
+const token = () => Buffer.from(crypto.getRandomValues(new Uint8Array(32))).toString("base64url");
 
 export const hostSeam: Seam = {
   now: () => new Date().toISOString(),
   idMaterial: () => crypto.randomUUID(),
+  sessionToken: token,
 };
 
 /** A seam whose clock a test sets and moves. */
@@ -18,6 +23,7 @@ export function testSeam(start = "2026-01-01T00:00:00.000Z"): Seam & { set(iso: 
   return {
     now: () => new Date(t).toISOString(),
     idMaterial: () => crypto.randomUUID(),
+    sessionToken: token,
     set: (iso) => { t = Date.parse(iso); },
     advance: (ms) => { t += ms; },
   };

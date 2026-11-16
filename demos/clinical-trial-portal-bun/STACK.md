@@ -13,3 +13,5 @@ Read 2026-11-16 (part 2 of `demo: Beacon's permissions are built from what is wr
 `bash stack/stack.sh install` then `bash stack/stack.sh start`, `bun test`, `bash stack/stack.sh stop`. Install and start took 18 seconds from nothing on 2026-11-16. macOS arm64 only so far.
 
 Two facts the stack taught, for the render: a write over the wire binds every parameter with its type (`sql.typed(value, 25)` for text; an untyped one is refused), and an integer `_id` is read back as text. `tests/stack.test.ts` shows a write, a read and an earlier version of a record kept (Database 5).
+
+More, from rendering the atoms: a query inside a write transaction is refused, so a guard is an `ASSERT` in the write's own transaction; a table and its columns must exist before a guard or read names them (`Store.declare`); and some ordinary words are reserved in XTDB SQL (`session` is one, so the table is `sessions`).
