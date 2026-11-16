@@ -36,8 +36,8 @@ subjectsRouter.get("/subjects", requireSession, canAccessSubjects, (c) => {
     (g) => g.revoked_at === null && g.permission_code === "enroll_subject",
   );
 
-  const scope = c.get("granted_scope") ?? "own";
-  const subjectList = scope === "all"
+  const seesAll = grants.holds(db, actor.id, "view_all_subjects");
+  const subjectList = seesAll
     ? subjects.listByStudy(db, study.id)
     : subjects.listByStudy(db, study.id).filter((s) => s.enrolled_by_actor_id === actor.id);
 
@@ -91,9 +91,10 @@ subjectsRouter.get("/subjects/:id", requireSession, canAccessSubjects, (c) => {
   const subject = subjects.getById(db, id);
   if (!subject) return c.text("Subject not found.", 404);
 
-  // Enforce own-scope on the detail view — same rule as the list.
-  const scope = c.get("granted_scope") ?? "own";
-  if (scope === "own" && subject.enrolled_by_actor_id !== actor.id) {
+  // Same rule as the list: a person who does not hold view_all_subjects sees
+  // the subjects that person enrolled.
+  const seesAll = grants.holds(db, actor.id, "view_all_subjects");
+  if (!seesAll && subject.enrolled_by_actor_id !== actor.id) {
     return c.text("Not Found.", 404);
   }
 

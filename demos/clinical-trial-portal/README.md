@@ -98,12 +98,14 @@ Every state change is captured in `event_log` with:
 
 ### Permissions
 
-Five permission codes, seeded in Phase 6:
-- `invite_actor` — Issue invitations
-- `grant_permission` — Manage grants on others
+Seven permission codes (the catalog in `domain/permission_catalog.ts`; the words are what the screens show). A person holds a permission or does not; there is no reach on a grant:
+- `invite_actor` — Invite people
+- `grant_permission` — Give and take away permissions
 - `enroll_subject` — Enroll subjects
-- `record_visit` — Record study visits
-- `view_audit` — Read audit log (scope: `all` or `own`)
+- `record_visit` — Record visits
+- `view_audit` — See everyone's audit events
+- `view_own_audit` — See my own audit events
+- `view_all_subjects` — See every subject (without it, a person sees the subjects that person enrolled)
 
 ---
 

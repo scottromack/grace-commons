@@ -340,25 +340,34 @@ export function logout(ctx: Ctx): void {
  * Issue a permission grant.
  *
  * The grantor must hold the `grant_permission` permission (checked upstream).
+ * A person holds a permission once: where the grantee already holds it, the
+ * grant in force is answered and nothing is written (no second grant, no event).
+ * Two calls on one pair cannot both write: the check and the insert share one
+ * transaction on one connection.
  *
- * Emits: grant.issued
+ * Emits: grant.issued (only when a grant is written)
  */
 export function grantPermission(
   ctx: Ctx,
   input: {
     grantee_actor_id: number;
     permission_id: number;
-    scope?: "all" | "own";
   },
 ): Grant {
   if (!ctx.actor) throw new Error("grantPermission: authenticated actor required");
 
   return withTx(ctx, (tx) => {
+    const inForce = grants.listActiveOver(
+      tx.db,
+      input.grantee_actor_id,
+      input.permission_id,
+    );
+    if (inForce.length > 0) return inForce[0];
+
     const grant = grants.create(tx.db, {
       grantor_actor_id: tx.ctx.actor!.id,
       grantee_actor_id: input.grantee_actor_id,
       permission_id: input.permission_id,
-      scope: input.scope ?? "all",
     });
 
     appendEvent(tx, {
@@ -368,7 +377,6 @@ export function grantPermission(
       payload: {
         grantee_actor_id: input.grantee_actor_id,
         permission_id: input.permission_id,
-        scope: input.scope ?? "all",
       },
     });
 
@@ -377,7 +385,7 @@ export function grantPermission(
 }
 
 /**
- * Revoke a permission grant.
+ * Revoke one permission grant by id.
  *
  * Emits: grant.revoked
  */
@@ -395,6 +403,40 @@ export function revokeGrant(
       target_id: input.grant_id,
       payload: { reason: input.reason },
     });
+  });
+}
+
+/**
+ * Withdraw a permission whole — Attributed Permissions Admin's [Revoke
+ * Permission]: enumerate every active grant on the (grantee, permission) pair
+ * and revoke each, one grant.revoked event per grant. The terminal signal is
+ * that the person no longer holds the permission, not the count revoked.
+ * A pair that holds no active grant writes nothing and answers an empty list.
+ *
+ * Emits: grant.revoked (one per grant revoked)
+ */
+export function revokePermission(
+  ctx: Ctx,
+  input: { grantee_actor_id: number; permission_id: number; reason: string },
+): Grant[] {
+  if (!ctx.actor) throw new Error("revokePermission: authenticated actor required");
+
+  return withTx(ctx, (tx) => {
+    const active = grants.listActiveOver(
+      tx.db,
+      input.grantee_actor_id,
+      input.permission_id,
+    );
+    for (const g of active) {
+      grants.revoke(tx.db, g.id, input.reason);
+      appendEvent(tx, {
+        action: "grant.revoked",
+        target_kind: "grant",
+        target_id: g.id,
+        payload: { reason: input.reason },
+      });
+    }
+    return active;
   });
 }
 

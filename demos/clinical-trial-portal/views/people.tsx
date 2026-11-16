@@ -1,15 +1,24 @@
 import type { FC } from "hono/jsx";
 import { Layout } from "./_layout.tsx";
 import type { Actor } from "../lib/db.ts";
-import type { GrantWithCode } from "../domain/grants.ts";
+import type { GrantHistoryRow } from "../domain/grants.ts";
 import type { Invitation } from "../domain/invitations.ts";
 import type { Permission } from "../domain/permissions.ts";
+
+/** A permission a person holds now, shown once, with the grants behind it. */
+export interface HeldPermission {
+  permission_id: number;
+  label: string;
+  grants: number;
+}
 
 export interface ActorRow {
   id: number;
   display_name: string;
   email: string;
-  activeGrants: GrantWithCode[];
+  held: HeldPermission[];
+  /** The permissions the person does not hold now: all the Give control offers. */
+  available: Permission[];
 }
 
 export interface InvitationRow extends Invitation {
@@ -33,10 +42,10 @@ export const PeoplePage: FC<{
   actor: Actor;
   actorRows: ActorRow[];
   pendingInvitations: InvitationRow[];
-  permissions: Permission[];
+  history: GrantHistoryRow[];
   flash?: string | null;
   inviteLink?: string | null;
-}> = ({ actor, actorRows, pendingInvitations, permissions, flash, inviteLink }) => (
+}> = ({ actor, actorRows, pendingInvitations, history, flash, inviteLink }) => (
   <Layout title="People &amp; Permissions" actor={actor} path="/people">
     <h1 class="text-2xl font-semibold mb-6">People &amp; Permissions</h1>
 
@@ -57,7 +66,7 @@ export const PeoplePage: FC<{
 
     {/* ── Actors ─────────────────────────────────────────────── */}
     <section class="mb-8">
-      <h2 class="text-base font-semibold mb-3">Actors</h2>
+      <h2 class="text-base font-semibold mb-3">People</h2>
       <div class="raised rounded overflow-hidden p-0">
         <table class="w-full text-sm">
           <thead>
@@ -65,7 +74,7 @@ export const PeoplePage: FC<{
               <th class="text-left px-4 py-2 font-medium opacity-50">Name</th>
               <th class="text-left px-4 py-2 font-medium opacity-50">Email</th>
               <th class="text-left px-4 py-2 font-medium opacity-50">Permissions</th>
-              <th class="text-left px-4 py-2 font-medium opacity-50">Actions</th>
+              <th class="text-left px-4 py-2 font-medium opacity-50">Give a permission</th>
             </tr>
           </thead>
           <tbody>
@@ -75,13 +84,18 @@ export const PeoplePage: FC<{
                 <td class="px-4 py-2 opacity-50">{row.email}</td>
                 <td class="px-4 py-2">
                   <div class="flex flex-wrap gap-1">
-                    {row.activeGrants.length === 0
+                    {row.held.length === 0
                       ? <span class="text-xs opacity-40">none</span>
-                      : row.activeGrants.map((g) => (
+                      : row.held.map((h) => (
                         <span class="inline-flex items-center gap-1">
-                          <Badge label={g.permission_code} color="green" />
-                          <form method="post" action={`/grants/${g.id}/revoke`} class="inline">
-                            <button type="submit" class="text-xs text-red-500 hover:text-red-700" title={`Revoke ${g.permission_code}`}>
+                          <Badge
+                            label={h.grants > 1 ? `${h.label} (${h.grants} grants)` : h.label}
+                            color="green"
+                          />
+                          <form method="post" action="/permissions/revoke" class="inline">
+                            <input type="hidden" name="grantee_actor_id" value={String(row.id)} />
+                            <input type="hidden" name="permission_id" value={String(h.permission_id)} />
+                            <button type="submit" class="text-xs text-red-500 hover:text-red-700" title={`Take away: ${h.label}`}>
                               ✕
                             </button>
                           </form>
@@ -90,27 +104,64 @@ export const PeoplePage: FC<{
                   </div>
                 </td>
                 <td class="px-4 py-2">
-                  <form method="post" action="/grants" class="flex items-center gap-1">
-                    <input type="hidden" name="grantee_actor_id" value={String(row.id)} />
-                    <select name="permission_id" class="border rounded px-1 py-1 text-xs">
-                      {permissions.map((p) => (
-                        <option value={String(p.id)}>{p.code}</option>
-                      ))}
-                    </select>
-                    <select name="scope" class="border rounded px-1 py-1 text-xs">
-                      <option value="all">all</option>
-                      <option value="own">own</option>
-                    </select>
-                    <button type="submit" class="inks-gray-1000 text-xs px-2 py-1 rounded hover:opacity-80">
-                      Grant
-                    </button>
-                  </form>
+                  {row.available.length === 0
+                    ? <span class="text-xs opacity-40">holds every permission</span>
+                    : (
+                      <form method="post" action="/grants" class="flex items-center gap-1">
+                        <input type="hidden" name="grantee_actor_id" value={String(row.id)} />
+                        <select name="permission_id" class="border rounded px-1 py-1 text-xs">
+                          {row.available.map((p) => (
+                            <option value={String(p.id)}>{p.label}</option>
+                          ))}
+                        </select>
+                        <button type="submit" class="inks-gray-1000 text-xs px-2 py-1 rounded hover:opacity-80">
+                          Give
+                        </button>
+                      </form>
+                    )}
                 </td>
               </tr>
             ))}
           </tbody>
         </table>
       </div>
+    </section>
+
+    {/* ── Permissions History ────────────────────────────────── */}
+    <section class="mb-8">
+      <h2 class="text-base font-semibold mb-3">Permissions History</h2>
+      {history.length === 0
+        ? <p class="text-sm opacity-50">No permission has been given yet.</p>
+        : (
+          <div class="raised rounded overflow-hidden p-0">
+            <table class="w-full text-sm">
+              <thead>
+                <tr>
+                  <th class="text-left px-4 py-2 font-medium opacity-50">Given</th>
+                  <th class="text-left px-4 py-2 font-medium opacity-50">To</th>
+                  <th class="text-left px-4 py-2 font-medium opacity-50">Permission</th>
+                  <th class="text-left px-4 py-2 font-medium opacity-50">Given by</th>
+                  <th class="text-left px-4 py-2 font-medium opacity-50">Now</th>
+                </tr>
+              </thead>
+              <tbody>
+                {history.map((g) => (
+                  <tr class="border-t">
+                    <td class="px-4 py-2 opacity-50 text-xs">{g.issued_at.slice(0, 16).replace("T", " ")}</td>
+                    <td class="px-4 py-2">{g.grantee_name}</td>
+                    <td class="px-4 py-2">{g.permission_label}</td>
+                    <td class="px-4 py-2 opacity-50">{g.grantor_name}</td>
+                    <td class="px-4 py-2">
+                      {g.revoked_at === null
+                        ? <Badge label="Held" color="green" />
+                        : <Badge label={`Taken away ${g.revoked_at.slice(0, 10)}`} />}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
     </section>
 
     {/* ── Pending Invitations ────────────────────────────────── */}

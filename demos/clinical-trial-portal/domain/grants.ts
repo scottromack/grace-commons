@@ -11,16 +11,21 @@
 //    atom. [...] grants are immutable once recorded; revocation is terminal;
 //    evaluation is a read-only query over the active grant set."
 //
-// Composition emergent state:
-//   The `scope` column ('all' | 'own') is an extension beyond the base Permissions
-//   atom to model CRA (all audit records) vs SC (own audit records only) access.
-//   Documented here as the one composition-emergent piece per section 3 of the plan.
+// The reach of a permission (the old `scope` column, 'all' | 'own') is gone from
+//   this render: a permission is held or not held, nothing more. Where `own` once
+//   kept a person to that person's own records, a permission of its own now says
+//   so (`view_own_audit` against `view_audit`; subjects the person enrolled
+//   against `view_all_subjects`). The column stays in the table, unread and never
+//   written, so the conformance fixture and the other renders' agreement on the
+//   table's shape are as before.
 //
 // Invariants:
 //   - A grant is active until its revoked_at is set (terminal)
 //   - revoke_reason is required when revoking (composition layer enforces this)
 //   - grantor_actor_id captures who issued the grant (attribution)
-//   - scope is 'all' or 'own' (schema CHECK enforces it)
+//   - a subject holds at most one active grant over one permission
+//     (composition.grantPermission answers the grant in force and writes nothing);
+//     grants recorded before that rule may stand twice, and show once
 
 import type { DB } from "../lib/db.ts";
 
@@ -29,7 +34,6 @@ export interface Grant {
   grantor_actor_id: number;
   grantee_actor_id: number;
   permission_id: number;
-  scope: "all" | "own";
   issued_at: string;
   revoked_at: string | null;
   revoke_reason: string | null;
@@ -53,8 +57,6 @@ export function getById(db: DB, id: number): Grant | null {
  * permission codes. Returns null if no active matching grant exists.
  *
  * Used by requirePermission middleware (Appendix A.9).
- * The returned grant's `scope` is used for downstream filtering on the
- * audit surface (CRA sees all; SC sees own).
  */
 export function findActiveFor(
   db: DB,
@@ -78,7 +80,27 @@ export function findActiveFor(
   );
 }
 
-/** Return all active grants for an actor, with permission code included. */
+/** Does the actor hold the permission now (an active grant, however many)? */
+export function holds(db: DB, actor_id: number, code: string): boolean {
+  return findActiveFor(db, actor_id, [code]) !== null;
+}
+
+/** Every active grant the actor holds over one permission, oldest first. */
+export function listActiveOver(
+  db: DB,
+  actor_id: number,
+  permission_id: number,
+): Grant[] {
+  return db
+    .prepare(
+      `SELECT * FROM grants
+       WHERE grantee_actor_id = ? AND permission_id = ? AND revoked_at IS NULL
+       ORDER BY issued_at ASC, id ASC`,
+    )
+    .all<Grant>(actor_id, permission_id);
+}
+
+/** Return every grant for an actor (revoked ones too), with permission code included. */
 export function listForActor(db: DB, actor_id: number): GrantWithCode[] {
   return db
     .prepare(
@@ -103,6 +125,29 @@ export function listAll(db: DB): GrantWithCode[] {
     .all<GrantWithCode>();
 }
 
+/** A grant in the history: who held it, who granted it, under which permission. */
+export interface GrantHistoryRow extends GrantWithCode {
+  grantee_name: string;
+  grantor_name: string;
+}
+
+/** Every grant ever issued, oldest first, revoked ones included (Permissions History). */
+export function listHistory(db: DB): GrantHistoryRow[] {
+  return db
+    .prepare(
+      `SELECT g.*, p.code AS permission_code, p.label AS permission_label,
+              pe.display_name AS grantee_name, pr.display_name AS grantor_name
+       FROM grants g
+       JOIN permissions p ON p.id = g.permission_id
+       JOIN actors ae ON ae.id = g.grantee_actor_id
+       JOIN parties pe ON pe.id = ae.party_id
+       JOIN actors ar ON ar.id = g.grantor_actor_id
+       JOIN parties pr ON pr.id = ar.party_id
+       ORDER BY g.issued_at ASC, g.id ASC`,
+    )
+    .all<GrantHistoryRow>();
+}
+
 /**
  * Create a new grant record.
  * Called only from composition.grantPermission — never directly from routes.
@@ -113,21 +158,19 @@ export function create(
     grantor_actor_id: number;
     grantee_actor_id: number;
     permission_id: number;
-    scope: "all" | "own";
   },
 ): Grant {
   const now = new Date().toISOString();
   const row = db
     .prepare(
       `INSERT INTO grants
-         (grantor_actor_id, grantee_actor_id, permission_id, scope, issued_at)
-       VALUES (?, ?, ?, ?, ?) RETURNING *`,
+         (grantor_actor_id, grantee_actor_id, permission_id, issued_at)
+       VALUES (?, ?, ?, ?) RETURNING *`,
     )
     .get<Grant>(
       input.grantor_actor_id,
       input.grantee_actor_id,
       input.permission_id,
-      input.scope,
       now,
     );
   if (!row) throw new Error("grants.create: insert returned no row");

@@ -1,6 +1,6 @@
 // scripts/seed.ts
 //
-// Idempotent seed: PI (Anya), CRA (Jordan), 5 permissions, study BCN-OX-201,
+// Idempotent seed: PI (Anya), CRA (Jordan), the permission catalog, study BCN-OX-201,
 // retention policy default.
 //
 // Bypasses the composition layer intentionally — this is the "Bootstrap Identity"
@@ -20,6 +20,7 @@ import * as actors from "../domain/actors.ts";
 import * as credentials from "../domain/credentials.ts";
 import * as grants from "../domain/grants.ts";
 import * as permissions from "../domain/permissions.ts";
+import { CATALOG, ensureCatalog } from "../domain/permission_catalog.ts";
 import * as studies from "../domain/studies.ts";
 import * as retentionPolicy from "../domain/retention_policy.ts";
 
@@ -37,25 +38,10 @@ const db = openDb(DB_PATH);
 
 console.log("Seeding permissions…");
 
-const PERM_DEFS = [
-  { code: "invite_actor", label: "Invite actors" },
-  { code: "grant_permission", label: "Grant permissions" },
-  { code: "enroll_subject", label: "Enroll subjects" },
-  { code: "record_visit", label: "Record visits" },
-  { code: "view_audit", label: "View audit trail" },
-] as const;
-
-const permMap: Record<string, number> = {};
-for (const def of PERM_DEFS) {
-  const existing = permissions.getByCode(db, def.code);
-  if (existing) {
-    permMap[def.code] = existing.id;
-    console.log(`  ✓ '${def.code}' (id=${existing.id})`);
-  } else {
-    const p = permissions.create(db, def.code, def.label);
-    permMap[def.code] = p.id;
-    console.log(`  + '${def.code}' created (id=${p.id})`);
-  }
+const existedBefore = new Set(permissions.listAll(db).map((p) => p.code));
+const permMap: Record<string, number> = ensureCatalog(db);
+for (const def of CATALOG) {
+  console.log(`  ${existedBefore.has(def.code) ? "✓" : "+"} '${def.code}' (id=${permMap[def.code]}) — ${def.label}`);
 }
 
 // ---------------------------------------------------------------------------
@@ -110,12 +96,13 @@ if (!anya_cred) {
 }
 
 // PI grants (bootstrap: self-grant — the grantor_actor_id = PI's own id)
-const PI_GRANTS: Array<{ code: keyof typeof permMap; scope: "all" | "own" }> = [
-  { code: "invite_actor", scope: "all" },
-  { code: "grant_permission", scope: "all" },
-  { code: "enroll_subject", scope: "all" },
-  { code: "record_visit", scope: "all" },
-  { code: "view_audit", scope: "all" },
+const PI_GRANTS: Array<{ code: keyof typeof permMap }> = [
+  { code: "invite_actor" },
+  { code: "grant_permission" },
+  { code: "enroll_subject" },
+  { code: "record_visit" },
+  { code: "view_audit" },
+  { code: "view_all_subjects" },
 ];
 for (const g of PI_GRANTS) {
   const permId = permMap[g.code];
@@ -126,9 +113,8 @@ for (const g of PI_GRANTS) {
       grantor_actor_id: anya_actor.id,
       grantee_actor_id: anya_actor.id,
       permission_id: permId,
-      scope: g.scope,
     });
-    console.log(`  + grant '${g.code}' (scope=${g.scope})`);
+    console.log(`  + grant '${g.code}'`);
   } else {
     console.log(`  ✓ grant '${g.code}' already active`);
   }
@@ -173,9 +159,8 @@ if (!jordan_audit_grant) {
     grantor_actor_id: anya_actor.id,
     grantee_actor_id: jordan_actor.id,
     permission_id: permMap["view_audit"],
-    scope: "all",
   });
-  console.log("  + grant 'view_audit' (scope=all) from PI");
+  console.log("  + grant 'view_audit' from PI");
 } else {
   console.log("  ✓ grant 'view_audit' already active");
 }
@@ -245,10 +230,10 @@ console.log(`
 
   Accounts:
     PI  — anya@beacon.clinical   / demo-pi
-          permissions: invite_actor, grant_permission, enroll_subject, record_visit, view_audit
+          permissions: invite_actor, grant_permission, enroll_subject, record_visit, view_audit, view_all_subjects
 
     CRA — jordan@beacon.clinical / demo-cra
-          permissions: view_audit (scope=all)
+          permissions: view_audit
 
   Study:  BCN-OX-201 "Beacon Oncology Phase II Trial"
   URL:    http://127.0.0.1:8000

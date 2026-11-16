@@ -11,7 +11,7 @@ has_toc: false
 
 | Demo | What it demonstrates | Tests | Live | Built from |
 |---|---|---|---|---|
-| **Beacon Clinical Research Portal** | External onboarding (invitation → party → credential), login, session-gated authorization, and subject / study / visit management — over an HMAC-attested, hash-chained, tamper-evident audit trail. | 107 | [beacon-clinical.fly.dev](https://beacon-clinical.fly.dev/) | [RECIPE](https://github.com/scottromack/grace-commons/blob/main/demos/clinical-trial-portal/RECIPE.md) |
+| **Beacon Clinical Research Portal** | External onboarding (invitation → party → credential), login, session-gated authorization, and subject / study / visit management — over an HMAC-attested, hash-chained, tamper-evident audit trail. | 118 | [beacon-clinical.fly.dev](https://beacon-clinical.fly.dev/) | [RECIPE](https://github.com/scottromack/grace-commons/blob/main/demos/clinical-trial-portal/RECIPE.md) |
 | **Multi-Party Approval** | N-approver approval chains with all-of-N / M-of-N / one-of-N quorum rules and trailing-decision semantics, an approver in-tray, and a tamper-evident audit log. | 67 | [grace-commons-mpa.fly.dev](https://grace-commons-mpa.fly.dev/) | [RECIPE](https://github.com/scottromack/grace-commons/blob/main/demos/multi-party-approval/RECIPE.md) |
 | **Attributed Permissions Admin** | Attributed grant / revoke administration pairing Permissions with Actor Identity; ships a dynamic Alloy model verifying its load-bearing temporal claims. | 35 | [grace-commons-alloy.fly.dev](https://grace-commons-alloy.fly.dev/) | [RECIPE](https://github.com/scottromack/grace-commons/blob/main/demos/attributed-permissions-admin/RECIPE.md) |
 

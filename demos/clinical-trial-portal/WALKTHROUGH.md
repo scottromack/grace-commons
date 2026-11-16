@@ -63,13 +63,13 @@ The property demonstrated is *detection*, not *prevention*. An adversary with ra
 
 Three roles inhabit the system. Each sees a different surface:
 
-**PI (Dr. Anya Okonkwo):** `/people`, `/subjects`, `/audit`. Holds `invite_actor`, `grant_permission`, `enroll_subject`, `record_visit`, and `view_audit (all)`. The only actor who can issue grants; the only actor who can invite new coordinators.
+**PI (Dr. Anya Okonkwo):** `/people`, `/subjects`, `/audit`. Holds `invite_actor`, `grant_permission`, `enroll_subject`, `record_visit`, `view_audit` and `view_all_subjects`. The only actor who can give permissions; the only actor who can invite new coordinators.
 
-**Study Coordinator (Maya Chen):** `/subjects`, `/audit (own)`. Holds `enroll_subject`, `record_visit`, and `view_audit (own)`. The `own` scope means `/audit` applies `WHERE actor_id = ctx.actor.id` — she sees only events she authored.
+**Study Coordinator (Maya Chen):** `/subjects`, `/audit`. Holds `enroll_subject`, `record_visit`, and `view_own_audit`. Holding `view_own_audit` and not `view_audit` means `/audit` applies `WHERE actor_id = ctx.actor.id` — she sees only events she authored; holding `enroll_subject` and not `view_all_subjects` means she sees only the subjects she enrolled.
 
-**CRA / Monitor (Jordan Lee):** `/audit (all)`. Holds `view_audit (all)` only. Read-only. Cannot pass `requirePermission` for any mutating route.
+**CRA / Monitor (Jordan Lee):** `/audit`. Holds `view_audit` only. Read-only. Cannot pass `requirePermission` for any mutating route.
 
-The `granted_scope` field is set by `requirePermission` middleware on the Hono context. Downstream handlers read it from `c.get("granted_scope")`. The scope discrimination happens in exactly one place per surface: the `/audit` handler filters by `actor_id` when scope is `'own'`; the `/subjects` list handler filters by `enrolled_by_actor_id`.
+A permission is held or not held; no grant carries a reach. `requirePermission` only answers whether a person holds one of the named permissions. Where a page shows less to a person who holds only the narrower permission, the page asks `grants.holds` for the wider one: the `/audit` handler filters by `actor_id` unless the person holds `view_audit`; the `/subjects` handlers filter by `enrolled_by_actor_id` unless the person holds `view_all_subjects`.
 
 ---
 
@@ -104,7 +104,7 @@ If you want to understand something specific:
 | How is the hash chain constructed? | `domain/event_log.ts` — `appendEvent()` and `verifyChain()` |
 | How does canonical JSON work? | `lib/canonical.ts` — 15 lines |
 | How does the session cookie get validated? | `middleware/require_session.ts` |
-| How does scope get enforced? | `middleware/require_permission.ts` + the `granted_scope` reads in `routes/audit.ts` and `routes/subjects.ts` |
+| How does a person see less than everything? | `grants.holds` for `view_audit` in `routes/audit.ts` and for `view_all_subjects` in `routes/subjects.ts`; `middleware/require_permission.ts` answers only held or not held |
 | How does Argon2id get wired in? | `lib/password.ts` — the only file that imports `argontwo` |
 | What does the full schema look like? | `migrations/0001_init.sql` |
 | What events are emitted by each action? | `composition.ts` — each function carries an `Emits:` doc comment listing its events |

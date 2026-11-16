@@ -1,7 +1,8 @@
 // routes/audit.ts — Audit trail: view, verify, export
 //
-// Requires view_audit permission.
-// scope='all' → show all events; scope='own' → show only this actor's events.
+// Requires view_audit (everyone's events) or view_own_audit (only this actor's events).
+// A person who holds view_audit sees every event; a person who holds only view_own_audit
+// sees the events this actor made.
 // View components called as plain functions (no JSX syntax in .ts file).
 
 import { Hono } from "hono";
@@ -9,6 +10,7 @@ import type { AppEnv } from "../lib/env.ts";
 import { requireSession } from "../middleware/require_session.ts";
 import { requirePermission } from "../middleware/require_permission.ts";
 import * as eventLog from "../domain/event_log.ts";
+import * as grants from "../domain/grants.ts";
 import * as retentionPolicy from "../domain/retention_policy.ts";
 import { appendEvent } from "../domain/event_log.ts";
 import { withTx } from "../lib/db.ts";
@@ -18,13 +20,17 @@ import type { AuditFilters } from "../views/audit_list.tsx";
 
 export const auditRouter = new Hono<AppEnv>();
 
-const canViewAudit = requirePermission("view_audit");
+const canViewAudit = requirePermission("view_audit", "view_own_audit");
+
+/** The recorded form of what a person may see: "all" (everyone's events) or "own". */
+const reachOf = (db: Parameters<typeof grants.holds>[0], actor_id: number): "all" | "own" =>
+  grants.holds(db, actor_id, "view_audit") ? "all" : "own";
 
 auditRouter.get("/audit", requireSession, canViewAudit, (c) => {
   const ctx = c.get("ctx");
   const db = ctx.db;
   const actor = ctx.actor!;
-  const scope = c.get("granted_scope") ?? "own";
+  const scope = reachOf(db, actor.id);
 
   const filters: AuditFilters = {
     action: c.req.query("action") || undefined,
@@ -69,7 +75,7 @@ auditRouter.get("/audit", requireSession, canViewAudit, (c) => {
     });
   });
 
-  return c.html(AuditListPage({ actor, events, filters, policy, scope: scope as "all" | "own" }) as string);
+  return c.html(AuditListPage({ actor, events, filters, policy, scope }) as string);
 });
 
 auditRouter.get("/audit/verify", requireSession, canViewAudit, (c) => {
@@ -83,8 +89,8 @@ auditRouter.get("/audit/verify", requireSession, canViewAudit, (c) => {
 auditRouter.get("/audit/export.csv", requireSession, canViewAudit, (c) => {
   const ctx = c.get("ctx");
   const db = ctx.db;
-  const scope = c.get("granted_scope") ?? "own";
   const actor = ctx.actor!;
+  const scope = reachOf(db, actor.id);
 
   const domainFilters: eventLog.EventFilters = {
     actor_id: scope === "own" ? actor.id : null,

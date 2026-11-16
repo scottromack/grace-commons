@@ -404,7 +404,6 @@ Deno.test("grantPermission: creates grant row and emits grant.issued", () => {
     const grant = composition.grantPermission(ctx, {
       grantee_actor_id: sc.id,
       permission_id: perm.id,
-      scope: "all",
     });
 
     assertExists(grant.id);

@@ -142,6 +142,7 @@ Deno.test("e2e: invite → accept → grant → enroll → visit → audit verif
     "enroll_subject",
     "record_visit",
     "view_audit",
+    "view_all_subjects",
   ] as const;
   const permMap: Record<string, number> = {};
   for (const code of CODES) {
@@ -160,11 +161,10 @@ Deno.test("e2e: invite → accept → grant → enroll → visit → audit verif
       grantor_actor_id: anyaActor.id,
       grantee_actor_id: anyaActor.id,
       permission_id: permMap[code],
-      scope: code === "view_audit" ? "all" : "all",
     });
   }
 
-  // Seed CRA: Jordan Lee (view_audit, scope=all, granted by PI)
+  // Seed CRA: Jordan Lee (view_audit, granted by PI)
   const jordanParty = parties.create(db, "jordan@beacon.clinical", "Jordan Lee");
   const jordanActor = actors.create(db, jordanParty.id);
   credentials.create(db, jordanActor.id, "password", await hashPassword("demo-cra"));
@@ -172,7 +172,6 @@ Deno.test("e2e: invite → accept → grant → enroll → visit → audit verif
     grantor_actor_id: anyaActor.id,
     grantee_actor_id: jordanActor.id,
     permission_id: permMap["view_audit"],
-    scope: "all",
   });
 
   const app = buildTestApp(db);
@@ -247,14 +246,12 @@ Deno.test("e2e: invite → accept → grant → enroll → visit → audit verif
   const grantEnrollRes = await formPost(app, "/grants", {
     grantee_actor_id: String(mayaActor!.id),
     permission_id: String(permMap["enroll_subject"]),
-    scope: "all",
   }, piCookie);
   assertEquals(grantEnrollRes.status, 302);
 
   const grantVisitRes = await formPost(app, "/grants", {
     grantee_actor_id: String(mayaActor!.id),
     permission_id: String(permMap["record_visit"]),
-    scope: "own",
   }, piCookie);
   assertEquals(grantVisitRes.status, 302);
 
@@ -373,11 +370,11 @@ Deno.test("e2e: invite → accept → grant → enroll → visit → audit verif
 });
 
 // ---------------------------------------------------------------------------
-// Own-scope detail guard — /subjects/:id must 404 for actors whose grant
-// scope is 'own' when the subject was enrolled by a different actor.
+// Own-subjects detail guard — /subjects/:id must 404 for actors who do not
+// hold view_all_subjects when the subject was enrolled by a different actor.
 // ---------------------------------------------------------------------------
 
-Deno.test("own-scope: GET /subjects/:id returns 404 for subject enrolled by another actor", async () => {
+Deno.test("own-subjects: GET /subjects/:id returns 404 for subject enrolled by another actor", async () => {
   const db = openDb(":memory:");
   db.exec(MIGRATION_SQL);
   const app = buildTestApp(db);
@@ -386,19 +383,19 @@ Deno.test("own-scope: GET /subjects/:id returns 404 for subject enrolled by anot
   const enrollPerm = permissions.create(db, "enroll_subject", "enroll_subject");
   studies.create(db, "BCN-OX-201", "Beacon Phase II");
 
-  // Actor A — enrolls a subject under own-scope.
+  // Actor A — enrolls a subject (holds enroll_subject only).
   const partyA = parties.create(db, "actor-a@test.local", "Actor A");
   const actorA = actors.create(db, partyA.id);
   const hashA = await hashPassword("passwordA");
   credentials.create(db, actorA.id, "password", hashA);
-  grants.create(db, { grantor_actor_id: actorA.id, grantee_actor_id: actorA.id, permission_id: enrollPerm.id, scope: "own" });
+  grants.create(db, { grantor_actor_id: actorA.id, grantee_actor_id: actorA.id, permission_id: enrollPerm.id });
 
-  // Actor B — also has enroll_subject with own scope but did not enroll the subject.
+  // Actor B — also holds enroll_subject only, but did not enroll the subject.
   const partyB = parties.create(db, "actor-b@test.local", "Actor B");
   const actorB = actors.create(db, partyB.id);
   const hashB = await hashPassword("passwordB");
   credentials.create(db, actorB.id, "password", hashB);
-  grants.create(db, { grantor_actor_id: actorA.id, grantee_actor_id: actorB.id, permission_id: enrollPerm.id, scope: "own" });
+  grants.create(db, { grantor_actor_id: actorA.id, grantee_actor_id: actorB.id, permission_id: enrollPerm.id });
 
   // Actor A logs in and enrolls a subject.
   const loginA = await formPost(app, "/login", { email: "actor-a@test.local", password: "passwordA" });
@@ -425,7 +422,7 @@ Deno.test("own-scope: GET /subjects/:id returns 404 for subject enrolled by anot
   assertExists(cookieB, "Actor B should get a session cookie");
 
   const crossRes = await get(app, `/subjects/${subjectId}`, cookieB);
-  assertEquals(crossRes.status, 404, "Actor B must not access a subject enrolled by Actor A under own scope");
+  assertEquals(crossRes.status, 404, "Actor B must not access a subject enrolled by Actor A without view_all_subjects");
 
   db.close();
 });

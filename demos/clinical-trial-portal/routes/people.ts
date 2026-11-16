@@ -15,7 +15,7 @@ import * as parties from "../domain/parties.ts";
 import * as composition from "../composition.ts";
 import { sendInvitationEmail } from "../lib/mailer.ts";
 import { PeoplePage } from "../views/people.tsx";
-import type { ActorRow, InvitationRow } from "../views/people.tsx";
+import type { ActorRow, HeldPermission, InvitationRow } from "../views/people.tsx";
 
 const canManagePeople = requirePermission("invite_actor", "grant_permission");
 
@@ -26,15 +26,26 @@ peopleRouter.get("/people", requireSession, canManagePeople, (c) => {
   const db = ctx.db;
   const actor = ctx.actor!;
 
+  const allPermissions = permissions.listAll(db);
   const actorList = actors.listAll(db);
   const actorRows: ActorRow[] = actorList.map((a) => {
     const party = parties.getById(db, a.party_id);
-    const allGrants = grants.listForActor(db, a.id);
+    // Each permission the person holds now, once, with the number of active
+    // grants behind it (more than one only where grants were recorded before a
+    // person held a permission once).
+    const active = grants.listForActor(db, a.id).filter((g) => g.revoked_at === null);
+    const held: HeldPermission[] = [];
+    for (const g of active) {
+      const seen = held.find((h) => h.permission_id === g.permission_id);
+      if (seen) seen.grants += 1;
+      else held.push({ permission_id: g.permission_id, label: g.permission_label, grants: 1 });
+    }
     return {
       id: a.id,
       display_name: a.display_name,
       email: party?.email ?? "—",
-      activeGrants: allGrants.filter((g) => g.revoked_at === null),
+      held,
+      available: allPermissions.filter((p) => !held.some((h) => h.permission_id === p.id)),
     };
   });
 
@@ -44,12 +55,12 @@ peopleRouter.get("/people", requireSession, canManagePeople, (c) => {
     return { ...inv, email: party?.email ?? "—" };
   });
 
-  const allPermissions = permissions.listAll(db);
+  const history = grants.listHistory(db);
   const flash = c.req.query("flash") ?? null;
   const inviteLink = c.req.query("inviteLink") ?? null;
 
   return c.html(
-    PeoplePage({ actor, actorRows, pendingInvitations: pendingRows, permissions: allPermissions, flash, inviteLink }) as string,
+    PeoplePage({ actor, actorRows, pendingInvitations: pendingRows, history, flash, inviteLink }) as string,
   );
 });
 
@@ -120,28 +131,35 @@ peopleRouter.post(
     const form = await c.req.formData();
     const grantee_actor_id = parseInt(form.get("grantee_actor_id") as string, 10);
     const permission_id = parseInt(form.get("permission_id") as string, 10);
-    const scope = ((form.get("scope") as string | null) || "all") as "all" | "own";
 
     if (!isNaN(grantee_actor_id) && !isNaN(permission_id)) {
       try {
-        composition.grantPermission(ctx, { grantee_actor_id, permission_id, scope });
-      } catch { /* duplicate or invalid */ }
+        composition.grantPermission(ctx, { grantee_actor_id, permission_id });
+      } catch { /* invalid */ }
     }
     return c.redirect("/people");
   },
 );
 
+// Withdraw a permission whole: every active grant the person has over it.
 peopleRouter.post(
-  "/grants/:id/revoke",
+  "/permissions/revoke",
   requireSession,
   requirePermission("grant_permission"),
-  (c) => {
+  async (c) => {
     const ctx = c.get("ctx");
-    const id = parseInt(c.req.param("id"), 10);
-    if (!isNaN(id)) {
+    const form = await c.req.formData();
+    const grantee_actor_id = parseInt(form.get("grantee_actor_id") as string, 10);
+    const permission_id = parseInt(form.get("permission_id") as string, 10);
+
+    if (!isNaN(grantee_actor_id) && !isNaN(permission_id)) {
       try {
-        composition.revokeGrant(ctx, { grant_id: id, reason: "manually revoked by PI" });
-      } catch { /* already revoked */ }
+        composition.revokePermission(ctx, {
+          grantee_actor_id,
+          permission_id,
+          reason: "withdrawn by PI",
+        });
+      } catch { /* nothing to withdraw */ }
     }
     return c.redirect("/people");
   },

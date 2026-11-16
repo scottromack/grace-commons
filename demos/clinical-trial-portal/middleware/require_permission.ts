@@ -3,10 +3,10 @@
 // Session-Gated Authorization: Session-Gated Authorization — permission check middleware.
 //
 // Applied after requireSession. Checks for an unrevoked grant covering any
-// of the named permission codes for the current actor. Attaches the matching
-// grant's scope ('all' | 'own') to c for downstream filtering (e.g., the
-// audit route uses scope to show all events vs. only the actor's own events).
-// Returns 403 if no matching grant exists.
+// of the named permission codes for the current actor. Returns 403 if no
+// matching grant exists. A permission is held or not held: what a person may
+// see within a page follows from which permission the person holds (the audit
+// route and the subjects routes ask grants.holds for the wider one).
 
 import type { MiddlewareHandler } from "hono";
 import * as grants from "../domain/grants.ts";
@@ -30,7 +30,6 @@ export function requirePermission(
         403,
       );
     }
-    c.set("granted_scope", grant.scope);
     await next();
   };
 }

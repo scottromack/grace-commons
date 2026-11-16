@@ -8,6 +8,7 @@
  */
 
 import { openDb } from "../lib/db.ts";
+import { retireReach } from "../domain/permission_catalog.ts";
 
 const DB_PATH = Deno.env.get("DB_PATH") ?? "./data/dev.db";
 
@@ -27,6 +28,13 @@ const db = openDb(DB_PATH);
 
 // Apply the migration (idempotent due to CREATE TABLE IF NOT EXISTS)
 db.exec(migrationSql);
+
+// Retire the reach on grants ('all' | 'own'), once per database: a person holds a
+// permission or not, and what `own` kept a person to is a permission of its own.
+const reach = retireReach(db);
+if (!reach.skipped) {
+  console.log(`✓ Reach retired: ${reach.revoked} own-reach grant(s) revoked, ${reach.granted} grant(s) issued in their place.`);
+}
 
 console.log(`✓ Migration complete. Database: ${DB_PATH}`);
 

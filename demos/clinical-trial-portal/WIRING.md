@@ -58,7 +58,9 @@ A read belongs here when the assembly needs it and no constituent projects it. D
 
 Clauses the specs hand *upward* to the deployment. A delegated obligation with no recorded answer is not delegated, it is dropped ([`pressure-testing.md`](../../pressure-testing.md)); this section is where Beacon answers. Seeded from the clauses that bear on the surface issue #2 touched; the full transitive sheet for this wiring is [roadmap](../../roadmap.md) debt #22.
 
-### Duplicate active grants on one `(subject_ref, action_scope)` — **not guarded. Permitted by design.**
+### Duplicate active grants on one `(subject_ref, action_scope)` — **guarded since 2026-11-16: a person holds a permission once.**
+
+*Amended 2026-11-16 (Scott: "People can only have one of each boolean").* `composition.grantPermission` answers the grant in force and writes nothing where the grantee already holds the permission, in one transaction, so two calls at once leave one grant. The Permissions screen shows each permission once, with the number of active grants behind it where grants recorded before this rule stand twice; its ✕ withdraws the permission whole by `composition.revokePermission`, the render of APA's [Revoke Permission]; every grant, revoked ones marked, is read under *Permissions History*. The atom [Permissions](../../atoms/permissions.md) still permits several active grants on one pair until its own unit (`library: a person holds a permission once`) lands; this render is stricter than the atom for now, which no rule forbids. The earlier answer, kept for what it records:
 
 *The clauses.* [Permissions](../../atoms/permissions.md), *Concurrent grant proliferation*: **"Composing systems that intend to issue a single authoritative grant should guard against concurrent issuance."** [APA](../../compositions/attributed-permissions-admin.md), *Concurrent issuance of the same grant*: **"Deployments that need single-issuance semantics should compose with Idempotent Reservation or wrap [Issue Grant] with a token-based deduplication layer."**
 
