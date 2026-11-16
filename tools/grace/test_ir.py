@@ -63,6 +63,21 @@ class Owners(unittest.TestCase):
         self.assertEqual(ir.owner_parts(part), [part])
 
 
+class ActionLists(unittest.TestCase):
+    TERMS = [{"name": "writing action", "definition": "[Record Sighting], [Report Standing] or [Report Clear]."},
+             {"name": "terminal call", "definition": "a [Deliver], a [Fail] or an [Expire] call"},
+             {"name": "narrowed call", "definition": "a [Fire] call whose tasks are all closed"}]
+
+    def test_a_list_of_bracketed_actions_that_ends_in_a_period_names_its_actions(self):
+        self.assertEqual(ir.actions_of("a writing action", self.TERMS), ["record_sighting", "report_standing", "report_clear"])
+
+    def test_the_same_list_with_no_period_names_the_same_actions(self):
+        self.assertEqual(ir.actions_of("a terminal call", self.TERMS), ["deliver", "fail", "expire"])
+
+    def test_a_call_narrowed_by_anything_else_names_none(self):
+        self.assertEqual(ir.actions_of("a narrowed call", self.TERMS), [])
+
+
 class TermFields(unittest.TestCase):
     ENTRIES = [entry("person reference", Kind="Field"), entry("item reference", Kind="Field")]
 

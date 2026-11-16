@@ -1156,7 +1156,7 @@ def snake_of(s: str) -> str:
 ADMITTED_SUBJECT = re.compile(r"(?:an? |the )?admitted ([a-z][a-z0-9 -]*)", re.I)
 # a Term `admitted <action>` whose definition says no more of the call than that the action admits it, that no rule refused it, or that it answers
 ADMITTED_CALL = re.compile(r"an? \[([^\]]+)\] call(?: the action admits| no rule refused| that answers)?(?: \([^)]*\))?\.?")
-ACTION_LIST = re.compile(r"(?:(?:an?|the) )?\[[^\]]+\](?:(?:,\s*|\s+(?:and|or)\s+)(?:(?:an?|the) )?\[[^\]]+\])*(?:\s+calls?)?")
+ACTION_LIST = re.compile(r"(?:(?:an?|the) )?\[[^\]]+\](?:(?:,\s*|\s+(?:and|or)\s+)(?:(?:an?|the) )?\[[^\]]+\])*(?:\s+calls?)?\.?")
 
 
 # a Term that names a set of actions by a bar list (`[Suspend Pool] | [Resume Pool] | [Close Pool]`), by the complement of a list (`every action but [Query]`),
