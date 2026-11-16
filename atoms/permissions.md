@@ -17,7 +17,7 @@ toc: true
 
 ## Summary
 
-Permissions answers one question: "is this actor allowed to do this thing right now?" It answers from grants — records that each tie a subject (the actor wanting access) to an action scope (the name of what the grant covers, matched exactly) — and the answer is "permitted" when a grant still in force matches the pair, and "denied" otherwise, so no grant means no permission, always. A grant stays in force until it is revoked: once a revocation is recorded, that grant no longer counts toward any answer and can never count again, while a revocation the database fails to record leaves the grant in force and tells the caller so, to retry. Grants are never deleted, and each keeps when it was granted and, once revoked, when it was revoked, so an auditor re-running a check against the same records gets the same answer, and the records show who could do what, from when to when. Each grant carries an identifier that means nothing by itself, supplied, like the clock reading, by the system running Permissions from outside Permissions' own logic. Roles, attribute-based policies, scope hierarchies, delegation and time-limited grants are left to separate patterns, and so are recording who issued a grant, logging attempts to act, and tying a signed-in user to the subject a grant names.
+Permissions answers one question: "is this actor allowed to do this thing right now?" It answers from grants — records that each tie a subject (the actor wanting access) to an action scope (the name of what the grant covers, matched exactly) — and the answer is "permitted" when a grant still in force matches the pair, and "denied" otherwise, so no grant means no permission, always. A subject holds a permission once: at most one grant in force matches a pair, and granting a pair that is already held answers the grant in force and records nothing. A grant stays in force until it is revoked: once a revocation is recorded, that grant no longer counts toward any answer and can never count again, while a revocation the database fails to record leaves the grant in force and tells the caller so, to retry. Grants are never deleted, and each keeps when it was granted and, once revoked, when it was revoked, so an auditor re-running a check against the same records gets the same answer, and the records show who could do what, from when to when. Each grant carries an identifier that means nothing by itself, supplied, like the clock reading, by the system running Permissions from outside Permissions' own logic. Roles, attribute-based policies, scope hierarchies, delegation and time-limited grants are left to separate patterns, and so are recording who issued a grant, logging attempts to act, and tying a signed-in user to the subject a grant names.
 
 ---
 
@@ -26,7 +26,7 @@ Permissions answers one question: "is this actor allowed to do this thing right 
 <details markdown="block">
 <summary>WHY</summary>
 
-*May this actor do this thing?* is the question every regulated system answers a thousand times a second, and the wrong shapes for it are everywhere: a boolean column, a role string parsed at the call site, a policy engine nobody can audit. This atom is the smallest honest answer — a grant binds a subject to a scope, it is in force or withdrawn, and the query is satisfied by any active grant matching the pair. Two decisions carry it. Absence is denial, so there is no explicit deny to reconcile against an allow and no ordering to get wrong. And a subject may hold many independent grants over one scope, each with its own id and its own revocation, because two administrators granting the same access on two days is two facts, and collapsing them makes selective revocation impossible and the audit trail unreadable. Roles, attributes, hierarchies, expiry and delegation are all real and all compose; none of them is this.
+*May this actor do this thing?* is the question every regulated system answers a thousand times a second, and the wrong shapes for it are everywhere: a boolean column, a role string parsed at the call site, a policy engine nobody can audit. This atom is the smallest honest answer — a grant binds a subject to a scope, it is in force or withdrawn, and the query is satisfied by any active grant matching the pair. Two decisions carry it. Absence is denial, so there is no explicit deny to reconcile against an allow and no ordering to get wrong. And a subject holds a permission once: at most one grant is in force over one scope, so the grant records answer *does she hold it?* with a record, not a count, a revoke ends the access whole, and a repeated grant is the same fact told again rather than a second one. Who granted a permission, and when each administrator did, is not this atom's to keep; it lives in the composing pattern's attestations and Event Log records, which is where two administrators granting the same access on two days stay two facts. Roles, attributes, hierarchies, expiry and delegation are all real and all compose; none of them is this.
 
 </details>
 
@@ -40,7 +40,7 @@ Identity 2: The host MUST allocate a grant id at the atom's seam.
 Identity 3: The transition MUST NOT allocate a grant id.
 Identity 4: The business caller MUST NOT supply a grant id to [Grant].
 Identity 6: The atom MUST NOT identify a grant by the subject reference with the action scope.
-Identity 7: A subject reference MAY hold two active grants over one action scope.
+Identity 7: A subject reference MUST NOT hold two active grants over one action scope.
 Identity 8: [Revoke] MUST reach EXACTLY ONE grant.
 ```
 
@@ -112,13 +112,14 @@ read()
 NOTE: open 2026-10-26-b — the rules name the action [Check] and the signature block declares the action as permitted; only the Check entry, which carries no obligation, says the one is the other.
 
 ```
-Operation 1: [Grant] MUST record EXACTLY ONE grant per successful call.
+Operation 1: IF no active grant matches the pair THEN [Grant] MUST record EXACTLY ONE grant per successful call.
 Operation 2: [Grant] MUST stand the grant in active.
 Operation 3: [Grant] MUST answer grant id.
 Operation 4: IF subject reference EQUALS blank THEN [Grant] MUST answer invalid-request.
 Operation 5: IF action scope EQUALS blank THEN [Grant] MUST answer invalid-request.
-Operation 6: [Grant] MUST NOT refuse a pair an active grant already covers.
 Operation 7: IF the database refuses the write THEN [Grant] MUST answer storage-failure.
+Operation 33: IF an active grant matches the pair THEN [Grant] MUST answer the grant id of that grant.
+Operation 34: IF an active grant matches the pair THEN [Grant] MUST NOT write.
 Operation 9: IF no grant EXISTS for the grant id THEN [Revoke] MUST answer not-known.
 Operation 10: IF the grant's status EQUALS revoked THEN [Revoke] MUST answer not-active.
 Operation 11: [Revoke] MUST stand the grant in revoked.
@@ -147,9 +148,9 @@ The case space, and the rule that owns each case:
 
 | Call | Case | Answer | Effect on the grant records |
 |---|---|---|---|
-| [Grant] | refs present, database accepts | grant id | one grant lands in [Active] (Operation 1, Operation 2) |
+| [Grant] | refs present, no active grant matches the pair, database accepts | grant id | one grant lands in [Active] (Operation 1, Operation 2) |
 | [Grant] | empty or whitespace-only ref, or over the cap | [Invalid Request] | none (Operation 4, Operation 5, String 6) |
-| [Grant] | refs present, an active grant already covers the pair, database accepts | grant id | a second, independent grant lands (Operation 6, Identity 7) |
+| [Grant] | refs present, an active grant already matches the pair | the grant id of that grant | none — the pair is held once (Operation 33, Operation 34, Identity 7) |
 | [Grant] | database refuses the write | [Storage Failure] | none (Operation 7) |
 | [Revoke] | id names an active grant | ok | [Active] → [Revoked], revocation instant stamped; the grant id, subject reference, action scope and grant instant stand (Operation 11, State 5, Invariant 1.1, Invariant 4.2) |
 | [Revoke] | id names a revoked grant | [Not Active] | none — and the answer a retry of a landed revoke gets (Operation 10) |
@@ -208,6 +209,10 @@ Where two [Revoke] cases hold at once, the refusal listed first on [Revoke]'s re
   ```
   Invariant 10.1: The atom MUST NOT delete a grant record.
   ```
+- **Invariant 11 — A pair is held once.**
+  ```
+  Invariant 11.1: The active grant set MUST NOT hold two grants over one pair.
+  ```
 
 Self-containment and denial-by-absence give the *determinism* property — one query against one active set answers one way, always. Immutability and monotonicity give *auditability* — the authorization history is provable from the database.
 
@@ -221,7 +226,7 @@ Regulatory policy requires that no single employee can both initiate and approve
 
 ### Healthcare — minimum necessary access
 
-A hospitalist physician is granted access to records for patients under their direct care: `grant(dr_chen, records:ward-7-patients) → g14`. A billing clerk holds a narrower grant: `grant(clerk_b3, records:billing-fields-only) → g22`. When the billing clerk attempts to open a full patient chart, `permitted(clerk_b3, records:ward-7-patients)` returns denied. When Dr. Chen's patient is discharged and transferred, the hospitalist grant is revoked: `revoke(g14)`. Subsequent permitted queries for Dr. Chen return denied for that ward's records, since g14 was Dr. Chen's only grant over the scope (a second grant over it would keep the access, Identity 7). HIPAA (US Health Insurance Portability and Accountability Act) section 164.312(a)(1) requires access controls, and section 164.514(d) limits each use of patient records to the minimum necessary; the grant records are the audit surface.
+A hospitalist physician is granted access to records for patients under their direct care: `grant(dr_chen, records:ward-7-patients) → g14`. A billing clerk holds a narrower grant: `grant(clerk_b3, records:billing-fields-only) → g22`. When the billing clerk attempts to open a full patient chart, `permitted(clerk_b3, records:ward-7-patients)` returns denied. When Dr. Chen's patient is discharged and transferred, the hospitalist grant is revoked: `revoke(g14)`. Subsequent permitted queries for Dr. Chen return denied for that ward's records, since g14 was Dr. Chen's only grant over the scope, and the one grant is all there is to withdraw (Identity 7). HIPAA (US Health Insurance Portability and Accountability Act) section 164.312(a)(1) requires access controls, and section 164.514(d) limits each use of patient records to the minimum necessary; the grant records are the audit surface.
 
 ### Payments — restricted cardholder data access
 
@@ -242,6 +247,7 @@ The mechanic is identical across all five. What differs: the scope vocabulary (a
 One sequence on the banking grants above, walking every refusal the atom answers:
 
 - `grant(teller_t9, "   ")` → invalid-request: a whitespace-only action scope is blank, so no grant is recorded (Operation 5, String 5).
+- `grant(teller_t9, initiate:transfer)` again, while g1 stands → g1: the pair is already held, so the call answers the grant in force and records nothing (Operation 33, Operation 34, Identity 7).
 - `revoke(g7)` → not-known: no grant carries the id g7 (Operation 9).
 - `revoke(g1)` → ok: g1 moves from [Active] to [Revoked], its revocation instant stamped from the injected now (Operation 11, State 5), and `permitted(teller_t9, initiate:transfer)` now answers denied, g1 having been teller_t9's only grant over the scope.
 - `revoke(g1)` again → not-active: g1 is already revoked, the answer a retry of a landed revoke gets too (Operation 10, Revoke persistence 3).
@@ -275,6 +281,7 @@ Check 3.2: An auditor MUST find no permitted answer for which no matching active
 Check 3.3: An auditor MUST find permitted for a pair an active grant matches (Invariant 7.1).
 Check 4.1: An auditor MUST find no grant whose status moved out of revoked (Invariant 2.2, Operation 10).
 Check 5.1: An auditor MUST find the grant set never shrinking across two readings (Invariant 10.1).
+Check 7.1: An auditor MUST find no two active grants sharing a pair (Invariant 11.1).
 ```
 
 ### External checks
@@ -343,11 +350,8 @@ Deprovisioning 5: A composing pattern MUST record a subject's deprovisioning ONL
 ### Grant concurrency and revoke concurrency
 
 ```
-Grant concurrency 1: Two concurrent [Grant] calls on one pair MUST record two grants.
-Grant concurrency 2: A composing pattern intending one authoritative grant MUST guard against a concurrent issue.
+Grant concurrency 1: Two concurrent [Grant] calls on one pair MUST record EXACTLY ONE grant.
 ```
-
-NOTE: open 2026-10-21-e — one authoritative grant and the guard against a concurrent issue (Grant concurrency 2) name neither what the composing pattern guards nor how, while the atom refuses no covered pair (Operation 6).
 
 ### Revoke persistence failure
 
@@ -395,7 +399,7 @@ Term terms: grant record, live at an instant, grant id, subject reference, actio
 
 #### Grant
 
-The behavior an administrator or composing pattern invokes to record a new grant binding a [Subject Reference] to an [Action Scope]. It allocates a fresh [Grant Id], stamps [Grant Instant], records the grant in [Active], and returns the [Grant Id]. A pair an active grant already covers is no ground for refusal: duplicate grants for the same (subject, scope) pair are independent records, each with its own id.
+The behavior an administrator or composing pattern invokes to record a new grant binding a [Subject Reference] to an [Action Scope]. Where no active grant matches the pair, it allocates a fresh [Grant Id], stamps [Grant Instant], records the grant in [Active], and returns the [Grant Id]. A pair an active grant already matches is no ground for refusal and no ground for a second record: the call answers the [Grant Id] of the grant in force and writes nothing, so a (subject, scope) pair is held once.
 
 Kind: Operation
 
@@ -596,18 +600,17 @@ It inherits from:
 
 ## Status
 
-`done — 2026-11-04` — see the Ledger.
+`doing` — see the Ledger.
 
 ## Ledger
 
 ```
-status: done — 2026-11-04
-formal: verified — permissions.als + 10 twins (the static data model, re-derived 2026-11-12 as every version an ordered sequence of admitted [Grant] and [Revoke] calls leaves: State 1 through 5, Identity 1, Invariant 8.1, Operation 2, 4 and 5, String 6; the 2026-06-03 model's pre/post checks of Invariant 1, 2, 3 and 10 and its checks of [Check]'s answer taken over by the TLA+ model); permissions.tla + 23 twins (the operation sequences, 2026-11-12, while the clock moves: Invariant 1.1, 2.2, 4.1, 4.2, 5.1, 7.1, 9.1, 9.2 and 10.1, Identity 8, Check 2.1, Operation 1, 6, 7, 9, 10, 11, 15, 17, 20, 26 and 28, with Invariant 1.2, 3.2 and 6.1, Identity 3, 6 and 7, Operation 3, 13, 18, 21 and 22 checked through them); Invariant 9.2 at an instant a grant was both granted and revoked in is a finding (the grant stood in active at that instant and is not live at it; the model reads an instant at its end); Invariant 6.2 cannot be stated; coverage 2026-11-12 (unit `atoms/permissions.md formal layer`): owed rows: Operation 27; String 1 through 4 and 7, 2026-11-12
+status: doing
+formal: pending — permissions.als + 10 twins and permissions.tla + 23 twins (verified 2026-11-12) model the rule of 2026-11-16 reversed: Identity 7 and Operation 6 as they stood (the checked property Op6_CoveredPairGranted, broken by the twin permissions-buggy-grant-refuses-covered) and Grant concurrency 1 as it stood (two grants for two concurrent calls); owed over Identity 7, Invariant 11.1, Operation 1, 33 and 34 and Grant concurrency 1, with the twins the rule makes equivalent retired or replaced (permissions-buggy-check-latest-grant-only reads one grant per pair) and tools/harness/coverage/permissions.md's rows for Identity 7 and Grant concurrency 1 rewritten with them
 last gate: 2026-11-04 — Final Critique 10, delta, frozen at 582c382 — foundational count 0, clean, one sample
 
 open:
 - 2026-10-21-c · refining · Revoke persistence 2, 4 · the caller's retry of a refused revoke names no terminus (Pass 1: every retry loop names its terminus), and the deployment that raises the alert is declared only as an alias of the deployment → name the bound at which the caller stops and what it raises there; say which deployments alert
-- 2026-10-21-e · refining · Grant concurrency 2 · one authoritative grant and the guard against a concurrent issue name neither what the composing pattern guards nor how, while the atom refuses no covered pair (Operation 6) → name what the composing pattern guards, outside the atom
 - 2026-10-21-f · refining · Term seam; Term transition; Term business caller · each says the section titled Logic Confinement Principle in `execution-contract.md` declares it, and that section declares none of the three → declare the three there, the corpus's one seam wording, or point each at its declaration
 - 2026-10-26-a · refining · Identity 2; Capability requirement 1, 4 through 6 · the grant id's source is named as the host's allocation (Identity 2) and not among what the deployment supplies, where the atom shape in `spec-format.md` lists an id source under Capability requirement; Approval Step (its 2026-10-26-a), Assignment (its 2026-10-26-a), Event Log (its 2026-10-22-b) and Tamper Evidence (its 2026-10-22-a) route the same form → name the source among the Capability requirements, in the one form the corpus settles for its twenty host-allocation atoms
 - 2026-10-26-b · refining · Operation 16 through 22; the signature block · the rules name the action [Check] and the signature block declares it as permitted, and only the Check entry, a term entry, which carries no obligation (GRACE-lang Surface 25 and 27), says the one is the other; permitted is also one of [Check]'s two answers → name the action alike in the rules and on the wire, whose permitted every composing page calls, or tie the two names on the normative surface in the form the corpus settles for the wire layer (the Watch list's the wire layer)

@@ -147,7 +147,7 @@
    "permissions",
    "actor-identity"
   ],
-  "grounded": true,
+  "grounded": false,
   "invariants": 9,
   "kind": "composition",
   "models": {
@@ -165,7 +165,7 @@
    "PCI DSS",
    "SOX"
   ],
-  "status": "done \u2014 2026-11-05",
+  "status": "doing",
   "substrates": [],
   "title": "Attributed Permissions Admin"
  },
@@ -1157,8 +1157,8 @@
    "shared-todo"
   ],
   "domain": null,
-  "grounded": true,
-  "invariants": 10,
+  "grounded": false,
+  "invariants": 11,
   "kind": "atom",
   "models": {
    "als": true,
@@ -1191,7 +1191,7 @@
    "SOC 2",
    "SOX"
   ],
-  "status": "done \u2014 2026-11-04",
+  "status": "doing",
   "title": "Permissions"
  },
  "personal-todo": {

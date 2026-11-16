@@ -98,6 +98,7 @@ Deleted: Action wiring 67. Action wiring 63 through 65 own it: an absent attesta
 
 ```
 Deleted: Wiring decision 3. Execution Contract Database 1 owns it.
+Deleted: Wiring decision 8. Permissions Identity 7 owns it: a pair holds one active grant, so the composition forbids no second one and Action wiring 103 through 106 answer an issuance on a held pair.
 ```
 
 ### Composition logic › Housekeeping
@@ -131,6 +132,12 @@ Deleted: External check 3. Execution Contract Database 1 owns it.
 Deleted: External check 4. Execution Contract Database 3 owns it.
 ```
 
+### Non-goals
+
+```
+Deleted: Non-goal 10. Permissions Identity 7 owns it: the constituent keeps one grant per pair, so the composition deduplicates nothing and a deduplication layer has nothing to do.
+```
+
 ### Edge cases › Atomic writes
 
 ```
@@ -153,6 +160,7 @@ Deleted: Clock semantics 8. Clock dependence 1 owns it.
 ### Edge cases › Concurrency
 
 ```
+Deleted: Concurrency 3. Permissions Identity 7 owns it: a pair holds one active grant, so there is no second grant to read as a defect.
 Deleted: Concurrency 4. Execution Contract Database 2 owns it.
 Deleted: Concurrency 5. Execution Contract Database 2 owns it.
 Deleted: Concurrency 9. Execution Contract Database 2 owns it: a pair-scoped revocation's enumeration and the revocations it decides are one transaction, so no issuance commits inside the sweep for a critical section to keep out.

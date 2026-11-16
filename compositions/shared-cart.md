@@ -396,7 +396,7 @@ Two friends adding one item to one cart at once are serialized (Execution Contra
 
 ### Indeterminate outcome
 
-A caller whose answer is lost may call again, and the repeat is a second call (Execution Contract Error model 1). A repeated [Add Line] where the first landed answers already-in-cart, and [View Cart] then shows the line with its adder; a repeated [Share Cart] records a second grant of the same verb scope, which grants nothing more; a repeated [Unshare Cart] answers not-active; a repeated [Change Quantity] answers ok again and appends a second cart event, one for each call made.
+A caller whose answer is lost may call again, and the repeat is a second call (Execution Contract Error model 1). A repeated [Add Line] where the first landed answers already-in-cart, and [View Cart] then shows the line with its adder; a repeated [Share Cart] answers the grant id of the grant already in force for that verb scope and records nothing more (Permissions Operation 33); a repeated [Unshare Cart] answers not-active; a repeated [Change Quantity] answers ok again and appends a second cart event, one for each call made.
 
 ---
 

@@ -28,6 +28,8 @@ Entries that record a round or a migration rather than a turn the pattern took.
 
 - **2026-11-02 — The string cap has a default.** *Chose:* the string cap stated as 256 Unicode code points where a deployment declares none, and Capability requirement 5 turned from *supply* to *declare*, citing Execution Contract Input 2; String 6, String 7 and Capability requirement 6 stand. *Over:* a cap the deployment must supply before the atom can refuse an over-long string. *Because:* the maintainer ruled on 2026-11-01 that what the host must bound takes one posture, a corpus default a deployment may override; both string inputs, a subject reference and an action scope, are identifiers, and 256 code points holds an email address (254) with room to spare.
 
+- **2026-11-16 — A person holds a permission once.** *Chose:* at most one active grant over one pair (Identity 7, Invariant 11.1); [Grant] on a pair an active grant matches answers that grant's id and writes nothing (Operation 33, Operation 34); two concurrent [Grant] calls on one pair record one grant (Grant concurrency 1, by Execution Contract Database 2); Operation 6 and Grant concurrency 2 deleted; a revoked pair may be granted again, as a new grant. *Over:* the choice of 2026-09 that two grants over one pair are two independent facts, with Operation 6 (a covered pair is no ground for refusal) and Grant concurrency 2 (a composing pattern intending one authoritative grant guards a concurrent issue). *Because:* the maintainer ruled on 2026-11-16 ("we are not even talking about what different people do I am logged in as me and can add the same thing 10 times. it makes no sense"; "People with admin rights can set other peoples rights, People can only have one of each boolean"). The reason the old choice gave, that two administrators granting on two days is two facts, is the composing pattern's to keep: who granted and when is Actor Identity's attestation and Event Log's record, and the atom's own ledger already held the doubt open (2026-10-21-e, which this closes). A second administrator granting a held permission changes nothing in the grant records, and a revoke ends the access whole, which is what an administrative surface asked of the atom all along (the beacon demo's screen listed one person twelve times).
+
 ## Migration notes
 
 - **2026-09-15 — Capability requirement 1, moved from Operation.** What the deployment supplies, which is what the family means. The rule stood under `Operation` — one action's rules — while naming no action, because this spec was migrated before the standard family had a home in an atom; the five atoms migrated a day later put the same obligation here. The words are the words the rule carried (council read 76).
@@ -65,6 +67,7 @@ Deleted: Clock semantics 3. Non-goal 17 owns it.
 ### Structure › Operations
 
 ```
+Deleted: Operation 6. Operation 33 and Operation 34 own what [Grant] answers and writes on a pair an active grant matches (Identity 7, Invariant 11.1).
 Deleted: Operation 8. Execution Contract Database 1 owns it.
 Deleted: Operation 12. Execution Contract Database 1 and Execution Contract Database 2 own it.
 Deleted: Operation 14. Execution Contract Database 3 owns it.
@@ -119,6 +122,7 @@ Deleted: Deprovisioning 1. Identity 8 owns one revoke reaching one grant.
 ### Edge cases › Grant concurrency and revoke concurrency
 
 ```
+Deleted: Grant concurrency 2. Identity 7 owns it: the atom itself keeps one grant per pair, so no composing pattern guards a concurrent issue.
 Deleted: Revoke concurrency 1. Execution Contract Database 2 owns it.
 Deleted: Revoke concurrency 2. Execution Contract Database 2 owns it.
 ```

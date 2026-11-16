@@ -22,7 +22,7 @@ Attributed Permissions Admin makes sure every access grant and every revocation 
 
 Combining the two produces guarantees neither has alone: no grant issued through the composition lacks attribution, every revocation through it is attributed, and given any grant you can recover who authorized it and the proof. One honest limit: someone with direct write access to the underlying grant records could still insert an unattributed grant, bypassing the composition entirely; closing that gap requires the separate Tamper Evidence pattern. A second: the composition administers grants and does not decide whether the grantor was *permitted* to issue one.
 
-The composition also carries the action an administrative surface actually needs and a grant-keyed one cannot give it. Permissions answers *denied* only when **no** active grant matches a subject and a scope, and several active grants on one pair are lawful — two administrators may independently authorize the same access. Revoking one of them leaves the permission held. [Revoke Permission] is therefore pair-scoped: it revokes every active grant on the pair, each under its own attestation, and the caller's terminal signal is the evaluation query answering denied rather than a count of records removed.
+The composition also carries the action an administrative surface actually needs and a grant-keyed one cannot give it. Permissions holds a permission once — at most one active grant matches a subject and a scope — and answers *denied* only when none does. An administrator who means *this actor should not have this permission* holds the subject and the scope, not the handle of the grant, so [Revoke Permission] is pair-scoped: it enumerates the pair's active grants, revokes each under its own attestation, and the caller's terminal signal is the evaluation query answering denied rather than a count of records removed. And an administrator who issues a permission already held changes nothing: [Issue Grant] reads the pair first, answers the handle of the grant in force, and attests nothing, as [Revoke Permission] on an empty pair already attests nothing.
 
 The most common uses are administrative access-control panels in SOX (Sarbanes-Oxley Act)-scoped financial systems, HIPAA (Health Insurance Portability and Accountability Act)-regulated health-record systems where every access grant must be attributable to the granting administrator, PCI DSS (Payment Card Industry Data Security Standard)-scoped payment systems where Requirement 7 mandates attributed authorization, FDA (US Food and Drug Administration)-regulated pipelines under 21 CFR (Title 21 of the Code of Federal Regulations) Part 11 where branch-protection grants must carry a verifiable approver, and legal document systems where matter-level grants must be attributable to the responsible partner. In every case the mechanic is the same — attest first, record second, pair third — and the audit answer is structural.
 
@@ -127,7 +127,7 @@ Term attribution entry: a grant attribution entry OR a revocation attribution en
 
 Term orphan log: the composition's append-only operational record of an attestation that landed and whose administrative write did not — the composing system's retry and review surface, never the audit's orphan detection.
 
-Term underlying reason: invalid-request | not-known | not-active.
+Term underlying reason: invalid-request | not-known | not-active | already-held.
 
 Term orphan attestation: an attestation this composition minted that no attribution entry names.
 
@@ -251,7 +251,7 @@ permitted(subject_ref, action_scope)
   answers permitted | denied
 ```
 
-Term grant issuance result: grant id and attestation id — what issue_grant answers.
+Term grant issuance result: grant id and attestation id — what issue_grant answers; the grant id alone where the pair already holds an active grant (Action wiring 104).
 
 Term grant revocation result: ok and attestation id — what revoke_grant answers.
 
@@ -262,16 +262,20 @@ Term attribution record: grant_record, issuance_attestation_id, issuance_verify_
 Term issuance orphan position: pre-grant — where an issuance attestation was left without its grant: before the grant.
 
 ```
-Action wiring 1: An issuance MUST assemble the proposal PER the grant proposal format.
-Action wiring 2: An issuance MUST call Actor Identity's attest with the proposal, the grantor AND the grantor's credential.
+Action wiring 1: IF the read answers no active grant for the pair THEN an issuance MUST assemble the proposal PER the grant proposal format.
+Action wiring 2: IF the read answers no active grant for the pair THEN an issuance MUST call Actor Identity's attest with the proposal, the grantor AND the grantor's credential.
 Action wiring 3: IF Actor Identity answers invalid-credential THEN [Issue Grant] MUST answer invalid-credential.
 Action wiring 4: IF Actor Identity answers invalid-request THEN [Issue Grant] MUST answer invalid-request.
 Action wiring 5: IF Actor Identity answers storage-failure THEN [Issue Grant] MUST answer attribution-storage-failure (Execution Contract Constituent failure 1).
 Action wiring 6: IF Actor Identity refuses the attest THEN the invocation MUST NOT call Permissions' grant.
-Action wiring 7: An admitted issuance MUST call Permissions' grant with the subject AND the scope.
+Action wiring 7: An admitted issuance that attested MUST call Permissions' grant with the subject AND the scope.
 Action wiring 8: IF Permissions answers invalid-request THEN [Issue Grant] MUST answer orphan-attestation carrying pre-grant.
 Action wiring 10: IF Permissions answers invalid-request THEN the invocation MUST log the orphan.
-Action wiring 15: An admitted issuance MUST answer the grant's handle AND the attestation.
+Action wiring 15: An admitted issuance that attested MUST answer the grant's handle AND the attestation.
+Action wiring 103: An issuance MUST read the pair's active grants through Permissions' declared read.
+Action wiring 104: IF the read answers an active grant for the pair THEN [Issue Grant] MUST answer the active grant's handle without an attestation.
+Action wiring 105: IF the read answers an active grant for the pair THEN the invocation MUST NOT call Actor Identity's attest.
+Action wiring 106: IF the read answers an active grant for the pair THEN the invocation MUST NOT call Permissions' grant.
 Action wiring 16: A revocation MUST assemble the proposal PER the revocation proposal format.
 Action wiring 17: A revocation MUST call Actor Identity's attest with the proposal, the revoker AND the revoker's credential.
 Action wiring 18: IF Actor Identity answers invalid-credential THEN [Revoke Grant] MUST answer invalid-credential.
@@ -374,7 +378,6 @@ Wiring decision 4: The composition MUST NOT delete an orphan attestation.
 Wiring decision 5: The composition MUST read an orphan attestation as evidence of an attempted act.
 Wiring decision 6: The composition MUST expose a pair-scoped revocation.
 Wiring decision 7: The composition MUST NOT serialize an administrative act over the pair.
-Wiring decision 8: The composition MUST NOT forbid a second active grant on one pair.
 ```
 
 <details markdown="block">
@@ -483,11 +486,11 @@ A hospital's administration console grants a nurse read access to a patient reco
 
 ### Walkthrough — the permission, not the grant
 
-Two managers have independently granted `"analyst_9"` the scope `"ledger:export"`. Both grants are active and both are lawful. An administrator means *this analyst should not have this permission*.
+`"analyst_9"` holds the scope `"ledger:export"`, one active grant. An administrator means *this analyst should not have this permission* and holds the subject and the scope, not the grant's handle.
 
-- `revoke_grant(<one handle>, …)` answers ok — and `permitted("analyst_9", "ledger:export")` still answers **permitted**. One record is gone; the permission is not. An administrative surface that offered that button as *remove permission* misreported access.
-- `revoke_permission("analyst_9", "ledger:export", "security_lead", <cred>)` enumerates both grants, attests **twice** under one request instant, revokes both, and pairs both. It answers the two handles and the two attestations. permitted now answers denied, which is the caller's terminal signal — not the count of two.
-- The auditor reads the two revocation attestations, same revoker, same instant, two grants of one pair, and sees **one administrative act** without the composition minting a field to say so.
+- `revoke_permission("analyst_9", "ledger:export", "security_lead", <cred>)` enumerates the pair's active grants, attests once under the request instant, revokes the grant, and pairs it. It answers the one handle and the one attestation. permitted now answers denied, which is the caller's terminal signal — not the count of one.
+- The auditor reads the revocation attestation and the grant it names, and sees one administrative act without the composition minting a field to say so.
+- `issue_grant("analyst_9", "ledger:export", "records_mgr_02", <cred>)` while the grant stands reads the pair first: an active grant matches, so the call answers that grant's handle alone, attests nothing and calls Permissions' grant not at all (Action wiring 103 through 106). A second manager issuing the same access changes nothing in the Permissions records and adds no attestation; who else asked is Event Log's to keep, outside this composition.
 
 ### Rejection path — nothing to revoke
 
@@ -581,7 +584,6 @@ Non-goal 6: The composition MUST NOT model a delegation.
 Non-goal 7: The composition MUST NOT bound a grant by time.
 Non-goal 8: The composition MUST NOT revoke a grantor's issued grants on the grantor's deprovisioning.
 Non-goal 9: The composition MUST NOT modify a grant.
-Non-goal 10: The composition MUST NOT deduplicate a concurrent issuance.
 Non-goal 11: The composition MUST NOT own pairing records as an atom.
 Non-goal 12: The composition MUST NOT own an operational journal as an atom.
 Non-goal 13: The composition MUST NOT seal the composition's own state.
@@ -591,7 +593,7 @@ Non-goal 16: The composition MUST NOT validate a scope vocabulary.
 Non-goal 17: The composition MUST NOT anchor a stamp to a trusted time source.
 ```
 
-NOTE: the owners — the organization (Non-goal 8); a deduplication layer (Non-goal 10); a witness or approval pattern (Non-goal 15).
+NOTE: the owners — the organization (Non-goal 8); a witness or approval pattern (Non-goal 15).
 
 ---
 
@@ -629,12 +631,13 @@ Clock semantics 11: A check comparing two seams' stamps MUST run under the clock
 ### Concurrency
 
 ```
-Concurrency 1: Two issuances over one pair MUST produce two grants.
-Concurrency 2: Two issuances over one pair MUST produce two attestations.
-Concurrency 3: The composition MUST NOT read a second grant on one pair as a defect.
+Concurrency 1: Two concurrent issuances over one pair MUST produce ONE grant.
+Concurrency 2: Two issuances over one pair that both read the pair unheld MUST produce two attestations.
 Concurrency 6: A pair-scoped revocation MUST NOT serialize over the pair.
 Concurrency 7: A post-enumeration grant MUST survive the enumeration's invocation.
 Concurrency 8: A caller MUST call a pair-scoped revocation again ONLY IF the evaluation answers permitted.
+Concurrency 10: IF Permissions answers a handle the grant attribution map already names THEN [Issue Grant] MUST answer orphan-attestation carrying pre-grant.
+Concurrency 11: IF Permissions answers a handle the grant attribution map already names THEN the orphan log entry MUST carry the underlying reason already-held.
 ```
 
 ---
@@ -671,7 +674,7 @@ Term cadences: empty.
 
 Term qualifiers: migrated — rewritten in GRACE lang v0.42 (2026-09-15).
 
-Term value sets: verify result = verified | failed-verification(reason) | not-known | not-applicable(purged). underlying reason = invalid-request | not-known | not-active. retention scope = pair-scoped | per-store.
+Term value sets: verify result = verified | failed-verification(reason) | not-known | not-applicable(purged). underlying reason = invalid-request | not-known | not-active | already-held. retention scope = pair-scoped | per-store.
 
 Term terms: pair, composition, constituents, administered grant, administrative act, grant attribution map, revocation attribution map, attribution entry, orphan log, underlying reason, orphan attestation, binding registry, seam, transition, grant proposal format, revocation proposal format, namespace prefix, retention scope, purge record, clock offset allowance, length cap, blank, boundary predicate, opaque input, administered opaque input, admitted issuance, admitted revocation, pair-scoped revocation, enumerated set, verify result, tamper reading, lawful destruction, consistent attribution, forensic finding, failed-grant leg, post-enumeration grant, aged-out attestation, landed attestation, retention horizon, purge-pending orphan, non-conformant purge, issuance orphan position, grant issuance result, grant revocation result, permission revocation result, attribution record.
 
@@ -782,13 +785,13 @@ It inherits from:
 
 ## Status
 
-`done — 2026-11-05` — see the Ledger.
+`doing` — see the Ledger.
 
 ## Ledger
 
 ```
-status: done — 2026-11-05
-formal: verified — attributed-permissions-admin.als + 25 twins (the static data model, re-derived 2026-11-11 over the records a set of calls leaves, the 2026-06-12 trace model's `var` state, `always` checks and `eventually` runs gone: Invariant 1.1, 2.1, 4.1, 4.2, 7.1 through 7.3, 7.5, 7.6, 9.1 and 9.2, Composition state 11 through 13, 19 and 28, Identity 9, 11, 12 and 13, and the failed-grant leg's report over every state it can read, Housekeeping 3, 4, 13 and 15 through 18); attributed-permissions-admin.tla + 13 twins + 10 probes (the operation sequences, 2026-06-12, extended 2026-11-11 with the .als's stepping checks as WellFormed and the action properties PairingDurable, RevocationTerminal, AttestBeforeRecord and OrphanLogDurable, its two `eventually` runs as -probe-revoked, and the attribution query's pair-scoped arm re-pointed to Action wiring 63 through 65, closing 2026-11-04-b); nothing testable in Alloy or TLA+ for Housekeeping 14: Housekeeping 13 obliges the leg to age by the request instant, so its antecedent never holds of a conforming leg; Identity 10 states no rule a check could hold (the .als's ShowTwoSweepsOneKey: two pair-scoped revocations of one pair by one revoker at one request instant share the grouping key, a finding); closes 2026-08-30-b; coverage 2026-11-11 (unit `compositions/attributed-permissions-admin.md formal layer`): owed rows: Composition state 28's orphan log entry (open line 2026-10-27-b), 2026-11-11
+status: doing
+formal: pending — attributed-permissions-admin.als + 25 twins and attributed-permissions-admin.tla + twins (verified 2026-11-11) model the rule of 2026-11-16 reversed: Wiring decision 8 and Concurrency 1 to 3 as they stood (two issuances over one pair, two grants) and an issuance with no read of the pair; owed over Action wiring 1, 2, 7 and 103 through 106, Concurrency 1, 2, 10 and 11 and the underlying reason already-held, the twins re-derived with them
 last gate: 2026-11-05 — Final Critique 10, delta, frozen at a6a6920 — foundational count 0, clean, one sample
 
 open:
