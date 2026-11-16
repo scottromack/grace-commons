@@ -26,7 +26,7 @@ hook or CI gate — and as of 2026-06-11 it **is** the CI gate:
 every push to `main` and every pull request.
 
 **The built site's own link check.** `python3 tools/linter/site_links.py [_site]` reads the HTML `jekyll build` wrote and checks that every
-internal link names a file the build wrote and that a `#fragment` on it is an `id` or a `name` of that page; it exits `1` and prints each dead link.
+internal link names a file the build wrote and that a `#fragment` on it is an `id` or a `name` of that page; it exits `1` and prints each dead link, and that no `id` is carried by two elements of one page (a script or a link that names it reaches the first: Live Status once filled its own heading); it exits `1` and prints each dead link and each such id.
 [`.github/workflows/pages.yml`](../../.github/workflows/pages.yml) runs it after the build and before the artifact is uploaded, so a build with a
 dead internal link does not deploy (unit `site: the links between pages work again`; the file-path links the site's own pages carry, `./method.md`,
 were all dead for a few hours once the build stopped turning them into addresses). `test_site_links.py` pins it on a synthetic site.

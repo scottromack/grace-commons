@@ -18,12 +18,12 @@ parent: Evidence
 
 ## Latest runs
 
-<div id="live-status">Loading the latest runs from the GitHub API…</div>
+<div id="box-latest-runs">Loading the latest runs from the GitHub API…</div>
 
 <script>
 (function () {
   var repo = "scottromack/grace-commons";
-  var el = document.getElementById("live-status");
+  var el = document.getElementById("box-latest-runs");
   // verify.yml has two kinds of run (unit `tooling: the public audit finishes`): the whole library, nightly, on
   // Saturdays and by hand, which no push cancels and which is the library's proof; and the push run, which audits
   // what the push changed and is the proof of a change. Each gets its own row.

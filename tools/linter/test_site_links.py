@@ -59,5 +59,20 @@ class SiteLinks(unittest.TestCase):
         self.assertEqual(dead({**self.PAGES, "index.html": page(links)}), 0)
 
 
+    def test_an_id_two_elements_of_one_page_carry_is_reported_with_both_places(self):
+        import io
+        import contextlib
+        site = build({**self.PAGES, "index.html": page('<h1 id="live-status">x</h1><div id="live-status">y</div>')})
+        out = io.StringIO()
+        with contextlib.redirect_stdout(out), contextlib.redirect_stderr(io.StringIO()):
+            code = site_links.main(["site_links.py", str(site)])
+        self.assertEqual(code, 1)
+        self.assertIn("index.html: id 'live-status' on 2 elements: <h1> at line 1 column", out.getvalue())
+        self.assertIn("<div> at line 1 column", out.getvalue())
+
+    def test_the_same_id_on_two_pages_is_no_fault(self):
+        self.assertEqual(dead({**self.PAGES, "index.html": page('<h2 id="top">a</h2>'), "other.html": page('<h2 id="top">b</h2>')}), 0)
+
+
 if __name__ == "__main__":
     unittest.main()

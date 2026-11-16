@@ -28,6 +28,7 @@ class Page(HTMLParser):
         self.hrefs: list[str] = []
         self.anchors: set[str] = set()
         self.base: str | None = None
+        self.ids: dict[str, list[tuple[str, int, int]]] = {}      # an id -> (tag, line, column) of each element that carries it
 
     def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
         a = {k: v for k, v in attrs if v is not None}
@@ -38,6 +39,9 @@ class Page(HTMLParser):
         for k in ("id", "name"):
             if k in a:
                 self.anchors.add(a[k])
+        if "id" in a:
+            line, col = self.getpos()
+            self.ids.setdefault(a["id"], []).append((tag, line, col))
 
 
 def read(path: Path) -> Page:
@@ -98,10 +102,15 @@ def main(argv: list[str]) -> int:
                     pages[where] = read(where)
                 if unquote(frag) not in pages[where].anchors and frag not in pages[where].anchors:
                     dead.append(f"{rel}: {href}: no anchor #{frag} on {where.relative_to(site)}")
-    for d in dead:
+    twice = []
+    for page, info in pages.items():       # an id two elements of one page carry: a link or a script that names it reaches the first (unit `site: Live Status fills its own box, not its heading`)
+        for ident, at in sorted(info.ids.items()):
+            if len(at) > 1:
+                twice.append(f"{page.relative_to(site)}: id {ident!r} on {len(at)} elements: " + ", ".join(f"<{t}> at line {l} column {c}" for t, l, c in at))
+    for d in dead + twice:
         print(d)
-    print(f"site_links: {len(pages)} pages, {internal} internal links, {len(dead)} dead", file=sys.stderr)
-    return 1 if dead else 0
+    print(f"site_links: {len(pages)} pages, {internal} internal links, {len(dead)} dead, {len(twice)} ids on more than one element of a page", file=sys.stderr)
+    return 1 if dead or twice else 0
 
 
 if __name__ == "__main__":
