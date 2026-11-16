@@ -161,6 +161,8 @@ Capability requirement 35: A deployment MUST declare the retention horizon.
 Capability requirement 36: IF no deployment declaration of the length cap EXISTS THEN the composition's length cap MUST stand as the Permissions instance's length cap (Execution Contract Input 2).
 ```
 
+NOTE: open 2026-11-16-a — the composition's length cap is tied to the Permissions instance's length cap (Capability requirement 29, 36) and to no bound of the Actor Identity instance's string cap, which the attested proposal (the subject, the scope, the nonce and the request instant) can exceed while each field stays inside the cap; the over-length proposal answers invalid-request (Action wiring 4) and no orphan stands, and what bound the composition's cap takes against that string cap is a decision no rule makes.
+
 Term seam: the composition's I/O boundary as the section titled Logic Confinement Principle in `execution-contract.md` declares it; the host injects one clock reading and one nonce here.
 Term now: the deployment's clock reading at the call, as Execution Contract Logic confinement 11 declares it.
 
@@ -271,7 +273,7 @@ Action wiring 6: IF Actor Identity refuses the attest THEN the invocation MUST N
 Action wiring 7: An admitted issuance that attested MUST call Permissions' grant with the subject AND the scope.
 Action wiring 8: IF Permissions answers invalid-request THEN [Issue Grant] MUST answer orphan-attestation carrying pre-grant.
 Action wiring 10: IF Permissions answers invalid-request THEN the invocation MUST log the orphan.
-Action wiring 15: An admitted issuance that attested MUST answer the grant's handle AND the attestation.
+Action wiring 15: IF Permissions answers a handle AND no grant attribution entry EXISTS for the handle THEN an admitted issuance that attested MUST answer the grant's handle AND the attestation.
 Action wiring 103: An issuance MUST read the pair's active grants through Permissions' declared read.
 Action wiring 104: IF the read answers an active grant for the pair THEN [Issue Grant] MUST answer the active grant's handle without an attestation.
 Action wiring 105: IF the read answers an active grant for the pair THEN the invocation MUST NOT call Actor Identity's attest.
@@ -631,7 +633,7 @@ Clock semantics 11: A check comparing two seams' stamps MUST run under the clock
 ### Concurrency
 
 ```
-Concurrency 1: Two concurrent issuances over one pair MUST produce ONE grant.
+Concurrency 1: Two concurrent issuances over one pair MUST produce one grant.
 Concurrency 2: Two issuances over one pair that both read the pair unheld MUST produce two attestations.
 Concurrency 6: A pair-scoped revocation MUST NOT serialize over the pair.
 Concurrency 7: A post-enumeration grant MUST survive the enumeration's invocation.
@@ -715,7 +717,7 @@ Role: the append-only orphan record
 
 #### Orphan Attestation
 
-The composition's outcome of [Issue Grant], answered and not refused, when Permissions turned the grant away with invalid-request after the attestation landed (Action wiring 8), leaving an attestation no attribution entry names: the call's attestation and orphan log entry commit (Action wiring 101). **Its payload carries the position:** pre-grant means no grant committed and the caller may retry.
+The composition's outcome of [Issue Grant], answered and not refused, when Permissions turned the grant away with invalid-request (Action wiring 8) or answered a handle the grant attribution map already names (Concurrency 10) after the attestation landed, leaving an attestation no attribution entry names: the call's attestation and orphan log entry commit (Action wiring 101). **Its payload carries the position:** pre-grant means no grant committed and the caller may retry.
 
 Kind:       Member
 Member of:  the administration outcome
@@ -791,11 +793,12 @@ It inherits from:
 
 ```
 status: doing
-formal: pending — attributed-permissions-admin.als + 25 twins and attributed-permissions-admin.tla + twins (verified 2026-11-11) model the rule of 2026-11-16 reversed: Wiring decision 8 and Concurrency 1 through 3 as they stood (two issuances over one pair, two grants) and an issuance with no read of the pair; owed over Action wiring 1, 2, 7 and 103 through 106, Concurrency 1, 2, 10 and 11 and the underlying reason already-held, the twins re-derived with them
-last gate: 2026-11-05 — Final Critique 10, delta, frozen at a6a6920 — foundational count 0, clean, one sample
+formal: pending — attributed-permissions-admin.als + 25 twins and attributed-permissions-admin.tla + twins (verified 2026-11-11) model the rule of 2026-11-16 reversed: Wiring decision 8 and Concurrency 1 through 3 as they stood (two issuances over one pair, two grants) and an issuance with no read of the pair; owed over Action wiring 1, 2, 7, 15 and 103 through 106, Concurrency 1, 2, 10 and 11 and the underlying reason already-held, the twins re-derived with them
+last gate: 2026-11-16 — Final Critique 11, a delta round, one reader (Linus minimax-m3), frozen at 1619f21 — foundational count 1, cured, not clean, no sample; 2026-11-05 — Final Critique 10, delta, frozen at a6a6920 — foundational count 0, clean, one sample
 
 open:
 - 2026-11-04-a · refining · Action wiring · the section carries no closure table as the subsection's first block (spec-format, composition shape): for every action, every constituent call it makes and each call's answer, refusals, failed read and call that never answers, each with the rule that lands it → draft the table in Recoverable Invocation's form before any further rule, in a unit of its own
+- 2026-11-16-a · refining · Capability requirement 29, 36 · the composition's length cap is tied to the Permissions instance's length cap and to no bound of the Actor Identity instance's string cap, which the attested proposal can exceed with each field inside the cap → say what bound the composition's cap takes against Actor Identity's string cap
 - 2026-10-27-b · refining · Composition state 16, 17, 19, 28 · an orphan log entry carries the proposal and is never dropped, while its orphan attestation is purged under its own retention → say whether a purge covers the entry, or the entry ages out on a retention of its own
 ```
 
