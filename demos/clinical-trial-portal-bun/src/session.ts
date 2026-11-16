@@ -6,7 +6,7 @@
 // holds the token raw (Capability requirement 6 leaves that to it; Beacon's choice, said in the entry),
 // and no read answers it (Operation 52). A revoke is a new version of the record under the same _id
 // (Execution Contract Database 5); a lapse writes nothing (Expiry 2, Invariant 12.3).
-import { Store, Guard, type Row } from "./store.ts";
+import { Store, Guard, type Row, type Stmt } from "./store.ts";
 import { type Seam, isBlank } from "./seam.ts";
 
 export type SessionRefusal = "invalid-request" | "not-known" | "already-terminal" | "storage-failure";
@@ -58,7 +58,8 @@ export class Session {
     return s.status === "active" && now >= s.expires_at;
   }
 
-  async issue(principal_ref: string, issued_by_ref: string, session_duration?: number | null): Promise<{ session_token: string } | { refused: SessionRefusal }> {
+  /** The statements that record one session, or the refusal, to commit alone (`issue`) or beside an action's other writes. */
+  planIssue(principal_ref: string, issued_by_ref: string, session_duration?: number | null): { session_token: string; stmts: Stmt[] } | { refused: SessionRefusal } {
     if (isBlank(principal_ref) || isBlank(issued_by_ref)) return { refused: "invalid-request" };              // Operation 4, 5
     if (this.tooLong(principal_ref) || this.tooLong(issued_by_ref)) return { refused: "invalid-request" };    // String 7
     const d = this.config.defaultDurationSeconds;
@@ -73,18 +74,27 @@ export class Session {
     const now = this.seam.now();                                                                             // Operation 9
     const expires = new Date(Date.parse(now) + seconds * 1000).toISOString();                                // Operation 10, 11
     const token = this.seam.sessionToken();                                                                  // Identity 3, Operation 58
-    try {
-      await this.store.commit([
+    return {
+      session_token: token,
+      stmts: [
         this.store.assertNone(T, "_id = $1", [token], "token-held"),                                         // Invariant 7.1
         this.store.put(T, {
           _id: token, principal_ref, issued_by_ref, issued_at: now, expires_at: expires, status: "active",   // Operation 2, 50, 51
           revoked_at: null, revoked_by_ref: null, revocation_reason: null,
         }),
-      ]);
+      ],
+    };
+  }
+
+  async issue(principal_ref: string, issued_by_ref: string, session_duration?: number | null): Promise<{ session_token: string } | { refused: SessionRefusal }> {
+    const p = this.planIssue(principal_ref, issued_by_ref, session_duration);
+    if ("refused" in p) return p;
+    try {
+      await this.store.commit(p.stmts);
     } catch {
       return { refused: "storage-failure" };                                                                 // Operation 12
     }
-    return { session_token: token };                                                                         // Operation 3
+    return { session_token: p.session_token };                                                               // Operation 3
   }
 
   async validate(session_token: string): Promise<{ valid: { principal_ref: string; expires_at: string } } | { invalid: ValidationFailure }> {
@@ -95,18 +105,27 @@ export class Session {
     return { valid: { principal_ref: s.principal_ref, expires_at: s.expires_at } };                          // Operation 18, 19
   }
 
-  async revoke(session_token: string, revoked_by_ref: string, reason: string): Promise<"revoked" | { refused: SessionRefusal }> {
+  /** The statements that revoke one session, or the refusal, to commit alone (`revoke`) or beside an action's other writes. */
+  async planRevoke(session_token: string, revoked_by_ref: string, reason: string): Promise<{ stmts: Stmt[] } | { refused: SessionRefusal }> {
     const s = (await this.store.read<Stored>(`SELECT * FROM ${T} WHERE _id = $1`, [session_token ?? ""]))[0];
     if (!s) return { refused: "not-known" };                                                                 // Operation 22
     if (s.status === "revoked") return { refused: "already-terminal" };                                      // Operation 23, 24
     if (isBlank(revoked_by_ref) || this.tooLong(revoked_by_ref)) return { refused: "invalid-request" };      // Operation 25, String 9
     if (isBlank(reason) || typeof reason !== "string") return { refused: "invalid-request" };                // Operation 26, 57
     const now = this.seam.now();                                                                             // Operation 27: a lapsed session is accepted
-    try {
-      await this.store.commit([
+    return {
+      stmts: [
         this.store.assertSome(T, "_id = $1 AND status = 'active'", [s._id], "terminal"),
         this.store.put(T, { ...s, status: "revoked", revoked_at: now, revoked_by_ref, revocation_reason: reason }), // Operation 28 to 31
-      ]);
+      ],
+    };
+  }
+
+  async revoke(session_token: string, revoked_by_ref: string, reason: string): Promise<"revoked" | { refused: SessionRefusal }> {
+    const p = await this.planRevoke(session_token, revoked_by_ref, reason);
+    if ("refused" in p) return p;
+    try {
+      await this.store.commit(p.stmts);
     } catch (e) {
       if (e instanceof Guard) return { refused: "already-terminal" };
       return { refused: "storage-failure" };                                                                 // Operation 34

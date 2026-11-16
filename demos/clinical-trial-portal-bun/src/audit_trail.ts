@@ -12,7 +12,7 @@
 // Not rendered here, said so and not hidden: [Seal Now] and its sealing lock (Lease), [Read Record],
 // [Verify Record], [Record Destruction], the reconciliation scan and Defensible Retention. They are
 // the audit surface of the portal, rendered with it; Login reaches none of them.
-import { Store, Guard, type Row } from "./store.ts";
+import { Store, Guard, type Row, type Stmt } from "./store.ts";
 import { type Seam, isBlank } from "./seam.ts";
 import { canonical } from "./canonical.ts";
 import { EventLog } from "./event_log.ts";
@@ -72,50 +72,70 @@ export class AuditTrail {
     return typeof p === "function" ? p(action_ref, actor_ref, data) : p;                                      // Primitive policy 17: only a selector reads data
   }
 
+  /**
+   * Steps 1 to 4 as statements, to commit alone (`recordAction`) or beside the other writes of one action
+   * (a composing pattern's own transaction, Database 1), or the refusal with what step 7.11 keeps. The
+   * index write of step 5 is `indexStmt`, to run after the commit (Composition state 1).
+   */
+  async plan(action_ref: string, actor_ref: string, credential: string, data?: unknown): Promise<
+    | { event_id: string; stmts: Stmt[]; indexStmt: Stmt }
+    | { refusal: RecordRefusal; keep: Stmt[] }
+  > {
+    if (!this.step1(action_ref, actor_ref, data)) return { refusal: { refused: "invalid-request", step: "step-1", committed_ids: [] }, keep: [] }; // step 1, 7.10
+    // Step 2: attest. The credential is consumed here and nowhere else (Primitive policy 10 to 14).
+    const att = await this.actors.plan(action_ref, actor_ref, credential);
+    if ("refused" in att) {
+      if (att.refused === "invalid-credential") return { refusal: { refused: "invalid-credential" }, keep: [] };                  // step 2.2: unchanged
+      if (att.refused === "invalid-request") return { refusal: { refused: "invalid-request", step: "step-2", committed_ids: [] }, keep: [] }; // step 2.3
+      return { refusal: { refused: "recording-failure", step: "step-2" }, keep: [] };                                              // step 2.4, 2.14: storage and registry; a mechanism that cannot answer is read the same way
+    }
+    // Step 3: append the full constructed payload (step 3.1); the log stamps the instant (step 3.2).
+    const payload = { action_ref, actor_ref, attestation_id: att.attestation_id, data: data ?? null };
+    const ev = await this.log.plan([payload]);
+    if ("refused" in ev) {                                                                                  // step 3.4: invalid-payload
+      return { refusal: { refused: "invalid-request", step: "step-3", committed_ids: [att.attestation_id] }, keep: att.stmts };   // step 7.11, 7.15
+    }
+    const event_id = ev.event_ids[0];
+    // Step 4: place the retention, record reference the event id (step 4.3).
+    const ret = await this.retention.plan(event_id, this.policyFor(action_ref, actor_ref, data));
+    if ("refused" in ret) {
+      if (ret.refused === "invalid-request" || ret.refused === "invalid-policy" || ret.refused === "policy-not-found")
+        return { refusal: { refused: "invalid-request", step: "step-4", committed_ids: [att.attestation_id, event_id] }, keep: [...att.stmts, ...ev.stmts] }; // step 4.5, 4.6, 7.11, 7.16
+      return { refusal: { refused: "recording-failure", step: "step-4" }, keep: [] };                      // step 4.8, 4.10: storage and registry; nothing committed
+    }
+    return {
+      event_id,
+      stmts: [...att.stmts, ...ev.stmts, ...ret.stmts],                                                   // Database 1: the three writes of one action
+      indexStmt: this.store.put(T, { _id: event_id, attestation_id: att.attestation_id, retention_id: ret.retention_id, sequence_number: ev.sequence_numbers[0] }),
+    };
+  }
+
+  /** Step 5: the indexes, derived and outside the action's atomicity; a failure is a rebuild trigger and never a refusal (5.9, 5.10). */
+  async index(indexStmt: Stmt): Promise<void> {
+    try { await this.store.commit([indexStmt]); } catch { /* rebuilt on a miss */ }
+  }
+
   async recordAction(action_ref: string, actor_ref: string, credential: string, data?: unknown): Promise<{ event_id: string } | RecordRefusal> {
-    if (!this.step1(action_ref, actor_ref, data)) return { refused: "invalid-request", step: "step-1", committed_ids: [] }; // step 1, 7.10
     for (let attempt = 0; attempt < 50; attempt++) {
-      // Step 2: attest. The credential is consumed here and nowhere else (Primitive policy 10 to 14).
-      const att = await this.actors.plan(action_ref, actor_ref, credential);
-      if ("refused" in att) {
-        if (att.refused === "invalid-credential") return { refused: "invalid-credential" };                    // step 2.2: unchanged
-        if (att.refused === "invalid-request") return { refused: "invalid-request", step: "step-2", committed_ids: [] }; // step 2.3
-        return { refused: "recording-failure", step: "step-2" };                                              // step 2.4, 2.14: storage and registry; a mechanism that cannot answer is read the same way
-      }
-      // Step 3: append the full constructed payload (step 3.1); the log stamps the instant (step 3.2).
-      const payload = { action_ref, actor_ref, attestation_id: att.attestation_id, data: data ?? null };
-      const ev = await this.log.plan([payload]);
-      if ("refused" in ev) {                                                                                  // step 3.4: invalid-payload
-        await this.keep(att.stmts);                                                                           // step 7.11: the attestation stays committed
-        return { refused: "invalid-request", step: "step-3", committed_ids: [att.attestation_id] };           // step 7.15
-      }
-      const event_id = ev.event_ids[0];
-      // Step 4: place the retention, record reference the event id (step 4.3).
-      const ret = await this.retention.plan(event_id, this.policyFor(action_ref, actor_ref, data));
-      if ("refused" in ret) {
-        if (ret.refused === "invalid-request" || ret.refused === "invalid-policy" || ret.refused === "policy-not-found") {
-          await this.keep([...att.stmts, ...ev.stmts]);                                                       // step 7.11: the attestation and the event stay committed
-          return { refused: "invalid-request", step: "step-4", committed_ids: [att.attestation_id, event_id] }; // step 4.5, 4.6, 7.16
-        }
-        return { refused: "recording-failure", step: "step-4" };                                              // step 4.8, 4.10: storage and registry; nothing committed
+      const p = await this.plan(action_ref, actor_ref, credential, data);
+      if ("refusal" in p) {
+        if (p.keep.length) await this.keep(p.keep);                                                       // step 7.11: what the refusal keeps is written in its own transaction
+        return p.refusal;
       }
       try {
-        await this.store.commit([...att.stmts, ...ev.stmts, ...ret.stmts]);                                   // Database 1: the three writes of one action
+        await this.store.commit(p.stmts);
       } catch (e) {
-        if (e instanceof Guard) continue;                                                                     // another event landed first: plan again
-        return { refused: "recording-failure", step: "step-3" };                                              // the joint write failed; the page names no finer step for it
+        if (e instanceof Guard) continue;                                                                 // another event landed first: plan again
+        return { refused: "recording-failure", step: "step-3" };                                          // the joint write failed; the page names no finer step for it
       }
-      // Step 5: the indexes, derived and outside the action's atomicity; a failure here is a rebuild trigger and never a refusal (5.9, 5.10).
-      try {
-        await this.store.commit([this.store.put(T, { _id: event_id, attestation_id: att.attestation_id, retention_id: ret.retention_id, sequence_number: ev.sequence_numbers[0] })]);
-      } catch { /* rebuilt on a miss */ }
-      return { event_id };                                                                                    // step 7.1
+      await this.index(p.indexStmt);
+      return { event_id: p.event_id };                                                                    // step 7.1
     }
     return { refused: "recording-failure", step: "step-3" };
   }
 
   /** What an invalid-request(step-3) or (step-4) refusal keeps, written in the refusal's own transaction (step 7.11, 7.12). */
-  private async keep(stmts: import("./store.ts").Stmt[]): Promise<void> {
+  private async keep(stmts: Stmt[]): Promise<void> {
     try { await this.store.commit(stmts); } catch { /* the refusal still answers; the partial state is what the committed ids name */ }
   }
 
