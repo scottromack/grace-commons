@@ -1,0 +1,478 @@
+{
+ "answer_tests": [],
+ "calls": [],
+ "case_tables": [],
+ "checks": [],
+ "composes": [],
+ "guards": [],
+ "ir": 1,
+ "keys": [
+  {
+   "fields": [
+    "gift_id"
+   ],
+   "id": true,
+   "line": 8,
+   "names": [
+    "gift id"
+   ],
+   "rule": "Identity 1",
+   "source": {
+    "how": "fresh",
+    "line": 9,
+    "rule": "Identity 2"
+   },
+   "term": "gift id",
+   "thing": "gift"
+  }
+ ],
+ "kind": "atom",
+ "name": "Gift",
+ "non_goals": [],
+ "projectable": [
+  {
+   "as": "key",
+   "line": 8,
+   "rule": "Identity 1"
+  },
+  {
+   "as": "key",
+   "line": 9,
+   "rule": "Identity 2"
+  },
+  {
+   "actions": [
+    "open"
+   ],
+   "as": "step",
+   "line": 37,
+   "rule": "Operation 1"
+  },
+  {
+   "actions": [
+    "show"
+   ],
+   "as": "shape",
+   "line": 38,
+   "rule": "Operation 2"
+  },
+  {
+   "actions": [
+    "show"
+   ],
+   "as": "shape",
+   "line": 39,
+   "rule": "Operation 3"
+  },
+  {
+   "actions": [
+    "read"
+   ],
+   "as": "shape",
+   "line": 40,
+   "rule": "Operation 4"
+  },
+  {
+   "actions": [
+    "read"
+   ],
+   "as": "shape",
+   "line": 41,
+   "rule": "Operation 5"
+  },
+  {
+   "actions": [
+    "read"
+   ],
+   "as": "shape",
+   "line": 42,
+   "rule": "Operation 6"
+  },
+  {
+   "actions": [
+    "page"
+   ],
+   "as": "shape",
+   "line": 43,
+   "rule": "Operation 7"
+  },
+  {
+   "actions": [
+    "show"
+   ],
+   "as": "step",
+   "line": 44,
+   "rule": "Operation 8"
+  },
+  {
+   "actions": [
+    "read"
+   ],
+   "as": "step",
+   "line": 45,
+   "rule": "Operation 9"
+  }
+ ],
+ "reader_gaps": [
+  {
+   "kind": "no-input-type",
+   "line": 18,
+   "rule": "Input gift_id",
+   "what": "the reader read no type for the input `gift_id` of show: its Term says `Names the gift.`, in which it found no count, instant, string, reference or id"
+  }
+ ],
+ "records": [],
+ "rules": [
+  {
+   "family": "Identity",
+   "label": "Identity 1",
+   "line": 8,
+   "number": "1",
+   "parent": null,
+   "section": [
+    "Structure",
+    "Identity model"
+   ],
+   "text": "The atom MUST identify a gift by the gift id."
+  },
+  {
+   "family": "Identity",
+   "label": "Identity 2",
+   "line": 9,
+   "number": "2",
+   "parent": null,
+   "section": [
+    "Structure",
+    "Identity model"
+   ],
+   "text": "The host MUST allocate a gift id at the atom's seam."
+  },
+  {
+   "actions": [
+    "open"
+   ],
+   "family": "Operation",
+   "label": "Operation 1",
+   "line": 37,
+   "number": "1",
+   "parent": null,
+   "section": [
+    "Structure",
+    "Operations"
+   ],
+   "text": "[Open] MUST answer the gift id."
+  },
+  {
+   "actions": [
+    "show"
+   ],
+   "answer_shape": {
+    "arm": null,
+    "arm_fields": [],
+    "fields": [
+     "gift_id",
+     "owner_ref",
+     "status"
+    ],
+    "shape": "fields",
+    "thing": "gift"
+   },
+   "family": "Operation",
+   "label": "Operation 2",
+   "line": 38,
+   "number": "2",
+   "parent": null,
+   "section": [
+    "Structure",
+    "Operations"
+   ],
+   "text": "[Show] MUST answer the gift's gift id, owner reference AND status."
+  },
+  {
+   "actions": [
+    "show"
+   ],
+   "answer_shape": {
+    "arm": "gift",
+    "arm_fields": [],
+    "fields": [
+     "gift_id",
+     "owner_ref",
+     "status"
+    ],
+    "shape": "record",
+    "thing": "gift"
+   },
+   "family": "Operation",
+   "label": "Operation 3",
+   "line": 39,
+   "number": "3",
+   "parent": null,
+   "section": [
+    "Structure",
+    "Operations"
+   ],
+   "text": "[Show] MUST answer a gift's stored fields."
+  },
+  {
+   "actions": [
+    "read"
+   ],
+   "answer_shape": {
+    "arm": null,
+    "arm_fields": [],
+    "by": "query",
+    "shape": "matching",
+    "thing": "gift"
+   },
+   "family": "Operation",
+   "label": "Operation 4",
+   "line": 40,
+   "number": "4",
+   "parent": null,
+   "section": [
+    "Structure",
+    "Operations"
+   ],
+   "text": "[Read] MUST answer EVERY gift the query matches."
+  },
+  {
+   "actions": [
+    "read"
+   ],
+   "answer_shape": {
+    "arm": null,
+    "arm_fields": [],
+    "query": "query",
+    "shape": "empty"
+   },
+   "family": "Operation",
+   "label": "Operation 5",
+   "line": 41,
+   "number": "5",
+   "parent": null,
+   "section": [
+    "Structure",
+    "Operations"
+   ],
+   "text": "[Read] MUST answer an empty sequence for a well-formed query matching nothing."
+  },
+  {
+   "actions": [
+    "read"
+   ],
+   "answer_shape": {
+    "arm": null,
+    "arm_fields": [],
+    "shape": "none",
+    "thing": "gift"
+   },
+   "family": "Operation",
+   "label": "Operation 6",
+   "line": 42,
+   "number": "6",
+   "parent": null,
+   "section": [
+    "Structure",
+    "Operations"
+   ],
+   "text": "IF the query is blank THEN [Read] MUST answer no gift."
+  },
+  {
+   "actions": [
+    "page"
+   ],
+   "answer_shape": {
+    "arm": null,
+    "arm_fields": [],
+    "direction": "ascending",
+    "limit": "page size",
+    "matching": "matching gift",
+    "order": "listing key",
+    "shape": "page",
+    "thing": "gift"
+   },
+   "family": "Operation",
+   "label": "Operation 7",
+   "line": 43,
+   "number": "7",
+   "parent": null,
+   "section": [
+    "Structure",
+    "Operations"
+   ],
+   "text": "[Page] MUST answer the matching gifts with the earliest listing keys, up to the page size."
+  },
+  {
+   "actions": [
+    "show"
+   ],
+   "family": "Operation",
+   "label": "Operation 8",
+   "line": 44,
+   "number": "8",
+   "parent": null,
+   "section": [
+    "Structure",
+    "Operations"
+   ],
+   "text": "[Show] MUST NOT write."
+  },
+  {
+   "actions": [
+    "read"
+   ],
+   "family": "Operation",
+   "label": "Operation 9",
+   "line": 45,
+   "number": "9",
+   "parent": null,
+   "section": [
+    "Structure",
+    "Operations"
+   ],
+   "text": "[Read] MUST NOT write."
+  }
+ ],
+ "settings": [],
+ "signatures": [
+  {
+   "action": "open",
+   "answers": [
+    "gift_id"
+   ],
+   "inputs": [
+    {
+     "name": "owner_ref",
+     "optional": false,
+     "type": {
+      "type": "string",
+      "words": "Owner Reference"
+     }
+    }
+   ],
+   "line": 15,
+   "refuses": []
+  },
+  {
+   "action": "show",
+   "answers": [
+    "gift",
+    "not-known"
+   ],
+   "inputs": [
+    {
+     "name": "gift_id",
+     "optional": false,
+     "type": null
+    }
+   ],
+   "line": 18,
+   "refuses": []
+  },
+  {
+   "action": "read",
+   "answers": [
+    "gifts"
+   ],
+   "inputs": [],
+   "line": 21,
+   "refuses": []
+  },
+  {
+   "action": "page",
+   "answers": [
+    "gift_ids"
+   ],
+   "inputs": [],
+   "line": 24,
+   "refuses": []
+  }
+ ],
+ "status": "todo",
+ "summary": "",
+ "term_entries": [
+  {
+   "kind": {
+    "Field of": "the gift record",
+    "Kind": "Field",
+    "Projection": "gift_id"
+   },
+   "line": 50,
+   "name": "Gift Id",
+   "text": "Names the gift."
+  },
+  {
+   "kind": {
+    "Field of": "the gift record",
+    "Kind": "Field",
+    "Projection": "owner_ref"
+   },
+   "line": 58,
+   "name": "Owner Reference",
+   "text": "Whose the gift is."
+  },
+  {
+   "kind": {
+    "Field of": "the gift record",
+    "Kind": "Field",
+    "Projection": "status"
+   },
+   "line": 66,
+   "name": "Status",
+   "text": "The gift's state."
+  }
+ ],
+ "term_sets": [],
+ "terms": [
+  {
+   "definition": "what a read asks for.",
+   "entry": null,
+   "kind": null,
+   "line": 28,
+   "name": "query",
+   "section": [
+    "Structure",
+    "Operations"
+   ]
+  },
+  {
+   "definition": "a gift the query matches.",
+   "entry": null,
+   "kind": null,
+   "line": 30,
+   "name": "matching gift",
+   "section": [
+    "Structure",
+    "Operations"
+   ]
+  },
+  {
+   "definition": "a gift's creation instant paired with its gift id.",
+   "entry": null,
+   "kind": null,
+   "line": 32,
+   "name": "listing key",
+   "section": [
+    "Structure",
+    "Operations"
+   ]
+  },
+  {
+   "definition": "100 gifts.",
+   "entry": null,
+   "kind": null,
+   "line": 34,
+   "name": "page size",
+   "section": [
+    "Structure",
+    "Operations"
+   ]
+  }
+ ],
+ "title": "Gift",
+ "tombstones": [],
+ "transactions": [],
+ "transitions": [],
+ "vocabulary": {}
+}

@@ -1,0 +1,296 @@
+{
+ "answer_tests": [
+  {
+   "action": "turn",
+   "arms": [
+    "jammed"
+   ],
+   "constituent": "Lamp",
+   "line": 11,
+   "path": "atoms/lamp.md",
+   "rule": "Action wiring 2"
+  },
+  {
+   "action": "turn",
+   "arms": [
+    "lit"
+   ],
+   "constituent": "Lamp",
+   "line": 13,
+   "path": "atoms/lamp.md",
+   "rule": "Action wiring 4"
+  }
+ ],
+ "calls": [
+  {
+   "action": "turn",
+   "args": [
+    {
+     "binds": "switch_ref",
+     "entry": "Switch Reference",
+     "phrase": "the switch reference"
+    },
+    {
+     "binds": "level",
+     "entry": "Level",
+     "phrase": "the level"
+    },
+    {
+     "binds": null,
+     "phrase": "the colour"
+    }
+   ],
+   "constituent": "Lamp",
+   "line": 10,
+   "modal": "MUST",
+   "path": "atoms/lamp.md",
+   "rule": "Action wiring 1"
+  }
+ ],
+ "case_tables": [],
+ "checks": [],
+ "composes": [
+  {
+   "line": 5,
+   "name": "Lamp",
+   "path": "atoms/lamp.md",
+   "role": "the light."
+  }
+ ],
+ "guards": [],
+ "ir": 1,
+ "keys": [],
+ "kind": "composition",
+ "name": "Room",
+ "non_goals": [],
+ "projectable": [
+  {
+   "as": "check-only",
+   "gaps": [
+    0
+   ],
+   "line": 10,
+   "rule": "Action wiring 1",
+   "why": "rules of the Action wiring family hold of the records and the answers, and name no step"
+  },
+  {
+   "as": "check-only",
+   "gaps": [
+    1
+   ],
+   "line": 11,
+   "rule": "Action wiring 2",
+   "why": "rules of the Action wiring family hold of the records and the answers, and name no step"
+  },
+  {
+   "as": "check-only",
+   "line": 12,
+   "rule": "Action wiring 3",
+   "why": "rules of the Action wiring family hold of the records and the answers, and name no step"
+  },
+  {
+   "as": "check-only",
+   "line": 13,
+   "rule": "Action wiring 4",
+   "why": "rules of the Action wiring family hold of the records and the answers, and name no step"
+  },
+  {
+   "as": "check-only",
+   "gaps": [
+    2
+   ],
+   "line": 14,
+   "rule": "Action wiring 5",
+   "why": "rules of the Action wiring family hold of the records and the answers, and name no step"
+  },
+  {
+   "as": "check-only",
+   "line": 15,
+   "rule": "Composition state 1",
+   "why": "rules of the Composition state family hold of the records and the answers, and name no step"
+  },
+  {
+   "as": "check-only",
+   "line": 16,
+   "rule": "Composition state 2",
+   "why": "rules of the Composition state family hold of the records and the answers, and name no step"
+  },
+  {
+   "as": "check-only",
+   "gaps": [
+    3
+   ],
+   "line": 17,
+   "rule": "Composition state 3",
+   "why": "rules of the Composition state family hold of the records and the answers, and name no step"
+  }
+ ],
+ "reader_gaps": [
+  {
+   "kind": "no-binding",
+   "line": 10,
+   "rule": "Action wiring 1",
+   "what": "the reader bound 'the colour' to no input of Lamp's turn through its term entries; its inputs with a term entry: switch_ref (entry `Switch Reference`), level (entry `Level`); its inputs with no Parameter or Field entry naming them: none"
+  },
+  {
+   "kind": "no-arm",
+   "line": 11,
+   "rule": "Action wiring 2",
+   "what": "the reader read 'dim' as no arm of Lamp's turn (its arms: ['jammed', 'lit', 'state-unavailable'])"
+  },
+  {
+   "kind": "no-action",
+   "line": 14,
+   "rule": "Action wiring 5",
+   "what": "the reader found no action 'snuff' on the signature list of Lamp (a call)"
+  },
+  {
+   "kind": "no-key",
+   "line": 17,
+   "rule": "Composition state 3",
+   "what": "no key read for the inverse of lamp log: an inverse map's key is the first map's value, which the reader read no rule naming"
+  }
+ ],
+ "records": [
+  {
+   "carries": [],
+   "inverse_of": null,
+   "key": "switch reference",
+   "key_rule": "Composition state 2",
+   "line": 15,
+   "name": "lamp log",
+   "rule": "Composition state 1"
+  },
+  {
+   "carries": [],
+   "inverse_of": "lamp log",
+   "key": null,
+   "line": 17,
+   "name": "inverse of lamp log",
+   "rule": "Composition state 3"
+  }
+ ],
+ "rules": [
+  {
+   "family": "Action wiring",
+   "label": "Action wiring 1",
+   "line": 10,
+   "number": "1",
+   "parent": null,
+   "section": [
+    "Structure"
+   ],
+   "text": "An admitted switch MUST call Lamp's turn with the switch reference, the level AND the colour."
+  },
+  {
+   "family": "Action wiring",
+   "label": "Action wiring 2",
+   "line": 11,
+   "number": "2",
+   "parent": null,
+   "section": [
+    "Structure"
+   ],
+   "text": "IF Lamp's turn answers jammed OR dim THEN an admitted switch MUST answer fault."
+  },
+  {
+   "family": "Action wiring",
+   "label": "Action wiring 3",
+   "line": 12,
+   "number": "3",
+   "parent": null,
+   "section": [
+    "Structure"
+   ],
+   "text": "An admitted switch MUST write the lamp entry AND the lamp event in one transaction (Execution Contract Database 1)."
+  },
+  {
+   "family": "Action wiring",
+   "label": "Action wiring 4",
+   "line": 13,
+   "number": "4",
+   "parent": null,
+   "section": [
+    "Structure"
+   ],
+   "text": "IF Lamp's turn answers lit THEN an admitted switch MUST write the lamp record in the transaction of Action wiring 3."
+  },
+  {
+   "family": "Action wiring",
+   "label": "Action wiring 5",
+   "line": 14,
+   "number": "5",
+   "parent": null,
+   "section": [
+    "Structure"
+   ],
+   "text": "An admitted switch MUST call Lamp's snuff."
+  },
+  {
+   "family": "Composition state",
+   "label": "Composition state 1",
+   "line": 15,
+   "number": "1",
+   "parent": null,
+   "section": [
+    "Structure"
+   ],
+   "text": "The composition MUST store a lamp log."
+  },
+  {
+   "family": "Composition state",
+   "label": "Composition state 2",
+   "line": 16,
+   "number": "2",
+   "parent": null,
+   "section": [
+    "Structure"
+   ],
+   "text": "The composition MUST key the lamp log by switch reference."
+  },
+  {
+   "family": "Composition state",
+   "label": "Composition state 3",
+   "line": 17,
+   "number": "3",
+   "parent": null,
+   "section": [
+    "Structure"
+   ],
+   "text": "The composition MUST store the strict inverse of the lamp log."
+  }
+ ],
+ "settings": [],
+ "signatures": [],
+ "status": "todo",
+ "summary": "",
+ "term_entries": [],
+ "term_sets": [],
+ "terms": [],
+ "title": "Room",
+ "tombstones": [],
+ "transactions": [
+  {
+   "cited": "Execution Contract Database 1",
+   "line": 12,
+   "rule": "Action wiring 3",
+   "writes": [
+    "lamp entry",
+    "lamp event"
+   ]
+  },
+  {
+   "if": [
+    "Lamp's turn answers lit"
+   ],
+   "joins": "Action wiring 3",
+   "line": 13,
+   "rule": "Action wiring 4",
+   "writes": [
+    "lamp record"
+   ]
+  }
+ ],
+ "transitions": [],
+ "vocabulary": {}
+}

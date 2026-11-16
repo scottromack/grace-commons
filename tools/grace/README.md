@@ -133,7 +133,8 @@ environment it was taken under; the tool prints its own on every run.
 
 ## The IR
 
-[`ir.py`](ir.py) is the parser: it reads every spec in `atoms/` and
+[`ir.py`](ir.py) is the parser (the command and the one import; the reading is in `ir_walk.py`, `ir_keys.py`, `ir_shapes.py`, `ir_wiring.py`, `ir_project.py`,
+`ir_gap.py` and `ir_misses.py`, mapped in ir.py's docstring, which also says what it expects of the Execution Contract and the term entries): it reads every spec in `atoms/` and
 `compositions/` into one JSON document, the IR, for the test generator and the
 Grace connector to read. The IR is derived, never canonical: the specs stay the
 source, so a document is rebuilt from its spec, never edited, and `build/`,
@@ -143,6 +144,7 @@ where the documents go, is ignored by git.
 python3 tools/grace/ir.py                  # every spec to build/ir/<spec>.json, then the proof
 python3 tools/grace/ir.py --check          # the proof alone, nothing written
 python3 tools/grace/ir.py --gaps           # the reader's gaps as a table: spec by kind by count
+python3 tools/grace/ir.py --misses         # what each family of expression matched and passed over, over the library (said, by design, a miss)
 python3 tools/grace/ir.py atoms/cart.md    # one spec's document, printed
 python3 tools/grace/ir.py /elsewhere/gift-card.md    # a draft outside the repo, printed
 ```

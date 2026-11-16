@@ -1,0 +1,499 @@
+{
+ "answer_tests": [],
+ "calls": [],
+ "case_tables": [],
+ "checks": [],
+ "composes": [],
+ "guards": [
+  {
+   "actions": [
+    "retire",
+    "lapse"
+   ],
+   "answer": "not-known",
+   "join": "AND",
+   "line": 28,
+   "refusal": true,
+   "rule": "Operation 2",
+   "tests": [
+    {
+     "clause": "no tag EXISTS for the tag id",
+     "present": false,
+     "reads": "record_by_id"
+    }
+   ],
+   "whole": true
+  },
+  {
+   "actions": [
+    "retire",
+    "lapse"
+   ],
+   "answer": "not-live",
+   "join": "AND",
+   "line": 29,
+   "refusal": true,
+   "rule": "Operation 3",
+   "tests": [
+    {
+     "clause": "the tag's status DOES NOT EQUAL live",
+     "field": "status",
+     "negated": true,
+     "reads": "record_state",
+     "value": "live"
+    }
+   ],
+   "whole": true
+  }
+ ],
+ "ir": 1,
+ "keys": [
+  {
+   "fields": [
+    "tag_id"
+   ],
+   "id": true,
+   "line": 8,
+   "names": [
+    "tag id"
+   ],
+   "rule": "Identity 1",
+   "source": {
+    "how": "fresh",
+    "line": 9,
+    "rule": "Identity 2"
+   },
+   "term": "tag id",
+   "thing": "tag"
+  }
+ ],
+ "kind": "atom",
+ "name": "Tag",
+ "non_goals": [],
+ "projectable": [
+  {
+   "as": "key",
+   "line": 8,
+   "rule": "Identity 1"
+  },
+  {
+   "as": "key",
+   "line": 9,
+   "rule": "Identity 2"
+  },
+  {
+   "actions": [
+    "retire"
+   ],
+   "as": "transition",
+   "line": 27,
+   "rule": "Operation 1"
+  },
+  {
+   "actions": [
+    "retire",
+    "lapse"
+   ],
+   "as": "transition",
+   "line": 28,
+   "rule": "Operation 2"
+  },
+  {
+   "actions": [
+    "retire",
+    "lapse"
+   ],
+   "as": "transition",
+   "line": 29,
+   "rule": "Operation 3"
+  },
+  {
+   "actions": [
+    "lapse"
+   ],
+   "as": "transition",
+   "line": 30,
+   "rule": "Operation 4"
+  },
+  {
+   "actions": [
+    "retire",
+    "lapse"
+   ],
+   "as": "transition",
+   "line": 31,
+   "rule": "State 1"
+  },
+  {
+   "as": "check-only",
+   "line": 32,
+   "rule": "Invariant 1.1",
+   "why": "rules of the Invariant family hold of the records and the answers, and name no step"
+  },
+  {
+   "as": "check-only",
+   "line": 33,
+   "rule": "Invariant 1.2",
+   "why": "rules of the Invariant family hold of the records and the answers, and name no step"
+  }
+ ],
+ "reader_gaps": [
+  {
+   "kind": "no-input-type",
+   "line": 17,
+   "rule": "Input tag_id",
+   "what": "the reader read no type for the input `tag_id` of retire: its Term says `Names the tag.`, in which it found no count, instant, string, reference or id"
+  }
+ ],
+ "records": [],
+ "rules": [
+  {
+   "family": "Identity",
+   "label": "Identity 1",
+   "line": 8,
+   "number": "1",
+   "parent": null,
+   "section": [
+    "Structure",
+    "Identity model"
+   ],
+   "text": "The atom MUST identify a tag by the tag id."
+  },
+  {
+   "family": "Identity",
+   "label": "Identity 2",
+   "line": 9,
+   "number": "2",
+   "parent": null,
+   "section": [
+    "Structure",
+    "Identity model"
+   ],
+   "text": "The host MUST allocate a tag id at the atom's seam."
+  },
+  {
+   "actions": [
+    "retire"
+   ],
+   "family": "Operation",
+   "label": "Operation 1",
+   "line": 27,
+   "number": "1",
+   "parent": null,
+   "section": [
+    "Structure",
+    "Operations"
+   ],
+   "text": "[Retire] MUST stand the tag in retired."
+  },
+  {
+   "actions": [
+    "retire",
+    "lapse"
+   ],
+   "family": "Operation",
+   "label": "Operation 2",
+   "line": 28,
+   "number": "2",
+   "parent": null,
+   "section": [
+    "Structure",
+    "Operations"
+   ],
+   "text": "IF no tag EXISTS for the tag id THEN a terminal call MUST answer not-known."
+  },
+  {
+   "actions": [
+    "retire",
+    "lapse"
+   ],
+   "family": "Operation",
+   "label": "Operation 3",
+   "line": 29,
+   "number": "3",
+   "parent": null,
+   "section": [
+    "Structure",
+    "Operations"
+   ],
+   "text": "IF the tag's status DOES NOT EQUAL live THEN a terminal call MUST answer not-live."
+  },
+  {
+   "actions": [
+    "lapse"
+   ],
+   "family": "Operation",
+   "label": "Operation 4",
+   "line": 30,
+   "number": "4",
+   "parent": null,
+   "section": [
+    "Structure",
+    "Operations"
+   ],
+   "text": "[Lapse] MUST stand the tag in lapsed."
+  },
+  {
+   "actions": [
+    "retire",
+    "lapse"
+   ],
+   "family": "State",
+   "label": "State 1",
+   "line": 31,
+   "number": "1",
+   "parent": null,
+   "section": [
+    "Structure",
+    "Operations"
+   ],
+   "text": "A terminal call MUST stamp the call's end stamp from the injected now."
+  },
+  {
+   "family": "Invariant",
+   "label": "Invariant 1.1",
+   "line": 32,
+   "number": "1.1",
+   "parent": null,
+   "section": [
+    "Structure",
+    "Operations"
+   ],
+   "text": "A tag carrying retired instant MUST stand in retired."
+  },
+  {
+   "family": "Invariant",
+   "label": "Invariant 1.2",
+   "line": 33,
+   "number": "1.2",
+   "parent": null,
+   "section": [
+    "Structure",
+    "Operations"
+   ],
+   "text": "A tag carrying lapse instant MUST stand in lapsed."
+  }
+ ],
+ "settings": [],
+ "signatures": [
+  {
+   "action": "retire",
+   "answers": [
+    "ok"
+   ],
+   "inputs": [
+    {
+     "name": "tag_id",
+     "optional": false,
+     "type": null
+    }
+   ],
+   "line": 17,
+   "refuses": [
+    "not-known",
+    "not-live"
+   ]
+  },
+  {
+   "action": "lapse",
+   "answers": [
+    "ok"
+   ],
+   "inputs": [
+    {
+     "name": "tag_id",
+     "optional": false,
+     "type": null
+    }
+   ],
+   "line": 21,
+   "refuses": [
+    "not-known",
+    "not-live"
+   ]
+  }
+ ],
+ "status": "todo",
+ "summary": "",
+ "term_entries": [
+  {
+   "kind": {
+    "Field of": "the tag record",
+    "Kind": "Field",
+    "Projection": "tag_id"
+   },
+   "line": 40,
+   "name": "Tag Id",
+   "text": "Names the tag."
+  },
+  {
+   "kind": {
+    "Field of": "the tag record",
+    "Kind": "Field",
+    "Projection": "status"
+   },
+   "line": 48,
+   "name": "Status",
+   "text": "The tag's state."
+  },
+  {
+   "kind": {
+    "Field of": "the tag record",
+    "Kind": "Field",
+    "Projection": "retired_at"
+   },
+   "line": 56,
+   "name": "Retired Instant",
+   "text": "When it was retired."
+  },
+  {
+   "kind": {
+    "Field of": "the tag record",
+    "Kind": "Field",
+    "Projection": "lapsed_at"
+   },
+   "line": 64,
+   "name": "Lapse Instant",
+   "text": "When it lapsed."
+  },
+  {
+   "kind": {
+    "Kind": "Member",
+    "Member of": "the tag status",
+    "Role": "Outcome"
+   },
+   "line": 72,
+   "name": "Live",
+   "text": ""
+  },
+  {
+   "kind": {
+    "Kind": "Member",
+    "Member of": "the tag status",
+    "Role": "Outcome"
+   },
+   "line": 78,
+   "name": "Retired",
+   "text": ""
+  },
+  {
+   "kind": {
+    "Kind": "Member",
+    "Member of": "the tag status",
+    "Role": "Outcome"
+   },
+   "line": 84,
+   "name": "Lapsed",
+   "text": ""
+  }
+ ],
+ "term_sets": [],
+ "terms": [
+  {
+   "definition": "a [Retire] or a [Lapse] call — the two that end a tag.",
+   "entry": null,
+   "kind": null,
+   "line": 12,
+   "name": "terminal call",
+   "section": [
+    "Structure",
+    "Identity model"
+   ]
+  },
+  {
+   "definition": "retired instant | lapse instant — the one stamp an ended tag carries.",
+   "entry": null,
+   "kind": null,
+   "line": 36,
+   "name": "end stamp",
+   "section": [
+    "Structure",
+    "Operations"
+   ]
+  }
+ ],
+ "title": "Tag",
+ "tombstones": [],
+ "transactions": [],
+ "transitions": [
+  {
+   "absent": {
+    "answer": "not-known",
+    "line": 28,
+    "rule": "Operation 2"
+   },
+   "action": "retire",
+   "from": {
+    "answer": "not-live",
+    "line": 29,
+    "rule": "Operation 3",
+    "values": [
+     "live"
+    ]
+   },
+   "id": [
+    "tag_id"
+   ],
+   "key": "Identity 1",
+   "record_fields": [
+    "tag_id",
+    "status",
+    "retired_at",
+    "lapsed_at"
+   ],
+   "stamp": {
+    "field": "retired_at",
+    "line": 31,
+    "paired_by": "Invariant 1.1",
+    "rule": "State 1"
+   },
+   "stands": {
+    "field": "status",
+    "line": 27,
+    "rule": "Operation 1",
+    "value": "retired"
+   },
+   "thing": "tag"
+  },
+  {
+   "absent": {
+    "answer": "not-known",
+    "line": 28,
+    "rule": "Operation 2"
+   },
+   "action": "lapse",
+   "from": {
+    "answer": "not-live",
+    "line": 29,
+    "rule": "Operation 3",
+    "values": [
+     "live"
+    ]
+   },
+   "id": [
+    "tag_id"
+   ],
+   "key": "Identity 1",
+   "record_fields": [
+    "tag_id",
+    "status",
+    "retired_at",
+    "lapsed_at"
+   ],
+   "stamp": {
+    "field": "lapsed_at",
+    "line": 31,
+    "paired_by": "Invariant 1.2",
+    "rule": "State 1"
+   },
+   "stands": {
+    "field": "status",
+    "line": 30,
+    "rule": "Operation 4",
+    "value": "lapsed"
+   },
+   "thing": "tag"
+  }
+ ],
+ "vocabulary": {}
+}

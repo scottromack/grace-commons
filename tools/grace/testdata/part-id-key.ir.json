@@ -1,0 +1,226 @@
+{
+ "answer_tests": [],
+ "calls": [],
+ "case_tables": [
+  {
+   "caption": "```",
+   "columns": [
+    "Call",
+    "Case",
+    "Answer",
+    "Effect"
+   ],
+   "line": 25,
+   "rows": [
+    {
+     "cells": [
+      "[Stick]",
+      "label present",
+      "tag id",
+      "one tag lands (Operation 1, 2, 3)"
+     ],
+     "line": 27,
+     "rules": [
+      "Operation 1",
+      "Operation 2",
+      "Operation 3"
+     ]
+    }
+   ],
+   "section": [
+    "Structure",
+    "Operations"
+   ]
+  }
+ ],
+ "checks": [],
+ "composes": [],
+ "guards": [],
+ "ir": 1,
+ "keys": [
+  {
+   "fields": [
+    "tag_id"
+   ],
+   "id": true,
+   "line": 8,
+   "names": [
+    "tag id"
+   ],
+   "rule": "Identity 1",
+   "source": {
+    "how": "fresh",
+    "line": 9,
+    "rule": "Identity 2"
+   },
+   "term": "tag id",
+   "thing": "tag"
+  }
+ ],
+ "kind": "atom",
+ "name": "Tag",
+ "non_goals": [],
+ "projectable": [
+  {
+   "as": "key",
+   "line": 8,
+   "rule": "Identity 1"
+  },
+  {
+   "as": "key",
+   "line": 9,
+   "rule": "Identity 2"
+  },
+  {
+   "actions": [
+    "stick"
+   ],
+   "as": "step",
+   "line": 20,
+   "rule": "Operation 1"
+  },
+  {
+   "actions": [
+    "stick"
+   ],
+   "as": "step",
+   "line": 21,
+   "rule": "Operation 2"
+  },
+  {
+   "actions": [
+    "stick"
+   ],
+   "as": "step",
+   "line": 22,
+   "rule": "Operation 3"
+  }
+ ],
+ "reader_gaps": [
+  {
+   "kind": "no-input-type",
+   "line": 15,
+   "rule": "Input label",
+   "what": "the reader read no type for the input `label` of stick: it found no Term of that name carrying a definition, so no value is made for it"
+  }
+ ],
+ "records": [],
+ "rules": [
+  {
+   "family": "Identity",
+   "label": "Identity 1",
+   "line": 8,
+   "number": "1",
+   "parent": null,
+   "section": [
+    "Structure",
+    "Identity model"
+   ],
+   "text": "The atom MUST identify a tag by the tag id."
+  },
+  {
+   "family": "Identity",
+   "label": "Identity 2",
+   "line": 9,
+   "number": "2",
+   "parent": null,
+   "section": [
+    "Structure",
+    "Identity model"
+   ],
+   "text": "The host MUST allocate a tag id at the atom's seam."
+  },
+  {
+   "actions": [
+    "stick"
+   ],
+   "family": "Operation",
+   "label": "Operation 1",
+   "line": 20,
+   "number": "1",
+   "parent": null,
+   "section": [
+    "Structure",
+    "Operations"
+   ],
+   "text": "[Stick] MUST record EXACTLY ONE tag."
+  },
+  {
+   "actions": [
+    "stick"
+   ],
+   "family": "Operation",
+   "label": "Operation 2",
+   "line": 21,
+   "number": "2",
+   "parent": null,
+   "section": [
+    "Structure",
+    "Operations"
+   ],
+   "text": "[Stick] MUST answer tag_id."
+  },
+  {
+   "actions": [
+    "stick"
+   ],
+   "family": "Operation",
+   "label": "Operation 3",
+   "line": 22,
+   "number": "3",
+   "parent": null,
+   "section": [
+    "Structure",
+    "Operations"
+   ],
+   "text": "[Stick] MUST stamp placed instant from the injected now."
+  }
+ ],
+ "settings": [],
+ "signatures": [
+  {
+   "action": "stick",
+   "answers": [
+    "tag_id"
+   ],
+   "inputs": [
+    {
+     "name": "label",
+     "optional": false,
+     "type": null
+    }
+   ],
+   "line": 15,
+   "refuses": []
+  }
+ ],
+ "status": "todo",
+ "summary": "",
+ "term_entries": [
+  {
+   "kind": {
+    "Kind": "Type"
+   },
+   "line": 31,
+   "name": "Tag",
+   "text": "One mark."
+  },
+  {
+   "kind": {
+    "Field of": "Tag",
+    "Kind": "Field",
+    "Projection": "tag_id"
+   },
+   "line": 37,
+   "name": "Tag Id",
+   "text": "Names the tag."
+  }
+ ],
+ "term_sets": [],
+ "terms": [],
+ "title": "Tag",
+ "tombstones": [],
+ "transactions": [],
+ "transitions": [],
+ "vocabulary": {}
+}

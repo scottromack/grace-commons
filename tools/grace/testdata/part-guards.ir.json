@@ -1,0 +1,498 @@
+{
+ "answer_tests": [],
+ "calls": [],
+ "case_tables": [],
+ "checks": [],
+ "composes": [],
+ "guards": [
+  {
+   "actions": [
+    "retire"
+   ],
+   "answer": "invalid-request",
+   "join": "AND",
+   "line": 25,
+   "refusal": true,
+   "rule": "Operation 1",
+   "tests": [
+    {
+     "clause": "retired by EQUALS blank",
+     "input": "retired_by",
+     "negated": false,
+     "reads": "input",
+     "test": "blank"
+    }
+   ],
+   "whole": true
+  },
+  {
+   "actions": [
+    "retire"
+   ],
+   "answer": "not-live",
+   "join": "AND",
+   "line": 26,
+   "refusal": true,
+   "rule": "Operation 2",
+   "tests": [
+    {
+     "clause": "the tag is not live",
+     "field": "status",
+     "negated": true,
+     "reads": "record_state",
+     "value": "live"
+    }
+   ],
+   "whole": true
+  },
+  {
+   "actions": [
+    "retire"
+   ],
+   "answer": "storage-failure",
+   "join": "AND",
+   "line": 27,
+   "refusal": true,
+   "rule": "Operation 3",
+   "tests": [
+    {
+     "clause": "the database refuses the write",
+     "reads": "database_refusal"
+    }
+   ],
+   "whole": true
+  },
+  {
+   "actions": [
+    "retire"
+   ],
+   "answer": "invalid-request",
+   "join": "AND",
+   "line": 28,
+   "refusal": true,
+   "rule": "Operation 4",
+   "tests": [
+    {
+     "clause": "a tag EXISTS for the tag id",
+     "present": true,
+     "reads": "record_by_id"
+    },
+    {
+     "clause": "retired by EQUALS blank",
+     "input": "retired_by",
+     "negated": false,
+     "reads": "input",
+     "test": "blank"
+    }
+   ],
+   "whole": true
+  },
+  {
+   "actions": [
+    "retire"
+   ],
+   "answer": "stale",
+   "join": "AND",
+   "line": 29,
+   "refusal": true,
+   "rule": "Operation 5",
+   "tests": [
+    {
+     "clause": "the tag is stale",
+     "reads": "prose",
+     "why": "`stale` is a Term whose sentence says what it tests"
+    }
+   ],
+   "whole": false
+  },
+  {
+   "actions": [
+    "retire"
+   ],
+   "answer": "verdict-held",
+   "join": "AND",
+   "line": 30,
+   "refusal": true,
+   "rule": "Operation 6",
+   "tests": [
+    {
+     "clause": "verdict EQUALS held",
+     "negated": false,
+     "reads": "seam_value",
+     "term": "verdict",
+     "value": "held"
+    }
+   ],
+   "whole": true
+  },
+  {
+   "actions": [
+    "retire"
+   ],
+   "answer": "ok",
+   "join": "AND",
+   "line": 31,
+   "refusal": false,
+   "rule": "Operation 7",
+   "tests": [
+    {
+     "clause": "retired by EQUALS blank",
+     "input": "retired_by",
+     "negated": false,
+     "reads": "input",
+     "test": "blank"
+    }
+   ],
+   "whole": true
+  }
+ ],
+ "ir": 1,
+ "keys": [
+  {
+   "fields": [
+    "tag_id"
+   ],
+   "id": true,
+   "line": 8,
+   "names": [
+    "tag id"
+   ],
+   "rule": "Identity 1",
+   "source": {
+    "how": "fresh",
+    "line": 9,
+    "rule": "Identity 2"
+   },
+   "term": "tag id",
+   "thing": "tag"
+  }
+ ],
+ "kind": "atom",
+ "name": "Tag",
+ "non_goals": [],
+ "projectable": [
+  {
+   "as": "key",
+   "line": 8,
+   "rule": "Identity 1"
+  },
+  {
+   "as": "key",
+   "line": 9,
+   "rule": "Identity 2"
+  },
+  {
+   "actions": [
+    "retire"
+   ],
+   "as": "guard",
+   "line": 25,
+   "rule": "Operation 1",
+   "tests": 1
+  },
+  {
+   "actions": [
+    "retire"
+   ],
+   "as": "guard",
+   "line": 26,
+   "rule": "Operation 2",
+   "tests": 1
+  },
+  {
+   "actions": [
+    "retire"
+   ],
+   "as": "guard",
+   "line": 27,
+   "rule": "Operation 3",
+   "tests": 1
+  },
+  {
+   "actions": [
+    "retire"
+   ],
+   "as": "guard",
+   "line": 28,
+   "rule": "Operation 4",
+   "tests": 2
+  },
+  {
+   "actions": [
+    "retire"
+   ],
+   "as": "not-carried",
+   "line": 29,
+   "rule": "Operation 5",
+   "tests": 1,
+   "why": "a guard whose test rests on a Term's sentence or on nothing the reader resolves: the tag is stale"
+  },
+  {
+   "actions": [
+    "retire"
+   ],
+   "as": "guard",
+   "line": 30,
+   "rule": "Operation 6",
+   "tests": 1
+  },
+  {
+   "actions": [
+    "retire"
+   ],
+   "as": "guard",
+   "line": 31,
+   "rule": "Operation 7",
+   "tests": 1
+  }
+ ],
+ "reader_gaps": [
+  {
+   "kind": "no-input-type",
+   "line": 15,
+   "rule": "Input tag_id",
+   "what": "the reader read no type for the input `tag_id` of retire: its Term says `Names the tag.`, in which it found no count, instant, string, reference or id"
+  },
+  {
+   "kind": "no-input-type",
+   "line": 15,
+   "rule": "Input retired_by",
+   "what": "the reader read no type for the input `retired_by` of retire: its Term says `Who retired it.`, in which it found no count, instant, string, reference or id"
+  }
+ ],
+ "records": [],
+ "rules": [
+  {
+   "family": "Identity",
+   "label": "Identity 1",
+   "line": 8,
+   "number": "1",
+   "parent": null,
+   "section": [
+    "Structure",
+    "Identity model"
+   ],
+   "text": "The atom MUST identify a tag by the tag id."
+  },
+  {
+   "family": "Identity",
+   "label": "Identity 2",
+   "line": 9,
+   "number": "2",
+   "parent": null,
+   "section": [
+    "Structure",
+    "Identity model"
+   ],
+   "text": "The host MUST allocate a tag id at the atom's seam."
+  },
+  {
+   "actions": [
+    "retire"
+   ],
+   "family": "Operation",
+   "label": "Operation 1",
+   "line": 25,
+   "number": "1",
+   "parent": null,
+   "section": [
+    "Structure",
+    "Operations"
+   ],
+   "text": "IF retired by EQUALS blank THEN [Retire] MUST answer invalid-request."
+  },
+  {
+   "actions": [
+    "retire"
+   ],
+   "family": "Operation",
+   "label": "Operation 2",
+   "line": 26,
+   "number": "2",
+   "parent": null,
+   "section": [
+    "Structure",
+    "Operations"
+   ],
+   "text": "IF the tag is not live THEN [Retire] MUST answer not-live."
+  },
+  {
+   "actions": [
+    "retire"
+   ],
+   "family": "Operation",
+   "label": "Operation 3",
+   "line": 27,
+   "number": "3",
+   "parent": null,
+   "section": [
+    "Structure",
+    "Operations"
+   ],
+   "text": "IF the database refuses the write THEN [Retire] MUST answer storage-failure."
+  },
+  {
+   "actions": [
+    "retire"
+   ],
+   "family": "Operation",
+   "label": "Operation 4",
+   "line": 28,
+   "number": "4",
+   "parent": null,
+   "section": [
+    "Structure",
+    "Operations"
+   ],
+   "text": "IF a tag EXISTS for the tag id AND retired by EQUALS blank THEN [Retire] MUST answer invalid-request."
+  },
+  {
+   "actions": [
+    "retire"
+   ],
+   "family": "Operation",
+   "label": "Operation 5",
+   "line": 29,
+   "number": "5",
+   "parent": null,
+   "section": [
+    "Structure",
+    "Operations"
+   ],
+   "text": "IF the tag is stale THEN [Retire] MUST answer stale."
+  },
+  {
+   "actions": [
+    "retire"
+   ],
+   "family": "Operation",
+   "label": "Operation 6",
+   "line": 30,
+   "number": "6",
+   "parent": null,
+   "section": [
+    "Structure",
+    "Operations"
+   ],
+   "text": "IF verdict EQUALS held THEN [Retire] MUST answer verdict-held."
+  },
+  {
+   "actions": [
+    "retire"
+   ],
+   "family": "Operation",
+   "label": "Operation 7",
+   "line": 31,
+   "number": "7",
+   "parent": null,
+   "section": [
+    "Structure",
+    "Operations"
+   ],
+   "text": "IF retired by EQUALS blank THEN [Retire] MUST answer ok."
+  }
+ ],
+ "settings": [],
+ "signatures": [
+  {
+   "action": "retire",
+   "answers": [
+    "ok"
+   ],
+   "inputs": [
+    {
+     "name": "tag_id",
+     "optional": false,
+     "type": null
+    },
+    {
+     "name": "retired_by",
+     "optional": false,
+     "type": null
+    }
+   ],
+   "line": 15,
+   "refuses": [
+    "invalid-request",
+    "not-live",
+    "stale",
+    "storage-failure",
+    "verdict-held"
+   ]
+  }
+ ],
+ "status": "todo",
+ "summary": "",
+ "term_entries": [
+  {
+   "kind": {
+    "Field of": "the tag record",
+    "Kind": "Field",
+    "Projection": "tag_id"
+   },
+   "line": 36,
+   "name": "Tag Id",
+   "text": "Names the tag."
+  },
+  {
+   "kind": {
+    "Field of": "the tag record",
+    "Kind": "Field",
+    "Projection": "retired_by"
+   },
+   "line": 44,
+   "name": "Retired By",
+   "text": "Who retired it."
+  },
+  {
+   "kind": {
+    "Field of": "the tag record",
+    "Kind": "Field",
+    "Projection": "status"
+   },
+   "line": 52,
+   "name": "Status",
+   "text": "The tag's state."
+  },
+  {
+   "kind": {
+    "Kind": "Member",
+    "Member of": "the tag status",
+    "Role": "Outcome"
+   },
+   "line": 60,
+   "name": "Live",
+   "text": ""
+  }
+ ],
+ "term_sets": [],
+ "terms": [
+  {
+   "definition": "a tag whose live instant the clock reading has passed.",
+   "entry": null,
+   "kind": null,
+   "line": 20,
+   "name": "stale",
+   "section": [
+    "Structure",
+    "Operations"
+   ]
+  },
+  {
+   "definition": "held | failed — what the outside gives a retiring call for a tag.",
+   "entry": null,
+   "kind": null,
+   "line": 22,
+   "name": "verdict",
+   "section": [
+    "Structure",
+    "Operations"
+   ]
+  }
+ ],
+ "title": "Tag",
+ "tombstones": [],
+ "transactions": [],
+ "transitions": [],
+ "vocabulary": {}
+}

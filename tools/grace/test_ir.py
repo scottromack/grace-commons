@@ -26,7 +26,7 @@ import ir  # noqa: E402
 FIXTURE = HERE / "testdata" / "reaction.md"
 GOLDEN = HERE / "testdata" / "reaction.ir.json"
 KINDS = {"no-key", "no-answer-shape", "no-completion", "no-contract-rule", "no-action", "no-order", "no-default", "no-set", "no-transition",
-         "no-constituent", "no-arm", "no-binding", "record-types", "no-input-type"}
+         "no-constituent", "no-arm", "no-binding", "record-types", "no-input-type", "not-read"}
 
 
 def entry(name: str, **kind: str) -> dict:
@@ -103,6 +103,30 @@ class InputTypes(unittest.TestCase):
         d = self.doc("Closing Actor Reference", "closer_ref", "", "closer_ref")
         self.assertEqual(ir.input_types_of(d), [])
         self.assertEqual(d["signatures"][0]["inputs"][0]["type"]["type"], "string")
+
+
+class PassedOver(unittest.TestCase):
+    def doc(self, gaps=()):
+        rule = {"label": "Operation 5", "family": "Operation", "text": "A refused [Make] MUST NOT record a widget.", "line": 7}
+        return {"rules": [rule], "terms": [], "signatures": [{"action": "Make", "inputs": [], "answers": [], "refuses": [], "line": 1}], "reader_gaps": list(gaps),
+                "normalized": {"rules": {"Operation 5": {"subject": "a refused call", "obligations": [{"act": "record", "modal": "MUST NOT", "object": "a widget"}]}}}}
+
+    def test_a_rule_that_names_an_action_and_reads_none_is_a_miss_and_says_so(self):
+        count, gaps = ir.passed_over(self.doc())
+        self.assertEqual(count["subject-named-action"]["miss"], 1)
+        self.assertEqual([(g["kind"], g["rule"]) for g in gaps], [("not-read", "Operation 5")])
+        self.assertIn("[Make]", gaps[0]["what"])
+
+    def test_a_pass_over_a_gap_already_names_is_counted_said_and_adds_none(self):
+        said = {"rule": "Operation 5", "line": 7, "kind": "no-action", "what": "the reader read no action"}
+        count, gaps = ir.passed_over(self.doc([said]))
+        self.assertEqual((count["subject-named-action"]["said"], count["subject-named-action"]["miss"], gaps), (1, 0, []))
+
+    def test_a_gap_renders_from_its_template_and_slots_and_is_the_dict_the_document_carries(self):
+        g = ir.gap("no-set", "Term x", 3, "no set read: {why!r} in {where}", why="a", where="b")
+        self.assertEqual(dict(g), {"rule": "Term x", "line": 3, "kind": "no-set", "what": "no set read: 'a' in b"})
+        self.assertEqual(g.slots, {"why": "a", "where": "b"})
+        self.assertEqual(json.loads(json.dumps(g)), dict(g))
 
 
 class TermFields(unittest.TestCase):
@@ -237,10 +261,62 @@ class Proof(unittest.TestCase):
         self.assertIn("IR-contract-arms", [f[2] for f in self.findings(spec, gone)])
 
 
+# One golden document for each part the Reader was split into (unit `tooling: the Reader in parts, the same IR to the byte`): the fixtures of tools/linter/test_checks.py,
+# read as a whole, so a change to what any part reads shows as a change to a document, with the fields that say where and when it was read left out.
+sys.path.insert(0, str(HERE.parent / "linter"))
+import test_checks as T  # noqa: E402
+
+PART_GOLDENS = {
+    "id-key": ("atoms", "tag", T.IR_ID_KEY, None),
+    "transitions": ("atoms", "tag", T.IR_TRANSITION, None),
+    "shapes": ("atoms", "gift", T.IR_READ_ANSWERS, None),
+    "guards": ("atoms", "tag", T.IR_GUARDS, None),
+    "wiring": ("compositions", "room", T.IR_WIRING_ROOM, ("atoms", "lamp", T.IR_WIRING_LAMP)),
+}
+
+
+def read_part(name: str) -> dict:
+    kind, stem, text, other = PART_GOLDENS[name]
+    with tempfile.TemporaryDirectory() as d:
+        root = Path(d)
+        (root / "atoms").mkdir()
+        (root / "compositions").mkdir()
+        (root / "execution-contract.md").write_text(T.IR_READER_CONTRACT, encoding="utf-8")
+        (root / kind / (stem + ".md")).write_text(text, encoding="utf-8")
+        if other:
+            (root / other[0] / (other[1] + ".md")).write_text(other[2], encoding="utf-8")
+        return golden_of(ir.parse(root / kind / (stem + ".md"), root))
+
+
+class PartGoldens(unittest.TestCase):
+    def check(self, name: str):
+        want = json.loads((HERE / "testdata" / f"part-{name}.ir.json").read_text(encoding="utf-8"))
+        got = json.loads(json.dumps(read_part(name), ensure_ascii=False, sort_keys=True))
+        for k in sorted(set(want) | set(got)):
+            self.assertEqual(want.get(k), got.get(k), f"`{k}` of the {name} document differs from testdata/part-{name}.ir.json (--update-golden if the reader meant to)")
+
+    def test_an_id_key_the_host_allocates(self):
+        self.check("id-key")
+
+    def test_the_transitions_of_a_record(self):
+        self.check("transitions")
+
+    def test_the_shapes_of_what_a_read_answers(self):
+        self.check("shapes")
+
+    def test_the_guards_of_a_rule(self):
+        self.check("guards")
+
+    def test_a_compositions_calls_bindings_records_and_transactions(self):
+        self.check("wiring")
+
+
 if __name__ == "__main__":
     if "--update-golden" in sys.argv:
         sys.argv.remove("--update-golden")
         tmp, root = root_with(FIXTURE.read_text(encoding="utf-8"))
         with tmp:
             GOLDEN.write_text(json.dumps(golden_of(ir.parse(root / "atoms" / "reaction.md", root)), indent=1, ensure_ascii=False, sort_keys=True) + "\n", encoding="utf-8")
+        for name in PART_GOLDENS:
+            (HERE / "testdata" / f"part-{name}.ir.json").write_text(json.dumps(read_part(name), indent=1, ensure_ascii=False, sort_keys=True) + "\n", encoding="utf-8")
     unittest.main()
