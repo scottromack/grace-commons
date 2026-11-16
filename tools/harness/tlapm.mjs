@@ -7,7 +7,7 @@
 // versions" rule: the last stable TLAPS, 1.5.0, is an Intel-only installer).
 //
 // tlapm is not in the repo: bootstrap.sh unpacks the pinned 1.6.0-pre build, by
-// checksum, into $TLAPM_HOME (default ~/.local/share/tlapm/1.6.0-pre). A run copies
+// checksum, into $TLAPM_HOME (default ~/.local/share/tlapm/1.6.0-pre-bf665f4). A run copies
 // the model into a temporary directory by tla-adapter.mjs (tlapm, like TLC, wants a
 // module name that is an identifier and matches the file name), runs tlapm there so
 // its .tlacache stays out of the repo, and removes the directory. `--strict` makes
@@ -23,7 +23,7 @@ import { join, basename } from "node:path";
 import { spawnSync } from "node:child_process";
 import { adaptOne } from "./tla-adapter.mjs";
 
-export const TLAPM_HOME = process.env.TLAPM_HOME || join(homedir(), ".local/share/tlapm/1.6.0-pre");
+export const TLAPM_HOME = process.env.TLAPM_HOME || join(homedir(), ".local/share/tlapm/1.6.0-pre-bf665f4");
 export const DEFAULT_PROOF_LIMIT_MS = 15 * 60 * 1000;
 
 /** The tlapm binary: $TLAPM, else the one bootstrap.sh unpacked; null when neither exists. */

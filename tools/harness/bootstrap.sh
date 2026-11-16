@@ -36,16 +36,22 @@ echo "Alloy jar    : $(ls ../alloy/alloy.jar >/dev/null 2>&1 && echo OK || echo 
 # checksum (unit `tooling: TLAPS installed and wired`, Scott 2026-11-10: a named
 # exception to "only stable versions", since the last stable build, 1.5.0, is an
 # Intel-only installer). The release is rolling: the tag may be moved to newer
-# bytes, and a checksum that no longer matches stops this script rather than
-# installing them. Pinned: tlaplus/tlapm tag 1.6.0-pre at commit
-# ff40755301b84455d368f9f8b13fe9fdb0bc9407 (`tlapm --version` prints ff40755).
-# It unpacks outside the repo: $TLAPM_HOME, default ~/.local/share/tlapm/1.6.0-pre.
-TLAPM_HOME="${TLAPM_HOME:-$HOME/.local/share/tlapm/1.6.0-pre}"
+# bytes, and bytes that do not match the checksum are never installed. Pinned:
+# tlaplus/tlapm tag 1.6.0-pre at commit bf665f4d162c1ae5010ca878578cd50a810ec205
+# (`tlapm --version` prints bf665f4; unit `tooling: the TLAPS pin moves to the
+# release's current build, and our own copy is kept`, Scott 2026-11-16). The
+# upstream archive is tried first; when its bytes no longer match, our own copy,
+# the grace-commons release tlapm-bf665f4 (the same two archives and the upstream
+# BSD-2-Clause licence beside them), is tried; if neither matches, the script stops.
+# It unpacks outside the repo: $TLAPM_HOME, default ~/.local/share/tlapm/1.6.0-pre-bf665f4.
+TLAPM_HOME="${TLAPM_HOME:-$HOME/.local/share/tlapm/1.6.0-pre-bf665f4}"
+TLAPM_UPSTREAM=https://github.com/tlaplus/tlapm/releases/download/1.6.0-pre
+TLAPM_OURS=https://github.com/scottromack/grace-commons/releases/download/tlapm-bf665f4
 case "$(uname -s)-$(uname -m)" in
   Darwin-arm64)   TLAPM_ASSET=tlapm-1.6.0-pre-arm64-darwin.tar.gz
-                  TLAPM_SHA256=76c2b7871fce30f26543e432d0e2cff506450fc90f70d18f7a032cf05a614a16 ;;
+                  TLAPM_SHA256=05945a4e2c72d96a60b180fdb89403b36f9ef7a16d2f247c49667cafffb20318 ;;
   Linux-x86_64)   TLAPM_ASSET=tlapm-1.6.0-pre-x86_64-linux-gnu.tar.gz
-                  TLAPM_SHA256=99db29f119cb6f43ffed653b212ba2d005e5bf8e242c53468876cb0d08da6bcc ;;
+                  TLAPM_SHA256=1fcb037a300929d4bed8539511f65073fc19762abd9cea5260fe91d0f2d617df ;;
   *)              TLAPM_ASSET= ;;
 esac
 TLAPM_BIN="$TLAPM_HOME/tlapm/bin/tlapm"
@@ -56,11 +62,17 @@ elif [ -x "$TLAPM_BIN" ]; then
 else
   mkdir -p "$TLAPM_HOME"
   TLAPM_TGZ="$TLAPM_HOME/$TLAPM_ASSET"
-  curl -fsSL -o "$TLAPM_TGZ" "https://github.com/tlaplus/tlapm/releases/download/1.6.0-pre/$TLAPM_ASSET"
-  TLAPM_GOT="$(shasum -a 256 "$TLAPM_TGZ" | cut -d' ' -f1)"
-  if [ "$TLAPM_GOT" != "$TLAPM_SHA256" ]; then
-    echo "TLAPS        : checksum mismatch for $TLAPM_ASSET (got $TLAPM_GOT, pinned $TLAPM_SHA256): the rolling release moved; not installed" >&2
+  TLAPM_OK=
+  for TLAPM_BASE in "$TLAPM_UPSTREAM" "$TLAPM_OURS"; do
+    if curl -fsSL -o "$TLAPM_TGZ" "$TLAPM_BASE/$TLAPM_ASSET" \
+       && [ "$(shasum -a 256 "$TLAPM_TGZ" | cut -d' ' -f1)" = "$TLAPM_SHA256" ]; then
+      TLAPM_OK=1; break
+    fi
+    echo "TLAPS        : $TLAPM_BASE/$TLAPM_ASSET did not give the pinned bytes (sha256 $TLAPM_SHA256)" >&2
     rm -f "$TLAPM_TGZ"
+  done
+  if [ -z "$TLAPM_OK" ]; then
+    echo "TLAPS        : no source gave the pinned bytes for $TLAPM_ASSET; not installed" >&2
     exit 1
   fi
   tar -xzf "$TLAPM_TGZ" -C "$TLAPM_HOME"
