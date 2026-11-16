@@ -5,7 +5,7 @@
   "description": "Beacon rendered from the Grace Commons corpus: Hono and TypeScript on Bun, XTDB. Built from SPEC.md and the patterns it names.",
   "scripts": {
     "stack": "bash stack/stack.sh",
-    "test": "bun test"
+    "test": "bash stack/stack.sh restart && bun test --timeout 30000"
   },
   "dependencies": {
     "hono": "4.13.19",

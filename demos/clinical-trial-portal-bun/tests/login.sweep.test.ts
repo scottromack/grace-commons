@@ -182,11 +182,11 @@ test("Capability requirement 12, 13, Reconciliation 2: a cadence above the windo
   expect(w.login.escalations).toEqual([]);
   const reports: unknown[] = [];
   const stop = w.login.runEveryCadence((r) => reports.push(r));
-  await new Promise((res) => setTimeout(res, 150));
+  for (let i = 0; i < 100 && reports.length < 2; i++) await new Promise((res) => setTimeout(res, 50));   // a sweep takes as long as the database takes
   stop();
-  await new Promise((res) => setTimeout(res, 120));                       // a sweep already under way finishes
-  const n = reports.length;
+  let n = -1;                                                                                                // a sweep already under way finishes: wait until the count holds still
+  for (let i = 0; i < 100 && reports.length !== n; i++) { n = reports.length; await new Promise((res) => setTimeout(res, 400)); }
   expect(n).toBeGreaterThanOrEqual(2);
-  await new Promise((res) => setTimeout(res, 120));
-  expect(reports.length).toBe(n);                                         // and no new one starts
+  await new Promise((res) => setTimeout(res, 300));
+  expect(reports.length).toBe(n);                                                                            // and no new one starts
 });

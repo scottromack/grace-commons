@@ -6,6 +6,7 @@
 #   bash stack/stack.sh install   fetch the JDK and the XTDB jar into .stack/ (checked against their sha256)
 #   bash stack/stack.sh start     start XTDB in memory on 127.0.0.1:5432 (health on 8080)
 #   bash stack/stack.sh stop
+#   bash stack/stack.sh restart   stop and start: XTDB runs in memory, so this is a fresh store (the tests start from one)
 #
 # XTDB 2 is published as a container image only; its jar is the one layer that
 # holds /usr/local/lib/xtdb/xtdb.jar, fetched here by digest from ghcr.io, so no
@@ -48,5 +49,8 @@ case "${1:-}" in
     [ -f "$S/xtdb/pid" ] && kill "$(cat "$S/xtdb/pid")" 2>/dev/null || true
     rm -f "$S/xtdb/pid"
     ;;
-  *) echo "usage: stack.sh install|start|stop" >&2; exit 2 ;;
+  restart)
+    "$0" stop; sleep 1; "$0" start
+    ;;
+  *) echo "usage: stack.sh install|start|stop|restart" >&2; exit 2 ;;
 esac
