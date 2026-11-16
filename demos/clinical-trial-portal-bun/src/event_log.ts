@@ -54,6 +54,11 @@ export class EventLog {
     return new EventLog(store, seam, { name: cfg.name, payloadCap: cfg.payloadCap ?? DEFAULT_CAP });
   }
 
+  /** The payload cap in force, in bytes (Term payload cap). */
+  get payloadCap(): number {
+    return this.cfg.payloadCap;
+  }
+
   /** Highest sequence number landed in this log, 0 for a fresh instance (State 5). */
   private async top(): Promise<number> {
     const r = await this.store.read<Row>(`SELECT MAX(seq) AS top FROM ${T} WHERE log_name = $1`, [this.cfg.name]);
