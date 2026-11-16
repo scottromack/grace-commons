@@ -152,3 +152,5 @@ patterns:
     file: atoms/favorite.md
   - id: 65
     file: atoms/reaction.md
+  - id: 66
+    file: atoms/communication.md
