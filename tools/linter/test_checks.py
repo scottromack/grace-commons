@@ -3870,6 +3870,85 @@ Role:       Outcome
 """
 
 
+IR_ADMITTED = """# Tag
+
+## Structure
+
+### Identity model
+
+```
+Identity 1: The atom MUST identify a tag by the tag id.
+Identity 2: The host MUST allocate a tag id at the atom's seam.
+```
+
+### Operations
+
+```
+retire(tag_id)
+  answers ok
+  refuses not-known
+
+purge(tag_id)
+  answers ok
+  refuses not-known
+```
+
+Term admitted retire: a [Retire] call the action admits (Execution Contract Read 4).
+
+Term admitted purge: a [Purge] call whose tag id names a tag that is retired.
+
+Term admitted rotate: a [Purge] call the action admits.
+
+```
+Operation 1: An admitted retire MUST stand the tag in retired.
+Operation 2: An admitted purge MUST answer ok.
+Operation 3: An admitted rotate MUST answer ok.
+Operation 4: An admitted gone MUST answer ok.
+Operation 5: [Retire] MUST answer ok.
+```
+
+## Terms
+
+#### Tag Id
+
+Names the tag.
+
+Kind:       Field
+Field of:   the tag record
+Projection: tag_id
+
+## Status
+
+`todo` \u2014 see the Ledger.
+"""
+
+
+def check_ir_admitted(problems: list[str]) -> None:
+    import tempfile
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "grace"))
+    import ir
+
+    def read(text: str):
+        with tempfile.TemporaryDirectory() as d:
+            root = Path(d)
+            (root / "atoms").mkdir()
+            (root / "execution-contract.md").write_text(IR_READER_CONTRACT, encoding="utf-8")
+            (root / "atoms" / "tag.md").write_text(text, encoding="utf-8")
+            return ir.parse(root / "atoms" / "tag.md", root)
+
+    got = {r["label"]: r.get("actions", []) for r in read(IR_ADMITTED)["rules"]}
+    want = {
+        "an admitted call the action admits is the call of its action": got.get("Operation 1") == ["retire"],
+        "a call narrowed by a clause names no action": got.get("Operation 2", []) == [],
+        "a Term whose bracket is another action than its name names none": got.get("Operation 3", []) == [],
+        "an admitted word with no Term names none": got.get("Operation 4", []) == [],
+        "a bracketed action is still read": got.get("Operation 5") == ["retire"],
+    }
+    for what, held in want.items():
+        if not held:
+            problems.append(f"IR admitted action: {what} read wrong: {got}")
+
+
 def check_ir_guards(problems: list[str]) -> None:
     import tempfile
     sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "grace"))
@@ -4358,6 +4437,7 @@ def main(argv: list[str]) -> int:
     check_ir_record_type(ir_problems)
     check_ir_read_answers(ir_problems)
     check_ir_guards(ir_problems)
+    check_ir_admitted(ir_problems)
     n_specs, n_rules = check_ir_corpus(root, ir_problems)
     failures.extend(ir_problems)
     if not ir_problems:

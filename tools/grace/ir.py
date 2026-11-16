@@ -1134,6 +1134,9 @@ def snake_of(s: str) -> str:
     return re.sub(r"[^a-z0-9]+", "_", s.lower()).strip("_")
 
 
+ADMITTED_SUBJECT = re.compile(r"(?:an? |the )?admitted ([a-z][a-z0-9 -]*)", re.I)
+# a Term `admitted <action>` whose definition says no more of the call than that the action admits it, that no rule refused it, or that it answers
+ADMITTED_CALL = re.compile(r"an? \[([^\]]+)\] call(?: the action admits| no rule refused| that answers)?(?: \([^)]*\))?\.?")
 ACTION_LIST = re.compile(r"(?:(?:an?|the) )?\[[^\]]+\](?:(?:,\s*|\s+(?:and|or)\s+)(?:(?:an?|the) )?\[[^\]]+\])*(?:\s+calls?)?")
 
 
@@ -1141,7 +1144,9 @@ def actions_of(subject: str, terms: list[dict]) -> list[str]:
     """The actions a rule's subject names, as the signatures spell them: a bracketed action (`[Deliver]`), or a Term whose
     definition begins with a list of them (`a terminal transition` is `a [Deliver], a [Fail] or an [Expire] call`). A subject
     that names none (`A refused call`, `A caller`) names none; an action named and on no signature is still named here, for
-    the reader of the document to say."""
+    the reader of the document to say. An `admitted <action>` Term is the call of that action where its definition says no more
+    of the call than that the action admits it, that no rule refused it, or that it answers (`an [Order] call the action admits`) and
+    the action its bracket names is the one its name does; a call narrowed by anything else (`a [Fire] call whose tasks ...`) names none."""
     m = re.fullmatch(r"\[(.+)\]", subject.strip())
     if m:
         return [snake_of(m.group(1))]
@@ -1149,6 +1154,10 @@ def actions_of(subject: str, terms: list[dict]) -> list[str]:
     head = t["definition"].split(" \u2014 ")[0].strip() if t else ""
     if head and ACTION_LIST.fullmatch(head):
         return [snake_of(x) for x in re.findall(r"\[([^\]]+)\]", head)]
+    adm = ADMITTED_SUBJECT.fullmatch(subject.strip())
+    call = ADMITTED_CALL.fullmatch(head) if adm and t else None
+    if call and snake_of(call.group(1)) == snake_of(adm.group(1)):
+        return [snake_of(call.group(1))]
     return []
 
 
