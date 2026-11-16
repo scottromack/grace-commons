@@ -12,8 +12,10 @@ and every rule lowered to its normalized form (normalize.py, GRACE-lang section
 it cites for what a word means (label and text), the key an Identity rule names
 as the fields of the Term that names it, and the term entries that give the half
 of an operation a rule states only as a necessary condition, the settings a deployment may declare with their defaults, and the sets a Term defines from the call. Where the page does
-not give enough to carry one of these, `reader_gaps` says so and nothing is
-guessed.
+not give enough to carry one of these, `reader_gaps` says so (each with its `kind`)
+and nothing is guessed. For every rule `projectable` says what a consumer may take it
+as (`guard`, `shape`, `transition`, `wiring`, `step`, `key`, `check-only` or
+`not-carried`), so that a consumer re-derives none of the reader's judgments.
 README.md, section *The IR*, gives the shape.
 
 It reads with the readers the corpus already has, not a second copy of their
@@ -31,6 +33,7 @@ cannot read is a finding, never an exception.
 
     python3 tools/grace/ir.py                  # every spec to build/ir/, then the proof
     python3 tools/grace/ir.py --check          # the proof alone, nothing written
+    python3 tools/grace/ir.py --gaps           # the reader's gaps: spec by kind by count
     python3 tools/grace/ir.py atoms/cart.md    # one spec's document, printed
 
 One-spec mode reads a draft outside the repo too, the Grace connector's: its
@@ -44,6 +47,7 @@ Standard library only. One finding per line, `path:line: [CODE] message`; exit
 from __future__ import annotations
 
 import functools
+import hashlib
 import json
 import posixpath
 import re
@@ -913,7 +917,7 @@ def read_orders(doc: dict, cx: dict, keys: list[dict], contract: dict[str, dict]
         made = cx["fields"].get("creation instant")
         if not made or len(ids) != 1:
             gaps.append({"rule": r["label"], "line": r["line"],
-                         "what": "the read's order is Execution Contract Read 5's, which needs the record's creation instant "
+                         "kind": "no-order", "what": "the read's order is Execution Contract Read 5's, which needs the record's creation instant "
                                  f"and its id: the reader found {'no Field entry `creation instant`' if not made else 'no one id key'}"})
             continue
         sh["order_default"] = {"rule": "Execution Contract Read 5",
@@ -958,7 +962,7 @@ def settings_of(doc: dict, cx: dict) -> tuple[list[dict], list[dict]]:
         d = SETTING_DEFAULT.search(t["definition"]) if t else None
         if not d:
             gaps.append({"rule": r["label"], "line": r["line"],
-                         "what": f"no default read: the reader read no default in the Term `{m.group('term')}` (what stands where a deployment declares none)"})
+                         "kind": "no-default", "what": f"no default read: the reader read no default in the Term `{m.group('term')}` (what stands where a deployment declares none)"})
             continue
         text = d.group("text").strip()
         value: object = text
@@ -994,13 +998,13 @@ def term_sets_of(doc: dict, cx: dict) -> tuple[list[dict], list[dict]]:
             continue
         m = TERM_SET.match(t["definition"].strip())
         if not m:
-            gaps.append({"rule": f"Term {t['name']}", "line": t["line"], "what": "no set read: the reader could not fit the definition, which says `other than`, to `a <member> <thing> carrying the <term> of the call and a <field> other than the <field> of the call`"})
+            gaps.append({"rule": f"Term {t['name']}", "line": t["line"], "kind": "no-set", "what": "no set read: the reader could not fit the definition, which says `other than`, to `a <member> <thing> carrying the <term> of the call and a <field> other than the <field> of the call`"})
             continue
         where, why = what_of(m.group("what"), cx)
         carrying, why2 = carrying_of(m.group("by"), cx)
         other, same = field_of(m.group("other"), cx), field_of(m.group("same"), cx)
         if why or why2 or not other or other != same:
-            gaps.append({"rule": f"Term {t['name']}", "line": t["line"], "what": "no set read: " + (why or why2 or "the reader read the field that differs as not the field the call names")})
+            gaps.append({"rule": f"Term {t['name']}", "line": t["line"], "kind": "no-set", "what": "no set read: " + (why or why2 or "the reader read the field that differs as not the field the call names")})
             continue
         out.append({"term": t["name"], "line": t["line"], "thing": cx["type"], "where": where, "carrying": carrying, "other_than": other})
     return out, gaps
@@ -1041,6 +1045,20 @@ def bind_arg(phrase: str, action: str, inputs: list[str], entries: list[dict]) -
     return None
 
 
+def input_entries(action: str, inputs: list[str], entries: list[dict]) -> str:
+    """For a binding gap, what bind_arg could have bound to: each input of the callee's action with the term entry that names it (a Projection that is
+    the input, a Parameter entry only for that action), and the inputs with no such entry, which no phrase of the caller can bind to."""
+    named: dict[str, str] = {}
+    for e in entries:
+        k = e["kind"]
+        if k.get("Projection") in inputs and (not k.get("Parameter of") or k["Parameter of"].lower() == action.lower()):
+            named.setdefault(k["Projection"], e["name"])
+    have = [f"{i} (entry `{named[i]}`)" for i in inputs if i in named]
+    lack = [i for i in inputs if i not in named]
+    return (f"its inputs with a term entry: {', '.join(have) or 'none'}; its inputs with no Parameter or Field entry naming them: "
+            f"{', '.join(lack) or 'none'}")
+
+
 def wiring_of(doc: dict, root: Path) -> tuple[list[dict], list[dict], list[dict]]:
     """A composition's calls to its constituents and the tests it makes on their answers,
     read through the constituents' own signatures and term entries (additions only; a
@@ -1056,12 +1074,12 @@ def wiring_of(doc: dict, root: Path) -> tuple[list[dict], list[dict], list[dict]
 
     def callee(who: str, act: str, rule: dict, where: str):
         if who not in view or view[who][1] is None:
-            gaps.append({"rule": rule["label"], "line": rule["line"], "what": f"the reader read {who} as no constituent the Composes section links, or found its page absent"})
+            gaps.append({"rule": rule["label"], "line": rule["line"], "kind": "no-constituent", "what": f"the reader read {who} as no constituent the Composes section links, or found its page absent"})
             return None
         c, v = view[who]
         sig = next((s for s in v["signatures"] if snake_of(s["action"]) == snake_of(act)), None)
         if sig is None:
-            gaps.append({"rule": rule["label"], "line": rule["line"], "what": f"the reader found no action {act!r} on the signature list of {who} ({where})"})
+            gaps.append({"rule": rule["label"], "line": rule["line"], "kind": "no-action", "what": f"the reader found no action {act!r} on the signature list of {who} ({where})"})
             return None
         return c, v, sig
 
@@ -1096,7 +1114,8 @@ def wiring_of(doc: dict, root: Path) -> tuple[list[dict], list[dict], list[dict]
                 b = bind_arg(phrase, sig["action"], inputs, v["term_entries"])
                 entry["args"].append(b or {"phrase": phrase.strip(), "binds": None})
                 if not b:
-                    gaps.append({"rule": r["label"], "line": r["line"], "what": f"the reader bound {phrase.strip()!r} to no input of {c['name']}'s {sig['action']} through its term entries"})
+                    gaps.append({"rule": r["label"], "line": r["line"], "kind": "no-binding", "what": f"the reader bound {phrase.strip()!r} to no input of {c['name']}'s {sig['action']} through its term entries"
+                                 f"; {input_entries(sig['action'], inputs, v['term_entries'])}"})
             calls.append(entry)
         last = None
         for cl in (form.get("if") or {}).get("clauses", []):
@@ -1107,7 +1126,7 @@ def wiring_of(doc: dict, root: Path) -> tuple[list[dict], list[dict], list[dict]
                 if n in last[1]:
                     last[0]["arms"].append(n)
                 else:
-                    gaps.append({"rule": r["label"], "line": r["line"], "what": f"the reader read {n!r} as no arm of {last[0]['constituent']}'s {last[0]['action']} (its arms: {sorted(last[1])})"})
+                    gaps.append({"rule": r["label"], "line": r["line"], "kind": "no-arm", "what": f"the reader read {n!r} as no arm of {last[0]['constituent']}'s {last[0]['action']} (its arms: {sorted(last[1])})"})
                 continue
             if not m:
                 last = None
@@ -1124,7 +1143,7 @@ def wiring_of(doc: dict, root: Path) -> tuple[list[dict], list[dict], list[dict]
                 test["for"] = m.group("rest").strip()[4:]
             for n in names:
                 if n not in arms:
-                    gaps.append({"rule": r["label"], "line": r["line"], "what": f"the reader read {n!r} as no arm of {c['name']}'s {sig['action']} (its arms: {sorted(arms)})"})
+                    gaps.append({"rule": r["label"], "line": r["line"], "kind": "no-arm", "what": f"the reader read {n!r} as no arm of {c['name']}'s {sig['action']} (its arms: {sorted(arms)})"})
             tests.append(test)
             last = (test, arms)
     return calls, tests, gaps
@@ -1199,6 +1218,15 @@ def unresolved_set(subject: str, doc: dict) -> bool:
     return bool(head) and action_set_of(head, doc["signatures"]) == []
 
 
+def bracketed_head(subject: str, doc: dict) -> str:
+    """The head of the definition of the Term a rule's subject names, where it is a list of bracketed actions that `actions_of` read as none for the period it
+    ends in (`[Record Sighting], [Report Standing] or [Report Clear].`): '' where it is not. The rule names no action, which the reader says, since a consumer
+    that reads the Term itself reads actions the reader did not. A call narrowed by anything else (`a [Fire] call whose tasks ...`) names none by design and is no gap."""
+    t = next((t for t in doc["terms"] if t["name"].lower() == re.sub(r"^(?:a|an|the|every|any|each) ", "", subject.strip(), flags=re.I).lower()), None)
+    head = t["definition"].split(" \u2014 ")[0].strip() if t else ""
+    return head if ACTION_LIST.fullmatch(head.rstrip(". ")) and not actions_of(subject, doc["terms"], doc["signatures"]) else ""
+
+
 def transitions_of(doc: dict, cx: dict) -> tuple[list[dict], list[dict]]:
     """For each action whose call names an existing record by its id (every field of an id key is an input of the signature) and
     stands it in a state (`[Deliver] MUST stand the notification in delivered`): the state it stands (a Member entry of a Field
@@ -1207,7 +1235,10 @@ def transitions_of(doc: dict, cx: dict) -> tuple[list[dict], list[dict]]:
     rule names lists Field entries, and the Invariant `A <thing> carrying <stamp> MUST stand in <state>` pairs each with its state).
     A part the page does not give is a reader gap and the transition is not carried; nothing is guessed."""
     keys = [k for k in doc.get("keys", []) if k.get("id")]
-    if len(keys) != 1:
+    if len(keys) > 1:
+        return [], [{"rule": keys[1]["rule"], "line": keys[1]["line"], "kind": "no-transition",
+                     "what": f"no transition read: the page names {len(keys)} id keys ({', '.join(k['thing'] for k in keys)}), and the reader carries transitions for a page that names one"}]
+    if not keys:
         return [], []
     key, thing = keys[0], keys[0]["thing"]
     forms = doc["normalized"]["rules"]
@@ -1240,14 +1271,14 @@ def transitions_of(doc: dict, cx: dict) -> tuple[list[dict], list[dict]]:
             continue                    # a call that only reads the record: no transition
         if len(stands) != 1:
             gaps.append({"rule": stands[1][0]["label"], "line": stands[1][0]["line"],
-                         "what": f"no transition read: {action} names a {thing} by its id and stands it in {len(stands)} states: the reader carries one"})
+                         "kind": "no-transition", "what": f"no transition read: {action} names a {thing} by its id and stands it in {len(stands)} states: the reader carries one"})
             continue
         (sr, value), = stands
         member = cx["members"].get(value)
         fname = (member[0] if member else "").removeprefix("the ")
         fent = fields.get(fname) or fields.get(fname.removeprefix(thing + " "))
         if not member or not fent:
-            gaps.append({"rule": sr["label"], "line": sr["line"], "what": f"no transition read: the reader found `{value}` in no Member entry of a Field entry"})
+            gaps.append({"rule": sr["label"], "line": sr["line"], "kind": "no-transition", "what": f"no transition read: the reader found `{value}` in no Member entry of a Field entry"})
             continue
         refusals = set(sig["refuses"]) | set(a.split("(")[0] for a in sig["answers"])
 
@@ -1281,13 +1312,13 @@ def transitions_of(doc: dict, cx: dict) -> tuple[list[dict], list[dict]]:
                 stamp = {"rule": r["label"], "line": r["line"], "field": fields[paired[0]]["kind"].get("Projection") or fields[paired[0]]["name"],
                          "paired_by": pairs[paired[0]][1]}
             else:
-                spend = {"rule": r["label"], "line": r["line"], "what": f"no transition read: the reader read no Invariant of the form `a {thing} carrying <stamp> MUST stand in <state>` that pairs the stamp `{m.group(1)}` with `{value}`"}
+                spend = {"rule": r["label"], "line": r["line"], "kind": "no-transition", "what": f"no transition read: the reader read no Invariant of the form `a {thing} carrying <stamp> MUST stand in <state>` that pairs the stamp `{m.group(1)}` with `{value}`"}
         missing = [name for part, name in ((absent, "what is answered where no %s carries the id" % thing), (frm, "which states it may stand it from")) if not part]
         if spend:
             gaps.append(spend)
         if missing:
             gaps.append({"rule": sr["label"], "line": sr["line"],
-                         "what": f"no transition read: {action} stands the {thing} its id names in {value}, and the reader read no rule that says {' or '.join(missing)}"})
+                         "kind": "no-transition", "what": f"no transition read: {action} stands the {thing} its id names in {value}, and the reader read no rule that says {' or '.join(missing)}"})
         if absent and frm and not spend:
             out.append({"action": action, "thing": thing, "key": key["rule"], "id": list(key["fields"]),
                         "stands": {"rule": sr["label"], "line": sr["line"], "value": value, "field": fent["kind"].get("Projection") or fent["name"].lower()},
@@ -1349,7 +1380,7 @@ def records_of(doc: dict) -> tuple[list[dict], list[dict], list[dict]]:
         if rec["key"] is None:
             why = ("an inverse map's key is the first map's value, which the reader read no rule naming" if rec["inverse_of"]
                    else "the reader read no rule that keys it")
-            gaps.append({"rule": rec["rule"], "line": rec["line"], "what": f"no key read for the {rec['name']}: {why}"})
+            gaps.append({"rule": rec["rule"], "line": rec["line"], "kind": "no-key", "what": f"no key read for the {rec['name']}: {why}"})
     return out, txs, gaps
 
 
@@ -1386,6 +1417,7 @@ def parse(path: Path, root: Path) -> dict:
     summary = "\n".join(lines[k].strip() for k in section_lines(lines, "Summary") if lines[k].strip() != "---")
     doc = {
         "ir": IR_VERSION,
+        "source_sha256": hashlib.sha256(text.encode("utf-8")).hexdigest(),
         "spec": rel or path.as_posix(),
         "name": cites.spec_name(path),
         "title": next((ln[2:].strip() for ln in lines if ln.startswith("# ")), ""),
@@ -1411,7 +1443,7 @@ def parse(path: Path, root: Path) -> dict:
 def guard_test(cl: dict, doc: dict, cx: dict, keys: list[dict], inputs: set[str], rule: dict) -> dict:
     """What one clause of a guard reads, nothing guessed: `record_by_id` (a record EXISTS, or none does, for the key's term), `input` (a call's input is
     blank, exceeds a bound a Term of the page names, is malformed, or is, or is not, a value), `record_state` (the record is, or is not, a Member entry's
-    value), `database_refusal` (the database refuses the write), `seam_value` (a Term of the page that is a list of values, `material | unknown-actor | unreachable`, which the outside supplies, is, or is not,
+    value), `setting_member` (no member of a set a deployment declares, a setting the page gives an `of` field, EQUALS that field of the call), `database_refusal` (the database refuses the write), `seam_value` (a Term of the page that is a list of values, `material | unknown-actor | unreachable`, which the outside supplies, is, or is not,
     one of them), or `prose` (the clause rests on a Term's sentence, or on nothing the reader resolves), with `why`."""
     k, text = cl["kind"], cl["text"]
     key = keys[0] if keys else None
@@ -1421,6 +1453,11 @@ def guard_test(cl: dict, doc: dict, cx: dict, keys: list[dict], inputs: set[str]
     if k == "comparison":
         left, op, right = cl["left"], cl["op"], cl["right"]
         neg = op == "DOES NOT EQUAL"
+        member = re.fullmatch(r"no member of (.+)", left.strip())
+        setting = next((x for x in doc.get("settings", []) if member and x.get("of")
+                        and re.sub(r"^(?:the|a|an) ", "", member.group(1).strip().lower()) == x["term"].lower()), None)
+        if setting and op == "EQUALS" and field_of(right, cx) == setting["of"] and setting["of"] in inputs:
+            return {"clause": text, "reads": "setting_member", "setting": setting["term"], "input": setting["of"]}
         field = field_of(left, cx)
         term = cx["terms"].get(re.sub(r"^(?:the|a|an) ", "", left.strip().lower()))
         values = re.match(r"^([a-z-]+(?: \| [a-z-]+)+)\b", term["definition"]) if term else None
@@ -1483,6 +1520,82 @@ def guards_of(doc: dict, cx: dict, keys: list[dict]) -> list[dict]:
     return out
 
 
+PROJECTABLE = ("key", "guard", "shape", "transition", "wiring", "step", "check-only", "not-carried")
+
+
+def projectable_of(doc: dict, gaps: list[dict]) -> list[dict]:
+    """One entry per rule: what a consumer of the IR may take it as, from what the reader carried and nothing the consumer need re-derive. `as` is one of
+    `key` (the Identity rule that names a key, or the rule that says where an id comes from), `transition` (a rule a carried transition reads), `guard` (a carried
+    guard, `whole` where no test rests on prose; one that is not whole is `not-carried`), `shape` (an answer shape the reader read), `wiring` (a call or an answer
+    test of a composition), `step` (an Operation or State rule of one obligation whose subject names the actions in `actions`, or a State rule of a fresh record),
+    `check-only` (the rule holds as a property or a constraint on the caller, and no action takes a step from it), `not-carried` (the reader could not carry it:
+    `why`, and `gaps`, the places in `reader_gaps` it rests on). `actions` is the reader's, as on the rule."""
+    forms = doc["normalized"]["rules"]
+    sigs = {snake_of(x["action"]) for x in doc["signatures"]}
+    gap_at: dict[str, list[int]] = {}
+    for i, g in enumerate(gaps):
+        gap_at.setdefault(g["rule"], []).append(i)
+    keyed = {k["rule"] for k in doc["keys"]} | {k["source"]["rule"] for k in doc["keys"] if k.get("source")}
+    stepped = {t[part]["rule"] for t in doc["transitions"] for part in ("stands", "from", "absent", "stamp") if t.get(part)}
+    guards = {g["rule"]: g for g in doc["guards"]}
+    wired = {c["rule"] for c in doc["calls"]} | {t["rule"] for t in doc["answer_tests"]}
+    out = []
+    for r in doc["rules"]:
+        label, f = r["label"], forms.get(r["label"], {})
+        acts = r.get("actions", [])
+        entry: dict = {"rule": label, "line": r["line"]}
+        mine = gap_at.get(label, [])
+
+        def took(kind, why=None, **more):
+            entry["as"] = kind
+            if acts:
+                entry["actions"] = acts
+            if why:
+                entry["why"] = why
+            if mine:
+                entry["gaps"] = mine
+            entry.update(more)
+            out.append(entry)
+
+        obs = f.get("obligations", [])
+        if label in keyed:
+            took("key")
+        elif r["family"] not in ("Operation", "State"):
+            took("check-only", f"rules of the {r['family']} family hold of the records and the answers, and name no step")
+        elif f.get("kind") != "rule" or len(obs) != 1:
+            took("not-carried", "a rule with more than one obligation" if f.get("kind") == "rule" and len(obs) > 1 else
+                 f"the reader reads {len(obs)} obligations in it" + ("" if f.get("kind") == "rule" else f", and reads the rule as a {f.get('kind')}, not a rule"))
+        elif acts and not set(acts) <= sigs:
+            took("not-carried", "the subject names an action (%s) that the reader found on no signature of the page" % ", ".join(sorted(set(acts) - sigs)))
+        elif label in stepped:
+            took("transition")
+        elif (obs[0]["modal"], obs[0]["act"]) in (("MUST NOT", "answer"), ("MUST NOT", "require"), ("MUST", "accept")):
+            took("check-only", "a constraint on what an answer carries" if obs[0]["act"] == "answer" else
+                 "a prohibition on a precondition, which names no step" if obs[0]["act"] == "require" else "an obligation not to refuse names no step")
+        elif mine and not acts:
+            took("not-carried", gaps[mine[0]]["what"])
+        elif r["family"] == "State" and not acts and not re.match(r"a fresh ", f.get("subject", ""), re.I):
+            took("check-only", "what the second record MUST carry: the records' shape, not a step")
+        elif r["family"] == "Operation" and not acts:
+            took("check-only", "a constraint on the caller, not a step of the action")
+        elif label in guards:
+            g = guards[label]
+            if g["whole"]:
+                took("guard", tests=len(g["tests"]))
+            else:
+                prose = next(t for t in g["tests"] if t["reads"] == "prose")
+                took("not-carried", "a guard whose test rests on a Term's sentence or on nothing the reader resolves: " + prose["clause"], tests=len(g["tests"]))
+        elif "answer_shape" in r:
+            took("shape")
+        elif label in wired:
+            took("wiring")
+        elif mine:
+            took("not-carried", gaps[mine[0]]["what"])
+        else:
+            took("step")
+    return out
+
+
 def carry(doc: dict, root: Path) -> None:
     """What the reader adds beside the rules (additions only): `cited_meaning`
     and `completed_by` on the rules that need them, `keys` for the Identity
@@ -1501,22 +1614,24 @@ def carry(doc: dict, root: Path) -> None:
         acts = actions_of(form.get("subject", ""), doc["terms"], doc["signatures"]) if form.get("kind") == "rule" else []
         if acts:
             r["actions"] = acts
-        elif form.get("kind") == "rule" and unresolved_set(form.get("subject", ""), doc):
+        elif form.get("kind") == "rule" and (unresolved_set(form.get("subject", ""), doc) or bracketed_head(form.get("subject", ""), doc)):
             gaps.append({"rule": r["label"], "line": r["line"],
-                         "what": f"no action read: {form['subject'].strip()!r} is a Term that names a set of actions, which the reader could not resolve against the page's signatures"})
+                         "kind": "no-action", "what": (f"no action read: {form['subject'].strip()!r} is a Term that names a set of actions, which the reader could not resolve against the page's signatures"
+                                                       if unresolved_set(form.get("subject", ""), doc) else
+                                                       f"no action read: {form['subject'].strip()!r} is a Term whose definition begins with a bracketed action ({bracketed_head(form.get('subject', ''), doc)!r}), and the reader reads that as no list of actions")})
         cm = cited_meaning(r, form, contract)
         if cm:
             r["cited_meaning"] = cm
         elif predicates(form) and CONTRACT_CITE.search(r["text"]) and contract:
             gaps.append({"rule": r["label"], "line": r["line"],
-                         "what": "a predicate cites an Execution Contract rule the reader did not find in the contract"})
+                         "kind": "no-contract-rule", "what": "a predicate cites an Execution Contract rule the reader did not find in the contract"})
         cb = completed_by(form, doc["term_entries"])
         if cb:
             r["completed_by"] = cb
         elif (form.get("kind") == "rule" and r["family"] == "Operation"
               and any(o.get("exclusive") or o.get("only_if") for o in form.get("obligations", []))):
             gaps.append({"rule": r["label"], "line": r["line"],
-                         "what": "a necessary condition on an answer, and the reader read no Operation rule or Member term entry that gives the rest"})
+                         "kind": "no-completion", "what": "a necessary condition on an answer, and the reader read no Operation rule or Member term entry that gives the rest"})
         obs = form.get("obligations", []) if form.get("kind") == "rule" and r["family"] == "Operation" else []
         if (len(obs) == 1 and obs[0]["act"] == "answer" and obs[0].get("object") and not obs[0].get("exclusive")
                 and not obs[0].get("only_if") and re.fullmatch(r"\[.+\]", form.get("subject", "").strip())
@@ -1530,18 +1645,26 @@ def carry(doc: dict, root: Path) -> None:
                     shape["cited"] = cited
                 r["answer_shape"] = shape
             else:
-                gaps.append({"rule": r["label"], "line": r["line"], "what": "no answer shape read: " + why})
+                gaps.append({"rule": r["label"], "line": r["line"], "kind": "no-answer-shape", "what": "no answer shape read: " + why})
         if r["family"] == "Identity" and IDENTIFY.search(r["text"]):
             key, why = key_of(r, doc["terms"], doc["term_entries"], doc["rules"], forms)
             if key:
                 keys.append(key)
             else:
-                gaps.append({"rule": r["label"], "line": r["line"], "what": "no key read: " + why})
+                gaps.append({"rule": r["label"], "line": r["line"], "kind": "no-key", "what": "no key read: " + why})
     doc["keys"] = keys
+    for r in doc["rules"]:      # a shape takes the page's first record type (`cx["type"]`): where the rule's words name another, the shape is not read
+        sh = r.get("answer_shape")
+        named = [t for t in cx["types"][1:] if sh and sh.get("thing") == cx["type"] and re.search(rf"\b{re.escape(t)}s?\b", r["text"].lower())]
+        if named:
+            r.pop("answer_shape")
+            gaps.append({"rule": r["label"], "line": r["line"], "kind": "record-types",
+                         "what": f"no answer shape read: the page names {len(cx['types'])} record types ({', '.join(cx['types'])}), the reader reads a shape's record as "
+                                 f"`{cx['type']}`, and the rule's words name {', '.join(named)} too"})
+    doc["settings"], setting_gaps = settings_of(doc, cx)       # before the guards: a guard test reads a setting's set
     doc["guards"] = guards_of(doc, cx, keys)
     gaps += read_orders(doc, cx, keys, contract)
-    doc["settings"], more = settings_of(doc, cx)
-    gaps += more
+    gaps += setting_gaps
     doc["term_sets"], more = term_sets_of(doc, cx)
     gaps += more
     doc["calls"], doc["answer_tests"], more = wiring_of(doc, root)
@@ -1551,6 +1674,7 @@ def carry(doc: dict, root: Path) -> None:
     doc["transitions"], more = transitions_of(doc, cx)
     gaps += more
     doc["reader_gaps"] = gaps
+    doc["projectable"] = projectable_of(doc, gaps)
 
 
 def specs(root: Path) -> list[Path]:
@@ -1583,6 +1707,12 @@ def prove(root: Path, docs: list[dict]) -> list[tuple[str, int, str, str]]:
     dead = {d["name"]: {t["label"]: t for t in d["tombstones"]} for d in docs}
     by_path = {d["spec"] for d in docs}
     contract = contract_label_set(root) or set()
+    read3 = contract_of(root).get("Read 3")
+    if read3 is not None:     # CONTRACT_ARMS is what the reader takes Read 3 to give every read: proved against the contract's own words
+        missing = sorted(a for a in CONTRACT_ARMS if a not in read3["title"] + " " + read3["text"])
+        if missing:
+            findings.append(("execution-contract.md", read3["line"], "IR-contract-arms",
+                             f"CONTRACT_ARMS holds {', '.join(missing)}, which Read 3 no longer says: the reader takes it as an arm every read answers"))
     for d in docs:
         rel = d["spec"]
         counted = cites.parse(root / rel).rules
@@ -1592,6 +1722,14 @@ def prove(root: Path, docs: list[dict]) -> list[tuple[str, int, str, str]]:
             findings.append((rel, 1, "IR-count",
                              f"{len(d['rules'])} rules in the IR, {len(counted)} by cites.py's count; "
                              f"cites.py only: {', '.join(gone) or 'none'}; IR only: {', '.join(extra) or 'none'}"))
+        if [x["rule"] for x in d["projectable"]] != [r["label"] for r in d["rules"]] or any(x["as"] not in PROJECTABLE for x in d["projectable"]):
+            findings.append((rel, 1, "IR-projectable", "the projectable table is not one entry of a known class for each rule, in the page's order"))
+        named: dict[str, int] = {}
+        for e in d["term_entries"]:
+            if e["name"].lower() in named:
+                findings.append((rel, e["line"], "IR-entry", f"the term entry {e['name']} is declared twice on the page (first at line {named[e['name'].lower()]}): "
+                                 f"the reader would take the later one and drop the first"))
+            named.setdefault(e["name"].lower(), e["line"])
         seen: Counter = Counter()
         for x in d["rules"] + d["tombstones"]:
             seen[x["label"]] += 1
@@ -1649,6 +1787,21 @@ def resolve(cited: str, labels: set, gone: dict, where: str) -> str | None:
     return None
 
 
+def gap_table(docs: list[dict]) -> str:
+    """The reader's gaps as a table: a row for each spec that has any, a column for each kind of gap, and the totals."""
+    kinds = sorted({g["kind"] for d in docs for g in d["reader_gaps"]})
+    rows = [(d["name"], Counter(g["kind"] for g in d["reader_gaps"])) for d in docs if d["reader_gaps"]]
+    rows.sort(key=lambda r: (-sum(r[1].values()), r[0]))
+    width = max([len("spec")] + [len(n) for n, _ in rows])
+    head = f"{'spec':<{width}}  " + "  ".join(f"{k:>{max(len(k), 5)}}" for k in kinds) + "  total"
+    lines = [head]
+    for name, c in rows:
+        lines.append(f"{name:<{width}}  " + "  ".join(f"{c[k] or '.':>{max(len(k), 5)}}" for k in kinds) + f"  {sum(c.values()):>5}")
+    total = Counter(g["kind"] for d in docs for g in d["reader_gaps"])
+    lines.append(f"{'all':<{width}}  " + "  ".join(f"{total[k]:>{max(len(k), 5)}}" for k in kinds) + f"  {sum(total.values()):>5}")
+    return "\n".join(lines)
+
+
 def emit(findings) -> None:
     for path, line, code, msg in findings:
         print(f"{path}:{line}: [{code}] {msg}")
@@ -1662,6 +1815,9 @@ def main(argv: list[str]) -> int:
             print(json.dumps(parse(Path(a), root), indent=2, ensure_ascii=False))
         return 0
     docs, findings = build(root)
+    if "--gaps" in argv:
+        print(gap_table(docs))
+        return 0
     findings += prove(root, docs)
     if "--check" not in argv:
         out = root / "build" / "ir"

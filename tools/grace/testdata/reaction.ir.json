@@ -1,0 +1,2817 @@
+{
+ "answer_tests": [],
+ "calls": [],
+ "case_tables": [
+  {
+   "caption": "The case space, and the rule that owns each case:",
+   "columns": [
+    "Call",
+    "Case",
+    "Answer",
+    "Effect on the reactions"
+   ],
+   "line": 162,
+   "rows": [
+    {
+     "cells": [
+      "[React]",
+      "all three valid, the name in the reaction set, no reaction for the triple, database accepts",
+      "ok",
+      "one reaction lands, held, its first reacted instant now (Operation 5 through 7, Invariant 1.1)"
+     ],
+     "line": 164,
+     "rules": [
+      "Operation 5",
+      "Operation 6",
+      "Operation 7",
+      "Invariant 1.1"
+     ]
+    },
+    {
+     "cells": [
+      "[React]",
+      "all three valid, the name in the reaction set, the reaction stands withdrawn",
+      "ok",
+      "the reaction stands held; its first reacted instant, person reference, item reference and reaction name stand (Operation 8, Invariant 2.1, Invariant 2.2, Invariant 2.3, Invariant 2.4)"
+     ],
+     "line": 165,
+     "rules": [
+      "Operation 8",
+      "Invariant 2.1",
+      "Invariant 2.2",
+      "Invariant 2.3",
+      "Invariant 2.4"
+     ]
+    },
+    {
+     "cells": [
+      "[React]",
+      "all three valid, the name in the reaction set, the reaction stands held",
+      "ok",
+      "the reaction is left as it is (Operation 9); under one-per-item any rival still held stands withdrawn (Operation 10)"
+     ],
+     "line": 166,
+     "rules": [
+      "Operation 9",
+      "Operation 10"
+     ]
+    },
+    {
+     "cells": [
+      "[React]",
+      "the holding rule is one-per-item and the person holds another reaction on the item",
+      "ok",
+      "every rival stands withdrawn, in the same commit (Operation 10, Execution Contract Database 1)"
+     ],
+     "line": 167,
+     "rules": [
+      "Operation 10",
+      "Execution Contract Database 1"
+     ]
+    },
+    {
+     "cells": [
+      "[React]",
+      "the holding rule is one-of-each and the person holds another reaction on the item",
+      "ok",
+      "the rivals are left as they are (Operation 11)"
+     ],
+     "line": 168,
+     "rules": [
+      "Operation 11"
+     ]
+    },
+    {
+     "cells": [
+      "[React]",
+      "the reaction name is not in the reaction set",
+      "[Invalid Reaction Name]",
+      "none (Operation 4)"
+     ],
+     "line": 169,
+     "rules": [
+      "Operation 4"
+     ]
+    },
+    {
+     "cells": [
+      "[Withdraw]",
+      "all three valid, the reaction stands held",
+      "ok",
+      "the reaction stands withdrawn; its person reference, item reference and reaction name stand; nothing is removed (Operation 13, State 3, Invariant 2.2, Invariant 2.3, Invariant 2.4)"
+     ],
+     "line": 170,
+     "rules": [
+      "State 3",
+      "Operation 13",
+      "Invariant 2.2",
+      "Invariant 2.3",
+      "Invariant 2.4"
+     ]
+    },
+    {
+     "cells": [
+      "[Withdraw]",
+      "all three valid, the reaction stands withdrawn or no reaction for the triple",
+      "ok",
+      "none, no write (Operation 14, Operation 15)"
+     ],
+     "line": 171,
+     "rules": [
+      "Operation 14",
+      "Operation 15"
+     ]
+    },
+    {
+     "cells": [
+      "a writing action",
+      "person reference blank, over the string cap, or not a string",
+      "[Invalid Person Reference]",
+      "none (Operation 1, Operation 23)"
+     ],
+     "line": 172,
+     "rules": [
+      "Operation 1",
+      "Operation 23"
+     ]
+    },
+    {
+     "cells": [
+      "a writing action",
+      "item reference blank, over the string cap, or not a string",
+      "[Invalid Item Reference]",
+      "none (Operation 2, Operation 24)"
+     ],
+     "line": 173,
+     "rules": [
+      "Operation 2",
+      "Operation 24"
+     ]
+    },
+    {
+     "cells": [
+      "a writing action",
+      "reaction name blank, over the string cap, or not a string",
+      "[Invalid Reaction Name]",
+      "none (Operation 3, Operation 25)"
+     ],
+     "line": 174,
+     "rules": [
+      "Operation 3",
+      "Operation 25"
+     ]
+    },
+    {
+     "cells": [
+      "[Look Up]",
+      "the person holds reactions on the item",
+      "each one's reaction name, in codepoint order",
+      "none (Operation 17, Operation 19, Operation 29)"
+     ],
+     "line": 175,
+     "rules": [
+      "Operation 17",
+      "Operation 19",
+      "Operation 29"
+     ]
+    },
+    {
+     "cells": [
+      "[Look Up]",
+      "the person holds none, or a reference is blank, over the string cap, or not a string",
+      "an empty list",
+      "none (Operation 18, Operation 26, Operation 27)"
+     ],
+     "line": 176,
+     "rules": [
+      "Operation 18",
+      "Operation 26",
+      "Operation 27"
+     ]
+    },
+    {
+     "cells": [
+      "[Count]",
+      "the item has held reactions",
+      "each reaction name held, with its tally, in codepoint order of reaction name",
+      "none (Operation 20, Operation 22, Operation 30)"
+     ],
+     "line": 177,
+     "rules": [
+      "Operation 20",
+      "Operation 22",
+      "Operation 30"
+     ]
+    },
+    {
+     "cells": [
+      "[Count]",
+      "the item has none, or the item reference is blank, over the string cap, or not a string",
+      "an empty list",
+      "none (Operation 21, Operation 28)"
+     ],
+     "line": 178,
+     "rules": [
+      "Operation 21",
+      "Operation 28"
+     ]
+    },
+    {
+     "cells": [
+      "any writing call",
+      "database refuses the write",
+      "[Storage Failure]",
+      "none (Execution Contract Read 4)"
+     ],
+     "line": 179,
+     "rules": [
+      "Execution Contract Read 4"
+     ]
+    },
+    {
+     "cells": [
+      "any call",
+      "its read of the database fails",
+      "`state-unavailable`",
+      "none (Execution Contract Read 1, Execution Contract Read 3)"
+     ],
+     "line": 180,
+     "rules": [
+      "Execution Contract Read 1",
+      "Execution Contract Read 3"
+     ]
+    },
+    {
+     "cells": [
+      "any call",
+      "more than one refusal applies",
+      "the refusal listed first on the action's refuses line",
+      "none (Execution Contract Refusal 1)"
+     ],
+     "line": 181,
+     "rules": [
+      "Execution Contract Refusal 1"
+     ]
+    }
+   ],
+   "section": [
+    "Structure",
+    "Operations"
+   ]
+  }
+ ],
+ "checks": [
+  {
+   "label": "Check 1.1",
+   "line": 229,
+   "tests": [
+    "State 1"
+   ]
+  },
+  {
+   "label": "Check 1.2",
+   "line": 230,
+   "tests": [
+    "State 2"
+   ]
+  },
+  {
+   "label": "Check 2.1",
+   "line": 231,
+   "tests": [
+    "Invariant 1.1"
+   ]
+  },
+  {
+   "label": "Check 3.1",
+   "line": 232,
+   "tests": [
+    "Invariant 2.1"
+   ]
+  },
+  {
+   "label": "Check 3.2",
+   "line": 233,
+   "tests": [
+    "Invariant 2.2"
+   ]
+  },
+  {
+   "label": "Check 3.3",
+   "line": 234,
+   "tests": [
+    "Invariant 2.3"
+   ]
+  },
+  {
+   "label": "Check 3.4",
+   "line": 235,
+   "tests": [
+    "Invariant 2.4"
+   ]
+  },
+  {
+   "label": "External check 1",
+   "line": 245,
+   "tests": [
+    "Non-goal 3"
+   ]
+  }
+ ],
+ "composes": [],
+ "guards": [
+  {
+   "actions": [
+    "react",
+    "withdraw"
+   ],
+   "answer": "invalid-person-reference",
+   "join": "OR",
+   "line": 120,
+   "refusal": true,
+   "rule": "Operation 1",
+   "tests": [
+    {
+     "clause": "the person reference EQUALS blank",
+     "input": "person_reference",
+     "negated": false,
+     "reads": "input",
+     "test": "blank"
+    },
+    {
+     "bound": "string cap",
+     "clause": "the person reference EXCEEDS the string cap",
+     "input": "person_reference",
+     "reads": "input",
+     "test": "exceeds"
+    }
+   ],
+   "whole": true
+  },
+  {
+   "actions": [
+    "react",
+    "withdraw"
+   ],
+   "answer": "invalid-item-reference",
+   "join": "OR",
+   "line": 121,
+   "refusal": true,
+   "rule": "Operation 2",
+   "tests": [
+    {
+     "clause": "the item reference EQUALS blank",
+     "input": "item_reference",
+     "negated": false,
+     "reads": "input",
+     "test": "blank"
+    },
+    {
+     "bound": "string cap",
+     "clause": "the item reference EXCEEDS the string cap",
+     "input": "item_reference",
+     "reads": "input",
+     "test": "exceeds"
+    }
+   ],
+   "whole": true
+  },
+  {
+   "actions": [
+    "react",
+    "withdraw"
+   ],
+   "answer": "invalid-reaction-name",
+   "join": "OR",
+   "line": 122,
+   "refusal": true,
+   "rule": "Operation 3",
+   "tests": [
+    {
+     "clause": "the reaction name EQUALS blank",
+     "input": "reaction_name",
+     "negated": false,
+     "reads": "input",
+     "test": "blank"
+    },
+    {
+     "bound": "string cap",
+     "clause": "the reaction name EXCEEDS the string cap",
+     "input": "reaction_name",
+     "reads": "input",
+     "test": "exceeds"
+    }
+   ],
+   "whole": true
+  },
+  {
+   "actions": [
+    "react"
+   ],
+   "answer": "invalid-reaction-name",
+   "join": "AND",
+   "line": 123,
+   "refusal": true,
+   "rule": "Operation 4",
+   "tests": [
+    {
+     "clause": "no member of the reaction set EQUALS the reaction name",
+     "input": "reaction_name",
+     "reads": "setting_member",
+     "setting": "reaction set"
+    }
+   ],
+   "whole": true
+  },
+  {
+   "actions": [
+    "react",
+    "withdraw"
+   ],
+   "answer": "invalid-person-reference",
+   "join": "AND",
+   "line": 142,
+   "refusal": true,
+   "rule": "Operation 23",
+   "tests": [
+    {
+     "cited": false,
+     "clause": "the person reference is malformed",
+     "input": "person_reference",
+     "reads": "input",
+     "test": "malformed"
+    }
+   ],
+   "whole": true
+  },
+  {
+   "actions": [
+    "react",
+    "withdraw"
+   ],
+   "answer": "invalid-item-reference",
+   "join": "AND",
+   "line": 143,
+   "refusal": true,
+   "rule": "Operation 24",
+   "tests": [
+    {
+     "cited": false,
+     "clause": "the item reference is malformed",
+     "input": "item_reference",
+     "reads": "input",
+     "test": "malformed"
+    }
+   ],
+   "whole": true
+  },
+  {
+   "actions": [
+    "react",
+    "withdraw"
+   ],
+   "answer": "invalid-reaction-name",
+   "join": "AND",
+   "line": 144,
+   "refusal": true,
+   "rule": "Operation 25",
+   "tests": [
+    {
+     "cited": false,
+     "clause": "the reaction name is malformed",
+     "input": "reaction_name",
+     "reads": "input",
+     "test": "malformed"
+    }
+   ],
+   "whole": true
+  }
+ ],
+ "ir": 1,
+ "keys": [
+  {
+   "fields": [
+    "person_reference",
+    "item_reference",
+    "reaction_name"
+   ],
+   "line": 38,
+   "names": [
+    "person reference",
+    "item reference",
+    "reaction name"
+   ],
+   "rule": "Identity 1",
+   "term": "triple",
+   "thing": "reaction"
+  }
+ ],
+ "kind": "atom",
+ "name": "Reaction",
+ "non_goals": [
+  {
+   "label": "Non-goal 1",
+   "line": 251,
+   "owners": [
+    {
+     "forthcoming": false,
+     "line": 263,
+     "links": [
+      "atoms/session.md",
+      "atoms/permissions.md"
+     ],
+     "owner": "the composing pattern that knows the caller, such as one built on [Session](./session.md) or [Permissions](./permissions.md)"
+    }
+   ]
+  },
+  {
+   "label": "Non-goal 2",
+   "line": 252,
+   "owners": [
+    {
+     "forthcoming": false,
+     "line": 263,
+     "links": [
+      "atoms/session.md",
+      "atoms/permissions.md"
+     ],
+     "owner": "the composing pattern that knows the caller, such as one built on [Session](./session.md) or [Permissions](./permissions.md)"
+    }
+   ]
+  },
+  {
+   "label": "Non-goal 3",
+   "line": 253,
+   "owners": [
+    {
+     "forthcoming": true,
+     "line": 263,
+     "links": [],
+     "owner": "Catalog *(forthcoming)*"
+    }
+   ]
+  },
+  {
+   "label": "Non-goal 4",
+   "line": 254,
+   "owners": [
+    {
+     "forthcoming": false,
+     "line": 263,
+     "links": [
+      "atoms/notification.md"
+     ],
+     "owner": "the composing pattern that tells the author, such as one built on [Notification](./notification.md)"
+    }
+   ]
+  },
+  {
+   "label": "Non-goal 5",
+   "line": 255,
+   "owners": [
+    {
+     "forthcoming": true,
+     "line": 263,
+     "links": [],
+     "owner": "Reputation *(forthcoming)*"
+    }
+   ]
+  },
+  {
+   "label": "Non-goal 6",
+   "line": 256,
+   "owners": [
+    {
+     "forthcoming": true,
+     "line": 263,
+     "links": [],
+     "owner": "Vote *(forthcoming)*"
+    }
+   ]
+  },
+  {
+   "label": "Non-goal 7",
+   "line": 257,
+   "owners": [
+    {
+     "forthcoming": false,
+     "line": 263,
+     "links": [
+      "atoms/favorite.md"
+     ],
+     "owner": "[Favorite](./favorite.md)"
+    }
+   ]
+  },
+  {
+   "label": "Non-goal 8",
+   "line": 258,
+   "owners": [
+    {
+     "forthcoming": true,
+     "line": 263,
+     "links": [],
+     "owner": "Save For Later *(forthcoming)*"
+    }
+   ]
+  },
+  {
+   "label": "Non-goal 9",
+   "line": 259,
+   "owners": [
+    {
+     "forthcoming": false,
+     "line": 263,
+     "links": [],
+     "owner": "the composing pattern that shows the item, which draws each reaction name as it likes"
+    }
+   ]
+  },
+  {
+   "label": "Non-goal 10",
+   "line": 260,
+   "owners": [
+    {
+     "forthcoming": true,
+     "line": 263,
+     "links": [],
+     "owner": "Reactor List *(forthcoming)*"
+    }
+   ]
+  }
+ ],
+ "projectable": [
+  {
+   "as": "key",
+   "line": 38,
+   "rule": "Identity 1"
+  },
+  {
+   "as": "check-only",
+   "line": 39,
+   "rule": "Identity 2",
+   "why": "rules of the Identity family hold of the records and the answers, and name no step"
+  },
+  {
+   "as": "check-only",
+   "line": 40,
+   "rule": "Identity 3",
+   "why": "rules of the Identity family hold of the records and the answers, and name no step"
+  },
+  {
+   "as": "check-only",
+   "line": 41,
+   "rule": "Identity 4",
+   "why": "rules of the Identity family hold of the records and the answers, and name no step"
+  },
+  {
+   "as": "check-only",
+   "line": 42,
+   "rule": "Identity 5",
+   "why": "rules of the Identity family hold of the records and the answers, and name no step"
+  },
+  {
+   "as": "check-only",
+   "line": 43,
+   "rule": "Identity 6",
+   "why": "rules of the Identity family hold of the records and the answers, and name no step"
+  },
+  {
+   "as": "check-only",
+   "line": 44,
+   "rule": "Identity 7",
+   "why": "rules of the Identity family hold of the records and the answers, and name no step"
+  },
+  {
+   "as": "check-only",
+   "line": 72,
+   "rule": "State 1",
+   "why": "what the second record MUST carry: the records' shape, not a step"
+  },
+  {
+   "as": "check-only",
+   "line": 73,
+   "rule": "State 2",
+   "why": "what the second record MUST carry: the records' shape, not a step"
+  },
+  {
+   "as": "check-only",
+   "line": 74,
+   "rule": "State 3",
+   "why": "what the second record MUST carry: the records' shape, not a step"
+  },
+  {
+   "as": "check-only",
+   "line": 88,
+   "rule": "Capability requirement 1",
+   "why": "rules of the Capability requirement family hold of the records and the answers, and name no step"
+  },
+  {
+   "as": "check-only",
+   "line": 89,
+   "rule": "Capability requirement 2",
+   "why": "rules of the Capability requirement family hold of the records and the answers, and name no step"
+  },
+  {
+   "as": "check-only",
+   "line": 90,
+   "rule": "Capability requirement 3",
+   "why": "rules of the Capability requirement family hold of the records and the answers, and name no step"
+  },
+  {
+   "as": "check-only",
+   "line": 91,
+   "rule": "Capability requirement 4",
+   "why": "rules of the Capability requirement family hold of the records and the answers, and name no step"
+  },
+  {
+   "as": "check-only",
+   "line": 92,
+   "rule": "Capability requirement 5",
+   "why": "rules of the Capability requirement family hold of the records and the answers, and name no step"
+  },
+  {
+   "as": "check-only",
+   "line": 93,
+   "rule": "Capability requirement 6",
+   "why": "rules of the Capability requirement family hold of the records and the answers, and name no step"
+  },
+  {
+   "as": "check-only",
+   "line": 94,
+   "rule": "Capability requirement 7",
+   "why": "rules of the Capability requirement family hold of the records and the answers, and name no step"
+  },
+  {
+   "as": "check-only",
+   "line": 95,
+   "rule": "Capability requirement 8",
+   "why": "rules of the Capability requirement family hold of the records and the answers, and name no step"
+  },
+  {
+   "as": "check-only",
+   "line": 96,
+   "rule": "Capability requirement 9",
+   "why": "rules of the Capability requirement family hold of the records and the answers, and name no step"
+  },
+  {
+   "actions": [
+    "react",
+    "withdraw"
+   ],
+   "as": "guard",
+   "line": 120,
+   "rule": "Operation 1",
+   "tests": 2
+  },
+  {
+   "actions": [
+    "react",
+    "withdraw"
+   ],
+   "as": "guard",
+   "line": 121,
+   "rule": "Operation 2",
+   "tests": 2
+  },
+  {
+   "actions": [
+    "react",
+    "withdraw"
+   ],
+   "as": "guard",
+   "line": 122,
+   "rule": "Operation 3",
+   "tests": 2
+  },
+  {
+   "actions": [
+    "react"
+   ],
+   "as": "guard",
+   "line": 123,
+   "rule": "Operation 4",
+   "tests": 1
+  },
+  {
+   "actions": [
+    "react"
+   ],
+   "as": "step",
+   "line": 124,
+   "rule": "Operation 5"
+  },
+  {
+   "actions": [
+    "react"
+   ],
+   "as": "step",
+   "line": 125,
+   "rule": "Operation 6"
+  },
+  {
+   "actions": [
+    "react"
+   ],
+   "as": "step",
+   "line": 126,
+   "rule": "Operation 7"
+  },
+  {
+   "actions": [
+    "react"
+   ],
+   "as": "step",
+   "line": 127,
+   "rule": "Operation 8"
+  },
+  {
+   "actions": [
+    "react"
+   ],
+   "as": "step",
+   "line": 128,
+   "rule": "Operation 9"
+  },
+  {
+   "actions": [
+    "react"
+   ],
+   "as": "step",
+   "line": 129,
+   "rule": "Operation 10"
+  },
+  {
+   "actions": [
+    "react"
+   ],
+   "as": "step",
+   "line": 130,
+   "rule": "Operation 11"
+  },
+  {
+   "actions": [
+    "react"
+   ],
+   "as": "step",
+   "line": 131,
+   "rule": "Operation 12"
+  },
+  {
+   "actions": [
+    "withdraw"
+   ],
+   "as": "step",
+   "line": 132,
+   "rule": "Operation 13"
+  },
+  {
+   "actions": [
+    "withdraw"
+   ],
+   "as": "step",
+   "line": 133,
+   "rule": "Operation 14"
+  },
+  {
+   "actions": [
+    "withdraw"
+   ],
+   "as": "step",
+   "line": 134,
+   "rule": "Operation 15"
+  },
+  {
+   "actions": [
+    "withdraw"
+   ],
+   "as": "step",
+   "line": 135,
+   "rule": "Operation 16"
+  },
+  {
+   "actions": [
+    "look_up"
+   ],
+   "as": "shape",
+   "line": 136,
+   "rule": "Operation 17"
+  },
+  {
+   "actions": [
+    "look_up"
+   ],
+   "as": "shape",
+   "line": 137,
+   "rule": "Operation 18"
+  },
+  {
+   "actions": [
+    "look_up"
+   ],
+   "as": "step",
+   "line": 138,
+   "rule": "Operation 19"
+  },
+  {
+   "actions": [
+    "count"
+   ],
+   "as": "shape",
+   "line": 139,
+   "rule": "Operation 20"
+  },
+  {
+   "actions": [
+    "count"
+   ],
+   "as": "shape",
+   "line": 140,
+   "rule": "Operation 21"
+  },
+  {
+   "actions": [
+    "count"
+   ],
+   "as": "step",
+   "line": 141,
+   "rule": "Operation 22"
+  },
+  {
+   "actions": [
+    "react",
+    "withdraw"
+   ],
+   "as": "guard",
+   "line": 142,
+   "rule": "Operation 23",
+   "tests": 1
+  },
+  {
+   "actions": [
+    "react",
+    "withdraw"
+   ],
+   "as": "guard",
+   "line": 143,
+   "rule": "Operation 24",
+   "tests": 1
+  },
+  {
+   "actions": [
+    "react",
+    "withdraw"
+   ],
+   "as": "guard",
+   "line": 144,
+   "rule": "Operation 25",
+   "tests": 1
+  },
+  {
+   "actions": [
+    "look_up"
+   ],
+   "as": "shape",
+   "line": 145,
+   "rule": "Operation 26"
+  },
+  {
+   "actions": [
+    "look_up"
+   ],
+   "as": "shape",
+   "line": 146,
+   "rule": "Operation 27"
+  },
+  {
+   "actions": [
+    "count"
+   ],
+   "as": "shape",
+   "line": 147,
+   "rule": "Operation 28"
+  },
+  {
+   "actions": [
+    "look_up"
+   ],
+   "as": "shape",
+   "line": 148,
+   "rule": "Operation 29"
+  },
+  {
+   "actions": [
+    "count"
+   ],
+   "as": "shape",
+   "line": 149,
+   "rule": "Operation 30"
+  },
+  {
+   "as": "check-only",
+   "line": 187,
+   "rule": "Invariant 1.1",
+   "why": "rules of the Invariant family hold of the records and the answers, and name no step"
+  },
+  {
+   "as": "check-only",
+   "line": 191,
+   "rule": "Invariant 2.1",
+   "why": "rules of the Invariant family hold of the records and the answers, and name no step"
+  },
+  {
+   "as": "check-only",
+   "line": 192,
+   "rule": "Invariant 2.2",
+   "why": "rules of the Invariant family hold of the records and the answers, and name no step"
+  },
+  {
+   "as": "check-only",
+   "line": 193,
+   "rule": "Invariant 2.3",
+   "why": "rules of the Invariant family hold of the records and the answers, and name no step"
+  },
+  {
+   "as": "check-only",
+   "line": 194,
+   "rule": "Invariant 2.4",
+   "why": "rules of the Invariant family hold of the records and the answers, and name no step"
+  },
+  {
+   "as": "check-only",
+   "line": 229,
+   "rule": "Check 1.1",
+   "why": "rules of the Check family hold of the records and the answers, and name no step"
+  },
+  {
+   "as": "check-only",
+   "line": 230,
+   "rule": "Check 1.2",
+   "why": "rules of the Check family hold of the records and the answers, and name no step"
+  },
+  {
+   "as": "check-only",
+   "line": 231,
+   "rule": "Check 2.1",
+   "why": "rules of the Check family hold of the records and the answers, and name no step"
+  },
+  {
+   "as": "check-only",
+   "line": 232,
+   "rule": "Check 3.1",
+   "why": "rules of the Check family hold of the records and the answers, and name no step"
+  },
+  {
+   "as": "check-only",
+   "line": 233,
+   "rule": "Check 3.2",
+   "why": "rules of the Check family hold of the records and the answers, and name no step"
+  },
+  {
+   "as": "check-only",
+   "line": 234,
+   "rule": "Check 3.3",
+   "why": "rules of the Check family hold of the records and the answers, and name no step"
+  },
+  {
+   "as": "check-only",
+   "line": 235,
+   "rule": "Check 3.4",
+   "why": "rules of the Check family hold of the records and the answers, and name no step"
+  },
+  {
+   "as": "check-only",
+   "line": 245,
+   "rule": "External check 1",
+   "why": "rules of the External check family hold of the records and the answers, and name no step"
+  },
+  {
+   "as": "check-only",
+   "line": 251,
+   "rule": "Non-goal 1",
+   "why": "rules of the Non-goal family hold of the records and the answers, and name no step"
+  },
+  {
+   "as": "check-only",
+   "line": 252,
+   "rule": "Non-goal 2",
+   "why": "rules of the Non-goal family hold of the records and the answers, and name no step"
+  },
+  {
+   "as": "check-only",
+   "line": 253,
+   "rule": "Non-goal 3",
+   "why": "rules of the Non-goal family hold of the records and the answers, and name no step"
+  },
+  {
+   "as": "check-only",
+   "line": 254,
+   "rule": "Non-goal 4",
+   "why": "rules of the Non-goal family hold of the records and the answers, and name no step"
+  },
+  {
+   "as": "check-only",
+   "line": 255,
+   "rule": "Non-goal 5",
+   "why": "rules of the Non-goal family hold of the records and the answers, and name no step"
+  },
+  {
+   "as": "check-only",
+   "line": 256,
+   "rule": "Non-goal 6",
+   "why": "rules of the Non-goal family hold of the records and the answers, and name no step"
+  },
+  {
+   "as": "check-only",
+   "line": 257,
+   "rule": "Non-goal 7",
+   "why": "rules of the Non-goal family hold of the records and the answers, and name no step"
+  },
+  {
+   "as": "check-only",
+   "line": 258,
+   "rule": "Non-goal 8",
+   "why": "rules of the Non-goal family hold of the records and the answers, and name no step"
+  },
+  {
+   "as": "check-only",
+   "line": 259,
+   "rule": "Non-goal 9",
+   "why": "rules of the Non-goal family hold of the records and the answers, and name no step"
+  },
+  {
+   "as": "check-only",
+   "line": 260,
+   "rule": "Non-goal 10",
+   "why": "rules of the Non-goal family hold of the records and the answers, and name no step"
+  },
+  {
+   "as": "check-only",
+   "line": 288,
+   "rule": "Composition note 1",
+   "why": "rules of the Composition note family hold of the records and the answers, and name no step"
+  },
+  {
+   "as": "check-only",
+   "line": 289,
+   "rule": "Composition note 2",
+   "why": "rules of the Composition note family hold of the records and the answers, and name no step"
+  }
+ ],
+ "reader_gaps": [],
+ "records": [],
+ "rules": [
+  {
+   "family": "Identity",
+   "label": "Identity 1",
+   "line": 38,
+   "number": "1",
+   "parent": null,
+   "section": [
+    "Structure",
+    "Identity model"
+   ],
+   "text": "The atom MUST identify a reaction by the reaction's triple."
+  },
+  {
+   "family": "Identity",
+   "label": "Identity 2",
+   "line": 39,
+   "number": "2",
+   "parent": null,
+   "section": [
+    "Structure",
+    "Identity model"
+   ],
+   "text": "The atom MUST NOT normalize a person reference."
+  },
+  {
+   "family": "Identity",
+   "label": "Identity 3",
+   "line": 40,
+   "number": "3",
+   "parent": null,
+   "section": [
+    "Structure",
+    "Identity model"
+   ],
+   "text": "The atom MUST compare two person references codepoint for codepoint."
+  },
+  {
+   "family": "Identity",
+   "label": "Identity 4",
+   "line": 41,
+   "number": "4",
+   "parent": null,
+   "section": [
+    "Structure",
+    "Identity model"
+   ],
+   "text": "The atom MUST NOT normalize an item reference."
+  },
+  {
+   "family": "Identity",
+   "label": "Identity 5",
+   "line": 42,
+   "number": "5",
+   "parent": null,
+   "section": [
+    "Structure",
+    "Identity model"
+   ],
+   "text": "The atom MUST compare two item references codepoint for codepoint."
+  },
+  {
+   "family": "Identity",
+   "label": "Identity 6",
+   "line": 43,
+   "number": "6",
+   "parent": null,
+   "section": [
+    "Structure",
+    "Identity model"
+   ],
+   "text": "The atom MUST NOT normalize a reaction name."
+  },
+  {
+   "family": "Identity",
+   "label": "Identity 7",
+   "line": 44,
+   "number": "7",
+   "parent": null,
+   "section": [
+    "Structure",
+    "Identity model"
+   ],
+   "text": "The atom MUST compare two reaction names codepoint for codepoint."
+  },
+  {
+   "family": "State",
+   "label": "State 1",
+   "line": 72,
+   "number": "1",
+   "parent": null,
+   "section": [
+    "Structure",
+    "State"
+   ],
+   "text": "EVERY reaction MUST carry person reference, item reference, reaction name, first reacted instant and status."
+  },
+  {
+   "family": "State",
+   "label": "State 2",
+   "line": 73,
+   "number": "2",
+   "parent": null,
+   "section": [
+    "Structure",
+    "State"
+   ],
+   "text": "EVERY reaction MUST stand in EXACTLY ONE OF held, withdrawn."
+  },
+  {
+   "family": "State",
+   "label": "State 3",
+   "line": 74,
+   "number": "3",
+   "parent": null,
+   "section": [
+    "Structure",
+    "State"
+   ],
+   "text": "The atom MUST NOT remove a reaction."
+  },
+  {
+   "family": "Capability requirement",
+   "label": "Capability requirement 1",
+   "line": 88,
+   "number": "1",
+   "parent": null,
+   "section": [
+    "Structure",
+    "Capability requirement"
+   ],
+   "text": "The deployment MUST supply the database PER Execution Contract Database 1 through 7, Execution Contract Read 1 through 6, Execution Contract Refusal 1, Execution Contract Input 1 and Execution Contract Query 5."
+  },
+  {
+   "family": "Capability requirement",
+   "label": "Capability requirement 2",
+   "line": 89,
+   "number": "2",
+   "parent": null,
+   "section": [
+    "Structure",
+    "Capability requirement"
+   ],
+   "text": "The deployment MUST supply now at the seam PER Execution Contract Logic confinement 11."
+  },
+  {
+   "family": "Capability requirement",
+   "label": "Capability requirement 3",
+   "line": 90,
+   "number": "3",
+   "parent": null,
+   "section": [
+    "Structure",
+    "Capability requirement"
+   ],
+   "text": "The deployment MAY declare the string cap PER Execution Contract Input 2 and Execution Contract Logic confinement 17."
+  },
+  {
+   "family": "Capability requirement",
+   "label": "Capability requirement 4",
+   "line": 91,
+   "number": "4",
+   "parent": null,
+   "section": [
+    "Structure",
+    "Capability requirement"
+   ],
+   "text": "The deployment MUST NOT normalize a person reference at the seam."
+  },
+  {
+   "family": "Capability requirement",
+   "label": "Capability requirement 5",
+   "line": 92,
+   "number": "5",
+   "parent": null,
+   "section": [
+    "Structure",
+    "Capability requirement"
+   ],
+   "text": "The deployment MUST NOT normalize an item reference at the seam."
+  },
+  {
+   "family": "Capability requirement",
+   "label": "Capability requirement 6",
+   "line": 93,
+   "number": "6",
+   "parent": null,
+   "section": [
+    "Structure",
+    "Capability requirement"
+   ],
+   "text": "The deployment MUST NOT normalize a reaction name at the seam."
+  },
+  {
+   "family": "Capability requirement",
+   "label": "Capability requirement 7",
+   "line": 94,
+   "number": "7",
+   "parent": null,
+   "section": [
+    "Structure",
+    "Capability requirement"
+   ],
+   "text": "The deployment MAY declare the reaction set PER Execution Contract Logic confinement 17."
+  },
+  {
+   "family": "Capability requirement",
+   "label": "Capability requirement 8",
+   "line": 95,
+   "number": "8",
+   "parent": null,
+   "section": [
+    "Structure",
+    "Capability requirement"
+   ],
+   "text": "The deployment MAY declare the holding rule PER Execution Contract Logic confinement 17."
+  },
+  {
+   "family": "Capability requirement",
+   "label": "Capability requirement 9",
+   "line": 96,
+   "number": "9",
+   "parent": null,
+   "section": [
+    "Structure",
+    "Capability requirement"
+   ],
+   "text": "IF a member of the reaction set EQUALS blank OR a member of the reaction set EXCEEDS the string cap THEN the deployment MUST NOT declare the reaction set."
+  },
+  {
+   "actions": [
+    "react",
+    "withdraw"
+   ],
+   "family": "Operation",
+   "label": "Operation 1",
+   "line": 120,
+   "number": "1",
+   "parent": null,
+   "section": [
+    "Structure",
+    "Operations"
+   ],
+   "text": "IF the person reference EQUALS blank OR the person reference EXCEEDS the string cap THEN a writing action MUST answer invalid-person-reference."
+  },
+  {
+   "actions": [
+    "react",
+    "withdraw"
+   ],
+   "family": "Operation",
+   "label": "Operation 2",
+   "line": 121,
+   "number": "2",
+   "parent": null,
+   "section": [
+    "Structure",
+    "Operations"
+   ],
+   "text": "IF the item reference EQUALS blank OR the item reference EXCEEDS the string cap THEN a writing action MUST answer invalid-item-reference."
+  },
+  {
+   "actions": [
+    "react",
+    "withdraw"
+   ],
+   "family": "Operation",
+   "label": "Operation 3",
+   "line": 122,
+   "number": "3",
+   "parent": null,
+   "section": [
+    "Structure",
+    "Operations"
+   ],
+   "text": "IF the reaction name EQUALS blank OR the reaction name EXCEEDS the string cap THEN a writing action MUST answer invalid-reaction-name."
+  },
+  {
+   "actions": [
+    "react"
+   ],
+   "family": "Operation",
+   "label": "Operation 4",
+   "line": 123,
+   "number": "4",
+   "parent": null,
+   "section": [
+    "Structure",
+    "Operations"
+   ],
+   "text": "IF no member of the reaction set EQUALS the reaction name THEN [React] MUST answer invalid-reaction-name."
+  },
+  {
+   "actions": [
+    "react"
+   ],
+   "family": "Operation",
+   "label": "Operation 5",
+   "line": 124,
+   "number": "5",
+   "parent": null,
+   "section": [
+    "Structure",
+    "Operations"
+   ],
+   "text": "IF no reaction EXISTS for the triple THEN [React] MUST record EXACTLY ONE reaction carrying the triple of the call."
+  },
+  {
+   "actions": [
+    "react"
+   ],
+   "family": "Operation",
+   "label": "Operation 6",
+   "line": 125,
+   "number": "6",
+   "parent": null,
+   "section": [
+    "Structure",
+    "Operations"
+   ],
+   "text": "IF no reaction EXISTS for the triple THEN [React] MUST stamp first reacted instant from the injected now."
+  },
+  {
+   "actions": [
+    "react"
+   ],
+   "family": "Operation",
+   "label": "Operation 7",
+   "line": 126,
+   "number": "7",
+   "parent": null,
+   "section": [
+    "Structure",
+    "Operations"
+   ],
+   "text": "IF no reaction EXISTS for the triple THEN [React] MUST stand the reaction in held."
+  },
+  {
+   "actions": [
+    "react"
+   ],
+   "family": "Operation",
+   "label": "Operation 8",
+   "line": 127,
+   "number": "8",
+   "parent": null,
+   "section": [
+    "Structure",
+    "Operations"
+   ],
+   "text": "IF the reaction's status EQUALS withdrawn THEN [React] MUST stand the reaction in held."
+  },
+  {
+   "actions": [
+    "react"
+   ],
+   "family": "Operation",
+   "label": "Operation 9",
+   "line": 128,
+   "number": "9",
+   "parent": null,
+   "section": [
+    "Structure",
+    "Operations"
+   ],
+   "text": "IF the reaction's status EQUALS held THEN [React] MUST NOT change the reaction."
+  },
+  {
+   "actions": [
+    "react"
+   ],
+   "family": "Operation",
+   "label": "Operation 10",
+   "line": 129,
+   "number": "10",
+   "parent": null,
+   "section": [
+    "Structure",
+    "Operations"
+   ],
+   "text": "IF the holding rule EQUALS one-per-item THEN [React] MUST stand EVERY rival in withdrawn."
+  },
+  {
+   "actions": [
+    "react"
+   ],
+   "family": "Operation",
+   "label": "Operation 11",
+   "line": 130,
+   "number": "11",
+   "parent": null,
+   "section": [
+    "Structure",
+    "Operations"
+   ],
+   "text": "IF the holding rule EQUALS one-of-each THEN [React] MUST NOT change a rival."
+  },
+  {
+   "actions": [
+    "react"
+   ],
+   "family": "Operation",
+   "label": "Operation 12",
+   "line": 131,
+   "number": "12",
+   "parent": null,
+   "section": [
+    "Structure",
+    "Operations"
+   ],
+   "text": "[React] MUST answer ok."
+  },
+  {
+   "actions": [
+    "withdraw"
+   ],
+   "family": "Operation",
+   "label": "Operation 13",
+   "line": 132,
+   "number": "13",
+   "parent": null,
+   "section": [
+    "Structure",
+    "Operations"
+   ],
+   "text": "IF the reaction's status EQUALS held THEN [Withdraw] MUST stand the reaction in withdrawn."
+  },
+  {
+   "actions": [
+    "withdraw"
+   ],
+   "family": "Operation",
+   "label": "Operation 14",
+   "line": 133,
+   "number": "14",
+   "parent": null,
+   "section": [
+    "Structure",
+    "Operations"
+   ],
+   "text": "IF the reaction's status EQUALS withdrawn THEN [Withdraw] MUST NOT write."
+  },
+  {
+   "actions": [
+    "withdraw"
+   ],
+   "family": "Operation",
+   "label": "Operation 15",
+   "line": 134,
+   "number": "15",
+   "parent": null,
+   "section": [
+    "Structure",
+    "Operations"
+   ],
+   "text": "IF no reaction EXISTS for the triple THEN [Withdraw] MUST NOT write."
+  },
+  {
+   "actions": [
+    "withdraw"
+   ],
+   "family": "Operation",
+   "label": "Operation 16",
+   "line": 135,
+   "number": "16",
+   "parent": null,
+   "section": [
+    "Structure",
+    "Operations"
+   ],
+   "text": "[Withdraw] MUST answer ok."
+  },
+  {
+   "actions": [
+    "look_up"
+   ],
+   "answer_shape": {
+    "arm": "reaction_names",
+    "arm_fields": [
+     "reaction_name"
+    ],
+    "carrying": [
+     "person_reference",
+     "item_reference"
+    ],
+    "of": [
+     "reaction_name"
+    ],
+    "shape": "every",
+    "thing": "reaction",
+    "where": [
+     {
+      "field": "status",
+      "value": "held"
+     }
+    ]
+   },
+   "family": "Operation",
+   "label": "Operation 17",
+   "line": 136,
+   "number": "17",
+   "parent": null,
+   "section": [
+    "Structure",
+    "Operations"
+   ],
+   "text": "[Look Up] MUST answer the reaction name of EVERY held reaction carrying the pair."
+  },
+  {
+   "actions": [
+    "look_up"
+   ],
+   "answer_shape": {
+    "arm": "reaction_names",
+    "arm_fields": [
+     "reaction_name"
+    ],
+    "carrying": [
+     "person_reference",
+     "item_reference"
+    ],
+    "shape": "empty",
+    "thing": "reaction",
+    "where": [
+     {
+      "field": "status",
+      "value": "held"
+     }
+    ]
+   },
+   "family": "Operation",
+   "label": "Operation 18",
+   "line": 137,
+   "number": "18",
+   "parent": null,
+   "section": [
+    "Structure",
+    "Operations"
+   ],
+   "text": "[Look Up] MUST answer an empty list for a pair no held reaction carries."
+  },
+  {
+   "actions": [
+    "look_up"
+   ],
+   "family": "Operation",
+   "label": "Operation 19",
+   "line": 138,
+   "number": "19",
+   "parent": null,
+   "section": [
+    "Structure",
+    "Operations"
+   ],
+   "text": "[Look Up] MUST NOT write."
+  },
+  {
+   "actions": [
+    "count"
+   ],
+   "answer_shape": {
+    "arm": "tallies",
+    "arm_fields": [
+     "reaction_name",
+     "tally"
+    ],
+    "by": "reaction_name",
+    "carrying": [
+     "item_reference"
+    ],
+    "count": "tally",
+    "shape": "count_by",
+    "thing": "reaction",
+    "where": [
+     {
+      "field": "status",
+      "value": "held"
+     }
+    ]
+   },
+   "family": "Operation",
+   "label": "Operation 20",
+   "line": 139,
+   "number": "20",
+   "parent": null,
+   "section": [
+    "Structure",
+    "Operations"
+   ],
+   "text": "[Count] MUST answer the tally of EVERY reaction name a held reaction carrying the item reference carries."
+  },
+  {
+   "actions": [
+    "count"
+   ],
+   "answer_shape": {
+    "arm": "tallies",
+    "arm_fields": [
+     "reaction_name",
+     "tally"
+    ],
+    "carrying": [
+     "item_reference"
+    ],
+    "shape": "empty",
+    "thing": "reaction",
+    "where": [
+     {
+      "field": "status",
+      "value": "held"
+     }
+    ]
+   },
+   "family": "Operation",
+   "label": "Operation 21",
+   "line": 140,
+   "number": "21",
+   "parent": null,
+   "section": [
+    "Structure",
+    "Operations"
+   ],
+   "text": "[Count] MUST answer an empty list for an item reference no held reaction carries."
+  },
+  {
+   "actions": [
+    "count"
+   ],
+   "family": "Operation",
+   "label": "Operation 22",
+   "line": 141,
+   "number": "22",
+   "parent": null,
+   "section": [
+    "Structure",
+    "Operations"
+   ],
+   "text": "[Count] MUST NOT write."
+  },
+  {
+   "actions": [
+    "react",
+    "withdraw"
+   ],
+   "family": "Operation",
+   "label": "Operation 23",
+   "line": 142,
+   "number": "23",
+   "parent": null,
+   "section": [
+    "Structure",
+    "Operations"
+   ],
+   "text": "IF the person reference is malformed THEN a writing action MUST answer invalid-person-reference (Execution Contract Input 1)."
+  },
+  {
+   "actions": [
+    "react",
+    "withdraw"
+   ],
+   "family": "Operation",
+   "label": "Operation 24",
+   "line": 143,
+   "number": "24",
+   "parent": null,
+   "section": [
+    "Structure",
+    "Operations"
+   ],
+   "text": "IF the item reference is malformed THEN a writing action MUST answer invalid-item-reference (Execution Contract Input 1)."
+  },
+  {
+   "actions": [
+    "react",
+    "withdraw"
+   ],
+   "family": "Operation",
+   "label": "Operation 25",
+   "line": 144,
+   "number": "25",
+   "parent": null,
+   "section": [
+    "Structure",
+    "Operations"
+   ],
+   "text": "IF the reaction name is malformed THEN a writing action MUST answer invalid-reaction-name (Execution Contract Input 1)."
+  },
+  {
+   "actions": [
+    "look_up"
+   ],
+   "answer_shape": {
+    "arm": "reaction_names",
+    "arm_fields": [
+     "reaction_name"
+    ],
+    "shape": "empty"
+   },
+   "family": "Operation",
+   "label": "Operation 26",
+   "line": 145,
+   "number": "26",
+   "parent": null,
+   "section": [
+    "Structure",
+    "Operations"
+   ],
+   "text": "IF the person reference is malformed OR the person reference EQUALS blank OR the person reference EXCEEDS the string cap THEN [Look Up] MUST answer an empty list (Execution Contract Query 5)."
+  },
+  {
+   "actions": [
+    "look_up"
+   ],
+   "answer_shape": {
+    "arm": "reaction_names",
+    "arm_fields": [
+     "reaction_name"
+    ],
+    "shape": "empty"
+   },
+   "family": "Operation",
+   "label": "Operation 27",
+   "line": 146,
+   "number": "27",
+   "parent": null,
+   "section": [
+    "Structure",
+    "Operations"
+   ],
+   "text": "IF the item reference is malformed OR the item reference EQUALS blank OR the item reference EXCEEDS the string cap THEN [Look Up] MUST answer an empty list (Execution Contract Query 5)."
+  },
+  {
+   "actions": [
+    "count"
+   ],
+   "answer_shape": {
+    "arm": "tallies",
+    "arm_fields": [
+     "reaction_name",
+     "tally"
+    ],
+    "shape": "empty"
+   },
+   "family": "Operation",
+   "label": "Operation 28",
+   "line": 147,
+   "number": "28",
+   "parent": null,
+   "section": [
+    "Structure",
+    "Operations"
+   ],
+   "text": "IF the item reference is malformed OR the item reference EQUALS blank OR the item reference EXCEEDS the string cap THEN [Count] MUST answer an empty list (Execution Contract Query 5)."
+  },
+  {
+   "actions": [
+    "look_up"
+   ],
+   "answer_shape": {
+    "arm": "reaction_names",
+    "arm_fields": [
+     "reaction_name"
+    ],
+    "by": [
+     {
+      "direction": "ascending",
+      "field": "reaction_name"
+     }
+    ],
+    "shape": "order"
+   },
+   "family": "Operation",
+   "label": "Operation 29",
+   "line": 148,
+   "number": "29",
+   "parent": null,
+   "section": [
+    "Structure",
+    "Operations"
+   ],
+   "text": "[Look Up] MUST answer reaction names in codepoint order (Execution Contract Read 5, Execution Contract Logic confinement 10)."
+  },
+  {
+   "actions": [
+    "count"
+   ],
+   "answer_shape": {
+    "arm": "tallies",
+    "arm_fields": [
+     "reaction_name",
+     "tally"
+    ],
+    "by": [
+     {
+      "direction": "ascending",
+      "field": "reaction_name"
+     }
+    ],
+    "shape": "order"
+   },
+   "family": "Operation",
+   "label": "Operation 30",
+   "line": 149,
+   "number": "30",
+   "parent": null,
+   "section": [
+    "Structure",
+    "Operations"
+   ],
+   "text": "[Count] MUST answer tallies in codepoint order of reaction name (Execution Contract Read 5, Execution Contract Logic confinement 10)."
+  },
+  {
+   "family": "Invariant",
+   "label": "Invariant 1.1",
+   "line": 187,
+   "number": "1.1",
+   "parent": null,
+   "section": [
+    "Structure",
+    "Invariants",
+    "Invariant 1 — A person holds a reaction for one triple once or not at all."
+   ],
+   "text": "Two reactions MUST NOT share a triple."
+  },
+  {
+   "family": "Invariant",
+   "label": "Invariant 2.1",
+   "line": 191,
+   "number": "2.1",
+   "parent": null,
+   "section": [
+    "Structure",
+    "Invariants",
+    "Invariant 2 — A reaction never changes whose it is or what it says."
+   ],
+   "text": "The atom MUST NOT change a reaction's first reacted instant."
+  },
+  {
+   "family": "Invariant",
+   "label": "Invariant 2.2",
+   "line": 192,
+   "number": "2.2",
+   "parent": null,
+   "section": [
+    "Structure",
+    "Invariants",
+    "Invariant 2 — A reaction never changes whose it is or what it says."
+   ],
+   "text": "The atom MUST NOT change a reaction's person reference."
+  },
+  {
+   "family": "Invariant",
+   "label": "Invariant 2.3",
+   "line": 193,
+   "number": "2.3",
+   "parent": null,
+   "section": [
+    "Structure",
+    "Invariants",
+    "Invariant 2 — A reaction never changes whose it is or what it says."
+   ],
+   "text": "The atom MUST NOT change a reaction's item reference."
+  },
+  {
+   "family": "Invariant",
+   "label": "Invariant 2.4",
+   "line": 194,
+   "number": "2.4",
+   "parent": null,
+   "section": [
+    "Structure",
+    "Invariants",
+    "Invariant 2 — A reaction never changes whose it is or what it says."
+   ],
+   "text": "The atom MUST NOT change a reaction's reaction name."
+  },
+  {
+   "family": "Check",
+   "label": "Check 1.1",
+   "line": 229,
+   "number": "1.1",
+   "parent": null,
+   "section": [
+    "Generation acceptance",
+    "Conformance checks"
+   ],
+   "text": "An auditor MUST find EVERY reaction carrying person reference, item reference, reaction name, first reacted instant AND status (State 1)."
+  },
+  {
+   "family": "Check",
+   "label": "Check 1.2",
+   "line": 230,
+   "number": "1.2",
+   "parent": null,
+   "section": [
+    "Generation acceptance",
+    "Conformance checks"
+   ],
+   "text": "An auditor MUST find EVERY reaction standing in EXACTLY ONE OF held, withdrawn (State 2)."
+  },
+  {
+   "family": "Check",
+   "label": "Check 2.1",
+   "line": 231,
+   "number": "2.1",
+   "parent": null,
+   "section": [
+    "Generation acceptance",
+    "Conformance checks"
+   ],
+   "text": "An auditor MUST find no two reactions sharing a triple (Invariant 1.1)."
+  },
+  {
+   "family": "Check",
+   "label": "Check 3.1",
+   "line": 232,
+   "number": "3.1",
+   "parent": null,
+   "section": [
+    "Generation acceptance",
+    "Conformance checks"
+   ],
+   "text": "An auditor MUST find EVERY version of a reaction carrying the first reacted instant of the reaction's first version (Invariant 2.1)."
+  },
+  {
+   "family": "Check",
+   "label": "Check 3.2",
+   "line": 233,
+   "number": "3.2",
+   "parent": null,
+   "section": [
+    "Generation acceptance",
+    "Conformance checks"
+   ],
+   "text": "An auditor MUST find EVERY version of a reaction carrying the person reference of the reaction's first version (Invariant 2.2)."
+  },
+  {
+   "family": "Check",
+   "label": "Check 3.3",
+   "line": 234,
+   "number": "3.3",
+   "parent": null,
+   "section": [
+    "Generation acceptance",
+    "Conformance checks"
+   ],
+   "text": "An auditor MUST find EVERY version of a reaction carrying the item reference of the reaction's first version (Invariant 2.3)."
+  },
+  {
+   "family": "Check",
+   "label": "Check 3.4",
+   "line": 235,
+   "number": "3.4",
+   "parent": null,
+   "section": [
+    "Generation acceptance",
+    "Conformance checks"
+   ],
+   "text": "An auditor MUST find EVERY version of a reaction carrying the reaction name of the reaction's first version (Invariant 2.4)."
+  },
+  {
+   "family": "External check",
+   "label": "External check 1",
+   "line": 245,
+   "number": "1",
+   "parent": null,
+   "section": [
+    "Generation acceptance",
+    "External checks"
+   ],
+   "text": "An auditor needing an item reference confirmed as naming a real item MUST read the deployment's catalog (Non-goal 3)."
+  },
+  {
+   "family": "Non-goal",
+   "label": "Non-goal 1",
+   "line": 251,
+   "number": "1",
+   "parent": null,
+   "section": [
+    "Non-goals"
+   ],
+   "text": "The atom MUST NOT tell who may react to an item."
+  },
+  {
+   "family": "Non-goal",
+   "label": "Non-goal 2",
+   "line": 252,
+   "number": "2",
+   "parent": null,
+   "section": [
+    "Non-goals"
+   ],
+   "text": "The atom MUST NOT tell who may read an item's reactions."
+  },
+  {
+   "family": "Non-goal",
+   "label": "Non-goal 3",
+   "line": 253,
+   "number": "3",
+   "parent": null,
+   "section": [
+    "Non-goals"
+   ],
+   "text": "The atom MUST NOT check an item reference against a catalog."
+  },
+  {
+   "family": "Non-goal",
+   "label": "Non-goal 4",
+   "line": 254,
+   "number": "4",
+   "parent": null,
+   "section": [
+    "Non-goals"
+   ],
+   "text": "The atom MUST NOT notify an item's author."
+  },
+  {
+   "family": "Non-goal",
+   "label": "Non-goal 5",
+   "line": 255,
+   "number": "5",
+   "parent": null,
+   "section": [
+    "Non-goals"
+   ],
+   "text": "The atom MUST NOT score a person from the tallies."
+  },
+  {
+   "family": "Non-goal",
+   "label": "Non-goal 6",
+   "line": 256,
+   "number": "6",
+   "parent": null,
+   "section": [
+    "Non-goals"
+   ],
+   "text": "The atom MUST NOT decide a vote."
+  },
+  {
+   "family": "Non-goal",
+   "label": "Non-goal 7",
+   "line": 257,
+   "number": "7",
+   "parent": null,
+   "section": [
+    "Non-goals"
+   ],
+   "text": "The atom MUST NOT hold a person's favorites."
+  },
+  {
+   "family": "Non-goal",
+   "label": "Non-goal 8",
+   "line": 258,
+   "number": "8",
+   "parent": null,
+   "section": [
+    "Non-goals"
+   ],
+   "text": "The atom MUST NOT hold a save-for-later list."
+  },
+  {
+   "family": "Non-goal",
+   "label": "Non-goal 9",
+   "line": 259,
+   "number": "9",
+   "parent": null,
+   "section": [
+    "Non-goals"
+   ],
+   "text": "The atom MUST NOT draw a reaction."
+  },
+  {
+   "family": "Non-goal",
+   "label": "Non-goal 10",
+   "line": 260,
+   "number": "10",
+   "parent": null,
+   "section": [
+    "Non-goals"
+   ],
+   "text": "The atom MUST NOT list the persons holding a reaction."
+  },
+  {
+   "family": "Composition note",
+   "label": "Composition note 1",
+   "line": 288,
+   "number": "1",
+   "parent": null,
+   "section": [
+    "Composition notes"
+   ],
+   "text": "A composing pattern MUST own what this atom declines."
+  },
+  {
+   "family": "Composition note",
+   "label": "Composition note 2",
+   "line": 289,
+   "number": "2",
+   "parent": null,
+   "section": [
+    "Composition notes"
+   ],
+   "text": "A composing pattern MUST supply the person reference of the caller the composing pattern authenticated."
+  }
+ ],
+ "settings": [
+  {
+   "default": {
+    "text": "1,024 code points",
+    "value": 1024
+   },
+   "line": 90,
+   "rule": "Capability requirement 3",
+   "term": "string cap"
+  },
+  {
+   "default": {
+    "text": "the single name like",
+    "value": [
+     "like"
+    ]
+   },
+   "line": 94,
+   "of": "reaction_name",
+   "rule": "Capability requirement 7",
+   "term": "reaction set"
+  },
+  {
+   "default": {
+    "text": "one-per-item",
+    "value": "one-per-item"
+   },
+   "line": 95,
+   "rule": "Capability requirement 8",
+   "term": "holding rule",
+   "values": [
+    "one-per-item",
+    "one-of-each"
+   ]
+  }
+ ],
+ "signatures": [
+  {
+   "action": "react",
+   "answers": [
+    "ok"
+   ],
+   "inputs": [
+    {
+     "name": "person_reference",
+     "optional": false
+    },
+    {
+     "name": "item_reference",
+     "optional": false
+    },
+    {
+     "name": "reaction_name",
+     "optional": false
+    }
+   ],
+   "line": 102,
+   "refuses": [
+    "invalid-person-reference",
+    "invalid-item-reference",
+    "invalid-reaction-name",
+    "storage-failure"
+   ]
+  },
+  {
+   "action": "withdraw",
+   "answers": [
+    "ok"
+   ],
+   "inputs": [
+    {
+     "name": "person_reference",
+     "optional": false
+    },
+    {
+     "name": "item_reference",
+     "optional": false
+    },
+    {
+     "name": "reaction_name",
+     "optional": false
+    }
+   ],
+   "line": 106,
+   "refuses": [
+    "invalid-person-reference",
+    "invalid-item-reference",
+    "invalid-reaction-name",
+    "storage-failure"
+   ]
+  },
+  {
+   "action": "look_up",
+   "answers": [
+    "reaction_names(reaction_name)"
+   ],
+   "inputs": [
+    {
+     "name": "person_reference",
+     "optional": false
+    },
+    {
+     "name": "item_reference",
+     "optional": false
+    }
+   ],
+   "line": 110,
+   "refuses": []
+  },
+  {
+   "action": "count",
+   "answers": [
+    "tallies(reaction_name, tally)"
+   ],
+   "inputs": [
+    {
+     "name": "item_reference",
+     "optional": false
+    }
+   ],
+   "line": 113,
+   "refuses": []
+  }
+ ],
+ "status": "done — 2026-11-14",
+ "summary": "Reaction lets a person answer an item with one word from a short list the business offers: \"Like\" on a post, \"Thanks\" on an answer, or a small set such as Like, Love and Angry. Choosing a reaction holds it; where a person may hold one in all, choosing a different one replaces the first; taking a reaction back leaves the item as if the person had never reacted. Everyone can see how many people hold each reaction on an item. The business makes two choices. The first is the list of reactions, from a single Like to a handful. The second is how many a person may hold on one item: one in all, as on Facebook, or one of each, as on Slack and GitHub. The same request arriving twice changes nothing the second time, unless another request on the same item landed between them. A reaction says the item drew a person's attention, an angry one included; it is not approval, not a vote and not a saved item. Who may react, what the item is, telling the item's author, and any score built from the counts each belong to another pattern — another separately specified building block of the same kind — which is why one reaction serves a forum, a shop's reviews and a team chat alike.",
+ "term_entries": [
+  {
+   "kind": {
+    "Kind": "Operation"
+   },
+   "line": 316,
+   "name": "React",
+   "text": "Holds a reaction for a person on an item: records the [Reaction] where the triple has none, stamping its [First Reacted Instant], or stands a [Withdrawn] reaction back in [Held]. A reaction already held is left as it is. Under the [Holding Rule] one-per-item it also stands the person's other held reactions on the item in withdrawn. Answers ok."
+  },
+  {
+   "kind": {
+    "Kind": "Operation"
+   },
+   "line": 322,
+   "name": "Withdraw",
+   "text": "Takes a reaction back: stands a [Held] reaction in [Withdrawn] and removes nothing. A reaction already withdrawn, or a triple with no reaction, is left as it is. Answers ok."
+  },
+  {
+   "kind": {
+    "Kind": "Operation"
+   },
+   "line": 328,
+   "name": "Look Up",
+   "text": "Answers the [Reaction Name] of every reaction one person holds on one item now, and changes nothing; an empty list where the person holds none."
+  },
+  {
+   "kind": {
+    "Kind": "Operation"
+   },
+   "line": 334,
+   "name": "Count",
+   "text": "Answers, for one item, each [Reaction Name] held on it with its [Tally], and changes nothing; an empty list where the item has no held reaction."
+  },
+  {
+   "kind": {
+    "Kind": "Type"
+   },
+   "line": 340,
+   "name": "Reaction",
+   "text": "One person's answer to one item in one reaction name: recorded by the first [React], stood in [Withdrawn] by [Withdraw] or by a replacing [React], and back in [Held] by [React]; never removed by the atom."
+  },
+  {
+   "kind": {
+    "Field of": "Reaction",
+    "Kind": "Field",
+    "Projection": "person_reference"
+   },
+   "line": 346,
+   "name": "Person Reference",
+   "text": "Names the person a reaction belongs to, in the deployment's own scheme. Stored as supplied and compared codepoint for codepoint; the atom reads no scheme in it, and whether the caller is that person is the composing pattern's question."
+  },
+  {
+   "kind": {
+    "Field of": "Reaction",
+    "Kind": "Field",
+    "Projection": "item_reference"
+   },
+   "line": 354,
+   "name": "Item Reference",
+   "text": "Names the item a reaction answers, in the deployment's own scheme. Stored as supplied and compared codepoint for codepoint; the atom reads no scheme in it, and whether it names a real item is a catalog's question."
+  },
+  {
+   "kind": {
+    "Field of": "Reaction",
+    "Kind": "Field",
+    "Projection": "reaction_name"
+   },
+   "line": 362,
+   "name": "Reaction Name",
+   "text": "The string naming which reaction the person chose, one of the reaction set the deployment offered when the reaction was recorded, such as like. Stored as supplied and compared codepoint for codepoint; how it is drawn is the page's."
+  },
+  {
+   "kind": {
+    "Field of": "Reaction",
+    "Kind": "Field",
+    "Projection": "first_reacted_instant"
+   },
+   "line": 370,
+   "name": "First Reacted Instant",
+   "text": "The instant of the [React] call that recorded the reaction, stamped from the injected now; never changed, so a reaction withdrawn and held again keeps it."
+  },
+  {
+   "kind": {
+    "Field of": "Reaction",
+    "Kind": "Field",
+    "Projection": "status"
+   },
+   "line": 378,
+   "name": "Status",
+   "text": "Where a reaction stands: [Held] or [Withdrawn]."
+  },
+  {
+   "kind": {
+    "Kind": "Member",
+    "Member of": "the status",
+    "Projection": "held"
+   },
+   "line": 386,
+   "name": "Held",
+   "text": "The status of a reaction the person keeps on the item; it is counted in the item's [Tally] for its reaction name."
+  },
+  {
+   "kind": {
+    "Kind": "Member",
+    "Member of": "the status",
+    "Projection": "withdrawn"
+   },
+   "line": 394,
+   "name": "Withdrawn",
+   "text": "The status of a reaction the person took back or replaced; it is counted in no tally."
+  },
+  {
+   "kind": {
+    "Kind": "Type",
+    "Projection": "holding_rule"
+   },
+   "line": 402,
+   "name": "Holding Rule",
+   "text": "The deployment's setting for how many reactions a person may hold on one item: one in all (one-per-item, the rule where none is declared) or one in each reaction name (one-of-each)."
+  },
+  {
+   "kind": {
+    "Kind": "Type",
+    "Projection": "tally"
+   },
+   "line": 409,
+   "name": "Tally",
+   "text": "The number of held reactions carrying one item reference and one reaction name, as [Count] answers it."
+  },
+  {
+   "kind": {
+    "Kind": "Member",
+    "Member of": "the action rejection",
+    "Projection": "invalid-person-reference",
+    "Role": "Outcome"
+   },
+   "line": 416,
+   "name": "Invalid Person Reference",
+   "text": "The refusal of a blank [Person Reference], one over the string cap, or one that is not a string, on [React] or [Withdraw] (Operation 1, Operation 23)."
+  },
+  {
+   "kind": {
+    "Kind": "Member",
+    "Member of": "the action rejection",
+    "Projection": "invalid-item-reference",
+    "Role": "Outcome"
+   },
+   "line": 425,
+   "name": "Invalid Item Reference",
+   "text": "The refusal of a blank [Item Reference], one over the string cap, or one that is not a string, on [React] or [Withdraw] (Operation 2, Operation 24)."
+  },
+  {
+   "kind": {
+    "Kind": "Member",
+    "Member of": "the action rejection",
+    "Projection": "invalid-reaction-name",
+    "Role": "Outcome"
+   },
+   "line": 434,
+   "name": "Invalid Reaction Name",
+   "text": "The refusal of a blank [Reaction Name], one over the string cap, or one that is not a string, on [React] or [Withdraw], and of a name the reaction set does not offer on [React] (Operation 3, Operation 4, Operation 25)."
+  },
+  {
+   "kind": {
+    "Kind": "Member",
+    "Member of": "the action rejection",
+    "Projection": "storage-failure",
+    "Role": "Outcome"
+   },
+   "line": 443,
+   "name": "Storage Failure",
+   "text": "The refusal [React] or [Withdraw] answers when the database refuses its write after every precondition passes: the Execution Contract's Step 3 failure."
+  }
+ ],
+ "term_sets": [
+  {
+   "carrying": [
+    "person_reference",
+    "item_reference"
+   ],
+   "line": 156,
+   "other_than": "reaction_name",
+   "term": "rival",
+   "thing": "reaction",
+   "where": [
+    {
+     "field": "status",
+     "value": "held"
+    }
+   ]
+  }
+ ],
+ "terms": [
+  {
+   "definition": "one person's answer to one item in one reaction name, kept from the first time the person chose it — a [Reaction].",
+   "entry": "Reaction",
+   "kind": {
+    "Kind": "Type"
+   },
+   "line": 47,
+   "name": "reaction",
+   "section": [
+    "Structure",
+    "Identity model"
+   ]
+  },
+  {
+   "definition": "the person reference, the item reference and the reaction name a reaction carries, or a call names.",
+   "entry": null,
+   "kind": null,
+   "line": 49,
+   "name": "triple",
+   "section": [
+    "Structure",
+    "Identity model"
+   ]
+  },
+  {
+   "definition": "the person reference and the item reference a reaction carries, or a call names.",
+   "entry": null,
+   "kind": null,
+   "line": 51,
+   "name": "pair",
+   "section": [
+    "Structure",
+    "Identity model"
+   ]
+  },
+  {
+   "definition": "the string naming the person a reaction belongs to, in the deployment's own scheme — a [Person Reference]; the atom reads no scheme in it.",
+   "entry": "Person Reference",
+   "kind": {
+    "Field of": "Reaction",
+    "Kind": "Field",
+    "Projection": "person_reference"
+   },
+   "line": 53,
+   "name": "person reference",
+   "section": [
+    "Structure",
+    "Identity model"
+   ]
+  },
+  {
+   "definition": "the string naming the item a reaction answers, such as a post, a review or a message, in the deployment's own scheme — an [Item Reference]; the atom reads no scheme in it.",
+   "entry": "Item Reference",
+   "kind": {
+    "Field of": "Reaction",
+    "Kind": "Field",
+    "Projection": "item_reference"
+   },
+   "line": 55,
+   "name": "item reference",
+   "section": [
+    "Structure",
+    "Identity model"
+   ]
+  },
+  {
+   "definition": "the string naming which reaction a person chose, such as like — a [Reaction Name]; a word, never a picture.",
+   "entry": "Reaction Name",
+   "kind": {
+    "Field of": "Reaction",
+    "Kind": "Field",
+    "Projection": "reaction_name"
+   },
+   "line": 57,
+   "name": "reaction name",
+   "section": [
+    "Structure",
+    "Identity model"
+   ]
+  },
+  {
+   "definition": "the reaction names a deployment offers; the single name like where a deployment declares none.",
+   "entry": null,
+   "kind": null,
+   "line": 59,
+   "name": "reaction set",
+   "section": [
+    "Structure",
+    "Identity model"
+   ]
+  },
+  {
+   "definition": "how many reactions a person may hold on one item, one-per-item or one-of-each — the [Holding Rule]; one-per-item where a deployment declares none.",
+   "entry": null,
+   "kind": null,
+   "line": 61,
+   "name": "holding rule",
+   "section": [
+    "Structure",
+    "Identity model"
+   ]
+  },
+  {
+   "definition": "the bound on a person reference's length, on an item reference's length and on a reaction name's length in Unicode code points; 1,024 code points where a deployment declares none.",
+   "entry": null,
+   "kind": null,
+   "line": 63,
+   "name": "string cap",
+   "section": [
+    "Structure",
+    "Identity model"
+   ]
+  },
+  {
+   "definition": "the atom's input and output boundary as the section titled Logic Confinement Principle in `execution-contract.md` declares it; the host injects the clock reading, now, at the seam.",
+   "entry": null,
+   "kind": null,
+   "line": 65,
+   "name": "seam",
+   "section": [
+    "Structure",
+    "Identity model"
+   ]
+  },
+  {
+   "definition": "the instant of the first [React] call that recorded a reaction — the [First Reacted Instant]; set once, never changed.",
+   "entry": null,
+   "kind": null,
+   "line": 77,
+   "name": "first reacted instant",
+   "section": [
+    "Structure",
+    "State"
+   ]
+  },
+  {
+   "definition": "where a reaction stands, held or withdrawn — the [Status].",
+   "entry": null,
+   "kind": null,
+   "line": 79,
+   "name": "status",
+   "section": [
+    "Structure",
+    "State"
+   ]
+  },
+  {
+   "definition": "the status of a reaction the person keeps on the item — [Held]; the reaction counts.",
+   "entry": null,
+   "kind": null,
+   "line": 81,
+   "name": "held",
+   "section": [
+    "Structure",
+    "State"
+   ]
+  },
+  {
+   "definition": "the status of a reaction the person took back or replaced — [Withdrawn]; the reaction counts for nothing.",
+   "entry": null,
+   "kind": null,
+   "line": 83,
+   "name": "withdrawn",
+   "section": [
+    "Structure",
+    "State"
+   ]
+  },
+  {
+   "definition": "[React] | [Withdraw] — the actions that change a reaction.",
+   "entry": null,
+   "kind": null,
+   "line": 154,
+   "name": "writing action",
+   "section": [
+    "Structure",
+    "Operations"
+   ]
+  },
+  {
+   "definition": "a held reaction carrying the pair of the call and a reaction name other than the reaction name of the call.",
+   "entry": null,
+   "kind": null,
+   "line": 156,
+   "name": "rival",
+   "section": [
+    "Structure",
+    "Operations"
+   ]
+  },
+  {
+   "definition": "the number of held reactions carrying one item reference and one reaction name — a [Tally].",
+   "entry": "Tally",
+   "kind": {
+    "Kind": "Type",
+    "Projection": "tally"
+   },
+   "line": 158,
+   "name": "tally",
+   "section": [
+    "Structure",
+    "Operations"
+   ]
+  },
+  {
+   "definition": "a record as it stood at the commit that wrote it, which Execution Contract Database 5 keeps readable after the record changes and Execution Contract Generation acceptance 1 has a check read.",
+   "entry": null,
+   "kind": null,
+   "line": 238,
+   "name": "version",
+   "section": [
+    "Generation acceptance",
+    "Conformance checks"
+   ]
+  }
+ ],
+ "title": "Reaction",
+ "tombstones": [],
+ "transactions": [],
+ "transitions": [],
+ "vocabulary": {
+  "actors": "the atom; the host; the deployment (also: a deployment); a composing pattern; the database; a reaction; a writing action; an auditor.",
+  "bounds": "string cap (the bound on a person reference's length, on an item reference's length and on a reaction name's length in Unicode code points, 1,024 where a deployment declares none).",
+  "cadences": "empty.",
+  "qualifiers": "migrated — drafted in GRACE lang v0.73 (2026-11-14) through the Grace connector.",
+  "record verbs": "identify, normalize, compare, carry, stand, remove, supply, declare, record, stamp, answer, write, change, share, find, read, tell, check, notify, score, decide, hold, draw, list, own, refuse.",
+  "records": "reaction — one person's answer to one item in one reaction name, carrying person reference, item reference, reaction name, first reacted instant and status.",
+  "terms": "reaction, reactions, triple, pair, person reference, item reference, reaction name, reaction names, reaction set, holding rule, string cap, seam, first reacted instant, status, held, withdrawn, writing action, rival, tally, tallies, version.",
+  "value sets": "writing action is declared above and cited here (GRACE-lang Closed vocabulary 15); status — held | withdrawn; holding rule — one-per-item | one-of-each; action rejection — invalid-person-reference | invalid-item-reference | invalid-reaction-name | storage-failure."
+ }
+}

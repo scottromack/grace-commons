@@ -3066,6 +3066,20 @@ def check_ir_synthetic(problems: list[str]) -> None:
     if got != expect:
         problems.append(f"IR: the broken pair made {got}, want {expect}")
 
+    # the proof's other findings (unit `tooling: the reader says what the projector may take`): a term entry declared twice on a page, the arms the
+    # reader takes the Execution Contract's Read 3 to give every read, and a projectable table that is not one entry for each rule
+    twice = IR_ATOM.format(dup="", bad="").replace("#### Widget\n\nOne thing made.\n\nKind:       Type\n", "#### Widget\n\nOne thing made.\n\nKind:       Type\n\n#### Widget\n\nAgain.\n\nKind:       Type\n")
+    with tempfile.TemporaryDirectory() as root:
+        (Path(root) / "atoms").mkdir()
+        (Path(root) / "atoms" / "widget.md").write_text(twice, encoding="utf-8")
+        (Path(root) / "execution-contract.md").write_text("**Read 3: A failed read writes nothing.** An action that fails to read writes nothing.\n", encoding="utf-8")
+        docs, _ = ir.build(Path(root))
+        found = sorted(f[2] for f in ir.prove(Path(root), docs) if f[2] in ("IR-entry", "IR-contract-arms"))
+        docs[0]["projectable"] = docs[0]["projectable"][:-1]
+        found += sorted(f[2] for f in ir.prove(Path(root), docs) if f[2] == "IR-projectable")
+    if found != ["IR-contract-arms", "IR-entry", "IR-projectable"]:
+        problems.append(f"IR: a twin entry, a Read 3 without its arm and a short projectable table made {found}")
+
 
 # What the reader carries beside the rules (unit `tooling: the reader carries what the projector lacked`,
 # 2026-11-15): the key an Identity rule names as the fields of its Term, the Execution Contract rule a
