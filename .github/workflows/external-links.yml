@@ -1,0 +1,22 @@
+name: Report links to other sites
+
+# Once a week and on request: every link a site page makes to another site is asked once (tools/linter/external_links.py). The report
+# is this run's summary: the links that did not answer 200 after the redirects, by file and line. It gates nothing, blocks no deploy,
+# opens no issue and commits no file.
+
+on:
+  schedule:
+    - cron: "17 6 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  report:
+    name: Ask each link once
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Report
+        run: python3 tools/linter/external_links.py >> "$GITHUB_STEP_SUMMARY"

@@ -31,6 +31,11 @@ internal link names a file the build wrote and that a `#fragment` on it is an `i
 dead internal link does not deploy (unit `site: the links between pages work again`; the file-path links the site's own pages carry, `./method.md`,
 were all dead for a few hours once the build stopped turning them into addresses). `test_site_links.py` pins it on a synthetic site.
 
+**The weekly report of links to other sites.** `python3 tools/linter/external_links.py` asks each address a site page names once (a HEAD, a GET where a
+host refuses it, redirects followed, one request a host a second, a plain user agent that names the project) and prints the ones that did not answer 200,
+by file and line. [`.github/workflows/external-links.yml`](../../.github/workflows/external-links.yml) runs it every Monday and on request and puts the report in the
+run's summary. It gates nothing, blocks no deploy, opens no issue and commits no file (unit `site: a weekly report of links to other sites`).
+
 ## Checks
 
 | Code | What it catches |
