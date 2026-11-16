@@ -791,7 +791,7 @@ It inherits from:
 
 ```
 status: doing
-formal: pending — attributed-permissions-admin.als + 25 twins and attributed-permissions-admin.tla + twins (verified 2026-11-11) model the rule of 2026-11-16 reversed: Wiring decision 8 and Concurrency 1 to 3 as they stood (two issuances over one pair, two grants) and an issuance with no read of the pair; owed over Action wiring 1, 2, 7 and 103 through 106, Concurrency 1, 2, 10 and 11 and the underlying reason already-held, the twins re-derived with them
+formal: pending — attributed-permissions-admin.als + 25 twins and attributed-permissions-admin.tla + twins (verified 2026-11-11) model the rule of 2026-11-16 reversed: Wiring decision 8 and Concurrency 1 through 3 as they stood (two issuances over one pair, two grants) and an issuance with no read of the pair; owed over Action wiring 1, 2, 7 and 103 through 106, Concurrency 1, 2, 10 and 11 and the underlying reason already-held, the twins re-derived with them
 last gate: 2026-11-05 — Final Critique 10, delta, frozen at a6a6920 — foundational count 0, clean, one sample
 
 open:
