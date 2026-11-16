@@ -3949,6 +3949,98 @@ def check_ir_admitted(problems: list[str]) -> None:
             problems.append(f"IR admitted action: {what} read wrong: {got}")
 
 
+IR_ACTION_SET = """# Tag
+
+## Structure
+
+### Identity model
+
+```
+Identity 1: The atom MUST identify a tag by the tag id.
+Identity 2: The host MUST allocate a tag id at the atom's seam.
+```
+
+### Operations
+
+```
+mint(note)
+  answers ok
+  refuses invalid-request
+
+retire(tag_id)
+  answers ok
+  refuses not-known
+
+purge(tag_id)
+  answers ok
+  refuses not-known
+```
+
+Term writing action: [Retire] | [Purge].
+
+Term addressed action: any action carrying a tag id \u2014 every action but [Mint].
+
+Term kept action: every action but [Retire].
+
+Term lost action: every action but [Vanish].
+
+Term odd action: any action carrying a colour.
+
+Term mixed action: [Retire] | a purge that a rule refused.
+
+```
+Operation 1: A writing action MUST answer ok.
+Operation 2: An addressed action MUST answer not-known ONLY IF the tag id names no tag.
+Operation 3: A kept action MUST answer ok.
+Operation 4: A lost action MUST answer ok.
+Operation 5: An odd action MUST answer ok.
+Operation 6: A mixed action MUST answer ok.
+Operation 7: A writing word MUST answer ok.
+```
+
+## Terms
+
+#### Tag Id
+
+Names the tag.
+
+Kind:       Field
+Field of:   the tag record
+Projection: tag_id
+
+## Status
+
+`todo` \u2014 see the Ledger.
+"""
+
+
+def check_ir_action_set(problems: list[str]) -> None:
+    import tempfile
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "grace"))
+    import ir
+
+    with tempfile.TemporaryDirectory() as d:
+        root = Path(d)
+        (root / "atoms").mkdir()
+        (root / "execution-contract.md").write_text(IR_READER_CONTRACT, encoding="utf-8")
+        (root / "atoms" / "tag.md").write_text(IR_ACTION_SET, encoding="utf-8")
+        doc = ir.parse(root / "atoms" / "tag.md", root)
+    got = {r["label"]: r.get("actions", []) for r in doc["rules"]}
+    gaps = {g["rule"] for g in doc["reader_gaps"] if g["what"].startswith("no action read")}
+    want = {
+        "a bar list names the actions it lists": got.get("Operation 1") == ["retire", "purge"],
+        "`any action carrying <an input>` names the signatures that take it": got.get("Operation 2") == ["retire", "purge"],
+        "`every action but <a list>` names the other signatures": got.get("Operation 3") == ["mint", "purge"],
+        "a complement of an action no signature has names none, and is a reader gap": got.get("Operation 4", []) == [] and "Operation 4" in gaps,
+        "an input no signature takes names none, and is a reader gap": got.get("Operation 5", []) == [] and "Operation 5" in gaps,
+        "a bar list with other words is no list: none named, no gap": got.get("Operation 6", []) == [] and "Operation 6" not in gaps,
+        "a word with no Term names none, no gap": got.get("Operation 7", []) == [] and "Operation 7" not in gaps,
+    }
+    for what, held in want.items():
+        if not held:
+            problems.append(f"IR action set: {what} read wrong: {got} {sorted(gaps)}")
+
+
 def check_ir_guards(problems: list[str]) -> None:
     import tempfile
     sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "grace"))
@@ -4438,6 +4530,7 @@ def main(argv: list[str]) -> int:
     check_ir_read_answers(ir_problems)
     check_ir_guards(ir_problems)
     check_ir_admitted(ir_problems)
+    check_ir_action_set(ir_problems)
     n_specs, n_rules = check_ir_corpus(root, ir_problems)
     failures.extend(ir_problems)
     if not ir_problems:

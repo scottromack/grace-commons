@@ -1140,11 +1140,38 @@ ADMITTED_CALL = re.compile(r"an? \[([^\]]+)\] call(?: the action admits| no rule
 ACTION_LIST = re.compile(r"(?:(?:an?|the) )?\[[^\]]+\](?:(?:,\s*|\s+(?:and|or)\s+)(?:(?:an?|the) )?\[[^\]]+\])*(?:\s+calls?)?")
 
 
-def actions_of(subject: str, terms: list[dict]) -> list[str]:
+# a Term that names a set of actions by a bar list (`[Suspend Pool] | [Resume Pool] | [Close Pool]`), by the complement of a list (`every action but [Query]`),
+# or by an input every one of them carries (`any action carrying a pool id`; the signatures say which)
+BAR_LIST = re.compile(r"\[[^\]]+\](?:\s*\|\s*\[[^\]]+\])+\.?")
+EVERY_BUT = re.compile(r"every action but (\[[^\]]+\](?:(?:,\s*|\s+(?:and|or)\s+)\[[^\]]+\])*)\.?")
+CARRYING = re.compile(r"any action carrying (?:an? |the )?([a-z][a-z0-9 -]*?)\.?")
+
+
+def action_set_of(head: str, sigs: list[dict]) -> list[str] | None:
+    """The actions a Term's head names where it names a set by a bar list, a complement (`every action but [X]`) or an input the actions carry
+    (`any action carrying a pool id`: the signatures that take that input), resolved against the page's own signatures. None where the head is
+    no such form; an empty list where it is one and the signatures do not resolve it (an action no signature carries, or an input none takes)."""
+    names = {snake_of(s["action"]) for s in sigs}
+    if BAR_LIST.fullmatch(head):
+        got = [snake_of(x) for x in re.findall(r"\[([^\]]+)\]", head)]
+        return got
+    m = EVERY_BUT.fullmatch(head)
+    if m:
+        out = {snake_of(x) for x in re.findall(r"\[([^\]]+)\]", m.group(1))}
+        return [a for a in (snake_of(s["action"]) for s in sigs) if a not in out] if out <= names else []
+    m = CARRYING.fullmatch(head)
+    if m:
+        want = snake_of(m.group(1))
+        return [snake_of(s["action"]) for s in sigs if want in {snake_of(i["name"]) for i in s["inputs"]}]
+    return None
+
+
+def actions_of(subject: str, terms: list[dict], sigs: list[dict] | None = None) -> list[str]:
     """The actions a rule's subject names, as the signatures spell them: a bracketed action (`[Deliver]`), or a Term whose
     definition begins with a list of them (`a terminal transition` is `a [Deliver], a [Fail] or an [Expire] call`). A subject
     that names none (`A refused call`, `A caller`) names none; an action named and on no signature is still named here, for
-    the reader of the document to say. An `admitted <action>` Term is the call of that action where its definition says no more
+    the reader of the document to say. A Term whose definition begins with a bar list of them, with `every action but` a list of them or with
+    `any action carrying` an input names those the signatures give (`action_set_of`); a set the signatures do not resolve names none. An `admitted <action>` Term is the call of that action where its definition says no more
     of the call than that the action admits it, that no rule refused it, or that it answers (`an [Order] call the action admits`) and
     the action its bracket names is the one its name does; a call narrowed by anything else (`a [Fire] call whose tasks ...`) names none."""
     m = re.fullmatch(r"\[(.+)\]", subject.strip())
@@ -1154,11 +1181,22 @@ def actions_of(subject: str, terms: list[dict]) -> list[str]:
     head = t["definition"].split(" \u2014 ")[0].strip() if t else ""
     if head and ACTION_LIST.fullmatch(head):
         return [snake_of(x) for x in re.findall(r"\[([^\]]+)\]", head)]
+    if head and sigs is not None:
+        got = action_set_of(head, sigs)
+        if got:
+            return got
     adm = ADMITTED_SUBJECT.fullmatch(subject.strip())
     call = ADMITTED_CALL.fullmatch(head) if adm and t else None
     if call and snake_of(call.group(1)) == snake_of(adm.group(1)):
         return [snake_of(call.group(1))]
     return []
+
+
+def unresolved_set(subject: str, doc: dict) -> bool:
+    """True where the subject is a Term whose head is a set of actions by a form `action_set_of` reads and the signatures resolve it to none"""
+    t = next((t for t in doc["terms"] if t["name"].lower() == re.sub(r"^(?:a|an|the|every|any|each) ", "", subject.strip(), flags=re.I).lower()), None)
+    head = t["definition"].split(" \u2014 ")[0].strip() if t else ""
+    return bool(head) and action_set_of(head, doc["signatures"]) == []
 
 
 def transitions_of(doc: dict, cx: dict) -> tuple[list[dict], list[dict]]:
@@ -1460,9 +1498,12 @@ def carry(doc: dict, root: Path) -> None:
             e["answers"] = ma
     for r in doc["rules"]:
         form = forms.get(r["label"], {})
-        acts = actions_of(form.get("subject", ""), doc["terms"]) if form.get("kind") == "rule" else []
+        acts = actions_of(form.get("subject", ""), doc["terms"], doc["signatures"]) if form.get("kind") == "rule" else []
         if acts:
             r["actions"] = acts
+        elif form.get("kind") == "rule" and unresolved_set(form.get("subject", ""), doc):
+            gaps.append({"rule": r["label"], "line": r["line"],
+                         "what": f"no action read: {form['subject'].strip()!r} is a Term that names a set of actions the page's signatures do not resolve"})
         cm = cited_meaning(r, form, contract)
         if cm:
             r["cited_meaning"] = cm
