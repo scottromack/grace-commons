@@ -589,7 +589,7 @@ def term_fields(term: dict, entries: list[dict]) -> tuple[list[dict], str]:
             break
         rest, after_sep = rest[sep.end():], True
     if not got:
-        return [], f"the definition of Term {term['name']} does not begin with a list of Field entries"
+        return [], f"the reader read no list of Field entries at the start of the definition of Term {term['name']}"
     return got, ""
 
 
@@ -604,7 +604,7 @@ def id_key_of(rule: dict, thing: str, idterm: str, entries: list[dict], rules: l
     a value the seam supplies, which the atom never makes). An id with no such rule, or no Field entry, is a reader gap."""
     field = next((e for e in entries if e["name"].lower() == idterm and e["kind"].get("Kind") == "Field"), None)
     if not field:
-        return None, f"the key `the {idterm}` has no Field entry `{idterm}`"
+        return None, f"the reader found no Field entry `{idterm}` for the key `the {idterm}`"
     src = None
     for r in rules or []:
         f = forms.get(r["label"], {})
@@ -615,7 +615,7 @@ def id_key_of(rule: dict, thing: str, idterm: str, entries: list[dict], rules: l
                     and re.match(r"(?:an?|the) %s\b" % re.escape(idterm), o.get("object", ""))):
                 src = {"how": "fresh", "rule": r["label"], "line": r["line"]}
     if not src:
-        return None, f"the key `the {idterm}` is an id, and no Identity rule says the host or the seam allocates it"
+        return None, f"the key `the {idterm}` is an id, and the reader read no Identity rule that says the host or the seam allocates it (it reads the Identity rules for this, not the Capability requirements)"
     return ({"rule": rule["label"], "line": rule["line"], "thing": thing, "term": idterm, "names": [idterm],
              "fields": [field["kind"].get("Projection") or field["name"]], "id": True, "source": src}, "")
 
@@ -629,16 +629,16 @@ def key_of(rule: dict, terms: list[dict], entries: list[dict], rules: list[dict]
     or None and what the page does not give."""
     m = IDENTIFY.search(rule["text"])
     if not m:
-        return None, "the rule does not say `identify a <thing> by <the thing's term>`"
+        return None, "the reader could not read the rule as `identify a <thing> by <the thing's term>`"
     mid = ID_KEY.fullmatch(m.group("by"))
     if mid:
         return id_key_of(rule, m.group("thing"), mid.group("id"), entries, rules, forms or {})
     k = KEY_TERM.fullmatch(m.group("by"))
     if not k or k.group("thing") != m.group("thing"):
-        return None, f"the key `{m.group('by')}` is not named through a Term of the form `the {m.group('thing')}'s <term>`"
+        return None, f"the reader could not read the key `{m.group('by')}` as named through a Term of the form `the {m.group('thing')}'s <term>`"
     term = next((t for t in terms if t["name"].lower() == k.group("term").lower()), None)
     if not term:
-        return None, f"no Term `{k.group('term')}` is declared"
+        return None, f"the reader found no Term `{k.group('term')}` among the page's Terms"
     got, why = term_fields(term, entries)
     if not got:
         return None, why
@@ -713,11 +713,11 @@ def fields_of(thing: str, parts: list[str], cx: dict) -> tuple[list[str], str]:
     for part in parts:
         m = re.match(r"^(?:an?|the) (?P<t>.+?)'s (?P<f>.+)$", part.strip())
         if m and thing_of(m.group("t"), cx) != thing:
-            return [], f"`{part.strip()}` names a record that is not `{thing}`"
+            return [], f"the reader read `{part.strip()}` as naming a record that is not `{thing}`"
         name = (m.group("f") if m else part).strip()
         f = field_of(name, cx)
         if not f:
-            return [], f"`{name}` is no Field entry"
+            return [], f"the reader found no Field entry `{name}`"
         if cx["owners"].get(re.sub(r"^(?:the|a|an) ", "", name).lower()) != thing:
             return [], f"`{name}` is a Field entry of another record than `{thing}`"
         out.append(f)
@@ -750,16 +750,16 @@ def what_of(phrase: str, cx: dict) -> tuple[list[dict], str]:
     """`marked favorite`, `held reaction` -> the record type and the Member entries before it, each a status test"""
     words = phrase.strip().lower().split()
     if not cx["type"] or not words or " ".join(words[-len(cx["type"].split()):]) != cx["type"]:
-        return [], f"`{phrase.strip()}` does not end in the record type"
+        return [], f"the reader read `{phrase.strip()}` as not ending in the record type"
     where = []
     for w in words[:-len(cx["type"].split())]:
         if w not in cx["members"]:
-            return [], f"`{w}` is no Member entry"
+            return [], f"the reader found no Member entry `{w}`"
         field, value = cx["members"][w]
         if field not in cx["fields"] and field.startswith(cx["type"] + " "):
             field = field[len(cx["type"]) + 1:]       # `Member of: the notification status` is the Field entry `status`
         if field not in cx["fields"]:
-            return [], f"`{w}` is a Member of `{field}`, which is no Field entry"
+            return [], f"the reader read `{w}` as a Member of `{field}`, and found no Field entry `{field}`"
         where.append({"field": cx["fields"][field], "value": value})
     return where, ""
 
@@ -781,7 +781,7 @@ def answer_shape(form: dict, doc: dict, cx: dict) -> tuple[dict | None, str]:
     action = re.sub(r"[^a-z0-9]+", "_", sub.group(1).lower()).strip("_") if sub else None
     sig = sigs.get(action)
     if not sig:
-        return None, "the rule's subject is no action of the signatures"
+        return None, "the reader read the rule's subject as no action of the page's signatures"
     ob = form["obligations"][0]["object"]
     arms = []
     for a in sig["answers"]:
@@ -797,27 +797,27 @@ def answer_shape(form: dict, doc: dict, cx: dict) -> tuple[dict | None, str]:
         stored = [e["kind"].get("Projection") or e["name"] for e in cx["entries"]
                   if e["kind"].get("Kind") == "Field" and thing and cx["owners"].get(e["name"].lower()) == thing]
         if not thing or not stored:
-            return None, f"`{ob}` names a thing that is not a record type of the page, or the record has no Field entry"
+            return None, f"the reader read `{ob}` as naming no record type of the page, or a record with no Field entry"
         if not own:
-            return None, f"`{ob}`: no answer arm of {sig['action']} is named for the record type `{thing}`"
+            return None, f"`{ob}`: the reader read no answer arm of {sig['action']} named for the record type `{thing}`"
         out = {"shape": "record", "thing": thing, "fields": stored, "arm": own}
     m = None if out else SHAPE_COUNT.fullmatch(ob)
     if m:
         by, what, x = field_of(m.group("by"), cx), what_of(m.group("what"), cx), carrying_of(m.group("x"), cx)
         if not by or what[1] or x[1]:
-            return None, (what[1] or x[1] or f"`{m.group('by')}` is no Field entry")
+            return None, (what[1] or x[1] or f"the reader found no Field entry `{m.group('by')}`")
         out = {"shape": "count_by", "count": m.group("count"), "by": by, "thing": cx["type"], "where": what[0], "carrying": x[0]}
     m = None if out else SHAPE_EVERY.fullmatch(ob)
     if m:
         what, x = what_of(m.group("what"), cx), carrying_of(m.group("x"), cx)
         of = [field_of(m.group("of"), cx)] if m.group("of") else []
         if what[1] or x[1] or (m.group("of") and not of[0]):
-            return None, what[1] or x[1] or f"`{m.group('of')}` is no Field entry"
+            return None, what[1] or x[1] or f"the reader found no Field entry `{m.group('of')}`"
         out = {"shape": "every", "thing": cx["type"], "where": what[0], "carrying": x[0], "of": of}
     m = None if out else SHAPE_FIELDS.fullmatch(ob)
     if m:
         thing = thing_of(m.group("thing"), cx)
-        fs, why = fields_of(thing, re.split(r",\s*(?:AND\s+)?|\s+AND\s+", m.group("fields")), cx) if thing else ([], f"`{m.group('thing')}` is no record type of the page")
+        fs, why = fields_of(thing, re.split(r",\s*(?:AND\s+)?|\s+AND\s+", m.group("fields")), cx) if thing else ([], f"the reader read `{m.group('thing')}` as no record type of the page")
         if why:
             return None, why
         out = {"shape": "fields", "thing": thing, "fields": fs}
@@ -833,7 +833,7 @@ def answer_shape(form: dict, doc: dict, cx: dict) -> tuple[dict | None, str]:
     if m:
         thing = thing_of(m.group("what"), cx) if m.group("what") else None
         if "query" not in cx["terms"] or (m.group("what") and not thing):
-            return None, f"`{ob}`: the page declares no Term `query`, or `{m.group('what')}` is no record type of the page"
+            return None, f"`{ob}`: the reader found no Term `query` on the page, or read `{m.group('what')}` as no record type of the page"
         out = {"shape": "empty", "query": "query"}
         if thing:
             out["thing"] = thing
@@ -841,7 +841,7 @@ def answer_shape(form: dict, doc: dict, cx: dict) -> tuple[dict | None, str]:
     if m:
         thing, by = thing_of(m.group("thing") or m.group("things"), cx), (m.group("by") or "").strip().lower()
         if not thing or by not in cx["terms"]:
-            return None, f"`{ob}`: `{m.group('thing') or m.group('things')}` is no record type of the page, or the page declares no Term `{by}`"
+            return None, f"`{ob}`: the reader read `{m.group('thing') or m.group('things')}` as no record type of the page, or found no Term `{by}` on it"
         out = {"shape": "matching", "thing": thing, "by": by}
     m = None if out else SHAPE_PAGE.fullmatch(ob)
     if m:
@@ -852,13 +852,13 @@ def answer_shape(form: dict, doc: dict, cx: dict) -> tuple[dict | None, str]:
         key = next((c for c in (key, key.removesuffix("s")) if c in cx["terms"]), key)
         names = {"matching": matching, "order": key, "limit": m.group("limit").strip().lower()} if thing else {}
         if not thing or not all(n in cx["terms"] for n in names.values()):
-            return None, f"`{ob}`: `{m.group('thing')}` is no record type of the page, or a Term of the three it names is not declared"
+            return None, f"`{ob}`: the reader read `{m.group('thing')}` as no record type of the page, or found none of the three Terms it names"
         out = {"shape": "page", "thing": thing, "direction": "ascending", **{k: v for k, v in names.items()}}
     m = None if out else SHAPE_NONE.fullmatch(ob)
     if m:
         thing = thing_of(m.group("thing"), cx)
         if not thing:
-            return None, f"`{ob}`: `{m.group('thing')}` is no record type of the page"
+            return None, f"`{ob}`: the reader read `{m.group('thing')}` as no record type of the page"
         out = {"shape": "none", "thing": thing}
     m = None if out else SHAPE_CODEPOINT.fullmatch(ob)
     if m:
@@ -866,7 +866,7 @@ def answer_shape(form: dict, doc: dict, cx: dict) -> tuple[dict | None, str]:
         own = next((a for a in arms if a["name"] == name), None)
         by = [field_of(m.group("of"), cx)] if m.group("of") else (own["fields"][:1] if own and len(own["fields"]) == 1 else [])
         if not own or not by or not by[0]:
-            return None, f"`{m.group('arm')}` names no arm of the signature with one field to order by"
+            return None, f"the reader read `{m.group('arm')}` as naming no arm of the signature with one field to order by"
         out = {"shape": "order", "arm": own["name"], "by": [{"field": by[0], "direction": "ascending"}]}
     m = None if out else SHAPE_BY.fullmatch(ob)
     if m:
@@ -878,7 +878,7 @@ def answer_shape(form: dict, doc: dict, cx: dict) -> tuple[dict | None, str]:
             f = field_of(re.sub(r", %s$" % re.escape(direction), "", part) if direction else part, cx)
             keys.append({"field": f, "direction": DIRECTIONS[direction] if direction else None})
         if not own or not all(k["field"] for k in keys):
-            return None, f"`{ob}` orders by something that is no Field entry, or an arm that is no arm of the signature"
+            return None, f"the reader read `{ob}` as ordering by something with no Field entry, or by an arm that is no arm of the signature"
         out = {"shape": "order", "arm": own["name"], "by": keys}
     if not out:
         return None, f"the reader reads no shape in `{ob}`"
@@ -914,7 +914,7 @@ def read_orders(doc: dict, cx: dict, keys: list[dict], contract: dict[str, dict]
         if not made or len(ids) != 1:
             gaps.append({"rule": r["label"], "line": r["line"],
                          "what": "the read's order is Execution Contract Read 5's, which needs the record's creation instant "
-                                 f"and its id: {'no Field entry `creation instant`' if not made else 'no one id key'}"})
+                                 f"and its id: the reader found {'no Field entry `creation instant`' if not made else 'no one id key'}"})
             continue
         sh["order_default"] = {"rule": "Execution Contract Read 5",
                                "by": [{"field": made, "direction": "ascending"}, {"field": ids[0]["fields"][0], "direction": "ascending"}]}
@@ -958,7 +958,7 @@ def settings_of(doc: dict, cx: dict) -> tuple[list[dict], list[dict]]:
         d = SETTING_DEFAULT.search(t["definition"]) if t else None
         if not d:
             gaps.append({"rule": r["label"], "line": r["line"],
-                         "what": f"no default read: the Term `{m.group('term')}` does not say what stands where a deployment declares none"})
+                         "what": f"no default read: the reader read no default in the Term `{m.group('term')}` (what stands where a deployment declares none)"})
             continue
         text = d.group("text").strip()
         value: object = text
@@ -994,13 +994,13 @@ def term_sets_of(doc: dict, cx: dict) -> tuple[list[dict], list[dict]]:
             continue
         m = TERM_SET.match(t["definition"].strip())
         if not m:
-            gaps.append({"rule": f"Term {t['name']}", "line": t["line"], "what": "no set read: the definition says `other than` and does not fit `a <member> <thing> carrying the <term> of the call and a <field> other than the <field> of the call`"})
+            gaps.append({"rule": f"Term {t['name']}", "line": t["line"], "what": "no set read: the reader could not fit the definition, which says `other than`, to `a <member> <thing> carrying the <term> of the call and a <field> other than the <field> of the call`"})
             continue
         where, why = what_of(m.group("what"), cx)
         carrying, why2 = carrying_of(m.group("by"), cx)
         other, same = field_of(m.group("other"), cx), field_of(m.group("same"), cx)
         if why or why2 or not other or other != same:
-            gaps.append({"rule": f"Term {t['name']}", "line": t["line"], "what": "no set read: " + (why or why2 or "the field that differs is not the field the call names")})
+            gaps.append({"rule": f"Term {t['name']}", "line": t["line"], "what": "no set read: " + (why or why2 or "the reader read the field that differs as not the field the call names")})
             continue
         out.append({"term": t["name"], "line": t["line"], "thing": cx["type"], "where": where, "carrying": carrying, "other_than": other})
     return out, gaps
@@ -1056,12 +1056,12 @@ def wiring_of(doc: dict, root: Path) -> tuple[list[dict], list[dict], list[dict]
 
     def callee(who: str, act: str, rule: dict, where: str):
         if who not in view or view[who][1] is None:
-            gaps.append({"rule": rule["label"], "line": rule["line"], "what": f"{who} is no constituent the Composes section links, or its page is not there"})
+            gaps.append({"rule": rule["label"], "line": rule["line"], "what": f"the reader read {who} as no constituent the Composes section links, or found its page absent"})
             return None
         c, v = view[who]
         sig = next((s for s in v["signatures"] if snake_of(s["action"]) == snake_of(act)), None)
         if sig is None:
-            gaps.append({"rule": rule["label"], "line": rule["line"], "what": f"{who} has no action {act!r} on its signature list ({where})"})
+            gaps.append({"rule": rule["label"], "line": rule["line"], "what": f"the reader found no action {act!r} on the signature list of {who} ({where})"})
             return None
         return c, v, sig
 
@@ -1096,7 +1096,7 @@ def wiring_of(doc: dict, root: Path) -> tuple[list[dict], list[dict], list[dict]
                 b = bind_arg(phrase, sig["action"], inputs, v["term_entries"])
                 entry["args"].append(b or {"phrase": phrase.strip(), "binds": None})
                 if not b:
-                    gaps.append({"rule": r["label"], "line": r["line"], "what": f"{phrase.strip()!r} binds to no input of {c['name']}'s {sig['action']} through its term entries"})
+                    gaps.append({"rule": r["label"], "line": r["line"], "what": f"the reader bound {phrase.strip()!r} to no input of {c['name']}'s {sig['action']} through its term entries"})
             calls.append(entry)
         last = None
         for cl in (form.get("if") or {}).get("clauses", []):
@@ -1107,7 +1107,7 @@ def wiring_of(doc: dict, root: Path) -> tuple[list[dict], list[dict], list[dict]
                 if n in last[1]:
                     last[0]["arms"].append(n)
                 else:
-                    gaps.append({"rule": r["label"], "line": r["line"], "what": f"{n!r} is no arm of {last[0]['constituent']}'s {last[0]['action']} (its arms: {sorted(last[1])})"})
+                    gaps.append({"rule": r["label"], "line": r["line"], "what": f"the reader read {n!r} as no arm of {last[0]['constituent']}'s {last[0]['action']} (its arms: {sorted(last[1])})"})
                 continue
             if not m:
                 last = None
@@ -1124,7 +1124,7 @@ def wiring_of(doc: dict, root: Path) -> tuple[list[dict], list[dict], list[dict]
                 test["for"] = m.group("rest").strip()[4:]
             for n in names:
                 if n not in arms:
-                    gaps.append({"rule": r["label"], "line": r["line"], "what": f"{n!r} is no arm of {c['name']}'s {sig['action']} (its arms: {sorted(arms)})"})
+                    gaps.append({"rule": r["label"], "line": r["line"], "what": f"the reader read {n!r} as no arm of {c['name']}'s {sig['action']} (its arms: {sorted(arms)})"})
             tests.append(test)
             last = (test, arms)
     return calls, tests, gaps
@@ -1247,7 +1247,7 @@ def transitions_of(doc: dict, cx: dict) -> tuple[list[dict], list[dict]]:
         fname = (member[0] if member else "").removeprefix("the ")
         fent = fields.get(fname) or fields.get(fname.removeprefix(thing + " "))
         if not member or not fent:
-            gaps.append({"rule": sr["label"], "line": sr["line"], "what": f"no transition read: `{value}` is no Member entry of a Field entry"})
+            gaps.append({"rule": sr["label"], "line": sr["line"], "what": f"no transition read: the reader found `{value}` in no Member entry of a Field entry"})
             continue
         refusals = set(sig["refuses"]) | set(a.split("(")[0] for a in sig["answers"])
 
@@ -1281,13 +1281,13 @@ def transitions_of(doc: dict, cx: dict) -> tuple[list[dict], list[dict]]:
                 stamp = {"rule": r["label"], "line": r["line"], "field": fields[paired[0]]["kind"].get("Projection") or fields[paired[0]]["name"],
                          "paired_by": pairs[paired[0]][1]}
             else:
-                spend = {"rule": r["label"], "line": r["line"], "what": f"no transition read: the stamp `{m.group(1)}` is paired with `{value}` by no Invariant of the form `a {thing} carrying <stamp> MUST stand in <state>`"}
+                spend = {"rule": r["label"], "line": r["line"], "what": f"no transition read: the reader read no Invariant of the form `a {thing} carrying <stamp> MUST stand in <state>` that pairs the stamp `{m.group(1)}` with `{value}`"}
         missing = [name for part, name in ((absent, "what is answered where no %s carries the id" % thing), (frm, "which states it may stand it from")) if not part]
         if spend:
             gaps.append(spend)
         if missing:
             gaps.append({"rule": sr["label"], "line": sr["line"],
-                         "what": f"no transition read: {action} stands the {thing} its id names in {value}, and no rule says {' or '.join(missing)}"})
+                         "what": f"no transition read: {action} stands the {thing} its id names in {value}, and the reader read no rule that says {' or '.join(missing)}"})
         if absent and frm and not spend:
             out.append({"action": action, "thing": thing, "key": key["rule"], "id": list(key["fields"]),
                         "stands": {"rule": sr["label"], "line": sr["line"], "value": value, "field": fent["kind"].get("Projection") or fent["name"].lower()},
@@ -1347,8 +1347,8 @@ def records_of(doc: dict) -> tuple[list[dict], list[dict], list[dict]]:
     out = list(recs.values())
     for rec in out:
         if rec["key"] is None:
-            why = ("an inverse map's key is the first map's value, which no rule names" if rec["inverse_of"]
-                   else "no rule keys it")
+            why = ("an inverse map's key is the first map's value, which the reader read no rule naming" if rec["inverse_of"]
+                   else "the reader read no rule that keys it")
             gaps.append({"rule": rec["rule"], "line": rec["line"], "what": f"no key read for the {rec['name']}: {why}"})
     return out, txs, gaps
 
@@ -1503,20 +1503,20 @@ def carry(doc: dict, root: Path) -> None:
             r["actions"] = acts
         elif form.get("kind") == "rule" and unresolved_set(form.get("subject", ""), doc):
             gaps.append({"rule": r["label"], "line": r["line"],
-                         "what": f"no action read: {form['subject'].strip()!r} is a Term that names a set of actions the page's signatures do not resolve"})
+                         "what": f"no action read: {form['subject'].strip()!r} is a Term that names a set of actions, which the reader could not resolve against the page's signatures"})
         cm = cited_meaning(r, form, contract)
         if cm:
             r["cited_meaning"] = cm
         elif predicates(form) and CONTRACT_CITE.search(r["text"]) and contract:
             gaps.append({"rule": r["label"], "line": r["line"],
-                         "what": "a predicate rests on an Execution Contract rule the contract does not carry"})
+                         "what": "a predicate cites an Execution Contract rule the reader did not find in the contract"})
         cb = completed_by(form, doc["term_entries"])
         if cb:
             r["completed_by"] = cb
         elif (form.get("kind") == "rule" and r["family"] == "Operation"
               and any(o.get("exclusive") or o.get("only_if") for o in form.get("obligations", []))):
             gaps.append({"rule": r["label"], "line": r["line"],
-                         "what": "a necessary condition on an answer, and no Operation or Member term entry gives the rest"})
+                         "what": "a necessary condition on an answer, and the reader read no Operation rule or Member term entry that gives the rest"})
         obs = form.get("obligations", []) if form.get("kind") == "rule" and r["family"] == "Operation" else []
         if (len(obs) == 1 and obs[0]["act"] == "answer" and obs[0].get("object") and not obs[0].get("exclusive")
                 and not obs[0].get("only_if") and re.fullmatch(r"\[.+\]", form.get("subject", "").strip())

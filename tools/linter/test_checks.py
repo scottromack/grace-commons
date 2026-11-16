@@ -3315,9 +3315,9 @@ def check_ir_wiring(problems: list[str]) -> None:
         == [("lamp log", "switch reference", "Composition state 2"), ("inverse of lamp log", None, None)],
         "a transaction and what joins it": [(t["rule"], t["writes"], t.get("joins")) for t in doc["transactions"]]
         == [("Action wiring 3", ["lamp entry", "lamp event"], None), ("Action wiring 4", ["lamp record"], "Action wiring 3")],
-        "a gap for each thing the reader cannot bind": sorted((g["rule"], g["what"].split(" ")[0]) for g in doc["reader_gaps"])
-        == [("Action wiring 1", "'the"), ("Action wiring 2", "'dim'"), ("Action wiring 5", "Lamp"),
-            ("Composition state 3", "no")],
+        "a gap for each thing the reader cannot bind": sorted((g["rule"], " ".join(g["what"].split(" ")[:3])) for g in doc["reader_gaps"])
+        == [("Action wiring 1", "the reader bound"), ("Action wiring 2", "the reader read"), ("Action wiring 5", "the reader found"),
+            ("Composition state 3", "no key read")],
         "an atom carries none": not (atom["calls"] or atom["answer_tests"] or atom["records"] or atom["transactions"]),
     }
     for what, held in want.items():
@@ -4086,6 +4086,10 @@ def check_ir_corpus(root: Path, problems: list[str]) -> tuple[int, int]:
         problems.append(f"IR: a new finding on the corpus, {f}")
     for f in sorted(IR_FIRING - got):
         problems.append(f"IR: the pinned finding {f} no longer fires — cured, so unpin it")
+    for d in docs:   # a gap says what the reader did, never what the page lacks (unit `tooling: every page finding of the trials, read on the page`)
+        for g in d["reader_gaps"]:
+            if "reader" not in g["what"]:
+                problems.append(f"IR: the gap on {d['name']} {g['rule']} states something about the page, not what the reader did: {g['what']!r}")
     return len(docs), sum(len(x["rules"]) for x in docs)
 
 
