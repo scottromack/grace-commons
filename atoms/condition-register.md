@@ -672,9 +672,7 @@ open:
     <h2 id="decisions" style="display: inline-block; margin-left: 1.5rem;">Decisions</h2>
 </summary>
 
-Directional changes only — the turns a future reader must know the pattern took, and why.
-
-- **2026-11-02 — Drafted as the register three compositions name.** *Chose:* two shapes declared per condition — a sighting, once per condition and subject, and a standing record, one open span per condition and scope, opened, advanced and closed by runs, a recurrence opening a new record; closing keeps last seen at the last run that saw the condition; Report Clear on nothing open answers none-open, not an error; four actions; nothing deleted. *Over:* a standing condition keyed by its name alone. *Because:* Scott's interview of 2026-11-02; Recoverable Invocation keeps one store-unavailable record per kind and Audit Trail one outage per dependency, so a standing condition is keyed by condition and scope, and Recoverable Invocation's span already closes at its last sighting.
+Decisions are kept in [the pattern's history](./condition-register.hist.md#decisions), one dated entry for each turn the pattern took; everything smaller lives in the commit that made it: `git log -- atoms/condition-register.md`.
 
 </details>
 

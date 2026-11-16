@@ -557,6 +557,27 @@ def check_r_synthetic(problems: list[str]) -> None:
             problems.append(f"R-ledger: {name} should be silent; fired {sorted(codes)}")
         elif want is not None and want not in codes:
             problems.append(f"R-ledger: {name} should fire {want}; got {sorted(codes) or 'nothing'}")
+    # the Decisions entries live in the history file (unit `library: the Decisions block moves to the
+    # history file`): an entry there that says *Chose:* keeps the grammar; one that records a round or a
+    # migration, in no fixed form, is no decision and stays silent
+    import tempfile
+    page = _ledger_page("doing", "doing", " none", decisions="Decisions are kept in [the pattern's history](./h.hist.md#decisions).")
+    good = "- **2026-08-26 — Title.** *Chose:* a. *Over:* b. *Because:* c."
+    for name, entry, want in (
+        ("R_HIST_DECISION_OK", good, False),
+        ("R_HIST_ROUND_ENTRY", "- **2026-11-02 — A migration.** The cascade left this page.", False),
+        ("R_HIST_DECISION_FORM", "- **2026-08-26 — Title.** *Chose:* a because c.", True),
+    ):
+        with tempfile.TemporaryDirectory() as d:
+            (Path(d) / "atoms").mkdir()
+            f = Path(d) / "atoms" / "h.md"
+            f.write_text(page, encoding="utf-8")
+            (Path(d) / "atoms" / "h.hist.md").write_text(
+                "# H — history\n\n## Decisions\n\n" + good + "\n\n" + entry + "\n\n## Ledger\n\nx\n", encoding="utf-8")
+            pat = Pattern(path=f, text=page, invariant_count=1, done=False)
+            fired = any(x.code == "R-decisions-grammar" and x.path.name == "h.hist.md" for x in check_ledger({f: pat}))
+            if fired != want:
+                problems.append(f"R-ledger: {name} should {'fire' if want else 'stay silent'} on the history file's Decisions")
 
 
 # ── A spec's history file is no pattern ───────────────────────────────────── #

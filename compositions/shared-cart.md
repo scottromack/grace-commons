@@ -567,9 +567,7 @@ open:
     <h2 id="decisions" style="display: inline-block; margin-left: 1.5rem;">Decisions</h2>
 </summary>
 
-Directional changes only; everything smaller lives in `git log -- compositions/shared-cart.md`.
-
-- **2026-10-30 — Drafted through the Grace connector from the maintainer's need, mirroring Shared Todo.** *Chose:* a cart several people see and add to (the maintainer, 2026-10-30: "a cart my friends can see and add to"), wiring three grounded atoms, so no constituent ripple is accepted; every change attributed to the actor who made it (the maintainer: "knowing the randomness of humans we would want to know this"), through Event Log rather than a record of the composition's own, keeping Shared Todo's no-stored-state shape (Composition state 1); permissions per cart and per verb, the opener holding all five (Action wiring 7, Scope vocabulary 2 through 7); a cart id no grant names answered as permission-denied (Invariant 2.1); the cart event carrying no item reference, which Cart's records hold, so the payload stays bounded by the actor references alone (Capability requirement 2). *Over:* a composition-owned attribution record (a stored record beside the constituents'); Assignment for the adder (it names who is responsible, not who acted); one list-wide scope set, as Shared Todo's (every friend would reach every cart); Capability-backed link sharing (a bearer link names no friend, so attribution would fail). *Because:* Cart, Permissions and Event Log each decline exactly what the others hold, and the closure table lands every answer of every call in a named rule; the receivers of what the composition declines are named in Non-goals and Composition notes, as Shared Todo's council read 55 asked.
+Decisions are kept in [the pattern's history](./shared-cart.hist.md#decisions), one dated entry for each turn the pattern took; everything smaller lives in the commit that made it: `git log -- compositions/shared-cart.md`.
 
 </details>
 

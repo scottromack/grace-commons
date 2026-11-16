@@ -46,7 +46,7 @@ Term retired form: a notation a rule of this document forbids, or one the Change
 
 Term retirement: the change that forbids a form, open from the version that records it until the maintainer marks it closed under Principle 14.
 
-Term historical record: a dated entry on a page whose front matter names Project Log as its parent, a dated entry in the register in `governance.md`, a dated entry in a specification's Decisions section, or a dated entry in this document's Changes section; the undated text around such an entry is not one, and neither is an open Ledger line, which is live work.
+Term historical record: a dated entry on a page whose front matter names Project Log as its parent, a dated entry in the register in `governance.md`, a dated entry in a specification's Decisions section (in its history file since 2026-11-16), or a dated entry in this document's Changes section; the undated text around such an entry is not one, and neither is an open Ledger line, which is live work.
 
 WHY:
 The test is the concept, not the token; recurrence alone admits noise (*Measure the form, not the word*, `pressure-testing.md`). The council advises and never admits; its process is `governance.md`'s, not the grammar's. *Notation is law*: a retired form survives nowhere a reader learns it, because a half-done retirement is itself the defect. Local specs declare domain meaning; a spec that restates a grammar-owned concept adds a second owner for something it does not own. Natural wording is the default and meaning is king: the instances stand where they are, sugar that shortens a rule and may not add to it (Sugar 2), and Strict Caveman, which gives up a natural turn, the pronoun, where meaning needs it.

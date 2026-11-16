@@ -2529,6 +2529,24 @@ def check_ledger(patterns: dict[Path, Pattern]) -> list[Finding]:
                     "decision entry is not `- **YYYY-MM-DD — title.** *Chose:* … "
                     "*Over:* … *Because:* …`",
                 ))
+        # the entries live in the pattern's history file (unit `library: the Decisions block moves to
+        # the history file`, 2026-11-16): the same grammar reads them there
+        hp = p.path.with_name(p.path.stem + ".hist.md")
+        if hp.is_file():
+            ht = hp.read_text(encoding="utf-8")
+            hd = re.search(r"^## Decisions[ \t]*$", ht, re.M)
+            if hd:
+                hn = re.compile(r"^## ", re.M).search(ht, hd.end())
+                hbody = ht[hd.end():hn.start() if hn else len(ht)]
+                for i, raw in enumerate(hbody.split("\n")):
+                    # a history's Decisions also holds entries that record a round or a migration, in no fixed form
+                    # (each history's own opening line says so); an entry that says *Chose:* is a decision and keeps the form
+                    if raw.startswith("- ") and "*Chose:*" in raw and not DECISION_ENTRY.match(raw):
+                        findings.append(Finding(
+                            hp, line_of(ht, hd.end()) + i, "R-decisions-grammar",
+                            "decision entry (in the history file) is not `- **YYYY-MM-DD — title.** "
+                            "*Chose:* … *Over:* … *Because:* …`",
+                        ))
     return findings
 
 

@@ -526,9 +526,7 @@ open: none
     <h2 id="decisions" style="display: inline-block; margin-left: 1.5rem;">Decisions</h2>
 </summary>
 
-Directional changes only; everything smaller lives in `git log -- atoms/gift-card.md`.
-
-- **2026-10-30 — Drafted through the Grace connector from the maintainer's interview, mirroring Cart.** *Chose:* a plain gift card, loaded once and spent down (the maintainer, 2026-10-30: "it is a simple gift card concept"; "it is loaded once and used"); a card id for the seller's records beside a random card code its holder spends with (Identity 1 through 4, Operation 16); a spend taking exactly the amount asked or refused (Operation 11, Invariant 4.1); no reload, split, transfer, refund to a gift card or cancelling, which the maintainer placed in a loyalty card system, and no expiry or fee (Non-goal 1 through 7); the card cap the deployment's, per currency (Capability requirement 6), the $500 consumer cap the maintainer named appearing in the examples. *Over:* a gift card named by its code alone, as Capability's token names a capability (the seller's records would carry the secret that spends the gift card); a spend taking what is left when the amount is over the balance (one call would mean two things); a stored used-up state (a balance of zero already says it). *Because:* the EOS test keeps one freestanding concept, a value spent down, and names an owner for everything a store layers on it (Non-goal 1 through 15); with nothing raising a balance and every spend exact, a balance is always the value less the spends an auditor reads from the gift card's versions (Execution Contract Database 5).
+Decisions are kept in [the pattern's history](./gift-card.hist.md#decisions), one dated entry for each turn the pattern took; everything smaller lives in the commit that made it: `git log -- atoms/gift-card.md`.
 
 </details>
 

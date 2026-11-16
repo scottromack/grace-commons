@@ -664,9 +664,7 @@ open:
     <h2 id="decisions" style="display: inline-block; margin-left: 1.5rem;">Decisions</h2>
 </summary>
 
-Directional changes only — the turns a future reader must know the pattern took, and why.
-
-- **2026-11-01 — Drafted as the owed record, under that name.** *Chose:* one record per obligation — owing pattern, owed id, cause id, recording and due-by instants — recorded in the cause's transaction, discharged once naming its fulfilment, or flagged once past due for a person, who may still discharge it; four actions; no message body and no delivery. The name is *Owed Record*, not the *Outbox* six compositions used for it. *Over:* the textbook outbox, a message queue with delivery status. *Because:* Scott ruled 2026-11-01 that the atom is the single home of an owed item, matching every citation and the shape Recoverable Invocation's intent records carry; Notification Fanout already uses *Outbox* in the textbook sense, so the name follows his rule that all things mean one thing, and the corpus already says *owed record* for this.
+Decisions are kept in [the pattern's history](./owed-record.hist.md#decisions), one dated entry for each turn the pattern took; everything smaller lives in the commit that made it: `git log -- atoms/owed-record.md`.
 
 </details>
 
