@@ -3056,7 +3056,7 @@ def check_ir_synthetic(problems: list[str]) -> None:
         "section": rules["Invariant 1.1"]["section"] == ["Structure", "Invariants", "Invariant 1 — One count."],
         "tombstone": [t["label"] for t in widget["tombstones"]] == ["Operation 3"],
         "signature": widget["signatures"] == [{
-            "action": "make", "inputs": [{"name": "name", "optional": False}, {"name": "size", "optional": True}],
+            "action": "make", "inputs": [{"name": "name", "optional": False, "type": None}, {"name": "size", "optional": True, "type": None}],
             "answers": ["widget_id"], "refuses": ["invalid-name", "storage-failure"], "line": 12}],
         "row": widget["case_tables"][0]["rows"][0]["rules"] == ["Operation 1", "Execution Contract Read 4"],
         "tests": [c["tests"] for c in widget["checks"]] == [
@@ -3700,7 +3700,7 @@ def check_ir_record_type(problems: list[str]) -> None:
         "the ids of every record carrying the call's field": two.get("shape") == "every" and two.get("of") == ["tag_id"] and two.get("carrying") == ["owner_ref"],
         "the order Read 5 states, by the creation instant and then the id": two.get("order_default") == {
             "rule": "Execution Contract Read 5", "by": [{"field": "made_at", "direction": "ascending"}, {"field": "tag_id", "direction": "ascending"}]},
-        "no gap": not doc["reader_gaps"],
+        "no gap": not [g for g in doc["reader_gaps"] if g["kind"] != "no-input-type"],
     }
     for what, held in want.items():
         if not held:
@@ -3828,7 +3828,7 @@ def check_ir_read_answers(problems: list[str]) -> None:
         "no record": g(6).get("shape") == "none" and g(6).get("thing") == "gift",
         "a page of the matching records by the listing key, up to the page size": g(7).get("shape") == "page" and g(7).get("matching") == "matching gift"
         and g(7).get("order") == "listing key" and g(7).get("limit") == "page size",
-        "no gap": not doc["reader_gaps"],
+        "no gap": not [g for g in doc["reader_gaps"] if g["kind"] != "no-input-type"],
     }
     for what, held in want.items():
         if not held:

@@ -26,7 +26,7 @@ import ir  # noqa: E402
 FIXTURE = HERE / "testdata" / "reaction.md"
 GOLDEN = HERE / "testdata" / "reaction.ir.json"
 KINDS = {"no-key", "no-answer-shape", "no-completion", "no-contract-rule", "no-action", "no-order", "no-default", "no-set", "no-transition",
-         "no-constituent", "no-arm", "no-binding", "record-types"}
+         "no-constituent", "no-arm", "no-binding", "record-types", "no-input-type"}
 
 
 def entry(name: str, **kind: str) -> dict:
@@ -76,6 +76,33 @@ class ActionLists(unittest.TestCase):
 
     def test_a_call_narrowed_by_anything_else_names_none(self):
         self.assertEqual(ir.actions_of("a narrowed call", self.TERMS), [])
+
+
+class InputTypes(unittest.TestCase):
+    def doc(self, entry_name, projection, definition, input_name):
+        return {"signatures": [{"action": "Go", "line": 5, "inputs": [{"name": input_name, "optional": False}]}],
+                "term_entries": [{"name": entry_name, "text": "", "kind": {"Kind": "Field", "Projection": projection}, "line": 1}],
+                "terms": [{"name": entry_name.lower(), "definition": definition, "line": 2}]}
+
+    def test_the_words_of_the_term_give_the_type(self):
+        for definition, want in (("a whole count, set at declaration", "whole count"), ("a positive count.", "positive count"), ("the instant a call evaluates against", "instant"),
+                                 ("the opaque value naming one pool; host-allocated at the seam", "id"), ("the opaque string naming who it is for", "string")):
+            d = self.doc("Thing", "thing", definition, "thing")
+            self.assertEqual(ir.input_types_of(d), [])
+            self.assertEqual(d["signatures"][0]["inputs"][0]["type"]["type"], want, definition)
+
+    def test_a_term_that_gives_none_leaves_the_input_untyped_and_says_so_once(self):
+        d = self.doc("Thing", "thing", "the filter set a read accepts", "thing")
+        d["signatures"].append({"action": "Stop", "line": 9, "inputs": [{"name": "thing", "optional": False}]})
+        gaps = ir.input_types_of(d)
+        self.assertEqual([g["kind"] for g in gaps], ["no-input-type"])
+        self.assertIsNone(d["signatures"][0]["inputs"][0]["type"])
+        self.assertIn("found no count", gaps[0]["what"])
+
+    def test_a_name_that_says_reference_is_a_string_where_the_term_says_nothing(self):
+        d = self.doc("Closing Actor Reference", "closer_ref", "", "closer_ref")
+        self.assertEqual(ir.input_types_of(d), [])
+        self.assertEqual(d["signatures"][0]["inputs"][0]["type"]["type"], "string")
 
 
 class TermFields(unittest.TestCase):
