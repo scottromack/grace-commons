@@ -30,6 +30,8 @@ export interface SessionConfig {
   defaultDurationSeconds: number | null;
   /** The cap on a reference's length in Unicode code points (Execution Contract Input 2). */
   referenceCap?: number;
+  /** The table this instance keeps its sessions in; one instance serves a deployment, so the default stands (a test world names its own). */
+  table?: string;
 }
 
 type Stored = Row & {
@@ -37,15 +39,18 @@ type Stored = Row & {
   status: "active" | "revoked"; revoked_at: string | null; revoked_by_ref: string | null; revocation_reason: string | null;
 };
 
-const T = "sessions"; // not `session`: that is a reserved word of XTDB SQL
+const DEFAULT_TABLE = "sessions"; // not `session`: that is a reserved word of XTDB SQL
 const COLUMNS = ["principal_ref", "issued_by_ref", "issued_at", "expires_at", "status", "revoked_at", "revoked_by_ref", "revocation_reason"];
 const FILTER_FIELDS = ["principal_ref", "issued_by_ref"];
 
 export class Session {
-  private constructor(private store: Store, private seam: Seam, private config: SessionConfig) {}
+  private readonly T: string;
+  private constructor(private store: Store, private seam: Seam, private config: SessionConfig) {
+    this.T = config.table ?? DEFAULT_TABLE;
+  }
 
   static async open(store: Store, seam: Seam, config: SessionConfig): Promise<Session> {
-    await store.declare(T, COLUMNS);
+    await store.declare(config.table ?? DEFAULT_TABLE, COLUMNS);
     return new Session(store, seam, config);
   }
 
@@ -77,8 +82,8 @@ export class Session {
     return {
       session_token: token,
       stmts: [
-        this.store.assertNone(T, "_id = $1", [token], "token-held"),                                         // Invariant 7.1
-        this.store.put(T, {
+        this.store.assertNone(this.T, "_id = $1", [token], "token-held"),                                         // Invariant 7.1
+        this.store.put(this.T, {
           _id: token, principal_ref, issued_by_ref, issued_at: now, expires_at: expires, status: "active",   // Operation 2, 50, 51
           revoked_at: null, revoked_by_ref: null, revocation_reason: null,
         }),
@@ -98,7 +103,7 @@ export class Session {
   }
 
   async validate(session_token: string): Promise<{ valid: { principal_ref: string; expires_at: string } } | { invalid: ValidationFailure }> {
-    const s = (await this.store.read<Stored>(`SELECT * FROM ${T} WHERE _id = $1`, [session_token ?? ""]))[0];
+    const s = (await this.store.read<Stored>(`SELECT * FROM ${this.T} WHERE _id = $1`, [session_token ?? ""]))[0];
     if (!s) return { invalid: "not-known" };                                                                 // Operation 14
     if (s.status === "revoked") return { invalid: "revoked" };                                               // Operation 15, Invariant 3.3
     if (Session.lapsed(s, this.seam.now())) return { invalid: "expired" };                                   // Operation 16, 17
@@ -106,17 +111,18 @@ export class Session {
   }
 
   /** The statements that revoke one session, or the refusal, to commit alone (`revoke`) or beside an action's other writes. */
-  async planRevoke(session_token: string, revoked_by_ref: string, reason: string): Promise<{ stmts: Stmt[] } | { refused: SessionRefusal }> {
-    const s = (await this.store.read<Stored>(`SELECT * FROM ${T} WHERE _id = $1`, [session_token ?? ""]))[0];
+  async planRevoke(session_token: string, revoked_by_ref: string, reason: string): Promise<{ stmts: Stmt[]; revoked_at: string } | { refused: SessionRefusal }> {
+    const s = (await this.store.read<Stored>(`SELECT * FROM ${this.T} WHERE _id = $1`, [session_token ?? ""]))[0];
     if (!s) return { refused: "not-known" };                                                                 // Operation 22
     if (s.status === "revoked") return { refused: "already-terminal" };                                      // Operation 23, 24
     if (isBlank(revoked_by_ref) || this.tooLong(revoked_by_ref)) return { refused: "invalid-request" };      // Operation 25, String 9
     if (isBlank(reason) || typeof reason !== "string") return { refused: "invalid-request" };                // Operation 26, 57
     const now = this.seam.now();                                                                             // Operation 27: a lapsed session is accepted
     return {
+      revoked_at: now,                                                                                         // the instant the record will carry, for the event that names it
       stmts: [
-        this.store.assertSome(T, "_id = $1 AND status = 'active'", [s._id], "terminal"),
-        this.store.put(T, { ...s, status: "revoked", revoked_at: now, revoked_by_ref, revocation_reason: reason }), // Operation 28 to 31
+        this.store.assertSome(this.T, "_id = $1 AND status = 'active'", [s._id], "terminal"),
+        this.store.put(this.T, { ...s, status: "revoked", revoked_at: now, revoked_by_ref, revocation_reason: reason }), // Operation 28 to 31
       ],
     };
   }
@@ -139,7 +145,7 @@ export class Session {
     if (named.some(([k]) => !FILTER_FIELDS.includes(k))) return [];                                          // Operation 61: a field other than the two
     if (named.some(([, v]) => isBlank(v) || this.tooLong(v as string))) return [];                           // Operation 53, 61
     const where = named.map(([k], i) => `${k} = $${i + 1}`).join(" AND ");
-    const rows = await this.store.read<Stored>(`SELECT * FROM ${T}${where ? " WHERE " + where : ""}`, named.map(([, v]) => v as string));
+    const rows = await this.store.read<Stored>(`SELECT * FROM ${this.T}${where ? " WHERE " + where : ""}`, named.map(([, v]) => v as string));
     const now = this.seam.now();
     rows.sort((a, b) => (a.issued_at < b.issued_at ? -1 : a.issued_at > b.issued_at ? 1 : 0));
     return rows.map((s) => ({

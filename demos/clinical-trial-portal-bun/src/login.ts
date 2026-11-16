@@ -12,8 +12,9 @@
 // transaction (Action wiring 45, 46); a logout writes the revoke and the logout event in one; a
 // cascade's per-session revoke and its event in one.
 //
-// Not rendered here, said so: the sweep (Reconciliation 2 to 23) and the deployment's escalation
-// surface (Capability requirement 20), which is the next part.
+// The sweep (Reconciliation 2 to 23) is `sweep()` at the end of the class; the deployment's escalation
+// surface (Capability requirement 20) is the `escalate` setting, which keeps the discrepancies in
+// `escalations` where the deployment gives none.
 import { Store, Guard, Unavailable, type Stmt, type Row } from "./store.ts";
 import { type Seam, isBlank } from "./seam.ts";
 import { Credential } from "./credential.ts";
@@ -35,7 +36,21 @@ export interface LoginConfig {
   serviceIdentity: { actor_ref: string; credential: string };
   /** The retention period the substrate gives a login succeeded event, in milliseconds (Primitive policy 18). */
   loginEventRetentionMs: number;
+  /** The reconciliation window in milliseconds (Capability requirement 11): a discrepancy older than it is closed or escalated. Default one hour. */
+  reconciliationWindowMs?: number;
+  /** The reconciliation cadence in milliseconds (Capability requirement 12), never above the window (Capability requirement 13). Default five minutes. */
+  reconciliationCadenceMs?: number;
+  /** The substrate's horizon: the sweep examines no event older than it (Reconciliation 14). Default the login event's retention. */
+  horizonMs?: number;
+  /** A prefix for the three tables this instance keeps (the log, the two maps); one instance serves a deployment, so the default is none (a test world names its own). */
+  tablePrefix?: string;
+  /** The surface a discrepancy the window did not close is escalated to (Capability requirement 20, Reconciliation 13). Default: kept in `escalations`. */
+  escalate?: (d: Discrepancy) => void | Promise<void>;
 }
+
+export type DiscrepancyKind = "owed-entry" | "abandoned-cascade" | "unrecorded-revocation";
+export interface Discrepancy { kind: DiscrepancyKind; id: string; since: string; detail: string }
+export interface SweepReport { reemitted: number; mapped: number; recovered: number; revocationsRecorded: number; escalated: number }
 
 export type LoginAnswer =
   | { session_token: string }
@@ -46,24 +61,40 @@ export type LoginAnswer =
 export type LogoutAnswer = "ok" | { refused: "invalid-request" | "not-known" | "already-terminal" | "storage-failure" | "state-unavailable" };
 export type CascadeAnswer = { revoked: number; skipped: number; failed: number; not_found: number } | { refused: "invalid-request" | "storage-failure" | "state-unavailable" };
 
-const ENTRIES = "login_event_log";
-const S2C = "session_credential";
-const C2S = "credential_sessions";
+const ENTRIES_T = "login_event_log";
+const S2C_T = "session_credential";
+const C2S_T = "credential_sessions";
 const ENTRY_COLUMNS = ["principal_ref", "credential_type", "issued_by_ref", "attempted_at", "outcome", "credential_id", "session_token"];
 
-type LoggedEvent = { event_id: string; sequence_number: number; data: { action_ref: string; actor_ref: string; data: Record<string, unknown> } };
+type LoggedEvent = { event_id: string; sequence_number: number; recorded_at: string; data: { action_ref: string; actor_ref: string; data: Record<string, unknown> } };
 
 export class Login {
   private constructor(
     private store: Store, private seam: Seam, private credential: Credential, private session: Session,
-    private audit: AuditTrail, private cfg: Required<Omit<LoginConfig, "lengthBound">> & { lengthBound: number },
-  ) {}
+    private audit: AuditTrail, private cfg: Required<Omit<LoginConfig, "lengthBound" | "escalate" | "tablePrefix">> & { tablePrefix?: string } & { lengthBound: number; escalate: (d: Discrepancy) => void | Promise<void> },
+    /** What the default escalation surface kept (Capability requirement 20): the discrepancies the window did not close. */
+    readonly escalations: Discrepancy[] = [],
+  ) {
+    const px = cfg.tablePrefix ?? "";
+    this.ENTRIES = px + ENTRIES_T; this.S2C = px + S2C_T; this.C2S = px + C2S_T;
+  }
+  private readonly ENTRIES: string;
+  private readonly S2C: string;
+  private readonly C2S: string;
 
   static async open(store: Store, seam: Seam, parts: { credential: Credential; session: Session; audit: AuditTrail }, cfg: LoginConfig): Promise<Login> {
-    await store.declare(ENTRIES, ENTRY_COLUMNS);
-    await store.declare(S2C, ["credential_id"]);
-    await store.declare(C2S, ["credential_id", "session_token"]);
-    return new Login(store, seam, parts.credential, parts.session, parts.audit, { ...cfg, lengthBound: cfg.lengthBound ?? 256 });
+    const px = cfg.tablePrefix ?? "";
+    await store.declare(px + ENTRIES_T, ENTRY_COLUMNS);
+    await store.declare(px + S2C_T, ["credential_id"]);
+    await store.declare(px + C2S_T, ["credential_id", "session_token"]);
+    const window = cfg.reconciliationWindowMs ?? 3_600_000;
+    const cadence = cfg.reconciliationCadenceMs ?? 300_000;
+    if (cadence > window) throw new Error("the reconciliation cadence must not exceed the reconciliation window");       // Capability requirement 13
+    const escalations: Discrepancy[] = [];
+    return new Login(store, seam, parts.credential, parts.session, parts.audit, {
+      ...cfg, lengthBound: cfg.lengthBound ?? 256, reconciliationWindowMs: window, reconciliationCadenceMs: cadence,
+      horizonMs: cfg.horizonMs ?? cfg.loginEventRetentionMs, escalate: cfg.escalate ?? ((d) => { escalations.push(d); }),
+    }, escalations);
   }
 
   private long(v: string): boolean {
@@ -97,7 +128,7 @@ export class Login {
   }
 
   private entry(id: string, c: { principal_ref: string; credential_type: string; issued_by_ref: string }, outcome: string, credential_id: string | null, session_token: string | null): Stmt {
-    return this.store.put(ENTRIES, { _id: id, ...c, attempted_at: this.seam.now(), outcome, credential_id, session_token }); // Composition state 9, 10, 16: immutable, with its entry id
+    return this.store.put(this.ENTRIES, { _id: id, ...c, attempted_at: this.seam.now(), outcome, credential_id, session_token }); // Composition state 9, 10, 16: immutable, with its entry id
   }
 
   // ---------------------------------------------------------------- login
@@ -147,8 +178,8 @@ export class Login {
   private async writeMaps(credential_id: string, session_token: string): Promise<void> {
     try {
       await this.store.commit([
-        this.store.put(S2C, { _id: session_token, credential_id }),
-        this.store.put(C2S, { _id: `${credential_id}|${session_token}`, credential_id, session_token }),
+        this.store.put(this.S2C, { _id: session_token, credential_id }),
+        this.store.put(this.C2S, { _id: `${credential_id}|${session_token}`, credential_id, session_token }),
       ]);
     } catch { /* Action wiring 10, Reconciliation 20 */ }
   }
@@ -166,8 +197,8 @@ export class Login {
   async rebuildMaps(): Promise<number> {
     let wrote = 0;
     for (const p of await this.loginSucceededEvents()) {
-      const have = await this.store.read<Row>(`SELECT _id FROM ${S2C} WHERE _id = $1`, [p.session_token]);
-      const haveInverse = await this.store.read<Row>(`SELECT _id FROM ${C2S} WHERE _id = $1`, [`${p.credential_id}|${p.session_token}`]);
+      const have = await this.store.read<Row>(`SELECT _id FROM ${this.S2C} WHERE _id = $1`, [p.session_token]);
+      const haveInverse = await this.store.read<Row>(`SELECT _id FROM ${this.C2S} WHERE _id = $1`, [`${p.credential_id}|${p.session_token}`]);
       if (have.length === 0 || haveInverse.length === 0) { await this.writeMaps(p.credential_id, p.session_token); wrote++; }
     }
     return wrote;
@@ -175,7 +206,7 @@ export class Login {
 
   /** The credential id a session token rests on, from the map, rebuilt once on a miss (Composition state 2 and 7; Action wiring 14, 43). */
   private async credentialOf(session_token: string): Promise<string | null> {
-    const find = async () => (await this.store.read<Row & { credential_id: string }>(`SELECT credential_id FROM ${S2C} WHERE _id = $1`, [session_token]))[0]?.credential_id ?? null;
+    const find = async () => (await this.store.read<Row & { credential_id: string }>(`SELECT credential_id FROM ${this.S2C} WHERE _id = $1`, [session_token]))[0]?.credential_id ?? null;
     return (await find()) ?? ((await this.rebuildMaps(), await find()));
   }
 
@@ -191,7 +222,7 @@ export class Login {
     if (!(await this.credentialOf(session_token))) return { refused: "not-known" };                              // Action wiring 43: Session's revoke is not called
     const p = await this.session.planRevoke(session_token, revoked_by_ref, reason);                               // Action wiring 14
     if ("refused" in p) return { refused: p.refused === "invalid-request" ? "invalid-request" : p.refused };      // Action wiring 15, 27, 29
-    const now = this.seam.now();
+    const now = p.revoked_at ?? this.seam.now();                                                                   // the instant Session stamped, so the sweep can match the event to the record (Reconciliation 22)
     const r = await this.commitWithEvent(p.stmts, "logout_succeeded", { session_token, revoked_by_ref, reason, requested_by: revoked_by_ref, now }); // Action wiring 16
     if ("event_id" in r) return "ok";
     if (r.refused === "guard") return { refused: "already-terminal" };                                            // the session was revoked between the read and the write
@@ -212,7 +243,7 @@ export class Login {
     const cascadeReason = `${CASCADE_REASON_PREFIX}${init.event_id}: ${reason}`;                                  // Term cascade reason
     // Action wiring 18, Invariant 2.3, 2.4: the union of the map's entry and the event-derived set.
     const set = new Set<string>();
-    for (const r of await this.store.read<Row & { session_token: string }>(`SELECT session_token FROM ${C2S} WHERE credential_id = $1`, [credential_id])) set.add(r.session_token);
+    for (const r of await this.store.read<Row & { session_token: string }>(`SELECT session_token FROM ${this.C2S} WHERE credential_id = $1`, [credential_id])) set.add(r.session_token);
     for (const p of await this.loginSucceededEvents()) if (p.credential_id === credential_id) set.add(p.session_token);
 
     const tally = { revoked: 0, skipped: 0, failed: 0, not_found: 0 };
@@ -232,7 +263,7 @@ export class Login {
         else { tally.failed++; await note("session_revoke_failure_during_cascade", { credential_id, session_token: token, refused: p.refused }); }     // Action wiring 36
         continue;
       }
-      const r = await this.commitWithEvent(p.stmts, "session_revoked_by_cascade", { credential_id, session_token: token, revoked_by_ref, reason: cascadeReason, now: this.seam.now() }); // Action wiring 23
+      const r = await this.commitWithEvent(p.stmts, "session_revoked_by_cascade", { credential_id, session_token: token, revoked_by_ref, reason: cascadeReason, now: p.revoked_at ?? this.seam.now() }); // Action wiring 23
       if ("event_id" in r) tally.revoked++;
       else if (r.refused === "guard") tally.skipped++;                                                            // revoked by another call between the validate and the write
       else tally.failed++;
@@ -240,5 +271,86 @@ export class Login {
     const done = await note("credential_revocation_cascade_completed", { initiation_event_id: init.event_id, credential_id, ...tally }); // Action wiring 25
     if (!("event_id" in done)) return { refused: "storage-failure" };
     return tally;                                                                                                 // Action wiring 26; Action wiring 24: the credential to sessions map is not changed
+  }
+
+  // ---------------------------------------------------------------- sweep
+
+  /**
+   * The reconciliation sweep (Reconciliation 2 to 23). It reads the substrate, the login event log, the two maps and
+   * Session's records, and closes what disagrees through ordinary record_action calls under the service identity
+   * (Reconciliation 4): an owed log entry whose mirrored event is missing is re-emitted (5, 21); a pair a login
+   * succeeded event carries is written into a map that lacks it (20); a cascade initiation with no completion is
+   * recorded abandoned, a recovery intent recorded, and the cascade run again (12, 17, 19); a revoked session with no
+   * revocation-family event gets the stored-reason member (15, 22, 23). It stores nothing of its own (Reconciliation 3),
+   * examines no session issued outside the issuer references (7) and no event older than the horizon (14), and
+   * escalates a discrepancy older than the window that it could not close (13). The host runs it every cadence (2).
+   */
+  async sweep(): Promise<SweepReport> {
+    const report: SweepReport = { reemitted: 0, mapped: 0, recovered: 0, revocationsRecorded: 0, escalated: 0 };
+    const nowMs = Date.parse(this.seam.now());
+    const within = (instant: string, ms: number) => nowMs - Date.parse(instant) <= ms;
+    const all = await this.audit.log.read({ sequence: { from: 1 } });
+    const events = (Array.isArray(all) ? (all as unknown as LoggedEvent[]) : []).filter((e) => within(e.recorded_at, this.cfg.horizonMs)); // Reconciliation 14
+    const ofKind = (...names: string[]) => events.filter((e) => names.includes(e.data?.action_ref));
+    const stuck = async (d: Discrepancy) => {                                                                     // Reconciliation 13: older than the window and not closed
+      if (!within(d.since, this.cfg.reconciliationWindowMs)) { await this.cfg.escalate(d); report.escalated++; }
+    };
+
+    // Reconciliation 5, 21: an owed record the login event log carries, matched to its mirrored event by the entry id.
+    const mirrored = new Set(ofKind("login_succeeded", "login_failed").map((e) => String(e.data.data.entry_id)));
+    for (const row of await this.store.read<Row & { principal_ref: string; credential_type: string; issued_by_ref: string; attempted_at: string; outcome: string; credential_id: string | null; session_token: string | null }>(`SELECT * FROM ${this.ENTRIES}`)) {
+      if (!within(row.attempted_at, this.cfg.horizonMs) || mirrored.has(row._id)) continue;
+      const call = { principal_ref: row.principal_ref, credential_type: row.credential_type, issued_by_ref: row.issued_by_ref, entry_id: row._id };
+      const ok = row.outcome === "success";
+      const r = await this.commitWithEvent([], ok ? "login_succeeded" : "login_failed",
+        ok ? { ...call, credential_id: row.credential_id, session_token: row.session_token } : { ...call, reason: row.outcome.replace(/^failed-verification\((.*)\)$/, "$1") });
+      if ("event_id" in r) report.reemitted++;
+      else await stuck({ kind: "owed-entry", id: row._id, since: row.attempted_at, detail: "the login event is not recorded" });
+    }
+
+    // Reconciliation 20: a pair a login succeeded event carries goes into a map that lacks it.
+    for (const e of ofKind("login_succeeded")) {
+      const credential_id = String(e.data.data.credential_id), session_token = String(e.data.data.session_token);
+      const a = await this.store.read<Row>(`SELECT _id FROM ${this.S2C} WHERE _id = $1`, [session_token]);
+      const b = await this.store.read<Row>(`SELECT _id FROM ${this.C2S} WHERE _id = $1`, [`${credential_id}|${session_token}`]);
+      if (a.length === 0 || b.length === 0) { await this.writeMaps(credential_id, session_token); report.mapped++; }
+    }
+
+    // Reconciliation 12, 17, 19: an initiation with no completion is abandoned, its recovery intended, its cascade run again.
+    const closed = new Set(ofKind("credential_revocation_cascade_completed", "credential_revocation_cascade_abandoned").map((e) => String(e.data.data.initiation_event_id)));
+    for (const init of ofKind("credential_revocation_cascade_initiated")) {
+      if (closed.has(init.event_id) || within(init.recorded_at, this.cfg.reconciliationWindowMs)) continue;     // a cascade inside the window may still be running
+      const d = init.data.data as { credential_id: string; revoked_by_ref: string; reason: string };
+      const abandoned = await this.commitWithEvent([], "credential_revocation_cascade_abandoned", { initiation_event_id: init.event_id, credential_id: d.credential_id });
+      const intent = "event_id" in abandoned ? await this.commitWithEvent([], "login_recovery_intended", { initiation_event_id: init.event_id }) : abandoned;   // Reconciliation 19: the intent before the cascade again
+      if (!("event_id" in intent)) { await stuck({ kind: "abandoned-cascade", id: init.event_id, since: init.recorded_at, detail: "the abandonment or the recovery intent is not recorded" }); continue; }
+      const again = await this.revokeSessionsForCredential(d.credential_id, d.revoked_by_ref, d.reason);
+      if ("refused" in again) await stuck({ kind: "abandoned-cascade", id: init.event_id, since: init.recorded_at, detail: `the cascade run again answered ${again.refused}` });
+      else report.recovered++;
+    }
+
+    // Reconciliation 7, 15, 22, 23: a revoked session under the issuer references carries one revocation-family event of its own.
+    const family = ofKind("logout_succeeded", "session_revoked_by_cascade");
+    const taken = new Set<string>();                                                                                // Reconciliation 23: an event matches one session at most
+    for (const ref of this.cfg.issuerReferences) {
+      for (const s of await this.session.read({ issued_by_ref: ref })) {
+        if (s.status !== "revoked" || !s.revoked_at || !within(s.revoked_at, this.cfg.horizonMs)) continue;
+        const hit = family.find((e) => !taken.has(e.event_id) && e.data.data.revoked_by_ref === s.revoked_by_ref && e.data.data.reason === s.revocation_reason && e.data.data.now === s.revoked_at);
+        if (hit) { taken.add(hit.event_id); continue; }
+        // Reconciliation 15: the stored-reason member, session_revoked_by_cascade where the stored reason begins with the cascade prefix, logout_succeeded otherwise.
+        const cascade = (s.revocation_reason ?? "").startsWith(CASCADE_REASON_PREFIX);
+        const data = { principal_ref: s.principal_ref, session_token: null, issued_at: s.issued_at, revoked_by_ref: s.revoked_by_ref, reason: s.revocation_reason, now: s.revoked_at, ...(cascade ? {} : { requested_by: s.revoked_by_ref }), recorded_by: "sweep" };
+        const r = await this.commitWithEvent([], cascade ? "session_revoked_by_cascade" : "logout_succeeded", data);
+        if ("event_id" in r) report.revocationsRecorded++;
+        else await stuck({ kind: "unrecorded-revocation", id: `${s.principal_ref}|${s.revoked_at}`, since: s.revoked_at, detail: "the revocation event is not recorded" });
+      }
+    }
+    return report;
+  }
+
+  /** Run the sweep every reconciliation cadence (Reconciliation 2); the returned function stops it. */
+  runEveryCadence(onReport: (r: SweepReport) => void = () => {}): () => void {
+    const timer = setInterval(() => { this.sweep().then(onReport, () => {}); }, this.cfg.reconciliationCadenceMs);
+    return () => clearInterval(timer);
   }
 }

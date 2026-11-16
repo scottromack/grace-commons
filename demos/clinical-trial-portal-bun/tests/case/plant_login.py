@@ -22,6 +22,15 @@ PLANTS = [
     ("the credential id lookup not refused", 'if (!cred) return { refused: "storage-failure", stage: "credential-id-lookup" };', ""),
     ("logout accepts a cascade-prefixed reason", 'if (typeof reason === "string" && reason.startsWith(CASCADE_REASON_PREFIX)) return { refused: "invalid-request" };', ""),
     ("cascade never completes", 'const done = await note("credential_revocation_cascade_completed"', 'const done = await note("credential_revocation_cascade_completed_NOT"'),
+    # the sweep (Reconciliation 2 to 23): the Case Tests read no sweep row, so only the sweep suite can see these
+    ("sweep matches no entry to its event", "mirrored.has(row._id)", "false"),
+    ("sweep writes no map pair", "if (a.length === 0 || b.length === 0) {", "if (false) {"),
+    ("sweep reruns the cascade with no recovery intent", 'const intent = "event_id" in abandoned ? await this.commitWithEvent([], "login_recovery_intended", { initiation_event_id: init.event_id }) : abandoned;', "const intent = abandoned;"),
+    ("sweep abandons a cascade inside the window", "if (closed.has(init.event_id) || within(init.recorded_at, this.cfg.reconciliationWindowMs)) continue;", "if (closed.has(init.event_id)) continue;"),
+    ("sweep matches one event to two sessions", "!taken.has(e.event_id) && ", ""),
+    ("sweep examines a foreign issuer's sessions", "for (const ref of this.cfg.issuerReferences) {", 'for (const ref of [...this.cfg.issuerReferences, "someone-elses-gateway"]) {'),
+    ("sweep examines events past the horizon", ".filter((e) => within(e.recorded_at, this.cfg.horizonMs)); // Reconciliation 14", ".filter(() => true); // Reconciliation 14"),
+    ("sweep never escalates", "if (!within(d.since, this.cfg.reconciliationWindowMs)) { await this.cfg.escalate(d); report.escalated++; }", ""),
 ]
 
 def fails(*files):
@@ -35,9 +44,9 @@ try:
         if old not in orig:
             print("NOT APPLIED:", name); continue
         open(SRC, "w").write(orig.replace(old, new, 1))
-        total, case = fails("tests/login.test.ts", "tests/case"), fails("tests/case")
+        total, case = fails("tests/login.test.ts", "tests/login.sweep.test.ts", "tests/case"), fails("tests/case")
         seen += total > 0; case_seen += case > 0
         print("%-46s suite %d fail, Case Tests %d fail" % (name, total, case))
 finally:
     open(SRC, "w").write(orig)
-print("%d of %d planted faults seen by the login suite; %d by the Case Tests alone" % (seen, len(PLANTS), case_seen))
+print("%d of %d planted faults seen by the login and sweep suites; %d by the Case Tests alone" % (seen, len(PLANTS), case_seen))
