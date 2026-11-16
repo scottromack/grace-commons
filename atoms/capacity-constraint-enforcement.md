@@ -125,6 +125,12 @@ Term attribution surface: an audit event's actor reference ([Allocating Actor Re
 
 NOTE: open 2026-11-03-i — the attribution surface does not name the declaring actor reference, while the Standards references promise a composed erasure over an actor reference and Check 1.1 requires the declaration fields present; whether a scrub may reach the declaring actor reference is not pinned (Term attribution surface, Check 1.1).
 
+Term suspending actor reference: the [Suspend Pool] input the state-change event keeps as acting actor reference — a [Suspending Actor Reference].
+
+Term resuming actor reference: the [Resume Pool] input the state-change event keeps as acting actor reference — a [Resuming Actor Reference].
+
+Term closing actor reference: the [Close Pool] input the state-change event keeps as acting actor reference — a [Closing Actor Reference].
+
 ### Capability requirement
 
 ```
@@ -821,6 +827,30 @@ Kind:       Field
 Field of:   the state-change event
 Projection: acting_actor_ref
 
+#### Suspending Actor Reference
+
+The opaque reference to the actor performing a [Suspend Pool], the input the state-change event keeps as its [Acting Actor Reference].
+
+Kind:         Parameter
+Parameter of: Suspend Pool
+Projection:   suspending_actor_ref
+
+#### Resuming Actor Reference
+
+The opaque reference to the actor performing a [Resume Pool], the input the state-change event keeps as its [Acting Actor Reference].
+
+Kind:         Parameter
+Parameter of: Resume Pool
+Projection:   resuming_actor_ref
+
+#### Closing Actor Reference
+
+The opaque reference to the actor performing a [Close Pool], the input the state-change event keeps as its [Acting Actor Reference].
+
+Kind:         Parameter
+Parameter of: Close Pool
+Projection:   closing_actor_ref
+
 #### Reason
 
 The caller-supplied reason string recorded on a capacity-adjustment or state-change event (and, as [Declaration Reason], on the pool). Required on [Declare Pool], [Adjust Capacity], [Suspend Pool], [Resume Pool], [Close Pool]; not required on the routine [Allocate]/[Release].
@@ -981,6 +1011,9 @@ Projection: storage-failure
 [Releasing Actor Reference]: #releasing-actor-reference
 [Adjusting Actor Reference]: #adjusting-actor-reference
 [Acting Actor Reference]: #acting-actor-reference
+[Suspending Actor Reference]: #suspending-actor-reference
+[Resuming Actor Reference]: #resuming-actor-reference
+[Closing Actor Reference]: #closing-actor-reference
 [Reason]: #reason
 [Now]: #now
 [Open]: #open
