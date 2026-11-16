@@ -148,7 +148,7 @@ Term round budget: the most rounds a pattern may run without a clean round befor
 
 Term patch cap: the most patches one commit may carry.
 
-Term admitted freeze: a [Freeze] call no rule refused.
+Term admitted freeze: a [Freeze] call no rule refused and no rule answered budget-spent.
 
 Term admitted report: a [Report] call no rule refused.
 
@@ -156,7 +156,7 @@ Term admitted ruling: a [Rule] call no rule refused.
 
 Term admitted triage: a [Triage] call no rule refused.
 
-Term admitted repair: a [Repair] call no rule refused before the invocation open.
+Term admitted repair: a [Repair] call no rule refused, and no rule answered gated, before the invocation open.
 
 Term opened repair: an admitted repair whose invocation open answered an open result.
 
@@ -202,8 +202,8 @@ NOTE: watch the constituent's failed read (Primitive policy 11, Primitive policy
 
 ```
 freeze(pattern, base_commit, actor_ref, credential)
-  answers round id and snapshot
-  refuses invalid-request | repository-unavailable | journal-unavailable | not-known | stale | budget-spent | invalid-request(step, committed_ids) | invalid-credential | recording-failure(step)
+  answers round id and snapshot | budget-spent
+  refuses invalid-request | repository-unavailable | journal-unavailable | not-known | stale | invalid-request(step, committed_ids) | invalid-credential | recording-failure(step)
 
 report(round, verdict, actor_ref, credential)
   answers recorded
@@ -218,8 +218,8 @@ rule(pattern, optional round, optional patch, actor_ref, credential)
   refuses invalid-request | journal-unavailable | purged | not-known | invalid-credential | invalid-request(step, committed_ids) | recording-failure(step)
 
 repair(round, patches, actor_ref, credential)
-  answers commit id
-  refuses invalid-request | repository-unavailable | journal-unavailable | purged | not-known | invalid-credential | stale | unsettled | mismatch | unresolved | gated | gate-red | lock-held | conflict | hook-rejected | act-in-flight(invocation_id) | section-unavailable | recording-failure(intent) | recording-failure(outcome) | already-accounted(closing_event_id) | recording-failure(refusal, constituent_code) | invalid-request(step, committed_ids) | recording-failure(step)
+  answers commit id | gated
+  refuses invalid-request | repository-unavailable | journal-unavailable | purged | not-known | invalid-credential | stale | unsettled | mismatch | unresolved | gate-red | lock-held | conflict | hook-rejected | act-in-flight(invocation_id) | section-unavailable | recording-failure(intent) | recording-failure(outcome) | already-accounted(closing_event_id) | recording-failure(refusal, constituent_code) | invalid-request(step, committed_ids) | recording-failure(step)
 ```
 
 #### [Freeze]
@@ -352,7 +352,7 @@ Action wiring 28: IF the commit's arm EQUALS pre-commit THEN [Repair] MUST call 
 Action wiring 29: WHEN the commit's arm EQUALS unknown:
     Action wiring 29a: [Repair] MUST call the invocation yield with the act kind, the act key AND the invocation id, carrying the reply lost where the commit gave no answer and the reply answered where the commit's reply is one the database's contract does not declare (Recoverable Invocation yield 7).
     Action wiring 29b: [Repair] MUST answer recording-failure(outcome) (Recoverable Invocation commit 8d).
-Action wiring 30: IF [Repair] answers gated under Action wiring 19, 56 OR 63 THEN [Repair] MUST escalate to the maintainer's queue EVERY patch of the call carrying a fragment gated under Action wiring 19, 56 or 63.
+Action wiring 30: IF [Repair] answers gated under Action wiring 19, 56 OR 63 THEN [Repair] MUST escalate to the maintainer's queue EVERY patch that carries a fragment gated under Action wiring 19, 56 or 63 in the call.
 Action wiring 31: IF the round IS NOT IN the round index's settled rounds THEN [Repair] MUST answer unsettled.
 Action wiring 32: [Repair] MUST NOT push.
 Action wiring 33: [Repair] MUST NOT call the invocation open BEFORE the corpus gate AND the diff check have answered over the repair tree.
@@ -393,7 +393,7 @@ Term change set: every fragment of the patches one [Repair] call carries — the
 
 Term repair tree: the files of the head [Repair] read, with the change set applied — built by one [Repair] call apart from every other call's tree and every checked-out copy, and committed whole.
 
-Term repair refusal order: Primitive policy 4, Primitive policy 5, Primitive policy 7, Primitive policy 10, Primitive policy 11, Primitive policy 21, Primitive policy 9, Action wiring 49, Action wiring 15, Action wiring 31, Action wiring 61, Action wiring 53, Action wiring 40, Action wiring 77, Action wiring 62, Action wiring 41, Action wiring 20, Action wiring 17, Action wiring 18, Action wiring 55, Action wiring 24, Action wiring 25, Action wiring 19, Action wiring 56, Action wiring 63 — [Repair]'s refusal rules ahead of the invocation open, earliest first; behind it the invocation's own codes answer (Action wiring 29, 42, 45).
+Term repair refusal order: Primitive policy 4, Primitive policy 5, Primitive policy 7, Primitive policy 10, Primitive policy 11, Primitive policy 21, Primitive policy 9, Action wiring 49, Action wiring 15, Action wiring 31, Action wiring 61, Action wiring 53, Action wiring 40, Action wiring 77, Action wiring 62, Action wiring 41, Action wiring 20, Action wiring 17, Action wiring 18, Action wiring 55, Action wiring 24, Action wiring 25, Action wiring 19, Action wiring 56, Action wiring 63 — [Repair]'s refusal rules and the rules that answer gated (Action wiring 19, 20, 56 and 63) ahead of the invocation open, earliest first; behind it the invocation's own codes answer (Action wiring 29, 42, 45).
 
 <details markdown="block">
 <summary>WHY</summary>
@@ -629,7 +629,7 @@ Term cited: open, close, refuse, yield, lost, answered, act kind, act key, commi
 
 #### Freeze
 
-The action that opens a round: it reads the pattern at the base commit from the repository, refuses a pattern past its round budget with no standing ruling, records the round, and answers the round id and the snapshot every verdict of the round must carry.
+The action that opens a round: it reads the pattern at the base commit from the repository, answers budget-spent for a pattern past its round budget with no standing ruling and escalates it, records the round, and answers the round id and the snapshot every verdict of the round must carry.
 
 Kind: Operation
 
@@ -678,7 +678,7 @@ None. The composition makes no regulatory claim of its own; the records it keeps
 ```
 status: doing
 formal: verified — vote yes: one writer per repository, no repair before the round settles and the round's bounded repair; verified-repair.tla + 4 twins + 3 probes (the commit path, Invariant 2.1, 2.2, 7.3 and Concurrency 1: two rounds, two [Repair] calls a round with commits in flight and no commit fence, one person commit; 61,659 states, and 263,067 with two person commits, past the harness's cap), verified-repair-settle.tla + 3 twins + 2 probes (the round's settling, Invariant 1.1 and 5.1: two verifiers on one pass, three triage records, each call's read and its record one transaction; 628 states, and 2,824 with four triage records), verified-repair-budget.tla + 3 twins + 2 probes (the round budget, Invariant 8.1: three freezes and one ruling, each freeze's read of the count and its round one transaction; 56 states, and 399 with four freezes and two rulings), the two re-derived 2026-10-21 on the journal's store (Capability requirement 28), each with a twin that takes Execution Contract Store 2 and Store 3 away; the settling model found Term counted finding counting a malformed verdict written after the settling record, cured on the page; verified-repair.als + 11 twins (the static data model, 2026-11-12: Invariant 1.2, 3.1, 4.1, 6.1 and 7.1 checked on every state the freezes, reports, triages, rulings and committed repairs can leave, Invariant 2.1 a cross-check with the commit path; nothing testable in Alloy for Invariant 7.2 (it says what an auditor's check answers over a purged payload, which no action writes); Invariant 1.1, 2.2, 5.1, 7.3 and 8.1 left to the TLA+ models (each an order the records alone do not keep); the model found that no capability requirement provisions the writer's actor reference apart from the maintainer's, as Capability requirement 10 does for the sweep identity, so one reference lets the writer record the ruling that admits its own claim-family patch); coverage 2026-11-10 (unit formal: more coverage for the yes votes), 2026-11-12: no owed rows, 2026-10-21
-last gate: 2026-11-16 — Final Critique 29, delta, frozen at 67835bd — foundational count 1, not clean, one sample; Linus's one report filed three foundational items: the round count's and position's epochs and a round said to be stranded (refuted by Action wiring 2, 34a and Term ruled round: a refused freeze records no round, the ruled round is the next one admitted, and the position's other arm is the open line 2026-11-16-a), Action wiring 30's escalating one patch of several gated ones (placed refining by the first triage and foundational by the blind second triage, whose placement decides the count; cured in this settle and unread), and the verdict's snapshot hash (refuted by Verdict 2 and Primitive policy 3: the verdict recorded carries it); the page waits for the delta round that reads the cure
+last gate: 2026-11-16 — Final Critique 30, delta, frozen at 3ca084a — foundational count 1, not clean, one sample; Linus's one report filed three foundational items: Action wiring 30's list of three labels (refuted: a list of non-consecutive labels is no run, so Hard invariant 31 and its linter check, F-range-form, do not reach it, and the corpus writes the form in grounded pages), the phrase's two readings (placed refining by Opus and cured: the patch that carries the gated fragment, in the call), and Action wiring 30's escalation on a call [Repair] refuses (placed foundational A by Opus, Execution Contract Read 4 and 7: a refused call writes nothing, so a gated call's escalation was erased; cured in this settle and unread by moving gated to [Repair]'s answers line and narrowing Term admitted repair, and by the same cure for [Freeze]'s budget-spent and Action wiring 34b, which no reader saw); the page waits for the delta round that reads the cure
 open:
 - 2026-10-10-b · refining · Term repository · the database the act commits to is a deployment's version-controlled repository, which no atom in this library owns → an atom for a versioned database, or the database's contract kept here
 - 2026-10-10-d · refining · Term round count · a lawfully purged round, verdict or triage is answered not-known as if absent → a purged arm
@@ -689,7 +689,7 @@ open:
 - 2026-10-10-n · refining · Action wiring 53 · a records fragment may write a last gate of zero for a round a blocking sibling keeps from being clean → the last gate read through Term clean round
 - 2026-10-10-s · refining · Capability requirement 14 · the time between the sweep's escalation and the intent's purge is the protocol's, and no maintainer response bound is disclosed against it → the bound disclosed and checked against the retention period
 - 2026-10-10-w · refining · Check 2.1, Check 2.2 · neither tests that a council commit changes the round's page, so the change set applied to another file whose lines match passes both → the page named in both checks
-- 2026-10-10-x · refining · Action wiring 6, 30, 34 · every retried gated repair and every refused freeze writes a new escalation, an escalation record is never closed, and a malformed verdict's escalation has no answering action → one escalation per subject, closed by a ruling or a later round
+- 2026-10-10-x · refining · Action wiring 6, 30, 34 · every retried gated repair and every freeze answering budget-spent writes a new escalation, an escalation record is never closed, and a malformed verdict's escalation has no answering action → one escalation per subject, closed by a ruling or a later round
 - 2026-10-10-y · refining · Capability requirement 4 through 6, Action wiring 12 · "Status heading", "buggy twin" and "the method's test" are named and declared nowhere → Terms, or the deployment's disclosures
 - 2026-10-10-z · refining · Action wiring 9, 20 · a cure that indicts the model has no actor, action or record on this page, and the first, second and third triage is a dual-control shape that recurs elsewhere → the model's re-derivation named, and the triage shape considered for extraction
 - 2026-10-17-e · refining · Invariant 7.2, Check 7.2, Term site, Action wiring 12, 13 · "unverifiable", "purged-horizon", "end marker", "threshold" and "downgraded" are used and declared nowhere the page reaches — Audit Trail's unverifiable answers its own record verification, and purged-horizon is a sibling page's → Terms, or the words they stand for
