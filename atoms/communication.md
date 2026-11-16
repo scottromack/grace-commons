@@ -93,7 +93,7 @@ State 3: EVERY communication MUST stand in EXACTLY ONE OF active, withdrawn.
 State 4: The atom MUST NOT remove a communication.
 ```
 
-Term occurred instant: the instant the exchange happened, as the [Record] or [Change] call carries it — the [Occurred Instant]; never later than the injected now of the call that set it.
+Term occurred instant: the instant the exchange happened, as the [Record] or [Change] call carries it — the [Occurred Instant]; never later than the injected now of the call that set it; a [Record] that leaves it blank is refused (Operation 45), which stands in place of Execution Contract Logic confinement 12, and a [Change] that leaves it blank omits it, and it stands (Operation 27, GRACE-lang Earned vocabulary 22).
 
 Term direction: which way an exchange went — the [Direction]; inbound or outbound.
 
@@ -151,7 +151,7 @@ history_for(reference, optional start_instant, optional end_instant)
 
 ```
 Operation 1: IF the medium of the call EXCEEDS the string cap THEN a detail action MUST answer invalid-medium.
-Operation 2: IF the medium of the call DOES NOT EQUAL blank AND no member of the medium set EQUALS the medium of the call THEN a detail action MUST answer invalid-medium.
+Operation 2: IF the medium of the call DOES NOT EQUAL blank AND the medium of the call IS NOT IN the medium set THEN a detail action MUST answer invalid-medium.
 Operation 3: IF the occurred instant of the call DOES NOT EQUAL blank AND the injected now PRECEDES the occurred instant of the call THEN a detail action MUST answer invalid-occurred-instant.
 Operation 4: IF the outside participants of the call EQUALS blank THEN [Record] MUST answer invalid-outside-participants.
 Operation 5: IF a member of the outside participants of the call EQUALS blank OR a member of the outside participants of the call EXCEEDS the string cap THEN a detail action MUST answer invalid-outside-participants.
@@ -159,7 +159,7 @@ Operation 6: IF a member of the inside participants of the call EQUALS blank OR 
 Operation 7: IF the summary of the call EXCEEDS the string cap THEN a detail action MUST answer invalid-summary.
 Operation 8: IF a member of the item references of the call EQUALS blank OR a member of the item references of the call EXCEEDS the string cap THEN a detail action MUST answer invalid-item-references.
 Operation 9: IF the outcome of the call EXCEEDS the string cap THEN a detail action MUST answer invalid-outcome.
-Operation 10: IF the outcome of the call DOES NOT EQUAL blank AND no member of the outcome set EQUALS the outcome of the call THEN a detail action MUST answer invalid-outcome.
+Operation 10: IF the outcome of the call DOES NOT EQUAL blank AND the outcome of the call IS NOT IN the outcome set THEN a detail action MUST answer invalid-outcome.
 Operation 11: IF the medium of the call is malformed THEN a detail action MUST answer invalid-medium (Execution Contract Input 1).
 Operation 12: IF the occurred instant of the call is malformed THEN a detail action MUST answer invalid-occurred-instant (Execution Contract Input 1).
 Operation 13: IF the outside participants of the call is malformed THEN a detail action MUST answer invalid-outside-participants (Execution Contract Input 1).
@@ -698,14 +698,14 @@ Communication is a primitive with no regulatory anchor. It inherits from:
 
 ## Status
 
-`doing` — see the Ledger.
+`done — 2026-11-16` — see the Ledger.
 
 ## Ledger
 
 ```
-status: doing
+status: done — 2026-11-16
 formal: pending — no model yet
-last gate: 2026-11-16 — Final Critique 1, a full round, frozen at 5756d0f — foundational count 4, cured, not clean, no sample
+last gate: 2026-11-16 — Final Critique 2, a delta round, frozen at c04d0026 — foundational count 0 after the blind second triage, clean, no sample
 
 open: none
 ```
