@@ -55,11 +55,11 @@ Term composition: this pattern's wiring of [Recoverable Invocation](./recoverabl
 
 Term constituents: [Recoverable Invocation](./recoverable-invocation.md), [Audit Trail](./audit-trail.md).
 
-Term commit binding: the act kind's bindings, each under the name Recoverable Invocation gives it. act key — the repository. commit — the repository commit, read through the commit partition. pairing datum — the council nonce, which the intent data carries and the database keeps in the commit's trailer: an adopter-minted nonce the database stores. repeatable — yes. act probe — the commit probe. invocation completion bound — the commit completion bound. commit round trip and probe round trip — the deployment's disclosed bounds. journal — the composition's Audit Trail instance, with council.commit.intended, the one outcome council.commit.committed, and council.commit.refused. retention period — the journal retention policy's, which places every council record under the same policy as the act kind's (Capability requirement 17). settling period — the deployment's settling period for the maintainer's resolve (Capability requirement 14). service identity — the sweep identity. outcome envelope — the commit envelope. Deviations: none.
+Term commit binding: the act kind's bindings, each under the name Recoverable Invocation gives it. act key — the repository. commit — the repository commit, read through the commit partition. pairing datum — the council nonce, which the intent data carries and the database keeps in the commit's trailer: an adopter-minted nonce the database stores. repeatable — yes. act probe — the commit probe. invocation completion bound — the commit completion bound. commit round trip and probe round trip — the deployment's disclosed bounds. journal — the composition's Audit Trail instance, with council.commit.intended, the one outcome council.commit.committed, and council.commit.refused, the closings council.commit.recovery_intended, council.commit.abandoned and council.commit.escalated derived from the vocabulary (Recoverable Invocation journal 3). retention period — the journal retention policy's, which places every council record under the same policy as the act kind's (Capability requirement 17). settling period — the deployment's settling period for the maintainer's resolve (Capability requirement 14). service identity — the sweep identity. outcome envelope — the commit envelope. Deviations: none.
 
 Term commit partition: committed — the database answers a commit id; pre-commit — the database refuses with nothing written, carrying lock-held, conflict where the head is not the commit's parent (Capability requirement 13) OR hook-rejected — the codes the database's contract declares pre-commit (Capability requirement 15); unknown — no answer, or a reply the database's contract does not declare.
 
-Term commit probe: the repository's read by trailer value (Capability requirement 2) for the commits whose trailer carries the intent's council nonce — committed carrying council.commit.committed and the commit id where exactly one does, not-committed where none does, undecidable carrying the commit ids where more than one does, and unavailable where the read refuses or gives no answer. The read is scoped to the act key's repository, so every commit it finds carries the act key by construction (Recoverable Invocation act probe 8).
+Term commit probe: the repository's read by trailer value (Capability requirement 2) for the commits whose trailer carries the intent's council nonce — committed carrying council.commit.committed and the commit id where exactly one does, not-committed where none does, undecidable carrying the commit ids where more than one does, and unavailable where the read refuses or gives no answer; Capability requirement 19 keeps the undecidable arm empty for a conforming repository, and the arm stands as Recoverable Invocation's act probe names it. The read is scoped to the act key's repository, so every commit it finds carries the act key by construction (Recoverable Invocation act probe 8).
 
 Term commit envelope: the act kind's outcome envelope — the true maximum of the records the kind writes: the committed outcome, one commit id at its minted width, or a closing the sweep or the maintainer writes, whichever the substrate sizes largest, serialized as the substrate sizes it; the database candidates of a council.commit.escalated hold at most one commit, since no two commits carry one council nonce (Capability requirement 19). The intent, which alone carries the round key, the snapshot hash, every patch whole and the council nonce, is sized beside it by the invocation open (Recoverable Invocation Primitive policy 12).
 
@@ -226,6 +226,7 @@ repair(round, patches, actor_ref, credential)
 
 ```
 Action wiring 2: An admitted freeze MUST record the round with the pattern, the base commit, the snapshot hash, the round budget AND the round key.
+NOTE: a [Freeze] whose answer was lost (Execution Contract Error model 1) and is retried records a second round at the same base commit under a second round key (Capability requirement 24), and Term round count states the cost this pattern accepts.
 Action wiring 3: An admitted freeze MUST answer the round id AND the snapshot: the snapshot hash AND the base commit.
 Action wiring 34: WHEN the round budget DOES NOT EXCEED the pattern's round count AND the pattern carries no standing ruling:
     Action wiring 34a: [Freeze] MUST answer budget-spent.
@@ -254,6 +255,7 @@ Term counted verdict: for each of the round's reader passes, grid, eos and linus
 Term counted finding: a finding a counted verdict carries, or a finding a reader's malformed verdict of the round carries where the round has no settling record or the verdict is recorded no later than the settling record — the malformed verdict counts for nothing, and the findings it carries stand (Verdict 9, the entry *A lapsed pass does not count* in `pressure-testing.md`).
 
 Term round position: the number of rounds frozen on a pattern since the pattern's latest clean round preceding the round, counted in the journal's order up to and including the round.
+NOTE: open 2026-11-16-a — the position is recorded at [Report] time (Action wiring 7) while the round count Action wiring 34 reads is the count at [Freeze] time, and a clean round that settles between the two moves the position; no rule pins the epoch.
 
 Term ruled round: a round whose record follows a maintainer's ruling naming the pattern alone, with no other round of the pattern recorded between them.
 
@@ -301,9 +303,9 @@ Term parted finding: a finding whose earliest counted first and second triages d
 
 Term role: first | second | third — which triage of a finding a record is.
 
-Term triage record: one triager's sorting of one finding of a round — the role, class, kind, blame, side and disposition, the patch whole where the disposition is cure, a reason where a formal engine's finding is sided other than model, and for a third triage the text that settles — recorded under the triager's actor reference.
+Term triage record: one triager's sorting of one finding of a round — the role, class, kind, blame, side and disposition, the patch whole where the disposition is cure, a reason the model is right where a formal engine's finding is sided other than model, and for a third triage the text that settles — recorded under the triager's actor reference.
 
-Term counted triage: a triage record of a finding, up to the round's settling record, whose actor holds no earlier record of the finding in another role — the triage records every rule of this pattern reads.
+Term counted triage: a triage record of a finding, where the round has no settling record or the triage record is recorded no later than the settling record, whose actor holds no earlier record of the finding in another role — the triage records every rule of this pattern reads.
 
 Term settled triage: among a finding's counted triages, the earliest third where one exists, otherwise the earliest second, otherwise the earliest first.
 
@@ -452,7 +454,7 @@ Term pass: grid | eos | linus | formal — the reader's pass a verdict answers, 
 
 - **Invariant 1 — One text per round.**
   ```
-  Invariant 1.1: A council commit MUST NOT answer a round BEFORE the round settles.
+  Invariant 1.1: A council commit's intent MUST NOT PRECEDE the settling record of the commit's round in the journal's order.
   Invariant 1.2: A verdict MUST count toward a round ONLY IF the verdict carries the round's snapshot hash.
   ```
 - **Invariant 2 — A repair lands on the bytes the round read.**
@@ -669,14 +671,14 @@ None. The composition makes no regulatory claim of its own; the records it keeps
 
 ## Status
 
-`done — 2026-11-07` — see the Ledger.
+`doing` — see the Ledger.
 
 ## Ledger
 
 ```
-status: done — 2026-11-07
+status: doing
 formal: verified — vote yes: one writer per repository, no repair before the round settles and the round's bounded repair; verified-repair.tla + 4 twins + 3 probes (the commit path, Invariant 2.1, 2.2, 7.3 and Concurrency 1: two rounds, two [Repair] calls a round with commits in flight and no commit fence, one person commit; 61,659 states, and 263,067 with two person commits, past the harness's cap), verified-repair-settle.tla + 3 twins + 2 probes (the round's settling, Invariant 1.1 and 5.1: two verifiers on one pass, three triage records, each call's read and its record one transaction; 628 states, and 2,824 with four triage records), verified-repair-budget.tla + 3 twins + 2 probes (the round budget, Invariant 8.1: three freezes and one ruling, each freeze's read of the count and its round one transaction; 56 states, and 399 with four freezes and two rulings), the two re-derived 2026-10-21 on the journal's store (Capability requirement 28), each with a twin that takes Execution Contract Store 2 and Store 3 away; the settling model found Term counted finding counting a malformed verdict written after the settling record, cured on the page; verified-repair.als + 11 twins (the static data model, 2026-11-12: Invariant 1.2, 3.1, 4.1, 6.1 and 7.1 checked on every state the freezes, reports, triages, rulings and committed repairs can leave, Invariant 2.1 a cross-check with the commit path; nothing testable in Alloy for Invariant 7.2 (it says what an auditor's check answers over a purged payload, which no action writes); Invariant 1.1, 2.2, 5.1, 7.3 and 8.1 left to the TLA+ models (each an order the records alone do not keep); the model found that no capability requirement provisions the writer's actor reference apart from the maintainer's, as Capability requirement 10 does for the sweep identity, so one reference lets the writer record the ruling that admits its own claim-family patch); coverage 2026-11-10 (unit formal: more coverage for the yes votes), 2026-11-12: no owed rows, 2026-10-21
-last gate: 2026-11-07 — Final Critique 27, delta, frozen at 93b19f5 — foundational count 0 after the blind second triage, clean, one sample; Linus's one report, filing one foundational item (Check 5.1 taking two actor references as two triagers and as blinding), refuted on the blinding half by Action wiring 13 and External check 3 and on the identity half by Term counted triage and Term actor reference, and placed refining, Kind C, by the blind second triage, open as 2026-11-07-a; the round read the cure of Term finding and Primitive policy 3 and Recoverable Invocation's change at Indeterminate outcome 1
+last gate: 2026-11-16 — Final Critique 28, delta, frozen at eb5e7c6 — foundational count 1, not clean, one sample; Linus's one report filed three foundational items: Term counted triage counting no triage of a round that has no settling record (cured in this settle and unread, by the sibling Term counted finding's form), Invariant 1.1 and the open order of Action wiring 33 (refuted by Action wiring 54, 76 and 33, placed refining, Invariant 1.1 aligned with Check 1.1), and the retried freeze (refuted by Term round count, placed refining, a NOTE at Action wiring 2); the page waits for the delta round that reads the cures
 open:
 - 2026-10-10-b · refining · Term repository · the database the act commits to is a deployment's version-controlled repository, which no atom in this library owns → an atom for a versioned database, or the database's contract kept here
 - 2026-10-10-d · refining · Term round count · a lawfully purged round, verdict or triage is answered not-known as if absent → a purged arm
@@ -724,6 +726,7 @@ open:
 - 2026-10-31-c · refining · Action wiring 40, 62, 77, Term change set · a settled cure the change set leaves out, as a cure gated under Action wiring 19, 56 or 63 or refused under Action wiring 18, 24 or 25 must be for the round's records to land, leaves no trace on the page, while Action wiring 77 traces a routed finding → the omitted cure traced, as a routed finding is
 - 2026-10-31-d · refining · the Intent, the Summary · the Intent's bold sentence says no change lands unless it answers a reported failure and is kept out of the page's claims, while the round's records land on every council commit answering no finding (Term patch, Action wiring 61) and a claim-family patch lands under the maintainer's ruling (Wiring decision 2); the Summary repeats the first half → both sentences reworded
 - 2026-11-07-a · refining · Invariant 5.1, Check 5.1 · a deployment that provisions one person two actor references gives the page two triagers, and no capability requirement obliges each triager a reference of its own or no check clears it → a capability requirement provisioning each triager apart from every other, with an External check of their distinctness, as 2026-10-31-b asks for readers
+- 2026-11-16-a · refining · Term round position, Action wiring 7, 34 · the position is recorded at [Report] time and the round count Action wiring 34 reads is the count at [Freeze] time, so a clean round that settles between the two moves it → the position pinned to the freeze
 ```
 
 <details markdown="block">
