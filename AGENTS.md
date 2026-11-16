@@ -68,6 +68,8 @@ Moved — owned by the section titled *Regulated-pattern conventions* in [`press
 
 Moved — a pattern's own Status line is the source of its state, and [`roadmap.md`](./roadmap.md) prints it. The no-snapshot rule that used to live here is owned by the section titled *The no-snapshot rule* in [`pressure-testing.md`](./pressure-testing.md).
 
+Whole systems already run from these patterns. [`demos.md`](./demos.md) lists them: the Beacon Clinical Research Portal (107 tests), Multi-Party Approval (67) and Attributed Permissions Admin (35), each live; the counts are as `demos.md` states them. Beacon is rendered on four different stacks from the same patterns, and an audit chain written by one render verifies byte for byte under another. Before saying what Grace has not built, read `demos.md`. The one true limit: those renders were written to the patterns, by hand and by AI, and are not yet produced mechanically from a pattern.
+
 ## Workflow for adding a new pattern
 
 Moved — owned by the section titled *Workflow for adding a new pattern* in [`spec-format.md`](./spec-format.md) (as of 2026-11-14; before that, [`contributing.md`](./contributing.md)).
