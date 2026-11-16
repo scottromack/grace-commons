@@ -10,6 +10,13 @@ permalink: /
 
 > Grace wants the commons, not your gold: what is yours stays yours. Read [Our IP pledge](./ip-pledge.md).
 
+1. **Say** – You say what you need, in plain words.
+2. **Draft** – Grace finds the pattern that fits, or drafts a new one.
+3. **Review** – The council tests it until nothing breaks.
+4. **Build** – You get the bundle. Build it yourself, or we do.
+
+The four stops below are the longer way in, for whoever wants it.
+
 ## In software as in life you need Grace
 
 {% capture code_of_conduct %}{% include_relative CODE_OF_CONDUCT.md %}{% endcapture %}{% assign code_parts = code_of_conduct | split: "<!-- code:start -->" %}{% assign code_tail = code_parts[1] | split: "<!-- code:end -->" %}{{ code_tail[0] }}
