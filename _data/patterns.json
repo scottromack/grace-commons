@@ -1754,7 +1754,7 @@
  },
  "verified-repair": {
   "composes": [],
-  "grounded": false,
+  "grounded": true,
   "invariants": 8,
   "kind": "composition",
   "models": {
@@ -1764,7 +1764,7 @@
   },
   "regulated": true,
   "standards": [],
-  "status": "doing",
+  "status": "done \u2014 2026-11-16",
   "substrates": [
    "recoverable-invocation",
    "audit-trail"
