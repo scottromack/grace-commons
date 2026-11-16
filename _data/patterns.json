@@ -1157,7 +1157,7 @@
    "shared-todo"
   ],
   "domain": null,
-  "grounded": false,
+  "grounded": true,
   "invariants": 11,
   "kind": "atom",
   "models": {
@@ -1191,7 +1191,7 @@
    "SOC 2",
    "SOX"
   ],
-  "status": "doing",
+  "status": "done \u2014 2026-11-16",
   "title": "Permissions"
  },
  "personal-todo": {

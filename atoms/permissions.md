@@ -211,7 +211,7 @@ Where two [Revoke] cases hold at once, the refusal listed first on [Revoke]'s re
   ```
 - **Invariant 11 — A pair is held once.**
   ```
-  Invariant 11.1: The active grant set MUST NOT hold two grants over one pair.
+  Invariant 11.1: The active grant set MUST NOT hold two grants over one pair (Identity 7).
   ```
 
 Self-containment and denial-by-absence give the *determinism* property — one query against one active set answers one way, always. Immutability and monotonicity give *auditability* — the authorization history is provable from the database.
@@ -350,7 +350,7 @@ Deprovisioning 5: A composing pattern MUST record a subject's deprovisioning ONL
 ### Grant concurrency and revoke concurrency
 
 ```
-Grant concurrency 1: Two concurrent [Grant] calls on one pair MUST record EXACTLY ONE grant.
+Grant concurrency 1: Two concurrent [Grant] calls on one pair MUST record EXACTLY ONE grant (Execution Contract Database 2).
 ```
 
 ### Revoke persistence failure
@@ -600,14 +600,14 @@ It inherits from:
 
 ## Status
 
-`doing` — see the Ledger.
+`done — 2026-11-16` — see the Ledger.
 
 ## Ledger
 
 ```
-status: doing
+status: done — 2026-11-16
 formal: pending — permissions.als + 10 twins and permissions.tla + 23 twins (verified 2026-11-12) model the rule of 2026-11-16 reversed: Identity 7 and Operation 6 as they stood (the checked property Op6_CoveredPairGranted, broken by the twin permissions-buggy-grant-refuses-covered) and Grant concurrency 1 as it stood (two grants for two concurrent calls); owed over Identity 7, Invariant 11.1, Operation 1, 33 and 34 and Grant concurrency 1, with the twins the rule makes equivalent retired or replaced (permissions-buggy-check-latest-grant-only reads one grant per pair) and tools/harness/coverage/permissions.md's rows for Identity 7 and Grant concurrency 1 rewritten with them
-last gate: 2026-11-04 — Final Critique 10, delta, frozen at 582c382 — foundational count 0, clean, one sample
+last gate: 2026-11-16 — Final Critique 11, a delta round, frozen at 174c4060 — foundational count 0 after the blind second triage, clean, one sample
 
 open:
 - 2026-10-21-c · refining · Revoke persistence 2, 4 · the caller's retry of a refused revoke names no terminus (Pass 1: every retry loop names its terminus), and the deployment that raises the alert is declared only as an alias of the deployment → name the bound at which the caller stops and what it raises there; say which deployments alert
