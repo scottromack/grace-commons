@@ -925,7 +925,7 @@ Guard evaluation, non-repudiable attribution, tamper-evidence, and retention are
 ```
 status: doing
 formal: verified — state-machine.als + 2 twins; coverage 2026-11-10 (unit formal: more coverage for the yes votes); state-machine.tla + 21 twins (across steps, 2026-11-11: one workflow under [Instantiate], offered every declaration of two state names, two actions and one guard with up to two declared transitions, and up to two admitted [Fire] calls, refusals in each refuses line's order, with what [History] and [Read Declaration] answer in every state they leave: Invariant 1.1 through 7.3, 8.1, 8.3, 9.1, 10.1 and 10.2); nothing testable in TLA+ for Invariant 8.2: it states a computation the atom does not make, and no model holds the condition a guard names; coverage 2026-11-11 (unit `atoms/state-machine.md formal layer`): no owed rows, 2026-11-11; [Workflows About] (Operation 80 through 86, Check 9.1) is not yet modelled: both models hold one workflow and the read ranges over several, so a model of two workflows under one subject reference is owed, 2026-11-17
-last gate: 2026-11-17 — Final Critique 20, delta, frozen at 84a84cc — foundational count 1, cured by a held cure, not clean, one sample
+last gate: 2026-11-17 — Final Critique 21, delta, frozen at 60bd95e — foundational count 1, cured by a held cure, not clean, one sample
 
 open:
 - 2026-11-05-a · refining · the Watch list in GRACE-lang.md · the page carries watch flags whose names the list's census does not hold, and the list is a shared method page the mayor edits → the mayor rules whether a flag on one specification enters the census, then enters each with its count or the page drops the flag
