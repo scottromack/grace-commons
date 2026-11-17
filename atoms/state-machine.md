@@ -918,19 +918,19 @@ Guard evaluation, non-repudiable attribution, tamper-evidence, and retention are
 
 ## Status
 
-`doing` — see the Ledger.
+`done — 2026-11-17` — see the Ledger.
 
 ## Ledger
 
 ```
-status: doing
-formal: verified — state-machine.als + 2 twins; coverage 2026-11-10 (unit formal: more coverage for the yes votes); state-machine.tla + 21 twins (across steps, 2026-11-11: one workflow under [Instantiate], offered every declaration of two state names, two actions and one guard with up to two declared transitions, and up to two admitted [Fire] calls, refusals in each refuses line's order, with what [History] and [Read Declaration] answer in every state they leave: Invariant 1.1 through 7.3, 8.1, 8.3, 9.1, 10.1 and 10.2); nothing testable in TLA+ for Invariant 8.2: it states a computation the atom does not make, and no model holds the condition a guard names; coverage 2026-11-11 (unit `atoms/state-machine.md formal layer`): no owed rows, 2026-11-11; [Workflows About] (Operation 80 through 85, Check 9.1) is not yet modelled: both models hold one workflow and the read ranges over several, so a model of two workflows under one subject reference is owed, 2026-11-17
-last gate: 2026-11-17 — Final Critique 18, delta, frozen at a1f23da — foundational count 1, cured, not clean, one sample
+status: done — 2026-11-17
+formal: verified — state-machine.als + 2 twins; coverage 2026-11-10 (unit formal: more coverage for the yes votes); state-machine.tla + 21 twins (across steps, 2026-11-11: one workflow under [Instantiate], offered every declaration of two state names, two actions and one guard with up to two declared transitions, and up to two admitted [Fire] calls, refusals in each refuses line's order, with what [History] and [Read Declaration] answer in every state they leave: Invariant 1.1 through 7.3, 8.1, 8.3, 9.1, 10.1 and 10.2); nothing testable in TLA+ for Invariant 8.2: it states a computation the atom does not make, and no model holds the condition a guard names; coverage 2026-11-11 (unit `atoms/state-machine.md formal layer`): no owed rows, 2026-11-11; [Workflows About] (Operation 80 through 86, Check 9.1) is not yet modelled: both models hold one workflow and the read ranges over several, so a model of two workflows under one subject reference is owed, 2026-11-17
+last gate: 2026-11-17 — Final Critique 19, delta, frozen at 8d7d3b9 — foundational count 0, clean, one sample
 
 open:
 - 2026-11-05-a · refining · the Watch list in GRACE-lang.md · the page carries watch flags whose names the list's census does not hold, and the list is a shared method page the mayor edits → the mayor rules whether a flag on one specification enters the census, then enters each with its count or the page drops the flag
 - 2026-11-05-b · refining · frontmatter; the H1 · spec-format's atom shape asks a `nav_order` and a one-paragraph blockquote under the H1, which this page and every atom in the corpus lack, so the page cannot be cured alone → the maintainer rules whether the atom shape or the corpus's practice stands
-- 2026-10-31-a · refining · State 2; State 3; State 15; Operation 67 · no action answers a workflow's instance metadata, actor reference or instantiation instant, nor the subject reference a given instance id carries, which the workflow records hold, and a composing pattern reads an atom only through the atom's declared surface (the section titled The atom interface contract in `execution-contract.md`); [Workflows About] (Operation 80 through 85) now answers the other way, the instance ids carrying a given subject reference → a read answering them, or a non-goal saying none does and who owns the need
+- 2026-10-31-a · refining · State 2; State 3; State 15; Operation 67 · no action answers a workflow's instance metadata, actor reference or instantiation instant, nor the subject reference a given instance id carries, which the workflow records hold, and a composing pattern reads an atom only through the atom's declared surface (the section titled The atom interface contract in `execution-contract.md`); [Workflows About] (Operation 80 through 86) now answers the other way, the instance ids carrying a given subject reference → a read answering them, or a non-goal saying none does and who owns the need
 - 2026-11-17-a · refining · Operation 85; the [Workflows About] entry · a malformed subject reference answers an empty list, where Operation 9 and Operation 75 answer invalid-request to the same defects in an instance id, so a caller cannot tell a malformed lookup from a subject no workflow carries and the signature lists no refusal → the maintainer rules whether a malformed subject reference answers invalid-request (the signature then lists the refusal) or the empty list stands
 ```
 
