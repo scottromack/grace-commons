@@ -188,7 +188,7 @@ Operation 35: [Look Up] MUST NOT write.
 Operation 36: [History For] MUST answer EVERY match.
 Operation 37: [History For] MUST NOT answer a withdrawn communication.
 Operation 38: [History For] MUST answer an empty list for a reference no match carries.
-Operation 39: [History For] MUST answer matches in order of occurred instant (Execution Contract Read 5, Execution Contract Logic confinement 10).
+Operation 39: [History For] MUST answer matches in order of occurred instant, earliest first (Execution Contract Read 5, Execution Contract Logic confinement 10).
 Operation 40: [History For] MUST answer two matches sharing an occurred instant in codepoint order of communication id (Execution Contract Read 5, Execution Contract Logic confinement 10).
 Operation 41: IF the reference is malformed OR the reference EQUALS blank OR the reference EXCEEDS the string cap THEN [History For] MUST answer an empty list (Execution Contract Query 5).
 Operation 42: IF the start instant is malformed OR the end instant is malformed THEN [History For] MUST answer an empty list (Execution Contract Query 1).
@@ -240,7 +240,7 @@ The case space, and the rule that owns each case:
 | [Withdraw] | the communication stands withdrawn | [Not Active] | none (Operation 30) |
 | a keyed action | no communication carries the communication id, or the id is not a string | [Not Known] | none (Operation 24) |
 | [Look Up] | the communication exists, either status | the communication | none (Operation 34, Operation 35) |
-| [History For] | active communications match the reference inside the range | each match, in order of occurred instant, ties in codepoint order of communication id | none (Operation 36, Operation 37, Operation 39, Operation 40, Operation 43) |
+| [History For] | active communications match the reference inside the range | each match, in order of occurred instant, earliest first, ties in codepoint order of communication id | none (Operation 36, Operation 37, Operation 39, Operation 40, Operation 43) |
 | [History For] | no match, a range ending earlier than the range starts, the reference blank, over the string cap or not a string, or an instant not an instant | an empty list | none (Operation 38, Operation 41, Operation 42) |
 | any writing call | database refuses the write | [Storage Failure] | none (Execution Contract Read 4) |
 | any call | its read of the database fails | `state-unavailable` | none (Execution Contract Read 1, Execution Contract Read 3) |
@@ -429,7 +429,7 @@ Kind: Operation
 
 #### History For
 
-Answers every active communication naming the reference as an outside participant, an inside participant or an item, with an [Occurred Instant] inside the range, in order of occurred instant, and changes nothing; an empty list where none matches.
+Answers every active communication naming the reference as an outside participant, an inside participant or an item, with an [Occurred Instant] inside the range, in order of occurred instant, earliest first, and changes nothing; an empty list where none matches.
 
 Kind: Operation
 
@@ -698,14 +698,14 @@ Communication is a primitive with no regulatory anchor. It inherits from:
 
 ## Status
 
-`done — 2026-11-16` — see the Ledger.
+`done — 2026-11-17` — see the Ledger.
 
 ## Ledger
 
 ```
-status: done — 2026-11-16
+status: done — 2026-11-17
 formal: pending — no model yet
-last gate: 2026-11-16 — Final Critique 2, a delta round, frozen at c04d0026 — foundational count 0 after the blind second triage, clean, no sample
+last gate: 2026-11-17 — Final Critique 3, a delta round, frozen at 4aa45fb6 — foundational count 0 after the blind second triage, clean, no sample
 
 open: none
 ```
