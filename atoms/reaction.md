@@ -94,6 +94,7 @@ Capability requirement 6: The deployment MUST NOT normalize a reaction name at t
 Capability requirement 7: The deployment MAY declare the reaction set PER Execution Contract Logic confinement 17.
 Capability requirement 8: The deployment MAY declare the holding rule PER Execution Contract Logic confinement 17.
 Capability requirement 9: IF a member of the reaction set EQUALS blank OR a member of the reaction set EXCEEDS the string cap THEN the deployment MUST NOT declare the reaction set.
+Capability requirement 10: IF a member of the reaction set EXCEEDS the string cap THEN the deployment MUST NOT declare the string cap.
 ```
 
 ### Operations
@@ -167,7 +168,7 @@ The case space, and the rule that owns each case:
 | [React] | the holding rule is one-per-item and the person holds another reaction on the item | ok | every rival stands withdrawn, in the same commit (Operation 10, Execution Contract Database 1) |
 | [React] | the holding rule is one-of-each and the person holds another reaction on the item | ok | the rivals are left as they are (Operation 11) |
 | [React] | the reaction name is not in the reaction set | [Invalid Reaction Name] | none (Operation 4) |
-| [Withdraw] | all three valid, the reaction stands held | ok | the reaction stands withdrawn; its person reference, item reference and reaction name stand; nothing is removed (Operation 13, State 3, Invariant 2.2, Invariant 2.3, Invariant 2.4) |
+| [Withdraw] | all three valid, the reaction stands held | ok | the reaction stands withdrawn; its first reacted instant, person reference, item reference and reaction name stand; nothing is removed (Operation 13, State 3, Invariant 2.1, Invariant 2.2, Invariant 2.3, Invariant 2.4) |
 | [Withdraw] | all three valid, the reaction stands withdrawn or no reaction for the triple | ok | none, no write (Operation 14, Operation 15) |
 | a writing action | person reference blank, over the string cap, or not a string | [Invalid Person Reference] | none (Operation 1, Operation 23) |
 | a writing action | item reference blank, over the string cap, or not a string | [Invalid Item Reference] | none (Operation 2, Operation 24) |
@@ -483,14 +484,14 @@ Reaction is a primitive with no regulatory anchor. It inherits from:
 
 ## Status
 
-`done — 2026-11-14` — see the Ledger.
+`done — 2026-11-17` — see the Ledger.
 
 ## Ledger
 
 ```
-status: done — 2026-11-14
+status: done — 2026-11-17
 formal: verified — reaction.als + 8 twins (the static data model: State 1 and 2, Identity 3, 5 and 7, Operation 4 through 7, Invariant 1.1 checked on every version a sequence of admitted calls leaves, Identity 1 caught by the Invariant 1.1 check, Identity 2, 4 and 6 by the Operation 5 check); reaction.tla + 30 twins (across steps, under either holding rule and a reaction set the deployment may change between calls: State 3, Invariant 2.1 through 2.4, Operation 1 through 5 and 8 through 30, the other half of Operation 17 and 20 read from the terms Look Up and Count); on the maintainer's ruling of 2026-11-09 (both models; only the writing vetoes one), neither vetoed, 2026-11-15
-last gate: 2026-11-14 — Final Critique 1, a full round, frozen at b585a81 — foundational count 0, clean, one sample
+last gate: 2026-11-17 — Final Critique 2, a delta round, frozen at 9bb9b4a — foundational count 0 after the blind second triage, clean, one sample
 
 open:
 - 2026-11-14-a · refining · Operation 23 through 28 · each writes "the reference is malformed", a predicate Term condition operator (a closed value set) does not list, and the form stands in 23 atoms; Execution Contract Input 1 and Query 5 own the predicate and each line cites it → decide whether the grammar admits the predicate or each atom writes the refusal over the type its input carries, then rewrite the lines
