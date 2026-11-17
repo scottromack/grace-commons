@@ -46,6 +46,8 @@ The atom is structurally distinct from two adjacent concepts, and both distincti
 
 [Event Log](./event-log.md) records what happened; this atom enforces what is allowed to happen and tracks the resulting state. The transition history here resembles an event log structurally — append-only, totally ordered by a sequence number, with wall time as a best-effort annotation — but an event log has no declared states, no declared transitions, no current state and no validity gate. This atom is freestanding, and none of its rules names Event Log; where the two meet is a composition's business.
 
+A workflow is named by its instance id, and the entity it governs is named by the subject reference, which the atom records and never confirms. A business that holds a customer's id and asks what is running for that customer holds no instance id. So the atom answers one look-up of its own records: the instance id of every workflow carrying a given subject reference, in the order the workflows began, a finished workflow among them. It writes nothing and adds no concept; it is the atom reading its own records by a field they already carry, as [Assignment](./assignment.md) reads its assignments by task reference.
+
 The guard is where the atom's restraint is sharpest. A declared transition may carry a guard label, and the atom enforces that the caller *asserts* the guard satisfied before the transition fires — while evaluating nothing. The history records the assertion, not a verdict. A caller asserting a guard it never checked is violating the declared process and the atom will record the assertion faithfully, because the alternative is an atom that must understand every deployment's predicates, which is the absorption this factoring exists to prevent.
 
 </details>
@@ -113,7 +115,7 @@ State 16: A history entry MAY carry guard satisfied.
 
 ```
 Capability requirement 1: The deployment MUST supply now at the seam.
-Capability requirement 5: The deployment MUST supply the workflow records PER Execution Contract Database 1 through 7, Execution Contract Read 1 through 4, Execution Contract Read 6, Execution Contract Refusal 1, Execution Contract Query 1 through 5, Execution Contract Input 1 through 4 and Execution Contract Conformance 9.
+Capability requirement 5: The deployment MUST supply the workflow records PER Execution Contract Database 1 through 7, Execution Contract Order 1, Execution Contract Read 1 through 4, Execution Contract Read 6, Execution Contract Refusal 1, Execution Contract Query 1 through 5, Execution Contract Input 1 through 4 and Execution Contract Conformance 9.
 Capability requirement 7: The deployment MAY declare the string cap ONLY IF the string cap EXCEEDS 0 PER Execution Contract Input 2.
 ```
 
@@ -139,6 +141,9 @@ history(instance_id, optional query)
 read_declaration(instance_id)
   answers declaration
   refuses invalid-request | not-known
+
+workflows_about(subject_ref)
+  answers instance_ids
 ```
 
 ```
@@ -200,6 +205,12 @@ Operation 48: [Read Declaration] MUST NOT normalize the declaration.
 Operation 49: [Read Declaration] MUST NOT reorder the declaration.
 Operation 50: A reading action MUST NOT write.
 Operation 55: An ordering rule MUST NOT rest on firing instant.
+Operation 80: [Workflows About] MUST answer the instance id of EVERY workflow carrying the subject reference.
+Operation 81: [Workflows About] MUST answer the instance id of a workflow whose current state IS IN the terminal states.
+Operation 82: [Workflows About] MUST order the answer by instantiation instant, earliest first.
+Operation 83: [Workflows About] MUST order two workflows sharing an instantiation instant by recording commit, earliest first.
+Operation 84: [Workflows About] MUST answer an empty list for a subject reference no workflow carries (Identity 15).
+Operation 85: IF the subject reference is malformed OR the subject reference EQUALS blank OR the subject reference EXCEEDS the string cap THEN [Workflows About] MUST answer an empty list (Execution Contract Query 5).
 ```
 
 NOTE: watch the integer range (Operation 45, Operation 58).
@@ -214,15 +225,15 @@ NOTE: watch the cap's refusal (Operation 75 through 78, Declaration 20).
 
 NOTE: open 2026-11-05-a — seven watch flags on this page name no line in GRACE-lang's Watch list (the id's length against the cap, the seam citation, the deployment's composition note, the blank optional input, the required input no rule records, the cap's refusal, the cap's measure).
 
-NOTE: open 2026-10-31-a — no action answers a workflow's subject reference, instance metadata, actor reference or instantiation instant (State 2, State 3, State 15, Operation 67).
+NOTE: open 2026-10-31-a — no action answers a workflow's instance metadata, actor reference or instantiation instant, nor the subject reference a given instance id carries (State 3, State 15, Operation 67).
 
 Term now: the deployment's clock reading at the call, as Execution Contract Logic confinement 11 declares it.
 
-Term addressed action: any action carrying an instance id — every action but [Instantiate].
+Term addressed action: any action carrying an instance id — [Fire], [Current], [History] and [Read Declaration].
 
 Term writing action: [Instantiate] | [Fire] — the two actions that write.
 
-Term reading action: [Current] | [History] | [Read Declaration] — the three that do not.
+Term reading action: [Current] | [History] | [Read Declaration] | [Workflows About] — the four that do not.
 
 Term current state: the state the workflow stands in — a [Current State]; the initial state until a fire lands, and the latest history entry's to state after.
 
@@ -254,6 +265,8 @@ Term firing fault: a firing check the call fails.
 
 Term filter axes: transition id | sequence number | from state | to state | action | actor reference | firing instant — the seven axes [History] accepts, and no others, a filter on sequence number or firing instant carrying a range.
 
+Term recording commit: the commit of the [Instantiate] call that recorded a workflow, one position in the single order Execution Contract Order 1 gives every commit.
+
 Term admitted instantiate: an [Instantiate] call the action admits (Execution Contract Read 4).
 
 Term admitted fire: a [Fire] call the action admits (Execution Contract Read 4).
@@ -272,6 +285,15 @@ Term admitted history: a [History] call whose instance id names a workflow and w
 | 8 | every precondition passes, the database accepts the write | new_state | Operation 28; Invariant 1.1, Invariant 5.1 |
 
 Where two rows hold at once, the earlier row answers: the rows follow the refuses line (Execution Contract Refusal 1), except that row 6 answers only on a cleared fire (Operation 64) and so stands below rows 2 through 5.
+
+| # | Condition | [Workflows About] answers | Owner |
+|---|---|---|---|
+| 1 | the subject reference is blank, over the string cap or not a string | an empty list | Operation 85 |
+| 2 | the read of the workflow records fails | state-unavailable | Execution Contract Read 1, Execution Contract Read 3 |
+| 3 | no workflow carries the subject reference | an empty list | Operation 84 |
+| 4 | one or more workflows carry the subject reference | the instance id of each, terminal ones included, by instantiation instant earliest first, two sharing one by recording commit | Operation 80 through 83 |
+
+[Workflows About] writes nothing (Operation 50) and its signature lists no refusal, so every row is an answer.
 
 NOTE: watch condition negation — invalid-request occupies two rows of one precedence chain (row 1 and row 6), so the answer alone does not say which guard refused. Audit Trail's 2026-08-30-a open line is the same shape with a worse consequence, its row 6 landing after a commitment.
 
@@ -377,6 +399,10 @@ A quality system instantiates a batch-release workflow. The declaration names `s
 
 `fire("wf_01HQ…", "release", guard_satisfied: true, actor_ref: "qa-lead-m.ross")` → `released`. The workflow now stands in a terminal state.
 
+### Workflows about one subject
+
+A re-test of the batch starts a second workflow: `instantiate(declaration, subject_ref: "batch-x91")` → `wf_01HR…`. `workflows_about("batch-x91")` → `["wf_01HQ…", "wf_01HR…"]`: the first workflow, which stands in the terminal state `released`, is listed because it carries the subject reference and comes first because it began first (Operation 80 through 83). `workflows_about("batch-x00")` → `[]`, as it would for a batch that exists and has no workflow, since the atom does not confirm a subject (Identity 15, Operation 84); `workflows_about("")` → `[]` as well (Operation 85).
+
 ### The audit question
 
 An inspector asks whether the batch moved only through the approved sequence. `read_declaration("wf_01HQ…")` answers the map as supplied, unchanged since instantiation (Invariant 1.2). `history("wf_01HQ…")` answers three entries in sequence number order. Every entry's from state, action and to state triple appears in the declaration (Invariant 3.1), and replaying them from `sampled` arrives at `released`, which is what `current("wf_01HQ…")` answers (Invariant 7.3). The declaration bounds what *could* have happened and the history says what *did*; neither alone answers the inspector.
@@ -431,6 +457,7 @@ Check 7.2: An auditor MUST find no guard satisfied recorded on an unguarded decl
 Check 8.1: An auditor MUST find transition id, sequence number, from state, to state, action and firing instant on EVERY history entry (State 4).
 Check 8.2: An auditor MUST find EVERY recorded actor reference non-blank (Invariant 9.1).
 Check 8.3: An auditor MUST find no history entry whose firing instant PRECEDES the workflow's instantiation instant (Operation 20).
+Check 9.1: An auditor MUST reconstruct the workflows carrying a subject reference from the workflow records, ordered by instantiation instant, earliest first, and then by recording commit (Operation 80 through 83).
 ```
 
 NOTE: EVERY check names the rule the check tests.
@@ -538,16 +565,16 @@ Term actors: the atom; the host; the transition; the deployment; a composing pat
 
 Term records: workflow — one running workflow, carrying instance id, a declaration, a current state, a transition history, next sequence number, an instantiation instant and the subject reference, instance metadata and actor reference [Instantiate] recorded. history entry — one recorded transition, carrying transition id, sequence number, from state, to state, action, firing instant and the actor reference and guard satisfied [Fire] recorded.
 
-Term record verbs: identify, allocate, change, carry, stand, answer, record, append, set, take, raise, leave, own, match, normalize, reorder, interpret, confirm, admit, offer, evaluate, assert, fire, replay, reach, rest, share, precede, follow, compare, trim, case-fold, refuse, write, read, find, reconstruct, complete, equal, bound, nest, version, decide, compose, declare, wire, supply, remove, route, name, detect, bind, capture, count.
+Term record verbs: identify, allocate, change, carry, stand, answer, record, append, set, take, raise, leave, own, match, normalize, reorder, interpret, confirm, admit, offer, evaluate, assert, fire, replay, reach, rest, share, precede, follow, compare, trim, case-fold, refuse, write, read, find, reconstruct, complete, equal, bound, nest, version, decide, compose, declare, wire, supply, remove, route, name, detect, bind, capture, count, order.
 
-Term value sets: writing action = [Instantiate] | [Fire]. reading action = [Current] | [History] | [Read Declaration]. guard satisfied = true | false. filter axes = transition id | sequence number | from state | to state | action | actor reference | firing instant.
+Term value sets: writing action = [Instantiate] | [Fire]. reading action = [Current] | [History] | [Read Declaration] | [Workflows About]. guard satisfied = true | false. filter axes = transition id | sequence number | from state | to state | action | actor reference | firing instant.
 Term bounds: string cap (the bound on a string input's length in Unicode code points, counted on the value as the call carries it, or on an id as the host allocates it, 1,024 where a deployment declares none).
 
 Term cadences: empty.
 
 Term qualifiers: migrated — rewritten in GRACE lang v0.40 (2026-09-12).
 
-Term terms: workflow, instance id, history entry, transition id, subject reference, instance metadata, database instance, seam, transition, declared transition, declaration, states, initial state, terminal states, well-formed declaration, now, addressed action, writing action, reading action, current state, next sequence number, sequence number, firing instant, instantiation instant, resolved firing instant, resolved instantiation instant, actor reference, guard, guard satisfied, matched transition, cleared fire, firing check, firing fault, filter axes, admitted instantiate, admitted fire, admitted history, committed version, string input, string cap, whitespace strings.
+Term terms: workflow, instance id, history entry, transition id, subject reference, instance metadata, database instance, seam, transition, declared transition, declaration, states, initial state, terminal states, well-formed declaration, now, addressed action, writing action, reading action, current state, next sequence number, sequence number, firing instant, instantiation instant, resolved firing instant, resolved instantiation instant, actor reference, guard, guard satisfied, matched transition, cleared fire, firing check, firing fault, filter axes, admitted instantiate, admitted fire, admitted history, recording commit, committed version, string input, string cap, whitespace strings.
 
 #### Instantiate
 
@@ -579,6 +606,12 @@ The read-only query returning the workflow's immutable [Declaration] exactly as 
 
 Kind: Operation
 
+#### Workflows About
+
+The read-only query returning the [Workflow Id] of every workflow carrying a given [Subject Reference], a workflow in a terminal state among them, by [Instantiation Instant] earliest first, two sharing one by the commit that recorded each. It answers an empty list for a [Subject Reference] no workflow carries and for one that is blank, over the string cap or not a string. It refuses nothing.
+
+Kind: Operation
+
 #### Workflow Id
 
 The opaque, immutable, system-generated identity of a workflow — assigned on [Instantiate], never reused, byte-order sortable (Execution Contract Logic confinement 10). It is the workflow's identity; the [Declaration], [Current State], and [Transition History] are properties.
@@ -589,7 +622,7 @@ Projection: instance_id
 
 #### Subject Reference
 
-The optional opaque reference to the entity whose lifecycle the workflow governs (a batch id, document id, work item id). Set on [Instantiate], immutable; the atom does not confirm it names a known subject (Identity 15), and its absence is valid.
+The optional opaque reference to the entity whose lifecycle the workflow governs (a batch id, document id, work item id). Set on [Instantiate], immutable; the atom does not confirm it names a known subject (Identity 15), and its absence is valid. [Workflows About] finds the workflows carrying it.
 
 Kind:       Field
 Field of:   the workflow
@@ -637,7 +670,7 @@ Projection: declaration
 
 #### Instantiation Instant
 
-The wall-time the workflow was created, stamped at [Instantiate] (or caller-supplied; not in the future). The lower bound for every [Firing Instant] — a transition cannot predate instantiation.
+The wall-time the workflow was created, stamped at [Instantiate] (or caller-supplied; not in the future). The lower bound for every [Firing Instant] — a transition cannot predate instantiation — and the order [Workflows About] answers in.
 
 Kind:       Field
 Field of:   the workflow
@@ -829,6 +862,7 @@ Projection: invalid-query
 [Current]: #current
 [History]: #history
 [Read Declaration]: #read-declaration
+[Workflows About]: #workflows-about
 [Workflow Id]: #workflow-id
 [Subject Reference]: #subject-reference
 [Workflow Metadata]: #workflow-metadata
@@ -885,13 +919,13 @@ Guard evaluation, non-repudiable attribution, tamper-evidence, and retention are
 
 ```
 status: done — 2026-11-06
-formal: verified — state-machine.als + 2 twins; coverage 2026-11-10 (unit formal: more coverage for the yes votes); state-machine.tla + 21 twins (across steps, 2026-11-11: one workflow under [Instantiate], offered every declaration of two state names, two actions and one guard with up to two declared transitions, and up to two admitted [Fire] calls, refusals in each refuses line's order, with what [History] and [Read Declaration] answer in every state they leave: Invariant 1.1 through 7.3, 8.1, 8.3, 9.1, 10.1 and 10.2); nothing testable in TLA+ for Invariant 8.2: it states a computation the atom does not make, and no model holds the condition a guard names; coverage 2026-11-11 (unit `atoms/state-machine.md formal layer`): no owed rows, 2026-11-11
+formal: verified — state-machine.als + 2 twins; coverage 2026-11-10 (unit formal: more coverage for the yes votes); state-machine.tla + 21 twins (across steps, 2026-11-11: one workflow under [Instantiate], offered every declaration of two state names, two actions and one guard with up to two declared transitions, and up to two admitted [Fire] calls, refusals in each refuses line's order, with what [History] and [Read Declaration] answer in every state they leave: Invariant 1.1 through 7.3, 8.1, 8.3, 9.1, 10.1 and 10.2); nothing testable in TLA+ for Invariant 8.2: it states a computation the atom does not make, and no model holds the condition a guard names; coverage 2026-11-11 (unit `atoms/state-machine.md formal layer`): no owed rows, 2026-11-11; [Workflows About] (Operation 80 through 85, Check 9.1) is not yet modelled: both models hold one workflow and the read ranges over several, so a model of two workflows under one subject reference is owed, 2026-11-17
 last gate: 2026-11-06 — Final Critique 16, delta, frozen at ad732c0 — foundational count 0, clean, one sample
 
 open:
 - 2026-11-05-a · refining · the Watch list in GRACE-lang.md · the page carries watch flags whose names the list's census does not hold, and the list is a shared method page the mayor edits → the mayor rules whether a flag on one specification enters the census, then enters each with its count or the page drops the flag
 - 2026-11-05-b · refining · frontmatter; the H1 · spec-format's atom shape asks a `nav_order` and a one-paragraph blockquote under the H1, which this page and every atom in the corpus lack, so the page cannot be cured alone → the maintainer rules whether the atom shape or the corpus's practice stands
-- 2026-10-31-a · refining · State 2; State 3; State 15; Operation 67 · no action answers a workflow's subject reference, instance metadata, actor reference or instantiation instant, which the workflow records carry, and a composing pattern reads an atom only through the atom's declared surface (the section titled The atom interface contract in `execution-contract.md`) → a read answering them, or a non-goal saying none does and who owns the need
+- 2026-10-31-a · refining · State 3; State 15; Operation 67 · no action answers a workflow's instance metadata, actor reference or instantiation instant, nor the subject reference a given instance id carries, which the workflow records hold, and a composing pattern reads an atom only through the atom's declared surface (the section titled The atom interface contract in `execution-contract.md`); [Workflows About] (Operation 80 through 85) now answers the other way, the instance ids carrying a given subject reference → a read answering them, or a non-goal saying none does and who owns the need
 ```
 
 <details markdown="block">
