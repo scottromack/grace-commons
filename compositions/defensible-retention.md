@@ -117,6 +117,7 @@ Composition state 22: The composition MUST NOT claim a cross-constituent consist
 Composition state 23: The rebuild MUST drop an index entry whose retention's retention state EQUALS purged.
 Composition state 24: The composition MUST report a dropped entry over a surviving destruction that carries no record_purged event AND no open purge marker as a bypass finding.
 Composition state 25: The composition MUST NOT read a stale index entry as a bypass alone.
+Composition state 35: The composition MUST NOT read the trail a bypass finding rests on BEFORE reading the retention state of the dropped entry's retention.
 Composition state 26: The record-to-retentions index AND the retention-to-record index MUST agree.
 Composition state 27: EVERY retention MUST cover EXACTLY ONE record.
 Composition state 28: A record MAY carry a retention beside another retention.
@@ -904,6 +905,7 @@ Term divergence: a retention in *Purged* over content still readable — `cascad
 
 ```
 Reconciliation 1: The sweep MUST run at an instance's start.
+NOTE: open 2026-10-04-r — the sweep, its bounds (compensation window, reconciliation cadence, enumeration bound, call pause bound, clock offset allowance) and its recovery arms wait on Retention Window's purge call and are Recoverable Invocation's job, which pressure-testing.md (A wait composes, never hand-rolls) makes a foundational finding, cured by composing: the unit `compositions/defensible-retention.md composes Recoverable Invocation` carries it.
 Reconciliation 2: The sweep MUST run PER reconciliation cadence.
 Reconciliation 3: The sweep MUST NOT store a record of the sweep's own.
 Reconciliation 4: The sweep MUST NOT examine a young marker.
@@ -1367,7 +1369,7 @@ Term post-destruction hold: a hold whose hold_placed outcome's own intent sits l
 
 Term pre-destruction release: a hold whose hold state EQUALS released and whose hold released outcome, or that outcome's own intent, sits earlier in the log than the purge intent of the record's destruction.
 
-Term aged-out hold: a hold carrying no surviving hold_placed outcome whose placement does not stand within the audit horizon, or a released hold carrying no surviving hold_released outcome whose release does not stand within the audit horizon — a hold whose order against a destruction the trail can no longer state.
+Term aged-out hold: a hold whose placement does not stand within the audit horizon and which carries no surviving hold_placed outcome, or a released hold whose release does not stand within the audit horizon and which carries no surviving hold_released outcome — a hold whose order against a destruction the trail can no longer state.
 
 Term historical hold set: the holds over a destroyed record that Legal Hold's read answers unfiltered by hold state, less every post-destruction hold, every pre-destruction release and every aged-out hold — the holds the destruction's gate read met, as far as the surviving trail can say.
 
@@ -1624,14 +1626,14 @@ The three constituents carry their own standards inheritance — see each consti
 
 ## Status
 
-`done — 2026-11-05` — see the Ledger.
+`doing` — see the Ledger.
 
 ## Ledger
 
 ```
-status: done — 2026-11-05
+status: doing
 formal: verified — defensible-retention.tla + 5 twins + 1 probe (the gate under the record section: a purge against a hold placement and a sibling placement; 4,206 states, holding at a term of 7 within 10 ticks) and defensible-retention-outcome.tla + 3 twins + 1 probe (one outcome per destruction: the invocation's outcome, a step-3 refusal whose append lands late, and a sweep leg; 4,222 states, holding at a term of 9 within 12 ticks), re-derived from the page as it stands, 2026-10-04, and the audit cascade's models, moved here with the cascade: defensible-retention-audit-hold.tla + 7 twins + 3 probes (a hold placed over an open cascade entry, released and re-driven; 43,688 states within 15 ticks, re-run 2026-11-02) and audit-trail.tla + 2 twins (the cascade's order and the scan's first half, which both pages cite); defensible-retention.als + 16 twins (the static data model, 2026-11-12: Invariant 1.1 through 1.3, 1.5, 1.6, 3.1 through 3.3, 4.1 through 4.6, 5.1, 5.4, 5.6, 7.1 through 7.3, 8.1, 9.1 and 9.4 checked on what one [Purge Record] call answers and writes from its reads, on every state of the retentions, holds and trail the actions and the sweep leave, and on what [Purge Eligible] answers over one state, Invariant 1.1, 5.6 and 9.1 a cross-check with the TLA+ models; nothing testable in Alloy for Invariant 2.1 (Retention Window's own records), 2.2, 5.5, 10.1 and 10.2 (orders of reads and calls), 3.4, 3.5, 8.6 and 10.3 through 10.5 (claims), 5.2, 8.2 and 9.3 (definitions), 5.3 and 6.3 through 6.6 (a reader's rules), 5.7 (Term quiescence with 5.6), 6.1 and 6.2 (two states), 8.3 (instants), 8.4 and 8.5 (Audit Trail's seal and verification), 9.5 (what the gate reads) and 11 through 13 (the cascade's models); the model found that Invariant 7.1's purge-eligible is no declared term, that 7.3 restates Term hold-blocked, and that 4.2 and 8.1 rest on Action wiring 76, which Invariant 4 does not name); models last run; coverage 2026-11-10 (unit formal: more coverage for the yes votes), 2026-11-12, 2026-11-02
-last gate: 2026-11-05 — Final Critique 18 — delta, frozen at 4e61dc9 — foundational count 0, clean, one sample
+last gate: 2026-11-17 — Final Critique 19 — delta, frozen at ce2aad2 — foundational count 2, one cured, one carried by the unit that composes Recoverable Invocation, not clean, one sample
 
 open:
 - 2026-11-05-a · refining · Composition state 17 · "scope statement" is no declared term, and what a refusal resting on the database-sourced rebuild may not claim is unstated → declare the claim (that the composition placed the retention, Composition state 16) and write the rule by it
@@ -1645,7 +1647,7 @@ open:
 - 2026-10-04-m · refining · Action wiring 60; Primitive policy 23 · nothing caps the retentions over a record, so one more can make its purge answer invalid-request until the caps change → a non-goal, or a cap at placement
 - 2026-10-04-p · refining · Check 1.6, 2.4; Invariant 2, 6.1, 6.2, 7, 8.2, 8.3, 10; Term cited · two checks cite a rule that does not say what they test, seven invariants are named by no check, and the constituent terms the rules use are missing from Term cited → re-cite; a check per invariant
 - 2026-10-04-q · refining · Composition state 24; Check 3.4; Term candidate marker; Term surviving destruction · an open purge marker a failed purge left masks a purge made outside the composition, which the sweep then recovers as that marker's act; it needs a breach of Capability requirement 46; and a bypass is judged on a now older than the read it rests on → say the detection excepts it; judge under the section
-- 2026-10-04-r · refining · Audit arm; Reconciliation; Concurrency 5 through 34 · the intent and outcome pairing, the audit arms, the sweep and the record section are the invocation protocol Recoverable Invocation is drafted to own → extract when that composition grounds; own round
+- 2026-10-04-r · foundational · Audit arm; Reconciliation; Concurrency 5 through 34 · the intent and outcome pairing, the audit arms, the sweep and the record section are the invocation protocol Recoverable Invocation is drafted to own → compose Recoverable Invocation and retire the page's own recovery (the method of 2026-11-10, pressure-testing.md *A wait composes, never hand-rolls*, makes the page's own bundle a foundational finding, found again by Final Critique 19; the unit `compositions/defensible-retention.md composes Recoverable Invocation` carries it)
 - 2026-10-04-s · rhetorical · Examples; Terms · nothing walks the sweep, a recording-failure or a take of the record section, two walkthrough payloads omit fields the rules require, Hold Check Unavailable is a member of the purge rejection alone, tombstones sit out of order, and ISO is not spelled out → rewrite on the next load-bearing touch
 - 2026-10-05-b · refining · Term stand-in; Check 5.4, 6.5 · the service-identity arm takes any earlier destroyed event, so an intent-less sweep outcome reads unknown for good once one event has aged out → bound the arm to one horizon before the outcome
 - 2026-10-05-d · refining · Composition state 3, 21, 24, 26, 33, 34; Invariant 2.2 · no action reads an index now, so the rebuild has no trigger and the bypass report no surface, the sweep removes only what it purged, the two indexes are said to agree with no qualifier, and placed-through-this-composition is tested by no rule → name the trigger, or make the index a convenience

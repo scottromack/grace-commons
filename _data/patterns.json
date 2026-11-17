@@ -569,7 +569,7 @@
    "legal-hold",
    "retention-window"
   ],
-  "grounded": true,
+  "grounded": false,
   "invariants": 13,
   "kind": "composition",
   "models": {
@@ -586,7 +586,7 @@
    "SEC 17a-4",
    "SOX"
   ],
-  "status": "done \u2014 2026-11-05",
+  "status": "doing",
   "substrate_of": [
    "resolve-a-persons-data-rights"
   ],
