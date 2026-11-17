@@ -9,6 +9,8 @@ export interface Seam {
   sessionToken(): string;
   /** An invitation token's random material, from a cryptographically random source (Invitation Capability requirement 2, 3). */
   tokenMaterial(): string;
+  /** One nonce per issuance, from a cryptographically random source (Attributed Permissions Admin Capability requirement 2). */
+  nonce(): string;
 }
 
 const token = () => Buffer.from(crypto.getRandomValues(new Uint8Array(32))).toString("base64url");
@@ -18,6 +20,7 @@ export const hostSeam: Seam = {
   idMaterial: () => crypto.randomUUID(),
   sessionToken: token,
   tokenMaterial: token,
+  nonce: token,
 };
 
 /** A seam whose clock a test sets and moves. */
@@ -28,6 +31,7 @@ export function testSeam(start = "2026-01-01T00:00:00.000Z"): Seam & { set(iso: 
     idMaterial: () => crypto.randomUUID(),
     sessionToken: token,
     tokenMaterial: token,
+    nonce: token,
     set: (iso) => { t = Date.parse(iso); },
     advance: (ms) => { t += ms; },
   };

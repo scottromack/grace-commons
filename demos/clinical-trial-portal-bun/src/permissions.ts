@@ -86,15 +86,24 @@ export class Permissions {
     return { refused: "storage-failure" };
   }
 
-  async revoke(grant_id: string): Promise<"ok" | { refused: "not-known" | "not-active" | "storage-failure" }> {
+  /** The statements that revoke one grant, to commit alone (`revoke`) or beside an action's other writes, or the refusal. */
+  async planRevoke(grant_id: string): Promise<{ stmts: Stmt[] } | { refused: "not-known" | "not-active" }> {
     const g = (await this.store.read<Stored>(`SELECT * FROM ${this.T} WHERE _id = $1`, [grant_id ?? ""]))[0];
     if (!g) return { refused: "not-known" };                                                                  // Operation 9
     if (g.status === "revoked") return { refused: "not-active" };                                             // Operation 10
-    try {
-      await this.store.commit([
+    return {
+      stmts: [
         this.store.assertSome(this.T, "_id = $1 AND status = 'active'", [g._id], "revoked"),
         this.store.put(this.T, { ...g, status: "revoked", revoked_at: this.seam.now() }),                     // Operation 11; the grant instant and the pair stand (Invariant 1.1)
-      ]);
+      ],
+    };
+  }
+
+  async revoke(grant_id: string): Promise<"ok" | { refused: "not-known" | "not-active" | "storage-failure" }> {
+    const p = await this.planRevoke(grant_id);
+    if ("refused" in p) return p;
+    try {
+      await this.store.commit(p.stmts);
     } catch (e) {
       if (e instanceof Guard) return { refused: "not-active" };                                               // revoked between the read and the write
       return { refused: "storage-failure" };                                                                  // Operation 13
