@@ -1,4 +1,4 @@
-// Beacon's pages: the front page, sign in and sign out, the dashboard, the "Access denied" page, and the subjects (the list, Enroll Subject, a subject and Record Visit).
+// Beacon's pages: the front page, sign in and sign out, accepting an invitation, the dashboard, the "Access denied" page, and the subjects (the list, Enroll Subject, a subject and Record Visit).
 // Built from SPEC.md (The screens; People & Permissions' words; The permissions) with Hono, the stack STACK.md pins. Every screen is a page the server
 // draws and every action works with no script running in the browser (SPEC.md, The screens): forms post, the server answers with a page or a redirect.
 //
@@ -6,7 +6,7 @@
 // makes a person signed in (SPEC.md): the cookie holds the session token and nothing else, and every request asks Session whether it is still valid.
 import { Hono, type Context } from "hono";
 import { getCookie, setCookie, deleteCookie } from "hono/cookie";
-import { type Beacon, SEED } from "./beacon.ts";
+import { type Beacon, SEED, INVITATION_WORDS, MIN_PASSWORD } from "./beacon.ts";
 import { PERMISSIONS, VISIT_KINDS, MESSAGES, type PermissionCode, type Refusal, type SubjectView, type VisitView } from "./beacon_domain.ts";
 import { type PersonView } from "./beacon_people.ts";
 
@@ -164,6 +164,36 @@ export function buildApp(beacon: Beacon, o: { secureCookie?: boolean } = {}): Ho
     const r = await beacon.domain.recordVisit(person.actor_ref, beacon.keyOf(c.get("token")) ?? "", id, typeof f.kind === "string" ? f.kind : "", typeof f.notes === "string" ? f.notes : null);
     if ("refused" in r) return r.refused === "invalid-request" && r.message === MESSAGES.visitType ? subjectPage(c, id, MESSAGES.visitType) : refuse(c, r, person, `/subjects/${id}`);
     return c.redirect(`/subjects/${id}`, 302);
+  });
+
+  // ---- Accepting an invitation (SPEC.md, The screens, Accept an invitation) -----------------------------------------------------
+
+  /** A link that will not do answers one sentence and no form (SPEC.md); the three are its own words. */
+  const badLink = (c: Context, why: keyof typeof INVITATION_WORDS) => c.html(page("Invitation", `<h1>Invitation</h1><p class="error" role="alert">${esc(INVITATION_WORDS[why])}</p><p><a href="/login">Sign in</a></p>`), why === "unknown" ? 404 : 410);
+
+  const acceptForm = (token: string, i: { email: string; role: string; display_name: string }, error?: string) => page("Set up your account", `<h1>Set up your account</h1>${error ? `<p class="error" role="alert">${esc(error)}</p>` : ""}
+<form method="post" action="/invitations/accept/${esc(encodeURIComponent(token))}"><label for="email">Email</label><input id="email" value="${esc(i.email)}" readonly>
+<label for="role">Your role</label><input id="role" value="${esc(i.role)}" readonly>
+<label for="password">Password (at least ${MIN_PASSWORD} characters)</label><input id="password" name="password" type="password" autocomplete="new-password" minlength="${MIN_PASSWORD}" required>
+<label for="confirm">Confirm password</label><input id="confirm" name="confirm" type="password" autocomplete="new-password" required><button type="submit">Create account</button></form>`);
+
+  app.get("/invitations/accept/:token", async (c) => {
+    const token = c.req.param("token"), i = await beacon.invitationFor(token);
+    return "invalid" in i ? badLink(c, i.invalid) : c.html(acceptForm(token, i));
+  });
+
+  app.post("/invitations/accept/:token", async (c) => {
+    const token = c.req.param("token"), f = await c.req.parseBody();
+    const r = await beacon.acceptInvitation(token, typeof f.password === "string" ? f.password : "", typeof f.confirm === "string" ? f.confirm : "");
+    if ("invalid" in r) return badLink(c, r.invalid);
+    if ("refused" in r) {
+      const i = await beacon.invitationFor(token);
+      if ("invalid" in i) return badLink(c, i.invalid);
+      const say = r.refused === "invalid-request" ? (r.message ?? "That was not accepted.") : r.refused === "state-unavailable" ? WORDS_OF.unavailable : WORDS_OF.storage;
+      return c.html(acceptForm(token, i, say), r.refused === "invalid-request" ? 400 : 503);
+    }
+    setCookie(c, COOKIE, r.session_token, { httpOnly: true, sameSite: "Lax", path: "/", maxAge: SESSION_SECONDS, secure: o.secureCookie ?? false });   // accepting signs the person in
+    return c.redirect("/dashboard", 302);                                                                             // and sends the person to the dashboard
   });
 
   return app;

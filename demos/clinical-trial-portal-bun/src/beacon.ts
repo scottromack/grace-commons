@@ -25,7 +25,7 @@ import { RecoverableInvocation, type Journal, type JournalAnswer } from "./recov
 import { ExternalOnboarding, onboardingBinding, onboardingProbe, ONBOARDING, type Trail } from "./external_onboarding.ts";
 import { AttributedPermissionsAdmin } from "./attributed_permissions_admin.ts";
 import { SessionGatedAuthorization } from "./session_gated_authorization.ts";
-import { BeaconDomain, PERMISSIONS, type PermissionCode } from "./beacon_domain.ts";
+import { BeaconDomain, PERMISSIONS, type PermissionCode, type Refusal as DomainRefusal } from "./beacon_domain.ts";
 import { People, SessionKeys, normalEmail, type PersonView } from "./beacon_people.ts";
 
 const DAY = 86_400_000;
@@ -53,6 +53,30 @@ export const SEED: { email: string; name: string; password: string; holds: Permi
 /** What Party Identity is given where Beacon asks nothing (SPEC.md, People, "What Party Identity is given"). */
 export const partyFor = (name: string, email: string) => ({ name, date_of_birth: "1900-01-01", document_type: "beacon-account", document_ref: email });
 
+/** The words an invitation's page gives a link it will not take (SPEC.md, The screens, Accept an invitation). */
+export const INVITATION_WORDS = {
+  unknown: "This invitation link is invalid.",
+  resolved: "This invitation has already been used or revoked.",
+  expired: "This invitation has expired. Please ask for a new one.",
+} as const;
+/** The words for what a form leaves wrong; SPEC.md names none of these, so they are the plainest that keep the meaning. */
+export const FORM_WORDS = {
+  invite: "An email, a name and a role are required.",
+  hasAccount: "That email already has an account.",
+  password: "Choose a password of at least 8 characters.",
+  confirm: "The two passwords do not match.",
+} as const;
+export const MIN_PASSWORD = 8;
+
+/** An invitation's context holds what Beacon asks of the invitee's account and the form never asks again: the role and the display name (SPEC.md, People & Permissions, 3). */
+export const invitationContext = (role: string, display_name: string): string => JSON.stringify({ role, display_name });
+export const readContext = (context: string): { role: string; display_name: string } | null => {
+  try { const c = JSON.parse(context); return typeof c?.role === "string" && typeof c?.display_name === "string" ? { role: c.role, display_name: c.display_name } : null; } catch { return null; }
+};
+
+export type InvitationFor = { email: string; role: string; display_name: string; expires_at: string } | { invalid: keyof typeof INVITATION_WORDS };
+export type Accepted = { session_token: string; person: PersonView } | { invalid: keyof typeof INVITATION_WORDS } | DomainRefusal;
+
 export type SignIn = { session_token: string; person: PersonView } | { refused: "invalid-credential" | "invalid-request" | "storage-failure" | "state-unavailable" };
 
 export class Beacon {
@@ -60,7 +84,7 @@ export class Beacon {
     readonly seam: Seam, readonly store: Store, readonly people: People, readonly keys: SessionKeys, readonly permissions: Permissions, readonly credentials: Credential,
     readonly session: Session, readonly login: Login, readonly gate: SessionGatedAuthorization, readonly audit: AuditTrail, readonly log: EventLog, readonly actors: ActorIdentity,
     readonly parties: PartyIdentity, readonly invitations: Invitation, readonly onboarding: ExternalOnboarding, readonly admin: AttributedPermissionsAdmin, readonly domain: BeaconDomain,
-    readonly ri: RecoverableInvocation, readonly trail: Trail,
+    readonly ri: RecoverableInvocation, readonly trail: Trail, private readonly service: { actor_ref: string; credential: string },
   ) {}
 
   static async open(store: Store, o: BeaconOptions = {}): Promise<Beacon> {
@@ -103,7 +127,7 @@ export class Beacon {
     });
     const admin = await AttributedPermissionsAdmin.open(store, seam, { permissions, actors }, { namespacePrefix: "beacon:", clockOffsetAllowanceMs: 50, retentionHorizonMs: RETENTION_MS });
     const domain = await BeaconDomain.open(store, seam, { permissions, trail }, { prefix });
-    return new Beacon(seam, store, people, new SessionKeys(() => Date.parse(seam.now())), permissions, credentials, session, login, gate, audit, log, actors, parties, invitations, onboarding, admin, domain, ri, trail);
+    return new Beacon(seam, store, people, new SessionKeys(() => Date.parse(seam.now())), permissions, credentials, session, login, gate, audit, log, actors, parties, invitations, onboarding, admin, domain, ri, trail, service);
   }
 
   /** A render starts from its seed and nothing else (SPEC.md): the two accounts, their permissions. Run again, it makes nothing twice. */
@@ -169,6 +193,68 @@ export class Beacon {
 
   /** The signing key a signed-in person holds for the session, or null (a restart drops it, and the person signs in again). */
   keyOf(session_token: string): string | null { return this.keys.get(session_token); }
+
+  // ---- Invitations (External Onboarding; SPEC.md, The screens, Accept an invitation; People & Permissions, 3) ------------------
+
+  /** Invite someone: the inviter holds `invite_actor` and signs the invitation with the key held for the session. The invitee is the email, trimmed and in lower case; the role and the display name travel as the context. */
+  async invite(session_token: string, email: string, display_name: string, role: string): Promise<{ invitation_token: string } | DomainRefusal> {
+    const me = await this.who(session_token), key = this.keyOf(session_token);
+    if (!me || !key) return { refused: "invalid-credential" };                                                       // inviting: a session with no key
+    if (!me.holds.includes("invite_actor")) return { refused: "access-denied", needs: ["invite_actor"] };           // who may invite
+    if (isBlank(email) || isBlank(display_name) || isBlank(role)) return { refused: "invalid-request", message: FORM_WORDS.invite };
+    const invitee = normalEmail(email);
+    if (await this.people.byEmail(invitee)) return { refused: "invalid-request", message: FORM_WORDS.hasAccount };
+    const r = await this.onboarding.invite(me.person.actor_ref, invitee, invitationContext(role.trim(), display_name.trim()), WEEK_S, key);
+    if ("invitation_token" in r) return r;
+    return r.refused === "invalid-request" ? { refused: "invalid-request", message: FORM_WORDS.invite } : r.refused === "invalid-credential" ? { refused: "invalid-credential" } : r.refused === "state-unavailable" ? { refused: "state-unavailable" } : { refused: "storage-failure" };
+  }
+
+  /** Revoke a pending invitation: a person who holds `invite_actor`, signing with the session's key. */
+  async revokeInvitation(session_token: string, invitation_token: string): Promise<"revoked" | DomainRefusal> {
+    const me = await this.who(session_token), key = this.keyOf(session_token);
+    if (!me || !key) return { refused: "invalid-credential" };                                                       // revoking: a session with no key
+    if (!me.holds.includes("invite_actor")) return { refused: "access-denied", needs: ["invite_actor"] };           // who may revoke
+    const r = await this.onboarding.revoke(invitation_token, me.person.actor_ref, "revoked by the inviter", key);
+    if (r === "revoked") return r;
+    if (r.refused === "invitation-invalid") return r.cause === "not-known" ? { refused: "not-found", message: "Not Found." } : { refused: "invalid-request", message: INVITATION_WORDS[r.cause === "expired" ? "expired" : "resolved"] };
+    return r.refused === "invalid-request" ? { refused: "invalid-request" } : r.refused === "invalid-credential" ? { refused: "invalid-credential" } : r.refused === "state-unavailable" ? { refused: "state-unavailable" } : { refused: "storage-failure" };
+  }
+
+  /** What the accept page shows for a link: the invited email, the intended role and the name, or why the link will not do. */
+  async invitationFor(invitation_token: string): Promise<InvitationFor> {
+    if (isBlank(invitation_token)) return { invalid: "unknown" };
+    const i = (await this.invitations.read({ invitation_token }))[0];
+    if (!i) return { invalid: "unknown" };
+    if (i.effective_status === "expired") return { invalid: "expired" };
+    if (i.effective_status !== "pending") return { invalid: "resolved" };
+    const c = readContext(i.context);
+    if (!c || isBlank(i.invitee_ref)) return { invalid: "unknown" };                                                 // an invitation Beacon did not make
+    return { email: i.invitee_ref as string, role: c.role, display_name: c.display_name, expires_at: i.expires_at };
+  }
+
+  /**
+   * Accept an invitation: the person sets a password; External Onboarding enrolls the party and registers the password under the service identity
+   * (the one acting where the person has no key yet), then the person and the person's key are made under that party id, and the person is signed in.
+   * A stop between the onboarding and the person's creation leaves a party with no person: the link is then spent and no repair is written (SPEC.md, What is not written yet).
+   */
+  async acceptInvitation(invitation_token: string, password: string, confirmation: string): Promise<Accepted> {
+    const i = await this.invitationFor(invitation_token);
+    if ("invalid" in i) return i;
+    if (typeof password !== "string" || [...password].length < MIN_PASSWORD) return { refused: "invalid-request", message: FORM_WORDS.password };
+    if (password !== confirmation) return { refused: "invalid-request", message: FORM_WORDS.confirm };
+    if (await this.people.byEmail(i.email)) return { refused: "invalid-request", message: FORM_WORDS.hasAccount };
+    const p = partyFor(i.display_name, i.email);
+    const r = await this.onboarding.onboard(invitation_token, i.email, p.name, p.date_of_birth, p.document_type, p.document_ref, "password", password, undefined, this.service.actor_ref, this.service.credential);
+    if ("refused" in r) {
+      if (r.refused === "invitation-invalid") return { invalid: r.cause === "not-known" ? "unknown" : r.cause === "expired" ? "expired" : "resolved" };
+      if (r.refused === "invalid-request") return { refused: "invalid-request", message: FORM_WORDS.password };
+      return r.refused === "state-unavailable" ? { refused: "state-unavailable" } : { refused: "storage-failure" };
+    }
+    const m = await this.people.create({ party_id: r.party_id, email: i.email, display_name: i.display_name, password });
+    if ("refused" in m) return m.refused === "email-taken" ? { refused: "invalid-request", message: FORM_WORDS.hasAccount } : { refused: m.refused === "invalid-request" ? "invalid-request" : "storage-failure" } as DomainRefusal;
+    const s = await this.signIn(i.email, password);
+    return "refused" in s ? { refused: s.refused === "invalid-credential" ? "invalid-credential" : s.refused === "invalid-request" ? "invalid-request" : s.refused === "state-unavailable" ? "state-unavailable" : "storage-failure" } : s;
+  }
 }
 
 export { PERMISSIONS };

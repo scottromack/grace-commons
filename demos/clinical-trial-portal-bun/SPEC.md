@@ -136,10 +136,15 @@ A render starts from its seed and nothing else: the two accounts, the seven perm
 
 **Email** is compared trimmed and in lower case [decided here].
 
+**An invitation.** It is made by a person who holds `invite_actor`, signed with that person's key, for an email (trimmed, in lower case), and lasts seven days. Beacon holds the role and the display name in the invitation's context, written as `{"role": ..., "display_name": ...}`, because the accept form asks for neither and External Onboarding keeps nothing else about the invitee [decided here]. An email that already has an account is not invited, and an invitation whose email has gained an account by the time it is accepted is refused and stays pending [decided here].
+
+**Accepting one.** The person sets a password of at least 8 characters, typed twice, and nothing else; a refused form is answered on the form again with its words ("Choose a password of at least 8 characters." and "The two passwords do not match." are mine: this file names none) and spends nothing [decided here]. The party is enrolled, the password registered and the invitation closed in one External Onboarding transaction, acting as Beacon's own service identity (the one Login writes under), since the invitee has no key yet [decided here]; the person is then made under the party's id with a key sealed under the password, and signed in as any sign-in is, so Login writes its event. The person holds no permission, and the dashboard says so.
+
 ## What is not written yet
 
 Said here so a build neither invents nor drops them.
 
 1. **How a person signs a grant.** [Attributed Permissions Admin](../../compositions/attributed-permissions-admin.md) has every grant and every taking-away carry an attestation by the person doing it, made with that person's credential through [Actor Identity](../../atoms/actor-identity.md) (Action wiring 2, 17; External check 2). The live render never did this: it wrote one event and a grant. What a person's credential is in Beacon is answered under People, above (a key kept by the server, sealed under the person's password).
 2. **Roles.** Role-Based Access Control and Delegation are not written; Beacon grants one permission at a time and invents no role [wiring].
-3. **Words for people.** Every word a screen shows is the plainest that keeps its meaning; a pattern carries none [Scott 2026-11-16 11:57 AM]. The words in this file are the live render's, for the render to improve and not to copy.
+3. **A stop between the onboarding and the person.** The onboarding commits before the person is made, so a server that stops between the two leaves a party and a credential with no person, and the invitation spent. Nothing here repairs it; a person invited again with the same email is refused only once a person exists. What repairs it (a sweep that makes the person for a party with none, which would need the password) is not decided.
+4. **Words for people.** Every word a screen shows is the plainest that keeps its meaning; a pattern carries none [Scott 2026-11-16 11:57 AM]. The words in this file are the live render's, for the render to improve and not to copy.
