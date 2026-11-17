@@ -46,6 +46,8 @@ Identity 8: The atom MUST NOT normalize a person reference.
 Identity 9: The atom MUST compare two person references codepoint for codepoint.
 Identity 10: The deployment MUST draw a spot id from a cryptographically secure random source.
 Identity 11: The deployment MUST NOT derive a spot id from the spot's other fields.
+Identity 12: The deployment MUST record the offering reference exactly as written in the call.
+Identity 13: The deployment MUST record the person reference exactly as written in the call.
 ```
 
 Term string cap: the bound on an offering reference's or a person reference's length in Unicode code points; 1,024 code points where a deployment declares none.
@@ -64,7 +66,7 @@ Term opening: room for one more on an offering — a seat, an appointment, a ret
 
 Term person reference: the value naming the person a spot is for — a member, a patient, a shopper — in the deployment's own scheme — a [Person Reference]; the atom reads nothing in it.
 
-NOTE: the atom declares no value a reference, so Execution Contract Logic confinement 13 canonicalizes neither the offering reference nor the person reference, and each is recorded as the call carries it (Execution Contract Input 4; Identity 6 through 9).
+NOTE: the offering reference and the person reference take the value exactly as written in the call (Identity 12, Identity 13), standing in place of Execution Contract Logic confinement 13 (Execution Contract Input 4; Identity 6 through 9).
 
 Term seam: the atom's I/O boundary as the section titled Logic Confinement Principle in `execution-contract.md` declares it; the host injects each waitlist id, each spot id and the clock reading, now, at the seam.
 
@@ -95,7 +97,7 @@ Term ended spot: a spot standing in called, left or unserved.
 
 Term join number: the place a spot took in the waitlist's order — a [Join Number]; a positive count, one more than the waitlist's highest join number when the spot joined.
 
-Term highest join number: the greatest join number the spots of a waitlist carry; zero for a waitlist carrying no spot.
+Term highest join number: the greatest join number any spot of a waitlist carries, an ended spot's included; zero for a waitlist carrying no spot.
 
 Term join instant: when a spot joined, stamped from the injected now — a [Join Instant]; a record of when, never the order.
 
@@ -110,10 +112,10 @@ NOTE: watch a term entry's kind — the ahead count is computed at each read and
 ### Capability requirement
 
 ```
-Capability requirement 1: The deployment MUST supply at the seam, for each [Start] call, a waitlist id no waitlist has carried PER Execution Contract Logic confinement 3.
-Capability requirement 2: The deployment MUST supply at the seam, for each [Join] call, a spot id no spot has carried PER Execution Contract Logic confinement 3.
+Capability requirement 1: The deployment MUST supply at the seam, for each [Start] call, a waitlist id no waitlist has carried PER Execution Contract Logic confinement 3 and Execution Contract Logic confinement 16.
+Capability requirement 2: The deployment MUST supply at the seam, for each [Join] call, a spot id no spot has carried PER Execution Contract Logic confinement 3 and Execution Contract Logic confinement 16.
 Capability requirement 3: The deployment MUST supply now at the seam.
-Capability requirement 4: The deployment MUST supply the database PER Execution Contract Database 1 through 6, Execution Contract Read 1 through 4 and Execution Contract Refusal 1.
+Capability requirement 4: The deployment MUST supply the database PER Execution Contract Database 1 through 7, Execution Contract Order 1, Execution Contract Read 1 through 4 and Execution Contract Refusal 1.
 Capability requirement 5: The deployment MAY declare the string cap PER Execution Contract Input 2.
 ```
 
@@ -133,7 +135,7 @@ leave(spot_id)
   refuses not-known | not-waiting | storage-failure
 
 call_next(waitlist_id)
-  answers spot
+  answers spot(spot_id, person_reference)
   refuses not-known | waitlist-closed | nobody-waiting | storage-failure
 
 close(waitlist_id)
@@ -282,18 +284,18 @@ A shop's limited trainers sell out, and returns come back one pair at a time, so
 
 ### Rejection paths
 
-A deployment exercising the rejection surface in one short sequence on waitlist `w9`, started for `"yoga-sat"`:
+A deployment exercising the rejection surface in one short sequence on waitlist `w12`, started for `"yoga-sat"`:
 
 - `start("   ")` — rejected as [Invalid Offering Reference]: the reference is blank.
-- `start("yoga-sat")` — answers `w9` again and writes nothing: an open waitlist already stands for the offering.
-- `join(w9, "")` — rejected as [Invalid Person Reference].
-- `join(w9, "mo")` — accepted, spot `s-Aq31`, join number 1. A second `join(w9, "mo")` is rejected as [Already Waiting].
-- `join(w9, "Mo")` — accepted as a different person, spot `s-hR8e`, join number 2: two person references are compared codepoint for codepoint.
+- `start("yoga-sat")` — answers `w12` again and writes nothing: an open waitlist already stands for the offering.
+- `join(w12, "")` — rejected as [Invalid Person Reference].
+- `join(w12, "mo")` — accepted, spot `s-Aq31`, join number 1. A second `join(w12, "mo")` is rejected as [Already Waiting].
+- `join(w12, "Mo")` — accepted as a different person, spot `s-hR8e`, join number 2: two person references are compared codepoint for codepoint.
 - `leave(s-Aq31)` — ok. A second `leave(s-Aq31)` is rejected as [Not Waiting].
-- `call_next(w9)` — answers `s-hR8e`. A second `call_next(w9)` is rejected as [Nobody Waiting].
+- `call_next(w12)` — answers `s-hR8e`. A second `call_next(w12)` is rejected as [Nobody Waiting].
 - `join(w404, "mo")`, where no waitlist `w404` exists — rejected as [Not Known]; so is `leave(s-0000)`, where no spot `s-0000` exists.
-- `close(w9)` — ok. Then `join(w9, "mo")`, `call_next(w9)` and `close(w9)` are each rejected as [Waitlist Closed].
-- `join(w9, "")` on the closed waitlist — rejected as [Invalid Person Reference]: two refusals apply, and the one listed first on [Join]'s refuses line answers (Execution Contract Refusal 1).
+- `close(w12)` — ok. Then `join(w12, "mo")`, `call_next(w12)` and `close(w12)` are each rejected as [Waitlist Closed].
+- `join(w12, "")` on the closed waitlist — rejected as [Invalid Person Reference]: two refusals apply, and the one listed first on [Join]'s refuses line answers (Execution Contract Refusal 1).
 
 This covers every refusal but [Storage Failure], which answers when the database refuses a write.
 
@@ -309,11 +311,11 @@ Check 1.2: An auditor MUST find EVERY spot carrying spot id, waitlist id, person
 Check 2.1: An auditor MUST find no two waitlists sharing a waitlist id (Identity 3).
 Check 2.2: An auditor MUST find no two spots sharing a spot id (Identity 4).
 Check 2.3: An auditor MUST find no two spots of one waitlist sharing a join number (Invariant 1.1).
-Check 2.4: An auditor MUST find no two waiting spots of one waitlist sharing a person reference (Invariant 2.1).
-Check 2.5: An auditor MUST find no two open waitlists sharing an offering reference (Invariant 6.1).
+Check 2.4: An auditor MUST find no commit as of which two waiting spots of one waitlist share a person reference (Invariant 2.1).
+Check 2.5: An auditor MUST find no commit as of which two open waitlists share an offering reference (Invariant 6.1).
 Check 2.6: An auditor MUST find EVERY spot's waitlist id naming a waitlist (Invariant 8.1).
-Check 2.7: An auditor MUST find no closed waitlist carrying a waiting spot (Invariant 5.2).
-Check 3.1: An auditor MUST find no waiting spot carrying a join number below the join number of a called spot of the same waitlist (Invariant 1.2).
+Check 2.7: An auditor MUST find no commit as of which a closed waitlist carries a waiting spot (Invariant 5.2).
+Check 3.1: An auditor MUST find no commit as of which a waiting spot carries a join number below the join number of a spot of the same waitlist standing in called (Invariant 1.2).
 Check 3.2: An auditor MUST find EVERY version of a spot carrying the join number of the spot's first version (Invariant 1.3).
 Check 3.3: An auditor MUST find EVERY version of a spot carrying the waitlist id of the spot's first version (Invariant 3.1).
 Check 3.4: An auditor MUST find EVERY version of a spot carrying the person reference of the spot's first version (Invariant 3.2).
@@ -346,7 +348,6 @@ External check 3: An auditor needing a person reference confirmed as naming a re
 Non-goal 1: The atom MUST NOT hold an opening for a called person.
 Non-goal 2: A deployment needing an opening held for a called person MUST compose Provisional Commitment.
 Non-goal 3: The atom MUST NOT count the openings an offering has.
-Non-goal 24: A deployment needing openings counted MUST compose Capacity Constraint Enforcement.
 Non-goal 4: The atom MUST NOT limit how many spots a waitlist carries.
 Non-goal 5: A deployment needing a bound on spots MUST compose Capacity Constraint Enforcement.
 Non-goal 6: The atom MUST NOT decide when to call a spot.
@@ -367,6 +368,7 @@ Non-goal 20: A deployment needing a spot with a bounded lifetime MUST compose Le
 Non-goal 21: The atom MUST NOT move a spot between two waitlists.
 Non-goal 22: The atom MUST NOT bound how long a spot is kept.
 Non-goal 23: A deployment needing a retention bound MUST compose Retention Window.
+Non-goal 24: A deployment needing openings counted MUST compose Capacity Constraint Enforcement.
 ```
 
 NOTE: the owners — [Provisional Commitment](./provisional-commitment.md) (Non-goal 1, 2; External check 1); [Capacity Constraint Enforcement](./capacity-constraint-enforcement.md) (Non-goal 3, 4, 5, 24); Offer from Waitlist *(forthcoming)*, which offers each opening to a waitlist's front spot (Non-goal 6); [Notification](./notification.md) (Non-goal 7, 8); [Permissions](./permissions.md) (Non-goal 9, 10); [Event Log](./event-log.md) (Non-goal 11, 12; External check 2); [Duplicate Prevention](./duplicate-prevention.md) (Non-goal 13, 14); Priority Waitlist *(forthcoming)* (Non-goal 15); Group Booking *(forthcoming)* (Non-goal 16); the composing pattern that knows the person, such as one built on [Session](./session.md) or [Party Identity](./party-identity.md) (Non-goal 17; External check 3); Catalog *(forthcoming)* (Non-goal 18); [Lease](./lease.md) (Non-goal 19, 20); the composing pattern that moves a person, by [Leave] on one waitlist and [Join] on the other (Non-goal 21); [Retention Window](./retention-window.md) (Non-goal 22, 23).
@@ -377,7 +379,7 @@ Where the atom breaks down: a line ordered by anything but arrival, such as need
 
 ### Concurrency
 
-Two calls on one waitlist are serialized (Execution Contract Database 2). Two [Call Next] calls at one moment: the later reads the spot the earlier called and calls the next waiting spot, so no spot is called twice and none is passed over (Invariant 1.2, Invariant 4.1). Two [Join] calls for one person: the later answers [Already Waiting] (Invariant 2.1). A [Leave] racing a [Call Next] for the front spot: whichever lands first decides — a [Leave] that lands first leaves the spot, and the [Call Next] calls the spot behind; a [Call Next] that lands first calls the spot, and the [Leave] answers [Not Waiting]. A [Join] racing a [Close]: a [Join] that lands first records a waiting spot, which the [Close] then stands in unserved; a [Close] that lands first leaves the [Join] answering [Waitlist Closed] (Invariant 5.2).
+Two calls on one waitlist are serialized (Execution Contract Database 2). Two [Call Next] calls at one moment: the later reads the spot the earlier called and calls the next waiting spot, so no spot is called twice and none is passed over (Invariant 1.2, Invariant 4.1). Two [Start] calls for one offering: the later reads the waitlist the earlier recorded and answers its waitlist id (Operation 2, Invariant 6.1). Two [Join] calls for one person: the later answers [Already Waiting] (Invariant 2.1). A [Leave] racing a [Call Next] for the front spot: whichever lands first decides — a [Leave] that lands first leaves the spot, and the [Call Next] calls the spot behind; a [Call Next] that lands first calls the spot, and the [Leave] answers [Not Waiting]. A [Join] racing a [Close]: a [Join] that lands first records a waiting spot, which the [Close] then stands in unserved; a [Close] that lands first leaves the [Join] answering [Waitlist Closed] (Invariant 5.2).
 
 ### Indeterminate outcome
 
@@ -387,11 +389,15 @@ A caller whose answer is lost may call again, and the repeat is a second call (E
 
 [Call Next] ends the spot (Operation 22), and an ended spot stays ended (Invariant 4.1): the atom never puts a called person back in line. A person who turns an offer down, or lets one run out, joins again at the back with [Join]: a new spot, a new [Spot Id] and the next join number. A composing pattern that holds an opening for the person it calls does both in one transaction (Composition note 2), so no one comes off the line without an opening held for them.
 
+### What undoes a write
+
+[Close] undoes [Start], standing the waitlist in closed, which takes no new spot (Operation 26); [Leave] undoes [Join], standing the spot in left (Operation 18). [Leave], [Call Next] and [Close] are final (Invariant 4.1, Invariant 5.1), so no undo is owed beyond them: a person who left or was called joins again at the back (Operation 11), and a waitlist closed by mistake is started again as a new waitlist (Operation 4) (Execution Contract Undo 4).
+
 ## Composition notes
 
 ```
 Composition note 1: A composing pattern MUST own what the atom declines.
-Composition note 2: A composing pattern holding an opening for a called person MUST hold the opening in the transaction of the [Call Next] call.
+Composition note 2: A composing pattern holding an opening for a called person MUST hold the opening in the one transaction that writes the [Call Next] call's effects (Execution Contract Database 1).
 ```
 
 NOTE: composing patterns — none yet. Forthcoming: Offer from Waitlist, which offers each opening to a waitlist's front spot through Provisional Commitment.
@@ -432,7 +438,7 @@ Kind: Operation
 
 #### Leave
 
-Takes a waiting [Spot] off its waitlist: the spot stands in left, and every spot behind moves up one.
+Takes a waiting [Spot] off its waitlist: the spot stands in left, and every spot behind has one fewer waiting spot ahead.
 
 Kind: Operation
 
@@ -663,14 +669,14 @@ Any rule a school, a clinic or a shop must follow in running a waitlist binds th
 
 ## Status
 
-`todo` — see the Ledger.
+`doing` — see the Ledger.
 
 ## Ledger
 
 ```
-status: todo
+status: doing
 formal: pending — no model yet
-last gate: none
+last gate: 2026-11-17 — Final Critique 1, full, frozen at e7a3151 — foundational count 5, cured, not clean, no sample
 
 open: none
 ```
