@@ -104,7 +104,7 @@ def fields_of(thing: str, parts: list[str], cx: dict) -> tuple[list[str], str]:
         if not f:
             return [], f"the reader found no Field entry `{name}`"
         if cx["owners"].get(re.sub(r"^(?:the|a|an) ", "", name).lower()) != thing:
-            return [], f"`{name}` is a Field entry of another record than `{thing}`"
+            return [], f"the reader read `{name}` as a Field entry of another record than `{thing}`"
         out.append(f)
     return out, ""
 
