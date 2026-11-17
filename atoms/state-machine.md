@@ -225,7 +225,7 @@ NOTE: watch the cap's refusal (Operation 75 through 78, Declaration 20).
 
 NOTE: open 2026-11-05-a — seven watch flags on this page name no line in GRACE-lang's Watch list (the id's length against the cap, the seam citation, the deployment's composition note, the blank optional input, the required input no rule records, the cap's refusal, the cap's measure).
 
-NOTE: open 2026-10-31-a — no action answers a workflow's instance metadata, actor reference or instantiation instant, nor the subject reference a given instance id carries (State 3, State 15, Operation 67).
+NOTE: open 2026-10-31-a — no action answers a workflow's instance metadata, actor reference or instantiation instant, nor the subject reference a given instance id carries (State 2, State 3, State 15, Operation 67).
 
 Term now: the deployment's clock reading at the call, as Execution Contract Logic confinement 11 declares it.
 
@@ -925,7 +925,7 @@ last gate: 2026-11-06 — Final Critique 16, delta, frozen at ad732c0 — founda
 open:
 - 2026-11-05-a · refining · the Watch list in GRACE-lang.md · the page carries watch flags whose names the list's census does not hold, and the list is a shared method page the mayor edits → the mayor rules whether a flag on one specification enters the census, then enters each with its count or the page drops the flag
 - 2026-11-05-b · refining · frontmatter; the H1 · spec-format's atom shape asks a `nav_order` and a one-paragraph blockquote under the H1, which this page and every atom in the corpus lack, so the page cannot be cured alone → the maintainer rules whether the atom shape or the corpus's practice stands
-- 2026-10-31-a · refining · State 3; State 15; Operation 67 · no action answers a workflow's instance metadata, actor reference or instantiation instant, nor the subject reference a given instance id carries, which the workflow records hold, and a composing pattern reads an atom only through the atom's declared surface (the section titled The atom interface contract in `execution-contract.md`); [Workflows About] (Operation 80 through 85) now answers the other way, the instance ids carrying a given subject reference → a read answering them, or a non-goal saying none does and who owns the need
+- 2026-10-31-a · refining · State 2; State 3; State 15; Operation 67 · no action answers a workflow's instance metadata, actor reference or instantiation instant, nor the subject reference a given instance id carries, which the workflow records hold, and a composing pattern reads an atom only through the atom's declared surface (the section titled The atom interface contract in `execution-contract.md`); [Workflows About] (Operation 80 through 85) now answers the other way, the instance ids carrying a given subject reference → a read answering them, or a non-goal saying none does and who owns the need
 ```
 
 <details markdown="block">
