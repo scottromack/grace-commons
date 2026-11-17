@@ -1,20 +1,24 @@
 // Recoverable Invocation — the protocol a regulated action follows around an act it cannot take back, to the depth
-// this part reaches: [Open], [Close], [Refuse], [Yield], and the derived indexes they read.
+// this part reaches: [Open], [Close], [Refuse], [Yield], [Reconcile] (the sweep), and the derived indexes they read.
 // Rendered from compositions/recoverable-invocation.md (the page at the commit the entry names), with no code of
 // any other render opened. A rule's label is in the comment where the code answers it.
 //
-// The composition's state is derived: open invocations, act closings and the sequence high water are rebuilt from
-// one range read of the journal (Composition state), held in this process, and rebuilt at start (sequence high
-// water 3, 6). The critical section is a Lease on the key (kind, act key); the journal is Audit Trail.
+// The composition's state is derived: open invocations, act closings, sweep closed ids and the sequence high water
+// are rebuilt from one range read of the journal (Composition state), held in this process, and rebuilt at start
+// (sequence high water 3, 6) and at every sweep run (4). The critical section is a Lease on the key (kind, act key);
+// the journal is Audit Trail. The findings register is `FindingsRegister`, held in this process: the deployment
+// persists it (findings 1, 2, 14), which this render does not.
 //
-// Not rendered here, said so and not hidden: [Reconcile] (the sweep, sweep closed ids, the findings register and
-// Instance start's conditions), [Resolve] and [Read Invocation]. They are the next parts. A closing written by
-// them is read here already (an abandonment, an escalation, a superseding record) since [Close] and [Refuse] must
-// find it.
+// Not rendered here, said so and not hidden: [Resolve] and [Read Invocation]. They are the next parts. A closing
+// written by them is read here already (an abandonment, an escalation, a superseding record) since [Close],
+// [Refuse] and the sweep must find it.
 //
 // Where the render does not meet the page: a release is Lease's own transaction, not joined to the record write
 // (act section 21 asks that a release answering storage-failure leave nothing written standing; here the record
-// stands and the action answers its position's arm, which is the safe side for [Close] and [Refuse]).
+// stands and the action answers its position's arm, which is the safe side for [Close] and [Refuse]). The same
+// holds for reconcile 8 and 9: the sweep's two writes for one act (the recovery_intended and the outcome) are two
+// journal transactions here, not one, and a release that fails after a closing counts the act skipped while the
+// closing stands, which the next run finds and counts closed already.
 import { type Seam, isBlank } from "./seam.ts";
 import { canonical } from "./canonical.ts";
 import { Unavailable } from "./store.ts";
@@ -43,14 +47,80 @@ export interface KindBinding {
   retentionPeriodMs: number;
   /** The largest outcome payload the kind can write, in bytes of its data (Term outcome envelope). */
   outcomeEnvelopeBytes: number;
+  /** The credential the sweep writes under the service identity with; null where the kind has no service identity (Term service identity). */
+  serviceCredential?: string | null;
+  /** The adopter's act probe, read by act key and the intent's payload (Term act probe); absent reads as unavailable, since the sweep must not close an act whose database it cannot read (Invariant 5.10). */
+  actProbe?: (act_key: string, intent_payload: Record<string, unknown>) => Promise<ProbeAnswer>;
+  /** The time the adopter declares for an operator to settle an escalation (Term settling period). */
+  settlingPeriodMs?: number;
 }
+
+/** act probe 1: exactly one of four. */
+export type ProbeAnswer =
+  | { answer: "committed"; outcome_action_ref: string; outcome_data: unknown }
+  | { answer: "not-committed" }
+  | { answer: "undecidable"; candidates: string[] }
+  | { answer: "unavailable" };
 
 export interface Compliance {
   /** A hard alert naming the invocation id and the arm that raised it (Term hard alert). */
   hardAlert(a: { invocation_id: string; arm: string }): void;
-  /** A surfaced fault of the build or an old intent left open (open step 3.8c, Capability requirement 4). */
-  surface(a: { arm: string; kind?: string; act_key?: string; invocation_id?: string }): void;
+  /** A surfaced fault of the build or an old intent left open (open step 3.8c, Capability requirement 4); a sweep's report of an act under a kind with no service identity (reconcile 2e). */
+  surface(a: { arm: string; kind?: string; act_key?: string; invocation_id?: string; detail?: unknown }): void;
 }
+
+/** The bounds the sweep adds (Instance start 4 to 8 are checked against them at start). */
+export interface SweepConfig {
+  /** The duration within which the sweep closes an act whose invocation died, from the intent's recording instant (Term closure window). */
+  closureWindowMs: number;
+  /** The bound from a run's start to the last closing it lands (Term run bound). */
+  runBoundMs: number;
+  /** The interval at which the sweep runs after the run at restart (Term sweep cadence). */
+  sweepCadenceMs: number;
+  /** One whole closure: re-read, act probe, recovery_intended, the closing, the index update (Term closure latency). */
+  closureLatencyMs: number;
+  /** The longest one act probe takes from issue to answer (Term probe round trip). */
+  probeRoundTripMs: number;
+  /** What a run waits on a stalled step-1 read (run bound 2): the default is a real wait, a test shortens it. */
+  wait?: (ms: number) => Promise<void>;
+}
+
+export type FindingName = "journal-unavailable" | "store-unavailable" | "credential-refused" | "closure-at-risk" | "unbound-kind" | "escalated";
+const ACT_FINDINGS = new Set<FindingName>(["closure-at-risk", "unbound-kind", "escalated"]);
+const INSTANCE_FINDINGS = new Set<FindingName>(["journal-unavailable", "store-unavailable", "credential-refused"]);
+export interface RunReading { run_id: string; at: string }
+/** Term act finding: deduplicates on (invocation id, finding); carries no last seen and no span (findings 4). */
+export interface ActFinding { finding: FindingName; kind: string; act_key: string; invocation_id: string; first_seen: RunReading; run_id: string }
+/** Term instance finding: deduplicates on (finding, kind) while the record stands; kind may be absent (findings 5, 12). */
+export interface InstanceFinding { finding: FindingName; kind: string | null; first_seen: RunReading; last_seen: RunReading; run_id: string; closed: boolean }
+
+/** The register of Composition state's findings (findings 3 to 13). The deployment persists it (findings 1, 2, 14); this one lives in the process. */
+export class FindingsRegister {
+  readonly acts: ActFinding[] = [];
+  readonly instances: InstanceFinding[] = [];
+  /** An act finding: set once at the first surfacing, never moved (findings 7, 8). */
+  act(finding: FindingName, kind: string, act_key: string, invocation_id: string, run: RunReading): void {
+    if (!ACT_FINDINGS.has(finding)) throw new Error(`${finding} is no act finding`);                             // findings 4, 6
+    if (this.acts.some((f) => f.invocation_id === invocation_id && f.finding === finding)) return;                // deduplicates on (invocation id, finding)
+    this.acts.push({ finding, kind, act_key, invocation_id, first_seen: run, run_id: run.run_id });
+  }
+  /** An instance finding: opened at the first sighting, advanced by every run that still sees the condition (findings 9, 12). */
+  instance(finding: FindingName, kind: string | null, run: RunReading): void {
+    if (!INSTANCE_FINDINGS.has(finding)) throw new Error(`${finding} is no instance finding`);                    // findings 4, 6
+    const standing = this.instances.find((f) => !f.closed && f.finding === finding && f.kind === kind);
+    if (standing) { standing.last_seen = run; return; }                                                          // findings 9: advance last seen; first seen is not moved (findings 8)
+    this.instances.push({ finding, kind, first_seen: run, last_seen: run, run_id: run.run_id, closed: false });      // findings 7, 11: a recurrence is a new record
+  }
+  /** A run whose condition read answered that the condition does not stand closes the record with last seen as it was (findings 10a). */
+  close(finding: FindingName, kind: string | null): void {
+    for (const f of this.instances) if (!f.closed && f.finding === finding && f.kind === kind) f.closed = true;
+  }
+  standing(finding: FindingName, kind: string | null): InstanceFinding | null {
+    return this.instances.find((f) => !f.closed && f.finding === finding && f.kind === kind) ?? null;
+  }
+}
+
+export type Tally = { examined: number; closed: number; escalated: number; reported: number; skipped: number; closed_already: number; surfaced: number; unreached: number };
 
 export interface RecoverableInvocationConfig {
   journal: Journal;
@@ -70,6 +140,10 @@ export interface RecoverableInvocationConfig {
   referenceLengthCap: number;
   /** What a wait does: the default is a real wait, a test moves its clock here. */
   sleep?: (ms: number) => Promise<void>;
+  /** The sweep's bounds; absent, the instance runs no sweep and Instance start's five conditions are not checked (they read the sweep's bounds). */
+  sweep?: SweepConfig;
+  /** The findings register; the default lives in this process. */
+  register?: FindingsRegister;
 }
 
 export type OpenResult = { invocation_id: string; intent_event_id: string };
@@ -100,11 +174,14 @@ interface Rec {
   supersedes: string | null;
   recovery: boolean;
   resolving_actor: string | null;
-  role: "intent" | "outcome" | "refused" | "abandoned" | "escalated" | "recovery_intended";
+  actor_ref: string;
+  payload: Record<string, unknown>;
+  /** unbound-intent and unbound-named are the records of a kind the bindings table no longer serves (Binding 4). */
+  role: "intent" | "outcome" | "refused" | "abandoned" | "escalated" | "recovery_intended" | "unbound-intent" | "unbound-named";
 }
 const CLOSING_ROLES = new Set<Rec["role"]>(["outcome", "refused", "abandoned", "escalated"]);
 
-class ReadFailed extends Error {}
+class ReadFailed extends Error { constructor(msg: string, readonly invalidQuery = false) { super(msg); } }
 const actKey = (kind: string, act_key: string) => canonical([kind, act_key]);
 
 export class RecoverableInvocation {
@@ -113,11 +190,15 @@ export class RecoverableInvocation {
   private readonly byAct = new Map<string, Rec[]>();
   private readonly byInvocation = new Map<string, Rec[]>();
   private readonly cleared = new Set<string>();       // invocation ids [Close] or [Refuse] removed from open invocations (close step 4.1, refuse step 3.9)
+  private readonly sweepClosed = new Set<string>();   // sweep closed ids: an outcome under recovery or an escalation naming the id, carrying no resolving actor
+  private runInFlight: Promise<Tally | { refused: "journal-unavailable" } | "no-answer"> | null = null;
+  readonly register: FindingsRegister;
   private readonly writeFloor: number;
   private readonly commitFloor: number;
   private readonly settleBound: number;
 
   private constructor(private seam: Seam, private cfg: RecoverableInvocationConfig) {
+    this.register = cfg.register ?? new FindingsRegister();
     this.writeFloor = cfg.journalWriteBoundMs + 3 * cfg.pauseBoundMs;                                             // Term write floor
     this.commitFloor = cfg.commitRoundTripMs + 4 * cfg.pauseBoundMs;                                              // Term commit floor
     this.settleBound = cfg.journalWriteBoundMs + cfg.clockAllowanceMs;                                            // Term settle bound
@@ -126,9 +207,37 @@ export class RecoverableInvocation {
   /** Capability requirement 11: without the range read, the read-your-writes journal or the act section, the composition does not start. Sequence high water 3: a full rebuild at start. */
   static async start(seam: Seam, cfg: RecoverableInvocationConfig): Promise<RecoverableInvocation> {
     if (!cfg.journal?.log || typeof cfg.journal.recordAction !== "function" || !cfg.actSection) throw new Error("Recoverable Invocation does not start: the range read, read-your-writes or the act section is absent");
+    const failed = RecoverableInvocation.startConditions(cfg);                                                      // Instance start 2, 3: every condition for every bound kind, or no start
+    if (failed.length) throw new Error(`Recoverable Invocation does not start: ${failed.join("; ")}`);
     const ri = new RecoverableInvocation(seam, cfg);
     await ri.refresh();
     return ri;
+  }
+
+  /** Instance start 4 to 8 for every bound kind, against the sweep's bounds; the conditions that fail, named. Absent a sweep there is nothing to check them against. */
+  static startConditions(cfg: RecoverableInvocationConfig): string[] {
+    const s = cfg.sweep;
+    if (!s) return [];
+    const failed: string[] = [];
+    const rb = cfg.readBoundMs;
+    if (rb === undefined) return ["a sweep needs read bound, which Instance start 6 and 8 read"];
+    const a = cfg.clockAllowanceMs;
+    for (const [kind, b] of Object.entries(cfg.bindings)) {
+      const icb = b.invocationCompletionBoundMs;
+      if (b.settlingPeriodMs === undefined) { failed.push(`${kind}: settling period is not bound`); continue; }
+      const worstClosure = icb + 2 * a + 2 * s.sweepCadenceMs + 3 * s.runBoundMs;                                  // Term worst closure
+      if (!(s.closureWindowMs > worstClosure)) failed.push(`${kind}: Instance start 4 (closure window ${s.closureWindowMs} does not exceed worst closure ${worstClosure})`);
+      const examineWindowEnd = icb + a + s.closureWindowMs;                                                        // Term examine window end
+      const retentionFloor = examineWindowEnd + b.settlingPeriodMs + s.runBoundMs;                                 // Term retention floor
+      if (!(b.retentionPeriodMs > retentionFloor)) failed.push(`${kind}: Instance start 5 (retention period ${b.retentionPeriodMs} does not exceed retention floor ${retentionFloor})`);
+      const leaseSpend = 2 * rb + 2 * cfg.journalWriteBoundMs + cfg.commitRoundTripMs + 9 * cfg.pauseBoundMs;        // Term lease spend
+      if (!(icb > leaseSpend)) failed.push(`${kind}: Instance start 6 (invocation completion bound ${icb} does not exceed lease spend ${leaseSpend})`);
+      const runFloor = Math.max(icb, s.closureLatencyMs + cfg.journalWriteBoundMs) + s.closureLatencyMs;            // Term run floor
+      if (runFloor > s.runBoundMs) failed.push(`${kind}: Instance start 7 (run floor ${runFloor} exceeds run bound ${s.runBoundMs})`);
+      const sweepLeaseSpend = Math.max(rb + 2 * cfg.journalWriteBoundMs + s.probeRoundTripMs + 7 * cfg.pauseBoundMs, 2 * rb + cfg.journalWriteBoundMs + 6 * cfg.pauseBoundMs);   // Term sweep lease spend
+      if (!(s.closureLatencyMs > sweepLeaseSpend)) failed.push(`${kind}: Instance start 8 (closure latency ${s.closureLatencyMs} does not exceed sweep lease spend ${sweepLeaseSpend})`);
+    }
+    return failed;
   }
 
   // ----- the derived indexes -------------------------------------------------------------------------------
@@ -137,15 +246,16 @@ export class RecoverableInvocation {
   private sleep(ms: number) { return (this.cfg.sleep ?? ((n) => new Promise<void>((r) => setTimeout(r, n))))(ms); }
 
   private classify(ev: LoggedEvent): Rec | null {
-    const d = ev.data as { action_ref?: unknown; data?: Record<string, unknown> } | null;
+    const d = ev.data as { action_ref?: unknown; actor_ref?: unknown; data?: Record<string, unknown> } | null;
     const ref = d?.action_ref;
     const p = d?.data;
     if (typeof ref !== "string" || !p || typeof p !== "object") return null;
     const kind = typeof p.kind === "string" ? p.kind : null;
-    const b = kind ? this.cfg.bindings[kind] : undefined;
-    if (!kind || !b || !ref.startsWith(`${kind}.`)) return null;                                                   // another kind's record, or an unbound one (the sweep's, not rendered here)
-    const role: Rec["role"] | null =
-      ref === `${kind}.intended` ? "intent" : ref === `${kind}.refused` ? "refused" : ref === `${kind}.abandoned` ? "abandoned"
+    if (!kind || !ref.startsWith(`${kind}.`)) return null;                                                          // another pattern's record
+    const b = this.cfg.bindings[kind];
+    const role: Rec["role"] | null = !b
+      ? (ref === `${kind}.intended` ? "unbound-intent" : ref === `${kind}.recovery_intended` ? "recovery_intended" : "unbound-named")   // Binding 4: the intent and its recovery_intended excepted, any other `<kind>.*` names the id
+      : ref === `${kind}.intended` ? "intent" : ref === `${kind}.refused` ? "refused" : ref === `${kind}.abandoned` ? "abandoned"
       : ref === `${kind}.escalated` ? "escalated" : ref === `${kind}.recovery_intended` ? "recovery_intended"
       : b.outcomes.includes(ref) ? "outcome" : null;                                                               // journal 4: an outcome by membership in the enumerated refs
     if (!role || typeof p.invocation_id !== "string" || typeof p.act_key !== "string") return null;
@@ -155,6 +265,8 @@ export class RecoverableInvocation {
       supersedes: typeof p.supersedes === "string" ? p.supersedes : null,
       recovery: p.recovery === true,
       resolving_actor: typeof p.resolving_actor === "string" ? p.resolving_actor : null,
+      actor_ref: typeof d?.actor_ref === "string" ? d.actor_ref : "",
+      payload: p,
       role,
     };
   }
@@ -176,13 +288,14 @@ export class RecoverableInvocation {
     }
     if (!Array.isArray(read)) {
       this.cfg.compliance.surface({ arm: "invalid-query" });                                                        // Capability requirement 4, 5: surfaced, never retried unchanged
-      throw new ReadFailed("invalid-query");
+      throw new ReadFailed("invalid-query", true);
     }
     for (const ev of read) {
       if (this.seen.has(ev.event_id)) continue;                                                                     // a record re-read above an unsettled mark is read once
       const rec = this.classify(ev);
       this.seen.add(ev.event_id);
       if (!rec) continue;
+      if ((rec.role === "outcome" && rec.recovery && !rec.resolving_actor) || (rec.role === "escalated" && !rec.resolving_actor)) this.sweepClosed.add(rec.invocation_id);   // Term sweep closed ids
       (this.byAct.get(actKey(rec.kind, rec.act_key)) ?? this.byAct.set(actKey(rec.kind, rec.act_key), []).get(actKey(rec.kind, rec.act_key))!).push(rec);
       (this.byInvocation.get(rec.invocation_id) ?? this.byInvocation.set(rec.invocation_id, []).get(rec.invocation_id)!).push(rec);
     }
@@ -242,7 +355,7 @@ export class RecoverableInvocation {
    */
   private async write(ref: string, actor_ref: string, credential: string, payload: Record<string, unknown>, invocation_id: string):
     Promise<{ t: "landed"; event_id: string; alert: boolean } | { t: "invalid-credential" } | { t: "invalid-request" } | { t: "invalid-request-step-4" }
-      | { t: "retry" } | { t: "lost-nothing" } | { t: "readback-failed" }> {
+      | { t: "retry" } | { t: "lost-nothing"; step3: boolean } | { t: "readback-failed" }> {
     const issued = this.ms(this.seam.now());
     const markAtIssue = this.mark;
     let a: JournalAnswer;
@@ -260,7 +373,7 @@ export class RecoverableInvocation {
     if (lost) {
       const found = await readBack();
       if (found === "failed") return { t: "readback-failed" };                                                      // read path: the position's recording-failure arm
-      return found ? { t: "landed", event_id: found.event_id, alert: false } : { t: "lost-nothing" };                // Primitive policy 36, 37b
+      return found ? { t: "landed", event_id: found.event_id, alert: false } : { t: "lost-nothing", step3: typeof a === "object" };   // Primitive policy 36, 37b; a recording-failure(step-3) is told from no answer at the sweep (reconcile step 3.22)
     }
     const r = a as RecordRefusal;
     if (r.refused === "invalid-credential") return { t: "invalid-credential" };
@@ -420,6 +533,207 @@ export class RecoverableInvocation {
     return (await this.release(kind, act_key, invocation_id)) ? "ok" : { refused: "storage-failure" };
   }
 
+  // ----- [Reconcile] ---------------------------------------------------------------------------------------
+
+  /** One sweep write at the outcome position (reconcile step 3.15): each issue behind a reading of its own (journal write bound 1), a retry under the section to the terminus at most (Primitive policy 29, reconcile step 3.17). */
+  private async sweepWrite(kind: string, key: string, holder: string, invocation_id: string, ref: string, payload: Record<string, unknown>):
+    Promise<{ t: "landed"; event_id: string } | { t: "credential" } | { t: "unrecordable" } | { t: "later"; journal: boolean }> {
+    const b = this.cfg.bindings[kind];
+    let retried = false;
+    for (;;) {
+      if (!(await this.above(kind, key, holder, this.writeFloor))) return { t: "later", journal: retried };           // reconcile step 3.17: cut short, left for the next run; a retry that the lease cut is a recording-failure(step-2) left (3.22)
+      const w = await this.write(ref, b.serviceIdentity!, b.serviceCredential ?? "", payload, invocation_id);
+      switch (w.t) {
+        case "landed":
+          if (w.alert) this.cfg.compliance.hardAlert({ invocation_id, arm: "sweep-read-back" });                      // reconcile step 3.16, Primitive policy 28: success with a hard alert
+          return { t: "landed", event_id: w.event_id };
+        case "invalid-credential": return { t: "credential" };                                                       // reconcile step 3.18
+        case "invalid-request": return { t: "unrecordable" };                                                        // reconcile step 3.20; Primitive policy 43: no retry
+        case "invalid-request-step-4":
+          this.cfg.compliance.hardAlert({ invocation_id, arm: "invalid-request-step-4" });                           // Primitive policy 40: a hard alert, the act left for the next run
+          return { t: "later", journal: false };
+        case "retry": retried = true; continue;                                                                      // Primitive policy 29, 44, 45
+        case "lost-nothing": return { t: "later", journal: w.step3 };                                                // Primitive policy 37b; reconcile step 3.22 names recording-failure(step-3) alone
+        case "readback-failed": return { t: "later", journal: false };                                               // Capability requirement 6: the position's arm
+      }
+    }
+  }
+
+  /** The adopter's act probe; a rejection or no answer is unavailable (act probe 4, 5). A kind with none bound reads as unavailable (Invariant 5.10). */
+  private async probe(b: KindBinding, act_key: string, intent_payload: Record<string, unknown>): Promise<ProbeAnswer> {
+    try { return b.actProbe ? await b.actProbe(act_key, intent_payload) : { answer: "unavailable" }; } catch { return { answer: "unavailable" }; }
+  }
+
+  /**
+   * The sweep, once per node at a time (run bound 1). It reads now once (Primitive policy 18), rebuilds from the range read (sequence
+   * high water 4), keeps every aged intent of a served kind short of its horizon edge, and examines each under the act's critical section.
+   */
+  reconcile(): Promise<Tally | { refused: "journal-unavailable" } | "no-answer"> {
+    if (!this.cfg.sweep) throw new Error("this instance runs no sweep: no sweep bounds were given");
+    if (this.runInFlight) return this.runInFlight;                                                                  // run bound 1
+    const run = this.run().finally(() => { this.runInFlight = null; });
+    this.runInFlight = run;
+    return run;
+  }
+
+  private async run(): Promise<Tally | { refused: "journal-unavailable" } | "no-answer"> {
+    const sw = this.cfg.sweep!;
+    const allow = this.cfg.clockAllowanceMs;
+    const run_id = this.seam.idMaterial();                                                                          // Term run id: fresh for every run
+    const reading: RunReading = { run_id, at: this.seam.now() };                                                    // Primitive policy 18: now once, at the sweep's own seam
+    const now = this.ms(reading.at);
+    const tally: Tally = { examined: 0, closed: 0, escalated: 0, reported: 0, skipped: 0, closed_already: 0, surfaced: 0, unreached: 0 };
+    const sweepLease = sw.closureLatencyMs + this.cfg.journalWriteBoundMs;                                          // Term sweep lease
+    const seen = new Map<string, [FindingName, string | null]>();                                                   // the instance findings whose condition the run saw
+    const gone = new Map<string, [FindingName, string | null]>();                                                   // ... and those whose condition read answered that it does not stand
+    const mark = (m: Map<string, [FindingName, string | null]>, f: FindingName, kind: string | null) => m.set(JSON.stringify([f, kind]), [f, kind]);
+    const safe = (f: () => void) => { try { f(); } catch { /* findings 3: a surfacing that fails never rejects a run that has landed closings */ } };
+    const closeOutRegister = () => {
+      for (const [f, kind] of seen.values()) safe(() => this.register.instance(f, kind, reading));                  // findings 9: the run still sees the condition
+      for (const [k, [f, kind]] of gone) if (!seen.has(k)) safe(() => this.register.close(f, kind));                // findings 10a; a run with no condition read leaves the record (10b)
+    };
+
+    // Step 1: enumerate between two edges (reconcile 1; reconcile step 1.1 to 1.7).
+    const rebuilding = this.rebuild(false);                                                                         // a read outside the critical section is not bounded (Term read path)
+    rebuilding.catch(() => {});                                                                                     // a read that outlives run bound 2 is not an unhandled rejection
+    const wait = sw.wait ?? ((ms: number) => new Promise<void>((r) => setTimeout(r, ms)));
+    try {
+      const first = await Promise.race([rebuilding.then(() => "read" as const), wait(sw.runBoundMs).then(() => "stalled" as const)]);
+      if (first === "stalled") return "no-answer";                                                                  // run bound 2: no answer to give, nothing written
+    } catch (e) {
+      if (!(e instanceof ReadFailed)) throw e;
+      if (!e.invalidQuery) mark(seen, "journal-unavailable", null);                                                 // reconcile 1b; Capability requirement 14: an invalid-query opens no outage finding
+      closeOutRegister();
+      return { refused: "journal-unavailable" };                                                                    // reconcile 1a, 1c: nothing written
+    }
+    mark(gone, "journal-unavailable", null);                                                                        // the enumeration's answer is the condition read (Term condition read)
+    const maxRetention = Math.max(...Object.values(this.cfg.bindings).map((b) => b.retentionPeriodMs));
+    const kept: Rec[] = [];
+    for (const recs of this.byInvocation.values()) {
+      for (const r of recs) {
+        if (r.role === "unbound-intent") {                                                                          // reconcile step 1.6, Binding 4 to 6
+          if (recs.some((x) => x.role === "unbound-named")) continue;
+          if (this.ms(r.recorded_at) + maxRetention <= now) continue;                                               // Binding 6: the pass is bounded by the instance's longest retention period
+          tally.surfaced++;                                                                                         // reconcile step 1.7
+          this.cfg.compliance.surface({ arm: "unbound-kind", kind: r.kind, act_key: r.act_key, invocation_id: r.invocation_id });
+          safe(() => this.register.act("unbound-kind", r.kind, r.act_key, r.invocation_id, reading));
+          continue;
+        }
+        if (r.role !== "intent" || this.standing(r.invocation_id) || this.sweepClosed.has(r.invocation_id)) continue;
+        const b = this.cfg.bindings[r.kind];
+        const aged = this.ms(r.recorded_at) + b.invocationCompletionBoundMs + allow <= now;                         // Term aged (Invariant 7.1)
+        const horizonEdge = this.ms(r.recorded_at) + b.retentionPeriodMs - allow - sw.runBoundMs;                   // Term horizon edge (Invariant 7.2)
+        if (aged && now < horizonEdge) kept.push(r);                                                                // reconcile step 1.2, 1.3
+      }
+    }
+    kept.sort((a, c) => a.seq - c.seq);
+    for (const r of kept) if (this.cfg.bindings[r.kind].serviceIdentity === null) {
+      this.cfg.compliance.surface({ arm: "aged-open-intent", kind: r.kind, act_key: r.act_key, invocation_id: r.invocation_id });   // service identity 1b
+    }
+
+    const landed = new Set<string>();                                                                               // the invocation ids whose closing stands at the end of the run
+    const unreachedKinds = new Set<string>();
+
+    const credentialRefused = (rec: Rec) => {
+      this.cfg.compliance.hardAlert({ invocation_id: rec.invocation_id, arm: "credential-refused" });               // reconcile step 3.18: at once
+      mark(seen, "credential-refused", rec.kind);                                                                   // reconcile step 3.24a
+      unreachedKinds.add(rec.kind);                                                                                 // reconcile step 3.19, 2.1, 2.8: nothing more under the credential until reconfigured
+      for (const k of kept) if (k.kind === rec.kind) safe(() => this.register.act("closure-at-risk", k.kind, k.act_key, k.invocation_id, reading));   // reconcile step 3.24b
+    };
+
+    /** A closing the sweep writes as `<kind>.escalated`: the cause and what the database named. */
+    const escalate = async (rec: Rec, holder: string, extra: Record<string, unknown>): Promise<"escalated" | "skipped"> => {
+      const r = await this.sweepWrite(rec.kind, rec.act_key, holder, rec.invocation_id, `${rec.kind}.escalated`, { invocation_id: rec.invocation_id, intent_event_id: rec.event_id, kind: rec.kind, act_key: rec.act_key, ...extra });
+      if (r.t === "landed") {
+        this.sweepClosed.add(rec.invocation_id); landed.add(rec.invocation_id);
+        mark(gone, "credential-refused", rec.kind);
+        safe(() => this.register.act("escalated", rec.kind, rec.act_key, rec.invocation_id, reading));              // reconcile step 3.21
+        return "escalated";
+      }
+      if (r.t === "credential") credentialRefused(rec);
+      else if (r.t === "unrecordable") this.cfg.compliance.hardAlert({ invocation_id: rec.invocation_id, arm: "escalation-unrecordable" });   // reconcile step 3.23: left for the next run with a hard alert
+      else if (r.journal) mark(seen, "journal-unavailable", null);                                                  // reconcile step 3.22
+      return "skipped";
+    };
+
+    /** Steps 2 and 3 for one act, under its critical section; the caller releases (step 4.4). */
+    const examine = async (rec: Rec, holder: string): Promise<"closed" | "escalated" | "reported" | "skipped" | "closed_already"> => {
+      const b = this.cfg.bindings[rec.kind];
+      try { await this.refresh(); } catch (e) {                                                                     // reconcile step 2.4
+        if (!(e instanceof ReadFailed)) throw e;
+        if (!e.invalidQuery) mark(seen, "journal-unavailable", null);                                               // reconcile step 2.10d
+        return "skipped";                                                                                           // reconcile step 2.10a to 2.10c: nothing written, released
+      }
+      if (this.standing(rec.invocation_id) || this.sweepClosed.has(rec.invocation_id)) { landed.add(rec.invocation_id); return "closed_already"; }   // reconcile step 2.5, 2.6; sweep closed ids 1
+      if (!(await this.above(rec.kind, rec.act_key, holder, this.writeFloor))) return "skipped";                    // reconcile step 2.7, 2.11: the reading comes before the act probe
+      const probe = await this.probe(b, rec.act_key, rec.payload);                                                  // reconcile step 3.1; reconcile 2b under none
+      if (probe.answer === "unavailable") { mark(seen, "store-unavailable", rec.kind); return "skipped"; }          // reconcile step 3.13; under none the closure table's row lands the same (open line 2026-11-07-d)
+      if (b.serviceIdentity === null) {
+        this.cfg.compliance.surface({ arm: "reported", kind: rec.kind, act_key: rec.act_key, invocation_id: rec.invocation_id, detail: probe });   // reconcile 2e: the result reported, nothing written (2d)
+        return "reported";                                                                                          // reconcile 2f
+      }
+      mark(gone, "store-unavailable", rec.kind);                                                                    // the act probe's answer is the condition read (Term condition read)
+      if (probe.answer === "not-committed") return escalate(rec, holder, { cause: "not-observed" });               // reconcile step 3.5; 3.7: the sweep never re-runs an act
+      if (probe.answer === "undecidable") {                                                                         // reconcile step 3.8 to 3.12: candidates named, none chosen, no outcome written
+        const over = probe.candidates.length > this.cfg.intentCandidatesCap;
+        return escalate(rec, holder, {
+          cause: "undecidable",
+          database_candidates: probe.candidates.slice(0, this.cfg.intentCandidatesCap),                             // reconcile step 3.9
+          ...(over ? { candidates_count: probe.candidates.length, candidates_range: { first: probe.candidates[0], last: probe.candidates[probe.candidates.length - 1] } } : {}),   // reconcile step 3.10
+        });
+      }
+      if (!b.outcomes.includes(probe.outcome_action_ref)) {                                                         // act probe 9 broken by the adopter's probe: nothing written, a fault of the build surfaced
+        this.cfg.compliance.surface({ arm: "probe-outcome-not-enumerated", kind: rec.kind, act_key: rec.act_key, invocation_id: rec.invocation_id });
+        return "skipped";
+      }
+      const intended = await this.sweepWrite(rec.kind, rec.act_key, holder, rec.invocation_id, `${rec.kind}.recovery_intended`,   // reconcile step 3.2a, Invariant 5.1
+        { invocation_id: rec.invocation_id, intent_event_id: rec.event_id, kind: rec.kind, act_key: rec.act_key, plan: "outcome" });
+      const closing = intended.t === "landed"
+        ? await this.sweepWrite(rec.kind, rec.act_key, holder, rec.invocation_id, probe.outcome_action_ref,         // reconcile step 3.2b
+            { invocation_id: rec.invocation_id, intent_event_id: rec.event_id, kind: rec.kind, act_key: rec.act_key, data: probe.outcome_data, recovery: true, acting_actor_ref: rec.actor_ref })   // Invariant 5.2, 5.3
+        : intended;
+      if (closing.t === "landed") {
+        this.sweepClosed.add(rec.invocation_id); landed.add(rec.invocation_id);                                     // reconcile step 4.3
+        mark(gone, "credential-refused", rec.kind);
+        return "closed";                                                                                            // reconcile step 3.2c
+      }
+      if (closing.t === "credential") { credentialRefused(rec); return "skipped"; }
+      if (closing.t === "unrecordable") return escalate(rec, holder, { cause: "outcome-unrecordable" });            // reconcile step 3.20
+      if (closing.journal) mark(seen, "journal-unavailable", null);                                                 // reconcile step 3.22
+      return "skipped";                                                                                             // reconcile step 3.17
+    };
+
+    for (const rec of kept) {
+      if (unreachedKinds.has(rec.kind)) { tally.unreached++; continue; }                                            // reconcile step 2.1, 2.8, 2.9
+      tally.examined++;
+      const holder = `${run_id}:${rec.invocation_id}`;                                                              // Term critical section holder
+      let took: Awaited<ReturnType<LeaseHost["take"]>>;
+      try { took = await this.cfg.actSection.take(actKey(rec.kind, rec.act_key), holder, sweepLease); }             // reconcile step 2.1
+      catch { tally.skipped++; continue; }                                                                          // reconcile step 2.3, 9: a failed take, no answer included, nothing written
+      if (took === "unavailable") { tally.skipped++; continue; }
+      let count = await examine(rec, holder);
+      if (!(await this.release(rec.kind, rec.act_key, holder))) count = "skipped";                                  // reconcile step 4.4; reconcile 9
+      tally[count]++;
+      if (count === "closed" || count === "escalated") { try { await this.refresh(); } catch (e) { if (!(e instanceof ReadFailed)) throw e; } }   // reconcile step 4.1 to 4.3
+    }
+
+    // Step 5: liveness.
+    const atRisk = sw.closureWindowMs - 2 * sw.runBoundMs - sw.sweepCadenceMs - allow;                             // Term at risk threshold
+    for (const rec of kept) {
+      if (landed.has(rec.invocation_id) || atRisk > now - this.ms(rec.recorded_at)) continue;                       // reconcile step 5.1: an examined, skipped or unreached intent whose closing has not landed
+      safe(() => this.register.act("closure-at-risk", rec.kind, rec.act_key, rec.invocation_id, reading));
+    }
+    for (const recs of this.byInvocation.values()) {                                                                // reconcile step 5.9: an escalation still standing near the horizon
+      const intent = recs.find((r) => r.role === "intent");
+      const b = intent ? this.cfg.bindings[intent.kind] : undefined;
+      if (!intent || !b || this.standing(intent.invocation_id)?.role !== "escalated") continue;
+      const settlingEdge = this.ms(intent.recorded_at) + b.retentionPeriodMs - allow - sw.runBoundMs - (b.settlingPeriodMs ?? 0);   // Term settling edge
+      if (now >= settlingEdge) safe(() => this.register.act("closure-at-risk", intent.kind, intent.act_key, intent.invocation_id, reading));
+    }
+    closeOutRegister();
+    return tally;                                                                                                   // reconcile step 5.8
+  }
+
   // ----- reads for the tests and the next parts ------------------------------------------------------------
 
   /** The open intents at (kind, act key) as the local maps hold them, after re-reading the delta. */
@@ -429,9 +743,9 @@ export class RecoverableInvocation {
   }
   get sequenceHighWater(): number { return this.mark; }
   /** sequence high water 3, 6: a full rebuild from the log's beginning. */
-  async rebuild(): Promise<void> {
-    this.mark = 0; this.seen.clear(); this.byAct.clear(); this.byInvocation.clear(); this.cleared.clear();
-    await this.refresh();
+  async rebuild(bounded = true): Promise<void> {
+    this.mark = 0; this.seen.clear(); this.byAct.clear(); this.byInvocation.clear(); this.cleared.clear(); this.sweepClosed.clear();
+    await this.refresh(1, bounded);
   }
 }
 
