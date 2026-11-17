@@ -100,7 +100,7 @@ An invitation lasts seven days [live; plan]. A session lasts seven days [live; S
 
 ## What each action writes to the audit trail
 
-Every action that changes something writes its event in the same transaction as the change: either both are written or neither [Section 8.13 of the plan]. The events, as the live render writes them [live, which differs from Section 6 of the plan where marked]:
+Every action that changes something writes its event in the same transaction as the change: either both are written or neither [Section 8.13 of the plan]. The events, as the live render writes them [live, which differs from Section 6 of the plan where marked]. The three that begin `beacon.` are named so because Audit Trail reserves every action reference that begins `audit.` for its own reconciliation (Audit Trail Primitive policy 7 to 9), so the live render's `audit.viewed` and `audit.exported` cannot be written by an action; the retention switch's event is mine, since an action that changes something writes one [decided here]:
 
 | Event | When | Target | Payload |
 |---|---|---|---|
@@ -117,10 +117,11 @@ Every action that changes something writes its event in the same transaction as 
 | `grant.revoked` | a permission is taken away | the grant | reason; one event for each grant taken |
 | `subject.enrolled` | a subject is enrolled | the subject | study, code |
 | `visit.recorded` | a visit is recorded | the visit | subject, kind |
-| `audit.viewed` | the audit page is opened | audit | filters, scope, result count |
-| `audit.exported` | the export is made | audit | row count, scope |
+| `beacon.audit_viewed` | the audit page is opened | audit | filters, scope, result count (the events there before this one) |
+| `beacon.retention_switched` | the retention switch is turned on or off (a person who holds `view_audit`) | audit | `on` or `off`, the days |
+| `beacon.audit_exported` | the export is made | audit | row count, scope |
 
-Each event carries the actor and the session that made it where there is one, and a hash that covers the event and the hash before it; the first event's earlier hash is empty. The hash is SHA-256 over the event's fields written as canonical JSON (keys in order, no spaces, nulls kept) [Section 6 of the plan]. Retention filters what the page shows and **never deletes** an event [Sections 6 and 8.6 of the plan]; the setting is 2555 days, seven years, and **starts off** so the whole chain is visible, with a switch on the audit page [Section 8.6 of the plan; the live seed's `ensureDefault` starts it on, which the comparison reports].
+**No screen shows a session token.** Login writes each session's token into its `login_succeeded` event, and the token is what the cookie holds, so a person who read it off the audit page could sign in as the person it names. The audit page, and the export, show `[withheld]` in place of the value of any field named `session_token` [decided here, and a defect of Login for Scott: see the entry of 2026-11-17 on part 34]. Each event carries the actor and the session that made it where there is one, and a hash that covers the event and the hash before it; the first event's earlier hash is empty. The hash is SHA-256 over the event's fields written as canonical JSON (keys in order, no spaces, nulls kept) [Section 6 of the plan]. Retention filters what the page shows and **never deletes** an event [Sections 6 and 8.6 of the plan]; the setting is 2555 days, seven years, and **starts off** so the whole chain is visible, with a switch on the audit page [Section 8.6 of the plan; the live seed's `ensureDefault` starts it on, which the comparison reports].
 
 ## The data a render starts from
 

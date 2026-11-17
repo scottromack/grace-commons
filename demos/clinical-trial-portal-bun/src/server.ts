@@ -1,4 +1,4 @@
-// Beacon's pages: the front page, sign in and sign out, accepting an invitation, the dashboard, the "Access denied" page, and the subjects (the list, Enroll Subject, a subject and Record Visit).
+// Beacon's pages: the front page, sign in and sign out, accepting an invitation, the dashboard, the Audit Trail page and its retention switch, the "Access denied" page, and the subjects (the list, Enroll Subject, a subject and Record Visit).
 // Built from SPEC.md (The screens; People & Permissions' words; The permissions) with Hono, the stack STACK.md pins. Every screen is a page the server
 // draws and every action works with no script running in the browser (SPEC.md, The screens): forms post, the server answers with a page or a redirect.
 //
@@ -9,6 +9,7 @@ import { getCookie, setCookie, deleteCookie } from "hono/cookie";
 import { type Beacon, SEED, INVITATION_WORDS, MIN_PASSWORD } from "./beacon.ts";
 import { PERMISSIONS, VISIT_KINDS, MESSAGES, type PermissionCode, type Refusal, type SubjectView, type VisitView } from "./beacon_domain.ts";
 import { type PersonView } from "./beacon_people.ts";
+import { type AuditRow, RETENTION_DAYS } from "./beacon_audit.ts";
 
 export const COOKIE = "beacon_session";
 export const SESSION_SECONDS = 7 * 86_400;
@@ -194,6 +195,33 @@ export function buildApp(beacon: Beacon, o: { secureCookie?: boolean } = {}): Ho
     }
     setCookie(c, COOKIE, r.session_token, { httpOnly: true, sameSite: "Lax", path: "/", maxAge: SESSION_SECONDS, secure: o.secureCookie ?? false });   // accepting signs the person in
     return c.redirect("/dashboard", 302);                                                                             // and sends the person to the dashboard
+  });
+
+  // ---- Audit Trail (SPEC.md, The screens, Audit Trail) ---------------------------------------------------------------------------
+
+  const auditPage = async (c: Ctx): Promise<Response> => {
+    const { person } = c.get("me");
+    const q = (k: string) => c.req.query(k) ?? "";
+    const r = await beacon.audits.view(person.actor_ref, beacon.keyOf(c.get("token")) ?? "", { action: q("action"), from: q("from"), to: q("to") });
+    if ("refused" in r) return r.refused === "invalid-request" && r.message ? c.html(page("Audit Trail", `<h1>Audit Trail</h1><p class="error" role="alert">${esc(r.message)}</p><p><a href="/audit">Back to the audit trail</a></p>`, person), 400) : refuse(c, r, person, "/dashboard");
+    const row = (e: AuditRow) => `<tr><td>${e.number}</td><td>${esc(when(e.recorded_at))}</td><td>${esc(e.action)}</td><td>${esc(e.target)}</td><td>${esc(e.actor)}</td><td><code>${esc(e.payload)}</code></td></tr>`;
+    const opt = (a: string) => `<option value="${esc(a)}"${a === r.filters.action ? " selected" : ""}>${esc(a)}</option>`;
+    const body = `<h1>Audit Trail</h1><p class="muted">${r.scope === "all" ? "Everyone's events." : "Your own events."}</p>
+<form method="get" action="/audit"><label for="action">Action</label><select id="action" name="action"><option value="">All actions</option>${r.actions.map(opt).join("")}</select>
+<label for="from">From (date)</label><input id="from" name="from" type="date" value="${esc(r.filters.from ?? "")}"><label for="to">To (date)</label><input id="to" name="to" type="date" value="${esc(r.filters.to ?? "")}"><button type="submit">Filter</button></form>
+<form method="post" action="/audit/retention"><p>Retention window: <strong>${r.retention_on ? `on, the last ${RETENTION_DAYS} days` : "off, every event is shown"}</strong>. It hides events from this page and never deletes one.</p>
+<input type="hidden" name="on" value="${r.retention_on ? "false" : "true"}"><button type="submit">Turn the retention window ${r.retention_on ? "off" : "on"}</button></form>
+${r.rows.length ? `<table><thead><tr><th>#</th><th>Time</th><th>Action</th><th>Target</th><th>Actor</th><th>Payload</th></tr></thead><tbody>${r.rows.map(row).join("")}</tbody></table>` : "<p>No events match.</p>"}<p><a href="/dashboard">Back to the dashboard</a></p>`;
+    return c.html(page("Audit Trail", body, person));
+  };
+  app.get("/audit", signedIn, (c) => auditPage(c));
+
+  app.post("/audit/retention", signedIn, async (c) => {
+    const { person } = c.get("me");
+    const f = await c.req.parseBody();
+    const r = await beacon.audits.setRetention(person.actor_ref, beacon.keyOf(c.get("token")) ?? "", f.on === "true");
+    if ("refused" in r) return refuse(c, r, person, "/audit");
+    return c.redirect("/audit", 302);
   });
 
   return app;

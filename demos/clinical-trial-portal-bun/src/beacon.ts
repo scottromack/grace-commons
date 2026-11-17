@@ -27,6 +27,7 @@ import { AttributedPermissionsAdmin } from "./attributed_permissions_admin.ts";
 import { SessionGatedAuthorization } from "./session_gated_authorization.ts";
 import { BeaconDomain, PERMISSIONS, type PermissionCode, type Refusal as DomainRefusal } from "./beacon_domain.ts";
 import { People, SessionKeys, normalEmail, type PersonView } from "./beacon_people.ts";
+import { BeaconAudit } from "./beacon_audit.ts";
 
 const DAY = 86_400_000;
 /** The seven days an invitation and a session last (SPEC.md, People & Permissions). */
@@ -84,7 +85,7 @@ export class Beacon {
     readonly seam: Seam, readonly store: Store, readonly people: People, readonly keys: SessionKeys, readonly permissions: Permissions, readonly credentials: Credential,
     readonly session: Session, readonly login: Login, readonly gate: SessionGatedAuthorization, readonly audit: AuditTrail, readonly log: EventLog, readonly actors: ActorIdentity,
     readonly parties: PartyIdentity, readonly invitations: Invitation, readonly onboarding: ExternalOnboarding, readonly admin: AttributedPermissionsAdmin, readonly domain: BeaconDomain,
-    readonly ri: RecoverableInvocation, readonly trail: Trail, private readonly service: { actor_ref: string; credential: string },
+    readonly ri: RecoverableInvocation, readonly trail: Trail, readonly audits: BeaconAudit, private readonly service: { actor_ref: string; credential: string },
   ) {}
 
   static async open(store: Store, o: BeaconOptions = {}): Promise<Beacon> {
@@ -127,7 +128,8 @@ export class Beacon {
     });
     const admin = await AttributedPermissionsAdmin.open(store, seam, { permissions, actors }, { namespacePrefix: "beacon:", clockOffsetAllowanceMs: 50, retentionHorizonMs: RETENTION_MS });
     const domain = await BeaconDomain.open(store, seam, { permissions, trail }, { prefix });
-    return new Beacon(seam, store, people, new SessionKeys(() => Date.parse(seam.now())), permissions, credentials, session, login, gate, audit, log, actors, parties, invitations, onboarding, admin, domain, ri, trail, service);
+    const audits = await BeaconAudit.open(store, seam, { log, trail, people, domain }, { prefix, serviceName: (ref) => (ref === service.actor_ref ? "Beacon" : null) });
+    return new Beacon(seam, store, people, new SessionKeys(() => Date.parse(seam.now())), permissions, credentials, session, login, gate, audit, log, actors, parties, invitations, onboarding, admin, domain, ri, trail, audits, service);
   }
 
   /** A render starts from its seed and nothing else (SPEC.md): the two accounts, their permissions. Run again, it makes nothing twice. */
