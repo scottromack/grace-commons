@@ -108,3 +108,35 @@ test("Verify record 1, 4, step 2.2: an event that has no retention record and no
   expect(await w.at.verifyRecord("no-such-event", [])).toBe("not-known");
   expect(await w.at.verifyRecord(a, await w.payloads(1, 1))).toEqual({ outcome: "verified" });                // no `qualifier` key: the compensation window is the orphan case, untested here (named in the entry)
 });
+
+test("Seal now 15, 16, 22, 23: the uncovered mark is set with this seal's holder before the seal call and cleared by a compare after the coverage landed; its history shows both", async () => {
+  const w = await world();
+  await w.record(2);
+  await w.at.sealNow();
+  const versions = await store.history("uncovered_mark", `mark:${w.log.logName}`);
+  expect(versions.map((v) => v.state)).toEqual(["set", "clear"]);
+  expect(versions[0].holder).toBe(versions[1].holder);
+});
+
+test("Verify record step 3.2: an attestation whose proof no longer holds is failed-verification prefixed attestation-, and the seal is not consulted (no covering seal needed)", async () => {
+  const w = await world();
+  const [a] = await w.record(1);
+  const ev = (await w.log.read({ sequence: { from: 1, to: 1 } })) as { data: { attestation_id: string } }[];
+  const id = ev[0].data.attestation_id;
+  const row = (await store.read<Record<string, string>>(`SELECT * FROM attestations WHERE _id = $1`, [id]))[0];
+  await store.commit([store.put("attestations", { ...row, _id: id, action_ref: "forged.action" } as never)]);
+  expect(await w.at.verifyRecord(a, [])).toEqual({ outcome: { failed: "attestation-proof-invalid" } });
+});
+
+test("Seal now 20: where the sealing lock cannot be taken (the take answers unavailable) the seal answers recording-failure and seals nothing", async () => {
+  const w = await world();
+  await w.record(2);
+  const sealing = (w.at as unknown as { cfg: { sealing: { lease: unknown } } }).cfg.sealing;
+  const real = sealing.lease;
+  sealing.lease = { take: async () => "unavailable", remaining: async () => ({ remaining_ms: 1000 }), release: async () => "not-held" };
+  try {
+    const before = (await w.tamper.read()).length;
+    expect(await w.at.sealNow()).toEqual({ refused: "recording-failure" });
+    expect((await w.tamper.read()).length).toBe(before);
+  } finally { sealing.lease = real; }
+});
