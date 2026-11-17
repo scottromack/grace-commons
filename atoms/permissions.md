@@ -86,7 +86,7 @@ Term revocation instant: the instant the grant was withdrawn — a [Revocation I
 
 ```
 Capability requirement 1: The deployment MUST supply now at the seam.
-Capability requirement 4: The deployment MUST supply the grant records PER Execution Contract Database 1 through 4, Execution Contract Database 6, Execution Contract Read 1 through 6, Execution Contract Refusal 1 and Execution Contract Conformance 9.
+Capability requirement 4: The deployment MUST supply the grant records PER Execution Contract Database 1 through 7, Execution Contract Read 1 through 6, Execution Contract Refusal 1 and Execution Contract Conformance 9.
 Capability requirement 5: The deployment MAY declare the string cap PER Execution Contract Input 2.
 Capability requirement 6: The deployment MUST NOT change the string cap for the life of the instance.
 ```
@@ -350,7 +350,7 @@ Deprovisioning 5: A composing pattern MUST record a subject's deprovisioning ONL
 ### Grant concurrency and revoke concurrency
 
 ```
-Grant concurrency 1: Two concurrent [Grant] calls on one pair MUST record EXACTLY ONE grant (Execution Contract Database 2).
+Grant concurrency 1: IF no active grant matches the pair THEN two concurrent [Grant] calls on the pair MUST record EXACTLY ONE grant (Execution Contract Database 2).
 ```
 
 ### Revoke persistence failure
@@ -600,14 +600,14 @@ It inherits from:
 
 ## Status
 
-`done — 2026-11-16` — see the Ledger.
+`done — 2026-11-17` — see the Ledger.
 
 ## Ledger
 
 ```
-status: done — 2026-11-16
+status: done — 2026-11-17
 formal: pending — permissions.als + 10 twins and permissions.tla + 23 twins (verified 2026-11-12) model the rule of 2026-11-16 reversed: Identity 7 and Operation 6 as they stood (the checked property Op6_CoveredPairGranted, broken by the twin permissions-buggy-grant-refuses-covered) and Grant concurrency 1 as it stood (two grants for two concurrent calls); owed over Identity 7, Invariant 11.1, Operation 1, 33 and 34 and Grant concurrency 1, with the twins the rule makes equivalent retired or replaced (permissions-buggy-check-latest-grant-only reads one grant per pair) and tools/harness/coverage/permissions.md's rows for Identity 7 and Grant concurrency 1 rewritten with them
-last gate: 2026-11-16 — Final Critique 11, a delta round, frozen at 174c4060 — foundational count 0 after the blind second triage, clean, one sample
+last gate: 2026-11-17 — Final Critique 12, a delta round, frozen at db491965 — foundational count 0 after the blind second triage, clean, no sample
 
 open:
 - 2026-10-21-c · refining · Revoke persistence 2, 4 · the caller's retry of a refused revoke names no terminus (Pass 1: every retry loop names its terminus), and the deployment that raises the alert is declared only as an alias of the deployment → name the bound at which the caller stops and what it raises there; say which deployments alert
