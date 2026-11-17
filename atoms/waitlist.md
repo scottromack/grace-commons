@@ -58,7 +58,7 @@ Term spot: one person's place on a waitlist, with the join number that orders th
 
 Term waitlist id: the opaque value naming one waitlist — a [Waitlist Id]; unique for the system's life.
 
-Term spot id: the opaque value naming one spot — a [Spot Id]; unique for the system's life and drawn at random, so no one can guess another person's spot, as [Capability](./capability.md) draws a token; a person who joins again gets a new spot id.
+Term spot id: the opaque value naming one spot — a [Spot Id]; unique for the system's life and drawn at random, so no one can guess another person's spot id, as [Capability](./capability.md) draws a token, though the id is no protection of the spot, which a caller's authority protects (Non-goal 9, Non-goal 10); a person who joins again gets a new spot id.
 
 Term offering reference: the value naming what a waitlist is for — a class, an earlier appointment, a sold-out item in one size — in the deployment's own scheme — an [Offering Reference]; the atom reads nothing in it.
 
@@ -168,7 +168,7 @@ Operation 13: [Join] MUST stamp join instant from the injected now.
 Operation 14: [Join] MUST stand the spot in waiting.
 Operation 15: [Join] MUST answer the spot id.
 Operation 16: IF no spot EXISTS for the spot id THEN a spot action MUST answer not-known.
-Operation 17: IF the spot state DOES NOT EQUAL waiting THEN [Leave] MUST answer not-waiting.
+Operation 17: IF a spot EXISTS for the spot id AND the spot state DOES NOT EQUAL waiting THEN [Leave] MUST answer not-waiting.
 Operation 18: [Leave] MUST stand the spot in left.
 Operation 19: [Leave] MUST answer ok.
 Operation 20: IF the waitlist state EQUALS closed THEN [Call Next] MUST answer waitlist-closed.
@@ -379,7 +379,7 @@ Where the atom breaks down: a line ordered by anything but arrival, such as need
 
 ### Concurrency
 
-Two calls on one waitlist are serialized (Execution Contract Database 2). Two [Call Next] calls at one moment: the later reads the spot the earlier called and calls the next waiting spot, so no spot is called twice and none is passed over (Invariant 1.2, Invariant 4.1). Two [Start] calls for one offering: the later reads the waitlist the earlier recorded and answers its waitlist id (Operation 2, Invariant 6.1). Two [Join] calls for one person: the later answers [Already Waiting] (Invariant 2.1). A [Leave] racing a [Call Next] for the front spot: whichever lands first decides — a [Leave] that lands first leaves the spot, and the [Call Next] calls the spot behind; a [Call Next] that lands first calls the spot, and the [Leave] answers [Not Waiting]. A [Join] racing a [Close]: a [Join] that lands first records a waiting spot, which the [Close] then stands in unserved; a [Close] that lands first leaves the [Join] answering [Waitlist Closed] (Invariant 5.2).
+Two calls on one waitlist are serialized (Execution Contract Database 2). Two [Call Next] calls at one moment: the later reads the spot the earlier called and calls the next waiting spot, so no spot is called twice and none is passed over (Invariant 1.2, Invariant 4.1). Two [Start] calls for one offering: the later reads the waitlist the earlier recorded and answers its waitlist id (Execution Contract Database 2; Operation 2, Invariant 6.1). Two [Join] calls for one person: the later reads the spot the earlier recorded and answers [Already Waiting] (Execution Contract Database 2; Operation 10, Invariant 2.1). A [Leave] racing a [Call Next] for the front spot: whichever lands first decides — a [Leave] that lands first leaves the spot, and the [Call Next] calls the front spot then standing (Operation 22); a [Call Next] that lands first calls the spot, and the [Leave] answers [Not Waiting]. A [Join] racing a [Close]: a [Join] that lands first records a waiting spot, which the [Close] then stands in unserved; a [Close] that lands first leaves the [Join] answering [Waitlist Closed] (Invariant 5.2).
 
 ### Indeterminate outcome
 
@@ -391,7 +391,7 @@ A caller whose answer is lost may call again, and the repeat is a second call (E
 
 ### What undoes a write
 
-[Close] undoes [Start], standing the waitlist in closed, which takes no new spot (Operation 26); [Leave] undoes [Join], standing the spot in left (Operation 18). [Leave], [Call Next] and [Close] are final (Invariant 4.1, Invariant 5.1), so no undo is owed beyond them: a person who left or was called joins again at the back (Operation 11), and a waitlist closed by mistake is started again as a new waitlist (Operation 4) (Execution Contract Undo 4).
+[Close] undoes [Start], standing the waitlist in closed, which takes no new spot (Operation 26); [Leave] undoes [Join], standing the spot in left (Operation 18). [Leave], [Call Next] and [Close] are final (Invariant 4.1, Invariant 5.1), so no undo is owed beyond them: a person who left or was called joins again at the back (Operation 11, Operation 12), and a waitlist closed by mistake is started again as a new waitlist (Operation 4) (Execution Contract Undo 4).
 
 ## Composition notes
 
@@ -669,14 +669,14 @@ Any rule a school, a clinic or a shop must follow in running a waitlist binds th
 
 ## Status
 
-`doing` — see the Ledger.
+`done — 2026-11-17` — see the Ledger.
 
 ## Ledger
 
 ```
-status: doing
+status: done — 2026-11-17
 formal: pending — no model yet
-last gate: 2026-11-17 — Final Critique 1, full, frozen at e7a3151 — foundational count 5, cured, not clean, no sample
+last gate: 2026-11-17 — Final Critique 2, delta, frozen at 8d7d3b9 — foundational count 0, clean, one sample; 2026-11-17 — Final Critique 1, full, frozen at e7a3151 — foundational count 5, cured, not clean, no sample
 
 open: none
 ```
