@@ -4,6 +4,7 @@ import { Store } from "../src/store.ts";
 import { testSeam } from "../src/seam.ts";
 import { Beacon } from "../src/beacon.ts";
 import { Hono } from "hono";
+import { generateKeyPairSync } from "node:crypto";
 import { buildApp, COOKIE, esc, deniedPage, tilesFor, loginPage, denied } from "../src/server.ts";
 
 const store = new Store();
@@ -172,4 +173,182 @@ test("Output escaping: a name or a message that holds markup is written as text,
   expect(html).toContain("Welcome, &lt;b&gt;Eve&lt;/b&gt;");
   expect(html).not.toContain("<b>Eve</b>");
   expect(html).toContain("You do not hold a permission that opens a page yet.");
+});
+
+// ---- Subjects (SPEC.md, The study, subjects and visits; The screens: Subjects, Enroll Subject, A subject) ----------------------------
+
+const post = (w: W, path: string, cookie: string, f: Record<string, string>) => w.app.request(path, { ...form(f), headers: { "content-type": "application/x-www-form-urlencoded", cookie: `${COOKIE}=${cookie}` } });
+const enroll = async (w: W, cookie: string, notes = ""): Promise<string> => {
+  const r = await post(w, "/subjects/new", cookie, { notes });
+  expect(r.status).toBe(302);
+  return /^\/subjects\/(.+)$/.exec(r.headers.get("location")!)![1];
+};
+/** Jordan is given enrolling and recording by Anya, through the composition and Anya's held key: he sees only the subjects he enrolled. */
+const jordanGiven = async (w: W, ...codes: ("enroll_subject" | "record_visit")[]) => {
+  const t = ((await w.b.signIn("anya@beacon.clinical", "demo-pi")) as { session_token: string }).session_token;
+  const anya = (await w.b.who(t))!.person;
+  const jordan = (await w.b.people.byEmail("jordan@beacon.clinical"))!;
+  for (const code of codes) await w.b.admin.issueGrant(jordan.actor_ref, code, anya.actor_ref, w.b.keyOf(t)!);
+};
+
+test("SPEC.md Subjects: a person who may enroll and has none sees \"Enroll the first subject.\"; a person who may do neither is answered Access denied naming both permissions", async () => {
+  const w = await world();
+  const anya = await signIn(w, "anya@beacon.clinical", "demo-pi");
+  const html = await (await get(w, "/subjects", anya)).text();
+  expect(html).toContain("Enroll the first subject.");
+  expect(html).toContain('href="/subjects/new"');
+  const jordan = await signIn(w, "jordan@beacon.clinical", "demo-cra");
+  const d = await get(w, "/subjects", jordan);
+  expect(d.status).toBe(403);
+  const dh = await d.text();
+  expect(dh).toContain("Access denied");
+  expect(dh).toContain("Enroll subjects");
+  expect(dh).toContain("Record visits");
+  expect((await get(w, "/subjects")).headers.get("location")).toBe("/login");
+});
+
+test("SPEC.md Enroll Subject: the next code is shown and not editable; enrolling makes the subject, starts it at screening, and goes to its page; the next is one more", async () => {
+  const w = await world();
+  const anya = await signIn(w, "anya@beacon.clinical", "demo-pi");
+  const f = await (await get(w, "/subjects/new", anya)).text();
+  expect(f).toContain("BCN-001");
+  expect(f).toMatch(/<input[^>]*value="BCN-001"[^>]*readonly/);
+  expect(f).toContain('name="notes"');
+  expect(f).not.toMatch(/name="code"/);
+  expect(f).toContain('action="/subjects/new"');
+  const id = await enroll(w, anya, "first <b>one</b>");
+  const page = await (await get(w, `/subjects/${id}`, anya)).text();
+  expect(page).toContain("BCN-001");
+  expect(page).toContain("Status: screening");
+  expect(page).toContain("Enrolled by Dr. Anya Okonkwo on 2026-09-01 10:00 UTC");                                        // the person, by name and not by reference
+  expect(page).toContain("first &lt;b&gt;one&lt;/b&gt;");                                                              // notes are text, never markup
+  expect(page).not.toContain("<b>one</b>");
+  expect(await (await get(w, "/subjects/new", anya)).text()).toContain("BCN-002");
+  await enroll(w, anya);
+  const list = await (await get(w, "/subjects", anya)).text();
+  expect(list.indexOf("BCN-001")).toBeLessThan(list.indexOf("BCN-002"));
+  expect(list).toContain(`href="/subjects/${id}"`);
+  expect(list).not.toContain("Enroll the first subject.");
+  expect(list).toContain("2026-09-01 10:00 UTC");
+});
+
+test("SPEC.md Enroll Subject: a person who does not hold enroll_subject is answered Access denied and nothing is made", async () => {
+  const w = await world();
+  await jordanGiven(w, "record_visit");                                                                              // Jordan may record, not enroll
+  const jordan = await signIn(w, "jordan@beacon.clinical", "demo-cra");
+  const g = await get(w, "/subjects/new", jordan);
+  expect(g.status).toBe(403);
+  expect(await g.text()).toContain("Enroll subjects");
+  const none = await (await get(w, "/subjects", jordan)).text();
+  expect(none).not.toContain('href="/subjects/new"');                                                                 // enrolling is not offered to one who may only record
+  const p = await post(w, "/subjects/new", jordan, { notes: "x" });
+  expect(p.status).toBe(403);
+  const anya = await signIn(w, "anya@beacon.clinical", "demo-pi");
+  expect(await (await get(w, "/subjects", anya)).text()).toContain("Enroll the first subject.");
+});
+
+test("SPEC.md A subject: no visits says \"No visits recorded yet.\"; a recorded visit is listed, oldest first, with who and when it was recorded", async () => {
+  const w = await world();
+  const anya = await signIn(w, "anya@beacon.clinical", "demo-pi");
+  const id = await enroll(w, anya);
+  expect(await (await get(w, `/subjects/${id}`, anya)).text()).toContain("No visits recorded yet.");
+  const r = await post(w, `/subjects/${id}/visits`, anya, { kind: "week 4", notes: "ok" });
+  expect([r.status, r.headers.get("location")]).toEqual([302, `/subjects/${id}`]);
+  w.seam.advance(60_000);
+  await post(w, `/subjects/${id}/visits`, anya, { kind: "screening" });
+  const html = await (await get(w, `/subjects/${id}`, anya)).text();
+  expect(html).not.toContain("No visits recorded yet.");
+  expect(html.indexOf("week 4")).toBeLessThan(html.indexOf("screening</td>"));                                         // oldest first, whatever the kind
+  expect(html).toContain("2026-09-01 10:00 UTC");
+  expect(html).toContain("2026-09-01 10:01 UTC");
+  expect(html).toContain("ok");
+});
+
+test("SPEC.md A subject, Record Visit: the form offers the five kinds; a visit with no kind, or a kind that is not one of them, answers \"Visit type is required.\" and records nothing", async () => {
+  const w = await world();
+  const anya = await signIn(w, "anya@beacon.clinical", "demo-pi");
+  const id = await enroll(w, anya);
+  const html = await (await get(w, `/subjects/${id}`, anya)).text();
+  for (const k of ["screening", "week 4", "week 12", "week 24", "end of study"]) expect(html).toContain(`value="${k}"`);
+  expect(html).toContain(`action="/subjects/${id}/visits"`);
+  for (const bad of [{ kind: "" }, {}, { kind: "week 99" }]) {
+    const r = await post(w, `/subjects/${id}/visits`, anya, bad);
+    expect(r.status).toBe(400);
+    expect(await r.text()).toContain("Visit type is required.");
+  }
+  expect(await (await get(w, `/subjects/${id}`, anya)).text()).toContain("No visits recorded yet.");
+});
+
+test("SPEC.md Who sees which subject: a person without view_all_subjects sees the subjects that person enrolled, and another's answers Not Found. as if it did not exist; a person with it sees every one", async () => {
+  const w = await world();
+  await jordanGiven(w, "enroll_subject", "record_visit");
+  const anya = await signIn(w, "anya@beacon.clinical", "demo-pi");
+  const jordan = await signIn(w, "jordan@beacon.clinical", "demo-cra");
+  const anyas = await enroll(w, anya);
+  const jordans = await enroll(w, jordan);
+  const jl = await (await get(w, "/subjects", jordan)).text();
+  expect(jl).toContain(`href="/subjects/${jordans}"`);
+  expect(jl).not.toContain(`href="/subjects/${anyas}"`);
+  const nf = await get(w, `/subjects/${anyas}`, jordan);
+  expect(nf.status).toBe(404);
+  expect(await nf.text()).toContain("Not Found.");
+  const unknown = await get(w, "/subjects/subject-nope", jordan);
+  expect(unknown.status).toBe(404);                                                                                  // no different from a subject that does not exist
+  const rv = await post(w, `/subjects/${anyas}/visits`, jordan, { kind: "screening" });
+  expect(rv.status).toBe(404);
+  const al = await (await get(w, "/subjects", anya)).text();
+  expect(al).toContain(`href="/subjects/${anyas}"`);
+  expect(al).toContain(`href="/subjects/${jordans}"`);
+});
+
+test("SPEC.md Who records a visit: a person who holds record_visit; the form is not offered to one who does not, and a post is answered Access denied", async () => {
+  const w = await world();
+  await jordanGiven(w, "enroll_subject");                                                                            // Jordan may enroll, not record
+  const jordan = await signIn(w, "jordan@beacon.clinical", "demo-cra");
+  const id = await enroll(w, jordan);
+  const html = await (await get(w, `/subjects/${id}`, jordan)).text();
+  expect(html).not.toContain("Record a visit");
+  expect(html).not.toContain('name="kind"');
+  const r = await post(w, `/subjects/${id}/visits`, jordan, { kind: "screening" });
+  expect(r.status).toBe(403);
+  expect(await r.text()).toContain("Record visits");
+  const anya = await signIn(w, "anya@beacon.clinical", "demo-pi");
+  expect(await (await get(w, `/subjects/${id}`, anya)).text()).toContain("Record a visit");
+});
+
+test("SPEC.md People (a server restart signs everyone out): a session whose key is gone is sent to sign-in and ended; the subject pages need a session", async () => {
+  const w = await world();
+  const anya = await signIn(w, "anya@beacon.clinical", "demo-pi");
+  w.b.keys.drop(anya);                                                                                               // what a restart does: the key lived only in the running server
+  const r = await get(w, "/subjects", anya);
+  expect([r.status, r.headers.get("location")]).toEqual([302, "/login"]);
+  expect(r.headers.get("set-cookie")).toContain(`${COOKIE}=;`);
+  expect(await w.b.who(anya)).toBeNull();                                                                           // the session itself is ended
+  for (const path of ["/subjects", "/subjects/new", "/subjects/x"]) expect((await get(w, path)).headers.get("location")).toBe("/login");
+  expect((await post(w, "/subjects/new", "nope", {})).headers.get("location")).toBe("/login");
+});
+
+test("SPEC.md Subjects: a subject's code and notes are written as text, never as markup", async () => {
+  const w = await world();
+  const anya = await signIn(w, "anya@beacon.clinical", "demo-pi");
+  await enroll(w, anya, "<script>alert(1)</script>");
+  const html = await (await get(w, "/subjects", anya)).text();
+  expect(html).toContain("&lt;script&gt;alert(1)&lt;/script&gt;");
+  expect(html).not.toContain("<script");
+});
+
+test("SPEC.md Subjects (a refused call): a person whose key the system will not attest is told that the sign-in has ended and what to do; nothing is made, no event is written", async () => {
+  const w = await world();
+  const anya = await signIn(w, "anya@beacon.clinical", "demo-pi");
+  const id = await enroll(w, anya);
+  const other = generateKeyPairSync("ed25519").privateKey.export({ format: "der", type: "pkcs8" }).toString("base64");
+  w.b.keys.hold(anya, other, Date.parse("2026-09-02T10:00:00.000Z"));                                                // a key the registry does not stand behind
+  const r = await post(w, "/subjects/new", anya, { notes: "x" });
+  expect(r.status).toBe(401);
+  const html = await r.text();
+  expect(html).toContain("Your sign-in has ended. Please sign in again.");
+  expect(html).toContain(">Sign in again</a>");                                                                         // the way on, beside the header's own sign-out link
+  const v = await post(w, `/subjects/${id}/visits`, anya, { kind: "screening" });
+  expect(v.status).toBe(401);
+  expect((await w.b.domain.subjects((await w.b.who(anya))!.person.actor_ref) as { code: string }[]).map((s) => s.code)).toEqual(["BCN-001"]);   // no second subject
 });

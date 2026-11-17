@@ -21,7 +21,7 @@ const who = async (w: W, email: string) => (await w.b.people.byEmail(email))!;
 test("SPEC.md People, The data a render starts from: the seed makes the two accounts with the words it names and the permissions they start with, and makes nothing twice", async () => {
   const w = await world();
   const people = await w.b.people.list();
-  expect(people.map((p) => [p.email, p.display_name])).toEqual([["anya@beacon.clinical", "Dr. Anya Okonkwo"], ["jordan@beacon.clinical", "Jordan Lee"]]);
+  expect(people.map((p) => [p.email, p.display_name]).sort()).toEqual([["anya@beacon.clinical", "Dr. Anya Okonkwo"], ["jordan@beacon.clinical", "Jordan Lee"]]);
   expect(await w.b.domain.held((await who(w, "anya@beacon.clinical")).actor_ref)).toEqual(["invite_actor", "grant_permission", "enroll_subject", "record_visit", "view_audit", "view_all_subjects"]);
   expect(await w.b.domain.held((await who(w, "jordan@beacon.clinical")).actor_ref)).toEqual(["view_audit"]);
   const grants = (await w.b.permissions.read()).length;
