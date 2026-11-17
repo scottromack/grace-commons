@@ -56,9 +56,9 @@ Term person reference: the string naming the person who holds the role, in the d
 
 Term role: the part a person plays in the thing, such as buyer, billing contact or account manager, one of the role set — the [Role].
 
-Term role set: the roles a deployment offers; the single role contact where a deployment declares none.
+Term role set: the roles a deployment offers; the one role `contact` where a deployment declares none.
 
-Term one-holder set: the roles a deployment lets one person hold at a time in one thing, such as account manager; none where a deployment declares none.
+Term one-holder set: the roles a deployment lets one person at a time hold in one thing, such as account manager; none where a deployment declares none.
 
 Term item reference: the string naming the thing the role is held in, such as a customer, a deal or a club, in the deployment's own scheme — the [Item Reference]; the atom reads no scheme in it.
 
@@ -76,7 +76,7 @@ State 2: A tenure MAY carry end date and withdrawn instant.
 State 3: The atom MUST NOT remove a tenure.
 ```
 
-Term date: a calendar date, a year, a month and a day with no time of day; what a date means in a place is Calendar Time's.
+Term date: a calendar date of the Gregorian calendar of ISO 8601, run back before 1582 as if always in force, written `YYYY-MM-DD` with a four-digit year, a two-digit month and a two-digit day, naming a day the calendar holds and carrying no time of day; a value not written so, or naming no day the calendar holds, such as `2026-02-30`, is malformed (Execution Contract Input 1); what a date means in a place is Calendar Time's.
 
 Term start date: the first day a person holds the role — the [Start Date].
 
@@ -106,7 +106,7 @@ Capability requirement 6: The deployment MUST NOT normalize a role at the seam.
 Capability requirement 7: The deployment MAY declare the role set PER Execution Contract Logic confinement 17.
 Capability requirement 8: The deployment MAY declare the one-holder set PER Execution Contract Logic confinement 17.
 Capability requirement 9: IF a member of the role set EQUALS blank OR a member of the role set EXCEEDS the string cap THEN the deployment MUST NOT declare the role set.
-Capability requirement 10: IF no member of the role set EQUALS a member of the one-holder set THEN the deployment MUST NOT declare the one-holder set.
+Capability requirement 10: IF a member of the one-holder set IS NOT IN the role set THEN the deployment MUST NOT declare the one-holder set.
 ```
 
 ### Operations
@@ -141,7 +141,7 @@ Operation 1: IF the person reference EQUALS blank OR the person reference EXCEED
 Operation 2: IF the person reference is malformed THEN [Begin] MUST answer invalid-person-reference (Execution Contract Input 1).
 Operation 3: IF the item reference EQUALS blank OR the item reference EXCEEDS the string cap THEN [Begin] MUST answer invalid-item-reference.
 Operation 4: IF the item reference is malformed THEN [Begin] MUST answer invalid-item-reference (Execution Contract Input 1).
-Operation 5: IF the role of the call EQUALS blank OR the role of the call EXCEEDS the string cap THEN a placing action MUST answer invalid-role.
+Operation 5: IF the role of the proposed tenure EQUALS blank OR the role of the proposed tenure EXCEEDS the string cap THEN a placing action MUST answer invalid-role.
 Operation 6: IF the call carries a role AND no member of the role set EQUALS the role of the call THEN a placing action MUST answer invalid-role.
 Operation 7: IF the role of the call is malformed THEN a placing action MUST answer invalid-role (Execution Contract Input 1).
 Operation 8: IF the start date of the call is malformed THEN a placing action MUST answer invalid-start-date (Execution Contract Input 1).
@@ -176,13 +176,15 @@ Operation 36: [History For] MUST answer two matches sharing a start date in code
 Operation 37: IF the reference is malformed OR the reference EQUALS blank OR the reference EXCEEDS the string cap THEN [History For] MUST answer an empty list (Execution Contract Query 5).
 Operation 38: IF the date of the call is malformed THEN [History For] MUST answer an empty list (Execution Contract Query 5).
 Operation 39: [History For] MUST NOT write.
+Operation 40: IF the start date of the call EQUALS blank THEN [Begin] MUST answer invalid-start-date (Execution Contract Input 1).
+Operation 41: IF the end date of the call EQUALS blank THEN [End] MUST answer invalid-end-date (Execution Contract Input 1).
 ```
 
 Term detail: a role, a start date or an end date — what a [Change] call may carry.
 
-Term placing action: [Begin] | [Change] — the actions that set a role or a start date, checked against the other tenures.
+Term placing action: [Begin] | [Change] — every [Begin] call and every [Change] call, each checked against the other tenures.
 
-Term dating action: [End] | [Change] — the actions that set an end date.
+Term dating action: [End] | [Change] — every [End] call and every [Change] call, each checked against the proposed tenure.
 
 Term keyed action: [End] | [Change] | [Withdraw] | [Look Up] — the actions that name one tenure by tenure id; in a rule on a keyed action, the tenure is the one carrying the tenure id of the call.
 
@@ -208,14 +210,16 @@ The case space, and the rule that owns each case:
 
 | Call | Case | Answer | Effect on the tenures |
 |---|---|---|---|
-| [Begin] | every input valid, the role in the role set, no overlapping twin, no overlapping rival in a one-holder role, database accepts | the tenure id | one tenure lands, open, carrying the person, the role, the thing and the start date of the call (Operation 18, Operation 19, State 1) |
+| [Begin] | every input valid, the role in the role set, no overlapping twin, no overlapping rival where the role is in the one-holder set, database accepts | the tenure id | one tenure lands, open, carrying the person, the role, the thing and the start date of the call (Operation 18, Operation 19, State 1) |
 | [Begin] | the person reference blank, over the string cap, or not a string | [Invalid Person Reference] | none (Operation 1, Operation 2) |
 | [Begin] | the item reference blank, over the string cap, or not a string | [Invalid Item Reference] | none (Operation 3, Operation 4) |
-| a placing action | the role blank, over the string cap, not a string, or not in the role set | [Invalid Role] | none (Operation 5, Operation 6, Operation 7) |
+| a placing action | the role of the proposed tenure blank or over the string cap, or the call carries a role that is not a string or not in the role set | [Invalid Role] | none (Operation 5, Operation 6, Operation 7) |
 | a placing action | the start date not a date | [Invalid Start Date] | none (Operation 8) |
+| [Begin] | the start date blank | [Invalid Start Date] | none (Operation 40) |
 | a placing action | the same person holds the same role in the same thing on a day the proposed tenure covers | [Already Held] | none (Operation 12) |
 | a placing action | the role in the one-holder set, and another person holds the role in the thing on a day the proposed tenure covers | [Role Taken] | none (Operation 13) |
 | a dating action | the end date not a date | [Invalid End Date] | none (Operation 9) |
+| [End] | the end date blank | [Invalid End Date] | none (Operation 41) |
 | a dating action | the end date the same as the start date, or earlier | [End Too Early] | none (Operation 10, Operation 11) |
 | [End] | the tenure open and not withdrawn, the end date valid, database accepts | ok | the tenure carries the end date; the earlier version stays readable (Operation 21, Operation 22, Execution Contract Database 5) |
 | [End] | the tenure already carries an end date | [Already Ended] | none (Operation 20) |
@@ -268,16 +272,19 @@ A food pantry declares the role set volunteer, shift-lead and treasurer, with tr
 
 The sales team's calls, made on Monday 2026-11-16:
 
-- `begin("lee", "account-manager", "acme-supply", "2026-11-20")` — rejected as [Role Taken]: account-manager has one holder at a time, and Dana's `t-3` is open (Operation 13).
+- `begin("sam", "account-manager", "acme-supply", "2026-11-20")` — rejected as [Role Taken]: account-manager has one holder at a time, Dana's `t-3` runs through November 30, and Lee's `t-19` runs from December 1 (Operation 13).
 - `begin("jane-ruiz", "buyer", "acme-supply", "2026-05-01")` — rejected as [Already Held]: Jane's `t-12` covers May (Operation 12).
 - `begin("jane-ruiz", "cfo", "acme-supply", "2026-03-02")` — rejected as [Invalid Role]: the team's role set has no cfo (Operation 6).
 - `begin("", "buyer", "acme-supply", "2026-03-02")` — rejected as [Invalid Person Reference]: the reference is blank (Operation 1).
 - `begin("jane-ruiz", "buyer", "", "2026-03-02")` — rejected as [Invalid Item Reference]: the reference is blank (Operation 3).
 - `begin("jane-ruiz", "buyer", "acme-supply", "March")` — rejected as [Invalid Start Date]: March is not a date (Operation 8).
+- `begin("jane-ruiz", "buyer", "acme-supply", "2026-02-30")` — rejected as [Invalid Start Date]: the calendar holds no February 30 (Operation 8).
+- `begin("jane-ruiz", "buyer", "acme-supply", "")` — rejected as [Invalid Start Date]: the start date is blank (Operation 40).
 - `begin("", "cfo", "", "March")` — rejected as [Invalid Person Reference]: four refusals apply, and the one listed first on [Begin]'s refuses line answers (Execution Contract Refusal 1).
 - `end("t-12", "2026-10-15")` — rejected as [Already Ended]: `t-12` carries an end date (Operation 20).
 - `end("t-19", "2026-11-01")` — rejected as [End Too Early]: Lee's tenure starts on December 1 (Operation 11).
 - `end("t-19", "soon")` — rejected as [Invalid End Date]: soon is not a date (Operation 9).
+- `end("t-19", "")` — rejected as [Invalid End Date]: the end date is blank (Operation 41).
 - `change("t-12", start_date="2026-11-01")` — rejected as [End Too Early]: `t-12` ends on October 1 (Operation 11).
 - `withdraw("t-404")` — rejected as [Not Known]: no tenure carries `t-404` (Operation 14).
 - `withdraw("t-12")` twice — the second is rejected as [Already Withdrawn] (Operation 17).
@@ -313,6 +320,7 @@ NOTE: EVERY check names the rule the check tests.
 ```
 External check 1: An auditor needing a person reference confirmed as naming a real person MUST read the deployment's directory (Non-goal 1).
 External check 2: An auditor needing an item reference confirmed as naming a real item MUST read the deployment's catalog (Non-goal 2).
+External check 3: An auditor needing the roles that have one holder at a time MUST read the deployment's one-holder set (Operation 13).
 ```
 
 ## Non-goals
@@ -346,9 +354,13 @@ Two [Begin] calls for one role of the one-holder set in one thing, on days that 
 
 A caller whose answer is lost may call again, and the repeat is a second call (Execution Contract Error model 1). A repeated [Begin] meets the tenure the first recorded and answers [Already Held] (Operation 12), which tells the caller the first landed; a caller needing the tenure id asks [History For]. A repeated [End] answers [Already Ended] and a repeated [Withdraw] answers [Already Withdrawn], each telling the caller the first landed. A repeated [Change] carrying the same details sets the same values again.
 
+### String policy
+
+A person reference, an item reference and a role are strings the atom compares codepoint for codepoint and never normalizes (Identity 6 through 11, Capability requirement 4 through 6). Each is held to the string cap, and a blank one is refused (Operation 1, Operation 3, Operation 5); a value that is not a string is malformed (Execution Contract Input 1). A [History For] reference is held to the same bounds and answers an empty list where it is blank, over the cap or malformed (Operation 37).
+
 ### A detail once given
 
-A [Change] corrects the role, the start date or the end date, but cannot take an end date off a tenure. A tenure ended by mistake is withdrawn and begun again, and the history keeps both.
+A [Change] corrects the role, the start date or the end date, but cannot take an end date off a tenure. A tenure ended by mistake is withdrawn and begun again; the database keeps both, and [History For] answers the second alone (Operation 33).
 
 ### A handover
 
@@ -356,7 +368,7 @@ A role of the one-holder set passes from one person to the next on one date: [En
 
 ### A role set or a one-holder set that changes
 
-A deployment that drops a role from the role set stops every [Begin] and every [Change] carrying the role (Operation 6); tenures already in the role keep the role and keep answering. A role added to the one-holder set is checked on every [Begin] and every [Change] from then on (Operation 13); tenures already overlapping in the role stay as they are, and a [Change] to one of them that leaves the overlap in place answers [Role Taken].
+A deployment that drops a role from the role set or adds a role to the one-holder set changes a setting, and the change takes effect at the instance's next start (Execution Contract Logic confinement 17): from that start on, every [Begin] and every [Change] carrying the dropped role answers [Invalid Role] (Operation 6), and every [Begin] and every [Change] in the newly capped role is checked against the one-holder set (Operation 13). Tenures already in the dropped role keep the role and keep answering; tenures already overlapping in the newly capped role stay as they are, and a [Change] to one of them that leaves the overlap in place answers [Role Taken].
 
 ### Dates entered late
 
@@ -369,8 +381,8 @@ A tenure begins and ends on the days the role was held, whenever the call is mad
 ## Composition notes
 
 ```
-Composition note 1: A composing pattern MUST own what this atom declines.
-Composition note 2: A composing pattern MUST keep person references apart from item references.
+Composition note 1: A composing pattern MUST own what this atom declines (Non-goal 1 through 12).
+Composition note 2: A composing pattern MUST NOT carry one string as a person reference and as an item reference, since [History For] matches a reference against both (Operation 32).
 ```
 
 NOTE: composing patterns — none yet. Forthcoming: Customer Relationship.
@@ -393,7 +405,7 @@ Term bounds: string cap (the bound on the length of a person reference, an item 
 
 Term cadences: empty.
 
-Term qualifiers: migrated — drafted in GRACE lang unknown (2026-11-16) through the Grace connector.
+Term qualifiers: migrated — drafted in GRACE lang v0.73 (2026-11-16) through the Grace connector.
 
 Term terms: tenure, tenures, tenure id, person reference, person references, role, roles, role set, one-holder set, item reference, item references, string cap, seam, date, dates, start date, end date, withdrawn instant, withdrawn tenure, days, held, upcoming, ended, detail, details, placing action, dating action, keyed action, writing action, proposed tenure, overlap, twin, overlapping twin, rival, overlapping rival, reference, match, matches, version.
 
@@ -524,7 +536,7 @@ Projection: invalid-item-reference
 
 #### Invalid Start Date
 
-The refusal of a [Start Date] that is not a date, on [Begin] or [Change] (Operation 8).
+The refusal of a [Start Date] that is not a date on [Begin] or [Change], or that is blank on [Begin] (Operation 8, Operation 40).
 
 Kind:       Member
 Member of:  the action rejection
@@ -533,7 +545,7 @@ Projection: invalid-start-date
 
 #### Invalid End Date
 
-The refusal of an [End Date] that is not a date, on [End] or [Change] (Operation 9).
+The refusal of an [End Date] that is not a date on [End] or [Change], or that is blank on [End] (Operation 9, Operation 41).
 
 Kind:       Member
 Member of:  the action rejection
@@ -646,14 +658,14 @@ Tenure is a primitive with no regulatory anchor. It inherits from:
 
 ## Status
 
-`todo` — see the Ledger.
+`doing` — see the Ledger.
 
 ## Ledger
 
 ```
-status: todo
+status: doing
 formal: pending — no model yet
-last gate: none
+last gate: 2026-11-16 — Final Critique 1, a full round, frozen at 3b123088 — foundational count 5, not clean, one sample
 
 open: none
 ```
