@@ -747,7 +747,7 @@
  "favorite": {
   "composed_by": [],
   "domain": null,
-  "grounded": true,
+  "grounded": false,
   "invariants": 2,
   "kind": "atom",
   "models": {
@@ -758,7 +758,7 @@
   "regulated_by": [],
   "security": false,
   "standards": [],
-  "status": "done \u2014 2026-11-14",
+  "status": "doing",
   "title": "Favorite"
  },
  "gift-card": {
