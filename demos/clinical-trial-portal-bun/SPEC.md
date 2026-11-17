@@ -126,10 +126,20 @@ Each event carries the actor and the session that made it where there is one, an
 
 A render starts from its seed and nothing else: the two accounts, the seven permissions with their words, Anya's and Jordan's permissions, the study, and the retention setting. The old reach (`all` or `own`) does not exist in a render built from this file, so there is nothing to migrate. Before any render replaces the live demo, the live database is read for anything a person made that the seed does not hold, and the unit says what it found [unit step, 2026-11-16].
 
+## People, and what Beacon gives the patterns where it asks nothing
+
+**One identifier.** A person is the party [Party Identity](../../atoms/party-identity.md) enrolled, and the party's id is the person's actor reference, the principal of the person's credential, the principal a session names, and the one a permission is held by [decided here: one identifier runs through every pattern, so nothing maps one to another].
+
+**The person's key.** A key is made for each person when the person is created (accepting an invitation, or the seed), kept by the server sealed under the person's password, unlocked at sign-in and held for the session; every grant and every taking-away is attested with it [Scott 2026-11-16 10:36 PM Central: "Yes to both." "Agree with the mayor."]. A server restart signs everyone out, since the unsealed key lives only in the running server [decided here].
+
+**What Party Identity is given.** It records a name, a date of birth, a document type and a document reference [Party Identity Operation 1]; Beacon asks a person for none of the last three. Decided here, for Scott to confirm or change: the name is the person's display name, the date of birth is `1900-01-01`, the document type is `beacon-account` and the document reference is the person's email. They are placeholders that carry no personal detail, because Beacon asks for and keeps none [Section 8.7 of the plan].
+
+**Email** is compared trimmed and in lower case [decided here].
+
 ## What is not written yet
 
 Said here so a build neither invents nor drops them.
 
-1. **How a person signs a grant.** [Attributed Permissions Admin](../../compositions/attributed-permissions-admin.md) has every grant and every taking-away carry an attestation by the person doing it, made with that person's credential through [Actor Identity](../../atoms/actor-identity.md) (Action wiring 2, 17; External check 2). The live render never did this: it wrote one event and a grant. What a person's credential is in Beacon (a key kept for the person, and where) is Beacon's own to decide and is not decided here; it is asked of Scott in the entry of 2026-11-16, and the people-and-permissions part is built last for that reason.
+1. **How a person signs a grant.** [Attributed Permissions Admin](../../compositions/attributed-permissions-admin.md) has every grant and every taking-away carry an attestation by the person doing it, made with that person's credential through [Actor Identity](../../atoms/actor-identity.md) (Action wiring 2, 17; External check 2). The live render never did this: it wrote one event and a grant. What a person's credential is in Beacon is answered under People, above (a key kept by the server, sealed under the person's password).
 2. **Roles.** Role-Based Access Control and Delegation are not written; Beacon grants one permission at a time and invents no role [wiring].
 3. **Words for people.** Every word a screen shows is the plainest that keeps its meaning; a pattern carries none [Scott 2026-11-16 11:57 AM]. The words in this file are the live render's, for the render to improve and not to copy.

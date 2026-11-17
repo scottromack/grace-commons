@@ -1,5 +1,9 @@
 // Beacon's people and the keys they sign with. Beacon's own, no library atom (SPEC.md, Built from; What is not written yet, 1).
 //
+// A person is the party Party Identity enrolled: the person's actor reference IS the party id, which is also the principal reference of the
+// person's credential (External Onboarding Action wiring 29), the principal a session names (Login) and the subject permissions are held
+// by (Session-Gated Authorization), so one identifier runs through every constituent and nothing maps one to another.
+//
 // A person has a name, an email and an actor reference, and one signing key made for that person when the person is created (at
 // accepting an invitation, or in the seed). Attributed Permissions Admin has every grant and every taking-away attested by the person
 // doing it, through Actor Identity, with that person's credential (Action wiring 2, 17): in Beacon that credential is this key.
@@ -43,7 +47,7 @@ export class People {
     return new People(store, seam, T_, cfg.scrypt ?? DEFAULT_SCRYPT);
   }
 
-  /** Make a person and the person's key: the key pair, the private half sealed under the password. The actor reference is the seam's id material. */
+  /** Make a person and the person's key: the key pair, the private half sealed under the password. The actor reference is the party id. */
   async create(a: { party_id: string; email: string; display_name: string; password: string }): Promise<{ actor_ref: string } | { refused: "invalid-request" | "email-taken" | "storage-failure" }> {
     if (isBlank(a.party_id) || isBlank(a.email) || isBlank(a.display_name) || typeof a.password !== "string" || a.password === "") return { refused: "invalid-request" };
     const email = normalEmail(a.email);
@@ -53,7 +57,7 @@ export class People {
     const c = createCipheriv("aes-256-gcm", key, iv);
     const ct = Buffer.concat([c.update(k.privateKey.export({ format: "der", type: "pkcs8" })), c.final()]);
     const sealed = JSON.stringify({ v: 1, kdf: "scrypt", ...this.cost, salt: salt.toString("base64"), iv: iv.toString("base64"), tag: c.getAuthTag().toString("base64"), ct: ct.toString("base64") });
-    const actor_ref = this.seam.idMaterial();
+    const actor_ref = a.party_id;
     try {
       await this.store.commit([
         this.store.assertNone(this.T, "email = $1", [email], "email-taken"),                                        // one person to an email

@@ -13,13 +13,13 @@ const world = async () => {
   const people = await People.open(store, seam, { tablePrefix, scrypt: { N: 1024, r: 8, p: 1 } });
   return { seam, people, T: `${tablePrefix}people` };
 };
-const mk = (w: Awaited<ReturnType<typeof world>>, email = `p-${crypto.randomUUID()}@beacon.clinical`, password = "correct horse", name = "Ada") =>
-  w.people.create({ party_id: `party-${crypto.randomUUID()}`, email, display_name: name, password });
+const mk = (w: Awaited<ReturnType<typeof world>>, email = `p-${crypto.randomUUID()}@beacon.clinical`, password = "correct horse", name = "Ada", party_id = `party-${crypto.randomUUID()}`) =>
+  w.people.create({ party_id, email, display_name: name, password });
 
 test("create: a person has an actor reference, the party, a normalized email and a display name, and a public key; nothing in the record is the private key", async () => {
   const w = await world();
-  const r = await mk(w, "  Anya@Beacon.Clinical ", "demo-pi", "  Dr. Anya Okonkwo ") as { actor_ref: string };
-  expect(r.actor_ref).toBeDefined();
+  const r = await mk(w, "  Anya@Beacon.Clinical ", "demo-pi", "  Dr. Anya Okonkwo ", "party-anya") as { actor_ref: string };
+  expect(r.actor_ref).toBe("party-anya");                                                                           // the actor reference is the party id
   const p = (await w.people.byActor(r.actor_ref))!;
   expect(p).toMatchObject({ actor_ref: r.actor_ref, email: "anya@beacon.clinical", display_name: "Dr. Anya Okonkwo", created_at: "2026-09-01T10:00:00.000Z" });
   const row = (await store.read<Record<string, string>>(`SELECT * FROM ${w.T} WHERE _id = $1`, [r.actor_ref]))[0];
@@ -73,6 +73,8 @@ test("create: one person to an email in any case; a blank input or an empty pass
   const w = await world();
   expect(await mk(w, "Jordan@Beacon.Clinical")).toHaveProperty("actor_ref");
   expect(await mk(w, " jordan@beacon.CLINICAL ")).toEqual({ refused: "email-taken" });
+  const first = (await w.people.list())[0].party_id;
+  expect(await mk(w, "other@beacon.clinical", "p", "n", first)).toEqual({ refused: "storage-failure" });             // one person to a party
   expect(await w.people.list()).toHaveLength(1);
   for (const bad of [{ party_id: " ", email: "a@b.c", display_name: "n", password: "p" }, { party_id: "x", email: "", display_name: "n", password: "p" }, { party_id: "x", email: "a@b.c", display_name: " ", password: "p" }, { party_id: "x", email: "a@b.c", display_name: "n", password: "" }])
     expect(await w.people.create(bad)).toEqual({ refused: "invalid-request" });
