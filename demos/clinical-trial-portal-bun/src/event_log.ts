@@ -77,21 +77,24 @@ export class EventLog {
   /**
    * The statements that land these events in order, to commit alone or beside the other writes of one
    * action (Database 1), and the ids and numbers they carry. Refuses data over the cap (Operation 5).
-   * The first statement is the guard: nothing has landed in this log since the plan read it.
+   * The first statement is the guard: nothing has landed in this log since the plan read it. A plan made with
+   * `ahead` > 0 follows `ahead` events another plan of the same transaction appends: it numbers after them and
+   * leaves the guard to that plan (a composing pattern writing two records in one transaction).
    */
-  async plan(datas: unknown[]): Promise<AppendPlan | { refused: "invalid-payload" }> {
+  async plan(datas: unknown[], ahead = 0): Promise<AppendPlan | { refused: "invalid-payload" }> {
     const texts = datas.map((d) => canonical(d ?? null));
     if (texts.some((t) => new TextEncoder().encode(t).length > this.cfg.payloadCap)) return { refused: "invalid-payload" }; // Operation 5; Operation 6: empty data is accepted
     const head = (await this.store.read<Row & { next_seq: number | string }>(`SELECT next_seq FROM ${H} WHERE _id = $1`, [this.cfg.name]))[0];
     // A log with events and no head record (written before heads existed) takes its number from its events once; the guard below then lets one writer make the head.
-    const first = head ? Number(head.next_seq) : (await this.top()) + 1;
+    const base = head ? Number(head.next_seq) : (await this.top()) + 1;
+    const first = base + ahead;                                                                                // `ahead` events planned earlier for the same transaction number before these
     const guard = head
-      ? this.store.assertSome(H, "_id = $1 AND next_seq = $2", [this.cfg.name, first], "log-moved")
+      ? this.store.assertSome(H, "_id = $1 AND next_seq = $2", [this.cfg.name, base], "log-moved")
       : this.store.assertNone(H, "_id = $1", [this.cfg.name], "log-moved");
     const now = this.seam.now();                                                                               // Operation 2
     const ids = texts.map(() => this.seam.idMaterial());                                                       // Identity 2
     const seqs = texts.map((_, i) => first + i);                                                             // Operation 3, State 6
-    const stmts: Stmt[] = [guard, this.store.put(H, { _id: this.cfg.name, next_seq: first + texts.length })];
+    const stmts: Stmt[] = [...(ahead > 0 ? [] : [guard]), this.store.put(H, { _id: this.cfg.name, next_seq: first + texts.length })];   // the earlier plan's guard stands for the whole transaction
     texts.forEach((data, i) => stmts.push(this.store.put(T, { _id: ids[i], log_name: this.cfg.name, seq: seqs[i], recorded_at: now, data })));
     return { event_ids: ids, sequence_numbers: seqs, stmts };
   }

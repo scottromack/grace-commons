@@ -88,10 +88,12 @@ export class AuditTrail {
   /**
    * Steps 1 to 4 as statements, to commit alone (`recordAction`) or beside the other writes of one action
    * (a composing pattern's own transaction, Database 1), or the refusal with what step 7.11 keeps. The
-   * index write of step 5 is `indexStmt`, to run after the commit (Composition state 1).
+   * index write of step 5 is `indexStmt`, to run after the commit (Composition state 1). `ahead` is the number of
+   * records another plan of the same transaction appends before this one (a composing pattern's attempt record
+   * and its post-write record, Database 1).
    */
-  async plan(action_ref: string, actor_ref: string, credential: string, data?: unknown): Promise<
-    | { event_id: string; stmts: Stmt[]; indexStmt: Stmt }
+  async plan(action_ref: string, actor_ref: string, credential: string, data?: unknown, ahead = 0): Promise<
+    | { event_id: string; sequence_number: number; stmts: Stmt[]; indexStmt: Stmt }
     | { refusal: RecordRefusal; keep: Stmt[] }
   > {
     if (!this.step1(action_ref, actor_ref, data)) return { refusal: { refused: "invalid-request", step: "step-1", committed_ids: [] }, keep: [] }; // step 1, 7.10
@@ -104,7 +106,7 @@ export class AuditTrail {
     }
     // Step 3: append the full constructed payload (step 3.1); the log stamps the instant (step 3.2).
     const payload = { action_ref, actor_ref, attestation_id: att.attestation_id, data: data ?? null };
-    const ev = await this.log.plan([payload]);
+    const ev = await this.log.plan([payload], ahead);
     if ("refused" in ev) {                                                                                  // step 3.4: invalid-payload
       return { refusal: { refused: "invalid-request", step: "step-3", committed_ids: [att.attestation_id] }, keep: att.stmts };   // step 7.11, 7.15
     }
@@ -118,6 +120,7 @@ export class AuditTrail {
     }
     return {
       event_id,
+      sequence_number: ev.sequence_numbers[0],
       stmts: [...att.stmts, ...ev.stmts, ...ret.stmts],                                                   // Database 1: the three writes of one action
       indexStmt: this.store.put(T, { _id: event_id, attestation_id: att.attestation_id, retention_id: ret.retention_id, sequence_number: ev.sequence_numbers[0] }),
     };

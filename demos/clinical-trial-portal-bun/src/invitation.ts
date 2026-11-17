@@ -60,33 +60,56 @@ export class Invitation {
     return i.status === "pending" && now >= i.expires_at;                                                     // Term lapsed: the boundary instant reads lapsed
   }
 
-  async initiate(inviter_ref: string, invitee_ref: string | null | undefined, context: string, ttl?: number | null): Promise<{ invitation_token: string } | { refused: "invalid-request" | "storage-failure" }> {
-    if (isBlank(inviter_ref) || isBlank(context)) return { refused: "invalid-request" };                      // Operation 1, 2
-    if ([inviter_ref, context, ...(isBlank(invitee_ref) ? [] : [invitee_ref as string])].some((v) => this.long(v))) return { refused: "invalid-request" }; // Operation 49
-    let seconds: number;
-    if (ttl === undefined || ttl === null) {                                                                  // Operation 4: a blank ttl reads the default
-      if (this.cfg.defaultTtl === null) return { refused: "invalid-request" };                                // Operation 5
-      seconds = this.cfg.defaultTtl;
-    } else {
-      if (typeof ttl !== "number" || !Number.isInteger(ttl)) return { refused: "invalid-request" };           // Operation 48: a ttl is a whole number of seconds
-      if (ttl < this.cfg.ttlBounds.min || ttl > this.cfg.ttlBounds.max) return { refused: "invalid-request" }; // Operation 3
-      seconds = ttl;
-    }
+  /** The seconds an initiate's ttl comes to, or null where any of its inputs is refused (Operation 1 to 5, 48, 49): the whole of initiate's input rules, read before any write. */
+  private initiateSeconds(inviter_ref: string, invitee_ref: string | null | undefined, context: string, ttl?: number | null): number | null {
+    if (isBlank(inviter_ref) || isBlank(context)) return null;                                                // Operation 1, 2
+    if ([inviter_ref, context, ...(isBlank(invitee_ref) ? [] : [invitee_ref as string])].some((v) => this.long(v))) return null; // Operation 49
+    if (ttl === undefined || ttl === null) return this.cfg.defaultTtl;                                        // Operation 4: a blank ttl reads the default; Operation 5: none declared is null, refused
+    if (typeof ttl !== "number" || !Number.isInteger(ttl)) return null;                                       // Operation 48: a ttl is a whole number of seconds
+    if (ttl < this.cfg.ttlBounds.min || ttl > this.cfg.ttlBounds.max) return null;                            // Operation 3
+    return ttl;
+  }
+  /** Whether initiate would accept these inputs, asking nothing of the database (a composing pattern's input check, before its attempt record). */
+  validInitiate(inviter_ref: string, invitee_ref: string | null | undefined, context: string, ttl?: number | null): boolean {
+    return this.initiateSeconds(inviter_ref, invitee_ref, context, ttl) !== null;
+  }
+  /** Whether revoke would accept these inputs, asking nothing of the database (Operation 29, 49). */
+  validRevoke(revoked_by_ref: string, reason: string): boolean {
+    return !(isBlank(revoked_by_ref) || isBlank(reason) || this.long(revoked_by_ref) || this.long(reason));
+  }
+  /** Whether accept would accept this accepting identity reference, asking nothing of the database. */
+  validAccept(accepting_identity_ref: string): boolean {
+    return !(isBlank(accepting_identity_ref) || this.long(accepting_identity_ref));
+  }
+
+  /** The statements of one initiate, to commit alone or beside an action's other writes, with the token they create, or the refusal. */
+  async planInitiate(inviter_ref: string, invitee_ref: string | null | undefined, context: string, ttl?: number | null): Promise<{ invitation_token: string; stmts: Stmt[] } | { refused: "invalid-request" }> {
+    const seconds = this.initiateSeconds(inviter_ref, invitee_ref, context, ttl);
+    if (seconds === null) return { refused: "invalid-request" };
     const now = this.seam.now();                                                                              // Operation 11
     const token = this.seam.tokenMaterial();                                                                  // Identity 2, 3: the token comes from the seam
-    try {
-      await this.store.commit([
+    return {
+      invitation_token: token,
+      stmts: [
         this.store.assertNone(this.T, "_id = $1", [token], "token-held"),                                     // Identity 5, 6: a token the database holds is a storage failure
         this.store.put(this.T, {
           _id: token, inviter_ref, invitee_ref: isBlank(invitee_ref) ? null : (invitee_ref as string), context, // Operation 9, 10
           initiated_at: now, expires_at: new Date(Date.parse(now) + seconds * 1000).toISOString(), status: "pending",   // Operation 12, 13
           accepting_identity_ref: null, accepted_at: null, declined_at: null, revoked_by_ref: null, revocation_reason: null, revoked_at: null,
         }),
-      ]);
+      ],
+    };
+  }
+
+  async initiate(inviter_ref: string, invitee_ref: string | null | undefined, context: string, ttl?: number | null): Promise<{ invitation_token: string } | { refused: "invalid-request" | "storage-failure" }> {
+    const p = await this.planInitiate(inviter_ref, invitee_ref, context, ttl);
+    if ("refused" in p) return p;
+    try {
+      await this.store.commit(p.stmts);
     } catch {
       return { refused: "storage-failure" };                                                                  // Operation 35
     }
-    return { invitation_token: token };                                                                       // Operation 14
+    return { invitation_token: p.invitation_token };                                                          // Operation 14
   }
 
   /** The status check every resolving write makes before it reads the call's inputs (Term status check). */
