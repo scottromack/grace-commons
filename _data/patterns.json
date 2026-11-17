@@ -1772,7 +1772,7 @@
  "tenure": {
   "composed_by": [],
   "domain": null,
-  "grounded": false,
+  "grounded": true,
   "invariants": 4,
   "kind": "atom",
   "models": {
@@ -1783,7 +1783,7 @@
   "regulated_by": [],
   "security": false,
   "standards": [],
-  "status": "doing",
+  "status": "done \u2014 2026-11-16",
   "title": "Tenure"
  },
  "verified-repair": {

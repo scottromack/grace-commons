@@ -143,14 +143,14 @@ Operation 2: IF the person reference is malformed THEN [Begin] MUST answer inval
 Operation 3: IF the item reference EQUALS blank OR the item reference EXCEEDS the string cap THEN [Begin] MUST answer invalid-item-reference.
 Operation 4: IF the item reference is malformed THEN [Begin] MUST answer invalid-item-reference (Execution Contract Input 1).
 Operation 5: IF the role of the proposed tenure EQUALS blank OR the role of the proposed tenure EXCEEDS the string cap THEN a placing action MUST answer invalid-role.
-Operation 6: IF the call carries a role AND no member of the role set EQUALS the role of the call THEN a placing action MUST answer invalid-role.
+Operation 6: IF the call carries a role AND the role of the call IS NOT IN the role set THEN a placing action MUST answer invalid-role.
 Operation 7: IF the role of the call is malformed THEN a placing action MUST answer invalid-role (Execution Contract Input 1).
 Operation 8: IF the start date of the call is malformed THEN a placing action MUST answer invalid-start-date (Execution Contract Input 1).
 Operation 9: IF the end date of the call is malformed THEN a dating action MUST answer invalid-end-date (Execution Contract Input 1).
 Operation 10: IF the end date of the proposed tenure EQUALS the start date of the proposed tenure THEN a dating action MUST answer end-too-early.
 Operation 11: IF the end date of the proposed tenure PRECEDES the start date of the proposed tenure THEN a dating action MUST answer end-too-early.
 Operation 12: IF an overlapping twin EXISTS THEN a placing action MUST answer already-held.
-Operation 13: IF a member of the one-holder set EQUALS the role of the proposed tenure AND an overlapping rival EXISTS THEN a placing action MUST answer role-taken.
+Operation 13: IF the role of the proposed tenure IS IN the one-holder set AND an overlapping rival EXISTS THEN a placing action MUST answer role-taken.
 Operation 14: IF the tenure id of the call is malformed OR no tenure carries the tenure id of the call THEN a keyed action MUST answer not-known.
 Operation 15: IF the tenure carries a withdrawn instant THEN [End] MUST answer already-withdrawn.
 Operation 16: IF the tenure carries a withdrawn instant THEN [Change] MUST answer already-withdrawn.
@@ -175,13 +175,13 @@ Operation 34: [History For] MUST answer an empty list for a reference no match c
 Operation 35: [History For] MUST answer matches in order of start date (Execution Contract Read 5, Execution Contract Logic confinement 10).
 Operation 36: [History For] MUST answer two matches sharing a start date in codepoint order of tenure id (Execution Contract Read 5, Execution Contract Logic confinement 10).
 Operation 37: IF the reference is malformed OR the reference EQUALS blank OR the reference EXCEEDS the string cap THEN [History For] MUST answer an empty list (Execution Contract Query 5).
-Operation 38: IF the date of the call is malformed THEN [History For] MUST answer an empty list (Execution Contract Query 5).
+Operation 38: IF the date of the call is malformed THEN [History For] MUST answer an empty list (Execution Contract Query 1).
 Operation 39: [History For] MUST NOT write.
 Operation 40: IF the start date of the call EQUALS blank THEN [Begin] MUST answer invalid-start-date (Execution Contract Input 1).
 Operation 41: IF the end date of the call EQUALS blank THEN [End] MUST answer invalid-end-date (Execution Contract Input 1).
 ```
 
-Term detail: a role, a start date or an end date — what a [Change] call may carry.
+Term detail: a role, a start date or an end date — what a [Change] call may carry; a detail the call leaves blank is a detail the call omits.
 
 Term placing action: [Begin] | [Change] — every [Begin] call and every [Change] call, each checked against the other tenures.
 
@@ -211,7 +211,7 @@ The case space, and the rule that owns each case:
 
 | Call | Case | Answer | Effect on the tenures |
 |---|---|---|---|
-| [Begin] | every input valid, the role in the role set, no overlapping twin, no overlapping rival where the role is in the one-holder set, database accepts | the tenure id | one tenure lands, open, carrying the person, the role, the thing and the start date of the call (Operation 18, Operation 19, State 1) |
+| [Begin] | every input valid, the role in the role set, no overlapping twin, no overlapping rival where the role is in the one-holder set, database accepts | the tenure id | one tenure lands, open, carrying the person reference, the role, the item reference and the start date of the call (Operation 18, Operation 19, State 1) |
 | [Begin] | the person reference blank, over the string cap, or not a string | [Invalid Person Reference] | none (Operation 1, Operation 2) |
 | [Begin] | the item reference blank, over the string cap, or not a string | [Invalid Item Reference] | none (Operation 3, Operation 4) |
 | a placing action | the role of the proposed tenure blank or over the string cap, or the call carries a role that is not a string or not in the role set | [Invalid Role] | none (Operation 5, Operation 6, Operation 7) |
@@ -224,7 +224,7 @@ The case space, and the rule that owns each case:
 | a dating action | the end date the same as the start date, or earlier | [End Too Early] | none (Operation 10, Operation 11) |
 | [End] | the tenure open and not withdrawn, the end date valid, database accepts | ok | the tenure carries the end date; the earlier version stays readable (Operation 21, Operation 22, Execution Contract Database 5) |
 | [End] | the tenure already carries an end date | [Already Ended] | none (Operation 20) |
-| [Change] | every carried detail valid, no overlap, database accepts | ok | each carried detail is set and every other detail stands; the earlier version stays readable (Operation 23, Operation 24, Operation 26) |
+| [Change] | the tenure carries no withdrawn instant, every carried detail valid, no overlapping twin, no overlapping rival where the role is in the one-holder set, database accepts | ok | each carried detail is set and every other detail stands; the earlier version stays readable (Operation 23, Operation 24, Operation 26) |
 | [Change] | the call carries no detail | ok | none, no write (Operation 25) |
 | [Withdraw] | the tenure carries no withdrawn instant | ok | the tenure carries the withdrawn instant, now; every detail stands; nothing is removed (Operation 27, Operation 28, Operation 29, State 3) |
 | [End], [Change] or [Withdraw] | the tenure carries a withdrawn instant | [Already Withdrawn] | none (Operation 15, Operation 16, Operation 17) |
@@ -332,7 +332,7 @@ Non-goal 1: The atom MUST NOT check a person reference against a directory.
 Non-goal 2: The atom MUST NOT check an item reference against a catalog.
 Non-goal 3: The atom MUST NOT grant a permission for a role.
 Non-goal 4: The atom MUST NOT make a person responsible for a piece of work.
-Non-goal 5: The atom MUST NOT act on a date.
+Non-goal 5: The atom MUST NOT act when a date arrives.
 Non-goal 6: The atom MUST NOT tell who may call an action.
 Non-goal 7: The atom MUST NOT record who called an action.
 Non-goal 8: The atom MUST NOT read a date in a place.
@@ -350,7 +350,7 @@ Where the atom breaks down: what a role lets a person do, which is a grant in Pe
 
 ### Concurrency
 
-Two [Begin] calls for one role of the one-holder set in one thing, on days that overlap, are serialized (Execution Contract Database 2): the later reads the tenure the earlier recorded and answers [Role Taken] (Operation 13), so two people never hold a one-holder role on one day. Two [Change] calls on one tenure are serialized the same way: each sets only the details its call carries, and on a detail both carry, the later call's value stands; the database keeps every version (Execution Contract Database 5).
+Two [Begin] calls for one role of the one-holder set in one thing, on days that overlap, are serialized (Execution Contract Database 2): the later reads the tenure the earlier recorded and answers [Role Taken] (Operation 13), so the two calls never leave two people holding a one-holder role on one day. Two [Change] calls on one tenure are serialized the same way: each sets only the details its call carries, and on a detail both carry, the later call's value stands; the database keeps every version (Execution Contract Database 5).
 
 ### Indeterminate outcome
 
@@ -660,14 +660,14 @@ Tenure is a primitive with no regulatory anchor. It inherits from:
 
 ## Status
 
-`doing` — see the Ledger.
+`done — 2026-11-16` — see the Ledger.
 
 ## Ledger
 
 ```
-status: doing
+status: done — 2026-11-16
 formal: pending — no model yet
-last gate: 2026-11-16 — Final Critique 2, a delta round, frozen at 57bf25af — foundational count 1, not clean, one sample
+last gate: 2026-11-16 — Final Critique 3, a delta round, frozen at a2d70973 — foundational count 0 after the blind second triage, clean, one sample
 
 open: none
 ```
