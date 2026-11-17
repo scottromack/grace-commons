@@ -1,10 +1,10 @@
 {
  "alloy_commands": 24074,
  "atoms": 41,
- "commits": 1874,
+ "commits": 1878,
  "compositions": 26,
- "grounded": 64,
- "grounded_atoms": 40,
+ "grounded": 63,
+ "grounded_atoms": 39,
  "grounded_compositions": 24,
  "models": 141,
  "patterns": 67,
