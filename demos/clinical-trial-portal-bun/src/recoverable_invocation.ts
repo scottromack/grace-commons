@@ -1,5 +1,6 @@
-// Recoverable Invocation — the protocol a regulated action follows around an act it cannot take back, to the depth
-// this part reaches: [Open], [Close], [Refuse], [Yield], [Reconcile] (the sweep), and the derived indexes they read.
+// Recoverable Invocation — the protocol a regulated action follows around an act it cannot take back: [Open], [Close],
+// [Refuse], [Yield], [Reconcile] (the sweep), [Resolve] (an operator's close), [Read Invocation], and the derived indexes
+// they read.
 // Rendered from compositions/recoverable-invocation.md (the page at the commit the entry names), with no code of
 // any other render opened. A rule's label is in the comment where the code answers it.
 //
@@ -9,27 +10,28 @@
 // the journal is Audit Trail. The findings register is `FindingsRegister`, held in this process: the deployment
 // persists it (findings 1, 2, 14), which this render does not.
 //
-// Not rendered here, said so and not hidden: [Resolve] and [Read Invocation]. They are the next parts. A closing
-// written by them is read here already (an abandonment, an escalation, a superseding record) since [Close],
-// [Refuse] and the sweep must find it.
+// Every action of the page is rendered. [Resolve] and [Read Invocation] came last; the closings [Resolve] writes (an
+// abandonment, an escalation, a superseding record) were read by [Close], [Refuse] and the sweep before it existed.
 //
 // Where the render does not meet the page: a release is Lease's own transaction, not joined to the record write
 // (act section 21 asks that a release answering storage-failure leave nothing written standing; here the record
 // stands and the action answers its position's arm, which is the safe side for [Close] and [Refuse]). The same
-// holds for reconcile 8 and 9: the sweep's two writes for one act (the recovery_intended and the outcome) are two
+// holds at [Resolve] (resolve 22). It holds for reconcile 8 and 9: the sweep's two writes for one act (the recovery_intended and the outcome) are two
 // journal transactions here, not one, and a release that fails after a closing counts the act skipped while the
 // closing stands, which the next run finds and counts closed already.
 import { type Seam, isBlank } from "./seam.ts";
 import { canonical } from "./canonical.ts";
 import { Unavailable } from "./store.ts";
 import { type EventLog, type LoggedEvent } from "./event_log.ts";
-import { type RecordRefusal } from "./audit_trail.ts";
+import { type RecordRefusal, type AuditRecord } from "./audit_trail.ts";
 import { type LeaseHost } from "./lease.ts";
 
 /** What record_action answers; a reply that never came is "no-answer" (Primitive policy 32). */
 export type JournalAnswer = { event_id: string } | RecordRefusal | "no-answer";
 export interface Journal {
   recordAction(action_ref: string, actor_ref: string, credential: string, data?: unknown): Promise<JournalAnswer>;
+  /** Audit Trail's read_record, read at [Resolve] alone (resolve 11): the record, "not-known", or a reply that never came (Capability requirement 9, 19). A call that throws Unavailable is state-unavailable. */
+  readRecord(event_id: string): Promise<AuditRecord | "not-known" | "no-answer">;
   readonly log: EventLog;
 }
 
@@ -144,6 +146,8 @@ export interface RecoverableInvocationConfig {
   sweep?: SweepConfig;
   /** The findings register; the default lives in this process. */
   register?: FindingsRegister;
+  /** Term read cap: the most invocations [Read Invocation] returns for one act and the most records per invocation. Default: none. */
+  readCap?: number;
 }
 
 export type OpenResult = { invocation_id: string; intent_event_id: string };
@@ -155,6 +159,29 @@ export type OpenRefusal =
   | { refused: "section-unavailable" }
   | { refused: "journal-unavailable" }
   | { refused: "recording-failure"; position: "intent" | "outcome" };
+
+/** resolve 1: exactly one of three. */
+export type Disposition =
+  | { form: "outcome"; outcome_action_ref: string; outcome_data: unknown }
+  | { form: "abandoned"; cause: string }
+  | { form: "escalated"; candidates: string[] };
+export type ResolveRefusal =
+  | { refused: "already-accounted"; closing_event_id: string }
+  | { refused: "not-known" }
+  | { refused: "section-unavailable" }
+  | { refused: "invalid-credential" }
+  | { refused: "invalid-request"; cause: "malformed" | "candidates-over-cap" | "purged" | "already-abandoned" | "too-young" }   // resolve 27
+  | { refused: "recording-failure"; position: "resolution" };
+export type ResolveResult = { closing_event_id: string };
+
+/** Term state projection. */
+export type InvocationState = "open" | "closed" | "refused" | "abandoned" | "escalated" | "resolved";
+export interface InvocationRecord { event_id: string; sequence_number: number; recorded_at: string; action_ref: string; actor_ref: string; data: Record<string, unknown> }
+/** Term invocation entry: one invocation, its state and its records, and whether older records were left out (read invocation 5). */
+export interface InvocationEntry { invocation_id: string; state: InvocationState; records: InvocationRecord[]; more: boolean }
+/** Term invocation report. */
+export interface InvocationReport { invocations: InvocationEntry[]; more: boolean }
+export type ReadInvocationRefusal = { refused: "not-known" } | { refused: "journal-unavailable" };
 
 export type CloseResult = { outcome_event_id: string; landed_by: "invocation" | "operator" | "sweep" };
 export type CloseRefusal = { refused: "recording-failure"; position: "outcome" };
@@ -353,7 +380,7 @@ export class RecoverableInvocation {
    * once, after journal write bound has passed since the issue (33 to 35), by invocation id through the range read as the mark stood
    * at the issue. An invalid-request(step-4) is read back too (20, 27). A read-back that fails is "readback-failed".
    */
-  private async write(ref: string, actor_ref: string, credential: string, payload: Record<string, unknown>, invocation_id: string):
+  private async write(ref: string, actor_ref: string, credential: string, payload: Record<string, unknown>, invocation_id: string, supersedes?: string | null):
     Promise<{ t: "landed"; event_id: string; alert: boolean } | { t: "invalid-credential" } | { t: "invalid-request" } | { t: "invalid-request-step-4" }
       | { t: "retry" } | { t: "lost-nothing"; step3: boolean } | { t: "readback-failed" }> {
     const issued = this.ms(this.seam.now());
@@ -368,7 +395,7 @@ export class RecoverableInvocation {
         while (this.ms(this.seam.now()) < issued + this.cfg.journalWriteBoundMs) await this.sleep(Math.max(1, issued + this.cfg.journalWriteBoundMs - this.ms(this.seam.now())));   // Primitive policy 34
         await this.refresh(markAtIssue + 1);                                                                          // Primitive policy 35
       } catch (e) { if (e instanceof ReadFailed) return "failed"; throw e; }
-      return (this.byInvocation.get(invocation_id) ?? []).find((r) => r.action_ref === ref) ?? null;
+      return (this.byInvocation.get(invocation_id) ?? []).find((r) => r.action_ref === ref && (supersedes === undefined || r.supersedes === supersedes)) ?? null;   // a record of the same reference an operator's earlier closing wrote is not this write
     };
     if (lost) {
       const found = await readBack();
@@ -732,6 +759,145 @@ export class RecoverableInvocation {
     }
     closeOutRegister();
     return tally;                                                                                                   // reconcile step 5.8
+  }
+
+  // ----- [Resolve] -----------------------------------------------------------------------------------------
+
+  /**
+   * The human-attested close: an operator closes an open intent the sweep cannot, or corrects an outcome an operator wrote (resolve 36).
+   * The page names no order between read_record (resolve 11) and the re-read (resolve 8), nor between the closing a re-read finds and the
+   * too-young guard (resolve 9, 18); this render re-reads, then reads the record, then reads the closing, then the guard.
+   */
+  async resolve(kind: string, act_key: string, invocation_id: string, intent_event_id: string, actor_ref: string, credential: string, disposition: Disposition):
+    Promise<ResolveResult | ResolveRefusal> {
+    const b = this.cfg.bindings[kind];
+    const sw = this.cfg.sweep;
+    if (!sw) throw new Error("this instance runs no sweep: [Resolve] takes the sweep lease, which the sweep's bounds set");
+    const failed: ResolveRefusal = { refused: "recording-failure", position: "resolution" };
+    // Validate, with no take and nothing appended (resolve 30, 31, 33; the cap, resolve 28, is checked with the form: the page names no order).
+    const d = disposition as Disposition | null;
+    const malformed: ResolveRefusal = { refused: "invalid-request", cause: "malformed" };
+    if (!b) return malformed;                                                                                       // resolve 33
+    if (!d || typeof d !== "object") return malformed;
+    if (d.form === "outcome") {
+      if (typeof d.outcome_action_ref !== "string" || !b.outcomes.includes(d.outcome_action_ref)) return malformed; // resolve 31
+    } else if (d.form === "abandoned") {
+      if (typeof d.cause !== "string") return malformed;
+    } else if (d.form === "escalated") {
+      if (!Array.isArray(d.candidates) || d.candidates.some((c) => typeof c !== "string")) return malformed;
+      if (d.candidates.length > this.cfg.intentCandidatesCap) return { refused: "invalid-request", cause: "candidates-over-cap" };   // resolve 28
+    } else return malformed;                                                                                        // resolve 1, 30: exactly one of the three forms
+
+    const holder = this.seam.idMaterial();                                                                          // Term operator run id: injected once per call, fresh for every call
+    let took: Awaited<ReturnType<LeaseHost["take"]>>;
+    try { took = await this.cfg.actSection.take(actKey(kind, act_key), holder, sw.closureLatencyMs + this.cfg.journalWriteBoundMs); }   // resolve 4: take((kind, act key), operator run id, sweep lease)
+    catch { return { refused: "section-unavailable" }; }                                                            // resolve 6: a failed take, no answer included
+    if (took === "unavailable") return { refused: "section-unavailable" };
+    const out = async <T>(r: T): Promise<T> => { await this.release(kind, act_key, holder); return r; };           // resolve 22, 37: every refusal while the section is held releases it
+
+    // Re-read under the critical section, behind a reading of its own (resolve 38, 8).
+    if (!(await this.above(kind, act_key, holder, this.writeFloor))) return out({ refused: "section-unavailable" });   // resolve 7: nothing written
+    try { await this.refresh(); } catch (e) {
+      if (e instanceof ReadFailed) return out(failed);                                                              // Capability requirement 6, 13, 15; the re-read's own row: nothing written
+      throw e;
+    }
+
+    // The intent, by read_record (resolve 11); never from it the intent's sequence number or instant (Primitive policy 39).
+    let rec: AuditRecord | "not-known" | "no-answer";
+    const readBound = this.cfg.readBoundMs;
+    try {
+      const call = this.cfg.journal.readRecord(intent_event_id);
+      rec = readBound === undefined ? await call : await Promise.race([call, new Promise<never>((_, no) => setTimeout(() => no(new ReadFailed("read bound")), readBound))]);   // Capability requirement 19
+    } catch (e) {
+      if (e instanceof ReadFailed || e instanceof Unavailable) return out(failed);                                  // Capability requirement 9, 18: never not-known
+      throw e;
+    }
+    if (rec === "no-answer") return out(failed);                                                                    // Capability requirement 9, 10
+    if (rec === "not-known") return out({ refused: "not-known" });                                                  // resolve 10
+    if (typeof rec.retention === "object" && rec.retention.state === "purged") return out({ refused: "invalid-request", cause: "purged" });   // resolve 12
+    const named = rec.data as { invocation_id?: unknown; kind?: unknown; act_key?: unknown } | null;
+    if (rec.action_ref !== `${kind}.intended` || named?.invocation_id !== invocation_id || named?.act_key !== act_key || named?.kind !== kind) return out({ refused: "not-known" });   // resolve 34
+
+    // The closing that stands (Which closing stands), and what the disposition may do to it (the closing table: resolve 9, 14, 15, 16, 36).
+    const stands = this.standing(invocation_id);
+    let supersedes: string | null = null;
+    if (stands) {
+      if (stands.role === "refused" || (stands.role === "outcome" && !stands.resolving_actor)) return out({ refused: "already-accounted", closing_event_id: stands.event_id });   // resolve 9
+      if (stands.role === "outcome") {                                                                              // resolve 36: an outcome an operator wrote
+        if (d.form !== "outcome") return out({ refused: "already-accounted", closing_event_id: stands.event_id });  // resolve 36b
+        supersedes = stands.event_id;                                                                               // resolve 36a, 13
+      } else if (stands.role === "abandoned") {                                                                     // resolve 16
+        if (d.form !== "outcome") return out({ refused: "invalid-request", cause: "already-abandoned" });           // resolve 16b
+        supersedes = stands.event_id;                                                                               // resolve 16a, 13
+      } else if (stands.role === "escalated") supersedes = stands.event_id;                                         // resolve 15: any disposition, naming it
+    }                                                                                                               // resolve 14: no closing standing, any disposition
+    if (d.form === "abandoned") {
+      const intent = (this.byInvocation.get(invocation_id) ?? []).find((r) => r.role === "intent");
+      const inflight = intent && this.ms(intent.recorded_at) + b.invocationCompletionBoundMs + this.cfg.clockAllowanceMs > this.ms(this.seam.now());   // Term examine edge; resolve 19: now injected at the operator's seam
+      if (inflight) return out({ refused: "invalid-request", cause: "too-young" });                                 // resolve 18
+    }
+
+    // The closing record, under the operator's own credential, behind a reading of its own (resolve 39, 21).
+    if (!(await this.above(kind, act_key, holder, this.writeFloor))) return out({ refused: "section-unavailable" });   // resolve 39, 7
+    const base = { invocation_id, kind, act_key, intent_event_id, recovery: true, resolving_actor: actor_ref, acting_actor_ref: rec.actor_ref, ...(supersedes ? { supersedes } : {}) };   // resolve 21: no recovery_intended; 13
+    const [ref, payload] = d.form === "outcome" ? [d.outcome_action_ref, { ...base, data: d.outcome_data }]
+      : d.form === "abandoned" ? [`${kind}.abandoned`, { ...base, cause: d.cause }]
+      : [`${kind}.escalated`, { ...base, database_candidates: d.candidates }];
+    const w = await this.write(ref, actor_ref, credential, payload, invocation_id, supersedes);
+    switch (w.t) {
+      case "landed":
+        if (w.alert) this.cfg.compliance.hardAlert({ invocation_id, arm: "resolution-read-back" });                 // resolve 24
+        this.cleared.add(invocation_id);
+        try { await this.refresh(); } catch (e) { if (!(e instanceof ReadFailed)) throw e; }                        // the closing is read from the next re-read; one that fails leaves it to the next
+        return out({ closing_event_id: w.event_id });                                                               // resolve 22, 35
+      case "invalid-credential": return out({ refused: "invalid-credential" });                                     // resolve 3: nothing appended
+      case "invalid-request":
+        this.cfg.compliance.hardAlert({ invocation_id, arm: "invalid-request" });                                   // resolve 29
+        return out(failed);
+      default: return out(failed);                                                                                  // resolve 25, 26: step-2, a lost reply after an empty read-back, a step-4 that read back nothing, a read-back that failed; no retry
+    }
+  }
+
+  // ----- [Read Invocation] ---------------------------------------------------------------------------------
+
+  /** Term state projection, read from the standing closing (read invocation 10). */
+  private stateOf(invocation_id: string): InvocationState {
+    const s = this.standing(invocation_id);
+    if (!s) return "open";
+    return s.role === "outcome" ? "closed" : s.role === "refused" ? "refused" : s.role === "escalated" ? "escalated" : s.resolving_actor ? "resolved" : "abandoned";
+  }
+
+  /**
+   * The act's invocations, each intent and whichever closings name it, through the same rebuild (read invocation 1 to 17). It takes no
+   * critical section (13) and writes nothing (14). A read cap, where the deployment declares one, bounds the invocations and the records.
+   */
+  async readInvocation(kind: string, act_key: string, invocation_id?: string): Promise<InvocationReport | ReadInvocationRefusal> {
+    const b = this.cfg.bindings[kind];
+    if (!b) return { refused: "not-known" };                                                                        // read invocation 17: with no read
+    try { await this.refresh(undefined, false); } catch (e) {                                                       // read invocation 1, 11; a read outside the section is not bounded (Term read path)
+      if (e instanceof ReadFailed) return { refused: "journal-unavailable" };                                       // never not-known (Action wiring 3); an invalid-query lands there too, surfaced (Capability requirement 13)
+      throw e;
+    }
+    const now = this.ms(this.seam.now());
+    const cap = this.cfg.readCap ?? Infinity;
+    const intents = (this.byAct.get(actKey(kind, act_key)) ?? [])
+      .filter((r) => r.role === "intent" && this.ms(r.recorded_at) + b.retentionPeriodMs - this.cfg.clockAllowanceMs > now)   // a readable intent: within its retention (sequence high water 5)
+      .sort((x, y) => x.seq - y.seq);
+    if (!intents.length) return { refused: "not-known" };                                                           // read invocation 12
+    const entry = (intent: Rec): InvocationEntry => {
+      const all = (this.byInvocation.get(intent.invocation_id) ?? []).filter((r) => r.role !== "intent" && r.role !== "unbound-intent" && r.role !== "unbound-named")
+        .sort((x, y) => x.seq - y.seq);                                                                             // read invocation 6: a superseded closing is not excluded; 16: earliest first
+      const kept = all.length > cap ? all.slice(all.length - cap) : all;                                            // read invocation 5: the most recent read cap
+      const view = (r: Rec): InvocationRecord => ({ event_id: r.event_id, sequence_number: r.seq, recorded_at: r.recorded_at, action_ref: r.action_ref, actor_ref: r.actor_ref, data: r.payload });
+      return { invocation_id: intent.invocation_id, state: this.stateOf(intent.invocation_id), records: [intent, ...kept].map(view), more: all.length > kept.length };   // read invocation 4, 10
+    };
+    if (invocation_id !== undefined && !isBlank(invocation_id)) {                                                   // read invocation 3
+      const one = intents.find((r) => r.invocation_id === invocation_id);
+      if (!one) return { refused: "not-known" };                                                                    // read invocation 3b
+      return { invocations: [entry(one)], more: false };                                                            // read invocation 3a
+    }
+    const recent = intents.length > cap ? intents.slice(intents.length - cap) : intents;                            // read invocation 2: the most recent read cap, earliest first (16)
+    return { invocations: recent.map(entry), more: intents.length > recent.length };
   }
 
   // ----- reads for the tests and the next parts ------------------------------------------------------------

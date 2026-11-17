@@ -16,7 +16,7 @@ export const OUT = "disclosure.disclosed";
 
 type Mode = "real" | "unavailable" | "rf2" | "rf3-landed" | "rf3-nothing" | "lost-landed" | "lost-nothing" | "step4-landed" | "step4-nothing" | "step1";
 
-export const worldFor = (store: Store) => async (o: { service?: string | null; repeatable?: boolean; readBoundMs?: number; settle?: boolean; sweep?: boolean; second?: boolean } = {}) => {
+export const worldFor = (store: Store) => async (o: { service?: string | null; repeatable?: boolean; readBoundMs?: number; settle?: boolean; sweep?: boolean; second?: boolean; readCap?: number } = {}) => {
   const seam = testSeam("2026-06-01T08:00:00.000Z");
   const px = `ri_${crypto.randomUUID().replaceAll("-", "_")}_`;
   const book = new Map<string, RegistryAnswer>();
@@ -33,6 +33,7 @@ export const worldFor = (store: Store) => async (o: { service?: string | null; r
   const a = person();
   const stranger = person();
   const svc = person();
+  const op = person();                                                                                             // an operator: [Resolve] writes under the operator's own credential
   const realLease = await LeaseHost.open(store, seam, { prefix: px, pollMs: 50, sleep: async (ms) => { seam.advance(ms); } });
 
   // The journal, with answers a test scripts per call; the calls it saw; the log read a test can fail.
@@ -40,6 +41,7 @@ export const worldFor = (store: Store) => async (o: { service?: string | null; r
   const calls: string[] = [];
   let perCall = 0;
   const reads = { mode: "ok" as "ok" | "unavailable" | "invalid-query" | "hang" };
+  const rr = { mode: "ok" as "ok" | "unavailable" | "no-answer" | "hang" | "purged", asked: [] as string[] };         // what read_record answers at [Resolve], and what it was asked
   const journal: Journal = {
     log: {
       payloadCap: log.payloadCap,
@@ -50,6 +52,15 @@ export const worldFor = (store: Store) => async (o: { service?: string | null; r
         return log.read(q);
       },
     } as unknown as EventLog,
+    readRecord: async (id) => {
+      rr.asked.push(id);
+      if (rr.mode === "unavailable") throw new Unavailable();
+      if (rr.mode === "no-answer") return "no-answer";
+      if (rr.mode === "hang") return new Promise<never>(() => {});
+      const rec = await at.readRecord(id);
+      if (rr.mode === "purged" && rec !== "not-known") return { ...rec, retention: { retention_id: "r", policy_ref: "p", state: "purged" as const, retention_until: "2030-01-01T00:00:00.000Z" } };
+      return rec;
+    },
     recordAction: async (ref, actor, cred, data): Promise<JournalAnswer> => {
       calls.push(ref);
       seam.advance(perCall);
@@ -71,10 +82,10 @@ export const worldFor = (store: Store) => async (o: { service?: string | null; r
   };
 
   // The act section: the real Lease host, with the answers a test can change.
-  const sec = { takeUnavailable: false, takeThrows: false, releaseThrows: false, remaining: null as null | ((n: number) => number | "none"), remainingCalls: 0, taken: [] as string[], released: [] as string[] };
+  const sec = { takeUnavailable: false, takeThrows: false, releaseThrows: false, remaining: null as null | ((n: number) => number | "none"), remainingCalls: 0, taken: [] as string[], holders: [] as string[], terms: [] as number[], released: [] as string[] };
   const actSection = {
     take: async (key: string, holder: string, ms: number) => {
-      sec.taken.push(key);
+      sec.taken.push(key); sec.holders.push(holder); sec.terms.push(ms);
       if (sec.takeThrows) throw new Error("storage-failure");
       if (sec.takeUnavailable) return "unavailable" as const;
       return realLease.take(key, holder, ms);
@@ -117,7 +128,7 @@ export const worldFor = (store: Store) => async (o: { service?: string | null; r
     journal, actSection, bindings: { [KIND]: binding, ...(o.second ? { refund } : {}) },
     compliance: { hardAlert: (x) => alerts.push(x), surface: (x) => surfaced.push(x) },
     journalWriteBoundMs: 1000, pauseBoundMs: 100, commitRoundTripMs: 2000, clockAllowanceMs: 50,
-    readBoundMs: o.readBoundMs ?? (o.sweep ? 500 : undefined), intentCandidatesCap: 5, referenceLengthCap: 128,
+    readBoundMs: o.readBoundMs ?? (o.sweep ? 500 : undefined), intentCandidatesCap: 5, referenceLengthCap: 128, ...(o.readCap !== undefined ? { readCap: o.readCap } : {}),
     sleep: async (ms) => { seam.advance(ms); },
     ...(o.sweep ? { sweep: { closureWindowMs: 200_000, runBoundMs: 20_000, sweepCadenceMs: 30_000, closureLatencyMs: 5000, probeRoundTripMs: 500, wait: (ms: number) => new Promise<void>((r) => setTimeout(r, Math.min(ms, 300))) } } : {}),   // the five conditions of Instance start hold; a stalled step-1 read gives up after 300 real milliseconds
   };
@@ -126,8 +137,9 @@ export const worldFor = (store: Store) => async (o: { service?: string | null; r
   const records = async () => ((await log.read({ sequence: { from: 1 } })) as LoggedEvent[]).map((e) => ({ seq: e.sequence_number, ...(e.data as { action_ref: string; data: Record<string, unknown> }) }));
   const open = (key = "act-1", data: unknown = { pairing: "p1" }) => ri.open(KIND, key, a.ref, a.priv, data);
   /** Another writer's closing, written straight to the journal (an operator's or the sweep's, not rendered here). */
+  const resolve = (inv: string, intent: string, d: Parameters<RecoverableInvocation["resolve"]>[6], key = "act-1") => ri.resolve(KIND, key, inv, intent, op.ref, op.priv, d);
   const closing = (ref: string, inv: string, key: string, extra: Record<string, unknown> = {}) => at.recordAction(ref, svc.ref, svc.priv, { invocation_id: inv, kind: KIND, act_key: key, intent_event_id: "x", ...extra });
-  return { seam, at, log, ri, a, stranger, svc, script, calls, reads, sec, alerts, surfaced, records, open, closing, setPerCall: (n: number) => { perCall = n; }, realLease, binding, probe, cfg, refund };
+  return { seam, at, log, ri, a, stranger, svc, op, rr, resolve, script, calls, reads, sec, alerts, surfaced, records, open, closing, setPerCall: (n: number) => { perCall = n; }, realLease, binding, probe, cfg, refund };
 };
 
 export const ok = <T>(r: T | { refused: string }): T => { expect((r as { refused?: string }).refused).toBeUndefined(); return r as T; };
