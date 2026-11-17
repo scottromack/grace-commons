@@ -156,3 +156,5 @@ patterns:
     file: atoms/communication.md
   - id: 67
     file: atoms/tenure.md
+  - id: 68
+    file: atoms/waitlist.md

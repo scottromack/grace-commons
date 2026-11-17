@@ -1804,5 +1804,22 @@
    "audit-trail"
   ],
   "title": "Verified Repair"
+ },
+ "waitlist": {
+  "composed_by": [],
+  "domain": null,
+  "grounded": false,
+  "invariants": 9,
+  "kind": "atom",
+  "models": {
+   "als": false,
+   "tla": false,
+   "twins": 0
+  },
+  "regulated_by": [],
+  "security": false,
+  "standards": [],
+  "status": "todo",
+  "title": "Waitlist"
  }
 }
