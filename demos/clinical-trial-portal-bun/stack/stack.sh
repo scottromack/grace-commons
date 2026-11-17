@@ -48,9 +48,12 @@ case "${1:-}" in
   stop)
     [ -f "$S/xtdb/pid" ] && kill "$(cat "$S/xtdb/pid")" 2>/dev/null || true
     rm -f "$S/xtdb/pid"
+    # a store left running by an earlier start keeps the port: stop whatever still listens on it, then wait for the port to free
+    for p in $(lsof -ti tcp:5432 -sTCP:LISTEN 2>/dev/null); do kill "$p" 2>/dev/null || true; done
+    for _ in $(seq 1 20); do lsof -ti tcp:5432 -sTCP:LISTEN >/dev/null 2>&1 || break; sleep 0.5; done
     ;;
   restart)
-    "$0" stop; sleep 1; "$0" start
+    bash "$0" stop; sleep 1; bash "$0" start
     ;;
   *) echo "usage: stack.sh install|start|stop|restart" >&2; exit 2 ;;
 esac

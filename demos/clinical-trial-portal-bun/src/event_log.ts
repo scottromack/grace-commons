@@ -58,6 +58,11 @@ export class EventLog {
     return new EventLog(store, seam, { name: cfg.name, payloadCap: cfg.payloadCap ?? DEFAULT_CAP });
   }
 
+  /** The log's name (State 3). */
+  get logName(): string {
+    return this.cfg.name;
+  }
+
   /** The payload cap in force, in bytes (Term payload cap). */
   get payloadCap(): number {
     return this.cfg.payloadCap;
