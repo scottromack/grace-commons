@@ -76,11 +76,11 @@ State 2: A tenure MAY carry end date and withdrawn instant.
 State 3: The atom MUST NOT remove a tenure.
 ```
 
-Term date: a calendar date of the Gregorian calendar of ISO 8601, run back before 1582 as if always in force, written `YYYY-MM-DD` with a four-digit year, a two-digit month and a two-digit day, naming a day the calendar holds and carrying no time of day; a value not written so, or naming no day the calendar holds, such as `2026-02-30`, is malformed (Execution Contract Input 1); what a date means in a place is Calendar Time's.
+Term date: a calendar date of the Gregorian calendar of ISO 8601, run back before 1582 as if always in force, written `YYYY-MM-DD` with a four-digit year, a two-digit month and a two-digit day, naming a day the calendar holds and carrying no time of day; a value not written so, or naming no day the calendar holds, such as `2026-02-30`, is malformed (Execution Contract Input 1); a blank value is no date and is not malformed; what a date means in a place is Calendar Time's.
 
-Term start date: the first day a person holds the role — the [Start Date].
+Term start date: the first of the tenure's days — the [Start Date].
 
-Term end date: the first day a person no longer holds the role — the [End Date]; a tenure carrying none is open.
+Term end date: the first day after the tenure's days — the [End Date]; a tenure carrying none is open.
 
 Term withdrawn instant: the instant of the [Withdraw] call that withdrew a tenure, stamped from the injected now — the [Withdrawn Instant]; set once.
 
@@ -107,6 +107,7 @@ Capability requirement 7: The deployment MAY declare the role set PER Execution 
 Capability requirement 8: The deployment MAY declare the one-holder set PER Execution Contract Logic confinement 17.
 Capability requirement 9: IF a member of the role set EQUALS blank OR a member of the role set EXCEEDS the string cap THEN the deployment MUST NOT declare the role set.
 Capability requirement 10: IF a member of the one-holder set IS NOT IN the role set THEN the deployment MUST NOT declare the one-holder set.
+Capability requirement 11: IF the deployment declares the string cap AND a member of the role set EXCEEDS the string cap declared THEN the deployment MUST NOT declare the string cap.
 ```
 
 ### Operations
@@ -214,11 +215,11 @@ The case space, and the rule that owns each case:
 | [Begin] | the person reference blank, over the string cap, or not a string | [Invalid Person Reference] | none (Operation 1, Operation 2) |
 | [Begin] | the item reference blank, over the string cap, or not a string | [Invalid Item Reference] | none (Operation 3, Operation 4) |
 | a placing action | the role of the proposed tenure blank or over the string cap, or the call carries a role that is not a string or not in the role set | [Invalid Role] | none (Operation 5, Operation 6, Operation 7) |
-| a placing action | the start date not a date | [Invalid Start Date] | none (Operation 8) |
+| a placing action | the start date carried and not a date | [Invalid Start Date] | none (Operation 8) |
 | [Begin] | the start date blank | [Invalid Start Date] | none (Operation 40) |
 | a placing action | the same person holds the same role in the same thing on a day the proposed tenure covers | [Already Held] | none (Operation 12) |
 | a placing action | the role in the one-holder set, and another person holds the role in the thing on a day the proposed tenure covers | [Role Taken] | none (Operation 13) |
-| a dating action | the end date not a date | [Invalid End Date] | none (Operation 9) |
+| a dating action | the end date carried and not a date | [Invalid End Date] | none (Operation 9) |
 | [End] | the end date blank | [Invalid End Date] | none (Operation 41) |
 | a dating action | the end date the same as the start date, or earlier | [End Too Early] | none (Operation 10, Operation 11) |
 | [End] | the tenure open and not withdrawn, the end date valid, database accepts | ok | the tenure carries the end date; the earlier version stays readable (Operation 21, Operation 22, Execution Contract Database 5) |
@@ -228,7 +229,7 @@ The case space, and the rule that owns each case:
 | [Withdraw] | the tenure carries no withdrawn instant | ok | the tenure carries the withdrawn instant, now; every detail stands; nothing is removed (Operation 27, Operation 28, Operation 29, State 3) |
 | [End], [Change] or [Withdraw] | the tenure carries a withdrawn instant | [Already Withdrawn] | none (Operation 15, Operation 16, Operation 17) |
 | a keyed action | no tenure carries the tenure id, or the id is not a string | [Not Known] | none (Operation 14) |
-| [Look Up] | the tenure exists, withdrawn or not | the tenure | none (Operation 30, Operation 31) |
+| [Look Up] | the tenure exists, carrying a withdrawn instant or not | the tenure | none (Operation 30, Operation 31) |
 | [History For] | tenures match the reference, held on the date where the call names one | each match, in order of start date, ties in codepoint order of tenure id | none (Operation 32, Operation 33, Operation 35, Operation 36, Operation 39) |
 | [History For] | no match, the reference blank, over the string cap or not a string, or the date not a date | an empty list | none (Operation 34, Operation 37, Operation 38) |
 | any writing call | database refuses the write | [Storage Failure] | none (Execution Contract Read 4) |
@@ -274,6 +275,7 @@ The sales team's calls, made on Monday 2026-11-16:
 
 - `begin("sam", "account-manager", "acme-supply", "2026-11-20")` — rejected as [Role Taken]: account-manager has one holder at a time, Dana's `t-3` runs through November 30, and Lee's `t-19` runs from December 1 (Operation 13).
 - `begin("jane-ruiz", "buyer", "acme-supply", "2026-05-01")` — rejected as [Already Held]: Jane's `t-12` covers May (Operation 12).
+- `begin("jane-ruiz", "account-manager", "acme-supply", "2026-11-20")` — rejected as [Already Held]: Jane's own `t-31` and Dana's `t-3` both cover November 20, so Operation 12 and Operation 13 both apply, and the refusal listed first on [Begin]'s refuses line answers (Execution Contract Refusal 1).
 - `begin("jane-ruiz", "cfo", "acme-supply", "2026-03-02")` — rejected as [Invalid Role]: the team's role set has no cfo (Operation 6).
 - `begin("", "buyer", "acme-supply", "2026-03-02")` — rejected as [Invalid Person Reference]: the reference is blank (Operation 1).
 - `begin("jane-ruiz", "buyer", "", "2026-03-02")` — rejected as [Invalid Item Reference]: the reference is blank (Operation 3).
@@ -307,8 +309,8 @@ Check 3.1: An auditor MUST find no two tenures sharing a person reference, a rol
 Check 4.1: An auditor MUST find EVERY version of a tenure carrying the tenure id of the tenure's first version (Invariant 3.1).
 Check 4.2: An auditor MUST find EVERY version of a tenure carrying the person reference of the tenure's first version (Invariant 3.2).
 Check 4.3: An auditor MUST find EVERY version of a tenure carrying the item reference of the tenure's first version (Invariant 3.3).
-Check 5.1: An auditor MUST find no version of a tenure differing from an earlier withdrawn version of the tenure (Invariant 4.1).
-Check 6.1: An auditor MUST find no two tenures sharing a tenure id (Identity 4).
+Check 5.1: An auditor MUST find no version of a tenure written after the tenure's withdrawn version differing from the withdrawn version (Invariant 4.1).
+Check 6.1: An auditor MUST find no two first versions of tenures sharing a tenure id (Identity 4).
 ```
 
 Term version: a record as it stood at the commit that wrote it, which Execution Contract Database 5 keeps readable after the record changes and Execution Contract Generation acceptance 1 has a check read.
@@ -337,7 +339,7 @@ Non-goal 8: The atom MUST NOT read a date in a place.
 Non-goal 9: The atom MUST NOT find a tenure by a role across items.
 Non-goal 10: The atom MUST NOT bound a tenure's retention.
 Non-goal 11: The atom MUST NOT destroy a tenure.
-Non-goal 12: The atom MUST NOT seal a tenure against modification.
+Non-goal 12: The atom MUST NOT make a tenure tamper-evident; a withdrawn tenure stands unchanged by Invariant 4.1, which is no seal.
 ```
 
 NOTE: the owners — [Party Identity](./party-identity.md) and [Actor Identity](./actor-identity.md) (Non-goal 1; External check 1); Catalog *(forthcoming)* (Non-goal 2; External check 2); [Permissions](./permissions.md), which a deployment needing roles calls once the deployment resolves the role to grants (Non-goal 3); [Assignment](./assignment.md) (Non-goal 4); Scheduler *(forthcoming)* (Non-goal 5); the composing pattern that knows the caller, such as one built on [Session](./session.md) or [Permissions](./permissions.md) (Non-goal 6); [Event Log](./event-log.md) (Non-goal 7); [Calendar Time](./calendar-time.md) (Non-goal 8); Reverse Index *(forthcoming)* (Non-goal 9); [Retention Window](./retention-window.md) (Non-goal 10); [Defensible Retention](../compositions/defensible-retention.md) and [Erasure Tombstone](./erasure-tombstone.md) (Non-goal 11); [Tamper Evidence](./tamper-evidence.md) (Non-goal 12).
@@ -665,7 +667,7 @@ Tenure is a primitive with no regulatory anchor. It inherits from:
 ```
 status: doing
 formal: pending — no model yet
-last gate: 2026-11-16 — Final Critique 1, a full round, frozen at 3b123088 — foundational count 5, not clean, one sample
+last gate: 2026-11-16 — Final Critique 2, a delta round, frozen at 57bf25af — foundational count 1, not clean, one sample
 
 open: none
 ```
