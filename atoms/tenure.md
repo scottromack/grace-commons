@@ -97,7 +97,7 @@ Term ended: a tenure is ended on the end date of the tenure and on every later d
 ### Capability requirement
 
 ```
-Capability requirement 1: The deployment MUST supply the database PER Execution Contract Database 1 through 7, Execution Contract Read 1 through 6, Execution Contract Refusal 1, Execution Contract Input 1 and Execution Contract Query 5.
+Capability requirement 1: The deployment MUST supply the database PER Execution Contract Database 1 through 7, Execution Contract Read 1 through 6, Execution Contract Refusal 1, Execution Contract Input 1, Execution Contract Query 1 and Execution Contract Query 5.
 Capability requirement 2: The deployment MUST supply now at the seam PER Execution Contract Logic confinement 11.
 Capability requirement 3: The deployment MAY declare the string cap PER Execution Contract Input 2 and Execution Contract Logic confinement 17.
 Capability requirement 4: The deployment MUST NOT normalize a person reference at the seam.
@@ -231,7 +231,7 @@ The case space, and the rule that owns each case:
 | a keyed action | no tenure carries the tenure id, or the id is not a string | [Not Known] | none (Operation 14) |
 | [Look Up] | the tenure exists, carrying a withdrawn instant or not | the tenure | none (Operation 30, Operation 31) |
 | [History For] | tenures match the reference, held on the date where the call names one | each match, in order of start date, ties in codepoint order of tenure id | none (Operation 32, Operation 33, Operation 35, Operation 36, Operation 39) |
-| [History For] | no match, the reference blank, over the string cap or not a string, or the date not a date | an empty list | none (Operation 34, Operation 37, Operation 38) |
+| [History For] | no match, the reference blank, over the string cap or not a string, or the date carried and not a date | an empty list | none (Operation 34, Operation 37, Operation 38) |
 | any writing call | database refuses the write | [Storage Failure] | none (Execution Contract Read 4) |
 | any call | its read of the database fails | `state-unavailable` | none (Execution Contract Read 1, Execution Contract Read 3) |
 | any call | more than one refusal applies | the refusal listed first on the action's refuses line | none (Execution Contract Refusal 1) |
@@ -667,7 +667,7 @@ Tenure is a primitive with no regulatory anchor. It inherits from:
 ```
 status: done — 2026-11-16
 formal: pending — no model yet
-last gate: 2026-11-16 — Final Critique 3, a delta round, frozen at a2d70973 — foundational count 0 after the blind second triage, clean, one sample
+last gate: 2026-11-17 — Final Critique 4, a delta round, frozen at f8dce3b8 — foundational count 0 after the blind second triage, clean, one sample
 
 open: none
 ```
