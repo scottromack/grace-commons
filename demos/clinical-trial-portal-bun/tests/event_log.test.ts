@@ -96,3 +96,18 @@ test("Database 1: several events planned together land together, in order, besid
   await expect(store.commit(stale.stmts)).rejects.toThrow();
   expect(events(await log.read({ sequence: { from: 1 } }))).toHaveLength(3); // the two planned together and the one that landed first; the stale plan wrote nothing
 });
+
+test("State 4, 5, Database 2: the log carries its next sequence number; a fresh instance has none and begins at one, an append advances it by the events it lands, and an append never scans for it", async () => {
+  const { log } = await world();
+  const name = (log as unknown as { cfg: { name: string } }).cfg.name;
+  const head = () => store.read<{ next_seq: string }>(`SELECT next_seq FROM log_heads WHERE _id = $1`, [name]);
+  expect(await head()).toEqual([]);
+  for (let i = 0; i < 25; i++) await log.append({ i });
+  expect(Number((await head())[0].next_seq)).toBe(26);
+  const plan = await log.plan([{ a: 1 }, { b: 2 }]);
+  if ("refused" in plan) throw new Error("refused");
+  expect(plan.sequence_numbers).toEqual([26, 27]);
+  await store.commit(plan.stmts);
+  expect(Number((await head())[0].next_seq)).toBe(28);
+  expect((events(await log.read({ sequence: { from: 1 } }))).map((e) => e.sequence_number)).toEqual(Array.from({ length: 27 }, (_, i) => i + 1));
+});

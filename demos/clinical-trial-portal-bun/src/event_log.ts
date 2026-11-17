@@ -5,11 +5,13 @@
 // One table, `events`, holds every log instance; an event's log_name tells the instances apart
 // (Identity 10: a composing pattern owns how many there are, and each serves one composition alone).
 // An event is one record under its event id and is never written again (Invariant 2.1, State 8, 9).
-// The sequence number is the log's order. Next sequence number (State 4) is the highest landed plus
-// one; a fresh instance begins at one (State 5). The guard that keeps the order total is an ASSERT
-// in the append's own transaction (Database 2): an append that finds another landed first is refused
-// whole and plans again from what landed, so no two events share a number (Invariant 3.1) and none
-// lands below one already landed (Invariant 4.1).
+// The sequence number is the log's order. The log carries its next sequence number (State 4) as one
+// record per instance, `log_heads`; a fresh instance has none and begins at one (State 5). An append
+// asserts, inside its own transaction (Database 2), that the head is still the one it read, writes its
+// events and the head advanced by their count: an append that finds another landed first is refused
+// whole and plans again from what landed, so no two events share a number (Invariant 3.1) and none lands
+// below one already landed (Invariant 4.1). It reads the head and never scans the events for it: the first
+// build derived the number with MAX(seq) over the table, which grew with every event of every log.
 import { Store, Guard, type Row, type Stmt } from "./store.ts";
 import { type Seam } from "./seam.ts";
 import { canonical } from "./canonical.ts";
@@ -38,6 +40,7 @@ type Stored = Row & { _id: string; log_name: string; seq: number | string; recor
 
 const T = "events";
 const COLUMNS = ["log_name", "seq", "recorded_at", "data"];
+const H = "log_heads";                    // one record for each log instance: the next sequence number (State 4)
 const DEFAULT_CAP = 65_536;
 
 export interface AppendPlan {
@@ -51,6 +54,7 @@ export class EventLog {
 
   static async open(store: Store, seam: Seam, cfg: EventLogConfig): Promise<EventLog> {
     await store.declare(T, COLUMNS);
+    await store.declare(H, ["next_seq"]);
     return new EventLog(store, seam, { name: cfg.name, payloadCap: cfg.payloadCap ?? DEFAULT_CAP });
   }
 
@@ -73,11 +77,16 @@ export class EventLog {
   async plan(datas: unknown[]): Promise<AppendPlan | { refused: "invalid-payload" }> {
     const texts = datas.map((d) => canonical(d ?? null));
     if (texts.some((t) => new TextEncoder().encode(t).length > this.cfg.payloadCap)) return { refused: "invalid-payload" }; // Operation 5; Operation 6: empty data is accepted
-    const top = await this.top();
+    const head = (await this.store.read<Row & { next_seq: number | string }>(`SELECT next_seq FROM ${H} WHERE _id = $1`, [this.cfg.name]))[0];
+    // A log with events and no head record (written before heads existed) takes its number from its events once; the guard below then lets one writer make the head.
+    const first = head ? Number(head.next_seq) : (await this.top()) + 1;
+    const guard = head
+      ? this.store.assertSome(H, "_id = $1 AND next_seq = $2", [this.cfg.name, first], "log-moved")
+      : this.store.assertNone(H, "_id = $1", [this.cfg.name], "log-moved");
     const now = this.seam.now();                                                                               // Operation 2
     const ids = texts.map(() => this.seam.idMaterial());                                                       // Identity 2
-    const seqs = texts.map((_, i) => top + 1 + i);                                                             // Operation 3, State 6
-    const stmts: Stmt[] = [this.store.assertNone(T, "log_name = $1 AND seq > $2", [this.cfg.name, top], "log-moved")];
+    const seqs = texts.map((_, i) => first + i);                                                             // Operation 3, State 6
+    const stmts: Stmt[] = [guard, this.store.put(H, { _id: this.cfg.name, next_seq: first + texts.length })];
     texts.forEach((data, i) => stmts.push(this.store.put(T, { _id: ids[i], log_name: this.cfg.name, seq: seqs[i], recorded_at: now, data })));
     return { event_ids: ids, sequence_numbers: seqs, stmts };
   }
