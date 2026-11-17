@@ -71,10 +71,15 @@ export class PartyIdentity {
     return !(Date.parse(this.seam.now()) < t.getTime());                                                      // Operation 3: now precedes the date of birth start
   }
 
+  /** Enroll's own field rules, with nothing read and nothing written: a composition asks them before its attempt record (External Onboarding Primitive policy 3). */
+  validEnroll(name: string, date_of_birth: string, document_type: string, document_ref: string, enrolling_actor_ref: string): boolean {
+    if ([name, document_type, document_ref, enrolling_actor_ref].some((v) => this.bad(v))) return false;                              // Operation 1
+    return typeof date_of_birth === "string" && this.dobOk(date_of_birth);                                                            // Operation 2, 3
+  }
+
   /** The statements that record one party, or the refusal, to commit alone (`enroll`) or beside an action's other writes. */
   async planEnroll(name: string, date_of_birth: string, document_type: string, document_ref: string, enrolling_actor_ref: string): Promise<{ party_id: string; stmts: Stmt[] } | { refused: "invalid-request" }> {
-    if ([name, document_type, document_ref, enrolling_actor_ref].some((v) => this.bad(v))) return { refused: "invalid-request" };   // Operation 1
-    if (typeof date_of_birth !== "string" || !this.dobOk(date_of_birth)) return { refused: "invalid-request" };                      // Operation 2, 3
+    if (!this.validEnroll(name, date_of_birth, document_type, document_ref, enrolling_actor_ref)) return { refused: "invalid-request" };   // Operation 1, 2, 3
     const head = (await this.store.read<Row & { next_ordinal: number | string }>(`SELECT next_ordinal FROM ${this.H} WHERE _id = 'parties'`))[0];
     const ordinal = head ? Number(head.next_ordinal) : 1;
     const id = this.seam.idMaterial();                                                                        // Identity 4: the id comes from the seam

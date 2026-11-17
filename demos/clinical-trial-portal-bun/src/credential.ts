@@ -6,7 +6,7 @@
 // new version of the record under the same _id (Execution Contract Database 5), so the earlier
 // version is there to read. The guard of a write is an ASSERT in the write's own transaction
 // (Database 2), so two registrations of one pair at once leave one.
-import { Store, Guard, type Row } from "./store.ts";
+import { Store, Guard, type Row, type Stmt } from "./store.ts";
 import { type Seam, isBlank, instant } from "./seam.ts";
 
 export type Status = "active" | "rotated" | "revoked";
@@ -83,7 +83,18 @@ export class Credential {
     return { expires: d === null ? null : new Date(Date.parse(now) + d).toISOString() };
   }
 
-  async register(principal_ref: string, material: string, credential_type: string, expires_at?: string): Promise<{ credential_id: string } | { refused: Refusal }> {
+  /** Register's own field rules, with nothing read of the store and nothing written: a composition asks them before its attempt record (External Onboarding Primitive policy 3). */
+  async validRegister(material: string, credential_type: string, expires_at?: string): Promise<boolean> {
+    if (isBlank(credential_type)) return false;                                                              // Operation 3
+    if (material === undefined || material === null || material === "") return false;                        // Operation 2 (empty material)
+    const type = this.registry.types[credential_type];
+    if (!type) return false;                                                                                 // Operation 4
+    if (typeof this.expiry(this.seam.now(), expires_at) === "string") return false;                          // Operation 5, 63, 80, 81
+    return (await type.derive(material)) !== null;                                                           // Operation 66
+  }
+
+  /** The statements of one registration, to commit alone (`register`) or beside an action's other writes, or the refusal. */
+  async planRegister(principal_ref: string, material: string, credential_type: string, expires_at?: string): Promise<{ credential_id: string; stmts: Stmt[] } | { refused: Refusal }> {
     if (isBlank(principal_ref) || isBlank(credential_type)) return { refused: "invalid-request" };       // Operation 1, 3
     if (material === undefined || material === null || material === "") return { refused: "invalid-request" }; // Operation 2 (empty material)
     const type = this.registry.types[credential_type];
@@ -96,8 +107,9 @@ export class Credential {
     // Operation 6: an effective-active credential for the pair refuses; Operation 8: a lapsed one does not.
     if ((await this.pair(principal_ref, credential_type)).some((c) => Credential.live(c, now))) return { refused: "duplicate-active-credential" };
     const id = this.seam.idMaterial();                                                                       // Operation 9, Identity 2
-    try {
-      await this.store.commit([
+    return {
+      credential_id: id,
+      stmts: [
         this.store.assertNone(T, "principal_ref = $1 AND credential_type = $2 AND status = 'active' AND (expires_at IS NULL OR expires_at > $3)", [principal_ref, credential_type, now], "duplicate"),
         this.store.assertNone(T, "_id = $1", [id], "id-held"),                                               // Identity 5
         this.store.put(T, {
@@ -105,12 +117,20 @@ export class Credential {
           expires_at: ex.expires, status: "active",                                                         // Operation 12, 13, 15
           rotated_at: null, successor_credential_id: null, revoked_by_ref: null, revocation_reason: null, revoked_at: null,
         }),
-      ]);
+      ],
+    };
+  }
+
+  async register(principal_ref: string, material: string, credential_type: string, expires_at?: string): Promise<{ credential_id: string } | { refused: Refusal }> {
+    const p = await this.planRegister(principal_ref, material, credential_type, expires_at);
+    if ("refused" in p) return p;
+    try {
+      await this.store.commit(p.stmts);
     } catch (e) {
       if (e instanceof Guard) return { refused: e.guard === "duplicate" ? "duplicate-active-credential" : "storage-failure" };
       return { refused: "storage-failure" };                                                                 // Operation 45
     }
-    return { credential_id: id };                                                                            // Operation 16
+    return { credential_id: p.credential_id };                                                               // Operation 16
   }
 
   async verify(principal_ref: string, credential_type: string, presented: string): Promise<"verified" | { failed: Failure }> {

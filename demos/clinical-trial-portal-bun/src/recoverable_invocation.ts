@@ -52,7 +52,7 @@ export interface KindBinding {
   /** The credential the sweep writes under the service identity with; null where the kind has no service identity (Term service identity). */
   serviceCredential?: string | null;
   /** The adopter's act probe, read by act key and the intent's payload (Term act probe); absent reads as unavailable, since the sweep must not close an act whose database it cannot read (Invariant 5.10). */
-  actProbe?: (act_key: string, intent_payload: Record<string, unknown>) => Promise<ProbeAnswer>;
+  actProbe?: (act_key: string, intent_payload: Record<string, unknown>, intent_actor_ref: string) => Promise<ProbeAnswer>;
   /** The time the adopter declares for an operator to settle an escalation (Term settling period). */
   settlingPeriodMs?: number;
 }
@@ -587,8 +587,8 @@ export class RecoverableInvocation {
   }
 
   /** The adopter's act probe; a rejection or no answer is unavailable (act probe 4, 5). A kind with none bound reads as unavailable (Invariant 5.10). */
-  private async probe(b: KindBinding, act_key: string, intent_payload: Record<string, unknown>): Promise<ProbeAnswer> {
-    try { return b.actProbe ? await b.actProbe(act_key, intent_payload) : { answer: "unavailable" }; } catch { return { answer: "unavailable" }; }
+  private async probe(b: KindBinding, act_key: string, intent_payload: Record<string, unknown>, intent_actor_ref: string): Promise<ProbeAnswer> {
+    try { return b.actProbe ? await b.actProbe(act_key, intent_payload, intent_actor_ref) : { answer: "unavailable" }; } catch { return { answer: "unavailable" }; }
   }
 
   /**
@@ -693,7 +693,7 @@ export class RecoverableInvocation {
       }
       if (this.standing(rec.invocation_id) || this.sweepClosed.has(rec.invocation_id)) { landed.add(rec.invocation_id); return "closed_already"; }   // reconcile step 2.5, 2.6; sweep closed ids 1
       if (!(await this.above(rec.kind, rec.act_key, holder, this.writeFloor))) return "skipped";                    // reconcile step 2.7, 2.11: the reading comes before the act probe
-      const probe = await this.probe(b, rec.act_key, rec.payload);                                                  // reconcile step 3.1; reconcile 2b under none
+      const probe = await this.probe(b, rec.act_key, rec.payload, rec.actor_ref);                                                  // reconcile step 3.1; reconcile 2b under none
       if (probe.answer === "unavailable") { mark(seen, "store-unavailable", rec.kind); return "skipped"; }          // reconcile step 3.13; under none the closure table's row lands the same (open line 2026-11-07-d)
       if (b.serviceIdentity === null) {
         this.cfg.compliance.surface({ arm: "reported", kind: rec.kind, act_key: rec.act_key, invocation_id: rec.invocation_id, detail: probe });   // reconcile 2e: the result reported, nothing written (2d)

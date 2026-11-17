@@ -1,26 +1,33 @@
-// External Onboarding — admitting an outside party: [Invite], [Decline] and [Revoke] on the audit arm. [Onboard]
-// (the one action that follows Recoverable Invocation, with its onboarding transaction and its probe) is the part after
-// this one and is not here.
+// External Onboarding — admitting an outside party: [Invite], [Decline] and [Revoke] on the audit arm, and [Onboard], the
+// one action that follows Recoverable Invocation around its onboarding transaction (Invitation's accept, Party Identity's
+// enroll and Credential's register, committed together or not at all), with its onboarding probe and its binding.
 // Rendered from compositions/external-onboarding.md (the page at the commit the entry names), with no code of any
 // other render opened. A rule's label is in the comment where the code answers it.
 //
-// The composition stores nothing (Composition state 1, 3): the tracing from a party to its invitation is the trail's.
-// Each action is one transaction (Database 1): the attempt record, the constituent's write and the post-write record
-// are planned in that order and committed together, so a refusal anywhere leaves nothing written ("a committed
+// The composition stores nothing (Composition state 1, 3, 5): the tracing from a party to its invitation is the trail's,
+// and the invocation's record is Recoverable Invocation's.
+// Each audit-arm action is one transaction (Database 1): the attempt record, the constituent's write and the post-write
+// record are planned in that order and committed together, so a refusal anywhere leaves nothing written ("a committed
 // nothing", Audit arm 17), except what the Audit arm names: the attestation an attempt record Audit Trail refused at
 // step-3 or step-4 leaves committed (Audit arm 21, 23), and the post-write record a step-4 refusal left in the log,
 // which the landing read finds and the action then proceeds as landed (Audit arm 8 to 11).
+// [Onboard] writes its intent first, through the invocation open, and commits its three constituent writes as one
+// transaction after it (Database 3); a pre-commit refusal is kept by the invocation refuse, a commit by the invocation
+// close, and an unknown commit by the invocation yield, its record then the sweep's (Action wiring 56 to 61).
 // The attempt record's attestation is the credential gate: nothing is verified outside it (Action wiring 2) and every
 // record is attested under the calling actor's credential (Composes 14). The composition declares no service identity
 // (Composes 15).
 //
 // Where the render does not meet the page: Capability requirement 2 asks one reading of now per invocation; the
-// constituents read the seam's clock themselves, so the three actions read none of their own, and Capability
-// requirement 12 (the widths the constituents allocate) is the deployment's declaration, which the sizing below uses.
+// constituents read the seam's clock themselves, so the actions read none of their own, and Capability requirement 12
+// (the widths the constituents allocate) is the deployment's declaration, which the sizing below uses.
 import { Store, Guard, Unavailable, type Stmt } from "./store.ts";
 import { type Seam, isBlank } from "./seam.ts";
 import { canonical } from "./canonical.ts";
 import { type Invitation } from "./invitation.ts";
+import { type PartyIdentity } from "./party_identity.ts";
+import { type Credential } from "./credential.ts";
+import { type RecoverableInvocation, type KindBinding, type OpenResult, type OpenRefusal } from "./recoverable_invocation.ts";
 import { type RecordRefusal } from "./audit_trail.ts";
 import { type EventLog, type LoggedEvent } from "./event_log.ts";
 
@@ -43,11 +50,31 @@ export interface ExternalOnboardingConfig {
   clockOffsetAllowanceMs: number | null;
   /** Capability requirement 11, 22: the widths the wired constituents allocate for an invitation token, a party id, a credential id and an event id. Blank, the composition does not start. */
   mintedIdWidths: { invitationToken: number; partyId: number; credentialId: number; eventId: number } | null;
+  /** Capability requirement 29: the deployment's disclosed bound on one onboarding transaction, from issue to reply; past it the transaction's answer is unknown. */
+  commitRoundTripMs: number;
   /** Audit arm 19: an invalid-request from Audit Trail is a deployment fault, alerted. */
   alert?: (a: { arm: string; action: string; step: string }) => void;
 }
 
+/** The constituents the composition wires (Composes 1 to 4, 17): one Recoverable Invocation instance serves it, writing to the same Audit Trail. */
+export interface OnboardingParts { invitation: Invitation; parties: PartyIdentity; credentials: Credential; trail: Trail; ri: RecoverableInvocation }
+
 export type Position = "intent" | "attempt-evidence";
+export type OnboardResult = { party_id: string; credential_id: string };
+export type OnboardRefusal =
+  | { refused: "invalid-request" }
+  | { refused: "invalid-credential" }
+  | { refused: "storage-failure" }
+  | { refused: "state-unavailable" }
+  | { refused: "duplicate-active-credential" }
+  | { refused: "act-in-flight"; invocation_id: string }
+  | { refused: "section-unavailable" }
+  | { refused: "journal-unavailable" }
+  | { refused: "already-accounted"; closing_event_id: string }
+  | { refused: "recording-failure"; position: "intent" }
+  | { refused: "recording-failure"; position: "outcome"; invocation_id?: string }
+  | { refused: "recording-failure"; position: "refusal"; constituent_code: string }
+  | InvitationInvalid;
 export type InvitationInvalid = { refused: "invitation-invalid"; cause: "expired" | "not-known" | "already-resolved"; stored_terminal?: "accepted" | "declined" | "revoked" };
 export type Refusal =
   | { refused: "invalid-request" }
@@ -59,6 +86,8 @@ export type Refusal =
 const ATTEMPT = { invite: "invitation.initiate-attempt", decline: "invitation.decline-attempt", revoke: "invitation.revoke-attempt" } as const;
 const POST = { invite: "invitation.initiated", decline: "invitation.declined", revoke: "invitation.revoked" } as const;
 const TRIES = 50;
+export const ONBOARDING = "onboarding";
+const OUTCOME = `${ONBOARDING}.completed`;
 
 type Spec = {
   action: "invite" | "decline" | "revoke";
@@ -73,14 +102,16 @@ type Spec = {
 };
 
 export class ExternalOnboarding {
-  private constructor(private store: Store, private seam: Seam, private invitation: Invitation, private trail: Trail, private cfg: ExternalOnboardingConfig & { mintedIdWidths: NonNullable<ExternalOnboardingConfig["mintedIdWidths"]> }) {}
+  private constructor(private store: Store, private seam: Seam, private p: OnboardingParts, private cfg: ExternalOnboardingConfig & { mintedIdWidths: NonNullable<ExternalOnboardingConfig["mintedIdWidths"]> }) {}
+  private get invitation() { return this.p.invitation; }
+  private get trail() { return this.p.trail; }
 
   /** Capability requirement 18, 19, 22: a blank bound, and the composition does not start. */
-  static async open(store: Store, seam: Seam, parts: { invitation: Invitation; trail: Trail }, cfg: ExternalOnboardingConfig): Promise<ExternalOnboarding> {
+  static async open(store: Store, seam: Seam, parts: OnboardingParts, cfg: ExternalOnboardingConfig): Promise<ExternalOnboarding> {
     if (cfg.onboardingCompletionBoundMs === null || cfg.onboardingCompletionBoundMs === undefined) throw new Error("External Onboarding does not start: the onboarding completion bound is blank");   // Capability requirement 18
     if (cfg.clockOffsetAllowanceMs === null || cfg.clockOffsetAllowanceMs === undefined) throw new Error("External Onboarding does not start: the clock offset allowance is blank");              // Capability requirement 19
     if (!cfg.mintedIdWidths) throw new Error("External Onboarding does not start: the minted-id width bounds are blank");                                                                      // Capability requirement 22
-    return new ExternalOnboarding(store, seam, parts.invitation, parts.trail, cfg as ExternalOnboardingConfig & { mintedIdWidths: NonNullable<ExternalOnboardingConfig["mintedIdWidths"]> });
+    return new ExternalOnboarding(store, seam, parts, cfg as ExternalOnboardingConfig & { mintedIdWidths: NonNullable<ExternalOnboardingConfig["mintedIdWidths"]> });
   }
 
   // ---- Input checks, before any record (Primitive policy 1 to 6, 10) ------------------------------------------------
@@ -148,6 +179,121 @@ export class ExternalOnboarding {
       refusal: (c) => (c.refused === "invalid-request" ? { refused: "invalid-request" } : this.invalid(c)),         // Action wiring 50 to 53
     });
     return "ok" in r ? "revoked" : r;                                                                                // Action wiring 55
+  }
+
+  // ---- [Onboard]: one Recoverable Invocation act (Action wiring 56 to 61) ---------------------------------------------
+
+  /**
+   * [Onboard]: validate, open the invocation (its intent record is the attempt record, Term attempt record), run the
+   * onboarding transaction, and close it, refuse it or yield it by where it landed (Term commit partition).
+   */
+  async onboard(
+    invitation_token: string, accepting_identity_ref: string, name: string, date_of_birth: string, document_type: string, document_ref: string,
+    credential_type: string, credential_material: string, expires_at: string | undefined, enrolling_actor_ref: string, actor_credential: string,
+  ): Promise<OnboardResult | OnboardRefusal> {
+    const bad: OnboardRefusal = { refused: "invalid-request" };
+    if (!this.inputs([invitation_token, accepting_identity_ref, name, date_of_birth, document_type, document_ref, credential_type, credential_material, enrolling_actor_ref, actor_credential], enrolling_actor_ref)) return bad;   // Primitive policy 1, 2, 10
+    if (!this.invitation.validAccept(accepting_identity_ref)) return bad;                                            // Primitive policy 3: every field passed to a constituent
+    if (!this.p.parties.validEnroll(name, date_of_birth, document_type, document_ref, enrolling_actor_ref)) return bad;
+    if (!(await this.p.credentials.validRegister(credential_material, credential_type, expires_at))) return bad;
+    const intent = { invitation_token, accepting_identity_ref, document_type, document_ref, credential_type };      // Action wiring 57
+    const w = this.cfg.mintedIdWidths;
+    const largest = { invitation_token, accepting_identity_ref, party_id: "x".repeat(w.partyId), credential_id: "x".repeat(w.credentialId) };   // Primitive policy 6: the ids a constituent mints, at their width bounds
+    if (!this.sized(`${ONBOARDING}.intended`, enrolling_actor_ref, intent) || !this.sized(OUTCOME, enrolling_actor_ref, largest)) return bad;   // Primitive policy 5, 10
+
+    let open: OpenResult;
+    try {
+      const o = await this.p.ri.open(ONBOARDING, invitation_token, enrolling_actor_ref, actor_credential, intent);   // Action wiring 56: the act key is the invitation token
+      if ("refused" in o) return this.openRefused(o);
+      open = o;
+    } catch (e) {
+      if (e instanceof Unavailable) return { refused: "state-unavailable" };                                         // Execution Contract Constituent failure 3
+      throw e;
+    }
+    const gone = (answer: OnboardRefusal, code: string) => this.refuse(open, invitation_token, enrolling_actor_ref, actor_credential, answer, code);
+
+    for (let tries = 0; tries < TRIES; tries++) {
+      let accept, enroll, register;
+      try {
+        accept = await this.invitation.planAccept(invitation_token, accepting_identity_ref);                          // Action wiring 9: the transaction's first call
+        if ("refused" in accept) {
+          if (accept.refused === "already-resolved") return gone({ refused: "invitation-invalid", cause: "already-resolved", stored_terminal: accept.status }, "already-resolved");   // Action wiring 19, 20
+          if (accept.refused === "expired" || accept.refused === "not-known") return gone({ refused: "invitation-invalid", cause: accept.refused }, accept.refused);                  // Action wiring 17, 18
+          if (accept.refused === "invalid-request") return gone(bad, "invalid-request");                              // Action wiring 21
+          return gone({ refused: "storage-failure" }, "storage-failure");                                             // Recoverable Invocation commit 3
+        }
+        enroll = await this.p.parties.planEnroll(name, date_of_birth, document_type, document_ref, enrolling_actor_ref);   // Action wiring 26: only after accept answers accepted
+        if ("refused" in enroll) return gone(bad, "invalid-request");                                                 // Action wiring 28
+        register = await this.p.credentials.planRegister(enroll.party_id, credential_material, credential_type, expires_at);   // Action wiring 29: the party id as the principal reference, the expiry unchanged
+        if ("refused" in register) {
+          if (register.refused === "duplicate-active-credential") return gone({ refused: "duplicate-active-credential" }, "duplicate-active-credential");   // Action wiring 32, 61: nothing committed
+          if (register.refused === "invalid-request") return gone(bad, "invalid-request");                            // Action wiring 31
+          return gone({ refused: "storage-failure" }, "storage-failure");
+        }
+      } catch (e) {
+        if (e instanceof Unavailable) return gone({ refused: "state-unavailable" }, "state-unavailable");             // Execution Contract Constituent failure 3
+        return this.unknown(open, invitation_token, "answered");                                                      // a code no constituent declares (Recoverable Invocation commit 7)
+      }
+      const c = await this.commitWithin([...accept.stmts, ...enroll.stmts, ...register.stmts]);                      // Database 1: the three writes, one transaction
+      if (c === "committed") return this.close(open, invitation_token, accepting_identity_ref, enrolling_actor_ref, actor_credential, enroll.party_id, register.credential_id);   // Action wiring 37, 38
+      if (c === "no-reply") return this.unknown(open, invitation_token, "lost");                                      // Recoverable Invocation commit 6: no answer within the commit round trip
+      if (c.guard === "resolved" || c.guard === "heads-moved") continue;                                              // another call resolved or enrolled first: plan again, the next read says which
+      if (c.guard === "duplicate") return gone({ refused: "duplicate-active-credential" }, "duplicate-active-credential");   // Action wiring 32, 61: the transaction rolled back
+      if (c.guard) return gone({ refused: "storage-failure" }, "storage-failure");                                    // a guard the page does not name: rolled back, definitely
+      return this.unknown(open, invitation_token, "answered");                                                        // an answer no constituent declares
+    }
+    return gone({ refused: "storage-failure" }, "storage-failure");
+  }
+
+  /** The transaction's commit, with the commit round trip as its bound (Term commit round trip, Term commit partition). */
+  private async commitWithin(stmts: Stmt[]): Promise<"committed" | "no-reply" | { guard: string | null }> {
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const lost = new Promise<"no-reply">((r) => { timer = setTimeout(() => r("no-reply"), this.cfg.commitRoundTripMs); });
+    try {
+      return await Promise.race([this.store.commit(stmts).then(() => "committed" as const), lost]);
+    } catch (e) {
+      return { guard: e instanceof Guard ? e.guard : null };
+    } finally { clearTimeout(timer); }
+  }
+
+  /** What the invocation open's refusal lands as (the closure table, Recoverable Invocation's open). */
+  private openRefused(o: OpenRefusal): OnboardRefusal {
+    switch (o.refused) {
+      case "act-landed": return { refused: "invitation-invalid", cause: "already-resolved", stored_terminal: "accepted" };   // Action wiring 59
+      case "recording-failure": return o.position === "intent" ? { refused: "recording-failure", position: "intent" } : { refused: "recording-failure", position: "outcome" };
+      default: return o as OnboardRefusal;                                                                            // invalid-credential, invalid-request, act-in-flight, section-unavailable, journal-unavailable
+    }
+  }
+
+  /** A pre-commit arm: the invocation refuse keeps the attempt as a refusal record, then the constituent's code is answered (Action wiring 58). */
+  private async refuse(open: OpenResult, token: string, actor: string, cred: string, answer: OnboardRefusal, code: string): Promise<OnboardRefusal> {
+    try {
+      const r = await this.p.ri.refuse(ONBOARDING, token, open.invocation_id, open.intent_event_id, actor, cred, answer.refused, code);
+      if ("refusal_event_id" in r) return answer;
+      if (r.refused === "already-accounted") return { refused: "already-accounted", closing_event_id: r.closing_event_id };
+      return { refused: "recording-failure", position: "refusal", constituent_code: r.constituent_code };
+    } catch (e) {
+      if (e instanceof Unavailable) return { refused: "recording-failure", position: "refusal", constituent_code: code };
+      throw e;
+    }
+  }
+
+  /** The committed arm: the invocation close names the one outcome and the arc answers the party id and the credential id (Action wiring 37, 38). */
+  private async close(open: OpenResult, token: string, accepting: string, actor: string, cred: string, party_id: string, credential_id: string): Promise<OnboardResult | OnboardRefusal> {
+    const failed: OnboardRefusal = { refused: "recording-failure", position: "outcome", invocation_id: open.invocation_id };
+    try {
+      const r = await this.p.ri.close(ONBOARDING, token, open.invocation_id, open.intent_event_id, actor, cred, OUTCOME, { invitation_token: token, accepting_identity_ref: accepting, party_id, credential_id });
+      return "outcome_event_id" in r ? { party_id, credential_id } : failed;                                          // never re-run: the committed arc's record is the operator's invocation resolve's
+    } catch (e) {
+      if (e instanceof Unavailable) return failed;
+      throw e;
+    }
+  }
+
+  /** The unknown arm: the invocation yield, then recording-failure(outcome); the act may exist, and its record is the sweep's (Action wiring 60). */
+  private async unknown(open: OpenResult, token: string, reply: "answered" | "lost"): Promise<OnboardRefusal> {
+    try { await this.p.ri.yieldSection(ONBOARDING, token, open.invocation_id, reply); } catch (e) { if (!(e instanceof Unavailable)) throw e; }
+    return { refused: "recording-failure", position: "outcome", invocation_id: open.invocation_id };
   }
 
   /** The refusal a gate call met, as the page names it: expired, not-known, or already-resolved carrying the stored terminal (Term invitation refusal). */
@@ -224,4 +370,41 @@ export class ExternalOnboarding {
       return d.action_ref === action_ref && d.data?.invitation_token === token;
     });
   }
+}
+
+/** The onboarding probe (Term onboarding probe): read-only, answering whether an open intent's onboarding committed. It never answers committed: no value of the call can be paired on (Recoverable Invocation pairing datum 6a). */
+export function onboardingProbe(c: Pick<OnboardingParts, "invitation" | "parties" | "credentials">): NonNullable<KindBinding["actProbe"]> {
+  return async (act_key, record, intent_actor_ref) => {
+    const intent = record.intent_data as Record<string, unknown> | undefined;                                       // the intent record's data: the caller's payload is its intent_data (Term intent data)
+    if (!intent) return { answer: "unavailable" };
+    const inv = (await c.invitation.read({ invitation_token: act_key }))[0];
+    // An invitation the read does not find decides nothing; the page is silent, and not-committed is a claim the read cannot make (act probe 5's spirit).
+    if (!inv) return { answer: "unavailable" };
+    if (inv.status !== "accepted" || inv.accepting_identity_ref !== intent.accepting_identity_ref) return { answer: "not-committed" };   // pending, declined, revoked, or accepted by another
+    const all = await c.parties.read({});                                                                           // Execution Contract Query 4: no filter, the selection is this code's
+    if (!Array.isArray(all)) return { answer: "unavailable" };                                                      // a rejected query (act probe 4)
+    const parties = all.filter((p) => p.document_type === intent.document_type && p.document_ref === intent.document_ref && p.enrolling_actor_ref === intent_actor_ref);   // in any state
+    const found = (await Promise.all(parties.map((p) => c.credentials.read({ principal_ref: p.party_id, credential_type: intent.credential_type as string })))).flat();
+    const successors = new Set(found.map((x) => x.successor_credential_id).filter((x): x is string => x !== null));  // Credential State 3
+    return { answer: "undecidable", candidates: [...parties.map((p) => p.party_id), ...found.filter((x) => !successors.has(x.credential_id)).map((x) => x.credential_id)] };
+  };
+}
+
+/** The onboarding binding (Term onboarding binding): the act kind's parameters under the names Recoverable Invocation gives them. */
+export function onboardingBinding(b: {
+  onboardingCompletionBoundMs: number; auditHorizonMs: number; settlingPeriodMs: number; referenceLengthCap: number;
+  mintedIdWidths: NonNullable<ExternalOnboardingConfig["mintedIdWidths"]>; probe: NonNullable<KindBinding["actProbe"]>;
+}): KindBinding {
+  const w = b.mintedIdWidths;
+  const largest = { invitation_token: "x".repeat(w.invitationToken), accepting_identity_ref: "x".repeat(b.referenceLengthCap), party_id: "x".repeat(w.partyId), credential_id: "x".repeat(w.credentialId) };
+  return {
+    invocationCompletionBoundMs: b.onboardingCompletionBoundMs,                                                     // invocation completion bound
+    outcomes: [OUTCOME],                                                                                            // journal: the one outcome
+    repeatable: false,                                                                                              // repeatable: no
+    serviceIdentity: null, serviceCredential: null,                                                                 // service identity: none (Composes 15, 16)
+    retentionPeriodMs: b.auditHorizonMs,                                                                            // retention period: the audit horizon
+    outcomeEnvelopeBytes: new TextEncoder().encode(canonical(largest)).length,                                      // outcome envelope, sized from the minted-id width bounds (Primitive policy 6)
+    actProbe: b.probe,                                                                                              // act probe: the onboarding probe
+    settlingPeriodMs: b.settlingPeriodMs,                                                                           // settling period
+  };
 }
