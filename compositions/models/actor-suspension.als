@@ -64,7 +64,7 @@
 --   Primitive policy 20 (alert on a plan over the cap): an alert writes no record.
 --   Invariant 1.4 (an outcome later in the log than every revocation it names): the
 --   revocations are the constituents' records, not the log's, so the order is between two
---   stores' writes — a sequence, and a cross-seam comparison (Clock semantics 9 to 11).
+--   stores' writes — a sequence, and a cross-seam comparison (Clock semantics 10, 11).
 --   Invariant 1.8, 1.9 and Reconciliation 28 (an open cascade closed within the completion
 --   window, or escalated outside it): the window runs from the intent instant to a sweep run
 --   (Reconciliation 2, 29, 36), so whether one state is late depends on when the sweep last

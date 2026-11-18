@@ -137,7 +137,6 @@ Capability requirement 37: A deployment MUST retain the actor registry's histori
 Capability requirement 39: The host MUST inject now at the composition's seam once per invocation.
 Capability requirement 40: The composition MUST NOT read the clock inside a transition.
 Capability requirement 41: The composition MUST stamp EVERY journal entry an invocation writes from the invocation's now.
-Capability requirement 42: The composition MUST NOT compare the composition's now with a constituent's stamp.
 Capability requirement 43: The composition MUST NOT mint an id inside a transition.
 Capability requirement 44: The composition MUST NOT store a clock-derived flag.
 Capability requirement 45: The composition MUST NOT derive a hold's deadline.
@@ -475,7 +474,6 @@ Check 2.1: An auditor MUST find a pool's Confirmed reservations not exceeding th
 Check 2.2: An auditor MUST take a pool's allocated not exceeding the pool's capacity from Capacity Constraint Enforcement's own acceptance (Composes 5).
 Check 3.1: An auditor MUST NOT find two slot-returning outcome entries naming one reservation (Invariant 2.1).
 Check 4.1: An auditor MUST read a Confirmed reservation's in-window admission from the Provisional Commitment record (Invariant 4.1).
-Check 4.2: An auditor MUST NOT report a skew between a confirm outcome entry's now AND the hold's expiry instant (Capability requirement 42).
 Check 5.1: An auditor MUST find EVERY idempotency token inside the idempotency window bound to one answer (Invariant 5.1).
 Check 5.2: An auditor MUST find no two reservations sharing one idempotency token inside the idempotency window (Invariant 5.2).
 Check 5.3: An auditor MUST report a window miss traceable to a violated obligation against the obligation (Invariant 5.4).
@@ -722,12 +720,12 @@ The five constituents carry their own deep standards inheritance — see each co
 
 ## Status
 
-`done — 2026-11-06` — see the Ledger.
+`doing` — see the Ledger.
 
 ## Ledger
 
 ```
-status: done — 2026-11-06
+status: doing
 formal: verified — reserve-from-pool.tla + 23 twins and reserve-from-pool-retry.tla + 14 twins, re-derived 2026-11-09 (it was verified 2026-06-04 over four atomic steps and the retired atomic trio): one pool and its reservations as Provisional Commitment keeps them, the hold's window, the pool's allocated count, the binding entry outside the transaction with its rebuild, the journal's reserve and slot-returning outcome entries with their retention (Capability requirement 48, 49), and the order of the writes inside each action (the attestation, the intent entry, the allocate before the hold, the transition before the release, the outcome entry last); the retry layer as its own model: Duplicate Prevention's window, the token results map, the journal read on a token the guard has not seen, the attestation and the outcome entry; Invariants 1.1, 1.5, 2.1, 3.1, 4.1, 4.2, 5.1, 5.2, 5.3, 6.1, 6.3, 6.4, 8.1 and 8.2 checked, with Check 1.1, Wiring decision 2, 3 and 6, Action wiring 7, 18, 26, 45, 62, 80, 81, 87, 91, 106, 110, 125 and 126, Composition state 6 and 22, and Capability requirement 48 and 49; settled answers and every refusal leave the reservation and the pool as they were, and the pool's own answers, the entries' fields, the clock and the seam, the auditor's reads and the deployment's configuration are not modelled; the arc and the retry layer are two models because the tokens' states times the arc's pass the checker's 200,000-state cap, and the arc holds two reservations because a third passes its depth cap of 40; reserve-from-pool.als + 17 twins (the static data model, 2026-11-12: Invariant 1.1, 1.5, 2.1, 3.1, 4.1, 4.2, 5.1 through 5.3, 6.1 through 6.4, 8.1 and 8.2, Check 1.1, Wiring decision 1, 3 and 6 and Non-goal 9, 12, 13 and 14 checked on every state of the pools with their allocation and release events, the reservations, the binding, the journal's intent and outcome entries with their attestation ids and sequence numbers, the token results map and the attestations, and on every answer a call gives against what it read, a cross-check with the TLA+ models but for Invariant 6.2 and the Non-goal rows; nothing testable in Alloy for Invariant 5.4 (a deployment condition), Non-goal 1 through 6, 8, 10, 11, 15 and 16, Clock semantics 1 through 3, Concurrency 4 and Expiry sweep 4 (another pattern's or the deployment's, an absence no record holds), and Expiry sweep 1 left to TLA+ (liveness); the model found that Invariant 5.1 as written does not hold beside Invariant 5.3, since a confirm and a cancel of one reservation carry one parameters digest, the reservation id being their only business parameter, so under one token Action wiring 6 answers the second token-collision where the first answered ok, and it is checked under one action type); coverage 2026-11-10 (unit formal: more coverage for the yes votes), 2026-11-12: owed rows: Expiry sweep 1, 2026-11-09
 last gate: 2026-11-06 — Final Critique 14, a delta round, frozen at a896453 — foundational count 0, clean, one sample; 2026-11-06 — Final Critique 13, full, three passes (GRID, EOS, Linus) — 2 foundational (a reserve or other own outcome entry journaled under a different digest met no rule, cured by widening Action wiring 125 and the digest condition of Action wiring 18; a slot-returning outcome entry could be destroyed while its binding entry stood, cured by Capability requirement 49), GRID's one foundational refuted (Execution Contract Database 1 and Read 4), not clean, no sample
 

@@ -72,7 +72,7 @@
 | Reconciliation 2, 5, 39, 44 through 47 — the leg's cadence, edges, answered read, run reading, enumeration instant | no | `owed` out-of-scope | the clock; a read that fails decides nothing and is no step |
 | Composes 1 through 17; Composition state 1 through 4, 8 through 21, 24, 25; Capability requirement 1 through 7, 12, 14, 19 through 27, 36, 39 through 43; Primitive policy 1 through 17; Audit arm 5; Action wiring 1 through 8, 10, 11, 13, 14, 16 through 32, 34 through 38, 40, 41, 44 through 63, 68 through 71; Wiring decision 1 through 9; Scope vocabulary 1, 2; Cascade 1, 3, 7, 11, 12, 13 | no | `unstatable` out-of-scope | wiring, the records' fields, deployment configuration, the Recoverable Invocation instance's settings, input validation ahead of the open, the indexes and [Read Chain]; the quorum, the cascade and the open-commit-close order they state are the model's shape |
 | Check 1.1 through 10.2 other than the rows above; External check 1 through 7 | no | `unstatable` out-of-scope | the auditor's reads of the records and external evidence; the model checks the state they read |
-| Non-goal 1 through 17; Clock semantics 1 through 3; Retention asymmetry 1 through 2a; Cross-record consistency 1 | no | `unstatable` out-of-scope | non-goals bound the claim; Non-goal 15 (open, commit and close are not atomic) and Cross-record consistency 1 are the model's shape (`Owed_outcome`) |
+| Non-goal 1 through 17; Clock semantics 1; Retention asymmetry 1 through 2a; Cross-record consistency 1 | no | `unstatable` out-of-scope | non-goals bound the claim; Non-goal 15 (open, commit and close are not atomic) and Cross-record consistency 1 are the model's shape (`Owed_outcome`) |
 
 **Inherited: the rows that left.** The page tombstoned these rules, so the matrix carries no row for them. Each is owned by Recoverable Invocation, and recoverable-invocation.tla or its coverage carries it:
 
@@ -85,6 +85,7 @@
 | the compensation window (Capability requirement 8, 11; unmodelled) | Recoverable Invocation Invariant 4.2, Instance start 4 (`Inv4_BoundedClosure`, in its window configurations) |
 | Invariant 1.2 — a recovery-closed chain's step list (owed b) | retired without an owner: no initiation recovery closes a chain (Action wiring 9, 12) |
 | Invariant 8.2 — the quarantine flag (owed b) | Recoverable Invocation Invariant 4.1: the open initiation intent stands for it |
+| Clock semantics 2, 3 — the terminal instant against a decided instant, and no instant passed to a constituent (the out-of-scope row) | Execution Contract Logic confinement 19 (2026-11-18): inside one invocation every constituent reads the invocation's now; no model stated either |
 
 No check of this page moves onto a rule Recoverable Invocation's model leaves unchecked: **Recoverable Invocation owes nothing in this unit.**
 

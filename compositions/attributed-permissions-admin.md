@@ -625,8 +625,6 @@ Clock dependence 1: A guard MUST NOT rest on now at this composition.
 Clock semantics 5: The request instant MUST NOT gate a write.
 Clock semantics 6: The nonce MUST carry a grant proposal's uniqueness.
 Clock semantics 7: The request instant MUST NOT carry a grant proposal's uniqueness.
-Clock semantics 9: A reader MUST read a constituent's stamp as that constituent's own seam reading.
-Clock semantics 10: A reader MUST NOT read two constituents' stamps as one clock.
 Clock semantics 11: A check comparing two seams' stamps MUST run under the clock offset allowance.
 ```
 
@@ -787,13 +785,13 @@ It inherits from:
 
 ## Status
 
-`done — 2026-11-18` — see the Ledger.
+`doing` — see the Ledger.
 
 ## Ledger
 
 ```
-status: done — 2026-11-18
-formal: pending — attributed-permissions-admin.als + 25 twins and attributed-permissions-admin.tla + twins (verified 2026-11-11) model the rule of 2026-11-16 reversed: Wiring decision 8 and Concurrency 1 through 3 as they stood (two issuances over one pair, two grants) and an issuance with no read of the pair; owed over Action wiring 1, 2, 7, 15 and 103 through 106, Concurrency 1, 2, 10 and 11 and the underlying reason already-held, the twins re-derived with them
+status: doing
+formal: pending — attributed-permissions-admin.als + 25 twins and attributed-permissions-admin.tla + twins (verified 2026-11-11) model the rule of 2026-11-16 reversed: Wiring decision 8 and Concurrency 1 through 3 as they stood (two issuances over one pair, two grants) and an issuance with no read of the pair; owed over Action wiring 1, 2, 7, 15 and 103 through 106, Concurrency 1, 2, 10 and 11 and the underlying reason already-held, the twins re-derived with them; the Alloy model and its twins let each constituent's stamp stand off the composition's reading within the clock offset allowance, citing Clock semantics 9, which retired with Clock semantics 10 to Execution Contract Logic confinement 19 on 2026-11-18: inside one call the two offsets are now zero, a state the models already include, so A_Invariant_4_1 and A_Invariant_4_2 hold over it as checked, and the offsets and their citation are owed with the same re-derivation
 last gate: 2026-11-18 — Final Critique 13, a delta round, one reader (Linus qwen3.8-flash), frozen at 10294eba — foundational count 0 after the blind second triage, clean, one sample; 2026-11-16 — Final Critique 12, a delta round, one reader (Linus minimax-m3), frozen at e98bc218 — foundational count 0 after the blind second triage, clean, one sample; 2026-11-16 — Final Critique 11, a delta round, one reader (Linus minimax-m3), frozen at 1619f21 — foundational count 1, cured, not clean, no sample; 2026-11-05 — Final Critique 10, delta, frozen at a6a6920 — foundational count 0, clean, one sample
 
 open:

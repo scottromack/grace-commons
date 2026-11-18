@@ -50,7 +50,7 @@
    "session",
    "credential"
   ],
-  "grounded": true,
+  "grounded": false,
   "invariants": 5,
   "kind": "composition",
   "models": {
@@ -72,7 +72,7 @@
    "SEC 17a-4",
    "SOX"
   ],
-  "status": "done \u2014 2026-11-05",
+  "status": "doing",
   "substrates": [
    "audit-trail"
   ],
@@ -147,7 +147,7 @@
    "permissions",
    "actor-identity"
   ],
-  "grounded": true,
+  "grounded": false,
   "invariants": 9,
   "kind": "composition",
   "models": {
@@ -165,7 +165,7 @@
    "PCI DSS",
    "SOX"
   ],
-  "status": "done \u2014 2026-11-18",
+  "status": "doing",
   "substrates": [],
   "title": "Attributed Permissions Admin"
  },
@@ -304,7 +304,7 @@
    "capability",
    "selective-disclosure"
   ],
-  "grounded": true,
+  "grounded": false,
   "invariants": 5,
   "kind": "composition",
   "models": {
@@ -322,7 +322,7 @@
    "SEC 17a-4",
    "SOX"
   ],
-  "status": "done \u2014 2026-11-11",
+  "status": "doing",
   "substrates": [
    "audit-trail",
    "recoverable-invocation"
@@ -424,7 +424,7 @@
    "state-machine",
    "event-log"
   ],
-  "grounded": true,
+  "grounded": false,
   "invariants": 8,
   "kind": "composition",
   "models": {
@@ -438,7 +438,7 @@
    "ISO 27001",
    "NIST 800-92"
   ],
-  "status": "done \u2014 2026-11-06",
+  "status": "doing",
   "substrates": [],
   "title": "Compensable Workflow"
  },
@@ -692,7 +692,7 @@
    "permissions",
    "assignment"
   ],
-  "grounded": true,
+  "grounded": false,
   "invariants": 7,
   "kind": "composition",
   "models": {
@@ -708,7 +708,7 @@
    "PCI DSS",
    "SOX"
   ],
-  "status": "done \u2014 2026-11-05",
+  "status": "doing",
   "substrates": [
    "audit-trail"
   ],
@@ -1007,7 +1007,7 @@
    "permissions",
    "assignment"
   ],
-  "grounded": true,
+  "grounded": false,
   "invariants": 9,
   "kind": "composition",
   "models": {
@@ -1023,7 +1023,7 @@
    "SOC 2",
    "SOX"
   ],
-  "status": "done \u2014 2026-11-18",
+  "status": "doing",
   "substrate_of": [
    "privileged-access-provisioning"
   ],
@@ -1245,7 +1245,7 @@
    "permissions",
    "capability"
   ],
-  "grounded": true,
+  "grounded": false,
   "invariants": 10,
   "kind": "composition",
   "models": {
@@ -1261,7 +1261,7 @@
    "PCI DSS",
    "SOX"
   ],
-  "status": "done \u2014 2026-11-11",
+  "status": "doing",
   "substrates": [
    "multi-party-approval",
    "audit-trail"
@@ -1274,7 +1274,7 @@
    "permissions",
    "retention-window"
   ],
-  "grounded": true,
+  "grounded": false,
   "invariants": 8,
   "kind": "composition",
   "models": {
@@ -1287,7 +1287,7 @@
    "GDPR",
    "HIPAA"
   ],
-  "status": "done \u2014 2026-11-11",
+  "status": "doing",
   "substrates": [
    "audit-trail",
    "recoverable-invocation"
@@ -1447,7 +1447,7 @@
    "event-log",
    "actor-identity"
   ],
-  "grounded": true,
+  "grounded": false,
   "invariants": 7,
   "kind": "composition",
   "models": {
@@ -1459,7 +1459,7 @@
   "standards": [
    "PCI DSS"
   ],
-  "status": "done \u2014 2026-11-06",
+  "status": "doing",
   "substrates": [],
   "title": "Reserve from Pool"
  },
@@ -1468,7 +1468,7 @@
    "selective-disclosure",
    "consent"
   ],
-  "grounded": true,
+  "grounded": false,
   "invariants": 8,
   "kind": "composition",
   "models": {
@@ -1485,7 +1485,7 @@
    "SEC 17a-4",
    "SOX"
   ],
-  "status": "done \u2014 2026-11-18",
+  "status": "doing",
   "substrates": [
    "defensible-retention"
   ],

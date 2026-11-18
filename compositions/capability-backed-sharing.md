@@ -138,9 +138,9 @@ Term seal marker: pending | the disclosure event's id — pending while a commit
 
 Term pending marker: a disclosure-to-redemption entry whose seal marker EQUALS pending.
 
-Term allocation reading: the invocation's now at [Authorize Sharing] — the authorization intent's pairing datum, which the capability's allocation instant equals (Capability requirement 22); stamped on the authorization event and the index entry.
+Term allocation reading: the invocation's now at [Authorize Sharing] — the authorization intent's pairing datum, which the capability's allocation instant equals (Execution Contract Logic confinement 19); stamped on the authorization event and the index entry.
 
-Term disclosure reading: the invocation's now at [Redeem And Disclose] — the disclosure intent's pairing datum, passed to Selective Disclosure's record as disclosed_at, so that the disclosure record's disclosure instant equals it (Capability requirement 22, Action wiring 29); stamped on the pending marker and the disclosure event.
+Term disclosure reading: the invocation's now at [Redeem And Disclose] — the disclosure intent's pairing datum, passed to Selective Disclosure's record as disclosed_at, so that the disclosure record's disclosure instant equals it (Action wiring 29, Execution Contract Logic confinement 19); stamped on the pending marker and the disclosure event.
 
 Term addressee: the recipient the allocator declared in the sharing descriptor — who the share was sent to, never the bearer who presents the token, and not Selective Disclosure's Term recipient, the party the data reached — an [Addressee].
 
@@ -164,10 +164,9 @@ Capability requirement 5: The longest disclosure-accounting obligation MUST NOT 
 Capability requirement 6: A deployment MUST set the default max redemptions.
 Capability requirement 14: The host MUST inject now, the invocation id, the run id AND the operator run id at the seam once PER invocation.
 Capability requirement 15: The composition MUST take EXACTLY ONE now PER invocation.
-Capability requirement 16: The composition MUST NOT pass now to a constituent, Selective Disclosure's disclosed_at (Action wiring 29) AND the pairing datum in the intent data of the invocation open (Action wiring 2, Action wiring 23, Action wiring 40) excepted.
 Capability requirement 17: The composition MUST NOT mint an id.
 Capability requirement 18: The deployment MUST supply the database PER Execution Contract Database 1 through 4, AND the act section PER Execution Contract Database 7 AND Execution Contract Refusal 1 (Recoverable Invocation Capability requirement 12).
-Capability requirement 22: The host MUST inject the invocation's now into Capability's seam AND Selective Disclosure's seam for the commit of a sharing action AND for the read of Action wiring 13.
+Capability requirement 22: The host MUST inject the invocation's now into Capability's seam AND Selective Disclosure's seam for the commit of a sharing action AND for the read of Action wiring 13 PER Execution Contract Logic confinement 19.
 Capability requirement 23: The host MUST NOT inject an equal now into two invocations of one act key anywhere in the instance, whatever node each runs on.
 Capability requirement 24: IF a required setting EQUALS blank THEN the composition MUST refuse to start.
 Capability requirement 25: A deployment MUST set the authorization completion bound, the redemption completion bound AND the revocation completion bound.
@@ -408,7 +407,7 @@ Term revoking revocation: an admitted revocation Capability's revoke answered re
 
 Term landed revocation: a revoking revocation whose invocation close landed its revocation event.
 
-Term revocation reading: the invocation's now at [Revoke Sharing] — the revocation intent's pairing datum, which the capability's revocation instant equals (Capability requirement 22); stamped on the revocation event.
+Term revocation reading: the invocation's now at [Revoke Sharing] — the revocation intent's pairing datum, which the capability's revocation instant equals (Execution Contract Logic confinement 19); stamped on the revocation event.
 
 #### Closure table
 
@@ -696,7 +695,6 @@ NOTE: the owners — [Permissions](../atoms/permissions.md) and [Session](../ato
 
 ```
 Clock semantics 1: The composition MUST order a sharing event by the substrate's sequence number alone.
-Clock semantics 2: The composition MUST NOT compare a composition reading against the substrate's recording instant, Term aged event's comparison under the clock offset allowance excepted.
 ```
 
 Term composition reading: an allocation reading, a disclosure reading or a revocation reading.
@@ -941,12 +939,12 @@ Capability-Backed Sharing inherits the broader standards compliance of its const
 
 ## Status
 
-`done — 2026-11-11` — see the Ledger.
+`doing` — see the Ledger.
 
 ## Ledger
 
 ```
-status: done — 2026-11-11
+status: doing
 formal: verified — capability-backed-sharing.tla + 15 twins + 9 reachability probes, re-derived 2026-11-10 over the split arc (each sharing action an open, a commit and a close; [Redeem And Disclose]'s resolution read and the capability-to-sharing index's rule ahead of the open, its commit the disclosure transaction), against Recoverable Invocation's contracts (the sweep's closing by this page's authorization, disclosure and revocation probes, the escalation, an operator's resolve unchecked against the constituents), with an allocation, a revocation or a disclosure record written outside every invocation, the write-ownership leg and the two rebuilds' alerts, and extended 2026-11-10 for the ttl cap (the effective ttl, supplied or default, against the audit horizon, the authorization event's recording instant stamped within one clock offset allowance of the reading, and the index read for a live token alone); one model under TLC, 170,229 states (two tokens, one use each, three invocations, one outside write, an audit horizon of 3 and an allowance of 1, the default ttl at the cap); Invariant 2.1, 2.3, 3.1, 3.3, 3.5, 4.2, the probes' pairing datum (Capability requirement 22, 23), the write-ownership finding (Reconciliation 32 through 34), the false-closing alert (Reconciliation 35), the seal alert and the duplicate-authorization alert (Composition state 17, 18), the ttl cap (Term ttl cap, Primitive policy 3, Capability requirement 33: a supplied ttl past the horizon, a default past it, the cap with one allowance) and the spent token refused ahead of the index (Action wiring 65, 66), each broken by a twin alone; the allocation half the 2026-08-27 model left out is in it; Invariant 2.4, 2.5, 3.4, 6.1 and 6.2 inherited from Recoverable Invocation (Invariant 4.2, Instance start 4 through 8, Invariant 1.1); not modelled: Recoverable Invocation's mechanism and the clock's passage (a lapse, the young and aged records, the closure window, the sweep cadence, an event aging past the audit horizon, so Composition state 7 and 21 and [Authorization Provenance]), the fields (Invariant 1.1, 1.3, 1.4, 4.1), validation ahead of the open but the ttl cap, the spent token and the unattested token; capability-backed-sharing.als + 14 twins (the static data model, 2026-11-11: Invariant 1.1 through 1.4, 2.1 through 2.3, 3.1 through 3.3, 3.5 and 4.1 checked on every state of the Capability and Selective Disclosure records, the trail and the two indexes the writers can leave and on what [Sharing Disclosures] answers at its now, 2.1 through 2.3, 3.1, 3.2 and 3.5 a cross-check with the TLA+ model, an operator's closing out of 1.1, 2.1, 2.2, 3.1 and 3.2 as there; nothing testable in Alloy for Invariant 4.2 (the consumed count is Capability's counter, moved by each redeem: across steps, the TLA+ model's); the model found that an operator's disclosure outcome, checked for its outcome reference alone, may name no allocator or another for a claimable disclosure, and no NOTE, alert or check covers Invariant 1.1 for an operator's closing); coverage 2026-11-10, 2026-11-11
 last gate: 2026-11-11 — Final Critique 16, a delta round, frozen at 6db7319 — foundational count 0, clean, one sample; 2026-11-11 — Final Critique 15, full, frozen at d84e835 — foundational count 4 (the revoke's refusal of a token the index does not carry, the disclosure history's allocator claim past the audit horizon, the pending half of the disclosure index with no named rebuild, the revocation probe's missing arm), not clean, no sample; 2026-11-10 — Final Critique 14, full, frozen at ffcf41c — foundational count 5 (the aged event's offset allowance and Clock semantics 2, the conformance alerts' owner, the invariants and checks that read events past the audit horizon, the verify record's presentation, the capability-to-sharing index past the audit horizon), not clean, no sample; 2026-11-06 — Final Critique 13, a delta round, frozen at be596ef — foundational count 0, clean, one sample; 2026-11-06 — Final Critique 12, full — foundational count 3 (a descriptor field over Selective Disclosure's string cap, an aged token's provenance and rebuild, the reconciliation's run bound), not clean, no sample
 

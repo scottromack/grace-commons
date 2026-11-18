@@ -10,6 +10,7 @@ Did we copy Daniel Jackson? Yes. We took his idea as far as we could, and it wor
 Designers are taught to copy. The rule that goes with it: understand what you copy, or you copy the bad along with the good. So each line below says what we took and why.
 
 - **Daniel Jackson, *The Essence of Software*.** The concept: one purpose, freestanding, composed with others. Our atoms and compositions are his.
+- **MIT's sync-engine.** One clock reading for a whole chain of actions, so every step of one action carries the same instant.
 - **NASA FRET.** A closed list of sentence forms, each with one fixed meaning. NASA did it for signals and timing; we are doing it for records.
 - **TLA+ and Alloy.** Every claim a model can state, a model checks.
 - **Eiffel's design by contract.** What must be true before, after, and always.

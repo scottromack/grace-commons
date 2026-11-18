@@ -28,6 +28,8 @@ Entries that record a migration rather than a turn the pattern took.
 
 - **2026-11-05 — A refusal writes nothing; an answer a refusal's constituent decides is settled.** *Chose:* not-known, pool-closed and pool-capacity-exceeded moved to [Reserve]'s answers line, and not-held, window-elapsed and window-not-elapsed to the resolving actions', so each call is admitted and its intent entry and settle commit with it (Execution Contract Read 4; GRACE-lang Watch list, the attempt a refusal erases); resource-unavailable, a place hold refused after the allocate took its slot, kept a refusal that writes nothing, its allocate and its intent included, so it is not settled and a retry under its token runs afresh; the settle of a recording-failure carrying inconsistency retired with it (Action wiring 61, 83); Invariant 5.1 conditioned on a settled answer. *Over:* a refused place hold leaving its reserve intent beside a refusal, which Database 1 forbids, or, were it admitted, committing the allocate with no hold. *Because:* Final Critique 9's Linus pass found the refusal and the settled attempt could not both stand, and the cure the corpus made on three pages could not be made for resource-unavailable without a slot leaking, since the compensating release went at the 2026-10-21 turn below.
 
+- **2026-11-18 — A composition action reads the clock once: Capability requirement 42 and Check 4.2 retire to Execution Contract Logic confinement 19.** *Chose:* Capability requirement 42 (the composition compares no now of its own with a constituent's stamp) and Check 4.2, which rested on it alone (an auditor reports no skew between a confirm outcome entry's now and the hold's expiry instant), leave their `Deleted:` tombstones naming Logic confinement 19 and the ruling, never renumbered or reused. Citations found, by label: Capability requirement 42 (Check 4.2 alone, by `cites.py`); no formal model, twin or coverage row names either, so the formal line stands as written. Capability requirement 39 through 41 (one now per invocation, injected at the seam and stamped on every journal entry) and Check 4.1 (a Confirmed reservation's in-window admission read from the Provisional Commitment record) stand. Rules 2 fewer, one of them a check. *Over:* keeping Check 4.2 as an auditor's tolerance: inside one call no skew remains for it to set aside, since Provisional Commitment's confirm reads the now the outcome entry carries. *Because:* Scott, 2026-11-18 6:52 AM Central, "YYY" (rounds/escalations.md 2026-11-18 12:52Z, item 2, on the measure of 06:09Z): a composition action reads the clock once, and every constituent call it makes takes that reading as its now, from MIT's sync-engine (github.com/mit-sdg/sync-engine), which binds one instant per causal flow. The page takes a delta round.
+
 ## Ledger
 
 The gate records the Ledger's `last gate:` line carried behind its latest until 2026-10-21, newest first:
@@ -79,6 +81,7 @@ Deleted: Capability requirement 33. Execution Contract Database 3 owns it.
 Deleted: Capability requirement 34. Execution Contract Database 3 owns it.
 Deleted: Capability requirement 36. Execution Contract Database 3 owns it.
 Deleted: Capability requirement 38. Execution Contract Database 3 owns it.
+Deleted: Capability requirement 42. Execution Contract Logic confinement 19 owns it: a composition action reads the clock once and every constituent call it makes takes that reading as its now, so no constituent's stamp the call wrote differs from the composition's now (Scott, 2026-11-18 6:52 AM Central, "YYY", rounds/escalations.md 2026-11-18 12:52Z, item 2).
 ```
 
 ### Composition logic › Action wiring
@@ -211,6 +214,7 @@ Deleted: Check 3.5. Execution Contract Database 1 owns it.
 Deleted: Check 3.6. Execution Contract Database 1 owns it.
 Deleted: Check 3.7. Execution Contract Database 1 owns it.
 Deleted: Check 3.8. Execution Contract Database 1 owns it.
+Deleted: Check 4.2. Execution Contract Logic confinement 19 owns it: Provisional Commitment's confirm judges the hold's window against the now the confirm outcome entry carries, so no skew stands between that now and the hold's expiry instant for an auditor to set aside (Scott, 2026-11-18 6:52 AM Central, "YYY", rounds/escalations.md 2026-11-18 12:52Z, item 2).
 ```
 
 ### Generation acceptance › External checks

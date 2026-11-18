@@ -228,7 +228,6 @@ Capability requirement 24: The composition MUST NOT read the clock inside a tran
 Capability requirement 25: An admitted request MUST stamp the requested instant as now AND compute the expiry instant from that same now.
 Capability requirement 26: The provisioning cascade MUST compute the remaining ttl from the stored expiry instant AND the invocation's now.
 Capability requirement 27: The composition MUST NOT store a clock-derived flag.
-Capability requirement 28: The composition MUST NOT compare the composition's now with a constituent's stamp.
 Capability requirement 29: The host MUST inject one invocation id per state-changing invocation.
 Capability requirement 30: An admitted request MUST take the invocation id as the request id.
 Capability requirement 31: The composition MUST NOT mint an id inside a transition.
@@ -687,7 +686,7 @@ The chain is still Pending (one of two). The manager approves:
 
 `approve_step(actor_ref: mgr_u10, credential: <mgr_u10's presented material>, request_id: req_p7h3k2, step_id: step_s2, reason: "authorized")`
 
-The chain reaches `Approved`. The provisioning cascade fires: `Capability.allocate(allocator_ref: svc_pap, scope: <composed: req_p7h3k2, db::prod::incidents, "read">, max_redemptions: 1, ttl: 3387)` → `capability_token: cap_9f2d1e` — the ttl is the **remaining** lifetime, `expires_at − now`: 213 seconds of the requested 3600 elapsed while the two approvals were gathered, and the token's window ends where the request's does, within the skew between this composition's seam and Capability's (Capability requirement 26). The access_provisioned event records the request, never the token. The request transitions to `Provisioned`; the engineer receives `cap_9f2d1e` through the delivery channel.
+The chain reaches `Approved`. The provisioning cascade fires: `Capability.allocate(allocator_ref: svc_pap, scope: <composed: req_p7h3k2, db::prod::incidents, "read">, max_redemptions: 1, ttl: 3387)` → `capability_token: cap_9f2d1e` — the ttl is the **remaining** lifetime, `expires_at − now`: 213 seconds of the requested 3600 elapsed while the two approvals were gathered, and the token's window ends where the request's does, since Capability's allocate takes the cascade's one reading as its now (Capability requirement 26, Execution Contract Logic confinement 19). The access_provisioned event records the request, never the token. The request transitions to `Provisioned`; the engineer receives `cap_9f2d1e` through the delivery channel.
 
 The engineer authenticates (via Login, out of scope here) and acquires `session_token: sess_a4b7c1`. They exercise the access:
 
@@ -751,9 +750,9 @@ Check 1.2: An auditor MUST find EVERY parsed request's chain Approved, recomputi
 Check 1.3: An auditor MUST report a bypass token as a provisioning bypass (Invariant 1.1).
 Check 1.4: IF a token's request events are aged events THEN an auditor MUST read the request's Provisioned state AND the surviving provisioning attestation in place of the chain records (Capability requirement 10).
 Check 2.1: An auditor MUST find, for EVERY exercise event, a Session record of the named principal live across the exercised instant (Invariant 3.1).
-Check 2.2: An auditor MUST report a discrepancy narrower than the operating skew as inconclusive (Capability requirement 28).
+Check 2.2: An auditor MUST report a discrepancy narrower than the operating skew as inconclusive (Invariant 3.1, Execution Contract Logic confinement 7).
 Check 3.1: An auditor MUST find the deciding actor's credential Active across EVERY decision event's recorded instant (Invariant 6.1).
-Check 3.2: An auditor MUST report a discrepancy narrower than the operating skew as inconclusive (Capability requirement 28).
+Check 3.2: An auditor MUST report a discrepancy narrower than the operating skew as inconclusive (Invariant 6.1, Execution Contract Logic confinement 7).
 Check 4.1: An auditor MUST find a denial event AND a Rejected chain for EVERY Denied request inside the horizon (Invariant 7.1).
 Check 4.2: IF a ProvisioningFailed request carries no open pending entry THEN an auditor MUST find the request's provisioning-failure event (Invariant 7.3).
 Check 5.1: An auditor MUST rebuild EVERY in-horizon index entry by the element's declared rebuild AND reproduce EVERY traversal answer (Composition state 16).
@@ -774,7 +773,7 @@ NOTE: EVERY check names the rule the check tests.
 
 Term bypass token: a token whose composed scope parses to no request, to a request whose chain is not Approved, or not at all.
 
-Term operating skew: the deployment's declared bound on the difference between the composition's seam and a constituent's.
+Term operating skew: the deployment's declared bound on the difference between two of its clocks (Execution Contract Logic confinement 7): the clock of this composition's call and the clock of another call that stamped a constituent's record, as a Session record's issue and revocation and a Credential record's are stamped; inside one call every constituent reads the composition's now (Execution Contract Logic confinement 19).
 
 ### External checks
 
@@ -1064,12 +1063,12 @@ Projection: invalid-credential
 
 ## Status
 
-`done — 2026-11-11` — see the Ledger.
+`doing` — see the Ledger.
 
 ## Ledger
 
 ```
-status: done — 2026-11-11
+status: doing
 formal: verified — privileged-access-provisioning.tla + 8 twins; privileged-access-provisioning.als + 10 twins (the static data model, 2026-11-12: Invariant 3.2, 6.1, 7.1, 7.3, 8.1, 10.1 and 10.2, with 3.1 and 7.2 cross-checking the TLA+ model, checked on every state of the request records, the trail's events, each an original or a recovery record read as the event it names, and the open and closed pending entries the request, decision, chain evaluation and cascade, exercise and reconciliation writes leave; the model found that Invariant 7.1 holds only where Audit Trail lands the denial event of a chain evaluation that follows no committed load-bearing act (the terminal-chain leg, Reconciliation 22, or Withdraw Request's not-pending arm, Action wiring 64), since Action wiring 54 sets Denied and Action wiring 7 opens an entry only after a committed act, unless Action wiring 8 holds the request state until its event lands, which leaves the quiescence of Invariant 7.1 and 7.3 qualifying nothing; and that Action wiring 81 gives the failed exercise event of a token resolving to no request no session principal and no exercised instant, which the forged-token example and Composition state 24 and 25 carry); coverage 2026-11-10 (unit formal: more coverage for the yes votes), 2026-11-12: owed rows: Liveness; 2a: Liveness — owed: a PROPERTY under TLC; the file's FairnessSpec already states the fairness (weak fairness on the withdraw and revoke steps), the header names it; twin: a model that never delivers the cascade, 2026-06-03
 last gate: 2026-11-11 — Final Critique 11, a delta round, frozen at 30dbd60 — foundational count 0 after the blind second triage, clean, one sample (Linus's one report claimed one foundational, Action wiring 55 with a terminal event's reason destroyed past the audit horizon; both triages placed it refining, a re-find of open line 2026-11-04-c, since the rules already give one result: Audit Trail's read of a purged event answers no data, GRACE-lang's Term blank makes the reason blank, and the withdrawal event carries it blank as Action wiring 122's does, so no two conforming builds differ, and what stays owed is a decision, whether a blank withdrawal reason owes a recovery entry; the NOTE beside Action wiring 55 had said only `open 2026-11-04-c`, so it now states the item and the line is reworded); 2026-11-11 — Final Critique 10, delta, frozen at cb1e424 — foundational count 1, not clean, one fresh pass (Linus's one report returned none on the one reached term, Term terminal chain action; the blind second triage on Opus 5.5 placed one foundational on the Term's use, a trailing decision's outcome read as the chain's terminal event by Action wiring 50, cured this round); 2026-11-07 — Final Critique 9, delta, frozen at fb5b973 — foundational count 0, clean, one sample, 2 refining left as open lines; 2026-11-07 — Final Critique 8, delta, one pass (Linus) — 1 foundational (cured this round), 1 refining cured, 0 rhetorical, not clean
 

@@ -190,7 +190,6 @@ Capability requirement 20: A deployment MUST declare the clock offset allowance.
 Capability requirement 21: The host MUST inject now at the seam once per invocation.
 Capability requirement 22: The host MUST inject a request id that names no other request at [Receive Request]'s seam.
 Capability requirement 23: The composition MUST stamp EVERY instant one invocation writes from the invocation's now.
-Capability requirement 24: The composition MUST NOT pass now to a constituent.
 Capability requirement 25: The host MUST inject one invocation id that names no other invocation at the seam PER state-changing invocation.
 Capability requirement 26: The composition MUST NOT take an invocation id as an input.
 Capability requirement 27: A deployment MUST supply a Lease host PER Lease Capability requirement 1, 2, 4, 5, 7 and 11.
@@ -934,7 +933,6 @@ NOTE: open 2026-11-04-k (the other adopter notes, and who owns the retention of 
 
 ```
 Clock semantics 1: The composition MUST read the Event Log sequence as the order of the composition's events.
-Clock semantics 2: The composition MUST NOT reconcile a skew between the seam's clock AND a constituent's clock.
 ```
 
 ### Concurrency
@@ -1181,12 +1179,12 @@ This composition inherits the broader standards compliance of its constituents:
 
 ## Status
 
-`done — 2026-11-18` — see the Ledger.
+`doing` — see the Ledger.
 
 ## Ledger
 
 ```
-status: done — 2026-11-18
+status: doing
 formal: verified — resolve-a-persons-data-rights.tla + 12 twins + 3 probes (one erasure against two legs of the reconciliation, under the request section: 162,645 states, holding at a term of 6 within 9 ticks), resolve-a-persons-data-rights-access.tla + 1 probe (a fulfillment with nothing planned against the same two legs: 17,796 states, holding at a term of 6 within 9 ticks) and resolve-a-persons-data-rights-admission.tla + 1 twin + 1 probe (two fulfillments of one request: 56,552 states, holding at a term of 6 within 8 ticks), re-derived from the page as it stands; resolve-a-persons-data-rights.als + 15 twins (the static data model, 2026-11-12: Invariant 1.1 through 1.6, 2.1, 2.2, 3.1, 3.2, 4.1, 5.1, 6.2, 7.1, 7.2, 8.1 and 8.2 checked on every state of the intake events, intents, fulfilled events and abandonments, the response disclosures, the fulfillment entries, the dispositions each intent and fulfilled event carries from the reads and planned calls that settled them, and the Consent calls, each fulfillment's and leg's state read at its own instant under the request section, at for 3 with six events, three fulfillments, two legs and four-bit instants, Invariant 1.1, 1.2, 1.4, 1.5, 2.1, 3.1 and 5.1 a cross-check with the TLA+ models; nothing testable in Alloy for Invariant 6.1 (two states: in one, Fulfilled is read off records the composition never changes); the model found that an included disposition carries no-bar alone (Disposition 6), which names no authority where Invariant 4.1 asks one, and that Invariant 1.5's exactly one at quiescence is, at its lower bound, Term quiescence's own clause); coverage 2026-11-10 (unit formal: more coverage for the yes votes), 2026-11-12: owed rows: Invariant 6.1, 2026-10-21
 last gate: 2026-11-18 — Final Critique 3, a delta round, frozen at b1ad0d6 — foundational count 0 after the blind second triage, clean, no sample (Linus's one report claimed none: the hold check result's "empty" is Defensible Retention's own value, so the proposed `EQUALS blank` would pass a destruction record carrying no result at all and both triages placed it refuted; External check 10's citation was written in the cited rule's own words and its number made plural, the first triage placing that refining and the second refuted; the settle's own cures, where Defensible Retention's recovery retired to Database 1 left three places on this page naming it: Term destruction record's "a recovered one included", Term recovery marker's Defensible Retention arm and the Regulator audit example's pointer to the retired Check 3.6); the round read the reach of Defensible Retention's retirement of its recovery (b1ad0d66), Check 3.1 and External check 10, by their diff; 2026-11-05 — Final Critique 2, a delta round, frozen at 776c44e — foundational count 0, clean, no sample; 2026-11-04 — Final Critique 1, a full round of three fresh passes over the page and its three constituents — 9 foundational after merging, cured in the settle, 3 reports refuted on the page's own text; not clean: the cures are unread, and the next round is a delta round.
 
