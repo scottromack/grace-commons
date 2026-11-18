@@ -1007,7 +1007,7 @@
    "permissions",
    "assignment"
   ],
-  "grounded": false,
+  "grounded": true,
   "invariants": 9,
   "kind": "composition",
   "models": {
@@ -1023,7 +1023,7 @@
    "SOC 2",
    "SOX"
   ],
-  "status": "doing",
+  "status": "done \u2014 2026-11-18",
   "substrate_of": [
    "privileged-access-provisioning"
   ],
