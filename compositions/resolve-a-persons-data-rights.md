@@ -599,7 +599,7 @@ Term case: compensate | complete — the closure Reconciliation 12 or Reconcilia
 
 Term compensating fulfilled event: a fulfilled event the reconciliation records, carrying the compensation flag.
 
-Term destruction record: Defensible Retention's record_purged outcome, a recovered one included.
+Term destruction record: Defensible Retention's record_purged outcome.
 
 Term destroyed planned record: a purge plan pair whose retention reading EQUALS purged. A host delete plan record is never one: no declared surface says a host-managed record is gone, so a leg seals it unsettled.
 
@@ -794,7 +794,7 @@ A patient requests access to their records under HIPAA section 164.524 (a covere
 
 Three scenarios the composition must survive in regulated contexts.
 
-**Regulator audit — "prove every record in the subject's universe was dispositioned, and that no held or retention-bound record was erased."** A DPA (Data Protection Authority — a national GDPR regulator) examines a fulfilled erasure request. It calls `disposition_report(request_id)`: by Invariant 2 (no-silent-omission), every enumerated record carries exactly one disposition — there is no record the response silently dropped. For every gated erased disposition, the auditor cross-reads the Defensible Retention substrate's `record_purged` event and confirms `hold_check_result: empty` (Invariant 3, resting on Defensible Retention Invariant 1 — hold-blocks-purge), or reads the record as still owed under the substrate's own marker (Check 3.6); a host-managed erased is the host's attested outcome and carries no gate record (Host-managed records 1). For every `retained(legal-hold)` / `retained(retention-obligation)`, it confirms the then-Active hold or the unelapsed retention via Defensible Retention's records. `AuditTrail.verify_record` on the `dsar.erasure_fulfilled` event confirms the disposition set was not altered after the fact. Every claim is provable, by virtue of Invariants 2, 3, and 4.
+**Regulator audit — "prove every record in the subject's universe was dispositioned, and that no held or retention-bound record was erased."** A DPA (Data Protection Authority — a national GDPR regulator) examines a fulfilled erasure request. It calls `disposition_report(request_id)`: by Invariant 2 (no-silent-omission), every enumerated record carries exactly one disposition — there is no record the response silently dropped. For every gated erased disposition, the auditor cross-reads the Defensible Retention substrate's `record_purged` event and confirms `hold_check_result: empty` (Invariant 3, resting on Defensible Retention Invariant 1 — hold-blocks-purge); a host-managed erased is the host's attested outcome and carries no gate record (Host-managed records 1). For every `retained(legal-hold)` / `retained(retention-obligation)`, it confirms the then-Active hold or the unelapsed retention via Defensible Retention's records. `AuditTrail.verify_record` on the `dsar.erasure_fulfilled` event confirms the disposition set was not altered after the fact. Every claim is provable, by virtue of Invariants 2, 3, and 4.
 
 **Disputed erasure — the data subject challenges a retention.** A subject's representative challenges: *"you claim you could not delete record `r2` — prove a hold actually existed."* The system presents the `retained(legal-hold)` disposition with its reason (the blocking `hold_id`) and, via the Defensible Retention substrate, `LegalHold.read({record_ref: r2})` — the Active hold with `placed_by`, `hold_reason`, `placed_at`, and `case_ref`, all immutable by Legal Hold's Invariant 1. `AuditTrail.verify_record` on the `dsar.erasure_fulfilled` event confirms the disposition was not fabricated or back-filled. The challenge cannot be sustained without claiming the entire hold records were fabricated, at which point the Tamper Evidence seal (via the Defensible Retention substrate) is the structural rebuttal — the same rebuttal chain Defensible Retention's own disputed-destruction scenario establishes, with this composition adding the disposition binding (Invariant 4) that ties the retention claim to a specific recorded hold. The symmetric challenge — *"you erased a record you should have kept"* — is answered by the `dsar.erasure_fulfilled` event plus the Defensible Retention `record_purged` event whose `hold_check_result: empty` proves the gate passed at purge time.
 
@@ -866,7 +866,7 @@ NOTE: open 2026-11-04-e (Check 2.4's re-enumeration) and 2026-11-04-h (Check 8.9
 
 Term gated erased disposition: an erased disposition whose record carried a retention id.
 
-Term recovery marker: Defensible Retention's recovery flag on its re-emitted destruction record, or this composition's compensation flag on a fulfilled event.
+Term recovery marker: this composition's compensation flag on a fulfilled event.
 
 Term closing record: the fulfilled event or the abandonment carrying an intent's invocation id.
 
@@ -899,7 +899,7 @@ External check 6: An auditor needing consent non-mutation confirmed beyond the r
 External check 7: An auditor needing every hold-bearing record placed under Defensible Retention confirmed MUST read the host's hold inventory (Host-managed records 1).
 External check 8: An auditor needing an alert confirmed MUST read the deployment's alerting surface (Reconciliation 22).
 External check 9: An auditor needing the call pause bound confirmed MUST read the deployment's measured call latencies (Capability requirement 28).
-External check 10: An auditor needing the survival of a gated record sealed unsettled confirmed MUST read the deployment's destruction record (Defensible Retention External check 8).
+External check 10: An auditor needing the fate of a gated record sealed unsettled under a record purged outcome confirmed MUST read the deployment's own destruction records (Defensible Retention External check 8).
 External check 11: An auditor needing the request section's discipline confirmed MUST clear Lease Check 7.1 through 7.5 over the request section's holder (Concurrency 8 through 19, Concurrency 21 through 24).
 ```
 
@@ -1181,14 +1181,14 @@ This composition inherits the broader standards compliance of its constituents:
 
 ## Status
 
-`doing` — see the Ledger.
+`done — 2026-11-18` — see the Ledger.
 
 ## Ledger
 
 ```
-status: doing
+status: done — 2026-11-18
 formal: verified — resolve-a-persons-data-rights.tla + 12 twins + 3 probes (one erasure against two legs of the reconciliation, under the request section: 162,645 states, holding at a term of 6 within 9 ticks), resolve-a-persons-data-rights-access.tla + 1 probe (a fulfillment with nothing planned against the same two legs: 17,796 states, holding at a term of 6 within 9 ticks) and resolve-a-persons-data-rights-admission.tla + 1 twin + 1 probe (two fulfillments of one request: 56,552 states, holding at a term of 6 within 8 ticks), re-derived from the page as it stands; resolve-a-persons-data-rights.als + 15 twins (the static data model, 2026-11-12: Invariant 1.1 through 1.6, 2.1, 2.2, 3.1, 3.2, 4.1, 5.1, 6.2, 7.1, 7.2, 8.1 and 8.2 checked on every state of the intake events, intents, fulfilled events and abandonments, the response disclosures, the fulfillment entries, the dispositions each intent and fulfilled event carries from the reads and planned calls that settled them, and the Consent calls, each fulfillment's and leg's state read at its own instant under the request section, at for 3 with six events, three fulfillments, two legs and four-bit instants, Invariant 1.1, 1.2, 1.4, 1.5, 2.1, 3.1 and 5.1 a cross-check with the TLA+ models; nothing testable in Alloy for Invariant 6.1 (two states: in one, Fulfilled is read off records the composition never changes); the model found that an included disposition carries no-bar alone (Disposition 6), which names no authority where Invariant 4.1 asks one, and that Invariant 1.5's exactly one at quiescence is, at its lower bound, Term quiescence's own clause); coverage 2026-11-10 (unit formal: more coverage for the yes votes), 2026-11-12: owed rows: Invariant 6.1, 2026-10-21
-last gate: 2026-11-05 — Final Critique 2, a delta round, frozen at 776c44e — foundational count 0, clean, no sample; 2026-11-04 — Final Critique 1, a full round of three fresh passes over the page and its three constituents — 9 foundational after merging, cured in the settle, 3 reports refuted on the page's own text; not clean: the cures are unread, and the next round is a delta round.
+last gate: 2026-11-18 — Final Critique 3, a delta round, frozen at b1ad0d6 — foundational count 0 after the blind second triage, clean, no sample (Linus's one report claimed none: the hold check result's "empty" is Defensible Retention's own value, so the proposed `EQUALS blank` would pass a destruction record carrying no result at all and both triages placed it refuted; External check 10's citation was written in the cited rule's own words and its number made plural, the first triage placing that refining and the second refuted; the settle's own cures, where Defensible Retention's recovery retired to Database 1 left three places on this page naming it: Term destruction record's "a recovered one included", Term recovery marker's Defensible Retention arm and the Regulator audit example's pointer to the retired Check 3.6); the round read the reach of Defensible Retention's retirement of its recovery (b1ad0d66), Check 3.1 and External check 10, by their diff; 2026-11-05 — Final Critique 2, a delta round, frozen at 776c44e — foundational count 0, clean, no sample; 2026-11-04 — Final Critique 1, a full round of three fresh passes over the page and its three constituents — 9 foundational after merging, cured in the settle, 3 reports refuted on the page's own text; not clean: the cures are unread, and the next round is a delta round.
 
 open:
 - 2026-11-04-a · refining · Action wiring; spec-format closure table · the subsection carries no closure table as its first #### block, and its cells are routed in prose rules → write the table beside the rules that route its cells
