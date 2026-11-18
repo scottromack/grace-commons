@@ -30,3 +30,23 @@ The unit asks that the build be compared to the patch, behavior by behavior, eac
 ## What was not compared
 
 The live views (`views/*.tsx`) and styles; every word on a screen they carry beyond the messages greped in the routes; the migrations; the seed's wording; how each screen looks. Nothing was run on the live side. A comparison by running both, with the same requests sent to each and the answers diffed, would close this, and needs Deno and the live database's shape; it is not done.
+
+## What the live database holds that the seed does not
+
+Read 2026-11-18 from the live machine's SQLite file (`/data/beacon.sqlite` on `beacon-clinical`, read-only, last written 2026-11-16 21:03Z after the 7080a8cd deploy). A render starts from its seed (SPEC.md, *The data a render starts from*), so replacing the live demo with it drops what follows; the push waits for the maintainer's answer (`## Needs Scott`).
+
+| What | Live | Seed |
+|---|---|---|
+| People | 4 (the two seeded, and two accounts the maintainer made by invitation on 2026-05-28 and 2026-06-08) | 2 |
+| Invitations | 4 (one revoked, one accepted, one pending past its date, one accepted) | none |
+| Subjects | 2 (`BCN-001`, `BCN-002`), each with a test note | none |
+| Visits | 4 (kinds `screening`, `screening`, `screening`, `week_4`) | none |
+| Grants | 38 (7 permissions; `invite_actor` alone has 19 active) | 7 |
+| Audit events | 101 | none |
+| Retention window | one record | off |
+
+Two findings in it. (1) The live visit kind is `week_4` and the render's is `week 4` (SPEC.md, *The study, subjects and visits*, names `week 4`): a visit recorded in the live demo carries a kind the render does not know, so a migration would map it. (2) 19 active grants of `invite_actor` for four people, against the render's at most one of a permission per person (SPEC.md, *The permissions*): the live data holds the duplicates the reach migration left, which the render cannot hold.
+
+## The conformance validator
+
+`tools/conformance` is pointed at a running render through an adapter (`adapters/clinical-trial-portal*.adapter.mjs`, for the Deno render on SQLite, Postgres and Mongo, and the Next.js renders). **There is no adapter for this render** (Bun, Hono, XTDB), so the validator was not run on it; writing one is a unit of its own, and the render's measure is the tests in `TESTED.md` and the plants, not a `correctness(%)`.
