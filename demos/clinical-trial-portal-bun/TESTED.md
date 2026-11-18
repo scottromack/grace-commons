@@ -20,20 +20,20 @@ Every rule a part rendered has a test that names it in its title, and every part
 
 ## The Edge Finder's Case Tests
 
-The Edge Finder reads a composition's closure tables (`Action | Input | Lands | Owner` and `Answer | Lands | Owner`) from the IR and writes one check for each row (`rounds/seam-trial-code/gen_tests_calls.py`, unit `tooling: the Edge Finder scores a composition, Login first`, 2026-11-16). It was written for Login and reads Login alone.
+The Edge Finder reads a composition's closure tables (`Action | Input | Lands | Owner` and `Answer | Lands | Owner`) from the IR and writes one check for each row (`rounds/seam-trial-code/gen_tests_calls.py`, unit `tooling: the Edge Finder scores a composition, Login first`, 2026-11-16). It was written for Login; since 2026-11-18 (unit `tooling: the Edge Finder reads a second composition, Session-Gated Authorization first`) a composition is read by its own reader and Session-Gated Authorization has one. What is Login's alone (the cascade reason prefix, its eleven untyped inputs, its settings) stays behind Login's reader; a composition with no reader stops the generator with its name.
 
 | Pattern | Case-table rows | Edge Finder on the render |
 |---|---|---|
 | Login | 41 | **38 run (57 scenarios), 38 passing, 3 not run** (the length bound, the retention period and the byte-exact property: the pattern names no setting for them): `tests/case/login.case.test.ts`, run in `bun test` |
-| Session-Gated Authorization | 9 | **untested**: the generator stops on `the cascade reason prefix is not in the IR`, a Login-only assertion |
-| External Onboarding | 57 | **untested**, the same stop |
-| Audit Trail | 120 | **untested**, the same stop |
-| Recoverable Invocation | 91 | **untested**, the same stop |
+| Session-Gated Authorization | 9 | **9 run (15 scenarios), 9 passing, 0 not run**: `tests/case/session_gated_authorization.case.test.ts`, run in `bun test` (the two constituents answer by script; no store is needed). 11 of 11 Fault Plants on `src/session_gated_authorization.ts` are seen by these Case Tests alone (`tests/case/plant_sga_case.py`); the first run of the plants saw 9 of 11, the two unseen (a trimmed token, a case-folded scope) showing the opaque-input row's first scenario used inputs with nothing to trim, and the generator's scenario for that row now presents a padded, mixed-case token and scope. The length-bound rows run because the bound is a deployment's setting the scenarios declare (`length_bound`, Primitive policy 1), where Login's equivalent names none. |
+| External Onboarding | 57 | **untested**: the generator has no reader for it |
+| Audit Trail | 120 | **untested**: the generator has no reader for it |
+| Recoverable Invocation | 91 | **untested**: the generator has no reader for it |
 | Attributed Permissions Admin | 0 | **no case table to read**: the page has no closure table; the unit's step 6 names its case tables, and it has none |
 | Permissions (an atom, 12 rows), Session (15), Actor Identity (15), Retention Window (15), Event Log (6), Tamper Evidence (10) | 73 | **untested**: the atom generator `gen_tests.py` does not run on the current IR (it reads `subject_actions` and `answer_shape`, gone since the Reader unit; `rounds/page-proof-trial.md`, the third measure, and the ask under `## Needs Scott` there) |
 | Credential, Party Identity, Invitation, Lease | 0 | no case table to read |
 
-So of the 391 case-table rows of the patterns Beacon composes, the Edge Finder has read 41 (Login's), run 38 and passed 38, and read none of the other 350. The 3 Login rows not run and the 350 unread are the gap, named; the render's own tests cover the same patterns' rules by their labels and are not a substitute for the rows.
+So of the 391 case-table rows of the patterns Beacon composes, the Edge Finder has read 50 (Login's 41 and Session-Gated Authorization's 9), run 47 and passed 47, and read none of the other 341. The 3 Login rows not run and the 341 unread are the gap, named; the render's own tests cover the same patterns' rules by their labels and are not a substitute for the rows.
 
 ## The last full run before the deploy (2026-11-18)
 

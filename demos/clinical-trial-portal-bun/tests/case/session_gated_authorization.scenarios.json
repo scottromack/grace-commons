@@ -1,0 +1,754 @@
+{
+ "emitted_by": "gen_tests_calls.py --scenarios-json",
+ "spec": "compositions/session-gated-authorization.md",
+ "commit": "f0b6fb20",
+ "rows": [
+  {
+   "n": 1,
+   "line": 134,
+   "caption": "Inputs",
+   "text": "a blank session token or a blank action scope | invalid-request, no constituent called | Primitive policy 2, 3, 9"
+  },
+  {
+   "n": 2,
+   "line": 135,
+   "caption": "Inputs",
+   "text": "a session token or an action scope over the length bound | invalid-request, no constituent called | Primitive policy 4, 9"
+  },
+  {
+   "n": 3,
+   "line": 136,
+   "caption": "Inputs",
+   "text": "an opaque input | compared byte-exact, never trimmed, case-folded or normalized | Primitive policy 5, 6, 7, 8"
+  },
+  {
+   "n": 4,
+   "line": 142,
+   "caption": "Session's validate",
+   "text": "valid | Permissions' permitted called with the principal reference and the action scope | Action wiring 5, 6, Wiring decision 1"
+  },
+  {
+   "n": 5,
+   "line": 143,
+   "caption": "Session's validate",
+   "text": "invalid (expired, revoked or not-known) | session-invalid naming the reason, Permissions not called | Action wiring 9, Invariant 1.1"
+  },
+  {
+   "n": 6,
+   "line": 144,
+   "caption": "Session's validate",
+   "text": "state-unavailable | state-unavailable, Permissions not called | Wiring decision 1, Execution Contract Constituent failure 3"
+  },
+  {
+   "n": 7,
+   "line": 150,
+   "caption": "Permissions' permitted",
+   "text": "permitted | permitted answered unchanged | Action wiring 10, 11"
+  },
+  {
+   "n": 8,
+   "line": 151,
+   "caption": "Permissions' permitted",
+   "text": "denied | denied answered unchanged | Action wiring 10, 11, Invariant 4.1"
+  },
+  {
+   "n": 9,
+   "line": 152,
+   "caption": "Permissions' permitted",
+   "text": "state-unavailable | state-unavailable | Execution Contract Constituent failure 3"
+  }
+ ],
+ "scenarios": {
+  "1": [
+   {
+    "label": "check_permitted | session_token blank (owner: Primitive policy 2, 3, 9)",
+    "action": "check_permitted",
+    "args": {
+     "session_token": "",
+     "action_scope": "invoice:read"
+    },
+    "now": 1000,
+    "setup": [],
+    "settings": {
+     "length_bound": null
+    },
+    "script": {
+     "session/validate": [
+      [
+       "valid",
+       {
+        "principal_ref": "principal-1"
+       }
+      ]
+     ],
+     "permissions/permitted": [
+      [
+       "permitted",
+       null
+      ]
+     ]
+    },
+    "setup_script": {},
+    "asserts": [
+     [
+      "no_call",
+      "session",
+      "validate"
+     ],
+     [
+      "no_call",
+      "permissions",
+      "permitted"
+     ],
+     [
+      "answer",
+      "invalid-request"
+     ]
+    ],
+    "refuse_commits": []
+   },
+   {
+    "label": "check_permitted | session_token whitespace (owner: Primitive policy 2, 3, 9)",
+    "action": "check_permitted",
+    "args": {
+     "session_token": "  ",
+     "action_scope": "invoice:read"
+    },
+    "now": 1000,
+    "setup": [],
+    "settings": {
+     "length_bound": null
+    },
+    "script": {
+     "session/validate": [
+      [
+       "valid",
+       {
+        "principal_ref": "principal-1"
+       }
+      ]
+     ],
+     "permissions/permitted": [
+      [
+       "permitted",
+       null
+      ]
+     ]
+    },
+    "setup_script": {},
+    "asserts": [
+     [
+      "no_call",
+      "session",
+      "validate"
+     ],
+     [
+      "no_call",
+      "permissions",
+      "permitted"
+     ],
+     [
+      "answer",
+      "invalid-request"
+     ]
+    ],
+    "refuse_commits": []
+   },
+   {
+    "label": "check_permitted | action_scope blank (owner: Primitive policy 2, 3, 9)",
+    "action": "check_permitted",
+    "args": {
+     "session_token": "tok-A",
+     "action_scope": ""
+    },
+    "now": 1000,
+    "setup": [],
+    "settings": {
+     "length_bound": null
+    },
+    "script": {
+     "session/validate": [
+      [
+       "valid",
+       {
+        "principal_ref": "principal-1"
+       }
+      ]
+     ],
+     "permissions/permitted": [
+      [
+       "permitted",
+       null
+      ]
+     ]
+    },
+    "setup_script": {},
+    "asserts": [
+     [
+      "no_call",
+      "session",
+      "validate"
+     ],
+     [
+      "no_call",
+      "permissions",
+      "permitted"
+     ],
+     [
+      "answer",
+      "invalid-request"
+     ]
+    ],
+    "refuse_commits": []
+   },
+   {
+    "label": "check_permitted | action_scope whitespace (owner: Primitive policy 2, 3, 9)",
+    "action": "check_permitted",
+    "args": {
+     "session_token": "tok-A",
+     "action_scope": "  "
+    },
+    "now": 1000,
+    "setup": [],
+    "settings": {
+     "length_bound": null
+    },
+    "script": {
+     "session/validate": [
+      [
+       "valid",
+       {
+        "principal_ref": "principal-1"
+       }
+      ]
+     ],
+     "permissions/permitted": [
+      [
+       "permitted",
+       null
+      ]
+     ]
+    },
+    "setup_script": {},
+    "asserts": [
+     [
+      "no_call",
+      "session",
+      "validate"
+     ],
+     [
+      "no_call",
+      "permissions",
+      "permitted"
+     ],
+     [
+      "answer",
+      "invalid-request"
+     ]
+    ],
+    "refuse_commits": []
+   }
+  ],
+  "2": [
+   {
+    "label": "check_permitted | session_token over the length bound (owner: Primitive policy 4, 9)",
+    "action": "check_permitted",
+    "args": {
+     "session_token": "xxxxxxxxx",
+     "action_scope": "invoice:read"
+    },
+    "now": 1000,
+    "setup": [],
+    "settings": {
+     "length_bound": 8
+    },
+    "script": {
+     "session/validate": [
+      [
+       "valid",
+       {
+        "principal_ref": "principal-1"
+       }
+      ]
+     ],
+     "permissions/permitted": [
+      [
+       "permitted",
+       null
+      ]
+     ]
+    },
+    "setup_script": {},
+    "asserts": [
+     [
+      "no_call",
+      "session",
+      "validate"
+     ],
+     [
+      "no_call",
+      "permissions",
+      "permitted"
+     ],
+     [
+      "answer",
+      "invalid-request"
+     ]
+    ],
+    "refuse_commits": []
+   },
+   {
+    "label": "check_permitted | action_scope over the length bound (owner: Primitive policy 4, 9)",
+    "action": "check_permitted",
+    "args": {
+     "session_token": "tok-A",
+     "action_scope": "xxxxxxxxx"
+    },
+    "now": 1000,
+    "setup": [],
+    "settings": {
+     "length_bound": 8
+    },
+    "script": {
+     "session/validate": [
+      [
+       "valid",
+       {
+        "principal_ref": "principal-1"
+       }
+      ]
+     ],
+     "permissions/permitted": [
+      [
+       "permitted",
+       null
+      ]
+     ]
+    },
+    "setup_script": {},
+    "asserts": [
+     [
+      "no_call",
+      "session",
+      "validate"
+     ],
+     [
+      "no_call",
+      "permissions",
+      "permitted"
+     ],
+     [
+      "answer",
+      "invalid-request"
+     ]
+    ],
+    "refuse_commits": []
+   }
+  ],
+  "3": [
+   {
+    "label": "check_permitted | the inputs reach the constituents as they stand (owner: Primitive policy 5, 6, 7, 8)",
+    "action": "check_permitted",
+    "args": {
+     "session_token": "  Tok-A\t",
+     "action_scope": " Invoice:Read "
+    },
+    "now": 1000,
+    "setup": [],
+    "settings": {
+     "length_bound": null
+    },
+    "script": {
+     "session/validate": [
+      [
+       "valid",
+       {
+        "principal_ref": "principal-1"
+       }
+      ]
+     ],
+     "permissions/permitted": [
+      [
+       "permitted",
+       null
+      ]
+     ]
+    },
+    "setup_script": {},
+    "asserts": [
+     [
+      "called",
+      "session",
+      "validate"
+     ],
+     [
+      "call_args_exact",
+      "session",
+      "validate",
+      [
+       "  Tok-A\t"
+      ]
+     ],
+     [
+      "call_args_exact",
+      "permissions",
+      "permitted",
+      [
+       "principal-1",
+       " Invoice:Read "
+      ]
+     ]
+    ],
+    "refuse_commits": []
+   }
+  ],
+  "4": [
+   {
+    "label": "validate answered valid (owner: Action wiring 5, 6, Wiring decision 1)",
+    "action": "check_permitted",
+    "args": {
+     "session_token": "tok-A",
+     "action_scope": "invoice:read"
+    },
+    "now": 1000,
+    "setup": [],
+    "settings": {
+     "length_bound": null
+    },
+    "script": {
+     "session/validate": [
+      [
+       "valid",
+       {
+        "principal_ref": "principal-1"
+       }
+      ]
+     ],
+     "permissions/permitted": [
+      [
+       "permitted",
+       null
+      ]
+     ]
+    },
+    "setup_script": {},
+    "asserts": [
+     [
+      "called",
+      "permissions",
+      "permitted"
+     ],
+     [
+      "call_args_exact",
+      "permissions",
+      "permitted",
+      [
+       "principal-1",
+       "invoice:read"
+      ]
+     ]
+    ],
+    "refuse_commits": []
+   }
+  ],
+  "5": [
+   {
+    "label": "validate answered invalid(expired) (owner: Action wiring 9, Invariant 1.1)",
+    "action": "check_permitted",
+    "args": {
+     "session_token": "tok-A",
+     "action_scope": "invoice:read"
+    },
+    "now": 1000,
+    "setup": [],
+    "settings": {
+     "length_bound": null
+    },
+    "script": {
+     "session/validate": [
+      [
+       "invalid",
+       "expired"
+      ]
+     ],
+     "permissions/permitted": [
+      [
+       "permitted",
+       null
+      ]
+     ]
+    },
+    "setup_script": {},
+    "asserts": [
+     [
+      "answer",
+      "session-invalid"
+     ],
+     [
+      "payload_has",
+      [
+       "expired"
+      ]
+     ],
+     [
+      "no_call",
+      "permissions",
+      "permitted"
+     ]
+    ],
+    "refuse_commits": []
+   },
+   {
+    "label": "validate answered invalid(revoked) (owner: Action wiring 9, Invariant 1.1)",
+    "action": "check_permitted",
+    "args": {
+     "session_token": "tok-A",
+     "action_scope": "invoice:read"
+    },
+    "now": 1000,
+    "setup": [],
+    "settings": {
+     "length_bound": null
+    },
+    "script": {
+     "session/validate": [
+      [
+       "invalid",
+       "revoked"
+      ]
+     ],
+     "permissions/permitted": [
+      [
+       "permitted",
+       null
+      ]
+     ]
+    },
+    "setup_script": {},
+    "asserts": [
+     [
+      "answer",
+      "session-invalid"
+     ],
+     [
+      "payload_has",
+      [
+       "revoked"
+      ]
+     ],
+     [
+      "no_call",
+      "permissions",
+      "permitted"
+     ]
+    ],
+    "refuse_commits": []
+   },
+   {
+    "label": "validate answered invalid(not-known) (owner: Action wiring 9, Invariant 1.1)",
+    "action": "check_permitted",
+    "args": {
+     "session_token": "tok-A",
+     "action_scope": "invoice:read"
+    },
+    "now": 1000,
+    "setup": [],
+    "settings": {
+     "length_bound": null
+    },
+    "script": {
+     "session/validate": [
+      [
+       "invalid",
+       "not-known"
+      ]
+     ],
+     "permissions/permitted": [
+      [
+       "permitted",
+       null
+      ]
+     ]
+    },
+    "setup_script": {},
+    "asserts": [
+     [
+      "answer",
+      "session-invalid"
+     ],
+     [
+      "payload_has",
+      [
+       "not-known"
+      ]
+     ],
+     [
+      "no_call",
+      "permissions",
+      "permitted"
+     ]
+    ],
+    "refuse_commits": []
+   }
+  ],
+  "6": [
+   {
+    "label": "validate answered state-unavailable (owner: Wiring decision 1, Execution Contract Constituent failure 3)",
+    "action": "check_permitted",
+    "args": {
+     "session_token": "tok-A",
+     "action_scope": "invoice:read"
+    },
+    "now": 1000,
+    "setup": [],
+    "settings": {
+     "length_bound": null
+    },
+    "script": {
+     "session/validate": [
+      [
+       "state-unavailable",
+       null
+      ]
+     ],
+     "permissions/permitted": [
+      [
+       "permitted",
+       null
+      ]
+     ]
+    },
+    "setup_script": {},
+    "asserts": [
+     [
+      "no_call",
+      "permissions",
+      "permitted"
+     ],
+     [
+      "answer",
+      "state-unavailable"
+     ]
+    ],
+    "refuse_commits": []
+   }
+  ],
+  "7": [
+   {
+    "label": "permitted answered permitted (owner: Action wiring 10, 11)",
+    "action": "check_permitted",
+    "args": {
+     "session_token": "tok-A",
+     "action_scope": "invoice:read"
+    },
+    "now": 1000,
+    "setup": [],
+    "settings": {
+     "length_bound": null
+    },
+    "script": {
+     "session/validate": [
+      [
+       "valid",
+       {
+        "principal_ref": "principal-1"
+       }
+      ]
+     ],
+     "permissions/permitted": [
+      [
+       "permitted",
+       null
+      ]
+     ]
+    },
+    "setup_script": {},
+    "asserts": [
+     [
+      "answer",
+      "permitted"
+     ]
+    ],
+    "refuse_commits": []
+   }
+  ],
+  "8": [
+   {
+    "label": "permitted answered denied (owner: Action wiring 10, 11, Invariant 4.1)",
+    "action": "check_permitted",
+    "args": {
+     "session_token": "tok-A",
+     "action_scope": "invoice:read"
+    },
+    "now": 1000,
+    "setup": [],
+    "settings": {
+     "length_bound": null
+    },
+    "script": {
+     "session/validate": [
+      [
+       "valid",
+       {
+        "principal_ref": "principal-1"
+       }
+      ]
+     ],
+     "permissions/permitted": [
+      [
+       "denied",
+       null
+      ]
+     ]
+    },
+    "setup_script": {},
+    "asserts": [
+     [
+      "answer",
+      "denied"
+     ]
+    ],
+    "refuse_commits": []
+   }
+  ],
+  "9": [
+   {
+    "label": "permitted answered state-unavailable (owner: Execution Contract Constituent failure 3)",
+    "action": "check_permitted",
+    "args": {
+     "session_token": "tok-A",
+     "action_scope": "invoice:read"
+    },
+    "now": 1000,
+    "setup": [],
+    "settings": {
+     "length_bound": null
+    },
+    "script": {
+     "session/validate": [
+      [
+       "valid",
+       {
+        "principal_ref": "principal-1"
+       }
+      ]
+     ],
+     "permissions/permitted": [
+      [
+       "state-unavailable",
+       null
+      ]
+     ]
+    },
+    "setup_script": {},
+    "asserts": [
+     [
+      "answer",
+      "state-unavailable"
+     ]
+    ],
+    "refuse_commits": []
+   }
+  ]
+ }
+}
