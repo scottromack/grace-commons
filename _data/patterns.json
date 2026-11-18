@@ -1018,6 +1018,23 @@
   "status": "done \u2014 2026-11-04",
   "title": "Message Preference"
  },
+ "moderation": {
+  "composed_by": [],
+  "domain": null,
+  "grounded": false,
+  "invariants": 3,
+  "kind": "atom",
+  "models": {
+   "als": false,
+   "tla": false,
+   "twins": 0
+  },
+  "regulated_by": [],
+  "security": false,
+  "standards": [],
+  "status": "todo",
+  "title": "Moderation"
+ },
  "money": {
   "composed_by": [],
   "domain": null,

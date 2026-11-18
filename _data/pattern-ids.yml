@@ -170,3 +170,5 @@ patterns:
     file: atoms/tag.md
   - id: 74
     file: atoms/role.md
+  - id: 75
+    file: atoms/moderation.md
