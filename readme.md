@@ -15,6 +15,24 @@ permalink: /
 3. **Review** – The council tests it until nothing breaks.
 4. **Build** – You get the bundle. Build it yourself, or we do.
 
+Rather fill in one page? Here is the form.
+
+```
+# <Name>  (one word if you can)
+
+What it is:        one sentence, in plain words
+What it keeps:     the things it remembers
+What people do:    each action, one line
+Always true:       ...
+When X happens:    ...
+While X is so:     ...
+Optional:          what a business may switch on or set
+Never:             what must be impossible
+Left to others:    what it does NOT do, and who does
+Example:           one real scene, with real names and values
+Source:            where the idea came from (MIT, a forum, a client)
+```
+
 The four stops below are the longer way in, for whoever wants it.
 
 ## In software as in life you need Grace

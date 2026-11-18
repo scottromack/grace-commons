@@ -157,6 +157,8 @@ A pattern moves through four states: **Proposal** (an issue describing the recur
 
 This section moved to [`spec-format.md`](./spec-format.md#workflow-for-adding-a-new-pattern), which owns its subject; follow the link.
 
+To start a pattern, fill in the [rough-draft form](./rough-draft.md).
+
 ---
 
 ## Implementation-discovered findings

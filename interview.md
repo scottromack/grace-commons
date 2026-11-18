@@ -70,3 +70,5 @@ Grace made one call here and said why: the list of statuses is not Favorite's to
 Grace wrote the pattern from those answers and checked its wording against the library's rules. It was sent for review the same morning, in public: [see where it stands](https://github.com/scottromack/grace-intake/issues/5). It has since been reviewed and is in the library: [read the pattern](./atoms/favorite.md).
 
 One thing the writing caught that the conversation had not: Favorite keeps each person's list separate, but it cannot itself tell who is tapping. Checking that is the sign-in pattern's job, and the pattern says so.
+
+Rather fill in one page? Use the [rough-draft form](./rough-draft.md).
