@@ -414,14 +414,14 @@ Favorite is a primitive with no regulatory anchor. It inherits from:
 
 ## Status
 
-`doing` — see the Ledger.
+`done — 2026-11-17` — see the Ledger.
 
 ## Ledger
 
 ```
-status: doing
+status: done — 2026-11-17
 formal: verified — favorite.als + 7 twins (the static data model: State 1 and 2, Identity 3 and 5, Operation 3, 4 and 5, Invariant 1.1 checked on every version a sequence of admitted calls leaves, Identity 1 caught by the Invariant 1.1 check, Identity 2 and 4 by the Operation 3 check); favorite.tla + 24 twins (across steps: State 3, Invariant 2.1 through 2.3, Operation 1 through 3 and 6 through 25, the other half of Operation 14 and 16 read from the terms Look Up and List); on the maintainer's ruling of 2026-11-09 (both models; only the writing vetoes one), neither vetoed, 2026-11-14
-last gate: 2026-11-17 — Final Critique 4, a delta round, frozen at f7caec5a — foundational count 1 after the blind second triage, cured by a held cure, not clean, one sample (Linus's three foundational reports, all on the Execution Contract and reached through Capability requirement 3: F1, that Logic confinement 17 names no start for an instance with no scheduled leg, and F3, that Input 2 counts the cap on two bases, both refuted by both triages, F3 since Capability requirement 4 and 5 and the NOTE at page line 57 replace Logic confinement 13 here and the carried value finds the record; F2, that Input 2's start-time floor and Logic confinement 17 permit an unplanned restart to start the instance on a declared cap a held value exceeds, which the blind second triage placed foundational, Kind A, cured by two held replacements to the Execution Contract; refining 1 and rhetorical 1 not cured); 2026-11-17 — Final Critique 3, a delta round, frozen at d9b6ee5a — foundational count 1, cured by a held cure, not clean, one sample
+last gate: 2026-11-17 — Final Critique 5, a delta round, frozen at b2e418cf — foundational count 0 after the blind second triage, clean, one sample (Linus's one foundational report, that Input 2 bars a zero string cap only on a deployment's declaration and not on a specification's default, placed refining, Kind B, by both triages: its two implementations serve different specifications and Favorite's default is 1,024; refining 2 on the Execution Contract; all three cured by held replacements to the Execution Contract, none by the page); 2026-11-17 — Final Critique 4, a delta round, frozen at f7caec5a — foundational count 1 after the blind second triage, cured by a held cure, not clean, one sample (Linus's three foundational reports, all on the Execution Contract and reached through Capability requirement 3: F1, that Logic confinement 17 names no start for an instance with no scheduled leg, and F3, that Input 2 counts the cap on two bases, both refuted by both triages, F3 since Capability requirement 4 and 5 and the NOTE at page line 57 replace Logic confinement 13 here and the carried value finds the record; F2, that Input 2's start-time floor and Logic confinement 17 permit an unplanned restart to start the instance on a declared cap a held value exceeds, which the blind second triage placed foundational, Kind A, cured by two held replacements to the Execution Contract; refining 1 and rhetorical 1 not cured); 2026-11-17 — Final Critique 3, a delta round, frozen at d9b6ee5a — foundational count 1, cured by a held cure, not clean, one sample
 
 open: none
 ```
