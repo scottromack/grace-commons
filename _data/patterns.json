@@ -1634,7 +1634,7 @@
    "OWASP ASVS",
    "PCI DSS"
   ],
-  "status": "done \u2014 2026-11-05",
+  "status": "done \u2014 2026-11-18",
   "substrates": [],
   "title": "Session-Gated Authorization"
  },

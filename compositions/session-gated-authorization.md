@@ -87,6 +87,8 @@ Primitive policy 10: The length bound MUST NOT EXCEED the Permissions instance's
 
 NOTE: watch the unset setting (Primitive policy 1).
 
+NOTE: open 2026-11-18-a — the default length bound is the Permissions instance's string cap and Session's own maximum length is larger, with a session token format the deployment owns, so a session token Session accepts can exceed the bound and answer invalid-request on every call (Primitive policy 1, Primitive policy 10, Term length bound).
+
 ### Action wiring
 
 ```
@@ -453,16 +455,17 @@ Projection: length_bound
 
 ## Status
 
-`done — 2026-11-05` — see the Ledger.
+`done — 2026-11-18` — see the Ledger.
 
 ## Ledger
 
 ```
-status: done — 2026-11-05
+status: done — 2026-11-18
 formal: verified — session-gated-authorization.als + 12 twins (the static data model, re-derived 2026-11-12 as [Check Permitted] calls over the answers their constituents give, the 2026-06-03 trace model's `var` fields `dyn_status` and `dyn_call_log`, `always` checks and `eventually` runs gone, and the facts that stated Invariant 1, 2 and 4 now checks: Invariant 1.1, 2.1, 2.2, 3.1 through 3.3, 4.1 and 4.2, Action wiring 3, 6, 9, 10 and 12, Primitive policy 2, 3, 4 and 9); session-gated-authorization.tla + 6 twins + 4 probes (the operation sequences, 2026-11-12: each call two steps with Session and Permissions moving between them; the stepping checks Dyn_Revocation_Terminal, Dyn_Expiry_Terminal and Dyn_Gate_Reflects_Current_Status taken over as Composes7_RevocationTerminal, Composes7_ExpiryTerminal and AW14_GateReflectsCurrentStatus, with Invariant 1.1 and 2.1, Action wiring 13 through 15 and Concurrency 1 and 2); Invariant 4.1 against the closure table's state-unavailable landing is a finding (an admitted gate over a pair no active grant covers whose permitted read fails); coverage 2026-11-12 (unit `compositions/session-gated-authorization.md formal layer`): owed rows: none, 2026-11-12
-last gate: 2026-11-05 — Final Critique 10, delta, frozen at 7f57305 — foundational count 0, clean, one sample
+last gate: 2026-11-18 — Final Critique 11, delta, frozen at 89cb072 — foundational count 0 after the blind second triage, clean, one sample; Linus's one report (qwen3.8-flash) claimed three foundational, all refuted by rules outside the delta set: Non-goal 9 forbids exposing Permissions' permitted beside [Check Permitted] (External check 5), Action wiring 5, 6, 10 and Invariant 4.1 and 4.2 pin the grant leg of the replacement (Composes 5), and Term length bound, Term boundary predicate and Primitive policy 4 scope the bound over the session token and the action scope, the page's only inputs (Primitive policy 1); of four refining none changed the page (the closure table's inputs and calls leave out Revoke, which Non-goal 4 bars; the measure of unexposed is Non-goal 9's; `permitted` is the page's name for Permissions' read throughout; Primitive policy 1 declares this page's setting and cites Input 2) and one rhetorical was left; the settle's own open line 2026-11-18-a records a bound the default cannot hold a long token to; 2026-11-05 — Final Critique 10, delta, frozen at 7f57305 — foundational count 0, clean, one sample
 
 open:
+- 2026-11-18-a · refining · Primitive policy 1; Primitive policy 10; Term length bound · the default length bound is the Permissions instance's string cap (256 code points) and Session's maximum length is 1,024 with a token format the deployment owns, so a session token Session accepts can exceed the bound and answer invalid-request on every call → decide whether the deployment's token format is held to the length bound or the bound for the session token reads Session's maximum length
 - 2026-11-05-a · refining · Check 1.1, Check 3.1 · the instant a validate call answered (Check 1.1) and every answer (Check 3.1) are on no record the composition holds without Audit Trail (Composition state 1), while the page files both checks in the tier cleared from the constituents' own state; whether the two checks move under a composed Audit Trail, as External checks 6 and 7 did, or stay on the runtime surface is a decision no rule makes → the next round that reads the Generation acceptance tier
 - 2026-09-27-a · refining · Primitive policy 10 · added from the cold regeneration's finding (council read 236), a load-bearing touch → the three-pass round the entry *Touch triggers re-pass* in `pressure-testing.md` requires
 ```
