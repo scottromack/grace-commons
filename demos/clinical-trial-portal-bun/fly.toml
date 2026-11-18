@@ -8,6 +8,11 @@ primary_region = 'sjc'
   PORT = '8000'
   SECURE_COOKIE = '1'
 
+# The earlier render's volume stays mounted and unused: Fly refuses to deploy over a machine whose volume the config drops, and deleting it is Scott's to do.
+[[mounts]]
+  source = 'beacon_data'
+  destination = '/data'
+
 [http_service]
   internal_port = 8000
   force_https = true
