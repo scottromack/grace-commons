@@ -18,6 +18,7 @@ Designers are taught to copy. The rule that goes with it: understand what you co
 - **Unix.** Do one thing well, and work together: small pieces, loosely joined (David Weinberger's phrase). Concepts are the same idea one level up, so Jackson stood on shoulders too.
 - **Grace Hopper's FLOW-MATIC, and the COBOL it led to.** The business should be able to read what the system does.
 - **Christopher Alexander, *A Pattern Language*.** A library of named patterns that compose. It inspired this one from afar; we knew to look there.
+- **Stafford Beer's Viable System Model.** A system that lasts keeps a part watching the world outside it, so the council has one.
 
 ## Common practice, applied one layer up
 
