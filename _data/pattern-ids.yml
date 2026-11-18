@@ -168,3 +168,5 @@ patterns:
     file: atoms/restorable-delete.md
   - id: 73
     file: atoms/tag.md
+  - id: 74
+    file: atoms/role.md

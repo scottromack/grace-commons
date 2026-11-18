@@ -1607,6 +1607,23 @@
   "status": "done \u2014 2026-10-24",
   "title": "Retention Window"
  },
+ "role": {
+  "composed_by": [],
+  "domain": null,
+  "grounded": false,
+  "invariants": 3,
+  "kind": "atom",
+  "models": {
+   "als": false,
+   "tla": false,
+   "twins": 0
+  },
+  "regulated_by": [],
+  "security": false,
+  "standards": [],
+  "status": "todo",
+  "title": "Role"
+ },
  "selective-disclosure": {
   "composed_by": [
    "capability-backed-sharing",
