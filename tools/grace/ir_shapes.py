@@ -128,7 +128,7 @@ def carrying_of(phrase: str, cx: dict) -> tuple[list[str], str]:
     if t:
         got, why = term_fields(t, cx["entries"])
         return [e["kind"].get("Projection") or e["name"] for e in got], why
-    return [], f"`{phrase.strip()}` is neither a Field entry nor a Term"
+    return [], f"the reader found `{phrase.strip()}` neither a Field entry nor a Term"
 
 
 def what_of(phrase: str, cx: dict) -> tuple[list[dict], str]:

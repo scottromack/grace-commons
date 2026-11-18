@@ -36,7 +36,7 @@ The first product the library is meant to build is a forum, and a sketch of it l
 
 | Pattern | What it would do | State |
 |---|---|---|
-| Post | A markdown body with its revisions and publish state; the address is derived from the title, the author may change it, and the old one redirects. | requested |
+| [Post](./atoms/post.md) | A markdown body with its revisions and publish state; the address is derived from the title, the author may change it, and the old one redirects. | in rounds |
 | Comment | A reply tree on a target. Two settings make it the thread's note and annotation as well: who can see it (everyone, or only its author, a note), and whether its author can edit the item (an annotation is a Comment by someone who cannot). | requested |
 | Category | A tree; one home per post; carries the menu order. | requested |
 | Role | A named set of permissions; assigning it grants them and removing it revokes them. | requested |

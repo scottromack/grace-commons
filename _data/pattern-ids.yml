@@ -158,3 +158,5 @@ patterns:
     file: atoms/tenure.md
   - id: 68
     file: atoms/waitlist.md
+  - id: 69
+    file: atoms/post.md

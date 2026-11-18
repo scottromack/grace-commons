@@ -1,0 +1,518 @@
+---
+title: Post
+id: 69
+parent: Atomic Concepts
+has_toc: true
+toc: true
+---
+
+# Post
+
+<details markdown="block">
+<summary>Table of contents</summary>
+{: .text-xs .font-medium .uppercase .tracking-wide .opacity-50 }
+1. TOC
+{:toc}
+</details>
+
+## Summary
+
+Post lets a person write a piece with a title and a body in markdown, keep it as a draft, change it, publish it for readers and take it back down. Every post has one author for good, and every earlier wording stays readable, because the database keeps each version of the record: a post's revisions are its history, not a second list. Readers see the published posts, oldest published first, and a writer sees their own posts, drafts included. Who may write, change or publish a post, where a post is filed, the comments and reactions on it, removing it, and drawing the markdown on a page each belong to another pattern, which is why one post serves a forum, a blog and a news page alike.
+
+---
+
+## Intent
+
+<details markdown="block">
+<summary>WHY</summary>
+
+A forum, a blog and a newsroom all start from the same thing: someone writes something, gets it right, then lets others read it. This atom is that and nothing more. Three decisions carry the weight. A post is a draft or published, and the two moves between them are separate requests, each safe to repeat. Changing a post replaces its title and body and leaves the earlier wording in the database's history, so an edit never loses what was said and no revision list is kept by hand. And the author is set once and never changes, so the record always says whose words these are. The body is markdown, kept exactly as written; how it is drawn is the page's. Who may write or publish, where a post is filed, and how a post is removed are other patterns' questions, and declining them is what lets one post serve every place people publish. Taken in from MIT's sync-engine Posting concept (Daniel Jackson's group), which keeps an unchanging message; a forum's posts are drafted and corrected, so this one is changeable with its history kept.
+
+</details>
+
+## Structure
+
+### Identity model
+
+```
+Identity 1: The atom MUST identify a post by the post's post id.
+Identity 2: The atom MUST assign EVERY post a post id no other post carries.
+Identity 3: The atom MUST NOT normalize an author reference.
+Identity 4: The atom MUST compare two author references codepoint for codepoint.
+```
+
+Term post: one titled piece of writing by one author, a draft or published — a [Post].
+
+Term post id: the string the atom assigns a post when the post is written — a [Post Id].
+
+Term author reference: the string naming the person who wrote a post, in the deployment's own scheme — an [Author Reference]; the atom reads no scheme in it.
+
+Term title: the post's heading as the author wrote it — a [Title].
+
+Term body: the post's text in markdown, kept exactly as written — a [Body].
+
+Term string cap: the bound on an author reference's length and on a title's length in Unicode code points; 1,024 code points where a deployment declares none.
+
+Term body cap: the bound on a body's length in Unicode code points; 100,000 code points where a deployment declares none.
+
+Term seam: the atom's input and output boundary as the section titled Logic Confinement Principle in `execution-contract.md` declares it; the host injects the clock reading, now, at the seam.
+
+### State
+
+```
+State 1: EVERY post MUST carry post id, author reference, title, body, written instant and status.
+State 2: EVERY post MUST stand in EXACTLY ONE OF draft, published.
+State 3: EVERY published post MUST carry a published instant.
+State 4: The atom MUST NOT remove a post.
+```
+
+Term written instant: the instant of the [Write] call that recorded the post — the [Written Instant]; set once, never changed.
+
+Term published instant: the instant of the latest [Publish] call that stood the post in published — the [Published Instant].
+
+Term status: where a post stands, draft or published — the [Status].
+
+Term draft: the status of a post only the author's own list shows — [Draft].
+
+Term published: the status of a post readers see — [Published].
+
+### Capability requirement
+
+```
+Capability requirement 1: The deployment MUST supply the database PER Execution Contract Database 1 through 7, Execution Contract Read 1 through 6, Execution Contract Refusal 1, Execution Contract Input 1 and Execution Contract Query 5.
+Capability requirement 2: The deployment MUST supply now at the seam PER Execution Contract Logic confinement 11.
+Capability requirement 3: The deployment MAY declare the string cap PER Execution Contract Input 2 and Execution Contract Logic confinement 17.
+Capability requirement 4: The deployment MAY declare the body cap PER Execution Contract Input 2 and Execution Contract Logic confinement 17.
+Capability requirement 5: The deployment MUST NOT normalize an author reference at the seam.
+```
+
+### Operations
+
+```
+write(author_reference, title, body)
+  answers post_id
+  refuses invalid-author-reference | invalid-title | invalid-body | storage-failure
+
+edit(post_id, title, body)
+  answers ok
+  refuses unknown-post | invalid-title | invalid-body | storage-failure
+
+publish(post_id)
+  answers ok
+  refuses unknown-post | storage-failure
+
+unpublish(post_id)
+  answers ok
+  refuses unknown-post | storage-failure
+
+look_up(post_id)
+  answers posts(author_reference, title, body, status, published_instant)
+
+list_published()
+  answers posts(post_id, author_reference, title, published_instant)
+
+list_by_author(author_reference)
+  answers posts(post_id, title, status)
+```
+
+```
+Operation 1: IF the author reference EQUALS blank OR the author reference EXCEEDS the string cap THEN [Write] MUST answer invalid-author-reference.
+Operation 2: IF the title EQUALS blank OR the title EXCEEDS the string cap THEN a text action MUST answer invalid-title.
+Operation 3: IF the body EQUALS blank OR the body EXCEEDS the body cap THEN a text action MUST answer invalid-body.
+Operation 4: IF no post carries the post id THEN a post action MUST answer unknown-post.
+Operation 5: [Write] MUST record EXACTLY ONE post carrying the author reference, the title and the body of the call.
+Operation 6: [Write] MUST stamp written instant from the injected now.
+Operation 7: [Write] MUST stand the post in draft.
+Operation 8: [Write] MUST answer the post id.
+Operation 9: [Edit] MUST replace the post's title AND body with the title AND body of the call.
+Operation 10: [Edit] MUST NOT change the post's status.
+Operation 11: [Edit] MUST answer ok.
+Operation 12: IF the post's status EQUALS draft THEN [Publish] MUST stand the post in published.
+Operation 13: IF the post's status EQUALS draft THEN [Publish] MUST stamp published instant from the injected now.
+Operation 14: IF the post's status EQUALS published THEN [Publish] MUST NOT write.
+Operation 15: [Publish] MUST answer ok.
+Operation 16: IF the post's status EQUALS published THEN [Unpublish] MUST stand the post in draft.
+Operation 17: IF the post's status EQUALS draft THEN [Unpublish] MUST NOT write.
+Operation 18: [Unpublish] MUST answer ok.
+Operation 19: [Look Up] MUST answer the post carrying the post id.
+Operation 20: [Look Up] MUST answer an empty list for a post id no post carries.
+Operation 21: [List Published] MUST answer EVERY published post, in published instant order, then in codepoint order of post id.
+Operation 22: [List By Author] MUST answer EVERY post carrying the author reference, in written instant order, then in codepoint order of post id.
+Operation 23: A reading action MUST NOT write.
+Operation 24: IF the author reference is malformed THEN [Write] MUST answer invalid-author-reference (Execution Contract Input 1).
+Operation 25: IF the title is malformed THEN a text action MUST answer invalid-title (Execution Contract Input 1).
+Operation 26: IF the body is malformed THEN a text action MUST answer invalid-body (Execution Contract Input 1).
+Operation 27: IF the author reference is malformed OR the author reference EQUALS blank OR the author reference EXCEEDS the string cap THEN [List By Author] MUST answer an empty list (Execution Contract Query 5).
+Operation 28: IF the post id is malformed THEN [Look Up] MUST answer an empty list (Execution Contract Query 5).
+```
+
+Term text action: [Write] | [Edit] — the actions that set a title and a body.
+
+Term post action: [Edit] | [Publish] | [Unpublish] — the actions that name a post by post id.
+
+Term reading action: [Look Up] | [List Published] | [List By Author] — the actions that change nothing.
+
+The case space, and the rule that owns each case:
+
+| Call | Case | Answer | Effect on the posts |
+|---|---|---|---|
+| [Write] | author reference, title and body valid, database accepts | the post id | one post lands, a draft, its written instant now (Operation 5 through 8) |
+| [Edit] | the post exists, title and body valid | ok | title and body replaced; the status, author reference and written instant stand; the earlier wording stays in the post's history (Operation 9, Operation 10, Invariant 1.1 through 1.3) |
+| [Publish] | the post stands draft | ok | the post stands published, its published instant now (Operation 12, Operation 13) |
+| [Publish] | the post stands published | ok | none, no write (Operation 14) |
+| [Unpublish] | the post stands published | ok | the post stands draft (Operation 16) |
+| [Unpublish] | the post stands draft | ok | none, no write (Operation 17) |
+| a post action | no post carries the post id | [Unknown Post] | none (Operation 4) |
+| [Write] | author reference blank, over the string cap, or not a string | [Invalid Author Reference] | none (Operation 1, Operation 24) |
+| a text action | title blank, over the string cap, or not a string | [Invalid Title] | none (Operation 2, Operation 25) |
+| a text action | body blank, over the body cap, or not a string | [Invalid Body] | none (Operation 3, Operation 26) |
+| [Look Up] | the post exists | the post | none (Operation 19, Operation 23) |
+| [Look Up] | no post carries the post id, or the post id is not a string | an empty list | none (Operation 20, Operation 28) |
+| [List Published] | any | every published post, oldest published first | none (Operation 21, Operation 23) |
+| [List By Author] | any | every post by the author, drafts included, oldest written first | none (Operation 22, Operation 23, Operation 27) |
+| any writing call | database refuses the write | [Storage Failure] | none (Execution Contract Read 4) |
+| any call | its read of the database fails | `state-unavailable` | none (Execution Contract Read 1, Execution Contract Read 3) |
+| any call | more than one refusal applies | the refusal listed first on the action's refuses line | none (Execution Contract Refusal 1) |
+
+### Invariants
+
+- **Invariant 1 — A post never changes whose it is or when it was written.**
+  ```
+  Invariant 1.1: The atom MUST NOT change a post's post id.
+  Invariant 1.2: The atom MUST NOT change a post's author reference.
+  Invariant 1.3: The atom MUST NOT change a post's written instant.
+  ```
+- **Invariant 2 — Two posts never share a post id.**
+  ```
+  Invariant 2.1: Two posts MUST NOT share a post id.
+  ```
+
+## Examples
+
+The same pattern in two domains, then the rejection paths.
+
+### Forum
+
+A member, `ana`, starts a topic: `write("ana", "Best cover crop for clay?", "We have heavy clay...")` answers `p-7`, a draft. She fixes a typo with `edit("p-7", "Best cover crop for clay?", "We have heavy clay soil...")`, then `publish("p-7")` answers ok, and `list_published()` now answers `p-7` with her name and the instant she published. A reader who opens the post later sees the corrected wording; an auditor reading the post's history sees both.
+
+### Blog
+
+A writer keeps three drafts going. `list_by_author("sam")` answers all three with status draft; readers' `list_published()` answers none of them. The writer publishes one, then spots an error and unpublishes it; the post stands draft again, out of readers' list, and publishing it again puts it back with a new published instant. A second publish request on the same post, sent by a double click, answers ok and changes nothing.
+
+### Rejection paths
+
+- `write("", "Hello", "Hi")` — rejected as [Invalid Author Reference]: the reference is blank.
+- `write("ana", "", "Hi")` — rejected as [Invalid Title]: the title is blank.
+- `write("ana", "Hello", "   ")` — rejected as [Invalid Body]: the body is blank.
+- `edit("p-999", "Hello", "Hi")` — rejected as [Unknown Post]: no post carries the post id.
+- `write("", "", "")` — rejected as [Invalid Author Reference]: three refusals apply, and the one listed first on [Write]'s refuses line answers (Execution Contract Refusal 1).
+- `look_up("p-999")` — answers an empty list: no post carries the post id (Operation 20).
+
+This covers every refusal but [Storage Failure], which answers when the database refuses a write.
+
+## Generation acceptance
+
+Acceptable when the checks below are provable to an external auditor from the posts the database holds, with their earlier versions (Execution Contract Database 5, Execution Contract Generation acceptance 1). The atom is not regulated and carries no adversarial scenarios.
+
+### Conformance checks
+
+```
+Check 1.1: An auditor MUST find EVERY post carrying post id, author reference, title, body, written instant AND status (State 1).
+Check 1.2: An auditor MUST find EVERY post standing in EXACTLY ONE OF draft, published (State 2).
+Check 1.3: An auditor MUST find EVERY published post carrying a published instant (State 3).
+Check 2.1: An auditor MUST find EVERY version of a post carrying the post id of the post's first version (Invariant 1.1).
+Check 2.2: An auditor MUST find EVERY version of a post carrying the author reference of the post's first version (Invariant 1.2).
+Check 2.3: An auditor MUST find EVERY version of a post carrying the written instant of the post's first version (Invariant 1.3).
+Check 3.1: An auditor MUST find no two posts sharing a post id (Invariant 2.1).
+```
+
+Term version: a record as it stood at the commit that wrote it, which Execution Contract Database 5 keeps readable after the record changes and Execution Contract Generation acceptance 1 has a check read.
+
+NOTE: EVERY check names the rule the check tests.
+
+## Non-goals
+
+```
+Non-goal 1: The atom MUST NOT tell who may write a post.
+Non-goal 2: The atom MUST NOT tell who may change a post.
+Non-goal 3: The atom MUST NOT file a post.
+Non-goal 4: The atom MUST NOT hold a comment.
+Non-goal 5: The atom MUST NOT hold a reaction.
+Non-goal 6: The atom MUST NOT remove a post from view.
+Non-goal 7: The atom MUST NOT publish a post at a set time.
+Non-goal 8: The atom MUST NOT give a post a web address.
+Non-goal 9: The atom MUST NOT draw a body.
+Non-goal 10: The atom MUST NOT find a post by a word in a body.
+Non-goal 11: The atom MUST NOT tell who may publish a post.
+```
+
+NOTE: the owners — the composing pattern that knows the caller, such as one built on [Session](./session.md) or [Permissions](./permissions.md) (Non-goal 1, 2, 11); Category *(forthcoming)* (Non-goal 3); Comment *(forthcoming)* (Non-goal 4); [Reaction](./reaction.md) (Non-goal 5); Restorable Delete *(forthcoming)* (Non-goal 6); Scheduled Publish *(forthcoming)* (Non-goal 7); Post Address *(forthcoming)* (Non-goal 8); the composing pattern that shows the post, which draws the markdown as it likes (Non-goal 9); Search *(forthcoming)* (Non-goal 10).
+
+Where the atom breaks down: an answer in a person's own words to someone else's post, which is a comment *(forthcoming)*; a message to one person, which is a communication.
+
+## Edge cases
+
+### Concurrency
+
+Two [Edit] calls on one post are serialized (Execution Contract Database 2): the later replaces what the earlier wrote, and both wordings stay in the post's history. A [Publish] and an [Unpublish] on one post are serialized the same way, and the post stands as the later left it.
+
+### Indeterminate outcome
+
+A caller whose answer is lost may call again, and the repeat is a second call (Execution Contract Error model 1). A repeated [Publish], [Unpublish] or [Edit] where the first landed changes nothing a reader sees and answers ok. A repeated [Write] records a second post, so a caller whose [Write] answer was lost asks [List By Author] before writing again.
+
+### What undoes a write
+
+[Unpublish] undoes [Publish] and [Publish] undoes [Unpublish]; an [Edit] is undone by an [Edit] carrying the earlier wording, which the post's history holds. A [Write] is undone by removing the post from view, which Restorable Delete *(forthcoming)* owns (Execution Contract Undo 4).
+
+## Composition notes
+
+```
+Composition note 1: A composing pattern MUST own what this atom declines.
+Composition note 2: A composing pattern MUST supply the author reference of the caller the composing pattern authenticated.
+```
+
+NOTE: composing patterns — none yet. Forthcoming: Forum.
+
+## Terms
+
+Each `[Term]` marker above links to its term entry here; a term entry states what the concept *is* and its **Kind**.
+
+### Vocabulary
+
+Term actors: the atom; the host; the deployment (also: a deployment); a composing pattern; the database; a post; a text action; a post action; a reading action; an auditor.
+
+Term records: post — one titled piece of writing by one author, carrying post id, author reference, title, body, written instant, status and, once published, published instant.
+
+Term record verbs: identify, assign, normalize, compare, carry, stand, remove, supply, declare, record, stamp, answer, replace, change, write, share, find, read, tell, publish, file, hold, give, draw, own.
+
+Term value sets: text action, post action and reading action are declared above and cited here (GRACE-lang Closed vocabulary 15); status — draft | published; action rejection — invalid-author-reference | invalid-title | invalid-body | unknown-post | storage-failure.
+
+Term bounds: string cap (the bound on an author reference's length and on a title's length in Unicode code points, 1,024 where a deployment declares none); body cap (the bound on a body's length in Unicode code points, 100,000 where a deployment declares none).
+
+Term cadences: empty.
+
+Term qualifiers: migrated — drafted in GRACE lang (2026-11-18) through the Grace connector, from MIT's sync-engine Posting concept.
+
+Term terms: post, posts, post id, author reference, title, body, string cap, body cap, seam, written instant, published instant, status, draft, published, text action, post action, reading action, version.
+
+#### Write
+
+Records a new [Post] in [Draft] for an author, with a [Title] and a [Body], stamping its [Written Instant]. Answers the post's [Post Id].
+
+Kind: Operation
+
+#### Edit
+
+Replaces a post's title and body; the earlier wording stays in the post's history. The status is left as it is. Answers ok.
+
+Kind: Operation
+
+#### Publish
+
+Stands a [Draft] post in [Published] and stamps its [Published Instant]. A post already published is left as it is. Answers ok.
+
+Kind: Operation
+
+#### Unpublish
+
+Stands a [Published] post back in [Draft]. A draft is left as it is. Answers ok.
+
+Kind: Operation
+
+#### Look Up
+
+Answers the post a [Post Id] names, and changes nothing; an empty list where no post carries it.
+
+Kind: Operation
+
+#### List Published
+
+Answers every published post, oldest published first, and changes nothing.
+
+Kind: Operation
+
+#### List By Author
+
+Answers every post one [Author Reference] wrote, drafts included, oldest written first, and changes nothing.
+
+Kind: Operation
+
+#### Post
+
+One titled piece of writing by one author: recorded by [Write], changed by [Edit], moved between [Draft] and [Published] by [Publish] and [Unpublish]; never removed by the atom.
+
+Kind: Type
+
+#### Post Id
+
+The string the atom assigns a post when the post is written, carried by no other post; never changed.
+
+Kind:       Field
+Field of:   Post
+Projection: post_id
+
+#### Author Reference
+
+Names the person who wrote the post, in the deployment's own scheme. Stored as supplied and compared codepoint for codepoint; set once, never changed.
+
+Kind:       Field
+Field of:   Post
+Projection: author_reference
+
+#### Title
+
+The post's heading as the author wrote it; replaced by [Edit].
+
+Kind:       Field
+Field of:   Post
+Projection: title
+
+#### Body
+
+The post's text in markdown, kept exactly as written; replaced by [Edit]. How it is drawn is the page's.
+
+Kind:       Field
+Field of:   Post
+Projection: body
+
+#### Written Instant
+
+The instant of the [Write] call that recorded the post, stamped from the injected now; never changed.
+
+Kind:       Field
+Field of:   Post
+Projection: written_instant
+
+#### Published Instant
+
+The instant of the latest [Publish] that stood the post in published, stamped from the injected now.
+
+Kind:       Field
+Field of:   Post
+Projection: published_instant
+
+#### Status
+
+Where a post stands: [Draft] or [Published].
+
+Kind:       Field
+Field of:   Post
+Projection: status
+
+#### Draft
+
+The status of a post readers do not see; [List By Author] shows it to the author's own list.
+
+Kind:       Member
+Member of:  the status
+Projection: draft
+
+#### Published
+
+The status of a post readers see in [List Published].
+
+Kind:       Member
+Member of:  the status
+Projection: published
+
+#### Invalid Author Reference
+
+The refusal of a blank [Author Reference], one over the string cap, or one that is not a string, on [Write] (Operation 1, Operation 24).
+
+Kind:       Member
+Member of:  the action rejection
+Role:       Outcome
+Projection: invalid-author-reference
+
+#### Invalid Title
+
+The refusal of a blank [Title], one over the string cap, or one that is not a string, on [Write] or [Edit] (Operation 2, Operation 25).
+
+Kind:       Member
+Member of:  the action rejection
+Role:       Outcome
+Projection: invalid-title
+
+#### Invalid Body
+
+The refusal of a blank [Body], one over the body cap, or one that is not a string, on [Write] or [Edit] (Operation 3, Operation 26).
+
+Kind:       Member
+Member of:  the action rejection
+Role:       Outcome
+Projection: invalid-body
+
+#### Unknown Post
+
+The refusal of a [Post Id] no post carries, on [Edit], [Publish] or [Unpublish] (Operation 4).
+
+Kind:       Member
+Member of:  the action rejection
+Role:       Outcome
+Projection: unknown-post
+
+#### Storage Failure
+
+The refusal a writing call answers when the database refuses its write after every precondition passes: the Execution Contract's Step 3 failure.
+
+Kind:       Member
+Member of:  the action rejection
+Role:       Outcome
+Projection: storage-failure
+
+<!-- Term registry — shortcut-reference definitions. These produce no visible
+     output; each resolves a [Term] marker to its term entry heading above. -->
+
+[Write]: #write
+[Edit]: #edit
+[Publish]: #publish
+[Unpublish]: #unpublish
+[Look Up]: #look-up
+[List Published]: #list-published
+[List By Author]: #list-by-author
+[Post]: #post
+[Post Id]: #post-id
+[Author Reference]: #author-reference
+[Title]: #title
+[Body]: #body
+[Written Instant]: #written-instant
+[Published Instant]: #published-instant
+[Status]: #status
+[Draft]: #draft
+[Published]: #published
+[Invalid Author Reference]: #invalid-author-reference
+[Invalid Title]: #invalid-title
+[Invalid Body]: #invalid-body
+[Unknown Post]: #unknown-post
+[Storage Failure]: #storage-failure
+
+---
+
+## Standards references
+
+Post is a primitive with no regulatory anchor. It inherits from:
+
+- **Daniel Jackson, *The Essence of Software*** — the concept as a freestanding, composable unit of software design.
+- **MIT's sync-engine, Posting concept** (github.com/mit-sdg/sync-engine) — the taken-in source: an authored message listed in time order. This atom differs by letting a post be changed and unpublished, with the database's history keeping every wording.
+
+---
+
+## Status
+
+`todo` — see the Ledger.
+
+## Ledger
+
+```
+status: todo
+formal: pending — no model yet
+last gate: none
+
+open: none
+```
+
+## Decisions
+
+- **2026-11-18 — Taken in from MIT's Posting concept, drafted through the Grace connector mirroring Reaction.** *Chose:* a changeable post, draft or published, its revisions read from the database's history. *Over:* MIT's unchanging message, and a revision list kept by hand. *Because:* a forum post is drafted and corrected, and Execution Contract Database 5 already keeps every version. A post's web address is left to Post Address *(forthcoming)*, so the atom stays as simple as possible without losing fidelity.
+
+NOTE: End of Post.
