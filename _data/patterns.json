@@ -373,6 +373,23 @@
   "status": "done \u2014 2026-11-04",
   "title": "Cart"
  },
+ "category": {
+  "composed_by": [],
+  "domain": null,
+  "grounded": false,
+  "invariants": 2,
+  "kind": "atom",
+  "models": {
+   "als": false,
+   "tla": false,
+   "twins": 0
+  },
+  "regulated_by": [],
+  "security": false,
+  "standards": [],
+  "status": "todo",
+  "title": "Category"
+ },
  "chain-of-custody": {
   "composes": [
    "provenance"

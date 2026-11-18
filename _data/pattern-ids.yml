@@ -162,3 +162,5 @@ patterns:
     file: atoms/post.md
   - id: 70
     file: atoms/comment.md
+  - id: 71
+    file: atoms/category.md
