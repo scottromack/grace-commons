@@ -26,7 +26,7 @@ Category lets a business arrange named categories as a tree — Gardening, and u
 <details markdown="block">
 <summary>WHY</summary>
 
-Every place with many items needs somewhere to go first: a forum's boards, a shop's departments, a help center's sections. This atom is that and nothing more. Three decisions carry the weight. An item has exactly one home, so a reader always knows where an item lives and a count per category adds up; several names per item is a tag's job, a different pattern. The tree and the menu are one thing, so the business orders and hides categories where the categories are kept and no second menu drifts out of step. And a category is never removed, only hidden, so an item's home always names a real category and the database's history keeps every rename. Taken in from Scott's forum sketch ("tree, one home per post, carries menu order"), with MIT's sync-engine Labeling concept (Daniel Jackson's group) read for its naming rules; Labeling's several labels per item are kept for Tag *(forthcoming)*.
+Every place with many items needs somewhere to go first: a forum's boards, a shop's departments, a help center's sections. This atom is that and nothing more. Three decisions carry the weight. An item has exactly one home, so a reader always knows where an item lives and a count per category adds up; several names per item is a tag's job, a different pattern. The tree and the menu are one thing, so the business orders and hides categories where the categories are kept and no second menu drifts out of step. And a category is never removed, only hidden, so an item's home always names a real category and the database's history keeps every rename. Taken in from Scott's forum sketch ("tree, one home per post, carries menu order"), with MIT's sync-engine Labeling concept (Daniel Jackson's group) read for its naming rules; Labeling's several labels per item are kept for [Tag](./tag.md).
 
 </details>
 
@@ -284,9 +284,9 @@ Non-goal 7: The atom MUST NOT draw the menu.
 Non-goal 8: The atom MUST NOT count the items in a category.
 ```
 
-NOTE: the owners — the composing pattern that knows the caller, such as one built on [Session](./session.md) or [Permissions](./permissions.md) (Non-goal 1, 2); Catalog *(forthcoming)* (Non-goal 3; External check 1); Tag *(forthcoming)* (Non-goal 4); Category Move *(forthcoming)* (Non-goal 5); Tag Promotion *(forthcoming)*, which graduates a busy tag into a category, as communities already do by hand (Non-goal 6); the composing pattern that shows the menu (Non-goal 7); the composing pattern that shows the category, reading [List Items] (Non-goal 8).
+NOTE: the owners — the composing pattern that knows the caller, such as one built on [Session](./session.md) or [Permissions](./permissions.md) (Non-goal 1, 2); Catalog *(forthcoming)* (Non-goal 3; External check 1); [Tag](./tag.md) (Non-goal 4); Category Move *(forthcoming)* (Non-goal 5); Tag Promotion *(forthcoming)*, which graduates a busy tag into a category, as communities already do by hand (Non-goal 6); the composing pattern that shows the menu (Non-goal 7); the composing pattern that shows the category, reading [List Items] (Non-goal 8).
 
-Where the atom breaks down: several names on one item, found through any of the names, which is a tag *(forthcoming)*; a folder a person keeps for their own items, which is a collection *(forthcoming)*.
+Where the atom breaks down: several names on one item, found through any of the names, which is a [tag](./tag.md); a folder a person keeps for their own items, which is a collection *(forthcoming)*.
 
 ## Edge cases
 

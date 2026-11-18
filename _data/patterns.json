@@ -1801,6 +1801,23 @@
   "status": "done \u2014 2026-11-04",
   "title": "Subscription"
  },
+ "tag": {
+  "composed_by": [],
+  "domain": null,
+  "grounded": false,
+  "invariants": 1,
+  "kind": "atom",
+  "models": {
+   "als": false,
+   "tla": false,
+   "twins": 0
+  },
+  "regulated_by": [],
+  "security": false,
+  "standards": [],
+  "status": "todo",
+  "title": "Tag"
+ },
  "tamper-evidence": {
   "composed_by": [
    "audit-trail"
