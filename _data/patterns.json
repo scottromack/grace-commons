@@ -920,7 +920,7 @@
    "credential",
    "session"
   ],
-  "grounded": false,
+  "grounded": true,
   "invariants": 6,
   "kind": "composition",
   "models": {
@@ -938,7 +938,7 @@
    "PCI DSS",
    "SOX"
   ],
-  "status": "doing",
+  "status": "done \u2014 2026-11-18",
   "substrates": [
    "audit-trail"
   ],
