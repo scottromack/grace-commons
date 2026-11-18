@@ -294,6 +294,8 @@ test("SPEC.md Who sees which subject: a person without view_all_subjects sees th
   expect(await nf.text()).toContain("Not Found.");
   const unknown = await get(w, "/subjects/subject-nope", jordan);
   expect(unknown.status).toBe(404);                                                                                  // no different from a subject that does not exist
+  expect((await unknown.text()).replace(/<[^>]*>/g, " ").match(/Not Found\./g)).toHaveLength(1);                    // and says it in the same words, so the answer does not tell which ids exist (the live render says "Subject not found." of an id that names none)
+  expect((await (await get(w, `/subjects/${anyas}`, jordan)).text()).replace(/<[^>]*>/g, " ").match(/Not Found\./g)).toHaveLength(1);
   const rv = await post(w, `/subjects/${anyas}/visits`, jordan, { kind: "screening" });
   expect(rv.status).toBe(404);
   const al = await (await get(w, "/subjects", anya)).text();

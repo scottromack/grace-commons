@@ -63,7 +63,7 @@ What the seeded people hold at the start [Section 3 of the plan, live]:
 
 **A visit** has a kind, who recorded it and when, and optional notes. The kinds are `screening`, `week 4`, `week 12`, `week 24`, `end of study`; a visit with no kind is refused with "Visit type is required." [live]. Visits are listed on the subject, oldest first [live].
 
-**Who sees which subject:** a person who holds `view_all_subjects` sees all of them; anyone else sees only the ones that person enrolled, and another's subject answers "Not Found." as if it did not exist [Scott 2026-11-16; live]. A subject is seen, and a visit recorded, only by a person who holds `enroll_subject` or `record_visit` to begin with [Section 4 of the plan, live].
+**Who sees which subject:** a person who holds `view_all_subjects` sees all of them; anyone else sees only the ones that person enrolled, and another's subject answers "Not Found." as if it did not exist [Scott 2026-11-16; live]; an id that names no subject answers the same, in the same words, so the answer does not tell a person which ids exist [decided here: the live render says "Subject not found." of an id that names none]. A subject is seen, and a visit recorded, only by a person who holds `enroll_subject` or `record_visit` to begin with [Section 4 of the plan, live].
 
 **Who records a visit:** a person who holds `record_visit` [Section 4 of the plan]. The live render also lets a person who holds only `enroll_subject` do it; this file follows the plan, and the comparison reports the difference [live].
 
