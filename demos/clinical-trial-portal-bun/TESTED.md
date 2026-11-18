@@ -34,3 +34,27 @@ The Edge Finder reads a composition's closure tables (`Action | Input | Lands | 
 | Credential, Party Identity, Invitation, Lease | 0 | no case table to read |
 
 So of the 391 case-table rows of the patterns Beacon composes, the Edge Finder has read 41 (Login's), run 38 and passed 38, and read none of the other 350. The 3 Login rows not run and the 350 unread are the gap, named; the render's own tests cover the same patterns' rules by their labels and are not a substitute for the rows.
+
+## The last full run before the deploy (2026-11-18)
+
+`bun test --timeout 60000` on a fresh store, in a clone at `56f3a54e` plus this unit's files: **454 tests, 450 pass, 3 skip, 1 fail**, 1,114 seconds. The one failure is Lease's `waiters are admitted in arrival order` (`tests/lease.test.ts`): a read in `Lease.standing` answered `state-unavailable` with XTDB's own message, `cached plan must not change result type`. Run alone on fresh stores the file failed once and passed twice, so it is intermittent and not cured. What it is: a read whose plan XTDB cached before the table it reads gained its first columns is refused once, and Beacon's reads answer `state-unavailable` and write nothing (Execution Contract Read 1), so the fault fails safe; it is not a Lease rule and no rule of the page is wrong for it. It can happen on the deployed Beacon in the first seconds after a start, before every table has a row, and a person's call would then be refused once and succeed on repeat. Reported, not explained away; the cure (declaring every column of every table when it is declared, or reading again once) is a change to `src/store.ts` for the next part.
+
+## What each pattern's page was when it was rendered (2026-11-18)
+
+Said so no page or answer claims a build from a page the render did not read. The last commit of each page Beacon composes, against the last commit that edited its render (`git log -1 -- src/<file>`):
+
+| Page | Last commit of the page | Rendered from it? |
+|---|---|---|
+| Credential, Event Log, Tamper Evidence, Retention Window, Party Identity, Invitation, Lease, Session-Gated Authorization, Recoverable Invocation, Audit Trail, External Onboarding | `3935761e` (2026-11-16) | yes: no later commit touches them |
+| Attributed Permissions Admin | `1b41855c` (2026-11-16) | yes: the render's last edit, `f6c1ecae`, is later |
+| Permissions | `50c77f44` (Final Critique 12, 2026-11-17: the database citation) | the render's last edit is `f6c1ecae`, after `087655cc`; Final Critique 12 is a citation and no rule |
+| Actor Identity | `1895f220` (Final Critique 19; Final Critique 18 changed Read 6's paging clause) | **no**: the render's last edit is `1619f21b` (2026-11-16); Beacon reads only its registry answer and no paged read |
+| Session | `376d0c3d` (Final Critique 24, 2026-11-17: a cap change meets a call in flight; an id the cap cannot supply) | **no**: the render's last edit is `4c00a76a` (2026-11-16) |
+| Login | `5013eb4b` (Final Critique 16, 2026-11-17: the revocation instant leaves the sweep's match; the rebuild is a lost entry's; the login succeeded event is the service identity's own) | **no**: the render's last edit is `4c00a76a` (2026-11-16); its delta round is queued |
+
+So the deployed Beacon is built from the library as it stood on 2026-11-16 and 2026-11-17 and not from these four pages as they now stand. The cures of Session's, Login's and Actor Identity's rounds are not in it; when each page's delta round has cleared, the parts that read it are rendered again from the changed page (the unit's rule). Nothing public says the deployed Beacon is built from the current library.
+
+## What is not tested at all
+
+`src/main.ts` (the boot: open, seed, serve) and `stack/start.sh` are not under `bun test`: they start a process that owns the store's port. They were run once by hand on 2026-11-18: the store came up, the seed ran, the server answered `/login` 200, signed in as the principal investigator (302 to `/dashboard`) and answered `/dashboard`, `/subjects`, `/people`, `/audit` and `/audit/verify` 200. The linux image was built by Fly's builder and not run before the deploy.
+

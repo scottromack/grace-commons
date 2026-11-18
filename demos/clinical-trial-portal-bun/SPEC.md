@@ -4,7 +4,7 @@
 
 *Written 2026-11-16 for the unit `demo: Beacon's permissions are built from what is written, not patched`. Each line says where it comes from in square brackets: **plan** is [Demo2-plan.md](../clinical-trial-portal/Demo2-plan.md), **wiring** is [WIRING.md](../clinical-trial-portal/WIRING.md), a date is Scott's word that day, **live** is what the running Deno render does today where nothing else says (to be confirmed or changed at the comparison, never copied without a line saying so).*
 
-*The clinical-trial-portal directory is the live render and deploys when it changes; this directory is beside it and deploys nothing.*
+*This directory is the live render and deploys when it changes (`.github/workflows/deploy-beacon.yml`, Running it below). The earlier Deno render in `../clinical-trial-portal` deploys nothing and is kept for its plan documents and for the comparison.*
 
 ## What Beacon is
 
@@ -142,6 +142,12 @@ A render starts from its seed and nothing else: the two accounts, the seven perm
 **An invitation.** It is made by a person who holds `invite_actor`, signed with that person's key, for an email (trimmed, in lower case), and lasts seven days. Beacon holds the role and the display name in the invitation's context, written as `{"role": ..., "display_name": ...}`, because the accept form asks for neither and External Onboarding keeps nothing else about the invitee [decided here]. An email that already has an account is not invited, and an invitation whose email has gained an account by the time it is accepted is refused and stays pending [decided here].
 
 **Accepting one.** The person sets a password of at least 8 characters, typed twice, and nothing else; a refused form is answered on the form again with its words ("Choose a password of at least 8 characters." and "The two passwords do not match." are mine: this file names none) and spends nothing [decided here]. The party is enrolled, the password registered and the invitation closed in one External Onboarding transaction, acting as Beacon's own service identity (the one Login writes under), since the invitee has no key yet [decided here]; the person is then made under the party's id with a key sealed under the password, and signed in as any sign-in is, so Login writes its event. The person holds no permission, and the dashboard says so.
+
+## Running it
+
+One process serves Beacon on the port named by `PORT` (8000 when none is named), on every address of the machine. Its store is XTDB beside it in the same container, in memory, on 127.0.0.1; the container starts the store first and the server when the store's health answer comes [decided here]. When the server starts it seeds (The data a render starts from) before it listens, and it listens on nothing else. The cookie carries the `Secure` flag when `SECURE_COOKIE` is `1`, which the deployment sets, since it is served over HTTPS only [decided here].
+
+**What a restart does.** The store is in memory, so a restart is a fresh store holding the seed and nothing else: every person invited, subject, visit and event made since is gone, and everyone is signed out, as the person's key section above says. A store that outlasts a restart is a unit of its own: the seed would have to run against records already there, which it does already without making anything twice, and the keys sealed under each person's password would have to be read back [decided here, for Scott to confirm or change]. The first deployment of this render (2026-11-18) dropped the earlier render's database by Scott's word (rounds/escalations.md, 2026-11-18 03:19Z, "as recommended"), a copy of it taken first.
 
 ## What is not written yet
 

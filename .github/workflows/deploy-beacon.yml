@@ -6,7 +6,7 @@ on:
     branches:
       - main
     paths:
-      - "demos/clinical-trial-portal/**"
+      - "demos/clinical-trial-portal-bun/**"
 
 jobs:
   deploy:
@@ -18,7 +18,7 @@ jobs:
       - uses: superfly/flyctl-actions/setup-flyctl@master
 
       - name: Deploy
-        working-directory: demos/clinical-trial-portal
+        working-directory: demos/clinical-trial-portal-bun
         run: flyctl deploy --remote-only
         env:
           FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}

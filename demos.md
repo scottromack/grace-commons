@@ -11,7 +11,7 @@ has_toc: false
 
 | Demo | What it demonstrates | Tests | Live | Built from |
 |---|---|---|---|---|
-| **Beacon Clinical Research Portal** | External onboarding (invitation → party → credential), login, session-gated authorization, and subject / study / visit management — over a hash-chained, tamper-evident audit trail. | 118 | [beacon-clinical.fly.dev](https://beacon-clinical.fly.dev/) | [RECIPE](https://github.com/scottromack/grace-commons/blob/main/demos/clinical-trial-portal/RECIPE.md) |
+| **Beacon Clinical Research Portal** | External onboarding (invitation → party → credential), login, session-gated authorization, who may do what and who gave it, and subject / study / visit management — over a sealed, tamper-evident audit trail. Rendered again from the library on 2026-11-18; the demo restarts from its two seeded accounts whenever the machine restarts. | 454 (450 pass, 3 skipped, 1 intermittent failure, named) | [beacon-clinical.fly.dev](https://beacon-clinical.fly.dev/) | [its specification](https://github.com/scottromack/grace-commons/blob/main/demos/clinical-trial-portal-bun/SPEC.md), [what is and is not tested](https://github.com/scottromack/grace-commons/blob/main/demos/clinical-trial-portal-bun/TESTED.md) |
 | **Multi-Party Approval** | N-approver approval chains with all-of-N / M-of-N / one-of-N quorum rules and trailing-decision semantics, an approver in-tray, and a tamper-evident audit log. | 67 | [grace-commons-mpa.fly.dev](https://grace-commons-mpa.fly.dev/) | [RECIPE](https://github.com/scottromack/grace-commons/blob/main/demos/multi-party-approval/RECIPE.md) |
 | **Attributed Permissions Admin** | Attributed grant / revoke administration pairing Permissions with Actor Identity; ships a dynamic Alloy model verifying its load-bearing temporal claims. | 35 | [grace-commons-alloy.fly.dev](https://grace-commons-alloy.fly.dev/) | [RECIPE](https://github.com/scottromack/grace-commons/blob/main/demos/attributed-permissions-admin/RECIPE.md) |
 
@@ -27,7 +27,7 @@ The Beacon Clinical Research Portal is rendered four ways from the *same* Grace 
 
 | Render | Stack | Status |
 |---|---|---|
-| 1 | Deno · Hono · SQLite · HTMX | **Live** — [beacon-clinical.fly.dev](https://beacon-clinical.fly.dev/) |
+| 1 | Bun · Hono · XTDB | **Live** — [beacon-clinical.fly.dev](https://beacon-clinical.fly.dev/) · [source](https://github.com/scottromack/grace-commons/tree/main/demos/clinical-trial-portal-bun) — rendered again from the library on 2026-11-18, and outside the byte-for-byte chain comparison below, since its audit trail seals slices of events and keeps no hash on each event. The earlier Deno · Hono · SQLite render, live at this address until then, is [retired](https://github.com/scottromack/grace-commons/tree/main/demos/clinical-trial-portal) |
 | 2 | Next.js 15 · PostgreSQL · React Server Components | **Live** — [beacon-clinical-next.fly.dev](https://beacon-clinical-next.fly.dev/) · [source](https://github.com/scottromack/grace-commons/tree/main/demos/clinical-trial-portal-next) |
 | 3 | Go (headless) · Python verification twin | [source](https://github.com/scottromack/grace-commons/tree/main/demos/clinical-trial-portal-go) — cross-language chain proof |
 | 4 | MongoDB (headless) · mongodb-memory-server | [source](https://github.com/scottromack/grace-commons/tree/main/demos/clinical-trial-portal-mongo) — document-store proof: where Postgres-carried invariants go when the declarative layer disappears |
