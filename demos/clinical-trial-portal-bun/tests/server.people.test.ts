@@ -98,13 +98,12 @@ test("SPEC.md People & Permissions 1: the marks and the choice to give are offer
   expect(await w.b.domain.held(inviter.ref)).toEqual(["invite_actor"]);
 }, 90000);
 
-test("SPEC.md People & Permissions: a permission already held, or not held, is answered with its words on a page that says what to do next, and nothing is made", async () => {
+test("SPEC.md People & Permissions: a permission not held is answered with its words on a page that says what to do next, a permission already held is no error, and nothing is made", async () => {
   const w = await world();
   const anya = await signIn(w, "anya@beacon.clinical", "demo-pi");
   const jordan = await ref(w, "jordan@beacon.clinical");
   const held = await post(w, "/people/give", anya, { person: jordan, permission: "view_audit" });
-  expect(held.status).toBe(400);
-  expect(await held.text()).toContain("That person already holds that permission.");
+  expect([held.status, held.headers.get("location")]).toEqual([302, "/people"]);                                       // already held is no error: the page answers as it would have
   const not = await post(w, "/people/take", anya, { person: jordan, permission: "record_visit" });
   expect(not.status).toBe(400);
   expect(await not.text()).toContain("That person does not hold that permission.");

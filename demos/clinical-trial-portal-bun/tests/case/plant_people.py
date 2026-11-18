@@ -10,6 +10,7 @@ TB, TS = "tests/beacon.admin.test.ts", "tests/server.people.test.ts"
 PLANTS = [
     ("the page open to a person with neither permission", BA, "if (!may_grant && !may_invite)", "!may_grant && !may_invite", "false", TB),
     ("the two rights swapped", BA, 'const may_grant = mine.includes("grant_permission")', 'may_grant = mine.includes("grant_permission"), may_invite = mine.includes("invite_actor")', 'may_grant = mine.includes("invite_actor"), may_invite = mine.includes("grant_permission")', TB),
+    ("a held permission given again", BA, "if ((await this.p.domain.held(grantee_ref)).includes(code as PermissionCode)) return { already: true };", ".includes(code as PermissionCode)", '.includes("x" as PermissionCode)', TB),
     ("a held permission offered again", BA, "offered: PERMISSIONS.map", "!held.includes(c)", "true", TB),
     ("the history newest first", BA, ".sort((a, b) => (a.granted_at < b.granted_at", "? -1 : a.granted_at > b.granted_at ? 1", "? 1 : a.granted_at > b.granted_at ? -1", TB),
     ("the giver not shown", BA, 'const by = typeof a === "object"', "attestations.get(a.issuance_attestation_id)", "undefined", TB),

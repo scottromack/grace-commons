@@ -65,20 +65,29 @@ test("SPEC.md People & Permissions 1, Attributed Permissions Admin: giving a per
   expect(e[0]).toMatchObject({ actor_ref: w.anya.ref, data: { target: (r as { grant_id: string }).grant_id, grantee: p.ref, permission: "enroll_subject" } });
 }, 90000);
 
-test("SPEC.md People & Permissions: only a person who holds `grant_permission` gives or takes away; a permission already held, one not held, an unknown person and an unknown permission are each refused with their words, and nothing is written", async () => {
+test("SPEC.md People & Permissions: only a person who holds `grant_permission` gives or takes away; one not held, an unknown person and an unknown permission are each refused with their words, and nothing is written", async () => {
   const w = await world();
   const p = await w.pat();
   await w.b.peopleAdmin.give(w.anya.ref, w.anya.key, p.ref, "enroll_subject");
   const n = (await w.b.permissions.read()).length, ev = (await w.events()).length;
   expect(await w.b.peopleAdmin.give(w.jordan.ref, w.jordan.key, p.ref, "record_visit")).toEqual({ refused: "access-denied", needs: ["grant_permission"] });
   expect(await w.b.peopleAdmin.take(w.jordan.ref, w.jordan.key, p.ref, "enroll_subject")).toEqual({ refused: "access-denied", needs: ["grant_permission"] });
-  expect(await w.b.peopleAdmin.give(w.anya.ref, w.anya.key, p.ref, "enroll_subject")).toEqual({ refused: "invalid-request", message: ADMIN_WORDS.held });
   expect(await w.b.peopleAdmin.take(w.anya.ref, w.anya.key, p.ref, "record_visit")).toEqual({ refused: "invalid-request", message: ADMIN_WORDS.notHeld });
   expect(await w.b.peopleAdmin.give(w.anya.ref, w.anya.key, "nobody", "record_visit")).toEqual({ refused: "not-found", message: ADMIN_WORDS.noPerson });
   expect(await w.b.peopleAdmin.give(w.anya.ref, w.anya.key, p.ref, "make_coffee")).toEqual({ refused: "invalid-request", message: ADMIN_WORDS.noPermission });
   expect(await w.b.peopleAdmin.give(w.anya.ref, "", p.ref, "record_visit")).toEqual({ refused: "invalid-request" });
   expect((await w.b.permissions.read()).length).toBe(n);
   expect((await w.events()).length).toBe(ev);
+}, 90000);
+
+test("SPEC.md The permissions: giving a permission the person already holds is no error and writes nothing: no second grant, no second event, no second attestation, and the answer says it was already held", async () => {
+  const w = await world();
+  const p = await w.pat();
+  await w.b.peopleAdmin.give(w.anya.ref, w.anya.key, p.ref, "enroll_subject");
+  const grants = (await w.b.permissions.read()).length, ev = (await w.events()).length, att = (await w.b.actors.read()).length;
+  expect(await w.b.peopleAdmin.give(w.anya.ref, w.anya.key, p.ref, "enroll_subject")).toEqual({ already: true });
+  expect([(await w.b.permissions.read()).length, (await w.events()).length, (await w.b.actors.read()).length]).toEqual([grants, ev, att]);
+  expect(await w.b.domain.held(p.ref)).toEqual(["enroll_subject"]);
 }, 90000);
 
 test("SPEC.md People & Permissions 1: taking a permission away takes it whole, attested by the person who takes it, with one `grant.revoked` event for each grant taken; the person no longer holds it", async () => {

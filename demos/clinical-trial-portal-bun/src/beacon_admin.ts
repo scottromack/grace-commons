@@ -12,7 +12,6 @@ import { type BeaconAudit } from "./beacon_audit.ts";
 import { PERMISSIONS, type BeaconDomain, type PermissionCode, type Refusal } from "./beacon_domain.ts";
 
 export const ADMIN_WORDS = {
-  held: "That person already holds that permission.",
   notHeld: "That person does not hold that permission.",
   noPerson: "Not Found.",
   noPermission: "That is not a permission Beacon has.",
@@ -57,13 +56,13 @@ export class BeaconAdmin {
     return { people: rows, history, pending, may_grant, may_invite };
   }
 
-  /** Give a permission: a person who holds `grant_permission`, attested with that person's key; a permission already held is refused with its words and makes no grant. */
-  async give(actor_ref: string, key: string, grantee_ref: string, code: string): Promise<{ grant_id: string } | Refusal> {
+  /** Give a permission: a person who holds `grant_permission`, attested with that person's key; a permission already held is no error and makes no grant and no event. */
+  async give(actor_ref: string, key: string, grantee_ref: string, code: string): Promise<{ grant_id: string } | { already: true } | Refusal> {
     const gate = await this.gate(actor_ref, key, grantee_ref, code);
     if (gate) return gate;
-    if ((await this.p.domain.held(grantee_ref)).includes(code as PermissionCode)) return { refused: "invalid-request", message: ADMIN_WORDS.held };   // a held pair would only make an orphan record
+    if ((await this.p.domain.held(grantee_ref)).includes(code as PermissionCode)) return { already: true };               // not an error, and nothing is written: the screen answers as it would have (SPEC.md, The permissions)
     const r = await this.p.admin.issueGrant(grantee_ref, code, actor_ref, key);
-    if ("orphan" in r) return { refused: "invalid-request", message: ADMIN_WORDS.held };
+    if ("orphan" in r) return { already: true };                                                                       // two people giving the same permission at once: the second finds it held
     if ("refused" in r) return this.map(r.refused);
     const wrote = await this.p.audits.write("grant.issued", actor_ref, key, { target: r.grant_id, grantee: grantee_ref, permission: code }, []);   // after the grant: Attributed Permissions Admin has no plan form, so not one transaction (SPEC.md, What is not written yet)
     return wrote === "ok" ? { grant_id: r.grant_id } : wrote;
