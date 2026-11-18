@@ -1,0 +1,35 @@
+/* Beacon's stylesheet (SPEC.md, The screens: every screen follows the device's light or dark setting, coloured with INKs).
+   Built to dist/app.css by `npm run css` (Tailwind, with @mus/inks, the way the Grace Commons site is built) and served at /app.css.
+   Colours are Tailwind's own names only: INKs turns each into light-dark(light, dark), so nothing here names a literal colour or a scheme. */
+@import "tailwindcss" source(none);
+@import "@mus/inks";
+
+@layer base {
+  html { @apply bg-slate-50 text-slate-900; }
+  body { @apply m-0 font-sans text-base leading-normal; }
+  h1 { @apply mb-4 text-2xl font-semibold; }
+  h2 { @apply mb-2 mt-8 text-xl font-semibold; }
+  p, ul, table { @apply mb-4; }
+  ul { @apply list-disc pl-6; }
+  a { @apply text-brand-700 underline; }
+  code { @apply rounded bg-slate-100 px-1 font-mono text-sm; }
+  label { @apply mb-1 mt-3 block; }
+  input, textarea, select { @apply w-full max-w-md rounded border border-slate-300 bg-white p-2 font-sans text-base text-slate-900; }
+  button { @apply mt-4 cursor-pointer rounded border border-slate-300 bg-slate-100 px-4 py-2 font-sans text-base text-slate-900; }
+  table { @apply w-full border-collapse bg-white; }
+  th, td { @apply border border-slate-300 px-2.5 py-1.5 text-left; }
+  td code { @apply break-all; }
+}
+
+@layer components {
+  header { @apply flex flex-wrap items-center justify-between gap-x-6 gap-y-2 border-b border-slate-300 bg-slate-100 px-6 py-3; }
+  header a { @apply text-slate-900 no-underline; }
+  header nav { @apply flex flex-wrap gap-x-5 gap-y-1; }
+  header nav a[aria-current="page"] { @apply font-semibold underline underline-offset-4; }
+  main { @apply mx-auto my-8 max-w-5xl px-6; }
+  .tile { @apply mb-3 mr-3 inline-block rounded-lg border border-slate-300 bg-white px-5 py-4 text-slate-900 no-underline; }
+  .error { @apply text-red-700; }
+  .demo { @apply mt-6 border border-slate-300 bg-white px-4 py-2; }
+  li form { @apply inline; }
+  .muted { @apply text-slate-600; }
+}

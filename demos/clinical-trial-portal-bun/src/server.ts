@@ -25,8 +25,8 @@ export const esc = (s: unknown): string => String(s ?? "").replace(/[&<>"']/g, (
 
 const page = (title: string, body: string, who?: PersonView): string => `<!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>${esc(title)} — Beacon Clinical Research</title>
-<style>body{font:16px/1.5 system-ui,sans-serif;margin:0;color:#1d2433;background:#f6f7f9}header{background:#12304f;color:#fff;padding:12px 24px;display:flex;justify-content:space-between;align-items:center}header a{color:#fff}main{max-width:720px;margin:32px auto;padding:0 24px}.tile{display:inline-block;margin:0 12px 12px 0;padding:16px 20px;background:#fff;border:1px solid #cfd6e0;border-radius:8px;text-decoration:none;color:inherit}label{display:block;margin:12px 0 4px}input{padding:8px;width:100%;max-width:320px}button{margin-top:16px;padding:8px 16px}.error{color:#a12020}.demo{background:#fff;border:1px solid #cfd6e0;padding:8px 16px;margin-top:24px}table{border-collapse:collapse;width:100%;background:#fff}td,th{border:1px solid #cfd6e0;padding:6px 10px;text-align:left}textarea,select{padding:8px;width:100%;max-width:480px;font:inherit}.muted{color:#5b6577}</style></head>
-<body><header><strong>Beacon Clinical Research</strong>${who ? `<span>${esc(who.display_name)} · <a href="/logout">Sign out</a></span>` : ""}</header><main>${body}</main></body></html>`;
+<link rel="stylesheet" href="/app.css"></head>
+<body><header>${who ? `<a href="/dashboard"><strong>Beacon Clinical Research</strong></a>${MENU_HERE}<span>${esc(who.display_name)} · <a href="/logout">Sign out</a></span>` : "<strong>Beacon Clinical Research</strong>"}</header><main>${body}</main></body></html>`;
 
 export const loginPage = (error?: string): string => page("Sign in", `<h1>Sign in</h1>${error ? `<p class="error" role="alert">${esc(error)}</p>` : ""}
 <form method="post" action="/login"><label for="email">Email</label><input id="email" name="email" type="email" autocomplete="username"><label for="password">Password</label><input id="password" name="password" type="password" autocomplete="current-password"><button type="submit">Sign in</button></form>
@@ -34,7 +34,7 @@ export const loginPage = (error?: string): string => page("Sign in", `<h1>Sign i
 
 /** The page a signed-in person who lacks a permission a page needs is answered with: it names the permission or permissions that would open it, and a way back (SPEC.md, The screens). */
 export const deniedPage = (needs: PermissionCode[], who?: PersonView): string => page("Access denied", `<h1>Access denied</h1>
-<p>This page needs ${needs.length > 1 ? "one of these permissions" : "this permission"}: ${needs.map((n) => `<strong>${esc(WORDS[n])}</strong>`).join(" or ")}.</p><p><a href="/dashboard">Back to the dashboard</a></p>`, who);
+<p>This page needs ${needs.length > 1 ? "one of these permissions" : "this permission"}: ${needs.map((n) => `<strong>${esc(WORDS[n])}</strong>`).join(" or ")}.</p>`, who);
 
 type Held = { person: PersonView; holds: PermissionCode[] };
 type Ctx = Context<{ Variables: { me: Held; token: string } }>;
@@ -58,6 +58,13 @@ export const tilesFor = (holds: PermissionCode[]): { href: string; label: string
   ...(may(holds, "view_audit", "view_own_audit") ? [{ href: "/audit", label: "Audit Trail" }] : []),
 ];
 
+/** The header's menu is drawn where the page leaves this mark, once a signed-in request knows what the person may open and where the person is (SPEC.md, The screens). */
+const MENU_HERE = "<!--menu-->";
+export const menuFor = (holds: PermissionCode[], path: string): string => {
+  const items = tilesFor(holds);
+  return items.length ? `<nav aria-label="Menu">${items.map((t) => `<a href="${esc(t.href)}"${path === t.href || path.startsWith(`${t.href}/`) ? ' aria-current="page"' : ""}>${esc(t.label)}</a>`).join("")}</nav>` : "";
+};
+
 export function buildApp(beacon: Beacon, o: { secureCookie?: boolean } = {}): Hono<{ Variables: { me: Held; token: string } }> {
   const app = new Hono<{ Variables: { me: Held; token: string } }>();
 
@@ -71,7 +78,19 @@ export function buildApp(beacon: Beacon, o: { secureCookie?: boolean } = {}): Ho
     }
     c.set("me", me); c.set("token", token);
     await next();
+    const res = c.res;
+    if ((res.headers.get("content-type") ?? "").startsWith("text/html")) {                                          // every signed-in screen carries the one menu
+      const html = (await res.text()).replace(MENU_HERE, menuFor(me.holds, c.req.path));
+      const headers = new Headers(res.headers); headers.delete("content-length");
+      c.res = new Response(html, { status: res.status, headers });
+    }
   };
+
+  const stylesheet = new URL("../dist/app.css", import.meta.url);                                                 // built by `npm run css`, never committed
+  app.get("/app.css", async (c) => {
+    const f = Bun.file(stylesheet);
+    return (await f.exists()) ? c.body(await f.text(), 200, { "content-type": "text/css; charset=utf-8", "cache-control": "no-cache" }) : c.text("The stylesheet is not built.", 404);
+  });
 
   app.get("/", (c) => c.redirect("/login", 302));                                                                  // the front page sends the person to sign-in
 
@@ -127,7 +146,7 @@ export function buildApp(beacon: Beacon, o: { secureCookie?: boolean } = {}): Ho
     const body = rows
       ? `<table><thead><tr><th>Subject</th><th>Status</th><th>Enrolled</th><th>Notes</th></tr></thead><tbody>${rows}</tbody></table>`
       : enroll ? `<p><a href="/subjects/new">Enroll the first subject.</a></p>` : `<p class="muted">There are no subjects you may see yet.</p>`;
-    return c.html(page("Subjects", `<h1>Subjects</h1>${enroll && rows ? `<p><a href="/subjects/new">Enroll a subject</a></p>` : ""}${body}<p><a href="/dashboard">Back to the dashboard</a></p>`, person));
+    return c.html(page("Subjects", `<h1>Subjects</h1>${enroll && rows ? `<p><a href="/subjects/new">Enroll a subject</a></p>` : ""}${body}`, person));
   });
 
   app.get("/subjects/new", signedIn, async (c) => {
@@ -213,7 +232,7 @@ export function buildApp(beacon: Beacon, o: { secureCookie?: boolean } = {}): Ho
 <label for="from">From (date)</label><input id="from" name="from" type="date" value="${esc(r.filters.from ?? "")}"><label for="to">To (date)</label><input id="to" name="to" type="date" value="${esc(r.filters.to ?? "")}"><button type="submit">Filter</button></form>
 <form method="post" action="/audit/retention"><p>Retention window: <strong>${r.retention_on ? `on, the last ${RETENTION_DAYS} days` : "off, every event is shown"}</strong>. It hides events from this page and never deletes one.</p>
 <input type="hidden" name="on" value="${r.retention_on ? "false" : "true"}"><button type="submit">Turn the retention window ${r.retention_on ? "off" : "on"}</button></form>
-${r.rows.length ? `<table><thead><tr><th>#</th><th>Time</th><th>Action</th><th>Target</th><th>Actor</th><th>Payload</th></tr></thead><tbody>${r.rows.map(row).join("")}</tbody></table>` : "<p>No events match.</p>"}<p><a href="/dashboard">Back to the dashboard</a></p>`;
+${r.rows.length ? `<table><thead><tr><th>#</th><th>Time</th><th>Action</th><th>Target</th><th>Actor</th><th>Payload</th></tr></thead><tbody>${r.rows.map(row).join("")}</tbody></table>` : "<p>No events match.</p>"}`;
     return c.html(page("Audit Trail", body, person));
   };
   app.get("/audit", signedIn, (c) => auditPage(c));
@@ -251,14 +270,14 @@ ${r.rows.length ? `<table><thead><tr><th>#</th><th>Time</th><th>Action</th><th>T
     const v = await beacon.peopleAdmin.view(person.actor_ref, readContext);
     if ("refused" in v) return refuse(c, v, person, "/dashboard");
     const origin = new URL(c.req.url).origin;
-    const mark = (p: PersonRow, code: PermissionCode) => `<li>${esc(permWords(code))}${v.may_grant ? ` <form method="post" action="/people/take" style="display:inline"><input type="hidden" name="person" value="${esc(p.person.actor_ref)}"><input type="hidden" name="permission" value="${esc(code)}"><button type="submit" aria-label="Take away ${esc(permWords(code))} from ${esc(p.person.display_name)}">Take away</button></form>` : ""}</li>`;
+    const mark = (p: PersonRow, code: PermissionCode) => `<li>${esc(permWords(code))}${v.may_grant ? ` <form method="post" action="/people/take"><input type="hidden" name="person" value="${esc(p.person.actor_ref)}"><input type="hidden" name="permission" value="${esc(code)}"><button type="submit" aria-label="Take away ${esc(permWords(code))} from ${esc(p.person.display_name)}">Take away</button></form>` : ""}</li>`;
     const personRow = (p: PersonRow) => `<tr><td>${esc(p.person.display_name)}</td><td>${esc(p.person.email)}</td><td>${p.held.length === PERMISSIONS.length ? "holds every permission" : p.held.length ? `<ul>${p.held.map((x) => mark(p, x)).join("")}</ul>` : "none"}${v.may_grant && p.offered.length ? `<form method="post" action="/people/give"><input type="hidden" name="person" value="${esc(p.person.actor_ref)}"><label for="give-${esc(p.person.actor_ref)}">Give</label><select id="give-${esc(p.person.actor_ref)}" name="permission">${p.offered.map((x) => `<option value="${esc(x)}">${esc(permWords(x))}</option>`).join("")}</select><button type="submit">Give</button></form>` : ""}</td></tr>`;
     const histRow = (h: HistoryRow) => `<tr><td>${esc(when(h.granted_at))}</td><td>${esc(h.to)}</td><td>${esc(permWords(h.code))}</td><td>${esc(h.by)}</td><td>${h.held_now ? "held now" : `revoked ${esc(h.revoked_at ? when(h.revoked_at) : "")}`}</td></tr>`;
     const pendRow = (i: PendingRow) => `<tr><td>${esc(i.email)}</td><td>${esc(i.role)}</td><td>${esc(when(i.expires_at))}</td><td><code>${esc(`${origin}/invitations/accept/${i.invitation_token}`)}</code></td><td>${v.may_invite ? `<form method="post" action="/people/invitations/${esc(encodeURIComponent(i.invitation_token))}/revoke"><button type="submit">Revoke</button></form>` : ""}</td></tr>`;
     const invite = v.may_invite ? `<h2>Invite someone</h2>${o.link ? `<p>Invite link — copy and share this with the invitee: <code>${esc(o.link)}</code></p>` : ""}<form method="post" action="/people/invite"><label for="inv-email">Email</label><input id="inv-email" name="email" type="email" required><label for="inv-name">Display name</label><input id="inv-name" name="display_name" required><label for="inv-role">Role</label><input id="inv-role" name="role" list="roles" placeholder="coordinator" required><datalist id="roles"><option value="coordinator"></datalist><button type="submit">Invite</button></form>` : "";
     return c.html(page("People & Permissions", `<h1>People &amp; Permissions</h1><h2>People</h2><table><thead><tr><th>Name</th><th>Email</th><th>Permissions held now</th></tr></thead><tbody>${v.people.map(personRow).join("")}</tbody></table>
 <h2>Permissions History</h2><p class="muted">Every permission ever given, oldest first. It records who gave what; it never opens or closes anything.</p>${v.history.length ? `<table><thead><tr><th>When</th><th>To</th><th>Permission</th><th>Given by</th><th>Held now</th></tr></thead><tbody>${v.history.map(histRow).join("")}</tbody></table>` : "<p>No permission has been given yet.</p>"}
-<h2>Pending Invitations</h2>${v.pending.length ? `<table><thead><tr><th>Email</th><th>Role</th><th>Expires</th><th>Link</th><th></th></tr></thead><tbody>${v.pending.map(pendRow).join("")}</tbody></table>` : "<p>No invitation is waiting.</p>"}${invite}<p><a href="/dashboard">Back to the dashboard</a></p>`, person));
+<h2>Pending Invitations</h2>${v.pending.length ? `<table><thead><tr><th>Email</th><th>Role</th><th>Expires</th><th>Link</th><th></th></tr></thead><tbody>${v.pending.map(pendRow).join("")}</tbody></table>` : "<p>No invitation is waiting.</p>"}${invite}`, person));
   };
   app.get("/people", signedIn, (c) => peoplePage(c));
 

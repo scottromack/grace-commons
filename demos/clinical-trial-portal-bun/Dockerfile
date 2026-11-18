@@ -2,6 +2,14 @@
 # XTDB's jar comes from its own image, pinned by the index digest of ghcr.io/xtdb/xtdb:2.2.0; Bun from its own image.
 FROM ghcr.io/xtdb/xtdb@sha256:a6a426505b95a36e4e0e1d0de88efcf4220cb6bde8f1f5e594b0a1f92a948a77 AS xtdb
 FROM oven/bun:1.3.2-debian AS bun
+# The stylesheet: Tailwind with INKs (SPEC.md, The screens), built once here; the final image carries only dist/app.css. INKs is a git dependency, so this stage has git (node's full image).
+FROM node:22.12-bookworm AS css
+WORKDIR /css
+RUN git config --global url."https://github.com/".insteadOf ssh://git@github.com/
+COPY package.json package-lock.json ./
+RUN npm ci --ignore-scripts
+COPY src/app.css ./src/app.css
+RUN npm run css
 
 FROM eclipse-temurin:21.0.13_9-jre
 RUN apt-get update && apt-get install -y --no-install-recommends curl ca-certificates && rm -rf /var/lib/apt/lists/*
@@ -11,6 +19,7 @@ WORKDIR /app
 COPY package.json package-lock.json ./
 RUN bun install --production
 COPY src ./src
+COPY --from=css /css/dist/app.css ./dist/app.css
 COPY stack/start.sh ./stack/start.sh
 ENV PORT=8000 SECURE_COOKIE=1
 EXPOSE 8000

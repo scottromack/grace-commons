@@ -5,7 +5,7 @@ import { testSeam } from "../src/seam.ts";
 import { Beacon } from "../src/beacon.ts";
 import { Hono } from "hono";
 import { generateKeyPairSync } from "node:crypto";
-import { buildApp, COOKIE, esc, deniedPage, tilesFor, loginPage, denied } from "../src/server.ts";
+import { buildApp, COOKIE, esc, deniedPage, tilesFor, loginPage, denied, menuFor } from "../src/server.ts";
 
 const store = new Store();
 afterAll(() => store.close());
@@ -134,12 +134,14 @@ test("SPEC.md People & Permissions (a session lasts seven days): a cookie past t
   expect((await get(w, "/dashboard", c)).headers.get("location")).toBe("/login");
 });
 
-test("SPEC.md The screens, Access denied: the page names the permission or permissions that would open the page, and a way back to the dashboard", async () => {
-  const one = deniedPage(["enroll_subject"]);
+test("SPEC.md The screens, Access denied: the page names the permission or permissions that would open the page, and the header's name is the way back to the dashboard", async () => {
+  const me = { actor_ref: "a", party_id: "p", email: "e", display_name: "Someone", created_at: "" };
+  const one = deniedPage(["enroll_subject"], me);
   expect(one).toContain("Access denied");
   expect(one).toContain("Enroll subjects");
-  expect(one).toContain('href="/dashboard"');
-  const two = deniedPage(["enroll_subject", "record_visit"]);
+  expect(one).toContain('<a href="/dashboard"><strong>Beacon Clinical Research</strong></a>');
+  expect(one).not.toContain("Back to the dashboard");
+  const two = deniedPage(["enroll_subject", "record_visit"], me);
   expect(two).toContain("Enroll subjects");
   expect(two).toContain("Record visits");
   expect(two).toContain("one of these permissions");
@@ -353,4 +355,48 @@ test("SPEC.md Subjects (a refused call): a person whose key the system will not 
   const v = await post(w, `/subjects/${id}/visits`, anya, { kind: "screening" });
   expect(v.status).toBe(401);
   expect((await w.b.domain.subjects((await w.b.who(anya))!.person.actor_ref) as { code: string }[]).map((s) => s.code)).toEqual(["BCN-001"]);   // no second subject
+});
+
+/** The stylesheet is built by `npm run css`; the tests build it so they read the one the server serves. */
+const built = Bun.spawnSync(["npm", "run", "css"], { cwd: new URL("..", import.meta.url).pathname });
+const MENU_NAMES = ["People & Permissions", "Subjects", "Audit Trail"];
+const menuOf = (html: string): { label: string; current: boolean }[] => {
+  const nav = /<nav aria-label="Menu">(.*?)<\/nav>/.exec(html)?.[1] ?? "";
+  return [...nav.matchAll(/<a href="[^"]*"( aria-current="page")?>([^<]*)<\/a>/g)].map((m) => ({ label: m[2]!.replaceAll("&amp;", "&"), current: !!m[1] }));
+};
+
+test("SPEC.md The screens, light and dark: every screen's stylesheet is Tailwind with INKs, so each colour follows the device's setting, and no screen names a colour of its own", async () => {
+  expect(built.exitCode).toBe(0);
+  const w = await world();
+  const r = await get(w, "/app.css");
+  expect([r.status, r.headers.get("content-type")]).toEqual([200, "text/css; charset=utf-8"]);
+  const css = await r.text();
+  expect(css).toContain("light-dark(");
+  expect(css).toContain("color-scheme:light dark");
+  const c = await signIn(w, "anya@beacon.clinical", "demo-pi");
+  for (const path of ["/login", "/dashboard", "/people", "/subjects", "/audit"]) {
+    const html = await (await get(w, path, path === "/login" ? undefined : c)).text();
+    expect(html).toContain('<link rel="stylesheet" href="/app.css">');
+    expect(html).not.toMatch(/<style|style="|#[0-9a-fA-F]{3,6}\b/);
+  }
+});
+
+test("SPEC.md The screens, the menu: every signed-in screen carries People & Permissions | Subjects | Audit Trail in its header, only the ones the person may open, the current one marked, and no screen says Back to the dashboard", async () => {
+  const w = await world();
+  const anya = await signIn(w, "anya@beacon.clinical", "demo-pi");
+  const jordan = await signIn(w, "jordan@beacon.clinical", "demo-cra");
+  for (const [path, current] of [["/dashboard", null], ["/people", "People & Permissions"], ["/subjects", "Subjects"], ["/subjects/new", "Subjects"], ["/audit", "Audit Trail"], ["/audit/verify", "Audit Trail"]] as const) {
+    const html = await (await get(w, path, anya)).text();
+    expect(menuOf(html)).toEqual(MENU_NAMES.map((label) => ({ label, current: label === current })));
+    expect(html.indexOf("<nav")).toBeLessThan(html.indexOf("<main>"));                                              // in the header, ahead of the page
+    expect(html).not.toContain("Back to the dashboard");
+  }
+  const j = await (await get(w, "/audit", jordan)).text();
+  expect(menuOf(j)).toEqual([{ label: "Audit Trail", current: true }]);                                              // Jordan holds view_audit alone
+  expect(menuOf(await (await get(w, "/dashboard", jordan)).text())).toEqual([{ label: "Audit Trail", current: false }]);
+  expect(await (await get(w, "/login")).text()).not.toContain("<nav");                                               // no menu before sign-in
+});
+
+test("SPEC.md The screens, the menu: a person holding no permission that opens a page has no menu", () => {
+  expect(menuFor([], "/dashboard")).toBe("");
 });

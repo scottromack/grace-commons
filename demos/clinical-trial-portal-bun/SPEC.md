@@ -86,7 +86,11 @@ Every screen is a page the server draws; every action works with no script runni
 | **Chain verification** `/audit/verify` | as Audit Trail | "Chain intact" with the number of events checked, or "Tampering detected" with the event, the hash recomputed and the hash found |
 | **Audit export** `/audit/export.csv` | as Audit Trail | every event the person may see, oldest first, with both hashes; the file is named `beacon-audit-<date>.csv`. Exporting is itself an event |
 
-A signed-in person who lacks a permission a page needs is answered with the page "Access denied", which names the permission or permissions that would open it, and a way back to the dashboard [Section 2 of the plan, live].
+Every screen follows the device's light or dark setting, coloured with INKs, as every Grace render is [Scott 2026-11-18, "the beacon trial is whitemode"]. The stylesheet is Tailwind with INKs, built before the server runs (Running it) and served at `/app.css`; no screen names a colour of its own.
+
+Every signed-in screen carries one menu in its header, People & Permissions | Subjects | Audit Trail, showing only the ones the person may open (the dashboard's own rule), with the current one marked; the name Beacon Clinical Research in the header opens the dashboard, and no screen carries a "Back to the dashboard" link [Scott 2026-11-18, "menu should persist ... back button is a fail"]. A screen a person reaches from another of the same menu entry (a subject, the chain verification, the enrolment form) keeps that entry marked.
+
+A signed-in person who lacks a permission a page needs is answered with the page "Access denied", which names the permission or permissions that would open it; the header's name is the way back to the dashboard [Section 2 of the plan, live].
 
 ### People & Permissions
 
@@ -145,7 +149,7 @@ A render starts from its seed and nothing else: the two accounts, the seven perm
 
 ## Running it
 
-One process serves Beacon on the port named by `PORT` (8000 when none is named), on every address of the machine. Its store is XTDB beside it in the same container, in memory, on 127.0.0.1; the container starts the store first and the server when the store's health answer comes [decided here]. When the server starts it seeds (The data a render starts from) before it listens, and it listens on nothing else. The cookie carries the `Secure` flag when `SECURE_COOKIE` is `1`, which the deployment sets, since it is served over HTTPS only [decided here].
+The stylesheet is built first, `npm run css` (Tailwind with INKs, into `dist/app.css`, which is never committed); the container's build runs it, and the server answers `/app.css` from that file [decided here]. One process serves Beacon on the port named by `PORT` (8000 when none is named), on every address of the machine. Its store is XTDB beside it in the same container, in memory, on 127.0.0.1; the container starts the store first and the server when the store's health answer comes [decided here]. When the server starts it seeds (The data a render starts from) before it listens, and it listens on nothing else. The cookie carries the `Secure` flag when `SECURE_COOKIE` is `1`, which the deployment sets, since it is served over HTTPS only [decided here].
 
 **What a restart does.** The store is in memory, so a restart is a fresh store holding the seed and nothing else: every person invited, subject, visit and event made since is gone, and everyone is signed out, as the person's key section above says. A store that outlasts a restart is a unit of its own: the seed would have to run against records already there, which it does already without making anything twice, and the keys sealed under each person's password would have to be read back [decided here, for Scott to confirm or change]. The first deployment of this render (2026-11-18) dropped the earlier render's database by Scott's word (rounds/escalations.md, 2026-11-18 03:19Z, "as recommended"), a copy of it taken first.
 
