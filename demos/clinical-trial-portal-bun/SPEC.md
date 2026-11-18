@@ -100,7 +100,7 @@ An invitation lasts seven days [live; plan]. A session lasts seven days [live; S
 
 ## What each action writes to the audit trail
 
-Every action that changes something writes its event in the same transaction as the change: either both are written or neither [Section 8.13 of the plan]. The events, as the live render writes them [live, which differs from Section 6 of the plan where marked]. The three that begin `beacon.` are named so because Audit Trail reserves every action reference that begins `audit.` for its own reconciliation (Audit Trail Primitive policy 7 to 9), so the live render's `audit.viewed` and `audit.exported` cannot be written by an action; the retention switch's event is mine, since an action that changes something writes one [decided here]:
+Every action that changes something writes its event in the same transaction as the change: either both are written or neither [Section 8.13 of the plan]. The events, as the live render writes them [live, which differs from Section 6 of the plan where marked]. The three that begin `beacon.` are named so because Audit Trail reserves every action reference that begins `audit.` for its own reconciliation (Audit Trail Primitive policy 7 through 9), so the live render's `audit.viewed` and `audit.exported` cannot be written by an action; the retention switch's event is mine, since an action that changes something writes one [decided here]:
 
 | Event | When | Target | Payload |
 |---|---|---|---|
