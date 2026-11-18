@@ -822,12 +822,11 @@ Check 2.4: An auditor MUST re-enumerate an access fulfillment's universe AND fin
 Check 2.5: An auditor MUST read a re-enumerated record whose creation instant falls within the clock offset allowance of the enumeration instant as inconclusive (Capability requirement 20).
 Check 2.6: An auditor MUST NOT re-enumerate an erasure fulfillment's universe (Invariant 2.1).
 Check 2.7: An auditor MUST read a re-enumerated record as outside the fulfillment's universe where the enumeration instant PRECEDES the registration of the record's source in the host's data inventory (Completeness boundary 1, External check 1).
-Check 3.1: An auditor MUST find EVERY gated erased disposition's destruction record carrying an empty hold check result AND no hold override, a disposition Check 3.6 covers excepted (Capability requirement 10).
+Check 3.1: An auditor MUST find EVERY gated erased disposition's destruction record carrying an empty hold check result AND no hold override (Capability requirement 10).
 Check 3.2: An auditor MUST find EVERY retained legal-hold disposition's gate record naming a hold active at the gate record's position (Invariant 4.1).
 Check 3.3: An auditor MUST find a retention over the record of EVERY retained retention-obligation disposition whose retention deadline DOES NOT PRECEDE the enumeration instant (Disposition 22).
 Check 3.4: An auditor MUST read a retention deadline within twice the clock offset allowance of the enumeration instant as inconclusive (Capability requirement 20).
 Check 3.5: An auditor MUST find destruction evidence for EVERY erased disposition (Invariant 3.1).
-Check 3.6: An auditor MUST read a gated erased disposition whose destruction record Defensible Retention still owes under an open marker as an open obligation (Defensible Retention Check 5.9).
 Check 4.1: An auditor MUST find EVERY non-anomaly disposition's reason naming a recoverable authority (Invariant 4.1).
 Check 5.1: An auditor MUST find EVERY response disclosure naming the requester as the recipient, the request's regulatory reference as the authority AND the request id in the scope (Invariant 5.1).
 Check 5.2: An auditor MUST find EXACTLY ONE request-scoped disclosure carrying the request id of EVERY Fulfilled request (Invariant 5.1).
@@ -1182,12 +1181,12 @@ This composition inherits the broader standards compliance of its constituents:
 
 ## Status
 
-`done — 2026-11-05` — see the Ledger.
+`doing` — see the Ledger.
 
 ## Ledger
 
 ```
-status: done — 2026-11-05
+status: doing
 formal: verified — resolve-a-persons-data-rights.tla + 12 twins + 3 probes (one erasure against two legs of the reconciliation, under the request section: 162,645 states, holding at a term of 6 within 9 ticks), resolve-a-persons-data-rights-access.tla + 1 probe (a fulfillment with nothing planned against the same two legs: 17,796 states, holding at a term of 6 within 9 ticks) and resolve-a-persons-data-rights-admission.tla + 1 twin + 1 probe (two fulfillments of one request: 56,552 states, holding at a term of 6 within 8 ticks), re-derived from the page as it stands; resolve-a-persons-data-rights.als + 15 twins (the static data model, 2026-11-12: Invariant 1.1 through 1.6, 2.1, 2.2, 3.1, 3.2, 4.1, 5.1, 6.2, 7.1, 7.2, 8.1 and 8.2 checked on every state of the intake events, intents, fulfilled events and abandonments, the response disclosures, the fulfillment entries, the dispositions each intent and fulfilled event carries from the reads and planned calls that settled them, and the Consent calls, each fulfillment's and leg's state read at its own instant under the request section, at for 3 with six events, three fulfillments, two legs and four-bit instants, Invariant 1.1, 1.2, 1.4, 1.5, 2.1, 3.1 and 5.1 a cross-check with the TLA+ models; nothing testable in Alloy for Invariant 6.1 (two states: in one, Fulfilled is read off records the composition never changes); the model found that an included disposition carries no-bar alone (Disposition 6), which names no authority where Invariant 4.1 asks one, and that Invariant 1.5's exactly one at quiescence is, at its lower bound, Term quiescence's own clause); coverage 2026-11-10 (unit formal: more coverage for the yes votes), 2026-11-12: owed rows: Invariant 6.1, 2026-10-21
 last gate: 2026-11-05 — Final Critique 2, a delta round, frozen at 776c44e — foundational count 0, clean, no sample; 2026-11-04 — Final Critique 1, a full round of three fresh passes over the page and its three constituents — 9 foundational after merging, cured in the settle, 3 reports refuted on the page's own text; not clean: the cures are unread, and the next round is a delta round.
 

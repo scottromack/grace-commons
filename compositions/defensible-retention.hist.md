@@ -46,6 +46,8 @@ Entries that record a round or a migration rather than a turn the pattern took.
 
 - **2026-11-02 — The audit instance's end of life comes here from Audit Trail: lawful destruction lives in one page.** *Chose:* under the maintainer's ruling of 2026-11-01 18:15Z ("Lawful destruction lives in one page"), kept by his "as recommended" of 21:37Z, the purge machinery of [Audit Trail](./audit-trail.md) came here whole: Purge Eligible Events (named apart from this page's Purge Eligible, which answers the business retention instance) and Purge Event with their contracts and closure rows; the erasure mechanism and Legal Hold knobs (Capability requirement 69 through 72, Instance start 4, 31 and 32 of that page); the cascade's critical section (Cascade critical section 1 through 8); erasure outcomes; the first half of the reconciliation scan (First half 1 through 13); Boundary one; the cascade-on-purge rule and its WHY; Invariant 11 through 13; Check 8; External check 15 through 18; Non-goal 30; the edge case Legal hold suspension of purge; four open lines and four Decisions entries; the cascade reaches Audit Trail through its declared surface alone: step 0 and 0½ read the event through read_record and ask seal_now, step 1 calls record_destruction, which keeps the retention's purge and the destruction record in one transaction on Audit Trail's side (Audit Trail Invariant 4.2), step 3 delegates the shred (Composes 21, 22); Not Eligible and Under Legal Hold are shared with Purge Record; Composes 11 and Non-goal 20 tombstoned (the audit cascade is this page's own), Non-goal 22 cites Capability requirement 69g, and the Hold-Aware Audit Retention pattern this page named forthcoming is this page's own; the audit-trail-hold models renamed defensible-retention-audit-hold; a first closure table, covering the audit cascade (open line 2026-11-02-b); Audit Trail's open lines 2026-10-04-k and 2026-10-04-p arrived as 2026-10-04-t and 2026-10-04-u, their ids taken here; rules 499 to 657, lines 1,274 to 1,753. *Over:* keeping the cascade in Audit Trail and wrapping it here, which kept two pages over one act and Non-goal 20 through 23 as the debt; reaching the audit instance's indexes and records directly, which a composer's declared surfaces forbid; and moving the destruction record's write, which only Audit Trail's indexes and seal coverage can write consistently. *Because:* the end of a record's life is named once, and this composition exists to make record destruction lawful; no moved rule's content changed beyond the citations and the reads named above. Both pages owe a full round.
 
+- **2026-11-18 — The business recovery retires to Execution Contract Database 1: Reconciliation 1 through 45 and what restated them, and nothing composes Recoverable Invocation.** *Chose:* Reconciliation 1 through 9, 11, 13 through 15, 17 through 31 and 33 through 45 (41 rules) go, with Composes 16 and 17, Capability requirement 17 through 21, 23, 44, 58 and 61, Composition state 7 and 33, Audit arm 8 and 9, Action wiring 62 and 70 through 72, Invariant 5.2, 5.3 and 9.4, Check 1.11, 3.3, 5.8, 5.9 and 6.8, External check 5, Concurrency 4, 25 and 34, Composition note 6 and 7, Reconciliation 32 (now Atomic writes 10) and about thirty Terms; every tombstone is in the blocks of *Deleted rules* above, each naming Database 1 and Read 4. The five business actions commit their intent, their constituent writes and their outcome in one transaction, so a purge whose outcome is owed, whose Retention Window call answers no answer or whose sibling cannot be purged commits nothing: Action wiring 68 and 80 answer storage-failure and Action wiring 81 section-unavailable (codes the page already uses, chosen from its own signatures and not from Recoverable Invocation's), and Action wiring 83 through 85 and 99 say the action commits nothing; no state holds an intent without its outcome, so Invariant 3.1, 3.2, 4.1, 4.2, 5.7, 8.1 and 9.3 lose "at quiescence". The call to the record destruction pattern follows the purge's commit (Action wiring 112; the walkthrough's step 5), and a record that call leaves standing is retried only under the record section and only where no active hold covers it (Capability requirement 67, 68). The page's rules fall by 75 (the Reader's IR counts 12,049 to 11,973 over the library, one of them Resolve a Person's Data Rights Check 3.6), its WHYs stay at three (the one after Term hold ids cap shortened). The Ledger's foundational line 2026-10-04-r closes by Database 1; twelve more open lines dissolve or close (2026-10-04-f, -k, -q, 2026-10-05-b, -e, -g, 2026-10-06-a, -b, -c, -f, -g and 2026-10-31-a) and eight narrow (2026-10-04-e, -h, -s, 2026-10-05-d, -i, 2026-10-06-e, 2026-10-25-b, 2026-11-02-c). The models follow: the outcome module with its three twins and probe retires whole; the gate module loses the sweep and the outcome, gains the destruction retry as a third party, `Inv_Withheld`, its twin `-buggy-retry-ungated` and the probe `-probe-withheld` (16,380 states); the Alloy model drops the sweep, the owed outcome, the pending sibling and quiescence, four twins retire and two are added so `A_Invariant_4_2`, `8_1` and `5_6` each keep one. Resolve a Person's Data Rights Check 3.6, whose one citation was Check 5.9, retires with it (that page's own history). *Over:* composing Recoverable Invocation, which the unit was queued to do: the map found no reachable state for it to act on, since every write is one store transaction (Execution Contract Database 1, Read 4 and Read 7), so the unit took the Login ruling's form (Scott, 2026-11-17 9:19 PM Central, "as recommended", item 2) and composes nothing. *Because:* a recovery with nothing to recover is rules that restate what the database already guarantees. One direction stays Scott's and did not block the build: the audit cascade's first half, a real wait on the erasure mechanism whose recovery re-drives the destruction, which Recoverable Invocation forbids, stays as it is (D1, rounds/escalations.md 2026-11-18 04:43Z). The map is rounds/dr-ri-map-2026-11-18.md in the council's folder, the one call of an Opus 5.5 subagent the unit's step 1 allows; the build ran in a scratch clone and reaches grace-commons as one commit.
+
 ## Migration notes
 
 - **2026-09-15 — Clock semantics 4, 5 and 16, kept under Clock semantics.** Clock semantics 4, Clock semantics 5 and Clock semantics 16 stay under Clock semantics rather than under Clock dependence: the first two are this layer's uses of the reading and the third says the gate makes none — instances of that family's question, not statements of it (council read 75).
@@ -58,12 +60,16 @@ The spec's tombstones, moved here from the page on 2026-11-13 because the spec i
 
 ```
 Deleted: Composes 11. Composes 21 owns it: the audit instance's end of life is this composition's own, reached through Audit Trail's record_destruction.
+Deleted: Composes 16. Execution Contract Database 1 owns it: the sweep this served retired with Reconciliation 1 through 45, the business acts being one transaction (Scott, 2026-11-17 9:19 PM Central, the Login ruling, applied by the map of 2026-11-18).
+Deleted: Composes 17. Execution Contract Database 1 owns it: the sweep this barred retired with Reconciliation 1 through 45, the business acts being one transaction (Scott, 2026-11-17 9:19 PM Central, the Login ruling, applied by the map of 2026-11-18).
 ```
 
 ### Composition logic › Composition state
 
 ```
 Deleted: Composition state 34. Execution Contract Database 1 owns it.
+Deleted: Composition state 33. Execution Contract Database 1 and Read 4 own it: an act and its records commit together or not at all, so no owed record or sweep remains (the Login ruling of 2026-11-17 9:19 PM Central, applied by the map of 2026-11-18).
+Deleted: Composition state 7. Execution Contract Database 1 and Read 4 own it: a purge commits the named retention, every sibling and its outcome together or not at all, so no sibling is left pending (the Login ruling of 2026-11-17 9:19 PM Central, applied by the map of 2026-11-18).
 ```
 
 ### Composition logic › Composition state › erasure outcomes
@@ -83,6 +89,15 @@ Deleted: Capability requirement 49. Execution Contract Database 3 owns it.
 Deleted: Capability requirement 51. Execution Contract Scheduled leg 1 owns it.
 Deleted: Capability requirement 52. Execution Contract Scheduled leg 1 owns it.
 Deleted: Capability requirement 56. Execution Contract Database 2 owns it: Audit Trail names no margin for a record action to start on.
+Deleted: Capability requirement 61. Execution Contract Database 1 owns it: the sweep this served retired with Reconciliation 1 through 45, the business acts being one transaction (Scott, 2026-11-17 9:19 PM Central, the Login ruling, applied by the map of 2026-11-18).
+Deleted: Capability requirement 58. Execution Contract Database 1 owns it: the sweep this served retired with Reconciliation 1 through 45, the business acts being one transaction (Scott, 2026-11-17 9:19 PM Central, the Login ruling, applied by the map of 2026-11-18).
+Deleted: Capability requirement 44. Execution Contract Database 1 owns it: the sweep this served retired with Reconciliation 1 through 45, the business acts being one transaction (Scott, 2026-11-17 9:19 PM Central, the Login ruling, applied by the map of 2026-11-18).
+Deleted: Capability requirement 23. Execution Contract Database 1 owns it: the sweep this served retired with Reconciliation 1 through 45, the business acts being one transaction (Scott, 2026-11-17 9:19 PM Central, the Login ruling, applied by the map of 2026-11-18).
+Deleted: Capability requirement 21. Execution Contract Database 1 owns it: the sweep this served retired with Reconciliation 1 through 45, the business acts being one transaction (Scott, 2026-11-17 9:19 PM Central, the Login ruling, applied by the map of 2026-11-18).
+Deleted: Capability requirement 20. Execution Contract Database 1 owns it: the sweep this served retired with Reconciliation 1 through 45, the business acts being one transaction (Scott, 2026-11-17 9:19 PM Central, the Login ruling, applied by the map of 2026-11-18).
+Deleted: Capability requirement 19. Execution Contract Database 1 owns it: the sweep this served retired with Reconciliation 1 through 45, the business acts being one transaction (Scott, 2026-11-17 9:19 PM Central, the Login ruling, applied by the map of 2026-11-18).
+Deleted: Capability requirement 18. Execution Contract Database 1 owns it: the sweep this served retired with Reconciliation 1 through 45, the business acts being one transaction (Scott, 2026-11-17 9:19 PM Central, the Login ruling, applied by the map of 2026-11-18).
+Deleted: Capability requirement 17. Execution Contract Database 1 owns it: the sweep this served retired with Reconciliation 1 through 45, the business acts being one transaction (Scott, 2026-11-17 9:19 PM Central, the Login ruling, applied by the map of 2026-11-18).
 ```
 
 ### Composition logic › Primitive policy
@@ -96,6 +111,8 @@ Deleted: Primitive policy 15. Primitive policy 14 owns it.
 ```
 Deleted: Audit arm 3. Execution Contract Database 1 owns it.
 Deleted: Audit arm 4. Execution Contract Database 1 owns it.
+Deleted: Audit arm 8. Execution Contract Database 1 and Read 4 own it: an act and its records commit together or not at all, so no owed record or sweep remains (the Login ruling of 2026-11-17 9:19 PM Central, applied by the map of 2026-11-18).
+Deleted: Audit arm 9. Execution Contract Database 1 and Read 4 own it: an act and its records commit together or not at all, so no owed record or sweep remains (the Login ruling of 2026-11-17 9:19 PM Central, applied by the map of 2026-11-18).
 ```
 
 ### Composition logic › Action wiring
@@ -114,6 +131,10 @@ Deleted: Action wiring 105. Execution Contract Database 1 owns it: a placement's
 Deleted: Action wiring 107. Execution Contract Database 1 owns it.
 Deleted: Action wiring 46. Composition state 19 owns it.
 Deleted: Action wiring 51. Invariant 1.3 owns it.
+Deleted: Action wiring 70. Execution Contract Database 1 and Read 4 own it: an act and its records commit together or not at all, so no owed record or sweep remains (the Login ruling of 2026-11-17 9:19 PM Central, applied by the map of 2026-11-18).
+Deleted: Action wiring 71. Execution Contract Database 1 and Read 4 own it: an act and its records commit together or not at all, so no owed record or sweep remains (the Login ruling of 2026-11-17 9:19 PM Central, applied by the map of 2026-11-18).
+Deleted: Action wiring 72. Execution Contract Database 1 and Read 4 own it: an act and its records commit together or not at all, so no owed record or sweep remains (the Login ruling of 2026-11-17 9:19 PM Central, applied by the map of 2026-11-18).
+Deleted: Action wiring 62. Execution Contract Database 1 and Read 4 own it: a purge commits the named retention, every sibling and its outcome together or not at all, so no sibling is left pending (the Login ruling of 2026-11-17 9:19 PM Central, applied by the map of 2026-11-18).
 ```
 
 ### Composition logic › Action wiring › Purge Eligible Events contract
@@ -135,6 +156,48 @@ Deleted: Boundary one 6. First half 5 owns it.
 Deleted: Reconciliation 10. Execution Contract Database 1 owns it.
 Deleted: Reconciliation 12. Reconciliation 9 owns it.
 Deleted: Reconciliation 16. Reconciliation 14 owns it.
+Deleted: Reconciliation 1. Execution Contract Database 1 owns it: the business acts are one transaction, so no state is left for a sweep to recover (Scott, 2026-11-17 9:19 PM Central, the Login ruling, applied by the map of 2026-11-18).
+Deleted: Reconciliation 2. Execution Contract Database 1 owns it: the business acts are one transaction, so no state is left for a sweep to recover (Scott, 2026-11-17 9:19 PM Central, the Login ruling, applied by the map of 2026-11-18).
+Deleted: Reconciliation 3. Execution Contract Database 1 owns it: the business acts are one transaction, so no state is left for a sweep to recover (Scott, 2026-11-17 9:19 PM Central, the Login ruling, applied by the map of 2026-11-18).
+Deleted: Reconciliation 4. Execution Contract Database 1 owns it: the business acts are one transaction, so no state is left for a sweep to recover (Scott, 2026-11-17 9:19 PM Central, the Login ruling, applied by the map of 2026-11-18).
+Deleted: Reconciliation 5. Execution Contract Database 1 owns it: the business acts are one transaction, so no state is left for a sweep to recover (Scott, 2026-11-17 9:19 PM Central, the Login ruling, applied by the map of 2026-11-18).
+Deleted: Reconciliation 6. Execution Contract Database 1 owns it: the business acts are one transaction, so no state is left for a sweep to recover (Scott, 2026-11-17 9:19 PM Central, the Login ruling, applied by the map of 2026-11-18).
+Deleted: Reconciliation 7. Execution Contract Database 1 owns it: the business acts are one transaction, so no state is left for a sweep to recover (Scott, 2026-11-17 9:19 PM Central, the Login ruling, applied by the map of 2026-11-18).
+Deleted: Reconciliation 8. Execution Contract Database 1 owns it: the business acts are one transaction, so no state is left for a sweep to recover (Scott, 2026-11-17 9:19 PM Central, the Login ruling, applied by the map of 2026-11-18).
+Deleted: Reconciliation 9. Execution Contract Database 1 owns it: the business acts are one transaction, so no state is left for a sweep to recover (Scott, 2026-11-17 9:19 PM Central, the Login ruling, applied by the map of 2026-11-18).
+Deleted: Reconciliation 11. Execution Contract Database 1 owns it: the business acts are one transaction, so no state is left for a sweep to recover (Scott, 2026-11-17 9:19 PM Central, the Login ruling, applied by the map of 2026-11-18).
+Deleted: Reconciliation 13. Execution Contract Database 1 owns it: the business acts are one transaction, so no state is left for a sweep to recover (Scott, 2026-11-17 9:19 PM Central, the Login ruling, applied by the map of 2026-11-18).
+Deleted: Reconciliation 14. Execution Contract Database 1 owns it: the business acts are one transaction, so no state is left for a sweep to recover (Scott, 2026-11-17 9:19 PM Central, the Login ruling, applied by the map of 2026-11-18).
+Deleted: Reconciliation 15. Execution Contract Database 1 owns it: the business acts are one transaction, so no state is left for a sweep to recover (Scott, 2026-11-17 9:19 PM Central, the Login ruling, applied by the map of 2026-11-18).
+Deleted: Reconciliation 17. Execution Contract Database 1 owns it: the business acts are one transaction, so no state is left for a sweep to recover (Scott, 2026-11-17 9:19 PM Central, the Login ruling, applied by the map of 2026-11-18).
+Deleted: Reconciliation 18. Execution Contract Database 1 owns it: the business acts are one transaction, so no state is left for a sweep to recover (Scott, 2026-11-17 9:19 PM Central, the Login ruling, applied by the map of 2026-11-18).
+Deleted: Reconciliation 19. Execution Contract Database 1 owns it: the business acts are one transaction, so no state is left for a sweep to recover (Scott, 2026-11-17 9:19 PM Central, the Login ruling, applied by the map of 2026-11-18).
+Deleted: Reconciliation 20. Execution Contract Database 1 owns it: the business acts are one transaction, so no state is left for a sweep to recover (Scott, 2026-11-17 9:19 PM Central, the Login ruling, applied by the map of 2026-11-18).
+Deleted: Reconciliation 21. Execution Contract Database 1 owns it: the business acts are one transaction, so no state is left for a sweep to recover (Scott, 2026-11-17 9:19 PM Central, the Login ruling, applied by the map of 2026-11-18).
+Deleted: Reconciliation 22. Execution Contract Database 1 owns it: the business acts are one transaction, so no state is left for a sweep to recover (Scott, 2026-11-17 9:19 PM Central, the Login ruling, applied by the map of 2026-11-18).
+Deleted: Reconciliation 23. Execution Contract Database 1 owns it: the business acts are one transaction, so no state is left for a sweep to recover (Scott, 2026-11-17 9:19 PM Central, the Login ruling, applied by the map of 2026-11-18).
+Deleted: Reconciliation 24. Execution Contract Database 1 owns it: the business acts are one transaction, so no state is left for a sweep to recover (Scott, 2026-11-17 9:19 PM Central, the Login ruling, applied by the map of 2026-11-18).
+Deleted: Reconciliation 25. Execution Contract Database 1 owns it: the business acts are one transaction, so no state is left for a sweep to recover (Scott, 2026-11-17 9:19 PM Central, the Login ruling, applied by the map of 2026-11-18).
+Deleted: Reconciliation 26. Execution Contract Database 1 owns it: the business acts are one transaction, so no state is left for a sweep to recover (Scott, 2026-11-17 9:19 PM Central, the Login ruling, applied by the map of 2026-11-18).
+Deleted: Reconciliation 27. Execution Contract Database 1 owns it: the business acts are one transaction, so no state is left for a sweep to recover (Scott, 2026-11-17 9:19 PM Central, the Login ruling, applied by the map of 2026-11-18).
+Deleted: Reconciliation 28. Execution Contract Database 1 owns it: the business acts are one transaction, so no state is left for a sweep to recover (Scott, 2026-11-17 9:19 PM Central, the Login ruling, applied by the map of 2026-11-18).
+Deleted: Reconciliation 29. Execution Contract Database 1 owns it: the business acts are one transaction, so no state is left for a sweep to recover (Scott, 2026-11-17 9:19 PM Central, the Login ruling, applied by the map of 2026-11-18).
+Deleted: Reconciliation 30. Execution Contract Database 1 owns it: the business acts are one transaction, so no state is left for a sweep to recover (Scott, 2026-11-17 9:19 PM Central, the Login ruling, applied by the map of 2026-11-18).
+Deleted: Reconciliation 31. Execution Contract Database 1 owns it: the business acts are one transaction, so no state is left for a sweep to recover (Scott, 2026-11-17 9:19 PM Central, the Login ruling, applied by the map of 2026-11-18).
+Deleted: Reconciliation 33. Execution Contract Database 1 owns it: the business acts are one transaction, so no state is left for a sweep to recover (Scott, 2026-11-17 9:19 PM Central, the Login ruling, applied by the map of 2026-11-18).
+Deleted: Reconciliation 34. Execution Contract Database 1 owns it: the business acts are one transaction, so no state is left for a sweep to recover (Scott, 2026-11-17 9:19 PM Central, the Login ruling, applied by the map of 2026-11-18).
+Deleted: Reconciliation 35. Execution Contract Database 1 owns it: the business acts are one transaction, so no state is left for a sweep to recover (Scott, 2026-11-17 9:19 PM Central, the Login ruling, applied by the map of 2026-11-18).
+Deleted: Reconciliation 36. Execution Contract Database 1 owns it: the business acts are one transaction, so no state is left for a sweep to recover (Scott, 2026-11-17 9:19 PM Central, the Login ruling, applied by the map of 2026-11-18).
+Deleted: Reconciliation 37. Execution Contract Database 1 owns it: the business acts are one transaction, so no state is left for a sweep to recover (Scott, 2026-11-17 9:19 PM Central, the Login ruling, applied by the map of 2026-11-18).
+Deleted: Reconciliation 38. Execution Contract Database 1 owns it: the business acts are one transaction, so no state is left for a sweep to recover (Scott, 2026-11-17 9:19 PM Central, the Login ruling, applied by the map of 2026-11-18).
+Deleted: Reconciliation 39. Execution Contract Database 1 owns it: the business acts are one transaction, so no state is left for a sweep to recover (Scott, 2026-11-17 9:19 PM Central, the Login ruling, applied by the map of 2026-11-18).
+Deleted: Reconciliation 40. Execution Contract Database 1 owns it: the business acts are one transaction, so no state is left for a sweep to recover (Scott, 2026-11-17 9:19 PM Central, the Login ruling, applied by the map of 2026-11-18).
+Deleted: Reconciliation 41. Execution Contract Database 1 owns it: the business acts are one transaction, so no state is left for a sweep to recover (Scott, 2026-11-17 9:19 PM Central, the Login ruling, applied by the map of 2026-11-18).
+Deleted: Reconciliation 42. Execution Contract Database 1 owns it: the business acts are one transaction, so no state is left for a sweep to recover (Scott, 2026-11-17 9:19 PM Central, the Login ruling, applied by the map of 2026-11-18).
+Deleted: Reconciliation 43. Execution Contract Database 1 owns it: the business acts are one transaction, so no state is left for a sweep to recover (Scott, 2026-11-17 9:19 PM Central, the Login ruling, applied by the map of 2026-11-18).
+Deleted: Reconciliation 44. Execution Contract Database 1 owns it: the business acts are one transaction, so no state is left for a sweep to recover (Scott, 2026-11-17 9:19 PM Central, the Login ruling, applied by the map of 2026-11-18).
+Deleted: Reconciliation 45. Execution Contract Database 1 owns it: the business acts are one transaction, so no state is left for a sweep to recover (Scott, 2026-11-17 9:19 PM Central, the Login ruling, applied by the map of 2026-11-18).
+Deleted: Reconciliation 32. Atomic writes 10 owns it: no abandoned purge intent survives, so the reader's rule is stated of the record purged outcome (the Login ruling of 2026-11-17 9:19 PM Central, applied by the map of 2026-11-18).
 ```
 
 ### Composition logic › Reconciliation › First half — the half-completed cascade
@@ -160,12 +223,18 @@ Deleted: First half 8. First half 5 owns it.
 
 ```
   Deleted: Invariant 9.2. Composition state 19 owns it.
+Deleted: Invariant 9.4. Execution Contract Database 1 and Read 4 own it: a purge commits the named retention, every sibling and its outcome together or not at all, so no sibling is left pending (the Login ruling of 2026-11-17 9:19 PM Central, applied by the map of 2026-11-18).
 ```
 
 ### Generation acceptance › Conformance checks
 
 ```
 Deleted: Check 2.3. Check 2.4 owns it.
+Deleted: Check 6.8. Execution Contract Database 1 owns it: the sweep this served retired with Reconciliation 1 through 45, the business acts being one transaction (Scott, 2026-11-17 9:19 PM Central, the Login ruling, applied by the map of 2026-11-18).
+Deleted: Check 1.11. Execution Contract Database 1 and Read 4 own it: an act and its records commit together or not at all, so no open marker or sweep remains (the Login ruling of 2026-11-17 9:19 PM Central, applied by the map of 2026-11-18).
+Deleted: Check 5.8. Execution Contract Database 1 and Read 4 own it: an act and its records commit together or not at all, so no open marker or sweep remains (the Login ruling of 2026-11-17 9:19 PM Central, applied by the map of 2026-11-18).
+Deleted: Check 5.9. Execution Contract Database 1 and Read 4 own it: an act and its records commit together or not at all, so no open marker or sweep remains (the Login ruling of 2026-11-17 9:19 PM Central, applied by the map of 2026-11-18).
+Deleted: Check 3.3. Execution Contract Database 1 and Read 4 own it: a purge commits the named retention, every sibling and its outcome together or not at all, so no sibling is left pending (the Login ruling of 2026-11-17 9:19 PM Central, applied by the map of 2026-11-18).
 ```
 
 ### Generation acceptance › External checks
@@ -173,6 +242,7 @@ Deleted: Check 2.3. Check 2.4 owns it.
 ```
 Deleted: External check 12. Execution Contract Database 3 owns it.
 Deleted: External check 14. Execution Contract Scheduled leg 1 owns it.
+Deleted: External check 5. Execution Contract Database 1 owns it: the sweep this served retired with Reconciliation 1 through 45, the business acts being one transaction (Scott, 2026-11-17 9:19 PM Central, the Login ruling, applied by the map of 2026-11-18).
 ```
 
 ### Non-goals
@@ -188,6 +258,7 @@ Deleted: Atomic writes 1. Execution Contract Database 1 owns it.
 Deleted: Atomic writes 2. Execution Contract Database 1 owns it.
 Deleted: Atomic writes 3. Execution Contract Database 1 owns it.
 Deleted: Atomic writes 4. Execution Contract Database 1 owns it.
+Deleted: Atomic writes 7. Execution Contract Database 1 and Read 4 own it: an act and its records commit together or not at all, so no owed record or sweep remains (the Login ruling of 2026-11-17 9:19 PM Central, applied by the map of 2026-11-18).
 ```
 
 ### Edge cases › Clock semantics
@@ -212,4 +283,22 @@ Deleted: Clock semantics 17. Capability requirement 36 owns it.
 Deleted: Concurrency 1. Concurrency 5 owns it.
 Deleted: Concurrency 2. Concurrency 5 owns it.
 Deleted: Concurrency 3. Concurrency 5 owns it.
+Deleted: Concurrency 4. Execution Contract Database 1 and Read 4 own it: an act and its records commit together or not at all, so no owed record or sweep remains (the Login ruling of 2026-11-17 9:19 PM Central, applied by the map of 2026-11-18).
+Deleted: Concurrency 34. Execution Contract Database 1 and Read 4 own it: an act and its records commit together or not at all, so no owed record or sweep remains (the Login ruling of 2026-11-17 9:19 PM Central, applied by the map of 2026-11-18).
+Deleted: Concurrency 25. Audit Trail's record action commits nothing on a recording-failure carrying step-3 (its record action step 3.3, 3.7), so no append is left to land and no hold on the section remains; Concurrency 24 and 33 lose the clause that named it (the Login ruling of 2026-11-17 9:19 PM Central, applied by the map of 2026-11-18).
+```
+
+
+### Composition notes
+
+```
+Deleted: Composition note 6. Execution Contract Database 1 and Read 4 own it: an act and its records commit together or not at all, so no owed record or sweep remains (the Login ruling of 2026-11-17 9:19 PM Central, applied by the map of 2026-11-18).
+Deleted: Composition note 7. Execution Contract Database 1 and Read 4 own it: an act and its records commit together or not at all, so no owed record or sweep remains (the Login ruling of 2026-11-17 9:19 PM Central, applied by the map of 2026-11-18).
+```
+
+### Composition-level invariants › Invariant 5
+
+```
+Deleted: Invariant 5.2. Execution Contract Database 1 and Read 4 own it: an act and its records commit together or not at all, so no open marker or sweep remains (the Login ruling of 2026-11-17 9:19 PM Central, applied by the map of 2026-11-18).
+Deleted: Invariant 5.3. Execution Contract Database 1 and Read 4 own it: an act and its records commit together or not at all, so no open marker or sweep remains (the Login ruling of 2026-11-17 9:19 PM Central, applied by the map of 2026-11-18).
 ```

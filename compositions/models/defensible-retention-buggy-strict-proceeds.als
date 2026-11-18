@@ -96,16 +96,14 @@ sig Release extends Inv {
 -- Purge: a [Purge Record] call. Its inputs, what its reads answered: named, the retention
 -- Retention Window's declared read answered for the retention id (none: no retention);
 -- saw, the holds Legal Hold's read answered at the gate; sibs, the sibling set read; sibLate,
--- the siblings outside elapsed retention; sibPend, the siblings whose purge the call leaves
--- pending (a refusal, no answer, or the sibling floor: Action wiring 68, 80, 81). What it
--- makes of them: hids and hcount, the hold check result as truncated (Primitive policy 20,
--- 21); purged, the retentions its purges purged; ans, its answer.
+-- the siblings outside elapsed retention. What it makes of them: hids and hcount, the hold
+-- check result as truncated (Primitive policy 20, 21); purged, the retentions its purges
+-- purged; ans, its answer.
 sig Purge extends Inv {
     named   : lone Retention,
     saw     : set Hold,
     sibs    : set Retention,
     sibLate : set Retention,
-    sibPend : set Retention,
     hids    : set Hold,
     hcount  : one Int,
     purged  : set Retention,
@@ -121,34 +119,33 @@ sig NamedElapsed in Purge {}
 -- GateOwed: the purges whose gate record the substrate did not append (Term owed record) — an input.
 sig GateOwed in Purge {}
 
--- IntentOwed: the purges whose intent the substrate did not append — an input.
+-- IntentOwed: the purges whose intent the substrate did not append, so the call commits
+-- nothing (Action wiring 83) — an input.
 sig IntentOwed in Purge {}
 
--- PurgeRefused: the purges whose call of Retention Window's purge for the named retention
--- answered a refusal or no answer — an input.
+-- PurgeRefused: the purges whose call of Retention Window's purge, for the named retention
+-- or for a sibling, answered a refusal or no answer, so the call commits nothing and answers
+-- storage-failure (Action wiring 79, 80) — an input.
 sig PurgeRefused in Purge {}
 
--- OutcomeOwed: the committed purges whose own outcome the substrate did not append, or the
--- record section admitted no call of (Audit arm 13 to 22, Concurrency 34) — an input.
+-- OutcomeOwed: the purges whose own outcome the substrate did not append, so the call
+-- commits nothing (Action wiring 84, 99) — an input.
 sig OutcomeOwed in Purge {}
 
 -- Within: the acts that stand within the audit horizon (Term within the audit horizon) — the
 -- clock's, an input.
 sig Within in Inv {}
 
--- SweepPurged: the pending siblings the sweep's sibling-purge legs purged (Reconciliation 19).
-sig SweepPurged in Retention {}
-
 -- EKind: an audit record's kind: an intent, an outcome naming what the act did (retention
--- placed, hold placed, hold released or record purged, by the invocation's kind), an intent
--- abandoned (also an outcome: Term outcome), or a gate record (Term gate record).
+-- placed, hold placed, hold released or record purged, by the invocation's kind), or a gate
+-- record (Term gate record).
 abstract sig EKind {}
-one sig KIntent, KOutcome, KAbandoned, KGate extends EKind {}
+one sig KIntent, KOutcome, KGate extends EKind {}
 
 -- Event: one audit record on the substrate, carrying its invocation id (Action wiring 3 to 5)
 -- and its log position, with the payload fields the rules write: a retention id, a record
 -- reference, a hold id, an actor, a hold check result (hold ids and count) and a record purged
--- outcome's purged retention ids, each marked purged or pending.
+-- outcome's purged retention ids.
 sig Event {
     inv      : one Inv,
     ekind    : one EKind,
@@ -159,13 +156,8 @@ sig Event {
     eactor   : lone Actor,
     ehids    : set Hold,
     ehcount  : lone Int,
-    epurged  : set Retention,
-    epending : set Retention
+    epurged  : set Retention
 }
-
--- BySweep: the records the sweep wrote, a recovery outcome or an intent abandoned (the
--- recovery marker, Reconciliation 15).
-sig BySweep in Event {}
 
 -- HcrCarried: the records whose payload carries a hold check result field, empty or not.
 sig HcrCarried in Event {}
@@ -194,11 +186,12 @@ fun intentOf[i : Inv] : set Event { { e : Event | e.inv = i and e.ekind = KInten
 -- gateOf: the gate records carrying the invocation's id.
 fun gateOf[i : Inv] : set Event { { e : Event | e.inv = i and e.ekind = KGate } }
 
--- closings: the outcomes (an intent abandoned included) carrying the invocation's id.
-fun closings[i : Inv] : set Event { { e : Event | e.inv = i and e.ekind in KOutcome + KAbandoned } }
+-- closings: the outcomes carrying the invocation's id.
+fun closings[i : Inv] : set Event { { e : Event | e.inv = i and e.ekind = KOutcome } }
 
--- ownOutcome: the outcomes the invocation itself wrote.
-fun ownOutcome[i : Inv] : set Event { closings[i] - BySweep }
+-- ownOutcome: the outcomes the invocation itself wrote, which are all of them: no other party
+-- writes an outcome (Execution Contract Database 1).
+fun ownOutcome[i : Inv] : set Event { closings[i] }
 
 -- activeOver: the active holds over a record, what Legal Hold's read with the active state
 -- answers for it (Legal Hold Operation 23).
@@ -217,22 +210,20 @@ pred holdBlocked[t : Tuple] { no t.tcount or gt[t.tcount, 0] }
 -- Facts: what the page takes from outside
 -- ─────────────────────────────────────────────────────────────────────────────
 
--- Retention Window's records: a retention a purge purged stands purged, as does one the
--- sweep purged, and a retention is purged once (Retention Window Invariant 3, terminal
--- absorption: a second purge answers not-retained).
+-- Retention Window's records: a retention a purge purged stands purged, and a retention is
+-- purged once (Retention Window Invariant 3, terminal absorption: a second purge answers
+-- not-retained).
 fact RetentionWindowRecords {
     all p : Purge | p.purged in rstate.Purged
-    SweepPurged in rstate.Purged
     all disj p1, p2 : Purge | no p1.purged & p2.purged
-    all p : Purge | no p.purged & SweepPurged
 }
 
 -- Retention Window's declared read: the sibling set answers retentions over the named
--- retention's record beside it (Composition state 19, Term sibling set); the late and the
--- pending siblings are among them.
+-- retention's record beside it (Composition state 19, Term sibling set); the late siblings
+-- are among them.
 fact RetentionWindowReads {
     all p : Purge | p.sibs in rec.(p.named.rec) - p.named
-    all p : Purge | p.sibLate in p.sibs and p.sibPend in p.sibs
+    all p : Purge | p.sibLate in p.sibs
 }
 
 -- Legal Hold's read at the gate answers holds over the record it is asked about, and a
@@ -278,7 +269,7 @@ fact StoreOnlyActsCommitWhole {
 }
 
 -- ─────────────────────────────────────────────────────────────────────────────
--- Part A — the writes: what each call and the sweep leave
+-- Part A — the writes: what each call leaves
 -- ─────────────────────────────────────────────────────────────────────────────
 
 -- placementWiring: Retention Window is called with the record reference (Action wiring 9);
@@ -347,12 +338,14 @@ pred gatePath[p : Purge] {
 
 -- admitPath: the hold check admitted the destruction (an empty result, or advisory mode):
 -- not-eligible where the named retention is not elapsed (Action wiring 57), under-active-
--- retention where a sibling is not (Action wiring 47); otherwise the intent carrying the hold
--- check result (Action wiring 76, 83), Retention Window's purge of the named retention and of
--- each sibling not left pending (Action wiring 58, 59), and the record purged outcome
--- carrying the retention id, the record reference, the purged retention ids marked purged or
--- pending and the hold check result, after the intent (Action wiring 60 to 63, 84; Atomic
--- writes 5).
+-- retention where a sibling is not (Action wiring 47). Otherwise the call commits nothing where
+-- the intent or the outcome is an owed record (Action wiring 83, 84, 99) or a purge of
+-- Retention Window answered a refusal or no answer for the named retention or a sibling
+-- (Action wiring 79, 80, 81; Execution Contract Read 4); and where it commits, the intent
+-- carrying the hold check result (Action wiring 76, 83), Retention Window's purge of the
+-- named retention and of every sibling (Action wiring 58, 59), and the record purged outcome
+-- carrying the retention id, the record reference, the purged retention ids and the hold check
+-- result, after the intent, commit together (Execution Contract Database 1; Atomic writes 5).
 pred admitPath[p : Purge] {
     no gateOf[p]
     p not in NamedElapsed implies refuseAhead[p, ANotEligible]
@@ -360,17 +353,17 @@ pred admitPath[p : Purge] {
     (p in NamedElapsed and no p.sibLate) implies {
         p in IntentOwed implies refuseAhead[p, ARecFailIntent]
         p not in IntentOwed implies {
-            one intentOf[p]
-            all i : intentOf[p] | i.eret = p.named and i.erec = p.named.rec
-                and i in HcrCarried and i.ehids = p.hids and i.ehcount = p.hcount
-            p in PurgeRefused implies (no p.purged and no ownOutcome[p] and p.ans = AStorageFailure)
+            p in PurgeRefused implies refuseAhead[p, AStorageFailure]
             p not in PurgeRefused implies {
-                p.purged = p.named + (p.sibs - p.sibPend)
-                p in OutcomeOwed implies (no ownOutcome[p] and p.ans = ARecFailOutcome)
+                p in OutcomeOwed implies refuseAhead[p, ARecFailOutcome]
                 p not in OutcomeOwed implies {
+                    p.purged = p.named + p.sibs
+                    one intentOf[p]
+                    all i : intentOf[p] | i.eret = p.named and i.erec = p.named.rec
+                        and i in HcrCarried and i.ehids = p.hids and i.ehcount = p.hcount
                     one ownOutcome[p] and p.ans = AOk
                     all o : ownOutcome[p] | o.ekind = KOutcome and o.eret = p.named
-                        and o.erec = p.named.rec and o.epurged = p.purged and o.epending = p.sibPend
+                        and o.erec = p.named.rec and o.epurged = p.purged
                         and o in HcrCarried and o.ehids = p.hids and o.ehcount = p.hcount
                         and (all i : intentOf[p] | lt[i.pos, o.pos])
                 }
@@ -396,24 +389,6 @@ pred purgeWiring[p : Purge] {
     }
 }
 
--- sweepWiring: the sweep closes an open marker — an intent carrying no outcome (Reconciliation
--- 5, 22) — after it: with a recovery outcome where the act committed and the records carry
--- every datum it needs, the hold check result taken from the purge intent and the purged
--- retention ids from Retention Window's records (Reconciliation 11, 13, 34, 38); otherwise
--- as intent abandoned (Reconciliation 9, 27, 37).
-pred sweepWiring[e : Event] {
-    e.ekind in KOutcome + KAbandoned
-    some i : intentOf[e.inv] | lt[i.pos, e.pos]
-    no ownOutcome[e.inv]
-    (e.inv in Purge and some e.inv.purged and intentOf[e.inv] in HcrCarried) implies {
-        e.ekind = KOutcome
-        e.eret = e.inv.named and e.erec = e.inv.named.rec
-        e in HcrCarried and e.ehids = intentOf[e.inv].ehids and e.ehcount = intentOf[e.inv].ehcount
-        e.epurged = { t : rec.(e.erec) | t.rstate = Purged }
-        e.epending = { t : rec.(e.erec) | t.rstate = Retained }
-    } else e.ekind = KAbandoned
-}
-
 -- ─────────────────────────────────────────────────────────────────────────────
 -- Part B — [Purge Eligible] over one state
 -- ─────────────────────────────────────────────────────────────────────────────
@@ -430,27 +405,13 @@ pred eligibleWiring {
 }
 
 -- built: every record in the state is what an admitted write left: each call's records by its
--- action's rules, each sweep record by the sweep's, one sweep closing per act (Concurrency 4),
--- the sweep's sibling purges over pending siblings only (Reconciliation 19), and [Purge
--- Eligible]'s answer.
+-- action's rules, and [Purge Eligible]'s answer.
 pred built {
     all p : Placement | placementWiring[p]
     all p : HoldPlacement | holdPlacementWiring[p]
     all r : Release | releaseWiring[r]
     all p : Purge | purgeWiring[p]
-    BySweep in ekind.(KOutcome + KAbandoned)
-    all e : BySweep | sweepWiring[e]
-    all disj e1, e2 : BySweep | e1.inv != e2.inv
-    SweepPurged in Purge.sibPend
     eligibleWiring
-}
-
--- quiescent: Term quiescence as one state shows it: every intent carries an outcome or a
--- stand-in (a destroyed event later in the log, Term stand-in), and no sibling stands
--- retained over a destroyed record. An assumption of the at-quiescence invariants only.
-pred quiescent {
-    all i : ekind.KIntent | some closings[i.inv] or (some d : Destroyed | lt[i.pos, d.pos])
-    no t : Retention | t.rstate = Retained and t.rec in destroyedRecords
 }
 
 -- ─────────────────────────────────────────────────────────────────────────────
@@ -496,18 +457,18 @@ assert A_Invariant_1_6 {
 }
 check A_Invariant_1_6 for 3 but 6 Event, 4 Int
 
--- A_Invariant_3_1: at quiescence, every committed hold placement within the audit horizon
--- carries a hold placed outcome naming its hold.
+-- A_Invariant_3_1: every committed hold placement within the audit horizon carries a hold
+-- placed outcome naming its hold.
 assert A_Invariant_3_1 {
-    (built and quiescent) implies all p : HoldPlacement & Within |
+    built implies all p : HoldPlacement & Within |
         some p.hplaced implies some o : closings[p] | o.ekind = KOutcome and o.ehold = p.hplaced
 }
 check A_Invariant_3_1 for 3 but 6 Event, 4 Int
 
--- A_Invariant_3_2: at quiescence, every committed hold release within the audit horizon
--- carries a hold released outcome naming its hold.
+-- A_Invariant_3_2: every committed hold release within the audit horizon carries a hold
+-- released outcome naming its hold.
 assert A_Invariant_3_2 {
-    (built and quiescent) implies all r : Release & Within |
+    built implies all r : Release & Within |
         some r.rel implies some o : closings[r] | o.ekind = KOutcome and o.ehold = r.names
 }
 check A_Invariant_3_2 for 3 but 6 Event, 4 Int
@@ -520,18 +481,18 @@ assert A_Invariant_3_3 {
 }
 check A_Invariant_3_3 for 3 but 6 Event, 4 Int
 
--- A_Invariant_4_1: at quiescence, every committed placement within the audit horizon carries a
--- retention placed outcome naming its retention.
+-- A_Invariant_4_1: every committed placement within the audit horizon carries a retention
+-- placed outcome naming its retention.
 assert A_Invariant_4_1 {
-    (built and quiescent) implies all p : Placement & Within |
+    built implies all p : Placement & Within |
         some p.placed implies some o : closings[p] | o.ekind = KOutcome and o.eret = p.placed
 }
 check A_Invariant_4_1 for 3 but 6 Event, 4 Int
 
--- A_Invariant_4_2: at quiescence, every committed purge within the audit horizon carries a
--- record purged outcome naming its retention.
+-- A_Invariant_4_2: every committed purge within the audit horizon carries a record purged
+-- outcome naming its retention, whatever the instant of the check (Execution Contract Database 1).
 assert A_Invariant_4_2 {
-    (built and quiescent) implies all p : Purge & Within |
+    built implies all p : Purge & Within |
         some p.purged implies some o : closings[p] | o.ekind = KOutcome and o.eret = p.named
 }
 check A_Invariant_4_2 for 3 but 6 Event, 4 Int
@@ -542,8 +503,7 @@ assert A_Invariant_4_3 {
 }
 check A_Invariant_4_3 for 3 but 6 Event, 4 Int
 
--- A_Invariant_4_4: every record purged outcome, the invocation's or the sweep's, carries the
--- hold check result the purge's gate read met: its true count, and hold ids among those holds,
+-- A_Invariant_4_4: every record purged outcome carries the hold check result the purge's gate read met: its true count, and hold ids among those holds,
 -- some exactly where it met some.
 assert A_Invariant_4_4 {
     built implies all o : Event | (o.ekind = KOutcome and o.inv in Purge) implies
@@ -561,15 +521,15 @@ assert A_Invariant_4_5 {
 check A_Invariant_4_5 for 3 but 6 Event, 4 Int
 
 -- A_Invariant_4_6: no outcome stands for an invocation that recorded no intent — no refusal
--- ahead of the intent leaves an outcome.
+-- leaves an outcome (Execution Contract Read 4).
 assert A_Invariant_4_6 {
-    built implies all o : ekind.(KOutcome + KAbandoned) | some intentOf[o.inv]
+    built implies all o : ekind.KOutcome | some intentOf[o.inv]
 }
 check A_Invariant_4_6 for 3 but 6 Event, 4 Int
 
 -- A_Invariant_5_1: every outcome follows, in log order, an intent carrying its invocation id.
 assert A_Invariant_5_1 {
-    built implies all o : ekind.(KOutcome + KAbandoned) |
+    built implies all o : ekind.KOutcome |
         some i : intentOf[o.inv] | lt[i.pos, o.pos]
 }
 check A_Invariant_5_1 for 3 but 6 Event, 4 Int
@@ -580,7 +540,7 @@ assert A_Invariant_5_4 {
 }
 check A_Invariant_5_4 for 3 but 6 Event, 4 Int
 
--- A_Invariant_5_6: no invocation carries two outcomes, its own and the sweep's together.
+-- A_Invariant_5_6: no invocation carries two outcomes.
 assert A_Invariant_5_6 {
     built implies all i : Inv | lone closings[i]
 }
@@ -610,10 +570,10 @@ assert A_Invariant_7_3 {
 }
 check A_Invariant_7_3 for 3 but 6 Event, 4 Int
 
--- A_Invariant_8_1: at quiescence, every destruction within the audit horizon carries a record
--- purged outcome naming the hold check result its gate read met.
+-- A_Invariant_8_1: every destruction within the audit horizon carries a record purged outcome
+-- naming the hold check result its gate read met.
 assert A_Invariant_8_1 {
-    (built and quiescent) implies all p : Purge & Within |
+    built implies all p : Purge & Within |
         some p.purged implies some o : closings[p] |
             o.ekind = KOutcome and o in HcrCarried and o.ehcount = #(p.saw) and o.ehids in p.saw
 }
@@ -625,14 +585,6 @@ assert A_Invariant_9_1 {
     built implies all p : Purge | some p.sibLate implies no p.purged
 }
 check A_Invariant_9_1 for 3 but 6 Event, 4 Int
-
--- A_Invariant_9_4: every record purged outcome names pending each sibling its purge's read
--- answered that still stands retained.
-assert A_Invariant_9_4 {
-    built implies all o : Event | (o.ekind = KOutcome and o.inv in Purge) implies
-        (all s : o.inv.sibs | s.rstate = Retained implies s in o.epending)
-}
-check A_Invariant_9_4 for 3 but 6 Event, 4 Int
 
 -- ─────────────────────────────────────────────────────────────────────────────
 -- Satisfiability runs — non-vacuity guards, one for each shape the page admits
@@ -684,28 +636,16 @@ run ShowUnderActiveRetention {
     built and some p : Purge | p.ans = AUnderActive
 } for 3 but 6 Event, 4 Int
 
--- ShowPendingSibling: a destruction whose outcome names a sibling pending.
-run ShowPendingSibling {
-    built and some o : ekind.KOutcome | some o.epending
+-- ShowRefusedPurge: a purge whose Retention Window call answered a refusal or no answer
+-- commits nothing and answers storage-failure.
+run ShowRefusedPurge {
+    built and some p : Purge | p in PurgeRefused and p.ans = AStorageFailure and no intentOf[p]
 } for 3 but 6 Event, 4 Int
 
--- ShowRecoveredPurge: a committed purge whose own outcome was owed, recovered by the sweep at
--- quiescence within the audit horizon.
-run ShowRecoveredPurge {
-    built and quiescent and some p : Purge & Within |
-        p in OutcomeOwed and some o : closings[p] & BySweep | o.ekind = KOutcome
-} for 3 but 6 Event, 4 Int
-
--- ShowAbandonedPurge: a purge whose Retention Window call was refused after its intent, closed
--- by the sweep as intent abandoned.
-run ShowAbandonedPurge {
-    built and some p : Purge | p in PurgeRefused and some o : closings[p] | o.ekind = KAbandoned
-} for 3 but 6 Event, 4 Int
-
--- ShowStandIn: quiescence reached by an intent with no outcome and a destroyed event later in
--- the log.
-run ShowStandIn {
-    built and quiescent and some i : ekind.KIntent | no closings[i.inv]
+-- ShowOutcomeOwed: a purge whose outcome is owed commits nothing, intent included, and answers
+-- recording-failure carrying outcome.
+run ShowOutcomeOwed {
+    built and some p : Purge | p in OutcomeOwed and p.ans = ARecFailOutcome and no intentOf[p]
 } for 3 but 6 Event, 4 Int
 
 -- ShowPlacementsCommitted: a placement and a hold placement within the audit horizon, each

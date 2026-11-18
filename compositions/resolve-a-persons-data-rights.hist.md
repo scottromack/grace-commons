@@ -12,6 +12,8 @@ The dated record of how [Resolve a Person's Data Rights](./resolve-a-persons-dat
 
 Entries that record a round or a migration rather than a turn the pattern took.
 
+- **2026-11-18 — Check 3.6 retires: Defensible Retention commits a purge's destruction record with the purge, so no record stands owed under an open marker.** *Chose:* the check goes, and Check 3.1 loses its exception for it; the check's one citation, Defensible Retention Check 5.9, retired under Execution Contract Database 1 and Read 4 (Scott's ruling of 2026-11-17 9:19 PM Central, the Login ruling, applied to Defensible Retention by the unit that retires its recovery). *Over:* repointing the check to another Defensible Retention rule. *Because:* the state it read, a destruction record owed under an open marker, is no state any more: the purge, its intent and its outcome commit together or the call commits nothing. The page returns to `doing` for a delta round, since a check of the conformance section changed.
+
 - **2026-08-26 — The erasure intent record carries a `purge_plan`, and authentication is not inherited across the substrate boundary.** *Chose:* the plan names the retentions a rights fulfillment will attempt, so a purge occasioned by an authorized fulfillment is distinguishable in the shared Audit Trail from a direct call that bypassed the rights process; Defensible Retention verifies the same credential independently at its own boundary. *Over:* treating the outer authentication as covering the nested purges. *Because:* the substrate's surface is independently callable, so what the plan records is provenance, not authority.
 
 - **2026-08-27 — Invariant 1 is safety plus liveness, in three arms.** *Chose:* no `dsar.*_fulfilled` event without its response-disclosure and complete disposition set (earned by write order); no unsurfaced orphan; every orphan compensated within a declared window and distinguishable via `cascade_recovery = true`. *Over:* "commits together or not at all" across a write the substrate cannot withdraw. *Because:* the order was right from the first draft and the claim was merely unprovable — the restatement says what the order earns and nothing more.
@@ -125,4 +127,10 @@ Deleted: Disposition 37. Disposition 47 owns it.
 
 ```
 Deleted: Concurrency 20. Execution Contract Database 2 owns it: an audit write's lease check and append are one transaction, so no append lands beside another holder's closing.
+```
+
+### Generation acceptance › Conformance checks
+
+```
+Deleted: Check 3.6. Execution Contract Database 1 and Read 4 own it: Defensible Retention commits a purge's destruction record with the purge, so no destruction record stands owed under an open marker (the Login ruling of 2026-11-17 9:19 PM Central, applied to Defensible Retention by the map of 2026-11-18).
 ```
