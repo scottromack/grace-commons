@@ -15,7 +15,8 @@ import { Session } from "./session.ts";
 import { EventLog } from "./event_log.ts";
 import { ActorIdentity, type RegistryAnswer } from "./actor_identity.ts";
 import { RetentionWindow } from "./retention_window.ts";
-import { AuditTrail } from "./audit_trail.ts";
+import { AuditTrail, matchBySliceCount } from "./audit_trail.ts";
+import { TamperEvidence, sha256Chain } from "./tamper_evidence.ts";
 import { Login } from "./login.ts";
 import { Permissions } from "./permissions.ts";
 import { PartyIdentity } from "./party_identity.ts";
@@ -98,7 +99,9 @@ export class Beacon {
     const log = await EventLog.open(store, seam, { name: `${prefix}beacon` });
     const actors = await ActorIdentity.open(store, seam, registry);
     const retention = await RetentionWindow.open(store, seam, (ref) => (ref === "seven-years" ? { answer: "policy", policy: { durationMs: RETENTION_MS, maxPurgeDelayMs: 30 * DAY } } : { answer: "not-found" }), { resolutionMs: 1000, prefix: `${prefix}rw_` } as never);
-    const audit = await AuditTrail.open(store, seam, { log, actors, retention }, { retentionPolicy: "seven-years", reconciliationOperator: "beacon-reconciliation" });
+    const lease = await LeaseHost.open(store, seam, { prefix: `${prefix}lease_` });
+    const tamper = await TamperEvidence.open(store, seam, sha256Chain(matchBySliceCount));                          // an unkeyed chain over each slice (SPEC.md, What each action writes)
+    const audit = await AuditTrail.open(store, seam, { log, actors, retention }, { retentionPolicy: "seven-years", reconciliationOperator: "beacon-reconciliation", sealing: { tamper, lease, mechanismCredential: "" } });
     const argon = o.argon ?? { memoryCost: 65536, timeCost: 2 };
     const password: CredentialType = {
       derive: async (m) => (m.length > 1024 ? null : Bun.password.hash(m.normalize("NFC"), { algorithm: "argon2id", ...argon })),
@@ -113,7 +116,6 @@ export class Beacon {
     const invitations = await Invitation.open(store, seam, { ttlBounds: { min: 60, max: 30 * 86_400 }, defaultTtl: WEEK_S, table: `${prefix}invitations` });
     const trail: Trail = { log: { payloadCap: log.payloadCap, read: (q) => log.read(q) }, index: (s) => audit.index(s), plan: (a, r, c, d, h = 0) => audit.plan(a, r, c, d, h) };
     const journal: Journal = { log, readRecord: (id) => audit.readRecord(id), recordAction: (a, r, c, d) => audit.recordAction(a, r, c, d) as Promise<JournalAnswer> };
-    const lease = await LeaseHost.open(store, seam, { prefix: `${prefix}lease_` });
     const widths = { invitationToken: 43, partyId: 36, credentialId: 36, eventId: 36 };
     const probe = onboardingProbe({ invitation: invitations, parties, credentials });
     const binding = onboardingBinding({ onboardingCompletionBoundMs: 10_000, auditHorizonMs: RETENTION_MS, settlingPeriodMs: 100_000, referenceLengthCap: 128, mintedIdWidths: widths, probe });
@@ -128,7 +130,7 @@ export class Beacon {
     });
     const admin = await AttributedPermissionsAdmin.open(store, seam, { permissions, actors }, { namespacePrefix: "beacon:", clockOffsetAllowanceMs: 50, retentionHorizonMs: RETENTION_MS });
     const domain = await BeaconDomain.open(store, seam, { permissions, trail }, { prefix });
-    const audits = await BeaconAudit.open(store, seam, { log, trail, people, domain }, { prefix, serviceName: (ref) => (ref === service.actor_ref ? "Beacon" : null) });
+    const audits = await BeaconAudit.open(store, seam, { log, trail, people, domain, audit }, { prefix, serviceName: (ref) => (ref === service.actor_ref ? "Beacon" : null) });
     return new Beacon(seam, store, people, new SessionKeys(() => Date.parse(seam.now())), permissions, credentials, session, login, gate, audit, log, actors, parties, invitations, onboarding, admin, domain, ri, trail, audits, service);
   }
 

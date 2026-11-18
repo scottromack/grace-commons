@@ -1,4 +1,4 @@
-// Beacon's pages: the front page, sign in and sign out, accepting an invitation, the dashboard, the Audit Trail page and its retention switch, the "Access denied" page, and the subjects (the list, Enroll Subject, a subject and Record Visit).
+// Beacon's pages: the front page, sign in and sign out, accepting an invitation, the dashboard, the Audit Trail pages (the list, chain verification, the export) and its retention switch, the "Access denied" page, and the subjects (the list, Enroll Subject, a subject and Record Visit).
 // Built from SPEC.md (The screens; People & Permissions' words; The permissions) with Hono, the stack STACK.md pins. Every screen is a page the server
 // draws and every action works with no script running in the browser (SPEC.md, The screens): forms post, the server answers with a page or a redirect.
 //
@@ -207,6 +207,7 @@ export function buildApp(beacon: Beacon, o: { secureCookie?: boolean } = {}): Ho
     const row = (e: AuditRow) => `<tr><td>${e.number}</td><td>${esc(when(e.recorded_at))}</td><td>${esc(e.action)}</td><td>${esc(e.target)}</td><td>${esc(e.actor)}</td><td><code>${esc(e.payload)}</code></td></tr>`;
     const opt = (a: string) => `<option value="${esc(a)}"${a === r.filters.action ? " selected" : ""}>${esc(a)}</option>`;
     const body = `<h1>Audit Trail</h1><p class="muted">${r.scope === "all" ? "Everyone's events." : "Your own events."}</p>
+<p><a href="/audit/verify">Verify chain</a> · <a href="/audit/export.csv">Export CSV</a></p>
 <form method="get" action="/audit"><label for="action">Action</label><select id="action" name="action"><option value="">All actions</option>${r.actions.map(opt).join("")}</select>
 <label for="from">From (date)</label><input id="from" name="from" type="date" value="${esc(r.filters.from ?? "")}"><label for="to">To (date)</label><input id="to" name="to" type="date" value="${esc(r.filters.to ?? "")}"><button type="submit">Filter</button></form>
 <form method="post" action="/audit/retention"><p>Retention window: <strong>${r.retention_on ? `on, the last ${RETENTION_DAYS} days` : "off, every event is shown"}</strong>. It hides events from this page and never deletes one.</p>
@@ -215,6 +216,23 @@ ${r.rows.length ? `<table><thead><tr><th>#</th><th>Time</th><th>Action</th><th>T
     return c.html(page("Audit Trail", body, person));
   };
   app.get("/audit", signedIn, (c) => auditPage(c));
+
+  app.get("/audit/verify", signedIn, async (c) => {
+    const { person } = c.get("me");
+    const r = await beacon.audits.verifyChain(person.actor_ref, beacon.keyOf(c.get("token")) ?? "");
+    if ("refused" in r) return refuse(c, r, person, "/audit");                                                              // verifying: a refusal
+    const back = `<p><a href="/audit">Back to the audit trail</a></p>`;
+    return c.html(page("Chain verification", "intact" in r && r.intact
+      ? `<h1>Chain verification</h1><p><strong>Chain intact.</strong> ${r.checked} event${r.checked === 1 ? "" : "s"} checked.${r.unsealed ? ` ${r.unsealed} more ${r.unsealed === 1 ? "was" : "were"} written while this page ran and ${r.unsealed === 1 ? "is" : "are"} sealed at the next check.` : ""}</p>${back}`
+      : `<h1>Chain verification</h1><p class="error" role="alert"><strong>Tampering detected.</strong> Event ${"event" in r ? r.event.number : ""} (${esc("event" in r ? r.event.action : "")}) failed: ${esc("reason" in r ? r.reason : "")}. ${r.checked} event${r.checked === 1 ? "" : "s"} before it were checked.</p>${back}`, person));
+  });
+
+  app.get("/audit/export.csv", signedIn, async (c) => {
+    const { person } = c.get("me");
+    const r = await beacon.audits.exportCsv(person.actor_ref, beacon.keyOf(c.get("token")) ?? "");
+    if ("refused" in r) return refuse(c, r, person, "/audit");                                                              // exporting: a refusal
+    return new Response(r.csv, { status: 200, headers: { "content-type": "text/csv; charset=utf-8", "content-disposition": `attachment; filename="${r.filename}"` } });
+  });
 
   app.post("/audit/retention", signedIn, async (c) => {
     const { person } = c.get("me");
