@@ -160,3 +160,5 @@ patterns:
     file: atoms/waitlist.md
   - id: 69
     file: atoms/post.md
+  - id: 70
+    file: atoms/comment.md
