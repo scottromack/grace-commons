@@ -26,7 +26,7 @@ Tag lets a business keep a flat list of named tags — clay, cover-crops, beginn
 <details markdown="block">
 <summary>WHY</summary>
 
-A category says where an item lives; a tag says what an item is about, and an item is about several things at once. This atom is that and nothing more. Three decisions carry the weight. Tags are flat and many-to-many: no tag sits under another, and an item carries any number. A tag's name is unique and a rename keeps every item the tag is on, so fixing a typo never loses anything. And putting a tag on and taking a tag off are each safe to repeat, so a double click never errors. Tags are never removed, which keeps every item's tags real; a tag no longer wanted is simply taken off its items. Taken in from MIT's sync-engine Labeling concept (Daniel Jackson's group), narrowed to one list per deployment and made safe to repeat. Scott, 2026-11-18: a forum gets both categories and tags, and communities graduate a busy tag into a category, which is Tag Promotion's job.
+A category says where an item lives; a tag says what an item is about, and an item is about several things at once. This atom is that and nothing more. Four decisions carry the weight. Tags are flat and many-to-many: no tag sits under another, and an item carries any number. A tag's name is unique and a rename keeps every item the tag is on, so fixing a typo never loses anything. And putting a tag on and taking a tag off are each safe to repeat, so a double click never errors. Tags are never removed, which keeps every item's tags real; a tag no longer wanted is simply taken off its items. Taken in from MIT's sync-engine Labeling concept (Daniel Jackson's group), narrowed to one list per deployment and made safe to repeat. Scott, 2026-11-18: a forum gets both categories and tags, and communities graduate a busy tag into a category, which is Tag Promotion's job.
 
 </details>
 
@@ -48,7 +48,7 @@ Term tag: one named tag in the deployment's list — a [Tag].
 
 Term tag id: the string the atom assigns a tag when the tag is created — a [Tag Id].
 
-Term tag name: the tag's name as the business wrote it, such as clay — a [Tag Name].
+Term tag name: the string the business wrote as the tag's name, such as clay — a [Tag Name].
 
 Term tagging: the record that one tag is on one item — a [Tagging].
 
@@ -74,6 +74,7 @@ Capability requirement 1: The deployment MUST supply the database PER Execution 
 Capability requirement 2: The deployment MAY declare the string cap PER Execution Contract Input 2 and Execution Contract Logic confinement 17.
 Capability requirement 3: The deployment MUST NOT normalize an item reference at the seam.
 Capability requirement 4: The deployment MUST NOT normalize a tag name at the seam.
+Capability requirement 5: The deployment MUST supply EVERY tag id PER Execution Contract Logic confinement 16.
 ```
 
 ### Operations
@@ -118,9 +119,9 @@ Operation 9: IF a tagging EXISTS for the tag id AND the item reference THEN [App
 Operation 10: IF a tagging EXISTS for the tag id AND the item reference THEN [Remove] MUST remove the tagging.
 Operation 11: IF no tagging EXISTS for the tag id AND the item reference THEN [Remove] MUST NOT write.
 Operation 12: A changing action MUST answer ok.
-Operation 13: [Tags On] MUST answer EVERY tag a tagging carrying the item reference names, in codepoint order of tag name.
-Operation 14: [Items With] MUST answer EVERY item reference a tagging carrying the tag id carries, in codepoint order.
-Operation 15: [List Tags] MUST answer EVERY tag, in codepoint order of tag name.
+Operation 13: [Tags On] MUST answer EVERY tag a tagging carrying the item reference names, in codepoint order of tag name (Execution Contract Logic confinement 10).
+Operation 14: [Items With] MUST answer EVERY item reference a tagging carrying the tag id carries, in codepoint order (Execution Contract Logic confinement 10).
+Operation 15: [List Tags] MUST answer EVERY tag, in codepoint order of tag name (Execution Contract Logic confinement 10).
 Operation 16: A reading action MUST NOT write.
 Operation 17: IF the tag name is malformed THEN a naming action MUST answer invalid-tag-name (Execution Contract Input 1).
 Operation 18: IF the item reference is malformed THEN a tagging action MUST answer invalid-item-reference (Execution Contract Input 1).
@@ -144,7 +145,7 @@ The case space, and the rule that owns each case:
 |---|---|---|---|
 | [Create] | name valid and unused | the tag id | one tag lands (Operation 5, Operation 6) |
 | a naming action | another tag carries the name | [Name Taken] | none (Operation 2) |
-| [Rename] | the tag exists, name valid and unused | ok | the name replaced; every tagging stands; the earlier name stays in the tag's history (Operation 7) |
+| [Rename] | the tag exists, name valid and unused | ok | the name replaced; every tagging stands; the earlier name stays in the tag's history (Operation 7, Execution Contract Database 5) |
 | [Apply] | the tag exists, the item does not carry the tag | ok | one tagging lands (Operation 8) |
 | [Apply] | the item already carries the tag | ok | none, no write (Operation 9) |
 | [Remove] | the item carries the tag | ok | the tagging removed (Operation 10) |
@@ -174,7 +175,7 @@ The same pattern in two domains, then the rejection paths.
 
 ### Forum
 
-A forum creates `create("clay")` and `create("cover-crops")`. A post, `p-7`, gets both: `apply(clay-id, "p-7")` and `apply(cover-id, "p-7")`. `items_with(clay-id)` now answers `p-7` with every other clay post, and `tags_on("p-7")` answers clay and cover-crops. A moderator fixes a typo in a tag first made as `claey` with `rename(claey-id, "clay")`; every post stays tagged.
+A forum creates `create("claey")`, a typo, and `create("cover-crops")`. A post, `p-7`, gets both: `apply(claey-id, "p-7")` and `apply(cover-id, "p-7")`. `items_with(claey-id)` now answers `p-7` with every other claey post, and `tags_on("p-7")` answers claey and cover-crops. A moderator fixes the typo with `rename(claey-id, "clay")`, a name no tag carries; every post stays tagged, and `tags_on("p-7")` now answers clay and cover-crops.
 
 ### Photo library
 
@@ -191,7 +192,7 @@ This covers every refusal but [Storage Failure], which answers when the database
 
 ## Generation acceptance
 
-Acceptable when the checks below are provable to an external auditor from the tags and taggings the database holds, with their earlier versions (Execution Contract Database 5, Execution Contract Generation acceptance 1). The atom is not regulated and carries no adversarial scenarios.
+Acceptable when the checks below are provable to an external auditor from the tags and taggings the database holds, with their earlier versions (Execution Contract Database 5). The atom is not regulated and carries no adversarial scenarios.
 
 ### Conformance checks
 
@@ -203,7 +204,7 @@ Check 2.2: An auditor MUST find no two tags sharing a tag id (Invariant 1.2).
 Check 2.3: An auditor MUST find no two taggings sharing a tag id AND an item reference (Invariant 1.3).
 ```
 
-Term version: a record as it stood at the commit that wrote it, which Execution Contract Database 5 keeps readable after the record changes and Execution Contract Generation acceptance 1 has a check read.
+Term version: a record as it stood at the commit that wrote it, which Execution Contract Database 5 keeps readable after the record changes.
 
 NOTE: EVERY check names the rule the check tests.
 
@@ -227,13 +228,13 @@ Non-goal 7: The atom MUST NOT count the items carrying a tag.
 
 NOTE: the owners — the composing pattern that knows the caller, such as one built on [Session](./session.md) or [Permissions](./permissions.md) (Non-goal 1, 2); Catalog *(forthcoming)* (Non-goal 3; External check 1); [Category](./category.md) (Non-goal 4, 5); Tag Promotion *(forthcoming)*, which graduates a busy tag into a category (Non-goal 6); the composing pattern that shows the tag, reading [Items With] (Non-goal 7).
 
-Where the atom breaks down: one place an item lives, shown in a menu, which is a [category](./category.md); a person's own mark to find an item again, which is a [Favorite](./favorite.md).
+Where the atom breaks down: one place an item lives, shown in a menu, which is a [Category](./category.md); a person's own mark to find an item again, which is a [Favorite](./favorite.md).
 
 ## Edge cases
 
 ### Concurrency
 
-Two [Apply] calls for one tag and one item are serialized (Execution Contract Database 2): the later meets the earlier's tagging and writes nothing. Two [Create] calls with one name are serialized the same way, and the later answers [Name Taken].
+Two [Apply] calls for one tag and one item are serialized (Execution Contract Database 2): the later meets the earlier's tagging and writes nothing. Two [Create] calls with one name each read the tags inside the transaction that writes (Execution Contract Database 2): the later meets the earlier's tag and answers [Name Taken].
 
 ### Indeterminate outcome
 
@@ -241,7 +242,7 @@ A caller whose answer is lost may call again, and the repeat is a second call (E
 
 ### What undoes a write
 
-[Remove] undoes [Apply] and [Apply] undoes [Remove]; a [Rename] is undone by a [Rename] carrying the earlier name. A [Create] is undone by taking the tag off every item, since the atom removes no tag (Execution Contract Undo 4).
+[Remove] undoes [Apply] and [Apply] undoes [Remove]; a [Rename] is undone by a [Rename] carrying the earlier name. A [Create] owes no undo: the atom removes no tag (State 4, Execution Contract Undo 4), and a tag no longer wanted is taken off its items.
 
 ## Composition notes
 
@@ -281,7 +282,7 @@ Kind: Operation
 
 #### Rename
 
-Replaces a tag's [Tag Name], keeping every [Tagging]; the earlier name stays in the tag's history. Answers ok.
+Replaces a tag's [Tag Name], keeping every [Tagging]; the earlier name stays in the tag's history (Execution Contract Database 5). Answers ok.
 
 Kind: Operation
 
@@ -337,7 +338,7 @@ Projection: tag_id
 
 #### Tag Name
 
-The tag's name as the business wrote it; no other tag carries the same name. Compared codepoint for codepoint.
+The string the business wrote as the tag's name; no other tag carries the same name. Compared codepoint for codepoint.
 
 Kind:       Field
 Field of:   Tag
@@ -430,14 +431,14 @@ Tag is a primitive with no regulatory anchor. It inherits from:
 
 ## Status
 
-`todo` — see the Ledger.
+`doing` — see the Ledger.
 
 ## Ledger
 
 ```
-status: todo
+status: doing
 formal: pending — no model yet
-last gate: none
+last gate: 2026-11-18 — Final Critique 1, frozen at 0c559850 — foundational count 1, cured by the settle, not clean, no sample
 
 open: none
 ```
