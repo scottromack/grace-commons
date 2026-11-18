@@ -70,6 +70,8 @@ Moved — a pattern's own Status line is the source of its state, and [`roadmap.
 
 Whole systems already run from these patterns. [`demos.md`](./demos.md) lists them: the Beacon Clinical Research Portal (118 tests), Multi-Party Approval (67) and Attributed Permissions Admin (35), each live; the counts are as `demos.md` states them. Beacon is rendered on four different stacks from the same patterns, and an audit chain written by one render verifies byte for byte under another. Before saying what Grace has not built, read `demos.md`. The one true limit: those renders were written to the patterns, by hand and by AI, and are not yet produced mechanically from a pattern.
 
+Built code changes only by changing what it is built from and building again (Scott, 2026-11-16: "We don't hack code ever"). No hand patches, demos included: a demo's code is a render of the patterns and its own written specification, and an edit to the render alone is a defect, not a fix. A fix that cannot be made by building again names what is missing from the patterns or the specification, writes it there first, and then builds.
+
 ## Workflow for adding a new pattern
 
 Moved — owned by the section titled *Workflow for adding a new pattern* in [`spec-format.md`](./spec-format.md) (as of 2026-11-14; before that, [`contributing.md`](./contributing.md)).
