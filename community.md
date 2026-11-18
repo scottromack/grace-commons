@@ -12,4 +12,4 @@ How to contribute is the first page below. How admission and sealing will be gov
 
 Three pages say how we treat each other and what to do when something goes wrong: the [code of conduct](./CODE_OF_CONDUCT.md), the [security policy](./SECURITY.md) and the [accessibility statement](./ACCESSIBILITY.md). How we talk about the work has rules of its own: [Marketing, the Grace way](./marketing.md).
 
-Questions go to [Discussions](https://github.com/scottromack/grace-commons/discussions/categories/q-a), in the Q&A category; findings go in an [issue](https://github.com/scottromack/grace-commons/issues/new/choose).
+Questions go to [Discussions](https://github.com/scottromack/grace-commons/discussions/categories/q-a), in the Q&A category; findings go in an [issue](https://github.com/scottromack/grace-commons/issues/new/choose). To talk with the people building Grace, join us on the [Discord](https://discord.gg/U2qdd7tR2): questions and findings keep their homes above, so the record stays on GitHub.
