@@ -94,7 +94,7 @@ Composition state 6: The composition MUST NOT change a compensable workflow reco
 Composition state 7: The composition MUST rebuild a compensable workflow record from the start event alone.
 Composition state 8: The composition MUST take the compensable workflow id from State Machine's instantiate.
 Composition state 9: The composition MUST read the start instant from the start event's recording instant.
-Composition state 10: The composition MUST NOT read a clock.
+Composition state 10: The composition MUST NOT read a clock beyond the one reading Execution Contract Logic confinement 19 gives a composition action.
 Composition state 11: The composition MUST derive a step's effect key from the compensable workflow id AND the step.
 Composition state 12: The composition MUST derive a compensation's effect key from the compensable workflow id, the step AND the compensation reference.
 Composition state 13: The composition MUST NOT mint an effect key PER attempt.
@@ -179,6 +179,8 @@ NOTE: open 2026-11-03-a — the parallel compensation order has no semantics: no
 Term compensation failure policy: halt-and-surface | continue — what a compensating phase does with a compensation the target definitely refused; halt-and-surface is the default.
 
 Term step completion bound: the longest an [Advance] may run between taking the critical section and the invocation's last write — the terminus of every in-invocation re-attempt, and the latest instant the invocation's halt event may land.
+
+NOTE: open 2026-11-18-a — the step completion bound is measured by the host's clock from taking the critical section, and the latest halt event is stamped by Event Log's recording instant; nothing names where the clock allowance is spent between the two (Execution Contract Logic confinement 18).
 
 Term critical section: the host-supplied mutual exclusion keyed by compensable workflow id, taken by every section-taking action before the action's first read.
 
@@ -310,7 +312,7 @@ Action wiring 15: The re-entry arm MUST re-run the effect of EVERY unresolved at
 Action wiring 16: The re-entry arm MUST re-run the unresolved attempts PER the compensation order.
 Action wiring 17: The re-entry arm MUST take a re-run's captured inputs from the target's answer to the re-run.
 Action wiring 18: The re-entry arm MUST NOT take captured inputs from the invocation's memory.
-Action wiring 19: A re-run MUST follow the verdict rules of the phase the re-run's attempt marker belongs to.
+Action wiring 19: A re-run MUST follow the verdict rules of the phase of the attempt marker of the attempt the re-run re-runs.
 Action wiring 20: The composition MUST read a verdict as failed ONLY IF the target answered the failure.
 Action wiring 21: The composition MUST append a step completion event ONLY IF the effect verdict EQUALS applied.
 Action wiring 22: A forward advance MUST append a step attempt event for the next step.
@@ -372,9 +374,8 @@ Action wiring 80: [Read Log] MUST NOT write.
 Action wiring 83: An advance landing a terminal marker MUST answer the advance result.
 Action wiring 84: A halted advance that answers no refusal MUST answer the advance result.
 Action wiring 87: A [Cancel] call in the forward phase, with no terminal marker, no unresolved attempt and no completed roll-forward step, MUST append a compensation onset event.
+Action wiring 88: A re-run MUST NOT append an attempt marker.
 ```
-
-NOTE: open 2026-11-06-a — nothing says whether a re-run under Action wiring 15 appends an attempt marker; Action wiring 19 reads a re-run's attempt marker as the one it re-runs.
 
 Term section-taking action: [Advance] | [Cancel] | [Read Progress].
 
@@ -667,7 +668,7 @@ Where the composition breaks down: when a step's external effect is irreversible
 ### Concurrency
 
 ```
-Concurrency 1: The step log order MUST follow the order the critical section gave the invocations.
+Concurrency 1: A compensable workflow's step log order MUST follow the order the compensable workflow's critical section gave the invocations.
 Concurrency 2: The composition MUST order a compensable workflow's events by sequence number alone.
 ```
 
@@ -942,14 +943,14 @@ It composes with, and is positioned against, [Idempotent Reservation](./idempote
 
 ## Status
 
-`doing` — see the Ledger.
+`done — 2026-11-18` — see the Ledger.
 
 ## Ledger
 
 ```
-status: doing
+status: done — 2026-11-18
 formal: verified — compensable-workflow.tla + 17 twins, re-derived 2026-11-08 (it was verified 2026-06-16 over a bare effect-then-record window): the attempt marker before every effect and the four-way verdict (applied, failed, indeterminate, unknown); the critical section as a second writer, with lease expiry as its terminus and the expired invocation's reply discarded; the halt that parks an attempt and the operator's resume under the horizon assertion, with the effect key lapsing while the run rests halted; both compensation failure policies; the pivot; the overflow landing; Invariants 2.1, 4, 4.1 to 4.5, 5.1, 6.3, 7.1, 7.2 and 8.1 checked, with Check 7.1, Replay 12, Primitive policy 23 through 25, Action wiring 30, 72 and 73 and Non-goal 9; the parallel compensation order (open 2026-11-03-a), the spine fault, the start and the reads are not modelled, and the bound is two steps because three run past the checker's depth cap; closes 2026-08-30-a; compensable-workflow.als + 17 twins (the static data model, 2026-11-12: Invariant 2.1, 3.1, 4.1 to 4.3, 4.5, 5.1, 6.1 to 6.3, 7.2 and 8.1, Action wiring 30, 72 and 73, Non-goal 9, Check 8.2, Composition state 13 and Replay 12 checked on every definition, spine and step log the writers can leave, each event as its writer's rules let it land over the replay of the events before it, all but Invariant 3.1, 6.1, 6.2 and Composition state 13 a cross-check with the TLA+ model; nothing testable in Alloy for Invariant 1.1 and 1.2 (an act is no record), 4.4 (an escaped effect is no record) and 7.1 (the claim and the deployment's declarations are no records); the model found that Primitive policy 12 admits an effect step marked read-only with no compensating action, whose completion carries no compensation reference against Invariant 3.1 (checked over the steps not marked read-only), that no rule says what a compensating advance does with a completed step declaring no compensating action, which stays a pending compensation so the run can neither close nor halt, and that under the continue policy an operator's resume runs a failed newer step's compensation after the older steps', a conforming log against Check 5.1's run-event order); coverage 2026-11-10 (unit formal: more coverage for the yes votes): owed rows: 2a: Action wiring 27, 42, 46, 52 — owed: each as a PROPERTY (a failed, indeterminate or unknown effect is eventually re-attempted) with weak fairness on the re-attempt stated in the header; twin: an invocation that never re-attempts, 2026-11-08
-last gate: 2026-11-06 — Final Critique 8, a delta round, frozen at ef1f25a — foundational count 0, clean, one sample; 2026-11-05 — Final Critique 7, a delta round, frozen at 82d4603 — foundational count 1, cured by the settle, not clean, no sample; 2026-11-05 — Final Critique 6, a delta round, frozen at de92f1e — foundational count 1, cured by the settle, not clean, no sample; 2026-11-03 — Final Critique 5, frozen at f0729b8 — foundational count 12, cured, not clean, no sample; Final Critique 4, 2026-06-16, fresh reader — clean
+last gate: 2026-11-18 — Final Critique 9, a delta round, one reader (Linus longcat-2.0), frozen at 28224918 — foundational count 0 after the blind second triage, clean, one sample; 2026-11-06 — Final Critique 8, a delta round, frozen at ef1f25a — foundational count 0, clean, one sample; 2026-11-05 — Final Critique 7, a delta round, frozen at 82d4603 — foundational count 1, cured by the settle, not clean, no sample; 2026-11-05 — Final Critique 6, a delta round, frozen at de92f1e — foundational count 1, cured by the settle, not clean, no sample; 2026-11-03 — Final Critique 5, frozen at f0729b8 — foundational count 12, cured, not clean, no sample; Final Critique 4, 2026-06-16, fresh reader — clean
 
 open:
 - 2026-11-03-a · refining · Action wiring 16, Action wiring 32 · the parallel compensation order carries no semantics, so PER and the advance result's single step are unevaluable under it → say what a parallel compensating advance runs and names, or retire the order
@@ -957,7 +958,7 @@ open:
 - 2026-11-03-c · refining · Action wiring 1 · nothing says how the bound's elapsing is observed or what a failed take of the critical section answers → decide the answer
 - 2026-11-03-d · refining · Capability requirement 17 · the longest attempt gap includes a rest in the halted phase, which the deployment cannot keep → decide whether the halted rest is bounded or answered by the horizon assertion alone
 - 2026-11-03-e · refining · Composes 4 · a fire by another caller breaks Invariant 2.1 with no fault halt → bar a second caller or name its owner
-- 2026-11-06-a · refining · Action wiring 15 · no rule says whether a re-run under Action wiring 15 appends an attempt marker, so an auditor applying Check 1.1 infers the answer from Action wiring 19 and the worked example → state that a re-run opens no attempt marker and is resolved by the completion record or onset event it lands
+- 2026-11-18-a · refining · Term step completion bound · the bound is measured by the host's clock and the latest halt event carries Event Log's recording instant, with no named place the clock allowance is spent → name where Execution Contract Logic confinement 18's allowance applies, or say the two are never compared
 ```
 
 <details markdown="block">
