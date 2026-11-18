@@ -149,7 +149,7 @@ Capability requirement 12: The revocation proposal format MUST stand fixed.
 Capability requirement 13: The revocation proposal format MUST carry the namespace prefix.
 Capability requirement 14: A deployment MUST NOT set the revocation proposal format.
 Capability requirement 15: A deployment MUST serialize a proposal canonically.
-Capability requirement 20: The deployment MUST declare the clock offset allowance (Execution Contract Logic confinement 7).
+Capability requirement 20: The deployment MUST declare the clock offset allowance (Execution Contract Logic confinement 18).
 Capability requirement 27: A deployment MUST declare the retention scope.
 Capability requirement 28: A deployment MUST serve a purge record PER purged attestation.
 Capability requirement 29: The composition's length cap MUST NOT EXCEED the Permissions instance's length cap.
@@ -178,7 +178,7 @@ Term retention scope: the deployment's declaration of what a purge covers — a 
 
 Term purge record: the retention layer's own record that a named attestation was lawfully destroyed.
 
-Term clock offset allowance: clock offset allowance — the declared envelope within which the two constituents' stamps, each written at its own seam, may be compared.
+Term clock offset allowance: clock offset allowance — the most two of the deployment's clocks may differ, as Execution Contract Logic confinement 18 declares it.
 
 Term length cap: the composition's declared maximum length of an opaque input, in Unicode code points.
 
@@ -417,6 +417,8 @@ Housekeeping 18: The failed-grant leg MUST NOT read an aged-out unpaired attesta
 Housekeeping 20: EXACTLY ONE writer MUST land an administrative act.
 ```
 
+NOTE: open 2026-11-18-a — the failed-grant leg ages an attestation by the request instant its proposal carries (Housekeeping 13), a reading another call took, and spends no clock offset allowance there, while Housekeeping 14 widens the bound only where the leg ages by a constituent's stamp, a state Housekeeping 13 never reaches (Execution Contract Logic confinement 18 and 19).
+
 Term failed-grant leg: the leg the Housekeeping rules state — this composition's own, over the attestations no attribution entry names.
 
 Term post-enumeration grant: a grant a concurrent issuance committed later than a pair-scoped revocation's enumeration.
@@ -446,9 +448,8 @@ Invariant 3.1: The composition MUST answer a grant's record, the grant's issuanc
 Invariant 3.2: The composition MUST answer a revoked grant's revocation attestation AND revocation verification PER consistent attribution.
 Invariant 3.3: The composition MUST answer a grant's attribution without a log.
 Invariant 3.4: The composition MUST answer a grant's attribution provably.
-Invariant 4.1: An issuance attestation's stamp MUST NOT EXCEED the grant's grant instant taken with the clock offset allowance.
-Invariant 4.2: A revocation attestation's stamp MUST NOT EXCEED the grant's revocation instant taken with the clock offset allowance.
-Invariant 4.3: The composition MUST NOT claim Invariant 4.1 under a non-monotonic clock.
+Invariant 4.1: The stamp of the attestation a grant attribution entry names MUST EQUAL the grant instant of the grant whose handle keys the entry (Execution Contract Logic confinement 19).
+Invariant 4.2: The stamp of the attestation a revocation attribution entry names MUST EQUAL the revocation instant of the grant whose handle keys the entry (Execution Contract Logic confinement 19).
 Invariant 4.4: No write MUST rest on Invariant 4.1.
 Invariant 5.1: EVERY Permissions invariant MUST hold over the Permissions instance.
 Invariant 5.2: EVERY Actor Identity invariant MUST hold over the Actor Identity instance.
@@ -471,6 +472,8 @@ Invariant 9.1: EVERY grant of an enumerated set a pair-scoped revocation answere
 Invariant 9.2: EVERY grant of an enumerated set a pair-scoped revocation answered ok for MUST carry a revocation attribution entry.
 Invariant 9.3: The composition MUST NOT state Invariant 9.1 over the pair.
 ```
+
+NOTE: open 2026-11-18-b — Invariant 4.2 has no check: Check 3.1 and Check 3.3 compare the issuance attestation's stamp only, and no check runs the revocation comparison.
 
 ---
 
@@ -539,9 +542,7 @@ Check 2.1: An auditor MUST find a revocation attribution entry PER administered 
 Check 2.2: An auditor MUST call Actor Identity's verify for the named revocation attestation (Invariant 3.2).
 Check 2.3: An auditor MUST read an unpaired revoked grant as an attribution inconsistency (Invariant 2.1).
 Check 3.1: An auditor MUST compare an issuance attestation's stamp against the grant's grant instant PER administered grant (Invariant 4.1).
-Check 3.2: An auditor MUST run the comparison under the clock offset allowance (Invariant 4.1).
-Check 3.3: An auditor MUST NOT read an inversion inside the clock offset allowance as a finding (Invariant 4.1).
-Check 3.4: An auditor MUST NOT read an inversion under a non-monotonic clock as a finding (Invariant 4.3).
+Check 3.3: IF the issuance attestation's stamp DOES NOT EQUAL the grant's grant instant THEN an auditor MUST read the grant attribution entry as a finding (Invariant 4.1).
 Check 4.1: An auditor MUST clear Permissions' conformance checks over the Permissions instance (Invariant 5.1).
 Check 4.2: An auditor MUST clear Actor Identity's conformance checks over the Actor Identity instance (Invariant 5.2).
 Check 4.3: An auditor MUST NOT count a constituent's conformance checks (Invariant 5.4).
@@ -625,7 +626,6 @@ Clock dependence 1: A guard MUST NOT rest on now at this composition.
 Clock semantics 5: The request instant MUST NOT gate a write.
 Clock semantics 6: The nonce MUST carry a grant proposal's uniqueness.
 Clock semantics 7: The request instant MUST NOT carry a grant proposal's uniqueness.
-Clock semantics 11: A check comparing two seams' stamps MUST run under the clock offset allowance.
 ```
 
 ### Concurrency
@@ -664,7 +664,7 @@ The canonical concepts this spec refers to. Each `[Term]` marker in the prose ab
 
 Term actors: the composition; a deployment; the host; the seam; the transition; a caller; an auditor; an administrative surface; a reader; an implementation; an invocation; an action; an administrative act; an issuance; a revocation; a pair-scoped revocation; an admitted issuance; an admitted revocation; an evaluation; an attestation; a landed attestation; an orphan attestation; a proposal; a grant; an administered grant; a revoked grant; a grantor; a revoker; a subject; a scope; a credential; a grant's handle; a nonce; a request instant; an attribution entry; a grant attribution entry; a revocation attribution entry; the grant attribution map; the revocation attribution map; an index; the orphan log; an orphan log entry; the failed-grant leg; an enumerated set; a critical section; a purge; a purge record; a lawful destruction; the tamper reading; a forensic finding; a verify result; a retention scope; the retention horizon; a purge-pending orphan; a non-conformant purge; the namespace prefix; the grant proposal format; the revocation proposal format; the clock offset allowance; the length cap; the binding registry; Permissions; Actor Identity; a constituent; a constituent's stamp; a clock reading; two issuances; two seams.
 
-Term record verbs: serve, change, inherit, read, hold, reach, call, select, query, attest, own, place, admit, drive, know, push, store, classify, carry, stand, claim, populate, name, alert, drop, take, rebuild, recognize, supply, mint, generate, accept, configure, set, provision, rotate, disclose, run, fire, serialize, resolve, reconcile, refuse, normalize, fold, trim, compare, judge, propagate, cap, truncate, allocate, reuse, pair, make, retry, leave, record, answer, substitute, add, complete, clear, empty, write, advance, repoint, renew, cross, find, confirm, reproduce, establish, match, escalate, emit, expose, validate, commit, detect, inject, stamp, derive, deduplicate, model, schedule, adjudicate, purge, unwind, gate, index, anchor, surface, treat, sweep, spend, enroll, verify, suspend, reinstate, belong, elapse, invoke, duplicate, block, govern, identify, decide, reverse, destroy, revoke, enlist, snapshot, size, adopt, yield, release, count, abort, log, prove, weaken, lapse, deactivate, restore, issue, terminate, enumerate, declare, diverge, persist, inspect, digest, proceed, open, continue, append, compute, transition, produce, sample, repair, resume, restart, retake, assemble, filter, grant, project, aggregate, withdraw, survive, manage, evaluate, bound, seal, age, attribute, check, compose, cover, delete, forbid, group, interpose, key, land, modify, pass, perform, promise, report, require, rest, share, state, widen, wrap.
+Term record verbs: EQUAL, serve, change, inherit, read, hold, reach, call, select, query, attest, own, place, admit, drive, know, push, store, classify, carry, stand, claim, populate, name, alert, drop, take, rebuild, recognize, supply, mint, generate, accept, configure, set, provision, rotate, disclose, run, fire, serialize, resolve, reconcile, refuse, normalize, fold, trim, compare, judge, propagate, cap, truncate, allocate, reuse, pair, make, retry, leave, record, answer, substitute, add, complete, clear, empty, write, advance, repoint, renew, cross, find, confirm, reproduce, establish, match, escalate, emit, expose, validate, commit, detect, inject, stamp, derive, deduplicate, model, schedule, adjudicate, purge, unwind, gate, index, anchor, surface, treat, sweep, spend, enroll, verify, suspend, reinstate, belong, elapse, invoke, duplicate, block, govern, identify, decide, reverse, destroy, revoke, enlist, snapshot, size, adopt, yield, release, count, abort, log, prove, weaken, lapse, deactivate, restore, issue, terminate, enumerate, declare, diverge, persist, inspect, digest, proceed, open, continue, append, compute, transition, produce, sample, repair, resume, restart, retake, assemble, filter, grant, project, aggregate, withdraw, survive, manage, evaluate, bound, seal, age, attribute, check, compose, cover, delete, forbid, group, interpose, key, land, modify, pass, perform, promise, report, require, rest, share, state, widen, wrap.
 
 Term records: empty.
 
@@ -785,16 +785,18 @@ It inherits from:
 
 ## Status
 
-`doing` — see the Ledger.
+`done — 2026-11-18` — see the Ledger.
 
 ## Ledger
 
 ```
-status: doing
-formal: pending — attributed-permissions-admin.als + 25 twins and attributed-permissions-admin.tla + twins (verified 2026-11-11) model the rule of 2026-11-16 reversed: Wiring decision 8 and Concurrency 1 through 3 as they stood (two issuances over one pair, two grants) and an issuance with no read of the pair; owed over Action wiring 1, 2, 7, 15 and 103 through 106, Concurrency 1, 2, 10 and 11 and the underlying reason already-held, the twins re-derived with them; the Alloy model and its twins let each constituent's stamp stand off the composition's reading within the clock offset allowance, citing Clock semantics 9, which retired with Clock semantics 10 to Execution Contract Logic confinement 19 on 2026-11-18: inside one call the two offsets are now zero, a state the models already include, so A_Invariant_4_1 and A_Invariant_4_2 hold over it as checked, and the offsets and their citation are owed with the same re-derivation
-last gate: 2026-11-18 — Final Critique 13, a delta round, one reader (Linus qwen3.8-flash), frozen at 10294eba — foundational count 0 after the blind second triage, clean, one sample; 2026-11-16 — Final Critique 12, a delta round, one reader (Linus minimax-m3), frozen at e98bc218 — foundational count 0 after the blind second triage, clean, one sample; 2026-11-16 — Final Critique 11, a delta round, one reader (Linus minimax-m3), frozen at 1619f21 — foundational count 1, cured, not clean, no sample; 2026-11-05 — Final Critique 10, delta, frozen at a6a6920 — foundational count 0, clean, one sample
+status: done — 2026-11-18
+formal: pending — attributed-permissions-admin.als + 25 twins and attributed-permissions-admin.tla + twins (verified 2026-11-11) model the rule of 2026-11-16 reversed: Wiring decision 8 and Concurrency 1 through 3 as they stood (two issuances over one pair, two grants) and an issuance with no read of the pair; owed over Action wiring 1, 2, 7, 15 and 103 through 106, Concurrency 1, 2, 10 and 11 and the underlying reason already-held, the twins re-derived with them; the Alloy model and its twins let each constituent's stamp stand off the composition's reading within the clock offset allowance (the Deploy signature's allowance and offsets, the facts ClockIsMonotonic and SeamsWithinTheAllowance, and A_Invariant_4_1 and A_Invariant_4_2 as inequalities taken with the allowance, citing Clock semantics 9), and Final Critique 14 (2026-11-18) restated Invariant 4.1 and 4.2 as equalities of one call's stamps and retired Invariant 4.3, Check 3.2, Check 3.4 and Clock semantics 11, with Clock semantics 9 and 10, to Execution Contract Logic confinement 19; the models, their buggy twins `-buggy-issue-grantfirst` and `-buggy-revoke-revokefirst` (which no longer show in the stamps once one reading stamps both) and the coverage matrix's rows 23, 35 to 37 and 65 are owed the same re-derivation: one reading per call, the two assertions as equalities, a twin whose host stamps a constituent from a reading of its own
+last gate: 2026-11-18 — Final Critique 14, a delta round, one reader (Linus qwen3.8-flash), frozen at 213cedcb — foundational count 0 after the blind second triage, clean, one sample; 2026-11-18 — Final Critique 13, a delta round, one reader (Linus qwen3.8-flash), frozen at 10294eba — foundational count 0 after the blind second triage, clean, one sample; 2026-11-16 — Final Critique 12, a delta round, one reader (Linus minimax-m3), frozen at e98bc218 — foundational count 0 after the blind second triage, clean, one sample; 2026-11-16 — Final Critique 11, a delta round, one reader (Linus minimax-m3), frozen at 1619f21 — foundational count 1, cured, not clean, no sample; 2026-11-05 — Final Critique 10, delta, frozen at a6a6920 — foundational count 0, clean, one sample
 
 open:
+- 2026-11-18-a · refining · Housekeeping 13, 14 · the failed-grant leg ages an attestation by the request instant another call's reading wrote and spends no clock offset allowance there, and Housekeeping 14's condition (the leg ages by a constituent's stamp) is never true under Housekeeping 13 → say whether the leg widens the retention horizon by the allowance at that comparison (Execution Contract Logic confinement 18, 19), or retire Housekeeping 14, Capability requirement 20 and the allowance term with it; the Alloy FINDINGS record on Housekeeping 13 and 14 changes with the answer
+- 2026-11-18-b · refining · Invariant 4.2 · no check runs the revocation comparison (Check 3.1 and Check 3.3 name the issuance attestation only) → add the check beside Check 3.1
 - 2026-11-04-a · refining · Action wiring · the section carries no closure table as the subsection's first block (spec-format, composition shape): for every action, every constituent call it makes and each call's answer, refusals, failed read and call that never answers, each with the rule that lands it → draft the table in Recoverable Invocation's form before any further rule, in a unit of its own
 - 2026-11-16-a · refining · Capability requirement 29, 36 · the composition's length cap is tied to the Permissions instance's length cap and to no bound of the Actor Identity instance's string cap, which the attested proposal can exceed with each field inside the cap → say what bound the composition's cap takes against Actor Identity's string cap
 - 2026-10-27-b · refining · Composition state 16, 17, 19, 28 · an orphan log entry carries the proposal and is never dropped, while its orphan attestation is purged under its own retention → say whether a purge covers the entry, or the entry ages out on a retention of its own

@@ -116,6 +116,7 @@ Deleted: Housekeeping 19. Action wiring 38 owns it: a retry stands as a fresh ad
 ```
 Deleted: Invariant 1.3. Execution Contract Database 1 owns it.
 Deleted: Invariant 2.3. Execution Contract Database 1 owns it.
+Deleted: Invariant 4.3. Execution Contract Logic confinement 19 owns it: the two stamps Invariant 4.1 compares are one call's one reading, so the invariant rests on no clock's monotonicity.
 Deleted: Invariant 9.4. Execution Contract Database 1 and Execution Contract Database 2 own it.
 ```
 
@@ -123,6 +124,8 @@ Deleted: Invariant 9.4. Execution Contract Database 1 and Execution Contract Dat
 
 ```
 Deleted: Check 1.3. Execution Contract Database 1 owns it.
+Deleted: Check 3.2. Execution Contract Logic confinement 19 owns it: inside one composition call there is one reading, so the comparison Check 3.1 runs spends no clock offset allowance.
+Deleted: Check 3.4. Execution Contract Logic confinement 19 owns it: the two stamps Check 3.1 compares are one call's one reading, under a non-monotonic clock as under any.
 Deleted: Check 5.4. Execution Contract Database 1 owns it.
 Deleted: Check 5.5. Execution Contract Database 1 owns it.
 ```
@@ -159,6 +162,7 @@ Deleted: Clock semantics 4. Execution Contract Logic confinement 3 owns it.
 Deleted: Clock semantics 8. Clock dependence 1 owns it.
 Deleted: Clock semantics 9. Execution Contract Logic confinement 19 owns it: a composition action reads the clock once and every constituent call it makes takes that reading as its now, so a constituent's stamp the call wrote is the composition's own reading (Scott, 2026-11-18 6:52 AM Central, "YYY", rounds/escalations.md 2026-11-18 12:52Z, item 2).
 Deleted: Clock semantics 10. Execution Contract Logic confinement 19 owns it: inside one composition call the composition and every constituent it calls read one now, so two constituents' stamps the call wrote are one reading (Scott, 2026-11-18 6:52 AM Central, "YYY", rounds/escalations.md 2026-11-18 12:52Z, item 2).
+Deleted: Clock semantics 11. Execution Contract Logic confinement 19 and Execution Contract Logic confinement 18 own it: two seams' stamps one call wrote are one reading and spend no allowance, and where a reading of one call meets an instant another call's reading carries, Housekeeping 14 names where this composition spends the clock offset allowance.
 ```
 
 ### Edge cases › Concurrency

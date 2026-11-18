@@ -147,7 +147,7 @@
    "permissions",
    "actor-identity"
   ],
-  "grounded": false,
+  "grounded": true,
   "invariants": 9,
   "kind": "composition",
   "models": {
@@ -165,7 +165,7 @@
    "PCI DSS",
    "SOX"
   ],
-  "status": "doing",
+  "status": "done \u2014 2026-11-18",
   "substrates": [],
   "title": "Attributed Permissions Admin"
  },
