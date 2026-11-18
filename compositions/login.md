@@ -108,7 +108,7 @@ Term login event: the login-family event an admitted login records — login_fai
 
 **Contract classification: two derived indexes and one extraction-pending element** (the section titled Composition state in [`execution-contract.md`](../execution-contract.md)).
 
-- The two **maps** are a *derived index*, and the pairing fact lives in a constituent: every issued session's `(credential_id, session_token)` pair is immutable audit content, written into the login_succeeded event's data, which commits with the session. *Rebuild procedure:* enumerate the substrate through the declared read, select the login succeeded events, and group each data's session token by its credential id. **Bound on the rebuild's totality, stated rather than assumed:** the traversal reads event payloads the substrate destroys at its retention horizon, so the rebuild is total only within that horizon — and the readers need it total for one session lifetime, not for the life of the credential (Primitive policy 18). A map write that fails leaves its pair on the login_succeeded event, so the rebuild reconstructs exactly the backfill Invariant 2.4's remediation prescribes — rebuild-on-miss **is** the remediation path.
+- The two **maps** are a *derived index*, and the pairing fact lives in a constituent: every issued session's `(credential_id, session_token)` pair is immutable audit content, written into the login_succeeded event's data, which commits with the session. *Rebuild procedure:* enumerate the substrate through the declared read, select the login succeeded events, and group each data's session token by its credential id. **Bound on the rebuild's totality, stated rather than assumed:** the traversal reads event payloads the substrate destroys at its retention horizon, so the rebuild is total only within that horizon — and the readers need it total for one session lifetime, not for the life of the credential (Primitive policy 18). A map write that fails leaves its pair on the login_succeeded event, so the rebuild (Composition state 7) and the sweep's backfill (Reconciliation 20) restore exactly the entry Invariant 2.4 keeps in the cascade set — rebuild-on-miss **is** the remediation path.
 - The **login event log** is *extraction-pending, against [Event Log](../atoms/event-log.md)*. The Contract's record-coordination rule says a composition that must record that its own calls occurred composes Event Log rather than growing bespoke records, and that is the extraction pending here: a second Event Log instance for the login-attempt journal, at which point the entries become that instance's events and the classification question dissolves.
 
 ### Capability requirement
@@ -212,7 +212,7 @@ Action wiring 14: IF the session-to-credential map, rebuilt as Composition state
 Action wiring 15: IF Session's revoke answers not-known THEN an admitted logout MUST answer not-known.
 Action wiring 16: An admitted logout MUST record a logout event under the service identity, carrying the session token, the revoked by reference, the reason AND now.
 Action wiring 17: An admitted cascade MUST read the cascade set ONLY AFTER recording a cascade initiation event.
-Action wiring 18: An admitted cascade MUST read the cascade set as the union of the map entry AND the event-derived set.
+Action wiring 18: An admitted cascade MUST read the cascade set as the union of the credential-to-sessions map's entry AND the event-derived set.
 Action wiring 19: An admitted cascade MUST call Session's validate for EVERY session token the cascade set carries.
 Action wiring 20: An admitted cascade MUST call Session's revoke for EVERY session token Session's validate answers valid for.
 Action wiring 21: An admitted cascade MUST NOT call Session's revoke for a session token Session's validate answers invalid for.
@@ -353,7 +353,6 @@ Every input an action takes and every answer a call of the three actions can mee
 Wiring decision 1: The composition MUST gate a session's issuance on Credential's verify answering verified.
 Wiring decision 2: The composition MUST cascade a credential's revocation to the credential's sessions.
 Wiring decision 3: The composition MUST NOT revoke a credential.
-Wiring decision 4: The composition MUST NOT read a cascade as complete for a session the cascade set did not carry.
 ```
 
 ### Reconciliation
@@ -396,10 +395,10 @@ Each emerges from the composition; none belongs to one constituent.
   ```
   Invariant 2.1: EVERY session the cascade set carried AND Session's validate answered valid for AND the cascade did not count failed MUST stand terminal at the cascade's return.
   Invariant 2.2: The composition MUST NOT read a cascade as covering a session the cascade set did not carry.
-  Invariant 2.3: The cascade set MUST carry the union of the map's entry AND the event-derived set.
+  Invariant 2.3: The cascade set MUST carry the union of the credential-to-sessions map's entry AND the event-derived set.
   Invariant 2.4: A lost map entry MUST NOT shrink the cascade set by a session whose login succeeded event the substrate holds.
   ```
-  *Rests on:* Action wiring 17 through 20, 34, 41 and 42; Wiring decision 2 and 4; Reconciliation 17 and 20; Session's validate and revoke.
+  *Rests on:* Action wiring 17 through 20, 34, 41 and 42; Wiring decision 2; Reconciliation 17 and 20; Session's validate and revoke.
 - **Invariant 3 — Session-credential traceability.**
   ```
   Invariant 3.1: EVERY session-to-credential entry's credential id MUST equal the credential id the login's credential id read answered (Action wiring 5).
@@ -469,7 +468,7 @@ Check 1.1: An auditor MUST find EVERY login succeeded event naming a session tok
 Check 1.2: An auditor MUST find EVERY session-to-credential entry naming a credential id the credential records carry (Invariant 3.1).
 Check 2.1: An auditor MUST find the credential-to-sessions map AND the session-to-credential map agreeing (Invariant 6.1).
 Check 2.2: An auditor MUST rebuild both maps from the substrate's login succeeded events (Composition state 7).
-Check 2.3: IF a login succeeded event's age EXCEEDS the reconciliation window THEN an auditor MUST find the event's session token carrying an entry in both maps (Reconciliation 20).
+Check 2.3: IF a login succeeded event's age EXCEEDS the reconciliation window THEN an auditor MUST find the event's session token carrying an entry in the credential-to-sessions map AND the session-to-credential map the deployment stores (Reconciliation 20).
 Check 3.1: An auditor MUST find EVERY login call answering the login result or invalid-credential carrying one login event log entry (Composition state 10).
 Check 3.2: An auditor MUST find EVERY login event log entry's outcome matching the mirrored event's action reference (Composition state 10).
 Check 3.3: An auditor MUST rebuild a principal reference's session set from the login event log (Composition state 10).
@@ -480,6 +479,8 @@ Check 6.1: An auditor MUST find EVERY audit event of the composition attested un
 ```
 
 NOTE: EVERY check names the rule the check tests.
+
+NOTE: open 2026-11-17-a — Check 5.1 finds a revoked session carrying a revocation-family event, and the substrate purges that event at its retention horizon while the session record stays, so no event is found between the purge and the sweep's next run (Reconciliation 15).
 
 NOTE: watch the check over a derived index — Check 1.1 reads the rebuilt map Invariant 5.1 names, and Check 2.3 waits out the reconciliation window the backfill runs in (Reconciliation 20), so a deployment whose map write failed passes both.
 
@@ -609,16 +610,17 @@ Inherited from:
 
 ## Status
 
-`doing` — see the Ledger.
+`done — 2026-11-17` — see the Ledger.
 
 ## Ledger
 
 ```
-status: doing
+status: done — 2026-11-17
 formal: verified — login.tla + 7 twins; login.als + 11 twins (the static data model, 2026-11-12: Invariant 1.1, 1.2, 2.1, 2.2, 2.3, 2.4, 3.1, 5.1, 5.2 and 6.1, with Composition state 13 and Check 3.2 and 4.1, checked on every state of the credential and session records, the login event log with each entry's login event, the two maps (each login's map write a commit of its own, which may fail, and the sweep's backfill), the logouts and the cascades with their sets, answers, counts and events; nothing testable in Alloy for Composition state 4 and 5 (two states compared), Action wiring 17 and 37 (an order inside one transaction) and Check 2.3 (the reconciliation window, a clock); the model found that no state the page's rules reach holds a cascade initiation without its completion, since the cascade is one transaction and its every failure arm commits nothing (Audit arm 13, Execution Contract Constituent failure 1), so Reconciliation 12, 17 and 19 and Check 4.1's abandoned arm have no state to act on, as Reconciliation 5 has none for a login's entry, since Audit arm 9 through 11 were deleted); coverage 2026-11-10 (unit formal: more coverage for the yes votes), 2026-11-12: no owed rows, 2026-11-12
-last gate: 2026-11-17 — Final Critique 16 — full, frozen at 376d0c3 — foundational count 3, not clean, no sample; the revocation instant out of Reconciliation 22's match (a constituent's stamp and the composition's event are two clock readings), the rebuild scoped to a lost entry (Composition state 7, Invariant 2.4) and the login succeeded event scoped to the service identity's own events, all cured, and the refining items cured or refuted against the Execution Contract; 2026-11-15 — Final Critique 15 — delta, frozen at 5ff50de — foundational count 0, clean, no sample; Linus's three foundational reports placed by both triages: one refuted against Action wiring 10, one refining (Action wiring 23) and one rhetorical (Term login transaction), both cured in wording, and the five refining items cured or left as written, so the page grounds; 2026-11-06 — Final Critique 14 — delta, frozen at efa2db9 — foundational count 0, clean, no sample; Linus's one finding (Capability requirement 16, no cross-instance id source) refuted against Logic confinement 16 by both triages, and the Final Critique 13 cure (Audit arm 9 through 11) was read whole with no finding, so the page grounds; 2026-11-05 — Final Critique 13 — delta, frozen at 82d4603 — foundational count 0, clean, no sample; the settle cured Ledger open line 2026-10-29-b, a foundational line no reader had read (Scott's ruling of 2026-11-03 21:53Z), so the page is not grounded and owes a delta round; 2026-11-04 — Final Critique 12 — delta, foundational count 1, not clean, no sample
+last gate: 2026-11-17 — Final Critique 17 — delta, frozen at 5013eb4 — foundational count 0, clean, no sample; Linus's five foundational reports placed by both triages, all refuted against rules of the page and the Execution Contract the delta set did not hold or read past (Composition state 3 and Database 1 for the maps, Constituent failure 1 and Database 1 for the revocation and the cascade-set read, Capability requirement 13 for the cadence, Reconciliation 20 with Capability requirement 21 for Check 4.2), and the refining and rhetorical items cured in wording (Wiring decision 4 deleted to Invariant 2.2, Check 2.3 names the stored maps, the cascade set's map named) or refuted, so the page grounds; 2026-11-17 — Final Critique 16 — full, frozen at 376d0c3 — foundational count 3, not clean, no sample; the revocation instant out of Reconciliation 22's match (a constituent's stamp and the composition's event are two clock readings), the rebuild scoped to a lost entry (Composition state 7, Invariant 2.4) and the login succeeded event scoped to the service identity's own events, all cured, and the refining items cured or refuted against the Execution Contract; 2026-11-15 — Final Critique 15 — delta, frozen at 5ff50de — foundational count 0, clean, no sample; Linus's three foundational reports placed by both triages: one refuted against Action wiring 10, one refining (Action wiring 23) and one rhetorical (Term login transaction), both cured in wording, and the five refining items cured or left as written, so the page grounds; 2026-11-06 — Final Critique 14 — delta, frozen at efa2db9 — foundational count 0, clean, no sample; Linus's one finding (Capability requirement 16, no cross-instance id source) refuted against Logic confinement 16 by both triages, and the Final Critique 13 cure (Audit arm 9 through 11) was read whole with no finding, so the page grounds; 2026-11-05 — Final Critique 13 — delta, frozen at 82d4603 — foundational count 0, clean, no sample; the settle cured Ledger open line 2026-10-29-b, a foundational line no reader had read (Scott's ruling of 2026-11-03 21:53Z), so the page is not grounded and owes a delta round; 2026-11-04 — Final Critique 12 — delta, foundational count 1, not clean, no sample
 
 open:
+- 2026-11-17-a · refining · Check 5.1, Reconciliation 15 · a revoked session record outlives its revocation-family event, which the substrate purges at its retention horizon, so Check 5.1 finds none between the purge and the sweep's next run and Reconciliation 15 records a new event each retention period → decide whether Check 5.1 and Reconciliation 15 stop at the retention horizon, or the re-record stands
 - 2026-08-29-a · refining · formal · the model's sweep carries no upper edge and no recovery record → extend it
 ```
 

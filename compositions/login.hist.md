@@ -124,4 +124,5 @@ Deleted: External check 3. Execution Contract Database 1 owns it.
 ```
 Deleted: Non-goal 3. Wiring decision 3 owns it.
 Deleted: Non-goal 14. Invariant 2.2 owns it.
+Deleted: Wiring decision 4. Invariant 2.2 owns it.
 ```

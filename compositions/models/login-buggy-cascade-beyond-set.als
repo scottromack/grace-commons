@@ -3,7 +3,7 @@
 --
 -- INJECTED DEFECT: the cascade validates, revokes and counts every session Session issued to the
 -- credential's principal, not only the tokens its set carried (Action wiring 19;
--- Wiring decision 4; Non-goal 13).
+-- Invariant 2.2; Non-goal 13).
 --
 -- BREAKS: A_Invariant_2_2.
 -- Everything else is login.als as written; read its comments there.

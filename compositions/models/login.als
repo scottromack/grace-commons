@@ -22,7 +22,7 @@
 --                   and that the cascade did not count failed, stands revoked at the
 --                   cascade's commit (a cross-check with Cascade_Completeness).
 --   Invariant 2.2 — a cascade counts, and records a per-session event for, only tokens its
---                   set carried (Wiring decision 4).
+--                   set carried.
 --   Invariant 2.3 — a cascade's set is the union of the map's entry for the credential id
 --                   and the event-derived set, as both stood at the cascade's commit.
 --   Invariant 2.4 — every session a login issued under the credential before the cascade is
