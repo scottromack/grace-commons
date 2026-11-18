@@ -254,7 +254,7 @@ Term cascade reason: "credential-revocation-cascade:" and the cascade initiation
 Term stage: credential-id-lookup | session-issue | login-event-log | login-event-record — the stage storage-failure(stage) names (Action wiring 30, 31, 38, Audit arm 13).
 Term cascade reason prefix: "credential-revocation-cascade:" — the leading text of a cascade reason (Primitive policy 13), compared character for character: case-sensitive, nothing trimmed, nothing normalized.
 Term session revoked event: session_revoked_by_cascade — the cascade's per-session event (Action wiring 23, Invariant 5.2, Check 4.2).
-Term cascade events: credential_revocation_cascade_initiated, session_revoked_by_cascade, session_revoke_failure_during_cascade, session_not_found_during_cascade, credential_revocation_cascade_completed and credential_revocation_cascade_abandoned — the substrate's events a cascade and the sweep's abandonment record.
+Term cascade events: credential_revocation_cascade_initiated, session_revoked_by_cascade, session_revoke_failure_during_cascade, session_not_found_during_cascade and credential_revocation_cascade_completed — the substrate's events a cascade records.
 Term cascade set: the union of the credential-to-sessions map's entry for a credential id and the event-derived set the substrate's login succeeded events carry for it.
 
 #### Closure table
@@ -363,10 +363,7 @@ Reconciliation 3: The sweep MUST NOT store a record of the sweep's own.
 Reconciliation 4: The sweep MUST close a discrepancy through an ordinary record_action.
 Reconciliation 5: The sweep MUST re-emit an owed record the login event log carries.
 Reconciliation 7: The sweep MUST NOT examine a session issued outside the issuer references.
-Reconciliation 12: The sweep MUST record a cascade abandoned event for an initiation carrying no completion.
 Reconciliation 15: The sweep MUST record the stored-reason member for a revoked session carrying no revocation-family event, carrying the session token, the stored revoked by reference AND the stored reason.
-Reconciliation 17: The sweep MUST call [Revoke Sessions For Credential] again for an abandoned initiation's credential id with the initiation's revoked by reference AND reason.
-Reconciliation 19: The sweep MUST call a cascade again ONLY AFTER recording a recovery intent.
 Reconciliation 20: IF both maps lack the pair a login succeeded event carries THEN the sweep MUST write the pair into both maps.
 Reconciliation 13: The sweep MUST escalate a discrepancy the reconciliation window did not close to the surface Capability requirement 20 supplies.
 Reconciliation 14: The sweep MUST NOT examine an event the substrate's horizon EXCEEDS.
@@ -377,7 +374,6 @@ Reconciliation 23: The sweep MUST NOT match a revocation-family event to a secon
 
 Term revocation-family event: logout_succeeded | session_revoked_by_cascade — the exact family a revoked session's record must belong to.
 Term stored-reason member: session_revoked_by_cascade where the stored reason begins with the cascade reason's prefix; logout_succeeded otherwise.
-Term recovery intent: the login_recovery_intended event, carrying the initiation event's id the sweep is about to act on.
 
 ---
 
@@ -398,7 +394,7 @@ Each emerges from the composition; none belongs to one constituent.
   Invariant 2.3: The cascade set MUST carry the union of the credential-to-sessions map's entry AND the event-derived set.
   Invariant 2.4: A lost map entry MUST NOT shrink the cascade set by a session whose login succeeded event the substrate holds.
   ```
-  *Rests on:* Action wiring 17 through 20, 34, 41 and 42; Wiring decision 2; Reconciliation 17 and 20; Session's validate and revoke.
+  *Rests on:* Action wiring 17 through 20, 34, 41 and 42; Wiring decision 2; Reconciliation 20; Session's validate and revoke.
 - **Invariant 3 — Session-credential traceability.**
   ```
   Invariant 3.1: EVERY session-to-credential entry's credential id MUST equal the credential id the login's credential id read answered (Action wiring 5).
@@ -472,7 +468,7 @@ Check 2.3: IF a login succeeded event's age EXCEEDS the reconciliation window TH
 Check 3.1: An auditor MUST find EVERY login call answering the login result or invalid-credential carrying one login event log entry (Composition state 10).
 Check 3.2: An auditor MUST find EVERY login event log entry's outcome matching the mirrored event's action reference (Composition state 10).
 Check 3.3: An auditor MUST rebuild a principal reference's session set from the login event log (Composition state 10).
-Check 4.1: An auditor MUST find EVERY cascade initiation event carrying EXACTLY ONE OF a completion event, an abandoned event (Reconciliation 12).
+Check 4.1: An auditor MUST find EVERY cascade initiation event carrying a completion event (Action wiring 25).
 Check 4.2: An auditor MUST find EVERY session revoked event naming a session the cascade set carried (Invariant 5.2).
 Check 5.1: An auditor MUST find EVERY revoked session under the issuer references carrying a revocation-family event (Reconciliation 15).
 Check 6.1: An auditor MUST find EVERY audit event of the composition attested under the service identity (Composes 12).
@@ -610,18 +606,18 @@ Inherited from:
 
 ## Status
 
-`done — 2026-11-17` — see the Ledger.
+`doing` — see the Ledger.
 
 ## Ledger
 
 ```
-status: done — 2026-11-17
-formal: verified — login.tla + 7 twins; login.als + 11 twins (the static data model, 2026-11-12: Invariant 1.1, 1.2, 2.1, 2.2, 2.3, 2.4, 3.1, 5.1, 5.2 and 6.1, with Composition state 13 and Check 3.2 and 4.1, checked on every state of the credential and session records, the login event log with each entry's login event, the two maps (each login's map write a commit of its own, which may fail, and the sweep's backfill), the logouts and the cascades with their sets, answers, counts and events; nothing testable in Alloy for Composition state 4 and 5 (two states compared), Action wiring 17 and 37 (an order inside one transaction) and Check 2.3 (the reconciliation window, a clock); the model found that no state the page's rules reach holds a cascade initiation without its completion, since the cascade is one transaction and its every failure arm commits nothing (Audit arm 13, Execution Contract Constituent failure 1), so Reconciliation 12, 17 and 19 and Check 4.1's abandoned arm have no state to act on, as Reconciliation 5 has none for a login's entry, since Audit arm 9 through 11 were deleted); coverage 2026-11-10 (unit formal: more coverage for the yes votes), 2026-11-12: no owed rows, 2026-11-12
+status: doing
+formal: verified — login.tla + 7 twins; login.als + 11 twins (the static data model, 2026-11-12: Invariant 1.1, 1.2, 2.1, 2.2, 2.3, 2.4, 3.1, 5.1, 5.2 and 6.1, with Composition state 13 and Check 3.2 and 4.1, checked on every state of the credential and session records, the login event log with each entry's login event, the two maps (each login's map write a commit of its own, which may fail, and the sweep's backfill), the logouts and the cascades with their sets, answers, counts and events; nothing testable in Alloy for Composition state 4 and 5 (two states compared), Action wiring 17 and 37 (an order inside one transaction) and Check 2.3 (the reconciliation window, a clock); the model found that no state the page's rules reach holds a cascade initiation without its completion, since the cascade is one transaction and its every failure arm commits nothing (Audit arm 13, Execution Contract Constituent failure 1), so Reconciliation 12, 17 and 19 and Check 4.1's abandoned arm were retired to Database 1 on 2026-11-18, the model re-derived the same day with Check 4.1 reading a completion event alone, as Reconciliation 5 has no state for a login's entry, since Audit arm 9 through 11 were deleted); coverage 2026-11-10 (unit formal: more coverage for the yes votes), 2026-11-12: no owed rows, 2026-11-12, 2026-11-18
 last gate: 2026-11-17 — Final Critique 17 — delta, frozen at 5013eb4 — foundational count 0, clean, no sample; Linus's five foundational reports placed by both triages, all refuted against rules of the page and the Execution Contract the delta set did not hold or read past (Composition state 3 and Database 1 for the maps, Constituent failure 1 and Database 1 for the revocation and the cascade-set read, Capability requirement 13 for the cadence, Reconciliation 20 with Capability requirement 21 for Check 4.2), and the refining and rhetorical items cured in wording (Wiring decision 4 deleted to Invariant 2.2, Check 2.3 names the stored maps, the cascade set's map named) or refuted, so the page grounds; 2026-11-17 — Final Critique 16 — full, frozen at 376d0c3 — foundational count 3, not clean, no sample; the revocation instant out of Reconciliation 22's match (a constituent's stamp and the composition's event are two clock readings), the rebuild scoped to a lost entry (Composition state 7, Invariant 2.4) and the login succeeded event scoped to the service identity's own events, all cured, and the refining items cured or refuted against the Execution Contract; 2026-11-15 — Final Critique 15 — delta, frozen at 5ff50de — foundational count 0, clean, no sample; Linus's three foundational reports placed by both triages: one refuted against Action wiring 10, one refining (Action wiring 23) and one rhetorical (Term login transaction), both cured in wording, and the five refining items cured or left as written, so the page grounds; 2026-11-06 — Final Critique 14 — delta, frozen at efa2db9 — foundational count 0, clean, no sample; Linus's one finding (Capability requirement 16, no cross-instance id source) refuted against Logic confinement 16 by both triages, and the Final Critique 13 cure (Audit arm 9 through 11) was read whole with no finding, so the page grounds; 2026-11-05 — Final Critique 13 — delta, frozen at 82d4603 — foundational count 0, clean, no sample; the settle cured Ledger open line 2026-10-29-b, a foundational line no reader had read (Scott's ruling of 2026-11-03 21:53Z), so the page is not grounded and owes a delta round; 2026-11-04 — Final Critique 12 — delta, foundational count 1, not clean, no sample
 
 open:
 - 2026-11-17-a · refining · Check 5.1, Reconciliation 15 · a revoked session record outlives its revocation-family event, which the substrate purges at its retention horizon, so Check 5.1 finds none between the purge and the sweep's next run and Reconciliation 15 records a new event each retention period → decide whether Check 5.1 and Reconciliation 15 stop at the retention horizon, or the re-record stands
-- 2026-08-29-a · refining · formal · the model's sweep carries no upper edge and no recovery record → extend it
+- 2026-08-29-a · refining · formal · the model's sweep carries no upper edge → extend it
 ```
 
 <details markdown="block">

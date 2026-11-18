@@ -152,11 +152,6 @@ sig Cascade extends Event {
     completion : lone Mark
 }
 
--- Abandon: the sweep's cascade abandoned event for an initiation (Reconciliation 12).
-sig Abandon extends Event {
-    abandons : one Cascade
-}
-
 -- ─────────────────────────────────────────────────────────────────────────────
 -- Facts: only what the page takes from outside
 -- ─────────────────────────────────────────────────────────────────────────────
@@ -344,14 +339,6 @@ pred cascadeWrites[k : Cascade] {
     one k.completion                                                -- Action wiring 25, 26
 }
 
--- abandonWrites: the sweep records a cascade abandoned event for an initiation carrying no
--- completion (Reconciliation 12).
-pred abandonWrites[a : Abandon] {
-    a.abandons in a.earlier
-    one a.abandons.initiation
-    no a.abandons.completion                                        -- Reconciliation 12
-}
-
 -- conforms: every record in the state is one its writer's rules let it write.
 pred conforms {
     all l : Login | loginWrites[l]
@@ -359,7 +346,6 @@ pred conforms {
     all b : Backfill | backfillWrites[b]
     all o : Logout | logoutWrites[o]
     all k : Cascade | cascadeWrites[k]
-    all a : Abandon | abandonWrites[a]
 }
 
 -- ─────────────────────────────────────────────────────────────────────────────
@@ -465,11 +451,10 @@ assert A_Check_3_2 {
 }
 check A_Check_3_2 for 3 but 6 Event
 
--- A_Check_4_1: every cascade initiation carries exactly one of a completion event and an
--- abandoned event.
+-- A_Check_4_1: every cascade initiation carries a completion event: the cascade is one
+-- transaction (Execution Contract Database 1), so no commit holds the one without the other.
 assert A_Check_4_1 {
-    conforms implies all k : Cascade | one k.initiation implies
-        ((one k.completion and no abandons.k) or (no k.completion and one abandons.k))
+    conforms implies all k : Cascade | one k.initiation implies one k.completion
 }
 check A_Check_4_1 for 3 but 6 Event
 

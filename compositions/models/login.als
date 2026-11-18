@@ -8,7 +8,7 @@
 -- Verify, by bounded exhaustive search, the STATIC data model of the composition: what one
 -- state of its records must satisfy — the state an auditor reads (Generation acceptance):
 -- the credential records, the session records, the login event log with each entry's login
--- event, the cascade events (initiation, per-session events, completion, abandonment), and
+-- event, the cascade events (initiation, per-session events, completion), and
 -- the two maps — every commit in the one store's order (Execution Contract Database 1, 2),
 -- whatever admitted logins, logouts, cascades, the sweep and the deployment's own Credential
 -- calls wrote. How a call moves the records from one state to the next is the TLA+ model's,
@@ -38,8 +38,7 @@
 --                   rebuilt map, and never two in the stored maps.
 --   Check 3.2     — every login event log entry's outcome matches its mirrored event, the
 --                   one carrying its entry id (Action wiring 39, Reconciliation 21).
---   Check 4.1     — every cascade initiation carries exactly one of a completion event and
---                   an abandoned event.
+--   Check 4.1     — every cascade initiation carries a completion event.
 --
 -- NOT CHECKED HERE (nothing testable in Alloy)
 --   Invariant 4.1, 4.2: deleted by the page. Composition state 4, 5 (no token removed, no
@@ -55,19 +54,18 @@
 -- FOUND (recorded, not cured; see the Ledger's formal line)
 --   No state the page's rules reach holds a cascade initiation without its completion: the
 --   cascade is one transaction (Execution Contract Database 1), and every failure arm of it
---   (Audit arm 13, a storage-failure of Session's revoke) commits nothing. So the abandoned
---   event of Reconciliation 12, the re-run of Reconciliation 17 and its recovery intent
---   (Reconciliation 19), and Check 4.1's abandoned arm, have no state to act on since Audit
---   arm 9 to 11 were deleted (Final Critique 13); a run asking for an abandoned event (none
---   is kept) finds no instance. In the same way a login's entry and its login event commit
---   in one transaction, so no entry carries an owed record (Reconciliation 5).
+--   (Audit arm 13, a storage-failure of Session's revoke) commits nothing. So the page keeps
+--   no abandoned event, no re-run of the cascade and no recovery intent (Reconciliation 12,
+--   17 and 19, retired 2026-11-18 by Scott's ruling of 2026-11-17 9:19 PM Central), and
+--   Check 4.1 is the completed arm alone. In the same way a login's entry and its login event
+--   commit in one transaction, so no entry carries an owed record (Reconciliation 5).
 --
 -- SCOPE
 -- One state: up to six commits in the store's one order — the deployment's Credential
 -- register and revoke, Session's issue to callers outside the issuer references, admitted
 -- logins (each with its login event log entry, its login event and, on verified, its
 -- session), each login's map write (a separate commit after the login's, which may fail
--- and leave no commit), the sweep's backfill and abandonment, admitted logouts and admitted
+-- and leave no commit), the sweep's backfill, admitted logouts and admitted
 -- cascades — and three each of principals, credential types, credentials, session tokens
 -- and entry ids. Each commit is what its writer's rules let it write over the commits before
 -- it: the model builds every store whose every record passes its writer's rule. No trace,
@@ -231,11 +229,6 @@ sig Cascade extends Event {
     notFoundEvents : set Token,
     failureEvents : set Token,
     completion : lone Mark
-}
-
--- Abandon: the sweep's cascade abandoned event for an initiation (Reconciliation 12).
-sig Abandon extends Event {
-    abandons : one Cascade
 }
 
 -- ─────────────────────────────────────────────────────────────────────────────
@@ -425,14 +418,6 @@ pred cascadeWrites[k : Cascade] {
     one k.completion                                                -- Action wiring 25, 26
 }
 
--- abandonWrites: the sweep records a cascade abandoned event for an initiation carrying no
--- completion (Reconciliation 12).
-pred abandonWrites[a : Abandon] {
-    a.abandons in a.earlier
-    one a.abandons.initiation
-    no a.abandons.completion                                        -- Reconciliation 12
-}
-
 -- conforms: every record in the state is one its writer's rules let it write.
 pred conforms {
     all l : Login | loginWrites[l]
@@ -440,7 +425,6 @@ pred conforms {
     all b : Backfill | backfillWrites[b]
     all o : Logout | logoutWrites[o]
     all k : Cascade | cascadeWrites[k]
-    all a : Abandon | abandonWrites[a]
 }
 
 -- ─────────────────────────────────────────────────────────────────────────────
@@ -546,11 +530,10 @@ assert A_Check_3_2 {
 }
 check A_Check_3_2 for 3 but 6 Event
 
--- A_Check_4_1: every cascade initiation carries exactly one of a completion event and an
--- abandoned event.
+-- A_Check_4_1: every cascade initiation carries a completion event: the cascade is one
+-- transaction (Execution Contract Database 1), so no commit holds the one without the other.
 assert A_Check_4_1 {
-    conforms implies all k : Cascade | one k.initiation implies
-        ((one k.completion and no abandons.k) or (no k.completion and one abandons.k))
+    conforms implies all k : Cascade | one k.initiation implies one k.completion
 }
 check A_Check_4_1 for 3 but 6 Event
 
