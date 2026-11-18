@@ -174,7 +174,7 @@ export class BeaconAudit {
   }
 
   /** Plan the event, commit it beside the change (Database 1), index it after. */
-  private async write(action_ref: string, actor_ref: string, credential: string, data: unknown, change: Stmt[]): Promise<"ok" | Refusal> {
+  async write(action_ref: string, actor_ref: string, credential: string, data: unknown, change: Stmt[]): Promise<"ok" | Refusal> {
     for (let tries = 0; tries < TRIES; tries++) {
       const p = await this.trail.plan(action_ref, actor_ref, credential, data, 0);
       if ("refusal" in p) return p.refusal.refused === "invalid-credential" ? { refused: "invalid-credential" } : { refused: "storage-failure" };

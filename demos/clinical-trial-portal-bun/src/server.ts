@@ -1,4 +1,4 @@
-// Beacon's pages: the front page, sign in and sign out, accepting an invitation, the dashboard, the Audit Trail pages (the list, chain verification, the export) and its retention switch, the "Access denied" page, and the subjects (the list, Enroll Subject, a subject and Record Visit).
+// Beacon's pages: the front page, sign in and sign out, accepting an invitation, People & Permissions, the dashboard, the Audit Trail pages (the list, chain verification, the export) and its retention switch, the "Access denied" page, and the subjects (the list, Enroll Subject, a subject and Record Visit).
 // Built from SPEC.md (The screens; People & Permissions' words; The permissions) with Hono, the stack STACK.md pins. Every screen is a page the server
 // draws and every action works with no script running in the browser (SPEC.md, The screens): forms post, the server answers with a page or a redirect.
 //
@@ -6,10 +6,11 @@
 // makes a person signed in (SPEC.md): the cookie holds the session token and nothing else, and every request asks Session whether it is still valid.
 import { Hono, type Context } from "hono";
 import { getCookie, setCookie, deleteCookie } from "hono/cookie";
-import { type Beacon, SEED, INVITATION_WORDS, MIN_PASSWORD } from "./beacon.ts";
+import { type Beacon, SEED, INVITATION_WORDS, MIN_PASSWORD, readContext } from "./beacon.ts";
 import { PERMISSIONS, VISIT_KINDS, MESSAGES, type PermissionCode, type Refusal, type SubjectView, type VisitView } from "./beacon_domain.ts";
 import { type PersonView } from "./beacon_people.ts";
 import { type AuditRow, RETENTION_DAYS } from "./beacon_audit.ts";
+import { type PersonRow, type HistoryRow, type PendingRow } from "./beacon_admin.ts";
 
 export const COOKIE = "beacon_session";
 export const SESSION_SECONDS = 7 * 86_400;
@@ -240,6 +241,52 @@ ${r.rows.length ? `<table><thead><tr><th>#</th><th>Time</th><th>Action</th><th>T
     const r = await beacon.audits.setRetention(person.actor_ref, beacon.keyOf(c.get("token")) ?? "", f.on === "true");
     if ("refused" in r) return refuse(c, r, person, "/audit");
     return c.redirect("/audit", 302);
+  });
+
+  // ---- People & Permissions (SPEC.md, The screens, People & Permissions) ---------------------------------------------------------
+
+  const permWords = (code: string): string => WORDS[code as PermissionCode] ?? code;
+  const peoplePage = async (c: Ctx, o: { link?: string } = {}): Promise<Response> => {
+    const { person } = c.get("me");
+    const v = await beacon.peopleAdmin.view(person.actor_ref, readContext);
+    if ("refused" in v) return refuse(c, v, person, "/dashboard");
+    const origin = new URL(c.req.url).origin;
+    const mark = (p: PersonRow, code: PermissionCode) => `<li>${esc(permWords(code))}${v.may_grant ? ` <form method="post" action="/people/take" style="display:inline"><input type="hidden" name="person" value="${esc(p.person.actor_ref)}"><input type="hidden" name="permission" value="${esc(code)}"><button type="submit" aria-label="Take away ${esc(permWords(code))} from ${esc(p.person.display_name)}">Take away</button></form>` : ""}</li>`;
+    const personRow = (p: PersonRow) => `<tr><td>${esc(p.person.display_name)}</td><td>${esc(p.person.email)}</td><td>${p.held.length === PERMISSIONS.length ? "holds every permission" : p.held.length ? `<ul>${p.held.map((x) => mark(p, x)).join("")}</ul>` : "none"}${v.may_grant && p.offered.length ? `<form method="post" action="/people/give"><input type="hidden" name="person" value="${esc(p.person.actor_ref)}"><label for="give-${esc(p.person.actor_ref)}">Give</label><select id="give-${esc(p.person.actor_ref)}" name="permission">${p.offered.map((x) => `<option value="${esc(x)}">${esc(permWords(x))}</option>`).join("")}</select><button type="submit">Give</button></form>` : ""}</td></tr>`;
+    const histRow = (h: HistoryRow) => `<tr><td>${esc(when(h.granted_at))}</td><td>${esc(h.to)}</td><td>${esc(permWords(h.code))}</td><td>${esc(h.by)}</td><td>${h.held_now ? "held now" : `revoked ${esc(h.revoked_at ? when(h.revoked_at) : "")}`}</td></tr>`;
+    const pendRow = (i: PendingRow) => `<tr><td>${esc(i.email)}</td><td>${esc(i.role)}</td><td>${esc(when(i.expires_at))}</td><td><code>${esc(`${origin}/invitations/accept/${i.invitation_token}`)}</code></td><td>${v.may_invite ? `<form method="post" action="/people/invitations/${esc(encodeURIComponent(i.invitation_token))}/revoke"><button type="submit">Revoke</button></form>` : ""}</td></tr>`;
+    const invite = v.may_invite ? `<h2>Invite someone</h2>${o.link ? `<p>Invite link — copy and share this with the invitee: <code>${esc(o.link)}</code></p>` : ""}<form method="post" action="/people/invite"><label for="inv-email">Email</label><input id="inv-email" name="email" type="email" required><label for="inv-name">Display name</label><input id="inv-name" name="display_name" required><label for="inv-role">Role</label><input id="inv-role" name="role" list="roles" placeholder="coordinator" required><datalist id="roles"><option value="coordinator"></datalist><button type="submit">Invite</button></form>` : "";
+    return c.html(page("People & Permissions", `<h1>People &amp; Permissions</h1><h2>People</h2><table><thead><tr><th>Name</th><th>Email</th><th>Permissions held now</th></tr></thead><tbody>${v.people.map(personRow).join("")}</tbody></table>
+<h2>Permissions History</h2><p class="muted">Every permission ever given, oldest first. It records who gave what; it never opens or closes anything.</p>${v.history.length ? `<table><thead><tr><th>When</th><th>To</th><th>Permission</th><th>Given by</th><th>Held now</th></tr></thead><tbody>${v.history.map(histRow).join("")}</tbody></table>` : "<p>No permission has been given yet.</p>"}
+<h2>Pending Invitations</h2>${v.pending.length ? `<table><thead><tr><th>Email</th><th>Role</th><th>Expires</th><th>Link</th><th></th></tr></thead><tbody>${v.pending.map(pendRow).join("")}</tbody></table>` : "<p>No invitation is waiting.</p>"}${invite}<p><a href="/dashboard">Back to the dashboard</a></p>`, person));
+  };
+  app.get("/people", signedIn, (c) => peoplePage(c));
+
+  const grantAction = (which: "give" | "take") => async (c: Ctx) => {
+    const { person } = c.get("me");
+    const f = await c.req.parseBody();
+    const who = typeof f.person === "string" ? f.person : "", code = typeof f.permission === "string" ? f.permission : "";
+    const key = beacon.keyOf(c.get("token")) ?? "";
+    const r = which === "give" ? await beacon.peopleAdmin.give(person.actor_ref, key, who, code) : await beacon.peopleAdmin.take(person.actor_ref, key, who, code);
+    if ("refused" in r) return refuse(c, r, person, "/people");
+    return c.redirect("/people", 302);                                                                                  // give or take: back to the page
+  };
+  app.post("/people/give", signedIn, grantAction("give"));
+  app.post("/people/take", signedIn, grantAction("take"));
+
+  app.post("/people/invite", signedIn, async (c) => {
+    const { person } = c.get("me");
+    const f = await c.req.parseBody();
+    const r = await beacon.invite(c.get("token"), typeof f.email === "string" ? f.email : "", typeof f.display_name === "string" ? f.display_name : "", typeof f.role === "string" ? f.role : "");
+    if ("refused" in r) return refuse(c, r, person, "/people");
+    return peoplePage(c, { link: `${new URL(c.req.url).origin}/invitations/accept/${r.invitation_token}` });                // Beacon sends no email in this render: the link is shown to copy and share
+  });
+
+  app.post("/people/invitations/:token/revoke", signedIn, async (c) => {
+    const { person } = c.get("me");
+    const r = await beacon.revokeInvitation(c.get("token"), c.req.param("token"));
+    if (r !== "revoked") return refuse(c, r, person, "/people");
+    return c.redirect("/people", 302);                                                                                  // revoke: back to the page
   });
 
   return app;
