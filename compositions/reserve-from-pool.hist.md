@@ -81,7 +81,10 @@ Deleted: Capability requirement 33. Execution Contract Database 3 owns it.
 Deleted: Capability requirement 34. Execution Contract Database 3 owns it.
 Deleted: Capability requirement 36. Execution Contract Database 3 owns it.
 Deleted: Capability requirement 38. Execution Contract Database 3 owns it.
+Deleted: Capability requirement 39. Execution Contract Logic confinement 3 owns it.
+Deleted: Capability requirement 40. Execution Contract Logic confinement 3 owns it.
 Deleted: Capability requirement 42. Execution Contract Logic confinement 19 owns it: a composition action reads the clock once and every constituent call it makes takes that reading as its now, so no constituent's stamp the call wrote differs from the composition's now (Scott, 2026-11-18 6:52 AM Central, "YYY", rounds/escalations.md 2026-11-18 12:52Z, item 2).
+Deleted: Capability requirement 43. Execution Contract Logic confinement 3 owns it.
 ```
 
 ### Composition logic › Action wiring
@@ -223,6 +226,12 @@ Deleted: Check 4.2. Execution Contract Logic confinement 19 owns it: Provisional
 Deleted: External check 3. Execution Contract Database 1 owns it.
 Deleted: External check 4. Execution Contract Database 2 owns it.
 Deleted: External check 5. Execution Contract Database 3 owns it.
+```
+
+### Edge cases › Clock semantics
+
+```
+Deleted: Clock semantics 1. Execution Contract Logic confinement 7 owns it.
 ```
 
 ### Edge cases › Concurrency
