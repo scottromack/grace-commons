@@ -255,7 +255,7 @@ Non-goal 7: The atom MUST NOT draw a text.
 
 NOTE: the owners — the composing pattern that knows the caller, such as one built on [Session](./session.md) or [Permissions](./permissions.md) (Non-goal 1, 2); Catalog *(forthcoming)* (Non-goal 3; External check 1); Moderation *(forthcoming)* (Non-goal 4); [Reaction](./reaction.md) (Non-goal 5); the composing pattern that tells the author, such as one built on [Notification](./notification.md) (Non-goal 6); the composing pattern that shows the comments, which draws each text as it likes (Non-goal 7).
 
-Where the atom breaks down: a one-word answer from a short list, which is a reaction; a titled piece that stands on its own, which is a post *(forthcoming)*.
+Where the atom breaks down: a one-word answer from a short list, which is a reaction; a titled piece that stands on its own, which is a [post](./post.md).
 
 ## Edge cases
 

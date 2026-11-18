@@ -263,7 +263,7 @@ Non-goal 10: The atom MUST NOT list the persons holding a reaction.
 
 NOTE: the owners — the composing pattern that knows the caller, such as one built on [Session](./session.md) or [Permissions](./permissions.md) (Non-goal 1, 2); Catalog *(forthcoming)* (Non-goal 3; External check 1); the composing pattern that tells the author, such as one built on [Notification](./notification.md) (Non-goal 4); Reputation *(forthcoming)* (Non-goal 5); Vote *(forthcoming)* (Non-goal 6); [Favorite](./favorite.md) (Non-goal 7); Save For Later *(forthcoming)* (Non-goal 8); the composing pattern that shows the item, which draws each reaction name as it likes (Non-goal 9); Reactor List *(forthcoming)* (Non-goal 10).
 
-Where the atom breaks down: a mark a person keeps for themselves to find an item again, which is a favorite; a choice that is counted to decide something, which is a vote; an answer in the person's own words, which is a comment *(forthcoming)*.
+Where the atom breaks down: a mark a person keeps for themselves to find an item again, which is a favorite; a choice that is counted to decide something, which is a vote; an answer in the person's own words, which is a [comment](./comment.md).
 
 ## Edge cases
 

@@ -1542,6 +1542,23 @@
   ],
   "title": "Resolve a Person's Data Rights"
  },
+ "restorable-delete": {
+  "composed_by": [],
+  "domain": null,
+  "grounded": false,
+  "invariants": 2,
+  "kind": "atom",
+  "models": {
+   "als": false,
+   "tla": false,
+   "twins": 0
+  },
+  "regulated_by": [],
+  "security": false,
+  "standards": [],
+  "status": "todo",
+  "title": "Restorable Delete"
+ },
  "retention-window": {
   "composed_by": [
    "audit-trail",

@@ -246,9 +246,9 @@ Non-goal 10: The atom MUST NOT find a post by a word in a body.
 Non-goal 11: The atom MUST NOT tell who may publish a post.
 ```
 
-NOTE: the owners — the composing pattern that knows the caller, such as one built on [Session](./session.md) or [Permissions](./permissions.md) (Non-goal 1, 2, 11); Category *(forthcoming)* (Non-goal 3); Comment *(forthcoming)* (Non-goal 4); [Reaction](./reaction.md) (Non-goal 5); Restorable Delete *(forthcoming)* (Non-goal 6); Scheduled Publish *(forthcoming)* (Non-goal 7); Post Address *(forthcoming)* (Non-goal 8); the composing pattern that shows the post, which draws the markdown as it likes (Non-goal 9); Search *(forthcoming)* (Non-goal 10).
+NOTE: the owners — the composing pattern that knows the caller, such as one built on [Session](./session.md) or [Permissions](./permissions.md) (Non-goal 1, 2, 11); [Category](./category.md) (Non-goal 3); [Comment](./comment.md) (Non-goal 4); [Reaction](./reaction.md) (Non-goal 5); [Restorable Delete](./restorable-delete.md) (Non-goal 6); Scheduled Publish *(forthcoming)* (Non-goal 7); Post Address *(forthcoming)* (Non-goal 8); the composing pattern that shows the post, which draws the markdown as it likes (Non-goal 9); Search *(forthcoming)* (Non-goal 10).
 
-Where the atom breaks down: an answer in a person's own words to someone else's post, which is a comment *(forthcoming)*; a message to one person, which is a communication.
+Where the atom breaks down: an answer in a person's own words to someone else's post, which is a [comment](./comment.md); a message to one person, which is a communication.
 
 ## Edge cases
 
@@ -262,7 +262,7 @@ A caller whose answer is lost may call again, and the repeat is a second call (E
 
 ### What undoes a write
 
-[Unpublish] undoes [Publish] and [Publish] undoes [Unpublish]; an [Edit] is undone by an [Edit] carrying the earlier wording, which the post's history holds. A [Write] is undone by removing the post from view, which Restorable Delete *(forthcoming)* owns (Execution Contract Undo 4).
+[Unpublish] undoes [Publish] and [Publish] undoes [Unpublish]; an [Edit] is undone by an [Edit] carrying the earlier wording, which the post's history holds. A [Write] is undone by removing the post from view, which [Restorable Delete](./restorable-delete.md) owns (Execution Contract Undo 4).
 
 ## Composition notes
 

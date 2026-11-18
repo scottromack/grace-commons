@@ -164,3 +164,5 @@ patterns:
     file: atoms/comment.md
   - id: 71
     file: atoms/category.md
+  - id: 72
+    file: atoms/restorable-delete.md
