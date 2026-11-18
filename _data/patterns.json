@@ -50,7 +50,7 @@
    "session",
    "credential"
   ],
-  "grounded": false,
+  "grounded": true,
   "invariants": 5,
   "kind": "composition",
   "models": {
@@ -72,7 +72,7 @@
    "SEC 17a-4",
    "SOX"
   ],
-  "status": "doing",
+  "status": "done \u2014 2026-11-18",
   "substrates": [
    "audit-trail"
   ],

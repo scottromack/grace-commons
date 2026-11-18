@@ -128,11 +128,12 @@ Composition state 21: An absent suspension-state key MUST NOT stand as active.
 Composition state 22: A suspension-state entry an event above the mark contradicts MUST stand as a miss.
 Composition state 23: A reader MUST resolve a miss by the tail read.
 Composition state 24: A reader MUST NOT resolve a miss by an enumeration of the index.
-Composition state 25: The tail read MUST select an event above the mark.
-Composition state 26: The tail read MUST NOT select an event at or below the mark.
+Composition state 25: The tail read MUST select an event above the mark the call's index read reads.
+Composition state 26: The tail read MUST NOT select an event at or below the mark the call's index read reads.
 Composition state 27: A reader MUST take the trail's answer ONLY IF the trail's answer stands later in the log than the entry's event.
 Composition state 28: A reader MUST write the entry the tail read resolved.
 Composition state 29: An absent suspension-state key carrying no suspension intent above the mark MUST stand as active.
+NOTE: open 2026-11-18-a — Composition state 21 says an absent key MUST NOT stand as active where Composition state 29 says an absent key carrying no suspension intent above the mark MUST stand as active, and Composition state 27 compares the trail's answer with an entry's event where an absent key has no entry; Composition state 23 and the walkthrough read a miss as resolved by the tail read, so no two builds behave differently, and which rule states the exception stays the open edit.
 Composition state 32: The rebuild MUST select the composition's own events over an open-ended sequence range.
 Composition state 33: The rebuild MUST read a suspension intended event carrying no outcome under the intent's invocation id as suspending.
 Composition state 34: The rebuild MUST read a suspended event as suspended.
@@ -176,7 +177,7 @@ Term mirrored log entry: a suspension log entry an audit event of this compositi
 
 Term refusal log entry: a suspension log entry no audit event carries — an already-suspended, an already-active, an invalid-request, an intent recording failure, or a refusal that stopped before the intent.
 
-Term tail read: the substrate's open-ended sequence range read above the high-water mark, filtered in the composition's own code to the composition's action_ref values naming one actor.
+Term tail read: the substrate's open-ended sequence range read above the high-water mark the call's index read reads, filtered in the composition's own code to the composition's action_ref values naming one actor.
 
 Term audit horizon: the age past which the audit instance has destroyed an event's payload, set by the instance's audit_trail_retention_policy.
 
@@ -198,7 +199,9 @@ Term post-snapshot member: a grant, a session, OR a credential a constituent reg
 
 Term rebuild: the composition's named regeneration of the suspension-state index — select the composition's own events over an open-ended sequence range and take each actor's latest lifecycle-bearing event.
 
-Term miss: an index read the composition resolves by the tail read.
+Term miss: an index read that a reader resolves by the tail read.
+
+Term contradicts: said of a suspension-state entry whose lifecycle state differs from the state an event above the mark bears (Composition state 33, Composition state 34, Composition state 35).
 
 Term plan: the enumerated active set an intent carries — planned_grants, planned_sessions and planned_credentials.
 
@@ -765,7 +768,7 @@ Check 6.2: An auditor MUST find EXACTLY ONE suspended outcome PER invocation id 
 Check 6.3: An auditor MUST read a second outcome under one invocation id as a second writer (Invariant 1.10).
 Check 6.4: An auditor MUST confirm the completion window, the suspension completion bound, the reconciliation cadence AND the outcome write latency stand declared (Capability requirement 24).
 Check 6.5: An auditor MUST confirm the completion window EXCEEDS the closure floor (Capability requirement 27).
-Check 6.6: An auditor MUST NOT confirm the closure floor's terms severally (Capability requirement 27).
+Check 6.6: An auditor MUST NOT read a completion window that EXCEEDS each term of the closure floor singly as confirming Check 6.5 (Capability requirement 27).
 Check 6.7: An auditor MUST find an accounted cascade PER open cascade (Invariant 1.8).
 Check 6.8: An auditor MUST read an open cascade standing outside an accounted cascade as a conformance failure (Invariant 1.8).
 Check 6.10: An auditor MUST take an aged-out open cascade from the suspension-state index (Reconciliation 9).
@@ -880,7 +883,7 @@ Term qualifiers: migrated — rewritten in GRACE lang v0.41 (2026-09-15).
 
 Term value sets: lifecycle state = active | suspending | suspended. intent = actor.suspension_intended | actor.resume_intended | actor.recovery_intended. outcome = actor.suspended | actor.reinstated. escalation record = actor.escalation_recorded. enumeration availability = available | unavailable-past-horizon. already-active reason = active | suspending. benign terminal answer = not-active | already-terminal.
 
-Term terms: composition, constituents, credential arm, service identity, operator, resumer, suspension-state index, high-water mark, suspension log, mirrored log entry, refusal log entry, tail read, audit horizon, aged-out event, rebuild, miss, aged-out entry, aged-out log entry, aged-out actor, aged-out outcome, aged-out open cascade, post-snapshot member, admitted suspension, admitted reinstatement, plan, revoked set, open cascade, seam, transition, unified actor namespace, suspension completion bound, completion window, closure floor, access retention floor, planned set cap, maximal outcome, clock offset allowance, blank, boundary predicate, opaque input, operator reference, resume prefix, completion prefix, intent, outcome, committing call, landed intent, retention step, read-back, owed outcome, stored active, effective active, snapshot, fresh cascade, resume, cascade, benign terminal answer, non-benign refusal, open members, unresolved members, closed plan, recovery marker, enumeration availability, sweep, pre-check, plan-unavailable marker, accounted cascade, accounted member, escalated finding, orphan, position, not-suspended state, suspension result, suspension record, reinstatement result, invocation id, resume invocation id, intent instant, intent event id, suspension event id, suspension instant, reinstatement instant.
+Term terms: composition, constituents, credential arm, service identity, operator, resumer, suspension-state index, high-water mark, suspension log, mirrored log entry, refusal log entry, tail read, audit horizon, aged-out event, rebuild, miss, contradicts, aged-out entry, aged-out log entry, aged-out actor, aged-out outcome, aged-out open cascade, post-snapshot member, admitted suspension, admitted reinstatement, plan, revoked set, open cascade, seam, transition, unified actor namespace, suspension completion bound, completion window, closure floor, access retention floor, planned set cap, maximal outcome, clock offset allowance, blank, boundary predicate, opaque input, operator reference, resume prefix, completion prefix, intent, outcome, committing call, landed intent, retention step, read-back, owed outcome, stored active, effective active, snapshot, fresh cascade, resume, cascade, benign terminal answer, non-benign refusal, open members, unresolved members, closed plan, recovery marker, enumeration availability, sweep, pre-check, plan-unavailable marker, accounted cascade, accounted member, escalated finding, orphan, position, not-suspended state, suspension result, suspension record, reinstatement result, invocation id, resume invocation id, intent instant, intent event id, suspension event id, suspension instant, reinstatement instant.
 
 Term cited: Execution Contract Conformance 8 — the recursive inheritance of a constituent's guarantees. The section titled Substrate composition invocation in `execution-contract.md` — the substrate relation and its instance topology. The section titled Composition state in `execution-contract.md` — the derived-index classification and its obligations. The section titled Logic Confinement Principle in `execution-contract.md` — the seam. [Credential](../atoms/credential.md) — the effective-active reading and the per-pair bound. verify_record, event id: Audit Trail.
 
@@ -994,16 +997,17 @@ Actor Suspension inherits the broader standards compliance of its constituents:
 
 ## Status
 
-`doing` — see the Ledger.
+`done — 2026-11-18` — see the Ledger.
 
 ## Ledger
 
 ```
-status: doing
+status: done — 2026-11-18
 formal: verified — actor-suspension.tla + 6 twins + 9 probes (across steps); actor-suspension.als + 24 twins (the static data model, 2026-11-11: Primitive policy 19, Invariant 1.1 through 1.3, 1.5 through 1.7, 1.10, 2.2 through 2.5, 2.7 through 2.9, 5.4 and 5.5, Reconciliation 22 and 33, Action wiring 50, Composition state 5 through 7, 21, 22, 29, 32, 33 and 44 and Check 3.2 checked on every state of the trail, the constituents' records, the index and the mark the writers can leave, Invariant 1.1 through 1.3, 1.10 and Composition state 21 a cross-check with the TLA+ model; nothing testable in Alloy for Primitive policy 20 (an alert writes no record), Invariant 1.4 (two stores' writes ordered), 1.8, 1.9 and Reconciliation 28 (lateness turns on when the sweep last ran), 1.12, 2.1's existence and 3.1 through 3.5 (across steps), 2.6 and 4 (Audit Trail's and the constituents' own), Composition state 36, 37 and 56 (the page gives no state such a misreading answers) and 40 (a destroyed payload leaves nothing to read); the model found that an intent aged out above the mark, never indexed, reads its actor active by Composition state 29, no rule bounding the reconciliation cadence below the audit horizon); coverage 2026-11-10 (unit formal: more coverage for the yes votes), 2026-11-11; owed rows: 2a: Reconciliation 28 — owed: an invariant under a window counter (the model has no clock); its twin lets the cascade stay open past the window, 2026-10-27
-last gate: 2026-11-05 — Final Critique 9, delta, frozen at 917cc95 — foundational count 0, clean, one sample; 2026-11-04 — Final Critique 8, a delta round, frozen at 92bff7a — foundational count 0 in the reader's report, open foundational line 2026-10-26-c cured by the settle, not clean, no sample; 2026-11-03 — Final Critique 7 — foundational count 7, not clean, no sample
+last gate: 2026-11-18 — Final Critique 10, a delta round, one reader (Linus mimo-v2.6-pro), frozen at 8d31c6d — foundational count 0 after the blind second triage, clean, no sample (Linus's report claimed two foundational, placed refuted by the blind second triage: Composition state 26's mark read between the index read and the tail read, whose second build reads state the call's guards did not see against Execution Contract Database 2, and a lost entry below the mark, whose second build applies Derived index 1 to an index Composition state 9 classes truth-bearing, so neither build is conforming; the second is the open line 2026-10-26-a, which stays; refining cured: Composition state 25, 26 and Term tail read name the mark the call's index read reads, Term miss says a reader resolves it, Term contradicts is written, Check 6.6 names what an auditor must not read as confirming Check 6.5; refining opened: 2026-11-18-a, Composition state 21, 27 and 29 on an absent key); 2026-11-05 — Final Critique 9, delta, frozen at 917cc95 — foundational count 0, clean, one sample; 2026-11-04 — Final Critique 8, a delta round, frozen at 92bff7a — foundational count 0 in the reader's report, open foundational line 2026-10-26-c cured by the settle, not clean, no sample; 2026-11-03 — Final Critique 7 — foundational count 7, not clean, no sample
 
 open:
+- 2026-11-18-a · refining · Composition state 21, 27, 29 · an absent key stands as a miss (Composition state 20), yet Composition state 21 bars it standing as active where Composition state 29 stands it so, and Composition state 27 compares with an entry an absent key lacks → scope Composition state 21 and 27 to an entry that exists, and let Composition state 29 state the one exception
 - 2026-08-30-i · refining · formal · actor-suspension.tla models no credential check and no attribution, so no model checks that each revocation names a writer its own intent verified (Invariant 5.1 through 5.5) → model the attests a fresh cascade, a resume and the sweep make
 - 2026-10-26-a · refining · Composition state 9 · the index below the mark is classified truth-bearing, neither a derived index nor extraction-pending under the Execution Contract's Composition state section, while a miss below the mark is not observable (Composition state 26, 29) → classify the window: extraction-pending against the actor registry (Composition state 11), or derived with its below-mark reading anchored in the trail (refined, Final Critique 8: a lost entry below the mark is unreachable under Execution Contract Database 3 and 4, Reconciliation 4, 6, 7 and Capability requirement 47; classifying the window as derived would bring a miss below the mark under Derived index 1 and replace the tail read with the full rebuild, Composition state 23, 28, Term miss, Term rebuild)
 - 2026-11-05-a · refining · Composition state 12 · the mark is classified derived, while Term rebuild regenerates the suspension-state index alone, so no rule names the value a rebuilt mark takes → say that a rebuild of the index sets the mark to the log's first position, so the sweep re-indexes from it, or classify the mark otherwise
