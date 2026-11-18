@@ -15,7 +15,7 @@ Designers are taught to copy. The rule that goes with it: understand what you co
 - **Eiffel's design by contract.** What must be true before, after, and always.
 - **BDD and Gherkin.** Examples in structured English are a specification.
 - **Unix.** Do one thing well, and work together: small pieces, loosely joined (David Weinberger's phrase). Concepts are the same idea one level up, so Jackson stood on shoulders too.
-- **Grace Hopper's COBOL.** The business should be able to read what the system does.
+- **Grace Hopper's FLOW-MATIC, and the COBOL it led to.** The business should be able to read what the system does.
 - **Christopher Alexander, *A Pattern Language*.** A library of named patterns that compose. It inspired this one from afar; we knew to look there.
 
 ## Common practice, applied one layer up
