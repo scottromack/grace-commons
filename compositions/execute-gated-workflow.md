@@ -600,6 +600,8 @@ Reconciliation 29: IF an owed record's escalation instant PRECEDES the sweep's n
 Reconciliation 30: IF Audit Trail answers invalid-credential to the service identity THEN the deployment MUST page on the answer as a service credential fault.
 ```
 
+NOTE: open 2026-11-18-a — whether Reconciliation 29 spends the clock offset allowance, as Term aged record does, where it compares the escalation instant, the composition call's stamp, with the sweep's now.
+
 Term sweep: the reconciliation the composition runs outside every invocation, on the cadence — four legs diffing the constituent records against the trail.
 
 Term firing leg: the sweep's leg landing a committed firing's owed firing event.
@@ -636,7 +638,7 @@ Term transient arm: a recording-failure, at a pre-append step or at step-4, on w
 
 NOTE: watch the retention step's recording failure (Term transient arm).
 
-Term escalation instant: an owed record's commit instant plus the compensation window.
+Term escalation instant: `(commit instant + compensation window)` — an owed record's commit instant plus the compensation window.
 
 Term owed record: the required Audit Trail outcome event for a constituent call whose load-bearing write committed and whose outcome event has not landed, identified by its intent reference and leg.
 
@@ -852,7 +854,6 @@ Check 3.1: An auditor MUST find EXACTLY ONE firing event for EVERY history entry
 Check 3.2: An auditor MUST find, for EVERY quiescent workflow, EXACTLY ONE opening event for EVERY step the composition submitted, EXACTLY ONE decision event for EVERY decided step AND EXACTLY ONE moot record for EVERY step a moot record names (Invariant 3.1, Invariant 3.2).
 Check 3.3: An auditor MUST find EVERY outcome naming a stored subject (Invariant 3.3).
 Check 3.4: An auditor MUST NOT count an uncounted event in Check 3.1 through 3.3 (Invariant 3.1).
-Check 3.5: An auditor MUST find the compensation window exceeding the liveness sum (Capability requirement 8).
 Check 4.1: An auditor MUST enumerate the gates from the opening events AND find the assignments PER Invariant 4.1 AND Invariant 4.2 (Invariant 4.1).
 Check 5.1: An auditor MUST find the actor of EVERY start event, opening event AND firing event holding the matching scope at the outcome's payload instant (Invariant 2.1 through 2.3).
 Check 5.2: An auditor MUST read a recovery-flagged outcome's actor from the payload's human actor (Invariant 2.1 through 2.3).
@@ -863,7 +864,6 @@ Check 7.1: An auditor MUST find EVERY entry of a committed firing's moot plan ac
 Check 7.2: An auditor MUST find no moot record naming a step the firing's moot plan omits (Cascade 1).
 Check 7.3: An auditor MUST find no moot plan naming the firing's own gate key (Action wiring 54).
 Check 8.1: An auditor MUST find the longest workflow lifetime not exceeding the audit horizon where both are readable (Capability requirement 3).
-Check 8.2: An auditor MUST find the audit horizon exceeding the escalation reach (Capability requirement 25).
 Check 9.1: An auditor MUST clear State Machine's Generation acceptance over EVERY workflow machine (Composes 6).
 Check 9.2: An auditor MUST clear Approval Step's Generation acceptance over the Approval Step instance (Composes 6).
 Check 9.3: An auditor MUST clear Permissions' Generation acceptance over the Permissions instance (Composes 6).
@@ -894,6 +894,8 @@ External check 3: An auditor needing a [Gate Spec] entry's approver confirmed as
 External check 4: An auditor needing the declaration confirmed against the regulation's process MUST read the deployment's process documentation beside the regulation (Invariant 5.2).
 External check 5: An auditor needing a named approver's standing authorization for the scope confirmed MUST read the deployment's standing-authorization registry at the started instant (Invariant 1.1).
 External check 6: An auditor needing a finding the sweep opened confirmed MUST read Audit Trail's alerting surface for the finding the rule opened (Reconciliation 17, Reconciliation 22, Reconciliation 26, Reconciliation 29, Reconciliation 31).
+External check 7: An auditor needing the compensation window against the liveness sum confirmed MUST read the deployment's configuration (Capability requirement 8).
+External check 8: An auditor needing the audit horizon against the escalation reach confirmed MUST read the deployment's configuration (Capability requirement 25).
 ```
 
 ---
@@ -1178,9 +1180,10 @@ It inherits from:
 ```
 status: doing
 formal: verified — execute-gated-workflow.tla + 13 twins, re-derived 2026-11-08 (it was verified 2026-06-04 over an unbounded consumption arm, Pending-only mooting and a single-writer invocation with no terminus): the mooted mark, the horizon-bounded consumption arm, the moot cascade, the invocation and the sweep as two processes, and the sweep's four legs with the recovery record and the age bound, leg (4) joined on the step's own decision; every composition-level Invariant the model can carry (1.1 to 1.3, 3.1, 3.2, 4.1, 4.2, 6.1) checked, with the rules they stand on; the invocation is one transaction since 2026-10-20 (Store 1 and 2), so the completion bound's yield point is not modelled; closes 2026-08-29-a and 2026-08-30-e; execute-gated-workflow.als + 13 twins (the static data model, 2026-11-12: Invariant 3.1, 3.3, 4.1 and 4.2, Reconciliation 15, 16 and 17 (with 31) and Composition state 9, 11, 12 (with 10), 13, 14 and 15 checked on every state the starts, openings, decisions, firings and moot cascades, the opening and firing legs and the index writes can leave, each index as stored and as its rebuild reproduces it, Invariant 3.1, 4.1 and 4.2 a cross-check with the TLA+ model; nothing testable in Alloy for Invariant 2.1 through 2.3 (a denied attempt writes no record), 5.1 and 5.2 (State Machine's) and 8.1 through 8.4 (the order of a call, which no record keeps); Invariant 1.1 through 1.3, 3.2 and 6.1 left to the TLA+ model (each holds by what the fire and the cascade read before they wrote); the model found that no rule writes the gate binding of an opening the opening leg records, so over an earlier step's binding the stored entry stays live naming that step while the binding rebuild names the recovered one, as a failed re-bind write also leaves it (Composition state 12; Action wiring 14, 74); that a moot cascade whose withdraw Approval Step refuses lands its recall and moot record and leaves the step Pending and bound with nothing to retry the withdraw (Cascade 10, Reconciliation 14), against Invariant 4.1; that a Retained outcome can name a workflow whose start event is Purged and whose record's write failed (Invariant 3.3); and that a step submitted outside the composition coinciding with an unmatched open intent is recorded as its opening, not found (Reconciliation 16, 17)); coverage 2026-11-10 (unit formal: more coverage for the yes votes), 2026-11-12: owed rows: Reconciliation 24 through 26, 2026-11-08
-last gate: 2026-11-05 — Final Critique 15 — delta, frozen at 776c44e — foundational count 0, clean, one sample
+last gate: 2026-11-18 — Final Critique 16 — delta, frozen at 1295612 — foundational count 1, not clean, no sample
 
 open:
+- 2026-11-18-a · refining · Reconciliation 29; Term escalation instant; Term escalation reach; Capability requirement 25 · Reconciliation 29 compares the escalation instant, the composition call's stamp, with the sweep's now, a reading of the sweep's own call, and names no clock offset allowance, where Term aged record spends it on the same two readings (Execution Contract Logic confinement 18) → decide whether the escalation instant takes the allowance, which lengthens the escalation reach by it and so Capability requirement 25's bound and the model's escalation window, or the sweep's reading is the composition's own clock
 - 2026-11-04-a · refining · Primitive policy 9; Term capped field; Term moot plan · a fire intent's moot plan carries the declaration's state and action names, which no cap bounds, so the intent's payload is sized by names the capped fields leave out → decide whether [Start Workflow] caps a declared state or action name (invalid-declaration) or the moot plan's size is derived from the names' widest
 - 2026-11-08-a · refining · Term mooting rule; Term consumption rule; Capability requirement 3 · the consumption rule reads a firing past the horizon (Wiring decision 5) and the mooting rule reads no record past it, so where a workflow outlives the audit horizon an approval mooted only by an owed cascade's fire intent reads as live again once that intent is purged, and clears a firing; under Capability requirement 3 an intent is never aged while its workflow can fire, so the arm is out of reach → state that the consumption rule's aged arm is likewise unreachable under Capability requirement 3, or give the mooting rule an aged arm
 - 2026-10-31-b · refining · Audit arm 11; Term stage · the page reads an Audit Trail refusal at an outcome as leaving the act committed (post-commit), where Execution Contract Read 4 says a refused call writes nothing → waits on the 2026-10-26 11:43Z escalation's (b): whether a refused outcome leaves an act's other writes committed
