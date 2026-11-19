@@ -182,13 +182,13 @@
    "retention-window",
    "tamper-evidence"
   ],
-  "grounded": true,
+  "grounded": false,
   "invariants": 8,
   "kind": "composition",
   "models": {
    "als": true,
    "tla": true,
-   "twins": 20
+   "twins": 21
   },
   "regulated": true,
   "standards": [
@@ -207,7 +207,7 @@
    "SOX",
    "eIDAS"
   ],
-  "status": "done \u2014 2026-11-06",
+  "status": "doing",
   "substrate_of": [
    "actor-suspension",
    "capability-backed-sharing",

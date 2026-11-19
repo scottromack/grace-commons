@@ -26,8 +26,14 @@ sig Ref {}
 sig Instant {}
 
 -- RecordSet: a byte-exact record set — what a seal committed, or what a caller re-presents
--- to [Verify Record] (Term original event payload, Term verify-time presentation).
-sig RecordSet {}
+-- to [Verify Record] (Term original event payload, Term verify-time presentation). Being
+-- byte-exact, it fixes the attestation id, action reference and actor reference of its
+-- member at each event's position (Term member position, Term presented member).
+sig RecordSet {
+    mAtt    : Event -> lone Attestation,
+    mAction : Event -> lone Ref,
+    mActor  : Event -> lone Ref
+}
 
 -- RState: the two retention states (Term retention state).
 abstract sig RState {}
@@ -409,6 +415,17 @@ pred verifyCalls[q : VerifyQuery] {
     q.sealArg = (runsStep5[q] => q.presented else none)
 }
 
+-- memberMismatch: the presented member at the event's position carries an attestation id,
+-- action reference or actor reference other than the stored event's (Term member mismatch).
+-- The frame admits a stored event altered after sealing (an adversary's write, outside the
+-- composition's writes), which is what step 5.5 exists to catch.
+pred memberMismatch[q : VerifyQuery] {
+    let e = evOf[q.vid] |
+        q.presented.mAtt[e] != e.payloadAtt
+        or q.presented.mAction[e] != e.payloadAction
+        or q.presented.mActor[e] != e.payloadActor
+}
+
 -- verifyAnswers: every outcome a rule of [Verify Record] lands for the call, rule by rule.
 fun verifyAnswers[q : VerifyQuery] : set VOutcome {
     let i = q.vid |
@@ -423,9 +440,10 @@ fun verifyAnswers[q : VerifyQuery] : set VOutcome {
       + ((runsStep5[q] and q.sealAnswer = SealFailed) => FailSeal else none)                    -- step 5.2
       + ((runsStep5[q] and q.sealAnswer = SealNotKnown) => FailSealNotKnown else none)          -- step 5.4
       + ((runsStep5[q] and q.sealAnswer = SealUnavailable) => UnverifiableMechanism else none)  -- step 5.3, 6.2
+      + ((runsStep5[q] and q.sealAnswer = SealVerified and memberMismatch[q]) => FailSeal else none) -- step 5.5, 5.6
       + ((v3Ok[q] and not partly[i]
           and (no coveringOf[i] implies Deployment.tailMode = Lenient)
-          and (some coveringOf[i] implies q.sealAnswer = SealVerified)) => Verified else none)  -- step 4.5, 7.1
+          and (some coveringOf[i] implies (q.sealAnswer = SealVerified and not memberMismatch[q]))) => Verified else none)  -- step 4.5, 5.6, 7.1
 }
 
 -- framed: the frame, with every verify call's step 5 argument as the page writes it.
@@ -569,6 +587,21 @@ assert A_Invariant_7_3 {
 }
 check A_Invariant_7_3 for 3 but 5 Int
 
+-- A_verify_record_step_5_6: an event a seal covers is answered verified only where the
+-- stored event carries the attestation id, action reference and actor reference its seal
+-- committed at the event's position: verified never stands over a stored event altered
+-- after sealing, though the caller presents the original from an archive.
+assert A_verify_record_step_5_6 {
+    framed implies all q : VerifyQuery |
+        (Verified in verifyAnswers[q] and some coveringOf[q.vid])
+        implies (let e = evOf[q.vid], s = coveringOf[q.vid] | {
+            s.committed.mAtt[e]    = e.payloadAtt
+            s.committed.mAction[e] = e.payloadAction
+            s.committed.mActor[e]  = e.payloadActor
+        })
+}
+check A_verify_record_step_5_6 for 3 but 5 Int
+
 -- A_Invariant_8_2b: a held event (a Purged retention a hold keeps open) is answered as a
 -- purged one: [Read Record] returns no data, [Verify Record] failed-verification(purged).
 assert A_Invariant_8_2b {
@@ -685,6 +718,15 @@ run ShowUnverifiablePartlyPurged {
 -- ShowSealFailed: a covered event whose presented record set the seal rejects.
 run ShowSealFailed {
     framed and some q : VerifyQuery | verifyAnswers[q] = FailSeal
+} for 3 but 5 Int
+
+-- ShowAlteredStoredEventFails: a covered event whose stored entry differs from what its
+-- seal committed, the caller presenting the original: the seal verifies, the member does not
+-- match the stored event, and the answer is failed-verification(seal-proof-invalid).
+run ShowAlteredStoredEventFails {
+    framed and some q : VerifyQuery | some coveringOf[q.vid] and q.sealAnswer = SealVerified
+        and q.presented in coveringOf[q.vid].committed and memberMismatch[q]
+        and verifyAnswers[q] = FailSeal
 } for 3 but 5 Int
 
 -- ShowHeldAnsweredAsPurged: a held event, its content still readable, answered as purged.
