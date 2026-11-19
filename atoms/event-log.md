@@ -92,7 +92,7 @@ Term event field: event id | sequence number | recording instant | data.
 
 ```
 Capability requirement 1: The deployment MUST supply now at the seam PER Execution Contract Logic confinement 3.
-Capability requirement 2: The deployment MUST supply the database PER Execution Contract Database 1 through 7, Execution Contract Read 1 through 4 and Execution Contract Query 1 through 4.
+Capability requirement 2: The deployment MUST supply the database PER Execution Contract Database 1 through 7, Execution Contract Read 1 through 4, Execution Contract Read 6 and Execution Contract Query 1 through 4.
 Capability requirement 3: The deployment MUST supply EVERY event id PER Execution Contract Logic confinement 16.
 Capability requirement 4: The deployment MAY declare the payload cap PER Execution Contract Input 2.
 ```
@@ -234,7 +234,7 @@ Check 2.1: An auditor MUST find no two landed events sharing a sequence number (
 Check 2.2: An auditor MUST find no two events sharing an event id (Invariant 6.1).
 Check 2.3: An auditor MUST find a landed event's sequence number above EVERY sequence number an earlier landed event carries (Invariant 4.1).
 Check 3.1: An auditor MUST find a read answering the events by sequence number, rising (Invariant 5.2).
-Check 3.2: IF no event landing between two reads of one query EXISTS THEN an auditor MUST find the two reads answering alike (Invariant 5.1, Invariant 5.2).
+Check 3.2: IF no event landing between the commits two reads of one query answer at EXISTS THEN an auditor MUST find the two reads answering alike (Invariant 5.1, Invariant 5.2, Execution Contract Read 6).
 Check 3.3: An auditor MUST find a read answering an empty sequence for a well-formed query matching nothing (Operation 16).
 Check 3.4: An auditor MUST find a read answering invalid-query for a malformed query (Operation 15).
 Check 4.1: An auditor MUST find EVERY event carrying event id, sequence number, recording instant AND data (State 2).
@@ -251,7 +251,7 @@ Term committed version: a record as it stood at the commit that wrote it, which 
 ```
 External check 4: An auditor needing the log untampered confirmed MUST compose Tamper Evidence (Non-goal 4).
 External check 5: An auditor needing an event's writer confirmed MUST compose Actor Identity (Non-goal 6).
-External check 6: An auditor needing the payload cap confirmed MUST read the deployment's own declaration where the deployment declares one, and the payload cap's default where the deployment declares none (Operation 5, Capability requirement 4).
+External check 6: An auditor needing the payload cap confirmed MUST read the cap the instance holds PER Execution Contract Input 2 (Operation 5, Capability requirement 4).
 ```
 
 ## Non-goals
@@ -405,7 +405,7 @@ Projection: next_sequence_number
 
 #### Query
 
-The selection a caller passes to [Read] — a sequence number range, a wall-time range, or a combination of the two. A range carrying no upper end holds its lower end and everything above it; a [Query] is malformed as Term query says, and [Read] answers a malformed one with [Invalid Query].
+The selection a caller passes to [Read] — a sequence number range, a wall-time range, or a combination of the two. A range carrying no upper end holds its lower end and everything above it; Term query says when a [Query] is malformed, and Operation 15 answers a malformed one.
 
 Kind:         Parameter
 Parameter of: Read
@@ -483,14 +483,14 @@ It inherits from:
 
 ## Status
 
-`doing` — see the Ledger.
+`done — 2026-11-19` — see the Ledger.
 
 ## Ledger
 
 ```
-status: doing
+status: done — 2026-11-19
 formal: verified — event-log.tla + 3 twins (2026-06-03); event-log.als + 11 twins (the static data model, 2026-11-12: State 2 through 5, Invariant 3.1, 3.2, 4.1, 5.1, 5.2 and 6.1 and Operation 5 and 16 checked on every log a fresh instance and admitted [Append] calls leave and on every answer an admitted [Read] gives over such a log, Invariant 3.1, 4.1 and 6.1 a cross-check with the TLA+ model; nothing testable in Alloy for Invariant 1.1, 1.2 and 2.1: each compares the log or an event with a later version of it, which a single state cannot show, so they are the TLA+ model's; nor for Invariant 7.2, which names the field that is the order, a definition no state can break, the Invariant 5.2 check holding a read to it); coverage 2026-11-10 (unit formal: more coverage for the yes votes): owes a TLA+ check of Invariant 2 (across steps); owed rows: Invariant 2, 2026-11-12
-last gate: 2026-11-19 — Final Critique 14, a delta round, frozen at c649138 — foundational count 1, not clean, no sample; 2026-10-25 — Final Critique 13, frozen at bae1f12 — foundational count 0, clean, one sample
+last gate: 2026-11-19 — Final Critique 15, a delta round, one reader (Linus minimax-m3), frozen at e4c5745 — foundational count 0 after the blind second triage, clean, one sample; Linus's report claimed 2 foundational, 8 refining and 3 rhetorical, and neither foundational held (refuted: the lowered payload cap starts from a deployment declaring a cap a landed value exceeds, which Execution Contract Input 2 forbids, and its cure restates Input 2's carve-out; a range carrying no lower end stays malformed under Execution Contract Query 1, which Term query displaces only for the upper end, and the entry for [Invalid Query] names it); the settle's own refining cures: External check 6 reads the cap the instance holds per Input 2, Capability requirement 2 cites Read 6, Check 3.2 reads between the commits two reads answer at, the entry for [Query] cites Operation 15 for the answer; 2026-11-19 — Final Critique 14, a delta round, frozen at c649138 — foundational count 1, not clean, no sample; 2026-10-25 — Final Critique 13, frozen at bae1f12 — foundational count 0, clean, one sample
 
 open:
 - 2026-10-20-d · refining · State 3; State 5 · log name and a fresh log instance have no declared supplier → name who supplies each, a composing pattern (Identity 10) or the deployment
