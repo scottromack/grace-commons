@@ -700,14 +700,14 @@ Communication is a primitive with no regulatory anchor. It inherits from:
 
 ## Status
 
-`done — 2026-11-17` — see the Ledger.
+`done — 2026-11-19` — see the Ledger.
 
 ## Ledger
 
 ```
-status: done — 2026-11-17
+status: done — 2026-11-19
 formal: verified — communication.als + 15 twins (the static data model: State 1 and 3, Identity 3 and 4, Operation 2, 3 and 10 read as what every version carries, Operation 19 through 22, Invariant 1.1 checked on every version a sequence of admitted calls leaves, Identity 1 and 2 caught by the Identity 3 and 4 checks, Identity 6, 8, 10 and 12 by the Operation 19 check); communication.tla + 45 twins (across steps, under medium and outcome sets the deployment may change between calls: State 4, Invariant 2.1 and 3.1, Operation 2 through 8, 10 through 19 and 23 through 46, State 2 read through Operation 19, Identity 7, 9, 11 and 13 through Operation 2, 10 and 38, deleted Operation 1 and 9 read through Operation 2 and 10); on the maintainer's ruling of 2026-11-09 (both models; only the writing vetoes one), neither vetoed; Identity 5 (the implementation's id scheme) cannot be stated, 2026-11-19
-last gate: 2026-11-17 — Final Critique 3, a delta round, frozen at 4aa45fb6 — foundational count 0 after the blind second triage, clean, no sample
+last gate: 2026-11-19 — Final Critique 4, a delta round, frozen at d81f35b5 — foundational count 0 after the blind second triage, clean, no sample
 
 open: none
 ```
