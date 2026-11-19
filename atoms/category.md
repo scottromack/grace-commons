@@ -148,13 +148,13 @@ Operation 7: [Create Under] MUST record EXACTLY ONE category carrying the catego
 Operation 8: A creating action MUST stamp the category's position from the next position.
 Operation 9: A creating action MUST stand the category in listed.
 Operation 10: A creating action MUST answer the category id of the category the action recorded.
-Operation 11: [Rename] MUST replace the category's category name with the category name of the call.
-Operation 12: [Reorder] MUST replace the category's position with the position of the call.
+Operation 11: IF the call changes the category's category name THEN [Rename] MUST replace the category's category name with the category name of the call.
+Operation 12: IF the call changes the category's position THEN [Reorder] MUST replace the category's position with the position of the call.
 Operation 13: IF the category's status EQUALS listed THEN [Hide] MUST stand the category in hidden.
 Operation 14: IF the category's status EQUALS hidden THEN [Show] MUST stand the category in listed.
 Operation 15: IF the category's status EQUALS hidden THEN [Hide] MUST NOT write.
-Operation 16: [Place] MUST record EXACTLY ONE home for the item reference, carrying the category id of the call.
-Operation 17: [Place] MUST replace any earlier home of the item reference.
+Operation 16: IF the call changes the item reference's home THEN [Place] MUST record EXACTLY ONE home for the item reference, carrying the category id of the call.
+Operation 17: IF the call changes the item reference's home THEN [Place] MUST replace any earlier home of the item reference.
 Operation 18: IF a home carries the item reference THEN [Unplace] MUST remove the home of the item reference.
 Operation 19: IF no home carries the item reference THEN [Unplace] MUST NOT write.
 Operation 20: A changing action MUST answer ok.
@@ -173,7 +173,7 @@ Operation 32: IF the category id EQUALS blank OR the category id is malformed TH
 Operation 33: IF the category carries the position of the call THEN [Reorder] MUST NOT write.
 Operation 34: IF the category carries the category name of the call THEN [Rename] MUST NOT write.
 Operation 35: IF the item reference's home carries the category id of the call THEN [Place] MUST NOT write.
-NOTE: open 2026-11-19-a — Operation 11, 12, 16 and 17 bind unconditionally beside Operation 33 through 35, the unstated exception the checker names, where Operation 13 and 15, and Operation 14 and 31, carry disjoint conditions; the grammar has no form for a value the record does not already carry (GRACE-lang Hard invariant 14 bars EQUALS against a value that is no closed value), so whether the replacing rules take the changed-value condition stays the open decision.
+NOTE: Operation 11, 12, 16 and 17 take the changed-value condition, so each is disjoint from the no-write rule beside it, Operation 34, 33 and 35, as Operation 13 and 15, and Operation 14 and 31, are.
 ```
 
 Term naming action: [Create] | [Create Under] | [Rename] — the actions that set a category name.
@@ -203,14 +203,14 @@ The case space, and the rule that owns each case:
 | [Create] | name valid, no top-level category carries the name | the category id | one top-level category lands, listed, last in the row (Operation 6, Operation 8 through 10) |
 | [Create Under] | the parent exists, name valid and free among the parent's categories | the category id | one category lands under the parent, listed, last in the row (Operation 7 through 10) |
 | a naming action | a sibling already carries the name | [Name Taken] | none (Operation 2) |
-| [Rename] | the category exists, name valid and free | ok | the name replaced; the earlier name stays in the category's earlier versions (Operation 11) |
-| [Reorder] | the category exists, position a whole number above zero | ok | the position replaced (Operation 12) |
+| [Rename] | the category exists, name valid and free, and the call changes the category's name | ok | the name replaced; the earlier name stays in the category's earlier versions (Operation 11) |
+| [Reorder] | the category exists, position a whole number above zero, and the call changes the category's position | ok | the position replaced (Operation 12) |
 | [Reorder] | position blank, zero, below zero, or not a whole number | [Invalid Position] | none (Operation 5, Operation 30) |
 | [Hide] | the category stands listed | ok | the category stands hidden; homes in the category stand (Operation 13) |
 | [Show] | the category stands hidden | ok | the category stands listed (Operation 14) |
 | [Hide] or [Show] | the category already stands as asked | ok | none, no write (Operation 15, Operation 31) |
 | [Rename], [Reorder] or [Place] | the call asks for what already stands: the category's name, the category's position or the item's home | ok | none, no write (Operation 33 through 35) |
-| [Place] | item reference valid, the category exists | ok | the item's home is the category; any earlier home is replaced (Operation 16, Operation 17) |
+| [Place] | item reference valid, the category exists, and the call changes the item's home | ok | the item's home is the category; any earlier home is replaced (Operation 16, Operation 17) |
 | [Unplace] | the item has a home | ok | the home removed (Operation 18) |
 | [Unplace] | the item has no home | ok | none, no write (Operation 19) |
 | a category action | category id blank, malformed, or carried by no category | [Unknown Category] | none (Operation 3) |
@@ -592,17 +592,16 @@ Category is a primitive with no regulatory anchor. It inherits from:
 
 ## Status
 
-`doing` — see the Ledger.
+`done — 2026-11-19` — see the Ledger.
 
 ## Ledger
 
 ```
-status: doing
+status: done — 2026-11-19
 formal: pending — no model yet
-last gate: 2026-11-19 — Final Critique 2, a delta round, one reader (Linus beam-free), frozen at 990cf087 — foundational count 1 after the blind second triage, cured, not clean, no sample; Linus's report claimed 1 foundational, 2 refining, and the first triage placed none held (the foundational refuted: Term named category defines the named category of [Create] and [Create Under] as the category the call would record, so Term highest position reads the new category's siblings and Operation 8's next position is one reading; the delta set omitted that term, which Term highest position cites, so the reader could not see it; refining: Operation 24's name tiebreak decides duplicate positions, and Non-goal 7 with Composition note 1 give the menu of a hidden parent's children to the composing pattern); the blind second triage's press found one foundational beside them, the settle's own, cured: [Rename], [Reorder] and [Place] repeated with the value already standing wrote a new identical version in one build and nothing in another (the page's Indeterminate outcome says such a repeat changes nothing, and Operation 15, 19 and 31 carry the no-write rule for [Hide], [Show] and [Unplace] alone), so Operation 33 through 35 forbid the write and the case table carries the row, opening 2026-11-19-a for the unstated exception the checker names beside the replacing rules; 2026-11-18 — Final Critique 1, frozen at b0af523c — foundational count 5, cured by the settle, not clean, no sample
+last gate: 2026-11-19 — Final Critique 3, a delta round, one reader (Linus claude-sonnet-5-5), frozen at 53102bba — foundational count 0 after the blind second triage, clean, one sample; Linus's one report claimed 1 foundational, 4 refining and 1 rhetorical: the foundational is the open line 2026-11-19-a re-found (Operation 11, 12, 16 and 17 bind unconditionally beside Operation 33 through 35), placed refining Kind B by both triages, since a build that writes a new identical version breaks Operation 33 through 35 and an implementation that writes nothing obeys every rule, so two conforming builds do not differ; the line's premise that the grammar has no form for a value the record does not already carry was false (Moderation's Operation 15 and 16 say the move changes the standing and leaves it as it was, and Operation 33 through 35 use the predicate carries, not EQUALS, which Hard invariant 14 governs), so the line is closed: cured, Operation 11, 12, 16 and 17 take the condition that the call changes the category's name, position or the item's home, and the three case-table rows of the replacing rules say so; the four refining items refuted (the answer ok has its owner in Operation 20, Identity 6 and 7 and Capability requirement 4 bar normalizing a name, no rule clamps a position, Invariant 2.2 and Database 2 settle two concurrent places), the rhetorical declined; 2026-11-19 — Final Critique 2, a delta round, one reader (Linus beam-free), frozen at 990cf087 — foundational count 1 after the blind second triage, cured, not clean, no sample; Linus's report claimed 1 foundational, 2 refining, and the first triage placed none held (the foundational refuted: Term named category defines the named category of [Create] and [Create Under] as the category the call would record, so Term highest position reads the new category's siblings and Operation 8's next position is one reading; the delta set omitted that term, which Term highest position cites, so the reader could not see it; refining: Operation 24's name tiebreak decides duplicate positions, and Non-goal 7 with Composition note 1 give the menu of a hidden parent's children to the composing pattern); the blind second triage's press found one foundational beside them, the settle's own, cured: [Rename], [Reorder] and [Place] repeated with the value already standing wrote a new identical version in one build and nothing in another (the page's Indeterminate outcome says such a repeat changes nothing, and Operation 15, 19 and 31 carry the no-write rule for [Hide], [Show] and [Unplace] alone), so Operation 33 through 35 forbid the write and the case table carries the row, opening 2026-11-19-a for the unstated exception the checker names beside the replacing rules; 2026-11-18 — Final Critique 1, frozen at b0af523c — foundational count 5, cured by the settle, not clean, no sample
 
 open:
-- 2026-11-19-a · refining · Operation 11, 12, 16, 17; Operation 33 through 35 · the replacing rules bind unconditionally beside the three no-write rules, and the grammar has no form for a value the record does not already carry → write the changed-value condition into the replacing rules once a form exists, or accept the checker's advisory
 - 2026-11-18-a · refining · Term string cap · one string cap bounds both an item reference and a category name, and a deployment may want a different cap for each → decide whether the atom declares two caps
 ```
 
