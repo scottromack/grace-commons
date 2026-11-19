@@ -351,7 +351,7 @@ Deprovisioning 5: A composing pattern MUST record a subject's deprovisioning ONL
 ### Grant concurrency and revoke concurrency
 
 ```
-Grant concurrency 1: IF no active grant matches the pair THEN the admitted concurrent [Grant] calls on the pair, with no [Revoke] of the pair's grant between the calls' commits, MUST record EXACTLY ONE grant in all (Execution Contract Database 2).
+Grant concurrency 1: IF no active grant matches the pair THEN the admitted concurrent [Grant] calls on the pair, with no [Revoke] of the pair's grant between the calls' commits, MUST record EXACTLY ONE grant in all (Invariant 11.1, Execution Contract Database 2).
 ```
 
 ### Revoke persistence failure
@@ -601,14 +601,14 @@ It inherits from:
 
 ## Status
 
-`done — 2026-11-17` — see the Ledger.
+`done — 2026-11-19` — see the Ledger.
 
 ## Ledger
 
 ```
-status: done — 2026-11-17
+status: done — 2026-11-19
 formal: verified — permissions.als + 11 twins (the static data model, re-derived 2026-11-12 as every version an ordered sequence of admitted [Grant] and [Revoke] calls leaves, and 2026-11-19 over the rule of 2026-11-16: State 1 through 5, Identity 1, Invariant 8.1 and 11.1, Operation 2, 4 and 5, String 6, with Identity 7 checked through Invariant 11.1 on the records as they stand after every call; the 2026-06-03 model's pre/post checks of Invariant 1, 2, 3 and 10 and its checks of [Check]'s answer taken over by the TLA+ model); permissions.tla + 27 twins (the operation sequences, 2026-11-12, re-derived 2026-11-19 with [Grant] calls in flight together, while the clock moves: Invariant 1.1, 2.2, 4.1, 4.2, 5.1, 7.1, 9.1, 9.2, 10.1 and 11.1, Identity 8, Check 2.1, Operation 1, 7, 9, 10, 11, 15, 17, 20, 26, 28, 33 and 34, Grant concurrency 1, with Invariant 1.2, 3.2 and 6.1, Identity 3, 6 and 7, Operation 3, 13, 18, 21 and 22 checked through them; Operation 6's check retired with the rule, and the twins permissions-buggy-check-latest-grant-only and permissions-buggy-revoke-by-pair, which the rule made equivalent to the model, replaced); Invariant 9.2 at an instant a grant was both granted and revoked in is a finding (the grant stood in active at that instant and is not live at it; the model reads an instant at its end); Grant concurrency 1 where a [Revoke] of the first call's grant commits between two concurrent calls' commits, the 2026-11-19 re-derivation's one finding against Operation 1 (two calls, two grants), is cured the same day (page-finding 41), with the third call in flight and the refused write that restating the check found: the rule now speaks of the admitted calls with no [Revoke] of the pair's grant between the calls' commits, and the check states it as it reads, holding with two calls in flight and, on a scratch copy, three; Invariant 6.2 cannot be stated; coverage 2026-11-19 (unit `atoms/permissions.md formal layer`): owed rows: Operation 27; String 1 through 4 and 7, 2026-11-19
-last gate: 2026-11-17 — Final Critique 12, a delta round, frozen at db491965 — foundational count 0 after the blind second triage, clean, no sample
+last gate: 2026-11-19 — Final Critique 13, a delta round, frozen at d81f35b5 — foundational count 0 after the blind second triage, clean, no sample
 
 open:
 - 2026-10-21-c · refining · Revoke persistence 2, 4 · the caller's retry of a refused revoke names no terminus (Pass 1: every retry loop names its terminus), and the deployment that raises the alert is declared only as an alias of the deployment → name the bound at which the caller stops and what it raises there; say which deployments alert
