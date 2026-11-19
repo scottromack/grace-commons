@@ -267,7 +267,7 @@ Non-goal 6: The atom MUST NOT bar a person.
 Non-goal 7: The atom MUST NOT refuse a reply on a locked item.
 ```
 
-NOTE: the owners — the composing pattern that asks [Role](./role.md) (Non-goal 1, 2; External check 1); [Restorable Delete](./restorable-delete.md) (Non-goal 3); the composing pattern that shows the flag form (Non-goal 4); the composing pattern that tells the author, such as one built on [Notification](./notification.md) (Non-goal 5); [Actor Suspension](../compositions/actor-suspension.md) (Non-goal 6); the composing pattern that wires [Comment](./comment.md), reading [Look Up] before a reply (Non-goal 7).
+NOTE: the owners — the composing pattern that asks [Role](./role.md) (Non-goal 1, 2; External check 1); [Restorable Delete](./restorable-delete.md) (Non-goal 3); the composing pattern that shows the flag form (Non-goal 4); the composing pattern that tells the author, such as one built on [Notification](./notification.md) (Non-goal 5); [Actor Suspension](../compositions/actor-suspension.md) (Non-goal 6); the composing pattern that wires [Comment](./comment.md), reading [Look Up] before a reply (Non-goal 7); the composing pattern that attests who dismissed a report, such as [Audit Trail](../compositions/audit-trail.md), since [Dismiss] validates its moderator reference (Operation 2) and keeps none and State 5 gives a report no clearing field.
 
 Where the atom breaks down: deleting an item, which is [Restorable Delete](./restorable-delete.md); cutting a person off, which is [Actor Suspension](../compositions/actor-suspension.md).
 
@@ -549,14 +549,14 @@ Moderation is a primitive with no regulatory anchor. It inherits from:
 
 ## Status
 
-`doing` — see the Ledger.
+`done — 2026-11-19` — see the Ledger.
 
 ## Ledger
 
 ```
-status: doing
+status: done — 2026-11-19
 formal: pending — no model yet
-last gate: 2026-11-18 — Final Critique 1, frozen at b3395186 — foundational count 4, cured by the settle, not clean, no sample
+last gate: 2026-11-19 — Final Critique 2, a delta round, one reader (Linus claude-sonnet-5-5), frozen at 7912d4e3 — foundational count 0 after the blind second triage, clean, one sample; Linus's one report claimed none and held three questions (a pending report on a hidden item, two reports sharing a key, a standing without its stamp), which the blind triage traced through the frozen text and agreed hold; refining: show, unlock or unpin of an untouched item refuted (Term untouched stands shown, open and unpinned, so the move leaves the standing as it was and Operation 16 writes nothing, and a stamp would break Term moderated instant), [Dismiss] validating a moderator reference and keeping none placed Kind C and cured by naming the owner in the owners NOTE (an audit-recording composing pattern, such as Audit Trail; State 5 gives a report no clearing field), one string cap for both references declined as Kind D (Execution Contract Input 2 with Logic confinement 17 already holds an old cap until no held value exceeds the new one), Capability requirement 7 binding a no-write retry declined as Kind D (the deployment cannot know a call's outcome when it supplies now, Logic confinement 3 and 16); rhetorical accepted (the name Term person reference of the call); 2026-11-18 — Final Critique 1, frozen at b3395186 — foundational count 4, cured by the settle, not clean, no sample
 
 open: none
 ```
