@@ -803,12 +803,12 @@ Inherited from:
 
 ## Status
 
-`done — 2026-11-17` — see the Ledger.
+`doing` — see the Ledger.
 
 ## Ledger
 
 ```
-status: done — 2026-11-17
+status: doing
 formal: verified — capability.als + 12 twins (the static data model, 2026-06-23; coverage 2026-11-10, unit formal: more coverage for the yes votes); capability.tla + 12 twins (across steps: Invariant 1.1, 2.1, 2.3, 2.5, 4.4, 6.1, 7.1 through 7.3, 9, 10, 11.2, 12.1 and 13.3, Operation 31 and 71, and the two entailed properties, a zero counter only in redeemed and a revoked capability's counter above zero, over every sequence of calls as the clock moves), 2026-11-11
 last gate: 2026-11-17 — Final Critique 12, a delta round, frozen at 5a146b13 — foundational count 0 after the blind second triage, clean, no sample
 

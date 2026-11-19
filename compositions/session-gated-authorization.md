@@ -456,12 +456,12 @@ Projection: length_bound
 
 ## Status
 
-`done — 2026-11-18` — see the Ledger.
+`doing` — see the Ledger.
 
 ## Ledger
 
 ```
-status: done — 2026-11-18
+status: doing
 formal: verified — session-gated-authorization.als + 12 twins (the static data model, re-derived 2026-11-12 as [Check Permitted] calls over the answers their constituents give, the 2026-06-03 trace model's `var` fields `dyn_status` and `dyn_call_log`, `always` checks and `eventually` runs gone, and the facts that stated Invariant 1, 2 and 4 now checks: Invariant 1.1, 2.1, 2.2, 3.1 through 3.3, 4.1 and 4.2, Action wiring 3, 6, 9, 10 and 12, Primitive policy 2, 3, 4 and 9); session-gated-authorization.tla + 6 twins + 4 probes (the operation sequences, 2026-11-12: each call two steps with Session and Permissions moving between them; the stepping checks Dyn_Revocation_Terminal, Dyn_Expiry_Terminal and Dyn_Gate_Reflects_Current_Status taken over as Composes7_RevocationTerminal, Composes7_ExpiryTerminal and AW14_GateReflectsCurrentStatus, with Invariant 1.1 and 2.1, Action wiring 13 through 15 and Concurrency 1 and 2); Invariant 4.1 against the closure table's state-unavailable landing is a finding (an admitted gate over a pair no active grant covers whose permitted read fails); coverage 2026-11-12 (unit `compositions/session-gated-authorization.md formal layer`): owed rows: none, 2026-11-12
 last gate: 2026-11-18 — Final Critique 11, delta, frozen at 89cb072 — foundational count 0 after the blind second triage, clean, one sample; Linus's one report (qwen3.8-flash) claimed three foundational, all refuted by rules outside the delta set: Non-goal 9 forbids exposing Permissions' permitted beside [Check Permitted] (External check 5), Action wiring 5, 6, 10 and Invariant 4.1 and 4.2 pin the grant leg of the replacement (Composes 5), and Term length bound, Term boundary predicate and Primitive policy 4 scope the bound over the session token and the action scope, the page's only inputs (Primitive policy 1); of four refining none changed the page (the closure table's inputs and calls leave out Revoke, which Non-goal 4 bars; the measure of unexposed is Non-goal 9's; `permitted` is the page's name for Permissions' read throughout; Primitive policy 1 declares this page's setting and cites Input 2) and one rhetorical was left; the settle's own open line 2026-11-18-a records a bound the default cannot hold a long token to; 2026-11-05 — Final Critique 10, delta, frozen at 7f57305 — foundational count 0, clean, one sample
 

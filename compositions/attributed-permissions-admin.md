@@ -786,12 +786,12 @@ It inherits from:
 
 ## Status
 
-`done — 2026-11-18` — see the Ledger.
+`doing` — see the Ledger.
 
 ## Ledger
 
 ```
-status: done — 2026-11-18
+status: doing
 formal: pending — attributed-permissions-admin.als + 25 twins and attributed-permissions-admin.tla + twins (verified 2026-11-11) model the rule of 2026-11-16 reversed: Wiring decision 8 and Concurrency 1 through 3 as they stood (two issuances over one pair, two grants) and an issuance with no read of the pair; owed over Action wiring 1, 2, 7, 15 and 103 through 106, Concurrency 1, 2, 10 and 11 and the underlying reason already-held, the twins re-derived with them; the Alloy model and its twins let each constituent's stamp stand off the composition's reading within the clock offset allowance (the Deploy signature's allowance and offsets, the facts ClockIsMonotonic and SeamsWithinTheAllowance, and A_Invariant_4_1 and A_Invariant_4_2 as inequalities taken with the allowance, citing Clock semantics 9), and Final Critique 14 (2026-11-18) restated Invariant 4.1 and 4.2 as equalities of one call's stamps and retired Invariant 4.3, Check 3.2, Check 3.4 and Clock semantics 11, with Clock semantics 9 and 10, to Execution Contract Logic confinement 19; the models, their buggy twins `-buggy-issue-grantfirst` and `-buggy-revoke-revokefirst` (which no longer show in the stamps once one reading stamps both) and the coverage matrix's rows 23, 35 to 37 and 65 are owed the same re-derivation: one reading per call, the two assertions as equalities, a twin whose host stamps a constituent from a reading of its own
 last gate: 2026-11-18 — Final Critique 14, a delta round, one reader (Linus qwen3.8-flash), frozen at 213cedcb — foundational count 0 after the blind second triage, clean, one sample; 2026-11-18 — Final Critique 13, a delta round, one reader (Linus qwen3.8-flash), frozen at 10294eba — foundational count 0 after the blind second triage, clean, one sample; 2026-11-16 — Final Critique 12, a delta round, one reader (Linus minimax-m3), frozen at e98bc218 — foundational count 0 after the blind second triage, clean, one sample; 2026-11-16 — Final Critique 11, a delta round, one reader (Linus minimax-m3), frozen at 1619f21 — foundational count 1, cured, not clean, no sample; 2026-11-05 — Final Critique 10, delta, frozen at a6a6920 — foundational count 0, clean, one sample
 

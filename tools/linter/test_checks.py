@@ -419,6 +419,15 @@ R_FIXTURES = [
         "done — 2026-06-04",
         "\n- 2026-08-27-a · foundational · step 4 · x is unset → set it"),
      "R-ledger-done-open"),
+    ("R_DONE_OPEN_REFINING", _ledger_page(
+        "done — 2026-06-04",
+        "done — 2026-06-04",
+        "\n- 2026-08-27-a · refining · step 4 · x is loose → tighten it"),
+     "R-ledger-done-open"),
+    ("R_DONE_NOTE_OPEN", _ledger_page(
+        "done — 2026-06-04",
+        "done — 2026-06-04", " none").replace("derived.", "derived. NOTE: open 2026-08-27-a"),
+     "R-ledger-done-open"),
     ("R_STATUS_MISMATCH", _ledger_page(
         "doing", "done — 2026-06-04", " none"),
      "R-ledger-status"),
@@ -4557,7 +4566,7 @@ def main(argv: list[str]) -> int:
     failures.extend(r_problems)
     if not r_problems:
         print(f"R-ledger: {len(R_FIXTURES)} synthetic fixtures hold "
-              f"(four clean pages silent, seventeen malformed pages fire their code) \u2713")
+              f"(four clean pages silent, nineteen malformed pages fire their code (a done page with an open refining line or a `NOTE: open` fires R-ledger-done-open)) \u2713")
 
     hist_problems: list[str] = []
     check_history_file_synthetic(hist_problems)

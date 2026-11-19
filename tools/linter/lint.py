@@ -2498,11 +2498,20 @@ def check_ledger(patterns: dict[Path, Pattern]) -> list[Finding]:
                 p.path, led.line, "R-ledger-status",
                 f"Ledger says `{led.status}` but the Status line says `{token}`",
             ))
-        if is_done(led.status) and led.count("foundational"):
+        # Unit `method: done means no open line, and a finding is placed by what it is`
+        # (Scott, 2026-11-19): a done page carries no open Ledger line of any class and
+        # no `NOTE: open` in its text; a refining finding is decided or filed, never parked.
+        open_notes = len(re.findall(r"NOTE: open", p.text))
+        if is_done(led.status) and (led.open or open_notes):
+            what = []
+            if led.open:
+                what.append(f"{len(led.open)} open Ledger line(s)")
+            if open_notes:
+                what.append(f"{open_notes} `NOTE: open` line(s)")
             findings.append(Finding(
                 p.path, led.line, "R-ledger-done-open",
-                f"status is done with {led.count('foundational')} open foundational "
-                f"line(s); done requires zero (pressure-testing.md section What DONE means)",
+                f"status is done with {' and '.join(what)}; done requires none "
+                f"(pressure-testing.md section What DONE means)",
             ))
         if led.status == "doing" and not led.open and led.gate == "none":
             findings.append(Finding(
