@@ -529,7 +529,8 @@ status: doing
 formal: pending — no model yet
 last gate: 2026-11-18 — Final Critique 1, frozen at b0af523c — foundational count 2, cured by the settle, not clean, no sample
 
-open: none
+open:
+- 2026-11-19-a · refining · Operation 19 · [List] orders comments by "added instant order" and names no direction, the form Post's Operation 21 and 22 cured as "earliest first" (Execution Contract Read 5: a specification that names its own order keeps it, so the default direction does not apply) → name the direction beside the order, as the case table and the Summary already say oldest first
 ```
 
 ## Decisions
