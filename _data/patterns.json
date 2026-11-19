@@ -304,7 +304,7 @@
    "capability",
    "selective-disclosure"
   ],
-  "grounded": false,
+  "grounded": true,
   "invariants": 5,
   "kind": "composition",
   "models": {
@@ -322,7 +322,7 @@
    "SEC 17a-4",
    "SOX"
   ],
-  "status": "doing",
+  "status": "done \u2014 2026-11-19",
   "substrates": [
    "audit-trail",
    "recoverable-invocation"
