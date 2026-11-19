@@ -709,7 +709,7 @@
    "shared-cart"
   ],
   "domain": null,
-  "grounded": true,
+  "grounded": false,
   "invariants": 7,
   "kind": "atom",
   "models": {
@@ -741,7 +741,7 @@
    "SOX",
    "eIDAS"
   ],
-  "status": "done \u2014 2026-10-25",
+  "status": "doing",
   "title": "Event Log"
  },
  "execute-gated-workflow": {

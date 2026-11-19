@@ -48,18 +48,14 @@ Identity 9: The atom MUST NOT identify an event by the event's data.
 Identity 10: A composing pattern MUST own how many log instances a deployment runs.
 ```
 
-NOTE: open 2026-10-22-b — the event id's source is named as the host's allocation (Identity 2) and not among what the deployment supplies (Capability requirement 1, Capability requirement 2).
-
 Term event id: the opaque value naming one event — an [Event Id]; allocated once, never again.
 
-Term seam: the atom's I/O (input and output) boundary as the section titled Logic Confinement Principle in `execution-contract.md` declares it; the host injects the clock reading and the event id here.
+Term seam: the atom's I/O (input and output) boundary as Execution Contract Logic confinement 14 declares it; the host injects the clock reading and the event id here.
 Term now: the deployment's clock reading at the call, as Execution Contract Logic confinement 11 declares it.
 
-Term transition: the atom's evaluation of one call against the log, as the section titled Logic Confinement Principle in `execution-contract.md` declares it.
+Term transition: the atom's evaluation of one call against the log, as Execution Contract Logic confinement 14 declares it.
 
-Term business caller: the party whose action the call carries, as the section titled Logic Confinement Principle in `execution-contract.md` declares it; never the source of an injected value.
-
-NOTE: open 2026-10-20-c — Term seam, Term transition and Term business caller cite the section titled Logic Confinement Principle in `execution-contract.md`, which declares none of them.
+Term business caller: the business caller per Execution Contract Logic confinement 14.
 
 ### State
 
@@ -96,7 +92,9 @@ Term event field: event id | sequence number | recording instant | data.
 
 ```
 Capability requirement 1: The deployment MUST supply now at the seam PER Execution Contract Logic confinement 3.
-Capability requirement 2: The deployment MUST supply the database PER Execution Contract Database 1 through 4, Execution Contract Database 6, Execution Contract Read 1 through 4 and Execution Contract Query 1 through 4.
+Capability requirement 2: The deployment MUST supply the database PER Execution Contract Database 1 through 7, Execution Contract Read 1 through 4 and Execution Contract Query 1 through 4.
+Capability requirement 3: The deployment MUST supply EVERY event id PER Execution Contract Logic confinement 16.
+Capability requirement 4: The deployment MAY declare the payload cap PER Execution Contract Input 2.
 ```
 
 ### Operations
@@ -127,11 +125,9 @@ Operation 17: [Read] MUST NOT write.
 Operation 21: The business caller MUST NOT supply recording instant.
 ```
 
-Term query: what a read asks for — a [Query]: a sequence number range, a wall-time range, or a combination of the two. A range carrying no upper end holds its lower end and everything above it, which Execution Contract Query 1 would read as malformed. A query is malformed where the query carries no range, where a range's lower end is above its upper end, where an end a sequence number range carries is below one, or where the query asks for anything beyond those ranges.
+Term query: what a read asks for — a [Query]: a sequence number range, a wall-time range, or a combination of the two. A range carrying no upper end holds its lower end and everything above it, which Execution Contract Query 1 would read as malformed. A query is malformed where the query carries no range, where a range's lower end is above its upper end, where any end a sequence number range carries is below one, or where the query asks for anything beyond those ranges.
 
-Term payload cap: the per-instance bound on the number of bytes the composing pattern supplies as data; 65,536 bytes where a deployment declares none.
-
-NOTE: open 2026-10-20-a — the deployment's declaration of the payload cap is named here and in External check 6, and listed by no Capability requirement.
+Term payload cap: the per-instance bound on the number of bytes the composing pattern supplies as data, counted on the value as the call carries it; 65,536 bytes where a deployment declares none.
 
 The case space, and the rule that owns each case:
 
@@ -140,7 +136,7 @@ The case space, and the rule that owns each case:
 | [Append] | data within the cap, database accepts | event id | one event lands carrying next sequence number, and next sequence number rises; no field of the landed event changes afterward (Operation 1, Operation 3, State 6, Invariant 2.1) |
 | [Append] | data over the cap | [Invalid Payload] | none — the precondition failed before the write (Operation 5, Execution Contract Read 4) |
 | [Append] | database refuses the write | [Storage Failure] | nothing lands; next sequence number is unchanged (Operation 9, Execution Contract Database 1) |
-| [Read] | query well-formed, events match | the events, ascending | none — the call reads (Invariant 5.1, Operation 17) |
+| [Read] | query well-formed, events match | the events, ascending | none — the call reads (Invariant 5.1, Invariant 5.2, Operation 17) |
 | [Read] | query well-formed, nothing matches | empty sequence | none (Operation 16) |
 | [Read] | query malformed | [Invalid Query] | none (Operation 15) |
 
@@ -232,13 +228,13 @@ An implementation is acceptable when the checks below are provable to an externa
 ### Conformance checks
 
 ```
-Check 1.1: An auditor MUST find EVERY event with a committed version answered by EVERY read of the event's log instance whose query the event matches (Invariant 1.1; Execution Contract Generation acceptance 1).
+Check 1.1: An auditor MUST find EVERY event with a committed version answered by EVERY read of the event's log instance whose query the event matches (Invariant 1.1, Invariant 5.1; Execution Contract Generation acceptance 1).
 Check 1.2: An auditor MUST find EVERY event field of EVERY event unchanged across EVERY committed version of the event (Invariant 2.1; Execution Contract Generation acceptance 1).
 Check 2.1: An auditor MUST find no two landed events sharing a sequence number (Invariant 3.1).
 Check 2.2: An auditor MUST find no two events sharing an event id (Invariant 6.1).
 Check 2.3: An auditor MUST find a landed event's sequence number above EVERY sequence number an earlier landed event carries (Invariant 4.1).
 Check 3.1: An auditor MUST find a read answering the events by sequence number, rising (Invariant 5.2).
-Check 3.2: IF no event landing between two reads of one query EXISTS THEN an auditor MUST find the two reads answering alike (Invariant 5.1).
+Check 3.2: IF no event landing between two reads of one query EXISTS THEN an auditor MUST find the two reads answering alike (Invariant 5.1, Invariant 5.2).
 Check 3.3: An auditor MUST find a read answering an empty sequence for a well-formed query matching nothing (Operation 16).
 Check 3.4: An auditor MUST find a read answering invalid-query for a malformed query (Operation 15).
 Check 4.1: An auditor MUST find EVERY event carrying event id, sequence number, recording instant AND data (State 2).
@@ -248,14 +244,14 @@ Check 5.2: An auditor MUST NOT read a falling recording instant as an order find
 
 NOTE: EVERY check names the rule the check tests.
 
-Term committed version: a record as it stood at the commit that wrote it, as Execution Contract Generation acceptance 1 declares it.
+Term committed version: a record as it stood at the commit that wrote it, which Execution Contract Database 5 keeps readable after the record changes and Execution Contract Generation acceptance 1 has a check read.
 
 ### External checks
 
 ```
 External check 4: An auditor needing the log untampered confirmed MUST compose Tamper Evidence (Non-goal 4).
 External check 5: An auditor needing an event's writer confirmed MUST compose Actor Identity (Non-goal 6).
-External check 6: An auditor needing the payload cap confirmed MUST read the deployment's own declaration (Operation 5).
+External check 6: An auditor needing the payload cap confirmed MUST read the deployment's own declaration where the deployment declares one, and the payload cap's default where the deployment declares none (Operation 5, Capability requirement 4).
 ```
 
 ## Non-goals
@@ -321,7 +317,7 @@ Term actors: the atom; the log (also: a log instance, a fresh log instance); the
 
 Term records: event — one recorded fact, carrying event id, sequence number, recording instant and data; the log carries log name and next sequence number.
 
-Term record verbs: derive, identify, allocate, supply, reuse, reassign, compare, order, own, hold, carry, begin, raise, offer, write, stamp, answer, accept, refuse, read, remain, remove, change, share, stand, fall, land, prune, detect, record, index, collapse, push, append, compose, cite, renumber, add, erase, match, find.
+Term record verbs: derive, identify, allocate, supply, reuse, reassign, compare, order, own, hold, carry, begin, raise, offer, write, stamp, answer, accept, refuse, read, remain, remove, change, share, stand, fall, land, prune, detect, record, index, collapse, push, append, compose, cite, renumber, add, erase, match, find, declare.
 
 Term value sets: event field = event id | sequence number | recording instant | data.
 
@@ -409,7 +405,7 @@ Projection: next_sequence_number
 
 #### Query
 
-The selection a caller passes to [Read] — a sequence-number range, a wall-time range, or a combination of the two. A range carrying no upper end holds its lower end and everything above it; a valid [Query] carries one range or both, each with its lower end, and asks for nothing beyond them, and [Read] returns its events in [Sequence Number] order.
+The selection a caller passes to [Read] — a sequence number range, a wall-time range, or a combination of the two. A range carrying no upper end holds its lower end and everything above it; a [Query] is malformed as Term query says, and [Read] answers a malformed one with [Invalid Query].
 
 Kind:         Parameter
 Parameter of: Read
@@ -487,20 +483,17 @@ It inherits from:
 
 ## Status
 
-`done — 2026-10-25` — see the Ledger.
+`doing` — see the Ledger.
 
 ## Ledger
 
 ```
-status: done — 2026-10-25
+status: doing
 formal: verified — event-log.tla + 3 twins (2026-06-03); event-log.als + 11 twins (the static data model, 2026-11-12: State 2 through 5, Invariant 3.1, 3.2, 4.1, 5.1, 5.2 and 6.1 and Operation 5 and 16 checked on every log a fresh instance and admitted [Append] calls leave and on every answer an admitted [Read] gives over such a log, Invariant 3.1, 4.1 and 6.1 a cross-check with the TLA+ model; nothing testable in Alloy for Invariant 1.1, 1.2 and 2.1: each compares the log or an event with a later version of it, which a single state cannot show, so they are the TLA+ model's; nor for Invariant 7.2, which names the field that is the order, a definition no state can break, the Invariant 5.2 check holding a read to it); coverage 2026-11-10 (unit formal: more coverage for the yes votes): owes a TLA+ check of Invariant 2 (across steps); owed rows: Invariant 2, 2026-11-12
-last gate: 2026-10-25 — Final Critique 13, frozen at bae1f12 — foundational count 0, clean, one sample
+last gate: 2026-11-19 — Final Critique 14, a delta round, frozen at c649138 — foundational count 1, not clean, no sample; 2026-10-25 — Final Critique 13, frozen at bae1f12 — foundational count 0, clean, one sample
 
 open:
-- 2026-10-20-a · refining · Term payload cap; External check 6 · the deployment's declaration of the payload cap is named (Term payload cap, External check 6) and declared by no Capability requirement → a Capability requirement naming the declaration and the default it falls back to
-- 2026-10-20-c · refining · Term seam; Term transition; Term business caller · each says the Execution Contract's Logic Confinement Principle declares it, and that section declares none of the three → declare the three there, the corpus's one seam wording, or point each at its declaration
 - 2026-10-20-d · refining · State 3; State 5 · log name and a fresh log instance have no declared supplier → name who supplies each, a composing pattern (Identity 10) or the deployment
-- 2026-10-22-b · refining · Identity 2; Capability requirement · the event id's source is named as the host's allocation (Identity 2) and not among what the deployment supplies, where the atom shape in `spec-format.md` lists an id source under Capability requirement and Final Critique 4's text named one beside the clock → name the source among the Capability requirements, in the one form the corpus settles for its twenty host-allocation atoms
 - 2026-10-23-a · refining · Term landed; Term qualifiers; Term event field; Term value sets · landed and event field are each declared twice (Term landed and Term qualifiers; Term event field and Term value sets), the declarations agreeing → keep one declaration of each twice-declared name, the other citing it (GRACE-lang Closed vocabulary 15)
 ```
 
