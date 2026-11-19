@@ -17,7 +17,7 @@ toc: true
 
 ## Summary
 
-Comment lets people answer an item in their own words — a post, a product, a photo — and answer each other, so the comments on an item form a tree of replies. Every comment has one author for good; only that author can change the wording or take the comment back. A comment taken back keeps its place in the tree, so the replies under it still make sense, but shows no words. Every earlier wording stays readable, because the database keeps each version of the record. Who may comment, whether the item exists, hiding someone else's comment, reactions on a comment, and telling the item's author each belong to another pattern, which is why one comment serves a forum, a shop's reviews and a photo page alike.
+Comment lets people answer an item in their own words — a post, a product, a photo — and answer each other, so the comments on an item form a tree of replies. Every comment has one author for good; only that author can change the wording or take the comment back. A comment taken back keeps its place in the tree, so the replies under it still make sense, but shows no words. Every earlier wording stays readable to an auditor, because the database keeps each version of the record. Who may comment, whether the item exists, hiding someone else's comment, reactions on a comment, and telling the item's author each belong to another pattern, which is why one comment serves a forum, a shop's reviews and a photo page alike.
 
 ---
 
@@ -26,7 +26,7 @@ Comment lets people answer an item in their own words — a post, a product, a p
 <details markdown="block">
 <summary>WHY</summary>
 
-Wherever people are shown something, they want to say something about it, and then to answer what others said. This atom is that and nothing more. Three decisions carry the weight. A comment either answers the item or answers another comment, and a reply always sits on the same item as the comment it answers, so the tree never crosses items. Only the author changes or takes back a comment, so one person can never erase another's words through this atom; a moderator's hiding is a different act, owned elsewhere. And a comment taken back is kept as retracted with its place in the tree, so replies are never orphaned and the record of what was said survives in the database's history. The item is named by the deployment's own reference and never read, which is why one comment serves any item. Taken in from MIT's sync-engine Commenting concept (Daniel Jackson's group), which removes a retracted comment and has no replies; a forum needs the tree and the history, so this one keeps both.
+Wherever people are shown something, they want to say something about it, and then to answer what others said. This atom is that and nothing more. Three decisions carry the weight. A comment either answers the item or answers another comment, and a reply always sits on the same item as the comment it answers, so the tree never crosses items. Only the author changes or takes back a comment, so one person can never erase another's words through this atom; a moderator's hiding is a different act, owned elsewhere. And a comment taken back is kept as retracted with its place in the tree, so replies are never orphaned and the record of what was said survives in the database's history. The item is named by the deployment's own reference and never read, which is why one comment serves any item. Taken in from the Massachusetts Institute of Technology's sync-engine Commenting concept (Daniel Jackson's group), which removes a retracted comment and has no replies; a forum needs the tree and the history, so this one keeps both.
 
 </details>
 
@@ -90,7 +90,10 @@ Capability requirement 3: The deployment MAY declare the string cap PER Executio
 Capability requirement 4: The deployment MAY declare the text cap PER Execution Contract Input 2 and Execution Contract Logic confinement 17.
 Capability requirement 5: The deployment MUST NOT normalize an author reference at the seam.
 Capability requirement 6: The deployment MUST NOT normalize a target reference at the seam.
+Capability requirement 7: The deployment MUST supply EVERY comment id PER Execution Contract Logic confinement 16.
 ```
+
+NOTE: Capability requirement 5 and 6 are the atom's own rule for the canonical form of each reference, which stands in place of Execution Contract Logic confinement 13 (as that rule's last sentence allows a specification that gives the canonical form another owner), so each is recorded as the call carries it (Execution Contract Input 4; Identity 3 through 6).
 
 ### Operations
 
@@ -119,7 +122,7 @@ list(target_reference)
 Operation 1: IF the target reference EQUALS blank OR the target reference EXCEEDS the string cap THEN [Add] MUST answer invalid-target-reference.
 Operation 2: IF the author reference EQUALS blank OR the author reference EXCEEDS the string cap THEN a writing action MUST answer invalid-author-reference.
 Operation 3: IF the text EQUALS blank OR the text EXCEEDS the text cap THEN a wording action MUST answer invalid-text.
-Operation 4: IF no comment carries the comment id THEN a comment action MUST answer unknown-comment.
+Operation 4: IF the comment id is malformed OR no comment carries the comment id THEN a comment action MUST answer unknown-comment (Execution Contract Input 3).
 Operation 5: [Add] MUST record EXACTLY ONE comment carrying the target reference, the author reference and the text of the call.
 Operation 6: [Reply] MUST record EXACTLY ONE reply carrying the author reference and the text of the call.
 Operation 7: [Reply] MUST stamp the reply with the comment id AND the target reference of the parent the call names.
@@ -142,6 +145,7 @@ Operation 23: IF the target reference is malformed THEN [Add] MUST answer invali
 Operation 24: IF the author reference is malformed THEN a writing action MUST answer invalid-author-reference (Execution Contract Input 1).
 Operation 25: IF the text is malformed THEN a wording action MUST answer invalid-text (Execution Contract Input 1).
 Operation 26: IF the target reference is malformed OR the target reference EQUALS blank OR the target reference EXCEEDS the string cap THEN [List] MUST answer an empty list (Execution Contract Query 5).
+Operation 27: [List] MUST answer the comment id of the parent for EVERY reply AND a blank parent comment id for EVERY comment that is not a reply.
 ```
 
 Term writing action: [Add] | [Reply] | [Edit] | [Retract] — the actions that change a comment.
@@ -165,11 +169,11 @@ The case space, and the rule that owns each case:
 | [Retract] | the caller wrote the comment, the comment stands shown | ok | the comment stands retracted; nothing is removed (Operation 16, State 5) |
 | [Retract] | the caller wrote the comment, the comment stands retracted | ok | none, no write (Operation 17) |
 | [Retract] | the caller did not write the comment | [Not Author] | none (Operation 12) |
-| a comment action | no comment carries the comment id | [Unknown Comment] | none (Operation 4) |
+| a comment action | the comment id is not a string, or no comment carries it | [Unknown Comment] | none (Operation 4) |
 | [Add] | target reference blank, over the string cap, or not a string | [Invalid Target Reference] | none (Operation 1, Operation 23) |
 | a writing action | author reference blank, over the string cap, or not a string | [Invalid Author Reference] | none (Operation 2, Operation 24) |
 | a wording action | text blank, over the text cap, or not a string | [Invalid Text] | none (Operation 3, Operation 25) |
-| [List] | the item has comments | every comment, oldest first, each with the parent's comment id where the comment is a reply, retracted ones with blank text | none (Operation 19, Operation 20, Operation 22) |
+| [List] | the item has comments | every comment, oldest first, each with the parent's comment id where the comment is a reply and a blank parent comment id where it is not, retracted ones with blank text | none (Operation 19, Operation 20, Operation 22, Operation 27) |
 | [List] | the item has none, or the target reference is blank, over the string cap, or not a string | an empty list | none (Operation 21, Operation 26) |
 | any writing call | database refuses the write | [Storage Failure] | none (Execution Contract Read 4) |
 | any call | its read of the database fails | `state-unavailable` | none (Execution Contract Read 1, Execution Contract Read 3) |
@@ -224,10 +228,13 @@ Check 1.1: An auditor MUST find EVERY comment carrying comment id, target refere
 Check 1.2: An auditor MUST find EVERY comment standing in EXACTLY ONE OF shown, retracted (State 2).
 Check 1.3: An auditor MUST find EVERY reply carrying the comment id of a comment the database holds (State 3).
 Check 1.4: An auditor MUST find EVERY reply carrying the target reference of the reply's parent (State 4).
+Check 1.5: An auditor MUST find an unfiltered read answering EVERY comment with a committed version (State 5; Execution Contract Generation acceptance 1).
+Check 1.6: An auditor MUST find EVERY comment that stood in retracted in one version standing in retracted in EVERY later version (Operation 13, Operation 17).
 Check 2.1: An auditor MUST find EVERY version of a comment carrying the author reference of the comment's first version (Invariant 1.2).
 Check 2.2: An auditor MUST find EVERY version of a comment carrying the target reference of the comment's first version (Invariant 1.3).
 Check 2.3: An auditor MUST find EVERY version of a reply carrying the parent comment id of the reply's first version (Invariant 1.4).
 Check 2.4: An auditor MUST find EVERY version of a comment carrying the added instant of the comment's first version (Invariant 1.5).
+Check 2.5: An auditor MUST find EVERY version of a comment carrying the comment id of the comment's first version (Invariant 1.1).
 Check 3.1: An auditor MUST find no two comments sharing a comment id (Invariant 2.1).
 ```
 
@@ -251,9 +258,10 @@ Non-goal 4: The atom MUST NOT hide a comment for a moderator.
 Non-goal 5: The atom MUST NOT hold a reaction.
 Non-goal 6: The atom MUST NOT notify an item's author.
 Non-goal 7: The atom MUST NOT draw a text.
+Non-goal 8: The atom MUST NOT remove a comment's text from any version of the comment.
 ```
 
-NOTE: the owners — the composing pattern that knows the caller, such as one built on [Session](./session.md) or [Permissions](./permissions.md) (Non-goal 1, 2); Catalog *(forthcoming)* (Non-goal 3; External check 1); [Moderation](./moderation.md) (Non-goal 4); [Reaction](./reaction.md) (Non-goal 5); the composing pattern that tells the author, such as one built on [Notification](./notification.md) (Non-goal 6); the composing pattern that shows the comments, which draws each text as it likes (Non-goal 7).
+NOTE: the owners — the composing pattern that knows the caller, such as one built on [Session](./session.md) or [Permissions](./permissions.md) (Non-goal 1, 2); Catalog *(forthcoming)* (Non-goal 3; External check 1); [Moderation](./moderation.md) (Non-goal 4); [Reaction](./reaction.md) (Non-goal 5); the composing pattern that tells the author, such as one built on [Notification](./notification.md) (Non-goal 6); the composing pattern that shows the comments, which draws each text as it likes (Non-goal 7); [Erasure Tombstone](./erasure-tombstone.md) (Non-goal 8).
 
 Where the atom breaks down: a one-word answer from a short list, which is a reaction; a titled piece that stands on its own, which is a [post](./post.md).
 
@@ -265,7 +273,7 @@ Two [Reply] calls on one parent are serialized (Execution Contract Database 2), 
 
 ### Indeterminate outcome
 
-A caller whose answer is lost may call again, and the repeat is a second call (Execution Contract Error model 1). A repeated [Retract] or [Edit] where the first landed changes nothing a reader sees and answers ok. A repeated [Add] or [Reply] records a second comment, so a caller whose answer was lost asks [List] before adding again.
+A caller whose answer is lost may call again, and the repeat is a second call (Execution Contract Error model 1). A repeated [Retract] where the first landed changes nothing a reader sees and answers ok; a repeated [Edit] writes its text again, which changes nothing only where no other [Edit] came between the two. A repeated [Add] or [Reply] records a second comment, so a caller whose answer was lost asks [List] before adding again.
 
 ### What undoes a write
 
@@ -298,7 +306,7 @@ Term bounds: string cap (the bound on a target reference's length and on an auth
 
 Term cadences: empty.
 
-Term qualifiers: migrated — drafted in GRACE lang (2026-11-18) through the Grace connector, from MIT's sync-engine Commenting concept.
+Term qualifiers: migrated — drafted in GRACE lang (2026-11-18) through the Grace connector, from the Massachusetts Institute of Technology's sync-engine Commenting concept.
 
 Term terms: comment, comments, reply, replies, parent, comment id, target reference, author reference, text, string cap, text cap, seam, added instant, status, shown, retracted, writing action, recording action, wording action, comment action, version.
 
@@ -328,7 +336,7 @@ Kind: Operation
 
 #### List
 
-Answers every comment on one item, oldest first, each with its parent's comment id where the comment is a reply, and a [Retracted] comment with blank text; changes nothing.
+Answers every comment on one item, oldest first, each with its parent's comment id where the comment is a reply and a blank parent comment id where it is not, and a [Retracted] comment with blank text; changes nothing.
 
 Kind: Operation
 
@@ -340,7 +348,7 @@ Kind: Type
 
 #### Parent
 
-The comment a reply answers, named by its [Comment Id].
+The comment id of the comment a reply answers; a comment that is not a reply has none, and [List] answers it blank (Operation 27). Set once, never changed.
 
 Kind:       Field
 Field of:   Comment
@@ -439,7 +447,7 @@ Projection: invalid-text
 
 #### Unknown Comment
 
-The refusal of a [Comment Id] no comment carries, on [Reply], [Edit] or [Retract] (Operation 4).
+The refusal of a [Comment Id] that is not a string or that no comment carries, on [Reply], [Edit] or [Retract] (Operation 4).
 
 Kind:       Member
 Member of:  the action rejection
@@ -506,20 +514,20 @@ Projection: storage-failure
 Comment is a primitive with no regulatory anchor. It inherits from:
 
 - **Daniel Jackson, *The Essence of Software*** — the concept as a freestanding, composable unit of software design.
-- **MIT's sync-engine, Commenting concept** (github.com/mit-sdg/sync-engine) — the taken-in source: authored comments on an outside target, retracted only by the author. This atom differs by adding replies and keeping a retracted comment in place.
+- **The Massachusetts Institute of Technology's sync-engine, Commenting concept** (github.com/mit-sdg/sync-engine) — the taken-in source: authored comments on an outside target, retracted only by the author. This atom differs by adding replies and keeping a retracted comment in place.
 
 ---
 
 ## Status
 
-`todo` — see the Ledger.
+`doing` — see the Ledger.
 
 ## Ledger
 
 ```
-status: todo
+status: doing
 formal: pending — no model yet
-last gate: none
+last gate: 2026-11-18 — Final Critique 1, frozen at b0af523c — foundational count 2, cured by the settle, not clean, no sample
 
 open: none
 ```
