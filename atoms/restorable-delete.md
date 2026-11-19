@@ -17,7 +17,7 @@ toc: true
 
 ## Summary
 
-Restorable Delete makes deleting something a two-step act: delete marks an item deleted and opens a window to bring it back, 30 days unless the business sets another; restore brings it back inside that window; purge makes the delete final, and nothing brings back a purged item. An accidental delete costs one click to undo, and a final delete is always a separate, deliberate act. The atom records where each item stands — present, deleted or purged — and answers which deleted items are past their window, so a nightly job can purge them. Who may delete or restore, hiding a deleted item from readers, destroying the item's stored copies, and a legal hold that forbids destruction each belong to another pattern, which is why one restorable delete serves a forum's posts, a shop's products and a team's files alike.
+Restorable Delete makes deleting something a two-step act: delete marks an item deleted and opens a window to bring it back, 30 days unless the business sets another; restore brings it back inside that window; purge makes the delete final, and nothing brings back a purged item. An accidental delete is undone by one restore, and a final delete is always a separate, deliberate act. The atom records where each item stands — present, deleted or purged — and answers which deleted items are past their window, so a nightly job can purge them. Who may delete or restore, hiding a deleted item from readers, destroying the item's stored copies, and a legal hold that forbids destruction each belong to another pattern, which is why one restorable delete serves a forum's posts, a shop's products and a team's files alike.
 
 ---
 
@@ -44,7 +44,7 @@ Term deletion: the record of where one deleted item stands, kept from the item's
 
 Term item reference: the string naming an item, such as a post, a product or a file, in the deployment's own scheme — an [Item Reference]; the atom reads no scheme in it.
 
-Term restore window: how long a deleted item may be restored; 30 days where a deployment declares none.
+Term restore window: how long a deleted item may be restored, a whole number of days of 86,400 seconds each, one or more; 30 days where a deployment declares none.
 
 Term string cap: the bound on an item reference's length in Unicode code points; 1,024 code points where a deployment declares none.
 
@@ -63,13 +63,13 @@ Term status: where an item stands, present, deleted or purged — the [Status].
 
 Term present: the status of an item readers may see — [Present]; an item with no deletion stands present.
 
-Term deleted: the status of an item marked deleted and still restorable inside the item's restore window — [Deleted].
+Term deleted: the status of an item marked deleted, restorable until its restore deadline passes — [Deleted].
 
 Term purged: the status of an item deleted for good — [Purged]; final.
 
 Term deleted instant: the instant of the latest [Delete] call that stood the item in deleted — the [Deleted Instant].
 
-Term restore deadline: the instant one restore window on from the deleted instant — the [Restore Deadline].
+Term restore deadline: `(deleted_instant + restore_window)` — the [Restore Deadline] (Execution Contract Logic confinement 9).
 
 ### Capability requirement
 
@@ -115,20 +115,22 @@ Operation 5: IF the item stands present THEN [Delete] MUST stand the deletion in
 Operation 6: IF the item stands present THEN [Delete] MUST stamp deleted instant from the injected now.
 Operation 7: IF the item stands present THEN [Delete] MUST stamp restore deadline from the injected now AND the restore window.
 Operation 8: IF the deletion's status EQUALS deleted THEN [Delete] MUST NOT write.
-Operation 9: IF the deletion's restore deadline PRECEDES the injected now THEN [Restore] MUST answer restore-window-closed.
+Operation 9: IF the deletion's status EQUALS deleted AND the deletion's restore deadline PRECEDES the injected now THEN [Restore] MUST answer restore-window-closed.
 Operation 10: IF the deletion's status EQUALS deleted THEN [Restore] MUST stand the deletion in present.
 Operation 11: IF the item stands present THEN [Restore] MUST NOT write.
 Operation 12: IF the item stands present THEN [Purge] MUST answer not-deleted.
 Operation 13: IF the deletion's status EQUALS deleted THEN [Purge] MUST stand the deletion in purged.
 Operation 14: IF the deletion's status EQUALS purged THEN [Purge] MUST NOT write.
 Operation 15: A writing action MUST answer ok.
-Operation 16: [Look Up] MUST answer the status AND restore deadline of the item reference's deletion.
+Operation 16: [Look Up] MUST answer the status of the item reference's deletion.
 Operation 17: [Look Up] MUST answer present for an item reference no deletion carries.
 Operation 18: [List Deleted] MUST answer EVERY deletion standing in deleted, in deleted instant order, then in codepoint order of item reference.
 Operation 19: [List Expired] MUST answer EVERY deletion standing in deleted whose restore deadline PRECEDES the injected now, in restore deadline order, then in codepoint order of item reference.
 Operation 20: A reading action MUST NOT write.
 Operation 21: IF the item reference is malformed THEN a writing action MUST answer invalid-item-reference (Execution Contract Input 1).
 Operation 22: IF the item reference is malformed OR the item reference EQUALS blank OR the item reference EXCEEDS the string cap THEN [Look Up] MUST answer present (Execution Contract Query 5).
+Operation 23: IF the deletion's status EQUALS deleted THEN [Look Up] MUST answer the restore deadline of the deletion.
+Operation 24: IF the item stands present OR the deletion's status EQUALS purged THEN [Look Up] MUST answer a blank restore deadline.
 ```
 
 Term writing action: [Delete] | [Restore] | [Purge] — the actions that change where an item stands.
@@ -152,7 +154,7 @@ The case space, and the rule that owns each case:
 | [Purge] | the item stands present | [Not Deleted] | none (Operation 12) |
 | [Purge] | the item stands purged | ok | none, no write (Operation 14) |
 | a writing action | reference blank, over the string cap, or not a string | [Invalid Item Reference] | none (Operation 1, Operation 21) |
-| [Look Up] | any | the item's status, and the restore deadline where the item stands deleted; present where no deletion carries the reference | none (Operation 16, Operation 17, Operation 22) |
+| [Look Up] | any | the item's status, and the restore deadline where the item stands deleted; present where no deletion carries the reference; a blank restore deadline where the item does not stand deleted | none (Operation 16, Operation 17, Operation 22, Operation 23, Operation 24) |
 | [List Deleted] | any | every deleted item, oldest deleted first | none (Operation 18) |
 | [List Expired] | any | every deleted item past its window, the earliest deadline first | none (Operation 19) |
 | any writing call | database refuses the write | [Storage Failure] | none (Execution Contract Read 4) |
@@ -186,7 +188,7 @@ A shop sets the restore window to seven days. Each night a job calls `list_expir
 
 - `delete("")` — rejected as [Invalid Item Reference]: the reference is blank.
 - `purge("p-8")` on a post never deleted — rejected as [Not Deleted]: purge is refused on an item not first deleted.
-- `restore("p-7")` 31 days after the delete — rejected as [Restore Window Closed].
+- `restore("p-5")` 31 days after `delete("p-5")` — rejected as [Restore Window Closed]: the item still stands deleted, past its deadline.
 - `delete("p-9")` once purged — rejected as [Item Purged]: purged is final.
 
 This covers every refusal but [Storage Failure], which answers when the database refuses a write.
@@ -239,7 +241,7 @@ A [Restore] and a [Purge] on one deleted item are serialized (Execution Contract
 
 ### Indeterminate outcome
 
-A caller whose answer is lost may call again, and the repeat is a second call (Execution Contract Error model 1). A repeated [Delete], [Restore] or [Purge] where the first landed writes nothing and answers ok; a repeated [Delete] keeps the first restore deadline.
+A caller whose answer is lost may call again, and the repeat is a second call (Execution Contract Error model 1). A repeated [Delete], [Restore] or [Purge] where the first landed and nothing has moved the item since writes nothing and answers ok; a repeated [Delete] keeps the first restore deadline.
 
 ### A restore window that changes
 
@@ -248,6 +250,8 @@ A deployment that changes the restore window changes the deadline of items delet
 ### What undoes a write
 
 [Restore] undoes [Delete] inside the restore window, and [Delete] undoes [Restore]. A [Purge] is never undone: that is the point of the act, and the item's history in the database stays until Shred *(forthcoming)* destroys it (Execution Contract Undo 4).
+
+NOTE: open 2026-11-18-a — nothing says whether [Purge] is an irreversible action in the sense of Execution Contract Undo 1, which would owe Undo 2's naming in its own rules, or a state made final that erases no record (State 4, Undo 4).
 
 ## Composition notes
 
@@ -273,7 +277,7 @@ Term record verbs: identify, normalize, compare, carry, stand, remove, supply, d
 
 Term value sets: writing action and reading action are declared above and cited here (GRACE-lang Closed vocabulary 15); status — present | deleted | purged; action rejection — invalid-item-reference | item-purged | restore-window-closed | not-deleted | storage-failure.
 
-Term bounds: string cap (the bound on an item reference's length in Unicode code points, 1,024 where a deployment declares none); restore window (30 days where a deployment declares none).
+Term bounds: string cap (the bound on an item reference's length in Unicode code points, 1,024 where a deployment declares none); restore window (a whole number of days of 86,400 seconds each, one or more; 30 days where a deployment declares none).
 
 Term cadences: empty.
 
@@ -349,7 +353,7 @@ Projection: present
 
 #### Deleted
 
-The status of an item marked deleted and still restorable inside its restore window.
+The status of an item marked deleted, restorable until its restore deadline passes.
 
 Kind:       Member
 Member of:  the status
@@ -399,7 +403,7 @@ Projection: item-purged
 
 #### Restore Window Closed
 
-The refusal of a [Restore] past the item's [Restore Deadline] (Operation 9).
+The refusal of a [Restore] on a [Deleted] item past the item's [Restore Deadline] (Operation 9).
 
 Kind:       Member
 Member of:  the action rejection
@@ -460,16 +464,17 @@ Restorable Delete is a primitive with no regulatory anchor. It inherits from:
 
 ## Status
 
-`todo` — see the Ledger.
+`doing` — see the Ledger.
 
 ## Ledger
 
 ```
-status: todo
+status: doing
 formal: pending — no model yet
-last gate: none
+last gate: 2026-11-18 — Final Critique 1, frozen at 27b7fd47 — foundational count 3, cured by the settle, not clean, no sample
 
-open: none
+open:
+- 2026-11-18-a · refining · Operation 13 · nothing says whether Purge is irreversible in the sense of Execution Contract Undo 1 or a state made final that erases nothing → decide which, and name the irreversible action in its own rules if it is
 ```
 
 ## Decisions
