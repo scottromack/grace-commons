@@ -675,7 +675,7 @@ Any rule a school, a clinic or a shop must follow in running a waitlist binds th
 
 ```
 status: done — 2026-11-17
-formal: pending — no model yet
+formal: verified — waitlist.als + 18 twins (the static data model: State 1 through 4, Identity 3 and 4, Operation 4, 5 and 11 through 14, Invariant 1.1, 1.2, 2.1, 5.2, 6.1, 8.1 and 9.1 checked on every version a sequence of admitted calls leaves, Identity 1, 2 and 5 caught by the Identity 3 and 4 checks, Identity 6, 8, 12 and 13 by the Operation 4 and 11 checks); waitlist.tla + 40 twins (across steps: State 5 and 6, Invariant 1.2, 1.3, 3.1 through 3.3, 4.1, 5.1 and 7.1, Operation 1 through 4, 6 through 12 and 15 through 35, Identity 7 and 9 read through Operation 2, 4, 10 and 11, the other half of Operation 33 read from the term Read Waitlist); on the maintainer's ruling of 2026-11-09 (both models; only the writing vetoes one), neither vetoed; Identity 10 and 11 (the deployment's random draw) cannot be stated, 2026-11-19
 last gate: 2026-11-17 — Final Critique 2, delta, frozen at 8d7d3b9 — foundational count 0, clean, one sample; 2026-11-17 — Final Critique 1, full, frozen at e7a3151 — foundational count 5, cured, not clean, no sample
 
 open: none
