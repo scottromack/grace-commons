@@ -726,7 +726,7 @@
    "permissions",
    "assignment"
   ],
-  "grounded": false,
+  "grounded": true,
   "invariants": 7,
   "kind": "composition",
   "models": {
@@ -742,7 +742,7 @@
    "PCI DSS",
    "SOX"
   ],
-  "status": "doing",
+  "status": "done \u2014 2026-11-19",
   "substrates": [
    "audit-trail"
   ],
