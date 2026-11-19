@@ -17,7 +17,7 @@ toc: true
 
 ## Summary
 
-Category lets a business arrange named categories as a tree — Gardening, and under it Soil and Seeds — and file each item in one home category. The tree is also the menu: every category has a place in its row that the business can change, and a category can be hidden from the menu without losing what is filed in it. Two categories side by side never share a name. An item has one home or none; filing it again moves it. Categories are never removed, so nothing filed is ever left pointing nowhere. Who may arrange the tree or file an item, the items themselves, flat tags, moving a category under another, and turning a busy tag into a category each belong to another pattern, which is why one category tree serves a forum, a shop and a help center alike.
+Category lets a business arrange named categories as a tree — Gardening, and under it Soil and Seeds — and file each item in one home category. The tree is also the menu: every category has a place in its row that the business can change, and a category can be hidden from the menu without losing what is filed in it. Two categories side by side never share a name. An item has one home or none; filing it again moves it. Categories are never removed, so nothing filed is ever left pointing nowhere. Who may arrange the tree or file an item, the items themselves, flat tags, moving a category under another, and turning a busy tag into a category each belong to another pattern.
 
 ---
 
@@ -26,7 +26,7 @@ Category lets a business arrange named categories as a tree — Gardening, and u
 <details markdown="block">
 <summary>WHY</summary>
 
-Every place with many items needs somewhere to go first: a forum's boards, a shop's departments, a help center's sections. This atom is that and nothing more. Three decisions carry the weight. An item has exactly one home, so a reader always knows where an item lives and a count per category adds up; several names per item is a tag's job, a different pattern. The tree and the menu are one thing, so the business orders and hides categories where the categories are kept and no second menu drifts out of step. And a category is never removed, only hidden, so an item's home always names a real category and the database's history keeps every rename. Taken in from Scott's forum sketch ("tree, one home per post, carries menu order"), with MIT's sync-engine Labeling concept (Daniel Jackson's group) read for its naming rules; Labeling's several labels per item are kept for [Tag](./tag.md).
+Every place with many items needs somewhere to go first: a forum's boards, a shop's departments, a help center's sections. This atom is that and nothing more. Three decisions carry the weight. An item has exactly one home, so a reader always knows where an item lives and a count per category adds up; several names per item is a tag's job, a different pattern. The tree and the menu are one thing, so the business orders and hides categories where the categories are kept and no second menu drifts out of step. And a category is never removed, only hidden, so an item's home always names a real category and the database's history keeps every rename. The Massachusetts Institute of Technology's (MIT) sync-engine Labeling concept (Daniel Jackson's group) is read for its naming rules; Labeling's several labels per item are kept for [Tag](./tag.md).
 
 </details>
 
@@ -52,7 +52,7 @@ Term category name: the category's name as the business wrote it, such as Soil �
 
 Term parent category: the category a category sits under; a top-level category has none — the [Parent Category].
 
-Term siblings: categories sharing one parent category, or all top-level categories.
+Term siblings: categories sharing one parent category, or all top-level categories; no category is a sibling of itself.
 
 Term position: a whole number giving a category's place among the category's siblings, lowest first — a [Position].
 
@@ -61,6 +61,8 @@ Term home: the record filing one item in one category — a [Home].
 Term item reference: the string naming an item, such as a post or a product, in the deployment's own scheme — an [Item Reference]; the atom reads no scheme in it.
 
 Term string cap: the bound on an item reference's length and on a category name's length in Unicode code points; 1,024 code points where a deployment declares none.
+
+NOTE: open 2026-11-18-a — one string cap bounds both an item reference and a category name; whether a deployment may declare a cap for each is no rule's decision yet.
 
 Term seam: the atom's input and output boundary as the section titled Logic Confinement Principle in `execution-contract.md` declares it.
 
@@ -72,6 +74,7 @@ State 2: EVERY category MUST stand in EXACTLY ONE OF listed, hidden.
 State 3: EVERY home MUST carry item reference and category id.
 State 4: EVERY home MUST carry the category id of a category the database holds.
 State 5: The atom MUST NOT remove a category.
+State 6: EVERY category carrying a parent category MUST carry the category id of a category the database holds.
 ```
 
 Term status: where a category stands in the menu, listed or hidden — the [Status].
@@ -137,12 +140,12 @@ tree()
 ```
 Operation 1: IF the category name EQUALS blank OR the category name EXCEEDS the string cap THEN a naming action MUST answer invalid-category-name.
 Operation 2: IF a sibling of the named category carries the category name THEN a naming action MUST answer name-taken.
-Operation 3: IF no category carries the category id THEN a category action MUST answer unknown-category.
+Operation 3: IF the category id EQUALS blank OR the category id is malformed OR no category carries the category id THEN a category action MUST answer unknown-category (Execution Contract Input 3).
 Operation 4: IF the item reference EQUALS blank OR the item reference EXCEEDS the string cap THEN a filing action MUST answer invalid-item-reference.
-Operation 5: IF the position DOES NOT EXCEED zero THEN [Reorder] MUST answer invalid-position.
+Operation 5: IF the position EQUALS blank OR the position DOES NOT EXCEED zero THEN [Reorder] MUST answer invalid-position.
 Operation 6: [Create] MUST record EXACTLY ONE top-level category carrying the category name of the call.
 Operation 7: [Create Under] MUST record EXACTLY ONE category carrying the category name of the call AND the category id of the call as parent category.
-Operation 8: A creating action MUST stamp the category's position one higher than the highest position among the category's siblings.
+Operation 8: A creating action MUST stamp the category's position from the next position.
 Operation 9: A creating action MUST stand the category in listed.
 Operation 10: A creating action MUST answer the category id of the category the action recorded.
 Operation 11: [Rename] MUST replace the category's category name with the category name of the call.
@@ -158,21 +161,22 @@ Operation 20: A changing action MUST answer ok.
 Operation 21: [Look Up] MUST answer the category id of the item reference's home.
 Operation 22: [Look Up] MUST answer an empty list for an item reference no home carries.
 Operation 23: [List Items] MUST answer EVERY item reference whose home carries the category id, in codepoint order.
-Operation 24: [Tree] MUST answer EVERY category, siblings in position order, then in codepoint order of category name.
+Operation 24: [Tree] MUST answer EVERY category depth first, each category ahead of the categories under the category, siblings in position order, then in codepoint order of category name.
 Operation 25: A reading action MUST NOT write.
 Operation 26: IF the category name is malformed THEN a naming action MUST answer invalid-category-name (Execution Contract Input 1).
 Operation 27: IF the item reference is malformed THEN a filing action MUST answer invalid-item-reference (Execution Contract Input 1).
 Operation 28: IF the item reference is malformed OR the item reference EQUALS blank OR the item reference EXCEEDS the string cap THEN [Look Up] MUST answer an empty list (Execution Contract Query 5).
-Operation 29: IF no category carries the category id THEN [List Items] MUST answer an empty list (Execution Contract Query 5).
+Operation 29: IF no category carries the category id THEN [List Items] MUST answer an empty list.
 Operation 30: IF the position is malformed THEN [Reorder] MUST answer invalid-position (Execution Contract Input 1).
 Operation 31: IF the category's status EQUALS listed THEN [Show] MUST NOT write.
+Operation 32: IF the category id EQUALS blank OR the category id is malformed THEN [List Items] MUST answer an empty list (Execution Contract Query 5).
 ```
 
 Term naming action: [Create] | [Create Under] | [Rename] — the actions that set a category name.
 
 Term creating action: [Create] | [Create Under] — the actions that record a new category.
 
-Term category action: [Create Under] | [Rename] | [Reorder] | [Hide] | [Show] | [Place] | [List Items] — the actions that name a category by category id.
+Term category action: [Create Under] | [Rename] | [Reorder] | [Hide] | [Show] | [Place] — the actions that name a category by category id and refuse one no category carries; [List Items] names one too and answers an empty list instead (Operation 29).
 
 Term filing action: [Place] | [Unplace] — the actions that set an item's home.
 
@@ -182,6 +186,12 @@ Term reading action: [Look Up] | [List Items] | [Tree] — the actions that chan
 
 Term named category: for [Create] and [Create Under], the category the call would record; for [Rename], the category the call names.
 
+Term highest position: the highest position among the named category's siblings, zero where the named category has no sibling.
+
+Term next position: `(highest_position + 1)` — what a creating action stamps as the category's position.
+
+Term menu: the row of categories a composing pattern shows, drawn from the categories the atom holds; the atom keeps each category's status and position, which say what the menu shows and in what order, and draws nothing (Non-goal 7).
+
 The case space, and the rule that owns each case:
 
 | Call | Case | Answer | Effect |
@@ -189,21 +199,22 @@ The case space, and the rule that owns each case:
 | [Create] | name valid, no top-level category carries the name | the category id | one top-level category lands, listed, last in the row (Operation 6, Operation 8 through 10) |
 | [Create Under] | the parent exists, name valid and free among the parent's categories | the category id | one category lands under the parent, listed, last in the row (Operation 7 through 10) |
 | a naming action | a sibling already carries the name | [Name Taken] | none (Operation 2) |
-| [Rename] | the category exists, name valid and free | ok | the name replaced; the earlier name stays in the category's history (Operation 11) |
+| [Rename] | the category exists, name valid and free | ok | the name replaced; the earlier name stays in the category's earlier versions (Operation 11) |
 | [Reorder] | the category exists, position a whole number above zero | ok | the position replaced (Operation 12) |
-| [Reorder] | position zero, below zero, or not a whole number | [Invalid Position] | none (Operation 5, Operation 30) |
+| [Reorder] | position blank, zero, below zero, or not a whole number | [Invalid Position] | none (Operation 5, Operation 30) |
 | [Hide] | the category stands listed | ok | the category stands hidden; homes in the category stand (Operation 13) |
 | [Show] | the category stands hidden | ok | the category stands listed (Operation 14) |
 | [Hide] or [Show] | the category already stands as asked | ok | none, no write (Operation 15, Operation 31) |
 | [Place] | item reference valid, the category exists | ok | the item's home is the category; any earlier home is replaced (Operation 16, Operation 17) |
 | [Unplace] | the item has a home | ok | the home removed (Operation 18) |
 | [Unplace] | the item has no home | ok | none, no write (Operation 19) |
-| a category action | no category carries the category id | [Unknown Category] | none (Operation 3) |
+| a category action | category id blank, malformed, or carried by no category | [Unknown Category] | none (Operation 3) |
 | a naming action | name blank, over the string cap, or not a string | [Invalid Category Name] | none (Operation 1, Operation 26) |
 | a filing action | item reference blank, over the string cap, or not a string | [Invalid Item Reference] | none (Operation 4, Operation 27) |
 | [Look Up] | the item has a home | the category id | none (Operation 21) |
 | [Look Up] | the item has none, or the reference is blank, over the string cap, or not a string | an empty list | none (Operation 22, Operation 28) |
 | [List Items] | the category exists | every item filed in the category | none (Operation 23) |
+| [List Items] | no category carries the category id, or the id is blank or malformed | an empty list | none (Operation 29, Operation 32) |
 | [Tree] | any | every category with parent, name, position and status | none (Operation 24) |
 | any writing call | database refuses the write | [Storage Failure] | none (Execution Contract Read 4) |
 | any call | its read of the database fails | `state-unavailable` | none (Execution Contract Read 1, Execution Contract Read 3) |
@@ -242,6 +253,7 @@ A shop hides its Winter Coats department in May: `hide(coats-id)` answers ok, `t
 - `create("Soil")` — answers a new category id: a top-level Soil is no sibling of the Soil under Gardening.
 - `place("p-7", "nope")` — rejected as [Unknown Category]: no category carries the category id.
 - `reorder(soil-id, 0)` — rejected as [Invalid Position]: positions start at one.
+- `place("", soil-id)` — rejected as [Invalid Item Reference]: the item reference is blank.
 
 This covers every refusal but [Storage Failure], which answers when the database refuses a write.
 
@@ -255,7 +267,10 @@ Acceptable when the checks below are provable to an external auditor from the ca
 Check 1.1: An auditor MUST find EVERY category carrying category id, category name, position AND status (State 1).
 Check 1.2: An auditor MUST find EVERY category standing in EXACTLY ONE OF listed, hidden (State 2).
 Check 1.3: An auditor MUST find EVERY home carrying the category id of a category the database holds (State 4).
+Check 1.4: An auditor MUST find an unfiltered read answering EVERY category with a committed version (State 5; Execution Contract Generation acceptance 1).
+Check 1.5: An auditor MUST find EVERY parent category naming a category the database holds (State 6).
 Check 2.1: An auditor MUST find EVERY version of a category carrying the parent category of the category's first version (Invariant 1.2).
+Check 2.2: An auditor MUST find EVERY version of a category carrying the category id of the category's first version (Invariant 1.1).
 Check 3.1: An auditor MUST find no two siblings sharing a category name (Invariant 2.1).
 Check 3.2: An auditor MUST find no two homes sharing an item reference (Invariant 2.2).
 Check 3.3: An auditor MUST find no two categories sharing a category id (Invariant 2.3).
@@ -300,7 +315,7 @@ A caller whose answer is lost may call again, and the repeat is a second call (E
 
 ### What undoes a write
 
-[Show] undoes [Hide] and [Hide] undoes [Show]; a [Rename] or a [Reorder] is undone by another carrying the earlier value, which the category's history holds; a [Place] is undone by a [Place] to the earlier home or by [Unplace]. A [Create] is undone by hiding the category, since the atom removes no category (Execution Contract Undo 4).
+[Show] undoes [Hide] and [Hide] undoes [Show]; a [Rename] or a [Reorder] is undone by another carrying the earlier value, which the category's earlier versions hold; a [Place] is undone by a [Place] to the earlier home or by [Unplace]; an [Unplace] is undone by a [Place] to the home the home's earlier versions hold. A [Create] is undone by hiding the category, since the atom removes no category (Execution Contract Undo 4).
 
 ## Composition notes
 
@@ -328,9 +343,9 @@ Term bounds: string cap (the bound on an item reference's length and on a catego
 
 Term cadences: empty.
 
-Term qualifiers: migrated — drafted in GRACE lang (2026-11-18) through the Grace connector, from Scott's forum sketch and MIT's sync-engine Labeling concept.
+Term qualifiers: migrated — drafted in GRACE lang (2026-11-18) through the Grace connector, from Scott's forum sketch and the Massachusetts Institute of Technology's sync-engine Labeling concept.
 
-Term terms: category, categories, category id, category name, parent category, siblings, sibling, position, home, homes, item reference, string cap, seam, status, listed, hidden, naming action, creating action, category action, filing action, changing action, reading action, named category, version.
+Term terms: category, categories, category id, category name, parent category, siblings, sibling, position, home, homes, item reference, string cap, seam, status, listed, hidden, naming action, creating action, category action, filing action, changing action, reading action, named category, highest position, next position, menu, version.
 
 #### Create
 
@@ -346,7 +361,7 @@ Kind: Operation
 
 #### Rename
 
-Replaces a category's [Category Name]; the earlier name stays in the category's history. Answers ok.
+Replaces a category's [Category Name]; the earlier name stays in the category's earlier versions. Answers ok.
 
 Kind: Operation
 
@@ -394,7 +409,7 @@ Kind: Operation
 
 #### Tree
 
-Answers every category with its parent category, name, position and status, siblings in position order, and changes nothing.
+Answers every category with its parent category, name, position and status, depth first, siblings in position order, and changes nothing.
 
 Kind: Operation
 
@@ -494,7 +509,7 @@ Projection: name-taken
 
 #### Unknown Category
 
-The refusal of a [Category Id] no category carries (Operation 3).
+The refusal of a blank or malformed [Category Id], or one no category carries (Operation 3).
 
 Kind:       Member
 Member of:  the action rejection
@@ -503,7 +518,7 @@ Projection: unknown-category
 
 #### Invalid Position
 
-The refusal of a [Position] that is zero, below zero, or not a whole number, on [Reorder] (Operation 5).
+The refusal of a [Position] that is blank, zero, below zero, or not a whole number, on [Reorder] (Operation 5).
 
 Kind:       Member
 Member of:  the action rejection
@@ -566,22 +581,23 @@ Projection: storage-failure
 Category is a primitive with no regulatory anchor. It inherits from:
 
 - **Daniel Jackson, *The Essence of Software*** — the concept as a freestanding, composable unit of software design.
-- **MIT's sync-engine, Labeling concept** (github.com/mit-sdg/sync-engine) — read for its naming rules (a name unique in its scope, a rename that keeps what is filed). Its several labels per item are not taken here; they are Tag's.
+- **The Massachusetts Institute of Technology's sync-engine, Labeling concept** (github.com/mit-sdg/sync-engine) — read for its naming rules (a name unique in its scope, a rename that keeps what is filed). Its several labels per item are not taken here; they are Tag's.
 
 ---
 
 ## Status
 
-`todo` — see the Ledger.
+`doing` — see the Ledger.
 
 ## Ledger
 
 ```
-status: todo
+status: doing
 formal: pending — no model yet
-last gate: none
+last gate: 2026-11-18 — Final Critique 1, frozen at b0af523c — foundational count 5, cured by the settle, not clean, no sample
 
-open: none
+open:
+- 2026-11-18-a · refining · Term string cap · one string cap bounds both an item reference and a category name, and a deployment may want a different cap for each → decide whether the atom declares two caps
 ```
 
 ## Decisions
