@@ -17,7 +17,7 @@ toc: true
 
 ## Summary
 
-Moderation lets people flag an item that needs a moderator's eye — a post, a comment, a review — and lets a moderator act on it: hide it or show it again, lock its replies or open them, pin it to the top or unpin it, or dismiss the flags. Hiding an item clears its open flags on its own, so no moderator is left cleaning up a queue for something already dealt with. One person flags one item once at a time; flagging again changes nothing. Every move is kept with which moderator made it and when. Who counts as a moderator, removing an item for good, the reasons a business offers for a flag, and telling the author each belong to another pattern, which is why one moderation serves a forum, a shop's reviews and a chat alike.
+Moderation lets people flag an item that needs a moderator's eye — a post, a comment, a review — and lets a moderator act on it: hide it or show it again, lock its replies or open them, pin it to the top or unpin it, or dismiss the flags. Hiding an item clears its pending flags on its own, so no moderator is left cleaning up a queue for something already dealt with, and a hidden item takes no new flag. A person has one pending flag on an item at a time; flagging again changes nothing. Each item keeps which moderator last changed how it stands, and when. Who counts as a moderator, removing an item for good, the reasons a business offers for a flag, and telling the author each belong to another pattern, which is why one moderation serves a forum, a shop's reviews and a chat alike.
 
 ---
 
@@ -48,6 +48,10 @@ Term standing: where one item stands with the moderators — shown or hidden, op
 Term report: one person's flag on one item, pending or cleared — a [Report].
 
 Term item reference: the string naming an item, such as a post or a comment, in the deployment's own scheme — an [Item Reference]; the atom reads no scheme in it.
+
+Term item: what a person flags and a moderator moves, such as a post, a comment or a review, named by an item reference.
+
+Term person reference: the string naming a person, in the deployment's own scheme; the atom reads no scheme in it.
 
 Term reporter reference: the person reference of the person who flagged an item — a [Reporter Reference].
 
@@ -88,15 +92,18 @@ Term status: where a report stands, pending or cleared — the [Status].
 
 Term untouched: an item no standing carries, which stands shown, open and unpinned.
 
+Term stands shown, stands hidden: an item stands shown where it is untouched or its standing stands shown for visibility, and stands hidden where its standing stands hidden for visibility.
+
 ### Capability requirement
 
 ```
 Capability requirement 1: The deployment MUST supply the database PER Execution Contract Database 1 through 7, Execution Contract Read 1 through 6, Execution Contract Refusal 1, Execution Contract Input 1 and Execution Contract Query 5.
-Capability requirement 2: The deployment MUST supply now at the seam PER Execution Contract Logic confinement 11.
+Capability requirement 2: The deployment MUST supply now at the seam PER Execution Contract Logic confinement 11 AND Execution Contract Logic confinement 7.
 Capability requirement 3: The deployment MAY declare the string cap PER Execution Contract Input 2 and Execution Contract Logic confinement 17.
 Capability requirement 4: The deployment MAY declare the reason cap PER Execution Contract Input 2 and Execution Contract Logic confinement 17.
 Capability requirement 5: The deployment MUST NOT normalize an item reference at the seam.
 Capability requirement 6: The deployment MUST NOT normalize a person reference at the seam.
+Capability requirement 7: The deployment MUST NOT supply one now to two calls of [Flag] carrying one item reference AND one reporter reference.
 ```
 
 ### Operations
@@ -118,7 +125,7 @@ look_up(item_reference)
   answers standings(visibility, replies, placement)
 
 list_flagged()
-  answers items(item_reference, pending_count, first_flagged_instant)
+  answers items(item_reference, pending_count, flagged_instant)
 ```
 
 ```
@@ -126,10 +133,10 @@ Operation 1: IF the item reference EQUALS blank OR the item reference EXCEEDS th
 Operation 2: IF the person reference of the call EQUALS blank OR the person reference of the call EXCEEDS the string cap THEN a writing action MUST answer invalid-person-reference.
 Operation 3: IF the reason EQUALS blank OR the reason EXCEEDS the reason cap THEN [Flag] MUST answer invalid-reason.
 Operation 4: IF the move IS NOT IN hide, show, lock, unlock, pin, unpin THEN [Moderate] MUST answer invalid-move.
-Operation 5: IF no pending report EXISTS for the item reference AND the reporter reference THEN [Flag] MUST record EXACTLY ONE report carrying the item reference, the reporter reference AND the reason of the call.
-Operation 6: IF no pending report EXISTS for the item reference AND the reporter reference THEN [Flag] MUST stamp flagged instant from the injected now AND stand the report in pending.
+Operation 5: IF no pending report EXISTS for the item reference AND the reporter reference AND the item stands shown THEN [Flag] MUST record EXACTLY ONE report carrying the item reference, the reporter reference AND the reason of the call.
+Operation 6: IF no pending report EXISTS for the item reference AND the reporter reference AND the item stands shown THEN [Flag] MUST stamp flagged instant from the injected now AND stand the report in pending.
 Operation 7: IF a pending report EXISTS for the item reference AND the reporter reference THEN [Flag] MUST NOT write.
-Operation 8: IF the item is untouched THEN [Moderate] MUST record EXACTLY ONE standing for the item reference, shown, open AND unpinned, ahead of the move.
+Operation 8: IF the item is untouched AND the move IS IN hide, lock, pin THEN [Moderate] MUST record EXACTLY ONE standing for the item reference, shown, open AND unpinned, ahead of the move.
 Operation 9: IF the move EQUALS hide THEN [Moderate] MUST stand the visibility in hidden.
 Operation 10: IF the move EQUALS show THEN [Moderate] MUST stand the visibility in shown.
 Operation 11: IF the move EQUALS lock THEN [Moderate] MUST stand the replies in locked.
@@ -150,6 +157,7 @@ Operation 25: IF the item reference is malformed THEN a writing action MUST answ
 Operation 26: IF the person reference of the call is malformed THEN a writing action MUST answer invalid-person-reference (Execution Contract Input 1).
 Operation 27: IF the reason is malformed THEN [Flag] MUST answer invalid-reason (Execution Contract Input 1).
 Operation 28: IF the item reference is malformed OR the item reference EQUALS blank OR the item reference EXCEEDS the string cap THEN [Look Up] MUST answer shown, open AND unpinned (Execution Contract Query 5).
+Operation 29: IF the item stands hidden THEN [Flag] MUST NOT write.
 ```
 
 Term writing action: [Flag] | [Moderate] | [Dismiss] — the actions that change a standing or a report.
@@ -164,8 +172,9 @@ The case space, and the rule that owns each case:
 
 | Call | Case | Answer | Effect |
 |---|---|---|---|
-| [Flag] | references and reason valid, the person has no pending report on the item | ok | one report lands, pending (Operation 5, Operation 6) |
+| [Flag] | references and reason valid, the item stands shown, the person has no pending report on the item | ok | one report lands, pending (Operation 5, Operation 6) |
 | [Flag] | the person already has a pending report on the item | ok | none, no write (Operation 7) |
+| [Flag] | references and reason valid, the item stands hidden | ok | none, no write (Operation 29) |
 | [Moderate] | the move changes the standing | ok | the setting changed, the moderator and now stamped; a standing recorded first where the item had none (Operation 8 through 15) |
 | [Moderate] | the move leaves the standing as it was | ok | none, no write (Operation 16) |
 | [Moderate] | the move is hide | ok | the item hidden, and every pending report on it cleared in the same commit (Operation 9, Operation 17) |
@@ -187,7 +196,7 @@ The case space, and the rule that owns each case:
   ```
   Invariant 1.1: A pending report MUST NOT carry the item reference of a standing whose visibility EQUALS hidden.
   ```
-- **Invariant 2 — One open flag per person per item.**
+- **Invariant 2 — One pending flag per person per item, one standing per item.**
   ```
   Invariant 2.1: Two pending reports MUST NOT share an item reference AND a reporter reference.
   Invariant 2.2: Two standings MUST NOT share an item reference.
@@ -243,6 +252,7 @@ NOTE: EVERY check names the rule the check tests.
 
 ```
 External check 1: An auditor needing a moderator confirmed as holding the right to moderate MUST read the deployment's roles (Non-goal 1).
+External check 2: An auditor needing the deployment's clock confirmed as never reading one instant for two flags of one item by one person MUST read the deployment's clock declaration (Capability requirement 7).
 ```
 
 ## Non-goals
@@ -265,7 +275,7 @@ Where the atom breaks down: deleting an item, which is [Restorable Delete](./res
 
 ### Concurrency
 
-A [Flag] and a hide on one item are serialized (Execution Contract Database 2): a flag that lands first is cleared by the hide; a flag that lands on a hidden item stays pending, and the item appears in [List Flagged] again, which tells a moderator someone still objects. Two [Moderate] calls on one item are serialized the same way, and the standing is the later's.
+A [Flag] and a hide on one item are serialized (Execution Contract Database 2): a flag that lands first is cleared by the hide; a flag that lands on a hidden item writes nothing and answers ok (Operation 29, Operation 20), so a hidden item never returns to [List Flagged]. Two [Moderate] calls on one item are serialized the same way, and the standing is the later's.
 
 ### Indeterminate outcome
 
@@ -273,7 +283,7 @@ A caller whose answer is lost may call again, and the repeat is a second call (E
 
 ### What undoes a write
 
-Each move has its opposite: show undoes hide, unlock undoes lock, unpin undoes pin. The reports a hide cleared stay cleared when the item is shown again, since the moderator saw them; a person who still objects flags again (Execution Contract Undo 4).
+Each move has its opposite: show undoes hide, unlock undoes lock, unpin undoes pin. The reports a hide cleared stay cleared when the item is shown again, since the moderator saw them; a person who still objects flags again once the item is shown (Execution Contract Undo 4). A flag is undone by a [Dismiss] or a hide, which clear it, and a cleared report is never reopened.
 
 ## Composition notes
 
@@ -281,6 +291,7 @@ Each move has its opposite: show undoes hide, unlock undoes lock, unpin undoes p
 Composition note 1: A composing pattern MUST own what this atom declines.
 Composition note 2: A composing pattern MUST supply the moderator reference of a caller the composing pattern authenticated AND found allowed to moderate.
 Composition note 3: A composing pattern MUST hide from readers EVERY item [Look Up] answers hidden.
+Composition note 4: A composing pattern MUST supply the reporter reference of a caller the composing pattern authenticated.
 ```
 
 NOTE: composing patterns — none yet. Forthcoming: Forum, asking [Role](./role.md) who may moderate.
@@ -305,11 +316,11 @@ Term cadences: empty.
 
 Term qualifiers: migrated — drafted in GRACE lang (2026-11-18) through the Grace connector, from Scott's forum sketch.
 
-Term terms: standing, standings, report, reports, item reference, reporter reference, moderator reference, reason, string cap, reason cap, seam, visibility, replies, placement, moderated instant, flagged instant, status, untouched, writing action, reading action, move, person reference of the call, version.
+Term terms: standing, standings, report, reports, item reference, reporter reference, moderator reference, reason, string cap, reason cap, seam, item, person reference, visibility, replies, placement, moderated instant, flagged instant, status, untouched, stands shown, stands hidden, writing action, reading action, move, person reference of the call, version.
 
 #### Flag
 
-Records a [Report] on an item from a person, with a [Reason], [Pending]; a person with a pending report on the item already is left as they are. Answers ok.
+Records a [Report] on an item from a person, with a [Reason], [Pending]; a person with a pending report on the item already is left as they are, and a hidden item takes no report. Answers ok.
 
 Kind: Operation
 
@@ -327,7 +338,7 @@ Kind: Operation
 
 #### Look Up
 
-Answers an item's [Visibility], [Replies] and [Placement], and changes nothing; shown, open and unpinned for an item no moderator has touched.
+Answers an item's [Visibility], [Replies] and [Placement], and changes nothing; shown, open and unpinned for an item no standing carries.
 
 Kind: Operation
 
@@ -339,7 +350,7 @@ Kind: Operation
 
 #### Standing
 
-Where one item stands with the moderators: recorded by the first [Moderate] on the item, changed by later ones; never removed by the atom.
+Where one item stands with the moderators: recorded by the first [Moderate] on the item that hides, locks or pins it, changed by later ones that change it; never removed by the atom.
 
 Kind: Type
 
@@ -538,14 +549,14 @@ Moderation is a primitive with no regulatory anchor. It inherits from:
 
 ## Status
 
-`todo` — see the Ledger.
+`doing` — see the Ledger.
 
 ## Ledger
 
 ```
-status: todo
+status: doing
 formal: pending — no model yet
-last gate: none
+last gate: 2026-11-18 — Final Critique 1, frozen at b3395186 — foundational count 4, cured by the settle, not clean, no sample
 
 open: none
 ```
