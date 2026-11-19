@@ -113,7 +113,7 @@ Operation 3: IF no tag carries the tag id THEN a tag action MUST answer unknown-
 Operation 4: IF the item reference EQUALS blank OR the item reference EXCEEDS the string cap THEN a tagging action MUST answer invalid-item-reference.
 Operation 5: [Create] MUST record EXACTLY ONE tag carrying the tag name of the call.
 Operation 6: [Create] MUST answer the tag id of the tag [Create] recorded.
-Operation 7: [Rename] MUST replace the tag's tag name with the tag name of the call.
+Operation 7: IF the tag's tag name DOES NOT EQUAL the tag name of the call THEN [Rename] MUST replace the tag's tag name with the tag name of the call.
 Operation 8: IF no tagging EXISTS for the tag id AND the item reference THEN [Apply] MUST record EXACTLY ONE tagging carrying the tag id AND the item reference of the call.
 Operation 9: IF a tagging EXISTS for the tag id AND the item reference THEN [Apply] MUST NOT write.
 Operation 10: IF a tagging EXISTS for the tag id AND the item reference THEN [Remove] MUST remove the tagging.
@@ -127,6 +127,7 @@ Operation 17: IF the tag name is malformed THEN a naming action MUST answer inva
 Operation 18: IF the item reference is malformed THEN a tagging action MUST answer invalid-item-reference (Execution Contract Input 1).
 Operation 19: IF the item reference is malformed OR the item reference EQUALS blank OR the item reference EXCEEDS the string cap THEN [Tags On] MUST answer an empty list (Execution Contract Query 5).
 Operation 20: IF no tag carries the tag id THEN [Items With] MUST answer an empty list (Execution Contract Query 5).
+Operation 21: IF the tag's tag name EQUALS the tag name of the call THEN [Rename] MUST NOT write.
 ```
 
 Term naming action: [Create] | [Rename] — the actions that set a tag name.
@@ -145,7 +146,8 @@ The case space, and the rule that owns each case:
 |---|---|---|---|
 | [Create] | name valid and unused | the tag id | one tag lands (Operation 5, Operation 6) |
 | a naming action | another tag carries the name | [Name Taken] | none (Operation 2) |
-| [Rename] | the tag exists, name valid and unused | ok | the name replaced; every tagging stands; the earlier name stays in the tag's history (Operation 7, Execution Contract Database 5) |
+| [Rename] | the tag exists, name valid, no other tag carries it, and the tag carries another name | ok | the name replaced; every tagging stands; the earlier name stays in the tag's history (Operation 7, Execution Contract Database 5) |
+| [Rename] | the tag already carries the name of the call | ok | none, no write (Operation 21) |
 | [Apply] | the tag exists, the item does not carry the tag | ok | one tagging lands (Operation 8) |
 | [Apply] | the item already carries the tag | ok | none, no write (Operation 9) |
 | [Remove] | the item carries the tag | ok | the tagging removed (Operation 10) |
@@ -207,6 +209,8 @@ Check 2.3: An auditor MUST find no two taggings sharing a tag id AND an item ref
 Term version: a record as it stood at the commit that wrote it, which Execution Contract Database 5 keeps readable after the record changes.
 
 NOTE: EVERY check names the rule the check tests.
+
+NOTE: open 2026-11-19-a — Check 2.1 and Check 2.2 test a property of one state and name no commit, so an auditor reading the tags at head passes a build that broke Database 2, renamed one of two same-named tags and kept the other, where an auditor reading every commit fails it; no rule of the Execution Contract says a check of one state holds at every commit (Check 2.1, Check 2.2, Check 2.3, the Generation acceptance preamble).
 
 ### External checks
 
@@ -431,16 +435,17 @@ Tag is a primitive with no regulatory anchor. It inherits from:
 
 ## Status
 
-`doing` — see the Ledger.
+`done — 2026-11-19` — see the Ledger.
 
 ## Ledger
 
 ```
-status: doing
+status: done — 2026-11-19
 formal: pending — no model yet
-last gate: 2026-11-18 — Final Critique 1, frozen at 0c559850 — foundational count 1, cured by the settle, not clean, no sample
+last gate: 2026-11-19 — Final Critique 2, a delta round, one reader (Linus claude-sonnet-5-5), frozen at 36794699 — foundational count 0 after the blind second triage, clean, one sample; Linus's one foundational claim (Check 2.1 names no commit) placed refining by both triages, since the state it needs is a build that broke Database 2, and opened as a Ledger line because the cure is the Execution Contract's, a refining Rename row that said unused where Operation 2 says no other tag and a Rename to the tag's own name that wrote an identical version, both cured (Operation 7, Operation 21 and the row), its other refining item on Check 1.1 refuted; 2026-11-18 — Final Critique 1, frozen at 0c559850 — foundational count 1, cured by the settle, not clean, no sample
 
-open: none
+open:
+- 2026-11-19-a · refining · Check 2.1, Check 2.2, Check 2.3, Generation acceptance · a check of one state (no two tags sharing a name, an id, a tagging) names no commit, so an auditor reading head and one reading every commit disagree about a build that broke Database 2 and later renamed one of the two same-named tags; Generation acceptance 1 covers only a check that compares a record with an earlier state, and every page with a uniqueness check shares the gap (Cart Check 2.3, Category Check 3.1, Post Check 3.1) → the Execution Contract decides once whether a check of one state holds at every commit beside Generation acceptance 1, then each page cites it; this page does not restate it
 ```
 
 ## Decisions
