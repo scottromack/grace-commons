@@ -17,7 +17,7 @@ toc: true
 
 ## Summary
 
-Post lets a person write a piece with a title and a body in markdown, keep it as a draft, change it, publish it for readers and take it back down. Every post has one author for good, and every earlier wording stays readable, because the database keeps each version of the record: a post's revisions are its history, not a second list. Readers see the published posts, oldest published first, and a writer sees their own posts, drafts included. Who may write, change or publish a post, where a post is filed, the comments and reactions on it, removing it, and drawing the markdown on a page each belong to another pattern, which is why one post serves a forum, a blog and a news page alike.
+Post lets a person write a piece with a title and a body in markdown, keep it as a draft, change it, publish it for readers and take it back down. Every post has one author for good, and every earlier wording stays readable, because the database keeps each version of the record: a post's revisions are its history, not a second list. Readers see the published posts, oldest published first, and a writer sees their own posts, drafts included. Who may read, write, change or publish a post, where a post is filed, the comments and reactions on it, removing it, and drawing the markdown on a page each belong to another pattern, which is why one post serves a forum, a blog and a news page alike.
 
 ---
 
@@ -26,7 +26,7 @@ Post lets a person write a piece with a title and a body in markdown, keep it as
 <details markdown="block">
 <summary>WHY</summary>
 
-A forum, a blog and a newsroom all start from the same thing: someone writes something, gets it right, then lets others read it. This atom is that and nothing more. Three decisions carry the weight. A post is a draft or published, and the two moves between them are separate requests, each safe to repeat. Changing a post replaces its title and body and leaves the earlier wording in the database's history, so an edit never loses what was said and no revision list is kept by hand. And the author is set once and never changes, so the record always says whose words these are. The body is markdown, kept exactly as written; how it is drawn is the page's. Who may write or publish, where a post is filed, and how a post is removed are other patterns' questions, and declining them is what lets one post serve every place people publish. Taken in from MIT's sync-engine Posting concept (Daniel Jackson's group), which keeps an unchanging message; a forum's posts are drafted and corrected, so this one is changeable with its history kept.
+A forum, a blog and a newsroom all start from the same thing: someone writes something, gets it right, then lets others read it. This atom is that and nothing more. Three decisions carry the weight. A post is a draft or published, and the two moves between them are separate requests, each answered ok again when its work is already done. Changing a post replaces its title and body and leaves the earlier wording in the database's history, so an edit never loses what was said and no revision list is kept by hand. And the author is set once and never changes, so the record always says whose words these are. The body is markdown, kept exactly as written; how it is drawn is the page's. Who may read, write or publish, where a post is filed, and how a post is removed are other patterns' questions, and declining them is what lets one post serve every place people publish. Taken in from the Massachusetts Institute of Technology's sync-engine Posting concept (Daniel Jackson's group), which keeps an unchanging message; a forum's posts are drafted and corrected, so this one is changeable with its history kept.
 
 </details>
 
@@ -68,11 +68,11 @@ State 4: The atom MUST NOT remove a post.
 
 Term written instant: the instant of the [Write] call that recorded the post — the [Written Instant]; set once, never changed.
 
-Term published instant: the instant of the latest [Publish] call that stood the post in published — the [Published Instant].
+Term published instant: the instant of the latest [Publish] call that stood the post in published — the [Published Instant]; blank where no [Publish] call has stood the post in published.
 
 Term status: where a post stands, draft or published — the [Status].
 
-Term draft: the status of a post only the author's own list shows — [Draft].
+Term draft: the status of a post [List Published] does not show — [Draft].
 
 Term published: the status of a post readers see — [Published].
 
@@ -84,6 +84,7 @@ Capability requirement 2: The deployment MUST supply now at the seam PER Executi
 Capability requirement 3: The deployment MAY declare the string cap PER Execution Contract Input 2 and Execution Contract Logic confinement 17.
 Capability requirement 4: The deployment MAY declare the body cap PER Execution Contract Input 2 and Execution Contract Logic confinement 17.
 Capability requirement 5: The deployment MUST NOT normalize an author reference at the seam.
+Capability requirement 6: The deployment MUST supply EVERY post id PER Execution Contract Logic confinement 16.
 ```
 
 ### Operations
@@ -119,7 +120,7 @@ list_by_author(author_reference)
 Operation 1: IF the author reference EQUALS blank OR the author reference EXCEEDS the string cap THEN [Write] MUST answer invalid-author-reference.
 Operation 2: IF the title EQUALS blank OR the title EXCEEDS the string cap THEN a text action MUST answer invalid-title.
 Operation 3: IF the body EQUALS blank OR the body EXCEEDS the body cap THEN a text action MUST answer invalid-body.
-Operation 4: IF no post carries the post id THEN a post action MUST answer unknown-post.
+Operation 4: IF the post id is malformed OR no post carries the post id THEN a post action MUST answer unknown-post (Execution Contract Input 3).
 Operation 5: [Write] MUST record EXACTLY ONE post carrying the author reference, the title and the body of the call.
 Operation 6: [Write] MUST stamp written instant from the injected now.
 Operation 7: [Write] MUST stand the post in draft.
@@ -136,14 +137,17 @@ Operation 17: IF the post's status EQUALS draft THEN [Unpublish] MUST NOT write.
 Operation 18: [Unpublish] MUST answer ok.
 Operation 19: [Look Up] MUST answer the post carrying the post id.
 Operation 20: [Look Up] MUST answer an empty list for a post id no post carries.
-Operation 21: [List Published] MUST answer EVERY published post, in published instant order, then in codepoint order of post id.
-Operation 22: [List By Author] MUST answer EVERY post carrying the author reference, in written instant order, then in codepoint order of post id.
+Operation 21: [List Published] MUST answer EVERY published post, in published instant order, earliest first, then in codepoint order of post id.
+Operation 22: [List By Author] MUST answer EVERY post carrying the author reference, in written instant order, earliest first, then in codepoint order of post id.
 Operation 23: A reading action MUST NOT write.
 Operation 24: IF the author reference is malformed THEN [Write] MUST answer invalid-author-reference (Execution Contract Input 1).
 Operation 25: IF the title is malformed THEN a text action MUST answer invalid-title (Execution Contract Input 1).
 Operation 26: IF the body is malformed THEN a text action MUST answer invalid-body (Execution Contract Input 1).
 Operation 27: IF the author reference is malformed OR the author reference EQUALS blank OR the author reference EXCEEDS the string cap THEN [List By Author] MUST answer an empty list (Execution Contract Query 5).
 Operation 28: IF the post id is malformed THEN [Look Up] MUST answer an empty list (Execution Contract Query 5).
+Operation 29: [Edit] MUST NOT change the post's published instant.
+Operation 30: [Unpublish] MUST NOT change the post's published instant.
+Operation 31: [Look Up] MUST answer a blank published instant for a post no [Publish] call has stood in published.
 ```
 
 Term text action: [Write] | [Edit] — the actions that set a title and a body.
@@ -157,16 +161,16 @@ The case space, and the rule that owns each case:
 | Call | Case | Answer | Effect on the posts |
 |---|---|---|---|
 | [Write] | author reference, title and body valid, database accepts | the post id | one post lands, a draft, its written instant now (Operation 5 through 8) |
-| [Edit] | the post exists, title and body valid | ok | title and body replaced; the status, author reference and written instant stand; the earlier wording stays in the post's history (Operation 9, Operation 10, Invariant 1.1 through 1.3) |
+| [Edit] | the post exists, title and body valid | ok | title and body replaced; the status, author reference, written instant and published instant stand; the earlier wording stays in the post's history (Operation 9, Operation 10, Operation 29, Invariant 1.1 through 1.3) |
 | [Publish] | the post stands draft | ok | the post stands published, its published instant now (Operation 12, Operation 13) |
 | [Publish] | the post stands published | ok | none, no write (Operation 14) |
-| [Unpublish] | the post stands published | ok | the post stands draft (Operation 16) |
+| [Unpublish] | the post stands published | ok | the post stands draft, its published instant as it was (Operation 16, Operation 30) |
 | [Unpublish] | the post stands draft | ok | none, no write (Operation 17) |
-| a post action | no post carries the post id | [Unknown Post] | none (Operation 4) |
+| a post action | the post id is not a string, or no post carries it | [Unknown Post] | none (Operation 4) |
 | [Write] | author reference blank, over the string cap, or not a string | [Invalid Author Reference] | none (Operation 1, Operation 24) |
 | a text action | title blank, over the string cap, or not a string | [Invalid Title] | none (Operation 2, Operation 25) |
 | a text action | body blank, over the body cap, or not a string | [Invalid Body] | none (Operation 3, Operation 26) |
-| [Look Up] | the post exists | the post | none (Operation 19, Operation 23) |
+| [Look Up] | the post exists | the post, its published instant blank where no [Publish] call has stood it in published | none (Operation 19, Operation 23, Operation 31) |
 | [Look Up] | no post carries the post id, or the post id is not a string | an empty list | none (Operation 20, Operation 28) |
 | [List Published] | any | every published post, oldest published first | none (Operation 21, Operation 23) |
 | [List By Author] | any | every post by the author, drafts included, oldest written first | none (Operation 22, Operation 23, Operation 27) |
@@ -176,7 +180,7 @@ The case space, and the rule that owns each case:
 
 ### Invariants
 
-- **Invariant 1 — A post never changes whose it is or when it was written.**
+- **Invariant 1 — A post never changes its post id, whose it is or when it was written.**
   ```
   Invariant 1.1: The atom MUST NOT change a post's post id.
   Invariant 1.2: The atom MUST NOT change a post's author reference.
@@ -238,15 +242,16 @@ Non-goal 2: The atom MUST NOT tell who may change a post.
 Non-goal 3: The atom MUST NOT file a post.
 Non-goal 4: The atom MUST NOT hold a comment.
 Non-goal 5: The atom MUST NOT hold a reaction.
-Non-goal 6: The atom MUST NOT remove a post from view.
+Non-goal 6: The atom MUST NOT remove a post.
 Non-goal 7: The atom MUST NOT publish a post at a set time.
 Non-goal 8: The atom MUST NOT give a post a web address.
 Non-goal 9: The atom MUST NOT draw a body.
 Non-goal 10: The atom MUST NOT find a post by a word in a body.
 Non-goal 11: The atom MUST NOT tell who may publish a post.
+Non-goal 12: The atom MUST NOT tell who may read a post.
 ```
 
-NOTE: the owners — the composing pattern that knows the caller, such as one built on [Session](./session.md) or [Permissions](./permissions.md) (Non-goal 1, 2, 11); [Category](./category.md) (Non-goal 3); [Comment](./comment.md) (Non-goal 4); [Reaction](./reaction.md) (Non-goal 5); [Restorable Delete](./restorable-delete.md) (Non-goal 6); Scheduled Publish *(forthcoming)* (Non-goal 7); Post Address *(forthcoming)* (Non-goal 8); the composing pattern that shows the post, which draws the markdown as it likes (Non-goal 9); Search *(forthcoming)* (Non-goal 10).
+NOTE: the owners — the composing pattern that knows the caller, such as one built on [Session](./session.md) or [Permissions](./permissions.md) (Non-goal 1, 2, 11, 12); [Category](./category.md) (Non-goal 3); [Comment](./comment.md) (Non-goal 4); [Reaction](./reaction.md) (Non-goal 5); [Restorable Delete](./restorable-delete.md) (Non-goal 6); Scheduled Publish *(forthcoming)* (Non-goal 7); Post Address *(forthcoming)* (Non-goal 8); the composing pattern that shows the post, which draws the markdown as it likes (Non-goal 9); Search *(forthcoming)* (Non-goal 10).
 
 Where the atom breaks down: an answer in a person's own words to someone else's post, which is a [comment](./comment.md); a message to one person, which is a communication.
 
@@ -258,11 +263,11 @@ Two [Edit] calls on one post are serialized (Execution Contract Database 2): the
 
 ### Indeterminate outcome
 
-A caller whose answer is lost may call again, and the repeat is a second call (Execution Contract Error model 1). A repeated [Publish], [Unpublish] or [Edit] where the first landed changes nothing a reader sees and answers ok. A repeated [Write] records a second post, so a caller whose [Write] answer was lost asks [List By Author] before writing again.
+A caller whose answer is lost may call again, and the repeat is a second call (Execution Contract Error model 1). A repeated [Publish] or [Unpublish] where the first landed writes nothing and answers ok, unless a call of the other kind came between; a repeated [Edit] writes its text again, which changes nothing only where no other [Edit] came between the two. A repeated [Write] records a second post, so a caller whose [Write] answer was lost asks [List By Author] and then [Look Up] on each post carrying the title, before writing again.
 
 ### What undoes a write
 
-[Unpublish] undoes [Publish] and [Publish] undoes [Unpublish]; an [Edit] is undone by an [Edit] carrying the earlier wording, which the post's history holds. A [Write] is undone by removing the post from view, which [Restorable Delete](./restorable-delete.md) owns (Execution Contract Undo 4).
+[Unpublish] undoes [Publish] and [Publish] undoes [Unpublish]; an [Edit] is undone by an [Edit] carrying the earlier wording, which the author keeps or an auditor reads from the post's history (Execution Contract Database 5). A [Write] is undone by removing the post from view, which [Restorable Delete](./restorable-delete.md) owns (Execution Contract Undo 4).
 
 ## Composition notes
 
@@ -291,7 +296,7 @@ Term bounds: string cap (the bound on an author reference's length and on a titl
 
 Term cadences: empty.
 
-Term qualifiers: migrated — drafted in GRACE lang (2026-11-18) through the Grace connector, from MIT's sync-engine Posting concept.
+Term qualifiers: migrated — drafted in GRACE lang (2026-11-18) through the Grace connector, from the Massachusetts Institute of Technology's sync-engine Posting concept.
 
 Term terms: post, posts, post id, author reference, title, body, string cap, body cap, seam, written instant, published instant, status, draft, published, text action, post action, reading action, version.
 
@@ -303,7 +308,7 @@ Kind: Operation
 
 #### Edit
 
-Replaces a post's title and body; the earlier wording stays in the post's history. The status is left as it is. Answers ok.
+Replaces a post's title and body; the earlier wording stays in the post's history. The status and the [Published Instant] are left as they are. Answers ok.
 
 Kind: Operation
 
@@ -315,13 +320,13 @@ Kind: Operation
 
 #### Unpublish
 
-Stands a [Published] post back in [Draft]. A draft is left as it is. Answers ok.
+Stands a [Published] post back in [Draft], leaving its [Published Instant] as it was. A draft is left as it is. Answers ok.
 
 Kind: Operation
 
 #### Look Up
 
-Answers the post a [Post Id] names, and changes nothing; an empty list where no post carries it.
+Answers the post a [Post Id] names, with a blank [Published Instant] where no [Publish] call has stood it in published, and changes nothing; an empty list where no post carries it.
 
 Kind: Operation
 
@@ -385,7 +390,7 @@ Projection: written_instant
 
 #### Published Instant
 
-The instant of the latest [Publish] that stood the post in published, stamped from the injected now.
+The instant of the latest [Publish] that stood the post in published, stamped from the injected now; blank where no [Publish] has. [Edit] and [Unpublish] leave it as it was (Operation 29, Operation 30).
 
 Kind:       Field
 Field of:   Post
@@ -401,7 +406,7 @@ Projection: status
 
 #### Draft
 
-The status of a post readers do not see; [List By Author] shows it to the author's own list.
+The status of a post [List Published] does not show; [List By Author] shows it in the author's own list, and [Look Up] answers it to any call.
 
 Kind:       Member
 Member of:  the status
@@ -444,7 +449,7 @@ Projection: invalid-body
 
 #### Unknown Post
 
-The refusal of a [Post Id] no post carries, on [Edit], [Publish] or [Unpublish] (Operation 4).
+The refusal of a [Post Id] that is not a string or that no post carries, on [Edit], [Publish] or [Unpublish] (Operation 4).
 
 Kind:       Member
 Member of:  the action rejection
@@ -493,20 +498,20 @@ Projection: storage-failure
 Post is a primitive with no regulatory anchor. It inherits from:
 
 - **Daniel Jackson, *The Essence of Software*** — the concept as a freestanding, composable unit of software design.
-- **MIT's sync-engine, Posting concept** (github.com/mit-sdg/sync-engine) — the taken-in source: an authored message listed in time order. This atom differs by letting a post be changed and unpublished, with the database's history keeping every wording.
+- **The Massachusetts Institute of Technology's sync-engine, Posting concept** (github.com/mit-sdg/sync-engine) — the taken-in source: an authored message listed in time order. This atom differs by letting a post be changed and unpublished, with the database's history keeping every wording.
 
 ---
 
 ## Status
 
-`todo` — see the Ledger.
+`doing` — see the Ledger.
 
 ## Ledger
 
 ```
-status: todo
+status: doing
 formal: pending — no model yet
-last gate: none
+last gate: 2026-11-19 — Final Critique 1, frozen at 4787905a — foundational count 3, cured by the settle, not clean, no sample
 
 open: none
 ```
