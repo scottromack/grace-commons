@@ -17,7 +17,7 @@ toc: true
 
 ## Summary
 
-Role lets a business name sets of allowed actions — member, moderator, admin — and put people in them. Asking whether a person may take an action answers allow or deny from the roles the person holds, and nothing else: an action no role lists is denied, always. Putting a person in a role and taking the person out are themselves actions, so only someone whose own roles allow it can do either, and doing either twice changes nothing. A business may switch on a parent for a role, so a moderator allows everything a member allows. Every grant and every removal is kept with who did it and when. Who the person is, what a person may do to one particular item, roles that run out on their own, and the roles a new person starts with each belong to another pattern, which is why one role list serves a forum, a shop's staff and a team's workspace alike.
+Role lets a business name sets of allowed actions — member, moderator, admin — and put people in them. Asking whether a person may take an action answers allow or deny from the roles the person holds, where the read answers, and nothing else: an action no role lists is denied, always. Putting a person in a role and taking the person out are themselves actions, so only someone whose own roles allow it can do either, and doing either twice changes nothing. A business may switch on a parent for a role, so a moderator allows everything a member allows. Every grant and every removal is kept with who did it and when. Who the person is, what a person may do to one particular item, roles that run out on their own, and the roles a new person starts with each belong to another pattern, which is why one role list serves a forum, a shop's staff and a team's workspace alike.
 
 ---
 
@@ -26,7 +26,7 @@ Role lets a business name sets of allowed actions — member, moderator, admin �
 <details markdown="block">
 <summary>WHY</summary>
 
-Giving each person each permission one at a time works for a handful of people and fails for a community: a forum with a thousand members needs to say "moderators may hide posts" once. This atom is that and nothing more. Three decisions carry the weight. Deny is the default and cannot be switched off: an action listed by no role a person holds is denied under every setting, so a missing line is never a hole. An ask only reads: it answers from the holdings as they stand, reads no clock and writes nothing, and it answers allow or deny, never an error, so every page can gate on it the same way. And granting and removing a role are actions the table itself governs, so who may hand out power is written in the same place as everything else, and the very first holders come from onboarding, outside the atom. A permission is read once, at the ask: an action already allowed finishes even if the role is taken away mid-way, and the next ask denies. Drafted by GLM as a rough draft, 2026-11-18, for the forum; Scott's forum sketch named Role among the seven a forum cannot open without.
+Giving each person each permission one at a time works for a handful of people and fails for a community: a forum with a thousand members needs to say "moderators may hide posts" once. This atom is that and nothing more. Three decisions carry the weight. Deny is the default and cannot be switched off: an action listed by no role a person holds is denied under every setting, so a missing line is never a hole. An ask only reads: it answers from the holdings as they stand, reads no clock and writes nothing, and where its read answers it answers allow or deny, a failed read answering state-unavailable (Execution Contract Read 1), so every page can gate on it the same way. And granting and removing a role are actions the table itself governs, so who may hand out power is written in the same place as everything else, and the very first holders come from onboarding, outside the atom. A permission is read once, at the ask: an action already allowed finishes even if the role is taken away mid-way, and the next ask denies.
 
 </details>
 
@@ -35,7 +35,7 @@ Giving each person each permission one at a time works for a handful of people a
 ### Identity model
 
 ```
-Identity 1: The atom MUST identify a holding by the holding's person reference AND role name AND granted instant.
+Identity 1: The atom MUST identify a holding by the holding's holding id.
 Identity 2: The atom MUST NOT normalize a person reference.
 Identity 3: The atom MUST compare two person references codepoint for codepoint.
 Identity 4: The atom MUST compare two role names codepoint for codepoint.
@@ -44,19 +44,21 @@ Identity 5: The atom MUST compare two action names codepoint for codepoint.
 
 Term holding: one person in one role, from a grant, kept after the person leaves the role — a [Holding].
 
+Term holding id: the string the host supplies at the seam for the [Grant] that records a holding — a [Holding Id].
+
 Term person reference: the string naming a person, in the deployment's own scheme — a [Person Reference]; the atom reads no scheme in it.
 
 Term granter reference: the person reference of the person who calls [Grant] or [Revoke] — a [Granter Reference].
 
-Term role name: the name of a role in the role table, such as moderator — a [Role Name].
+Term role name: the name a call or a holding gives a role, held in the role table or not, such as moderator — a [Role Name].
 
-Term action name: the name of an action a role may allow, such as hide-post — an [Action Name].
+Term action name: the name a call gives an action, listed by a role or not, such as hide-post — an [Action Name].
 
 Term role table: the deployment's declaration of every role, each role's action names and, where the hierarchy is on, each role's parent role.
 
 Term parent role: the role a role inherits from, where the hierarchy is on; a role allows every action the role's parent role allows.
 
-Term allowed actions: the action names a role lists, together with, where the hierarchy is on, the allowed actions of the role's parent role.
+Term allowed actions: the action names a role lists, together with, where the hierarchy is on, the allowed actions of the role's parent role, an action name listed more than once counted once.
 
 Term hierarchy: the deployment's setting for parent roles, on or off; off where a deployment declares none.
 
@@ -64,12 +66,12 @@ Term self-grant: the deployment's setting for whether a person may grant or revo
 
 Term string cap: the bound on a person reference's length in Unicode code points; 1,024 code points where a deployment declares none.
 
-Term seam: the atom's input and output boundary as the section titled Logic Confinement Principle in `execution-contract.md` declares it; the host injects the clock reading, now, at the seam.
+Term seam: the atom's input and output boundary as the section titled Logic Confinement Principle in `execution-contract.md` declares it; the host injects the clock reading, now, and the holding id at the seam.
 
 ### State
 
 ```
-State 1: EVERY holding MUST carry person reference, role name, granter reference, granted instant and status.
+State 1: EVERY holding MUST carry holding id, person reference, role name, granter reference, granted instant and status.
 State 2: EVERY holding MUST stand in EXACTLY ONE OF held, revoked.
 State 3: EVERY revoked holding MUST carry a revoker reference AND a revoked instant.
 State 4: The atom MUST NOT remove a holding.
@@ -98,6 +100,7 @@ Capability requirement 5: The deployment MAY declare the self-grant PER Executio
 Capability requirement 6: The deployment MAY declare the string cap PER Execution Contract Input 2 and Execution Contract Logic confinement 17.
 Capability requirement 7: The deployment MUST NOT normalize a person reference at the seam.
 Capability requirement 8: The deployment MUST NOT declare a role table in which a role is the role's own parent role through any chain of parent roles.
+Capability requirement 9: The deployment MUST supply at the seam a holding id no holding has carried PER Execution Contract Logic confinement 3.
 ```
 
 ### Operations
@@ -124,11 +127,11 @@ look_up_role(role_name)
 ```
 Operation 1: IF the person reference EQUALS blank OR the person reference EXCEEDS the string cap THEN a holding action MUST answer invalid-person-reference.
 Operation 2: IF the granter reference EQUALS blank OR the granter reference EXCEEDS the string cap THEN a holding action MUST answer invalid-person-reference.
-Operation 3: IF the role table holds no role carrying the role name THEN a holding action MUST answer invalid-role.
+Operation 3: IF the role name is malformed OR the role table holds no role carrying the role name THEN a holding action MUST answer invalid-role.
 Operation 4: IF no held holding of the granter reference names a role whose allowed actions carry the action name grant THEN [Grant] MUST answer not-authorized.
 Operation 5: IF no held holding of the granter reference names a role whose allowed actions carry the action name revoke THEN [Revoke] MUST answer not-authorized.
 Operation 6: IF the self-grant EQUALS off AND the granter reference EQUALS the person reference THEN a holding action MUST answer not-authorized.
-Operation 7: IF no held holding EXISTS for the person reference AND the role name THEN [Grant] MUST record EXACTLY ONE holding carrying the person reference, the role name AND the granter reference of the call.
+Operation 7: IF no held holding EXISTS for the person reference AND the role name THEN [Grant] MUST record EXACTLY ONE holding carrying the holding id supplied at the seam, the person reference, the role name AND the granter reference of the call.
 Operation 8: IF no held holding EXISTS for the person reference AND the role name THEN [Grant] MUST stamp granted instant from the injected now.
 Operation 9: IF no held holding EXISTS for the person reference AND the role name THEN [Grant] MUST stand the holding in held.
 Operation 10: IF a held holding EXISTS for the person reference AND the role name THEN [Grant] MUST NOT write.
@@ -138,12 +141,12 @@ Operation 13: IF no held holding EXISTS for the person reference AND the role na
 Operation 14: A holding action MUST answer ok.
 Operation 15: IF a held holding of the person reference names a role whose allowed actions carry the action name THEN [Ask] MUST answer allow.
 Operation 16: IF no held holding of the person reference names a role whose allowed actions carry the action name THEN [Ask] MUST answer deny.
-Operation 17: [Look Up] MUST answer the role name of EVERY held holding carrying the person reference, in codepoint order.
-Operation 18: [Look Up Role] MUST answer the allowed actions of the role carrying the role name, in codepoint order.
-Operation 19: [Look Up Role] MUST answer an empty list for a role name the role table does not hold.
+Operation 17: [Look Up] MUST answer the role name of EVERY held holding carrying the person reference, in the order of Execution Contract Logic confinement 10.
+Operation 18: [Look Up Role] MUST answer the allowed actions of the role carrying the role name, in the order of Execution Contract Logic confinement 10.
+Operation 19: IF the role name is malformed OR the role table holds no role carrying the role name THEN [Look Up Role] MUST answer an empty list.
 Operation 20: A reading action MUST NOT write.
 Operation 21: [Ask] MUST NOT read now.
-Operation 22: IF the person reference is malformed THEN a holding action MUST answer invalid-person-reference (Execution Contract Input 1).
+Operation 22: IF the person reference OR the granter reference is malformed THEN a holding action MUST answer invalid-person-reference (Execution Contract Input 1).
 Operation 23: IF the person reference is malformed OR the person reference EQUALS blank OR the person reference EXCEEDS the string cap THEN [Ask] MUST answer deny (Execution Contract Query 5).
 Operation 24: IF the action name is malformed OR the action name EQUALS blank THEN [Ask] MUST answer deny (Execution Contract Query 5).
 Operation 25: IF the person reference is malformed OR the person reference EQUALS blank OR the person reference EXCEEDS the string cap THEN [Look Up] MUST answer an empty list (Execution Contract Query 5).
@@ -153,7 +156,7 @@ Term holding action: [Grant] | [Revoke] — the actions that change a holding.
 
 Term reading action: [Ask] | [Look Up] | [Look Up Role] — the actions that change nothing.
 
-Term decision: what [Ask] answers, allow or deny — a [Decision].
+Term decision: what [Ask] answers where its read answers, allow or deny — a [Decision].
 
 The case space, and the rule that owns each case:
 
@@ -166,12 +169,12 @@ The case space, and the rule that owns each case:
 | [Revoke] | the person does not hold the role | ok | none, no write (Operation 13) |
 | a holding action | the granter's roles do not allow the act, or no role anywhere does | [Not Authorized] | none (Operation 4, Operation 5) |
 | a holding action | self-grant off and the granter names themself | [Not Authorized] | none (Operation 6) |
-| a holding action | the role table holds no such role | [Invalid Role] | none (Operation 3) |
+| a holding action | the role table holds no such role, or the role name is not a string | [Invalid Role] | none (Operation 3) |
 | a holding action | a reference blank, over the string cap, or not a string | [Invalid Person Reference] | none (Operation 1, Operation 2, Operation 22) |
 | [Ask] | a role the person holds allows the action, directly or through a parent role | allow | none (Operation 15) |
 | [Ask] | no role the person holds allows the action, the person holds no role, the action is listed nowhere, or a reference is bad | deny | none (Operation 16, Operation 23, Operation 24) |
 | [Look Up] | any | the roles the person holds | none (Operation 17, Operation 25) |
-| [Look Up Role] | any | the role's allowed actions; an empty list for no such role | none (Operation 18, Operation 19) |
+| [Look Up Role] | any | the role's allowed actions; an empty list for no such role or a role name that is not a string | none (Operation 18, Operation 19) |
 | any writing call | database refuses the write | [Storage Failure] | none (Execution Contract Read 4) |
 | any call | its read of the database fails | `state-unavailable` | none (Execution Contract Read 1, Execution Contract Read 3) |
 | any call | more than one refusal applies | the refusal listed first on the action's refuses line | none (Execution Contract Refusal 1) |
@@ -193,6 +196,9 @@ The case space, and the rule that owns each case:
   Invariant 3.3: The atom MUST NOT change a holding's role name.
   Invariant 3.4: The atom MUST NOT change a holding's granter reference.
   Invariant 3.5: The atom MUST NOT change a holding's granted instant.
+  Invariant 3.6: The atom MUST NOT change a holding's revoker reference.
+  Invariant 3.7: The atom MUST NOT change a holding's revoked instant.
+  Invariant 3.8: The atom MUST NOT change a holding's holding id.
   ```
 
 ## Examples
@@ -201,7 +207,7 @@ The same pattern in two domains, then the rejection paths.
 
 ### Forum
 
-A photo forum declares three roles: member allows post and comment; moderator has member as its parent role and adds hide-post, grant and revoke. Bo holds moderator; Ada holds member; Cy holds nothing. Bo calls `grant("bo", "ada", "moderator")`: ok, and a second identical call answers ok and writes nothing. `ask("cy", "hide-post")` answers deny: Cy holds no role. `ask("ada", "hide-post")` answers allow, and `ask("ada", "post")` answers allow through member, the parent role. Bo revokes Ada's moderator while Ada's hide is running: the hide finishes, and Ada's next `ask("ada", "hide-post")` answers deny.
+A photo forum, its hierarchy on, declares two roles: member allows post and comment; moderator has member as its parent role and adds hide-post, grant and revoke. Bo holds moderator; Ada holds member; Cy holds nothing. Bo calls `grant("bo", "ada", "moderator")`: ok, and a second identical call answers ok and writes nothing. `ask("cy", "hide-post")` answers deny: Cy holds no role. `ask("ada", "hide-post")` answers allow, and `ask("ada", "post")` answers allow through member, the parent role. Bo revokes Ada's moderator while Ada's hide is running: the hide finishes, and Ada's next `ask("ada", "hide-post")` answers deny.
 
 ### Shop staff
 
@@ -212,7 +218,7 @@ A shop declares cashier and manager, the hierarchy off. Only manager lists grant
 - `grant("bo", "", "member")` — rejected as [Invalid Person Reference]: the reference is blank.
 - `grant("bo", "ada", "king")` — rejected as [Invalid Role]: the role table holds no king.
 - `grant("ada", "cy", "member")` — rejected as [Not Authorized]: Ada's roles do not allow grant.
-- `grant("bo", "bo", "admin")` — rejected as [Not Authorized]: self-grant is off.
+- `grant("bo", "bo", "member")` — rejected as [Not Authorized]: self-grant is off.
 - `ask("cy", "launch-rockets")` — answers deny: an action listed nowhere is denied.
 
 This covers every refusal but [Storage Failure], which answers when the database refuses a write.
@@ -224,12 +230,12 @@ Acceptable when the checks below are provable to an external auditor from the ho
 ### Conformance checks
 
 ```
-Check 1.1: An auditor MUST find EVERY holding carrying person reference, role name, granter reference, granted instant AND status (State 1).
+Check 1.1: An auditor MUST find EVERY holding carrying holding id, person reference, role name, granter reference, granted instant AND status (State 1).
 Check 1.2: An auditor MUST find EVERY holding standing in EXACTLY ONE OF held, revoked (State 2).
 Check 1.3: An auditor MUST find EVERY revoked holding carrying a revoker reference AND a revoked instant (State 3).
 Check 2.1: An auditor MUST find no two held holdings sharing a person reference AND a role name (Invariant 2.1).
-Check 3.1: An auditor MUST find EVERY version of a holding carrying the person reference, role name, granter reference AND granted instant of the holding's first version (Invariant 3.1, Invariant 3.3 through 3.5).
-Check 3.2: An auditor MUST find EVERY version of a holding later than a revoked version standing in revoked (Invariant 3.2).
+Check 3.1: An auditor MUST find EVERY version of a holding carrying the holding id, person reference, role name, granter reference AND granted instant of the holding's first version (Invariant 3.1, Invariant 3.3 through 3.5, Invariant 3.8).
+Check 3.2: An auditor MUST find EVERY version of a holding later than a revoked version standing in revoked AND carrying the revoker reference AND the revoked instant of the revoked version (Invariant 3.2, Invariant 3.6, Invariant 3.7).
 Check 4.1: An auditor replaying [Ask] over the holdings AND the role table MUST find no allow for an action name the allowed actions of no held role carry (Invariant 1.1).
 ```
 
@@ -248,7 +254,7 @@ Non-goal 5: The atom MUST NOT name the first holders of grant.
 Non-goal 6: The atom MUST NOT hold a person's job in a thing.
 ```
 
-NOTE: the owners — [Actor Identity](./actor-identity.md) and [Session](./session.md) (Non-goal 1); [Permissions](./permissions.md) for one person and one item, [Capability](./capability.md) for an outsider holding a link (Non-goal 2); [Lease](./lease.md) (Non-goal 3); [External Onboarding](../compositions/external-onboarding.md) and the composing pattern that seeds the deployment (Non-goal 4, 5); [Tenure](./tenure.md), whose "role" is a person's position in a customer, a deal or a club, not a set of allowed actions (Non-goal 6).
+NOTE: the owners — [Actor Identity](./actor-identity.md) and [Session](./session.md) (Non-goal 1); [Permissions](./permissions.md) for one person and one item, [Capability](./capability.md) for an outsider holding a link (Non-goal 2); [Lease](./lease.md) (Non-goal 3); [External Onboarding](../compositions/external-onboarding.md) and the forthcoming Forum, which seeds the deployment (Non-goal 4, 5); [Tenure](./tenure.md), whose "role" is a person's position in a customer, a deal or a club, not a set of allowed actions (Non-goal 6).
 
 Where the atom breaks down: a permission on one item — this post, this cart — which is [Permissions](./permissions.md); a right that anyone holding a link may use, which is [Capability](./capability.md).
 
@@ -264,7 +270,7 @@ A caller whose answer is lost may call again, and the repeat is a second call (E
 
 ### A role table that changes
 
-A deployment that removes an action from a role, or a role from the table, changes every later [Ask] at once: the holdings stand, and an action no role now lists is denied. A holding of a role the table no longer holds counts in no ask and can still be revoked only by adding the role back; a deployment retiring a role revokes its holdings first.
+A deployment that removes an action from a role, or a role from the table, changes every [Ask] after the instance's next start (Execution Contract Logic confinement 17): the holdings stand, and an action no role now lists is denied. A holding of a role the table no longer holds counts in no ask and can still be revoked only by adding the role back; a deployment retiring a role revokes its holdings first.
 
 ### What undoes a write
 
@@ -288,7 +294,7 @@ Each `[Term]` marker above links to its term entry here; a term entry states wha
 
 Term actors: the atom; the host; the deployment (also: a deployment); a composing pattern; the database; a holding; a holding action; a reading action; an auditor.
 
-Term records: holding — one person in one role, carrying person reference, role name, granter reference, granted instant, status and, once revoked, revoker reference and revoked instant.
+Term records: holding — one person in one role, carrying holding id, person reference, role name, granter reference, granted instant, status and, once revoked, revoker reference and revoked instant.
 
 Term record verbs: identify, normalize, compare, carry, stand, remove, supply, declare, record, stamp, answer, change, write, read, share, find, tell, allow, end, choose, name, hold, own, call, replay.
 
@@ -300,7 +306,7 @@ Term cadences: empty.
 
 Term qualifiers: migrated — drafted in GRACE lang (2026-11-18) through the Grace connector, from GLM's rough draft.
 
-Term terms: holding, holdings, person reference, granter reference, role name, role names, action name, action names, role table, parent role, allowed actions, hierarchy, self-grant, string cap, seam, status, held, revoked, granted instant, revoker reference, revoked instant, holding action, reading action, decision, version.
+Term terms: holding, holdings, holding id, person reference, granter reference, role name, role names, action name, action names, role table, parent role, allowed actions, hierarchy, self-grant, string cap, seam, status, held, revoked, granted instant, revoker reference, revoked instant, holding action, reading action, decision, version.
 
 #### Grant
 
@@ -340,10 +346,18 @@ Kind: Type
 
 #### Decision
 
-What [Ask] answers: allow or deny, never an error.
+What [Ask] answers where its read answers: allow or deny; a failed read answers state-unavailable (Execution Contract Read 1).
 
 Kind:       Type
 Projection: decision
+
+#### Holding Id
+
+Names one holding, supplied by the host at the seam for the [Grant] that records it; never changed.
+
+Kind:       Field
+Field of:   Holding
+Projection: holding_id
 
 #### Person Reference
 
@@ -355,7 +369,7 @@ Projection: person_reference
 
 #### Role Name
 
-The name of the role a holding is in, as the role table holds it.
+The name of the role a holding is in or a call names, spelled as the role table spells it where the table holds the role.
 
 Kind:       Field
 Field of:   Holding
@@ -363,7 +377,7 @@ Projection: role_name
 
 #### Action Name
 
-The name of an action a role allows, as the role table holds it; an action the table lists nowhere is denied.
+The name of an action a call asks about or a role allows, spelled as the role table spells it where a role lists it; an action the table lists nowhere is denied.
 
 Kind:       Type
 Projection: action_name
@@ -386,7 +400,7 @@ Projection: granted_instant
 
 #### Revoker Reference
 
-The person reference of the person whose [Revoke] stood the holding in revoked.
+The person reference of the person whose [Revoke] stood the holding in revoked; never changed.
 
 Kind:       Field
 Field of:   Holding
@@ -394,7 +408,7 @@ Projection: revoker_reference
 
 #### Revoked Instant
 
-The instant of the [Revoke] that stood the holding in revoked, stamped from the injected now.
+The instant of the [Revoke] that stood the holding in revoked, stamped from the injected now; never changed.
 
 Kind:       Field
 Field of:   Holding
@@ -435,7 +449,7 @@ Projection: invalid-person-reference
 
 #### Invalid Role
 
-The refusal of a [Role Name] the role table does not hold (Operation 3).
+The refusal of a [Role Name] the role table does not hold, or that is not a string (Operation 3).
 
 Kind:       Member
 Member of:  the action rejection
@@ -469,6 +483,7 @@ Projection: storage-failure
 [Look Up]: #look-up
 [Look Up Role]: #look-up-role
 [Holding]: #holding
+[Holding Id]: #holding-id
 [Decision]: #decision
 [Person Reference]: #person-reference
 [Role Name]: #role-name
@@ -492,20 +507,20 @@ Projection: storage-failure
 Role is a primitive with no regulatory anchor. It inherits from:
 
 - **Daniel Jackson, *The Essence of Software*** — the concept as a freestanding, composable unit of software design.
-- **Sandhu, Coyne, Feinstein and Youman, "Role-Based Access Control Models,"** IEEE Computer, 1996, and the NIST standard built on it, ANSI INCITS 359-2004 — roles as named sets of permissions, people assigned to roles, and an optional role hierarchy.
+- **Sandhu, Coyne, Feinstein and Youman, "Role-Based Access Control Models,"** IEEE (Institute of Electrical and Electronics Engineers) Computer, 1996, and the NIST (National Institute of Standards and Technology) standard built on it, ANSI (American National Standards Institute) INCITS 359-2004 — roles as named sets of permissions, people assigned to roles, and an optional role hierarchy.
 
 ---
 
 ## Status
 
-`todo` — see the Ledger.
+`doing` — see the Ledger.
 
 ## Ledger
 
 ```
-status: todo
+status: doing
 formal: pending — no model yet
-last gate: none
+last gate: 2026-11-18 — Final Critique 1, frozen at 66927df3 — foundational count 7, cured by the settle, not clean, no sample
 
 open: none
 ```
