@@ -1342,7 +1342,7 @@
    "permissions",
    "retention-window"
   ],
-  "grounded": false,
+  "grounded": true,
   "invariants": 8,
   "kind": "composition",
   "models": {
@@ -1355,7 +1355,7 @@
    "GDPR",
    "HIPAA"
   ],
-  "status": "doing",
+  "status": "done \u2014 2026-11-19",
   "substrates": [
    "audit-trail",
    "recoverable-invocation"
