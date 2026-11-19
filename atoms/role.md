@@ -101,6 +101,7 @@ Capability requirement 6: The deployment MAY declare the string cap PER Executio
 Capability requirement 7: The deployment MUST NOT normalize a person reference at the seam.
 Capability requirement 8: The deployment MUST NOT declare a role table in which a role is the role's own parent role through any chain of parent roles.
 Capability requirement 9: The deployment MUST supply at the seam a holding id no holding has carried PER Execution Contract Logic confinement 3.
+Capability requirement 10: The deployment MUST NOT declare a role table in which a role's parent role names no role the role table holds.
 ```
 
 ### Operations
@@ -270,7 +271,7 @@ A caller whose answer is lost may call again, and the repeat is a second call (E
 
 ### A role table that changes
 
-A deployment that removes an action from a role, or a role from the table, changes every [Ask] after the instance's next start (Execution Contract Logic confinement 17): the holdings stand, and an action no role now lists is denied. A holding of a role the table no longer holds counts in no ask and can still be revoked only by adding the role back; a deployment retiring a role revokes its holdings first.
+A deployment that removes an action from a role, or a role from the table, changes every [Ask] after the instance's next start (Execution Contract Logic confinement 17): the holdings stand, and an action no role now lists is denied. A holding of a role the table no longer holds counts in no ask and can still be revoked only by adding the role back; a deployment retiring a role revokes its holdings first and gives each of its child roles another parent role (Capability requirement 10).
 
 ### What undoes a write
 
@@ -520,7 +521,7 @@ Role is a primitive with no regulatory anchor. It inherits from:
 ```
 status: doing
 formal: pending — no model yet
-last gate: 2026-11-18 — Final Critique 1, frozen at 66927df3 — foundational count 7, cured by the settle, not clean, no sample
+last gate: 2026-11-19 — Final Critique 2, a delta round, one reader (Linus opencode/beam-free), frozen at bcecf938 — foundational count 1, cured by the settle, not clean, no sample; Linus's first foundational kept Kind A by the first triage (Opus 5.5 decided it): Capability requirement 8 forbade only a parent cycle, so a role table whose role named a parent the table does not hold left Term allowed actions without an answer, and one build let the missing parent add nothing where another refused the call, for [Ask], [Look Up Role] and the grant and revoke checks alike; cured as the finder proposed in a requirement of its own (Capability requirement 10, so Capability requirement 8 gains no `or`), less its clause on a parent that is not a string, which cannot name a role the table holds (Identity 4), and the paragraph on a role table that changes now has a retiring deployment reparent the role's children; its second foundational (Operation 22 against the [Ask] and [Look Up] rows) refuted by Term holding action, which lists [Grant] and [Revoke] only, so Operation 23 and Operation 25 answer a malformed reference there; its three refining items refuted or owed no cure (Term hierarchy and Term reading action define what the reader said was undefined, and an empty list for an unknown role and for a role with no actions are both defined); 2026-11-18 — Final Critique 1, frozen at 66927df3 — foundational count 7, cured by the settle, not clean, no sample
 
 open: none
 ```
