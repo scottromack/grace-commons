@@ -69,7 +69,7 @@ Term person reference: the value naming the person a spot is for — a member, a
 
 NOTE: the offering reference and the person reference take the value exactly as written in the call (Identity 12, Identity 13), standing in place of Execution Contract Logic confinement 13 (Execution Contract Input 4; Identity 6 through 9).
 
-Term seam: the atom's I/O boundary as the section titled Logic Confinement Principle in `execution-contract.md` declares it; the host injects each waitlist id, each spot id and the clock reading, now, at the seam.
+Term seam: the atom's I/O boundary as the section titled Logic Confinement Principle in `execution-contract.md` declares it; the host injects the waitlist id of each [Start], the spot id of each [Join] and the clock reading, now, at the seam.
 
 Term now: the deployment's clock reading at the call, as Execution Contract Logic confinement 11 declares it; the injected now is the reading the host hands the atom at the seam.
 
@@ -303,7 +303,7 @@ This covers every refusal but [Storage Failure], which answers when the database
 
 ## Generation acceptance
 
-Acceptable when the checks below are provable to an external auditor from the waitlists and spots the database holds, with their earlier versions (Execution Contract Database 5). The atom is not regulated and carries no adversarial scenarios.
+Acceptable when the checks below are provable to an external auditor from the waitlists and spots the database holds, with their earlier versions (Execution Contract Database 5, Execution Contract Generation acceptance 1). The atom is not regulated and carries no adversarial scenarios.
 
 ### Conformance checks
 
@@ -678,7 +678,7 @@ Any rule a school, a clinic or a shop must follow in running a waitlist binds th
 ```
 status: done — 2026-11-19
 formal: verified — waitlist.als + 18 twins (the static data model: State 1 through 4, Identity 3 and 4, Operation 4, 5 and 11 through 14, Invariant 1.1, 1.2, 2.1, 5.2, 6.1, 8.1 and 9.1 checked on every version a sequence of admitted calls leaves, Identity 1, 2 and 5 caught by the Identity 3 and 4 checks, Identity 6, 8, 12 and 13 by the Operation 4 and 11 checks); waitlist.tla + 41 twins (across steps: State 5 and 6, Invariant 1.2, 1.3, 3.1 through 3.3, 4.1, 5.1 and 7.1, Operation 1 through 4, 6 through 12 and 15 through 36, Identity 7 and 9 read through Operation 2, 4, 10 and 11; Operation 23 and 36 re-derived with their cures, Operation 36 over two waitlists, 2026-11-19); on the maintainer's ruling of 2026-11-09 (both models; only the writing vetoes one), neither vetoed; Identity 10 and 11 (the deployment's random draw) cannot be stated, 2026-11-19
-last gate: 2026-11-19 — Final Critique 3, delta, frozen at d81f35b5 — foundational count 0 after the blind second triage, clean, no sample; 2026-11-17 — Final Critique 2, delta, frozen at 8d7d3b9 — foundational count 0, clean, one sample; 2026-11-17 — Final Critique 1, full, frozen at e7a3151 — foundational count 5, cured, not clean, no sample
+last gate: 2026-11-19 — Final Critique 4, delta, frozen at ce83afd1 — foundational count 0 after the blind second triage, clean, no sample; 2026-11-19 — Final Critique 3, delta, frozen at d81f35b5 — foundational count 0 after the blind second triage, clean, no sample; 2026-11-17 — Final Critique 2, delta, frozen at 8d7d3b9 — foundational count 0, clean, one sample; 2026-11-17 — Final Critique 1, full, frozen at e7a3151 — foundational count 5, cured, not clean, no sample
 
 open: none
 ```
