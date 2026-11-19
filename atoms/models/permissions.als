@@ -40,7 +40,9 @@
 --   compares a grant with a later state of itself, or reads what a call answered or wrote
 --   (what Operation 34 leaves in the records is read here, through Invariant 11.1). The
 --   2026-06-03 model's pre/post checks (A_I1, A_I2, A_I3, A_I10) and its checks of
---   [Check]'s answer (A_I7, A_I8) are taken over there.
+--   [Check]'s answer (A_I7, A_I8) are taken over there. Grant concurrency 1 is checked
+--   there as the page states it since its cure of 2026-11-19 (the admitted calls, with
+--   no [Revoke] of the pair's grant between the calls' commits).
 --
 -- SCOPE
 -- A state is what a sequence of admitted calls leaves. Each call is one atom, in the order

@@ -46,10 +46,13 @@ VARIABLES
     revAt,    \* slot -> revocation instant (0: none)
     actAt,    \* slot -> the instants at whose end the grant stood in active (the model's own note)
     rival,    \* call id -> the grant ids other calls on its pair recorded while it was in flight (the model's own note)
+    fresh,    \* the [Grant] calls that arrived where no active grant matched their pair (the model's own note)
+    quiet,    \* call id -> the other calls on its pair, both arrived fresh, that committed while it was in flight
+              \* without storage-failure, with no [Revoke] of the pair's grant committed since (the model's own note)
     last      \* the last call made and what it answered (NoCall's shape)
 
 \* vars: every variable; a step that changes none of them is a stutter.
-vars == <<now, n, used, pend, gid, subj, scope, grantAt, status, revAt, actAt, rival, last>>
+vars == <<now, n, used, pend, gid, subj, scope, grantAt, status, revAt, actAt, rival, fresh, quiet, last>>
 
 \* records: every variable that holds a grant's fields: what the database holds.
 records == <<n, gid, subj, scope, grantAt, status, revAt>>
@@ -74,6 +77,11 @@ Live(s, t) == grantAt[s] <= t /\ (revAt[s] = 0 \/ revAt[s] > t)
 \* Rivals: the other [Grant] calls in flight on the pair of the call c.
 Rivals(c) == {p \in pend : p # c /\ p.sub = c.sub /\ p.sc = c.sc}
 
+\* Settled: the model's note of the call c committing without storage-failure:
+\* where c arrived fresh, every other fresh call in flight on its pair notes it.
+Settled(c) == [h \in GrantIds |-> IF c.g \in fresh /\ h \in fresh /\ \E p \in Rivals(c) : p.g = h
+                                  THEN quiet[h] \cup {c.g} ELSE quiet[h]]
+
 \* TypeOK: each variable holds a value of its kind (the model's typing, not a
 \* rule of the page).
 TypeOK ==
@@ -89,6 +97,8 @@ TypeOK ==
     /\ revAt \in [Slots -> Nat]
     /\ actAt \in [Slots -> SUBSET (1..MaxTime)]
     /\ rival \in [GrantIds -> SUBSET GrantIds]
+    /\ fresh \subseteq GrantIds
+    /\ quiet \in [GrantIds -> SUBSET GrantIds]
 
 \* Init: no grant; no id supplied; no call in flight; the clock at its first
 \* instant.
@@ -105,6 +115,8 @@ Init ==
     /\ revAt = [s \in Slots |-> 0]
     /\ actAt = [s \in Slots |-> {}]
     /\ rival = [g \in GrantIds |-> {}]
+    /\ fresh = {}
+    /\ quiet = [g \in GrantIds |-> {}]
     /\ last = NoCall
 
 \* ---------------------------------------------------------------------------
@@ -118,7 +130,7 @@ Tick ==
     /\ now' = now + 1
     /\ actAt' = [s \in Slots |-> IF status[s] = "active" THEN actAt[s] \cup {now} ELSE actAt[s]]
     /\ last' = [NoCall EXCEPT !.op = "tick"]
-    /\ UNCHANGED <<n, used, pend, gid, subj, scope, grantAt, status, revAt, rival>>
+    /\ UNCHANGED <<n, used, pend, gid, subj, scope, grantAt, status, revAt, rival, fresh, quiet>>
 
 \* GrantArrive: a [Grant] call of a pair arrives, the host allocating its
 \* grant id at the seam (Identity 2), an id supplied to no earlier call
@@ -129,7 +141,8 @@ GrantArrive(su, sc, g) ==
     /\ used' = used \cup {g}
     /\ pend' = pend \cup {[sub |-> su, sc |-> sc, g |-> g]}
     /\ last' = [NoCall EXCEPT !.op = "arrive", !.sub = su, !.sc = sc, !.call = g]
-    /\ UNCHANGED <<now, n, gid, subj, scope, grantAt, status, revAt, actAt, rival>>
+    /\ fresh' = IF ActiveMatch(su, sc) THEN fresh ELSE fresh \cup {g}
+    /\ UNCHANGED <<now, n, gid, subj, scope, grantAt, status, revAt, actAt, rival, quiet>>
 
 \* GrantAdmitted: the in-flight [Grant] call c commits where, read inside its
 \* transaction, no active grant matches its pair, the database accepting the
@@ -151,7 +164,8 @@ GrantAdmitted(c) ==
     /\ n' = n + 1
     /\ rival' = [h \in GrantIds |-> IF \E p \in Rivals(c) : p.g = h THEN rival[h] \cup {c.g} ELSE rival[h]]
     /\ last' = [op |-> "grant", sub |-> c.sub, sc |-> c.sc, gid |-> c.g, call |-> c.g, slot |-> n, ans |-> "grant-id", ids |-> {}]
-    /\ UNCHANGED <<now, used, revAt, actAt>>
+    /\ quiet' = Settled(c)
+    /\ UNCHANGED <<now, used, revAt, actAt, fresh>>
 
 \* GrantHeld: the in-flight [Grant] call c commits where, read inside its
 \* transaction, an active grant matches its pair: it answers that grant's id
@@ -163,7 +177,8 @@ GrantHeld(c) ==
         /\ status[s] = "active" /\ subj[s] = c.sub /\ scope[s] = c.sc
         /\ last' = [op |-> "grant", sub |-> c.sub, sc |-> c.sc, gid |-> gid[s], call |-> c.g, slot |-> s, ans |-> "grant-id", ids |-> {}]
     /\ pend' = pend \ {c}
-    /\ UNCHANGED <<now, n, used, gid, subj, scope, grantAt, status, revAt, actAt, rival>>
+    /\ quiet' = Settled(c)
+    /\ UNCHANGED <<now, n, used, gid, subj, scope, grantAt, status, revAt, actAt, rival, fresh>>
 
 \* GrantStorageFailure: the in-flight [Grant] call c, no active grant
 \* matching its pair, whose write the database refuses answers
@@ -174,7 +189,7 @@ GrantStorageFailure(c) ==
     /\ ~ActiveMatch(c.sub, c.sc)
     /\ pend' = pend \ {c}
     /\ last' = [op |-> "grant", sub |-> c.sub, sc |-> c.sc, gid |-> NONE, call |-> c.g, slot |-> 0, ans |-> "storage-failure", ids |-> {}]
-    /\ UNCHANGED <<now, n, used, gid, subj, scope, grantAt, status, revAt, actAt, rival>>
+    /\ UNCHANGED <<now, n, used, gid, subj, scope, grantAt, status, revAt, actAt, rival, fresh, quiet>>
 
 \* RevokeOk: [Revoke] of an id naming an active grant, the database accepting
 \* the write, stands that grant, and no other, in revoked (Operation 11,
@@ -189,7 +204,9 @@ RevokeOk(g) ==
         /\ revAt' = [revAt EXCEPT ![s] = now]
         /\ grantAt' = [grantAt EXCEPT ![s] = now]   \* BUG: the grant instant restamped
         /\ last' = [op |-> "revoke", sub |-> NONE, sc |-> NONE, gid |-> g, call |-> NONE, slot |-> s, ans |-> "ok", ids |-> {}]
-        /\ UNCHANGED <<now, n, used, pend, gid, subj, scope, actAt, rival>>
+        /\ quiet' = [h \in GrantIds |-> IF \E p \in pend : p.g = h /\ p.sub = subj[s] /\ p.sc = scope[s]
+                                         THEN {} ELSE quiet[h]]
+        /\ UNCHANGED <<now, n, used, pend, gid, subj, scope, actAt, rival, fresh>>
 
 \* RevokeNotActive: [Revoke] of an id naming a revoked grant answers
 \* not-active and writes nothing (Operation 10).
@@ -199,14 +216,14 @@ RevokeNotActive(g) ==
         /\ gid[s] = g
         /\ status[s] = "revoked"
         /\ last' = [op |-> "revoke", sub |-> NONE, sc |-> NONE, gid |-> g, call |-> NONE, slot |-> s, ans |-> "not-active", ids |-> {}]
-        /\ UNCHANGED <<now, n, used, pend, gid, subj, scope, grantAt, status, revAt, actAt, rival>>
+        /\ UNCHANGED <<now, n, used, pend, gid, subj, scope, grantAt, status, revAt, actAt, rival, fresh, quiet>>
 
 \* RevokeNotKnown: [Revoke] of an id no grant carries answers not-known and
 \* writes nothing (Operation 9).
 RevokeNotKnown(g) ==
     /\ ~Names(g)
     /\ last' = [op |-> "revoke", sub |-> NONE, sc |-> NONE, gid |-> g, call |-> NONE, slot |-> 0, ans |-> "not-known", ids |-> {}]
-    /\ UNCHANGED <<now, n, used, pend, gid, subj, scope, grantAt, status, revAt, actAt, rival>>
+    /\ UNCHANGED <<now, n, used, pend, gid, subj, scope, grantAt, status, revAt, actAt, rival, fresh, quiet>>
 
 \* RevokeStorageFailure: [Revoke] of an id naming an active grant whose write
 \* the database refuses answers storage-failure (Operation 13) and writes
@@ -217,7 +234,7 @@ RevokeStorageFailure(g) ==
         /\ gid[s] = g
         /\ status[s] = "active"
         /\ last' = [op |-> "revoke", sub |-> NONE, sc |-> NONE, gid |-> g, call |-> NONE, slot |-> s, ans |-> "storage-failure", ids |-> {}]
-        /\ UNCHANGED <<now, n, used, pend, gid, subj, scope, grantAt, status, revAt, actAt, rival>>
+        /\ UNCHANGED <<now, n, used, pend, gid, subj, scope, grantAt, status, revAt, actAt, rival, fresh, quiet>>
 
 \* CheckCall: [Check] of a pair answers permitted where an active grant
 \* matches it and denied otherwise (Operation 16 to 18), resting on the active
@@ -225,14 +242,14 @@ RevokeStorageFailure(g) ==
 CheckCall(su, sc) ==
     /\ last' = [op |-> "check", sub |-> su, sc |-> sc, gid |-> NONE, call |-> NONE, slot |-> 0,
                 ans |-> IF ActiveMatch(su, sc) THEN "permitted" ELSE "denied", ids |-> {}]
-    /\ UNCHANGED <<now, n, used, pend, gid, subj, scope, grantAt, status, revAt, actAt, rival>>
+    /\ UNCHANGED <<now, n, used, pend, gid, subj, scope, grantAt, status, revAt, actAt, rival, fresh, quiet>>
 
 \* ReadCall: [Read] answers every grant, active and revoked (Operation 26), here
 \* by its grant id, and writes nothing (Operation 28).
 ReadCall ==
     /\ last' = [op |-> "read", sub |-> NONE, sc |-> NONE, gid |-> NONE, call |-> NONE, slot |-> 0, ans |-> "every",
                 ids |-> {gid[s] : s \in RecordedSet}]
-    /\ UNCHANGED <<now, n, used, pend, gid, subj, scope, grantAt, status, revAt, actAt, rival>>
+    /\ UNCHANGED <<now, n, used, pend, gid, subj, scope, grantAt, status, revAt, actAt, rival, fresh, quiet>>
 
 \* Next: the clock moving, or any call: a [Grant] arriving, and an in-flight
 \* [Grant] committing with each of its answers, a [Revoke] of any id with each
@@ -353,14 +370,21 @@ Op33_HeldPairAnswersItsGrant ==
 Op34_HeldPairWritesNothing ==
     [][(GrantCommit /\ ActiveMatch(last'.sub, last'.sc)) => UNCHANGED records]_vars
 
-\* GC1_ConcurrentGrantsRecordOne: a [Grant] call records a grant only where
-\* no grant another call on its pair recorded while the two were in flight
-\* together still stands in active: of two concurrent calls on a pair, the
-\* first to commit records the grant and the second records none while it
-\* stands (Grant concurrency 1; see THE WORLD AROUND THE RECORDS).
+\* GrantsAdded: how many grants the step adds to the grant set.
+GrantsAdded == Cardinality({s \in Slots : status'[s] # "none"}) - Cardinality(RecordedSet)
+
+\* GC1_ConcurrentGrantsRecordOne: the admitted [Grant] calls on one pair in
+\* flight together, each arriving where no active grant matched the pair,
+\* with no [Revoke] of the pair's grant committed between the calls' commits,
+\* record EXACTLY ONE grant in all (Grant concurrency 1, as the page states it
+\* since 2026-11-19). Read at each admitted call's commit, against the
+\* admitted calls it was in flight with that committed before it with no such
+\* [Revoke] since: the grants those calls recorded and the grants this step
+\* adds are one. A call answered storage-failure is not admitted (Execution
+\* Contract Read 4) and is not counted (see THE WORLD AROUND THE RECORDS).
 GC1_ConcurrentGrantsRecordOne ==
-    [][(GrantCommit /\ last'.slot \in Slots /\ status[last'.slot] = "none" /\ status'[last'.slot] # "none")
-           => ~\E s \in Slots : status[s] = "active" /\ gid[s] \in rival[last'.call]]_vars
+    [][(GrantCommit /\ last'.ans # "storage-failure" /\ last'.call \in fresh /\ quiet[last'.call] # {})
+           => (Cardinality(quiet[last'.call] \cap rival[last'.call]) + GrantsAdded = 1)]_vars
 
 \* Id8_RevokeReachesOne: a [Revoke] answered ok changes the status of no grant
 \* but the one its id names (Identity 8, Identity 6: never every grant of a
