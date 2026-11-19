@@ -58,3 +58,6 @@ So the deployed Beacon is built from the library as it stood on 2026-11-16 and 2
 
 `src/main.ts` (the boot: open, seed, serve) and `stack/start.sh` are not under `bun test`: they start a process that owns the store's port. They were run once by hand on 2026-11-18: the store came up, the seed ran, the server answered `/login` 200, signed in as the principal investigator (302 to `/dashboard`) and answered `/dashboard`, `/subjects`, `/people`, `/audit` and `/audit/verify` 200. The linux image was built by Fly's builder and not run before the deploy.
 
+## The run for the visual design unit (2026-11-19)
+
+`bun test --timeout 60000` on a fresh store, in a clone at `7f42d75e` plus `demo: Beacon takes the visual design system the Next render used`: **466 tests, 463 pass, 3 skip, 0 fail**, 884 seconds. Lease's `waiters are admitted in arrival order` passed this run; it is intermittent (above) and still not cured.

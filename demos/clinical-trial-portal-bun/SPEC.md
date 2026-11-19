@@ -88,6 +88,8 @@ Every screen is a page the server draws; every action works with no script runni
 
 Every screen follows the device's light or dark setting, coloured with INKs, as every Grace render is [Scott 2026-11-18, "the beacon trial is whitemode"]. The stylesheet is Tailwind with INKs, built before the server runs (Running it) and served at `/app.css`; no screen names a colour of its own.
 
+Every screen follows `demos/visual-design/STYLE.md`: type, spacing, the shell, `.raised` surfaces, cards, tables, forms and buttons [Scott 2026-11-19, "why does the deno render look totally different than https://beacon-clinical-next.fly.dev/dashboard ? The next render looks professional the other does not."; "make it so"]. The stylesheet takes its `.raised` surface and its tokens from `demos/visual-design/inkset.css`, copied into Beacon's own `src/` because the image builds from this folder alone.
+
 Every signed-in screen carries one menu in its header, People & Permissions | Subjects | Audit Trail, showing only the ones the person may open (the dashboard's own rule), with the current one marked; the name Beacon Clinical Research in the header opens the dashboard, and no screen carries a "Back to the dashboard" link [Scott 2026-11-18, "menu should persist ... back button is a fail"]. A screen a person reaches from another of the same menu entry (a subject, the chain verification, the enrolment form) keeps that entry marked.
 
 A signed-in person who lacks a permission a page needs is answered with the page "Access denied", which names the permission or permissions that would open it; the header's name is the way back to the dashboard [Section 2 of the plan, live].
