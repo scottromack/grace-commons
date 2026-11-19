@@ -44,7 +44,7 @@ import sys, re, json, pathlib, subprocess
 from collections import defaultdict
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
-from reverse_index import build_index  # noqa: E402  (same directory)
+from reverse_index import build_index, frontmatter_audience  # noqa: E402  (same directory)
 
 # Mirrors tools/linter/lint.py's conventions so the two tools cannot disagree
 # about what counts as an invariant header or a status token.
@@ -205,6 +205,7 @@ def main():
         stds = sorted({s for ss in e["overlays"]["standards_by_composer"].values() for s in ss})
         cards[a] = {
             "title": frontmatter_title(text, a), "kind": "atom",
+            "audience": e["audience"],
             "status": status_token(text),
             "grounded": is_done(status_token(text)),
             "invariants": invariant_count(text),
@@ -220,6 +221,7 @@ def main():
         substrate_edges += [(c["name"], s) for s in subs]
         cards[c["name"]] = {
             "title": frontmatter_title(text, c["name"]), "kind": "composition",
+            "audience": frontmatter_audience(text),
             "status": status_token(text),
             "grounded": is_done(status_token(text)),
             "invariants": invariant_count(text),

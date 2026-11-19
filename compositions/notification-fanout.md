@@ -1,6 +1,7 @@
 ---
 title: Notification Fanout
 id: 5
+audience: common
 parent: Conceptual Compositions
 nav_order: 5
 has_toc: true

@@ -1,6 +1,7 @@
 ---
 title: Restorable Delete
 id: 72
+audience: common
 parent: Atomic Concepts
 has_toc: true
 toc: true

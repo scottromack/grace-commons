@@ -1,6 +1,7 @@
 ---
 title: External Onboarding
 id: 16
+audience: common
 parent: Conceptual Compositions
 nav_order: 15
 has_toc: true

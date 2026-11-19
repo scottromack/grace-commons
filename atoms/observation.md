@@ -1,6 +1,7 @@
 ---
 title: Observation
 id: 48
+audience: common
 parent: Atomic Concepts
 has_toc: true
 toc: true

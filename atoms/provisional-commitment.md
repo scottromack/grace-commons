@@ -1,6 +1,7 @@
 ---
 title: Provisional Commitment
 id: 54
+audience: common
 parent: Atomic Concepts
 has_toc: true
 toc: true

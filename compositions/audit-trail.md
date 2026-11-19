@@ -1,6 +1,7 @@
 ---
 title: Audit Trail
 id: 21
+audience: common
 parent: Conceptual Compositions
 nav_order: 3
 has_toc: true

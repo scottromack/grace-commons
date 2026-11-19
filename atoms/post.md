@@ -1,6 +1,7 @@
 ---
 title: Post
 id: 69
+audience: common
 parent: Atomic Concepts
 has_toc: true
 toc: true

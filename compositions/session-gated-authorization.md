@@ -1,6 +1,7 @@
 ---
 title: Session-Gated Authorization
 id: 14
+audience: common
 parent: Conceptual Compositions
 nav_order: 14
 has_toc: true

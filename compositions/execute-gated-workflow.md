@@ -1,6 +1,7 @@
 ---
 title: Execute Gated Workflow
 id: 10
+audience: common
 parent: Conceptual Compositions
 nav_order: 10
 has_toc: true

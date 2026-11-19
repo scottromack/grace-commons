@@ -1,6 +1,7 @@
 ---
 title: State Machine
 id: 59
+audience: common
 parent: Atomic Concepts
 has_toc: true
 toc: true

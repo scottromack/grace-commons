@@ -1,6 +1,7 @@
 ---
 title: Session
 id: 58
+audience: common
 parent: Atomic Concepts
 has_toc: true
 toc: true

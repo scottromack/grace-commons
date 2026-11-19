@@ -1,6 +1,7 @@
 ---
 title: Owed Record
 id: 49
+audience: common
 parent: Atomic Concepts
 has_toc: true
 toc: true

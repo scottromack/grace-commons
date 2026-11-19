@@ -1,6 +1,7 @@
 ---
 title: Recoverable Invocation
 id: 24
+audience: common
 parent: Conceptual Compositions
 nav_order: 10
 has_toc: true

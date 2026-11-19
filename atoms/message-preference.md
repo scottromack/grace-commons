@@ -1,6 +1,7 @@
 ---
 title: Message Preference
 id: 46
+audience: common
 parent: Atomic Concepts
 has_toc: true
 toc: true

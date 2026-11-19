@@ -1,6 +1,7 @@
 ---
 title: Favorite
 id: 64
+audience: common
 parent: Atomic Concepts
 has_toc: true
 toc: true

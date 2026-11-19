@@ -26,6 +26,19 @@ Every pattern in the library, printed from its own Status line.
 | Pattern | Kind | Status | Date |
 |---|---|---|---|
 {% for p in site.data.patterns -%}
+{%- if p[1].audience == "internal" %}{% continue %}{% endif -%}
+{%- assign st = p[1].status | split: " — " -%}
+| [{{ p[1].title }}]({{ "/" | append: p[1].kind | append: "s/" | append: p[0] | append: ".html" | relative_url }}) | {{ p[1].kind }} | `{{ st[0] }}` | {{ st[1] }} |
+{% endfor %}
+
+### How Grace runs itself
+
+Patterns Grace runs on itself, marked `audience: internal` in their own front matter.
+
+| Pattern | Kind | Status | Date |
+|---|---|---|---|
+{% for p in site.data.patterns -%}
+{%- unless p[1].audience == "internal" %}{% continue %}{% endunless -%}
 {%- assign st = p[1].status | split: " — " -%}
 | [{{ p[1].title }}]({{ "/" | append: p[1].kind | append: "s/" | append: p[0] | append: ".html" | relative_url }}) | {{ p[1].kind }} | `{{ st[0] }}` | {{ st[1] }} |
 {% endfor %}

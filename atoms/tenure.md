@@ -1,6 +1,7 @@
 ---
 title: Tenure
 id: 67
+audience: common
 parent: Atomic Concepts
 has_toc: true
 toc: true

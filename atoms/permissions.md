@@ -1,6 +1,7 @@
 ---
 title: Permissions
 id: 51
+audience: common
 parent: Atomic Concepts
 has_toc: true
 toc: true

@@ -1,6 +1,7 @@
 ---
 title: Shared Cart
 id: 25
+audience: common
 parent: Conceptual Compositions
 has_toc: true
 toc: true

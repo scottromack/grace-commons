@@ -1,6 +1,7 @@
 ---
 title: Reserve from Pool
 id: 9
+audience: common
 parent: Conceptual Compositions
 nav_order: 18
 has_toc: true

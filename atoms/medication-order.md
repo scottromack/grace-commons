@@ -1,6 +1,7 @@
 ---
 title: Medication Order
 id: 45
+audience: common
 domain: healthcare
 parent: Atomic Concepts
 has_toc: true

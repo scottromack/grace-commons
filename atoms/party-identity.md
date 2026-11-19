@@ -1,6 +1,7 @@
 ---
 title: Party Identity
 id: 50
+audience: common
 parent: Atomic Concepts
 has_toc: true
 toc: true

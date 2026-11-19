@@ -1,6 +1,7 @@
 ---
 title: Attributed Permissions Admin
 id: 20
+audience: common
 parent: Conceptual Compositions
 nav_order: 8
 has_toc: true

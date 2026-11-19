@@ -78,9 +78,13 @@ See [`contributing.md`](../contributing.md) for the full contribution shape.
 
 - [Recoverable Invocation](./recoverable-invocation.md) — Lease + Audit Trail (substrate → Event Log + Actor Identity + Tamper Evidence + Retention Window). The protocol a regulated act that cannot be taken back follows: record the intent, make the act, record the outcome, and let a sweep finish the account of an act whose process died, writing only what the act's database can read back, so every act is accounted for exactly once, by one writer. Anchors SOX section 404, HIPAA section 164.312(b), PCI DSS Requirement 10, 21 CFR Part 11, and GDPR Articles 30 and 32.
 
-- [Verified Repair](./verified-repair.md) — Recoverable Invocation + Audit Trail. The rulebook for a council of automated reviewers that keeps a library's patterns correct: each round freezes one copy of a pattern, sorts the failures its readers and checkers report against it, and lets through only the fixes the sorting admits, landed on the text the readers read and recorded step by step. Anchors no standard of its own; its records are Audit Trail's.
-
 - [Shared Cart](./shared-cart.md) — Cart + Permissions + Event Log. A cart several people see and add to: whoever opens it shares it with each friend one permission at a time (view, add, change, remove or share), every action is checked against those permissions before anything changes, and every change records who made it, so each line shows who added it and the history stays readable after a friend's access is taken away. Anchors no standard of its own; the standards it touches are its constituents'.
+
+## How Grace runs itself
+
+Compositions Grace runs on itself (`audience: internal`).
+
+- [Verified Repair](./verified-repair.md) — Recoverable Invocation + Audit Trail. The rulebook for a council of automated reviewers that keeps a library's patterns correct: each round freezes one copy of a pattern, sorts the failures its readers and checkers report against it, and lets through only the fixes the sorting admits, landed on the text the readers read and recorded step by step. Anchors no standard of its own; its records are Audit Trail's.
 
 ---
 

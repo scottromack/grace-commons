@@ -84,6 +84,17 @@ def frontmatter_domain(text):
     return m.group(1).strip() if m else None
 
 
+def frontmatter_audience(text):
+    """Read the `audience:` field (`common` or `internal`) from a pattern's YAML frontmatter;
+    a page without one is common (spec-format.md, *Audience*)."""
+    if not text.startswith("---"):
+        return "common"
+    end = text.find("\n---", 3)
+    block = text[3:end] if end != -1 else ""
+    m = re.search(r"^audience:\s*(\w+)\s*$", block, re.M)
+    return m.group(1) if m else "common"
+
+
 def is_nav_page(text):
     """True for a catalog/landing/nav page (not an atom spec): its frontmatter
     declares `has_children: true` or `nav_exclude: true`. Keeps the atom scan
@@ -141,7 +152,8 @@ def build_index(root):
         if is_nav_page(text):
             continue
         atom[p.stem] = {"folder": p.parent.name,
-                        "domain": frontmatter_domain(text)}
+                        "domain": frontmatter_domain(text),
+                        "audience": frontmatter_audience(text)}
 
     comps = [parse_composition(p) for p in sorted(comps_dir.glob("*.md"))
              if p.name.lower() != "readme.md" and not p.match("*.hist.md")]
@@ -163,6 +175,7 @@ def build_index(root):
         index[a] = {
             "folder": meta["folder"],                      # current home (pre-flatten; informational)
             "domain": meta["domain"],                      # intrinsic (frontmatter), or null
+            "audience": meta["audience"],                  # frontmatter: common (default) or internal
             "overlays": {
                 "regulated_by": regulated_by.get(a, []),   # composers that regulate it
                 "standards_by_composer": std_by_composer.get(a, {}),  # attribution

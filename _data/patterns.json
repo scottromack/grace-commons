@@ -1,5 +1,6 @@
 {
  "actor-identity": {
+  "audience": "common",
   "composed_by": [
    "attributed-permissions-admin",
    "audit-trail",
@@ -45,6 +46,7 @@
   "title": "Actor Identity"
  },
  "actor-suspension": {
+  "audience": "common",
   "composes": [
    "permissions",
    "session",
@@ -79,6 +81,7 @@
   "title": "Actor Suspension"
  },
  "approval-step": {
+  "audience": "common",
   "composed_by": [
    "execute-gated-workflow",
    "multi-party-approval"
@@ -110,6 +113,7 @@
   "title": "Approval Step"
  },
  "assignment": {
+  "audience": "common",
   "composed_by": [
    "execute-gated-workflow",
    "multi-party-approval",
@@ -143,6 +147,7 @@
   "title": "Assignment"
  },
  "attributed-permissions-admin": {
+  "audience": "common",
   "composes": [
    "permissions",
    "actor-identity"
@@ -170,6 +175,7 @@
   "title": "Attributed Permissions Admin"
  },
  "audit-trail": {
+  "audience": "common",
   "composes": [
    "event-log",
    "actor-identity",
@@ -222,6 +228,7 @@
   "title": "Audit Trail"
  },
  "authenticated-actor": {
+  "audience": "common",
   "composes": [
    "credential",
    "actor-identity"
@@ -251,6 +258,7 @@
   "title": "Authenticated Actor"
  },
  "calendar-time": {
+  "audience": "common",
   "composed_by": [],
   "domain": null,
   "grounded": true,
@@ -268,6 +276,7 @@
   "title": "Calendar Time"
  },
  "capability": {
+  "audience": "common",
   "composed_by": [
    "capability-backed-sharing",
    "privileged-access-provisioning"
@@ -300,6 +309,7 @@
   "title": "Capability"
  },
  "capability-backed-sharing": {
+  "audience": "common",
   "composes": [
    "capability",
    "selective-disclosure"
@@ -330,6 +340,7 @@
   "title": "Capability-Backed Sharing"
  },
  "capacity-constraint-enforcement": {
+  "audience": "common",
   "composed_by": [
    "reserve-from-pool"
   ],
@@ -353,6 +364,7 @@
   "title": "Capacity Constraint Enforcement"
  },
  "cart": {
+  "audience": "common",
   "composed_by": [
    "shared-cart"
   ],
@@ -374,6 +386,7 @@
   "title": "Cart"
  },
  "category": {
+  "audience": "common",
   "composed_by": [],
   "domain": null,
   "grounded": true,
@@ -391,6 +404,7 @@
   "title": "Category"
  },
  "chain-of-custody": {
+  "audience": "common",
   "composes": [
    "provenance"
   ],
@@ -420,6 +434,7 @@
   "title": "Chain of Custody"
  },
  "comment": {
+  "audience": "common",
   "composed_by": [],
   "domain": null,
   "grounded": true,
@@ -437,6 +452,7 @@
   "title": "Comment"
  },
  "communication": {
+  "audience": "common",
   "composed_by": [],
   "domain": null,
   "grounded": true,
@@ -454,6 +470,7 @@
   "title": "Communication"
  },
  "compensable-workflow": {
+  "audience": "common",
   "composes": [
    "state-machine",
    "event-log"
@@ -477,6 +494,7 @@
   "title": "Compensable Workflow"
  },
  "condition-register": {
+  "audience": "common",
   "composed_by": [],
   "domain": null,
   "grounded": true,
@@ -494,6 +512,7 @@
   "title": "Condition Register"
  },
  "consent": {
+  "audience": "common",
   "composed_by": [
    "propagate-consent-revocation-downstream",
    "resolve-a-persons-data-rights"
@@ -524,6 +543,7 @@
   "title": "Consent"
  },
  "credential": {
+  "audience": "common",
   "composed_by": [
    "actor-suspension",
    "authenticated-actor",
@@ -570,6 +590,7 @@
   "title": "Credential"
  },
  "customer-onboarding": {
+  "audience": "common",
   "composes": [
    "party-identity",
    "retention-window"
@@ -599,6 +620,7 @@
   "title": "Customer Onboarding"
  },
  "defensible-retention": {
+  "audience": "common",
   "composes": [
    "legal-hold",
    "retention-window"
@@ -630,6 +652,7 @@
   "title": "Defensible Retention"
  },
  "duplicate-prevention": {
+  "audience": "common",
   "composed_by": [
    "idempotent-reservation",
    "reserve-from-pool"
@@ -659,6 +682,7 @@
   "title": "Duplicate Prevention"
  },
  "erasure-tombstone": {
+  "audience": "common",
   "composed_by": [],
   "domain": null,
   "grounded": true,
@@ -676,6 +700,7 @@
   "title": "Erasure Tombstone"
  },
  "event-log": {
+  "audience": "common",
   "composed_by": [
    "audit-trail",
    "compensable-workflow",
@@ -720,6 +745,7 @@
   "title": "Event Log"
  },
  "execute-gated-workflow": {
+  "audience": "common",
   "composes": [
    "state-machine",
    "approval-step",
@@ -749,6 +775,7 @@
   "title": "Execute Gated Workflow"
  },
  "external-onboarding": {
+  "audience": "common",
   "composes": [
    "invitation",
    "credential",
@@ -779,6 +806,7 @@
   "title": "External Onboarding"
  },
  "favorite": {
+  "audience": "common",
   "composed_by": [],
   "domain": null,
   "grounded": true,
@@ -796,6 +824,7 @@
   "title": "Favorite"
  },
  "gift-card": {
+  "audience": "common",
   "composed_by": [],
   "domain": null,
   "grounded": true,
@@ -813,6 +842,7 @@
   "title": "Gift Card"
  },
  "idempotent-reservation": {
+  "audience": "common",
   "composes": [
    "provisional-commitment",
    "duplicate-prevention"
@@ -838,6 +868,7 @@
   "title": "Idempotent Reservation"
  },
  "immutable-ledger": {
+  "audience": "common",
   "composes": [
    "selective-disclosure"
   ],
@@ -867,6 +898,7 @@
   "title": "Immutable Ledger with Selective Disclosure"
  },
  "invitation": {
+  "audience": "common",
   "composed_by": [
    "external-onboarding"
   ],
@@ -895,6 +927,7 @@
   "title": "Invitation"
  },
  "lease": {
+  "audience": "common",
   "composed_by": [
    "recoverable-invocation"
   ],
@@ -922,6 +955,7 @@
   "title": "Lease"
  },
  "legal-hold": {
+  "audience": "common",
   "composed_by": [
    "defensible-retention"
   ],
@@ -950,6 +984,7 @@
   "title": "Legal Hold"
  },
  "login": {
+  "audience": "common",
   "composes": [
    "credential",
    "session"
@@ -979,6 +1014,7 @@
   "title": "Login"
  },
  "medication-order": {
+  "audience": "common",
   "composed_by": [],
   "domain": "healthcare",
   "grounded": true,
@@ -996,6 +1032,7 @@
   "title": "Medication Order"
  },
  "message-preference": {
+  "audience": "common",
   "composed_by": [
    "preference-aware-notification-fanout"
   ],
@@ -1019,6 +1056,7 @@
   "title": "Message Preference"
  },
  "moderation": {
+  "audience": "common",
   "composed_by": [],
   "domain": null,
   "grounded": true,
@@ -1036,6 +1074,7 @@
   "title": "Moderation"
  },
  "money": {
+  "audience": "common",
   "composed_by": [],
   "domain": null,
   "grounded": true,
@@ -1053,6 +1092,7 @@
   "title": "Money"
  },
  "multi-party-approval": {
+  "audience": "common",
   "composes": [
    "approval-step",
    "permissions",
@@ -1085,6 +1125,7 @@
   "title": "Multi-Party Approval"
  },
  "notification": {
+  "audience": "common",
   "composed_by": [
    "notification-fanout",
    "preference-aware-notification-fanout"
@@ -1110,6 +1151,7 @@
   "title": "Notification"
  },
  "notification-fanout": {
+  "audience": "common",
   "composes": [
    "subscription",
    "notification"
@@ -1129,6 +1171,7 @@
   "title": "Notification Fanout"
  },
  "observation": {
+  "audience": "common",
   "composed_by": [],
   "domain": null,
   "grounded": true,
@@ -1146,6 +1189,7 @@
   "title": "Observation"
  },
  "owed-record": {
+  "audience": "common",
   "composed_by": [],
   "domain": null,
   "grounded": true,
@@ -1163,6 +1207,7 @@
   "title": "Owed Record"
  },
  "party-identity": {
+  "audience": "common",
   "composed_by": [
    "customer-onboarding",
    "external-onboarding"
@@ -1196,6 +1241,7 @@
   "title": "Party Identity"
  },
  "permissions": {
+  "audience": "common",
   "composed_by": [
    "actor-suspension",
    "attributed-permissions-admin",
@@ -1246,6 +1292,7 @@
   "title": "Permissions"
  },
  "personal-todo": {
+  "audience": "common",
   "composed_by": [
    "shared-todo"
   ],
@@ -1267,6 +1314,7 @@
   "title": "Personal Todo"
  },
  "post": {
+  "audience": "common",
   "composed_by": [],
   "domain": null,
   "grounded": true,
@@ -1284,6 +1332,7 @@
   "title": "Post"
  },
  "preference-aware-notification-fanout": {
+  "audience": "common",
   "composes": [
    "subscription",
    "notification",
@@ -1307,6 +1356,7 @@
   "title": "Preference-Aware Notification Fanout"
  },
  "privileged-access-provisioning": {
+  "audience": "common",
   "composes": [
    "credential",
    "session",
@@ -1337,6 +1387,7 @@
   "title": "Privileged Access Provisioning"
  },
  "propagate-consent-revocation-downstream": {
+  "audience": "common",
   "composes": [
    "consent",
    "permissions",
@@ -1363,6 +1414,7 @@
   "title": "Propagate Consent Revocation Downstream"
  },
  "provenance": {
+  "audience": "common",
   "composed_by": [
    "chain-of-custody"
   ],
@@ -1392,6 +1444,7 @@
   "title": "Provenance"
  },
  "provisional-commitment": {
+  "audience": "common",
   "composed_by": [
    "idempotent-reservation",
    "reserve-from-pool"
@@ -1421,6 +1474,7 @@
   "title": "Provisional Commitment"
  },
  "punch-card": {
+  "audience": "common",
   "composed_by": [],
   "domain": null,
   "grounded": true,
@@ -1438,6 +1492,7 @@
   "title": "Punch Card"
  },
  "reaction": {
+  "audience": "common",
   "composed_by": [],
   "domain": null,
   "grounded": true,
@@ -1455,6 +1510,7 @@
   "title": "Reaction"
  },
  "recoverable-invocation": {
+  "audience": "common",
   "composes": [
    "lease"
   ],
@@ -1491,6 +1547,7 @@
   "title": "Recoverable Invocation"
  },
  "recurrence": {
+  "audience": "common",
   "composed_by": [],
   "domain": null,
   "grounded": true,
@@ -1508,6 +1565,7 @@
   "title": "Recurrence"
  },
  "reserve-from-pool": {
+  "audience": "common",
   "composes": [
    "provisional-commitment",
    "capacity-constraint-enforcement",
@@ -1532,6 +1590,7 @@
   "title": "Reserve from Pool"
  },
  "resolve-a-persons-data-rights": {
+  "audience": "common",
   "composes": [
    "selective-disclosure",
    "consent"
@@ -1560,6 +1619,7 @@
   "title": "Resolve a Person's Data Rights"
  },
  "restorable-delete": {
+  "audience": "common",
   "composed_by": [],
   "domain": null,
   "grounded": true,
@@ -1577,6 +1637,7 @@
   "title": "Restorable Delete"
  },
  "retention-window": {
+  "audience": "common",
   "composed_by": [
    "audit-trail",
    "customer-onboarding",
@@ -1625,6 +1686,7 @@
   "title": "Retention Window"
  },
  "role": {
+  "audience": "common",
   "composed_by": [],
   "domain": null,
   "grounded": true,
@@ -1642,6 +1704,7 @@
   "title": "Role"
  },
  "selective-disclosure": {
+  "audience": "common",
   "composed_by": [
    "capability-backed-sharing",
    "immutable-ledger",
@@ -1676,6 +1739,7 @@
   "title": "Selective Disclosure"
  },
  "session": {
+  "audience": "common",
   "composed_by": [
    "actor-suspension",
    "login",
@@ -1715,6 +1779,7 @@
   "title": "Session"
  },
  "session-gated-authorization": {
+  "audience": "common",
   "composes": [
    "session",
    "permissions"
@@ -1741,6 +1806,7 @@
   "title": "Session-Gated Authorization"
  },
  "shared-cart": {
+  "audience": "common",
   "composes": [
    "cart",
    "permissions",
@@ -1761,6 +1827,7 @@
   "title": "Shared Cart"
  },
  "shared-todo": {
+  "audience": "common",
   "composes": [
    "personal-todo",
    "permissions",
@@ -1781,6 +1848,7 @@
   "title": "Shared Todo"
  },
  "state-machine": {
+  "audience": "common",
   "composed_by": [
    "compensable-workflow",
    "execute-gated-workflow"
@@ -1811,6 +1879,7 @@
   "title": "State Machine"
  },
  "subscription": {
+  "audience": "common",
   "composed_by": [
    "notification-fanout",
    "preference-aware-notification-fanout"
@@ -1836,6 +1905,7 @@
   "title": "Subscription"
  },
  "tag": {
+  "audience": "common",
   "composed_by": [],
   "domain": null,
   "grounded": true,
@@ -1853,6 +1923,7 @@
   "title": "Tag"
  },
  "tamper-evidence": {
+  "audience": "common",
   "composed_by": [
    "audit-trail"
   ],
@@ -1889,6 +1960,7 @@
   "title": "Tamper Evidence"
  },
  "tenure": {
+  "audience": "common",
   "composed_by": [],
   "domain": null,
   "grounded": true,
@@ -1906,6 +1978,7 @@
   "title": "Tenure"
  },
  "verified-repair": {
+  "audience": "internal",
   "composes": [],
   "grounded": true,
   "invariants": 8,
@@ -1925,6 +1998,7 @@
   "title": "Verified Repair"
  },
  "waitlist": {
+  "audience": "common",
   "composed_by": [],
   "domain": null,
   "grounded": true,

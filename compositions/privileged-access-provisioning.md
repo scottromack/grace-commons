@@ -1,6 +1,7 @@
 ---
 title: Privileged Access Provisioning
 id: 23
+audience: common
 parent: Conceptual Compositions
 nav_order: 9
 has_toc: true

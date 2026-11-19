@@ -1,6 +1,7 @@
 ---
 title: Retention Window
 id: 56
+audience: common
 parent: Atomic Concepts
 has_toc: true
 toc: true

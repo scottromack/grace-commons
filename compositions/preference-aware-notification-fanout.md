@@ -1,6 +1,7 @@
 ---
 title: Preference-Aware Notification Fanout
 id: 11
+audience: common
 parent: Conceptual Compositions
 has_toc: true
 toc: true

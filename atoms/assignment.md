@@ -1,6 +1,7 @@
 ---
 title: Assignment
 id: 30
+audience: common
 parent: Atomic Concepts
 has_toc: true
 toc: true

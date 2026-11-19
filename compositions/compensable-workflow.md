@@ -1,6 +1,7 @@
 ---
 title: Compensable Workflow
 id: 19
+audience: common
 parent: Conceptual Compositions
 nav_order: 12
 has_toc: true

@@ -1,6 +1,7 @@
 ---
 title: Idempotent Reservation
 id: 22
+audience: common
 parent: Conceptual Compositions
 nav_order: 2
 has_toc: true

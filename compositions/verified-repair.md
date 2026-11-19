@@ -1,6 +1,7 @@
 ---
 title: Verified Repair
 id: 27
+audience: internal
 parent: Conceptual Compositions
 nav_order: 24
 has_toc: true

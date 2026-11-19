@@ -1,6 +1,7 @@
 ---
 title: Communication
 id: 66
+audience: common
 parent: Atomic Concepts
 has_toc: true
 toc: true

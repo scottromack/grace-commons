@@ -1,6 +1,7 @@
 ---
 title: Event Log
 id: 40
+audience: common
 parent: Atomic Concepts
 has_toc: true
 toc: true

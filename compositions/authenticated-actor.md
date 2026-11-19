@@ -1,6 +1,7 @@
 ---
 title: Authenticated Actor
 id: 17
+audience: common
 parent: Conceptual Compositions
 nav_order: 21
 has_toc: true

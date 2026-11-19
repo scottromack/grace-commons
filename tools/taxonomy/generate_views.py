@@ -41,7 +41,8 @@ def main():
     args = [a for a in sys.argv[1:] if not a.startswith("--")]
     root = pathlib.Path(args[0]) if args else pathlib.Path(".")
     index, comps = build_index(root)
-    atoms = sorted(index)
+    internal = sorted(a for a in index if index[a]["audience"] == "internal")
+    atoms = sorted(a for a in index if index[a]["audience"] != "internal")
     reg_comps = sorted(c["name"] for c in comps if c["regulated"])
     edges = sum(len(c["atoms"]) for c in comps)
 
@@ -167,6 +168,14 @@ def main():
     for a in unc:
         P(f"- {link(a)}")
     P("")
+    if internal:
+        P("## How Grace runs itself")
+        P("")
+        P("Atoms Grace runs on itself (`audience: internal`), kept out of every lens above.")
+        P("")
+        for a in internal:
+            P(f"- {link(a)}")
+        P("")
     P("---")
     P("")
     P("For structured assemblies of atoms, see [Compositions](../compositions/).")

@@ -1,6 +1,7 @@
 ---
 title: Recurrence
 id: 55
+audience: common
 parent: Atomic Concepts
 has_toc: true
 toc: true
