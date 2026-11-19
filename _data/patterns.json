@@ -1536,7 +1536,7 @@
    "selective-disclosure",
    "consent"
   ],
-  "grounded": false,
+  "grounded": true,
   "invariants": 8,
   "kind": "composition",
   "models": {
@@ -1553,7 +1553,7 @@
    "SEC 17a-4",
    "SOX"
   ],
-  "status": "doing",
+  "status": "done \u2014 2026-11-19",
   "substrates": [
    "defensible-retention"
   ],
