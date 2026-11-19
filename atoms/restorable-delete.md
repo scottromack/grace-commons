@@ -464,14 +464,14 @@ Restorable Delete is a primitive with no regulatory anchor. It inherits from:
 
 ## Status
 
-`doing` — see the Ledger.
+`done — 2026-11-19` — see the Ledger.
 
 ## Ledger
 
 ```
-status: doing
+status: done — 2026-11-19
 formal: pending — no model yet
-last gate: 2026-11-18 — Final Critique 1, frozen at 27b7fd47 — foundational count 3, cured by the settle, not clean, no sample
+last gate: 2026-11-19 — Final Critique 2, a delta round, one reader (Linus nemotron-3.5-super-vl-free), frozen at bcecf938 — foundational count 0 after the blind second triage, clean, one sample; Linus's one foundational claim and two refining remarks placed none held by both triages (the foundational refuted: Operation 9 lands restore-window-closed, which [Restore] lists on its refuses line, and Operation 10 says what the action writes, which Execution Contract Read 4 holds only for a call the action admits, so a refused call writes nothing and no build reads the two as competing; the cure would restate Read 4; refining: the NOTE under State 4 is the open line 2026-11-18-a, and the restore window's default read at start is Execution Contract Logic confinement 17, which Capability requirement 4 cites); the round read the reach of Final Critique 1's cures (46 labels) by their diff, and the blind second triage's press found no foundational; 2026-11-18 — Final Critique 1, frozen at 27b7fd47 — foundational count 3, cured by the settle, not clean, no sample
 
 open:
 - 2026-11-18-a · refining · Operation 13 · nothing says whether Purge is irreversible in the sense of Execution Contract Undo 1 or a state made final that erases nothing → decide which, and name the irreversible action in its own rules if it is
