@@ -1,7 +1,7 @@
 {
  "alloy_commands": 25010,
  "atoms": 48,
- "commits": 2002,
+ "commits": 2003,
  "compositions": 26,
  "grounded": 73,
  "grounded_atoms": 48,
@@ -10,6 +10,6 @@
  "patterns": 74,
  "states_millions": "30.3",
  "states_models": 26869912,
- "states_twins": 3383853,
- "twins": 1911
+ "states_twins": 3384106,
+ "twins": 1912
 }

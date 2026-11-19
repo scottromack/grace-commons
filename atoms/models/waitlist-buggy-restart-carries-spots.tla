@@ -326,8 +326,9 @@ CallNextEmpty(w) ==
 
 \* CallNextCalls: a [Call Next] on an open waitlist with someone waiting
 \* stands the front spot in called (Operation 22), changes no other spot
-\* (Operation 24), and answers the front spot's spot id and person
-\* reference (Operation 23).
+\* (Operation 24), and answers the spot id and person reference of the
+\* front spot as the waitlist stood before that write (Operation 23): f is
+\* read in the state the call found.
 CallNextCalls(w) ==
     /\ wst[w] = "open"
     /\ WaitingOf(w) # {}
@@ -397,9 +398,10 @@ ReadWaitlistUnknown(w) ==
 
 \* ReadWaitlistKnown: a [Read Waitlist] answers the waitlist's waitlist id,
 \* offering reference and waitlist state (Operation 32), and every waiting
-\* spot of it, lowest join number first (Operation 33), and no spot that is
-\* not waiting (Operation 36), each with its spot id, person reference, join
-\* number and join instant (Operation 34), and writes nothing (Operation 35).
+\* spot of it, lowest join number first (Operation 33), and no spot other
+\* than a waiting spot of it (Operation 36), each with its spot id, person
+\* reference, join number and join instant (Operation 34), and writes
+\* nothing (Operation 35).
 ReadWaitlistKnown(w) ==
     /\ wst[w] # "none"
     /\ last' = [NoCall EXCEPT !.op = "read_waitlist", !.w = w, !.ans = "waitlist",
@@ -636,9 +638,11 @@ Op22_CallNextCallsFront ==
     [][(last'.op = "call_next" /\ CallNextAdmitted(last'.w))
          => sst'[Front(last'.w)] = "called"]_vars
 
-\* Op23_CallNextAnswersFront: such a [Call Next] answered the front spot's
-\* spot id and person reference: call_next(w1) answers s-9fQ2 and "ana"
-\* (Operation 23).
+\* Op23_CallNextAnswersFront: such a [Call Next] answered the spot id and
+\* person reference of the front spot as the waitlist stood before the write
+\* of Operation 22, the spot it called and not the next one in line:
+\* call_next(w1) answers s-9fQ2 and "ana", not Cara's spot (Operation 23).
+\* Front and sper are read unprimed, in the state before the step.
 Op23_CallNextAnswersFront ==
     [][(last'.op = "call_next" /\ CallNextAdmitted(last'.w))
          => (last'.ans = "spot" /\ last'.id = Front(last'.w)
@@ -713,11 +717,19 @@ Op33_ReadWaitlistEveryWaitingInOrder ==
                     => last'.rw.spots[k].num < last'.rw.spots[k + 1].num)]_vars
 
 \* Op36_ReadWaitlistOnlyWaiting: every spot such a [Read Waitlist] answered
-\* is a waiting spot of the waitlist: Ana's called spot and Ben's left one
-\* are not in the pottery class's read_waitlist(w1) (Operation 36).
+\* is a waiting spot of the waitlist read: standing in waiting, and carrying
+\* that waitlist's id. Ana's called spot and Ben's left one are not in the
+\* pottery class's read_waitlist(w1), and neither is a spot waiting on
+\* another waitlist, as Sam's on the size-42 list is not in a read of the
+\* size-43 one (Operation 36). The two waitlist ids of the .cfg let one
+\* waitlist be read while a spot waits on the other.
 Op36_ReadWaitlistOnlyWaiting ==
     [][(last'.op = "read_waitlist" /\ wst[last'.w] # "none")
-         => \A k \in DOMAIN last'.rw.spots : last'.rw.spots[k].sid \in WaitingOf(last'.w)]_vars
+         => \A k \in DOMAIN last'.rw.spots :
+              LET s == last'.rw.spots[k].sid IN
+                /\ s \in SIds
+                /\ sst[s] = "waiting"
+                /\ swl[s] = last'.w]_vars
 
 \* Op34_ReadWaitlistSpotFields: every spot such a [Read Waitlist] answered
 \* came with its spot id, person reference, join number and join instant
