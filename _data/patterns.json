@@ -1269,7 +1269,7 @@
  "post": {
   "composed_by": [],
   "domain": null,
-  "grounded": false,
+  "grounded": true,
   "invariants": 2,
   "kind": "atom",
   "models": {
@@ -1280,7 +1280,7 @@
   "regulated_by": [],
   "security": false,
   "standards": [],
-  "status": "doing",
+  "status": "done \u2014 2026-11-19",
   "title": "Post"
  },
  "preference-aware-notification-fanout": {
