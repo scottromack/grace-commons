@@ -1,7 +1,8 @@
 -- permissions.als
 -- Alloy structural model for the Permissions atom (Grace Commons atoms/permissions.md)
--- Grounded on Final Critique 10, 2026-11-04 at 582c382 — Alloy layer authored 2026-06-03,
--- re-derived 2026-11-12 as a single-state model.
+-- Grounded on Final Critique 12, 2026-11-17 at db491965 — Alloy layer authored 2026-06-03,
+-- re-derived 2026-11-12 as a single-state model, and 2026-11-19 over the rule of 2026-11-16
+-- (a pair is held once: Identity 7, Invariant 11.1, Operation 34).
 -- Derived validator; the English spec is the single source of truth. On any
 -- disagreement, diagnose per the entry *The conflict protocol* in pressure-testing.md.
 --
@@ -30,24 +31,30 @@
 --   Operation 5    — no grant carries a blank action scope.
 --   String 6       — no grant carries a subject reference or an action scope over the
 --                    string cap.
+--   Invariant 11.1 — the active grant set, as it stands after any call, holds no two grants
+--                    over one pair (Identity 7, Check 7.1 with it).
 --
 -- NOT CHECKED HERE (across steps or calls' answers; the TLA+ model's)
 --   Invariant 1.1, 1.2, 2.2, 4.1, 4.2, 5.1, 7.1, 9.1, 9.2 and 10.1, Identity 8, Check 2.1,
---   Operation 1, 6, 7, 9 to 11, 15, 17, 20, 26 and 28: each compares a grant with a later
---   state of itself, or reads what a call answered or wrote. The 2026-06-03 model's
---   pre/post checks (A_I1, A_I2, A_I3, A_I10) and its checks of [Check]'s answer (A_I7,
---   A_I8) are taken over there.
+--   Operation 1, 7, 9 to 11, 15, 17, 20, 26, 28, 33 and 34, Grant concurrency 1: each
+--   compares a grant with a later state of itself, or reads what a call answered or wrote
+--   (what Operation 34 leaves in the records is read here, through Invariant 11.1). The
+--   2026-06-03 model's pre/post checks (A_I1, A_I2, A_I3, A_I10) and its checks of
+--   [Check]'s answer (A_I7, A_I8) are taken over there.
 --
 -- SCOPE
 -- A state is what a sequence of admitted calls leaves. Each call is one atom, in the order
 -- Execution Contract Order 1 gives every commit. [Grant] records a grant in active
--- (Operation 1, 2); [Revoke] records a later version of a grant over the version it found
+-- (Operation 1, 2) where no active grant matches its pair, and writes nothing where one does
+-- (Operation 34); [Revoke] records a later version of a grant over the version it found
 -- (Operation 11). A call finds only what was committed before it (Execution Contract
--- Database 2). The model does not ask whether the version a [Revoke] found was still the
--- latest one, so it builds every record a state can hold and some no state reaches; a check
--- that holds over all of them holds over the records. Every version is checked, since each
--- was the record once. A before/after pair builds a version; nothing is checked across
--- the pair. No trace, no `var`, no stepping.
+-- Database 2), and [Grant]'s guard reads the grants standing just before it, each the latest
+-- version of its grant then. The state after a call is every recorded version written by it
+-- or before it that no [Revoke] by then wrote over. The model does not ask whether the
+-- version a [Revoke] found was still the latest one, so it builds every record a state can
+-- hold and some no state reaches; a check that holds over all of them holds over the
+-- records. Every version is checked, since each was the record once. A before/after pair
+-- builds a version; nothing is checked across the pair. No trace, no `var`, no stepping.
 -- Subject references and action scopes are opaque strings (Term subject reference, Term
 -- action scope); a string in Strings.blank is an empty or whitespace-only one (String 5).
 -- Grant ids are opaque tokens the host allocates at the seam (Identity 2). Instants are
@@ -161,6 +168,17 @@ fun origin[r : Rec] : set GrantCall {
     first[r].writtenBy & GrantCall
 }
 
+-- standsBefore: the version v stands just before the call c: an earlier call wrote it, and
+-- no [Revoke] before c wrote a version over it, so it is the latest version of its grant that
+-- c finds (Execution Contract Database 2). Every version is asked, so one a stale write left
+-- can only hold a [Grant] back, never let one through.
+pred standsBefore[v : Rec, c : Call] {
+    C/lt[v.writtenBy, c]
+    no w : Rec | w.found = v and w.writtenBy in RevokeCall
+        and C/lt[v.writtenBy, w.writtenBy] and C/lt[w.writtenBy, c]
+        and revokeWrites[v, w.writtenBy, w]
+}
+
 -- ─────────────────────────────────────────────────────────────────────────────
 -- The writing actions: their guards and their writes
 -- ─────────────────────────────────────────────────────────────────────────────
@@ -169,11 +187,14 @@ fun origin[r : Rec] : set GrantCall {
 -- subject reference and the action scope not blank (Operation 4, 5) and within the string
 -- cap (String 6). The grant carries the grant id the host allocated (Identity 2, Invariant
 -- 4.1), the pair as the call carries it, the injected now as its grant instant (State 4),
--- status active (Operation 2), and no revocation instant. A pair an active grant already
--- covers is no ground for refusal (Operation 6).
+-- status active (Operation 2), and no revocation instant. It records a grant only where no
+-- active grant over the pair stands just before it (Operation 1, Operation 34: a held pair
+-- writes nothing; what such a call answers, Operation 33, is the TLA+ model's).
 pred grantWrites[c : GrantCall, r : Rec] {
     usable[c.subjIn]                                                  -- Operation 4, String 6
     usable[c.scopeIn]                                                 -- Operation 5, String 6
+    no v : Rec | standsBefore[v, c] and Active in v.status
+        and v.subject = c.subjIn and v.scope = c.scopeIn              -- Operation 34, Operation 1
     r.grantId   = c.idIn                                              -- Identity 2
     r.subject   = c.subjIn                                            -- Operation 1
     r.scope     = c.scopeIn                                           -- Operation 1
@@ -212,6 +233,13 @@ pred written[v : Rec] {
 -- was built from are what an admitted call wrote.
 pred recorded[r : Rec] {
     all v : r.*found | written[v]
+}
+
+-- stateAfter: the grant records as they stand once the call k has committed: every recorded
+-- version written by k or before it over which no [Revoke] by then wrote a later version.
+fun stateAfter[k : Call] : set Rec {
+    { r : Rec | recorded[r] and C/lte[r.writtenBy, k]
+        and no w : Rec | recorded[w] and w.found = r and C/lte[w.writtenBy, k] }
 }
 
 -- ─────────────────────────────────────────────────────────────────────────────
@@ -301,6 +329,16 @@ assert A_String_6 {
 }
 check A_String_6 for 4 but 4 Int
 
+-- A_Invariant_11_1: in the grant records as they stand after any call, no two grants whose
+-- status holds active are over one pair: two such versions are versions of one grant, carrying
+-- one grant id (Invariant 11.1, Identity 7, Check 7.1).
+assert A_Invariant_11_1 {
+    all k : Call | all r1, r2 : stateAfter[k] |
+        (Active in r1.status and Active in r2.status
+            and r1.subject = r2.subject and r1.scope = r2.scope) implies r1.grantId = r2.grantId
+}
+check A_Invariant_11_1 for 4 but 4 Int
+
 -- ─────────────────────────────────────────────────────────────────────────────
 -- Satisfiability runs — non-vacuity guards, one for each shape the page admits
 -- Each run must find at least one instance (SAT).
@@ -318,20 +356,23 @@ run ShowRevoked {
     some r : Rec | recorded[r] and r.status = Revoked and some r.revokedAt
 } for 4 but 4 Int
 
--- ShowTwoGrantsOnePair: two independent grants over one pair, each with its own grant id,
--- which the page admits (Identity 7, Operation 6).
-run ShowTwoGrantsOnePair {
-    some r1, r2 : Rec | recorded[r1] and recorded[r2] and origin[r1] != origin[r2]
-        and r1.subject = r2.subject and r1.scope = r2.scope
-        and r1.grantId != r2.grantId
+-- ShowPairGrantedAgain: a pair granted, revoked and granted again, the second grant a new one
+-- with its own grant id, the first standing revoked beside it, as the page admits (a revoked
+-- pair may be granted again, as a new grant; Identity 7 holds over the active grants alone).
+run ShowPairGrantedAgain {
+    some k : Call | some r1, r2 : stateAfter[k] |
+        r1.subject = r2.subject and r1.scope = r2.scope and r1.grantId != r2.grantId
+        and r1.status = Revoked and r2.status = Active
 } for 4 but 4 Int
 
--- ShowPartialRevocation: two grants over one pair, one revoked and one still active: a
--- revoke reaches one grant (Identity 8), and the pair stays covered.
-run ShowPartialRevocation {
-    some r1, r2 : Rec | recorded[r1] and recorded[r2] and origin[r1] != origin[r2]
-        and r1.subject = r2.subject and r1.scope = r2.scope
-        and r1.status = Active and r2.status = Revoked
+-- ShowHeldPairNotRecorded: a [Grant] of a pair an active grant already holds records nothing,
+-- the earlier grant standing alone over the pair, as teller_t9's second grant of
+-- initiate:transfer answers g1 (Operation 34, Identity 7).
+run ShowHeldPairNotRecorded {
+    some disj c1, c2 : GrantCall | C/lt[c1, c2] and c1.subjIn = c2.subjIn
+        and c1.scopeIn = c2.scopeIn and usable[c2.subjIn] and usable[c2.scopeIn]
+        and (some r : stateAfter[c2] | r.writtenBy = c1 and r.status = Active)
+        and no r : Rec | recorded[r] and r.writtenBy = c2
 } for 4 but 4 Int
 
 -- ShowRevokedAtItsGrantInstant: a grant revoked at the clock reading it was granted at,
